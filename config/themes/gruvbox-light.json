@@ -1,0 +1,42 @@
+{
+  "name": "Gruvbox Light",
+  "author": "morhetz",
+  "variant": "light",
+  "paired": "gruvbox-dark",
+  "colors": {
+    "base00": "#fbf1c7",
+    "base01": "#ebdbb2",
+    "base02": "#d5c4a1",
+    "base03": "#bdae93",
+    "base04": "#665c54",
+    "base05": "#504945",
+    "base06": "#3c3836",
+    "base07": "#282828",
+    "base08": "#cc241d",
+    "base09": "#d65d0e",
+    "base0A": "#d79921",
+    "base0B": "#98971a",
+    "base0C": "#689d6a",
+    "base0D": "#458588",
+    "base0E": "#b16286",
+    "base0F": "#af3a03"
+  },
+  "semantic": {
+    "background": "base00",
+    "backgroundAlt": "base01",
+    "backgroundHighlight": "base02",
+    "foreground": "base05",
+    "foregroundAlt": "base04",
+    "foregroundHighlight": "base06",
+    "foregroundInactive": "base03",
+    "border": "base03",
+    "borderFocus": "base0D",
+    "accent": "base0E",
+    "accentAlt": "base0D",
+    "success": "base0B",
+    "warning": "base0A",
+    "error": "base08",
+    "info": "base0C"
+  }
+}
+

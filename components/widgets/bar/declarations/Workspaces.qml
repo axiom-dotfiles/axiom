@@ -17,7 +17,7 @@ Item {
   property int orientation: Settings.orientation
   property bool isVertical: orientation === Qt.Vertical
 
-  property color activeColor: Colors.accent
+  property color activeColor: Theme.accent
   property color inactiveColor: Colors.outline
   property color emptyColor: Colors.bgAlt
 
@@ -161,7 +161,7 @@ Item {
       Layout.preferredWidth: Settings.widgetHeight
       Layout.preferredHeight: Settings.widgetHeight
 
-      radius: Settings.borderRadius
+      radius: Appearance.borderRadius
       color: isActive ? root.activeColor : hasWindows ? root.inactiveColor : root.emptyColor
 
       Text {

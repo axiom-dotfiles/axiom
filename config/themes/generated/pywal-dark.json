@@ -1,0 +1,46 @@
+{
+  "name": "Generated Dark",
+  "author": "pywal",
+  "variant": "dark",
+  "paired": "pywal-light",
+  "generated": {
+    "source": "pywal",
+    "wallpaper": "/path/to/wallpaper.jpg",
+    "timestamp": "2025-01-24T12:00:00Z"
+  },
+  "colors": {
+    "base00": "#1a1b26",
+    "base01": "#24283b",
+    "base02": "#343a52",
+    "base03": "#444b6a",
+    "base04": "#787c99",
+    "base05": "#a9b1d6",
+    "base06": "#c0caf5",
+    "base07": "#d5d6db",
+    "base08": "#f7768e",
+    "base09": "#ff9e64",
+    "base0A": "#e0af68",
+    "base0B": "#9ece6a",
+    "base0C": "#7dcfff",
+    "base0D": "#7aa2f7",
+    "base0E": "#bb9af7",
+    "base0F": "#ff007c"
+  },
+  "semantic": {
+    "background": "base00",
+    "backgroundAlt": "base01",
+    "backgroundHighlight": "base02",
+    "foreground": "base05",
+    "foregroundAlt": "base04",
+    "foregroundHighlight": "base06",
+    "foregroundInactive": "base03",
+    "border": "base03",
+    "borderFocus": "base0D",
+    "accent": "base0D",
+    "accentAlt": "base0E",
+    "success": "base0B",
+    "warning": "base0A",
+    "error": "base08",
+    "info": "base0C"
+  }
+}

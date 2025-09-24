@@ -1,0 +1,41 @@
+{
+  "name": "Catppuccin Latte",
+  "author": "catppuccin",
+  "variant": "light",
+  "paired": "catppuccin-mocha",
+  "colors": {
+    "base00": "#eff1f5",
+    "base01": "#e6e9ef",
+    "base02": "#ccd0da",
+    "base03": "#bcc0cc",
+    "base04": "#8c8fa1",
+    "base05": "#4c4f69",
+    "base06": "#343541",
+    "base07": "#1e1e2e",
+    "base08": "#d20f39",
+    "base09": "#fe640b",
+    "base0A": "#df8e1d",
+    "base0B": "#40a02b",
+    "base0C": "#179299",
+    "base0D": "#1e66f5",
+    "base0E": "#8839ef",
+    "base0F": "#dd7878"
+  },
+  "semantic": {
+    "background": "base00",
+    "backgroundAlt": "base01",
+    "backgroundHighlight": "base02",
+    "foreground": "base05",
+    "foregroundAlt": "base04",
+    "foregroundHighlight": "base06",
+    "foregroundInactive": "base03",
+    "border": "base02",
+    "borderFocus": "base0D",
+    "accent": "base0D",
+    "accentAlt": "base0E",
+    "success": "base0B",
+    "warning": "base0A",
+    "error": "base08",
+    "info": "base0C"
+  }
+}

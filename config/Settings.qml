@@ -8,22 +8,11 @@ QtObject {
   // ---- Add more user settings here over time ----
   property string theme: "Gruxbox"   // only setting for now
 
-  // readonly property QtObject appearance: QtObject {
-  //   property bool dark: true
-  // }
-  //
-  // readonly property QtObject animations: QtObject {
-  // }
-  //
   readonly property QtObject display: QtObject {
     readonly property string primary: "DP-1"
     property int resolutionWidth: 3440
     property int resolutionHeight: 1440
   }
-
-  // readonly property QtObject bar: QtObject {
-  //
-  // }
 
   // Resolved theme object (auto-updates when 'theme' changes)
   readonly property var currentTheme: ThemeIndex.get(theme)

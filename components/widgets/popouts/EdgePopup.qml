@@ -145,16 +145,16 @@ Item {
             __animating = false;
           }
 
-          Item {
+          Loader {
             id: contentArea
             anchors.fill: parent
           }
 
-          MouseArea {
-            anchors.fill: parent
-            enabled: root.active && root.closeOnClickOutside
-            onClicked: root.hide()
-          }
+          // MouseArea {
+          //   anchors.fill: parent
+          //   enabled: root.active && root.closeOnClickOutside
+          //   onClicked: root.hide()
+          // }
 
           MouseArea {
             anchors.fill: parent

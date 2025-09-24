@@ -1,8 +1,10 @@
 pragma ComponentBehavior: Bound
+
 import QtQuick
 
 import qs.components.widgets.popouts
 import qs.components.widgets.reusable
+import qs.components.widgets.menu
 import qs.config
 import qs.services
 
@@ -15,18 +17,15 @@ Item {
     enableTrigger: true
     useImplicitSize: true
     triggerLength: 1500
-    edgeMargin: 0
+    edgeMargin: 10
 
-      Rectangle {
-        color: "transparent"
-        implicitWidth: 800
-        implicitHeight: 1440 - 100
-        Rectangle {
-          anchors.centerIn: parent
-          implicitWidth: 700
-          implicitHeight: 1200
-          color: "darkblue"
-        }
+    // Loader {
+    //   id: powerPanelLoader
+    //   sourceComponent: PowerPanel {}
+    // }
+    PowerPanel {
+      id: powerPanel
     }
+
   }
 }

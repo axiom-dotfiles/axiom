@@ -1,0 +1,76 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Quickshell Configuration",
+  "type": "object",
+  "required": ["Config", "Display", "Appearance", "Bar", "Widget"],
+  "properties": {
+    "Config": {
+      "type": "object",
+      "properties": {
+        "userName": { "type": "string" },
+        "workspaceCount": { 
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10
+        },
+        "singleMonitor": { "type": "boolean" },
+        "customIconOverrides": { 
+          "type": "object",
+          "additionalProperties": { "type": "string" }
+        }
+      }
+    },
+    "Display": {
+      "type": "object",
+      "properties": {
+        "primary": { "type": "string" },
+        "resolutionWidth": { "type": "integer" },
+        "resolutionHeight": { "type": "integer" },
+        "monitors": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "Appearance": {
+      "type": "object",
+      "properties": {
+        "theme": { "type": "string" },
+        "darkMode": { "type": "boolean" },
+        "borderRadius": { "type": "integer" },
+        "borderWidth": { "type": "integer" },
+        "screenMargin": { "type": "integer" },
+        "fontFamily": { "type": "string" },
+        "fontSize": { "type": "integer" },
+        "autoThemeSwitch": { "type": "boolean" },
+        "generatedThemeSource": {
+          "type": "string",
+          "enum": ["pywal", "material", "custom"]
+        }
+      }
+    },
+    "Bar": {
+      "type": "object",
+      "properties": {
+        "height": { "type": "integer" },
+        "vertical": { "type": "boolean" },
+        "rightSide": { "type": "boolean" },
+        "bottom": { "type": "boolean" },
+        "autoHide": { "type": "boolean" },
+        "showOnAllMonitors": { "type": "boolean" }
+      }
+    },
+    "Widget": {
+      "type": "object",
+      "properties": {
+        "height": { "type": "integer" },
+        "padding": { "type": "integer" },
+        "spacing": { "type": "integer" },
+        "containerWidth": { "type": "integer" },
+        "workspacePopoutIcons": { "type": "boolean" },
+        "animations": { "type": "boolean" },
+        "animationDuration": { "type": "integer" }
+      }
+    }
+  }
+}

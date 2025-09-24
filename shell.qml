@@ -5,9 +5,14 @@
 
 import Quickshell
 import "modules"
+import "config/lib"
 
 ShellRoot {
   id: shellRoot
+
+  HotReload {
+    id: hotReload
+  }
 
   Bar {
     id: mainBar

@@ -1,0 +1,105 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Quickshell Theme",
+  "type": "object",
+  "required": ["name", "variant", "colors", "semantic"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Display name of the theme"
+    },
+    "author": {
+      "type": "string",
+      "description": "Theme author"
+    },
+    "variant": {
+      "type": "string",
+      "enum": ["dark", "light"],
+      "description": "Theme variant (dark or light)"
+    },
+    "paired": {
+      "type": "string",
+      "description": "Name of the paired theme for auto-switching"
+    },
+    "generated": {
+      "type": "object",
+      "properties": {
+        "source": {
+          "type": "string",
+          "enum": ["pywal", "material", "custom"]
+        },
+        "wallpaper": {
+          "type": "string"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "colors": {
+      "type": "object",
+      "required": [
+        "base00",
+        "base01",
+        "base02",
+        "base03",
+        "base04",
+        "base05",
+        "base06",
+        "base07",
+        "base08",
+        "base09",
+        "base0A",
+        "base0B",
+        "base0C",
+        "base0D",
+        "base0E",
+        "base0F"
+      ],
+      "patternProperties": {
+        "^base0[0-9A-F]$": {
+          "type": "string",
+          "pattern": "^#[0-9a-fA-F]{6}$"
+        }
+      }
+    },
+    "semantic": {
+      "type": "object",
+      "required": [
+        "background",
+        "backgroundAlt",
+        "backgroundHighlight",
+        "foreground",
+        "foregroundAlt",
+        "foregroundHighlight",
+        "foregroundInactive",
+        "border",
+        "borderFocus",
+        "accent",
+        "accentAlt",
+        "success",
+        "warning",
+        "error",
+        "info"
+      ],
+      "properties": {
+        "background": { "type": "string" },
+        "backgroundAlt": { "type": "string" },
+        "backgroundHighlight": { "type": "string" },
+        "foreground": { "type": "string" },
+        "foregroundAlt": { "type": "string" },
+        "foregroundHighlight": { "type": "string" },
+        "foregroundInactive": { "type": "string" },
+        "border": { "type": "string" },
+        "borderFocus": { "type": "string" },
+        "accent": { "type": "string" },
+        "accentAlt": { "type": "string" },
+        "success": { "type": "string" },
+        "warning": { "type": "string" },
+        "error": { "type": "string" },
+        "info": { "type": "string" }
+      }
+    }
+  }
+}
