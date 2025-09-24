@@ -1,4 +1,5 @@
 pragma Singleton
+
 import QtQuick
 import "lib/ConfigLoader.js" as Loader
 

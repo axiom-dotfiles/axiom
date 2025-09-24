@@ -1,6 +1,5 @@
 pragma Singleton
 import QtQuick
-import qs.config.lib
 import "lib/ConfigLoader.js" as Loader
 
 QtObject {
