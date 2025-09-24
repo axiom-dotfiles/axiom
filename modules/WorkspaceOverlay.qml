@@ -26,7 +26,7 @@ Scope {
 
   IpcHandler {
     target: "workspaceOverlay"
-    
+
     function toggle(): void {
       console.log("Toggling workspace overlay");
       overlayWindow.visible = !overlayWindow.visible;
@@ -47,7 +47,7 @@ Scope {
 
   PanelWindow {
     id: overlayWindow
-    
+
     anchors {
       top: true
       bottom: true
@@ -85,7 +85,7 @@ Scope {
     HyprlandFocusGrab {
       windows: [overlayWindow]
       active: overlayWindow.visible
-      
+
       onCleared: {
         if (!active) {
           overlayWindow.visible = false;
@@ -101,7 +101,7 @@ Scope {
       anchors.leftMargin: Bar.vertical ? Appearance.borderWidth : Widget.containerWidth
       radius: Appearance.borderRadius
       color: root.overlayBgColor
-      
+
       Behavior on opacity {
         NumberAnimation {
           duration: root.fadeAnimationDuration

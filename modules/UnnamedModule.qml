@@ -22,6 +22,5 @@ Item {
     PowerPanel {
       id: powerPanel
     }
-
   }
 }
