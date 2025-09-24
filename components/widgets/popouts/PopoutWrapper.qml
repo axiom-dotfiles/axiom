@@ -85,7 +85,7 @@ Item {
     anchor {
       window: currentAnchor
       rect {
-        x: currentData ? (currentData.anchorX || 0) + Settings.widgetHeight + 8 : 0
+        x: currentData ? (currentData.anchorX || 0) + Widget.height + 8 : 0
         y: currentData ? (currentData.anchorY || 0) - 10 : 0
         width: Math.max(1, 20)
         height: Math.max(1, currentData ? currentData.anchorHeight : 40)
@@ -114,7 +114,7 @@ Item {
         height: combinedPopup.mainContentHeight
 
         active: false
-        slideFromRight: Settings.rightVerticalBar
+        slideFromRight: Bar.vertical
         animationDuration: 250
         enableFade: true
         easingType: Easing.OutCubic
@@ -122,9 +122,9 @@ Item {
         Rectangle {
           id: connectorContent
           anchors.fill: parent
-          color: Colors.surface
-          radius: Settings.borderRadius
-          border.color: Colors.fg
+          color: Theme.background
+          radius: Appearance.borderRadius
+          border.color: Theme.foreground
 
           Rectangle {
             anchors {
@@ -134,7 +134,7 @@ Item {
             }
             width: 1
             height: parent.height
-            color: Colors.surface
+            color: Theme.backgroundAlt
             // color: "red"
           }
         }

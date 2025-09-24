@@ -9,10 +9,10 @@ import qs.components.widgets.bar as Components
 Scope {
   id: root
 
-  property int barHeight: Settings.barHeight
-  property int barWidth: Settings.verticalBar ? Settings.barHeight : 0
-  property color backgroundColor: Colors.bg
-  property color foregroundColor: Colors.fg
+  property int barHeight: Bar.height
+  property int barWidth: Bar.vertical ? Bar.height : 0
+  property color backgroundColor: Theme.background
+  property color foregroundColor: Theme.foreground
 
   Variants {
     model: Quickshell.screens

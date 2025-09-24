@@ -8,9 +8,9 @@ import qs.config
 Item {
   id: root
 
-  property bool vertical: Settings.verticalBar
+  property bool vertical: Bar.vertical
   property alias model: repeater.model
-  property int spacing: Settings.widgetSpacing
+  property int spacing: Widget.spacing
   property int alignment: Qt.AlignHCenter
 
   implicitWidth: layout.implicitWidth

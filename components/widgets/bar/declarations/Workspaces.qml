@@ -14,12 +14,12 @@ Item {
 
 
   // Orientation support
-  property int orientation: Settings.orientation
+  property int orientation: Config.orientation
   property bool isVertical: orientation === Qt.Vertical
 
   property color activeColor: Theme.accent
-  property color inactiveColor: Colors.outline
-  property color emptyColor: Colors.bgAlt
+  property color inactiveColor: Theme.foregroundAlt
+  property color emptyColor: Theme.backgroundAlt
 
   readonly property HyprlandMonitor monitor: Hyprland.monitorFor(root.screen)
   // readonly property HyprlandWorkspace focusedWorkspace: Hyprland.workspaces.focused
@@ -39,8 +39,8 @@ Item {
   readonly property int groupSize: 5
 
   // Size for the clipped view in the bar
-  implicitWidth: isVertical ? Settings.widgetHeight : (groupSize * Settings.widgetHeight + (groupSize - 1) * 6)
-  implicitHeight: isVertical ? (groupSize * Settings.widgetHeight + (groupSize - 1) * 6) : Settings.widgetHeight
+  implicitWidth: isVertical ? Widget.height : (groupSize * Widget.height + (groupSize - 1) * 6)
+  implicitHeight: isVertical ? (groupSize * Widget.height + (groupSize - 1) * 6) : Widget.height
 
   function wsById(id) {
     const arr = Hyprland.workspaces.values;
@@ -88,7 +88,7 @@ Item {
         if (isVertical) {
           // Show only the specific column
           const columnIndex = groupBase - 1;  // 0-4
-          return -(columnIndex * (Settings.widgetHeight + 6));
+          return -(columnIndex * (Widget.height + 6));
         } else {
           return 0;  // Show all columns for horizontal
         }
@@ -98,7 +98,7 @@ Item {
         if (!isVertical) {
           // Show only the specific row
           const rowIndex = Math.floor((groupBase - 1) / 5);  // 0-4
-          return -(rowIndex * (Settings.widgetHeight + 6));
+          return -(rowIndex * (Widget.height + 6));
         } else {
           return 0;  // Show all rows for vertical
         }
@@ -158,8 +158,8 @@ Item {
       readonly property bool isActive: monitor.activeWorkspace && monitor.activeWorkspace.id === realId
       readonly property bool hasWindows: ws && ws.toplevels && ws.toplevels.values.length > 0
 
-      Layout.preferredWidth: Settings.widgetHeight
-      Layout.preferredHeight: Settings.widgetHeight
+      Layout.preferredWidth: Widget.height
+      Layout.preferredHeight: Widget.height
 
       radius: Appearance.borderRadius
       color: isActive ? root.activeColor : hasWindows ? root.inactiveColor : root.emptyColor
@@ -167,8 +167,8 @@ Item {
       Text {
         anchors.centerIn: parent
         text: root.formatIconVertical(realId)
-        font.family: Settings.fontFamily
-        font.pixelSize: Settings.fontSize * 1.2
+        font.family: Appearance.fontFamily
+        font.pixelSize: Appearance.fontSize * 1.2
         visible: isActive
       }
 

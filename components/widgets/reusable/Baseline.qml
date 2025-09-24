@@ -9,10 +9,10 @@ Item {
   id: root
 
   property int orientation: Qt.Horizontal
-  property color backgroundColor: Colors.surface
+  property color backgroundColor: Theme.background
   property alias content: contentLoader.sourceComponent
   property alias contentItem: contentLoader.item
-  property int padding: Settings.widgetPadding
+  property int padding: Widget.padding
 
   implicitWidth: contentLoader.item ? contentLoader.item.implicitWidth + padding * 2 : 0
   implicitHeight: contentLoader.item ? contentLoader.item.implicitHeight + padding * 2 : 0
@@ -20,7 +20,7 @@ Item {
   Rectangle {
     anchors.fill: parent
     color: root.backgroundColor
-    radius: Settings.borderRadius
+    radius: Appearance.borderRadius
   }
 
   Loader {

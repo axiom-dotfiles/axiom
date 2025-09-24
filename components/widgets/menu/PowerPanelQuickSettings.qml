@@ -10,22 +10,22 @@ import qs.components.methods
 Rectangle {
   id: root
 
-  color: Colors.surfaceAlt
-  radius: Settings.borderRadius
+  color: Theme.backgroundAlt
+  radius: Appearance.borderRadius
 
   // Top separator
   Rectangle {
     anchors.top: parent.top
     anchors.left: parent.left
     anchors.right: parent.right
-    height: Settings.borderWidth
-    color: Colors.border
+    height: Appearance.borderWidth
+    color: Theme.border
   }
 
   RowLayout {
     anchors.fill: parent
-    anchors.margins: Settings.widgetPadding
-    spacing: Settings.widgetSpacing
+    anchors.margins: Widget.padding
+    spacing: Widget.spacing
 
     // Application launchers with Nerd Font icons
     QuickLaunchButton {
@@ -65,21 +65,21 @@ Rectangle {
     id: btn
     property string tooltip: ""
     property string iconText: ""
-    Layout.preferredWidth: Settings.widgetHeight
-    Layout.preferredHeight: Settings.widgetHeight
+    Layout.preferredWidth: Widget.height
+    Layout.preferredHeight: Widget.height
 
     contentItem: Text {
       text: parent.iconText
-      font.family: Settings.fontFamily
-      font.pixelSize: Settings.fontSize + 2
-      color: Colors.textPrimary
+      font.family: Appearance.fontFamily
+      font.pixelSize: Appearance.fontSize + 2
+      color: Theme.foreground
       horizontalAlignment: Text.AlignHCenter
       verticalAlignment: Text.AlignVCenter
     }
 
     background: Rectangle {
-      color: parent.hovered ? Colors.surfaceAlt2 : "transparent"
-      radius: Settings.borderRadius
+      color: parent.hovered ? Theme.backgroundHighlight : "transparent"
+      radius: Appearance.borderRadius
 
       Behavior on color {
         ColorAnimation {
@@ -92,19 +92,19 @@ Rectangle {
       visible: parent.hovered && parent.tooltip !== ""
       text: parent.tooltip
       delay: 500
-      font.family: Settings.fontFamily
-      font.pixelSize: Settings.fontSize - 4
+      font.family: Appearance.fontFamily
+      font.pixelSize: Appearance.fontSize - 4
       background: Rectangle {
-        color: Colors.surface
-        border.color: Colors.border
+        color: Theme.backgroundAlt
+        border.color: Theme.border
         border.width: 1
-        radius: Settings.borderRadius
+        radius: Appearance.borderRadius
       }
-      contentItem: Text {
-        text: parent.text
-        font: parent.font
-        color: Colors.textPrimary
-      }
+      // contentItem: Text {
+      //   text: parent.text
+      //   font: parent.font
+      //   color: Theme.foreground
+      // }
     }
   }
 }

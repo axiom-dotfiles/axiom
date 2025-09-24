@@ -11,8 +11,8 @@ Rectangle {
   id: root
 
   // Colors
-  property color gridBgColor: Colors.surface
-  property color gridBorderColor: Colors.outline
+  property color gridBgColor: Theme.backgroundAlt
+  property color gridBorderColor: Theme.border
 
   // Grid configuration
   property real overviewScale: 0.15

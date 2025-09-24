@@ -10,8 +10,8 @@ Rectangle {
   id: root
 
   color: "transparent"
-  radius: Settings.borderRadius
-  border.color: Colors.accent2
+  radius: Appearance.borderRadius
+  border.color: Theme.accentAlt
 
   // State management
   property int currentTab: 0
@@ -57,7 +57,7 @@ Rectangle {
     // Spacing
     Item {
       Layout.fillWidth: true
-      Layout.preferredHeight: Settings.widgetPadding
+      Layout.preferredHeight: Widget.padding
     }
 
     // Content Viewport with Animation
@@ -125,23 +125,23 @@ Rectangle {
 
             Loader {
               id: volumeMixerLoader
-              width: parent.width - (Settings.widgetPadding * 2)
-              x: Settings.widgetPadding
-              y: Settings.widgetPadding
+              width: parent.width - (Widget.padding * 2)
+              x: Widget.padding
+              y: Widget.padding
               active: true
 
               // TODO: Load actual Volume Mixer widget here
               sourceComponent: Rectangle {
                 height: 200
-                color: Colors.surfaceAlt2
-                radius: Settings.borderRadius
+                color: Theme.backgroundHighlight
+                radius: Appearance.borderRadius
 
                 Text {
                   anchors.centerIn: parent
                   text: "Volume Mixer Widget Placeholder"
-                  font.family: Settings.fontFamily
-                  font.pixelSize: Settings.fontSize
-                  color: Colors.textMuted
+                  font.family: Appearance.fontFamily
+                  font.pixelSize: Appearance.fontSize
+                  color: Theme.foregroundAlt
                 }
               }
             }
@@ -154,23 +154,23 @@ Rectangle {
 
             Loader {
               id: rubikTimerLoader
-              width: parent.width - (Settings.widgetPadding * 2)
-              x: Settings.widgetPadding
-              y: Settings.widgetPadding
+              width: parent.width - (Widget.padding * 2)
+              x: Widget.padding
+              y: Widget.padding
               active: root.currentTab === 1 || contentRow.x < 0
 
               // TODO: Load actual Rubik's Timer widget here
               sourceComponent: Rectangle {
                 height: 300
-                color: Colors.surfaceAlt2
-                radius: Settings.borderRadius
+                color: Theme.backgroundHighlight
+                radius: Appearance.borderRadius
 
                 Text {
                   anchors.centerIn: parent
                   text: "Rubik's Timer Widget Placeholder"
-                  font.family: Settings.fontFamily
-                  font.pixelSize: Settings.fontSize
-                  color: Colors.textMuted
+                  font.family: Appearance.fontFamily
+                  font.pixelSize: Appearance.fontSize
+                  color: Theme.foregroundAlt
                 }
               }
             }
@@ -183,23 +183,23 @@ Rectangle {
 
             Loader {
               id: calendarLoader
-              width: parent.width - (Settings.widgetPadding * 2)
-              x: Settings.widgetPadding
-              y: Settings.widgetPadding
+              width: parent.width - (Widget.padding * 2)
+              x: Widget.padding
+              y: Widget.padding
               active: root.currentTab === 2 || Math.abs(contentRow.x) > root.width
 
               // TODO: Load actual Calendar widget here
               sourceComponent: Rectangle {
                 height: 2000
-                color: Colors.surfaceAlt2
-                radius: Settings.borderRadius
+                color: Theme.backgroundHighlight
+                radius: Appearance.borderRadius
 
                 Text {
                   anchors.centerIn: parent
                   text: "Calendar Widget Placeholder"
-                  font.family: Settings.fontFamily
-                  font.pixelSize: Settings.fontSize
-                  color: Colors.textMuted
+                  font.family: Appearance.fontFamily
+                  font.pixelSize: Appearance.fontSize
+                  color: Theme.foregroundAlt
                 }
               }
             }
@@ -212,23 +212,23 @@ Rectangle {
 
             Loader {
               id: notificationLoader
-              width: parent.width - (Settings.widgetPadding * 2)
-              x: Settings.widgetPadding
-              y: Settings.widgetPadding
+              width: parent.width - (Widget.padding * 2)
+              x: Widget.padding
+              y: Widget.padding
               active: root.currentTab === 3 || contentRow.x < -(root.width * 2)
 
               // TODO: Load actual Notifications widget here
               sourceComponent: Rectangle {
                 height: 500
-                color: Colors.surfaceAlt2
-                radius: Settings.borderRadius
+                color: Theme.backgroundHighlight
+                radius: Appearance.borderRadius
 
                 Text {
                   anchors.centerIn: parent
                   text: "Notifications Widget Placeholder"
-                  font.family: Settings.fontFamily
-                  font.pixelSize: Settings.fontSize
-                  color: Colors.textMuted
+                  font.family: Appearance.fontFamily
+                  font.pixelSize: Appearance.fontSize
+                  color: Theme.foregroundAlt
                 }
               }
             }

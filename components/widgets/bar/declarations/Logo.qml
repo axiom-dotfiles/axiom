@@ -3,12 +3,13 @@ import Quickshell
 import Quickshell.Io
 
 import qs.services
+import qs.config
 import qs.components.widgets.reusable
 
 IconTextWidget {
   id: root
 
-  backgroundColor: Colors.accent2
+  backgroundColor: Theme.info
   icon: ""  // Arch logo (Nerd Font)
 
   Process {

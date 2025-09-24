@@ -9,7 +9,7 @@ import qs.components.widgets.reusable
 IconTextWidget {
   id: root
   icon: ""
-  backgroundColor: Colors.accent
+  backgroundColor: Theme.accent
 
   // Open swaync panel; run detached so Quickshell isn’t tied to its lifecycle.
   Process {

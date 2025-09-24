@@ -95,11 +95,11 @@ Scope {
 
     Rectangle {
       anchors.fill: parent
-      anchors.topMargin: Settings.verticalBar ? Settings.containerWidth : Settings.borderWidth
-      anchors.bottomMargin: Settings.bottomBar? Settings.borderWidth : Settings.containerWidth
-      anchors.rightMargin: Settings.rightVerticalBar ? Settings.borderWidth : Settings.containerWidth
-      anchors.leftMargin: Settings.verticalBar ? Settings.borderWidth : Settings.containerWidth
-      radius: Settings.borderRadius
+      anchors.topMargin: Bar.vertical ? Widget.containerWidth : Appearance.borderWidth
+      anchors.bottomMargin: Bar.bottom ? Appearance.borderWidth : Widget.containerWidth
+      anchors.rightMargin: Bar.rightSide ? Appearance.borderWidth : Widget.containerWidth
+      anchors.leftMargin: Bar.vertical ? Appearance.borderWidth : Widget.containerWidth
+      radius: Appearance.borderRadius
       color: root.overlayBgColor
       
       Behavior on opacity {

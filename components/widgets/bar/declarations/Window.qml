@@ -3,6 +3,7 @@ import Quickshell
 import Quickshell.Wayland
 
 import qs.services
+import qs.config
 import qs.components.widgets.reusable
 
 IconTextWidget {
@@ -11,7 +12,7 @@ IconTextWidget {
   text: (ToplevelManager.activeToplevel && ToplevelManager.activeToplevel.title) 
     ? ToplevelManager.activeToplevel.title 
     : "—";
-  backgroundColor: Colors.blue
+  backgroundColor: Theme.accentAlt
   maxTextLength: 10
   elideText: true
 }

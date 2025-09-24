@@ -45,10 +45,10 @@ IconTextWidget {
   }
 
   function getBatteryColor() {
-    if (isCharging) return Colors.green;
-    if (warningLevel === "critical" || percentage <= 10) return Colors.red;
-    if (warningLevel === "low" || percentage <= 20) return Colors.yellow;
-    return Colors.greenAlt;
+    if (isCharging) return Theme.success;
+    if (warningLevel === "critical" || percentage <= 10) return Theme.error;
+    if (warningLevel === "low" || percentage <= 20) return Theme.info;
+    return Theme.accentAlt;
   }
 
   function getBatteryStatus() {

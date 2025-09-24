@@ -11,11 +11,11 @@ PanelWindow {
 
   anchors {
     top: true
-    left: !Settings.rightVerticalBar
-    right: Settings.rightVerticalBar
+    left: !Bar.vertical
+    right: Bar.vertical
   }
 
-  implicitWidth: Settings.display.resolutionWidth / 3
+  implicitWidth: Display.resolutionWidth / 3
   implicitHeight: 40
   color: "transparent"
 
@@ -44,8 +44,8 @@ PanelWindow {
         root.popouts.openPopout(root.panel, "media-player", {
           monitor: root.monitor,
           activeId: root.monitor?.activeWorkspace?.id ?? 1,
-          anchorX: 0 + Settings.barHeight,
-          anchorY: 0 + Settings.barHeight,
+          anchorX: 0 + Bar.height,
+          anchorY: 0 + Bar.height,
           anchorWidth: root.width,
           anchorHeight: root.height
         });

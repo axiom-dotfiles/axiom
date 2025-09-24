@@ -6,17 +6,18 @@ import Quickshell
 import Quickshell.Hyprland
 
 import qs.services
+import qs.config
 import qs.components.methods
 
 Item {
   id: root
 
   // Colors
-  property color windowBgColor: Colors.surfaceAlt
-  property color windowBorderColor: Colors.border
-  property color windowBorderActiveColor: Colors.accent
-  property color windowHoverBorderColor: Colors.accent2
-  property color textColor: Colors.fg
+  property color windowBgColor: Theme.backgroundAlt
+  property color windowBorderColor: Theme.border
+  property color windowBorderActiveColor: Theme.accent
+  property color windowHoverBorderColor: Theme.accentAlt
+  property color textColor: Theme.foreground
 
   // Animation properties
   property int animationDuration: 200

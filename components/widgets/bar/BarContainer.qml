@@ -14,8 +14,8 @@ Rectangle {
   property alias leftCenterGroup: leftCenterGroupLoader.sourceComponent
   property alias rightCenterGroup: rightCenterGroupLoader.sourceComponent
 
-  property color backgroundColor: Colors.bg
-  property color foregroundColor: Colors.fg
+  property color backgroundColor: Theme.background
+  property color foregroundColor: Theme.foreground
   property var screen
   property var popouts
 
@@ -41,12 +41,12 @@ Rectangle {
   Loader {
     id: leftGroupLoader
     anchors {
-      left: Settings.verticalBar ? undefined : parent.left
-      top: Settings.verticalBar ? parent.top : undefined
-      horizontalCenter: Settings.verticalBar ? parent.horizontalCenter : undefined
-      verticalCenter: Settings.verticalBar ? undefined : parent.verticalCenter
-      leftMargin: Settings.verticalBar ? 0 : Settings.screenMargin
-      topMargin: Settings.verticalBar ? Settings.screenMargin : 0
+      left: Bar.vertical ? undefined : parent.left
+      top: Bar.vertical ? parent.top : undefined
+      horizontalCenter: Bar.vertical ? parent.horizontalCenter : undefined
+      verticalCenter: Bar.vertical ? undefined : parent.verticalCenter
+      leftMargin: Bar.vertical ? 0 : Appearance.screenMargin
+      topMargin: Bar.vertical ? Appearance.screenMargin : 0
     }
   }
 
@@ -54,12 +54,12 @@ Rectangle {
   Loader {
     id: leftCenterGroupLoader
     anchors {
-      right: Settings.verticalBar ? undefined : workspacesLoader.left
-      bottom: Settings.verticalBar ? workspacesLoader.top : undefined
-      horizontalCenter: Settings.verticalBar ? parent.horizontalCenter : undefined
-      verticalCenter: Settings.verticalBar ? undefined : parent.verticalCenter
-      rightMargin: Settings.verticalBar ? 0 : Settings.screenMargin
-      bottomMargin: Settings.verticalBar ? Settings.screenMargin : 0
+      right: Bar.vertical ? undefined : workspacesLoader.left
+      bottom: Bar.vertical ? workspacesLoader.top : undefined
+      horizontalCenter: Bar.vertical ? parent.horizontalCenter : undefined
+      verticalCenter: Bar.vertical ? undefined : parent.verticalCenter
+      rightMargin: Bar.vertical ? 0 : Appearance.screenMargin
+      bottomMargin: Bar.vertical ? Appearance.screenMargin : 0
     }
   }
 
@@ -67,12 +67,12 @@ Rectangle {
   Loader {
     id: rightCenterGroupLoader
     anchors {
-      left: Settings.verticalBar ? undefined : workspacesLoader.right
-      top: Settings.verticalBar ? workspacesLoader.bottom : undefined
-      horizontalCenter: Settings.verticalBar ? parent.horizontalCenter : undefined
-      verticalCenter: Settings.verticalBar ? undefined : parent.verticalCenter
-      leftMargin: Settings.verticalBar ? 0 : Settings.screenMargin
-      topMargin: Settings.verticalBar ? Settings.screenMargin : 0
+      left: Bar.vertical ? undefined : workspacesLoader.right
+      top: Bar.vertical ? workspacesLoader.bottom : undefined
+      horizontalCenter: Bar.vertical ? parent.horizontalCenter : undefined
+      verticalCenter: Bar.vertical ? undefined : parent.verticalCenter
+      leftMargin: Bar.vertical ? 0 : Appearance.screenMargin
+      topMargin: Bar.vertical ? Appearance.screenMargin : 0
     }
   }
 
@@ -80,12 +80,12 @@ Rectangle {
   Loader {
     id: rightGroupLoader
     anchors {
-      right: Settings.verticalBar ? undefined : parent.right
-      bottom: Settings.verticalBar ? parent.bottom : undefined
-      horizontalCenter: Settings.verticalBar ? parent.horizontalCenter : undefined
-      verticalCenter: Settings.verticalBar ? undefined : parent.verticalCenter
-      rightMargin: Settings.verticalBar ? 0 : Settings.screenMargin
-      bottomMargin: Settings.verticalBar ? Settings.screenMargin : 0
+      right: Bar.vertical ? undefined : parent.right
+      bottom: Bar.vertical ? parent.bottom : undefined
+      horizontalCenter: Bar.vertical ? parent.horizontalCenter : undefined
+      verticalCenter: Bar.vertical ? undefined : parent.verticalCenter
+      rightMargin: Bar.vertical ? 0 : Appearance.screenMargin
+      bottomMargin: Bar.vertical ? Appearance.screenMargin : 0
     }
   }
 }

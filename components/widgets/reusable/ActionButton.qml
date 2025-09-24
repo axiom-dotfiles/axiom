@@ -2,13 +2,14 @@ import QtQuick
 import QtQuick.Controls
 
 import qs.components.methods
+import qs.config
 
 Item {
   id: root
 
   property string command: ""
   property string iconName: ""
-  property color backgroundColor: "#2a2a3e"
+  property color backgroundColor: Theme.background
   property color hoverColor: "#3a3a4e"
   property color pressedColor: "#4a4a5e"
   property color textColor: "#ffffff"

@@ -10,17 +10,17 @@ Item {
   id: root
   
   // Orientation support
-  property int orientation: Settings.orientation
+  property int orientation: Config.orientation
   property bool isVertical: orientation === Qt.Vertical
   property bool showDate: true
   property bool use24Hour: false
   
   // Dynamic dimensions based on orientation
-  height: isVertical ? implicitHeight : Settings.widgetHeight
-  width: isVertical ? Settings.widgetHeight : implicitWidth
+  height: isVertical ? implicitHeight : Widget.height
+  width: isVertical ? Widget.height : implicitWidth
   
-  implicitWidth: isVertical ? Settings.widgetHeight : (layoutLoader.item ? layoutLoader.item.implicitWidth + Settings.widgetPadding * 2 : 100)
-  implicitHeight: isVertical ? (layoutLoader.item ? layoutLoader.item.implicitHeight + Settings.widgetPadding * 2 : Settings.widgetHeight) : Settings.widgetHeight
+  implicitWidth: isVertical ? Widget.height : (layoutLoader.item ? layoutLoader.item.implicitWidth + Widget.padding * 2 : 100)
+  implicitHeight: isVertical ? (layoutLoader.item ? layoutLoader.item.implicitHeight + Widget.padding * 2 : Widget.height) : Widget.height
   
   SystemClock {
     id: clock
@@ -29,8 +29,8 @@ Item {
   
   Rectangle {
     anchors.fill: parent
-    color: Colors.accent2
-    radius: Settings.borderRadius
+    color: Theme.accentAlt
+    radius: Appearance.borderRadius
   }
   
   Loader {
@@ -44,26 +44,26 @@ Item {
         spacing: 8
         
         Text {
-          color: Colors.bg
-          font.family: Settings.fontFamily
-          font.pixelSize: Settings.fontSize
+          color: Theme.background
+          font.family: Appearance.fontFamily
+          font.pixelSize: Appearance.fontSize
           text: Qt.formatDateTime(clock.date, "MMM d, yyyy")
           visible: root.showDate
         }
         
         Rectangle {
           width: 1
-          height: Settings.fontSize
-          color: Colors.bg
+          height: Appearance.fontSize
+          color: Theme.background
           opacity: 0.5
           visible: root.showDate
           anchors.verticalCenter: parent.verticalCenter
         }
         
         Text {
-          color: Colors.bg
-          font.family: Settings.fontFamily
-          font.pixelSize: Settings.fontSize
+          color: Theme.background
+          font.family: Appearance.fontFamily
+          font.pixelSize: Appearance.fontSize
           text: Qt.formatDateTime(clock.date, root.use24Hour ? "HH:mm:ss" : "hh:mm:ss ap")
         }
       }
@@ -80,36 +80,36 @@ Item {
           anchors.horizontalCenter: parent.horizontalCenter
           
           Text {
-            color: Colors.bg
-            font.family: Settings.fontFamily
-            font.pixelSize: Settings.fontSize * 1.1
+            color: Theme.background
+            font.family: Appearance.fontFamily
+            font.pixelSize: Appearance.fontSize * 1.1
             font.bold: true
             text: Qt.formatDateTime(clock.date, root.use24Hour ? "HH" : "hh")
             anchors.horizontalCenter: parent.horizontalCenter
           }
 
           Text {
-            color: Colors.bg
-            font.family: Settings.fontFamily
-            font.pixelSize: Settings.fontSize * 0.9
+            color: Theme.background
+            font.family: Appearance.fontFamily
+            font.pixelSize: Appearance.fontSize * 0.9
             font.bold: true
             text: Qt.formatDateTime(clock.date, "mm")
             anchors.horizontalCenter: parent.horizontalCenter
           }
           
           Text {
-            color: Colors.bg
-            font.family: Settings.fontFamily
-            font.pixelSize: Settings.fontSize * 0.8
+            color: Theme.background
+            font.family: Appearance.fontFamily
+            font.pixelSize: Appearance.fontSize * 0.8
             text: Qt.formatDateTime(clock.date, "ss")
             opacity: 0.8
             anchors.horizontalCenter: parent.horizontalCenter
           }
           
           Text {
-            color: Colors.bg
-            font.family: Settings.fontFamily
-            font.pixelSize: Settings.fontSize * 0.7
+            color: Theme.background
+            font.family: Appearance.fontFamily
+            font.pixelSize: Appearance.fontSize * 0.7
             text: Qt.formatDateTime(clock.date, "ap")
             visible: !root.use24Hour
             opacity: 0.9
@@ -121,7 +121,7 @@ Item {
         Rectangle {
           width: parent.width * 0.6
           height: 1
-          color: Colors.bg
+          color: Theme.background
           opacity: 0.3
           visible: root.showDate
           anchors.horizontalCenter: parent.horizontalCenter
@@ -134,26 +134,26 @@ Item {
           anchors.horizontalCenter: parent.horizontalCenter
           
           Text {
-            color: Colors.bg
-            font.family: Settings.fontFamily
-            font.pixelSize: Settings.fontSize * 0.8
+            color: Theme.background
+            font.family: Appearance.fontFamily
+            font.pixelSize: Appearance.fontSize * 0.8
             text: Qt.formatDateTime(clock.date, "MMM")
             anchors.horizontalCenter: parent.horizontalCenter
           }
           
           Text {
-            color: Colors.bg
-            font.family: Settings.fontFamily
-            font.pixelSize: Settings.fontSize * 1.1
+            color: Theme.background
+            font.family: Appearance.fontFamily
+            font.pixelSize: Appearance.fontSize * 1.1
             font.bold: true
             text: Qt.formatDateTime(clock.date, "dd")
             anchors.horizontalCenter: parent.horizontalCenter
           }
           
           Text {
-            color: Colors.bg
-            font.family: Settings.fontFamily
-            font.pixelSize: Settings.fontSize * 0.7
+            color: Theme.background
+            font.family: Appearance.fontFamily
+            font.pixelSize: Appearance.fontSize * 0.7
             text: Qt.formatDateTime(clock.date, "ddd")  // Day of week
             opacity: 0.8
             anchors.horizontalCenter: parent.horizontalCenter

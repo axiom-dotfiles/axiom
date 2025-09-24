@@ -19,10 +19,6 @@ Item {
     triggerLength: 1500
     edgeMargin: 10
 
-    // Loader {
-    //   id: powerPanelLoader
-    //   sourceComponent: PowerPanel {}
-    // }
     PowerPanel {
       id: powerPanel
     }

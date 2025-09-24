@@ -9,8 +9,8 @@ import qs.config
 Scope {
   id: root
   objectName: "osd"
-  property color backgroundColor: Colors.bg
-  property color foregroundColor: Colors.fg
+  property color backgroundColor: Theme.background
+  property color foregroundColor: Theme.foreground
   
   // Connect to the AudioService singleton
   Connections {
@@ -57,10 +57,10 @@ Scope {
       
       Rectangle {
         anchors.fill: parent
-        border.width: Settings.borderWidth
-        border.color: Colors.accent
-        radius: Settings.borderRadius
-        color: Colors.surface
+        border.width: Appearance.borderWidth
+        border.color: Theme.accent
+        radius: Appearance.borderRadius
+        color: Theme.backgroundAlt
         
         RowLayout {
           anchors {
@@ -72,7 +72,7 @@ Scope {
           IconImage {
             implicitSize: 30
             source: {
-              const iconBase = "file:///home/" + Settings.userName + "/.config/quickshell/travmonkey/assets/icons/"
+              const iconBase = "file:///home/" + Config.userName + "/.config/quickshell/travmonkey/assets/icons/"
               if (Audio.muted) {
                 return iconBase + "volume-muted.svg"
               } else if (Audio.volume > 0.66) {
@@ -91,8 +91,8 @@ Scope {
             // Volume bar container/trough
             Layout.fillWidth: true
             implicitHeight: 10
-            radius: Settings.borderRadius
-            color: Qt.rgba(Colors.fg.r, Colors.fg.g, Colors.fg.b, 0.2) // Semi-transparent foreground color for trough
+            radius: Appearance.borderRadius
+            color: Qt.rgba(Theme.foreground.r, Theme.foreground.g, Theme.foreground.b, 0.2) // Semi-transparent foreground color for trough
             
             Rectangle {
               // Volume bar fill
@@ -103,7 +103,7 @@ Scope {
               }
               width: parent.width * Audio.volume
               radius: parent.radius
-              color: Audio.muted ? Qt.rgba(Colors.fg.r, Colors.fg.g, Colors.fg.b, 0.5) : Colors.accent
+              color: Audio.muted ? Qt.rgba(Theme.foreground.r, Theme.foreground.g, Theme.foreground.b, 0.5) : Theme.accent
               
               Behavior on width {
                 NumberAnimation {
@@ -116,7 +116,7 @@ Scope {
           
           Text {
             text: Math.round(Audio.volume * 100) + "%"
-            color: Colors.fg
+            color: Theme.foreground
             font.pixelSize: 14
             font.family: "VictorMono Nerd Font"
           }

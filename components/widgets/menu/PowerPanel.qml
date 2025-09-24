@@ -20,7 +20,7 @@ Rectangle {
     // Option 1: Auto-calculate based on content
     implicitHeight: topSectionHeight + scrollableContentHeight + quickSettingsHeight + 
                     (mediaPlaying ? 80 : 0) + 
-                    (Settings.containerWidth * (mediaPlaying ? 5 : 4))
+                    (Widget.containerWidth * (mediaPlaying ? 5 : 4))
     
     // Option 2: Allow external override with a fallback to screen-based calculation
     // property real panelHeight: -1  // Set to -1 for auto, or specify a fixed height
@@ -39,51 +39,52 @@ Rectangle {
     property bool mediaPlaying: false
     
     // Theme colors
-    color: Colors.surface
-    border.color: Colors.border
-    border.width: Settings.borderWidth
-    radius: Settings.borderRadius
+    color: Theme.backgroundAlt
+    border.color: Theme.border
+    border.width: Appearance.borderWidth
+    radius: Appearance.borderRadius
     
     // Shadow effect
-    layer.enabled: true
-    layer.effect: MultiEffect {
-        shadowEnabled: true
-        shadowColor: Colors.dark ? "#80000000" : "#40000000"
-        shadowHorizontalOffset: Colors.dark ? 2 : 1
-        shadowVerticalOffset: Colors.dark ? 2 : 1
-        shadowBlur: Colors.dark ? 0.8 : 0.6
-        shadowScale: 1.02
-    }
+    // layer.enabled: true
+    // layer.effect: MultiEffect {
+    //     shadowEnabled: true
+    //     shadowColor: Theme.dark ? "#80000000" : "#40000000"
+    //     shadowHorizontalOffset: Colors.dark ? 2 : 1
+    //     shadowVerticalOffset: Colors.dark ? 2 : 1
+    //     shadowBlur: Colors.dark ? 0.8 : 0.6
+    //     shadowScale: 1.02
+    // }
     
     // Main layout
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: 10
-        spacing: Settings.containerWidth
+        spacing: Widget.containerWidth
         
         // Top Section (for future component)
         Rectangle {
             Layout.fillWidth: true
             Layout.preferredHeight: root.topSectionHeight
-            color: Colors.surfaceAlt
-            radius: Settings.borderRadius
+            color: Theme.backgroundAlt
+            radius: Appearance.borderRadius
+            border.color: Theme.border
             
             Text {
                 anchors.centerIn: parent
                 text: "Top Section - Reserved for Future Component"
-                font.family: Settings.fontFamily
-                font.pixelSize: Settings.fontSize
-                color: Colors.textMuted
+                font.family: Appearance.fontFamily
+                font.pixelSize: Appearance.fontSize
+                color: Theme.foregroundAlt
             }
             
             // Bottom separator
-            Rectangle {
-                anchors.bottom: parent.bottom
-                anchors.left: parent.left
-                anchors.right: parent.right
-                height: Settings.borderWidth
-                color: Colors.border
-            }
+            // Rectangle {
+            //     anchors.bottom: parent.bottom
+            //     anchors.left: parent.left
+            //     anchors.right: parent.right
+            //     height: Settings.borderWidth
+            //     color: Theme.base0A
+            // }
         }
         
         // Spacing

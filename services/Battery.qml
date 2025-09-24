@@ -84,12 +84,12 @@ QtObject {
 
   function getBatteryColor() {
     if (isCharging)
-      return Colors.green;
+      return Theme.success;
     if (isCritical)
-      return Colors.red;
+      return Theme.error;
     if (isLow)
-      return Colors.yellow;
-    return Colors.surfaceAlt3;
+      return Theme.warning;
+    return Theme.backgroundHighlight;
   }
 
   function getBatteryStatus() {

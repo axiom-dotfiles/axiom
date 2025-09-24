@@ -3,17 +3,18 @@ import QtQuick.Layouts
 import Quickshell
 
 import qs.services
+import qs.config
 
 Rectangle {
   id: root
 
   // Colors
-  property color cellBgColor: Colors.surfaceAlt2
-  property color cellBgHoverColor: Colors.surfaceAlt
-  property color cellBgDragColor: Colors.surfaceAlt3
-  property color cellBorderColor: Colors.border
-  property color cellBorderActiveColor: Colors.accent
-  property color cellTextColor: Colors.fg
+  property color cellBgColor: Theme.base00
+  property color cellBgHoverColor: Theme.base01
+  property color cellBgDragColor: Theme.base02
+  property color cellBorderColor: Theme.border
+  property color cellBorderActiveColor: Theme.accent
+  property color cellTextColor: Theme.foreground
 
   // Animation properties
   property int colorAnimationDuration: 150

@@ -7,24 +7,24 @@ import qs.config
 Item {
   id: root
 
-  property int orientation: Settings.orientation
+  property int orientation: Config.orientation
   property bool isVertical: orientation === Qt.Vertical
-  property color backgroundColor: Colors.orange
+  property color backgroundColor: Theme.background
   property alias content: contentLoader.sourceComponent
   property alias contentItem: contentLoader.item
-  property int padding: Settings.widgetPadding
+  property int padding: Widget.padding
 
-  height: isVertical ? implicitHeight : Settings.widgetHeight
-  width: isVertical ? Settings.widgetHeight : implicitWidth
+  height: isVertical ? implicitHeight : Widget.height
+  width: isVertical ? Widget.height : implicitWidth
 
-  implicitWidth: isVertical ? Settings.widgetHeight : (contentLoader.item ? contentLoader.item.implicitWidth + padding * 2 : 60)
+  implicitWidth: isVertical ? Widget.height : (contentLoader.item ? contentLoader.item.implicitWidth + padding * 2 : 60)
 
-  implicitHeight: isVertical ? (contentLoader.item ? contentLoader.item.implicitHeight + padding * 2 : Settings.widgetHeight) : Settings.widgetHeight
+  implicitHeight: isVertical ? (contentLoader.item ? contentLoader.item.implicitHeight + padding * 2 : Widget.height) : Widget.height
 
   Rectangle {
     anchors.fill: parent
     color: root.backgroundColor
-    radius: Settings.borderRadius
+    radius: Appearance.borderRadius
   }
 
   Loader {

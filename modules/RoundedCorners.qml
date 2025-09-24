@@ -7,10 +7,10 @@ import qs.config
 
 PanelWindow {
   id: workspaceContainer
-  property int borderWidth: Settings.containerWidth
+  property int borderWidth: Widget.containerWidth
   property int innerBorderWidth: 1
-  property int borderRadius: Settings.borderRadius
-  property color borderColor: Colors.fg
+  property int borderRadius: Appearance.borderRadius
+  property color borderColor: Theme.foreground
 
   anchors {
     left: true
@@ -37,7 +37,7 @@ PanelWindow {
       rightMargin: workspaceContainer.borderWidth + workspaceContainer.borderRadius
     }
     height: workspaceContainer.borderWidth
-    color: Colors.surface
+    color: Theme.background
   }
 
   // Bottom border (excluding corners)
@@ -50,7 +50,7 @@ PanelWindow {
       rightMargin: workspaceContainer.borderWidth + workspaceContainer.borderRadius
     }
     height: workspaceContainer.borderWidth
-    color: Colors.surface
+    color: Theme.background
   }
 
   // Left border (excluding corners)
@@ -63,7 +63,7 @@ PanelWindow {
   //     bottomMargin: workspaceContainer.borderWidth + workspaceContainer.borderRadius
   //   }
   //   width: workspaceContainer.borderWidth
-  //   color: Colors.surface
+  //   color: Theme.background
   // }
 
   // Right border (excluding corners)
@@ -76,7 +76,7 @@ PanelWindow {
       bottomMargin: workspaceContainer.borderWidth + workspaceContainer.borderRadius
     }
     width: workspaceContainer.borderWidth
-    color: Colors.surface
+    color: Theme.background
   }
 
   // Top-left corner
@@ -87,7 +87,7 @@ PanelWindow {
     }
     width: workspaceContainer.borderWidth + workspaceContainer.borderRadius
     height: workspaceContainer.borderWidth + workspaceContainer.borderRadius
-    color: Colors.surface
+    color: Theme.background
 
     Item {
       clip: true
@@ -98,7 +98,7 @@ PanelWindow {
         }
         width: workspaceContainer.borderRadius
         height: workspaceContainer.borderRadius
-        color: Colors.accent
+        color: Theme.accent
         radius: workspaceContainer.borderRadius
       }
     }
@@ -112,7 +112,7 @@ PanelWindow {
     }
     width: workspaceContainer.borderWidth + workspaceContainer.borderRadius
     height: workspaceContainer.borderWidth + workspaceContainer.borderRadius
-    color: Colors.surface
+    color: Theme.background
 
     Rectangle {
       anchors {
@@ -134,7 +134,7 @@ PanelWindow {
     }
     width: workspaceContainer.borderWidth + workspaceContainer.borderRadius
     height: workspaceContainer.borderWidth + workspaceContainer.borderRadius
-    color: Colors.surface
+    color: Theme.background
 
     Rectangle {
       anchors {
@@ -156,7 +156,7 @@ PanelWindow {
     }
     width: workspaceContainer.borderWidth + workspaceContainer.borderRadius
     height: workspaceContainer.borderWidth + workspaceContainer.borderRadius
-    color: Colors.surface
+    color: Theme.background
 
     Rectangle {
       anchors {

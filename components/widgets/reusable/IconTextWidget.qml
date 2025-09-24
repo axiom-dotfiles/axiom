@@ -48,18 +48,18 @@ BaseWidget {
           spacing: root.spacing
 
           Text {
-            color: Colors.bg
+            color: Theme.background
             text: root.icon
-            font.family: Settings.fontFamily
-            font.pixelSize: Settings.fontSize * root.iconScale
+            font.family: Appearance.fontFamily
+            font.pixelSize: Appearance.fontSize * root.iconScale
             visible: root.icon !== ""
           }
 
           Text {
-            color: Colors.bg
+            color: Theme.background
             text: root.displayText || "—"
-            font.family: Settings.fontFamily
-            font.pixelSize: Settings.fontSize * root.textScale
+            font.family: Appearance.fontFamily
+            font.pixelSize: Appearance.fontSize * root.textScale
           }
         }
       }
@@ -71,19 +71,19 @@ BaseWidget {
           spacing: root.displayText !== "" ? 2 : 0
 
           Text {
-            color: Colors.bg
+            color: Theme.background
             text: root.icon
-            font.family: Settings.fontFamily
-            font.pixelSize: Settings.fontSize * root.iconScale
+            font.family: Appearance.fontFamily
+            font.pixelSize: Appearance.fontSize * root.iconScale
             anchors.horizontalCenter: parent.horizontalCenter
             visible: root.icon !== ""
           }
 
           Text {
-            color: Colors.bg
+            color: Theme.background
             text: root.displayText || "—"
-            font.family: Settings.fontFamily
-            font.pixelSize: Settings.fontSize * 0.8 * root.textScale
+            font.family: Appearance.fontFamily
+            font.pixelSize: Appearance.fontSize * 0.8 * root.textScale
             anchors.horizontalCenter: parent.horizontalCenter
             visible: root.displayText !== ""
           }
@@ -100,10 +100,10 @@ BaseWidget {
 
           Text {
             id: iconText
-            color: Colors.bg
+            color: Theme.background
             text: root.icon
-            font.family: Settings.fontFamily
-            font.pixelSize: Settings.fontSize * root.iconScale
+            font.family: Appearance.fontFamily
+            font.pixelSize: Appearance.fontSize * root.iconScale
             visible: root.icon !== ""
             anchors {
               centerIn: parent
@@ -113,10 +113,10 @@ BaseWidget {
 
           Text {
             id: mainText
-            color: Colors.bg
+            color: Theme.background
             text: root.displayText || "—"
-            font.family: Settings.fontFamily
-            font.pixelSize: Settings.fontSize * root.textScale
+            font.family: Appearance.fontFamily
+            font.pixelSize: Appearance.fontSize * root.textScale
             rotation: -90
             visible: root.displayText !== ""
             anchors {

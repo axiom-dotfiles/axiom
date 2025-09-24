@@ -43,11 +43,12 @@ Item {
 
   property bool __animating: false
 
-  property var __contentItem: contentArea.data.length > 0 ? contentArea.data[0] : null
-  // readonly property int actualWidth: useImplicitSize ? (__contentItem ? __contentItem.implicitWidth : 0) : customWidth
-  // readonly property int actualHeight: useImplicitSize ? (__contentItem ? __contentItem.implicitHeight : 0) : customHeight
-    readonly property int actualWidth: Math.max(1, useImplicitSize ? (__contentItem ? __contentItem.implicitWidth : 0) : customWidth)
-  readonly property int actualHeight: Math.max(1, useImplicitSize ? (__contentItem ? __contentItem.implicitHeight : 0) : customHeight)
+  // TODO: Figure out how tf this actually loads and fix the initialization deadlock (that somehow resolves)
+  property var __loadedItem: contentArea.data.length > 0 ? contentArea.data[0] : null
+  // readonly property int actualWidth: useImplicitSize ? (__loadedItem ? __loadedItem.implicitWidth : 0) : customWidth
+  // readonly property int actualHeight: useImplicitSize ? (__loadedItem ? __loadedItem.implicitHeight : 0) : customHeight
+    readonly property int actualWidth: Math.max(1, useImplicitSize ? (__loadedItem ? __loadedItem.implicitWidth : 0) : customWidth)
+  readonly property int actualHeight: Math.max(1, useImplicitSize ? (__loadedItem ? __loadedItem.implicitHeight : 0) : customHeight)
   // readonly property int actualWidth: Math.max(1, useImplicitSize ? (contentArea.data.length > 0 ? contentArea.data[0].implicitWidth : 0) : customWidth)
   // readonly property int actualHeight: Math.max(1, useImplicitSize ? (contentArea.data.length > 0 ? contentArea.data[0].implicitHeight : 0) : customHeight)
 

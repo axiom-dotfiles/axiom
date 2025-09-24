@@ -13,31 +13,31 @@ PanelWindow {
   id: root
 
   required property var modelData
-  property string display: Settings.display.primary
-  property int barHeight: Settings.barHeight
-  property int barWidth: Settings.verticalBar ? Settings.barHeight : 0
+  property string display: Display.primary
+  property int barHeight: Bar.height
+  property int barWidth: Bar.vertical ? Bar.height : 0
 
   screen: modelData
   WlrLayershell.layer: WlrLayer.Top
-  WlrLayershell.exclusiveZone: Settings.verticalBar ? barWidth : barHeight
+  WlrLayershell.exclusiveZone: Bar.vertical ? barWidth : barHeight
   WlrLayershell.namespace: "qs-bar"
 
   anchors {
-    top: Settings.verticalBar ? true : (modelData.name === display)
-    bottom: Settings.verticalBar ? true : (modelData.name === "DP-2")
-    left: Settings.verticalBar ? !Settings.rightVerticalBar : true
-    right: Settings.verticalBar ? Settings.rightVerticalBar : true
+    top: Bar.vertical ? true : (modelData.name === display)
+    bottom: Bar.vertical ? true : (modelData.name === "DP-2")
+    left: Bar.vertical ? !Bar.rightSide : true
+    right: Bar.vertical ? Bar.rightSide : true
   }
 
   visible: if (modelData.name === display)
     true
-  else if (modelData.name === "DP-2" && !Settings.singleMonitor)
+  else if (modelData.name === "DP-2" && !Config.singleMonitor)
     true
   else
     false
 
-  implicitHeight: Settings.verticalBar ? 0 : barHeight
-  implicitWidth: Settings.verticalBar ? barWidth : 0
+  implicitHeight: Bar.vertical ? 0 : barHeight
+  implicitWidth: Bar.vertical ? barWidth : 0
 
   PopoutWrapper {
     id: popouts
@@ -60,7 +60,7 @@ PanelWindow {
       Widgets.Workspaces {
         screen: root.screen
         popouts: popouts
-        orientation: Settings.verticalBar ? Qt.Vertical : Qt.Horizontal
+        orientation: Bar.vertical ? Qt.Vertical : Qt.Horizontal
         panel: root
       }
     }
@@ -68,15 +68,15 @@ PanelWindow {
     leftGroup: Component {
       LeftGroup {
         screen: root.screen
-        showMedia: Settings.display.primary === "DP-1"
+        showMedia: Display.primary === "DP-1"
       }
     }
 
     rightGroup: Component {
       RightGroup {
         screen: root.screen
-        showTray: root.screen.name === Settings.display.primary
-        showBattery: Settings.display.primary === "eDP-1"
+        showTray: root.screen.name === Display.primary
+        showBattery: Display.primary === "eDP-1"
       }
     }
 

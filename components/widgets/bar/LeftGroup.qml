@@ -16,7 +16,7 @@ WidgetGroup {
     {
       component: windowComponent,
       properties: {
-        orientation: Settings.verticalBar ? Qt.Vertical : Qt.Horizontal
+        orientation: Bar.vertical ? Qt.Vertical : Qt.Horizontal
       }
     },
     {

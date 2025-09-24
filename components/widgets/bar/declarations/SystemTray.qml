@@ -11,7 +11,7 @@ Item {
   id: tray
 
   // Add orientation property
-  property int orientation: Settings.orientation  // Accept orientation from parent
+  property int orientation: Config.orientation  // Accept orientation from parent
   property bool isVertical: orientation === Qt.Vertical
 
   property int iconSize: 18
@@ -21,20 +21,20 @@ Item {
   property int bottomPadding: 4
   property int spacing: 6
   property bool showPassive: true
-  property color backgroundColor: Colors.bgAlt
+  property color backgroundColor: Theme.backgroundAlt
   property int backgroundRadius: 6
   property color backgroundBorderColor: "transparent"
   property real backgroundBorderWidth: 0
 
   // Dynamic dimensions based on orientation
-  height: isVertical ? implicitHeight : Settings.widgetHeight
-  width: isVertical ? Settings.widgetHeight : implicitWidth
+  height: isVertical ? implicitHeight : Widget.height
+  width: isVertical ? Widget.height : implicitWidth
 
-  implicitWidth: isVertical ? Settings.widgetHeight : (layoutLoader.item ? layoutLoader.item.implicitWidth + Settings.widgetPadding * 2 : 0)
-  implicitHeight: isVertical ? (layoutLoader.item ? layoutLoader.item.implicitHeight + Settings.widgetPadding * 2 : 0) : Settings.widgetHeight
+  implicitWidth: isVertical ? Widget.height : (layoutLoader.item ? layoutLoader.item.implicitWidth + Widget.padding * 2 : 0)
+  implicitHeight: isVertical ? (layoutLoader.item ? layoutLoader.item.implicitHeight + Widget.padding * 2 : 0) : Widget.height
 
-  Layout.preferredWidth: isVertical ? Settings.widgetHeight : implicitWidth
-  Layout.preferredHeight: isVertical ? implicitHeight : Settings.widgetHeight
+  Layout.preferredWidth: isVertical ? Widget.height : implicitWidth
+  Layout.preferredHeight: isVertical ? implicitHeight : Widget.height
 
   Rectangle {
     anchors.fill: parent
@@ -92,8 +92,8 @@ Item {
           // Best way to find app name quickly
           // console.log("App Name:", appName);
 
-          if (appName && Settings.customIconOverrides[appName]) {
-            return Settings.customIconOverrides[appName];
+          if (appName && Config.customIconOverrides[appName]) {
+            return Config.customIconOverrides[appName];
           }
 
           return ti.icon || "";

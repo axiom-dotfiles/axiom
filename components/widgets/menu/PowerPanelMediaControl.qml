@@ -10,12 +10,12 @@ Rectangle {
     
     property bool playing: false
     
-    color: Colors.surfaceAlt
-    radius: Settings.borderRadius
+    color: Theme.backgroundAlt
+    radius: Appearance.borderRadius
     visible: Layout.preferredHeight > 0
     clip: true
 
-    border.color: Colors.accent2
+    border.color: Theme.accentAlt
     
     // This is what actually gets animated
     Layout.preferredHeight: playing ? 80 : 0
@@ -31,18 +31,18 @@ Rectangle {
     Loader {
         id: mediaControlLoader
         anchors.fill: parent
-        anchors.margins: Settings.widgetPadding
+        anchors.margins: Widget.padding
         active: root.playing
         
         sourceComponent: RowLayout {
-            spacing: Settings.widgetSpacing
+            spacing: Widget.spacing
             
             // Album art placeholder
             Rectangle {
                 Layout.preferredWidth: 60
                 Layout.preferredHeight: 60
-                color: Colors.surfaceAlt2
-                radius: Settings.borderRadius
+                color: Theme.backgroundHighlight
+                radius: Appearance.borderRadius
             }
             
             // Track info
@@ -52,24 +52,24 @@ Rectangle {
                 
                 Text {
                     text: "Track Title"
-                    font.family: Settings.fontFamily
-                    font.pixelSize: Settings.fontSize - 2
-                    color: Colors.textPrimary
+                    font.family: Appearance.fontFamily
+                    font.pixelSize: Appearance.fontSize - 2
+                    color: Theme.foreground
                     elide: Text.ElideRight
                 }
                 
                 Text {
                     text: "Artist Name"
-                    font.family: Settings.fontFamily
-                    font.pixelSize: Settings.fontSize - 4
-                    color: Colors.textSecondary
+                    font.family: Appearance.fontFamily
+                    font.pixelSize: Appearance.fontSize - 4
+                    color: Theme.foregroundAlt
                     elide: Text.ElideRight
                 }
             }
             
             // Media controls
             RowLayout {
-                spacing: Settings.widgetSpacing
+                spacing: Widget.spacing
                 
                 MediaControlButton {
                     iconText: "󰒮"  // Previous icon
@@ -78,7 +78,7 @@ Rectangle {
                 
                 MediaControlButton {
                     iconText: "󰏤"  // Pause icon (or 󰐊 for play)
-                    iconSize: Settings.fontSize + 4
+                    iconSize: Appearance.fontSize + 4
                     onClicked: console.log("Play/Pause")
                 }
                 
@@ -92,23 +92,23 @@ Rectangle {
     
     component MediaControlButton: ToolButton {
         property string iconText: ""
-        property int iconSize: Settings.fontSize
+        property int iconSize: Appearance.fontSize
         
-        Layout.preferredWidth: Settings.widgetHeight
-        Layout.preferredHeight: Settings.widgetHeight
+        Layout.preferredWidth: Widget.height
+        Layout.preferredHeight: Widget.height
         
         contentItem: Text {
             text: parent.iconText
-            font.family: Settings.fontFamily
+            font.family: Appearance.fontFamily
             font.pixelSize: parent.iconSize
-            color: Colors.textPrimary
+            color: Theme.foreground
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
         }
         
         background: Rectangle {
-            color: parent.hovered ? Colors.surfaceAlt2 : "transparent"
-            radius: Settings.borderRadius
+            color: parent.hovered ? Theme.backgroundHighlight : "transparent"
+            radius: Appearance.borderRadius
             
             Behavior on color {
                 ColorAnimation { duration: 150 }

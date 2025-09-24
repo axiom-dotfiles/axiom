@@ -3,6 +3,7 @@ import Quickshell
 import Quickshell.Io
 
 import qs.services
+import qs.config
 import qs.components.widgets.reusable
 
 IconTextWidget {
@@ -14,7 +15,7 @@ IconTextWidget {
   icon: isConnected ? "󰳌" : "󰌙"
   text: isConnected ? tailnetName : ""
 
-  backgroundColor: isConnected ? Colors.yellow : Colors.surfaceAlt3
+  backgroundColor: isConnected ? Theme.warning : Theme.backgroundHighlight
 
   maxTextLength: 15
 

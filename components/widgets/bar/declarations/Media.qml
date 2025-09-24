@@ -3,6 +3,7 @@ import Quickshell
 import Quickshell.Io
 
 import qs.services
+import qs.config
 import qs.components.widgets.reusable
 
 IconTextWidget {
@@ -12,7 +13,7 @@ IconTextWidget {
   text: formatTrack()
 
   maxTextLength: 30
-  backgroundColor: Mpris.isPlaying ? Colors.purple : Colors.border
+  backgroundColor: Mpris.isPlaying ? Theme.accent : Theme.backgroundHighlight
 
   function formatTrack() {
     if (!Mpris.activePlayer)

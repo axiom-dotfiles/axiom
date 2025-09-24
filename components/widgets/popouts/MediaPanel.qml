@@ -35,10 +35,10 @@ Item {
     width: contentLayout.width + 40
     height: contentLayout.height + 40
 
-    color: Colors.bg
-    border.color: Colors.fg
+    color: Theme.background
+    border.color: Theme.foreground
     border.width: 1
-    radius: Settings.borderRadius + 2
+    radius: Appearance.borderRadius + 2
 
     // Hover handler to control popout closure
     HoverHandler {
@@ -64,8 +64,8 @@ Item {
         id: albumArtContainer
         width: 120
         height: 120
-        radius: Settings.borderRadius
-        color: Colors.bgAlt
+        radius: Appearance.borderRadius
+        color: Theme.backgroundAlt
         clip: true
 
         property int reloadCounter: 0
@@ -123,9 +123,9 @@ Item {
         Text {
           anchors.centerIn: parent
           text: "♪"
-          color: Colors.accent
+          color: Theme.accent
           font.pixelSize: 40
-          font.family: Settings.fontFamily
+          font.family: Appearance.fontFamily
           visible: !Mpris.artDownloaded
           opacity: 0.5
         }
@@ -139,9 +139,9 @@ Item {
         // Track title
         Text {
           text: Mpris.trackTitle || "Unknown Track"
-          color: Colors.outline
-          font.pixelSize: Settings.fontSize + 2
-          font.family: Settings.fontFamily
+          color: Theme.outline
+          font.pixelSize: Appearance.fontSize + 2
+          font.family: Appearance.fontFamily
           font.weight: Font.Medium
           elide: Text.ElideLeft
           // width: parent.width
@@ -150,9 +150,9 @@ Item {
         // Artist
         Text {
           text: Mpris.trackArtist || "Unknown Artist"
-          color: Colors.outline
-          font.pixelSize: Settings.fontSize
-          font.family: Settings.fontFamily
+          color: Theme.outline
+          font.pixelSize: Appearance.fontSize
+          font.family: Appearance.fontFamily
           elide: Text.ElideRight
           // width: parent.width
         }
@@ -160,9 +160,9 @@ Item {
         // Album (if available)
         Text {
           text: Mpris.trackAlbum || ""
-          color: Colors.outline
-          font.pixelSize: Settings.fontSize - 1
-          font.family: Settings.fontFamily
+          color: Theme.outline
+          font.pixelSize: Appearance.fontSize - 1
+          font.family: Appearance.fontFamily
           elide: Text.ElideRight
           width: parent.width
           visible: text !== ""
@@ -178,13 +178,13 @@ Item {
           width: parent.width
           height: 4
           radius: 2
-          color: Colors.bgAlt
+          color: Theme.bgAlt
           Rectangle {
             id: progressBar
             width: parent.width * (seekMouseArea.isDragging ? seekMouseArea.dragPosition : Mpris.progress)
             height: parent.height
             radius: parent.radius
-            color: Mpris.isPlaying ? Colors.accent : Colors.accent2
+            color: Mpris.isPlaying ? Theme.accent : Theme.accent2
             Behavior on width {
               enabled: !seekMouseArea.isDragging
               NumberAnimation {
@@ -243,25 +243,25 @@ Item {
 
           Text {
             text: Mpris.formatTime(Mpris.position)
-            color: Colors.outline
-            font.pixelSize: Settings.fontSize - 2
-            font.family: Settings.fontFamily
+            color: Theme.outline
+            font.pixelSize: Appearance.fontSize - 2
+            font.family: Appearance.fontFamily
             opacity: 0.9
           }
 
           Text {
             text: " / "
-            color: Colors.outline
-            font.pixelSize: Settings.fontSize - 2
-            font.family: Settings.fontFamily
+            color: Theme.outline
+            font.pixelSize: Appearance.fontSize - 2
+            font.family: Appearance.fontFamily
             opacity: 0.7
           }
 
           Text {
             text: Mpris.formatTime(Mpris.length)
-            color: Colors.outline
-            font.pixelSize: Settings.fontSize - 2
-            font.family: Settings.fontFamily
+            color: Theme.outline
+            font.pixelSize: Appearance.fontSize - 2
+            font.family: Appearance.fontFamily
             opacity: 0.9
           }
         }
@@ -279,8 +279,8 @@ Item {
           Rectangle {
             width: 36
             height: 36
-            radius: Settings.borderRadius
-            color: prevMouseArea.containsMouse ? Colors.accent2 : (prevMouseArea.pressed ? Colors.accent : Colors.bgAlt)
+            radius: Appearance.borderRadius
+            color: prevMouseArea.containsMouse ? Theme.accentAlt : (prevMouseArea.pressed ? Theme.accent : Theme.backgroundAlt)
             property bool hovered: false
 
             MouseArea {
@@ -295,9 +295,9 @@ Item {
             Text {
               anchors.centerIn: parent
               text: "⏮"
-              color: prevMouseArea.containsMouse ? Colors.bg : Colors.surface
+              color: prevMouseArea.containsMouse ? Theme.background : Theme.backgroundAlt
               font.pixelSize: 16
-              font.family: Settings.fontFamily
+              font.family: Appearance.fontFamily
             }
 
             Behavior on color {
@@ -321,7 +321,7 @@ Item {
             width: 44
             height: 44
             radius: width / 2
-            color: playMouseArea.containsMouse ? (Mpris.isPlaying ? Colors.accent : Colors.accent2) : (Mpris.isPlaying ? Colors.accent2 : Colors.accent)
+            color: playMouseArea.containsMouse ? (Mpris.isPlaying ? Theme.accent : Theme.accentAlt) : (Mpris.isPlaying ? Theme.accentAlt : Theme.accent)
             property bool hovered: false
 
             MouseArea {
@@ -336,9 +336,9 @@ Item {
             Text {
               anchors.centerIn: parent
               text: Mpris.isPlaying ? "⏸" : "▶"
-              color: Colors.bg
+              color: Theme.bg
               font.pixelSize: 18
-              font.family: Settings.fontFamily
+              font.family: Appearance.fontFamily
             }
 
             Behavior on color {
@@ -361,8 +361,8 @@ Item {
           Rectangle {
             width: 36
             height: 36
-            radius: Settings.borderRadius
-            color: nextMouseArea.containsMouse ? Colors.accent2 : (nextMouseArea.pressed ? Colors.accent : Colors.bgAlt)
+            radius: Appearance.borderRadius
+            color: nextMouseArea.containsMouse ? Theme.accentAlt : (nextMouseArea.pressed ? Theme.accent : Theme.bgAlt)
             property bool hovered: false
 
             MouseArea {
@@ -377,9 +377,9 @@ Item {
             Text {
               anchors.centerIn: parent
               text: "⏭"
-              color: nextMouseArea.containsMouse ? Colors.bg : Colors.surface
+              color: nextMouseArea.containsMouse ? Theme.bg : Theme.surface
               font.pixelSize: 16
-              font.family: Settings.fontFamily
+              font.family: Appearance.fontFamily
             }
 
             Behavior on color {
@@ -411,9 +411,9 @@ Item {
 
           Text {
             text: "🔊"
-            color: Colors.outline
-            font.pixelSize: Settings.fontSize
-            font.family: Settings.fontFamily
+            color: Theme.outline
+            font.pixelSize: Appearance.fontSize
+            font.family: Appearance.fontFamily
             anchors.verticalCenter: parent.verticalCenter
           }
 
@@ -421,14 +421,14 @@ Item {
             width: 100
             height: 4
             radius: 2
-            color: Colors.bgAlt
+            color: Theme.bgAlt
             anchors.verticalCenter: parent.verticalCenter
 
             Rectangle {
               width: parent.width * (Mpris.activePlayer.volume || 0)
               height: parent.height
               radius: parent.radius
-              color: Colors.accent
+              color: Theme.accent
             }
 
             MouseArea {
@@ -463,9 +463,9 @@ Item {
 
           Text {
             text: Math.round((Mpris.activePlayer.volume || 0) * 100) + "%"
-            color: Colors.outline
-            font.pixelSize: Settings.fontSize - 2
-            font.family: Settings.fontFamily
+            color: Theme.outline
+            font.pixelSize: Appearance.fontSize - 2
+            font.family: Appearance.fontFamily
             anchors.verticalCenter: parent.verticalCenter
           }
         }
@@ -480,17 +480,17 @@ Item {
 
       Text {
         text: "No Media Playing"
-        color: Colors.surface
-        font.pixelSize: Settings.fontSize
-        font.family: Settings.fontFamily
+        color: Theme.backgroundAlt
+        font.pixelSize: Appearance.fontSize
+        font.family: Appearance.fontFamily
         anchors.horizontalCenter: parent.horizontalCenter
       }
 
       Text {
         text: "Start playing something to see controls"
-        color: Colors.outline
-        font.pixelSize: Settings.fontSize - 2
-        font.family: Settings.fontFamily
+        color: Theme.outline
+        font.pixelSize: Appearance.fontSize - 2
+        font.family: Appearance.fontFamily
         opacity: 0.7
         anchors.horizontalCenter: parent.horizontalCenter
       }

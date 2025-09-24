@@ -2,17 +2,18 @@ import QtQuick
 import Quickshell.Wayland
 
 import qs.services
+import qs.config
 
 Rectangle {
   id: root
 
   // Colors
-  property color bgColor: Colors.surfaceAlt
-  property color borderColor: Colors.border
-  property color borderActiveColor: Colors.accent
-  property color borderHoverColor: Colors.accent2
-  property color textColor: Colors.fg
-  property color xwaylandIndicatorColor: Colors.accent2
+  property color bgColor: Theme.backgroundAlt
+  property color borderColor: Theme.border
+  property color borderActiveColor: Theme.accent
+  property color borderHoverColor: Theme.accentAlt
+  property color textColor: Theme.foreground
+  property color xwaylandIndicatorColor: Theme.accentAlt
 
   // Window data
   property var windowData: null
@@ -92,7 +93,7 @@ Rectangle {
       font.family: "VictorMono Nerd Font"
       font.pixelSize: 10
       font.bold: true
-      color: Colors.surface
+      color: Theme.backgroundAlt
     }
   }
 }

@@ -11,7 +11,7 @@ ScrollView {
     ScrollBar.vertical.policy: ScrollBar.AsNeeded
     ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
 
-    bottomPadding: Settings.widgetPadding
+    bottomPadding: Widget.padding
     
     // Custom scrollbar styling
     ScrollBar.vertical {
@@ -24,7 +24,7 @@ ScrollView {
         contentItem: Rectangle {
             implicitWidth: 6
             radius: 3
-            color: Colors.accent
+            color: Theme.accent
             opacity: parent.pressed ? 0.8 : 0.4
             
             Behavior on opacity {
@@ -34,7 +34,7 @@ ScrollView {
         
         background: Rectangle {
             implicitWidth: 8
-            color: Colors.surfaceAlt
+            color: Theme.backgroundAlt
             opacity: 0.2
             radius: 4
         }

@@ -12,7 +12,7 @@ IconTextWidget {
   property string kind: "" // "wifi" | "ethernet" | ""
 
   // Configure the widget
-  backgroundColor: Colors.orange
+  backgroundColor: Theme.base09
   icon: getIcon()
   text: iface
 

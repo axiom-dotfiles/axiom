@@ -18,7 +18,7 @@ Item {
   property var monitor: wrapper.currentData?.monitor
   property int activeWorkspaceId: wrapper.currentData?.activeId ?? 1
   property int currentColumn: ((activeWorkspaceId - 1) % 5)
-  readonly property int cell: (Settings.widgetHeight && Settings.widgetHeight > 0) ? Settings.widgetHeight : 28
+  readonly property int cell: (Widget.height && Widget.height > 0) ? Widget.height : 28
 
   // Size of the expanded grid
   // implicitWidth: content.width + 20
@@ -34,13 +34,13 @@ Item {
     visible: true
 
     // 5 columns × widget height + spacing
-    width: 5 * Settings.widgetHeight + 4 * 6
-    height: 5 * Settings.widgetHeight + 4 * 6
+    width: 5 * Widget.height + 4 * 6
+    height: 5 * Widget.height + 4 * 6
 
-    color: Colors.bg
-    border.color: Colors.surface
+    color: Theme.background
+    border.color: Theme.backgroundAlt
     border.width: 0
-    radius: Settings.borderRadius + 2
+    radius: Appearance.borderRadius + 2
 
     // TODO: Figure out how to not define this here
     HoverHandler {
@@ -72,11 +72,11 @@ Item {
           readonly property bool isActive: root.monitor?.activeWorkspace?.id === wsId
           readonly property bool hasWindows: workspace?.toplevels?.values?.length > 0
           readonly property bool isCurrentColumn: (wsId - 1) % 5 === root.currentColumn
-          readonly property bool showIcons: Settings.workspacePopoutIcons
+          readonly property bool showIcons: Widget.workspacePopoutIcons
           property bool hovered: false
 
-          Layout.preferredWidth: Settings.widgetHeight
-          Layout.preferredHeight: Settings.widgetHeight
+          Layout.preferredWidth: Widget.height
+          Layout.preferredHeight: Widget.height
 
           property var iconPath: findIconPath()
           property var windowData: HyprlandData.biggestWindowForWorkspace(wsId)
@@ -94,15 +94,15 @@ Item {
             return baseIcon;
           }
 
-          radius: Settings.borderRadius
-          // property color baseColor: isActive ? Colors.accent : hasWindows ? Colors.outline : Colors.bgAlt
+          radius: Appearance.borderRadius
+          // property color baseColor: isActive ? Theme.accent : hasWindows ? Colors.outline : Theme.backgroundAlt
 
-          color: isActive ? Colors.accent : hovered ? Colors.accent2 : hasWindows ? Colors.outline : Colors.bgAlt
+          color: isActive ? Theme.accent : hovered ? Theme.accentAlt : hasWindows ? Theme.border : Theme.backgroundAlt
 
           // Highlight the column shown in bar
           border.width: 0
-          border.color: Colors.surface
-          // border.color: hovered ? Colors.accent2 : Colors.surface
+          border.color: Theme.backgroundAlt
+          // border.color: hovered ? Theme.accentAlt : Theme.backgroundAlt
           opacity: isCurrentColumn ? 1.0 : 0.85
 
           transitions: Transition {
@@ -117,15 +117,15 @@ Item {
             width: parent.width * 0.7
             height: parent.height * 0.7
             anchors.centerIn: parent
-            visible: Settings.workspacePopoutIcons
+            visible: Widget.workspacePopoutIcons
           }
 
           Text {
             anchors.centerIn: parent
             text: parent.wsId
-            color: parent.isActive ? Colors.bg : Colors.surface
+            color: parent.isActive ? Theme.background : Theme.backgroundAlt
             font.pixelSize: 11
-            font.family: Settings.fontFamily
+            font.family: Appearance.fontFamily
             visible: false
           }
 
