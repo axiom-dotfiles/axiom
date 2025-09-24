@@ -3,7 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 
 import qs.components.widgets.popouts
-import qs.components.widgets.reusable
+import qs.components.reusable
 import qs.components.widgets.menu
 import qs.config
 import qs.services
@@ -15,8 +15,7 @@ Item {
     edge: EdgePopup.Edge.Right
     position: 0.5
     enableTrigger: true
-    useImplicitSize: true
-    triggerLength: 1500
+    triggerLength: Display.resolutionHeight
     edgeMargin: 10
 
     PowerPanel {

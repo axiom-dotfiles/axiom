@@ -7,7 +7,7 @@ import QtQuick
 import qs.config
 import qs.components.widgets.bar.declarations as Widgets
 import qs.components.widgets.popouts
-import qs.components.widgets.reusable
+import qs.components.reusable
 
 PanelWindow {
   id: root

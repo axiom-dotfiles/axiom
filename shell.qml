@@ -4,33 +4,34 @@
 //@ pragma Env QT_QUICK_FLICKABLE_WHEEL_DECELERATION=10000
 
 import Quickshell
-import "modules"
 import "config/lib"
+import "modules"
 
 ShellRoot {
-  id: shellRoot
+    id: shellRoot
 
-  HotReload {
-    id: hotReload
-  }
+    HotReload {
+        id: hotReload
+    }
 
-  Bar {
-    id: mainBar
-  }
+    Bar {
+        id: mainBar
+    }
 
-  WorkspaceOverlay {
-    id: workspaceOverlay
-  }
+    WorkspaceOverlay {
+        id: workspaceOverlay
+    }
 
-  RoundedCorners {
-    id: roundedCorners
-  }
+    RoundedCorners {
+        id: roundedCorners
+    }
 
-  OSD {
-    id: osd
-  }
+    OSD {
+        id: osd
+    }
 
-  UnnamedModule {
-    id: unnamedModule
-  }
+    UnnamedModule {
+        id: unnamedModule
+    }
+
 }

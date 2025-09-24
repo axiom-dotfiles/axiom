@@ -3,7 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
 import qs.components.widgets.popouts
-import qs.components.widgets.reusable
+import qs.components.reusable
 
 Item {
   id: root
@@ -26,14 +26,13 @@ Item {
   property int edge: EdgePopup.Edge.Right
   property real position: 0.5
   property real positionOffset: 0
-  property bool useImplicitSize: true
-  property int customWidth: 300
-  property int customHeight: 400
+  property int customWidth: 0
+  property int customHeight: 0
   property int edgeMargin: 0
   property bool enableFade: true
   property bool enableTrigger: true
   property int triggerWidth: 5
-  property int triggerLength: 200
+  property int triggerLength: 1400
   property bool triggerOnHover: true
   property bool triggerOnClick: false
   property int hoverDelay: 300
@@ -43,14 +42,9 @@ Item {
 
   property bool __animating: false
 
-  // TODO: Figure out how tf this actually loads and fix the initialization deadlock (that somehow resolves)
   property var __loadedItem: contentArea.data.length > 0 ? contentArea.data[0] : null
-  // readonly property int actualWidth: useImplicitSize ? (__loadedItem ? __loadedItem.implicitWidth : 0) : customWidth
-  // readonly property int actualHeight: useImplicitSize ? (__loadedItem ? __loadedItem.implicitHeight : 0) : customHeight
-    readonly property int actualWidth: Math.max(1, useImplicitSize ? (__loadedItem ? __loadedItem.implicitWidth : 0) : customWidth)
-  readonly property int actualHeight: Math.max(1, useImplicitSize ? (__loadedItem ? __loadedItem.implicitHeight : 0) : customHeight)
-  // readonly property int actualWidth: Math.max(1, useImplicitSize ? (contentArea.data.length > 0 ? contentArea.data[0].implicitWidth : 0) : customWidth)
-  // readonly property int actualHeight: Math.max(1, useImplicitSize ? (contentArea.data.length > 0 ? contentArea.data[0].implicitHeight : 0) : customHeight)
+  readonly property int actualWidth: Math.max(1, (customWidth > 0 ? customWidth : (__loadedItem ? __loadedItem.implicitWidth :  0)))
+  readonly property int actualHeight: Math.max(1, (customHeight > 0 ? customHeight : (__loadedItem ? __loadedItem.implicitHeight :  0)))
 
   EdgeTrigger {
     id: trigger
@@ -150,12 +144,6 @@ Item {
             id: contentArea
             anchors.fill: parent
           }
-
-          // MouseArea {
-          //   anchors.fill: parent
-          //   enabled: root.active && root.closeOnClickOutside
-          //   onClicked: root.hide()
-          // }
 
           MouseArea {
             anchors.fill: parent

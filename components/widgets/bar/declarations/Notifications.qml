@@ -4,7 +4,7 @@ import QtQuick
 import Quickshell.Io
 
 import qs.config
-import qs.components.widgets.reusable
+import qs.components.reusable
 
 IconTextWidget {
   id: root
