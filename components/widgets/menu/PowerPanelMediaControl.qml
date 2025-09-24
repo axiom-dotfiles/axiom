@@ -1,23 +1,19 @@
 import QtQuick
-import QtQuick.Controls
 import QtQuick.Layouts
 
 import qs.services
 import qs.config
+import qs.components.reusable
 
-Rectangle {
+StyledContainer {
     id: root
     
     property bool playing: false
+    containerColor: Theme.accent
     
-    color: Theme.backgroundAlt
-    radius: Appearance.borderRadius
     visible: Layout.preferredHeight > 0
     clip: true
-
-    border.color: Theme.accentAlt
     
-    // This is what actually gets animated
     Layout.preferredHeight: playing ? 80 : 0
     
     Behavior on Layout.preferredHeight {
@@ -27,91 +23,59 @@ Rectangle {
         }
     }
     
-    // TODO: Load actual media controls here (MPRIS integration)
     Loader {
         id: mediaControlLoader
         anchors.fill: parent
         anchors.margins: Widget.padding
         active: root.playing
         
-        sourceComponent: RowLayout {
-            spacing: Widget.spacing
-            
-            // Album art placeholder
-            Rectangle {
+        sourceComponent: StyledRowLayout {
+            StyledContainer {
                 Layout.preferredWidth: 60
                 Layout.preferredHeight: 60
-                color: Theme.backgroundHighlight
-                radius: Appearance.borderRadius
+                containerColor: Theme.backgroundHighlight
+                containerBorderColor: Theme.foreground
+                // Image art goes here
             }
             
-            // Track info
-            ColumnLayout {
+            StyledColumnLayout {
                 Layout.fillWidth: true
-                spacing: 2
+                layoutSpacing: 2
                 
-                Text {
+                StyledText {
                     text: "Track Title"
-                    font.family: Appearance.fontFamily
-                    font.pixelSize: Appearance.fontSize - 2
-                    color: Theme.foreground
+                    textSize: Appearance.fontSize - 2
+                    textColor: Theme.background
                     elide: Text.ElideRight
                 }
                 
-                Text {
+                StyledText {
                     text: "Artist Name"
-                    font.family: Appearance.fontFamily
-                    font.pixelSize: Appearance.fontSize - 4
-                    color: Theme.foregroundAlt
+                    textSize: Appearance.fontSize - 4
+                    textColor: Theme.backgroundAlt
                     elide: Text.ElideRight
                 }
             }
             
-            // Media controls
-            RowLayout {
-                spacing: Widget.spacing
-                
-                MediaControlButton {
-                    iconText: "󰒮"  // Previous icon
+            StyledRowLayout {
+                StyledIconButton {
+                    iconText: "󰒮"
                     onClicked: console.log("Previous")
+                    iconColor: Theme.backgroundAlt
                 }
                 
-                MediaControlButton {
-                    iconText: "󰏤"  // Pause icon (or 󰐊 for play)
+                StyledIconButton {
+                    iconText: "󰏤"
                     iconSize: Appearance.fontSize + 4
                     onClicked: console.log("Play/Pause")
+                    iconColor: Theme.background
                 }
                 
-                MediaControlButton {
-                    iconText: "󰒭"  // Next icon
+                StyledIconButton {
+                    iconText: "󰒭"
                     onClicked: console.log("Next")
+                    iconColor: Theme.backgroundAlt
                 }
-            }
-        }
-    }
-    
-    component MediaControlButton: ToolButton {
-        property string iconText: ""
-        property int iconSize: Appearance.fontSize
-        
-        Layout.preferredWidth: Widget.height
-        Layout.preferredHeight: Widget.height
-        
-        contentItem: Text {
-            text: parent.iconText
-            font.family: Appearance.fontFamily
-            font.pixelSize: parent.iconSize
-            color: Theme.foreground
-            horizontalAlignment: Text.AlignHCenter
-            verticalAlignment: Text.AlignVCenter
-        }
-        
-        background: Rectangle {
-            color: parent.hovered ? Theme.backgroundHighlight : "transparent"
-            radius: Appearance.borderRadius
-            
-            Behavior on color {
-                ColorAnimation { duration: 150 }
             }
         }
     }

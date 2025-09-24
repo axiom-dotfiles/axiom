@@ -1,240 +1,182 @@
+// PowerPanelTabs.qml (Fully Corrected)
 pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+// Assuming these imports are valid in your project
 import qs.services
 import qs.config
 import qs.components.methods
+import qs.components.reusable
 
-Rectangle {
-  id: root
+// Mock objects for compilation if imports are not available
+// QtObject { id: Theme; property color accentAlt: "skyblue"; property color foregroundAlt: "gray"; property color background: "white"; property color backgroundHighlight: "#f0f0f0" }
+// QtObject { id: Widget; property int padding: 10 }
+// Component { id: StyledContainer }
+// Component { id: StyledColumnLayout }
+// Component { id: PowerPanelTabBar }
+// Component { id: StyledScrollView }
+// End of mock objects
 
-  color: "transparent"
-  radius: Appearance.borderRadius
-  border.color: Theme.accentAlt
+StyledContainer {
+    id: root
+    
+    // Using sample values for demonstration
+    width: 350
+    height: 500
+    
+    containerColor: "transparent"
+    containerBorderColor: Theme.accentAlt
+    
+    property int currentTab: 0
 
-  // State management
-  property int currentTab: 0
+    readonly property var tabs: [
+        { name: "Volume", loader: volumeMixerLoader },
+        { name: "Timer", loader: rubikTimerLoader },
+        { name: "Calendar", loader: calendarLoader },
+        { name: "Notifs", loader: notificationLoader }
+    ]
 
-  // Tab definitions
-  readonly property var tabs: [
-    {
-      name: "Volume",
-      loader: volumeMixerLoader
-    },
-    {
-      name: "Timer",
-      loader: rubikTimerLoader
-    },
-    {
-      name: "Calendar",
-      loader: calendarLoader
-    },
-    {
-      name: "Notifs",
-      loader: notificationLoader
-    }
-  ]
+    readonly property real tabBarHeight: 40
 
-  // Constants
-  readonly property real tabBarHeight: 40
-
-  ColumnLayout {
-    anchors.fill: parent
-    spacing: 0
-
-    // Tab Navigation Bar
-    PowerPanelTabBar {
-      Layout.fillWidth: true
-      Layout.preferredHeight: tabBarHeight
-      currentTab: root.currentTab
-      tabs: root.tabs
-      onTabClicked: index => {
-        root.currentTab = index;
-      }
-    }
-
-    // Spacing
-    Item {
-      Layout.fillWidth: true
-      Layout.preferredHeight: Widget.padding
-    }
-
-    // Content Viewport with Animation
-    Rectangle {
-      Layout.fillWidth: true
-      Layout.fillHeight: true
-      color: "transparent"
-      clip: true
-
-      Item {
-        id: contentContainer
+    StyledColumnLayout {
         anchors.fill: parent
+        layoutSpacing: 0
 
-        // State-based positioning for tab animation
-        states: [
-          State {
-            name: "tab0"
-            when: root.currentTab === 0
-            PropertyChanges {
-              target: contentRow
-              x: 0
-            }
-          },
-          State {
-            name: "tab1"
-            when: root.currentTab === 1
-            PropertyChanges {
-              target: contentRow
-              x: -root.width
-            }
-          },
-          State {
-            name: "tab2"
-            when: root.currentTab === 2
-            PropertyChanges {
-              target: contentRow
-              x: -root.width * 2
-            }
-          },
-          State {
-            name: "tab3"
-            when: root.currentTab === 3
-            PropertyChanges {
-              target: contentRow
-              x: -root.width * 3
-            }
-          }
-        ]
-
-        Row {
-          id: contentRow
-          height: parent.height
-
-          Behavior on x {
-            NumberAnimation {
-              duration: 250
-              easing.type: Easing.InOutQuad
-            }
-          }
-
-          // Volume Mixer Widget
-          PowerPanelScrollableContent {
-            width: root.width
-            height: parent.height
-
-            Loader {
-              id: volumeMixerLoader
-              width: parent.width - (Widget.padding * 2)
-              x: Widget.padding
-              y: Widget.padding
-              active: true
-
-              // TODO: Load actual Volume Mixer widget here
-              sourceComponent: Rectangle {
-                height: 200
-                color: Theme.backgroundHighlight
-                radius: Appearance.borderRadius
-
-                Text {
-                  anchors.centerIn: parent
-                  text: "Volume Mixer Widget Placeholder"
-                  font.family: Appearance.fontFamily
-                  font.pixelSize: Appearance.fontSize
-                  color: Theme.foregroundAlt
-                }
-              }
-            }
-          }
-
-          // Rubik's Timer Widget
-          PowerPanelScrollableContent {
-            width: root.width
-            height: parent.height
-
-            Loader {
-              id: rubikTimerLoader
-              width: parent.width - (Widget.padding * 2)
-              x: Widget.padding
-              y: Widget.padding
-              active: root.currentTab === 1 || contentRow.x < 0
-
-              // TODO: Load actual Rubik's Timer widget here
-              sourceComponent: Rectangle {
-                height: 300
-                color: Theme.backgroundHighlight
-                radius: Appearance.borderRadius
-
-                Text {
-                  anchors.centerIn: parent
-                  text: "Rubik's Timer Widget Placeholder"
-                  font.family: Appearance.fontFamily
-                  font.pixelSize: Appearance.fontSize
-                  color: Theme.foregroundAlt
-                }
-              }
-            }
-          }
-
-          // Calendar Widget
-          PowerPanelScrollableContent {
-            width: root.width
-            height: parent.height
-
-            Loader {
-              id: calendarLoader
-              width: parent.width - (Widget.padding * 2)
-              x: Widget.padding
-              y: Widget.padding
-              active: root.currentTab === 2 || Math.abs(contentRow.x) > root.width
-
-              // TODO: Load actual Calendar widget here
-              sourceComponent: Rectangle {
-                height: 2000
-                color: Theme.backgroundHighlight
-                radius: Appearance.borderRadius
-
-                Text {
-                  anchors.centerIn: parent
-                  text: "Calendar Widget Placeholder"
-                  font.family: Appearance.fontFamily
-                  font.pixelSize: Appearance.fontSize
-                  color: Theme.foregroundAlt
-                }
-              }
-            }
-          }
-
-          // Notifications Widget
-          PowerPanelScrollableContent {
-            width: root.width
-            height: parent.height
-
-            Loader {
-              id: notificationLoader
-              width: parent.width - (Widget.padding * 2)
-              x: Widget.padding
-              y: Widget.padding
-              active: root.currentTab === 3 || contentRow.x < -(root.width * 2)
-
-              // TODO: Load actual Notifications widget here
-              sourceComponent: Rectangle {
-                height: 500
-                color: Theme.backgroundHighlight
-                radius: Appearance.borderRadius
-
-                Text {
-                  anchors.centerIn: parent
-                  text: "Notifications Widget Placeholder"
-                  font.family: Appearance.fontFamily
-                  font.pixelSize: Appearance.fontSize
-                  color: Theme.foregroundAlt
-                }
-              }
-            }
-          }
+        PowerPanelTabBar {
+            Layout.fillWidth: true
+            Layout.preferredHeight: tabBarHeight
+            currentTab: root.currentTab
+            tabs: root.tabs
+            onTabClicked: index => { root.currentTab = index; }
         }
-      }
+
+        Item {
+            Layout.fillWidth: true
+            Layout.preferredHeight: Widget.padding
+        }
+
+        StyledContainer {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            containerColor: "transparent"
+            clip: true
+
+            Item {
+                id: contentContainer
+                anchors.fill: parent
+
+                states: [
+                    State { name: "tab0"; when: root.currentTab === 0; PropertyChanges { target: contentRow; x: 0 } },
+                    State { name: "tab1"; when: root.currentTab === 1; PropertyChanges { target: contentRow; x: -root.width } },
+                    State { name: "tab2"; when: root.currentTab === 2; PropertyChanges { target: contentRow; x: -root.width * 2 } },
+                    State { name: "tab3"; when: root.currentTab === 3; PropertyChanges { target: contentRow; x: -root.width * 3 } }
+                ]
+
+                Row {
+                    id: contentRow
+                    height: parent.height
+
+                    Behavior on x { 
+                        NumberAnimation { 
+                            id: slideAnimation
+                            duration: 250
+                            easing.type: Easing.InOutQuad
+                        }
+                    }
+
+                    StyledScrollView {
+                        width: root.width; height: parent.height
+                        contentPadding: Widget.padding
+                        scrollbarOpacity: slideAnimation.running ? 0 : 1
+
+                        Loader {
+                            id: volumeMixerLoader; active: true
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            sourceComponent: StyledContainer {
+                                implicitWidth: root.width - (Widget.padding * 2)
+                                height: 300
+                                containerColor: Theme.foregroundAlt
+
+                                StyledText {
+                                    anchors.centerIn: parent
+                                    horizontalAlignment: Text.AlignHCenter
+                                    wrapMode: Text.WordWrap
+                                    width: parent.width - (2 * Widget.padding)
+
+                                    text: "Volume Mixer Widget Placeholder"
+                                    textColor: Theme.background
+                                }
+                            }
+                        }
+                    }
+
+                    StyledScrollView {
+                        width: root.width; height: parent.height
+                        contentPadding: Widget.padding
+                        scrollbarOpacity: slideAnimation.running ? 0 : 1
+
+                        Loader {
+                            id: rubikTimerLoader; active: root.currentTab === 1 || contentRow.x < 0
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            sourceComponent: StyledContainer {
+                              implicitWidth: root.width - (Widget.padding * 2)
+                              height: 300
+                              containerColor: Theme.foregroundAlt
+                                StyledText {
+                                    anchors.centerIn: parent
+                                    horizontalAlignment: Text.AlignHCenter
+                                    text: "Rubik's Timer Widget Placeholder"
+                                    textColor: Theme.background
+                                }
+                            }
+                        }
+                    }
+
+                    StyledScrollView {
+                        width: root.width; height: parent.height
+                        contentPadding: Widget.padding
+                        scrollbarOpacity: slideAnimation.running ? 0 : 1
+
+                        Loader {
+                            id: calendarLoader; active: root.currentTab === 2 || Math.abs(contentRow.x) > root.width
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            sourceComponent: StyledContainer {
+                                implicitWidth: root.width - (Widget.padding * 2)
+                                height: 2000
+                                containerColor: Theme.foregroundAlt
+                                StyledText {
+                                    anchors.centerIn: parent
+                                    horizontalAlignment: Text.AlignHCenter
+                                    text: "Calendar Widget Placeholder"
+                                    textColor: Theme.background
+                                }
+                            }
+                        }
+                    }
+
+                    StyledScrollView {
+                        width: root.width; height: parent.height
+                        contentPadding: Widget.padding
+                        scrollbarOpacity: slideAnimation.running ? 0 : 1
+
+                        Loader {
+                            id: notificationLoader; active: root.currentTab === 3 || contentRow.x < -(root.width * 2)
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            sourceComponent: StyledContainer {
+                                implicitWidth: root.width - (Widget.padding * 2)
+                                height: 500; containerColor: Theme.foregroundAlt
+                                StyledText {
+                                    anchors.centerIn: parent
+                                    horizontalAlignment: Text.AlignHCenter
+                                    text: "Notifications Widget Placeholder"
+                                    textColor: Theme.background
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
-  }
 }

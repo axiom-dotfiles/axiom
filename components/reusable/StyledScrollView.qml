@@ -1,25 +1,34 @@
+// qs/components/reusable/StyledScrollView.qml
 import QtQuick
 import QtQuick.Controls
-
-import qs.services
 import qs.config
 
 ScrollView {
     id: root
     
-    contentWidth: width - ScrollBar.vertical.width
+    property int contentPadding: Widget.padding
+    
+    // --- FIX ---
+    // CHANGED: The alias now points directly to the opacity property of the scrollbar.
+    // EXPLANATION: An alias must target a specific property (like id.property), not an entire object (id).
+    property alias scrollbarOpacity: verticalScrollBar.opacity
+    
+    contentWidth: availableWidth
+    
+    topPadding: contentPadding
+    bottomPadding: contentPadding
+    leftPadding: contentPadding
+    rightPadding: contentPadding
+    
     ScrollBar.vertical.policy: ScrollBar.AsNeeded
     ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
 
-    bottomPadding: Widget.padding
-    
-    // Custom scrollbar styling
     ScrollBar.vertical {
-        parent: root
-        x: root.width - width
-        y: 0
-        height: root.availableHeight
-        active: true
+        id: verticalScrollBar
+
+        Behavior on opacity {
+            NumberAnimation { duration: 150 }
+        }
         
         contentItem: Rectangle {
             implicitWidth: 6
