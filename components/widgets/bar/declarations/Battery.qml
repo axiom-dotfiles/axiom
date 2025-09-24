@@ -1,6 +1,5 @@
+pragma ComponentBehavior: Bound
 import QtQuick
-import Quickshell
-import Quickshell.Io
 
 import qs.services
 import qs.components.widgets.reusable
@@ -24,30 +23,47 @@ IconTextWidget {
 
   function getBatteryIcon() {
     if (isCharging) {
-      if (percentage >= 90) return "󰂅";
-      if (percentage >= 80) return "󰂋";
-      if (percentage >= 60) return "󰂊";
-      if (percentage >= 40) return "󰢞";
-      if (percentage >= 20) return "󰢝";
+      if (percentage >= 90)
+        return "󰂅";
+      if (percentage >= 80)
+        return "󰂋";
+      if (percentage >= 60)
+        return "󰂊";
+      if (percentage >= 40)
+        return "󰢞";
+      if (percentage >= 20)
+        return "󰢝";
       return "󰢜";
     } else {
-      if (percentage >= 90) return "󰁹";
-      if (percentage >= 80) return "󰂂";
-      if (percentage >= 70) return "󰂁";
-      if (percentage >= 60) return "󰂀";
-      if (percentage >= 50) return "󰁿";
-      if (percentage >= 40) return "󰁾";
-      if (percentage >= 30) return "󰁽";
-      if (percentage >= 20) return "󰁼";
-      if (percentage >= 10) return "󰁻";
+      if (percentage >= 90)
+        return "󰁹";
+      if (percentage >= 80)
+        return "󰂂";
+      if (percentage >= 70)
+        return "󰂁";
+      if (percentage >= 60)
+        return "󰂀";
+      if (percentage >= 50)
+        return "󰁿";
+      if (percentage >= 40)
+        return "󰁾";
+      if (percentage >= 30)
+        return "󰁽";
+      if (percentage >= 20)
+        return "󰁼";
+      if (percentage >= 10)
+        return "󰁻";
       return "󰁺";
     }
   }
 
   function getBatteryColor() {
-    if (isCharging) return Theme.success;
-    if (warningLevel === "critical" || percentage <= 10) return Theme.error;
-    if (warningLevel === "low" || percentage <= 20) return Theme.info;
+    if (isCharging)
+      return Theme.success;
+    if (warningLevel === "critical" || percentage <= 10)
+      return Theme.error;
+    if (warningLevel === "low" || percentage <= 20)
+      return Theme.info;
     return Theme.accentAlt;
   }
 
@@ -66,21 +82,21 @@ IconTextWidget {
     command: ["sh", "-c", `
       upower -i /org/freedesktop/UPower/devices/DisplayDevice | awk '
         /state:/ { state = $2 }
-        /percentage:/ { 
-          percentage = $2; 
-          gsub(/%/, "", percentage) 
+        /percentage:/ {
+          percentage = $2;
+          gsub(/%/, "", percentage)
         }
-        /time to empty:/ { 
+        /time to empty:/ {
           for(i=4; i<=NF; i++) time_remaining = time_remaining " " $i
           time_remaining = substr(time_remaining, 2)
         }
-        /time to full:/ { 
+        /time to full:/ {
           for(i=4; i<=NF; i++) time_remaining = time_remaining " " $i
           time_remaining = substr(time_remaining, 2)
         }
         /warning-level:/ { warning = $2 }
-        END { 
-          print state ";" percentage ";" time_remaining ";" warning 
+        END {
+          print state ";" percentage ";" time_remaining ";" warning
         }
       '
     `]
@@ -106,7 +122,7 @@ IconTextWidget {
   SequentialAnimation {
     running: root.isCharging
     loops: Animation.Infinite
-    
+
     PropertyAnimation {
       target: root
       property: "opacity"
@@ -115,7 +131,7 @@ IconTextWidget {
       duration: 1500
       easing.type: Easing.InOutQuad
     }
-    
+
     PropertyAnimation {
       target: root
       property: "opacity"

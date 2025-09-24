@@ -1,10 +1,9 @@
+// Cannot be bound
 import QtQuick
 import QtQuick.Layouts
-import QtQuick.Controls
 import Quickshell
 import Quickshell.Services.SystemTray
 
-import qs.services
 import qs.config
 
 Item {

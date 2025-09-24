@@ -1,7 +1,5 @@
-import QtQuick
-import "." as Common  // Import your common components
+pragma ComponentBehavior: Bound
 
-import qs.services
 import qs.config
 import qs.components.widgets.reusable
 

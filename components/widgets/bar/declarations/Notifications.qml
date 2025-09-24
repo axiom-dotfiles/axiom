@@ -1,8 +1,8 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
-import Quickshell
 import Quickshell.Io
 
-import qs.services
 import qs.config
 import qs.components.widgets.reusable
 
@@ -14,9 +14,12 @@ IconTextWidget {
   // Open swaync panel; run detached so Quickshell isn’t tied to its lifecycle.
   Process {
     id: openPanel
-    command: ["swaync-client","-op","-sw"]
+    command: ["swaync-client", "-op", "-sw"]
     // we only want a one-shot detached spawn:
-    onStarted: { openPanel.startDetached(); openPanel.running = false }
+    onStarted: {
+      openPanel.startDetached();
+      openPanel.running = false;
+    }
   }
 
   MouseArea {
@@ -26,4 +29,3 @@ IconTextWidget {
     onClicked: openPanel.running = true
   }
 }
-

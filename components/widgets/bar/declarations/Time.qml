@@ -1,48 +1,47 @@
-import Quickshell
-import Quickshell.Io
-import QtQuick
-import QtQuick.Layouts
+pragma ComponentBehavior: Bound
 
-import qs.services
+import Quickshell
+import QtQuick
+
 import qs.config
 
 Item {
   id: root
-  
+
   // Orientation support
   property int orientation: Config.orientation
   property bool isVertical: orientation === Qt.Vertical
   property bool showDate: true
   property bool use24Hour: false
-  
+
   // Dynamic dimensions based on orientation
   height: isVertical ? implicitHeight : Widget.height
   width: isVertical ? Widget.height : implicitWidth
-  
+
   implicitWidth: isVertical ? Widget.height : (layoutLoader.item ? layoutLoader.item.implicitWidth + Widget.padding * 2 : 100)
   implicitHeight: isVertical ? (layoutLoader.item ? layoutLoader.item.implicitHeight + Widget.padding * 2 : Widget.height) : Widget.height
-  
+
   SystemClock {
     id: clock
     precision: SystemClock.Seconds
   }
-  
+
   Rectangle {
     anchors.fill: parent
     color: Theme.accentAlt
     radius: Appearance.borderRadius
   }
-  
+
   Loader {
     id: layoutLoader
     anchors.centerIn: parent
     sourceComponent: isVertical ? verticalComponent : horizontalComponent
-    
+
     Component {
       id: horizontalComponent
       Row {
         spacing: 8
-        
+
         Text {
           color: Theme.background
           font.family: Appearance.fontFamily
@@ -50,7 +49,7 @@ Item {
           text: Qt.formatDateTime(clock.date, "MMM d, yyyy")
           visible: root.showDate
         }
-        
+
         Rectangle {
           width: 1
           height: Appearance.fontSize
@@ -59,7 +58,7 @@ Item {
           visible: root.showDate
           anchors.verticalCenter: parent.verticalCenter
         }
-        
+
         Text {
           color: Theme.background
           font.family: Appearance.fontFamily
@@ -68,17 +67,17 @@ Item {
         }
       }
     }
-    
+
     Component {
       id: verticalComponent
       Column {
         spacing: 2
-        
+
         // Time display - larger and more prominent
         Column {
           spacing: 0
           anchors.horizontalCenter: parent.horizontalCenter
-          
+
           Text {
             color: Theme.background
             font.family: Appearance.fontFamily
@@ -96,7 +95,7 @@ Item {
             text: Qt.formatDateTime(clock.date, "mm")
             anchors.horizontalCenter: parent.horizontalCenter
           }
-          
+
           Text {
             color: Theme.background
             font.family: Appearance.fontFamily
@@ -105,7 +104,7 @@ Item {
             opacity: 0.8
             anchors.horizontalCenter: parent.horizontalCenter
           }
-          
+
           Text {
             color: Theme.background
             font.family: Appearance.fontFamily
@@ -116,7 +115,7 @@ Item {
             anchors.horizontalCenter: parent.horizontalCenter
           }
         }
-        
+
         // Separator line
         Rectangle {
           width: parent.width * 0.6
@@ -126,13 +125,13 @@ Item {
           visible: root.showDate
           anchors.horizontalCenter: parent.horizontalCenter
         }
-        
+
         // Date display - compact format
         Column {
           spacing: 0
           visible: root.showDate
           anchors.horizontalCenter: parent.horizontalCenter
-          
+
           Text {
             color: Theme.background
             font.family: Appearance.fontFamily
@@ -140,7 +139,7 @@ Item {
             text: Qt.formatDateTime(clock.date, "MMM")
             anchors.horizontalCenter: parent.horizontalCenter
           }
-          
+
           Text {
             color: Theme.background
             font.family: Appearance.fontFamily
@@ -149,7 +148,7 @@ Item {
             text: Qt.formatDateTime(clock.date, "dd")
             anchors.horizontalCenter: parent.horizontalCenter
           }
-          
+
           Text {
             color: Theme.background
             font.family: Appearance.fontFamily

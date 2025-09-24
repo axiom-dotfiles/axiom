@@ -1,6 +1,6 @@
+// cannot be bound
 import QtQuick
 import QtQuick.Layouts
-import Quickshell
 import Quickshell.Hyprland
 
 import qs.services
@@ -11,7 +11,6 @@ Item {
   required property var screen
   property var popouts: null
   property var panel: null  // Reference to the parent panel for popout anchoring
-
 
   // Orientation support
   property int orientation: Config.orientation

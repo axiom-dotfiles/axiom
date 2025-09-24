@@ -1,6 +1,4 @@
-import QtQuick
-import Quickshell
-import Quickshell.Io
+pragma ComponentBehavior: Bound
 
 import qs.services
 import qs.config
@@ -22,5 +20,4 @@ IconTextWidget {
     const title = Mpris.trackTitle;
     return artist + " - " + title;
   }
-
 }

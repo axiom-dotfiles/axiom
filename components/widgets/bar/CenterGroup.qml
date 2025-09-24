@@ -24,11 +24,11 @@ QtObject {
 
     model: {
       let widgets = [];
-      if (showSystemMonitor) {
-        // widgets.push({
-        //   component: systemMonitorComponent
-        // });
-      }
+      if (showSystemMonitor)
+      // widgets.push({
+      //   component: systemMonitorComponent
+      // });
+      {}
       return widgets;
     }
 
