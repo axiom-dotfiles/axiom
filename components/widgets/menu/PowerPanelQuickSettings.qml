@@ -46,5 +46,17 @@ StyledContainer {
             backgroundColor: Theme.base0D
             iconColor: Theme.background
         }
+
+        StyledIconButton {
+            iconText: "󰍛"
+            tooltipText: "Power Settings"
+            // onClicked: ShellManager.togglePanelReservation("mainMenu")
+            onClicked: {
+                ShellManager.togglePanelReservation("mainMenu")
+                ShellManager.togglePanelLock("mainMenu")
+            }
+            backgroundColor: Theme.base0E
+            iconColor: Theme.background
+        }
     }
 }

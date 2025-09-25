@@ -12,26 +12,23 @@ import qs.components.reusable
 StyledContainer {
     id: root
 
-    // --- Public Properties ---
+    property string panelId: ""
     property real customWidth: 0
     property real customHeight: 0
     property real minimumScrollableHeight: 250
     property bool mediaPlaying: false
-    property int panelMargin: 10 // Unified margin for the panel's main sections
+    property int panelMargin: 10
 
-    // --- Fallback Sizing ---
     implicitWidth: 600
-    implicitHeight: Display.resolutionHeight - Widget.containerWidth * 4
+    implicitHeight: Display.resolutionHeight - Widget.containerWidth * 4 // TODO: Remove random numbers
+    // implicitHeight: Display.resolutionHeight - (Widget.containerWidth * 2) + (Appearance.borderWidth * 2)
 
-    // --- Root Component Sizing Logic ---
     width: customWidth > 0 ? customWidth : implicitWidth
     height: Math.max(customHeight > 0 ? customHeight : implicitHeight, _minimumRequiredHeight)
 
-    // --- Internal Properties ---
     property real topSectionHeight: 120
     property real quickSettingsHeight: 60
 
-    // REFACTORED: Simplified and more accurate calculation based on the new layout structure.
     readonly property real _minimumRequiredHeight: {
         var total = 0;
         total += topSection.height;
@@ -46,26 +43,23 @@ StyledContainer {
         return total;
     }
 
-    // --- Component Styling ---
     containerBorderWidth: Appearance.borderWidth
     containerBorderColor: Theme.border
     containerColor: Theme.background
 
-    // --- Bottom-Anchored Layout Area ---
-    // This container holds all bottom-anchored items.
+    // --- Bottom-Anchored ---
     ColumnLayout {
         id: bottomArea
         anchors.bottom: parent.bottom
         anchors.left: parent.left
         anchors.right: parent.right
-        // REFACTORED: Margins are now consistently controlled by panelMargin
+
         anchors.bottomMargin: root.panelMargin
         anchors.leftMargin: root.panelMargin
         anchors.rightMargin: root.panelMargin
 
         spacing: Widget.containerWidth // Internal spacing between items in this section
 
-        // -- Add new bottom-anchored components here. They will stack automatically. --
         PowerPanelMediaControl {
             id: mediaControl
             Layout.fillWidth: true

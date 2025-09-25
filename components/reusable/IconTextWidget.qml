@@ -14,6 +14,8 @@ BaseWidget {
   property bool rotateText: true
   property real textScale: 1.0
   property real iconScale: 1.0
+  property bool showText: true
+  property bool showIcon: true
   property real spacing: 6
   property int maxTextLength: 0  // 0 = no limit
   property bool elideText: true  // Use ellipsis when truncating
@@ -52,7 +54,7 @@ BaseWidget {
             text: root.icon
             font.family: Appearance.fontFamily
             font.pixelSize: Appearance.fontSize * root.iconScale
-            visible: root.icon !== ""
+            visible: root.showIcon && root.icon !== ""
           }
 
           Text {
@@ -60,6 +62,7 @@ BaseWidget {
             text: root.displayText || "—"
             font.family: Appearance.fontFamily
             font.pixelSize: Appearance.fontSize * root.textScale
+            visible: root.showText
           }
         }
       }
@@ -114,7 +117,7 @@ BaseWidget {
           Text {
             id: mainText
             color: Theme.background
-            text: root.displayText || "—"
+            text: !root.showText ? "" : (root.displayText || "—")
             font.family: Appearance.fontFamily
             font.pixelSize: Appearance.fontSize * root.textScale
             rotation: -90

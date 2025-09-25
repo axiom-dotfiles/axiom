@@ -11,7 +11,7 @@ Rectangle {
   id: root
 
   // Colors
-  property color gridBgColor: Theme.backgroundAlt
+  property color gridBgColor: Theme.background
   property color gridBorderColor: Theme.border
 
   // Grid configuration

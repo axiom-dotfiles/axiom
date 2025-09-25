@@ -11,6 +11,7 @@ IconTextWidget {
 
   property bool isConnected: false
   property string tailnetName: ""
+  property bool showText: false
 
   icon: isConnected ? "󰳌" : "󰌙"
   text: isConnected ? tailnetName : ""

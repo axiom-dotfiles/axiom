@@ -1,18 +1,23 @@
-// EdgePopup.qml - Corrected version with robust sizing and animation
 pragma ComponentBehavior: Bound
 import QtQuick
+import QtQuick.Window
 import Quickshell
 import qs.components.widgets.popouts
 import qs.components.reusable
 
+import qs.config
+import qs.services
+
 Item {
   id: root
 
-  // Core properties
+  required property string panelId;
   property bool active: false
   default property alias content: contentArea.data
 
-  // ... (All other properties remain the same) ...
+  property bool reserveSpace: false
+  property int lockedMargin: Widget.containerWidth
+
   property bool aboveWindows: true
   property bool focusable: false
   property int animationDuration: 300
@@ -45,6 +50,103 @@ Item {
   property var __loadedItem: contentArea.data.length > 0 ? contentArea.data[0] : null
   readonly property int actualWidth: Math.max(1, (customWidth > 0 ? customWidth : (__loadedItem ? __loadedItem.implicitWidth :  0)))
   readonly property int actualHeight: Math.max(1, (customHeight > 0 ? customHeight : (__loadedItem ? __loadedItem.implicitHeight :  0)))
+
+  Component.onCompleted: {
+    if (panelId !== "") {
+      ShellManager.togglePanelReservation.connect(function(id) {
+        console.log("Received togglePanelReservation for id:", id, "Current panelId:", panelId);
+        if (id === panelId) {
+          root.toggleReservation();
+        }
+      });
+    }
+  }
+
+  PanelWindow {
+    id: reservationPanel
+
+    // Visible only when the reservation feature is active.
+    // This allows the space to be reserved even when the popup is hidden.
+    visible: root.reserveSpace && (root.actualWidth > 0 && root.actualHeight > 0)
+
+    // TODO: Get the popup above the panel
+    // aboveWindows: reserveSpace ? true : false
+    aboveWindows: false
+    color: "red"
+    focusable: false
+
+    implicitWidth: exclusiveZone
+    implicitHeight: Display.resolutionHeight
+    
+
+    Rectangle {
+      anchors.fill: parent
+      color: Theme.background
+    }
+
+    exclusiveZone: {
+      if (!root.reserveSpace) return 0;
+      return (root.edge === EdgePopup.Edge.Left || root.edge === EdgePopup.Edge.Right) ? root.actualWidth + 23 : root.actualHeight;
+    }
+
+    anchors {
+      // left: root.edge != EdgePopup.Edge.Right
+      // right: root.edge != EdgePopup.Edge.Left
+      // top: root.edge != EdgePopup.Edge.Bottom
+      // bottom: root.edge != EdgePopup.Edge.Top
+      left: root.edge === EdgePopup.Edge.Left ? true : undefined;
+      right: root.edge === EdgePopup.Edge.Right ? true : undefined;
+      top: root.edge === EdgePopup.Edge.Top ? true : undefined;
+      bottom: root.edge === EdgePopup.Edge.Bottom ? true : undefined;
+    }
+
+    margins {
+      left: {
+        switch (root.edge) {
+          case EdgePopup.Edge.Right:
+            return Screen.width - root.actualWidth;
+          case EdgePopup.Edge.Top:
+          case EdgePopup.Edge.Bottom:
+            return (Screen.width * root.position) + root.positionOffset - (root.actualWidth / 2);
+          default: // Left edge
+            return 0;
+        }
+      }
+      right: {
+        switch (root.edge) {
+          case EdgePopup.Edge.Left:
+            return Screen.width - root.actualWidth;
+          case EdgePopup.Edge.Top:
+          case EdgePopup.Edge.Bottom:
+            return Screen.width - ((Screen.width * root.position) + root.positionOffset + (root.actualWidth / 2));
+          default: // Right edge
+            return 0;
+        }
+      }
+      top: {
+        switch (root.edge) {
+          case EdgePopup.Edge.Bottom:
+            return Screen.height - root.actualHeight;
+          case EdgePopup.Edge.Left:
+          case EdgePopup.Edge.Right:
+            return (Screen.height * root.position) + root.positionOffset - (root.actualHeight / 2);
+          default: // Top edge
+            return 0;
+        }
+      }
+      bottom: {
+        switch (root.edge) {
+          case EdgePopup.Edge.Top:
+            return Screen.height - root.actualHeight;
+          case EdgePopup.Edge.Left:
+          case EdgePopup.Edge.Right:
+            return Screen.height - ((Screen.height * root.position) + root.positionOffset + (root.actualHeight / 2));
+          default: // Bottom edge
+            return 0;
+        }
+      }
+    }
+  }
 
   EdgeTrigger {
     id: trigger
@@ -81,7 +183,20 @@ Item {
     PopupWindow {
       id: popup
       visible: (slideContainer.active || __animating) && (root.actualWidth > 0 && root.actualHeight > 0)
+      property bool locked: false
 
+      Component.onCompleted: {
+        ShellManager.togglePanelLock.connect(function(id) {
+          if (id === panelId) {
+            popup.locked = !popup.locked;
+            if (!visible && popup.locked) {
+              root.show();
+            }
+          }
+        });
+      }
+
+      // TODO: Rewrite this bullshit for proper locking
       anchor.window: trigger
       anchor.rect.x: {
         switch (root.edge) {
@@ -167,18 +282,36 @@ Item {
   }
 
   function hide() {
+    if (popup.locked)
+      return;
     if (active)
       active = false;
   }
 
   function toggle() {
+    if (popup.locked)
+      return;
     if (__animating)
       return;
     active = !active;
   }
 
+  function showAndLock() {
+    if (!active) {
+      popup.locked = true;
+      active = true;
+    } else {
+      popup.locked = !popup.locked;
+    }
+  }
+
   function setPosition(pos, offset = 0) {
     position = Math.max(0, Math.min(1, pos));
     positionOffset = offset;
+  }
+
+  function toggleReservation() {
+      console.log("Toggling reservation for panel:", panelId, "New state:", !reserveSpace);
+      reserveSpace = !reserveSpace;
   }
 }

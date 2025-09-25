@@ -9,7 +9,7 @@ Rectangle {
   id: root
 
   // Colors
-  property color cellBgColor: Theme.base00
+  property color cellBgColor: Theme.backgroundAlt
   property color cellBgHoverColor: Theme.base01
   property color cellBgDragColor: Theme.base02
   property color cellBorderColor: Theme.border

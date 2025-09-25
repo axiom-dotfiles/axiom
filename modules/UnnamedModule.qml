@@ -13,13 +13,16 @@ Item {
 
   EdgePopup {
     edge: EdgePopup.Edge.Right
+    panelId: "mainMenu"
     position: 0.5
     enableTrigger: true
+    // customHeight: Display.resolutionHeight - Widget.containerWidth * 2
     triggerLength: Display.resolutionHeight
-    edgeMargin: 10
+    edgeMargin: Widget.containerWidth + 4
 
     PowerPanel {
       id: powerPanel
+      panelId: "mainMenu"
     }
   }
 }
