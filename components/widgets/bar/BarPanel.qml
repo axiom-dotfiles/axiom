@@ -44,13 +44,6 @@ PanelWindow {
     screen: root.screen
   }
 
-  FloatingTrigger {
-    id: menuTrigger
-    popouts: popouts
-    screen: root.screen
-    panel: root
-  }
-
   BarContainer {
     anchors.fill: parent
     screen: root.screen
@@ -68,7 +61,7 @@ PanelWindow {
     leftGroup: Component {
       LeftGroup {
         screen: root.screen
-        showMedia: Display.primary === "DP-1"
+        showMedia: true
       }
     }
 

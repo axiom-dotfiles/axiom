@@ -237,10 +237,4 @@ Item {
       wrapper: root
     }
   }
-  Component {
-    id: mediaPlayerComponent
-    MediaPanel {
-      wrapper: root
-    }
-  }
 }

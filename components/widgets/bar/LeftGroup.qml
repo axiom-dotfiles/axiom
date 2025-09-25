@@ -18,12 +18,6 @@ WidgetGroup {
       properties: {
         orientation: Bar.vertical ? Qt.Vertical : Qt.Horizontal
       }
-    },
-    {
-      component: mediaComponent,
-      properties: {
-        visible: showMedia
-      }
     }
   ]
 
@@ -34,8 +28,8 @@ WidgetGroup {
     }
   }
 
-  Component {
-    id: mediaComponent
-    Widgets.Media {}
-  }
+  // Component {
+  //   id: mediaComponent
+  //   Widgets.Media {}
+  // }
 }

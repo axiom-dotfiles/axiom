@@ -1,9 +1,12 @@
 pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtQuick.Layouts
+
 import qs.services
 import qs.config
 import qs.components.reusable
+import qs.components.widgets.menu
 
 StyledContainer {
     id: root
@@ -16,7 +19,7 @@ StyledContainer {
         anchors.fill: parent
         anchors.leftMargin: Widget.padding
         anchors.rightMargin: Widget.padding
-        
+
         Repeater {
             model: root.tabs
             
@@ -26,6 +29,7 @@ StyledContainer {
                 
                 text: modelData.name
                 checked: root.currentTab === index
+                Layout.preferredWidth: root.currentTab === index ? 3 : null
                 
                 onClicked: root.tabClicked(index)
             }

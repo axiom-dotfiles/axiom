@@ -6,8 +6,8 @@ import QtQuick.Layouts
 import qs.services
 import qs.config
 import qs.components.methods
-import qs.components.widgets.menu
 import qs.components.reusable
+import qs.components.widgets.menu
 
 StyledContainer {
     id: root
@@ -16,16 +16,8 @@ StyledContainer {
     property real customWidth: 0
     property real customHeight: 0
     property real minimumScrollableHeight: 250
-    property bool mediaPlaying: false
+    property bool mediaPlaying: true
     property int panelMargin: 10
-
-    implicitWidth: 600
-    implicitHeight: (customHeight > 0) ? customHeight : Display.resolutionHeight - Widget.containerWidth * 4 // TODO: Remove random numbers
-    // implicitHeight: Display.resolutionHeight - (Widget.containerWidth * 2) + (Appearance.borderWidth * 2)
-
-    // width: customWidth > 0 ? customWidth : implicitWidth
-    // height: Math.max(customHeight > 0 ? customHeight : implicitHeight, _minimumRequiredHeight)
-
     property real topSectionHeight: 120
     property real quickSettingsHeight: 60
 
@@ -34,14 +26,12 @@ StyledContainer {
         total += topSection.height;
         total += minimumScrollableHeight;
         total += bottomArea.implicitHeight;
-        // Add all margins and spacing controlled by panelMargin
-        // 1. Top margin of topAreaLayout
-        // 2. Spacing inside topAreaLayout
-        // 3. Spacing between topAreaLayout and bottomArea
-        // 4. Bottom margin of bottomArea
         total += (panelMargin * 4);
         return total;
     }
+
+    implicitWidth: 600
+    implicitHeight: (customHeight > 0) ? customHeight : Display.resolutionHeight - Widget.containerWidth * 4 // TODO: Remove random numbers
 
     containerBorderWidth: Appearance.borderWidth
     containerBorderColor: Theme.border
@@ -60,15 +50,15 @@ StyledContainer {
 
         spacing: Widget.containerWidth // Internal spacing between items in this section
 
-        PowerPanelMediaControl {
+        MediaControl {
             id: mediaControl
             Layout.fillWidth: true
-            playing: root.mediaPlaying
-            visible: root.mediaPlaying
+            // playing: root.mediaPlaying
+            visible: true
             containerColor: Theme.accent
         }
 
-        PowerPanelQuickSettings {
+        QuickSettings {
             Layout.fillWidth: true
             Layout.preferredHeight: root.quickSettingsHeight
         }
@@ -112,7 +102,7 @@ StyledContainer {
         // This is the primary scrollable content area.
         // REFACTORED: Using Layout.fillHeight, it automatically expands to fill the
         // remaining space within this ColumnLayout.
-        PowerPanelTabs {
+        MainContent {
             id: tabbedContent
             Layout.fillWidth: true
             Layout.fillHeight: true // This is the key to making it fill the space

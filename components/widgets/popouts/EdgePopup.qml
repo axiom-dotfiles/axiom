@@ -69,15 +69,12 @@ Item {
     // This allows the space to be reserved even when the popup is hidden.
     visible: root.reserveSpace && (root.actualWidth > 0 && root.actualHeight > 0)
 
-    // TODO: Get the popup above the panel
+    // TODO: Get the popup above the panel windows when reservation is active,
+    // this allows windows to slide under the panel, but the popup should be above
     // aboveWindows: reserveSpace ? true : false
     aboveWindows: false
     color: "red"
     focusable: false
-
-    // desiredWidth: {
-    //   let panelEdgeToMonitor = Widget
-    // }
 
     exclusiveZone: {
       if (!root.reserveSpace) return 0;
@@ -94,10 +91,6 @@ Item {
     }
 
     anchors {
-      // left: root.edge != EdgePopup.Edge.Right
-      // right: root.edge != EdgePopup.Edge.Left
-      // top: root.edge != EdgePopup.Edge.Bottom
-      // bottom: root.edge != EdgePopup.Edge.Top
       left: root.edge === EdgePopup.Edge.Left ? true : undefined;
       right: root.edge === EdgePopup.Edge.Right ? true : undefined;
       top: root.edge === EdgePopup.Edge.Top ? true : undefined;
@@ -200,7 +193,6 @@ Item {
         });
       }
 
-      // TODO: Rewrite this bullshit for proper locking
       anchor.window: trigger
       anchor.rect.x: {
         switch (root.edge) {

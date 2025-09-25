@@ -1,13 +1,14 @@
-// PowerPanelTabs.qml (Fully Corrected)
 pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-// Assuming these imports are valid in your project
+
 import qs.services
 import qs.config
 import qs.components.methods
 import qs.components.reusable
+import qs.components.widgets.menu
 
 StyledContainer {
     id: root
@@ -21,10 +22,10 @@ StyledContainer {
     property int currentTab: 0
 
     readonly property var tabs: [
-        { name: "Volume", loader: volumeMixerLoader },
-        { name: "Timer", loader: rubikTimerLoader },
-        { name: "Calendar", loader: calendarLoader },
-        { name: "Notifs", loader: notificationLoader }
+        { name: "", loader: volumeMixerLoader },
+        { name: "󰆧", loader: rubikTimerLoader },
+        { name: "", loader: calendarLoader },
+        { name: "", loader: notificationLoader }
     ]
 
     readonly property real tabBarHeight: 40
@@ -33,7 +34,7 @@ StyledContainer {
         anchors.fill: parent
         spacing: 0
 
-        PowerPanelTabBar {
+        TabBar {
             Layout.fillWidth: true
             Layout.preferredHeight: tabBarHeight
             currentTab: root.currentTab
@@ -109,16 +110,9 @@ StyledContainer {
                         Loader {
                             id: rubikTimerLoader; active: root.currentTab === 1 || contentRow.x < 0
                             anchors.horizontalCenter: parent.horizontalCenter
-                            sourceComponent: StyledContainer {
-                              implicitWidth: root.width - (Widget.padding * 2)
-                              height: 300
-                              containerColor: Theme.foregroundAlt
-                                StyledText {
-                                    anchors.centerIn: parent
-                                    horizontalAlignment: Text.AlignHCenter
-                                    text: "Rubik's Timer Widget Placeholder"
-                                    textColor: Theme.background
-                                }
+                            sourceComponent: CubeTimer {
+                                hideTimeDuringSolve: true
+                                implicitWidth: root.width - (Widget.padding * 2)
                             }
                         }
                     }

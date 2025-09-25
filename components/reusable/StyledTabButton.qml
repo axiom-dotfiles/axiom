@@ -21,6 +21,10 @@ TabButton {
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter
     }
+
+    Behavior on width {
+        NumberAnimation { duration: 150 }
+    }
     
     background: Rectangle {
         color: button.checked ? Theme.backgroundHighlight : "transparent"
@@ -34,6 +38,21 @@ TabButton {
             color: Theme.accent
             visible: button.checked
             radius: 1
+        Behavior on width {
+            NumberAnimation { duration: 150 }
+        }
+        }
+
+        // Behavior on color {
+        //     ColorAnimation { duration: 150 }
+        // }
+
+        Behavior on width {
+            NumberAnimation { duration: 150 }
+        }
+        
+        Behavior on height {
+            NumberAnimation { duration: 150 }
         }
     }
 }
