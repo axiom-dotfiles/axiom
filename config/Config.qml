@@ -2,6 +2,8 @@ pragma Singleton
 import QtQuick
 import "lib/ConfigLoader.js" as Loader
 
+import qs.config
+
 QtObject {
     id: root
     
@@ -16,6 +18,7 @@ QtObject {
     
     // Computed properties
     readonly property int orientation: Bar.vertical ? Qt.Vertical : Qt.Horizontal
+    readonly property int containerOffset: Widget.containerWidth + Appearance.borderWidth
     
     function reload() {
       root.configData = Loader.loadConfig()

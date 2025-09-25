@@ -18,11 +18,13 @@ Item {
     enableTrigger: true
     // customHeight: Display.resolutionHeight - Widget.containerWidth * 2
     triggerLength: Display.resolutionHeight
-    edgeMargin: Widget.containerWidth + 4
+    edgeMargin: Widget.containerWidth - Appearance.borderWidth // trigger Width TODO: change
+    // customHeight: Display.resolutionHeight - (Widget.containerWidth * 2) + (Appearance.borderWidth * 2)
 
     PowerPanel {
       id: powerPanel
       panelId: "mainMenu"
+      // customHeight: Display.resolutionHeight - Widget.containerWidth * 2 + (Appearance.borderWidth * 2)
     }
   }
 }

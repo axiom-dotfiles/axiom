@@ -60,6 +60,12 @@
         "showOnAllMonitors": { "type": "boolean" }
       }
     },
+    "Menu": {
+      "type": "object",
+      "properties": {
+        "distanceFromWorkspaceContainer": { "type": "integer" }
+      }
+    },
     "Widget": {
       "type": "object",
       "properties": {

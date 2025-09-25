@@ -18,7 +18,6 @@ Item {
   width: isVertical ? Widget.height : implicitWidth
 
   implicitWidth: isVertical ? Widget.height : (contentLoader.item ? contentLoader.item.implicitWidth + padding * 2 : 60)
-
   implicitHeight: isVertical ? (contentLoader.item ? contentLoader.item.implicitHeight + padding * 2 : Widget.height) : Widget.height
 
   Rectangle {

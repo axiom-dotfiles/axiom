@@ -75,18 +75,22 @@ Item {
     color: "red"
     focusable: false
 
-    implicitWidth: exclusiveZone
+    // desiredWidth: {
+    //   let panelEdgeToMonitor = Widget
+    // }
+
+    exclusiveZone: {
+      if (!root.reserveSpace) return 0;
+      return (root.edge === EdgePopup.Edge.Left || root.edge === EdgePopup.Edge.Right) ? root.actualWidth + Config.containerOffset : root.actualHeight;
+    }
+
+    implicitWidth: reservationPanel.exclusiveZone + Widget.containerWidth
     implicitHeight: Display.resolutionHeight
     
 
     Rectangle {
       anchors.fill: parent
       color: Theme.background
-    }
-
-    exclusiveZone: {
-      if (!root.reserveSpace) return 0;
-      return (root.edge === EdgePopup.Edge.Left || root.edge === EdgePopup.Edge.Right) ? root.actualWidth + 23 : root.actualHeight;
     }
 
     anchors {

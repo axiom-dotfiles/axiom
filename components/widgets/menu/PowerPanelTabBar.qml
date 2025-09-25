@@ -12,7 +12,7 @@ StyledContainer {
     property var tabs: []
     signal tabClicked(int index)
     
-    StyledRowLayout {
+    RowLayout {
         anchors.fill: parent
         anchors.leftMargin: Widget.padding
         anchors.rightMargin: Widget.padding

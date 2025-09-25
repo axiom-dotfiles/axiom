@@ -28,7 +28,7 @@ StyledContainer {
         anchors.margins: Widget.padding
         active: root.playing
         
-        sourceComponent: StyledRowLayout {
+        sourceComponent: RowLayout {
             StyledContainer {
                 Layout.preferredWidth: 60
                 Layout.preferredHeight: 60
@@ -37,9 +37,9 @@ StyledContainer {
                 // Image art goes here
             }
             
-            StyledColumnLayout {
+            ColumnLayout {
                 Layout.fillWidth: true
-                layoutSpacing: 2
+                spacing: 2
                 
                 StyledText {
                     text: "Track Title"
@@ -56,7 +56,7 @@ StyledContainer {
                 }
             }
             
-            StyledRowLayout {
+            RowLayout {
                 StyledIconButton {
                     iconText: "󰒮"
                     onClicked: console.log("Previous")

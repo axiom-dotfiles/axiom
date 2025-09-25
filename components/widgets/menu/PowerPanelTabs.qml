@@ -29,9 +29,9 @@ StyledContainer {
 
     readonly property real tabBarHeight: 40
 
-    StyledColumnLayout {
+    ColumnLayout {
         anchors.fill: parent
-        layoutSpacing: 0
+        spacing: 0
 
         PowerPanelTabBar {
             Layout.fillWidth: true

@@ -20,11 +20,11 @@ StyledContainer {
     property int panelMargin: 10
 
     implicitWidth: 600
-    implicitHeight: Display.resolutionHeight - Widget.containerWidth * 4 // TODO: Remove random numbers
+    implicitHeight: (customHeight > 0) ? customHeight : Display.resolutionHeight - Widget.containerWidth * 4 // TODO: Remove random numbers
     // implicitHeight: Display.resolutionHeight - (Widget.containerWidth * 2) + (Appearance.borderWidth * 2)
 
-    width: customWidth > 0 ? customWidth : implicitWidth
-    height: Math.max(customHeight > 0 ? customHeight : implicitHeight, _minimumRequiredHeight)
+    // width: customWidth > 0 ? customWidth : implicitWidth
+    // height: Math.max(customHeight > 0 ? customHeight : implicitHeight, _minimumRequiredHeight)
 
     property real topSectionHeight: 120
     property real quickSettingsHeight: 60

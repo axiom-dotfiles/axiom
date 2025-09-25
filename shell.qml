@@ -30,8 +30,8 @@ ShellRoot {
         id: osd
     }
 
-    UnnamedModule {
-        id: unnamedModule
+    Menu {
+        id: mainMenu
     }
 
 }
