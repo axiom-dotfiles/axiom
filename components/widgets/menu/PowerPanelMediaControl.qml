@@ -9,9 +9,8 @@ StyledContainer {
     id: root
     
     property bool playing: false
-    containerColor: Theme.accent
     
-    visible: Layout.preferredHeight > 0
+    visible: playing
     clip: true
     
     Layout.preferredHeight: playing ? 80 : 0
@@ -61,20 +60,36 @@ StyledContainer {
                 StyledIconButton {
                     iconText: "󰒮"
                     onClicked: console.log("Previous")
-                    iconColor: Theme.backgroundAlt
+                    iconColor: Theme.foregroundAlt
+                    backgroundColor: Theme.backgroundHighlight
+                    Layout.fillWidth: false
+                    Layout.fillHeight: false
+                    Layout.preferredWidth: 25
+                    Layout.preferredHeight: 25
+
                 }
                 
                 StyledIconButton {
                     iconText: "󰏤"
                     iconSize: Appearance.fontSize + 4
                     onClicked: console.log("Play/Pause")
-                    iconColor: Theme.background
+                    iconColor: Theme.foreground
+                    backgroundColor: Theme.backgroundAlt
+                    Layout.fillWidth: false
+                    Layout.fillHeight: false
+                    Layout.preferredWidth: 40
+                    Layout.preferredHeight: 40
                 }
                 
                 StyledIconButton {
                     iconText: "󰒭"
                     onClicked: console.log("Next")
-                    iconColor: Theme.backgroundAlt
+                    iconColor: Theme.foregroundAlt
+                    backgroundColor: Theme.backgroundHighlight
+                    Layout.fillWidth: false
+                    Layout.fillHeight: false
+                    Layout.preferredWidth: 25
+                    Layout.preferredHeight: 25
                 }
             }
         }

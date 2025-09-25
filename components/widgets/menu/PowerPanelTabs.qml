@@ -9,15 +9,6 @@ import qs.config
 import qs.components.methods
 import qs.components.reusable
 
-// Mock objects for compilation if imports are not available
-// QtObject { id: Theme; property color accentAlt: "skyblue"; property color foregroundAlt: "gray"; property color background: "white"; property color backgroundHighlight: "#f0f0f0" }
-// QtObject { id: Widget; property int padding: 10 }
-// Component { id: StyledContainer }
-// Component { id: StyledColumnLayout }
-// Component { id: PowerPanelTabBar }
-// Component { id: StyledScrollView }
-// End of mock objects
-
 StyledContainer {
     id: root
     
@@ -26,7 +17,6 @@ StyledContainer {
     height: 500
     
     containerColor: "transparent"
-    containerBorderColor: Theme.accentAlt
     
     property int currentTab: 0
 
@@ -59,7 +49,7 @@ StyledContainer {
         StyledContainer {
             Layout.fillWidth: true
             Layout.fillHeight: true
-            containerColor: "transparent"
+            containerColor: Theme.backgroundAlt
             clip: true
 
             Item {

@@ -15,10 +15,19 @@ ToolButton {
     property int iconSize: Appearance.fontSize
     property string tooltipText: ""
     property color iconColor: Theme.foreground
-    
-    Layout.preferredWidth: Widget.height
-    Layout.preferredHeight: Widget.height
-    
+
+    property color hoverColor: Theme.backgroundHighlight
+    property color pressColor: Theme.backgroundAlt
+
+    property color backgroundColor: "transparent"
+    property color borderColor: "transparent"
+    property int borderWidth: Appearance.borderWidth
+    property real borderRadius: Appearance.borderRadius
+
+    Layout.fillHeight: true
+    Layout.fillWidth: true
+    Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+
     contentItem: Text {
         text: button.iconText
         font.family: Appearance.fontFamily
@@ -27,28 +36,17 @@ ToolButton {
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter
     }
-    
+
     background: Rectangle {
-        color: button.hovered ? Theme.backgroundHighlight : "transparent"
-        radius: Appearance.borderRadius
+        id: backgroundRect
+        // color: button.buttonClicked ? button.pressColor : button.backgroundColor
+        color: button.pressed ? button.pressColor : (button.hovered ? button.hoverColor : button.backgroundColor)
+        border.color: button.borderColor
+        border.width: button.borderWidth
+        radius: button.borderRadius
         
         Behavior on color {
             ColorAnimation { duration: 150 }
-        }
-    }
-    
-    ToolTip {
-        visible: button.hovered && button.tooltipText !== ""
-        text: button.tooltipText
-        delay: 500
-        font.family: Appearance.fontFamily
-        font.pixelSize: Appearance.fontSize - 4
-        
-        background: Rectangle {
-            color: Theme.backgroundAlt
-            border.color: Theme.border
-            border.width: 1
-            radius: Appearance.borderRadius
         }
     }
 }
