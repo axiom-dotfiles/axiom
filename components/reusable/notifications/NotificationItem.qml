@@ -1,13 +1,16 @@
 // qs/components/reusable/notifications/NotificationItem.qml
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Services.Notifications
+
 import qs.config
 import qs.components.reusable
 import qs.components.reusable.notifications as Comp
 
-Item {
+StyledContainer {
   id: root
 
   property var notificationObject
@@ -24,6 +27,13 @@ Item {
     destroyAnimation.start();
   }
 
+  Component.onCompleted: {
+    console.log("NotificationItem: notificationObject =", notificationObject);
+    if (!notificationObject) {
+      console.warn("NotificationItem: notificationObject is null");
+    }
+  }
+  
   SequentialAnimation {
     id: destroyAnimation
     NumberAnimation {
@@ -40,9 +50,8 @@ Item {
 
   NotificationIcon {
     id: notificationIcon
-    visible: opacity > 0
-    opacity: (!root.onlyNotification && root.notificationObject.image !== "" && root.expanded) ? 1 : 0
-    image: notificationObject.image
+    visible: true
+    image: root.notificationObject.image
     baseSize: Bar.height * 0.8
     anchors.right: background.left
     anchors.top: background.top
@@ -57,6 +66,12 @@ Item {
     anchors.leftMargin: root.xOffset
     radius: Appearance.borderRadius
     clip: true
+
+    Rectangle {
+      Layout.fillWidth: true
+      Layout.preferredHeight: 10
+      color: Theme.accent
+    }
 
     Behavior on anchors.leftMargin {
       enabled: !mouseArea.drag.active && Widget.animations
@@ -145,19 +160,18 @@ Item {
             spacing: Widget.spacing
 
             Repeater {
-              model: notificationObject.actions
+              model: root.notificationObject.actions
               delegate: Comp.NotificationActionButton {
+                required property var modelData
                 buttonText: modelData.text
-                urgency: notificationObject.urgency
-                // FIX: Re-enabled action handler
-                onClicked: notificationObject.invokeAction(modelData.identifier)
+                urgency: root.notificationObject.urgency
+                onClicked: root.notificationObject.invokeAction(modelData.identifier)
               }
             }
 
             Comp.NotificationActionButton {
               id: copyButton
               urgency: notificationObject.urgency
-              // FIX: Re-enabled action handler
               onClicked: {
                 Quickshell.clipboardText = notificationObject.body;
                 copyIcon.text = "done";
@@ -188,8 +202,12 @@ Item {
     id: mouseArea
     anchors.fill: background
     acceptedButtons: Qt.LeftButton | Qt.MiddleButton
+    property point pressPoint;
     // FIX: Removed drag.target to prevent binding loop
     drag.axis: Drag.XAxis
+    onPressed: mouse => {
+      pressPoint = Qt.point(mouse.x, mouse.y);
+    }
 
     onClicked: mouse => {
       if (mouse.button === Qt.MiddleButton) {

@@ -19,22 +19,23 @@ ListView {
   model: ScriptModel {
     values: root._groupedNotifications
   }
-
   delegate: NotificationGroup {
+    required property var modelData
     width: root.width
-    modelData: modelData
+    // modelData: modelData
+    groupData: modelData
   }
 
   Connections {
     target: Notifs.notifications
     function onModelChanged() {
-      updateModel();
+      root.updateModel();
     }
     function onRowsInserted() {
-      updateModel();
+      root.updateModel();
     }
     function onRowsRemoved() {
-      updateModel();
+      root.updateModel();
     }
   }
 
