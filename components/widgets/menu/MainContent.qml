@@ -10,6 +10,7 @@ import qs.services
 import qs.config
 import qs.components.methods
 import qs.components.reusable
+import qs.components.reusable.notifications
 import qs.components.widgets.menu
 
 StyledContainer {
@@ -125,18 +126,14 @@ StyledContainer {
             id: volumeScrollView
             width: root.width
             height: parent.height
+            showScrollBar: true
             scrollbarOpacity: slideAnimation.running ? 0 : 1
 
-            // The Loader is the single child of the ScrollView.
-            // It has no size of its own; it takes its size from its content.
             Loader {
               id: volumeMixerLoader
               active: true // Or root.currentTab === 0
               sourceComponent: SinkWrapper {
-                // The content determines the size.
-                // Bind its width to the ScrollView's available width.
                 width: volumeScrollView.availableWidth
-                // Its height is implicit, allowing it to grow and be scrollable.
               }
             }
           }
@@ -146,6 +143,7 @@ StyledContainer {
             id: timerScrollView
             width: root.width
             height: parent.height
+            showScrollBar: true
             contentPadding: Widget.padding
             scrollbarOpacity: slideAnimation.running ? 0 : 1
 
@@ -166,6 +164,7 @@ StyledContainer {
             id: calendarScrollView
             width: root.width
             height: parent.height
+            showScrollBar: true
             contentPadding: Widget.padding
             scrollbarOpacity: slideAnimation.running ? 0 : 1
 
@@ -190,23 +189,31 @@ StyledContainer {
             id: notificationScrollView
             width: root.width
             height: parent.height
+            showScrollBar: true
             contentPadding: Widget.padding
             scrollbarOpacity: slideAnimation.running ? 0 : 1
 
             Loader {
               id: notificationLoader
-              active: root.currentTab === 3
-              sourceComponent: StyledContainer {
+              sourceComponent: NotificationList {
                 width: notificationScrollView.availableWidth
-                height: 500
-                containerColor: Theme.foregroundAlt
-                StyledText {
-                  anchors.centerIn: parent
-                  text: "Notifications Widget Placeholder"
-                  textColor: Theme.background
-                }
               }
             }
+
+            // Loader {
+            //   id: notificationLoader
+            //   active: root.currentTab === 3
+            //   sourceComponent: StyledContainer {
+            //     width: notificationScrollView.availableWidth
+            //     height: 500
+            //     containerColor: Theme.foregroundAlt
+            //     StyledText {
+            //       anchors.centerIn: parent
+            //       text: "Notifications Widget Placeholder"
+            //       textColor: Theme.background
+            //     }
+            //   }
+            // }
           }
         }
       }

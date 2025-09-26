@@ -14,6 +14,10 @@ ShellRoot {
     id: hotReload
   }
 
+  NotificationPopup {
+    id: notificationPopup
+  }
+
   Bar {
     id: mainBar
   }

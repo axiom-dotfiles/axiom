@@ -1,7 +1,7 @@
-// qs/components/reusable/AudioControl.qml
+// qs/components/widgets/menu/AudioControl.qml
 import QtQuick
 import QtQuick.Layouts
-import Quickshell.Services.Pipewire // Using the Pipewire library directly
+import Quickshell.Services.Pipewire
 
 import qs.config
 import qs.components.reusable
@@ -9,12 +9,10 @@ import qs.components.reusable
 StyledContainer {
   id: root
 
-  // --- Configurable Look & Feel Properties ---
   property int controlHeight: 60
   property int layoutSpacing: Widget.spacing
   property int columnSpacing: 2
 
-  // Action Button
   property int actionButtonWidth: 10
   property int actionButtonHeight: 10
   property int actionButtonRadius: Appearance.borderRadius
@@ -22,7 +20,6 @@ StyledContainer {
   property string iconMuted: "\u{f026}"    // FontAwesome: volume-off
   property string iconUnmuted: "\u{f028}"  // FontAwesome: volume-up
 
-  // Slider
   property int sliderHeight: 16
   property int sliderGrooveHeight: 6
 
@@ -33,7 +30,7 @@ StyledContainer {
   property color mutedIconColor: Theme.error
   property color normalIconColor: Theme.foreground
   property color textColor: Theme.foregroundAlt
-  property color backgroundColor: Theme.backgroundHighlight
+  property color backgroundColor: Theme.backgroundAlt
 
   // Text
   property real fontPixelSize: Appearance.fontSize * 0.9
@@ -42,52 +39,68 @@ StyledContainer {
 
   property var node: null
 
-  // This tracker ensures that the node's properties (like volume and mute)
-  // are fully available and writable, fixing the "unbound" error.
   PwObjectTracker {
     objects: [root.node]
   }
-
-  // --- Logic Properties ---
 
   readonly property bool isReady: node ? node.ready : false
   readonly property bool isDevice: node ? !node.isStream : false
   readonly property bool isDefaultDevice: isDevice && Pipewire.defaultAudioSink === node
 
-  // Determine the most appropriate name to display for the node.
   readonly property string displayName: {
     if (!node) {
       return "Invalid Node";
     }
     if (isReady) {
-      return node.properties["application.name"] || node.nickname || node.description || node.name || "Unknown";
+      return node.properties["application.process.binary"] || node.properties["application.name"] || node.nickname || node.description || node.name || "Unknown";
     }
-    // Fallback for when the node is not yet fully bound
     return node.description || node.name || "Loading...";
   }
 
-  border.color: Theme.foregroundAlt
-  border.width: Appearance.borderWidth
   containerColor: backgroundColor
 
-  // --- UI Structure ---
   Layout.preferredHeight: controlHeight
   Layout.fillWidth: true
+
+  // Component.onCompleted: {
+  //   console.log("Logging sink information------");
+  //   console.log("Node:", node);
+  //   if (node) {
+  //     console.log("Node ID:", node.id);
+  //     console.log("Node Name:", node.name);
+  //     console.log("Node Description:", node.description);
+  //     console.log("Node Properties:", node.properties);
+  //     console.log("Is Stream:", node.isStream);
+  //     console.log("Is Sink:", node.isSink);
+  //     console.log("Is Source:", node.isSource);
+  //     console.log("Is Ready:", node.ready);
+  //     if (node.properties) {
+  //       console.log("Node Properties:", node.properties);
+  //       console.log("Application Name:", node.properties["application.process.binary"]);
+  //       console.log("Media Name:", node.properties["media.name"]);
+  //     }
+  //     if (node.audio) {
+  //       console.log("Audio Volume:", node.audio.volume);
+  //       console.log("Audio Muted:", node.audio.muted);
+  //     } else {
+  //       console.log("No audio interface available.");
+  //     }
+  //   }
+  // }
 
   RowLayout {
     id: mainLayout
     anchors.fill: parent
     spacing: layoutSpacing
 
-    // Button for muting streams or setting default devices.
     StyledRectButton {
       id: actionButton
-      Layout.preferredWidth: actionButtonWidth
-      Layout.preferredHeight: actionButtonHeight
+      Layout.preferredWidth: root.actionButtonWidth
+      Layout.preferredHeight: root.actionButtonHeight
       Layout.alignment: Qt.AlignVCenter
-      borderRadius: actionButtonRadius
+      borderRadius: root.actionButtonRadius
 
-      enabled: isReady
+      enabled: root.isReady
 
       // Visual indicator for default device status.
       backgroundColor: isDefaultDevice ? defaultDeviceColor : nonDefaultDeviceColor
