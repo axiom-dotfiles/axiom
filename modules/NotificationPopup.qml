@@ -23,7 +23,7 @@ Scope {
 
         width: 380
         height: 120
-        visible: true // Make it appear immediately on load.
+        visible: false // Make it appear immediately on load.
 
         // Statically position the popup on the screen.
         anchor.window: anchorHost

@@ -1,4 +1,3 @@
-// qs/components/reusable/notifications/NotificationExpandButton.qml
 import QtQuick
 import QtQuick.Layouts
 
@@ -10,26 +9,22 @@ StyledContainer {
 
   required property int count
   required property bool expanded
+
   signal altAction
-  // FIX: Added the clicked signal
   signal clicked
 
-  implicitHeight: Widget.height * 0.8
-  implicitWidth: contentRow.implicitWidth + Widget.padding
+  implicitHeight: 28
+  implicitWidth: contentRow.implicitWidth + (Widget.padding * 2)
   radius: height / 2
 
   containerColor: mouseArea.pressed ? Qt.darker(Theme.backgroundHighlight, 1.2) : mouseArea.hovered ? Qt.lighter(Theme.backgroundHighlight, 1.1) : Theme.backgroundHighlight
 
-  // FIX: Re-enabled animation
-  // Behavior on color { enabled: Widget.animations; Animation { duration: Widget.animationDuration } }
-  // Rectangle {
-  //   anchors.fill: parent
-  //   color: Theme.accent
-  //   border.color: Theme.accent
-  //   border.width: 1
-  //   implicitHeight: 10
-  //   radius: root.radius
-  // }
+  Behavior on containerColor {
+    enabled: Widget.animations
+    NumberAnimation {
+      duration: 100
+    }
+  }
 
   RowLayout {
     id: contentRow
@@ -40,13 +35,14 @@ StyledContainer {
       visible: root.count > 1
       text: root.count
       font.family: Appearance.fontFamily
-      font.pixelSize: Appearance.fontSize - 4
+      font.pixelSize: Appearance.fontSize - 2
+      font.weight: Font.Bold
       color: Theme.foreground
     }
     Text {
       text: "expand_more"
       font.family: "Material Symbols Outlined"
-      font.pixelSize: Appearance.fontSize
+      font.pixelSize: Appearance.fontSize + 4
       color: Theme.foreground
       rotation: root.expanded ? 180 : 0
       Behavior on rotation {

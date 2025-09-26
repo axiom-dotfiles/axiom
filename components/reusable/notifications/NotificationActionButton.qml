@@ -1,10 +1,13 @@
 import QtQuick
 import QtQuick.Layouts
-import Quickshell.Services.Notifications  // ADD THIS IMPORT
+import Quickshell.Services.Notifications
 import qs.config
 
 Rectangle {
   id: root
+
+  // For use in Repeater
+  property var modelData
 
   property string buttonText
   property int urgency // Matches NotificationUrgency enum
@@ -12,7 +15,7 @@ Rectangle {
 
   signal clicked
 
-  implicitHeight: Widget.height
+  implicitHeight: 32
   implicitWidth: contentLoader.item ? contentLoader.item.implicitWidth + (Widget.padding * 2) : 0
   radius: Appearance.borderRadius
 
@@ -25,6 +28,13 @@ Rectangle {
     return baseColor;
   }
 
+  Behavior on color {
+    enabled: Widget.animations
+    NumberAnimation {
+      duration: 100
+    }
+  }
+
   Loader {
     id: contentLoader
     anchors.centerIn: parent
@@ -32,7 +42,7 @@ Rectangle {
       text: root.buttonText
       font.family: Appearance.fontFamily
       font.pixelSize: Appearance.fontSize - 2
-      color: root.urgency === NotificationUrgency.Critical ? Theme.base00 : Theme.foreground  // FIX: Added root.
+      color: root.urgency === NotificationUrgency.Critical ? Theme.base00 : Theme.foreground
       horizontalAlignment: Text.AlignHCenter
       verticalAlignment: Text.AlignVCenter
     }

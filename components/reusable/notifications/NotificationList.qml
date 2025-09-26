@@ -53,7 +53,11 @@ ListView {
       if (!groups[appName]) {
         groups[appName] = {
           appName: appName,
+          summary: notif.summary,
+          body: notif.body,
           appIcon: notif.appIcon,
+          actions: notif.actions,
+          image: notif.image,
           notifications: [],
           time: 0
         };

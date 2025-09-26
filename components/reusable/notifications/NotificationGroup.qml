@@ -1,4 +1,3 @@
-// qs/components/reusable/notifications/NotificationGroup.qml
 pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
@@ -23,31 +22,40 @@ StyledContainer {
   property real xOffset: 0
 
   implicitWidth: 350
-  implicitHeight: mainColumn.implicitHeight + (2 * Widget.padding)
+  implicitHeight: mainColumn.implicitHeight
 
   radius: Appearance.borderRadius
   color: Theme.backgroundAlt
   clip: true
-  anchors.leftMargin: root.xOffset
 
-  function destroyWithAnimation() {
-    anchors.leftMargin = anchors.leftMargin;
-    destroyAnimation.start();
+  // By moving the anchors to a child item, we can apply padding to the root
+  // without affecting the drag offset calculation.
+  transform: Translate {
+    x: root.xOffset
   }
 
-  SequentialAnimation {
-    id: destroyAnimation
+  Behavior on xOffset {
+    enabled: !mouseArea.drag.active && Widget.animations
     NumberAnimation {
-      target: root
-      property: "anchors.leftMargin"
-      to: root.width + 20
       duration: Widget.animationDuration
-      easing.type: Easing.InQuad
+      easing.type: Easing.OutCubic
     }
-    ScriptAction {
-      script: {
-        root.notifications.forEach(notif => notif.dismiss());
-      }
+  }
+
+  function destroyWithNumberAnimation() {
+    // Use a property animation on xOffset for a smooth exit
+    dismissNumberAnimation.start();
+  }
+
+  NumberAnimation {
+    id: dismissNumberAnimation
+    target: root
+    property: "xOffset"
+    to: root.width + 20
+    duration: Widget.animationDuration
+    easing.type: Easing.InQuad
+    onFinished: {
+      root.notifications.forEach(notif => notif.dismiss());
     }
   }
 
@@ -57,62 +65,98 @@ StyledContainer {
     }
   }
 
-  // RowLayout {
-  //   id: mainColumn
-  //   anchors.fill: parent
-  //   spacing: 0
+  // FIX: MouseArea moved to be the FIRST child.
+  // In QML, items declared later are drawn on top. By putting this first,
+  // all other UI controls (like the expand button) are drawn on top of it,
+  // ensuring they receive mouse clicks first.
+  MouseArea {
+    id: mouseArea
+    anchors.fill: parent
+    acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
+    property point pressPoint
 
-  // Comp.NotificationIcon {
-  //   Layout.alignment: Qt.AlignTop
-  //   appIcon: groupData?.appIcon // <-- Changed
-  //   summary: groupData?.notifications[root.notificationCount - 1]?.summary // <-- Changed
-  //   image: root.multipleNotifications ? "" : groupData?.notifications[0]?.image ?? "" // <-- Changed
-  // }
-  //
-  // Rectangle {
-  //   Layout.fillWidth: true
-  //   Layout.preferredHeight: 10
-  //   color: Theme.accent
-  // }
+    drag.axis: Drag.XAxis
+    drag.filterChildren: true // Allow children to handle clicks
+
+    onPressed: mouse => {
+      pressPoint = Qt.point(mouse.x, mouse.y);
+    }
+
+    onClicked: mouse => {
+      if (mouse.button === Qt.RightButton) {
+        root.toggleExpanded();
+      } else if (mouse.button === Qt.MiddleButton) {
+        destroyWithNumberAnimation();
+      } else if (multipleNotifications) {
+        // Only toggle on left click if there are multiple notifications
+        root.toggleExpanded();
+      }
+    }
+
+    onPositionChanged: mouse => {
+      if (drag.active) {
+        root.xOffset = mouse.x - pressPoint.x;
+      }
+    }
+
+    onReleased: () => {
+      if (root.xOffset > root.dragConfirmThreshold) {
+        destroyWithNumberAnimation();
+      } else {
+        root.xOffset = 0; // Animate back
+      }
+    }
+  }
 
   ColumnLayout {
     id: mainColumn
     anchors.fill: parent
     spacing: 0
 
+    // A more subtle accent bar
     Rectangle {
       Layout.fillWidth: true
-      Layout.preferredHeight: 10
+      Layout.preferredHeight: 3
+      Layout.bottomMargin: Widget.spacing
       color: Theme.accent
+      radius: 1.5
     }
 
+    // Header Section
     RowLayout {
       Layout.fillWidth: true
+      spacing: Widget.spacing
 
-      // Rectangle {
-      //   Layout.fillWidth: true
-      //   Layout.preferredHeight: 10
-      //   color: Theme.error
-      // }
-
-      Text {
-        Layout.fillWidth: true
-        Layout.fillHeight: true
-        elide: Text.ElideRight
-        text: (root.multipleNotifications ? root.groupData?.appName : root.groupData?.notifications[0]?.summary) || "" // <-- Changed
-        font.family: Appearance.fontFamily
-        font.pixelSize: Appearance.fontSize
-        color: Theme.foreground
+      Comp.NotificationIcon {
+        Layout.alignment: Qt.AlignTop
+        appIcon: groupData?.appIcon
+        summary: groupData?.notifications[root.notificationCount - 1]?.summary
+        image: root.multipleNotifications ? "" : groupData?.notifications[0]?.image ?? ""
+        baseSize: 32
       }
 
-      Text {
-        text: new Date(root.groupData?.time).toLocaleTimeString([], {
-          hour: '2-digit',
-          minute: '2-digit'
-        })
-        font.family: Appearance.fontFamily
-        font.pixelSize: Appearance.fontSize - 4
-        color: Theme.foregroundAlt
+      ColumnLayout {
+        Layout.fillWidth: true
+        spacing: 0
+
+        Text {
+          Layout.fillWidth: true
+          elide: Text.ElideRight
+          text: root.groupData?.appName || ""
+          font.family: Appearance.fontFamily
+          font.pixelSize: Appearance.fontSize + 1
+          font.weight: Font.Bold
+          color: Theme.foreground
+        }
+        Text {
+          text: new Date(root.groupData?.time).toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit'
+          })
+          font.family: Appearance.fontFamily
+          font.pixelSize: Appearance.fontSize - 3
+          color: Theme.foregroundAlt
+        }
       }
 
       Comp.NotificationExpandButton {
@@ -124,66 +168,35 @@ StyledContainer {
       }
     }
 
+    // Notifications List Section
     ColumnLayout {
       Layout.fillWidth: true
-      spacing: Widget.spacing
+      Layout.topMargin: root.multipleNotifications ? Widget.spacing : 0
+
+      Layout.leftMargin: Widget.padding * 1.5
+      Layout.rightMargin: Widget.padding * 1.5
+
+      spacing: Widget.spacing / 2 // Spacing between individual notifications
+
+      Behavior on Layout.leftMargin {
+        enabled: Widget.animations
+        NumberAnimation {}
+      }
+      Behavior on Layout.rightMargin {
+        enabled: Widget.animations
+        NumberAnimation {}
+      }
+
       Repeater {
-        model: root.expanded ? root.notifications.slice().reverse() : root.notifications.slice().reverse().slice(0, 2)
+        model: root.expanded ? root.notifications.slice().reverse() : root.notifications.slice(root.notificationCount - 1)
         delegate: Comp.NotificationItem {
-          required property var modelData
-          required property int index  // ADD THIS LINE
           Layout.fillWidth: true
-
           notificationObject: modelData
-          expanded: root.expanded || !root.multipleNotifications  // REMOVED DUPLICATE LINE
+          // When part of a group, the item is "expanded" if the group is.
+          // If it's the only notification, it should always appear expanded.
+          expanded: root.expanded || !root.multipleNotifications
           onlyNotification: !root.multipleNotifications
-          // opacity: (!root.expanded && index === 1 && root.notificationCount > 2) ? 0.5 : 1
-          visible: root.expanded || (index < 2)
-          // expanded: true
-          // visible: true
-
-          Component.onCompleted: {
-            console.log("NotificationItem created for notification:", notificationObject.summary);
-          }
         }
-      }
-    }
-    // }
-  }
-
-  MouseArea {
-    id: mouseArea
-    anchors.fill: parent
-    acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
-    property point pressPoint  // ADD THIS LINE - was missing
-    drag.axis: Drag.XAxis
-    // drag.enabled: !expanded
-
-    onPressed: mouse => {  // ADD THIS HANDLER
-      pressPoint = Qt.point(mouse.x, mouse.y);
-    }
-
-    onClicked: mouse => {
-      if (mouse.button === Qt.RightButton) {
-        root.toggleExpanded();
-      } else if (mouse.button === Qt.MiddleButton) {
-        root.destroyWithAnimation();
-      } else if (!expanded) {
-        root.toggleExpanded();
-      }
-    }
-
-    onPositionChanged: mouse => {
-      if (drag.active) {
-        root.xOffset = Math.max(0, mouse.x - pressPoint.x);
-      }
-    }
-
-    onReleased: () => {
-      if (root.xOffset > root.dragConfirmThreshold) {
-        root.destroyWithAnimation();
-      } else {
-        root.xOffset = 0;
       }
     }
   }

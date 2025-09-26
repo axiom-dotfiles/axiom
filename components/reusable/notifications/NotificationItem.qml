@@ -1,6 +1,4 @@
-// qs/components/reusable/notifications/NotificationItem.qml
 pragma ComponentBehavior: Bound
-
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
@@ -10,7 +8,7 @@ import qs.config
 import qs.components.reusable
 import qs.components.reusable.notifications as Comp
 
-StyledContainer {
+Item {
   id: root
 
   property var notificationObject
@@ -20,60 +18,78 @@ StyledContainer {
   property real dragConfirmThreshold: 70
   property real xOffset: 0
 
-  implicitHeight: background.implicitHeight
+  implicitHeight: mainLayout.implicitHeight
+  implicitWidth: parent.width
 
-  function destroyWithAnimation() {
-    background.anchors.leftMargin = background.anchors.leftMargin; // Break binding
-    destroyAnimation.start();
-  }
-
-  Component.onCompleted: {
-    console.log("NotificationItem: notificationObject =", notificationObject);
-    if (!notificationObject) {
-      console.warn("NotificationItem: notificationObject is null");
-    }
-  }
-  
-  SequentialAnimation {
-    id: destroyAnimation
+  Behavior on xOffset {
+    enabled: !mouseArea.drag.active && Widget.animations
     NumberAnimation {
-      target: background
-      property: "anchors.leftMargin"
-      to: root.width + 20
       duration: Widget.animationDuration
-      easing.type: Easing.InQuad
-    }
-    ScriptAction {
-      script: notificationObject.dismiss()
+      easing.type: Easing.OutCubic
     }
   }
 
-  NotificationIcon {
-    id: notificationIcon
-    visible: true
-    image: root.notificationObject.image
-    baseSize: Bar.height * 0.8
-    anchors.right: background.left
-    anchors.top: background.top
-    anchors.rightMargin: Widget.padding
-    // Behavior on opacity { enabled: Widget.animations; Animation { duration: Widget.animationDuration } }
+  function destroyWithNumberAnimation() {
+    dismissNumberAnimation.start();
   }
 
-  StyledContainer {
-    id: background
+  NumberAnimation {
+    id: dismissNumberAnimation
+    target: root
+    property: "xOffset"
+    to: root.width + 20
+    duration: Widget.animationDuration
+    easing.type: Easing.InQuad
+    onFinished: root.notificationObject.dismiss()
+  }
+
+  // FIX: MouseArea moved to be the FIRST child.
+  // This places it "behind" the content, allowing the action buttons
+  // to receive clicks while still enabling drag-to-dismiss.
+  MouseArea {
+    id: mouseArea
+    anchors.fill: parent
+    acceptedButtons: Qt.LeftButton | Qt.MiddleButton
+    property point pressPoint
+
+    drag.axis: Drag.XAxis
+    drag.filterChildren: true
+
+    onPressed: mouse => {
+      pressPoint = Qt.point(mouse.x, mouse.y);
+    }
+
+    onClicked: mouse => {
+      if (mouse.button === Qt.MiddleButton) {
+        root.destroyWithNumberAnimation();
+      }
+    }
+
+    onPositionChanged: mouse => {
+      if (drag.active) {
+        root.xOffset = mouse.x - pressPoint.x;
+      }
+    }
+
+    onReleased: () => {
+      if (root.xOffset > root.dragConfirmThreshold) {
+        root.destroyWithNumberAnimation();
+      } else {
+        root.xOffset = 0; // Animate back
+      }
+    }
+  }
+
+  // CLEANUP: Using a RowLayout as the main container is cleaner and more
+  // robust than managing multiple anchored items.
+  RowLayout {
+    id: mainLayout
     width: parent.width
-    anchors.left: parent.left
-    anchors.leftMargin: root.xOffset
-    radius: Appearance.borderRadius
-    clip: true
-
-    Rectangle {
-      Layout.fillWidth: true
-      Layout.preferredHeight: 10
-      color: Theme.accent
+    spacing: Widget.spacing
+    transform: Translate {
+      x: root.xOffset
     }
-
-    Behavior on anchors.leftMargin {
+    Behavior on transform {
       enabled: !mouseArea.drag.active && Widget.animations
       NumberAnimation {
         duration: Widget.animationDuration
@@ -81,71 +97,75 @@ StyledContainer {
       }
     }
 
-    color: {
-      if (!expanded || onlyNotification)
-        return "transparent";
-      if (notificationObject.urgency === NotificationUrgency.Critical) {
-        return Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.4);
-      }
-      return Theme.backgroundHighlight;
+    NotificationIcon {
+      visible: root.onlyNotification && root.notificationObject.image
+      image: root.notificationObject.image
+      baseSize: Bar.height * 1.2
+      Layout.alignment: Qt.AlignTop
     }
 
-    implicitHeight: expanded ? contentColumn.implicitHeight + (onlyNotification ? 0 : Widget.padding * 2) : summaryText.implicitHeight
-    // Behavior on implicitHeight { enabled: Widget.animations; Animation { duration: Widget.animationDuration } }
-
-    ColumnLayout {
-      id: contentColumn
-      anchors.fill: parent
-      anchors.margins: (expanded && !onlyNotification) ? Widget.padding : 0
-      spacing: Widget.spacing
+    StyledContainer {
+      id: background
       Layout.fillWidth: true
+      radius: Appearance.borderRadius
+      clip: true
 
-      // Behavior on anchors.margins { enabled: Widget.animations; Animation { duration: Widget.animationDuration } }
+      color: Theme.backgroundHighlight
+      implicitHeight: contentColumn.implicitHeight
 
-      RowLayout {
-        Layout.fillWidth: true
-        visible: !root.onlyNotification || !root.expanded
-        implicitHeight: summaryText.implicitHeight
-        Text {
-          id: summaryText
-          visible: !root.onlyNotification
-          font.family: Appearance.fontFamily
-          font.pixelSize: Appearance.fontSize - 2
-          color: Theme.foreground
-          elide: Text.ElideRight
-          text: root.notificationObject.summary || ""
-        }
-        Text {
-          opacity: !root.expanded ? 1 : 0
-          visible: opacity > 0
-          Layout.fillWidth: true
-          // Behavior on opacity { enabled: Widget.animations; Animation { duration: Widget.animationDuration } }
-          font.family: Appearance.fontFamily
-          font.pixelSize: Appearance.fontSize - 2
-          color: Theme.foregroundAlt
-          elide: Text.ElideRight
-          wrapMode: Text.Wrap
-          maximumLineCount: 1
-          text: root.notificationObject.body.replace(/\n/g, " ")
-        }
+      Behavior on color {
+        enabled: Widget.animations
+        NumberAnimation {}
       }
 
       ColumnLayout {
-        Layout.fillWidth: true
-        opacity: root.expanded ? 1 : 0
-        visible: opacity > 0
-        // Behavior on opacity { enabled: Widget.animations; Animation { duration: Widget.animationDuration } }
+        id: contentColumn
+        width: parent.width
+        spacing: Widget.spacing
+
+        RowLayout {
+          Layout.fillWidth: true
+          visible: true
+          spacing: Widget.spacing
+
+          Text {
+            id: summaryText
+            Layout.fillWidth: true
+            topPadding: Widget.padding / 2
+            bottomPadding: Widget.padding / 2
+            horizontalAlignment: Text.AlignHCenter
+            font.family: Appearance.fontFamily
+            font.pixelSize: Appearance.fontSize
+            color: Theme.foreground
+            text: root.notificationObject.summary || ""
+          }
+        }
 
         Text {
           id: notificationBodyText
           Layout.fillWidth: true
+          visible: root.expanded
           font.family: Appearance.fontFamily
-          font.pixelSize: Appearance.fontSize - 2
+          font.pixelSize: Appearance.fontSize - 1
+          topPadding: Widget.padding / 2
+          leftPadding: Widget.padding
           color: Theme.foregroundAlt
           wrapMode: Text.Wrap
           textFormat: Text.RichText
           text: root.notificationObject.body.replace(/\n/g, "<br/>")
           onLinkActivated: link => Qt.openUrlExternally(link)
+          Component.onCompleted: {
+            console.log("Full notifi opbject:")
+            console.log(root.notificationObject);
+            console.log("Notification body text:", root.notificationObject.body);
+            console.log("Summary text:", root.notificationObject.summary);
+            console.log("App name:", root.notificationObject.appName);
+            console.log("Urgency:", root.notificationObject.urgency);
+            console.log("Actions:", root.notificationObject.actions);
+            console.log("Timestamp:", root.notificationObject.time);
+            console.log("Image:", root.notificationObject.image);
+
+          }
         }
 
         Flickable {
@@ -154,6 +174,8 @@ StyledContainer {
           contentWidth: actionRowLayout.implicitWidth
           interactive: contentWidth > width
           flickableDirection: Flickable.HorizontalFlick
+          clip: true
+          visible: root.expanded && (copyButton.visible || repeater.count > 0)
 
           RowLayout {
             id: actionRowLayout
@@ -171,9 +193,10 @@ StyledContainer {
 
             Comp.NotificationActionButton {
               id: copyButton
-              urgency: notificationObject.urgency
+              visible: root.notificationObject.body.length > 0
+              urgency: root.notificationObject.urgency
               onClicked: {
-                Quickshell.clipboardText = notificationObject.body;
+                Quickshell.clipboardText = root.notificationObject.summary + "\n" + root.notificationObject.body;
                 copyIcon.text = "done";
                 copyIconTimer.restart();
               }
@@ -194,38 +217,6 @@ StyledContainer {
             }
           }
         }
-      }
-    }
-  }
-
-  MouseArea {
-    id: mouseArea
-    anchors.fill: background
-    acceptedButtons: Qt.LeftButton | Qt.MiddleButton
-    property point pressPoint;
-    // FIX: Removed drag.target to prevent binding loop
-    drag.axis: Drag.XAxis
-    onPressed: mouse => {
-      pressPoint = Qt.point(mouse.x, mouse.y);
-    }
-
-    onClicked: mouse => {
-      if (mouse.button === Qt.MiddleButton) {
-        root.destroyWithAnimation();
-      }
-    }
-    // FIX: Manually update xOffset based on drag distance to prevent binding loop
-    onPositionChanged: mouse => {
-      if (drag.active) {
-        root.xOffset = Math.max(0, mouse.x - pressPoint.x);
-      }
-    }
-
-    onReleased: () => {
-      if (root.xOffset > root.dragConfirmThreshold) {
-        root.destroyWithAnimation();
-      } else {
-        root.xOffset = 0; // Animate back
       }
     }
   }
