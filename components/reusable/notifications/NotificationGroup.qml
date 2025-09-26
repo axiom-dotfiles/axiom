@@ -43,7 +43,6 @@ StyledContainer {
   }
 
   function destroyWithNumberAnimation() {
-    // Use a property animation on xOffset for a smooth exit
     dismissNumberAnimation.start();
   }
 
@@ -55,7 +54,7 @@ StyledContainer {
     duration: Widget.animationDuration
     easing.type: Easing.InQuad
     onFinished: {
-      root.notifications.forEach(notif => notif.originalNotification.dismiss());
+      root.notifications.forEach(notif => notif.dismiss());
     }
   }
 
@@ -199,13 +198,12 @@ StyledContainer {
       }
 
       Repeater {
-        model: ScriptModel { values: {
+        model: {
           if (notificationCount === 0) {
-            return []; // Handle empty case gracefully
+            return [];
           }
           return root.notifications.slice().reverse();
         }
-    }
         delegate: Comp.NotificationItem {
           required property var modelData
           Layout.fillWidth: true

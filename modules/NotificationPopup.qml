@@ -1,49 +1,96 @@
+// File: @modules/NotificationPopup.qml (or your preferred location)
+pragma ComponentBehavior: Bound
 import QtQuick
+import QtQuick.Layouts
 import Quickshell
+import Quickshell.Wayland
 
-// The root item, matching your project structure.
+import qs.services
+
+import qs.components.reusable.notifications as NotificationComponents
+import qs.config
+
 Scope {
-    id: root
+  id: rootScope
 
-    // A PanelWindow is required to act as an anchor for the PopupWindow.
-    // It's invisible and non-interactive.
-    PanelWindow {
-        id: anchorHost
-        anchors.top: true
-        anchors.left: true
-        color: "transparent"
-        mask: Region { width: 0; height: 0 }
+  ListModel {
+    id: popupModel
+  }
+
+  Connections {
+    target: Notifs
+
+    function onShowPopup(notification) {
+      console.log("Popup: Received new notification to show:", notification.summary);
+      popupModel.insert(0, { "notificationObject": notification });
+    }
+  }
+
+  PanelWindow {
+    id: rootWindow
+    visible: popupModel.count > 0
+    screen: Quickshell.screens.find(s => s.active) ?? (Quickshell.screens.count > 0 ? Quickshell.screens.get(0) : null)
+
+    // WlrLayershell.namespace: "quickshell:notificationPopup"
+    WlrLayershell.layer: WlrLayer.Overlay
+    exclusiveZone: 0
+
+    anchors {
+      top: true
+      left: true
     }
 
-    // --- Static Test Popup ---
-    // We create just one PopupWindow directly. No Repeater, no model, no functions.
-    // Its lifetime is tied directly to the root Scope.
-    PopupWindow {
-        id: staticPopup
+    margins {
+      top: Widget.spacing * 2
+      left: Widget.spacing * 2
+    }
 
-        width: 380
-        height: 120
-        visible: false // Make it appear immediately on load.
+    aboveWindows: true
 
-        // Statically position the popup on the screen.
-        anchor.window: anchorHost
-        anchor.rect.x: 20
-        anchor.rect.y: 20
+    // implicitWidth: Appearance.sizes.notificationPopupWidth ?? 350
+    // implicitHeight: listView.contentHeight + (rootWindow.anchors.topMargin * 2)
+    implicitWidth: 350
+    implicitHeight: 200
+    color: "transparent"
 
-        // Simple content to verify it's visible.
+    ListView {
+      id: listView
+      anchors.fill: parent
+      anchors.margins: Widget.spacing
+
+      model: popupModel
+      spacing: Widget.spacing
+
+      delegate: NotificationComponents.NotificationItem {
+        required property var modelData
+        readonly property int index: index
+        width: listView.width
+        notificationObject: modelData
+        expanded: true
+        // onlyNotification: popupModel.count === 1
+        
         Rectangle {
-            anchors.fill: parent
-            color: "#282c34" // Dark grey background
-            radius: 8
-            border.color: "steelblue"
-            border.width: 1
-
-            Text {
-                anchors.centerIn: parent
-                text: "Static Test Notification"
-                color: "white"
-                font.pixelSize: 16
-            }
+          anchors.bottom: parent.bottom
+          anchors.left: parent.left
+          anchors.right: parent.right
+          height: 10
+          color: Theme.foregroundAlt
+          opacity: 0.1
+          visible: index < popupModel.count - 1
         }
+
+        Component.onCompleted: {
+          notificationObject.closed.connect(function() {
+            console.log("Popup: Closing notification:", notificationObject.summary);
+            for (var i = 0; i < popupModel.count; i++) {
+              if (popupModel.get(i).notificationObject.id === notificationObject.id) {
+                popupModel.remove(i);
+                break;
+              }
+            }
+          })
+        }
+      }
     }
+  }
 }

@@ -11,7 +11,7 @@ import qs.components.reusable.notifications
 Item {
   id: root
 
-  property NotificationWrapper notificationObject
+  property Notification notificationObject
   property bool expanded: false
   property bool onlyNotification: false
 
@@ -49,7 +49,7 @@ Item {
     to: root.width + 20
     duration: Widget.animationDuration
     easing.type: Easing.InQuad
-    onFinished: root.notificationObject.originalNotification.dismiss()
+    onFinished: root.notificationObject.dismiss()
   }
 
   MouseArea {
