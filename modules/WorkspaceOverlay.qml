@@ -72,12 +72,12 @@ Scope {
           overlayWindow.visible = false;
           event.accepted = true;
         }
-        // else if (event.key >= Qt.Key_1 && event.key <= Qt.Key_9) {
-        //   let workspaceId = event.key - Qt.Key_0;
-        //   WorkspaceUtils.focusWorkspace(workspaceId);
-        //   overlayWindow.visible = false;
-        //   event.accepted = true;
-        // }
+      // else if (event.key >= Qt.Key_1 && event.key <= Qt.Key_9) {
+      //   let workspaceId = event.key - Qt.Key_0;
+      //   WorkspaceUtils.focusWorkspace(workspaceId);
+      //   overlayWindow.visible = false;
+      //   event.accepted = true;
+      // }
       }
     }
 

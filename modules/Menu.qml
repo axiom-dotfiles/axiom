@@ -25,17 +25,17 @@ Item {
 
     Component.onCompleted: {
       if (panelId !== "") {
-        ShellManager.togglePanelLocation.connect(function(id) {
+        ShellManager.togglePanelLocation.connect(function (id) {
           console.log("Received togglePanelLocation for id:", id, "Current panelId:", panelId);
           if (id === panelId) {
             root.toggleLocation();
           }
         });
       }
-    // if (Menu.startMenuPinned) {
-    //   console.log("Menu is set to start pinned. Pinning now.");
-    //   ShellManager.togglePinnedPanel("mainMenu")
-    // }
+      // if (Menu.startMenuPinned) {
+      //   console.log("Menu is set to start pinned. Pinning now.");
+      //   ShellManager.togglePinnedPanel("mainMenu")
+      // }
     }
 
     MainMenu {
@@ -46,11 +46,11 @@ Item {
 
     function toggleLocation() {
       if (root.reserveSpace) {
-        root.edgeMargin = Config.containerOffset - (Appearance.borderWidth * 2) - 5 // Minor spaghetti
-        mainMenu.customHeight = Display.resolutionHeight - Widget.containerWidth * 2
+        root.edgeMargin = Config.containerOffset - (Appearance.borderWidth * 2) - 5; // Minor spaghetti
+        mainMenu.customHeight = Display.resolutionHeight - Widget.containerWidth * 2;
       } else {
-        root.edgeMargin = Config.containerOffset + Appearance.borderWidth * 2 + 3
-        mainMenu.customHeight = 0
+        root.edgeMargin = Config.containerOffset + Appearance.borderWidth * 2 + 3;
+        mainMenu.customHeight = 0;
       }
     }
   }

@@ -41,8 +41,8 @@ StyledContainer {
             spacing: 12
 
             StyledContainer {
-                Layout.preferredWidth: 60
-                Layout.preferredHeight: 60
+                Layout.preferredWidth: 80
+                Layout.preferredHeight: 80
                 containerBorderColor: Theme.backgroundHighlight
                 containerBorderWidth: 1
                 radius: Appearance.borderRadius / 2

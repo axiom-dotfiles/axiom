@@ -25,13 +25,14 @@ StyledContainer {
 ColumnLayout {
     spacing: 0
     
-
     TabBar {
         Layout.fillWidth: true
         Layout.preferredHeight: root.tabBarHeight
         currentTab: root.currentTab
         tabs: root.tabs
         onTabClicked: index => { root.currentTab = index; }
+        border.color: Theme.foregroundAlt
+        border.width: 1
     }
 
     Item {

@@ -49,9 +49,7 @@ Item {
   signal windowResized
 
   // Calculate position and size
-  property var constraints: WindowUtils.calculateWindowConstraints(
-    windowData, overviewScale, workspaceWidth, workspaceHeight
-  )
+  property var constraints: WindowUtils.calculateWindowConstraints(windowData, overviewScale, workspaceWidth, workspaceHeight)
 
   x: offsetX + constraints.x
   y: offsetY + constraints.y
@@ -82,18 +80,18 @@ Item {
   WindowPreview {
     id: windowPreview
     anchors.fill: parent
-    
+
     windowData: root.windowData
     toplevel: root.toplevel
     iconPath: root.iconPath
     windowTitle: root.windowTitle
-    
+
     bgColor: root.windowBgColor
     borderColor: root.windowBorderColor
     borderActiveColor: root.windowBorderActiveColor
     borderHoverColor: root.windowHoverBorderColor
     textColor: root.textColor
-    
+
     isActive: root.isFocused
     isHovered: mouseArea.containsMouse
     windowOpacity: root.isFloating ? 0.95 : 0.9
@@ -126,10 +124,7 @@ Item {
 
     onActiveChanged: {
       if (!active) {
-        let targetWorkspace = WindowUtils.getTargetWorkspaceFromPosition(
-          root.x, root.y, root.width, root.height,
-          workspaceWidth, workspaceHeight, workspaceSpacing, gridSize
-        );
+        let targetWorkspace = WindowUtils.getTargetWorkspaceFromPosition(root.x, root.y, root.width, root.height, workspaceWidth, workspaceHeight, workspaceSpacing, gridSize);
 
         if (windowData?.workspace?.id && targetWorkspace !== windowData.workspace.id) {
           root.windowDropped(targetWorkspace);

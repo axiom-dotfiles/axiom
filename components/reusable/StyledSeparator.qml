@@ -6,10 +6,10 @@ import QtQuick
 import qs.config
 
 Rectangle {
-    property color separatorColor: Theme.accent
-    property int separatorHeight: Appearance.borderWidth
+  property color separatorColor: Theme.accent
+  property int separatorHeight: Appearance.borderWidth
 
-    height: separatorHeight
-    color: separatorColor
-    radius: 0
+  height: separatorHeight
+  color: separatorColor
+  radius: 0
 }

@@ -116,9 +116,9 @@ Rectangle {
           }
         }
 
-        onWindowResized: {
-          // TODO: Implement window resize functionality
-        }
+        onWindowResized:
+        // TODO: Implement window resize functionality
+        {}
       }
     }
   }

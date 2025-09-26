@@ -45,7 +45,7 @@ StyledContainer {
   // This tracker ensures that the node's properties (like volume and mute)
   // are fully available and writable, fixing the "unbound" error.
   PwObjectTracker {
-    objects: [ root.node ]
+    objects: [root.node]
   }
 
   // --- Logic Properties ---
@@ -91,20 +91,17 @@ StyledContainer {
 
       // Visual indicator for default device status.
       backgroundColor: isDefaultDevice ? defaultDeviceColor : nonDefaultDeviceColor
-      iconColor: isDefaultDevice
-                 ? defaultDeviceIconColor
-                 : (node?.audio.muted ? mutedIconColor : normalIconColor)
+      iconColor: isDefaultDevice ? defaultDeviceIconColor : (node?.audio.muted ? mutedIconColor : normalIconColor)
 
       // Icon indicates mute state.
       iconText: node?.audio.muted ? iconMuted : iconUnmuted
       iconSize: iconPixelSize
 
-      tooltipText: isDevice
-                   ? (isDefaultDevice ? "Default Output Device" : "Click to set as default")
-                   : (node?.audio.muted ? "Unmute" : "Mute")
+      tooltipText: isDevice ? (isDefaultDevice ? "Default Output Device" : "Click to set as default") : (node?.audio.muted ? "Unmute" : "Mute")
 
       onClicked: {
-        if (!isReady) return; // Guard clause
+        if (!isReady)
+          return; // Guard clause
 
         if (isDevice) {
           // Set this device as the preferred default sink directly via the Pipewire singleton

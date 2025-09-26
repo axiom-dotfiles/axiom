@@ -11,7 +11,7 @@ import qs.services
 Item {
   id: root
 
-  required property string panelId;
+  required property string panelId
   property bool active: false
   default property alias content: contentArea.data
 
@@ -48,12 +48,12 @@ Item {
   property bool __animating: false
 
   property var __loadedItem: contentArea.data.length > 0 ? contentArea.data[0] : null
-  readonly property int actualWidth: Math.max(1, (customWidth > 0 ? customWidth : (__loadedItem ? __loadedItem.implicitWidth :  0)))
-  readonly property int actualHeight: Math.max(1, (customHeight > 0 ? customHeight : (__loadedItem ? __loadedItem.implicitHeight :  0)))
+  readonly property int actualWidth: Math.max(1, (customWidth > 0 ? customWidth : (__loadedItem ? __loadedItem.implicitWidth : 0)))
+  readonly property int actualHeight: Math.max(1, (customHeight > 0 ? customHeight : (__loadedItem ? __loadedItem.implicitHeight : 0)))
 
   Component.onCompleted: {
     if (panelId !== "") {
-      ShellManager.togglePanelReservation.connect(function(id) {
+      ShellManager.togglePanelReservation.connect(function (id) {
         console.log("Received togglePanelReservation for id:", id, "Current panelId:", panelId);
         if (id === panelId) {
           root.toggleReservation();
@@ -77,13 +77,13 @@ Item {
     focusable: false
 
     exclusiveZone: {
-      if (!root.reserveSpace) return 0;
+      if (!root.reserveSpace)
+        return 0;
       return (root.edge === EdgePopup.Edge.Left || root.edge === EdgePopup.Edge.Right) ? root.actualWidth + Config.containerOffset : root.actualHeight;
     }
 
     implicitWidth: reservationPanel.exclusiveZone + Widget.containerWidth
     implicitHeight: Display.resolutionHeight
-    
 
     Rectangle {
       anchors.fill: parent
@@ -91,55 +91,59 @@ Item {
     }
 
     anchors {
-      left: root.edge === EdgePopup.Edge.Left ? true : false;
-      right: root.edge === EdgePopup.Edge.Right ? true : false;
-      top: root.edge === EdgePopup.Edge.Top ? true : false;
-      bottom: root.edge === EdgePopup.Edge.Bottom ? true : false;
+      left: root.edge === EdgePopup.Edge.Left ? true : false
+      right: root.edge === EdgePopup.Edge.Right ? true : false
+      top: root.edge === EdgePopup.Edge.Top ? true : false
+      bottom: root.edge === EdgePopup.Edge.Bottom ? true : false
     }
 
     margins {
       left: {
         switch (root.edge) {
-          case EdgePopup.Edge.Right:
-            return Screen.width - root.actualWidth;
-          case EdgePopup.Edge.Top:
-          case EdgePopup.Edge.Bottom:
-            return (Screen.width * root.position) + root.positionOffset - (root.actualWidth / 2);
-          default: // Left edge
-            return 0;
+        case EdgePopup.Edge.Right:
+          return Screen.width - root.actualWidth;
+        case EdgePopup.Edge.Top:
+        case EdgePopup.Edge.Bottom:
+          return (Screen.width * root.position) + root.positionOffset - (root.actualWidth / 2);
+        default:
+          // Left edge
+          return 0;
         }
       }
       right: {
         switch (root.edge) {
-          case EdgePopup.Edge.Left:
-            return Screen.width - root.actualWidth;
-          case EdgePopup.Edge.Top:
-          case EdgePopup.Edge.Bottom:
-            return Screen.width - ((Screen.width * root.position) + root.positionOffset + (root.actualWidth / 2));
-          default: // Right edge
-            return 0;
+        case EdgePopup.Edge.Left:
+          return Screen.width - root.actualWidth;
+        case EdgePopup.Edge.Top:
+        case EdgePopup.Edge.Bottom:
+          return Screen.width - ((Screen.width * root.position) + root.positionOffset + (root.actualWidth / 2));
+        default:
+          // Right edge
+          return 0;
         }
       }
       top: {
         switch (root.edge) {
-          case EdgePopup.Edge.Bottom:
-            return Screen.height - root.actualHeight;
-          case EdgePopup.Edge.Left:
-          case EdgePopup.Edge.Right:
-            return (Screen.height * root.position) + root.positionOffset - (root.actualHeight / 2);
-          default: // Top edge
-            return 0;
+        case EdgePopup.Edge.Bottom:
+          return Screen.height - root.actualHeight;
+        case EdgePopup.Edge.Left:
+        case EdgePopup.Edge.Right:
+          return (Screen.height * root.position) + root.positionOffset - (root.actualHeight / 2);
+        default:
+          // Top edge
+          return 0;
         }
       }
       bottom: {
         switch (root.edge) {
-          case EdgePopup.Edge.Top:
-            return Screen.height - root.actualHeight;
-          case EdgePopup.Edge.Left:
-          case EdgePopup.Edge.Right:
-            return Screen.height - ((Screen.height * root.position) + root.positionOffset + (root.actualHeight / 2));
-          default: // Bottom edge
-            return 0;
+        case EdgePopup.Edge.Top:
+          return Screen.height - root.actualHeight;
+        case EdgePopup.Edge.Left:
+        case EdgePopup.Edge.Right:
+          return Screen.height - ((Screen.height * root.position) + root.positionOffset + (root.actualHeight / 2));
+        default:
+          // Bottom edge
+          return 0;
         }
       }
     }
@@ -183,7 +187,7 @@ Item {
       property bool locked: false
 
       Component.onCompleted: {
-        ShellManager.togglePanelLock.connect(function(id) {
+        ShellManager.togglePanelLock.connect(function (id) {
           if (id === panelId) {
             popup.locked = !popup.locked;
             if (!visible && popup.locked) {
@@ -307,7 +311,7 @@ Item {
   }
 
   function toggleReservation() {
-      console.log("Toggling reservation for panel:", panelId, "New state:", !reserveSpace);
-      reserveSpace = !reserveSpace;
+    console.log("Toggling reservation for panel:", panelId, "New state:", !reserveSpace);
+    reserveSpace = !reserveSpace;
   }
 }

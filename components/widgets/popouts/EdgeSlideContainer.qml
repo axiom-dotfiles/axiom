@@ -174,7 +174,7 @@ Item {
 
   // Handle active changes
   onActiveChanged: {
-    if (root.implicitWidth<= 0 || root.implicitHeight <= 0) {
+    if (root.implicitWidth <= 0 || root.implicitHeight <= 0) {
       console.warn("EdgeSlideContainer: Invalid size, skipping animation");
       return;
     }
