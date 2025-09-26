@@ -6,12 +6,12 @@ import Quickshell.Services.Notifications
 
 import qs.config
 import qs.components.reusable
-import qs.components.reusable.notifications as Comp
+import qs.components.reusable.notifications
 
 Item {
   id: root
 
-  property var notificationObject
+  property NotificationWrapper notificationObject
   property bool expanded: false
   property bool onlyNotification: false
 
@@ -20,6 +20,15 @@ Item {
 
   implicitHeight: mainLayout.implicitHeight
   implicitWidth: parent.width
+
+  Component.onCompleted: {
+    console.log("NotificationItem component completed.");
+    console.log("typeof notificationObject:", typeof notificationObject);
+    console.log("NotificationItem initialized with notificationObject:", notificationObject);
+    if (!notificationObject) {
+      console.error("NotificationItem requires a notificationObject property to be set.");
+    }
+  }
 
   Behavior on xOffset {
     enabled: !mouseArea.drag.active && Widget.animations
@@ -40,12 +49,9 @@ Item {
     to: root.width + 20
     duration: Widget.animationDuration
     easing.type: Easing.InQuad
-    onFinished: root.notificationObject.dismiss()
+    onFinished: root.notificationObject.originalNotification.dismiss()
   }
 
-  // FIX: MouseArea moved to be the FIRST child.
-  // This places it "behind" the content, allowing the action buttons
-  // to receive clicks while still enabling drag-to-dismiss.
   MouseArea {
     id: mouseArea
     anchors.fill: parent
@@ -80,8 +86,6 @@ Item {
     }
   }
 
-  // CLEANUP: Using a RowLayout as the main container is cleaner and more
-  // robust than managing multiple anchored items.
   RowLayout {
     id: mainLayout
     width: parent.width
@@ -154,18 +158,6 @@ Item {
           textFormat: Text.RichText
           text: root.notificationObject.body.replace(/\n/g, "<br/>")
           onLinkActivated: link => Qt.openUrlExternally(link)
-          Component.onCompleted: {
-            console.log("Full notifi opbject:")
-            console.log(root.notificationObject);
-            console.log("Notification body text:", root.notificationObject.body);
-            console.log("Summary text:", root.notificationObject.summary);
-            console.log("App name:", root.notificationObject.appName);
-            console.log("Urgency:", root.notificationObject.urgency);
-            console.log("Actions:", root.notificationObject.actions);
-            console.log("Timestamp:", root.notificationObject.time);
-            console.log("Image:", root.notificationObject.image);
-
-          }
         }
 
         Flickable {
@@ -175,15 +167,16 @@ Item {
           interactive: contentWidth > width
           flickableDirection: Flickable.HorizontalFlick
           clip: true
-          visible: root.expanded && (copyButton.visible || repeater.count > 0)
+          visible: root.expanded
 
           RowLayout {
             id: actionRowLayout
             spacing: Widget.spacing
 
             Repeater {
+              id: repeater
               model: root.notificationObject.actions
-              delegate: Comp.NotificationActionButton {
+              delegate: NotificationActionButton {
                 required property var modelData
                 buttonText: modelData.text
                 urgency: root.notificationObject.urgency
@@ -191,9 +184,9 @@ Item {
               }
             }
 
-            Comp.NotificationActionButton {
+            NotificationActionButton {
               id: copyButton
-              visible: root.notificationObject.body.length > 0
+              visible: root.notificationObject.body ? true : false
               urgency: root.notificationObject.urgency
               onClicked: {
                 Quickshell.clipboardText = root.notificationObject.summary + "\n" + root.notificationObject.body;
@@ -214,6 +207,14 @@ Item {
                 interval: 1500
                 onTriggered: copyIcon.text = "content_copy"
               }
+            }
+
+            // I want this in the top right but later is fine
+            NotificationActionButton {
+              buttonText: "X"
+              Layout.alignment: Qt.AlignRight
+              urgency: root.notificationObject.urgency
+              onClicked: root.destroyWithNumberAnimation()
             }
           }
         }

@@ -1,6 +1,8 @@
 pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
 import Quickshell.Services.Notifications
 
 import qs.config
@@ -28,8 +30,6 @@ StyledContainer {
   color: Theme.backgroundAlt
   clip: true
 
-  // By moving the anchors to a child item, we can apply padding to the root
-  // without affecting the drag offset calculation.
   transform: Translate {
     x: root.xOffset
   }
@@ -55,7 +55,7 @@ StyledContainer {
     duration: Widget.animationDuration
     easing.type: Easing.InQuad
     onFinished: {
-      root.notifications.forEach(notif => notif.dismiss());
+      root.notifications.forEach(notif => notif.originalNotification.dismiss());
     }
   }
 
@@ -159,13 +159,24 @@ StyledContainer {
         }
       }
 
-      Comp.NotificationExpandButton {
-        count: root.notificationCount
-        expanded: root.expanded
-        visible: root.multipleNotifications
-        onClicked: root.toggleExpanded()
-        onAltAction: root.toggleExpanded()
+      Comp.NotificationActionButton {
+        buttonText: "Close All"
+        onClicked: root.destroyWithNumberAnimation()
       }
+
+      Comp.NotificationActionButton {
+        visible: root.multipleNotifications
+        buttonText: root.expanded ? "Collapse" : "Expand"
+        onClicked: root.toggleExpanded()
+      }
+
+      // Comp.NotificationExpandButton {
+      //   count: root.notificationCount
+      //   expanded: root.expanded
+      //   visible: root.multipleNotifications
+      //   onClicked: root.toggleExpanded()
+      //   onAltAction: root.toggleExpanded()
+      // }
     }
 
     // Notifications List Section
@@ -188,8 +199,15 @@ StyledContainer {
       }
 
       Repeater {
-        model: root.expanded ? root.notifications.slice().reverse() : root.notifications.slice(root.notificationCount - 1)
+        model: ScriptModel { values: {
+          if (notificationCount === 0) {
+            return []; // Handle empty case gracefully
+          }
+          return root.notifications.slice().reverse();
+        }
+    }
         delegate: Comp.NotificationItem {
+          required property var modelData
           Layout.fillWidth: true
           notificationObject: modelData
           // When part of a group, the item is "expanded" if the group is.
