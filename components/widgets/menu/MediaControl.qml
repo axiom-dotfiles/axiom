@@ -5,14 +5,16 @@ import QtQuick.Layouts
 import qs.services
 import qs.config
 import qs.components.reusable
+import qs.components.widgets.menu
 
 StyledContainer {
     id: root
 
-    visible: Mpris.hasActivePlayer
+    visible: true
     clip: true
 
-    Layout.preferredHeight: Mpris.hasActivePlayer ? 80 : 0
+    Layout.preferredHeight: mediaControlLoader.item ? mediaControlLoader.item.implicitHeight + Widget.padding * 2 : 0
+    Layout.fillWidth: true
 
     Behavior on Layout.preferredHeight {
         NumberAnimation {
@@ -21,12 +23,13 @@ StyledContainer {
         }
     }
 
-    Connections {
-        target: Mpris
-        function onArtReady() {
-            albumArt.source = Mpris.artFilePath + "?time=" + Date.now()
-        }
-    }
+    // Connections {
+    //     target: MprisController
+    //     function onArtReady() {
+    //         console.log("MediaControl: Art ready, updating image source");
+    //         albumArt.source = MprisController.artFilePath ? MprisController.artFilePath + "?time=" + Date.now() : "qrc:/images/default_album_art.png";
+    //     }
+    // }
 
     Loader {
         id: mediaControlLoader
@@ -37,12 +40,23 @@ StyledContainer {
         sourceComponent: RowLayout {
             spacing: 12
 
-            // --- Album Art ---
             StyledContainer {
                 Layout.preferredWidth: 60
                 Layout.preferredHeight: 60
-                // ...
-                Image { id: albumArt; /* ... */ }
+                containerBorderColor: Theme.backgroundHighlight
+                containerBorderWidth: 1
+                radius: Appearance.borderRadius / 2
+
+                Image {
+                  id: albumArt; 
+                  anchors.fill: parent
+                  fillMode: Image.PreserveAspectCrop
+                  source: MprisController.artFilePath
+                      ? MprisController.artFilePath + "?v=" + MprisController.artVersion
+                      : "qrc:/images/default_album_art.png"
+                  smooth: true
+                  cache: false
+                }
             }
 
             // --- Track Info & Progress ---
@@ -50,26 +64,37 @@ StyledContainer {
                 Layout.fillWidth: true
                 spacing: 4
 
-                StyledText { text: Mpris.trackTitle; /* ... */ }
-                StyledText { text: Mpris.trackArtist; /* ... */ }
+                StyledText {
+                    text: MprisController.trackTitle
+                    textSize: Appearance.fontSize - 2
+                    textColor: Theme.background
+                    elide: Text.ElideRight
+                }
+                
+                StyledText {
+                    text: MprisController.trackArtist
+                    textSize: Appearance.fontSize - 4
+                    textColor: Theme.backgroundAlt
+                    elide: Text.ElideRight
+                }
 
                 RowLayout {
                     Layout.fillWidth: true
                     spacing: 8
 
-                    StyledText { text: Mpris.formatTime(Mpris.position); /* ... */ }
+                    StyledText { text: MprisController.formatTime(MprisController.position); /* ... */ }
 
                     StyledSlider {
                         Layout.fillWidth: true
-                        enabled: Mpris.canSeek
+                        enabled: MprisController.canSeek
                         // BIND: Display the current progress
-                        value: Mpris.progress
+                        value: MprisController.progress
 
                         // ACTION: On release, tell the controller to seek
-                        onReleased: (newValue) => Mpris.setPositionByRatio(newValue)
+                        onReleased: (newValue) => MprisController.setPositionByRatio(newValue)
                     }
 
-                    StyledText { text: Mpris.formatTime(Mpris.length); /* ... */ }
+                    StyledText { text: MprisController.formatTime(MprisController.length); /* ... */ }
                 }
             }
 
@@ -78,18 +103,47 @@ StyledContainer {
                 Layout.alignment: Qt.AlignVCenter
                 spacing: 8
 
-                StyledIconButton { /* Previous Button */ onClicked: Mpris.previous(); /* ... */ }
-                StyledIconButton { /* Play/Pause Button */ onClicked: Mpris.togglePlayPause(); /* ... */ }
-                StyledIconButton { /* Next Button */ onClicked: Mpris.next(); /* ... */ }
+                StyledIconButton {
+                    iconText: "󰒮"
+                    onClicked: MprisController.previous()
+                    iconColor: Theme.foregroundAlt
+                    backgroundColor: Theme.backgroundHighlight
+                    Layout.fillWidth: false
+                    Layout.fillHeight: false
+                    Layout.preferredWidth: 25
+                    Layout.preferredHeight: 25
+
+                }
+                
+                StyledIconButton {
+                    iconText: "󰏤"
+                    iconSize: Appearance.fontSize + 4
+                    onClicked: MprisController.togglePlay()
+                    iconColor: Theme.foreground
+                    backgroundColor: Theme.backgroundAlt
+                    Layout.fillWidth: false
+                    Layout.fillHeight: false
+                    Layout.preferredWidth: 40
+                    Layout.preferredHeight: 40
+                }
+                
+                StyledIconButton {
+                    iconText: "󰒭"
+                    onClicked: MprisController.next()
+                    iconColor: Theme.foregroundAlt
+                    backgroundColor: Theme.backgroundHighlight
+                    Layout.fillWidth: false
+                    Layout.fillHeight: false
+                    Layout.preferredWidth: 25
+                    Layout.preferredHeight: 25
+                }
 
                 Item { Layout.preferredWidth: 10 } // Spacer
 
-                // --- CORRECTED VOLUME SLIDER ---
-                // The visibility is now based on the player supporting the volume property.
-                visible: Mpris.activePlayer?.volumeSupported ?? false
+                visible: MprisController.activePlayer?.volumeSupported ?? false
 
                 StyledText {
-                    text: "󰕾" // Volume icon
+                    text: "󰕾"
                     textSize: Appearance.fontSize
                     textColor: Theme.foregroundAlt
                 }
@@ -97,14 +151,11 @@ StyledContainer {
                 StyledSlider {
                     Layout.preferredWidth: 80
                     
-                    // BIND: Display the current volume level
-                    value: Mpris.activePlayer ? Mpris.activePlayer.volume : 0
+                    value: MprisController.activePlayer ? MprisController.activePlayer.volume : 0
 
-                    // ACTION: While dragging, update the player's volume directly.
-                    // This uses the 'moved' signal for live updates.
                     onMoved: (newValue) => {
-                        if (Mpris.activePlayer) {
-                            Mpris.activePlayer.volume = newValue;
+                        if (MprisController.activePlayer) {
+                            MprisController.activePlayer.volume = newValue;
                         }
                     }
                 }
@@ -112,7 +163,7 @@ StyledContainer {
                 // Added volume percentage from your example
                 StyledText {
                     // Use a ternary to avoid "NaN" if player disappears mid-render
-                    text: Mpris.activePlayer ? Math.round(Mpris.activePlayer.volume * 100) + "%" : "0%"
+                    text: MprisController.activePlayer ? Math.round(MprisController.activePlayer.volume * 100) + "%" : "0%"
                     textColor: Theme.foregroundAlt
                     textSize: Appearance.fontSize - 4
                     Layout.preferredWidth: 35 // Reserve space to prevent layout shifts

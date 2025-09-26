@@ -3,6 +3,8 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import Quickshell
+import Quickshell.Services.Pipewire
 
 import qs.services
 import qs.config
@@ -76,62 +78,61 @@ StyledContainer {
                         }
                     }
 
+                    // --- Tab 1: Volume Mixer ---
                     StyledScrollView {
+                        id: volumeScrollView
                         width: root.width; height: parent.height
-                        contentPadding: Widget.padding
                         scrollbarOpacity: slideAnimation.running ? 0 : 1
-
+                        
+                        // The Loader is the single child of the ScrollView.
+                        // It has no size of its own; it takes its size from its content.
                         Loader {
-                            id: volumeMixerLoader; active: true
-                            anchors.horizontalCenter: parent.horizontalCenter
-                            sourceComponent: StyledContainer {
-                                implicitWidth: root.width - (Widget.padding * 2)
-                                height: 300
-                                containerColor: Theme.foregroundAlt
-
-                                StyledText {
-                                    anchors.centerIn: parent
-                                    horizontalAlignment: Text.AlignHCenter
-                                    wrapMode: Text.WordWrap
-                                    width: parent.width - (2 * Widget.padding)
-
-                                    text: "Volume Mixer Widget Placeholder"
-                                    textColor: Theme.background
-                                }
+                            id: volumeMixerLoader
+                            active: true // Or root.currentTab === 0
+                            sourceComponent: SinkWrapper {
+                                // The content determines the size.
+                                // Bind its width to the ScrollView's available width.
+                                width: volumeScrollView.availableWidth
+                                // Its height is implicit, allowing it to grow and be scrollable.
                             }
                         }
                     }
 
+                    // --- Tab 2: Rubik Timer ---
                     StyledScrollView {
+                        id: timerScrollView
                         width: root.width; height: parent.height
                         contentPadding: Widget.padding
                         scrollbarOpacity: slideAnimation.running ? 0 : 1
 
                         Loader {
-                            id: rubikTimerLoader; active: root.currentTab === 1 || contentRow.x < 0
-                            anchors.horizontalCenter: parent.horizontalCenter
+                            id: rubikTimerLoader
+                            // Simplified 'active' binding for clarity
+                            active: root.currentTab === 1
                             sourceComponent: CubeTimer {
                                 hideTimeDuringSolve: true
-                                implicitWidth: root.width - (Widget.padding * 2)
+                                // Let the component fill the available width of the scroll view
+                                width: timerScrollView.availableWidth
                             }
                         }
                     }
 
+                    // --- Tab 3: Calendar ---
                     StyledScrollView {
+                        id: calendarScrollView
                         width: root.width; height: parent.height
                         contentPadding: Widget.padding
                         scrollbarOpacity: slideAnimation.running ? 0 : 1
 
                         Loader {
-                            id: calendarLoader; active: root.currentTab === 2 || Math.abs(contentRow.x) > root.width
-                            anchors.horizontalCenter: parent.horizontalCenter
+                            id: calendarLoader
+                            active: root.currentTab === 2
                             sourceComponent: StyledContainer {
-                                implicitWidth: root.width - (Widget.padding * 2)
-                                height: 2000
+                                width: calendarScrollView.availableWidth
+                                height: 2000 // A large height to demonstrate scrolling
                                 containerColor: Theme.foregroundAlt
                                 StyledText {
                                     anchors.centerIn: parent
-                                    horizontalAlignment: Text.AlignHCenter
                                     text: "Calendar Widget Placeholder"
                                     textColor: Theme.background
                                 }
@@ -139,20 +140,22 @@ StyledContainer {
                         }
                     }
 
+                    // --- Tab 4: Notifications ---
                     StyledScrollView {
+                        id: notificationScrollView
                         width: root.width; height: parent.height
                         contentPadding: Widget.padding
                         scrollbarOpacity: slideAnimation.running ? 0 : 1
 
                         Loader {
-                            id: notificationLoader; active: root.currentTab === 3 || contentRow.x < -(root.width * 2)
-                            anchors.horizontalCenter: parent.horizontalCenter
+                            id: notificationLoader
+                            active: root.currentTab === 3
                             sourceComponent: StyledContainer {
-                                implicitWidth: root.width - (Widget.padding * 2)
-                                height: 500; containerColor: Theme.foregroundAlt
+                                width: notificationScrollView.availableWidth
+                                height: 500
+                                containerColor: Theme.foregroundAlt
                                 StyledText {
                                     anchors.centerIn: parent
-                                    horizontalAlignment: Text.AlignHCenter
                                     text: "Notifications Widget Placeholder"
                                     textColor: Theme.background
                                 }

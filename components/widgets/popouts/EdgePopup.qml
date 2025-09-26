@@ -91,10 +91,10 @@ Item {
     }
 
     anchors {
-      left: root.edge === EdgePopup.Edge.Left ? true : undefined;
-      right: root.edge === EdgePopup.Edge.Right ? true : undefined;
-      top: root.edge === EdgePopup.Edge.Top ? true : undefined;
-      bottom: root.edge === EdgePopup.Edge.Bottom ? true : undefined;
+      left: root.edge === EdgePopup.Edge.Left ? true : false;
+      right: root.edge === EdgePopup.Edge.Right ? true : false;
+      top: root.edge === EdgePopup.Edge.Top ? true : false;
+      bottom: root.edge === EdgePopup.Edge.Bottom ? true : false;
     }
 
     margins {

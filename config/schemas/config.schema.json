@@ -63,7 +63,8 @@
     "Menu": {
       "type": "object",
       "properties": {
-        "distanceFromWorkspaceContainer": { "type": "integer" }
+        "distanceFromWorkspaceContainer": { "type": "integer" },
+        "startMenuPinned": { "type": "boolean" }
       }
     },
     "Widget": {

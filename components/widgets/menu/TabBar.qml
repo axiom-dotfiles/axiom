@@ -32,6 +32,12 @@ StyledContainer {
                 Layout.preferredWidth: root.currentTab === index ? 3 : null
                 
                 onClicked: root.tabClicked(index)
+                Behavior on Layout.preferredWidth {
+                    NumberAnimation {
+                        duration: 250
+                        easing.type: Easing.InOutQuad
+                    }
+                }
             }
         }
     }

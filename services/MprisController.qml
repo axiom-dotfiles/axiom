@@ -27,6 +27,7 @@ QtObject {
     readonly property string artFileName: artUrl ? Qt.md5(artUrl) + ".jpg" : ""
     readonly property string artFilePath: artFileName ? `/tmp/quickshell-media-art/${artFileName}` : ""
     property bool artDownloaded: false
+    property int artVersion: 0
     readonly property bool canPlay: activePlayer ? activePlayer.canPlay : false
     readonly property bool canPause: activePlayer ? activePlayer.canPause : false
     readonly property bool canTogglePlaying: activePlayer ? activePlayer.canTogglePlaying : false
@@ -73,24 +74,15 @@ QtObject {
 
     // --- Private Logic, Timers, and Workers ---
 
-    // This hidden repeater monitors state changes for *every* player
-    // CHANGED: Assigned to a property to give it a "home" inside the QtObject.
-    property var _playerStateRepeater: Repeater {
-        model: Mpris.players
-        delegate: Connections {
-            target: modelData
-            function onPlaybackStateChanged() { _updateActivePlayer() }
-        }
-    }
-
     // Album art downloader
-    // CHANGED: Assigned to a property.
     property Process _artDownloader: Process {
         running: false
         command: ["bash", "-c", `mkdir -p /tmp/quickshell-media-art && [ -f '${root.artFilePath}' ] || curl --fail -sSL '${root.artUrl}' -o '${root.artFilePath}'`]
         onExited: (exitCode, exitStatus) => {
             if (exitCode === 0) {
+                console.log("Successfully downloaded album art to:", root.artFilePath)
                 root.artDownloaded = true
+                root.artVersion++
                 root.artReady()
             } else {
                 console.warn("Failed to download album art from:", root.artUrl, "Exit code:", exitCode)
@@ -100,31 +92,29 @@ QtObject {
     }
 
     // Internal timer for smooth position updates
-    // CHANGED: Assigned to a property.
     property Timer _positionTimer: Timer {
         running: root.isPlaying && root.hasActivePlayer
         interval: 500
         repeat: true
         onTriggered: {
+            // Manually emit positionChanged to force updates in the UI
             if(root.activePlayer) root.activePlayer.positionChanged()
         }
     }
 
     // --- Connections & Initial Setup ---
 
-    // CHANGED: Assigned to a property.
     property Connections _playersConnection: Connections {
-        target: Mpris.players
-        function onCountChanged() {
+        target: Mpris
+        onPlayersChanged: {
             _updateActivePlayer()
         }
     }
 
     // This handler manages the art downloader process
-    onActivePlayerChanged: {
+    onArtUrlChanged: {
         if (artUrl) {
             artDownloaded = false
-            // CHANGED: Use the property name to access the Process object
             _artDownloader.running = true
         } else {
             artDownloaded = false
@@ -138,28 +128,32 @@ QtObject {
     // --- Private Functions ---
 
     function _pickActivePlayer() {
-        const playerCount = Mpris.players.count;
-        if (playerCount === 0) return null;
+        // Step 1: Get the JavaScript array from the model's 'values' property.
+        const playersArray = Mpris.players.values;
+        if (!playersArray || playersArray.length === 0) return null;
 
+        const playerCount = playersArray.length;
+
+        // Preference order: Spotify -> Playing -> CanPlay -> First available
         for (let i = 0; i < playerCount; ++i) {
-            const p = Mpris.players.get(i);
+            const p = playersArray[i];
             if (p.dbusName && p.dbusName.indexOf("org.mpris.MediaPlayer2.spotify") !== -1) {
                 return p;
             }
         }
         for (let i = 0; i < playerCount; ++i) {
-            const p = Mpris.players.get(i);
+            const p = playersArray[i];
             if (p.playbackState === MprisPlaybackState.Playing) {
                 return p;
             }
         }
         for (let i = 0; i < playerCount; ++i) {
-            const p = Mpris.players.get(i);
+            const p = playersArray[i];
             if (p.canPlay) {
                 return p;
             }
         }
-        return Mpris.players.get(0);
+        return playersArray[0];
     }
 
     function _updateActivePlayer() {

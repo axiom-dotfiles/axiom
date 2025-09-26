@@ -32,7 +32,10 @@ Item {
           }
         });
       }
-
+    // if (Menu.startMenuPinned) {
+    //   console.log("Menu is set to start pinned. Pinning now.");
+    //   ShellManager.togglePinnedPanel("mainMenu")
+    // }
     }
 
     MainMenu {

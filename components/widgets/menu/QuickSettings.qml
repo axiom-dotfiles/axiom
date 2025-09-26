@@ -52,8 +52,6 @@ StyledContainer {
             tooltipText: "Power Settings"
             // onClicked: ShellManager.togglePanelReservation("mainMenu")
             onClicked: {
-                // ShellManager.togglePanelReservation("mainMenu")
-                // ShellManager.togglePanelLock("mainMenu")
                 ShellManager.togglePinnedPanel("mainMenu")
             }
             backgroundColor: Theme.base0E
