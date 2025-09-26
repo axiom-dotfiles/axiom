@@ -15,7 +15,7 @@ StyledContainer {
 
   implicitHeight: 28
   implicitWidth: contentRow.implicitWidth + (Widget.padding * 2)
-  radius: height / 2
+  radius: Appearance.borderRadius
 
   containerColor: mouseArea.pressed ? Qt.darker(Theme.backgroundHighlight, 1.2) : mouseArea.hovered ? Qt.lighter(Theme.backgroundHighlight, 1.1) : Theme.backgroundHighlight
 
