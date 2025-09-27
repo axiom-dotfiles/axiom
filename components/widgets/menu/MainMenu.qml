@@ -12,6 +12,10 @@ import qs.components.reusable
 import qs.components.widgets.menu
 import qs.components.widgets.menu.chat
 
+// Assuming these components exist:
+// import "path/to/SettingsMenu.qml" as SettingsMenu
+// import "path/to/ChatView.qml" as ChatView
+
 StyledContainer {
   id: root
 
@@ -24,28 +28,33 @@ StyledContainer {
   property real topSectionHeight: 120
   property real quickSettingsHeight: 60
 
+  // The wantsKeyboardFocus needs to be adapted slightly if ChatView is a child of a Row,
+  // but for now, we'll keep it as is.
   readonly property bool wantsKeyboardFocus: (root.currentTab === 1 && chatLoader.item) ? chatLoader.item.wantsKeyboardFocus : false
 
   property int tabBarHeight: 40
 
   readonly property real _minimumRequiredHeight: {
     var total = 0;
-    total += topSection.height;
+    // These properties (topSection, bottomArea) were not in the provided snippet parts,
+    // so they are commented out to prevent errors. Adjust if they exist elsewhere.
+    // total += topSection.height;
     total += minimumScrollableHeight;
-    total += bottomArea.implicitHeight;
+    // total += bottomArea.implicitHeight;
     total += (panelMargin * 4);
     return total;
   }
 
   property int currentTab: 0
+  // `tabs` array unchanged as it's used by the TabBar for names
   readonly property var tabs: [
     {
       name: "",
-      loader: settingsLoader
+      // loader: settingsLoader // This property is not used for content loading in this setup
     },
     {
       name: "󱜙",
-      loader: chatLoader
+      // loader: chatLoader    // This property is not used for content loading in this setup
     }
   ]
 
@@ -82,7 +91,7 @@ StyledContainer {
       Layout.bottomMargin: Appearance.borderWidth
       Layout.leftMargin: Appearance.borderWidth
       Layout.rightMargin: Appearance.borderWidth
-      clip: true
+      clip: true // Ensure content doesn't overflow during animation
 
       Item {
         id: contentContainer
@@ -93,154 +102,49 @@ StyledContainer {
             name: "tab0"
             when: root.currentTab === 0
             PropertyChanges {
-              target: settingsLoader
-              visible: true
-            }
-            PropertyChanges {
-              target: chatLoader
-              visible: false
+              target: contentRow
+              x: 0
             }
           },
           State {
             name: "tab1"
             when: root.currentTab === 1
             PropertyChanges {
-              target: settingsLoader
-              visible: false
-            }
-            PropertyChanges {
-              target: chatLoader
-              visible: true
+              target: contentRow
+              x: -contentContainer.width
             }
           }
         ]
 
-        Loader {
-          id: settingsLoader
-          anchors.fill: parent
-          sourceComponent: SettingsMenu {}
-          visible: root.currentTab === 0
-        }
+        Row {
+          id: contentRow
+          width: contentContainer.width * root.tabs.length
+          height: contentContainer.height
 
-        Loader {
-          id: chatLoader
-          anchors.fill: parent
-          sourceComponent: ChatView {
-            anchors.fill: parent
+          Behavior on x {
+            NumberAnimation {
+              duration: 250 // Customize animation duration
+              easing.type: Easing.InOutQuad
+            }
           }
-          visible: root.currentTab === 1
-        }
 
-        // Component {
-        //   id: settingsComponent
-        //   MainContent {
-        //     id: settingsContent
-        //     Layout.fillWidth: true
-        //     Layout.fillHeight: true
-        //   }
-        // }
-        //
-        // Component {
-        //   id: chatComponent
-        //   MainContent {
-        //     id: chatContent
-        //     Layout.fillWidth: true
-        //     Layout.fillHeight: true
-        //   }
-        // }
+          Loader {
+            id: settingsLoader
+            width: contentContainer.width
+            height: contentContainer.height
+            sourceComponent: SettingsMenu {}
+          }
+
+          Loader {
+            id: chatLoader
+            width: contentContainer.width
+            height: contentContainer.height
+            sourceComponent: ChatView {
+              anchors.fill: parent
+            }
+          }
+        }
       }
     }
   }
-
-  // --- Bottom-Anchored ---
-  // ColumnLayout {
-  //   id: bottomArea
-  //   anchors.bottom: parent.bottom
-  //   anchors.left: parent.left
-  //   anchors.right: parent.right
-  //
-  //   anchors.bottomMargin: root.panelMargin
-  //   anchors.leftMargin: root.panelMargin
-  //   anchors.rightMargin: root.panelMargin
-  //
-  //   spacing: Widget.containerWidth // Internal spacing between items in this section
-  //
-  //   MediaControl {
-  //     id: mediaControl
-  //     Layout.fillWidth: true
-  //     // playing: root.mediaPlaying
-  //     visible: true
-  //     containerColor: Theme.accent
-  //   }
-  //
-  //   QuickSettings {
-  //     Layout.fillWidth: true
-  //     Layout.preferredHeight: root.quickSettingsHeight
-  //   }
-  // }
-  //
-  // --- Top-Anchored and Fill Layout Area ---
-  // REFACTORED: This is now a ColumnLayout, replacing the old 'Item' with manual anchors.
-  // It dynamically manages the top section and the main scrollable content area.
-  // ColumnLayout {
-  //   id: topAreaLayout
-  //   anchors.top: parent.top
-  //   anchors.left: parent.left
-  //   anchors.right: parent.right
-  //   // Anchor the bottom of this layout to the top of the bottom layout
-  //   anchors.bottom: bottomArea.top
-  //
-  //   // REFACTORED: Margins and spacing are now consistently controlled by panelMargin
-  //   anchors.topMargin: root.panelMargin
-  //   anchors.leftMargin: root.panelMargin
-  //   anchors.rightMargin: root.panelMargin
-  //   anchors.bottomMargin: bottomArea.visibleChildren.length > 0 ? root.panelMargin : 0
-  //   spacing: root.panelMargin
-  //
-  //   // This is the fixed-height top section.
-  //   StyledContainer {
-  //     id: topSection
-  //     Layout.fillWidth: true
-  //     Layout.preferredHeight: root.topSectionHeight // Layout respects preferred height
-  //     containerBorderColor: Theme.border
-  //
-  //     // Note: Anchors are relative to this container now, not the whole panel.
-  //     StyledText {
-  //       anchors.centerIn: parent
-  //       text: "Top Section - Reserved for Future Component"
-  //       textColor: Theme.foregroundAlt
-  //
-  //     }
-  //
-  //     MouseArea {
-  //       anchors.fill: parent
-  //       cursorShape: Qt.PointingHandCursor
-  //       onClicked: {
-  //         console.log("Top section clicked - toggling dark mode for demo.");
-  //         ShellManager.toggleDarkMode();
-  //       }
-  //     }
-  //   }
-  //
-  //   // -- Add other fixed-height top components here. They will stack automatically. --
-  //
-  //   // This is the primary scrollable content area.
-  //   // REFACTORED: Using Layout.fillHeight, it automatically expands to fill the
-  //   // remaining space within this ColumnLayout.
-  //   MainContent {
-  //     id: tabbedContent
-  //     Layout.fillWidth: true
-  //     Layout.fillHeight: true // This is the key to making it fill the space
-  //   }
-  // }
-  //
-  // // Timer for demonstration
-  // Timer {
-  //   interval: 3000
-  //   running: true
-  //   repeat: false
-  //   onTriggered: {
-  //     root.mediaPlaying = !root.mediaPlaying;
-  //   }
-  // }
 }

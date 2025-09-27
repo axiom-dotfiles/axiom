@@ -71,12 +71,12 @@ QtObject {
   property color bg5: root[themeData.semantic.bg5] ?? base05
   property color bg6: root[themeData.semantic.bg6] ?? base06
 
-  property color userColor: themeData.semantic.green ?? "#ff00ff"
-  property color robotColor: themeData.semantic.yellow ?? "#00ff00"
+  property color userColor: root[themeData.semantic.green] ?? "#ff00ff"
+  property color robotColor: root[themeData.semantic.yellow] ?? "#00ff00"
 
-  property string name: themeData.name ?? "Unknown"
-  property string variant: themeData.variant ?? "dark"
-  property string paired: themeData.paired ?? ""
+  property string name: root[themeData.name] ?? "Unknown"
+  property string variant: root[themeData.variant] ?? "dark"
+  property string paired: root[themeData.paired] ?? ""
 
   function reload() {
     root.themeData = Loader.loadTheme(Appearance.theme)

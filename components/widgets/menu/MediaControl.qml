@@ -151,7 +151,7 @@ StyledContainer {
           }
 
           StyledText {
-            Layout.rightMargin: co
+            Layout.rightMargin: controlButtonsRow.width + root.volumeSpacing
             text: MprisController.formatTime(MprisController.length)
             textSize: root.timeFontSize
             textColor: root.timeColor

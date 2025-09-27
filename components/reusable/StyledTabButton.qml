@@ -10,6 +10,9 @@ import qs.config
 TabButton {
   id: button
 
+  property color activeColor: Theme.accent
+  property color inactiveColor: Theme.foregroundAlt
+
   Layout.fillWidth: true
   Layout.fillHeight: true
 
@@ -17,7 +20,7 @@ TabButton {
     text: button.text
     font.family: Appearance.fontFamily
     font.pixelSize: Appearance.fontSize - 2
-    color: button.checked ? Theme.accent : Theme.foregroundAlt
+    color: button.checked ? button.activeColor : Theme.foregroundAlt
     horizontalAlignment: Text.AlignHCenter
     verticalAlignment: Text.AlignVCenter
   }
@@ -37,7 +40,7 @@ TabButton {
       anchors.horizontalCenter: parent.horizontalCenter
       width: parent.width * 0.8
       height: 2
-      color: Theme.accent
+      color: button.activeColor
       visible: button.checked
       radius: 1
       Behavior on width {

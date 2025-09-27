@@ -18,6 +18,7 @@ StyledContainer {
   property alias wantsKeyboardFocus: textField.activeFocus
   
   signal accepted
+  signal boxClicked
   
   // function forceActiveFocus() {
   //   input.forceActiveFocus()
@@ -47,6 +48,7 @@ StyledContainer {
     selectByMouse: true
     selectedTextColor: Theme.background
     selectionColor: Theme.accent
+    wrapMode: Text.Wrap
     
     // --- Placeholder Properties ---
     placeholderTextColor: Qt.rgba(

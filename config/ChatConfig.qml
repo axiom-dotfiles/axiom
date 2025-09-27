@@ -7,9 +7,7 @@ QtObject {
 
   property bool enabled: configData.ChatConfig.enabled ?? false
   property string defaultBackend: configData.ChatConfig.defaultBackend ?? "gemini"
-  // property string currentBackend: defaultBackend
   property string defaultModel: configData.ChatConfig.defaultModel ?? "gemini-2.5-pro"
-  // property string currentModel: defaultModel
   property var backends: configData.ChatConfig.backends ?? null
 
   Component.onCompleted: {

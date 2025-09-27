@@ -4,17 +4,16 @@ import QtQuick
 import qs.config
 
 QtObject {
-  // --- Session State Properties ---
-  // These hold the live state for the current session, initialized from config.
-  property string currentBackend: ChatConfig.defaultBackend
-  property string currentModel: ChatConfig.defaultModel
 
-  // --- UI-bound Properties ---
+  property string currentBackend: ChatConfig.defaultBackend
+  property string currentModel: ChatConfig.backends[ChatConfig.defaultBackend].defaultModel
+
   property ListModel chatModel: ListModel {}
   property bool activelyTypingCommand: false
   property bool waitingForResponse: false
 
-  // --- Private Helper Functions ---
+  onCurrentBackendChanged: _backendChanged()
+
   function _addMessage(role, content) {
     chatModel.append({ "role": role, "content": content });
   }
@@ -28,107 +27,149 @@ QtObject {
 
   function _handleError(serviceName, errorText) {
     console.error(serviceName + " Error:", errorText);
-    _addMessage("robot", "Error with " + serviceName + ": " + errorText);
+    _addMessage("config", "Error with " + serviceName + ": " + errorText);
     waitingForResponse = false;
   }
 
+  /**
+   * Builds the conversation history from the chatModel in the format
+   * required by the current backend.
+   */
+  function _buildHistory() {
+    const history = [];
+    for (var i = 0; i < chatModel.count; i++) {
+        const message = chatModel.get(i);
+        // Skip our own error messages from the context
+        if (message.content.startsWith("Error with")) continue;
+
+        switch (currentBackend) {
+            case "gemini": {
+                // Gemini uses 'user' and 'model' for roles
+                const role = message.role === "robot" ? "model" : "user";
+                history.push({ "role": role, "parts": [{ "text": message.content }] });
+                break;
+            }
+            case "openai":
+            case "anthropic": {
+                // OpenAI/Anthropic use 'user' and 'assistant' for roles
+                const role = message.role === "robot" ? "assistant" : "user";
+                history.push({ "role": role, "content": message.content });
+                break;
+            }
+        }
+    }
+    return history;
+  }
+
+  /**
+   * A generic helper to send an XMLHttpRequest. This reduces code duplication.
+   * @param {string} url - The endpoint URL.
+   * @param {object} headers - A key-value object of request headers.
+   * @param {string} payload - The JSON stringified payload.
+   * @param {function} responseParser - A function that takes the parsed JSON response
+   *                                    and returns the reply text string.
+   */
+  function _sendRequest(url, headers, payload, responseParser) {
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", url);
+
+    for (const key in headers) {
+        if (headers.hasOwnProperty(key)) {
+            xhr.setRequestHeader(key, headers[key]);
+        }
+    }
+
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState === XMLHttpRequest.DONE) {
+        if (xhr.status === 200) {
+          try {
+            console.log("Received response:", xhr.responseText);
+            const response = JSON.parse(xhr.responseText);
+            const reply = responseParser(response);
+            if (reply) {
+              _addMessage("robot", reply.trim());
+            } else {
+              console.warn("Could not parse reply from response:", xhr.responseText);
+              _handleError(currentBackend, "Received a valid but unparseable response from the server.");
+            }
+          } catch (e) {
+            _handleError(currentBackend, "Failed to parse JSON response: " + e.message);
+          }
+        } else {
+          _handleError(currentBackend, xhr.status + ": " + xhr.responseText);
+        }
+        waitingForResponse = false;
+      }
+    }
+    console.log("Sending request to", url, "with payload:", payload);
+    xhr.send(payload);
+  }
+
   // --- API Implementations ---
-  function _sendToGemini(text) {
-    console.log("Sending to Gemini:", text);
+
+  function _sendToGemini() {
+    console.log("Sending to Gemini with history...");
     const backendConfig = _getCurrentBackendConfig();
     if (!backendConfig) return _handleError("Gemini", "Backend config not found.");
     
     const apiKey = backendConfig.apiKey;
     if (!apiKey) return _handleError("Gemini", "API Key is missing from config.");
 
-    // Note: Gemini API often includes the model in the URL.
     const url = "https://generativelanguage.googleapis.com/v1beta/models/" + currentModel + ":generateContent?key=" + apiKey;
-    
-    const xhr = new XMLHttpRequest();
-    xhr.open("POST", url);
-    xhr.setRequestHeader("Content-Type", "application/json");
+    const headers = { "Content-Type": "application/json" };
+    const history = _buildHistory();
+    const payload = JSON.stringify({ "contents": history });
+    const parser = (response) => response.candidates[0].content.parts[0].text;
 
-    xhr.onreadystatechange = function() {
-      if (xhr.readyState === XMLHttpRequest.DONE) {
-        if (xhr.status === 200) {
-          const response = JSON.parse(xhr.responseText);
-          const reply = response.candidates[0].content.parts[0].text;
-          _addMessage("robot", reply.trim());
-        } else {
-          _handleError("Gemini", xhr.status + ": " + xhr.responseText);
-        }
-        waitingForResponse = false;
-      }
-    }
-
-    const payload = JSON.stringify({ "contents": [{ "parts": [{ "text": text }] }] });
-    xhr.send(payload);
+    _sendRequest(url, headers, payload, parser);
   }
 
-  function _sendToOpenAI(text) {
+  function _sendToOpenAI() {
+    console.log("Sending to OpenAI with history...");
     const backendConfig = _getCurrentBackendConfig();
     if (!backendConfig) return _handleError("OpenAI", "Backend config not found.");
 
     const apiKey = backendConfig.apiKey;
     if (!apiKey) return _handleError("OpenAI", "API Key is missing from config.");
 
-    const xhr = new XMLHttpRequest();
-    xhr.open("POST", "https://api.openai.com/v1/chat/completions");
-    xhr.setRequestHeader("Content-Type", "application/json");
-    xhr.setRequestHeader("Authorization", "Bearer " + apiKey);
-
-    xhr.onreadystatechange = function() {
-      if (xhr.readyState === XMLHttpRequest.DONE) {
-        if (xhr.status === 200) {
-          const response = JSON.parse(xhr.responseText);
-          const reply = response.choices[0].message.content;
-          _addMessage("robot", reply.trim());
-        } else {
-          _handleError("OpenAI", xhr.status + ": " + xhr.responseText);
-        }
-        waitingForResponse = false;
-      }
-    }
-
+    const url = "https://api.openai.com/v1/chat/completions";
+    const headers = {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + apiKey
+    };
+    const history = _buildHistory();
     const payload = JSON.stringify({
       "model": currentModel,
-      "messages": [{ "role": "user", "content": text }]
+      "messages": history
     });
-    xhr.send(payload);
+    const parser = (response) => response.choices[0].message.content;
+
+    _sendRequest(url, headers, payload, parser);
   }
   
-  function _sendToAnthropic(text) {
+  function _sendToAnthropic() {
+    console.log("Sending to Anthropic with history...");
     const backendConfig = _getCurrentBackendConfig();
     if (!backendConfig) return _handleError("Anthropic", "Backend config not found.");
 
     const apiKey = backendConfig.apiKey;
     if (!apiKey) return _handleError("Anthropic", "API Key is missing from config.");
 
-    const xhr = new XMLHttpRequest();
-    xhr.open("POST", "https://api.anthropic.com/v1/messages");
-    xhr.setRequestHeader("x-api-key", apiKey);
-    xhr.setRequestHeader("anthropic-version", "2023-06-01");
-    xhr.setRequestHeader("content-type", "application/json");
-
-    xhr.onreadystatechange = function() {
-      if (xhr.readyState === XMLHttpRequest.DONE) {
-        if (xhr.status === 200) {
-          const response = JSON.parse(xhr.responseText);
-          const reply = response.content[0].text;
-          _addMessage("robot", reply.trim());
-        } else {
-          _handleError("Anthropic", xhr.status + ": " + xhr.responseText);
-        }
-        waitingForResponse = false;
-      }
-    }
-
+    const url = "https://api.anthropic.com/v1/messages";
+    const headers = {
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+        "content-type": "application/json"
+    };
+    const history = _buildHistory();
     const payload = JSON.stringify({
       "model": currentModel,
       "max_tokens": 2048,
-      "messages": [{ "role": "user", "content": text }]
+      "messages": history
     });
-    xhr.send(payload);
+    const parser = (response) => response.content[0].text;
+
+    _sendRequest(url, headers, payload, parser);
   }
 
   // --- Public Functions ---
@@ -146,9 +187,9 @@ QtObject {
 
     console.log("Current Backend:", currentBackend, "Model:", currentModel);
     switch (currentBackend) {
-      case "gemini":    _sendToGemini(trimmedText); break;
-      case "openai":    _sendToOpenAI(trimmedText); break;
-      case "anthropic": _sendToAnthropic(trimmedText); break;
+      case "gemini":    _sendToGemini(); break;
+      case "openai":    _sendToOpenAI(); break;
+      case "anthropic": _sendToAnthropic(); break;
       case "offline":
       default:
         let timer = Qt.createQmlObject("import QtQuick; Timer {}", Chat);
@@ -169,19 +210,26 @@ QtObject {
     const command = parts[0].toLowerCase();
     
     switch (command) {
+        case "help":
+            _addMessage("config", "Available commands:\n" +
+                "/backend [name] - Switch to a different backend.\n" +
+                "/model [name] - Switch to a different model for the current backend.\n" +
+                "/status - Show current backend and model.\n" +
+                "/clear - Clear the chat history.\n" +
+                "/api-key - Instructions for setting API keys.");
+            break;
         case "backend": {
             if (parts.length < 2) {
-                _addMessage("robot", "Usage: /backend [name]\nAvailable: " + Object.keys(ChatConfig.backends).join(", "));
+                _addMessage("config", "Usage: /backend [name]\nAvailable: " + Object.keys(ChatConfig.backends).join(", "));
                 return;
             }
             const newBackend = parts[1].toLowerCase();
             if (ChatConfig.backends.hasOwnProperty(newBackend)) {
                 currentBackend = newBackend;
-                // Set to the first available model for the new backend
-                currentModel = ChatConfig.backends[newBackend].models[0];
-                _addMessage("robot", "Switched to backend '" + currentBackend + "' with model '" + currentModel + "'.");
+                currentModel = ChatConfig.backends[newBackend].defaultModel;
+                _addMessage("config", "Switched to backend '" + currentBackend + "' with model '" + currentModel + "'.");
             } else {
-                _addMessage("robot", "Unknown backend: " + newBackend);
+                _addMessage("config", "Unknown backend: " + newBackend);
             }
             break;
         }
@@ -189,9 +237,9 @@ QtObject {
             if (parts.length < 2) {
                 const backendConfig = _getCurrentBackendConfig();
                 if (backendConfig) {
-                    _addMessage("robot", "Usage: /model [name]\nAvailable for " + currentBackend + ": " + backendConfig.models.join(", "));
+                    _addMessage("config", "Usage: /model [name]\nAvailable for " + currentBackend + ": " + backendConfig.models.join(", "));
                 } else {
-                     _addMessage("robot", "No backend selected.");
+                     _addMessage("config", "No backend selected.");
                 }
                 return;
             }
@@ -199,24 +247,37 @@ QtObject {
             const backendConfig = _getCurrentBackendConfig();
             if (backendConfig && backendConfig.models.includes(newModel)) {
                 currentModel = newModel;
-                _addMessage("robot", "Switched to model: " + currentModel);
+                _addMessage("config", "Switched to model: " + currentModel);
             } else {
-                _addMessage("robot", "Model '" + newModel + "' not available for backend '" + currentBackend + "'.");
+                _addMessage("config", "Model '" + newModel + "' not available for backend '" + currentBackend + "'.");
             }
             break;
         }
         case "status": {
-            _addMessage("robot", "Backend: " + currentBackend + "\nModel: " + currentModel);
+            _addMessage("config", "Backend: " + currentBackend + "\nModel: " + currentModel);
             break;
         }
         case "clear":
             chatModel.clear();
             break;
+        case "api-key":
+            _addMessage("config", "API keys must be set in the configuration file.");
+            break;
         default:
-            _addMessage("robot", "Unknown command: " + command);
+            _addMessage("config", "Unknown command: " + command);
             break;
     }
     activelyTypingCommand = false;
+  }
+
+  function _backendChanged() {
+    const backendConfig = _getCurrentBackendConfig();
+    if (backendConfig && backendConfig.defaultModel) {
+        currentModel = backendConfig.defaultModel;
+    } else {
+        currentModel = "";
+    }
+    console.log("Backend changed to", currentBackend, "with model", currentModel);
   }
 
   function updateCommandState(currentText) {

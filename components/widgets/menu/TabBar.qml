@@ -12,6 +12,9 @@ StyledContainer {
   id: root
 
   property int currentTab: 0
+  property color activeColor: Theme.accent
+  property color inactiveColor: Theme.foregroundAlt
+
   property var tabs: []
   signal tabClicked(int index)
 
@@ -26,6 +29,8 @@ StyledContainer {
       delegate: StyledTabButton {
         required property int index
         required property var modelData
+        activeColor: root.activeColor
+        inactiveColor: root.inactiveColor
 
         text: modelData.name
         checked: root.currentTab === index

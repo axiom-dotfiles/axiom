@@ -47,7 +47,7 @@ Rectangle {
     id: label
     anchors.centerIn: parent
     textColor: mouseArea.hovered ? button.textHoverColor : button.textColor
-    textSize: Appearance.fontSize - 2
+    textSize: Appearance.fontSize
     font.bold: true
   }
 
