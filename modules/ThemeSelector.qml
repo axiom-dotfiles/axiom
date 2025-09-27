@@ -213,6 +213,9 @@ EdgePopup {
                                 backgroundColor: Appearance.theme === modelData.name ? Theme.accent : Theme.backgroundHighlight
                                 textHoverColor: Appearance.theme === modelData.name ? Theme.foreground : Theme.background
                                 onClicked: ThemeManager.applyTheme(modelData.name)
+                                Component.onCompleted: {
+                                  console.log("Default Theme Found: " + modelData.name);
+                                }
                             }
                         }
 
