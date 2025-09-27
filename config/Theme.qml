@@ -71,6 +71,7 @@ QtObject {
   readonly property string name: themeData.name ?? "Unknown"
   readonly property string variant: themeData.variant ?? "dark"
   readonly property string paired: themeData.paired ?? ""
+  property bool isGenerated: false
 
   function reload() {
     root.themeData = Loader.loadTheme(Appearance.theme)
