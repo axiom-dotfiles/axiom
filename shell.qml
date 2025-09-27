@@ -34,6 +34,10 @@ ShellRoot {
     id: osd
   }
 
+  ThemeSelector {
+    id: themeSelector
+  }
+
   Menu {
     id: mainMenu
   }

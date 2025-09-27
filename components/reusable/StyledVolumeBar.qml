@@ -120,9 +120,9 @@ Item {
         radius: 1
         visible: root.isMuted
         
-        Behavior on visible {
-          OpacityAnimator { from: 0; to: 1.0; duration: 200 }
-        }
+        // Behavior on visible {
+        //   OpacityAnimator { from: 0; to: 1.0; duration: 200 }
+        // }
       }
     }
 

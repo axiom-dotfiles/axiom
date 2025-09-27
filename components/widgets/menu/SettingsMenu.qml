@@ -61,7 +61,7 @@ Item {
         cursorShape: Qt.PointingHandCursor
         onClicked: {
           console.log("Top section clicked - toggling dark mode for demo.");
-          ShellManager.toggleDarkMode();
+          ThemeManager.toggleDarkMode();
         }
       }
     }

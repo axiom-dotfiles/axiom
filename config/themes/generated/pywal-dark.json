@@ -48,6 +48,13 @@
     "blue": "base0D",
     "magenta": "base0E",
     "cyan": "base0C",
-    "white": "base05"
+    "white": "base05",
+    "bg0": "base00",
+    "bg1": "base01",
+    "bg2": "base02",
+    "bg3": "base03",
+    "fg3": "base04",
+    "fg2": "base05",
+    "fg1": "base06"
   }
 }

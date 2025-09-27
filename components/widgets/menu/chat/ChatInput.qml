@@ -6,6 +6,7 @@ import QtQuick.Controls // Added for TextInput.Wrap enum
 import Quickshell.Wayland
 
 import qs.services
+import qs.config
 import qs.components.reusable
 
 RowLayout {
@@ -27,6 +28,10 @@ RowLayout {
     onAccepted: control.submit()
     onTextChanged: {
       Chat.updateCommandState(text)}
+    Component.onCompleted: {
+      control.wantsKeyboardFocus = true;
+      forceActiveFocus();
+    }
   }
 
   StyledTextButton {

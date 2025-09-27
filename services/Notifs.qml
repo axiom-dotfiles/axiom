@@ -41,6 +41,16 @@ Singleton {
     }
   }
 
+  function sendNotification(appName, summary, body, options) {
+    options = options || {};
+    const notif = server.createNotification(appName, summary, body, options);
+    notif.tracked = true; // Automatically track this notification
+    if (!root.dnd || notif.urgency === NotificationUrgency.Critical) {
+      root.showPopup(notif);
+    }
+    return notif;
+  }
+
   // MARK: - Internal Implementation
 
   /**
