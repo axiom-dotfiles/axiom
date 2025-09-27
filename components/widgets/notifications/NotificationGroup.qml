@@ -8,7 +8,7 @@ import Quickshell.Services.Notifications
 import qs.config
 import qs.services
 import qs.components.reusable
-import qs.components.reusable.notifications as Comp
+import qs.components.widgets.notifications as Comp
 
 StyledContainer {
   id: root

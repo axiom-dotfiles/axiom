@@ -5,7 +5,7 @@ import Quickshell
 import qs.config
 import qs.services
 
-import qs.components.reusable.notifications
+import qs.components.widgets.notifications
 
 // TODO: bit of a refactor
 // I don't think it is terrible, but got a bit spaghetti
@@ -59,7 +59,6 @@ ListView {
           time: 0
         };
       }
-      console.log("notif namee: ", notif.appName);
 
       groups[appName].notifications.push(notif);
 

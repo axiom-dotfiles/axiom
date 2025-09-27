@@ -145,8 +145,7 @@ StyledContainer {
                 text: "No output devices found."
                 Layout.fillWidth: true
                 horizontalAlignment: Text.AlignHCenter
-                // Bind visibility directly to the length of the filtered list
-                visible: filteredNodes.length === 0
+                visible: false // TODO: fix
               }
 
               Repeater {

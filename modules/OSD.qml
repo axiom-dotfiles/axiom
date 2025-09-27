@@ -1,124 +1,145 @@
+pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
-import Quickshell
-import Quickshell.Widgets
-
-import qs.services
+import qs.components.widgets.popouts
+import qs.components.reusable
 import qs.config
+import qs.services
 
-Scope {
-  id: root
-  objectName: "osd"
-  property color backgroundColor: Theme.background
-  property color foregroundColor: Theme.foreground
-  
-  // Connect to the AudioService singleton
+Item {
+  id: osdRoot
+  anchors.fill: parent
+
+  property bool shouldShowOsd: false
+  property real hideTimeout: 1000
+
   Connections {
     target: Audio
-    
+
     function onVolumeChanged() {
-      root.shouldShowOsd = true;
+      osdRoot.shouldShowOsd = true;
       hideTimer.restart();
     }
-    
+
     function onMutedChanged() {
-      // Optional: show OSD on mute toggle as well
-      root.shouldShowOsd = true;
+      osdRoot.shouldShowOsd = true;
       hideTimer.restart();
     }
   }
-  
-  property bool shouldShowOsd: false
-  
+
+  function onVisibilityChanged() {
+    osdRoot.shouldShowOsd = true;
+    hideTimer.restart();
+  }
+
   Timer {
     id: hideTimer
-    interval: 1000
-    onTriggered: root.shouldShowOsd = false
+    interval: osdRoot.hideTimeout
+    repeat: false
+    onTriggered: osdRoot.shouldShowOsd = false
+    onRunningChanged: {
+      console.log("Hide timer running state changed:", running);
+    }
   }
-  
-  // The OSD window will be created and destroyed based on shouldShowOsd.
-  // PanelWindow.visible could be set instead of using a loader, but using
-  // a loader will reduce the memory overhead when the window isn't open.
-  LazyLoader {
-    active: root.shouldShowOsd
+
+  EdgePopup {
+    id: root
+    panelId: "volumeOSD"
     
-    PanelWindow {
-      // Since the panel's screen is unset, it will be picked by the compositor
-      // when the window is created. Most compositors pick the current active monitor.
-      anchors.bottom: true
-      margins.bottom: screen.height / 5
-      exclusiveZone: 0
-      implicitWidth: 400
-      implicitHeight: 50
-      color: "transparent"
+    edge: EdgePopup.Edge.Bottom
+    position: 0.5
+    active: false
+    enableTrigger: true
+    property bool shouldShowOsd: osdRoot.shouldShowOsd
+    triggerWidth: 5
+    closeOnMouseExit: false
+    closeOnClickOutside: true
+    focusable: false
+    aboveWindows: true
+    edgeMargin: Config.containerOffset + Appearance.borderWidth * 2 + 3
+
+    animationDuration: 200
+    easingType: Easing.OutQuad
+
+    onActiveChanged: {
+      if (active) {
+        osdRoot.shouldShowOsd = true;
+        hideTimer.restart();
+      }
+    }
+
+    onShouldShowOsdChanged: {
+      if (shouldShowOsd) {
+        root.active = true;
+        hideTimer.restart();
+      } else {
+        root.active = false;
+        hideTimer.stop();
+      }
+    }
+    
+    StyledContainer {
+      containerColor: Theme.backgroundAlt
+      containerBorderColor: Theme.accent
+      containerBorderWidth: Appearance.borderWidth
+      containerRadius: Appearance.borderRadius
       
-      // An empty click mask prevents the window from blocking mouse events.
-      mask: Region {}
-      
-      Rectangle {
+      implicitWidth: 350
+      implicitHeight: 220
+
+      RowLayout {
         anchors.fill: parent
-        border.width: Appearance.borderWidth
-        border.color: Theme.accent
-        radius: Appearance.borderRadius
-        color: Theme.backgroundAlt
-        
-        RowLayout {
-          anchors {
-            fill: parent
-            leftMargin: 10
-            rightMargin: 15
+        anchors.margins: 15
+        spacing: 20
+
+        PipewireVolumeBar {
+          targetApplication: "zen-bin"
+          orientation: Qt.Vertical
+          iconSource: ""
+          onVisibilityChanged: {
+            osdRoot.shouldShowOsd = true;
+            hideTimer.restart();
           }
-          
-          IconImage {
-            implicitSize: 30
-            source: {
-              const iconBase = "file:///home/" + Config.userName + "/.config/quickshell/travmonkey/assets/icons/"
-              if (Audio.muted) {
-                return iconBase + "volume-muted.svg"
-              } else if (Audio.volume > 0.66) {
-                return iconBase + "volume-high.svg"
-              } else if (Audio.volume > 0.33) {
-                return iconBase + "volume-low.svg"
-              } else if (Audio.volume > 0) {
-                return iconBase + "volume-low.svg"
-              } else {
-                return iconBase + "volume-muted.svg"
-              }
-            }
+        }
+
+        PipewireVolumeBar {
+          targetApplication: "electron"
+          orientation: Qt.Vertical
+          iconSource: ""
+          onVisibilityChanged: {
+            osdRoot.shouldShowOsd = true;
+            hideTimer.restart();
           }
-          
-          Rectangle {
-            // Volume bar container/trough
-            Layout.fillWidth: true
-            implicitHeight: 10
-            radius: Appearance.borderRadius
-            color: Qt.rgba(Theme.foreground.r, Theme.foreground.g, Theme.foreground.b, 0.2) // Semi-transparent foreground color for trough
-            
-            Rectangle {
-              // Volume bar fill
-              anchors {
-                left: parent.left
-                top: parent.top
-                bottom: parent.bottom
-              }
-              width: parent.width * Audio.volume
-              radius: parent.radius
-              color: Audio.muted ? Qt.rgba(Theme.foreground.r, Theme.foreground.g, Theme.foreground.b, 0.5) : Theme.accent
-              
-              Behavior on width {
-                NumberAnimation {
-                  duration: 100
-                  easing.type: Easing.OutCubic
-                }
-              }
-            }
+        }
+
+        PipewireVolumeBar {
+          targetApplication: "master"
+          orientation: Qt.Vertical
+          iconSource: ""
+          onVisibilityChanged: {
+            osdRoot.shouldShowOsd = true;
+            hideTimer.restart();
           }
-          
-          Text {
-            text: Math.round(Audio.volume * 100) + "%"
-            color: Theme.foreground
-            font.pixelSize: 14
-            font.family: "VictorMono Nerd Font"
+        }
+
+        PipewireVolumeBar {
+          targetApplication: "youtube-music"
+          orientation: Qt.Vertical
+          iconSource: ""
+          onVisibilityChanged: {
+            osdRoot.shouldShowOsd = true;
+            hideTimer.restart();
+          }
+        }
+
+        PipewireVolumeBar {
+          orientation: Qt.Vertical
+          volume: Audio.volume
+          isMuted: Audio.muted
+          iconSource: {
+            if (Audio.muted || Audio.volume === 0) return "";
+            if (Audio.volume > 0.4) return "";
+            return "";
           }
         }
       }

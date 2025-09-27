@@ -63,7 +63,6 @@ Rectangle {
     }
   }
 
-  // Window container - overlays on top of workspace cells
   Item {
     id: windowContainer
     anchors.centerIn: parent
@@ -85,11 +84,9 @@ Rectangle {
         workspaceHeight: root.workspaceHeight
         workspaceSpacing: root.workspaceSpacing
 
-        // Calculate grid position from workspace ID
         property int wsId: modelData?.workspace?.id ?? 1
         property var gridPos: WindowUtils.getWorkspacePosition(wsId, root.gridSize)
 
-        // Only show windows in the visible 5x5 grid (workspaces 1-25)
         visible: WorkspaceUtils.isWorkspaceVisible(wsId)
 
         offsetX: gridPos.col * (root.workspaceWidth + root.workspaceSpacing)

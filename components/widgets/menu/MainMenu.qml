@@ -94,6 +94,16 @@ StyledContainer {
         anchors.centerIn: parent
         text: "Top Section - Reserved for Future Component"
         textColor: Theme.foregroundAlt
+
+      }
+
+      MouseArea {
+        anchors.fill: parent
+        cursorShape: Qt.PointingHandCursor
+        onClicked: {
+          console.log("Top section clicked - toggling dark mode for demo.");
+          ShellManager.toggleDarkMode();
+        }
       }
     }
 

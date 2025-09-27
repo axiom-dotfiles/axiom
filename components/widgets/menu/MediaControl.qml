@@ -1,6 +1,6 @@
+pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
-
 // Your project's imports
 import qs.services
 import qs.config
@@ -9,43 +9,63 @@ import qs.components.widgets.menu
 
 StyledContainer {
   id: root
-
   visible: true
   clip: true
 
-  Layout.preferredHeight: mediaControlLoader.item ? mediaControlLoader.item.implicitHeight + Widget.padding * 2 : 0
+  property int widgetPadding: Widget.padding
+  property int animationDuration: 200
+  property int albumArtSize: 80
+  property int itemSpacing: 12
+  property int innerSpacing: 4
+  property int volumeSpacing: 8
+
+  property int skipButtonSize: 25
+  property int playButtonSize: 40
+  property int spacerWidth: 10
+
+  property int titleFontSize: Appearance.fontSize - 2
+  property int artistFontSize: Appearance.fontSize - 4
+  property int timeFontSize: Appearance.fontSize - 4
+  property int playIconFontSize: Appearance.fontSize + 4
+
+  property color titleColor: Theme.background
+  property color artistColor: Theme.backgroundAlt
+  property color timeColor: Theme.backgroundAlt
+  property color buttonIconColor: Theme.foregroundAlt
+  property color buttonBackgroundColor: Theme.backgroundHighlight
+  property color playIconColor: Theme.foreground
+  property color playBackgroundColor: Theme.backgroundAlt
+  property color albumBorderColor: Theme.backgroundHighlight
+  property int albumBorderWidth: 1
+  property real albumRadius: Appearance.borderRadius / 2
+
+  Layout.preferredHeight: mediaControlLoader.item ? mediaControlLoader.item.implicitHeight + widgetPadding * 2 : 0
   Layout.fillWidth: true
 
   Behavior on Layout.preferredHeight {
     NumberAnimation {
-      duration: 200
+      duration: root.animationDuration
       easing.type: Easing.InOutQuad
     }
   }
 
-  // Connections {
-  //     target: MprisController
-  //     function onArtReady() {
-  //         console.log("MediaControl: Art ready, updating image source");
-  //         albumArt.source = MprisController.artFilePath ? MprisController.artFilePath + "?time=" + Date.now() : "qrc:/images/default_album_art.png";
-  //     }
-  // }
-
   Loader {
     id: mediaControlLoader
     anchors.fill: parent
-    anchors.margins: Widget.padding
+    anchors.margins: root.widgetPadding
     active: root.visible
 
     sourceComponent: RowLayout {
-      spacing: 12
+      spacing: root.itemSpacing
 
+      // Album Art
       StyledContainer {
-        Layout.preferredWidth: 80
-        Layout.preferredHeight: 80
-        containerBorderColor: Theme.backgroundHighlight
-        containerBorderWidth: 1
-        radius: Appearance.borderRadius / 2
+        Layout.preferredWidth: root.albumArtSize
+        Layout.preferredHeight: root.albumArtSize
+        Layout.alignment: Qt.AlignVCenter
+        containerBorderColor: root.albumBorderColor
+        containerBorderWidth: root.albumBorderWidth
+        radius: root.albumRadius
 
         Image {
           id: albumArt
@@ -57,121 +77,108 @@ StyledContainer {
         }
       }
 
-      // --- Track Info & Progress ---
+      // Track Info & Progress (expandable middle section)
       ColumnLayout {
         Layout.fillWidth: true
-        spacing: 4
+        Layout.alignment: Qt.AlignVCenter
+        spacing: root.innerSpacing
 
+        // Track title
         StyledText {
+          Layout.fillWidth: true
           text: MprisController.trackTitle
-          textSize: Appearance.fontSize - 2
-          textColor: Theme.background
+          textSize: root.titleFontSize
+          textColor: root.titleColor
           elide: Text.ElideRight
         }
 
+        // Artist
         StyledText {
+          Layout.fillWidth: true
           text: MprisController.trackArtist
-          textSize: Appearance.fontSize - 4
-          textColor: Theme.backgroundAlt
+          textSize: root.artistFontSize
+          textColor: root.artistColor
           elide: Text.ElideRight
         }
 
+        // Progress bar with time
         RowLayout {
           Layout.fillWidth: true
-          spacing: 8
+          spacing: root.volumeSpacing
 
           StyledText {
-            text: MprisController.formatTime(MprisController.position) /* ... */
+            text: MprisController.formatTime(MprisController.position)
+            textSize: root.timeFontSize
+            textColor: root.timeColor
           }
 
           StyledSlider {
             Layout.fillWidth: true
             enabled: MprisController.canSeek
-            // BIND: Display the current progress
             value: MprisController.progress
-
-            // ACTION: On release, tell the controller to seek
             onReleased: newValue => MprisController.setPositionByRatio(newValue)
           }
 
           StyledText {
-            text: MprisController.formatTime(MprisController.length) /* ... */
+            text: MprisController.formatTime(MprisController.length)
+            textSize: root.timeFontSize
+            textColor: root.timeColor
           }
         }
       }
 
-      // --- Playback & Volume Controls ---
       RowLayout {
         Layout.alignment: Qt.AlignVCenter
-        spacing: 8
+        Layout.preferredWidth: childrenRect.width
+        spacing: root.volumeSpacing
 
         StyledIconButton {
           iconText: "󰒮"
           onClicked: MprisController.previous()
-          iconColor: Theme.foregroundAlt
-          backgroundColor: Theme.backgroundHighlight
+          iconColor: root.buttonIconColor
+          backgroundColor: root.buttonBackgroundColor
           Layout.fillWidth: false
           Layout.fillHeight: false
-          Layout.preferredWidth: 25
-          Layout.preferredHeight: 25
+          Layout.preferredWidth: root.skipButtonSize
+          Layout.preferredHeight: root.skipButtonSize
         }
 
         StyledIconButton {
-          iconText: "󰏤"
-          iconSize: Appearance.fontSize + 4
-          onClicked: MprisController.togglePlay()
-          iconColor: Theme.foreground
-          backgroundColor: Theme.backgroundAlt
+          iconText: MprisController.isPlaying ? "󰏤" : "󰐊"
+          iconSize: root.playIconFontSize
+          onClicked: MprisController.togglePlayPause()
+          iconColor: root.playIconColor
+          backgroundColor: root.playBackgroundColor
           Layout.fillWidth: false
           Layout.fillHeight: false
-          Layout.preferredWidth: 40
-          Layout.preferredHeight: 40
+          Layout.preferredWidth: root.playButtonSize
+          Layout.preferredHeight: root.playButtonSize
         }
 
         StyledIconButton {
           iconText: "󰒭"
           onClicked: MprisController.next()
-          iconColor: Theme.foregroundAlt
-          backgroundColor: Theme.backgroundHighlight
+          iconColor: root.buttonIconColor
+          backgroundColor: root.buttonBackgroundColor
           Layout.fillWidth: false
           Layout.fillHeight: false
-          Layout.preferredWidth: 25
-          Layout.preferredHeight: 25
+          Layout.preferredWidth: root.skipButtonSize
+          Layout.preferredHeight: root.skipButtonSize
         }
+      }
 
-        Item {
-          Layout.preferredWidth: 10
-        } // Spacer
-
+      RowLayout {
+        Layout.alignment: Qt.AlignVCenter
+        Layout.preferredWidth: childrenRect.width
+        spacing: root.volumeSpacing
         visible: MprisController.activePlayer?.volumeSupported ?? false
 
-        // StyledText {
-        //   text: "󰕾"
-        //   textSize: Appearance.fontSize
-        //   textColor: Theme.foregroundAlt
-        // }
+        Item {
+          Layout.preferredWidth: root.spacerWidth
+        }
 
-        // StyledSlider {
-        //     Layout.preferredWidth: 80
-        //
-        //     value: MprisController.activePlayer ? MprisController.activePlayer.volume : 0
-        //
-        //     onMoved: (newValue) => {
-        //         if (MprisController.activePlayer) {
-        //             MprisController.activePlayer.volume = newValue;
-        //         }
-        //     }
-        // }
-
-        // Added volume percentage from your example
-        // StyledText {
-        //     // Use a ternary to avoid "NaN" if player disappears mid-render
-        //     text: MprisController.activePlayer ? Math.round(MprisController.activePlayer.volume * 100) + "%" : "0%"
-        //     textColor: Theme.foregroundAlt
-        //     textSize: Appearance.fontSize - 4
-        //     Layout.preferredWidth: 35 // Reserve space to prevent layout shifts
-        //     horizontalAlignment: Text.AlignRight
-        // }
+        // Add volume controls here if needed
+        // StyledIconButton for volume, StyledSlider for volume control, etc.
       }
     }
   }

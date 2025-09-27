@@ -36,6 +36,13 @@
     "success": "base0B",
     "warning": "base0A",
     "error": "base08",
-    "info": "base0C"
+    "info": "base0C",
+    "red": "base08",
+    "green": "base0B",
+    "yellow": "base0A",
+    "blue": "base0D",
+    "magenta": "base0E",
+    "cyan": "base0C",
+    "white": "base05"
   }
 }

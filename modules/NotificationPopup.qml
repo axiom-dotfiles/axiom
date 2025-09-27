@@ -7,7 +7,7 @@ import Quickshell.Wayland
 
 import qs.services
 
-import qs.components.reusable.notifications as NotificationComponents
+import qs.components.widgets.notifications as NotificationComponents
 import qs.config
 
 Scope {
@@ -50,7 +50,7 @@ Scope {
     // implicitWidth: Appearance.sizes.notificationPopupWidth ?? 350
     // implicitHeight: listView.contentHeight + (rootWindow.anchors.topMargin * 2)
     implicitWidth: 350
-    implicitHeight: 200
+    implicitHeight: 1400 // TODO FIX
     color: "transparent"
 
     ListView {
@@ -62,26 +62,38 @@ Scope {
       spacing: Widget.spacing
 
       delegate: NotificationComponents.NotificationItem {
+        id: notif
         required property var modelData
         readonly property int index: index
+        backgroundColor: Theme.background
+        foregroundColor: Theme.foreground
         width: listView.width
         notificationObject: modelData
         expanded: true
         // onlyNotification: popupModel.count === 1
         
-        Rectangle {
-          anchors.bottom: parent.bottom
-          anchors.left: parent.left
-          anchors.right: parent.right
-          height: 10
-          color: Theme.foregroundAlt
-          opacity: 0.1
-          visible: index < popupModel.count - 1
+        // Rectangle {
+        //   anchors.bottom: parent.bottom
+        //   anchors.left: parent.left
+        //   anchors.right: parent.right
+        //   height: 10
+        //   color: Theme.backgroundAlt
+        //   visible: index < popupModel.count - 1
+        // }
+
+        Timer {
+          interval: (notif.modelData.timeout > 0 ? notif.modelData.timeout : 5000)
+          running: true
+          repeat: false
+          onTriggered: {
+            notif.notificationObject.close();
+          }
         }
+
+
 
         Component.onCompleted: {
           notificationObject.closed.connect(function() {
-            console.log("Popup: Closing notification:", notificationObject.summary);
             for (var i = 0; i < popupModel.count; i++) {
               if (popupModel.get(i).notificationObject.id === notificationObject.id) {
                 popupModel.remove(i);

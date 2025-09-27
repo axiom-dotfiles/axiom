@@ -6,7 +6,7 @@ import Quickshell.Services.Notifications
 
 import qs.config
 import qs.components.reusable
-import qs.components.reusable.notifications
+import qs.components.widgets.notifications
 
 Item {
   id: root
@@ -18,13 +18,14 @@ Item {
   property real dragConfirmThreshold: 70
   property real xOffset: 0
 
+  property color backgroundColor: Theme.backgroundHighlight
+  property color foregroundColor: Theme.foreground
+  property color foregroundAltColor: Theme.foregroundAlt
+  property color borderColor: Theme.border
+
   implicitHeight: mainLayout.implicitHeight
-  implicitWidth: parent.width
 
   Component.onCompleted: {
-    console.log("NotificationItem component completed.");
-    console.log("typeof notificationObject:", typeof notificationObject);
-    console.log("NotificationItem initialized with notificationObject:", notificationObject);
     if (!notificationObject) {
       console.error("NotificationItem requires a notificationObject property to be set.");
     }
@@ -114,7 +115,8 @@ Item {
       radius: Appearance.borderRadius
       clip: true
 
-      color: Theme.backgroundHighlight
+      color: backgroundColor
+      border.color: borderColor
       implicitHeight: contentColumn.implicitHeight
 
       Behavior on color {
@@ -140,7 +142,7 @@ Item {
             horizontalAlignment: Text.AlignHCenter
             font.family: Appearance.fontFamily
             font.pixelSize: Appearance.fontSize
-            color: Theme.foreground
+            color: foregroundColor
             text: root.notificationObject.summary || ""
           }
         }
@@ -153,7 +155,7 @@ Item {
           font.pixelSize: Appearance.fontSize - 1
           topPadding: Widget.padding / 2
           leftPadding: Widget.padding
-          color: Theme.foregroundAlt
+          color: foregroundAltColor
           wrapMode: Text.Wrap
           textFormat: Text.RichText
           text: root.notificationObject.body.replace(/\n/g, "<br/>")
@@ -172,10 +174,13 @@ Item {
           RowLayout {
             id: actionRowLayout
             spacing: Widget.spacing
+            Layout.fillHeight: true
+            Layout.alignment: Qt.AlignRight
 
             Repeater {
               id: repeater
               model: root.notificationObject.actions
+              Layout.alignment: Qt.AlignRight
               delegate: NotificationActionButton {
                 required property var modelData
                 buttonText: modelData.text
@@ -184,32 +189,31 @@ Item {
               }
             }
 
-            NotificationActionButton {
-              id: copyButton
-              visible: root.notificationObject.body ? true : false
-              urgency: root.notificationObject.urgency
-              onClicked: {
-                Quickshell.clipboardText = root.notificationObject.summary + "\n" + root.notificationObject.body;
-                copyIcon.text = "done";
-                copyIconTimer.restart();
-              }
+            // NotificationActionButton {
+            //   id: copyButton
+            //   visible: root.notificationObject.body ? true : false
+            //   urgency: root.notificationObject.urgency
+            //   onClicked: {
+            //     Quickshell.clipboardText = root.notificationObject.summary + "\n" + root.notificationObject.body;
+            //     copyIcon.text = "done";
+            //     copyIconTimer.restart();
+            //   }
+            //
+            //   content: Text {
+            //     id: copyIcon
+            //     text: "content_copy"
+            //     font.family: "Material Symbols Outlined"
+            //     font.pixelSize: Appearance.fontSize
+            //     color: copyButton.urgency === NotificationUrgency.Critical ? Theme.base00 : Theme.foreground
+            //   }
+            //
+            //   Timer {
+            //     id: copyIconTimer
+            //     interval: 1500
+            //     onTriggered: copyIcon.text = "content_copy"
+            //   }
+            // }
 
-              content: Text {
-                id: copyIcon
-                text: "content_copy"
-                font.family: "Material Symbols Outlined"
-                font.pixelSize: Appearance.fontSize
-                color: copyButton.urgency === NotificationUrgency.Critical ? Theme.base00 : Theme.foreground
-              }
-
-              Timer {
-                id: copyIconTimer
-                interval: 1500
-                onTriggered: copyIcon.text = "content_copy"
-              }
-            }
-
-            // I want this in the top right but later is fine
             NotificationActionButton {
               buttonText: "X"
               Layout.alignment: Qt.AlignRight

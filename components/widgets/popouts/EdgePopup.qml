@@ -62,6 +62,9 @@ Item {
     }
   }
 
+  // TODO: get this not here
+
+
   PanelWindow {
     id: reservationPanel
 
@@ -73,7 +76,7 @@ Item {
     // this allows windows to slide under the panel, but the popup should be above
     // aboveWindows: reserveSpace ? true : false
     aboveWindows: false
-    color: "red"
+    color: "transparent"
     focusable: false
 
     exclusiveZone: {

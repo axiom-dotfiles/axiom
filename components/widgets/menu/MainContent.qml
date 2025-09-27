@@ -10,13 +10,16 @@ import qs.services
 import qs.config
 import qs.components.methods
 import qs.components.reusable
-import qs.components.reusable.notifications
+import qs.components.widgets.notifications
 import qs.components.widgets.menu
 
 StyledContainer {
   id: root
 
   // Using sample values for demonstration
+  // TODO: implement a way to calculate widgets
+  // requested width/height for this depending
+  // on their configuration
   width: 350
   height: 500
 
@@ -199,21 +202,6 @@ StyledContainer {
                 width: notificationScrollView.availableWidth
               }
             }
-
-            // Loader {
-            //   id: notificationLoader
-            //   active: root.currentTab === 3
-            //   sourceComponent: StyledContainer {
-            //     width: notificationScrollView.availableWidth
-            //     height: 500
-            //     containerColor: Theme.foregroundAlt
-            //     StyledText {
-            //       anchors.centerIn: parent
-            //       text: "Notifications Widget Placeholder"
-            //       textColor: Theme.background
-            //     }
-            //   }
-            // }
           }
         }
       }
