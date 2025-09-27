@@ -1,42 +1,45 @@
 // components/reusable/StyledTextEntry.qml
 pragma ComponentBehavior: Bound
-
 import QtQuick
-import QtQuick.Controls // This import is essential for TextField
+import QtQuick.Controls
+import QtQuick.Window
 import Quickshell.Wayland
-
 import qs.config
 
 StyledContainer {
   id: control
-
+  
   // --- Public API ---
   property alias text: textField.text
-  property alias placeholderText: textField.placeholderText // This is now a valid alias
+  property alias placeholderText: textField.placeholderText
   property alias input: textField
   property alias acceptableInput: textField.validator
   property alias readOnly: textField.readOnly
+  property alias wantsKeyboardFocus: textField.activeFocus
+  
   signal accepted
-
-  // --- Internal Implementation ---
+  
+  // function forceActiveFocus() {
+  //   input.forceActiveFocus()
+  // }
+  
   implicitHeight: textField.implicitHeight + 20
   containerBorderColor: textField.activeFocus ? Theme.accent : Theme.border
   containerColor: Theme.backgroundAlt
   containerBorderWidth: Appearance.borderWidth
   containerRadius: Appearance.borderRadius
-
+  
   Behavior on containerBorderColor {
     ColorAnimation { duration: 200; easing.type: Easing.InOutQuad }
   }
-
-  // Use TextField for robust placeholder support and modern styling capabilities.
+  
   TextField {
-    id: textField // Renamed from textInput for clarity
+    id: textField
     anchors.fill: parent
     anchors.leftMargin: 10
     anchors.rightMargin: 10
     verticalAlignment: TextInput.AlignVCenter
-
+    
     // --- Core Properties ---
     color: Theme.foreground
     font.family: Appearance.fontFamily
@@ -44,26 +47,33 @@ StyledContainer {
     selectByMouse: true
     selectedTextColor: Theme.background
     selectionColor: Theme.accent
-
+    
     // --- Placeholder Properties ---
-    // placeholderText is aliased from the parent control.
-    placeholderTextColor: Qt.tint(Theme.foreground, "#808080")
-
-    // --- Behavior ---
+    placeholderTextColor: Qt.rgba(
+      Theme.foreground.r,
+      Theme.foreground.g,
+      Theme.foreground.b,
+      0.5
+    )
+    
     onAccepted: control.accepted()
-
-    // --- Styling ---
-    // The StyledContainer provides the background and border, so we make
-    // the TextField's own background transparent.
+    
     background: Rectangle {
-        color: "transparent"
+      color: "transparent"
     }
-
-    // A custom cursor is good for theming.
+    
     cursorDelegate: Rectangle {
       width: 2
       color: Theme.accent
       visible: textField.activeFocus
+      
+      // Blinking animation
+      SequentialAnimation on opacity {
+        loops: Animation.Infinite
+        running: textField.activeFocus
+        PropertyAnimation { to: 1; duration: 500 }
+        PropertyAnimation { to: 0; duration: 500 }
+      }
     }
   }
 }

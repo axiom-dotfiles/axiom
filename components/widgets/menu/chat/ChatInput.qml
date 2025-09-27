@@ -2,6 +2,8 @@
 import QtQuick
 import QtQuick.Layouts
 
+import Quickshell.Wayland
+
 import qs.services
 import qs.components.reusable
 
@@ -10,7 +12,7 @@ RowLayout {
   width: parent.width
   spacing: 10
 
-  property bool wantsKeyboardFocus: textEntry.input.activeFocus
+  property bool wantsKeyboardFocus: textEntry.wantsKeyboardFocus
 
   StyledTextEntry {
     id: textEntry
@@ -18,7 +20,6 @@ RowLayout {
     placeholderText: "Type a message or use / for commands..."
     onAccepted: control.submit()
     onTextChanged: {
-      console.log("Text changed: " + text);
       Chat.updateCommandState(text)}
   }
 

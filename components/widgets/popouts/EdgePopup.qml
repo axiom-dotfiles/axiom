@@ -2,6 +2,8 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Window
 import Quickshell
+import Quickshell.Wayland
+import Quickshell.Hyprland
 import qs.components.widgets.popouts
 import qs.components.reusable
 
@@ -63,9 +65,38 @@ Item {
     }
   }
 
-  // TODO: get this not here
-
-
+  EdgeTrigger {
+    id: trigger
+    edge: {
+      switch (root.edge) {
+      case EdgePopup.Edge.Left:
+        return EdgeTrigger.Edge.Left;
+      case EdgePopup.Edge.Right:
+        return EdgeTrigger.Edge.Right;
+      case EdgePopup.Edge.Top:
+        return EdgeTrigger.Edge.Top;
+      case EdgePopup.Edge.Bottom:
+        return EdgeTrigger.Edge.Bottom;
+      }
+    }
+    position: root.position
+    positionOffset: root.positionOffset
+    triggerWidth: root.triggerWidth
+    triggerLength: root.triggerLength
+    triggerOnHover: root.triggerOnHover
+    triggerOnClick: root.triggerOnClick
+    hoverDelay: root.hoverDelay
+    onHoverStarted: {
+      if (root.enableTrigger && root.triggerOnHover && !root.active) {
+        root.show();
+      }
+    }
+    onTriggered: {
+      root.show();
+    }
+  }
+  // Not really sure if the popup window is necessary after adding the 
+  // panel window for reservation
   PanelWindow {
     id: reservationPanel
 
@@ -78,11 +109,7 @@ Item {
     // aboveWindows: reserveSpace ? true : false
     aboveWindows: false
     color: "transparent"
-    focusable: root.wantsKeyboardFocus
-
-    onFocusableChanged: {
-      console.log("EdgePopup focusable changed to:", focusable);
-    }
+    focusable: false
 
     exclusiveZone: {
       if (!root.reserveSpace)
@@ -155,38 +182,6 @@ Item {
         }
       }
     }
-  }
-
-  EdgeTrigger {
-    id: trigger
-    edge: {
-      switch (root.edge) {
-      case EdgePopup.Edge.Left:
-        return EdgeTrigger.Edge.Left;
-      case EdgePopup.Edge.Right:
-        return EdgeTrigger.Edge.Right;
-      case EdgePopup.Edge.Top:
-        return EdgeTrigger.Edge.Top;
-      case EdgePopup.Edge.Bottom:
-        return EdgeTrigger.Edge.Bottom;
-      }
-    }
-    position: root.position
-    positionOffset: root.positionOffset
-    triggerWidth: root.triggerWidth
-    triggerLength: root.triggerLength
-    triggerOnHover: root.triggerOnHover
-    triggerOnClick: root.triggerOnClick
-    hoverDelay: root.hoverDelay
-    onHoverStarted: {
-      if (root.enableTrigger && root.triggerOnHover && !root.active) {
-        root.show();
-      }
-    }
-    onTriggered: {
-      root.show();
-    }
-  }
 
   Item {
     PopupWindow {
@@ -203,6 +198,30 @@ Item {
             }
           }
         });
+      }
+
+      HyprlandFocusGrab {
+        id: focusGrab
+        windows: [popup]
+        active: popup.visible && root.wantsKeyboardFocus
+        
+        onActiveChanged: {
+          if (active) {
+            // Focus the target item when grab becomes active
+            if (root.focusTarget) {
+              root.focusTarget.forceActiveFocus()
+            } else if (__loadedItem && __loadedItem.forceActiveFocus) {
+              __loadedItem.forceActiveFocus()
+            }
+          }
+        }
+        
+        onCleared: {
+          // Handle click outside to close
+          if (!active && root.closeOnClickOutside && !popup.locked) {
+            root.hide()
+          }
+        }
       }
 
       anchor.window: trigger
@@ -279,6 +298,7 @@ Item {
       }
     }
   }
+}
 
   onActiveChanged: {
     __animating = true;

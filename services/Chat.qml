@@ -6,8 +6,8 @@ import qs.config
 QtObject {
   // --- Session State Properties ---
   // These hold the live state for the current session, initialized from config.
-  property string currentBackend: ChatConfig.initialBackend
-  property string currentModel: ChatConfig.initialModel
+  property string currentBackend: ChatConfig.defaultBackend
+  property string currentModel: ChatConfig.defaultModel
 
   // --- UI-bound Properties ---
   property ListModel chatModel: ListModel {}
@@ -34,6 +34,7 @@ QtObject {
 
   // --- API Implementations ---
   function _sendToGemini(text) {
+    console.log("Sending to Gemini:", text);
     const backendConfig = _getCurrentBackendConfig();
     if (!backendConfig) return _handleError("Gemini", "Backend config not found.");
     
@@ -143,6 +144,7 @@ QtObject {
     _addMessage("user", trimmedText);
     waitingForResponse = true;
 
+    console.log("Current Backend:", currentBackend, "Model:", currentModel);
     switch (currentBackend) {
       case "gemini":    _sendToGemini(trimmedText); break;
       case "openai":    _sendToOpenAI(trimmedText); break;
