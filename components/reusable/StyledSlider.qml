@@ -18,6 +18,9 @@ Item {
   property color grooveColor: Theme.backgroundHighlight
   property color fillColor: Theme.foreground
   property color handleColor: Theme.foreground
+  property int handleRadius: Appearance.borderRadius
+  property int handleWidth: 24
+  property int handleHeight: 14
   property int grooveHeight: 4
 
   // --- Visuals ---
@@ -47,11 +50,11 @@ Item {
     id: handleRect
     x: fillRect.width - (width / 2) // Position based on the fill width
     anchors.verticalCenter: parent.verticalCenter
-    width: 12
-    height: 12
-    radius: 6
+    width: root.handleWidth
+    height: root.handleHeight
+    radius: root.handleRadius
     color: root.handleColor
-    opacity: mouseArea.pressed || root.hovered ? 1 : 0 // Show on interaction
+    // opacity: mouseArea.pressed || root.hovered ? 1 : 0 // Show on interaction
     Behavior on opacity {
       NumberAnimation {
         duration: 150
@@ -59,7 +62,6 @@ Item {
     }
   }
 
-  // --- Interaction Logic (from your working example) ---
   MouseArea {
     id: mouseArea
     anchors.fill: parent
@@ -68,7 +70,6 @@ Item {
 
     property bool isDragging: false
 
-    // This function calculates the ratio and emits the 'moved' signal
     function updatePosition(x) {
       let ratio = Math.max(0, Math.min(1, x / root.width));
       root.moved(ratio);
@@ -88,7 +89,6 @@ Item {
     onReleased: {
       if (isDragging) {
         isDragging = false;
-        // Emit a final signal on release
         let ratio = Math.max(0, Math.min(1, mouseX / root.width));
         root.released(ratio);
       }

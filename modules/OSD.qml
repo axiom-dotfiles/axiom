@@ -37,15 +37,12 @@ Item {
     interval: osdRoot.hideTimeout
     repeat: false
     onTriggered: osdRoot.shouldShowOsd = false
-    onRunningChanged: {
-      console.log("Hide timer running state changed:", running);
-    }
   }
 
   EdgePopup {
     id: root
     panelId: "volumeOSD"
-    
+
     edge: EdgePopup.Edge.Bottom
     position: 0.5
     active: false
@@ -77,15 +74,31 @@ Item {
         hideTimer.stop();
       }
     }
-    
+
     StyledContainer {
       containerColor: Theme.backgroundAlt
       containerBorderColor: Theme.accent
       containerBorderWidth: Appearance.borderWidth
       containerRadius: Appearance.borderRadius
-      
+
+      property bool hovered: false
+
       implicitWidth: 350
       implicitHeight: 220
+      MouseArea {
+        id: mouseArea
+        anchors.fill: parent
+        hoverEnabled: true
+        onEntered: {
+          parent.hovered = true;
+          osdRoot.shouldShowOsd = true;
+          hideTimer.stop();
+        }
+        onExited: {
+          parent.hovered = false;
+          hideTimer.restart();
+        }
+      }
 
       RowLayout {
         anchors.fill: parent
@@ -137,8 +150,10 @@ Item {
           volume: Audio.volume
           isMuted: Audio.muted
           iconSource: {
-            if (Audio.muted || Audio.volume === 0) return "";
-            if (Audio.volume > 0.4) return "";
+            if (Audio.muted || Audio.volume === 0)
+              return "";
+            if (Audio.volume > 0.4)
+              return "";
             return "";
           }
         }

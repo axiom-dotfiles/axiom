@@ -3,21 +3,22 @@ pragma ComponentBehavior: Bound
 import qs.services
 import qs.config
 import qs.components.reusable
+import qs.components.methods
 
 IconTextWidget {
   id: root
 
-  icon: Mpris.isPlaying ? "♪" : "⏸"
+  icon: MprisController.isPlaying ? "♪" : "⏸"
   text: formatTrack()
 
-  maxTextLength: 30
-  backgroundColor: Mpris.isPlaying ? Theme.accent : Theme.backgroundHighlight
+  maxTextLength: 45
+  backgroundColor: MprisController.isPlaying ? Theme.yellow : Theme.bg2
 
   function formatTrack() {
-    if (!Mpris.activePlayer)
+    if (!MprisController.activePlayer)
       return "No player";
-    const artist = Mpris.trackArtist;
-    const title = Mpris.trackTitle;
-    return artist + " - " + title;
+    const artist = Utils.truncate(MprisController.trackArtist, 25, "");
+    const title = Utils.truncate(MprisController.trackTitle, 20, "");
+    return "󰠃 " + artist + " - " + title;
   }
 }

@@ -12,11 +12,11 @@ import qs.components.methods
 import qs.components.reusable
 import qs.components.widgets.notifications
 import qs.components.widgets.menu
+import qs.components.widgets.menu.chat
 
 StyledContainer {
   id: root
 
-  // Using sample values for demonstration
   // TODO: implement a way to calculate widgets
   // requested width/height for this depending
   // on their configuration

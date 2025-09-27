@@ -98,7 +98,21 @@
         "success": { "type": "string" },
         "warning": { "type": "string" },
         "error": { "type": "string" },
-        "info": { "type": "string" }
+        "info": { "type": "string" },
+        "red": { "type": "string" },
+        "green": { "type": "string" },
+        "yellow": { "type": "string" },
+        "blue": { "type": "string" },
+        "magenta": { "type": "string" },
+        "cyan": { "type": "string" },
+        "white": { "type": "string" },
+        "bg0": { "type": "string" },
+        "bg1": { "type": "string" },
+        "bg2": { "type": "string" },
+        "bg3": { "type": "string" },
+        "fg3": { "type": "string" },
+        "fg2": { "type": "string" },
+        "fg1": { "type": "string" }
       }
     }
   }

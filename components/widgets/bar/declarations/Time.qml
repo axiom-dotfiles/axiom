@@ -28,7 +28,7 @@ Item {
 
   Rectangle {
     anchors.fill: parent
-    color: Theme.accentAlt
+    color: Theme.info
     radius: Appearance.borderRadius
   }
 

@@ -12,6 +12,7 @@ QtObject {
   readonly property int screenMargin: configData.Appearance.screenMargin ?? 6
   readonly property string fontFamily: configData.Appearance.fontFamily ?? "monospace"
   readonly property int fontSize: configData.Appearance.fontSize ?? 12
+  readonly property int fontSizeLarge: configData.Appearance.fontSize + 4
   readonly property bool autoThemeSwitch: configData.Appearance.autoThemeSwitch ?? false
   readonly property string generatedThemeSource: configData.Appearance.generatedThemeSource ?? "pywal"
 }

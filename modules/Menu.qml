@@ -20,6 +20,7 @@ Item {
     // customHeight: Display.resolutionHeight - Widget.containerWidth * 2
     triggerLength: Display.resolutionHeight
     edgeMargin: Config.containerOffset + Appearance.borderWidth * 2 + 3
+    wantsKeyboardFocus: mainMenu.wantsKeyboardFocus
     // edgeMargin: Config.containerOffset - (Appearance.borderWidth * 2) - 5
     // customHeight: Display.resolutionHeight - (Widget.containerWidth * 2) + (Appearance.borderWidth * 2)
 

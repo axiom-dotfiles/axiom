@@ -9,7 +9,22 @@ QtObject {
   property Component leftCenterGroup: WidgetGroup {
     model: [
       {
-        component: timeComponent
+        component: mediaComponent,
+        visible: true
+      }
+    ]
+    Component {
+      id: mediaComponent
+      Media {}
+    }
+  }
+
+  property Component rightCenterGroup: WidgetGroup {
+
+    model: [
+      {
+        component: timeComponent,
+        visible: true
       }
     ]
 
@@ -17,24 +32,5 @@ QtObject {
       id: timeComponent
       Time {}
     }
-  }
-
-  property Component rightCenterGroup: WidgetGroup {
-    property bool showSystemMonitor: false
-
-    model: {
-      let widgets = [];
-      if (showSystemMonitor)
-      // widgets.push({
-      //   component: systemMonitorComponent
-      // });
-      {}
-      return widgets;
-    }
-
-    // Component {
-    //   id: systemMonitorComponent
-    //   SystemMonitor {}
-    // }
   }
 }

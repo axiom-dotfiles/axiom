@@ -63,33 +63,33 @@ QtObject {
   property color cyan: root[themeData.semantic.cyan] ?? base0C
   property color orange: root[themeData.semantic.orange] ?? base09
   property color grey: root[themeData.semantic.grey] ?? base03
+  property color bg0: root[themeData.semantic.bg0] ?? base00
+  property color bg1: root[themeData.semantic.bg1] ?? base01
+  property color bg2: root[themeData.semantic.bg2] ?? base02
+  property color bg3: root[themeData.semantic.bg3] ?? base03
+  property color bg4: root[themeData.semantic.bg4] ?? base04
+  property color bg5: root[themeData.semantic.bg5] ?? base05
+  property color bg6: root[themeData.semantic.bg6] ?? base06
 
-  // Theme metadata (also reactive now)
+  property color userColor: themeData.semantic.green ?? "#ff00ff"
+  property color robotColor: themeData.semantic.yellow ?? "#00ff00"
+
   property string name: themeData.name ?? "Unknown"
   property string variant: themeData.variant ?? "dark"
   property string paired: themeData.paired ?? ""
 
-
-  // This function is useful for manual reloads, e.g., from a settings page
   function reload() {
-    // Re-assigning this triggers the binding on 'themeData' to re-evaluate
     root.themeData = Loader.loadTheme(Appearance.theme)
     console.log("Theme reloaded manually:", Appearance.theme)
   }
 
-  // --- SIGNAL CONNECTION ---
-  // This block runs once when the singleton is first created.
-  // It connects your theme-switching logic to the global signal.
   Component.onCompleted: {
     console.log("Theme singleton initialized. Current theme:", Appearance.theme)
-    // *** IMPORTANT: Replace 'Appearance' with the actual QML object that emits your signal. ***
     ShellManager.toggleDarkMode.connect(function() {
       console.log("toggleDarkMode signal received.")
 
-      // Check if automatic theme switching is enabled and if the current theme has a paired theme
       if (Appearance.autoThemeSwitch && root.paired !== "") {
         console.log("Switching theme from '" + Appearance.theme + "' to '" + root.paired + "'")
-        // Set the new theme. The bindings will take care of the rest!
         Appearance.theme = root.paired
       } else {
         if (!Appearance.autoThemeSwitch) {

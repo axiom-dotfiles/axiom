@@ -27,9 +27,4 @@ WidgetGroup {
       property int orientation: Qt.Horizontal
     }
   }
-
-  // Component {
-  //   id: mediaComponent
-  //   Widgets.Media {}
-  // }
 }

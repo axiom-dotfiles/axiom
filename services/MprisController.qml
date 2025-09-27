@@ -8,6 +8,7 @@ QtObject {
 
   // --- Signals ---
   signal artReady
+  signal metadataUpdated
 
   // --- Private Properties ---
   property var activePlayer: null
@@ -114,14 +115,14 @@ QtObject {
   }
 
   // This handler manages the art downloader process
-  onArtUrlChanged: {
-    if (artUrl) {
-      artDownloaded = false;
-      _artDownloader.running = true;
-    } else {
-      artDownloaded = false;
-    }
-  }
+  // onArtUrlChanged: {
+  //   if (artUrl) {
+  //     artDownloaded = false;
+  //     _artDownloader.running = true;
+  //   } else {
+  //     artDownloaded = false;
+  //   }
+  // }
 
   Component.onCompleted: {
     _updateActivePlayer();

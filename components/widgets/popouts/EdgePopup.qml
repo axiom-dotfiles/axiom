@@ -17,6 +17,7 @@ Item {
 
   property bool reserveSpace: false
   property int lockedMargin: Widget.containerWidth
+  property bool wantsKeyboardFocus: false
 
   property bool aboveWindows: true
   property bool focusable: false
@@ -77,7 +78,11 @@ Item {
     // aboveWindows: reserveSpace ? true : false
     aboveWindows: false
     color: "transparent"
-    focusable: false
+    focusable: root.wantsKeyboardFocus
+
+    onFocusableChanged: {
+      console.log("EdgePopup focusable changed to:", focusable);
+    }
 
     exclusiveZone: {
       if (!root.reserveSpace)

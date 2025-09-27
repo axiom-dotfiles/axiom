@@ -143,18 +143,18 @@ StyledContainer {
       StyledSlider {
         id: volumeSlider
         Layout.fillWidth: true
-        Layout.preferredHeight: sliderHeight
-        Layout.rightMargin: Widget.padding
-        grooveHeight: sliderGrooveHeight
+        Layout.preferredHeight: root.sliderHeight
+        Layout.rightMargin: actionButton.width
+        grooveHeight: root.sliderGrooveHeight
 
-        enabled: isReady && node?.audio !== null
+        enabled: root.isReady && root.node?.audio !== null
 
-        value: enabled ? node.audio.volume : 0
+        value: enabled ? root.node.audio.volume : 0
 
         onMoved: if (enabled)
-          node.audio.volume = value
+          root.node.audio.volume = value
         onReleased: if (enabled)
-          node.audio.volume = value
+          root.node.audio.volume = value
       }
     }
   }

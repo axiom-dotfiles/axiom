@@ -39,6 +39,9 @@ StyledContainer {
   property int albumBorderWidth: 1
   property real albumRadius: Appearance.borderRadius / 2
 
+  property int sliderHeight: 12
+  property int sliderGrooveHeight: 8
+
   Layout.preferredHeight: mediaControlLoader.item ? mediaControlLoader.item.implicitHeight + widgetPadding * 2 : 0
   Layout.fillWidth: true
 
@@ -71,9 +74,24 @@ StyledContainer {
           id: albumArt
           anchors.fill: parent
           fillMode: Image.PreserveAspectCrop
-          source: MprisController.artFilePath ? MprisController.artFilePath + "?v=" + MprisController.artVersion : "qrc:/images/default_album_art.png"
+          source: {
+            if (MprisController.artUrl.startsWith("file://")) {
+              return MprisController.artUrl;
+            }
+            return MprisController.artUrl;
+          }
           smooth: true
-          cache: false
+          asynchronous: true
+          cache: true
+
+          onStatusChanged: {
+            if (status === Image.Error) {
+              console.warn("Failed to load album art from:", source);
+              source = "qrc:/images/default_album_art.png";
+            } else if (status === Image.Ready) {
+              console.log("Successfully loaded album art");
+            }
+          }
         }
       }
 
@@ -113,13 +131,27 @@ StyledContainer {
           }
 
           StyledSlider {
+            id: progressSlider
             Layout.fillWidth: true
+            Layout.preferredHeight: root.sliderHeight
+            // Layout.rightMargin: controlButtonsRow.width + root.volumeSpacing
+            grooveHeight: root.sliderGrooveHeight
             enabled: MprisController.canSeek
             value: MprisController.progress
+            handleColor: Theme.backgroundAlt
+            // onReleased: newValue => MprisController.setPositionByRatio(newValue)
+            onMoved: newValue => MprisController.setPositionByRatio(newValue)
             onReleased: newValue => MprisController.setPositionByRatio(newValue)
+            // onValueChanged: {
+            //   if (value === 1 && MprisController.position < MprisController.length - 1) {
+            //     // If the slider is at the end but the position isn't, reset the slider
+            //     value = MprisController.progress;
+            //   }
+            // }
           }
 
           StyledText {
+            Layout.rightMargin: co
             text: MprisController.formatTime(MprisController.length)
             textSize: root.timeFontSize
             textColor: root.timeColor
@@ -128,6 +160,7 @@ StyledContainer {
       }
 
       RowLayout {
+        id: controlButtonsRow
         Layout.alignment: Qt.AlignVCenter
         Layout.preferredWidth: childrenRect.width
         spacing: root.volumeSpacing
@@ -167,19 +200,19 @@ StyledContainer {
         }
       }
 
-      RowLayout {
-        Layout.alignment: Qt.AlignVCenter
-        Layout.preferredWidth: childrenRect.width
-        spacing: root.volumeSpacing
-        visible: MprisController.activePlayer?.volumeSupported ?? false
-
-        Item {
-          Layout.preferredWidth: root.spacerWidth
-        }
-
-        // Add volume controls here if needed
-        // StyledIconButton for volume, StyledSlider for volume control, etc.
-      }
+      // RowLayout {
+      //   Layout.alignment: Qt.AlignVCenter
+      //   Layout.preferredWidth: childrenRect.width
+      //   spacing: root.volumeSpacing
+      //   visible: MprisController.activePlayer?.volumeSupported ?? false
+      //
+      //   Item {
+      //     Layout.preferredWidth: root.spacerWidth
+      //   }
+      //
+      //   // Add volume controls here if needed
+      //   // StyledIconButton for volume, StyledSlider for volume control, etc.
+      // }
     }
   }
 }
