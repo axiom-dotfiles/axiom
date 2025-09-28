@@ -83,7 +83,6 @@ QtObject {
       if (xhr.readyState === XMLHttpRequest.DONE) {
         if (xhr.status === 200) {
           try {
-            console.log("Received response:", xhr.responseText);
             const response = JSON.parse(xhr.responseText);
             const reply = responseParser(response);
             if (reply) {
@@ -101,7 +100,6 @@ QtObject {
         waitingForResponse = false;
       }
     }
-    console.log("Sending request to", url, "with payload:", payload);
     xhr.send(payload);
   }
 
@@ -185,7 +183,6 @@ QtObject {
     _addMessage("user", trimmedText);
     waitingForResponse = true;
 
-    console.log("Current Backend:", currentBackend, "Model:", currentModel);
     switch (currentBackend) {
       case "gemini":    _sendToGemini(); break;
       case "openai":    _sendToOpenAI(); break;

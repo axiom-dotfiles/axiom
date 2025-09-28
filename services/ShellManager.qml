@@ -8,6 +8,9 @@ QtObject {
 
   signal toggleDarkMode()
 
+  signal lockScreen()
+  signal openPowerMenu()
+
   function togglePinnedPanel(panelId) {
     console.log("Toggling pinned state for panelId:", panelId);
     togglePanelReservation(panelId);

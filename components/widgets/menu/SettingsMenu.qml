@@ -43,28 +43,36 @@ Item {
     anchors.rightMargin: root.panelMargin
     anchors.bottomMargin: bottomArea.visibleChildren.length > 0 ? root.panelMargin : 0
     spacing: root.panelMargin
-    
-    StyledContainer {
-      id: topSection
+
+    MenuItem {
+      containerColor: Theme.backgroundAlt
       Layout.fillWidth: true
-      Layout.preferredHeight: root.topSectionHeight // Layout respects preferred height
-      containerBorderColor: Theme.border
-      
-      StyledText {
-        anchors.centerIn: parent
-        text: "Top Section - Reserved for Future Component"
-        textColor: Theme.foregroundAlt
-      }
-      
-      MouseArea {
-        anchors.fill: parent
-        cursorShape: Qt.PointingHandCursor
-        onClicked: {
-          console.log("Top section clicked - toggling dark mode for demo.");
-          ThemeManager.toggleDarkMode();
-        }
-      }
+      Layout.alignment: Qt.AlignVCenter
+      // heightOverride: 50
+      MenuToggles {}
     }
+    
+    // StyledContainer {
+    //   id: topSection
+    //   Layout.fillWidth: true
+    //   Layout.preferredHeight: root.topSectionHeight // Layout respects preferred height
+    //   containerBorderColor: Theme.border
+    //   
+    //   StyledText {
+    //     anchors.centerIn: parent
+    //     text: "Top Section - Reserved for Future Component"
+    //     textColor: Theme.foregroundAlt
+    //   }
+    //   
+    //   MouseArea {
+    //     anchors.fill: parent
+    //     cursorShape: Qt.PointingHandCursor
+    //     onClicked: {
+    //       console.log("Top section clicked - toggling dark mode for demo.");
+    //       ThemeManager.toggleDarkMode();
+    //     }
+    //   }
+    // }
     
     MainContent {
       id: tabbedContent

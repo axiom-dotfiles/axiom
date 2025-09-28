@@ -9,6 +9,7 @@ import Quickshell.Io
 
 import qs.config
 import qs.components.reusable
+import qs.components.widgets.menu.cube
 
 StyledContainer {
   id: root
@@ -29,6 +30,11 @@ StyledContainer {
   property bool isReady: false
   property bool wasStopped: false
   property int elapsedTime: 0
+
+  // ADDED: Model to store the history of solves
+  ListModel {
+    id: solveHistoryModel
+  }
 
   Timer {
     id: stopwatch
@@ -86,6 +92,15 @@ StyledContainer {
   function stopTimer() {
     root.isRunning = false;
     root.wasStopped = true;
+
+    // MODIFIED: Add the completed solve to the history model
+    if (root.elapsedTime > 0) { // Only add non-zero solves
+        solveHistoryModel.insert(0, {
+            "scramble": scrambleText.text,
+            "time": root.elapsedTime
+        });
+    }
+
     regenerateScramble();
   }
 
@@ -177,6 +192,30 @@ StyledContainer {
       Layout.fillWidth: false
       Layout.alignment: Qt.AlignHCenter
       Layout.topMargin: Widget.spacing * 2
+    }
+
+    // ADDED: Scrollable view for solve history
+    ScrollView {
+      id: historyScrollView
+      Layout.fillWidth: true
+      Layout.fillHeight: true // Allow it to expand and fill available vertical space
+      Layout.topMargin: Widget.spacing * 3
+      Layout.minimumHeight: 150 // Ensure it has some space even if the window is small
+      clip: true
+      ScrollBar.vertical.policy: ScrollBar.AsNeeded
+
+      ListView {
+        id: solveHistoryView
+        model: solveHistoryModel
+        spacing: Widget.spacing
+
+        delegate: SolveHistoryItem {
+          // Bind delegate width to the list view's width
+          width: solveHistoryView.width
+          scramble: model.scramble
+          time: model.time
+        }
+      }
     }
   }
 }

@@ -20,6 +20,7 @@ QtObject {
   readonly property int playbackState: activePlayer ? activePlayer.playbackState : MprisPlaybackState.Stopped
   readonly property bool isPlaying: playbackState === MprisPlaybackState.Playing
   readonly property string trackTitle: activePlayer ? activePlayer.trackTitle : "No Track Playing"
+  readonly property string trackId: activePlayer ? activePlayer.trackId : ""
   readonly property string trackArtist: activePlayer ? activePlayer.trackArtist : "Unknown Artist"
   readonly property real position: activePlayer ? activePlayer.position : 0
   readonly property real length: activePlayer ? activePlayer.length : 0
@@ -37,6 +38,11 @@ QtObject {
   readonly property bool canSeek: activePlayer ? activePlayer.canSeek : false
 
   // --- Control Functions ---
+  function updatePosition() {
+    if (hasActivePlayer && isPlaying) {
+      activePlayer.positionChanged();
+    }
+  }
 
   function togglePlayPause() {
     if (hasActivePlayer && activePlayer.canTogglePlaying) {

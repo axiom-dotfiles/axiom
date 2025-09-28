@@ -8,12 +8,6 @@ import qs.config
 Switch {
     id: control
 
-    // Expose the checked property for external binding
-    // property alias checked: control.checked
-
-    // We don't use the text property of the Switch itself to allow for more flexible layouts
-    // where the label and switch are separate items in a RowLayout.
-
     implicitWidth: 50
     implicitHeight: 26
 

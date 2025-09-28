@@ -23,7 +23,7 @@ Rectangle {
 
   // Border and radius
   property color borderColor: Theme.border
-  property int borderWidth: Appearance.borderWidth
+  property int borderWidth: 0
   property real borderRadius: Appearance.borderRadius
 
   signal clicked

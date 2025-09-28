@@ -12,7 +12,9 @@ import qs.components.methods
 import qs.components.reusable
 import qs.components.widgets.notifications
 import qs.components.widgets.menu
+import qs.components.widgets.menu.calendar
 import qs.components.widgets.menu.chat
+import qs.components.widgets.menu.cube
 
 StyledContainer {
   id: root
@@ -129,7 +131,7 @@ StyledContainer {
             id: volumeScrollView
             width: root.width
             height: parent.height
-            showScrollBar: true
+            showScrollBar: false
             scrollbarOpacity: slideAnimation.running ? 0 : 1
 
             Loader {
@@ -152,11 +154,9 @@ StyledContainer {
 
             Loader {
               id: rubikTimerLoader
-              // Simplified 'active' binding for clarity
               active: root.currentTab === 1
               sourceComponent: CubeTimer {
                 hideTimeDuringSolve: true
-                // Let the component fill the available width of the scroll view
                 width: timerScrollView.availableWidth
               }
             }
@@ -167,22 +167,14 @@ StyledContainer {
             id: calendarScrollView
             width: root.width
             height: parent.height
-            showScrollBar: true
+            showScrollBar: false
             contentPadding: Widget.padding
             scrollbarOpacity: slideAnimation.running ? 0 : 1
 
             Loader {
               id: calendarLoader
-              active: root.currentTab === 2
-              sourceComponent: StyledContainer {
+              sourceComponent: CalendarMenu {
                 width: calendarScrollView.availableWidth
-                height: 2000 // A large height to demonstrate scrolling
-                containerColor: Theme.foregroundAlt
-                StyledText {
-                  anchors.centerIn: parent
-                  text: "Calendar Widget Placeholder"
-                  textColor: Theme.background
-                }
               }
             }
           }

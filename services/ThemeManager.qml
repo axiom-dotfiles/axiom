@@ -91,8 +91,8 @@ QtObject {
         console.log("Current theme:", Appearance.theme)
         console.log("Paired theme:", pairedTheme)
         if (Appearance.autoThemeSwitch && pairedTheme) {
-
             console.log("Switching theme from '" + Appearance.theme + "' to '" + pairedTheme + "'")
+            Appearance.darkMode = !Appearance.darkMode
             applyTheme(pairedTheme)
         } else {
             if (!Appearance.autoThemeSwitch) console.log("Auto theme switching is disabled.")

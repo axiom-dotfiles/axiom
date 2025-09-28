@@ -132,9 +132,19 @@ StyledContainer {
           spacing: root.volumeSpacing
 
           StyledText {
+            id: positionDisplay
             text: MprisController.formatTime(MprisController.position)
             textSize: root.timeFontSize
             textColor: root.timeColor
+
+            Timer {
+              interval: 1000
+              running: MprisController.isPlaying && MprisController.hasActivePlayer
+              repeat: true
+              onTriggered: {
+                MprisController.updatePosition()
+              }
+            }
           }
 
           StyledIconButton {
@@ -153,25 +163,68 @@ StyledContainer {
             Layout.fillWidth: true
             Layout.preferredHeight: root.sliderHeight
             grooveHeight: root.sliderGrooveHeight
-            enabled: root.showProgressBar && MprisController.hasActivePlayer && MprisController.length > 0
-            visible: root.showProgressBar && MprisController.hasActivePlayer && MprisController.length > 0
-            value: MprisController.progress
-            handleColor: Theme.backgroundAlt
             Layout.leftMargin: root.spacerWidth
             Layout.rightMargin: root.spacerWidth
-            onMoved: newValue => MprisController.setPositionByRatio(newValue)
-            onReleased: newValue => MprisController.setPositionByRatio(newValue)
+
+            enabled: root.showProgressBar && MprisController.hasActivePlayer && MprisController.length > 0
+            visible: root.showProgressBar && MprisController.hasActivePlayer && MprisController.length > 0
+
+            handleColor: Theme.backgroundAlt
+
+            property bool userInteracting: false
+            property string currentTrackId: MprisController.trackId || ""
+
+            value: userInteracting ? value : MprisController.progress
+
+            onMoved: newValue => {
+              userInteracting = true;
+            }
+
+            onReleased: newValue => {
+              MprisController.setPositionByRatio(newValue);
+              resetTimer.restart();
+            }
+
+            Timer {
+              id: resetTimer
+              interval: 200
+              repeat: false
+              onTriggered: progressSlider.userInteracting = false
+            }
+
+            onCurrentTrackIdChanged: {
+              userInteracting = false;
+              value = 0;
+            }
+
             Connections {
               target: MprisController
+
               onPositionChanged: {
-                if (!progressSlider.pressed) {
+                if (!progressSlider.userInteracting) {
                   progressSlider.value = MprisController.progress;
                 }
               }
-            }
-            onValueChanged: {
-              if (value === 1 && MprisController.position < MprisController.length - 1) {
-                value = MprisController.progress;
+
+              function onTrackIdChanged() {
+                progressSlider.currentTrackId = MprisController.trackId || "";
+              }
+
+              function onMetadataUpdated() {
+                if (!progressSlider.userInteracting && MprisController.position < 1000) {
+                  progressSlider.value = 0;
+                }
+              }
+
+              function onActivePlayerChanged() {
+                progressSlider.userInteracting = false;
+                progressSlider.value = 0;
+              }
+
+              function onLengthChanged() {
+                if (!progressSlider.userInteracting) {
+                  progressSlider.value = MprisController.progress;
+                }
               }
             }
           }

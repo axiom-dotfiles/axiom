@@ -8,6 +8,7 @@ import Quickshell.Io
 
 import qs.components.reusable
 import qs.config
+import qs.services
 
 PanelWindow {
   id: rootWindow
@@ -23,6 +24,12 @@ PanelWindow {
   property string iconSuspend: ""
   property string iconReboot: ""
   property string iconHibernate: ""
+
+  Component.onCompleted: {
+    ShellManager.openPowerMenu.connect(function() {
+      rootWindow.toggle();
+    });
+  }
 
 
   screen: Quickshell.screens[0]
@@ -137,8 +144,7 @@ PanelWindow {
         onLoaded: {
           item.icon = iconLock
           item.clicked.connect(function() {
-            Ipc.send("lockscreen", "lock")
-            rootWindow.toggle()
+            ShellManager.lockScreen()
           })
         }
       }
