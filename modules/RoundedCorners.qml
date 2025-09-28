@@ -10,15 +10,15 @@ PanelWindow {
   // --- Configuration Properties ---
   property int screenMargin: 10
   property int frameWidth: 8
-  property int outerBorderRadius: 0  // Sharp outer corners
-  property int innerBorderRadius: 12  // Radius for inner cutout
+  property int outerBorderRadius: 0
+  property int innerBorderRadius: 12
   property color frameColor: Theme.background
   property color centerColor: "transparent"
   property color outerStrokeColor: "transparent"
   property color innerStrokeColor: Theme.foreground
-  property int strokeWidth: Appearance.borderWidth
-  property bool antialiasing: true  // Changed to true for smoother curves
-  
+  property int strokeWidth: 1
+  property bool antialiasing: true
+
   // --- Bar Configuration Properties ---
   readonly property bool vertical: Bar.vertical ?? false
   readonly property bool rightSide: Bar.rightSide ?? false
@@ -43,19 +43,18 @@ PanelWindow {
       id: frameShape
       anchors.fill: parent
       antialiasing: workspaceContainer.antialiasing
-      // Add these for smoother rendering
       layer.enabled: true
-      layer.samples: 8  // Multisampling for smoother edges
+      layer.samples: 8
 
       // Main frame path with hole
       ShapePath {
         id: framePath
         fillColor: workspaceContainer.frameColor
-        strokeColor: "transparent"  // Remove stroke from main shape
+        strokeColor: "transparent"
         strokeWidth: 0
         fillRule: ShapePath.OddEvenFill
-        joinStyle: ShapePath.RoundJoin  // Smoother joins
-        capStyle: ShapePath.RoundCap    // Smoother caps
+        joinStyle: ShapePath.RoundJoin
+        capStyle: ShapePath.RoundCap
 
         PathSvg {
           path: {
@@ -64,11 +63,11 @@ PanelWindow {
             var outerR = workspaceContainer.outerBorderRadius;
             var innerR = workspaceContainer.innerBorderRadius;
             var fw = workspaceContainer.frameWidth;
-            
+
             // Ensure inner radius doesn't exceed frame width
             innerR = Math.min(innerR, fw);
-            
-            // Determine which edge has the bar (no frame on bar edge)
+
+            // Determine which edge has the bar
             var barAtTop = !workspaceContainer.vertical && !workspaceContainer.rightSide;
             var barAtLeft = workspaceContainer.vertical && !workspaceContainer.rightSide;
             var barAtBottom = !workspaceContainer.vertical && workspaceContainer.rightSide;
@@ -76,7 +75,7 @@ PanelWindow {
 
             // --- OUTER PATH (Clockwise) ---
             var path = "";
-            
+
             if (outerR > 0) {
               path = "M " + outerR + ",0";
               path += " L " + (w - outerR) + ",0";
@@ -105,39 +104,38 @@ PanelWindow {
             var innerTop = barAtTop ? halfStroke : fw;
             var innerRight = barAtRight ? w - halfStroke : w - fw;
             var innerBottom = barAtBottom ? h - halfStroke : h - fw;
-            
-            // Always keep the rounded corners for visual appeal
-            // But adjust positions based on bar location
+
+            // Always keep rounded corners for visual consistency
             var topLeftR = innerR;
             var topRightR = innerR;
             var bottomRightR = innerR;
             var bottomLeftR = innerR;
-            
+
             // Build inner path counter-clockwise with curves
             // Start at left edge, just below top-left corner
             path += " M " + innerLeft + "," + Math.min(innerTop + topLeftR, innerBottom);
-            
+
             // Top-left corner
             path += " Q " + innerLeft + "," + innerTop + " " + (innerLeft + topLeftR) + "," + innerTop;
-            
+
             // Top edge
             path += " L " + (innerRight - topRightR) + "," + innerTop;
-            
+
             // Top-right corner
             path += " Q " + innerRight + "," + innerTop + " " + innerRight + "," + (innerTop + topRightR);
-            
+
             // Right edge
             path += " L " + innerRight + "," + (innerBottom - bottomRightR);
-            
+
             // Bottom-right corner
             path += " Q " + innerRight + "," + innerBottom + " " + (innerRight - bottomRightR) + "," + innerBottom;
-            
+
             // Bottom edge
             path += " L " + (innerLeft + bottomLeftR) + "," + innerBottom;
-            
+
             // Bottom-left corner
             path += " Q " + innerLeft + "," + innerBottom + " " + innerLeft + "," + (innerBottom - bottomLeftR);
-            
+
             // Close path
             path += " Z";
 
@@ -158,7 +156,7 @@ PanelWindow {
             var w = frameShape.width;
             var h = frameShape.height;
             var outerR = workspaceContainer.outerBorderRadius;
-            
+
             var path = "";
             if (outerR > 0) {
               path = "M " + outerR + ",0";
@@ -192,13 +190,13 @@ PanelWindow {
             var h = frameShape.height;
             var innerR = Math.min(workspaceContainer.innerBorderRadius, workspaceContainer.frameWidth);
             var fw = workspaceContainer.frameWidth;
-            
+
             // Determine which edge has the bar
             var barAtTop = !workspaceContainer.vertical && !workspaceContainer.rightSide;
             var barAtLeft = workspaceContainer.vertical && !workspaceContainer.rightSide;
             var barAtBottom = !workspaceContainer.vertical && workspaceContainer.rightSide;
             var barAtRight = workspaceContainer.vertical && workspaceContainer.rightSide;
-            
+
             // Calculate inner rectangle bounds
             // Offset by half stroke width when at screen edge to keep stroke fully visible
             var halfStroke = workspaceContainer.strokeWidth / 2;
@@ -215,31 +213,31 @@ PanelWindow {
 
             // Build path clockwise for stroke
             var path = "M " + (innerLeft + topLeftR) + "," + innerTop;
-            
+
             // Top edge
             path += " L " + (innerRight - topRightR) + "," + innerTop;
-            
+
             // Top-right corner
             path += " Q " + innerRight + "," + innerTop + " " + innerRight + "," + (innerTop + topRightR);
-            
+
             // Right edge
             path += " L " + innerRight + "," + (innerBottom - bottomRightR);
-            
+
             // Bottom-right corner
             path += " Q " + innerRight + "," + innerBottom + " " + (innerRight - bottomRightR) + "," + innerBottom;
-            
+
             // Bottom edge
             path += " L " + (innerLeft + bottomLeftR) + "," + innerBottom;
-            
+
             // Bottom-left corner
             path += " Q " + innerLeft + "," + innerBottom + " " + innerLeft + "," + (innerBottom - bottomLeftR);
-            
+
             // Left edge
             path += " L " + innerLeft + "," + (innerTop + topLeftR);
-            
+
             // Top-left corner
             path += " Q " + innerLeft + "," + innerTop + " " + (innerLeft + topLeftR) + "," + innerTop;
-            
+
             path += " Z";
 
             return path;
