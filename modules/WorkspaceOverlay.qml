@@ -60,7 +60,7 @@ Scope {
     color: "transparent"
 
     WlrLayershell.layer: WlrLayer.Overlay
-    WlrLayershell.keyboardFocus: visible ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+    WlrLayershell.keyboardFocus: visible ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
 
     // Keyboard handling
     Item {
@@ -72,12 +72,6 @@ Scope {
           overlayWindow.visible = false;
           event.accepted = true;
         }
-      // else if (event.key >= Qt.Key_1 && event.key <= Qt.Key_9) {
-      //   let workspaceId = event.key - Qt.Key_0;
-      //   WorkspaceUtils.focusWorkspace(workspaceId);
-      //   overlayWindow.visible = false;
-      //   event.accepted = true;
-      // }
       }
     }
 
@@ -117,7 +111,6 @@ Scope {
       }
     }
 
-    // Main overlay content
     WorkspaceGrid {
       id: workspaceGrid
       anchors.centerIn: parent

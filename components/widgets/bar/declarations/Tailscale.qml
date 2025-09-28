@@ -11,10 +11,11 @@ IconTextWidget {
 
   property bool isConnected: false
   property string tailnetName: ""
-  property bool showText: false
+  property bool showText: true
 
   icon: isConnected ? "󰳌" : "󰌙"
-  text: isConnected ? tailnetName : ""
+  // text: isConnected ? tailnetName : ""
+  text: isConnected ? "k8s" : ""
 
   backgroundColor: isConnected ? Theme.warning : Theme.backgroundHighlight
 

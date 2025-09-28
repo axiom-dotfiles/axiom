@@ -41,4 +41,8 @@ ShellRoot {
   Menu {
     id: mainMenu
   }
+
+  AppLauncher {
+    id: appLauncher
+  }
 }

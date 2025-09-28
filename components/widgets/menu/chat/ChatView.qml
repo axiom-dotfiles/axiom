@@ -7,7 +7,7 @@ import qs.config
 import qs.components.reusable
 import qs.components.widgets.menu
 import qs.components.widgets.menu.chat
-import qs.components.methods // Added for TabBar, based on reference component
+import qs.components.methods
 
 StyledContainer {
   id: chatView
@@ -17,7 +17,6 @@ StyledContainer {
   containerColor: Theme.background
   readonly property alias wantsKeyboardFocus: chatInputBar.wantsKeyboardFocus
   
-  // Properties for the TabBar, derived from the reference component and project singletons
   readonly property var backendNames: Object.keys(ChatConfig.backends)
   readonly property var tabs: backendNames.map(name => ({ "name": name.charAt(0).toUpperCase() + name.slice(1) }))
   property int currentTab: backendNames.indexOf(Chat.currentBackend)
@@ -29,7 +28,6 @@ StyledContainer {
     anchors.margins: contentPadding
     spacing: 0
     
-    // TabBar integrated here to select the backend, as demonstrated in the reference component
     TabBar {
       Layout.fillWidth: true
       Layout.preferredHeight: chatView.tabBarHeight
@@ -39,7 +37,6 @@ StyledContainer {
       activeColor: Theme.accentAlt
       tabs: chatView.tabs
       onTabClicked: index => {
-        // Update the backend in the singleton. The currentTab property will update via its binding.
         Chat.currentBackend = chatView.backendNames[index];
       }
     }

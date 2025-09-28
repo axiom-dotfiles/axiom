@@ -30,7 +30,6 @@ RowLayout {
       Chat.updateCommandState(text)}
     Component.onCompleted: {
       control.wantsKeyboardFocus = true;
-      forceActiveFocus();
     }
   }
 
@@ -58,6 +57,6 @@ RowLayout {
     if (!submitButton.enabled) return;
     Chat.sendMessage(textEntry.text);
     textEntry.text = "";
-    textEntry.forceActiveFocus();
+    textEntry.input.forceActiveFocus();
   }
 }
