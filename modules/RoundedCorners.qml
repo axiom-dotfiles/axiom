@@ -68,17 +68,11 @@ PanelWindow {
             // Ensure inner radius doesn't exceed frame width
             innerR = Math.min(innerR, fw);
             
-            // Determine which edge has no frame based on Bar configuration
-            var hasTopFrame = !workspaceContainer.vertical || !workspaceContainer.rightSide;
-            var hasLeftFrame = !workspaceContainer.vertical || workspaceContainer.rightSide;
-            var hasBottomFrame = workspaceContainer.vertical || !workspaceContainer.rightSide;
-            var hasRightFrame = workspaceContainer.vertical || workspaceContainer.rightSide;
-            
-            // Adjust frame widths for each edge
-            var topFw = hasTopFrame ? fw : 0;
-            var bottomFw = hasBottomFrame ? fw : 0;
-            var leftFw = hasLeftFrame ? fw : 0;
-            var rightFw = hasRightFrame ? fw : 0;
+            // Determine which edge has the bar (no frame on bar edge)
+            var barAtTop = !workspaceContainer.vertical && !workspaceContainer.rightSide;
+            var barAtLeft = workspaceContainer.vertical && !workspaceContainer.rightSide;
+            var barAtBottom = !workspaceContainer.vertical && workspaceContainer.rightSide;
+            var barAtRight = workspaceContainer.vertical && workspaceContainer.rightSide;
 
             // --- OUTER PATH (Clockwise) ---
             var path = "";
@@ -104,74 +98,45 @@ PanelWindow {
             path += " Z";
 
             // --- INNER PATH (Counter-Clockwise) ---
-            // Adjust corner radii based on which edges have frames
-            var topLeftR = (hasTopFrame && hasLeftFrame) ? innerR : 0;
-            var topRightR = (hasTopFrame && hasRightFrame) ? innerR : 0;
-            var bottomRightR = (hasBottomFrame && hasRightFrame) ? innerR : 0;
-            var bottomLeftR = (hasBottomFrame && hasLeftFrame) ? innerR : 0;
-            
             // Calculate inner rectangle bounds
-            var innerLeft = leftFw;
-            var innerTop = topFw;
-            var innerRight = w - rightFw;
-            var innerBottom = h - bottomFw;
+            var innerLeft = barAtLeft ? 0 : fw;
+            var innerTop = barAtTop ? 0 : fw;
+            var innerRight = barAtRight ? w : w - fw;
+            var innerBottom = barAtBottom ? h : h - fw;
             
-            // Build inner path counter-clockwise
-            if (topLeftR > 0 || topRightR > 0 || bottomRightR > 0 || bottomLeftR > 0) {
-              // Start at left edge, just below top-left corner
-              path += " M " + innerLeft + "," + Math.min(innerTop + topLeftR, innerBottom);
-              
-              // Top-left corner
-              if (topLeftR > 0) {
-                path += " Q " + innerLeft + "," + innerTop + " " + (innerLeft + topLeftR) + "," + innerTop;
-              } else {
-                path += " L " + innerLeft + "," + innerTop;
-                path += " L " + (innerLeft + topLeftR) + "," + innerTop;
-              }
-              
-              // Top edge
-              path += " L " + (innerRight - topRightR) + "," + innerTop;
-              
-              // Top-right corner
-              if (topRightR > 0) {
-                path += " Q " + innerRight + "," + innerTop + " " + innerRight + "," + (innerTop + topRightR);
-              } else {
-                path += " L " + innerRight + "," + innerTop;
-                path += " L " + innerRight + "," + (innerTop + topRightR);
-              }
-              
-              // Right edge
-              path += " L " + innerRight + "," + (innerBottom - bottomRightR);
-              
-              // Bottom-right corner
-              if (bottomRightR > 0) {
-                path += " Q " + innerRight + "," + innerBottom + " " + (innerRight - bottomRightR) + "," + innerBottom;
-              } else {
-                path += " L " + innerRight + "," + innerBottom;
-                path += " L " + (innerRight - bottomRightR) + "," + innerBottom;
-              }
-              
-              // Bottom edge
-              path += " L " + (innerLeft + bottomLeftR) + "," + innerBottom;
-              
-              // Bottom-left corner
-              if (bottomLeftR > 0) {
-                path += " Q " + innerLeft + "," + innerBottom + " " + innerLeft + "," + (innerBottom - bottomLeftR);
-              } else {
-                path += " L " + innerLeft + "," + innerBottom;
-                path += " L " + innerLeft + "," + (innerBottom - bottomLeftR);
-              }
-              
-              // Left edge back to start
-              path += " L " + innerLeft + "," + Math.min(innerTop + topLeftR, innerBottom);
-            } else {
-              // Sharp inner corners (counter-clockwise)
-              path += " M " + innerLeft + "," + innerTop;
-              path += " L " + innerLeft + "," + innerBottom;
-              path += " L " + innerRight + "," + innerBottom;
-              path += " L " + innerRight + "," + innerTop;
-              path += " L " + innerLeft + "," + innerTop;
-            }
+            // Always keep the rounded corners for visual appeal
+            // But adjust positions based on bar location
+            var topLeftR = innerR;
+            var topRightR = innerR;
+            var bottomRightR = innerR;
+            var bottomLeftR = innerR;
+            
+            // Build inner path counter-clockwise with curves
+            // Start at left edge, just below top-left corner
+            path += " M " + innerLeft + "," + Math.min(innerTop + topLeftR, innerBottom);
+            
+            // Top-left corner
+            path += " Q " + innerLeft + "," + innerTop + " " + (innerLeft + topLeftR) + "," + innerTop;
+            
+            // Top edge
+            path += " L " + (innerRight - topRightR) + "," + innerTop;
+            
+            // Top-right corner
+            path += " Q " + innerRight + "," + innerTop + " " + innerRight + "," + (innerTop + topRightR);
+            
+            // Right edge
+            path += " L " + innerRight + "," + (innerBottom - bottomRightR);
+            
+            // Bottom-right corner
+            path += " Q " + innerRight + "," + innerBottom + " " + (innerRight - bottomRightR) + "," + innerBottom;
+            
+            // Bottom edge
+            path += " L " + (innerLeft + bottomLeftR) + "," + innerBottom;
+            
+            // Bottom-left corner
+            path += " Q " + innerLeft + "," + innerBottom + " " + innerLeft + "," + (innerBottom - bottomLeftR);
+            
+            // Close path
             path += " Z";
 
             return path;
@@ -226,82 +191,53 @@ PanelWindow {
             var innerR = Math.min(workspaceContainer.innerBorderRadius, workspaceContainer.frameWidth);
             var fw = workspaceContainer.frameWidth;
             
-            // Determine which edge has no frame based on Bar configuration
-            var hasTopFrame = !workspaceContainer.vertical || !workspaceContainer.rightSide;
-            var hasBottomFrame = !workspaceContainer.vertical || workspaceContainer.rightSide;
-            var hasLeftFrame = workspaceContainer.vertical || !workspaceContainer.rightSide;
-            var hasRightFrame = workspaceContainer.vertical || workspaceContainer.rightSide;
-            
-            // Adjust frame widths for each edge
-            var topFw = hasTopFrame ? fw : 0;
-            var bottomFw = hasBottomFrame ? fw : 0;
-            var leftFw = hasLeftFrame ? fw : 0;
-            var rightFw = hasRightFrame ? fw : 0;
-            
-            // Adjust corner radii based on which edges have frames
-            var topLeftR = (hasTopFrame && hasLeftFrame) ? innerR : 0;
-            var topRightR = (hasTopFrame && hasRightFrame) ? innerR : 0;
-            var bottomRightR = (hasBottomFrame && hasRightFrame) ? innerR : 0;
-            var bottomLeftR = (hasBottomFrame && hasLeftFrame) ? innerR : 0;
+            // Determine which edge has the bar
+            var barAtTop = !workspaceContainer.vertical && !workspaceContainer.rightSide;
+            var barAtLeft = workspaceContainer.vertical && !workspaceContainer.rightSide;
+            var barAtBottom = !workspaceContainer.vertical && workspaceContainer.rightSide;
+            var barAtRight = workspaceContainer.vertical && workspaceContainer.rightSide;
             
             // Calculate inner rectangle bounds
-            var innerLeft = leftFw;
-            var innerTop = topFw;
-            var innerRight = w - rightFw;
-            var innerBottom = h - bottomFw;
+            var innerLeft = barAtLeft ? 0 : fw;
+            var innerTop = barAtTop ? 0 : fw;
+            var innerRight = barAtRight ? w : w - fw;
+            var innerBottom = barAtBottom ? h : h - fw;
 
-            var path = "";
-            if (topLeftR > 0 || topRightR > 0 || bottomRightR > 0 || bottomLeftR > 0) {
-              // Clockwise for stroke-only path
-              path = "M " + (innerLeft + topLeftR) + "," + innerTop;
-              
-              // Top edge
-              path += " L " + (innerRight - topRightR) + "," + innerTop;
-              
-              // Top-right corner
-              if (topRightR > 0) {
-                path += " Q " + innerRight + "," + innerTop + " " + innerRight + "," + (innerTop + topRightR);
-              } else {
-                path += " L " + innerRight + "," + innerTop;
-              }
-              
-              // Right edge
-              path += " L " + innerRight + "," + (innerBottom - bottomRightR);
-              
-              // Bottom-right corner
-              if (bottomRightR > 0) {
-                path += " Q " + innerRight + "," + innerBottom + " " + (innerRight - bottomRightR) + "," + innerBottom;
-              } else {
-                path += " L " + innerRight + "," + innerBottom;
-              }
-              
-              // Bottom edge
-              path += " L " + (innerLeft + bottomLeftR) + "," + innerBottom;
-              
-              // Bottom-left corner
-              if (bottomLeftR > 0) {
-                path += " Q " + innerLeft + "," + innerBottom + " " + innerLeft + "," + (innerBottom - bottomLeftR);
-              } else {
-                path += " L " + innerLeft + "," + innerBottom;
-              }
-              
-              // Left edge
-              path += " L " + innerLeft + "," + (innerTop + topLeftR);
-              
-              // Top-left corner
-              if (topLeftR > 0) {
-                path += " Q " + innerLeft + "," + innerTop + " " + (innerLeft + topLeftR) + "," + innerTop;
-              } else {
-                path += " L " + innerLeft + "," + innerTop;
-              }
-            } else {
-              path = "M " + innerLeft + "," + innerTop;
-              path += " L " + innerRight + "," + innerTop;
-              path += " L " + innerRight + "," + innerBottom;
-              path += " L " + innerLeft + "," + innerBottom;
-              path += " L " + innerLeft + "," + innerTop;
-            }
+            // Keep all corners rounded
+            var topLeftR = innerR;
+            var topRightR = innerR;
+            var bottomRightR = innerR;
+            var bottomLeftR = innerR;
+
+            // Build path clockwise for stroke
+            var path = "M " + (innerLeft + topLeftR) + "," + innerTop;
+            
+            // Top edge
+            path += " L " + (innerRight - topRightR) + "," + innerTop;
+            
+            // Top-right corner
+            path += " Q " + innerRight + "," + innerTop + " " + innerRight + "," + (innerTop + topRightR);
+            
+            // Right edge
+            path += " L " + innerRight + "," + (innerBottom - bottomRightR);
+            
+            // Bottom-right corner
+            path += " Q " + innerRight + "," + innerBottom + " " + (innerRight - bottomRightR) + "," + innerBottom;
+            
+            // Bottom edge
+            path += " L " + (innerLeft + bottomLeftR) + "," + innerBottom;
+            
+            // Bottom-left corner
+            path += " Q " + innerLeft + "," + innerBottom + " " + innerLeft + "," + (innerBottom - bottomLeftR);
+            
+            // Left edge
+            path += " L " + innerLeft + "," + (innerTop + topLeftR);
+            
+            // Top-left corner
+            path += " Q " + innerLeft + "," + innerTop + " " + (innerLeft + topLeftR) + "," + innerTop;
+            
             path += " Z";
+
             return path;
           }
         }
