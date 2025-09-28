@@ -12,11 +12,11 @@ PanelWindow {
   property int frameWidth: 8
   property int outerBorderRadius: 0  // Sharp outer corners
   property int innerBorderRadius: 12  // Radius for inner cutout
-  property color frameColor: "green"
+  property color frameColor: Theme.background
   property color centerColor: "transparent"
-  property color outerStrokeColor: "red"
-  property color innerStrokeColor: "blue"
-  property int strokeWidth: 1
+  property color outerStrokeColor: "transparent"
+  property color innerStrokeColor: Theme.foreground
+  property int strokeWidth: Appearance.borderWidth
   property bool antialiasing: true  // Changed to true for smoother curves
   
   // --- Bar Configuration Properties ---
@@ -99,10 +99,12 @@ PanelWindow {
 
             // --- INNER PATH (Counter-Clockwise) ---
             // Calculate inner rectangle bounds
-            var innerLeft = barAtLeft ? 0 : fw;
-            var innerTop = barAtTop ? 0 : fw;
-            var innerRight = barAtRight ? w : w - fw;
-            var innerBottom = barAtBottom ? h : h - fw;
+            // Offset by half stroke width when at screen edge to keep stroke fully visible
+            var halfStroke = workspaceContainer.strokeWidth / 2;
+            var innerLeft = barAtLeft ? halfStroke : fw;
+            var innerTop = barAtTop ? halfStroke : fw;
+            var innerRight = barAtRight ? w - halfStroke : w - fw;
+            var innerBottom = barAtBottom ? h - halfStroke : h - fw;
             
             // Always keep the rounded corners for visual appeal
             // But adjust positions based on bar location
@@ -198,10 +200,12 @@ PanelWindow {
             var barAtRight = workspaceContainer.vertical && workspaceContainer.rightSide;
             
             // Calculate inner rectangle bounds
-            var innerLeft = barAtLeft ? 0 : fw;
-            var innerTop = barAtTop ? 0 : fw;
-            var innerRight = barAtRight ? w : w - fw;
-            var innerBottom = barAtBottom ? h : h - fw;
+            // Offset by half stroke width when at screen edge to keep stroke fully visible
+            var halfStroke = workspaceContainer.strokeWidth / 2;
+            var innerLeft = barAtLeft ? halfStroke : fw;
+            var innerTop = barAtTop ? halfStroke : fw;
+            var innerRight = barAtRight ? w - halfStroke : w - fw;
+            var innerBottom = barAtBottom ? h - halfStroke : h - fw;
 
             // Keep all corners rounded
             var topLeftR = innerR;
