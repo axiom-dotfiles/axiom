@@ -71,8 +71,13 @@ QtObject {
   readonly property string name: themeData.name ?? "Unknown"
   readonly property string variant: themeData.variant ?? "dark"
   readonly property string paired: themeData.paired ?? ""
+  property bool isGenerated: false
 
   function reload() {
+    if (isGenerated) {
+      // legal
+      root.themeData = Loader.loadTheme("generated/" + Appearance.theme)
+    }
     root.themeData = Loader.loadTheme(Appearance.theme)
     console.log("---------------- RELOADED THEME ----------------")
     console.log("Theme.qml: reloaded manually for:", Appearance.theme)

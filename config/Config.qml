@@ -19,6 +19,7 @@ QtObject {
   // Computed properties
   readonly property int orientation: Bar.vertical ? Qt.Vertical : Qt.Horizontal
   readonly property int containerOffset: Widget.containerWidth + Appearance.borderWidth
+  property string wallpaper: ""
 
   function reload() {
     root.configData = Loader.loadConfig();

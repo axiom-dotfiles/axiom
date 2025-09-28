@@ -16,6 +16,17 @@ QtObject {
     launchProcess.running = true;
   }
 
+  function executeWallpaperScript(wallpaperUrl) {
+    if (!wallpaperUrl || wallpaperUrl === "")
+      return;
+
+    wallpaperUrl = wallpaperUrl.replace("file://", "");
+    const scriptPath = "/home/travmonkey/.config/hypr/scripts/setWallpaper.sh"; // Adjust path as needed
+    console.log("Setting wallpaper to:", wallpaperUrl);
+    launchProcess.command = [scriptPath, wallpaperUrl];
+    launchProcess.running = true;
+  }
+
   // Launch with arguments
   function launchWithArgs(program, args) {
     launchProcess.command = [program].concat(args);
