@@ -128,6 +128,7 @@ Item {
         const appNickname = n.nickname?.toLowerCase();
 
         if ((appBinary && appBinary.includes(searchString)) || (appName && appName.includes(searchString)) || (appNickname && appNickname.includes(searchString))) {
+          console.log("PipewireVolumeBar: Found target node for", targetApplication, "->", appBinary || appName || appNickname);
           _targetNode = n;
           return;
         }

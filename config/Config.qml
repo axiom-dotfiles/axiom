@@ -20,6 +20,7 @@ QtObject {
   readonly property int orientation: Bar.vertical ? Qt.Vertical : Qt.Horizontal
   readonly property int containerOffset: Widget.containerWidth + Appearance.borderWidth
   property string wallpaper: ""
+  property string themePath: "/home/" + root.userName + "/.config/quickshell/travmonkey/config/themes/"
 
   function reload() {
     root.configData = Loader.loadConfig();

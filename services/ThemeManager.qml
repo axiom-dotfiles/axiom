@@ -4,7 +4,6 @@ import QtQuick
 import Qt.labs.folderlistmodel
 import QtCore
 
-// Import the Quickshell types
 import Quickshell.Io
 
 import qs.config
@@ -44,10 +43,9 @@ QtObject {
     function generateThemesFromWallpaper(wallpaperUrl) {
         if (isGenerating) return;
         console.log("ThemeManager: Starting theme generation for:", wallpaperUrl.toString())
-        Config.wallpaper = wallpaperUrl.toString() // Update wallpaper in config
+        Config.wallpaper = wallpaperUrl.toString()
         console.log("Updated wallpaper in config:", Config.wallpaper)
 
-        // Start the generation process
         _generationController.start(wallpaperUrl)
     }
 
@@ -61,9 +59,13 @@ QtObject {
             if (Theme.isGenerated) {
               console.log("Applying generated theme:", themeName)
               Appearance.theme = "generated/" + themeName;
+              Theme.reload()
+              Utils.themeKitty(Config.themePath + "/generated/" + themeName + ".json")
             } else {
-              console.log("Applying default theme:", themeName)
+              console.log("Applying default theme:", Appearance.theme)
               Appearance.theme = themeName;
+              Theme.reload()
+              Utils.themeKitty(Config.themePath + themeName + ".json")
             }
         }
     }
@@ -209,9 +211,6 @@ QtObject {
         _defaultThemesModel.clear()
         _generatedThemesModel.clear()
 
-        // FIX: Force the FolderListModel to re-scan the directories.
-        // By setting the folder to "" first, we guarantee that the subsequent
-        // assignment triggers a full refresh, detecting the newly generated files.
         _defaultThemeLoader.folder = ""
         _generatedThemeLoader.folder = ""
 
@@ -221,8 +220,7 @@ QtObject {
 
     function _checkIfReloadComplete() {
         if (_defaultThemesLoaded && _generatedThemesLoaded) {
-            // Note: Per user request, sorting is disabled.
-            // _sortModel(_allThemesModel)
+            // _sortModel(_allThemesModel) // broken
             themesReloaded()
             console.log("ThemeManager: All theme models reloaded.")
         }
@@ -233,20 +231,16 @@ QtObject {
         nameFilters: ["*.json"]; showDirs: false
 
         onStatusChanged: {
-            if (status !== FolderListModel.Loading) {
-                console.log("DefaultThemeLoader status changed:", status === FolderListModel.Ready ? "Ready" : status, "| URL:", folder);
-            }
             if (status === FolderListModel.Ready) {
-                console.log("DefaultThemeLoader is ready. Found", count, "files.");
                 for (let i = 0; i < count; i++) {
                     const filePath = get(i, "filePath")
                     const fileName = get(i, "fileBaseName")
-                    console.log(" -", fileName, "->", filePath)
                     _defaultThemesModel.append({ name: fileName, filePath: filePath })
                     _allThemesModel.append({ name: fileName, filePath: filePath })
                 }
                 _defaultThemesLoaded = true;
                 _checkIfReloadComplete();
+                console.log("---- Default themes loaded:", _defaultThemesModel.count, "themes ----");
             }
         }
     }
@@ -256,22 +250,17 @@ QtObject {
         nameFilters: ["*.json"]; showDirs: false
 
         onStatusChanged: {
-            if (status !== FolderListModel.Loading) {
-                console.log("GeneratedThemeLoader status changed:", status === FolderListModel.Ready ? "Ready" : status, "| URL:", folder);
-            }
             if (status === FolderListModel.Ready) {
-                console.log("GeneratedThemeLoader is ready. Found", count, "files.");
                 for (let i = 0; i < count; i++) {
                     const filePath = get(i, "filePath")
                     const fileName = get(i, "fileBaseName")
                     if (fileName === "pywal-dark") continue;
-                    console.log(" -", fileName, "->", filePath)
                     _generatedThemesModel.append({ name: fileName, filePath: filePath })
                     _allThemesModel.append({ name: fileName, filePath: filePath })
                 }
                 _generatedThemesLoaded = true;
                 _checkIfReloadComplete();
-                console.log("Generated themes loaded:", _generatedThemesModel.count);
+                console.log("---- Generated themes loaded:", _generatedThemesModel.count, "themes ----");
             }
         }
     }

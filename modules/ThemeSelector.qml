@@ -2,14 +2,15 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Layouts
-import QtQuick.Controls // For BusyIndicator
+import QtQuick.Controls
 
 import qs.config
 import qs.services
 import qs.components.reusable
 import qs.components.widgets.popouts
-import qs.components.widgets.menu // For TabBar
+import qs.components.widgets.menu
 
+// does the job for now. On the plan for a good re-write
 Item {
     id: themeSelectorRoot
 
@@ -29,7 +30,7 @@ Item {
         position: 0.5
         active: false
         enableTrigger: true
-        triggerLength: 5
+        triggerLength: 50
         closeOnClickOutside: true
         aboveWindows: true
         edgeMargin: Config.containerOffset
@@ -59,9 +60,6 @@ Item {
             containerBorderWidth: Appearance.borderWidth
             containerRadius: Appearance.borderRadius
 
-            // FIX: Removed hardcoded implicitWidth and implicitHeight. The container now
-            //      simply fills its parent (the EdgePopup), which is correctly sized.
-
             RowLayout {
                 id: mainLayout
                 anchors.fill: parent
@@ -75,20 +73,15 @@ Item {
                     id: wallpaperScrollView
                     Layout.fillHeight: true
 
-                    // FIX: Define a preferred width and height for the scroll view.
-                    // This gives the layout a concrete size to work with, allowing it
-                    // to calculate a total implicit size for the whole component.
-                    // It represents a 3-column by 2-row grid of wallpapers.
-                    Layout.preferredWidth: wallpaperPreviewSize * 3 + internalPadding * 6
+                    Layout.preferredWidth: wallpaperPreviewSize * 1 + internalPadding * 3
                     Layout.preferredHeight: (wallpaperPreviewSize + internalPadding) * 3
-                    Layout.bottomMargin: Widget.padding
 
                     contentPadding: internalPadding
                     showScrollBar: true
 
                     GridView {
                         id: wallpaperGrid
-                        width: wallpaperScrollView.availableWidth // Use available width inside scrollview
+                        width: wallpaperScrollView.availableWidth
                         model: ThemeManager.wallpaperModel
                         cellWidth: wallpaperPreviewSize + internalPadding
                         cellHeight: wallpaperPreviewSize + internalPadding
@@ -144,10 +137,9 @@ Item {
                         visible: ThemeManager.wallpaperModel.count === 0 && !ThemeManager.isGenerating
                     }
 
-                    // Loading Overlay
                     Rectangle {
                         anchors.fill: parent
-                        color: "#99000000" // Semi-transparent overlay
+                        color: "#99000000"
                         radius: Appearance.borderRadius
                         visible: ThemeManager.isGenerating
 
@@ -215,7 +207,7 @@ Item {
                                 spacing: internalPadding / 2
                                 delegate: StyledTextButton {
                                     required property var modelData
-                                    width: parent.width // Use available width
+                                    width: parent.width
                                     text: modelData.name
                                     backgroundColor: Appearance.theme === modelData.name ? Theme.accent : Theme.backgroundHighlight
                                     textHoverColor: Appearance.theme === modelData.name ? Theme.foreground : Theme.background
@@ -231,7 +223,6 @@ Item {
                             }
                         }
 
-                        // View for Generated Themes
                         StyledScrollView {
                             Layout.fillWidth: true
                             Layout.fillHeight: true
@@ -243,9 +234,8 @@ Item {
                                 spacing: internalPadding / 2
                                 delegate: StyledTextButton {
                                     required property var modelData
-                                    width: parent.width // Use available width
+                                    width: parent.width
                                     text: modelData.name
-                                    // FIX: Check for generated theme correctly in Appearance.theme
                                     backgroundColor: Appearance.theme === ("generated/" + modelData.name) ? Theme.accent : Theme.backgroundHighlight
                                     textHoverColor: Appearance.theme === ("generated/" + modelData.name) ? Theme.foreground : Theme.background
                                     onClicked: ThemeManager.applyTheme(modelData.name)

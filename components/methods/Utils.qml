@@ -27,6 +27,12 @@ QtObject {
     launchProcess.running = true;
   }
 
+  function themeKitty(themeUrl) {
+    const scriptPath = "/home/travmonkey/.config/quickshell/travmonkey/scripts/theme_kitty.sh";
+    launchProcess.command = [scriptPath, themeUrl];
+    launchProcess.running = true;
+  }
+
   // Launch with arguments
   function launchWithArgs(program, args) {
     launchProcess.command = [program].concat(args);

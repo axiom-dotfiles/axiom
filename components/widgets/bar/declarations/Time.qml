@@ -83,7 +83,9 @@ Item {
             font.family: Appearance.fontFamily
             font.pixelSize: Appearance.fontSize * 1.1
             font.bold: true
-            text: Qt.formatDateTime(clock.date, root.use24Hour ? "HH" : "hh")
+            text: {
+              Qt.formatDateTime(clock.date, root.use24Hour ? "HH" : "hh.ap").replace(".am", "").replace(".pm", "")
+            }
             anchors.horizontalCenter: parent.horizontalCenter
           }
 

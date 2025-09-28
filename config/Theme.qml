@@ -73,17 +73,20 @@ QtObject {
   readonly property string paired: themeData.paired ?? ""
   property bool isGenerated: false
 
+  /*
+   * Soft-reload of the theme. Call this function after changing
+   * Appearance.theme to immediately apply the new theme.
+  */
   function reload() {
     if (isGenerated) {
-      // legal
       root.themeData = Loader.loadTheme("generated/" + Appearance.theme)
     }
     root.themeData = Loader.loadTheme(Appearance.theme)
-    console.log("---------------- RELOADED THEME ----------------")
+    console.log("------------ SOFT RELOADED THEME ----------------")
     console.log("Theme.qml: reloaded manually for:", Appearance.theme)
   }
 
   Component.onCompleted: {
-    console.log("Theme.qml singleton initialized. Current theme from config:", Appearance.theme)
+    console.log("------------------ " + "Initialized : " + Appearance.theme + " ------------------")
   }
 }
