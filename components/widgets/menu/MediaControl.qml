@@ -1,7 +1,8 @@
 pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtQuick.Layouts
-// Your project's imports
+
 import qs.services
 import qs.config
 import qs.components.reusable
@@ -20,8 +21,13 @@ StyledContainer {
   property int volumeSpacing: 8
 
   property int skipButtonSize: 25
-  property int playButtonSize: 40
+  property int playButtonSize: 60
   property int spacerWidth: 10
+
+  property bool showProgressBar: true
+
+  property int controlButtonsLeftMargin: Widget.padding
+  property int controlButtonsRightMargin: Widget.padding
 
   property int titleFontSize: Appearance.fontSize - 2
   property int artistFontSize: Appearance.fontSize - 4
@@ -33,8 +39,11 @@ StyledContainer {
   property color timeColor: Theme.backgroundAlt
   property color buttonIconColor: Theme.foregroundAlt
   property color buttonBackgroundColor: Theme.backgroundHighlight
-  property color playIconColor: Theme.foreground
-  property color playBackgroundColor: Theme.backgroundAlt
+  property color playIconColor: Theme.background
+  property color pauseIconColor: Theme.foreground
+  property color pauseButtonColor: Theme.background
+  property color pauseBackgroundColor: Theme.background
+  property color playBackgroundColor: Theme.cyan
   property color albumBorderColor: Theme.backgroundHighlight
   property int albumBorderWidth: 1
   property real albumRadius: Appearance.borderRadius / 2
@@ -59,6 +68,7 @@ StyledContainer {
     active: root.visible
 
     sourceComponent: RowLayout {
+      id: mainLayout
       spacing: root.itemSpacing
 
       // Album Art
@@ -95,13 +105,12 @@ StyledContainer {
         }
       }
 
-      // Track Info & Progress (expandable middle section)
+      // Track Info & Progress
       ColumnLayout {
         Layout.fillWidth: true
         Layout.alignment: Qt.AlignVCenter
         spacing: root.innerSpacing
 
-        // Track title
         StyledText {
           Layout.fillWidth: true
           text: MprisController.trackTitle
@@ -110,7 +119,6 @@ StyledContainer {
           elide: Text.ElideRight
         }
 
-        // Artist
         StyledText {
           Layout.fillWidth: true
           text: MprisController.trackArtist
@@ -119,7 +127,6 @@ StyledContainer {
           elide: Text.ElideRight
         }
 
-        // Progress bar with time
         RowLayout {
           Layout.fillWidth: true
           spacing: root.volumeSpacing
@@ -130,28 +137,57 @@ StyledContainer {
             textColor: root.timeColor
           }
 
+          StyledIconButton {
+            iconText: "󰒮"
+            onClicked: MprisController.previous()
+            iconColor: root.buttonIconColor
+            backgroundColor: root.buttonBackgroundColor
+            Layout.fillWidth: false
+            Layout.fillHeight: false
+            Layout.preferredWidth: root.skipButtonSize
+            Layout.preferredHeight: root.skipButtonSize
+          }
+
           StyledSlider {
             id: progressSlider
             Layout.fillWidth: true
             Layout.preferredHeight: root.sliderHeight
-            // Layout.rightMargin: controlButtonsRow.width + root.volumeSpacing
             grooveHeight: root.sliderGrooveHeight
-            enabled: MprisController.canSeek
+            enabled: root.showProgressBar && MprisController.hasActivePlayer && MprisController.length > 0
+            visible: root.showProgressBar && MprisController.hasActivePlayer && MprisController.length > 0
             value: MprisController.progress
             handleColor: Theme.backgroundAlt
-            // onReleased: newValue => MprisController.setPositionByRatio(newValue)
+            Layout.leftMargin: root.spacerWidth
+            Layout.rightMargin: root.spacerWidth
             onMoved: newValue => MprisController.setPositionByRatio(newValue)
             onReleased: newValue => MprisController.setPositionByRatio(newValue)
-            // onValueChanged: {
-            //   if (value === 1 && MprisController.position < MprisController.length - 1) {
-            //     // If the slider is at the end but the position isn't, reset the slider
-            //     value = MprisController.progress;
-            //   }
-            // }
+            Connections {
+              target: MprisController
+              onPositionChanged: {
+                if (!progressSlider.pressed) {
+                  progressSlider.value = MprisController.progress;
+                }
+              }
+            }
+            onValueChanged: {
+              if (value === 1 && MprisController.position < MprisController.length - 1) {
+                value = MprisController.progress;
+              }
+            }
+          }
+
+          StyledIconButton {
+            iconText: "󰒭"
+            onClicked: MprisController.next()
+            iconColor: root.buttonIconColor
+            backgroundColor: root.buttonBackgroundColor
+            Layout.fillWidth: false
+            Layout.fillHeight: false
+            Layout.preferredWidth: root.skipButtonSize
+            Layout.preferredHeight: root.skipButtonSize
           }
 
           StyledText {
-            Layout.rightMargin: controlButtonsRow.width + root.volumeSpacing
             text: MprisController.formatTime(MprisController.length)
             textSize: root.timeFontSize
             textColor: root.timeColor
@@ -159,60 +195,25 @@ StyledContainer {
         }
       }
 
-      RowLayout {
-        id: controlButtonsRow
+      Item {
+        id: controlButtonsContainer
+        Layout.preferredWidth: mainLayout.width / 6
+        Layout.fillHeight: true
         Layout.alignment: Qt.AlignVCenter
-        Layout.preferredWidth: childrenRect.width
-        spacing: root.volumeSpacing
 
         StyledIconButton {
-          iconText: "󰒮"
-          onClicked: MprisController.previous()
-          iconColor: root.buttonIconColor
-          backgroundColor: root.buttonBackgroundColor
-          Layout.fillWidth: false
-          Layout.fillHeight: false
-          Layout.preferredWidth: root.skipButtonSize
-          Layout.preferredHeight: root.skipButtonSize
-        }
-
-        StyledIconButton {
+          anchors.centerIn: parent
+          anchors.leftMargin: root.controlButtonsLeftMargin
+          anchors.rightMargin: root.controlButtonsRightMargin
           iconText: MprisController.isPlaying ? "󰏤" : "󰐊"
           iconSize: root.playIconFontSize
           onClicked: MprisController.togglePlayPause()
-          iconColor: root.playIconColor
-          backgroundColor: root.playBackgroundColor
-          Layout.fillWidth: false
-          Layout.fillHeight: false
-          Layout.preferredWidth: root.playButtonSize
-          Layout.preferredHeight: root.playButtonSize
-        }
-
-        StyledIconButton {
-          iconText: "󰒭"
-          onClicked: MprisController.next()
-          iconColor: root.buttonIconColor
-          backgroundColor: root.buttonBackgroundColor
-          Layout.fillWidth: false
-          Layout.fillHeight: false
-          Layout.preferredWidth: root.skipButtonSize
-          Layout.preferredHeight: root.skipButtonSize
+          iconColor: MprisController.isPlaying ? root.playIconColor : root.pauseIconColor
+          backgroundColor: MprisController.isPlaying ? root.playBackgroundColor : root.pauseBackgroundColor
+          width: root.playButtonSize
+          height: root.playButtonSize
         }
       }
-
-      // RowLayout {
-      //   Layout.alignment: Qt.AlignVCenter
-      //   Layout.preferredWidth: childrenRect.width
-      //   spacing: root.volumeSpacing
-      //   visible: MprisController.activePlayer?.volumeSupported ?? false
-      //
-      //   Item {
-      //     Layout.preferredWidth: root.spacerWidth
-      //   }
-      //
-      //   // Add volume controls here if needed
-      //   // StyledIconButton for volume, StyledSlider for volume control, etc.
-      // }
     }
   }
 }

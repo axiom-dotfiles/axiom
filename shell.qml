@@ -10,6 +10,10 @@ import "modules"
 ShellRoot {
   id: shellRoot
 
+  Lockscreen {
+    id: lockscreen
+  }
+
   HotReload {
     id: hotReload
   }
@@ -45,4 +49,9 @@ ShellRoot {
   AppLauncher {
     id: appLauncher
   }
+  
+  PowerMenu {
+    id: powerMenu
+  }
+
 }

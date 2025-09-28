@@ -20,7 +20,6 @@ ColumnLayout {
     MediaControl {
         id: mediaControl
         Layout.fillWidth: true
-        // playing: root.mediaPlaying
         visible: root.showMediaControl
         containerColor: Theme.accent
     }
