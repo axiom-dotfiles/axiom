@@ -2,6 +2,8 @@ import QtQuick
 import QtQuick.Shapes
 import Quickshell
 
+import qs.config
+
 PanelWindow {
   id: workspaceContainer
 
@@ -10,12 +12,16 @@ PanelWindow {
   property int frameWidth: 8
   property int outerBorderRadius: 0  // Sharp outer corners
   property int innerBorderRadius: 12  // Radius for inner cutout
-  property color frameColor: "blue"
+  property color frameColor: "green"
   property color centerColor: "transparent"
-  property color outerStrokeColor: "darkblue"
-  property color innerStrokeColor: "lightsteelblue"
+  property color outerStrokeColor: "red"
+  property color innerStrokeColor: "blue"
   property int strokeWidth: 1
   property bool antialiasing: true  // Changed to true for smoother curves
+  
+  // --- Bar Configuration Properties ---
+  readonly property bool vertical: Bar.vertical ?? false
+  readonly property bool rightSide: Bar.rightSide ?? false
 
   // --- Panel Configuration ---
   anchors {
@@ -58,9 +64,21 @@ PanelWindow {
             var outerR = workspaceContainer.outerBorderRadius;
             var innerR = workspaceContainer.innerBorderRadius;
             var fw = workspaceContainer.frameWidth;
-
+            
             // Ensure inner radius doesn't exceed frame width
             innerR = Math.min(innerR, fw);
+            
+            // Determine which edge has no frame based on Bar configuration
+            var hasTopFrame = !workspaceContainer.vertical || !workspaceContainer.rightSide;
+            var hasLeftFrame = !workspaceContainer.vertical || workspaceContainer.rightSide;
+            var hasBottomFrame = workspaceContainer.vertical || !workspaceContainer.rightSide;
+            var hasRightFrame = workspaceContainer.vertical || workspaceContainer.rightSide;
+            
+            // Adjust frame widths for each edge
+            var topFw = hasTopFrame ? fw : 0;
+            var bottomFw = hasBottomFrame ? fw : 0;
+            var leftFw = hasLeftFrame ? fw : 0;
+            var rightFw = hasRightFrame ? fw : 0;
 
             // --- OUTER PATH (Clockwise) ---
             var path = "";
@@ -68,7 +86,7 @@ PanelWindow {
             if (outerR > 0) {
               path = "M " + outerR + ",0";
               path += " L " + (w - outerR) + ",0";
-              path += " Q " + w + ",0 " + w + "," + outerR;  // Use quadratic for smoother
+              path += " Q " + w + ",0 " + w + "," + outerR;
               path += " L " + w + "," + (h - outerR);
               path += " Q " + w + "," + h + " " + (w - outerR) + "," + h;
               path += " L " + outerR + "," + h;
@@ -86,33 +104,73 @@ PanelWindow {
             path += " Z";
 
             // --- INNER PATH (Counter-Clockwise) ---
-            // Moving counter-clockwise from top-left
-            if (innerR > 0) {
+            // Adjust corner radii based on which edges have frames
+            var topLeftR = (hasTopFrame && hasLeftFrame) ? innerR : 0;
+            var topRightR = (hasTopFrame && hasRightFrame) ? innerR : 0;
+            var bottomRightR = (hasBottomFrame && hasRightFrame) ? innerR : 0;
+            var bottomLeftR = (hasBottomFrame && hasLeftFrame) ? innerR : 0;
+            
+            // Calculate inner rectangle bounds
+            var innerLeft = leftFw;
+            var innerTop = topFw;
+            var innerRight = w - rightFw;
+            var innerBottom = h - bottomFw;
+            
+            // Build inner path counter-clockwise
+            if (topLeftR > 0 || topRightR > 0 || bottomRightR > 0 || bottomLeftR > 0) {
               // Start at left edge, just below top-left corner
-              path += " M " + fw + "," + (fw + innerR);
-              // Move up and arc to top edge (counter-clockwise)
-              path += " Q " + fw + "," + fw + " " + (fw + innerR) + "," + fw;
-              // Top edge moving right
-              path += " L " + (w - fw - innerR) + "," + fw;
+              path += " M " + innerLeft + "," + Math.min(innerTop + topLeftR, innerBottom);
+              
+              // Top-left corner
+              if (topLeftR > 0) {
+                path += " Q " + innerLeft + "," + innerTop + " " + (innerLeft + topLeftR) + "," + innerTop;
+              } else {
+                path += " L " + innerLeft + "," + innerTop;
+                path += " L " + (innerLeft + topLeftR) + "," + innerTop;
+              }
+              
+              // Top edge
+              path += " L " + (innerRight - topRightR) + "," + innerTop;
+              
               // Top-right corner
-              path += " Q " + (w - fw) + "," + fw + " " + (w - fw) + "," + (fw + innerR);
-              // Right edge moving down
-              path += " L " + (w - fw) + "," + (h - fw - innerR);
+              if (topRightR > 0) {
+                path += " Q " + innerRight + "," + innerTop + " " + innerRight + "," + (innerTop + topRightR);
+              } else {
+                path += " L " + innerRight + "," + innerTop;
+                path += " L " + innerRight + "," + (innerTop + topRightR);
+              }
+              
+              // Right edge
+              path += " L " + innerRight + "," + (innerBottom - bottomRightR);
+              
               // Bottom-right corner
-              path += " Q " + (w - fw) + "," + (h - fw) + " " + (w - fw - innerR) + "," + (h - fw);
-              // Bottom edge moving left
-              path += " L " + (fw + innerR) + "," + (h - fw);
+              if (bottomRightR > 0) {
+                path += " Q " + innerRight + "," + innerBottom + " " + (innerRight - bottomRightR) + "," + innerBottom;
+              } else {
+                path += " L " + innerRight + "," + innerBottom;
+                path += " L " + (innerRight - bottomRightR) + "," + innerBottom;
+              }
+              
+              // Bottom edge
+              path += " L " + (innerLeft + bottomLeftR) + "," + innerBottom;
+              
               // Bottom-left corner
-              path += " Q " + fw + "," + (h - fw) + " " + fw + "," + (h - fw - innerR);
+              if (bottomLeftR > 0) {
+                path += " Q " + innerLeft + "," + innerBottom + " " + innerLeft + "," + (innerBottom - bottomLeftR);
+              } else {
+                path += " L " + innerLeft + "," + innerBottom;
+                path += " L " + innerLeft + "," + (innerBottom - bottomLeftR);
+              }
+              
               // Left edge back to start
-              path += " L " + fw + "," + (fw + innerR);
+              path += " L " + innerLeft + "," + Math.min(innerTop + topLeftR, innerBottom);
             } else {
               // Sharp inner corners (counter-clockwise)
-              path += " M " + fw + "," + fw;
-              path += " L " + fw + "," + (h - fw);
-              path += " L " + (w - fw) + "," + (h - fw);
-              path += " L " + (w - fw) + "," + fw;
-              path += " L " + fw + "," + fw;
+              path += " M " + innerLeft + "," + innerTop;
+              path += " L " + innerLeft + "," + innerBottom;
+              path += " L " + innerRight + "," + innerBottom;
+              path += " L " + innerRight + "," + innerTop;
+              path += " L " + innerLeft + "," + innerTop;
             }
             path += " Z";
 
@@ -167,25 +225,81 @@ PanelWindow {
             var h = frameShape.height;
             var innerR = Math.min(workspaceContainer.innerBorderRadius, workspaceContainer.frameWidth);
             var fw = workspaceContainer.frameWidth;
+            
+            // Determine which edge has no frame based on Bar configuration
+            var hasTopFrame = !workspaceContainer.vertical || !workspaceContainer.rightSide;
+            var hasBottomFrame = !workspaceContainer.vertical || workspaceContainer.rightSide;
+            var hasLeftFrame = workspaceContainer.vertical || !workspaceContainer.rightSide;
+            var hasRightFrame = workspaceContainer.vertical || workspaceContainer.rightSide;
+            
+            // Adjust frame widths for each edge
+            var topFw = hasTopFrame ? fw : 0;
+            var bottomFw = hasBottomFrame ? fw : 0;
+            var leftFw = hasLeftFrame ? fw : 0;
+            var rightFw = hasRightFrame ? fw : 0;
+            
+            // Adjust corner radii based on which edges have frames
+            var topLeftR = (hasTopFrame && hasLeftFrame) ? innerR : 0;
+            var topRightR = (hasTopFrame && hasRightFrame) ? innerR : 0;
+            var bottomRightR = (hasBottomFrame && hasRightFrame) ? innerR : 0;
+            var bottomLeftR = (hasBottomFrame && hasLeftFrame) ? innerR : 0;
+            
+            // Calculate inner rectangle bounds
+            var innerLeft = leftFw;
+            var innerTop = topFw;
+            var innerRight = w - rightFw;
+            var innerBottom = h - bottomFw;
 
             var path = "";
-            if (innerR > 0) {
+            if (topLeftR > 0 || topRightR > 0 || bottomRightR > 0 || bottomLeftR > 0) {
               // Clockwise for stroke-only path
-              path = "M " + (fw + innerR) + "," + fw;
-              path += " L " + (w - fw - innerR) + "," + fw;
-              path += " Q " + (w - fw) + "," + fw + " " + (w - fw) + "," + (fw + innerR);
-              path += " L " + (w - fw) + "," + (h - fw - innerR);
-              path += " Q " + (w - fw) + "," + (h - fw) + " " + (w - fw - innerR) + "," + (h - fw);
-              path += " L " + (fw + innerR) + "," + (h - fw);
-              path += " Q " + fw + "," + (h - fw) + " " + fw + "," + (h - fw - innerR);
-              path += " L " + fw + "," + (fw + innerR);
-              path += " Q " + fw + "," + fw + " " + (fw + innerR) + "," + fw;
+              path = "M " + (innerLeft + topLeftR) + "," + innerTop;
+              
+              // Top edge
+              path += " L " + (innerRight - topRightR) + "," + innerTop;
+              
+              // Top-right corner
+              if (topRightR > 0) {
+                path += " Q " + innerRight + "," + innerTop + " " + innerRight + "," + (innerTop + topRightR);
+              } else {
+                path += " L " + innerRight + "," + innerTop;
+              }
+              
+              // Right edge
+              path += " L " + innerRight + "," + (innerBottom - bottomRightR);
+              
+              // Bottom-right corner
+              if (bottomRightR > 0) {
+                path += " Q " + innerRight + "," + innerBottom + " " + (innerRight - bottomRightR) + "," + innerBottom;
+              } else {
+                path += " L " + innerRight + "," + innerBottom;
+              }
+              
+              // Bottom edge
+              path += " L " + (innerLeft + bottomLeftR) + "," + innerBottom;
+              
+              // Bottom-left corner
+              if (bottomLeftR > 0) {
+                path += " Q " + innerLeft + "," + innerBottom + " " + innerLeft + "," + (innerBottom - bottomLeftR);
+              } else {
+                path += " L " + innerLeft + "," + innerBottom;
+              }
+              
+              // Left edge
+              path += " L " + innerLeft + "," + (innerTop + topLeftR);
+              
+              // Top-left corner
+              if (topLeftR > 0) {
+                path += " Q " + innerLeft + "," + innerTop + " " + (innerLeft + topLeftR) + "," + innerTop;
+              } else {
+                path += " L " + innerLeft + "," + innerTop;
+              }
             } else {
-              path = "M " + fw + "," + fw;
-              path += " L " + (w - fw) + "," + fw;
-              path += " L " + (w - fw) + "," + (h - fw);
-              path += " L " + fw + "," + (h - fw);
-              path += " L " + fw + "," + fw;
+              path = "M " + innerLeft + "," + innerTop;
+              path += " L " + innerRight + "," + innerTop;
+              path += " L " + innerRight + "," + innerBottom;
+              path += " L " + innerLeft + "," + innerBottom;
+              path += " L " + innerLeft + "," + innerTop;
             }
             path += " Z";
             return path;
