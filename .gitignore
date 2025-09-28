@@ -2,3 +2,6 @@
 *.bak
 scramble.png
 scramble.txt
+config/themes/generated
+!config/themes/generated/pywal-dark.json
+config/config.json

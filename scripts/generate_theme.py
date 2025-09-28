@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import pywal  # Now import pywal
 import argparse
 import json
 import os
@@ -15,14 +16,14 @@ import logging
 logging.getLogger("pywal").setLevel(logging.FATAL)
 # --- END OF NEW SECTION ---
 
-import pywal # Now import pywal
 
 def check_available_backends():
     """Check which pywal backends are available on the system."""
-    available = ['wal'] # 'wal' is always available if pywal is installed
+    available = ['wal']  # 'wal' is always available if pywal is installed
     try:
         # Use subprocess.DEVNULL to hide output
-        subprocess.run(['colorz', '--help'], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.run(['colorz', '--help'], check=True,
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         available.append('colorz')
     except (FileNotFoundError, subprocess.CalledProcessError):
         pass
@@ -43,6 +44,7 @@ def check_available_backends():
     except ImportError:
         pass
     return available
+
 
 # --- Configuration (remains the same) ---
 SEMANTIC_MAP_DARK = {
@@ -72,13 +74,15 @@ SEMANTIC_MAP_LIGHT = {
 
 def generate_theme_pair(wallpaper_path, output_dir, index, backend):
     """Generates a dark and light theme pair from a wallpaper."""
-    print(f"Generating theme {index} with backend '{backend}' from {wallpaper_path}...")
+    print(f"Generating theme {index} with backend '{
+          backend}' from {wallpaper_path}...")
 
     try:
         # Use the primary pywal API, which is much more stable.
-        colors_dict = pywal.colors.get(wallpaper_path, backend=backend, light=False)
+        colors_dict = pywal.colors.get(
+            wallpaper_path, backend=backend, light=False)
         if not colors_dict or 'colors' not in colors_dict:
-             raise ValueError("Pywal did not return a valid color dictionary.")
+            raise ValueError("Pywal did not return a valid color dictionary.")
         colors = colors_dict['colors']
         print(f"Successfully generated colors using backend '{backend}'")
 
@@ -87,17 +91,21 @@ def generate_theme_pair(wallpaper_path, output_dir, index, backend):
         if backend != 'wal':
             print("Attempting with 'wal' backend as last resort...")
             try:
-                colors_dict = pywal.colors.get(wallpaper_path, backend='wal', light=False)
+                colors_dict = pywal.colors.get(
+                    wallpaper_path, backend='wal', light=False)
                 if not colors_dict or 'colors' not in colors_dict:
-                    raise ValueError("Pywal (wal backend) did not return a valid color dictionary.")
+                    raise ValueError(
+                        "Pywal (wal backend) did not return a valid color dictionary.")
                 colors = colors_dict['colors']
-                backend = 'wal' # Update the backend name for the log
+                backend = 'wal'  # Update the backend name for the log
                 print("Successfully generated colors using 'wal' backend")
             except Exception as e2:
-                print(f"Fatal error: Could not generate colors with any backend: {e2}", file=sys.stderr)
+                print(f"Fatal error: Could not generate colors with any backend: {
+                      e2}", file=sys.stderr)
                 return
         else:
-            print(f"Fatal error: Could not generate colors: {e}", file=sys.stderr)
+            print(f"Fatal error: Could not generate colors: {
+                  e}", file=sys.stderr)
             return
 
     base16_colors = {f"base{i:02X}": colors[f"color{i}"] for i in range(16)}
@@ -119,10 +127,10 @@ def generate_theme_pair(wallpaper_path, output_dir, index, backend):
         "generated": dark_theme["generated"],
         "colors": base16_colors, "semantic": SEMANTIC_MAP_LIGHT
     }
-    
+
     output_dir_path = Path(output_dir)
     output_dir_path.mkdir(parents=True, exist_ok=True)
-    
+
     dark_filename = output_dir_path / f"pywal-dark{index}.json"
     light_filename = output_dir_path / f"pywal-light{index}.json"
 
@@ -130,7 +138,7 @@ def generate_theme_pair(wallpaper_path, output_dir, index, backend):
         with open(dark_filename, 'w') as f:
             json.dump(dark_theme, f, indent=2)
         print(f"Wrote dark theme to {dark_filename}")
-        
+
         with open(light_filename, 'w') as f:
             json.dump(light_theme, f, indent=2)
         print(f"Wrote light theme to {light_filename}")
@@ -139,23 +147,30 @@ def generate_theme_pair(wallpaper_path, output_dir, index, backend):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Generate dark and light themes using pywal.")
+    parser = argparse.ArgumentParser(
+        description="Generate dark and light themes using pywal.")
     parser.add_argument("wallpaper", help="Path to the wallpaper image.")
-    parser.add_argument("--output_dir", required=True, help="Directory to save the generated JSON themes.")
-    parser.add_argument("--index", required=True, type=int, help="The index number for the theme (e.g., 1).")
-    parser.add_argument("--backend", required=True, help="The pywal backend to use (e.g., 'wal', 'colorz').")
-    parser.add_argument("--list-backends", action="store_true", help="List available backends and exit.")
-    
+    parser.add_argument("--output_dir", required=True,
+                        help="Directory to save the generated JSON themes.")
+    parser.add_argument("--index", required=True, type=int,
+                        help="The index number for the theme (e.g., 1).")
+    parser.add_argument("--backend", required=True,
+                        help="The pywal backend to use (e.g., 'wal', 'colorz').")
+    parser.add_argument("--list-backends", action="store_true",
+                        help="List available backends and exit.")
+
     args = parser.parse_args()
-    
+
     if args.list_backends:
         available = check_available_backends()
         print("Available backends:")
         for backend in available:
             print(f"  - {backend}")
         return
-    
-    generate_theme_pair(args.wallpaper, args.output_dir, args.index, args.backend)
+
+    generate_theme_pair(args.wallpaper, args.output_dir,
+                        args.index, args.backend)
+
 
 if __name__ == "__main__":
     # It's good practice to import sys for stderr printing

@@ -119,7 +119,7 @@ QtObject {
 
     property string _configPath: StandardPaths.writableLocation(StandardPaths.AppConfigLocation) + "/" + Config.userName
     property string _themesPath: _configPath + "/config/themes"
-    property string _generatedThemesPath: _themesPath + "/config/themes/generated"
+    property string _generatedThemesPath: _themesPath + "/generated"
     property string _pythonScriptPath: _configPath + "/scripts/generate_theme.py"
 
     property ListModel _allThemesModel: ListModel {}

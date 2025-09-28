@@ -74,6 +74,10 @@ QtObject {
   property bool isGenerated: false
 
   function reload() {
+    if (isGenerated) {
+      // legal
+      root.themeData = Loader.loadTheme("generated/" + Appearance.theme)
+    }
     root.themeData = Loader.loadTheme(Appearance.theme)
     console.log("---------------- RELOADED THEME ----------------")
     console.log("Theme.qml: reloaded manually for:", Appearance.theme)
