@@ -15,7 +15,7 @@ PanelWindow {
   property color outerStrokeColor: "darkblue"
   property color innerStrokeColor: "lightsteelblue"
   property int strokeWidth: 1
-  property bool antialiasing: false
+  property bool antialiasing: true  // Changed to true for smoother curves
 
   // --- Panel Configuration ---
   anchors {
@@ -37,16 +37,19 @@ PanelWindow {
       id: frameShape
       anchors.fill: parent
       antialiasing: workspaceContainer.antialiasing
+      // Add these for smoother rendering
+      layer.enabled: true
+      layer.samples: 8  // Multisampling for smoother edges
 
       // Main frame path with hole
       ShapePath {
-        id: outerPath
+        id: framePath
         fillColor: workspaceContainer.frameColor
-        strokeColor: workspaceContainer.outerStrokeColor
-        strokeWidth: workspaceContainer.strokeWidth
-        fillRule: ShapePath.OddEvenFill  // Changed to OddEvenFill for proper hole rendering
-        joinStyle: ShapePath.MiterJoin
-        capStyle: ShapePath.FlatCap
+        strokeColor: "transparent"  // Remove stroke from main shape
+        strokeWidth: 0
+        fillRule: ShapePath.OddEvenFill
+        joinStyle: ShapePath.RoundJoin  // Smoother joins
+        capStyle: ShapePath.RoundCap    // Smoother caps
 
         PathSvg {
           path: {
@@ -56,98 +59,136 @@ PanelWindow {
             var innerR = workspaceContainer.innerBorderRadius;
             var fw = workspaceContainer.frameWidth;
 
+            // Ensure inner radius doesn't exceed frame width
+            innerR = Math.min(innerR, fw);
+
             // --- OUTER PATH (Clockwise) ---
-            var outerPath = "";
+            var path = "";
             
             if (outerR > 0) {
-              outerPath = "M " + outerR + ",0";
-              outerPath += " L " + (w - outerR) + ",0";
-              outerPath += " A " + outerR + "," + outerR + " 0 0 1 " + w + "," + outerR;
-              outerPath += " L " + w + "," + (h - outerR);
-              outerPath += " A " + outerR + "," + outerR + " 0 0 1 " + (w - outerR) + "," + h;
-              outerPath += " L " + outerR + "," + h;
-              outerPath += " A " + outerR + "," + outerR + " 0 0 1 0," + (h - outerR);
-              outerPath += " L 0," + outerR;
-              outerPath += " A " + outerR + "," + outerR + " 0 0 1 " + outerR + ",0";
+              path = "M " + outerR + ",0";
+              path += " L " + (w - outerR) + ",0";
+              path += " Q " + w + ",0 " + w + "," + outerR;  // Use quadratic for smoother
+              path += " L " + w + "," + (h - outerR);
+              path += " Q " + w + "," + h + " " + (w - outerR) + "," + h;
+              path += " L " + outerR + "," + h;
+              path += " Q 0," + h + " 0," + (h - outerR);
+              path += " L 0," + outerR;
+              path += " Q 0,0 " + outerR + ",0";
             } else {
               // Sharp corners
-              outerPath = "M 0,0";
-              outerPath += " L " + w + ",0";
-              outerPath += " L " + w + "," + h;
-              outerPath += " L 0," + h;
+              path = "M 0,0";
+              path += " L " + w + ",0";
+              path += " L " + w + "," + h;
+              path += " L 0," + h;
+              path += " L 0,0";
             }
-            outerPath += " Z";
+            path += " Z";
 
-            // --- INNER PATH (Counter-Clockwise for hole) ---
-            var innerPath = "";
-            
+            // --- INNER PATH (Counter-Clockwise) ---
+            // Moving counter-clockwise from top-left
             if (innerR > 0) {
-              // Start at top-left of inner rect, moving right
-              innerPath = " M " + (fw + innerR) + "," + fw;
-              // Top edge
-              innerPath += " L " + (w - fw - innerR) + "," + fw;
-              // Top-right corner (counter-clockwise)
-              innerPath += " A " + innerR + "," + innerR + " 0 0 0 " + (w - fw) + "," + (fw + innerR);
-              // Right edge
-              innerPath += " L " + (w - fw) + "," + (h - fw - innerR);
+              // Start at left edge, just below top-left corner
+              path += " M " + fw + "," + (fw + innerR);
+              // Move up and arc to top edge (counter-clockwise)
+              path += " Q " + fw + "," + fw + " " + (fw + innerR) + "," + fw;
+              // Top edge moving right
+              path += " L " + (w - fw - innerR) + "," + fw;
+              // Top-right corner
+              path += " Q " + (w - fw) + "," + fw + " " + (w - fw) + "," + (fw + innerR);
+              // Right edge moving down
+              path += " L " + (w - fw) + "," + (h - fw - innerR);
               // Bottom-right corner
-              innerPath += " A " + innerR + "," + innerR + " 0 0 0 " + (w - fw - innerR) + "," + (h - fw);
-              // Bottom edge
-              innerPath += " L " + (fw + innerR) + "," + (h - fw);
+              path += " Q " + (w - fw) + "," + (h - fw) + " " + (w - fw - innerR) + "," + (h - fw);
+              // Bottom edge moving left
+              path += " L " + (fw + innerR) + "," + (h - fw);
               // Bottom-left corner
-              innerPath += " A " + innerR + "," + innerR + " 0 0 0 " + fw + "," + (h - fw - innerR);
-              // Left edge
-              innerPath += " L " + fw + "," + (fw + innerR);
-              // Top-left corner
-              innerPath += " A " + innerR + "," + innerR + " 0 0 0 " + (fw + innerR) + "," + fw;
+              path += " Q " + fw + "," + (h - fw) + " " + fw + "," + (h - fw - innerR);
+              // Left edge back to start
+              path += " L " + fw + "," + (fw + innerR);
             } else {
-              // Sharp inner corners
-              innerPath = " M " + fw + "," + fw;
-              innerPath += " L " + (w - fw) + "," + fw;
-              innerPath += " L " + (w - fw) + "," + (h - fw);
-              innerPath += " L " + fw + "," + (h - fw);
+              // Sharp inner corners (counter-clockwise)
+              path += " M " + fw + "," + fw;
+              path += " L " + fw + "," + (h - fw);
+              path += " L " + (w - fw) + "," + (h - fw);
+              path += " L " + (w - fw) + "," + fw;
+              path += " L " + fw + "," + fw;
             }
-            innerPath += " Z";
+            path += " Z";
 
-            return outerPath + innerPath;
+            return path;
           }
         }
       }
 
-      // Inner border stroke (optional)
+      // Outer border stroke (separate path)
       ShapePath {
         fillColor: "transparent"
-        strokeColor: workspaceContainer.innerStrokeColor
+        strokeColor: workspaceContainer.outerStrokeColor
         strokeWidth: workspaceContainer.strokeWidth
+        joinStyle: ShapePath.RoundJoin
 
         PathSvg {
           path: {
             var w = frameShape.width;
             var h = frameShape.height;
-            var innerR = workspaceContainer.innerBorderRadius;
+            var outerR = workspaceContainer.outerBorderRadius;
+            
+            var path = "";
+            if (outerR > 0) {
+              path = "M " + outerR + ",0";
+              path += " L " + (w - outerR) + ",0";
+              path += " Q " + w + ",0 " + w + "," + outerR;
+              path += " L " + w + "," + (h - outerR);
+              path += " Q " + w + "," + h + " " + (w - outerR) + "," + h;
+              path += " L " + outerR + "," + h;
+              path += " Q 0," + h + " 0," + (h - outerR);
+              path += " L 0," + outerR;
+              path += " Q 0,0 " + outerR + ",0";
+            } else {
+              path = "M 0,0 L " + w + ",0 L " + w + "," + h + " L 0," + h + " L 0,0";
+            }
+            path += " Z";
+            return path;
+          }
+        }
+      }
+
+      // Inner border stroke (separate path)
+      ShapePath {
+        fillColor: "transparent"
+        strokeColor: workspaceContainer.innerStrokeColor
+        strokeWidth: workspaceContainer.strokeWidth
+        joinStyle: ShapePath.RoundJoin
+
+        PathSvg {
+          path: {
+            var w = frameShape.width;
+            var h = frameShape.height;
+            var innerR = Math.min(workspaceContainer.innerBorderRadius, workspaceContainer.frameWidth);
             var fw = workspaceContainer.frameWidth;
 
-            var innerBorderPath = "";
-            
+            var path = "";
             if (innerR > 0) {
-              innerBorderPath = "M " + (fw + innerR) + "," + fw;
-              innerBorderPath += " L " + (w - fw - innerR) + "," + fw;
-              innerBorderPath += " A " + innerR + "," + innerR + " 0 0 1 " + (w - fw) + "," + (fw + innerR);
-              innerBorderPath += " L " + (w - fw) + "," + (h - fw - innerR);
-              innerBorderPath += " A " + innerR + "," + innerR + " 0 0 1 " + (w - fw - innerR) + "," + (h - fw);
-              innerBorderPath += " L " + (fw + innerR) + "," + (h - fw);
-              innerBorderPath += " A " + innerR + "," + innerR + " 0 0 1 " + fw + "," + (h - fw - innerR);
-              innerBorderPath += " L " + fw + "," + (fw + innerR);
-              innerBorderPath += " A " + innerR + "," + innerR + " 0 0 1 " + (fw + innerR) + "," + fw;
+              // Clockwise for stroke-only path
+              path = "M " + (fw + innerR) + "," + fw;
+              path += " L " + (w - fw - innerR) + "," + fw;
+              path += " Q " + (w - fw) + "," + fw + " " + (w - fw) + "," + (fw + innerR);
+              path += " L " + (w - fw) + "," + (h - fw - innerR);
+              path += " Q " + (w - fw) + "," + (h - fw) + " " + (w - fw - innerR) + "," + (h - fw);
+              path += " L " + (fw + innerR) + "," + (h - fw);
+              path += " Q " + fw + "," + (h - fw) + " " + fw + "," + (h - fw - innerR);
+              path += " L " + fw + "," + (fw + innerR);
+              path += " Q " + fw + "," + fw + " " + (fw + innerR) + "," + fw;
             } else {
-              innerBorderPath = "M " + fw + "," + fw;
-              innerBorderPath += " L " + (w - fw) + "," + fw;
-              innerBorderPath += " L " + (w - fw) + "," + (h - fw);
-              innerBorderPath += " L " + fw + "," + (h - fw);
+              path = "M " + fw + "," + fw;
+              path += " L " + (w - fw) + "," + fw;
+              path += " L " + (w - fw) + "," + (h - fw);
+              path += " L " + fw + "," + (h - fw);
+              path += " L " + fw + "," + fw;
             }
-            innerBorderPath += " Z";
-
-            return innerBorderPath;
+            path += " Z";
+            return path;
           }
         }
       }
