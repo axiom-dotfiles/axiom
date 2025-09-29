@@ -18,7 +18,7 @@ ShellRoot {
     id: hotReload
   }
 
-  NotificationPopup {
+  Notifications {
     id: notificationPopup
   }
 
