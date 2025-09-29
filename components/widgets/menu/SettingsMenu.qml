@@ -38,32 +38,10 @@ Item {
       MenuToggles {}
     }
     
-    // StyledContainer {
-    //   id: topSection
-    //   Layout.fillWidth: true
-    //   Layout.preferredHeight: root.topSectionHeight // Layout respects preferred height
-    //   containerBorderColor: Theme.border
-    //   
-    //   StyledText {
-    //     anchors.centerIn: parent
-    //     text: "Top Section - Reserved for Future Component"
-    //     textColor: Theme.foregroundAlt
-    //   }
-    //   
-    //   MouseArea {
-    //     anchors.fill: parent
-    //     cursorShape: Qt.PointingHandCursor
-    //     onClicked: {
-    //       console.log("Top section clicked - toggling dark mode for demo.");
-    //       ThemeManager.toggleDarkMode();
-    //     }
-    //   }
-    // }
-    
     MainContent {
       id: tabbedContent
       Layout.fillWidth: true
-      Layout.fillHeight: true // This is the key to making it fill the space
+      Layout.fillHeight: true
     }
   }
 }

@@ -4,13 +4,14 @@ import Quickshell
 import qs.services
 import qs.config
 
+// TODO: Completely re-write the entire popout system; I had no idea what I was doing
 Item {
   id: root
 
   required property ShellScreen screen
 
   property string currentName: ""
-  property var currentAnchor: null    // bar sub-item passed in
+  property var currentAnchor: null
   property var currentData: null
   property bool hasCurrent: false
 
@@ -18,10 +19,9 @@ Item {
 
   property Item current: content.item?.current ?? null
 
-  // Animation properties
   property int animLength: 200
   property list<real> animCurve: [0.4, 0.0, 0.2, 1.0]
-  property int gap: 4                 // small gap between bar and popout
+  property int gap: 4
 
   function closePopout() {
     if (isClosing)
@@ -103,7 +103,6 @@ Item {
 
     // TODO: Outward Border Radius workaround to make the border fit into the bar
 
-    // Container for both elements
     Item {
       anchors.fill: parent
       SlideAnimationContainer {
@@ -152,8 +151,6 @@ Item {
 
         Loader {
           id: content
-          // Unfortunately this needs to be set in the popout component
-          // anchors.centerIn: parent
 
           active: hasCurrent
           asynchronous: false

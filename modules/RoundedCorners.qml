@@ -4,6 +4,9 @@ import Quickshell
 
 import qs.config
 
+// This is great and is a bitch but break on multi-monitor and makes
+// a werid hypr config. Ideally should be multiple panel windows
+// and just draw the corners / also could put a panel window with the difference on the other monitor if no bar TODO:
 PanelWindow {
   id: workspaceContainer
 

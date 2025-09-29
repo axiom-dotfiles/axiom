@@ -136,7 +136,7 @@ Item {
         }
 
         PipewireVolumeBar {
-          targetApplication: "youtube-music"
+          targetApplication: "spotify"
           orientation: Qt.Vertical
           iconSource: ""
           onVisibilityChanged: {

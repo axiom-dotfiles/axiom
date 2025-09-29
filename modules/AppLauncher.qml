@@ -12,6 +12,7 @@ Scope {
   Variants {
     model: Quickshell.screens
     delegate: Launcher {
+      property var modelData: modelData
       id: appLauncher
       screen: modelData
     }

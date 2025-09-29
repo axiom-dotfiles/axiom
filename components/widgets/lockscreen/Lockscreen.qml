@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
+import QtQuick.Controls
 import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
@@ -13,18 +14,21 @@ import qs.services
 PanelWindow {
   id: rootWindow
 
+  required property var screen
+  property bool isPrimaryScreen: screen.name === Display.primary
+
   property int containerWidth: 400
   property bool isLocked: false
   property bool showMediaControl: MprisController.isPlaying
   property real slideOffset: isLocked ? 0 : -height
 
   Component.onCompleted: {
+    console.log("Lockscreen initialized on screen:", screen.name);
     ShellManager.lockScreen.connect(function() {
       rootWindow.lock();
     });
   }
 
-  screen: modelData
   anchors {
     left: true
     right: true
@@ -34,23 +38,27 @@ PanelWindow {
   color: "transparent"
   focusable: true
 
-  // Higher layer to cover the bar
   WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
   WlrLayershell.layer: WlrLayer.Overlay
-  WlrLayershell.exclusiveZone: -1  // Don't push other windows
+  WlrLayershell.exclusiveZone: -1
 
   function lock() {
-    visible = true;  // Make visible first
-    isLocked = true;
+  visible = true;
+  isLocked = true;
+  
+  if (isPrimaryScreen) {
     passwordInput.input.text = "";
     Authentication.clearMessage();
     passwordInput.input.forceActiveFocus();
   }
+}
 
   function unlock() {
     isLocked = false;
-    passwordInput.input.text = "";
-    Authentication.clearMessage();
+    if (isPrimaryScreen) {
+      passwordInput.input.text = "";
+      Authentication.clearMessage();
+    }
     // Hide after animation completes
     hideTimer.start();
   }
@@ -114,7 +122,7 @@ PanelWindow {
     }
 
     function onAuthenticationFailed(reason) {
-      if (rootWindow.isLocked) {
+      if (rootWindow.isLocked && isPrimaryScreen) {
         passwordInput.input.text = "";
         passwordInput.input.forceActiveFocus();
         shakeAnimation.start();
@@ -122,7 +130,7 @@ PanelWindow {
     }
 
     function onAuthenticationError(error) {
-      if (rootWindow.isLocked) {
+      if (rootWindow.isLocked && isPrimaryScreen) {
         passwordInput.input.text = "";
         passwordInput.input.forceActiveFocus();
       }
@@ -166,6 +174,8 @@ PanelWindow {
       anchors.horizontalCenter: parent.horizontalCenter
       anchors.verticalCenter: parent.verticalCenter
       anchors.verticalCenterOffset: -parent.height / 8
+
+      visible: isPrimaryScreen
 
       SequentialAnimation {
         id: shakeAnimation

@@ -105,7 +105,7 @@ Item {
     const searchString = targetApplication.toLowerCase();
 
     if (searchString === "master") {
-      const excludedBinaries = ["youtube-music", "electron", "zen-bin"];
+      const excludedBinaries = ["youtube-music", "electron", "zen-bin", "spotify"];
 
       for (let i = 0; i < nodes.length; ++i) {
         const n = nodes[i];

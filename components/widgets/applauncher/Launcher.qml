@@ -10,7 +10,7 @@ import qs.config
 PanelWindow {
   id: rootWindow
 
-  screen: modelData
+  required property var screen
   anchors {
     left: true
     right: true
