@@ -49,11 +49,11 @@ StyledContainer {
   // `tabs` array unchanged as it's used by the TabBar for names
   readonly property var tabs: [
     {
-      name: "",
+      name: ""
       // loader: settingsLoader // This property is not used for content loading in this setup
     },
     {
-      name: "󱜙",
+      name: "󱜙"
       // loader: chatLoader    // This property is not used for content loading in this setup
     }
   ]
@@ -81,6 +81,16 @@ StyledContainer {
       onTabClicked: index => {
         root.currentTab = index;
       }
+    }
+
+    StyledContainer {
+      Layout.fillWidth: true
+      Layout.preferredHeight: Widget.padding
+      Layout.leftMargin: Widget.padding
+      Layout.rightMargin: Widget.padding
+
+      containerColor: Theme.blue
+
     }
 
     StyledContainer {
@@ -145,6 +155,22 @@ StyledContainer {
           }
         }
       }
+    }
+    MenuBottomArea {
+      id: bottomArea
+      // Layout.fillWidth: true
+      // Layout.topMargin: Widget.padding
+      // Layout.bottomMargin: Widget.padding
+      Layout.fillWidth: true
+      // Layout.preferredHeight: root.tabBarHeight
+      // Layout.topMargin: Widget.padding
+      Layout.bottomMargin: Widget.padding
+      Layout.leftMargin: Widget.padding
+      Layout.rightMargin: Widget.padding
+      
+      quickSettingsHeight: 40
+      showMediaControl: true
+      mediaPlaying: true
     }
   }
 }

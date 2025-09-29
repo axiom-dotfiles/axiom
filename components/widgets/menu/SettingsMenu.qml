@@ -18,26 +18,12 @@ Item {
   property real topSectionHeight: 120
   property real quickSettingsHeight: 40
 
-  MenuBottomArea {
-    id: bottomArea
-    anchors.bottom: parent.bottom
-    anchors.left: parent.left
-    anchors.right: parent.right
-    anchors.bottomMargin: root.panelMargin
-    anchors.leftMargin: root.panelMargin
-    anchors.rightMargin: root.panelMargin
-    
-    quickSettingsHeight: root.quickSettingsHeight
-    mediaPlaying: root.mediaPlaying
-    showMediaControl: true
-  }
-
   ColumnLayout {
     id: topAreaLayout
     anchors.top: parent.top
     anchors.left: parent.left
     anchors.right: parent.right
-    anchors.bottom: bottomArea.top
+    anchors.bottom: parent.bottom
     anchors.topMargin: root.panelMargin
     anchors.leftMargin: root.panelMargin
     anchors.rightMargin: root.panelMargin

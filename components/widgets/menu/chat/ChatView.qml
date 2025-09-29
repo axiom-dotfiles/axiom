@@ -31,8 +31,8 @@ StyledContainer {
     TabBar {
       Layout.fillWidth: true
       Layout.preferredHeight: chatView.tabBarHeight
-      Layout.rightMargin: Widget.padding
-      Layout.leftMargin: Widget.padding
+      // Layout.rightMargin: Widget.padding
+      // Layout.leftMargin: Widget.padding
       currentTab: chatView.currentTab
       activeColor: Theme.accentAlt
       tabs: chatView.tabs
@@ -72,13 +72,5 @@ StyledContainer {
       Layout.bottomMargin: Widget.padding
     }
     
-    MenuBottomArea {
-      id: bottomArea
-      Layout.fillWidth: true
-      
-      quickSettingsHeight: 40
-      showMediaControl: true
-      mediaPlaying: true
-    }
   }
 }
