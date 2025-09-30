@@ -32,7 +32,7 @@ StyledContainer {
   // Determine color based on time in seconds
   readonly property color timeColor: {
     var seconds = time / 1000;
-    if (seconds < 15) return Theme.success;
+    if (seconds < 15) return Theme.accent;
     if (seconds < 20) return Theme.warning;
     return Theme.error;
   }

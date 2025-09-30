@@ -65,13 +65,12 @@ StyledContainer {
     id: mediaControlLoader
     anchors.fill: parent
     anchors.margins: root.widgetPadding
-    active: root.visible
+    active: root.visible && MprisController.hasActivePlayer
 
     sourceComponent: RowLayout {
       id: mainLayout
       spacing: root.itemSpacing
 
-      // Album Art
       StyledContainer {
         Layout.preferredWidth: root.albumArtSize
         Layout.preferredHeight: root.albumArtSize
@@ -200,7 +199,7 @@ StyledContainer {
             Connections {
               target: MprisController
 
-              onPositionChanged: {
+              function onPositionChanged() {
                 if (!progressSlider.userInteracting) {
                   progressSlider.value = MprisController.progress;
                 }

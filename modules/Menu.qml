@@ -3,7 +3,6 @@ pragma ComponentBehavior: Bound
 import QtQuick
 
 import qs.components.widgets.popouts
-import qs.components.reusable
 import qs.components.widgets.menu
 import qs.config
 import qs.services
@@ -17,12 +16,9 @@ Item {
     panelId: "mainMenu"
     position: 0.5
     enableTrigger: true
-    // customHeight: Display.resolutionHeight - Widget.containerWidth * 2
     triggerLength: Display.resolutionHeight
-    edgeMargin: Config.containerOffset + Appearance.borderWidth * 2 + 3
+    edgeMargin: Config.containerOffset + Appearance.borderWidth * 2
     wantsKeyboardFocus: mainMenu.wantsKeyboardFocus
-    // edgeMargin: Config.containerOffset - (Appearance.borderWidth * 2) - 5
-    // customHeight: Display.resolutionHeight - (Widget.containerWidth * 2) + (Appearance.borderWidth * 2)
 
     Component.onCompleted: {
       if (panelId !== "") {
@@ -33,21 +29,16 @@ Item {
           }
         });
       }
-      // if (Menu.startMenuPinned) {
-      //   console.log("Menu is set to start pinned. Pinning now.");
-      //   ShellManager.togglePinnedPanel("mainMenu")
-      // }
     }
 
     MainMenu {
       id: mainMenu
       panelId: "mainMenu"
-      // customHeight: Display.resolutionHeight - Widget.containerWidth * 2 + (Appearance.borderWidth * 2)
     }
 
     function toggleLocation() {
       if (root.reserveSpace) {
-        root.edgeMargin = Config.containerOffset - (Appearance.borderWidth * 2) - 5; // Minor spaghetti
+        root.edgeMargin = Config.containerOffset - (Appearance.borderWidth * 2) - 5;
         mainMenu.customHeight = Display.resolutionHeight - Widget.containerWidth * 2;
       } else {
         root.edgeMargin = Config.containerOffset + Appearance.borderWidth * 2 + 3;

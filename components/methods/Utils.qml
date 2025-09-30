@@ -22,15 +22,26 @@ QtObject {
 
     wallpaperUrl = wallpaperUrl.replace("file://", "");
     const scriptPath = "/home/travmonkey/.config/hypr/scripts/setWallpaper.sh"; // Adjust path as needed
-    console.log("Setting wallpaper to:", wallpaperUrl);
-    launchProcess.command = [scriptPath, wallpaperUrl];
-    launchProcess.running = true;
+    const command = [scriptPath, wallpaperUrl];
+    launch(command);
   }
 
   function themeKitty(themeUrl) {
     const scriptPath = "/home/travmonkey/.config/quickshell/travmonkey/scripts/theme_kitty.sh";
-    launchProcess.command = [scriptPath, themeUrl];
-    launchProcess.running = true;
+    const command = [scriptPath, themeUrl];
+    launch(command);
+  }
+
+  function themeCava(themeUrl) {
+    const scriptPath = "/home/travmonkey/.config/quickshell/travmonkey/scripts/theme_cava.sh";
+    const command = [scriptPath, themeUrl];
+    launch(command);
+  }
+
+  function themek9s(themeUrl) {
+    const scriptPath = "/home/travmonkey/.config/quickshell/travmonkey/scripts/theme_k9s.sh";
+    const command = [scriptPath, themeUrl];
+    launch(command);
   }
 
   // Launch with arguments

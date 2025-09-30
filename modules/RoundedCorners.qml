@@ -4,13 +4,13 @@ import Quickshell
 
 import qs.config
 
-// This is great and is a bitch but break on multi-monitor and makes
+// This is great but is a bitch and breaks on multi-monitor and makes
 // a werid hypr config. Ideally should be multiple panel windows
 // and just draw the corners / also could put a panel window with the difference on the other monitor if no bar TODO:
+// I do like the single drawn path tho ...
 PanelWindow {
   id: workspaceContainer
 
-  // --- Configuration Properties ---
   property int screenMargin: 10
   property int frameWidth: 8
   property int outerBorderRadius: 0
@@ -22,11 +22,9 @@ PanelWindow {
   property int strokeWidth: 1
   property bool antialiasing: true
 
-  // --- Bar Configuration Properties ---
   readonly property bool vertical: Bar.vertical ?? false
   readonly property bool rightSide: Bar.rightSide ?? false
 
-  // --- Panel Configuration ---
   anchors {
     top: true
     left: true
@@ -36,6 +34,10 @@ PanelWindow {
   aboveWindows: true
   color: "transparent"
   mask: Region {}
+
+  Component.onCompleted: {
+    console.log("RoundedCorners initialized on screen:", Screen.name);
+  }
 
   Rectangle {
     id: frameRect
@@ -49,7 +51,6 @@ PanelWindow {
       layer.enabled: true
       layer.samples: 8
 
-      // Main frame path with hole
       ShapePath {
         id: framePath
         fillColor: workspaceContainer.frameColor
@@ -67,10 +68,8 @@ PanelWindow {
             var innerR = workspaceContainer.innerBorderRadius;
             var fw = workspaceContainer.frameWidth;
 
-            // Ensure inner radius doesn't exceed frame width
             innerR = Math.min(innerR, fw);
 
-            // Determine which edge has the bar
             var barAtTop = !workspaceContainer.vertical && !workspaceContainer.rightSide;
             var barAtLeft = workspaceContainer.vertical && !workspaceContainer.rightSide;
             var barAtBottom = !workspaceContainer.vertical && workspaceContainer.rightSide;
@@ -147,7 +146,7 @@ PanelWindow {
         }
       }
 
-      // Outer border stroke (separate path)
+      // Outer border
       ShapePath {
         fillColor: "transparent"
         strokeColor: workspaceContainer.outerStrokeColor
@@ -180,7 +179,7 @@ PanelWindow {
         }
       }
 
-      // Inner border stroke (separate path)
+      // Inner border
       ShapePath {
         fillColor: "transparent"
         strokeColor: workspaceContainer.innerStrokeColor

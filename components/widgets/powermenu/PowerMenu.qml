@@ -12,6 +12,7 @@ import qs.services
 PanelWindow {
   id: rootWindow
 
+  required property var screen
   property int buttonSize: 200
   property int iconSize: 60
   property int gridSpacing: 20
@@ -30,8 +31,7 @@ PanelWindow {
     });
   }
 
-
-  screen: Quickshell.screens[0]
+  screen: rootWindow.screen
   anchors {
     left: true
     right: true

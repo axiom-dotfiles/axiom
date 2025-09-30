@@ -47,9 +47,9 @@ PanelWindow {
   isLocked = true;
   
   if (isPrimaryScreen) {
-    passwordInput.input.text = "";
+    passwordInput.text = "";
     Authentication.clearMessage();
-    passwordInput.input.forceActiveFocus();
+    passwordInput.forceActiveFocus();
   }
 }
 
@@ -59,13 +59,12 @@ PanelWindow {
       passwordInput.input.text = "";
       Authentication.clearMessage();
     }
-    // Hide after animation completes
     hideTimer.start();
   }
 
   Timer {
     id: hideTimer
-    interval: 300  // Match slide animation duration
+    interval: 300
     repeat: false
     onTriggered: {
       if (!rootWindow.isLocked) {
@@ -101,9 +100,8 @@ PanelWindow {
 
   HyprlandFocusGrab {
     id: grab
-    active: rootWindow.isLocked
+    active: rootWindow.isLocked && rootWindow.isPrimaryScreen
     windows: [rootWindow]
-    // Don't allow clearing the grab while locked
     onCleared: {
       if (rootWindow.isLocked) {
         grab.active = true;
@@ -111,7 +109,6 @@ PanelWindow {
     }
   }
 
-  // Authentication connections
   Connections {
     target: Authentication
 
@@ -122,7 +119,7 @@ PanelWindow {
     }
 
     function onAuthenticationFailed(reason) {
-      if (rootWindow.isLocked && isPrimaryScreen) {
+      if (rootWindow.isLocked && rootWindow.isPrimaryScreen) {
         passwordInput.input.text = "";
         passwordInput.input.forceActiveFocus();
         shakeAnimation.start();
@@ -130,21 +127,19 @@ PanelWindow {
     }
 
     function onAuthenticationError(error) {
-      if (rootWindow.isLocked && isPrimaryScreen) {
+      if (rootWindow.isLocked && rootWindow.isPrimaryScreen) {
         passwordInput.input.text = "";
         passwordInput.input.forceActiveFocus();
       }
     }
   }
 
-  // Main content with slide animation
   Item {
     id: slideContainer
     anchors.fill: parent
 
-    // Slide animation
     transform: Translate {
-      y: slideOffset
+      y: rootWindow.slideOffset
       Behavior on y {
         NumberAnimation {
           duration: 300
@@ -153,12 +148,10 @@ PanelWindow {
       }
     }
 
-    // Background with strong blur effect
     Rectangle {
       anchors.fill: parent
       color: Theme.background
 
-      // Additional darkening layer
       Rectangle {
         anchors.fill: parent
         color: "black"
@@ -166,16 +159,19 @@ PanelWindow {
       }
     }
 
-    // Main container
     Item {
       id: lockContainer
-      width: containerWidth
+      width: rootWindow.containerWidth
       height: mainColumn.height
       anchors.horizontalCenter: parent.horizontalCenter
       anchors.verticalCenter: parent.verticalCenter
       anchors.verticalCenterOffset: -parent.height / 8
 
-      visible: isPrimaryScreen
+      visible: true
+      Component.onCompleted: {
+        console.log("LockContainer initialized on screen:", rootWindow.screen.name);
+        console.log("Primary Screen? ", rootWindow.isPrimaryScreen);
+      }
 
       SequentialAnimation {
         id: shakeAnimation
@@ -260,7 +256,6 @@ PanelWindow {
               color: Theme.accent
               radius: 8
 
-              // Your MediaControl content here
               MediaControl {
                 id: mediaControl
                 implicitHeight: MprisController.isPlaying ? 100 : 0
@@ -274,8 +269,8 @@ PanelWindow {
         }
 
         Column {
-          width: parent.width
-          spacing: Appearance.padding
+          Layout.fillWidth: true
+          spacing: Widget.padding
 
           StyledTextEntry {
             id: passwordInput
@@ -286,15 +281,17 @@ PanelWindow {
             input.horizontalAlignment: Text.AlignHCenter
             enabled: !Authentication.isAuthenticating
 
-            // Set password mode using input properties
+            focus: true
+
             Component.onCompleted: {
-              input.echoMode = 2; // TextInput.Password = 2
+              input.echoMode = 2;
+              if (rootWindow.isLocked && rootWindow.isPrimaryScreen) {
+                input.forceActiveFocus();
+              }
             }
 
-            focus: rootWindow.isLocked
-
             Keys.onEscapePressed: {
-              input.text = "";
+              text = "";
               Authentication.clearMessage();
             }
 
@@ -309,6 +306,7 @@ PanelWindow {
             onAccepted: {
               if (input.text.length > 0 && !Authentication.isAuthenticating) {
                 Authentication.authenticate(input.text, null);
+                input.text = "";
               }
             }
           }
@@ -317,7 +315,7 @@ PanelWindow {
           StyledText {
             id: messageText
             text: Authentication.message
-            textColor: Authentication.messageIsError ? Theme.critical : Theme.foregroundAlt
+            textColor: Authentication.messageIsError ? Theme.error : Theme.foregroundAlt
             textSize: Appearance.fontSize - 2
             horizontalAlignment: Text.AlignHCenter
             width: parent.width

@@ -189,30 +189,30 @@ Item {
               }
             }
 
-            // NotificationActionButton {
-            //   id: copyButton
-            //   visible: root.notificationObject.body ? true : false
-            //   urgency: root.notificationObject.urgency
-            //   onClicked: {
-            //     Quickshell.clipboardText = root.notificationObject.summary + "\n" + root.notificationObject.body;
-            //     copyIcon.text = "done";
-            //     copyIconTimer.restart();
-            //   }
-            //
-            //   content: Text {
-            //     id: copyIcon
-            //     text: "content_copy"
-            //     font.family: "Material Symbols Outlined"
-            //     font.pixelSize: Appearance.fontSize
-            //     color: copyButton.urgency === NotificationUrgency.Critical ? Theme.base00 : Theme.foreground
-            //   }
-            //
-            //   Timer {
-            //     id: copyIconTimer
-            //     interval: 1500
-            //     onTriggered: copyIcon.text = "content_copy"
-            //   }
-            // }
+            NotificationActionButton {
+              id: copyButton
+              visible: root.notificationObject.body ? true : false
+              urgency: root.notificationObject.urgency
+              onClicked: {
+                Quickshell.clipboardText = root.notificationObject.summary + "\n" + root.notificationObject.body;
+                copyIcon.text = "done";
+                copyIconTimer.restart();
+              }
+
+              content: Text {
+                id: copyIcon
+                text: "content_copy"
+                font.family: "Material Symbols Outlined"
+                font.pixelSize: Appearance.fontSize
+                color: copyButton.urgency === NotificationUrgency.Critical ? Theme.base00 : Theme.foreground
+              }
+
+              Timer {
+                id: copyIconTimer
+                interval: 1500
+                onTriggered: copyIcon.text = "content_copy"
+              }
+            }
 
             NotificationActionButton {
               buttonText: "X"

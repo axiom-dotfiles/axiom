@@ -11,10 +11,10 @@ import qs.config
 import qs.components.reusable
 import qs.components.widgets.menu.cube
 
-StyledContainer {
+ColumnLayout {
   id: root
 
-  readonly property int _required_width: mainLayout.implicitWidth + (Widget.padding * 2)
+  readonly property int _required_width: mainContainer.implicitWidth
 
   property int timerFontSize: 72
   property int scrambleFontSize: Appearance.fontSize * 1.2
@@ -23,15 +23,15 @@ StyledContainer {
   property bool hideTimeDuringSolve: false
   property int readyDelay: 500 // ms
   property string pythonScriptPath: "/home/travmonkey/.config/quickshell/travmonkey/scripts/cube.py"
-  property string scrambleTextPath: "../../../assets/cube/scramble.txt"
-  property string scrambleImagePath: "../../../assets/cube/scramble.png"
+  property string scrambleTextPath: "../../../../assets/cube/scramble.txt"
+  property string scrambleImagePath: "../../../../assets/cube/scramble.png"
 
   property bool isRunning: false
   property bool isReady: false
   property bool wasStopped: false
   property int elapsedTime: 0
 
-  // ADDED: Model to store the history of solves
+  // Model to store the history of solves
   ListModel {
     id: solveHistoryModel
   }
@@ -90,15 +90,30 @@ StyledContainer {
   }
 
   function stopTimer() {
+    // Capture the time and scramble before any state changes
+    var solveTime = root.elapsedTime;
+    var solveScramble = scrambleText.text;
+    
+    console.log("Stopping timer - Elapsed time:", solveTime, "ms");
+    
     root.isRunning = false;
     root.wasStopped = true;
 
-    // MODIFIED: Add the completed solve to the history model
-    if (root.elapsedTime > 0) { // Only add non-zero solves
-        solveHistoryModel.insert(0, {
-            "scramble": scrambleText.text,
-            "time": root.elapsedTime
-        });
+    // Add the completed solve to the history model
+    if (solveTime > 0) { // Only add non-zero solves
+        console.log("Adding solve to history - Time:", solveTime, "Scramble:", solveScramble);
+        var newItem = {
+            "scramble": solveScramble,
+            "time": solveTime
+        };
+        solveHistoryModel.insert(0, newItem);
+        
+        // Verify the item was added correctly
+        console.log("History count:", solveHistoryModel.count);
+        if (solveHistoryModel.count > 0) {
+            var firstItem = solveHistoryModel.get(0);
+            console.log("First item in history - Time:", firstItem.time, "Scramble:", firstItem.scramble);
+        }
     }
 
     regenerateScramble();
@@ -121,86 +136,101 @@ StyledContainer {
     scrambleImage.source = Qt.resolvedUrl(root.scrambleImagePath) + "?cache_buster=" + new Date().getTime();
   }
 
-  implicitHeight: mainLayout.implicitHeight + (Widget.padding * 2)
-  containerColor: Theme.foregroundAlt
+  spacing: Widget.spacing
 
-  ColumnLayout {
-    id: mainLayout
-    anchors.fill: parent
-    anchors.margins: Widget.padding
+  // Main timer container (static, non-scrollable)
+  StyledContainer {
+    id: mainContainer
+    Layout.fillWidth: true
+    implicitHeight: mainLayout.implicitHeight + (Widget.padding * 2)
+    containerColor: Theme.foregroundAlt
 
-    Text {
-      id: scrambleText
-      text: scrambleFileReader.text()
-      font.family: Appearance.fontFamily
-      font.pixelSize: root.scrambleFontSize
-      color: Theme.backgroundAlt
-      wrapMode: Text.WordWrap
-      horizontalAlignment: Text.AlignHCenter
-      Layout.fillWidth: true
-      Layout.alignment: Qt.AlignHCenter
-    }
+    ColumnLayout {
+      id: mainLayout
+      anchors.fill: parent
+      anchors.margins: Widget.padding
 
-    Text {
-      id: timerDisplay
-      text: root.hideTimeDuringSolve && root.isRunning ? "..." : formatTime(root.elapsedTime)
-      font.family: Appearance.fontFamily
-      font.pixelSize: root.timerFontSize
-      font.bold: true
-      color: root.isReady ? Theme.success : Theme.background
-      Layout.alignment: Qt.AlignHCenter
-      Layout.topMargin: Widget.spacing * 2
-      Layout.bottomMargin: Widget.spacing
+      Text {
+        id: scrambleText
+        text: scrambleFileReader.text()
+        font.family: Appearance.fontFamily
+        font.pixelSize: root.scrambleFontSize
+        color: Theme.backgroundAlt
+        wrapMode: Text.WordWrap
+        horizontalAlignment: Text.AlignHCenter
+        Layout.fillWidth: true
+        Layout.alignment: Qt.AlignHCenter
+      }
 
-      Behavior on color {
-        ColorAnimation {
-          duration: 150
+      Text {
+        id: timerDisplay
+        text: root.hideTimeDuringSolve && root.isRunning ? "..." : formatTime(root.elapsedTime)
+        font.family: Appearance.fontFamily
+        font.pixelSize: root.timerFontSize
+        font.bold: true
+        color: root.isReady ? Theme.success : Theme.background
+        Layout.alignment: Qt.AlignHCenter
+        Layout.topMargin: Widget.spacing * 2
+        Layout.bottomMargin: Widget.spacing
+
+        Behavior on color {
+          ColorAnimation {
+            duration: 150
+          }
         }
       }
+
+      CubeTimerButton {
+        id: controlButton
+        Layout.preferredWidth: 300
+        Layout.preferredHeight: 150
+        Layout.alignment: Qt.AlignHCenter
+        Layout.topMargin: Widget.spacing * 2
+        Layout.bottomMargin: Widget.spacing * 2
+
+        isRunning: root.isRunning
+        readyDelay: root.readyDelay
+        buttonText: root.isRunning ? "" : (root.wasStopped ? "" : "")
+        buttonTextColor: root.isRunning ? Theme.accent : Theme.background
+
+        fontSize: root.timerFontSize
+        fontFamily: Appearance.fontFamily
+        idleColor: Theme.accent
+        pressedColor: Theme.base0A
+        readyColor: Theme.successHighlight
+        activeColor: Theme.background
+
+        onStartTimer: root.startTimer()
+        onStopTimer: root.stopTimer()
+      }
+
+      Image {
+        id: scrambleImage
+        source: Qt.resolvedUrl(root.scrambleImagePath)
+        width: root.scrambleImageSize
+        height: root.scrambleImageSize
+        fillMode: Image.PreserveAspectFit
+        Layout.fillWidth: false
+        Layout.alignment: Qt.AlignHCenter
+        Layout.topMargin: Widget.spacing * 2
+      }
     }
+  }
 
-    CubeTimerButton {
-      id: controlButton
-      Layout.preferredWidth: 300
-      Layout.preferredHeight: 150
-      Layout.alignment: Qt.AlignHCenter
-      Layout.topMargin: Widget.spacing * 2
-      Layout.bottomMargin: Widget.spacing * 2
+  // History container (scrollable, separate background)
+  StyledContainer {
+    id: historyContainer
+    Layout.fillWidth: true
+    Layout.fillHeight: true
+    Layout.preferredHeight: 240
+    Layout.alignment: Qt.AlignBottom
+    containerColor: Theme.background
+    visible: solveHistoryModel.count > 0
 
-      isRunning: root.isRunning
-      readyDelay: root.readyDelay
-      buttonText: root.isRunning ? "" : (root.wasStopped ? "" : "")
-      buttonTextColor: root.isRunning ? Theme.accent : Theme.background
-
-      fontSize: root.timerFontSize
-      fontFamily: Appearance.fontFamily
-      idleColor: Theme.accent
-      pressedColor: Theme.base0A
-      readyColor: Theme.successHighlight
-      activeColor: Theme.background
-
-      onStartTimer: root.startTimer()
-      onStopTimer: root.stopTimer()
-    }
-
-    Image {
-      id: scrambleImage
-      source: Qt.resolvedUrl(root.scrambleImagePath)
-      width: root.scrambleImageSize
-      height: root.scrambleImageSize
-      fillMode: Image.PreserveAspectFit
-      Layout.fillWidth: false
-      Layout.alignment: Qt.AlignHCenter
-      Layout.topMargin: Widget.spacing * 2
-    }
-
-    // ADDED: Scrollable view for solve history
     ScrollView {
       id: historyScrollView
-      Layout.fillWidth: true
-      Layout.fillHeight: true // Allow it to expand and fill available vertical space
-      Layout.topMargin: Widget.spacing * 3
-      Layout.minimumHeight: 150 // Ensure it has some space even if the window is small
+      anchors.fill: parent
+      anchors.margins: Widget.padding
       clip: true
       ScrollBar.vertical.policy: ScrollBar.AsNeeded
 
@@ -210,10 +240,16 @@ StyledContainer {
         spacing: Widget.spacing
 
         delegate: SolveHistoryItem {
-          // Bind delegate width to the list view's width
+          required property int index
+          required property var model
+          
           width: solveHistoryView.width
           scramble: model.scramble
           time: model.time
+          
+          Component.onCompleted: {
+            console.log("SolveHistoryItem created - Index:", index, "Time:", model.time, "Scramble:", model.scramble);
+          }
         }
       }
     }

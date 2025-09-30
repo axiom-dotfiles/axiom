@@ -148,7 +148,7 @@ StyledContainer {
             id: timerScrollView
             width: root.width
             height: parent.height
-            showScrollBar: true
+            showScrollBar: false
             contentPadding: Widget.padding
             scrollbarOpacity: slideAnimation.running ? 0 : 1
 

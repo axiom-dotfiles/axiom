@@ -15,7 +15,7 @@ Rectangle {
 
   signal clicked
 
-  implicitHeight: 32
+  implicitHeight: 32 // horrendously bad magic number "looks good"
   implicitWidth: contentLoader.item ? contentLoader.item.implicitWidth + (Widget.padding * 2) : 0
   radius: Appearance.borderRadius
 

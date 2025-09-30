@@ -100,8 +100,6 @@ Item {
   PanelWindow {
     id: reservationPanel
 
-    // Visible only when the reservation feature is active.
-    // This allows the space to be reserved even when the popup is hidden.
     visible: root.reserveSpace && (root.actualWidth > 0 && root.actualHeight > 0)
 
     // TODO: Get the popup above the panel windows when reservation is active,
