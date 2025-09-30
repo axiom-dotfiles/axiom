@@ -10,10 +10,7 @@ QtObject {
   signal artReady
   signal metadataUpdated
 
-  // --- Private Properties ---
   property var activePlayer: null
-
-  // --- Public API ---
 
   readonly property bool hasActivePlayer: activePlayer !== null
   readonly property string identity: activePlayer ? activePlayer.identity : ""
@@ -36,8 +33,10 @@ QtObject {
   readonly property bool canGoNext: activePlayer ? activePlayer.canGoNext : false
   readonly property bool canGoPrevious: activePlayer ? activePlayer.canGoPrevious : false
   readonly property bool canSeek: activePlayer ? activePlayer.canSeek : false
+  readonly property bool isInitialized: Mpris.players !== null && Mpris.players.values.length > 0
 
-  // --- Control Functions ---
+  // --- Public ---
+
   function updatePosition() {
     if (hasActivePlayer && isPlaying) {
       activePlayer.positionChanged();
@@ -99,52 +98,49 @@ QtObject {
     }
   }
 
-  // Internal timer for smooth position updates
   property Timer _positionTimer: Timer {
     running: root.isPlaying && root.hasActivePlayer
     interval: 500
     repeat: true
     onTriggered: {
-      // Manually emit positionChanged to force updates in the UI
       if (root.activePlayer)
         root.activePlayer.positionChanged();
     }
   }
 
-  // --- Connections & Initial Setup ---
-
-  property Connections _playersConnection: Connections {
-    target: Mpris
-    onPlayersChanged: {
-      _updateActivePlayer();
+  property Timer _startupPoller: Timer {
+    running: true
+    interval: 100
+    repeat: true
+    triggeredOnStart: true
+    property int attempts: 0
+    property int maxAttempts: 50
+    property int lastPlayerCount: 0
+    onTriggered: {
+      attempts++;
+      if (Mpris.players && Mpris.players.values.length > 0) {
+        console.log("MPRIS players detected after", attempts, "attempts.");
+        _updateActivePlayer();
+        running = false;
+      } else if (attempts >= maxAttempts) {
+        console.warn("No MPRIS players detected after", attempts, "attempts. Stopping poller.");
+        running = false;
+      }
     }
   }
-
-  // This handler manages the art downloader process
-  // onArtUrlChanged: {
-  //   if (artUrl) {
-  //     artDownloaded = false;
-  //     _artDownloader.running = true;
-  //   } else {
-  //     artDownloaded = false;
-  //   }
-  // }
 
   Component.onCompleted: {
     _updateActivePlayer();
   }
 
-  // --- Private Functions ---
-
   function _pickActivePlayer() {
-    // Step 1: Get the JavaScript array from the model's 'values' property.
     const playersArray = Mpris.players.values;
+    console.log("Picking active MPRIS player from", playersArray.length, "available players.");
     if (!playersArray || playersArray.length === 0)
       return null;
 
     const playerCount = playersArray.length;
 
-    // Preference order: Spotify -> Playing -> CanPlay -> First available
     for (let i = 0; i < playerCount; ++i) {
       const p = playersArray[i];
       if (p.dbusName && p.dbusName.indexOf("org.mpris.MediaPlayer2.spotify") !== -1) {
@@ -167,6 +163,7 @@ QtObject {
   }
 
   function _updateActivePlayer() {
+    console.log("Updating active MPRIS player...-----------------------------------");
     const newPlayer = _pickActivePlayer();
     if (activePlayer !== newPlayer) {
       activePlayer = newPlayer;
