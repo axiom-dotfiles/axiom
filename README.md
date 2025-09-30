@@ -12,8 +12,8 @@ Please refer to the following files for more information:
 ### TODO:
 
 #### Features
-- [ ] Persistent settings
-- [ ] Better pywal generation colors
+- [x] Persistent settings
+- [x] Better pywal generation colors
 
 #### Housekeeping
 - [ ] Align all variable names

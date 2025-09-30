@@ -1,7 +1,8 @@
 pragma Singleton
 import QtQuick
-import Quickshell
 import Quickshell.Io
+
+import qs.config
 
 QtObject {
   id: utils
@@ -21,7 +22,7 @@ QtObject {
       return;
 
     wallpaperUrl = wallpaperUrl.replace("file://", "");
-    const scriptPath = "/home/travmonkey/.config/hypr/scripts/setWallpaper.sh"; // Adjust path as needed
+    const scriptPath = Config.hyprlandPath + "scripts/setWallpaper.sh"; // Adjust path as needed
     const command = [scriptPath, wallpaperUrl];
     launch(command);
   }

@@ -24,4 +24,5 @@ QtObject {
   readonly property string scriptsPath: root.homeDirectory + ".config/quickshell/axiom/scripts/"
   readonly property string walCachePath: root.homeDirectory + ".cache/wal/schemes/"
   readonly property string cachePath: root.homeDirectory + ".cache/quickshell/axiom/generated/"
+  readonly property string hyprlandPath: root.homeDirectory + ".config/hypr/"
 }

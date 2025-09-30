@@ -11,7 +11,7 @@ Singleton {
   id: root
 
   function focusWorkspace(index) {
-    focusWorkspaceProcess.command = ["/home/travmonkey/.config/hypr/scripts/gotoWorkspace.sh", String(index)]
+    focusWorkspaceProcess.command = [Config.hyprlandPath + "scripts/gotoWorkspace.sh", String(index)]
     focusWorkspaceProcess.running = true
   }
 
@@ -29,6 +29,6 @@ Singleton {
 
   Process {
     id: focusWorkspaceProcess
-    command: ["/home/travmonkey/.config/hypr/scripts/gotoWorkspace.sh", ""]
+    command: [Config.hyprlandPath + "scripts/gotoWorkspace.sh", ""]
   }
 }
