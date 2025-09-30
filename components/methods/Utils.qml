@@ -22,7 +22,7 @@ QtObject {
       return;
 
     wallpaperUrl = wallpaperUrl.replace("file://", "");
-    const scriptPath = Config.hyprlandPath + "scripts/setWallpaper.sh"; // Adjust path as needed
+    const scriptPath = Config.scriptsPath + "setWallpaper.sh"; // Adjust path as needed
     const command = [scriptPath, wallpaperUrl];
     launch(command);
   }
