@@ -143,16 +143,6 @@ QtObject {
     _reloadAllThemes();
   }
 
-  // This connection ensures that when the underlying theme data changes in ConfigManager,
-  // our UI models are properly updated.
-  // property Connections _configManagerConnections: Connections {
-  //   target: ConfigManager
-  //   function onThemeChanged() {
-  //     console.log("ThemeManager: ConfigManager.themeChanged detected. Reloading theme lists.");
-  //     _reloadAllThemes();
-  //   }
-  // }
-
   // --- Paths and Models ---
   property string _configPath: StandardPaths.writableLocation(StandardPaths.AppConfigLocation) + "/axiom"
   property string _themesPath: _configPath + "/config/themes"

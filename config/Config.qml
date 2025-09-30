@@ -21,7 +21,6 @@ QtObject {
   property string wallpaper: ""
   property string homeDirectory: "/home/" + root.userName + "/"
   property string themePath: root.homeDirectory + ".config/quickshell/axiom/config/themes/"
-  property string generatedThemePath: themePath + "generated/"
   readonly property string scriptsPath: root.homeDirectory + ".config/quickshell/axiom/scripts/"
   readonly property string walCachePath: root.homeDirectory + ".cache/wal/schemes/"
   readonly property string cachePath: root.homeDirectory + ".cache/quickshell/axiom/generated/"
