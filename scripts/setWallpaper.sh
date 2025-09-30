@@ -15,8 +15,6 @@ fi
 
 WALLPAPER_PATH="$1"
 
-pkill swaybg &>/dev/null || true
-
 swww query >/dev/null || swww init
 
 transitions=("wipe" "any" "outer" "wave")
