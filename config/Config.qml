@@ -12,13 +12,13 @@ QtObject {
   readonly property int workspaceCount: ConfigManager.config.Config.workspaceCount ?? 5
   readonly property bool singleMonitor: ConfigManager.config.Config.singleMonitor ?? true
   readonly property var customIconOverrides: ConfigManager.config.Config.customIconOverrides ?? {}
+  property string wallpaper: ConfigManager.config.Config.wallpaper ?? ""
 
   // --- Computed ---
   readonly property int orientation: Bar.vertical ? Qt.Vertical : Qt.Horizontal
   readonly property int containerOffset: Widget.containerWidth + Appearance.borderWidth
 
   // todo - make this dynamic and fix
-  property string wallpaper: ""
   property string homeDirectory: "/home/" + root.userName + "/"
   property string themePath: root.homeDirectory + ".config/quickshell/axiom/config/themes/"
   readonly property string scriptsPath: root.homeDirectory + ".config/quickshell/axiom/scripts/"

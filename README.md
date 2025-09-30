@@ -14,6 +14,7 @@ Please refer to the following files for more information:
 #### Features
 - [x] Persistent settings
 - [x] Better pywal generation colors
+- [ ] Even better pywal generation colors (backgroundHighlight needs to be ensured different from backgroundAlt and background)
 
 #### Housekeeping
 - [ ] Align all variable names
