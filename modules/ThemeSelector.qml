@@ -169,7 +169,12 @@ Item {
                 Layout.fillWidth: true
               }
               StyledSwitch {
-                checked: Appearance.autoThemeSwitch
+                // CORRECTED: Bind 'checked' to the actual dark mode state.
+                checked: Appearance.darkMode
+                
+                // CORRECTED: Disable the switch if auto-switching is off or there's no paired theme.
+                enabled: Appearance.autoThemeSwitch && ThemeManager.currentTheme.paired
+                
                 onToggled: ThemeManager.toggleDarkMode()
               }
             }
@@ -214,7 +219,9 @@ Item {
                   text: modelData.name
                   backgroundColor: Appearance.theme === modelData.name ? Theme.accent : Theme.backgroundHighlight
                   textHoverColor: Appearance.theme === modelData.name ? Theme.foreground : Theme.background
-                  onClicked: ThemeManager.applyTheme(modelData.name)
+                  
+                  // CORRECTED: Specify that this is NOT a generated theme.
+                  onClicked: ThemeManager.applyTheme(modelData.name, false)
                 }
               }
 
@@ -226,6 +233,7 @@ Item {
               }
             }
 
+            // View for Generated (Pywal) Themes
             StyledScrollView {
               Layout.fillWidth: true
               Layout.fillHeight: true
@@ -241,7 +249,9 @@ Item {
                   text: modelData.name
                   backgroundColor: Appearance.theme === ("generated/" + modelData.name) ? Theme.accent : Theme.backgroundHighlight
                   textHoverColor: Appearance.theme === ("generated/" + modelData.name) ? Theme.foreground : Theme.background
-                  onClicked: ThemeManager.applyTheme(modelData.name)
+                  
+                  // CORRECTED: Specify that this IS a generated theme.
+                  onClicked: ThemeManager.applyTheme(modelData.name, true)
                 }
               }
 

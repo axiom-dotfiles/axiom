@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import pywal  # Now import pywal
+import pywal
 import argparse
 import json
 import os
@@ -7,28 +7,21 @@ import subprocess
 from pathlib import Path
 from datetime import datetime, timezone
 import logging
+import sys
 
-# --- THIS IS THE NEW SECTION ---
-# Configure logging BEFORE importing pywal to suppress its noisy "ERROR:root" messages.
-# These messages are printed to stderr and can cause process wrappers (like in QML)
-# to think the script has failed.
-# We set the level for the 'pywal' logger to FATAL, so it only shows true crash-level errors.
 logging.getLogger("pywal").setLevel(logging.FATAL)
-# --- END OF NEW SECTION ---
 
 
 def check_available_backends():
     """Check which pywal backends are available on the system."""
-    available = ['wal']  # 'wal' is always available if pywal is installed
+    available = ['wal']
     try:
-        # Use subprocess.DEVNULL to hide output
         subprocess.run(['colorz', '--help'], check=True,
                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         available.append('colorz')
     except (FileNotFoundError, subprocess.CalledProcessError):
         pass
     try:
-        # This is the correct way pywal checks for it.
         import colorthief
         available.append('colorthief')
     except ImportError:
@@ -46,7 +39,6 @@ def check_available_backends():
     return available
 
 
-# --- Configuration (remains the same) ---
 SEMANTIC_MAP_DARK = {
     "background": "base00", "backgroundAlt": "base01", "backgroundHighlight": "base02",
     "foreground": "base05", "foregroundAlt": "base04", "foregroundHighlight": "base06",
@@ -78,12 +70,12 @@ def generate_theme_pair(wallpaper_path, output_dir, index, backend):
           backend}' from {wallpaper_path}...")
 
     try:
-        # Use the primary pywal API, which is much more stable.
         colors_dict = pywal.colors.get(
             wallpaper_path, backend=backend, light=False)
         if not colors_dict or 'colors' not in colors_dict:
             raise ValueError("Pywal did not return a valid color dictionary.")
         colors = colors_dict['colors']
+        base16_colors = reorder_base16_colors(colors)
         print(f"Successfully generated colors using backend '{backend}'")
 
     except Exception as e:
@@ -97,7 +89,8 @@ def generate_theme_pair(wallpaper_path, output_dir, index, backend):
                     raise ValueError(
                         "Pywal (wal backend) did not return a valid color dictionary.")
                 colors = colors_dict['colors']
-                backend = 'wal'  # Update the backend name for the log
+                base16_colors = reorder_base16_colors(colors)
+                backend = 'wal'
                 print("Successfully generated colors using 'wal' backend")
             except Exception as e2:
                 print(f"Fatal error: Could not generate colors with any backend: {
@@ -108,7 +101,6 @@ def generate_theme_pair(wallpaper_path, output_dir, index, backend):
                   e}", file=sys.stderr)
             return
 
-    base16_colors = {f"base{i:02X}": colors[f"color{i}"] for i in range(16)}
     abs_wallpaper_path = str(Path(wallpaper_path).resolve())
 
     dark_theme = {
@@ -146,6 +138,120 @@ def generate_theme_pair(wallpaper_path, output_dir, index, backend):
         print(f"Error writing theme files: {e}", file=sys.stderr)
 
 
+def reorder_base16_colors(colors):
+    """
+    Intelligently reorders pywal colors into a proper base16 scheme.
+    - Separates grays and accents based on saturation.
+    - Sorts grays by lightness to create a smooth ramp.
+    - Maps accents to their correct slots (red, green, etc.) based on hue.
+    """
+    from colormath.color_objects import sRGBColor, HSLColor
+    from colormath.color_conversions import convert_color
+
+    # --- Color Representation and Helpers ---
+    class Color:
+        """A helper class to store color data in multiple formats."""
+        def __init__(self, hex_val):
+            self.hex = hex_val
+            rgb = sRGBColor.new_from_rgb_hex(hex_val)
+            hsl = convert_color(rgb, HSLColor)
+            self.hsl = (hsl.hsl_h, hsl.hsl_s, hsl.hsl_l)
+
+        @property
+        def hue(self):
+            return self.hsl[0]
+
+        @property
+        def saturation(self):
+            return self.hsl[1]
+
+        @property
+        def lightness(self):
+            return self.hsl[2]
+
+    # Target hues for the 6 main accent colors on a 0-360 degree circle
+    TARGET_HUES = {
+        'red': 0, 'yellow': 60, 'green': 120,
+        'cyan': 180, 'blue': 240, 'magenta': 300
+    }
+
+    # Base16 slots for these accent colors
+    # We will map our best-matched colors to these slots.
+    ACCENT_SLOTS = {
+        'red': 'base08', 'green': 'base0B', 'yellow': 'base0A',
+        'blue': 'base0D', 'magenta': 'base0E', 'cyan': 'base0C'
+    }
+
+    def hue_distance(h1, h2):
+        """Calculates the shortest distance between two hues on a color circle."""
+        diff = abs(h1 - h2)
+        return min(diff, 360 - diff)
+
+    # --- Main Logic ---
+
+    # 1. Convert all 16 pywal colors into our helper class
+    all_colors = [Color(colors[f'color{i}']) for i in range(16)]
+
+    # 2. Separate grays from accent colors based on saturation
+    # A low saturation value means the color is close to a gray.
+    SATURATION_THRESHOLD = 0.20
+    grays = [c for c in all_colors if c.saturation < SATURATION_THRESHOLD]
+    accents = [c for c in all_colors if c.saturation >= SATURATION_THRESHOLD]
+
+    # 3. Ensure we have exactly 8 grays and 8 accents.
+    # If we have too few grays, "borrow" the least saturated accents.
+    while len(grays) < 8:
+        accents.sort(key=lambda c: c.saturation)
+        color_to_move = accents.pop(0)
+        grays.append(color_to_move)
+
+    # If we have too many grays, "donate" the most saturated grays to the accents.
+    while len(grays) > 8:
+        grays.sort(key=lambda c: c.saturation, reverse=True)
+        color_to_move = grays.pop(0)
+        accents.append(color_to_move)
+
+    # 4. Process the Grays: Sort by lightness to create a smooth ramp.
+    grays.sort(key=lambda c: c.lightness)
+    new_colors = {}
+    # The 4 darkest grays are backgrounds
+    for i in range(4):
+        new_colors[f'base0{i:X}'] = grays[i].hex
+    # The 4 lightest grays are foregrounds
+    for i in range(4):
+        new_colors[f'base0{i+4:X}'] = grays[i+4].hex
+
+    # 5. Process the Accents: Map them to semantic slots using hue.
+    unassigned_accents = list(accents)
+    
+    # Find the best match for each of the 6 primary accent colors
+    for name, target_hue in TARGET_HUES.items():
+        # Find the unassigned color with the minimum hue distance to the target
+        best_match = min(unassigned_accents, key=lambda c: hue_distance(c.hue, target_hue))
+        
+        # Assign it to the correct base16 slot
+        slot = ACCENT_SLOTS[name]
+        new_colors[slot] = best_match.hex
+        
+        # Remove it from the pool of unassigned colors
+        unassigned_accents.remove(best_match)
+
+    # 6. Assign the remaining 2 accent colors to the leftover slots (base09 and base0F)
+    # These are often used for orange/brown and a bright gray/accent.
+    # Here, we just assign them based on lightness.
+    unassigned_accents.sort(key=lambda c: c.lightness)
+    if len(unassigned_accents) > 0:
+        new_colors['base09'] = unassigned_accents[0].hex
+    if len(unassigned_accents) > 1:
+        new_colors['base0F'] = unassigned_accents[1].hex
+
+    return new_colors
+
+# You also need to remove the old import from the top of the file
+# as the new function handles its own imports.
+# Remove this line: from colorsys import rgb_to_hls
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Generate dark and light themes using pywal.")
@@ -173,6 +279,4 @@ def main():
 
 
 if __name__ == "__main__":
-    # It's good practice to import sys for stderr printing
-    import sys
     main()

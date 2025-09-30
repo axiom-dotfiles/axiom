@@ -1,3 +1,4 @@
+// config/lib/HotReload.qml
 import QtQuick
 import Quickshell
 import qs.config as ConfigLib
@@ -6,9 +7,9 @@ import "ConfigLoader.js" as Loader
 Item {
   id: root
 
-  property int pollInterval: 1000 // milliseconds
+  property int pollInterval: 1000
   property var fileHashes: ({})
-  property bool verbose: false // Set to true for debug logging
+  property bool verbose: false
 
   Timer {
     interval: pollInterval

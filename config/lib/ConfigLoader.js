@@ -14,7 +14,6 @@ function loadConfig() {
         console.error("Failed to load config.json:", e)
     }
     
-    // Return defaults if loading fails
     return {
         Config: {},
         Display: {},
@@ -38,7 +37,6 @@ function loadTheme(themeName) {
         console.error("Failed to load theme:", themeName, e)
     }
     
-    // Return a default dark theme if loading fails
     return {
         name: "Default",
         variant: "dark",
@@ -81,7 +79,5 @@ function loadTheme(themeName) {
 }
 
 function saveConfig(config) {
-    // This would need to be implemented with a proper backend
-    // For now, just log the intention
     console.log("Saving config:", JSON.stringify(config, null, 2))
 }

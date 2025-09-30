@@ -1,13 +1,12 @@
 pragma Singleton
 import QtQuick
-import "lib/ConfigLoader.js" as Loader
+
+import qs.services
 
 QtObject {
-  property var configData: Loader.loadConfig()
-
-  readonly property bool gtk: configData.ThemeIntegrations.gtk ?? false
-  readonly property bool nvim: configData.ThemeIntegrations.gtk ?? false
-  readonly property bool vscode: configData.ThemeIntegrations.gtk ?? false
-  readonly property bool alacritty: configData.ThemeIntegrations.gtk ?? false
-  readonly property bool kitty: configData.ThemeIntegrations.gtk ?? false
+  readonly property bool gtk: ConfigManager.config.ThemeIntegrations.gtk ?? false
+  readonly property bool nvim: ConfigManager.config.ThemeIntegrations.gtk ?? false
+  readonly property bool vscode: ConfigManager.config.ThemeIntegrations.gtk ?? false
+  readonly property bool alacritty: ConfigManager.config.ThemeIntegrations.gtk ?? false
+  readonly property bool kitty: ConfigManager.config.ThemeIntegrations.gtk ?? false
 }

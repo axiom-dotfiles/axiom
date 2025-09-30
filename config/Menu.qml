@@ -1,10 +1,9 @@
 pragma Singleton
 import QtQuick
-import "lib/ConfigLoader.js" as Loader
+
+import qs.services
 
 QtObject {
-  property var configData: Loader.loadConfig()
-
-  property int distanceFromWorkspaceContainer: configData.Menu.distanceFromWorkspaceContainer ?? 10
-  property bool startMenuPinned: configData.Menu.startMenuPinned ?? false
+  property int distanceFromWorkspaceContainer: ConfigManager.config.Menu.distanceFromWorkspaceContainer ?? 10
+  property bool startMenuPinned: ConfigManager.config.Menu.startMenuPinned ?? false
 }

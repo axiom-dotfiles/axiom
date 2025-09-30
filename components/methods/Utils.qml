@@ -26,24 +26,6 @@ QtObject {
     launch(command);
   }
 
-  function themeKitty(themeUrl) {
-    const scriptPath = "/home/travmonkey/.config/quickshell/travmonkey/scripts/theme_kitty.sh";
-    const command = [scriptPath, themeUrl];
-    launch(command);
-  }
-
-  function themeCava(themeUrl) {
-    const scriptPath = "/home/travmonkey/.config/quickshell/travmonkey/scripts/theme_cava.sh";
-    const command = [scriptPath, themeUrl];
-    launch(command);
-  }
-
-  function themek9s(themeUrl) {
-    const scriptPath = "/home/travmonkey/.config/quickshell/travmonkey/scripts/theme_k9s.sh";
-    const command = [scriptPath, themeUrl];
-    launch(command);
-  }
-
   // Launch with arguments
   function launchWithArgs(program, args) {
     launchProcess.command = [program].concat(args);

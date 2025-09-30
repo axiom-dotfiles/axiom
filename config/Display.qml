@@ -1,14 +1,13 @@
 pragma Singleton
 import QtQuick
-import "lib/ConfigLoader.js" as Loader
+
+import qs.services
 
 QtObject {
-  property var configData: Loader.loadConfig()
-
-  readonly property string primary: configData.Display.primary ?? "DP-1"
-  readonly property int resolutionWidth: configData.Display.resolutionWidth ?? 1920
-  readonly property int resolutionHeight: configData.Display.resolutionHeight ?? 1080
-  readonly property var monitors: configData.Display.monitors ?? []
+  readonly property string primary: ConfigManager.config.Display.primary ?? "DP-1"
+  readonly property int resolutionWidth: ConfigManager.config.Display.resolutionWidth ?? 1920
+  readonly property int resolutionHeight: ConfigManager.config.Display.resolutionHeight ?? 1080
+  readonly property var monitors: ConfigManager.config.Display.monitors ?? []
 
   // Helper functions
   function aspectRatio() {

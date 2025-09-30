@@ -1,18 +1,17 @@
 pragma Singleton
 import QtQuick
-import "lib/ConfigLoader.js" as Loader
+
+import qs.services
 
 QtObject {
-  property var configData: Loader.loadConfig()
-
-  property string theme: configData.Appearance.theme ?? "gruvbox-dark"
-  property bool darkMode: configData.Appearance.darkMode ?? true
-  readonly property int borderRadius: configData.Appearance.borderRadius ?? 4
-  readonly property int borderWidth: configData.Appearance.borderWidth ?? 1
-  readonly property int screenMargin: configData.Appearance.screenMargin ?? 6
-  readonly property string fontFamily: configData.Appearance.fontFamily ?? "monospace"
-  readonly property int fontSize: configData.Appearance.fontSize ?? 12
-  readonly property int fontSizeLarge: configData.Appearance.fontSize + 4
-  readonly property bool autoThemeSwitch: configData.Appearance.autoThemeSwitch ?? false
-  readonly property string generatedThemeSource: configData.Appearance.generatedThemeSource ?? "pywal"
+  property string theme: ConfigManager.config.Appearance.theme ?? "gruvbox-dark"
+  property bool darkMode: ConfigManager.config.Appearance.darkMode ?? true
+  readonly property int borderRadius: ConfigManager.config.Appearance.borderRadius ?? 4
+  readonly property int borderWidth: ConfigManager.config.Appearance.borderWidth ?? 1
+  readonly property int screenMargin: ConfigManager.config.Appearance.screenMargin ?? 6
+  readonly property string fontFamily: ConfigManager.config.Appearance.fontFamily ?? "monospace"
+  readonly property int fontSize: ConfigManager.config.Appearance.fontSize ?? 12
+  readonly property int fontSizeLarge: ConfigManager.config.Appearance.fontSize + 4
+  readonly property bool autoThemeSwitch: ConfigManager.config.Appearance.autoThemeSwitch ?? false
+  readonly property string generatedThemeSource: ConfigManager.config.Appearance.generatedThemeSource ?? "pywal"
 }

@@ -1,31 +1,28 @@
 pragma Singleton
 import QtQuick
-import "lib/ConfigLoader.js" as Loader
 
 import qs.config
+import qs.services
 
 QtObject {
   id: root
 
-  // Load configuration from JSON
-  property var configData: Loader.loadConfig()
+  // --- Configurable ---
+  readonly property string userName: ConfigManager.config.Config.userName ?? "user"
+  readonly property int workspaceCount: ConfigManager.config.Config.workspaceCount ?? 5
+  readonly property bool singleMonitor: ConfigManager.config.Config.singleMonitor ?? true
+  readonly property var customIconOverrides: ConfigManager.config.Config.customIconOverrides ?? {}
 
-  // User settings
-  readonly property string userName: configData.Config.userName ?? "user"
-  readonly property int workspaceCount: configData.Config.workspaceCount ?? 5
-  readonly property bool singleMonitor: configData.Config.singleMonitor ?? true
-  readonly property var customIconOverrides: configData.Config.customIconOverrides ?? {}
-
-  // Computed properties
+  // --- Computed ---
   readonly property int orientation: Bar.vertical ? Qt.Vertical : Qt.Horizontal
   readonly property int containerOffset: Widget.containerWidth + Appearance.borderWidth
-  property string wallpaper: ""
-  // todo - make this dynamic
-  property string themePath: "/home/" + root.userName + "/.config/quickshell/travmonkey/config/themes/"
-  readonly property string scriptsPath: "/home/" + root.userName + "/.config/quickshell/travmonkey/scripts/"
 
-  function reload() {
-    root.configData = Loader.loadConfig();
-    console.log("Configuration reloaded");
-  }
+  // todo - make this dynamic and fix
+  property string wallpaper: ""
+  property string homeDirectory: "/home/" + root.userName + "/"
+  property string themePath: root.homeDirectory + ".config/quickshell/axiom/config/themes/"
+  property string generatedThemePath: themePath + "generated/"
+  readonly property string scriptsPath: root.homeDirectory + ".config/quickshell/axiom/scripts/"
+  readonly property string walCachePath: root.homeDirectory + ".cache/wal/schemes/"
+  readonly property string cachePath: root.homeDirectory + ".cache/quickshell/axiom/generated/"
 }

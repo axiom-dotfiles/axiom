@@ -22,7 +22,7 @@ ColumnLayout {
   property int scrambleImageSize: 10
   property bool hideTimeDuringSolve: false
   property int readyDelay: 500 // ms
-  property string pythonScriptPath: "/home/travmonkey/.config/quickshell/travmonkey/scripts/cube.py"
+  property string pythonScriptPath: Config.scriptsPath + "/cube.py"
   property string scrambleTextPath: "../../../../assets/cube/scramble.txt"
   property string scrambleImagePath: "../../../../assets/cube/scramble.png"
 
