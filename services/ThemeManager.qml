@@ -6,7 +6,6 @@ import Qt.labs.folderlistmodel
 import QtCore
 import Quickshell.Io
 
-// Import the single source of truth for configuration
 import qs.services
 
 QtObject {
@@ -130,7 +129,7 @@ QtObject {
   /**
    * @brief Forces a reload of configuration and themes via ConfigManager.
    */
-  function reloadThemes() {
+  function hardReloadThemes() {
     console.log("ThemeManager: Triggering manual reload via ConfigManager.");
     ConfigManager.forceReload();
   }

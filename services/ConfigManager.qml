@@ -1,8 +1,6 @@
-// services/ConfigManager.qml
 pragma Singleton
 import QtQuick
 
-// Import the necessary module for file I/O
 import Quickshell.Io
 
 import qs.components.methods

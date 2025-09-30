@@ -1,10 +1,13 @@
 # Quickshell
 
-## Welcome to my quickshell configuration
+This repository hosts the configurations for quickshell.
+Please refer to the following files for more information:
+- [Axiom-Dotfiles](https://github.com/axiom-dotfiles)
+- [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines
 
-This is a public mirror for collaboration and issue tracking. As of right now, pull request integrations are not enabled, and will be closed immediatly.
-I will see, comment, dicuss, and fix issues that are posted here for the time being until the pipeline is setup.
-
+> [!NOTE]
+>This is a public mirror for collaboration and issue tracking. As of right now, pull request integrations are not enabled, and will be closed immediatly.
+>I will see, comment, dicuss, and fix issues that are posted here for the time being until the pipeline is setup.
 
 ### Video notes
 - Start at obs
