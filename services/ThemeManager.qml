@@ -4,6 +4,7 @@ pragma Singleton
 import QtQuick
 import Qt.labs.folderlistmodel
 import QtCore
+import Quickshell
 import Quickshell.Io
 
 import qs.services
@@ -107,16 +108,16 @@ QtObject {
     const pairedThemeName = currentTheme.paired;
 
     if (config.Appearance.autoThemeSwitch && pairedThemeName) {
+
       console.log("Switching theme from '" + config.Appearance.theme + "' to '" + pairedThemeName + "'");
       
-      // Note: Ideally, darkMode would also be set via a ConfigManager function.
-      // However, since applyTheme -> setTheme will trigger a save, this change will be persisted.
       config.Appearance.darkMode = !config.Appearance.darkMode;
 
-      const isPairedThemeGenerated = pairedThemeName.startsWith("generated/");
-      const basePairedThemeName = isPairedThemeGenerated ? pairedThemeName.substring("generated/".length) : pairedThemeName;
+      const isPairedThemeGenerated = config.Appearance.theme.startsWith("generated/");
+
+      console.log("Applying paired theme:", pairedThemeName, "Generated:", isPairedThemeGenerated);
       
-      applyTheme(basePairedThemeName, isPairedThemeGenerated);
+      applyTheme(pairedThemeName, isPairedThemeGenerated);
 
     } else {
       if (!config.Appearance.autoThemeSwitch)
@@ -186,33 +187,33 @@ QtObject {
     }
 
     function runNext() {
-      if (index >= backends.length) {
-        console.log("ThemeManager: Theme generation finished successfully.");
-        // After generation, we want to apply the first theme created.
-        // We connect to themesReloaded, which fires after the models are populated.
-        // This ensures the model has data before we try to read from it.
-        themesReloaded.connect(function applyFirstTheme() {
-          themesReloaded.disconnect(applyFirstTheme); // Important: Run only once
-          if (_generatedThemesModel.count > 0) {
-            const firstThemeName = _generatedThemesModel.get(0).name;
-            console.log("ThemeManager: Automatically applying first generated theme:", firstThemeName);
-            // Apply the theme. The second argument 'true' marks it as a generated theme.
-            applyTheme(firstThemeName, true);
-          }
-        });
-        // Now, trigger the reload which will populate the models and emit themesReloaded.
-        _reloadAllThemes();
-        return;
-      }
+      // if (index >= backends.length) {
+      //   console.log("ThemeManager: Theme generation finished successfully.");
+      //   // After generation, we want to apply the first theme created.
+      //   // We connect to themesReloaded, which fires after the models are populated.
+      //   // This ensures the model has data before we try to read from it.
+      //   themesReloaded.connect(function applyFirstTheme() {
+      //     themesReloaded.disconnect(applyFirstTheme); // Important: Run only once
+      //     if (_generatedThemesModel.count > 0) {
+      //       const firstThemeName = _generatedThemesModel.get(0).name;
+      //       console.log("ThemeManager: Automatically applying first generated theme:", firstThemeName);
+      //       // Apply the theme. The second argument 'true' marks it as a generated theme.
+      //       applyTheme(firstThemeName, true);
+      //     }
+      //   });
+      //   // Now, trigger the reload which will populate the models and emit themesReloaded.
+      //   _reloadAllThemes();
+      //   return;
+      // }
 
       const backend = backends[index];
       const themeIndex = index + 1;
       const wallpaperPath = wallpaperUrl.toString().replace("file://", "");
-      const scriptPath = _pythonScriptPath.replace("file://", "");
-      const outputDir = _generatedThemesPath.replace("file://", "");
+      const scriptPath = root._pythonScriptPath.replace("file://", "");
+      const outputDir = root._generatedThemesPath.replace("file://", "");
 
       console.log("ThemeManager: Generating theme", themeIndex, "using backend:", backend);
-      generationProcess.command = ["python3", scriptPath, wallpaperPath, "--output_dir", outputDir, "--index", themeIndex.toString(), "--backend", backend];
+      generationProcess.command = ["python3", scriptPath, wallpaperPath, "--output_dir", outputDir, "--backend", backend];
       console.log("ThemeManager: Executing:", generationProcess.command.join(" "));
       generationProcess.running = true;
     }
@@ -220,6 +221,24 @@ QtObject {
     function onProcessFinished(success, errorText) {
       if (success) {
         index++;
+        if (index >= backends.length) {
+          console.log("ThemeManager: Theme generation finished successfully.");
+          // // After generation, we want to apply the first theme created.
+          // // We connect to themesReloaded, which fires after the models are populated.
+          // // This ensures the model has data before we try to read from it.
+          // themesReloaded.connect(function applyFirstTheme() {
+          //   themesReloaded.disconnect(applyFirstTheme); // Important: Run only once
+          //   if (_generatedThemesModel.count > 0) {
+          //     const firstThemeName = _generatedThemesModel.get(0).name;
+          //     console.log("ThemeManager: Automatically applying first generated theme:", firstThemeName);
+          //     // Apply the theme. The second argument 'true' marks it as a generated theme.
+          //     applyTheme(firstThemeName, true);
+          //   }
+          // });
+          // // Now, trigger the reload which will populate the models and emit themesReloaded.
+          _reloadAllThemes();
+          return;
+        }
         runNext();
       } else {
         console.error("ThemeManager: Script execution failed.", errorText);
@@ -230,10 +249,11 @@ QtObject {
 
   property Process _generationProcess: Process {
     id: generationProcess
-    onRunningChanged: generationStatusChanged()
-    stderr: StdioCollector { id: stderrCollector }
+    onRunningChanged: root.generationStatusChanged()
+    stdout: StdioCollector{ id: stdoutCollector }
+    stderr: StdioCollector{ id: stderrCollector }
     onExited: (exitCode, exitStatus) => {
-      const success = (exitStatus === Process.NormalExit && exitCode === 0);
+      const success = (exitStatus === 0 && exitCode === 0);
       _generationController.onProcessFinished(success, stderrCollector.text);
     }
   }
@@ -277,14 +297,14 @@ QtObject {
       if (status === FolderListModel.Ready) {
         for (let i = 0; i < count; i++) {
           // Add a guard to prevent themes from the 'generated' subfolder being added here.
-          if (get(i, "fileName") === "generated") continue;
+         if (get(i, "fileName") === "generated") continue;
 
-          _defaultThemesModel.append({ name: get(i, "fileBaseName"), filePath: get(i, "filePath"), isGenerated: false });
-          _allThemesModel.append({ name: get(i, "fileBaseName"), filePath: get(i, "filePath"), isGenerated: false });
+          root._defaultThemesModel.append({ name: get(i, "fileBaseName"), filePath: get(i, "filePath"), isGenerated: false });
+          root._allThemesModel.append({ name: get(i, "fileBaseName"), filePath: get(i, "filePath"), isGenerated: false });
         }
-        _defaultThemesLoaded = true;
-        _checkIfReloadComplete();
-        console.log("---- Default themes loaded:", _defaultThemesModel.count, "themes ----");
+        root._defaultThemesLoaded = true;
+        root._checkIfReloadComplete();
+        console.log("---- Default themes loaded:", root._defaultThemesModel.count, "themes ----");
       }
     }
   }
@@ -297,12 +317,12 @@ QtObject {
         for (let i = 0; i < count; i++) {
           const fileName = get(i, "fileBaseName");
           if (fileName === "pywal-dark") continue; // Example filter
-          _generatedThemesModel.append({ name: fileName, filePath: get(i, "filePath"), isGenerated: true });
-          _allThemesModel.append({ name: fileName, filePath: get(i, "filePath"), isGenerated: true });
+          root._generatedThemesModel.append({ name: fileName, filePath: get(i, "filePath"), isGenerated: true });
+          root._allThemesModel.append({ name: fileName, filePath: get(i, "filePath"), isGenerated: true });
         }
-        _generatedThemesLoaded = true;
-        _checkIfReloadComplete();
-        console.log("---- Generated themes loaded:", _generatedThemesModel.count, "themes ----");
+        root._generatedThemesLoaded = true;
+        root._checkIfReloadComplete();
+        console.log("---- Generated themes loaded:", root._generatedThemesModel.count, "themes ----");
       }
     }
   }

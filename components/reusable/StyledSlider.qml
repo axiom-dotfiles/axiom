@@ -4,7 +4,6 @@ import qs.config
 Item {
   id: root
   
-  // Existing properties (no breaking changes)
   property real value: 0.0
   signal moved(real value)
   signal released(real value)
@@ -16,15 +15,12 @@ Item {
   property int handleHeight: 14
   property int grooveHeight: 4
   
-  // New properties for better control
   property bool pressed: mouseArea.isDragging
   property real targetValue: value
   property bool smoothUpdate: true
   
-  // Internal value that can be animated
   property real _internalValue: value
   
-  // Sync internal value with external value when not dragging
   Binding {
     target: root
     property: "_internalValue"
@@ -32,14 +28,12 @@ Item {
     when: !mouseArea.isDragging && root.smoothUpdate
   }
   
-  // Direct sync without animation
   onValueChanged: {
     if (!mouseArea.isDragging && !root.smoothUpdate) {
       _internalValue = value
     }
   }
   
-  // Smooth animation for automatic updates
   Behavior on _internalValue {
     enabled: !mouseArea.isDragging && root.smoothUpdate
     NumberAnimation {
@@ -100,6 +94,7 @@ Item {
     }
   }
   
+  // TODO: not here
   MouseArea {
     id: mouseArea
     anchors.fill: parent

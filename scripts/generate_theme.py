@@ -64,9 +64,9 @@ SEMANTIC_MAP_LIGHT = {
 }
 
 
-def generate_theme_pair(wallpaper_path, output_dir, index, backend):
+def generate_theme_pair(wallpaper_path, output_dir, backend):
     """Generates a dark and light theme pair from a wallpaper."""
-    print(f"Generating theme {index} with backend '{
+    print(f"Generating theme with backend '{
           backend}' from {wallpaper_path}...")
 
     try:
@@ -95,17 +95,23 @@ def generate_theme_pair(wallpaper_path, output_dir, index, backend):
             except Exception as e2:
                 print(f"Fatal error: Could not generate colors with any backend: {
                       e2}", file=sys.stderr)
-                return
+                sys.exit(1)
         else:
             print(f"Fatal error: Could not generate colors: {
                   e}", file=sys.stderr)
-            return
+            sys.exit(1)
 
     abs_wallpaper_path = str(Path(wallpaper_path).resolve())
 
+    output_dir_path = Path(output_dir)
+    output_dir_path.mkdir(parents=True, exist_ok=True)
+
+    dark_filename = output_dir_path / f"pywal-dark-{backend}.json"
+    light_filename = output_dir_path / f"pywal-light-{backend}.json"
+
     dark_theme = {
-        "name": f"Generated Dark {index}", "author": "pywal", "variant": "dark",
-        "paired": f"pywal-light{index}",
+        "name": f"Pywal {backend.capitalize()} Dark", "author": "pywal", "variant": "dark",
+        "paired": f"{light_filename.stem}",
         "generated": {
             "source": "pywal", "backend": backend, "wallpaper": abs_wallpaper_path,
             "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
@@ -114,17 +120,11 @@ def generate_theme_pair(wallpaper_path, output_dir, index, backend):
     }
 
     light_theme = {
-        "name": f"Generated Light {index}", "author": "pywal", "variant": "light",
-        "paired": f"pywal-dark{index}",
+        "name": f"Pywal {backend.capitalize()} Light", "author": "pywal", "variant": "light",
+        "paired": f"{dark_filename.stem}",
         "generated": dark_theme["generated"],
         "colors": base16_colors, "semantic": SEMANTIC_MAP_LIGHT
     }
-
-    output_dir_path = Path(output_dir)
-    output_dir_path.mkdir(parents=True, exist_ok=True)
-
-    dark_filename = output_dir_path / f"pywal-dark{index}.json"
-    light_filename = output_dir_path / f"pywal-light{index}.json"
 
     try:
         with open(dark_filename, 'w') as f:
@@ -136,6 +136,7 @@ def generate_theme_pair(wallpaper_path, output_dir, index, backend):
         print(f"Wrote light theme to {light_filename}")
     except IOError as e:
         print(f"Error writing theme files: {e}", file=sys.stderr)
+        sys.exit(1)
 
 
 def reorder_base16_colors(colors):
@@ -151,6 +152,7 @@ def reorder_base16_colors(colors):
     # --- Color Representation and Helpers ---
     class Color:
         """A helper class to store color data in multiple formats."""
+
         def __init__(self, hex_val):
             self.hex = hex_val
             rgb = sRGBColor.new_from_rgb_hex(hex_val)
@@ -223,16 +225,17 @@ def reorder_base16_colors(colors):
 
     # 5. Process the Accents: Map them to semantic slots using hue.
     unassigned_accents = list(accents)
-    
+
     # Find the best match for each of the 6 primary accent colors
     for name, target_hue in TARGET_HUES.items():
         # Find the unassigned color with the minimum hue distance to the target
-        best_match = min(unassigned_accents, key=lambda c: hue_distance(c.hue, target_hue))
-        
+        best_match = min(unassigned_accents,
+                         key=lambda c: hue_distance(c.hue, target_hue))
+
         # Assign it to the correct base16 slot
         slot = ACCENT_SLOTS[name]
         new_colors[slot] = best_match.hex
-        
+
         # Remove it from the pool of unassigned colors
         unassigned_accents.remove(best_match)
 
@@ -258,8 +261,6 @@ def main():
     parser.add_argument("wallpaper", help="Path to the wallpaper image.")
     parser.add_argument("--output_dir", required=True,
                         help="Directory to save the generated JSON themes.")
-    parser.add_argument("--index", required=True, type=int,
-                        help="The index number for the theme (e.g., 1).")
     parser.add_argument("--backend", required=True,
                         help="The pywal backend to use (e.g., 'wal', 'colorz').")
     parser.add_argument("--list-backends", action="store_true",
@@ -274,8 +275,7 @@ def main():
             print(f"  - {backend}")
         return
 
-    generate_theme_pair(args.wallpaper, args.output_dir,
-                        args.index, args.backend)
+    generate_theme_pair(args.wallpaper, args.output_dir, args.backend)
 
 
 if __name__ == "__main__":
