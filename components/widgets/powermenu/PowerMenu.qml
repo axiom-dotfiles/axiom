@@ -6,6 +6,7 @@ import Quickshell.Hyprland
 import Quickshell.Io
 
 import qs.components.reusable
+import qs.components.methods
 import qs.config
 import qs.services
 
@@ -154,7 +155,7 @@ PanelWindow {
         onLoaded: {
           item.icon = iconLogout
           item.clicked.connect(function() {
-            Quickshell.execute("loginctl terminate-session $XDG_SESSION_ID")
+            Utils.launchWithArgs("hyprctl", "dispatch", "exit")
           })
         }
       }
@@ -165,7 +166,7 @@ PanelWindow {
         onLoaded: {
           item.icon = iconPoweroff
           item.clicked.connect(function() {
-            Quickshell.execute("systemctl poweroff")
+            Utils.launchWithArgs("systemctl", "poweroff")
           })
         }
       }
@@ -176,7 +177,7 @@ PanelWindow {
         onLoaded: {
           item.icon = iconSuspend
           item.clicked.connect(function() {
-            Quickshell.execute("systemctl suspend")
+            Utils.launchWithArgs("systemctl", "suspend")
             rootWindow.toggle()
           })
         }
@@ -188,7 +189,7 @@ PanelWindow {
         onLoaded: {
           item.icon = iconReboot
           item.clicked.connect(function() {
-            Quickshell.execute("systemctl reboot")
+            Utils.launchWithArgs("systemctl", "reboot")
           })
         }
       }
@@ -199,7 +200,7 @@ PanelWindow {
         onLoaded: {
           item.icon = iconHibernate
           item.clicked.connect(function() {
-            Quickshell.execute("systemctl hibernate")
+            Utils.launchWithArgs("systemctl", "hibernate")
             rootWindow.toggle()
           })
         }
