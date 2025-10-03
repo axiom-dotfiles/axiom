@@ -16,7 +16,7 @@ PanelWindow {
 
   property bool isPrimaryScreen: screen.name === Display.primary
 
-  property int containerWidth: 400
+  property int containerWidth: Display.aspectRatio > 2.0 ? Math.min(screen.width * 0.5, 400) : Math.min(screen.width * 0.6, 400)
   property bool isLocked: false
   property bool showMediaControl: MprisController.isPlaying
   property real slideOffset: isLocked ? 0 : -height
@@ -48,7 +48,6 @@ PanelWindow {
     if (isPrimaryScreen) {
       passwordInput.text = "";
       Authentication.clearMessage();
-      passwordInput.forceActiveFocus();
       }
   }
 
@@ -76,7 +75,7 @@ PanelWindow {
     target: "lockscreen"
 
     function lock() {
-      rootWindow.lock();
+      ShellManager.lockScreen();
     }
 
     function unlock() {
@@ -99,11 +98,20 @@ PanelWindow {
 
   HyprlandFocusGrab {
     id: grab
-    active: rootWindow.isLocked && rootWindow.isPrimaryScreen
+    active: rootWindow.visible && rootWindow.isPrimaryScreen
     windows: [rootWindow]
     onCleared: {
       if (rootWindow.isLocked) {
         grab.active = true;
+      }
+    }
+  }
+
+  Connections {
+    target: rootWindow
+    function onActiveChanged() {
+      if (rootWindow.isLocked && rootWindow.isPrimaryScreen && rootWindow.active) {
+        passwordInput.input.forceActiveFocus();
       }
     }
   }
@@ -167,10 +175,6 @@ PanelWindow {
       anchors.verticalCenterOffset: -parent.height / 8
 
       visible: isPrimaryScreen
-      Component.onCompleted: {
-        console.log("LockContainer initialized on screen:", rootWindow.screen.name);
-        console.log("Primary Screen? ", rootWindow.isPrimaryScreen);
-      }
 
       SequentialAnimation {
         id: shakeAnimation
@@ -248,7 +252,7 @@ PanelWindow {
               }
             }
 
-            sourceComponent: Rectangle {
+            sourceComponent: StyledContainer {
               id: mediaRoot
               width: parent.width
               height: mediaControl.implicitHeight
@@ -284,8 +288,9 @@ PanelWindow {
 
             Component.onCompleted: {
               input.echoMode = 2;
+              // still necessary for initial focus even with connection
               if (rootWindow.isLocked && rootWindow.isPrimaryScreen) {
-                input.forceActiveFocus();
+                passwordInput.input.forceActiveFocus();
               }
             }
 
@@ -334,12 +339,11 @@ PanelWindow {
             height: 4
             visible: Authentication.isAuthenticating
 
-            Rectangle {
+            StyledContainer {
               id: progressBar
               width: parent.width * 0.3
               height: parent.height
-              color: Theme.accent
-              radius: 2
+              backgroundColor: Theme.accent
 
               SequentialAnimation on x {
                 loops: Animation.Infinite

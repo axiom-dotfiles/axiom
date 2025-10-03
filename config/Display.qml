@@ -9,10 +9,7 @@ QtObject {
   readonly property int resolutionHeight: ConfigManager.config.Display.resolutionHeight ?? 1080
   readonly property var monitors: ConfigManager.config.Display.monitors ?? []
 
-  // Helper functions
-  function aspectRatio() {
-    return resolutionWidth / resolutionHeight;
-  }
+  readonly property int aspectRatio: resolutionWidth / resolutionHeight
 
   function isUltrawide() {
     return aspectRatio() > 2.0;
