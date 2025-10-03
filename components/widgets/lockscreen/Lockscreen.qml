@@ -14,7 +14,6 @@ import qs.services
 PanelWindow {
   id: rootWindow
 
-  required property var screen
   property bool isPrimaryScreen: screen.name === Display.primary
 
   property int containerWidth: 400
@@ -43,15 +42,15 @@ PanelWindow {
   WlrLayershell.exclusiveZone: -1
 
   function lock() {
-  visible = true;
-  isLocked = true;
-  
-  if (isPrimaryScreen) {
-    passwordInput.text = "";
-    Authentication.clearMessage();
-    passwordInput.forceActiveFocus();
+    visible = true;
+    isLocked = true;
+    
+    if (isPrimaryScreen) {
+      passwordInput.text = "";
+      Authentication.clearMessage();
+      passwordInput.forceActiveFocus();
+      }
   }
-}
 
   function unlock() {
     isLocked = false;
@@ -167,7 +166,7 @@ PanelWindow {
       anchors.verticalCenter: parent.verticalCenter
       anchors.verticalCenterOffset: -parent.height / 8
 
-      visible: true
+      visible: isPrimaryScreen
       Component.onCompleted: {
         console.log("LockContainer initialized on screen:", rootWindow.screen.name);
         console.log("Primary Screen? ", rootWindow.isPrimaryScreen);
