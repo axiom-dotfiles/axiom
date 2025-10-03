@@ -83,12 +83,7 @@ StyledContainer {
           id: albumArt
           anchors.fill: parent
           fillMode: Image.PreserveAspectCrop
-          source: {
-            if (MprisController.artUrl.startsWith("file://")) {
-              return MprisController.artUrl;
-            }
-            return MprisController.artUrl;
-          }
+          source: MprisController.artUrl ? MprisController.artUrl : ""
           smooth: true
           asynchronous: true
           cache: true
@@ -135,15 +130,6 @@ StyledContainer {
             text: MprisController.formatTime(MprisController.position)
             textSize: root.timeFontSize
             textColor: root.timeColor
-
-            Timer {
-              interval: 1000
-              running: MprisController.isPlaying && MprisController.hasActivePlayer
-              repeat: true
-              onTriggered: {
-                MprisController.updatePosition()
-              }
-            }
           }
 
           StyledIconButton {
@@ -171,7 +157,7 @@ StyledContainer {
             handleColor: Theme.backgroundAlt
 
             property bool userInteracting: false
-            property string currentTrackId: MprisController.trackId || ""
+            property string currentTrackTitle: MprisController.trackTitle || ""
 
             value: userInteracting ? value : MprisController.progress
 
@@ -191,9 +177,18 @@ StyledContainer {
               onTriggered: progressSlider.userInteracting = false
             }
 
-            onCurrentTrackIdChanged: {
+            Timer {
+              interval: 1000
+              running: MprisController.isPlaying && MprisController.hasActivePlayer
+              repeat: true
+              onTriggered: {
+                MprisController.updatePosition()
+              }
+            }
+
+            onCurrentTrackTitleChanged: {
               userInteracting = false;
-              value = 0;
+              MprisController.updatePosition();
             }
 
             Connections {
@@ -205,23 +200,9 @@ StyledContainer {
                 }
               }
 
-              function onTrackIdChanged() {
-                progressSlider.currentTrackId = MprisController.trackId || "";
-              }
-
               function onMetadataUpdated() {
                 if (!progressSlider.userInteracting && MprisController.position < 1000) {
-                  progressSlider.value = 0;
-                }
-              }
-
-              function onActivePlayerChanged() {
-                progressSlider.userInteracting = false;
-                progressSlider.value = 0;
-              }
-
-              function onLengthChanged() {
-                if (!progressSlider.userInteracting) {
+                  console.log("Mpris positions:", MprisController.position, MprisController.length);
                   progressSlider.value = MprisController.progress;
                 }
               }

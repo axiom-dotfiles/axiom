@@ -12,34 +12,94 @@ QtObject {
 
   property var activePlayer: null
 
+  // --- Properties we can pass through ---
   readonly property bool hasActivePlayer: activePlayer !== null
-  readonly property string identity: activePlayer ? activePlayer.identity : ""
-  readonly property int playbackState: activePlayer ? activePlayer.playbackState : MprisPlaybackState.Stopped
   readonly property bool isPlaying: playbackState === MprisPlaybackState.Playing
-  readonly property string trackTitle: activePlayer ? activePlayer.trackTitle : "No Track Playing"
-  readonly property string trackId: activePlayer ? activePlayer.trackId : ""
-  readonly property string trackArtist: activePlayer ? activePlayer.trackArtist : "Unknown Artist"
-  readonly property real position: activePlayer ? activePlayer.position : 0
-  readonly property real length: activePlayer ? activePlayer.length : 0
-  readonly property real progress: length > 0 ? (position / length) : 0
-  readonly property string artUrl: activePlayer ? activePlayer.trackArtUrl : ""
-  readonly property string artFileName: artUrl ? Qt.md5(artUrl) + ".jpg" : ""
-  readonly property string artFilePath: artFileName ? `/tmp/quickshell-media-art/${artFileName}` : ""
+  readonly property int playbackState: activePlayer ? activePlayer.playbackState : MprisPlaybackState.Stopped
+
+  // --- Properties we fully control to be explicit ---
+  property string identity: ""
+  property string trackTitle: ""
+  property string trackId: ""
+  property string trackArtist: ""
+  property real position: 0
+  property real length: 0
+  property real progress: length > 0 ? (position / length) : 0
+
+  // --- Everything else ---
+  property string artUrl: activePlayer ? activePlayer.trackArtUrl : ""
+  property string artFileName: artUrl ? Qt.md5(artUrl) + ".jpg" : ""
+  property string artFilePath: artFileName ? `/tmp/quickshell-media-art/${artFileName}` : ""
   property bool artDownloaded: false
   property int artVersion: 0
-  readonly property bool canPlay: activePlayer ? activePlayer.canPlay : false
-  readonly property bool canPause: activePlayer ? activePlayer.canPause : false
-  readonly property bool canTogglePlaying: activePlayer ? activePlayer.canTogglePlaying : false
-  readonly property bool canGoNext: activePlayer ? activePlayer.canGoNext : false
-  readonly property bool canGoPrevious: activePlayer ? activePlayer.canGoPrevious : false
-  readonly property bool canSeek: activePlayer ? activePlayer.canSeek : false
-  readonly property bool isInitialized: Mpris.players !== null && Mpris.players.values.length > 0
+  property bool canPlay: activePlayer ? activePlayer.canPlay : false
+  property bool canPause: activePlayer ? activePlayer.canPause : false
+  property bool canTogglePlaying: activePlayer ? activePlayer.canTogglePlaying : false
+  property bool canGoNext: activePlayer ? activePlayer.canGoNext : false
+  property bool canGoPrevious: activePlayer ? activePlayer.canGoPrevious : false
+  property bool canSeek: activePlayer ? activePlayer.canSeek : false
+  property bool isInitialized: Mpris.players !== null && Mpris.players.values.length > 0
 
   // --- Public ---
+  function logCurrentSongProperties() {
+    if (!hasActivePlayer) {
+      console.log("No active MPRIS player.");
+      return;
+    }
+    console.log("Active MPRIS Player Properties:");
+    console.log("  Identity:", identity);
+    console.log("  Playback State:", playbackState === MprisPlaybackState.Playing ? "Playing" : (playbackState === MprisPlaybackState.Paused ? "Paused" : "Stopped"));
+    console.log("  Track Title:", trackTitle);
+    console.log("  Track Artist:", trackArtist);
+    console.log("  Track ID:", trackId);
+    console.log("  Position (ms):", position);
+    console.log("  Length (ms):", length);
+    console.log("  Progress:", (progress * 100).toFixed(2) + "%");
+    console.log("  Art URL:", artUrl);
+    console.log("  Can Play:", canPlay);
+    console.log("  Can Pause:", canPause);
+    console.log("  Can Toggle Playing:", canTogglePlaying);
+    console.log("  Can Go Next:", canGoNext);
+    console.log("  Can Go Previous:", canGoPrevious);
+    console.log("  Can Seek:", canSeek);
+  }
+
+  function updateAllMetadata() {
+    if (!hasActivePlayer) {
+      console.log("No active MPRIS player to update metadata from.");
+      return;
+    }
+    identity = activePlayer.identity || "";
+    trackTitle = activePlayer.trackTitle || "";
+    trackId = activePlayer.trackId || "";
+    trackArtist = activePlayer.trackArtist || "";
+    length = activePlayer.length || 0;
+    root.updatePosition();
+    root.logCurrentSongProperties();
+    root.metadataUpdated();
+  }
 
   function updatePosition() {
     if (hasActivePlayer && isPlaying) {
       activePlayer.positionChanged();
+      // Potential bug with youtube music AUR package and mpris
+      // Simply requires a skip to sync positions
+      if (activePlayer.position > length) {
+        position = activePlayer.position - length;
+        progress = length > 0 ? (position / length) : 0;
+      } else {
+        position = activePlayer.position;
+        progress = length > 0 ? (position / length) : 0;
+      }
+    }
+  }
+
+  property Connections _mprisConnections: Connections {
+    target: activePlayer
+    ignoreUnknownSignals: true
+    function onTrackTitleChanged() {
+      console.log("MprisController: Track ID changed.");
+      root.updateAllMetadata();
     }
   }
 
@@ -121,6 +181,7 @@ QtObject {
       if (Mpris.players && Mpris.players.values.length > 0) {
         console.log("MPRIS players detected after", attempts, "attempts.");
         _updateActivePlayer();
+        updateAllMetadata();
         running = false;
       } else if (attempts >= maxAttempts) {
         console.warn("No MPRIS players detected after", attempts, "attempts. Stopping poller.");
