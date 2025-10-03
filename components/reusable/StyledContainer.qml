@@ -1,18 +1,27 @@
-// qs/components/reusable/StyledContainer.qml
+// /components/reusable/StyledContainer.qml
 pragma ComponentBehavior: Bound
-
 import QtQuick
 
 import qs.config
 
 Rectangle {
-  property color containerColor: Theme.backgroundAlt
-  property color containerBorderColor: "transparent"
-  property int containerBorderWidth: 1
-  property real containerRadius: Appearance.borderRadius
+  id: component
 
-  color: containerColor
-  border.color: containerBorderColor
-  border.width: containerBorderWidth
-  radius: containerRadius
+  // -- Signals --
+  // null
+
+  // -- Public API --
+  // null
+
+  // -- Configurable Appearance --
+  property alias backgroundColor: component.color
+  property alias borderColor: component.border.color
+  property alias borderWidth: component.border.width
+  property alias borderRadius: component.radius
+
+  // -- Implementation --
+  color: Theme.backgroundAlt
+  border.color: "transparent"
+  border.width: Appearance.borderWidth
+  radius: Appearance.borderRadius
 }

@@ -10,10 +10,10 @@ PopupWindow {
 
   // --- Configuration ---
   // These properties allow styling from the outside.
-  property color containerColor: Theme.background
-  property color containerBorderColor: Theme.border
-  property int containerBorderWidth: Appearance.borderWidth
-  property int containerRadius: Appearance.borderRadius
+  property color backgroundColor: Theme.background
+  property color borderColor: Theme.border
+  property int borderWidth: Appearance.borderWidth
+  property int borderRadius: Appearance.borderRadius
   property bool clip: true
 
   // --- Setup ---
@@ -27,10 +27,10 @@ PopupWindow {
   Rectangle {
     id: backgroundRect
     anchors.fill: parent
-    color: popupRoot.containerColor
-    border.color: popupRoot.containerBorderColor
-    border.width: popupRoot.containerBorderWidth
-    radius: popupRoot.containerRadius
+    color: popupRoot.backgroundColor
+    border.color: popupRoot.borderColor
+    border.width: popupRoot.borderWidth
+    radius: popupRoot.borderRadius
     clip: popupRoot.clip
 
     // This item will hold the content passed in via the 'contentData' alias.

@@ -20,17 +20,11 @@ StyledContainer {
   signal accepted
   signal boxClicked
   
-  // function forceActiveFocus() {
-  //   input.forceActiveFocus()
-  // }
-  
   implicitHeight: textField.implicitHeight + 20
-  containerBorderColor: textField.activeFocus ? Theme.accent : Theme.border
-  containerColor: Theme.backgroundAlt
-  containerBorderWidth: Appearance.borderWidth
-  containerRadius: Appearance.borderRadius
+  borderColor: textField.activeFocus ? Theme.accent : Theme.border
+  backgroundColor: Theme.backgroundAlt
   
-  Behavior on containerBorderColor {
+  Behavior on borderColor {
     ColorAnimation { duration: 200; easing.type: Easing.InOutQuad }
   }
   

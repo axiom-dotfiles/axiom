@@ -1,61 +1,67 @@
-// In qs/components/reusable/StyledTextButton.qml
+// qs/components/reusable/StyledTextButton.qml
 pragma ComponentBehavior: Bound
-
 import QtQuick
 import QtQuick.Layouts
-
 import qs.config
 import qs.components.reusable
 
 Rectangle {
-  id: button
-
-  // --- Public API ---
-  property alias text: label.text
-  property int textPadding: 8
+  id: component
   
-  // Colors
+  // -- Signals --
+  signal clicked()
+  
+  // -- Public API --
+  property alias text: label.text
+  
+  // -- Configurable Appearance --
+  property int textPadding: 8
   property color backgroundColor: Theme.backgroundHighlight
   property color hoverColor: Theme.accent
   property color pressColor: Theme.accentAlt
   property color textColor: Theme.foreground
   property color textHoverColor: Theme.background
-
-  // Border and radius
   property color borderColor: Theme.border
   property int borderWidth: 0
   property real borderRadius: Appearance.borderRadius
-
-  signal clicked
-
-  // --- Layout ---
+  
+  // -- Implementation --
   implicitWidth: label.implicitWidth + (textPadding * 2)
   implicitHeight: label.implicitHeight + textPadding
   Layout.alignment: Qt.AlignVCenter
-
-  // --- Internal Implementation ---
-  color: mouseArea.pressed ? pressColor : (mouseArea.hovered ? hoverColor : backgroundColor)
+  
+  color: mouseArea.pressed ? pressColor : (mouseArea.containsMouse ? hoverColor : backgroundColor)
   border.color: borderColor
   border.width: borderWidth
   radius: borderRadius
-
+  
   Behavior on color {
-    ColorAnimation { duration: 150; easing.type: Easing.InOutQuad }
+    ColorAnimation {
+      duration: 150
+      easing.type: Easing.InOutQuad
+    }
   }
-
+  
   StyledText {
     id: label
     anchors.centerIn: parent
-    textColor: mouseArea.hovered ? button.textHoverColor : button.textColor
+    textColor: mouseArea.containsMouse ? component.textHoverColor : component.textColor
     textSize: Appearance.fontSize
     font.bold: true
+    
+    Behavior on textColor {
+      ColorAnimation {
+        duration: 150
+        easing.type: Easing.InOutQuad
+      }
+    }
   }
-
+  
   MouseArea {
     id: mouseArea
     anchors.fill: parent
     hoverEnabled: true
     cursorShape: Qt.PointingHandCursor
-    onClicked: button.clicked()
+    onClicked: component.clicked()
   }
 }

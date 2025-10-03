@@ -1,83 +1,81 @@
 // qs/components/reusable/StyledRectButton.qml
 pragma ComponentBehavior: Bound
-
 import QtQuick
-import QtQuick.Controls // Needed for ToolTip
+import QtQuick.Controls
 import QtQuick.Layouts
-
 import qs.config
 import qs.components.reusable
 
 Rectangle {
-  id: button
-
-  // --- Public API ---
+  id: component
+  
+  // -- Signals --
+  signal clicked()
+  
+  // -- Public API --
   property string iconText: ""
-  property int iconSize: Appearance.fontSize
   property string tooltipText: ""
-  property color iconColor: Theme.foreground
-
-  // Colors for different states
-  property color hoverColor: Theme.backgroundHighlight
-  property color pressColor: Theme.backgroundAlt
-  property color backgroundColor: "transparent"
-
-  // Border and radius
+  
+  // -- Configurable Appearance --
+  property alias iconSize: iconLabel.textSize
+  property alias iconColor: iconLabel.textColor
+  property color backgroundColor: Theme.backgroundAlt
+  property color hoverColor: component.backgroundColor
+  property color pressColor: component.backgroundColor
   property color borderColor: "transparent"
+  property color borderHoverColor: component.borderColor
+  property color borderPressColor: component.borderColor
   property int borderWidth: Appearance.borderWidth
   property real borderRadius: Appearance.borderRadius
-
-  // The main signal to notify parent components of a click
-  signal clicked
-
-  // --- Layout Properties ---
+  
+  // -- Implementation --
   Layout.fillHeight: true
   Layout.fillWidth: true
   Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
-
-  // --- Internal Implementation ---
-
-  // The rectangle's color is now bound to the mouse area's state
-  color: mouseArea.pressed ? pressColor : (mouseArea.hovered ? hoverColor : backgroundColor)
-  border.color: borderColor
-  border.width: borderWidth
-  radius: borderRadius
-
-  // Add a smooth transition for color changes
+  implicitWidth: Bar.height - (Widget.padding * 2)
+  implicitHeight: Bar.height - (Widget.padding * 2)
+  width: implicitWidth
+  height: implicitHeight
+  
+  color: mouseArea.pressed ? component.pressColor : 
+         (mouseArea.containsMouse ? component.hoverColor : component.backgroundColor)
+  border.color: mouseArea.pressed ? component.borderPressColor :
+                (mouseArea.containsMouse ? component.borderHoverColor : component.borderColor)
+  border.width: component.borderWidth
+  radius: component.borderRadius
+  
   Behavior on color {
     ColorAnimation {
       duration: 150
     }
   }
-
-  // The icon displayed in the center of the button
-  StyledText {
-    anchors.centerIn: parent
-    text: button.iconText
-    textSize: button.iconSize
-    textColor: button.iconColor
-    // The font family from StyledText will be used, perfect for icon fonts
+  
+  Behavior on border.color {
+    ColorAnimation {
+      duration: 150
+    }
   }
-
-  // The interactive area that captures mouse events
+  
+  StyledText {
+    id: iconLabel
+    anchors.centerIn: parent
+    text: component.iconText
+    textSize: Appearance.fontSize
+    textColor: Theme.foreground
+  }
+  
   MouseArea {
     id: mouseArea
     anchors.fill: parent
-    hoverEnabled: true // This is required for 'hovered' to work
-    cursorShape: Qt.PointingHandCursor // Standard cursor for buttons
-
-    // When the area is clicked, emit the button's 'clicked' signal
-    onClicked: {
-      button.clicked();
-    }
+    hoverEnabled: true
+    cursorShape: Qt.PointingHandCursor
+    onClicked: component.clicked()
   }
-
-  // A tooltip that appears on hover, if tooltipText is provided
+  
   ToolTip {
-    text: button.tooltipText
-    // Only show the tooltip if the button is hovered and has text to display
-    // visible: mouseArea.hovered && button.tooltipText !== "" ? true : false
+    id: tooltip
+    text: component.tooltipText
     visible: false
-    delay: 500 // A small delay before showing
+    delay: 500
   }
 }

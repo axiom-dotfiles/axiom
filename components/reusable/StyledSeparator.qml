@@ -1,15 +1,23 @@
 // qs/components/reusable/StyledSeparator.qml
 pragma ComponentBehavior: Bound
-
 import QtQuick
-
 import qs.config
 
 Rectangle {
-  property color separatorColor: Theme.accent
-  property int separatorHeight: Appearance.borderWidth
-
-  height: separatorHeight
-  color: separatorColor
-  radius: 0
+  id: component
+  
+  // -- Signals --
+  // null
+  
+  // -- Public API --
+  // null
+  
+  // -- Configurable Appearance --
+  property alias separatorColor: component.color
+  property alias separatorHeight: component.height
+  
+  // -- Implementation --
+  height: Appearance.borderWidth
+  color: Theme.accent
+  radius: Appearance.borderRadius
 }
