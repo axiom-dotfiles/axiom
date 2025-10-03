@@ -50,10 +50,9 @@ Item {
       id: mainContainer
 
       anchors.fill: parent
-      containerColor: Theme.backgroundAlt
-      containerBorderColor: Theme.accent
-      containerBorderWidth: Appearance.borderWidth
-      containerRadius: Appearance.borderRadius
+      backgroundColor: Theme.backgroundAlt
+      borderColor: Theme.accent
+      borderRadius: Appearance.borderRadius
 
       RowLayout {
         id: mainLayout
@@ -158,7 +157,7 @@ Item {
           StyledContainer {
             Layout.fillWidth: true
             Layout.preferredHeight: 40
-            containerColor: Theme.background
+            backgroundColor: Theme.background
             RowLayout {
               anchors.fill: parent
               anchors.leftMargin: internalPadding

@@ -2,8 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 
-import qs.components.widgets.bar.declarations
-import qs.config
+import qs.components.widgets.bar.modules
 
 QtObject {
   property Component leftCenterGroup: WidgetGroup {

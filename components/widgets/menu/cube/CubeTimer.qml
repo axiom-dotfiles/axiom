@@ -143,7 +143,7 @@ ColumnLayout {
     id: mainContainer
     Layout.fillWidth: true
     implicitHeight: mainLayout.implicitHeight + (Widget.padding * 2)
-    containerColor: Theme.foregroundAlt
+    backgroundColor: Theme.foregroundAlt
 
     ColumnLayout {
       id: mainLayout
@@ -224,7 +224,7 @@ ColumnLayout {
     Layout.fillHeight: true
     Layout.preferredHeight: 240
     Layout.alignment: Qt.AlignBottom
-    containerColor: Theme.background
+    backgroundColor: Theme.background
     visible: solveHistoryModel.count > 0
 
     ScrollView {

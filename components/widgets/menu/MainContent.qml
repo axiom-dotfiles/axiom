@@ -25,7 +25,7 @@ StyledContainer {
   width: 350
   height: 500
 
-  containerColor: "transparent"
+  backgroundColor: "transparent"
 
   property int currentTab: 0
 
@@ -72,7 +72,7 @@ StyledContainer {
     StyledContainer {
       Layout.fillWidth: true
       Layout.fillHeight: true
-      containerColor: Theme.backgroundAlt
+      backgroundColor: Theme.backgroundAlt
       clip: true
 
       Item {

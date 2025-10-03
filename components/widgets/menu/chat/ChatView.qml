@@ -14,7 +14,7 @@ StyledContainer {
   
   width: 400
   height: 600
-  containerColor: Theme.background
+  backgroundColor: Theme.background
   readonly property alias wantsKeyboardFocus: chatInputBar.wantsKeyboardFocus
   
   readonly property var backendNames: Object.keys(ChatConfig.backends)
@@ -49,7 +49,7 @@ StyledContainer {
       
       StyledContainer {
         anchors.fill: parent
-        containerColor: Theme.backgroundAlt
+        backgroundColor: Theme.backgroundAlt
       }
       
       ListView {

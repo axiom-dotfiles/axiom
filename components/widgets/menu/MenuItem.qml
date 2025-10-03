@@ -41,7 +41,7 @@ StyledContainer {
 
     // Make the container transparent by default to act as a pure wrapper.
     // The content inside (e.g., a button) can provide its own background.
-    containerColor: "transparent"
+    backgroundColor: "transparent"
 
     // This Item holds the actual content and is used to calculate the
     // automatic height based on its children.

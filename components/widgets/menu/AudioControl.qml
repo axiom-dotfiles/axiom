@@ -57,7 +57,7 @@ StyledContainer {
     return node.description || node.name || "Loading...";
   }
 
-  containerColor: backgroundColor
+  // backgroundColor: backgroundColor
 
   Layout.preferredHeight: controlHeight
   Layout.fillWidth: true
@@ -145,7 +145,8 @@ StyledContainer {
         Layout.fillWidth: true
         Layout.preferredHeight: root.sliderHeight
         Layout.rightMargin: actionButton.width
-        grooveHeight: root.sliderGrooveHeight
+        troughHeight: root.sliderGrooveHeight
+        troughColor: Theme.backgroundHighlight
 
         enabled: root.isReady && root.node?.audio !== null
 

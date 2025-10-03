@@ -88,9 +88,9 @@ PanelWindow {
     width: gridLayout.implicitWidth + 40
     height: gridLayout.implicitHeight + 40
 
-    containerColor: Theme.background
-    containerBorderColor: Theme.border
-    containerBorderWidth: Appearance.borderWidth
+    backgroundColor: Theme.background
+    borderColor: Theme.border
+    borderWidth: Appearance.borderWidth
 
     GridLayout {
       id: gridLayout

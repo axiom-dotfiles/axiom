@@ -1,10 +1,12 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
-import qs.components.widgets.popouts
-import qs.components.reusable
+
 import qs.config
 import qs.services
+import qs.components.reusable
+import qs.components.widgets.popouts
+import qs.components.widgets.common
 
 Item {
   id: osdRoot
@@ -76,10 +78,10 @@ Item {
     }
 
     StyledContainer {
-      containerColor: Theme.backgroundAlt
-      containerBorderColor: Theme.accent
-      containerBorderWidth: Appearance.borderWidth
-      containerRadius: Appearance.borderRadius
+      backgroundColor: Theme.backgroundAlt
+      borderColor: Theme.accent
+      borderWidth: Appearance.borderWidth
+      borderRadius: Appearance.borderRadius
 
       property bool hovered: false
 

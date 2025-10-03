@@ -98,9 +98,7 @@ PanelWindow {
       width: parent.width
       anchors.horizontalCenter: parent.horizontalCenter
       anchors.top: parent.top
-      containerColor: Theme.background
-      containerBorderColor: Theme.border
-      containerBorderWidth: Appearance.borderWidth
+      backgroundColor: Theme.background
 
       Column {
         id: mainLayout

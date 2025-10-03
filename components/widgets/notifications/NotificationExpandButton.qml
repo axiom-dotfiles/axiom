@@ -17,9 +17,9 @@ StyledContainer {
   implicitWidth: contentRow.implicitWidth + (Widget.padding * 2)
   radius: Appearance.borderRadius
 
-  containerColor: mouseArea.pressed ? Qt.darker(Theme.backgroundHighlight, 1.2) : mouseArea.hovered ? Qt.lighter(Theme.backgroundHighlight, 1.1) : Theme.backgroundHighlight
+  backgroundColor: mouseArea.pressed ? Qt.darker(Theme.backgroundHighlight, 1.2) : mouseArea.hovered ? Qt.lighter(Theme.backgroundHighlight, 1.1) : Theme.backgroundHighlight
 
-  Behavior on containerColor {
+  Behavior on backgroundColor {
     enabled: Widget.animations
     NumberAnimation {
       duration: 100

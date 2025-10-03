@@ -15,47 +15,41 @@ StyledContainer {
     spacing: Widget.padding
     Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
 
-    StyledIconButton {
+    StyledRectButton {
       iconText: "󰖩"
-      tooltipText: "Network Manager"
-      onClicked: Utils.launch("nm-connection-editor")
+      iconColor: Theme.background
       backgroundColor: Theme.base0A
-      iconColor: Theme.background
+      onClicked: Utils.launch("nm-connection-editor")
     }
 
-    StyledIconButton {
+    StyledRectButton {
       iconText: "󰂯"
-      tooltipText: "Bluetooth Manager"
-      onClicked: Utils.launch("blueberry")
+      iconColor: Theme.background
       backgroundColor: Theme.base0B
-      iconColor: Theme.background
+      onClicked: Utils.launch("blueberry")
     }
 
-    StyledIconButton {
+    StyledRectButton {
       iconText: "󰃣"
-      tooltipText: "Appearance Settings"
-      onClicked: Utils.launch("nwg-look")
+      iconColor: Theme.background
       backgroundColor: Theme.base0C
-      iconColor: Theme.background
+      onClicked: Utils.launch("nwg-look")
     }
 
-    StyledIconButton {
+    StyledRectButton {
       iconText: "󰕾"
-      tooltipText: "Audio Control"
-      onClicked: Utils.launch("pavucontrol")
-      backgroundColor: Theme.base0D
       iconColor: Theme.background
+      backgroundColor: Theme.base0D
+      onClicked: Utils.launch("pavucontrol")
     }
 
-    StyledIconButton {
+    StyledRectButton {
       iconText: "󰍛"
-      tooltipText: "Power Settings"
-      // onClicked: ShellManager.togglePanelReservation("mainMenu")
+      iconColor: Theme.background
+      backgroundColor: Theme.base0E
       onClicked: {
         ShellManager.togglePinnedPanel("mainMenu");
       }
-      backgroundColor: Theme.base0E
-      iconColor: Theme.background
     }
   }
 }

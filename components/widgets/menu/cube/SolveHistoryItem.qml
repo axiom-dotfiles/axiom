@@ -39,7 +39,7 @@ StyledContainer {
 
   // The width will be set by the ListView delegate that creates this component
   implicitHeight: mainLayout.implicitHeight + (Widget.padding * 2)
-  containerColor: Theme.foreground
+  backgroundColor: Theme.foreground
 
   ColumnLayout {
     id: mainLayout

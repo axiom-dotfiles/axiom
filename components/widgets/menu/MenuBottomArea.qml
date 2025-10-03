@@ -21,7 +21,7 @@ ColumnLayout {
         id: mediaControl
         Layout.fillWidth: true
         visible: root.showMediaControl
-        containerColor: Theme.accent
+        backgroundColor: Theme.accent
     }
     
     QuickSettings {

@@ -23,7 +23,7 @@ StyledContainer {
     // Highlight the selected day with a border, and the current day with a background
     border.width: isSelected ? Appearance.borderWidth * 2 : 0
     border.color: isSelected ? Theme.accentAlt : "transparent"
-    containerColor: isToday ? Theme.accent : Theme.backgroundHighlight
+    backgroundColor: isToday ? Theme.accent : Theme.backgroundHighlight
 
     StyledText {
         anchors.centerIn: parent
@@ -50,7 +50,7 @@ StyledContainer {
         // Change background color on hover, unless it's the "today" cell
         onContainsMouseChanged: {
             if (!isToday && !isSelected) {
-                dayRoot.containerColor = containsMouse ? Theme.backgroundHighlight : "transparent"
+                dayRoot.backgroundColor = containsMouse ? Theme.backgroundHighlight : "transparent"
             }
         }
     }

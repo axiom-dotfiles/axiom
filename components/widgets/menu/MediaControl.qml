@@ -75,9 +75,9 @@ StyledContainer {
         Layout.preferredWidth: root.albumArtSize
         Layout.preferredHeight: root.albumArtSize
         Layout.alignment: Qt.AlignVCenter
-        containerBorderColor: root.albumBorderColor
-        containerBorderWidth: root.albumBorderWidth
-        radius: root.albumRadius
+        borderColor: root.albumBorderColor
+        borderWidth: root.albumBorderWidth
+        borderRadius: root.albumRadius
 
         Image {
           id: albumArt
@@ -161,7 +161,7 @@ StyledContainer {
             id: progressSlider
             Layout.fillWidth: true
             Layout.preferredHeight: root.sliderHeight
-            grooveHeight: root.sliderGrooveHeight
+            troughHeight: root.sliderGrooveHeight
             Layout.leftMargin: root.spacerWidth
             Layout.rightMargin: root.spacerWidth
 

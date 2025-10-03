@@ -261,7 +261,7 @@ PanelWindow {
                 implicitHeight: MprisController.isPlaying ? 100 : 0
                 visible: MprisController.isPlaying ? true : false
                 anchors.fill: parent
-                containerColor: parent.color
+                backgroundColor: parent.color
                 showProgressBar: false
               }
             }

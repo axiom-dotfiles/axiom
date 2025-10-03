@@ -31,7 +31,7 @@ Item {
     spacing: root.panelMargin
 
     MenuItem {
-      containerColor: Theme.backgroundAlt
+      backgroundColor: Theme.backgroundAlt
       Layout.fillWidth: true
       Layout.alignment: Qt.AlignVCenter
       // heightOverride: 50

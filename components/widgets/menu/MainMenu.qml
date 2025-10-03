@@ -61,9 +61,8 @@ StyledContainer {
   implicitWidth: 600
   implicitHeight: (customHeight > 0) ? customHeight : Display.resolutionHeight - Widget.containerWidth * 4 // TODO: Remove random numbers
 
-  containerBorderWidth: Appearance.borderWidth
-  containerBorderColor: Theme.foregroundAlt
-  containerColor: Theme.background
+  borderColor: Theme.foregroundAlt
+  backgroundColor: Theme.background
   ColumnLayout {
     anchors.fill: parent
     spacing: 0
@@ -89,19 +88,19 @@ StyledContainer {
       Layout.leftMargin: Widget.padding
       Layout.rightMargin: Widget.padding
 
-      containerColor: Theme.blue
+      backgroundColor: Theme.blue
 
     }
 
     StyledContainer {
       Layout.fillWidth: true
       Layout.fillHeight: true
-      containerColor: Theme.background
+      backgroundColor: Theme.background
       Layout.topMargin: Appearance.borderWidth
       Layout.bottomMargin: Appearance.borderWidth
       Layout.leftMargin: Appearance.borderWidth
       Layout.rightMargin: Appearance.borderWidth
-      clip: true // Ensure content doesn't overflow during animation
+      clip: true
 
       Item {
         id: contentContainer

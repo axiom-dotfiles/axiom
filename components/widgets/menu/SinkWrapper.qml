@@ -49,7 +49,7 @@ StyledContainer {
     StyledContainer {
       Layout.fillWidth: true
       Layout.fillHeight: true
-      containerColor: Theme.backgroundHighlight
+      backgroundColor: Theme.backgroundHighlight
       Item {
         id: contentContainer
         anchors.fill: parent

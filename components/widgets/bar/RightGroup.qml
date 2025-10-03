@@ -4,7 +4,7 @@ import QtQuick
 
 import qs.services
 import qs.config
-import qs.components.widgets.bar.declarations as Widgets
+import qs.components.widgets.bar.modules as Widgets
 
 WidgetGroup {
   id: root
