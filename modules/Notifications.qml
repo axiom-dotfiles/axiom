@@ -16,7 +16,7 @@ Scope {
   property int maxVisibleNotifications: 5
   property int stackSpacing: 10
   property int topOffset: Widget.containerWidth + 20
-  property int leftOffset: Bar.height + 20
+  property int leftOffset: Bar.extent + 20
   property int popupWidth: 350
   property int popupMaxHeight: 150
   property int dismissDuration: 5000

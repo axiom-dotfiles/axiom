@@ -105,7 +105,7 @@ Item {
     NotificationIcon {
       visible: root.onlyNotification && root.notificationObject.image
       image: root.notificationObject.image
-      baseSize: Bar.height * 1.2
+      baseSize: Bar.extent * 1.2
       Layout.alignment: Qt.AlignTop
     }
 

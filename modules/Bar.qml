@@ -2,15 +2,14 @@ pragma ComponentBehavior: Bound
 
 import Quickshell
 import QtQuick
-import qs.services
 import qs.config
 import qs.components.widgets.bar as Components
 
 Scope {
   id: root
 
-  property int barHeight: Bar.height
-  property int barWidth: Bar.vertical ? Bar.height : 0
+  property int barHeight: Bar.extent
+  property int barWidth: Bar.vertical ? Bar.extent : 0
   property color backgroundColor: Theme.background
   property color foregroundColor: Theme.foreground
 
@@ -18,8 +17,7 @@ Scope {
     model: Quickshell.screens
     delegate: Component {
       Components.BarPanel {
-        barHeight: root.barHeight
-        barWidth: root.barWidth
+        barConfig: Display.primary === modelData.name ? Bar : Bar.nonPrimary
       }
     }
   }

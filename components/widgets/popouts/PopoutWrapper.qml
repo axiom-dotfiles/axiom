@@ -113,7 +113,7 @@ Item {
         height: combinedPopup.mainContentHeight
 
         active: false
-        slideFromRight: Bar.rightSide
+        slideFromRight: Bar.right
         animationDuration: 250
         enableFade: true
         easingType: Easing.OutCubic

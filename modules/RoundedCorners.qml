@@ -23,7 +23,7 @@ PanelWindow {
   property bool antialiasing: true
 
   readonly property bool vertical: Bar.vertical ?? false
-  readonly property bool rightSide: Bar.rightSide ?? false
+  readonly property bool rightSide: Bar.right ?? false
 
   anchors {
     top: true

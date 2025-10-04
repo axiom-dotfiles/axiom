@@ -13,31 +13,25 @@ PanelWindow {
   id: root
 
   required property var modelData
+  required property QtObject barConfig
   property string display: Display.primary
-  property int barHeight: Bar.height
-  property int barWidth: Bar.vertical ? Bar.height : 0
 
   screen: modelData
   WlrLayershell.layer: WlrLayer.Top
-  WlrLayershell.exclusiveZone: Bar.vertical ? barWidth : barHeight
-  WlrLayershell.namespace: "qs-bar"
+  WlrLayershell.exclusiveZone: barConfig.autoHide ? 0 : barConfig.extent
+  WlrLayershell.namespace: "axiom-bar"
 
   anchors {
-    top: Bar.vertical ? true : (modelData.name === display)
-    bottom: Bar.vertical ? true : (modelData.name === "DP-2")
-    left: Bar.vertical ? !Bar.rightSide : true
-    right: Bar.vertical ? Bar.rightSide : true
+    top: (barConfig.top || barConfig.vertical)
+    bottom: (barConfig.bottom || barConfig.vertical)
+    left: (barConfig.left || !barConfig.vertical)
+    right: (barConfig.right || !barConfig.vertical)
   }
 
-  visible: if (modelData.name === display)
-    true
-  else if (modelData.name === "DP-2" && !Config.singleMonitor)
-    true
-  else
-    false
+  visible: barConfig.enabled
 
-  implicitHeight: Bar.vertical ? 0 : barHeight
-  implicitWidth: Bar.vertical ? barWidth : 0
+  implicitHeight: barConfig.vertical ? 0 : barConfig.extent
+  implicitWidth: barConfig.vertical ? barConfig.extent : 0
 
   PopoutWrapper {
     id: popouts
@@ -53,7 +47,7 @@ PanelWindow {
       Widgets.Workspaces {
         screen: root.screen
         popouts: popouts
-        orientation: Bar.vertical ? Qt.Vertical : Qt.Horizontal
+        orientation: barConfig.vertical ? Qt.Vertical : Qt.Horizontal
         panel: root
       }
     }

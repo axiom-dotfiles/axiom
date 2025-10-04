@@ -12,7 +12,7 @@ Rectangle {
     property int urgency: NotificationUrgency.Normal
     property string image: ""
 
-    property int baseSize: Bar.height
+    property int baseSize: Bar.extent
 
     implicitWidth: baseSize
     implicitHeight: baseSize

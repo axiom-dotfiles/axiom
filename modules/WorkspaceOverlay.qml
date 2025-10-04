@@ -91,7 +91,7 @@ Scope {
       anchors.fill: parent
       anchors.topMargin: Bar.vertical ? Widget.containerWidth : Appearance.borderWidth
       anchors.bottomMargin: Bar.bottom ? Appearance.borderWidth : Widget.containerWidth
-      anchors.rightMargin: Bar.rightSide ? Appearance.borderWidth : Widget.containerWidth
+      anchors.rightMargin: Bar.right ? Appearance.borderWidth : Widget.containerWidth
       anchors.leftMargin: Bar.vertical ? Appearance.borderWidth : Widget.containerWidth
       radius: Appearance.borderRadius
       color: root.overlayBgColor

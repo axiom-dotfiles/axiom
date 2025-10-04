@@ -32,8 +32,8 @@ Rectangle {
   Layout.fillHeight: true
   Layout.fillWidth: true
   Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
-  implicitWidth: Bar.height - (Widget.padding * 2)
-  implicitHeight: Bar.height - (Widget.padding * 2)
+  implicitWidth: Bar.extent - (Widget.padding * 2)
+  implicitHeight: Bar.extent - (Widget.padding * 2)
   width: implicitWidth
   height: implicitHeight
   

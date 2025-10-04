@@ -44,8 +44,8 @@ PanelWindow {
         root.popouts.openPopout(root.panel, "media-player", {
           monitor: root.monitor,
           activeId: root.monitor?.activeWorkspace?.id ?? 1,
-          anchorX: 0 + Bar.height,
-          anchorY: 0 + Bar.height,
+          anchorX: 0 + Bar.extent,
+          anchorY: 0 + Bar.extent,
           anchorWidth: root.width,
           anchorHeight: root.height
         });
