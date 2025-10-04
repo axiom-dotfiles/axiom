@@ -11,30 +11,40 @@ QtObject {
     Left,
     Right
   }
-  // Firsty entry is primary bar
-  // this will be very easily expandable for unlimited fully configurable bars in the future
-  // but proof of concept for now
-  readonly property bool enabled: ConfigManager.config.Bar[0].enabled ?? true
-  readonly property int extent: ConfigManager.config.Bar[0].extent ?? 30
-  readonly property bool autoHide: ConfigManager.config.Bar[0].autoHide ?? false
-  readonly property int location: Bar.getLocationFromString(ConfigManager.config.Bar[0].location ?? "Top")
-  readonly property QtObject widgets: ConfigManager.config.Bar[0]?.widgets ?? null
+  readonly property var bars: {
+    const configs = ConfigManager.config.Bar || [];
+    const result = [];
 
-  readonly property QtObject nonPrimary: QtObject {
-    property bool enabled: ConfigManager.config.Bar[1]?.enabled ?? Bar.enabled
-    property int extent: ConfigManager.config.Bar[1]?.extent ?? Bar.extent
-    property bool autoHide: ConfigManager.config.Bar[1]?.autoHide ?? Bar.autoHide
-    property int location: Bar.getLocationFromString(ConfigManager.config.Bar[1]?.location ?? Bar.location)
-    property var widgets: ConfigManager.config.Bar[1]?.widgets ?? Bar.widgets
+    for (let i = 0; i < configs.length; i++) {
+      const barConfig = configs[i];
+      const loc = Bar.getLocationFromString(barConfig.location ?? "Top");
 
-    property bool vertical: location === Bar.Left || location === Bar.Right
-    property bool left: location === Bar.Left
-    property bool right: location === Bar.Right
-    property bool top: location === Bar.Top
-    property bool bottom: location === Bar.Bottom
+      result.push({
+        "id": barConfig.id || "",
+        "enabled": barConfig.enabled ?? true,
+        "extent": barConfig.extent ?? 30,
+        "autoHide": barConfig.autoHide ?? false,
+        "location": loc,
+        "display": barConfig.display || "",
+        "widgets": barConfig.widgets || null,
+        "vertical": loc === Bar.Left || loc === Bar.Right,
+        "left": loc === Bar.Left,
+        "right": loc === Bar.Right,
+        "top": loc === Bar.Top,
+        "bottom": loc === Bar.Bottom
+      });
+    }
+
+    // Ensuer primary bar is first
+    return result.sort((a, b) => (a.primary === b.primary) ? 0 : a.primary ? -1 : 1);
   }
+  // Global convenience properties for first bar
+  readonly property bool enabled: Bar.bars[0]?.enabled ?? true
+  readonly property int extent: Bar.bars[0]?.extent ?? 30
+  readonly property bool autoHide: Bar.bars[0]?.autoHide ?? false
+  readonly property int location: Bar.getLocationFromString(Bar.bars[0]?.location ?? "Top")
+  readonly property QtObject widgets: Bar.bars[0]?.widgets ?? null
 
-  // Computed convenience properties
   readonly property bool vertical: location === Bar.Left || location === Bar.Right
   readonly property bool left: location === Bar.Left
   readonly property bool right: location === Bar.Right

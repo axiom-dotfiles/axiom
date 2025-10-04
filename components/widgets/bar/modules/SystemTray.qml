@@ -12,6 +12,9 @@ Item {
   // Add orientation property
   property int orientation: Config.orientation  // Accept orientation from parent
   property bool isVertical: orientation === Qt.Vertical
+  Component.onCompleted: {
+    console.log("SystemTray orientation:", orientation, "isVertical:", isVertical);
+  }
 
   property int iconSize: 18
   property int leftPadding: 8

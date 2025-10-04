@@ -21,8 +21,8 @@ Item {
   // -- Sizing --
   height: isVertical ? implicitHeight : Widget.height
   width: isVertical ? Widget.height : implicitWidth
-  implicitWidth: isVertical ? Widget.height : (contentLoader.item ? contentLoader.item.implicitWidth + padding * 2 : 60)
-  implicitHeight: isVertical ? (contentLoader.item ? contentLoader.item.implicitHeight + padding * 2 : Widget.height) : Widget.height
+  implicitWidth: isVertical ? Widget.height : (contentLoader.item ? contentLoader.item.implicitWidth + Widget.padding * 2 : 60)
+  implicitHeight: isVertical ? (contentLoader.item ? contentLoader.item.implicitHeight + Widget.padding * 2 : Widget.height) : Widget.height
   
   // -- Implementation --
   Loader {
