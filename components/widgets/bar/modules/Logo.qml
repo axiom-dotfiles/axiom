@@ -5,8 +5,7 @@ import qs.services
 import qs.components.widgets.bar
 import qs.components.reusable
 
-BarModule {
-  content: StyledRectButton {
+StyledRectButton {
     id: component
     
     // -- Signals --
@@ -23,5 +22,4 @@ BarModule {
     
     // -- Implementation --
     onClicked: ShellManager.openPowerMenu()
-  }
 }

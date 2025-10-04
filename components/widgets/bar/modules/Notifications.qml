@@ -7,8 +7,7 @@ import qs.services
 import qs.components.reusable
 import qs.components.widgets.bar
 
-BarModule {
-  content: StyledRectButton {
+  StyledRectButton {
     id: component
 
     // -- Signals --
@@ -26,4 +25,3 @@ BarModule {
     // -- Implementation --
     onClicked: ShellManager.togglePinnedPanel("mainMenu")
   }
-}

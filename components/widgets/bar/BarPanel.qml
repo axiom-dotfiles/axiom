@@ -10,6 +10,8 @@ import qs.components.widgets.bar.modules as Widgets
 import qs.components.widgets.popouts
 import qs.components.reusable
 
+// TODO: Make this a proper singleton service that manages multiple bars
+// as of right now (and probably awhile) this is totally fine
 PanelWindow {
   id: root
 
@@ -44,8 +46,7 @@ PanelWindow {
 
   // --- Dynamic Widget Logic ---
 
-  // 1. Map widget type strings from JSON to the actual, imported QML component types.
-  // This allows us to access the component variables directly without using strings.
+  // This will change. The widget definition should just be a string of the component
   readonly property var widgetComponentMap: {
     "Logo": "modules/Logo.qml",
     "Window": "modules/Window.qml",
@@ -59,11 +60,12 @@ PanelWindow {
     "Notifications": "modules/Notifications.qml"
   }
 
-  // 2. A factory function to build a model array for the WidgetGroup's Repeater.
+  // A factory function to build a model array for the WidgetGroup's Repeater
+  // Will change slightly when the map above changes
   function buildWidgetModel(widgetConfigArray) {
     console.log("Building widget model for config:", JSON.stringify(widgetConfigArray));
     if (!widgetConfigArray || widgetConfigArray.length === 0) {
-      return []; // Return an empty model for empty sections
+      return [];
     }
 
     const array = widgetConfigArray.filter(
@@ -83,13 +85,14 @@ PanelWindow {
         ,
         properties: widgetConf.properties || {}
       };
-    }).filter(item => item !== null); // Clean up any nulls from unknown widget types
+    }).filter(item => item !== null);
     console.log("Final widget model array:", JSON.stringify(array));
     return array;
   }
 
   // --- UI Implementation ---
 
+  // TODO: support popouts in all widget groups
   PopoutWrapper {
     id: popouts
     screen: root.screen
@@ -100,6 +103,7 @@ PanelWindow {
     anchors.fill: parent
     screen: root.screen
     popouts: popouts
+    barConfig: root.barConfig
 
     // TODO: Adjust this to support dynamic center widgets and workspace location for a fully
     // dynamic bar

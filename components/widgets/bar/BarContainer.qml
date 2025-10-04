@@ -7,6 +7,7 @@ import qs.config
 Rectangle {
   id: root
 
+  required property var barConfig
   property alias workspaces: workspacesLoader.sourceComponent
   property alias leftGroup: leftGroupLoader.sourceComponent
   property alias rightGroup: rightGroupLoader.sourceComponent
@@ -40,12 +41,12 @@ Rectangle {
   Loader {
     id: leftGroupLoader
     anchors {
-      left: Bar.vertical ? undefined : parent.left
-      top: Bar.vertical ? parent.top : undefined
-      horizontalCenter: Bar.vertical ? parent.horizontalCenter : undefined
-      verticalCenter: Bar.vertical ? undefined : parent.verticalCenter
-      leftMargin: Bar.vertical ? 0 : Appearance.screenMargin
-      topMargin: Bar.vertical ? Appearance.screenMargin : 0
+      left: barConfig.vertical ? undefined : parent.left
+      top: barConfig.vertical ? parent.top : undefined
+      horizontalCenter: barConfig.vertical ? parent.horizontalCenter : undefined
+      verticalCenter: barConfig.vertical ? undefined : parent.verticalCenter
+      leftMargin: barConfig.vertical ? 0 : Appearance.screenMargin
+      topMargin: barConfig.vertical ? Appearance.screenMargin : 0
     }
   }
 
@@ -53,12 +54,12 @@ Rectangle {
   Loader {
     id: leftCenterGroupLoader
     anchors {
-      right: Bar.vertical ? undefined : workspacesLoader.left
-      bottom: Bar.vertical ? workspacesLoader.top : undefined
-      horizontalCenter: Bar.vertical ? parent.horizontalCenter : undefined
-      verticalCenter: Bar.vertical ? undefined : parent.verticalCenter
-      rightMargin: Bar.vertical ? 0 : Appearance.screenMargin
-      bottomMargin: Bar.vertical ? Appearance.screenMargin : 0
+      right: barConfig.vertical ? undefined : workspacesLoader.left
+      bottom: barConfig.vertical ? workspacesLoader.top : undefined
+      horizontalCenter: barConfig.vertical ? parent.horizontalCenter : undefined
+      verticalCenter: barConfig.vertical ? undefined : parent.verticalCenter
+      rightMargin: barConfig.vertical ? 0 : Appearance.screenMargin
+      bottomMargin: barConfig.vertical ? Appearance.screenMargin : 0
     }
   }
 
@@ -66,12 +67,12 @@ Rectangle {
   Loader {
     id: rightCenterGroupLoader
     anchors {
-      left: Bar.vertical ? undefined : workspacesLoader.right
-      top: Bar.vertical ? workspacesLoader.bottom : undefined
-      horizontalCenter: Bar.vertical ? parent.horizontalCenter : undefined
-      verticalCenter: Bar.vertical ? undefined : parent.verticalCenter
-      leftMargin: Bar.vertical ? 0 : Appearance.screenMargin
-      topMargin: Bar.vertical ? Appearance.screenMargin : 0
+      left: barConfig.vertical ? undefined : workspacesLoader.right
+      top: barConfig.vertical ? workspacesLoader.bottom : undefined
+      horizontalCenter: barConfig.vertical ? parent.horizontalCenter : undefined
+      verticalCenter: barConfig.vertical ? undefined : parent.verticalCenter
+      leftMargin: barConfig.vertical ? 0 : Appearance.screenMargin
+      topMargin: barConfig.vertical ? Appearance.screenMargin : 0
     }
   }
 
@@ -79,12 +80,12 @@ Rectangle {
   Loader {
     id: rightGroupLoader
     anchors {
-      right: Bar.vertical ? undefined : parent.right
-      bottom: Bar.vertical ? parent.bottom : undefined
-      horizontalCenter: Bar.vertical ? parent.horizontalCenter : undefined
-      verticalCenter: Bar.vertical ? undefined : parent.verticalCenter
-      rightMargin: Bar.vertical ? 0 : Appearance.screenMargin
-      bottomMargin: Bar.vertical ? Appearance.screenMargin : 0
+      right: barConfig.vertical ? undefined : parent.right
+      bottom: barConfig.vertical ? parent.bottom : undefined
+      horizontalCenter: barConfig.vertical ? parent.horizontalCenter : undefined
+      verticalCenter: barConfig.vertical ? undefined : parent.verticalCenter
+      rightMargin: barConfig.vertical ? 0 : Appearance.screenMargin
+      bottomMargin: barConfig.vertical ? Appearance.screenMargin : 0
     }
   }
 }

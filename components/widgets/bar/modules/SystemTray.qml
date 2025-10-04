@@ -9,9 +9,7 @@ import qs.config
 Item {
   id: tray
 
-  // Add orientation property
-  property int orientation: Config.orientation  // Accept orientation from parent
-  property bool isVertical: orientation === Qt.Vertical
+  property bool isVertical: barConfig.vertical
   Component.onCompleted: {
     console.log("SystemTray orientation:", orientation, "isVertical:", isVertical);
   }
