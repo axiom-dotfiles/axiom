@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 
 import qs.services
+import qs.config
 import qs.components.reusable
 
 IconTextWidget {
