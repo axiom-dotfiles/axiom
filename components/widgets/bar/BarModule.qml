@@ -8,6 +8,8 @@ Item {
   id: component
   
   // -- Public API --
+  required property var barConfig
+  required property string componentPath
   property color backgroundColor: Theme.background
   property alias content: contentLoader.sourceComponent
   property alias contentItem: contentLoader.item
@@ -27,6 +29,7 @@ Item {
   // -- Implementation --
   Loader {
     id: contentLoader
+    source: componentPath
     anchors.centerIn: parent
   }
 }
