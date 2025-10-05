@@ -4,7 +4,6 @@
 //@ pragma Env QT_QUICK_FLICKABLE_WHEEL_DECELERATION=10000
 
 import Quickshell
-import "config/lib"
 import "modules"
 
 ShellRoot {
@@ -13,10 +12,6 @@ ShellRoot {
   Lockscreen {
     id: lockscreen
   }
-
-  // HotReload {
-  //   id: hotReload
-  // }
 
   Notifications {
     id: notificationPopup
