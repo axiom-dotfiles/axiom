@@ -14,9 +14,9 @@ ShellRoot {
     id: lockscreen
   }
 
-  HotReload {
-    id: hotReload
-  }
+  // HotReload {
+  //   id: hotReload
+  // }
 
   Notifications {
     id: notificationPopup

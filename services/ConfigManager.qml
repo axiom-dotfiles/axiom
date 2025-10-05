@@ -128,7 +128,7 @@ QtObject {
 
   // FileView component to handle reading/writing the config file.
   property FileView _configFileView: FileView {
-    path: Qt.resolvedUrl("../config/config.json")
+    path: Qt.resolvedUrl("../config/json/config.json")
     // Block writes to ensure the save is complete before we reload.
     // This prevents race conditions.
     blockWrites: true
@@ -175,7 +175,7 @@ QtObject {
   }
 
   function _loadConfig() {
-    var content = _getFileContent("../config/config.json");
+    var content = _getFileContent("../config/json/config.json");
     if (content) {
       try {
         return JSON.parse(content);
@@ -220,7 +220,7 @@ QtObject {
     var currentThemeName = configManager._config.Appearance ? configManager._config.Appearance.theme : "default";
 
     // 1. Check config.json
-    var configContent = _getFileContent("../config/config.json");
+    var configContent = _getFileContent("../config/json/config.json");
     if (configContent !== null) {
       var configHash = _hashString(configContent);
       if (_fileHashes.config !== configHash) {
