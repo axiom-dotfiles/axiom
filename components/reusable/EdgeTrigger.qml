@@ -126,14 +126,12 @@ PanelWindow {
 
     onEntered: {
       if (triggerOnHover) {
-        console.log("Trigger hover entered");
         hoverTimer.restart();
         root.hoverStarted();
       }
     }
 
     onExited: {
-      console.log("Trigger hover exited");
       hoverTimer.stop();
       root.hoverEnded();
     }

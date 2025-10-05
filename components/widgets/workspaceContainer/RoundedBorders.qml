@@ -72,8 +72,8 @@ Item {
       left: true
       top: true
     }
-    width: frameWidth
-    height: frameWidth
+    implicitWidth: frameWidth
+    implicitHeight: frameWidth
     color: "transparent"
     mask: Region {}
     aboveWindows: true
@@ -94,8 +94,8 @@ Item {
       right: true
       top: true
     }
-    width: frameWidth
-    height: frameWidth
+    implicitWidth: frameWidth
+    implicitHeight: frameWidth
     color: "transparent"
     mask: Region {}
     aboveWindows: true
@@ -116,8 +116,8 @@ Item {
       left: true
       bottom: true
     }
-    width: frameWidth
-    height: frameWidth
+    implicitWidth: frameWidth
+    implicitHeight: frameWidth
     color: "transparent"
     mask: Region {}
     aboveWindows: true
@@ -138,8 +138,8 @@ Item {
       right: true
       bottom: true
     }
-    width: frameWidth
-    height: frameWidth
+    implicitWidth: frameWidth
+    implicitHeight: frameWidth
     color: "transparent"
     mask: Region {}
     aboveWindows: true

@@ -3,6 +3,8 @@
 import QtQuick
 import QtQuick.Shapes
 
+import qs.config
+
 Item {
     id: root
 
@@ -18,6 +20,7 @@ Item {
     
     // The color of the corner piece
     required property color fillColor
+    property color strokeColor: Theme.foreground
 
     Shape {
         anchors.fill: parent

@@ -159,7 +159,7 @@ Scope {
     const index = activePopups.findIndex(item => item.popup === popupToRemove);
 
     if (index !== -1) {
-      console.log("[Notifs] NotificationManager: Removing popup at index:", index);
+      console.log("[Notifs] Removing popup at index:", index);
       activePopups.splice(index, 1);
       updatePopupPositions();
 
