@@ -120,6 +120,8 @@ Item {
     // Content dimensions
     readonly property int contentWidth: root.currentItem?.implicitWidth ?? 200
     readonly property int contentHeight: root.currentItem?.implicitHeight ?? 100
+    // TODO: breaks on multi-monitor
+    readonly property int isOnRightHalfOfScreen: (root.currentData?.anchorX ?? 0) > (Display.resolutionWidth / 2) ? true : false
 
     // Total size including connector gap
     implicitWidth: {
@@ -292,6 +294,8 @@ Item {
     id: systemTrayComponent
     SystemTrayPopout {
       wrapper: root
+      // sad workaround for right side bar LMAO
+      openToLeft: barConfig.right ? true : mainPopup.isOnRightHalfOfScreen === 1
     }
   }
 

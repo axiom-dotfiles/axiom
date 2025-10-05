@@ -8,7 +8,7 @@ Rectangle {
   id: root
 
   required property var barConfig
-  property alias workspaces: workspacesLoader.sourceComponent
+  property alias centerGroup: centerGroupLoader.sourceComponent
   property alias leftGroup: leftGroupLoader.sourceComponent
   property alias rightGroup: rightGroupLoader.sourceComponent
   property alias leftCenterGroup: leftCenterGroupLoader.sourceComponent
@@ -32,7 +32,7 @@ Rectangle {
   }
 
   Loader {
-    id: workspacesLoader
+    id: centerGroupLoader
     anchors.centerIn: parent
   }
 
@@ -51,8 +51,8 @@ Rectangle {
   Loader {
     id: leftCenterGroupLoader
     anchors {
-      right: root.barConfig.vertical ? undefined : workspacesLoader.left
-      bottom: root.barConfig.vertical ? workspacesLoader.top : undefined
+      right: root.barConfig.vertical ? undefined : centerGroupLoader.left
+      bottom: root.barConfig.vertical ? centerGroupLoader.top : undefined
       horizontalCenter: root.barConfig.vertical ? parent.horizontalCenter : undefined
       verticalCenter: root.barConfig.vertical ? undefined : parent.verticalCenter
       rightMargin: root.barConfig.vertical ? 0 : Appearance.screenMargin
@@ -63,8 +63,8 @@ Rectangle {
   Loader {
     id: rightCenterGroupLoader
     anchors {
-      left: root.barConfig.vertical ? undefined : workspacesLoader.right
-      top: root.barConfig.vertical ? workspacesLoader.bottom : undefined
+      left: root.barConfig.vertical ? undefined : centerGroupLoader.right
+      top: root.barConfig.vertical ? centerGroupLoader.bottom : undefined
       horizontalCenter: root.barConfig.vertical ? parent.horizontalCenter : undefined
       verticalCenter: root.barConfig.vertical ? undefined : parent.verticalCenter
       leftMargin: root.barConfig.vertical ? 0 : Appearance.screenMargin

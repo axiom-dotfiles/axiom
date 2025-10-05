@@ -161,6 +161,7 @@ Item {
                 anchorY: tray.hoveredItemGeometry.y,
                 anchorWidth: tray.hoveredItemGeometry.width,
                 anchorHeight: tray.hoveredItemGeometry.height,
+                barConfig: tray.barConfig,
                 isVertical: tray.isVertical
               });
             }

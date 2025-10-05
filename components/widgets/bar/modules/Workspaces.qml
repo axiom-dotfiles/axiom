@@ -12,8 +12,6 @@ Item {
   property var panel
   property var barConfig
 
-  // Orientation support
-  // property int orientation: Config.orientation
   property bool isVertical: barConfig.vertical
 
   property color activeColor: Theme.accent
@@ -21,63 +19,79 @@ Item {
   property color emptyColor: Theme.backgroundAlt
 
   property HyprlandMonitor monitor: Hyprland.monitorFor(root.screen)
-  // readonly property HyprlandWorkspace focusedWorkspace: Hyprland.workspaces.focused
+
+  // Base ID for this monitor's 25-workspace range - calculate from monitor index
+  readonly property int workspaceBase: {
+    if (!monitor) return 1;
+    
+    const monitors = Hyprland.monitors.values;
+    for (let i = 0; i < monitors.length; i++) {
+      if (monitors[i].id === monitor.id) {
+        return i * 25 + 1;
+      }
+    }
+    return 1;
+  }
+
+  // Get workspaces for THIS monitor only
+  readonly property var monitorWorkspaces: {
+    if (!monitor) return [];
+    
+    const all = Hyprland.workspaces.values;
+    const filtered = [];
+    for (let i = 0; i < all.length; i++) {
+      if (all[i].monitor && all[i].monitor.id === monitor.id) {
+        filtered.push(all[i].id);
+      }
+    }
+    filtered.sort((a, b) => a - b);
+    return filtered;
+  }
 
   // Dynamic group calculation based on orientation
   readonly property int groupBase: {
-    if (!monitor || !monitor.activeWorkspace) {
-      return 1; // Default fallback
-    }
-    const id = monitor.activeWorkspace ? monitor.activeWorkspace.id : 1;
+    if (!monitor || !monitor.activeWorkspace) return 1;
+    
+    const id = monitor.activeWorkspace.id;
+    const relativeId = id - workspaceBase + 1;
+    
     if (isVertical) {
-      // For vertical: show the column that contains the active workspace
-      return ((id - 1) % 5) + 1;
+      return ((relativeId - 1) % 5) + 1;
     } else {
-      // For horizontal: groups are 1-5 | 6-10 | 11-15 | etc
-      return Math.floor((id - 1) / 5) * 5 + 1;
+      return Math.floor((relativeId - 1) / 5) * 5 + 1;
     }
   }
 
   readonly property int groupSize: 5
 
-  // Size for the clipped view in the bar
   implicitWidth: isVertical ? Widget.height : (groupSize * Widget.height + (groupSize - 1) * 6)
   implicitHeight: isVertical ? (groupSize * Widget.height + (groupSize - 1) * 6) : Widget.height
 
   function wsById(id) {
     const arr = Hyprland.workspaces.values;
     for (let i = 0; i < arr.length; i++) {
-      if (arr[i].id === id)
-        return arr[i];
+      if (arr[i].id === id) return arr[i];
     }
     return null;
   }
 
-  function formatIconVertical(index) {
-    index = parseInt(index) - 1;
-    const col = index % 5;
-    const workspaceStartCol = 1 % 5;
-
-    if (col === workspaceStartCol - 1) {
-      return "";  // or "↙" - leftmost column
-    } else if (col === workspaceStartCol + 0) {
-      return "";  // or "↓" - second column
-    } else if (col === workspaceStartCol + 1) {
-      return "";  // or "↘" - middle column
-    } else if (col === workspaceStartCol + 2) {
-      return "";  // or "→" - fourth column
-    } else if (col === workspaceStartCol + 3) {
-      return "";  // or "↗" - rightmost column
+  function formatIconVertical(relativeIndex) {
+    const col = (relativeIndex - 1) % 5;
+    switch(col) {
+      case 0: return "";
+      case 1: return "";
+      case 2: return "";
+      case 3: return "";
+      case 4: return "";
+      default: return "";
     }
   }
 
-  // Main clipped container that shows only the relevant column/row
   Item {
     id: clippedContainer
     anchors.fill: parent
-    clip: true  // Clip the full grid to show only what we need
+    clip: true
 
-    // Full 5x5 grid, but positioned so only the relevant part shows
     GridLayout {
       id: mainGrid
       columns: 5
@@ -85,25 +99,20 @@ Item {
       columnSpacing: 6
       rowSpacing: 6
 
-      // Position the grid so the right column/row is visible
       x: {
         if (isVertical) {
-          // Show only the specific column
-          const columnIndex = groupBase - 1;  // 0-4
+          const columnIndex = groupBase - 1;
           return -(columnIndex * (Widget.height + 6));
-        } else {
-          return 0;  // Show all columns for horizontal
         }
+        return 0;
       }
 
       y: {
         if (!isVertical) {
-          // Show only the specific row
-          const rowIndex = Math.floor((groupBase - 1) / 5);  // 0-4
+          const rowIndex = Math.floor((groupBase - 1) / 5);
           return -(rowIndex * (Widget.height + 6));
-        } else {
-          return 0;  // Show all rows for vertical
         }
+        return 0;
       }
 
       Repeater {
@@ -113,26 +122,14 @@ Item {
     }
   }
 
-  // Mouse area for hover detection
   MouseArea {
     id: hoverArea
     anchors.fill: parent
     hoverEnabled: true
-
-    onEntered: {
-      if (root.popouts) {
-        showTimer.restart();
-      }
-    }
-
-    onExited: {
-      showTimer.stop();
-    }
+    onEntered: if (root.popouts) showTimer.restart()
+    onExited: showTimer.stop()
   }
 
-  property var position: root.mapToItem(null, 0, 0)
-
-  // Timer to show popout after hover
   Timer {
     id: showTimer
     interval: 10
@@ -144,19 +141,20 @@ Item {
           anchorX: parentPosition.x,
           anchorY: parentPosition.y,
           anchorWidth: root.width,
-          anchorHeight: root.height
+          anchorHeight: root.height,
+          workspaceBase: root.workspaceBase
         });
       }
     }
   }
 
-  // Workspace delegate component used in the bar grid
   Component {
     id: workspaceDelegate
     Rectangle {
-      readonly property int realId: index + 1
+      readonly property int relativeIndex: index + 1
+      readonly property int realId: root.workspaceBase + index
       readonly property HyprlandWorkspace ws: root.wsById(realId)
-      readonly property bool isActive: monitor.activeWorkspace && monitor.activeWorkspace.id === realId
+      readonly property bool isActive: root.monitor && root.monitor.activeWorkspace && root.monitor.activeWorkspace.id === realId
       readonly property bool hasWindows: ws && ws.toplevels && ws.toplevels.values.length > 0
 
       Layout.preferredWidth: Widget.height
@@ -167,21 +165,22 @@ Item {
 
       Text {
         anchors.centerIn: parent
-        text: root.formatIconVertical(realId)
+        text: root.formatIconVertical(relativeIndex)
         font.family: Appearance.fontFamily
         font.pixelSize: Appearance.fontSize * 1.2
         visible: isActive
+        color: Theme.background
       }
 
-      Behavior on color {
-        ColorAnimation {
-          duration: 50
-        }
-      }
+      Behavior on color { ColorAnimation { duration: 50 } }
+      Behavior on opacity { NumberAnimation { duration: 150 } }
 
-      Behavior on opacity {
-        NumberAnimation {
-          duration: 150
+      MouseArea {
+        anchors.fill: parent
+        onClicked: {
+          if (Hyprland.dispatch) {
+            Hyprland.dispatch("workspace", realId.toString());
+          }
         }
       }
     }

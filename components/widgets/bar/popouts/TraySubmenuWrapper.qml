@@ -16,6 +16,7 @@ Item {
 
   required property ShellScreen screen
   required property QtObject parentPopup
+  required property bool openToLeft
 
   property var currentData: null
   property bool occupied: false
@@ -29,21 +30,6 @@ Item {
   // Queue for safe reopening
   property var pendingOpenData: null
   property bool hasPendingOpen: false
-
-  readonly property bool openToLeft: {
-    if (!currentData)
-      return false;
-
-    const anchorX = currentData.anchorX ?? 0;
-    const anchorWidth = currentData.anchorWidth ?? 0;
-    const submenuWidth = Math.min(maxWidth, submenuPopup.contentWidth) + connectorGap;
-    const screenRightEdge = screen.width;
-
-    const absoluteAnchorX = anchorX < 0 ? screenRightEdge + anchorX : anchorX;
-    const rightEdge = absoluteAnchorX + anchorWidth + Widget.padding * 2 + Appearance.borderWidth;
-
-    return (rightEdge + submenuWidth) > screenRightEdge;
-  }
 
   function closePopout() {
     if (isClosing)

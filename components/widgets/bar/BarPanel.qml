@@ -108,7 +108,7 @@ PanelWindow {
     popouts: popouts
     barConfig: root.barConfig
 
-    workspaces: Component {
+    centerGroup: Component {
       WidgetGroup {
         barConfig: root.barConfig
         model: root.buildWidgetModel(root.barConfig.widgets?.center)

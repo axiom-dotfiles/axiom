@@ -5,18 +5,21 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Services.SystemTray
 import qs.config
+
+// TODO: Use styled components to make this way cleaner
 /**
  * Reusable tray menu item component
  */
 Rectangle {
   id: menuItemDelegate
-  required property var menuItem  // QsMenuEntry
+  required property var menuItem
   required property int itemHeight
   required property int itemPadding
-  required property var onItemClicked  // Function to call when item is clicked
-  required property var onSubmenuRequested  // Function to call when submenu should open
+  required property var onItemClicked
+  required property var onSubmenuRequested
   property int minItemWidth: 160
   property int maxItemWidth: 360
+  property bool openToLeft
   
   Layout.fillWidth: true
   Layout.preferredWidth: contentRow.implicitWidth + (itemPadding * 2)
@@ -28,7 +31,7 @@ Rectangle {
   radius: Appearance.borderRadius
   opacity: menuItem.enabled ? 1.0 : 0.5
   
-  // Main content row (hidden for separators)
+  // Main content row
   RowLayout {
     id: contentRow
     anchors.fill: parent
@@ -36,6 +39,7 @@ Rectangle {
     anchors.rightMargin: menuItemDelegate.itemPadding
     spacing: 8
     visible: !menuItemDelegate.menuItem.isSeparator
+    layoutDirection: menuItemDelegate.openToLeft ? Qt.RightToLeft : Qt.LeftToRight
     
     // Checkbox/Radio indicator
     Rectangle {
@@ -82,12 +86,13 @@ Rectangle {
       elide: Text.ElideRight
       wrapMode: Text.NoWrap
       clip: true
+      horizontalAlignment: menuItemDelegate.openToLeft ? Text.AlignRight : Text.AlignLeft
     }
     
     // Submenu indicator
     Text {
       visible: menuItemDelegate.menuItem.hasChildren
-      text: "›"
+      text: menuItemDelegate.openToLeft ? "‹" : "›"
       color: Theme.accent
       Layout.preferredWidth: implicitWidth
       Layout.maximumWidth: implicitWidth

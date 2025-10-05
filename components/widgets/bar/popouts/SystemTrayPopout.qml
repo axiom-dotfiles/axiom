@@ -1,4 +1,4 @@
-// TrayMenuPopout.qml
+// SystemTrayPopout.qml
 pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
@@ -16,6 +16,7 @@ Item {
 
   property var trayItem: wrapper.currentData?.trayItem
   property bool isVertical: wrapper.currentData?.isVertical ?? false
+  property var barConfig: wrapper.currentData?.barConfig
   property var menuHandle: trayItem?.menu
   property bool submenuOpen: false
 
@@ -23,6 +24,8 @@ Item {
   readonly property int itemHeight: 32
   readonly property int itemPadding: 8
   readonly property int minWidth: 200
+
+  property bool openToLeft: false
 
   // TODO: wtf is this 20
   implicitWidth: Math.max(minWidth, menuLayout.implicitWidth + 20)
@@ -73,6 +76,7 @@ Item {
     id: submenuWrapper
     screen: root.wrapper.screen
     parentPopup: root.wrapper.panel
+    openToLeft: root.openToLeft
     
     onOccupiedChanged: {
       root.submenuOpen = occupied;
@@ -93,6 +97,7 @@ Item {
 
   // Background container
   Rectangle {
+    id: backgroundContainer
     anchors.fill: parent
     anchors.margins: 8
     color: Theme.backgroundAlt
@@ -100,7 +105,6 @@ Item {
     // border.width: Appearance.borderWidth
     radius: Appearance.borderRadius
 
-    // Prevent clicks from propagating to the background MouseArea
     MouseArea {
       anchors.fill: parent
       onClicked: {
@@ -119,6 +123,7 @@ Item {
 
         delegate: TrayMenuItem {
           required property var modelData
+          openToLeft: submenuWrapper.openToLeft
 
           menuItem: modelData
           itemHeight: root.itemHeight
@@ -131,7 +136,6 @@ Item {
 
           onSubmenuRequested: function(itemDelegate) {
             let globalPos = itemDelegate.mapToGlobal(0, 0);
-            console.log("Opening submenu for item:", itemDelegate.menuItem.text, "at", globalPos);
             
             submenuWrapper.safeOpenPopout(root.wrapper.panel, {
               menuItem: itemDelegate.menuItem,
