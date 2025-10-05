@@ -1,4 +1,3 @@
-// cannot be bound
 import QtQuick
 import QtQuick.Layouts
 import Quickshell.Hyprland

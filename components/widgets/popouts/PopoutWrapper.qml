@@ -9,6 +9,7 @@ Item {
   id: root
 
   required property ShellScreen screen
+  required property var barConfig
 
   property string currentName: ""
   property var currentAnchor: null
@@ -198,10 +199,9 @@ Item {
   width: implicitWidth
   height: implicitHeight
 
-  // Show only when we actually have size
   visible: width > 0 && height > 0
   clip: true
-  z: 1e4  // ensure on top of bar
+  z: 1e4
 
   Behavior on x {
     NumberAnimation {

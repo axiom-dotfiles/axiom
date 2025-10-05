@@ -7,6 +7,7 @@ import QtQuick
 
 import qs.config
 import qs.components.widgets.bar.modules as Widgets
+import qs.components.widgets.bar
 import qs.components.widgets.popouts
 import qs.components.reusable
 
@@ -96,8 +97,10 @@ PanelWindow {
   // --- UI Implementation ---
 
   // TODO: support popouts in all widget groups
-  PopoutWrapper {
+  Popouts {
     id: popouts
+    barConfig: root.barConfig
+    panel: root
     screen: root.screen
   }
 
