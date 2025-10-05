@@ -128,6 +128,7 @@ PanelWindow {
         barConfig: root.barConfig
         model: root.barConfig.widgets?.left && root.barConfig.widgets.left.length > 0 ? root.buildWidgetModel(root.barConfig.widgets?.left) : []
         popouts: popouts
+        panel: root
       }
     }
 
@@ -136,6 +137,7 @@ PanelWindow {
         barConfig: root.barConfig
         model: root.barConfig.widgets?.leftCenter && root.barConfig.widgets.leftCenter.length > 0 ? root.buildWidgetModel(root.barConfig.widgets?.leftCenter) : []
         popouts: popouts
+        panel: root
       }
     }
 
@@ -144,6 +146,7 @@ PanelWindow {
         barConfig: root.barConfig
         model: root.barConfig.widgets?.rightCenter && root.barConfig.widgets.rightCenter.length > 0 ? root.buildWidgetModel(root.barConfig.widgets?.rightCenter) : []
         popouts: popouts
+        panel: root
       }
     }
 
@@ -152,6 +155,7 @@ PanelWindow {
         barConfig: root.barConfig
         model: root.barConfig.widgets?.right && root.barConfig.widgets.right.length > 0 ? root.buildWidgetModel(root.barConfig.widgets?.right) : []
         popouts: popouts
+        panel: root
       }
     }
   }

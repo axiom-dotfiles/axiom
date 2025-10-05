@@ -1,19 +1,27 @@
-// Cannot be bound
+// SystemTray.qml - Fixed icon rendering
+pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Services.SystemTray
-
 import qs.config
 
 Item {
   id: tray
 
-  property bool isVertical: barConfig.vertical
+  // For some reason these can't be declared
+  property var barConfig
+  property var popouts
+  property var panel
+
   Component.onCompleted: {
-    console.log("SystemTray orientation:", orientation, "isVertical:", isVertical);
+    console.log("SystemTray initialized--------------------------------------------------------------");
+    console.log("Bar config:", JSON.stringify(barConfig));
+    console.log("Recieved popouts:", tray.popouts);
+    console.log("Recieved panel:", tray.panel);
   }
 
+  property bool isVertical: barConfig.vertical
   property int iconSize: 18
   property int leftPadding: 8
   property int rightPadding: 8
@@ -26,13 +34,15 @@ Item {
   property color backgroundBorderColor: "transparent"
   property real backgroundBorderWidth: 0
 
+  // Track currently hovered item for popout positioning
+  property var hoveredTrayItem: null
+  property var hoveredItemGeometry: null
+
   // Dynamic dimensions based on orientation
   height: isVertical ? implicitHeight : Widget.height
   width: isVertical ? Widget.height : implicitWidth
-
-  implicitWidth: isVertical ? Widget.height : (layoutLoader.item ? layoutLoader.item.implicitWidth + Widget.padding * 2 : 0)
-  implicitHeight: isVertical ? (layoutLoader.item ? layoutLoader.item.implicitHeight + Widget.padding * 2 : 0) : Widget.height
-
+  implicitWidth: isVertical ? Widget.height : (layoutLoader.item ? layoutLoader.item.implicitWidth + leftPadding + rightPadding : 0)
+  implicitHeight: isVertical ? (layoutLoader.item ? layoutLoader.item.implicitHeight + topPadding + bottomPadding : 0) : Widget.height
   Layout.preferredWidth: isVertical ? Widget.height : implicitWidth
   Layout.preferredHeight: isVertical ? implicitHeight : Widget.height
 
@@ -40,8 +50,6 @@ Item {
     anchors.fill: parent
     radius: tray.backgroundRadius
     color: tray.backgroundColor
-    // border.color: tray.backgroundBorderColor
-    // border.width: tray.backgroundBorderWidth
   }
 
   Loader {
@@ -53,6 +61,8 @@ Item {
       id: rowComponent
       Row {
         spacing: tray.spacing
+        leftPadding: tray.leftPadding
+        rightPadding: tray.rightPadding
 
         Repeater {
           model: SystemTray.items
@@ -65,6 +75,8 @@ Item {
       id: columnComponent
       Column {
         spacing: tray.spacing
+        topPadding: tray.topPadding
+        bottomPadding: tray.bottomPadding
 
         Repeater {
           model: SystemTray.items
@@ -76,27 +88,29 @@ Item {
 
   Component {
     id: trayItemDelegate
+
     Item {
-      readonly property var ti: modelData
+      id: delegateRoot
+      required property QtObject modelData
+      readonly property QtObject ti: modelData
       visible: ti && (tray.showPassive || ti.status !== Status.Passive)
       width: visible ? tray.iconSize : 0
       height: visible ? tray.iconSize : 0
+      Component.onCompleted: {
+        console.log("Loaded tray item:", JSON.stringify(ti));
+      }
 
       Image {
+        id: iconImage
         anchors.centerIn: parent
         source: {
-          if (!ti)
+          if (!delegateRoot.ti)
             return "";
-
-          const appName = ti.id || ti.title || "";
-          // Best way to find app name quickly
-          // console.log("App Name:", appName);
-
+          const appName = delegateRoot.ti.id || delegateRoot.ti.title || "";
           if (appName && Config.customIconOverrides[appName]) {
             return Config.customIconOverrides[appName];
           }
-
-          return ti.icon || "";
+          return delegateRoot.ti.icon || "";
         }
         sourceSize.width: tray.iconSize
         sourceSize.height: tray.iconSize
@@ -104,45 +118,98 @@ Item {
         smooth: true
       }
 
-      QsMenuAnchor {
-        id: menuAnchor
-        anchor.item: parent
-        anchor.edges: tray.isVertical ? Qt.RightEdge : Qt.BottomEdge
-        menu: ti ? ti.menu : null
-      }
-
       MouseArea {
-        id: menuArea
+        id: mouseArea
         anchors.fill: parent
-        acceptedButtons: Qt.LeftButton | Qt.MiddleButton | Qt.RightButton
+        hoverEnabled: true
+        acceptedButtons: Qt.LeftButton | Qt.MiddleButton
+
+        onEntered: {
+          if (!ti || !ti.hasMenu)
+            return;
+
+          // Calculate global position for anchor
+          const globalPos = mapToItem(null, 0, 0);
+          const parentPos = tray.mapToItem(null, 0, 0);
+
+          tray.hoveredTrayItem = ti;
+          tray.hoveredItemGeometry = {
+            x: parentPos.x,
+            y: parentPos.y,
+            width: tray.width,
+            height: tray.height,
+            itemX: globalPos.x,
+            itemY: globalPos.y,
+            itemWidth: width,
+            itemHeight: height
+          };
+          console.log("Mouse entered tray item:", ti ? ti.id : "null");
+          console.log("popouts:", tray.popouts);
+          console.log("panel:", tray.panel);
+
+          if (tray.popouts && tray.panel) {
+            console.log("Tray item hovered:", ti.id);
+            openMenuTimer.restart();
+          }
+        }
+
+        onExited: {
+          openMenuTimer.stop();
+        }
 
         onClicked: ev => {
-          if (!ti)
+          if (!delegateRoot.ti)
             return;
-
-          if (ev.button === Qt.RightButton) {
-            if (ti.hasMenu)
-              menuAnchor.open();
-            return;
-          }
 
           if (ev.button === Qt.LeftButton) {
-            if (ti.onlyMenu && ti.hasMenu) {
-              menuAnchor.open();
-            } else if (ti.activate) {
-              ti.activate();
+            if (!delegateRoot.ti.hasMenu && delegateRoot.ti.activate) {
+              delegateRoot.ti.activate();
             }
-            return;
-          }
-
-          if (ev.button === Qt.MiddleButton && ti.secondaryActivate) {
-            ti.secondaryActivate();
+          } else if (ev.button === Qt.MiddleButton && delegateRoot.ti.secondaryActivate) {
+            delegateRoot.ti.secondaryActivate();
           }
         }
 
         onWheel: w => {
-          if (ti && ti.scroll)
-            ti.scroll(w.angleDelta.y, false);
+          if (delegateRoot.ti && delegateRoot.ti.scroll)
+            delegateRoot.ti.scroll(w.angleDelta.y, false);
+        }
+
+        Timer {
+          id: openMenuTimer
+          interval: 150
+          onTriggered: {
+            console.log("Opening menu for tray item:", delegateRoot.ti ? delegateRoot.ti.id : "null");
+            if (tray.hoveredTrayItem && tray.hoveredTrayItem.hasMenu && tray.popouts && tray.panel) {
+              if (tray.popouts.occupied) {
+                tray.popouts.changeContent("system-tray-menu", {
+                  trayItem: tray.hoveredTrayItem,
+                  anchorX: tray.hoveredItemGeometry.x,
+                  anchorY: tray.hoveredItemGeometry.y,
+                  anchorWidth: tray.hoveredItemGeometry.width,
+                  anchorHeight: tray.hoveredItemGeometry.height,
+                  itemX: tray.hoveredItemGeometry.itemX,
+                  itemY: tray.hoveredItemGeometry.itemY,
+                  itemWidth: tray.hoveredItemGeometry.itemWidth,
+                  itemHeight: tray.hoveredItemGeometry.itemHeight,
+                  isVertical: tray.isVertical
+                });
+              } else {
+                tray.popouts.openPopout(tray.panel, "system-tray-menu", {
+                  trayItem: tray.hoveredTrayItem,
+                  anchorX: tray.hoveredItemGeometry.x,
+                  anchorY: tray.hoveredItemGeometry.y,
+                  anchorWidth: tray.hoveredItemGeometry.width,
+                  anchorHeight: tray.hoveredItemGeometry.height,
+                  itemX: tray.hoveredItemGeometry.itemX,
+                  itemY: tray.hoveredItemGeometry.itemY,
+                  itemWidth: tray.hoveredItemGeometry.itemWidth,
+                  itemHeight: tray.hoveredItemGeometry.itemHeight,
+                  isVertical: tray.isVertical
+                });
+              }
+            }
+          }
         }
       }
     }

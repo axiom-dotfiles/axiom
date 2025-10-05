@@ -9,7 +9,8 @@ Item {
   id: root
 
   required property var barConfig
-  property var popouts: null
+  property var popouts
+  property var panel
   property alias model: repeater.model
 
   property int spacing: root.barConfig.spacing
@@ -37,8 +38,9 @@ Item {
         // allowing the widget definitions to be stupid simple
         sourceComponent: BarModule {
           barConfig: root.barConfig
-          componentPath: modelData.component
+          componentPath: widgetLoader.modelData.component
           popouts: root.popouts
+          panel: root.panel
         }
       }
     }

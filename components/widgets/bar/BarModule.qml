@@ -8,8 +8,10 @@ Item {
   id: component
   
   required property var barConfig
+  property var popouts
+  property var panel
+
   required property string componentPath
-  property var popouts: null
   property color backgroundColor: Theme.background
   property alias content: contentLoader.sourceComponent
   property alias contentItem: contentLoader.item
@@ -23,5 +25,12 @@ Item {
     id: contentLoader
     source: component.componentPath
     anchors.centerIn: parent
+    onLoaded: {
+      if (item) {
+        item.barConfig = component.barConfig
+        item.popouts = component.popouts
+        item.panel = component.panel
+      }
+    }
   }
 }
