@@ -114,7 +114,7 @@ Item {
             return root.barConfig.extent;
           } else if (root.barConfig.right) {
             // Position so animation slides from right
-            return (root.currentData.anchorX ?? 0) - mainPopup.implicitWidth;
+            return (root.currentData.anchorX ?? 0) - mainPopup.implicitWidth - Widget.padding + Appearance.borderWidth;
           } else {
             // Top/Bottom: center horizontally with anchor
             let anchorCenter = (root.currentData.anchorX ?? 0) + (root.currentData.anchorWidth ?? 0) / 2;
@@ -135,7 +135,7 @@ Item {
             return root.barConfig.extent;
           } else if (root.barConfig.bottom) {
             // Position so animation slides from bottom
-            return (root.currentData.anchorY ?? 0) - mainPopup.implicitHeight;
+            return (root.currentData.anchorY ?? 0) - mainPopup.implicitHeight - Widget.padding + Appearance.borderWidth;
           } else {
             // Left/Right: center vertically with anchor
             let anchorCenter = (root.currentData.anchorY ?? 0) + (root.currentData.anchorHeight ?? 0) / 2;
@@ -152,7 +152,7 @@ Item {
       }
     }
 
-    SlideAnimation {
+    PopoutSlideAnimation {
       id: slideContainer
       anchors.fill: parent
 
@@ -177,8 +177,21 @@ Item {
         border.width: Appearance.borderWidth
 
         // Position with gap from bar edge
-        x: root.barConfig.left ? root.connectorGap - Appearance.borderRadius : 0
-        y: root.barConfig.top ? root.connectorGap - Appearance.borderRadius : 0
+        x: {
+          if (root.barConfig.left)
+            return root.connectorGap - Appearance.borderRadius;
+          if (root.barConfig.right)
+            return parent.width - (mainPopup.contentWidth + root.connectorGap) + Appearance.borderRadius;
+          return 0;
+        }
+
+        y: {
+          if (root.barConfig.top)
+            return root.connectorGap - Appearance.borderRadius;
+          if (root.barConfig.bottom)
+            return parent.height - (mainPopup.contentHeight + root.connectorGap) + Appearance.borderRadius;
+          return 0;
+        }
 
         width: root.barConfig.vertical ? parent.width - root.connectorGap : parent.width
         height: root.barConfig.vertical ? parent.height : parent.height - root.connectorGap
@@ -222,7 +235,7 @@ Item {
 
       Rectangle {
         id: connector
-        color: Theme.background
+        color: Theme.accent
 
         x: root.barConfig.left ? 0 : root.barConfig.right ? parent.width - root.connectorGap : 0
         y: root.barConfig.top ? 0 : root.barConfig.bottom ? parent.height - root.connectorGap : 0
