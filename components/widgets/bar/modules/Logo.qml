@@ -15,6 +15,7 @@ StyledRectButton {
     // null
     
     // -- Configurable Appearance --
+    isVertical: barConfig.vertical
     iconText: "󰣇"
     iconColor: Theme.background
     borderHoverColor: Theme.info

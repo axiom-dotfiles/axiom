@@ -9,6 +9,8 @@ IconTextWidget {
   property string iface: ""
   property string kind: "" // "wifi" | "ethernet" | ""
 
+  isVertical: barConfig.vertical
+
   // Configure the widget
   backgroundColor: Theme.base09
   icon: getIcon()

@@ -11,7 +11,7 @@ import qs.components.widgets.popouts
 import qs.components.reusable
 
 // TODO: Make this a proper singleton service that manages multiple bars
-// as of right now (and probably awhile) this is totally fine
+// as of right now (and probably awhile) this is totally fine, not high priority
 PanelWindow {
   id: root
 
@@ -22,7 +22,6 @@ PanelWindow {
   WlrLayershell.exclusiveZone: barConfig.autoHide ? 0 : barConfig.extent
   WlrLayershell.namespace: "axiom-bar"
 
-  // --- ANCHORS: Unchanged, as requested ---
   anchors {
     top: (barConfig.top || barConfig.vertical)
     bottom: (barConfig.bottom || barConfig.vertical)
@@ -47,6 +46,10 @@ PanelWindow {
   // --- Dynamic Widget Logic ---
 
   // This will change. The widget definition should just be a string of the component
+  // this is way over complicated for loading
+  // Maybe I should keep it though, as it allows for more complex mappings for
+  // for configuring widgets, and it is already setup
+  // TODO: decide
   readonly property var widgetComponentMap: {
     "Logo": "modules/Logo.qml",
     "Window": "modules/Window.qml",

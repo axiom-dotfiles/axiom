@@ -13,6 +13,9 @@ IconTextWidget {
   property string tailnetName: ""
   property bool showText: true
 
+  isVertical: barConfig.vertical
+
+
   icon: isConnected ? "󰳌" : "󰌙"
   // text: isConnected ? tailnetName : ""
   text: isConnected ? "k8s" : ""

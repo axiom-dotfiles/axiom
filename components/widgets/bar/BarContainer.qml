@@ -31,13 +31,11 @@ Rectangle {
     color: root.foregroundColor
   }
 
-  // Workspaces centered
   Loader {
     id: workspacesLoader
     anchors.centerIn: parent
   }
 
-  // Top/Left group
   Loader {
     id: leftGroupLoader
     anchors {
@@ -50,7 +48,6 @@ Rectangle {
     }
   }
 
-  // Left-Center/Top-Center group
   Loader {
     id: leftCenterGroupLoader
     anchors {
@@ -63,7 +60,6 @@ Rectangle {
     }
   }
 
-  // Right-Center/Bottom-Center group
   Loader {
     id: rightCenterGroupLoader
     anchors {
@@ -76,7 +72,6 @@ Rectangle {
     }
   }
 
-  // Bottom/Right group
   Loader {
     id: rightGroupLoader
     anchors {

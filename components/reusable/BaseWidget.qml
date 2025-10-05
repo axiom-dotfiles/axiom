@@ -4,11 +4,11 @@ import QtQuick
 import qs.services
 import qs.config
 
+// UHH this sucks
+// new system better
 Item {
   id: root
 
-  property int orientation: Config.orientation
-  property bool isVertical: orientation === Qt.Vertical
   property color backgroundColor: Theme.background
   property alias content: contentLoader.sourceComponent
   property alias contentItem: contentLoader.item

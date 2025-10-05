@@ -5,6 +5,8 @@ import QtQuick
 import qs.services
 import qs.config
 
+// Needs to be re-written
+// this design sucks ass
 BaseWidget {
   id: root
 
@@ -17,8 +19,9 @@ BaseWidget {
   property bool showText: true
   property bool showIcon: true
   property real spacing: 6
-  property int maxTextLength: 0  // 0 = no limit
-  property bool elideText: true  // Use ellipsis when truncating
+  property int maxTextLength: 0
+  property bool elideText: true
+  property bool isVertical: false
 
   // Process text based on max length
   property string displayText: {
@@ -33,30 +36,20 @@ BaseWidget {
 
   content: Component {
     Loader {
-      sourceComponent: {
-        if (!root.isVertical) {
-          return horizontalLayout;
-        } else if (root.rotateText) {
-          return rotatedLayout;
-        } else {
-          return verticalLayout;
-        }
-      }
+      sourceComponent: root.isVertical ? verticalLayout : horizontalLayout
 
       // Horizontal layout
       Component {
         id: horizontalLayout
         Row {
-          spacing: root.spacing
-
           Text {
+            height: parent.height
             color: Theme.background
             text: root.icon
             font.family: Appearance.fontFamily
             font.pixelSize: Appearance.fontSize * root.iconScale
             visible: root.showIcon && root.icon !== ""
           }
-
           Text {
             color: Theme.background
             text: root.displayText || "—"
@@ -67,38 +60,10 @@ BaseWidget {
         }
       }
 
-      // Vertical layout (no rotation)
       Component {
         id: verticalLayout
-        Column {
-          spacing: root.displayText !== "" ? 2 : 0
-
-          Text {
-            color: Theme.background
-            text: root.icon
-            font.family: Appearance.fontFamily
-            font.pixelSize: Appearance.fontSize * root.iconScale
-            anchors.horizontalCenter: parent.horizontalCenter
-            visible: root.icon !== ""
-          }
-
-          Text {
-            color: Theme.background
-            text: root.displayText || "—"
-            font.family: Appearance.fontFamily
-            font.pixelSize: Appearance.fontSize * 0.8 * root.textScale
-            anchors.horizontalCenter: parent.horizontalCenter
-            visible: root.displayText !== ""
-          }
-        }
-      }
-
-      // Rotated layout for vertical bars
-      Component {
-        id: rotatedLayout
         Item {
           implicitWidth: Math.max(root.icon !== "" ? iconText.height : 0, root.displayText !== "" ? mainText.height : 0) + (root.displayText !== "" && root.icon !== "" ? root.spacing : 0)
-
           implicitHeight: (root.icon !== "" ? iconText.width : 0) + (root.displayText !== "" ? mainText.width : 0) + (root.displayText !== "" && root.icon !== "" ? root.spacing : 0)
 
           Text {

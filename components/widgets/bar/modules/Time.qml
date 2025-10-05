@@ -10,7 +10,7 @@ Item {
 
   // Orientation support
   property int orientation: Config.orientation
-  property bool isVertical: orientation === Qt.Vertical
+  property bool isVertical: barConfig.vertical
   property bool showDate: true
   property bool use24Hour: false
 
