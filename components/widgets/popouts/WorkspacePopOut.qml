@@ -11,20 +11,16 @@ import qs.components.stolen
 Item {
   id: root
 
-  required property var wrapper  // Reference to the popout wrapper
+  required property var wrapper
   property string currentName: "workspace-grid"
 
-  // Data passed from the workspace widget
   property var monitor: wrapper.currentData?.monitor
   property int activeWorkspaceId: wrapper.currentData?.activeId ?? 1
   property int currentColumn: ((activeWorkspaceId - 1) % 5)
   readonly property int cell: (Widget.height && Widget.height > 0) ? Widget.height : 28
 
-  // Size of the expanded grid
-  // implicitWidth: content.width + 20
-  // implicitHeight: content.height + 20
-  implicitWidth: (5 * cell + 4 * 6) + 20
-  implicitHeight: (5 * cell + 4 * 6) + 20
+  implicitWidth: (5 * cell + 6 * 6) + 20 // wtf is this
+  implicitHeight: (5 * cell + 6 * 6) + 20
   width: implicitWidth
   height: implicitHeight
 

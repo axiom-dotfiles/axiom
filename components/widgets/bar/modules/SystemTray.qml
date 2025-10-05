@@ -143,12 +143,8 @@ Item {
             itemWidth: width,
             itemHeight: height
           };
-          console.log("Mouse entered tray item:", ti ? ti.id : "null");
-          console.log("popouts:", tray.popouts);
-          console.log("panel:", tray.panel);
 
           if (tray.popouts && tray.panel) {
-            console.log("Tray item hovered:", ti.id);
             openMenuTimer.restart();
           }
         }
@@ -157,29 +153,10 @@ Item {
           openMenuTimer.stop();
         }
 
-        onClicked: ev => {
-          if (!delegateRoot.ti)
-            return;
-
-          if (ev.button === Qt.LeftButton) {
-            if (!delegateRoot.ti.hasMenu && delegateRoot.ti.activate) {
-              delegateRoot.ti.activate();
-            }
-          } else if (ev.button === Qt.MiddleButton && delegateRoot.ti.secondaryActivate) {
-            delegateRoot.ti.secondaryActivate();
-          }
-        }
-
-        onWheel: w => {
-          if (delegateRoot.ti && delegateRoot.ti.scroll)
-            delegateRoot.ti.scroll(w.angleDelta.y, false);
-        }
-
         Timer {
           id: openMenuTimer
           interval: 150
           onTriggered: {
-            console.log("Opening menu for tray item:", delegateRoot.ti ? delegateRoot.ti.id : "null");
             if (tray.hoveredTrayItem && tray.hoveredTrayItem.hasMenu && tray.popouts && tray.panel) {
               if (tray.popouts.occupied) {
                 tray.popouts.changeContent("system-tray-menu", {
@@ -190,8 +167,6 @@ Item {
                   anchorHeight: tray.hoveredItemGeometry.height,
                   itemX: tray.hoveredItemGeometry.itemX,
                   itemY: tray.hoveredItemGeometry.itemY,
-                  itemWidth: tray.hoveredItemGeometry.itemWidth,
-                  itemHeight: tray.hoveredItemGeometry.itemHeight,
                   isVertical: tray.isVertical
                 });
               } else {
@@ -203,8 +178,6 @@ Item {
                   anchorHeight: tray.hoveredItemGeometry.height,
                   itemX: tray.hoveredItemGeometry.itemX,
                   itemY: tray.hoveredItemGeometry.itemY,
-                  itemWidth: tray.hoveredItemGeometry.itemWidth,
-                  itemHeight: tray.hoveredItemGeometry.itemHeight,
                   isVertical: tray.isVertical
                 });
               }

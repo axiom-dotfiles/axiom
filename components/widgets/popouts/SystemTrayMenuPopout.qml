@@ -6,6 +6,7 @@ import Quickshell
 import Quickshell.Services.SystemTray
 import qs.config
 
+// TODO: not single file
 Item {
   id: root
   
@@ -21,10 +22,20 @@ Item {
   readonly property int minWidth: 200
   
   implicitWidth: Math.max(minWidth, menuLayout.implicitWidth + 20)
-  implicitHeight: menuLayout.implicitHeight + 20
+  implicitHeight: menuLayout.implicitHeight + 20 + Widget.padding * 2 // TODO: magic num removal
   
-  width: implicitWidth
-  height: implicitHeight
+  Behavior on width {
+    NumberAnimation {
+      duration: Widget.animationDuration
+      easing.type: Easing.OutCubic
+    }
+  }
+  Behavior on implicitHeight {
+    NumberAnimation {
+      duration: Widget.animationDuration
+      easing.type: Easing.OutCubic
+    }
+  }
   
   // Auto-close when mouse leaves
   HoverHandler {
@@ -63,16 +74,16 @@ Item {
   // Background container
   Rectangle {
     anchors.fill: parent
-    color: Theme.background
-    border.color: Theme.foreground
-    border.width: Appearance.borderWidth
+    anchors.margins: 8
+    color: Theme.backgroundAlt
+    // border.color: Theme.border
+    // border.width: Appearance.borderWidth
     radius: Appearance.borderRadius
     
     // Prevent clicks from propagating to the background MouseArea
     MouseArea {
       anchors.fill: parent
       onClicked: {
-        // Consume the click event to prevent closing
         mouse.accepted = true;
       }
     }
@@ -97,7 +108,7 @@ Item {
           
           visible: true
           color: menuItemArea.containsMouse && menuItem.enabled && !menuItem.isSeparator 
-                 ? Theme.backgroundAlt 
+                 ? Theme.backgroundHighlight
                  : "transparent"
           radius: Appearance.borderRadius
           opacity: menuItem.enabled ? 1.0 : 0.5
@@ -206,22 +217,6 @@ Item {
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter
       }
-    }
-  }
-  
-  // Debug logging
-  Component.onCompleted: {
-    console.log("Menu handle:", root.menuHandle);
-    console.log("Menu opener children count:", menuOpener.children.count);
-    
-    // Log first few items to see structure
-    for (let i = 0; i < Math.min(3, menuOpener.children.count); i++) {
-      const item = menuOpener.children.get(i);
-      console.log("Menu item", i, "- text:", item.text, 
-                  "enabled:", item.enabled,
-                  "isSeparator:", item.isSeparator,
-                  "hasChildren:", item.hasChildren,
-                  "buttonType:", item.buttonType);
     }
   }
 }

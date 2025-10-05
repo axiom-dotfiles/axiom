@@ -29,7 +29,7 @@ Item {
   property Item currentItem: loader.item ?? null
 
   // Gap between bar and main content (connector thickness)
-  readonly property int connectorGap: 4
+  property int connectorGap: 4
 
   function closePopout() {
     if (isClosing)
@@ -162,7 +162,7 @@ Item {
       slideFromTop: root.barConfig.top
       slideFromBottom: root.barConfig.bottom
       animationDuration: Widget.animationDuration
-      enableFade: Widget.animations
+      enableFade: false
 
       Rectangle {
         id: topCorner
@@ -220,12 +220,10 @@ Item {
         }
       }
 
-      // Connector - thin bridge between bar and content
       Rectangle {
         id: connector
         color: Theme.background
 
-        // Position based on bar location (on the bar-facing edge)
         x: root.barConfig.left ? 0 : root.barConfig.right ? parent.width - root.connectorGap : 0
         y: root.barConfig.top ? 0 : root.barConfig.bottom ? parent.height - root.connectorGap : 0
 
