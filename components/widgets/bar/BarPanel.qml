@@ -8,7 +8,7 @@ import QtQuick
 import qs.config
 import qs.components.widgets.bar.modules as Widgets
 import qs.components.widgets.bar
-import qs.components.widgets.popouts
+import qs.components.widgets.bar.popouts
 import qs.components.reusable
 
 // TODO: Make this a proper singleton service that manages multiple bars
@@ -116,10 +116,13 @@ PanelWindow {
         panel: root
       }
     }
-    // centerGroup: Component {
+    // workspaces: Component {
     //   WidgetGroup {
+    //     visible: root.barConfig.widgets?.center && root.barConfig.widgets.center.length > 0
     //     vertical: root.barConfig.vertical
     //     model: root.buildWidgetModel(root.barConfig.widgets?.center)
+    //     popouts: popouts
+    //     panel: root
     //   }
     // }
 

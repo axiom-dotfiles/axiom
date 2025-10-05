@@ -5,7 +5,7 @@ import Quickshell
 import qs.services
 import qs.config
 import qs.components.widgets.bar
-import qs.components.widgets.popouts
+import qs.components.widgets.bar.popouts
 
 // This is somewhere I would argue a little repeated code for an entire all-in-one solution
 
@@ -235,7 +235,7 @@ Item {
 
       Rectangle {
         id: connector
-        color: Theme.accent
+        color: Theme.background
 
         x: root.barConfig.left ? 0 : root.barConfig.right ? parent.width - root.connectorGap : 0
         y: root.barConfig.top ? 0 : root.barConfig.bottom ? parent.height - root.connectorGap : 0
