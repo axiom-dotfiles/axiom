@@ -139,7 +139,7 @@ Item {
       id: slideContainer
       anchors.fill: parent
       
-      active: root.occupied
+      active: root.occupied && !root.isClosing
       slideFromRight: root.barConfig.right
       slideFromLeft: root.barConfig.left
       slideFromTop: root.barConfig.top

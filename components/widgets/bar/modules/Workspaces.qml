@@ -137,7 +137,6 @@ Item {
         console.log("anchor", root.parent.x, root.parent.y, root.width, root.height);
         root.popouts.openPopout(root.panel, "workspace-grid", {
           monitor: root.monitor,
-          activeId: root.monitor?.activeWorkspace?.id ?? 1,
           anchorX: root.parent.x,
           anchorY: root.parent.y,
           anchorWidth: root.width,
