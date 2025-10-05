@@ -21,6 +21,9 @@ Item {
   property bool isClosing: false
   property Item currentItem: loader.item ?? null
   property int connectorGap: 4
+  
+  property int minWidth: 200
+  property int maxWidth: 400
 
   readonly property bool openToLeft: {
     if (!currentData)
@@ -28,7 +31,7 @@ Item {
 
     const anchorX = currentData.anchorX ?? 0;
     const anchorWidth = currentData.anchorWidth ?? 0;
-    const submenuWidth = submenuPopup.contentWidth + connectorGap;
+    const submenuWidth = Math.min(maxWidth, submenuPopup.contentWidth) + connectorGap;
     const screenRightEdge = screen.width;
 
     const absoluteAnchorX = anchorX < 0 ? screenRightEdge + anchorX : anchorX;
@@ -69,7 +72,10 @@ Item {
     screen: root.screen
     color: "transparent"
 
-    readonly property int contentWidth: root.currentItem?.implicitWidth ?? 200
+    readonly property int contentWidth: {
+      const itemWidth = root.currentItem?.implicitWidth ?? root.minWidth;
+      return Math.max(root.minWidth, Math.min(root.maxWidth, itemWidth));
+    }
     readonly property int contentHeight: root.currentItem?.implicitHeight ?? 100
 
     implicitWidth: contentWidth + root.connectorGap
@@ -115,10 +121,8 @@ Item {
         border.color: Theme.foreground
         border.width: Appearance.borderWidth
 
-        // x: root.openToLeft ? 0 : (root.connectorGap - Appearance.borderRadius)
         x: root.openToLeft ? Appearance.borderWidth : (root.connectorGap - Appearance.borderRadius)
         y: 0
-        // width: parent.width - root.connectorGap
         width: parent.width - root.connectorGap + (root.openToLeft ? Appearance.borderWidth + Appearance.borderRadius : 0)
         height: parent.height
 

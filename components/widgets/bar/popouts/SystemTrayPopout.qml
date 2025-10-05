@@ -125,8 +125,8 @@ Item {
           itemPadding: root.itemPadding
 
           onItemClicked: function() {
-            submenuWrapper.closePopout();
-            root.wrapper.closePopout();
+            // submenuWrapper.closePopout();
+            // root.wrapper.closePopout();
           }
 
           onSubmenuRequested: function(itemDelegate) {
