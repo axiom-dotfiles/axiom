@@ -1,6 +1,8 @@
 import QtQuick
 import Quickshell
 import qs.config
+import qs.components.reusable
+
 Item {
   id: root
   property var screen: null
@@ -17,6 +19,7 @@ Item {
   
   // Top border
   BorderPanel {
+    id: topBorder
     screen: root.screen
     edge: "top"
     frameWidth: root.frameWidth
@@ -28,6 +31,7 @@ Item {
   
   // Bottom border
   BorderPanel {
+    id: bottomBorder
     screen: root.screen
     edge: "bottom"
     frameWidth: root.frameWidth
@@ -39,6 +43,7 @@ Item {
   
   // Left border
   BorderPanel {
+    id: leftBorder
     screen: root.screen
     edge: "left"
     frameWidth: root.frameWidth
@@ -50,6 +55,7 @@ Item {
   
   // Right border
   BorderPanel {
+    id: rightBorder
     screen: root.screen
     edge: "right"
     frameWidth: root.frameWidth
@@ -59,5 +65,111 @@ Item {
     strokeWidth: root.strokeWidth
   }
   
-  // TODO: Corner SVG components will be added here
+  // Top-left corner
+  PanelWindow {
+    screen: root.screen
+    anchors {
+      left: true
+      top: true
+    }
+    width: frameWidth
+    height: frameWidth
+    color: "transparent" // The window itself is transparent
+    mask: Region {}
+    aboveWindows: true
+
+    Rectangle {
+      anchors.fill: parent
+      color: root.frameColor // The background fill
+    }
+
+    CornerPiece {
+      anchors.fill: parent
+      corner: "top-left"
+      radius: root.innerBorderRadius
+      strokeWidth: root.strokeWidth
+      fillColor: root.innerStrokeColor
+    }
+  }
+
+  // Top-right corner
+  PanelWindow {
+    screen: root.screen
+    anchors {
+      right: true
+      top: true
+    }
+    width: frameWidth
+    height: frameWidth
+    color: "transparent"
+    mask: Region {}
+    aboveWindows: true
+
+    Rectangle {
+      anchors.fill: parent
+      color: root.frameColor
+    }
+
+    CornerPiece {
+      anchors.fill: parent
+      corner: "top-right"
+      radius: root.innerBorderRadius
+      strokeWidth: root.strokeWidth
+      fillColor: root.innerStrokeColor
+    }
+  }
+
+  // Bottom-left corner
+  PanelWindow {
+    screen: root.screen
+    anchors {
+      left: true
+      bottom: true
+    }
+    width: frameWidth
+    height: frameWidth
+    color: "transparent"
+    mask: Region {}
+    aboveWindows: true
+
+    Rectangle {
+      anchors.fill: parent
+      color: root.frameColor
+    }
+
+    CornerPiece {
+      anchors.fill: parent
+      corner: "bottom-left"
+      radius: root.innerBorderRadius
+      strokeWidth: root.strokeWidth
+      fillColor: root.innerStrokeColor
+    }
+  }
+
+  // Bottom-right corner
+  PanelWindow {
+    screen: root.screen
+    anchors {
+      right: true
+      bottom: true
+    }
+    width: frameWidth
+    height: frameWidth
+    color: "transparent"
+    mask: Region {}
+    aboveWindows: true
+
+    Rectangle {
+      anchors.fill: parent
+      color: root.frameColor
+    }
+
+    CornerPiece {
+      anchors.fill: parent
+      corner: "bottom-right"
+      radius: root.innerBorderRadius
+      strokeWidth: root.strokeWidth
+      fillColor: root.innerStrokeColor
+    }
+  }
 }
