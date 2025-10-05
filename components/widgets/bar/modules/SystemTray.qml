@@ -158,25 +158,14 @@ Item {
           interval: 150
           onTriggered: {
             if (tray.hoveredTrayItem && tray.hoveredTrayItem.hasMenu && tray.popouts && tray.panel) {
-              if (tray.popouts.occupied) {
-                tray.popouts.changeContent("system-tray-menu", {
-                  trayItem: tray.hoveredTrayItem,
-                  anchorX: tray.hoveredItemGeometry.x,
-                  anchorY: tray.hoveredItemGeometry.y,
-                  anchorWidth: tray.hoveredItemGeometry.width,
-                  anchorHeight: tray.hoveredItemGeometry.height,
-                  isVertical: tray.isVertical
-                });
-              } else {
-                tray.popouts.openPopout(tray.panel, "system-tray-menu", {
-                  trayItem: tray.hoveredTrayItem,
-                  anchorX: tray.hoveredItemGeometry.x,
-                  anchorY: tray.hoveredItemGeometry.y,
-                  anchorWidth: tray.hoveredItemGeometry.width,
-                  anchorHeight: tray.hoveredItemGeometry.height,
-                  isVertical: tray.isVertical
-                });
-              }
+              tray.popouts.safeOpenPopout(tray.panel, "system-tray-menu", {
+                trayItem: tray.hoveredTrayItem,
+                anchorX: tray.hoveredItemGeometry.x,
+                anchorY: tray.hoveredItemGeometry.y,
+                anchorWidth: tray.hoveredItemGeometry.width,
+                anchorHeight: tray.hoveredItemGeometry.height,
+                isVertical: tray.isVertical
+              });
             }
           }
         }

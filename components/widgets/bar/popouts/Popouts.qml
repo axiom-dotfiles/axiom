@@ -27,6 +27,10 @@ Item {
   property bool isClosing: false
 
   property Item currentItem: loader.item ?? null
+  property var pendingOpenData: null
+  property var pendingOpenAnchor: null
+  property string pendingOpenName: ""
+  property bool hasPendingOpen: false
 
   // Gap between bar and main content (connector thickness)
   property int connectorGap: 4
@@ -36,6 +40,27 @@ Item {
       return;
     isClosing = true;
     closeDelayTimer.restart();
+  }
+
+  function safeOpenPopout(anchor, name, data) {
+    if (occupied && !isClosing) {
+      // Store the pending open request
+      pendingOpenData = data;
+      pendingOpenAnchor = anchor;
+      pendingOpenName = name;
+      hasPendingOpen = true;
+      // Close current popup
+      closePopout();
+    } else if (!occupied && !isClosing) {
+      // No popup open, open immediately
+      openPopout(anchor, name, data);
+    } else {
+      // Already closing, queue the open
+      pendingOpenData = data;
+      pendingOpenAnchor = anchor;
+      pendingOpenName = name;
+      hasPendingOpen = true;
+    }
   }
 
   function openPopout(anchor, name, data) {
@@ -73,6 +98,17 @@ Item {
       root.currentAnchor = null;
       root.currentData = null;
       root.currentName = "";
+
+      if (root.hasPendingOpen) {
+        root.hasPendingOpen = false;
+        const data = root.pendingOpenData;
+        const anchor = root.pendingOpenAnchor;
+        const name = root.pendingOpenName;
+        root.pendingOpenData = null;
+        root.pendingOpenAnchor = null;
+        root.pendingOpenName = "";
+        root.openPopout(anchor, name, data);
+      }
     }
   }
 

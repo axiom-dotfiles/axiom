@@ -143,7 +143,7 @@ Item {
     onTriggered: {
       if (root.popouts && root.panel) {
         let parentPosition = root.mapToItem(null, 0, 0);
-        root.popouts.openPopout(root.panel, "workspace-grid", {
+        root.popouts.safeOpenPopout(root.panel, "workspace-grid", {
           monitor: root.monitor,
           anchorX: parentPosition.x,
           anchorY: parentPosition.y,

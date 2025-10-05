@@ -108,7 +108,7 @@ Rectangle {
   // Hover timer for submenu opening
   Timer {
     id: submenuHoverTimer
-    interval: 200
+    interval: 100
     repeat: false
     onTriggered: {
       if (menuItemDelegate.menuItem.hasChildren && menuItemArea.containsMouse) {

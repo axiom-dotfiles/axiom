@@ -83,7 +83,7 @@ Item {
           }
           onSubmenuRequested: function(itemDelegate) {
             let globalPos = itemDelegate.mapToGlobal(0, 0);
-            root.wrapper.openPopout(root.wrapper.parentPopup, {
+            root.wrapper.safeOpenPopout(root.wrapper.parentPopup, {
               menuItem: itemDelegate.menuItem,
               parentItemDelegate: itemDelegate,
               anchorX: globalPos.x,

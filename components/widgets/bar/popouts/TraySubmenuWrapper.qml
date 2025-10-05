@@ -10,6 +10,7 @@ import qs.components.widgets.bar
  * Positions to the right of parent menu items with slide animation
  * If there is no space to the right it will open to the left instead
  */
+// TODO: merge with Popouts.qml and EdgePopout.qml to make a generic popouts for everything
 Item {
   id: root
 
@@ -24,6 +25,10 @@ Item {
   
   property int minWidth: 200
   property int maxWidth: 400
+
+  // Queue for safe reopening
+  property var pendingOpenData: null
+  property bool hasPendingOpen: false
 
   readonly property bool openToLeft: {
     if (!currentData)
@@ -54,6 +59,27 @@ Item {
     occupied = true;
   }
 
+  /**
+   * Safe open function that ensures any existing popup is fully closed
+   * before opening a new one. Can be used for both initial opens and reopens.
+   */
+  function safeOpenPopout(anchor, data) {
+    if (occupied && !isClosing) {
+      // Store the pending open request
+      pendingOpenData = data;
+      hasPendingOpen = true;
+      // Close current popup
+      closePopout();
+    } else if (!occupied && !isClosing) {
+      // No popup open, open immediately
+      openPopout(anchor, data);
+    } else {
+      // Already closing, queue the open
+      pendingOpenData = data;
+      hasPendingOpen = true;
+    }
+  }
+
   Timer {
     id: closeDelayTimer
     interval: Widget.animationDuration
@@ -62,6 +88,15 @@ Item {
       root.occupied = false;
       root.isClosing = false;
       root.currentData = null;
+
+      // Check if there's a pending open request
+      if (root.hasPendingOpen) {
+        root.hasPendingOpen = false;
+        const data = root.pendingOpenData;
+        root.pendingOpenData = null;
+        // Open the new popup
+        root.openPopout(null, data);
+      }
     }
   }
 

@@ -133,7 +133,7 @@ Item {
             let globalPos = itemDelegate.mapToGlobal(0, 0);
             console.log("Opening submenu for item:", itemDelegate.menuItem.text, "at", globalPos);
             
-            submenuWrapper.openPopout(root.wrapper.panel, {
+            submenuWrapper.safeOpenPopout(root.wrapper.panel, {
               menuItem: itemDelegate.menuItem,
               anchorX: globalPos.x,
               anchorY: globalPos.y,
