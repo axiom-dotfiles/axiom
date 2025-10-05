@@ -117,142 +117,39 @@ Item {
       Repeater {
         model: menuOpener.children
 
-        delegate: Rectangle {
-          id: menuItemDelegate
-
+        delegate: TrayMenuItem {
           required property var modelData
-          readonly property var menuItem: modelData  // QsMenuEntry
 
-          Layout.fillWidth: true
-          Layout.preferredHeight: menuItem.isSeparator ? 1 : root.itemHeight
+          menuItem: modelData
+          itemHeight: root.itemHeight
+          itemPadding: root.itemPadding
 
-          visible: true
-          color: menuItemArea.containsMouse && menuItem.enabled && !menuItem.isSeparator ? Theme.backgroundHighlight : "transparent"
-          radius: Appearance.borderRadius
-          opacity: menuItem.enabled ? 1.0 : 0.5
-
-          // Main content row (hidden for separators)
-          RowLayout {
-            anchors.fill: parent
-            anchors.leftMargin: root.itemPadding
-            anchors.rightMargin: root.itemPadding
-            spacing: 8
-            visible: !menuItem.isSeparator
-
-            // Checkbox/Radio indicator
-            Rectangle {
-              visible: menuItem.buttonType !== QsMenuButtonType.None
-              Layout.preferredWidth: 16
-              Layout.preferredHeight: 16
-              color: "transparent"
-              border.color: Theme.accent
-              border.width: 1
-              radius: menuItem.buttonType === QsMenuButtonType.RadioButton ? 8 : 2
-
-              Rectangle {
-                anchors.centerIn: parent
-                width: parent.width - 6
-                height: parent.height - 6
-                radius: menuItem.buttonType === QsMenuButtonType.RadioButton ? 5 : 1
-                color: Theme.accent
-                visible: menuItem.checkState === Qt.Checked
-              }
-            }
-
-            // Icon
-            Image {
-              visible: menuItem.icon !== ""
-              source: menuItem.icon
-              sourceSize.width: 16
-              sourceSize.height: 16
-              Layout.preferredWidth: 16
-              Layout.preferredHeight: 16
-              fillMode: Image.PreserveAspectFit
-              smooth: true
-            }
-
-            // Label
-            Text {
-              text: menuItem.text
-              color: Theme.accent
-              // font.family: Config.appearance.fontFamily
-              // font.pixelSize: Config.appearance.fontSize - 2
-              Layout.fillWidth: true
-              elide: Text.ElideRight
-            }
-
-            // Submenu indicator
-            Text {
-              visible: menuItem.hasChildren
-              text: "›"
-              color: Theme.accent
-              // font.family: Config.appearance.fontFamily
-              // font.pixelSize: Config.appearance.fontSize
-            }
+          onItemClicked: function() {
+            submenuWrapper.closePopout();
+            root.wrapper.closePopout();
           }
 
-          // Separator line
-          Rectangle {
-            anchors.centerIn: parent
-            width: parent.width - (root.itemPadding * 2)
-            height: 1
-            color: Theme.foreground
-            opacity: 0.2
-            visible: menuItem.isSeparator
-          }
-
-          // Hover timer for submenu opening
-          Timer {
-            id: submenuHoverTimer
-            interval: 200
-            repeat: false
-            onTriggered: {
-              if (menuItem.hasChildren && menuItemArea.containsMouse) {
-                openSubmenu();
-              }
-            }
-          }
-
-          function openSubmenu() {
-            let globalPos = menuItemDelegate.mapToGlobal(0, 0);
-            console.log("Opening submenu for item:", menuItem.text, "at", globalPos);
-            // Pass menuItem through currentData
+          onSubmenuRequested: function(itemDelegate) {
+            let globalPos = itemDelegate.mapToGlobal(0, 0);
+            console.log("Opening submenu for item:", itemDelegate.menuItem.text, "at", globalPos);
+            
             submenuWrapper.openPopout(root.wrapper.panel, {
-              menuItem: menuItem,
+              menuItem: itemDelegate.menuItem,
               anchorX: globalPos.x,
               anchorY: globalPos.y,
-              anchorWidth: menuItemDelegate.width,
-              anchorHeight: menuItemDelegate.height
+              anchorWidth: itemDelegate.width,
+              anchorHeight: itemDelegate.height
             });
           }
 
-          MouseArea {
-            id: menuItemArea
-            anchors.fill: parent
-            hoverEnabled: true
-            enabled: menuItem.enabled && !menuItem.isSeparator
-
-            onEntered: {
-              if (menuItem.hasChildren) {
-                submenuHoverTimer.restart();
-              } else {
-                // Close any open submenu when hovering other items
-                submenuWrapper.closePopout();
-              }
-            }
-
-            onExited: {
-              submenuHoverTimer.stop();
-            }
-
-            onClicked: {
-              if (menuItem.hasChildren) {
-                openSubmenu();
-              } else {
-                console.log("Triggering menu item:", menuItem.text);
-                menuItem.triggered();
-                submenuWrapper.closePopout();
-                root.wrapper.closePopout();
+          Component.onCompleted: {
+            // Close any open submenu when hovering non-submenu items
+            if (!menuItem.hasChildren) {
+              const mouseArea = children[children.length - 1]; // Get the MouseArea
+              if (mouseArea && mouseArea.hasOwnProperty("entered")) {
+                mouseArea.entered.connect(function() {
+                  submenuWrapper.closePopout();
+                });
               }
             }
           }

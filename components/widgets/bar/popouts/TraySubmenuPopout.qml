@@ -81,138 +81,28 @@ Item {
       Repeater {
         model: menuOpener.children
 
-        delegate: Rectangle {
-          id: submenuItemDelegate
-
+        delegate: TrayMenuItem {
           required property var modelData
-          readonly property var submenuItem: modelData  // QsMenuEntry
 
-          Layout.fillWidth: true
-          Layout.preferredHeight: submenuItem.isSeparator ? 1 : root.itemHeight
+          menuItem: modelData
+          itemHeight: root.itemHeight
+          itemPadding: root.itemPadding
 
-          visible: true
-          color: submenuItemArea.containsMouse && submenuItem.enabled && !submenuItem.isSeparator ? Theme.backgroundHighlight : "transparent"
-          radius: Appearance.borderRadius
-          opacity: submenuItem.enabled ? 1.0 : 0.5
-
-          // Main content row (hidden for separators)
-          RowLayout {
-            id: contentRow
-            anchors.fill: parent
-            anchors.leftMargin: root.itemPadding
-            anchors.rightMargin: root.itemPadding
-            spacing: 8
-            visible: !submenuItemDelegate.submenuItem.isSeparator
-
-            // Checkbox/Radio indicator
-            Rectangle {
-              visible: submenuItemDelegate.submenuItem.buttonType !== QsMenuButtonType.None
-              Layout.preferredWidth: 16
-              Layout.preferredHeight: 16
-              color: "transparent"
-              border.color: Theme.accent
-              border.width: 1
-              radius: submenuItemDelegate.submenuItem.buttonType === QsMenuButtonType.RadioButton ? 8 : 2
-
-              Rectangle {
-                anchors.centerIn: parent
-                width: parent.width - 6
-                height: parent.height - 6
-                radius: submenuItemDelegate.submenuItem.buttonType === QsMenuButtonType.RadioButton ? 5 : 1
-                color: Theme.accent
-                visible: submenuItemDelegate.submenuItem.checkState === Qt.Checked
-              }
-            }
-
-            // Icon
-            Image {
-              visible: submenuItemDelegate.submenuItem.icon !== ""
-              source: submenuItemDelegate.submenuItem.icon
-              sourceSize.width: 16
-              sourceSize.height: 16
-              Layout.preferredWidth: 16
-              Layout.preferredHeight: 16
-              fillMode: Image.PreserveAspectFit
-              smooth: true
-            }
-
-            // Label
-            Text {
-              text: submenuItemDelegate.submenuItem.text
-              color: Theme.accent
-              Layout.fillWidth: true
-              elide: Text.ElideRight
-            }
-
-            // Submenu indicator (for nested submenus)
-            Text {
-              visible: submenuItemDelegate.submenuItem.hasChildren
-              text: "›"
-              color: Theme.accent
-            }
+          onItemClicked: function() {
+            root.wrapper.closePopout();
           }
 
-          // Separator line
-          Rectangle {
-            anchors.centerIn: parent
-            width: parent.width - (root.itemPadding * 2)
-            height: 1
-            color: Theme.foreground
-            opacity: 0.2
-            visible: submenuItemDelegate.submenuItem.isSeparator
-          }
-
-          // Hover timer for nested submenu opening
-          Timer {
-            id: nestedSubmenuHoverTimer
-            interval: 200
-            repeat: false
-            onTriggered: {
-              if (submenuItemDelegate.submenuItem.hasChildren && submenuItemArea.containsMouse) {
-                submenuItemDelegate.openNestedSubmenu();
-              }
-            }
-          }
-
-          function openNestedSubmenu() {
-            // Get global position of this item
-            let globalPos = submenuItemDelegate.mapToGlobal(0, 0);
+          onSubmenuRequested: function(itemDelegate) {
+            let globalPos = itemDelegate.mapToGlobal(0, 0);
 
             root.wrapper.openPopout(root.wrapper.parentPopup, {
-              menuItem: submenuItem,
-              parentItemDelegate: submenuItemDelegate,
+              menuItem: itemDelegate.menuItem,
+              parentItemDelegate: itemDelegate,
               anchorX: globalPos.x,
               anchorY: globalPos.y,
-              anchorWidth: submenuItemDelegate.width,
-              anchorHeight: submenuItemDelegate.height
+              anchorWidth: itemDelegate.width,
+              anchorHeight: itemDelegate.height
             });
-          }
-
-          MouseArea {
-            id: submenuItemArea
-            anchors.fill: parent
-            hoverEnabled: true
-            enabled: submenuItemDelegate.submenuItem.enabled && !submenuItemDelegate.submenuItem.isSeparator
-
-            onEntered: {
-              if (submenuItemDelegate.submenuItem.hasChildren) {
-                nestedSubmenuHoverTimer.restart();
-              }
-            }
-
-            onExited: {
-              nestedSubmenuHoverTimer.stop();
-            }
-
-            onClicked: {
-              if (submenuItemDelegate.submenuItem.hasChildren) {
-                submenuItemDelegate.openNestedSubmenu();
-              } else {
-                console.log("Triggering submenu item:", submenuItemDelegate.submenuItem.text);
-                submenuItemDelegate.submenuItem.triggered();
-                root.wrapper.closePopout();
-              }
-            }
           }
         }
       }
