@@ -63,24 +63,24 @@ Rectangle {
   Loader {
     id: rightCenterGroupLoader
     anchors {
-      left: barConfig.vertical ? undefined : workspacesLoader.right
-      top: barConfig.vertical ? workspacesLoader.bottom : undefined
-      horizontalCenter: barConfig.vertical ? parent.horizontalCenter : undefined
-      verticalCenter: barConfig.vertical ? undefined : parent.verticalCenter
-      leftMargin: barConfig.vertical ? 0 : Appearance.screenMargin
-      topMargin: barConfig.vertical ? Appearance.screenMargin : 0
+      left: root.barConfig.vertical ? undefined : workspacesLoader.right
+      top: root.barConfig.vertical ? workspacesLoader.bottom : undefined
+      horizontalCenter: root.barConfig.vertical ? parent.horizontalCenter : undefined
+      verticalCenter: root.barConfig.vertical ? undefined : parent.verticalCenter
+      leftMargin: root.barConfig.vertical ? 0 : Appearance.screenMargin
+      topMargin: root.barConfig.vertical ? Appearance.screenMargin : 0
     }
   }
 
   Loader {
     id: rightGroupLoader
     anchors {
-      right: barConfig.vertical ? undefined : parent.right
-      bottom: barConfig.vertical ? parent.bottom : undefined
-      horizontalCenter: barConfig.vertical ? parent.horizontalCenter : undefined
-      verticalCenter: barConfig.vertical ? undefined : parent.verticalCenter
-      rightMargin: barConfig.vertical ? 0 : Appearance.screenMargin
-      bottomMargin: barConfig.vertical ? Appearance.screenMargin : 0
+      right: root.barConfig.vertical ? undefined : parent.right
+      bottom: root.barConfig.vertical ? parent.bottom : undefined
+      horizontalCenter: root.barConfig.vertical ? parent.horizontalCenter : undefined
+      verticalCenter: root.barConfig.vertical ? undefined : parent.verticalCenter
+      rightMargin: root.barConfig.vertical ? 0 : Appearance.screenMargin
+      bottomMargin: root.barConfig.vertical ? Appearance.screenMargin : 0
     }
   }
 }

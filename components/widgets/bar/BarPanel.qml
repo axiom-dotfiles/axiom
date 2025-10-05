@@ -20,7 +20,10 @@ PanelWindow {
 
   screen: Quickshell.screens.find(s => s.name === barConfig.display) || null
   WlrLayershell.layer: WlrLayer.Top
-  WlrLayershell.exclusiveZone: barConfig.autoHide ? 0 : barConfig.extent
+  // TODO: fix
+  // currently always reduces exclusive zone to make room for borders, but needs to not
+  // if borders are disabled
+  WlrLayershell.exclusiveZone: barConfig.autoHide ? 0 : barConfig.extent - Appearance.screenMargin + Appearance.borderWidth
   WlrLayershell.namespace: "axiom-bar"
 
   anchors {
