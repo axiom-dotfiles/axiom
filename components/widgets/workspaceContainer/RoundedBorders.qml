@@ -74,14 +74,9 @@ Item {
     }
     width: frameWidth
     height: frameWidth
-    color: "transparent" // The window itself is transparent
+    color: "transparent"
     mask: Region {}
     aboveWindows: true
-
-    Rectangle {
-      anchors.fill: parent
-      color: root.frameColor // The background fill
-    }
 
     CornerPiece {
       anchors.fill: parent
@@ -105,11 +100,6 @@ Item {
     mask: Region {}
     aboveWindows: true
 
-    Rectangle {
-      anchors.fill: parent
-      color: root.frameColor
-    }
-
     CornerPiece {
       anchors.fill: parent
       corner: "top-right"
@@ -132,11 +122,6 @@ Item {
     mask: Region {}
     aboveWindows: true
 
-    Rectangle {
-      anchors.fill: parent
-      color: root.frameColor
-    }
-
     CornerPiece {
       anchors.fill: parent
       corner: "bottom-left"
@@ -158,11 +143,6 @@ Item {
     color: "transparent"
     mask: Region {}
     aboveWindows: true
-
-    Rectangle {
-      anchors.fill: parent
-      color: root.frameColor
-    }
 
     CornerPiece {
       anchors.fill: parent
