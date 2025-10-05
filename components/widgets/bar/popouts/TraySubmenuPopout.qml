@@ -7,8 +7,7 @@ import Quickshell.Services.SystemTray
 import qs.config
 
 /**
- * Submenu content - reuses the same wrapper for nested submenus
- * No circular dependency because we don't create new wrappers
+ * Submenu content
  */
 Item {
   id: root
@@ -180,10 +179,8 @@ Item {
             // Get global position of this item
             let globalPos = submenuItemDelegate.mapToGlobal(0, 0);
             
-            // REUSE the same wrapper - just update its content
-            // This avoids circular dependency
             root.wrapper.openPopout(root.wrapper.parentPopup, {
-              menuItem: submenuItem,  // The new submenu to show
+              menuItem: submenuItem,
               parentItemDelegate: submenuItemDelegate,
               anchorX: globalPos.x,
               anchorY: globalPos.y,

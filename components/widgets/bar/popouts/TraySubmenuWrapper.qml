@@ -2,41 +2,28 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
+
 import qs.config
+import qs.components.widgets.bar
 
 /**
- * Secondary popout wrapper for system tray submenus
- * Positions submenu to the right/left of the parent menu item with slide animation
+ * Popout wrapper for submenus
+ * Positions to the right of parent menu items with slide animation
  */
 Item {
   id: root
 
   required property ShellScreen screen
-  required property var parentPopup  // Reference to the main tray popout window
+  required property QtObject parentPopup
 
-  property var currentAnchor: null
   property var currentData: null
   property bool occupied: false
   property bool isClosing: false
 
   property Item currentItem: loader.item ?? null
 
-  // Gap between parent menu and submenu content (connector thickness)
+  // Gap between parent menu and submenu (connector thickness)
   property int connectorGap: 4
-
-  // Determine if we should slide to the right or left based on available space
-  readonly property bool slideToRight: {
-    if (!currentData || !currentAnchor) return true;
-    
-    // Get the parent popup's global position
-    let parentGlobalX = currentAnchor.x;
-    let parentWidth = currentAnchor.width;
-    let submenuWidth = submenuPopup.contentWidth + connectorGap;
-    
-    // Check if there's space on the right
-    let rightEdge = parentGlobalX + parentWidth + submenuWidth;
-    return rightEdge <= Display.resolutionWidth - Appearance.screenMargin;
-  }
 
   function closePopout() {
     if (isClosing)
@@ -48,7 +35,6 @@ Item {
   function openPopout(anchor, data) {
     if (isClosing)
       return;
-    currentAnchor = anchor;
     currentData = data;
     occupied = true;
   }
@@ -60,7 +46,6 @@ Item {
     onTriggered: {
       root.occupied = false;
       root.isClosing = false;
-      root.currentAnchor = null;
       root.currentData = null;
     }
   }
@@ -68,57 +53,23 @@ Item {
   PopupWindow {
     id: submenuPopup
     visible: root.occupied && loader.status === Loader.Ready
+    screen: root.screen
     color: "transparent"
 
-    // Content dimensions
     readonly property int contentWidth: root.currentItem?.implicitWidth ?? 200
     readonly property int contentHeight: root.currentItem?.implicitHeight ?? 100
 
     // Total size including connector gap
-    implicitWidth: contentWidth + root.connectorGap
-    implicitHeight: contentHeight
+    width: contentWidth + root.connectorGap
+    height: contentHeight
 
     anchor {
-      window: root.currentAnchor
+      window: root.parentPopup
 
       rect {
-        x: {
-          if (!root.currentData)
-            return 0;
-          
-          if (root.slideToRight) {
-            // Slide to the right: position at right edge of parent (behind)
-            // Start aligned with parent's right edge minus our width
-            return root.currentAnchor.width - submenuPopup.implicitWidth;
-          } else {
-            // Slide to the left: position at left edge of parent (behind)
-            return 0;
-          }
-        }
-
-        y: {
-          if (!root.currentData)
-            return 0;
-          
-          // Align with the parent menu item within the popup
-          let itemY = root.currentData.anchorY ?? 0;
-          let parentGlobalY = root.currentAnchor.y;
-          let relativeY = itemY - parentGlobalY;
-          
-          // Offset by margin to align properly with item
-          let targetY = relativeY - 8;
-          
-          // Clamp within parent bounds
-          if (targetY < 0) {
-            targetY = 0;
-          }
-          if (targetY + submenuPopup.implicitHeight > root.currentAnchor.height) {
-            targetY = root.currentAnchor.height - submenuPopup.implicitHeight;
-          }
-          
-          return targetY;
-        }
-
+        // Position so connector aligns with right edge of parent menu
+        x: (root.currentData?.anchorX ?? 0) + (root.currentData?.anchorWidth ?? 0) - root.connectorGap
+        y: root.currentData?.anchorY ?? 0
         width: 1
         height: 1
       }
@@ -129,8 +80,10 @@ Item {
       anchors.fill: parent
 
       active: root.occupied && !root.isClosing
-      slideFromLeft: root.slideToRight   // Slide from left when expanding right
-      slideFromRight: !root.slideToRight  // Slide from right when expanding left
+      slideFromRight: true
+      slideFromLeft: false
+      slideFromTop: false
+      slideFromBottom: false
       animationDuration: Widget.animationDuration
       enableFade: false
 
@@ -142,8 +95,8 @@ Item {
         border.color: Theme.foreground
         border.width: Appearance.borderWidth
 
-        // Position with gap from the connector edge
-        x: root.slideToRight ? root.connectorGap - Appearance.borderRadius : Appearance.borderRadius
+        // Position with gap from left edge
+        x: root.connectorGap - Appearance.borderRadius
         y: 0
 
         width: parent.width - root.connectorGap
@@ -157,35 +110,26 @@ Item {
           active: root.occupied
           asynchronous: false
 
-          sourceComponent: submenuComponent
-
-          onLoaded: {
-            if (item && root.currentData) {
-              item.wrapper = root;
+          sourceComponent: Component {
+            TraySubmenuPopout {
+              wrapper: root
+              menuItem: root.currentData?.menuItem
             }
           }
         }
       }
 
-      // Connector rectangle bridging to parent menu
+      // Connector between parent menu and submenu
       Rectangle {
         id: connector
         color: Theme.background
 
-        x: root.slideToRight ? 0 : parent.width - root.connectorGap
+        x: 0
         y: 0
 
         width: root.connectorGap
         height: parent.height
       }
-    }
-  }
-
-  Component {
-    id: submenuComponent
-    TraySubmenuPopout {
-      wrapper: root
-      menuItem: root.currentData?.menuItem ?? null
     }
   }
 }

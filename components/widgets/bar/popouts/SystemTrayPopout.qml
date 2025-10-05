@@ -205,7 +205,7 @@ Item {
 
           function openSubmenu() {
             let globalPos = menuItemDelegate.mapToGlobal(0, 0);
-
+            console.log("Opening submenu for item:", menuItem.text, "at", globalPos);
             // Pass menuItem through currentData
             submenuWrapper.openPopout(root.wrapper.panel, {
               menuItem: menuItem,
