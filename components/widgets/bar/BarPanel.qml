@@ -36,12 +36,12 @@ PanelWindow {
   implicitWidth: barConfig.vertical ? barConfig.extent : 0
 
   Component.onCompleted: {
-    console.log("=== BAR PANEL ===");
-    console.log("Screen:", barConfig.display, "->", screen ? "Found" : "Not Found");
-    console.log("Panel width:", width, "height:", height);
-    console.log("Visible:", visible);
-    console.log("implicitWidth:", implicitWidth, "implicitHeight:", implicitHeight);
-    console.log("configuration:", JSON.stringify(barConfig));
+    console.log("========== BAR PANEL ==========");
+    console.log("  > Screen:", barConfig.display, "->", screen ? "Found" : "Not Found");
+    console.log("  > Panel width:", width, "height:", height);
+    console.log("  > Visible:", visible);
+    console.log("  > implicitWidth:", implicitWidth, "implicitHeight:", implicitHeight);
+    console.log("================================");
   }
 
   // --- Dynamic Widget Logic ---

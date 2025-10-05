@@ -106,7 +106,7 @@ QtObject {
   // --- API Implementations ---
 
   function _sendToGemini() {
-    console.log("Sending to Gemini with history...");
+    console.log("[ChatConfig] Sending to Gemini with history...");
     const backendConfig = _getCurrentBackendConfig();
     if (!backendConfig) return _handleError("Gemini", "Backend config not found.");
     
@@ -123,7 +123,7 @@ QtObject {
   }
 
   function _sendToOpenAI() {
-    console.log("Sending to OpenAI with history...");
+    console.log("[ChatConfig] Sending to OpenAI with history...");
     const backendConfig = _getCurrentBackendConfig();
     if (!backendConfig) return _handleError("OpenAI", "Backend config not found.");
 
@@ -146,7 +146,7 @@ QtObject {
   }
   
   function _sendToAnthropic() {
-    console.log("Sending to Anthropic with history...");
+    console.log("[ChatConfig] Sending to Anthropic with history...");
     const backendConfig = _getCurrentBackendConfig();
     if (!backendConfig) return _handleError("Anthropic", "Backend config not found.");
 
@@ -274,7 +274,7 @@ QtObject {
     } else {
         currentModel = "";
     }
-    console.log("Backend changed to", currentBackend, "with model", currentModel);
+    console.log("[ChatConfig] Backend changed to", currentBackend, "with model", currentModel);
   }
 
   function updateCommandState(currentText) {

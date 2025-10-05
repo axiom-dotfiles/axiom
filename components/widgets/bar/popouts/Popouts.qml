@@ -115,7 +115,6 @@ Item {
   PopupWindow {
     id: mainPopup
     visible: root.occupied && loader.status === Loader.Ready
-    screen: root.screen
     color: "transparent"
 
     // Content dimensions

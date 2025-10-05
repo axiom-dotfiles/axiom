@@ -49,11 +49,11 @@ QtObject {
     const fullThemeName = isGenerated ? "generated/" + themeName : themeName;
 
     if (ConfigManager.config.Appearance && ConfigManager.config.Appearance.theme === fullThemeName) {
-        console.log("ThemeManager: Theme", fullThemeName, "is already applied.");
+        console.log("[ThemeManager] Theme", fullThemeName, "is already applied.");
         return;
     }
 
-    console.log("ThemeManager: Requesting to apply theme:", fullThemeName);
+    console.log("[ThemeManager] Requesting to apply theme:", fullThemeName);
     // 1. Request the state change from the single source of truth.
     // ConfigManager will handle saving the config and reloading the theme data.
     ConfigManager.setTheme(fullThemeName);
@@ -286,7 +286,7 @@ QtObject {
   function _checkIfReloadComplete() {
     if (_defaultThemesLoaded && _generatedThemesLoaded) {
       themesReloaded();
-      console.log("ThemeManager: All theme models reloaded successfully.");
+      console.log("[ThemeManager] All themes reloaded. Total themes:", _allThemesModel.count);
     }
   }
 
@@ -303,8 +303,12 @@ QtObject {
           root._allThemesModel.append({ name: get(i, "fileBaseName"), filePath: get(i, "filePath"), isGenerated: false });
         }
         root._defaultThemesLoaded = true;
-        root._checkIfReloadComplete();
-        console.log("---- Default themes loaded:", root._defaultThemesModel.count, "themes ----");
+        // root._checkIfReloadComplete();
+        if (root._defaultThemesModel.count === 0) {
+          // console.warn("[ThemeManager] No default themes found in:", root._themesPath);
+        } else {
+          console.log("[ThemeManager] Default themes loaded:", root._defaultThemesModel.count);
+        }
       }
     }
   }
@@ -321,8 +325,12 @@ QtObject {
           root._allThemesModel.append({ name: fileName, filePath: get(i, "filePath"), isGenerated: true });
         }
         root._generatedThemesLoaded = true;
-        root._checkIfReloadComplete();
-        console.log("---- Generated themes loaded:", root._generatedThemesModel.count, "themes ----");
+        // root._checkIfReloadComplete();
+        if (root._generatedThemesModel.count === 0) {
+          // console.warn("[ThemeManager] No generated themes found in:", root._generatedThemesPath);
+        } else {
+          console.log("[ThemeManager] Generated themes loaded:", root._generatedThemesModel.count);
+        }
       }
     }
   }

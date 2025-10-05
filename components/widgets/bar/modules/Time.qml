@@ -14,6 +14,11 @@ Item {
   property bool showDate: true
   property bool use24Hour: false
 
+  property var barConfig
+  property var popouts
+  property var panel
+  property var screen
+
   // Dynamic dimensions based on orientation
   height: isVertical ? implicitHeight : Widget.height
   width: isVertical ? Widget.height : implicitWidth

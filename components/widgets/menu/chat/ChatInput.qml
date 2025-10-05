@@ -12,7 +12,7 @@ import qs.components.reusable
 RowLayout {
   id: control
   width: parent.width
-  spacing: Appearance.padding
+  spacing: Widget.padding
 
   property bool wantsKeyboardFocus: textEntry.wantsKeyboardFocus
   property int desiredButtonHeight: 0

@@ -48,10 +48,6 @@ Item {
     onVolumeLevelChanged: {
       component.visibilityChanged(component.volume);
     }
-    Component.onCompleted: {
-      console.log("PipewireVolumeBar initialized for application:", component.targetApplication);
-      console.log("Initial volume:", component.volume, "Muted:", component.isMuted, "Node Found:", component.nodeFound);
-    }
   }
   
   function setVolume(newVolume) {
@@ -124,14 +120,14 @@ Item {
         const appName = n.properties["application.name"]?.toLowerCase();
         const appNickname = n.nickname?.toLowerCase();
         if ((appBinary && appBinary.includes(searchString)) || (appName && appName.includes(searchString)) || (appNickname && appNickname.includes(searchString))) {
-          console.log("PipewireVolumeBar: Found target node for", targetApplication, "->", appBinary || appName || appNickname);
+          console.log("[PipewireVolumeBar] Found target node for", targetApplication, "->", appBinary || appName || appNickname);
           _targetNode = n;
           return;
         }
       }
     }
     if (_targetNode !== null) {
-      console.log("PipewireVolumeBar: Lost target node for", targetApplication);
+      console.log("[PipewireVolumeBar] Lost target node for", targetApplication);
       _targetNode = null;
     }
   }

@@ -73,7 +73,18 @@ Singleton {
     Component.onCompleted: {
       // This log is the most important for debugging.
       // It should now print "true".
-      console.log("NotificationServer initialized. Is active:", server.active);
+      console.log("========== Notification Server ==========");
+      console.log("  > Registered:", server.registered);
+      console.log("  > Capabilities:");
+      console.log("    - Actions:", server.actionsSupported);
+      console.log("    - Action Icons:", server.actionIconsSupported);
+      console.log("    - Body:", server.bodySupported);
+      console.log("    - Body Hyperlinks:", server.bodyHyperlinksSupported);
+      console.log("    - Body Markup:", server.bodyMarkupSupported);
+      console.log("    - Image:", server.imageSupported);
+      console.log("    - Persistence:", server.persistenceSupported);
+      console.log("  > Tracked Notifications:", server.trackedNotifications.values.length);
+      console.log("=========================================");
     }
 
     /**

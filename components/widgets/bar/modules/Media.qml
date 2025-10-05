@@ -8,6 +8,11 @@ import qs.components.methods
 IconTextWidget {
   id: root
 
+  property var barConfig
+  property var popouts
+  property var panel
+  property var screen
+
   isVertical: barConfig.vertical
 
   icon: MprisController.isPlaying ? "♪" : "⏸"

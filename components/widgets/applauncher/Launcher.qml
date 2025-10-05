@@ -35,6 +35,7 @@ PanelWindow {
 
   IpcHandler {
     target: "appLauncher"
+    enabled: rootWindow.screen.name === Display.primary
 
     function toggle() {
       rootWindow.toggle();

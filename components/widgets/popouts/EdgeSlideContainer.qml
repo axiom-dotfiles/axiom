@@ -2,6 +2,8 @@
 import QtQuick
 import Quickshell
 
+import qs.config
+
 Item {
   id: root
 
@@ -18,7 +20,7 @@ Item {
   property int edge: EdgeSlideContainer.Edge.Right
 
   // Animation configuration
-  property int animationDuration: 300
+  property int animationDuration: Widget.animations ? Widget.animationDuration : 0
   property var easingType: Easing.OutCubic
 
   // Optional fade animation
@@ -113,12 +115,10 @@ Item {
       }
 
       onStarted: {
-        console.log("Show animation started");
         root.__isAnimating = true;
       }
 
       onFinished: {
-        console.log("Show animation finished");
         root.__isAnimating = false;
         root.animationCompleted();
       }
@@ -159,7 +159,6 @@ Item {
       }
 
       onFinished: {
-        console.log("Hide animation finished");
         root.__isAnimating = false;
         root.animationCompleted();
       }

@@ -23,7 +23,7 @@ Item {
 
   property bool aboveWindows: true
   property bool focusable: false
-  property int animationDuration: 300
+  property int animationDuration: Widget.animations ? Widget.animationDuration : 0
   property var easingType: Easing.OutCubic
   enum Edge {
     Left,
@@ -50,11 +50,12 @@ Item {
 
   property bool __animating: false
 
-  property var __loadedItem: contentArea.data.length > 0 ? contentArea.data[0] : null
+  property var __loadedItem: null
   readonly property int actualWidth: Math.max(1, (customWidth > 0 ? customWidth : (__loadedItem ? __loadedItem.implicitWidth : 0)))
   readonly property int actualHeight: Math.max(1, (customHeight > 0 ? customHeight : (__loadedItem ? __loadedItem.implicitHeight : 0)))
 
   Component.onCompleted: {
+    __loadedItem = contentArea.data.length > 0 ? contentArea.data[0] : null;
     if (panelId !== "") {
       ShellManager.togglePanelReservation.connect(function (id) {
         console.log("Received togglePanelReservation for id:", id, "Current panelId:", panelId);

@@ -104,7 +104,6 @@ Item {
     id: submenuPopup
 
     visible: root.occupied && loader.status === Loader.Ready
-    screen: root.screen
     color: "transparent"
 
     readonly property int contentWidth: {

@@ -11,10 +11,6 @@ Item {
   property var popouts
   property var panel
   property var barConfig
-  Component.onCompleted: {
-    console.log("Workspaces component loaded-------------------------");
-    console.log("barConfig:", JSON.stringify(barConfig));
-  }
 
   // Orientation support
   // property int orientation: Config.orientation

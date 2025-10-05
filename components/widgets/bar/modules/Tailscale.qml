@@ -13,6 +13,11 @@ IconTextWidget {
   property string tailnetName: ""
   property bool showText: true
 
+  property var barConfig
+  property var popouts
+  property var panel
+  property var screen
+
   isVertical: barConfig.vertical
 
 

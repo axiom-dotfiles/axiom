@@ -14,7 +14,7 @@ StyledContainer {
   clip: true
 
   property int widgetPadding: Widget.padding
-  property int animationDuration: 200
+  property int animationDuration: Widget.animations ? Widget.animationDuration : 0
   property int albumArtSize: 80
   property int itemSpacing: 12
   property int innerSpacing: 4
@@ -93,7 +93,7 @@ StyledContainer {
               console.warn("Failed to load album art from:", source);
               source = "qrc:/images/default_album_art.png";
             } else if (status === Image.Ready) {
-              console.log("Successfully loaded album art");
+              // console.log("[MediaControl] Successfully loaded album art");
             }
           }
         }
@@ -202,7 +202,6 @@ StyledContainer {
 
               function onMetadataUpdated() {
                 if (!progressSlider.userInteracting && MprisController.position < 1000) {
-                  console.log("Mpris positions:", MprisController.position, MprisController.length);
                   progressSlider.value = MprisController.progress;
                 }
               }

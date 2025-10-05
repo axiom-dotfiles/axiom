@@ -35,7 +35,7 @@ PopupWindow {
   property var anchorWindow: null
 
   // Animation properties
-  property int animationDuration: Widget.animationDuration
+  property int animationDuration: Widget.animations ? Widget.animationDuration : 0
   property real currentY: -popupMaxHeight
   property real opacity: 0
 

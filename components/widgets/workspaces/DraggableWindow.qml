@@ -20,7 +20,7 @@ Item {
   property color textColor: Theme.foreground
 
   // Animation properties
-  property int animationDuration: 200
+  property int animationDuration: Widget.animations ? Widget.animationDuration : 0
   property int hoverAnimationDuration: 150
   property real dragScale: 1.05
   property real dragOpacity: 0.8

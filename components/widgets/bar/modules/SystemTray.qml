@@ -9,16 +9,16 @@ import qs.config
 Item {
   id: tray
 
-  // For some reason these can't be declared
   property var barConfig
   property var popouts
   property var panel
+  property var screen
 
   Component.onCompleted: {
-    console.log("SystemTray initialized--------------------------------------------------------------");
-    console.log("Bar config:", JSON.stringify(barConfig));
-    console.log("Recieved popouts:", tray.popouts);
-    console.log("Recieved panel:", tray.panel);
+    // console.log("SystemTray initialized--------------------------------------------------------------");
+    // console.log("Bar config:", JSON.stringify(barConfig));
+    // console.log("Recieved popouts:", tray.popouts);
+    // console.log("Recieved panel:", tray.panel);
   }
 
   property bool isVertical: barConfig.vertical
@@ -96,9 +96,6 @@ Item {
       visible: ti && (tray.showPassive || ti.status !== Status.Passive)
       width: visible ? tray.iconSize : 0
       height: visible ? tray.iconSize : 0
-      Component.onCompleted: {
-        console.log("Loaded tray item:", JSON.stringify(ti));
-      }
 
       Image {
         id: iconImage

@@ -12,7 +12,10 @@ StyledRectButton {
     // null
     
     // -- Public API --
-    // null
+    property var barConfig
+    property var popouts
+    property var panel
+    property var screen
     
     // -- Configurable Appearance --
     iconText: "󰣇"

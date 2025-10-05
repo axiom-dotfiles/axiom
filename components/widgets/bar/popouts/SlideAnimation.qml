@@ -1,4 +1,5 @@
 import QtQuick
+import qs.config
 
 /**
  * Reusable slide animation container
@@ -15,7 +16,7 @@ Item {
   property bool slideFromTop: false
   property bool slideFromBottom: false
   
-  property int animationDuration: 250
+  property int animationDuration: Widget.animations ? Widget.animationDuration : 0
   property bool enableFade: true
   property var easingType: Easing.OutCubic
 

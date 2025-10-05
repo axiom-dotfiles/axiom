@@ -45,7 +45,7 @@ Scope {
     exclusionMode: ExclusionMode.Ignore
 
     Component.onCompleted: {
-      console.log("NotificationManager: Anchor panel created");
+      console.log("[Notifs] NotificationManager: Anchor panel created");
     }
   }
 
@@ -68,11 +68,11 @@ Scope {
   }
 
   Component.onCompleted: {
-    console.log("NotificationManager: Initialized");
+    console.log("[Notifs] NotificationManager: Initialized");
     // Connect to the Notifs singleton
     if (typeof Notifs !== "undefined") {
       Notifs.showPopup.connect(createPopup);
-      console.log("NotificationManager: Connected to Notifs service");
+      console.log("[Notifs] NotificationManager: Connected to Notifs service");
     } else {
       console.error("NotificationManager: Notifs singleton not found!");
     }
@@ -80,7 +80,7 @@ Scope {
 
   // Create a new popup for the notification
   function createPopup(notification) {
-    console.log("NotificationManager: Creating popup for:", notification.summary);
+    console.log("[Notifs] NotificationManager: Creating popup for:", notification.summary);
 
     // Check if we're at max capacity
     if (activePopups.length >= maxVisibleNotifications) {
@@ -105,7 +105,7 @@ Scope {
       });
 
       if (popup) {
-        console.log("NotificationManager: Popup created successfully");
+        console.log("[Notifs] NotificationManager: Popup created successfully");
 
         // Add to active popups
         activePopups.push({
@@ -159,7 +159,7 @@ Scope {
     const index = activePopups.findIndex(item => item.popup === popupToRemove);
 
     if (index !== -1) {
-      console.log("NotificationManager: Removing popup at index:", index);
+      console.log("[Notifs] NotificationManager: Removing popup at index:", index);
       activePopups.splice(index, 1);
       updatePopupPositions();
 
@@ -186,7 +186,7 @@ Scope {
 
   // Clear all notifications
   function clearAll() {
-    console.log("NotificationManager: Clearing all notifications");
+    console.log("[Notifs] NotificationManager: Clearing all notifications");
     const popupsCopy = [...activePopups];
     for (const item of popupsCopy) {
       if (item.popup) {

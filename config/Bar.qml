@@ -17,6 +17,7 @@ QtObject {
 
     for (let i = 0; i < configs.length; i++) {
       const barConfig = configs[i];
+      console.log("bar location:", barConfig.location);
       const loc = Bar.getLocationFromString(barConfig.location ?? "Top");
 
       result.push({
@@ -45,7 +46,7 @@ QtObject {
   readonly property int extent: Bar.bars[0]?.extent ?? 30
   readonly property bool autoHide: Bar.bars[0]?.autoHide ?? false
   readonly property int location: Bar.getLocationFromString(Bar.bars[0]?.location ?? "Top")
-  readonly property QtObject widgets: Bar.bars[0]?.widgets ?? null
+  readonly property var widgets: Bar.bars[0]?.widgets ?? null
   readonly property int spacing: Bar.bars[0]?.spacing ?? 6
 
   readonly property bool vertical: location === Bar.Left || location === Bar.Right

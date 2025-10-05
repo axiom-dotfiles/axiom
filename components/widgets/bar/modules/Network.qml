@@ -6,6 +6,11 @@ import qs.components.reusable
 IconTextWidget {
   id: root
 
+  property var barConfig
+  property var popouts
+  property var panel
+  property var screen
+
   property string iface: ""
   property string kind: ""
 

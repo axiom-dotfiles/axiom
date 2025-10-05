@@ -43,30 +43,30 @@ QtObject {
   // --- Public ---
   function logCurrentSongProperties() {
     if (!hasActivePlayer) {
-      console.log("No active MPRIS player.");
+      console.log("[MprisController] No active MPRIS player.");
       return;
     }
-    console.log("Active MPRIS Player Properties:");
-    console.log("  Identity:", identity);
-    console.log("  Playback State:", playbackState === MprisPlaybackState.Playing ? "Playing" : (playbackState === MprisPlaybackState.Paused ? "Paused" : "Stopped"));
-    console.log("  Track Title:", trackTitle);
-    console.log("  Track Artist:", trackArtist);
-    console.log("  Track ID:", trackId);
-    console.log("  Position (ms):", position);
-    console.log("  Length (ms):", length);
-    console.log("  Progress:", (progress * 100).toFixed(2) + "%");
-    console.log("  Art URL:", artUrl);
-    console.log("  Can Play:", canPlay);
-    console.log("  Can Pause:", canPause);
-    console.log("  Can Toggle Playing:", canTogglePlaying);
-    console.log("  Can Go Next:", canGoNext);
-    console.log("  Can Go Previous:", canGoPrevious);
-    console.log("  Can Seek:", canSeek);
+    console.log("[MprisController] Active MPRIS Player Properties:");
+    console.log("[MprisController]   Identity:", identity);
+    console.log("[MprisController]   Playback State:", playbackState === MprisPlaybackState.Playing ? "Playing" : (playbackState === MprisPlaybackState.Paused ? "Paused" : "Stopped"));
+    console.log("[MprisController]   Track Title:", trackTitle);
+    console.log("[MprisController]   Track Artist:", trackArtist);
+    console.log("[MprisController]   Track ID:", trackId);
+    console.log("[MprisController]   Position (ms):", position);
+    console.log("[MprisController]   Length (ms):", length);
+    console.log("[MprisController]   Progress:", (progress * 100).toFixed(2) + "%");
+    console.log("[MprisController]   Art URL:", artUrl);
+    console.log("[MprisController]   Can Play:", canPlay);
+    console.log("[MprisController]   Can Pause:", canPause);
+    console.log("[MprisController]   Can Toggle Playing:", canTogglePlaying);
+    console.log("[MprisController]   Can Go Next:", canGoNext);
+    console.log("[MprisController]   Can Go Previous:", canGoPrevious);
+    console.log("[MprisController]   Can Seek:", canSeek);
   }
 
   function updateAllMetadata() {
     if (!hasActivePlayer) {
-      console.log("No active MPRIS player to update metadata from.");
+      console.log("[MprisController] No active MPRIS player to update metadata from.");
       return;
     }
     identity = activePlayer.identity || "";
@@ -75,7 +75,7 @@ QtObject {
     trackArtist = activePlayer.trackArtist || "";
     length = activePlayer.length || 0;
     root.updatePosition();
-    root.logCurrentSongProperties();
+    // root.logCurrentSongProperties();
     root.metadataUpdated();
   }
 
@@ -98,7 +98,7 @@ QtObject {
     target: activePlayer
     ignoreUnknownSignals: true
     function onTrackTitleChanged() {
-      console.log("MprisController: Track ID changed.");
+      console.log("[MprisController] MprisController: Track ID changed.");
       root.updateAllMetadata();
     }
   }
@@ -147,7 +147,7 @@ QtObject {
     command: ["bash", "-c", `mkdir -p /tmp/quickshell-media-art && [ -f '${root.artFilePath}' ] || curl --fail -sSL '${root.artUrl}' -o '${root.artFilePath}'`]
     onExited: (exitCode, exitStatus) => {
       if (exitCode === 0) {
-        console.log("Successfully downloaded album art to:", root.artFilePath);
+        console.log("[MprisController] Successfully downloaded album art to:", root.artFilePath);
         root.artDownloaded = true;
         root.artVersion++;
         root.artReady();
@@ -179,7 +179,7 @@ QtObject {
     onTriggered: {
       attempts++;
       if (Mpris.players && Mpris.players.values.length > 0) {
-        console.log("MPRIS players detected after", attempts, "attempts.");
+        console.log("[MprisController] MPRIS players detected after", attempts, "attempts.");
         _updateActivePlayer();
         updateAllMetadata();
         running = false;
@@ -196,7 +196,7 @@ QtObject {
 
   function _pickActivePlayer() {
     const playersArray = Mpris.players.values;
-    console.log("Picking active MPRIS player from", playersArray.length, "available players.");
+    console.log("[MprisController] Picking active MPRIS player from", playersArray.length, "available players.");
     if (!playersArray || playersArray.length === 0)
       return null;
 
@@ -224,7 +224,6 @@ QtObject {
   }
 
   function _updateActivePlayer() {
-    console.log("Updating active MPRIS player...-----------------------------------");
     const newPlayer = _pickActivePlayer();
     if (activePlayer !== newPlayer) {
       activePlayer = newPlayer;

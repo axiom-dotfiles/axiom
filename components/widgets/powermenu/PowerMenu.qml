@@ -49,13 +49,11 @@ PanelWindow {
 
   function toggle() {
     shown = !shown;
-    if (shown) {
-      forceActiveFocus();
-    }
   }
 
   IpcHandler {
     target: "powermenu"
+    enabled: screen.name === Display.primary
     function toggle() { rootWindow.toggle() }
     function show() { if (!rootWindow.shown) rootWindow.toggle() }
     function hide() { if (rootWindow.shown) rootWindow.toggle() }

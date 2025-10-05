@@ -14,6 +14,10 @@ import qs.components.widgets.bar
     // null
 
     // -- Public API --
+    property var barConfig
+    property var popouts
+    property var panel
+    property var screen
     // null
 
     // -- Configurable Appearance --

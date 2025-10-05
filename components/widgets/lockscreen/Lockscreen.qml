@@ -22,10 +22,12 @@ PanelWindow {
   property real slideOffset: isLocked ? 0 : -height
 
   Component.onCompleted: {
-    console.log("Lockscreen initialized on screen:", screen.name);
     ShellManager.lockScreen.connect(function() {
       rootWindow.lock();
     });
+    console.log("========== LockScreen ==========")
+    console.log("  > Screen:", screen.name, "Primary:", isPrimaryScreen, "Width:", screen.width, "Height:", screen.height, "Aspect Ratio:", Display.aspectRatio);
+    console.log("================================")
   }
 
   anchors {
@@ -73,6 +75,7 @@ PanelWindow {
 
   IpcHandler {
     target: "lockscreen"
+    enabled: isPrimaryScreen
 
     function lock() {
       ShellManager.lockScreen();
@@ -107,14 +110,14 @@ PanelWindow {
     }
   }
 
-  Connections {
-    target: rootWindow
-    function onActiveChanged() {
-      if (rootWindow.isLocked && rootWindow.isPrimaryScreen && rootWindow.active) {
-        passwordInput.input.forceActiveFocus();
-      }
-    }
-  }
+  // Connections {
+  //   target: rootWindow
+  //   function onActiveChanged() {
+  //     if (rootWindow.isLocked && rootWindow.isPrimaryScreen && rootWindow.active) {
+  //       passwordInput.input.forceActiveFocus();
+  //     }
+  //   }
+  // }
 
   Connections {
     target: Authentication
@@ -227,7 +230,7 @@ PanelWindow {
 
           property bool showMedia: true
           property alias mediaControl: mediaControlLoader.item
-          property int animationDuration: 300
+          property int animationDuration: Widget.animations ? Widget.animationDuration : 0
 
           Layout.fillWidth: true
           Layout.preferredHeight: showMedia ? mediaControlLoader.height : 0

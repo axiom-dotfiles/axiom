@@ -6,9 +6,6 @@ import qs.config
 import qs.components.reusable
 
 StyledContainer {
-    Component.onCompleted: {
-        console.log("CalendarMenu loaded");
-    }
     ColumnLayout {
         anchors.fill: parent
         spacing: Widget.spacing

@@ -8,6 +8,11 @@ import qs.components.reusable
 IconTextWidget {
   id: root
 
+  property var barConfig
+  property var popouts
+  property var panel
+  property var screen
+
   property bool isCharging: false
   property bool isDischarging: false
   property int percentage: 0
