@@ -11,18 +11,18 @@ import qs.config
  */
 Item {
   id: root
-  
+
   required property var wrapper
-  required property var menuItem  // QsMenuEntry - the parent item that has children
-  
+  required property var menuItem
+
   readonly property int itemSpacing: 4
   readonly property int itemHeight: 32
   readonly property int itemPadding: 8
   readonly property int minWidth: 200
-  
+
   implicitWidth: Math.max(minWidth, menuLayout.implicitWidth + 20)
-  implicitHeight: menuLayout.implicitHeight + 20
-  
+  implicitHeight: menuLayout.implicitHeight + 20 + Widget.padding * 2
+
   // Auto-close when mouse leaves
   HoverHandler {
     id: hoverHandler
@@ -34,7 +34,7 @@ Item {
       }
     }
   }
-  
+
   Timer {
     id: exitTimer
     interval: 40
@@ -42,13 +42,13 @@ Item {
       root.wrapper.closePopout();
     }
   }
-  
+
   // Menu opener to access this submenu's children
   QsMenuOpener {
     id: menuOpener
     menu: root.menuItem
   }
-  
+
   // Click outside to close
   MouseArea {
     anchors.fill: parent
@@ -56,14 +56,14 @@ Item {
       root.wrapper.closePopout();
     }
   }
-  
+
   // Background container
   Rectangle {
     anchors.fill: parent
     anchors.margins: 8
     color: Theme.backgroundAlt
     radius: Appearance.borderRadius
-    
+
     // Prevent clicks from propagating to the background MouseArea
     MouseArea {
       anchors.fill: parent
@@ -71,64 +71,63 @@ Item {
         mouse.accepted = true;
       }
     }
-    
+
     ColumnLayout {
       id: menuLayout
       anchors.centerIn: parent
       spacing: root.itemSpacing
       width: parent.width - 20
-      
+
       Repeater {
         model: menuOpener.children
-        
+
         delegate: Rectangle {
           id: submenuItemDelegate
-          
+
           required property var modelData
           readonly property var submenuItem: modelData  // QsMenuEntry
-          
+
           Layout.fillWidth: true
           Layout.preferredHeight: submenuItem.isSeparator ? 1 : root.itemHeight
-          
+
           visible: true
-          color: submenuItemArea.containsMouse && submenuItem.enabled && !submenuItem.isSeparator 
-                 ? Theme.backgroundHighlight
-                 : "transparent"
+          color: submenuItemArea.containsMouse && submenuItem.enabled && !submenuItem.isSeparator ? Theme.backgroundHighlight : "transparent"
           radius: Appearance.borderRadius
           opacity: submenuItem.enabled ? 1.0 : 0.5
-          
+
           // Main content row (hidden for separators)
           RowLayout {
+            id: contentRow
             anchors.fill: parent
             anchors.leftMargin: root.itemPadding
             anchors.rightMargin: root.itemPadding
             spacing: 8
-            visible: !submenuItem.isSeparator
-            
+            visible: !submenuItemDelegate.submenuItem.isSeparator
+
             // Checkbox/Radio indicator
             Rectangle {
-              visible: submenuItem.buttonType !== QsMenuButtonType.None
+              visible: submenuItemDelegate.submenuItem.buttonType !== QsMenuButtonType.None
               Layout.preferredWidth: 16
               Layout.preferredHeight: 16
               color: "transparent"
               border.color: Theme.accent
               border.width: 1
-              radius: submenuItem.buttonType === QsMenuButtonType.RadioButton ? 8 : 2
-              
+              radius: submenuItemDelegate.submenuItem.buttonType === QsMenuButtonType.RadioButton ? 8 : 2
+
               Rectangle {
                 anchors.centerIn: parent
                 width: parent.width - 6
                 height: parent.height - 6
-                radius: submenuItem.buttonType === QsMenuButtonType.RadioButton ? 5 : 1
+                radius: submenuItemDelegate.submenuItem.buttonType === QsMenuButtonType.RadioButton ? 5 : 1
                 color: Theme.accent
-                visible: submenuItem.checkState === Qt.Checked
+                visible: submenuItemDelegate.submenuItem.checkState === Qt.Checked
               }
             }
-            
+
             // Icon
             Image {
-              visible: submenuItem.icon !== ""
-              source: submenuItem.icon
+              visible: submenuItemDelegate.submenuItem.icon !== ""
+              source: submenuItemDelegate.submenuItem.icon
               sourceSize.width: 16
               sourceSize.height: 16
               Layout.preferredWidth: 16
@@ -136,23 +135,23 @@ Item {
               fillMode: Image.PreserveAspectFit
               smooth: true
             }
-            
+
             // Label
             Text {
-              text: submenuItem.text
+              text: submenuItemDelegate.submenuItem.text
               color: Theme.accent
               Layout.fillWidth: true
               elide: Text.ElideRight
             }
-            
+
             // Submenu indicator (for nested submenus)
             Text {
-              visible: submenuItem.hasChildren
+              visible: submenuItemDelegate.submenuItem.hasChildren
               text: "›"
               color: Theme.accent
             }
           }
-          
+
           // Separator line
           Rectangle {
             anchors.centerIn: parent
@@ -160,25 +159,25 @@ Item {
             height: 1
             color: Theme.foreground
             opacity: 0.2
-            visible: submenuItem.isSeparator
+            visible: submenuItemDelegate.submenuItem.isSeparator
           }
-          
+
           // Hover timer for nested submenu opening
           Timer {
             id: nestedSubmenuHoverTimer
             interval: 200
             repeat: false
             onTriggered: {
-              if (submenuItem.hasChildren && submenuItemArea.containsMouse) {
-                openNestedSubmenu();
+              if (submenuItemDelegate.submenuItem.hasChildren && submenuItemArea.containsMouse) {
+                submenuItemDelegate.openNestedSubmenu();
               }
             }
           }
-          
+
           function openNestedSubmenu() {
             // Get global position of this item
             let globalPos = submenuItemDelegate.mapToGlobal(0, 0);
-            
+
             root.wrapper.openPopout(root.wrapper.parentPopup, {
               menuItem: submenuItem,
               parentItemDelegate: submenuItemDelegate,
@@ -188,41 +187,39 @@ Item {
               anchorHeight: submenuItemDelegate.height
             });
           }
-          
+
           MouseArea {
             id: submenuItemArea
             anchors.fill: parent
             hoverEnabled: true
-            enabled: submenuItem.enabled && !submenuItem.isSeparator
-            
+            enabled: submenuItemDelegate.submenuItem.enabled && !submenuItemDelegate.submenuItem.isSeparator
+
             onEntered: {
-              if (submenuItem.hasChildren) {
+              if (submenuItemDelegate.submenuItem.hasChildren) {
                 nestedSubmenuHoverTimer.restart();
               }
             }
-            
+
             onExited: {
               nestedSubmenuHoverTimer.stop();
             }
-            
+
             onClicked: {
-              if (submenuItem.hasChildren) {
-                // Open nested submenu by reusing the wrapper
-                openNestedSubmenu();
+              if (submenuItemDelegate.submenuItem.hasChildren) {
+                submenuItemDelegate.openNestedSubmenu();
               } else {
-                // Trigger the action and close everything
-                console.log("Triggering submenu item:", submenuItem.text);
-                submenuItem.triggered();
+                console.log("Triggering submenu item:", submenuItemDelegate.submenuItem.text);
+                submenuItemDelegate.submenuItem.triggered();
                 root.wrapper.closePopout();
               }
             }
           }
         }
       }
-      
+
       // Empty state
       Text {
-        visible: menuOpener.children.count === 0
+        visible: menuOpener.children !== null
         text: "No submenu items"
         color: Theme.accent
         opacity: 0.5

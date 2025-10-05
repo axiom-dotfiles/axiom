@@ -1,4 +1,4 @@
-// SystemTrayMenuPopout.qml
+// TrayMenuPopout.qml
 pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
@@ -8,7 +8,7 @@ import Quickshell.Services.SystemTray
 import qs.config
 import qs.components.widgets.bar.popouts
 
-// TODO: not single file
+// TODO: Use styled components to make this way cleaner
 Item {
   id: root
 
@@ -16,15 +16,17 @@ Item {
 
   property var trayItem: wrapper.currentData?.trayItem
   property bool isVertical: wrapper.currentData?.isVertical ?? false
-  property var menuHandle: trayItem?.menu  // QsMenuHandle
+  property var menuHandle: trayItem?.menu
+  property bool submenuOpen: false
 
   readonly property int itemSpacing: 4
   readonly property int itemHeight: 32
   readonly property int itemPadding: 8
   readonly property int minWidth: 200
 
+  // TODO: wtf is this 20
   implicitWidth: Math.max(minWidth, menuLayout.implicitWidth + 20)
-  implicitHeight: menuLayout.implicitHeight + 20 + Widget.padding * 2 // TODO: magic num removal
+  implicitHeight: menuLayout.implicitHeight + 20 + Widget.padding * 2
 
   Behavior on width {
     NumberAnimation {
@@ -39,14 +41,15 @@ Item {
     }
   }
 
-  // Auto-close when mouse leaves
   HoverHandler {
     id: hoverHandler
     onHoveredChanged: {
       if (hovered) {
         exitTimer.stop();
       } else {
-        exitTimer.restart();
+        if (!root.submenuOpen) {
+          exitTimer.restart();
+        }
       }
     }
   }
@@ -55,21 +58,28 @@ Item {
     id: exitTimer
     interval: 40
     onTriggered: {
-      root.wrapper.closePopout();
+      if (!root.submenuOpen) {
+        root.wrapper.closePopout();
+      }
     }
   }
 
-  // Menu opener to access the menu children
   QsMenuOpener {
     id: menuOpener
     menu: root.menuHandle
   }
 
-  // Submenu wrapper instance
   TraySubmenuWrapper {
     id: submenuWrapper
     screen: root.wrapper.screen
     parentPopup: root.wrapper.panel
+    
+    onOccupiedChanged: {
+      root.submenuOpen = occupied;
+      if (!occupied && !hoverHandler.hovered) {
+        exitTimer.restart();
+      }
+    }
   }
 
   // Click outside to close
