@@ -1,9 +1,8 @@
-// SystemTraySubmenuWrapper.qml
+// TraySubmenuWrapper.qml
 pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
 import qs.config
-import qs.components.widgets.bar.popouts
 
 /**
  * Secondary popout wrapper for system tray submenus
@@ -27,14 +26,15 @@ Item {
 
   // Determine if we should slide to the right or left based on available space
   readonly property bool slideToRight: {
-    if (!currentData) return true;
+    if (!currentData || !currentAnchor) return true;
     
-    let parentX = currentData.anchorX ?? 0;
-    let parentWidth = currentData.anchorWidth ?? 0;
+    // Get the parent popup's global position
+    let parentGlobalX = currentAnchor.x;
+    let parentWidth = currentAnchor.width;
     let submenuWidth = submenuPopup.contentWidth + connectorGap;
     
     // Check if there's space on the right
-    let rightEdge = parentX + parentWidth + submenuWidth;
+    let rightEdge = parentGlobalX + parentWidth + submenuWidth;
     return rightEdge <= Display.resolutionWidth - Appearance.screenMargin;
   }
 
@@ -86,16 +86,13 @@ Item {
           if (!root.currentData)
             return 0;
           
-          let parentX = root.currentData.anchorX ?? 0;
-          let parentWidth = root.currentData.anchorWidth ?? 0;
-          
           if (root.slideToRight) {
-            // Slide to the right: align right edges initially (behind parent)
-            // Account for parent's margin (8px) to align with inner content edge
-            return parentX + parentWidth - submenuPopup.implicitWidth - 16;
+            // Slide to the right: position at right edge of parent (behind)
+            // Start aligned with parent's right edge minus our width
+            return root.currentAnchor.width - submenuPopup.implicitWidth;
           } else {
-            // Slide to the left: align left edges initially (behind parent)
-            return parentX + 16;
+            // Slide to the left: position at left edge of parent (behind)
+            return 0;
           }
         }
 
@@ -103,16 +100,20 @@ Item {
           if (!root.currentData)
             return 0;
           
-          // Align with the parent menu item, accounting for margins
-          let parentY = root.currentData.anchorY ?? 0;
-          let targetY = parentY - 8;  // Offset by margin to align properly
+          // Align with the parent menu item within the popup
+          let itemY = root.currentData.anchorY ?? 0;
+          let parentGlobalY = root.currentAnchor.y;
+          let relativeY = itemY - parentGlobalY;
           
-          // Clamp to screen bounds
-          if (targetY + submenuPopup.implicitHeight > Display.resolutionHeight - Appearance.screenMargin) {
-            targetY = Display.resolutionHeight - submenuPopup.implicitHeight - Appearance.screenMargin;
+          // Offset by margin to align properly with item
+          let targetY = relativeY - 8;
+          
+          // Clamp within parent bounds
+          if (targetY < 0) {
+            targetY = 0;
           }
-          if (targetY < Appearance.screenMargin) {
-            targetY = Appearance.screenMargin;
+          if (targetY + submenuPopup.implicitHeight > root.currentAnchor.height) {
+            targetY = root.currentAnchor.height - submenuPopup.implicitHeight;
           }
           
           return targetY;

@@ -23,18 +23,6 @@ Item {
   
   implicitWidth: Math.max(minWidth, menuLayout.implicitWidth + 20)
   implicitHeight: menuLayout.implicitHeight + 20
-  Component.onCompleted: {
-    console.log("=== TraySubmenuPopout Debug ===");
-    console.log("wrapper exists:", wrapper !== null);
-    console.log("wrapper.currentData:", wrapper.currentData);
-    console.log("menuItem exists:", menuItem !== null);
-    console.log("menuItem:", menuItem);
-    if (menuItem) {
-      console.log("menuItem.text:", menuItem.text);
-      console.log("menuItem.hasChildren:", menuItem.hasChildren);
-      console.log("menuItem.menu:", menuItem.menu);
-    }
-  }
   
   // Auto-close when mouse leaves
   HoverHandler {
