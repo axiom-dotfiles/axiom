@@ -7,7 +7,7 @@ IconTextWidget {
   id: root
 
   property string iface: ""
-  property string kind: "" // "wifi" | "ethernet" | ""
+  property string kind: ""
 
   isVertical: barConfig.vertical
 

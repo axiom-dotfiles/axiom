@@ -10,13 +10,12 @@ Text {
   // null
   
   // -- Public API --
-  // null
+  property bool isVertical: false
   
   // -- Configurable Appearance --
   property color textColor: Theme.foreground
   property string textFamily: Appearance.fontFamily
   property int textSize: Appearance.fontSize
-  property bool isVertical: false
 
   // -- Implementation --
   color: textColor

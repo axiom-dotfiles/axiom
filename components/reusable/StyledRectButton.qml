@@ -29,13 +29,13 @@ Rectangle {
   property real borderRadius: Appearance.borderRadius
   
   // -- Implementation --
+  // UHH maybe having one button for layouts and not layouts is not the move
   Layout.fillHeight: true
   Layout.fillWidth: true
   Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+  // TODO: different bar extents break this
   implicitWidth: Bar.extent - (Widget.padding * 2)
   implicitHeight: Bar.extent - (Widget.padding * 2)
-  width: implicitWidth
-  height: implicitHeight
   
   color: mouseArea.pressed ? component.pressColor : 
          (mouseArea.containsMouse ? component.hoverColor : component.backgroundColor)

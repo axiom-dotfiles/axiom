@@ -11,7 +11,7 @@ Item {
   required property var barConfig
   property alias model: repeater.model
 
-  property int spacing: Widget.spacing
+  property int spacing: root.barConfig.spacing
   property int alignment: Qt.AlignHCenter
 
   implicitWidth: layout.implicitWidth
@@ -37,9 +37,6 @@ Item {
         sourceComponent: BarModule {
           barConfig: root.barConfig
           componentPath: modelData.component
-        }
-        Component.onCompleted: {
-          console.log("Created widget with config:", JSON.stringify(modelData));
         }
       }
     }

@@ -21,11 +21,13 @@ QtObject {
 
       result.push({
         "id": barConfig.id || "",
+        "primary": barConfig.primary ?? (i === 0),
         "enabled": barConfig.enabled ?? true,
-        "extent": barConfig.extent ?? 30,
-        "autoHide": barConfig.autoHide ?? false,
-        "location": loc,
         "display": barConfig.display || "",
+        "extent": barConfig.extent ?? Bar.extent,
+        "spacing": barConfig.spacing ?? Bar.spacing,
+        "location": loc,
+        "autoHide": barConfig.autoHide ?? false,
         "widgets": barConfig.widgets || null,
         "vertical": loc === Bar.Left || loc === Bar.Right,
         "left": loc === Bar.Left,
@@ -44,6 +46,7 @@ QtObject {
   readonly property bool autoHide: Bar.bars[0]?.autoHide ?? false
   readonly property int location: Bar.getLocationFromString(Bar.bars[0]?.location ?? "Top")
   readonly property QtObject widgets: Bar.bars[0]?.widgets ?? null
+  readonly property int spacing: Bar.bars[0]?.spacing ?? 6
 
   readonly property bool vertical: location === Bar.Left || location === Bar.Right
   readonly property bool left: location === Bar.Left
