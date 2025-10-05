@@ -9,6 +9,7 @@ Item {
   id: root
 
   required property var barConfig
+  property var popouts: null
   property alias model: repeater.model
 
   property int spacing: root.barConfig.spacing
@@ -37,6 +38,7 @@ Item {
         sourceComponent: BarModule {
           barConfig: root.barConfig
           componentPath: modelData.component
+          popouts: root.popouts
         }
       }
     }

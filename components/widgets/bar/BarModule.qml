@@ -9,6 +9,7 @@ Item {
   
   required property var barConfig
   required property string componentPath
+  property var popouts: null
   property color backgroundColor: Theme.background
   property alias content: contentLoader.sourceComponent
   property alias contentItem: contentLoader.item
@@ -20,7 +21,7 @@ Item {
 
   Loader {
     id: contentLoader
-    source: componentPath
+    source: component.componentPath
     anchors.centerIn: parent
   }
 }

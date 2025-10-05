@@ -67,30 +67,24 @@ PanelWindow {
   // A factory function to build a model array for the WidgetGroup's Repeater
   // Will change slightly when the map above changes
   function buildWidgetModel(widgetConfigArray) {
-    console.log("Building widget model for config:", JSON.stringify(widgetConfigArray));
     if (!widgetConfigArray || widgetConfigArray.length === 0) {
       return [];
     }
 
     const array = widgetConfigArray.filter(
       widgetConf => widgetConf.visible !== false).map(widgetConf => {
-      console.log("Processing widget config:", JSON.stringify(widgetConf));
       const componentType = widgetComponentMap[widgetConf.type];
-      console.log("Processing component type:", widgetConf.type, "->", componentType ? "Found" : "Not Found");
-      console.log("ACTUAL component type:", componentType);
       if (!componentType) {
         console.warn("Unknown widget type in bar config:", widgetConf.type);
         return null;
       }
 
-      console.log("Adding widget to model:", componentType, "with properties:", JSON.stringify(widgetConf.properties || {}));
       return {
         component: componentType
         ,
         properties: widgetConf.properties || {}
       };
     }).filter(item => item !== null);
-    console.log("Final widget model array:", JSON.stringify(array));
     return array;
   }
 
@@ -133,6 +127,7 @@ PanelWindow {
       WidgetGroup {
         barConfig: root.barConfig
         model: root.barConfig.widgets?.left && root.barConfig.widgets.left.length > 0 ? root.buildWidgetModel(root.barConfig.widgets?.left) : []
+        popouts: popouts
       }
     }
 
@@ -140,6 +135,7 @@ PanelWindow {
       WidgetGroup {
         barConfig: root.barConfig
         model: root.barConfig.widgets?.leftCenter && root.barConfig.widgets.leftCenter.length > 0 ? root.buildWidgetModel(root.barConfig.widgets?.leftCenter) : []
+        popouts: popouts
       }
     }
 
@@ -147,6 +143,7 @@ PanelWindow {
       WidgetGroup {
         barConfig: root.barConfig
         model: root.barConfig.widgets?.rightCenter && root.barConfig.widgets.rightCenter.length > 0 ? root.buildWidgetModel(root.barConfig.widgets?.rightCenter) : []
+        popouts: popouts
       }
     }
 
@@ -154,6 +151,7 @@ PanelWindow {
       WidgetGroup {
         barConfig: root.barConfig
         model: root.barConfig.widgets?.right && root.barConfig.widgets.right.length > 0 ? root.buildWidgetModel(root.barConfig.widgets?.right) : []
+        popouts: popouts
       }
     }
   }

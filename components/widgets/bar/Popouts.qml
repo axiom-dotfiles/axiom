@@ -225,7 +225,6 @@ Item {
     }
   }
 
-  // Component registry
   Component {
     id: workspaceGridComponent
     WorkspacePopOut {
@@ -235,7 +234,6 @@ Item {
 
   Component {
     id: mediaPlayerComponent
-    // MediaPlayerPopOut { }
     Item {} // Placeholder
   }
 }
