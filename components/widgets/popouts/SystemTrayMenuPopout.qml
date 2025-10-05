@@ -26,7 +26,7 @@ Item {
   
   Behavior on width {
     NumberAnimation {
-      duration: Widget.animationDuration
+      duration: Widget.animationDuration / 3
       easing.type: Easing.OutCubic
     }
   }
