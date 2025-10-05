@@ -11,6 +11,7 @@ Item {
   required property var barConfig
   property var popouts
   property var panel
+  property var screen
   property alias model: repeater.model
 
   property int spacing: root.barConfig.spacing
@@ -41,6 +42,7 @@ Item {
           componentPath: widgetLoader.modelData.component
           popouts: root.popouts
           panel: root.panel
+          screen: root.screen
         }
       }
     }

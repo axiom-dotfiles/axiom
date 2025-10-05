@@ -7,23 +7,31 @@ import qs.config
 
 Item {
   id: root
-  required property var screen
-  property var popouts: null
-  property var panel: null  // Reference to the parent panel for popout anchoring
+  property var screen
+  property var popouts
+  property var panel
+  property var barConfig
+  Component.onCompleted: {
+    console.log("Workspaces component loaded-------------------------");
+    console.log("barConfig:", JSON.stringify(barConfig));
+  }
 
   // Orientation support
-  property int orientation: Config.orientation
-  property bool isVertical: orientation === Qt.Vertical
+  // property int orientation: Config.orientation
+  property bool isVertical: barConfig.vertical
 
   property color activeColor: Theme.accent
   property color inactiveColor: Theme.foregroundAlt
   property color emptyColor: Theme.backgroundAlt
 
-  readonly property HyprlandMonitor monitor: Hyprland.monitorFor(root.screen)
+  property HyprlandMonitor monitor: Hyprland.monitorFor(root.screen)
   // readonly property HyprlandWorkspace focusedWorkspace: Hyprland.workspaces.focused
 
   // Dynamic group calculation based on orientation
   readonly property int groupBase: {
+    if (!monitor || !monitor.activeWorkspace) {
+      return 1; // Default fallback
+    }
     const id = monitor.activeWorkspace ? monitor.activeWorkspace.id : 1;
     if (isVertical) {
       // For vertical: show the column that contains the active workspace
@@ -134,11 +142,11 @@ Item {
     interval: 10
     onTriggered: {
       if (root.popouts && root.panel) {
-        console.log("anchor", root.parent.x, root.parent.y, root.width, root.height);
+        let parentPosition = root.mapToItem(null, 0, 0);
         root.popouts.openPopout(root.panel, "workspace-grid", {
           monitor: root.monitor,
-          anchorX: root.parent.x,
-          anchorY: root.parent.y,
+          anchorX: parentPosition.x,
+          anchorY: parentPosition.y,
           anchorWidth: root.width,
           anchorHeight: root.height
         });

@@ -10,6 +10,7 @@ Item {
   required property var barConfig
   property var popouts
   property var panel
+  property var screen
 
   required property string componentPath
   property color backgroundColor: Theme.background
@@ -30,6 +31,7 @@ Item {
         item.barConfig = component.barConfig
         item.popouts = component.popouts
         item.panel = component.panel
+        item.screen = component.screen
       }
     }
   }

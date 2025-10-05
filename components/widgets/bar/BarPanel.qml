@@ -105,26 +105,15 @@ PanelWindow {
     popouts: popouts
     barConfig: root.barConfig
 
-    // TODO: Adjust this to support dynamic center widgets and workspace location for a fully
-    // dynamic bar
     workspaces: Component {
-      Widgets.Workspaces {
-        visible: barConfig.widgets.center && barConfig.widgets.center.some(w => w.type === "Workspaces")
-        screen: root.screen
+      WidgetGroup {
+        barConfig: root.barConfig
+        model: root.buildWidgetModel(root.barConfig.widgets?.center)
         popouts: popouts
-        orientation: barConfig.vertical ? Qt.Vertical : Qt.Horizontal
         panel: root
+        screen: root.screen
       }
     }
-    // workspaces: Component {
-    //   WidgetGroup {
-    //     visible: root.barConfig.widgets?.center && root.barConfig.widgets.center.length > 0
-    //     vertical: root.barConfig.vertical
-    //     model: root.buildWidgetModel(root.barConfig.widgets?.center)
-    //     popouts: popouts
-    //     panel: root
-    //   }
-    // }
 
     leftGroup: Component {
       WidgetGroup {
@@ -132,6 +121,7 @@ PanelWindow {
         model: root.barConfig.widgets?.left && root.barConfig.widgets.left.length > 0 ? root.buildWidgetModel(root.barConfig.widgets?.left) : []
         popouts: popouts
         panel: root
+        screen: root.screen
       }
     }
 
@@ -141,6 +131,7 @@ PanelWindow {
         model: root.barConfig.widgets?.leftCenter && root.barConfig.widgets.leftCenter.length > 0 ? root.buildWidgetModel(root.barConfig.widgets?.leftCenter) : []
         popouts: popouts
         panel: root
+        screen: root.screen
       }
     }
 
@@ -150,6 +141,7 @@ PanelWindow {
         model: root.barConfig.widgets?.rightCenter && root.barConfig.widgets.rightCenter.length > 0 ? root.buildWidgetModel(root.barConfig.widgets?.rightCenter) : []
         popouts: popouts
         panel: root
+        screen: root.screen
       }
     }
 
@@ -159,6 +151,7 @@ PanelWindow {
         model: root.barConfig.widgets?.right && root.barConfig.widgets.right.length > 0 ? root.buildWidgetModel(root.barConfig.widgets?.right) : []
         popouts: popouts
         panel: root
+        screen: root.screen
       }
     }
   }

@@ -131,10 +131,8 @@ Item {
             return 0;
 
           if (root.barConfig.top) {
-            // Start at bar edge
             return root.barConfig.extent;
           } else if (root.barConfig.bottom) {
-            // Position so animation slides from bottom
             return (root.currentData.anchorY ?? 0) - mainPopup.implicitHeight - Widget.padding + Appearance.borderWidth;
           } else {
             // Left/Right: center vertically with anchor
@@ -152,7 +150,7 @@ Item {
       }
     }
 
-    PopoutSlideAnimation {
+    SlideAnimation {
       id: slideContainer
       anchors.fill: parent
 
@@ -250,14 +248,14 @@ Item {
 
   Component {
     id: workspaceGridComponent
-    WorkspacePopOut {
+    WorkspacePopout {
       wrapper: root
     }
   }
 
   Component {
     id: systemTrayComponent
-    SystemTrayMenuPopout {
+    SystemTrayPopout {
       wrapper: root
     }
   }

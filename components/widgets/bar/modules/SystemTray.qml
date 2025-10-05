@@ -165,8 +165,6 @@ Item {
                   anchorY: tray.hoveredItemGeometry.y,
                   anchorWidth: tray.hoveredItemGeometry.width,
                   anchorHeight: tray.hoveredItemGeometry.height,
-                  itemX: tray.hoveredItemGeometry.itemX,
-                  itemY: tray.hoveredItemGeometry.itemY,
                   isVertical: tray.isVertical
                 });
               } else {
@@ -176,8 +174,6 @@ Item {
                   anchorY: tray.hoveredItemGeometry.y,
                   anchorWidth: tray.hoveredItemGeometry.width,
                   anchorHeight: tray.hoveredItemGeometry.height,
-                  itemX: tray.hoveredItemGeometry.itemX,
-                  itemY: tray.hoveredItemGeometry.itemY,
                   isVertical: tray.isVertical
                 });
               }
