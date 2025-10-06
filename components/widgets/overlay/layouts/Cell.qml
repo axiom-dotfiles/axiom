@@ -4,7 +4,10 @@ import qs.config
 Item {
   id: cell
 
-  default property alias content: container.data
+  readonly property int requiredVerticalCells: 1
+  readonly property int requiredHorizontalCells: 1
+
+  default property alias cell: container.data
 
   implicitWidth: cellLayout.implicitWidth
   implicitHeight: cellLayout.implicitHeight

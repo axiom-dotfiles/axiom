@@ -7,10 +7,13 @@ import qs.config
 Item {
   id: cell
 
-  property alias topLeft: topLeftContainer.data
-  property alias topRight: topRightContainer.data
-  property alias bottomLeft: bottomLeftContainer.data
-  property alias bottomRight: bottomRightContainer.data
+  readonly property int requiredVerticalCells: 1
+  readonly property int requiredHorizontalCells: 1
+
+  property alias topLeftCell: topLeftContainer.data
+  property alias topRightCell: topRightContainer.data
+  property alias bottomLeftCell: bottomLeftContainer.data
+  property alias bottomRightCell: bottomRightContainer.data
 
   implicitWidth: Menu.cardUnit
   implicitHeight: Menu.cardUnit

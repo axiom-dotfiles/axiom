@@ -7,10 +7,12 @@ import qs.config
 Item {
   id: cell
 
-  property alias topLeft: topLeftContainer.data
-  property alias topRight: topRightContainer.data
-  property alias bottomLeft: bottomLeftContainer.data
-  property alias bottomRight: bottomRightContainer.data
+  readonly property int requiredVerticalCells: 1
+  readonly property int requiredHorizontalCells: 1
+
+  property alias topCell: topContainer.data
+  property alias bottomleftCell: bottomLeftContainer.data
+  property alias bottomRightCell: bottomRightContainer.data
 
   implicitWidth: cellLayout.implicitWidth
   implicitHeight: cellLayout.implicitHeight
@@ -25,13 +27,9 @@ Item {
     rows: 2
 
     Item {
-      id: topLeftContainer
-      Layout.preferredWidth: (Menu.cardUnit - Menu.cardSpacing) / 2
-      Layout.preferredHeight: (Menu.cardUnit - Menu.cardSpacing) / 2
-    }
-    Item {
-      id: topRightContainer
-      Layout.preferredWidth: (Menu.cardUnit - Menu.cardSpacing) / 2
+      id: topContainer
+      Layout.columnSpan: 2
+      Layout.preferredWidth: Menu.cardUnit
       Layout.preferredHeight: (Menu.cardUnit - Menu.cardSpacing) / 2
     }
     Item {
