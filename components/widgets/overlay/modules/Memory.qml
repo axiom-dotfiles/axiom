@@ -11,6 +11,8 @@ Rectangle {
   color: Theme.green
   anchors.fill: parent
   radius: Menu.cardBorderRadius
+  border.color: Theme.foreground
+  border.width: Menu.cardBorderWidth
   
   // Memory Usage Process
   Process {

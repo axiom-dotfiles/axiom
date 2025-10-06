@@ -116,6 +116,7 @@ PanelWindow {
       id: background
       anchors.fill: parent
       border.color: Theme.foreground
+      border.width: Math.max(Menu.cardBorderWidth, 2)
       radius: Menu.cardBorderRadius
       color: Theme.background
       opacity: 0.85
@@ -131,6 +132,8 @@ PanelWindow {
       implicitWidth: viewLoader.item ? viewLoader.item.implicitWidth + Menu.cardSpacing * 2 : 0
       radius: Menu.cardBorderRadius
       color: Theme.backgroundAlt
+      border.color: Theme.foreground
+      border.width: Menu.cardBorderWidth
 
       Loader {
         id: viewLoader

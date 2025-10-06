@@ -16,18 +16,22 @@ ColumnLayout {
     topLeftCell: ColorSwatch {
       swatchColor: Theme.base00
       swatchName: "base00"
+      swatchSemantic: "bg0"
     }
     topRightCell: ColorSwatch {
       swatchColor: Theme.base01
       swatchName: "base01"
+      swatchSemantic: "bg1"
     }
     bottomLeftCell: ColorSwatch {
       swatchColor: Theme.base02
       swatchName: "base02"
+      swatchSemantic: "bg2"
     }
     bottomRightCell: ColorSwatch {
       swatchColor: Theme.base03
       swatchName: "base03"
+      swatchSemantic: "bg3"
     }
   }
 
@@ -36,18 +40,22 @@ ColumnLayout {
     topLeftCell: ColorSwatch {
       swatchColor: Theme.base04
       swatchName: "base04"
+      swatchSemantic: "fg4"
     }
     topRightCell: ColorSwatch {
       swatchColor: Theme.base05
       swatchName: "base05"
+      swatchSemantic: "fg3"
     }
     bottomLeftCell: ColorSwatch {
       swatchColor: Theme.base06
       swatchName: "base06"
+      swatchSemantic: "fg2"
     }
     bottomRightCell: ColorSwatch {
       swatchColor: Theme.base07
       swatchName: "base07"
+      swatchSemantic: "fg1"
     }
   }
 

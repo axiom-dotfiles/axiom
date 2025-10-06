@@ -10,6 +10,8 @@ Rectangle {
   color: Theme.cyan
   anchors.fill: parent
   radius: Menu.cardBorderRadius
+  border.color: Theme.foreground
+  border.width: Menu.cardBorderWidth
   
   // Disk Usage Process
   Process {

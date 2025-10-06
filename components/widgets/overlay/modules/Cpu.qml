@@ -10,6 +10,8 @@ Rectangle {
   id: root
   color: Theme.magenta
   anchors.fill: parent
+  border.color: Theme.foreground
+  border.width: Menu.cardBorderWidth
   radius: Menu.cardBorderRadius
   
   // CPU Usage Process

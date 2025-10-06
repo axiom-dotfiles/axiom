@@ -11,6 +11,8 @@ Rectangle {
   color: Theme.blue
   anchors.fill: parent
   radius: Menu.cardBorderRadius
+  border.color: Theme.foreground
+  border.width: Menu.cardBorderWidth
   
   // GPU Usage Process (AMD via rocm-smi)
   Process {

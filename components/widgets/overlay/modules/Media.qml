@@ -12,6 +12,8 @@ StyledContainer {
   id: root
   anchors.fill: parent
   backgroundColor: Theme.background
+  borderColor: Theme.foreground
+  borderWidth: Menu.cardBorderWidth
   visible: true
   clip: true
 

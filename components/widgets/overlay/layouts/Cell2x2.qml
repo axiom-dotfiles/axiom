@@ -15,8 +15,8 @@ Item {
   property alias bottomLeftCell: bottomLeftContainer.data
   property alias bottomRightCell: bottomRightContainer.data
 
-  implicitWidth: Menu.cardUnit
-  implicitHeight: Menu.cardUnit
+  implicitWidth: cellLayout.implicitWidth
+  implicitHeight: cellLayout.implicitHeight
 
   GridLayout {
     id: cellLayout
