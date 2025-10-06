@@ -1,3 +1,4 @@
+pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
@@ -7,7 +8,9 @@ import Quickshell.Hyprland
 
 import qs.config
 import qs.components.widgets.overlay
+import qs.components.widgets.overlay.views
 
+// TODO: build from a reusable fullscreen panel
 PanelWindow {
   id: overlay
 
@@ -25,10 +28,17 @@ PanelWindow {
     bottom: true
   }
 
+  // TODO: implement
+  // margins {
+  //   left: 50
+  //   right: 50
+  //   top: 50
+  //   bottom: 50
+  // }
+
   color: "transparent"
   focusable: true
   visible: false
-
   WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
   WlrLayershell.layer: WlrLayer.Overlay
   WlrLayershell.exclusiveZone: -1
@@ -107,31 +117,22 @@ PanelWindow {
       color: Theme.background
     }
 
+    // TODO: insert a wrapper here to handle
+    // loading multiple different views and
+    // navigation between them
+
     Rectangle {
       anchors.centerIn: parent
-      // TODO: insert a wrapper here to handle
-      // loading multiple different views and
-      // navigation between them
+      implicitWidth: Menu.cardUnit * Menu.columns + Menu.cardSpacing * (Menu.columns + 1)
+      implicitHeight: Menu.cardUnit * 2 + Menu.cardSpacing * 3
+      radius: Menu.cardBorderRadius
+      color: Theme.backgroundAlt
 
-      RowLayout {
+      Loader {
+        id: viewLoader
         anchors.fill: parent
-        anchors.margins: Menu.cardPadding
-        spacing: Menu.cardSpacing
-
-        Repeater {
-          model: Menu.columns
-          delegate: Rectangle {
-            Layout.fillHeight: true
-            Layout.preferredWidth: Menu.cardUnit
-            Loader {
-              id: columnLoader
-              Layout.fillWidth: true
-              Layout.fillHeight: true
-
-              sourceComponent: OverlayColumn {
-              }
-            }
-          }
+        sourceComponent: OverView {
+          screen: overlay.screen
         }
       }
     }
