@@ -3,9 +3,12 @@ import QtQuick.Layouts
 import qs.config
 Item {
   id: cell
+
   default property alias content: container.data
+
   implicitWidth: cellLayout.implicitWidth
   implicitHeight: cellLayout.implicitHeight
+
   GridLayout {
     id: cellLayout
     Layout.preferredHeight: Menu.cardUnit
@@ -16,6 +19,7 @@ Item {
       id: container
       Layout.preferredWidth: Menu.cardUnit
       Layout.preferredHeight: Menu.cardUnit
+      clip: true
     }
   }
 }

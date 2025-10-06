@@ -3,52 +3,18 @@ import QtQuick
 import QtQuick.Layouts
 import qs.config
 import qs.components.widgets.overlay.layouts
+import qs.components.widgets.overlay.modules
 
-
-Item {
+ColumnLayout {
+  spacing: Menu.cardSpacing
   Cell2x2 {
-    topLeft: Rectangle {
-      color: Theme.info
-      anchors.fill: parent
-      radius: Menu.cardBorderRadius
-    }
-    topRight: Rectangle {
-      color: Theme.accentAlt
-      anchors.fill: parent
-      radius: Menu.cardBorderRadius
-    }
-    bottomLeft: Rectangle {
-      color: Theme.accentAlt
-      anchors.fill: parent
-      radius: Menu.cardBorderRadius
-    }
-    bottomRight: Rectangle {
-      color: Theme.accentAlt
-      anchors.fill: parent
-      radius: Menu.cardBorderRadius
-    }
+    topLeft: Cpu {}
+    topRight: Gpu {}
+    bottomLeft: Memory {}
+    bottomRight: Storage {}
   }
 
-  Cell2x2 {
-    topLeft: Rectangle {
-      color: Theme.accent
-      anchors.fill: parent
-      radius: Menu.cardBorderRadius
-    }
-    topRight: Rectangle {
-      color: Theme.warning
-      anchors.fill: parent
-      radius: Menu.cardBorderRadius
-    }
-    bottomLeft: Rectangle {
-      color: Theme.accent
-      anchors.fill: parent
-      radius: Menu.cardBorderRadius
-    }
-    bottomRight: Rectangle {
-      color: Theme.error
-      anchors.fill: parent
-      radius: Menu.cardBorderRadius
-    }
+  Cell {
+    content: Media {}
   }
 }

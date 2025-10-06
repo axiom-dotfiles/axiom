@@ -1,5 +1,6 @@
 pragma ComponentBehavior: Bound
 import QtQuick
+import Qt5Compat.GraphicalEffects
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
@@ -28,13 +29,12 @@ PanelWindow {
     bottom: true
   }
 
-  // TODO: implement
-  // margins {
-  //   left: 50
-  //   right: 50
-  //   top: 50
-  //   bottom: 50
-  // }
+  margins {
+    left: Bar.extent
+    right: Appearance.screenMargin - Appearance.borderWidth
+    top: Appearance.screenMargin - Appearance.borderWidth
+    bottom: Appearance.screenMargin - Appearance.borderWidth
+  }
 
   color: "transparent"
   focusable: true
@@ -106,15 +106,19 @@ PanelWindow {
       y: overlay.slideOffset
       Behavior on y {
         NumberAnimation {
-          duration: Widget.animationDuration
+          duration: Widget.animationDuration * 1.5
           easing.type: Easing.InOutQuad
         }
       }
     }
 
     Rectangle {
+      id: background
       anchors.fill: parent
+      border.color: Theme.foreground
+      radius: Menu.cardBorderRadius
       color: Theme.background
+      opacity: 0.85
     }
 
     // TODO: insert a wrapper here to handle

@@ -15,12 +15,6 @@ Item {
   implicitWidth: Menu.cardUnit
   implicitHeight: Menu.cardUnit
 
-  Component.onCompleted: {
-    console.log("========== Cell2x2 ==========");
-    console.log("  > Width:", cell.implicitWidth, "Height:", cell.implicitHeight);
-    console.log("===================================");
-  }
-
   GridLayout {
     id: cellLayout
     Layout.preferredHeight: Menu.cardUnit
@@ -34,21 +28,25 @@ Item {
       id: topLeftContainer
       Layout.preferredWidth: (Menu.cardUnit - Menu.cardSpacing) / 2
       Layout.preferredHeight: (Menu.cardUnit - Menu.cardSpacing) / 2
+      clip: true
     }
     Item {
       id: topRightContainer
       Layout.preferredWidth: (Menu.cardUnit - Menu.cardSpacing) / 2
       Layout.preferredHeight: (Menu.cardUnit - Menu.cardSpacing) / 2
+      clip: true
     }
     Item {
       id: bottomLeftContainer
       Layout.preferredWidth: (Menu.cardUnit - Menu.cardSpacing) / 2
       Layout.preferredHeight: (Menu.cardUnit - Menu.cardSpacing) / 2
+      clip: true
     }
     Item {
       id: bottomRightContainer
       Layout.preferredWidth: (Menu.cardUnit - Menu.cardSpacing) / 2
       Layout.preferredHeight: (Menu.cardUnit - Menu.cardSpacing) / 2
+      clip: true
     }
   }
 }
