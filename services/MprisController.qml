@@ -98,7 +98,6 @@ QtObject {
     target: activePlayer
     ignoreUnknownSignals: true
     function onTrackTitleChanged() {
-      console.log("[MprisController] MprisController: Track ID changed.");
       root.updateAllMetadata();
     }
   }

@@ -49,7 +49,7 @@ Rectangle {
       Layout.minimumWidth: 16
       Layout.preferredHeight: 16
       color: "transparent"
-      border.color: Theme.accent
+      border.color: Theme.foreground
       border.width: 1
       radius: menuItemDelegate.menuItem.buttonType === QsMenuButtonType.RadioButton ? 8 : 2
       
@@ -80,7 +80,7 @@ Rectangle {
     // Label
     Text {
       text: menuItemDelegate.menuItem.text
-      color: Theme.accent
+      color: Theme.foreground
       Layout.fillWidth: true
       Layout.minimumWidth: 50
       elide: Text.ElideRight
@@ -94,6 +94,7 @@ Rectangle {
       visible: menuItemDelegate.menuItem.hasChildren
       text: menuItemDelegate.openToLeft ? "‹" : "›"
       color: Theme.accent
+      font.pixelSize: 20
       Layout.preferredWidth: implicitWidth
       Layout.maximumWidth: implicitWidth
       Layout.minimumWidth: implicitWidth
