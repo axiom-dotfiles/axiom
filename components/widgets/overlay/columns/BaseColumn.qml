@@ -7,45 +7,20 @@ import qs.components.widgets.overlay.modules
 
 ColumnLayout {
   spacing: Menu.cardSpacing
+
+  property int requiredVerticalCells: topCell.requiredVerticalCells + bottomCell.requiredVerticalCells
+  property int requiredHorizontalCells: Math.max(topCell.requiredHorizontalCells, bottomCell.requiredHorizontalCells)
+
   Cell2x2 {
+    id: topCell
     topLeftCell: Cpu {}
     topRightCell: Gpu {}
     bottomLeftCell: Memory {}
     bottomRightCell: Storage {}
   }
 
-  // CellVert1x1 {
-  //   rightCell: Rectangle {
-  //     color: Theme.accent
-  //     anchors.fill: parent
-  //     radius: Appearance.borderRadius
-  //   }
-  //   leftCell: Rectangle {
-  //     color: Theme.accentAlt
-  //     anchors.fill: parent
-  //     radius: Appearance.borderRadius
-  //   }
-  // }
-
-  // CellHoriz2x1 {
-  //   topLeft: Rectangle {
-  //     color: Theme.accent
-  //     anchors.fill: parent
-  //     radius: Appearance.borderRadius
-  //   }
-  //   topRight: Rectangle {
-  //     color: Theme.accent
-  //     anchors.fill: parent
-  //     radius: Appearance.borderRadius
-  //   }
-  //   bottomCell: Rectangle {
-  //     color: Theme.accentAlt
-  //     anchors.fill: parent
-  //     radius: Appearance.borderRadius
-  //   }
-  // }
-
   Cell {
+    id: bottomCell
     cell: Media {}
   }
 }
