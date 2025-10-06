@@ -34,29 +34,21 @@ Item {
       id: topLeftContainer
       Layout.preferredWidth: (Menu.cardUnit - Menu.cardSpacing) / 2
       Layout.preferredHeight: (Menu.cardUnit - Menu.cardSpacing) / 2
-      // Layout.fillWidth: true
-      // Layout.fillHeight: true
     }
     Item {
       id: topRightContainer
       Layout.preferredWidth: (Menu.cardUnit - Menu.cardSpacing) / 2
       Layout.preferredHeight: (Menu.cardUnit - Menu.cardSpacing) / 2
-      // Layout.fillWidth: true
-      // Layout.fillHeight: true
     }
     Item {
       id: bottomLeftContainer
-      // Layout.preferredWidth: (Menu.cardUnit - Menu.cardSpacing) / 2
-      // Layout.preferredHeight: (Menu.cardUnit - Menu.cardSpacing) / 2
-      Layout.fillWidth: true
-      Layout.fillHeight: true
+      Layout.preferredWidth: (Menu.cardUnit - Menu.cardSpacing) / 2
+      Layout.preferredHeight: (Menu.cardUnit - Menu.cardSpacing) / 2
     }
     Item {
       id: bottomRightContainer
-      // Layout.preferredWidth: (Menu.cardUnit - Menu.cardSpacing) / 2
-      // Layout.preferredHeight: (Menu.cardUnit - Menu.cardSpacing) / 2
-      Layout.fillWidth: true
-      Layout.fillHeight: true
+      Layout.preferredWidth: (Menu.cardUnit - Menu.cardSpacing) / 2
+      Layout.preferredHeight: (Menu.cardUnit - Menu.cardSpacing) / 2
     }
   }
 }

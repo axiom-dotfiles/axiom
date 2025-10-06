@@ -123,14 +123,14 @@ PanelWindow {
 
     Rectangle {
       anchors.centerIn: parent
-      implicitWidth: Menu.cardUnit * Menu.columns + Menu.cardSpacing * (Menu.columns + 1)
-      implicitHeight: Menu.cardUnit * 2 + Menu.cardSpacing * 3
+      implicitHeight: viewLoader.item ? viewLoader.item.implicitHeight + Menu.cardSpacing * 2 : 0
+      implicitWidth: viewLoader.item ? viewLoader.item.implicitWidth + Menu.cardSpacing * 2 : 0
       radius: Menu.cardBorderRadius
       color: Theme.backgroundAlt
 
       Loader {
         id: viewLoader
-        anchors.fill: parent
+        anchors.centerIn: parent
         sourceComponent: OverView {
           screen: overlay.screen
         }
