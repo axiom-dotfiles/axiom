@@ -1,0 +1,76 @@
+# K9s Skin - Auto-generated from Quickshell Theme
+# Theme: ${THEME_NAME}
+# Author: ${THEME_AUTHOR}
+# Variant: ${THEME_VARIANT}
+
+k9s:
+  # General K9s styles
+  body:
+    fgColor: ${FOREGROUND}
+    bgColor: ${BACKGROUND}
+    logoColor: ${ACCENT}
+
+  # ClusterInfoView styles
+  info:
+    fgColor: ${FOREGROUND_INACTIVE}
+    sectionColor: ${WARNING}
+
+  # Frame styles
+  frame:
+    # Borders styles
+    border:
+      fgColor: ${BORDER}
+      focusColor: ${BORDER_FOCUS}
+
+    # MenuView attributes and styles
+    menu:
+      fgColor: ${FOREGROUND}
+      keyColor: ${BASE09}
+      numKeyColor: ${ACCENT_SECONDARY}
+
+    # CrumbView attributes for history navigation
+    crumbs:
+      fgColor: ${BACKGROUND}
+      bgColor: ${BACKGROUND_ALT2}
+      activeColor: ${FOREGROUND}
+
+    # Resource status and update styles
+    status:
+      newColor: ${SUCCESS}
+      modifyColor: ${WARNING}
+      addColor: ${BASE0B}
+      errorColor: ${ERROR}
+      highlightcolor: ${BASE09}
+      killColor: ${BASE08}
+      completedColor: ${FOREGROUND_INACTIVE}
+
+    # Border title styles
+    title:
+      fgColor: ${FOREGROUND}
+      bgColor: ${BACKGROUND_ALT}
+      highlightColor: ${ACCENT}
+      counterColor: ${ACCENT_SECONDARY}
+      filterColor: ${BASE09}
+
+  # Views
+  views:
+    # Table view
+    table:
+      fgColor: ${FOREGROUND}
+      bgColor: ${BACKGROUND}
+      cursorColor: ${BACKGROUND_ALT}
+      header:
+        fgColor: ${FOREGROUND}
+        bgColor: ${BACKGROUND_ALT}
+        sorterColor: ${BASE09}
+
+    # YAML view
+    yaml:
+      keyColor: ${BASE0D}
+      colonColor: ${FOREGROUND_INACTIVE}
+      valueColor: ${FOREGROUND}
+
+    # Logs view
+    logs:
+      fgColor: ${FOREGROUND}
+      bgColor: ${BACKGROUND}

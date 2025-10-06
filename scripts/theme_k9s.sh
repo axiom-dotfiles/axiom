@@ -1,17 +1,14 @@
 #!/usr/bin/env bash
 
 #
-# Quickshell Theme to K9s Skin Converter
+# Quickshell Theme to K9s Skin Converter (Template Version)
 #
-# This script reads a Quickshell theme file, translates it into a K9s
-# skin YAML configuration file.
-#
-# It intelligently handles semantic colors, allowing them to be either
-# direct hex codes or references to the base16 palette. It is also
-# robust against missing or null values in the semantic block.
+# This script reads a Quickshell theme file, exports color variables,
+# and uses envsubst with a template to generate K9s skin YAML.
 #
 # Dependencies:
 #   - jq:    For parsing the input JSON file.
+#   - gettext-base: For envsubst command.
 #
 # Usage:
 #   ./theme-to-k9s.sh <input_file.json> [output_file.yaml]
@@ -22,9 +19,17 @@ set -e
 set -u
 set -o pipefail
 
+# Change to script's directory
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
+
 # --- Dependency Check ---
 if ! command -v jq &> /dev/null; then
     echo "Error: 'jq' is not installed. Please install it to use this script." >&2
+    exit 1
+fi
+if ! command -v envsubst &> /dev/null; then
+    echo "Error: 'envsubst' is not installed. Please install gettext-base package." >&2
     exit 1
 fi
 
@@ -43,6 +48,20 @@ EOF
     exit 1
 }
 
+# Helper to format colors for YAML (ensure quotes and # prefix)
+format_color() {
+    local color="$1"
+    if [ -z "$color" ] || [ "$color" == "null" ]; then
+        echo '""'
+        return
+    fi
+    
+    # Remove existing # if present
+    color="${color#\#}"
+    # Add # and quotes
+    echo "\"#${color}\""
+}
+
 # --- Argument Parsing & Validation ---
 if [[ $# -eq 0 ]] || [[ "$1" == "-h" ]] || [[ "$1" == "--help" ]]; then
     usage
@@ -51,9 +70,15 @@ fi
 INPUT_FILE="$1"
 DEFAULT_OUTPUT_PATH="$HOME/.config/k9s/skins/wal-generated.yaml"
 OUTPUT_FILE="${2:-$DEFAULT_OUTPUT_PATH}"
+TEMPLATE_FILE="$SCRIPT_DIR/templates/k9s_template.yaml"
 
 if [ ! -f "$INPUT_FILE" ]; then
     echo "Error: Input file not found at '$INPUT_FILE'" >&2
+    exit 1
+fi
+
+if [ ! -f "$TEMPLATE_FILE" ]; then
+    echo "Error: Template file not found at '$TEMPLATE_FILE'" >&2
     exit 1
 fi
 
@@ -64,123 +89,84 @@ mkdir -p "$OUTPUT_DIR"
 
 echo "🎨 Reading theme from '$INPUT_FILE'..."
 
-# This jq script converts the theme to K9s skin format
-CONFIG_CONTENT=$(jq -r '
-  # Helper function to resolve color names against a given palette.
-  def resolve(palette):
-    . as $key |
-    if $key | type == "string" then
-      if palette | has($key) then
-        palette[$key]
-      else
-        $key
-      end
-    elif $key == null then
-      ""
+# Helper function to resolve color references
+resolve_color() {
+    local key="$1"
+    local value=$(echo "$THEME_JSON" | jq -r ".semantic.$key // empty")
+    
+    if [ -z "$value" ] || [ "$value" == "null" ]; then
+        echo ""
+        return
+    fi
+    
+    # Check if it's a reference to base16 palette
+    if echo "$THEME_JSON" | jq -e ".colors.$value" &>/dev/null; then
+        echo "$THEME_JSON" | jq -r ".colors.$value"
     else
-      $key
-    end;
+        echo "$value"
+    fi
+}
 
-  # Helper to ensure color format (prepend # if needed)
-  def format_color:
-    if . == "" then
-      ""
-    elif . | startswith("#") then
-      "\"\(.)\""
-    else
-      "\"#\(.)\""
-    end;
+# Read the entire JSON into a variable
+THEME_JSON=$(cat "$INPUT_FILE")
 
-  # Main filter
-  .colors as $palette |
-  [
-    "# K9s Skin - Auto-generated from Quickshell Theme",
-    "# Theme: \(.name)",
-    "# Author: \(.author // "N/A")",
-    "# Variant: \(.variant)",
-    "",
-    "k9s:",
-    "  # General K9s styles",
-    "  body:",
-    "    fgColor: \(.semantic.foreground | resolve($palette) | format_color)",
-    "    bgColor: \(.semantic.background | resolve($palette) | format_color)",
-    "    logoColor: \(.semantic.accent | resolve($palette) | format_color)",
-    "",
-    "  # ClusterInfoView styles",
-    "  info:",
-    "    fgColor: \(.semantic.foregroundInactive // $palette.base04 | resolve($palette) | format_color)",
-    "    sectionColor: \(.semantic.warning // $palette.base0A | resolve($palette) | format_color)",
-    "",
-    "  # Frame styles",
-    "  frame:",
-    "    # Borders styles",
-    "    border:",
-    "      fgColor: \(.semantic.border | resolve($palette) | format_color)",
-    "      focusColor: \(.semantic.borderFocus | resolve($palette) | format_color)",
-    "",
-    "    # MenuView attributes and styles",
-    "    menu:",
-    "      fgColor: \(.semantic.foreground | resolve($palette) | format_color)",
-    "      keyColor: \($palette.base09 | format_color)",
-    "      numKeyColor: \(.semantic.accentSecondary // $palette.base0E | resolve($palette) | format_color)",
-    "",
-    "    # CrumbView attributes for history navigation",
-    "    crumbs:",
-    "      fgColor: \(.semantic.background | resolve($palette) | format_color)",
-    "      bgColor: \(.semantic.backgroundAlt2 // $palette.base03 | resolve($palette) | format_color)",
-    "      activeColor: \(.semantic.foreground | resolve($palette) | format_color)",
-    "",
-    "    # Resource status and update styles",
-    "    status:",
-    "      newColor: \(.semantic.success // $palette.base0B | resolve($palette) | format_color)",
-    "      modifyColor: \(.semantic.warning // $palette.base0A | resolve($palette) | format_color)",
-    "      addColor: \($palette.base0B | format_color)",
-    "      errorColor: \(.semantic.error // $palette.base08 | resolve($palette) | format_color)",
-    "      highlightcolor: \($palette.base09 | format_color)",
-    "      killColor: \($palette.base08 | format_color)",
-    "      completedColor: \(.semantic.foregroundInactive // $palette.base03 | resolve($palette) | format_color)",
-    "",
-    "    # Border title styles",
-    "    title:",
-    "      fgColor: \(.semantic.foreground | resolve($palette) | format_color)",
-    "      bgColor: \(.semantic.backgroundAlt // $palette.base01 | resolve($palette) | format_color)",
-    "      highlightColor: \(.semantic.accent | resolve($palette) | format_color)",
-    "      counterColor: \(.semantic.accentSecondary // $palette.base0E | resolve($palette) | format_color)",
-    "      filterColor: \($palette.base09 | format_color)",
-    "",
-    "  # Views",
-    "  views:",
-    "    # Table view",
-    "    table:",
-    "      fgColor: \(.semantic.foreground | resolve($palette) | format_color)",
-    "      bgColor: \(.semantic.background | resolve($palette) | format_color)",
-    "      cursorColor: \(.semantic.backgroundAlt // $palette.base01 | resolve($palette) | format_color)",
-    "      header:",
-    "        fgColor: \(.semantic.foreground | resolve($palette) | format_color)",
-    "        bgColor: \(.semantic.backgroundAlt // $palette.base01 | resolve($palette) | format_color)",
-    "        sorterColor: \($palette.base09 | format_color)",
-    "",
-    "    # YAML view",
-    "    yaml:",
-    "      keyColor: \($palette.base0D | format_color)",
-    "      colonColor: \(.semantic.foregroundInactive // $palette.base03 | resolve($palette) | format_color)",
-    "      valueColor: \(.semantic.foreground | resolve($palette) | format_color)",
-    "",
-    "    # Logs view",
-    "    logs:",
-    "      fgColor: \(.semantic.foreground | resolve($palette) | format_color)",
-    "      bgColor: \(.semantic.background | resolve($palette) | format_color)"
-  ] | .[]
-' < "$INPUT_FILE")
+# Export theme metadata
+export THEME_NAME=$(echo "$THEME_JSON" | jq -r '.name // "Unknown"')
+export THEME_AUTHOR=$(echo "$THEME_JSON" | jq -r '.author // "N/A"')
+export THEME_VARIANT=$(echo "$THEME_JSON" | jq -r '.variant // "unknown"')
 
-# Check if jq produced any output.
-if [ -z "$CONFIG_CONTENT" ]; then
-    echo "Error: Failed to parse JSON or extract required color keys from '$INPUT_FILE'." >&2
-    echo "Please ensure the file is valid and conforms to the Quickshell Theme schema." >&2
+# Export base16 colors (formatted for YAML)
+export BASE00=$(format_color "$(echo "$THEME_JSON" | jq -r '.colors.base00')")
+export BASE01=$(format_color "$(echo "$THEME_JSON" | jq -r '.colors.base01')")
+export BASE02=$(format_color "$(echo "$THEME_JSON" | jq -r '.colors.base02')")
+export BASE03=$(format_color "$(echo "$THEME_JSON" | jq -r '.colors.base03')")
+export BASE04=$(format_color "$(echo "$THEME_JSON" | jq -r '.colors.base04')")
+export BASE05=$(format_color "$(echo "$THEME_JSON" | jq -r '.colors.base05')")
+export BASE06=$(format_color "$(echo "$THEME_JSON" | jq -r '.colors.base06')")
+export BASE07=$(format_color "$(echo "$THEME_JSON" | jq -r '.colors.base07')")
+export BASE08=$(format_color "$(echo "$THEME_JSON" | jq -r '.colors.base08')")
+export BASE09=$(format_color "$(echo "$THEME_JSON" | jq -r '.colors.base09')")
+export BASE0A=$(format_color "$(echo "$THEME_JSON" | jq -r '.colors.base0A')")
+export BASE0B=$(format_color "$(echo "$THEME_JSON" | jq -r '.colors.base0B')")
+export BASE0C=$(format_color "$(echo "$THEME_JSON" | jq -r '.colors.base0C')")
+export BASE0D=$(format_color "$(echo "$THEME_JSON" | jq -r '.colors.base0D')")
+export BASE0E=$(format_color "$(echo "$THEME_JSON" | jq -r '.colors.base0E')")
+export BASE0F=$(format_color "$(echo "$THEME_JSON" | jq -r '.colors.base0F')")
+
+# Export semantic colors (with resolution and formatting)
+export FOREGROUND=$(format_color "$(resolve_color "foreground")")
+export BACKGROUND=$(format_color "$(resolve_color "background")")
+export BACKGROUND_ALT=$(format_color "$(resolve_color "backgroundAlt")")
+export BACKGROUND_ALT2=$(format_color "$(resolve_color "backgroundAlt2")")
+export FOREGROUND_INACTIVE=$(format_color "$(resolve_color "foregroundInactive")")
+export ACCENT=$(format_color "$(resolve_color "accent")")
+export ACCENT_SECONDARY=$(format_color "$(resolve_color "accentSecondary")")
+export BORDER=$(format_color "$(resolve_color "border")")
+export BORDER_FOCUS=$(format_color "$(resolve_color "borderFocus")")
+export WARNING=$(format_color "$(resolve_color "warning")")
+export ERROR=$(format_color "$(resolve_color "error")")
+export SUCCESS=$(format_color "$(resolve_color "success")")
+
+# Default fallbacks if semantic colors are missing
+: "${FOREGROUND:=$(format_color "$(echo "$THEME_JSON" | jq -r '.colors.base05')")}"
+: "${BACKGROUND:=$(format_color "$(echo "$THEME_JSON" | jq -r '.colors.base00')")}"
+: "${BACKGROUND_ALT:=$(format_color "$(echo "$THEME_JSON" | jq -r '.colors.base01')")}"
+: "${BACKGROUND_ALT2:=$(format_color "$(echo "$THEME_JSON" | jq -r '.colors.base03')")}"
+: "${FOREGROUND_INACTIVE:=$(format_color "$(echo "$THEME_JSON" | jq -r '.colors.base04')")}"
+: "${ACCENT:=$(format_color "$(echo "$THEME_JSON" | jq -r '.colors.base0D')")}"
+: "${ACCENT_SECONDARY:=$(format_color "$(echo "$THEME_JSON" | jq -r '.colors.base0E')")}"
+: "${BORDER:=$(format_color "$(echo "$THEME_JSON" | jq -r '.colors.base02')")}"
+: "${BORDER_FOCUS:=$(format_color "$(echo "$THEME_JSON" | jq -r '.colors.base0D')")}"
+: "${WARNING:=$(format_color "$(echo "$THEME_JSON" | jq -r '.colors.base0A')")}"
+: "${ERROR:=$(format_color "$(echo "$THEME_JSON" | jq -r '.colors.base08')")}"
+: "${SUCCESS:=$(format_color "$(echo "$THEME_JSON" | jq -r '.colors.base0B')")}"
+
+echo "📝 Generating K9s skin from template..."
+envsubst < "$TEMPLATE_FILE" > "$OUTPUT_FILE"
+
+if [ ! -s "$OUTPUT_FILE" ]; then
+    echo "Error: Failed to generate skin file." >&2
     exit 1
 fi
 
-echo "📝 Writing K9s skin to '$OUTPUT_FILE'..."
-echo "$CONFIG_CONTENT" > "$OUTPUT_FILE"
-
-echo "✅ K9s skin successfully generated!"
+echo "✅ K9s skin successfully generated at '$OUTPUT_FILE'!"

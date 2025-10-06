@@ -1,17 +1,14 @@
 #!/usr/bin/env bash
 
 #
-# Quickshell Theme to Cava Config Converter
+# Quickshell Theme to Cava Config Converter (Template Version)
 #
-# This script reads a Quickshell theme file, translates it into a Cava
-# configuration file with color settings.
-#
-# It intelligently handles semantic colors, allowing them to be either
-# direct hex codes or references to the base16 palette. It is also
-# robust against missing or null values in the semantic block.
+# This script reads a Quickshell theme file, exports color variables,
+# and uses envsubst with a template to generate Cava configuration.
 #
 # Dependencies:
 #   - jq:    For parsing the input JSON file.
+#   - gettext-base: For envsubst command.
 #
 # Usage:
 #   ./theme-to-cava.sh <input_file.json> [output_file.conf]
@@ -22,9 +19,17 @@ set -e
 set -u
 set -o pipefail
 
+# Change to script's directory
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
+
 # --- Dependency Check ---
 if ! command -v jq &> /dev/null; then
     echo "Error: 'jq' is not installed. Please install it to use this script." >&2
+    exit 1
+fi
+if ! command -v envsubst &> /dev/null; then
+    echo "Error: 'envsubst' is not installed. Please install gettext-base package." >&2
     exit 1
 fi
 
@@ -41,6 +46,20 @@ Arguments:
                     Defaults to: ~/.config/cava/colors/wal-generated.conf
 EOF
     exit 1
+}
+
+# Helper to format colors for Cava (ensure quotes and # prefix)
+format_color() {
+    local color="$1"
+    if [ -z "$color" ] || [ "$color" == "null" ]; then
+        echo '""'
+        return
+    fi
+    
+    # Remove existing # if present
+    color="${color#\#}"
+    # Add # and quotes
+    echo "\"#${color}\""
 }
 
 # --- Argument Parsing & Validation ---
@@ -64,126 +83,87 @@ mkdir -p "$OUTPUT_DIR"
 
 echo "🎨 Reading theme from '$INPUT_FILE'..."
 
-# This jq script converts the theme to Cava config format
-CONFIG_CONTENT=$(jq -r '
-  # Helper function to resolve color names against a given palette.
-  def resolve(palette):
-    . as $key |
-    if $key | type == "string" then
-      if palette | has($key) then
-        palette[$key]
-      else
-        $key
-      end
-    elif $key == null then
-      ""
+# Helper function to resolve color references
+resolve_color() {
+    local key="$1"
+    local value=$(echo "$THEME_JSON" | jq -r ".semantic.$key // empty")
+    
+    if [ -z "$value" ] || [ "$value" == "null" ]; then
+        echo ""
+        return
+    fi
+    
+    # Check if it's a reference to base16 palette
+    if echo "$THEME_JSON" | jq -e ".colors.$value" &>/dev/null; then
+        echo "$THEME_JSON" | jq -r ".colors.$value"
     else
-      $key
-    end;
+        echo "$value"
+    fi
+}
 
-  # Helper to ensure color format (prepend # if needed)
-  def format_color:
-    if . == "" then
-      ""
-    elif . | startswith("#") then
-      "\"\(.)\""
-    else
-      "\"#\(.)\""
-    end;
+# Read the entire JSON into a variable
+THEME_JSON=$(cat "$INPUT_FILE")
 
-  # Main filter
-  .colors as $palette |
-  
-  # Determine gradient style based on theme properties
-  (.variant as $variant |
-   if $variant == "dark" then
-     "dark"
-   else
-     "light"
-   end) as $mode |
-  
-  [
-    "# Cava Configuration - Auto-generated from Quickshell Theme",
-    "# Theme: \(.name)",
-    "# Author: \(.author // "N/A")",
-    "# Variant: \(.variant)",
-    "",
-    "[general]",
-    "# Bars (0-200), adjust to taste",
-    "bars = 0",
-    "# Lower and higher cutoff frequencies for lowest and highest bars",
-    "lower_cutoff_freq = 50",
-    "higher_cutoff_freq = 10000",
-    "",
-    "[color]",
-    "",
-    "# Background color (only used in SDconsole)",
-    "background = \(.semantic.background | resolve($palette) | format_color)",
-    "",
-    "# Gradient mode: 0 = no gradient, 1 = gradient using gradient_color values",
-    "gradient = 1",
-    "",
-    "# Gradient colors - creates a smooth transition from bottom to top",
-    "# Using accent colors and base colors for an appealing spectrum",
-    (if $mode == "dark" then
-      [
-        "gradient_count = 8",
-        "gradient_color_1 = \(.semantic.accent | resolve($palette) | format_color)",
-        "gradient_color_2 = \($palette.base0D | format_color)",
-        "gradient_color_3 = \($palette.base0C | format_color)",
-        "gradient_color_4 = \($palette.base0B | format_color)",
-        "gradient_color_5 = \($palette.base0A | format_color)",
-        "gradient_color_6 = \($palette.base09 | format_color)",
-        "gradient_color_7 = \($palette.base08 | format_color)",
-        "gradient_color_8 = \(.semantic.accentSecondary // $palette.base0E | resolve($palette) | format_color)"
-      ]
-    else
-      [
-        "gradient_count = 6",
-        "gradient_color_1 = \(.semantic.accent | resolve($palette) | format_color)",
-        "gradient_color_2 = \($palette.base0D | format_color)",
-        "gradient_color_3 = \($palette.base0C | format_color)",
-        "gradient_color_4 = \($palette.base0B | format_color)",
-        "gradient_color_5 = \($palette.base09 | format_color)",
-        "gradient_color_6 = \(.semantic.accentSecondary // $palette.base0E | resolve($palette) | format_color)"
-      ]
-    end | .[]),
-    "",
-    "# Alternative single-color mode (set gradient = 0 to use)",
-    "# foreground = \(.semantic.accent | resolve($palette) | format_color)",
-    "",
-    "[smoothing]",
-    "# Smoothing mode: 0 = off, 1 = monstercat, 2 = waves",
-    "mode = 1",
-    "# Waves would be 2, adjust these values for different effects",
-    "# waves = 2",
-    "# gravity = 100",
-    "",
-    "# Monstercat smoothing values",
-    "monstercat = 1",
-    "waves = 0",
-    "",
-    "[eq]",
-    "# This one is tricky. You can have as much keys as you want.",
-    "# Remember to uncomment more then one key! More keys = more precision.",
-    "# Look at readme.md on github for further explanations and examples.",
-    "# 1 = 1 # bass",
-    "# 2 = 1",
-    "# 3 = 1 # midtone", 
-    "# 4 = 1",
-    "# 5 = 1 # treble"
-  ] | .[]
-' < "$INPUT_FILE")
+# Export theme metadata
+export THEME_NAME=$(echo "$THEME_JSON" | jq -r '.name // "Unknown"')
+export THEME_AUTHOR=$(echo "$THEME_JSON" | jq -r '.author // "N/A"')
+export THEME_VARIANT=$(echo "$THEME_JSON" | jq -r '.variant // "unknown"')
 
-# Check if jq produced any output.
-if [ -z "$CONFIG_CONTENT" ]; then
-    echo "Error: Failed to parse JSON or extract required color keys from '$INPUT_FILE'." >&2
-    echo "Please ensure the file is valid and conforms to the Quickshell Theme schema." >&2
+TEMPLATE_FILE="$SCRIPT_DIR/templates/cava_template.conf"
+
+if [ ! -f "$TEMPLATE_FILE" ]; then
+    echo "Error: Template file not found at '$TEMPLATE_FILE'" >&2
     exit 1
 fi
 
-echo "📝 Writing Cava config to '$OUTPUT_FILE'..."
-echo "$CONFIG_CONTENT" > "$OUTPUT_FILE"
+# Set gradient colors based on variant
+if [[ "$THEME_VARIANT" == "dark" ]]; then
+    export GRADIENT_COUNT=8
+    export GRADIENT_7=$(format_color "$(echo "$THEME_JSON" | jq -r '.colors.base08')")
+    export GRADIENT_8="$ACCENT_SECONDARY"
+else
+    export GRADIENT_COUNT=6
+    export GRADIENT_7=""
+    export GRADIENT_8=""
+fi
+
+# Export base16 colors (formatted for Cava)
+export BASE00=$(format_color "$(echo "$THEME_JSON" | jq -r '.colors.base00')")
+export BASE01=$(format_color "$(echo "$THEME_JSON" | jq -r '.colors.base01')")
+export BASE02=$(format_color "$(echo "$THEME_JSON" | jq -r '.colors.base02')")
+export BASE03=$(format_color "$(echo "$THEME_JSON" | jq -r '.colors.base03')")
+export BASE04=$(format_color "$(echo "$THEME_JSON" | jq -r '.colors.base04')")
+export BASE05=$(format_color "$(echo "$THEME_JSON" | jq -r '.colors.base05')")
+export BASE06=$(format_color "$(echo "$THEME_JSON" | jq -r '.colors.base06')")
+export BASE07=$(format_color "$(echo "$THEME_JSON" | jq -r '.colors.base07')")
+export BASE08=$(format_color "$(echo "$THEME_JSON" | jq -r '.colors.base08')")
+export BASE09=$(format_color "$(echo "$THEME_JSON" | jq -r '.colors.base09')")
+export BASE0A=$(format_color "$(echo "$THEME_JSON" | jq -r '.colors.base0A')")
+export BASE0B=$(format_color "$(echo "$THEME_JSON" | jq -r '.colors.base0B')")
+export BASE0C=$(format_color "$(echo "$THEME_JSON" | jq -r '.colors.base0C')")
+export BASE0D=$(format_color "$(echo "$THEME_JSON" | jq -r '.colors.base0D')")
+export BASE0E=$(format_color "$(echo "$THEME_JSON" | jq -r '.colors.base0E')")
+export BASE0F=$(format_color "$(echo "$THEME_JSON" | jq -r '.colors.base0F')")
+
+# Export semantic colors (with resolution and formatting)
+export FOREGROUND=$(format_color "$(resolve_color "foreground")")
+export BACKGROUND=$(format_color "$(resolve_color "background")")
+export ACCENT=$(format_color "$(resolve_color "accent")")
+export ACCENT_SECONDARY=$(format_color "$(resolve_color "accentSecondary")")
+
+# Default fallbacks if semantic colors are missing
+: "${FOREGROUND:=$(format_color "$(echo "$THEME_JSON" | jq -r '.colors.base05')")}"
+: "${BACKGROUND:=$(format_color "$(echo "$THEME_JSON" | jq -r '.colors.base00')")}"
+: "${ACCENT:=$(format_color "$(echo "$THEME_JSON" | jq -r '.colors.base0D')")}"
+: "${ACCENT_SECONDARY:=$(format_color "$(echo "$THEME_JSON" | jq -r '.colors.base0E')")}"
+
+echo "📝 Generating Cava config from template..."
+envsubst < "$TEMPLATE_FILE" > "$OUTPUT_FILE"
+
+if [ ! -s "$OUTPUT_FILE" ]; then
+    echo "Error: Failed to generate config file." >&2
+    exit 1
+fi
 
 # Create main config if it doesn't exist
 MAIN_CONFIG="$HOME/.config/cava/config"
@@ -218,4 +198,4 @@ else
     echo "   include = $OUTPUT_FILE"
 fi
 
-echo "✅ Cava color configuration successfully generated!"
+echo "✅ Cava color configuration successfully generated at '$OUTPUT_FILE'!"
