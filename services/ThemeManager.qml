@@ -25,7 +25,6 @@ QtObject {
   readonly property ListModel defaultThemes: _defaultThemesModel
   readonly property bool isGenerating: generationProcess.running
 
-  // This is the correct way to access state without modifying it directly.
   readonly property var config: ConfigManager.config
   readonly property var currentTheme: ConfigManager.theme
   readonly property bool isGeneratedTheme: ConfigManager.isGeneratedTheme
@@ -127,14 +126,6 @@ QtObject {
     }
   }
 
-  /**
-   * @brief Forces a reload of configuration and themes via ConfigManager.
-   */
-  function hardReloadThemes() {
-    console.log("ThemeManager: Triggering manual reload via ConfigManager.");
-    ConfigManager.forceReload();
-  }
-
   //=========================================================================
   // Private Implementation
   //=========================================================================
@@ -187,25 +178,6 @@ QtObject {
     }
 
     function runNext() {
-      // if (index >= backends.length) {
-      //   console.log("ThemeManager: Theme generation finished successfully.");
-      //   // After generation, we want to apply the first theme created.
-      //   // We connect to themesReloaded, which fires after the models are populated.
-      //   // This ensures the model has data before we try to read from it.
-      //   themesReloaded.connect(function applyFirstTheme() {
-      //     themesReloaded.disconnect(applyFirstTheme); // Important: Run only once
-      //     if (_generatedThemesModel.count > 0) {
-      //       const firstThemeName = _generatedThemesModel.get(0).name;
-      //       console.log("ThemeManager: Automatically applying first generated theme:", firstThemeName);
-      //       // Apply the theme. The second argument 'true' marks it as a generated theme.
-      //       applyTheme(firstThemeName, true);
-      //     }
-      //   });
-      //   // Now, trigger the reload which will populate the models and emit themesReloaded.
-      //   _reloadAllThemes();
-      //   return;
-      // }
-
       const backend = backends[index];
       const themeIndex = index + 1;
       const wallpaperPath = wallpaperUrl.toString().replace("file://", "");
@@ -223,20 +195,7 @@ QtObject {
         index++;
         if (index >= backends.length) {
           console.log("ThemeManager: Theme generation finished successfully.");
-          // // After generation, we want to apply the first theme created.
-          // // We connect to themesReloaded, which fires after the models are populated.
-          // // This ensures the model has data before we try to read from it.
-          // themesReloaded.connect(function applyFirstTheme() {
-          //   themesReloaded.disconnect(applyFirstTheme); // Important: Run only once
-          //   if (_generatedThemesModel.count > 0) {
-          //     const firstThemeName = _generatedThemesModel.get(0).name;
-          //     console.log("ThemeManager: Automatically applying first generated theme:", firstThemeName);
-          //     // Apply the theme. The second argument 'true' marks it as a generated theme.
-          //     applyTheme(firstThemeName, true);
-          //   }
-          // });
-          // // Now, trigger the reload which will populate the models and emit themesReloaded.
-          _reloadAllThemes();
+          root._reloadAllThemes();
           return;
         }
         runNext();
@@ -272,13 +231,9 @@ QtObject {
     _defaultThemesModel.clear();
     _generatedThemesModel.clear();
 
-    // FIX: To reliably trigger a reload of a FolderListModel, you must first set its
-    // folder property to an invalid/empty path, and then set it to the correct path.
-    // The previous code had a typo where it set _generatedThemeLoader twice.
     _defaultThemeLoader.folder = "";
     _generatedThemeLoader.folder = "";
 
-    // Now set the correct paths to trigger the scan.
     _defaultThemeLoader.folder = _themesPath;
     _generatedThemeLoader.folder = _generatedThemesPath;
   }
@@ -296,16 +251,14 @@ QtObject {
     onStatusChanged: {
       if (status === FolderListModel.Ready) {
         for (let i = 0; i < count; i++) {
-          // Add a guard to prevent themes from the 'generated' subfolder being added here.
          if (get(i, "fileName") === "generated") continue;
 
           root._defaultThemesModel.append({ name: get(i, "fileBaseName"), filePath: get(i, "filePath"), isGenerated: false });
           root._allThemesModel.append({ name: get(i, "fileBaseName"), filePath: get(i, "filePath"), isGenerated: false });
         }
         root._defaultThemesLoaded = true;
-        // root._checkIfReloadComplete();
         if (root._defaultThemesModel.count === 0) {
-          // console.warn("[ThemeManager] No default themes found in:", root._themesPath);
+          console.warn("[ThemeManager] No default themes found in:", root._themesPath);
         } else {
           console.log("[ThemeManager] Default themes loaded:", root._defaultThemesModel.count);
         }
@@ -325,9 +278,8 @@ QtObject {
           root._allThemesModel.append({ name: fileName, filePath: get(i, "filePath"), isGenerated: true });
         }
         root._generatedThemesLoaded = true;
-        // root._checkIfReloadComplete();
         if (root._generatedThemesModel.count === 0) {
-          // console.warn("[ThemeManager] No generated themes found in:", root._generatedThemesPath);
+          console.warn("[ThemeManager] No generated themes found in:", root._generatedThemesPath);
         } else {
           console.log("[ThemeManager] Generated themes loaded:", root._generatedThemesModel.count);
         }

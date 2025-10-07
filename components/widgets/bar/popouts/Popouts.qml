@@ -121,8 +121,7 @@ Item {
     // Content dimensions
     readonly property int contentWidth: root.currentItem?.implicitWidth ?? 200
     readonly property int contentHeight: root.currentItem?.implicitHeight ?? 100
-    // TODO: breaks on multi-monitor
-    readonly property int isOnRightHalfOfScreen: (root.currentData?.anchorX ?? 0) > (Display.resolutionWidth / 2) ? true : false
+    readonly property int isOnRightHalfOfScreen: (root.currentData?.anchorX ?? 0) > (root.screen.width / 2) ? true : false
 
     // Total size including connector gap
     implicitWidth: {
@@ -160,7 +159,7 @@ Item {
             let targetX = anchorCenter - popoutCenter;
 
             // Clamp to screen bounds
-            return Math.max(Appearance.screenMargin, Math.min(targetX, Display.resolutionWidth - mainPopup.implicitWidth - Appearance.screenMargin));
+            return Math.max(Appearance.screenMargin, Math.min(targetX, root.screen.width - mainPopup.implicitWidth - Appearance.screenMargin));
           }
         }
 
@@ -179,7 +178,7 @@ Item {
             let targetY = anchorCenter - popoutCenter;
 
             // Clamp to screen bounds
-            return Math.max(Appearance.screenMargin, Math.min(targetY, Display.resolutionHeight - mainPopup.implicitHeight - Appearance.screenMargin));
+            return Math.max(Appearance.screenMargin, Math.min(targetY, root.screen.height - mainPopup.implicitHeight - Appearance.screenMargin));
           }
         }
 

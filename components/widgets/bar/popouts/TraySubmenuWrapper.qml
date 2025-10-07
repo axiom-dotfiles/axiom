@@ -24,8 +24,8 @@ Item {
   property Item currentItem: loader.item ?? null
   property int connectorGap: 4
   
-  property int minWidth: 200
-  property int maxWidth: 400
+  property int minWidth: 100
+  property int maxWidth: 600
 
   // Queue for safe reopening
   property var pendingOpenData: null
@@ -39,6 +39,7 @@ Item {
   }
 
   function openPopout(anchor, data) {
+    console.log("Opening submenu at: ", data?.anchorX, data?.anchorY, " with width ", data?.anchorWidth);
     if (isClosing)
       return;
     currentData = data;
@@ -90,7 +91,7 @@ Item {
     id: submenuPopup
 
     visible: root.occupied && loader.status === Loader.Ready
-    color: "transparent"
+    color: "red"
 
     readonly property int contentWidth: {
       const itemWidth = root.currentItem?.implicitWidth ?? root.minWidth;
@@ -100,26 +101,29 @@ Item {
 
     implicitWidth: contentWidth + root.connectorGap
     implicitHeight: contentHeight
+    Component.onCompleted: {
+      // log sizes
+      console.log("Submenu popup content size: ", contentWidth, contentHeight);
+      console.log("Submenu x: ", anchor.rect.x, " y: ", anchor.rect.y);
+    }
+    property int baseX: root.currentData?.anchorX ?? 0
+    property int anchorWidth: root.currentData?.anchorWidth ?? 0
+    property int offset: Widget.padding * 2 + Appearance.borderWidth
+    property int finalX: root.openToLeft 
+      ? baseX - submenuPopup.contentWidth - root.connectorGap - offset
+      : baseX + anchorWidth + offset
 
     anchor {
-      window: root.parentPopup
-      rect {
-        x: {
-          const baseX = (root.currentData?.anchorX ?? 0);
-          const anchorWidth = (root.currentData?.anchorWidth ?? 0);
-          const offset = Widget.padding * 2 + Appearance.borderWidth;
-
-          if (root.openToLeft) {
-            return baseX - submenuPopup.contentWidth - root.connectorGap - offset;
-          } else {
-            return baseX + anchorWidth + offset;
-          }
-        }
-        y: root.currentData?.anchorY ?? 0
-        width: 1
-        height: 1
-      }
-    }
+  window: root.parentPopup
+  rect {
+    
+    x: finalX
+    
+    y: root.currentData?.anchorY ?? 0
+    width: 1
+    height: 1
+  }
+}
 
     SlideAnimation {
       id: slideContainer

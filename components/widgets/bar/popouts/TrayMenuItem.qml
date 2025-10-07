@@ -17,8 +17,8 @@ Rectangle {
   required property int itemPadding
   required property var onItemClicked
   required property var onSubmenuRequested
-  property int minItemWidth: 160
-  property int maxItemWidth: 360
+  property int minItemWidth: 100
+  property int maxItemWidth: 600
   property bool openToLeft
   
   Layout.fillWidth: true
