@@ -20,6 +20,9 @@ Item {
   property bool enableFade: true
   property var easingType: Easing.OutCubic
 
+  property alias containerHeight: contentWrapper.height
+  property alias containerWidth: contentWrapper.width
+
   default property alias content: contentArea.children
 
   clip: true

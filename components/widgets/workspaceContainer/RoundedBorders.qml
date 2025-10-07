@@ -7,7 +7,7 @@ Item {
   id: root
   property var screen: null
   property int frameWidth: Appearance.screenMargin
-  property int innerBorderRadius: 12
+  property int innerBorderRadius: Appearance.borderRadius
   property color frameColor: Theme.background
   property color innerStrokeColor: Theme.foreground
   property color centerColor: "transparent"
@@ -79,11 +79,12 @@ Item {
     aboveWindows: true
 
     CornerPiece {
-      anchors.fill: parent
-      corner: "top-left"
-      radius: root.innerBorderRadius
+      borderRadius: root.innerBorderRadius
+      fillColor: root.frameColor
+      strokeColor: root.innerStrokeColor
       strokeWidth: root.strokeWidth
-      fillColor: root.innerStrokeColor
+      isLeft: true
+      isTop: true
     }
   }
 
@@ -101,11 +102,12 @@ Item {
     aboveWindows: true
 
     CornerPiece {
-      anchors.fill: parent
-      corner: "top-right"
-      radius: root.innerBorderRadius
+      borderRadius: root.innerBorderRadius
+      fillColor: root.frameColor
+      strokeColor: root.innerStrokeColor
       strokeWidth: root.strokeWidth
-      fillColor: root.innerStrokeColor
+      isLeft: false
+      isTop: true
     }
   }
 
@@ -123,11 +125,12 @@ Item {
     aboveWindows: true
 
     CornerPiece {
-      anchors.fill: parent
-      corner: "bottom-left"
-      radius: root.innerBorderRadius
+      borderRadius: root.innerBorderRadius
+      fillColor: root.frameColor
+      strokeColor: root.innerStrokeColor
       strokeWidth: root.strokeWidth
-      fillColor: root.innerStrokeColor
+      isLeft: true
+      isTop: false
     }
   }
 
@@ -145,11 +148,12 @@ Item {
     aboveWindows: true
 
     CornerPiece {
-      anchors.fill: parent
-      corner: "bottom-right"
-      radius: root.innerBorderRadius
+      borderRadius: root.innerBorderRadius
+      fillColor: root.frameColor
+      strokeColor: root.innerStrokeColor
       strokeWidth: root.strokeWidth
-      fillColor: root.innerStrokeColor
+      isLeft: false
+      isTop: false
     }
   }
 }

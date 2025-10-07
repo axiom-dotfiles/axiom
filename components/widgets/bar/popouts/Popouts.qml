@@ -6,6 +6,7 @@ import qs.services
 import qs.config
 import qs.components.widgets.bar
 import qs.components.widgets.bar.popouts
+import qs.components.reusable
 
 // This is somewhere I would argue a little repeated code for an entire all-in-one solution
 
@@ -133,7 +134,7 @@ Item {
 
     implicitHeight: {
       if (root.barConfig.vertical) {
-        return contentHeight;
+        return contentHeight + Appearance.borderRadius * 2 + Appearance.borderWidth * 2;
       }
       return contentHeight + root.connectorGap;
     }
@@ -197,11 +198,10 @@ Item {
       slideFromTop: root.barConfig.top
       slideFromBottom: root.barConfig.bottom
       animationDuration: Widget.animationDuration
-      enableFade: false
 
-      Rectangle {
-        id: topCorner
-      }
+      containerHeight: mainPopup.implicitHeight
+      containerWidth: mainPopup.implicitWidth
+      enableFade: false
 
       // Main content container
       Rectangle {
@@ -210,26 +210,10 @@ Item {
         radius: Appearance.borderRadius
         border.color: Theme.foreground
         border.width: Appearance.borderWidth
-
-        // Position with gap from bar edge
-        x: {
-          if (root.barConfig.left)
-            return root.connectorGap - Appearance.borderRadius;
-          if (root.barConfig.right)
-            return parent.width - (mainPopup.contentWidth + root.connectorGap) + Appearance.borderRadius;
-          return 0;
-        }
-
-        y: {
-          if (root.barConfig.top)
-            return root.connectorGap - Appearance.borderRadius;
-          if (root.barConfig.bottom)
-            return parent.height - (mainPopup.contentHeight + root.connectorGap) + Appearance.borderRadius;
-          return 0;
-        }
+        anchors.centerIn: parent
 
         width: root.barConfig.vertical ? parent.width - root.connectorGap : parent.width
-        height: root.barConfig.vertical ? parent.height : parent.height - root.connectorGap
+        height: root.barConfig.vertical ? parent.height - Appearance.borderRadius : parent.height - root.connectorGap
 
         Loader {
           id: loader
@@ -276,9 +260,46 @@ Item {
         y: root.barConfig.top ? 0 : root.barConfig.bottom ? parent.height - root.connectorGap : 0
 
         width: root.barConfig.vertical ? root.connectorGap : parent.width
-        height: root.barConfig.vertical ? parent.height : root.connectorGap
+        height: root.barConfig.vertical ? contentContainer.height + Appearance.borderWidth + Appearance.borderRadius : root.connectorGap
+      }
 
-        // TODO: Add inverted corner shapepaths here for smooth bar connection
+      Rectangle {
+        id: topCorner
+        anchors.top: connector.top
+        anchors.left: connector.left
+        anchors.right: connector.right
+        width: connector.width
+        height: Appearance.borderRadius
+        color: "transparent"
+        CornerPiece {
+          borderRadius: Appearance.borderRadius
+          fillColor: Theme.background
+          strokeColor: Theme.foreground
+          strokeWidth: Appearance.borderWidth
+          isLeft: true
+          isTop: false
+        }
+      }
+
+      Rectangle {
+        id: bottomCorner
+        anchors.bottom: connector.bottom
+        anchors.left: connector.left
+        anchors.right: connector.right
+        width: connector.width
+        height: Appearance.borderRadius
+        color: "transparent"
+        CornerPiece {
+          anchors.bottom: connector.bottom
+          anchors.left: connector.left
+          anchors.right: connector.right
+          borderRadius: Appearance.borderRadius
+          fillColor: Theme.background
+          strokeColor: Theme.foreground
+          strokeWidth: Appearance.borderWidth
+          isLeft: true
+          isTop: false
+        }
       }
     }
   }

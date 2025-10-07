@@ -36,10 +36,6 @@ ColumnLayout {
         targetApplication: "youtube-music"
         orientation: Qt.Vertical
         iconSource: ""
-        onVisibilityChanged: {
-          osdRoot.shouldShowOsd = true;
-          hideTimer.restart();
-        }
       }
     }
   }

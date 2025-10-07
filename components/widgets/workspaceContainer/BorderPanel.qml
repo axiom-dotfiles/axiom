@@ -11,7 +11,6 @@ PanelWindow {
   required property int strokeWidth
   
   Component.onCompleted: {
-    console.log("BorderPanel on edge:", edge);
   }
   
   property int inset: innerBorderRadius
@@ -56,7 +55,7 @@ PanelWindow {
     x: border.edge === "left" ? (border.frameWidth - border.strokeWidth) : (border.isVertical ? 0 : null)
     y: border.edge === "top" ? (border.frameWidth - border.strokeWidth) : (border.isHorizontal ? 0 : null)
     
-    implicitWidth: border.isVertical ? border.strokeWidth : (parent.width - (border.frameWidth + border.inset) * 2)
-    implicitHeight: border.isHorizontal ? border.strokeWidth : (parent.height - border.inset * 2)
+    implicitWidth: border.isVertical ? border.strokeWidth : (parent.width - (border.frameWidth + border.inset))
+    implicitHeight: border.isHorizontal ? border.strokeWidth : (parent.height - border.inset)
   }
 }
