@@ -22,7 +22,7 @@ Item {
     id: cellLayout
     Layout.preferredHeight: Menu.cardUnit
     Layout.preferredWidth: Menu.cardUnit
-    Layout.margins: Menu.cardPadding
+    // Layout.margins: Menu.cardPadding
     columnSpacing: Menu.cardSpacing
     rowSpacing: Menu.cardSpacing
     columns: 2
