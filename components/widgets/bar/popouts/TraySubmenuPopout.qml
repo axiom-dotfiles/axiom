@@ -55,7 +55,7 @@ Item {
   // Background container
   Rectangle {
     anchors.fill: parent
-    anchors.margins: 8
+    anchors.margins: Widget.padding
     color: Theme.backgroundAlt
     radius: Appearance.borderRadius
     // Prevent clicks from propagating to the background MouseArea
@@ -84,9 +84,11 @@ Item {
           }
           onSubmenuRequested: function(itemDelegate) {
             let globalPos = itemDelegate.mapToGlobal(0, 0);
-            root.wrapper.safeOpenPopout(root.wrapper.parentPopup, {
+            console.log("Opening submenu for:", itemDelegate.menuItem.text, "at", globalPos);
+            root.wrapper.safeOpenPopout(root.wrapper.popupWindow, {
               menuItem: itemDelegate.menuItem,
               parentItemDelegate: itemDelegate,
+              anchorWindow: root.wrapper.popupWindow,
               anchorX: globalPos.x,
               anchorY: globalPos.y,
               anchorWidth: itemDelegate.width,

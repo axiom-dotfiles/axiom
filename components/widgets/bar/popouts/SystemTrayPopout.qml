@@ -22,7 +22,7 @@ Item {
 
   readonly property int itemSpacing: 4
   readonly property int itemHeight: 32
-  readonly property int itemPadding: 8
+  readonly property int itemPadding: Widget.padding
   readonly property int minWidth: 200
 
   property bool openToLeft: false
@@ -75,7 +75,6 @@ Item {
   TraySubmenuWrapper {
     id: submenuWrapper
     screen: root.wrapper.screen
-    parentPopup: root.wrapper.panel
     openToLeft: root.openToLeft
     
     onOccupiedChanged: {
@@ -99,7 +98,7 @@ Item {
   Rectangle {
     id: backgroundContainer
     anchors.fill: parent
-    anchors.margins: 8
+    anchors.margins: Widget.padding
     color: Theme.backgroundAlt
     // border.color: Theme.border
     // border.width: Appearance.borderWidth
@@ -135,12 +134,14 @@ Item {
           }
 
           onSubmenuRequested: function(itemDelegate) {
-            let globalPos = itemDelegate.mapToGlobal(0, 0);
+            // let globalPos = itemDelegate.mapToGlobal(0, 0);
+            let localPos = itemDelegate.mapToItem(backgroundContainer, 0, 0);
+            console.log("Opening submenu for", itemDelegate.menuItem.text, "at", localPos.x, localPos.y, "item size", itemDelegate.width, itemDelegate.height);
             
-            submenuWrapper.safeOpenPopout(root.wrapper.panel, {
+            submenuWrapper.safeOpenPopout(root.wrapper.popupWindow, {
               menuItem: itemDelegate.menuItem,
-              anchorX: globalPos.x,
-              anchorY: globalPos.y,
+              anchorX: localPos.x,
+              anchorY: localPos.y,
               anchorWidth: itemDelegate.width,
               anchorHeight: itemDelegate.height
             });

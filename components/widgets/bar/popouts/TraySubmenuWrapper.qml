@@ -15,15 +15,17 @@ Item {
   id: root
 
   required property ShellScreen screen
-  required property QtObject parentPopup
   required property bool openToLeft
+
+  property alias popupWindow: submenuPopup
 
   property var currentData: null
   property bool occupied: false
   property bool isClosing: false
   property Item currentItem: loader.item ?? null
+  property var currentAnchor: null
   property int connectorGap: 4
-  
+
   property int minWidth: 100
   property int maxWidth: 600
 
@@ -40,8 +42,12 @@ Item {
 
   function openPopout(anchor, data) {
     console.log("Opening submenu at: ", data?.anchorX, data?.anchorY, " with width ", data?.anchorWidth);
+    console.log("Anchor:", anchor);
+    console.log("Data:", data);
+
     if (isClosing)
       return;
+    currentAnchor = anchor;
     currentData = data;
     occupied = true;
   }
@@ -91,7 +97,7 @@ Item {
     id: submenuPopup
 
     visible: root.occupied && loader.status === Loader.Ready
-    color: "red"
+    color: "transparent"
 
     readonly property int contentWidth: {
       const itemWidth = root.currentItem?.implicitWidth ?? root.minWidth;
@@ -101,29 +107,23 @@ Item {
 
     implicitWidth: contentWidth + root.connectorGap
     implicitHeight: contentHeight
-    Component.onCompleted: {
-      // log sizes
-      console.log("Submenu popup content size: ", contentWidth, contentHeight);
-      console.log("Submenu x: ", anchor.rect.x, " y: ", anchor.rect.y);
-    }
+
+    property int offset: Widget.padding * 4 - Appearance.borderWidth
     property int baseX: root.currentData?.anchorX ?? 0
-    property int anchorWidth: root.currentData?.anchorWidth ?? 0
-    property int offset: Widget.padding * 2 + Appearance.borderWidth
-    property int finalX: root.openToLeft 
-      ? baseX - submenuPopup.contentWidth - root.connectorGap - offset
-      : baseX + anchorWidth + offset
+    property int openLeftX: baseX - submenuPopup.contentWidth - root.connectorGap - offset + Widget.padding * 3
+    property int openRightX: baseX + (root.currentData?.anchorWidth ?? 0) + offset
+    property int finalX: root.openToLeft ? openLeftX : openRightX
+    property int finalY: 0
 
     anchor {
-  window: root.parentPopup
-  rect {
-    
-    x: finalX
-    
-    y: root.currentData?.anchorY ?? 0
-    width: 1
-    height: 1
-  }
-}
+      window: root.currentAnchor
+      rect {
+        x: finalX
+        y: (root.currentData?.anchorY ?? 0)
+        width: 1
+        height: 1
+      }
+    }
 
     SlideAnimation {
       id: slideContainer
@@ -169,7 +169,7 @@ Item {
       Rectangle {
         id: connector
 
-        color: Theme.background
+        color: Theme.bg0
         x: root.openToLeft ? (parent.width - root.connectorGap) : 0
         y: 0
         width: root.connectorGap

@@ -21,6 +21,8 @@ Item {
   required property var barConfig
   required property QtObject panel
 
+  property alias popupWindow: mainPopup
+
   property var currentAnchor: null
   property var currentData: null
   property string currentName: ""
