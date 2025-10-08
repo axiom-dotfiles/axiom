@@ -13,7 +13,7 @@ QtObject {
   id: root
 
   //=========================================================================
-  // Public Models & State (for UI consumption)
+  // Public Models & State
   //=========================================================================
   readonly property FolderListModel wallpaperModel: FolderListModel {
     folder: StandardPaths.writableLocation(StandardPaths.PicturesLocation) + "/wallpapers"
@@ -37,7 +37,7 @@ QtObject {
   signal generationFailed(string errorText)
 
   //=========================================================================
-  // Public Functions (API for your Settings UI)
+  // Public Functions
   //=========================================================================
 
   /**
@@ -46,32 +46,12 @@ QtObject {
    */
   function applyTheme(themeName, isGenerated) {
     const fullThemeName = isGenerated ? "generated/" + themeName : themeName;
-
     if (ConfigManager.config.Appearance && ConfigManager.config.Appearance.theme === fullThemeName) {
         console.log("[ThemeManager] Theme", fullThemeName, "is already applied.");
         return;
     }
-
     console.log("[ThemeManager] Requesting to apply theme:", fullThemeName);
-    // 1. Request the state change from the single source of truth.
-    // ConfigManager will handle saving the config and reloading the theme data.
     ConfigManager.setTheme(fullThemeName);
-
-    // 2. Run associated side-effect scripts for theme integration.
-    // This is the ThemeManager's responsibility.
-    const themePath = _themesPath + "/" + fullThemeName + ".json";
-    if (true) { // Replace with actual config checks, e.g., config.Integrations.kitty
-      kittyProcess.command = [_configPath + "/scripts/theme_kitty.sh", themePath];
-      kittyProcess.running = true;
-    }
-    if (true) { // e.g., config.Integrations.k9s
-      k9sProcess.command = [_configPath + "/scripts/theme_k9s.sh", themePath];
-      k9sProcess.running = true;
-    }
-    if (true) { // e.g., config.Integrations.cava
-      cavaProcess.command = [_configPath + "/scripts/theme_cava.sh", themePath];
-      cavaProcess.running = true;
-    }
   }
 
   /**
@@ -79,12 +59,8 @@ QtObject {
    * This is the main entry point for creating a new theme from an image.
    */
   function setWallpaperAndGenerate(wallpaperUrl) {
-    console.log("ThemeManager: Setting wallpaper and generating themes from:", wallpaperUrl.toString());
-
-    // Step 1: Tell ConfigManager to update the wallpaper path. It will save the config.
+    console.log("[ThemeManager] Setting wallpaper and generating themes from:", wallpaperUrl.toString());
     ConfigManager.setWallpaper(wallpaperUrl.toString());
-
-    // Step 2: Start the theme generation process using the same wallpaper.
     generateThemesFromWallpaper(wallpaperUrl);
   }
 
@@ -94,28 +70,24 @@ QtObject {
    */
   function generateThemesFromWallpaper(wallpaperUrl) {
     if (isGenerating) {
-        console.log("ThemeManager: Generation already in progress.");
+        console.log("[ThemeManager]: Generation already in progress.");
         return;
     }
-    console.log("ThemeManager: Starting generation process for:", wallpaperUrl.toString());
+    console.log("[ThemeManager] Starting generation process for:", wallpaperUrl.toString());
     _generationController.start(wallpaperUrl);
   }
 
   function toggleDarkMode() {
     console.log("ThemeManager: toggleDarkMode called.");
-    // Accessing readonly properties from ConfigManager is correct.
     const pairedThemeName = currentTheme.paired;
 
     if (config.Appearance.autoThemeSwitch && pairedThemeName) {
+      console.log("[ThemeManager] Switching theme from '" + config.Appearance.theme + "' to '" + pairedThemeName + "'");
 
-      console.log("Switching theme from '" + config.Appearance.theme + "' to '" + pairedThemeName + "'");
-      
       config.Appearance.darkMode = !config.Appearance.darkMode;
-
       const isPairedThemeGenerated = config.Appearance.theme.startsWith("generated/");
 
-      console.log("Applying paired theme:", pairedThemeName, "Generated:", isPairedThemeGenerated);
-      
+      console.log("[ThemeManager] Applying paired theme:", pairedThemeName, "Generated:", isPairedThemeGenerated);
       applyTheme(pairedThemeName, isPairedThemeGenerated);
 
     } else {
@@ -238,14 +210,6 @@ QtObject {
     _generatedThemeLoader.folder = _generatedThemesPath;
   }
 
-  function _checkIfReloadComplete() {
-    if (_defaultThemesLoaded && _generatedThemesLoaded) {
-      themesReloaded();
-      console.log("[ThemeManager] All themes reloaded. Total themes:", _allThemesModel.count);
-    }
-  }
-
-  // This model loads all themes from the base 'themes' directory, skipping the 'generated' sub-directory.
   property FolderListModel _defaultThemeLoader: FolderListModel {
     nameFilters: ["*.json"]; showDirs: false
     onStatusChanged: {
@@ -266,14 +230,13 @@ QtObject {
     }
   }
 
-  // This model specifically loads themes from the 'themes/generated' directory.
   property FolderListModel _generatedThemeLoader: FolderListModel {
     nameFilters: ["*.json"]; showDirs: false
     onStatusChanged: {
       if (status === FolderListModel.Ready) {
         for (let i = 0; i < count; i++) {
           const fileName = get(i, "fileBaseName");
-          if (fileName === "pywal-dark") continue; // Example filter
+          if (fileName === "pywal-dark") continue;
           root._generatedThemesModel.append({ name: fileName, filePath: get(i, "filePath"), isGenerated: true });
           root._allThemesModel.append({ name: fileName, filePath: get(i, "filePath"), isGenerated: true });
         }
