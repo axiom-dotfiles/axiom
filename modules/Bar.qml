@@ -17,11 +17,7 @@ Scope {
     model: Bar.bars
     delegate: BarPanel {
       required property var modelData
-      barConfig: {
-        console.log(`======== Initializing Bar on ${modelData.display}  ==========`);
-        console.log("Configuration:", JSON.stringify(modelData));
-        return modelData
-      }
+      barConfig: modelData
     }
   }
 }

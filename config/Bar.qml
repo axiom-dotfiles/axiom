@@ -17,7 +17,6 @@ QtObject {
 
     for (let i = 0; i < configs.length; i++) {
       const barConfig = configs[i];
-      console.log("bar location:", barConfig.location);
       const loc = Bar.getLocationFromString(barConfig.location ?? "Top");
 
       result.push({

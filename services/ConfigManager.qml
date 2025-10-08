@@ -10,13 +10,10 @@ QtObject {
   id: configManager
 
   // --- Public API ---
-  // Source of truth for the entire configuration. Probably should have a way to backup config
-  // before writing over it.
+  // Source of truth for the entire configuration
   readonly property var config: _config
   readonly property var theme: _theme
   readonly property bool isGeneratedTheme: (_theme.name && _theme.name.toLowerCase().includes("generated"))
-
-  // --- Public Methods for State Modification ---
 
   /**
      * @brief Requests a change to the current theme.
@@ -27,18 +24,18 @@ QtObject {
   function setTheme(themeName) {
     if (_config.Appearance) {
       if (_config.Appearance.theme === themeName) {
-        console.log("ConfigManager: Theme '" + themeName + "' is already set. No change needed.");
+        console.log("[ConfigManager] Theme '" + themeName + "' is already set. No change needed.");
         return;
       }
-      console.log("ConfigManager: Setting theme to '" + themeName + "'");
-      console.log("Previous background: ", Theme.background);
+      console.log("[ConfigManager] Setting theme to '" + themeName + "'");
+      console.log("[ConfigManager] Previous background: ", Theme.background);
       _config.Appearance.theme = themeName;
-      console.log("Requested theme change to:", themeName);
-      console.log("New theme: ", Appearance.theme);
-      console.log("New background: ", Theme.background);
-      saveConfig(); // Save the change and trigger a reload.
+      console.log("[ConfigManager] Requested theme change to:", themeName);
+      console.log("[ConfigManager] New theme: ", Appearance.theme);
+      console.log("[ConfigManager] New background: ", Theme.background);
+      saveConfig();
     } else {
-      console.error("ConfigManager: Cannot set theme, _config.Appearance is not defined.");
+      console.error("[ConfigManager] Cannot set theme, _config.Appearance is not defined.");
     }
   }
 
@@ -68,10 +65,14 @@ QtObject {
     console.log("ConfigManager: Writing current configuration to config.json...");
     try {
       var configString = JSON.stringify(configManager._config, null, 2);
+      if (!_validateConfig(configManager._config)) {
+        console.error("[ConfigManager] Failed to validate config against schema. Aborting save.");
+        return;
+      }
       _configFileView.setText(configString);
       console.log("ConfigManager: Save successful.");
       forceReload();
-      themeIntegrations(); // Apply theme to enabled integrated tools
+      themeIntegrations();
     } catch (e) {
       console.error("ConfigManager: An error occurred while saving the configuration:", e);
     }
@@ -122,16 +123,24 @@ QtObject {
   }
 
   // --- Private Implementation ---
-  // Internal "writable" versions of the public properties
+  Component.onCompleted: {
+    console.log("♻ ConfigManager service started.");
+    configManager._configSchema = _loadSchema();
+    _checkForChanges();
+  }
+
   property var _config: ({})
+  property var _configSchema: ({})
   property var _theme: ({})
 
-  // FileView component to handle reading/writing the config file.
+  property string _configSchemaPath: "../config/json/config.schema.json"
+  property string _configPath: "../config/json/config.json"
+
+  // FileView only for writing the config
   property FileView _configFileView: FileView {
     path: Qt.resolvedUrl("../config/json/config.json")
-    // Block writes to ensure the save is complete before we reload.
-    // This prevents race conditions.
     blockWrites: true
+    atomicWrites: true
     onSaveFailed: error => {
       console.error("ConfigManager: Failed to save config.json. Error: " + FileViewError.toString(error));
     }
@@ -154,14 +163,14 @@ QtObject {
     for (var i = 0; i < str.length; i++) {
       var chars = str.charCodeAt(i);
       hash = ((hash << 5) - hash) + chars;
-      hash = hash & hash; // Convert to 32bit integer
+      hash = hash & hash;
     }
     return hash.toString();
   }
 
-  // TODO: use fileview but this is speedy and simple and currenctly works and im lazy
   function _getFileContent(filepath) {
     try {
+      // WAY faster than using FileView for reads for some reason
       var xhr = new XMLHttpRequest();
       xhr.open("GET", Qt.resolvedUrl(filepath), false);
       xhr.send();
@@ -174,11 +183,37 @@ QtObject {
     return null;
   }
 
+  function _loadSchema() {
+    var content = _getFileContent(_configSchemaPath);
+    console.log("[ConfigManager] Loading config schema from", _configSchemaPath);
+    if (content) {
+      try {
+        return JSON.parse(content);
+      } catch (e) {
+        console.error("Failed to parse config_schema.json:", e);
+      }
+    }
+    return {};
+  }
+
+  function _validateConfig(config) {
+    if (SchemaValidation.validateAgainstSchema(config, _configSchema)) {
+      console.log("[ConfigManager] Schema validation passed.");
+      return true;
+    } else {
+      console.error("[ConfigManager] Schema validation failed.");
+      return false;
+    }
+  }
+
   function _loadConfig() {
     var content = _getFileContent("../config/json/config.json");
     if (content) {
       try {
-        return JSON.parse(content);
+        const config = JSON.parse(content);
+        if (_validateConfig(config)) {
+          return config;
+        }
       } catch (e) {
         console.error("Failed to parse config.json:", e);
       }
@@ -219,7 +254,6 @@ QtObject {
     var hasThemeChanged = false;
     var currentThemeName = configManager._config.Appearance ? configManager._config.Appearance.theme : "default";
 
-    // 1. Check config.json
     var configContent = _getFileContent("../config/json/config.json");
     if (configContent !== null) {
       var configHash = _hashString(configContent);
@@ -227,12 +261,11 @@ QtObject {
         if (_fileHashes.config !== undefined)
           console.log("✓ Config file changed, reloading...");
         _fileHashes.config = configHash;
-        configManager._config = _loadConfig(); // Update internal property
+        configManager._config = _loadConfig();
         hasConfigChanged = true;
       }
     }
 
-    // 2. Check current theme file
     var newThemeName = configManager._config.Appearance ? configManager._config.Appearance.theme : "default";
     var themeContent = _getFileContent("../config/themes/" + newThemeName + ".json");
     if (themeContent !== null) {
@@ -249,7 +282,7 @@ QtObject {
       }
     }
 
-    // 3. Clear old theme hashes if theme name changed in config
+    // Clear old theme hashes if theme name changed in config
     if (currentThemeName !== newThemeName) {
       for (var key in _fileHashes) {
         if (key.startsWith("theme_") && key !== "theme_" + newThemeName) {
@@ -257,16 +290,6 @@ QtObject {
         }
       }
     }
-
-  // 4. Emit signals
-  // if (hasConfigChanged) configManager.configChanged();
-  // if (hasThemeChanged) configManager.themeChanged();
-  }
-
-  Component.onCompleted: {
-    console.log("♻ ConfigManager service started.");
-    // Perform initial load and hash
-    _checkForChanges();
   }
 
   // --- Process Launchers for Integrated Tools ---

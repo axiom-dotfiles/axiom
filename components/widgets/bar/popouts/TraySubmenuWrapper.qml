@@ -11,6 +11,8 @@ import qs.components.widgets.bar
  * If there is no space to the right it will open to the left instead
  */
 // TODO: merge with Popouts.qml and EdgePopout.qml to make a generic popouts for everything
+// Needs a bit of a refactor as well it is quite messy
+// commenting here later; maybe not merge them, but certainly refactors for all of them
 Item {
   id: root
 
