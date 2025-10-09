@@ -15,7 +15,7 @@ ColumnLayout {
     property bool showMediaControl: true
     property bool mediaPlaying: true
     
-    spacing: Widget.containerWidth // Internal spacing between items in this section
+    spacing: Appearance.containerWidth // Internal spacing between items in this section
     
     MediaControl {
         id: mediaControl

@@ -18,12 +18,12 @@ Item {
   default property alias content: contentArea.data
 
   property bool reserveSpace: false
-  property int lockedMargin: Widget.containerWidth
+  property int lockedMargin: Appearance.containerWidth
   property bool wantsKeyboardFocus: false
 
   property bool aboveWindows: true
   property bool focusable: false
-  property int animationDuration: Widget.animations ? Widget.animationDuration : 0
+  property int animationDuration: Appearance.animations ? Appearance.animationDuration : 0
   property var easingType: Easing.OutCubic
   enum Edge {
     Left,
@@ -116,7 +116,7 @@ Item {
       return (root.edge === EdgePopup.Edge.Left || root.edge === EdgePopup.Edge.Right) ? root.actualWidth + Config.containerOffset : root.actualHeight;
     }
 
-    implicitWidth: reservationPanel.exclusiveZone + Widget.containerWidth
+    implicitWidth: reservationPanel.exclusiveZone + Appearance.containerWidth
     implicitHeight: Display.resolutionHeight
 
     Rectangle {

@@ -35,9 +35,9 @@ StyledContainer {
   }
 
   Behavior on xOffset {
-    enabled: !mouseArea.drag.active && Widget.animations
+    enabled: !mouseArea.drag.active && Appearance.animations
     NumberAnimation {
-      duration: Widget.animationDuration
+      duration: Appearance.animationDuration
       easing.type: Easing.OutCubic
     }
   }
@@ -51,7 +51,7 @@ StyledContainer {
     target: root
     property: "xOffset"
     to: root.width + 20
-    duration: Widget.animationDuration
+    duration: Appearance.animationDuration
     easing.type: Easing.InQuad
     onFinished: {
       root.notifications.forEach(notif => notif.dismiss());
@@ -189,11 +189,11 @@ StyledContainer {
       spacing: Widget.spacing / 2 // Spacing between individual notifications
 
       Behavior on Layout.leftMargin {
-        enabled: Widget.animations
+        enabled: Appearance.animations
         NumberAnimation {}
       }
       Behavior on Layout.rightMargin {
-        enabled: Widget.animations
+        enabled: Appearance.animations
         NumberAnimation {}
       }
 

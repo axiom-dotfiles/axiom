@@ -230,7 +230,7 @@ PanelWindow {
 
           property bool showMedia: true
           property alias mediaControl: mediaControlLoader.item
-          property int animationDuration: Widget.animations ? Widget.animationDuration : 0
+          property int animationDuration: Appearance.animations ? Appearance.animationDuration : 0
 
           Layout.fillWidth: true
           Layout.preferredHeight: showMedia ? mediaControlLoader.height : 0

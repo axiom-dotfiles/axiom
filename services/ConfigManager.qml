@@ -13,7 +13,7 @@ QtObject {
   // Source of truth for the entire configuration
   readonly property var config: _config
   readonly property var theme: _theme
-  readonly property bool isGeneratedTheme: (_theme.name && _theme.name.toLowerCase().includes("generated"))
+  property bool usingStagedConfig: false
 
   /**
      * @brief Requests a change to the current theme.
@@ -83,6 +83,7 @@ QtObject {
    */
   function stageConfig(object) {
     _loadObjectToConfig(object);
+    usingStagedConfig = true;
     console.log("[ConfigManager] Staged new configuration object to memory.");
   }
 

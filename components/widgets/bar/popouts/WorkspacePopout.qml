@@ -68,7 +68,7 @@ Item {
           readonly property bool isActive: root.monitor?.activeWorkspace?.id === wsId
           readonly property bool hasWindows: workspace?.toplevels?.values?.length > 0
           readonly property bool isCurrentColumn: (wsId - 1) % 5 === root.currentColumn
-          readonly property bool showIcons: Widget.workspacePopoutIcons
+          readonly property bool showIcons: Appearance.workspacePopoutIcons
           property bool hovered: false
 
           Layout.preferredWidth: Widget.height
@@ -113,7 +113,7 @@ Item {
             width: parent.width * 0.7
             height: parent.height * 0.7
             anchors.centerIn: parent
-            visible: Widget.workspacePopoutIcons
+            visible: Appearance.workspacePopoutIcons
           }
 
           Text {

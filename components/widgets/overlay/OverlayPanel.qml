@@ -106,7 +106,7 @@ PanelWindow {
       y: overlay.slideOffset
       Behavior on y {
         NumberAnimation {
-          duration: Widget.animationDuration * 1.5
+          duration: Appearance.animationDuration * 1.5
           easing.type: Easing.InOutQuad
         }
       }

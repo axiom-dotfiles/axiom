@@ -16,7 +16,7 @@ QtObject {
 
   // --- Computed ---
   readonly property int orientation: Bar.vertical ? Qt.Vertical : Qt.Horizontal
-  readonly property int containerOffset: Widget.containerWidth + Appearance.borderWidth
+  readonly property int containerOffset: Appearance.containerWidth + Appearance.borderWidth
 
   // todo - make this dynamic and fix
   property string homeDirectory: "/home/" + root.userName + "/"

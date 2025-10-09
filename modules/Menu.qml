@@ -39,7 +39,7 @@ Item {
     function toggleLocation() {
       if (root.reserveSpace) {
         root.edgeMargin = Config.containerOffset - (Appearance.borderWidth * 2) - 5;
-        mainMenu.customHeight = Display.resolutionHeight - Widget.containerWidth * 2;
+        mainMenu.customHeight = Display.resolutionHeight - Appearance.containerWidth * 2;
       } else {
         root.edgeMargin = Config.containerOffset + Appearance.borderWidth * 2 + 3;
         mainMenu.customHeight = 0;

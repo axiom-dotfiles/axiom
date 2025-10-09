@@ -27,7 +27,6 @@ QtObject {
 
   readonly property var config: ConfigManager.config
   readonly property var currentTheme: ConfigManager.theme
-  readonly property bool isGeneratedTheme: ConfigManager.isGeneratedTheme
 
   //=========================================================================
   // Signals

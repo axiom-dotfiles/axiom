@@ -6,9 +6,9 @@ QtObject {
   id: animations
 
   // Configuration
-  property int defaultDuration: Widget.animationDuration
-  property int quickDuration: Widget.animationDuration / 2
-  property int slowDuration: Widget.animationDuration * 2
+  property int defaultDuration: Appearance.animationDuration
+  property int quickDuration: Appearance.animationDuration / 2
+  property int slowDuration: Appearance.animationDuration * 2
 
   // Easing curves
   property var slideInEasing: Easing.OutCubic

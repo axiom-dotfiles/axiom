@@ -20,7 +20,7 @@ Item {
   property int edge: EdgeSlideContainer.Edge.Right
 
   // Animation configuration
-  property int animationDuration: Widget.animations ? Widget.animationDuration : 0
+  property int animationDuration: Appearance.animations ? Appearance.animationDuration : 0
   property var easingType: Easing.OutCubic
 
   // Optional fade animation

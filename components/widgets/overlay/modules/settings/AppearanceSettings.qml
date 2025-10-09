@@ -5,42 +5,45 @@ import qs.config
 import qs.components.widgets.common
 
 SchemaSection {
+  id: appearanceSection
   title: "Appearance"
+
+  required property var localConfig
   Layout.leftMargin: Widget.padding
   Layout.rightMargin: Widget.padding
 
   SchemaTextField {
     label: "Theme Name"
-    value: root.localConfig.Appearance?.theme || ""
+    value: localConfig.Appearance?.theme || ""
     placeholderText: "default"
     onValueChanged: {
-      if (!root.localConfig.Appearance)
-        root.localConfig.Appearance = {};
-      root.localConfig.Appearance.theme = value;
-      root.markDirty();
+      if (!localConfig.Appearance)
+        localConfig.Appearance = {};
+      localConfig.Appearance.theme = value;
+      markDirty();
     }
   }
 
   SchemaSwitch {
     label: "Dark Mode"
-    checked: root.localConfig.Appearance?.darkMode || false
+    checked: appearanceSection.localConfig.Appearance?.darkMode || false
     onCheckedChanged: {
-      if (!root.localConfig.Appearance)
-        root.localConfig.Appearance = {};
-      root.localConfig.Appearance.darkMode = checked;
-      root.markDirty();
+      if (!appearanceSection.localConfig.Appearance)
+        appearanceSection.localConfig.Appearance = {};
+      appearanceSection.localConfig.Appearance.darkMode = checked;
+      markDirty();
     }
   }
 
   SchemaSwitch {
     label: "Auto Theme Switch"
-    checked: root.localConfig.Appearance?.autoThemeSwitch || false
+    checked: appearanceSection.localConfig.Appearance?.autoThemeSwitch || false
     description: "Automatically switch between light/dark"
     onCheckedChanged: {
-      if (!root.localConfig.Appearance)
-        root.localConfig.Appearance = {};
-      root.localConfig.Appearance.autoThemeSwitch = checked;
-      root.markDirty();
+      if (!localConfig.Appearance)
+        localConfig.Appearance = {};
+      localConfig.Appearance.autoThemeSwitch = checked;
+      markDirty();
     }
   }
 
@@ -52,69 +55,116 @@ SchemaSection {
 
     SchemaSpinBox {
       label: "Border Radius"
-      value: root.localConfig.Appearance?.borderRadius || 8
+      value: localConfig.Appearance?.borderRadius || 8
       minimum: 0
       maximum: 50
       description: "Roundness of corners (px)"
       onValueChanged: {
-        if (!root.localConfig.Appearance)
-          root.localConfig.Appearance = {};
-        root.localConfig.Appearance.borderRadius = value;
-        root.markDirty();
+        if (!localConfig.Appearance)
+          localConfig.Appearance = {};
+        localConfig.Appearance.borderRadius = value;
+        markDirty();
       }
     }
 
     SchemaSpinBox {
       label: "Border Width"
-      value: root.localConfig.Appearance?.borderWidth || 1
+      value: localConfig.Appearance?.borderWidth || 1
       minimum: 0
       maximum: 10
       description: "Thickness of borders (px)"
       onValueChanged: {
-        if (!root.localConfig.Appearance)
-          root.localConfig.Appearance = {};
-        root.localConfig.Appearance.borderWidth = value;
-        root.markDirty();
+        if (!localConfig.Appearance)
+          localConfig.Appearance = {};
+        localConfig.Appearance.borderWidth = value;
+        markDirty();
       }
     }
 
     SchemaSpinBox {
       label: "Screen Margin"
-      value: root.localConfig.Appearance?.screenMargin || 0
+      value: localConfig.Appearance?.screenMargin || 0
       minimum: 0
       maximum: 100
       description: "Space around screen edges (px)"
       onValueChanged: {
-        if (!root.localConfig.Appearance)
-          root.localConfig.Appearance = {};
-        root.localConfig.Appearance.screenMargin = value;
-        root.markDirty();
+        if (!localConfig.Appearance)
+          localConfig.Appearance = {};
+        localConfig.Appearance.screenMargin = value;
+        markDirty();
       }
     }
   }
 
   SchemaTextField {
     label: "Font Family"
-    value: root.localConfig.Appearance?.fontFamily || "Inter"
+    value: localConfig.Appearance?.fontFamily || "Inter"
     placeholderText: "Font name"
     onValueChanged: {
-      if (!root.localConfig.Appearance)
-        root.localConfig.Appearance = {};
-      root.localConfig.Appearance.fontFamily = value;
-      root.markDirty();
+      if (!localConfig.Appearance)
+        localConfig.Appearance = {};
+      localConfig.Appearance.fontFamily = value;
+      markDirty();
     }
   }
 
   SchemaSpinBox {
     label: "Font Size"
-    value: root.localConfig.Appearance?.fontSize || 12
+    value: localConfig.Appearance?.fontSize || 12
     minimum: 8
     maximum: 24
     description: "Base font size (px)"
     onValueChanged: {
-      if (!root.localConfig.Appearance)
-        root.localConfig.Appearance = {};
-      root.localConfig.Appearance.fontSize = value;
+      if (!localConfig.Appearance)
+        localConfig.Appearance = {};
+      localConfig.Appearance.fontSize = value;
+      markDirty();
+    }
+  }
+  SchemaSwitch {
+    label: "Enable Animations"
+    checked: root.localConfig.Widget?.animations !== undefined ? root.localConfig.Widget.animations : true
+    onCheckedChanged: {
+      if (!root.localConfig.Widget)
+        root.localConfig.Widget = {};
+      root.localConfig.Widget.animations = checked;
+      root.markDirty();
+    }
+  }
+  SchemaSpinBox {
+    label: "Animation Duration"
+    value: root.localConfig.Widget?.animationDuration || 200
+    minimum: 0
+    maximum: 1000
+    visible: root.localConfig.Widget?.animations !== false
+    description: "Duration in milliseconds"
+    onValueChanged: {
+      if (!root.localConfig.Widget)
+        root.localConfig.Widget = {};
+      root.localConfig.Widget.animationDuration = value;
+      root.markDirty();
+    }
+  }
+  SchemaSpinBox {
+    label: "Container Width"
+    value: root.localConfig.Widget?.containerWidth || 200
+    minimum: 100
+    maximum: 1000
+    onValueChanged: {
+      if (!root.localConfig.Widget)
+        root.localConfig.Widget = {};
+      root.localConfig.Widget.containerWidth = value;
+      root.markDirty();
+    }
+  }
+  SchemaSwitch {
+    label: "Workspace Popout Icons"
+    checked: root.localConfig.Widget?.workspacePopoutIcons || false
+    description: "Show icons outside workspace container"
+    onCheckedChanged: {
+      if (!root.localConfig.Widget)
+        root.localConfig.Widget = {};
+      root.localConfig.Widget.workspacePopoutIcons = checked;
       root.markDirty();
     }
   }

@@ -29,7 +29,7 @@ Rectangle {
   }
 
   Behavior on color {
-    enabled: Widget.animations
+    enabled: Appearance.animations
     NumberAnimation {
       duration: 100
     }

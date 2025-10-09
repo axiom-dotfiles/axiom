@@ -20,7 +20,7 @@ StyledContainer {
   backgroundColor: mouseArea.pressed ? Qt.darker(Theme.backgroundHighlight, 1.2) : mouseArea.hovered ? Qt.lighter(Theme.backgroundHighlight, 1.1) : Theme.backgroundHighlight
 
   Behavior on backgroundColor {
-    enabled: Widget.animations
+    enabled: Appearance.animations
     NumberAnimation {
       duration: 100
     }
@@ -46,9 +46,9 @@ StyledContainer {
       color: Theme.foreground
       rotation: root.expanded ? 180 : 0
       Behavior on rotation {
-        enabled: Widget.animations
+        enabled: Appearance.animations
         NumberAnimation {
-          duration: Widget.animationDuration
+          duration: Appearance.animationDuration
           easing.type: Easing.InOutQuad
         }
       }

@@ -89,10 +89,10 @@ Scope {
 
     Rectangle {
       anchors.fill: parent
-      anchors.topMargin: Bar.vertical ? Widget.containerWidth : Appearance.borderWidth
-      anchors.bottomMargin: Bar.bottom ? Appearance.borderWidth : Widget.containerWidth
-      anchors.rightMargin: Bar.right ? Appearance.borderWidth : Widget.containerWidth
-      anchors.leftMargin: Bar.vertical ? Appearance.borderWidth : Widget.containerWidth
+      anchors.topMargin: Bar.vertical ? Appearance.containerWidth : Appearance.borderWidth
+      anchors.bottomMargin: Bar.bottom ? Appearance.borderWidth : Appearance.containerWidth
+      anchors.rightMargin: Bar.right ? Appearance.borderWidth : Appearance.containerWidth
+      anchors.leftMargin: Bar.vertical ? Appearance.borderWidth : Appearance.containerWidth
       radius: Appearance.borderRadius
       color: root.overlayBgColor
 

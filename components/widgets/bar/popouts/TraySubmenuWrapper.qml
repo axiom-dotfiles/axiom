@@ -78,7 +78,7 @@ Item {
 
   Timer {
     id: closeDelayTimer
-    interval: Widget.animationDuration
+    interval: Appearance.animationDuration
     repeat: false
     onTriggered: {
       root.occupied = false;
@@ -137,7 +137,7 @@ Item {
       slideFromLeft: !root.openToLeft
       slideFromTop: false
       slideFromBottom: false
-      animationDuration: Widget.animationDuration
+      animationDuration: Appearance.animationDuration
       enableFade: false
 
       Rectangle {

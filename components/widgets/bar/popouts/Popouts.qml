@@ -93,7 +93,7 @@ Item {
 
   Timer {
     id: closeDelayTimer
-    interval: Widget.animationDuration
+    interval: Appearance.animationDuration
     repeat: false
     onTriggered: {
       root.occupied = false;
@@ -198,7 +198,7 @@ Item {
       slideFromLeft: root.barConfig.left
       slideFromTop: root.barConfig.top
       slideFromBottom: root.barConfig.bottom
-      animationDuration: Widget.animationDuration
+      animationDuration: Appearance.animationDuration
 
       containerHeight: mainPopup.implicitHeight
       containerWidth: mainPopup.implicitWidth

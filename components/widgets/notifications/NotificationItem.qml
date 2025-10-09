@@ -32,9 +32,9 @@ Item {
   }
 
   Behavior on xOffset {
-    enabled: !mouseArea.drag.active && Widget.animations
+    enabled: !mouseArea.drag.active && Appearance.animations
     NumberAnimation {
-      duration: Widget.animationDuration
+      duration: Appearance.animationDuration
       easing.type: Easing.OutCubic
     }
   }
@@ -48,7 +48,7 @@ Item {
     target: root
     property: "xOffset"
     to: root.width + 20
-    duration: Widget.animationDuration
+    duration: Appearance.animationDuration
     easing.type: Easing.InQuad
     onFinished: root.notificationObject.dismiss()
   }
@@ -95,9 +95,9 @@ Item {
       x: root.xOffset
     }
     Behavior on transform {
-      enabled: !mouseArea.drag.active && Widget.animations
+      enabled: !mouseArea.drag.active && Appearance.animations
       NumberAnimation {
-        duration: Widget.animationDuration
+        duration: Appearance.animationDuration
         easing.type: Easing.OutCubic
       }
     }
@@ -120,7 +120,7 @@ Item {
       implicitHeight: contentColumn.implicitHeight
 
       Behavior on color {
-        enabled: Widget.animations
+        enabled: Appearance.animations
         NumberAnimation {}
       }
 
