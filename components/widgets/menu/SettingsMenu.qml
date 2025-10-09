@@ -30,13 +30,6 @@ Item {
     anchors.bottomMargin: bottomArea.visibleChildren.length > 0 ? root.panelMargin : 0
     spacing: root.panelMargin
 
-    // MenuItem {
-    //   id: topArea
-    //   backgroundColor: Theme.backgroundAlt
-    //   Layout.fillWidth: true
-    //   Layout.alignment: Qt.AlignVCenter
-    //   // heightOverride: 50
-    // }
     MenuToggles {
       Layout.fillWidth: true
       Layout.preferredHeight: root.quickSettingsHeight
