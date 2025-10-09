@@ -1,0 +1,128 @@
+{
+  "$schema": "./config.schema.json",
+  "Config": {
+    "userName": "user",
+    "workspaceCount": 5,
+    "singleMonitor": true
+  },
+  "Display": {
+    "primary": "DP-1",
+    "resolutionWidth": 2560,
+    "resolutionHeight": 1440,
+    "monitors": []
+  },
+  "Appearance": {
+    "theme": "gruvbox-dark",
+    "darkMode": false,
+    "borderRadius": 4,
+    "borderWidth": 1,
+    "screenMargin": 8,
+    "fontFamily": "JetBrains Mono Nerd Font",
+    "fontSize": 18,
+    "autoThemeSwitch": true,
+    "generatedThemeSource": "pywal",
+    "containerWidth": 8,
+    "workspacePopoutIcons": true,
+    "animations": true,
+    "animationDuration": 150
+  },
+  "Widget": {
+    "height": 30,
+    "padding": 10,
+    "spacing": 4
+  },
+  "Menu": {
+    "distanceFromWorkspaceContainer": 4,
+    "startMenuPinned": false,
+    "cardUnit": 400,
+    "cardSpacing": 35,
+    "cardPadding": 12,
+    "cardBorderRadius": 4,
+    "cardBorderWidth": 0,
+    "columns": 4
+  },
+  "Bar": [
+    {
+      "id": "primary",
+      "primary": true,
+      "enabled": true,
+      "display": "DP-1",
+      "extent": 48,
+      "spacing": 8,
+      "location": "Left",
+      "autoHide": false,
+      "widgets": {
+        "left": [
+          {
+            "type": "Window"
+          }
+        ],
+        "leftCenter": [
+          {
+            "type": "Media"
+          }
+        ],
+        "center": [
+          {
+            "type": "Workspaces"
+          }
+        ],
+        "rightCenter": [
+          {
+            "type": "Time"
+          }
+        ],
+        "right": [
+          {
+            "type": "Tailscale"
+          },
+          {
+            "type": "Network"
+          },
+          {
+            "type": "SystemTray",
+            "properties": {
+              "orientation": "Qt.Vertical"
+            }
+          },
+          {
+            "type": "Notifications"
+          },
+          {
+            "type": "Logo"
+          }
+        ]
+      }
+    }
+  ],
+  "ChatConfig": {
+    "enabled": true,
+    "defaultBackend": "gemini",
+    "backends": {
+      "gemini": {
+        "apiKey": "",
+        "defaultModel": "",
+        "models": []
+      },
+      "openai": {
+        "apiKey": "",
+        "defaultModel": "",
+        "models": []
+      },
+      "anthropic": {
+        "apiKey": "",
+        "defaultModel": "",
+        "models": []
+      }
+    }
+  },
+  "ThemeIntegrations": {
+    "gtk": false,
+    "nvim": false,
+    "vscode": false,
+    "alacritty": false,
+    "kitty": true,
+    "k9s": true,
+    "cava": true
+  }
+}
