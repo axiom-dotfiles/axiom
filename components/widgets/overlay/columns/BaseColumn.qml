@@ -24,7 +24,7 @@ ColumnLayout {
   CellVert2x1 {
     id: topCell
     topLeftCell: Cpu {}
-    bottomLeftCell: Storage {}
+    bottomLeftCell: Memory {}
     rightCell: Rectangle {
       anchors.fill: parent
       color: Theme.background
