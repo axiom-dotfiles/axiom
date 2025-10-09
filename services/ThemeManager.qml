@@ -77,7 +77,7 @@ QtObject {
   }
 
   function toggleDarkMode() {
-    console.log("ThemeManager: toggleDarkMode called.");
+    console.log("[ThemeManager] toggleDarkMode called.");
     const pairedThemeName = currentTheme.paired;
 
     if (config.Appearance.autoThemeSwitch && pairedThemeName) {
@@ -155,9 +155,9 @@ QtObject {
       const scriptPath = root._pythonScriptPath.replace("file://", "");
       const outputDir = root._generatedThemesPath.replace("file://", "");
 
-      console.log("ThemeManager: Generating theme", themeIndex, "using backend:", backend);
+      console.log("[ThemeManager] Generating theme", themeIndex, "using backend:", backend);
       generationProcess.command = ["python3", scriptPath, wallpaperPath, "--output_dir", outputDir, "--backend", backend];
-      console.log("ThemeManager: Executing:", generationProcess.command.join(" "));
+      console.log("[ThemeManager] Executing:", generationProcess.command.join(" "));
       generationProcess.running = true;
     }
 
@@ -165,13 +165,13 @@ QtObject {
       if (success) {
         index++;
         if (index >= backends.length) {
-          console.log("ThemeManager: Theme generation finished successfully.");
+          console.log("[ThemeManager] Theme generation finished successfully.");
           root._reloadAllThemes();
           return;
         }
         runNext();
       } else {
-        console.error("ThemeManager: Script execution failed.", errorText);
+        console.error("[ThemeManager] Script execution failed.", errorText);
         root.generationFailed(errorText);
       }
     }
@@ -195,7 +195,7 @@ QtObject {
    * This is the central function for refreshing the UI lists of themes.
    */
   function _reloadAllThemes() {
-    console.log("ThemeManager: Reloading all theme models...");
+    console.log("[ThemeManager] Reloading all theme models...");
     _defaultThemesLoaded = false;
     _generatedThemesLoaded = false;
     _allThemesModel.clear();

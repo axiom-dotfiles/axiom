@@ -9,8 +9,7 @@ import qs.config
 QtObject {
   id: configManager
 
-  // --- Public API ---
-  // Source of truth for the entire configuration
+  // --- Public ---
   readonly property var config: _config
   readonly property var theme: _theme
   property bool usingStagedConfig: false
@@ -48,13 +47,13 @@ QtObject {
       if (_config.Config.wallpaper === wallpaperUrl) {
         return; // No change needed
       }
-      console.log("ConfigManager: Setting wallpaper to", wallpaperUrl);
+      console.log("[ConfigManager] Setting wallpaper to", wallpaperUrl);
       _config.Config.wallpaper = wallpaperUrl;
       Utils.executeWallpaperScript(wallpaperUrl);
 
       saveConfig(); // Save the change and trigger a reload.
     } else {
-      console.error("ConfigManager: Cannot set wallpaper, _config.Config is not defined.");
+      console.error("[ConfigManager] Cannot set wallpaper, _config.Config is not defined.");
     }
   }
 
@@ -62,7 +61,7 @@ QtObject {
      * @brief Saves the current configuration state to config.json and triggers a reload.
      */
   function saveConfig() {
-    console.log("ConfigManager: Writing current configuration to config.json...");
+    console.log("[ConfigManager] Writing current configuration to config.json...");
     try {
       var configString = JSON.stringify(configManager._config, null, 2);
       if (!_validateConfig(configManager._config)) {
@@ -70,11 +69,11 @@ QtObject {
         return;
       }
       _configFileView.setText(configString);
-      console.log("ConfigManager: Save successful.");
+      console.log("[ConfigManager] Save successful.");
       forceReload();
       themeIntegrations();
     } catch (e) {
-      console.error("ConfigManager: An error occurred while saving the configuration:", e);
+      console.error("[ConfigManager] An error occurred while saving the configuration:", e);
     }
   }
 
@@ -152,7 +151,7 @@ QtObject {
     blockWrites: true
     atomicWrites: true
     onSaveFailed: error => {
-      console.error("ConfigManager: Failed to save config.json. Error: " + FileViewError.toString(error));
+      console.error("[ConfigManager] Failed to save config.json. Error: " + FileViewError.toString(error));
     }
   }
 
@@ -253,15 +252,12 @@ QtObject {
         console.error("Failed to load theme:", themeName, e);
       }
     }
+    console.error("[ThemeManager] Theme not found, Falling back to default theme.");
     return {
       name: "Default (fallback)",
       variant: "dark",
-      colors: {
-        base00: "#1a1a1a"
-      },
-      semantic: {
-        background: "base00"
-      }
+      colors: Utils.getDefaultColors(),
+      semantic: Utils.getDefaultSemanticColors()
     };
   }
 
