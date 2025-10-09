@@ -5,7 +5,7 @@ import QtQuick.Layouts
 import qs.config
 import qs.components.reusable
 
-RowLayout {
+ColumnLayout {
   id: root
   required property string label
   required property bool checked

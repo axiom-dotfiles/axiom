@@ -17,8 +17,10 @@ ColumnLayout {
     readonly property int requiredVerticalCells: 1
     readonly property int requiredHorizontalCells: 2
 
-    implicitWidth: Menu.cardUnit * 2 + Menu.cardSpacing
+    // implicitWidth: Menu.cardUnit * 2 + Menu.cardSpacing
     implicitHeight: Menu.cardUnit * 2 + Menu.cardSpacing
+    implicitWidth: Menu.cardUnit
+    // implicitHeight: Menu.cardUnit
 
     FullSettings {}
   }

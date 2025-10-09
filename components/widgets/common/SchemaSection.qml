@@ -18,7 +18,7 @@ ColumnLayout {
   StyledContainer {
     Layout.fillWidth: true
     Layout.preferredHeight: Widget.height + (Widget.padding * 2)
-    backgroundColor: headerArea.containsMouse ? Theme.backgroundHighlight : Theme.background
+    backgroundColor: headerArea.containsMouse ? Theme.backgroundHighlight : Theme.backgroundAlt
     
     RowLayout {
       anchors.fill: parent
