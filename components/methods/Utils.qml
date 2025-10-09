@@ -185,4 +185,58 @@ QtObject {
     }
     return chunks;
   }
+
+  function getDefaultColors() {
+    return {
+      "base00": "#0c0c0c",
+      "base01": "#1c1c1c",
+      "base02": "#2c2c2c",
+      "base03": "#444444",
+      "base04": "#a0a0a0",
+      "base05": "#cccccc",
+      "base06": "#e0e0e0",
+      "base07": "#f0f0f0",
+      "base08": "#cc0000",
+      "base09": "#d75f00",
+      "base0A": "#bba600",
+      "base0B": "#00a800",
+      "base0C": "#00a8a8",
+      "base0D": "#0066cc",
+      "base0E": "#a800a8",
+      "base0F": "#a85f00"
+    };
+  }
+
+  function getDefaultSemanticColors() {
+    return {
+      "background": "base00",
+      "backgroundAlt": "base01",
+      "backgroundHighlight": "base02",
+      "foreground": "base05",
+      "foregroundAlt": "base04",
+      "foregroundHighlight": "base06",
+      "foregroundInactive": "base03",
+      "border": "base02",
+      "borderFocus": "base0D",
+      "accent": "base0E",
+      "accentAlt": "base0C",
+      "success": "base0B",
+      "warning": "base0A",
+      "error": "base08",
+      "info": "base0C",
+      "red": "base08",
+      "green": "base0B",
+      "yellow": "base0A",
+      "blue": "base0D",
+      "magenta": "base0E",
+      "cyan": "base0C",
+      "white": "base05",
+      "bg0": "base00",
+      "bg1": "base01",
+      "bg2": "base02",
+      "fg3": "base03",
+      "fg2": "base04",
+      "fg1": "base05"
+    };
+  }
 }

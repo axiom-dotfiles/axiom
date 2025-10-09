@@ -198,15 +198,5 @@ StyledContainer {
         }
       }
     }
-    // MenuBottomArea {
-    //   id: bottomArea
-    //   Layout.fillWidth: true
-    //   Layout.topMargin: Widget.padding
-    //   Layout.bottomMargin: Widget.padding
-    //   
-    //   quickSettingsHeight: 40
-    //   showMediaControl: true
-    //   mediaPlaying: true
-    // }
   }
 }

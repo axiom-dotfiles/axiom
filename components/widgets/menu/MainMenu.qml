@@ -16,6 +16,7 @@ import qs.components.widgets.menu.chat
 // import "path/to/SettingsMenu.qml" as SettingsMenu
 // import "path/to/ChatView.qml" as ChatView
 
+// This is gonna need a bit of a re-write
 StyledContainer {
   id: root
 
@@ -36,8 +37,6 @@ StyledContainer {
 
   readonly property real _minimumRequiredHeight: {
     var total = 0;
-    // These properties (topSection, bottomArea) were not in the provided snippet parts,
-    // so they are commented out to prevent errors. Adjust if they exist elsewhere.
     // total += topSection.height;
     total += minimumScrollableHeight;
     // total += bottomArea.implicitHeight;
@@ -46,15 +45,12 @@ StyledContainer {
   }
 
   property int currentTab: 0
-  // `tabs` array unchanged as it's used by the TabBar for names
   readonly property var tabs: [
     {
       name: ""
-      // loader: settingsLoader // This property is not used for content loading in this setup
     },
     {
       name: "󱜙"
-      // loader: chatLoader    // This property is not used for content loading in this setup
     }
   ]
 
@@ -132,7 +128,7 @@ StyledContainer {
 
           Behavior on x {
             NumberAnimation {
-              duration: 250 // Customize animation duration
+              duration: 250
               easing.type: Easing.InOutQuad
             }
           }

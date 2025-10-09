@@ -16,7 +16,7 @@ Item {
   property bool mediaPlaying: true
   property int panelMargin: 10
   property real topSectionHeight: 120
-  property real quickSettingsHeight: 40
+  property real quickSettingsHeight: 60
 
   ColumnLayout {
     id: topAreaLayout
@@ -30,12 +30,17 @@ Item {
     anchors.bottomMargin: bottomArea.visibleChildren.length > 0 ? root.panelMargin : 0
     spacing: root.panelMargin
 
-    MenuItem {
-      backgroundColor: Theme.backgroundAlt
+    // MenuItem {
+    //   id: topArea
+    //   backgroundColor: Theme.backgroundAlt
+    //   Layout.fillWidth: true
+    //   Layout.alignment: Qt.AlignVCenter
+    //   // heightOverride: 50
+    // }
+    MenuToggles {
       Layout.fillWidth: true
+      Layout.preferredHeight: root.quickSettingsHeight
       Layout.alignment: Qt.AlignVCenter
-      // heightOverride: 50
-      MenuToggles {}
     }
     
     MainContent {
