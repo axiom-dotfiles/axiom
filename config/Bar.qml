@@ -65,7 +65,6 @@ QtObject {
     case "Right":
       return Bar.Right;
     default:
-      console.warn("Invalid bar location in config:", locStr, "defaulting to Left");
       return Bar.Left;
     }
   }

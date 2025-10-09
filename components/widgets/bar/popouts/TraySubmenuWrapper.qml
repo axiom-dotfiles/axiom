@@ -4,6 +4,7 @@ import QtQuick
 import Quickshell
 import qs.config
 import qs.components.widgets.bar
+import qs.components.reusable
 
 /**
  * Popout wrapper for submenus
@@ -176,6 +177,34 @@ Item {
         y: 0
         width: root.connectorGap
         height: parent.height
+      }
+      // close enough for now on these
+      Rectangle {
+        id: topCorner
+        anchors.top: connector.top
+        anchors.left: connector.left
+        anchors.right: connector.right
+        width: connector.width
+        height: Appearance.borderRadius
+        color: "transparent"
+        CornerPiece {
+          isLeft: true
+          isTop: false
+        }
+      }
+
+      Rectangle {
+        id: bottomCorner
+        anchors.bottom: connector.bottom
+        anchors.left: connector.left
+        anchors.right: connector.right
+        width: connector.width
+        height: Appearance.borderRadius
+        color: "transparent"
+        CornerPiece {
+          isLeft: true
+          isTop: false
+        }
       }
     }
   }

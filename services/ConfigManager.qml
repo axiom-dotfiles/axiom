@@ -79,6 +79,14 @@ QtObject {
   }
 
   /**
+   * * @brief Stages a full configuration object to memory without saving.
+   */
+  function stageConfig(object) {
+    _loadObjectToConfig(object);
+    console.log("[ConfigManager] Staged new configuration object to memory.");
+  }
+
+  /**
    * @brief Applies the currrent theme to enabled integrated tools
    */
   function themeIntegrations() {
@@ -126,6 +134,7 @@ QtObject {
   Component.onCompleted: {
     console.log("♻ ConfigManager service started.");
     configManager._configSchema = _loadSchema();
+    configManager._config = _loadConfig();
     _checkForChanges();
   }
 
@@ -225,6 +234,12 @@ QtObject {
       Bar: {},
       Widget: {}
     };
+  }
+
+  function _loadObjectToConfig(object) {
+    if (_validateConfig(object)) {
+      ConfigManager._config = object;
+    }
   }
 
   function _loadTheme(themeName) {

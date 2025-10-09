@@ -1,20 +1,21 @@
 import QtQuick
 import QtQuick.Shapes
+
 import qs.config
 
+// TODO: Completely fix
 Item {
   id: root
-  property int borderRadius: parent.parent.innerBorderRadius
-  property color fillColor: parent.parent.frameColor
-  property color strokeColor: parent.parent.innerStrokeColor
-  property int strokeWidth: parent.parent.strokeWidth
+  property int borderRadius: Appearance.borderRadius
+  property color fillColor: Theme.background
+  property color strokeColor: Theme.foreground
+  property int strokeWidth: Appearance.borderWidth
   
   property bool isLeft: parent.anchors.left !== undefined
   property bool isTop: parent.anchors.top !== undefined
   
   anchors.fill: parent
   
-  // Use a Shape for the fill with proper clipping
   Shape {
     anchors.fill: parent
     

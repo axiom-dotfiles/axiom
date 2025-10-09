@@ -273,10 +273,6 @@ Item {
         height: Appearance.borderRadius
         color: "transparent"
         CornerPiece {
-          borderRadius: Appearance.borderRadius
-          fillColor: Theme.background
-          strokeColor: Theme.foreground
-          strokeWidth: Appearance.borderWidth
           isLeft: true
           isTop: false
         }
@@ -291,13 +287,6 @@ Item {
         height: Appearance.borderRadius
         color: "transparent"
         CornerPiece {
-          anchors.bottom: connector.bottom
-          anchors.left: connector.left
-          anchors.right: connector.right
-          borderRadius: Appearance.borderRadius
-          fillColor: Theme.background
-          strokeColor: Theme.foreground
-          strokeWidth: Appearance.borderWidth
           isLeft: true
           isTop: false
         }
