@@ -62,9 +62,9 @@ QtObject {
   property var _rawGpuUsage: []
   property var _rawGpuTemp: []
 
-  property var _pollingInterval: 4000
-  property var _updateInterval: 5000
-  property int _maxDataPoints: 15
+  property var _pollingInterval: 3000
+  property var _updateInterval: 1500
+  property int _maxDataPoints: 5
 
   function _startTimers() {
     if (!systemManager._pollingTimer.running) {
