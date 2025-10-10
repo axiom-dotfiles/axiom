@@ -97,6 +97,26 @@ QtObject {
     }
   }
 
+  function setDarkMode(enabled) {
+    if (config.Appearance.darkMode === enabled) {
+      console.log("[ThemeManager] Dark mode is already set to", enabled);
+      return;
+    }
+    console.log("[ThemeManager] Setting dark mode to", enabled);
+    toggleDarkMode();
+
+    // if (config.Appearance.autoThemeSwitch && currentTheme.paired) {
+    //   console.log("[ThemeManager] Auto-switching to paired theme:", currentTheme.paired);
+    //   const isPairedThemeGenerated = config.Appearance.theme.startsWith("generated/");
+    //   applyTheme(currentTheme.paired, isPairedThemeGenerated);
+    // } else {
+    //   if (!config.Appearance.autoThemeSwitch)
+    //     console.log("Auto theme switching is disabled.");
+    //   if (!currentTheme.paired)
+    //     console.log("Current theme has no paired theme.");
+    // }
+  }
+
   //=========================================================================
   // Private Implementation
   //=========================================================================
@@ -214,7 +234,10 @@ QtObject {
     onStatusChanged: {
       if (status === FolderListModel.Ready) {
         for (let i = 0; i < count; i++) {
-         if (get(i, "fileName") === "generated") continue;
+          // TODO: should be within the theme's json
+          // idk why tf I did it like this
+          if (get(i, "fileName") === "generated") continue;
+          if (get(i, "fileName") === "theme.schema.json") continue;
 
           root._defaultThemesModel.append({ name: get(i, "fileBaseName"), filePath: get(i, "filePath"), isGenerated: false });
           root._allThemesModel.append({ name: get(i, "fileBaseName"), filePath: get(i, "filePath"), isGenerated: false });

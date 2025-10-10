@@ -66,6 +66,15 @@ Rectangle {
           }
         }
 
+        SchemaSwitch {
+          label: "Enable Light Mode"
+          description: "Toggle light mode for supported themes."
+          checked: !root.localConfig.Appearance?.darkMode || false
+          onToggled: value => {
+            ThemeManager.setDarkMode(!value);
+          }
+        }
+
         // SchemaObjectArray {
         //   property var backendOptions: ["colorthief", "wal", "colorz", "pywal"]
         //   label: "Pywal Backend"
