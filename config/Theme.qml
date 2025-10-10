@@ -118,12 +118,6 @@ QtObject {
 
   function resolveColor(name) {
     const colorKey = name.includes('.') ? name.substring(name.lastIndexOf('.') + 1) : name;
-  
-    console.log("--------------------Resolving color for name: " + name)
-    console.log("Stripped to key: " + colorKey)
-    console.log("Keys available:", Object.keys(root.stringToColorMap))
-    console.log("Resolved color:", stringToColorMap[colorKey])
-    
     return root.stringToColorMap[colorKey] ?? name ?? "#ff00ff"
   }
 

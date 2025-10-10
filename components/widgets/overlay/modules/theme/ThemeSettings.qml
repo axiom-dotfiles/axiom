@@ -71,7 +71,7 @@ Rectangle {
           description: "Toggle light mode for supported themes."
           checked: !root.localConfig.Appearance?.darkMode || false
           onToggled: value => {
-            ThemeManager.setDarkMode(!value);
+            ThemeManager.toggleDarkMode();
           }
         }
 

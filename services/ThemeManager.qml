@@ -83,8 +83,8 @@ QtObject {
     if (config.Appearance.autoThemeSwitch && pairedThemeName) {
       console.log("[ThemeManager] Switching theme from '" + config.Appearance.theme + "' to '" + pairedThemeName + "'");
 
-      config.Appearance.darkMode = !config.Appearance.darkMode;
-      const isPairedThemeGenerated = config.Appearance.theme.startsWith("generated/");
+      // config.Appearance.darkMode = !config.Appearance.darkMode;
+      const isPairedThemeGenerated = config.Appearance.theme.startsWith("generated/"); // this is stupid; should just read the json
 
       console.log("[ThemeManager] Applying paired theme:", pairedThemeName, "Generated:", isPairedThemeGenerated);
       applyTheme(pairedThemeName, isPairedThemeGenerated);
@@ -236,8 +236,10 @@ QtObject {
         for (let i = 0; i < count; i++) {
           // TODO: should be within the theme's json
           // idk why tf I did it like this
-          if (get(i, "fileName") === "generated") continue;
-          if (get(i, "fileName") === "theme.schema.json") continue;
+          // Should read filecontent here and parse variant and generated
+          const filename = get(i, "fileName");
+          if (filename === "generated") continue;
+          if (filename === "theme.schema.json") continue;
 
           root._defaultThemesModel.append({ name: get(i, "fileBaseName"), filePath: get(i, "filePath"), isGenerated: false });
           root._allThemesModel.append({ name: get(i, "fileBaseName"), filePath: get(i, "filePath"), isGenerated: false });

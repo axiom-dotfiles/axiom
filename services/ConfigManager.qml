@@ -231,6 +231,7 @@ QtObject {
     if (content) {
       try {
         const config = JSON.parse(content);
+        console.log("[ConfigManager] Loading with dark mode:", config.Appearance ? config.Appearance.darkMode : "undefined");
         if (_validateConfig(config)) {
           console.log("[ConfigManager] Configuration loaded and validated successfully.");
           return config;
@@ -261,7 +262,9 @@ QtObject {
       try {
         content = JSON.parse(content);
         _config.Appearance.darkMode = content.variant === "dark";
-        console.log("[ThemeManager] Loaded theme:", themeName, JSON.stringify(content));
+        if (_config.Appearance.darkMode !== Appearance.darkMode) {
+          saveConfig();
+        }
         return content;
       } catch (e) {
         console.error("Failed to load theme:", themeName, e);
