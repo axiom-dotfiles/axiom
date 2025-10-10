@@ -55,7 +55,7 @@ StyledContainer {
   ]
 
   implicitWidth: 600
-  implicitHeight: (customHeight > 0) ? customHeight : Display.resolutionHeight - Appearance.containerWidth * 4 // TODO: Remove random numbers
+  implicitHeight: (customHeight > 0) ? customHeight : Display.resolutionHeight - Appearance.screenMargin * 4 // TODO: Remove random numbers
 
   borderColor: Theme.foregroundAlt
   backgroundColor: Theme.background

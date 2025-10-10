@@ -20,8 +20,6 @@
     "fontFamily": "JetBrains Mono Nerd Font",
     "fontSize": 18,
     "autoThemeSwitch": true,
-    "generatedThemeSource": "pywal",
-    "containerWidth": 8,
     "workspacePopoutIcons": true,
     "animations": true,
     "animationDuration": 150

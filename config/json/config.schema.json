@@ -44,11 +44,6 @@
         "fontFamily": { "type": "string" },
         "fontSize": { "type": "integer" },
         "autoThemeSwitch": { "type": "boolean" },
-        "generatedThemeSource": {
-          "type": "string",
-          "enum": ["pywal", "material", "custom"]
-        },
-        "containerWidth": { "type": "integer" },
         "workspacePopoutIcons": { "type": "boolean" },
         "animations": { "type": "boolean" },
         "animationDuration": { "type": "integer" }
@@ -109,6 +104,11 @@
     },
     "Menu": {
       "type": "object",
+      "cardUnit": { "type": "integer" },
+      "cardSpacing": { "type": "integer" },
+      "cardPadding": { "type": "integer" },
+      "cardBorderRadius": { "type": "integer" },
+      "cardBorderWidth": { "type": "integer" },
       "properties": {
         "distanceFromWorkspaceContainer": { "type": "integer" },
         "startMenuPinned": { "type": "boolean" }

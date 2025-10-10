@@ -14,7 +14,6 @@ QtObject {
   readonly property int fontSizeLarge: ConfigManager.config.Appearance.fontSize + 4
   readonly property bool autoThemeSwitch: ConfigManager.config.Appearance.autoThemeSwitch ?? false
   readonly property string generatedThemeSource: ConfigManager.config.Appearance.generatedThemeSource ?? "pywal"
-  readonly property int containerWidth: ConfigManager.config.Appearance.containerWidth ?? 8
   readonly property bool workspacePopoutIcons: ConfigManager.config.Appearance.workspacePopoutIcons ?? true
   readonly property int animationDuration: ConfigManager.config.Appearance.animationDuration ?? 200
 }

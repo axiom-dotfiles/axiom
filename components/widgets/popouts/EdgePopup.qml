@@ -18,7 +18,7 @@ Item {
   default property alias content: contentArea.data
 
   property bool reserveSpace: false
-  property int lockedMargin: Appearance.containerWidth
+  property int lockedMargin: Appearance.screenMargin
   property bool wantsKeyboardFocus: false
 
   property bool aboveWindows: true
@@ -116,7 +116,7 @@ Item {
       return (root.edge === EdgePopup.Edge.Left || root.edge === EdgePopup.Edge.Right) ? root.actualWidth + Config.containerOffset : root.actualHeight;
     }
 
-    implicitWidth: reservationPanel.exclusiveZone + Appearance.containerWidth
+    implicitWidth: reservationPanel.exclusiveZone + Appearance.screenMargin
     implicitHeight: Display.resolutionHeight
 
     Rectangle {
