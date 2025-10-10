@@ -8,6 +8,7 @@ import qs.components.widgets.common
 SchemaSection {
   id: root
   title: "Appearance"
+  expanded: true
 
   required property var localConfig
 

@@ -44,6 +44,7 @@
         "fontFamily": { "type": "string" },
         "fontSize": { "type": "integer" },
         "autoThemeSwitch": { "type": "boolean" },
+        "allowGeneratedTheme": { "type": "boolean" },
         "workspacePopoutIcons": { "type": "boolean" },
         "animations": { "type": "boolean" },
         "animationDuration": { "type": "integer" }

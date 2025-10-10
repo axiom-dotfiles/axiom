@@ -5,6 +5,8 @@ import qs.config
 import qs.services
 
 Rectangle {
+  id: root
+  property string title: "Settings"
   Layout.fillWidth: true
   Layout.preferredHeight: Widget.height + Widget.padding
   color: "transparent"
@@ -14,7 +16,7 @@ Rectangle {
     spacing: Widget.spacing
 
     Text {
-      text: "Settings"
+      text: root.title
       color: Theme.foreground
       font.family: Appearance.fontFamily
       font.pixelSize: Appearance.fontSize + 4
@@ -28,7 +30,7 @@ Rectangle {
     // Stage/Unstage/Save buttons
     RowLayout {
       spacing: 4
-      visible: root.isDirty || root.isStaged
+      visible: SettingsMenu.isDirty || SettingsMenu.isStaged
 
       // Single stage button (when not staged)
       Rectangle {
@@ -36,7 +38,7 @@ Rectangle {
         Layout.preferredHeight: Widget.height - 4
         color: stageArea.containsMouse ? Qt.lighter(Theme.info, 1.1) : Theme.info
         radius: Appearance.borderRadius
-        visible: root.isDirty && !root.isStaged
+        visible: SettingsMenu.isDirty && !SettingsMenu.isStaged
 
         RowLayout {
           anchors.centerIn: parent
@@ -74,7 +76,7 @@ Rectangle {
         radius: Appearance.borderRadius
         border.color: Theme.border
         border.width: 1
-        visible: root.isStaged
+        visible: SettingsMenu.isStaged
 
         Text {
           anchors.centerIn: parent
@@ -98,7 +100,7 @@ Rectangle {
         Layout.preferredHeight: Widget.height - 4
         color: saveArea.containsMouse ? Qt.lighter(Theme.accent, 1.1) : Theme.accent
         radius: Appearance.borderRadius
-        visible: root.isStaged
+        visible: SettingsMenu.isStaged
 
         RowLayout {
           anchors.centerIn: parent

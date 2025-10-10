@@ -7,7 +7,6 @@ import qs.config
 import qs.services
 import qs.components.widgets.common
 import qs.components.widgets.overlay.modules.settings
-
 // TODO: Fix bindings and whatnot. Not exaclty the biggest fan of the state management here
 
 /**
@@ -19,7 +18,7 @@ Rectangle {
   radius: Menu.cardBorderRadius
   anchors.fill: parent
   border.color: Theme.border
-  border.width: Appearance.borderWidth
+  border.width: Menu.cardBorderWidth
 
   // Local state management
   property var localConfig: SettingsMenu.localConfig

@@ -4,6 +4,7 @@ import QtQuick.Layouts
 import qs.config
 import qs.components.widgets.overlay.layouts
 import qs.components.widgets.overlay.modules
+import qs.components.widgets.overlay.modules.theme
 
 ColumnLayout {
   spacing: Menu.cardSpacing
