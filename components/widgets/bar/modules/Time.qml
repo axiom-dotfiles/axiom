@@ -18,6 +18,7 @@ Item {
   property var popouts
   property var panel
   property var screen
+  property var properties
 
   // Dynamic dimensions based on orientation
   height: isVertical ? implicitHeight : Widget.height

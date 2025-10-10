@@ -13,6 +13,7 @@ Item {
   property var popouts
   property var panel
   property var screen
+  property var properties
 
   Component.onCompleted: {
     // console.log("SystemTray initialized--------------------------------------------------------------");

@@ -7,25 +7,26 @@ import qs.services
 import qs.components.reusable
 import qs.components.widgets.bar
 
-  StyledRectButton {
-    id: component
+StyledRectButton {
+  id: component
 
-    // -- Signals --
-    // null
+  // -- Signals --
+  // null
 
-    // -- Public API --
-    property var barConfig
-    property var popouts
-    property var panel
-    property var screen
-    // null
+  // -- Public API --
+  property var barConfig
+  property var popouts
+  property var panel
+  property var screen
+  property var properties
+  // null
 
-    // -- Configurable Appearance --
-    iconText: ""
-    iconColor: Theme.background
-    borderHoverColor: Theme.accent
-    backgroundColor: Theme.accent
+  // -- Configurable Appearance --
+  iconText: ""
+  iconColor: Theme.background
+  borderHoverColor: Theme.accent
+  backgroundColor: Theme.accent
 
-    // -- Implementation --
-    onClicked: ShellManager.togglePinnedPanel("mainMenu")
-  }
+  // -- Implementation --
+  onClicked: ShellManager.togglePinnedPanel("mainMenu")
+}

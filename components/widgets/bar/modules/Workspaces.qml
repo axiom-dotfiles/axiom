@@ -11,6 +11,7 @@ Item {
   property var popouts
   property var panel
   property var barConfig
+  property var properties
 
   property bool isVertical: barConfig.vertical
 

@@ -12,6 +12,7 @@ IconTextWidget {
   property var popouts
   property var panel
   property var screen
+  property var properties
 
   property bool isCharging: false
   property bool isDischarging: false

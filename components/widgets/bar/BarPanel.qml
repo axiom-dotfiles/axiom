@@ -49,16 +49,12 @@ PanelWindow {
 
   // --- Dynamic Widget Logic ---
 
-  // This will change. The widget definition should just be a string of the component
-  // this is way over complicated for loading
-  // Maybe I should keep it though, as it allows for more complex mappings for
-  // for configuring widgets, and it is already setup
-  // TODO: decide
   readonly property var widgetComponentMap: {
     "Logo": "modules/Logo.qml",
     "Window": "modules/Window.qml",
     "Media": "modules/Media.qml",
     "Workspaces": "modules/Workspaces.qml",
+    "Time": "modules/Time.qml",
     "Time": "modules/Time.qml",
     "Tailscale": "modules/Tailscale.qml",
     "Network": "modules/Network.qml",
@@ -76,7 +72,7 @@ PanelWindow {
 
     const array = widgetConfigArray.filter(
       widgetConf => widgetConf.visible !== false).map(widgetConf => {
-      const componentType = widgetComponentMap[widgetConf.type];
+      const componentType = "modules/" + widgetConf.type + ".qml";
       if (!componentType) {
         console.warn("Unknown widget type in bar config:", widgetConf.type);
         return null;

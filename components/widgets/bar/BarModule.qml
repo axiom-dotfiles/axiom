@@ -12,7 +12,9 @@ Item {
   property var panel
   property var screen
 
+  required property var properties
   required property string componentPath
+
   property color backgroundColor: Theme.background
   property alias content: contentLoader.sourceComponent
   property alias contentItem: contentLoader.item
@@ -27,11 +29,13 @@ Item {
     source: component.componentPath
     anchors.centerIn: parent
     onLoaded: {
+      console.log("Passing properties to widget (from BarModule):", JSON.stringify(component.properties));
       if (item) {
         item.barConfig = component.barConfig
         item.popouts = component.popouts
         item.panel = component.panel
         item.screen = component.screen
+        item.properties = component.properties
       }
     }
   }

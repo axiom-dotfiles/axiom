@@ -55,10 +55,57 @@ QtObject {
   readonly property color bg0: root[_themeData.semantic.bg0] ?? base00
   readonly property color bg1: root[_themeData.semantic.bg1] ?? base01
   readonly property color bg2: root[_themeData.semantic.bg2] ?? base02
-  readonly property color bg3: root[_themeData.semantic.bg3] ?? base03
-  readonly property color bg4: root[_themeData.semantic.bg4] ?? base04
-  readonly property color bg5: root[_themeData.semantic.bg5] ?? base05
-  readonly property color bg6: root[_themeData.semantic.bg6] ?? base06
+  readonly property color fg3: root[_themeData.semantic.bg3] ?? base03
+  readonly property color fg2: root[_themeData.semantic.bg2] ?? base04
+  readonly property color fg1: root[_themeData.semantic.bg1] ?? base05
+
+  readonly property var stringToColorMap: ({
+    "base00": base00,
+    "base01": base01,
+    "base02": base02,
+    "base03": base03,
+    "base04": base04,
+    "base05": base05,
+    "base06": base06,
+    "base07": base07,
+    "base08": base08,
+    "base09": base09,
+    "base0A": base0A,
+    "base0B": base0B,
+    "base0C": base0C,
+    "base0D": base0D,
+    "base0E": base0E,
+    "base0F": base0F,
+    "background": background,
+    "backgroundAlt": backgroundAlt,
+    "backgroundHighlight": backgroundHighlight,
+    "foreground": foreground,
+    "foregroundAlt": foregroundAlt,
+    "foregroundHighlight": foregroundHighlight,
+    "foregroundInactive": foregroundInactive,
+    "border": border,
+    "borderFocus": borderFocus,
+    "accent": accent,
+    "accentAlt": accentAlt,
+    "success": success,
+    "warning": warning,
+    "error": error,
+    "info": info,
+    "red": red,
+    "green": green,
+    "yellow": yellow,
+    "blue": blue,
+    "magenta": magenta,
+    "cyan": cyan,
+    "orange": orange,
+    "grey": grey,
+    "bg0": bg0,
+    "bg1": bg1,
+    "bg2": bg2,
+    "fg3": fg3,
+    "fg2": fg2,
+    "fg1": fg1
+  })
 
   readonly property color userColor: root[_themeData.semantic.green] ?? "#ff00ff"
   readonly property color robotColor: root[_themeData.semantic.yellow] ?? "#00ff00"
@@ -68,6 +115,17 @@ QtObject {
   readonly property string variant: _themeData.variant ?? "dark"
   readonly property string paired: _themeData.paired ?? ""
   property bool isGenerated: false
+
+  function resolveColor(name) {
+    const colorKey = name.includes('.') ? name.substring(name.lastIndexOf('.') + 1) : name;
+  
+    console.log("--------------------Resolving color for name: " + name)
+    console.log("Stripped to key: " + colorKey)
+    console.log("Keys available:", Object.keys(root.stringToColorMap))
+    console.log("Resolved color:", stringToColorMap[colorKey])
+    
+    return root.stringToColorMap[colorKey] ?? name ?? "#ff00ff"
+  }
 
   Component.onCompleted: {
     console.log("------------------ " + "Initialized : " + Appearance.theme + " ------------------")

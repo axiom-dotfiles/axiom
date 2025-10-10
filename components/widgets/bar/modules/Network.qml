@@ -10,6 +10,7 @@ IconTextWidget {
   property var popouts
   property var panel
   property var screen
+  property var properties
 
   property string iface: ""
   property string kind: ""

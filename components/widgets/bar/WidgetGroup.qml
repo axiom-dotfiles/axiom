@@ -34,11 +34,15 @@ Item {
         id: widgetLoader
         Layout.alignment: modelData.alignment || root.alignment
         required property var modelData
+        Component.onCompleted: {
+          console.log("Passing properties to widget:", JSON.stringify(modelData.properties));
+        }
         
         // This module handles rotation and sizing
         // allowing the widget definitions to be stupid simple
         sourceComponent: BarModule {
           barConfig: root.barConfig
+          properties: widgetLoader.modelData.properties || {}
           componentPath: widgetLoader.modelData.component
           popouts: root.popouts
           panel: root.panel

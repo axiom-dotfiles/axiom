@@ -12,6 +12,7 @@ IconTextWidget {
   property var popouts
   property var panel
   property var screen
+  property var properties
 
   isVertical: barConfig.vertical
   icon: ""
