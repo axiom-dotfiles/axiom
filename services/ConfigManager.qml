@@ -45,13 +45,13 @@ QtObject {
   function setWallpaper(wallpaperUrl) {
     if (_config.Config) {
       if (_config.Config.wallpaper === wallpaperUrl) {
-        return; // No change needed
+        return;
       }
       console.log("[ConfigManager] Setting wallpaper to", wallpaperUrl);
       _config.Config.wallpaper = wallpaperUrl;
       Utils.executeWallpaperScript(wallpaperUrl);
 
-      saveConfig(); // Save the change and trigger a reload.
+      saveConfig();
     } else {
       console.error("[ConfigManager] Cannot set wallpaper, _config.Config is not defined.");
     }
@@ -92,8 +92,8 @@ QtObject {
   function themeIntegrations() {
     var scriptPath = Config.scriptsPath;
     var themePath = Config.themePath + Appearance.theme + ".json";
+    // TODO: not 4 processes
     if (_config.ThemeIntegrations.kitty) {
-      // use the component process to theme kitty
       if (_kittyProcess.running) {
         console.log("Kitty theming process is already running. Skipping new request.");
         return;
@@ -130,9 +130,19 @@ QtObject {
     _checkForChanges();
   }
 
+  /**
+     * @brief Resets the configuration to default values by reloading from disk.
+     * This does not modify the config file on disk, but reloads the in-memory
+     * configuration from the existing config.json file.
+     */
+  function hardResetConfig() {
+    console.log("[ConfigManager] Performing hard reset of configuration to defaults.");
+    configManager._config = _loadConfig();
+  }
+
   // --- Private Implementation ---
   Component.onCompleted: {
-    console.log("♻ ConfigManager service started.");
+    console.log("[ConfigManager] ♻ ConfigManager service started.");
     configManager._configSchema = _loadSchema();
     configManager._config = _loadConfig();
     _checkForChanges();
@@ -216,11 +226,13 @@ QtObject {
   }
 
   function _loadConfig() {
+    console.log("[ConfigManager] Loading configuration from", _configPath);
     var content = _getFileContent("../config/json/config.json");
     if (content) {
       try {
         const config = JSON.parse(content);
         if (_validateConfig(config)) {
+          console.log("[ConfigManager] Configuration loaded and validated successfully.");
           return config;
         }
       } catch (e) {

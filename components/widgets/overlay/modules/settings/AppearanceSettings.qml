@@ -2,48 +2,27 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import qs.config
+import qs.services
 import qs.components.widgets.common
 
 SchemaSection {
-  id: appearanceSection
+  id: root
   title: "Appearance"
 
   required property var localConfig
+
   Layout.leftMargin: Widget.padding
   Layout.rightMargin: Widget.padding
 
-  SchemaTextField {
-    label: "Theme Name"
-    value: localConfig.Appearance?.theme || ""
-    placeholderText: "default"
-    onValueChanged: {
-      if (!localConfig.Appearance)
-        localConfig.Appearance = {};
-      localConfig.Appearance.theme = value;
-      markDirty();
-    }
-  }
-
-  SchemaSwitch {
-    label: "Dark Mode"
-    checked: appearanceSection.localConfig.Appearance?.darkMode || false
-    onCheckedChanged: {
-      if (!appearanceSection.localConfig.Appearance)
-        appearanceSection.localConfig.Appearance = {};
-      appearanceSection.localConfig.Appearance.darkMode = checked;
-      markDirty();
-    }
-  }
-
   SchemaSwitch {
     label: "Auto Theme Switch"
-    checked: appearanceSection.localConfig.Appearance?.autoThemeSwitch || false
+    checked: root.localConfig.Appearance?.autoThemeSwitch || false
     description: "Automatically switch between light/dark"
-    onCheckedChanged: {
-      if (!localConfig.Appearance)
-        localConfig.Appearance = {};
-      localConfig.Appearance.autoThemeSwitch = checked;
-      markDirty();
+    onToggled: value => {
+      if (value === checked) return;
+      root.localConfig.Appearance.autoThemeSwitch = value;
+      SettingsMenu.markDirty();
+      SettingsMenu.continueStaging();
     }
   }
 
@@ -55,21 +34,24 @@ SchemaSection {
 
     SchemaSpinBox {
       label: "Border Radius"
-      value: localConfig.Appearance?.borderRadius || 8
+      description: "Roundness of corners (px)"
+      currentConfigValue: localConfig.Appearance?.borderRadius || 0
       minimum: 0
       maximum: 50
-      description: "Roundness of corners (px)"
       onValueChanged: {
         if (!localConfig.Appearance)
           localConfig.Appearance = {};
         localConfig.Appearance.borderRadius = value;
-        markDirty();
+        SettingsMenu.continueStaging();
+      }
+      onDirtied: {
+        SettingsMenu.markDirty();
       }
     }
 
     SchemaSpinBox {
       label: "Border Width"
-      value: localConfig.Appearance?.borderWidth || 1
+      currentConfigValue: localConfig.Appearance?.borderWidth || 0
       minimum: 0
       maximum: 10
       description: "Thickness of borders (px)"
@@ -77,13 +59,16 @@ SchemaSection {
         if (!localConfig.Appearance)
           localConfig.Appearance = {};
         localConfig.Appearance.borderWidth = value;
-        markDirty();
+        SettingsMenu.continueStaging();
+      }
+      onDirtied: {
+        SettingsMenu.markDirty();
       }
     }
 
     SchemaSpinBox {
       label: "Screen Margin"
-      value: localConfig.Appearance?.screenMargin || 0
+      currentConfigValue: localConfig.Appearance?.screenMargin || 0
       minimum: 0
       maximum: 100
       description: "Space around screen edges (px)"
@@ -91,7 +76,10 @@ SchemaSection {
         if (!localConfig.Appearance)
           localConfig.Appearance = {};
         localConfig.Appearance.screenMargin = value;
-        markDirty();
+        SettingsMenu.continueStaging();
+      }
+      onIsDirtyChanged: {
+        SettingsMenu.markDirty();
       }
     }
   }
@@ -104,13 +92,13 @@ SchemaSection {
       if (!localConfig.Appearance)
         localConfig.Appearance = {};
       localConfig.Appearance.fontFamily = value;
-      markDirty();
+      SettingsMenu.markDirty();
     }
   }
 
   SchemaSpinBox {
     label: "Font Size"
-    value: localConfig.Appearance?.fontSize || 12
+    currentConfigValue: localConfig.Appearance?.fontSize || 0
     minimum: 8
     maximum: 24
     description: "Base font size (px)"
@@ -118,54 +106,53 @@ SchemaSection {
       if (!localConfig.Appearance)
         localConfig.Appearance = {};
       localConfig.Appearance.fontSize = value;
-      markDirty();
+      SettingsMenu.markDirty();
     }
   }
   SchemaSwitch {
     label: "Enable Animations"
     checked: root.localConfig.Widget?.animations !== undefined ? root.localConfig.Widget.animations : true
-    onCheckedChanged: {
-      if (!root.localConfig.Widget)
-        root.localConfig.Widget = {};
-      root.localConfig.Widget.animations = checked;
-      root.markDirty();
+    onToggled: value => {
+      if (value === checked) return;
+      root.localConfig.Widget.animations = value;
+      SettingsMenu.markDirty();
+      SettingsMenu.continueStaging();
     }
   }
   SchemaSpinBox {
     label: "Animation Duration"
-    value: root.localConfig.Widget?.animationDuration || 200
+    currentConfigValue: root.localConfig.Widget?.animationDuration || 0
     minimum: 0
     maximum: 1000
     visible: root.localConfig.Widget?.animations !== false
     description: "Duration in milliseconds"
     onValueChanged: {
-      if (!root.localConfig.Widget)
-        root.localConfig.Widget = {};
       root.localConfig.Widget.animationDuration = value;
-      root.markDirty();
+      SettingsMenu.markDirty();
     }
   }
   SchemaSpinBox {
     label: "Container Width"
-    value: root.localConfig.Widget?.containerWidth || 200
+    currentConfigValue: root.localConfig.Widget?.containerWidth || 0
     minimum: 100
     maximum: 1000
     onValueChanged: {
-      if (!root.localConfig.Widget)
-        root.localConfig.Widget = {};
       root.localConfig.Widget.containerWidth = value;
-      root.markDirty();
+      SettingsMenu.continueStaging();
+    }
+    onIsDirtyChanged: {
+      SettingsMenu.markDirty();
     }
   }
   SchemaSwitch {
     label: "Workspace Popout Icons"
-    checked: root.localConfig.Widget?.workspacePopoutIcons || false
+    checked: root.localConfig.Appearance?.workspacePopoutIcons || false
     description: "Show icons outside workspace container"
-    onCheckedChanged: {
-      if (!root.localConfig.Widget)
-        root.localConfig.Widget = {};
-      root.localConfig.Widget.workspacePopoutIcons = checked;
-      root.markDirty();
+    onToggled: value => {
+      if (value === checked) return;
+      root.localConfig.Appearance.workspacePopoutIcons = value;
+      SettingsMenu.markDirty();
+      SettingsMenu.continueStaging();
     }
   }
 }

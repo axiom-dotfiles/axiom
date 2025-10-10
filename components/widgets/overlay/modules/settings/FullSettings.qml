@@ -8,6 +8,8 @@ import qs.services
 import qs.components.widgets.common
 import qs.components.widgets.overlay.modules.settings
 
+// TODO: Fix bindings and whatnot. Not exaclty the biggest fan of the state management here
+
 /**
  * Main settings menu component - fits in square grid cell
  */
@@ -20,50 +22,16 @@ Rectangle {
   border.width: Appearance.borderWidth
 
   // Local state management
-  property var localConfig: ({})
-  property bool isDirty: false
-  property bool isStaged: false
+  property var localConfig: SettingsMenu.localConfig
+  property bool isDirty: SettingsMenu.isDirty
+  property bool isStaged: SettingsMenu.isStaged
 
   Component.onCompleted: {
-    loadConfig();
+    SettingsMenu.loadConfig();
   }
 
-  function loadConfig() {
-    // Deep copy
-    localConfig = JSON.parse(JSON.stringify(ConfigManager.config));
-    isDirty = false;
-    isStaged = false;
-  }
-
-  function markDirty() {
-    if (!isDirty) {
-      isDirty = true;
-    }
-  }
-
-  function stageChanges() {
-    ConfigManager.stageConfig(localConfig);
-    isStaged = true;
-    isDirty = false;
-  }
-
-  function unstageChanges() {
-    ConfigManager.forceReload();
-    isStaged = false;
-  }
-
-  function saveChanges() {
-    ConfigManager.saveConfig();
-    isStaged = false;
-    isDirty = false;
-    loadConfig();
-  }
-
-  function resetChanges() {
-    loadConfig();
-    if (isStaged) {
-      ConfigManager.forceReload();
-    }
+  onIsDirtyChanged: {
+    console.log("SettingsMenu dirty changed to", isDirty);
   }
 
   ColumnLayout {
@@ -96,7 +64,7 @@ Rectangle {
           height: Widget.spacing
         }
 
-        GeneralSettings {}
+        // GeneralSettings {}
         AppearanceSettings {
           localConfig: root.localConfig
         }
@@ -113,63 +81,59 @@ Rectangle {
 
             SchemaSpinBox {
               label: "Height"
-              value: root.localConfig.Widget?.height || 32
+              currentConfigValue: root.localConfig.Widget?.height || 0
               minimum: 16
               maximum: 128
               onValueChanged: {
                 if (!root.localConfig.Widget)
                   root.localConfig.Widget = {};
                 root.localConfig.Widget.height = value;
-                root.markDirty();
+                SettingsMenu.continueStaging();
+              }
+              onIsDirtyChanged: {
+                SettingsMenu.markDirty();
               }
             }
 
             SchemaSpinBox {
+              id: paddingSpinBox
               label: "Padding"
-              value: root.localConfig.Widget?.padding || 8
+              currentConfigValue: root.localConfig.Widget?.padding || 0
               minimum: 0
               maximum: 32
               onValueChanged: {
                 if (!root.localConfig.Widget)
                   root.localConfig.Widget = {};
                 root.localConfig.Widget.padding = value;
-                root.markDirty();
+                SettingsMenu.continueStaging();
+              }
+              onIsDirtyChanged: {
+                SettingsMenu.markDirty();
               }
             }
 
             SchemaSpinBox {
               label: "Spacing"
-              value: root.localConfig.Widget?.spacing || 8
+              currentConfigValue: root.localConfig.Widget?.spacing || 0
               minimum: 0
               maximum: 32
               onValueChanged: {
                 if (!root.localConfig.Widget)
                   root.localConfig.Widget = {};
                 root.localConfig.Widget.spacing = value;
-                root.markDirty();
+                SettingsMenu.continueStaging();
               }
-            }
-
-            SchemaSpinBox {
-              label: "Border Width"
-              value: root.localConfig.Widget?.borderWidth || 1
-              minimum: 0
-              maximum: 10
-              onValueChanged: {
-                if (!root.localConfig.Widget)
-                  root.localConfig.Widget = {};
-                root.localConfig.Widget.borderWidth = value;
-                root.markDirty();
+              onIsDirtyChanged: {
+                SettingsMenu.markDirty();
               }
             }
           }
         }
 
-        ChatSettings {}
-        IntegrationSettings {}
-        Item {
-          height: Widget.spacing * 2
-        }
+        // ChatSettings {}
+        // IntegrationSettings {}
+        // Item {
+        // }
       }
     }
   }

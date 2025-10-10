@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import qs.config
+import qs.services
 
 Rectangle {
   Layout.fillWidth: true
@@ -61,7 +62,7 @@ Rectangle {
           anchors.fill: parent
           hoverEnabled: true
           cursorShape: Qt.PointingHandCursor
-          onClicked: root.stageChanges()
+          onClicked: SettingsMenu.stageChanges()
         }
       }
 
@@ -87,7 +88,7 @@ Rectangle {
           anchors.fill: parent
           hoverEnabled: true
           cursorShape: Qt.PointingHandCursor
-          onClicked: root.unstageChanges()
+          onClicked: SettingsMenu.unstageChanges()
         }
       }
 
@@ -123,7 +124,7 @@ Rectangle {
           anchors.fill: parent
           hoverEnabled: true
           cursorShape: Qt.PointingHandCursor
-          onClicked: root.saveChanges()
+          onClicked: SettingsMenu.saveChanges()
         }
       }
     }
@@ -163,7 +164,7 @@ Rectangle {
         anchors.fill: parent
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
-        onClicked: root.resetChanges()
+        onClicked: SettingsMenu.resetChanges()
       }
     }
   }
