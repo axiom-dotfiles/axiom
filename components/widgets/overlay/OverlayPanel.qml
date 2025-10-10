@@ -118,7 +118,7 @@ PanelWindow {
       border.color: Theme.foreground
       border.width: Math.max(Menu.cardBorderWidth, 2)
       radius: Menu.cardBorderRadius
-      color: Theme.background
+      color: Appearance.darkMode ? Theme.background : Theme.foreground
       opacity: 0.85
     }
 
