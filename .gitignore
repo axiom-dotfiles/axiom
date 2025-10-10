@@ -7,6 +7,4 @@ scramble.txt
 config/themes/generated
 !config/themes/generated/pywal-dark.json
 
-config/json/*
-!config/json/config.schema.json
-!config/json/config.default.json
+config/user

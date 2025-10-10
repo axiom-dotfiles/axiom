@@ -12,6 +12,8 @@ QtObject {
   // --- Public ---
   readonly property var config: _config
   readonly property var theme: _theme
+  readonly property var configDir: "../config/user/"
+  readonly property var configFile: "config.json" // TODO: load all config files from dir (if necessary)
   property bool usingStagedConfig: false
 
   /**
@@ -27,11 +29,9 @@ QtObject {
         return;
       }
       console.log("[ConfigManager] Setting theme to '" + themeName + "'");
-      console.log("[ConfigManager] Previous background: ", Theme.background);
       _config.Appearance.theme = themeName;
-      console.log("[ConfigManager] Requested theme change to:", themeName);
       console.log("[ConfigManager] New theme: ", Appearance.theme);
-      console.log("[ConfigManager] New background: ", Theme.background);
+      console.log("[ConfigManager] Saving configuration and triggering reload...");
       saveConfig();
     } else {
       console.error("[ConfigManager] Cannot set theme, _config.Appearance is not defined.");
@@ -153,11 +153,11 @@ QtObject {
   property var _theme: ({})
 
   property string _configSchemaPath: "../config/json/config.schema.json"
-  property string _configPath: "../config/json/config.json"
+  property string _configPath: configManager.configDir + configManager.configFile
 
   // FileView only for writing the config
   property FileView _configFileView: FileView {
-    path: Qt.resolvedUrl("../config/json/config.json")
+    path: Qt.resolvedUrl(configManager.configDir + configManager.configFile)
     blockWrites: true
     atomicWrites: true
     onSaveFailed: error => {
@@ -227,7 +227,7 @@ QtObject {
 
   function _loadConfig() {
     console.log("[ConfigManager] Loading configuration from", _configPath);
-    var content = _getFileContent("../config/json/config.json");
+    var content = _getFileContent(configManager.configDir + configManager.configFile);
     if (content) {
       try {
         const config = JSON.parse(content);
@@ -259,7 +259,10 @@ QtObject {
     var content = _getFileContent(path);
     if (content) {
       try {
-        return JSON.parse(content);
+        content = JSON.parse(content);
+        _config.Appearance.darkMode = content.variant === "dark";
+        console.log("[ThemeManager] Loaded theme:", themeName, JSON.stringify(content));
+        return content;
       } catch (e) {
         console.error("Failed to load theme:", themeName, e);
       }
@@ -278,7 +281,7 @@ QtObject {
     var hasThemeChanged = false;
     var currentThemeName = configManager._config.Appearance ? configManager._config.Appearance.theme : "default";
 
-    var configContent = _getFileContent("../config/json/config.json");
+    var configContent = _getFileContent(configManager.configDir + configManager.configFile);
     if (configContent !== null) {
       var configHash = _hashString(configContent);
       if (_fileHashes.config !== configHash) {
@@ -339,6 +342,7 @@ QtObject {
       }
     }
   }
+  // TODO: common process component
   property Process _k9sProcess: Process {
     id: k9sProcess
     stderr: StdioCollector {
