@@ -4,8 +4,10 @@ import Quickshell.Io
 
 import qs.config
 
+// Assorted functions, unorganized. Use your '/' key
 QtObject {
   id: utils
+
 
   // Launch an external application
   function launch(command) {
@@ -238,5 +240,149 @@ QtObject {
       "fg2": "base04",
       "fg1": "base05"
     };
+  }
+
+  /**
+   * Converts a Hyprland-style command string into a human-readable format.
+   * @param {string} cmd - The command string (e.g., "movefocus, l" or "exec, $scripts/wasd.sh --left").
+   * @returns {string} A human-readable description of the command.
+   */
+  function formatCommand(cmd) {
+    console.log("Formatting command:", cmd);
+    // A helper to translate direction arguments into full words.
+    const getDirection = (arg) => {
+      switch (arg) {
+        case 'l':
+        case '--left':
+          return 'Left';
+        case 'd':
+        case '--down':
+          return 'Down';
+        case 'u':
+        case '--up':
+          return 'Up';
+        case 'r':
+        case '--right':
+          return 'Right';
+        default:
+          return '';
+      }
+    };
+
+    // Clean up and robustly split the command string by commas or spaces.
+    const parts = cmd.trim().split(/, |,| /).filter(Boolean);
+    const [command, ...args] = parts;
+
+    switch (command) {
+      case 'movefocus':
+        return `Move Focus ${getDirection(args[0])}`;
+
+      case 'movewindow':
+        // Differentiates between moving with keys and moving with mouse.
+        return args.length > 0 ? `Move Window ${getDirection(args[0])}` : 'Move Window with Mouse';
+
+      case 'resizeactive':
+        const [x, y] = args.map(Number);
+        if (x < 0) return 'Resize Window: Shrink Horizontally';
+        if (x > 0) return 'Resize Window: Grow Horizontally';
+        if (y < 0) return 'Resize Window: Shrink Vertically';
+        if (y > 0) return 'Resize Window: Grow Vertically';
+        return 'Resize Window';
+        
+      case 'resizewindow':
+        return 'Resize Window with Mouse';
+
+      case 'fullscreen':
+        return 'Toggle Fullscreen';
+
+      case 'killactive':
+        return 'Close Active Window';
+
+      case 'togglefloating':
+        return 'Toggle Floating Window';
+
+      case 'togglesplit':
+        return 'Toggle Layout Split';
+
+      case 'togglespecialworkspace':
+        return `Toggle Special Workspace '${args[0]}'`;
+
+      case 'movetoworkspace':
+        const workspace = args[0].includes(':') ? args[0].split(':')[1] : args[0];
+        return `Move Window to Special Workspace '${workspace}'`;
+
+      case 'exec':
+        const [executable, ...execArgs] = args;
+
+        // Handle script-based commands
+        if (executable.includes('wasd.sh')) {
+          const direction = getDirection(execArgs.find(arg => arg.startsWith('--')));
+          const isMove = execArgs.includes('--move');
+          const isSilent = execArgs.includes('--silent');
+          const action = isMove ? 'Move Window to' : 'Switch to';
+          return `${action} Workspace ${direction}${isSilent ? ' (Silent)' : ''}`;
+        }
+        if (executable.includes('workspaceSwitching.sh')) {
+          const workspaceNum = execArgs[0];
+          const isMove = execArgs.includes('--move');
+          const action = isMove ? 'Move Window to' : 'Switch to';
+          return `${action} Workspace ${workspaceNum}`;
+        }
+        if (executable.includes('brightness.sh')) {
+          return execArgs[0] === 'inc' ? 'Increase Brightness' : 'Decrease Brightness';
+        }
+
+        // Handle program-based commands
+        if (executable === 'hyprctl') {
+          if (execArgs.join(' ').includes('workspaceopt allfloat')) {
+            return 'Toggle All Windows Floating';
+          }
+        }
+        if (executable === 'playerctl') {
+          const action = execArgs.find(arg => ['play-pause', 'next', 'previous', 'stop'].includes(arg));
+          switch (action) {
+            case 'play-pause': return 'Media: Play/Pause';
+            case 'next': return 'Media: Next Track';
+            case 'previous': return 'Media: Previous Track';
+            case 'stop': return 'Media: Stop';
+          }
+          const volumeIndex = execArgs.indexOf('volume');
+          if (volumeIndex !== -1 && execArgs.length > volumeIndex) {
+              const volumeValue = execArgs[volumeIndex + 1] || '';
+              if (volumeValue.endsWith('+')) return 'Media: Volume Up';
+              if (volumeValue.endsWith('-')) return 'Media: Volume Down';
+          }
+          return 'Media: Control';
+        }
+        if (executable === 'wpctl') {
+          if (execArgs.join(' ').includes('set-mute @DEFAULT_SOURCE@ toggle')) {
+            return 'Toggle Microphone Mute';
+          }
+        }
+
+        // Handle application launchers defined by variables
+        const launchers = {
+          '$axiom_restart': 'Restart Axiom',
+          '$axiom_workspace': 'Show Axiom Workspaces',
+          '$axiom_launch': 'Open Application Launcher',
+          '$axiom_overlay': 'Show Axiom Overlay',
+          '$terminal': 'Launch Terminal',
+          '$browser': 'Launch Browser',
+          '$files': 'Launch File Manager',
+          '$task': 'Launch Task Manager',
+          '$mixer': 'Launch Audio Mixer',
+          '$chat': 'Launch Chat App',
+          '$discord': 'Launch Discord',
+          '$screenshot': 'Take Screenshot',
+        };
+        if (launchers[executable]) {
+          return launchers[executable];
+        }
+        
+        return `Execute: ${args.join(' ')}`;
+
+      default:
+        return `Unknown command: ${command}`;
+    }
   }
 }

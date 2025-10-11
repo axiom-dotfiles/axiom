@@ -8,8 +8,5 @@ BaseView {
   // readonly property int requiredVerticalCells: Math.max(col1.requiredVerticalCells, col2.requiredVerticalCells)
   // readonly property int requiredHorizontalCells: col1.requiredHorizontalCells + col2.requiredHorizontalCells
 
-  SettingsPanel {}
-  ThemeEditor {}
-  // ColorPreview {}
   KeybindColumn {}
 }

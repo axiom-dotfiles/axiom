@@ -138,7 +138,7 @@ PanelWindow {
       Loader {
         id: viewLoader
         anchors.centerIn: parent
-        sourceComponent: ConfigEditor {
+        sourceComponent: KeybindView {
           screen: overlay.screen
         }
       }

@@ -12,10 +12,6 @@ QtObject {
     loadConfig();
   }
 
-  onIsDirtyChanged: {
-    console.log("SettingsMenu dirty changed to", isDirty);
-  }
-
   function loadConfig() {
     localConfig = {};
     localConfig = JSON.parse(JSON.stringify(ConfigManager.config));

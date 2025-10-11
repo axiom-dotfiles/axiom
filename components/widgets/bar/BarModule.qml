@@ -29,7 +29,6 @@ Item {
     source: component.componentPath
     anchors.centerIn: parent
     onLoaded: {
-      console.log("Passing properties to widget (from BarModule):", JSON.stringify(component.properties));
       if (item) {
         item.barConfig = component.barConfig
         item.popouts = component.popouts
