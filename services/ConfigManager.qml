@@ -12,8 +12,8 @@ QtObject {
   // --- Public ---
   readonly property var config: _config
   readonly property var theme: _theme
-  readonly property var configDir: "../config/user/"
-  readonly property var configFile: "config.json" // TODO: load all config files from dir (if necessary)
+  readonly property string configDir: "../config/user/"
+  readonly property string configFile: "config.json" // TODO: load all config files from dir (if necessary)
   property bool usingStagedConfig: false
 
   /**
@@ -231,7 +231,6 @@ QtObject {
     if (content) {
       try {
         const config = JSON.parse(content);
-        console.log("[ConfigManager] Loading with dark mode:", config.Appearance ? config.Appearance.darkMode : "undefined");
         if (_validateConfig(config)) {
           console.log("[ConfigManager] Configuration loaded and validated successfully.");
           return config;

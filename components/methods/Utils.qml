@@ -248,7 +248,6 @@ QtObject {
    * @returns {string} A human-readable description of the command.
    */
   function formatCommand(cmd) {
-    console.log("Formatting command:", cmd);
     // A helper to translate direction arguments into full words.
     const getDirection = (arg) => {
       switch (arg) {

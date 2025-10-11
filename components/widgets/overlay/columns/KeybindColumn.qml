@@ -8,7 +8,7 @@ import qs.components.widgets.overlay.modules.keybinds
 
 RowLayout {
   id: root
-  spacing: Menu.cardSpacing
+  // spacing: Menu.cardSpacing
 
   property var keybinds: HyprConfigManager.readKeybindings()
 

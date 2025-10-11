@@ -22,15 +22,14 @@ Rectangle {
   // This is used by the Repeater to create a continuous flow.
   property list<var> displayModel: []
 
-  anchors.margins: Menu.cardSpacing
-
-
   // --- STYLING ---
 
   radius: Menu.cardBorderRadius
-  color: Theme.backgroundHighlight
-  implicitHeight: 1440 - 200
-  implicitWidth: flow.implicitWidth + (Menu.cardSpacing)
+  color: Theme.background
+  // highly likely to break
+  // kind illegal to access this here (kinda abusing qml context properties)
+  implicitHeight: modelData.height - 135 // TODO: magic number
+  implicitWidth: flow.implicitWidth + (Menu.cardSpacing * 2)
 
   border.color: Theme.border
   border.width: Menu.cardBorderWidth
@@ -41,7 +40,7 @@ Rectangle {
     if (!key || typeof key !== 'string') return "";
     let formatted = key.charAt(0).toUpperCase() + key.slice(1).toLowerCase();
     
-    if (key === "WINDOW" || key === "WORKSPACE") {
+    if (key === "WINDOW" || key === "WORKSPACE" || key === "MODIFIERS") {
         return formatted + " Management";
     }
     return formatted;
@@ -55,8 +54,6 @@ Rectangle {
       if (keybinds && keybinds.hasOwnProperty(sectionKey) && keybinds[sectionKey].length > 0) {
         
         // Add header item
-        console.log("Adding section:", sectionKey);
-        console.log("Formatted title:", formatTitle(sectionKey));
         newModel.push({
           type: "header",
           title: formatTitle(sectionKey)
@@ -71,7 +68,6 @@ Rectangle {
         }
       }
     }
-    console.log("Built display model:", JSON.stringify(newModel));
     displayModel = newModel;
   }
 
@@ -84,9 +80,9 @@ Rectangle {
   Flow {
     id: flow
     anchors.fill: parent
-    anchors.margins: Menu.cardPadding
+    anchors.margins: Menu.cardSpacing
     flow: Flow.TopToBottom
-    spacing: Menu.cardSpacing
+    spacing: Menu.cardPadding
 
     Repeater {
       model: root.displayModel
@@ -115,13 +111,14 @@ Rectangle {
   Component {
     id: headerComponent
     StyledContainer {
+      id: header
       property var itemData
       width: Menu.cardUnit
-      color: Theme.backgroundAlt
+      color: Theme.backgroundHighlight
       height: 32
       Text {
         anchors.centerIn: parent
-        text: itemData.title
+        text: header.itemData.title
         
         font.bold: true
         font.pixelSize: 18
@@ -141,7 +138,7 @@ Rectangle {
     }
   }
 
-  StyledContainer {
+  Component {
     id: separatorComponent
     StyledContainer {
       width: Menu.cardUnit - (Menu.cardPadding * 2)
