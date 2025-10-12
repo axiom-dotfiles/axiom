@@ -13,7 +13,7 @@ BaseView {
   }
 
   BaseColumn { id: col1 }
-  ColorPreview { id: col2 }
   SettingsPanel { id: col3 }
   ThemeEditor { id: col4 }
+  ColorPreview { id: col2 }
 }

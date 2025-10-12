@@ -48,23 +48,6 @@ PanelWindow {
   }
 
   // --- Dynamic Widget Logic ---
-
-  readonly property var widgetComponentMap: {
-    "Logo": "modules/Logo.qml",
-    "Window": "modules/Window.qml",
-    "Media": "modules/Media.qml",
-    "Workspaces": "modules/Workspaces.qml",
-    "Time": "modules/Time.qml",
-    "Time": "modules/Time.qml",
-    "Tailscale": "modules/Tailscale.qml",
-    "Network": "modules/Network.qml",
-    "SystemTray": "modules/SystemTray.qml",
-    "Battery": "modules/Battery.qml",
-    "Notifications": "modules/Notifications.qml"
-  }
-
-  // A factory function to build a model array for the WidgetGroup's Repeater
-  // Will change slightly when the map above changes
   function buildWidgetModel(widgetConfigArray) {
     if (!widgetConfigArray || widgetConfigArray.length === 0) {
       return [];

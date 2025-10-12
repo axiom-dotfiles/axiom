@@ -110,6 +110,10 @@
       "cardPadding": { "type": "integer" },
       "cardBorderRadius": { "type": "integer" },
       "cardBorderWidth": { "type": "integer" },
+      "views": {
+        "type": "array",
+        "items": { "type": "string" }
+      },
       "properties": {
         "distanceFromWorkspaceContainer": { "type": "integer" },
         "startMenuPinned": { "type": "boolean" }

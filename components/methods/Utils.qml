@@ -363,7 +363,7 @@ QtObject {
         const launchers = {
           '$axiom_restart': 'Restart Axiom',
           '$axiom_workspace': 'Show Axiom Workspaces',
-          '$axiom_launch': 'Open Application Launcher',
+          '$axiom_launch': 'Show Axiom Launcher',
           '$axiom_overlay': 'Show Axiom Overlay',
           '$terminal': 'Launch Terminal',
           '$browser': 'Launch Browser',

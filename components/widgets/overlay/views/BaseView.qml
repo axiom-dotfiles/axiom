@@ -6,7 +6,7 @@ import qs.components.widgets.overlay.layouts
 
 Item {
   id: overlayColumn
-  required property var screen
+  property var screen
   default property alias content: rowLayout.data
   
   implicitWidth: rowLayout.implicitWidth

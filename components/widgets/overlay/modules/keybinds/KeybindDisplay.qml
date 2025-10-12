@@ -47,7 +47,7 @@ Rectangle {
   }
 
   // This function transforms the structured 'keybinds' object into a
-  // flat list ('displayModel') for the Repeater.
+  // flat list ('displayModel') for the Repeater, merging keybinds with the same action.
   function buildDisplayModel() {
     var newModel = [];
     for (const sectionKey of sectionOrder) {
@@ -59,12 +59,30 @@ Rectangle {
           title: formatTitle(sectionKey)
         });
 
-        // Add all keybind items for the current section
+        // Group keybinds by action
+        const groupedKeybinds = {};
         for (const keybindItem of keybinds[sectionKey]) {
-          newModel.push({
-              type: "keybind",
-              data: keybindItem
-          });
+            const action = keybindItem.action;
+            if (!groupedKeybinds[action]) {
+                groupedKeybinds[action] = [];
+            }
+            groupedKeybinds[action].push({
+                mod: keybindItem.mod,
+                bind: keybindItem.bind
+            });
+        }
+
+        // Add merged keybind items for the current section
+        for (const action in groupedKeybinds) {
+            if (groupedKeybinds.hasOwnProperty(action)) {
+                newModel.push({
+                    type: "keybind",
+                    data: {
+                        action: action,
+                        binds: groupedKeybinds[action]
+                    }
+                });
+            }
         }
       }
     }
@@ -75,8 +93,6 @@ Rectangle {
   Component.onCompleted: buildDisplayModel()
 
   // --- LAYOUT ---
-  // The Flow layout arranges items in columns from top to bottom,
-  // creating new columns as needed.
   Flow {
     id: flow
     anchors.fill: parent
@@ -116,13 +132,11 @@ Rectangle {
       width: Menu.cardUnit
       color: Theme.backgroundHighlight
       height: 32
-      Text {
+      StyledText {
         anchors.centerIn: parent
         text: header.itemData.title
         
         font.bold: true
-        font.pixelSize: 18
-        font.family: Appearance.fontFamily
         color: Theme.accent
       }
       
@@ -151,9 +165,7 @@ Rectangle {
   Component {
     id: keybindComponent
     KeybindPreview {
-      keybind: itemData.data
       width: Menu.cardUnit
-
       anchors.topMargin: 4
       anchors.bottomMargin: 4
     }
