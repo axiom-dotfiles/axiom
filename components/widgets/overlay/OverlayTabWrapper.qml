@@ -10,8 +10,14 @@ Item {
   property var viewsModel: buildViewsModel(viewsConfig)
   property int currentIndex: 0
 
-  implicitWidth: contentContainer.implicitWidth
-  implicitHeight: contentContainer.implicitHeight + controlPanel.height + 20
+  implicitWidth: currentViewWidth + Menu.cardSpacing * 2
+  implicitHeight: currentViewHeight + Menu.cardSpacing * 2 + controlPanel.height + 20
+
+  // Store current view dimensions to avoid binding loops
+  property real currentViewWidth: viewsRepeater.count > 0 && viewsRepeater.itemAt(wrapper.currentIndex) ? 
+                                   viewsRepeater.itemAt(wrapper.currentIndex).implicitWidth : 0
+  property real currentViewHeight: viewsRepeater.count > 0 && viewsRepeater.itemAt(wrapper.currentIndex) ? 
+                                    viewsRepeater.itemAt(wrapper.currentIndex).implicitHeight : 0
 
   function buildViewsModel(viewConfigArray) {
     if (!viewConfigArray || viewConfigArray.length === 0) {
@@ -39,18 +45,18 @@ Item {
       left: parent.left
       right: parent.right
     }
-    implicitHeight: viewLoader.item ? viewLoader.item.implicitHeight + Menu.cardSpacing * 2 : 0
-    implicitWidth: viewLoader.item ? viewLoader.item.implicitWidth + Menu.cardSpacing * 2 : 0
+    height: wrapper.currentViewHeight + Menu.cardSpacing * 2
+    width: wrapper.currentViewWidth + Menu.cardSpacing * 2
     clip: true
 
-    Behavior on implicitHeight {
+    Behavior on height {
       NumberAnimation {
         duration: Appearance.animationDuration
         easing.type: Easing.InOutQuad
       }
     }
 
-    Behavior on implicitWidth {
+    Behavior on width {
       NumberAnimation {
         duration: Appearance.animationDuration
         easing.type: Easing.InOutQuad
@@ -60,80 +66,88 @@ Item {
     Rectangle {
       id: mainContentBox
       anchors.centerIn: parent
-      width: contentContainer.implicitWidth
-      height: contentContainer.implicitHeight
+      width: contentContainer.width
+      height: contentContainer.height
       radius: Menu.cardBorderRadius
       color: Theme.backgroundAlt
       border.color: Theme.foreground
       border.width: Menu.cardBorderWidth
 
-      Loader {
-        id: viewLoader
-        anchors.centerIn: parent
-        sourceComponent: wrapper.viewsModel.length > 0 ? viewComponent : null
+      Item {
+        id: viewsContainer
+        anchors.fill: parent
+        anchors.margins: Menu.cardSpacing
 
-        Component {
-          id: viewComponent
+        Repeater {
+          id: viewsRepeater
+          model: wrapper.viewsModel
 
           Item {
             id: viewContainer
-            implicitWidth: currentView.implicitWidth
-            implicitHeight: currentView.implicitHeight
+            required property int index
+            required property var modelData
+            
+            anchors.centerIn: parent
+            implicitWidth: viewWrapper.implicitWidth
+            implicitHeight: viewWrapper.implicitHeight
+            visible: wrapper.currentIndex === index
+            opacity: wrapper.currentIndex === index ? 1 : 0
 
             OverlayViewWrapper {
-              id: currentView
+              id: viewWrapper
               anchors.centerIn: parent
               screen: wrapper.screen
-              viewModel: wrapper.viewsModel[wrapper.currentIndex]
-              opacity: 0
-
-              Component.onCompleted: {
-                fadeIn.start();
-              }
-
-              NumberAnimation {
-                id: fadeIn
-                target: currentView
-                property: "opacity"
-                from: 0
-                to: 1
-                duration: Appearance.animationDuration / 2
-                easing.type: Easing.InOutQuad
-              }
-            }
-
-            Connections {
-              target: wrapper
-              function onCurrentIndexChanged() {
-                // Fade out current view
-                fadeOut.start();
-              }
-            }
-
-            NumberAnimation {
-              id: fadeOut
-              target: currentView
-              property: "opacity"
-              from: 1
-              to: 0
-              duration: Appearance.animationDuration / 2
-              easing.type: Easing.InOutQuad
-              onFinished: {
-                // Reload with new view
-                viewLoader.sourceComponent = null;
-                viewLoader.sourceComponent = viewComponent;
-              }
+              viewModel: viewContainer.modelData
             }
 
             transform: Translate {
               id: slideTransform
               x: 0
-              
-              Behavior on x {
-                NumberAnimation {
-                  duration: Appearance.animationDuration
-                  easing.type: Easing.InOutQuad
+            }
+
+            Behavior on opacity {
+              NumberAnimation {
+                duration: Appearance.animationDuration / 2
+                easing.type: Easing.InOutQuad
+              }
+            }
+
+            Behavior on visible {
+              enabled: false
+            }
+
+            states: [
+              State {
+                name: "left"
+                when: viewContainer.index < wrapper.currentIndex
+                PropertyChanges {
+                  target: slideTransform
+                  x: -100
                 }
+              },
+              State {
+                name: "center"
+                when: viewContainer.index === wrapper.currentIndex
+                PropertyChanges {
+                  target: slideTransform
+                  x: 0
+                }
+              },
+              State {
+                name: "right"
+                when: viewContainer.index > wrapper.currentIndex
+                PropertyChanges {
+                  target: slideTransform
+                  x: 100
+                }
+              }
+            ]
+
+            transitions: Transition {
+              NumberAnimation {
+                property: "x"
+                duration: Appearance.animationDuration / 2
+                easing.type: Easing.InOutQuad
               }
             }
           }
@@ -153,9 +167,9 @@ Item {
     width: controlLayout.implicitWidth + 20
     height: 40
     radius: 8
-    color: Theme.background
+    color: "transparent"
     border.color: Theme.foreground
-    border.width: 1
+    border.width: 0
 
     RowLayout {
       id: controlLayout
@@ -166,10 +180,10 @@ Item {
       Rectangle {
         Layout.preferredWidth: 30
         Layout.preferredHeight: 30
-        radius: 4
-        color: leftArrowMouse.containsMouse ? Theme.backgroundAlt : "transparent"
-        border.color: Theme.foreground
-        border.width: 1
+        radius: Menu.cardBorderRadius
+        color: leftArrowMouse.containsMouse ? Theme.backgroundHighlight : Theme.backgroundAlt
+        border.color: Theme.border
+        border.width: Menu.cardBorderWidth
 
         Text {
           anchors.centerIn: parent
@@ -194,10 +208,10 @@ Item {
       Rectangle {
         Layout.preferredWidth: indicatorRow.implicitWidth + 12
         Layout.preferredHeight: 30
-        radius: 4
-        color: Theme.background
-        border.color: Theme.foreground
-        border.width: 1
+        radius: Menu.cardBorderRadius
+        color: Theme.backgroundAlt
+        border.color: Theme.border
+        border.width: Menu.cardBorderWidth
 
         Row {
           id: indicatorRow
@@ -212,14 +226,16 @@ Item {
               required property int index
               width: 12
               height: 12
-              radius: 2
-              color: wrapper.currentIndex === index ? Theme.accent : Theme.backgroundAlt
-              border.color: Theme.foreground
-              border.width: 1
+              radius: Menu.cardBorderRadius
+              color: wrapper.currentIndex === index ? Theme.accent : dotMouse.containsMouse ? Theme.foreground : Theme.background
+              border.color: Theme.border
+              border.width: Menu.cardBorderWidth
 
               MouseArea {
+                id: dotMouse
                 anchors.fill: parent
                 cursorShape: Qt.PointingHandCursor
+                hoverEnabled: true
                 onClicked: {
                   wrapper.currentIndex = indicatorDot.index;
                 }
@@ -239,10 +255,10 @@ Item {
       Rectangle {
         Layout.preferredWidth: 30
         Layout.preferredHeight: 30
-        radius: 4
-        color: rightArrowMouse.containsMouse ? Theme.backgroundAlt : "transparent"
-        border.color: Theme.foreground
-        border.width: 1
+        radius: Menu.cardBorderRadius
+        color: rightArrowMouse.containsMouse ? Theme.backgroundHighlight : Theme.backgroundAlt
+        border.color: Menu.cardBorderColor
+        border.width: Menu.cardBorderWidth
 
         Text {
           anchors.centerIn: parent

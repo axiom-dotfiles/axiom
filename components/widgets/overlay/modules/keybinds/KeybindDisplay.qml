@@ -14,6 +14,7 @@ Rectangle {
   // The main model containing all keybind categories
   // e.g., { "WINDOW": [...], "WORKSPACE": [...], "OTHER": [...] }
   required property var keybinds
+  required property var screen
 
   // Defines the order in which sections will be displayed
   property var sectionOrder: ["WINDOW", "WORKSPACE", "OTHER"]
@@ -28,7 +29,7 @@ Rectangle {
   color: Theme.background
   // highly likely to break
   // kind illegal to access this here (kinda abusing qml context properties)
-  implicitHeight: modelData.height - 135 // TODO: magic number
+  implicitHeight: screen.height - 300 // TODO: magix num
   implicitWidth: flow.implicitWidth + (Menu.cardSpacing * 2)
 
   border.color: Theme.border

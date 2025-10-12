@@ -47,7 +47,6 @@ StyledContainer {
           // Modifier keys
           RowLayout {
             spacing: Menu.cardPadding / 3
-            Component.onCompleted: console.log("Modifier RowLayout width:", width, "childCount:", children.length)
 
             Item {
               Layout.preferredWidth: Menu.cardSpacing

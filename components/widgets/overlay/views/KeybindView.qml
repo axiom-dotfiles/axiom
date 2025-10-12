@@ -5,8 +5,12 @@ import qs.components.widgets.overlay.columns
 BaseView {
   id: view
 
+  property var screen
+
   // readonly property int requiredVerticalCells: Math.max(col1.requiredVerticalCells, col2.requiredVerticalCells)
   // readonly property int requiredHorizontalCells: col1.requiredHorizontalCells + col2.requiredHorizontalCells
 
-  KeybindColumn {}
+  KeybindColumn {
+    screen: view.screen
+  }
 }

@@ -9,6 +9,6 @@ BaseView {
   // readonly property int requiredHorizontalCells: col1.requiredHorizontalCells + col2.requiredHorizontalCells
 
   SettingsPanel {}
-  ColorPreview {}
   ThemeEditor {}
+  ColorPreview {}
 }
