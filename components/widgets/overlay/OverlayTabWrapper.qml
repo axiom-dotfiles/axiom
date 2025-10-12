@@ -43,26 +43,29 @@ Item {
     implicitWidth: viewLoader.item ? viewLoader.item.implicitWidth + Menu.cardSpacing * 2 : 0
     clip: true
 
+    Behavior on implicitHeight {
+      NumberAnimation {
+        duration: Appearance.animationDuration
+        easing.type: Easing.InOutQuad
+      }
+    }
+
+    Behavior on implicitWidth {
+      NumberAnimation {
+        duration: Appearance.animationDuration
+        easing.type: Easing.InOutQuad
+      }
+    }
+
     Rectangle {
       id: mainContentBox
       anchors.centerIn: parent
-      implicitHeight: contentContainer.implicitHeight
-      implicitWidth: contentContainer.implicitWidth
+      width: contentContainer.implicitWidth
+      height: contentContainer.implicitHeight
       radius: Menu.cardBorderRadius
       color: Theme.backgroundAlt
       border.color: Theme.foreground
       border.width: Menu.cardBorderWidth
-
-      transform: Translate {
-        id: slideTransform
-        x: 0
-        Behavior on x {
-          NumberAnimation {
-            duration: Appearance.animationDuration
-            easing.type: Easing.InOutQuad
-          }
-        }
-      }
 
       Loader {
         id: viewLoader
@@ -72,19 +75,64 @@ Item {
         Component {
           id: viewComponent
 
-          Loader {
-            source: wrapper.viewsModel[wrapper.currentIndex].component
+          Item {
+            id: viewContainer
+            implicitWidth: currentView.implicitWidth
+            implicitHeight: currentView.implicitHeight
 
-            onLoaded: {
-              if (item) {
-                item.screen = wrapper.screen
+            OverlayViewWrapper {
+              id: currentView
+              anchors.centerIn: parent
+              screen: wrapper.screen
+              viewModel: wrapper.viewsModel[wrapper.currentIndex]
+              opacity: 0
 
-                // Apply any additional properties from config
-                const props = wrapper.viewsModel[wrapper.currentIndex].properties;
-                for (const key in props) {
-                  if (props.hasOwnProperty(key)) {
-                    item[key] = props[key];
-                  }
+              Component.onCompleted: {
+                fadeIn.start();
+              }
+
+              NumberAnimation {
+                id: fadeIn
+                target: currentView
+                property: "opacity"
+                from: 0
+                to: 1
+                duration: Appearance.animationDuration / 2
+                easing.type: Easing.InOutQuad
+              }
+            }
+
+            Connections {
+              target: wrapper
+              function onCurrentIndexChanged() {
+                // Fade out current view
+                fadeOut.start();
+              }
+            }
+
+            NumberAnimation {
+              id: fadeOut
+              target: currentView
+              property: "opacity"
+              from: 1
+              to: 0
+              duration: Appearance.animationDuration / 2
+              easing.type: Easing.InOutQuad
+              onFinished: {
+                // Reload with new view
+                viewLoader.sourceComponent = null;
+                viewLoader.sourceComponent = viewComponent;
+              }
+            }
+
+            transform: Translate {
+              id: slideTransform
+              x: 0
+              
+              Behavior on x {
+                NumberAnimation {
+                  duration: Appearance.animationDuration
+                  easing.type: Easing.InOutQuad
                 }
               }
             }
@@ -161,7 +209,7 @@ Item {
 
             Rectangle {
               id: indicatorDot
-              property int index: index
+              required property int index
               width: 12
               height: 12
               radius: 2

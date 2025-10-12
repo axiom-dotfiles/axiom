@@ -122,31 +122,9 @@ PanelWindow {
       opacity: 0.85
     }
 
-    // TODO: insert a wrapper here to handle
-    // loading multiple different views and
-    // navigation between them
-
     OverlayTabWrapper {
       anchors.centerIn: parent
       screen: overlay.screen
     }
-
-    // Rectangle {
-    //   anchors.centerIn: parent
-    //   implicitHeight: viewLoader.item ? viewLoader.item.implicitHeight + Menu.cardSpacing * 2 : 0
-    //   implicitWidth: viewLoader.item ? viewLoader.item.implicitWidth + Menu.cardSpacing * 2 : 0
-    //   radius: Menu.cardBorderRadius
-    //   color: Theme.backgroundAlt
-    //   border.color: Theme.foreground
-    //   border.width: Menu.cardBorderWidth
-    //
-    //   Loader {
-    //     id: viewLoader
-    //     anchors.centerIn: parent
-    //     sourceComponent: KeybindView {
-    //       screen: overlay.screen
-    //     }
-    //   }
-    // }
   }
 }
