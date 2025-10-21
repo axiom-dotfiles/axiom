@@ -10,7 +10,7 @@ RowLayout {
   id: root
   // spacing: Menu.cardSpacing
 
-  property var keybinds: HyprConfigManager.readKeybindings()
+  property var keybinds: HyprConfigManager.keybindings
   property var screen
 
   KeybindDisplay {
