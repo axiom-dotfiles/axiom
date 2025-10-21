@@ -39,7 +39,7 @@ PanelWindow {
   color: "transparent"
   focusable: true
 
-  WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
+  WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
   WlrLayershell.layer: WlrLayer.Overlay
   WlrLayershell.exclusiveZone: -1
 
