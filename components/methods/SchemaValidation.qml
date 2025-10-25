@@ -37,6 +37,11 @@ QtObject {
       }
     }
 
+    if (schema.oneOf) {
+      _validateOneOf(value, schema.oneOf, path, errors);
+      return;
+    }
+
     if (schema.enum && !schema.enum.includes(value)) {
       errors.push(`${path}: value "${value}" not in allowed values [${schema.enum.join(', ')}]`);
     }
@@ -156,6 +161,42 @@ QtObject {
     }
     if (schema.maxItems !== undefined && value.length > schema.maxItems) {
       errors.push(`${path}: array has ${value.length} items, maximum is ${schema.maxItems}`);
+    }
+  }
+
+  function _validateOneOf(value, oneOfSchemas, path, errors) {
+    const matchingSchemas = [];
+
+    for (let i = 0; i < oneOfSchemas.length; i++) {
+      const subErrors = [];
+      const subSchema = oneOfSchemas[i];
+
+      // Resolve $ref if present
+      let resolvedSchema = subSchema;
+      if (subSchema.$ref) {
+        const refPath = subSchema.$ref.replace('#/definitions/', '');
+        if (ConfigManager._configSchema?.definitions[refPath]) {
+          resolvedSchema = ConfigManager._configSchema.definitions[refPath];
+        }
+      }
+
+      if (resolvedSchema.properties?.type?.const !== undefined) {
+        if (value.type !== resolvedSchema.properties.type.const) {
+          continue;
+        }
+      }
+
+      _validate(value, resolvedSchema, path, subErrors);
+
+      if (subErrors.length === 0) {
+        matchingSchemas.push(i);
+      }
+    }
+
+    if (matchingSchemas.length === 0) {
+      errors.push(`${path}: value does not match any schema in oneOf`);
+    } else if (matchingSchemas.length > 1) {
+      errors.push(`${path}: value matches multiple schemas in oneOf (indices: ${matchingSchemas.join(', ')})`);
     }
   }
 

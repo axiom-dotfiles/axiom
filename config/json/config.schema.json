@@ -155,31 +155,149 @@
       }
     }
   },
-  "definitions": {
+    "definitions": {
     "BarWidget": {
       "type": "object",
       "required": ["type"],
+      "oneOf": [
+        { "$ref": "#/definitions/WindowWidget" },
+        { "$ref": "#/definitions/MediaWidget" },
+        { "$ref": "#/definitions/WorkspacesWidget" },
+        { "$ref": "#/definitions/TimeWidget" },
+        { "$ref": "#/definitions/TimeJapaneseWidget" },
+        { "$ref": "#/definitions/TailscaleWidget" },
+        { "$ref": "#/definitions/NetworkWidget" },
+        { "$ref": "#/definitions/SystemTrayWidget" },
+        { "$ref": "#/definitions/NotificationsWidget" },
+        { "$ref": "#/definitions/LogoWidget" }
+      ]
+    },
+    "WindowWidget": {
+      "type": "object",
+      "required": ["type"],
       "properties": {
-        "type": {
-          "type": "string",
-          "enum": [
-            "Window",
-            "Media",
-            "Workspaces",
-            "Time",
-            "TimeJapanese",
-            "Tailscale",
-            "Network",
-            "SystemTray",
-            "Notifications",
-            "Logo"
-          ]
+        "type": { 
+          "const": "Window",
+          "description": "Window Title"
+        }
+      },
+      "additionalProperties": false
+    },
+    "MediaWidget": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { 
+          "const": "Media",
+          "description": "Media Player"
+        }
+      },
+      "additionalProperties": false
+    },
+    "WorkspacesWidget": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { 
+          "const": "Workspaces",
+          "description": "Workspace Switcher"
+        }
+      },
+      "additionalProperties": false
+    },
+    "TimeWidget": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { 
+          "const": "Time",
+          "description": "Clock"
+        }
+      },
+      "additionalProperties": false
+    },
+    "TimeJapaneseWidget": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { 
+          "const": "TimeJapanese",
+          "description": "Japanese Clock"
+        }
+      },
+      "additionalProperties": false
+    },
+    "TailscaleWidget": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { 
+          "const": "Tailscale",
+          "description": "Tailscale Status"
+        }
+      },
+      "additionalProperties": false
+    },
+    "NetworkWidget": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { 
+          "const": "Network",
+          "description": "Network Status"
+        }
+      },
+      "additionalProperties": false
+    },
+    "SystemTrayWidget": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { 
+          "const": "SystemTray",
+          "description": "System Tray"
+        }
+      },
+      "additionalProperties": false
+    },
+    "NotificationsWidget": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { 
+          "const": "Notifications",
+          "description": "Notification Center"
+        }
+      },
+      "additionalProperties": false
+    },
+    "LogoWidget": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { 
+          "const": "Logo",
+          "description": "Custom Logo"
         },
         "properties": {
           "type": "object",
-          "additionalProperties": true
+          "properties": {
+            "icon": { 
+              "type": "string",
+              "description": "Icon glyph or text",
+              "default": "󰣇"
+            },
+            "backgroundColor": { 
+              "type": "string",
+              "description": "Background color (Theme.* or hex)",
+              "default": "Theme.info",
+              "examples": ["Theme.info", "Theme.primary", "#FF5733"]
+            }
+          },
+          "additionalProperties": false
         }
-      }
+      },
+      "additionalProperties": false
     }
   }
 }
