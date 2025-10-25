@@ -1,4 +1,3 @@
-// PowerMenuButton.qml
 pragma ComponentBehavior: Bound
 import qs.config
 import qs.services
