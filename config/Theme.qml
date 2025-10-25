@@ -117,8 +117,13 @@ QtObject {
   property bool isGenerated: false
 
   function resolveColor(name) {
+    console.log("Resolving color for name: " + name)
     const colorKey = name.includes('.') ? name.substring(name.lastIndexOf('.') + 1) : name;
-    return root.stringToColorMap[colorKey] ?? name ?? "#ff00ff"
+    const resolved = root.stringToColorMap[colorKey] ?? name ?? "#ff00ff"
+    // DO NOT REMOVE. THIS LOG IS REQUIRED FOR REACTIVITY
+    // TODO: Find a better way that doesn't encounter this issue
+    console.log("  -> resolved to: " + resolved)
+    return resolved;
   }
 
   Component.onCompleted: {

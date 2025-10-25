@@ -9,10 +9,12 @@ import qs.components.widgets.overlay.columns
 
 BaseView {
   id: view
+  property var screen
 
   Rectangle {
-    implicitWidth: barPreview.implicitWidth + 40
-    implicitHeight: barPreview.implicitHeight + 40
+    implicitWidth: barPreview.implicitWidth
+    implicitHeight: barPreview.implicitHeight * 0.75
+    //scale: 0.75
     color: Theme.backgroundAlt
     radius: Menu.cardBorderRadius
     border.color: Theme.border
@@ -23,6 +25,10 @@ BaseView {
       anchors.centerIn: parent
       barConfig: Bar.bars[0]
       screen: view.screen
+      scale: 0.75
+      panel: null
+      popouts: null
+      implicitHeight: view.screen ? view.screen.height : 300
       Component.onCompleted: {
         console.log("Generating bar preview with config: ", JSON.stringify(barConfig));
       }

@@ -21,7 +21,7 @@ Item {
   property alias barContainer: container
 
   implicitWidth: barConfig.vertical ? barConfig.extent : 300
-  implicitHeight: barConfig.vertical ? 1440 : barConfig.extent
+  implicitHeight: barConfig.vertical ? 300 : barConfig.extent
 
   // --- Dynamic Widget Logic ---
   function buildWidgetModel(widgetConfigArray) {

@@ -16,7 +16,7 @@ StyledRectButton {
   property var panel
   property var screen
   property var properties
-  
+
   // -- Configurable Appearance --
   iconText: properties.icon ? properties.icon : "󰍃"
   iconColor: Theme.background
