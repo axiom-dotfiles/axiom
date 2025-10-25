@@ -47,7 +47,7 @@ ColumnLayout {
     text: Math.round(root.percentage) + "%"
     font.pixelSize: parent.height * 0.12
     font.weight: Font.Bold
-    color: root.percentage > 80 ? "#ef4444" : root.percentage > 50 ? "#f59e0b" : "#10b981"
+    color: root.percentage > 80 ? Theme.error : root.percentage > 50 ? Theme.warning : Theme.info
   }
   
   // Temperature
