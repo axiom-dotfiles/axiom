@@ -6,6 +6,7 @@ import Quickshell.Io
 import qs.components.methods
 import qs.config
 
+/* HyprConfigManager handles reading Hyprland keybindings and configurations */
 QtObject {
   id: root
 
@@ -145,17 +146,6 @@ QtObject {
   }
 
   function _getFileContent(filepath) {
-    try {
-      const xhr = new XMLHttpRequest();
-      xhr.open("GET", Qt.resolvedUrl(filepath), false);
-      xhr.send();
-      
-      if (xhr.status === 200 || xhr.status === 0) {
-        return xhr.responseText;
-      }
-    } catch (e) {
-      console.error("Could not read file:", filepath, e);
-    }
-    return null;
+    return Utils.getFileContent(Qt.resolvedUrl(filepath));
   }
 }

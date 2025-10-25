@@ -4,10 +4,24 @@ import Quickshell.Io
 
 import qs.config
 
-// Assorted functions, unorganized. Use your '/' key
+/* Assorted functions, unorganized. Use your '/' key */
 QtObject {
   id: utils
 
+  function getFileContent(filepath) {
+    try {
+      // WAY faster than using FileView for reads for some reason
+      var xhr = new XMLHttpRequest();
+      xhr.open("GET", filepath, false);
+      xhr.send();
+      if (xhr.status === 200 || xhr.status === 0) {
+        return xhr.responseText;
+      }
+    } catch (e) {
+      console.error("Could not read file:", filepath, e);
+    }
+    return null;
+  }
 
   // Launch an external application
   function launch(command) {

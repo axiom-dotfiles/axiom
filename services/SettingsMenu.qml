@@ -1,6 +1,7 @@
 pragma Singleton
 import QtQuick
 
+// TODO: move this to the configManager
 QtObject {
   id: settingsMenu
 

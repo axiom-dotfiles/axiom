@@ -9,6 +9,7 @@ import Quickshell.Io
 
 import qs.services
 
+/* ThemeManager handles theme generation and the global application api */
 QtObject {
   id: root
 

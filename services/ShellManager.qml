@@ -1,6 +1,7 @@
 pragma Singleton
 import QtQuick
 
+/* Shell manager manages global options and signals */
 QtObject {
   signal togglePanelReservation(string panelId)
   signal togglePanelLock(string panelId)

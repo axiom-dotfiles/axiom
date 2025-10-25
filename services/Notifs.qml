@@ -1,13 +1,9 @@
-/*
- * Notifs.qml
- *
- * This singleton provides a centralized service for managing and tracking desktop notifications.
- */
 pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Services.Notifications
 
+/* NotificationManager handles system notifications via DBus */
 Singleton {
   id: root
 

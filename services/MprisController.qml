@@ -17,16 +17,16 @@ QtObject {
   readonly property bool isPlaying: playbackState === MprisPlaybackState.Playing
   readonly property int playbackState: activePlayer ? activePlayer.playbackState : MprisPlaybackState.Stopped
 
-  // --- Properties we fully control to be explicit ---
-  property string identity: ""
-  property string trackTitle: ""
-  property string trackId: ""
-  property string trackArtist: ""
+  // --- Properties we fully control to be explicit, partially due to a bug with YT Music ---
   property real position: 0
   property real length: 0
   property real progress: length > 0 ? (position / length) : 0
 
   // --- Everything else ---
+  property string identity: activePlayer ? activePlayer.identity : ""
+  property string trackTitle: activePlayer ? activePlayer.trackTitle : ""
+  property string trackId: activePlayer ? activePlayer.trackId : ""
+  property string trackArtist: activePlayer ? activePlayer.trackArtist : ""
   property string artUrl: activePlayer ? activePlayer.trackArtUrl : ""
   property string artFileName: artUrl ? Qt.md5(artUrl) + ".jpg" : ""
   property string artFilePath: artFileName ? `/tmp/quickshell-media-art/${artFileName}` : ""
@@ -69,10 +69,6 @@ QtObject {
       console.log("[MprisController] No active MPRIS player to update metadata from.");
       return;
     }
-    identity = activePlayer.identity || "";
-    trackTitle = activePlayer.trackTitle || "";
-    trackId = activePlayer.trackId || "";
-    trackArtist = activePlayer.trackArtist || "";
     length = activePlayer.length || 0;
     root.updatePosition();
     // root.logCurrentSongProperties();
@@ -84,7 +80,7 @@ QtObject {
       activePlayer.positionChanged();
       // Potential bug with youtube music AUR package and mpris
       // Simply requires a skip to sync positions
-      if (activePlayer.position > length) {
+      if (activePlayer.position > length && length > 0) {
         position = activePlayer.position - length;
         progress = length > 0 ? (position / length) : 0;
       } else {

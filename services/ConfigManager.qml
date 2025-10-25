@@ -6,6 +6,7 @@ import Quickshell.Io
 import qs.components.methods
 import qs.config
 
+/* ConfigManager handles loading, saving, and monitoring the configuration file */
 QtObject {
   id: configManager
 
@@ -188,18 +189,7 @@ QtObject {
   }
 
   function _getFileContent(filepath) {
-    try {
-      // WAY faster than using FileView for reads for some reason
-      var xhr = new XMLHttpRequest();
-      xhr.open("GET", Qt.resolvedUrl(filepath), false);
-      xhr.send();
-      if (xhr.status === 200 || xhr.status === 0) {
-        return xhr.responseText;
-      }
-    } catch (e) {
-      console.error("Could not read file:", filepath, e);
-    }
-    return null;
+    return Utils.getFileContent(Qt.resolvedUrl(filepath));
   }
 
   function _loadSchema() {

@@ -3,6 +3,7 @@ pragma Singleton
 import QtQuick
 import qs.config
 
+/* Chat service handles communication with various ai chat backends */
 QtObject {
 
   property string currentBackend: ChatConfig.defaultBackend

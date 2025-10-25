@@ -8,6 +8,7 @@ import qs.services
 
 // TODO: better support
 // much better support
+/* SystemManager handles system monitoring such as CPU, memory, disk, network, and GPU stats */
 QtObject {
   id: systemManager
 
