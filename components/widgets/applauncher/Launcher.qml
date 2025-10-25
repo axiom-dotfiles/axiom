@@ -6,6 +6,7 @@ import Quickshell.Io
 
 import qs.components.reusable
 import qs.config
+import qs.services
 
 PanelWindow {
   id: rootWindow
@@ -29,6 +30,7 @@ PanelWindow {
     shown = !shown;
     if (shown) {
       searchInput.input.text = "";
+      LauncherManager.clearFilter();
       searchInput.input.forceActiveFocus();
     }
   }
@@ -61,25 +63,6 @@ PanelWindow {
     active: rootWindow.shown
     windows: [rootWindow]
     onCleared: rootWindow.shown = false
-  }
-
-  property var filteredApps: []
-  property string filterText: searchInput.text.trim().toLowerCase()
-  property int maxResults: 7
-
-  onFilterTextChanged: updateFilteredApps()
-
-  function updateFilteredApps() {
-    if (filterText === "") {
-      filteredApps = [];
-      return;
-    }
-
-    const allApps = DesktopEntries.applications.values;
-    let filtered = allApps.filter(app => !app.noDisplay && (app.name.toLowerCase().includes(filterText) || app.genericName.toLowerCase().includes(filterText) || app.keywords.some(k => k.toLowerCase().includes(filterText))));
-    filtered.sort((a, b) => a.name.localeCompare(b.name));
-    filteredApps = filtered.slice(0, maxResults);
-    resultsView.currentIndex = 0;
   }
 
   Rectangle {
@@ -115,9 +98,13 @@ PanelWindow {
           Keys.onEscapePressed: rootWindow.toggle()
           onAccepted: launchSelected()
 
+          onTextChanged: {
+            LauncherManager.filterApps(text);
+          }
+
           Keys.onPressed: event => {
             if (event.key === Qt.Key_Up || event.key === Qt.Key_Down) {
-              if (filteredApps.length > 0) {
+              if (LauncherManager.filteredApps.length > 0) {
                 resultsView.forceActiveFocus();
                 resultsView.Keys.pressed(event);
                 event.accepted = true;
@@ -129,7 +116,7 @@ PanelWindow {
         StyledContainer {
           width: parent.width
           height: Math.min(resultsView.contentHeight, 450)
-          visible: filteredApps.length > 0
+          visible: LauncherManager.filteredApps.length > 0
           clip: true
           Behavior on height {
             NumberAnimation {
@@ -144,7 +131,7 @@ PanelWindow {
 
             ListView {
               id: resultsView
-              model: filteredApps
+              model: LauncherManager.filteredApps
               currentIndex: 0
 
               Keys.onPressed: event => {
@@ -240,10 +227,10 @@ PanelWindow {
   }
 
   function launchSelected() {
-    if (filteredApps.length > 0 && resultsView.currentIndex >= 0 && resultsView.currentIndex < filteredApps.length) {
-      const appEntry = filteredApps[resultsView.currentIndex];
-      if (appEntry) {
-        appEntry.execute();
+    const apps = LauncherManager.filteredApps;
+    if (apps.length > 0 && resultsView.currentIndex >= 0 && resultsView.currentIndex < apps.length) {
+      const appEntry = apps[resultsView.currentIndex];
+      if (LauncherManager.launchApp(appEntry)) {
         rootWindow.toggle();
       }
     }

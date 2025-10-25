@@ -8,3 +8,4 @@ config/themes/generated
 !config/themes/generated/pywal-dark.json
 
 config/user
+config/state
