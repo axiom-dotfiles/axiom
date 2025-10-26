@@ -84,10 +84,7 @@
             "type": "Network"
           },
           {
-            "type": "SystemTray",
-            "properties": {
-              "orientation": "Qt.Vertical"
-            }
+            "type": "SystemTray"
           },
           {
             "type": "Notifications"
