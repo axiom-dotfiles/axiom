@@ -15,17 +15,17 @@ SchemaSection {
   Layout.leftMargin: Widget.padding
   Layout.rightMargin: Widget.padding
 
-  SchemaSwitch {
-    label: "Auto Theme Switch"
-    checked: root.localConfig.Appearance?.autoThemeSwitch || false
-    description: "Automatically switch between light/dark"
-    onToggled: value => {
-      if (value === checked) return;
-      root.localConfig.Appearance.autoThemeSwitch = value;
-      SettingsMenu.markDirty();
-      SettingsMenu.continueStaging();
-    }
-  }
+  // SchemaSwitch {
+  //   label: "Auto Theme Switch"
+  //   checked: root.localConfig.Appearance?.autoThemeSwitch || false
+  //   description: "Automatically switch between light/dark"
+  //   onToggled: value => {
+  //     if (value === checked) return;
+  //     root.localConfig.Appearance.autoThemeSwitch = value;
+  //     SettingsMenu.markDirty();
+  //     SettingsMenu.continueStaging();
+  //   }
+  // }
 
   GridLayout {
     Layout.fillWidth: true

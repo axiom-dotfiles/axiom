@@ -25,7 +25,6 @@ Item {
     }
     const array = viewConfigArray.filter(viewConf => viewConf.visible !== false).map(viewConf => {
       const componentType = "views/" + viewConf.type + ".qml";
-      console.log("Loading view component:", componentType);
       if (!viewConf.type) {
         console.warn("Unknown view type in menu config:", viewConf);
         return null;
@@ -257,7 +256,7 @@ Item {
         Layout.preferredHeight: 30
         radius: Menu.cardBorderRadius
         color: rightArrowMouse.containsMouse ? Theme.backgroundHighlight : Theme.backgroundAlt
-        border.color: Menu.cardBorderColor
+        border.color: Theme.border
         border.width: Menu.cardBorderWidth
 
         Text {

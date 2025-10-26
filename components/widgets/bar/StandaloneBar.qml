@@ -12,12 +12,10 @@ Item {
 
   required property var barConfig
   
-  // Optional properties that can be provided for full functionality
   property var popouts: null
   property var panel: null
   property var screen: null
   
-  // Expose the bar container for external access if needed
   property alias barContainer: container
 
   implicitWidth: barConfig.vertical ? barConfig.extent : 300

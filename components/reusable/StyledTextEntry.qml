@@ -10,7 +10,7 @@ StyledContainer {
   id: control
   
   // --- Public API ---
-  property alias text: textField.text
+  property string text: ""
   property alias placeholderText: textField.placeholderText
   property alias input: textField
   property alias acceptableInput: textField.validator
@@ -34,6 +34,8 @@ StyledContainer {
     anchors.leftMargin: 10
     anchors.rightMargin: 10
     verticalAlignment: TextInput.AlignVCenter
+    text: control.text
+    onTextChanged: control.text = text
     
     // --- Core Properties ---
     color: Theme.foreground

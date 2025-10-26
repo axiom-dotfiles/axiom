@@ -29,9 +29,6 @@ BaseView {
       panel: null
       popouts: null
       implicitHeight: view.screen ? view.screen.height : 300
-      Component.onCompleted: {
-        console.log("Generating bar preview with config: ", JSON.stringify(barConfig));
-      }
     }
   }
 }

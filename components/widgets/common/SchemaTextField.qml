@@ -31,7 +31,7 @@ ColumnLayout {
     input.onTextChanged: {
       if (input.text.length >= root.minLength && input.text.length <= root.maxLength) {
         if (root.pattern === null || new RegExp(root.pattern).test(input.text)) {
-          root.valueChanged(input.text);
+          root.valueChanged();
         }
       }
     }
