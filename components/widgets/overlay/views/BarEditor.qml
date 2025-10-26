@@ -12,13 +12,13 @@ BaseView {
   property var screen
 
   Rectangle {
-    implicitWidth: barPreview.implicitWidth
+    // anchors.fill: parent
     implicitHeight: barPreview.implicitHeight * 0.75
-    //scale: 0.75
+    implicitWidth: 40
     color: Theme.backgroundAlt
     radius: Menu.cardBorderRadius
-    border.color: Theme.border
-    border.width: Menu.cardBorderWidth
+    // border.color: Theme.foreground
+    // border.width: 2
 
     StandaloneBar {
       id: barPreview
@@ -29,6 +29,15 @@ BaseView {
       panel: null
       popouts: null
       implicitHeight: view.screen ? view.screen.height : 300
+      implicitWidth: barConfig.extent
     }
+  }
+  BarEditor {
+    property var screen: view.screen
+    property var barConfigs: Bar.bars
+  }
+  BarEditor {
+    property var screen: view.screen
+    property var barConfigs: Bar.bars
   }
 }
