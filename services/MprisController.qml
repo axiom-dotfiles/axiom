@@ -23,9 +23,9 @@ QtObject {
   property real progress: length > 0 ? (position / length) : 0
 
   // --- Everything else ---
-  property string identity: activePlayer.identity ? activePlayer.identity : ""
-  property string trackTitle: activePlayer.trackTitle ? activePlayer.trackTitle : ""
-  property string trackId: activePlayer.trackId ? activePlayer.trackId : ""
+  property string identity: activePlayer ? activePlayer.identity : ""
+  property string trackTitle: activePlayer ? activePlayer.trackTitle : ""
+  property string trackId: activePlayer ? activePlayer.trackId : ""
   property string trackArtist: activePlayer ? activePlayer.trackArtist : ""
   property string artUrl: activePlayer ? activePlayer.trackArtUrl : ""
   property string artFileName: artUrl ? Qt.md5(artUrl) + ".jpg" : ""
