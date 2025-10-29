@@ -21,8 +21,9 @@ RowLayout {
     desiredButtonHeight = textEntry.height;
   }
 
-  StyledTextEntry {
+  StyledTextArea {
     id: textEntry
+    expandable: true
     Layout.fillWidth: true
     placeholderText: "Type a message or use / for commands..."
     onAccepted: control.submit()
