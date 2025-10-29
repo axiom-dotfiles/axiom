@@ -32,9 +32,18 @@
   },
   "Menu": {
     "views": [
-      "OverView",
-      "ConfigEditor",
-      "KeybindView"
+      {
+        "type": "OverView"
+      },
+      {
+        "type": "ConfigEditor"
+      },
+      {
+        "type": "KeybindView"
+      },
+      {
+        "type": "BarEditor"
+      }
     ],
     "distanceFromWorkspaceContainer": 4,
     "startMenuPinned": false,
