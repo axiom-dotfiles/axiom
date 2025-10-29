@@ -70,6 +70,7 @@
           "display": { "type": "string" },
           "extent": { "type": "integer" },
           "spacing": { "type": "integer" },
+          "padding": { "type": "integer" },
           "location": {
             "type": "string",
             "enum": ["Top", "Bottom", "Left", "Right"]

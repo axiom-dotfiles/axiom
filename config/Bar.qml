@@ -11,7 +11,7 @@ QtObject {
     Left,
     Right
   }
-  readonly property var bars: {
+  property var bars: {
     const configs = ConfigManager.config.Bar || [];
     const result = [];
 

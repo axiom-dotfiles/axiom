@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import qs.config
+import qs.services
 import qs.components.reusable
 import qs.components.widgets.bar
 import qs.components.widgets.overlay.columns
@@ -23,7 +24,7 @@ BaseView {
     StandaloneBar {
       id: barPreview
       anchors.centerIn: parent
-      barConfig: Bar.bars[0]
+      barConfig: BarManager.previewConfig
       screen: view.screen
       scale: 0.75
       panel: null
