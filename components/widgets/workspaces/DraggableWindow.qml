@@ -34,6 +34,9 @@ Item {
   property real workspaceSpacing: 0
   property real offsetX: 0
   property real offsetY: 0
+  property int workspaceOffset: 0  // ADD THIS - needs to be passed from WorkspaceGrid
+  property real monitorActualWidth: 0
+  property real monitorActualHeight: 0
 
   // Computed properties
   property var toplevel: WindowUtils.getToplevelFromAddress(windowData?.address)
@@ -49,7 +52,13 @@ Item {
   signal windowResized
 
   // Calculate position and size
-  property var constraints: WindowUtils.calculateWindowConstraints(windowData, overviewScale, workspaceWidth, workspaceHeight)
+  // property var constraints: WindowUtils.calculateWindowConstraints(windowData, overviewScale, workspaceWidth, workspaceHeight)
+  property var constraints: WindowUtils.calculateWindowConstraints(
+  windowData, 
+  overviewScale, 
+  monitorActualWidth * overviewScale,  // Use actual monitor width scaled
+  monitorActualHeight * overviewScale  // Use actual monitor height scaled
+)
 
   x: offsetX + constraints.x
   y: offsetY + constraints.y
@@ -124,10 +133,19 @@ Item {
 
     onActiveChanged: {
       if (!active) {
-        let targetWorkspace = WindowUtils.getTargetWorkspaceFromPosition(root.x, root.y, root.width, root.height, workspaceWidth, workspaceHeight, workspaceSpacing, gridSize);
+        // Get local workspace ID (1-25)
+        let localTargetWorkspace = WindowUtils.getTargetWorkspaceFromPosition(
+          root.x, root.y, root.width, root.height, 
+          workspaceWidth, workspaceHeight, workspaceSpacing, gridSize
+        );
+        
+        // Convert to global workspace ID by adding offset
+        let globalTargetWorkspace = localTargetWorkspace + root.workspaceOffset;
 
-        if (windowData?.workspace?.id && targetWorkspace !== windowData.workspace.id) {
-          root.windowDropped(targetWorkspace);
+        console.log("Drop: local target:", localTargetWorkspace, "global target:", globalTargetWorkspace, "offset:", root.workspaceOffset);
+
+        if (windowData?.workspace?.id && globalTargetWorkspace !== windowData.workspace.id) {
+          root.windowDropped(globalTargetWorkspace);
         } else {
           // Snap back to original position
           root.x = Qt.binding(() => root.offsetX + root.constraints.x);
