@@ -1,4 +1,4 @@
-// Bar.qml - Standalone reusable bar component
+// StandaloneBar.qml - Standalone reusable bar component
 pragma ComponentBehavior: Bound
 
 import QtQuick
@@ -31,7 +31,7 @@ Item {
       widgetConf => widgetConf.visible !== false).map(widgetConf => {
       const componentType = "modules/" + widgetConf.type + ".qml";
       if (!componentType) {
-        console.warn("Unknown widget type in bar config:", widgetConf.type);
+        console.Error("Unknown widget type in bar config:", widgetConf.type);
         return null;
       }
 
