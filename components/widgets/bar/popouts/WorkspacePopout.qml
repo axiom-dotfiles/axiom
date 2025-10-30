@@ -1,3 +1,4 @@
+pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
@@ -15,9 +16,15 @@ Item {
   property string currentName: "workspace-grid"
 
   property var monitor: wrapper.currentData?.monitor
+  property int workspaceBase: wrapper.currentData?.workspaceBase ?? 1
   property int activeWorkspaceId: wrapper.currentData?.activeId ?? 1
-  property int currentColumn: ((activeWorkspaceId - 1) % 5)
+  property int currentColumn: ((activeWorkspaceId - workspaceBase) % 5)
   readonly property int cell: (Widget.height && Widget.height > 0) ? Widget.height : 28
+
+  Component.onCompleted: {
+    console.log("WorkspacePopout initialized for monitor", monitor?.name ?? "unknown");
+    console.log("Workspace range:", workspaceBase, "to", workspaceBase + 24);
+  }
 
   implicitWidth: (5 * cell + 6 * 6) + 20 // wtf is this
   implicitHeight: (5 * cell + 6 * 6) + 20
@@ -62,12 +69,14 @@ Item {
 
         Rectangle {
           id: wsCell
+          required property var index
 
-          readonly property int wsId: index + 1
+          readonly property int wsId: root.workspaceBase + index
           readonly property var workspace: root.getWorkspace(wsId)
           readonly property bool isActive: root.monitor?.activeWorkspace?.id === wsId
           readonly property bool hasWindows: workspace?.toplevels?.values?.length > 0
-          readonly property bool isCurrentColumn: (wsId - 1) % 5 === root.currentColumn
+          // readonly property bool isCurrentColumn: (wsId - 1) % 5 === root.currentColumn
+          readonly property bool isCurrentColumn: index % 5 === root.currentColumn
           readonly property bool showIcons: Appearance.workspacePopoutIcons
           property bool hovered: false
 
