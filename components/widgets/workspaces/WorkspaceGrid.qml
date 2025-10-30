@@ -114,15 +114,10 @@ Rectangle {
         property var windowMonitor: Hyprland.monitors.values[modelData?.monitor ?? 0]
         property var gridPos: WindowUtils.getWorkspacePosition(localWsId, root.gridSize)
 
-        // FIXED: Check if window's monitor matches THIS grid's monitor
         visible: WorkspaceUtils.isWorkspaceVisible(localWsId) && (windowMonitor?.name === root.monitorName)
 
         offsetX: gridPos.col * (root.workspaceWidth + root.workspaceSpacing)
         offsetY: gridPos.row * (root.workspaceHeight + root.workspaceSpacing)
-
-        Component.onCompleted: {
-          console.log("Window on monitor:", windowMonitor?.name ?? "unknown", "Grid monitor:", root.monitorName, "visible:", visible);
-        }
 
         onWindowDropped: targetWorkspace => {
           if (modelData?.workspace?.id && targetWorkspace !== modelData.workspace.id) {
