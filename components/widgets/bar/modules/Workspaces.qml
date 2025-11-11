@@ -79,12 +79,24 @@ Item {
   function formatIconVertical(relativeIndex) {
     const col = (relativeIndex - 1) % 5;
     switch(col) {
-      case 0: return "";
-      case 1: return "";
-      case 2: return "";
-      case 3: return "";
-      case 4: return "";
-      default: return "";
+      case 0: return "";
+      case 1: return "";
+      case 2: return "";
+      case 3: return "";
+      case 4: return "";
+      default: return "";
+    }
+  }
+
+  function formatIconHorizontal(relativeIndex) {
+    const row = Math.floor((relativeIndex - 1) / 5);
+    switch(row) {
+      case 0: return "";
+      case 1: return "";
+      case 2: return "";
+      case 3: return "";
+      case 4: return "";
+      default: return "";
     }
   }
 
@@ -166,7 +178,7 @@ Item {
 
       Text {
         anchors.centerIn: parent
-        text: root.formatIconVertical(relativeIndex)
+        text: root.isVertical ? root.formatIconVertical(relativeIndex) : root.formatIconHorizontal(relativeIndex)
         font.family: Appearance.fontFamily
         font.pixelSize: Appearance.fontSize * 1.2
         visible: isActive
