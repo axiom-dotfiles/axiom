@@ -14,4 +14,5 @@ QtObject {
   property int cardBorderRadius: ConfigManager.config.Menu.cardBorderRadius ?? 8
   property int cardBorderWidth: ConfigManager.config.Menu.cardBorderWidth ?? 1
   property int columns: ConfigManager.config.Menu.maxColumns ?? 4
+  property bool enablePanel: ConfigManager.config.Menu.enablePanel ?? false
 }

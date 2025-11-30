@@ -106,6 +106,7 @@
     },
     "Menu": {
       "type": "object",
+      "enablePanel": { "type": "boolean" },
       "cardUnit": { "type": "integer" },
       "cardSpacing": { "type": "integer" },
       "cardPadding": { "type": "integer" },

@@ -129,6 +129,7 @@ Item {
 
           // Seconds
           Column {
+            visible: false
             spacing: 0
             anchors.horizontalCenter: parent.horizontalCenter
             Text {
