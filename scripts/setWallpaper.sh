@@ -15,14 +15,14 @@ fi
 
 WALLPAPER_PATH="$1"
 
-swww query >/dev/null || swww init
+awww query >/dev/null || awww init
 
 transitions=("wipe" "any" "outer" "wave")
 TRANSITION_TYPE=${transitions[$RANDOM % ${#transitions[@]}]}
-SWWW_PARAMS="--transition-fps 144 --transition-type $TRANSITION_TYPE --transition-duration 1"
+awww_PARAMS="--transition-fps 144 --transition-type $TRANSITION_TYPE --transition-duration 1"
 
 current_monitor=$(hyprctl -j activeworkspace | jq -r .monitor)
-swww img -o "$current_monitor" "$WALLPAPER_PATH" $SWWW_PARAMS
+awww img -o "$current_monitor" "$WALLPAPER_PATH" $awww_PARAMS
 
 if [[ "$current_monitor" == "DP-1" ]]; then
   ln -sf "$WALLPAPER_PATH" "$HOME/.current_wallpaper"

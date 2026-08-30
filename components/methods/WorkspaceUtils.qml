@@ -10,7 +10,7 @@ import qs.config
 Singleton {
   id: root
 
-  function focusWorkspace(index) {
+  function focusWorkspace(index, monitor) {
     focusWorkspaceProcess.command = [Config.hyprlandPath + "scripts/gotoWorkspace.sh", String(index)]
     focusWorkspaceProcess.running = true
   }

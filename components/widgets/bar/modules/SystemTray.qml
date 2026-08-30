@@ -31,7 +31,7 @@ Item {
   property int spacing: 6
   property bool showPassive: true
   property color backgroundColor: Theme.backgroundAlt
-  property int backgroundRadius: 6
+  property int backgroundRadius: Appearance.borderRadius
   property color backgroundBorderColor: "transparent"
   property real backgroundBorderWidth: 0
 

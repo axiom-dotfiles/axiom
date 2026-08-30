@@ -102,7 +102,7 @@ Item {
     const nodes = Pipewire.nodes.values;
     const searchString = targetApplication.toLowerCase();
     if (searchString === "master") {
-      const excludedBinaries = ["youtube-music", "electron", "zen-bin", "spotify"];
+      const excludedBinaries = ["youtube-music", "electron", "zen-bin", "spotify", "discord"];
       for (let i = 0; i < nodes.length; ++i) {
         const n = nodes[i];
         const appBinary = n.properties["application.process.binary"];
