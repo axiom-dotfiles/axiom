@@ -17,9 +17,9 @@ ShellRoot {
     id: notificationPopup
   }
 
-  Overlay {
-    id: overlay
-  }
+  // Overlay {
+  //   id: overlay
+  // }
 
   Bar {
     id: mainBar
@@ -41,9 +41,9 @@ ShellRoot {
     id: themeSelector
   }
 
-  Menu {
-    id: mainMenu
-  }
+  // Menu {
+  //   id: mainMenu
+  // }
 
   AppLauncher {
     id: appLauncher

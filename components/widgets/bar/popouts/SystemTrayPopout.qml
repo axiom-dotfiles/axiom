@@ -23,7 +23,7 @@ Item {
   readonly property int itemSpacing: 4
   readonly property int itemHeight: 32
   readonly property int itemPadding: Widget.padding
-  readonly property int minWidth: 200
+  readonly property int minWidth: 350
 
   property bool openToLeft: false
 
@@ -138,8 +138,7 @@ Item {
             let localPos = itemDelegate.mapToItem(backgroundContainer, 0, 0);
             console.log("Opening submenu for", itemDelegate.menuItem.text, "at", localPos.x, localPos.y, "item size", itemDelegate.width, itemDelegate.height);
             
-            submenuWrapper.safeOpenPopout(root.wrapper.popupWindow, {
-              menuItem: itemDelegate.menuItem,
+            submenuWrapper.safeOpenPopout(root.wrapper.popupWindow, { menuItem: itemDelegate.menuItem,
               anchorX: localPos.x,
               anchorY: localPos.y,
               anchorWidth: itemDelegate.width,

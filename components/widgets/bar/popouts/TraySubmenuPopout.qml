@@ -16,7 +16,7 @@ Item {
   readonly property int itemHeight: 32
   readonly property int itemPadding: 8
   // TODO: which of all these mins and maxes actually constrain the items
-  readonly property int minWidth: 10
+  readonly property int minWidth: 200
   readonly property int maxWidth: 800
   
   implicitWidth: Math.max(minWidth, Math.min(maxWidth, menuLayout.implicitWidth + 20))
