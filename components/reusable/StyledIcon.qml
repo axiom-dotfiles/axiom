@@ -17,6 +17,9 @@ StyledText {
 
   // -- Implementation --
   textFamily: isSymbol ? Appearance.iconFamily : Appearance.fontFamily
+  // Filled symbols are built from overlapping contours, which the default
+  // distance-field renderer draws as blotches; curve rendering fills them right
+  renderType: isSymbol ? Text.CurveRendering : Text.QtRendering
   font.variableAxes: isSymbol ? {
     "FILL": root.fill,
     "wght": root.weight
