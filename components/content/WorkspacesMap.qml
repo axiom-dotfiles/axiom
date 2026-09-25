@@ -62,21 +62,42 @@ Card {
           opacity: 0.7
         }
 
-        Flow {
+        // Rows of icons, each centred (a Flow left-aligns them), balanced so
+        // a partial last row isn't left alone
+        Column {
+          id: icons
+          readonly property int count: Math.min(tile.windows.length, 6)
+          readonly property real available: tile.width - 8
+          readonly property int iconSize: Math.floor(Math.max(12, Math.min(tile.height * 0.4, icons.available / Math.max(1, Math.min(icons.count, 3)) - 2)))
+          readonly property int fitPerRow: Math.max(1, Math.floor((icons.available + icons.spacing) / (icons.iconSize + icons.spacing)))
+          readonly property int rows: icons.count === 0 ? 0 : Math.ceil(icons.count / Math.min(icons.count, icons.fitPerRow))
+          readonly property int perRow: icons.rows === 0 ? 0 : Math.ceil(icons.count / icons.rows)
+
           anchors.centerIn: parent
-          width: parent.width - 8
           spacing: 2
-          readonly property real iconSize: Math.max(12, Math.min(parent.height * 0.4, (parent.width - 8) / Math.max(1, Math.min(tile.windows.length, 3)) - 2))
 
           Repeater {
-            model: Math.min(tile.windows.length, 6)
-            Image {
+            model: icons.rows
+
+            Row {
+              id: iconRow
               required property int index
-              readonly property var window: tile.windows[index]
-              width: parent.iconSize
-              height: parent.iconSize
-              sourceSize: Qt.size(64, 64)
-              source: window ? IconResolver.resolveWindowIcon(window.class, window.title) : ""
+              anchors.horizontalCenter: parent.horizontalCenter
+              spacing: icons.spacing
+
+              Repeater {
+                model: Math.min(icons.perRow, icons.count - iconRow.index * icons.perRow)
+
+                Image {
+                  required property int index
+                  readonly property var window: tile.windows[iconRow.index * icons.perRow + index]
+                  width: icons.iconSize
+                  height: icons.iconSize
+                  fillMode: Image.PreserveAspectFit
+                  sourceSize: Qt.size(64, 64)
+                  source: window ? IconResolver.resolveWindowIcon(window.class, window.title) : ""
+                }
+              }
             }
           }
         }
