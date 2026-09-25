@@ -18,10 +18,6 @@ Bar · Overlay · Launcher · Notifications · Lockscreen · OSD · Power menu �
 
 https://github.com/user-attachments/assets/a53f62e0-e2bc-4834-a05f-92b6cb115c35
 
-> [!NOTE]
-> This is a public mirror for issue tracking. Pull requests aren't accepted yet and will be closed. Issues are welcome: they are read, discussed and fixed here.
-> axiom is pre-1.0, so the layout of `config.json` can still change between versions. Old configs are migrated automatically.
-
 ## 🔭 At a glance
 
 | | |
