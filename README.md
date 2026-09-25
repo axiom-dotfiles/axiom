@@ -124,7 +124,18 @@ The whole shell runs on four things. Everything else is optional and only needed
 
 ## 🚀 Installation
 
-There's no installer yet. Clone into Quickshell's config directory:
+On Arch Linux, run the installer:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/axiom-dotfiles/axiom/main/install.sh | bash
+```
+
+Every package it installs comes from the official repositories. It installs the required packages and asks about each optional feature. Then it clones the latest release into `~/.config/quickshell/axiom` and sets up the Python venv. Last, it asks before adding the line that starts axiom to the end of your `hyprland.lua`, backing up the file first. `--yes` answers yes to every question, and `--minimal` installs only what's required. Running it again is safe. From a clone, run `./install.sh`.
+
+<details>
+<summary><b>By hand</b>, or on another distribution</summary>
+
+Install the [requirements](#-requirements), then clone into Quickshell's config directory:
 
 ```bash
 git clone https://github.com/axiom-dotfiles/axiom.git ~/.config/quickshell/axiom
@@ -135,6 +146,8 @@ Start it from your Hyprland config (`hyprland.lua`):
 ```lua
 hl.on("hyprland.start", function() hl.exec_cmd("qs -c axiom") end)
 ```
+
+</details>
 
 That's all Hyprland needs. How axiom sets up the rest is **Settings → Desktop → Hyprland → Mode**:
 
@@ -298,7 +311,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the directory layout and conventions,
 ## 🗺️ Roadmap
 
 - [ ] Onboarding and a setup wizard
-- [ ] Installer / AUR package
+- [x] Installer
 - [ ] More translations
 - [ ] CI, plus issue and pull request templates
 - [ ] First stable release, after which changes land through PRs only
