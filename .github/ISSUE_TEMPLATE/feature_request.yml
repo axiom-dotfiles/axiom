@@ -1,0 +1,38 @@
+name: Feature request
+description: An idea for something axiom should do
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What you want to do
+      description: The problem or use case, rather than a solution.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: How it could work
+      description: What you picture, e.g. a new bar widget, an overlay module, a setting or a launcher command.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Bar or bar popouts
+        - Overlay, or its editors
+        - Settings
+        - Launcher
+        - Notifications
+        - Lockscreen
+        - OSD
+        - Workspaces
+        - Themes and app integrations
+        - Keybinds and Hyprland setup
+        - Installer
+        - Something new
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives
+      description: Workarounds you use now, or how other shells do it.
