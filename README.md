@@ -2,7 +2,7 @@
 
 # axiom
 
-**The desktop shell behind [Axiom Dotfiles](https://github.com/axiom-dotfiles): a complete Hyprland desktop, written in QML for [Quickshell](https://quickshell.org).**
+**The desktop shell behind [Axiom Dotfiles](https://github.com/axiom-dotfiles): a complete [Hyprland](https://hypr.land) desktop, written in QML for [Quickshell](https://quickshell.org).**
 
 Every bar, overlay page and setting is built from inside the shell. Drag, drop, save: there are no config files to write.
 
@@ -14,7 +14,7 @@ Bar · Overlay · Launcher · Notifications · Lockscreen · OSD · Power menu �
 [![Quickshell](https://img.shields.io/badge/Quickshell-0.3.1%2B-b16286?style=for-the-badge&labelColor=282828)](https://quickshell.org)
 [![License](https://img.shields.io/badge/License-MIT-689d6a?style=for-the-badge&labelColor=282828)](LICENSE)
 
-[Built in the shell](#%EF%B8%8F-built-in-the-shell) · [Features](#-features) · [Requirements](#-requirements) · [Install](#-installation) · [IPC](#%EF%B8%8F-keybinds-and-ipc) · [Configuration](#%EF%B8%8F-configuration)
+[Built in the shell](#%EF%B8%8F-built-in-the-shell) · [Features](#-features) · [Requirements](#-requirements) · [Install](#-installation) · [IPC](#%EF%B8%8F-keybinds-and-ipc) · [Configuration](#%EF%B8%8F-configuration) · [Acknowledgments](#-acknowledgments)
 
 </div>
 
@@ -28,7 +28,7 @@ https://github.com/user-attachments/assets/a53f62e0-e2bc-4834-a05f-92b6cb115c35
 | 📦 **Everything in one place** | One repository and one config for the whole desktop. Beyond Hyprland and Quickshell, the only requirements are `python3` and `jq`. |
 | 🛡️ **Built not to break** | An invalid config never replaces the running one. Old configs migrate themselves, and API keys stay out of `config.json`. |
 | 🎨 **One theme everywhere** | Base16 themes, or one generated from your wallpaper, applied to 18 other apps. |
-| 🤝 **Fits your setup** | Three Hyprland modes and three lockscreen modes. Your own config files are never edited. |
+| 🤝 **Fits your setup** | Three Hyprland modes, from hands-off to fully managed, and three lockscreen modes. |
 | 🖥️ **Multi-monitor** | Bars and wallpapers per monitor. Surfaces open on the primary monitor, the focused one, or all of them. |
 
 ## 🛠️ Built in the shell
@@ -192,7 +192,7 @@ The screenshots show [two setups](#%EF%B8%8F-built-in-the-shell) of the same she
 The whole shell runs on four things. Everything else is optional and only needed for the feature that uses it.
 
 **Required**
-- Hyprland 0.55 or newer, with its Lua config (`hyprland.lua`)
+- [Hyprland](https://hypr.land) 0.55 or newer, with its Lua config (`hyprland.lua`)
 - [Quickshell](https://quickshell.org) 0.3.1 or newer (`qs`)
 - [Material Symbols](https://fonts.google.com/icons) for icons (`ttf-material-symbols-variable`). Any font works for text
 - `jq`, `python3`
@@ -408,15 +408,32 @@ Icons showing as words (`wifi`, `battery_full`) mean the icon font is missing: i
 
 ## 🤝 Contributing
 
+> [!NOTE]
+> Pull requests aren't open yet, and PRs on GitHub will be closed. [Issues](https://github.com/axiom-dotfiles/axiom/issues) are very welcome. If you want to help, get in touch on Matrix (@travmonkey:matrix.batk.me) and we can work out how.
+
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the directory layout and conventions, and [CLAUDE.md](CLAUDE.md) for the architecture in detail. There's no build step: `qs` interprets the QML and hot-reloads on save.
 
 ## 🗺️ Roadmap
 
-- [ ] Onboarding and a setup wizard
 - [x] Installer
+- [x] v1.0, the first stable release
+- [ ] Onboarding and a setup wizard
+- [ ] Clipboard manager
 - [ ] More translations
-- [ ] CI, plus issue and pull request templates
-- [ ] First stable release, after which changes land through PRs only
+- [ ] Collaboration: CI, issue and pull request templates, changes through PRs only
+
+## 🙏 Acknowledgments
+
+axiom is built on:
+- [Hyprland](https://hypr.land), the compositor it's made for
+- [Quickshell](https://quickshell.org), the QML toolkit every surface is written in
+- [Material Symbols](https://fonts.google.com/icons), the icons
+- [pywal16](https://github.com/eylles/pywal16) and its backends ([colorz](https://github.com/metakirby5/colorz), [colorthief](https://github.com/fengsp/color-thief-py), [haishoku](https://github.com/LanceGin/haishoku)), which pick the candidate colors for generated themes
+- [awww](https://github.com/LGFae/awww), for wallpapers and their transitions
+
+Four of the five theme pairs are ports of [Catppuccin](https://catppuccin.com), [Gruvbox](https://github.com/morhetz/gruvbox), [Solarized](https://ethanschoonover.com/solarized/) and [Tokyo Night](https://github.com/tokyo-night/tokyo-night-vscode-theme). Submarine Sonar is axiom's own.
+
+And thanks to the Hyprland desktops that inspired it: [illogical-impulse](https://github.com/end-4/dots-hyprland), [caelestia-dots](https://github.com/caelestia-dots) and [JaKooLit's Hyprland-Dots](https://github.com/JaKooLit/Hyprland-Dots).
 
 ## 📄 License
 
