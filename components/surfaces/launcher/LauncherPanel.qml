@@ -345,35 +345,10 @@ FocusScope {
         // I18n.tr("complete") I18n.tr("open")
         model: [[LauncherConfig.commands, "/", "commands"], [LauncherConfig.calculator, "=", "calculate"], [LauncherConfig.runCommands, ">", "run"], [LauncherConfig.webSearch, "?", "web"], [true, "Tab", "complete"], [true, "↵", "open"]].filter(hint => hint[0])
 
-        Row {
-          id: hintItem
+        KeyHint {
           required property var modelData
-          spacing: 5
-
-          Rectangle {
-            anchors.verticalCenter: parent.verticalCenter
-            width: Math.max(height, key.implicitWidth + 8)
-            height: key.implicitHeight + 4
-            radius: Appearance.borderRadius / 2
-            color: Theme.backgroundAlt
-            border.color: Theme.border
-            border.width: 1
-
-            StyledText {
-              id: key
-              anchors.centerIn: parent
-              text: hintItem.modelData[1]
-              textColor: Theme.foregroundAlt
-              textSize: Appearance.fontSize - 4
-            }
-          }
-
-          StyledText {
-            anchors.verticalCenter: parent.verticalCenter
-            text: I18n.tr(hintItem.modelData[2])
-            textColor: Theme.foregroundInactive
-            textSize: Appearance.fontSize - 3
-          }
+          key: modelData[1]
+          label: I18n.tr(modelData[2])
         }
       }
     }

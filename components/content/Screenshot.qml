@@ -5,6 +5,7 @@ import Quickshell.Io
 import qs.config
 import qs.services
 import qs.components.content.parts
+import qs.components.reusable
 import qs.components.content.base
 
 // Screenshots with grim + slurp: region, active window or whole screen,
@@ -86,7 +87,7 @@ Card {
     Repeater {
       model: root.modes
 
-      IconToggle {
+      ActionTile {
         required property var modelData
         required property int index
         x: grid.tileX(index)

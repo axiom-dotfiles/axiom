@@ -147,7 +147,7 @@ Views and modules are `oneOf`s discriminated by `type`, like `BarWidget`.
 
 **Writing overlay modules:**
 - **Shape-aware.** `Card` and `Panel` expose the slot's `slotRect`, `cols`/`rows` (half units), `shape` and `compact` (a quarter slot), plus `pad`. Each module picks its internal layout from these: side by side when horizontal, stacked when vertical, the key figure only when compact.
-- **Shared parts** live in `content/parts/`: `ModuleHeader`, `Sparkline`, `StatFigure`, `IconToggle`.
+- **Shared parts** live in `content/parts/`: `ModuleHeader`, `Sparkline`, `StatFigure`, `TileGrid` (lays out `reusable/ActionTile`s, the icon-well tiles the power menu also uses).
 - **Content can be both.** A `Panel`-rooted file is a bar popout and a card at once; branch on `embedded` for card-only parts (a header, a mode switch, acquiring with the card's `properties`).
 - **Data sources.**
   - `SystemManager` adds `history: true` (60-sample ring buffers), a `net` metric (`/proc/net/dev` rates plus a 10s nmcli poll for `netInfo`: IP and signal) and a `processes` metric (two-frame `top`, with `kill(pid)`).

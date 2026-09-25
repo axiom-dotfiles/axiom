@@ -23,7 +23,7 @@ QtObject {
 
   readonly property var list: [
     // --- Session ---
-    root._session("lock", ["lock-screen"], "lock", "Lock the screen"), root._session("suspend", ["sleep"], "sleep", "Suspend to RAM"), root._session("hibernate", [], "snowflake", "Hibernate to disk"), root._session("logout", ["exit"], "logout", "End the Hyprland session"), root._session("reboot", ["restart"], "restart_alt", "Restart the computer"), root._session("poweroff", ["shutdown"], "mode_standby", "Turn the computer off"),
+    root._session("lock", ["lock-screen"], "Lock the screen"), root._session("suspend", ["sleep"], "Suspend to RAM"), root._session("hibernate", [], "Hibernate to disk"), root._session("logout", ["exit"], "End the Hyprland session"), root._session("reboot", ["restart"], "Restart the computer"), root._session("poweroff", ["shutdown"], "Turn the computer off"),
     // --- Surfaces ---
     {
       name: "power",
@@ -328,11 +328,11 @@ QtObject {
 
   // --- Builders for families of alike commands ---
 
-  function _session(action, aliases, glyph, description) {
+  function _session(action, aliases, description) {
     return {
       name: action,
       aliases: aliases,
-      glyph: glyph,
+      glyph: ShellManager.sessionActionInfo(action).icon,
       confirm: ShellManager.destructiveActions.includes(action),
       // I18n.tr("Lock the screen") I18n.tr("Suspend to RAM") I18n.tr("Hibernate to disk")
       // I18n.tr("End the Hyprland session") I18n.tr("Restart the computer") I18n.tr("Turn the computer off")

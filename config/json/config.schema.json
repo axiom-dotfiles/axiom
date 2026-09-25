@@ -84,7 +84,7 @@
           "enum": ["primary", "focused", "all"],
           "x-enumLabels": { "primary": "Primary monitor only", "focused": "Focused monitor only", "all": "Every monitor" },
           "default": "primary",
-          "description": "Where the overlay, launcher, power menu and OSD appear (the OSD, overlay and launcher can override this). Focused monitor opens them on the one with your active workspace (and mouse); every monitor opens them on all of them at once. The workspace overview always opens on the monitor under the mouse."
+          "description": "Where the overlay, launcher, power menu and OSD appear (each can override this). Focused monitor opens them on the one with your active workspace (and mouse); every monitor opens them on all of them at once. The workspace overview always opens on the monitor under the mouse."
         }
       }
     },
@@ -129,6 +129,31 @@
         "terminal": { "type": "string", "title": "Terminal", "default": "kitty", "description": "Terminal used for commands run with Shift+Enter and for terminal apps. It's started as: terminal -e command." },
         "webSearch": { "type": "boolean", "title": "Web search (?)", "default": true, "description": "Offer a web search for what you typed, last in the list (or first after ?)." },
         "searchEngine": { "type": "string", "title": "Search engine URL", "default": "https://duckduckgo.com/?q={}", "description": "{} is replaced by the search terms.", "x-showIf": { "webSearch": true } }
+      }
+    },
+
+    "PowerMenu": {
+      "type": "object",
+      "x-category": "Desktop",
+      "title": "Power menu",
+      "description": "The power menu: lock, suspend, hibernate, log out, reboot and power off, opened by the power button, a keybind or `qs -c axiom ipc call powermenu toggle`.",
+      "additionalProperties": false,
+      "properties": {
+        "monitors": {
+          "type": "string",
+          "title": "Monitors",
+          "enum": ["general", "primaryBar", "focused", "all"],
+          "x-enumLabels": { "general": "As in General", "primaryBar": "Primary bar's monitor", "focused": "Focused monitor", "all": "Every monitor" },
+          "default": "general",
+          "description": "Where the power menu opens. As in General follows General > Monitors; the primary bar's monitor is the first bar's; the focused monitor is the one with your active workspace (and mouse); every monitor shows it on all of them at once."
+        },
+        "actions": { "type": "array", "title": "Actions", "default": ["lock", "suspend", "hibernate", "logout", "reboot", "poweroff"], "items": { "type": "string", "enum": ["lock", "suspend", "hibernate", "logout", "reboot", "poweroff"] }, "description": "Which actions the menu shows, in order." },
+        "confirm": { "type": "boolean", "title": "Confirm destructive actions", "default": true, "description": "Log out, reboot and power off ask for a second click (or Enter) first." },
+        "tileSize": { "type": "integer", "title": "Tile size (px)", "default": 120, "minimum": 80, "maximum": 200, "description": "Width and height of each action's tile." },
+        "showHeader": { "type": "boolean", "title": "Greeting and uptime", "default": true, "description": "Show a greeting and how long the computer has been up above the actions." },
+        "showHint": { "type": "boolean", "title": "Controls hint", "default": true, "description": "Show the keys under the actions." },
+        "showBackdrop": { "type": "boolean", "title": "Dim background", "default": true, "description": "Dim the whole screen behind the power menu, under the bars and border." },
+        "backdrop": { "type": "integer", "title": "Backdrop darkness (%)", "default": 35, "minimum": 0, "maximum": 90, "description": "How dark the screen behind the power menu goes.", "x-showIf": { "showBackdrop": true } }
       }
     },
 
@@ -1293,7 +1318,7 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "actions": {"type": "array", "title": "Actions", "default": ["lock", "suspend", "logout", "reboot", "poweroff"], "items": {"type": "string", "enum": ["lock", "suspend", "logout", "reboot", "poweroff"]}}
+            "actions": {"type": "array", "title": "Actions", "default": ["lock", "suspend", "hibernate", "logout", "reboot", "poweroff"], "items": {"type": "string", "enum": ["lock", "suspend", "hibernate", "logout", "reboot", "poweroff"]}}
           }
         }
       }

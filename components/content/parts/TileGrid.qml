@@ -4,7 +4,7 @@ import qs.config
 // Places `count` tiles in the grid that gives them the largest size in
 // this item, never stretched past `maxAspect` either way, with a short
 // last row centred. Tiles position themselves from it:
-//   Repeater { model: …; IconToggle { required property int index
+//   Repeater { model: …; ActionTile { required property int index
 //     x: grid.tileX(index); y: grid.tileY(index)
 //     width: grid.tileWidth; height: grid.tileHeight } }
 Item {

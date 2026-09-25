@@ -1,5 +1,5 @@
+pragma ComponentBehavior: Bound
 import QtQuick
-import QtQuick.Layouts
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Hyprland
@@ -9,29 +9,32 @@ import qs.components.reusable
 import qs.config
 import qs.services
 
+// The power menu on one screen: a card with a greeting and the uptime, a
+// row of session actions and a controls hint, over the dim backdrop.
+// Destructive actions ask for a second press (PowerMenu.confirm).
 PanelWindow {
   id: root
 
   required property var screen
-  property int buttonSize: 200
-  property int iconSize: 60
-  property int gridSpacing: 20
-  property real backgroundDim: 0.5
 
-  property string iconLock: "lock"
-  property string iconLogout: "logout"
-  property string iconPoweroff: "power_settings_new"
-  property string iconSuspend: "bedtime"
-  property string iconReboot: "restart_alt"
-  property string iconHibernate: "hard_drive"
-
-  // [action, icon] in grid order
-  readonly property var actions: [["lock", iconLock], ["logout", iconLogout], ["poweroff", iconPoweroff], ["suspend", iconSuspend], ["reboot", iconReboot], ["hibernate", iconHibernate]]
-  // A destructive action waiting for its confirming second click
+  property bool shown: false
+  // Session actions shown, in order
+  readonly property var actions: PowerMenuConfig.actions.filter(a => ShellManager.sessionActionInfo(a) !== null)
+  // The tile the keys act on (hover moves it too)
+  property int selected: 0
+  // A destructive action waiting for its confirming press
   property string armed: ""
+  // "3h 12m", read from /proc/uptime when it opens
+  property string uptime: ""
+
+  readonly property int pad: 18
+
+  function toggle() {
+    shown = !shown;
+  }
 
   function run(action) {
-    if (ShellManager.destructiveActions.includes(action) && armed !== action) {
+    if (PowerMenuConfig.confirm && ShellManager.destructiveActions.includes(action) && armed !== action) {
       armed = action;
       disarm.restart();
       return;
@@ -39,6 +42,42 @@ PanelWindow {
     armed = "";
     shown = false;
     ShellManager.sessionAction(action);
+  }
+
+  function select(index) {
+    const count = root.actions.length;
+    if (count === 0)
+      return;
+    const next = ((index % count) + count) % count;
+    if (next !== root.selected)
+      root.armed = "";
+    root.selected = next;
+  }
+
+  function readUptime() {
+    const text = FileManager.read("/proc/uptime");
+    const seconds = text ? parseFloat(text.split(" ")[0]) : NaN;
+    if (isNaN(seconds)) {
+      root.uptime = "";
+      return;
+    }
+    const minutes = Math.floor(seconds / 60) % 60;
+    const hours = Math.floor(seconds / 3600) % 24;
+    const days = Math.floor(seconds / 86400);
+    if (days > 0)
+      root.uptime = I18n.tr("{0}d {1}h", days, hours);
+    else if (hours > 0)
+      root.uptime = I18n.tr("{0}h {1}m", hours, minutes);
+    else
+      root.uptime = I18n.tr("{0}m", minutes);
+  }
+
+  onShownChanged: {
+    armed = "";
+    if (shown) {
+      selected = 0;
+      readUptime();
+    }
   }
 
   Timer {
@@ -50,7 +89,7 @@ PanelWindow {
   Connections {
     target: ShellManager
     function onOpenPowerMenu() {
-      if (ShellManager.isTarget(root.screen))
+      if (ShellManager.isTarget(root.screen, PowerMenuConfig.monitors))
         root.toggle();
     }
   }
@@ -63,40 +102,18 @@ PanelWindow {
     }
   }
 
-  screen: root.screen
-  anchors {
-    left: true
-    right: true
-    top: true
-    bottom: true
-  }
-  color: "transparent"
-  focusable: true
-
-  WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
-  WlrLayershell.layer: WlrLayer.Overlay
-
-  property bool shown: false
-
-  function toggle() {
-    shown = !shown;
-  }
-  onShownChanged: armed = ""
-
   IpcHandler {
     target: "powermenu"
-    enabled: ShellManager.isTarget(root.screen)
+    enabled: ShellManager.isTarget(root.screen, PowerMenuConfig.monitors)
     function toggle() {
       root.toggle();
     }
     // Not "show": `qs ipc call <target> show` is taken by the CLI
     function open() {
-      if (!root.shown)
-        root.toggle();
+      root.shown = true;
     }
     function close() {
-      if (root.shown)
-        root.toggle();
+      root.shown = false;
     }
   }
 
@@ -104,6 +121,7 @@ PanelWindow {
   SurfaceGroup {
     id: group
     kind: "powermenu"
+    mode: PowerMenuConfig.monitors
     screen: root.screen
     window: root
     shown: root.shown
@@ -111,93 +129,190 @@ PanelWindow {
   }
 
   HyprlandFocusGrab {
-    id: grab
     active: root.shown && group.ownsGrab
     windows: group.windows
     onCleared: root.shown = false
   }
 
-  visible: shown
-  onClosed: shown = false
+  // The dim background, under the bars and border
+  ScreenBackdrop {
+    screen: root.screen
+    shown: root.shown && PowerMenuConfig.showBackdrop
+    fillColor: Theme.background
+    fillOpacity: PowerMenuConfig.backdrop
+  }
 
-  Rectangle {
+  anchors {
+    left: true
+    right: true
+    top: true
+    bottom: true
+  }
+  exclusionMode: ExclusionMode.Ignore
+  color: "transparent"
+  focusable: true
+  // Stays mapped while the card fades out
+  visible: shown || card.opacity > 0
+
+  WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
+  WlrLayershell.layer: WlrLayer.Overlay
+  WlrLayershell.namespace: "axiom-powermenu"
+
+  Item {
     anchors.fill: parent
     // Keys can't attach to the window itself
     focus: true
-    Keys.onEscapePressed: root.toggle()
-    color: Qt.rgba(Theme.background.r, Theme.background.g, Theme.background.b, root.backgroundDim)
+
+    Keys.onPressed: event => {
+      const digit = event.key - Qt.Key_1;
+      if (event.key === Qt.Key_Escape) {
+        root.shown = false;
+      } else if (event.key === Qt.Key_Left || event.key === Qt.Key_Backtab || event.key === Qt.Key_H) {
+        root.select(root.selected - 1);
+      } else if (event.key === Qt.Key_Right || event.key === Qt.Key_Tab || event.key === Qt.Key_L) {
+        root.select(root.selected + 1);
+      } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space) {
+        if (root.actions.length > 0)
+          root.run(root.actions[root.selected]);
+      } else if (digit >= 0 && digit < Math.min(9, root.actions.length)) {
+        root.select(digit);
+        root.run(root.actions[digit]);
+      } else {
+        return;
+      }
+      event.accepted = true;
+    }
+
+    // The empty background (the backdrop shows through it): a click on
+    // it closes
     MouseArea {
       anchors.fill: parent
-      onClicked: root.toggle()
+      onClicked: root.shown = false
     }
-  }
 
-  // Main container
-  StyledContainer {
-    id: menuContainer
-    anchors.centerIn: parent
-    width: gridLayout.implicitWidth + 40
-    height: gridLayout.implicitHeight + 40
+    Rectangle {
+      id: card
 
-    backgroundColor: Theme.background
-    borderColor: Theme.border
-    borderWidth: Appearance.borderWidth
-
-    GridLayout {
-      id: gridLayout
       anchors.centerIn: parent
-      columns: 3
-      rowSpacing: gridSpacing
-      columnSpacing: gridSpacing
+      width: Math.min(tiles.implicitWidth + root.pad * 2, root.width - 32)
+      height: content.implicitHeight + root.pad * 2
+      color: Theme.background
+      border.color: Theme.border
+      border.width: Appearance.borderWidth
+      radius: Appearance.borderRadius
+      clip: true
 
-      Repeater {
-        model: root.actions
+      opacity: root.shown ? 1 : 0
+      scale: root.shown ? 1 : 0.97
+      Behavior on opacity {
+        NumberAnimation {
+          duration: Appearance.animNormal
+          easing.type: Appearance.easing
+        }
+      }
+      Behavior on scale {
+        NumberAnimation {
+          duration: Appearance.animNormal
+          easing.type: Appearance.easing
+        }
+      }
 
-        Rectangle {
-          id: iconButton
-          required property var modelData
-          readonly property string action: modelData[0]
-          readonly property bool armed: root.armed === action
+      // Swallow clicks so they don't reach the background
+      MouseArea {
+        anchors.fill: parent
+      }
 
-          implicitWidth: root.buttonSize
-          implicitHeight: root.buttonSize
+      Column {
+        id: content
+        x: root.pad
+        y: root.pad
+        width: card.width - root.pad * 2
+        spacing: root.pad
 
-          color: armed ? Theme.error : buttonMouseArea.containsMouse ? Theme.accent : Theme.backgroundHighlight
-          border.color: Theme.border
-          border.width: Appearance.borderWidth
-          radius: Appearance.borderRadius
-
-          Behavior on color {
-            ColorAnimation {
-              duration: Appearance.animNormal
-              easing.type: Easing.InOutQuad
-            }
-          }
-
-          StyledIcon {
-            anchors.centerIn: parent
-            text: iconButton.modelData[1]
-            textColor: iconButton.armed || buttonMouseArea.containsMouse ? Theme.background : Theme.foreground
-            textSize: root.iconSize
-            horizontalAlignment: Text.AlignHCenter
-            verticalAlignment: Text.AlignVCenter
-          }
+        Item {
+          id: header
+          visible: PowerMenuConfig.showHeader
+          width: parent.width
+          height: Math.max(greeting.implicitHeight, uptimeRow.implicitHeight)
 
           StyledText {
-            visible: iconButton.armed
-            anchors.horizontalCenter: parent.horizontalCenter
-            anchors.bottom: parent.bottom
-            anchors.bottomMargin: Widget.padding * 2
-            text: I18n.tr("Confirm?")
-            textColor: Theme.background
+            id: greeting
+            anchors.left: parent.left
+            anchors.right: uptimeRow.left
+            anchors.rightMargin: root.pad
+            anchors.verticalCenter: parent.verticalCenter
+            elide: Text.ElideRight
+            text: I18n.tr("Goodbye, {0}", General.displayName)
+            textSize: Appearance.fontSizeLarge
+            font.weight: Font.DemiBold
           }
 
-          MouseArea {
-            id: buttonMouseArea
-            anchors.fill: parent
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            onClicked: root.run(iconButton.action)
+          Row {
+            id: uptimeRow
+            anchors.right: parent.right
+            anchors.verticalCenter: parent.verticalCenter
+            visible: root.uptime !== ""
+            spacing: Widget.spacing / 2
+
+            StyledIcon {
+              anchors.verticalCenter: parent.verticalCenter
+              text: "schedule"
+              textColor: Theme.foregroundInactive
+              textSize: Appearance.fontSize
+            }
+            StyledText {
+              anchors.verticalCenter: parent.verticalCenter
+              text: I18n.tr("up {0}", root.uptime)
+              textColor: Theme.foregroundInactive
+              textSize: Appearance.fontSize - 1
+            }
+          }
+        }
+
+        Row {
+          id: tiles
+          spacing: Widget.spacing * 1.5
+
+          Repeater {
+            model: root.actions
+
+            PowerMenuTile {
+              required property string modelData
+              action: modelData
+              selected: root.selected === index
+              armed: root.armed === modelData
+              armedTimeout: disarm.interval
+              revealed: root.shown
+              onHovered: root.select(index)
+              onClicked: {
+                root.select(index);
+                root.run(modelData);
+              }
+            }
+          }
+        }
+
+        Rectangle {
+          visible: PowerMenuConfig.showHint
+          width: parent.width
+          height: Appearance.borderWidth
+          color: Theme.border
+        }
+
+        Flow {
+          visible: PowerMenuConfig.showHint
+          width: parent.width
+          spacing: 14
+
+          // I18n.tr("select") I18n.tr("run") I18n.tr("pick") I18n.tr("close")
+          Repeater {
+            model: [["← →", "select"], ["↵", "run"], ["1–" + Math.min(9, root.actions.length), "pick"], ["Esc", "close"]]
+
+            KeyHint {
+              required property var modelData
+              key: modelData[0]
+              label: I18n.tr(modelData[1])
+            }
           }
         }
       }

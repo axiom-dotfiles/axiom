@@ -5,6 +5,7 @@ import Quickshell.Io
 import qs.config
 import qs.services
 import qs.components.content.parts
+import qs.components.reusable
 import qs.components.content.base
 
 // A grid of toggle tiles. Toggles whose tool isn't installed (night light:
@@ -137,7 +138,7 @@ Card {
     Repeater {
       model: root.shown
 
-      IconToggle {
+      ActionTile {
         required property string modelData
         required property int index
         readonly property var def: root.defs[modelData]
