@@ -2,7 +2,6 @@ pragma ComponentBehavior: Bound
 import QtQuick
 
 import qs.config
-import qs.services // TEMP-SCREENSHOT
 
 /**
  * Drop this into any bar widget that wants to open a bar popout on hover.
@@ -36,9 +35,7 @@ Item {
   // there while open: a widget that resizes doesn't drag its popout along
   property bool pinWhileOpen: false
 
-  // TEMP-SCREENSHOT: was `property alias hovered: hoverHandler.hovered`
-  property bool _debugHold: false
-  readonly property bool hovered: hoverHandler.hovered || _debugHold
+  property alias hovered: hoverHandler.hovered
   property bool popoutOpen: false
 
   anchors.fill: parent
@@ -65,20 +62,6 @@ Item {
     }
 
     root.popouts.safeOpenPopout(root.panel, payload);
-  }
-
-  // TEMP-SCREENSHOT
-  Connections {
-    target: ShellManager
-    function onDebugPopout(name) {
-      root._debugHold = name !== "" && (name === root.popoutName || name === root.popoutName + ":" + root.extraData.mode);
-      if (root.popoutOpen || root.popouts?.currentData?.anchorItem === root)
-        console.log("[TEMP-SCREENSHOT]", root.popoutName, "open", root.popoutOpen, "mine", root.popouts?.currentData?.anchorItem === root, "occupied", root.popouts?.occupied, "closing", root.popouts?.isClosing);
-      if (root._debugHold)
-        root.open();
-      else if (root.popouts?.currentData?.anchorItem === root)
-        root.popouts.requestDismiss();
-    }
   }
 
   HoverHandler {

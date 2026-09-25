@@ -31,9 +31,13 @@ https://github.com/user-attachments/assets/a53f62e0-e2bc-4834-a05f-92b6cb115c35
 
 ## ✨ Features
 
+The screenshots show two setups of the same shell, changed only through its settings. **A** has a pill bar and a transparent bar down the sides of the screen, and **B** has one solid bar across the top, with rounder corners and a thicker border.
+
 ### 📊 Bar
 
-<p align="center"><img src="assets/screenshots/desktop.webp" alt="A pill bar on the left and a transparent bar on the right, inside the screen border"></p>
+| A: pill bars on the sides | B: one solid top bar |
+| :---: | :---: |
+| <img src="assets/screenshots/desktop.webp" alt="A pill bar on the left and a transparent bar on the right, inside the screen border"> | <img src="assets/screenshots/desktop-b.webp" alt="One solid bar across the top of the screen"> |
 
 - Bars are defined in config. You can have any number, on any monitor and any edge. Each one can be solid, transparent, or split into floating pills.
 - 20 widget types: Workspaces, Window, Time, Media, Volume, Microphone, Network, Bluetooth, Battery, SystemStats, SystemTray, Notifications, Updates, Weather, Tailscale, KeyboardLayout, IdleInhibitor, Privacy, Button (runs any command) and Separator.
@@ -50,6 +54,8 @@ https://github.com/user-attachments/assets/a53f62e0-e2bc-4834-a05f-92b6cb115c35
 <details>
 <summary><b>Popouts</b></summary>
 
+**A:** growing out of the pills, or merging around them
+
 | Calendar | Audio mixer | Forecast |
 | :---: | :---: | :---: |
 | <img src="assets/screenshots/popout-calendar.webp" alt="Calendar popout"> | <img src="assets/screenshots/popout-audio-mixer.webp" alt="Audio mixer popout"> | <img src="assets/screenshots/popout-weather-forecast.webp" alt="Weather forecast popout"> |
@@ -60,11 +66,21 @@ https://github.com/user-attachments/assets/a53f62e0-e2bc-4834-a05f-92b6cb115c35
 | **Workspace grid** | | |
 | <img src="assets/screenshots/popout-workspace-grid.webp" alt="Workspace grid popout"> | | |
 
+**B:** growing out of the top bar, joining the screen border at its end
+
+| Calendar | Now playing |
+| :---: | :---: |
+| <img src="assets/screenshots/popout-calendar-b.webp" alt="Calendar popout under the top bar"> | <img src="assets/screenshots/popout-now-playing-b.webp" alt="Now playing popout under the top bar"> |
+| **Notifications** | **System graphs** |
+| <img src="assets/screenshots/popout-notifications-b.webp" alt="Notifications popout under the top bar"> | <img src="assets/screenshots/popout-system-graphs-b.webp" alt="System graphs popout joining the right screen border"> |
+
 </details>
 
 ### 🗂️ Overlay
 
-<p align="center"><img src="assets/screenshots/overlay-home.webp" alt="The overlay's Home page"></p>
+| A | B |
+| :---: | :---: |
+| <img src="assets/screenshots/overlay-home.webp" alt="The overlay's Home page, setup A"> | <img src="assets/screenshots/overlay-home-b.webp" alt="The overlay's Home page, setup B"> |
 
 - A full-screen overlay made of pages of cards. Each page is built from columns, each column from cells, and each cell holds modules.
 - 24 modules, including:
@@ -83,19 +99,21 @@ https://github.com/user-attachments/assets/a53f62e0-e2bc-4834-a05f-92b6cb115c35
 <details>
 <summary><b>Built-in pages</b></summary>
 
-| Settings | Bar editor |
-| --- | --- |
-| <img src="assets/screenshots/settings.webp" alt="Settings page"> | <img src="assets/screenshots/bar-editor.webp" alt="Bar editor"> |
-| **Overlay editor** | **Keybinds** |
-| <img src="assets/screenshots/overlay-editor.webp" alt="Overlay editor"> | <img src="assets/screenshots/keybinds.webp" alt="Keybinds page"> |
+| | A | B |
+| --- | :---: | :---: |
+| **Settings** | <img src="assets/screenshots/settings.webp" alt="Settings page, setup A"> | <img src="assets/screenshots/settings-b.webp" alt="Settings page, setup B"> |
+| **Bar editor** | <img src="assets/screenshots/bar-editor.webp" alt="Bar editor, setup A"> | <img src="assets/screenshots/bar-editor-b.webp" alt="Bar editor, setup B"> |
+| **Overlay editor** | <img src="assets/screenshots/overlay-editor.webp" alt="Overlay editor, setup A"> | <img src="assets/screenshots/overlay-editor-b.webp" alt="Overlay editor, setup B"> |
+| **Keybinds** | <img src="assets/screenshots/keybinds.webp" alt="Keybinds page, setup A"> | <img src="assets/screenshots/keybinds-b.webp" alt="Keybinds page, setup B"> |
 
 </details>
 
 ### 🎨 Theming
 
-| Dark | Light |
-| --- | --- |
-| <img src="assets/screenshots/themes-dark.webp" alt="Themes page, dark variant"> | <img src="assets/screenshots/themes-light.webp" alt="Themes page, light variant"> |
+| | Dark | Light |
+| --- | :---: | :---: |
+| **A** | <img src="assets/screenshots/themes-dark.webp" alt="Themes page, dark variant, setup A"> | <img src="assets/screenshots/themes-light.webp" alt="Themes page, light variant, setup A"> |
+| **B** | <img src="assets/screenshots/themes-dark-b.webp" alt="Themes page, dark variant, setup B"> | <img src="assets/screenshots/themes-light-b.webp" alt="Themes page, light variant, setup B"> |
 
 - Base16 themes, with dark and light pairs switched by one toggle: Catppuccin, Gruvbox, Solarized, Tokyo Night/Day and Submarine Sonar.
 - Generate a theme from your wallpaper. pywal backends pick the candidate colors, then the palette is built in OKLCH to match the contrast of the hand-made themes.
@@ -127,11 +145,13 @@ https://github.com/user-attachments/assets/a53f62e0-e2bc-4834-a05f-92b6cb115c35
 - 🖥️ **Multi-monitor:** interactive surfaces open on the primary monitor, or on whichever monitor has focus.
 - 🌐 **Translations:** English and Japanese, with more added as a single JSON file each.
 
-| Workspace overlay | AI chat |
-| --- | --- |
-| <img src="assets/screenshots/workspace-overlay.webp" alt="Workspace overlay with live window previews"> | <img src="assets/screenshots/chat.webp" alt="AI chat page"> |
-| **Power menu** | **Notification and OSD** |
-| <img src="assets/screenshots/powermenu.webp" alt="Power menu"> | <img src="assets/screenshots/notification.webp" alt="Notification toast"> <img src="assets/screenshots/osd.webp" alt="Per-app volume OSD"> |
+| | A | B |
+| --- | :---: | :---: |
+| **Workspace overlay** | <img src="assets/screenshots/workspace-overlay.webp" alt="Workspace overlay as a 5×5 grid"> | <img src="assets/screenshots/workspace-overlay-b.webp" alt="Workspace overlay with eight workspaces"> |
+| **AI chat** | <img src="assets/screenshots/chat.webp" alt="AI chat page, setup A"> | <img src="assets/screenshots/chat-b.webp" alt="AI chat page, setup B"> |
+| **Power menu** | <img src="assets/screenshots/powermenu.webp" alt="Power menu, setup A"> | <img src="assets/screenshots/powermenu-b.webp" alt="Power menu, setup B"> |
+| **Notification** | <img src="assets/screenshots/notification.webp" alt="Notification toast, setup A"> | <img src="assets/screenshots/notification-b.webp" alt="Notification toast under the top bar"> |
+| **OSD** | <img src="assets/screenshots/osd.webp" alt="Per-app volume OSD on the bottom edge"> | <img src="assets/screenshots/osd-b.webp" alt="Per-app volume OSD on the right edge"> |
 
 ## 📋 Requirements
 
@@ -280,9 +300,10 @@ Plain text searches apps and open windows. When the text is math, the result sho
 | `?` | Web search, with the engine set in Settings |
 | `@` | Asks the overlay's chat, in a new conversation |
 
-| Apps | Commands | Calculator |
-| --- | --- | --- |
-| <img src="assets/screenshots/launcher-apps.webp" alt="Launcher searching apps"> | <img src="assets/screenshots/launcher-commands.webp" alt="Launcher command list"> | <img src="assets/screenshots/launcher-calc.webp" alt="Launcher calculator converting currency"> |
+| | Apps | Commands | Calculator |
+| --- | :---: | :---: | :---: |
+| **A:** attached to the top, field above | <img src="assets/screenshots/launcher-apps.webp" alt="Launcher searching apps"> | <img src="assets/screenshots/launcher-commands.webp" alt="Launcher command list"> | <img src="assets/screenshots/launcher-calc.webp" alt="Launcher calculator converting currency"> |
+| **B:** attached to the bottom, field below | <img src="assets/screenshots/launcher-apps-b.webp" alt="Launcher at the bottom edge searching apps"> | <img src="assets/screenshots/launcher-commands-b.webp" alt="Launcher at the bottom edge listing commands"> | <img src="assets/screenshots/launcher-calc-b.webp" alt="Launcher at the bottom edge converting currency"> |
 
 <kbd>Tab</kbd> completes a command or its argument. Commands that change something you can see, like the theme, volume or wallpaper, keep the launcher open, so you can try several. `logout`, `reboot` and `poweroff` ask for a second <kbd>Enter</kbd>.
 

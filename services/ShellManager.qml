@@ -2,7 +2,6 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Hyprland
-import Quickshell.Io // TEMP-SCREENSHOT
 
 import qs.config
 
@@ -186,18 +185,6 @@ QtObject {
       break;
     default:
       console.warn("[ShellManager] Unknown session action:", action);
-    }
-  }
-
-  // TEMP-SCREENSHOT: qs -c axiom ipc call debugPopout open <popoutName> | close
-  signal debugPopout(string name)
-  property IpcHandler _debugIpc: IpcHandler {
-    target: "debugPopout"
-    function open(name: string): void {
-      debugPopout(name);
-    }
-    function close(): void {
-      debugPopout("");
     }
   }
 }
