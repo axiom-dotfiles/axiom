@@ -111,6 +111,10 @@ PanelWindow {
       root.open();
       ShellManager.showOverlayPage(type);
     }
+    function onCloseOverlay() {
+      if (root.isOpen)
+        root.close();
+    }
   }
 
   IpcHandler {

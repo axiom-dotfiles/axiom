@@ -34,6 +34,8 @@ QtObject {
   readonly property bool commands: _c.commands
   readonly property bool runCommands: _c.runCommands
   readonly property bool webSearch: _c.webSearch
+  // "@question" asks the overlay's chat
+  readonly property bool chat: _c.chat
   readonly property string terminal: _c.terminal
   // With {} where the terms go
   readonly property string searchEngine: _c.searchEngine

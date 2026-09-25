@@ -117,9 +117,6 @@ QtObject {
       "fg1": fg1
     })
 
-  readonly property color userColor: green
-  readonly property color robotColor: yellow
-
   // --- Metadata ---
   readonly property string name: _themeData.name ?? "Unknown"
   readonly property string variant: _themeData.variant ?? "dark"

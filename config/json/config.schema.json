@@ -1,14 +1,14 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Axiom Configuration Schema",
-  "description": "Source of truth for config/user/config.json. Every key's `default` is filled in at load time (SchemaValidation.applyDefaults), so config readers never need their own fallbacks. `title`/`description`/`minimum`/`maximum`/`enum` drive the generated settings UI; `x-settings: false` hides a key from it (edited elsewhere, or UI-owned state); `x-options` names a dynamic option list (\"screens\", \"chatBackends\", \"colors\" for the 16 base theme colors, \"languages\" from config/i18n); `x-showIf` ({ sibling: value | [values] | { not: value } }) hides a field unless a sibling matches; a key starting with `/` is a dotted path from the config root instead (\"/Workspaces.layout\"). `x-enumLabels` ({ value: label }) shows labels instead of raw enum values in dropdowns. `x-shapes` on an overlay module definition lists the slot shapes it fits (\"square\", \"horizontal\", \"vertical\"; a slot's shape comes from its span in OverlayConfig.layouts), and is enforced by the overlay editor; `x-icon` on a module or view definition is its Material Symbols icon name in the editor. Bar widgets are a oneOf discriminated by `type`, and get their `properties` defaults filled like everything else.",
+  "description": "Source of truth for config/user/config.json. Every key's `default` is filled in at load time (SchemaValidation.applyDefaults), so config readers never need their own fallbacks. `title`/`description`/`minimum`/`maximum`/`enum` drive the generated settings UI; `x-settings: false` hides a key from it (edited elsewhere, or UI-owned state); `x-options` names a dynamic option list (\"screens\", \"chatProviders\" and \"chatPresets\", \"colors\" for the 16 base theme colors, \"languages\" from config/i18n); `x-showIf` ({ sibling: value | [values] | { not: value } }) hides a field unless a sibling matches; a key starting with `/` is a dotted path from the config root instead (\"/Workspaces.layout\"). `x-enumLabels` ({ value: label }) shows labels instead of raw enum values in dropdowns. `x-multiline: true` edits a string in a growing text area. `x-order` on an object schema lists the keys its form shows first, in order (a schema reaches QML as a map, whose keys come out sorted). `x-shapes` on an overlay module definition lists the slot shapes it fits (\"square\", \"horizontal\", \"vertical\"; a slot's shape comes from its span in OverlayConfig.layouts), and is enforced by the overlay editor; `x-icon` on a module or view definition is its Material Symbols icon name in the editor. Bar widgets are a oneOf discriminated by `type`, and get their `properties` defaults filled like everything else.",
   "type": "object",
   "additionalProperties": false,
   "properties": {
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 10,
+      "default": 11,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
@@ -128,7 +128,8 @@
         "runCommands": { "type": "boolean", "title": "Run commands (>)", "default": true, "description": "Type > and a command to run it. Shift+Enter runs it in the terminal." },
         "terminal": { "type": "string", "title": "Terminal", "default": "kitty", "description": "Terminal used for commands run with Shift+Enter and for terminal apps. It's started as: terminal -e command." },
         "webSearch": { "type": "boolean", "title": "Web search (?)", "default": true, "description": "Offer a web search for what you typed, last in the list (or first after ?)." },
-        "searchEngine": { "type": "string", "title": "Search engine URL", "default": "https://duckduckgo.com/?q={}", "description": "{} is replaced by the search terms.", "x-showIf": { "webSearch": true } }
+        "searchEngine": { "type": "string", "title": "Search engine URL", "default": "https://duckduckgo.com/?q={}", "description": "{} is replaced by the search terms.", "x-showIf": { "webSearch": true } },
+        "chat": { "type": "boolean", "title": "Ask chat (@)", "default": true, "description": "Type @ and a question to ask it in the overlay's Chat module, with the default preset." }
       }
     },
 
@@ -479,37 +480,104 @@
     "Chat": {
       "type": "object",
       "x-category": "Chat",
+      "x-card": "ChatProviders",
       "title": "Chat",
-      "description": "API keys are read from GEMINI_API_KEY / OPENAI_API_KEY / ANTHROPIC_API_KEY, or from $XDG_STATE_HOME/axiom/secrets.json. They are never stored here.",
+      "description": "The Chat overlay module, and the launcher's @ prefix. API keys are never stored here: set them on the card above (they go to your keyring, or $XDG_STATE_HOME/axiom/secrets.json without one), or in each provider's environment variable.",
       "additionalProperties": false,
       "properties": {
-        "enabled": {
-          "type": "boolean",
-          "title": "Enabled",
-          "default": false,
-          "description": "Enable the chat tab in the side panel."
-        },
-        "defaultBackend": {
+        "defaultProvider": {
           "type": "string",
-          "title": "Default backend",
-          "default": "gemini",
-          "x-options": "chatBackends"
+          "title": "Default provider",
+          "x-group": "Conversations",
+          "default": "anthropic",
+          "x-options": "chatProviders",
+          "description": "Used by presets that don't name a provider of their own."
         },
-        "backends": {
-          "type": "object",
-          "x-settings": false,
-          "default": {
-            "gemini": { "defaultModel": "gemini-2.5-flash", "models": ["gemini-2.5-pro", "gemini-2.5-flash"] },
-            "openai": { "defaultModel": "gpt-4o-mini", "models": ["gpt-4o", "gpt-4o-mini"] },
-            "anthropic": { "defaultModel": "claude-sonnet-4-20250514", "models": ["claude-sonnet-4-20250514"] }
-          },
-          "additionalProperties": {
+        "defaultPreset": {
+          "type": "string",
+          "title": "Default preset",
+          "x-group": "Conversations",
+          "default": "Default",
+          "x-options": "chatPresets",
+          "description": "What a new conversation starts with."
+        },
+        "maxTokens": { "type": "integer", "title": "Longest reply (tokens)", "x-group": "Conversations", "default": 16000, "minimum": 256, "maximum": 128000, "description": "A reply that reaches this is cut off, with a note saying so." },
+        "keepConversations": { "type": "integer", "title": "Conversations kept", "x-group": "Conversations", "default": 50, "minimum": 0, "maximum": 500, "description": "Older ones are deleted. 0 keeps none: conversations last until the shell restarts." },
+        "showThinking": { "type": "boolean", "title": "Show thinking", "x-group": "Display", "default": true, "description": "Ask models that reason for a summary of it, shown folded above the reply." },
+        "renderMarkdown": { "type": "boolean", "title": "Format replies", "x-group": "Display", "default": true, "description": "Draw Markdown (headings, lists, tables, code blocks) instead of the raw text." },
+        "sendKey": {
+          "type": "string",
+          "title": "Send with",
+          "x-group": "Display",
+          "enum": ["enter", "ctrlEnter"],
+          "x-enumLabels": { "enter": "Enter (Shift+Enter for a new line)", "ctrlEnter": "Ctrl+Enter (Enter for a new line)" },
+          "default": "enter"
+        },
+        "providers": {
+          "type": "array",
+          "title": "Providers",
+          "description": "Where chats are sent. The OpenAI kind also covers Ollama, LM Studio, llama.cpp, OpenRouter, Groq and anything else with an OpenAI-style API: set its address.",
+          "default": [
+            { "id": "anthropic", "name": "Anthropic", "kind": "anthropic", "baseUrl": "https://api.anthropic.com/v1", "auth": "key", "keyEnv": "ANTHROPIC_API_KEY", "models": ["claude-opus-5", "claude-sonnet-5", "claude-haiku-4-5", "claude-fable-5-1", "claude-opus-5-5"], "defaultModel": "claude-opus-5", "fallbacks": true },
+            { "id": "openai", "name": "OpenAI", "kind": "openai", "baseUrl": "https://api.openai.com/v1", "auth": "key", "keyEnv": "OPENAI_API_KEY", "models": ["gpt-5", "gpt-5-mini"], "defaultModel": "gpt-5", "fallbacks": false },
+            { "id": "gemini", "name": "Gemini", "kind": "gemini", "baseUrl": "https://generativelanguage.googleapis.com/v1beta", "auth": "key", "keyEnv": "GEMINI_API_KEY", "models": ["gemini-2.5-pro", "gemini-2.5-flash"], "defaultModel": "gemini-2.5-flash", "fallbacks": false },
+            { "id": "ollama", "name": "Ollama", "kind": "openai", "baseUrl": "http://localhost:11434/v1", "auth": "none", "keyEnv": "", "models": [], "defaultModel": "", "fallbacks": false }
+          ],
+          "items": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["defaultModel"],
+            "x-order": ["name", "id", "kind", "baseUrl", "auth", "keyEnv", "models", "defaultModel", "fallbacks"],
             "properties": {
-              "defaultModel": { "type": "string" },
-              "models": { "type": "array", "items": { "type": "string" } }
+              "id": { "type": "string", "title": "ID", "default": "", "description": "Names the provider's key in the keyring and presets' provider field. Lowercase letters, digits and dashes." },
+              "name": { "type": "string", "title": "Name", "default": "" },
+              "kind": {
+                "type": "string",
+                "title": "API",
+                "enum": ["anthropic", "openai", "gemini"],
+                "x-enumLabels": { "anthropic": "Anthropic Messages", "openai": "OpenAI-compatible", "gemini": "Google Gemini" },
+                "default": "openai"
+              },
+              "baseUrl": { "type": "string", "title": "Address", "default": "", "description": "The API's base URL, up to and including its version (e.g. http://localhost:11434/v1)." },
+              "auth": {
+                "type": "string",
+                "title": "Key",
+                "enum": ["key", "none"],
+                "x-enumLabels": { "key": "Needs an API key", "none": "No key (local server)" },
+                "default": "key"
+              },
+              "keyEnv": { "type": "string", "title": "Key variable", "default": "", "description": "An environment variable that holds the key, if you keep it there. It wins over a stored key.", "x-showIf": { "auth": "key" } },
+              "models": { "type": "array", "title": "Models", "default": [], "items": { "type": "string" }, "description": "Model ids to choose from, comma-separated. Fetch models on the card above fills this in." },
+              "defaultModel": { "type": "string", "title": "Default model", "default": "", "description": "Empty uses the first of the models." },
+              "fallbacks": { "type": "boolean", "title": "Refusal fallback", "default": true, "description": "When the model declines a request, the API retries it on another model within the same reply.", "x-showIf": { "kind": "anthropic" } }
+            }
+          }
+        },
+        "presets": {
+          "type": "array",
+          "title": "Presets",
+          "description": "Saved setups to start a conversation with: a system prompt, and optionally a provider, model and effort of their own.",
+          "default": [
+            { "name": "Default", "icon": "chat", "systemPrompt": "You are a helpful assistant built into the user's Linux desktop. Answer concisely, and use Markdown when it helps.", "provider": "", "model": "", "effort": "default" },
+            { "name": "Coder", "icon": "code", "systemPrompt": "You are an expert programmer. Lead with working code, then explain briefly. Prefer small, idiomatic changes.", "provider": "", "model": "", "effort": "high" }
+          ],
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "x-order": ["name", "icon", "systemPrompt", "provider", "model", "effort"],
+            "properties": {
+              "name": { "type": "string", "title": "Name", "default": "" },
+              "icon": { "type": "string", "title": "Icon", "default": "chat", "description": "A Material Symbols name (fonts.google.com/icons)." },
+              "systemPrompt": { "type": "string", "title": "System prompt", "default": "", "x-multiline": true },
+              "provider": { "type": "string", "title": "Provider", "default": "", "description": "A provider ID. Empty uses the default provider." },
+              "model": { "type": "string", "title": "Model", "default": "", "description": "Empty uses the provider's default model." },
+              "effort": {
+                "type": "string",
+                "title": "Effort",
+                "enum": ["default", "low", "medium", "high", "xhigh", "max"],
+                "x-enumLabels": { "default": "Model default", "low": "Low", "medium": "Medium", "high": "High", "xhigh": "Extra high", "max": "Max" },
+                "default": "default",
+                "description": "How hard a reasoning model thinks. Models that don't reason ignore it."
+              }
             }
           }
         }
@@ -1419,7 +1487,7 @@
     "ChatOverlayModule": {
       "type": "object",
       "x-icon": "smart_toy",
-      "x-shapes": ["vertical", "square"],
+      "x-shapes": ["vertical", "square", "horizontal"],
       "required": ["type"],
       "additionalProperties": false,
       "properties": {

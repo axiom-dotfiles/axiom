@@ -342,8 +342,8 @@ FocusScope {
 
       Repeater {
         // I18n.tr("commands") I18n.tr("calculate") I18n.tr("run") I18n.tr("web")
-        // I18n.tr("complete") I18n.tr("open")
-        model: [[LauncherConfig.commands, "/", "commands"], [LauncherConfig.calculator, "=", "calculate"], [LauncherConfig.runCommands, ">", "run"], [LauncherConfig.webSearch, "?", "web"], [true, "Tab", "complete"], [true, "↵", "open"]].filter(hint => hint[0])
+        // I18n.tr("complete") I18n.tr("open") I18n.tr("ask")
+        model: [[LauncherConfig.commands, "/", "commands"], [LauncherConfig.calculator, "=", "calculate"], [LauncherConfig.runCommands, ">", "run"], [LauncherConfig.webSearch, "?", "web"], [LauncherConfig.chat, "@", "ask"], [true, "Tab", "complete"], [true, "↵", "open"]].filter(hint => hint[0])
 
         KeyHint {
           required property var modelData

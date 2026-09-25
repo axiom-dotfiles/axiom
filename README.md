@@ -85,7 +85,7 @@ https://github.com/user-attachments/assets/a53f62e0-e2bc-4834-a05f-92b6cb115c35
 - ⏻ **Power menu:** your choice of session actions, in your order, driven by mouse or keyboard. Log out, reboot and power off ask you to confirm.
 - 🧭 **Workspaces:** laid out as 1 to N, or as a grid per monitor (5×5 by default) that you move around by row and column. The bar widget, the workspace map, the workspace overlay and your keybinds (through the `workspaces` IPC target) all follow the one setting.
 - 🪟 **Workspace overlay:** live window previews. Drag a window onto a side of another window or onto another workspace, right-drag to resize it, and middle-click to close it.
-- 🤖 **AI chat:** Gemini, OpenAI, Anthropic or an offline backend. API keys are read from environment variables or a secrets file with mode 600, never from `config.json`.
+- 🤖 **AI chat:** Anthropic, OpenAI, Gemini, or anything with an OpenAI-style API (Ollama, LM Studio, OpenRouter, …). Replies stream in as formatted Markdown with copyable code blocks and folded thinking. Also: saved conversations, presets (system prompt, model, effort), image attachments (paste, screenshot a region, drop) and `@` in the launcher to ask a question. API keys come from environment variables, your keyring or a mode-600 secrets file, never `config.json`.
 - 🔒 **Lockscreen:** three modes: the built-in `ext-session-lock` locker (PAM), a themed hyprlock config that axiom generates, or none.
 - 🖥️ **Multi-monitor:** interactive surfaces open on the primary monitor, or on whichever monitor has focus.
 - 🌐 **Translations:** English and Japanese, with more added as a single JSON file each.
@@ -111,6 +111,7 @@ The whole shell runs on four things. Everything else is optional and only needed
 | Updates | `pacman-contrib` (`checkupdates`), plus `paru` or `yay` for AUR updates |
 | Tailscale | `tailscale` |
 | Screenshot module | `grim`, `slurp`, `wl-copy` |
+| AI chat | `curl`; `secret-tool` (libsecret) to keep keys in your keyring; `wl-clipboard`, `grim` and `slurp` for image attachments |
 | Launcher calculator | `qalc` (libqalculate), `wl-copy` |
 | NVIDIA GPU stats | `nvidia-smi` (AMD is read from sysfs) |
 | hyprlock mode | `hyprlock`, and `hypridle` to lock on idle |
@@ -213,6 +214,7 @@ qs -c axiom ipc call <target> <function>
 | `lockscreen` | `lock` |
 | `notifications` | `clear`, `toggleDnd` |
 | `selfUpdate` | `check`, `update`, `open` |
+| `chat` | `open`, `newChat`, `ask <text>`, `settings` |
 
 </details>
 
@@ -233,6 +235,7 @@ Plain text searches apps and open windows. When the text is math, the result sho
 | `=` | Calculator (qalc: math, units, currencies). Enter copies the result |
 | `>` | Runs a shell command. Shift+Enter runs it in your terminal |
 | `?` | Web search, with the engine set in Settings |
+| `@` | Asks the overlay's chat, in a new conversation |
 
 <kbd>Tab</kbd> completes a command or its argument. Commands that change something you can see, like the theme, volume or wallpaper, keep the launcher open, so you can try several. `logout`, `reboot` and `poweroff` ask for a second <kbd>Enter</kbd>.
 
@@ -270,7 +273,7 @@ Everything is configured from inside the shell. Open the overlay, and use the **
 - Settings are saved to `config/user/config.json`. The shell watches that file and reloads when it changes, so editing it by hand also works.
 - Configs from older versions are migrated automatically.
 - `config/json/config.schema.json` defines every option and its default. It also generates the Settings page.
-- Chat API keys are read from `GEMINI_API_KEY`, `OPENAI_API_KEY` or `ANTHROPIC_API_KEY`. If those aren't set, they come from `$XDG_STATE_HOME/axiom/secrets.json`.
+- Chat API keys are entered in **Settings → Chat** and stored in your keyring (or `$XDG_STATE_HOME/axiom/secrets.json`, mode 600, without one). A provider's environment variable (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GEMINI_API_KEY`) wins over a stored key. Conversations are saved in `$XDG_STATE_HOME/axiom/chats/`.
 
 > [!IMPORTANT]
 > An invalid `config.json` never replaces the running config. The shell keeps the last good one and refuses to save until the file is fixed.

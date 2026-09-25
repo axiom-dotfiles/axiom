@@ -16,6 +16,8 @@ QtObject {
   signal showOverlayPage(string type)
   // Opens the target overlay on a page (a view type, or a view's name)
   signal openOverlayPage(string type)
+  // Closes the overlay wherever it's open (e.g. to take a screenshot)
+  signal closeOverlay
 
   // A surface's `monitors` mode with "general" resolved: "primary" |
   // "primaryBar" | "focused" | "all" (no mode is General's)

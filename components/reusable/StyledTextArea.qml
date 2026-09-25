@@ -15,18 +15,22 @@ StyledContainer {
   property alias readOnly: textInput.readOnly
   property alias wantsKeyboardFocus: textInput.activeFocus
   property bool expandable: false
+  // Expandable only: Enter is a new line and Ctrl+Enter submits, instead
+  // of Enter submitting and Shift+Enter being a new line
+  property bool newlineOnEnter: false
+  // Space around the text
+  property int horizontalMargin: 10
+  property int verticalMargin: 10
+  property int minHeight: 40
 
   signal accepted
   signal boxClicked
 
   implicitHeight: {
     if (!expandable)
-      return textInput.implicitHeight + 20;
+      return textInput.implicitHeight + root.verticalMargin * 2;
 
-    var minHeight = 40;
-    var contentBasedHeight = textInput.contentHeight + 30;  // 10px top + 10px bottom margins
-
-    return Math.max(minHeight, contentBasedHeight);
+    return Math.max(root.minHeight, textInput.contentHeight + root.verticalMargin * 2);
   }
 
   borderColor: textInput.activeFocus ? Theme.accent : Theme.border
@@ -49,10 +53,10 @@ StyledContainer {
   Flickable {
     id: flickable
     anchors.fill: parent
-    anchors.leftMargin: 10
-    anchors.rightMargin: 10
-    anchors.topMargin: root.expandable ? 10 : 0
-    anchors.bottomMargin: root.expandable ? 10 : 0
+    anchors.leftMargin: root.horizontalMargin
+    anchors.rightMargin: root.horizontalMargin
+    anchors.topMargin: root.verticalMargin
+    anchors.bottomMargin: root.verticalMargin
 
     contentWidth: textInput.contentWidth
     contentHeight: textInput.contentHeight
@@ -64,6 +68,9 @@ StyledContainer {
     TextArea {
       id: textInput
       width: flickable.width
+      // The margins above are the only space around the text: the style's
+      // own padding would push it off-centre
+      padding: 0
       text: root.text
       onTextChanged: root.text = text
 
@@ -82,7 +89,15 @@ StyledContainer {
       // Handle Enter/Return key
       Keys.onPressed: event => {
         if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-          if (root.expandable && (event.modifiers & Qt.ShiftModifier)) {
+          if (root.expandable && root.newlineOnEnter) {
+            // Ctrl+Enter submits; Enter (with or without Shift) is a new line
+            if (event.modifiers & Qt.ControlModifier) {
+              root.accepted();
+              event.accepted = true;
+            } else {
+              event.accepted = false;
+            }
+          } else if (root.expandable && (event.modifiers & Qt.ShiftModifier)) {
             // Shift+Enter in expandable mode: insert newline (default behavior)
             event.accepted = false;
           } else if (!root.expandable) {
