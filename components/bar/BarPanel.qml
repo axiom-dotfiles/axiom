@@ -97,16 +97,17 @@ PanelWindow {
     layoutSource: bar.barContainer
   }
 
-  // Use the standalone Bar component
-  // The bar's own extent, at its outer edge
+  // The bar's own extent, at its outer edge. Placed by plain geometry, not
+  // conditional anchors: when a bar changes orientation, a `width:
+  // undefined` binding resets width to the implicit 300 after the anchors
+  // have sized it, and the anchors don't reapply until the window resizes,
+  // leaving a 300px bar that hides most of its widgets as overflow.
   StandaloneBar {
     id: bar
-    anchors.top: root.barConfig.left || root.barConfig.right || root.barConfig.top ? parent.top : undefined
-    anchors.bottom: root.barConfig.left || root.barConfig.right || root.barConfig.bottom ? parent.bottom : undefined
-    anchors.left: root.barConfig.top || root.barConfig.bottom || root.barConfig.left ? parent.left : undefined
-    anchors.right: root.barConfig.top || root.barConfig.bottom || root.barConfig.right ? parent.right : undefined
-    width: root.barConfig.vertical ? root.barConfig.extent : undefined
-    height: root.barConfig.vertical ? undefined : root.barConfig.extent
+    x: root.barConfig.right ? parent.width - width : 0
+    y: root.barConfig.bottom ? parent.height - height : 0
+    width: root.barConfig.vertical ? root.barConfig.extent : parent.width
+    height: root.barConfig.vertical ? parent.height : root.barConfig.extent
     barConfig: root.barConfig
     popouts: popouts
     panel: root

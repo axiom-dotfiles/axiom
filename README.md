@@ -2,7 +2,9 @@
 
 # axiom
 
-**The desktop shell behind [Axiom Dotfiles](https://github.com/axiom-dotfiles): a complete Hyprland desktop, written in QML for [Quickshell](https://quickshell.org).**
+**The desktop shell behind [Axiom Dotfiles](https://github.com/axiom-dotfiles): a complete [Hyprland](https://hypr.land) desktop, written in QML for [Quickshell](https://quickshell.org).**
+
+Every bar, overlay page and setting is built from inside the shell. Drag, drop, save: there are no config files to write.
 
 Bar · Overlay · Launcher · Notifications · Lockscreen · OSD · Power menu · Workspace overview · Screen border
 
@@ -12,7 +14,7 @@ Bar · Overlay · Launcher · Notifications · Lockscreen · OSD · Power menu �
 [![Quickshell](https://img.shields.io/badge/Quickshell-0.3.1%2B-b16286?style=for-the-badge&labelColor=282828)](https://quickshell.org)
 [![License](https://img.shields.io/badge/License-MIT-689d6a?style=for-the-badge&labelColor=282828)](LICENSE)
 
-[Features](#-features) · [Requirements](#-requirements) · [Install](#-installation) · [IPC](#%EF%B8%8F-keybinds-and-ipc) · [Configuration](#%EF%B8%8F-configuration)
+[Built in the shell](#%EF%B8%8F-built-in-the-shell) · [Features](#-features) · [Requirements](#-requirements) · [Install](#-installation) · [IPC](#%EF%B8%8F-keybinds-and-ipc) · [Configuration](#%EF%B8%8F-configuration) · [Acknowledgments](#-acknowledgments)
 
 </div>
 
@@ -22,16 +24,58 @@ https://github.com/user-attachments/assets/a53f62e0-e2bc-4834-a05f-92b6cb115c35
 
 | | |
 | --- | --- |
+| 🛠️ **Built in the shell** | Bars, overlay pages and every setting are edited on your desktop, and changes show as you make them. The layout is data, not code. |
 | 📦 **Everything in one place** | One repository and one config for the whole desktop. Beyond Hyprland and Quickshell, the only requirements are `python3` and `jq`. |
-| 🎛️ **Configured from the desktop** | A Settings page generated from the schema, plus live editors for the bar and the overlay. Changes hot-reload. |
 | 🛡️ **Built not to break** | An invalid config never replaces the running one. Old configs migrate themselves, and API keys stay out of `config.json`. |
 | 🎨 **One theme everywhere** | Base16 themes, or one generated from your wallpaper, applied to 18 other apps. |
-| 🤝 **Fits your setup** | Three Hyprland modes and three lockscreen modes. Your own config files are never edited. |
+| 🤝 **Fits your setup** | Three Hyprland modes, from hands-off to fully managed, and three lockscreen modes. |
 | 🖥️ **Multi-monitor** | Bars and wallpapers per monitor. Surfaces open on the primary monitor, the focused one, or all of them. |
+
+## 🛠️ Built in the shell
+
+The whole desktop is described by one config: which bars exist and what's on them, which pages the overlay has and what each card holds, and every setting. The shell has an editor for all of it.
+
+> [!NOTE]
+> **Both setups in this README, A and B, were built entirely with these editors and the Settings page. No file was edited by hand.** They're two saved configs, and switching between them is one click under **Settings → Backups** (or `/config restore <name>` in the launcher).
+
+| Bar editor | Overlay editor |
+| :---: | :---: |
+| <img src="assets/screenshots/bar-editor.webp" alt="Bar editor, setup A"> | <img src="assets/screenshots/overlay-editor.webp" alt="Overlay editor, setup A"> |
+
+**Bar editor**
+- Add as many bars as you like, on any monitor and any edge. Each one can be solid, transparent, or split into pills.
+- Drag widgets from the library into a bar's five sections, and between sections. Click a widget to edit its options.
+- Every change shows on your running bars as you make it. **Save** keeps it and **Reset** drops it.
+
+**Overlay editor**
+- Add, rename and reorder pages.
+- Drag modules and cell layouts from the library onto a page, or between cells to give a module a cell of its own. Dropping a module on an occupied slot swaps the two.
+- It only offers modules that fit a slot's shape, and anything that doesn't fit blocks **Save** until it's fixed.
+
+**Settings**
+- Generated from the schema that defines the config, so every option is in the UI.
+- Any setting can also be set from the launcher: `/config Appearance.font.size 14`.
+- **Backups** saves the whole config under a name, to restore later.
+
+<details>
+<summary><b>The editors in setup B</b></summary>
+
+| Bar editor | Overlay editor |
+| :---: | :---: |
+| <img src="assets/screenshots/bar-editor-b.webp" alt="Bar editor, setup B"> | <img src="assets/screenshots/overlay-editor-b.webp" alt="Overlay editor, setup B"> |
+
+</details>
 
 ## ✨ Features
 
+The screenshots show [two setups](#%EF%B8%8F-built-in-the-shell) of the same shell. **A** has a pill bar and a transparent bar down the sides of the screen, and **B** has one solid bar across the top, with rounder corners and a thicker border.
+
 ### 📊 Bar
+
+| A: pill bars on the sides | B: one solid top bar |
+| :---: | :---: |
+| <img src="assets/screenshots/desktop.webp" alt="A pill bar on the left and a transparent bar on the right, inside the screen border"> | <img src="assets/screenshots/desktop-b.webp" alt="One solid bar across the top of the screen"> |
+
 - Bars are defined in config. You can have any number, on any monitor and any edge. Each one can be solid, transparent, or split into floating pills.
 - 20 widget types: Workspaces, Window, Time, Media, Volume, Microphone, Network, Bluetooth, Battery, SystemStats, SystemTray, Notifications, Updates, Weather, Tailscale, KeyboardLayout, IdleInhibitor, Privacy, Button (runs any command) and Separator.
 - Popouts grow out of the bar, or out of the screen border, with filleted corners. Widgets open theirs on hover:
@@ -44,7 +88,37 @@ https://github.com/user-attachments/assets/a53f62e0-e2bc-4834-a05f-92b6cb115c35
 
   Buttons can run their action on hover too.
 
+<details>
+<summary><b>Popouts</b></summary>
+
+**A:** growing out of the pills, or merging around them
+
+| Calendar | Audio mixer | Forecast |
+| :---: | :---: | :---: |
+| <img src="assets/screenshots/popout-calendar.webp" alt="Calendar popout"> | <img src="assets/screenshots/popout-audio-mixer.webp" alt="Audio mixer popout"> | <img src="assets/screenshots/popout-weather-forecast.webp" alt="Weather forecast popout"> |
+| **System graphs** | **Now playing** | **Notifications** |
+| <img src="assets/screenshots/popout-system-graphs.webp" alt="System graphs popout"> | <img src="assets/screenshots/popout-now-playing.webp" alt="Now playing popout"> | <img src="assets/screenshots/popout-notifications.webp" alt="Notifications popout"> |
+| **Wi-Fi** | **Bluetooth** | **Updates** |
+| <img src="assets/screenshots/popout-wifi-networks.webp" alt="Wi-Fi popout"> | <img src="assets/screenshots/popout-bluetooth-devices.webp" alt="Bluetooth popout"> | <img src="assets/screenshots/popout-updates.webp" alt="Pending updates popout"> |
+| **Workspace grid** | | |
+| <img src="assets/screenshots/popout-workspace-grid.webp" alt="Workspace grid popout"> | | |
+
+**B:** growing out of the top bar, joining the screen border at its end
+
+| Calendar | Now playing |
+| :---: | :---: |
+| <img src="assets/screenshots/popout-calendar-b.webp" alt="Calendar popout under the top bar"> | <img src="assets/screenshots/popout-now-playing-b.webp" alt="Now playing popout under the top bar"> |
+| **Notifications** | **System graphs** |
+| <img src="assets/screenshots/popout-notifications-b.webp" alt="Notifications popout under the top bar"> | <img src="assets/screenshots/popout-system-graphs-b.webp" alt="System graphs popout joining the right screen border"> |
+
+</details>
+
 ### 🗂️ Overlay
+
+| A | B |
+| :---: | :---: |
+| <img src="assets/screenshots/overlay-home.webp" alt="The overlay's Home page, setup A"> | <img src="assets/screenshots/overlay-home-b.webp" alt="The overlay's Home page, setup B"> |
+
 - A full-screen overlay made of pages of cards. Each page is built from columns, each column from cells, and each cell holds modules.
 - 24 modules, including:
   - a media player, audio mixer, system graphs and top processes
@@ -54,12 +128,27 @@ https://github.com/user-attachments/assets/a53f62e0-e2bc-4834-a05f-92b6cb115c35
 - Modules adapt to the shape of their slot (square, wide, tall or quarter).
 - Built-in pages:
   - **Settings**, generated from the config schema
-  - **Bar editor**
-  - **Overlay editor**
+  - **Bar editor** and **Overlay editor** (see [Built in the shell](#%EF%B8%8F-built-in-the-shell))
   - **Themes**
   - **Keybinds**
 
+<details>
+<summary><b>Built-in pages</b></summary>
+
+| | A | B |
+| --- | :---: | :---: |
+| **Settings** | <img src="assets/screenshots/settings.webp" alt="Settings page, setup A"> | <img src="assets/screenshots/settings-b.webp" alt="Settings page, setup B"> |
+| **Keybinds** | <img src="assets/screenshots/keybinds.webp" alt="Keybinds page, setup A"> | <img src="assets/screenshots/keybinds-b.webp" alt="Keybinds page, setup B"> |
+
+</details>
+
 ### 🎨 Theming
+
+| | Dark | Light |
+| --- | :---: | :---: |
+| **A** | <img src="assets/screenshots/themes-dark.webp" alt="Themes page, dark variant, setup A"> | <img src="assets/screenshots/themes-light.webp" alt="Themes page, light variant, setup A"> |
+| **B** | <img src="assets/screenshots/themes-dark-b.webp" alt="Themes page, dark variant, setup B"> | <img src="assets/screenshots/themes-light-b.webp" alt="Themes page, light variant, setup B"> |
+
 - Base16 themes, with dark and light pairs switched by one toggle: Catppuccin, Gruvbox, Solarized, Tokyo Night/Day and Submarine Sonar.
 - Generate a theme from your wallpaper. pywal backends pick the candidate colors, then the palette is built in OKLCH to match the contrast of the hand-made themes.
 - Wallpapers can be set per monitor, with transitions through [awww](https://github.com/LGFae/awww).
@@ -79,7 +168,7 @@ https://github.com/user-attachments/assets/a53f62e0-e2bc-4834-a05f-92b6cb115c35
 </details>
 
 ### 🧩 The rest
-- 🔔 **Notifications:** toasts and a notification center.
+- 🔔 **Notifications:** toasts and a notification center. Toasts stack from any corner, with even or per-side gaps measured from the bar or border at each edge.
 - 🔊 **OSD:** follows the volume of the apps you choose.
 - 🚀 **Launcher:** searches apps (ranked by how often and how recently you use them), open windows, a calculator and the web. It runs shell commands and controls the shell with `/` commands.
 - ⏻ **Power menu:** your choice of session actions, in your order, driven by mouse or keyboard. Log out, reboot and power off ask you to confirm.
@@ -90,12 +179,20 @@ https://github.com/user-attachments/assets/a53f62e0-e2bc-4834-a05f-92b6cb115c35
 - 🖥️ **Multi-monitor:** interactive surfaces open on the primary monitor, or on whichever monitor has focus.
 - 🌐 **Translations:** English and Japanese, with more added as a single JSON file each.
 
+| | A | B |
+| --- | :---: | :---: |
+| **Workspace overlay** | <img src="assets/screenshots/workspace-overlay.webp" alt="Workspace overlay as a 5×5 grid"> | <img src="assets/screenshots/workspace-overlay-b.webp" alt="Workspace overlay with eight workspaces"> |
+| **AI chat** | <img src="assets/screenshots/chat.webp" alt="AI chat page, setup A"> | <img src="assets/screenshots/chat-b.webp" alt="AI chat page, setup B"> |
+| **Power menu** | <img src="assets/screenshots/powermenu.webp" alt="Power menu, setup A"> | <img src="assets/screenshots/powermenu-b.webp" alt="Power menu, setup B"> |
+| **Notification** | <img src="assets/screenshots/notification.webp" alt="Notification toast, setup A"> | <img src="assets/screenshots/notification-b.webp" alt="Notification toast under the top bar"> |
+| **OSD** | <img src="assets/screenshots/osd.webp" alt="Per-app volume OSD on the bottom edge"> | <img src="assets/screenshots/osd-b.webp" alt="Per-app volume OSD on the right edge"> |
+
 ## 📋 Requirements
 
 The whole shell runs on four things. Everything else is optional and only needed for the feature that uses it.
 
 **Required**
-- Hyprland 0.55 or newer, with its Lua config (`hyprland.lua`)
+- [Hyprland](https://hypr.land) 0.55 or newer, with its Lua config (`hyprland.lua`)
 - [Quickshell](https://quickshell.org) 0.3.1 or newer (`qs`)
 - [Material Symbols](https://fonts.google.com/icons) for icons (`ttf-material-symbols-variable`). Any font works for text
 - `jq`, `python3`
@@ -237,6 +334,11 @@ Plain text searches apps and open windows. When the text is math, the result sho
 | `?` | Web search, with the engine set in Settings |
 | `@` | Asks the overlay's chat, in a new conversation |
 
+| | Apps | Commands | Calculator |
+| --- | :---: | :---: | :---: |
+| **A:** attached to the top, field above | <img src="assets/screenshots/launcher-apps.webp" alt="Launcher searching apps"> | <img src="assets/screenshots/launcher-commands.webp" alt="Launcher command list"> | <img src="assets/screenshots/launcher-calc.webp" alt="Launcher calculator converting currency"> |
+| **B:** attached to the bottom, field below | <img src="assets/screenshots/launcher-apps-b.webp" alt="Launcher at the bottom edge searching apps"> | <img src="assets/screenshots/launcher-commands-b.webp" alt="Launcher at the bottom edge listing commands"> | <img src="assets/screenshots/launcher-calc-b.webp" alt="Launcher at the bottom edge converting currency"> |
+
 <kbd>Tab</kbd> completes a command or its argument. Commands that change something you can see, like the theme, volume or wallpaper, keep the launcher open, so you can try several. `logout`, `reboot` and `poweroff` ask for a second <kbd>Enter</kbd>.
 
 | Group | Commands |
@@ -268,9 +370,9 @@ In `none` mode axiom doesn't register the `lockscreen` target. Point hypridle at
 
 ## ⚙️ Configuration
 
-Everything is configured from inside the shell. Open the overlay, and use the **Settings**, **Bar editor**, **Overlay editor** and **Themes** pages.
+Everything is configured from inside the shell (see [Built in the shell](#%EF%B8%8F-built-in-the-shell)). Open the overlay, and use the **Settings**, **Bar editor**, **Overlay editor** and **Themes** pages.
 
-- Settings are saved to `config/user/config.json`. The shell watches that file and reloads when it changes, so editing it by hand also works.
+- Settings are saved to `config/user/config.json`. You never need to open it, but the shell watches that file and reloads when it changes, so editing it by hand also works.
 - Configs from older versions are migrated automatically.
 - `config/json/config.schema.json` defines every option and its default. It also generates the Settings page.
 - Chat API keys are entered in **Settings → Chat** and stored in your keyring (or `$XDG_STATE_HOME/axiom/secrets.json`, mode 600, without one). A provider's environment variable (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GEMINI_API_KEY`) wins over a stored key. Conversations are saved in `$XDG_STATE_HOME/axiom/chats/`.
@@ -306,15 +408,31 @@ Icons showing as words (`wifi`, `battery_full`) mean the icon font is missing: i
 
 ## 🤝 Contributing
 
+Contributions are welcome. [Open an issue](https://github.com/axiom-dotfiles/axiom/issues/new/choose) for a bug or an idea, or fork the repository and open a pull request against `main`. The pull request template has a short checklist, and CI runs the same checks (`scripts/check_structure.py`, `scripts/check_i18n.py`, JSON and script syntax).
+
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the directory layout and conventions, and [CLAUDE.md](CLAUDE.md) for the architecture in detail. There's no build step: `qs` interprets the QML and hot-reloads on save.
 
 ## 🗺️ Roadmap
 
-- [ ] Onboarding and a setup wizard
 - [x] Installer
+- [x] v1.0, the first stable release
+- [ ] Onboarding and a setup wizard
+- [ ] Clipboard manager
 - [ ] More translations
-- [ ] CI, plus issue and pull request templates
-- [ ] First stable release, after which changes land through PRs only
+- [x] Collaboration: CI, issue and pull request templates, changes through PRs
+
+## 🙏 Acknowledgments
+
+axiom is built on:
+- [Hyprland](https://hypr.land), the compositor it's made for
+- [Quickshell](https://quickshell.org), the QML toolkit every surface is written in
+- [Material Symbols](https://fonts.google.com/icons), the icons
+- [pywal16](https://github.com/eylles/pywal16) and its backends ([colorz](https://github.com/metakirby5/colorz), [colorthief](https://github.com/fengsp/color-thief-py), [haishoku](https://github.com/LanceGin/haishoku)), which pick the candidate colors for generated themes
+- [awww](https://github.com/LGFae/awww), for wallpapers and their transitions
+
+Four of the five theme pairs are ports of [Catppuccin](https://catppuccin.com), [Gruvbox](https://github.com/morhetz/gruvbox), [Solarized](https://ethanschoonover.com/solarized/) and [Tokyo Night](https://github.com/tokyo-night/tokyo-night-vscode-theme). Submarine Sonar is axiom's own.
+
+And thanks to the Hyprland desktops that inspired it: [illogical-impulse](https://github.com/end-4/dots-hyprland), [caelestia-dots](https://github.com/caelestia-dots) and [JaKooLit's Hyprland-Dots](https://github.com/JaKooLit/Hyprland-Dots).
 
 ## 📄 License
 

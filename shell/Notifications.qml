@@ -1,12 +1,14 @@
 import QtQuick
 import Quickshell
+import Quickshell.Wayland
 
 import qs.services
 import qs.config
 import qs.components.surfaces.notifications
 
-// Stacks incoming notifications as toasts near the top-left of the screen
-// (offset past the bar), driven by NotificationManager.showPopup. Dismissing a toast
+// Stacks incoming notifications as toasts from a corner of the primary
+// monitor's work area (NotificationsConfig), driven by
+// NotificationManager.showPopup. Dismissing a toast
 // only hides it — the notification stays tracked and remains visible/
 // actionable from the bell popout.
 Scope {
@@ -14,8 +16,6 @@ Scope {
 
   property int maxVisibleToasts: 5
   property int stackSpacing: 10
-  property int topOffset: Appearance.screenMargin + 20
-  property int leftOffset: Bar.extent + 20
   property int toastWidth: 360
   property int toastMaxHeight: 220
   property int dismissDuration: 5000
@@ -23,22 +23,50 @@ Scope {
 
   property var activeToasts: []
 
-  // Invisible anchor window the toast PopupWindows position relative to.
+  readonly property var screen: Quickshell.screens.find(s => s.name === General.primaryMonitor) ?? Quickshell.screens[0] ?? null
+
+  // Invisible anchor window the toast PopupWindows position relative to,
+  // in the chosen corner of the work area. Normal exclusion with no zone of
+  // its own keeps it inside the space the bars, the border (and any other
+  // app's panels) reserve, as OverlayPanel does, so the gaps are measured
+  // from whatever is at each edge. A transparent bar reserves Hyprland's
+  // gaps_out less than it draws (see BarPanel) and shows only its widgets,
+  // `inset` inside its window: the gap starts at their inner edge instead.
+  readonly property var _edges: Bar.edgesFor(root.screen)
+  function _edgeGap(side, gap) {
+    const bar = root._edges[side];
+    if (bar?.background !== "transparent")
+      return gap;
+    return gap + (HyprlandManager.gapsOut[side] ?? 0) - (bar.inset ?? 0);
+  }
+
   PanelWindow {
     id: anchorPanel
     visible: true
+    screen: root.screen
 
     implicitWidth: 1
     implicitHeight: 1
 
     anchors {
-      top: true
-      left: true
+      top: NotificationsConfig.top
+      bottom: !NotificationsConfig.top
+      left: NotificationsConfig.left
+      right: !NotificationsConfig.left
+    }
+    margins {
+      top: root._edgeGap("top", NotificationsConfig.gapTop)
+      bottom: root._edgeGap("bottom", NotificationsConfig.gapBottom)
+      left: root._edgeGap("left", NotificationsConfig.gapLeft)
+      right: root._edgeGap("right", NotificationsConfig.gapRight)
     }
 
     color: "transparent"
     focusable: false
-    exclusionMode: ExclusionMode.Ignore
+    WlrLayershell.layer: WlrLayer.Overlay
+    WlrLayershell.namespace: "axiom-notifications"
+    exclusionMode: ExclusionMode.Normal
+    exclusiveZone: 0
 
     // Where NotificationManager renders images to cache them: grabbing
     // needs an item in a window (items may lie outside this 1x1 one)
@@ -59,7 +87,8 @@ Scope {
       toastMaxHeight: root.toastMaxHeight
       dismissDuration: root.dismissDuration
       dragDismissThreshold: root.dragDismissThreshold
-      leftOffset: root.leftOffset
+      alignRight: !NotificationsConfig.left
+      fromBottom: !NotificationsConfig.top
     }
   }
 
@@ -109,7 +138,7 @@ Scope {
   }
 
   function calculateTargetY(index) {
-    let y = topOffset;
+    let y = 0;
     for (let i = 0; i < index && i < activeToasts.length; i++) {
       y += activeToasts[i].implicitHeight + stackSpacing;
     }

@@ -78,7 +78,8 @@ QtObject {
   }
 
   // Shows the configured wallpaper on every screen without saving anything,
-  // for when the config changed under them (a restored snapshot).
+  // for when the config changed under them (a restored snapshot), and
+  // brings a generated theme in line with it.
   function applyWallpapers() {
     for (const screen of Quickshell.screens) {
       const url = Appearance.wallpaperFor(screen.name);
@@ -86,11 +87,32 @@ QtObject {
         continue;
       Quickshell.execDetached([Paths.scriptsPath + "setWallpaper.sh", url.replace("file://", ""), screen.name, screen.name === General.primaryMonitor ? "1" : "0"]);
     }
+    syncGeneratedTheme();
   }
+
+  // Generated themes are named by backend, not wallpaper, so each run
+  // overwrites the last and a config only records the theme's name. When
+  // the active one was made from another wallpaper than the configured one
+  // (a snapshot restored over a newer generation), generate it again: the
+  // file watch then reloads the colors and runs the integrations.
+  function syncGeneratedTheme() {
+    if (!Appearance.theme.startsWith("generated/") || !Appearance.wallpaper)
+      return;
+    const wanted = decodeURIComponent(Appearance.wallpaper.replace("file://", ""));
+    if (root.currentTheme?.generated?.wallpaper === wanted)
+      return;
+    console.log("[ThemeManager] Generated theme is from", root.currentTheme?.generated?.wallpaper ?? "no wallpaper", "- regenerating for", wanted);
+    generateThemesFromWallpaper(Appearance.wallpaper);
+  }
+
+  // A request made while a run is going replaces any earlier one and runs
+  // after it, so the last wallpaper asked for is the one generated
+  property string _pendingGeneration: ""
 
   function generateThemesFromWallpaper(wallpaperUrl) {
     if (isGenerating) {
-      console.log("[ThemeManager] Generation already in progress.");
+      console.log("[ThemeManager] Generation already in progress; queued:", wallpaperUrl.toString());
+      root._pendingGeneration = wallpaperUrl.toString();
       return;
     }
     console.log("[ThemeManager] Starting generation process for:", wallpaperUrl.toString());
@@ -327,13 +349,17 @@ QtObject {
       if (exitStatus !== 0 || exitCode !== 0) {
         console.error("[ThemeManager] Theme generation failed.", errors);
         root.generationFailed(errors);
-        return;
+      } else {
+        // Some backends failed, or the venv was set up
+        if (errors)
+          console.warn("[ThemeManager] generate_theme.py:", errors);
+        console.log("[ThemeManager] Theme generation finished successfully.");
+        root._reloadAllThemes();
       }
-      // Some backends failed, or the venv was set up
-      if (errors)
-        console.warn("[ThemeManager] generate_theme.py:", errors);
-      console.log("[ThemeManager] Theme generation finished successfully.");
-      root._reloadAllThemes();
+      const next = root._pendingGeneration;
+      root._pendingGeneration = "";
+      if (next)
+        Qt.callLater(() => root.generateThemesFromWallpaper(next));
     }
   }
 

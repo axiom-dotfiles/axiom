@@ -361,13 +361,22 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
   // side by side (placeWindow, and the overview's drop preview)
   property real splitWidthMultiplier: 1
 
-  // Full-screen surfaces' backdrops (ScreenBackdrop) are Top-layer
-  // surfaces that must sit under the bars and border, which are on the
-  // same layer (or above) but mapped before them. A higher layer order stacks them under
-  // (Hyprland: "closer to the edge of the monitor"; -1 puts it on top).
-  // Rules added at runtime are lost when Hyprland reloads its config.
+  // Hyprland arranges and stacks each layer's surfaces in the order they
+  // were mapped, unless a layer rule's `order` says otherwise (higher is
+  // "closer to the edge of the monitor": arranged, and drawn, first).
+  // - Full-screen surfaces' backdrops (ScreenBackdrop) are Top-layer
+  //   surfaces that must sit under the bars and border, which are mapped
+  //   before them.
+  // - A solid bar must be arranged before the border's strip on its edge,
+  //   which then lands on the bar's inner part (see BarPanel). Mapping
+  //   order alone breaks whenever the bar's surface is remade or changes
+  //   layer (a new monitor, a new bar id on restore, solid <-> floating):
+  //   Hyprland appends it after the border.
+  // Named, so re-adding one replaces it instead of piling up copies. Rules
+  // added at runtime are lost when Hyprland reloads its config.
   function _addLayerRules() {
-    _eval(`hl.layer_rule({ match = { namespace = "^axiom-backdrop$" }, order = 10 })`);
+    _eval(`hl.layer_rule({ name = "axiom-backdrop", match = { namespace = "^axiom-backdrop$" }, order = 10 })`);
+    _eval(`hl.layer_rule({ name = "axiom-bar", match = { namespace = "^axiom-bar$" }, order = 5 })`);
   }
 
   Component.onCompleted: {

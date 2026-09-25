@@ -126,6 +126,27 @@ PopoutWrapperBase {
   readonly property real pillFoot: root.barConfig.pillDepth - Appearance.borderWidth
   readonly property real startFoot: mergeWithPill && !mainPopup.joinStart && root.pills.some(p => p.start <= mainPopup.boxStart - Appearance.borderRadius && p.start + p.length >= mainPopup.boxStart) ? pillFoot : 0
   readonly property real endFoot: mergeWithPill && !mainPopup.joinEnd && root.pills.some(p => p.start <= mainPopup.boxEnd && p.start + p.length >= mainPopup.boxEnd + Appearance.borderRadius) ? pillFoot : 0
+  // A merged box whose side wall falls just short of another pill's stroke
+  // would draw its wall and fillet a few pixels off that stroke, a double
+  // line with a sliver of wallpaper between. How far to shift a box at
+  // `start` (at most a connector gap) so the wall lies on the stroke and
+  // stands on the pill (see startFoot/endFoot); 0 when none is that close.
+  function pillSnap(start) {
+    const own = root.anchorPill;
+    const end = start + mainPopup.boxLength;
+    if (own === null || (start >= own.start && end <= own.start + own.length))
+      return 0;
+    const bw = Appearance.borderWidth, r = Appearance.borderRadius;
+    for (const p of root.pills) {
+      const toEnd = p.start + bw - end;
+      if (toEnd > 0 && toEnd <= root.connectorGap && p.start + p.length >= end + toEnd + r)
+        return toEnd;
+      const toStart = start - (p.start + p.length - bw);
+      if (toStart > 0 && toStart <= root.connectorGap && p.start <= start - toStart - r)
+        return -toStart;
+    }
+    return 0;
+  }
   // An unmerged popout stands on its pill's far stroke. When its box sits
   // just inside the pill's end, its fillet would run past the straight
   // part of that stroke, so the pill is stretched (for as long as the
@@ -244,7 +265,9 @@ PopoutWrapperBase {
         return strokeStart;
       if (joinEnd)
         return strokeEnd - boxLength;
-      return Math.max(minAlong + filletMargin, Math.min(alignedBoxStart, maxAlong - filletMargin - boxLength));
+      const lo = minAlong + filletMargin, hi = maxAlong - filletMargin - boxLength;
+      const clamped = Math.max(lo, Math.min(alignedBoxStart, hi));
+      return Math.max(lo, Math.min(clamped + root.pillSnap(clamped), hi));
     }
     readonly property real boxEnd: boxStart + boxLength
     // Where the popup (the surface) starts along the bar

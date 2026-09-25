@@ -19,8 +19,12 @@ PopupWindow {
   property int toastMaxHeight: 220
   property int dismissDuration: 5000
   property real dragDismissThreshold: 150
-  property int leftOffset: 20
-  property int targetY: 20
+  // The corner it stacks from: the anchor window is a 1px point there, so
+  // a right-hand toast ends at it and a bottom one stacks upwards from it
+  property bool alignRight: false
+  property bool fromBottom: false
+  // Distance from the corner along the stack
+  property int targetY: 0
 
   signal dismissed
 
@@ -31,12 +35,14 @@ PopupWindow {
   color: "transparent"
 
   anchor.window: anchorWindow
+  // Placed exactly: the compositor mustn't slide it back on screen
+  anchor.adjustment: PopupAdjustment.None
+  anchor.rect.x: alignRight ? 1 - implicitWidth : 0
+  anchor.rect.y: fromBottom ? 1 - targetY - implicitHeight : targetY
+  anchor.rect.width: implicitWidth
+  anchor.rect.height: implicitHeight
 
   Component.onCompleted: {
-    anchor.rect.x = leftOffset;
-    anchor.rect.y = targetY;
-    anchor.rect.width = implicitWidth;
-    anchor.rect.height = implicitHeight;
     visible = true;
     slideIn.start();
   }
@@ -45,7 +51,6 @@ PopupWindow {
   // reads fine since it's accompanied by other toasts sliding at once.
   function updatePosition(newTargetY) {
     targetY = newTargetY;
-    anchor.rect.y = targetY;
   }
 
   // Only hides the toast — the notification stays tracked so it's still
@@ -61,7 +66,7 @@ PopupWindow {
     NumberAnimation {
       target: card
       property: "y"
-      from: -16
+      from: root.fromBottom ? 16 : -16
       to: 0
       duration: Appearance.animNormal
       easing.type: Easing.OutCubic
