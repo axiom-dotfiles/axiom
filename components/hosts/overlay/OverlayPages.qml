@@ -27,6 +27,16 @@ Item {
   // overlay editor, always last and can't be removed
   readonly property int editorIndex: viewsModel.length
   readonly property int pageCount: viewsModel.length + 1
+  // What the navigator shows for each page: the views, then the editor
+  readonly property var pages: viewsModel.map((view, index) => ({
+        "icon": OverlayConfig.viewIcon(view.viewConfig.type),
+        "label": OverlayConfig.viewLabel(view.viewConfig, index)
+      })).concat([
+    {
+      "icon": "view_quilt",
+      "label": I18n.tr("Overlay editor")
+    }
+  ])
   // itemAt() isn't a notifying read: `count` makes this re-evaluate once
   // the Repeater has created its pages (on launch they don't exist yet)
   readonly property Item currentPage: wrapper.currentIndex === wrapper.editorIndex ? editorPage : (viewsRepeater.count > wrapper.currentIndex ? viewsRepeater.itemAt(wrapper.currentIndex) : null)

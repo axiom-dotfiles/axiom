@@ -243,7 +243,8 @@ PanelWindow {
         horizontalCenter: parent.horizontalCenter
       }
       currentIndex: tabWrapper.currentIndex
-      count: tabWrapper.pageCount
+      pages: tabWrapper.pages
+      maxWidth: slideContainer.width - Widget.padding * 4
       onPrevious: tabWrapper.currentIndex = (tabWrapper.currentIndex - 1 + tabWrapper.pageCount) % tabWrapper.pageCount
       onNext: tabWrapper.currentIndex = (tabWrapper.currentIndex + 1) % tabWrapper.pageCount
       onSelect: index => tabWrapper.currentIndex = index

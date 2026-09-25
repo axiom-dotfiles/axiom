@@ -42,6 +42,18 @@ QtObject {
   function viewInfo(type) {
     return availableViewTypes.find(t => t.type === type) ?? null;
   }
+  // How a page is named and drawn in the page navigator and the overlay
+  // editor: a Custom page by its name (or its place), others by type
+  // (i18n: keys from the schema's view labels)
+  function viewLabel(view, index) {
+    if (view?.type === "Custom")
+      return view.name || I18n.tr("Page {0}", index + 1);
+    const label = viewInfo(view?.type)?.label ?? view?.type ?? "";
+    return I18n.tr(label);
+  }
+  function viewIcon(type) {
+    return viewInfo(type)?.icon ?? "dashboard";
+  }
 
   // Card grid layout — internal design constants, not user settings.
   // Card radius/border follow Appearance so the overlay matches the shell.

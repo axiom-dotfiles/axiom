@@ -4,6 +4,7 @@ import Quickshell.Hyprland
 
 import qs.services
 import qs.config
+import qs.components.methods
 import qs.components.hosts.popout
 import qs.components.reusable
 
@@ -102,22 +103,46 @@ Item {
           readonly property HyprlandWorkspace ws: root.wsById(wsId)
           readonly property bool isActive: wsId === root.activeId
           readonly property bool hasWindows: (ws?.toplevels?.values?.length ?? 0) > 0
+          // The active arrow takes the active cell's place
+          readonly property bool showsArrow: isActive && root.properties.showActiveIcon
+          readonly property var biggestWindow: root.properties.showAppIcons && hasWindows && !showsArrow ? HyprlandManager.biggestWindowForWorkspace(wsId) : null
+          readonly property string iconPath: biggestWindow ? IconResolver.resolveWindowIcon(biggestWindow.class, biggestWindow.title) : ""
 
           width: root.cell
           height: root.cell
           radius: Appearance.borderRadius
-          color: isActive ? root.activeColor : hasWindows ? root.occupiedColor : root.emptyColor
+          color: isActive ? root.activeColor : cellArea.containsMouse ? Theme.backgroundHighlight : hasWindows ? root.occupiedColor : root.emptyColor
 
           StyledIcon {
             anchors.centerIn: parent
             text: root.isVertical ? root.positionGlyph(root.activeColumn, root.columns) : root.positionGlyph(root.activeRow, root.rows)
             font.pixelSize: Appearance.fontSize * 1.2
-            visible: cellBox.isActive && root.properties.showActiveIcon
+            visible: cellBox.showsArrow
             color: root.iconColor
           }
 
+          Image {
+            anchors.centerIn: parent
+            width: root.cell * 0.65
+            height: width
+            sourceSize: Qt.size(64, 64)
+            source: cellBox.iconPath
+            visible: cellBox.iconPath !== ""
+          }
+
+          // Its place in the grid, counted from 1
+          StyledText {
+            anchors.centerIn: parent
+            visible: root.properties.labels === "numbers" && !cellBox.showsArrow && cellBox.iconPath === ""
+            text: cellBox.index + 1
+            textColor: cellBox.isActive || cellBox.hasWindows ? root.iconColor : Theme.foreground
+            textSize: Appearance.fontSize - 1
+          }
+
           MouseArea {
+            id: cellArea
             anchors.fill: parent
+            hoverEnabled: true
             enabled: root.properties.clickToSwitch
             cursorShape: Qt.PointingHandCursor
             onClicked: HyprlandManager.goToWorkspace(cellBox.wsId)
@@ -141,7 +166,8 @@ Item {
     extraData: ({
         monitor: root.monitor,
         vertical: root.isVertical,
-        cellSize: root.cell
+        cellSize: root.cell,
+        properties: root.properties
       })
   }
 }

@@ -1,14 +1,14 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Axiom Configuration Schema",
-  "description": "Source of truth for config/user/config.json. Every key's `default` is filled in at load time (SchemaValidation.applyDefaults), so config readers never need their own fallbacks. `title`/`description`/`minimum`/`maximum`/`enum` drive the generated settings UI; `x-settings: false` hides a key from it (edited elsewhere, or UI-owned state); `x-options` names a dynamic option list (\"screens\", \"chatBackends\", \"colors\" for the 16 base theme colors, \"languages\" from config/i18n); `x-showIf` ({ sibling: value | [values] | { not: value } }) hides a field unless a sibling matches. `x-enumLabels` ({ value: label }) shows labels instead of raw enum values in dropdowns. `x-shapes` on an overlay module definition lists the slot shapes it fits (\"square\", \"horizontal\", \"vertical\"; a slot's shape comes from its span in OverlayConfig.layouts), and is enforced by the overlay editor; `x-icon` on a module or view definition is its Material Symbols icon name in the editor. Bar widgets are a oneOf discriminated by `type`, and get their `properties` defaults filled like everything else.",
+  "description": "Source of truth for config/user/config.json. Every key's `default` is filled in at load time (SchemaValidation.applyDefaults), so config readers never need their own fallbacks. `title`/`description`/`minimum`/`maximum`/`enum` drive the generated settings UI; `x-settings: false` hides a key from it (edited elsewhere, or UI-owned state); `x-options` names a dynamic option list (\"screens\", \"chatBackends\", \"colors\" for the 16 base theme colors, \"languages\" from config/i18n); `x-showIf` ({ sibling: value | [values] | { not: value } }) hides a field unless a sibling matches; a key starting with `/` is a dotted path from the config root instead (\"/Workspaces.layout\"). `x-enumLabels` ({ value: label }) shows labels instead of raw enum values in dropdowns. `x-shapes` on an overlay module definition lists the slot shapes it fits (\"square\", \"horizontal\", \"vertical\"; a slot's shape comes from its span in OverlayConfig.layouts), and is enforced by the overlay editor; `x-icon` on a module or view definition is its Material Symbols icon name in the editor. Bar widgets are a oneOf discriminated by `type`, and get their `properties` defaults filled like everything else.",
   "type": "object",
   "additionalProperties": false,
   "properties": {
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 9,
+      "default": 10,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
@@ -447,12 +447,6 @@
           "minimum": 1,
           "maximum": 50,
           "description": "Thickness of the hover strip at the screen edge that opens edge popouts."
-        },
-        "workspaceIcons": {
-          "type": "boolean",
-          "title": "Workspace popout icons",
-          "default": true,
-          "description": "Show app icons in the workspace popout."
         }
       }
     },
@@ -1546,19 +1540,19 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "showEmpty": { "type": "boolean", "title": "Show empty workspaces", "default": true, "description": "Off: only workspaces with windows, plus the active one (standard layout)." },
-            "monitorOnly": { "type": "boolean", "title": "Only this monitor", "default": false, "description": "Hide workspaces that are open on another monitor (standard layout)." },
-            "labels": { "type": "string", "title": "Labels", "enum": ["numbers", "dots"], "x-enumLabels": { "numbers": "Numbers", "dots": "Dots" }, "default": "numbers", "description": "Standard layout." },
-            "showAppIcons": { "type": "boolean", "title": "App icons", "default": false, "description": "Show the largest window's icon on occupied workspaces (standard layout)." },
-            "wideActive": { "type": "boolean", "title": "Wide active", "default": true, "description": "Make the active workspace twice as long (standard layout)." },
-            "showActiveIcon": { "type": "boolean", "title": "Active icon", "default": true, "description": "Show an arrow on the active workspace (grid layout)." },
-            "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Open the whole grid when hovered (grid layout)." },
-            "clickToSwitch": { "type": "boolean", "title": "Click to switch", "default": true, "description": "Click a workspace to go to it." },
+            "showEmpty": { "type": "boolean", "title": "Show empty workspaces", "default": true, "x-showIf": { "/Workspaces.layout": "standard" }, "description": "Off: only workspaces with windows, plus the active one." },
+            "monitorOnly": { "type": "boolean", "title": "Only this monitor", "default": false, "x-showIf": { "/Workspaces.layout": "standard" }, "description": "Hide workspaces that are open on another monitor." },
+            "labels": { "type": "string", "title": "Labels", "enum": ["numbers", "dots"], "x-enumLabels": { "numbers": "Numbers", "dots": "Dots" }, "default": "numbers", "description": "In a grid, numbers count through the monitor's grid, on the bar and in the popout." },
+            "showAppIcons": { "type": "boolean", "title": "App icons", "default": false, "description": "Show the largest window's icon on occupied workspaces (in a grid, on the bar and in the popout)." },
+            "wideActive": { "type": "boolean", "title": "Wide active", "default": true, "x-showIf": { "/Workspaces.layout": "standard" }, "description": "Make the active workspace twice as long." },
+            "showActiveIcon": { "type": "boolean", "title": "Active icon", "default": true, "x-showIf": { "/Workspaces.layout": "grid" }, "description": "Show an arrow on the active workspace, pointing to where the shown row (or column) is in the grid." },
+            "showPopout": { "type": "boolean", "title": "Popout", "default": true, "x-showIf": { "/Workspaces.layout": "grid" }, "description": "Open the whole grid when hovered." },
+            "clickToSwitch": { "type": "boolean", "title": "Click to switch", "default": true, "description": "Click a workspace (on the bar or in the grid popout) to go to it." },
             "scrollToSwitch": { "type": "boolean", "title": "Scroll to switch", "default": true, "description": "Scroll over the widget to step through the workspaces (along the shown row or column in a grid)." },
             "activeColor": { "type": "string", "title": "Active", "x-options": "colors", "default": "base0E" },
             "occupiedColor": { "type": "string", "title": "Occupied", "x-options": "colors", "default": "base04" },
             "emptyColor": { "type": "string", "title": "Empty", "x-options": "colors", "default": "base01" },
-            "textColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00", "description": "Numbers, and the grid's active arrow." }
+            "textColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00", "description": "Numbers, and the grid's active arrow. The colors also apply to the grid popout." }
           }
         }
       }
