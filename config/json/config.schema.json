@@ -1293,7 +1293,7 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "actions": {"type": "array", "title": "Actions", "default": ["lock", "suspend", "logout", "reboot", "poweroff"], "items": {"type": "string", "enum": ["lock", "suspend", "logout", "reboot", "poweroff"]}}
+            "actions": {"type": "array", "title": "Actions", "default": ["lock", "suspend", "hibernate", "logout", "reboot", "poweroff"], "items": {"type": "string", "enum": ["lock", "suspend", "hibernate", "logout", "reboot", "poweroff"]}}
           }
         }
       }

@@ -23,7 +23,7 @@ PanelWindow {
   property string iconPoweroff: "power_settings_new"
   property string iconSuspend: "bedtime"
   property string iconReboot: "restart_alt"
-  property string iconHibernate: "hard_drive"
+  property string iconHibernate: "ac_unit"
 
   // [action, icon] in grid order
   readonly property var actions: [["lock", iconLock], ["logout", iconLogout], ["poweroff", iconPoweroff], ["suspend", iconSuspend], ["reboot", iconReboot], ["hibernate", iconHibernate]]

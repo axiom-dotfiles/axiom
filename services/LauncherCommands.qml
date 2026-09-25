@@ -23,7 +23,7 @@ QtObject {
 
   readonly property var list: [
     // --- Session ---
-    root._session("lock", ["lock-screen"], "lock", "Lock the screen"), root._session("suspend", ["sleep"], "sleep", "Suspend to RAM"), root._session("hibernate", [], "snowflake", "Hibernate to disk"), root._session("logout", ["exit"], "logout", "End the Hyprland session"), root._session("reboot", ["restart"], "restart_alt", "Restart the computer"), root._session("poweroff", ["shutdown"], "mode_standby", "Turn the computer off"),
+    root._session("lock", ["lock-screen"], "lock", "Lock the screen"), root._session("suspend", ["sleep"], "sleep", "Suspend to RAM"), root._session("hibernate", [], "ac_unit", "Hibernate to disk"), root._session("logout", ["exit"], "logout", "End the Hyprland session"), root._session("reboot", ["restart"], "restart_alt", "Restart the computer"), root._session("poweroff", ["shutdown"], "mode_standby", "Turn the computer off"),
     // --- Surfaces ---
     {
       name: "power",
