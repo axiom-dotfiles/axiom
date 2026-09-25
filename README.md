@@ -149,6 +149,9 @@ hl.on("hyprland.start", function() hl.exec_cmd("qs -c axiom") end)
 
 </details>
 
+> [!TIP]
+> **After installing, look through [axiom-dotfiles/hypr](https://github.com/axiom-dotfiles/hypr)**, the Hyprland config axiom is developed with. axiom's keybinds and settings only cover the shell itself. That repo has the rest of a desktop: window-management binds, media and brightness keys, screenshots, window rules, animations, helper scripts, and `hypridle`/`hyprlock` configs. It's laid out for managed mode as `user/*.lua` files, but you can copy whatever's useful into your own config. The keybinds file reads its shared values from `lib/variables.lua`.
+
 That's all Hyprland needs. How axiom sets up the rest is **Settings → Desktop → Hyprland → Mode**:
 
 | Mode | What it does |
@@ -179,8 +182,6 @@ The same settings page holds switches for:
 - **starting `awww-daemon`**
 
 Keybinds are edited on the **Keybinds** page. A bind can run any IPC action below, or a command. A description like `Workspace: Switch left` puts the bind in its own section on that page.
-
-The [hypr](https://github.com/axiom-dotfiles/hypr) repository has a matching Hyprland config.
 
 ### 🔄 Updates
 
