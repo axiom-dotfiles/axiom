@@ -408,8 +408,7 @@ Icons showing as words (`wifi`, `battery_full`) mean the icon font is missing: i
 
 ## 🤝 Contributing
 
-> [!NOTE]
-> Pull requests aren't open yet, and PRs on GitHub will be closed. [Issues](https://github.com/axiom-dotfiles/axiom/issues) are very welcome. If you want to help, get in touch on Matrix (@travmonkey:matrix.batk.me) and we can work out how.
+Contributions are welcome. [Open an issue](https://github.com/axiom-dotfiles/axiom/issues/new/choose) for a bug or an idea, or fork the repository and open a pull request against `main`. The pull request template has a short checklist, and CI runs the same checks (`scripts/check_structure.py`, `scripts/check_i18n.py`, JSON and script syntax).
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the directory layout and conventions, and [CLAUDE.md](CLAUDE.md) for the architecture in detail. There's no build step: `qs` interprets the QML and hot-reloads on save.
 
@@ -420,7 +419,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the directory layout and conventions,
 - [ ] Onboarding and a setup wizard
 - [ ] Clipboard manager
 - [ ] More translations
-- [ ] Collaboration: CI, issue and pull request templates, changes through PRs only
+- [x] Collaboration: CI, issue and pull request templates, changes through PRs
 
 ## 🙏 Acknowledgments
 
