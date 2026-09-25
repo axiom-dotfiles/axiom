@@ -82,7 +82,7 @@ https://github.com/user-attachments/assets/a53f62e0-e2bc-4834-a05f-92b6cb115c35
 - 🔔 **Notifications:** toasts and a notification center.
 - 🔊 **OSD:** follows the volume of the apps you choose.
 - 🚀 **Launcher:** searches apps (ranked by how often and how recently you use them), open windows, a calculator and the web. It runs shell commands and controls the shell with `/` commands.
-- ⏻ **Power menu:** asks you to confirm.
+- ⏻ **Power menu:** your choice of session actions, in your order, driven by mouse or keyboard. Log out, reboot and power off ask you to confirm.
 - 🧭 **Workspaces:** laid out as 1 to N, or as a grid per monitor (5×5 by default) that you move around by row and column. The bar widget, the workspace map, the workspace overlay and your keybinds (through the `workspaces` IPC target) all follow the one setting.
 - 🪟 **Workspace overlay:** live window previews. Drag a window onto a side of another window or onto another workspace, right-drag to resize it, and middle-click to close it.
 - 🤖 **AI chat:** Gemini, OpenAI, Anthropic or an offline backend. API keys are read from environment variables or a secrets file with mode 600, never from `config.json`.

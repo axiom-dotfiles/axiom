@@ -3,6 +3,7 @@ import QtQuick
 import qs.config
 import qs.services
 import qs.components.content.parts
+import qs.components.reusable
 import qs.components.content.base
 
 // Lock, suspend, hibernate, log out, reboot and power off. The last three ask for a
@@ -11,15 +12,7 @@ import qs.components.content.base
 Card {
   id: root
 
-  readonly property var defs: ({
-      "lock": ["lock", I18n.tr("Lock")],
-      "suspend": ["sleep", I18n.tr("Suspend")],
-      "hibernate": ["ac_unit", I18n.tr("Hibernate")],
-      "logout": ["logout", I18n.tr("Log out")],
-      "reboot": ["restart_alt", I18n.tr("Reboot")],
-      "poweroff": ["power_settings_new", I18n.tr("Power off")]
-    })
-  readonly property var actions: (root.properties.actions ?? ["lock", "suspend", "hibernate", "logout", "reboot", "poweroff"]).filter(a => a in root.defs)
+  readonly property var actions: (root.properties.actions ?? ["lock", "suspend", "hibernate", "logout", "reboot", "poweroff"]).filter(a => ShellManager.sessionActionInfo(a) !== null)
   property string armed: ""
 
   function run(action) {
@@ -47,18 +40,21 @@ Card {
     Repeater {
       model: root.actions
 
-      IconToggle {
+      ActionTile {
         required property string modelData
         required property int index
         x: grid.tileX(index)
         y: grid.tileY(index)
         width: grid.tileWidth
         height: grid.tileHeight
-        icon: root.defs[modelData][0]
-        label: active ? I18n.tr("Confirm?") : root.defs[modelData][1]
+        readonly property var info: ShellManager.sessionActionInfo(modelData)
+        icon: info.icon
+        label: active ? I18n.tr("Confirm?") : info.label
         showLabel: !root.compact
         active: root.armed === modelData
         activeColor: Theme.error
+        tone: ShellManager.destructiveActions.includes(modelData) ? Theme.error : Theme.accent
+        countdown: disarm.interval
         onClicked: root.run(modelData)
       }
     }
