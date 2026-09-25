@@ -63,13 +63,15 @@ ColumnLayout {
     visible: root.isSet
     spacing: Widget.spacing
 
-    SchemaSpinBox {
+    SchemaNumberField {
       Layout.fillWidth: true
       label: root.fieldSchema.title ?? root.key
       currentConfigValue: root.isSet ? root.value : root.initial
       minimum: root.fieldSchema.minimum ?? 0
       maximum: root.fieldSchema.maximum ?? 9999
-      onValueChanged: {
+      unit: root.fieldSchema["x-unit"] ?? ""
+      mode: root.fieldSchema["x-control"] ?? "auto"
+      onCommitted: value => {
         if (root.isSet && value !== root.value)
           root.edited(value);
       }

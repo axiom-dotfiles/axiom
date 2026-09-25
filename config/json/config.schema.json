@@ -113,11 +113,11 @@
           "description": "Where on the screen the launcher opens. On the top or bottom edge it grows out of the border or bar there, like the other edge popouts."
         },
         "reverse": { "type": "boolean", "title": "Search bar at the bottom", "default": false, "description": "Put the search field under the results, with the best match nearest to it. Suits the bottom edge." },
-        "width": { "type": "integer", "title": "Width (px)", "default": 680, "minimum": 400, "maximum": 1200, "description": "Width of the launcher." },
+        "width": { "type": "integer", "title": "Width", "x-unit": "px", "default": 680, "minimum": 400, "maximum": 1200, "description": "Width of the launcher." },
         "maxResults": { "type": "integer", "title": "Results shown", "default": 8, "minimum": 3, "maximum": 20, "description": "How many rows fit before the list scrolls." },
-        "iconSize": { "type": "integer", "title": "Icon size (px)", "default": 32, "minimum": 16, "maximum": 64, "description": "Size of the result icons." },
+        "iconSize": { "type": "integer", "title": "Icon size", "x-unit": "px", "default": 32, "minimum": 16, "maximum": 64, "description": "Size of the result icons." },
         "showBackdrop": { "type": "boolean", "title": "Dim background", "default": true, "description": "Dim the whole screen behind the launcher, under the bars and border." },
-        "backdrop": { "type": "integer", "title": "Backdrop darkness (%)", "default": 25, "minimum": 0, "maximum": 90, "description": "How dark the screen behind the launcher goes.", "x-showIf": { "showBackdrop": true } },
+        "backdrop": { "type": "integer", "title": "Backdrop darkness", "x-unit": "%", "default": 25, "minimum": 0, "maximum": 90, "description": "How dark the screen behind the launcher goes.", "x-showIf": { "showBackdrop": true } },
         "showDescriptions": { "type": "boolean", "title": "Descriptions", "default": true, "description": "Show a second line under each result (an app's generic name, a window's class, a command's description)." },
         "showRecent": { "type": "boolean", "title": "Frequent apps when empty", "default": true, "description": "List your most used apps before you type anything." },
         "showHint": { "type": "boolean", "title": "Controls hint", "default": true, "description": "Show the search prefixes and keys under the results." },
@@ -150,11 +150,11 @@
         },
         "actions": { "type": "array", "title": "Actions", "default": ["lock", "suspend", "hibernate", "logout", "reboot", "poweroff"], "items": { "type": "string", "enum": ["lock", "suspend", "hibernate", "logout", "reboot", "poweroff"] }, "description": "Which actions the menu shows, in order." },
         "confirm": { "type": "boolean", "title": "Confirm destructive actions", "default": true, "description": "Log out, reboot and power off ask for a second click (or Enter) first." },
-        "tileSize": { "type": "integer", "title": "Tile size (px)", "default": 120, "minimum": 80, "maximum": 200, "description": "Width and height of each action's tile." },
+        "tileSize": { "type": "integer", "title": "Tile size", "x-unit": "px", "default": 120, "minimum": 80, "maximum": 200, "description": "Width and height of each action's tile." },
         "showHeader": { "type": "boolean", "title": "Greeting and uptime", "default": true, "description": "Show a greeting and how long the computer has been up above the actions." },
         "showHint": { "type": "boolean", "title": "Controls hint", "default": true, "description": "Show the keys under the actions." },
         "showBackdrop": { "type": "boolean", "title": "Dim background", "default": true, "description": "Dim the whole screen behind the power menu, under the bars and border." },
-        "backdrop": { "type": "integer", "title": "Backdrop darkness (%)", "default": 35, "minimum": 0, "maximum": 90, "description": "How dark the screen behind the power menu goes.", "x-showIf": { "showBackdrop": true } }
+        "backdrop": { "type": "integer", "title": "Backdrop darkness", "x-unit": "%", "default": 35, "minimum": 0, "maximum": 90, "description": "How dark the screen behind the power menu goes.", "x-showIf": { "showBackdrop": true } }
       }
     },
 
@@ -183,22 +183,22 @@
           "description": "Corner of the work area the toasts stack from. Bottom corners stack upwards."
         },
         "evenGaps": { "type": "boolean", "title": "Even gaps", "default": true, "description": "Use one gap for both sides of the corner. Turn off to set each side on its own." },
-        "gap": { "type": "integer", "title": "Gap (px)", "default": 12, "minimum": 0, "maximum": 200, "description": "Space between the toasts and the edges of the work area.", "x-showIf": { "evenGaps": true } },
-        "gapTop": { "type": "integer", "title": "Top gap (px)", "default": 12, "minimum": 0, "maximum": 200, "description": "Space between the toasts and the top of the work area.", "x-showIf": { "evenGaps": false, "position": ["topLeft", "topRight"] } },
-        "gapBottom": { "type": "integer", "title": "Bottom gap (px)", "default": 12, "minimum": 0, "maximum": 200, "description": "Space between the toasts and the bottom of the work area.", "x-showIf": { "evenGaps": false, "position": ["bottomLeft", "bottomRight"] } },
-        "gapLeft": { "type": "integer", "title": "Left gap (px)", "default": 12, "minimum": 0, "maximum": 200, "description": "Space between the toasts and the left of the work area.", "x-showIf": { "evenGaps": false, "position": ["topLeft", "bottomLeft"] } },
-        "gapRight": { "type": "integer", "title": "Right gap (px)", "default": 12, "minimum": 0, "maximum": 200, "description": "Space between the toasts and the right of the work area.", "x-showIf": { "evenGaps": false, "position": ["topRight", "bottomRight"] } },
-        "timeout": { "type": "integer", "title": "Toast duration (s)", "x-group": "Toasts", "default": 5, "minimum": 1, "maximum": 60, "description": "How long a toast stays up. Hovering it pauses the countdown." },
+        "gap": { "type": "integer", "title": "Gap", "x-unit": "px", "default": 12, "minimum": 0, "maximum": 200, "description": "Space between the toasts and the edges of the work area.", "x-showIf": { "evenGaps": true } },
+        "gapTop": { "type": "integer", "title": "Top gap", "x-unit": "px", "default": 12, "minimum": 0, "maximum": 200, "description": "Space between the toasts and the top of the work area.", "x-showIf": { "evenGaps": false, "position": ["topLeft", "topRight"] } },
+        "gapBottom": { "type": "integer", "title": "Bottom gap", "x-unit": "px", "default": 12, "minimum": 0, "maximum": 200, "description": "Space between the toasts and the bottom of the work area.", "x-showIf": { "evenGaps": false, "position": ["bottomLeft", "bottomRight"] } },
+        "gapLeft": { "type": "integer", "title": "Left gap", "x-unit": "px", "default": 12, "minimum": 0, "maximum": 200, "description": "Space between the toasts and the left of the work area.", "x-showIf": { "evenGaps": false, "position": ["topLeft", "bottomLeft"] } },
+        "gapRight": { "type": "integer", "title": "Right gap", "x-unit": "px", "default": 12, "minimum": 0, "maximum": 200, "description": "Space between the toasts and the right of the work area.", "x-showIf": { "evenGaps": false, "position": ["topRight", "bottomRight"] } },
+        "timeout": { "type": "integer", "title": "Toast duration", "x-unit": "s", "x-group": "Toasts", "default": 5, "minimum": 1, "maximum": 60, "description": "How long a toast stays up. Hovering it pauses the countdown." },
         "appTimeouts": { "type": "boolean", "title": "Use app timeouts", "x-group": "Toasts", "default": true, "description": "When an app asks for its own duration, or for its notification to stay until dismissed, use that instead of the duration above." },
         "criticalStays": { "type": "boolean", "title": "Critical toasts stay", "x-group": "Toasts", "default": true, "description": "Critical notifications stay up until you dismiss them." },
         "maxToasts": { "type": "integer", "title": "Visible toasts", "x-group": "Toasts", "default": 5, "minimum": 1, "maximum": 10, "description": "How many toasts stack up at once. A new one pushes out the oldest." },
-        "width": { "type": "integer", "title": "Toast width (px)", "x-group": "Toasts", "default": 360, "minimum": 240, "maximum": 600, "description": "Width of each toast." },
+        "width": { "type": "integer", "title": "Toast width", "x-unit": "px", "x-group": "Toasts", "default": 360, "minimum": 240, "maximum": 600, "description": "Width of each toast." },
         "quietFullscreen": { "type": "boolean", "title": "Quiet over fullscreen", "x-group": "Toasts", "default": true, "description": "Show no toasts on a monitor whose workspace has a fullscreen window. Critical ones still show, and everything still goes to the history." },
         "clearOnFocus": { "type": "boolean", "title": "Clear when the app is focused", "x-group": "History", "default": false, "description": "Focusing an app's window removes its notifications from the history." },
         "removeOnClick": { "type": "boolean", "title": "Remove when clicked", "x-group": "History", "default": false, "description": "Clicking a notification, or one of its actions, removes it from the history." },
         "closeRemoves": { "type": "boolean", "title": "Closing a toast removes it", "x-group": "History", "default": false, "description": "Closing a toast (its close button or a swipe) also removes the notification from the history. Off, it only hides the toast." },
         "maxEntries": { "type": "integer", "title": "History size", "x-group": "History", "default": 100, "minimum": 10, "maximum": 500, "description": "How many notifications the history keeps. The oldest go first." },
-        "maxAgeDays": { "type": "integer", "title": "Keep for (days)", "x-group": "History", "default": 0, "minimum": 0, "maximum": 365, "description": "Remove notifications older than this many days. 0 keeps them until removed." }
+        "maxAgeDays": { "type": "integer", "title": "Keep for", "x-unit": "days", "x-group": "History", "default": 0, "minimum": 0, "maximum": 365, "description": "Remove notifications older than this many days. 0 keeps them until removed." }
       }
     },
 
@@ -385,32 +385,32 @@
             "smartSplit": { "type": "boolean", "title": "Split by cursor position", "x-group": "Layout", "default": false, "description": "Dwindle splits towards the side of the window the cursor is on.", "x-showIf": { "layout": "dwindle" }, "x-hypr": "dwindle.smart_split" },
             "smartResizing": { "type": "boolean", "title": "Resize by cursor position", "x-group": "Layout", "default": true, "description": "Resizing moves the edge nearest the cursor.", "x-showIf": { "layout": "dwindle" }, "x-hypr": "dwindle.smart_resizing" },
             "forceSplit": { "type": "string", "title": "New windows go", "x-group": "Layout", "enum": ["0", "1", "2"], "x-enumLabels": { "0": "Towards the cursor", "1": "Left or above", "2": "Right or below" }, "default": "0", "x-showIf": { "layout": "dwindle" }, "x-hypr": "dwindle.force_split", "x-hyprValue": "number" },
-            "splitRatio": { "type": "integer", "title": "Split ratio (%)", "x-group": "Layout", "default": 100, "minimum": 10, "maximum": 190, "description": "The first window's share of a new split; 100 splits evenly.", "x-showIf": { "layout": "dwindle" }, "x-hypr": "dwindle.default_split_ratio", "x-hyprScale": 0.01 },
-            "masterSize": { "type": "integer", "title": "Master size (%)", "x-group": "Layout", "default": 55, "minimum": 5, "maximum": 95, "x-showIf": { "layout": "master" }, "x-hypr": "master.mfact", "x-hyprScale": 0.01 },
+            "splitRatio": { "type": "integer", "title": "Split ratio", "x-unit": "%", "x-group": "Layout", "default": 100, "minimum": 10, "maximum": 190, "description": "The first window's share of a new split; 100 splits evenly.", "x-showIf": { "layout": "dwindle" }, "x-hypr": "dwindle.default_split_ratio", "x-hyprScale": 0.01 },
+            "masterSize": { "type": "integer", "title": "Master size", "x-unit": "%", "x-group": "Layout", "default": 55, "minimum": 5, "maximum": 95, "x-showIf": { "layout": "master" }, "x-hypr": "master.mfact", "x-hyprScale": 0.01 },
             "masterOrientation": { "type": "string", "title": "Master side", "x-group": "Layout", "enum": ["left", "right", "top", "bottom", "center"], "default": "left", "x-showIf": { "layout": "master" }, "x-hypr": "master.orientation" },
             "masterNewStatus": { "type": "string", "title": "New windows become", "x-group": "Layout", "enum": ["slave", "master", "inherit"], "x-enumLabels": { "slave": "Part of the stack", "master": "The master", "inherit": "Like the focused window" }, "default": "slave", "x-showIf": { "layout": "master" }, "x-hypr": "master.new_status" },
-            "columnWidth": { "type": "integer", "title": "Column width (%)", "x-group": "Layout", "default": 50, "minimum": 10, "maximum": 100, "x-showIf": { "layout": "scrolling" }, "x-hypr": "scrolling.column_width", "x-hyprScale": 0.01 },
+            "columnWidth": { "type": "integer", "title": "Column width", "x-unit": "%", "x-group": "Layout", "default": 50, "minimum": 10, "maximum": 100, "x-showIf": { "layout": "scrolling" }, "x-hypr": "scrolling.column_width", "x-hyprScale": 0.01 },
             "scrollDirection": { "type": "string", "title": "Columns go", "x-group": "Layout", "enum": ["right", "left", "down", "up"], "default": "right", "x-showIf": { "layout": "scrolling" }, "x-hypr": "scrolling.direction" },
             "scrollFollowFocus": { "type": "boolean", "title": "Scroll to the focused window", "x-group": "Layout", "default": true, "x-showIf": { "layout": "scrolling" }, "x-hypr": "scrolling.follow_focus" },
             "snap": { "type": "boolean", "title": "Snap floating windows", "x-group": "Layout", "default": false, "description": "Floating windows snap to each other and the screen edges.", "x-hypr": "general.snap.enabled" },
             "matchAxiom": { "type": "boolean", "title": "Match axiom's look", "x-group": "Decoration", "default": true, "description": "Window corners and border width follow Look & Feel → Shape." },
             "borderSize": { "type": "integer", "title": "Border width", "x-group": "Decoration", "default": 2, "minimum": 0, "maximum": 20, "x-showIf": { "matchAxiom": false } },
             "rounding": { "type": "integer", "title": "Corner rounding", "x-group": "Decoration", "default": 8, "minimum": 0, "maximum": 50, "x-showIf": { "matchAxiom": false } },
-            "activeOpacity": { "type": "integer", "title": "Focused window opacity (%)", "x-group": "Decoration", "default": 100, "minimum": 10, "maximum": 100, "x-hypr": "decoration.active_opacity", "x-hyprScale": 0.01 },
-            "inactiveOpacity": { "type": "integer", "title": "Unfocused window opacity (%)", "x-group": "Decoration", "default": 100, "minimum": 10, "maximum": 100, "x-hypr": "decoration.inactive_opacity", "x-hyprScale": 0.01 },
-            "fullscreenOpacity": { "type": "integer", "title": "Fullscreen opacity (%)", "x-group": "Decoration", "default": 100, "minimum": 10, "maximum": 100, "x-hypr": "decoration.fullscreen_opacity", "x-hyprScale": 0.01 },
+            "activeOpacity": { "type": "integer", "title": "Focused window opacity", "x-unit": "%", "x-group": "Decoration", "default": 100, "minimum": 10, "maximum": 100, "x-hypr": "decoration.active_opacity", "x-hyprScale": 0.01 },
+            "inactiveOpacity": { "type": "integer", "title": "Unfocused window opacity", "x-unit": "%", "x-group": "Decoration", "default": 100, "minimum": 10, "maximum": 100, "x-hypr": "decoration.inactive_opacity", "x-hyprScale": 0.01 },
+            "fullscreenOpacity": { "type": "integer", "title": "Fullscreen opacity", "x-unit": "%", "x-group": "Decoration", "default": 100, "minimum": 10, "maximum": 100, "x-hypr": "decoration.fullscreen_opacity", "x-hyprScale": 0.01 },
             "dimInactive": { "type": "boolean", "title": "Dim unfocused windows", "x-group": "Decoration", "default": true, "x-hypr": "decoration.dim_inactive", "x-hyprAlways": true },
-            "dimStrength": { "type": "integer", "title": "Dim strength (%)", "x-group": "Decoration", "default": 8, "minimum": 0, "maximum": 100, "x-showIf": { "dimInactive": true }, "x-hypr": "decoration.dim_strength", "x-hyprScale": 0.01, "x-hyprAlways": true },
-            "dimSpecial": { "type": "integer", "title": "Dim behind special workspaces (%)", "x-group": "Decoration", "default": 20, "minimum": 0, "maximum": 100, "x-hypr": "decoration.dim_special", "x-hyprScale": 0.01 },
+            "dimStrength": { "type": "integer", "title": "Dim strength", "x-unit": "%", "x-group": "Decoration", "default": 8, "minimum": 0, "maximum": 100, "x-showIf": { "dimInactive": true }, "x-hypr": "decoration.dim_strength", "x-hyprScale": 0.01, "x-hyprAlways": true },
+            "dimSpecial": { "type": "integer", "title": "Dim behind special workspaces", "x-unit": "%", "x-group": "Decoration", "default": 20, "minimum": 0, "maximum": 100, "x-hypr": "decoration.dim_special", "x-hyprScale": 0.01 },
             "windowBlur": { "type": "boolean", "title": "Blur transparent windows", "x-group": "Blur", "default": true, "x-hypr": "decoration.blur.enabled", "x-hyprAlways": true },
             "blurSize": { "type": "integer", "title": "Blur size", "x-group": "Blur", "default": 4, "minimum": 1, "maximum": 20, "x-showIf": { "windowBlur": true }, "x-hypr": "decoration.blur.size", "x-hyprAlways": true },
             "blurPasses": { "type": "integer", "title": "Blur passes", "x-group": "Blur", "default": 3, "minimum": 1, "maximum": 6, "x-showIf": { "windowBlur": true }, "x-hypr": "decoration.blur.passes", "x-hyprAlways": true },
             "blurXray": { "type": "boolean", "title": "See-through blur", "x-group": "Blur", "default": true, "description": "Floating windows blur only the wallpaper, not the windows under them. Cheaper.", "x-showIf": { "windowBlur": true }, "x-hypr": "decoration.blur.xray", "x-hyprAlways": true },
             "blurIgnoreOpacity": { "type": "boolean", "title": "Full blur behind any transparency", "x-group": "Blur", "default": true, "x-showIf": { "windowBlur": true }, "x-hypr": "decoration.blur.ignore_opacity" },
             "blurNewOptimizations": { "type": "boolean", "title": "Blur optimizations", "x-group": "Blur", "default": true, "x-showIf": { "windowBlur": true }, "x-hypr": "decoration.blur.new_optimizations" },
-            "blurNoise": { "type": "integer", "title": "Noise (‰)", "x-group": "Blur", "default": 12, "minimum": 0, "maximum": 1000, "x-showIf": { "windowBlur": true }, "x-hypr": "decoration.blur.noise", "x-hyprScale": 0.001 },
-            "blurContrast": { "type": "integer", "title": "Contrast (%)", "x-group": "Blur", "default": 89, "minimum": 0, "maximum": 200, "x-showIf": { "windowBlur": true }, "x-hypr": "decoration.blur.contrast", "x-hyprScale": 0.01 },
-            "blurVibrancy": { "type": "integer", "title": "Vibrancy (%)", "x-group": "Blur", "default": 17, "minimum": 0, "maximum": 100, "x-showIf": { "windowBlur": true }, "x-hypr": "decoration.blur.vibrancy", "x-hyprScale": 0.01 },
+            "blurNoise": { "type": "integer", "title": "Noise", "x-unit": "‰", "x-group": "Blur", "default": 12, "minimum": 0, "maximum": 1000, "x-showIf": { "windowBlur": true }, "x-hypr": "decoration.blur.noise", "x-hyprScale": 0.001 },
+            "blurContrast": { "type": "integer", "title": "Contrast", "x-unit": "%", "x-group": "Blur", "default": 89, "minimum": 0, "maximum": 200, "x-showIf": { "windowBlur": true }, "x-hypr": "decoration.blur.contrast", "x-hyprScale": 0.01 },
+            "blurVibrancy": { "type": "integer", "title": "Vibrancy", "x-unit": "%", "x-group": "Blur", "default": 17, "minimum": 0, "maximum": 100, "x-showIf": { "windowBlur": true }, "x-hypr": "decoration.blur.vibrancy", "x-hyprScale": 0.01 },
             "blurPopups": { "type": "boolean", "title": "Blur menus and popups", "x-group": "Blur", "default": false, "x-showIf": { "windowBlur": true }, "x-hypr": "decoration.blur.popups" },
             "blurSpecial": { "type": "boolean", "title": "Blur behind special workspaces", "x-group": "Blur", "default": false, "description": "Expensive: redraws the blur on every frame.", "x-showIf": { "windowBlur": true }, "x-hypr": "decoration.blur.special" },
             "shadow": { "type": "boolean", "title": "Window shadows", "x-group": "Shadows", "default": true, "x-hypr": "decoration.shadow.enabled" },
@@ -452,7 +452,7 @@
                 "properties": {
                   "leaf": { "type": "string", "title": "Animation", "enum": ["global", "windows", "windowsIn", "windowsOut", "windowsMove", "layers", "layersIn", "layersOut", "fade", "fadeIn", "fadeOut", "fadeSwitch", "fadeShadow", "fadeDim", "border", "borderangle", "workspaces", "workspacesIn", "workspacesOut", "specialWorkspace", "specialWorkspaceIn", "specialWorkspaceOut", "zoomFactor", "monitorAdded"], "default": "windows" },
                   "enabled": { "type": "boolean", "title": "On", "default": true },
-                  "durationMs": { "type": "integer", "title": "Duration (ms)", "default": 300, "minimum": 10, "maximum": 5000 },
+                  "durationMs": { "type": "integer", "title": "Duration", "x-unit": "ms", "default": 300, "minimum": 10, "maximum": 5000 },
                   "curve": { "type": "string", "title": "Curve", "default": "default", "description": "A curve's name from above, or default." },
                   "style": { "type": "string", "title": "Style", "default": "", "description": "Optional: popin 80%, slide, slidevert, slidefade 20%, fade, gnomed, loop, once." }
                 }
@@ -472,13 +472,13 @@
             "resizeOnBorder": { "type": "boolean", "title": "Resize by dragging borders", "x-group": "Mouse & cursor", "default": true, "x-hypr": "general.resize_on_border", "x-hyprAlways": true },
             "cursorTheme": { "type": "string", "title": "Cursor theme", "x-group": "Mouse & cursor", "x-options": "cursorThemes", "x-enumLabels": { "": "None" }, "default": "", "description": "An installed cursor theme. None leaves the cursor alone." },
             "cursorSize": { "type": "integer", "title": "Cursor size", "x-group": "Mouse & cursor", "default": 24, "minimum": 8, "maximum": 128 },
-            "cursorHideTimeout": { "type": "integer", "title": "Hide the cursor after (s)", "x-group": "Mouse & cursor", "default": 0, "minimum": 0, "maximum": 600, "description": "0 never hides it.", "x-hypr": "cursor.inactive_timeout" },
+            "cursorHideTimeout": { "type": "integer", "title": "Hide the cursor after", "x-unit": "s", "x-group": "Mouse & cursor", "default": 0, "minimum": 0, "maximum": 600, "description": "0 never hides it.", "x-hypr": "cursor.inactive_timeout" },
             "hideCursorOnKeyPress": { "type": "boolean", "title": "Hide the cursor while typing", "x-group": "Mouse & cursor", "default": false, "x-hypr": "cursor.hide_on_key_press" },
             "noWarps": { "type": "boolean", "title": "Never move the cursor", "x-group": "Mouse & cursor", "default": false, "description": "Hyprland won't move the cursor to a window it focuses.", "x-hypr": "cursor.no_warps" },
             "naturalScroll": { "type": "boolean", "title": "Natural scrolling", "x-group": "Touchpad", "default": false, "x-hypr": "input.touchpad.natural_scroll", "x-hyprAlways": true },
             "tapToClick": { "type": "boolean", "title": "Tap to click", "x-group": "Touchpad", "default": true, "x-hypr": "input.touchpad.tap_to_click" },
             "disableWhileTyping": { "type": "boolean", "title": "Off while typing", "x-group": "Touchpad", "default": true, "x-hypr": "input.touchpad.disable_while_typing" },
-            "touchpadScrollFactor": { "type": "integer", "title": "Scroll speed (%)", "x-group": "Touchpad", "default": 100, "minimum": 10, "maximum": 500, "x-hypr": "input.touchpad.scroll_factor", "x-hyprScale": 0.01 },
+            "touchpadScrollFactor": { "type": "integer", "title": "Scroll speed", "x-unit": "%", "x-group": "Touchpad", "default": 100, "minimum": 10, "maximum": 500, "x-hypr": "input.touchpad.scroll_factor", "x-hyprScale": 0.01 },
             "hideLogo": { "type": "boolean", "title": "Hide Hyprland's logo and splash", "x-group": "Behaviour", "default": true, "x-hypr": ["misc.disable_hyprland_logo", "misc.disable_splash_rendering"], "x-hyprAlways": true },
             "backgroundThemed": { "type": "boolean", "title": "Background in a theme color", "x-group": "Behaviour", "default": false, "description": "What shows where there's no wallpaper." },
             "backgroundColor": { "type": "string", "title": "Background color", "x-group": "Behaviour", "x-options": "colors", "default": "base00", "x-showIf": { "backgroundThemed": true }, "x-hypr": "misc.background_color", "x-hyprValue": "color", "x-hyprIf": "backgroundThemed" },
@@ -491,7 +491,7 @@
             "mouseWakesScreen": { "type": "boolean", "title": "Mouse wakes the screen", "x-group": "Behaviour", "default": true, "x-hypr": "misc.mouse_move_enables_dpms", "x-hyprAlways": true },
             "keyWakesScreen": { "type": "boolean", "title": "Keys wake the screen", "x-group": "Behaviour", "default": false, "x-hypr": "misc.key_press_enables_dpms" },
             "vrr": { "type": "string", "title": "Variable refresh rate", "x-group": "Behaviour", "enum": ["0", "1", "2"], "x-enumLabels": { "0": "Off", "1": "On", "2": "Fullscreen only" }, "default": "0", "x-hypr": "misc.vrr", "x-hyprValue": "number" },
-            "scrollEventDelay": { "type": "integer", "title": "Scroll bind delay (ms)", "x-group": "Behaviour", "default": 300, "minimum": 0, "maximum": 2000, "description": "How long a bound scroll ignores further scrolling.", "x-hypr": "binds.scroll_event_delay" },
+            "scrollEventDelay": { "type": "integer", "title": "Scroll bind delay", "x-unit": "ms", "x-group": "Behaviour", "default": 300, "minimum": 0, "maximum": 2000, "description": "How long a bound scroll ignores further scrolling.", "x-hypr": "binds.scroll_event_delay" },
             "xwaylandZeroScaling": { "type": "boolean", "title": "Unscaled X11 apps", "x-group": "Behaviour", "default": true, "description": "X11 apps draw at native resolution on scaled monitors, instead of blurry.", "x-hypr": "xwayland.force_zero_scaling", "x-hyprAlways": true },
             "env": {
               "type": "array",
@@ -584,6 +584,7 @@
               "default": 14,
               "minimum": 8,
               "maximum": 32,
+              "x-unit": "px",
               "description": "Base font size (px). Larger text is derived from it."
             }
           }
@@ -599,6 +600,7 @@
               "default": 6,
               "minimum": 0,
               "maximum": 50,
+              "x-unit": "px",
               "description": "Roundness of every corner: widgets, popouts, cards and the screen border (px)."
             },
             "borderWidth": {
@@ -607,6 +609,7 @@
               "default": 1,
               "minimum": 0,
               "maximum": 10,
+              "x-unit": "px",
               "description": "Thickness of every outline (px)."
             },
             "screenBorder": {
@@ -621,6 +624,7 @@
               "default": 8,
               "minimum": 0,
               "maximum": 100,
+              "x-unit": "px",
               "description": "Width of the screen frame, and the gap kept from the screen edges (px)."
             }
           }
@@ -638,7 +642,8 @@
             },
             "speed": {
               "type": "integer",
-              "title": "Animation speed (%)",
+              "title": "Animation speed",
+              "x-unit": "%",
               "default": 100,
               "minimum": 25,
               "maximum": 400,
@@ -662,6 +667,7 @@
           "default": 30,
           "minimum": 16,
           "maximum": 128,
+          "x-unit": "px",
           "description": "Height of buttons, fields and other controls outside the bar (px). Bar widgets follow their bar's thickness."
         },
         "padding": {
@@ -670,6 +676,7 @@
           "default": 10,
           "minimum": 0,
           "maximum": 32,
+          "x-unit": "px",
           "description": "Inner padding of widgets and panels (px)."
         },
         "spacing": {
@@ -678,6 +685,7 @@
           "default": 4,
           "minimum": 0,
           "maximum": 32,
+          "x-unit": "px",
           "description": "Gap between items inside widgets and panels (px)."
         }
       }
@@ -693,7 +701,8 @@
       "properties": {
         "openDelay": {
           "type": "integer",
-          "title": "Open delay (ms)",
+          "title": "Open delay",
+          "x-unit": "ms",
           "default": 10,
           "minimum": 0,
           "maximum": 2000,
@@ -701,7 +710,8 @@
         },
         "dismissDelay": {
           "type": "integer",
-          "title": "Dismiss delay (ms)",
+          "title": "Dismiss delay",
+          "x-unit": "ms",
           "default": 250,
           "minimum": 0,
           "maximum": 5000,
@@ -709,7 +719,8 @@
         },
         "edgeTriggerSize": {
           "type": "integer",
-          "title": "Edge trigger size (px)",
+          "title": "Edge trigger size",
+          "x-unit": "px",
           "default": 5,
           "minimum": 1,
           "maximum": 50,
@@ -742,7 +753,7 @@
           "x-options": "chatPresets",
           "description": "What a new conversation starts with."
         },
-        "maxTokens": { "type": "integer", "title": "Longest reply (tokens)", "x-group": "Conversations", "default": 16000, "minimum": 256, "maximum": 128000, "description": "A reply that reaches this is cut off, with a note saying so." },
+        "maxTokens": { "type": "integer", "title": "Longest reply", "x-unit": "tokens", "x-group": "Conversations", "default": 16000, "minimum": 256, "maximum": 128000, "description": "A reply that reaches this is cut off, with a note saying so." },
         "keepConversations": { "type": "integer", "title": "Conversations kept", "x-group": "Conversations", "default": 50, "minimum": 0, "maximum": 500, "description": "Older ones are deleted. 0 keeps none: conversations last until the shell restarts." },
         "showThinking": { "type": "boolean", "title": "Show thinking", "x-group": "Display", "default": true, "description": "Ask models that reason for a summary of it, shown folded above the reply." },
         "renderMarkdown": { "type": "boolean", "title": "Format replies", "x-group": "Display", "default": true, "description": "Draw Markdown (headings, lists, tables, code blocks) instead of the raw text." },
@@ -855,7 +866,8 @@
         },
         "position": {
           "type": "integer",
-          "title": "Position along edge (%)",
+          "title": "Position along edge",
+          "x-unit": "%",
           "default": 50,
           "minimum": 0,
           "maximum": 100,
@@ -882,7 +894,8 @@
         },
         "timeout": {
           "type": "integer",
-          "title": "Timeout (ms)",
+          "title": "Timeout",
+          "x-unit": "ms",
           "default": 1000,
           "minimum": 250,
           "maximum": 10000,
@@ -970,7 +983,8 @@
         },
         "size": {
           "type": "integer",
-          "title": "Overlay size (%)",
+          "title": "Overlay size",
+          "x-unit": "%",
           "default": 100,
           "minimum": 50,
           "maximum": 150,
@@ -1109,7 +1123,8 @@
         },
         "dimInactive": {
           "type": "integer",
-          "title": "Dim other workspaces (%)",
+          "title": "Dim other workspaces",
+          "x-unit": "%",
           "default": 50,
           "minimum": 0,
           "maximum": 90,
@@ -1117,7 +1132,8 @@
         },
         "size": {
           "type": "integer",
-          "title": "Size (%)",
+          "title": "Size",
+          "x-unit": "%",
           "default": 85,
           "minimum": 40,
           "maximum": 100,
@@ -1125,7 +1141,8 @@
         },
         "backdrop": {
           "type": "integer",
-          "title": "Backdrop darkness (%)",
+          "title": "Backdrop darkness",
+          "x-unit": "%",
           "default": 70,
           "minimum": 0,
           "maximum": 100,
@@ -1235,6 +1252,7 @@
           "default": 30,
           "minimum": 10,
           "maximum": 200,
+          "x-unit": "px",
           "description": "Thickness of the bar (px). A pill bar is as thick as its pills: its widgets plus the pill padding."
         },
         "inset": {
@@ -1243,6 +1261,7 @@
           "default": 0,
           "minimum": 0,
           "maximum": 50,
+          "x-unit": "px",
           "description": "Gap between the widgets and the bar's edges (px). Widgets are the bar's thickness minus twice this, whatever the background."
         },
         "background": {
@@ -1260,6 +1279,7 @@
           "minimum": 0,
           "maximum": 20,
           "x-showIf": { "background": "pills" },
+          "x-unit": "px",
           "description": "Extra space around a pill's widgets (px). They sit the screen margin plus this from the screen edge, and as far from the pill's other edges."
         },
         "pillMerge": {
@@ -1269,6 +1289,7 @@
           "minimum": 0,
           "maximum": 200,
           "x-showIf": { "background": "pills" },
+          "x-unit": "px",
           "description": "Groups closer than this share one pill (px)."
         },
         "spacing": {
@@ -1277,6 +1298,7 @@
           "default": 4,
           "minimum": 0,
           "maximum": 50,
+          "x-unit": "px",
           "description": "Gap between widgets (px)."
         },
         "lockCenter": {
@@ -1544,7 +1566,7 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "intervalMinutes": {"type": "integer", "title": "Check interval (min)", "default": 60, "minimum": 5, "maximum": 1440},
+            "intervalMinutes": {"type": "integer", "title": "Check interval", "x-unit": "min", "default": 60, "minimum": 5, "maximum": 1440},
             "includeAur": {"type": "boolean", "title": "Include AUR", "default": false},
             "aurHelper": {"type": "string", "title": "AUR helper", "default": "paru", "enum": ["paru", "yay"], "x-showIf": {"includeAur": true}}
           }
@@ -1787,8 +1809,8 @@
       "description": "Overrides for how much room a bar widget takes. Anything left out uses the widget's own sizing.",
       "additionalProperties": false,
       "properties": {
-        "size": { "type": "integer", "title": "Size", "minimum": 0, "maximum": 2000, "description": "Length along the bar (px). Fixed and elastic widgets use it as their size / maximum." },
-        "minSize": { "type": "integer", "title": "Minimum size", "minimum": 0, "maximum": 2000, "description": "Smallest length the widget may shrink to when the bar is crowded (px)." },
+        "size": { "type": "integer", "title": "Size", "minimum": 0, "maximum": 2000, "x-unit": "px", "description": "Length along the bar (px). Fixed and elastic widgets use it as their size / maximum." },
+        "minSize": { "type": "integer", "title": "Minimum size", "minimum": 0, "maximum": 2000, "x-unit": "px", "description": "Smallest length the widget may shrink to when the bar is crowded (px)." },
         "priority": { "type": "integer", "title": "Priority", "minimum": -100, "maximum": 100, "description": "When a section can't fit its widgets, lower priorities are hidden first." }
       }
     },
@@ -1929,7 +1951,7 @@
           "properties": {
             "showLabel": { "type": "boolean", "title": "Show label", "default": true },
             "label": { "type": "string", "title": "Label", "default": "", "description": "Text shown while connected. Empty shows the tailnet name." },
-            "interval": { "type": "integer", "title": "Poll interval (ms)", "default": 2000, "minimum": 250, "maximum": 60000 },
+            "interval": { "type": "integer", "title": "Poll interval", "x-unit": "ms", "default": 2000, "minimum": 250, "maximum": 60000 },
             "connectedColor": { "type": "string", "title": "Connected background", "x-options": "colors", "default": "base0A" },
             "disconnectedColor": { "type": "string", "title": "Disconnected background", "x-options": "colors", "default": "base02" },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
@@ -1950,7 +1972,7 @@
           "additionalProperties": false,
           "properties": {
             "showName": { "type": "boolean", "title": "Show device", "default": false, "description": "Show the connected device name next to the icon." },
-            "interval": { "type": "integer", "title": "Poll interval (ms)", "default": 2000, "minimum": 250, "maximum": 60000 },
+            "interval": { "type": "integer", "title": "Poll interval", "x-unit": "ms", "default": 2000, "minimum": 250, "maximum": 60000 },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Open the Wi-Fi menu when hovered." },
             "middleCommand": { "type": "string", "title": "Middle-click command", "default": "", "description": "Shell command run on middle click (e.g. nm-connection-editor). Empty does nothing." },
             "backgroundColor": { "type": "string", "title": "Connected background", "x-options": "colors", "default": "base09" },
@@ -1972,7 +1994,7 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "iconSize": { "type": "integer", "title": "Icon size", "default": 18, "minimum": 8, "maximum": 64, "description": "Size of tray icons (px)." },
+            "iconSize": { "type": "integer", "title": "Icon size", "default": 18, "minimum": 8, "maximum": 64, "x-unit": "px", "description": "Size of tray icons (px)." },
             "showPassive": { "type": "boolean", "title": "Show passive", "default": true, "description": "Also show items that report themselves as passive (idle)." }
           }
         }
@@ -2021,7 +2043,7 @@
             "middleCommand": { "type": "string", "title": "Middle-click command", "default": "", "description": "Shell command run on middle click. Empty does nothing." },
             "hoverActivate": { "type": "boolean", "title": "Activate on hover", "default": false, "description": "Run the click action after hovering for the popout open delay. Doesn't close a launcher, overlay or power menu that is already open.", "x-showIf": { "action": { "not": "none" } } },
             "labelCommand": { "type": "string", "title": "Label command", "default": "", "description": "Shell command whose first line of output is shown as the label, re-run on an interval." },
-            "labelInterval": { "type": "integer", "title": "Label interval (ms)", "default": 5000, "minimum": 500, "maximum": 3600000, "description": "How often the label command runs.", "x-showIf": { "labelCommand": { "not": "" } } },
+            "labelInterval": { "type": "integer", "title": "Label interval", "x-unit": "ms", "default": 5000, "minimum": 500, "maximum": 3600000, "description": "How often the label command runs.", "x-showIf": { "labelCommand": { "not": "" } } },
             "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base0C" },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
           }
@@ -2041,8 +2063,8 @@
           "additionalProperties": false,
           "properties": {
             "showPercentage": { "type": "boolean", "title": "Show percentage", "default": true },
-            "lowThreshold": { "type": "integer", "title": "Low (%)", "default": 20, "minimum": 0, "maximum": 100, "description": "At or below this, the widget uses the low color." },
-            "criticalThreshold": { "type": "integer", "title": "Critical (%)", "default": 10, "minimum": 0, "maximum": 100, "description": "At or below this, the widget uses the critical color." },
+            "lowThreshold": { "type": "integer", "title": "Low", "x-unit": "%", "default": 20, "minimum": 0, "maximum": 100, "description": "At or below this, the widget uses the low color." },
+            "criticalThreshold": { "type": "integer", "title": "Critical", "x-unit": "%", "default": 10, "minimum": 0, "maximum": 100, "description": "At or below this, the widget uses the critical color." },
             "notify": { "type": "boolean", "title": "Notifications", "default": true, "description": "Send a notification when the battery becomes low or critical." },
             "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base0D" },
             "chargingColor": { "type": "string", "title": "Charging background", "x-options": "colors", "default": "base0B" },
@@ -2072,7 +2094,7 @@
             "showGpu": { "type": "boolean", "title": "GPU usage", "default": false, "description": "AMD (sysfs) or NVIDIA (nvidia-smi). Hidden when no GPU is found." },
             "showDisk": { "type": "boolean", "title": "Disk usage", "default": false },
             "diskPath": { "type": "string", "title": "Disk path", "default": "/", "description": "Any path on the filesystem to report.", "x-showIf": { "showDisk": true } },
-            "interval": { "type": "integer", "title": "Poll interval (ms)", "default": 2000, "minimum": 1000, "maximum": 60000 },
+            "interval": { "type": "integer", "title": "Poll interval", "x-unit": "ms", "default": 2000, "minimum": 1000, "maximum": 60000 },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Open live graphs of the shown metrics when hovered." },
             "warnThreshold": { "type": "integer", "title": "Warning at", "default": 90, "minimum": 1, "maximum": 100, "description": "Any usage (%) or temperature (°C) at or above this switches to the warning background." },
             "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base0E" },
@@ -2158,7 +2180,7 @@
           "properties": {
             "includeAur": { "type": "boolean", "title": "Include AUR", "default": false, "description": "Also count outdated AUR packages." },
             "aurHelper": { "type": "string", "title": "AUR helper", "default": "paru", "enum": ["paru", "yay"], "x-showIf": { "includeAur": true } },
-            "intervalMinutes": { "type": "integer", "title": "Check interval (min)", "default": 30, "minimum": 5, "maximum": 1440 },
+            "intervalMinutes": { "type": "integer", "title": "Check interval", "x-unit": "min", "default": 30, "minimum": 5, "maximum": 1440 },
             "hideWhenEmpty": { "type": "boolean", "title": "Hide when up to date", "default": true },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "List pending packages when hovered." },
             "terminal": { "type": "string", "title": "Terminal", "default": "kitty", "description": "Terminal the upgrade runs in (launched as `<terminal> -e ...`)." },
@@ -2187,7 +2209,7 @@
             "latitude": { "type": "string", "title": "Latitude", "default": "", "description": "Exact coordinates; with longitude, overrides the location lookup." },
             "longitude": { "type": "string", "title": "Longitude", "default": "" },
             "units": { "type": "string", "title": "Units", "default": "celsius", "enum": ["celsius", "fahrenheit"] },
-            "intervalMinutes": { "type": "integer", "title": "Refresh interval (min)", "default": 15, "minimum": 5, "maximum": 1440 },
+            "intervalMinutes": { "type": "integer", "title": "Refresh interval", "x-unit": "min", "default": 15, "minimum": 5, "maximum": 1440 },
             "showCondition": { "type": "boolean", "title": "Show condition", "default": false, "description": "Show the condition (e.g. Rain) next to the temperature." },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Show the forecast when hovered." },
             "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base0C" },
@@ -2209,9 +2231,9 @@
           "additionalProperties": false,
           "properties": {
             "style": { "type": "string", "title": "Style", "default": "line", "enum": ["line", "dot", "space"] },
-            "size": { "type": "integer", "title": "Size", "default": 12, "minimum": 0, "maximum": 500, "description": "Space it takes along the bar (px)." },
-            "thickness": { "type": "integer", "title": "Thickness", "default": 2, "minimum": 1, "maximum": 10, "description": "Line width (px); dots are twice this across.", "x-showIf": { "style": { "not": "space" } } },
-            "length": { "type": "integer", "title": "Line length (%)", "default": 60, "minimum": 10, "maximum": 100, "description": "Share of the widget height the line spans.", "x-showIf": { "style": "line" } },
+            "size": { "type": "integer", "title": "Size", "default": 12, "minimum": 0, "maximum": 500, "x-unit": "px", "description": "Space it takes along the bar (px)." },
+            "thickness": { "type": "integer", "title": "Thickness", "default": 2, "minimum": 1, "maximum": 10, "x-unit": "px", "description": "Line width (px); dots are twice this across.", "x-showIf": { "style": { "not": "space" } } },
+            "length": { "type": "integer", "title": "Line length", "x-unit": "%", "default": 60, "minimum": 10, "maximum": 100, "description": "Share of the widget height the line spans.", "x-showIf": { "style": "line" } },
             "color": { "type": "string", "title": "Color", "x-options": "colors", "default": "base03", "x-showIf": { "style": { "not": "space" } } }
           }
         }
@@ -2230,8 +2252,8 @@
           "additionalProperties": false,
           "properties": {
             "showPercentage": { "type": "boolean", "title": "Show percentage", "default": false },
-            "scrollStep": { "type": "integer", "title": "Scroll step (%)", "default": 5, "minimum": 1, "maximum": 25, "description": "Volume change per scroll notch." },
-            "maxVolume": { "type": "integer", "title": "Maximum volume (%)", "default": 100, "minimum": 100, "maximum": 150, "description": "Highest volume scrolling and the mixer sliders allow." },
+            "scrollStep": { "type": "integer", "title": "Scroll step", "x-unit": "%", "default": 5, "minimum": 1, "maximum": 25, "description": "Volume change per scroll notch." },
+            "maxVolume": { "type": "integer", "title": "Maximum volume", "x-unit": "%", "default": 100, "minimum": 100, "maximum": 150, "description": "Highest volume scrolling and the mixer sliders allow." },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Open the output mixer when hovered." },
             "middleCommand": { "type": "string", "title": "Middle-click command", "default": "pavucontrol", "description": "Shell command run on middle click. Empty does nothing." },
             "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base0D" },
@@ -2254,8 +2276,8 @@
           "additionalProperties": false,
           "properties": {
             "showPercentage": { "type": "boolean", "title": "Show percentage", "default": false },
-            "scrollStep": { "type": "integer", "title": "Scroll step (%)", "default": 5, "minimum": 1, "maximum": 25, "description": "Volume change per scroll notch." },
-            "maxVolume": { "type": "integer", "title": "Maximum volume (%)", "default": 100, "minimum": 100, "maximum": 150, "description": "Highest volume scrolling and the mixer sliders allow." },
+            "scrollStep": { "type": "integer", "title": "Scroll step", "x-unit": "%", "default": 5, "minimum": 1, "maximum": 25, "description": "Volume change per scroll notch." },
+            "maxVolume": { "type": "integer", "title": "Maximum volume", "x-unit": "%", "default": 100, "minimum": 100, "maximum": 150, "description": "Highest volume scrolling and the mixer sliders allow." },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Open the input mixer when hovered." },
             "middleCommand": { "type": "string", "title": "Middle-click command", "default": "pavucontrol", "description": "Shell command run on middle click. Empty does nothing." },
             "activeColor": { "type": "string", "title": "In-use background", "x-options": "colors", "default": "base08", "description": "Used while an app is recording from the microphone." },

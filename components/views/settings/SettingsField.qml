@@ -28,6 +28,9 @@ Item {
     width: root.width
     row: root.row
     form: root.form
+    // The dot and reset button's full width, kept even while they're
+    // hidden, so their appearing doesn't shift a stepper under the cursor
+    headerInset: 8 + Widget.spacing / 2 + Appearance.fontSize + 8 + Widget.spacing
   }
 
   Row {
