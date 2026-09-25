@@ -648,6 +648,8 @@
     "Overlay Editor": "オーバーレイエディター",
     "Search results": "検索結果",
     "More in": "関連ページ",
+    "Fold all": "すべて折りたたむ",
+    "Unfold all": "すべて展開",
     "No settings match \"{0}\"": "「{0}」に一致する設定はありません",
     "Search keybinds": "キーバインドを検索",
     "{0} binds": "{0} 件のバインド",

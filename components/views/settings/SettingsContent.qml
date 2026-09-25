@@ -69,6 +69,28 @@ Item {
   // actually changes, not on every edit
   readonly property string _shownKey: root.groups.map(group => root._groupShown(group) ? "1" : "0").join("")
 
+  // The shown cards that can fold (not hand-built ones, and none while
+  // searching)
+  readonly property var foldableKeys: {
+    if (root.searching || root.backups)
+      return [];
+    const shown = root._shownKey;
+    return root.groups.filter((group, i) => shown[i] === "1" && group.kind === "rows").map(group => group.key);
+  }
+  readonly property bool allFolded: root.foldableKeys.length > 0 && root.foldableKeys.every(key => SettingsManager.isCollapsed(key))
+
+  // Every card moves, so lay the page out again at once
+  function setAllFolded(value) {
+    SettingsManager.setCollapsed(root.foldableKeys, value);
+    SettingsManager.snapshotFolds();
+  }
+
+  // Refolding lays the page out again only on the next category, search
+  // or build, so folding a card doesn't reshuffle (and rebuild) the page
+  onCategoryChanged: SettingsManager.snapshotFolds()
+  onQueryChanged: SettingsManager.snapshotFolds()
+  Component.onDestruction: SettingsManager.snapshotFolds()
+
   // Masonry: each shown group goes to the shorter column, by estimated
   // height
   readonly property var columns: {
@@ -79,7 +101,8 @@ Item {
       if (shown[i] !== "1")
         continue;
       const group = root.groups[i];
-      const weight = group.kind === "card" ? 6 : 2 + group.rows.reduce((sum, row) => sum + (row.kind === "array" ? 4 : row.schema?.description ? 1.6 : 1.2), 0);
+      const folded = !root.searching && SettingsManager.layoutFolds[group.key] === true;
+      const weight = group.kind === "card" ? 6 : folded ? 1.5 : 2 + group.rows.reduce((sum, row) => sum + (row.kind === "array" ? 4 : row.schema?.description ? 1.6 : 1.2), 0);
       const target = heights[0] <= heights[1] ? 0 : 1;
       result[target].push(group);
       heights[target] += weight;
@@ -117,14 +140,28 @@ Item {
     onSave: SettingsManager.saveChanges()
     onReset: SettingsManager.resetChanges()
 
-    headerExtras: Flow {
+    // Fold all on the left, links to other pages on the right
+    headerExtras: RowLayout {
       Layout.fillWidth: true
-      visible: root.links.length > 0
+      Layout.topMargin: Widget.spacing / 2
+      Layout.bottomMargin: Widget.spacing / 2
+      visible: root.links.length > 0 || root.foldableKeys.length > 0
       spacing: Widget.spacing
 
+      StyledTextButton {
+        visible: root.foldableKeys.length > 0
+        Layout.preferredHeight: Widget.height - 4
+        text: root.allFolded ? I18n.tr("Unfold all") : I18n.tr("Fold all")
+        iconText: root.allFolded ? "unfold_more" : "unfold_less"
+        onClicked: root.setAllFolded(!root.allFolded)
+      }
+
+      Item {
+        Layout.fillWidth: true
+      }
+
       StyledText {
-        height: Widget.height - 4
-        verticalAlignment: Text.AlignVCenter
+        visible: root.links.length > 0
         text: I18n.tr("More in")
         opacity: 0.6
       }
@@ -134,7 +171,7 @@ Item {
 
         delegate: StyledTextButton {
           required property string modelData
-          height: Widget.height - 4
+          Layout.preferredHeight: Widget.height - 4
           text: root._linkLabel(modelData)
           iconText: "chevron_right"
           iconAfter: true

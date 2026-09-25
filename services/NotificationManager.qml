@@ -2,6 +2,7 @@ pragma Singleton
 pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
+import Quickshell.Hyprland
 import Quickshell.Io
 import Quickshell.Services.Notifications
 
@@ -20,6 +21,10 @@ import qs.config
  *     urgency, time, live }
  * `live` while its Notification is still around (liveNotification(uid)),
  * so its actions work; restored or withdrawn entries have none.
+ *
+ * The history keeps NotificationsConfig.maxEntries entries, none older
+ * than maxAgeDays (when set), and with clearOnFocus an app's entries go
+ * when one of its windows is focused. DND is saved in config/state.
  */
 Singleton {
   id: root
@@ -27,14 +32,21 @@ Singleton {
   // Newest first
   property var entries: []
   readonly property int count: entries.length
-  readonly property int maxEntries: 100
+  readonly property int maxEntries: NotificationsConfig.maxEntries
+  readonly property int maxAgeDays: NotificationsConfig.maxAgeDays
 
   /**
      * A "Do Not Disturb" flag. When true, new notification popups will be suppressed,
      * except for those marked with 'Critical' urgency. Notifications are still
-     * added to the history.
+     * added to the history. Kept across restarts.
      */
   property bool dnd: false
+  onDndChanged: {
+    if (root._stateLoaded)
+      root._state.save({
+        dnd: root.dnd
+      });
+  }
 
   // An item in a window, set by the toast host (shell/Notifications):
   // caching an image renders it there
@@ -64,6 +76,12 @@ Singleton {
     root._save();
   }
 
+  // The uid of a live Notification's entry, or "" (transient ones have
+  // none). Look it up while it's live: a closed one is forgotten.
+  function uidOf(notif) {
+    return root._uidOf(notif);
+  }
+
   function clearAll() {
     const old = root.entries;
     root.entries = [];
@@ -83,8 +101,7 @@ Singleton {
       root._handlers[id](entry);
       return true;
     }
-    const lower = id.toLowerCase();
-    const window = HyprlandManager.windowList.find(w => (w.class || "").toLowerCase() === lower || (w.initialClass || "").toLowerCase() === lower);
+    const window = HyprlandManager.windowList.find(w => root._matchesClass(entry, w.class) || root._matchesClass(entry, w.initialClass));
     if (window) {
       HyprlandManager.focusWindow(window.address);
       return true;
@@ -112,6 +129,18 @@ Singleton {
   }
 
   // -- Private --
+
+  readonly property var _state: StateManager.createStateHandler("notifications")
+  property bool _stateLoaded: false
+
+  // Whether a window class belongs to an entry's app (its desktop entry,
+  // else its app name)
+  function _matchesClass(entry, cls) {
+    const lower = (cls || "").toLowerCase();
+    if (!lower)
+      return false;
+    return (entry.desktopEntry || "").toLowerCase() === lower || (entry.appName || "").toLowerCase() === lower;
+  }
 
   // uid -> Notification, for live entries
   property var _live: ({})
@@ -151,11 +180,49 @@ Singleton {
   // Replaces an entry's object (so bindings see the change), newest first
   function _put(entry) {
     const rest = root.entries.filter(e => e.uid !== entry.uid);
-    const all = [entry].concat(rest).sort((a, b) => b.time - a.time);
-    const dropped = all.slice(root.maxEntries);
-    root.entries = all.slice(0, root.maxEntries);
-    dropped.forEach(e => root._forget(e));
+    root.entries = root._prune([entry].concat(rest));
     root._save();
+  }
+
+  // Sorts entries newest first and drops (forgetting) those past the
+  // history's size or age
+  function _prune(list) {
+    const cutoff = root.maxAgeDays > 0 ? Date.now() - root.maxAgeDays * 86400000 : -Infinity;
+    const sorted = list.slice().sort((a, b) => b.time - a.time);
+    const kept = sorted.filter(e => e.time >= cutoff).slice(0, root.maxEntries);
+    sorted.filter(e => !kept.includes(e)).forEach(e => root._forget(e));
+    return kept;
+  }
+
+  function _pruneNow() {
+    const kept = root._prune(root.entries);
+    if (kept.length === root.entries.length)
+      return;
+    root.entries = kept;
+    root._save();
+  }
+
+  onMaxEntriesChanged: Qt.callLater(root._pruneNow)
+  onMaxAgeDaysChanged: Qt.callLater(root._pruneNow)
+
+  // Entries age out while the shell runs, too
+  property Timer _ageTimer: Timer {
+    interval: 3600000
+    repeat: true
+    running: root.maxAgeDays > 0
+    onTriggered: root._pruneNow()
+  }
+
+  // clearOnFocus: an app's entries go when one of its windows is focused
+  property Connections _focusWatcher: Connections {
+    target: Hyprland
+    enabled: NotificationsConfig.clearOnFocus
+    function onRawEvent(event) {
+      if (event.name !== "activewindow")
+        return;
+      const cls = event.data.split(",")[0];
+      root.entries.filter(e => root._matchesClass(e, cls)).forEach(e => root.dismiss(e.uid));
+    }
   }
 
   function _update(uid, changes) {
@@ -333,7 +400,7 @@ Singleton {
         root._cacheImage(uid, notif.image || "");
       }
     }
-    root.entries = entries.sort((a, b) => b.time - a.time).slice(0, root.maxEntries);
+    root.entries = root._prune(entries);
   }
 
   function _save() {
@@ -365,6 +432,8 @@ Singleton {
   Component.onCompleted: {
     Quickshell.execDetached(["mkdir", "-p", root.imageDir]);
     root._load();
+    root.dnd = root._state.load({}).dnd === true;
+    root._stateLoaded = true;
   }
 
   Component.onDestruction: {

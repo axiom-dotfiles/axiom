@@ -168,7 +168,7 @@ The screenshots show [two setups](#%EF%B8%8F-built-in-the-shell) of the same she
 </details>
 
 ### 🧩 The rest
-- 🔔 **Notifications:** toasts and a notification center. Toasts stack from any corner, with even or per-side gaps measured from the bar or border at each edge.
+- 🔔 **Notifications:** toasts and a notification center. Toasts stack from any corner of one monitor or all of them, with even or per-side gaps measured from the bar or border at each edge. You can set how long they stay (or use the app's own timeout), keep critical ones up, and keep them quiet over fullscreen windows. The history can drop an app's notifications when you focus it, or when you click or close them, and has a size and age limit. Do not disturb is kept across restarts.
 - 🔊 **OSD:** follows the volume of the apps you choose.
 - 🚀 **Launcher:** searches apps (ranked by how often and how recently you use them), open windows, a calculator and the web. It runs shell commands and controls the shell with `/` commands.
 - ⏻ **Power menu:** your choice of session actions, in your order, driven by mouse or keyboard. Log out, reboot and power off ask you to confirm.
