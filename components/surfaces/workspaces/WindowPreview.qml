@@ -25,6 +25,26 @@ Item {
   readonly property var toplevel: HyprlandManager.toplevelForAddress(root.windowData?.address)
   readonly property string iconPath: IconResolver.resolveWindowIcon(root.windowData?.class, root.windowData?.title)
   readonly property bool focused: (root.windowData?.focusHistoryID ?? -1) === 0
+  // The icon stands in only for a window that never gives a frame: not for
+  // the first frame's short wait on open, and not once the window closes
+  // (its toplevel goes before the client list catches up)
+  property bool _hadContent: false
+  property bool _waited: false
+
+  onCapturingChanged: {
+    root._hadContent = false;
+    root._waited = false;
+    if (root.capturing)
+      iconDelay.restart();
+  }
+  Component.onCompleted: if (root.capturing)
+    iconDelay.start()
+
+  Timer {
+    id: iconDelay
+    interval: 250
+    onTriggered: root._waited = true
+  }
 
   Item {
     anchors.fill: parent
@@ -49,11 +69,13 @@ Item {
       // resized (otherwise one frame per open)
       constraintSize: Qt.size(Math.round(root.width), Math.round(root.height))
       live: root.hovered || root.resizing
+      onHasContentChanged: if (hasContent)
+        root._hadContent = true
     }
 
     Image {
       anchors.centerIn: parent
-      visible: !capture.hasContent
+      visible: !capture.hasContent && !root._hadContent && root._waited
       width: Math.min(parent.width, parent.height) * 0.4
       height: width
       sourceSize: Qt.size(64, 64)

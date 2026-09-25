@@ -65,8 +65,9 @@ Rectangle {
       }
     };
   })
-  // The previews are modelled by this, so they (and their captures) only
-  // rebuild when windows come or go, not on every window event
+  // The previews are modelled by this (through a ScriptModel, which diffs
+  // it), so a window event rebuilds nothing, and a window coming or going
+  // adds or removes only its own preview (and capture)
   readonly property string _addressKey: root.windows.map(w => w.address).join(",")
 
   // A monitor's global layout origin, by hyprctl id (this one's if unknown)
@@ -212,7 +213,9 @@ Rectangle {
     }
 
     Repeater {
-      model: root._addressKey === "" ? [] : root._addressKey.split(",")
+      model: ScriptModel {
+        values: root._addressKey === "" ? [] : root._addressKey.split(",")
+      }
 
       WindowPreview {
         id: preview

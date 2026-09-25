@@ -147,7 +147,9 @@ Scope {
           anchors.centerIn: parent
           anchors.verticalCenterOffset: -overlayWindow.hintSpace / 2
           screen: overlayWindow.modelData
-          active: overlayWindow.shown
+          // Through the fade out too, or the previews drop their frames
+          // (and show the app icon) while still on screen
+          active: overlayWindow.visible
           availableWidth: parent.width * WorkspaceOverlayConfig.size
           availableHeight: parent.height * WorkspaceOverlayConfig.size - overlayWindow.hintSpace
 
