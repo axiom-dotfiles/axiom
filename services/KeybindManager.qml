@@ -60,8 +60,18 @@ QtObject {
       "moveWindowStepSilent": "direction",
       "workspaceNth": "workspace",
       "moveWindowNth": "workspace",
-      "moveWindowNthSilent": "workspace"
+      "moveWindowNthSilent": "workspace",
+      "focusDir": "direction",
+      "moveWindowDir": "direction",
+      "resizeWindow": "resize",
+      "toggleSpecial": "special",
+      "moveToSpecial": "special"
     })
+
+  // What an action's free-text argument is, for its placeholder
+  function argumentKind(action) {
+    return _argumentKinds[action] ?? "";
+  }
 
   function needsArgument(action) {
     return _argumentKinds[action] !== undefined;
@@ -100,13 +110,23 @@ QtObject {
     draft.load();
   }
 
-  function addBind(bind) {
-    draft.local.push(Object.assign({
+  // A bind with every field, its flags from its action unless given
+  function _completeBind(bind) {
+    const action = bind?.action ?? "launcher";
+    const flags = HyprlandConfigManager.actionFlags[action] ?? [];
+    const full = {
       "key": "",
-      "action": "launcher",
+      "action": action,
       "argument": "",
       "description": ""
-    }, bind ?? {}));
+    };
+    for (const flag of HyprlandConfigManager.flagNames)
+      full[flag] = flags.includes(flag);
+    return Object.assign(full, bind ?? {});
+  }
+
+  function addBind(bind) {
+    draft.local.push(_completeBind(bind));
     draft.changed();
   }
 
@@ -128,11 +148,15 @@ QtObject {
     if (!bind || bind[field] === value)
       return;
     bind[field] = value;
-    // An argument meant for the old action rarely fits the new one
+    // An argument meant for the old action rarely fits the new one, and
+    // the flags follow the new action
     if (field === "action") {
       const options = argumentOptions(value);
       if (!needsArgument(value) || (options && !options.includes(bind.argument)))
         bind.argument = "";
+      const flags = HyprlandConfigManager.actionFlags[value] ?? [];
+      for (const flag of HyprlandConfigManager.flagNames)
+        bind[flag] = flags.includes(flag);
     }
     draft.changed();
   }
@@ -223,7 +247,7 @@ QtObject {
         "id": "essentials",
         "title": I18n.tr("Essentials"),
         "description": I18n.tr("Launcher, overlay, workspace overview, power menu and lock"),
-        "binds": ConfigManager.configSchema?.properties?.Hyprland?.properties?.binds?.default ?? []
+        "binds": [root._workspaceBind("SUPER + space", "launcher", ""), root._workspaceBind("SUPER + Tab", "overlay", ""), root._workspaceBind("SUPER + SHIFT + space", "workspaceOverview", ""), root._workspaceBind("SUPER + Escape", "powerMenu", ""), root._workspaceBind("SUPER + CTRL + L", "lock", "")]
       },
       {
         "id": "numbers",
@@ -247,6 +271,25 @@ QtObject {
       "description": WorkspacesConfig.grid ? I18n.tr("SUPER + CTRL + arrows moves around the grid, with SHIFT it takes the window along") : I18n.tr("SUPER + CTRL + left or right steps through workspaces, with SHIFT it takes the window along"),
       "binds": stepBinds("SUPER + CTRL + ", 0)
     });
+    const vim = [["h", "left"], ["j", "down"], ["k", "up"], ["l", "right"]];
+    const resize = {
+      "h": "-50 0",
+      "j": "0 50",
+      "k": "0 -50",
+      "l": "50 0"
+    };
+    list.push({
+      "id": "windows",
+      "title": I18n.tr("Window management"),
+      "description": I18n.tr("SUPER + H J K L moves focus, with SHIFT the window, with ALT resizes it; close, fullscreen, floating and mouse drag"),
+      "binds": [].concat(...vim.map(d => [root._workspaceBind("SUPER + " + d[0], "focusDir", d[1]), root._workspaceBind("SUPER + SHIFT + " + d[0], "moveWindowDir", d[1]), root._workspaceBind("SUPER + ALT + " + d[0], "resizeWindow", resize[d[0]])])).concat([root._workspaceBind("SUPER + C", "closeWindow", ""), root._workspaceBind("SUPER + F", "fullscreen", ""), root._workspaceBind("SUPER + Z", "toggleFloat", ""), root._workspaceBind("SUPER + mouse:272", "mouseDrag", ""), root._workspaceBind("SUPER + mouse:273", "mouseResize", "")])
+    });
+    list.push({
+      "id": "media",
+      "title": I18n.tr("Media keys"),
+      "description": I18n.tr("Volume, mute and playback keys, through axiom so the OSD shows"),
+      "binds": [root._workspaceBind("XF86AudioRaiseVolume", "volumeUp", ""), root._workspaceBind("XF86AudioLowerVolume", "volumeDown", ""), root._workspaceBind("XF86AudioMute", "toggleMute", ""), root._workspaceBind("XF86AudioMicMute", "toggleMicMute", ""), root._workspaceBind("XF86AudioPlay", "mediaPlayPause", ""), root._workspaceBind("XF86AudioPause", "mediaPlayPause", ""), root._workspaceBind("XF86AudioNext", "mediaNext", ""), root._workspaceBind("XF86AudioPrev", "mediaPrevious", "")]
+    });
     return list;
   }
 
@@ -266,10 +309,7 @@ QtObject {
       if (used.includes(id))
         continue;
       used.push(id);
-      draft.local.push(Object.assign({
-        "argument": "",
-        "description": ""
-      }, JSON.parse(JSON.stringify(bind))));
+      draft.local.push(_completeBind(JSON.parse(JSON.stringify(bind))));
       added++;
     }
     if (added > 0)

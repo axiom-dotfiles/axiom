@@ -1,6 +1,7 @@
 pragma Singleton
 
 import QtQuick
+import Quickshell.Io
 import Quickshell.Services.Pipewire
 
 // Pipewire audio state: the default output (sink) and input (source), every
@@ -53,6 +54,27 @@ QtObject {
   function setVolume(value) {
     if (defaultSink?.audio) {
       defaultSink.audio.volume = Math.max(0.0, Math.min(1.0, value));
+    }
+  }
+
+  // Volume keys (keybind actions volumeUp, ...): the OSD shows the change
+  property IpcHandler _ipc: IpcHandler {
+    target: "audio"
+
+    function volumeUp(): void {
+      root.increaseVolume();
+    }
+
+    function volumeDown(): void {
+      root.decreaseVolume();
+    }
+
+    function toggleMute(): void {
+      root.toggleMute();
+    }
+
+    function toggleMicMute(): void {
+      root.toggleSourceMute();
     }
   }
 

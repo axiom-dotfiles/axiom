@@ -171,6 +171,12 @@ QtObject {
       return ChatConfig.presets.map(preset => preset.name);
     case "colors":
       return Theme.baseColorNames;
+    case "cursorThemes":
+      {
+        const current = HyprlandConfig.managed.cursorTheme;
+        const themes = HyprlandConfigManager.cursorThemes;
+        return ["", ...themes, ...(current && !themes.includes(current) ? [current] : [])];
+      }
     case "languages":
       return I18n.languages.map(l => l.code);
     }

@@ -88,7 +88,15 @@ StyledContainer {
           id: argumentText
           anchors.fill: parent
           visible: argument.needed && root.argumentOptions === null
-          placeholderText: root.bind.action === "exec" ? I18n.tr("Command") : I18n.tr("Search text")
+          placeholderText: {
+            switch (KeybindManager.argumentKind(root.bind.action)) {
+            case "resize":
+              return I18n.tr("Step, e.g. 50 0");
+            case "special":
+              return I18n.tr("Workspace name");
+            }
+            return root.bind.action === "exec" ? I18n.tr("Command") : I18n.tr("Search text");
+          }
           Component.onCompleted: input.text = root.bind.argument ?? ""
           input.onEditingFinished: KeybindManager.setField(root.index, "argument", input.text)
         }
@@ -115,6 +123,24 @@ StyledContainer {
           placeholderText: HyprlandConfigManager.defaultLabel(root.bind) || I18n.tr("Label")
           Component.onCompleted: input.text = root.bind.description ?? ""
           input.onEditingFinished: KeybindManager.setField(root.index, "description", input.text)
+        }
+      }
+
+      // The bind's flags, lit when on
+      Repeater {
+        model: [["repeating", "repeat", I18n.tr("Repeat while held")], ["locked", "lock", I18n.tr("Works while locked")], ["release", "keyboard_capslock", I18n.tr("On release")]]
+
+        delegate: SquareIconButton {
+          id: flag
+          required property var modelData
+          readonly property bool on: root.bind[modelData[0]] === true
+          size: Widget.height
+          iconText: modelData[1]
+          tooltipText: modelData[2]
+          backgroundColor: on ? Theme.accent : Theme.backgroundAlt
+          iconColor: on ? Theme.background : Theme.foreground
+          opacity: on ? 1 : 0.5
+          onClicked: KeybindManager.setField(root.index, modelData[0], !on)
         }
       }
 
