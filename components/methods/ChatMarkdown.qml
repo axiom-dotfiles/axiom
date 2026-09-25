@@ -35,6 +35,19 @@ QtObject {
     for (const line of lines) {
       if (code) {
         const close = line.match(/^ {0,3}(`{3,}|~{3,})\s*$/);
+        // Models often wrap a whole Markdown answer in a ```markdown fence
+        // with fenced code inside it; Markdown fences don't nest, so count
+        // the inner ones there
+        if (code.nests && !close && /^ {0,3}(`{3,}|~{3,})\S/.test(line)) {
+          code.depth += 1;
+          code.lines.push(line);
+          continue;
+        }
+        if (close && code.depth > 0) {
+          code.depth -= 1;
+          code.lines.push(line);
+          continue;
+        }
         if (close && close[1][0] === code.fence[0] && close[1].length >= code.fence.length) {
           out.push({
             kind: "code",
@@ -54,20 +67,23 @@ QtObject {
         code = {
           fence: open[1],
           lang: open[2] ?? "",
-          lines: []
+          lines: [],
+          nests: /^(markdown|md)$/i.test(open[2] ?? ""),
+          depth: 0
         };
         continue;
       }
       prose.push(line);
     }
-    if (code)
+    // An unclosed fence with nothing in it yet draws nothing
+    if (code && code.lines.join("").trim() !== "")
       out.push({
         kind: "code",
         text: code.lines.join("\n"),
         lang: code.lang,
         open: true
       });
-    else
+    else if (!code)
       flushProse();
     return out;
   }

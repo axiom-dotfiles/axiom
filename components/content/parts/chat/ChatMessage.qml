@@ -91,6 +91,15 @@ Item {
       }
     }
 
+    // Unanswered (the reply was cut off by a reload, or deleted)
+    StyledTextButton {
+      visible: root.isUser && root.isLast && !ChatManager.busy
+      Layout.alignment: Qt.AlignRight
+      text: I18n.tr("Get a reply")
+      iconText: "refresh"
+      onClicked: ChatManager.regenerate()
+    }
+
     // --- A reply ---
 
     ColumnLayout {

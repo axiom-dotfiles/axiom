@@ -56,6 +56,8 @@ QtObject {
       return _set("run", [_runRow(rest.trim())]);
     if (prefix === "?" && LauncherConfig.webSearch)
       return _set("web", [_webRow(rest.trim())]);
+    if (prefix === "@" && LauncherConfig.chat)
+      return _set("chat", [_chatRow(rest.trim())]);
 
     const q = raw.trim();
     if (q === "") {
@@ -455,6 +457,24 @@ QtObject {
           Quickshell.execDetached([terminal, "-e", "sh", "-c", command + "; exec \"${SHELL:-sh}\""]);
         else
           Quickshell.execDetached(["sh", "-c", command]);
+        return true;
+      }
+    };
+  }
+
+  // Asks the overlay's chat, in a new conversation with the default preset
+  function _chatRow(q) {
+    const preset = ChatConfig.preset(ChatConfig.defaultPreset);
+    return {
+      kind: "chat",
+      glyph: preset.icon || "smart_toy",
+      title: q ? I18n.tr("Ask {0}: \"{1}\"", preset.name, q) : I18n.tr("Type a question for the chat"),
+      subtitle: ChatConfig.provider(preset.provider)?.name ?? "",
+      run: () => {
+        if (q === "")
+          return false;
+        // After the launcher has closed, so the overlay gets the keyboard
+        Qt.callLater(() => ChatManager.ask(q));
         return true;
       }
     };

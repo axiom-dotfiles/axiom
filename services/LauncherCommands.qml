@@ -301,6 +301,37 @@ QtObject {
       run: (arg, value) => root._configRun(value)
     },
     {
+      name: "chat",
+      aliases: ["ai"],
+      glyph: "smart_toy",
+      usage: "[conversation]",
+      description: () => I18n.tr("Open the chat, a new conversation or a saved one (@ asks a question)"),
+      status: () => ChatManager.busy ? I18n.tr("Replying…") : ChatManager.conversation.title,
+      options: () => [
+          {
+            title: I18n.tr("New conversation"),
+            subtitle: ChatConfig.defaultPreset,
+            glyph: "edit_square",
+            value: ""
+          }
+        ].concat(ChatManager.conversations.map(c => ({
+              title: c.title || I18n.tr("Untitled"),
+              subtitle: I18n.formatDate(new Date(c.updated), I18n.dateFormat("mediumDate")),
+              glyph: "chat",
+              value: c.id
+            }))),
+      run: (arg, value) => {
+        // After the launcher has closed, so the overlay gets the keyboard
+        Qt.callLater(() => {
+          if (value === "")
+            ChatManager.newConversation(ChatConfig.defaultPreset);
+          else if (value !== undefined)
+            ChatManager.open(value);
+          ChatManager.openPage();
+        });
+      }
+    },
+    {
       name: "update",
       aliases: ["upgrade"],
       glyph: "update",
