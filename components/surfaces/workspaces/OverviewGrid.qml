@@ -198,11 +198,9 @@ Rectangle {
         y: rect.y
         width: root.cellW
         height: root.cellH
-        number: index + 1
         wallpaper: WorkspaceOverlayConfig.wallpaper ? Appearance.wallpaperFor(root.screen?.name ?? "") : ""
         color: WorkspaceOverlayConfig.color
         dim: WorkspaceOverlayConfig.dimInactive
-        showNumber: WorkspaceOverlayConfig.showNumbers
         radius: root.cellRadius
         current: root.ids[index] === root.activeId
         hovered: input.hoveredCell === index && input.mode === ""
@@ -270,6 +268,23 @@ Rectangle {
             easing.type: Appearance.easing
           }
         }
+      }
+    }
+
+    // Workspace numbers, above the windows
+    Repeater {
+      model: WorkspaceOverlayConfig.showNumbers ? root.ids.length : 0
+
+      WorkspaceNumber {
+        required property int index
+        readonly property var rect: WorkspaceGeometry.cellRect(index, root.cellW, root.cellH, root.gap, root.columns)
+
+        x: rect.x + margin
+        y: rect.y + margin
+        z: 3
+        cornerRadius: root.cellRadius
+        number: index + 1
+        current: root.ids[index] === root.activeId
       }
     }
 

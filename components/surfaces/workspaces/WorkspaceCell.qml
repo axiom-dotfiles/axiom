@@ -5,17 +5,16 @@ import qs.config
 import qs.components.reusable
 
 // One workspace on the overview board: a miniature desktop (the monitor's
-// wallpaper, or a plain color) with its number. Visual only; OverviewInput takes the input.
+// wallpaper, or a plain color). Its number is a WorkspaceNumber, drawn above
+// the windows by OverviewGrid. Visual only; OverviewInput takes the input.
 Item {
   id: root
 
-  property int number: 1
   // A wallpaper URL, or "" for a plain `color`
   property string wallpaper: ""
   property color color: Theme.backgroundAlt
   // 0-1: how dark it is drawn when it isn't the active workspace
   property real dim: 0.5
-  property bool showNumber: true
   property real radius: Appearance.borderRadius
   // The monitor's active workspace
   property bool current: false
@@ -85,27 +84,6 @@ Item {
       ColorAnimation {
         duration: Appearance.animFast
       }
-    }
-  }
-
-  // Number badge
-  Rectangle {
-    visible: root.showNumber
-    anchors.left: parent.left
-    anchors.top: parent.top
-    anchors.margins: Math.max(4, root.radius / 2)
-    width: Math.max(height, label.implicitWidth + 10)
-    height: label.implicitHeight + 4
-    radius: height / 2
-    color: root.current ? Theme.accent : Qt.rgba(Theme.background.r, Theme.background.g, Theme.background.b, 0.75)
-
-    StyledText {
-      id: label
-      anchors.centerIn: parent
-      text: root.number
-      textSize: Appearance.fontSize - 2
-      textColor: root.current ? Theme.background : Theme.foreground
-      font.bold: root.current
     }
   }
 }
