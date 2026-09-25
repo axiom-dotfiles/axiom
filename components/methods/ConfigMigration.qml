@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 9
+  readonly property int currentVersion: 10
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -45,6 +45,8 @@ QtObject {
       result = _v7ToV8(result, changes);
     if (version < 9)
       result = _v8ToV9(result, changes);
+    if (version < 10)
+      result = _v9ToV10(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -247,6 +249,32 @@ QtObject {
       });
     });
     (config.OSD?.apps ?? []).forEach((app, index) => convert(app, `OSD.apps[${index}]`));
+    return config;
+  }
+
+  // v10 dropped Popouts.workspaceIcons: the grid popout follows its
+  // Workspaces widget's showAppIcons, which did nothing in a grid until
+  // now, so a grid that had popout icons (the old default) turns it on.
+  function _v9ToV10(config, changes) {
+    if (!config.Popouts || !("workspaceIcons" in config.Popouts))
+      return config;
+    const icons = config.Popouts.workspaceIcons !== false;
+    delete config.Popouts.workspaceIcons;
+    changes.push("Popouts.workspaceIcons removed");
+    if (!icons || config.Workspaces?.layout !== "grid")
+      return config;
+    (config.Bars ?? []).forEach((bar, barIndex) => {
+      const widgets = bar?.widgets ?? {};
+      Object.keys(widgets).forEach(section => {
+        (widgets[section] ?? []).forEach((widget, index) => {
+          if (widget?.type !== "Workspaces" || widget.properties?.showAppIcons === true)
+            return;
+          widget.properties = widget.properties ?? {};
+          widget.properties.showAppIcons = true;
+          changes.push(`Bars[${barIndex}].widgets.${section}[${index}].properties.showAppIcons -> true`);
+        });
+      });
+    });
     return config;
   }
 }

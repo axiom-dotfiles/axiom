@@ -43,7 +43,7 @@ Item {
 
   // A card from an object with `x-showIf` (e.g. managed-only settings)
   function _groupShown(group) {
-    return SchemaLayout.showIfHolds(group.showIf, key => root.valueAt(group.showIfParent.concat(key)));
+    return SchemaLayout.showIfHolds(group.showIf, key => key.startsWith("/") ? SettingsManager.configValueAt(key.slice(1)) : root.valueAt(group.showIfParent.concat(key)));
   }
 
   function _rowMatches(row) {

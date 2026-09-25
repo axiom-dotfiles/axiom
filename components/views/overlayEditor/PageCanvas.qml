@@ -53,7 +53,7 @@ Card {
       spacing: Widget.spacing
 
       StyledIcon {
-        text: root.view ? root.dragLayer.viewIcon(root.view.type) : ""
+        text: root.view ? OverlayConfig.viewIcon(root.view.type) : ""
         textColor: Theme.accent
         textSize: Appearance.fontSize + 6
       }
@@ -109,7 +109,7 @@ Card {
         StyledIcon {
           width: parent.width
           horizontalAlignment: Text.AlignHCenter
-          text: root.view ? root.dragLayer.viewIcon(root.view.type) : "view_quilt"
+          text: root.view ? OverlayConfig.viewIcon(root.view.type) : "view_quilt"
           textColor: Theme.accent
           textSize: Appearance.fontSize * 4
           opacity: 0.8

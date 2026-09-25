@@ -53,7 +53,9 @@ QtObject {
   }
 
   // `x-showIf: { sibling: value | [values] | { not: value } }`: whether
-  // it holds, with valueOf(key) giving a sibling's value
+  // it holds, with valueOf(key) giving a sibling's value. A key starting
+  // with `/` is a dotted path from the config's root ("/Workspaces.layout"),
+  // which valueOf resolves too (callers use SettingsManager.configValueAt).
   function showIfHolds(condition, valueOf) {
     if (!condition)
       return true;

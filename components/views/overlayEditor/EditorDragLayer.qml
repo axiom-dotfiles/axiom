@@ -49,10 +49,6 @@ Item {
     return info ? I18n.tr(info.label) : (type || I18n.tr("Unknown"));
   }
 
-  function viewIcon(type) {
-    return OverlayConfig.viewInfo(type)?.icon ?? "dashboard";
-  }
-
   // Layout names spaced for display. Keys: I18n.tr("Single") I18n.tr("Tall")
   // I18n.tr("Wide") I18n.tr("Large") I18n.tr("Grid 2x2") I18n.tr("Vert 1x1")
   // I18n.tr("Vert 1x2") I18n.tr("Vert 2x1") I18n.tr("Horiz 1x1")

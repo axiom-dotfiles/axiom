@@ -240,6 +240,12 @@ QtObject {
     return true;
   }
 
+  // A value anywhere in the running config, by dotted path
+  // ("Workspaces.layout"): what an `x-showIf` key starting with `/` reads
+  function configValueAt(dottedPath) {
+    return _valueAt(ConfigManager.config, dottedPath.split("."));
+  }
+
   function valueOf(key) {
     const entry = settingFor(key);
     return entry ? _valueAt(ConfigManager.config, entry.path) : undefined;

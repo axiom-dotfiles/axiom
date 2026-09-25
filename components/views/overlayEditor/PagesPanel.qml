@@ -21,13 +21,6 @@ Item {
   readonly property real rowHeight: Widget.height + Widget.padding
   readonly property real rowStep: root.rowHeight + Widget.spacing / 2
 
-  function viewLabel(view, index) {
-    if (view?.type === "Custom")
-      return view.name || I18n.tr("Page {0}", index + 1);
-    const label = OverlayConfig.viewInfo(view?.type)?.label ?? view?.type ?? "";
-    return I18n.tr(label);
-  }
-
   // StyledTextEntry writes each keystroke back to its `text`, which drops
   // any binding on it, so the name is pushed in whenever the selected page
   // (or the draft) changes rather than bound
@@ -107,8 +100,8 @@ Item {
               onDragStarted: (x, y) => root.dragLayer.begin({
                   "kind": "page-move",
                   "index": entry.index,
-                  "icon": root.dragLayer.viewIcon(entry.entryView.type),
-                  "label": root.viewLabel(entry.entryView, entry.index)
+                  "icon": OverlayConfig.viewIcon(entry.entryView.type),
+                  "label": OverlayConfig.viewLabel(entry.entryView, entry.index)
                 }, entryArea, x, y)
               onDragMoved: (x, y) => root.dragLayer.move(entryArea, x, y)
               onDropped: root.dragLayer.end()
@@ -123,13 +116,13 @@ Item {
               spacing: Widget.spacing
 
               StyledIcon {
-                text: root.dragLayer.viewIcon(entry.entryView.type)
+                text: OverlayConfig.viewIcon(entry.entryView.type)
                 textColor: entry.selected ? Theme.background : Theme.accent
                 Layout.preferredWidth: Appearance.fontSize * 1.5
               }
 
               StyledText {
-                text: root.viewLabel(entry.entryView, entry.index)
+                text: OverlayConfig.viewLabel(entry.entryView, entry.index)
                 textColor: entry.ink
                 font.bold: entry.selected
                 elide: Text.ElideRight

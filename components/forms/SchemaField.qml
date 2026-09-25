@@ -41,10 +41,11 @@ Loader {
     }, {});
   }
 
-  // `x-showIf`, checked against sibling keys of this row's path, in any form
+  // `x-showIf`, checked against sibling keys of this row's path (or a
+  // `/`-rooted config path), in any form
   readonly property bool shown: {
     const parent = row.path.slice(0, -1);
-    return SchemaLayout.showIfHolds(fieldSchema["x-showIf"], key => form.valueAt(parent.concat(key)));
+    return SchemaLayout.showIfHolds(fieldSchema["x-showIf"], key => key.startsWith("/") ? SettingsManager.configValueAt(key.slice(1)) : form.valueAt(parent.concat(key)));
   }
 
   visible: shown
