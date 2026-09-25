@@ -1,6 +1,6 @@
 pragma ComponentBehavior: Bound
 import QtQuick
-import QtQuick.Controls
+import QtQuick.Effects
 import QtQuick.Layouts
 import qs.config
 import qs.services
@@ -12,6 +12,9 @@ Rectangle {
   id: root
 
   signal picked
+
+  // Over the chat (not docked beside it): casts a shadow
+  property bool floating: true
 
   property string query: ""
   // The conversation being renamed ("" when none)
@@ -47,6 +50,16 @@ Rectangle {
   border.color: Theme.border
   border.width: 1
 
+  // Floats over the chat, like a combo box's list
+  layer.enabled: root.floating
+  // Qt 6 MultiEffect: Qt5Compat DropShadow fails to build its shader here
+  layer.effect: MultiEffect {
+    shadowEnabled: true
+    shadowColor: "#40000000"
+    shadowBlur: 0.5
+    shadowVerticalOffset: 2
+  }
+
   ColumnLayout {
     anchors.fill: parent
     anchors.margins: Widget.spacing
@@ -59,28 +72,18 @@ Rectangle {
       onTextChanged: root.query = text
     }
 
-    Flickable {
-      id: flick
+    StyledScrollView {
+      id: scroll
       Layout.fillWidth: true
       Layout.fillHeight: true
-      contentWidth: width
-      contentHeight: listColumn.implicitHeight
-      clip: true
-      boundsBehavior: Flickable.StopAtBounds
-
-      ScrollBar.vertical: ScrollBar {
-        policy: ScrollBar.AsNeeded
-        contentItem: Rectangle {
-          implicitWidth: 4
-          radius: 2
-          color: Theme.accent
-          opacity: 0.4
-        }
-      }
+      contentPadding: 0
+      // A lane of its own for the scroll bar, so it never covers a row
+      showScrollBar: listColumn.implicitHeight > scroll.height
+      rightPadding: showScrollBar ? 12 : 0
 
       ColumnLayout {
         id: listColumn
-        width: flick.width
+        width: scroll.availableWidth
         spacing: 2
 
         Repeater {
@@ -96,8 +99,9 @@ Rectangle {
               id: headerRow
               StyledText {
                 width: row.width
-                topPadding: row.index > 0 ? Widget.spacing : 0
-                leftPadding: Widget.spacing / 2
+                topPadding: row.index > 0 ? Widget.spacing * 2 : Widget.spacing / 2
+                bottomPadding: Widget.spacing / 2
+                leftPadding: Widget.spacing
                 text: row.rowData.header
                 textColor: Theme.foregroundAlt
                 textSize: Appearance.fontSize - 3
@@ -132,8 +136,8 @@ Rectangle {
                   id: itemRowLayout
                   anchors.fill: parent
                   anchors.leftMargin: Widget.spacing
-                  anchors.rightMargin: 2
-                  spacing: 2
+                  anchors.rightMargin: 3
+                  spacing: 0
 
                   StyledText {
                     visible: !item.editing
@@ -163,25 +167,19 @@ Rectangle {
                     input.Keys.onEscapePressed: root.renaming = ""
                   }
 
-                  StyledIconButton {
+                  ChatIconButton {
                     visible: itemHover.hovered && !item.editing
-                    Layout.fillWidth: false
-                    Layout.preferredWidth: 24
-                    Layout.preferredHeight: 24
+                    size: 24
                     iconText: "edit"
                     iconSize: Appearance.fontSize - 2
-                    iconColor: Theme.foregroundAlt
                     tooltipText: I18n.tr("Rename")
                     onClicked: root.renaming = item.conversation.id
                   }
-                  StyledIconButton {
+                  ChatIconButton {
                     visible: itemHover.hovered && !item.editing
-                    Layout.fillWidth: false
-                    Layout.preferredWidth: 24
-                    Layout.preferredHeight: 24
+                    size: 24
                     iconText: "delete"
                     iconSize: Appearance.fontSize - 2
-                    iconColor: Theme.foregroundAlt
                     tooltipText: I18n.tr("Delete")
                     onClicked: ChatManager.remove(item.conversation.id)
                   }

@@ -1,6 +1,6 @@
 pragma ComponentBehavior: Bound
 import QtQuick
-import QtQuick.Controls
+import QtQuick.Effects
 import QtQuick.Layouts
 import qs.config
 import qs.services
@@ -40,34 +40,37 @@ Rectangle {
     return out;
   }
 
-  implicitHeight: Math.min(listColumn.implicitHeight + Widget.spacing * 2, 420)
+  // The most it may grow to (the chat sets what's left below the header)
+  property real maxHeight: 420
+
+  implicitHeight: Math.min(listColumn.implicitHeight + Widget.spacing * 2, root.maxHeight)
   color: Theme.background
   radius: Appearance.borderRadius
   border.color: Theme.border
   border.width: 1
 
-  Flickable {
-    id: flick
+  // Floats over the chat, like a combo box's list
+  layer.enabled: true
+  // Qt 6 MultiEffect: Qt5Compat DropShadow fails to build its shader here
+  layer.effect: MultiEffect {
+    shadowEnabled: true
+    shadowColor: "#40000000"
+    shadowBlur: 0.5
+    shadowVerticalOffset: 2
+  }
+
+  StyledScrollView {
+    id: scroll
     anchors.fill: parent
     anchors.margins: Widget.spacing
-    contentWidth: width
-    contentHeight: listColumn.implicitHeight
-    clip: true
-    boundsBehavior: Flickable.StopAtBounds
-
-    ScrollBar.vertical: ScrollBar {
-      policy: ScrollBar.AsNeeded
-      contentItem: Rectangle {
-        implicitWidth: 4
-        radius: 2
-        color: Theme.accent
-        opacity: 0.4
-      }
-    }
+    contentPadding: 0
+    // A lane of its own for the scroll bar, so it never covers a row
+    showScrollBar: listColumn.implicitHeight > scroll.height
+    rightPadding: showScrollBar ? 12 : 0
 
     ColumnLayout {
       id: listColumn
-      width: flick.width
+      width: scroll.availableWidth
       spacing: 1
 
       Repeater {
@@ -86,8 +89,9 @@ Rectangle {
               spacing: Widget.spacing / 2
 
               StyledText {
-                Layout.topMargin: row.index > 0 ? Widget.spacing : 0
-                Layout.leftMargin: Widget.spacing / 2
+                Layout.topMargin: row.index > 0 ? Widget.spacing * 2 : Widget.spacing / 2
+                Layout.bottomMargin: Widget.spacing / 2
+                Layout.leftMargin: Widget.spacing
                 Layout.fillWidth: true
                 text: row.rowData.header
                 textColor: Theme.foregroundAlt
@@ -99,8 +103,9 @@ Rectangle {
               StyledIcon {
                 readonly property string status: row.rowData.provider ? SecretsManager.status(row.rowData.provider) : "unneeded"
                 visible: status === "none"
-                Layout.topMargin: row.index > 0 ? Widget.spacing : 0
-                Layout.rightMargin: Widget.spacing / 2
+                Layout.topMargin: row.index > 0 ? Widget.spacing * 2 : Widget.spacing / 2
+                Layout.bottomMargin: Widget.spacing / 2
+                Layout.rightMargin: Widget.spacing
                 text: "key_off"
                 textColor: Theme.warning
                 textSize: Appearance.fontSize - 2
@@ -113,6 +118,7 @@ Rectangle {
             StyledText {
               width: row.width
               leftPadding: Widget.spacing
+              rightPadding: Widget.spacing
               text: I18n.tr("No models: fetch them in Settings → Chat")
               textColor: Theme.foregroundInactive
               textSize: Appearance.fontSize - 3
@@ -127,7 +133,7 @@ Rectangle {
               readonly property var preset: row.rowData.preset ?? null
               readonly property bool selected: preset ? preset.name === ChatManager.preset.name : row.rowData.provider.id === ChatManager.provider?.id && row.rowData.model === ChatManager.model
               width: row.width
-              implicitHeight: Widget.height - 4
+              implicitHeight: Widget.height
               radius: Appearance.borderRadius / 2
               color: choiceHover.hovered ? Theme.backgroundHighlight : "transparent"
 

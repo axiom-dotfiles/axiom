@@ -30,12 +30,14 @@ StyledContainer {
     RowLayout {
       Layout.fillWidth: true
       Layout.leftMargin: Widget.padding
-      Layout.rightMargin: Widget.spacing / 2
-      Layout.topMargin: 2
+      Layout.rightMargin: Widget.spacing
+      Layout.topMargin: Widget.spacing / 2
+      Layout.bottomMargin: Widget.spacing / 2
       spacing: Widget.spacing / 2
 
       StyledText {
         Layout.fillWidth: true
+        Layout.alignment: Qt.AlignVCenter
         text: root.lang || I18n.tr("code")
         textColor: Theme.foregroundAlt
         textSize: Appearance.fontSize - 3
@@ -43,11 +45,8 @@ StyledContainer {
         elide: Text.ElideRight
       }
 
-      StyledIconButton {
-        Layout.fillWidth: false
-        Layout.fillHeight: false
-        Layout.preferredWidth: 26
-        Layout.preferredHeight: 26
+      ChatIconButton {
+        size: 26
         iconText: root._copied ? "check" : "content_copy"
         iconSize: Appearance.fontSize - 1
         iconColor: root._copied ? Theme.success : Theme.foregroundAlt

@@ -16,6 +16,8 @@ Panel {
   readonly property bool listDocked: root.embedded && root.shape === "horizontal"
   property bool listOpen: false
   property bool pickerOpen: false
+  // The dropdowns open just under the header
+  readonly property real popupTop: header.height + Widget.spacing
 
   implicitWidth: 440 + root.margins * 2
   wantsKeyboardFocus: true
@@ -43,6 +45,7 @@ Panel {
         Layout.preferredWidth: Math.max(180, parent.width * 0.32)
         color: Theme.backgroundAlt
         border.width: 0
+        floating: false
       }
 
       ColumnLayout {
@@ -51,6 +54,7 @@ Panel {
         spacing: Widget.spacing
 
         ChatHeader {
+          id: header
           Layout.fillWidth: true
           listDocked: root.listDocked
           listOpen: root.listOpen
@@ -97,9 +101,10 @@ Panel {
     ConversationList {
       visible: !root.listDocked && root.listOpen
       anchors.top: parent.top
-      anchors.topMargin: 36
+      anchors.topMargin: root.popupTop
       anchors.left: parent.left
       anchors.bottom: parent.bottom
+      anchors.bottomMargin: Widget.spacing
       width: Math.min(parent.width - Widget.padding * 2, 300)
       onPicked: root.listOpen = false
     }
@@ -107,9 +112,10 @@ Panel {
     ModelPicker {
       visible: root.pickerOpen
       anchors.top: parent.top
-      anchors.topMargin: 36
+      anchors.topMargin: root.popupTop
       anchors.right: parent.right
       width: Math.min(parent.width - Widget.padding * 2, 280)
+      maxHeight: Math.min(420, parent.height - root.popupTop - Widget.spacing)
       onPicked: root.pickerOpen = false
     }
 

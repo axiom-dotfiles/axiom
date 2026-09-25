@@ -5,14 +5,16 @@ import qs.config
 import qs.services
 import qs.components.reusable
 
-// Where a message is written: attached images above the text, attach
-// buttons, and send (stop while a reply streams). Chat.sendKey picks
-// Enter or Ctrl+Enter to send.
+// Where a message is written: attached images, the text, then a toolbar
+// with the attach buttons, the keys and send (stop while a reply streams).
+// Chat.sendKey picks Enter or Ctrl+Enter to send.
 ColumnLayout {
   id: root
 
   readonly property alias input: area.input
   readonly property bool ctrlEnter: ChatConfig.sendKey === "ctrlEnter"
+  // The key hints need room beside the buttons
+  readonly property bool showHints: root.width >= 320
 
   function focusInput() {
     area.input.forceActiveFocus();
@@ -29,7 +31,7 @@ ColumnLayout {
 
   StyledContainer {
     Layout.fillWidth: true
-    implicitHeight: box.implicitHeight + Widget.spacing * 2
+    implicitHeight: box.implicitHeight + Widget.spacing * 3
     backgroundColor: Theme.backgroundAlt
     borderColor: area.input.activeFocus ? Theme.accent : Theme.border
     borderWidth: 1
@@ -46,15 +48,14 @@ ColumnLayout {
       anchors.left: parent.left
       anchors.right: parent.right
       anchors.verticalCenter: parent.verticalCenter
-      anchors.leftMargin: Widget.spacing
-      anchors.rightMargin: Widget.spacing
-      spacing: Widget.spacing / 2
+      anchors.leftMargin: Widget.spacing * 1.5
+      anchors.rightMargin: Widget.spacing * 1.5
+      spacing: Widget.spacing
 
       Flow {
         visible: ChatManager.attachments.length > 0 || ChatManager.attaching
         Layout.fillWidth: true
-        Layout.leftMargin: 4
-        Layout.topMargin: 4
+        Layout.topMargin: Widget.spacing / 2
         spacing: Widget.spacing / 2
 
         Repeater {
@@ -82,59 +83,67 @@ ColumnLayout {
         }
       }
 
+      StyledTextArea {
+        id: area
+        Layout.fillWidth: true
+        Layout.maximumHeight: Appearance.fontSize * 12
+        expandable: true
+        newlineOnEnter: root.ctrlEnter
+        horizontalMargin: 4
+        verticalMargin: 4
+        minHeight: 0
+        backgroundColor: "transparent"
+        borderColor: "transparent"
+        borderWidth: 0
+        placeholderText: I18n.tr("Message {0}…", ChatManager.preset.name)
+        onAccepted: root._send()
+      }
+
+      // Attach buttons, the keys, send
       RowLayout {
         Layout.fillWidth: true
-        spacing: 2
+        spacing: Widget.spacing / 2
 
-        StyledIconButton {
-          Layout.fillWidth: false
-          Layout.fillHeight: false
-          Layout.alignment: Qt.AlignBottom
-          Layout.bottomMargin: 5
-          Layout.preferredWidth: 30
-          Layout.preferredHeight: 30
+        ChatIconButton {
           enabled: !ChatManager.attaching
           iconText: "content_paste"
-          iconColor: Theme.foregroundAlt
           tooltipText: I18n.tr("Paste image")
           onClicked: ChatManager.attachClipboard()
         }
 
-        StyledIconButton {
-          Layout.fillWidth: false
-          Layout.fillHeight: false
-          Layout.alignment: Qt.AlignBottom
-          Layout.bottomMargin: 5
-          Layout.preferredWidth: 30
-          Layout.preferredHeight: 30
+        ChatIconButton {
           enabled: !ChatManager.attaching
           iconText: "screenshot_region"
-          iconColor: Theme.foregroundAlt
           tooltipText: I18n.tr("Screenshot a region")
           onClicked: ChatManager.attachScreenshot()
         }
 
-        StyledTextArea {
-          id: area
+        Item {
           Layout.fillWidth: true
-          Layout.maximumHeight: Appearance.fontSize * 12
-          expandable: true
-          newlineOnEnter: root.ctrlEnter
-          backgroundColor: "transparent"
-          borderColor: "transparent"
-          borderWidth: 0
-          placeholderText: I18n.tr("Message {0}…", ChatManager.preset.name)
-          onAccepted: root._send()
+        }
+
+        KeyHint {
+          visible: root.showHints
+          Layout.alignment: Qt.AlignVCenter
+          Layout.rightMargin: Widget.spacing
+          key: root.ctrlEnter ? "Ctrl ↵" : "↵"
+          label: I18n.tr("send")
+        }
+        KeyHint {
+          visible: root.showHints
+          Layout.alignment: Qt.AlignVCenter
+          Layout.rightMargin: Widget.spacing * 2
+          key: root.ctrlEnter ? "↵" : "⇧ ↵"
+          label: I18n.tr("new line")
         }
 
         Rectangle {
           id: sendButton
           readonly property bool canSend: ChatManager.busy || area.text.trim() !== "" || ChatManager.attachments.length > 0
-          Layout.alignment: Qt.AlignBottom
-          Layout.bottomMargin: 5
-          implicitWidth: 30
-          implicitHeight: 30
-          radius: 15
+          Layout.alignment: Qt.AlignVCenter
+          implicitWidth: 28
+          implicitHeight: 28
+          radius: height / 2
           color: ChatManager.busy ? Theme.backgroundHighlight : canSend ? Theme.accent : Theme.backgroundHighlight
           opacity: canSend ? 1 : 0.5
 
@@ -163,34 +172,14 @@ ColumnLayout {
     }
   }
 
-  // A problem, else the keys
-  RowLayout {
+  // A problem with the last send or attachment
+  StyledText {
+    visible: ChatManager.notice !== ""
     Layout.fillWidth: true
-    Layout.leftMargin: 4
-    spacing: Widget.spacing
-
-    StyledText {
-      visible: ChatManager.notice !== ""
-      Layout.fillWidth: true
-      text: ChatManager.notice
-      textColor: Theme.warning
-      textSize: Appearance.fontSize - 3
-      elide: Text.ElideRight
-    }
-
-    KeyHint {
-      visible: ChatManager.notice === ""
-      key: root.ctrlEnter ? "Ctrl ↵" : "↵"
-      label: I18n.tr("send")
-    }
-    KeyHint {
-      visible: ChatManager.notice === ""
-      key: root.ctrlEnter ? "↵" : "⇧ ↵"
-      label: I18n.tr("new line")
-    }
-    Item {
-      visible: ChatManager.notice === ""
-      Layout.fillWidth: true
-    }
+    Layout.leftMargin: Widget.spacing
+    text: ChatManager.notice
+    textColor: Theme.warning
+    textSize: Appearance.fontSize - 3
+    elide: Text.ElideRight
   }
 }

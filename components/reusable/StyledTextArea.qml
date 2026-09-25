@@ -18,18 +18,19 @@ StyledContainer {
   // Expandable only: Enter is a new line and Ctrl+Enter submits, instead
   // of Enter submitting and Shift+Enter being a new line
   property bool newlineOnEnter: false
+  // Space around the text
+  property int horizontalMargin: 10
+  property int verticalMargin: 10
+  property int minHeight: 40
 
   signal accepted
   signal boxClicked
 
   implicitHeight: {
     if (!expandable)
-      return textInput.implicitHeight + 20;
+      return textInput.implicitHeight + root.verticalMargin * 2;
 
-    var minHeight = 40;
-    var contentBasedHeight = textInput.contentHeight + 30;  // 10px top + 10px bottom margins
-
-    return Math.max(minHeight, contentBasedHeight);
+    return Math.max(root.minHeight, textInput.contentHeight + root.verticalMargin * 2);
   }
 
   borderColor: textInput.activeFocus ? Theme.accent : Theme.border
@@ -52,10 +53,10 @@ StyledContainer {
   Flickable {
     id: flickable
     anchors.fill: parent
-    anchors.leftMargin: 10
-    anchors.rightMargin: 10
-    anchors.topMargin: root.expandable ? 10 : 0
-    anchors.bottomMargin: root.expandable ? 10 : 0
+    anchors.leftMargin: root.horizontalMargin
+    anchors.rightMargin: root.horizontalMargin
+    anchors.topMargin: root.verticalMargin
+    anchors.bottomMargin: root.verticalMargin
 
     contentWidth: textInput.contentWidth
     contentHeight: textInput.contentHeight
@@ -67,6 +68,9 @@ StyledContainer {
     TextArea {
       id: textInput
       width: flickable.width
+      // The margins above are the only space around the text: the style's
+      // own padding would push it off-centre
+      padding: 0
       text: root.text
       onTextChanged: root.text = text
 

@@ -17,6 +17,8 @@ Item {
   // Stick to the bottom as the content grows
   property bool _follow: true
   property bool _autoScrolling: false
+  // A lane on the right for the scroll bar, only while there's anything to scroll
+  readonly property int _lane: flick.contentHeight > flick.height ? 10 : 0
 
   function scrollToEnd() {
     root._follow = true;
@@ -57,7 +59,9 @@ Item {
     }
 
     ScrollBar.vertical: ScrollBar {
-      policy: flick.contentHeight > flick.height ? ScrollBar.AsNeeded : ScrollBar.AlwaysOff
+      policy: root._lane > 0 ? ScrollBar.AsNeeded : ScrollBar.AlwaysOff
+      rightPadding: 3
+      leftPadding: 3
       contentItem: Rectangle {
         implicitWidth: 4
         radius: 2
@@ -68,7 +72,7 @@ Item {
 
     ColumnLayout {
       id: column
-      width: flick.width - 10
+      width: flick.width - root._lane
       spacing: Widget.spacing * 2
 
       Repeater {

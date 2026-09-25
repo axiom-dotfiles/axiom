@@ -5,7 +5,7 @@ import qs.services
 import qs.components.reusable
 
 // The chat's top row: the conversation list toggle, the title, the
-// preset/model chip and a new-chat button
+// preset/model chip and a new-chat button, all one height
 RowLayout {
   id: root
 
@@ -14,17 +14,16 @@ RowLayout {
   property bool listOpen: false
   property bool pickerOpen: false
 
+  readonly property int rowHeight: 28
+
   signal toggleList
   signal togglePicker
 
-  spacing: Widget.spacing / 2
+  spacing: Widget.spacing
 
-  StyledIconButton {
+  ChatIconButton {
     visible: !root.listDocked
-    Layout.fillWidth: false
-    Layout.fillHeight: false
-    Layout.preferredWidth: 30
-    Layout.preferredHeight: 30
+    size: root.rowHeight
     iconText: "history"
     iconColor: root.listOpen ? Theme.accent : Theme.foreground
     tooltipText: I18n.tr("Conversations")
@@ -33,7 +32,8 @@ RowLayout {
 
   StyledText {
     Layout.fillWidth: true
-    Layout.leftMargin: root.listDocked ? Widget.spacing / 2 : 0
+    Layout.alignment: Qt.AlignVCenter
+    Layout.leftMargin: root.listDocked ? Widget.spacing : 0
     text: ChatManager.conversation.title || I18n.tr("New conversation")
     font.bold: true
     elide: Text.ElideRight
@@ -41,9 +41,10 @@ RowLayout {
 
   // Preset and model
   Rectangle {
+    Layout.alignment: Qt.AlignVCenter
     Layout.maximumWidth: 220
     implicitWidth: chip.implicitWidth + Widget.padding * 1.5
-    implicitHeight: 26
+    implicitHeight: root.rowHeight
     radius: height / 2
     color: root.pickerOpen || chipHover.hovered ? Theme.backgroundHighlight : Theme.backgroundAlt
     border.color: root.pickerOpen ? Theme.accent : Theme.border
@@ -58,25 +59,28 @@ RowLayout {
     RowLayout {
       id: chip
       anchors.fill: parent
-      anchors.leftMargin: Widget.padding * 0.75
+      anchors.leftMargin: Widget.padding
       anchors.rightMargin: Widget.padding * 0.5
-      spacing: 4
+      spacing: Widget.spacing
 
       StyledIcon {
+        Layout.alignment: Qt.AlignVCenter
         text: ChatManager.preset.icon || "chat"
         textColor: Theme.accent
-        textSize: Appearance.fontSize - 1
+        textSize: Appearance.fontSize
       }
       StyledText {
         Layout.fillWidth: true
+        Layout.alignment: Qt.AlignVCenter
         text: ChatManager.model || I18n.tr("No model")
         textSize: Appearance.fontSize - 2
         elide: Text.ElideMiddle
       }
       StyledIcon {
-        text: "expand_more"
+        Layout.alignment: Qt.AlignVCenter
+        text: root.pickerOpen ? "expand_less" : "expand_more"
         textColor: Theme.foregroundAlt
-        textSize: Appearance.fontSize - 1
+        textSize: Appearance.fontSize
       }
     }
 
@@ -89,12 +93,10 @@ RowLayout {
     }
   }
 
-  StyledIconButton {
-    Layout.fillWidth: false
-    Layout.fillHeight: false
-    Layout.preferredWidth: 30
-    Layout.preferredHeight: 30
+  ChatIconButton {
+    size: root.rowHeight
     iconText: "edit_square"
+    iconColor: Theme.foreground
     tooltipText: I18n.tr("New conversation")
     onClicked: ChatManager.newConversation(ChatManager.preset.name)
   }

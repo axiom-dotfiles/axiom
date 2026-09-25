@@ -294,43 +294,35 @@ Item {
 
       StyledText {
         visible: !root.isUser && (root.message?.model ?? "") !== ""
-        Layout.rightMargin: Widget.spacing / 2
+        Layout.alignment: Qt.AlignVCenter
+        Layout.rightMargin: Widget.spacing
         text: root.message?.model ?? ""
         textColor: Theme.foregroundInactive
         textSize: Appearance.fontSize - 3
       }
 
-      StyledIconButton {
+      ChatIconButton {
         visible: root.text !== ""
-        Layout.fillWidth: false
-        Layout.preferredWidth: 24
-        Layout.preferredHeight: 24
+        size: 24
         iconText: "content_copy"
         iconSize: Appearance.fontSize - 2
-        iconColor: Theme.foregroundAlt
         tooltipText: I18n.tr("Copy")
         onClicked: ChatManager.copy(root.text)
       }
 
-      StyledIconButton {
+      ChatIconButton {
         visible: !root.isUser && root.isLast && root.message?.state !== "error"
-        Layout.fillWidth: false
-        Layout.preferredWidth: 24
-        Layout.preferredHeight: 24
+        size: 24
         iconText: "refresh"
         iconSize: Appearance.fontSize - 2
-        iconColor: Theme.foregroundAlt
         tooltipText: I18n.tr("Regenerate")
         onClicked: ChatManager.regenerate()
       }
 
-      StyledIconButton {
-        Layout.fillWidth: false
-        Layout.preferredWidth: 24
-        Layout.preferredHeight: 24
+      ChatIconButton {
+        size: 24
         iconText: "delete"
         iconSize: Appearance.fontSize - 2
-        iconColor: Theme.foregroundAlt
         tooltipText: I18n.tr("Delete")
         onClicked: ChatManager.removeMessage(root.index)
       }
