@@ -1,317 +1,668 @@
-// services/ChatManager.qml
 pragma Singleton
+pragma ComponentBehavior: Bound
 import QtQuick
+import Quickshell
+import Quickshell.Io
+
 import qs.config
+import qs.components.methods
 
-/* Chat service handles communication with various ai chat backends */
-QtObject {
+/*
+ * The chat: conversations, sending and streaming replies (ChatRequest,
+ * ChatProtocol), attachments, and their history on disk. Every Chat module
+ * shows the one current conversation.
+ *
+ * A conversation is { id, title, created, updated, preset, provider, model,
+ * messages }; a message is { role: "user" | "assistant", text, time, and
+ * for a reply: thinking, blocks (the provider's raw content, for thinking
+ * signatures), provider, model, state: "streaming" | "done" | "stopped" |
+ * "error", error, errorKind: "auth" | "nokey" | "network" | "", notice:
+ * "refusal" | "length" | "", thinkingMs; for a user message: attachments
+ * [{ path, mime, name }] }.
+ *
+ * Saved as $XDG_STATE_HOME/axiom/chats/<id>.json, with index.json listing
+ * them and <id>/ holding attachments, up to Chat.keepConversations.
+ *
+ *   qs -c axiom ipc call chat open
+ *   qs -c axiom ipc call chat newChat
+ *   qs -c axiom ipc call chat ask "question"
+ *   qs -c axiom ipc call chat settings
+ */
+Singleton {
+  id: root
 
-  property string currentBackend: ChatConfig.defaultBackend
-  property string currentModel: ChatConfig.backends[ChatConfig.defaultBackend].defaultModel
+  // Summaries, newest first: { id, title, updated, preset, provider, model }
+  property var conversations: []
+  // Set once the config is read (a binding here would start a new
+  // conversation on every config change)
+  property var conversation: ({
+      messages: []
+    })
+  readonly property var messages: conversation.messages
 
-  property ListModel chatModel: ListModel {}
-  property bool activelyTypingCommand: false
-  property bool waitingForResponse: false
+  // The reply streaming in: its text and thinking so far (the last
+  // message, while its state is "streaming", reads these)
+  readonly property bool busy: _request !== null
+  property string streamingText: ""
+  property string streamingThinking: ""
+  // When the reply started, and its thinking ended (0 while it thinks)
+  property real streamStarted: 0
+  property real thinkingEnded: 0
 
-  onCurrentBackendChanged: _backendChanged()
+  // Images waiting to go with the next message
+  property var attachments: []
+  // Attaching (a clipboard read or screenshot) in progress
+  property bool attaching: false
+  // A short-lived problem to show under the composer ("" when none)
+  property string notice: ""
 
-  function _addMessage(role, content) {
-    chatModel.append({
-      "role": role,
-      "content": content
-    });
+  readonly property var preset: ChatConfig.preset(conversation.preset)
+  readonly property var provider: ChatConfig.provider(conversation.provider)
+  readonly property string model: conversation.model || provider?.defaultModel || ""
+
+  readonly property string chatDir: Paths.userStatePath + "chats/"
+  readonly property bool persistent: ChatConfig.keepConversations > 0
+
+  // -- Conversations --
+
+  function newConversation(presetName) {
+    if (root.busy)
+      root.stop();
+    root.conversation = _blank(presetName ?? ChatConfig.defaultPreset);
+    root.attachments = [];
   }
 
-  function _getCurrentBackendConfig() {
-    if (ChatConfig.backends && ChatConfig.backends.hasOwnProperty(currentBackend)) {
-      return ChatConfig.backends[currentBackend];
-    }
-    return null;
-  }
-
-  function _handleError(serviceName, errorText) {
-    console.error(serviceName + " Error:", errorText);
-    _addMessage("config", "Error with " + serviceName + ": " + errorText);
-    waitingForResponse = false;
-  }
-
-  /**
-   * Builds the conversation history from the chatModel in the format
-   * required by the current backend.
-   */
-  function _buildHistory() {
-    const history = [];
-    for (var i = 0; i < chatModel.count; i++) {
-      const message = chatModel.get(i);
-      // Skip our own error messages from the context
-      if (message.content.startsWith("Error with"))
-        continue;
-
-      switch (currentBackend) {
-      case "gemini":
-        {
-          // Gemini uses 'user' and 'model' for roles
-          const role = message.role === "robot" ? "model" : "user";
-          history.push({
-            "role": role,
-            "parts": [
-              {
-                "text": message.content
-              }
-            ]
-          });
-          break;
-        }
-      case "openai":
-      case "anthropic":
-        {
-          // OpenAI/Anthropic use 'user' and 'assistant' for roles
-          const role = message.role === "robot" ? "assistant" : "user";
-          history.push({
-            "role": role,
-            "content": message.content
-          });
-          break;
-        }
-      }
-    }
-    return history;
-  }
-
-  /**
-   * A generic helper to send an XMLHttpRequest. This reduces code duplication.
-   * @param {string} url - The endpoint URL.
-   * @param {object} headers - A key-value object of request headers.
-   * @param {string} payload - The JSON stringified payload.
-   * @param {function} responseParser - A function that takes the parsed JSON response
-   *                                    and returns the reply text string.
-   */
-  function _sendRequest(url, headers, payload, responseParser) {
-    const xhr = new XMLHttpRequest();
-    xhr.open("POST", url);
-
-    for (const key in headers) {
-      if (headers.hasOwnProperty(key)) {
-        xhr.setRequestHeader(key, headers[key]);
-      }
-    }
-
-    xhr.onreadystatechange = function () {
-      if (xhr.readyState === XMLHttpRequest.DONE) {
-        if (xhr.status === 200) {
-          try {
-            const response = JSON.parse(xhr.responseText);
-            const reply = responseParser(response);
-            if (reply) {
-              _addMessage("robot", reply.trim());
-            } else {
-              console.warn("Could not parse reply from response:", xhr.responseText);
-              _handleError(currentBackend, "Received a valid but unparseable response from the server.");
-            }
-          } catch (e) {
-            _handleError(currentBackend, "Failed to parse JSON response: " + e.message);
-          }
-        } else {
-          _handleError(currentBackend, xhr.status + ": " + xhr.responseText);
-        }
-        waitingForResponse = false;
-      }
-    };
-    xhr.send(payload);
-  }
-
-  // --- API Implementations ---
-
-  function _sendToGemini() {
-    console.log("[ChatManager] Sending to Gemini with history...");
-    const backendConfig = _getCurrentBackendConfig();
-    if (!backendConfig)
-      return _handleError("Gemini", "Backend config not found.");
-
-    const apiKey = SecretsManager.apiKey("gemini");
-    if (!apiKey)
-      return _handleError("Gemini", "No API key: set GEMINI_API_KEY or add \"gemini\" to " + SecretsManager.secretsPath);
-
-    const url = "https://generativelanguage.googleapis.com/v1beta/models/" + currentModel + ":generateContent";
-    // Key in a header, not the URL, so it never lands in URL logs
-    const headers = {
-      "Content-Type": "application/json",
-      "x-goog-api-key": apiKey
-    };
-    const history = _buildHistory();
-    const payload = JSON.stringify({
-      "contents": history
-    });
-    const parser = response => response.candidates[0].content.parts[0].text;
-
-    _sendRequest(url, headers, payload, parser);
-  }
-
-  function _sendToOpenAI() {
-    console.log("[ChatManager] Sending to OpenAI with history...");
-    const backendConfig = _getCurrentBackendConfig();
-    if (!backendConfig)
-      return _handleError("OpenAI", "Backend config not found.");
-
-    const apiKey = SecretsManager.apiKey("openai");
-    if (!apiKey)
-      return _handleError("OpenAI", "No API key: set OPENAI_API_KEY or add \"openai\" to " + SecretsManager.secretsPath);
-
-    const url = "https://api.openai.com/v1/chat/completions";
-    const headers = {
-      "Content-Type": "application/json",
-      "Authorization": "Bearer " + apiKey
-    };
-    const history = _buildHistory();
-    const payload = JSON.stringify({
-      "model": currentModel,
-      "messages": history
-    });
-    const parser = response => response.choices[0].message.content;
-
-    _sendRequest(url, headers, payload, parser);
-  }
-
-  function _sendToAnthropic() {
-    console.log("[ChatManager] Sending to Anthropic with history...");
-    const backendConfig = _getCurrentBackendConfig();
-    if (!backendConfig)
-      return _handleError("Anthropic", "Backend config not found.");
-
-    const apiKey = SecretsManager.apiKey("anthropic");
-    if (!apiKey)
-      return _handleError("Anthropic", "No API key: set ANTHROPIC_API_KEY or add \"anthropic\" to " + SecretsManager.secretsPath);
-
-    const url = "https://api.anthropic.com/v1/messages";
-    const headers = {
-      "x-api-key": apiKey,
-      "anthropic-version": "2023-06-01",
-      "content-type": "application/json"
-    };
-    const history = _buildHistory();
-    const payload = JSON.stringify({
-      "model": currentModel,
-      "max_tokens": 2048,
-      "messages": history
-    });
-    const parser = response => response.content[0].text;
-
-    _sendRequest(url, headers, payload, parser);
-  }
-
-  // --- Public Functions ---
-  function sendMessage(text) {
-    const trimmedText = text.trim();
-    if (trimmedText.length === 0 || !ChatConfig.enabled)
+  function open(id) {
+    if (id === root.conversation.id)
       return;
-
-    if (trimmedText.startsWith("/")) {
-      handleCommand(trimmedText);
+    const text = FileManager.read("file://" + root.chatDir + id + ".json");
+    let loaded = null;
+    try {
+      loaded = text ? JSON.parse(text) : null;
+    } catch (e) {
+      console.warn("[ChatManager] Could not parse conversation", id, e);
+    }
+    if (!loaded?.messages) {
+      root.notice = I18n.tr("That conversation couldn't be opened.");
       return;
     }
+    if (root.busy)
+      root.stop();
+    // A reply cut off by a reload never finished
+    loaded.messages.forEach(m => {
+      if (m.state === "streaming")
+        m.state = "stopped";
+    });
+    root.conversation = loaded;
+    root.attachments = [];
+  }
 
-    _addMessage("user", trimmedText);
-    waitingForResponse = true;
-
-    switch (currentBackend) {
-    case "gemini":
-      _sendToGemini();
-      break;
-    case "openai":
-      _sendToOpenAI();
-      break;
-    case "anthropic":
-      _sendToAnthropic();
-      break;
-    case "offline":
-    default:
-      let timer = Qt.createQmlObject("import QtQuick; Timer {}", Chat);
-      timer.interval = 500;
-      timer.repeat = false;
-      timer.triggered.connect(function () {
-        _addMessage("robot", "Offline mode: You said '" + trimmedText + "'");
-        waitingForResponse = false;
-        timer.destroy();
+  function rename(id, title) {
+    const trimmed = String(title ?? "").trim();
+    if (trimmed === "")
+      return;
+    if (id === root.conversation.id) {
+      _update({
+        title: trimmed
       });
-      timer.start();
-      break;
+      _save();
+      return;
     }
+    const text = FileManager.read("file://" + root.chatDir + id + ".json");
+    if (!text)
+      return;
+    const loaded = JSON.parse(text);
+    loaded.title = trimmed;
+    _writeConversation(loaded);
   }
 
-  function handleCommand(commandText) {
-    const parts = commandText.substring(1).split(" ");
-    const command = parts[0].toLowerCase();
-
-    switch (command) {
-    case "help":
-      _addMessage("config", "Available commands:\n" + "/backend [name] - Switch to a different backend.\n" + "/model [name] - Switch to a different model for the current backend.\n" + "/status - Show current backend and model.\n" + "/clear - Clear the chat history.\n" + "/api-key - Instructions for setting API keys.");
-      break;
-    case "backend":
-      {
-        if (parts.length < 2) {
-          _addMessage("config", "Usage: /backend [name]\nAvailable: " + Object.keys(ChatConfig.backends).join(", "));
-          return;
-        }
-        const newBackend = parts[1].toLowerCase();
-        if (ChatConfig.backends.hasOwnProperty(newBackend)) {
-          currentBackend = newBackend;
-          currentModel = ChatConfig.backends[newBackend].defaultModel;
-          _addMessage("config", "Switched to backend '" + currentBackend + "' with model '" + currentModel + "'.");
-        } else {
-          _addMessage("config", "Unknown backend: " + newBackend);
-        }
-        break;
-      }
-    case "model":
-      {
-        if (parts.length < 2) {
-          const backendConfig = _getCurrentBackendConfig();
-          if (backendConfig) {
-            _addMessage("config", "Usage: /model [name]\nAvailable for " + currentBackend + ": " + backendConfig.models.join(", "));
-          } else {
-            _addMessage("config", "No backend selected.");
-          }
-          return;
-        }
-        const newModel = parts[1];
-        const backendConfig = _getCurrentBackendConfig();
-        if (backendConfig && backendConfig.models.includes(newModel)) {
-          currentModel = newModel;
-          _addMessage("config", "Switched to model: " + currentModel);
-        } else {
-          _addMessage("config", "Model '" + newModel + "' not available for backend '" + currentBackend + "'.");
-        }
-        break;
-      }
-    case "status":
-      {
-        _addMessage("config", "Backend: " + currentBackend + "\nModel: " + currentModel);
-        break;
-      }
-    case "clear":
-      chatModel.clear();
-      break;
-    case "api-key":
-      _addMessage("config", "API keys must be set in the configuration file.");
-      break;
-    default:
-      _addMessage("config", "Unknown command: " + command);
-      break;
-    }
-    activelyTypingCommand = false;
+  function remove(id) {
+    root.conversations = root.conversations.filter(c => c.id !== id);
+    _saveIndex();
+    Quickshell.execDetached(["rm", "-rf", "--", root.chatDir + id + ".json", root.chatDir + id]);
+    if (id === root.conversation.id)
+      root.newConversation(root.conversation.preset);
   }
 
-  function _backendChanged() {
-    const backendConfig = _getCurrentBackendConfig();
-    if (backendConfig && backendConfig.defaultModel) {
-      currentModel = backendConfig.defaultModel;
+  function setPreset(name) {
+    const preset = ChatConfig.preset(name);
+    _update({
+      preset: preset.name,
+      provider: preset.provider || root.conversation.provider,
+      model: preset.model || (preset.provider ? "" : root.conversation.model)
+    });
+  }
+
+  function setModel(providerId, model) {
+    _update({
+      provider: providerId,
+      model: model
+    });
+  }
+
+  // -- Sending --
+
+  function send(text) {
+    const trimmed = String(text ?? "").trim();
+    if ((trimmed === "" && root.attachments.length === 0) || root.busy)
+      return false;
+    const message = {
+      role: "user",
+      text: trimmed,
+      time: Date.now(),
+      attachments: root.attachments
+    };
+    const title = root.conversation.messages.length === 0 ? _titleFrom(trimmed) : root.conversation.title;
+    root.attachments = [];
+    root.notice = "";
+    _update({
+      title: title,
+      messages: root.conversation.messages.concat([message])
+    });
+    _save();
+    _reply();
+    return true;
+  }
+
+  // A new conversation with the default preset, on the overlay's chat page
+  function ask(text) {
+    root.newConversation(ChatConfig.defaultPreset);
+    root.openPage();
+    root.send(text);
+  }
+
+  function stop() {
+    if (root._request)
+      root._request.stop();
+  }
+
+  // The last reply again (after an error, or for a different answer)
+  function regenerate() {
+    if (root.busy)
+      return;
+    const messages = root.conversation.messages.slice();
+    while (messages.length > 0 && messages[messages.length - 1].role === "assistant")
+      messages.pop();
+    if (messages.length === 0)
+      return;
+    _update({
+      messages: messages
+    });
+    _reply();
+  }
+
+  function removeMessage(index) {
+    if (root.busy)
+      return;
+    const messages = root.conversation.messages.slice();
+    messages.splice(index, 1);
+    _update({
+      messages: messages
+    });
+    _save();
+  }
+
+  function copy(text) {
+    Quickshell.execDetached(["wl-copy", "--", String(text ?? "")]);
+  }
+
+  // Settings → Chat (keys, providers, presets)
+  function openSettings() {
+    SettingsManager.query = "";
+    SettingsManager.category = "Chat";
+    ShellManager.openOverlayPage("Settings");
+  }
+
+  // Opens the overlay on the page with the (biggest) Chat module
+  function openPage() {
+    const page = OverlayConfig.pageWithModule("Chat");
+    if (page === "") {
+      NotificationManager.sendNotification("axiom", I18n.tr("No chat page"), I18n.tr("Add a Chat module to an overlay page in the overlay editor."));
+      return false;
+    }
+    ShellManager.openOverlayPage(page);
+    return true;
+  }
+
+  // -- Attachments --
+
+  // Largest image a provider takes (Anthropic's limit; the others allow more)
+  readonly property int maxImageBytes: 5 * 1024 * 1024
+
+  function attachClipboard() {
+    if (root.attaching)
+      return;
+    root.attaching = true;
+    root.notice = "";
+    _run(["sh", "-c", "wl-paste --list-types 2>/dev/null | grep -m1 -E '^image/(png|jpeg|webp|gif)$'"], (ok, out) => {
+      const mime = out.trim();
+      if (!ok || mime === "") {
+        root.attaching = false;
+        root.notice = I18n.tr("There's no image on the clipboard.");
+        return;
+      }
+      const path = _attachmentPath(mime.split("/")[1]);
+      _run(["sh", "-c", "mkdir -p \"$(dirname \"$1\")\" && wl-paste --type \"$2\" > \"$1\"", "sh", path, mime], ok => _attached(ok, path, mime, I18n.tr("Pasted image")));
+    });
+  }
+
+  // Closes the overlay, lets you pick a region, then reopens on the chat
+  function attachScreenshot() {
+    if (root.attaching)
+      return;
+    root.attaching = true;
+    root.notice = "";
+    ShellManager.closeOverlay();
+    const path = _attachmentPath("png");
+    // Wait for the overlay to slide away, so it isn't in the picture
+    _later(Appearance.animSlow + 150, () => {
+      _run(["sh", "-c", "mkdir -p \"$(dirname \"$1\")\" && region=$(slurp) && grim -g \"$region\" \"$1\"", "sh", path], ok => {
+        root.openPage();
+        if (!ok) {
+          root.attaching = false;
+          return;
+        }
+        _attached(true, path, "image/png", I18n.tr("Screenshot"));
+      });
+    });
+  }
+
+  // A file dropped on the chat (a file:// URL)
+  function attachFile(url) {
+    const path = decodeURIComponent(String(url).replace(/^file:\/\//, ""));
+    const ext = (path.match(/\.([a-z0-9]+)$/i)?.[1] ?? "").toLowerCase();
+    const mime = {
+      "png": "image/png",
+      "jpg": "image/jpeg",
+      "jpeg": "image/jpeg",
+      "webp": "image/webp",
+      "gif": "image/gif"
+    }[ext];
+    if (!mime) {
+      root.notice = I18n.tr("Only images can be attached.");
+      return;
+    }
+    const copy = _attachmentPath(ext === "jpeg" ? "jpg" : ext);
+    root.attaching = true;
+    _run(["sh", "-c", "mkdir -p \"$(dirname \"$2\")\" && cp -- \"$1\" \"$2\"", "sh", path, copy], ok => _attached(ok, copy, mime, path.split("/").pop()));
+  }
+
+  function detach(index) {
+    const next = root.attachments.slice();
+    const removed = next.splice(index, 1)[0];
+    root.attachments = next;
+    if (removed)
+      Quickshell.execDetached(["rm", "-f", "--", removed.path]);
+  }
+
+  // -- Private --
+
+  property ChatRequest _request: null
+  // base64 of every attachment sent this session, by path
+  property var _encoded: ({})
+  property string _pendingText: ""
+  property string _pendingThinking: ""
+
+  function _blank(presetName) {
+    const preset = ChatConfig.preset(presetName);
+    const now = Date.now();
+    return {
+      id: now.toString(36) + Math.floor(Math.random() * 1e6).toString(36),
+      title: "",
+      created: now,
+      updated: now,
+      preset: preset.name,
+      provider: preset.provider || ChatConfig.defaultProvider,
+      model: preset.model,
+      messages: []
+    };
+  }
+
+  function _update(changes) {
+    root.conversation = Object.assign({}, root.conversation, changes);
+  }
+
+  function _titleFrom(text) {
+    const line = text.split("\n")[0].trim();
+    return line.length > 60 ? line.substring(0, 57).trim() + "…" : line || I18n.tr("Image");
+  }
+
+  function _attachmentPath(ext) {
+    const dir = root.persistent ? root.chatDir + root.conversation.id : (Quickshell.env("XDG_RUNTIME_DIR") || "/tmp") + "/axiom-chat/" + root.conversation.id;
+    return `${dir}/${Date.now().toString(36)}.${ext}`;
+  }
+
+  function _attached(ok, path, mime, name) {
+    if (!ok) {
+      root.attaching = false;
+      root.notice = I18n.tr("Couldn't attach the image.");
+      return;
+    }
+    _run(["stat", "-c", "%s", path], (statOk, out) => {
+      root.attaching = false;
+      const size = parseInt(out) || 0;
+      if (!statOk || size === 0) {
+        root.notice = I18n.tr("Couldn't attach the image.");
+        return;
+      }
+      if (size > root.maxImageBytes) {
+        Quickshell.execDetached(["rm", "-f", "--", path]);
+        root.notice = I18n.tr("That image is over {0} MB.", Math.round(root.maxImageBytes / 1024 / 1024));
+        return;
+      }
+      root.attachments = root.attachments.concat([
+        {
+          path: path,
+          mime: mime,
+          name: name
+        }
+      ]);
+    });
+  }
+
+  // Encodes every attachment in the conversation not encoded yet, then
+  // calls back
+  function _encodeAll(messages, callback) {
+    const paths = [].concat(...messages.map(m => (m.attachments ?? []).map(a => a.path))).filter(path => root._encoded[path] === undefined);
+    if (paths.length === 0)
+      return callback();
+    const path = paths[0];
+    _run(["base64", "-w0", "--", path], (ok, out) => {
+      // A missing file (deleted by hand) is sent without its image
+      root._encoded[path] = ok ? out.trim() : "";
+      _encodeAll(messages, callback);
+    });
+  }
+
+  function _reply() {
+    const provider = root.provider;
+    const model = root.model;
+    const placeholder = {
+      role: "assistant",
+      text: "",
+      thinking: "",
+      provider: provider?.id ?? "",
+      model: model,
+      state: "streaming",
+      time: Date.now()
+    };
+    const history = root.conversation.messages;
+    _update({
+      messages: history.concat([placeholder])
+    });
+    root.streamingText = "";
+    root.streamingThinking = "";
+    root._pendingText = "";
+    root._pendingThinking = "";
+    root.streamStarted = Date.now();
+    root.thinkingEnded = 0;
+
+    if (!provider)
+      return _fail("nokey", I18n.tr("No chat provider is set up. Add one in Settings → Chat."));
+    if (!model)
+      return _fail("config", I18n.tr("{0} has no model to use. Add one in Settings → Chat.", provider.name));
+
+    const request = _requestComponent.createObject(root, {
+      kind: provider.kind
+    });
+    root._request = request;
+    SecretsManager.withKey(provider, key => {
+      if (root._request !== request)
+        return;
+      if (provider.auth !== "none" && !key)
+        return _fail("nokey", I18n.tr("No API key for {0}.", provider.name));
+      _encodeAll(history, () => {
+        if (root._request !== request)
+          return;
+        const body = ChatProtocol.request(provider, model, key, history, {
+          system: root.preset.systemPrompt,
+          maxTokens: ChatConfig.maxTokens,
+          effort: root.preset.effort,
+          showThinking: ChatConfig.showThinking,
+          images: root._encoded
+        });
+        request.start(body, model);
+      });
+    });
+  }
+
+  function _onDelta(kind, text) {
+    if (kind === "thinking") {
+      root._pendingThinking += text;
     } else {
-      currentModel = "";
+      if (root.thinkingEnded === 0 && (root.streamingThinking !== "" || root._pendingThinking !== ""))
+        root.thinkingEnded = Date.now();
+      root._pendingText += text;
     }
-    console.log("[ChatManager] Backend changed to", currentBackend, "with model", currentModel);
+    if (!_flush.running)
+      _flush.start();
   }
 
-  function updateCommandState(currentText) {
-    activelyTypingCommand = currentText.startsWith("/");
+  function _flushNow() {
+    if (root._pendingThinking !== "") {
+      root.streamingThinking += root._pendingThinking;
+      root._pendingThinking = "";
+    }
+    if (root._pendingText !== "") {
+      root.streamingText += root._pendingText;
+      root._pendingText = "";
+    }
+  }
+
+  // Replaces the streaming placeholder with the finished reply
+  function _finish(changes) {
+    _flushNow();
+    _flush.stop();
+    const messages = root.conversation.messages.slice();
+    const last = messages[messages.length - 1];
+    if (last?.role !== "assistant" || last.state !== "streaming")
+      return;
+    const thinkingMs = root.streamingThinking === "" ? 0 : (root.thinkingEnded || Date.now()) - root.streamStarted;
+    messages[messages.length - 1] = Object.assign({}, last, {
+      text: root.streamingText,
+      thinking: root.streamingThinking,
+      thinkingMs: thinkingMs
+    }, changes);
+    if (root._request) {
+      root._request.destroy();
+      root._request = null;
+    }
+    _update({
+      messages: messages
+    });
+    root.streamingText = "";
+    root.streamingThinking = "";
+    _save();
+  }
+
+  function _fail(kind, message) {
+    _finish({
+      state: "error",
+      errorKind: kind,
+      error: message
+    });
+  }
+
+  function _onFinished(request, state) {
+    if (request !== root._request)
+      return;
+    _finish({
+      state: request.stopped ? "stopped" : "done",
+      model: state.model || root.model,
+      blocks: request.stopped ? [] : state.blocks.filter(b => b),
+      notice: ChatProtocol.stopNotice(state.stopReason)
+    });
+  }
+
+  function _onFailed(request, status, message) {
+    if (request !== root._request)
+      return;
+    const kind = status === 401 || status === 403 ? "auth" : status === 0 ? "network" : "";
+    _fail(kind, status > 0 ? `${status}: ${message}` : message);
+  }
+
+  // -- Disk --
+
+  function _save() {
+    if (!root.persistent || root.conversation.messages.length === 0)
+      return;
+    _writeConversation(Object.assign({}, root.conversation, {
+      updated: Date.now()
+    }));
+  }
+
+  function _writeConversation(conversation) {
+    _writeFile(root.chatDir + conversation.id + ".json", JSON.stringify(conversation));
+    const summary = {
+      id: conversation.id,
+      title: conversation.title,
+      updated: conversation.updated,
+      preset: conversation.preset,
+      provider: conversation.provider,
+      model: conversation.model
+    };
+    let list = [summary].concat(root.conversations.filter(c => c.id !== conversation.id));
+    list.sort((a, b) => b.updated - a.updated);
+    // Past the limit: the oldest go, attachments and all
+    const dropped = list.slice(ChatConfig.keepConversations);
+    list = list.slice(0, ChatConfig.keepConversations);
+    dropped.forEach(c => Quickshell.execDetached(["rm", "-rf", "--", root.chatDir + c.id + ".json", root.chatDir + c.id]));
+    root.conversations = list;
+    _saveIndex();
+  }
+
+  function _saveIndex() {
+    _writeFile(root.chatDir + "index.json", JSON.stringify(root.conversations, null, 1));
+  }
+
+  function _writeFile(path, text) {
+    const view = _fileComponent.createObject(root, {
+      path: path
+    });
+    view.setText(text);
+    view.destroy();
+  }
+
+  function _loadIndex() {
+    const text = FileManager.read("file://" + root.chatDir + "index.json");
+    if (!text)
+      return [];
+    try {
+      const list = JSON.parse(text);
+      return Array.isArray(list) ? list : [];
+    } catch (e) {
+      console.warn("[ChatManager] Could not parse the conversation index:", e);
+      return [];
+    }
+  }
+
+  // Runs a command and calls back with (ok, stdout)
+  function _run(command, callback) {
+    const process = _processComponent.createObject(root, {
+      command: command
+    });
+    process.done.connect((ok, out) => {
+      callback(ok, out);
+      process.destroy();
+    });
+    process.running = true;
+  }
+
+  function _later(ms, callback) {
+    const timer = _timerComponent.createObject(root, {
+      interval: ms
+    });
+    timer.triggered.connect(() => {
+      callback();
+      timer.destroy();
+    });
+    timer.start();
+  }
+
+  Timer {
+    id: _flush
+    // Streamed text is laid out at most this often: a reply re-renders
+    // its Markdown on each flush, not on each token
+    interval: 50
+    onTriggered: root._flushNow()
+  }
+
+  Timer {
+    id: _noticeClear
+    interval: 5000
+    onTriggered: root.notice = ""
+  }
+
+  onNoticeChanged: {
+    if (root.notice !== "")
+      _noticeClear.restart();
+  }
+
+  property Component _requestComponent: Component {
+    ChatRequest {
+      id: request
+      onDelta: (kind, text) => root._onDelta(kind, text)
+      onFinished: state => root._onFinished(request, state)
+      onFailed: (status, message) => root._onFailed(request, status, message)
+    }
+  }
+
+  property Component _fileComponent: Component {
+    FileView {
+      blockWrites: true
+      atomicWrites: true
+      printErrors: false
+      onSaveFailed: error => console.warn("[ChatManager] Could not save", path + ":", FileViewError.toString(error))
+    }
+  }
+
+  property Component _processComponent: Component {
+    Process {
+      id: process
+      signal done(bool ok, string out)
+      stdout: StdioCollector {
+        id: out
+      }
+      onExited: code => process.done(code === 0, out.text)
+    }
+  }
+
+  property Component _timerComponent: Component {
+    Timer {}
+  }
+
+  IpcHandler {
+    target: "chat"
+
+    // The overlay, on the chat page
+    function open(): void {
+      root.openPage();
+    }
+
+    function newChat(): void {
+      root.newConversation(ChatConfig.defaultPreset);
+      root.openPage();
+    }
+
+    function ask(text: string): void {
+      root.ask(text);
+    }
+
+    // Settings → Chat (keys, providers, presets)
+    function settings(): void {
+      root.openSettings();
+    }
+  }
+
+  Component.onCompleted: {
+    Quickshell.execDetached(["mkdir", "-p", root.chatDir]);
+    root.conversations = root._loadIndex();
+    root.conversation = _blank(ChatConfig.defaultPreset);
+    // Pick up where the last conversation left off
+    if (root.conversations.length > 0) {
+      root.open(root.conversations[0].id);
+      root.notice = "";
+    }
+    console.log("[ChatManager] Started:", root.conversations.length, "conversations; provider", root.conversation.provider, "default", ChatConfig.defaultProvider);
   }
 }

@@ -125,8 +125,10 @@ QtObject {
     switch (fieldSchema?.["x-options"]) {
     case "screens":
       return ["", ...Quickshell.screens.map(screen => screen.name)];
-    case "chatBackends":
-      return Object.keys(ConfigManager.config.Chat.backends);
+    case "chatProviders":
+      return ChatConfig.providers.map(provider => provider.id);
+    case "chatPresets":
+      return ChatConfig.presets.map(preset => preset.name);
     case "colors":
       return Theme.baseColorNames;
     case "languages":

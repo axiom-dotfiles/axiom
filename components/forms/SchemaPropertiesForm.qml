@@ -14,12 +14,21 @@ ColumnLayout {
   // { key: propertySchema }
   required property var propertiesSchema
   property var values: ({})
+  // Keys to put first, in this order (the schema's `x-order`): the schema
+  // reaches QML as a map, whose keys come out sorted
+  property var order: []
 
   // Emitted with the key path ([key]) of the edited field
   signal edited(var path, var value)
 
   // Depends on the schema only, so edits update the rows in place
-  readonly property var rows: Object.keys(root.propertiesSchema ?? {}).filter(key => {
+  readonly property var rows: Object.keys(root.propertiesSchema ?? {}).sort((a, b) => {
+    const rank = key => {
+      const index = (root.order ?? []).indexOf(key);
+      return index < 0 ? Infinity : index;
+    };
+    return rank(a) - rank(b);
+  }).filter(key => {
     const prop = root.propertiesSchema[key];
     return prop["x-settings"] !== false && prop.type !== "object";
   }).map(key => {

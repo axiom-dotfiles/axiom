@@ -55,6 +55,31 @@ QtObject {
     return viewInfo(type)?.icon ?? "dashboard";
   }
 
+  // The page to open for a module type (what openOverlayPage takes): the
+  // named Custom page where it has the biggest slot, "" when no page has it
+  function pageWithModule(type) {
+    let best = "";
+    let bestArea = 0;
+    (views ?? []).forEach(view => {
+      if (view?.type !== "Custom" || !view.name || view.visible === false)
+        return;
+      (view.columns ?? []).forEach(column => (column?.cells ?? []).forEach(cell => {
+          const layout = layouts[cell?.layout];
+          Object.keys(cell?.slots ?? {}).forEach(slot => {
+            if (cell.slots[slot]?.type !== type)
+              return;
+            const rect = layout?.slots?.[slot] ?? [0, 0, 1, 1];
+            const area = rect[2] * rect[3];
+            if (area > bestArea) {
+              best = view.name;
+              bestArea = area;
+            }
+          });
+        }));
+    });
+    return best;
+  }
+
   // Card grid layout — internal design constants, not user settings.
   // Card radius/border follow Appearance so the overlay matches the shell.
   // cardUnit is the reference card size: the largest a card gets at 100%

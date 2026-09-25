@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 10
+  readonly property int currentVersion: 11
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -47,6 +47,8 @@ QtObject {
       result = _v8ToV9(result, changes);
     if (version < 10)
       result = _v9ToV10(result, changes);
+    if (version < 11)
+      result = _v10ToV11(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -274,6 +276,98 @@ QtObject {
           changes.push(`Bars[${barIndex}].widgets.${section}[${index}].properties.showAppIcons -> true`);
         });
       });
+    });
+    return config;
+  }
+
+  // v11 rebuilt the chat: Chat.backends ({ name: { defaultModel, models } })
+  // became Chat.providers, a list with each provider's API kind and
+  // address; `enabled` went (a Chat module on a page is what enables it)
+  // and defaultBackend became defaultProvider. The old default models are
+  // retired; any a user added are kept on their provider.
+  readonly property var _v11OldModels: ["gemini-2.5-pro", "gemini-2.5-flash", "gpt-4o", "gpt-4o-mini", "claude-sonnet-4-20250514"]
+  readonly property var _v11Providers: [
+    {
+      "id": "anthropic",
+      "name": "Anthropic",
+      "kind": "anthropic",
+      "baseUrl": "https://api.anthropic.com/v1",
+      "auth": "key",
+      "keyEnv": "ANTHROPIC_API_KEY",
+      "models": ["claude-opus-5", "claude-sonnet-5", "claude-haiku-4-5", "claude-fable-5-1", "claude-opus-5-5"],
+      "defaultModel": "claude-opus-5",
+      "fallbacks": true
+    },
+    {
+      "id": "openai",
+      "name": "OpenAI",
+      "kind": "openai",
+      "baseUrl": "https://api.openai.com/v1",
+      "auth": "key",
+      "keyEnv": "OPENAI_API_KEY",
+      "models": ["gpt-5", "gpt-5-mini"],
+      "defaultModel": "gpt-5",
+      "fallbacks": false
+    },
+    {
+      "id": "gemini",
+      "name": "Gemini",
+      "kind": "gemini",
+      "baseUrl": "https://generativelanguage.googleapis.com/v1beta",
+      "auth": "key",
+      "keyEnv": "GEMINI_API_KEY",
+      "models": ["gemini-2.5-pro", "gemini-2.5-flash"],
+      "defaultModel": "gemini-2.5-flash",
+      "fallbacks": false
+    },
+    {
+      "id": "ollama",
+      "name": "Ollama",
+      "kind": "openai",
+      "baseUrl": "http://localhost:11434/v1",
+      "auth": "none",
+      "keyEnv": "",
+      "models": [],
+      "defaultModel": "",
+      "fallbacks": false
+    }
+  ]
+
+  function _v10ToV11(config, changes) {
+    const chat = config.Chat;
+    if (!chat)
+      return config;
+    if ("enabled" in chat) {
+      delete chat.enabled;
+      changes.push("Chat.enabled removed");
+    }
+    if ("defaultBackend" in chat) {
+      if (chat.defaultProvider === undefined)
+        chat.defaultProvider = chat.defaultBackend;
+      delete chat.defaultBackend;
+      changes.push(`Chat.defaultBackend -> Chat.defaultProvider (${chat.defaultProvider})`);
+    }
+    const backends = chat.backends;
+    delete chat.backends;
+    if (!backends || typeof backends !== "object" || chat.providers !== undefined)
+      return config;
+    changes.push("Chat.backends -> Chat.providers");
+    const added = {};
+    Object.keys(backends).forEach(name => {
+      const extra = (backends[name]?.models ?? []).filter(model => !root._v11OldModels.includes(model));
+      if (extra.length > 0)
+        added[name] = extra;
+    });
+    // Nothing of the user's own: the schema's providers fill in
+    if (Object.keys(added).length === 0)
+      return config;
+    chat.providers = JSON.parse(JSON.stringify(root._v11Providers));
+    Object.keys(added).forEach(name => {
+      const provider = chat.providers.find(p => p.id === name);
+      if (!provider)
+        return;
+      provider.models = provider.models.concat(added[name].filter(model => !provider.models.includes(model)));
+      changes.push(`Chat.providers.${name}: kept ${added[name].join(", ")}`);
     });
     return config;
   }

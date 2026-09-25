@@ -15,9 +15,22 @@ ColumnLayout {
   property var pattern: null
   property int minLength: 0
   property int maxLength: 999
+  // A growing text area (`x-multiline`), e.g. for a system prompt
+  property bool multiline: false
 
   onCurrentConfigValueChanged: {
-    textEntry.text = root.currentConfigValue;
+    if (textEntry.text !== root.currentConfigValue)
+      textEntry.text = root.currentConfigValue;
+    if (textArea.text !== root.currentConfigValue)
+      textArea.text = root.currentConfigValue;
+  }
+
+  function _accept(text) {
+    if (text.length >= root.minLength && text.length <= root.maxLength) {
+      if (root.pattern === null || new RegExp(root.pattern).test(text)) {
+        root.value = text;
+      }
+    }
   }
 
   Layout.fillWidth: true
@@ -30,17 +43,28 @@ ColumnLayout {
 
   StyledTextEntry {
     id: textEntry
+    visible: !root.multiline
     Layout.fillWidth: true
     Layout.preferredHeight: Widget.height
     text: root.currentConfigValue
     placeholderText: root.placeholderText
 
+    input.onTextChanged: root._accept(input.text)
+  }
+
+  StyledTextArea {
+    id: textArea
+    visible: root.multiline
+    Layout.fillWidth: true
+    expandable: true
+    // Enter is a new line here: nothing to submit
+    newlineOnEnter: true
+    text: root.currentConfigValue
+    placeholderText: root.placeholderText
+
     input.onTextChanged: {
-      if (input.text.length >= root.minLength && input.text.length <= root.maxLength) {
-        if (root.pattern === null || new RegExp(root.pattern).test(input.text)) {
-          root.value = input.text;
-        }
-      }
+      if (root.multiline)
+        root._accept(input.text);
     }
   }
 

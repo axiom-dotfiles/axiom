@@ -53,7 +53,9 @@ Loader {
   Layout.fillWidth: true
 
   function commit(value) {
-    if (value !== root.current)
+    // Arrays (a string list) are new each time: compare their contents
+    const same = Array.isArray(value) ? JSON.stringify(value) === JSON.stringify(root.current) : value === root.current;
+    if (!same)
       root.form.edited(root.row.path, value);
   }
 
@@ -172,6 +174,7 @@ Loader {
     SchemaTextField {
       label: root.label
       description: root.description
+      multiline: root.fieldSchema["x-multiline"] === true
       currentConfigValue: root.current ?? ""
       onValueChanged: root.commit(value)
     }

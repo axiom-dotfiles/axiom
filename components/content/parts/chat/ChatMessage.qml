@@ -1,79 +1,329 @@
+pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import qs.config
 import qs.services
+import qs.components.methods
 import qs.components.reusable
 
-RowLayout {
+// One message: the user's in an accent-tinted bubble on the right, a reply
+// as full-width text (thinking, Markdown prose and code blocks). Actions
+// show on hover.
+Item {
   id: root
-  width: parent.width
 
-  property string role: "user"
-  property string content: "..."
+  required property var message
+  required property int index
+  property bool isLast: false
 
-  property string messageBackend: ""
-
-  readonly property bool isUser: role === "user"
-  readonly property bool isConfig: role === "config"
-
-  readonly property string senderIcon: isUser ? "person" : isConfig ? "memory_alt" : "smart_toy"
-  readonly property color senderIconColor: isUser ? Theme.userColor : isConfig ? Theme.accent : Theme.robotColor
-  readonly property string senderName: isUser ? General.displayName : isConfig ? "system" : messageBackend
-  readonly property color senderColor: isUser ? Theme.userColor : isConfig ? Theme.accent : Theme.robotColor
-
-  // 2. When the component is created, capture the current backend name
-  Component.onCompleted: {
-    if (!isUser && !isConfig) {
-      messageBackend = ChatManager.currentBackend;
+  readonly property bool isUser: message?.role === "user"
+  readonly property bool streaming: message?.state === "streaming"
+  readonly property string text: streaming ? ChatManager.streamingText : (message?.text ?? "")
+  readonly property string thinking: streaming ? ChatManager.streamingThinking : (message?.thinking ?? "")
+  // Modelled by count (see CLAUDE.md): streaming text edits the last
+  // segment in place instead of rebuilding every block on each flush
+  readonly property var segments: ChatConfig.renderMarkdown ? ChatMarkdown.segments(root.text) : [
+    {
+      "kind": "md",
+      "text": root.text,
+      "lang": "",
+      "open": false
     }
+  ]
+  readonly property bool hovered: hover.hovered
+
+  implicitHeight: column.implicitHeight
+
+  HoverHandler {
+    id: hover
   }
 
   ColumnLayout {
-    Layout.alignment: isUser ? Qt.AlignRight : Qt.AlignLeft
-    Layout.maximumWidth: root.width * 0.75
-    Layout.leftMargin: 10
-    Layout.rightMargin: 10
+    id: column
+    anchors.left: parent.left
+    anchors.right: parent.right
+    spacing: Widget.spacing / 2
 
-    spacing: 6
+    // --- The user's message ---
 
-    RowLayout {
-      spacing: 8
-      Layout.alignment: isUser ? Qt.AlignRight : Qt.AlignLeft
+    Rectangle {
+      id: bubble
+      visible: root.isUser
+      Layout.alignment: Qt.AlignRight
+      Layout.maximumWidth: root.width * 0.85
+      implicitWidth: Math.min(root.width * 0.85, userColumn.implicitWidth + Widget.padding * 2)
+      implicitHeight: userColumn.implicitHeight + Widget.padding * 1.5
+      radius: Appearance.borderRadius + 2
+      color: Qt.alpha(Theme.accent, 0.16)
+      border.color: Qt.alpha(Theme.accent, 0.35)
+      border.width: 1
 
-      StyledIcon {
-        text: root.senderIcon
-        textSize: Appearance.fontSizeLarge
-        color: root.senderIconColor
-        Layout.alignment: Qt.AlignVCenter
-      }
+      ColumnLayout {
+        id: userColumn
+        anchors.fill: parent
+        anchors.margins: Widget.padding
+        anchors.topMargin: Widget.padding * 0.75
+        anchors.bottomMargin: Widget.padding * 0.75
+        spacing: Widget.spacing
 
-      StyledText {
-        text: root.senderName
-        textColor: root.senderColor
-        textSize: Appearance.fontSizeLarge
-        font.bold: true
-        Layout.alignment: Qt.AlignVCenter
+        Flow {
+          visible: (root.message?.attachments ?? []).length > 0
+          Layout.fillWidth: true
+          spacing: Widget.spacing / 2
+
+          Repeater {
+            model: root.isUser ? (root.message?.attachments ?? []).length : 0
+            delegate: AttachmentChip {
+              required property int index
+              attachment: root.message.attachments[index]
+              size: 96
+            }
+          }
+        }
+
+        ChatMarkdownText {
+          visible: text !== ""
+          Layout.fillWidth: true
+          Layout.maximumWidth: root.width * 0.85 - Widget.padding * 2
+          markdown: false
+          text: root.isUser ? root.text : ""
+        }
       }
     }
 
-    Rectangle {
-      color: isUser ? Theme.info : Theme.backgroundHighlight
-      radius: Appearance.borderRadius
-      // Layout.fillWidth: true
-      Layout.alignment: isUser ? Qt.AlignRight : Qt.AlignLeft
-      Layout.preferredWidth: contentText.implicitWidth + 20
-      Layout.maximumWidth: root.width * 0.75
-      implicitHeight: contentText.implicitHeight + 20
+    // --- A reply ---
+
+    ColumnLayout {
+      visible: !root.isUser
+      Layout.fillWidth: true
+      spacing: Widget.spacing
+
+      ChatThinking {
+        visible: root.thinking !== ""
+        Layout.fillWidth: true
+        text: root.thinking
+        live: root.streaming && root.text === ""
+        durationMs: root.streaming ? 0 : (root.message?.thinkingMs ?? 0)
+      }
+
+      Repeater {
+        model: root.isUser ? 0 : root.segments.length
+        delegate: Loader {
+          id: segment
+          required property int index
+          readonly property var segmentData: root.segments[index] ?? ({})
+          Layout.fillWidth: true
+          sourceComponent: segmentData.kind === "code" ? codeBlock : prose
+
+          Component {
+            id: prose
+            ChatMarkdownText {
+              width: segment.width
+              text: segment.segmentData.text ?? ""
+            }
+          }
+
+          Component {
+            id: codeBlock
+            ChatCodeBlock {
+              width: segment.width
+              code: segment.segmentData.text ?? ""
+              lang: segment.segmentData.lang ?? ""
+              open: segment.segmentData.open ?? false
+            }
+          }
+        }
+      }
+
+      // Waiting for the first token
+      Row {
+        visible: root.streaming && root.text === "" && root.thinking === ""
+        spacing: 5
+        Layout.topMargin: 4
+        Layout.bottomMargin: 4
+
+        Repeater {
+          model: 3
+          delegate: Rectangle {
+            id: dot
+            required property int index
+            width: 7
+            height: 7
+            radius: 3.5
+            color: Theme.accent
+            opacity: 0.35
+
+            SequentialAnimation on opacity {
+              running: root.streaming && Appearance.animations
+              loops: Animation.Infinite
+              PauseAnimation {
+                duration: dot.index * Appearance.animFast
+              }
+              NumberAnimation {
+                to: 1
+                duration: Appearance.animNormal
+              }
+              NumberAnimation {
+                to: 0.35
+                duration: Appearance.animNormal
+              }
+              PauseAnimation {
+                duration: (2 - dot.index) * Appearance.animFast
+              }
+            }
+          }
+        }
+      }
+
+      // Why it ended early
+      RowLayout {
+        visible: !root.streaming && (root.message?.notice ?? "") !== "" || root.message?.state === "stopped"
+        spacing: Widget.spacing / 2
+
+        StyledIcon {
+          text: root.message?.state === "stopped" ? "stop_circle" : root.message?.notice === "refusal" ? "block" : "content_cut"
+          textColor: Theme.warning
+          textSize: Appearance.fontSize - 1
+        }
+        StyledText {
+          Layout.fillWidth: true
+          wrapMode: Text.WordWrap
+          textColor: Theme.warning
+          textSize: Appearance.fontSize - 2
+          text: {
+            if (root.message?.state === "stopped")
+              return I18n.tr("Stopped");
+            if (root.message?.notice === "refusal")
+              return I18n.tr("The model declined to answer this.");
+            return I18n.tr("Cut off at the reply length limit (Settings → Chat).");
+          }
+        }
+      }
+
+      // A failed reply
+      StyledContainer {
+        visible: root.message?.state === "error"
+        Layout.fillWidth: true
+        implicitHeight: errorColumn.implicitHeight + Widget.padding * 1.5
+        backgroundColor: Qt.alpha(Theme.error, 0.12)
+        borderColor: Qt.alpha(Theme.error, 0.5)
+        borderWidth: 1
+
+        ColumnLayout {
+          id: errorColumn
+          anchors.fill: parent
+          anchors.margins: Widget.padding * 0.75
+          spacing: Widget.spacing / 2
+
+          RowLayout {
+            spacing: Widget.spacing / 2
+            StyledIcon {
+              text: "error"
+              textColor: Theme.error
+            }
+            StyledText {
+              Layout.fillWidth: true
+              text: {
+                switch (root.message?.errorKind) {
+                case "auth":
+                  return I18n.tr("The API key was rejected");
+                case "nokey":
+                  return I18n.tr("No API key");
+                case "network":
+                  return I18n.tr("Couldn't reach the provider");
+                }
+                return I18n.tr("The request failed");
+              }
+              textColor: Theme.error
+              font.bold: true
+            }
+          }
+
+          StyledText {
+            Layout.fillWidth: true
+            text: root.message?.error ?? ""
+            wrapMode: Text.Wrap
+            maximumLineCount: 6
+            elide: Text.ElideRight
+            textSize: Appearance.fontSize - 2
+            opacity: 0.8
+          }
+
+          RowLayout {
+            spacing: Widget.spacing / 2
+            StyledTextButton {
+              visible: root.isLast
+              text: I18n.tr("Retry")
+              iconText: "refresh"
+              onClicked: ChatManager.regenerate()
+            }
+            StyledTextButton {
+              visible: root.message?.errorKind === "auth" || root.message?.errorKind === "nokey" || root.message?.errorKind === "config"
+              text: root.message?.errorKind === "config" ? I18n.tr("Open settings") : I18n.tr("Set API key")
+              iconText: root.message?.errorKind === "config" ? "settings" : "key"
+              onClicked: ChatManager.openSettings()
+            }
+          }
+        }
+      }
+    }
+
+    // --- Actions ---
+
+    RowLayout {
+      Layout.alignment: root.isUser ? Qt.AlignRight : Qt.AlignLeft
+      Layout.preferredHeight: 24
+      spacing: 2
+      opacity: root.hovered && !root.streaming ? 1 : 0
+      enabled: opacity > 0
+
+      Behavior on opacity {
+        NumberAnimation {
+          duration: Appearance.animFast
+        }
+      }
 
       StyledText {
-        id: contentText
-        text: root.content
-        wrapMode: Text.WordWrap
-        color: isUser ? Theme.background : Theme.foreground
-        font.pixelSize: Appearance.fontSize
+        visible: !root.isUser && (root.message?.model ?? "") !== ""
+        Layout.rightMargin: Widget.spacing / 2
+        text: root.message?.model ?? ""
+        textColor: Theme.foregroundInactive
+        textSize: Appearance.fontSize - 3
+      }
 
-        anchors.fill: parent
-        anchors.margins: 10
+      StyledIconButton {
+        visible: root.text !== ""
+        Layout.fillWidth: false
+        Layout.preferredWidth: 24
+        Layout.preferredHeight: 24
+        iconText: "content_copy"
+        iconSize: Appearance.fontSize - 2
+        iconColor: Theme.foregroundAlt
+        tooltipText: I18n.tr("Copy")
+        onClicked: ChatManager.copy(root.text)
+      }
+
+      StyledIconButton {
+        visible: !root.isUser && root.isLast && root.message?.state !== "error"
+        Layout.fillWidth: false
+        Layout.preferredWidth: 24
+        Layout.preferredHeight: 24
+        iconText: "refresh"
+        iconSize: Appearance.fontSize - 2
+        iconColor: Theme.foregroundAlt
+        tooltipText: I18n.tr("Regenerate")
+        onClicked: ChatManager.regenerate()
+      }
+
+      StyledIconButton {
+        Layout.fillWidth: false
+        Layout.preferredWidth: 24
+        Layout.preferredHeight: 24
+        iconText: "delete"
+        iconSize: Appearance.fontSize - 2
+        iconColor: Theme.foregroundAlt
+        tooltipText: I18n.tr("Delete")
+        onClicked: ChatManager.removeMessage(root.index)
       }
     }
   }

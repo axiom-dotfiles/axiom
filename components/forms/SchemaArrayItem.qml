@@ -16,6 +16,7 @@ SchemaPropertiesForm {
   signal itemEdited(int index, string key, var value)
 
   propertiesSchema: root.itemSchema.properties ?? ({})
+  order: root.itemSchema["x-order"] ?? []
   values: root.itemData ?? ({})
   onEdited: (path, value) => root.itemEdited(root.itemIndex, path[0], value)
 

@@ -15,6 +15,9 @@ StyledContainer {
   property alias readOnly: textInput.readOnly
   property alias wantsKeyboardFocus: textInput.activeFocus
   property bool expandable: false
+  // Expandable only: Enter is a new line and Ctrl+Enter submits, instead
+  // of Enter submitting and Shift+Enter being a new line
+  property bool newlineOnEnter: false
 
   signal accepted
   signal boxClicked
@@ -82,7 +85,15 @@ StyledContainer {
       // Handle Enter/Return key
       Keys.onPressed: event => {
         if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-          if (root.expandable && (event.modifiers & Qt.ShiftModifier)) {
+          if (root.expandable && root.newlineOnEnter) {
+            // Ctrl+Enter submits; Enter (with or without Shift) is a new line
+            if (event.modifiers & Qt.ControlModifier) {
+              root.accepted();
+              event.accepted = true;
+            } else {
+              event.accepted = false;
+            }
+          } else if (root.expandable && (event.modifiers & Qt.ShiftModifier)) {
             // Shift+Enter in expandable mode: insert newline (default behavior)
             event.accepted = false;
           } else if (!root.expandable) {
