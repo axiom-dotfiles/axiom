@@ -4,6 +4,8 @@
 
 **The desktop shell behind [Axiom Dotfiles](https://github.com/axiom-dotfiles): a complete Hyprland desktop, written in QML for [Quickshell](https://quickshell.org).**
 
+Every bar, overlay page and setting is built from inside the shell. Drag, drop, save: there are no config files to write.
+
 Bar · Overlay · Launcher · Notifications · Lockscreen · OSD · Power menu · Workspace overview · Screen border
 
 [![Stars](https://img.shields.io/github/stars/axiom-dotfiles/axiom?style=for-the-badge&logoColor=ebdbb2&labelColor=282828&color=d79921)](https://github.com/axiom-dotfiles/axiom)
@@ -12,7 +14,7 @@ Bar · Overlay · Launcher · Notifications · Lockscreen · OSD · Power menu �
 [![Quickshell](https://img.shields.io/badge/Quickshell-0.3.1%2B-b16286?style=for-the-badge&labelColor=282828)](https://quickshell.org)
 [![License](https://img.shields.io/badge/License-MIT-689d6a?style=for-the-badge&labelColor=282828)](LICENSE)
 
-[Features](#-features) · [Requirements](#-requirements) · [Install](#-installation) · [IPC](#%EF%B8%8F-keybinds-and-ipc) · [Configuration](#%EF%B8%8F-configuration)
+[Built in the shell](#%EF%B8%8F-built-in-the-shell) · [Features](#-features) · [Requirements](#-requirements) · [Install](#-installation) · [IPC](#%EF%B8%8F-keybinds-and-ipc) · [Configuration](#%EF%B8%8F-configuration)
 
 </div>
 
@@ -22,16 +24,51 @@ https://github.com/user-attachments/assets/a53f62e0-e2bc-4834-a05f-92b6cb115c35
 
 | | |
 | --- | --- |
+| 🛠️ **Built in the shell** | Bars, overlay pages and every setting are edited on your desktop, and changes show as you make them. The layout is data, not code. |
 | 📦 **Everything in one place** | One repository and one config for the whole desktop. Beyond Hyprland and Quickshell, the only requirements are `python3` and `jq`. |
-| 🎛️ **Configured from the desktop** | A Settings page generated from the schema, plus live editors for the bar and the overlay. Changes hot-reload. |
 | 🛡️ **Built not to break** | An invalid config never replaces the running one. Old configs migrate themselves, and API keys stay out of `config.json`. |
 | 🎨 **One theme everywhere** | Base16 themes, or one generated from your wallpaper, applied to 18 other apps. |
 | 🤝 **Fits your setup** | Three Hyprland modes and three lockscreen modes. Your own config files are never edited. |
 | 🖥️ **Multi-monitor** | Bars and wallpapers per monitor. Surfaces open on the primary monitor, the focused one, or all of them. |
 
+## 🛠️ Built in the shell
+
+The whole desktop is described by one config: which bars exist and what's on them, which pages the overlay has and what each card holds, and every setting. The shell has an editor for all of it.
+
+> [!NOTE]
+> **Both setups in this README, A and B, were built entirely with these editors and the Settings page. No file was edited by hand.** They're two saved configs, and switching between them is one click under **Settings → Backups** (or `/config restore <name>` in the launcher).
+
+| Bar editor | Overlay editor |
+| :---: | :---: |
+| <img src="assets/screenshots/bar-editor.webp" alt="Bar editor, setup A"> | <img src="assets/screenshots/overlay-editor.webp" alt="Overlay editor, setup A"> |
+
+**Bar editor**
+- Add as many bars as you like, on any monitor and any edge. Each one can be solid, transparent, or split into pills.
+- Drag widgets from the library into a bar's five sections, and between sections. Click a widget to edit its options.
+- Every change shows on your running bars as you make it. **Save** keeps it and **Reset** drops it.
+
+**Overlay editor**
+- Add, rename and reorder pages.
+- Drag modules and cell layouts from the library onto a page, or between cells to give a module a cell of its own. Dropping a module on an occupied slot swaps the two.
+- It only offers modules that fit a slot's shape, and anything that doesn't fit blocks **Save** until it's fixed.
+
+**Settings**
+- Generated from the schema that defines the config, so every option is in the UI.
+- Any setting can also be set from the launcher: `/config Appearance.font.size 14`.
+- **Backups** saves the whole config under a name, to restore later.
+
+<details>
+<summary><b>The editors in setup B</b></summary>
+
+| Bar editor | Overlay editor |
+| :---: | :---: |
+| <img src="assets/screenshots/bar-editor-b.webp" alt="Bar editor, setup B"> | <img src="assets/screenshots/overlay-editor-b.webp" alt="Overlay editor, setup B"> |
+
+</details>
+
 ## ✨ Features
 
-The screenshots show two setups of the same shell, changed only through its settings. **A** has a pill bar and a transparent bar down the sides of the screen, and **B** has one solid bar across the top, with rounder corners and a thicker border.
+The screenshots show [two setups](#%EF%B8%8F-built-in-the-shell) of the same shell. **A** has a pill bar and a transparent bar down the sides of the screen, and **B** has one solid bar across the top, with rounder corners and a thicker border.
 
 ### 📊 Bar
 
@@ -91,8 +128,7 @@ The screenshots show two setups of the same shell, changed only through its sett
 - Modules adapt to the shape of their slot (square, wide, tall or quarter).
 - Built-in pages:
   - **Settings**, generated from the config schema
-  - **Bar editor**
-  - **Overlay editor**
+  - **Bar editor** and **Overlay editor** (see [Built in the shell](#%EF%B8%8F-built-in-the-shell))
   - **Themes**
   - **Keybinds**
 
@@ -102,8 +138,6 @@ The screenshots show two setups of the same shell, changed only through its sett
 | | A | B |
 | --- | :---: | :---: |
 | **Settings** | <img src="assets/screenshots/settings.webp" alt="Settings page, setup A"> | <img src="assets/screenshots/settings-b.webp" alt="Settings page, setup B"> |
-| **Bar editor** | <img src="assets/screenshots/bar-editor.webp" alt="Bar editor, setup A"> | <img src="assets/screenshots/bar-editor-b.webp" alt="Bar editor, setup B"> |
-| **Overlay editor** | <img src="assets/screenshots/overlay-editor.webp" alt="Overlay editor, setup A"> | <img src="assets/screenshots/overlay-editor-b.webp" alt="Overlay editor, setup B"> |
 | **Keybinds** | <img src="assets/screenshots/keybinds.webp" alt="Keybinds page, setup A"> | <img src="assets/screenshots/keybinds-b.webp" alt="Keybinds page, setup B"> |
 
 </details>
@@ -336,9 +370,9 @@ In `none` mode axiom doesn't register the `lockscreen` target. Point hypridle at
 
 ## ⚙️ Configuration
 
-Everything is configured from inside the shell. Open the overlay, and use the **Settings**, **Bar editor**, **Overlay editor** and **Themes** pages.
+Everything is configured from inside the shell (see [Built in the shell](#%EF%B8%8F-built-in-the-shell)). Open the overlay, and use the **Settings**, **Bar editor**, **Overlay editor** and **Themes** pages.
 
-- Settings are saved to `config/user/config.json`. The shell watches that file and reloads when it changes, so editing it by hand also works.
+- Settings are saved to `config/user/config.json`. You never need to open it, but the shell watches that file and reloads when it changes, so editing it by hand also works.
 - Configs from older versions are migrated automatically.
 - `config/json/config.schema.json` defines every option and its default. It also generates the Settings page.
 - Chat API keys are entered in **Settings → Chat** and stored in your keyring (or `$XDG_STATE_HOME/axiom/secrets.json`, mode 600, without one). A provider's environment variable (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GEMINI_API_KEY`) wins over a stored key. Conversations are saved in `$XDG_STATE_HOME/axiom/chats/`.
