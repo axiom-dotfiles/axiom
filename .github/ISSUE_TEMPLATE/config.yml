@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions and chat
+    url: https://matrix.to/#/@travmonkey:matrix.batk.me
+    about: Ask on Matrix rather than opening an issue.

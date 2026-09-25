@@ -1,0 +1,85 @@
+name: Bug report
+description: Something in axiom is broken or behaves wrongly
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting! Most problems show up in the shell's log, so please include it.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What went wrong, and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open the overlay (Super + Tab)
+        2. ...
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Bar or bar popouts
+        - Overlay, or its editors
+        - Settings
+        - Launcher
+        - Notifications
+        - Lockscreen
+        - OSD
+        - Workspaces
+        - Themes and app integrations
+        - Keybinds and Hyprland setup
+        - Installer
+        - Self-update
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: versions
+    attributes:
+      label: Versions
+      description: The output of this command.
+      value: |
+        git -C ~/.config/quickshell/axiom describe --tags --always; qs --version; hyprctl version | head -1
+      render: shell
+    validations:
+      required: true
+  - type: dropdown
+    id: mode
+    attributes:
+      label: Hyprland mode
+      description: Settings → Desktop → Hyprland → Mode
+      options:
+        - Detached (default)
+        - Included
+        - Managed
+        - Not sure
+  - type: textarea
+    id: logs
+    attributes:
+      label: Log
+      description: The output of `~/.config/quickshell/axiom/scripts/log.sh`, right after the problem happens. Add `--debug` for more detail.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else
+      description: Screenshots, your monitor setup, or the relevant part of `~/.config/quickshell/axiom/config/user/config.json`.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I searched the existing issues, and this isn't one of them.
+          required: true
+        - label: I'm on the latest release (Settings → Updates).
