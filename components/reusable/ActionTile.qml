@@ -62,33 +62,41 @@ Rectangle {
     anchors.centerIn: parent
     spacing: Widget.spacing
 
-    Rectangle {
-      id: well
+    // Holds the well's resting size, so the well grows on hover without
+    // moving the label. It grows by size, not scale: icons render natively
+    // (see StyledIcon), and a scaled native glyph is resampled and blurs
+    Item {
       anchors.horizontalCenter: parent.horizontalCenter
       width: root._wellSize
       height: width
-      radius: Math.min(Appearance.borderRadius * 1.5, width / 2)
-      color: root.active ? Qt.rgba(0, 0, 0, 0.12) : root.hot ? Qt.alpha(root.tone, 0.16) : Theme.background
-      scale: root.hot && !root.active ? 1.06 : 1
 
-      Behavior on color {
-        ColorAnimation {
-          duration: Appearance.animFast
-        }
-      }
-      Behavior on scale {
-        NumberAnimation {
-          duration: Appearance.animFast
-          easing.type: Appearance.easing
-        }
-      }
-
-      StyledIcon {
+      Rectangle {
+        id: well
         anchors.centerIn: parent
-        text: root.icon
-        textColor: root.contentColor
-        textSize: well.width * 0.5
-        fill: root.hot || root.active ? 1 : 0
+        width: root._wellSize * (root.hot && !root.active ? 1.06 : 1)
+        height: width
+        radius: Math.min(Appearance.borderRadius * 1.5, width / 2)
+        color: root.active ? Qt.rgba(0, 0, 0, 0.12) : root.hot ? Qt.alpha(root.tone, 0.16) : Theme.background
+
+        Behavior on color {
+          ColorAnimation {
+            duration: Appearance.animFast
+          }
+        }
+        Behavior on width {
+          NumberAnimation {
+            duration: Appearance.animFast
+            easing.type: Appearance.easing
+          }
+        }
+
+        StyledIcon {
+          anchors.centerIn: parent
+          text: root.icon
+          textColor: root.contentColor
+          textSize: well.width * 0.5
+          fill: root.hot || root.active ? 1 : 0
+        }
       }
     }
 
