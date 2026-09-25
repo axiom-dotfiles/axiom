@@ -134,7 +134,7 @@ The screenshots show two setups of the same shell, changed only through its sett
 </details>
 
 ### 🧩 The rest
-- 🔔 **Notifications:** toasts and a notification center.
+- 🔔 **Notifications:** toasts and a notification center. Toasts stack from any corner, with even or per-side gaps measured from the bar or border at each edge.
 - 🔊 **OSD:** follows the volume of the apps you choose.
 - 🚀 **Launcher:** searches apps (ranked by how often and how recently you use them), open windows, a calculator and the web. It runs shell commands and controls the shell with `/` commands.
 - ⏻ **Power menu:** your choice of session actions, in your order, driven by mouse or keyboard. Log out, reboot and power off ask you to confirm.

@@ -158,6 +158,31 @@
       }
     },
 
+    "Notifications": {
+      "type": "object",
+      "x-category": "Desktop",
+      "title": "Notifications",
+      "description": "Where notification toasts appear. They sit inside the work area, the space the bars and screen border leave free, so a gap is measured from whatever is at that edge: a bar, the border's stroke, or the bare screen edge.",
+      "additionalProperties": false,
+      "x-order": ["position", "evenGaps", "gap", "gapTop", "gapBottom", "gapLeft", "gapRight"],
+      "properties": {
+        "position": {
+          "type": "string",
+          "title": "Corner",
+          "enum": ["topLeft", "topRight", "bottomLeft", "bottomRight"],
+          "x-enumLabels": { "topLeft": "Top left", "topRight": "Top right", "bottomLeft": "Bottom left", "bottomRight": "Bottom right" },
+          "default": "topLeft",
+          "description": "Corner of the work area the toasts stack from. Bottom corners stack upwards."
+        },
+        "evenGaps": { "type": "boolean", "title": "Even gaps", "default": true, "description": "Use one gap for both sides of the corner. Turn off to set each side on its own." },
+        "gap": { "type": "integer", "title": "Gap (px)", "default": 12, "minimum": 0, "maximum": 200, "description": "Space between the toasts and the edges of the work area.", "x-showIf": { "evenGaps": true } },
+        "gapTop": { "type": "integer", "title": "Top gap (px)", "default": 12, "minimum": 0, "maximum": 200, "description": "Space between the toasts and the top of the work area.", "x-showIf": { "evenGaps": false, "position": ["topLeft", "topRight"] } },
+        "gapBottom": { "type": "integer", "title": "Bottom gap (px)", "default": 12, "minimum": 0, "maximum": 200, "description": "Space between the toasts and the bottom of the work area.", "x-showIf": { "evenGaps": false, "position": ["bottomLeft", "bottomRight"] } },
+        "gapLeft": { "type": "integer", "title": "Left gap (px)", "default": 12, "minimum": 0, "maximum": 200, "description": "Space between the toasts and the left of the work area.", "x-showIf": { "evenGaps": false, "position": ["topLeft", "bottomLeft"] } },
+        "gapRight": { "type": "integer", "title": "Right gap (px)", "default": 12, "minimum": 0, "maximum": 200, "description": "Space between the toasts and the right of the work area.", "x-showIf": { "evenGaps": false, "position": ["topRight", "bottomRight"] } }
+      }
+    },
+
     "Hyprland": {
       "type": "object",
       "x-category": "Hyprland",
