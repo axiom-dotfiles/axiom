@@ -32,6 +32,9 @@ https://github.com/user-attachments/assets/a53f62e0-e2bc-4834-a05f-92b6cb115c35
 ## ✨ Features
 
 ### 📊 Bar
+
+<p align="center"><img src="assets/screenshots/desktop.webp" alt="A pill bar on the left and a transparent bar on the right, inside the screen border"></p>
+
 - Bars are defined in config. You can have any number, on any monitor and any edge. Each one can be solid, transparent, or split into floating pills.
 - 20 widget types: Workspaces, Window, Time, Media, Volume, Microphone, Network, Bluetooth, Battery, SystemStats, SystemTray, Notifications, Updates, Weather, Tailscale, KeyboardLayout, IdleInhibitor, Privacy, Button (runs any command) and Separator.
 - Popouts grow out of the bar, or out of the screen border, with filleted corners. Widgets open theirs on hover:
@@ -44,7 +47,25 @@ https://github.com/user-attachments/assets/a53f62e0-e2bc-4834-a05f-92b6cb115c35
 
   Buttons can run their action on hover too.
 
+<details>
+<summary><b>Popouts</b></summary>
+
+| Calendar | Audio mixer | Forecast |
+| :---: | :---: | :---: |
+| <img src="assets/screenshots/popout-calendar.webp" alt="Calendar popout"> | <img src="assets/screenshots/popout-audio-mixer.webp" alt="Audio mixer popout"> | <img src="assets/screenshots/popout-weather-forecast.webp" alt="Weather forecast popout"> |
+| **System graphs** | **Now playing** | **Notifications** |
+| <img src="assets/screenshots/popout-system-graphs.webp" alt="System graphs popout"> | <img src="assets/screenshots/popout-now-playing.webp" alt="Now playing popout"> | <img src="assets/screenshots/popout-notifications.webp" alt="Notifications popout"> |
+| **Wi-Fi** | **Bluetooth** | **Updates** |
+| <img src="assets/screenshots/popout-wifi-networks.webp" alt="Wi-Fi popout"> | <img src="assets/screenshots/popout-bluetooth-devices.webp" alt="Bluetooth popout"> | <img src="assets/screenshots/popout-updates.webp" alt="Pending updates popout"> |
+| **Workspace grid** | | |
+| <img src="assets/screenshots/popout-workspace-grid.webp" alt="Workspace grid popout"> | | |
+
+</details>
+
 ### 🗂️ Overlay
+
+<p align="center"><img src="assets/screenshots/overlay-home.webp" alt="The overlay's Home page"></p>
+
 - A full-screen overlay made of pages of cards. Each page is built from columns, each column from cells, and each cell holds modules.
 - 24 modules, including:
   - a media player, audio mixer, system graphs and top processes
@@ -59,7 +80,23 @@ https://github.com/user-attachments/assets/a53f62e0-e2bc-4834-a05f-92b6cb115c35
   - **Themes**
   - **Keybinds**
 
+<details>
+<summary><b>Built-in pages</b></summary>
+
+| Settings | Bar editor |
+| --- | --- |
+| <img src="assets/screenshots/settings.webp" alt="Settings page"> | <img src="assets/screenshots/bar-editor.webp" alt="Bar editor"> |
+| **Overlay editor** | **Keybinds** |
+| <img src="assets/screenshots/overlay-editor.webp" alt="Overlay editor"> | <img src="assets/screenshots/keybinds.webp" alt="Keybinds page"> |
+
+</details>
+
 ### 🎨 Theming
+
+| Dark | Light |
+| --- | --- |
+| <img src="assets/screenshots/themes-dark.webp" alt="Themes page, dark variant"> | <img src="assets/screenshots/themes-light.webp" alt="Themes page, light variant"> |
+
 - Base16 themes, with dark and light pairs switched by one toggle: Catppuccin, Gruvbox, Solarized, Tokyo Night/Day and Submarine Sonar.
 - Generate a theme from your wallpaper. pywal backends pick the candidate colors, then the palette is built in OKLCH to match the contrast of the hand-made themes.
 - Wallpapers can be set per monitor, with transitions through [awww](https://github.com/LGFae/awww).
@@ -89,6 +126,12 @@ https://github.com/user-attachments/assets/a53f62e0-e2bc-4834-a05f-92b6cb115c35
 - 🔒 **Lockscreen:** three modes: the built-in `ext-session-lock` locker (PAM), a themed hyprlock config that axiom generates, or none.
 - 🖥️ **Multi-monitor:** interactive surfaces open on the primary monitor, or on whichever monitor has focus.
 - 🌐 **Translations:** English and Japanese, with more added as a single JSON file each.
+
+| Workspace overlay | AI chat |
+| --- | --- |
+| <img src="assets/screenshots/workspace-overlay.webp" alt="Workspace overlay with live window previews"> | <img src="assets/screenshots/chat.webp" alt="AI chat page"> |
+| **Power menu** | **Notification and OSD** |
+| <img src="assets/screenshots/powermenu.webp" alt="Power menu"> | <img src="assets/screenshots/notification.webp" alt="Notification toast"> <img src="assets/screenshots/osd.webp" alt="Per-app volume OSD"> |
 
 ## 📋 Requirements
 
@@ -236,6 +279,10 @@ Plain text searches apps and open windows. When the text is math, the result sho
 | `>` | Runs a shell command. Shift+Enter runs it in your terminal |
 | `?` | Web search, with the engine set in Settings |
 | `@` | Asks the overlay's chat, in a new conversation |
+
+| Apps | Commands | Calculator |
+| --- | --- | --- |
+| <img src="assets/screenshots/launcher-apps.webp" alt="Launcher searching apps"> | <img src="assets/screenshots/launcher-commands.webp" alt="Launcher command list"> | <img src="assets/screenshots/launcher-calc.webp" alt="Launcher calculator converting currency"> |
 
 <kbd>Tab</kbd> completes a command or its argument. Commands that change something you can see, like the theme, volume or wallpaper, keep the launcher open, so you can try several. `logout`, `reboot` and `poweroff` ask for a second <kbd>Enter</kbd>.
 
