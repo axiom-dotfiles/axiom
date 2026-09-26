@@ -31,6 +31,7 @@ OPTIONAL=(
   "Package update checks|pacman-contrib"
   "Screenshot module|grim slurp wl-clipboard"
   "Launcher calculator|libqalculate wl-clipboard"
+  "Brightness keys and OSD bar (laptop panels, external monitors over DDC/CI)|brightnessctl ddcutil"
   "hyprlock lock mode and locking on idle|hyprlock hypridle"
 )
 MIN_QS=0.3.1

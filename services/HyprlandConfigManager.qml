@@ -80,6 +80,8 @@ Singleton {
       "volumeDown": ["audio volumeDown", "Volume down", "Media"],
       "toggleMute": ["audio toggleMute", "Mute", "Media"],
       "toggleMicMute": ["audio toggleMicMute", "Mute microphone", "Media"],
+      "brightnessUp": ["brightness up", "Brightness up", "Media"],
+      "brightnessDown": ["brightness down", "Brightness down", "Media"],
       "mediaPlayPause": ["media playPause", "Play/Pause", "Media"],
       "mediaNext": ["media next", "Next track", "Media"],
       "mediaPrevious": ["media previous", "Previous track", "Media"]
@@ -115,6 +117,8 @@ Singleton {
       "volumeDown": ["locked", "repeating"],
       "toggleMute": ["locked"],
       "toggleMicMute": ["locked"],
+      "brightnessUp": ["locked", "repeating"],
+      "brightnessDown": ["locked", "repeating"],
       "mediaPlayPause": ["locked"],
       "mediaNext": ["locked"],
       "mediaPrevious": ["locked"]

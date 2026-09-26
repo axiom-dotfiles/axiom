@@ -147,6 +147,12 @@ TestCase {
     compare(network.type, "Network");
     compare(network.properties.interval, undefined);
     compare(network.properties.showName, true);
+    // v15: OSD apps become typed bars
+    compare(config.OSD.apps, undefined);
+    compare(config.OSD.bars.map(bar => bar.type), ["app", "other", "master"]);
+    compare(config.OSD.bars[0].app, "spotify");
+    compare(config.OSD.bars[0].showOsd, false);
+    compare(config.OSD.bars[1].app, "");
   }
 
   function test_migration_is_idempotent() {

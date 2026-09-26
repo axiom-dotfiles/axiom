@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 14
+  readonly property int currentVersion: 15
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -55,6 +55,8 @@ QtObject {
       result = _v12ToV13(result, changes);
     if (version < 14)
       result = _v13ToV14(result, changes);
+    if (version < 15)
+      result = _v14ToV15(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -430,6 +432,25 @@ QtObject {
         });
       });
     });
+    return config;
+  }
+
+  // v15 gave OSD bars a type: "master" and "other" were magic app names,
+  // and the microphone and brightness bars are new types
+  function _v14ToV15(config, changes) {
+    const apps = config.OSD?.apps;
+    if (!Array.isArray(apps))
+      return config;
+    config.OSD.bars = apps.map(entry => {
+      const bar = Object.assign({}, entry);
+      const special = entry?.app === "master" || entry?.app === "other";
+      bar.type = special ? entry.app : "app";
+      if (special)
+        delete bar.app;
+      return bar;
+    });
+    delete config.OSD.apps;
+    changes.push("OSD.apps: became OSD.bars, with a type per bar");
     return config;
   }
 }

@@ -3,6 +3,7 @@
   "General": { "monitors": "all" },
   "Appearance": { "autoThemeSwitch": true },
   "Popouts": { "workspaceIcons": true },
+  "OSD": { "apps": [{ "app": "spotify", "icon": "music_note", "showOsd": false }, { "app": "other", "icon": "", "showOsd": true }, { "app": "master" }] },
   "Bars": [
     {
       "id": "main",
