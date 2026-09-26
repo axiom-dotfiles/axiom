@@ -532,7 +532,9 @@ QtObject {
         {
           title: entry.key,
           subtitle: I18n.tr("Type a value (now {0})", root._configShow(current, schema)),
-          value: {}
+          value: {
+            next: entry.key + " "
+          }
         }
       ];
     let rows = [];

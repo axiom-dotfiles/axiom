@@ -29,12 +29,15 @@ PanelWindow {
 
   color: "transparent"
 
-  // Set anchors based on edge
+  // Anchor the attach edge, plus both sides of the perpendicular axis: a
+  // wlr-layer-shell margin only takes effect on an anchored edge, and
+  // positioning along the edge (margins.top/bottom or left/right below)
+  // needs both anchored, not just one, else the surface centers itself.
   anchors {
-    left: edge === Bar.Left
-    right: edge === Bar.Right
-    top: edge === Bar.Top
-    bottom: edge === Bar.Bottom
+    left: edge !== Bar.Right
+    right: edge !== Bar.Left
+    top: edge !== Bar.Bottom
+    bottom: edge !== Bar.Top
   }
 
   // Size based on edge orientation
