@@ -53,6 +53,8 @@ Item {
   readonly property real _sideBySide: root._natural.reduce((sum, flow) => sum + flow.width, 0) + Math.max(0, root.columns.length - 1) * OverlayConfig.cardSpacing
   readonly property real _thickest: Math.max(0, ...root._natural.map(flow => flow.height))
   readonly property real _naturalLength: root.vertical ? root._thickest : root._sideBySide
+  // Along the edge before fill cells grow or the cap applies
+  readonly property real naturalLength: root._naturalLength
   readonly property real _spareLength: root.anyFill && root.maxLength > root._naturalLength ? root.maxLength - root._naturalLength : 0
   function targetFor(index) {
     if (!root._natural[index])

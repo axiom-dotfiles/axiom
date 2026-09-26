@@ -85,7 +85,8 @@ EdgePopout {
   // fillets, the pill stretches to carry them while the menu shows
   readonly property var pillStretch: {
     const p = root.ownPill;
-    if (!root.occupied || p === null)
+    // Not while the content loads or unloads: the box is a placeholder then
+    if (!root.occupied || root.contentItem === null || p === null)
       return null;
     const r = Appearance.borderRadius;
     const start = p.joinStart ? p.start : Math.min(p.start, root.barSurfaceStart - r);
@@ -98,12 +99,31 @@ EdgePopout {
       "end": end
     };
   }
-  Binding {
-    target: root.container
-    property: "edgeMenuStretch"
-    value: root.pillStretch
-    when: root.container !== null && root.pillStretch !== null
+  // Written and cleared by hand, tagged with this menu, rather than by a
+  // Binding: its restore on deactivation brought back a stale stretch
+  property var _stretchTarget: null
+  function _clearStretch() {
+    try {
+      if (root._stretchTarget?.edgeMenuStretch?.owner === root.menuId)
+        root._stretchTarget.edgeMenuStretch = null;
+    } catch (e) {
+      // The bar went first (a reload)
+    }
+    root._stretchTarget = null;
   }
+  function _pushStretch() {
+    const target = root.pillStretch ? root.container : null;
+    if (root._stretchTarget !== target)
+      root._clearStretch();
+    if (!target)
+      return;
+    root._stretchTarget = target;
+    target.edgeMenuStretch = Object.assign({
+      "owner": root.menuId
+    }, root.pillStretch);
+  }
+  onPillStretchChanged: root._pushStretch()
+  onContainerChanged: root._pushStretch()
 
   // Where the window's attach edge goes, from the bar's outer edge: the
   // outer edge itself when merged, a pill's far stroke, or a transparent
@@ -131,6 +151,10 @@ EdgePopout {
   edgeOffset: root.barPanel ? root.barAttachDepth - root.barReach + (root.straight ? 0 : Appearance.borderWidth) : root.edgeDistance
   // Without the border, a merged box runs straight off the screen edge
   straight: root.merged ? !Appearance.screenBorder : root.bareEdge
+  // At 0px its ends join the perpendicular edges once it reaches them.
+  // Fill cells grow to whatever room there is, so reach them always.
+  joinEnds: root.edgeDistance === 0
+  reachLength: root.contentItem ? (root.contentItem.anyFill ? Infinity : root.contentItem.naturalLength) : 0
   boxSnap: root.attachedToPills ? (start => root.pillSnap(start + root.barShift)) : null
   attachClearance: root.merged ? root.pillFoot : 0
   startFoot: root.merged && root.pills.some(p => p.start <= root.barBoxStart - Appearance.borderRadius && p.start + p.length >= root.barBoxStart) ? root.pillFoot : 0
@@ -182,7 +206,10 @@ EdgePopout {
     ShellManager.registerGrabPartner(root.window, root.screen?.name ?? "");
     Qt.callLater(root._sync);
   }
-  Component.onDestruction: ShellManager.unregisterGrabPartner(root.window)
+  Component.onDestruction: {
+    ShellManager.unregisterGrabPartner(root.window);
+    root._clearStretch();
+  }
 
   content: Component {
     EdgeMenuBody {
