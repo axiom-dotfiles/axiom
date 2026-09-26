@@ -135,22 +135,24 @@ QtObject {
 
   // How a column flows its cells: left to right, wrapping at the widest
   // cell. Returns the size, the number of rows and each cell's
-  // { x, y, width, height, row }, matching OverlayColumn. `target`
-  // ({ width, height }, either optional) is room for cells with `fill` to
-  // grow into: a row's spare width goes to its fill cells, fill cells take
-  // their row's height, and spare height goes to the rows holding one,
-  // split evenly. Without fill cells nothing changes.
-  function columnFlow(cells, unit, target) {
+  // { x, y, width, height, row }, matching OverlayColumn. `extra`
+  // ({ width, height }, either optional) grows every cell: each row gets
+  // the extra width, split between its cells, and the extra height, split
+  // evenly between the rows. `target` (the same shape) is room for cells
+  // with `fill` to grow into past that: a row's spare width goes to its
+  // fill cells, fill cells take their row's height, and spare height goes
+  // to the rows holding one, split evenly. Without either nothing changes.
+  function columnFlow(cells, unit, target, extra) {
     const sizes = (cells ?? []).map(cell => {
       const layout = layouts[cell?.layout] ?? layouts.Single;
       return [span(layout.cols, unit), span(layout.rows, unit)];
     });
-    const width = Math.max(0, ...sizes.map(size => size[0]));
+    const naturalWidth = Math.max(0, ...sizes.map(size => size[0]));
     // Natural rows: which cells, their width and height
     const rows = [];
     let x = 0;
     sizes.forEach(([w, h], i) => {
-      if (rows.length === 0 || (x > 0 && x + w > width + 0.5)) {
+      if (rows.length === 0 || (x > 0 && x + w > naturalWidth + 0.5)) {
         rows.push({
           "cells": [],
           "width": 0,
@@ -164,6 +166,15 @@ QtObject {
       row.height = Math.max(row.height, h);
       x += w + cardSpacing;
     });
+    // Every cell grows by `extra`
+    const extraWidth = rows.length > 0 ? Math.max(0, extra?.width ?? 0) : 0;
+    const extraRowHeight = rows.length > 0 ? Math.max(0, extra?.height ?? 0) / rows.length : 0;
+    const grown = i => [sizes[i][0] + extraWidth / rows.find(row => row.cells.includes(i)).cells.length, sizes[i][1] + extraRowHeight];
+    rows.forEach(row => {
+      row.width += extraWidth;
+      row.height += extraRowHeight;
+    });
+    const width = naturalWidth + extraWidth;
     const fills = i => cells[i]?.fill === true;
     const naturalHeight = rows.reduce((sum, row) => sum + row.height, 0) + Math.max(0, rows.length - 1) * cardSpacing;
     const fillRows = rows.filter(row => row.cells.some(fills));
@@ -174,15 +185,16 @@ QtObject {
     rows.forEach((row, rowIndex) => {
       const rowFills = row.cells.filter(fills);
       const rowHeight = row.height + (rowFills.length > 0 ? spareHeight / fillRows.length : 0);
-      const extraWidth = rowFills.length > 0 ? (fullWidth - row.width) / rowFills.length : 0;
+      const fillWidth = rowFills.length > 0 ? (fullWidth - row.width) / rowFills.length : 0;
       let cx = 0;
       row.cells.forEach(i => {
-        const w = sizes[i][0] + (fills(i) ? extraWidth : 0);
+        const [cellWidth, cellHeight] = grown(i);
+        const w = cellWidth + (fills(i) ? fillWidth : 0);
         rects[i] = {
           "x": cx,
           "y": y,
           "width": w,
-          "height": fills(i) ? rowHeight : sizes[i][1],
+          "height": fills(i) ? rowHeight : cellHeight,
           "row": rowIndex
         };
         cx += w + cardSpacing;

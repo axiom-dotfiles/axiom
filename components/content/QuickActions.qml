@@ -12,8 +12,11 @@ import qs.components.content.base
 // Tiles that can't work here are hidden: night light (hyprsunset/wlsunset)
 // and power saver (powerprofilesctl) without their tool, pin outside an
 // edge menu. Log out, reboot and power off ask for a second click.
+// Names show on every tile or none ("auto": only when all fit whole),
+// always ("show", elided) or never ("hide").
 // properties: { actions: ["wifi", "bluetooth", "caffeine", "dnd", "darkMode", "nightLight", "powerSaver",
-//                         "lock", "suspend", "hibernate", "logout", "reboot", "poweroff", "pin"] }
+//                         "lock", "suspend", "hibernate", "logout", "reboot", "poweroff", "pin"],
+//               labels: "auto" | "show" | "hide" }
 Card {
   id: root
 
@@ -106,6 +109,21 @@ Card {
       return !root.sessionActions.includes(a) || ShellManager.sessionActionInfo(a) !== null;
     }
   })
+
+  // Every tile is the same size, so the names all fit when the widest does
+  // (ActionTile.labelFits, measured in its label font)
+  readonly property string labels: root.properties.labels ?? "auto"
+  // "Confirm?" counts for the actions that ask, so arming one doesn't hide
+  // every name
+  readonly property var _fitLabels: root.shown.map(a => root.def(a).label).concat(root.shown.some(a => ShellManager.destructiveActions.includes(a)) ? [I18n.tr("Confirm?")] : [])
+  readonly property real widestLabel: Math.max(0, ...root._fitLabels.map(label => labelFont.advanceWidth(label)))
+  readonly property bool labelsFit: root.widestLabel <= grid.tileWidth - Widget.spacing * 2 && grid.tileHeight >= Appearance.fontSize * 4.5
+
+  FontMetrics {
+    id: labelFont
+    font.family: Appearance.fontFamily
+    font.pixelSize: Appearance.fontSize - 1
+  }
 
   function run(name) {
     if (root.sessionActions.includes(name)) {
@@ -204,7 +222,8 @@ Card {
         icon: def.icon
         label: def.label
         active: def.active
-        showLabel: !root.compact
+        showLabel: root.labels === "show" || (root.labels === "auto" && root.labelsFit)
+        forceLabel: root.labels === "show"
         activeColor: def.destructive ? Theme.error : Theme.accent
         tone: def.tone ?? activeColor
         countdown: def.destructive ? disarm.interval : 0

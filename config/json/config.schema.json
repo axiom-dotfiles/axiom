@@ -1240,7 +1240,7 @@
       "type": "object",
       "required": ["id"],
       "additionalProperties": false,
-      "x-order": ["name", "id", "enabled", "monitor", "mode", "edge", "position", "edgeDistance", "cardSize", "frame", "margin", "padding", "backgroundColor", "borderColor", "openOnHover", "openDelay", "triggerSize", "triggerLength", "closeOnLeave", "closeDelay", "closeOnOutsideClick"],
+      "x-order": ["name", "id", "enabled", "monitor", "mode", "edge", "position", "edgeDistance", "cardSize", "extraDepth", "frame", "margin", "padding", "backgroundColor", "borderColor", "openOnHover", "openDelay", "triggerSize", "triggerLength", "closeOnLeave", "closeDelay", "closeOnOutsideClick"],
       "properties": {
         "id": { "type": "string", "title": "Id", "description": "What bar buttons and IPC calls open this menu by." },
         "name": { "type": "string", "title": "Name", "default": "" },
@@ -1278,6 +1278,16 @@
           "maximum": 600,
           "x-unit": "px",
           "description": "Size of one card. Cells are laid out as on overlay pages."
+        },
+        "extraDepth": {
+          "type": "integer",
+          "title": "Extra depth",
+          "default": 0,
+          "minimum": 0,
+          "maximum": 1000,
+          "x-unit": "px",
+          "x-control": "slider",
+          "description": "Room added across the edge: width on a left or right edge, height on a top or bottom one. Every module grows into it."
         },
         "edgeDistance": {
           "type": "integer",
@@ -1753,7 +1763,8 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "actions": {"type": "array", "title": "Actions", "default": ["wifi", "bluetooth", "caffeine", "dnd", "darkMode"], "description": "Toggles, session actions and pin, in any mix. Night light and power saver only show when hyprsunset/wlsunset or powerprofilesctl is installed, and pin only in an edge menu. Log out, reboot and power off ask for a second click.", "items": {"type": "string", "enum": ["wifi", "bluetooth", "caffeine", "dnd", "darkMode", "nightLight", "powerSaver", "lock", "suspend", "hibernate", "logout", "reboot", "poweroff", "pin"]}}
+            "actions": {"type": "array", "title": "Actions", "default": ["wifi", "bluetooth", "caffeine", "dnd", "darkMode"], "description": "Toggles, session actions and pin, in any mix. Night light and power saver only show when hyprsunset/wlsunset or powerprofilesctl is installed, and pin only in an edge menu. Log out, reboot and power off ask for a second click.", "items": {"type": "string", "enum": ["wifi", "bluetooth", "caffeine", "dnd", "darkMode", "nightLight", "powerSaver", "lock", "suspend", "hibernate", "logout", "reboot", "poweroff", "pin"]}},
+            "labels": {"type": "string", "title": "Names", "default": "auto", "enum": ["auto", "show", "hide"], "x-enumLabels": {"auto": "Auto", "show": "Show", "hide": "Hide"}, "description": "Auto shows the names only when every tile has room for its whole name."}
           }
         }
       }

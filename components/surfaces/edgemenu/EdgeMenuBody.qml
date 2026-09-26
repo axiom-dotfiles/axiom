@@ -6,8 +6,9 @@ import qs.services
 import qs.components.hosts.overlay
 
 // An edge menu's modules: its columns side by side, as on a Custom overlay
-// page, with cards of the menu's own cardSize. Along the edge it's capped
-// at `maxLength` and scrolls past that.
+// page, with cards of the menu's own cardSize, every cell grown across the
+// edge by its `extraDepth`. Along the edge it's capped at `maxLength` and
+// scrolls past that.
 Item {
   id: root
 
@@ -33,27 +34,36 @@ Item {
     fixedUnit: root.menu?.cardSize ?? OverlayConfig.minCardUnit
   }
 
-  // Fill cells (see OverlayConfig.columnFlow): with any, the menu takes all
-  // the room along its edge. On a left/right edge that's column height; on
-  // a top/bottom one the spare width is shared by the columns holding one.
-  // Across the edge they grow to the thickest column.
+  // `extraDepth` grows every cell across the edge (OverlayConfig.columnFlow's
+  // `extra`): on a left/right edge the columns share it in width, on a
+  // top/bottom one each gets it all in height. Fill cells (its `target`)
+  // then take all the room along the edge (on a top/bottom edge the spare
+  // width is shared by the columns holding one) and grow across it to the
+  // thickest column.
   readonly property var _natural: root.columns.map(column => grid.columnFlow(column?.cells))
   readonly property var _fillColumns: root.columns.map(column => (column?.cells ?? []).some(cell => cell?.fill === true))
   readonly property bool anyFill: root._fillColumns.includes(true)
-  readonly property real _naturalLength: root.vertical ? Math.max(0, ...root._natural.map(flow => flow.height)) : root._natural.reduce((sum, flow) => sum + flow.width, 0) + Math.max(0, root.columns.length - 1) * OverlayConfig.cardSpacing
-  readonly property real _spare: root.anyFill && root.maxLength > root._naturalLength ? root.maxLength - root._naturalLength : 0
   readonly property int _fillCount: root._fillColumns.filter(fills => fills).length
+  readonly property real extraDepth: root.columns.length > 0 ? Math.max(0, root.menu?.extraDepth ?? 0) : 0
+  readonly property var _extra: root.vertical ? {
+    "width": root.extraDepth / Math.max(1, root.columns.length)
+  } : {
+    "height": root.extraDepth
+  }
+  readonly property real _sideBySide: root._natural.reduce((sum, flow) => sum + flow.width, 0) + Math.max(0, root.columns.length - 1) * OverlayConfig.cardSpacing
+  readonly property real _thickest: Math.max(0, ...root._natural.map(flow => flow.height))
+  readonly property real _naturalLength: root.vertical ? root._thickest : root._sideBySide
+  readonly property real _spareLength: root.anyFill && root.maxLength > root._naturalLength ? root.maxLength - root._naturalLength : 0
   function targetFor(index) {
-    const natural = root._natural[index];
-    if (!natural)
+    if (!root._natural[index])
       return null;
     if (root.vertical)
       return {
-        "height": root._naturalLength + root._spare
+        "height": root._naturalLength + root._spareLength
       };
     return {
-      "width": natural.width + (root._fillColumns[index] ? root._spare / root._fillCount : 0),
-      "height": Math.max(0, ...root._natural.map(flow => flow.height))
+      "width": root._natural[index].width + (root._fillColumns[index] ? root._spareLength / root._fillCount : 0),
+      "height": root._thickest + root.extraDepth
     };
   }
 
@@ -88,6 +98,7 @@ Item {
           columnConfig: root.columns[index]
           grid: grid
           target: root.targetFor(index)
+          extra: root._extra
           host: root.host
         }
       }

@@ -29,7 +29,7 @@ Item {
       },
       {
         "title": "Placement",
-        "keys": ["mode", "edge", "position", "edgeDistance", "cardSize"]
+        "keys": ["mode", "edge", "position", "edgeDistance", "cardSize", "extraDepth"]
       },
       {
         "title": "Style",

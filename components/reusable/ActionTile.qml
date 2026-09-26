@@ -7,8 +7,9 @@ import qs.config
 // `selected`, for keyboard focus) it takes `tone`; `active` (a toggle
 // that's on, an action waiting to be confirmed) fills it with
 // `activeColor`, and with a `countdown` a bar along the bottom runs down
-// over that many ms. The label shows only where it fits whole; otherwise
-// the tile is icon-only with the label as a tooltip.
+// over that many ms. The label shows only where it fits whole (or always,
+// with `forceLabel`); otherwise the tile is icon-only with the label as a
+// tooltip.
 Rectangle {
   id: root
 
@@ -22,15 +23,19 @@ Rectangle {
   property bool selected: false
   // Allow the label at all (off: always icon-only)
   property bool showLabel: true
+  // Show the label even where it doesn't fit whole (elided)
+  property bool forceLabel: false
   // While active, run a bar down over this many ms (0: none)
   property int countdown: 0
 
   signal clicked
   signal hovered
 
+  // The label fits whole (QuickActions mirrors this for its "auto" names)
+  readonly property bool labelFits: labelMetrics.advanceWidth <= root.width - Widget.spacing * 2 && root.height >= Appearance.fontSize * 4.5
   readonly property bool hot: root.selected || area.containsMouse
   readonly property color contentColor: root.active ? Theme.background : root.hot ? root.tone : Theme.foreground
-  readonly property bool _labelShown: root.showLabel && root.label !== "" && labelMetrics.advanceWidth <= root.width - Widget.spacing * 2 && root.height >= Appearance.fontSize * 4.5
+  readonly property bool _labelShown: root.showLabel && root.label !== "" && (root.forceLabel || root.labelFits)
   // The well fills most of what the label leaves
   readonly property real _wellSize: Math.max(Appearance.fontSize * 1.6, Math.min(root.width - Widget.spacing * 2, root.height - Widget.spacing * 2 - (root._labelShown ? labelText.implicitHeight + Widget.spacing : 0)) * (root._labelShown ? 0.7 : 0.66))
 

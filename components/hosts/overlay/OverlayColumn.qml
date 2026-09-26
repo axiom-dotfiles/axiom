@@ -20,8 +20,11 @@ Item {
   // Room for fill cells to grow into ({ width, height }, see
   // OverlayConfig.columnFlow); null keeps every cell its own size
   property var target: null
+  // Growth for every cell ({ width, height }, see OverlayConfig.columnFlow);
+  // null keeps them their own size
+  property var extra: null
 
-  readonly property var flow: root.grid.columnFlow(root.columnConfig.cells, root.target)
+  readonly property var flow: root.grid.columnFlow(root.columnConfig.cells, root.target, root.extra)
 
   implicitWidth: root.flow.width
   implicitHeight: root.flow.height

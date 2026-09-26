@@ -24,7 +24,7 @@ QtObject {
     return OverlayConfig.span(n, root.unit);
   }
 
-  function columnFlow(cells, target) {
-    return OverlayConfig.columnFlow(cells, root.unit, target);
+  function columnFlow(cells, target, extra) {
+    return OverlayConfig.columnFlow(cells, root.unit, target, extra);
   }
 }
