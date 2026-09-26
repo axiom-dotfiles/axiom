@@ -12,16 +12,19 @@ QtObject {
   // The space a page may take, set by the panel
   property real availableWidth: 0
   property real availableHeight: 0
+  // A card size of its own (an edge menu's cardSize), used as is instead
+  // of what fits; 0 fits the space
+  property int fixedUnit: 0
 
   readonly property real fit: Math.min(root.availableHeight / OverlayConfig.fitCardsHigh, root.availableWidth / OverlayConfig.fitCardsWide)
-  readonly property int unit: Math.round(Math.max(OverlayConfig.minCardUnit, Math.min(OverlayConfig.cardUnit, root.fit) * OverlayConfig.size / 100))
+  readonly property int unit: root.fixedUnit > 0 ? root.fixedUnit : Math.round(Math.max(OverlayConfig.minCardUnit, Math.min(OverlayConfig.cardUnit, root.fit) * OverlayConfig.size / 100))
   readonly property real halfUnit: OverlayConfig.halfUnitOf(root.unit)
 
   function span(n) {
     return OverlayConfig.span(n, root.unit);
   }
 
-  function columnFlow(cells) {
-    return OverlayConfig.columnFlow(cells, root.unit);
+  function columnFlow(cells, target, extra) {
+    return OverlayConfig.columnFlow(cells, root.unit, target, extra);
   }
 }

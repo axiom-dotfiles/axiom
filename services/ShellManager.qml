@@ -12,7 +12,7 @@ QtObject {
   signal toggleOverlay
   signal toggleWorkspaceOverlay
   // Switch the overlay to a page by view type or a view's name ("Themes" and
-  // "OverlayEditor" for the pinned pages), e.g. from a settings link
+  // "OverlayEditor" for the pinned page), e.g. from a settings link
   signal showOverlayPage(string type)
   // Opens the target overlay on a page (a view type, or a view's name)
   signal openOverlayPage(string type)
@@ -122,7 +122,24 @@ QtObject {
     return grabPartners.filter(p => !screen || p.screen === screen.name).map(p => p.window);
   }
 
-  // Session actions, shared by the power menu and the overlay's Session
+  // The bar windows (BarPanel), for surfaces that attach to a bar without
+  // being its popouts (floating edge menus)
+  property var barPanels: []
+
+  function registerBar(panel) {
+    barPanels = barPanels.filter(p => p !== panel).concat([panel]);
+  }
+
+  function unregisterBar(panel) {
+    barPanels = barPanels.filter(p => p !== panel);
+  }
+
+  // The enabled bar on a screen edge (a Bar.Location), or null
+  function barOn(screenName, location) {
+    return barPanels.find(p => p.barConfig.enabled && p.barConfig.location === location && p.screen?.name === screenName) ?? null;
+  }
+
+  // Session actions, shared by the power menu and the QuickActions
   // module. The destructive ones ask for a second click first.
   readonly property var destructiveActions: ["logout", "reboot", "poweroff"]
 

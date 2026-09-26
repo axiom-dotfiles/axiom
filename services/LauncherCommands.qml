@@ -54,7 +54,7 @@ QtObject {
           ShellManager.openOverlayPage(page);
       }
     },
-    root._page("settings", ["prefs", "options"], "Settings", "Open the settings"), root._page("themes", [], "Themes", "Open the themes page"), root._page("bar", ["bareditor"], "BarEditor", "Open the bar editor"), root._page("keybinds", ["keys", "shortcuts"], "Keybinds", "Show the keybinds"), root._page("editor", ["overlay-editor"], "OverlayEditor", "Open the overlay editor"),
+    root._page("settings", ["prefs", "options"], "Settings", "Open the settings"), root._page("themes", [], "Themes", "Open the themes page"), root._page("bar", ["bareditor"], "BarEditor", "Open the bar editor"), root._page("keybinds", ["keys", "shortcuts"], "Keybinds", "Show the keybinds"), root._page("editor", ["overlay-editor"], "OverlayEditor", "Open the overlay editor"), root._page("menus", ["edge-menus", "menu-editor"], "EdgeMenuEditor", "Open the edge menu editor"),
     // --- Appearance ---
     {
       name: "theme",
@@ -380,6 +380,7 @@ QtObject {
       glyph: OverlayConfig.viewInfo(type)?.icon ?? "dashboard",
       // I18n.tr("Open the settings") I18n.tr("Open the themes page") I18n.tr("Open the bar editor")
       // I18n.tr("Show the keybinds") I18n.tr("Open the overlay editor")
+      // I18n.tr("Open the edge menu editor")
       description: () => I18n.tr(description),
       run: () => ShellManager.openOverlayPage(type)
     };

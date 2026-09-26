@@ -2,7 +2,6 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import qs.config
-import qs.services
 import qs.components.reusable
 
 // One column of the page on the canvas: a full-size header (grip to carry
@@ -63,7 +62,7 @@ Item {
         hoverColor: Theme.error
         tooltipText: I18n.tr("Remove column")
         visible: headerHover.hovered
-        onClicked: OverlayManager.removeColumn(root.column)
+        onClicked: root.dragLayer.editor.removeColumn(root.column)
       }
     }
 

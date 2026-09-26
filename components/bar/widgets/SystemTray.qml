@@ -1,6 +1,5 @@
 pragma ComponentBehavior: Bound
 import QtQuick
-import Quickshell
 import Quickshell.Services.SystemTray
 import qs.config
 import qs.components.hosts.popout

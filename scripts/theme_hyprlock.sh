@@ -18,13 +18,16 @@ require_cmds jq envsubst
 load_theme "$1"
 export_theme_colors
 # hyprlock colors: rgb(rrggbb), no '#'
-map_vars hex $(theme_color_vars)
+map_theme_colors hex
 export FONT="$3"
 export WALLPAPER="${4#file://}"
-export BLUR_PASSES=$([[ "$5" == "1" ]] && echo 3 || echo 0)
+BLUR_PASSES=0
+[[ "$5" == "1" ]] && BLUR_PASSES=3
+export BLUR_PASSES
 export GREETING="$6"
 export PLACEHOLDER="$7"
 
 # Only our variables: the template also uses hyprlock's own ($TIME)
+# shellcheck disable=SC2016
 render_template "$SCRIPT_DIR/templates/hyprlock_template.conf" "$2" \
     '$THEME_NAME $BACKGROUND $BACKGROUND_ALT $FOREGROUND $ACCENT $ACCENT_ALT $ERROR $FONT $WALLPAPER $BLUR_PASSES $GREETING $PLACEHOLDER'

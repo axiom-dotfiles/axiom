@@ -34,9 +34,51 @@ jobs:
         run: for f in install.sh scripts/*.sh scripts/lib/*.sh; do bash -n "$f" || exit 1; done
 
       - name: Python scripts compile
-        run: python3 -m py_compile scripts/*.py
+        run: python3 -m py_compile scripts/*.py tests/scripts/*.py
 
       # Missing entries fall back to English at runtime, so this only warns
       - name: Translations
         continue-on-error: true
         run: python3 scripts/check_i18n.py
+
+  # Qt tooling, on Arch so qmllint and the tests see the same Qt and
+  # Quickshell (with its type info) as the shell does. A container image is
+  # not an action, so the org's action policy doesn't apply to it.
+  qt:
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+    steps:
+      - name: Install tools
+        run: |
+          pacman -Syu --noconfirm --needed git qt6-declarative quickshell shellcheck lua jq gettext python
+          /usr/lib/qt6/bin/qmllint --version
+
+      - name: Checkout
+        env:
+          TOKEN: ${{ github.token }}
+        # The workspace is mounted from the runner, owned by another user
+        # than the container's root, which git refuses without this
+        run: |
+          git config --global --add safe.directory "$PWD"
+          git init -q .
+          git remote add origin "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"
+          auth=$(printf 'x-access-token:%s' "$TOKEN" | base64 -w0)
+          git -c http.extraheader="AUTHORIZATION: basic $auth" fetch -q --depth=1 origin "$GITHUB_SHA"
+          git checkout -q FETCH_HEAD
+
+      - name: qmlformat
+        run: scripts/check_qmlformat.sh
+
+      # Fails only on warnings not in scripts/qmllint-baseline.json
+      - name: qmllint
+        run: python3 scripts/check_qmllint.py
+
+      - name: Unit tests (components/methods, schema, migrations)
+        run: scripts/run_tests.sh
+
+      - name: shellcheck
+        run: shellcheck -x -S warning install.sh scripts/*.sh scripts/lib/*.sh
+
+      # Theme integrations, self-update on scratch clones, theme generation
+      - name: Script tests
+        run: python3 tests/scripts/test_scripts.py -v

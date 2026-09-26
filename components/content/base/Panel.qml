@@ -3,7 +3,6 @@ import QtQuick
 import QtQuick.Layouts
 
 import qs.config
-import qs.components.reusable
 
 // Content that lays out as a column and can be shown by either host: a bar
 // popout (sized to its content, with the popout's box) or an overlay card
@@ -23,6 +22,10 @@ Item {
   // ([col, row, colSpan, rowSpan] in half-card units, see Card)
   property var properties: ({})
   property var slotRect: [0, 0, 2, 2]
+  // Card only: where it's shown, { kind: "overlay" } or { kind: "edgeMenu", id }
+  property var host: ({
+      "kind": "overlay"
+    })
   readonly property int cols: slotRect[2]
   readonly property int rows: slotRect[3]
   readonly property string shape: OverlayConfig.slotShape(slotRect)

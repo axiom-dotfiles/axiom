@@ -3,7 +3,6 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import qs.config
-import qs.services
 import qs.components.reusable
 
 // What can be added to a page: module types and cell layouts, to drag
@@ -17,7 +16,7 @@ ColumnLayout {
   property string shape: ""
 
   property int tab: 0
-  readonly property var modules: root.shape === "" ? OverlayConfig.availableModuleTypes : OverlayConfig.availableModuleTypes.filter(t => t.shapes.includes(root.shape))
+  readonly property var modules: root.shape === "" ? OverlayConfig.modulesFor(root.dragLayer.editor.host) : OverlayConfig.modulesFor(root.dragLayer.editor.host).filter(t => t.shapes.includes(root.shape))
 
   spacing: Widget.spacing
 
@@ -98,11 +97,11 @@ ColumnLayout {
             dragLayer: root.dragLayer
             typeInfo: modelData
             onClicked: {
-              const sel = OverlayManager.selected;
+              const sel = root.dragLayer.editor.selected;
               if (root.shape !== "" && sel)
-                OverlayManager.placeModule(modelData.type, sel.column, sel.cell, sel.slot);
+                root.dragLayer.editor.placeModule(modelData.type, sel.column, sel.cell, sel.slot);
               else
-                OverlayManager.appendModule(modelData.type);
+                root.dragLayer.editor.appendModule(modelData.type);
             }
           }
         }
@@ -158,7 +157,7 @@ ColumnLayout {
               onDragMoved: (x, y) => root.dragLayer.move(layoutArea, x, y)
               onDropped: root.dragLayer.end()
               onDragCanceled: root.dragLayer.cancel()
-              onTapped: OverlayManager.appendCell(layoutTile.modelData)
+              onTapped: root.dragLayer.editor.appendCell(layoutTile.modelData)
             }
           }
         }

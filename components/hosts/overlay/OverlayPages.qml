@@ -1,6 +1,5 @@
 pragma ComponentBehavior: Bound
 import QtQuick
-import QtQuick.Layouts
 import qs.config
 import qs.services
 import qs.components.views
@@ -23,36 +22,43 @@ Item {
   readonly property string _viewsKey: JSON.stringify(viewsConfig)
   property var viewsModel: buildViewsModel(JSON.parse(_viewsKey))
   property int currentIndex: 0
-  // The configured views, then the one page that isn't in config: the
-  // overlay editor, always last and can't be removed
+  // The configured views, then the page that isn't in config: the
+  // overlay editor, always last and can't be removed.
+  // Labels: I18n.tr("Overlay editor")
+  readonly property var pinnedPages: [
+    {
+      "type": "OverlayEditor",
+      "icon": "view_quilt",
+      "label": "Overlay editor"
+    }
+  ]
   readonly property int editorIndex: viewsModel.length
-  readonly property int pageCount: viewsModel.length + 1
-  // What the navigator shows for each page: the views, then the editor
+  readonly property int pageCount: viewsModel.length + pinnedPages.length
+  // What the navigator shows for each page: the views, then the pinned ones
   readonly property var pages: viewsModel.map((view, index) => ({
         "icon": OverlayConfig.viewIcon(view.viewConfig.type),
         "label": OverlayConfig.viewLabel(view.viewConfig, index)
-      })).concat([
-    {
-      "icon": "view_quilt",
-      "label": I18n.tr("Overlay editor")
-    }
-  ])
+      })).concat(pinnedPages.map(page => ({
+        "icon": page.icon,
+        "label": I18n.tr(page.label)
+      })))
   // itemAt() isn't a notifying read: `count` makes this re-evaluate once
   // the Repeater has created its pages (on launch they don't exist yet)
-  readonly property Item currentPage: wrapper.currentIndex === wrapper.editorIndex ? editorPage : (viewsRepeater.count > wrapper.currentIndex ? viewsRepeater.itemAt(wrapper.currentIndex) : null)
+  readonly property Item currentPage: wrapper.currentIndex >= wrapper.editorIndex ? editorPage : (viewsRepeater.count > wrapper.currentIndex ? viewsRepeater.itemAt(wrapper.currentIndex) : null)
 
   // A new launch opens on the first page; closing and re-opening keeps the
   // page (this wrapper lives as long as the overlay window). The views
   // rebuild whenever Overlay.views changes, including saves from the
-  // overlay editor: stay on the editor if the user is on it, otherwise
+  // overlay editor: stay on a pinned page if the user is on one, otherwise
   // keep the index valid. Tracked from real navigation only: while the
-  // views are still loading the editor briefly sits at the start, which
-  // isn't the user being on it.
-  property bool _onEditor: false
-  onCurrentIndexChanged: wrapper._onEditor = wrapper.viewsModel.length > 0 && wrapper.currentIndex === wrapper.editorIndex
+  // views are still loading the pinned pages briefly sit at the start,
+  // which isn't the user being on them.
+  // Which pinned page the user is on (index into pinnedPages), or -1
+  property int _onPinned: -1
+  onCurrentIndexChanged: wrapper._onPinned = wrapper.viewsModel.length > 0 && wrapper.currentIndex >= wrapper.editorIndex ? wrapper.currentIndex - wrapper.editorIndex : -1
   onPageCountChanged: {
-    if (wrapper._onEditor)
-      wrapper.currentIndex = wrapper.editorIndex;
+    if (wrapper._onPinned >= 0)
+      wrapper.currentIndex = wrapper.editorIndex + wrapper._onPinned;
     else
       wrapper.currentIndex = Math.max(0, Math.min(wrapper.currentIndex, wrapper.editorIndex - 1));
   }
@@ -60,8 +66,9 @@ Item {
   Connections {
     target: ShellManager
     function onShowOverlayPage(type) {
-      if (type === "OverlayEditor")
-        wrapper.currentIndex = wrapper.editorIndex;
+      const pinned = wrapper.pinnedPages.findIndex(page => page.type === type);
+      if (pinned >= 0)
+        wrapper.currentIndex = wrapper.editorIndex + pinned;
       else {
         const index = wrapper.viewsModel.findIndex(view => view.viewConfig.type === type || view.viewConfig.name === type);
         if (index >= 0)

@@ -1,14 +1,14 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Axiom Configuration Schema",
-  "description": "Source of truth for config/user/config.json. Every key's `default` is filled in at load time (SchemaValidation.applyDefaults), so config readers never need their own fallbacks. `title`/`description`/`minimum`/`maximum`/`enum` drive the generated settings UI; `x-settings: false` hides a key from it (edited elsewhere, or UI-owned state); `x-options` names a dynamic option list (\"screens\", \"chatProviders\" and \"chatPresets\", \"colors\" for the 16 base theme colors, \"languages\" from config/i18n, \"cursorThemes\" for installed cursor themes); `x-showIf` ({ sibling: value | [values] | { not: value } }) hides a field unless a sibling matches; a key starting with `/` is a dotted path from the config root instead (\"/Workspaces.layout\"). `x-enumLabels` ({ value: label }) shows labels instead of raw enum values in dropdowns. `x-multiline: true` edits a string in a growing text area. `x-order` on an object schema lists the keys its form shows first, in order (a schema reaches QML as a map, whose keys come out sorted). `x-shapes` on an overlay module definition lists the slot shapes it fits (\"square\", \"horizontal\", \"vertical\"; a slot's shape comes from its span in OverlayConfig.layouts), and is enforced by the overlay editor; `x-icon` on a module or view definition is its Material Symbols icon name in the editor. Bar widgets are a oneOf discriminated by `type`, and get their `properties` defaults filled like everything else.",
+  "description": "Source of truth for config/user/config.json. Every key's `default` is filled in at load time (SchemaValidation.applyDefaults), so config readers never need their own fallbacks. `title`/`description`/`minimum`/`maximum`/`enum` drive the generated settings UI; `x-settings: false` hides a key from it (edited elsewhere, or UI-owned state); `x-options` names a dynamic option list (\"screens\", \"chatProviders\" and \"chatPresets\", \"colors\" for the 16 base theme colors, \"languages\" from config/i18n, \"cursorThemes\" for installed cursor themes, \"edgeMenus\" for the ids of EdgeMenus); `x-showIf` ({ sibling: value | [values] | { not: value } }) hides a field unless a sibling matches; a key starting with `/` is a dotted path from the config root instead (\"/Workspaces.layout\"). `x-enumLabels` ({ value: label }) shows labels instead of raw enum values in dropdowns. `x-multiline: true` edits a string in a growing text area. `x-order` on an object schema lists the keys its form shows first, in order (a schema reaches QML as a map, whose keys come out sorted). `x-shapes` on an overlay module definition lists the slot shapes it fits (\"square\", \"horizontal\", \"vertical\"; a slot's shape comes from its span in OverlayConfig.layouts), and is enforced by the overlay editor; `x-icon` on a module or view definition is its Material Symbols icon name in the editor. `x-hosts` on a module definition lists where it may be placed (\"overlay\", \"edgeMenu\"; both when left out). Bar widgets are a oneOf discriminated by `type`, and get their `properties` defaults filled like everything else.",
   "type": "object",
   "additionalProperties": false,
   "properties": {
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 11,
+      "default": 15,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
@@ -194,11 +194,11 @@
         "maxToasts": { "type": "integer", "title": "Visible toasts", "x-group": "Toasts", "default": 5, "minimum": 1, "maximum": 10, "description": "How many toasts stack up at once. A new one pushes out the oldest." },
         "width": { "type": "integer", "title": "Toast width", "x-unit": "px", "x-group": "Toasts", "default": 360, "minimum": 240, "maximum": 600, "description": "Width of each toast." },
         "quietFullscreen": { "type": "boolean", "title": "Quiet over fullscreen", "x-group": "Toasts", "default": true, "description": "Show no toasts on a monitor whose workspace has a fullscreen window. Critical ones still show, and everything still goes to the history." },
-        "clearOnFocus": { "type": "boolean", "title": "Clear when the app is focused", "x-group": "History", "default": false, "description": "Focusing an app's window removes its notifications from the history." },
-        "removeOnClick": { "type": "boolean", "title": "Remove when clicked", "x-group": "History", "default": false, "description": "Clicking a notification, or one of its actions, removes it from the history." },
-        "closeRemoves": { "type": "boolean", "title": "Closing a toast removes it", "x-group": "History", "default": false, "description": "Closing a toast (its close button or a swipe) also removes the notification from the history. Off, it only hides the toast." },
-        "maxEntries": { "type": "integer", "title": "History size", "x-group": "History", "default": 100, "minimum": 10, "maximum": 500, "description": "How many notifications the history keeps. The oldest go first." },
-        "maxAgeDays": { "type": "integer", "title": "Keep for", "x-unit": "days", "x-group": "History", "default": 0, "minimum": 0, "maximum": 365, "description": "Remove notifications older than this many days. 0 keeps them until removed." }
+        "clearOnFocus": { "type": "boolean", "title": "Clear when the app is focused", "x-group": "Notification history", "default": false, "description": "Focusing an app's window removes its notifications from the history." },
+        "removeOnClick": { "type": "boolean", "title": "Remove when clicked", "x-group": "Notification history", "default": false, "description": "Clicking a notification, or one of its actions, removes it from the history." },
+        "closeRemoves": { "type": "boolean", "title": "Closing a toast removes it", "x-group": "Notification history", "default": false, "description": "Closing a toast (its close button or a swipe) also removes the notification from the history. Off, it only hides the toast." },
+        "maxEntries": { "type": "integer", "title": "History size", "x-group": "Notification history", "default": 100, "minimum": 10, "maximum": 500, "description": "How many notifications the history keeps. The oldest go first." },
+        "maxAgeDays": { "type": "integer", "title": "Keep for", "x-unit": "days", "x-group": "Notification history", "default": 0, "minimum": 0, "maximum": 365, "description": "Remove notifications older than this many days. 0 keeps them until removed." }
       }
     },
 
@@ -301,6 +301,8 @@
             { "key": "XF86AudioLowerVolume", "action": "volumeDown", "locked": true, "repeating": true },
             { "key": "XF86AudioMute", "action": "toggleMute", "locked": true },
             { "key": "XF86AudioMicMute", "action": "toggleMicMute", "locked": true },
+            { "key": "XF86MonBrightnessUp", "action": "brightnessUp", "locked": true, "repeating": true },
+            { "key": "XF86MonBrightnessDown", "action": "brightnessDown", "locked": true, "repeating": true },
             { "key": "XF86AudioPlay", "action": "mediaPlayPause", "locked": true },
             { "key": "XF86AudioPause", "action": "mediaPlayPause", "locked": true },
             { "key": "XF86AudioNext", "action": "mediaNext", "locked": true },
@@ -314,12 +316,13 @@
               "action": {
                 "type": "string",
                 "title": "Action",
-                "enum": ["launcher", "launcherSearch", "overlay", "overlayPage", "workspaceOverview", "powerMenu", "lock", "toggleDnd", "clearNotifications", "idleInhibit", "workspaceStep", "moveWindowStep", "moveWindowStepSilent", "workspaceNth", "moveWindowNth", "moveWindowNthSilent", "focusDir", "moveWindowDir", "resizeWindow", "closeWindow", "fullscreen", "toggleFloat", "pin", "centerWindow", "toggleGroup", "mouseDrag", "mouseResize", "toggleSpecial", "moveToSpecial", "volumeUp", "volumeDown", "toggleMute", "toggleMicMute", "mediaPlayPause", "mediaNext", "mediaPrevious", "exec"],
+                "enum": ["launcher", "launcherSearch", "overlay", "overlayPage", "edgeMenu", "workspaceOverview", "powerMenu", "lock", "toggleDnd", "clearNotifications", "idleInhibit", "workspaceStep", "moveWindowStep", "moveWindowStepSilent", "workspaceNth", "moveWindowNth", "moveWindowNthSilent", "focusDir", "moveWindowDir", "resizeWindow", "closeWindow", "fullscreen", "toggleFloat", "pin", "centerWindow", "toggleGroup", "mouseDrag", "mouseResize", "toggleSpecial", "moveToSpecial", "volumeUp", "volumeDown", "toggleMute", "toggleMicMute", "brightnessUp", "brightnessDown", "mediaPlayPause", "mediaNext", "mediaPrevious", "exec"],
                 "x-enumLabels": {
                   "launcher": "App launcher",
                   "launcherSearch": "Launcher with text",
                   "overlay": "Overlay",
                   "overlayPage": "Overlay page",
+                  "edgeMenu": "Edge menu",
                   "workspaceOverview": "Workspace overview",
                   "powerMenu": "Power menu",
                   "lock": "Lock",
@@ -349,6 +352,8 @@
                   "volumeDown": "Volume down",
                   "toggleMute": "Mute",
                   "toggleMicMute": "Mute microphone",
+                  "brightnessUp": "Brightness up",
+                  "brightnessDown": "Brightness down",
                   "mediaPlayPause": "Play/Pause",
                   "mediaNext": "Next track",
                   "mediaPrevious": "Previous track",
@@ -361,7 +366,7 @@
                 "title": "Argument",
                 "default": "",
                 "description": "Search text, page, direction, workspace number, special workspace name, resize step (\"50 0\") or command.",
-                "x-showIf": { "action": ["launcherSearch", "overlayPage", "workspaceStep", "moveWindowStep", "moveWindowStepSilent", "workspaceNth", "moveWindowNth", "moveWindowNthSilent", "focusDir", "moveWindowDir", "resizeWindow", "toggleSpecial", "moveToSpecial", "exec"] }
+                "x-showIf": { "action": ["launcherSearch", "overlayPage", "edgeMenu", "workspaceStep", "moveWindowStep", "moveWindowStepSilent", "workspaceNth", "moveWindowNth", "moveWindowNthSilent", "focusDir", "moveWindowDir", "resizeWindow", "toggleSpecial", "moveToSpecial", "exec"] }
               },
               "repeating": { "type": "boolean", "title": "Repeat while held", "default": false },
               "locked": { "type": "boolean", "title": "Works while locked", "default": false },
@@ -840,14 +845,15 @@
       "type": "object",
       "x-category": "Overlay & OSD",
       "title": "OSD",
-      "description": "Volume on-screen display, shown when a volume changes.",
+      "description": "On-screen display of volume, microphone and brightness bars, shown when one of them changes.",
       "additionalProperties": false,
+      "x-order": ["enabled", "monitors", "edge", "position", "orientation", "alongEdge", "openOnHover", "timeout", "bars"],
       "properties": {
         "enabled": {
           "type": "boolean",
           "title": "Enabled",
           "default": true,
-          "description": "Show the OSD when a tracked volume changes."
+          "description": "Show the OSD when one of its bars changes."
         },
         "monitors": {
           "type": "string",
@@ -901,20 +907,29 @@
           "maximum": 10000,
           "description": "How long the OSD stays open after the last change."
         },
-        "apps": {
+        "bars": {
           "type": "array",
-          "title": "Applications",
-          "description": "One volume bar per entry, in order. App is matched as a substring of the stream's binary/name. Two special values: \"other\" is the first stream not matched by another entry, \"master\" is the system output volume (its icon follows the volume level).",
+          "title": "Bars",
+          "x-group": "OSD bars",
+          "description": "One bar per entry, in order. System volume is the output device's volume, Other apps is the first playing stream no App bar matches, Microphone is the input device's volume, and Brightness is the monitor's own (a laptop panel through brightnessctl, an external monitor over DDC/CI through ddcutil; left out on a monitor that has neither).",
           "default": [
-            { "app": "other", "icon": "music_note", "showOsd": true },
-            { "app": "master", "icon": "", "showOsd": true }
+            { "type": "other", "icon": "music_note", "showOsd": true },
+            { "type": "master", "icon": "", "showOsd": true }
           ],
           "items": {
             "type": "object",
             "additionalProperties": false,
+            "x-order": ["type", "app", "icon", "showOsd"],
             "properties": {
-              "app": { "type": "string", "title": "App", "default": "", "description": "Stream name to match, or \"other\" / \"master\"." },
-              "icon": { "type": "string", "title": "Icon", "default": "", "description": "Icon shown on the bar: a Material Symbols name (fonts.google.com/icons), or text." },
+              "type": {
+                "type": "string",
+                "title": "Shows",
+                "enum": ["master", "other", "microphone", "brightness", "app"],
+                "x-enumLabels": { "master": "System volume", "other": "Other apps", "microphone": "Microphone", "brightness": "Brightness", "app": "An app" },
+                "default": "app"
+              },
+              "app": { "type": "string", "title": "App", "default": "", "x-showIf": { "type": "app" }, "description": "Matched as a substring of the stream's binary or name." },
+              "icon": { "type": "string", "title": "Icon", "default": "", "description": "Icon shown on the bar: a Material Symbols name (fonts.google.com/icons), or text. Empty follows the level for system volume, microphone and brightness." },
               "showOsd": { "type": "boolean", "title": "Opens the OSD", "default": true, "description": "A change on this bar opens the OSD (it always keeps an open one open)." }
             }
           }
@@ -1015,8 +1030,8 @@
               ] },
               { "cells": [
                 { "layout": "Horiz1x1", "slots": {
-                  "top": { "type": "QuickToggles" },
-                  "bottom": { "type": "Session" }
+                  "top": { "type": "QuickActions" },
+                  "bottom": { "type": "QuickActions", "properties": { "actions": ["lock", "suspend", "hibernate", "logout", "reboot", "poweroff"] } }
                 } },
                 { "layout": "Single", "slots": {
                   "main": { "type": "SystemGraphs" }
@@ -1037,7 +1052,8 @@
             { "type": "Settings" },
             { "type": "Keybinds" },
             { "type": "BarEditor" },
-            { "type": "Themes" }
+            { "type": "Themes" },
+            { "type": "EdgeMenuEditor" }
           ],
           "items": { "$ref": "#/definitions/OverlayView" }
         }
@@ -1222,10 +1238,163 @@
         }
       ],
       "items": { "$ref": "#/definitions/Bar" }
+    },
+
+    "EdgeMenus": {
+      "type": "array",
+      "description": "Menus that pop out of a screen edge, filled with overlay modules, edited on the overlay's Edge menu editor page. Opened by a bar Button (Edge menu action), their edge trigger, or `qs -c axiom ipc call edgeMenu toggle <id>`.",
+      "x-settings": false,
+      "default": [],
+      "items": { "$ref": "#/definitions/EdgeMenu" }
     }
   },
 
   "definitions": {
+    "EdgeMenu": {
+      "type": "object",
+      "required": ["id"],
+      "additionalProperties": false,
+      "x-order": ["name", "id", "enabled", "monitor", "mode", "edge", "position", "edgeDistance", "cardSize", "extraDepth", "frame", "margin", "padding", "backgroundColor", "borderColor", "openOnHover", "openDelay", "triggerSize", "triggerLength", "closeOnLeave", "closeDelay", "closeOnOutsideClick"],
+      "properties": {
+        "id": { "type": "string", "title": "Id", "description": "What bar buttons and IPC calls open this menu by." },
+        "name": { "type": "string", "title": "Name", "default": "" },
+        "enabled": { "type": "boolean", "title": "Enabled", "default": true },
+        "monitor": {
+          "type": "string",
+          "title": "Monitor",
+          "default": "",
+          "description": "Monitor this menu is shown on. Empty uses the primary monitor.",
+          "x-options": "screens"
+        },
+        "edge": { "type": "string", "title": "Edge", "default": "Left", "enum": ["Top", "Bottom", "Left", "Right"] },
+        "mode": {
+          "type": "string",
+          "title": "Mode",
+          "default": "floating",
+          "enum": ["floating", "integrated"],
+          "x-enumLabels": { "floating": "Floating", "integrated": "Integrated" },
+          "description": "Floating opens over your windows. Integrated opens outside the screen border and bars, pushing them and your windows inwards."
+        },
+        "position": {
+          "type": "integer",
+          "title": "Position along edge",
+          "default": 50,
+          "minimum": 0,
+          "maximum": 100,
+          "x-unit": "%",
+          "description": "Where along the edge the menu sits: 0 is the start (left/top), 100 the end."
+        },
+        "cardSize": {
+          "type": "integer",
+          "title": "Card size",
+          "default": 320,
+          "minimum": 160,
+          "maximum": 600,
+          "x-unit": "px",
+          "description": "Size of one card. Cells are laid out as on overlay pages."
+        },
+        "extraDepth": {
+          "type": "integer",
+          "title": "Extra depth",
+          "default": 0,
+          "minimum": 0,
+          "maximum": 1000,
+          "x-unit": "px",
+          "x-control": "slider",
+          "description": "Room added across the edge: width on a left or right edge, height on a top or bottom one. Every module grows into it."
+        },
+        "edgeDistance": {
+          "type": "integer",
+          "title": "Distance from edge",
+          "default": 0,
+          "minimum": 0,
+          "maximum": 200,
+          "x-unit": "px",
+          "description": "Gap between the menu and the screen edge. Above 0 the menu is a separate box instead of growing out of the edge.",
+          "x-showIf": { "mode": "floating" }
+        },
+        "frame": {
+          "type": "boolean",
+          "title": "Frame",
+          "default": true,
+          "description": "Draw a rounded box along the whole edge, with the modules inside it.",
+          "x-showIf": { "mode": "integrated" }
+        },
+        "margin": {
+          "type": "integer",
+          "title": "Frame margin",
+          "default": 8,
+          "minimum": 0,
+          "maximum": 64,
+          "x-unit": "px",
+          "description": "Gap between the frame and the edges of the menu's strip.",
+          "x-showIf": { "mode": "integrated" }
+        },
+        "padding": {
+          "type": "integer",
+          "title": "Padding",
+          "default": 12,
+          "minimum": 0,
+          "maximum": 64,
+          "x-unit": "px",
+          "description": "Space between the menu's box and its modules."
+        },
+        "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base00" },
+        "borderColor": { "type": "string", "title": "Border", "x-options": "colors", "default": "base05" },
+        "openOnHover": { "type": "boolean", "title": "Open on hover", "default": false, "description": "Open when the pointer rests on the screen edge." },
+        "openDelay": {
+          "type": "integer",
+          "title": "Open delay",
+          "default": 10,
+          "minimum": 0,
+          "maximum": 2000,
+          "x-unit": "ms",
+          "description": "How long the pointer rests on the edge before the menu opens.",
+          "x-showIf": { "openOnHover": true }
+        },
+        "triggerSize": {
+          "type": "integer",
+          "title": "Trigger size",
+          "default": 5,
+          "minimum": 1,
+          "maximum": 50,
+          "x-unit": "px",
+          "description": "How far in from the screen edge the hover strip reaches.",
+          "x-showIf": { "openOnHover": true }
+        },
+        "triggerLength": {
+          "type": "integer",
+          "title": "Trigger length",
+          "default": 0,
+          "minimum": 0,
+          "maximum": 4000,
+          "x-unit": "px",
+          "description": "Length of the hover strip along the edge, centred on the menu. 0 matches the menu's own length.",
+          "x-showIf": { "openOnHover": true }
+        },
+        "closeOnLeave": { "type": "boolean", "title": "Close when the pointer leaves", "default": true, "description": "A Pin module keeps the menu open while pinned." },
+        "closeDelay": {
+          "type": "integer",
+          "title": "Close delay",
+          "default": 250,
+          "minimum": 0,
+          "maximum": 5000,
+          "x-unit": "ms",
+          "description": "How long after the pointer leaves the menu closes.",
+          "x-showIf": { "closeOnLeave": true }
+        },
+        "closeOnOutsideClick": { "type": "boolean", "title": "Close on outside click", "default": false, "x-showIf": { "mode": "floating" } },
+        "columns": {
+          "type": "array",
+          "title": "Columns",
+          "default": [],
+          "x-settings": false,
+          "description": "Placed side by side, like a Custom overlay page's.",
+          "items": { "$ref": "#/definitions/OverlayColumn" }
+        }
+      }
+    },
+
     "Bar": {
       "type": "object",
       "required": ["id"],
@@ -1335,7 +1504,8 @@
         { "$ref": "#/definitions/KeybindsOverlayView" },
         { "$ref": "#/definitions/BarEditorOverlayView" },
         { "$ref": "#/definitions/SettingsOverlayView" },
-        { "$ref": "#/definitions/ThemesOverlayView" }
+        { "$ref": "#/definitions/ThemesOverlayView" },
+        { "$ref": "#/definitions/EdgeMenuEditorOverlayView" }
       ]
     },
     "CustomOverlayView": {
@@ -1390,6 +1560,16 @@
         "visible": { "type": "boolean" }
       }
     },
+    "EdgeMenuEditorOverlayView": {
+      "type": "object",
+      "x-icon": "dock_to_right",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "EdgeMenuEditor", "description": "Edge Menu Editor" },
+        "visible": { "type": "boolean" }
+      }
+    },
 
     "OverlayColumn": {
       "type": "object",
@@ -1403,9 +1583,10 @@
       "type": "object",
       "required": ["layout"],
       "additionalProperties": false,
-      "description": "One cell split into slots, defined in OverlayConfig.layouts. A column flows its cells left to right, wrapping at its widest cell, so two Singles after a Wide sit side by side under it (an empty Single leaves a gap). Cells are one card, except Tall (two cards high), Wide (two cards wide) and Large (two by two cards). Slots per layout: Single/Tall/Wide/Large main; Grid2x2 topLeft/topRight/bottomLeft/bottomRight; Vert1x1 left/right; Vert1x2 left/topRight/bottomRight; Vert2x1 topLeft/bottomLeft/right; Horiz1x1 top/bottom; Horiz1x2 top/bottomLeft/bottomRight; Horiz2x1 topLeft/topRight/bottom.",
+      "description": "One cell split into slots, defined in OverlayConfig.layouts. A column flows its cells left to right, wrapping at its widest cell, so two Singles after a Wide sit side by side under it (an empty Single leaves a gap). Cells are one card, except Tall (two cards high), Wide (two cards wide), Large (two by two cards), HalfWide (half a card high) and HalfTall (half a card wide). A cell with fill grows into free room: the rest of its row, its row's height, and spare height in its column (shared evenly with other fill cells); in an edge menu, any fill cell makes the menu take its whole edge. Slots per layout: Single/Tall/Wide/Large/HalfWide/HalfTall main; Grid2x2 topLeft/topRight/bottomLeft/bottomRight; Vert1x1 left/right; Vert1x2 left/topRight/bottomRight; Vert2x1 topLeft/bottomLeft/right; Horiz1x1 top/bottom; Horiz1x2 top/bottomLeft/bottomRight; Horiz2x1 topLeft/topRight/bottom.",
       "properties": {
-        "layout": { "type": "string", "title": "Layout", "default": "Single", "enum": ["Single", "Tall", "Wide", "Large", "Grid2x2", "Vert1x1", "Vert1x2", "Vert2x1", "Horiz1x1", "Horiz1x2", "Horiz2x1"] },
+        "layout": { "type": "string", "title": "Layout", "default": "Single", "enum": ["Single", "Tall", "Wide", "Large", "HalfWide", "HalfTall", "Grid2x2", "Vert1x1", "Vert1x2", "Vert2x1", "Horiz1x1", "Horiz1x2", "Horiz2x1"] },
+        "fill": { "type": "boolean", "title": "Fill space", "default": false, "description": "Grow into free room, shared evenly with other cells that fill." },
         "slots": {
           "type": "object",
           "default": {},
@@ -1437,12 +1618,11 @@
         { "$ref": "#/definitions/DisksOverlayModule" },
         { "$ref": "#/definitions/TopProcessesOverlayModule" },
         { "$ref": "#/definitions/UpdatesOverlayModule" },
-        { "$ref": "#/definitions/QuickTogglesOverlayModule" },
+        { "$ref": "#/definitions/QuickActionsOverlayModule" },
         { "$ref": "#/definitions/WorkspacesMapOverlayModule" },
         { "$ref": "#/definitions/NotificationsOverlayModule" },
         { "$ref": "#/definitions/BluetoothDevicesOverlayModule" },
         { "$ref": "#/definitions/WifiNetworksOverlayModule" },
-        { "$ref": "#/definitions/SessionOverlayModule" },
         { "$ref": "#/definitions/ScreenshotOverlayModule" },
         { "$ref": "#/definitions/ClockCalendarOverlayModule" },
         { "$ref": "#/definitions/WeatherOverlayModule" },
@@ -1452,8 +1632,20 @@
         { "$ref": "#/definitions/ChatOverlayModule" },
         { "$ref": "#/definitions/NotesOverlayModule" },
         { "$ref": "#/definitions/WallpaperPickerOverlayModule" },
-        { "$ref": "#/definitions/ColorSwatchOverlayModule" }
+        { "$ref": "#/definitions/ColorSwatchOverlayModule" },
+        { "$ref": "#/definitions/PinOverlayModule" }
       ]
+    },
+    "PinOverlayModule": {
+      "type": "object",
+      "x-icon": "push_pin",
+      "x-hosts": ["edgeMenu"],
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "Pin", "description": "Pin (keeps an edge menu open)" },
+        "properties": { "type": "object", "additionalProperties": false, "properties": {} }
+      }
     },
     "ThemeEditorOverlayModule": {
       "type": "object",
@@ -1573,19 +1765,20 @@
         }
       }
     },
-    "QuickTogglesOverlayModule": {
+    "QuickActionsOverlayModule": {
       "type": "object",
       "x-icon": "toggle_on",
       "x-shapes": ["square", "horizontal", "vertical"],
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
-        "type": { "const": "QuickToggles", "description": "Quick toggles" },
+        "type": { "const": "QuickActions", "description": "Quick actions" },
         "properties": {
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "toggles": {"type": "array", "title": "Toggles", "default": ["wifi", "bluetooth", "caffeine", "dnd", "darkMode"], "description": "Night light and power saver only show when hyprsunset/wlsunset or powerprofilesctl is installed.", "items": {"type": "string", "enum": ["wifi", "bluetooth", "caffeine", "dnd", "darkMode", "nightLight", "powerSaver"]}}
+            "actions": {"type": "array", "title": "Actions", "default": ["wifi", "bluetooth", "caffeine", "dnd", "darkMode"], "description": "Toggles, session actions and pin, in any mix. Night light and power saver only show when hyprsunset/wlsunset or powerprofilesctl is installed, and pin only in an edge menu. Log out, reboot and power off ask for a second click.", "items": {"type": "string", "enum": ["wifi", "bluetooth", "caffeine", "dnd", "darkMode", "nightLight", "powerSaver", "lock", "suspend", "hibernate", "logout", "reboot", "poweroff", "pin"]}},
+            "labels": {"type": "string", "title": "Names", "default": "auto", "enum": ["auto", "show", "hide"], "x-enumLabels": {"auto": "Auto", "show": "Show", "hide": "Hide"}, "description": "Auto shows the names only when every tile has room for its whole name."}
           }
         }
       }
@@ -1635,23 +1828,6 @@
       "additionalProperties": false,
       "properties": {
         "type": { "const": "BluetoothDevices", "description": "Bluetooth devices" }
-      }
-    },
-    "SessionOverlayModule": {
-      "type": "object",
-      "x-icon": "power_settings_new",
-      "x-shapes": ["horizontal", "square", "vertical"],
-      "required": ["type"],
-      "additionalProperties": false,
-      "properties": {
-        "type": { "const": "Session", "description": "Session / power" },
-        "properties": {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "actions": {"type": "array", "title": "Actions", "default": ["lock", "suspend", "hibernate", "logout", "reboot", "poweroff"], "items": {"type": "string", "enum": ["lock", "suspend", "hibernate", "logout", "reboot", "poweroff"]}}
-          }
-        }
       }
     },
     "ScreenshotOverlayModule": {
@@ -1972,7 +2148,6 @@
           "additionalProperties": false,
           "properties": {
             "showName": { "type": "boolean", "title": "Show device", "default": false, "description": "Show the connected device name next to the icon." },
-            "interval": { "type": "integer", "title": "Poll interval", "x-unit": "ms", "default": 2000, "minimum": 250, "maximum": 60000 },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Open the Wi-Fi menu when hovered." },
             "middleCommand": { "type": "string", "title": "Middle-click command", "default": "", "description": "Shell command run on middle click (e.g. nm-connection-editor). Empty does nothing." },
             "backgroundColor": { "type": "string", "title": "Connected background", "x-options": "colors", "default": "base09" },
@@ -2037,11 +2212,12 @@
             "icon": { "type": "string", "title": "Icon", "default": "apps", "description": "Icon shown on the button: a Material Symbols name (fonts.google.com/icons), or text." },
             "label": { "type": "string", "title": "Label", "default": "", "description": "Text next to the icon. Replaced by the label command's output when that is set." },
             "tooltip": { "type": "string", "title": "Tooltip", "default": "", "description": "Shown when hovering the button." },
-            "action": { "type": "string", "title": "Click action", "default": "powerMenu", "description": "What a left click does.", "enum": ["powerMenu", "appLauncher", "overlay", "workspaceOverlay", "lock", "command", "none"] },
+            "action": { "type": "string", "title": "Click action", "default": "powerMenu", "description": "What a left click does.", "enum": ["powerMenu", "appLauncher", "overlay", "workspaceOverlay", "edgeMenu", "lock", "command", "none"] },
+            "menu": { "type": "string", "title": "Edge menu", "default": "", "description": "The edge menu the button opens and closes.", "x-options": "edgeMenus", "x-showIf": { "action": "edgeMenu" } },
             "command": { "type": "string", "title": "Command", "default": "", "description": "Shell command run on left click.", "x-showIf": { "action": "command" } },
             "rightCommand": { "type": "string", "title": "Right-click command", "default": "", "description": "Shell command run on right click. Empty does nothing." },
             "middleCommand": { "type": "string", "title": "Middle-click command", "default": "", "description": "Shell command run on middle click. Empty does nothing." },
-            "hoverActivate": { "type": "boolean", "title": "Activate on hover", "default": false, "description": "Run the click action after hovering for the popout open delay. Doesn't close a launcher, overlay or power menu that is already open.", "x-showIf": { "action": { "not": "none" } } },
+            "hoverActivate": { "type": "boolean", "title": "Activate on hover", "default": false, "description": "Run the click action after hovering for the popout open delay. Doesn't close a launcher, overlay, power menu or edge menu that is already open.", "x-showIf": { "action": { "not": "none" } } },
             "labelCommand": { "type": "string", "title": "Label command", "default": "", "description": "Shell command whose first line of output is shown as the label, re-run on an interval." },
             "labelInterval": { "type": "integer", "title": "Label interval", "x-unit": "ms", "default": 5000, "minimum": 500, "maximum": 3600000, "description": "How often the label command runs.", "x-showIf": { "labelCommand": { "not": "" } } },
             "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base0C" },

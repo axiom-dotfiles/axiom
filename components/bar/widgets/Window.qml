@@ -2,8 +2,6 @@ pragma ComponentBehavior: Bound
 
 import Quickshell.Wayland
 
-import qs.config
-
 BarIconWidget {
   id: root
 

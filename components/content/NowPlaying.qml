@@ -12,7 +12,8 @@ import qs.components.content.base
 // info, a seek bar and controls. As the Media widget's popout: art beside
 // the track info, the controls beneath, at a fixed size so track changes
 // never resize it. As an overlay card: art beside everything when wide,
-// stacked when square; a quarter slot is just the art and play/pause.
+// stacked when square; a half-card-high strip drops the player name, album
+// and times; a quarter slot is just the art and play/pause.
 Panel {
   id: root
 
@@ -20,6 +21,8 @@ Panel {
   readonly property string artSource: MediaManager.artDownloaded && MediaManager.artVersion >= 0 ? "file://" + MediaManager.artFilePath : ""
   // Card only: the art beside the info and controls
   readonly property bool sideBySide: root.embedded && root.shape === "horizontal"
+  // A half-card-high strip: title, artist and a slim transport only
+  readonly property bool short: root.sideBySide && root.rows <= 1
   readonly property real artSize: 96
   // A seek bar is being dragged, so the popout mustn't dismiss
   property bool seeking: false
@@ -115,6 +118,7 @@ Panel {
   component TrackInfo: ColumnLayout {
     spacing: 2
     Item {
+      visible: !root.short
       Layout.fillWidth: true
       implicitHeight: playerRow.implicitHeight
       opacity: 0.6
@@ -156,7 +160,7 @@ Panel {
       elide: Text.ElideRight
       text: MediaManager.trackTitle || I18n.tr("Unknown track")
       textColor: Theme.accent
-      textSize: Appearance.fontSize + 3
+      textSize: root.short ? Appearance.fontSize : Appearance.fontSize + 3
       font.bold: true
     }
     StyledText {
@@ -164,8 +168,10 @@ Panel {
       elide: Text.ElideRight
       // Kept as a line when empty, so the popout's height never changes
       text: MediaManager.trackArtist || " "
+      textSize: root.short ? Appearance.fontSize - 2 : Appearance.fontSize
     }
     StyledText {
+      visible: !root.short
       Layout.fillWidth: true
       elide: Text.ElideRight
       // MediaManager doesn't surface the album, but the Mpris player does
@@ -181,12 +187,12 @@ Panel {
     StyledSlider {
       id: seek
       Layout.fillWidth: true
-      Layout.preferredHeight: 16
+      Layout.preferredHeight: root.short ? 10 : 16
       enabled: MediaManager.canSeek
-      troughHeight: 6
-      handleWidth: 14
-      handleHeight: 14
-      handleRadius: 7
+      troughHeight: root.short ? 4 : 6
+      handleWidth: root.short ? 10 : 14
+      handleHeight: root.short ? 10 : 14
+      handleRadius: root.short ? 5 : 7
       handleColor: Theme.foreground
       fillColor: Theme.accent
       // Not `value`: dragging assigns that, which would drop the binding
@@ -195,6 +201,7 @@ Panel {
       onReleased: value => MediaManager.setPositionByRatio(value)
     }
     RowLayout {
+      visible: !root.short
       Layout.fillWidth: true
       StyledText {
         text: MediaManager.formatTime(seek.pressed ? seek.value * MediaManager.length : MediaManager.position)
@@ -212,20 +219,22 @@ Panel {
     }
     RowLayout {
       Layout.alignment: Qt.AlignHCenter
-      spacing: Widget.spacing * 1.5
+      spacing: root.short ? Widget.spacing : Widget.spacing * 1.5
       MediaButton {
+        size: Widget.height
         icon: "skip_previous"
         enabled: MediaManager.canGoPrevious
         onClicked: MediaManager.previous()
       }
       MediaButton {
         primary: true
-        size: Widget.height * 1.4
+        size: Widget.height * (root.short ? 1.2 : 1.4)
         icon: MediaManager.isPlaying ? "pause" : "play_arrow"
         enabled: MediaManager.canTogglePlaying
         onClicked: MediaManager.togglePlayPause()
       }
       MediaButton {
+        size: Widget.height
         icon: "skip_next"
         enabled: MediaManager.canGoNext
         onClicked: MediaManager.next()
@@ -321,16 +330,18 @@ Panel {
       // From the card's size, not the grid's: that depends on this
       readonly property real innerWidth: root.width - root.pad * 2
       readonly property real innerHeight: root.height - root.pad * 2
-      readonly property real side: !root.embedded ? root.artSize : root.sideBySide ? innerHeight : Math.min(innerWidth, innerHeight * 0.5)
+      // Beside the info, never over 40% of the width, so the text keeps room
+      readonly property real side: !root.embedded ? root.artSize : root.sideBySide ? Math.min(innerHeight, innerWidth * 0.4) : Math.min(innerWidth, innerHeight * 0.5)
       Layout.preferredWidth: side
       Layout.preferredHeight: side
-      Layout.alignment: root.embedded && !root.sideBySide ? Qt.AlignHCenter : Qt.AlignTop
+      Layout.alignment: root.embedded && !root.sideBySide ? Qt.AlignHCenter : root.sideBySide ? Qt.AlignVCenter : Qt.AlignTop
     }
 
     ColumnLayout {
       Layout.fillWidth: true
       Layout.fillHeight: true
-      spacing: Widget.spacing
+      Layout.minimumWidth: 0
+      spacing: root.short ? 2 : Widget.spacing
       TrackInfo {
         Layout.fillWidth: true
         Layout.fillHeight: true

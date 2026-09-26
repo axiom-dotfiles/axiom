@@ -1,6 +1,5 @@
 import QtQuick
 import Quickshell
-import Quickshell.Hyprland
 import Quickshell.Services.Notifications
 import Quickshell.Wayland
 
@@ -136,7 +135,7 @@ Scope {
         if (!ShellManager.showsOn(stack.modelData, NotificationsConfig.monitors))
           return;
         const critical = notification.urgency === NotificationUrgency.Critical;
-        const fullscreen = Hyprland.monitorFor(stack.modelData)?.activeWorkspace?.hasFullscreen ?? false;
+        const fullscreen = HyprlandManager.hasFullscreen(stack.modelData?.name ?? "");
         if (NotificationsConfig.quietFullscreen && fullscreen && !critical)
           return;
 

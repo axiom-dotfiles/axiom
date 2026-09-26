@@ -1,7 +1,6 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 
-import qs.services
 import qs.config
 
 // Rounded background box for bar modules. Its size is set by the bar

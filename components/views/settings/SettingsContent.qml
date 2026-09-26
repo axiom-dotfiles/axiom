@@ -110,8 +110,8 @@ Item {
     return result;
   }
 
-  // Pages the category links to: the overlay editor always exists, others
-  // only while they're in Overlay.views
+  // Pages the category links to: the pinned overlay editor always exists,
+  // others only while they're in Overlay.views
   function _linkAvailable(type) {
     return type === "OverlayEditor" || OverlayConfig.views.some(view => view.type === type && view.visible !== false);
   }
@@ -124,6 +124,8 @@ Item {
       return I18n.tr("Bar Editor");
     case "OverlayEditor":
       return I18n.tr("Overlay Editor");
+    case "EdgeMenuEditor":
+      return I18n.tr("Edge Menu Editor");
     case "Keybinds":
       return I18n.tr("Keybinds");
     }
@@ -141,11 +143,11 @@ Item {
     onReset: SettingsManager.resetChanges()
 
     // Fold all on the left, links to other pages on the right
+    showExtras: root.links.length > 0 || root.foldableKeys.length > 0
     headerExtras: RowLayout {
       Layout.fillWidth: true
       Layout.topMargin: Widget.spacing / 2
       Layout.bottomMargin: Widget.spacing / 2
-      visible: root.links.length > 0 || root.foldableKeys.length > 0
       spacing: Widget.spacing
 
       StyledTextButton {

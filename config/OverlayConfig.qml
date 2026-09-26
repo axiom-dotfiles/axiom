@@ -29,12 +29,22 @@ QtObject {
         // Slot shapes a module fits (`x-shapes`); views don't declare any
         "shapes": def["x-shapes"] ?? ["square", "horizontal", "vertical"],
         // Material Symbols name (`x-icon`)
-        "icon": def["x-icon"] ?? "extension"
+        "icon": def["x-icon"] ?? "extension",
+        // Where a module may be placed (`x-hosts`): "overlay", "edgeMenu"
+        "hosts": def["x-hosts"] ?? ["overlay", "edgeMenu"]
       };
     }).filter(t => t !== null);
   }
   readonly property var availableModuleTypes: _oneOfTypes("OverlayModule")
   readonly property var availableViewTypes: _oneOfTypes("OverlayView")
+  // The module types a host offers: "overlay" pages or "edgeMenu"s
+  function modulesFor(host) {
+    return availableModuleTypes.filter(t => t.hosts.includes(host));
+  }
+  function allowedIn(type, host) {
+    const info = moduleInfo(type);
+    return !info || info.hosts.includes(host);
+  }
 
   function moduleInfo(type) {
     return availableModuleTypes.find(t => t.type === type) ?? null;
@@ -124,38 +134,77 @@ QtObject {
   }
 
   // How a column flows its cells: left to right, wrapping at the widest
-  // cell. Returns the unscaled size, the number of rows and each cell's
-  // { x, y, width, height, row }, matching the Flow in OverlayColumn.
-  function columnFlow(cells, unit) {
+  // cell. Returns the size, the number of rows and each cell's
+  // { x, y, width, height, row }, matching OverlayColumn. `extra`
+  // ({ width, height }, either optional) grows every cell: each row gets
+  // the extra width, split between its cells, and the extra height, split
+  // evenly between the rows. `target` (the same shape) is room for cells
+  // with `fill` to grow into past that: a row's spare width goes to its
+  // fill cells, fill cells take their row's height, and spare height goes
+  // to the rows holding one, split evenly. Without either nothing changes.
+  function columnFlow(cells, unit, target, extra) {
     const sizes = (cells ?? []).map(cell => {
-      const layout = layouts[cell.layout] ?? layouts.Single;
+      const layout = layouts[cell?.layout] ?? layouts.Single;
       return [span(layout.cols, unit), span(layout.rows, unit)];
     });
-    const width = Math.max(0, ...sizes.map(size => size[0]));
-    let x = 0, rowHeight = 0, height = 0, rows = 0;
-    const rects = [];
-    sizes.forEach(([w, h]) => {
-      if (x > 0 && x + w > width + 0.5) {
-        height += rowHeight + cardSpacing;
+    const naturalWidth = Math.max(0, ...sizes.map(size => size[0]));
+    // Natural rows: which cells, their width and height
+    const rows = [];
+    let x = 0;
+    sizes.forEach(([w, h], i) => {
+      if (rows.length === 0 || (x > 0 && x + w > naturalWidth + 0.5)) {
+        rows.push({
+          "cells": [],
+          "width": 0,
+          "height": 0
+        });
         x = 0;
-        rowHeight = 0;
       }
-      if (x === 0)
-        rows++;
-      rects.push({
-        "x": x,
-        "y": height,
-        "width": w,
-        "height": h,
-        "row": rows - 1
-      });
+      const row = rows[rows.length - 1];
+      row.cells.push(i);
+      row.width = x + w;
+      row.height = Math.max(row.height, h);
       x += w + cardSpacing;
-      rowHeight = Math.max(rowHeight, h);
+    });
+    // Every cell grows by `extra`
+    const extraWidth = rows.length > 0 ? Math.max(0, extra?.width ?? 0) : 0;
+    const extraRowHeight = rows.length > 0 ? Math.max(0, extra?.height ?? 0) / rows.length : 0;
+    const grown = i => [sizes[i][0] + extraWidth / rows.find(row => row.cells.includes(i)).cells.length, sizes[i][1] + extraRowHeight];
+    rows.forEach(row => {
+      row.width += extraWidth;
+      row.height += extraRowHeight;
+    });
+    const width = naturalWidth + extraWidth;
+    const fills = i => cells[i]?.fill === true;
+    const naturalHeight = rows.reduce((sum, row) => sum + row.height, 0) + Math.max(0, rows.length - 1) * cardSpacing;
+    const fillRows = rows.filter(row => row.cells.some(fills));
+    const fullWidth = fillRows.length > 0 ? Math.max(width, target?.width ?? 0) : width;
+    const spareHeight = fillRows.length > 0 ? Math.max(0, (target?.height ?? 0) - naturalHeight) : 0;
+    const rects = [];
+    let y = 0;
+    rows.forEach((row, rowIndex) => {
+      const rowFills = row.cells.filter(fills);
+      const rowHeight = row.height + (rowFills.length > 0 ? spareHeight / fillRows.length : 0);
+      const fillWidth = rowFills.length > 0 ? (fullWidth - row.width) / rowFills.length : 0;
+      let cx = 0;
+      row.cells.forEach(i => {
+        const [cellWidth, cellHeight] = grown(i);
+        const w = cellWidth + (fills(i) ? fillWidth : 0);
+        rects[i] = {
+          "x": cx,
+          "y": y,
+          "width": w,
+          "height": fills(i) ? rowHeight : cellHeight,
+          "row": rowIndex
+        };
+        cx += w + cardSpacing;
+      });
+      y += rowHeight + cardSpacing;
     });
     return {
-      "width": width,
-      "height": height + rowHeight,
-      "rows": rows,
+      "width": fullWidth,
+      "height": Math.max(0, y - cardSpacing),
+      "rows": rows.length,
       "rects": rects
     };
   }
@@ -190,6 +239,20 @@ QtObject {
         "rows": 4,
         "slots": {
           "main": [0, 0, 4, 4]
+        }
+      },
+      "HalfWide": {
+        "cols": 2,
+        "rows": 1,
+        "slots": {
+          "main": [0, 0, 2, 1]
+        }
+      },
+      "HalfTall": {
+        "cols": 1,
+        "rows": 2,
+        "slots": {
+          "main": [0, 0, 1, 2]
         }
       },
       "Grid2x2": {

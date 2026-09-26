@@ -339,6 +339,15 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
     return ids;
   }
 
+  // Whether the named monitor's active workspace shows a fullscreen window.
+  // Not Hyprland's (or Quickshell's) hasFullscreen: that also counts
+  // maximized windows (fullscreen mode 1), which leave reserved space
+  // alone. Mode is a bitmask, 2 being fullscreen.
+  function hasFullscreen(monitorName) {
+    const workspace = Hyprland.monitors.values.find(m => m.name === monitorName)?.activeWorkspace?.id;
+    return workspace !== undefined && root.windowList.some(w => w.workspace?.id === workspace && (w.fullscreen & 2));
+  }
+
   function biggestWindowForWorkspace(workspaceId) {
     const windowsInThisWorkspace = root.windowList.filter(w => w.workspace.id == workspaceId);
     return windowsInThisWorkspace.reduce((maxWin, win) => {
@@ -372,11 +381,17 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
   //   order alone breaks whenever the bar's surface is remade or changes
   //   layer (a new monitor, a new bar id on restore, solid <-> floating):
   //   Hyprland appends it after the border.
+  // - An integrated edge menu is arranged before both, so it sits at the
+  //   screen edge and pushes the bars, border and windows inwards.
+  // - Detached popouts and floating edge menus are drawn under the bars and
+  //   border, so they slide out from beneath them.
   // Named, so re-adding one replaces it instead of piling up copies. Rules
   // added at runtime are lost when Hyprland reloads its config.
   function _addLayerRules() {
     _eval(`hl.layer_rule({ name = "axiom-backdrop", match = { namespace = "^axiom-backdrop$" }, order = 10 })`);
     _eval(`hl.layer_rule({ name = "axiom-bar", match = { namespace = "^axiom-bar$" }, order = 5 })`);
+    _eval(`hl.layer_rule({ name = "axiom-edge-menu", match = { namespace = "^axiom-edge-menu$" }, order = 7 })`);
+    _eval(`hl.layer_rule({ name = "axiom-popout-under", match = { namespace = "^axiom-popout-under$" }, order = 6 })`);
   }
 
   Component.onCompleted: {

@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 # Shared by the theme_*.sh integrations (sourced, not run): dependency
 # checks, argument handling, one jq pass over a Quickshell theme file and
 # atomic writes.
@@ -134,12 +135,20 @@ map_vars() {
 }
 
 # The variables export_theme_colors sets (plus BASE00..BASE0F), for map_vars
+# (map_theme_colors)
 theme_color_vars() {
     compgen -v | grep -E '^(BASE0[0-9A-F]|ANSI_[0-9]+)$'
     local key
     for key in "${!THEME_SEMANTIC[@]}"; do
         sed 's/\([A-Z]\)/_\1/g' <<< "$key" | tr '[:lower:]' '[:upper:]'
     done
+}
+
+# map_vars over every theme color variable: map_theme_colors hex
+map_theme_colors() {
+    local names
+    mapfile -t names < <(theme_color_vars)
+    map_vars "$1" "${names[@]}"
 }
 
 # "#rrggbb" in quotes, for YAML/INI values ('""' when empty)
@@ -175,8 +184,12 @@ write_atomic() {
 # atomically. SHELL_FORMAT limits envsubst to those variables (for
 # templates with $vars of their own).
 render_template() {
-    local template="$1" output="$2"
+    local template="$1" output="$2" name
     prepare_output "$template" "$output"
+    # envsubst writes an unset variable as "", which would quietly drop a color
+    while read -r name; do
+        [[ -v "$name" ]] || warn "$(basename "$template") uses \${$name}, which nothing sets"
+    done < <(grep -o '\${[A-Za-z_][A-Za-z0-9_]*}' "$template" | tr -d '${}' | sort -u)
     if [ $# -ge 3 ]; then
         envsubst "$3" < "$template" | write_atomic "$output"
     else

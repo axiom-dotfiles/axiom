@@ -87,6 +87,7 @@ The screenshots show [two setups](#%EF%B8%8F-built-in-the-shell) of the same she
   - pending updates, and more
 
   Buttons can run their action on hover too.
+- Edge menus pop out of any screen edge, filled with the overlay's modules. A floating menu opens over your windows. An integrated one opens outside the screen border and bars, pushing them and your windows inwards. A Pin module keeps a menu open. Open one from a bar Button, its edge, or IPC. Each has its own padding, colours, hover timings and (integrated) a framed box along the whole edge, and a keybind can toggle one. Build them on the **Edge menu editor** page, where **Show on screen** keeps the menu open while you edit it.
 
 <details>
 <summary><b>Popouts</b></summary>
@@ -122,13 +123,13 @@ The screenshots show [two setups](#%EF%B8%8F-built-in-the-shell) of the same she
 - A full-screen overlay made of pages of cards. Each page is built from columns, each column from cells, and each cell holds modules.
 - 24 modules, including:
   - a media player, audio mixer, system graphs and top processes
-  - disks, updates, quick toggles, Bluetooth, network and Wi-Fi networks
+  - disks, updates, quick actions (toggles, power, pin), Bluetooth, network and Wi-Fi networks
   - weather, calendar, notes and favourites
   - screenshot, session controls, a workspace map and AI chat
 - Modules adapt to the shape of their slot (square, wide, tall or quarter).
 - Built-in pages:
   - **Settings**, generated from the config schema
-  - **Bar editor** and **Overlay editor** (see [Built in the shell](#%EF%B8%8F-built-in-the-shell))
+  - **Bar editor**, **Overlay editor** and **Edge menu editor** (see [Built in the shell](#%EF%B8%8F-built-in-the-shell))
   - **Themes**
   - **Keybinds**
 
@@ -204,12 +205,13 @@ The whole shell runs on four things. Everything else is optional and only needed
 | --- | --- |
 | Wallpapers | `awww` |
 | Theme generation | ImageMagick (`magick` or `convert`). The Python packages are installed into `.venv` automatically from `scripts/requirements.txt` |
-| Network widget / module, Wi-Fi menu | NetworkManager (`nmcli`), and Quickshell built with its Networking module |
+| Network widget / module, Wi-Fi menu | NetworkManager, Quickshell built with its Networking module, and `ip` (iproute2) |
 | Updates | `pacman-contrib` (`checkupdates`), plus `paru` or `yay` for AUR updates |
 | Tailscale | `tailscale` |
 | Screenshot module | `grim`, `slurp`, `wl-copy` |
 | AI chat | `curl`; `secret-tool` (libsecret) to keep keys in your keyring; `wl-clipboard`, `grim` and `slurp` for image attachments |
 | Launcher calculator | `qalc` (libqalculate), `wl-copy` |
+| Brightness (keys, OSD bar) | `brightnessctl` for a laptop panel; `ddcutil` for external monitors over DDC/CI (monitors that support it, with i2c access: the package's udev rule gives it to the logged-in user) |
 | NVIDIA GPU stats | `nvidia-smi` (AMD is read from sysfs) |
 | hyprlock mode | `hyprlock`, and `hypridle` to lock on idle |
 | Theme integrations | The app itself (`kitty`, `alacritty`, `foot`, `wezterm`, `ghostty`, `nvim`, `helix`/`hx`, VS Code or VSCodium, `k9s`, `cava`, `btop`, `fzf` 0.49+, `lazygit`, `bat`, `yazi` 25.5+); `qt5ct`/`qt6ct` for Qt; `adw-gtk-theme` for GTK3 apps |
@@ -303,6 +305,7 @@ qs -c axiom ipc call <target> <function>
 | Target | Functions |
 | --- | --- |
 | `overlay` | `open`, `close`, `toggle`, `page <type>` |
+| `edgeMenu` | `open <id>`, `close <id>`, `toggle <id>`, `pin <id>`, `unpin <id>`, `list` |
 | `appLauncher` | `open`, `close`, `toggle`, `search <text>` |
 | `powermenu` | `open`, `close`, `toggle` |
 | `workspaceOverlay` | `show`, `hide`, `toggle` |
@@ -372,7 +375,7 @@ In `none` mode axiom doesn't register the `lockscreen` target. Point hypridle at
 
 ## ⚙️ Configuration
 
-Everything is configured from inside the shell (see [Built in the shell](#%EF%B8%8F-built-in-the-shell)). Open the overlay, and use the **Settings**, **Bar editor**, **Overlay editor** and **Themes** pages.
+Everything is configured from inside the shell (see [Built in the shell](#%EF%B8%8F-built-in-the-shell)). Open the overlay, and use the **Settings**, **Bar editor**, **Overlay editor**, **Edge menu editor** and **Themes** pages.
 
 - Settings are saved to `config/user/config.json`. You never need to open it, but the shell watches that file and reloads when it changes, so editing it by hand also works.
 - Configs from older versions are migrated automatically.

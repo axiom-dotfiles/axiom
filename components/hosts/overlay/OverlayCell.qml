@@ -10,6 +10,10 @@ Item {
   // { layout, slots: { <slotName>: { type, properties } } }
   required property var cellConfig
   required property OverlayGrid grid
+  // Where the modules are shown (see OverlaySlot)
+  property var host: ({
+      "kind": "overlay"
+    })
 
   readonly property var layout: {
     const layout = OverlayConfig.layouts[root.cellConfig.layout];
@@ -36,6 +40,11 @@ Item {
 
   implicitWidth: root.grid.span(root.layout.cols)
   implicitHeight: root.grid.span(root.layout.rows)
+  // One half unit at the cell's real size: a fill cell (see
+  // OverlayConfig.columnFlow) is bigger than its layout, and its slots
+  // grow with it
+  readonly property real halfWidth: root.layout.cols > 0 ? (root.width - (root.layout.cols - 1) * OverlayConfig.cardSpacing) / root.layout.cols : 0
+  readonly property real halfHeight: root.layout.rows > 0 ? (root.height - (root.layout.rows - 1) * OverlayConfig.cardSpacing) / root.layout.rows : 0
 
   Repeater {
     model: Object.keys(root.layout.slots)
@@ -45,15 +54,16 @@ Item {
       required property string modelData
       readonly property var rect: root.layout.slots[slot.modelData]
 
-      x: slot.rect[0] * (root.grid.halfUnit + OverlayConfig.cardSpacing)
-      y: slot.rect[1] * (root.grid.halfUnit + OverlayConfig.cardSpacing)
-      width: root.grid.span(slot.rect[2])
-      height: root.grid.span(slot.rect[3])
+      x: slot.rect[0] * (root.halfWidth + OverlayConfig.cardSpacing)
+      y: slot.rect[1] * (root.halfHeight + OverlayConfig.cardSpacing)
+      width: slot.rect[2] * root.halfWidth + (slot.rect[2] - 1) * OverlayConfig.cardSpacing
+      height: slot.rect[3] * root.halfHeight + (slot.rect[3] - 1) * OverlayConfig.cardSpacing
       clip: true
 
       OverlaySlot {
         config: root.slots[slot.modelData]
         rect: slot.rect
+        host: root.host
       }
     }
   }

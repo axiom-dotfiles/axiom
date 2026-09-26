@@ -1,12 +1,13 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
+import Quickshell.Wayland
 import Quickshell.Hyprland
 
 import qs.services
 import qs.config
 // Imported (though loaded by URL) so qs scans the content types
-import qs.components.content
+import qs.components.content // qmllint disable unused-imports
 
 /**
  * Popout wrapper for bar widgets
@@ -22,9 +23,14 @@ PopoutWrapperBase {
   required property var barConfig
   required property QtObject panel
 
-  property alias popupWindow: mainPopup
+  // The window showing the popout: on a transparent bar, a layer surface
+  // of its own under the bar (a popup always draws over its parent), so a
+  // detached box slides out from beneath the bar rather than out of thin
+  // air at its invisible inner edge. Else a popup of the bar.
+  readonly property bool underBar: root.barConfig.background === "transparent"
+  readonly property var popupWindow: root.underBar ? underWindow : mainPopup
   // Content box in popupWindow coordinates (see AttachedSurface.boxRect)
-  readonly property rect boxRect: surface.boxRect
+  readonly property rect boxRect: Qt.rect(surface.x + surface.boxRect.x, surface.y + surface.boxRect.y, surface.boxRect.width, surface.boxRect.height)
 
   // The content-type name travels inside currentData.name (see
   // PopoutAnchor.qml) rather than as a separate argument, so this file
@@ -51,10 +57,10 @@ PopoutWrapperBase {
   // Content with a text field up asks for the keyboard (Panel's
   // wantsKeyboardFocus): a focus grab over the popout and its bar, which a
   // click outside clears (the content's focusLost())
-  readonly property bool wantsKeyboardFocus: mainPopup.visible && (root.currentItem?.wantsKeyboardFocus ?? false)
+  readonly property bool wantsKeyboardFocus: root.popupWindow.visible && (root.currentItem?.wantsKeyboardFocus ?? false)
 
   HyprlandFocusGrab {
-    windows: [mainPopup, root.panel]
+    windows: [root.popupWindow, root.panel]
     active: root.wantsKeyboardFocus
     onCleared: root.currentItem?.focusLost?.()
   }
@@ -184,6 +190,18 @@ PopoutWrapperBase {
   readonly property real notchInset: Appearance.borderWidth + 1
   // The bar window's thickness (more than the bar's extent with pills)
   readonly property real panelThickness: root.panel?.thickness ?? root.barConfig.extent
+  // Where the under-bar window starts, from the bar's outer edge: past the
+  // border stroke a floating bar's outer edge lies on
+  readonly property real underStart: root.barConfig.floating ? Appearance.borderWidth : 0
+  // Where the windows start, from the bar's outer edge: past its reserved
+  // space, or, reserving none, past the border (see FloatingEdgeMenu)
+  readonly property real barReach: {
+    const zone = root.panel?.reservedZone ?? 0;
+    return zone > 0 || !root.barConfig.floating ? zone : Appearance.borderWidth;
+  }
+  // Where the surface starts, from the bar's outer edge: a detached box's
+  // reaches back to the under-bar window's edge, to slide in from there
+  readonly property real surfaceFrom: surface.detached ? root.underStart : root.attachAt
 
   Connections {
     target: root.layoutSource
@@ -209,16 +227,21 @@ PopoutWrapperBase {
       currentData.anchorItem.popoutOpen = false;
     }
     ShellManager.unregisterGrabPartner(mainPopup);
+    ShellManager.unregisterGrabPartner(underWindow);
   }
 
   // The overlay's focus grab lets input through to the popout (see
   // ShellManager.grabPartners)
-  Component.onCompleted: ShellManager.registerGrabPartner(mainPopup, root.screen?.name)
-  onScreenChanged: ShellManager.registerGrabPartner(mainPopup, root.screen?.name)
+  function _registerGrabPartners() {
+    ShellManager.registerGrabPartner(mainPopup, root.screen?.name);
+    ShellManager.registerGrabPartner(underWindow, root.screen?.name);
+  }
+  Component.onCompleted: _registerGrabPartners()
+  onScreenChanged: _registerGrabPartners()
 
   PopupWindow {
     id: mainPopup
-    visible: root.occupied && loader.status === Loader.Ready
+    visible: !root.underBar && root.occupied && loader.status === Loader.Ready
     color: "transparent"
 
     // Content dimensions
@@ -237,7 +260,10 @@ PopoutWrapperBase {
       return mapped > 0 ? mapped : (root.barConfig.vertical ? root.screen.height : root.screen.width);
     }
     readonly property real frameWidth: Appearance.screenBorder ? Appearance.screenMargin : 0
-    readonly property real borderInset: frameWidth - ((root.barConfig.vertical ? root.screen.height : root.screen.width) - panelLength) / 2
+    // Integrated edge menus on the perpendicular edges sit outside
+    // everything else, taking their space off one end only
+    readonly property real menuZones: root.barConfig.vertical ? EdgeMenuManager.zoneOn(root.screen?.name, "top") + EdgeMenuManager.zoneOn(root.screen?.name, "bottom") : EdgeMenuManager.zoneOn(root.screen?.name, "left") + EdgeMenuManager.zoneOn(root.screen?.name, "right")
+    readonly property real borderInset: frameWidth - ((root.barConfig.vertical ? root.screen.height : root.screen.width) - panelLength - menuZones) / 2
     readonly property real minAlong: borderInset + Appearance.screenMargin
     readonly property real maxAlong: panelLength - borderInset - Appearance.screenMargin
     // Outer edges of the perpendicular border strokes (the screen edges
@@ -295,6 +321,39 @@ PopoutWrapperBase {
       return root.panelThickness - near - (root.barConfig.vertical ? surface.boxWidth : surface.boxHeight);
     }
 
+    // Where the surface sits, in bar-window coordinates
+    readonly property real barX: {
+      if (!root.currentData)
+        return 0;
+      if (mainPopup.cornerAttach)
+        return root.barConfig.vertical ? mainPopup.boxAcross - surface.startMargin : (mainPopup.joinStart ? mainPopup.strokeStart : mainPopup.strokeEnd - mainPopup.implicitWidth);
+
+      if (root.barConfig.left) {
+        return root.surfaceFrom;
+      } else if (root.barConfig.right) {
+        // Mirror of the left case: measured from the bar's outer edge,
+        // not relative to the anchor (tray icons are narrower than modules)
+        return root.panelThickness - root.surfaceFrom - mainPopup.implicitWidth;
+      } else {
+        return mainPopup.alongPos;
+      }
+    }
+
+    readonly property real barY: {
+      if (!root.currentData)
+        return 0;
+      if (mainPopup.cornerAttach)
+        return root.barConfig.vertical ? (mainPopup.joinStart ? mainPopup.strokeStart : mainPopup.strokeEnd - mainPopup.implicitHeight) : mainPopup.boxAcross - surface.startMargin;
+
+      if (root.barConfig.top) {
+        return root.surfaceFrom;
+      } else if (root.barConfig.bottom) {
+        return root.panelThickness - root.surfaceFrom - mainPopup.implicitHeight;
+      } else {
+        return mainPopup.alongPos;
+      }
+    }
+
     // The merged pills stay hoverable and clickable through the notches
     mask: Region {
       item: surface
@@ -314,124 +373,158 @@ PopoutWrapperBase {
       adjustment: PopupAdjustment.None
 
       rect {
-        x: {
-          if (!root.currentData)
-            return 0;
-          if (mainPopup.cornerAttach)
-            return root.barConfig.vertical ? mainPopup.boxAcross - surface.startMargin : (mainPopup.joinStart ? mainPopup.strokeStart : mainPopup.strokeEnd - mainPopup.implicitWidth);
-
-          if (root.barConfig.left) {
-            return root.attachAt;
-          } else if (root.barConfig.right) {
-            // Mirror of the left case: measured from the bar's outer edge,
-            // not relative to the anchor (tray icons are narrower than modules)
-            return root.panelThickness - root.attachAt - mainPopup.implicitWidth;
-          } else {
-            return mainPopup.alongPos;
-          }
-        }
-
-        y: {
-          if (!root.currentData)
-            return 0;
-          if (mainPopup.cornerAttach)
-            return root.barConfig.vertical ? (mainPopup.joinStart ? mainPopup.strokeStart : mainPopup.strokeEnd - mainPopup.implicitHeight) : mainPopup.boxAcross - surface.startMargin;
-
-          if (root.barConfig.top) {
-            return root.attachAt;
-          } else if (root.barConfig.bottom) {
-            return root.panelThickness - root.attachAt - mainPopup.implicitHeight;
-          } else {
-            return mainPopup.alongPos;
-          }
-        }
-
+        x: mainPopup.barX
+        y: mainPopup.barY
         width: 1
         height: 1
       }
     }
+  }
 
-    AttachedSurface {
-      id: surface
-      anchors.fill: parent
+  PanelWindow {
+    id: underWindow
+    screen: root.screen
+    visible: root.underBar && root.occupied && loader.status === Loader.Ready
+    color: "transparent"
 
-      edge: mainPopup.surfaceEdge
-      active: root.occupied && !root.isClosing
-      connectorGap: root.connectorGap
-      boxWidth: mainPopup.contentWidth + contentInset * 2 + (root.barConfig.vertical ? root.pillClearance : 0)
-      boxHeight: mainPopup.contentHeight + contentInset * 2 + (root.barConfig.vertical ? 0 : root.pillClearance)
+    // On the bar's layer, ordered under it (HyprlandManager's layer rules).
+    // Normal exclusion with no zone of its own places it where the windows
+    // start; the margin takes it back to the bar's outer edge, past the
+    // border stroke, and along the bar it spans what the bar does.
+    WlrLayershell.layer: root.barConfig.floating ? WlrLayer.Overlay : WlrLayer.Top
+    WlrLayershell.namespace: "axiom-popout-under"
+    WlrLayershell.keyboardFocus: root.wantsKeyboardFocus ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
+    exclusionMode: ExclusionMode.Normal
+    exclusiveZone: 0
 
-      // A transparent bar has nothing to join onto (see cornerAttach)
-      detached: mainPopup.detached && !mainPopup.cornerAttach
-      joinStart: !mainPopup.cornerAttach && mainPopup.joinStart
-      joinEnd: !mainPopup.cornerAttach && mainPopup.joinEnd
-      // Without the border, a popout merged around a pill runs straight off
-      // the screen edge, and one pushed to an end straight off that one
-      straight: (root.mergeWithPill || mainPopup.cornerAttach) && !Appearance.screenBorder
-      straightJoins: !Appearance.screenBorder
-      startFoot: root.startFoot
-      endFoot: root.endFoot
+    anchors {
+      top: root.barConfig.top || root.barConfig.vertical
+      bottom: root.barConfig.bottom || root.barConfig.vertical
+      left: root.barConfig.left || !root.barConfig.vertical
+      right: root.barConfig.right || !root.barConfig.vertical
+    }
 
-      // The pills' interiors, left showing; the popout covers their
-      // strokes where they overlap, so they read as one shape
-      notches: root.mergedPills.map(p => {
-        const from = p.start + (p.joinStart ? 0 : root.notchInset);
-        const to = p.start + p.length - (p.joinEnd ? 0 : root.notchInset);
-        return {
-          "start": from - mainPopup.alongPos,
-          "length": Math.max(0, to - from),
-          "roundStart": !p.joinStart && from > mainPopup.alongPos,
-          "roundEnd": !p.joinEnd && to < mainPopup.alongPos + implicitLength
-        };
-      })
-      notchDepth: root.pillFoot - 1
-      readonly property real implicitLength: root.barConfig.vertical ? implicitHeight : implicitWidth
+    readonly property real attachMargin: root.underStart - root.barReach
+    readonly property real endMargin: root.barConfig.floating ? -Appearance.borderWidth : 0
+    margins {
+      top: root.barConfig.top ? underWindow.attachMargin : underWindow.endMargin
+      bottom: root.barConfig.bottom ? underWindow.attachMargin : underWindow.endMargin
+      left: root.barConfig.left ? underWindow.attachMargin : underWindow.endMargin
+      right: root.barConfig.right ? underWindow.attachMargin : underWindow.endMargin
+    }
 
-      Variants {
-        id: notchRegions
-        model: surface.notchRects
+    // Deep enough for the box and its connector gaps either side, whether
+    // it's detached or joins a perpendicular edge
+    readonly property real depth: root.attachAt - root.underStart + root.connectorGap * 2 + (root.barConfig.vertical ? surface.boxWidth : surface.boxHeight)
+    implicitWidth: root.barConfig.vertical ? depth : 0
+    implicitHeight: root.barConfig.vertical ? 0 : depth
 
-        Region {
-          required property rect modelData
-          intersection: Intersection.Subtract
-          x: modelData.x
-          y: modelData.y
-          width: modelData.width
-          height: modelData.height
-        }
+    // Bar-window coordinates to this window's: along the bar, the two are
+    // taken as centred on each other (as BarPopouts.borderInset does);
+    // across it, measured from the bar's outer edge
+    readonly property real shift: {
+      const length = root.barConfig.vertical ? height : width;
+      return length > 0 ? (mainPopup.panelLength - length) / 2 : 0;
+    }
+    readonly property real acrossShift: root.barConfig.left || root.barConfig.top ? -root.underStart : depth - root.panelThickness + root.underStart
+    readonly property real surfaceX: mainPopup.barX - (root.barConfig.vertical ? -acrossShift : shift)
+    readonly property real surfaceY: mainPopup.barY - (root.barConfig.vertical ? shift : -acrossShift)
+
+    // Only the box takes input: the bar above it keeps its own
+    mask: Region {
+      x: root.boxRect.x
+      y: root.boxRect.y
+      width: root.boxRect.width
+      height: root.boxRect.height
+    }
+  }
+
+  AttachedSurface {
+    id: surface
+    // In whichever window shows the popout
+    parent: root.underBar ? underWindow.contentItem : mainPopup.contentItem
+    x: root.underBar ? underWindow.surfaceX : 0
+    y: root.underBar ? underWindow.surfaceY : 0
+    width: implicitWidth
+    height: implicitHeight
+
+    edge: mainPopup.surfaceEdge
+    active: root.occupied && !root.isClosing
+    connectorGap: root.connectorGap
+    boxWidth: mainPopup.contentWidth + contentInset * 2 + (root.barConfig.vertical ? root.pillClearance : 0)
+    boxHeight: mainPopup.contentHeight + contentInset * 2 + (root.barConfig.vertical ? 0 : root.pillClearance)
+
+    // A transparent bar has nothing to join onto (see cornerAttach)
+    detached: mainPopup.detached && !mainPopup.cornerAttach
+    detachedOffset: root.attachAt - root.underStart
+    joinStart: !mainPopup.cornerAttach && mainPopup.joinStart
+    joinEnd: !mainPopup.cornerAttach && mainPopup.joinEnd
+    // Without the border, a popout merged around a pill runs straight off
+    // the screen edge, and one pushed to an end straight off that one
+    straight: (root.mergeWithPill || mainPopup.cornerAttach) && !Appearance.screenBorder
+    straightJoins: !Appearance.screenBorder
+    startFoot: root.startFoot
+    endFoot: root.endFoot
+
+    // The pills' interiors, left showing; the popout covers their
+    // strokes where they overlap, so they read as one shape
+    notches: root.mergedPills.map(p => {
+      const from = p.start + (p.joinStart ? 0 : root.notchInset);
+      const to = p.start + p.length - (p.joinEnd ? 0 : root.notchInset);
+      return {
+        "start": from - mainPopup.alongPos,
+        "length": Math.max(0, to - from),
+        "roundStart": !p.joinStart && from > mainPopup.alongPos,
+        "roundEnd": !p.joinEnd && to < mainPopup.alongPos + implicitLength
+      };
+    })
+    notchDepth: root.pillFoot - 1
+    readonly property real implicitLength: root.barConfig.vertical ? implicitHeight : implicitWidth
+
+    Variants {
+      id: notchRegions
+      model: surface.notchRects
+
+      Region {
+        required property rect modelData
+        intersection: Intersection.Subtract
+        x: modelData.x
+        y: modelData.y
+        width: modelData.width
+        height: modelData.height
       }
+    }
 
-      Loader {
-        id: loader
-        anchors.fill: parent
-        anchors.margins: surface.contentInset
-        // Merged around a pill, the content starts past it
-        anchors.leftMargin: surface.contentInset + (root.barConfig.left ? root.pillClearance : 0)
-        anchors.rightMargin: surface.contentInset + (root.barConfig.right ? root.pillClearance : 0)
-        anchors.topMargin: surface.contentInset + (root.barConfig.top ? root.pillClearance : 0)
-        anchors.bottomMargin: surface.contentInset + (root.barConfig.bottom ? root.pillClearance : 0)
+    Loader {
+      id: loader
+      anchors.fill: parent
+      anchors.margins: surface.contentInset
+      // Merged around a pill, the content starts past it
+      anchors.leftMargin: surface.contentInset + (root.barConfig.left ? root.pillClearance : 0)
+      anchors.rightMargin: surface.contentInset + (root.barConfig.right ? root.pillClearance : 0)
+      anchors.topMargin: surface.contentInset + (root.barConfig.top ? root.pillClearance : 0)
+      anchors.bottomMargin: surface.contentInset + (root.barConfig.bottom ? root.pillClearance : 0)
 
-        active: root.occupied
-        asynchronous: false
+      active: root.occupied
+      asynchronous: false
 
-        onActiveChanged: root._loadContent()
+      onActiveChanged: root._loadContent()
 
-        onLoaded: {
-          if (item) {
-            if (root.currentData) {
-              for (let key in root.currentData) {
-                if (item.hasOwnProperty(key)) {
-                  // Content may derive one itself (readonly, e.g.
-                  // WorkspaceGrid's monitor): skip it rather than abort
-                  try {
-                    item[key] = root.currentData[key];
-                  } catch (e) {}
-                }
+      onLoaded: {
+        if (item) {
+          if (root.currentData) {
+            for (let key in root.currentData) {
+              if (item.hasOwnProperty(key)) {
+                // Content may derive one itself (readonly, e.g.
+                // WorkspaceGrid's monitor): skip it rather than abort
+                try {
+                  item[key] = root.currentData[key];
+                } catch (e) {}
               }
             }
           }
-          root.updateDismissTimer();
         }
+        root.updateDismissTimer();
       }
     }
   }

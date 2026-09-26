@@ -1,0 +1,48 @@
+{
+  "Widget": { "height": 26 },
+  "General": { "monitors": "all" },
+  "Appearance": { "autoThemeSwitch": true },
+  "Popouts": { "workspaceIcons": true },
+  "OSD": { "apps": [{ "app": "spotify", "icon": "music_note", "showOsd": false }, { "app": "other", "icon": "", "showOsd": true }, { "app": "master" }] },
+  "Bars": [
+    {
+      "id": "main",
+      "extent": 34,
+      "widgets": {
+        "left": [
+          { "type": "Workspaces", "properties": { "iconColor": "base0D" } },
+          { "type": "Button", "properties": { "icon": "\udb82\udcc7" } }
+        ],
+        "right": [{ "type": "Network", "properties": { "interval": 5000, "showName": true } }, { "type": "Time" }]
+      }
+    }
+  ],
+  "Overlay": {
+    "views": [
+      {
+        "type": "Custom",
+        "columns": [
+          { "cells": [{ "layout": "Single", "slots": { "main": { "type": "Settings" } } }] }
+        ]
+      },
+      {
+        "type": "Custom",
+        "columns": [
+          {
+            "cells": [
+              { "layout": "Single", "slots": { "main": { "type": "QuickToggles" } } },
+              { "layout": "Single", "slots": { "main": { "type": "Session", "properties": { "actions": ["lock", "reboot"] } } } }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "Chat": {
+    "enabled": true,
+    "defaultBackend": "anthropic",
+    "backends": {
+      "anthropic": { "defaultModel": "claude-sonnet-4-20250514", "models": ["claude-sonnet-4-20250514", "my-own-model"] }
+    }
+  }
+}

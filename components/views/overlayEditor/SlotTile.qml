@@ -1,7 +1,6 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import qs.config
-import qs.services
 import qs.components.methods
 import qs.components.reusable
 
@@ -24,13 +23,13 @@ Rectangle {
 
   readonly property string targetKind: "slot"
   readonly property string type: root.module?.type ?? ""
-  readonly property bool selected: OverlayManager.isSelected(root.column, root.cell, root.slot)
+  readonly property bool selected: root.dragLayer.editor.isSelected(root.column, root.cell, root.slot)
   // The configured module doesn't fit this slot's shape (blocks Save)
   readonly property bool misfit: root.type !== "" && !OverlayConfig.fits(root.type, root.rect)
   readonly property bool carried: root.dragLayer.draggingKind === "module-move" && root.dragLayer.dragging.column === root.column && root.dragLayer.dragging.cell === root.cell && root.dragLayer.dragging.slot === root.slot
   readonly property bool hovered: root.dragLayer.hoverTarget === root
   // While a module is carried: whether it could land here
-  readonly property bool takesCarried: root.dragLayer.carryingModule && (root.dragLayer.draggingKind === "module-add" ? OverlayConfig.fits(root.dragLayer.dragging.type, root.rect) : OverlayManager.canMoveModule(root.dragLayer.dragging, {
+  readonly property bool takesCarried: root.dragLayer.carryingModule && (root.dragLayer.draggingKind === "module-add" ? OverlayConfig.fits(root.dragLayer.dragging.type, root.rect) : root.dragLayer.editor.canMoveModule(root.dragLayer.dragging, {
       "column": root.column,
       "cell": root.cell,
       "slot": root.slot
@@ -134,6 +133,6 @@ Rectangle {
     onDragMoved: (x, y) => root.dragLayer.move(area, x, y)
     onDropped: root.dragLayer.end()
     onDragCanceled: root.dragLayer.cancel()
-    onTapped: OverlayManager.select(root.column, root.cell, root.slot)
+    onTapped: root.dragLayer.editor.select(root.column, root.cell, root.slot)
   }
 }

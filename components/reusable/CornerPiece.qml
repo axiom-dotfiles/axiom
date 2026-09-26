@@ -50,15 +50,29 @@ Item {
       startX: root.px(0)
       startY: root.py(0)
 
-      PathLine { x: root.px(root.half + root.arcRadius); y: root.py(0) }
-      PathLine { x: root.px(root.half + root.arcRadius); y: root.py(root.half) }
+      PathLine {
+        x: root.px(root.half + root.arcRadius)
+        y: root.py(0)
+      }
+      PathLine {
+        x: root.px(root.half + root.arcRadius)
+        y: root.py(root.half)
+      }
       PathArc {
-        x: root.px(root.half); y: root.py(root.half + root.arcRadius)
-        radiusX: root.arcRadius; radiusY: root.arcRadius
+        x: root.px(root.half)
+        y: root.py(root.half + root.arcRadius)
+        radiusX: root.arcRadius
+        radiusY: root.arcRadius
         direction: root.sweep
       }
-      PathLine { x: root.px(0); y: root.py(root.half + root.arcRadius) }
-      PathLine { x: root.px(0); y: root.py(0) }
+      PathLine {
+        x: root.px(0)
+        y: root.py(root.half + root.arcRadius)
+      }
+      PathLine {
+        x: root.px(0)
+        y: root.py(0)
+      }
     }
 
     // --- STROKE ---
@@ -72,13 +86,21 @@ Item {
       startX: root.px(root.width)
       startY: root.py(root.half)
 
-      PathLine { x: root.px(root.half + root.arcRadius); y: root.py(root.half) }
+      PathLine {
+        x: root.px(root.half + root.arcRadius)
+        y: root.py(root.half)
+      }
       PathArc {
-        x: root.px(root.half); y: root.py(root.half + root.arcRadius)
-        radiusX: root.arcRadius; radiusY: root.arcRadius
+        x: root.px(root.half)
+        y: root.py(root.half + root.arcRadius)
+        radiusX: root.arcRadius
+        radiusY: root.arcRadius
         direction: root.sweep
       }
-      PathLine { x: root.px(root.half); y: root.py(root.height) }
+      PathLine {
+        x: root.px(root.half)
+        y: root.py(root.height)
+      }
     }
   }
 }

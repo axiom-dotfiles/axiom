@@ -16,6 +16,6 @@ require_cmds jq envsubst
 OUTPUT_FILE="${2:-$HOME/.config/k9s/skins/axiom.yaml}"
 load_theme "$1"
 export_theme_colors
-map_vars quote_color $(theme_color_vars)
+map_theme_colors quote_color
 render_template "$SCRIPT_DIR/templates/k9s_template.yaml" "$OUTPUT_FILE"
 [ $# -ge 2 ] || old_output_notice "$HOME/.config/k9s/skins/wal-generated.yaml" "$OUTPUT_FILE"

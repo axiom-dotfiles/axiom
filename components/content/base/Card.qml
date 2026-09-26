@@ -12,6 +12,10 @@ Rectangle {
   property bool embedded: true
   // The slot this module fills, in half-card units: [col, row, colSpan, rowSpan]
   property var slotRect: [0, 0, 2, 2]
+  // Where the card is shown: { kind: "overlay" } or { kind: "edgeMenu", id }
+  property var host: ({
+      "kind": "overlay"
+    })
 
   readonly property int cols: slotRect[2]
   readonly property int rows: slotRect[3]

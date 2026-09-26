@@ -26,9 +26,10 @@ import re
 import sys
 from pathlib import Path
 
+from qml_modules import qml_files
+
 ROOT = Path(__file__).resolve().parent.parent
 SCHEMA = ROOT / "config" / "json" / "config.schema.json"
-QML_DIRS = ["components", "shell", "services", "config"]
 
 # (schema oneOf definition, directory its types load from, import that must
 # exist somewhere so qs scans that directory)
@@ -45,13 +46,6 @@ POPOUT_IMPORT = "qs.components.content"
 RETIRED = ["components/widgets", "components/stolen"]
 
 errors, warnings = [], []
-
-
-def qml_files():
-    files = [ROOT / "shell.qml"]
-    for d in QML_DIRS:
-        files.extend((ROOT / d).rglob("*.qml"))
-    return files
 
 
 def rel(path):

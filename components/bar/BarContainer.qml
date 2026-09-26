@@ -82,6 +82,18 @@ Rectangle {
   // One pill stretched past its ends to carry an open popout's fillets,
   // { index, start, end } (set by BarPopouts; pillRects stays unstretched)
   property var pillStretch: null
+  // The same for a floating edge menu standing on a pill
+  property var edgeMenuStretch: null
+  // Both stretches on pill `index`, as one { start, end }, or null
+  function stretchFor(index) {
+    const stretches = [root.pillStretch, root.edgeMenuStretch].filter(s => s?.index === index);
+    if (stretches.length === 0)
+      return null;
+    return {
+      "start": Math.min(...stretches.map(s => s.start)),
+      "end": Math.max(...stretches.map(s => s.end))
+    };
+  }
 
   readonly property var _groups: [leftGroup, leftCenterGroup, centerGroup, rightCenterGroup, rightGroup]
   // Per section, the model indices hidden so the minimum sizes fit
@@ -301,7 +313,7 @@ Rectangle {
         "joinStart": false,
         "joinEnd": false
       }
-      readonly property var stretch: root.pillStretch?.index === index ? root.pillStretch : null
+      readonly property var stretch: root.stretchFor(index)
       readonly property var span: stretch ? {
         "start": stretch.start,
         "length": stretch.end - stretch.start,

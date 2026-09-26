@@ -16,6 +16,9 @@ Card {
   property alias canSave: header.canSave
   // Fixed content between the divider and the scrolling body
   property alias headerExtras: extras.data
+  // Hides the extras with their space (hiding only what's inside can
+  // leave the column its old height)
+  property bool showExtras: true
   property alias contentSpacing: body.spacing
   default property alias content: body.data
 
@@ -44,11 +47,14 @@ Card {
       opacity: 0.3
     }
 
+    // Not fillHeight (a layout's default): with its children all hidden it
+    // has no maximum, and would take spare height from the body
     ColumnLayout {
       id: extras
       Layout.fillWidth: true
-      Layout.bottomMargin: children.length > 0 ? Widget.spacing / 2 : 0
-      visible: children.length > 0
+      Layout.fillHeight: false
+      Layout.bottomMargin: Widget.spacing / 2
+      visible: root.showExtras && children.length > 0
       spacing: Widget.spacing
     }
 

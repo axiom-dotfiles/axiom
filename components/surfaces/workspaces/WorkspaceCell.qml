@@ -2,7 +2,6 @@ import QtQuick
 import QtQuick.Effects
 
 import qs.config
-import qs.components.reusable
 
 // One workspace on the overview board: a miniature desktop (the monitor's
 // wallpaper, or a plain color). Its number is a WorkspaceNumber, drawn above

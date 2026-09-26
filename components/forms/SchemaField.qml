@@ -1,7 +1,6 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
-import Quickshell
 
 import qs.config
 import qs.services
@@ -33,6 +32,11 @@ Loader {
     if (fieldSchema["x-options"] === "languages")
       return I18n.languages.reduce((labels, l) => {
         labels[l.code] = l.name;
+        return labels;
+      }, {});
+    if (fieldSchema["x-options"] === "edgeMenus")
+      return EdgeMenusConfig.menus.reduce((labels, menu) => {
+        labels[menu.id] = menu.name || menu.id;
         return labels;
       }, {});
     // Schema labels are English, translated like titles
@@ -162,6 +166,7 @@ Loader {
     SchemaObjectArray {
       label: root.label
       description: root.description
+      headerInset: root.headerInset
       items: root.current ?? []
       itemDelegate: Component {
         SchemaArrayItem {

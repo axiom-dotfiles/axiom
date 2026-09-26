@@ -16,7 +16,7 @@ import qs.components.content.parts
 Panel {
   id: root
 
-  readonly property var info: SystemManager.netInfo
+  readonly property var info: NetworkingManager.netInfo
   readonly property var networks: NetworkingManager.networks
   readonly property bool radioOn: NetworkingManager.wifiEnabled && NetworkingManager.available
   readonly property string offMessage: I18n.tr(!NetworkingManager.available ? "No Wi-Fi adapter found" : NetworkingManager.hardwareBlocked ? "Wi-Fi is blocked (rfkill)" : "Wi-Fi is off")
@@ -45,6 +45,7 @@ Panel {
 
   Component.onCompleted: {
     NetworkingManager.acquireScan(root);
+    NetworkingManager.refreshIp();
     SystemManager.acquire(root, {
       "metrics": ["net"],
       "interval": 2000

@@ -2,12 +2,10 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import qs.config
-import qs.services
 import qs.components.reusable
 import qs.components.content.base
 
-// i18n: keys from the schema (view labels)
-// The selected page as it will look: its columns side by side, each
+// The edited page (or edge menu) as it will look: its columns side by side, each
 // flowing its cells, drawn at the scale that fits. Geometry is scaled by
 // hand (not Item.scale) so text and controls stay crisp. Gaps between
 // the columns take drops that make a new column.
@@ -15,10 +13,15 @@ Card {
   id: root
 
   required property var dragLayer
+  // The columns being edited, or null when there's nothing to edit (then
+  // `emptyText` shows under the icon)
+  required property var editColumns
+  property string title: ""
+  property string icon: "view_quilt"
+  property string emptyText: ""
 
-  readonly property var view: OverlayManager.selectedView()
-  readonly property bool isCustom: root.view?.type === "Custom"
-  readonly property var columns: root.isCustom ? (root.view.columns ?? []) : []
+  readonly property bool isCustom: root.editColumns !== null && root.editColumns !== undefined
+  readonly property var columns: root.isCustom ? root.editColumns : []
 
   readonly property real gapWidth: Math.max(Widget.spacing * 2, 20)
   // The end "add a column" box, and the space between it and the last column
@@ -53,13 +56,13 @@ Card {
       spacing: Widget.spacing
 
       StyledIcon {
-        text: root.view ? OverlayConfig.viewIcon(root.view.type) : ""
+        text: root.icon
         textColor: Theme.accent
         textSize: Appearance.fontSize + 6
       }
 
       StyledText {
-        text: !root.view ? I18n.tr("No pages") : root.isCustom ? (root.view.name || I18n.tr("Page {0}", OverlayManager.selectedViewIndex + 1)) : I18n.tr(OverlayConfig.viewInfo(root.view.type)?.label ?? root.view.type)
+        text: root.title
         textSize: Appearance.fontSize + 4
         font.bold: true
         elide: Text.ElideRight
@@ -96,10 +99,10 @@ Card {
       // Clicking the background drops the selection
       MouseArea {
         anchors.fill: parent
-        onClicked: OverlayManager.clearSelection()
+        onClicked: root.dragLayer.editor.clearSelection()
       }
 
-      // A fixed page, or none at all
+      // Nothing to edit: a fixed page, or none at all
       Column {
         anchors.centerIn: parent
         width: Math.min(parent.width, Appearance.fontSize * 30)
@@ -109,7 +112,7 @@ Card {
         StyledIcon {
           width: parent.width
           horizontalAlignment: Text.AlignHCenter
-          text: root.view ? OverlayConfig.viewIcon(root.view.type) : "view_quilt"
+          text: root.icon
           textColor: Theme.accent
           textSize: Appearance.fontSize * 4
           opacity: 0.8
@@ -118,7 +121,7 @@ Card {
           width: parent.width
           horizontalAlignment: Text.AlignHCenter
           wrapMode: Text.WordWrap
-          text: I18n.tr(root.view ? "A fixed page: it has no layout to edit. Drag it in the page list to reorder it." : "No pages yet: add one with New page.")
+          text: root.emptyText
           opacity: 0.7
         }
       }
