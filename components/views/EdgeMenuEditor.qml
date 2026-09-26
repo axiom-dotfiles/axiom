@@ -5,8 +5,7 @@ import qs.services
 import qs.components.views.overlayEditor
 import qs.components.views.edgeMenuEditor
 
-// The edge menu editor: pinned after the overlay editor (by OverlayPages;
-// not part of config). The menus and the selected one's settings on the
+// The edge menu editor, the EdgeMenuEditor view type. The menus and the selected one's settings on the
 // left; its modules drawn on the overlay editor's canvas (drag modules,
 // cells and columns around) above what's selected there, or the library.
 // Edits go through EdgeMenuManager's draft and show live on the running

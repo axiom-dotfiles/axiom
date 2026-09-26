@@ -110,10 +110,10 @@ Item {
     return result;
   }
 
-  // Pages the category links to: the pinned editors always exist, others
-  // only while they're in Overlay.views
+  // Pages the category links to: the pinned overlay editor always exists,
+  // others only while they're in Overlay.views
   function _linkAvailable(type) {
-    return type === "OverlayEditor" || type === "EdgeMenuEditor" || OverlayConfig.views.some(view => view.type === type && view.visible !== false);
+    return type === "OverlayEditor" || OverlayConfig.views.some(view => view.type === type && view.visible !== false);
   }
 
   function _linkLabel(type) {

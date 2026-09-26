@@ -23,19 +23,14 @@ Item {
   readonly property string _viewsKey: JSON.stringify(viewsConfig)
   property var viewsModel: buildViewsModel(JSON.parse(_viewsKey))
   property int currentIndex: 0
-  // The configured views, then the pages that aren't in config: the
-  // overlay editor and the edge menu editor, always last and can't be
-  // removed. Labels: I18n.tr("Overlay editor") I18n.tr("Edge menu editor")
+  // The configured views, then the page that isn't in config: the
+  // overlay editor, always last and can't be removed.
+  // Labels: I18n.tr("Overlay editor")
   readonly property var pinnedPages: [
     {
       "type": "OverlayEditor",
       "icon": "view_quilt",
       "label": "Overlay editor"
-    },
-    {
-      "type": "EdgeMenuEditor",
-      "icon": "dock_to_right",
-      "label": "Edge menu editor"
     }
   ]
   readonly property int editorIndex: viewsModel.length
@@ -50,7 +45,7 @@ Item {
       })))
   // itemAt() isn't a notifying read: `count` makes this re-evaluate once
   // the Repeater has created its pages (on launch they don't exist yet)
-  readonly property Item currentPage: wrapper.currentIndex >= wrapper.editorIndex ? [editorPage, edgeMenuEditorPage][wrapper.currentIndex - wrapper.editorIndex] ?? null : (viewsRepeater.count > wrapper.currentIndex ? viewsRepeater.itemAt(wrapper.currentIndex) : null)
+  readonly property Item currentPage: wrapper.currentIndex >= wrapper.editorIndex ? editorPage : (viewsRepeater.count > wrapper.currentIndex ? viewsRepeater.itemAt(wrapper.currentIndex) : null)
 
   // A new launch opens on the first page; closing and re-opening keeps the
   // page (this wrapper lives as long as the overlay window). The views
@@ -199,19 +194,6 @@ Item {
           loaded: wrapper.isLoaded(wrapper.editorIndex)
 
           OverlayEditor {
-            anchors.centerIn: parent
-            screen: wrapper.screen
-            grid: wrapper.grid
-          }
-        }
-
-        OverlayPage {
-          id: edgeMenuEditorPage
-          pageIndex: wrapper.editorIndex + 1
-          currentIndex: wrapper.currentIndex
-          loaded: wrapper.isLoaded(wrapper.editorIndex + 1)
-
-          EdgeMenuEditor {
             anchors.centerIn: parent
             screen: wrapper.screen
             grid: wrapper.grid

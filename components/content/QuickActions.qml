@@ -8,9 +8,12 @@ import qs.components.content.parts
 import qs.components.reusable
 import qs.components.content.base
 
-// A grid of toggle tiles. Toggles whose tool isn't installed (night light:
-// hyprsunset/wlsunset, power saver: powerprofilesctl) are hidden.
-// properties: { toggles: ["wifi", "bluetooth", "caffeine", "dnd", "darkMode", "nightLight", "powerSaver"] }
+// A grid of action tiles: toggles, session actions and pin, in any mix.
+// Tiles that can't work here are hidden: night light (hyprsunset/wlsunset)
+// and power saver (powerprofilesctl) without their tool, pin outside an
+// edge menu. Log out, reboot and power off ask for a second click.
+// properties: { actions: ["wifi", "bluetooth", "caffeine", "dnd", "darkMode", "nightLight", "powerSaver",
+//                         "lock", "suspend", "hibernate", "logout", "reboot", "poweroff", "pin"] }
 Card {
   id: root
 
@@ -19,59 +22,102 @@ Card {
   property bool hasPowerProfiles: false
   property bool nightLightOn: false
   property string powerProfile: ""
+  property string armed: ""
+
+  readonly property bool inMenu: root.host?.kind === "edgeMenu" && !!root.host.id
+  readonly property bool pinned: root.inMenu && EdgeMenuManager.pinnedMenus[root.host.id] === true
+
+  readonly property var sessionActions: ["lock", "suspend", "hibernate", "logout", "reboot", "poweroff"]
 
   readonly property var defs: ({
       "wifi": {
         "icon": NetworkingManager.wifiEnabled ? "wifi" : "wifi_off",
         "label": I18n.tr("Wi-Fi"),
-        "active": NetworkingManager.wifiEnabled,
-        "available": NetworkingManager.available
+        "active": NetworkingManager.wifiEnabled
       },
       "bluetooth": {
         "icon": BluetoothManager.enabled ? "bluetooth" : "bluetooth_disabled",
         "label": I18n.tr("Bluetooth"),
-        "active": BluetoothManager.enabled,
-        "available": BluetoothManager.available
+        "active": BluetoothManager.enabled
       },
       "caffeine": {
         "icon": "coffee",
         "label": I18n.tr("Caffeine"),
-        "active": IdleInhibitManager.enabled,
-        "available": true
+        "active": IdleInhibitManager.enabled
       },
       "dnd": {
         "icon": NotificationManager.dnd ? "notifications_off" : "notifications",
         "label": I18n.tr("Do not disturb"),
-        "active": NotificationManager.dnd,
-        "available": true
+        "active": NotificationManager.dnd
       },
       "darkMode": {
         "icon": "clear_night",
         "label": I18n.tr("Dark mode"),
-        "active": Appearance.darkMode,
-        "available": true
+        "active": Appearance.darkMode
       },
       "nightLight": {
         "icon": "pill_off",
         "label": I18n.tr("Night light"),
-        "active": root.nightLightOn,
-        "available": root.nightLightTool !== ""
+        "active": root.nightLightOn
       },
       "powerSaver": {
         "icon": "eco",
         "label": I18n.tr("Power saver"),
-        "active": root.powerProfile === "power-saver",
-        "available": root.hasPowerProfiles
+        "active": root.powerProfile === "power-saver"
+      },
+      "pin": {
+        "icon": "push_pin",
+        "label": root.pinned ? I18n.tr("Pinned") : I18n.tr("Pin open"),
+        "active": root.pinned
       }
     })
 
-  // Config and tool availability only (never toggle state), so the tiles
-  // aren't rebuilt whenever something is switched
-  readonly property var known: ["wifi", "bluetooth", "caffeine", "dnd", "darkMode", "nightLight", "powerSaver"]
-  readonly property var toggles: (root.properties.toggles ?? ["wifi", "bluetooth", "caffeine", "dnd", "darkMode"]).filter(t => root.known.includes(t))
-  readonly property var shown: root.toggles.filter(t => t === "wifi" ? NetworkingManager.available : t === "bluetooth" ? BluetoothManager.available : t === "nightLight" ? root.nightLightTool !== "" : t === "powerSaver" ? root.hasPowerProfiles : true)
+  function def(name) {
+    if (!root.sessionActions.includes(name))
+      return root.defs[name];
+    const info = ShellManager.sessionActionInfo(name);
+    const destructive = ShellManager.destructiveActions.includes(name);
+    return {
+      "icon": info.icon,
+      "label": root.armed === name ? I18n.tr("Confirm?") : info.label,
+      "active": root.armed === name,
+      "destructive": destructive,
+      "tone": destructive ? Theme.error : Theme.accent
+    };
+  }
 
-  function toggle(name) {
+  // Config, tool availability and host only (never toggle state), so the
+  // tiles aren't rebuilt whenever something is switched
+  readonly property var known: Object.keys(root.defs).concat(root.sessionActions)
+  readonly property var actions: (root.properties.actions ?? ["wifi", "bluetooth", "caffeine", "dnd", "darkMode"]).filter(a => root.known.includes(a))
+  readonly property var shown: root.actions.filter(a => {
+    switch (a) {
+    case "wifi":
+      return NetworkingManager.available;
+    case "bluetooth":
+      return BluetoothManager.available;
+    case "nightLight":
+      return root.nightLightTool !== "";
+    case "powerSaver":
+      return root.hasPowerProfiles;
+    case "pin":
+      return root.inMenu;
+    default:
+      return !root.sessionActions.includes(a) || ShellManager.sessionActionInfo(a) !== null;
+    }
+  })
+
+  function run(name) {
+    if (root.sessionActions.includes(name)) {
+      if (ShellManager.destructiveActions.includes(name) && root.armed !== name) {
+        root.armed = name;
+        disarm.restart();
+        return;
+      }
+      root.armed = "";
+      ShellManager.sessionAction(name);
+      return;
+    }
     switch (name) {
     case "wifi":
       NetworkingManager.toggleWifi();
@@ -102,11 +148,20 @@ Card {
         root.powerProfile = next;
       }
       break;
+    case "pin":
+      EdgeMenuManager.togglePinned(root.host.id);
+      break;
     }
   }
 
+  Timer {
+    id: disarm
+    interval: 3000
+    onTriggered: root.armed = ""
+  }
+
   Process {
-    running: true
+    running: root.actions.includes("nightLight") || root.actions.includes("powerSaver")
     command: ["sh", "-c", `
       for t in hyprsunset wlsunset; do command -v $t >/dev/null && { echo "night $t"; pgrep -x $t >/dev/null && echo "nighton 1"; break; }; done
       command -v powerprofilesctl >/dev/null && echo "profile $(powerprofilesctl get)"
@@ -141,7 +196,7 @@ Card {
       ActionTile {
         required property string modelData
         required property int index
-        readonly property var def: root.defs[modelData]
+        readonly property var def: root.def(modelData)
         x: grid.tileX(index)
         y: grid.tileY(index)
         width: grid.tileWidth
@@ -150,7 +205,10 @@ Card {
         label: def.label
         active: def.active
         showLabel: !root.compact
-        onClicked: root.toggle(modelData)
+        activeColor: def.destructive ? Theme.error : Theme.accent
+        tone: def.tone ?? activeColor
+        countdown: def.destructive ? disarm.interval : 0
+        onClicked: root.run(modelData)
       }
     }
   }

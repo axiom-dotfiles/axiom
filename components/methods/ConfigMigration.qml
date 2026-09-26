@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 11
+  readonly property int currentVersion: 13
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -49,6 +49,10 @@ QtObject {
       result = _v9ToV10(result, changes);
     if (version < 11)
       result = _v10ToV11(result, changes);
+    if (version < 12)
+      result = _v11ToV12(result, changes);
+    if (version < 13)
+      result = _v12ToV13(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -369,6 +373,44 @@ QtObject {
       provider.models = provider.models.concat(added[name].filter(model => !provider.models.includes(model)));
       changes.push(`Chat.providers.${name}: kept ${added[name].join(", ")}`);
     });
+    return config;
+  }
+
+  // v12 merged the QuickToggles and Session modules into QuickActions, whose
+  // one `actions` list takes toggles and session actions alike
+  function _v11ToV12(config, changes) {
+    const toggles = ["wifi", "bluetooth", "caffeine", "dnd", "darkMode"];
+    const session = ["lock", "suspend", "hibernate", "logout", "reboot", "poweroff"];
+    const convert = (columns, where) => (columns ?? []).forEach(column => (column?.cells ?? []).forEach(cell => {
+          const slots = cell?.slots ?? {};
+          Object.keys(slots).forEach(key => {
+            const module = slots[key];
+            if (module?.type !== "QuickToggles" && module?.type !== "Session")
+              return;
+            const props = module.properties ?? {};
+            const actions = module.type === "QuickToggles" ? (props.toggles ?? toggles) : (props.actions ?? session);
+            changes.push(`${where}: ${module.type} -> QuickActions`);
+            module.type = "QuickActions";
+            module.properties = {
+              "actions": actions.slice()
+            };
+          });
+        }));
+    (config.Overlay?.views ?? []).forEach((view, index) => convert(view?.columns, `Overlay.views[${index}]`));
+    (config.EdgeMenus ?? []).forEach((menu, index) => convert(menu?.columns, `EdgeMenus[${index}]`));
+    return config;
+  }
+
+  // v13 made the edge menu editor an ordinary view, so a page list saved
+  // without it gets it back once (the user may remove it afterwards)
+  function _v12ToV13(config, changes) {
+    const views = config.Overlay?.views;
+    if (!Array.isArray(views) || views.some(view => view?.type === "EdgeMenuEditor"))
+      return config;
+    views.push({
+      "type": "EdgeMenuEditor"
+    });
+    changes.push("Overlay.views: added the EdgeMenuEditor page");
     return config;
   }
 }

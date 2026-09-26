@@ -123,7 +123,7 @@ The screenshots show [two setups](#%EF%B8%8F-built-in-the-shell) of the same she
 - A full-screen overlay made of pages of cards. Each page is built from columns, each column from cells, and each cell holds modules.
 - 24 modules, including:
   - a media player, audio mixer, system graphs and top processes
-  - disks, updates, quick toggles, Bluetooth, network and Wi-Fi networks
+  - disks, updates, quick actions (toggles, power, pin), Bluetooth, network and Wi-Fi networks
   - weather, calendar, notes and favourites
   - screenshot, session controls, a workspace map and AI chat
 - Modules adapt to the shape of their slot (square, wide, tall or quarter).

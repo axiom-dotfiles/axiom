@@ -622,11 +622,6 @@ QtObject {
         title: I18n.tr("Overlay editor"),
         glyph: "dashboard",
         value: "OverlayEditor"
-      },
-      {
-        title: I18n.tr("Edge menu editor"),
-        glyph: "dock_to_right",
-        value: "EdgeMenuEditor"
       }
     ]);
   }

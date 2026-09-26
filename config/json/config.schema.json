@@ -8,7 +8,7 @@
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 11,
+      "default": 13,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
@@ -1016,8 +1016,8 @@
               ] },
               { "cells": [
                 { "layout": "Horiz1x1", "slots": {
-                  "top": { "type": "QuickToggles" },
-                  "bottom": { "type": "Session" }
+                  "top": { "type": "QuickActions" },
+                  "bottom": { "type": "QuickActions", "properties": { "actions": ["lock", "suspend", "hibernate", "logout", "reboot", "poweroff"] } }
                 } },
                 { "layout": "Single", "slots": {
                   "main": { "type": "SystemGraphs" }
@@ -1038,7 +1038,8 @@
             { "type": "Settings" },
             { "type": "Keybinds" },
             { "type": "BarEditor" },
-            { "type": "Themes" }
+            { "type": "Themes" },
+            { "type": "EdgeMenuEditor" }
           ],
           "items": { "$ref": "#/definitions/OverlayView" }
         }
@@ -1479,7 +1480,8 @@
         { "$ref": "#/definitions/KeybindsOverlayView" },
         { "$ref": "#/definitions/BarEditorOverlayView" },
         { "$ref": "#/definitions/SettingsOverlayView" },
-        { "$ref": "#/definitions/ThemesOverlayView" }
+        { "$ref": "#/definitions/ThemesOverlayView" },
+        { "$ref": "#/definitions/EdgeMenuEditorOverlayView" }
       ]
     },
     "CustomOverlayView": {
@@ -1534,6 +1536,16 @@
         "visible": { "type": "boolean" }
       }
     },
+    "EdgeMenuEditorOverlayView": {
+      "type": "object",
+      "x-icon": "dock_to_right",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "EdgeMenuEditor", "description": "Edge Menu Editor" },
+        "visible": { "type": "boolean" }
+      }
+    },
 
     "OverlayColumn": {
       "type": "object",
@@ -1581,12 +1593,11 @@
         { "$ref": "#/definitions/DisksOverlayModule" },
         { "$ref": "#/definitions/TopProcessesOverlayModule" },
         { "$ref": "#/definitions/UpdatesOverlayModule" },
-        { "$ref": "#/definitions/QuickTogglesOverlayModule" },
+        { "$ref": "#/definitions/QuickActionsOverlayModule" },
         { "$ref": "#/definitions/WorkspacesMapOverlayModule" },
         { "$ref": "#/definitions/NotificationsOverlayModule" },
         { "$ref": "#/definitions/BluetoothDevicesOverlayModule" },
         { "$ref": "#/definitions/WifiNetworksOverlayModule" },
-        { "$ref": "#/definitions/SessionOverlayModule" },
         { "$ref": "#/definitions/ScreenshotOverlayModule" },
         { "$ref": "#/definitions/ClockCalendarOverlayModule" },
         { "$ref": "#/definitions/WeatherOverlayModule" },
@@ -1729,19 +1740,19 @@
         }
       }
     },
-    "QuickTogglesOverlayModule": {
+    "QuickActionsOverlayModule": {
       "type": "object",
       "x-icon": "toggle_on",
       "x-shapes": ["square", "horizontal", "vertical"],
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
-        "type": { "const": "QuickToggles", "description": "Quick toggles" },
+        "type": { "const": "QuickActions", "description": "Quick actions" },
         "properties": {
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "toggles": {"type": "array", "title": "Toggles", "default": ["wifi", "bluetooth", "caffeine", "dnd", "darkMode"], "description": "Night light and power saver only show when hyprsunset/wlsunset or powerprofilesctl is installed.", "items": {"type": "string", "enum": ["wifi", "bluetooth", "caffeine", "dnd", "darkMode", "nightLight", "powerSaver"]}}
+            "actions": {"type": "array", "title": "Actions", "default": ["wifi", "bluetooth", "caffeine", "dnd", "darkMode"], "description": "Toggles, session actions and pin, in any mix. Night light and power saver only show when hyprsunset/wlsunset or powerprofilesctl is installed, and pin only in an edge menu. Log out, reboot and power off ask for a second click.", "items": {"type": "string", "enum": ["wifi", "bluetooth", "caffeine", "dnd", "darkMode", "nightLight", "powerSaver", "lock", "suspend", "hibernate", "logout", "reboot", "poweroff", "pin"]}}
           }
         }
       }
@@ -1791,23 +1802,6 @@
       "additionalProperties": false,
       "properties": {
         "type": { "const": "BluetoothDevices", "description": "Bluetooth devices" }
-      }
-    },
-    "SessionOverlayModule": {
-      "type": "object",
-      "x-icon": "power_settings_new",
-      "x-shapes": ["horizontal", "square", "vertical"],
-      "required": ["type"],
-      "additionalProperties": false,
-      "properties": {
-        "type": { "const": "Session", "description": "Session / power" },
-        "properties": {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "actions": {"type": "array", "title": "Actions", "default": ["lock", "suspend", "hibernate", "logout", "reboot", "poweroff"], "items": {"type": "string", "enum": ["lock", "suspend", "hibernate", "logout", "reboot", "poweroff"]}}
-          }
-        }
       }
     },
     "ScreenshotOverlayModule": {
