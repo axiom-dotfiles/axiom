@@ -225,6 +225,7 @@ Singleton {
       setup.push("M.theme()");
     if (HyprlandConfig.blur)
       setup.push("M.blur()");
+    setup.push("M.layers()");
     return `${_header} from its Hyprland settings, and rewritten whenever they
 -- (or the theme) change: edit those, not this file.
 --
@@ -251,6 +252,11 @@ end
 -- Blur behind the bars, edge popouts and launcher
 function M.blur()
 ${_indent(_blurLua(), "  ")}
+end
+
+-- Stacking order of axiom's surfaces (bars, border, edge menus, backdrops)
+function M.layers()
+${_indent(HyprlandManager.layerRulesLua, "  ")}
 end
 
 function M.setup()

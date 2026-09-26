@@ -387,11 +387,14 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
   //   border, so they slide out from beneath them.
   // Named, so re-adding one replaces it instead of piling up copies. Rules
   // added at runtime are lost when Hyprland reloads its config.
+  // HyprlandConfigManager also writes them into its Lua files, since a
+  // reload Hyprland does by itself (a watched file changing) doesn't always
+  // send the configreloaded event that re-adds them here.
+  readonly property var layerRulesLua: [`hl.layer_rule({ name = "axiom-backdrop", match = { namespace = "^axiom-backdrop$" }, order = 10 })`, `hl.layer_rule({ name = "axiom-bar", match = { namespace = "^axiom-bar$" }, order = 5 })`, `hl.layer_rule({ name = "axiom-edge-menu", match = { namespace = "^axiom-edge-menu$" }, order = 7 })`, `hl.layer_rule({ name = "axiom-popout-under", match = { namespace = "^axiom-popout-under$" }, order = 6 })`]
+
   function _addLayerRules() {
-    _eval(`hl.layer_rule({ name = "axiom-backdrop", match = { namespace = "^axiom-backdrop$" }, order = 10 })`);
-    _eval(`hl.layer_rule({ name = "axiom-bar", match = { namespace = "^axiom-bar$" }, order = 5 })`);
-    _eval(`hl.layer_rule({ name = "axiom-edge-menu", match = { namespace = "^axiom-edge-menu$" }, order = 7 })`);
-    _eval(`hl.layer_rule({ name = "axiom-popout-under", match = { namespace = "^axiom-popout-under$" }, order = 6 })`);
+    for (const rule of layerRulesLua)
+      _eval(rule);
   }
 
   Component.onCompleted: {
