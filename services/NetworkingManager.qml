@@ -1,5 +1,6 @@
 pragma Singleton
 import QtQuick
+import Quickshell.Io
 import Quickshell.Networking
 
 import qs.config
@@ -27,6 +28,34 @@ QtObject {
     return rank(a) - rank(b) || a.name.localeCompare(b.name);
   })
   readonly property var activeNetwork: networks.find(n => n.connected) ?? null
+
+  // The primary connection: a connected wired device first (NetworkManager's
+  // default route metrics prefer it), else the connected Wi-Fi device
+  readonly property var primaryDevice: devices.find(d => d.type === DeviceType.Wired && d.connected) ?? devices.find(d => d.type === DeviceType.Wifi && d.connected) ?? null
+  readonly property string primaryKind: primaryDevice === null ? "" : primaryDevice.type === DeviceType.Wifi ? "wifi" : "ethernet"
+  // SSID on Wi-Fi; when wired, the connection profile's id ("Wired
+  // connection 1"), since a wired Network is named after its interface
+  readonly property string primaryName: {
+    if (primaryDevice === null)
+      return "";
+    if (primaryKind === "wifi")
+      return activeNetwork?.name || primaryDevice.name;
+    const settings = primaryDevice.network?.nmSettings ?? [];
+    return (settings.length > 0 ? settings[0].id : "") || primaryDevice.name;
+  }
+  // 0-100, Wi-Fi only
+  readonly property int primarySignal: primaryKind === "wifi" ? Math.round((activeNetwork?.signalStrength ?? 0) * 100) : 0
+  // IPv4 address: Quickshell.Networking doesn't expose IP configuration, so
+  // it's looked up once with `ip` whenever the primary connection changes
+  property string primaryIp: ""
+  // { kind, name, device, signal, ip }
+  readonly property var netInfo: ({
+      "kind": primaryKind,
+      "name": primaryName,
+      "device": primaryDevice?.name ?? "",
+      "signal": primarySignal,
+      "ip": primaryIp
+    })
 
   // The network whose password was just asked for (a secured network
   // clicked, or a failed attempt), and the last failure per network name
@@ -95,6 +124,12 @@ QtObject {
     network?.forget();
   }
 
+  // Looks the IP up again (e.g. when a card showing it opens, to catch a
+  // DHCP renewal)
+  function refreshIp() {
+    Qt.callLater(root._lookUpIp);
+  }
+
   function networkStatus(network) {
     if (!network)
       return "";
@@ -143,6 +178,37 @@ QtObject {
     property: "scannerEnabled"
     value: root._scanRegistry.active && root.wifiEnabled
     restoreMode: Binding.RestoreNone
+  }
+
+  readonly property string _primaryKey: primaryDevice ? `${primaryDevice.name}:${primaryDevice.state}:${activeNetwork?.name ?? ""}` : ""
+  on_PrimaryKeyChanged: refreshIp()
+  Component.onCompleted: refreshIp()
+
+  function _lookUpIp() {
+    const device = primaryDevice?.name ?? "";
+    if (device === "") {
+      primaryIp = "";
+      return;
+    }
+    // A lookup already running is restarted for the current device
+    _ipProc.running = false;
+    _ipProc.command = ["ip", "-4", "-j", "addr", "show", "dev", device];
+    _ipProc.running = true;
+  }
+
+  property Process _ipProc: Process {
+    stdout: StdioCollector {
+      onStreamFinished: {
+        let ip = "";
+        try {
+          const addresses = [].concat(...JSON.parse(text || "[]").map(i => i.addr_info ?? []));
+          ip = addresses.find(a => a.family === "inet")?.local ?? "";
+        } catch (e) {
+          console.warn(`NetworkingManager: couldn't parse ip output: ${e}`);
+        }
+        root.primaryIp = ip;
+      }
+    }
   }
 
   function _setFailure(network, reason) {

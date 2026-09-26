@@ -142,6 +142,11 @@ TestCase {
     const cells = config.Overlay.views[1].columns[0].cells;
     compare(cells[0].slots.main.type, "QuickActions");
     compare(cells[1].slots.main.properties.actions, ["lock", "reboot"]);
+    // v14: the Network widget no longer polls
+    const network = config.Bars[0].widgets.right[0];
+    compare(network.type, "Network");
+    compare(network.properties.interval, undefined);
+    compare(network.properties.showName, true);
   }
 
   function test_migration_is_idempotent() {

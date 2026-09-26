@@ -12,7 +12,7 @@
           { "type": "Workspaces", "properties": { "iconColor": "base0D" } },
           { "type": "Button", "properties": { "icon": "\udb82\udcc7" } }
         ],
-        "right": [{ "type": "Time" }]
+        "right": [{ "type": "Network", "properties": { "interval": 5000, "showName": true } }, { "type": "Time" }]
       }
     }
   ],

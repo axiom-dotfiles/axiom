@@ -205,7 +205,7 @@ The whole shell runs on four things. Everything else is optional and only needed
 | --- | --- |
 | Wallpapers | `awww` |
 | Theme generation | ImageMagick (`magick` or `convert`). The Python packages are installed into `.venv` automatically from `scripts/requirements.txt` |
-| Network widget / module, Wi-Fi menu | NetworkManager (`nmcli`), and Quickshell built with its Networking module |
+| Network widget / module, Wi-Fi menu | NetworkManager, Quickshell built with its Networking module, and `ip` (iproute2) |
 | Updates | `pacman-contrib` (`checkupdates`), plus `paru` or `yay` for AUR updates |
 | Tailscale | `tailscale` |
 | Screenshot module | `grim`, `slurp`, `wl-copy` |

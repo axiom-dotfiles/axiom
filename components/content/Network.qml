@@ -12,7 +12,7 @@ import qs.components.content.base
 Card {
   id: root
 
-  readonly property var info: SystemManager.netInfo
+  readonly property var info: NetworkingManager.netInfo
   readonly property string kindIcon: root.info.kind === "wifi" ? "signal_wifi_4_bar" : root.info.kind === "ethernet" ? "lan" : "dns"
   // "Running 100.x.y.z", or "" when Tailscale isn't installed
   readonly property string tailscale: TailscaleManager.available ? (TailscaleManager.backendState + " " + TailscaleManager.ip).trim() : ""
@@ -28,6 +28,7 @@ Card {
   }
 
   Component.onCompleted: {
+    NetworkingManager.refreshIp();
     SystemManager.acquire(root, {
       "metrics": ["net"],
       "history": true,

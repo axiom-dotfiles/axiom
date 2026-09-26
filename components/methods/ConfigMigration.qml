@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 13
+  readonly property int currentVersion: 14
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -53,6 +53,8 @@ QtObject {
       result = _v11ToV12(result, changes);
     if (version < 13)
       result = _v12ToV13(result, changes);
+    if (version < 14)
+      result = _v13ToV14(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -411,6 +413,23 @@ QtObject {
       "type": "EdgeMenuEditor"
     });
     changes.push("Overlay.views: added the EdgeMenuEditor page");
+    return config;
+  }
+
+  // v14 reads the Network widget's connection from NetworkingManager
+  // (D-Bus) instead of polling nmcli, so its poll interval is gone
+  function _v13ToV14(config, changes) {
+    (config.Bars ?? []).forEach((bar, barIndex) => {
+      const widgets = bar?.widgets ?? {};
+      Object.keys(widgets).forEach(section => {
+        (widgets[section] ?? []).forEach(widget => {
+          if (widget?.type !== "Network" || widget.properties?.interval === undefined)
+            return;
+          delete widget.properties.interval;
+          changes.push(`Bars[${barIndex}].widgets.${section}: removed Network.interval`);
+        });
+      });
+    });
     return config;
   }
 }

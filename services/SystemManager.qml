@@ -13,10 +13,9 @@ import Quickshell.Io
 // polling never spawns a process. The exceptions are disk usage (`df`, on
 // its own slow timer) and NVIDIA GPUs (`nvidia-smi`, only without an AMD
 // card). Metric names: "cpu", "mem", "cpuTemp", "gpu", "disk", "net"
-// (throughput from /proc/net/dev, plus connection details from nmcli on a
-// slow timer), "link" (just the primary connection's device and kind: one
-// cheap nmcli call, at the requested interval) and "processes" (`top`, two
-// frames so %CPU is current).
+// (throughput from /proc/net/dev; the connection itself is
+// NetworkingManager's) and "processes" (`top`, two frames so %CPU is
+// current).
 // Request `history: true` to also keep the last `historyLength` samples of
 // each polled metric (for graphs).
 QtObject {
@@ -35,20 +34,6 @@ QtObject {
   // Bytes per second, summed over every interface but loopback
   property real netRx: 0
   property real netTx: 0
-  // The primary connection: kind ("ethernet"/"wifi"/""), name (SSID or
-  // connection name), device, wifi signal (0-100), IPv4 address
-  property var netInfo: ({
-      "kind": "",
-      "name": "",
-      "device": "",
-      "signal": 0,
-      "ip": ""
-    })
-  // "link": the primary connection, { device, kind } (both "" when offline)
-  property var netLink: ({
-      "device": "",
-      "kind": ""
-    })
   // [{ pid, user, cpu, mem, command }], every process, by CPU (descending)
   property var processes: []
 
@@ -258,48 +243,6 @@ QtObject {
     onTriggered: root._pollDisks()
   }
 
-  // Connection details change rarely: nmcli every 10s while "net" is wanted
-  property Timer _netInfoTimer: Timer {
-    interval: 10000
-    repeat: true
-    triggeredOnStart: true
-    running: root._active && root.wants("net")
-    onTriggered: {
-      if (!root._nmcli.running)
-        root._nmcli.running = true;
-    }
-  }
-
-  // "link" at the shortest interval its requests asked for
-  readonly property int _linkInterval: {
-    const intervals = _requests.filter(r => r.metrics.includes("link")).map(r => r.interval);
-    return intervals.length > 0 ? Math.max(2000, Math.min(...intervals)) : 2000;
-  }
-  property Timer _linkTimer: Timer {
-    interval: root._linkInterval
-    repeat: true
-    triggeredOnStart: true
-    running: root._active && root.wants("link")
-    onTriggered: {
-      if (!root._nmcliLink.running)
-        root._nmcliLink.running = true;
-    }
-  }
-
-  property Process _nmcliLink: Process {
-    command: ["sh", "-c", "nmcli -t -f DEVICE,TYPE,STATE device | awk -F: '$3==\"connected\" && $2!~/^(loopback|tun|bridge|wifi-p2p)$/ {print $1\":\"$2; exit}'"]
-    stdout: StdioCollector {
-      onStreamFinished: {
-        const [device, kind] = text.trim().split(":");
-        if (device !== root.netLink.device || (kind ?? "") !== root.netLink.kind)
-          root.netLink = {
-            "device": device ?? "",
-            "kind": kind ?? ""
-          };
-      }
-    }
-  }
-
   property FileView _netDev: FileView {
     path: "/proc/net/dev"
     onLoaded: root._parseNetDev(text())
@@ -309,47 +252,6 @@ QtObject {
     command: ["top", "-b", "-n", "2", "-d", "0.5", "-w", "512", "-o", "%CPU"]
     stdout: StdioCollector {
       onStreamFinished: root._parseTop(text)
-    }
-  }
-
-  // Primary connection (first connected non-loopback, non-tun device), its
-  // IPv4 address and wifi signal
-  property Process _nmcli: Process {
-    command: ["sh", "-c", `
-      nmcli -t -f DEVICE,TYPE,STATE,CONNECTION device | while IFS=: read -r dev type state conn; do
-        case "$type" in loopback|tun|bridge|wifi-p2p) continue ;; esac
-        [ "$state" = "connected" ] || continue
-        echo "dev $dev"; echo "kind $type"; echo "name $conn"
-        echo "ip $(nmcli -g IP4.ADDRESS device show "$dev" | head -n1 | cut -d/ -f1)"
-        [ "$type" = "wifi" ] && echo "signal $(nmcli -t -f IN-USE,SIGNAL device wifi list ifname "$dev" --rescan no | awk -F: '$1=="*"{print $2}')"
-        break
-      done
-    `]
-    stdout: StdioCollector {
-      onStreamFinished: {
-        const info = {
-          "kind": "",
-          "name": "",
-          "device": "",
-          "signal": 0,
-          "ip": ""
-        };
-        for (const line of text.trim().split("\n")) {
-          const i = line.indexOf(" ");
-          const key = line.slice(0, i), value = line.slice(i + 1);
-          if (key === "dev")
-            info.device = value;
-          else if (key === "kind")
-            info.kind = value;
-          else if (key === "name")
-            info.name = value;
-          else if (key === "ip")
-            info.ip = value;
-          else if (key === "signal")
-            info.signal = Number(value) || 0;
-        }
-        root.netInfo = info;
-      }
     }
   }
 

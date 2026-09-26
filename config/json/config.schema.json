@@ -8,7 +8,7 @@
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 13,
+      "default": 14,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
@@ -2134,7 +2134,6 @@
           "additionalProperties": false,
           "properties": {
             "showName": { "type": "boolean", "title": "Show device", "default": false, "description": "Show the connected device name next to the icon." },
-            "interval": { "type": "integer", "title": "Poll interval", "x-unit": "ms", "default": 2000, "minimum": 250, "maximum": 60000 },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Open the Wi-Fi menu when hovered." },
             "middleCommand": { "type": "string", "title": "Middle-click command", "default": "", "description": "Shell command run on middle click (e.g. nm-connection-editor). Empty does nothing." },
             "backgroundColor": { "type": "string", "title": "Connected background", "x-options": "colors", "default": "base09" },
