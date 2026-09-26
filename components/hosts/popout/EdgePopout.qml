@@ -88,7 +88,23 @@ PopoutWrapperBase {
   property int connectorGap: Appearance.borderRadius * 2
 
   readonly property bool vertical: edge === Bar.Left || edge === Bar.Right
-  readonly property bool straight: Bar.screenEdgeOpen(root.screen, root.edge)
+  readonly property bool bareEdge: Bar.screenEdgeOpen(root.screen, root.edge)
+  // Runs straight off the attach edge: a bare screen edge by default (a
+  // box merged around a bar's pills sets it itself, see FloatingEdgeMenu)
+  property bool straight: bareEdge
+
+  // For a box merged around a bar's pills (see BarPopouts.mergeWithPill):
+  // extra box depth at the attach edge that the content keeps clear of,
+  // where the side walls stand (AttachedSurface.startFoot/endFoot), and
+  // the pills left showing through (AttachedSurface.notches)
+  property real attachClearance: 0
+  property real startFoot: 0
+  property real endFoot: 0
+  property var notches: []
+  property real notchDepth: 0
+  // Nudges the box along the edge from where `position` puts it: null,
+  // or a function(start) giving the pixels to shift a box at `start` by
+  property var boxSnap: null
   readonly property bool isOpen: occupied && !isClosing
   // For opens driven by global events (volume changes, IPC) rather than
   // hovering this screen's edge.
@@ -105,6 +121,21 @@ PopoutWrapperBase {
   // Largest content box that fits along the edge, leaving a screen margin
   // between the fillets and the perpendicular borders
   readonly property real maxBoxLength: edgeLength - connectorGap * 2 + Appearance.borderWidth * 2 - Appearance.screenMargin * 2
+
+  // The box along the edge, in window coordinates: centred at `position`,
+  // clamped so its fillets stay on the edge. The clamp takes the fillet
+  // margin from the edge alone, not the surface, whose margins can depend
+  // on where the box lands (startFoot).
+  readonly property real boxLength: vertical ? surface.boxHeight : surface.boxWidth
+  readonly property real boxStart: {
+    const margin = root.bareEdge ? 0 : root.connectorGap - Appearance.borderWidth;
+    const lo = margin, hi = root.edgeLength - margin - root.boxLength;
+    const clamped = Math.max(lo, Math.min(root.edgeLength * root.position + root.positionOffset - root.boxLength / 2, hi));
+    return root.boxSnap ? Math.max(lo, Math.min(clamped + root.boxSnap(clamped), hi)) : clamped;
+  }
+  // The surface (fillets included) along the edge
+  readonly property real surfaceStart: boxStart - surface.startMargin
+  readonly property real surfaceLength: vertical ? surface.implicitHeight : surface.implicitWidth
 
   currentItem: loader.item ?? null
   keepAlive: surfaceHover.hovered || trigger.containsMouse || (focusGrab.active && wantsKeyboardFocus)
@@ -185,8 +216,10 @@ PopoutWrapperBase {
     implicitWidth: root.vertical ? surface.implicitWidth : 0
     implicitHeight: root.vertical ? 0 : surface.implicitHeight
 
+    // Pills a merged box reaches stay hoverable through its notches
     mask: Region {
       item: surface
+      regions: notchRegions.instances
     }
 
     HyprlandFocusGrab {
@@ -208,14 +241,8 @@ PopoutWrapperBase {
     AttachedSurface {
       id: surface
 
-      readonly property real alongPosition: {
-        const along = root.vertical ? height : width;
-        const target = root.edgeLength * root.position + root.positionOffset - along / 2;
-        return Math.max(0, Math.min(target, root.edgeLength - along));
-      }
-
-      x: root.vertical ? 0 : alongPosition
-      y: root.vertical ? alongPosition : 0
+      x: root.vertical ? 0 : root.surfaceStart
+      y: root.vertical ? root.surfaceStart : 0
       width: implicitWidth
       height: implicitHeight
 
@@ -224,10 +251,29 @@ PopoutWrapperBase {
       detached: root.detached
       active: root.isOpen
       connectorGap: root.connectorGap
-      boxWidth: (loader.item?.implicitWidth ?? 100) + root.contentPadding * 2
-      boxHeight: (loader.item?.implicitHeight ?? 100) + root.contentPadding * 2
+      boxWidth: (loader.item?.implicitWidth ?? 100) + root.contentPadding * 2 + (root.vertical ? root.attachClearance : 0)
+      boxHeight: (loader.item?.implicitHeight ?? 100) + root.contentPadding * 2 + (root.vertical ? 0 : root.attachClearance)
       fillColor: root.fillColor
       strokeColor: root.strokeColor
+      startFoot: root.startFoot
+      endFoot: root.endFoot
+      notches: root.notches
+      notchDepth: root.notchDepth
+
+      // In window coordinates
+      Variants {
+        id: notchRegions
+        model: surface.notchRects
+
+        Region {
+          required property rect modelData
+          intersection: Intersection.Subtract
+          x: surface.x + modelData.x
+          y: surface.y + modelData.y
+          width: modelData.width
+          height: modelData.height
+        }
+      }
 
       HoverHandler {
         id: surfaceHover
@@ -237,6 +283,10 @@ PopoutWrapperBase {
         id: loader
         anchors.fill: parent
         anchors.margins: root.contentPadding
+        anchors.leftMargin: root.contentPadding + (root.edge === Bar.Left ? root.attachClearance : 0)
+        anchors.rightMargin: root.contentPadding + (root.edge === Bar.Right ? root.attachClearance : 0)
+        anchors.topMargin: root.contentPadding + (root.edge === Bar.Top ? root.attachClearance : 0)
+        anchors.bottomMargin: root.contentPadding + (root.edge === Bar.Bottom ? root.attachClearance : 0)
 
         active: root.occupied || root.keepLoaded
         asynchronous: false

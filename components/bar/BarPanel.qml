@@ -24,7 +24,10 @@ PanelWindow {
   // stroke so pills can cover it. Overlay draws over fullscreen windows, so
   // it hides while its workspace has one.
   WlrLayershell.layer: barConfig.floating ? WlrLayer.Overlay : WlrLayer.Top
-  WlrLayershell.exclusiveZone: {
+  WlrLayershell.exclusiveZone: root.reservedZone
+  // On a transparent or pill bar, how far in from its outer edge it
+  // reserves (floating edge menus place themselves against that)
+  readonly property int reservedZone: {
     if (!barConfig.reserveSpace)
       return 0;
     // Transparent bars have no inner edge to see: windows start where it
@@ -82,11 +85,18 @@ PanelWindow {
     console.log("  > implicitWidth:", implicitWidth, "implicitHeight:", implicitHeight);
     console.log("================================");
     ShellManager.registerGrabPartner(root, root.screen?.name);
+    ShellManager.registerBar(root);
   }
   // The overlay's focus grab lets input through to the bar (see
   // ShellManager.grabPartners)
   onScreenChanged: ShellManager.registerGrabPartner(root, root.screen?.name)
-  Component.onDestruction: ShellManager.unregisterGrabPartner(root)
+  Component.onDestruction: {
+    ShellManager.unregisterGrabPartner(root);
+    ShellManager.unregisterBar(root);
+  }
+
+  // The widget area, where the pills are
+  readonly property var container: bar.barContainer
 
   BarPopouts {
     id: popouts
