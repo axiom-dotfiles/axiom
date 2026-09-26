@@ -194,11 +194,11 @@
         "maxToasts": { "type": "integer", "title": "Visible toasts", "x-group": "Toasts", "default": 5, "minimum": 1, "maximum": 10, "description": "How many toasts stack up at once. A new one pushes out the oldest." },
         "width": { "type": "integer", "title": "Toast width", "x-unit": "px", "x-group": "Toasts", "default": 360, "minimum": 240, "maximum": 600, "description": "Width of each toast." },
         "quietFullscreen": { "type": "boolean", "title": "Quiet over fullscreen", "x-group": "Toasts", "default": true, "description": "Show no toasts on a monitor whose workspace has a fullscreen window. Critical ones still show, and everything still goes to the history." },
-        "clearOnFocus": { "type": "boolean", "title": "Clear when the app is focused", "x-group": "History", "default": false, "description": "Focusing an app's window removes its notifications from the history." },
-        "removeOnClick": { "type": "boolean", "title": "Remove when clicked", "x-group": "History", "default": false, "description": "Clicking a notification, or one of its actions, removes it from the history." },
-        "closeRemoves": { "type": "boolean", "title": "Closing a toast removes it", "x-group": "History", "default": false, "description": "Closing a toast (its close button or a swipe) also removes the notification from the history. Off, it only hides the toast." },
-        "maxEntries": { "type": "integer", "title": "History size", "x-group": "History", "default": 100, "minimum": 10, "maximum": 500, "description": "How many notifications the history keeps. The oldest go first." },
-        "maxAgeDays": { "type": "integer", "title": "Keep for", "x-unit": "days", "x-group": "History", "default": 0, "minimum": 0, "maximum": 365, "description": "Remove notifications older than this many days. 0 keeps them until removed." }
+        "clearOnFocus": { "type": "boolean", "title": "Clear when the app is focused", "x-group": "Notification history", "default": false, "description": "Focusing an app's window removes its notifications from the history." },
+        "removeOnClick": { "type": "boolean", "title": "Remove when clicked", "x-group": "Notification history", "default": false, "description": "Clicking a notification, or one of its actions, removes it from the history." },
+        "closeRemoves": { "type": "boolean", "title": "Closing a toast removes it", "x-group": "Notification history", "default": false, "description": "Closing a toast (its close button or a swipe) also removes the notification from the history. Off, it only hides the toast." },
+        "maxEntries": { "type": "integer", "title": "History size", "x-group": "Notification history", "default": 100, "minimum": 10, "maximum": 500, "description": "How many notifications the history keeps. The oldest go first." },
+        "maxAgeDays": { "type": "integer", "title": "Keep for", "x-unit": "days", "x-group": "Notification history", "default": 0, "minimum": 0, "maximum": 365, "description": "Remove notifications older than this many days. 0 keeps them until removed." }
       }
     },
 
@@ -910,7 +910,7 @@
         "bars": {
           "type": "array",
           "title": "Bars",
-          "x-group": "Bars",
+          "x-group": "OSD bars",
           "description": "One bar per entry, in order. System volume is the output device's volume, Other apps is the first playing stream no App bar matches, Microphone is the input device's volume, and Brightness is the monitor's own (a laptop panel through brightnessctl, an external monitor over DDC/CI through ddcutil; left out on a monitor that has neither).",
           "default": [
             { "type": "other", "icon": "music_note", "showOsd": true },

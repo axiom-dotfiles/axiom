@@ -16,6 +16,9 @@ ColumnLayout {
   property var itemHeaderExtra: null
   // Optional component shown in the header, between the label and "+"
   property var headerExtra: null
+  // Room kept clear at the header's right end (the settings page's reset
+  // button sits there)
+  property int headerInset: 0
 
   signal itemAdded
   signal itemRemoved(int index)
@@ -26,6 +29,7 @@ ColumnLayout {
 
   RowLayout {
     Layout.fillWidth: true
+    Layout.rightMargin: root.headerInset
     spacing: Widget.spacing
 
     StyledText {

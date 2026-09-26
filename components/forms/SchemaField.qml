@@ -166,6 +166,7 @@ Loader {
     SchemaObjectArray {
       label: root.label
       description: root.description
+      headerInset: root.headerInset
       items: root.current ?? []
       itemDelegate: Component {
         SchemaArrayItem {
