@@ -329,6 +329,15 @@ QtObject {
     root.edited();
   }
 
+  // A fill cell grows into free room (OverlayConfig.columnFlow)
+  function setCellFill(c, k, fill) {
+    const cell = root._cell(c, k);
+    if (!cell || (cell.fill === true) === fill)
+      return;
+    cell.fill = fill;
+    root.edited();
+  }
+
   // --- Slots ---
 
   function slotModule(c, k, slot) {

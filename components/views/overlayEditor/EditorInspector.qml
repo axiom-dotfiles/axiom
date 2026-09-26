@@ -198,6 +198,13 @@ Item {
               }
             }
 
+            SchemaSwitch {
+              label: "Fill space"
+              description: "Grow into free room: the rest of its row and spare height in its column, shared evenly with other cells that fill. In an edge menu, the menu then takes its whole edge."
+              checked: root.cell?.fill === true
+              onToggled: newValue => root.editor.setCellFill(root.sel.column, root.sel.cell, newValue)
+            }
+
             RowLayout {
               Layout.fillWidth: true
               spacing: Widget.spacing

@@ -68,6 +68,26 @@ Item {
     }
   }
 
+  // Marks a cell that fills free room (shown at its own size here)
+  Rectangle {
+    visible: root.cellConfig?.fill === true
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    anchors.margins: 4
+    z: 2
+    width: Widget.height * 0.8
+    height: width
+    radius: Appearance.borderRadius
+    color: Theme.accent
+
+    StyledIcon {
+      anchors.centerIn: parent
+      text: "expand_content"
+      textColor: Theme.background
+      textSize: Appearance.fontSize - 1
+    }
+  }
+
   // Carries the cell; a click selects it
   Rectangle {
     id: grip

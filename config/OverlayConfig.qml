@@ -134,38 +134,65 @@ QtObject {
   }
 
   // How a column flows its cells: left to right, wrapping at the widest
-  // cell. Returns the unscaled size, the number of rows and each cell's
-  // { x, y, width, height, row }, matching the Flow in OverlayColumn.
-  function columnFlow(cells, unit) {
+  // cell. Returns the size, the number of rows and each cell's
+  // { x, y, width, height, row }, matching OverlayColumn. `target`
+  // ({ width, height }, either optional) is room for cells with `fill` to
+  // grow into: a row's spare width goes to its fill cells, fill cells take
+  // their row's height, and spare height goes to the rows holding one,
+  // split evenly. Without fill cells nothing changes.
+  function columnFlow(cells, unit, target) {
     const sizes = (cells ?? []).map(cell => {
-      const layout = layouts[cell.layout] ?? layouts.Single;
+      const layout = layouts[cell?.layout] ?? layouts.Single;
       return [span(layout.cols, unit), span(layout.rows, unit)];
     });
     const width = Math.max(0, ...sizes.map(size => size[0]));
-    let x = 0, rowHeight = 0, height = 0, rows = 0;
-    const rects = [];
-    sizes.forEach(([w, h]) => {
-      if (x > 0 && x + w > width + 0.5) {
-        height += rowHeight + cardSpacing;
+    // Natural rows: which cells, their width and height
+    const rows = [];
+    let x = 0;
+    sizes.forEach(([w, h], i) => {
+      if (rows.length === 0 || (x > 0 && x + w > width + 0.5)) {
+        rows.push({
+          "cells": [],
+          "width": 0,
+          "height": 0
+        });
         x = 0;
-        rowHeight = 0;
       }
-      if (x === 0)
-        rows++;
-      rects.push({
-        "x": x,
-        "y": height,
-        "width": w,
-        "height": h,
-        "row": rows - 1
-      });
+      const row = rows[rows.length - 1];
+      row.cells.push(i);
+      row.width = x + w;
+      row.height = Math.max(row.height, h);
       x += w + cardSpacing;
-      rowHeight = Math.max(rowHeight, h);
+    });
+    const fills = i => cells[i]?.fill === true;
+    const naturalHeight = rows.reduce((sum, row) => sum + row.height, 0) + Math.max(0, rows.length - 1) * cardSpacing;
+    const fillRows = rows.filter(row => row.cells.some(fills));
+    const fullWidth = fillRows.length > 0 ? Math.max(width, target?.width ?? 0) : width;
+    const spareHeight = fillRows.length > 0 ? Math.max(0, (target?.height ?? 0) - naturalHeight) : 0;
+    const rects = [];
+    let y = 0;
+    rows.forEach((row, rowIndex) => {
+      const rowFills = row.cells.filter(fills);
+      const rowHeight = row.height + (rowFills.length > 0 ? spareHeight / fillRows.length : 0);
+      const extraWidth = rowFills.length > 0 ? (fullWidth - row.width) / rowFills.length : 0;
+      let cx = 0;
+      row.cells.forEach(i => {
+        const w = sizes[i][0] + (fills(i) ? extraWidth : 0);
+        rects[i] = {
+          "x": cx,
+          "y": y,
+          "width": w,
+          "height": fills(i) ? rowHeight : sizes[i][1],
+          "row": rowIndex
+        };
+        cx += w + cardSpacing;
+      });
+      y += rowHeight + cardSpacing;
     });
     return {
-      "width": width,
-      "height": height + rowHeight,
-      "rows": rows,
+      "width": fullWidth,
+      "height": Math.max(0, y - cardSpacing),
+      "rows": rows.length,
       "rects": rects
     };
   }
@@ -200,6 +227,20 @@ QtObject {
         "rows": 4,
         "slots": {
           "main": [0, 0, 4, 4]
+        }
+      },
+      "HalfWide": {
+        "cols": 2,
+        "rows": 1,
+        "slots": {
+          "main": [0, 0, 2, 1]
+        }
+      },
+      "HalfTall": {
+        "cols": 1,
+        "rows": 2,
+        "slots": {
+          "main": [0, 0, 1, 2]
         }
       },
       "Grid2x2": {

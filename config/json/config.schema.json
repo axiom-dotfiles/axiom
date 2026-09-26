@@ -1559,9 +1559,10 @@
       "type": "object",
       "required": ["layout"],
       "additionalProperties": false,
-      "description": "One cell split into slots, defined in OverlayConfig.layouts. A column flows its cells left to right, wrapping at its widest cell, so two Singles after a Wide sit side by side under it (an empty Single leaves a gap). Cells are one card, except Tall (two cards high), Wide (two cards wide) and Large (two by two cards). Slots per layout: Single/Tall/Wide/Large main; Grid2x2 topLeft/topRight/bottomLeft/bottomRight; Vert1x1 left/right; Vert1x2 left/topRight/bottomRight; Vert2x1 topLeft/bottomLeft/right; Horiz1x1 top/bottom; Horiz1x2 top/bottomLeft/bottomRight; Horiz2x1 topLeft/topRight/bottom.",
+      "description": "One cell split into slots, defined in OverlayConfig.layouts. A column flows its cells left to right, wrapping at its widest cell, so two Singles after a Wide sit side by side under it (an empty Single leaves a gap). Cells are one card, except Tall (two cards high), Wide (two cards wide), Large (two by two cards), HalfWide (half a card high) and HalfTall (half a card wide). A cell with fill grows into free room: the rest of its row, its row's height, and spare height in its column (shared evenly with other fill cells); in an edge menu, any fill cell makes the menu take its whole edge. Slots per layout: Single/Tall/Wide/Large/HalfWide/HalfTall main; Grid2x2 topLeft/topRight/bottomLeft/bottomRight; Vert1x1 left/right; Vert1x2 left/topRight/bottomRight; Vert2x1 topLeft/bottomLeft/right; Horiz1x1 top/bottom; Horiz1x2 top/bottomLeft/bottomRight; Horiz2x1 topLeft/topRight/bottom.",
       "properties": {
-        "layout": { "type": "string", "title": "Layout", "default": "Single", "enum": ["Single", "Tall", "Wide", "Large", "Grid2x2", "Vert1x1", "Vert1x2", "Vert2x1", "Horiz1x1", "Horiz1x2", "Horiz2x1"] },
+        "layout": { "type": "string", "title": "Layout", "default": "Single", "enum": ["Single", "Tall", "Wide", "Large", "HalfWide", "HalfTall", "Grid2x2", "Vert1x1", "Vert1x2", "Vert2x1", "Horiz1x1", "Horiz1x2", "Horiz2x1"] },
+        "fill": { "type": "boolean", "title": "Fill space", "default": false, "description": "Grow into free room, shared evenly with other cells that fill." },
         "slots": {
           "type": "object",
           "default": {},

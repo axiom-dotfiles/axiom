@@ -33,6 +33,30 @@ Item {
     fixedUnit: root.menu?.cardSize ?? OverlayConfig.minCardUnit
   }
 
+  // Fill cells (see OverlayConfig.columnFlow): with any, the menu takes all
+  // the room along its edge. On a left/right edge that's column height; on
+  // a top/bottom one the spare width is shared by the columns holding one.
+  // Across the edge they grow to the thickest column.
+  readonly property var _natural: root.columns.map(column => grid.columnFlow(column?.cells))
+  readonly property var _fillColumns: root.columns.map(column => (column?.cells ?? []).some(cell => cell?.fill === true))
+  readonly property bool anyFill: root._fillColumns.includes(true)
+  readonly property real _naturalLength: root.vertical ? Math.max(0, ...root._natural.map(flow => flow.height)) : root._natural.reduce((sum, flow) => sum + flow.width, 0) + Math.max(0, root.columns.length - 1) * OverlayConfig.cardSpacing
+  readonly property real _spare: root.anyFill && root.maxLength > root._naturalLength ? root.maxLength - root._naturalLength : 0
+  readonly property int _fillCount: root._fillColumns.filter(fills => fills).length
+  function targetFor(index) {
+    const natural = root._natural[index];
+    if (!natural)
+      return null;
+    if (root.vertical)
+      return {
+        "height": root._naturalLength + root._spare
+      };
+    return {
+      "width": natural.width + (root._fillColumns[index] ? root._spare / root._fillCount : 0),
+      "height": Math.max(0, ...root._natural.map(flow => flow.height))
+    };
+  }
+
   readonly property real contentLength: root.vertical ? row.implicitHeight : row.implicitWidth
   readonly property real length: root.maxLength > 0 ? Math.min(root.contentLength, root.maxLength) : root.contentLength
 
@@ -63,6 +87,7 @@ Item {
           required property int index
           columnConfig: root.columns[index]
           grid: grid
+          target: root.targetFor(index)
           host: root.host
         }
       }

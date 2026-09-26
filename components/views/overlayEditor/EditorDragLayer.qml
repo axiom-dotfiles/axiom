@@ -58,9 +58,10 @@ Item {
   // Layout names spaced for display. Keys: I18n.tr("Single") I18n.tr("Tall")
   // I18n.tr("Wide") I18n.tr("Large") I18n.tr("Grid 2x2") I18n.tr("Vert 1x1")
   // I18n.tr("Vert 1x2") I18n.tr("Vert 2x1") I18n.tr("Horiz 1x1")
-  // I18n.tr("Horiz 1x2") I18n.tr("Horiz 2x1")
+  // I18n.tr("Horiz 1x2") I18n.tr("Horiz 2x1") I18n.tr("Half Wide")
+  // I18n.tr("Half Tall")
   function layoutLabel(layout) {
-    const spaced = (layout ?? "").replace(/([a-zA-Z]{2,})(\d)/g, "$1 $2");
+    const spaced = (layout ?? "").replace(/([a-zA-Z]{2,})(\d)/g, "$1 $2").replace(/([a-z])([A-Z])/g, "$1 $2");
     return I18n.tr(spaced);
   }
 

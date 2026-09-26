@@ -9,7 +9,7 @@ import qs.components.hosts.overlay
 
 // i18n: keys from the schema (view labels)
 // Overlay editor, left: the overlay's pages in order (drag to reorder,
-// click to edit), the pinned pages after them, then the selected page's
+// click to edit), the pinned page after them, then the selected page's
 // name and anything that blocks saving
 Item {
   id: root
@@ -172,17 +172,13 @@ Item {
         }
       }
 
-      // The pages that aren't in config, always last
+      // The page that isn't in config, always last
       Repeater {
-        // Labels: I18n.tr("Overlay editor") I18n.tr("Edge menu editor")
+        // Labels: I18n.tr("Overlay editor")
         model: [
           {
             "label": "Overlay editor",
             "icon": "view_quilt"
-          },
-          {
-            "label": "Edge menu editor",
-            "icon": "dock_to_right"
           }
         ]
 
