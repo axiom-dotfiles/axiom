@@ -419,41 +419,6 @@ if #errors > 0 then error(table.concat(errors, "\\n")) end
 `;
   }
 
-  // --- Keys ---
-
-  readonly property var _modBits: ({
-      "SHIFT": 1,
-      "CAPS": 2,
-      "LOCK": 2,
-      "CTRL": 4,
-      "CONTROL": 4,
-      "ALT": 8,
-      "MOD1": 8,
-      "MOD2": 16,
-      "MOD3": 32,
-      "SUPER": 64,
-      "WIN": 64,
-      "LOGO": 64,
-      "MOD4": 64,
-      "META": 64,
-      "MOD5": 128
-    })
-
-  // "SUPER + SHIFT + SPACE" as hyprctl binds lists it ("64:space"), or ""
-  function keyId(key) {
-    const parts = String(key).split("+").map(part => part.trim()).filter(part => part !== "");
-    if (parts.length === 0)
-      return "";
-    let mask = 0;
-    for (const mod of parts.slice(0, -1)) {
-      const bit = _modBits[mod.toUpperCase()];
-      if (bit === undefined)
-        return "";
-      mask |= bit;
-    }
-    return mask + ":" + parts[parts.length - 1].toLowerCase();
-  }
-
   // --- Runtime (detached, and the fallback) ---
 
   // Keys this layer bound at runtime live in Hyprland's Lua state
@@ -481,29 +446,18 @@ if #errors > 0 then error(table.concat(errors, "\\n")) end
   function _finishRuntime(bindList, animations) {
     if (!_runtimeWanted)
       return;
-    const taken = new Set(bindList.filter(bind => !bind.submap).map(bind => bind.modmask + ":" + String(bind.key).toLowerCase()));
-    const lines = [];
-    const keys = [];
-    const skipped = [];
-    for (const bind of HyprlandConfig.binds) {
-      const line = _bindLua(bind);
-      const id = keyId(bind.key);
-      if (line === "")
-        continue;
-      if (id === "") {
-        console.warn(`[HyprlandConfigManager] Can't read the key "${bind.key}"; bind it as MODS + KEY`);
-        continue;
-      }
-      if (taken.has(id)) {
-        if (!_reportedTaken[id])
-          console.log(`[HyprlandConfigManager] ${bind.key} is bound by your Hyprland config; skipping axiom's bind`);
-        _reportedTaken[id] = true;
-        skipped.push(bind.key.trim());
-        continue;
-      }
-      lines.push(line);
-      keys.push(bind.key.trim());
+    const plan = HyprBinds.runtimeBinds(HyprlandConfig.binds.filter(bind => _bindLua(bind) !== ""), bindList);
+    for (const key of plan.unreadable)
+      console.warn(`[HyprlandConfigManager] Can't read the key "${key}"; bind it as MODS + KEY`);
+    for (const key of plan.skipped) {
+      const id = HyprBinds.keyId(key);
+      if (!_reportedTaken[id])
+        console.log(`[HyprlandConfigManager] ${key} is bound by your Hyprland config; skipping axiom's bind`);
+      _reportedTaken[id] = true;
     }
+    const lines = plan.apply.map(bind => _bindLua(bind));
+    const keys = plan.apply.map(bind => bind.key.trim());
+    const skipped = plan.skipped;
     if (HyprlandConfig.requiredSettings) {
       const anim = (Array.isArray(animations?.[0]) ? animations[0] : []).find(a => a.name === "workspaces");
       lines.push(..._requiredLua(!anim?.overridden));
@@ -582,10 +536,7 @@ if #errors > 0 then error(table.concat(errors, "\\n")) end
 
   Process {
     id: checkManagedProcess
-    command: ["sh", "-c", `dir=\${1%/}; file=$dir/hyprland.lua
-if [ -f "$file" ] && head -n1 "$file" | grep -q '^${root._header}'; then echo ours; exit 0; fi
-if [ -L "$dir" ] || [ -L "$file" ] || git -C "$dir" rev-parse --git-dir >/dev/null 2>&1; then echo blocked; exit 0; fi
-if [ -f "$file" ]; then echo adopt; else echo new; fi`, "sh", Paths.hyprlandPath]
+    command: [Paths.scriptsPath + "claim_hyprland.sh", "check", Paths.hyprlandPath, root._header]
     stdout: StdioCollector {
       onStreamFinished: root._managedCheck = text.trim()
     }
@@ -708,19 +659,13 @@ if [ -f "$file" ]; then echo adopt; else echo new; fi`, "sh", Paths.hyprlandPath
     }
   }
 
-  // Makes ~/.config/hypr/hyprland.lua axiom's: "ours" (already), "adopted"
-  // (the old one moved to user/00-previous.lua, a dated backup beside it)
-  // or "blocked" (a symlinked or git-tracked config is never taken over)
+  // Makes ~/.config/hypr/hyprland.lua axiom's (scripts/claim_hyprland.sh):
+  // "ours" (already), "adopted" (the old one moved to user/00-previous.lua,
+  // a dated backup beside it) or "blocked" (a symlinked or git-tracked
+  // config is never taken over)
   Process {
     id: claimManaged
-    command: ["sh", "-c", `dir=\${1%/}; file=$dir/hyprland.lua
-if [ -f "$file" ] && head -n1 "$file" | grep -q '^${root._header}'; then echo ours; exit 0; fi
-if [ -L "$dir" ] || [ -L "$file" ] || git -C "$dir" rev-parse --git-dir >/dev/null 2>&1; then echo blocked; exit 0; fi
-mkdir -p "$dir/user" || exit 1
-if [ -f "$file" ]; then
-  cp -p "$file" "$file.axiom-backup-$(date +%Y%m%d-%H%M%S)" && mv "$file" "$dir/user/00-previous.lua" || exit 1
-fi
-echo adopted`, "sh", Paths.hyprlandPath]
+    command: [Paths.scriptsPath + "claim_hyprland.sh", "claim", Paths.hyprlandPath, root._header]
     stdout: StdioCollector {
       id: claimCollector
       onStreamFinished: {

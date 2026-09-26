@@ -5,6 +5,7 @@ import Quickshell.Io
 import Quickshell.Hyprland
 
 import qs.config
+import qs.components.methods
 
 /*
  * KeybindManager reads the keybinds Hyprland has registered (`hyprctl binds -j`).
@@ -164,28 +165,17 @@ QtObject {
     draft.changed();
   }
 
-  // Keys Hyprland binds outside axiom, by HyprlandConfigManager.keyId: every
-  // bind Hyprland reports, less the saved axiom binds it applied
+  // Keys Hyprland binds outside axiom, by HyprBinds.keyId: every bind
+  // Hyprland reports, less the saved axiom binds it applied
   readonly property var _userKeyCounts: {
-    const counts = {};
-    for (const entry of root._entries) {
-      if (entry.submap)
-        continue;
-      const id = entry.modmask + ":" + String(entry.key || (entry.keycode ? "code:" + entry.keycode : "")).toLowerCase();
-      counts[id] = (counts[id] ?? 0) + 1;
-    }
-    const skipped = HyprlandConfigManager.skippedKeys.map(key => HyprlandConfigManager.keyId(key));
-    for (const bind of HyprlandConfig.binds) {
-      const id = HyprlandConfigManager.keyId(bind.key);
-      if (id !== "" && HyprlandConfigManager.isComplete(bind) && !skipped.includes(id) && counts[id])
-        counts[id]--;
-    }
-    return counts;
+    const skipped = HyprlandConfigManager.skippedKeys.map(key => HyprBinds.keyId(key));
+    const applied = HyprlandConfig.binds.filter(bind => HyprlandConfigManager.isComplete(bind) && !skipped.includes(HyprBinds.keyId(bind.key)));
+    return HyprBinds.userKeyCounts(root._entries, applied);
   }
 
   // Per bind: [{ level: "error" | "warning", text }]
   readonly property var issues: {
-    const ids = root.binds.map(bind => HyprlandConfigManager.keyId(bind.key));
+    const ids = root.binds.map(bind => HyprBinds.keyId(bind.key));
     const counts = {};
     for (const id of ids)
       if (id !== "")
@@ -305,10 +295,10 @@ QtObject {
         "added": 0,
         "skipped": 0
       };
-    const used = draft.local.map(bind => HyprlandConfigManager.keyId(bind.key));
+    const used = draft.local.map(bind => HyprBinds.keyId(bind.key));
     let added = 0;
     for (const bind of preset.binds) {
-      const id = HyprlandConfigManager.keyId(bind.key);
+      const id = HyprBinds.keyId(bind.key);
       if (used.includes(id))
         continue;
       used.push(id);
