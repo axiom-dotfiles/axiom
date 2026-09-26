@@ -7,6 +7,7 @@ import Quickshell.Io
 import Quickshell.Hyprland
 
 import qs.config
+import qs.components.methods
 
 /*
  * Sets Hyprland up for axiom (the Hyprland section, HyprlandConfig.mode).
@@ -73,12 +74,55 @@ Singleton {
       "workspaceNth": ["workspaces nth {0} go", "Go to workspace {0}", "Workspace"],
       "moveWindowStepSilent": ["workspaces step {0} moveSilent", "Send window {0}", "Workspace"],
       "moveWindowNth": ["workspaces nth {0} move", "Move window to workspace {0}", "Workspace"],
-      "moveWindowNthSilent": ["workspaces nth {0} moveSilent", "Send window to workspace {0}", "Workspace"]
+      "moveWindowNthSilent": ["workspaces nth {0} moveSilent", "Send window to workspace {0}", "Workspace"],
+      "volumeUp": ["audio volumeUp", "Volume up", "Media"],
+      "volumeDown": ["audio volumeDown", "Volume down", "Media"],
+      "toggleMute": ["audio toggleMute", "Mute", "Media"],
+      "toggleMicMute": ["audio toggleMicMute", "Mute microphone", "Media"],
+      "mediaPlayPause": ["media playPause", "Play/Pause", "Media"],
+      "mediaNext": ["media next", "Next track", "Media"],
+      "mediaPrevious": ["media previous", "Previous track", "Media"]
     })
+
+  // Actions that are Hyprland dispatchers, bound directly: the dispatcher's
+  // Lua (from the argument), the default label and the section
+  readonly property var _dispatchers: ({
+      "focusDir": [arg => `hl.dsp.focus({ direction = ${_lua(arg)} })`, "Focus {0}", "Window"],
+      "moveWindowDir": [arg => `hl.dsp.window.move({ direction = ${_lua(arg)} })`, "Move {0}", "Window"],
+      "resizeWindow": [arg => {
+          const [x, y] = arg.split(/[\s,]+/).map(Number);
+          return isFinite(x) && isFinite(y) ? `hl.dsp.window.resize({ x = ${x}, y = ${y}, relative = true })` : "";
+        }, "Resize by {0}", "Window"],
+      "closeWindow": [() => "hl.dsp.window.close()", "Close", "Window"],
+      "fullscreen": [() => "hl.dsp.window.fullscreen()", "Fullscreen", "Window"],
+      "toggleFloat": [() => `hl.dsp.window.float({ action = "toggle" })`, "Toggle floating", "Window"],
+      "pin": [() => "hl.dsp.window.pin()", "Pin", "Window"],
+      "centerWindow": [() => "hl.dsp.window.center()", "Center", "Window"],
+      "toggleGroup": [() => "hl.dsp.group.toggle()", "Toggle group", "Window"],
+      // On a mouse button (SUPER + mouse:272), which Hyprland makes a
+      // mouse bind by itself
+      "mouseDrag": [() => "hl.dsp.window.drag()", "Drag", "Window"],
+      "mouseResize": [() => "hl.dsp.window.resize()", "Resize", "Window"],
+      "toggleSpecial": [arg => `hl.dsp.workspace.toggle_special(${_lua(arg)})`, "Toggle {0}", "Special"],
+      "moveToSpecial": [arg => `hl.dsp.window.move({ workspace = ${_lua("special:" + arg)} })`, "Move window to {0}", "Special"]
+    })
+
+  // Flags an action starts with when it's picked (the bind can change them)
+  readonly property var actionFlags: ({
+      "resizeWindow": ["repeating"],
+      "volumeUp": ["locked", "repeating"],
+      "volumeDown": ["locked", "repeating"],
+      "toggleMute": ["locked"],
+      "toggleMicMute": ["locked"],
+      "mediaPlayPause": ["locked"],
+      "mediaNext": ["locked"],
+      "mediaPrevious": ["locked"]
+    })
+  readonly property var flagNames: ["repeating", "locked", "release"]
 
   // The section a bind's action files it under on the Keybinds page
   function sectionFor(action) {
-    return _actions[action]?.[2] ?? "Axiom";
+    return _actions[action]?.[2] ?? _dispatchers[action]?.[2] ?? "Axiom";
   }
 
   // The label a bind gets when its description is empty
@@ -86,7 +130,7 @@ Singleton {
     const argument = String(bind.argument ?? "").trim();
     if (bind.action === "exec")
       return argument;
-    return (_actions[bind.action]?.[1] ?? "").replace("{0}", argument);
+    return (_actions[bind.action]?.[1] ?? _dispatchers[bind.action]?.[1] ?? "").replace("{0}", argument);
   }
 
   // Whether a description names its own section ("Section: Label")
@@ -103,7 +147,7 @@ Singleton {
 
   // A Lua string literal
   function _lua(text) {
-    return '"' + String(text).replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\n/g, "\\n") + '"';
+    return HyprLua.string(text);
   }
 
   // A single-quoted shell word
@@ -118,19 +162,23 @@ Singleton {
   // The hl.bind() line for a configured bind, or "" when it's incomplete
   function _bindLua(bind) {
     const argument = String(bind.argument ?? "").trim();
-    let command;
-    if (bind.action === "exec") {
-      command = argument;
-    } else {
-      const action = _actions[bind.action];
-      if (!action)
-        return "";
-      command = `${_shellCommand} ipc call ${action[0].replace("{0}", _shellWord(argument))}`;
-    }
-    if (!String(bind.key ?? "").trim() || !command || (_needsArgument(bind.action) && !argument))
+    if (!String(bind.key ?? "").trim() || (_needsArgument(bind.action) && !argument))
       return "";
-    const description = descriptionFor(bind);
-    return `hl.bind(${_lua(bind.key.trim())}, hl.dsp.exec_cmd(${_lua(command)}), { description = ${_lua(description)} })`;
+    let dispatcher;
+    if (_dispatchers[bind.action]) {
+      dispatcher = _dispatchers[bind.action][0](argument);
+    } else if (bind.action === "exec") {
+      dispatcher = `hl.dsp.exec_cmd(${_lua(argument)})`;
+    } else if (_actions[bind.action]) {
+      dispatcher = `hl.dsp.exec_cmd(${_lua(`${_shellCommand} ipc call ${_actions[bind.action][0].replace("{0}", _shellWord(argument))}`)})`;
+    }
+    if (!dispatcher)
+      return "";
+    const options = [`description = ${_lua(descriptionFor(bind))}`];
+    for (const flag of flagNames)
+      if (bind[flag])
+        options.push(`${flag} = true`);
+    return `hl.bind(${_lua(bind.key.trim())}, ${dispatcher}, { ${options.join(", ")} })`;
   }
 
   // Whether a configured bind has everything it needs to be bound
@@ -139,7 +187,7 @@ Singleton {
   }
 
   function _needsArgument(action) {
-    return action === "exec" || (_actions[action]?.[0] ?? "").includes("{0}");
+    return action === "exec" || (_actions[action]?.[0] ?? _dispatchers[action]?.[1] ?? "").includes("{0}");
   }
 
   function _requiredLua(withAnimation) {
@@ -217,13 +265,106 @@ return M
     return `hl.env("XCURSOR_THEME", ${_lua(m.cursorTheme)})\nhl.env("XCURSOR_SIZE", ${_lua(String(m.cursorSize))})\n`;
   }
 
-  // What the managed file runs once Hyprland has started
+  // What the managed file runs once Hyprland has started: the cursor,
+  // axiom, then the autostart commands
   function _startLua(m) {
     const lines = [];
     if (m.cursorTheme)
       lines.push(`hl.exec_cmd(${_lua(`hyprctl setcursor ${_shellWord(m.cursorTheme)} ${m.cursorSize}`)})`);
     lines.push(`hl.exec_cmd(${_lua(_shellCommand)})`);
+    for (const entry of m.autostart)
+      if (entry.enabled && entry.command.trim() !== "")
+        lines.push(`hl.exec_cmd(${_lua(entry.command.trim())})`);
     return lines;
+  }
+
+  function _envLua(m) {
+    return m.env.filter(entry => /^[A-Za-z_][A-Za-z0-9_]*$/.test(entry.name.trim())).map(entry => `hl.env(${_lua(entry.name.trim())}, ${_lua(entry.value)})\n`).join("");
+  }
+
+  // Animation presets: curves { name: [x1, y1, x2, y2] } and leaves
+  // [leaf, speed (Hyprland's unit: 100 ms), curve, style]
+  readonly property var _animationPresets: ({
+      "snappy": {
+        "curves": {
+          "axiomSnappy": [0.2, 0, 0, 1]
+        },
+        "leaves": [["windows", 2, "axiomSnappy", "popin 90%"], ["layers", 2, "axiomSnappy", "fade"], ["fade", 2, "axiomSnappy", ""], ["border", 1, "axiomSnappy", ""], ["workspaces", 2.5, "axiomSnappy", "slide"], ["specialWorkspace", 2.5, "axiomSnappy", "slidevert"]]
+      },
+      "bouncy": {
+        "curves": {
+          "axiomSnappy": [0.2, 0, 0, 1],
+          "axiomOvershoot": [0.34, 1.56, 0.64, 1]
+        },
+        "leaves": [["windows", 4, "axiomOvershoot", "popin 60%"], ["windowsOut", 3, "axiomSnappy", "popin 80%"], ["layers", 3, "axiomOvershoot", "fade"], ["fade", 3, "axiomSnappy", ""], ["border", 2, "axiomSnappy", ""], ["workspaces", 4, "axiomOvershoot", "slide"], ["specialWorkspace", 4, "axiomOvershoot", "slidevert"]]
+      }
+    })
+
+  // The preset (or custom list) as { curves, leaves }, or null for
+  // Hyprland's own animations
+  function _animationSet(m) {
+    switch (m.animationPreset) {
+    case "axiom":
+      {
+        // Look & Feel → Motion: the shell's durations, in Hyprland's unit
+        const speed = ms => Math.max(0.1, ms / 100);
+        return {
+          "curves": {
+            "axiomMotion": [0.05, 0.7, 0.1, 1]
+          },
+          "leaves": [["windows", speed(Appearance.animSlow), "axiomMotion", "popin 80%"], ["layers", speed(Appearance.animNormal), "axiomMotion", "fade"], ["fade", speed(Appearance.animNormal), "axiomMotion", ""], ["border", speed(Appearance.animFast), "axiomMotion", ""], ["workspaces", speed(Appearance.animSlow), "axiomMotion", "slide"], ["specialWorkspace", speed(Appearance.animSlow), "axiomMotion", "slidevert"]]
+        };
+      }
+    case "custom":
+      {
+        const curves = {};
+        for (const curve of m.curves) {
+          const points = curve.points.split(",").map(Number);
+          if (curve.name.trim() !== "" && points.length === 4 && points.every(isFinite))
+            curves[curve.name.trim()] = points;
+        }
+        return {
+          "curves": curves,
+          "leaves": m.customAnimations.map(a => [a.leaf, a.enabled ? a.durationMs / 100 : 0, a.curve.trim() || "default", a.style.trim()])
+        };
+      }
+    }
+    return _animationPresets[m.animationPreset] ?? null;
+  }
+
+  function _animationsLua(m) {
+    // Following axiom's motion while it's off: animations are off (_configLua)
+    const off = !m.animations || (m.animationPreset === "axiom" && !Appearance.animations);
+    const set = off ? null : _animationSet(m);
+    if (!set)
+      return "";
+    const lines = Object.keys(set.curves).map(name => {
+      const p = set.curves[name].map(v => HyprLua.value(v));
+      return `hl.curve(${_lua(name)}, { type = "bezier", points = { { ${p[0]}, ${p[1]} }, { ${p[2]}, ${p[3]} } } })`;
+    });
+    for (const [leaf, speed, curve, style] of set.leaves) {
+      const parts = [`leaf = ${_lua(leaf)}`, `enabled = ${speed > 0}`];
+      if (speed > 0)
+        parts.push(`speed = ${HyprLua.value(speed)}`, `bezier = ${_lua(curve)}`);
+      if (speed > 0 && style !== "")
+        parts.push(`style = ${_lua(style)}`);
+      lines.push(`hl.animation({ ${parts.join(", ")} })`);
+    }
+    return "\n" + lines.join("\n") + "\n";
+  }
+
+  // The managed settings as one hl.config() table
+  function _configLua(m) {
+    const look = _look(m);
+    const overrides = {
+      "decoration.rounding": look.rounding,
+      "general.border_size": look.borderSize
+    };
+    // Following axiom's motion includes turning animations off with it
+    if (m.animationPreset === "axiom" && !Appearance.animations)
+      overrides["animations.enabled"] = false;
+    const schema = ConfigManager.configSchema?.properties?.Hyprland?.properties?.managed;
+    return `hl.config(${HyprLua.serialize(HyprLua.configTable(schema, m, name => _hex(Theme.resolveColor(name)), overrides))})`;
   }
 
   // Window rounding and border width: axiom's shape, or the managed values
@@ -240,7 +381,6 @@ return M
   // The managed hyprland.lua
   function managedLua() {
     const m = HyprlandConfig.managed;
-    const look = _look(m);
     const module = moduleLua().split("\n").filter(line => !line.startsWith("--")).join("\n").trim();
     return `${_header} (Hyprland mode: managed) from its Hyprland settings,
 -- and rewritten whenever they (or the theme) change: edit those, not this file.
@@ -252,30 +392,11 @@ ${_indent(module.split("\n"), "  ")}
 end)()
 
 hl.monitor({ output = "", mode = "preferred", position = "auto", scale = "auto" })
-
-hl.config({
-  general = { layout = ${_lua(m.layout)}, gaps_in = ${m.gapsIn}, gaps_out = ${m.gapsOut}, border_size = ${look.borderSize}, resize_on_border = ${m.resizeOnBorder} },
-  dwindle = { preserve_split = ${m.preserveSplit} },
-  decoration = {
-    rounding = ${look.rounding},
-    dim_inactive = ${m.dimInactive},
-    dim_strength = ${m.dimStrength / 100},
-    blur = { enabled = ${m.windowBlur}, size = ${m.blurSize}, passes = ${m.blurPasses} },
-  },
-  animations = { enabled = ${m.animations} },
-  input = {
-    kb_layout = ${_lua(m.kbLayout)},
-    repeat_rate = ${m.repeatRate},
-    repeat_delay = ${m.repeatDelay},
-    numlock_by_default = ${m.numlockByDefault},
-    follow_mouse = ${m.followMouse ? 1 : 0},
-    accel_profile = ${_lua(m.accelProfile === "default" ? "" : m.accelProfile)},
-    touchpad = { natural_scroll = ${m.naturalScroll} },
-  },
-})
+${_envLua(m)}
+${_configLua(m)}
 ${_cursorLua(m)}
 axiom.setup()
-
+${_animationsLua(m)}
 hl.on("hyprland.start", function()
 ${_indent(_startLua(m), "  ")}
 end)
@@ -492,7 +613,7 @@ if [ -f "$file" ]; then echo adopt; else echo new; fi`, "sh", Paths.hyprlandPath
   }
 
   // Everything the layer is made of; a change re-applies it
-  readonly property string _inputs: [mode, HyprlandConfig._bindsJson, HyprlandConfig._managedJson, HyprlandConfig.requiredSettings, HyprlandConfig.theme, HyprlandConfig.blur, Theme.borderFocus, Theme.border, Appearance.borderRadius, Appearance.borderWidth].join("|")
+  readonly property string _inputs: [mode, HyprlandConfig._bindsJson, HyprlandConfig._managedJson, HyprlandConfig.requiredSettings, HyprlandConfig.theme, HyprlandConfig.blur, Theme.borderFocus, Theme.border, Theme.baseColorNames.map(name => Theme.resolveColor(name)).join(","), Appearance.borderRadius, Appearance.borderWidth, Appearance.animFast, Appearance.animations].join("|")
   on_InputsChanged: _debounce.restart()
 
   property Timer _debounce: Timer {
@@ -634,6 +755,19 @@ echo adopted`, "sh", Paths.hyprlandPath]
   Process {
     id: reload
     command: ["hyprctl", "reload"]
+  }
+
+  // Installed cursor themes (XCursor or hyprcursor), for the settings page
+  readonly property var cursorThemes: _cursorThemes
+  property var _cursorThemes: []
+
+  Process {
+    id: listCursorThemes
+    running: true
+    command: ["sh", "-c", `for d in "$HOME/.icons" "\${XDG_DATA_HOME:-$HOME/.local/share}/icons" /usr/share/icons; do for t in "$d"/*; do [ -d "$t/cursors" ] || [ -f "$t/manifest.hl" ] && basename "$t"; done; done | sort -u`]
+    stdout: StdioCollector {
+      onStreamFinished: root._cursorThemes = text.split("\n").filter(name => name !== "")
+    }
   }
 
   Process {

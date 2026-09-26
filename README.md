@@ -168,7 +168,7 @@ The screenshots show [two setups](#%EF%B8%8F-built-in-the-shell) of the same she
 </details>
 
 ### 🧩 The rest
-- 🔔 **Notifications:** toasts and a notification center. Toasts stack from any corner, with even or per-side gaps measured from the bar or border at each edge.
+- 🔔 **Notifications:** toasts and a notification center. Toasts stack from any corner of one monitor or all of them, with even or per-side gaps measured from the bar or border at each edge. You can set how long they stay (or use the app's own timeout), keep critical ones up, and keep them quiet over fullscreen windows. The history can drop an app's notifications when you focus it, or when you click or close them, and has a size and age limit. Do not disturb is kept across restarts.
 - 🔊 **OSD:** follows the volume of the apps you choose.
 - 🚀 **Launcher:** searches apps (ranked by how often and how recently you use them), open windows, a calculator and the web. It runs shell commands and controls the shell with `/` commands.
 - ⏻ **Power menu:** your choice of session actions, in your order, driven by mouse or keyboard. Log out, reboot and power off ask you to confirm.
@@ -252,7 +252,7 @@ That's all Hyprland needs. How axiom sets up the rest is **Settings → Desktop 
 | --- | --- |
 | **Detached** (default) | Applies axiom's keybinds and required settings at runtime, and again after every Hyprland reload. It writes no files, and skips any keybind whose key your config already uses. |
 | **Included** | Writes `~/.local/state/axiom/hyprland.lua` (under `$XDG_STATE_HOME` if it's set). Load it near the top of your `hyprland.lua`, and anything after it overrides axiom (see below). |
-| **Managed** | axiom writes `~/.config/hypr/hyprland.lua` itself, from the **Managed config** settings (layout, gaps, borders, input). It then loads your own `~/.config/hypr/user/*.lua` after it, in name order, as `require("user.<name>")`, so Hyprland reloads when one changes. Shared modules go in `user/lib/`, which isn't loaded on its own. `user/` itself may be a symlink, for example into a dotfiles repo. The first time, your old `hyprland.lua` is backed up and moved to `user/00-previous.lua`. |
+| **Managed** | axiom writes `~/.config/hypr/hyprland.lua` itself, from the **Managed config** settings: layout (dwindle, master or scrolling), gaps, borders, opacity, blur, shadows, animation styles, keyboard, mouse, cursor and touchpad, behaviour (swallowing, VRR, focus), environment variables and autostart commands. It then loads your own `~/.config/hypr/user/*.lua` after it, in name order, as `require("user.<name>")`, so Hyprland reloads when one changes. Shared modules go in `user/lib/`, which isn't loaded on its own. `user/` itself may be a symlink, for example into a dotfiles repo. The first time, your old `hyprland.lua` is backed up and moved to `user/00-previous.lua`. |
 
 > [!IMPORTANT]
 > Managed mode never takes over a `~/.config/hypr` that is a symlink or in a git repository.
@@ -275,7 +275,7 @@ The same settings page holds switches for:
 - **blur behind axiom's surfaces**
 - **starting `awww-daemon`**
 
-Keybinds are edited on the **Keybinds** page. A bind can run any IPC action below, or a command. A description like `Workspace: Switch left` puts the bind in its own section on that page.
+Keybinds are edited on the **Keybinds** page. A bind can run any IPC action below, a window action (focus, move, resize, close, fullscreen, floating, special workspaces, mouse drag), or a command, and can repeat while held, work while locked or fire on release. Presets add window management on SUPER + H J K L and the media keys. A description like `Workspace: Switch left` puts the bind in its own section on that page.
 
 ### 🔄 Updates
 
@@ -312,6 +312,8 @@ qs -c axiom ipc call <target> <function>
 | `notifications` | `clear`, `toggleDnd` |
 | `selfUpdate` | `check`, `update`, `open` |
 | `chat` | `open`, `newChat`, `ask <text>`, `settings` |
+| `audio` | `volumeUp`, `volumeDown`, `toggleMute`, `toggleMicMute` |
+| `media` | `playPause`, `next`, `previous` |
 
 </details>
 

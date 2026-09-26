@@ -17,6 +17,11 @@ StyledText {
 
   // -- Implementation --
   textFamily: isSymbol ? Appearance.iconFamily : Appearance.fontFamily
+  // Filled symbols are built from overlapping contours, which the default
+  // distance-field renderer draws as blotches, and curve rendering leaves seams
+  // and uneven thin strokes. Native rendering gets both right, but a scaled
+  // native glyph is resampled and blurs: grow an icon by size, not `scale`
+  renderType: isSymbol ? Text.NativeRendering : Text.QtRendering
   font.variableAxes: isSymbol ? {
     "FILL": root.fill,
     "wght": root.weight

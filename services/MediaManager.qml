@@ -156,6 +156,23 @@ QtObject {
     }
   }
 
+  // Media keys (keybind actions mediaPlayPause, ...), for the active player
+  property IpcHandler _ipc: IpcHandler {
+    target: "media"
+
+    function playPause(): void {
+      root.togglePlayPause();
+    }
+
+    function next(): void {
+      root.next();
+    }
+
+    function previous(): void {
+      root.previous();
+    }
+  }
+
   function setPositionByRatio(ratio) {
     if (canSeek && length > 0) {
       ratio = Math.max(0, Math.min(1, ratio));

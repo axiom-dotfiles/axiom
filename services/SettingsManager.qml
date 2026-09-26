@@ -32,6 +32,46 @@ QtObject {
   property string category: ""
   property string query: ""
 
+  // Settings cards the user folded, by SchemaLayout group key; saved in
+  // state/settings.json so they stay folded across restarts
+  property var collapsed: ({})
+  // `collapsed` as the settings page last laid itself out by
+  // (snapshotFolds), so folding a card doesn't reshuffle the page
+  property var layoutFolds: ({})
+  readonly property var _state: StateManager.createStateHandler("settings")
+
+  function isCollapsed(key) {
+    return root.collapsed[key] === true;
+  }
+
+  function snapshotFolds() {
+    root.layoutFolds = root.collapsed;
+  }
+
+  // `keys`: one group key or a list of them
+  function setCollapsed(keys, value) {
+    const next = Object.assign({}, root.collapsed);
+    for (const key of [].concat(keys)) {
+      if (value)
+        next[key] = true;
+      else
+        delete next[key];
+    }
+    root.collapsed = next;
+    root._state.save({
+      "collapsed": Object.keys(next)
+    });
+  }
+
+  Component.onCompleted: {
+    const saved = root._state.load({});
+    root.collapsed = (saved.collapsed ?? []).reduce((all, key) => {
+      all[key] = true;
+      return all;
+    }, {});
+    root.layoutFolds = root.collapsed;
+  }
+
   function _diff(local, saved, path) {
     const isObject = value => value !== null && typeof value === "object" && !Array.isArray(value);
     if (isObject(local) && isObject(saved)) {
@@ -131,6 +171,12 @@ QtObject {
       return ChatConfig.presets.map(preset => preset.name);
     case "colors":
       return Theme.baseColorNames;
+    case "cursorThemes":
+      {
+        const current = HyprlandConfig.managed.cursorTheme;
+        const themes = HyprlandConfigManager.cursorThemes;
+        return ["", ...themes, ...(current && !themes.includes(current) ? [current] : [])];
+      }
     case "languages":
       return I18n.languages.map(l => l.code);
     }

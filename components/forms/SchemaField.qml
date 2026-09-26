@@ -19,6 +19,8 @@ Loader {
 
   required property var row
   required property var form
+  // Room a wrapper keeps at the header's right end (SettingsField's reset)
+  property int headerInset: 0
 
   readonly property var fieldSchema: row.schema ?? ({})
   readonly property var current: form.valueAt(row.path)
@@ -128,13 +130,17 @@ Loader {
 
   Component {
     id: spinField
-    SchemaSpinBox {
+    SchemaNumberField {
       label: root.label
       description: root.description
       currentConfigValue: root.current ?? 0
       minimum: root.fieldSchema.minimum ?? 0
       maximum: root.fieldSchema.maximum ?? 9999
-      onValueChanged: root.commit(value)
+      stepSize: root.fieldSchema.multipleOf ?? 1
+      headerInset: root.headerInset
+      unit: root.fieldSchema["x-unit"] ?? ""
+      mode: root.fieldSchema["x-control"] ?? "auto"
+      onCommitted: value => root.commit(value)
     }
   }
 

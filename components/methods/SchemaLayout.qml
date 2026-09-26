@@ -113,8 +113,16 @@ QtObject {
       return card;
     }
 
-    function place(objectSchema, path, base) {
-      for (const key in objectSchema.properties ?? {}) {
+    // `order` (the object's `x-order`) puts keys first: the schema reaches
+    // QML as a map, whose keys come out sorted, and a card's place is its
+    // first field's
+    function place(objectSchema, path, base, order) {
+      const rank = key => {
+        const index = (order ?? []).indexOf(key);
+        return index < 0 ? Infinity : index;
+      };
+      const keys = Object.keys(objectSchema.properties ?? {}).sort((a, b) => rank(a) - rank(b));
+      for (const key of keys) {
         const prop = objectSchema.properties[key];
         if (prop["x-settings"] === false)
           continue;
@@ -147,7 +155,7 @@ QtObject {
       "path": [sectionKey],
       "showIf": null,
       "showIfParent": []
-    });
+    }, section["x-order"]);
     for (const key of nested) {
       const prop = section.properties[key];
       if (prop["x-settings"] === false)
@@ -159,7 +167,7 @@ QtObject {
         "path": [sectionKey, key],
         "showIf": prop["x-showIf"] ?? null,
         "showIfParent": [sectionKey]
-      });
+      }, prop["x-order"]);
     }
     // A description belongs to the object's first card only
     const seen = new Set();

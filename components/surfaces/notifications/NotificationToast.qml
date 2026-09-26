@@ -13,6 +13,9 @@ PopupWindow {
   id: root
 
   required property var notification
+  // Its history entry's uid ("" for a transient one), taken while it's
+  // live: invoking an action can close it
+  property string uid: ""
   property var anchorWindow: null
 
   property int toastWidth: 360
@@ -27,6 +30,10 @@ PopupWindow {
   property int targetY: 0
 
   signal dismissed
+  // The user closed it (not a timeout): the host hides it on every screen
+  signal userClosed
+
+  readonly property bool closing: slideOut.running
 
   implicitWidth: toastWidth
   implicitHeight: Math.min(mainColumn.implicitHeight + Widget.padding * 2, toastMaxHeight)
@@ -59,6 +66,16 @@ PopupWindow {
     if (slideOut.running)
       return;
     slideOut.start();
+  }
+
+  // Closed by the user; `remove` also takes it out of the history
+  function close(remove) {
+    if (slideOut.running)
+      return;
+    if (remove && root.uid)
+      NotificationManager.dismiss(root.uid);
+    root.userClosed();
+    root.dismiss();
   }
 
   ParallelAnimation {
@@ -113,13 +130,15 @@ PopupWindow {
     }
   }
 
-  // expireTimeout === 0 is the freedesktop-spec signal for "never expire".
-  readonly property bool neverExpires: notification.expireTimeout === 0
+  // expireTimeout: 0 is the freedesktop-spec signal for "never expire", a
+  // positive one is the app's own duration (ms), -1 leaves it to us
   readonly property bool critical: notification.urgency === NotificationUrgency.Critical
+  readonly property bool neverExpires: (NotificationsConfig.appTimeouts && notification.expireTimeout === 0) || (NotificationsConfig.criticalStays && critical)
+  readonly property int duration: NotificationsConfig.appTimeouts && notification.expireTimeout > 0 ? notification.expireTimeout : root.dismissDuration
 
   Timer {
     id: dismissTimer
-    interval: root.dismissDuration
+    interval: root.duration
     running: !root.neverExpires && root.visible && !dragArea.containsMouse
     onTriggered: root.dismiss()
   }
@@ -180,7 +199,7 @@ PopupWindow {
           dragShift.x = dragDelta * 0.5;
           card.opacity = 1 - Math.abs(dragDelta) / (root.dragDismissThreshold * 2);
           if (Math.abs(dragDelta) > root.dragDismissThreshold)
-            root.dismiss();
+            root.close(NotificationsConfig.closeRemoves);
         }
 
         onReleased: {
@@ -230,7 +249,7 @@ PopupWindow {
                 onActivated: ranAction => {
                   if (!ranAction)
                     NotificationManager.openApp(root.notification);
-                  root.dismiss();
+                  root.close(NotificationsConfig.removeOnClick);
                 }
               }
             }
@@ -248,13 +267,13 @@ PopupWindow {
               iconColor: Theme.foregroundAlt
               hoverColor: Theme.backgroundHighlight
 
-              onClicked: root.dismiss()
+              onClicked: root.close(NotificationsConfig.closeRemoves)
             }
           }
 
           NotificationActions {
             notification: root.notification
-            onInvoked: root.dismiss()
+            onInvoked: root.close(NotificationsConfig.removeOnClick)
           }
         }
       }

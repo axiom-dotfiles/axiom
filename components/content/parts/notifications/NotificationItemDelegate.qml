@@ -8,8 +8,9 @@ import qs.components.reusable
 
 // One history entry inside a group card: image, summary and body, its time
 // (or a dismiss button while hovered) and, while its notification is live,
-// its actions. Clicking runs the default action, or else opens the app.
-// Swipe sideways or press the button to dismiss; it slides out first.
+// its actions. Clicking runs the default action, or else opens the app
+// (and with NotificationsConfig.removeOnClick dismisses it, as an action
+// does). Swipe sideways or press the button to dismiss; it slides out first.
 Item {
   id: root
 
@@ -152,6 +153,8 @@ Item {
           onActivated: ranAction => {
             if (!ranAction)
               NotificationManager.openApp(root.entry);
+            if (NotificationsConfig.removeOnClick)
+              root.dismiss();
           }
           summaryLines: 2
           bodyLines: 3
@@ -209,6 +212,10 @@ Item {
       NotificationActions {
         Layout.topMargin: 2
         notification: root.live
+        onInvoked: {
+          if (NotificationsConfig.removeOnClick)
+            root.dismiss();
+        }
       }
     }
   }
