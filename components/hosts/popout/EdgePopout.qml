@@ -76,6 +76,12 @@ PopoutWrapperBase {
   property real contentPadding: Widget.spacing
   // Extra distance in from the attach edge (for a detached box)
   property real edgeOffset: 0
+  // How far back towards the screen edge a detached box slides in from:
+  // the window then starts there, drawn under the bar or border it passes
+  // (on underLayer, the layer of what it slides under)
+  property real slideDistance: 0
+  property int underLayer: WlrLayer.Top
+  readonly property bool slidesUnder: detached && slideDistance > 0
   property color fillColor: Theme.background
   property color strokeColor: Theme.foreground
   // Off leaves the focus grab to another window (see SurfaceGroup)
@@ -234,8 +240,10 @@ PopoutWrapperBase {
     // the border's and bars' reserved area; the -borderWidth margin then
     // lines it up with their inner stroke, whether that's a bar or the
     // plain border.
-    WlrLayershell.layer: WlrLayer.Overlay
-    WlrLayershell.namespace: "axiom-edge-popout"
+    // Sliding under something, on its layer, ordered under it (see
+    // HyprlandManager's layer rules)
+    WlrLayershell.layer: root.slidesUnder ? root.underLayer : WlrLayer.Overlay
+    WlrLayershell.namespace: root.slidesUnder ? "axiom-popout-under" : "axiom-edge-popout"
     WlrLayershell.keyboardFocus: root.wantsKeyboardFocus || root.keyboardOnDemand ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
     exclusionMode: ExclusionMode.Normal
     exclusiveZone: 0
@@ -250,7 +258,7 @@ PopoutWrapperBase {
 
     // On a bare screen edge (no border, no bar) there's no stroke to land
     // on: the surface sits at the edge and runs straight off it
-    readonly property real attachMargin: (root.straight ? 0 : -Appearance.borderWidth) + root.edgeOffset
+    readonly property real attachMargin: (root.straight ? 0 : -Appearance.borderWidth) + root.edgeOffset - (root.slidesUnder ? root.slideDistance : 0)
     margins {
       top: root.edge === Bar.Top ? surfaceWindow.attachMargin : root.vertical ? -root.strokeInset : 0
       bottom: root.edge === Bar.Bottom ? surfaceWindow.attachMargin : root.vertical ? -root.strokeInset : 0
@@ -261,10 +269,19 @@ PopoutWrapperBase {
     implicitWidth: root.vertical ? surface.implicitWidth : 0
     implicitHeight: root.vertical ? 0 : surface.implicitHeight
 
-    // Pills a merged box reaches stay hoverable through its notches
+    // Pills a merged box reaches stay hoverable through its notches. One
+    // sliding under a bar takes input on its box alone.
     mask: Region {
-      item: surface
+      item: root.slidesUnder ? boxArea : surface
       regions: notchRegions.instances
+    }
+
+    Item {
+      id: boxArea
+      x: surface.x + surface.boxRect.x
+      y: surface.y + surface.boxRect.y
+      width: surface.boxRect.width
+      height: surface.boxRect.height
     }
 
     HyprlandFocusGrab {
@@ -294,6 +311,7 @@ PopoutWrapperBase {
       edge: root.edge
       straight: root.straight
       detached: root.detached
+      detachedOffset: root.slidesUnder ? root.slideDistance : 0
       active: root.isOpen
       connectorGap: root.connectorGap
       boxWidth: root.vertical ? (loader.item?.implicitWidth ?? 100) + root.contentPadding * 2 + root.attachClearance : root._boxAlong

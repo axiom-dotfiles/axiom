@@ -30,7 +30,8 @@ import qs.config
  *   stands on something drawn under the surface (a pill's far stroke) and
  *   follows it to that end
  * - notches: regions at the attach edge left unpainted (merged pills)
- * - detached: a plain rounded box, not joined to anything
+ * - detached: a plain rounded box, not joined to anything; detachedOffset
+ *   sets it further in from the edge it slides out of
  * - straight/straightJoins: the attach edge, or the edges a join meets, are
  *   bare screen edges, so the walls run straight off them
  *
@@ -52,6 +53,11 @@ Item {
   property real startFoot: 0
   property real endFoot: 0
   property bool detached: false
+  // A detached box's distance from the attach edge past the connector gap.
+  // The surface starts at the attach edge, so the box slides in from
+  // there: placed under a bar, from beneath it.
+  property real detachedOffset: 0
+  readonly property real _lead: detached ? detachedOffset : 0
   // The attach edge / the perpendicular edges a join meets are bare screen
   // edges (screen border off): the surface runs straight off them, with no
   // fillet onto them
@@ -112,7 +118,7 @@ Item {
   readonly property real endMargin: _filletEnd ? connectorGap - strokeWidth : 0
   readonly property real alongLength: startMargin + boxAlong + endMargin
   // Box + connector gap, plus room for a join's fillet past the far edge
-  readonly property real depth: boxDepth + connectorGap + (_joinFillet ? filletRadius : 0)
+  readonly property real depth: _lead + boxDepth + connectorGap + (_joinFillet ? filletRadius : 0)
 
   // Along the edge: box + fillet squares. Away from the edge: box +
   // connector gap.
@@ -128,7 +134,7 @@ Item {
   // every side but the attach edge it coincides with the outer edge of
   // the stroke, so things attaching to this surface (tray submenus) can
   // line their own stroke up with it.
-  readonly property rect boxRect: root._rectFrom(startMargin, connectorGap / 2, boxAlong, boxDepth)
+  readonly property rect boxRect: root._rectFrom(startMargin, _lead + connectorGap / 2, boxAlong, boxDepth)
 
   // The notches clamped to the surface, edge-local (none without depth)
   readonly property var _notches: {

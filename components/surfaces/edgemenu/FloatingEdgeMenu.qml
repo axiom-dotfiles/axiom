@@ -1,5 +1,6 @@
 pragma ComponentBehavior: Bound
 import QtQuick
+import Quickshell.Wayland
 
 import qs.config
 import qs.services
@@ -148,6 +149,11 @@ EdgePopout {
   // The window would sit where the windows start, less a border width
   // (none when straight)
   edgeOffset: root.barPanel ? root.barAttachDepth - root.barReach + (root.straight ? 0 : Appearance.borderWidth) : root.edgeDistance
+  // A detached box slides in from under what's on its edge: from a bar's
+  // outer edge (past the border stroke a floating bar's lies on), else
+  // from the border's or a solid bar's stroke, or the bare screen edge
+  slideDistance: root.barPanel ? root.barAttachDepth - (root.barConfig.floating ? Appearance.borderWidth : 0) : root.edgeDistance
+  underLayer: root.barConfig?.floating ? WlrLayer.Overlay : WlrLayer.Top
   // Without the border, a merged box runs straight off the screen edge
   straight: root.merged ? !Appearance.screenBorder : root.bareEdge
   // At 0px its ends join the perpendicular edges once it reaches them.

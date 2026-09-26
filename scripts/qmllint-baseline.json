@@ -75,10 +75,13 @@
     "incompatible-type: Cannot assign binding of type QObject to QQuickItem": 1,
     "missing-property: Member \"focusLost\" not found on type \"QQuickItem\"": 2,
     "missing-property: Member \"height\" not found on type \"QObject\"": 1,
+    "missing-property: Member \"reservedZone\" not found on type \"QObject\"": 1,
     "missing-property: Member \"thickness\" not found on type \"QObject\"": 1,
     "missing-property: Member \"wantsKeyboardFocus\" not found on type \"QQuickItem\"": 1,
     "missing-property: Member \"width\" not found on type \"QObject\"": 1,
-    "missing-type: No type found for property \"adjustment\". This may be due to a missing import statement or incomplete qmltypes files.": 1
+    "missing-type: No type found for property \"adjustment\". This may be due to a missing import statement or incomplete qmltypes files.": 1,
+    "unqualified: unknown grouped property scope margins.": 1,
+    "unresolved-type: Type margins is used but it is not resolved": 1
   },
   "components/hosts/popout/EdgePopout.qml": {
     "Quick.anchor-combinations: Cannot specify left, right, and horizontalCenter anchors at the same time.": 1,
