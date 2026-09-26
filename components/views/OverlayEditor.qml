@@ -9,8 +9,12 @@ import qs.components.views.overlayEditor
 // selected page drawn on a canvas (drag modules, cells and columns
 // around) above what's selected there, or the library to drag from.
 // Edits go through OverlayManager's draft until saved.
+// i18n: keys from the schema (view labels)
 BaseView {
   id: root
+
+  readonly property var view: OverlayManager.selectedView()
+  readonly property bool isCustom: root.view?.type === "Custom"
 
   readonly property real pageHeight: root.grid.span(4)
   readonly property real sideWidth: root.grid.unit * 0.8
@@ -22,6 +26,8 @@ BaseView {
 
   EditorDragLayer {
     id: dragLayer
+    editor: OverlayManager.layout
+    onPageMoved: (from, to) => OverlayManager.moveView(from, to)
     implicitWidth: root.sideWidth + OverlayConfig.cardSpacing + root.mainWidth
     implicitHeight: root.pageHeight
 
@@ -41,6 +47,10 @@ BaseView {
 
       PageCanvas {
         dragLayer: dragLayer
+        editColumns: root.isCustom ? (root.view.columns ?? []) : null
+        icon: root.view ? OverlayConfig.viewIcon(root.view.type) : "view_quilt"
+        title: !root.view ? I18n.tr("No pages") : root.isCustom ? (root.view.name || I18n.tr("Page {0}", OverlayManager.selectedViewIndex + 1)) : I18n.tr(OverlayConfig.viewInfo(root.view.type)?.label ?? root.view.type)
+        emptyText: I18n.tr(root.view ? "A fixed page: it has no layout to edit. Drag it in the page list to reorder it." : "No pages yet: add one with New page.")
       }
     }
 
@@ -50,6 +60,8 @@ BaseView {
       width: root.mainWidth
       height: root.pageHeight - root.canvasHeight - OverlayConfig.cardSpacing
       dragLayer: dragLayer
+      editable: root.isCustom
+      notEditableHint: I18n.tr("Pick a custom page to add modules to it")
     }
   }
 }

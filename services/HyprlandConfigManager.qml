@@ -63,6 +63,7 @@ Singleton {
       "launcherSearch": ["appLauncher search {0}", "Launcher: {0}", "Axiom"],
       "overlay": ["overlay toggle", "Overlay", "Axiom"],
       "overlayPage": ["overlay page {0}", "Overlay: {0}", "Axiom"],
+      "edgeMenu": ["edgeMenu toggle {0}", "Edge menu: {0}", "Axiom"],
       "workspaceOverview": ["workspaceOverlay toggle", "Workspace overview", "Workspace"],
       "powerMenu": ["powermenu toggle", "Power menu", "Axiom"],
       "lock": ["lockscreen lock", "Lock", "Axiom"],

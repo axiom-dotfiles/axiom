@@ -27,4 +27,22 @@ QtObject {
   function edgeOf(menu) {
     return Bar.getLocationFromString(menu?.edge ?? "Left");
   }
+
+  // The menu's box colours
+  function colorsOf(menu) {
+    return {
+      "fill": Theme.resolveColor(menu?.backgroundColor ?? "base00"),
+      "stroke": Theme.resolveColor(menu?.borderColor ?? "base05")
+    };
+  }
+
+  // The menu's length along its edge, from config alone (for the hover
+  // strip before the menu has ever been loaded): its columns side by side
+  // at its card size, as EdgeMenuBody lays them out, plus its padding
+  function lengthOf(menu, vertical) {
+    const unit = menu?.cardSize ?? OverlayConfig.minCardUnit;
+    const flows = (menu?.columns ?? []).map(column => OverlayConfig.columnFlow(column.cells, unit));
+    const length = vertical ? Math.max(0, ...flows.map(flow => flow.height)) : flows.reduce((sum, flow) => sum + flow.width, 0) + Math.max(0, flows.length - 1) * OverlayConfig.cardSpacing;
+    return length + (menu?.padding ?? 0) * 2;
+  }
 }

@@ -63,7 +63,7 @@ Item {
         hoverColor: Theme.error
         tooltipText: I18n.tr("Remove column")
         visible: headerHover.hovered
-        onClicked: OverlayManager.removeColumn(root.column)
+        onClicked: root.dragLayer.editor.removeColumn(root.column)
       }
     }
 

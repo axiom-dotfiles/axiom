@@ -12,7 +12,7 @@ QtObject {
   signal toggleOverlay
   signal toggleWorkspaceOverlay
   // Switch the overlay to a page by view type or a view's name ("Themes" and
-  // "OverlayEditor" for the pinned pages), e.g. from a settings link
+  // "OverlayEditor" / "EdgeMenuEditor" for the pinned pages), e.g. from a settings link
   signal showOverlayPage(string type)
   // Opens the target overlay on a page (a view type, or a view's name)
   signal openOverlayPage(string type)

@@ -6,7 +6,7 @@ import qs.services
 import qs.components.reusable
 
 // i18n: keys from the schema (module, view and layout labels)
-// The overlay editor's whole page. Owns the one drag in progress and its
+// An editor page's whole area (overlay editor, edge menu editor). Owns the one drag in progress and its
 // ghost, drawn above every panel so a module can be carried from the
 // library onto the canvas, a cell between columns, a page up the list.
 // Drop targets register themselves; draggables report their pointer here.
@@ -20,8 +20,14 @@ import qs.components.reusable
 //   "page-move" { index }                  a page row
 // Targets: items with `targetKind` "slot" (column, cell, slot, rect),
 // "column" (column, indexAt), "gap" (index) or "pages" (indexAt).
+// Every edit goes to `editor` (a ColumnsEditor); page rows are the page's
+// own business, so a "pages" drop is only reported (pageMoved).
 Item {
   id: root
+
+  required property ColumnsEditor editor
+
+  signal pageMoved(int from, int to)
 
   default property alias content: contentItem.data
 
@@ -96,7 +102,7 @@ Item {
     };
     if (drag.kind === "module-add")
       return OverlayConfig.fits(drag.type, target.rect);
-    return OverlayManager.canMoveModule(drag, to);
+    return root.editor.canMoveModule(drag, to);
   }
 
   // Starts carrying `payload`, picked up at (x, y) in `item`
@@ -136,14 +142,14 @@ Item {
       return;
     const kind = target.targetKind;
     if (kind === "pages") {
-      OverlayManager.moveView(drag.index, index);
+      root.pageMoved(drag.index, index);
       return;
     }
     if (kind === "slot") {
       if (drag.kind === "module-add")
-        OverlayManager.placeModule(drag.type, target.column, target.cell, target.slot);
+        root.editor.placeModule(drag.type, target.column, target.cell, target.slot);
       else
-        OverlayManager.moveModule(drag, {
+        root.editor.moveModule(drag, {
           "column": target.column,
           "cell": target.cell,
           "slot": target.slot
@@ -160,19 +166,19 @@ Item {
     };
     switch (drag.kind) {
     case "module-add":
-      OverlayManager.addModuleCell(drag.type, place);
+      root.editor.addModuleCell(drag.type, place);
       break;
     case "module-move":
-      OverlayManager.extractModule(drag, place);
+      root.editor.extractModule(drag, place);
       break;
     case "cell-add":
-      OverlayManager.addCell(place, drag.layout);
+      root.editor.addCell(place, drag.layout);
       break;
     case "cell-move":
-      OverlayManager.moveCell(drag.column, drag.cell, place);
+      root.editor.moveCell(drag.column, drag.cell, place);
       break;
     case "column-move":
-      OverlayManager.moveColumn(drag.column, target.index);
+      root.editor.moveColumn(drag.column, target.index);
       break;
     }
   }

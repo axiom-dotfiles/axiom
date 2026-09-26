@@ -26,9 +26,9 @@ Item {
   }
   readonly property var slotNames: Object.keys(root.layoutData.slots)
   readonly property real step: (OverlayConfig.halfUnit + OverlayConfig.cardSpacing) * root.scaleFactor
-  readonly property bool selected: OverlayManager.isSelected(root.column, root.cell, "")
+  readonly property bool selected: root.dragLayer.editor.isSelected(root.column, root.cell, "")
   readonly property bool carried: root.dragLayer.draggingKind === "cell-move" && root.dragLayer.dragging.column === root.column && root.dragLayer.dragging.cell === root.cell
-  readonly property bool showGrip: root.dragLayer.dragging === null && (hover.hovered || root.selected || OverlayManager.isCellSelected(root.column, root.cell))
+  readonly property bool showGrip: root.dragLayer.dragging === null && (hover.hovered || root.selected || root.dragLayer.editor.isCellSelected(root.column, root.cell))
 
   opacity: root.carried ? 0.3 : 1
 
@@ -43,7 +43,7 @@ Item {
     anchors.margins: -Math.min(3, OverlayConfig.cardSpacing * root.scaleFactor / 3)
     radius: Appearance.borderRadius + 2
     color: "transparent"
-    visible: OverlayManager.isCellSelected(root.column, root.cell)
+    visible: root.dragLayer.editor.isCellSelected(root.column, root.cell)
     border.color: Theme.accent
     border.width: root.selected ? 2 : 1
     opacity: root.selected ? 1 : 0.45
@@ -117,7 +117,7 @@ Item {
       onDragMoved: (x, y) => root.dragLayer.move(gripArea, x, y)
       onDropped: root.dragLayer.end()
       onDragCanceled: root.dragLayer.cancel()
-      onTapped: OverlayManager.select(root.column, root.cell, "")
+      onTapped: root.dragLayer.editor.select(root.column, root.cell, "")
     }
   }
 }

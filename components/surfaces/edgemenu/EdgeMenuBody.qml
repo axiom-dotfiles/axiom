@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 
 import qs.config
+import qs.services
 import qs.components.hosts.overlay
 
 // An edge menu's modules: its columns side by side, as on a Custom overlay
@@ -34,6 +35,11 @@ Item {
 
   readonly property real contentLength: root.vertical ? row.implicitHeight : row.implicitWidth
   readonly property real length: root.maxLength > 0 ? Math.min(root.contentLength, root.maxLength) : root.contentLength
+
+  // Escape closes the menu once it has the keyboard (both hosts take it
+  // on demand, when clicked)
+  focus: true
+  Keys.onEscapePressed: EdgeMenuManager.close(root.menu?.id ?? "")
 
   implicitWidth: root.vertical ? row.implicitWidth : root.length
   implicitHeight: root.vertical ? root.length : row.implicitHeight

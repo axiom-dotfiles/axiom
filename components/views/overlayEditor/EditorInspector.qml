@@ -10,7 +10,7 @@ import qs.components.forms
 import qs.components.content.base
 
 // i18n: keys from the schema (titles, descriptions, module labels)
-// Overlay editor, below the canvas: what's selected there. A module's
+// Overlay / edge menu editor, below the canvas: what's selected there. A module's
 // options, with its cell's layout beside them; an empty slot or a cell,
 // the library beside its cell; nothing, the library of modules and
 // cell layouts to drag onto the page.
@@ -18,14 +18,17 @@ Item {
   id: root
 
   required property var dragLayer
-
-  readonly property bool isCustom: OverlayManager.selectedView()?.type === "Custom"
-  readonly property var sel: OverlayManager.selected
-  readonly property var cell: OverlayManager.selectedCell()
-  readonly property var module: OverlayManager.selectedModule()
+  readonly property ColumnsEditor editor: root.dragLayer.editor
+  // Whether there are columns to add modules to
+  property bool editable: true
+  // The subtitle with nothing selected, when not editable
+  property string notEditableHint: ""
+  readonly property var sel: root.editor.selected
+  readonly property var cell: root.editor.selectedCell()
+  readonly property var module: root.editor.selectedModule()
   readonly property bool slotSelected: root.sel !== null && root.sel.slot !== "" && root.cell !== null
   readonly property bool cellSelected: root.sel !== null && root.cell !== null
-  readonly property var rect: root.slotSelected ? OverlayManager.slotRect(root.sel.column, root.sel.cell, root.sel.slot) : null
+  readonly property var rect: root.slotSelected ? root.editor.slotRect(root.sel.column, root.sel.cell, root.sel.slot) : null
   // Shapes and slot names are shown translated. Dynamic keys, declared for
   // scripts/check_i18n.py: I18n.tr("square") I18n.tr("horizontal") I18n.tr("vertical")
   // I18n.tr("main") I18n.tr("topLeft") I18n.tr("topRight") I18n.tr("bottomLeft")
@@ -35,7 +38,7 @@ Item {
   readonly property bool fits: !root.module || !root.rect || OverlayConfig.fits(root.moduleType, root.rect)
   // A new form per slot: SchemaField rows commit when their value
   // changes, so reusing one for another module would write the old values
-  readonly property string selectionKey: root.module ? [OverlayManager.selectedViewIndex, root.sel.column, root.sel.cell, root.sel.slot, root.moduleType].join(":") : ""
+  readonly property string selectionKey: root.module ? [root.editor.scopeKey, root.sel.column, root.sel.cell, root.sel.slot, root.moduleType].join(":") : ""
 
   readonly property string where: root.cellSelected ? I18n.tr("Column {0} · cell {1}", root.sel.column + 1, root.sel.cell + 1) + (root.slotSelected ? " · " + I18n.tr("{0} slot ({1})", I18n.tr(root.sel.slot), I18n.tr(root.shape)) : "") : ""
 
@@ -80,7 +83,7 @@ Item {
           }
 
           StyledText {
-            text: root.cellSelected ? root.where : root.isCustom ? I18n.tr("Click a slot, or a cell's grip, on the page to edit it") : I18n.tr("Pick a custom page to add modules to it")
+            text: root.cellSelected ? root.where : root.editable ? I18n.tr("Click a slot, or a cell's grip, on the page to edit it") : root.notEditableHint
             opacity: 0.6
             textSize: Appearance.fontSize - 2
             elide: Text.ElideRight
@@ -93,14 +96,14 @@ Item {
           iconText: "ink_eraser"
           hoverColor: Theme.error
           tooltipText: I18n.tr("Empty this slot")
-          onClicked: OverlayManager.clearSlot(root.sel.column, root.sel.cell, root.sel.slot)
+          onClicked: root.editor.clearSlot(root.sel.column, root.sel.cell, root.sel.slot)
         }
 
         SquareIconButton {
           visible: root.cellSelected
           iconText: "close"
           tooltipText: I18n.tr("Close")
-          onClicked: OverlayManager.clearSelection()
+          onClicked: root.editor.clearSelection()
         }
       }
 
@@ -129,7 +132,7 @@ Item {
 
           ModuleLibrary {
             anchors.fill: parent
-            visible: root.selectionKey === "" && root.isCustom
+            visible: root.selectionKey === "" && root.editable
             dragLayer: root.dragLayer
             shape: root.slotSelected ? root.shape : ""
           }
@@ -181,7 +184,7 @@ Item {
                     anchors.fill: parent
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
-                    onClicked: OverlayManager.setCellLayout(root.sel.column, root.sel.cell, choice.modelData)
+                    onClicked: root.editor.setCellLayout(root.sel.column, root.sel.cell, choice.modelData)
                   }
 
                   LazyLoader {
@@ -202,14 +205,14 @@ Item {
               StyledTextButton {
                 text: I18n.tr("Duplicate cell")
                 textPadding: 6
-                onClicked: OverlayManager.duplicateCell(root.sel.column, root.sel.cell)
+                onClicked: root.editor.duplicateCell(root.sel.column, root.sel.cell)
               }
 
               StyledTextButton {
                 text: I18n.tr("Remove cell")
                 textPadding: 6
                 hoverColor: Theme.error
-                onClicked: OverlayManager.removeCell(root.sel.column, root.sel.cell)
+                onClicked: root.editor.removeCell(root.sel.column, root.sel.cell)
               }
             }
           }
@@ -247,7 +250,7 @@ Item {
           Layout.fillWidth: true
           propertiesSchema: optionsScroll.propertiesSchema
           values: root.module?.properties ?? ({})
-          onEdited: (path, value) => OverlayManager.updateModuleProperty(optionsScroll.sel.column, optionsScroll.sel.cell, optionsScroll.sel.slot, path[0], value)
+          onEdited: (path, value) => root.editor.updateModuleProperty(optionsScroll.sel.column, optionsScroll.sel.cell, optionsScroll.sel.slot, path[0], value)
         }
 
         StyledText {

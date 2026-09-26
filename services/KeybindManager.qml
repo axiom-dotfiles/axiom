@@ -55,6 +55,7 @@ QtObject {
       "launcherSearch": "text",
       "exec": "text",
       "overlayPage": "view",
+      "edgeMenu": "edgeMenu",
       "workspaceStep": "direction",
       "moveWindowStep": "direction",
       "moveWindowStepSilent": "direction",
@@ -86,8 +87,10 @@ QtObject {
       return Array.from({
         "length": WorkspacesConfig.size
       }, (_, i) => String(i + 1));
+    case "edgeMenu":
+      return EdgeMenusConfig.menus.map(menu => menu.id).filter(id => id);
     case "view":
-      return OverlayConfig.views.filter(view => view.visible !== false).map(view => view.name || view.type).concat(["OverlayEditor"]).filter((name, i, all) => all.indexOf(name) === i);
+      return OverlayConfig.views.filter(view => view.visible !== false).map(view => view.name || view.type).concat(["OverlayEditor", "EdgeMenuEditor"]).filter((name, i, all) => all.indexOf(name) === i);
     }
     return null;
   }

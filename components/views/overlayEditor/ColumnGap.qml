@@ -74,6 +74,6 @@ Item {
     enabled: root.isEnd || root.wide
     hoverEnabled: true
     cursorShape: Qt.PointingHandCursor
-    onClicked: OverlayManager.addColumn()
+    onClicked: root.dragLayer.editor.addColumn()
   }
 }

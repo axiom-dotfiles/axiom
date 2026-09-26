@@ -172,13 +172,17 @@ Item {
         }
       }
 
-      // The page that isn't in config, always last
+      // The pages that aren't in config, always last
       Repeater {
-        // Labels: I18n.tr("Overlay editor")
+        // Labels: I18n.tr("Overlay editor") I18n.tr("Edge menu editor")
         model: [
           {
             "label": "Overlay editor",
             "icon": "view_quilt"
+          },
+          {
+            "label": "Edge menu editor",
+            "icon": "dock_to_right"
           }
         ]
 

@@ -12,7 +12,9 @@ import qs.components.hosts.popout
 // layer rule, HyprlandManager._addLayerRules), so it sits outermost and the
 // border, bars and windows move inwards while it's open. The zone is set
 // once when it opens (windows retile in one step), then the strip slides
-// in; closing slides it out before the zone goes.
+// in; closing slides it out before the zone goes. With `frame` on, a
+// rounded box runs the strip's whole length (`margin` in from its edges)
+// and the modules sit in it, `padding` in from its stroke.
 //
 // Open/close and hover-loss dismissal are PopoutWrapperBase's, as for the
 // popouts.
@@ -23,7 +25,8 @@ PopoutWrapperBase {
   required property ShellScreen screen
 
   readonly property string menuId: root.menu?.id ?? ""
-  readonly property bool pinned: EdgeMenuManager.pinnedMenus[root.menuId] === true
+  // Pinned, or held open by the editor
+  readonly property bool pinned: EdgeMenuManager.isHeld(root.menuId)
   readonly property bool wanted: EdgeMenuManager.openMenus[root.menuId] === true
   readonly property bool isOpen: root.occupied && !root.isClosing
 
@@ -31,16 +34,23 @@ PopoutWrapperBase {
   readonly property bool vertical: root.edge === Bar.Left || root.edge === Bar.Right
   readonly property real position: (root.menu?.position ?? 50) / 100
 
-  // Space around the cards: to the screen edge and the strip's ends, and,
-  // with the screen border off, to the strip's own inner stroke (with it
-  // on, the border's strip inside this one leaves that gap)
-  readonly property int pad: Appearance.screenMargin
-  readonly property int innerPad: Appearance.screenBorder ? 0 : root.pad + Appearance.borderWidth
+  readonly property bool framed: root.menu?.frame ?? true
+  readonly property int padding: root.menu?.padding ?? Appearance.screenMargin
+  readonly property var colors: EdgeMenusConfig.colorsOf(root.menu)
+  // The frame's inset from the strip's edges (0 without one)
+  readonly property int frameInset: root.framed ? (root.menu?.margin ?? 0) : 0
+  // From the strip's edges to the cards: the frame and its stroke, then
+  // the padding
+  readonly property int pad: root.frameInset + (root.framed ? Appearance.borderWidth : 0) + root.padding
+  // With the screen border off, the strip's own inner stroke (with it on,
+  // the border's strip inside this one draws it)
+  readonly property int innerStroke: Appearance.screenBorder ? 0 : Appearance.borderWidth
   readonly property real edgeLength: root.vertical ? root.screen.height : root.screen.width
   readonly property real bodyDepth: root.vertical ? (loader.item?.implicitWidth ?? 0) : (loader.item?.implicitHeight ?? 0)
-  readonly property int depth: Math.ceil(root.bodyDepth + root.pad + root.innerPad)
+  readonly property int depth: Math.ceil(root.bodyDepth + root.pad * 2 + root.innerStroke)
 
   autoDismiss: (root.menu?.closeOnLeave ?? true) && !root.pinned
+  dismissDelay: root.menu?.closeDelay ?? PopoutConfig.dismissDelay
   onAutoDismissChanged: root.updateDismissTimer()
   keepAlive: panelHover.hovered || trigger.containsMouse
 
@@ -93,9 +103,10 @@ PopoutWrapperBase {
     visible: root.menu?.openOnHover ?? false
     edge: root.edge
     position: root.position
-    triggerWidth: PopoutConfig.edgeTriggerSize
-    triggerLength: 200
-    hoverDelay: PopoutConfig.openDelay
+    triggerWidth: root.menu?.triggerSize ?? PopoutConfig.edgeTriggerSize
+    // 0: the menu's own length (from config until it's first loaded)
+    triggerLength: (root.menu?.triggerLength ?? 0) > 0 ? root.menu.triggerLength : loader.item ? (root.vertical ? loader.item.implicitHeight : loader.item.implicitWidth) + root.pad * 2 : EdgeMenusConfig.lengthOf(root.menu, root.vertical)
+    hoverDelay: root.menu?.openDelay ?? PopoutConfig.openDelay
     onTriggered: root.show()
   }
 
@@ -141,10 +152,26 @@ PopoutWrapperBase {
           id: panelHover
         }
 
-        // The strip, in the border's colours: the screen frame grown by the menu
+        // The strip, in the border's colours: the screen frame grown by the
+        // menu (without a frame, the menu's own background)
         Rectangle {
           anchors.fill: parent
-          color: Theme.background
+          color: root.framed ? Theme.background : root.colors.fill
+        }
+
+        // The frame: a rounded box along the whole strip
+        Rectangle {
+          visible: root.framed
+          // Clear of the strip's inner stroke, which is at its start on a
+          // right or bottom strip
+          x: root.frameInset + (root.edge === Bar.Right ? root.innerStroke : 0)
+          y: root.frameInset + (root.edge === Bar.Bottom ? root.innerStroke : 0)
+          width: parent.width - root.frameInset * 2 - (root.vertical ? root.innerStroke : 0)
+          height: parent.height - root.frameInset * 2 - (root.vertical ? 0 : root.innerStroke)
+          radius: Appearance.borderRadius
+          color: root.colors.fill
+          border.color: root.colors.stroke
+          border.width: Appearance.borderWidth
         }
 
         // With the screen border off, nothing inside draws the frame's stroke
@@ -163,7 +190,7 @@ PopoutWrapperBase {
 
           readonly property real along: root.vertical ? height : width
           readonly property real alongPos: Math.max(root.pad, Math.min(root.edgeLength * root.position - along / 2, root.edgeLength - along - root.pad))
-          readonly property real across: root.edge === Bar.Left || root.edge === Bar.Top ? root.pad : root.innerPad
+          readonly property real across: root.pad + (root.edge === Bar.Right || root.edge === Bar.Bottom ? root.innerStroke : 0)
 
           x: root.vertical ? across : alongPos
           y: root.vertical ? alongPos : across

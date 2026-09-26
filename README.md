@@ -87,7 +87,7 @@ The screenshots show [two setups](#%EF%B8%8F-built-in-the-shell) of the same she
   - pending updates, and more
 
   Buttons can run their action on hover too.
-- Edge menus pop out of any screen edge, filled with the overlay's modules. A floating menu opens over your windows. An integrated one opens outside the screen border and bars, pushing them and your windows inwards. A Pin module keeps a menu open. Open one from a bar Button, its edge, or IPC.
+- Edge menus pop out of any screen edge, filled with the overlay's modules. A floating menu opens over your windows. An integrated one opens outside the screen border and bars, pushing them and your windows inwards. A Pin module keeps a menu open. Open one from a bar Button, its edge, or IPC. Each has its own padding, colours, hover timings and (integrated) a framed box along the whole edge, and a keybind can toggle one. Build them on the **Edge menu editor** page, where **Show on screen** keeps the menu open while you edit it.
 
 <details>
 <summary><b>Popouts</b></summary>
@@ -129,7 +129,7 @@ The screenshots show [two setups](#%EF%B8%8F-built-in-the-shell) of the same she
 - Modules adapt to the shape of their slot (square, wide, tall or quarter).
 - Built-in pages:
   - **Settings**, generated from the config schema
-  - **Bar editor** and **Overlay editor** (see [Built in the shell](#%EF%B8%8F-built-in-the-shell))
+  - **Bar editor**, **Overlay editor** and **Edge menu editor** (see [Built in the shell](#%EF%B8%8F-built-in-the-shell))
   - **Themes**
   - **Keybinds**
 
@@ -374,7 +374,7 @@ In `none` mode axiom doesn't register the `lockscreen` target. Point hypridle at
 
 ## ⚙️ Configuration
 
-Everything is configured from inside the shell (see [Built in the shell](#%EF%B8%8F-built-in-the-shell)). Open the overlay, and use the **Settings**, **Bar editor**, **Overlay editor** and **Themes** pages.
+Everything is configured from inside the shell (see [Built in the shell](#%EF%B8%8F-built-in-the-shell)). Open the overlay, and use the **Settings**, **Bar editor**, **Overlay editor**, **Edge menu editor** and **Themes** pages.
 
 - Settings are saved to `config/user/config.json`. You never need to open it, but the shell watches that file and reloads when it changes, so editing it by hand also works.
 - Configs from older versions are migrated automatically.

@@ -72,6 +72,12 @@ PopoutWrapperBase {
   // (an edge whose bar has no strip to grow out of: pills, transparent)
   property bool detached: false
   property bool closeOnClickOutside: false
+  // Space between the box and its content
+  property real contentPadding: Widget.spacing
+  // Extra distance in from the attach edge (for a detached box)
+  property real edgeOffset: 0
+  property color fillColor: Theme.background
+  property color strokeColor: Theme.foreground
   // Off leaves the focus grab to another window (see SurfaceGroup)
   property bool grabEnabled: true
   // Other windows the grab lets input through to
@@ -168,7 +174,7 @@ PopoutWrapperBase {
 
     // On a bare screen edge (no border, no bar) there's no stroke to land
     // on: the surface sits at the edge and runs straight off it
-    readonly property real attachMargin: root.straight ? 0 : -Appearance.borderWidth
+    readonly property real attachMargin: (root.straight ? 0 : -Appearance.borderWidth) + root.edgeOffset
     margins {
       top: root.edge === Bar.Top ? surfaceWindow.attachMargin : 0
       bottom: root.edge === Bar.Bottom ? surfaceWindow.attachMargin : 0
@@ -218,8 +224,10 @@ PopoutWrapperBase {
       detached: root.detached
       active: root.isOpen
       connectorGap: root.connectorGap
-      boxWidth: (loader.item?.implicitWidth ?? 100) + Widget.spacing * 2
-      boxHeight: (loader.item?.implicitHeight ?? 100) + Widget.spacing * 2
+      boxWidth: (loader.item?.implicitWidth ?? 100) + root.contentPadding * 2
+      boxHeight: (loader.item?.implicitHeight ?? 100) + root.contentPadding * 2
+      fillColor: root.fillColor
+      strokeColor: root.strokeColor
 
       HoverHandler {
         id: surfaceHover
@@ -228,7 +236,7 @@ PopoutWrapperBase {
       Loader {
         id: loader
         anchors.fill: parent
-        anchors.margins: Widget.spacing
+        anchors.margins: root.contentPadding
 
         active: root.occupied || root.keepLoaded
         asynchronous: false
