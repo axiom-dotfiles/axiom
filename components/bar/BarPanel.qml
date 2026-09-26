@@ -3,7 +3,6 @@ pragma ComponentBehavior: Bound
 
 import Quickshell
 import Quickshell.Wayland
-import Quickshell.Hyprland
 import QtQuick
 
 import qs.config
@@ -61,7 +60,7 @@ PanelWindow {
     right: root.barConfig.floating ? -Appearance.borderWidth : 0
   }
 
-  readonly property bool fullscreenBelow: Hyprland.monitorFor(root.screen)?.activeWorkspace?.hasFullscreen ?? false
+  readonly property bool fullscreenBelow: HyprlandManager.hasFullscreen(root.screen?.name ?? "")
 
   visible: barConfig.enabled && !(barConfig.floating && fullscreenBelow)
 
