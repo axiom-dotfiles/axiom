@@ -317,13 +317,14 @@ QtObject {
   }
 
   function _optionRow(command, option) {
+    const next = option.value?.next;
     return {
       kind: "option",
       glyph: option.image ? "" : option.glyph || command.glyph,
       image: option.image ?? "",
       title: option.title,
       subtitle: option.subtitle ?? "",
-      complete: "/" + command.name + " " + option.title,
+      complete: next !== undefined ? "/" + command.name + " " + next : "/" + command.name + " " + option.title,
       run: () => root._runCommand(command, option.title, option.value)
     };
   }
