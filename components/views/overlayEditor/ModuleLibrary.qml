@@ -17,7 +17,7 @@ ColumnLayout {
   property string shape: ""
 
   property int tab: 0
-  readonly property var modules: root.shape === "" ? OverlayConfig.availableModuleTypes : OverlayConfig.availableModuleTypes.filter(t => t.shapes.includes(root.shape))
+  readonly property var modules: root.shape === "" ? OverlayConfig.modulesFor("overlay") : OverlayConfig.modulesFor("overlay").filter(t => t.shapes.includes(root.shape))
 
   spacing: Widget.spacing
 

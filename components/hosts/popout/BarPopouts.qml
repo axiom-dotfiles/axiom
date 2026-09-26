@@ -237,7 +237,10 @@ PopoutWrapperBase {
       return mapped > 0 ? mapped : (root.barConfig.vertical ? root.screen.height : root.screen.width);
     }
     readonly property real frameWidth: Appearance.screenBorder ? Appearance.screenMargin : 0
-    readonly property real borderInset: frameWidth - ((root.barConfig.vertical ? root.screen.height : root.screen.width) - panelLength) / 2
+    // Integrated edge menus on the perpendicular edges sit outside
+    // everything else, taking their space off one end only
+    readonly property real menuZones: root.barConfig.vertical ? EdgeMenuManager.zoneOn(root.screen?.name, "top") + EdgeMenuManager.zoneOn(root.screen?.name, "bottom") : EdgeMenuManager.zoneOn(root.screen?.name, "left") + EdgeMenuManager.zoneOn(root.screen?.name, "right")
+    readonly property real borderInset: frameWidth - ((root.barConfig.vertical ? root.screen.height : root.screen.width) - panelLength - menuZones) / 2
     readonly property real minAlong: borderInset + Appearance.screenMargin
     readonly property real maxAlong: panelLength - borderInset - Appearance.screenMargin
     // Outer edges of the perpendicular border strokes (the screen edges

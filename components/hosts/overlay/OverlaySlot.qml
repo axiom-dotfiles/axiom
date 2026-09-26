@@ -15,6 +15,11 @@ Item {
   // The slot's [col, row, colSpan, rowSpan] in its cell's layout; passed on
   // as the module's `slotRect`, from which Card derives its shape
   property var rect: [0, 0, 2, 2]
+  // Where the module is shown: { kind: "overlay" } or { kind: "edgeMenu",
+  // id }, passed on as its `host`
+  property var host: ({
+      "kind": "overlay"
+    })
 
   anchors.fill: parent
 
@@ -30,7 +35,8 @@ Item {
     loader.setSource(root.componentPath, {
       "properties": root.config.properties || {},
       "slotRect": root.rect,
-      "embedded": true
+      "embedded": true,
+      "host": root.host
     });
   }
   onComponentPathChanged: _load()
@@ -42,6 +48,7 @@ Item {
     onLoaded: {
       item.properties = Qt.binding(() => root.config?.properties || {});
       item.slotRect = Qt.binding(() => root.rect);
+      item.host = Qt.binding(() => root.host);
     }
   }
 }

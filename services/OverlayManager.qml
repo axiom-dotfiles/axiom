@@ -51,6 +51,8 @@ QtObject {
               const type = cell.slots[slot]?.type;
               if (type && slots[slot] && !OverlayConfig.fits(type, slots[slot]))
                 out.push(I18n.tr("{0}: {1} doesn't fit a {2} slot", name, type, I18n.tr(OverlayConfig.slotShape(slots[slot]))));
+              if (type && !OverlayConfig.allowedIn(type, "overlay"))
+                out.push(I18n.tr("{0}: {1} only works in an edge menu", name, type));
             });
           });
         });

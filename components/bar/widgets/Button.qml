@@ -26,6 +26,8 @@ BarIconWidget {
   Component.onCompleted: registerLabel()
   Component.onDestruction: CommandManager.release(root)
   property bool _tooltipShown: false
+  // Read by an edge menu this opened, which stays open while it's hovered
+  readonly property bool hovered: mouseArea.containsMouse
 
   icon: properties.icon
   text: properties.labelCommand ? commandLabel : properties.label
@@ -46,6 +48,9 @@ BarIconWidget {
     case "workspaceOverlay":
       ShellManager.toggleWorkspaceOverlay();
       break;
+    case "edgeMenu":
+      EdgeMenuManager.toggle(properties.menu, root);
+      break;
     case "lock":
       ShellManager.sessionAction("lock");
       break;
@@ -65,6 +70,8 @@ BarIconWidget {
   function hoverAction() {
     const surface = _surfaceFor[properties.action];
     if (surface && ShellManager.surfaceOpen(surface))
+      return;
+    if (properties.action === "edgeMenu" && EdgeMenuManager.isOpen(properties.menu))
       return;
     runAction();
   }

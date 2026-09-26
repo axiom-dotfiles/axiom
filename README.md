@@ -87,6 +87,7 @@ The screenshots show [two setups](#%EF%B8%8F-built-in-the-shell) of the same she
   - pending updates, and more
 
   Buttons can run their action on hover too.
+- Edge menus pop out of any screen edge, filled with the overlay's modules. A floating menu opens over your windows. An integrated one opens outside the screen border and bars, pushing them and your windows inwards. A Pin module keeps a menu open. Open one from a bar Button, its edge, or IPC.
 
 <details>
 <summary><b>Popouts</b></summary>
@@ -303,6 +304,7 @@ qs -c axiom ipc call <target> <function>
 | Target | Functions |
 | --- | --- |
 | `overlay` | `open`, `close`, `toggle`, `page <type>` |
+| `edgeMenu` | `open <id>`, `close <id>`, `toggle <id>`, `pin <id>`, `unpin <id>`, `list` |
 | `appLauncher` | `open`, `close`, `toggle`, `search <text>` |
 | `powermenu` | `open`, `close`, `toggle` |
 | `workspaceOverlay` | `show`, `hide`, `toggle` |

@@ -10,6 +10,10 @@ Item {
   // { layout, slots: { <slotName>: { type, properties } } }
   required property var cellConfig
   required property OverlayGrid grid
+  // Where the modules are shown (see OverlaySlot)
+  property var host: ({
+      "kind": "overlay"
+    })
 
   readonly property var layout: {
     const layout = OverlayConfig.layouts[root.cellConfig.layout];
@@ -54,6 +58,7 @@ Item {
       OverlaySlot {
         config: root.slots[slot.modelData]
         rect: slot.rect
+        host: root.host
       }
     }
   }

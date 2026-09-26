@@ -179,6 +179,8 @@ QtObject {
       }
     case "languages":
       return I18n.languages.map(l => l.code);
+    case "edgeMenus":
+      return ["", ...EdgeMenusConfig.menus.map(menu => menu.id)];
     }
     return null;
   }
@@ -187,7 +189,7 @@ QtObject {
 
   // Never offered, whatever the schema says: the bar and overlay editors
   // own these
-  readonly property var _blockedPrefixes: ["Bars", "Overlay.views"]
+  readonly property var _blockedPrefixes: ["Bars", "Overlay.views", "EdgeMenus"]
 
   // Every value the settings page shows, as { path, key, schema }, with
   // key the dotted path. `x-applyOnSave` settings are left out: they wait

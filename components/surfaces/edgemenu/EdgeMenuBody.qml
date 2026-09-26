@@ -1,0 +1,65 @@
+pragma ComponentBehavior: Bound
+import QtQuick
+
+import qs.config
+import qs.components.hosts.overlay
+
+// An edge menu's modules: its columns side by side, as on a Custom overlay
+// page, with cards of the menu's own cardSize. Along the edge it's capped
+// at `maxLength` and scrolls past that.
+Item {
+  id: root
+
+  required property var menu
+  required property bool vertical
+  // Room along the edge
+  property real maxLength: 0
+
+  // Columns re-read only when they actually change, so an unrelated config
+  // save doesn't rebuild every module
+  readonly property string _columnsKey: JSON.stringify(root.menu?.columns ?? [])
+  property var columns: []
+  on_ColumnsKeyChanged: root.columns = JSON.parse(root._columnsKey)
+  Component.onCompleted: root.columns = JSON.parse(root._columnsKey)
+
+  readonly property var host: ({
+      "kind": "edgeMenu",
+      "id": root.menu?.id ?? ""
+    })
+
+  OverlayGrid {
+    id: grid
+    fixedUnit: root.menu?.cardSize ?? OverlayConfig.minCardUnit
+  }
+
+  readonly property real contentLength: root.vertical ? row.implicitHeight : row.implicitWidth
+  readonly property real length: root.maxLength > 0 ? Math.min(root.contentLength, root.maxLength) : root.contentLength
+
+  implicitWidth: root.vertical ? row.implicitWidth : root.length
+  implicitHeight: root.vertical ? root.length : row.implicitHeight
+
+  Flickable {
+    anchors.fill: parent
+    contentWidth: row.implicitWidth
+    contentHeight: row.implicitHeight
+    clip: true
+    boundsBehavior: Flickable.StopAtBounds
+    interactive: root.contentLength > root.length
+
+    Row {
+      id: row
+      spacing: OverlayConfig.cardSpacing
+
+      Repeater {
+        model: root.columns.length
+
+        OverlayColumn {
+          required property int index
+          columnConfig: root.columns[index]
+          grid: grid
+          host: root.host
+        }
+      }
+    }
+  }
+}

@@ -29,12 +29,22 @@ QtObject {
         // Slot shapes a module fits (`x-shapes`); views don't declare any
         "shapes": def["x-shapes"] ?? ["square", "horizontal", "vertical"],
         // Material Symbols name (`x-icon`)
-        "icon": def["x-icon"] ?? "extension"
+        "icon": def["x-icon"] ?? "extension",
+        // Where a module may be placed (`x-hosts`): "overlay", "edgeMenu"
+        "hosts": def["x-hosts"] ?? ["overlay", "edgeMenu"]
       };
     }).filter(t => t !== null);
   }
   readonly property var availableModuleTypes: _oneOfTypes("OverlayModule")
   readonly property var availableViewTypes: _oneOfTypes("OverlayView")
+  // The module types a host offers: "overlay" pages or "edgeMenu"s
+  function modulesFor(host) {
+    return availableModuleTypes.filter(t => t.hosts.includes(host));
+  }
+  function allowedIn(type, host) {
+    const info = moduleInfo(type);
+    return !info || info.hosts.includes(host);
+  }
 
   function moduleInfo(type) {
     return availableModuleTypes.find(t => t.type === type) ?? null;

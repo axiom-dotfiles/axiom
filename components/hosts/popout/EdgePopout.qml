@@ -65,6 +65,12 @@ PopoutWrapperBase {
   property int hoverDelay: PopoutConfig.openDelay
 
   property bool wantsKeyboardFocus: false
+  // Take the keyboard when clicked, without a focus grab (content that may
+  // hold a text field, e.g. an edge menu's modules)
+  property bool keyboardOnDemand: false
+  // A plain rounded box a connector gap in from the edge, not joined to it
+  // (an edge whose bar has no strip to grow out of: pills, transparent)
+  property bool detached: false
   property bool closeOnClickOutside: false
   // Off leaves the focus grab to another window (see SurfaceGroup)
   property bool grabEnabled: true
@@ -97,7 +103,9 @@ PopoutWrapperBase {
   currentItem: loader.item ?? null
   keepAlive: surfaceHover.hovered || trigger.containsMouse || (focusGrab.active && wantsKeyboardFocus)
 
-  function show() {
+  // `data` is the open payload: { anchorItem } keeps it open while that
+  // item is hovered, as for bar popouts
+  function show(data) {
     if (!available)
       return;
     if (isOpen) {
@@ -105,7 +113,7 @@ PopoutWrapperBase {
       updateDismissTimer();
       return;
     }
-    safeOpenPopout(null, ({}));
+    safeOpenPopout(null, data ?? ({}));
   }
 
   function hide() {
@@ -146,7 +154,7 @@ PopoutWrapperBase {
     // plain border.
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.namespace: "axiom-edge-popout"
-    WlrLayershell.keyboardFocus: root.wantsKeyboardFocus ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
+    WlrLayershell.keyboardFocus: root.wantsKeyboardFocus || root.keyboardOnDemand ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
     exclusionMode: ExclusionMode.Normal
     exclusiveZone: 0
 
@@ -207,6 +215,7 @@ PopoutWrapperBase {
 
       edge: root.edge
       straight: root.straight
+      detached: root.detached
       active: root.isOpen
       connectorGap: root.connectorGap
       boxWidth: (loader.item?.implicitWidth ?? 100) + Widget.spacing * 2

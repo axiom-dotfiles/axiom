@@ -11,7 +11,7 @@ ShellRoot {
   id: shellRoot
 
   // Services with no UI of their own, which nothing else would create
-  readonly property var _services: [DependencyManager, HyprlandConfigManager, SelfUpdateManager, ChatManager, AudioManager, MediaManager]
+  readonly property var _services: [DependencyManager, HyprlandConfigManager, SelfUpdateManager, ChatManager, AudioManager, MediaManager, EdgeMenuManager]
 
   Lockscreen {
     id: lockscreen
@@ -47,5 +47,9 @@ ShellRoot {
 
   PowerMenu {
     id: powerMenu
+  }
+
+  EdgeMenus {
+    id: edgeMenus
   }
 }

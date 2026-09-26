@@ -11,6 +11,10 @@ Item {
   // { cells: [...] }
   required property var columnConfig
   required property OverlayGrid grid
+  // Where the modules are shown, handed to each as `host`
+  property var host: ({
+      "kind": "overlay"
+    })
 
   implicitWidth: root.grid.columnFlow(root.columnConfig.cells).width
   implicitHeight: flow.implicitHeight
@@ -27,6 +31,7 @@ Item {
         required property var modelData
         cellConfig: modelData
         grid: root.grid
+        host: root.host
       }
     }
   }

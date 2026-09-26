@@ -35,6 +35,11 @@ Loader {
         labels[l.code] = l.name;
         return labels;
       }, {});
+    if (fieldSchema["x-options"] === "edgeMenus")
+      return EdgeMenusConfig.menus.reduce((labels, menu) => {
+        labels[menu.id] = menu.name || menu.id;
+        return labels;
+      }, {});
     // Schema labels are English, translated like titles
     const labels = fieldSchema["x-enumLabels"] ?? {};
     return Object.keys(labels).reduce((out, value) => {
