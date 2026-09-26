@@ -3,7 +3,6 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import qs.config
-import qs.services
 import qs.components.reusable
 
 // What can be added to a page: module types and cell layouts, to drag

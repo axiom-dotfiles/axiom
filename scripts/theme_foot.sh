@@ -16,5 +16,5 @@ require_cmds jq envsubst foot
 OUTPUT_FILE="${2:-$HOME/.config/foot/axiom.ini}"
 load_theme "$1"
 export_theme_colors
-map_vars hex $(theme_color_vars)
+map_theme_colors hex
 render_template "$SCRIPT_DIR/templates/foot_template.ini" "$OUTPUT_FILE"

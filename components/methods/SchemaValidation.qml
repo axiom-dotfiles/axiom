@@ -20,16 +20,21 @@ QtObject {
     })
 
   function validateAgainstSchema(value, schema, path = '') {
-    _ctx.root = schema;
-    const errors = [];
-    _validate(value, schema, path, errors);
-
+    const errors = validationErrors(value, schema, path);
     if (errors.length > 0) {
       console.error("Validation Failed with errors:");
       errors.forEach(err => console.error("  - " + err));
       return false;
     }
     return true;
+  }
+
+  // Every reason `value` fails `schema` (empty when it's valid)
+  function validationErrors(value, schema, path = '') {
+    _ctx.root = schema;
+    const errors = [];
+    _validate(value, schema, path, errors);
+    return errors;
   }
 
   /**

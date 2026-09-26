@@ -6,7 +6,6 @@ import Quickshell.Hyprland
 
 import qs.config
 import qs.services
-import qs.components.reusable
 
 /**
  * A popout that slides out of a screen edge and joins the screen border

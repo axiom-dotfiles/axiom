@@ -12,8 +12,6 @@ ScrollView {
   property int contentPadding: Widget.padding
   property bool showScrollBar: false
 
-  property alias scrollbarOpacity: verticalScrollBar.opacity
-
   contentWidth: availableWidth
 
   topPadding: contentPadding
@@ -25,8 +23,6 @@ ScrollView {
   ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
 
   ScrollBar.vertical {
-    id: verticalScrollBar
-
     Behavior on opacity {
       NumberAnimation {
         duration: Appearance.animNormal

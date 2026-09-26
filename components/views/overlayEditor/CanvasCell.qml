@@ -1,7 +1,6 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import qs.config
-import qs.services
 import qs.components.reusable
 
 // One cell on the canvas: its layout's slots as SlotTiles, drawn at

@@ -17,7 +17,7 @@ require_cmds jq envsubst
 OUTPUT_FILE="${2:-$HOME/.config/cava/colors/axiom.conf}"
 load_theme "$1"
 export_theme_colors
-map_vars quote_color $(theme_color_vars)
+map_theme_colors quote_color
 if [[ "$THEME_VARIANT" == "dark" ]]; then
     export GRADIENT_COUNT=8 GRADIENT_7="$BASE08" GRADIENT_8="$ACCENT_ALT"
 else

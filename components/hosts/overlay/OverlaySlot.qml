@@ -2,7 +2,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 // Modules are loaded by URL; importing their directory is what makes qs
 // scan them, so their own qs.* imports (e.g. modules.settings) resolve
-import qs.components.content
+import qs.components.content // qmllint disable unused-imports
 
 // Hosts one overlay module in a cell slot: loads content/<type>.qml and
 // hands it the entry's `properties` (defaults filled from the schema, as

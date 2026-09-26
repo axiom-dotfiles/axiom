@@ -6,7 +6,7 @@ import Quickshell.Hyprland
 import qs.services
 import qs.config
 // Imported (though loaded by URL) so qs scans the content types
-import qs.components.content
+import qs.components.content // qmllint disable unused-imports
 
 /**
  * Popout wrapper for bar widgets

@@ -1,6 +1,6 @@
 pragma ComponentBehavior: Bound
 import QtQuick
-import Qt5Compat.GraphicalEffects
+import QtQuick.Effects
 import Quickshell
 
 import qs.config
@@ -51,13 +51,20 @@ Item {
     fillMode: Image.PreserveAspectCrop
     asynchronous: true
     layer.enabled: true
-    layer.effect: OpacityMask {
-      maskSource: Rectangle {
-        width: picture.width
-        height: picture.height
-        radius: root.radius
-      }
+    layer.effect: MultiEffect {
+      maskEnabled: true
+      maskSource: mask
+      maskThresholdMin: 0.5
+      maskSpreadAtMin: 1
     }
+  }
+
+  Rectangle {
+    id: mask
+    anchors.fill: parent
+    radius: root.radius
+    visible: false
+    layer.enabled: true
   }
 
   Image {

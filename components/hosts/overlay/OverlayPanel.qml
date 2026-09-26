@@ -1,6 +1,5 @@
 pragma ComponentBehavior: Bound
 import QtQuick
-import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
@@ -9,7 +8,8 @@ import Quickshell.Hyprland
 import qs.config
 import qs.services
 import qs.components.reusable
-import qs.components.views
+// Imported (though views load by URL) so qs scans the view types
+import qs.components.views // qmllint disable unused-imports
 
 // TODO: build from a reusable fullscreen panel
 PanelWindow {

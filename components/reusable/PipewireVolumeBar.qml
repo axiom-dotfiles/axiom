@@ -79,7 +79,7 @@ Item {
   function setVolume(newVolume) {
     const clamped = Math.max(0.0, Math.min(1.0, newVolume));
     if (useSystemVolume) {
-      AudioManager.volume = clamped;
+      AudioManager.setVolume(clamped);
       return;
     }
     if (nodeFound) {
@@ -89,7 +89,7 @@ Item {
 
   function toggleMute() {
     if (useSystemVolume) {
-      AudioManager.muted = !AudioManager.muted;
+      AudioManager.toggleMute();
       return;
     }
     if (nodeFound) {

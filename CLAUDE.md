@@ -17,11 +17,15 @@ A [Quickshell](https://quickshell.org) desktop shell config (QML) for Hyprland, 
 - Lock through `qs -c axiom ipc call lockscreen lock` (what hypridle's `lock_cmd` should run; routes by `Lockscreen.mode`, see Lockscreen below). **Never lock the built-in locker yourself while testing**: only the user can type the password. Test the lock surface by instantiating `LockSurface` in a hidden window instead.
 - Do not simulate cursor movement (e.g. `hyprctl dispatch movecursor`) to verify UI behavior — check logs/code instead.
 - **Run `scripts/check_structure.py` after adding, renaming or moving QML files.** It statically checks the naming conventions the shell loads by: every schema type (`BarWidget`/`OverlayView`/`OverlayModule`) and `popoutName` has its file, URL-loaded directories are imported by name, every `import qs.…` resolves, and no singleton reference is a typo (`AudioManger.`). Exit 1 on errors.
-- No automated test suite exists. Verify QML changes by running `scripts/log.sh` after a save (which triggers reload), and by reasoning through property bindings — there's no headless QML test runner set up here.
+- **Checks** (all run in CI, `.github/workflows/checks.yml`; `scripts/check_all.sh` runs every one locally):
+  - `scripts/run_tests.sh [Name…]`: qmltestrunner unit tests in `tests/tst_<Name>.qml` for `components/methods/` (only Quickshell-free files, so not IconResolver), the real schema (every widget/module/view default is valid) and `ConfigMigration` (`tests/fixtures/configs/v1.json` migrates to a valid current config). Tests read repo files through `tests/RepoFiles.qml`; Lua they write to `tests/.out/` is checked with `luac -p`. Add a fixture or a case when changing a migration step or a methods helper. `SchemaValidation.validationErrors` returns the reasons instead of logging them.
+  - `scripts/check_qmllint.py`: qmllint over the whole shell, failing only on warnings missing from `scripts/qmllint-baseline.json` (per file, `category: message` with a count). Fix a new warning, or, if it's a gap in Quickshell's type info, `--update-baseline`. An import only there for qs to scan a directory is marked `// qmllint disable unused-imports`. Both it and the tests lint/import a copy of the shell laid out as QML modules (`scripts/qml_modules.py`), since plain Qt tools can't resolve `qs.*`.
+  - `scripts/check_qmlformat.sh [--fix]`, `shellcheck -x -S warning` (`.shellcheckrc`), and `tests/scripts/test_scripts.py` (every theme is complete; every `theme_*.sh` renders dark and light themes in a scratch `$HOME` with stubbed apps and no `Warning:`; `self_update.sh` on scratch clones; `generate_theme.py` on a generated image). `render_template` warns about a `${VAR}` nothing sets.
+  - None of these run the shell: still verify QML changes with `scripts/log.sh` after a save (which triggers a reload), and by reasoning through property bindings.
 
 ## Formatting
 
-- `.qmlformat.ini` pins `qmlformat` settings: spaces not tabs, 2-space indent, no max column width. Run `/usr/lib/qt6/bin/qmlformat -i` on changed `.qml` files before committing. The `qmlformat` on PATH is Qt5's, which can't parse `pragma ComponentBehavior` and fails silently (exit 1, no output).
+- `.qmlformat.ini` pins `qmlformat` settings: spaces not tabs, 2-space indent, no max column width. Run `/usr/lib/qt6/bin/qmlformat -i` on changed `.qml` files before committing (`scripts/check_qmlformat.sh --fix` does every file). The `qmlformat` on PATH is Qt5's, which can't parse `pragma ComponentBehavior` and fails silently (exit 1, no output).
 - The QML JS engine has no `Array.prototype.flatMap` (use `[].concat(...arr.map(...))`) and no `Object.fromEntries` (use `reduce`).
 
 ## Architecture
@@ -45,7 +49,8 @@ components/     UI building blocks
 services/       pragma Singleton QtObjects — global state and side-effecting logic (see below)
 config/         static QML config singletons + JSON config/theme files
 assets/         static assets (icons, images)
-scripts/        Python/shell scripts invoked as external processes (theming, wallpaper, stats) from qs.services
+scripts/        Python/shell scripts invoked as external processes (theming, wallpaper, stats) from qs.services, plus the dev checks
+tests/          qmltestrunner unit tests (tst_*.qml), fixtures, and tests/scripts/ for the scripts
 ```
 
 ### Layering

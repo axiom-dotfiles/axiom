@@ -3,7 +3,6 @@ import QtQuick
 import QtQuick.Layouts
 
 import qs.config
-import qs.components.reusable
 
 // Content that lays out as a column and can be shown by either host: a bar
 // popout (sized to its content, with the popout's box) or an overlay card

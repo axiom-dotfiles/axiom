@@ -1,7 +1,6 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import qs.config
-import qs.services
 import qs.components.reusable
 
 // The space before column `index` on the canvas (index = the column count

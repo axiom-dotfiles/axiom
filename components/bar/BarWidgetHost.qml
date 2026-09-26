@@ -1,9 +1,8 @@
 pragma ComponentBehavior: Bound
 import QtQuick
-import qs.config
 // Imported (though modules load by URL) so qs scans the modules directory:
 // without it, types there (e.g. BarIconWidget) aren't visible to each other
-import qs.components.bar.widgets
+import qs.components.bar.widgets // qmllint disable unused-imports
 
 // Hosts one bar module and turns its sizing contract into the numbers the
 // bar layout works with. A module may declare any of these on its root item:

@@ -1,0 +1,203 @@
+{
+  "components/bar/BarPanel.qml": {
+    "unqualified: unknown grouped property scope margins.": 1,
+    "unresolved-type: Type margins is used but it is not resolved": 1
+  },
+  "components/bar/widgets/Button.qml": {
+    "missing-type: No type found for property \"edges\". This may be due to a missing import statement or incomplete qmltypes files.": 1,
+    "missing-type: No type found for property \"gravity\". This may be due to a missing import statement or incomplete qmltypes files.": 1,
+    "unresolved-type: Type \"PopupAnchor\" of property \"anchor\" not found. This is likely due to a missing dependency entry or a type not being exposed declaratively.": 1
+  },
+  "components/bar/widgets/SystemTray.qml": {
+    "missing-property: Member \"hasMenu\" not found on type \"QObject\"": 1,
+    "missing-property: Member \"icon\" not found on type \"QObject\"": 1,
+    "missing-property: Member \"id\" not found on type \"QObject\"": 1,
+    "missing-property: Member \"implicitHeight\" not found on type \"QObject\"": 1,
+    "missing-property: Member \"implicitWidth\" not found on type \"QObject\"": 1,
+    "missing-property: Member \"status\" not found on type \"QObject\"": 1,
+    "missing-property: Member \"title\" not found on type \"QObject\"": 1,
+    "unqualified: Unqualified access": 1
+  },
+  "components/bar/widgets/Time.qml": {
+    "missing-property: Member \"implicitHeight\" not found on type \"QObject\"": 1,
+    "missing-property: Member \"implicitWidth\" not found on type \"QObject\"": 1
+  },
+  "components/bar/widgets/Weather.qml": {
+    "unqualified: Unqualified access": 5
+  },
+  "components/bar/widgets/Workspaces.qml": {
+    "unqualified: Unqualified access": 8
+  },
+  "components/bar/widgets/workspaces/WorkspaceGridStrip.qml": {
+    "redundant-optional-chaining: Redundant optional chaining for lookup on non-voidable and non-nullable type QObjectList": 1
+  },
+  "components/content/SystemTray.qml": {
+    "missing-property: Member \"menuItem\" not found on type \"QQuickItem\"": 1,
+    "unqualified: Unqualified access": 1
+  },
+  "components/content/TopProcesses.qml": {
+    "property-override: Property \"rows\" already exists in base type \"Card\", use a different name.": 1
+  },
+  "components/content/WallpaperPicker.qml": {
+    "missing-property: Member \"screen\" not found on type \"QObject\"": 1
+  },
+  "components/content/Weather.qml": {
+    "unqualified: Unqualified access": 11
+  },
+  "components/content/WorkspaceGrid.qml": {
+    "property-override: Property \"rows\" already exists in base type \"Panel\", use a different name.": 1
+  },
+  "components/content/parts/TraySubmenu.qml": {
+    "missing-property: Member \"menuItem\" not found on type \"QQuickItem\"": 1,
+    "unqualified: Unqualified access": 1
+  },
+  "components/content/parts/chat/ChatMessageList.qml": {
+    "missing-property: Member \"pressed\" not found on type \"QQuickItem\"": 1
+  },
+  "components/hosts/overlay/OverlayPage.qml": {
+    "Quick.property-changes-parsed: Property \"x\" is custom-parsed in PropertyChanges. You should phrase this binding as \"slideTransform.x: -100\"": 1,
+    "Quick.property-changes-parsed: Property \"x\" is custom-parsed in PropertyChanges. You should phrase this binding as \"slideTransform.x: 0\"": 1,
+    "Quick.property-changes-parsed: Property \"x\" is custom-parsed in PropertyChanges. You should phrase this binding as \"slideTransform.x: 100\"": 1,
+    "Quick.property-changes-parsed: You should remove any bindings on the \"target\" property and avoid custom-parsed bindings in PropertyChanges.": 3,
+    "missing-property: Member \"implicitHeight\" not found on type \"QObject\"": 1,
+    "missing-property: Member \"implicitWidth\" not found on type \"QObject\"": 1
+  },
+  "components/hosts/overlay/OverlayPanel.qml": {
+    "property-override: Property \"screen\" already exists in base type \"WindowInterface\", use a different name.": 1,
+    "unqualified: unknown grouped property scope margins.": 1,
+    "unresolved-type: Type margins is used but it is not resolved": 1
+  },
+  "components/hosts/overlay/OverlayView.qml": {
+    "missing-property: Member \"implicitHeight\" not found on type \"QObject\"": 1,
+    "missing-property: Member \"implicitWidth\" not found on type \"QObject\"": 1
+  },
+  "components/hosts/popout/BarPopouts.qml": {
+    "incompatible-type: Cannot assign binding of type QObject to QQuickItem": 1,
+    "missing-property: Member \"focusLost\" not found on type \"QQuickItem\"": 2,
+    "missing-property: Member \"height\" not found on type \"QObject\"": 1,
+    "missing-property: Member \"thickness\" not found on type \"QObject\"": 1,
+    "missing-property: Member \"wantsKeyboardFocus\" not found on type \"QQuickItem\"": 1,
+    "missing-property: Member \"width\" not found on type \"QObject\"": 1,
+    "missing-type: No type found for property \"adjustment\". This may be due to a missing import statement or incomplete qmltypes files.": 1
+  },
+  "components/hosts/popout/EdgePopout.qml": {
+    "Quick.anchor-combinations: Cannot specify left, right, and horizontalCenter anchors at the same time.": 1,
+    "Quick.anchor-combinations: Cannot specify top, bottom, and verticalCenter anchors at the same time.": 1,
+    "incompatible-type: Cannot assign binding of type QObject to QQuickItem": 2,
+    "missing-property: Member \"forceActiveFocus\" not found on type \"QObject\"": 2,
+    "missing-property: Member \"implicitHeight\" not found on type \"QObject\"": 3,
+    "missing-property: Member \"implicitWidth\" not found on type \"QObject\"": 3,
+    "unqualified: unknown grouped property scope margins.": 1,
+    "unresolved-type: Type margins is used but it is not resolved": 1
+  },
+  "components/hosts/popout/EdgeTrigger.qml": {
+    "unqualified: Unqualified access": 5,
+    "unqualified: unknown grouped property scope margins.": 1,
+    "unresolved-type: Type margins is used but it is not resolved": 1
+  },
+  "components/hosts/popout/PopoutWrapperBase.qml": {
+    "missing-property: Member \"autoDismiss\" not found on type \"QQuickItem\"": 1,
+    "missing-property: Member \"dismissDelay\" not found on type \"QQuickItem\"": 1,
+    "missing-property: Member \"hovered\" not found on type \"QQuickItem\"": 1
+  },
+  "components/hosts/popout/SlideAnimation.qml": {
+    "Quick.property-changes-parsed: Property \"x\" is custom-parsed in PropertyChanges. You should phrase this binding as \"contentWrapper.x: hiddenX\"": 1,
+    "Quick.property-changes-parsed: Property \"x\" is custom-parsed in PropertyChanges. You should phrase this binding as \"contentWrapper.x: targetX\"": 1,
+    "Quick.property-changes-parsed: Property \"y\" is custom-parsed in PropertyChanges. You should phrase this binding as \"contentWrapper.y: hiddenY\"": 1,
+    "Quick.property-changes-parsed: Property \"y\" is custom-parsed in PropertyChanges. You should phrase this binding as \"contentWrapper.y: targetY\"": 1,
+    "Quick.property-changes-parsed: You should remove any bindings on the \"target\" property and avoid custom-parsed bindings in PropertyChanges.": 2
+  },
+  "components/hosts/popout/TraySubmenuWrapper.qml": {
+    "incompatible-type: Cannot assign binding of type QObject to QQuickItem": 1
+  },
+  "components/reusable/ActionTile.qml": {
+    "unqualified: Unqualified access": 2
+  },
+  "components/reusable/BaseWidget.qml": {
+    "missing-property: Member \"implicitHeight\" not found on type \"QObject\"": 1,
+    "missing-property: Member \"implicitWidth\" not found on type \"QObject\"": 1
+  },
+  "components/reusable/PipewireVolumeBar.qml": {
+    "unqualified: Unqualified access": 1
+  },
+  "components/reusable/StyledScrollView.qml": {
+    "import: ScrollBar.vertical was not found. Did you add all imports and dependencies?": 1,
+    "missing-property: Member \"pressed\" not found on type \"QQuickItem\"": 1,
+    "unqualified: Unqualified access": 4
+  },
+  "components/reusable/StyledToolTip.qml": {
+    "missing-type: No type found for property \"edges\". This may be due to a missing import statement or incomplete qmltypes files.": 1,
+    "missing-type: No type found for property \"gravity\". This may be due to a missing import statement or incomplete qmltypes files.": 1
+  },
+  "components/reusable/StyledVolumeBar.qml": {
+    "Quick.layout-positioning: Detected height on an item that is managed by a layout. This is undefined behavior; use implictHeight or Layout.preferredHeight instead.": 1,
+    "Quick.layout-positioning: Detected width on an item that is managed by a layout. This is undefined behavior; use implicitWidth or Layout.preferredWidth instead.": 1,
+    "unqualified: Unqualified access": 1
+  },
+  "components/surfaces/border/RoundedBorders.qml": {
+    "unqualified: Unqualified access": 16,
+    "unqualified: unknown grouped property scope margins.": 4,
+    "unresolved-type: Type margins is used but it is not resolved": 4
+  },
+  "components/surfaces/edgemenu/IntegratedEdgeMenu.qml": {
+    "missing-property: Member \"implicitHeight\" not found on type \"QObject\"": 2,
+    "missing-property: Member \"implicitWidth\" not found on type \"QObject\"": 2
+  },
+  "components/surfaces/launcher/Launcher.qml": {
+    "missing-property: Member \"close\" not found on type \"QObject\"": 2,
+    "missing-property: Member \"contentItem\" not found on type \"QObject\"": 1,
+    "missing-property: Member \"hide\" not found on type \"QObject\"": 2,
+    "missing-property: Member \"isOpen\" not found on type \"QObject\"": 2,
+    "missing-property: Member \"open\" not found on type \"QObject\"": 2,
+    "missing-property: Member \"show\" not found on type \"QObject\"": 1,
+    "missing-property: Member \"shown\" not found on type \"QObject\"": 1,
+    "missing-property: Member \"window\" not found on type \"QObject\"": 1
+  },
+  "components/surfaces/lockscreen/MediaControl.qml": {
+    "missing-property: Member \"implicitHeight\" not found on type \"QObject\"": 1
+  },
+  "components/surfaces/notifications/NotificationToast.qml": {
+    "missing-type: No type found for property \"adjustment\". This may be due to a missing import statement or incomplete qmltypes files.": 1
+  },
+  "components/surfaces/powermenu/PowerMenuWindow.qml": {
+    "property-override: Property \"screen\" already exists in base type \"WindowInterface\", use a different name.": 1
+  },
+  "components/surfaces/workspaces/WindowPreview.qml": {
+    "unqualified: Unqualified access": 1
+  },
+  "components/surfaces/workspaces/WorkspaceCell.qml": {
+    "unqualified: Unqualified access": 1
+  },
+  "components/views/overlayEditor/EditorDragLayer.qml": {
+    "missing-property: Member \"cell\" not found on type \"QQuickItem\"": 2,
+    "missing-property: Member \"column\" not found on type \"QQuickItem\"": 3,
+    "missing-property: Member \"index\" not found on type \"QQuickItem\"": 2,
+    "missing-property: Member \"slot\" not found on type \"QQuickItem\"": 2,
+    "missing-property: Member \"targetKind\" not found on type \"QQuickItem\"": 1
+  },
+  "services/BluetoothManager.qml": {
+    "missing-property: Member \"defaultAdapter\" not found on type \"Bluetooth\"": 1,
+    "unqualified: Unqualified access": 4
+  },
+  "services/CommandManager.qml": {
+    "unqualified: Unqualified access": 3
+  },
+  "services/FileManager.qml": {
+    "missing-property: Member \"loaded\" not found on type \"QObject\"": 1,
+    "missing-property: Member \"text\" not found on type \"QObject\"": 1
+  },
+  "services/MediaManager.qml": {
+    "unqualified: Unqualified access": 1
+  },
+  "services/ThemeManager.qml": {
+    "missing-property: Member \"running\" not found on type \"QObject\"": 1
+  },
+  "shell/Notifications.qml": {
+    "unqualified: Unqualified access": 6,
+    "unqualified: unknown grouped property scope margins.": 1,
+    "unresolved-type: Type margins is used but it is not resolved": 1
+  },
+  "shell/WorkspaceOverlay.qml": {
+    "unqualified: Unqualified access": 6
+  }
+}

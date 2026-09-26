@@ -1,7 +1,6 @@
 pragma Singleton
 import QtQuick
 
-import qs.config
 import qs.components.methods
 
 /* BarManager holds the bar editor's working copy of the Bars config. Edits

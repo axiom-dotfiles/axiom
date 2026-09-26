@@ -1,6 +1,5 @@
 pragma ComponentBehavior: Bound
 import QtQuick
-import qs.config
 
 // One column of a Custom view (or an edge menu): its cells flow left to
 // right, wrapping at the widest cell, so smaller cells can sit side by side
