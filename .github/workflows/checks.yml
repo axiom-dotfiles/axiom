@@ -56,7 +56,10 @@ jobs:
       - name: Checkout
         env:
           TOKEN: ${{ github.token }}
+        # The workspace is mounted from the runner, owned by another user
+        # than the container's root, which git refuses without this
         run: |
+          git config --global --add safe.directory "$PWD"
           git init -q .
           git remote add origin "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"
           auth=$(printf 'x-access-token:%s' "$TOKEN" | base64 -w0)
