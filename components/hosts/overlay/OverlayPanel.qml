@@ -11,7 +11,6 @@ import qs.components.reusable
 // Imported (though views load by URL) so qs scans the view types
 import qs.components.views // qmllint disable unused-imports
 
-// TODO: build from a reusable fullscreen panel
 PanelWindow {
   id: root
 

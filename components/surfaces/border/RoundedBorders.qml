@@ -8,7 +8,6 @@ Item {
   id: root
   property var screen: null
   property int frameWidth: Appearance.screenMargin
-  // TODO: breaks on change to borderWidth
   property int innerBorderRadius: Appearance.borderRadius
   property int curveSize: innerBorderRadius - Appearance.borderWidth
   property color frameColor: Theme.background
@@ -96,10 +95,8 @@ Item {
     implicitWidth: curveSize + strokeWidth * 2
     implicitHeight: curveSize + strokeWidth * 2
     color: "transparent"
-    // color: "red"
     mask: Region {}
     aboveWindows: true
-    // WlrLayershell.layer: WlrLayer.Overlay
 
     CornerPiece {
       borderRadius: root.innerBorderRadius
@@ -124,11 +121,9 @@ Item {
     }
     implicitWidth: curveSize + strokeWidth * 2
     implicitHeight: curveSize + strokeWidth * 2
-    // color: "red"
     color: "transparent"
     mask: Region {}
     aboveWindows: true
-    // WlrLayershell.layer: WlrLayer.Overlay
 
     CornerPiece {
       borderRadius: root.innerBorderRadius
@@ -156,7 +151,6 @@ Item {
     color: "transparent"
     mask: Region {}
     aboveWindows: true
-    // WlrLayershell.layer: WlrLayer.Overlay
 
     CornerPiece {
       borderRadius: root.innerBorderRadius
@@ -184,7 +178,6 @@ Item {
     color: "transparent"
     mask: Region {}
     aboveWindows: true
-    // WlrLayershell.layer: WlrLayer.Overlay
 
     CornerPiece {
       borderRadius: root.innerBorderRadius
