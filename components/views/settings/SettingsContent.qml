@@ -143,11 +143,11 @@ Item {
     onReset: SettingsManager.resetChanges()
 
     // Fold all on the left, links to other pages on the right
+    showExtras: root.links.length > 0 || root.foldableKeys.length > 0
     headerExtras: RowLayout {
       Layout.fillWidth: true
       Layout.topMargin: Widget.spacing / 2
       Layout.bottomMargin: Widget.spacing / 2
-      visible: root.links.length > 0 || root.foldableKeys.length > 0
       spacing: Widget.spacing
 
       StyledTextButton {
