@@ -1,0 +1,77 @@
+pragma ComponentBehavior: Bound
+import QtQuick
+import QtQuick.Layouts
+
+import qs.config
+import qs.services
+import qs.components.forms
+
+// Settings by dotted config path ("Launcher.terminal"), each a SchemaField
+// row as on the settings page, saved as they change (OnboardingManager.set):
+// the onboarder applies as the user goes. Edits are gathered for a moment,
+// so typing doesn't write config.json per key. Acts as the rows' `form`.
+ColumnLayout {
+  id: root
+
+  // Dotted config paths
+  property var paths: []
+  // Titles to show instead of the schema's, by path (English, translated)
+  property var titles: ({})
+
+  signal edited(var path, var value)
+
+  readonly property var rows: root.paths.map(dotted => {
+    const path = dotted.split(".");
+    const schema = SettingsManager.schemaAt(path) ?? {};
+    return {
+      "kind": schema.type === "array" && schema.items?.properties ? "array" : "field",
+      "title": root.titles[dotted] ?? schema.title ?? path[path.length - 1],
+      "path": path,
+      "schema": schema
+    };
+  })
+
+  // Edits not saved yet, by dotted path: shown as the value meanwhile
+  property var _pending: ({})
+
+  function valueAt(path) {
+    const dotted = path.join(".");
+    return dotted in root._pending ? root._pending[dotted] : OnboardingManager.value(dotted);
+  }
+
+  function flush() {
+    if (Object.keys(root._pending).length === 0)
+      return;
+    const values = root._pending;
+    root._pending = {};
+    OnboardingManager.set(values);
+  }
+
+  onEdited: (path, value) => {
+    const next = Object.assign({}, root._pending);
+    next[path.join(".")] = value;
+    root._pending = next;
+    saveTimer.restart();
+  }
+
+  Component.onDestruction: root.flush()
+
+  Timer {
+    id: saveTimer
+    interval: 600
+    onTriggered: root.flush()
+  }
+
+  spacing: Widget.spacing * 1.5
+
+  Repeater {
+    model: root.rows
+
+    delegate: SchemaField {
+      required property var modelData
+      Layout.fillWidth: true
+      row: modelData
+      form: root
+    }
+  }
+}

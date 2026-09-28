@@ -1,6 +1,7 @@
 pragma Singleton
 import QtQuick
 import Quickshell
+import Quickshell.Io
 import qs.config
 
 /*
@@ -8,11 +9,128 @@ import qs.config
  * the icon font: every icon is a Material Symbols name (StyledIcon), which
  * shows as a word without it. Warns in the log and notifies once per qs
  * launch. Created from shell.qml's `_services`.
+ *
+ * Also which commands are installed (`found`, filled by `check(commands)`),
+ * for the onboarder: the optional `tools` below, the apps it offers.
  */
 Singleton {
   id: root
 
   readonly property bool iconFontInstalled: Qt.fontFamilies().includes(Appearance.iconFamily)
+
+  // The programs features use, with the (Arch) package that has them.
+  // I18n.tr("Calculator in the launcher") I18n.tr("Brightness of a laptop screen")
+  // I18n.tr("Brightness of external monitors") I18n.tr("Screenshots")
+  // I18n.tr("Copying to the clipboard") I18n.tr("Reading JSON (screenshots, theme integrations)")
+  // I18n.tr("Pending package updates") I18n.tr("Chat API keys in the keyring")
+  // I18n.tr("Moving notes to the trash") I18n.tr("Media keys for players axiom doesn't see")
+  // I18n.tr("Generating themes from a wallpaper") I18n.tr("Idle locking and screen blanking")
+  readonly property var tools: [
+    {
+      "command": "qalc",
+      "package": "libqalculate",
+      "purpose": "Calculator in the launcher"
+    },
+    {
+      "command": "brightnessctl",
+      "package": "brightnessctl",
+      "purpose": "Brightness of a laptop screen"
+    },
+    {
+      "command": "ddcutil",
+      "package": "ddcutil",
+      "purpose": "Brightness of external monitors"
+    },
+    {
+      "command": "grim",
+      "package": "grim",
+      "purpose": "Screenshots"
+    },
+    {
+      "command": "slurp",
+      "package": "slurp",
+      "purpose": "Screenshots"
+    },
+    {
+      "command": "wl-copy",
+      "package": "wl-clipboard",
+      "purpose": "Copying to the clipboard"
+    },
+    {
+      "command": "jq",
+      "package": "jq",
+      "purpose": "Reading JSON (screenshots, theme integrations)"
+    },
+    {
+      "command": "checkupdates",
+      "package": "pacman-contrib",
+      "purpose": "Pending package updates"
+    },
+    {
+      "command": "secret-tool",
+      "package": "libsecret",
+      "purpose": "Chat API keys in the keyring"
+    },
+    {
+      "command": "gio",
+      "package": "glib2",
+      "purpose": "Moving notes to the trash"
+    },
+    {
+      "command": "python3",
+      "package": "python",
+      "purpose": "Generating themes from a wallpaper"
+    },
+    {
+      "command": "hypridle",
+      "package": "hypridle",
+      "purpose": "Idle locking and screen blanking"
+    }
+  ]
+
+  // { command: bool } for every command checked so far
+  property var found: ({})
+
+  // Looks the commands up (command -v) and adds them to `found`
+  function check(commands) {
+    const wanted = (commands ?? []).map(c => String(c).trim().split(/\s+/)[0]).filter(c => /^[\w.+-]+$/.test(c));
+    if (wanted.length === 0)
+      return;
+    _pendingChecks = _pendingChecks.concat(wanted);
+    if (!_lookup.running)
+      _runLookup();
+  }
+
+  // Whether a command (its first word) is installed: undefined until checked
+  function has(command) {
+    return root.found[String(command ?? "").trim().split(/\s+/)[0]];
+  }
+
+  property var _pendingChecks: []
+
+  function _runLookup() {
+    const commands = Array.from(new Set(_pendingChecks));
+    _pendingChecks = [];
+    _lookup.commands = commands;
+    _lookup.command = ["sh", "-c", 'for c in "$@"; do command -v "$c" >/dev/null 2>&1 && echo "$c"; done; true', "sh"].concat(commands);
+    _lookup.running = true;
+  }
+
+  Process {
+    id: _lookup
+    property var commands: []
+    stdout: StdioCollector {
+      onStreamFinished: {
+        const present = text.split("\n").filter(line => line !== "");
+        const next = Object.assign({}, root.found);
+        for (const command of _lookup.commands)
+          next[command] = present.includes(command);
+        root.found = next;
+        if (root._pendingChecks.length > 0)
+          Qt.callLater(root._runLookup);
+      }
+    }
+  }
 
   // Survives hot reloads, so only a qs launch notifies again
   PersistentProperties {

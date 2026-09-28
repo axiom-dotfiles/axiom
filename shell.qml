@@ -11,7 +11,7 @@ ShellRoot {
   id: shellRoot
 
   // Services with no UI of their own, which nothing else would create
-  readonly property var _services: [DependencyManager, HyprlandConfigManager, SelfUpdateManager, ChatManager, AudioManager, MediaManager, EdgeMenuManager, BrightnessManager, NotesManager, MonitorManager]
+  readonly property var _services: [DependencyManager, HyprlandConfigManager, SelfUpdateManager, ChatManager, AudioManager, MediaManager, EdgeMenuManager, BrightnessManager, NotesManager, MonitorManager, ScreenshotManager, OnboardingManager]
 
   Lockscreen {
     id: lockscreen
@@ -59,5 +59,9 @@ ShellRoot {
 
   MonitorPrompt {
     id: monitorPrompt
+  }
+
+  Onboarding {
+    id: onboarding
   }
 }

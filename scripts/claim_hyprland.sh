@@ -10,10 +10,16 @@
 #                blocked  <dir> or its hyprland.lua is a symlink, or <dir> is
 #                         in a git repository: never taken over
 #                adopt    (check) an existing hyprland.lua would be moved
+#                stock    (check) hyprland.lua is Hyprland's example config
+#                         ($AXIOM_HYPR_EXAMPLE, /usr/share/hypr/hyprland.lua):
+#                         it would only be backed up, since its binds and
+#                         monitor rule would fight axiom's
 #                new      (check) there's no hyprland.lua yet
 #                adopted  (claim) done: user/ exists, and an existing
 #                         hyprland.lua is now user/00-previous.lua, with a
 #                         dated copy beside the original path
+#                replaced (claim) done: user/ exists, and the example
+#                         config is only kept as the dated copy
 #              Writes nothing on check, ours or blocked.
 
 set -uo pipefail
@@ -21,6 +27,7 @@ set -uo pipefail
 action=${1:-}
 dir=${2:-}
 header=${3:-}
+example=${AXIOM_HYPR_EXAMPLE:-/usr/share/hypr/hyprland.lua}
 if [[ "$action" != "check" && "$action" != "claim" ]] || [[ -z "$dir" || -z "$header" ]]; then
   echo "Usage: $0 check|claim <dir> <header>" >&2
   exit 2
@@ -37,13 +44,30 @@ if [[ -L "$dir" || -L "$file" ]] || git -C "$dir" rev-parse --git-dir >/dev/null
   exit 0
 fi
 
+# The example config, give or take whitespace and blank lines
+is_stock() {
+  [[ -f "$example" ]] && diff -qbB "$file" "$example" >/dev/null 2>&1
+}
+
 if [[ "$action" == "check" ]]; then
-  if [[ -f "$file" ]]; then echo adopt; else echo new; fi
+  if [[ ! -f "$file" ]]; then
+    echo new
+  elif is_stock; then
+    echo stock
+  else
+    echo adopt
+  fi
   exit 0
 fi
 
 mkdir -p "$dir/user" || exit 1
 if [[ -f "$file" ]]; then
-  cp -p "$file" "$file.axiom-backup-$(date +%Y%m%d-%H%M%S)" && mv "$file" "$dir/user/00-previous.lua" || exit 1
+  backup="$file.axiom-backup-$(date +%Y%m%d-%H%M%S)"
+  if is_stock; then
+    mv "$file" "$backup" || exit 1
+    echo replaced
+    exit 0
+  fi
+  cp -p "$file" "$backup" && mv "$file" "$dir/user/00-previous.lua" || exit 1
 fi
 echo adopted

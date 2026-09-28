@@ -351,6 +351,11 @@ QtObject {
     console.error("[ConfigManager] config.json is " + reason + "; keeping the current config and blocking saves until it is fixed.");
   }
 
+  // Set when there was no config.json at all: a first run (the onboarder
+  // starts from it). Not after a reload, when the defaults are on disk.
+  readonly property bool firstRun: _firstRun
+  property bool _firstRun: false
+
   // An empty read is either a missing file (first run: write defaults) or a
   // file caught mid-write / unreadable. Only a real "missing" writes.
   property Process _existsCheck: Process {
@@ -358,6 +363,7 @@ QtObject {
     onExited: exitCode => {
       if (exitCode !== 0) {
         console.log("[ConfigManager] No config.json found, writing defaults.");
+        root._firstRun = true;
         root._savesBlocked = false;
         root._write(SchemaValidation.applyDefaults({}, root._configSchema));
       } else if (!root._haveFileConfig) {

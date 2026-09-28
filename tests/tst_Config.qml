@@ -176,6 +176,28 @@ TestCase {
     compare(cells[5].fillHeight, false);
   }
 
+  function test_v20_adds_app_binds_on_free_keys() {
+    const result = ConfigMigration.migrate({
+      "version": 19,
+      "Hyprland": {
+        "binds": [
+          {
+            "key": "SUPER + RETURN",
+            "action": "exec",
+            "argument": "foot"
+          }
+        ]
+      }
+    });
+    const binds = result.config.Hyprland.binds;
+    // The user's own SUPER + Return stays; the rest are added once
+    compare(binds.filter(bind => bind.action === "terminal").length, 0);
+    compare(binds[0].argument, "foot");
+    compare(binds.filter(bind => bind.action === "screenshot").length, 3);
+    compare(binds.filter(bind => bind.action === "exitHyprland").length, 1);
+    compare(ConfigMigration.migrate(result.config).config.Hyprland.binds.length, binds.length);
+  }
+
   function test_migration_is_idempotent() {
     const once = load(files.json("tests/fixtures/configs/v1.json")).config;
     const again = ConfigMigration.migrate(once);

@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 19
+  readonly property int currentVersion: 20
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -65,6 +65,8 @@ QtObject {
       result = _v17ToV18(result, changes);
     if (version < 19)
       result = _v18ToV19(result, changes);
+    if (version < 20)
+      result = _v19ToV20(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -530,6 +532,60 @@ QtObject {
         }));
     (config.Overlay?.views ?? []).forEach((view, index) => convert(view?.columns, `Overlay.views[${index}]`));
     (config.EdgeMenus ?? []).forEach((menu, index) => convert(menu?.columns, `EdgeMenus[${index}]`));
+    return config;
+  }
+
+  // Binds v20 added to the defaults: apps, screenshots and a way out
+  readonly property var _v20Binds: [
+    {
+      "key": "SUPER + SHIFT + Escape",
+      "action": "exitHyprland",
+      "release": true
+    },
+    {
+      "key": "SUPER + Return",
+      "action": "terminal"
+    },
+    {
+      "key": "SUPER + E",
+      "action": "fileManager"
+    },
+    {
+      "key": "SUPER + B",
+      "action": "browser"
+    },
+    {
+      "key": "Print",
+      "action": "screenshot",
+      "argument": "region"
+    },
+    {
+      "key": "SHIFT + Print",
+      "action": "screenshot",
+      "argument": "window"
+    },
+    {
+      "key": "SUPER + Print",
+      "action": "screenshot",
+      "argument": "screen"
+    }
+  ]
+
+  // v20 added app, screenshot and exit actions: a saved bind list gets
+  // their default binds, each only on a key it doesn't use yet
+  function _v19ToV20(config, changes) {
+    const binds = config.Hyprland?.binds;
+    if (!Array.isArray(binds))
+      return config;
+    const used = new Set(binds.map(bind => HyprBinds.keyId(bind?.key)));
+    for (const bind of root._v20Binds) {
+      const id = HyprBinds.keyId(bind.key);
+      if (used.has(id))
+        continue;
+      binds.push(JSON.parse(JSON.stringify(bind)));
+      used.add(id);
+      changes.push(`Hyprland.binds: added ${bind.key} (${bind.action})`);
+    }
     return config;
   }
 }

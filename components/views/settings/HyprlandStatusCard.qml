@@ -68,6 +68,9 @@ StyledContainer {
       case "adopt":
         steps.push(I18n.tr("Moves your {0} to {1}/00-previous.lua, with a dated backup beside it", hypr, user));
         break;
+      case "stock":
+        steps.push(I18n.tr("Replaces Hyprland's example {0}, keeping a dated backup beside it: its binds and monitor rule would fight axiom's", hypr));
+        break;
       case "ours":
         steps.push(I18n.tr("Takes back {0}, which axiom already wrote", hypr));
         break;

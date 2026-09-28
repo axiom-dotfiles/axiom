@@ -37,6 +37,13 @@ QtObject {
   // "@question" asks the overlay's chat
   readonly property bool chat: _c.chat
   readonly property string terminal: _c.terminal
+  // Empty is the system default (xdg-open / xdg-settings)
+  readonly property string fileManager: _c.fileManager
+  readonly property string browser: _c.browser
+  // What a bind (or the onboarder) runs to open each
+  readonly property string terminalCommand: terminal.trim() || "xdg-terminal-exec"
+  readonly property string fileManagerCommand: fileManager.trim() || 'xdg-open "$HOME"'
+  readonly property string browserCommand: browser.trim() || 'b=$(xdg-settings get default-web-browser 2>/dev/null) && [ -n "$b" ] && gtk-launch "${b%.desktop}" || xdg-open https://'
   // With {} where the terms go
   readonly property string searchEngine: _c.searchEngine
 }

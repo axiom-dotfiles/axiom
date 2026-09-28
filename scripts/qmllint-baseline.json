@@ -162,6 +162,10 @@
   "components/surfaces/notifications/NotificationToast.qml": {
     "missing-type: No type found for property \"adjustment\". This may be due to a missing import statement or incomplete qmltypes files.": 1
   },
+  "components/surfaces/onboarding/OnboardingWindow.qml": {
+    "unqualified: unknown grouped property scope margins.": 1,
+    "unresolved-type: Type margins is used but it is not resolved": 1
+  },
   "components/surfaces/powermenu/PowerMenuWindow.qml": {
     "property-override: Property \"screen\" already exists in base type \"WindowInterface\", use a different name.": 1
   },

@@ -348,6 +348,31 @@ QtObject {
       }
     },
     {
+      name: "welcome",
+      aliases: ["setup", "onboarding"],
+      glyph: "waving_hand",
+      description: () => I18n.tr("Run the first-time setup again"),
+      run: () => {
+        OnboardingManager.open();
+      }
+    },
+    {
+      name: "screenshot",
+      aliases: ["shot", "capture"],
+      glyph: "screenshot_region",
+      usage: "<region|window|screen>",
+      description: () => I18n.tr("Take a screenshot"),
+      // I18n.tr("region") I18n.tr("window") I18n.tr("screen")
+      options: () => ["region", "window", "screen"].map(kind => ({
+              title: kind,
+              subtitle: I18n.tr(kind),
+              value: kind
+            })),
+      run: (arg, value) => {
+        ScreenshotManager.take(value ?? (arg || "region"), "");
+      }
+    },
+    {
       name: "reload",
       aliases: [],
       glyph: "refresh",
