@@ -17,7 +17,7 @@
       "type": "object",
       "x-category": "Desktop",
       "title": "Lockscreen",
-      "description": "Which locker locks the session. Point your idle daemon's lock command at `qs -c axiom ipc call lockscreen lock` for the built-in or hyprlock modes.",
+      "description": "Which locker locks the session. The Idle settings can lock after some idle time; an idle daemon of your own should lock through `qs -c axiom ipc call lockscreen lock` for the built-in or hyprlock modes.",
       "additionalProperties": false,
       "properties": {
         "mode": {
@@ -48,6 +48,46 @@
           "default": true,
           "description": "Blur the wallpaper behind the hyprlock screen.",
           "x-showIf": { "mode": "hyprlock" }
+        }
+      }
+    },
+
+    "Idle": {
+      "type": "object",
+      "x-category": "Desktop",
+      "x-card": "IdleStatus",
+      "title": "Idle",
+      "description": "What happens when you step away: dimming, locking, turning the screens off and suspending, run by hypridle.",
+      "additionalProperties": false,
+      "x-order": ["enabled", "dimTimeout", "dimLevel", "lockTimeout", "screenOffTimeout", "suspendTimeout", "lockBeforeSleep", "screenOnAfterSleep", "respectInhibitors", "listeners"],
+      "properties": {
+        "enabled": { "type": "boolean", "title": "Manage hypridle", "default": false, "description": "axiom runs hypridle with a config of its own (~/.local/state/axiom/hypridle.conf) and stops any other hypridle while this is on. Your own hypridle.conf is never touched; remove your own hypridle autostart line." },
+        "dimTimeout": { "type": "integer", "title": "Dim the screens after", "x-unit": "s", "default": 150, "minimum": 0, "maximum": 7200, "description": "0 never dims. Brightness comes back when you return.", "x-showIf": { "enabled": true } },
+        "dimLevel": { "type": "integer", "title": "Dim to", "x-unit": "%", "default": 30, "minimum": 5, "maximum": 100, "description": "Screens already darker stay as they are.", "x-showIf": { "enabled": true } },
+        "lockTimeout": { "type": "integer", "title": "Lock after", "x-unit": "s", "default": 300, "minimum": 0, "maximum": 7200, "description": "0 never locks on idle. Locks with the Lockscreen settings' locker.", "x-showIf": { "enabled": true } },
+        "screenOffTimeout": { "type": "integer", "title": "Turn the screens off after", "x-unit": "s", "default": 330, "minimum": 0, "maximum": 7200, "description": "0 keeps them on.", "x-showIf": { "enabled": true } },
+        "suspendTimeout": { "type": "integer", "title": "Suspend after", "x-unit": "s", "default": 0, "minimum": 0, "maximum": 14400, "description": "0 never suspends on idle.", "x-showIf": { "enabled": true } },
+        "lockBeforeSleep": { "type": "boolean", "title": "Lock before sleep", "x-group": "Sleep", "default": true, "description": "Lock the session before the computer suspends or hibernates.", "x-showIf": { "enabled": true } },
+        "screenOnAfterSleep": { "type": "boolean", "title": "Screens on after sleep", "x-group": "Sleep", "default": true, "description": "Turn the screens back on when the computer wakes.", "x-showIf": { "enabled": true } },
+        "respectInhibitors": { "type": "boolean", "title": "Respect apps that keep the screen on", "x-group": "Sleep", "default": true, "description": "Video players and browsers can ask to stay awake over D-Bus and systemd. The caffeine widget works either way.", "x-showIf": { "enabled": true } },
+        "listeners": {
+          "type": "array",
+          "title": "Extra listeners",
+          "x-group": "Extra listeners",
+          "default": [],
+          "description": "Commands of your own to run after a time idle, and when you return.",
+          "x-showIf": { "enabled": true },
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "x-order": ["timeout", "onTimeout", "onResume", "enabled"],
+            "properties": {
+              "timeout": { "type": "integer", "title": "After", "x-unit": "s", "default": 600, "minimum": 1, "maximum": 14400 },
+              "onTimeout": { "type": "string", "title": "Run", "default": "" },
+              "onResume": { "type": "string", "title": "On return", "default": "" },
+              "enabled": { "type": "boolean", "title": "On", "default": true }
+            }
+          }
         }
       }
     },

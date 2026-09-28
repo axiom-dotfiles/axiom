@@ -7,7 +7,8 @@ import qs.services
 import qs.components.reusable
 
 // Theme integrations (other apps in axiom's colors), marked by whether the
-// app is installed, then the lock screen, idle locking and self-updates
+// app is installed, then the lock screen, self-updates and whether axiom
+// runs hypridle (Idle.enabled: off by default, recommended on)
 OnboardingPage {
   id: root
 
@@ -106,14 +107,59 @@ OnboardingPage {
     paths: ["Lockscreen.mode", "SelfUpdate.mode"]
   }
 
+  StyledText {
+    Layout.topMargin: Widget.spacing
+    text: I18n.tr("Idle")
+    font.bold: true
+  }
+
+  Notice {
+    Layout.fillWidth: true
+    visible: DependencyManager.found.hypridle === false
+    text: I18n.tr("hypridle isn't installed. Install it (pacman -S hypridle) to dim, lock and turn the screens off when you're away, then turn it on in Settings → Idle.")
+  }
+
+  RowLayout {
+    Layout.fillWidth: true
+    visible: DependencyManager.found.hypridle === true
+    spacing: Widget.spacing
+
+    OptionCard {
+      icon: "bedtime"
+      title: I18n.tr("Let axiom manage hypridle")
+      description: I18n.tr("Dims, locks and turns the screens off when you're away, set up from axiom's settings. Stops any hypridle you run yourself.")
+      selected: Idle.enabled
+      recommended: true
+      onClicked: OnboardingManager.set({
+        "Idle.enabled": true
+      })
+    }
+
+    OptionCard {
+      icon: "tune"
+      title: I18n.tr("Use my own")
+      description: I18n.tr("Leaves hypridle, and your hypridle.conf, to you.")
+      selected: !Idle.enabled
+      onClicked: OnboardingManager.set({
+        "Idle.enabled": false
+      })
+    }
+  }
+
+  SettingRows {
+    Layout.fillWidth: true
+    visible: DependencyManager.found.hypridle === true && Idle.enabled
+    paths: ["Idle.dimTimeout", "Idle.lockTimeout", "Idle.screenOffTimeout", "Idle.suspendTimeout"]
+  }
+
   ColumnLayout {
     Layout.fillWidth: true
-    visible: DependencyManager.found.hypridle === true && ConfigManager.config.Lockscreen.mode !== "none"
+    visible: DependencyManager.found.hypridle === true && !Idle.enabled && ConfigManager.config.Lockscreen.mode !== "none"
     spacing: Widget.spacing
 
     StyledText {
       Layout.fillWidth: true
-      text: I18n.tr("hypridle is installed. To lock after some idle time, point its general section in ~/.config/hypr/hypridle.conf at axiom:")
+      text: I18n.tr("To lock after some idle time with your own hypridle, point its general section in ~/.config/hypr/hypridle.conf at axiom:")
       wrapMode: Text.WordWrap
     }
 
