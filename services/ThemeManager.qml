@@ -177,9 +177,14 @@ QtObject {
     for (let i = 0; i < root._integrations.length; i++) {
       const key = root._integrations[i];
       const process = root._integrationRunner.objectAt(i);
-      // A busy integration only skips itself, not the ones after it
-      if (!ThemeIntegrations[key] || !process || process.running)
+      if (!ThemeIntegrations[key] || !process)
         continue;
+      // A busy one runs again for the latest theme once it's done, or a
+      // quick light-dark-light would leave it on the middle one
+      if (process.running) {
+        process.queued = themePath;
+        continue;
+      }
       process.command = [Paths.scriptsPath + "theme_" + key + ".sh", themePath];
       process.running = true;
     }
@@ -336,6 +341,8 @@ QtObject {
       // whichever order they come
       property int _exitCode: -1
       property bool _stderrDone: false
+      // A theme asked for while it was running, run next
+      property string queued: ""
 
       function _report() {
         if (_exitCode < 0 || !_stderrDone)
@@ -345,6 +352,11 @@ QtObject {
         const shown = _exitCode === 0 ? text.split("\n").filter(line => line.startsWith("Warning:")).join("\n") : text || "exited with " + _exitCode;
         if (shown)
           console.warn("[ThemeManager] theme_" + modelData + ".sh:", shown);
+        if (queued) {
+          command = [Paths.scriptsPath + "theme_" + modelData + ".sh", queued];
+          queued = "";
+          Qt.callLater(() => integration.running = true);
+        }
       }
 
       onRunningChanged: if (running) {

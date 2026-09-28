@@ -25,7 +25,12 @@ PanelWindow {
 
   onSourceChanged: {
     const next = current === first ? second : first;
-    next.source = source;
+    // Back to the one it held last (dark, light, dark): the same source
+    // doesn't load again, so no status change would bring it up
+    if (next.source.toString() === source && next.status === Image.Ready)
+      next.reveal();
+    else
+      next.source = source;
   }
   Component.onCompleted: first.source = source
 
@@ -39,6 +44,11 @@ PanelWindow {
     required property bool shown
     signal ready
 
+    function reveal() {
+      image.ready();
+      fadeIn.restart();
+    }
+
     anchors.fill: parent
     fillMode: Image.PreserveAspectCrop
     asynchronous: true
@@ -48,8 +58,7 @@ PanelWindow {
     onStatusChanged: {
       if (image.status !== Image.Ready || image.source.toString() !== image.wanted || image.shown)
         return;
-      image.ready();
-      fadeIn.restart();
+      image.reveal();
     }
 
     NumberAnimation {

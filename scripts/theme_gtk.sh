@@ -6,7 +6,9 @@
 #   output: axiom.css in ~/.config/gtk-3.0 and ~/.config/gtk-4.0
 #   hookup: `@import url("axiom.css");` in each gtk.css (created with it when missing);
 #           GTK3 apps follow it with the adw-gtk3 theme (pacman -S adw-gtk-theme)
-#   reload: dark/light live (gsettings color-scheme); colors on each app's next start
+#   reload: dark/light live (gsettings color-scheme, and gtk-theme between
+#           adw-gtk3 and adw-gtk3-dark when it's one of them); colors on each
+#           app's next start
 #
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -35,5 +37,12 @@ done
 # session alone
 if [ $# -lt 2 ] && command -v gsettings &>/dev/null; then
     gsettings set org.gnome.desktop.interface color-scheme "$([[ "$THEME_VARIANT" == "light" ]] && echo prefer-light || echo prefer-dark)"
+    # adw-gtk3 comes as a light and a dark theme, and apps that judge the
+    # mode by the theme (Firefox and its forks) follow its name, not
+    # color-scheme. Any other theme is the user's to pick.
+    GTK_THEME="$(gsettings get org.gnome.desktop.interface gtk-theme | tr -d "'")"
+    if [[ "$GTK_THEME" == adw-gtk3 || "$GTK_THEME" == adw-gtk3-dark ]]; then
+        gsettings set org.gnome.desktop.interface gtk-theme "$([[ "$THEME_VARIANT" == "light" ]] && echo adw-gtk3 || echo adw-gtk3-dark)"
+    fi
 fi
 echo "🚀 GTK apps pick up the colors on their next start."
