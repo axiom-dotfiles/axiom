@@ -145,4 +145,22 @@ QtObject {
     edges[nearest] = true;
     return edges;
   }
+
+  // Stable order for assigning workspace-id blocks to monitors (grid and
+  // perMonitor layouts): the primary monitor first (matched by `name`, as
+  // General.primaryMonitor is stored/matched elsewhere), then the rest by
+  // `key` — a caller-supplied stable identity (HyprlandManager fills it with
+  // MonitorLayout.outputId, the same "follows the monitor across ports"
+  // identity monitor profiles use). Hyprland.monitors.values' own order can
+  // change on a hotplug/reconnect/restart; `key`/`name` don't, so this can't
+  // reshuffle who owns which ids the way raw discovery order did.
+  // monitors: [{ id, name, key, x, y }, ...], any order.
+  function orderMonitors(monitors, primaryName) {
+    const list = (monitors ?? []).slice();
+    const isPrimary = m => !!primaryName && m.name === primaryName;
+    const primary = list.filter(isPrimary);
+    const rest = list.filter(m => !isPrimary(m));
+    rest.sort((a, b) => String(a.key ?? a.name).localeCompare(String(b.key ?? b.name)));
+    return primary.concat(rest);
+  }
 }

@@ -8,6 +8,7 @@ import Quickshell.Io
 import Quickshell.Hyprland
 
 import qs.config
+import qs.components.methods
 
 /* Provides access to some Hyprland data not available in Quickshell.Hyprland. */
 Singleton {
@@ -150,17 +151,18 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
 
   // Goes to workspace `id`. mode: "go" (default), "move" (taking the
   // focused window along) or "moveSilent" (sending it there, staying put).
-  // In a grid only the monitor's own workspaces are reachable (`monitor`,
-  // the focused one by default), and it goes by row, then column, sliding
-  // along each (WorkspacesConfig.animate). The standard layout is one row
-  // (columns = count), so it only ever slides sideways.
+  // In a grid or perMonitor layout only the monitor's own workspaces are
+  // reachable (`monitor`, the focused one by default), and it goes by row,
+  // then column, sliding along each (WorkspacesConfig.animate). The
+  // standard layout is one row (columns = count), so it only ever slides
+  // sideways.
   function goToWorkspace(id, mode, monitor) {
     mode = mode || "go";
     monitor = monitor ?? Hyprland.focusedMonitor;
     const base = workspaceBase(monitor);
     const size = WorkspacesConfig.size;
-    if (WorkspacesConfig.grid && (id < base || id >= base + size)) {
-      console.warn(`[HyprlandManager] workspace ${id} is outside ${monitor?.name ?? "the focused monitor"}'s grid (${base}-${base + size - 1})`);
+    if (WorkspacesConfig.perMonitorBlocks && (id < base || id >= base + size)) {
+      console.warn(`[HyprlandManager] workspace ${id} is outside ${monitor?.name ?? "the focused monitor"}'s workspaces (${base}-${base + size - 1})`);
       return;
     }
     const current = monitor === Hyprland.focusedMonitor ? _currentWorkspaceId() : (monitor?.activeWorkspace?.id ?? -1);
@@ -226,10 +228,10 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
     goToWorkspace(base + row * cols + col, mode);
   }
 
-  // The n-th workspace (1-based) of the current row in a grid, or
-  // workspace n in the standard layout (number keybinds)
+  // The n-th workspace (1-based) of the current row in a grid or perMonitor
+  // layout, or workspace n in the standard layout (number keybinds)
   function nthWorkspace(n, mode) {
-    if (!WorkspacesConfig.grid) {
+    if (!WorkspacesConfig.perMonitorBlocks) {
       goToWorkspace(n, mode);
       return;
     }
@@ -320,14 +322,24 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
   }
 
   // First workspace id a monitor shows: 1 in the standard layout, else its
-  // grid's (columns × rows ids per monitor, in Hyprland's monitor order)
+  // block's (grid/perMonitor, one block per monitor in a stable order —
+  // the primary monitor first, then the rest by a description-based
+  // identity that survives a port change — not raw Hyprland discovery
+  // order, which can reshuffle on a hotplug/reconnect/restart)
   function workspaceBase(monitor) {
+    if (!WorkspacesConfig.perMonitorBlocks)
+      return WorkspacesConfig.baseFor(0);
     const monitors = Hyprland.monitors.values;
-    for (let i = 0; i < monitors.length; i++) {
-      if (monitors[i].id === monitor?.id)
-        return WorkspacesConfig.baseFor(i);
-    }
-    return 1;
+    const plain = monitors.map(m => ({
+          "id": m.id,
+          "name": m.name,
+          "key": MonitorLayout.outputId(m, monitors),
+          "x": m.x,
+          "y": m.y
+        }));
+    const ordered = WorkspaceGeometry.orderMonitors(plain, General.primaryMonitor);
+    const index = ordered.findIndex(m => m.id === monitor?.id);
+    return WorkspacesConfig.baseFor(index >= 0 ? index : 0);
   }
 
   // The workspace ids a monitor shows, in order

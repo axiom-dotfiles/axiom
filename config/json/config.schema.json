@@ -1105,10 +1105,10 @@
         "layout": {
           "type": "string",
           "title": "Layout",
-          "enum": ["standard", "grid"],
-          "x-enumLabels": { "standard": "Standard (1 to N)", "grid": "Grid per monitor" },
-          "default": "standard",
-          "description": "Standard: workspaces 1 to N, shared by every monitor. Grid: each monitor has its own columns × rows workspaces, numbered in Hyprland's monitor order."
+          "enum": ["standard", "perMonitor", "grid"],
+          "x-enumLabels": { "standard": "Standard (1 to N)", "perMonitor": "Per monitor (1 to N)", "grid": "Grid per monitor" },
+          "default": "perMonitor",
+          "description": "Standard: workspaces 1 to N, shared by every monitor. Per monitor: each monitor has its own 1 to N workspaces. Grid: each monitor has its own columns × rows workspaces. Per monitor and grid assign monitors a stable order (the primary monitor first, then the rest by their monitor identity), so a hotplug or Hyprland restart can't reshuffle which monitor owns which ids."
         },
         "count": {
           "type": "integer",
@@ -1116,7 +1116,7 @@
           "default": 10,
           "minimum": 1,
           "maximum": 30,
-          "x-showIf": { "layout": "standard" }
+          "x-showIf": { "layout": ["standard", "perMonitor"] }
         },
         "columns": {
           "type": "integer",

@@ -10,9 +10,14 @@ QtObject {
 
   readonly property var _c: ConfigManager.config.Workspaces
 
-  // Grid: each monitor owns columns × rows ids, in Hyprland's monitor order.
-  // Standard: ids 1..count, shared by every monitor.
+  // Grid: each monitor owns columns × rows ids. Per monitor: each monitor
+  // owns a flat block of count ids. Standard: ids 1..count, shared by every
+  // monitor. Grid/perMonitor number monitors by a stable order (see
+  // WorkspaceGeometry.orderMonitors), not raw Hyprland discovery order.
   readonly property bool grid: _c.layout === "grid"
+  // True when each monitor gets its own block of ids (grid or perMonitor)
+  // instead of sharing 1..count (standard).
+  readonly property bool perMonitorBlocks: _c.layout !== "standard"
   readonly property int count: _c.count
   readonly property int columns: grid ? _c.columns : count
   readonly property int rows: grid ? _c.rows : 1
@@ -37,8 +42,9 @@ QtObject {
     return Math.ceil(n / Math.floor(Math.sqrt(n)));
   }
 
-  // First id of the monitor at `monitorIndex` (in Hyprland's order)
+  // First id of the monitor at `monitorIndex` (a stable order, see
+  // HyprlandManager.workspaceBase)
   function baseFor(monitorIndex) {
-    return grid ? Math.max(0, monitorIndex) * size + 1 : 1;
+    return perMonitorBlocks ? Math.max(0, monitorIndex) * size + 1 : 1;
   }
 }
