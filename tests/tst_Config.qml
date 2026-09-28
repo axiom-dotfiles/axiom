@@ -153,6 +153,12 @@ TestCase {
     compare(config.OSD.bars[0].app, "spotify");
     compare(config.OSD.bars[0].showOsd, false);
     compare(config.OSD.bars[1].app, "");
+    // v16: an edge menu's extraDepth becomes the size across its edge
+    compare(config.EdgeMenus[0].extraDepth, undefined);
+    compare(config.EdgeMenus[0].extraWidth, 120);
+    compare(config.EdgeMenus[0].extraHeight, 0);
+    compare(config.EdgeMenus[1].extraWidth, 0);
+    compare(config.EdgeMenus[1].extraHeight, 40);
   }
 
   function test_migration_is_idempotent() {

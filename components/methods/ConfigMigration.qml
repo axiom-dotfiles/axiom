@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 15
+  readonly property int currentVersion: 16
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -57,6 +57,8 @@ QtObject {
       result = _v13ToV14(result, changes);
     if (version < 15)
       result = _v14ToV15(result, changes);
+    if (version < 16)
+      result = _v15ToV16(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -451,6 +453,23 @@ QtObject {
     });
     delete config.OSD.apps;
     changes.push("OSD.apps: became OSD.bars, with a type per bar");
+    return config;
+  }
+
+  // v16 split an edge menu's extraDepth (room across its edge) into
+  // extraWidth and extraHeight: a left/right menu's depth is its width,
+  // a top/bottom one's its height
+  function _v15ToV16(config, changes) {
+    (config.EdgeMenus ?? []).forEach((menu, index) => {
+      if (!menu || !("extraDepth" in menu))
+        return;
+      const depth = menu.extraDepth;
+      delete menu.extraDepth;
+      const key = menu.edge === "Top" || menu.edge === "Bottom" ? "extraHeight" : "extraWidth";
+      if (depth > 0 && menu[key] === undefined)
+        menu[key] = depth;
+      changes.push(`EdgeMenus[${index}].extraDepth -> ${key} (${depth})`);
+    });
     return config;
   }
 }

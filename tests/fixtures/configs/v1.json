@@ -38,6 +38,10 @@
       }
     ]
   },
+  "EdgeMenus": [
+    { "id": "side", "edge": "Right", "extraDepth": 120 },
+    { "id": "top", "edge": "Top", "extraDepth": 40 }
+  ],
   "Chat": {
     "enabled": true,
     "defaultBackend": "anthropic",
