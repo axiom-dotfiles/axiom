@@ -6,8 +6,8 @@ import qs.services
 import qs.components.hosts.overlay
 
 // An edge menu's modules: its columns side by side, as on a Custom overlay
-// page, with cards of the menu's own cardSize, every cell grown across the
-// edge by its `extraDepth`. Along the edge it's capped at `maxLength` and
+// page, with cards of the menu's own cardSize, every cell grown by its
+// `extraWidth`/`extraHeight`. Along the edge it's capped at `maxLength` and
 // scrolls past that.
 Item {
   id: root
@@ -34,24 +34,24 @@ Item {
     fixedUnit: root.menu?.cardSize ?? OverlayConfig.minCardUnit
   }
 
-  // `extraDepth` grows every cell across the edge (OverlayConfig.columnFlow's
-  // `extra`): on a left/right edge the columns share it in width, on a
-  // top/bottom one each gets it all in height. Fill cells (its `target`)
-  // then take all the room along the edge (on a top/bottom edge the spare
-  // width is shared by the columns holding one) and grow across it to the
-  // thickest column.
+  // `extraWidth` and `extraHeight` grow every cell (OverlayConfig.columnFlow's
+  // `extra`): the columns share the width, each gets all the height. Fill
+  // cells (its `target`) then take all the room along the edge (on a
+  // top/bottom edge the spare width is shared by the columns holding one)
+  // and grow across it to the thickest column.
   readonly property var _natural: root.columns.map(column => grid.columnFlow(column?.cells))
   readonly property var _fillColumns: root.columns.map(column => (column?.cells ?? []).some(cell => cell?.fill === true))
   readonly property bool anyFill: root._fillColumns.includes(true)
   readonly property int _fillCount: root._fillColumns.filter(fills => fills).length
-  readonly property real extraDepth: root.columns.length > 0 ? Math.max(0, root.menu?.extraDepth ?? 0) : 0
-  readonly property var _extra: root.vertical ? {
-    "width": root.extraDepth / Math.max(1, root.columns.length)
-  } : {
-    "height": root.extraDepth
-  }
-  readonly property real _sideBySide: root._natural.reduce((sum, flow) => sum + flow.width, 0) + Math.max(0, root.columns.length - 1) * OverlayConfig.cardSpacing
-  readonly property real _thickest: Math.max(0, ...root._natural.map(flow => flow.height))
+  readonly property real extraWidth: root.columns.length > 0 ? Math.max(0, root.menu?.extraWidth ?? 0) : 0
+  readonly property real extraHeight: root.columns.length > 0 ? Math.max(0, root.menu?.extraHeight ?? 0) : 0
+  readonly property real _columnExtraWidth: root.extraWidth / Math.max(1, root.columns.length)
+  readonly property var _extra: ({
+      "width": root._columnExtraWidth,
+      "height": root.extraHeight
+    })
+  readonly property real _sideBySide: root._natural.reduce((sum, flow) => sum + flow.width, 0) + root.extraWidth + Math.max(0, root.columns.length - 1) * OverlayConfig.cardSpacing
+  readonly property real _thickest: Math.max(0, ...root._natural.map(flow => flow.height)) + root.extraHeight
   readonly property real _naturalLength: root.vertical ? root._thickest : root._sideBySide
   // Along the edge before fill cells grow or the cap applies
   readonly property real naturalLength: root._naturalLength
@@ -64,8 +64,8 @@ Item {
         "height": root._naturalLength + root._spareLength
       };
     return {
-      "width": root._natural[index].width + (root._fillColumns[index] ? root._spareLength / root._fillCount : 0),
-      "height": root._thickest + root.extraDepth
+      "width": root._natural[index].width + root._columnExtraWidth + (root._fillColumns[index] ? root._spareLength / root._fillCount : 0),
+      "height": root._thickest
     };
   }
 

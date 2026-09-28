@@ -8,7 +8,7 @@
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 15,
+      "default": 18,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
@@ -205,7 +205,7 @@
     "Hyprland": {
       "type": "object",
       "x-category": "Hyprland",
-      "x-links": ["Keybinds"],
+      "x-links": ["Keybinds", "Monitors"],
       "x-card": "HyprlandStatus",
       "title": "Hyprland",
       "description": "How axiom sets Hyprland up. Needs Hyprland 0.55+ with a Lua config.",
@@ -374,6 +374,16 @@
               "release": { "type": "boolean", "title": "On release", "default": false },
               "description": { "type": "string", "title": "Description", "default": "", "description": "Label on the Keybinds page; empty uses the action's name. The action picks the section unless you write \"Section: Label\"." }
             }
+          }
+        },
+        "monitors": {
+          "type": "object",
+          "title": "Monitors",
+          "x-settings": false,
+          "description": "Edited on the Monitors page.",
+          "additionalProperties": false,
+          "properties": {
+            "profiles": { "type": "array", "default": [], "items": { "$ref": "#/definitions/MonitorProfile" } }
           }
         },
         "managed": {
@@ -850,6 +860,21 @@
       }
     },
 
+    "Notes": {
+      "type": "object",
+      "x-category": "Notes",
+      "title": "Notes",
+      "description": "Where the Notes module keeps its notes: plain Markdown files, one per note, in folders of your own. Checklists are Markdown tasks (- [ ] item), so other Markdown editors read them too.",
+      "additionalProperties": false,
+      "x-order": ["directory", "extensions", "showHidden", "confirmDelete"],
+      "properties": {
+        "directory": { "type": "string", "title": "Notes folder", "default": "", "description": "An absolute path (~/ works), e.g. a synced folder or a Markdown vault. Empty keeps notes in axiom's config/state/notes, which is not backed up." },
+        "extensions": { "type": "array", "title": "File types", "default": ["md", "txt"], "items": { "type": "string" }, "description": "File extensions the note list shows, comma-separated. New notes are .md." },
+        "showHidden": { "type": "boolean", "title": "Show hidden files", "default": false, "description": "List files and folders whose names start with a dot." },
+        "confirmDelete": { "type": "boolean", "title": "Confirm before deleting", "default": true, "description": "Deleted notes and folders go to the trash. Without gio (glib2) deleting is permanent, and always asks first." }
+      }
+    },
+
     "OSD": {
       "type": "object",
       "x-category": "Overlay & OSD",
@@ -1062,7 +1087,8 @@
             { "type": "Keybinds" },
             { "type": "BarEditor" },
             { "type": "Themes" },
-            { "type": "EdgeMenuEditor" }
+            { "type": "EdgeMenuEditor" },
+            { "type": "Monitors" }
           ],
           "items": { "$ref": "#/definitions/OverlayView" }
         }
@@ -1263,7 +1289,7 @@
       "type": "object",
       "required": ["id"],
       "additionalProperties": false,
-      "x-order": ["name", "id", "enabled", "monitor", "mode", "edge", "position", "edgeDistance", "cardSize", "extraDepth", "frame", "margin", "padding", "backgroundColor", "borderColor", "openOnHover", "openDelay", "triggerSize", "triggerLength", "closeOnLeave", "closeDelay", "closeOnOutsideClick"],
+      "x-order": ["name", "id", "enabled", "monitor", "mode", "edge", "position", "edgeDistance", "cardSize", "extraWidth", "extraHeight", "frame", "margin", "padding", "backgroundColor", "borderColor", "openOnHover", "openDelay", "triggerSize", "triggerLength", "closeOnLeave", "closeDelay", "closeOnOutsideClick"],
       "properties": {
         "id": { "type": "string", "title": "Id", "description": "What bar buttons and IPC calls open this menu by." },
         "name": { "type": "string", "title": "Name", "default": "" },
@@ -1302,15 +1328,25 @@
           "x-unit": "px",
           "description": "Size of one card. Cells are laid out as on overlay pages."
         },
-        "extraDepth": {
+        "extraWidth": {
           "type": "integer",
-          "title": "Extra depth",
+          "title": "Extra width",
           "default": 0,
           "minimum": 0,
           "maximum": 1000,
           "x-unit": "px",
           "x-control": "slider",
-          "description": "Room added across the edge: width on a left or right edge, height on a top or bottom one. Every module grows into it."
+          "description": "Width added to the menu, shared between its columns. Every module grows into it."
+        },
+        "extraHeight": {
+          "type": "integer",
+          "title": "Extra height",
+          "default": 0,
+          "minimum": 0,
+          "maximum": 1000,
+          "x-unit": "px",
+          "x-control": "slider",
+          "description": "Height added to the menu, shared between each column's rows. Every module grows into it."
         },
         "edgeDistance": {
           "type": "integer",
@@ -1514,7 +1550,8 @@
         { "$ref": "#/definitions/BarEditorOverlayView" },
         { "$ref": "#/definitions/SettingsOverlayView" },
         { "$ref": "#/definitions/ThemesOverlayView" },
-        { "$ref": "#/definitions/EdgeMenuEditorOverlayView" }
+        { "$ref": "#/definitions/EdgeMenuEditorOverlayView" },
+        { "$ref": "#/definitions/MonitorsOverlayView" }
       ]
     },
     "CustomOverlayView": {
@@ -1577,6 +1614,45 @@
       "properties": {
         "type": { "const": "EdgeMenuEditor", "description": "Edge Menu Editor" },
         "visible": { "type": "boolean" }
+      }
+    },
+    "MonitorsOverlayView": {
+      "type": "object",
+      "x-icon": "monitor",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "Monitors", "description": "Monitors" },
+        "visible": { "type": "boolean" }
+      }
+    },
+
+    "MonitorProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "default": "" },
+        "outputs": { "type": "array", "default": [], "items": { "$ref": "#/definitions/MonitorRule" } }
+      }
+    },
+    "MonitorRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "output": { "type": "string", "default": "", "description": "desc:<description>, or a connector name (DP-1)." },
+        "label": { "type": "string", "default": "", "description": "The connector it was last seen on, for display." },
+        "mode": { "type": "string", "default": "preferred", "description": "WIDTHxHEIGHT@HZ, or preferred." },
+        "x": { "type": "integer", "default": 0 },
+        "y": { "type": "integer", "default": 0 },
+        "scale": { "type": "number", "default": 1, "exclusiveMinimum": 0, "maximum": 8 },
+        "transform": { "type": "integer", "default": 0, "minimum": 0, "maximum": 7, "description": "Rotation in quarter turns, plus 4 when flipped." },
+        "disabled": { "type": "boolean", "default": false },
+        "mirror": { "type": "string", "default": "", "description": "The output (as in `output`) this one mirrors, or empty." },
+        "vrr": { "type": "integer", "default": 0, "minimum": 0, "maximum": 3, "description": "0 off, 1 on, 2 fullscreen only, 3 fullscreen games and video." },
+        "bitdepth": { "type": "integer", "enum": [8, 10], "default": 8 },
+        "cm": { "type": "string", "enum": ["auto", "srgb", "dcip3", "dp3", "adobe", "wide", "edid", "hdr", "hdredid"], "default": "auto" },
+        "sdrBrightness": { "type": "number", "default": 1, "minimum": 0.5, "maximum": 2 },
+        "sdrSaturation": { "type": "number", "default": 1, "minimum": 0.5, "maximum": 2 }
       }
     },
 
@@ -1954,7 +2030,11 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "name": {"type": "string", "title": "Note name", "default": "", "description": "Notes with the same name share their text."}
+            "note": { "type": "string", "title": "Note", "default": "", "x-options": "notes", "description": "The note to open, as a path in the notes folder (e.g. todo.md or work/ideas.md). Empty opens the last note this module showed." },
+            "lockNote": { "type": "boolean", "title": "Only this note", "default": false, "description": "Always show this note, with no note list: a clean scratchpad for an edge menu.", "x-showIf": { "note": { "not": "" } } },
+            "showHeader": { "type": "boolean", "title": "Header", "default": true, "description": "The note's name, the note list and the new note button." },
+            "showToolbar": { "type": "boolean", "title": "Toolbar", "default": true, "description": "The checklist and bullet buttons." },
+            "showCompleted": { "type": "boolean", "title": "Show completed items", "default": true, "description": "Hidden completed items stay in the note." }
           }
         }
       }

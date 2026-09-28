@@ -98,4 +98,147 @@ QtObject {
       return flat;
     return `{\n${keys.map(key => `${pad}  ${entry(key)},`).join("\n")}\n${pad}}`;
   }
+
+  // --- Monitors (Hyprland.monitors, MonitorLayout) ---
+
+  // A monitor rule (the MonitorRule schema) as hl.monitor()'s spec: output,
+  // mode, position and scale always, the rest only when changed. `mirror`
+  // stays an output id: monitorsLua resolves it to a connector name.
+  function monitorSpec(rule) {
+    if (rule.disabled)
+      return {
+        "output": rule.output,
+        "disabled": true
+      };
+    const spec = {
+      "output": rule.output,
+      "mode": rule.mode || "preferred",
+      "position": `${Math.round(rule.x ?? 0)}x${Math.round(rule.y ?? 0)}`,
+      "scale": rule.scale ?? 1
+    };
+    if (rule.transform)
+      spec.transform = rule.transform;
+    if (rule.mirror)
+      spec.mirror = rule.mirror;
+    if (rule.vrr)
+      spec.vrr = rule.vrr;
+    if (rule.bitdepth === 10)
+      spec.bitdepth = 10;
+    if (rule.cm && rule.cm !== "auto")
+      spec.cm = rule.cm;
+    if (rule.sdrBrightness !== undefined && rule.sdrBrightness !== 1)
+      spec.sdrbrightness = rule.sdrBrightness;
+    if (rule.sdrSaturation !== undefined && rule.sdrSaturation !== 1)
+      spec.sdrsaturation = rule.sdrSaturation;
+    return spec;
+  }
+
+  readonly property var _specOrder: ["output", "mode", "position", "scale"]
+
+  // A spec on one line, output first
+  function inlineSpec(spec) {
+    const keys = Object.keys(spec).sort((a, b) => {
+      const ia = _specOrder.indexOf(a);
+      const ib = _specOrder.indexOf(b);
+      return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || (a < b ? -1 : a > b ? 1 : 0);
+    });
+    return `{ ${keys.map(key => `${key} = ${value(spec[key])}`).join(", ")} }`;
+  }
+
+  // hl.monitor() calls for rules applied now (the Monitors page's Apply and
+  // its revert). `mirrorName(output)` gives the connector a mirror target is
+  // on, or "" to leave the mirror out.
+  function monitorCalls(rules, mirrorName) {
+    return rules.map(rule => {
+      const spec = monitorSpec(rule);
+      if (spec.mirror !== undefined) {
+        const name = mirrorName(spec.mirror);
+        if (name)
+          spec.mirror = name;
+        else
+          delete spec.mirror;
+      }
+      return `hl.monitor(${inlineSpec(spec)})`;
+    });
+  }
+
+  // Lua lines that keep the monitors in the profile for what's connected:
+  // AXIOM_MONITOR_PROFILES, axiom_apply_monitors() (picks as
+  // MonitorLayout.matchProfile does, from hl.get_monitors(), which only
+  // lists enabled outputs) run now and on every monitor.added/removed.
+  // Outputs another profile lists, but the chosen one doesn't, go back to
+  // Hyprland's defaults (connected or not: a disabled output isn't listed),
+  // so a disable doesn't outlive its profile.
+  // With no profiles it only drops the event handlers of an earlier run.
+  function monitorsLua(profiles) {
+    const lines = ["if AXIOM_MONITOR_SUBS then", "  for _, sub in ipairs(AXIOM_MONITOR_SUBS) do sub:remove() end", "  AXIOM_MONITOR_SUBS = nil", "end"];
+    const used = (profiles ?? []).filter(profile => (profile.outputs ?? []).some(rule => rule.output));
+    if (used.length === 0)
+      return lines;
+    lines.push("AXIOM_MONITOR_PROFILES = {");
+    for (const profile of used) {
+      lines.push(`  { name = ${string(profile.name ?? "")}, outputs = {`);
+      for (const rule of profile.outputs)
+        if (rule.output)
+          lines.push(`    ${inlineSpec(monitorSpec(rule))},`);
+      lines.push("  } },");
+    }
+    lines.push("}");
+    lines.push(`function axiom_apply_monitors()
+  local connected = hl.get_monitors() or {}
+  local function matches(output, mon)
+    if output:sub(1, 5) == "desc:" then return mon.description == output:sub(6) end
+    return mon.name == output
+  end
+  local function find(output)
+    for _, mon in ipairs(connected) do
+      if matches(output, mon) then return mon end
+    end
+  end
+  local best, bestScore = nil, 0
+  for _, profile in ipairs(AXIOM_MONITOR_PROFILES) do
+    local score, exact = 0, true
+    for _, spec in ipairs(profile.outputs) do
+      local found = find(spec.output)
+      if found and not spec.disabled then score = score + 1 end
+      if not found and not spec.disabled then exact = false end
+    end
+    for _, mon in ipairs(connected) do
+      local listed = false
+      for _, spec in ipairs(profile.outputs) do
+        if matches(spec.output, mon) then listed = true end
+      end
+      if not listed then exact = false end
+    end
+    if exact and score > 0 then score = score + 1000 end
+    if score > bestScore then best, bestScore = profile, score end
+  end
+  -- Nothing reported yet (a first start): the first profile, as rules
+  -- waiting for their outputs
+  if #connected == 0 then best = AXIOM_MONITOR_PROFILES[1] end
+  if not best then return end
+  local mine = {}
+  for _, spec in ipairs(best.outputs) do
+    mine[spec.output] = true
+    local rule = {}
+    for k, v in pairs(spec) do rule[k] = v end
+    if rule.mirror then
+      local target = find(rule.mirror)
+      rule.mirror = target and target.name or nil
+    end
+    hl.monitor(rule)
+  end
+  for _, profile in ipairs(AXIOM_MONITOR_PROFILES) do
+    for _, spec in ipairs(profile.outputs) do
+      if not mine[spec.output] then
+        mine[spec.output] = true
+        hl.monitor({ output = spec.output, mode = "preferred", position = "auto", scale = "auto" })
+      end
+    end
+  end
+end`);
+    lines.push(`AXIOM_MONITOR_SUBS = { hl.on("monitor.added", axiom_apply_monitors), hl.on("monitor.removed", axiom_apply_monitors) }`);
+    lines.push("axiom_apply_monitors()");
+    return lines;
+  }
 }

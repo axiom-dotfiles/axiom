@@ -110,6 +110,9 @@ Item {
     anchors.fill: parent
     hoverEnabled: true
     cursorShape: Qt.PointingHandCursor
+    // Inside a Flickable (a scrolling page) the drag would otherwise be
+    // taken over as a scroll past its threshold, cancelling this one
+    preventStealing: true
 
     property bool isDragging: false
     // Where on the handle it was grabbed, so pressing the handle doesn't
@@ -148,8 +151,12 @@ Item {
       }
     }
 
+    // Still ends the drag where it got to, so the value is committed
     onCanceled: {
-      isDragging = false;
+      if (isDragging) {
+        isDragging = false;
+        root.released(root.value);
+      }
     }
   }
 }

@@ -39,6 +39,10 @@ Loader {
         labels[menu.id] = menu.name || menu.id;
         return labels;
       }, {});
+    if (fieldSchema["x-options"] === "notes")
+      return {
+        "": I18n.tr("Last opened")
+      };
     // Schema labels are English, translated like titles
     const labels = fieldSchema["x-enumLabels"] ?? {};
     return Object.keys(labels).reduce((out, value) => {
@@ -143,7 +147,7 @@ Loader {
       stepSize: root.fieldSchema.multipleOf ?? 1
       headerInset: root.headerInset
       unit: root.fieldSchema["x-unit"] ?? ""
-      mode: root.fieldSchema["x-control"] ?? "auto"
+      mode: root.form.numberMode || (root.fieldSchema["x-control"] ?? "auto")
       onCommitted: value => root.commit(value)
     }
   }
@@ -171,6 +175,7 @@ Loader {
       itemDelegate: Component {
         SchemaArrayItem {
           itemSchema: root.fieldSchema.items
+          numberMode: root.form.numberMode ?? ""
           onItemEdited: (index, key, value) => root.editItem(index, key, value)
         }
       }

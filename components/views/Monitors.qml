@@ -1,0 +1,173 @@
+pragma ComponentBehavior: Bound
+import QtQuick
+import QtQuick.Layouts
+import qs.config
+import qs.services
+import qs.components.reusable
+import qs.components.forms
+import qs.components.content.base
+import qs.components.views.monitors
+
+// The monitors page: layout profiles (one per set of monitors, picked by
+// what's connected), each a layout to drag monitors around in and the
+// selected monitor's settings. Apply tries the profile at once and asks to
+// keep it (MonitorManager); a profile for monitors that aren't connected
+// is only saved.
+BaseView {
+  id: root
+
+  Component.onCompleted: {
+    MonitorManager.pageShown = true;
+    MonitorManager.ensureLoaded();
+  }
+  Component.onDestruction: MonitorManager.pageShown = false
+
+  readonly property real pageWidth: root.grid.unit * 2.6 + OverlayConfig.cardSpacing
+
+  // Where Hyprland gets the profiles from, per HyprlandConfig.mode
+  readonly property string modeNote: {
+    switch (HyprlandConfigManager.mode) {
+    case "included":
+      return I18n.tr("Saved into axiom's Hyprland module, which your hyprland.lua loads.");
+    case "managed":
+      return I18n.tr("Saved into the hyprland.lua axiom manages; files in user/ load after it.");
+    }
+    return I18n.tr("Applied by axiom while it runs: your own Hyprland config sets the monitors until then.");
+  }
+
+  Item {
+    implicitWidth: root.pageWidth
+    implicitHeight: root.grid.span(4)
+
+    TitledCard {
+      color: Theme.background
+      title: I18n.tr("Monitors")
+      dirty: MonitorManager.isDirty
+      canSave: MonitorManager.canApply && !MonitorManager.pending
+      saveLabel: MonitorManager.selectedIsLive ? I18n.tr("Apply") : I18n.tr("Save")
+      onSave: MonitorManager.apply()
+      onReset: MonitorManager.reset()
+
+      headerExtras: RowLayout {
+        Layout.fillWidth: true
+        Layout.topMargin: Widget.spacing
+        spacing: Widget.spacing * 2
+
+        SchemaComboBox {
+          label: ""
+          Layout.fillWidth: false
+          Layout.preferredWidth: root.grid.unit * 0.7
+          options: MonitorManager.profiles.map((_, index) => String(index))
+          optionLabels: MonitorManager.profiles.reduce((labels, profile, index) => {
+            labels[String(index)] = index === MonitorManager.liveProfile ? I18n.tr("{0} (connected)", profile.name) : profile.name;
+            return labels;
+          }, {})
+          currentValue: String(MonitorManager.selectedProfile)
+          onSelectionChanged: value => {
+            MonitorManager.selectedProfile = Number(value);
+            MonitorManager.selectedOutput = MonitorManager.rules[0]?.output ?? "";
+          }
+        }
+
+        StyledTextEntry {
+          id: nameField
+          Layout.preferredWidth: root.grid.unit * 0.6
+          Layout.preferredHeight: Widget.height
+          placeholderText: I18n.tr("Layout name")
+          text: MonitorManager.profile?.name ?? ""
+          onTextChanged: {
+            if (nameField.input.activeFocus)
+              MonitorManager.renameProfile(MonitorManager.selectedProfile, text);
+          }
+        }
+
+        StyledTextButton {
+          implicitHeight: Widget.height
+          iconText: "add"
+          text: I18n.tr("New layout")
+          onClicked: MonitorManager.newProfile()
+        }
+
+        StyledTextButton {
+          visible: MonitorManager.profiles.length > 1
+          implicitHeight: Widget.height
+          iconText: "delete"
+          text: I18n.tr("Delete")
+          onClicked: MonitorManager.removeProfile(MonitorManager.selectedProfile)
+        }
+
+        Item {
+          Layout.fillWidth: true
+        }
+
+        StyledTextButton {
+          implicitHeight: Widget.height
+          iconText: "badge"
+          text: I18n.tr("Identify")
+          onClicked: MonitorManager.identify()
+        }
+      }
+
+      RowLayout {
+        Layout.fillWidth: true
+        Layout.preferredHeight: root.grid.span(4) - Widget.height * 6
+        spacing: Widget.spacing * 3
+
+        MonitorCanvas {
+          Layout.fillWidth: true
+          Layout.fillHeight: true
+        }
+
+        StyledScrollView {
+          id: inspectorScroll
+          Layout.preferredWidth: root.grid.unit * 0.85
+          Layout.fillHeight: true
+          contentPadding: 0
+
+          MonitorInspector {
+            width: inspectorScroll.availableWidth
+          }
+        }
+      }
+
+      StyledText {
+        visible: !MonitorManager.selectedIsLive
+        Layout.fillWidth: true
+        wrapMode: Text.WordWrap
+        opacity: 0.7
+        text: I18n.tr("This layout is for monitors that aren't all connected: saving keeps it for when they are.")
+      }
+
+      Repeater {
+        model: MonitorManager.issues.length
+
+        delegate: RowLayout {
+          required property int index
+          readonly property var issue: MonitorManager.issues[index]
+          Layout.fillWidth: true
+          spacing: Widget.spacing
+
+          StyledIcon {
+            text: parent.issue?.level === "error" ? "error" : "warning"
+            textColor: parent.issue?.level === "error" ? Theme.error : Theme.warning
+            Layout.alignment: Qt.AlignTop
+          }
+
+          StyledText {
+            text: parent.issue?.text ?? ""
+            wrapMode: Text.WordWrap
+            Layout.fillWidth: true
+          }
+        }
+      }
+
+      StyledText {
+        Layout.fillWidth: true
+        wrapMode: Text.WordWrap
+        opacity: 0.6
+        textSize: Appearance.fontSize - 2
+        text: root.modeNote
+      }
+    }
+  }
+}

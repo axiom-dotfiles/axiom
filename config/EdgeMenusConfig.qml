@@ -42,7 +42,8 @@ QtObject {
   function lengthOf(menu, vertical) {
     const unit = menu?.cardSize ?? OverlayConfig.minCardUnit;
     const flows = (menu?.columns ?? []).map(column => OverlayConfig.columnFlow(column.cells, unit));
-    const length = vertical ? Math.max(0, ...flows.map(flow => flow.height)) : flows.reduce((sum, flow) => sum + flow.width, 0) + Math.max(0, flows.length - 1) * OverlayConfig.cardSpacing;
+    const extra = flows.length > 0 ? Math.max(0, (vertical ? menu?.extraHeight : menu?.extraWidth) ?? 0) : 0;
+    const length = (vertical ? Math.max(0, ...flows.map(flow => flow.height)) : flows.reduce((sum, flow) => sum + flow.width, 0) + Math.max(0, flows.length - 1) * OverlayConfig.cardSpacing) + extra;
     return length + (menu?.padding ?? 0) * 2;
   }
 }

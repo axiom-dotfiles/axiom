@@ -129,11 +129,12 @@ TestCase {
     // v10: the grid popout's icons move onto the widget
     compare(config.Popouts.workspaceIcons, undefined);
     compare(left[0].properties.showAppIcons, true);
-    // v5, v7, v13: the pages that became views
+    // v5, v7, v13, v18: the pages that became (or were added as) views
     const types = config.Overlay.views.map(view => view.type);
     compare(types[0], "Settings");
     verify(types.includes("Themes"));
     verify(types.includes("EdgeMenuEditor"));
+    verify(types.includes("Monitors"));
     // v11: backends become providers, keeping a model the user added
     compare(config.Chat.defaultProvider, "anthropic");
     const anthropic = config.Chat.providers.find(p => p.id === "anthropic");
@@ -153,6 +154,19 @@ TestCase {
     compare(config.OSD.bars[0].app, "spotify");
     compare(config.OSD.bars[0].showOsd, false);
     compare(config.OSD.bars[1].app, "");
+    // v16: an edge menu's extraDepth becomes the size across its edge
+    compare(config.EdgeMenus[0].extraDepth, undefined);
+    compare(config.EdgeMenus[0].extraWidth, 120);
+    compare(config.EdgeMenus[0].extraHeight, 0);
+    compare(config.EdgeMenus[1].extraWidth, 0);
+    compare(config.EdgeMenus[1].extraHeight, 40);
+    // v17: a Notes module's name becomes the Markdown file it moved to
+    compare(cells[2].slots.main.properties.name, undefined);
+    compare(cells[2].slots.main.properties.note, "my_list.md");
+    compare(cells[3].slots.main.properties.note, "");
+    compare(cells[3].slots.main.properties.lockNote, false);
+    // v18: no monitor profiles until the Monitors page saves one
+    compare(config.Hyprland.monitors.profiles, []);
   }
 
   function test_migration_is_idempotent() {

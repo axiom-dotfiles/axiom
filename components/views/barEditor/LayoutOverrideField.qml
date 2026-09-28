@@ -70,7 +70,8 @@ ColumnLayout {
       minimum: root.fieldSchema.minimum ?? 0
       maximum: root.fieldSchema.maximum ?? 9999
       unit: root.fieldSchema["x-unit"] ?? ""
-      mode: root.fieldSchema["x-control"] ?? "auto"
+      // The bar editor uses steppers throughout
+      mode: "stepper"
       onCommitted: value => {
         if (root.isSet && value !== root.value)
           root.edited(value);

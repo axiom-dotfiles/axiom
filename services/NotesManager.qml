@@ -1,0 +1,427 @@
+pragma Singleton
+import QtQuick
+import Quickshell
+import Quickshell.Io
+import qs.config
+
+// Notes: Markdown files in NotesConfig.directory (config/state/notes/ by
+// default, or a linked folder). Paths are relative to that folder, with
+// "/" between folders, and can never leave it.
+//
+// Open notes are shared documents: acquire(path) returns one per file,
+// counted, so two Notes modules on one note stay in sync, and release(path)
+// saves what's pending. Edits save 600 ms after the last change. A change
+// on disk (another editor, a sync) reloads a document unless it has edits
+// of its own waiting, which then win.
+QtObject {
+  id: root
+
+  readonly property string directory: NotesConfig.directory
+  // A linked folder that doesn't exist (it's never created)
+  property bool directoryMissing: false
+  // Opened by a module with nothing else to show
+  readonly property string defaultNote: "notes.md"
+  // Every note under the folder (relative paths, sorted), for pickers
+  property var allNotes: []
+  // `gio trash` works; otherwise deleting is permanent
+  property bool canTrash: false
+  // The last failed file operation, for the UI ("" when none)
+  property string error: ""
+
+  // A note or folder moved (renamed) or went to the trash: modules showing
+  // it (or something in it) follow
+  signal moved(string from, string to)
+  signal removed(string path)
+
+  // --- Paths ---
+
+  // A clean relative path, or "" when it's empty or tries to leave the
+  // folder (absolute, "..", ".")
+  function clean(path) {
+    const parts = String(path ?? "").split("/").filter(part => part !== "");
+    if (parts.length === 0 || String(path).startsWith("/") || parts.some(part => part === "." || part === ".."))
+      return "";
+    return parts.join("/");
+  }
+
+  function absolute(path) {
+    return root.directory + path;
+  }
+
+  function nameOf(path) {
+    return path.split("/").pop();
+  }
+
+  // A note's name without its extension
+  function titleOf(path) {
+    const name = root.nameOf(path);
+    const dot = name.lastIndexOf(".");
+    return dot > 0 ? name.slice(0, dot) : name;
+  }
+
+  function parentOf(path) {
+    const slash = path.lastIndexOf("/");
+    return slash < 0 ? "" : path.slice(0, slash);
+  }
+
+  // `path` is `folder` or inside it
+  function within(path, folder) {
+    return path === folder || path.startsWith(folder + "/");
+  }
+
+  // --- Documents ---
+
+  property var _docs: ({})
+
+  // The shared document for a note ({ path, text, revision, … }), or null
+  // for a path outside the folder. Release it with release(path).
+  function acquire(path) {
+    const rel = root.clean(path);
+    if (rel === "")
+      return null;
+    let doc = root._docs[rel];
+    if (!doc) {
+      doc = _docComponent.createObject(root, {
+        "path": rel
+      });
+      root._docs[rel] = doc;
+    }
+    doc.refs += 1;
+    return doc;
+  }
+
+  function release(path) {
+    const doc = root._docs[path];
+    if (!doc)
+      return;
+    doc.flush();
+    doc.refs -= 1;
+    if (doc.refs <= 0) {
+      delete root._docs[path];
+      // After a pending write has gone out
+      Qt.callLater(() => doc.destroy());
+    }
+  }
+
+  function flushAll() {
+    Object.keys(root._docs).forEach(path => root._docs[path].flush());
+  }
+
+  // --- The last note each module showed ---
+
+  property var _state: StateManager.createStateHandler("notes-modules")
+  property var _lastOpened: ({})
+
+  function lastOpened(key) {
+    return root._lastOpened[key] ?? "";
+  }
+
+  function setLastOpened(key, path) {
+    if (root._lastOpened[key] === path)
+      return;
+    const next = Object.assign({}, root._lastOpened);
+    next[key] = path;
+    root._lastOpened = next;
+    root._state.save({
+      "lastOpened": next
+    });
+  }
+
+  // --- Files and folders ---
+
+  // Calls back with the new note's path. `name` may be empty ("Untitled"),
+  // a taken name gets a number
+  function createNote(folder, name, callback) {
+    const base = root._fileName(name) || I18n.tr("Untitled");
+    const hasExtension = NotesConfig.extensions.some(ext => base.toLowerCase().endsWith("." + ext));
+    root._create(folder, hasExtension ? base.replace(/\.[^.]*$/, "") : base, hasExtension ? base.replace(/^.*\./, "") : "md", callback);
+  }
+
+  function createFolder(folder, name, callback) {
+    root._create(folder, root._fileName(name) || I18n.tr("New folder"), "", callback);
+  }
+
+  // Renames a note or folder in place (same parent). A note keeps its
+  // extension when the new name has none.
+  function rename(path, name, isFolder, callback) {
+    const from = root.clean(path);
+    let base = root._fileName(name);
+    if (from === "" || base === "")
+      return;
+    const oldName = root.nameOf(from);
+    const ext = /\.[^.]+$/.exec(oldName);
+    if (ext && !isFolder && !/\.[^.]+$/.test(base))
+      base += ext[0];
+    const parent = root.parentOf(from);
+    const to = parent === "" ? base : parent + "/" + base;
+    if (to === from)
+      return;
+    root._flushUnder(from);
+    root._run(["sh", "-c", "[ -e \"$2\" ] && exit 3; mv -n -- \"$1\" \"$2\"", "sh", root.absolute(from), root.absolute(to)], (ok, out, code) => {
+      if (!ok) {
+        root._fail(code === 3 ? I18n.tr("{0} already exists", base) : I18n.tr("Couldn't rename {0}", oldName));
+        return;
+      }
+      root._moveDocs(from, to);
+      root.moved(from, to);
+      root.refreshList();
+      if (callback)
+        callback(to);
+    });
+  }
+
+  // To the trash (gio), or deleted when there is none
+  function trash(path) {
+    const rel = root.clean(path);
+    if (rel === "")
+      return;
+    root._flushUnder(rel);
+    const command = root.canTrash ? ["gio", "trash", "--", root.absolute(rel)] : ["rm", "-rf", "--", root.absolute(rel)];
+    root._run(command, ok => {
+      if (!ok) {
+        root._fail(I18n.tr("Couldn't delete {0}", root.nameOf(rel)));
+        return;
+      }
+      // Documents open on it are dropped without saving again
+      Object.keys(root._docs).filter(doc => root.within(doc, rel)).forEach(doc => root._docs[doc].discard());
+      root.removed(rel);
+      root.refreshList();
+    });
+  }
+
+  // Lists every note (find), for allNotes
+  function refreshList() {
+    const dir = root.directory;
+    const names = NotesConfig.extensions.map(ext => "-o -iname '*." + ext.replace(/[^A-Za-z0-9_-]/g, "") + "'").join(" ").replace(/^-o /, "");
+    const hidden = NotesConfig.showHidden ? "" : "-not -path '*/.*'";
+    if (names === "") {
+      root.allNotes = [];
+      return;
+    }
+    root._run(["sh", "-c", "cd \"$1\" 2>/dev/null || exit 2; find . -maxdepth 8 -type f " + hidden + " \\( " + names + " \\) -print", "sh", dir], (ok, out, code) => {
+      root.directoryMissing = code === 2 && NotesConfig.linked;
+      if (dir !== root.directory)
+        return;
+      root.allNotes = ok ? out.split("\n").filter(line => line !== "").map(line => line.replace(/^\.\//, "")).sort((a, b) => a.localeCompare(b)) : [];
+    });
+  }
+
+  function _fileName(name) {
+    // One path segment: no slashes, no leading dots or spaces
+    return String(name ?? "").replace(/[\/\x00]/g, "-").replace(/^[\s.]+/, "").trim();
+  }
+
+  // Makes <folder>/<base>[ n][.ext] (a file, or a folder without ext)
+  function _create(folder, base, ext, callback) {
+    const parent = folder === "" ? "" : root.clean(folder);
+    if (folder !== "" && parent === "")
+      return;
+    const script = "dir=\"$1\"; base=\"$2\"; ext=\"$3\"; mkdir -p -- \"$dir\" || exit 1; " + "p=\"$dir$base$ext\"; i=2; while [ -e \"$p\" ]; do p=\"$dir$base $i$ext\"; i=$((i+1)); done; " + "if [ -z \"$ext\" ]; then mkdir -- \"$p\"; else : > \"$p\"; fi || exit 1; printf '%s' \"${p#\"$dir\"}\"";
+    root._run(["sh", "-c", script, "sh", root.absolute(parent === "" ? "" : parent + "/"), base, ext === "" ? "" : "." + ext], (ok, out) => {
+      if (!ok || out === "") {
+        root._fail(I18n.tr("Couldn't create {0}", base));
+        return;
+      }
+      root.refreshList();
+      if (callback)
+        callback(parent === "" ? out : parent + "/" + out);
+    });
+  }
+
+  function _flushUnder(path) {
+    Object.keys(root._docs).filter(doc => root.within(doc, path)).forEach(doc => root._docs[doc].flush());
+  }
+
+  // Open documents follow a rename, keeping their holders
+  function _moveDocs(from, to) {
+    Object.keys(root._docs).filter(path => root.within(path, from)).forEach(path => {
+      const doc = root._docs[path];
+      const next = to + path.slice(from.length);
+      delete root._docs[path];
+      doc.path = next;
+      root._docs[next] = doc;
+    });
+  }
+
+  function _fail(message) {
+    console.warn("[NotesManager]", message);
+    root.error = message;
+    _errorClear.restart();
+  }
+
+  // Runs a command, calling back with (ok, stdout, exit code)
+  function _run(command, callback) {
+    const process = _processComponent.createObject(root, {
+      "command": command
+    });
+    process.done.connect((code, out) => {
+      callback(code === 0, out, code);
+      process.destroy();
+    });
+    process.running = true;
+  }
+
+  // Notes from before v17 were JSON state files (config/state/note-<name>.json):
+  // each becomes <name>.md here, unless that exists, and is kept as
+  // note-<name>.json.migrated
+  function _migrateOldNotes() {
+    const stateDir = Paths.statePath;
+    root._run(["sh", "-c", "cd \"$1\" 2>/dev/null || exit 0; for f in note-*.json; do [ -e \"$f\" ] && printf '%s\\n' \"$f\"; done", "sh", stateDir], (ok, out) => {
+      out.split("\n").filter(file => file !== "").forEach(file => {
+        const name = file.replace(/^note-/, "").replace(/\.json$/, "") + ".md";
+        let text = "";
+        try {
+          text = JSON.parse(FileManager.read("file://" + stateDir + file) ?? "{}").text ?? "";
+        } catch (e) {
+          console.warn("[NotesManager] Could not read", file + ":", e);
+          return;
+        }
+        if (FileManager.read("file://" + root.absolute(name)) !== null) {
+          console.warn("[NotesManager] Not migrating", file + ":", name, "already exists");
+          return;
+        }
+        const view = _writerComponent.createObject(root, {
+          "path": root.absolute(name)
+        });
+        view.setText(text);
+        view.destroy();
+        Quickshell.execDetached(["mv", "-n", "--", stateDir + file, stateDir + file + ".migrated"]);
+        console.log("[NotesManager] Moved", file, "to", root.absolute(name));
+      });
+      root.refreshList();
+    });
+  }
+
+  function _start() {
+    if (NotesConfig.linked) {
+      root.refreshList();
+      return;
+    }
+    root._run(["mkdir", "-p", "--", root.directory], () => root._migrateOldNotes());
+  }
+
+  onDirectoryChanged: {
+    root.flushAll();
+    root._start();
+  }
+
+  Component.onCompleted: {
+    const saved = root._state.load({})?.lastOpened;
+    root._lastOpened = saved && typeof saved === "object" ? saved : {};
+    root._run(["sh", "-c", "command -v gio"], ok => root.canTrash = ok);
+    root._start();
+  }
+
+  Component.onDestruction: root.flushAll()
+
+  property Timer _errorClear: Timer {
+    id: _errorClear
+    interval: 5000
+    onTriggered: root.error = ""
+  }
+
+  property Component _docComponent: Component {
+    QtObject {
+      id: doc
+
+      property string path
+      // The note's text as last loaded or edited
+      property string text: ""
+      // Bumped when the text is replaced from disk (not by edit())
+      property int revision: 0
+      property bool loaded: false
+      // Edits waiting to be written
+      property bool dirty: false
+      property int refs: 0
+      property bool _retried: false
+
+      function edit(text) {
+        if (text === doc.text)
+          return;
+        doc.text = text;
+        doc.dirty = true;
+        doc._saveSoon.restart();
+      }
+
+      function flush() {
+        doc._saveSoon.stop();
+        if (!doc.dirty)
+          return;
+        doc.dirty = false;
+        doc._view.setText(doc.text);
+      }
+
+      // Drops pending edits (the file went to the trash)
+      function discard() {
+        doc._saveSoon.stop();
+        doc.dirty = false;
+      }
+
+      function _fromDisk(text) {
+        doc.loaded = true;
+        if (doc.dirty || text === doc.text)
+          return;
+        doc.text = text;
+        doc.revision += 1;
+      }
+
+      property Timer _saveSoon: Timer {
+        interval: 600
+        onTriggered: doc.flush()
+      }
+
+      property FileView _view: FileView {
+        path: root.absolute(doc.path)
+        watchChanges: true
+        atomicWrites: true
+        // Small files: a write finishes before the document can go away
+        blockWrites: true
+        printErrors: false
+        onLoaded: doc._fromDisk(text())
+        onFileChanged: {
+          if (doc.dirty)
+            console.warn("[NotesManager]", doc.path, "changed on disk while it had unsaved edits: keeping the edits");
+          else
+            reload();
+        }
+        // A new note: nothing on disk until the first edit
+        onLoadFailed: doc.loaded = true
+        onSaved: doc._retried = false
+        onSaveFailed: error => {
+          // Its folder may not exist yet (a configured work/todo.md):
+          // make it and write again, once
+          if (doc._retried) {
+            root._fail(I18n.tr("Couldn't save {0}", doc.path));
+            return;
+          }
+          doc._retried = true;
+          root._run(["mkdir", "-p", "--", root.absolute(root.parentOf(doc.path))], ok => {
+            if (ok)
+              doc._view.setText(doc.text);
+            else
+              root._fail(I18n.tr("Couldn't save {0}", doc.path));
+          });
+        }
+      }
+    }
+  }
+
+  property Component _writerComponent: Component {
+    FileView {
+      blockWrites: true
+      atomicWrites: true
+      printErrors: false
+    }
+  }
+
+  property Component _processComponent: Component {
+    Process {
+      id: process
+      signal done(int code, string out)
+      stdout: StdioCollector {
+        id: out
+      }
+      onExited: code => process.done(code, out.text)
+    }
+  }
+}

@@ -1,42 +1,85 @@
 pragma ComponentBehavior: Bound
 import QtQuick
-import QtQuick.Controls
 import QtQuick.Layouts
 import qs.config
 import qs.services
-import qs.components.content.parts
+import qs.components.reusable
+import qs.components.content.parts.chat
+import qs.components.content.parts.notes
 import qs.components.content.base
 
-// A scratchpad, saved as you type to the state directory. Modules with the
-// same `name` share one note.
-// properties: { name }
+// Markdown notes from the notes folder (NotesManager), with checklists.
+// The header's note name opens a list of the folder's notes and folders;
+// with `lockNote` the module only ever shows its `note`, and the header and
+// toolbar can go, for a bare scratchpad (e.g. in an edge menu).
+// properties: { note, lockNote, showHeader, showToolbar, showCompleted }
 Card {
   id: root
 
-  readonly property string noteName: (root.properties.name || "notes").replace(/[^A-Za-z0-9_-]/g, "_")
-  // One state file per note name (createStateHandler makes a new file
-  // handle each call, so it's only called when the name changes)
-  property var store: null
-  function open() {
-    root.store = StateManager.createStateHandler("note-" + root.noteName);
-    editor.text = root.store.load({
-      "text": ""
-    }).text ?? "";
-  }
-  property bool _ready: false
-  onNoteNameChanged: if (_ready)
-    open()
-  Component.onCompleted: {
-    _ready = true;
-    open();
+  readonly property string configuredNote: NotesManager.clean(root.properties.note ?? "")
+  readonly property bool locked: root.properties.lockNote === true && root.configuredNote !== ""
+  // The last note is remembered per place the module is shown
+  readonly property string placeKey: root.host.kind === "edgeMenu" ? "edgeMenu:" + root.host.id : "overlay"
+
+  // The note shown, and its NotesManager document
+  property string path: ""
+  property var note: null
+  property bool browserOpen: false
+  property bool showCompleted: root.properties.showCompleted !== false
+
+  readonly property bool showHeader: root.properties.showHeader !== false && !root.compact
+  readonly property bool showToolbar: root.properties.showToolbar !== false && !root.compact
+
+  function show(path) {
+    const rel = NotesManager.clean(path);
+    if (rel === "" || (rel === root.path && root.note))
+      return;
+    if (root.note)
+      NotesManager.release(root.path);
+    root.path = rel;
+    root.note = NotesManager.acquire(rel);
+    if (!root.locked)
+      NotesManager.setLastOpened(root.placeKey, rel);
   }
 
-  Timer {
-    id: saveSoon
-    interval: 800
-    onTriggered: root.store.save({
-      "text": editor.text
-    })
+  function _initial() {
+    return root.configuredNote || NotesManager.lastOpened(root.placeKey) || NotesManager.defaultNote;
+  }
+
+  // A different configured note (or lock) takes effect at once
+  onConfiguredNoteChanged: {
+    if (root._ready && root.configuredNote !== "")
+      root.show(root.configuredNote);
+  }
+
+  property bool _ready: false
+  Component.onCompleted: {
+    root._ready = true;
+    root.show(root._initial());
+  }
+  Component.onDestruction: {
+    if (root.note)
+      NotesManager.release(root.path);
+  }
+
+  Connections {
+    target: NotesManager
+    // Renamed: the document already moved, so only the path follows
+    function onMoved(from, to) {
+      if (!NotesManager.within(root.path, from))
+        return;
+      root.path = to + root.path.slice(from.length);
+      if (!root.locked)
+        NotesManager.setLastOpened(root.placeKey, root.path);
+    }
+    function onRemoved(path) {
+      if (NotesManager.within(root.path, path) && !root.locked) {
+        NotesManager.release(root.path);
+        root.note = null;
+        root.path = "";
+        root.show(NotesManager.allNotes.find(note => !NotesManager.within(note, path)) ?? NotesManager.defaultNote);
+      }
+    }
   }
 
   ColumnLayout {
@@ -44,32 +87,155 @@ Card {
     anchors.margins: root.pad
     spacing: Widget.spacing
 
-    ModuleHeader {
-      visible: !root.compact
-      icon: "article"
-      title: root.properties.name || I18n.tr("Notes")
+    RowLayout {
+      id: header
+      visible: root.showHeader || root.showToolbar
+      Layout.fillWidth: true
+      spacing: Widget.spacing / 2
+
+      // The note's name: opens the note list, or just a title when locked
+      Rectangle {
+        visible: root.showHeader
+        Layout.fillWidth: true
+        Layout.preferredHeight: 28
+        radius: Appearance.borderRadius / 2
+        color: !root.locked && (root.browserOpen || chipHover.hovered) ? Theme.backgroundHighlight : "transparent"
+
+        Behavior on color {
+          ColorAnimation {
+            duration: Appearance.animFast
+          }
+        }
+
+        RowLayout {
+          anchors.fill: parent
+          anchors.leftMargin: root.locked ? 0 : Widget.spacing / 2
+          anchors.rightMargin: Widget.spacing / 2
+          spacing: Widget.spacing
+
+          StyledIcon {
+            text: "sticky_note_2"
+            textColor: Theme.accent
+            textSize: Appearance.fontSize + 2
+          }
+          StyledText {
+            Layout.fillWidth: true
+            text: NotesManager.titleOf(root.path)
+            font.bold: true
+            elide: Text.ElideMiddle
+          }
+          StyledText {
+            visible: editor.progress.total > 0
+            text: editor.progress.done + "/" + editor.progress.total
+            textColor: Theme.foregroundAlt
+            textSize: Appearance.fontSize - 2
+          }
+          StyledIcon {
+            visible: !root.locked
+            text: root.browserOpen ? "expand_less" : "expand_more"
+            textColor: Theme.foregroundAlt
+            textSize: Appearance.fontSize
+          }
+        }
+
+        HoverHandler {
+          id: chipHover
+          enabled: !root.locked
+          cursorShape: Qt.PointingHandCursor
+        }
+        TapHandler {
+          enabled: !root.locked
+          onTapped: root.browserOpen = !root.browserOpen
+        }
+      }
+
+      Item {
+        visible: !root.showHeader
+        Layout.fillWidth: true
+      }
+
+      ChatIconButton {
+        visible: root.showToolbar
+        iconText: "checklist"
+        iconColor: Theme.foreground
+        tooltipText: I18n.tr("Checklist")
+        focusPolicy: Qt.NoFocus
+        onClicked: editor.toggleTask()
+      }
+      ChatIconButton {
+        visible: root.showToolbar
+        iconText: "format_list_bulleted"
+        iconColor: Theme.foreground
+        tooltipText: I18n.tr("Bulleted list")
+        focusPolicy: Qt.NoFocus
+        onClicked: editor.toggleBullet()
+      }
+      ChatIconButton {
+        visible: root.showToolbar && editor.progress.done > 0
+        iconText: root.showCompleted ? "visibility" : "visibility_off"
+        iconColor: root.showCompleted ? Theme.foreground : Theme.accent
+        tooltipText: root.showCompleted ? I18n.tr("Hide completed items") : I18n.tr("Show completed items")
+        focusPolicy: Qt.NoFocus
+        onClicked: root.showCompleted = !root.showCompleted
+      }
+      ChatIconButton {
+        visible: root.showHeader && !root.locked
+        iconText: "note_add"
+        iconColor: Theme.foreground
+        tooltipText: I18n.tr("New note")
+        onClicked: NotesManager.createNote(NotesManager.parentOf(root.path), "", path => root.show(path))
+      }
     }
 
-    ScrollView {
+    Rectangle {
+      visible: header.visible
+      Layout.fillWidth: true
+      implicitHeight: 1
+      color: Theme.border
+      opacity: 0.6
+    }
+
+    Item {
       Layout.fillWidth: true
       Layout.fillHeight: true
-      clip: true
 
-      TextArea {
+      NoteEditor {
         id: editor
-        wrapMode: TextArea.Wrap
-        placeholderText: I18n.tr("Write something…")
-        color: Theme.foreground
-        placeholderTextColor: Qt.rgba(Theme.foreground.r, Theme.foreground.g, Theme.foreground.b, 0.4)
-        font.family: Appearance.fontFamily
-        font.pixelSize: Appearance.fontSize
-        selectByMouse: true
-        selectionColor: Theme.accent
-        selectedTextColor: Theme.background
-        background: null
-        onTextChanged: if (activeFocus)
-          saveSoon.restart()
+        anchors.fill: parent
+        note: root.note
+        showCompleted: root.showCompleted
       }
+
+      // The note list closes on a click beside it
+      MouseArea {
+        anchors.fill: parent
+        visible: root.browserOpen
+        onClicked: root.browserOpen = false
+      }
+
+      Loader {
+        active: root.browserOpen
+        anchors.top: parent.top
+        anchors.left: parent.left
+        width: Math.min(parent.width, 320)
+        sourceComponent: NoteBrowser {
+          current: root.path
+          maxHeight: editor.height
+          onPicked: path => {
+            root.show(path);
+            root.browserOpen = false;
+          }
+        }
+      }
+    }
+
+    StyledText {
+      visible: NotesManager.error !== ""
+      Layout.fillWidth: true
+      text: NotesManager.error
+      textColor: Theme.error
+      textSize: Appearance.fontSize - 2
+      elide: Text.ElideRight
     }
   }
 }

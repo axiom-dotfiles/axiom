@@ -181,6 +181,8 @@ QtObject {
       return I18n.languages.map(l => l.code);
     case "edgeMenus":
       return ["", ...EdgeMenusConfig.menus.map(menu => menu.id)];
+    case "notes":
+      return ["", ...NotesManager.allNotes];
     }
     return null;
   }
