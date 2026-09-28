@@ -36,6 +36,8 @@ Loader {
       readonly property bool isMaster: root.type === "master"
 
       orientation: root.orientation
+      showPercent: OSDConfig.showPercent
+      scrollStep: OSDConfig.scrollStep
       targetApplication: isMaster ? "" : (root.type === "other" ? "master" : root.entry.app)
       excludedApps: root.type === "other" ? OSDConfig.excludedApps : []
       useSystemVolume: isMaster
@@ -67,6 +69,8 @@ Loader {
       }
 
       orientation: root.orientation
+      showPercent: OSDConfig.showPercent
+      scrollStep: OSDConfig.scrollStep
       volumeLevel: AudioManager.sourceVolume
       isMuted: AudioManager.sourceMuted
       enabled: AudioManager.defaultSource !== null
@@ -95,6 +99,8 @@ Loader {
       readonly property real level: BrightnessManager.valueFor(root.screenName)
 
       orientation: root.orientation
+      showPercent: OSDConfig.showPercent
+      scrollStep: OSDConfig.scrollStep
       volumeLevel: level
       iconSource: root.entry.icon || (level < 0.34 ? "brightness_low" : (level < 0.67 ? "brightness_medium" : "brightness_high"))
       onVolumeChanged: newVolume => BrightnessManager.set(root.screenName, newVolume)

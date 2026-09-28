@@ -21,6 +21,9 @@ QtObject {
   // The edge trigger strip also opens it
   readonly property bool openOnHover: _c.openOnHover
   readonly property int timeout: _c.timeout
+  readonly property bool showPercent: _c.showPercent
+  // Level change per wheel notch (0-1); 0 when scrolling is off
+  readonly property real scrollStep: _c.scrollToChange ? _c.scrollStep / 100 : 0
   // [{ type, app, icon, showOsd }]; type is master | other | microphone |
   // brightness | app. Goes through a string so a reload that leaves the
   // list unchanged doesn't rebuild the OSD's bars.

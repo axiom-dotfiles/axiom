@@ -952,7 +952,7 @@
       "title": "OSD",
       "description": "On-screen display of volume, microphone and brightness bars, shown when one of them changes.",
       "additionalProperties": false,
-      "x-order": ["enabled", "monitors", "edge", "position", "orientation", "alongEdge", "openOnHover", "timeout", "bars"],
+      "x-order": ["enabled", "monitors", "edge", "position", "orientation", "alongEdge", "openOnHover", "timeout", "showPercent", "scrollToChange", "scrollStep", "bars"],
       "properties": {
         "enabled": {
           "type": "boolean",
@@ -1011,6 +1011,28 @@
           "minimum": 250,
           "maximum": 10000,
           "description": "How long the OSD stays open after the last change."
+        },
+        "showPercent": {
+          "type": "boolean",
+          "title": "Show percentages",
+          "default": true,
+          "description": "Show each bar's level as a percentage beside its icon."
+        },
+        "scrollToChange": {
+          "type": "boolean",
+          "title": "Scroll to change",
+          "default": true,
+          "description": "Scrolling over a bar raises or lowers its level."
+        },
+        "scrollStep": {
+          "type": "integer",
+          "title": "Scroll step",
+          "x-unit": "%",
+          "default": 5,
+          "minimum": 1,
+          "maximum": 25,
+          "x-showIf": { "scrollToChange": true },
+          "description": "How much one wheel notch changes the level."
         },
         "bars": {
           "type": "array",
