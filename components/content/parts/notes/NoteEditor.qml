@@ -28,11 +28,21 @@ Item {
   property int focusBlock: -1
   property int focusPos: 0
 
+  // Find in note: the match shown ({ block, pos, len }, whose block shows
+  // raw with it highlighted), or null; its index among findCount matches
+  property var findMatch: null
+  property int findIndex: -1
+  property int findCount: 0
+
   signal restructured
+  // Ctrl+F in a block, with its selected text
+  signal findRequested(string text)
 
   // What this editor last wrote or read, so its own edits don't reload it
   property string _lastText: ""
   readonly property string _noteText: root.note?.text ?? ""
+  // A line to show once the note has loaded (revealLine), or -1
+  property int _pendingLine: -1
 
   on_NoteTextChanged: {
     if (root._noteText !== root._lastText)
@@ -40,9 +50,18 @@ Item {
   }
   onNoteChanged: {
     root.focusBlock = -1;
+    root.findMatch = null;
     root._load();
   }
   Component.onCompleted: root._load()
+
+  // An empty note loads without its text changing
+  Connections {
+    target: root.note
+    function onLoadedChanged() {
+      root._revealPending();
+    }
+  }
 
   // ScrollView's own Flickable, for scrolling to the cursor
   readonly property Flickable _flick: scroll.contentItem as Flickable
@@ -55,6 +74,93 @@ Item {
     root._lastText = root._noteText;
     root._set(NoteMarkdown.parse(root._noteText), null);
     root._flick.contentY = 0;
+    root._revealPending();
+  }
+
+  // Puts the cursor at the start of a line of the note (0-based), once it
+  // has loaded: a search result
+  function revealLine(line) {
+    root._pendingLine = line;
+    root._revealPending();
+  }
+
+  function _revealPending() {
+    if (root._pendingLine < 0 || !root.note?.loaded)
+      return;
+    const at = NoteMarkdown.positionAt(root.doc, root._pendingLine, 0);
+    root._pendingLine = -1;
+    // After the blocks have been laid out
+    Qt.callLater(() => root.focusAt(at.block, at.pos));
+  }
+
+  // --- Find ---
+
+  function _matches(query) {
+    const q = String(query ?? "").toLowerCase();
+    const matches = [];
+    if (q === "")
+      return matches;
+    root.doc.blocks.forEach((block, index) => {
+      if (root._block(index)?.shown === false)
+        return;
+      const text = block.text.toLowerCase();
+      for (let at = text.indexOf(q); at >= 0; at = text.indexOf(q, at + q.length))
+        matches.push({
+          "block": index,
+          "pos": at,
+          "len": q.length
+        });
+    });
+    return matches;
+  }
+
+  // Shows a match of `query`: with step 0 the one at or after the current
+  // match (or the cursor), else the next (1) or previous (-1) one
+  function find(query, step) {
+    const matches = root._matches(query);
+    root.findCount = matches.length;
+    if (matches.length === 0) {
+      root.findMatch = null;
+      root.findIndex = -1;
+      return;
+    }
+    const from = root.findMatch ?? {
+      "block": Math.max(0, root.focusBlock),
+      "pos": root.focusBlock >= 0 ? root.focusPos : 0
+    };
+    const after = m => m.block > from.block || (m.block === from.block && m.pos >= from.pos);
+    let i = matches.findIndex(after);
+    if (i < 0)
+      i = step < 0 ? matches.length : 0;
+    const onCurrent = root.findMatch !== null && i < matches.length && matches[i].block === from.block && matches[i].pos === from.pos;
+    if (step > 0 && onCurrent)
+      i += 1;
+    else if (step < 0)
+      i -= 1;
+    i = (i + matches.length) % matches.length;
+    root.findIndex = i;
+    root.findMatch = matches[i];
+    Qt.callLater(root._scrollToMatch);
+  }
+
+  function _scrollToMatch() {
+    const match = root.findMatch;
+    const item = match ? root._block(match.block) : null;
+    if (item)
+      root.ensureVisible(item, item.field.positionToRectangle(match.pos));
+  }
+
+  // Closes find; with `select`, the match is selected for editing
+  function endFind(select) {
+    const match = root.findMatch;
+    root.findMatch = null;
+    root.findIndex = -1;
+    root.findCount = 0;
+    const item = match && select ? root._block(match.block) : null;
+    if (item) {
+      item.focusAt(match.pos);
+      item.field.select(match.pos, match.pos + match.len);
+    }
   }
 
   function _set(doc, focus) {
@@ -137,8 +243,9 @@ Item {
       return;
     }
     block.text = text;
-    if (block.kind === "text" && NoteMarkdown.hasTaskLine(text)) {
-      // "- [ ] " typed (or pasted): the line becomes a checkbox
+    if (block.kind === "text" && NoteMarkdown.needsReparse(text)) {
+      // "- [ ] " typed (or pasted): the line becomes a checkbox; text
+      // after a blank line: a new paragraph
       const item = root._block(index);
       root.apply(NoteMarkdown.reparse(root.doc, index, item ? item.field.cursorPosition : text.length));
       return;

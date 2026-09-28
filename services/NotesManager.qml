@@ -107,6 +107,107 @@ QtObject {
     Object.keys(root._docs).forEach(path => root._docs[path].flush());
   }
 
+  // --- Search ---
+
+  // The last search's answer ({ query, results }), for the launcher
+  property var lastSearch: ({
+      "query": "",
+      "results": []
+    })
+  property int _searchSeq: 0
+  readonly property int _searchLimit: 50
+
+  // Notes whose name or text contains `query` (case-insensitive), calling
+  // back with [{ path, title, line, snippet }]: name matches first (line -1,
+  // the snippet their folder), then matching lines (0-based). An answer to
+  // an older search is dropped.
+  function search(query, callback) {
+    const q = String(query ?? "").trim();
+    const seq = ++root._searchSeq;
+    const deliver = results => {
+      if (seq !== root._searchSeq)
+        return;
+      root.lastSearch = {
+        "query": q,
+        "results": results
+      };
+      if (callback)
+        callback(results);
+    };
+    if (q === "") {
+      deliver([]);
+      return;
+    }
+    const lower = q.toLowerCase();
+    const names = root.allNotes.filter(path => path.toLowerCase().includes(lower)).map(path => ({
+          "path": path,
+          "title": root.titleOf(path),
+          "line": -1,
+          "snippet": root.parentOf(path)
+        }));
+    const includes = NotesConfig.extensions.map(ext => "--include=*." + ext.replace(/[^A-Za-z0-9_-]/g, ""));
+    // The query is an argument, never part of the script
+    const command = ["sh", "-c", "cd \"$1\" 2>/dev/null || exit 2; shift; exec grep -rinIF -m 5 \"$@\"", "sh", root.directory].concat(includes, ["--", q, "."]);
+    root._run(command, (ok, out) => {
+      const lines = [];
+      out.split("\n").forEach(entry => {
+        const match = /^\.\/(.*?):(\d+):(.*)$/.exec(entry);
+        if (!match || (!NotesConfig.showHidden && match[1].split("/").some(part => part.startsWith("."))))
+          return;
+        lines.push({
+          "path": match[1],
+          "title": root.titleOf(match[1]),
+          "line": parseInt(match[2]) - 1,
+          "snippet": root._snippet(match[3], lower)
+        });
+      });
+      lines.sort((a, b) => a.path.localeCompare(b.path) || a.line - b.line);
+      deliver(names.concat(lines).slice(0, root._searchLimit));
+    });
+  }
+
+  // A matching line, cut down to about 100 characters around the match
+  function _snippet(line, lower) {
+    const text = line.trim();
+    const at = text.toLowerCase().indexOf(lower);
+    if (text.length <= 100 || at < 40)
+      return text.length <= 100 ? text : text.slice(0, 100) + "…";
+    const start = at - 30;
+    return "…" + text.slice(start, start + 100) + (start + 100 < text.length ? "…" : "");
+  }
+
+  // --- Opening a note elsewhere (the launcher) ---
+
+  // A note (and 0-based line, or -1) to show in the Notes module at a
+  // place ("overlay" or "edgeMenu:<id>", a module's placeKey): one loaded
+  // there shows it at once (openRequested); one loaded in the next few
+  // seconds takes it with takeReveal(place)
+  signal openRequested(string path, int line, string place)
+  property var _pendingReveal: null
+
+  function requestOpen(path, line, place) {
+    const rel = root.clean(path);
+    if (rel === "")
+      return;
+    root._pendingReveal = {
+      "path": rel,
+      "line": line ?? -1,
+      "place": place,
+      "at": Date.now()
+    };
+    root.setLastOpened(place, rel);
+    root.openRequested(rel, line ?? -1, place);
+  }
+
+  // The { path, line } pending for `place`, once, or null
+  function takeReveal(place) {
+    const pending = root._pendingReveal;
+    if (!pending || pending.place !== place)
+      return null;
+    root._pendingReveal = null;
+    return Date.now() - pending.at < 5000 ? pending : null;
+  }
+
   // --- The last note each module showed ---
 
   property var _state: StateManager.createStateHandler("notes-modules")

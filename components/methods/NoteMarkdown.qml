@@ -3,8 +3,11 @@ import QtQuick
 
 /**
  * A note's Markdown as blocks for the notes editor (content/parts/notes/
- * NoteEditor): runs of plain lines, and task lines (`- [ ] text`), each its
- * own row with a checkbox. Lossless: serialize(parse(text)) is text, and an
+ * NoteEditor): paragraphs of plain lines (split at blank lines, which stay
+ * with the paragraph above; a code fence is never split, and holds no
+ * tasks), and task lines (`- [ ] text`), each its own row with a checkbox.
+ * Every structural edit parses the note again, so its blocks are always what
+ * parse() would give. Lossless: serialize(parse(text)) is text, and an
  * edit only rewrites the lines it touches, so a note in a linked folder
  * (Obsidian, a synced vault) keeps its formatting.
  *
@@ -22,6 +25,15 @@ QtObject {
   // indent, list marker (- * + or 1. 1)), the box's mark, the space after it
   readonly property var _taskPattern: /^(\s*)([-*+]|\d+[.)]) \[([ xX])\]( |$)(.*)$/
   readonly property var _bulletPattern: /^(\s*)([-*+]|\d+[.)]) /
+  readonly property var _fencePattern: /^\s{0,3}(`{3,}|~{3,})/
+
+  // A text block whose next non-blank line starts a new paragraph: it has
+  // text, and a blank line after it (blank lines stay with the paragraph
+  // above them)
+  function _paragraphEnded(text) {
+    const lines = text.split("\n");
+    return lines[lines.length - 1].trim() === "" && lines.some(line => line.trim() !== "");
+  }
 
   function parse(text) {
     const source = String(text ?? "");
@@ -30,18 +42,28 @@ QtObject {
     const breaks = (source.match(/\n/g) ?? []).length;
     const eol = breaks > 0 && (source.match(/\r\n/g) ?? []).length === breaks ? "\r\n" : "\n";
     const lines = source.split(eol);
-    const trailingNewline = lines.length > 1 && lines[lines.length - 1] === "";
+    // The file's final line break, unless a task ends the note: then the
+    // empty line after it is a block, somewhere to put the cursor
+    const trailingNewline = lines.length > 1 && lines[lines.length - 1] === "" && !root._taskPattern.test(lines[lines.length - 2]);
     if (trailingNewline)
       lines.pop();
     const blocks = [];
+    // The open code fence's marker ("```", "~~~~"), or ""
+    let fence = "";
     lines.forEach(line => {
-      const task = root.taskFromLine(line);
+      const inFence = fence !== "";
+      const marker = root._fencePattern.exec(line);
+      if (marker && !inFence)
+        fence = marker[1];
+      else if (marker && marker[1][0] === fence[0] && marker[1].length >= fence.length && line.trim() === marker[1])
+        fence = "";
+      const task = inFence ? null : root.taskFromLine(line);
       if (task) {
         blocks.push(task);
         return;
       }
       const last = blocks[blocks.length - 1];
-      if (last && last.kind === "text")
+      if (last && last.kind === "text" && (inFence || !root._paragraphEnded(last.text) || line.trim() === ""))
         last.text += "\n" + line;
       else
         blocks.push({
@@ -132,6 +154,16 @@ QtObject {
   // so the editor re-parses its block
   function hasTaskLine(text) {
     return /^\s*([-*+]|\d+[.)]) \[[ xX]\] /m.test(text);
+  }
+
+  // A text block's typed text no longer parses as one paragraph (a task
+  // line, or a blank line followed by more text), so the editor re-parses
+  function needsReparse(text) {
+    const blocks = root.parse(text).blocks;
+    if (blocks.length === 1 && blocks[0].kind === "text")
+      return false;
+    // "- [ ]" still being typed waits for its space
+    return !blocks.some(block => block.kind === "task" && block.sep === "" && block.text === "") || root.hasTaskLine(text);
   }
 
   // Where (block, pos) is in the note's lines: { line, col }, col counting
@@ -229,43 +261,17 @@ QtObject {
     };
   }
 
-  // Joins neighbouring text blocks, moving `focus` along with them, and
-  // keeps at least one block
+  // Parses the edited note again, so its text is split into paragraphs as
+  // parse() would, moving `focus` along by line and column
   function _normalize(doc, focus) {
-    const blocks = [];
-    let moved = focus ? Object.assign({}, focus) : null;
-    doc.blocks.forEach((block, index) => {
-      const last = blocks[blocks.length - 1];
-      if (block.kind === "text" && last && last.kind === "text") {
-        if (moved && moved.block === index)
-          moved = {
-            "block": blocks.length - 1,
-            "pos": last.text.length + 1 + moved.pos
-          };
-        last.text += "\n" + block.text;
-        return;
-      }
-      if (moved && moved.block === index)
-        moved = {
-          "block": blocks.length,
-          "pos": moved.pos
-        };
-      blocks.push(block);
-    });
-    if (blocks.length === 0) {
-      blocks.push({
-        "kind": "text",
-        "text": ""
-      });
-      moved = moved ? {
+    const at = focus && doc.blocks.length > 0 ? root.lineOf(doc, focus.block, focus.pos) : null;
+    const parsed = root.parse(root.serialize(doc));
+    return {
+      "doc": parsed,
+      "focus": at ? root.positionAt(parsed, at.line, at.col) : focus ? {
         "block": 0,
         "pos": 0
-      } : null;
-    }
-    doc.blocks = blocks;
-    return {
-      "doc": doc,
-      "focus": moved
+      } : null
     };
   }
 

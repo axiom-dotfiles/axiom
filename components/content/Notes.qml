@@ -8,8 +8,10 @@ import qs.components.content.parts.chat
 import qs.components.content.parts.notes
 import qs.components.content.base
 
-// Markdown notes from the notes folder (NotesManager), with checklists.
-// The header's note name opens a list of the folder's notes and folders;
+// Markdown notes from the notes folder (NotesManager), with checklists,
+// rendered but for the paragraph being edited. The header's note name opens
+// a list of the folder's notes and folders, with a search over them all;
+// Ctrl+F (or the toolbar) finds in the note.
 // with `lockNote` the module only ever shows its `note`, and the header and
 // toolbar can go, for a bare scratchpad (e.g. in an edge menu).
 // properties: { note, lockNote, showHeader, showToolbar, showCompleted }
@@ -25,6 +27,7 @@ Card {
   property string path: ""
   property var note: null
   property bool browserOpen: false
+  property bool findOpen: false
   property bool showCompleted: root.properties.showCompleted !== false
 
   readonly property bool showHeader: root.properties.showHeader !== false && !root.compact
@@ -42,6 +45,27 @@ Card {
       NotesManager.setLastOpened(root.placeKey, rel);
   }
 
+  // A search result: the note, at a line (0-based, or -1)
+  function reveal(path, line) {
+    root.show(path);
+    if (line >= 0)
+      editor.revealLine(line);
+  }
+
+  function openFind(text) {
+    if (text !== "")
+      findField.text = text;
+    root.findOpen = true;
+    findField.input.forceActiveFocus();
+    findField.input.selectAll();
+    editor.find(findField.text, 0);
+  }
+
+  function closeFind(select) {
+    root.findOpen = false;
+    editor.endFind(select);
+  }
+
   function _initial() {
     return root.configuredNote || NotesManager.lastOpened(root.placeKey) || NotesManager.defaultNote;
   }
@@ -55,7 +79,12 @@ Card {
   property bool _ready: false
   Component.onCompleted: {
     root._ready = true;
-    root.show(root._initial());
+    // Opened for a note from the launcher
+    const pending = root.locked ? null : NotesManager.takeReveal(root.placeKey);
+    if (pending)
+      root.reveal(pending.path, pending.line);
+    else
+      root.show(root._initial());
   }
   Component.onDestruction: {
     if (root.note)
@@ -71,6 +100,12 @@ Card {
       root.path = to + root.path.slice(from.length);
       if (!root.locked)
         NotesManager.setLastOpened(root.placeKey, root.path);
+    }
+    function onOpenRequested(path, line, place) {
+      if (place !== root.placeKey || root.locked)
+        return;
+      NotesManager.takeReveal(place);
+      root.reveal(path, line);
     }
     function onRemoved(path) {
       if (NotesManager.within(root.path, path) && !root.locked) {
@@ -171,6 +206,14 @@ Card {
         onClicked: editor.toggleBullet()
       }
       ChatIconButton {
+        visible: root.showToolbar
+        iconText: "search"
+        iconColor: root.findOpen ? Theme.accent : Theme.foreground
+        tooltipText: I18n.tr("Find in note")
+        focusPolicy: Qt.NoFocus
+        onClicked: root.findOpen ? root.closeFind(false) : root.openFind("")
+      }
+      ChatIconButton {
         visible: root.showToolbar && editor.progress.done > 0
         iconText: root.showCompleted ? "visibility" : "visibility_off"
         iconColor: root.showCompleted ? Theme.foreground : Theme.accent
@@ -195,6 +238,61 @@ Card {
       opacity: 0.6
     }
 
+    // Find in note: Enter / Shift+Enter step through the matches, Escape
+    // closes, leaving the match selected
+    RowLayout {
+      visible: root.findOpen
+      Layout.fillWidth: true
+      spacing: Widget.spacing / 2
+
+      StyledTextEntry {
+        id: findField
+        Layout.fillWidth: true
+        Layout.preferredHeight: Widget.height
+        placeholderText: I18n.tr("Find in note")
+        onTextChanged: {
+          if (root.findOpen)
+            editor.find(text, 0);
+        }
+        input.Keys.onPressed: event => {
+          if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+            editor.find(findField.text, event.modifiers & Qt.ShiftModifier ? -1 : 1);
+            event.accepted = true;
+          } else if (event.key === Qt.Key_Escape) {
+            root.closeFind(true);
+            event.accepted = true;
+          }
+        }
+      }
+      StyledText {
+        visible: findField.text !== ""
+        text: editor.findCount === 0 ? I18n.tr("No matches") : I18n.tr("{0}/{1}", editor.findIndex + 1, editor.findCount)
+        textColor: editor.findCount === 0 ? Theme.error : Theme.foregroundAlt
+        textSize: Appearance.fontSize - 2
+      }
+      ChatIconButton {
+        iconText: "keyboard_arrow_up"
+        iconColor: Theme.foreground
+        tooltipText: I18n.tr("Previous match")
+        focusPolicy: Qt.NoFocus
+        onClicked: editor.find(findField.text, -1)
+      }
+      ChatIconButton {
+        iconText: "keyboard_arrow_down"
+        iconColor: Theme.foreground
+        tooltipText: I18n.tr("Next match")
+        focusPolicy: Qt.NoFocus
+        onClicked: editor.find(findField.text, 1)
+      }
+      ChatIconButton {
+        iconText: "close"
+        iconColor: Theme.foreground
+        tooltipText: I18n.tr("Close")
+        focusPolicy: Qt.NoFocus
+        onClicked: root.closeFind(false)
+      }
+    }
+
     Item {
       Layout.fillWidth: true
       Layout.fillHeight: true
@@ -204,6 +302,7 @@ Card {
         anchors.fill: parent
         note: root.note
         showCompleted: root.showCompleted
+        onFindRequested: text => root.openFind(text)
       }
 
       // The note list closes on a click beside it
@@ -221,8 +320,8 @@ Card {
         sourceComponent: NoteBrowser {
           current: root.path
           maxHeight: editor.height
-          onPicked: path => {
-            root.show(path);
+          onPicked: (path, line) => {
+            root.reveal(path, line);
             root.browserOpen = false;
           }
         }

@@ -288,7 +288,7 @@ QtObject {
     const options = command.options(arg).map((o, i) => ({
           o: o,
           i: i,
-          s: q === "" ? 1 : root.score(o.title, q)
+          s: q === "" || o.matched ? 1 : root.score(o.title, q)
         })).filter(m => m.s > 0);
     options.sort((a, b) => b.s - a.s || a.i - b.i);
     let rows = [];

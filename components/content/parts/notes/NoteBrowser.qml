@@ -10,7 +10,8 @@ import qs.components.content.parts.chat
 
 // The notes folder, one level at a time: folders first, then notes. A
 // folder opens on click; the path above goes back up. Notes and folders
-// can be made, renamed and sent to the trash here.
+// can be made, renamed and sent to the trash here. The search field above
+// looks through every note's name and text instead (NotesManager.search).
 Rectangle {
   id: root
 
@@ -20,7 +21,8 @@ Rectangle {
   property string folder: NotesManager.parentOf(root.current)
   property real maxHeight: 400
 
-  signal picked(string path)
+  // A note, and the line to show (0-based, or -1)
+  signal picked(string path, int line)
 
   // The row being renamed or confirming a delete (its path, "" for none)
   property string renaming: ""
@@ -29,6 +31,40 @@ Rectangle {
   property string creating: ""
 
   readonly property var crumbs: root.folder === "" ? [] : root.folder.split("/")
+
+  // The search field's text, and its results ([] while it's empty)
+  readonly property string query: searchField.text.trim()
+  property var results: []
+  property bool searching: false
+
+  onQueryChanged: {
+    root.searching = root.query !== "";
+    if (root.query === "") {
+      root.results = [];
+      NotesManager.search("");
+    } else {
+      searchDelay.restart();
+    }
+  }
+
+  Timer {
+    id: searchDelay
+    interval: 200
+    onTriggered: NotesManager.search(root.query, results => {
+      root.results = results;
+      root.searching = false;
+    })
+  }
+
+  // The result's text with the query in bold, as rich text
+  function highlighted(text) {
+    const escape = t => t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const at = text.toLowerCase().indexOf(root.query.toLowerCase());
+    if (at < 0 || root.query === "")
+      return escape(text);
+    const end = at + root.query.length;
+    return escape(text.slice(0, at)) + "<b>" + escape(text.slice(at, end)) + "</b>" + escape(text.slice(end));
+  }
 
   function childPath(name) {
     return root.folder === "" ? name : root.folder + "/" + name;
@@ -182,10 +218,29 @@ Rectangle {
         if (root.creating === "folder")
           NotesManager.createFolder(root.folder, text, path => root.open(path));
         else
-          NotesManager.createNote(root.folder, text, path => root.picked(path));
+          NotesManager.createNote(root.folder, text, path => root.picked(path, -1));
         root.creating = "";
       }
       input.Keys.onEscapePressed: root.creating = ""
+    }
+
+    // Enter opens the first result, Escape clears the field
+    StyledTextEntry {
+      id: searchField
+      visible: root.creating === ""
+      Layout.fillWidth: true
+      Layout.preferredHeight: Widget.height
+      placeholderText: I18n.tr("Search notes")
+      Component.onCompleted: input.forceActiveFocus()
+      onAccepted: {
+        const first = root.results[0];
+        if (first)
+          root.picked(first.path, first.line);
+      }
+      input.Keys.onEscapePressed: event => {
+        event.accepted = searchField.text !== "";
+        searchField.text = "";
+      }
     }
 
     Rectangle {
@@ -196,7 +251,88 @@ Rectangle {
     }
 
     ListView {
+      id: resultList
+      visible: root.query !== ""
+      Layout.fillWidth: true
+      Layout.fillHeight: true
+      Layout.preferredHeight: contentHeight
+      Layout.minimumHeight: Math.min(contentHeight, Widget.height)
+      clip: true
+      spacing: 2
+      boundsBehavior: Flickable.StopAtBounds
+      model: root.results.length
+
+      delegate: Rectangle {
+        id: hit
+
+        required property int index
+        readonly property var result: root.results[index]
+        readonly property bool byName: hit.result.line < 0
+
+        width: resultList.width
+        implicitHeight: hitLayout.implicitHeight + Widget.spacing
+        radius: Appearance.borderRadius / 2
+        color: hitHover.hovered ? Theme.backgroundHighlight : "transparent"
+
+        HoverHandler {
+          id: hitHover
+          cursorShape: Qt.PointingHandCursor
+        }
+        TapHandler {
+          onTapped: root.picked(hit.result.path, hit.result.line)
+        }
+
+        RowLayout {
+          id: hitLayout
+          anchors.left: parent.left
+          anchors.right: parent.right
+          anchors.verticalCenter: parent.verticalCenter
+          anchors.leftMargin: Widget.spacing
+          anchors.rightMargin: Widget.spacing
+          spacing: Widget.spacing
+
+          StyledIcon {
+            Layout.alignment: Qt.AlignTop
+            text: hit.byName ? "description" : "notes"
+            textColor: hit.result.path === root.current ? Theme.accent : Theme.foregroundAlt
+            textSize: Appearance.fontSize + 1
+          }
+          ColumnLayout {
+            Layout.fillWidth: true
+            spacing: 0
+
+            StyledText {
+              Layout.fillWidth: true
+              text: root.highlighted(hit.result.title)
+              textFormat: Text.StyledText
+              textColor: hit.result.path === root.current ? Theme.accent : Theme.foreground
+              textSize: Appearance.fontSize - 1
+              elide: Text.ElideRight
+            }
+            StyledText {
+              visible: text !== ""
+              Layout.fillWidth: true
+              text: hit.byName ? hit.result.snippet : root.highlighted(hit.result.snippet)
+              textFormat: hit.byName ? Text.PlainText : Text.StyledText
+              textColor: Theme.foregroundAlt
+              textSize: Appearance.fontSize - 2
+              elide: Text.ElideRight
+            }
+          }
+          StyledText {
+            visible: !hit.byName
+            Layout.alignment: Qt.AlignTop
+            text: I18n.tr("line {0}", hit.result.line + 1)
+            textColor: Theme.foregroundAlt
+            textSize: Appearance.fontSize - 3
+          }
+        }
+      }
+    }
+
+    ListView {
       id: list
+      visible: root.query === ""
       Layout.fillWidth: true
       Layout.fillHeight: true
       Layout.preferredHeight: contentHeight
@@ -231,7 +367,7 @@ Rectangle {
             if (row.fileIsDir)
               root.open(row.path);
             else
-              root.picked(row.path);
+              root.picked(row.path, -1);
           }
         }
 
@@ -333,7 +469,18 @@ Rectangle {
     }
 
     StyledText {
-      visible: list.count === 0
+      visible: root.query !== "" && !root.searching && root.results.length === 0
+      Layout.fillWidth: true
+      Layout.topMargin: Widget.spacing
+      Layout.bottomMargin: Widget.spacing
+      horizontalAlignment: Text.AlignHCenter
+      text: I18n.tr("No notes match")
+      textColor: Theme.foregroundAlt
+      textSize: Appearance.fontSize - 2
+    }
+
+    StyledText {
+      visible: root.query === "" && list.count === 0
       Layout.fillWidth: true
       Layout.topMargin: Widget.spacing
       Layout.bottomMargin: Widget.spacing

@@ -46,8 +46,82 @@ TestCase {
       {
         tag: "blank lines between tasks",
         text: "- [ ] a\n\n\n- [ ] b"
+      },
+      {
+        tag: "paragraphs",
+        text: "\n\n# Title\n\none\ntwo\n\n\nthree\n"
+      },
+      {
+        tag: "fence",
+        text: "```js\na\n\n- [ ] not a task\n```\nafter"
+      },
+      {
+        tag: "crlf paragraphs",
+        text: "a\r\n\r\nb\r\n- [ ] c\r\n"
       }
     ];
+  }
+
+  function test_paragraphs() {
+    const doc = NoteMarkdown.parse("\n# Title\n\none\ntwo\n\n\nthree\n- [ ] task\n\nend");
+    compare(kinds(doc), ["text", "text", "text", "task", "text"]);
+    // Blank lines stay with the paragraph above; a leading run with the first
+    compare(doc.blocks[0].text, "\n# Title\n");
+    compare(doc.blocks[1].text, "one\ntwo\n\n");
+    compare(doc.blocks[2].text, "three");
+    compare(doc.blocks[4].text, "\nend");
+  }
+
+  function test_fence_stays_one_block() {
+    const doc = NoteMarkdown.parse("```\na\n\n- [ ] x\n~~~\n```\n\nafter");
+    compare(kinds(doc), ["text", "text"]);
+    compare(doc.blocks[0].text, "```\na\n\n- [ ] x\n~~~\n```\n");
+    compare(doc.blocks[1].text, "after");
+  }
+
+  function test_trailing_line_after_tasks() {
+    const doc = NoteMarkdown.parse("- [ ] a\n");
+    compare(kinds(doc), ["task", "text"]);
+    compare(doc.blocks[1].text, "");
+    compare(kinds(NoteMarkdown.parse("a\n")), ["text"]);
+  }
+
+  function test_needs_reparse() {
+    verify(!NoteMarkdown.needsReparse("one\ntwo\n\n"));
+    verify(NoteMarkdown.needsReparse("one\n\ntwo"));
+    verify(NoteMarkdown.needsReparse("one\n- [ ] "));
+    // "- [ ]" is still being typed
+    verify(!NoteMarkdown.needsReparse("one\n- [ ]"));
+    verify(!NoteMarkdown.needsReparse("```\n\n- [ ] code\n"));
+  }
+
+  function test_typed_blank_line_splits_the_paragraph() {
+    const doc = NoteMarkdown.setText(NoteMarkdown.parse("abc"), 0, "abc\n\nd");
+    const result = NoteMarkdown.reparse(doc, 0, 6);
+    compare(kinds(result.doc), ["text", "text"]);
+    compare(result.focus, {
+      "block": 1,
+      "pos": 1
+    });
+  }
+
+  function test_backspace_joins_paragraphs() {
+    const doc = NoteMarkdown.parse("abc\n\nd");
+    const result = NoteMarkdown.mergeBack(doc, 1);
+    compare(NoteMarkdown.serialize(result.doc), "abc\nd");
+    compare(kinds(result.doc), ["text"]);
+    compare(result.focus, {
+      "block": 0,
+      "pos": 4
+    });
+  }
+
+  function test_delete_joins_paragraphs() {
+    const doc = NoteMarkdown.parse("abc\n\nd\ne");
+    // At the end of the first paragraph (after its blank line)
+    const result = NoteMarkdown.joinNext(doc, 0);
+    compare(NoteMarkdown.serialize(result.doc), "abc\nd\ne");
+    compare(kinds(result.doc), ["text"]);
   }
 
   function test_round_trip(data) {

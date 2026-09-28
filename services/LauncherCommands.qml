@@ -11,7 +11,8 @@ import qs.config
  *     confirm,    asks for a second Enter first (destructive session actions)
  *     available() whether it's listed at all
  *     status()    current state, shown on the command's row
- *     options(arg) completion rows [{ title, subtitle, glyph, image, value }]
+ *     options(arg) completion rows [{ title, subtitle, glyph, image, value,
+ *                  matched: already matched to arg, so not scored by title }]
  *     run(arg, value) value is the picked option's, else undefined;
  *                     returns false to keep the launcher open (where the
  *                     change shows, so several can be tried), or a string
@@ -332,6 +333,32 @@ QtObject {
       }
     },
     {
+      name: "notes",
+      aliases: ["note"],
+      glyph: "sticky_note_2",
+      usage: "[text]",
+      description: () => I18n.tr("Search the notes, by name and text"),
+      options: arg => root._notes(arg),
+      run: (arg, value) => {
+        // After the launcher has closed, so the overlay gets the keyboard.
+        // An overlay page with a Notes module, else an edge menu with one
+        Qt.callLater(() => {
+          const page = OverlayConfig.pageWithModule("Notes");
+          const menu = page === "" ? EdgeMenusConfig.menus.find(m => m.enabled !== false && root._hasModule(m.columns, "Notes")) : null;
+          if (page === "" && !menu) {
+            NotificationManager.sendNotification("axiom", I18n.tr("No notes module"), I18n.tr("Add a Notes module to an overlay page or an edge menu."));
+            return;
+          }
+          if (value)
+            NotesManager.requestOpen(value.path, value.line, menu ? "edgeMenu:" + menu.id : "overlay");
+          if (menu)
+            EdgeMenuManager.open(menu.id);
+          else
+            ShellManager.openOverlayPage(page);
+        });
+      }
+    },
+    {
       name: "update",
       aliases: ["upgrade"],
       glyph: "update",
@@ -632,6 +659,38 @@ QtObject {
     if (["off", "0", "false", "no"].includes(word))
       return false;
     return null;
+  }
+
+  // Every note with no text, else NotesManager.search's results (asked for
+  // here, the rows re-read when it answers; name matches meanwhile)
+  function _notes(arg) {
+    const q = arg.trim();
+    const row = result => ({
+          title: result.title,
+          subtitle: result.line < 0 ? result.path : I18n.tr("line {0}", result.line + 1) + " · " + result.snippet,
+          glyph: result.line < 0 ? "description" : "notes",
+          matched: true,
+          value: result
+        });
+    if (q === "")
+      return NotesManager.allNotes.map(path => row({
+          path: path,
+          title: NotesManager.titleOf(path),
+          line: -1
+        }));
+    if (NotesManager.lastSearch.query === q)
+      return NotesManager.lastSearch.results.map(row);
+    NotesManager.search(q, () => LauncherManager.query(LauncherManager.text));
+    return NotesManager.allNotes.filter(path => path.toLowerCase().includes(q.toLowerCase())).map(path => row({
+        path: path,
+        title: NotesManager.titleOf(path),
+        line: -1
+      }));
+  }
+
+  // Whether overlay columns hold a module of `type`
+  function _hasModule(columns, type) {
+    return (columns ?? []).some(column => (column?.cells ?? []).some(cell => Object.values(cell?.slots ?? {}).some(slot => slot?.type === type)));
   }
 
   function _overlayPages() {
