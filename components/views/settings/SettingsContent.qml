@@ -41,9 +41,13 @@ Item {
     return !!text && (text.toLowerCase().includes(root.query) || I18n.tr(text).toLowerCase().includes(root.query));
   }
 
-  // A card from an object with `x-showIf` (e.g. managed-only settings)
+  // A card from an object with `x-showIf` (e.g. managed-only settings), or
+  // one whose every row is hidden by its own `x-showIf` (an `x-group` card)
   function _groupShown(group) {
-    return SchemaLayout.showIfHolds(group.showIf, key => key.startsWith("/") ? SettingsManager.configValueAt(key.slice(1)) : root.valueAt(group.showIfParent.concat(key)));
+    const valueIn = parent => key => key.startsWith("/") ? SettingsManager.configValueAt(key.slice(1)) : root.valueAt(parent.concat(key));
+    if (!SchemaLayout.showIfHolds(group.showIf, valueIn(group.showIfParent)))
+      return false;
+    return group.kind !== "rows" || group.rows.length === 0 || group.rows.some(row => row.kind === "group" || SchemaLayout.showIfHolds(row.schema?.["x-showIf"], valueIn(row.path.slice(0, -1))));
   }
 
   function _rowMatches(row) {

@@ -125,6 +125,9 @@ OnboardingPage {
     spacing: Widget.spacing
 
     OptionCard {
+      // Equal halves, as tall as the taller one
+      Layout.preferredWidth: 1
+      Layout.fillHeight: true
       icon: "bedtime"
       title: I18n.tr("Let axiom manage hypridle")
       description: I18n.tr("Dims, locks and turns the screens off when you're away, set up from axiom's settings. Stops any hypridle you run yourself.")
@@ -136,6 +139,9 @@ OnboardingPage {
     }
 
     OptionCard {
+      // Equal halves, as tall as the taller one
+      Layout.preferredWidth: 1
+      Layout.fillHeight: true
       icon: "tune"
       title: I18n.tr("Use my own")
       description: I18n.tr("Leaves hypridle, and your hypridle.conf, to you.")

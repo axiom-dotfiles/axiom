@@ -49,6 +49,8 @@ Rectangle {
 
     ColumnLayout {
       Layout.fillWidth: true
+      // At the top when the card is stretched taller than its text
+      Layout.alignment: Qt.AlignTop
       spacing: Widget.spacing / 2
 
       RowLayout {
