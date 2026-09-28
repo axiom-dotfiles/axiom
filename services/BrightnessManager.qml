@@ -47,15 +47,17 @@ QtObject {
   }
 
   // Idle dimming (hypridle, through IPC): every monitor down to `fraction`
-  // (darker ones stay), then back to what each was on undim()
-  function dim(fraction) {
+  // (darker ones stay), or with `relative` down by `fraction` of its own
+  // brightness, then back to what each was on undim()
+  function dim(fraction, relative) {
     for (const name of Object.keys(displays)) {
       if (_dimmed[name] !== undefined)
         continue;
       const value = valueFor(name);
       _dimmed[name] = value;
-      if (value > fraction)
-        set(name, fraction, true);
+      const target = relative ? value * (1 - fraction) : fraction;
+      if (value > target)
+        set(name, target, true);
     }
   }
 
@@ -236,6 +238,11 @@ QtObject {
     // Every monitor, without the OSD (the Idle settings' dim step)
     function dim(percent: int): void {
       root.dim(Math.max(0, Math.min(100, percent)) / 100);
+    }
+
+    // Every monitor down by `percent` of its own brightness, so it always dims
+    function dimBy(percent: int): void {
+      root.dim(Math.max(0, Math.min(100, percent)) / 100, true);
     }
 
     function undim(): void {

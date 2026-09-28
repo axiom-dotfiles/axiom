@@ -38,7 +38,7 @@ QtObject {
     const steps = [
       {
         "timeout": idle.dimTimeout,
-        "onTimeout": `${ctx.shellCommand} ipc call brightness dim ${idle.dimLevel}`,
+        "onTimeout": idle.dimMode === "by" ? `${ctx.shellCommand} ipc call brightness dimBy ${idle.dimBy}` : `${ctx.shellCommand} ipc call brightness dim ${idle.dimLevel}`,
         "onResume": `${ctx.shellCommand} ipc call brightness undim`
       },
       {

@@ -13,7 +13,10 @@ QtObject {
 
   readonly property bool enabled: _c.enabled
   readonly property int dimTimeout: _c.dimTimeout
+  // "to": down to dimLevel%; "by": dimBy% off each screen's brightness
+  readonly property string dimMode: _c.dimMode
   readonly property int dimLevel: _c.dimLevel
+  readonly property int dimBy: _c.dimBy
   readonly property int lockTimeout: _c.lockTimeout
   readonly property int screenOffTimeout: _c.screenOffTimeout
   readonly property int suspendTimeout: _c.suspendTimeout

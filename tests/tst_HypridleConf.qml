@@ -17,7 +17,9 @@ TestCase {
     return Object.assign({
       "enabled": true,
       "dimTimeout": 150,
+      "dimMode": "to",
       "dimLevel": 30,
+      "dimBy": 50,
       "lockTimeout": 300,
       "screenOffTimeout": 330,
       "suspendTimeout": 0,
@@ -37,6 +39,15 @@ TestCase {
     verify(text.includes("on-timeout = qs -p '/axiom' ipc call brightness dim 30"));
     verify(!text.includes("systemctl suspend"), "suspend is off by default");
     compare(text.split("listener {").length - 1, 3);
+  }
+
+  function test_dim_by() {
+    const text = HypridleConf.render(idle({
+      "dimMode": "by",
+      "dimBy": 40
+    }), ctx);
+    verify(text.includes("on-timeout = qs -p '/axiom' ipc call brightness dimBy 40"));
+    verify(!text.includes("brightness dim 30"));
   }
 
   function test_all_steps_off_leaves_general_only() {
