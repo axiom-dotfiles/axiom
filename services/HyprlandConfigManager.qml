@@ -109,12 +109,15 @@ Singleton {
       "mouseDrag": [() => "hl.dsp.window.drag()", "Drag", "Window"],
       "mouseResize": [() => "hl.dsp.window.resize()", "Resize", "Window"],
       "toggleSpecial": [arg => `hl.dsp.workspace.toggle_special(${_lua(arg)})`, "Toggle {0}", "Special"],
-      "moveToSpecial": [arg => `hl.dsp.window.move({ workspace = ${_lua("special:" + arg)} })`, "Move window to {0}", "Special"]
+      "moveToSpecial": [arg => `hl.dsp.window.move({ workspace = ${_lua("special:" + arg)} })`, "Move window to {0}", "Special"],
+      // Run by Hyprland, not over IPC, so it works when the shell is stuck
+      "restartShell": [() => `hl.dsp.exec_cmd(${_lua(`qs kill ${_shellCommand.slice(3)}; ${_shellCommand} -d`)})`, "Restart shell", "Axiom"]
     })
 
   // Flags an action starts with when it's picked (the bind can change them)
   readonly property var actionFlags: ({
       "resizeWindow": ["repeating"],
+      "restartShell": ["release"],
       "volumeUp": ["locked", "repeating"],
       "volumeDown": ["locked", "repeating"],
       "toggleMute": ["locked"],

@@ -1347,6 +1347,7 @@
     "Media keys": "メディアキー",
     "Mouse wakes the screen": "マウスで画面を復帰",
     "Move window to special workspace": "ウィンドウを特殊ワークスペースへ",
+    "Restart axiom": "axiom を再起動",
     "Move window within the workspace": "ワークスペース内でウィンドウを移動",
     "Moves focus": "フォーカスを移す",
     "Moves focus, also floating to floating": "フォーカスを移す (フローティング同士も)",

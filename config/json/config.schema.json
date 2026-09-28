@@ -258,9 +258,11 @@
           "default": [
             { "key": "SUPER + space", "action": "launcher" },
             { "key": "SUPER + Tab", "action": "overlay" },
+            { "key": "SUPER + M", "action": "overlay" },
             { "key": "SUPER + SHIFT + space", "action": "workspaceOverview" },
             { "key": "SUPER + Escape", "action": "powerMenu" },
             { "key": "SUPER + CTRL + L", "action": "lock" },
+            { "key": "SUPER + CTRL + R", "action": "restartShell", "release": true },
             { "key": "SUPER + 1", "action": "workspaceNth", "argument": "1" },
             { "key": "SUPER + SHIFT + 1", "action": "moveWindowNth", "argument": "1" },
             { "key": "SUPER + 2", "action": "workspaceNth", "argument": "2" },
@@ -317,7 +319,7 @@
               "action": {
                 "type": "string",
                 "title": "Action",
-                "enum": ["launcher", "launcherSearch", "overlay", "overlayPage", "edgeMenu", "workspaceOverview", "powerMenu", "lock", "toggleDnd", "clearNotifications", "idleInhibit", "workspaceStep", "moveWindowStep", "moveWindowStepSilent", "workspaceNth", "moveWindowNth", "moveWindowNthSilent", "focusDir", "moveWindowDir", "resizeWindow", "closeWindow", "fullscreen", "toggleFloat", "pin", "centerWindow", "toggleGroup", "mouseDrag", "mouseResize", "toggleSpecial", "moveToSpecial", "volumeUp", "volumeDown", "toggleMute", "toggleMicMute", "brightnessUp", "brightnessDown", "mediaPlayPause", "mediaNext", "mediaPrevious", "exec"],
+                "enum": ["launcher", "launcherSearch", "overlay", "overlayPage", "edgeMenu", "workspaceOverview", "powerMenu", "lock", "toggleDnd", "clearNotifications", "idleInhibit", "workspaceStep", "moveWindowStep", "moveWindowStepSilent", "workspaceNth", "moveWindowNth", "moveWindowNthSilent", "focusDir", "moveWindowDir", "resizeWindow", "closeWindow", "fullscreen", "toggleFloat", "pin", "centerWindow", "toggleGroup", "mouseDrag", "mouseResize", "toggleSpecial", "moveToSpecial", "restartShell", "volumeUp", "volumeDown", "toggleMute", "toggleMicMute", "brightnessUp", "brightnessDown", "mediaPlayPause", "mediaNext", "mediaPrevious", "exec"],
                 "x-enumLabels": {
                   "launcher": "App launcher",
                   "launcherSearch": "Launcher with text",
@@ -349,6 +351,7 @@
                   "mouseResize": "Resize window (mouse button)",
                   "toggleSpecial": "Toggle special workspace",
                   "moveToSpecial": "Move window to special workspace",
+                  "restartShell": "Restart axiom",
                   "volumeUp": "Volume up",
                   "volumeDown": "Volume down",
                   "toggleMute": "Mute",
