@@ -212,7 +212,9 @@ Singleton {
   }
 
   function _requiredLua(withAnimation) {
-    const lines = ["hl.config({ misc = { allow_session_lock_restore = true } })"];
+    // Apps may not maximize themselves: kitty (remember_window_size) saves a tiled
+    // window as "maximized" and asks for that on every launch
+    const lines = ["hl.config({ misc = { allow_session_lock_restore = true } })", `hl.window_rule({ name = "axiom-suppress-maximize", match = { class = ".*" }, suppress_event = "maximize" })`];
     if (withAnimation)
       lines.push(`hl.animation({ leaf = "workspaces", enabled = true, speed = 4, bezier = "default", style = "slide" })`);
     return lines;
@@ -252,7 +254,8 @@ Singleton {
 -- instead to pick. hl.unbind("KEY") after it frees one of axiom's keys.
 local M = {}
 
--- Session lock restore and a workspaces animation (axiom's grid slides)
+-- Session lock restore, ignoring apps' maximize requests and a workspaces
+-- animation (axiom's grid slides)
 function M.required()
 ${_indent(_requiredLua(true), "  ")}
 end

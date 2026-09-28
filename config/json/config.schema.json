@@ -229,7 +229,7 @@
           "title": "Required settings",
           "x-group": "Setup",
           "default": true,
-          "description": "Lock restore after a shell restart, and a workspace slide animation."
+          "description": "Lock restore after a shell restart, ignoring apps' requests to maximize themselves, and a workspace slide animation."
         },
         "wallpaperDaemon": {
           "type": "boolean",
