@@ -585,7 +585,7 @@ if #errors > 0 then error(table.concat(errors, "\\n")) end
 
   Component.onCompleted: {
     _debounce.restart();
-    if (HyprlandConfig.wallpaperDaemon)
+    if (HyprlandConfig.wallpaperDaemon && Appearance.wallpaperBackend === "awww")
       startWallpaperDaemon.running = true;
   }
 

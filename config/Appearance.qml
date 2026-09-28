@@ -22,6 +22,8 @@ QtObject {
     return root.wallpapers[monitor] || root.wallpaper;
   }
   // As configured (for display), and with ~ expanded, no trailing slash
+  // "quickshell" (shell/Wallpaper draws it) | "awww" (setWallpaper.sh)
+  readonly property string wallpaperBackend: _c.wallpaperBackend
   readonly property string wallpaperFolder: _c.wallpaperFolder
   readonly property string wallpaperPath: _c.wallpaperFolder.trim().replace(/^~(?=\/|$)/, Quickshell.env("HOME")).replace(/\/+$/, "")
 
