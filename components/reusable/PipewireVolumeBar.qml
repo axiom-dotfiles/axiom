@@ -99,7 +99,16 @@ Item {
     }
   }
 
+  // Config changes (a reload, another saved config) pick the stream again
   onTargetApplicationChanged: _updateTargetNode()
+  onExcludedAppsChanged: {
+    if (Pipewire.ready)
+      _updateTargetNode();
+  }
+  onUseSystemVolumeChanged: {
+    if (Pipewire.ready)
+      _updateTargetNode();
+  }
 
   Component.onCompleted: {
     if (Pipewire.ready) {
