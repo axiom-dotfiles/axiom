@@ -119,8 +119,10 @@ TestCase {
     compare(left[0].type, "Workspaces");
     compare(left[0].properties.textColor, "base0D");
     compare(config.Workspaces.layout, "grid");
-    // v3: the bar's inset keeps its widgets 26 px high
-    compare(config.Bars[0].inset, 4);
+    // v3 + v21: the bar's inset keeps its widgets 26 px high
+    compare(config.Bars[0].widgetSize, 26);
+    compare(config.Bars[0].padding, 4);
+    compare(config.Bars[0].extent, undefined);
     // v4, v6
     compare(config.Appearance.autoThemeSwitch, undefined);
     compare(config.General.monitors, "focused");

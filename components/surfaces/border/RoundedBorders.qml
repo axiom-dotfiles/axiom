@@ -27,6 +27,13 @@ Item {
     const gap = bar.background === "transparent" ? (HyprlandManager.gapsOut[edge] ?? 0) : 0;
     return -(bar.extent - gap);
   }
+  // A solid bar's strip lies over the bar's inner part (see
+  // BarPanel.reservedZone): there it draws only its stroke, past the bar,
+  // so the bar and its widgets show through
+  function frameColorFor(edge) {
+    const bar = root.edges[edge];
+    return bar && bar.background === "solid" && bar.reserveSpace ? "transparent" : root.frameColor;
+  }
 
   Component.onCompleted: {
     console.log("RoundedBorders initialized");
@@ -39,7 +46,7 @@ Item {
     edge: "top"
     frameWidth: root.frameWidth
     innerBorderRadius: root.innerBorderRadius
-    frameColor: root.frameColor
+    frameColor: root.frameColorFor("top")
     innerStrokeColor: root.innerStrokeColor
     strokeWidth: root.strokeWidth
   }
@@ -51,7 +58,7 @@ Item {
     edge: "bottom"
     frameWidth: root.frameWidth
     innerBorderRadius: root.innerBorderRadius
-    frameColor: root.frameColor
+    frameColor: root.frameColorFor("bottom")
     innerStrokeColor: root.innerStrokeColor
     strokeWidth: root.strokeWidth
   }
@@ -63,7 +70,7 @@ Item {
     edge: "left"
     frameWidth: root.frameWidth
     innerBorderRadius: root.innerBorderRadius
-    frameColor: root.frameColor
+    frameColor: root.frameColorFor("left")
     innerStrokeColor: root.innerStrokeColor
     strokeWidth: root.strokeWidth
   }
@@ -75,8 +82,7 @@ Item {
     edge: "right"
     frameWidth: root.frameWidth
     innerBorderRadius: root.innerBorderRadius
-    // frameColor: "green"
-    frameColor: root.frameColor
+    frameColor: root.frameColorFor("right")
     innerStrokeColor: root.innerStrokeColor
     strokeWidth: root.strokeWidth
   }

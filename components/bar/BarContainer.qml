@@ -269,16 +269,13 @@ Rectangle {
     maxExtent: section.slot.extent
     hiddenIndices: section.bar.hidden[section.slotIndex]
 
-    // Centred across the bar, or with pills, the pill padding in from the
-    // bar's outer edge (past the border stroke the pill covers)
-    readonly property real crossInset: section.barConfig.overlap + section.barConfig.pillPad
+    // crossStart in from the bar's outer edge (see Bar.enrichBarConfig)
     readonly property real crossPos: {
       const across = section.bar.isVertical ? section.bar.width : section.bar.height;
       const size = section.bar.isVertical ? width : height;
-      if (!section.bar.pills)
-        return Math.round((across - size) / 2);
+      const start = Math.round(section.barConfig.crossStart);
       const farSide = section.barConfig.right || section.barConfig.bottom;
-      return farSide ? across - crossInset - size : crossInset;
+      return farSide ? across - start - size : start;
     }
 
     x: section.bar.isVertical ? section.crossPos : section.mainPos

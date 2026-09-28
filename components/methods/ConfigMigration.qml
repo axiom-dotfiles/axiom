@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 20
+  readonly property int currentVersion: 21
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -67,6 +67,8 @@ QtObject {
       result = _v18ToV19(result, changes);
     if (version < 20)
       result = _v19ToV20(result, changes);
+    if (version < 21)
+      result = _v20ToV21(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -586,6 +588,25 @@ QtObject {
       used.add(id);
       changes.push(`Hyprland.binds: added ${bind.key} (${bind.action})`);
     }
+    return config;
+  }
+
+  // v21 sizes a bar by its widgets instead of the other way round: its
+  // thickness (extent) and widget inset become the widget size (what was
+  // extent minus twice the inset) and the padding around them, and the
+  // thickness follows from those
+  function _v20ToV21(config, changes) {
+    (config.Bars ?? []).forEach((bar, barIndex) => {
+      if (!bar || (bar.extent === undefined && bar.inset === undefined))
+        return;
+      const extent = bar.extent ?? 30;
+      const inset = bar.inset ?? 0;
+      bar.widgetSize = Math.min(150, Math.max(10, extent - 2 * inset));
+      bar.padding = Math.min(50, inset);
+      delete bar.extent;
+      delete bar.inset;
+      changes.push(`Bars[${barIndex}]: extent ${extent}, inset ${inset} -> widgetSize ${bar.widgetSize}, padding ${bar.padding}`);
+    });
     return config;
   }
 }

@@ -8,7 +8,7 @@
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 20,
+      "default": 21,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
@@ -700,7 +700,7 @@
       "type": "object",
       "x-category": "Look & Feel",
       "title": "Widgets",
-      "description": "Shared sizing for widgets and form controls. Bar widgets are as thick as their bar, minus twice its widget inset.",
+      "description": "Shared sizing for widgets and form controls. Bar widgets are sized by their bar's widget size.",
       "additionalProperties": false,
       "properties": {
         "height": {
@@ -1265,8 +1265,8 @@
         {
           "id": "primary",
           "location": "Top",
-          "extent": 34,
-          "inset": 4,
+          "widgetSize": 26,
+          "padding": 4,
           "background": "pills",
           "lockCenter": true,
           "widgets": {
@@ -1478,23 +1478,24 @@
           "default": "Top",
           "enum": ["Top", "Bottom", "Left", "Right"]
         },
-        "extent": {
+        "widgetSize": {
           "type": "integer",
-          "title": "Thickness",
-          "default": 30,
+          "title": "Widget size",
+          "default": 26,
           "minimum": 10,
-          "maximum": 200,
+          "maximum": 150,
           "x-unit": "px",
-          "description": "Thickness of the bar (px). A pill bar is as thick as its pills: its widgets plus the pill padding."
+          "description": "How thick the widgets are across the bar. The bar grows to fit them, their padding, and any border it shares an edge with."
         },
-        "inset": {
+        "padding": {
           "type": "integer",
-          "title": "Widget inset",
-          "default": 0,
+          "title": "Padding",
+          "default": 4,
           "minimum": 0,
           "maximum": 50,
           "x-unit": "px",
-          "description": "Gap between the widgets and the bar's edges (px). Widgets are the bar's thickness minus twice this, whatever the background."
+          "x-showIf": { "background": { "not": "pills" } },
+          "description": "Space between the widgets and the bar's visible edges, on both sides."
         },
         "background": {
           "type": "string",
