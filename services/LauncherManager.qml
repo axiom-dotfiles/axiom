@@ -64,8 +64,7 @@ QtObject {
     if (prefix === "@" && LauncherConfig.chat)
       return _set("chat", [_chatRow(rest.trim())]);
     if (prefix === ":" && LauncherConfig.clipboard) {
-      if (root.mode !== "clipboard")
-        ClipboardManager.refresh();
+      ClipboardManager.refresh();
       return _set("clipboard", _clipboardRows(rest.trim()));
     }
 
@@ -527,7 +526,7 @@ QtObject {
     let matches = entries.map((e, i) => ({
           e: e,
           i: i,
-          s: q === "" ? 1 : Math.max(root.score(e.text.trim().split("\n")[0], q), e.text.toLowerCase().includes(q) ? 40 : 0)
+          s: q === "" ? 1 : Math.max(root.score(e.format ? I18n.tr("Image {0}", e.dimensions) : e.text.trim().split("\n")[0], q), e.text.toLowerCase().includes(q) ? 40 : 0)
         })).filter(m => m.s > 0);
     matches.sort((a, b) => b.s - a.s || a.i - b.i);
     const rows = matches.slice(0, _searchLimit).map(m => _clipboardRow(m.e));
@@ -546,6 +545,8 @@ QtObject {
   }
 
   function _clipboardRow(entry) {
+    if (entry.format || entry.html)
+      return _clipboardImageRow(entry);
     const lines = entry.text.trim().split("\n");
     const first = lines[0].trim();
     const details = [];
@@ -566,6 +567,26 @@ QtObject {
         }
         ClipboardManager.copy(entry);
         return true;
+      }
+    };
+  }
+
+  // A cliphist image, with its thumbnail once decoded, or HTML that is just
+  // an image, previewed from its url
+  function _clipboardImageRow(entry) {
+    return {
+      kind: "clipboard",
+      glyph: "image",
+      image: entry.image,
+      title: entry.html ? (entry.image ? I18n.tr("Image from {0}", entry.image.match(/^\w+:\/\/([^/]+)/)[1]) : I18n.tr("Image")) : I18n.tr("Image {0}", entry.dimensions),
+      subtitle: entry.html ? I18n.tr("HTML") + (entry.image ? " · " + entry.image : "") : entry.format.toUpperCase() + " · " + entry.size,
+      hint: I18n.tr("Shift+Enter removes"),
+      run: shift => {
+        if (shift)
+          ClipboardManager.remove(entry);
+        else
+          ClipboardManager.copy(entry);
+        return !shift;
       }
     };
   }

@@ -81,8 +81,9 @@ Item {
         source: root._image ? root.modelData.image : ""
         sourceSize: Qt.size(width * 2, height * 2)
         asynchronous: true
-        // Pictures (wallpapers) fill their tile; icons keep their shape
-        fillMode: root.modelData.kind === "option" ? Image.PreserveAspectCrop : Image.PreserveAspectFit
+        // Pictures (wallpapers, copied images) fill their tile; icons keep
+        // their shape
+        fillMode: root.modelData.kind === "option" || root.modelData.kind === "clipboard" ? Image.PreserveAspectCrop : Image.PreserveAspectFit
       }
 
       Rectangle {
@@ -117,6 +118,8 @@ Item {
         StyledText {
           Layout.fillWidth: usage.text === ""
           text: root.modelData.title ?? ""
+          // Titles are clipboard text, window titles, file names: never markup
+          textFormat: Text.PlainText
           textColor: root._titleColor
           font.weight: Font.Medium
           elide: Text.ElideRight
@@ -132,6 +135,7 @@ Item {
           Layout.fillWidth: true
           visible: text !== ""
           text: root.modelData.usage ?? ""
+          textFormat: Text.PlainText
           textColor: Theme.foregroundInactive
           textSize: Appearance.fontSize - 2
           elide: Text.ElideRight
@@ -142,6 +146,7 @@ Item {
         Layout.fillWidth: true
         visible: LauncherConfig.showDescriptions && text !== ""
         text: root.modelData.subtitle ?? ""
+        textFormat: Text.PlainText
         textColor: Theme.foregroundAlt
         textSize: Appearance.fontSize - 2
         elide: Text.ElideRight
