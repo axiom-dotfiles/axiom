@@ -57,8 +57,8 @@ QtObject {
         "onResume": ""
       }
     ].map((step, index) => Object.assign(step, {
-          "order": index
-        })).filter(step => step.timeout > 0);
+        "order": index
+      })).filter(step => step.timeout > 0);
     // Steps on the same timeout keep the order above (sort isn't stable)
     steps.sort((a, b) => a.timeout - b.timeout || a.order - b.order);
     const own = (idle.listeners ?? []).filter(listener => listener.enabled && listener.timeout > 0 && (listener.onTimeout ?? "").trim() !== "").map(listener => ({
