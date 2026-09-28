@@ -9,7 +9,8 @@ import qs.components.methods
 // Which edge menus (EdgeMenusConfig) are open and which are pinned. The
 // menus themselves (shell/EdgeMenus) follow this and report back when they
 // close on their own. Kept across QML reloads, so a reload doesn't close an
-// integrated menu and reflow the windows.
+// integrated menu and reflow the windows. Pins are also saved to
+// config/state/edgemenus.json, and a pinned menu opens again when qs starts.
 //
 // Also the edge menu editor's working copy of EdgeMenus (the pinned
 // EdgeMenuEditor overlay page), as BarManager is the bar editor's: edits
@@ -55,7 +56,23 @@ Singleton {
     // JSON lists of ids
     property string open: "[]"
     property string pinned: "[]"
+    // False only on the first load after qs starts
+    property bool started: false
+
+    onLoaded: {
+      if (_run.started)
+        return;
+      _run.started = true;
+      const pinned = root._state.load({}).pinned;
+      if (!Array.isArray(pinned))
+        return;
+      const ids = pinned.filter(id => EdgeMenusConfig.menuById(id));
+      _run.pinned = JSON.stringify(ids);
+      _run.open = JSON.stringify(ids);
+    }
   }
+
+  readonly property var _state: StateManager.createStateHandler("edgemenus")
 
   function _parse(json) {
     try {
@@ -114,6 +131,9 @@ Singleton {
 
   function setPinned(id, pinned) {
     _run.pinned = root._set(root.pinnedMenus, id, pinned);
+    root._state.save({
+      "pinned": JSON.parse(_run.pinned)
+    });
   }
 
   function togglePinned(id) {
