@@ -21,7 +21,7 @@ PopoutWrapperBase {
   readonly property Item contentItem: loader.item as Item
   readonly property bool isOpen: occupied && !isClosing
   // Space between the box and its content
-  property real contentPadding: Widget.spacing
+  property real contentPadding: Appearance.borderWidth + PopoutConfig.padding
 
   currentItem: root.contentItem
   keepAlive: boxHover.hovered

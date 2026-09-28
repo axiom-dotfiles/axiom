@@ -36,6 +36,12 @@ QtObject {
     };
   }
 
+  // Space between the menu's box and its modules: its own, else (-1) the
+  // popouts'
+  function paddingOf(menu) {
+    return (menu?.padding ?? -1) >= 0 ? menu.padding : PopoutConfig.padding;
+  }
+
   // The menu's length along its edge, from config alone (for the hover
   // strip before the menu has ever been loaded): its columns side by side
   // at its card size, as EdgeMenuBody lays them out, plus its padding
@@ -44,6 +50,6 @@ QtObject {
     const flows = (menu?.columns ?? []).map(column => OverlayConfig.columnFlow(column.cells, unit));
     const extra = flows.length > 0 ? Math.max(0, (vertical ? menu?.extraHeight : menu?.extraWidth) ?? 0) : 0;
     const length = (vertical ? Math.max(0, ...flows.map(flow => flow.height)) : flows.reduce((sum, flow) => sum + flow.width, 0) + Math.max(0, flows.length - 1) * OverlayConfig.cardSpacing) + extra;
-    return length + (menu?.padding ?? 0) * 2;
+    return length + root.paddingOf(menu) * 2;
   }
 }

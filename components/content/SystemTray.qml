@@ -30,7 +30,7 @@ Item {
 
   // TODO: wtf is this 20
   implicitWidth: Math.max(minWidth, menuLayout.implicitWidth + 20)
-  implicitHeight: menuLayout.implicitHeight + 20 + Widget.padding * 2
+  implicitHeight: menuLayout.implicitHeight + 20
 
   // The menu's layout arrives over DBus after the opener is created. The
   // host keeps the popout hidden until it has (or the wait runs out), so it
@@ -79,7 +79,6 @@ Item {
   Rectangle {
     id: backgroundContainer
     anchors.fill: parent
-    anchors.margins: Widget.padding
     color: Theme.backgroundAlt
     // border.color: Theme.border
     // border.width: Appearance.borderWidth

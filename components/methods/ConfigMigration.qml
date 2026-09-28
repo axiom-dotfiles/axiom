@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 24
+  readonly property int currentVersion: 25
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -75,6 +75,8 @@ QtObject {
       result = _v22ToV23(result, changes);
     if (version < 24)
       result = _v23ToV24(result, changes);
+    if (version < 25)
+      result = _v24ToV25(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -667,6 +669,18 @@ QtObject {
     }
     osd.osds = [entry];
     changes.push("OSD: its settings moved to OSD.osds[0]");
+    return config;
+  }
+
+  // v25 has one popout padding (Popouts.padding): an edge menu still at the
+  // old default of 12 follows it (-1) instead of keeping its own
+  function _v24ToV25(config, changes) {
+    for (const menu of config.EdgeMenus ?? []) {
+      if (menu?.padding !== 12)
+        continue;
+      menu.padding = -1;
+      changes.push(`EdgeMenus[${menu.id}].padding: 12 -> -1 (follows Popouts.padding)`);
+    }
     return config;
   }
 }

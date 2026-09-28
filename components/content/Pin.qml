@@ -14,7 +14,7 @@ Card {
   readonly property bool inMenu: root.host?.kind === "edgeMenu" && !!root.host.id
   readonly property bool pinned: root.inMenu && EdgeMenuManager.pinnedMenus[root.host.id] === true
 
-  color: root.pinned ? Theme.accent : Theme.background
+  color: root.pinned ? Theme.accent : root.bare ? "transparent" : Theme.background
   opacity: root.inMenu ? 1 : 0.5
 
   Behavior on color {

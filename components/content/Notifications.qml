@@ -24,7 +24,6 @@ Panel {
     label: I18n.tr(NotificationManager.dnd ? "muted" : "notifications")
   }
 
-  margins: 16
   readonly property int maxListHeight: 440
 
   implicitWidth: 400

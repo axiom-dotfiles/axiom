@@ -73,7 +73,7 @@ PopoutWrapperBase {
   property bool detached: false
   property bool closeOnClickOutside: false
   // Space between the box and its content
-  property real contentPadding: Widget.spacing
+  property real contentPadding: Appearance.borderWidth + PopoutConfig.padding
   // Extra distance in from the attach edge (for a detached box)
   property real edgeOffset: 0
   // How far back towards the screen edge a detached box slides in from:

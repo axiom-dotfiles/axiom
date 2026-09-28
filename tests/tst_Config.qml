@@ -224,6 +224,25 @@ TestCase {
     compare(errors(loaded.config), []);
   }
 
+  function test_v25_edge_menus_follow_popout_padding() {
+    const loaded = load({
+      "version": 24,
+      "EdgeMenus": [
+        {
+          "id": "old",
+          "padding": 12
+        },
+        {
+          "id": "own",
+          "padding": 20
+        }
+      ]
+    });
+    compare(loaded.config.EdgeMenus[0].padding, -1);
+    compare(loaded.config.EdgeMenus[1].padding, 20);
+    compare(errors(loaded.config), []);
+  }
+
   function test_migration_is_idempotent() {
     const once = load(files.json("tests/fixtures/configs/v1.json")).config;
     const again = ConfigMigration.migrate(once);

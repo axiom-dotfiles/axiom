@@ -25,7 +25,6 @@ Panel {
   readonly property var shownDevices: currentTab === 0 ? BluetoothManager.pairedDevices : BluetoothManager.discoveredDevices
   readonly property string offMessage: I18n.tr(!BluetoothManager.available ? "No Bluetooth adapter found" : BluetoothManager.blocked ? "Bluetooth is blocked (rfkill)" : "Bluetooth is off")
 
-  margins: 16
   // A popout's list is a fixed five rows high
   readonly property real rowHeight: Math.max(titleMetrics.height + statusMetrics.height, 28) + Widget.spacing * 2
   readonly property real listHeight: rowHeight * 5 + list.spacing * 4

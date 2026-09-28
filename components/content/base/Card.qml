@@ -12,10 +12,14 @@ Rectangle {
   property bool embedded: true
   // The slot this module fills, in half-card units: [col, row, colSpan, rowSpan]
   property var slotRect: [0, 0, 2, 2]
-  // Where the card is shown: { kind: "overlay" } or { kind: "edgeMenu", id }
+  // Where the card is shown: { kind: "overlay" } or { kind: "edgeMenu", id,
+  // bare }
   property var host: ({
       "kind": "overlay"
     })
+  // No card box (an edge menu with moduleBorders off): no stroke, no fill
+  // and no inner padding, so the module sits on the menu's own background
+  readonly property bool bare: host?.bare ?? false
 
   readonly property int cols: slotRect[2]
   readonly property int rows: slotRect[3]
@@ -24,12 +28,12 @@ Rectangle {
   // A quarter-card slot: room for the key figure only
   readonly property bool compact: cols <= 1 && rows <= 1
   // Inner padding modules lay their content out within
-  readonly property real pad: compact ? OverlayConfig.cardPadding * 0.75 : OverlayConfig.cardPadding * 1.5
+  readonly property real pad: bare ? 0 : compact ? OverlayConfig.cardPadding * 0.75 : OverlayConfig.cardPadding * 1.5
 
   anchors.fill: parent
-  color: Theme.background
+  color: bare ? "transparent" : Theme.background
   border.color: Theme.foreground
-  border.width: Appearance.borderWidth
+  border.width: bare ? 0 : Appearance.borderWidth
   radius: Appearance.borderRadius
   clip: true
 }

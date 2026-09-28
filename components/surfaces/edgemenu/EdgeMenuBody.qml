@@ -24,9 +24,11 @@ Item {
   on_ColumnsKeyChanged: root.columns = JSON.parse(root._columnsKey)
   Component.onCompleted: root.columns = JSON.parse(root._columnsKey)
 
+  // `bare`: the menu hides its modules' card boxes (moduleBorders off)
   readonly property var host: ({
       "kind": "edgeMenu",
-      "id": root.menu?.id ?? ""
+      "id": root.menu?.id ?? "",
+      "bare": root.menu?.moduleBorders === false
     })
 
   OverlayGrid {

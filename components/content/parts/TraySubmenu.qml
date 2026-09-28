@@ -19,7 +19,7 @@ Item {
   readonly property int maxWidth: 800
 
   implicitWidth: Math.max(minWidth, Math.min(maxWidth, menuLayout.implicitWidth + 20))
-  implicitHeight: menuLayout.implicitHeight + 20 + Widget.padding * 2
+  implicitHeight: menuLayout.implicitHeight + 20
 
   // Exposes our hover state to the wrapper's (TraySubmenuWrapper)
   // centralized dismiss logic — timing and dismissal now live there.
@@ -54,7 +54,6 @@ Item {
   // Background container
   Rectangle {
     anchors.fill: parent
-    anchors.margins: Widget.padding
     color: Theme.backgroundAlt
     radius: Appearance.borderRadius
     clip: true

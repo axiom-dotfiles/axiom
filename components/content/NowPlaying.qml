@@ -29,7 +29,6 @@ Panel {
 
   hovered: pointerInside || root.seeking
 
-  margins: 16
   spacing: Widget.spacing
   implicitWidth: 380
 

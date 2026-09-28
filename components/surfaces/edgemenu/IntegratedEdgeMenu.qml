@@ -35,7 +35,7 @@ PopoutWrapperBase {
   readonly property real position: (root.menu?.position ?? 50) / 100
 
   readonly property bool framed: root.menu?.frame ?? true
-  readonly property int padding: root.menu?.padding ?? Appearance.screenMargin
+  readonly property int padding: EdgeMenusConfig.paddingOf(root.menu)
   readonly property var colors: EdgeMenusConfig.colorsOf(root.menu)
   // The frame's inset from the strip's edges (0 without one)
   readonly property int frameInset: root.framed ? (root.menu?.margin ?? 0) : 0

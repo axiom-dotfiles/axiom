@@ -14,7 +14,6 @@ Panel {
   // Month currently on display. Day component is ignored/normalized to 1st.
   property var viewDate: new Date()
 
-  margins: 20
   spacing: root.sectionSpacing
   readonly property int cellSize: 30
   readonly property int cellSpacing: 4

@@ -177,7 +177,7 @@ EdgePopout {
     };
   })
   notchDepth: root.pillFoot - 1
-  contentPadding: root.menu?.padding ?? Widget.spacing
+  contentPadding: Appearance.borderWidth + EdgeMenusConfig.paddingOf(root.menu)
   fillColor: EdgeMenusConfig.colorsOf(root.menu).fill
   strokeColor: EdgeMenusConfig.colorsOf(root.menu).stroke
   triggerEnabled: root.menu?.openOnHover ?? false

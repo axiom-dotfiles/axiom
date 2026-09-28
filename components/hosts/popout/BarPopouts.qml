@@ -332,11 +332,11 @@ PopoutWrapperBase {
         return root.barConfig.vertical ? mainPopup.boxAcross - surface.startMargin : (mainPopup.joinStart ? mainPopup.strokeStart : mainPopup.strokeEnd - mainPopup.implicitWidth);
 
       if (root.barConfig.left) {
-        return root.surfaceFrom;
+        return root.surfaceFrom - surface.backfill;
       } else if (root.barConfig.right) {
         // Mirror of the left case: measured from the bar's outer edge,
         // not relative to the anchor (tray icons are narrower than modules)
-        return root.panelThickness - root.surfaceFrom - mainPopup.implicitWidth;
+        return root.panelThickness - root.surfaceFrom + surface.backfill - mainPopup.implicitWidth;
       } else {
         return mainPopup.alongPos;
       }
@@ -349,9 +349,9 @@ PopoutWrapperBase {
         return root.barConfig.vertical ? (mainPopup.joinStart ? mainPopup.strokeStart : mainPopup.strokeEnd - mainPopup.implicitHeight) : mainPopup.boxAcross - surface.startMargin;
 
       if (root.barConfig.top) {
-        return root.surfaceFrom;
+        return root.surfaceFrom - surface.backfill;
       } else if (root.barConfig.bottom) {
-        return root.panelThickness - root.surfaceFrom - mainPopup.implicitHeight;
+        return root.panelThickness - root.surfaceFrom + surface.backfill - mainPopup.implicitHeight;
       } else {
         return mainPopup.alongPos;
       }
@@ -468,6 +468,8 @@ PopoutWrapperBase {
     straightJoins: !Appearance.screenBorder
     startFoot: root.startFoot
     endFoot: root.endFoot
+    // On a pill's far stroke, cover that stroke's inner fringe too
+    backfill: root.anchorPill !== null && !root.mergeWithPill ? 1 : 0
 
     // The pills' interiors, left showing; the popout covers their
     // strokes where they overlap, so they read as one shape

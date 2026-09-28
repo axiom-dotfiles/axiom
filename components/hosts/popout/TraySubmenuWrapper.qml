@@ -53,12 +53,13 @@ Item {
 
       // Overlap the parent's side stroke with our attach-edge stroke, the
       // same way bar/edge popouts overlap the bar or border stroke
-      readonly property real attachX: outer.openToLeft ? attachRect.x + Appearance.borderWidth - implicitWidth : attachRect.x + attachRect.width - Appearance.borderWidth
+      // (backfill grows the window towards the parent, past the attach edge)
+      readonly property real attachX: outer.openToLeft ? attachRect.x + Appearance.borderWidth + surface.backfill - implicitWidth : attachRect.x + attachRect.width - Appearance.borderWidth - surface.backfill
 
       // Line our first menu item up with the hovered one: the fillet
-      // margin, then the loader inset, then TraySubmenu's own
-      // background margin + half its 20px layout inset.
-      readonly property real firstItemOffset: (root.connectorGap - Appearance.borderWidth) + surface.contentInset + Widget.padding + 10
+      // margin, then the loader inset, then half TraySubmenu's 20px
+      // layout inset.
+      readonly property real firstItemOffset: (root.connectorGap - Appearance.borderWidth) + surface.contentInset + 10
       // Keep both fillets on the straight part of the parent's side, clear
       // of its rounded corners (or its fillets into the bar)
       readonly property real minY: attachRect.y + Appearance.borderRadius
@@ -84,6 +85,9 @@ Item {
         connectorGap: root.connectorGap
         boxWidth: submenuPopup.contentWidth + contentInset * 2
         boxHeight: submenuPopup.contentHeight + contentInset * 2
+        // The parent's side stroke leaves an anti-aliased fringe on its
+        // inner side: cover it (see AttachedSurface.backfill)
+        backfill: 1
 
         Loader {
           id: loader

@@ -8,7 +8,7 @@
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 24,
+      "default": 25,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
@@ -820,6 +820,15 @@
           "minimum": 1,
           "maximum": 50,
           "description": "Thickness of the hover strip at the screen edge that opens edge popouts."
+        },
+        "padding": {
+          "type": "integer",
+          "title": "Padding",
+          "x-unit": "px",
+          "default": 16,
+          "minimum": 0,
+          "maximum": 64,
+          "description": "Space between a popout's box and its content: bar popouts, OSDs, and edge menus that don't set their own."
         }
       }
     },
@@ -1431,7 +1440,7 @@
       "type": "object",
       "required": ["id"],
       "additionalProperties": false,
-      "x-order": ["name", "id", "enabled", "monitor", "mode", "edge", "position", "edgeDistance", "cardSize", "extraWidth", "extraHeight", "frame", "margin", "padding", "backgroundColor", "borderColor", "openOnHover", "openDelay", "triggerSize", "triggerLength", "closeOnLeave", "closeDelay", "closeOnOutsideClick"],
+      "x-order": ["name", "id", "enabled", "monitor", "mode", "edge", "position", "edgeDistance", "cardSize", "extraWidth", "extraHeight", "frame", "margin", "padding", "moduleBorders", "backgroundColor", "borderColor", "openOnHover", "openDelay", "triggerSize", "triggerLength", "closeOnLeave", "closeDelay", "closeOnOutsideClick"],
       "properties": {
         "id": { "type": "string", "title": "Id", "description": "What bar buttons and IPC calls open this menu by." },
         "name": { "type": "string", "title": "Name", "default": "" },
@@ -1520,12 +1529,13 @@
         "padding": {
           "type": "integer",
           "title": "Padding",
-          "default": 12,
-          "minimum": 0,
+          "default": -1,
+          "minimum": -1,
           "maximum": 64,
           "x-unit": "px",
-          "description": "Space between the menu's box and its modules."
+          "description": "Space between the menu's box and its modules. -1 uses the Popouts padding."
         },
+        "moduleBorders": { "type": "boolean", "title": "Module borders", "default": true, "description": "Draw each module's card box. Turn off to show modules straight on the menu's background, e.g. a menu with a single module." },
         "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base00" },
         "borderColor": { "type": "string", "title": "Border", "x-options": "colors", "default": "base05" },
         "openOnHover": { "type": "boolean", "title": "Open on hover", "default": false, "description": "Open when the pointer rests on the screen edge." },

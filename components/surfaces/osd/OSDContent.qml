@@ -2,8 +2,6 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 
-import qs.config
-
 // One OSD's bars, laid out by its settings: vertical bars side by side,
 // horizontal bars as rows; or, along an edge, one line parallel to it (end
 // to end when the bars run along it too). Shared by both hosts.
@@ -25,16 +23,14 @@ Item {
   // the other direction
   readonly property int barLength: 190
   readonly property int barSpacing: 20
-  readonly property int margin: 15 - Widget.spacing
   readonly property bool vertical: osd.orientation === "Vertical"
 
-  implicitWidth: grid.implicitWidth + margin * 2
-  implicitHeight: grid.implicitHeight + margin * 2
+  implicitWidth: grid.implicitWidth
+  implicitHeight: grid.implicitHeight
 
   GridLayout {
     id: grid
     anchors.fill: parent
-    anchors.margins: root.margin
     readonly property bool rowFlow: root.onEdge && root.osd.alongEdge ? !root.edgeVertical : root.vertical
     flow: rowFlow ? GridLayout.LeftToRight : GridLayout.TopToBottom
     columnSpacing: root.barSpacing

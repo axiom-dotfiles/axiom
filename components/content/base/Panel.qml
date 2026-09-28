@@ -22,15 +22,18 @@ Item {
   // ([col, row, colSpan, rowSpan] in half-card units, see Card)
   property var properties: ({})
   property var slotRect: [0, 0, 2, 2]
-  // Card only: where it's shown, { kind: "overlay" } or { kind: "edgeMenu", id }
+  // Card only: where it's shown, { kind: "overlay" } or { kind: "edgeMenu",
+  // id, bare }
   property var host: ({
       "kind": "overlay"
     })
+  // Card only: no card box (see Card.bare)
+  readonly property bool bare: embedded && (host?.bare ?? false)
   readonly property int cols: slotRect[2]
   readonly property int rows: slotRect[3]
   readonly property string shape: OverlayConfig.slotShape(slotRect)
   readonly property bool compact: embedded && cols <= 1 && rows <= 1
-  readonly property real pad: compact ? OverlayConfig.cardPadding * 0.75 : OverlayConfig.cardPadding * 1.5
+  readonly property real pad: bare ? 0 : compact ? OverlayConfig.cardPadding * 0.75 : OverlayConfig.cardPadding * 1.5
 
   // Bar popout only: keep the keyboard (and a focus grab) while a text
   // field is up; a click outside the popout calls focusLost()
@@ -49,10 +52,16 @@ Item {
   property Component background: null
   readonly property bool _showCompact: root.compact && root.compactContent !== null
 
-  // The box's corner radius, for backgrounds that follow its shape
-  readonly property real boxRadius: root.embedded ? Appearance.borderRadius : Appearance.borderRadius + 2
+  // In a popout the box reaches out over the host's padding
+  // (Popouts.padding) to the surface's stroke, so a `background` fills the
+  // whole popout while the column keeps the padding
+  readonly property real bleed: root.embedded ? 0 : PopoutConfig.padding
+  // The box's corner radius, for backgrounds that follow its shape (in a
+  // popout, the inside of the surface's stroke)
+  readonly property real boxRadius: root.embedded ? Appearance.borderRadius : Math.max(0, Appearance.borderRadius - Appearance.borderWidth)
 
-  property int margins: 16
+  // Popout only: the host's surface already pads it (Popouts.padding)
+  property int margins: 0
   property alias spacing: column.spacing
   readonly property alias body: column
   default property alias content: column.data
@@ -65,9 +74,11 @@ Item {
 
   Rectangle {
     anchors.fill: parent
-    color: Theme.background
-    border.color: root.embedded ? Theme.foreground : "transparent"
-    border.width: root.embedded ? Appearance.borderWidth : 0
+    anchors.margins: -root.bleed
+    // A popout's surface draws its own fill
+    color: root.embedded && !root.bare ? Theme.background : "transparent"
+    border.color: root.embedded && !root.bare ? Theme.foreground : "transparent"
+    border.width: root.embedded && !root.bare ? Appearance.borderWidth : 0
     radius: root.boxRadius
     clip: true
 
@@ -91,7 +102,7 @@ Item {
       id: column
       visible: !root._showCompact
       anchors.fill: parent
-      anchors.margins: root.embedded ? root.pad : root.margins
+      anchors.margins: root.embedded ? root.pad : root.bleed + root.margins
       spacing: Widget.spacing
     }
   }
