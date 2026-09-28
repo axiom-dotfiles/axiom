@@ -141,7 +141,7 @@ Singleton {
 
   // --- Config ---
 
-  // A config value by dotted path ("Launcher.terminal")
+  // A config value by dotted path ("Apps.terminal")
   function value(dottedPath) {
     let node = ConfigManager.config;
     for (const key of dottedPath.split("."))

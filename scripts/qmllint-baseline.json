@@ -84,8 +84,6 @@
     "unresolved-type: Type margins is used but it is not resolved": 1
   },
   "components/hosts/popout/EdgePopout.qml": {
-    "Quick.anchor-combinations: Cannot specify left, right, and horizontalCenter anchors at the same time.": 1,
-    "Quick.anchor-combinations: Cannot specify top, bottom, and verticalCenter anchors at the same time.": 1,
     "incompatible-type: Cannot assign binding of type QObject to QQuickItem": 2,
     "missing-property: Member \"forceActiveFocus\" not found on type \"QObject\"": 2,
     "missing-property: Member \"implicitHeight\" not found on type \"QObject\"": 3,

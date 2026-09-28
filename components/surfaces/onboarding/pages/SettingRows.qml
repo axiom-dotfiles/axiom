@@ -6,7 +6,7 @@ import qs.config
 import qs.services
 import qs.components.forms
 
-// Settings by dotted config path ("Launcher.terminal"), each a SchemaField
+// Settings by dotted config path ("Apps.terminal"), each a SchemaField
 // row as on the settings page, saved as they change (OnboardingManager.set):
 // the onboarder applies as the user goes. Edits are gathered for a moment,
 // so typing doesn't write config.json per key. Acts as the rows' `form`.

@@ -110,7 +110,7 @@ QtObject {
 
       // DesktopEntry.execute() ignores Terminal=true
       if (appEntry.runInTerminal)
-        Quickshell.execDetached([LauncherConfig.terminal, "-e"].concat(appEntry.command));
+        Quickshell.execDetached([Apps.terminal, "-e"].concat(appEntry.command));
       else
         appEntry.execute();
       return true;
@@ -445,7 +445,7 @@ QtObject {
   // --- Run & web ---
 
   function _runRow(command) {
-    const terminal = LauncherConfig.terminal;
+    const terminal = Apps.terminal;
     return {
       kind: "run",
       glyph: "terminal",

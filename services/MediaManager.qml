@@ -156,6 +156,12 @@ QtObject {
     }
   }
 
+  function stop() {
+    if (hasActivePlayer && activePlayer.canControl) {
+      activePlayer.stop();
+    }
+  }
+
   // Media keys (keybind actions mediaPlayPause, ...), for the active player
   property IpcHandler _ipc: IpcHandler {
     target: "media"
@@ -170,6 +176,10 @@ QtObject {
 
     function previous(): void {
       root.previous();
+    }
+
+    function stop(): void {
+      root.stop();
     }
   }
 

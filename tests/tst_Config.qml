@@ -201,6 +201,23 @@ TestCase {
     compare(ConfigMigration.migrate(result.config).config.Hyprland.binds.length, binds.length);
   }
 
+  function test_v23_moves_apps_out_of_launcher() {
+    const loaded = load({
+      "version": 22,
+      "Launcher": {
+        "terminal": "foot",
+        "browser": "firefox",
+        "width": 700
+      }
+    });
+    compare(loaded.config.Apps.terminal, "foot");
+    compare(loaded.config.Apps.browser, "firefox");
+    compare(loaded.config.Apps.fileManager, "");
+    compare(loaded.config.Launcher.terminal, undefined);
+    compare(loaded.config.Launcher.width, 700);
+    compare(errors(loaded.config), []);
+  }
+
   function test_migration_is_idempotent() {
     const once = load(files.json("tests/fixtures/configs/v1.json")).config;
     const again = ConfigMigration.migrate(once);

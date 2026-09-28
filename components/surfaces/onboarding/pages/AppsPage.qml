@@ -17,17 +17,17 @@ OnboardingPage {
 
   // Candidates offered as chips when they're installed
   readonly property var candidates: ({
-      "Launcher.terminal": ["kitty", "foot", "alacritty", "wezterm", "ghostty", "konsole", "gnome-terminal", "xfce4-terminal"],
-      "Launcher.fileManager": ["nautilus", "thunar", "dolphin", "nemo", "pcmanfm-qt", "pcmanfm"],
-      "Launcher.browser": ["firefox", "zen-browser", "librewolf", "chromium", "google-chrome-stable", "brave", "vivaldi-stable"]
+      "Apps.terminal": ["kitty", "foot", "alacritty", "wezterm", "ghostty", "konsole", "gnome-terminal", "xfce4-terminal"],
+      "Apps.fileManager": ["nautilus", "thunar", "dolphin", "nemo", "pcmanfm-qt", "pcmanfm"],
+      "Apps.browser": ["firefox", "zen-browser", "librewolf", "chromium", "google-chrome-stable", "brave", "vivaldi-stable"]
     })
 
-  Component.onCompleted: DependencyManager.check([].concat(...Object.keys(candidates).map(key => candidates[key])).concat([LauncherConfig.terminal, LauncherConfig.fileManager, LauncherConfig.browser]))
+  Component.onCompleted: DependencyManager.check([].concat(...Object.keys(candidates).map(key => candidates[key])).concat([Apps.terminal, Apps.fileManager, Apps.browser]))
 
   Connections {
     target: ConfigManager
     function onConfigChanged() {
-      DependencyManager.check([LauncherConfig.terminal, LauncherConfig.fileManager, LauncherConfig.browser]);
+      DependencyManager.check([Apps.terminal, Apps.fileManager, Apps.browser]);
     }
   }
 

@@ -8,7 +8,7 @@
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 22,
+      "default": 23,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
@@ -167,12 +167,23 @@
         "calculator": { "type": "boolean", "title": "Calculator", "default": true, "description": "Show the result of math as you type it (or after =), using qalc. Enter copies the result." },
         "commands": { "type": "boolean", "title": "Shell commands (/)", "default": true, "description": "Type / for commands that control the shell: themes, volume, wifi, bluetooth, overlay pages, session and more." },
         "runCommands": { "type": "boolean", "title": "Run commands (>)", "default": true, "description": "Type > and a command to run it. Shift+Enter runs it in the terminal." },
-        "terminal": { "type": "string", "title": "Terminal", "default": "kitty", "description": "Terminal used for commands run with Shift+Enter, for terminal apps and by the Terminal keybind. It's started as: terminal -e command." },
-        "fileManager": { "type": "string", "title": "File manager", "default": "", "description": "Command the File manager keybind runs. Empty opens your home folder in the system's default file manager." },
-        "browser": { "type": "string", "title": "Browser", "default": "", "description": "Command the Browser keybind runs. Empty starts the system's default web browser." },
         "webSearch": { "type": "boolean", "title": "Web search (?)", "default": true, "description": "Offer a web search for what you typed, last in the list (or first after ?)." },
         "searchEngine": { "type": "string", "title": "Search engine URL", "default": "https://duckduckgo.com/?q={}", "description": "{} is replaced by the search terms.", "x-showIf": { "webSearch": true } },
         "chat": { "type": "boolean", "title": "Ask chat (@)", "default": true, "description": "Type @ and a question to ask it in the overlay's Chat module, with the default preset." }
+      }
+    },
+
+    "Apps": {
+      "type": "object",
+      "x-category": "Desktop",
+      "title": "Apps",
+      "description": "The apps axiom opens: by the Terminal, File manager and Browser keybinds, and the launcher's terminal apps and Shift+Enter commands.",
+      "additionalProperties": false,
+      "x-order": ["terminal", "fileManager", "browser"],
+      "properties": {
+        "terminal": { "type": "string", "title": "Terminal", "default": "kitty", "description": "Terminal used for commands run with Shift+Enter, for terminal apps and by the Terminal keybind. It's started as: terminal -e command." },
+        "fileManager": { "type": "string", "title": "File manager", "default": "", "description": "Command the File manager keybind runs. Empty opens your home folder in the system's default file manager." },
+        "browser": { "type": "string", "title": "Browser", "default": "", "description": "Command the Browser keybind runs. Empty starts the system's default web browser." }
       }
     },
 
@@ -370,7 +381,7 @@
               "action": {
                 "type": "string",
                 "title": "Action",
-                "enum": ["launcher", "launcherSearch", "overlay", "overlayPage", "edgeMenu", "workspaceOverview", "powerMenu", "lock", "toggleDnd", "clearNotifications", "idleInhibit", "workspaceStep", "moveWindowStep", "moveWindowStepSilent", "workspaceNth", "moveWindowNth", "moveWindowNthSilent", "focusDir", "moveWindowDir", "resizeWindow", "closeWindow", "fullscreen", "toggleFloat", "pin", "centerWindow", "toggleGroup", "mouseDrag", "mouseResize", "toggleSpecial", "moveToSpecial", "restartShell", "volumeUp", "volumeDown", "toggleMute", "toggleMicMute", "brightnessUp", "brightnessDown", "mediaPlayPause", "mediaNext", "mediaPrevious", "terminal", "fileManager", "browser", "screenshot", "exitHyprland", "exec"],
+                "enum": ["launcher", "launcherSearch", "overlay", "overlayPage", "edgeMenu", "workspaceOverview", "powerMenu", "lock", "toggleDnd", "clearNotifications", "idleInhibit", "workspaceStep", "moveWindowStep", "moveWindowStepSilent", "workspaceNth", "moveWindowNth", "moveWindowNthSilent", "focusDir", "moveWindowDir", "resizeWindow", "closeWindow", "fullscreen", "toggleFloat", "pin", "centerWindow", "toggleGroup", "mouseDrag", "mouseResize", "toggleSpecial", "moveToSpecial", "restartShell", "volumeUp", "volumeDown", "toggleMute", "toggleMicMute", "brightnessUp", "brightnessDown", "mediaPlayPause", "mediaNext", "mediaPrevious", "mediaStop", "terminal", "fileManager", "browser", "screenshot", "exitHyprland", "exec"],
                 "x-enumLabels": {
                   "launcher": "App launcher",
                   "launcherSearch": "Launcher with text",
@@ -412,6 +423,7 @@
                   "mediaPlayPause": "Play/Pause",
                   "mediaNext": "Next track",
                   "mediaPrevious": "Previous track",
+                  "mediaStop": "Stop playback",
                   "terminal": "Terminal",
                   "fileManager": "File manager",
                   "browser": "Browser",

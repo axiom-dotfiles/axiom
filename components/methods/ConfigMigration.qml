@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 22
+  readonly property int currentVersion: 23
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -71,6 +71,8 @@ QtObject {
       result = _v20ToV21(result, changes);
     if (version < 22)
       result = _v21ToV22(result, changes);
+    if (version < 23)
+      result = _v22ToV23(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -627,5 +629,22 @@ QtObject {
         "argument": "region"
       }
     ]);
+  }
+
+  // v23 moved the apps the binds open out of Launcher into their own
+  // section
+  function _v22ToV23(config, changes) {
+    const launcher = config.Launcher;
+    if (!launcher)
+      return config;
+    for (const key of ["terminal", "fileManager", "browser"]) {
+      if (launcher[key] === undefined)
+        continue;
+      config.Apps = config.Apps ?? {};
+      config.Apps[key] = launcher[key];
+      delete launcher[key];
+      changes.push(`Launcher.${key} -> Apps.${key}`);
+    }
+    return config;
   }
 }

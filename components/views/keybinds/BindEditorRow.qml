@@ -7,14 +7,15 @@ import qs.components.forms
 import qs.components.reusable
 
 // One of axiom's binds in the editor: key, action, argument and label on
-// one line, its issues under it. Rows are modelled by index, so the text
-// fields follow the bind when rows above it move.
+// one line, its issues under it. Rows are modelled by position in the
+// editor's filtered, sorted list (bindIndex is the bind's own index), so
+// the text fields follow the bind when rows above it move.
 StyledContainer {
   id: root
 
-  required property int index
-  readonly property var bind: KeybindManager.binds[root.index] ?? ({})
-  readonly property var issues: KeybindManager.issues[root.index] ?? []
+  required property int bindIndex
+  readonly property var bind: KeybindManager.binds[root.bindIndex] ?? ({})
+  readonly property var issues: KeybindManager.issues[root.bindIndex] ?? []
   readonly property bool hasError: root.issues.some(issue => issue.level === "error")
   readonly property var argumentOptions: {
     const options = KeybindManager.argumentOptions(root.bind.action);
@@ -48,19 +49,16 @@ StyledContainer {
       spacing: Widget.spacing
 
       KeyRecorder {
-        index: root.index
+        index: root.bindIndex
         combo: root.bind.key ?? ""
         invalid: root.hasError
         Layout.fillWidth: true
         Layout.preferredWidth: 3
       }
 
-      SchemaComboBox {
-        label: ""
-        options: KeybindManager.actions
-        optionLabels: KeybindManager.actionLabels
+      ActionPicker {
         currentValue: root.bind.action ?? ""
-        onSelectionChanged: value => KeybindManager.setField(root.index, "action", value)
+        onPicked: action => KeybindManager.setField(root.bindIndex, "action", action)
         Layout.fillWidth: true
         Layout.preferredWidth: 3
       }
@@ -82,7 +80,7 @@ StyledContainer {
           currentValue: root.bind.argument ?? ""
           // I18n.tr("left") I18n.tr("right") I18n.tr("up") I18n.tr("down")
           // I18n.tr("region") I18n.tr("window") I18n.tr("screen")
-          onSelectionChanged: value => KeybindManager.setField(root.index, "argument", value)
+          onSelectionChanged: value => KeybindManager.setField(root.bindIndex, "argument", value)
         }
 
         StyledTextEntry {
@@ -99,7 +97,7 @@ StyledContainer {
             return root.bind.action === "exec" ? I18n.tr("Command") : I18n.tr("Search text");
           }
           Component.onCompleted: input.text = root.bind.argument ?? ""
-          input.onEditingFinished: KeybindManager.setField(root.index, "argument", input.text)
+          input.onEditingFinished: KeybindManager.setField(root.bindIndex, "argument", input.text)
         }
       }
 
@@ -123,7 +121,7 @@ StyledContainer {
           Layout.preferredHeight: Widget.height
           placeholderText: HyprlandConfigManager.defaultLabel(root.bind) || I18n.tr("Label")
           Component.onCompleted: input.text = root.bind.description ?? ""
-          input.onEditingFinished: KeybindManager.setField(root.index, "description", input.text)
+          input.onEditingFinished: KeybindManager.setField(root.bindIndex, "description", input.text)
         }
       }
 
@@ -141,31 +139,34 @@ StyledContainer {
           backgroundColor: on ? Theme.accent : Theme.backgroundAlt
           iconColor: on ? Theme.background : Theme.foreground
           opacity: on ? 1 : 0.5
-          onClicked: KeybindManager.setField(root.index, modelData[0], !on)
+          onClicked: KeybindManager.setField(root.bindIndex, modelData[0], !on)
         }
       }
 
+      // Moving only makes sense in the saved order, unfiltered
       SquareIconButton {
+        visible: KeybindManager.reorderable
         size: Widget.height
         iconText: "expand_less"
         tooltipText: I18n.tr("Move up")
-        enabled: root.index > 0
-        onClicked: KeybindManager.moveBind(root.index, root.index - 1)
+        enabled: root.bindIndex > 0
+        onClicked: KeybindManager.moveBind(root.bindIndex, root.bindIndex - 1)
       }
 
       SquareIconButton {
+        visible: KeybindManager.reorderable
         size: Widget.height
         iconText: "expand_more"
         tooltipText: I18n.tr("Move down")
-        enabled: root.index < KeybindManager.binds.length - 1
-        onClicked: KeybindManager.moveBind(root.index, root.index + 1)
+        enabled: root.bindIndex < KeybindManager.binds.length - 1
+        onClicked: KeybindManager.moveBind(root.bindIndex, root.bindIndex + 1)
       }
 
       SquareIconButton {
         size: Widget.height
         iconText: "close"
         tooltipText: I18n.tr("Remove")
-        onClicked: KeybindManager.removeBind(root.index)
+        onClicked: KeybindManager.removeBind(root.bindIndex)
       }
     }
 

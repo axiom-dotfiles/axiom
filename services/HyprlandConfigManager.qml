@@ -92,6 +92,7 @@ Singleton {
       "mediaPlayPause": ["media playPause", "Play/Pause", "Media"],
       "mediaNext": ["media next", "Next track", "Media"],
       "mediaPrevious": ["media previous", "Previous track", "Media"],
+      "mediaStop": ["media stop", "Stop", "Media"],
       "screenshot": ["screenshot take {0}", "Screenshot: {0}", "Apps"]
     })
 
@@ -119,10 +120,10 @@ Singleton {
       // Run by Hyprland, not over IPC, so it works when the shell is stuck
       "restartShell": [() => `hl.dsp.exec_cmd(${_lua(`qs kill ${shellCommand.slice(3)}; ${shellCommand} -d`)})`, "Restart shell", "Axiom"],
       "exitHyprland": [() => `hl.dsp.exec_cmd(${_lua("command -v hyprshutdown >/dev/null 2>&1 && hyprshutdown || hyprctl dispatch 'hl.dsp.exit()'")})`, "Exit Hyprland", "Axiom"],
-      // The apps from the Launcher settings, so a bind follows them
-      "terminal": [() => `hl.dsp.exec_cmd(${_lua(LauncherConfig.terminalCommand)})`, "Terminal", "Apps"],
-      "fileManager": [() => `hl.dsp.exec_cmd(${_lua(LauncherConfig.fileManagerCommand)})`, "File manager", "Apps"],
-      "browser": [() => `hl.dsp.exec_cmd(${_lua(LauncherConfig.browserCommand)})`, "Browser", "Apps"]
+      // The apps from the Apps settings, so a bind follows them
+      "terminal": [() => `hl.dsp.exec_cmd(${_lua(Apps.terminalCommand)})`, "Terminal", "Apps"],
+      "fileManager": [() => `hl.dsp.exec_cmd(${_lua(Apps.fileManagerCommand)})`, "File manager", "Apps"],
+      "browser": [() => `hl.dsp.exec_cmd(${_lua(Apps.browserCommand)})`, "Browser", "Apps"]
     })
 
   // Flags an action starts with when it's picked (the bind can change them)
@@ -138,7 +139,8 @@ Singleton {
       "brightnessDown": ["locked", "repeating"],
       "mediaPlayPause": ["locked"],
       "mediaNext": ["locked"],
-      "mediaPrevious": ["locked"]
+      "mediaPrevious": ["locked"],
+      "mediaStop": ["locked"]
     })
   readonly property var flagNames: ["repeating", "locked", "release"]
 
@@ -627,7 +629,7 @@ if #errors > 0 then error(table.concat(errors, "\\n")) end
   }
 
   // Everything the layer is made of; a change re-applies it
-  readonly property string _inputs: [mode, HyprlandConfig._bindsJson, HyprlandConfig._monitorsJson, HyprlandConfig._managedJson, HyprlandConfig.requiredSettings, HyprlandConfig.theme, HyprlandConfig.blur, Theme.borderFocus, Theme.border, Theme.baseColorNames.map(name => Theme.resolveColor(name)).join(","), Appearance.borderRadius, Appearance.borderWidth, Appearance.animFast, Appearance.animations, LauncherConfig.terminalCommand, LauncherConfig.fileManagerCommand, LauncherConfig.browserCommand, Idle.enabled].join("|")
+  readonly property string _inputs: [mode, HyprlandConfig._bindsJson, HyprlandConfig._monitorsJson, HyprlandConfig._managedJson, HyprlandConfig.requiredSettings, HyprlandConfig.theme, HyprlandConfig.blur, Theme.borderFocus, Theme.border, Theme.baseColorNames.map(name => Theme.resolveColor(name)).join(","), Appearance.borderRadius, Appearance.borderWidth, Appearance.animFast, Appearance.animations, Apps.terminalCommand, Apps.fileManagerCommand, Apps.browserCommand, Idle.enabled].join("|")
   on_InputsChanged: _debounce.restart()
 
   property Timer _debounce: Timer {
