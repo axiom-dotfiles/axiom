@@ -235,6 +235,7 @@ Item {
           y: addButton.height + Widget.spacing / 2
           width: addButton.width
           types: OverlayConfig.availableViewTypes
+          placeholderText: I18n.tr("Search page types")
           onTypeSelected: type => OverlayManager.addView(type)
         }
       }
