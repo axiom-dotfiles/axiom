@@ -39,6 +39,10 @@ Loader {
         labels[menu.id] = menu.name || menu.id;
         return labels;
       }, {});
+    if (fieldSchema["x-options"] === "notes")
+      return {
+        "": I18n.tr("Last opened")
+      };
     // Schema labels are English, translated like titles
     const labels = fieldSchema["x-enumLabels"] ?? {};
     return Object.keys(labels).reduce((out, value) => {

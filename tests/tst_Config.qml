@@ -159,6 +159,11 @@ TestCase {
     compare(config.EdgeMenus[0].extraHeight, 0);
     compare(config.EdgeMenus[1].extraWidth, 0);
     compare(config.EdgeMenus[1].extraHeight, 40);
+    // v17: a Notes module's name becomes the Markdown file it moved to
+    compare(cells[2].slots.main.properties.name, undefined);
+    compare(cells[2].slots.main.properties.note, "my_list.md");
+    compare(cells[3].slots.main.properties.note, "");
+    compare(cells[3].slots.main.properties.lockNote, false);
   }
 
   function test_migration_is_idempotent() {

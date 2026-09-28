@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 16
+  readonly property int currentVersion: 17
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -59,6 +59,8 @@ QtObject {
       result = _v14ToV15(result, changes);
     if (version < 16)
       result = _v15ToV16(result, changes);
+    if (version < 17)
+      result = _v16ToV17(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -470,6 +472,28 @@ QtObject {
         menu[key] = depth;
       changes.push(`EdgeMenus[${index}].extraDepth -> ${key} (${depth})`);
     });
+    return config;
+  }
+
+  // v17 keeps notes as Markdown files in a folder (NotesManager): a Notes
+  // module's `name` (its state file, note-<name>.json, with the same
+  // characters replaced) becomes the path of the file it moved to
+  function _v16ToV17(config, changes) {
+    const convert = (columns, where) => (columns ?? []).forEach(column => (column?.cells ?? []).forEach(cell => {
+          const slots = cell?.slots ?? {};
+          Object.keys(slots).forEach(key => {
+            const module = slots[key];
+            if (module?.type !== "Notes" || module.properties?.name === undefined)
+              return;
+            const name = module.properties.name;
+            delete module.properties.name;
+            if (name !== "")
+              module.properties.note = name.replace(/[^A-Za-z0-9_-]/g, "_") + ".md";
+            changes.push(`${where}: Notes.name -> note (${module.properties.note ?? "last opened"})`);
+          });
+        }));
+    (config.Overlay?.views ?? []).forEach((view, index) => convert(view?.columns, `Overlay.views[${index}]`));
+    (config.EdgeMenus ?? []).forEach((menu, index) => convert(menu?.columns, `EdgeMenus[${index}]`));
     return config;
   }
 }

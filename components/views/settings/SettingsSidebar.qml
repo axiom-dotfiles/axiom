@@ -31,6 +31,8 @@ Item {
       return "layers";
     case "Chat":
       return "chat";
+    case "Notes":
+      return "sticky_note_2";
     case "Updates":
       return "update";
     case "Backups":
@@ -103,7 +105,7 @@ Item {
             StyledText {
               // Category names come from the schema's x-category:
               // I18n.tr("Desktop") I18n.tr("Hyprland") I18n.tr("Look & Feel") I18n.tr("Bar & Popouts")
-              // I18n.tr("Overlay & OSD") I18n.tr("Chat") I18n.tr("Updates") I18n.tr("Backups")
+              // I18n.tr("Overlay & OSD") I18n.tr("Chat") I18n.tr("Notes") I18n.tr("Updates") I18n.tr("Backups")
               text: I18n.tr(entry.modelData.name)
               textColor: entry.selected ? Theme.background : Theme.foreground
               font.bold: entry.selected

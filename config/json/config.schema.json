@@ -8,7 +8,7 @@
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 16,
+      "default": 17,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
@@ -847,6 +847,21 @@
             }
           }
         }
+      }
+    },
+
+    "Notes": {
+      "type": "object",
+      "x-category": "Notes",
+      "title": "Notes",
+      "description": "Where the Notes module keeps its notes: plain Markdown files, one per note, in folders of your own. Checklists are Markdown tasks (- [ ] item), so other Markdown editors read them too.",
+      "additionalProperties": false,
+      "x-order": ["directory", "extensions", "showHidden", "confirmDelete"],
+      "properties": {
+        "directory": { "type": "string", "title": "Notes folder", "default": "", "description": "An absolute path (~/ works), e.g. a synced folder or a Markdown vault. Empty keeps notes in axiom's config/state/notes, which is not backed up." },
+        "extensions": { "type": "array", "title": "File types", "default": ["md", "txt"], "items": { "type": "string" }, "description": "File extensions the note list shows, comma-separated. New notes are .md." },
+        "showHidden": { "type": "boolean", "title": "Show hidden files", "default": false, "description": "List files and folders whose names start with a dot." },
+        "confirmDelete": { "type": "boolean", "title": "Confirm before deleting", "default": true, "description": "Deleted notes and folders go to the trash. Without gio (glib2) deleting is permanent, and always asks first." }
       }
     },
 
@@ -1964,7 +1979,11 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "name": {"type": "string", "title": "Note name", "default": "", "description": "Notes with the same name share their text."}
+            "note": { "type": "string", "title": "Note", "default": "", "x-options": "notes", "description": "The note to open, as a path in the notes folder (e.g. todo.md or work/ideas.md). Empty opens the last note this module showed." },
+            "lockNote": { "type": "boolean", "title": "Only this note", "default": false, "description": "Always show this note, with no note list: a clean scratchpad for an edge menu.", "x-showIf": { "note": { "not": "" } } },
+            "showHeader": { "type": "boolean", "title": "Header", "default": true, "description": "The note's name, the note list and the new note button." },
+            "showToolbar": { "type": "boolean", "title": "Toolbar", "default": true, "description": "The checklist and bullet buttons." },
+            "showCompleted": { "type": "boolean", "title": "Show completed items", "default": true, "description": "Hidden completed items stay in the note." }
           }
         }
       }

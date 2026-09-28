@@ -31,7 +31,9 @@
           {
             "cells": [
               { "layout": "Single", "slots": { "main": { "type": "QuickToggles" } } },
-              { "layout": "Single", "slots": { "main": { "type": "Session", "properties": { "actions": ["lock", "reboot"] } } } }
+              { "layout": "Single", "slots": { "main": { "type": "Session", "properties": { "actions": ["lock", "reboot"] } } } },
+              { "layout": "Single", "slots": { "main": { "type": "Notes", "properties": { "name": "my list" } } } },
+              { "layout": "Single", "slots": { "main": { "type": "Notes", "properties": { "name": "" } } } }
             ]
           }
         ]
