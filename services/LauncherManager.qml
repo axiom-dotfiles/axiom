@@ -13,6 +13,7 @@ import qs.components.methods
  *   /  shell commands (LauncherCommands)   =  calculator (qalc)
  *   >  run a shell command                 ?  web search
  *   @  ask the chat                        :  clipboard history
+ *   ;  emoji (EmojiManager)
  * and anything else searches apps and open windows, with a calculator row
  * when the text is math and a web search row last. Every row is
  *   { kind, image, glyph, title, usage, subtitle, hint, complete, run(shift) }
@@ -28,7 +29,7 @@ QtObject {
   // --- Public Properties ---
   property var results: []
   // What the search text is: "apps" | "commands" | "calc" | "run" | "web" |
-  // "chat" | "clipboard"
+  // "chat" | "clipboard" | "emoji"
   property string mode: "apps"
   // The results are the frequent apps shown before anything is typed
   property bool frequent: false
@@ -67,6 +68,8 @@ QtObject {
       ClipboardManager.refresh();
       return _set("clipboard", _clipboardRows(rest.trim()));
     }
+    if (prefix === ";" && LauncherConfig.emoji)
+      return _set("emoji", _emojiRows(rest.trim()));
 
     const q = raw.trim();
     if (q === "") {
@@ -599,6 +602,72 @@ QtObject {
     }
     function onCliphistInstalledChanged() {
       if (root.mode === "clipboard")
+        root._refresh();
+    }
+  }
+
+  // --- Emoji ---
+
+  // Recently used first with no text, else by name, then keyword, then
+  // group (keywords and groups only on a real match: a fuzzy one would
+  // match most of them)
+  function _emojiRows(query) {
+    const entries = EmojiManager.entries();
+    if (entries.length === 0)
+      return [_infoRow(I18n.tr("No emoji list"), I18n.tr("Run scripts/generate_emoji.py"))];
+    const usage = EmojiManager.usage;
+    const q = query.toLowerCase();
+    let matches;
+    if (q === "") {
+      const recent = Object.keys(usage).sort((a, b) => _entryFrecency(usage[b]) - _entryFrecency(usage[a]));
+      const byEmoji = entries.reduce((all, e) => {
+        all[e.e] = e;
+        return all;
+      }, {});
+      matches = recent.map(e => byEmoji[e]).filter(e => e).concat(entries.filter(e => !usage[e.e])).slice(0, _searchLimit);
+    } else {
+      const scored = [];
+      for (let i = 0; i < entries.length; i++) {
+        const e = entries[i];
+        const keyword = Math.max(0, ...e.k.map(k => root.score(k, q)).filter(s => s >= 50));
+        const group = root.score(e.g, q);
+        const s = Math.max(root.score(e.n, q), 0.85 * keyword, group >= 50 ? 0.5 * group : 0);
+        if (s > 0)
+          scored.push({
+            e: e,
+            i: i,
+            s: s + Math.min(25, 8 * Math.log2(1 + _entryFrecency(usage[e.e])))
+          });
+      }
+      scored.sort((a, b) => b.s - a.s || a.i - b.i);
+      matches = scored.slice(0, _searchLimit).map(m => m.e);
+    }
+    return matches.length > 0 ? matches.map(e => _emojiRow(e)) : [_infoRow(I18n.tr("No matches"), I18n.tr("Search emoji by name or keyword"))];
+  }
+
+  function _emojiRow(entry) {
+    const canType = EmojiManager.canType === true;
+    return {
+      kind: "emoji",
+      glyph: entry.e,
+      title: entry.n.charAt(0).toUpperCase() + entry.n.slice(1),
+      subtitle: entry.k.length > 0 ? entry.k.slice(0, 6).join(", ") : entry.g,
+      hint: canType ? I18n.tr("Shift+Enter types it") : "",
+      complete: ";" + entry.n,
+      run: shift => {
+        EmojiManager.copy(entry.e);
+        if (shift && canType)
+          EmojiManager.type(entry.e);
+        return true;
+      }
+    };
+  }
+
+  // The Shift+Enter hint, once wtype has been looked for
+  property Connections _emojiUpdates: Connections {
+    target: EmojiManager
+    function onCanTypeChanged() {
+      if (root.mode === "emoji")
         root._refresh();
     }
   }

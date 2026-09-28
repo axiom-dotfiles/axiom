@@ -25,7 +25,4 @@ fi
 "$VENV_DIR/bin/pip" install --upgrade --quiet -r "$REQUIREMENTS" >&2
 echo "$stamp" >"$STAMP"
 
-if ! command -v magick >/dev/null && ! command -v convert >/dev/null; then
-  echo "Warning: ImageMagick is not installed, so the wal backend will fail." >&2
-fi
 echo "venv ready at $VENV_DIR" >&2

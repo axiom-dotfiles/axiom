@@ -88,6 +88,41 @@ TestCase {
 
   // The real settings page: every category has cards, and every
   // `x-showIf` names a sibling or a config path that exists
+  function test_intro_on_the_sections_own_card() {
+    const groups = SchemaLayout.groups({
+      "properties": {
+        "S": {
+          "type": "object",
+          "title": "Sec",
+          "x-intro": "Status",
+          "properties": {
+            "a": {
+              "type": "boolean",
+              "title": "A"
+            },
+            "b": {
+              "type": "boolean",
+              "title": "B",
+              "x-group": "Other"
+            }
+          }
+        }
+      }
+    }, "S");
+    compare(groups.length, 2, "no separate card");
+    compare(groups[0].title, "Sec");
+    compare(groups[0].intro, "Status");
+    compare(groups[1].intro, "");
+  }
+
+  function test_real_schema_intros_exist() {
+    for (const key in schema.properties) {
+      const intro = schema.properties[key]["x-intro"];
+      if (intro)
+        verify(files.text("components/views/settings/" + intro + ".qml").includes("x-intro"), intro);
+    }
+  }
+
   function test_real_schema_categories() {
     const categories = SchemaLayout.categories(schema);
     verify(categories.length > 3);

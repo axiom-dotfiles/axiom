@@ -3,6 +3,7 @@ import QtQuick.Layouts
 
 import qs.config
 import qs.components.reusable
+import qs.components.forms
 
 // First page: what axiom is, language and name, and the overlay's size
 // (this window is sized as the overlay is, so it's the preview)

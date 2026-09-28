@@ -5,6 +5,7 @@ import QtQuick.Layouts
 import qs.config
 import qs.services
 import qs.components.reusable
+import qs.components.forms
 
 // Theme integrations (other apps in axiom's colors), marked by whether the
 // app is installed, then the lock screen, self-updates, the launcher's

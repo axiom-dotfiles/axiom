@@ -8,7 +8,7 @@
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 25,
+      "default": 26,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
@@ -59,11 +59,13 @@
       "title": "Idle",
       "description": "What happens when you step away: dimming, locking, turning the screens off and suspending, run by hypridle.",
       "additionalProperties": false,
-      "x-order": ["enabled", "dimTimeout", "dimLevel", "lockTimeout", "screenOffTimeout", "suspendTimeout", "lockBeforeSleep", "screenOnAfterSleep", "respectInhibitors", "listeners"],
+      "x-order": ["enabled", "dimTimeout", "dimMode", "dimLevel", "dimBy", "lockTimeout", "screenOffTimeout", "suspendTimeout", "lockBeforeSleep", "screenOnAfterSleep", "respectInhibitors", "listeners"],
       "properties": {
         "enabled": { "type": "boolean", "title": "Manage hypridle", "default": false, "description": "axiom runs hypridle with a config of its own (~/.local/state/axiom/hypridle.conf) and stops any other hypridle while this is on. Your own hypridle.conf is never touched; remove your own hypridle autostart line." },
         "dimTimeout": { "type": "integer", "title": "Dim the screens after", "x-unit": "s", "default": 150, "minimum": 0, "maximum": 7200, "description": "0 never dims. Brightness comes back when you return.", "x-showIf": { "enabled": true } },
-        "dimLevel": { "type": "integer", "title": "Dim to", "x-unit": "%", "default": 30, "minimum": 5, "maximum": 100, "description": "Screens already darker stay as they are.", "x-showIf": { "enabled": true } },
+        "dimMode": { "type": "string", "title": "Dim", "default": "to", "enum": ["to", "by"], "x-enumLabels": { "to": "To a set brightness", "by": "By a share of the current brightness" }, "description": "A set brightness leaves screens already darker as they are. A share always dims, unless a screen is already at 0.", "x-showIf": { "enabled": true } },
+        "dimLevel": { "type": "integer", "title": "Dim to", "x-unit": "%", "default": 30, "minimum": 5, "maximum": 100, "description": "Screens already darker stay as they are.", "x-showIf": { "enabled": true, "dimMode": "to" } },
+        "dimBy": { "type": "integer", "title": "Dim by", "x-unit": "%", "default": 50, "minimum": 5, "maximum": 95, "description": "How much of each screen's current brightness to take away: 50% takes 80% down to 40%.", "x-showIf": { "enabled": true, "dimMode": "by" } },
         "lockTimeout": { "type": "integer", "title": "Lock after", "x-unit": "s", "default": 300, "minimum": 0, "maximum": 7200, "description": "0 never locks on idle. Locks with the Lockscreen settings' locker.", "x-showIf": { "enabled": true } },
         "screenOffTimeout": { "type": "integer", "title": "Turn the screens off after", "x-unit": "s", "default": 330, "minimum": 0, "maximum": 7200, "description": "0 keeps them on.", "x-showIf": { "enabled": true } },
         "suspendTimeout": { "type": "integer", "title": "Suspend after", "x-unit": "s", "default": 0, "minimum": 0, "maximum": 14400, "description": "0 never suspends on idle.", "x-showIf": { "enabled": true } },
@@ -89,6 +91,23 @@
             }
           }
         }
+      }
+    },
+
+    "NightLight": {
+      "type": "object",
+      "x-category": "Desktop",
+      "x-intro": "NightLightStatus",
+      "title": "Night light",
+      "description": "Warmer screen colors in the evening, through hyprsunset (or wlsunset). The Night light quick action, `/nightlight` in the launcher and `qs -c axiom ipc call nightLight toggle` switch it by hand; that lasts until the next scheduled change.",
+      "additionalProperties": false,
+      "x-order": ["schedule", "startAt", "endAt", "temperature", "gamma"],
+      "properties": {
+        "schedule": { "type": "boolean", "title": "On a schedule", "default": false, "description": "Turn the night light on and off at set times." },
+        "startAt": { "type": "string", "title": "Turn on at", "default": "20:00", "pattern": "^([01]?\\d|2[0-3]):[0-5]\\d$", "description": "24-hour time, like 20:00.", "x-showIf": { "schedule": true } },
+        "endAt": { "type": "string", "title": "Turn off at", "default": "07:00", "pattern": "^([01]?\\d|2[0-3]):[0-5]\\d$", "description": "24-hour time, like 07:00. Earlier than the start runs past midnight.", "x-showIf": { "schedule": true } },
+        "temperature": { "type": "integer", "title": "Color temperature", "x-unit": "K", "default": 4500, "minimum": 1000, "maximum": 6500, "multipleOf": 100, "description": "Lower is warmer. 6500 K is the screens' own color." },
+        "gamma": { "type": "integer", "title": "Gamma", "x-unit": "%", "default": 100, "minimum": 20, "maximum": 100, "description": "Dims the screens a little further while the night light is on. 100% leaves them as they are." }
       }
     },
 
@@ -172,7 +191,8 @@
         "chat": { "type": "boolean", "title": "Ask chat (@)", "default": true, "description": "Type @ and a question to ask it in the overlay's Chat module, with the default preset." },
         "clipboard": { "type": "boolean", "title": "Clipboard history (:)", "default": true, "description": "Type : (or /clipboard) to search what you've copied; Enter copies it again, Shift+Enter removes it. axiom keeps the history in memory only, never on disk, and skips anything a password manager marks as sensitive. Turn this off if you copy passwords from apps that don't; turning it off clears the history." },
         "clipboardSource": { "type": "string", "title": "Clipboard history source", "default": "axiom", "enum": ["axiom", "cliphist"], "x-enumLabels": { "axiom": "axiom (in memory)", "cliphist": "cliphist" }, "description": "axiom records text clips itself. cliphist uses cliphist's history instead, images included, and records text and images into it while this is on (alongside any cliphist store you run yourself).", "x-showIf": { "clipboard": true } },
-        "clipboardMaxEntries": { "type": "integer", "title": "Clipboard history size", "default": 100, "minimum": 10, "maximum": 1000, "description": "How many clips axiom keeps.", "x-showIf": { "clipboard": true, "clipboardSource": "axiom" } }
+        "clipboardMaxEntries": { "type": "integer", "title": "Clipboard history size", "default": 100, "minimum": 10, "maximum": 1000, "description": "How many clips axiom keeps.", "x-showIf": { "clipboard": true, "clipboardSource": "axiom" } },
+        "emoji": { "type": "boolean", "title": "Emoji (;)", "default": true, "description": "Type ; (or /emoji) to search emoji by name or keyword; Enter copies one. With wtype installed, Shift+Enter also types it into the focused window." }
       }
     },
 
@@ -384,7 +404,7 @@
               "action": {
                 "type": "string",
                 "title": "Action",
-                "enum": ["launcher", "launcherSearch", "overlay", "overlayPage", "edgeMenu", "workspaceOverview", "powerMenu", "lock", "toggleDnd", "clearNotifications", "idleInhibit", "workspaceStep", "moveWindowStep", "moveWindowStepSilent", "workspaceNth", "moveWindowNth", "moveWindowNthSilent", "focusDir", "moveWindowDir", "resizeWindow", "closeWindow", "fullscreen", "toggleFloat", "pin", "centerWindow", "toggleGroup", "mouseDrag", "mouseResize", "toggleSpecial", "moveToSpecial", "restartShell", "volumeUp", "volumeDown", "toggleMute", "toggleMicMute", "brightnessUp", "brightnessDown", "mediaPlayPause", "mediaNext", "mediaPrevious", "mediaStop", "terminal", "fileManager", "browser", "screenshot", "exitHyprland", "exec"],
+                "enum": ["launcher", "launcherSearch", "overlay", "overlayPage", "edgeMenu", "workspaceOverview", "powerMenu", "lock", "toggleDnd", "clearNotifications", "idleInhibit", "nightLight", "nextWallpaper", "workspaceStep", "moveWindowStep", "moveWindowStepSilent", "workspaceNth", "moveWindowNth", "moveWindowNthSilent", "focusDir", "moveWindowDir", "resizeWindow", "closeWindow", "fullscreen", "toggleFloat", "pin", "centerWindow", "toggleGroup", "mouseDrag", "mouseResize", "toggleSpecial", "moveToSpecial", "restartShell", "volumeUp", "volumeDown", "toggleMute", "toggleMicMute", "brightnessUp", "brightnessDown", "mediaPlayPause", "mediaNext", "mediaPrevious", "mediaStop", "terminal", "fileManager", "browser", "screenshot", "exitHyprland", "exec"],
                 "x-enumLabels": {
                   "launcher": "App launcher",
                   "launcherSearch": "Launcher with text",
@@ -397,6 +417,8 @@
                   "toggleDnd": "Do not disturb",
                   "clearNotifications": "Clear notifications",
                   "idleInhibit": "Caffeine",
+                  "nightLight": "Night light",
+                  "nextWallpaper": "Next wallpaper",
                   "workspaceStep": "Workspace in a direction",
                   "moveWindowStep": "Move window in a direction",
                   "workspaceNth": "Workspace by number",
@@ -664,6 +686,48 @@
           "default": "~/Pictures/wallpapers",
           "pattern": "\\S",
           "description": "Folder the wallpaper pickers list images from (jpg, png, bmp). A leading ~ is your home folder."
+        },
+        "wallpaperMode": {
+          "type": "string",
+          "title": "Wallpaper mode",
+          "enum": ["fixed", "rotate", "variant"],
+          "x-enumLabels": { "fixed": "Fixed", "rotate": "Rotate on a timer", "variant": "One for light, one for dark" },
+          "default": "fixed",
+          "description": "Fixed keeps the wallpaper you pick. Rotate changes it on a timer, from the wallpaper folder. One for light, one for dark shows the wallpaper you picked for the theme's current variant on every monitor. A generated theme follows the wallpaper as it changes. Also set on the overlay's Themes page."
+        },
+        "wallpaperRotation": {
+          "type": "object",
+          "title": "Wallpaper rotation",
+          "additionalProperties": false,
+          "x-showIf": { "wallpaperMode": "rotate" },
+          "x-order": ["interval", "order", "sameOnAll"],
+          "properties": {
+            "interval": { "type": "integer", "title": "Change every", "x-unit": "min", "default": 30, "minimum": 1, "maximum": 1440, "description": "How long each wallpaper stays up." },
+            "order": { "type": "string", "title": "Order", "enum": ["random", "sequential"], "x-enumLabels": { "random": "Random", "sequential": "In order, by name" }, "default": "random", "description": "Random never picks the wallpaper already showing." },
+            "sameOnAll": { "type": "boolean", "title": "Same on every monitor", "default": false, "description": "Show one wallpaper on all monitors. Off, each monitor gets its own." }
+          }
+        },
+        "variantWallpapers": {
+          "type": "object",
+          "default": {},
+          "description": "The wallpapers for the light and dark variants, as file URLs (set on the overlay's Themes page).",
+          "additionalProperties": false,
+          "properties": {
+            "dark": { "type": "string", "default": "" },
+            "light": { "type": "string", "default": "" }
+          },
+          "x-settings": false
+        },
+        "themeSchedule": {
+          "type": "object",
+          "title": "Light and dark by time",
+          "additionalProperties": false,
+          "x-order": ["enabled", "lightAt", "darkAt"],
+          "properties": {
+            "enabled": { "type": "boolean", "title": "Switch by time of day", "default": false, "description": "Use the theme's light variant during the day and its dark one at night. Switching by hand lasts until the next change." },
+            "lightAt": { "type": "string", "title": "Light from", "default": "07:00", "pattern": "^([01]?\\d|2[0-3]):[0-5]\\d$", "description": "24-hour time, like 07:00.", "x-showIf": { "enabled": true } },
+            "darkAt": { "type": "string", "title": "Dark from", "default": "19:00", "pattern": "^([01]?\\d|2[0-3]):[0-5]\\d$", "description": "24-hour time, like 19:00.", "x-showIf": { "enabled": true } }
+          }
         },
         "font": {
           "type": "object",

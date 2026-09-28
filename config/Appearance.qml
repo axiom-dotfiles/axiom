@@ -26,6 +26,21 @@ QtObject {
   readonly property string wallpaperBackend: _c.wallpaperBackend
   readonly property string wallpaperFolder: _c.wallpaperFolder
   readonly property string wallpaperPath: _c.wallpaperFolder.trim().replace(/^~(?=\/|$)/, Quickshell.env("HOME")).replace(/\/+$/, "")
+  // "fixed" | "rotate" (wallpaperRotation) | "variant" (variantWallpapers),
+  // driven by WallpaperManager
+  readonly property string wallpaperMode: _c.wallpaperMode
+  readonly property int rotationInterval: _c.wallpaperRotation.interval
+  // "random" | "sequential"
+  readonly property string rotationOrder: _c.wallpaperRotation.order
+  readonly property bool rotationSameOnAll: _c.wallpaperRotation.sameOnAll
+  // { dark, light }: file URLs, "" for none
+  readonly property string darkWallpaper: _c.variantWallpapers.dark
+  readonly property string lightWallpaper: _c.variantWallpapers.light
+
+  // --- Light/dark by time of day (WallpaperManager) ---
+  readonly property bool themeScheduled: _c.themeSchedule.enabled
+  readonly property string lightAt: _c.themeSchedule.lightAt
+  readonly property string darkAt: _c.themeSchedule.darkAt
 
   // --- Font ---
   readonly property string fontFamily: _c.font.family

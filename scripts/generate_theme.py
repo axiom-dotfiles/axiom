@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Generates a dark and light base16 theme pair from a wallpaper.
+"""Generates dark and light base16 theme pairs from a wallpaper, one per style.
 
-A pywal backend only extracts candidate colors; the palette itself is built
-in OKLCH (a perceptual space, so equal lightness looks equally light at every
-hue), Material-style:
+Candidate colors come from k-means over the image in OKLab. The palette is
+built in OKLCH (a perceptual space, so equal lightness looks equally light at
+every hue), Material-style:
 
 - Seed: each candidate is weighed by how much of the image shares its hue and
   by its chroma (Material's scoring), and the best one becomes the primary
@@ -15,14 +15,15 @@ hue), Material-style:
   rotated slightly toward the seed (Material's harmonize). Lightness and chroma
   come from fixed per-hue targets, scaled by how colorful the image is.
 
+A style (STYLES) scales those steps, as Material's scheme variants do, so
+each pair looks different from the same image.
+
 The lightness/chroma/hue targets are measured from the hand-made themes in
 config/themes (Catppuccin, Tokyo Night, Gruvbox, Solarized), so generated
 themes sit in the same range.
 """
 import argparse
-import importlib
 import json
-import logging
 import math
 import sys
 from datetime import datetime, timezone
@@ -31,7 +32,31 @@ from pathlib import Path
 import numpy as np
 from PIL import Image
 
-BACKENDS = ["wal", "colorz", "colorthief", "haishoku"]
+# Each style's changes to the tonal build (every factor defaults to 1):
+#   chroma          accent chroma
+#   primary_chroma  base0F's chroma range
+#   tint            how strongly the neutrals are tinted
+#   tint_seed       tint the neutrals with the seed's hue, not the image's cast
+#   deviation       how far from its canonical hue a slot takes a wallpaper hue
+#   harmonize       how far a slot with no wallpaper hue turns toward the seed
+#                   (both stay within the slot's cell, so red never turns orange)
+#   fidelity        0-1, how far an accent's chroma moves to its wallpaper color's
+#   seed_rank       which distinct wallpaper hue is the seed (0: the best)
+STYLES = {
+    # Material's default: the wallpaper's main hue, calm accents
+    "tonal": {},
+    # Stronger color everywhere, with neutrals in the seed's hue
+    "vibrant": {"chroma": 1.35, "primary_chroma": 1.3, "tint": 2.0, "tint_seed": True},
+    # Accents as the wallpaper has them: any of its hues in the slot's cell,
+    # at the chroma it has them in
+    "faithful": {"deviation": 3.0, "harmonize": 2.0, "fidelity": 0.7},
+    # Soft accents on nearly grey neutrals
+    "muted": {"chroma": 0.55, "primary_chroma": 0.6, "tint": 0.45},
+    # The wallpaper's second hue as the seed (the tonal pair's accentAlt)
+    "alternate": {"seed_rank": 1},
+}
+
+CANDIDATES = 24  # k-means clusters: enough that small vivid areas get their own
 
 # Semantic -> base16 maps, shared with the shell (config/json/theme-defaults.json)
 _DEFAULTS = json.loads((Path(__file__).resolve().parent.parent / "config" / "json" / "theme-defaults.json").read_text())
@@ -153,20 +178,32 @@ def contrast(a, b):
 
 # --- Extraction ---
 
-def extract_candidates(wallpaper, backend):
-    """The backend's raw colors (before pywal's own palette adjustment)."""
-    logging.disable(logging.CRITICAL)
-    try:
-        module = importlib.import_module(f"pywal.backends.{backend}")
-        colors = module.gen_colors(str(wallpaper))
-    except SystemExit:  # pywal backends exit when their package is missing
-        raise RuntimeError(f"the '{backend}' backend's package is not installed (run scripts/setup_venv.sh)")
-    finally:
-        logging.disable(logging.NOTSET)
-    colors = [c for c in colors if isinstance(c, str) and c.startswith("#")]
-    if not colors:
-        raise RuntimeError(f"the '{backend}' backend returned no colors")
-    return list(dict.fromkeys(c.lower() for c in colors))
+def extract_candidates(pixels, k=CANDIDATES, iterations=24):
+    """The image's main colors, as hex: k-means over its OKLab pixels, with
+    k-means++ starts from a fixed seed, so an image always gives the same."""
+    rng = np.random.default_rng(0)
+    k = min(k, len(np.unique(pixels.round(3), axis=0)))
+    # k-means++: each start is far from the ones before, so a small vivid
+    # area gets a cluster of its own instead of merging into its surroundings
+    centres = [pixels[rng.integers(len(pixels))]]
+    nearest = ((pixels - centres[0]) ** 2).sum(axis=1)
+    for _ in range(1, k):
+        if nearest.sum() == 0:
+            break
+        centres.append(pixels[rng.choice(len(pixels), p=nearest / nearest.sum())])
+        nearest = np.minimum(nearest, ((pixels - centres[-1]) ** 2).sum(axis=1))
+    centres = np.array(centres)
+
+    for _ in range(iterations):
+        labels = ((pixels[:, None, :] - centres[None, :, :]) ** 2).sum(axis=2).argmin(axis=1)
+        moved = np.array([pixels[labels == i].mean(axis=0) if (labels == i).any() else centres[i]
+                          for i in range(len(centres))])
+        if np.allclose(moved, centres, atol=1e-5):
+            break
+        centres = moved
+
+    rgb = np.clip(oklab_to_srgb(centres), 0, 1)
+    return list(dict.fromkeys("#" + "".join(f"{round(v * 255):02x}" for v in c) for c in rgb))
 
 
 def load_pixels(wallpaper):
@@ -224,32 +261,45 @@ class Analysis:
 
 # --- Palette ---
 
-def build_palette(analysis):
+def build_palette(analysis, style):
     """Both variants' base16 colors, plus the accentAlt slot and the seed."""
-    seeds = analysis.seeds()
-    if seeds:
-        seed = seeds[0]
+    factor = lambda key: style.get(key, 1.0)
+
+    # The wallpaper's hues at least 40 degrees apart, best first
+    distinct = []
+    for i in analysis.seeds():
+        if all(abs(hue_diff(analysis.H[i], analysis.H[j])) >= 40 for j in distinct):
+            distinct.append(i)
+    rank = style.get("seed_rank", 0)
+    if rank < len(distinct):
+        seed = distinct[rank]
         seed_h, seed_c = float(analysis.H[seed]), float(analysis.C[seed])
         seed_hex = analysis.candidates[seed]
+    elif distinct:
+        # Not that many hues: Material's tertiary, 60 degrees on from the best
+        seed_h = (float(analysis.H[distinct[0]]) + 60) % 360
+        seed_c, seed_hex = float(analysis.C[distinct[0]]), None
     else:
         # A grey image: take the cast's hue, with barely any color
         seed_h, seed_c, seed_hex = analysis.cast_hue, MIN_CHROMA, None
 
-    # A second, distinct wallpaper hue for accentAlt, else Material's tertiary
-    alt_h = next((float(analysis.H[i]) for i in seeds[1:]
+    # Another distinct wallpaper hue for accentAlt, else Material's tertiary
+    alt_h = next((float(analysis.H[i]) for i in distinct
                   if abs(hue_diff(seed_h, analysis.H[i])) >= 40), (seed_h + 60) % 360)
 
     # Accent chroma follows how colorful the image is, within reason
     vivid = min(max((analysis.colorfulness / REFERENCE_CHROMA) ** 0.5, 0.7), 1.15)
-    if not seeds:
+    if not distinct:
         vivid = 0.7
+    vivid *= factor("chroma")
 
     # The neutrals take the image's cast, or the seed's hue when it has none
-    neutral_h = analysis.cast_hue if analysis.cast_chroma >= 0.008 else seed_h
-    tint = min(max(0.008 + analysis.cast_chroma * 0.5 + seed_c * 0.06, 0.008), 0.034)
+    neutral_h = seed_h if style.get("tint_seed") or analysis.cast_chroma < 0.008 else analysis.cast_hue
+    tint = min(max(0.008 + analysis.cast_chroma * 0.5 + seed_c * 0.06, 0.008), 0.034) * factor("tint")
 
-    hues = {slot: accent_hue(slot, analysis, seed_h) for slot in ACCENTS}
-    alt_slot = min(ALT_SLOTS, key=lambda s: abs(hue_diff(hues[s], alt_h)))
+    hues = {slot: accent_hue(slot, analysis, seed_h, factor("deviation"), factor("harmonize"))
+            for slot in ACCENTS}
+    alt_slot = min(ALT_SLOTS, key=lambda s: abs(hue_diff(hues[s][0], alt_h)))
 
     palettes = {}
     for variant in ("dark", "light"):
@@ -260,28 +310,36 @@ def build_palette(analysis):
 
         for slot, (_, _, dark_l, dark_c, light_l, light_c) in ACCENTS.items():
             L, C = (light_l, light_c) if light else (dark_l, dark_c)
-            H = hues[slot] + (LIGHT_HUE_SHIFT.get(slot, 0) if light else 0)
-            colors[slot] = readable(L, C * vivid, H, colors["base00"], variant)
+            hue, wall_c = hues[slot]
+            H = hue + (LIGHT_HUE_SHIFT.get(slot, 0) if light else 0)
+            C *= vivid
+            if wall_c is not None:
+                C += (wall_c - C) * style.get("fidelity", 0)
+            colors[slot] = readable(L, C, H, colors["base00"], variant)
 
-        lo, hi = PRIMARY_C[variant]
+        lo, hi = (c * factor("primary_chroma") for c in PRIMARY_C[variant])
         colors[PRIMARY] = readable(PRIMARY_L[variant], min(max(seed_c, lo), hi), seed_h, colors["base00"], variant)
         palettes[variant] = colors
 
     return palettes, alt_slot, seed_hex
 
 
-def accent_hue(slot, analysis, seed_h):
-    """A wallpaper hue near the slot's, if there is one, else the slot's own
-    hue rotated toward the seed (Material's harmonize)."""
+def accent_hue(slot, analysis, seed_h, deviation_factor=1.0, harmonize_factor=1.0):
+    """(hue, chroma): the wallpaper color near the slot's hue with the most
+    weight, if there is one, else the slot's own hue rotated toward the seed
+    (Material's harmonize) and no chroma."""
     canonical, deviation = ACCENTS[slot][:2]
-    near = [(analysis.population[i] * analysis.C[i], float(analysis.H[i]))
+    # A slot's cell reaches halfway to its neighbours' hues
+    cell = min(abs(hue_diff(canonical, other[0])) for s, other in ACCENTS.items() if s != slot) / 2
+    deviation = min(deviation * deviation_factor, cell)
+    near = [(analysis.population[i] * analysis.C[i], float(analysis.H[i]), float(analysis.C[i]))
             for i in range(len(analysis.candidates))
             if analysis.C[i] >= MIN_CHROMA * 1.5 and abs(hue_diff(canonical, analysis.H[i])) <= deviation]
     if near:
-        return max(near)[1]
+        return max(near)[1:]
     shift = hue_diff(canonical, seed_h)
-    rotation = math.copysign(min(abs(shift) * 0.5, HARMONIZE_MAX, deviation), shift)
-    return (canonical + rotation) % 360
+    rotation = math.copysign(min(abs(shift) * 0.5, HARMONIZE_MAX * harmonize_factor, deviation), shift)
+    return (canonical + rotation) % 360, None
 
 
 def readable(L, C, H, background, variant, minimum=3.0):
@@ -297,11 +355,11 @@ def readable(L, C, H, background, variant, minimum=3.0):
 
 # --- Output ---
 
-def theme_json(variant, colors, alt_slot, paired, generated, backend):
+def theme_json(variant, colors, alt_slot, paired, generated, style):
     semantic = dict(SEMANTIC_MAP, accent=PRIMARY, borderFocus=PRIMARY, accentAlt=alt_slot)
     return {
-        "name": f"Pywal {backend.capitalize()} {variant.capitalize()}",
-        "author": "pywal",
+        "name": f"Wallpaper {style.capitalize()} {variant.capitalize()}",
+        "author": "axiom",
         "variant": variant,
         "paired": paired,
         "generated": generated,
@@ -310,24 +368,23 @@ def theme_json(variant, colors, alt_slot, paired, generated, backend):
     }
 
 
-def generate(wallpaper, pixels, output_dir, backend):
-    analysis = Analysis(pixels, extract_candidates(wallpaper, backend))
-    palettes, alt_slot, seed = build_palette(analysis)
+def generate(wallpaper, analysis, output_dir, style):
+    palettes, alt_slot, seed = build_palette(analysis, STYLES[style])
 
     generated = {
-        "source": "pywal", "backend": backend, "wallpaper": str(Path(wallpaper).resolve()),
+        "source": "wallpaper", "style": style, "wallpaper": str(Path(wallpaper).resolve()),
         "seed": seed,
         "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
     }
-    dark, light = f"pywal-dark-{backend}", f"pywal-light-{backend}"
+    dark, light = f"wallpaper-{style}-dark", f"wallpaper-{style}-light"
     for variant, name, paired in (("dark", dark, light), ("light", light, dark)):
         path = output_dir / f"{name}.json"
-        path.write_text(json.dumps(theme_json(variant, palettes[variant], alt_slot, paired, generated, backend), indent=2) + "\n")
+        path.write_text(json.dumps(theme_json(variant, palettes[variant], alt_slot, paired, generated, style), indent=2) + "\n")
         print(f"Wrote {path}")
     return palettes
 
 
-def preview(backend, palettes):
+def preview(style, palettes):
     """Truecolor swatches of both variants, for tuning in a terminal."""
     def block(hex_val):
         r, g, b = (round(v * 255) for v in hex_to_rgb(hex_val))
@@ -335,48 +392,33 @@ def preview(backend, palettes):
 
     for variant, colors in palettes.items():
         keys = sorted(colors)
-        print(f"{backend:>10} {variant:5} " + "".join(block(colors[k]) for k in keys[:8])
+        print(f"{style:>10} {variant:5} " + "".join(block(colors[k]) for k in keys[:8])
               + "  " + "".join(block(colors[k]) for k in keys[8:]))
 
 
 def main():
     parser = argparse.ArgumentParser(description="Generate dark and light base16 themes from a wallpaper.")
-    parser.add_argument("wallpaper", nargs="?", help="Path to the wallpaper image.")
-    parser.add_argument("--output_dir", help="Directory to write the generated JSON themes to.")
-    parser.add_argument("--backend", nargs="+", default=BACKENDS, choices=BACKENDS,
-                        help="The pywal backend(s) that extract the candidate colors (default: all).")
+    parser.add_argument("wallpaper", help="Path to the wallpaper image.")
+    parser.add_argument("--output_dir", required=True, help="Directory to write the generated JSON themes to.")
+    parser.add_argument("--style", nargs="+", default=list(STYLES), choices=list(STYLES),
+                        help="The style(s) to generate a pair in (default: all).")
     parser.add_argument("--preview", action="store_true", help="Print the palettes as terminal swatches.")
-    parser.add_argument("--list-backends", action="store_true", help="List the installed backends and exit.")
     args = parser.parse_args()
-
-    if args.list_backends:
-        logging.disable(logging.CRITICAL)
-        for backend in BACKENDS:
-            try:
-                importlib.import_module(f"pywal.backends.{backend}")
-                print(f"  - {backend}")
-            except SystemExit:  # pywal backends exit when their package is missing
-                print(f"  - {backend} (not installed)")
-        return
-    if not args.wallpaper or not args.output_dir:
-        parser.error("wallpaper and --output_dir are required")
 
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
-    pixels = load_pixels(args.wallpaper)
-
-    # One failing backend doesn't stop the others; only all of them failing does
-    failed = 0
-    for backend in args.backend:
-        try:
-            palettes = generate(args.wallpaper, pixels, output_dir, backend)
-            if args.preview:
-                preview(backend, palettes)
-        except Exception as e:
-            failed += 1
-            print(f"Backend '{backend}' failed: {e}", file=sys.stderr)
-    if failed == len(args.backend):
-        sys.exit(1)
+    try:
+        pixels = load_pixels(args.wallpaper)
+    except OSError as e:
+        sys.exit(f"Can't read the wallpaper: {e}")
+    analysis = Analysis(pixels, extract_candidates(pixels))
+    for style in args.style:
+        palettes = generate(args.wallpaper, analysis, output_dir, style)
+        if args.preview:
+            preview(style, palettes)
+    # The pywal backends' pairs, from before styles
+    for old in output_dir.glob("pywal-*.json"):
+        old.unlink()
 
 
 if __name__ == "__main__":

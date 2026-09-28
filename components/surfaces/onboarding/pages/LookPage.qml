@@ -8,6 +8,7 @@ import qs.config
 import qs.services
 import qs.components.reusable
 import qs.components.content
+import qs.components.forms
 
 // The look: the wallpaper folder, bar style and screen border here, with the Themes
 // page's wallpaper picker and theme list beside it

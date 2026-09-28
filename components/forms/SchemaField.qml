@@ -191,6 +191,8 @@ Loader {
       label: root.label
       description: root.description
       multiline: root.fieldSchema["x-multiline"] === true
+      // Text that doesn't match yet (a half-typed time) isn't committed
+      pattern: root.fieldSchema.pattern ?? null
       suggestions: SettingsManager.suggestionsFor(root.fieldSchema)
       currentConfigValue: root.current ?? ""
       onValueChanged: root.commit(value)

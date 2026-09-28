@@ -127,6 +127,16 @@ QtObject {
       }
     },
     {
+      name: "nextwallpaper",
+      aliases: ["nextwall", "rotate"],
+      glyph: "shuffle",
+      description: () => I18n.tr("Next wallpaper of the rotation"),
+      run: () => {
+        WallpaperManager.next();
+        return false;
+      }
+    },
+    {
       name: "generate",
       aliases: ["pywal"],
       glyph: "auto_fix",
@@ -275,6 +285,21 @@ QtObject {
         return false;
       }
     },
+    {
+      name: "nightlight",
+      aliases: ["night", "sunset"],
+      glyph: "nightlight",
+      usage: "[on | off]",
+      description: () => I18n.tr("Warmer screen colors"),
+      available: () => NightLightManager.available,
+      status: () => NightLightManager.active ? I18n.tr("On") : I18n.tr("Off"),
+      options: () => root._onOffOptions(),
+      run: (arg, value) => {
+        const on = root._onOff(value ?? arg);
+        NightLightManager.setActive(on === null ? !NightLightManager.active : on);
+        return false;
+      }
+    },
     // --- Workspaces & shell ---
     {
       name: "ws",
@@ -407,7 +432,7 @@ QtObject {
       run: () => Quickshell.reload(false)
     },
     // --- Other searches ---
-    root._prefix("calc", ["math"], "calculate", "Calculate (or start with =)", "=", () => LauncherConfig.calculator), root._prefix("run", ["exec", "sh"], "terminal", "Run a shell command (or start with >)", ">", () => LauncherConfig.runCommands), root._prefix("web", ["search"], "web", "Search the web (or start with ?)", "?", () => LauncherConfig.webSearch), root._prefix("clipboard", ["clip", "paste"], "content_paste", "Search the clipboard history (or start with :)", ":", () => LauncherConfig.clipboard), root._prefix("help", ["commands"], "help", "List every command", "/", () => true)]
+    root._prefix("calc", ["math"], "calculate", "Calculate (or start with =)", "=", () => LauncherConfig.calculator), root._prefix("run", ["exec", "sh"], "terminal", "Run a shell command (or start with >)", ">", () => LauncherConfig.runCommands), root._prefix("web", ["search"], "web", "Search the web (or start with ?)", "?", () => LauncherConfig.webSearch), root._prefix("clipboard", ["clip", "paste"], "content_paste", "Search the clipboard history (or start with :)", ":", () => LauncherConfig.clipboard), root._prefix("emoji", ["emojis", "emoticon"], "mood", "Search emoji (or start with ;)", ";", () => LauncherConfig.emoji), root._prefix("help", ["commands"], "help", "List every command", "/", () => true)]
 
   // --- Builders for families of alike commands ---
 
@@ -486,7 +511,7 @@ QtObject {
       glyph: glyph,
       // I18n.tr("Calculate (or start with =)") I18n.tr("Run a shell command (or start with >)")
       // I18n.tr("Search the web (or start with ?)") I18n.tr("List every command")
-      // I18n.tr("Search the clipboard history (or start with :)")
+      // I18n.tr("Search the clipboard history (or start with :)") I18n.tr("Search emoji (or start with ;)")
       description: () => I18n.tr(description),
       available: available,
       run: arg => prefix + arg

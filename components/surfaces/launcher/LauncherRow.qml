@@ -23,6 +23,8 @@ Item {
   signal clicked
 
   readonly property bool _image: !!modelData.image
+  // An emoji is its own picture: bigger, on no tile
+  readonly property bool _emoji: modelData.kind === "emoji"
   readonly property color _titleColor: current ? Theme.accent : Theme.foreground
 
   // Selection pill with an accent bar
@@ -90,7 +92,7 @@ Item {
         anchors.fill: parent
         visible: !root._image
         radius: Appearance.borderRadius
-        color: root.current ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.18) : Theme.backgroundAlt
+        color: root._emoji ? "transparent" : root.current ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.18) : Theme.backgroundAlt
         Behavior on color {
           ColorAnimation {
             duration: Appearance.animFast
@@ -100,7 +102,7 @@ Item {
         StyledIcon {
           anchors.centerIn: parent
           text: root.modelData.glyph ?? ""
-          textSize: Math.round(LauncherConfig.iconSize * 0.55)
+          textSize: Math.round(LauncherConfig.iconSize * (root._emoji ? 0.8 : 0.55))
           textColor: root.modelData.armed ? Theme.error : root._titleColor
         }
       }

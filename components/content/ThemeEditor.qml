@@ -4,12 +4,13 @@ import QtQuick.Layouts
 import qs.config
 import qs.services
 import qs.components.reusable
+import qs.components.forms
 import qs.components.content.base
 
 // The theme list: one tile per theme (a dark/light pair is one theme),
 // stock and generated, each painted in its own colors, plus the Dark/Light
-// switch that picks the variant. Themes apply immediately, so there's
-// nothing to save.
+// switch that picks the variant and Auto, which switches it by time of day
+// (WallpaperManager). Themes apply immediately, so there's nothing to save.
 TitledCard {
   id: root
 
@@ -30,18 +31,47 @@ TitledCard {
       Layout.fillWidth: true
       spacing: Widget.spacing / 2
 
-      ModeButton {
+      SegmentButton {
         text: I18n.tr("Dark")
         active: Appearance.darkMode
         available: root.hasDark
         onClicked: ThemeManager.setLightMode(false)
       }
 
-      ModeButton {
+      SegmentButton {
         text: I18n.tr("Light")
         active: !Appearance.darkMode
         available: root.hasLight
         onClicked: ThemeManager.setLightMode(true)
+      }
+
+      // A switch of its own: picking Dark or Light by hand lasts until the
+      // schedule's next change
+      SegmentButton {
+        Layout.fillWidth: false
+        iconText: "schedule"
+        text: I18n.tr("Auto")
+        active: Appearance.themeScheduled
+        onClicked: SettingsManager.commitValues({
+          "Appearance.themeSchedule.enabled": !Appearance.themeScheduled
+        })
+      }
+    },
+    RowLayout {
+      visible: Appearance.themeScheduled
+      Layout.fillWidth: true
+      spacing: Widget.spacing
+
+      SettingRows {
+        Layout.fillWidth: true
+        Layout.alignment: Qt.AlignTop
+        paths: ["Appearance.themeSchedule.lightAt"]
+      }
+
+      SettingRows {
+        Layout.fillWidth: true
+        Layout.alignment: Qt.AlignTop
+        paths: ["Appearance.themeSchedule.darkAt"]
       }
     },
     StyledText {
@@ -53,20 +83,6 @@ TitledCard {
       wrapMode: Text.WordWrap
     }
   ]
-
-  // One half of the Dark/Light segment; a variant the theme lacks is dimmed
-  component ModeButton: StyledTextButton {
-    required property bool active
-    required property bool available
-    Layout.fillWidth: true
-    Layout.preferredHeight: Widget.height
-    enabled: available
-    opacity: available ? 1 : 0.4
-    backgroundColor: active ? Theme.accent : Theme.backgroundHighlight
-    textColor: active ? Theme.background : Theme.foreground
-    hoverColor: active ? Theme.accent : Theme.backgroundAlt
-    textHoverColor: active ? Theme.background : Theme.foreground
-  }
 
   component SectionHeading: ColumnLayout {
     id: heading

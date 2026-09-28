@@ -303,6 +303,19 @@ QtObject {
     return true;
   }
 
+  // Sets config values by dotted path ({ "Apps.terminal": "foot" }) and
+  // saves them at once; false if the result doesn't validate. For pages
+  // that apply as they go (SettingRows), not the settings page's draft.
+  function commitValues(values) {
+    const next = _clone(ConfigManager.config);
+    for (const dottedPath of Object.keys(values))
+      _setAt(next, dottedPath.split("."), values[dottedPath]);
+    if (!ConfigManager.commit(next))
+      return false;
+    ensureLoaded();
+    return true;
+  }
+
   // A value anywhere in the running config, by dotted path
   // ("Workspaces.layout"): what an `x-showIf` key starting with `/` reads
   function configValueAt(dottedPath) {

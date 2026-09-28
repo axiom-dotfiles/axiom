@@ -41,6 +41,8 @@ QtObject {
   // "axiom" | "cliphist"
   readonly property string clipboardSource: _c.clipboardSource
   readonly property int clipboardMaxEntries: _c.clipboardMaxEntries
+  // ";" searches emoji (EmojiManager)
+  readonly property bool emoji: _c.emoji
   // With {} where the terms go
   readonly property string searchEngine: _c.searchEngine
 }

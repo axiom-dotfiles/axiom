@@ -143,7 +143,8 @@ FocusScope {
           commands: "settings",
           calc: "calculate",
           run: "terminal",
-          web: "web"
+          web: "web",
+          emoji: "mood"
         })
       text: glyphs[LauncherManager.mode] ?? glyphs.apps
       textColor: Theme.accent
@@ -222,7 +223,8 @@ FocusScope {
           commands: I18n.tr("Commands"),
           calc: I18n.tr("Calculator"),
           run: I18n.tr("Run"),
-          web: I18n.tr("Web")
+          web: I18n.tr("Web"),
+          emoji: I18n.tr("Emoji")
         })
       visible: LauncherManager.mode !== "apps"
       implicitWidth: modeLabel.implicitWidth + 16
@@ -343,7 +345,8 @@ FocusScope {
       Repeater {
         // I18n.tr("commands") I18n.tr("calculate") I18n.tr("run") I18n.tr("web")
         // I18n.tr("complete") I18n.tr("open") I18n.tr("ask") I18n.tr("clipboard")
-        model: [[LauncherConfig.commands, "/", "commands"], [LauncherConfig.calculator, "=", "calculate"], [LauncherConfig.runCommands, ">", "run"], [LauncherConfig.webSearch, "?", "web"], [LauncherConfig.chat, "@", "ask"], [LauncherConfig.clipboard, ":", "clipboard"], [true, "Tab", "complete"], [true, "↵", "open"]].filter(hint => hint[0])
+        // I18n.tr("emoji")
+        model: [[LauncherConfig.commands, "/", "commands"], [LauncherConfig.calculator, "=", "calculate"], [LauncherConfig.runCommands, ">", "run"], [LauncherConfig.webSearch, "?", "web"], [LauncherConfig.chat, "@", "ask"], [LauncherConfig.clipboard, ":", "clipboard"], [LauncherConfig.emoji, ";", "emoji"], [true, "Tab", "complete"], [true, "↵", "open"]].filter(hint => hint[0])
 
         KeyHint {
           required property var modelData

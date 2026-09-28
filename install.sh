@@ -30,13 +30,13 @@ REQUIRED=(git hyprland quickshell jq python ttf-material-symbols-variable)
 # "feature|packages", offered one at a time
 OPTIONAL=(
   "Wallpapers|awww"
-  "Theme generation from wallpapers|imagemagick"
   "Wi-Fi menu and network widget|networkmanager"
   "Package update checks|pacman-contrib"
   "Copying screenshots to the clipboard|wl-clipboard"
   "Screen recording|slurp wf-recorder"
   "Annotating screenshots|satty"
   "Launcher calculator|libqalculate wl-clipboard"
+  "Typing emoji from the launcher (copying needs only wl-clipboard)|wtype wl-clipboard"
   "Brightness keys and OSD bar (laptop panels, external monitors over DDC/CI)|brightnessctl ddcutil"
   "hyprlock lock mode and locking on idle|hyprlock hypridle"
 )

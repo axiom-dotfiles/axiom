@@ -1,12 +1,4 @@
-# Everything scripts/generate_theme.py needs, one line per pywal backend
-# ThemeManager generates with. setup_venv.sh reinstalls when this file changes.
-# The wal backend also needs ImageMagick (magick or convert) on PATH.
-pywal16
+# Everything scripts/generate_theme.py needs. setup_venv.sh reinstalls when
+# this file changes.
 numpy
 pillow
-# colorz backend
-colorz
-# colorthief backend
-colorthief
-# haishoku backend
-haishoku

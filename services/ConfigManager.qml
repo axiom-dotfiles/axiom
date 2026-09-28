@@ -44,7 +44,7 @@ QtObject {
      * @brief Requests a change to the current theme.
      * This is the official way to change the theme. It updates the internal
      * config object and triggers a save and reload cycle.
-     * @param themeName The full name of the theme (e.g., "catppuccin-mocha" or "generated/pywal-1").
+     * @param themeName The full name of the theme (e.g., "catppuccin-mocha" or "generated/wallpaper-tonal-dark").
      */
   function setTheme(themeName) {
     if (_config.Appearance.theme === themeName) {
@@ -71,6 +71,26 @@ QtObject {
     appearance.wallpapers[monitor] = wallpaperUrl;
     if (primary)
       appearance.wallpaper = wallpaperUrl;
+    saveConfig();
+  }
+
+  /**
+     * @brief Sets several monitors' wallpapers with one save.
+     * @param wallpapers Monitor name -> file URL.
+     * @param primary The primary monitor's name, whose wallpaper is also
+     *        Appearance.wallpaper.
+     */
+  function setWallpapers(wallpapers, primary) {
+    const appearance = _config.Appearance;
+    const monitors = Object.keys(wallpapers).filter(monitor => appearance.wallpapers[monitor] !== wallpapers[monitor] || (monitor === primary && appearance.wallpaper !== wallpapers[monitor]));
+    if (monitors.length === 0)
+      return;
+    console.log("[ConfigManager] Setting wallpapers on", monitors.join(", "));
+    for (const monitor of monitors) {
+      appearance.wallpapers[monitor] = wallpapers[monitor];
+      if (monitor === primary)
+        appearance.wallpaper = wallpapers[monitor];
+    }
     saveConfig();
   }
 

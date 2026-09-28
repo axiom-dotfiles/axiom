@@ -78,7 +78,9 @@ QtObject {
   // Fields with `x-group` go on a card of that name instead, so one object
   // can make several cards. A nested object's `x-showIf` (on its siblings)
   // applies to all its cards. A section's `x-card` names a hand-built card
-  // (settings/<name>Card.qml) that goes first.
+  // (settings/<name>Card.qml) that goes first; its `x-intro` names a
+  // hand-built piece (settings/<name>.qml) at the top of the section's own
+  // card, above its fields (`intro`).
   function groups(schema, sectionKey) {
     const section = schema.properties[sectionKey];
     const sectionTitle = section.title ?? sectionKey;
@@ -105,7 +107,8 @@ QtObject {
         card = Object.assign({
           "kind": "rows",
           "title": title,
-          "rows": []
+          "rows": [],
+          "intro": ""
         }, base);
         card.key = base.path.join(".") + (title === base.defaultTitle ? "" : ":" + title);
         cards.push(card);
@@ -178,6 +181,9 @@ QtObject {
       seen.add(path);
       delete card.defaultTitle;
     }
+    const own = cards.find(card => card.path.length === 1 && card.title === sectionTitle);
+    if (own && section["x-intro"])
+      own.intro = section["x-intro"];
     return result.concat(cards);
   }
 

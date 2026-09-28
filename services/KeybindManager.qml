@@ -77,6 +77,8 @@ QtObject {
       "toggleDnd": "do_not_disturb_on",
       "clearNotifications": "clear_all",
       "idleInhibit": "coffee",
+      "nightLight": "nightlight",
+      "nextWallpaper": "wallpaper",
       "workspaceStep": "swap_horiz",
       "moveWindowStep": "move_item",
       "moveWindowStepSilent": "send",

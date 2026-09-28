@@ -151,7 +151,7 @@ The screenshots show [two setups](#%EF%B8%8F-built-in-the-shell) of the same she
 | **B** | <img src="assets/screenshots/themes-dark-b.webp" alt="Themes page, dark variant, setup B"> | <img src="assets/screenshots/themes-light-b.webp" alt="Themes page, light variant, setup B"> |
 
 - Base16 themes, with dark and light pairs switched by one toggle: Catppuccin, Gruvbox, Solarized, Tokyo Night/Day and Submarine Sonar.
-- Generate a theme from your wallpaper. pywal backends pick the candidate colors, then the palette is built in OKLCH to match the contrast of the hand-made themes.
+- Generate themes from your wallpaper, in five styles (tonal, vibrant, faithful, muted, alternate). The palette is built in OKLCH from the image's main colors, to match the contrast of the hand-made themes.
 - Wallpapers can be set per monitor. Axiom draws them itself (crossfading), or through [awww](https://github.com/LGFae/awww) for its transitions (`Appearance.wallpaperBackend`).
 - The active theme is applied to other apps too. Each app is a switch under **Settings → Theme integrations**, gets its own `axiom` theme file, and its switch's description gives the one line to add to its config. Your own config files are never edited.
 
@@ -171,7 +171,7 @@ The screenshots show [two setups](#%EF%B8%8F-built-in-the-shell) of the same she
 ### 🧩 The rest
 - 🔔 **Notifications:** toasts and a notification center. Toasts stack from any corner of one monitor or all of them, with even or per-side gaps measured from the bar or border at each edge. You can set how long they stay (or use the app's own timeout), keep critical ones up, and keep them quiet over fullscreen windows. The history can drop an app's notifications when you focus it, or when you click or close them, and has a size and age limit. Do not disturb is kept across restarts.
 - 🔊 **OSD:** follows the volume of the apps you choose.
-- 🚀 **Launcher:** searches apps (ranked by how often and how recently you use them), open windows, a calculator and the web. It runs shell commands and controls the shell with `/` commands.
+- 🚀 **Launcher:** searches apps (ranked by how often and how recently you use them), open windows, a calculator, the web, your clipboard history and emoji. It runs shell commands and controls the shell with `/` commands.
 - ⏻ **Power menu:** your choice of session actions, in your order, driven by mouse or keyboard. Log out, reboot and power off ask you to confirm.
 - 🧭 **Workspaces:** laid out as 1 to N, or as a grid per monitor (5×5 by default) that you move around by row and column. The bar widget, the workspace map, the workspace overlay and your keybinds (through the `workspaces` IPC target) all follow the one setting.
 - 🪟 **Workspace overlay:** live window previews. Drag a window onto a side of another window or onto another workspace, right-drag to resize it, and middle-click to close it.
@@ -204,13 +204,14 @@ The whole shell runs on four things. Everything else is optional and only needed
 | Feature | Needs |
 | --- | --- |
 | Wallpaper transitions (optional backend) | `awww` |
-| Theme generation | ImageMagick (`magick` or `convert`). The Python packages are installed into `.venv` automatically from `scripts/requirements.txt` |
+| Theme generation | Nothing extra: numpy and Pillow are installed into `.venv` automatically from `scripts/requirements.txt` |
 | Network widget / module, Wi-Fi menu | NetworkManager, Quickshell built with its Networking module, and `ip` (iproute2) |
 | Updates | `pacman-contrib` (`checkupdates`), plus `paru` or `yay` for AUR updates |
 | Tailscale | `tailscale` |
 | Screenshot module | `grim`, `slurp`, `wl-copy` |
 | AI chat | `curl`; `secret-tool` (libsecret) to keep keys in your keyring; `wl-clipboard`, `grim` and `slurp` for image attachments |
 | Launcher calculator | `qalc` (libqalculate), `wl-copy` |
+| Launcher emoji picker | `wl-copy` to copy; `wtype` to type an emoji into the focused window (Shift+Enter) |
 | Brightness (keys, OSD bar) | `brightnessctl` for a laptop panel; `ddcutil` for external monitors over DDC/CI (monitors that support it, with i2c access: the package's udev rule gives it to the logged-in user) |
 | NVIDIA GPU stats | `nvidia-smi` (AMD is read from sysfs) |
 | hyprlock mode | `hyprlock`, and `hypridle` to lock on idle |
@@ -335,6 +336,8 @@ Plain text searches apps and open windows. When the text is math, the result sho
 | `>` | Runs a shell command. Shift+Enter runs it in your terminal |
 | `?` | Web search, with the engine set in Settings |
 | `@` | Asks the overlay's chat, in a new conversation |
+| `:` | Clipboard history. Shift+Enter removes an entry |
+| `;` | Emoji, searched by name and keyword. Enter copies one, Shift+Enter also types it (with `wtype`) |
 
 | | Apps | Commands | Calculator |
 | --- | :---: | :---: | :---: |
@@ -350,7 +353,7 @@ Plain text searches apps and open windows. When the text is math, the result sho
 | **Look** | `/theme <name>` `/dark` `/light` `/mode` `/wallpaper <file\|Random>` `/generate` |
 | **Audio and media** | `/volume <n\|+n\|-n>` `/mute` `/mic` `/output <device>` `/input <device>` `/play` `/next` `/prev` |
 | **Connectivity** | `/wifi [on\|off]` `/bluetooth [on\|off]` `/connect <device>` |
-| **Other** | `/dnd [on\|off]` `/clear` `/caffeine [on\|off]` `/ws <n>` `/config <setting> <value>` `/config save <name>` `/config restore <name>` `/update` `/reload` `/help` |
+| **Other** | `/dnd [on\|off]` `/clear` `/caffeine [on\|off]` `/ws <n>` `/config <setting> <value>` `/config save <name>` `/config restore <name>` `/update` `/reload` `/emoji` `/clipboard` `/help` |
 
 Every provider can be switched off under **Settings › Desktop › Launcher**. The same page sets:
 - the launcher's size, hidden apps, terminal and search engine
@@ -429,7 +432,6 @@ axiom is built on:
 - [Hyprland](https://hypr.land), the compositor it's made for
 - [Quickshell](https://quickshell.org), the QML toolkit every surface is written in
 - [Material Symbols](https://fonts.google.com/icons), the icons
-- [pywal16](https://github.com/eylles/pywal16) and its backends ([colorz](https://github.com/metakirby5/colorz), [colorthief](https://github.com/fengsp/color-thief-py), [haishoku](https://github.com/LanceGin/haishoku)), which pick the candidate colors for generated themes
 - [awww](https://github.com/LGFae/awww), an optional wallpaper backend with transitions
 
 Four of the five theme pairs are ports of [Catppuccin](https://catppuccin.com), [Gruvbox](https://github.com/morhetz/gruvbox), [Solarized](https://ethanschoonover.com/solarized/) and [Tokyo Night](https://github.com/tokyo-night/tokyo-night-vscode-theme). Submarine Sonar is axiom's own.
