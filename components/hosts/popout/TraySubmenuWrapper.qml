@@ -34,7 +34,7 @@ Item {
     PopupWindow {
       id: submenuPopup
 
-      visible: root.occupied && loader.status === Loader.Ready
+      visible: root.occupied && loader.status === Loader.Ready && (root.currentItem?.contentReady ?? true)
       color: "transparent"
 
       readonly property int contentWidth: {
@@ -80,7 +80,7 @@ Item {
         anchors.fill: parent
 
         edge: outer.openToLeft ? Bar.Right : Bar.Left
-        active: root.occupied && !root.isClosing
+        active: root.occupied && !root.isClosing && (root.currentItem?.contentReady ?? true)
         connectorGap: root.connectorGap
         boxWidth: submenuPopup.contentWidth + contentInset * 2
         boxHeight: submenuPopup.contentHeight + contentInset * 2

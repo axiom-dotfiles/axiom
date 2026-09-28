@@ -25,6 +25,16 @@ Item {
   // centralized dismiss logic — timing and dismissal now live there.
   property alias hovered: hoverHandler.hovered
 
+  // Children arrive over DBus; the wrapper waits for them (see SystemTray)
+  property bool _waitedForMenu: false
+  readonly property bool contentReady: menuRepeater.count > 0 || _waitedForMenu
+
+  Timer {
+    interval: 300
+    running: true
+    onTriggered: root._waitedForMenu = true
+  }
+
   HoverHandler {
     id: hoverHandler
   }
@@ -47,6 +57,7 @@ Item {
     anchors.margins: Widget.padding
     color: Theme.backgroundAlt
     radius: Appearance.borderRadius
+    clip: true
     // Prevent clicks from propagating to the background MouseArea
     MouseArea {
       anchors.fill: parent
@@ -60,6 +71,7 @@ Item {
       spacing: root.itemSpacing
       width: parent.width - 20
       Repeater {
+        id: menuRepeater
         model: menuOpener.children
         delegate: TrayMenuItem {
           required property var modelData
@@ -83,7 +95,7 @@ Item {
       }
       // Empty state
       Text {
-        visible: menuOpener.children.values.length === 0
+        visible: root.contentReady && menuRepeater.count === 0
         text: I18n.tr("No submenu items")
         color: Theme.accent
         opacity: 0.5

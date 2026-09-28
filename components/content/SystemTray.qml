@@ -32,17 +32,16 @@ Item {
   implicitWidth: Math.max(minWidth, menuLayout.implicitWidth + 20)
   implicitHeight: menuLayout.implicitHeight + 20 + Widget.padding * 2
 
-  Behavior on width {
-    NumberAnimation {
-      duration: Appearance.animFast
-      easing.type: Easing.OutCubic
-    }
-  }
-  Behavior on implicitHeight {
-    NumberAnimation {
-      duration: Appearance.animNormal
-      easing.type: Easing.OutCubic
-    }
+  // The menu's layout arrives over DBus after the opener is created. The
+  // host keeps the popout hidden until it has (or the wait runs out), so it
+  // maps at its final size instead of showing the empty state first.
+  property bool _waitedForMenu: false
+  readonly property bool contentReady: menuRepeater.count > 0 || _waitedForMenu
+
+  Timer {
+    interval: 300
+    running: true
+    onTriggered: root._waitedForMenu = true
   }
 
   HoverHandler {
@@ -85,6 +84,7 @@ Item {
     // border.color: Theme.border
     // border.width: Appearance.borderWidth
     radius: Appearance.borderRadius
+    clip: true
 
     MouseArea {
       anchors.fill: parent
@@ -100,6 +100,7 @@ Item {
       width: parent.width - 20
 
       Repeater {
+        id: menuRepeater
         model: menuOpener.children
 
         delegate: TrayMenuItem {
@@ -129,7 +130,7 @@ Item {
 
       // Empty state
       Text {
-        visible: menuOpener.children.values.length === 0
+        visible: root.contentReady && menuRepeater.count === 0
         text: I18n.tr("No menu items")
         color: Theme.accent
         // font.family: Paths.appearance.fontFamily

@@ -53,6 +53,9 @@ PopoutWrapperBase {
   onCurrentNameChanged: _loadContent()
 
   currentItem: loader.item ?? null
+  // Loaded, and done fetching anything it must show before mapping (the
+  // tray menu's contentReady); content without the property is ready
+  readonly property bool contentReady: loader.status === Loader.Ready && (root.currentItem?.contentReady ?? true)
 
   // Content with a text field up asks for the keyboard (Panel's
   // wantsKeyboardFocus): a focus grab over the popout and its bar, which a
@@ -241,7 +244,7 @@ PopoutWrapperBase {
 
   PopupWindow {
     id: mainPopup
-    visible: !root.underBar && root.occupied && loader.status === Loader.Ready
+    visible: !root.underBar && root.occupied && root.contentReady
     color: "transparent"
 
     // Content dimensions
@@ -384,7 +387,7 @@ PopoutWrapperBase {
   PanelWindow {
     id: underWindow
     screen: root.screen
-    visible: root.underBar && root.occupied && loader.status === Loader.Ready
+    visible: root.underBar && root.occupied && root.contentReady
     color: "transparent"
 
     // On the bar's layer, ordered under it (HyprlandManager's layer rules).
@@ -449,7 +452,7 @@ PopoutWrapperBase {
     height: implicitHeight
 
     edge: mainPopup.surfaceEdge
-    active: root.occupied && !root.isClosing
+    active: root.occupied && !root.isClosing && root.contentReady
     connectorGap: root.connectorGap
     boxWidth: mainPopup.contentWidth + contentInset * 2 + (root.barConfig.vertical ? root.pillClearance : 0)
     boxHeight: mainPopup.contentHeight + contentInset * 2 + (root.barConfig.vertical ? 0 : root.pillClearance)
