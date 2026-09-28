@@ -11,4 +11,6 @@ QtObject {
   readonly property int openDelay: _c.openDelay
   readonly property int dismissDelay: _c.dismissDelay
   readonly property int edgeTriggerSize: _c.edgeTriggerSize
+  // Space between a popout's box (inside its stroke) and its content
+  readonly property int padding: _c.padding
 }

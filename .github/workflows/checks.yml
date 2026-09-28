@@ -50,7 +50,7 @@ jobs:
     steps:
       - name: Install tools
         run: |
-          pacman -Syu --noconfirm --needed git qt6-declarative quickshell shellcheck lua jq gettext python
+          pacman -Syu --noconfirm --needed git diffutils qt6-declarative quickshell shellcheck lua jq gettext python
           /usr/lib/qt6/bin/qmllint --version
 
       - name: Checkout

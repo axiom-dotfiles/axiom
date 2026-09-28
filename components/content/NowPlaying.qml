@@ -29,7 +29,6 @@ Panel {
 
   hovered: pointerInside || root.seeking
 
-  margins: 16
   spacing: Widget.spacing
   implicitWidth: 380
 
@@ -330,14 +329,18 @@ Panel {
       // From the card's size, not the grid's: that depends on this
       readonly property real innerWidth: root.width - root.pad * 2
       readonly property real innerHeight: root.height - root.pad * 2
-      // Beside the info, never over 40% of the width, so the text keeps room
-      readonly property real side: !root.embedded ? root.artSize : root.sideBySide ? Math.min(innerHeight, innerWidth * 0.4) : Math.min(innerWidth, innerHeight * 0.5)
+      // Beside the info, never over 40% of the width, so the text keeps room;
+      // stacked, whatever height the info and controls leave (a small card
+      // would otherwise push them out of the box)
+      readonly property real side: !root.embedded ? root.artSize : root.sideBySide ? Math.min(innerHeight, innerWidth * 0.4) : Math.max(0, Math.min(innerWidth, innerHeight * 0.5, innerHeight - details.implicitHeight - Widget.spacing))
+      visible: side >= 32
       Layout.preferredWidth: side
       Layout.preferredHeight: side
       Layout.alignment: root.embedded && !root.sideBySide ? Qt.AlignHCenter : root.sideBySide ? Qt.AlignVCenter : Qt.AlignTop
     }
 
     ColumnLayout {
+      id: details
       Layout.fillWidth: true
       Layout.fillHeight: true
       Layout.minimumWidth: 0

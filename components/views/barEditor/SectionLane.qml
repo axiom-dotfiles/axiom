@@ -22,7 +22,8 @@ Rectangle {
   readonly property real chipHeight: Widget.height + Widget.padding / 2
   readonly property real rowStep: root.chipHeight + Widget.spacing
 
-  signal addRequested
+  // `anchor`: the + button, so the picker opens beside it
+  signal addRequested(Item anchor)
 
   radius: Appearance.borderRadius
   color: root.hovering ? Qt.alpha(Theme.accent, 0.1) : Theme.backgroundAlt
@@ -81,12 +82,13 @@ Rectangle {
       }
 
       SquareIconButton {
+        id: addButton
         size: Widget.height - 6
         iconText: "+"
         iconSize: Appearance.fontSize + 2
         backgroundColor: "transparent"
         tooltipText: I18n.tr("Add a widget")
-        onClicked: root.addRequested()
+        onClicked: root.addRequested(addButton)
       }
     }
 

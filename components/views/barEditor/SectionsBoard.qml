@@ -20,8 +20,8 @@ Item {
     id: addPopup
     types: Bar.availableWidgetTypes
     parent: root
-    x: (root.width - width) / 2
-    y: (root.height - height) / 2
+    iconFor: type => root.dragLayer.icon(type)
+    placeholderText: I18n.tr("Search widgets")
     onTypeSelected: type => BarManager.addWidget(root._pendingZone, type)
   }
 
@@ -64,9 +64,9 @@ Item {
             dragLayer: root.dragLayer
             zone: modelData.key
             title: modelData.label
-            onAddRequested: {
+            onAddRequested: anchor => {
               root._pendingZone = modelData.key;
-              addPopup.open();
+              addPopup.openAt(anchor);
             }
           }
         }

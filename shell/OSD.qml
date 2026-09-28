@@ -1,108 +1,99 @@
 pragma ComponentBehavior: Bound
 import QtQuick
-import QtQuick.Layouts
 import Quickshell
 
 import qs.config
-import qs.services
 import qs.components.hosts.popout
 import qs.components.surfaces.osd
 
+// Every enabled OSD (OSD.osds), each on the screens its `monitors` puts it
+// on: an EdgePopout for an edge OSD, a FloatingOSD for a floating one. A
+// change opens every OSD holding that bar, on the target screen (the
+// focused one), or on all of them in "all" mode. Hiding is the host's own
+// hover-aware dismiss timer.
 Item {
   id: osdRoot
   anchors.fill: parent
 
-  // Length of each bar along its axis; the OSD grows with the app count
-  // in the other direction
-  readonly property int barLength: 190
-  readonly property int barSpacing: 20
+  // By a joined key, so editing an OSD's settings updates it in place
+  // instead of rebuilding every OSD
+  readonly property string _idsKey: OSDConfig.enabled ? OSDConfig.shownIds.join("\n") : ""
 
-  Variants {
-    model: OSDConfig.enabled ? General.screensFor(OSDConfig.monitors) : []
+  Repeater {
+    model: osdRoot._idsKey ? osdRoot._idsKey.split("\n") : []
 
-    // One OSD per screen OSD.monitors puts it on; volume changes show it on
-    // the target screen (the focused one), or on all of them in "all" mode.
-    // Hiding is the popout's own hover-aware dismiss timer.
-    delegate: EdgePopout {
-      id: root
-      required property ShellScreen modelData
+    delegate: Item {
+      id: entry
+      required property string modelData
+      readonly property var osd: OSDConfig.osdById(modelData)
+      readonly property bool valid: osd !== null
+      readonly property var screens: valid ? General.screensFor(osd.monitors) : []
 
-      screen: modelData
-      edge: OSDConfig.edge
-      position: OSDConfig.position
-      triggerEnabled: OSDConfig.openOnHover
-      // The strip spans the OSD's own length along the edge
-      triggerLength: {
-        const item = root.contentItem;
-        if (!item)
-          return 200;
-        return root.vertical ? item.implicitHeight : item.implicitWidth;
-      }
-      dismissDelay: OSDConfig.timeout
-      // The bars inside also report their own changes, so they must
-      // exist while the OSD is closed
-      keepLoaded: true
+      Variants {
+        model: entry.valid && entry.osd.placement === "edge" ? entry.screens : []
 
-      // Open (or keep open) on the target screen, or on every screen in
-      // "all" mode; restarts the countdown
-      function poke(force) {
-        if (root.isOpen)
-          root.updateDismissTimer();
-        else if (force && ShellManager.showsOn(root.screen, OSDConfig.monitors))
-          root.show();
-      }
+        delegate: EdgePopout {
+          id: edgeHost
+          required property ShellScreen modelData
 
-      // Picks up brightness changed outside axiom
-      onIsOpenChanged: {
-        if (root.isOpen)
-          BrightnessManager.refresh(root.screen.name);
-      }
+          screen: modelData
+          edge: Bar.getLocationFromString(entry.osd.edge)
+          position: entry.osd.position / 100
+          triggerEnabled: entry.osd.openOnHover
+          // The strip spans the OSD's own length along the edge
+          triggerLength: {
+            const item = edgeHost.contentItem;
+            if (!item)
+              return 200;
+            return edgeHost.vertical ? item.implicitHeight : item.implicitWidth;
+          }
+          dismissDelay: entry.osd.timeout
+          // The bars inside also report their own changes, so they must
+          // exist while the OSD is closed
+          keepLoaded: true
 
-      Connections {
-        target: AudioManager
-
-        function onVolumeChanged() {
-          root.poke(true);
-        }
-
-        function onMutedChanged() {
-          root.poke(true);
-        }
-      }
-
-      content: Component {
-        Item {
-          id: box
-          readonly property int margin: 15 - Widget.spacing
-
-          implicitWidth: grid.implicitWidth + margin * 2
-          implicitHeight: grid.implicitHeight + margin * 2
-
-          GridLayout {
-            id: grid
-            anchors.fill: parent
-            anchors.margins: box.margin
-            // Vertical bars side by side, horizontal bars as rows; or,
-            // along the edge, one line parallel to it (end to end when the
-            // bars run along it too)
-            readonly property bool rowFlow: OSDConfig.alongEdge ? !root.vertical : OSDConfig.vertical
-            flow: rowFlow ? GridLayout.LeftToRight : GridLayout.TopToBottom
-            columnSpacing: osdRoot.barSpacing
-            rowSpacing: osdRoot.barSpacing
-
-            Repeater {
-              model: OSDConfig.bars
-
-              delegate: OSDBar {
-                required property var modelData
-
-                entry: modelData
-                screenName: root.screen?.name ?? ""
-                Layout.preferredWidth: OSDConfig.vertical ? implicitWidth : osdRoot.barLength
-                Layout.preferredHeight: OSDConfig.vertical ? osdRoot.barLength : implicitHeight
-                onPoked: root.poke(modelData.showOsd)
-              }
+          content: Component {
+            OSDContent {
+              osd: entry.osd
+              screenName: edgeHost.screen?.name ?? ""
+              onEdge: true
+              edgeVertical: edgeHost.vertical
+              onPoked: force => edgeTriggers.poke(force)
             }
+          }
+
+          OSDTriggers {
+            id: edgeTriggers
+            host: edgeHost
+            osd: entry.osd
+          }
+        }
+      }
+
+      Variants {
+        model: entry.valid && entry.osd.placement === "floating" ? entry.screens : []
+
+        delegate: FloatingOSD {
+          id: floatingHost
+          required property ShellScreen modelData
+
+          screen: modelData
+          xFraction: entry.osd.x / 100
+          yFraction: entry.osd.y / 100
+          dismissDelay: entry.osd.timeout
+
+          content: Component {
+            OSDContent {
+              osd: entry.osd
+              screenName: floatingHost.screen?.name ?? ""
+              onPoked: force => floatingTriggers.poke(force)
+            }
+          }
+
+          OSDTriggers {
+            id: floatingTriggers
+            host: floatingHost
+            osd: entry.osd
           }
         }
       }

@@ -1,0 +1,56 @@
+import QtQuick
+
+import qs.config
+import qs.services
+
+// What opens one OSD host (an EdgePopout or FloatingOSD) on its screen:
+// its bars' own changes (poke), system volume and mute when it holds a
+// System volume bar that opens it, and the settings page's Show button.
+QtObject {
+  id: root
+
+  // An EdgePopout or FloatingOSD
+  required property var host
+  // The OSD's entry (OSDConfig.osds)
+  required property var osd
+
+  // Open (or keep open) on the target screen, or on every screen in "all"
+  // mode; restarts the countdown
+  function poke(force) {
+    if (root.host.isOpen)
+      root.host.updateDismissTimer();
+    else if (force && ShellManager.showsOn(root.host.screen, root.osd.monitors))
+      root.host.show();
+  }
+
+  readonly property bool _opensForVolume: OSDConfig.opensFor(root.osd, "master")
+
+  // Picks up brightness changed outside axiom
+  readonly property bool _open: root.host.isOpen
+  on_OpenChanged: {
+    if (root._open)
+      BrightnessManager.refresh(root.host.screen.name);
+  }
+
+  readonly property Connections _audio: Connections {
+    target: AudioManager
+    enabled: root._opensForVolume
+
+    function onVolumeChanged() {
+      root.poke(true);
+    }
+
+    function onMutedChanged() {
+      root.poke(true);
+    }
+  }
+
+  readonly property Connections _shell: Connections {
+    target: ShellManager
+
+    function onShowOsd(id) {
+      if (id === root.osd.id)
+        root.poke(true);
+    }
+  }
+}

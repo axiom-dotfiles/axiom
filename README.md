@@ -226,7 +226,7 @@ On Arch Linux, run the installer:
 curl -fsSL https://raw.githubusercontent.com/axiom-dotfiles/axiom/main/install.sh | bash
 ```
 
-Every package it installs comes from the official repositories. It installs the required packages and asks about each optional feature. Then it clones the latest release into `~/.config/quickshell/axiom` and sets up the Python venv. Last, it asks before adding the line that starts axiom to the end of your `hyprland.lua`, backing up the file first. `--yes` answers yes to every question, and `--minimal` installs only what's required. Running it again is safe. From a clone, run `./install.sh`.
+Every package it installs comes from the official repositories. It lists the optional features and offers them all at once (recommended), or one at a time, skipping any already installed. It then shows the one `sudo pacman` command it will run, and why, before running it. Then it clones the latest release into `~/.config/quickshell/axiom` and sets up the Python venv. Last, it asks before adding the line that starts axiom to the end of your `hyprland.lua`, backing up the file first. `--yes` answers yes to every question, and `--minimal` installs only what's required. Running it again is safe. From a clone, run `./install.sh`: that clone is used wherever it is, and if it isn't at `~/.config/quickshell/axiom` (where `qs -c axiom` looks), the installer offers to link it there, or to move it.
 
 <details>
 <summary><b>By hand</b>, or on another distribution</summary>
@@ -244,9 +244,6 @@ hl.on("hyprland.start", function() hl.exec_cmd("qs -c axiom") end)
 ```
 
 </details>
-
-> [!TIP]
-> **After installing, look through [axiom-dotfiles/hypr](https://github.com/axiom-dotfiles/hypr)**, the Hyprland config axiom is developed with. axiom's keybinds and settings only cover the shell itself. That repo has the rest of a desktop: window-management binds, media and brightness keys, screenshots, window rules, animations, helper scripts, and `hypridle`/`hyprlock` configs. It's laid out for managed mode as `user/*.lua` files, but you can copy whatever's useful into your own config. The keybinds file reads its shared values from `lib/variables.lua`.
 
 That's all Hyprland needs. How axiom sets up the rest is **Settings → Desktop → Hyprland → Mode**:
 
@@ -272,7 +269,7 @@ if ok then axiom.setup() end
 Whichever mode is set, axiom falls back to the runtime layer when its file isn't loaded, and logs why.
 
 The same settings page holds switches for:
-- **required settings:** `misc.allow_session_lock_restore`, and a `workspaces` animation for the grid's slides
+- **required settings:** `misc.allow_session_lock_restore`, a rule suppressing apps' `maximize` requests (kitty's `remember_window_size` otherwise reopens it maximized), and a `workspaces` animation for the grid's slides
 - **theme-coloured window borders**
 - **blur behind axiom's surfaces**
 - **starting `awww-daemon`** (with the awww wallpaper backend)

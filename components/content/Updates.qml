@@ -20,7 +20,6 @@ Panel {
   property var aurPackages: UpdatesManager.aurPackages
   readonly property int total: repoPackages.length + aurPackages.length
 
-  margins: 20
   spacing: Widget.padding
   // A card fits rows of roughly one text line each into its height
   property int maxRows: root.embedded ? Math.max(3, Math.floor(root.height / (Appearance.fontSize * 2)) - 4) : 15

@@ -23,7 +23,6 @@ Panel {
   readonly property var metrics: (root.popoutMetrics ?? root.properties.metrics ?? ["cpu", "mem"]).filter(m => root.knownMetrics.includes(m))
   readonly property var shown: root.compact ? root.metrics.slice(0, 1) : root.metrics
 
-  margins: 16
   implicitWidth: root.columns > 1 ? 520 : 360
   // A popout's graphs are a fixed height
   readonly property real graphHeight: 56

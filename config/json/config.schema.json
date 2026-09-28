@@ -8,7 +8,7 @@
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 18,
+      "default": 25,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
@@ -17,7 +17,7 @@
       "type": "object",
       "x-category": "Desktop",
       "title": "Lockscreen",
-      "description": "Which locker locks the session. Point your idle daemon's lock command at `qs -c axiom ipc call lockscreen lock` for the built-in or hyprlock modes.",
+      "description": "Which locker locks the session. The Idle settings can lock after some idle time; an idle daemon of your own should lock through `qs -c axiom ipc call lockscreen lock` for the built-in or hyprlock modes.",
       "additionalProperties": false,
       "properties": {
         "mode": {
@@ -52,9 +52,50 @@
       }
     },
 
+    "Idle": {
+      "type": "object",
+      "x-category": "Desktop",
+      "x-card": "IdleStatus",
+      "title": "Idle",
+      "description": "What happens when you step away: dimming, locking, turning the screens off and suspending, run by hypridle.",
+      "additionalProperties": false,
+      "x-order": ["enabled", "dimTimeout", "dimLevel", "lockTimeout", "screenOffTimeout", "suspendTimeout", "lockBeforeSleep", "screenOnAfterSleep", "respectInhibitors", "listeners"],
+      "properties": {
+        "enabled": { "type": "boolean", "title": "Manage hypridle", "default": false, "description": "axiom runs hypridle with a config of its own (~/.local/state/axiom/hypridle.conf) and stops any other hypridle while this is on. Your own hypridle.conf is never touched; remove your own hypridle autostart line." },
+        "dimTimeout": { "type": "integer", "title": "Dim the screens after", "x-unit": "s", "default": 150, "minimum": 0, "maximum": 7200, "description": "0 never dims. Brightness comes back when you return.", "x-showIf": { "enabled": true } },
+        "dimLevel": { "type": "integer", "title": "Dim to", "x-unit": "%", "default": 30, "minimum": 5, "maximum": 100, "description": "Screens already darker stay as they are.", "x-showIf": { "enabled": true } },
+        "lockTimeout": { "type": "integer", "title": "Lock after", "x-unit": "s", "default": 300, "minimum": 0, "maximum": 7200, "description": "0 never locks on idle. Locks with the Lockscreen settings' locker.", "x-showIf": { "enabled": true } },
+        "screenOffTimeout": { "type": "integer", "title": "Turn the screens off after", "x-unit": "s", "default": 330, "minimum": 0, "maximum": 7200, "description": "0 keeps them on.", "x-showIf": { "enabled": true } },
+        "suspendTimeout": { "type": "integer", "title": "Suspend after", "x-unit": "s", "default": 0, "minimum": 0, "maximum": 14400, "description": "0 never suspends on idle.", "x-showIf": { "enabled": true } },
+        "lockBeforeSleep": { "type": "boolean", "title": "Lock before sleep", "x-group": "Sleep", "default": true, "description": "Lock the session before the computer suspends or hibernates.", "x-showIf": { "enabled": true } },
+        "screenOnAfterSleep": { "type": "boolean", "title": "Screens on after sleep", "x-group": "Sleep", "default": true, "description": "Turn the screens back on when the computer wakes.", "x-showIf": { "enabled": true } },
+        "respectInhibitors": { "type": "boolean", "title": "Respect apps that keep the screen on", "x-group": "Sleep", "default": true, "description": "Video players and browsers can ask to stay awake over D-Bus and systemd. The caffeine widget works either way.", "x-showIf": { "enabled": true } },
+        "listeners": {
+          "type": "array",
+          "title": "Extra listeners",
+          "x-group": "Extra listeners",
+          "default": [],
+          "description": "Commands of your own to run after a time idle, and when you return.",
+          "x-showIf": { "enabled": true },
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "x-order": ["timeout", "onTimeout", "onResume", "enabled"],
+            "properties": {
+              "timeout": { "type": "integer", "title": "After", "x-unit": "s", "default": 600, "minimum": 1, "maximum": 14400 },
+              "onTimeout": { "type": "string", "title": "Run", "default": "" },
+              "onResume": { "type": "string", "title": "On return", "default": "" },
+              "enabled": { "type": "boolean", "title": "On", "default": true }
+            }
+          }
+        }
+      }
+    },
+
     "General": {
       "type": "object",
       "x-category": "Desktop",
+      "x-card": "Onboarding",
       "title": "General",
       "additionalProperties": false,
       "properties": {
@@ -126,10 +167,26 @@
         "calculator": { "type": "boolean", "title": "Calculator", "default": true, "description": "Show the result of math as you type it (or after =), using qalc. Enter copies the result." },
         "commands": { "type": "boolean", "title": "Shell commands (/)", "default": true, "description": "Type / for commands that control the shell: themes, volume, wifi, bluetooth, overlay pages, session and more." },
         "runCommands": { "type": "boolean", "title": "Run commands (>)", "default": true, "description": "Type > and a command to run it. Shift+Enter runs it in the terminal." },
-        "terminal": { "type": "string", "title": "Terminal", "default": "kitty", "description": "Terminal used for commands run with Shift+Enter and for terminal apps. It's started as: terminal -e command." },
         "webSearch": { "type": "boolean", "title": "Web search (?)", "default": true, "description": "Offer a web search for what you typed, last in the list (or first after ?)." },
         "searchEngine": { "type": "string", "title": "Search engine URL", "default": "https://duckduckgo.com/?q={}", "description": "{} is replaced by the search terms.", "x-showIf": { "webSearch": true } },
-        "chat": { "type": "boolean", "title": "Ask chat (@)", "default": true, "description": "Type @ and a question to ask it in the overlay's Chat module, with the default preset." }
+        "chat": { "type": "boolean", "title": "Ask chat (@)", "default": true, "description": "Type @ and a question to ask it in the overlay's Chat module, with the default preset." },
+        "clipboard": { "type": "boolean", "title": "Clipboard history (:)", "default": true, "description": "Type : (or /clipboard) to search what you've copied; Enter copies it again, Shift+Enter removes it. axiom keeps the history in memory only, never on disk, and skips anything a password manager marks as sensitive. Turn this off if you copy passwords from apps that don't; turning it off clears the history." },
+        "clipboardSource": { "type": "string", "title": "Clipboard history source", "default": "axiom", "enum": ["axiom", "cliphist"], "x-enumLabels": { "axiom": "axiom (in memory)", "cliphist": "cliphist" }, "description": "axiom records text clips itself. cliphist uses cliphist's history instead, images included, and records text and images into it while this is on (alongside any cliphist store you run yourself).", "x-showIf": { "clipboard": true } },
+        "clipboardMaxEntries": { "type": "integer", "title": "Clipboard history size", "default": 100, "minimum": 10, "maximum": 1000, "description": "How many clips axiom keeps.", "x-showIf": { "clipboard": true, "clipboardSource": "axiom" } }
+      }
+    },
+
+    "Apps": {
+      "type": "object",
+      "x-category": "Desktop",
+      "title": "Apps",
+      "description": "The apps axiom opens: by the Terminal, File manager and Browser keybinds, and the launcher's terminal apps and Shift+Enter commands.",
+      "additionalProperties": false,
+      "x-order": ["terminal", "fileManager", "browser"],
+      "properties": {
+        "terminal": { "type": "string", "title": "Terminal", "default": "kitty", "description": "Terminal used for commands run with Shift+Enter, for terminal apps and by the Terminal keybind. It's started as: terminal -e command." },
+        "fileManager": { "type": "string", "title": "File manager", "default": "", "description": "Command the File manager keybind runs. Empty opens your home folder in the system's default file manager." },
+        "browser": { "type": "string", "title": "Browser", "default": "", "description": "Command the Browser keybind runs. Empty starts the system's default web browser." }
       }
     },
 
@@ -226,7 +283,7 @@
           "title": "Required settings",
           "x-group": "Setup",
           "default": true,
-          "description": "Lock restore after a shell restart, and a workspace slide animation."
+          "description": "Lock restore after a shell restart, ignoring apps' requests to maximize themselves, and a workspace slide animation."
         },
         "wallpaperDaemon": {
           "type": "boolean",
@@ -258,9 +315,19 @@
           "default": [
             { "key": "SUPER + space", "action": "launcher" },
             { "key": "SUPER + Tab", "action": "overlay" },
+            { "key": "SUPER + M", "action": "overlay" },
             { "key": "SUPER + SHIFT + space", "action": "workspaceOverview" },
             { "key": "SUPER + Escape", "action": "powerMenu" },
             { "key": "SUPER + CTRL + L", "action": "lock" },
+            { "key": "SUPER + CTRL + R", "action": "restartShell", "release": true },
+            { "key": "SUPER + SHIFT + Escape", "action": "exitHyprland", "release": true },
+            { "key": "SUPER + Return", "action": "terminal" },
+            { "key": "SUPER + E", "action": "fileManager" },
+            { "key": "SUPER + B", "action": "browser" },
+            { "key": "Print", "action": "screenshot", "argument": "region" },
+            { "key": "SHIFT + Print", "action": "screenshot", "argument": "window" },
+            { "key": "SUPER + Print", "action": "screenshot", "argument": "screen" },
+            { "key": "SUPER + CTRL + S", "action": "screenshot", "argument": "region" },
             { "key": "SUPER + 1", "action": "workspaceNth", "argument": "1" },
             { "key": "SUPER + SHIFT + 1", "action": "moveWindowNth", "argument": "1" },
             { "key": "SUPER + 2", "action": "workspaceNth", "argument": "2" },
@@ -317,7 +384,7 @@
               "action": {
                 "type": "string",
                 "title": "Action",
-                "enum": ["launcher", "launcherSearch", "overlay", "overlayPage", "edgeMenu", "workspaceOverview", "powerMenu", "lock", "toggleDnd", "clearNotifications", "idleInhibit", "workspaceStep", "moveWindowStep", "moveWindowStepSilent", "workspaceNth", "moveWindowNth", "moveWindowNthSilent", "focusDir", "moveWindowDir", "resizeWindow", "closeWindow", "fullscreen", "toggleFloat", "pin", "centerWindow", "toggleGroup", "mouseDrag", "mouseResize", "toggleSpecial", "moveToSpecial", "volumeUp", "volumeDown", "toggleMute", "toggleMicMute", "brightnessUp", "brightnessDown", "mediaPlayPause", "mediaNext", "mediaPrevious", "exec"],
+                "enum": ["launcher", "launcherSearch", "overlay", "overlayPage", "edgeMenu", "workspaceOverview", "powerMenu", "lock", "toggleDnd", "clearNotifications", "idleInhibit", "workspaceStep", "moveWindowStep", "moveWindowStepSilent", "workspaceNth", "moveWindowNth", "moveWindowNthSilent", "focusDir", "moveWindowDir", "resizeWindow", "closeWindow", "fullscreen", "toggleFloat", "pin", "centerWindow", "toggleGroup", "mouseDrag", "mouseResize", "toggleSpecial", "moveToSpecial", "restartShell", "volumeUp", "volumeDown", "toggleMute", "toggleMicMute", "brightnessUp", "brightnessDown", "mediaPlayPause", "mediaNext", "mediaPrevious", "mediaStop", "terminal", "fileManager", "browser", "screenshot", "exitHyprland", "exec"],
                 "x-enumLabels": {
                   "launcher": "App launcher",
                   "launcherSearch": "Launcher with text",
@@ -349,6 +416,7 @@
                   "mouseResize": "Resize window (mouse button)",
                   "toggleSpecial": "Toggle special workspace",
                   "moveToSpecial": "Move window to special workspace",
+                  "restartShell": "Restart axiom",
                   "volumeUp": "Volume up",
                   "volumeDown": "Volume down",
                   "toggleMute": "Mute",
@@ -358,6 +426,12 @@
                   "mediaPlayPause": "Play/Pause",
                   "mediaNext": "Next track",
                   "mediaPrevious": "Previous track",
+                  "mediaStop": "Stop playback",
+                  "terminal": "Terminal",
+                  "fileManager": "File manager",
+                  "browser": "Browser",
+                  "screenshot": "Screenshot",
+                  "exitHyprland": "Exit Hyprland",
                   "exec": "Run a command"
                 },
                 "default": "launcher"
@@ -366,8 +440,8 @@
                 "type": "string",
                 "title": "Argument",
                 "default": "",
-                "description": "Search text, page, direction, workspace number, special workspace name, resize step (\"50 0\") or command.",
-                "x-showIf": { "action": ["launcherSearch", "overlayPage", "edgeMenu", "workspaceStep", "moveWindowStep", "moveWindowStepSilent", "workspaceNth", "moveWindowNth", "moveWindowNthSilent", "focusDir", "moveWindowDir", "resizeWindow", "toggleSpecial", "moveToSpecial", "exec"] }
+                "description": "Search text, page, direction, workspace number, special workspace name, resize step (\"50 0\"), screenshot kind (region, window or screen) or command.",
+                "x-showIf": { "action": ["launcherSearch", "overlayPage", "edgeMenu", "workspaceStep", "moveWindowStep", "moveWindowStepSilent", "workspaceNth", "moveWindowNth", "moveWindowNthSilent", "focusDir", "moveWindowDir", "resizeWindow", "toggleSpecial", "moveToSpecial", "screenshot", "exec"] }
               },
               "repeating": { "type": "boolean", "title": "Repeat while held", "default": false },
               "locked": { "type": "boolean", "title": "Works while locked", "default": false },
@@ -682,7 +756,7 @@
       "type": "object",
       "x-category": "Look & Feel",
       "title": "Widgets",
-      "description": "Shared sizing for widgets and form controls. Bar widgets are as thick as their bar, minus twice its widget inset.",
+      "description": "Shared sizing for widgets and form controls. Bar widgets are sized by their bar's widget size.",
       "additionalProperties": false,
       "properties": {
         "height": {
@@ -749,6 +823,15 @@
           "minimum": 1,
           "maximum": 50,
           "description": "Thickness of the hover strip at the screen edge that opens edge popouts."
+        },
+        "padding": {
+          "type": "integer",
+          "title": "Padding",
+          "x-unit": "px",
+          "default": 16,
+          "minimum": 0,
+          "maximum": 64,
+          "description": "Space between a popout's box and its content: bar popouts, OSDs, and edge menus that don't set their own."
         }
       }
     },
@@ -878,95 +961,41 @@
     "OSD": {
       "type": "object",
       "x-category": "Overlay & OSD",
+      "x-card": "OSDList",
       "title": "OSD",
-      "description": "On-screen display of volume, microphone and brightness bars, shown when one of them changes.",
+      "description": "On-screen displays of volume, microphone and brightness bars, shown when one of their bars changes.",
       "additionalProperties": false,
-      "x-order": ["enabled", "monitors", "edge", "position", "orientation", "alongEdge", "openOnHover", "timeout", "bars"],
+      "x-order": ["enabled", "scrollToChange", "scrollStep", "osds"],
       "properties": {
         "enabled": {
           "type": "boolean",
           "title": "Enabled",
           "default": true,
-          "description": "Show the OSD when one of its bars changes."
+          "description": "Show the OSDs when one of their bars changes."
         },
-        "monitors": {
-          "type": "string",
-          "title": "Monitors",
-          "enum": ["general", "primaryBar", "focused", "all"],
-          "x-enumLabels": { "general": "As in General", "primaryBar": "Primary bar's monitor", "focused": "Focused monitor", "all": "Every monitor" },
-          "default": "general",
-          "description": "Where the OSD appears. As in General follows General > Monitors; the primary bar's monitor is the first bar's; the focused monitor is the one with your active workspace (and mouse); every monitor shows it on all of them at once."
+        "scrollToChange": {
+          "type": "boolean",
+          "title": "Scroll to change",
+          "default": true,
+          "description": "Scrolling over a bar raises or lowers its level."
         },
-        "edge": {
-          "type": "string",
-          "title": "Screen edge",
-          "default": "Bottom",
-          "enum": ["Top", "Bottom", "Left", "Right"],
-          "description": "Screen edge the OSD slides out of."
-        },
-        "position": {
+        "scrollStep": {
           "type": "integer",
-          "title": "Position along edge",
+          "title": "Scroll step",
           "x-unit": "%",
-          "default": 50,
-          "minimum": 0,
-          "maximum": 100,
-          "description": "Where along the edge it opens: 0 is the start (left/top), 100 the end."
+          "default": 5,
+          "minimum": 1,
+          "maximum": 25,
+          "x-showIf": { "scrollToChange": true },
+          "description": "How much one wheel notch changes the level."
         },
-        "orientation": {
-          "type": "string",
-          "title": "Bar orientation",
-          "default": "Vertical",
-          "enum": ["Vertical", "Horizontal"],
-          "description": "Vertical bars sit side by side; horizontal bars stack as rows."
-        },
-        "alongEdge": {
-          "type": "boolean",
-          "title": "Line up along the edge",
-          "default": false,
-          "description": "Place the bars in one line along the screen edge instead of stacking them by orientation. Bars that run along the edge then sit end to end, so the OSD is longer but sticks out less."
-        },
-        "openOnHover": {
-          "type": "boolean",
-          "title": "Open on hover",
-          "default": false,
-          "description": "Also open the OSD when the mouse touches the screen edge where it appears."
-        },
-        "timeout": {
-          "type": "integer",
-          "title": "Timeout",
-          "x-unit": "ms",
-          "default": 1000,
-          "minimum": 250,
-          "maximum": 10000,
-          "description": "How long the OSD stays open after the last change."
-        },
-        "bars": {
+        "osds": {
           "type": "array",
-          "title": "Bars",
-          "x-group": "OSD bars",
-          "description": "One bar per entry, in order. System volume is the output device's volume, Other apps is the first playing stream no App bar matches, Microphone is the input device's volume, and Brightness is the monitor's own (a laptop panel through brightnessctl, an external monitor over DDC/CI through ddcutil; left out on a monitor that has neither).",
-          "default": [
-            { "type": "other", "icon": "music_note", "showOsd": true },
-            { "type": "master", "icon": "", "showOsd": true }
-          ],
-          "items": {
-            "type": "object",
-            "additionalProperties": false,
-            "x-order": ["type", "app", "icon", "showOsd"],
-            "properties": {
-              "type": {
-                "type": "string",
-                "title": "Shows",
-                "enum": ["master", "other", "microphone", "brightness", "app"],
-                "x-enumLabels": { "master": "System volume", "other": "Other apps", "microphone": "Microphone", "brightness": "Brightness", "app": "An app" },
-                "default": "app"
-              },
-              "app": { "type": "string", "title": "App", "default": "", "x-showIf": { "type": "app" }, "description": "Matched as a substring of the stream's binary or name." },
-              "icon": { "type": "string", "title": "Icon", "default": "", "description": "Icon shown on the bar: a Material Symbols name (fonts.google.com/icons), or text. Empty follows the level for system volume, microphone and brightness." },
-              "showOsd": { "type": "boolean", "title": "Opens the OSD", "default": true, "description": "A change on this bar opens the OSD (it always keeps an open one open)." }
-            }
-          }
+          "title": "OSDs",
+          "x-settings": false,
+          "description": "Each OSD has its own place and bars. A change opens every OSD holding that bar.",
+          "default": [{ "id": "main" }],
+          "items": { "$ref": "#/definitions/OSDEntry" }
         }
       }
     },
@@ -1105,10 +1134,10 @@
         "layout": {
           "type": "string",
           "title": "Layout",
-          "enum": ["standard", "grid"],
-          "x-enumLabels": { "standard": "Standard (1 to N)", "grid": "Grid per monitor" },
-          "default": "standard",
-          "description": "Standard: workspaces 1 to N, shared by every monitor. Grid: each monitor has its own columns × rows workspaces, numbered in Hyprland's monitor order."
+          "enum": ["standard", "perMonitor", "grid"],
+          "x-enumLabels": { "standard": "Standard (1 to N)", "perMonitor": "Per monitor (1 to N)", "grid": "Grid per monitor" },
+          "default": "perMonitor",
+          "description": "Standard: workspaces 1 to N, shared by every monitor. Per monitor: each monitor has its own 1 to N workspaces. Grid: each monitor has its own columns × rows workspaces. Per monitor and grid assign monitors a stable order (the primary monitor first, then the rest by their monitor identity), so a hotplug or Hyprland restart can't reshuffle which monitor owns which ids."
         },
         "count": {
           "type": "integer",
@@ -1116,7 +1145,7 @@
           "default": 10,
           "minimum": 1,
           "maximum": 30,
-          "x-showIf": { "layout": "standard" }
+          "x-showIf": { "layout": ["standard", "perMonitor"] }
         },
         "columns": {
           "type": "integer",
@@ -1247,8 +1276,8 @@
         {
           "id": "primary",
           "location": "Top",
-          "extent": 34,
-          "inset": 4,
+          "widgetSize": 26,
+          "padding": 4,
           "background": "pills",
           "lockCenter": true,
           "widgets": {
@@ -1285,11 +1314,136 @@
   },
 
   "definitions": {
+    "OSDEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "x-order": ["name", "enabled", "monitors", "placement", "edge", "position", "x", "y", "orientation", "alongEdge", "openOnHover", "timeout", "showPercent", "bars"],
+      "properties": {
+        "id": { "type": "string", "title": "ID", "default": "main", "x-settings": false },
+        "name": { "type": "string", "title": "Name", "default": "", "description": "Shown on its tab here. Empty names it by its bars." },
+        "enabled": { "type": "boolean", "title": "Enabled", "default": true },
+        "monitors": {
+          "type": "string",
+          "title": "Monitors",
+          "enum": ["general", "primaryBar", "focused", "all"],
+          "x-enumLabels": { "general": "As in General", "primaryBar": "Primary bar's monitor", "focused": "Focused monitor", "all": "Every monitor" },
+          "default": "general",
+          "description": "Where the OSD appears. As in General follows General > Monitors; the primary bar's monitor is the first bar's; the focused monitor is the one with your active workspace (and mouse); every monitor shows it on all of them at once."
+        },
+        "placement": {
+          "type": "string",
+          "title": "Placement",
+          "enum": ["edge", "floating"],
+          "x-enumLabels": { "edge": "Slides out of a screen edge", "floating": "Floats on the screen" },
+          "default": "edge"
+        },
+        "edge": {
+          "type": "string",
+          "title": "Screen edge",
+          "default": "Bottom",
+          "enum": ["Top", "Bottom", "Left", "Right"],
+          "x-showIf": { "placement": "edge" },
+          "description": "Screen edge the OSD slides out of."
+        },
+        "position": {
+          "type": "integer",
+          "title": "Position along edge",
+          "x-unit": "%",
+          "default": 50,
+          "minimum": 0,
+          "maximum": 100,
+          "x-showIf": { "placement": "edge" },
+          "description": "Where along the edge it opens: 0 is the start (left/top), 100 the end."
+        },
+        "x": {
+          "type": "integer",
+          "title": "Across the screen",
+          "x-unit": "%",
+          "default": 50,
+          "minimum": 0,
+          "maximum": 100,
+          "x-showIf": { "placement": "floating" },
+          "description": "Where its centre sits across the free area: 0 is the left, 100 the right."
+        },
+        "y": {
+          "type": "integer",
+          "title": "Up the screen",
+          "x-unit": "%",
+          "default": 33,
+          "minimum": 0,
+          "maximum": 100,
+          "x-showIf": { "placement": "floating" },
+          "description": "Where its centre sits up the free area: 0 is the bottom, 50 the middle, 100 the top."
+        },
+        "orientation": {
+          "type": "string",
+          "title": "Bar orientation",
+          "default": "Vertical",
+          "enum": ["Vertical", "Horizontal"],
+          "description": "Vertical bars sit side by side; horizontal bars stack as rows."
+        },
+        "alongEdge": {
+          "type": "boolean",
+          "title": "Line up along the edge",
+          "default": false,
+          "x-showIf": { "placement": "edge" },
+          "description": "Place the bars in one line along the screen edge instead of stacking them by orientation. Bars that run along the edge then sit end to end, so the OSD is longer but sticks out less."
+        },
+        "openOnHover": {
+          "type": "boolean",
+          "title": "Open on hover",
+          "default": false,
+          "x-showIf": { "placement": "edge" },
+          "description": "Also open the OSD when the mouse touches the screen edge where it appears."
+        },
+        "timeout": {
+          "type": "integer",
+          "title": "Timeout",
+          "x-unit": "ms",
+          "default": 1000,
+          "minimum": 250,
+          "maximum": 10000,
+          "description": "How long the OSD stays open after the last change."
+        },
+        "showPercent": {
+          "type": "boolean",
+          "title": "Show percentages",
+          "default": true,
+          "description": "Show each bar's level as a percentage beside its icon."
+        },
+        "bars": {
+          "type": "array",
+          "title": "Bars",
+          "description": "One bar per entry, in order. System volume is the output device's volume, Other apps is the first playing stream no App bar (in any OSD) matches, Microphone is the input device's volume, and Brightness is the monitor's own (a laptop panel through brightnessctl, an external monitor over DDC/CI through ddcutil; left out on a monitor that has neither).",
+          "default": [
+            { "type": "other", "icon": "music_note", "showOsd": true },
+            { "type": "master", "icon": "", "showOsd": true }
+          ],
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "x-order": ["type", "app", "icon", "showOsd"],
+            "properties": {
+              "type": {
+                "type": "string",
+                "title": "Shows",
+                "enum": ["master", "other", "microphone", "brightness", "app"],
+                "x-enumLabels": { "master": "System volume", "other": "Other apps", "microphone": "Microphone", "brightness": "Brightness", "app": "An app" },
+                "default": "app"
+              },
+              "app": { "type": "string", "title": "App", "default": "", "x-showIf": { "type": "app" }, "x-suggestions": "audioApps", "description": "Matched as a substring of the stream's binary or name." },
+              "icon": { "type": "string", "title": "Icon", "default": "", "description": "Icon shown on the bar: a Material Symbols name (fonts.google.com/icons), or text. Empty follows the level for system volume, microphone and brightness." },
+              "showOsd": { "type": "boolean", "title": "Opens the OSD", "default": true, "description": "A change on this bar opens the OSD (it always keeps an open one open)." }
+            }
+          }
+        }
+      }
+    },
     "EdgeMenu": {
       "type": "object",
       "required": ["id"],
       "additionalProperties": false,
-      "x-order": ["name", "id", "enabled", "monitor", "mode", "edge", "position", "edgeDistance", "cardSize", "extraWidth", "extraHeight", "frame", "margin", "padding", "backgroundColor", "borderColor", "openOnHover", "openDelay", "triggerSize", "triggerLength", "closeOnLeave", "closeDelay", "closeOnOutsideClick"],
+      "x-order": ["name", "id", "enabled", "monitor", "mode", "edge", "position", "edgeDistance", "cardSize", "extraWidth", "extraHeight", "frame", "margin", "padding", "moduleBorders", "backgroundColor", "borderColor", "openOnHover", "openDelay", "triggerSize", "triggerLength", "closeOnLeave", "closeDelay", "closeOnOutsideClick"],
       "properties": {
         "id": { "type": "string", "title": "Id", "description": "What bar buttons and IPC calls open this menu by." },
         "name": { "type": "string", "title": "Name", "default": "" },
@@ -1378,12 +1532,13 @@
         "padding": {
           "type": "integer",
           "title": "Padding",
-          "default": 12,
-          "minimum": 0,
+          "default": -1,
+          "minimum": -1,
           "maximum": 64,
           "x-unit": "px",
-          "description": "Space between the menu's box and its modules."
+          "description": "Space between the menu's box and its modules. -1 uses the Popouts padding."
         },
+        "moduleBorders": { "type": "boolean", "title": "Module borders", "default": true, "description": "Draw each module's card box. Turn off to show modules straight on the menu's background, e.g. a menu with a single module." },
         "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base00" },
         "borderColor": { "type": "string", "title": "Border", "x-options": "colors", "default": "base05" },
         "openOnHover": { "type": "boolean", "title": "Open on hover", "default": false, "description": "Open when the pointer rests on the screen edge." },
@@ -1460,23 +1615,24 @@
           "default": "Top",
           "enum": ["Top", "Bottom", "Left", "Right"]
         },
-        "extent": {
+        "widgetSize": {
           "type": "integer",
-          "title": "Thickness",
-          "default": 30,
+          "title": "Widget size",
+          "default": 26,
           "minimum": 10,
-          "maximum": 200,
+          "maximum": 150,
           "x-unit": "px",
-          "description": "Thickness of the bar (px). A pill bar is as thick as its pills: its widgets plus the pill padding."
+          "description": "How thick the widgets are across the bar. The bar grows to fit them, their padding, and any border it shares an edge with."
         },
-        "inset": {
+        "padding": {
           "type": "integer",
-          "title": "Widget inset",
-          "default": 0,
+          "title": "Padding",
+          "default": 4,
           "minimum": 0,
           "maximum": 50,
           "x-unit": "px",
-          "description": "Gap between the widgets and the bar's edges (px). Widgets are the bar's thickness minus twice this, whatever the background."
+          "x-showIf": { "background": { "not": "pills" } },
+          "description": "Space between the widgets and the bar's visible edges, on both sides."
         },
         "background": {
           "type": "string",
@@ -1668,10 +1824,11 @@
       "type": "object",
       "required": ["layout"],
       "additionalProperties": false,
-      "description": "One cell split into slots, defined in OverlayConfig.layouts. A column flows its cells left to right, wrapping at its widest cell, so two Singles after a Wide sit side by side under it (an empty Single leaves a gap). Cells are one card, except Tall (two cards high), Wide (two cards wide), Large (two by two cards), HalfWide (half a card high) and HalfTall (half a card wide). A cell with fill grows into free room: the rest of its row, its row's height, and spare height in its column (shared evenly with other fill cells); in an edge menu, any fill cell makes the menu take its whole edge. Slots per layout: Single/Tall/Wide/Large/HalfWide/HalfTall main; Grid2x2 topLeft/topRight/bottomLeft/bottomRight; Vert1x1 left/right; Vert1x2 left/topRight/bottomRight; Vert2x1 topLeft/bottomLeft/right; Horiz1x1 top/bottom; Horiz1x2 top/bottomLeft/bottomRight; Horiz2x1 topLeft/topRight/bottom.",
+      "description": "One cell split into slots, defined in OverlayConfig.layouts. A column flows its cells left to right, wrapping at its widest cell, so two Singles after a Wide sit side by side under it (an empty Single leaves a gap). Cells are one card, except Tall (two cards high), Wide (two cards wide), Large (two by two cards), HalfWide (half a card high) and HalfTall (half a card wide). A cell with fillWidth grows into the rest of its row; one with fillHeight grows to its row's height and into spare height in its column (shared evenly between rows that fill). In an edge menu, a cell filling along the edge (fillHeight on a left/right edge, fillWidth on a top/bottom one) makes the menu take its whole edge. Slots per layout: Single/Tall/Wide/Large/HalfWide/HalfTall main; Grid2x2 topLeft/topRight/bottomLeft/bottomRight; Vert1x1 left/right; Vert1x2 left/topRight/bottomRight; Vert2x1 topLeft/bottomLeft/right; Horiz1x1 top/bottom; Horiz1x2 top/bottomLeft/bottomRight; Horiz2x1 topLeft/topRight/bottom.",
       "properties": {
         "layout": { "type": "string", "title": "Layout", "default": "Single", "enum": ["Single", "Tall", "Wide", "Large", "HalfWide", "HalfTall", "Grid2x2", "Vert1x1", "Vert1x2", "Vert2x1", "Horiz1x1", "Horiz1x2", "Horiz2x1"] },
-        "fill": { "type": "boolean", "title": "Fill space", "default": false, "description": "Grow into free room, shared evenly with other cells that fill." },
+        "fillWidth": { "type": "boolean", "title": "Fill width", "default": false, "description": "Grow into the rest of its row, shared evenly with other cells in the row that fill width." },
+        "fillHeight": { "type": "boolean", "title": "Fill height", "default": false, "description": "Grow to its row's height and into spare height in its column, shared evenly with other rows that fill height." },
         "slots": {
           "type": "object",
           "default": {},

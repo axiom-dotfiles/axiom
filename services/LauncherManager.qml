@@ -12,20 +12,23 @@ import qs.components.methods
  * runs them. The first character picks what's searched:
  *   /  shell commands (LauncherCommands)   =  calculator (qalc)
  *   >  run a shell command                 ?  web search
+ *   @  ask the chat                        :  clipboard history
  * and anything else searches apps and open windows, with a calculator row
  * when the text is math and a web search row last. Every row is
  *   { kind, image, glyph, title, usage, subtitle, hint, complete, run(shift) }
  * where image is an icon path or url, glyph a Material Symbols name, complete the
  * text Tab puts in the search field, and run() returns true to close the
  * launcher, false to keep it open, or a string to search for instead.
- * App launches are counted (with their last time) for frecency sorting.
+ * App launches and commands run are counted (with their last time) for
+ * frecency sorting.
  */
 QtObject {
   id: root
 
   // --- Public Properties ---
   property var results: []
-  // What the search text is: "apps" | "commands" | "calc" | "run" | "web"
+  // What the search text is: "apps" | "commands" | "calc" | "run" | "web" |
+  // "chat" | "clipboard"
   property string mode: "apps"
   // The results are the frequent apps shown before anything is typed
   property bool frequent: false
@@ -33,6 +36,8 @@ QtObject {
   property string text: ""
   // { id: { count, last } }
   property var usage: ({})
+  // { command name: { count, last } }
+  property var commandUsage: ({})
   // { id: last launch time }, for Favourites
   readonly property var launchTimes: Object.keys(usage).reduce((times, id) => {
     times[id] = usage[id].last;
@@ -58,6 +63,10 @@ QtObject {
       return _set("web", [_webRow(rest.trim())]);
     if (prefix === "@" && LauncherConfig.chat)
       return _set("chat", [_chatRow(rest.trim())]);
+    if (prefix === ":" && LauncherConfig.clipboard) {
+      ClipboardManager.refresh();
+      return _set("clipboard", _clipboardRows(rest.trim()));
+    }
 
     const q = raw.trim();
     if (q === "") {
@@ -110,7 +119,7 @@ QtObject {
 
       // DesktopEntry.execute() ignores Terminal=true
       if (appEntry.runInTerminal)
-        Quickshell.execDetached([LauncherConfig.terminal, "-e"].concat(appEntry.command));
+        Quickshell.execDetached([Apps.terminal, "-e"].concat(appEntry.command));
       else
         appEntry.execute();
       return true;
@@ -160,7 +169,10 @@ QtObject {
 
   // How often and how lately an app was launched
   function _frecency(id) {
-    const entry = usage[id];
+    return _entryFrecency(usage[id]);
+  }
+
+  function _entryFrecency(entry) {
     if (!entry)
       return 0;
     const days = (Date.now() - entry.last) / 86400000;
@@ -270,9 +282,12 @@ QtObject {
       const matches = commands.map((c, i) => ({
             c: c,
             i: i,
+            f: _entryFrecency(commandUsage[c.name]),
             s: q === "" ? 1 : Math.max(root.score(c.name, q), ...c.aliases.map(a => 0.9 * root.score(a, q)))
-          })).filter(m => m.s > 0);
-      matches.sort((a, b) => b.s - a.s || a.i - b.i);
+          })).filter(m => m.s > 0).map(m => Object.assign(m, {
+          s: m.s + Math.min(25, 8 * Math.log2(1 + m.f))
+        }));
+      matches.sort((a, b) => b.s - a.s || b.f - a.f || a.i - b.i);
       return matches.length > 0 ? matches.map(m => _commandRow(m.c, "")) : [_infoRow(I18n.tr("No command \"{0}\"", body), I18n.tr("Type / to list every command"))];
     }
 
@@ -288,7 +303,7 @@ QtObject {
     const options = command.options(arg).map((o, i) => ({
           o: o,
           i: i,
-          s: q === "" ? 1 : root.score(o.title, q)
+          s: q === "" || o.matched ? 1 : root.score(o.title, q)
         })).filter(m => m.s > 0);
     options.sort((a, b) => b.s - a.s || a.i - b.i);
     let rows = [];
@@ -337,6 +352,7 @@ QtObject {
       return false;
     }
     root._armed = "";
+    _recordCommand(command.name);
     const result = command.run(arg, value);
     if (typeof result === "string")
       return result;
@@ -445,7 +461,7 @@ QtObject {
   // --- Run & web ---
 
   function _runRow(command) {
-    const terminal = LauncherConfig.terminal;
+    const terminal = Apps.terminal;
     return {
       kind: "run",
       glyph: "terminal",
@@ -498,9 +514,114 @@ QtObject {
     };
   }
 
+  // --- Clipboard ---
+
+  function _clipboardRows(query) {
+    if (ClipboardManager.cliphist && ClipboardManager.cliphistInstalled === false)
+      return [_infoRow(I18n.tr("cliphist isn't installed"), I18n.tr("Install cliphist, or set the clipboard history source to axiom"))];
+    const entries = ClipboardManager.entries;
+    if (entries.length === 0)
+      return [_infoRow(I18n.tr("The clipboard history is empty"), ClipboardManager.cliphist ? I18n.tr("Record it with wl-paste --watch cliphist store") : I18n.tr("Copy something and it shows up here"))];
+    const q = query.toLowerCase();
+    let matches = entries.map((e, i) => ({
+          e: e,
+          i: i,
+          s: q === "" ? 1 : Math.max(root.score(e.format ? I18n.tr("Image {0}", e.dimensions) : e.text.trim().split("\n")[0], q), e.text.toLowerCase().includes(q) ? 40 : 0)
+        })).filter(m => m.s > 0);
+    matches.sort((a, b) => b.s - a.s || a.i - b.i);
+    const rows = matches.slice(0, _searchLimit).map(m => _clipboardRow(m.e));
+    if (q === "")
+      rows.push({
+        kind: "command",
+        glyph: "delete_sweep",
+        title: I18n.tr("Clear the clipboard history"),
+        subtitle: I18n.tr("{0} entries", entries.length),
+        run: () => {
+          ClipboardManager.clear();
+          return false;
+        }
+      });
+    return rows.length > 0 ? rows : [_infoRow(I18n.tr("No matches"), I18n.tr("{0} entries", entries.length))];
+  }
+
+  function _clipboardRow(entry) {
+    if (entry.format || entry.html)
+      return _clipboardImageRow(entry);
+    const lines = entry.text.trim().split("\n");
+    const first = lines[0].trim();
+    const details = [];
+    if (lines.length > 1)
+      details.push(I18n.tr("{0} lines", lines.length));
+    if (entry.time > 0)
+      details.push(I18n.formatDate(new Date(entry.time), I18n.dateFormat("time24")));
+    return {
+      kind: "clipboard",
+      glyph: /^\[\[ binary data/.test(first) ? "image" : "content_paste",
+      title: first.length > 120 ? first.slice(0, 120) + "…" : first,
+      subtitle: details.join(" · "),
+      hint: I18n.tr("Shift+Enter removes"),
+      run: shift => {
+        if (shift) {
+          ClipboardManager.remove(entry);
+          return false;
+        }
+        ClipboardManager.copy(entry);
+        return true;
+      }
+    };
+  }
+
+  // A cliphist image, with its thumbnail once decoded, or HTML that is just
+  // an image, previewed from its url
+  function _clipboardImageRow(entry) {
+    return {
+      kind: "clipboard",
+      glyph: "image",
+      image: entry.image,
+      title: entry.html ? (entry.image ? I18n.tr("Image from {0}", entry.image.match(/^\w+:\/\/([^/]+)/)[1]) : I18n.tr("Image")) : I18n.tr("Image {0}", entry.dimensions),
+      subtitle: entry.html ? I18n.tr("HTML") + (entry.image ? " · " + entry.image : "") : entry.format.toUpperCase() + " · " + entry.size,
+      hint: I18n.tr("Shift+Enter removes"),
+      run: shift => {
+        if (shift)
+          ClipboardManager.remove(entry);
+        else
+          ClipboardManager.copy(entry);
+        return !shift;
+      }
+    };
+  }
+
+  property Connections _clipboardUpdates: Connections {
+    target: ClipboardManager
+    function onEntriesChanged() {
+      if (root.mode === "clipboard")
+        root._refresh();
+    }
+    function onCliphistInstalledChanged() {
+      if (root.mode === "clipboard")
+        root._refresh();
+    }
+  }
+
   // --- Private ---
 
   property var _stateHandler: StateManager.createStateHandler("launcher")
+
+  property var _commandStateHandler: StateManager.createStateHandler("launcher-commands")
+
+  function _recordCommand(name) {
+    const entry = commandUsage[name] ?? {
+      count: 0,
+      last: 0
+    };
+    const updated = Object.assign({}, commandUsage);
+    updated[name] = {
+      count: entry.count + 1,
+      last: Date.now()
+    };
+    commandUsage = updated;
+    _commandStateHandler.save(commandUsage);
+  }
 
   function _set(mode, rows) {
     root.mode = mode;
@@ -518,6 +639,7 @@ QtObject {
       } : entry;
       return all;
     }, {});
+    commandUsage = _commandStateHandler.load({});
     _qalcCheck.running = true;
   }
 }

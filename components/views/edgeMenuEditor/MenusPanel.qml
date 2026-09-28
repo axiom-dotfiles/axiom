@@ -33,7 +33,7 @@ Item {
       },
       {
         "title": "Style",
-        "keys": ["frame", "margin", "padding", "backgroundColor", "borderColor"]
+        "keys": ["frame", "margin", "padding", "moduleBorders", "backgroundColor", "borderColor"]
       },
       {
         "title": "Behaviour",

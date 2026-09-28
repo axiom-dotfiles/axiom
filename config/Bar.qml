@@ -15,23 +15,41 @@ QtObject {
   // (whose keys are always filled in from the schema defaults).
   function enrichBarConfig(barConfig, index = 0) {
     const loc = Bar.getLocationFromString(barConfig.location);
-    // Thickness of the bar's widgets, so they always fit inside it
-    const widgetSize = Math.max(0, barConfig.extent - 2 * (barConfig.inset ?? 0));
+    // The bar is sized by its widgets, never the other way round, so no
+    // setting can leave them cut off
+    const widgetSize = barConfig.widgetSize;
+    const padding = barConfig.padding;
     const background = barConfig.background ?? "solid";
     const pills = background === "pills";
+    const solid = background === "solid";
+    const floating = !solid && Appearance.screenBorder;
+    // What covers the bar's own pixels: a floating bar's outer edge lies on
+    // the border's stroke, and a solid bar with the border off draws its own
+    // stroke on its inner edge. A solid bar's border strip only draws its
+    // stroke past the bar (RoundedBorders.frameColorFor).
+    const outerCover = floating ? Appearance.borderWidth : 0;
+    const innerCover = solid && !Appearance.screenBorder ? Appearance.borderWidth : 0;
+    // A solid bar reaches at least as far as the border strip laid over its
+    // inner part (BarPanel.reservedZone), so no gap opens under the strip
+    const minExtent = solid && Appearance.screenBorder ? Appearance.screenMargin - Appearance.borderWidth : 0;
+    const plainExtent = Math.max(minExtent, outerCover + padding + widgetSize + padding + innerCover);
     // A pill covers the screen border's stroke where it joins it
     const overlap = Appearance.screenBorder ? Appearance.borderWidth : 0;
     // Padding past the border's stroke on the pill's outer side, so its
     // widgets sit the frame plus this in from the screen edge
     const pillPad = barConfig.pillPadding ?? 0;
+    // How far a pill's widgets sit in from the bar's outer edge (and its
+    // ends): past the border stroke, or with the border off, the screen
+    // margin the frame would have taken, so they keep the same gap from the
+    // bare screen edge
+    const pillInset = overlap + (Appearance.screenBorder ? 0 : Appearance.screenMargin) + pillPad;
     // The widgets' gap to every edge they're seen against: the screen edge
     // (through the frame), and the pill's inner side and free ends (to the
     // outside of its stroke)
-    const pillGap = Math.max(Appearance.borderWidth, (Appearance.screenBorder ? Appearance.screenMargin : 0) + pillPad);
-    // How far a pill reaches in from the bar's outer edge: the border
-    // stroke it covers, the outer padding, its widgets, and the gap to its
-    // far side
-    const pillDepth = overlap + pillPad + widgetSize + pillGap;
+    const pillGap = Math.max(Appearance.borderWidth, Appearance.screenMargin + pillPad);
+    // How far a pill reaches in from the bar's outer edge: the inset, its
+    // widgets, and the gap to its far side
+    const pillDepth = pillInset + widgetSize + pillGap;
 
     return {
       "id": barConfig.id,
@@ -40,18 +58,22 @@ QtObject {
       "monitor": barConfig.monitor,
       // A pill bar is as thick as its pills, so the padding always fits
       // and nothing is left between them and the windows
-      "extent": pills ? pillDepth : barConfig.extent,
-      "inset": barConfig.inset ?? 0,
+      "extent": pills ? pillDepth : plainExtent,
       "widgetSize": widgetSize,
+      "padding": padding,
+      // How far the widgets sit in from the bar's outer edge: past the
+      // stroke and pill padding, or centred between whatever covers the bar
+      "crossStart": pills ? pillInset : outerCover + (plainExtent - outerCover - innerCover - widgetSize) / 2,
       "background": background,
       "pills": pills,
       // Transparent and pill bars sit inside the screen border, not under it
-      "floating": background !== "solid" && Appearance.screenBorder,
+      "floating": floating,
       // A solid bar's inner stroke is the border strip's; with the border
       // off it draws its own, on its innermost pixels
-      "innerStroke": background === "solid" && !Appearance.screenBorder,
+      "innerStroke": solid && !Appearance.screenBorder,
       "overlap": overlap,
       "pillPad": pillPad,
+      "pillInset": pillInset,
       "pillGap": pillGap,
       "pillMerge": barConfig.pillMerge ?? 0,
       "pillDepth": pillDepth,

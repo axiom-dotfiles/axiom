@@ -69,7 +69,7 @@ Item {
 
   // Marks a cell that fills free room (shown at its own size here)
   Rectangle {
-    visible: root.cellConfig?.fill === true
+    visible: root.cellConfig?.fillWidth === true || root.cellConfig?.fillHeight === true
     anchors.right: parent.right
     anchors.bottom: parent.bottom
     anchors.margins: 4
@@ -81,7 +81,8 @@ Item {
 
     StyledIcon {
       anchors.centerIn: parent
-      text: "expand_content"
+      // Material Symbols: arrows out along the axes it fills
+      text: root.cellConfig?.fillWidth !== true ? "height" : root.cellConfig?.fillHeight !== true ? "width" : "expand_content"
       textColor: Theme.background
       textSize: Appearance.fontSize - 1
     }

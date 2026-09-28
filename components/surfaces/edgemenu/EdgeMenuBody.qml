@@ -24,9 +24,11 @@ Item {
   on_ColumnsKeyChanged: root.columns = JSON.parse(root._columnsKey)
   Component.onCompleted: root.columns = JSON.parse(root._columnsKey)
 
+  // `bare`: the menu hides its modules' card boxes (moduleBorders off)
   readonly property var host: ({
       "kind": "edgeMenu",
-      "id": root.menu?.id ?? ""
+      "id": root.menu?.id ?? "",
+      "bare": root.menu?.moduleBorders === false
     })
 
   OverlayGrid {
@@ -37,10 +39,14 @@ Item {
   // `extraWidth` and `extraHeight` grow every cell (OverlayConfig.columnFlow's
   // `extra`): the columns share the width, each gets all the height. Fill
   // cells (its `target`) then take all the room along the edge (on a
-  // top/bottom edge the spare width is shared by the columns holding one)
-  // and grow across it to the thickest column.
+  // top/bottom edge the spare width is shared by the columns holding a
+  // fillWidth cell) and fillHeight cells grow across it to the thickest
+  // column. `anyFill` (the menu takes its whole edge) counts only cells
+  // filling along the edge: fillHeight on a left/right edge, fillWidth on
+  // a top/bottom one.
   readonly property var _natural: root.columns.map(column => grid.columnFlow(column?.cells))
-  readonly property var _fillColumns: root.columns.map(column => (column?.cells ?? []).some(cell => cell?.fill === true))
+  readonly property string _alongKey: root.vertical ? "fillHeight" : "fillWidth"
+  readonly property var _fillColumns: root.columns.map(column => (column?.cells ?? []).some(cell => cell?.[root._alongKey] === true))
   readonly property bool anyFill: root._fillColumns.includes(true)
   readonly property int _fillCount: root._fillColumns.filter(fills => fills).length
   readonly property real extraWidth: root.columns.length > 0 ? Math.max(0, root.menu?.extraWidth ?? 0) : 0

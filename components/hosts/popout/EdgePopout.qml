@@ -73,7 +73,7 @@ PopoutWrapperBase {
   property bool detached: false
   property bool closeOnClickOutside: false
   // Space between the box and its content
-  property real contentPadding: Widget.spacing
+  property real contentPadding: Appearance.borderWidth + PopoutConfig.padding
   // Extra distance in from the attach edge (for a detached box)
   property real edgeOffset: 0
   // How far back towards the screen edge a detached box slides in from:
@@ -348,17 +348,18 @@ PopoutWrapperBase {
       Loader {
         id: loader
         // Across the edge it fills the box; along it, it keeps its own
-        // length, centred (a box joined at both ends can be longer)
-        anchors.left: root.vertical ? parent.left : undefined
-        anchors.right: root.vertical ? parent.right : undefined
-        anchors.top: root.vertical ? undefined : parent.top
-        anchors.bottom: root.vertical ? undefined : parent.bottom
-        anchors.horizontalCenter: root.vertical ? undefined : parent.horizontalCenter
-        anchors.verticalCenter: root.vertical ? parent.verticalCenter : undefined
-        anchors.leftMargin: root.contentPadding + (root.edge === Bar.Left ? root.attachClearance : 0)
-        anchors.rightMargin: root.contentPadding + (root.edge === Bar.Right ? root.attachClearance : 0)
-        anchors.topMargin: root.contentPadding + (root.edge === Bar.Top ? root.attachClearance : 0)
-        anchors.bottomMargin: root.contentPadding + (root.edge === Bar.Bottom ? root.attachClearance : 0)
+        // length, centred (a box joined at both ends can be longer). Plain
+        // geometry, not anchors switched by `vertical`: those re-evaluate
+        // one at a time when the edge changes, and QML drops the anchor
+        // that briefly conflicts (top + bottom + verticalCenter) for good.
+        readonly property real leftMargin: root.contentPadding + (root.edge === Bar.Left ? root.attachClearance : 0)
+        readonly property real rightMargin: root.contentPadding + (root.edge === Bar.Right ? root.attachClearance : 0)
+        readonly property real topMargin: root.contentPadding + (root.edge === Bar.Top ? root.attachClearance : 0)
+        readonly property real bottomMargin: root.contentPadding + (root.edge === Bar.Bottom ? root.attachClearance : 0)
+        x: root.vertical ? leftMargin : (parent.width - width) / 2
+        y: root.vertical ? (parent.height - height) / 2 : topMargin
+        width: root.vertical ? parent.width - leftMargin - rightMargin : (root.contentItem?.implicitWidth ?? 0)
+        height: root.vertical ? (root.contentItem?.implicitHeight ?? 0) : parent.height - topMargin - bottomMargin
 
         active: root.occupied || root.keepLoaded
         asynchronous: false

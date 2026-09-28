@@ -30,7 +30,6 @@ Panel {
         }));
   }
 
-  margins: 20
   spacing: Widget.padding
 
   implicitWidth: Math.max(300, body.implicitWidth + margins * 2)

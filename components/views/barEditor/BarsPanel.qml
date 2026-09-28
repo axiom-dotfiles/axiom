@@ -27,7 +27,7 @@ Item {
       },
       {
         "title": "Size",
-        "keys": ["extent", "inset", "spacing"]
+        "keys": ["widgetSize", "padding", "spacing"]
       },
       {
         "title": "Style",
@@ -216,6 +216,16 @@ Item {
             // The whole bar, so x-showIf sees keys from other groups
             values: root.bar ?? ({})
             onEdited: (path, value) => BarManager.updateBarField(path[0], value)
+          }
+
+          // The thickness the size settings add up to
+          StyledText {
+            visible: "widgetSize" in group.modelData.schema
+            text: I18n.tr("Bar thickness: {0} px", Math.round(Bar.enrichBarConfig(root.bar ?? ({})).extent))
+            textColor: Theme.foreground
+            opacity: 0.7
+            wrapMode: Text.WordWrap
+            Layout.fillWidth: true
           }
         }
       }

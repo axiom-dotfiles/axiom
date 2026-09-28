@@ -103,9 +103,8 @@ Panel {
       anchors.top: parent.top
       anchors.topMargin: root.popupTop
       anchors.left: parent.left
-      anchors.bottom: parent.bottom
-      anchors.bottomMargin: Widget.spacing
       width: Math.min(parent.width - Widget.padding * 2, 300)
+      maxHeight: parent.height - root.popupTop - Widget.spacing
       onPicked: root.listOpen = false
     }
 

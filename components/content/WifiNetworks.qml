@@ -27,7 +27,6 @@ Panel {
   hovered: pointerInside || wantsKeyboardFocus
   onFocusLost: NetworkingManager.cancelPassword()
 
-  margins: 16
   implicitWidth: 380
   // A popout's list is a fixed six rows high
   readonly property real rowHeight: Math.max(titleMetrics.height + statusMetrics.height, 28) + Widget.spacing * 2

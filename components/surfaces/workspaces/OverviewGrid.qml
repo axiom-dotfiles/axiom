@@ -40,9 +40,10 @@ Rectangle {
   readonly property real cellH: Math.floor(monitorH * miniScale)
   readonly property real cellRadius: Math.max(2, Appearance.borderRadius * 0.75)
 
-  // The windows on the board's workspaces: this monitor's in a grid; in the
-  // standard layout workspaces are shared, so any monitor's
-  readonly property var windows: HyprlandManager.windowList.filter(w => (!WorkspacesConfig.grid || w.monitor === root.monitor?.id) && root.ids.includes(w.workspace?.id) && w.mapped !== false && !w.hidden)
+  // The windows on the board's workspaces: this monitor's in a grid or
+  // perMonitor layout; in the standard layout workspaces are shared, so
+  // any monitor's
+  readonly property var windows: HyprlandManager.windowList.filter(w => (!WorkspacesConfig.perMonitorBlocks || w.monitor === root.monitor?.id) && root.ids.includes(w.workspace?.id) && w.mapped !== false && !w.hidden)
   readonly property var byAddress: root.windows.reduce((map, w) => {
     map[w.address] = w;
     return map;

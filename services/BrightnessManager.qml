@@ -31,18 +31,42 @@ QtObject {
     return displays[name]?.value ?? 0;
   }
 
-  function set(name, value) {
+  // A silent set doesn't emit brightnessChanged, so the OSD stays shut
+  function set(name, value, silent) {
     const display = displays[name];
     if (!display)
       return;
     const clamped = Math.max(0, Math.min(1, value));
     _update(name, clamped);
-    brightnessChanged(name);
+    if (!silent)
+      brightnessChanged(name);
     if (_writing[name])
       _pending[name] = clamped;
     else
       _write(name, clamped);
   }
+
+  // Idle dimming (hypridle, through IPC): every monitor down to `fraction`
+  // (darker ones stay), then back to what each was on undim()
+  function dim(fraction) {
+    for (const name of Object.keys(displays)) {
+      if (_dimmed[name] !== undefined)
+        continue;
+      const value = valueFor(name);
+      _dimmed[name] = value;
+      if (value > fraction)
+        set(name, fraction, true);
+    }
+  }
+
+  function undim() {
+    for (const name of Object.keys(_dimmed))
+      set(name, _dimmed[name], true);
+    _dimmed = {};
+  }
+
+  // { screenName: value before dim() }
+  property var _dimmed: ({})
 
   function stepBy(name, delta) {
     if (available(name))
@@ -207,6 +231,15 @@ QtObject {
 
     function set(percent: int): void {
       root.set(root._focused(), percent / 100);
+    }
+
+    // Every monitor, without the OSD (the Idle settings' dim step)
+    function dim(percent: int): void {
+      root.dim(Math.max(0, Math.min(100, percent)) / 100);
+    }
+
+    function undim(): void {
+      root.undim();
     }
   }
 }

@@ -19,6 +19,8 @@ Rectangle {
   property string query: ""
   // The conversation being renamed ("" when none)
   property string renaming: ""
+  // Floating, it grows with its rows up to this
+  property real maxHeight: 420
 
   readonly property var rows: {
     const wanted = root.query.trim().toLowerCase();
@@ -45,6 +47,7 @@ Rectangle {
     return out;
   }
 
+  implicitHeight: Math.min(Widget.height + listColumn.implicitHeight + Widget.spacing * 3, root.maxHeight)
   color: Theme.background
   radius: Appearance.borderRadius
   border.color: Theme.border

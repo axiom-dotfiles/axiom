@@ -16,6 +16,8 @@ Item {
   property bool useSystemVolume: false
   property alias orientation: bar.orientation
   property alias iconSource: bar.iconSource
+  property alias showPercent: bar.showPercent
+  property alias scrollStep: bar.scrollStep
 
   readonly property bool nodeFound: !useSystemVolume && _targetNode !== null && _targetNode.ready && _targetNode.audio
   property real volume: useSystemVolume ? AudioManager.volume : (nodeFound ? _targetNode.audio.volume : 0.0)
@@ -97,7 +99,16 @@ Item {
     }
   }
 
+  // Config changes (a reload, another saved config) pick the stream again
   onTargetApplicationChanged: _updateTargetNode()
+  onExcludedAppsChanged: {
+    if (Pipewire.ready)
+      _updateTargetNode();
+  }
+  onUseSystemVolumeChanged: {
+    if (Pipewire.ready)
+      _updateTargetNode();
+  }
 
   Component.onCompleted: {
     if (Pipewire.ready) {

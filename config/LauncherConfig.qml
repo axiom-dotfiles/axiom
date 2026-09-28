@@ -36,7 +36,11 @@ QtObject {
   readonly property bool webSearch: _c.webSearch
   // "@question" asks the overlay's chat
   readonly property bool chat: _c.chat
-  readonly property string terminal: _c.terminal
+  // ":" searches the clipboard history (ClipboardManager)
+  readonly property bool clipboard: _c.clipboard
+  // "axiom" | "cliphist"
+  readonly property string clipboardSource: _c.clipboardSource
+  readonly property int clipboardMaxEntries: _c.clipboardMaxEntries
   // With {} where the terms go
   readonly property string searchEngine: _c.searchEngine
 }

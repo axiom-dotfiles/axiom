@@ -4,9 +4,11 @@ import qs.config
 import qs.components.methods
 import qs.components.reusable
 
-// One block of a NoteEditor: a run of plain lines, or a task line with its
-// checkbox. It reads its block from the editor on load() (not by binding),
-// so typing never rebuilds anything.
+// One block of a NoteEditor: a paragraph, or a task line with its checkbox.
+// While focused it edits the raw Markdown; otherwise it shows it rendered
+// (a click there edits at about that spot, or opens a link). It reads its
+// block from the editor on load() (not by binding), so typing never
+// rebuilds anything.
 Item {
   id: root
 
@@ -19,10 +21,22 @@ Item {
   readonly property alias field: field
   readonly property bool isTask: root.kind === "task"
   readonly property bool shown: !(root.isTask && root.checked && !root.editor.showCompleted)
+  // The editor's find match, when it's in this block
+  readonly property var _match: root.editor.findMatch?.block === root.index ? root.editor.findMatch : null
+  // Edited (or showing a find match) as raw Markdown; otherwise rendered
+  readonly property bool editing: field.activeFocus || root._match !== null
+
+  // The rendered layer's text: a paragraph as Markdown, a task's text with
+  // its inline formatting only (a leading "#" or "1." stays literal)
+  readonly property string _markdown: root.isTask ? field.text.replace(/^(\s*)(#|>|[-*+]\s|\d+[.)]\s)/, "$1\\$2") : field.text
+  // Blank lines before and after a paragraph, which Markdown drops: a gap
+  readonly property var _lines: field.text.split("\n")
+  readonly property bool _blankBefore: root._lines.length > 1 && root._lines[0].trim() === "" && field.text.trim() !== ""
+  readonly property bool _blankAfter: root._lines.length > 1 && root._lines[root._lines.length - 1].trim() === "" && field.text.trim() !== ""
 
   visible: root.shown
   width: parent?.width ?? 0
-  implicitHeight: root.shown ? field.implicitHeight : 0
+  implicitHeight: !root.shown ? 0 : root.editing ? field.implicitHeight : field.text.trim() === "" ? field.lineHeight : rendered.implicitHeight
 
   function load() {
     const block = root.editor.doc.blocks[root.index];
@@ -60,12 +74,28 @@ Item {
     textColor: root.checked ? Theme.accent : Theme.foregroundAlt
     textSize: Appearance.fontSize + 4
 
-    HoverHandler {
+    // A MouseArea, not a TapHandler: it accepts the press, so the editor's
+    // background MouseArea (which focuses the note's end) never sees it. An
+    // exclusive-grab TapHandler is cancelled by the ScrollView's Flickable,
+    // and a passive one lets the press through
+    MouseArea {
+      anchors.fill: parent
       cursorShape: Qt.PointingHandCursor
+      onClicked: root.editor.toggle(root.index)
     }
-    TapHandler {
-      onTapped: root.editor.toggle(root.index)
-    }
+  }
+
+  // The find match, under the text (to the line's end when it wraps)
+  Rectangle {
+    readonly property rect start: root._match ? field.positionToRectangle(root._match.pos) : Qt.rect(0, 0, 0, 0)
+    readonly property rect end: root._match ? field.positionToRectangle(root._match.pos + root._match.len) : Qt.rect(0, 0, 0, 0)
+    visible: root._match !== null
+    x: field.x + start.x
+    y: start.y
+    width: end.y === start.y ? end.x - start.x : field.width - start.x
+    height: start.height
+    radius: 2
+    color: Qt.alpha(Theme.accent, 0.35)
   }
 
   TextEdit {
@@ -76,6 +106,10 @@ Item {
 
     x: root.isTask ? box.x + box.width + Widget.spacing / 2 : 0
     width: root.width - x
+    // Hidden under the rendered text, and no taller than it there, so it
+    // takes no clicks meant for the blocks below
+    height: root.editing ? implicitHeight : Math.min(implicitHeight, root.height)
+    opacity: root.editing ? 1 : 0
     wrapMode: TextEdit.Wrap
     textFormat: TextEdit.PlainText
     color: root.checked ? Theme.foregroundAlt : Theme.foreground
@@ -89,6 +123,11 @@ Item {
     FontMetrics {
       id: fontMetrics
       font: field.font
+    }
+
+    // A click on the rendered text edits the block at about that spot
+    function editAt(x, y) {
+      root.focusAt(field.positionAt(x, y));
     }
 
     onTextChanged: root.editor.blockEdited(root.index, text)
@@ -145,6 +184,12 @@ Item {
           event.accepted = true;
         }
         break;
+      case Qt.Key_F:
+        if (event.modifiers & Qt.ControlModifier) {
+          root.editor.findRequested(field.selectedText);
+          event.accepted = true;
+        }
+        break;
       case Qt.Key_Up:
         if (plain && field.cursorRectangle.y < field.lineHeight / 2)
           event.accepted = root.editor.focusNeighbour(root.index, -1);
@@ -153,6 +198,39 @@ Item {
         if (plain && field.cursorRectangle.y + field.cursorRectangle.height > field.contentHeight - field.lineHeight / 2)
           event.accepted = root.editor.focusNeighbour(root.index, 1);
         break;
+      }
+    }
+  }
+
+  Text {
+    id: rendered
+    visible: !root.editing
+    x: field.x
+    width: field.width
+    topPadding: root._blankBefore ? field.lineHeight / 2 : 0
+    bottomPadding: root._blankAfter ? field.lineHeight / 2 : 0
+    text: root._markdown
+    textFormat: Text.MarkdownText
+    wrapMode: Text.Wrap
+    color: field.color
+    linkColor: Theme.accent
+    font.family: Appearance.fontFamily
+    font.pixelSize: Appearance.fontSize
+    font.strikeout: root.checked
+
+    HoverHandler {
+      cursorShape: rendered.hoveredLink !== "" ? Qt.PointingHandCursor : Qt.IBeamCursor
+    }
+    // A MouseArea, like the checkbox's, so neither the hidden field nor the
+    // editor's background MouseArea sees the press
+    MouseArea {
+      anchors.fill: parent
+      onClicked: mouse => {
+        const link = rendered.linkAt(mouse.x, mouse.y);
+        if (link !== "")
+          Qt.openUrlExternally(link);
+        else
+          field.editAt(mouse.x, mouse.y - rendered.topPadding);
       }
     }
   }

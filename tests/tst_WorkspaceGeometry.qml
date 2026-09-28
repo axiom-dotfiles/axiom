@@ -109,4 +109,104 @@ TestCase {
     const middle = WorkspaceGeometry.resizeEdges(r, 40, 35);
     compare([middle.left, middle.right, middle.top, middle.bottom], [false, false, true, false]);
   }
+
+  function test_orderMonitors_primary_first_then_by_key() {
+    const monitors = [
+      {
+        "id": 2,
+        "name": "HDMI-A-1",
+        "key": "desc:c"
+      },
+      {
+        "id": 0,
+        "name": "DP-1",
+        "key": "desc:a"
+      },
+      {
+        "id": 1,
+        "name": "DP-2",
+        "key": "desc:b"
+      }
+    ];
+    const ordered = WorkspaceGeometry.orderMonitors(monitors, "DP-2");
+    compare(ordered.map(m => m.name), ["DP-2", "DP-1", "HDMI-A-1"]);
+  }
+
+  function test_orderMonitors_no_primary_connected_falls_back_to_key_order() {
+    const monitors = [
+      {
+        "id": 2,
+        "name": "HDMI-A-1",
+        "key": "desc:c"
+      },
+      {
+        "id": 0,
+        "name": "DP-1",
+        "key": "desc:a"
+      }
+    ];
+    const ordered = WorkspaceGeometry.orderMonitors(monitors, "DP-2");
+    compare(ordered.map(m => m.name), ["DP-1", "HDMI-A-1"]);
+  }
+
+  function test_orderMonitors_ignores_hyprland_connection_order() {
+    const a = {
+      "id": 0,
+      "name": "DP-1",
+      "key": "desc:a"
+    };
+    const b = {
+      "id": 1,
+      "name": "DP-2",
+      "key": "desc:b"
+    };
+    const c = {
+      "id": 2,
+      "name": "HDMI-A-1",
+      "key": "desc:c"
+    };
+    const expected = ["DP-2", "DP-1", "HDMI-A-1"];
+    compare(WorkspaceGeometry.orderMonitors([a, b, c], "DP-2").map(m => m.name), expected);
+    compare(WorkspaceGeometry.orderMonitors([c, a, b], "DP-2").map(m => m.name), expected);
+    compare(WorkspaceGeometry.orderMonitors([b, c, a], "DP-2").map(m => m.name), expected);
+  }
+
+  function test_orderMonitors_survives_reconnect_by_key_not_name() {
+    // DP-1 replugged into a different port: id/name change, key (the
+    // description-based identity) stays the same.
+    const monitors = [
+      {
+        "id": 5,
+        "name": "DP-3",
+        "key": "desc:a"
+      },
+      {
+        "id": 1,
+        "name": "DP-2",
+        "key": "desc:b"
+      }
+    ];
+    compare(WorkspaceGeometry.orderMonitors(monitors, "DP-2").map(m => m.key), ["desc:b", "desc:a"]);
+  }
+
+  function test_orderMonitors_removed_and_appended() {
+    const a = {
+      "id": 0,
+      "name": "DP-1",
+      "key": "desc:a"
+    };
+    const c = {
+      "id": 2,
+      "name": "HDMI-A-1",
+      "key": "desc:c"
+    };
+    const d = {
+      "id": 3,
+      "name": "DP-3",
+      "key": "desc:d"
+    };
+    // B disconnects, D connects later (appended, as Hyprland's own list
+    // would do) — A and C should keep their relative order.
+    compare(WorkspaceGeometry.orderMonitors([a, c, d], "").map(m => m.key), ["desc:a", "desc:c", "desc:d"]);
+  }
 }

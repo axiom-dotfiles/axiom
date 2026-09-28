@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 18
+  readonly property int currentVersion: 25
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -63,6 +63,20 @@ QtObject {
       result = _v16ToV17(result, changes);
     if (version < 18)
       result = _v17ToV18(result, changes);
+    if (version < 19)
+      result = _v18ToV19(result, changes);
+    if (version < 20)
+      result = _v19ToV20(result, changes);
+    if (version < 21)
+      result = _v20ToV21(result, changes);
+    if (version < 22)
+      result = _v21ToV22(result, changes);
+    if (version < 23)
+      result = _v22ToV23(result, changes);
+    if (version < 24)
+      result = _v23ToV24(result, changes);
+    if (version < 25)
+      result = _v24ToV25(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -509,6 +523,164 @@ QtObject {
       "type": "Monitors"
     });
     changes.push("Overlay.views: added the Monitors page");
+    return config;
+  }
+
+  // v19 split a cell's `fill` into fillWidth and fillHeight: a fill cell
+  // grew both ways
+  function _v18ToV19(config, changes) {
+    const convert = (columns, where) => (columns ?? []).forEach(column => (column?.cells ?? []).forEach(cell => {
+          if (!cell || !("fill" in cell))
+            return;
+          const fill = cell.fill === true;
+          delete cell.fill;
+          if (!fill)
+            return;
+          cell.fillWidth = true;
+          cell.fillHeight = true;
+          changes.push(`${where}: a cell's fill -> fillWidth and fillHeight`);
+        }));
+    (config.Overlay?.views ?? []).forEach((view, index) => convert(view?.columns, `Overlay.views[${index}]`));
+    (config.EdgeMenus ?? []).forEach((menu, index) => convert(menu?.columns, `EdgeMenus[${index}]`));
+    return config;
+  }
+
+  // Binds v20 added to the defaults: apps, screenshots and a way out
+  readonly property var _v20Binds: [
+    {
+      "key": "SUPER + SHIFT + Escape",
+      "action": "exitHyprland",
+      "release": true
+    },
+    {
+      "key": "SUPER + Return",
+      "action": "terminal"
+    },
+    {
+      "key": "SUPER + E",
+      "action": "fileManager"
+    },
+    {
+      "key": "SUPER + B",
+      "action": "browser"
+    },
+    {
+      "key": "Print",
+      "action": "screenshot",
+      "argument": "region"
+    },
+    {
+      "key": "SHIFT + Print",
+      "action": "screenshot",
+      "argument": "window"
+    },
+    {
+      "key": "SUPER + Print",
+      "action": "screenshot",
+      "argument": "screen"
+    }
+  ]
+
+  // v20 added app, screenshot and exit actions: a saved bind list gets
+  // their default binds, each only on a key it doesn't use yet
+  function _v19ToV20(config, changes) {
+    return root._addBinds(config, changes, root._v20Binds);
+  }
+
+  // A saved bind list gets these default binds, each only on a key it
+  // doesn't use yet
+  function _addBinds(config, changes, added) {
+    const binds = config.Hyprland?.binds;
+    if (!Array.isArray(binds))
+      return config;
+    const used = new Set(binds.map(bind => HyprBinds.keyId(bind?.key)));
+    for (const bind of added) {
+      const id = HyprBinds.keyId(bind.key);
+      if (used.has(id))
+        continue;
+      binds.push(JSON.parse(JSON.stringify(bind)));
+      used.add(id);
+      changes.push(`Hyprland.binds: added ${bind.key} (${bind.action})`);
+    }
+    return config;
+  }
+
+  // v21 sizes a bar by its widgets instead of the other way round: its
+  // thickness (extent) and widget inset become the widget size (what was
+  // extent minus twice the inset) and the padding around them, and the
+  // thickness follows from those
+  function _v20ToV21(config, changes) {
+    (config.Bars ?? []).forEach((bar, barIndex) => {
+      if (!bar || (bar.extent === undefined && bar.inset === undefined))
+        return;
+      const extent = bar.extent ?? 30;
+      const inset = bar.inset ?? 0;
+      bar.widgetSize = Math.min(150, Math.max(10, extent - 2 * inset));
+      bar.padding = Math.min(50, inset);
+      delete bar.extent;
+      delete bar.inset;
+      changes.push(`Bars[${barIndex}]: extent ${extent}, inset ${inset} -> widgetSize ${bar.widgetSize}, padding ${bar.padding}`);
+    });
+    return config;
+  }
+
+  // v22 added a second region screenshot bind, on a key a laptop has
+  function _v21ToV22(config, changes) {
+    return root._addBinds(config, changes, [
+      {
+        "key": "SUPER + CTRL + S",
+        "action": "screenshot",
+        "argument": "region"
+      }
+    ]);
+  }
+
+  // v23 moved the apps the binds open out of Launcher into their own
+  // section
+  function _v22ToV23(config, changes) {
+    const launcher = config.Launcher;
+    if (!launcher)
+      return config;
+    for (const key of ["terminal", "fileManager", "browser"]) {
+      if (launcher[key] === undefined)
+        continue;
+      config.Apps = config.Apps ?? {};
+      config.Apps[key] = launcher[key];
+      delete launcher[key];
+      changes.push(`Launcher.${key} -> Apps.${key}`);
+    }
+    return config;
+  }
+
+  // v24 has several OSDs: the one OSD's own settings become the first of
+  // OSD.osds, and its scroll settings stay shared
+  function _v23ToV24(config, changes) {
+    const osd = config.OSD;
+    if (!osd || osd.osds !== undefined)
+      return config;
+    const entry = {
+      "id": "main"
+    };
+    for (const key of ["monitors", "edge", "position", "orientation", "alongEdge", "openOnHover", "timeout", "showPercent", "bars"]) {
+      if (osd[key] === undefined)
+        continue;
+      entry[key] = osd[key];
+      delete osd[key];
+    }
+    osd.osds = [entry];
+    changes.push("OSD: its settings moved to OSD.osds[0]");
+    return config;
+  }
+
+  // v25 has one popout padding (Popouts.padding): an edge menu still at the
+  // old default of 12 follows it (-1) instead of keeping its own
+  function _v24ToV25(config, changes) {
+    for (const menu of config.EdgeMenus ?? []) {
+      if (menu?.padding !== 12)
+        continue;
+      menu.padding = -1;
+      changes.push(`EdgeMenus[${menu.id}].padding: 12 -> -1 (follows Popouts.padding)`);
+    }
     return config;
   }
 }

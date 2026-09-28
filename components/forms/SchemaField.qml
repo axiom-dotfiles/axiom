@@ -191,6 +191,7 @@ Loader {
       label: root.label
       description: root.description
       multiline: root.fieldSchema["x-multiline"] === true
+      suggestions: SettingsManager.suggestionsFor(root.fieldSchema)
       currentConfigValue: root.current ?? ""
       onValueChanged: root.commit(value)
     }

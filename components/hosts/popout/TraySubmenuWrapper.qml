@@ -20,8 +20,6 @@ Item {
   required property bool openToLeft
 
   property alias popupWindow: submenuPopup
-  property int minWidth: 100
-  property int maxWidth: 600
 
   PopoutWrapperBase {
     id: root
@@ -34,14 +32,12 @@ Item {
     PopupWindow {
       id: submenuPopup
 
-      visible: root.occupied && loader.status === Loader.Ready
+      visible: root.occupied && loader.status === Loader.Ready && (root.currentItem?.contentReady ?? true)
       color: "transparent"
 
-      readonly property int contentWidth: {
-        const itemWidth = root.currentItem?.implicitWidth ?? outer.minWidth;
-        return Math.max(outer.minWidth, Math.min(outer.maxWidth, itemWidth));
-      }
-      readonly property int contentHeight: root.currentItem?.implicitHeight ?? 100
+      // TrayMenuList sizes itself to its entries, within its limits
+      readonly property int contentWidth: root.currentItem?.implicitWidth ?? 0
+      readonly property int contentHeight: root.currentItem?.implicitHeight ?? 0
 
       implicitWidth: surface.implicitWidth
       implicitHeight: surface.implicitHeight
@@ -53,12 +49,12 @@ Item {
 
       // Overlap the parent's side stroke with our attach-edge stroke, the
       // same way bar/edge popouts overlap the bar or border stroke
-      readonly property real attachX: outer.openToLeft ? attachRect.x + Appearance.borderWidth - implicitWidth : attachRect.x + attachRect.width - Appearance.borderWidth
+      // (backfill grows the window towards the parent, past the attach edge)
+      readonly property real attachX: outer.openToLeft ? attachRect.x + Appearance.borderWidth + surface.backfill - implicitWidth : attachRect.x + attachRect.width - Appearance.borderWidth - surface.backfill
 
       // Line our first menu item up with the hovered one: the fillet
-      // margin, then the loader inset, then TraySubmenu's own
-      // background margin + half its 20px layout inset.
-      readonly property real firstItemOffset: (root.connectorGap - Appearance.borderWidth) + surface.contentInset + Widget.padding + 10
+      // margin, then the loader inset
+      readonly property real firstItemOffset: (root.connectorGap - Appearance.borderWidth) + surface.contentInset
       // Keep both fillets on the straight part of the parent's side, clear
       // of its rounded corners (or its fillets into the bar)
       readonly property real minY: attachRect.y + Appearance.borderRadius
@@ -80,10 +76,13 @@ Item {
         anchors.fill: parent
 
         edge: outer.openToLeft ? Bar.Right : Bar.Left
-        active: root.occupied && !root.isClosing
+        active: root.occupied && !root.isClosing && (root.currentItem?.contentReady ?? true)
         connectorGap: root.connectorGap
         boxWidth: submenuPopup.contentWidth + contentInset * 2
         boxHeight: submenuPopup.contentHeight + contentInset * 2
+        // The parent's side stroke leaves an anti-aliased fringe on its
+        // inner side: cover it (see AttachedSurface.backfill)
+        backfill: 1
 
         Loader {
           id: loader
@@ -96,6 +95,7 @@ Item {
             TraySubmenu {
               wrapper: root
               menuItem: root.currentData?.menuItem
+              maxWidth: (outer.screen?.width ?? 2000) * 0.3
             }
           }
 

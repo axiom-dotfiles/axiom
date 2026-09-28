@@ -58,6 +58,13 @@ Item {
   // there: placed under a bar, from beneath it.
   property real detachedOffset: 0
   readonly property real _lead: detached ? detachedOffset : 0
+  // Fill drawn this far behind the attach edge (the surface grows by it,
+  // and v = 0 stays on the attach edge). A popout on a pill's far stroke
+  // takes a pixel, to cover the pill stroke's anti-aliased fringe on the
+  // pill's side, which is left standing alone as a faint line once the
+  // popout covers the stroke itself.
+  property real backfill: 0
+  readonly property real _back: detached ? 0 : backfill
   // The attach edge / the perpendicular edges a join meets are bare screen
   // edges (screen border off): the surface runs straight off them, with no
   // fillet onto them
@@ -65,10 +72,10 @@ Item {
   property bool straightJoins: false
 
   // Breathing room between the box edge and its content: clears the
-  // stroke, plus a share of the corner radius so content keeps away from
-  // the curve as corners get rounder. Callers that size the box from
+  // stroke, plus the popout padding every popout shares (Popouts.padding,
+  // as EdgePopout and edge menus use). Callers that size the box from
   // their content add this on each side (see bar Popouts, tray submenus).
-  readonly property int contentInset: Widget.spacing + Appearance.borderWidth + Math.round(Appearance.borderRadius / 4)
+  readonly property int contentInset: Appearance.borderWidth + PopoutConfig.padding
 
   // Rectangles at the attach edge left unpainted, so what's under them
   // shows through: the pills a bar popout merges around. Each is
@@ -118,7 +125,7 @@ Item {
   readonly property real endMargin: _filletEnd ? connectorGap - strokeWidth : 0
   readonly property real alongLength: startMargin + boxAlong + endMargin
   // Box + connector gap, plus room for a join's fillet past the far edge
-  readonly property real depth: _lead + boxDepth + connectorGap + (_joinFillet ? filletRadius : 0)
+  readonly property real depth: _back + _lead + boxDepth + connectorGap + (_joinFillet ? filletRadius : 0)
 
   // Along the edge: box + fillet squares. Away from the edge: box +
   // connector gap.
@@ -159,9 +166,9 @@ Item {
   function px(u, v) {
     switch (edge) {
     case Bar.Left:
-      return v;
+      return v + _back;
     case Bar.Right:
-      return width - v;
+      return width - v - _back;
     default:
       return u;
     }
@@ -173,9 +180,9 @@ Item {
     case Bar.Right:
       return u;
     case Bar.Bottom:
-      return height - v;
+      return height - v - _back;
     default:
-      return v;
+      return v + _back;
     }
   }
 
@@ -247,10 +254,10 @@ Item {
   readonly property string fillPath: {
     if (width <= 0 || height <= 0)
       return "";
-    const R = filletRadius;
+    const R = filletRadius, b = -_back;
     let d;
     if (joinStart)
-      d = _move(0, 0) + _line(0, straightJoins ? farV : farV + R) + root._outline((u, v) => _line(u, v));
+      d = _move(0, b) + _line(0, straightJoins ? farV : farV + R) + root._outline((u, v) => _line(u, v));
     else if (!_filletStart)
       d = root._outline((u, v) => _move(u, v));
     else
@@ -259,7 +266,7 @@ Item {
       d += _line(alongLength, farV + R);
     else if (!joinEnd && _filletEnd)
       d += _line(alongLength, endFoot);
-    return d + _line(alongLength, 0) + _line(0, 0) + "Z";
+    return d + _line(alongLength, b) + _line(0, b) + "Z";
   }
 
   // Stroke: the outline alone, open along the attach edge and on joined

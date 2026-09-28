@@ -35,7 +35,6 @@ Panel {
   }
   readonly property real cellSpacing: Widget.spacing / 2
 
-  margins: 10
   implicitWidth: grid.implicitWidth + margins * 2
 
   function wsById(id) {

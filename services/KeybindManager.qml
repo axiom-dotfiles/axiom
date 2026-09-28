@@ -33,6 +33,13 @@ QtObject {
 
   // --- The editor ---
 
+  // The editor's search and sort ("manual" | "key" | "action" | "section"),
+  // here so they survive the page reloading. They only change what's shown:
+  // the saved order stays as it is.
+  property string editQuery: ""
+  property string editSort: "manual"
+  readonly property bool reorderable: editSort === "manual" && editQuery.trim() === ""
+
   property ConfigDraft _draft: ConfigDraft {
     id: draft
     path: ["Hyprland", "binds"]
@@ -51,6 +58,75 @@ QtObject {
     return labels;
   }, {})
 
+  // The action picker's categories, in tab order ("" is All). `exec` is
+  // filed under Apps there; everything else by its section on the page.
+  // I18n.tr("Axiom") I18n.tr("Apps") I18n.tr("Media") I18n.tr("Window")
+  // I18n.tr("Workspace") I18n.tr("Special")
+  readonly property var actionSections: ["Axiom", "Apps", "Media", "Window", "Workspace", "Special"]
+
+  // Material Symbols per action (the picker and its button)
+  readonly property var _actionIcons: ({
+      "launcher": "apps",
+      "launcherSearch": "search",
+      "overlay": "dashboard",
+      "overlayPage": "web_stories",
+      "edgeMenu": "side_navigation",
+      "workspaceOverview": "grid_view",
+      "powerMenu": "power_settings_new",
+      "lock": "lock",
+      "toggleDnd": "do_not_disturb_on",
+      "clearNotifications": "clear_all",
+      "idleInhibit": "coffee",
+      "workspaceStep": "swap_horiz",
+      "moveWindowStep": "move_item",
+      "moveWindowStepSilent": "send",
+      "workspaceNth": "counter_1",
+      "moveWindowNth": "move_item",
+      "moveWindowNthSilent": "send",
+      "focusDir": "center_focus_strong",
+      "moveWindowDir": "open_with",
+      "resizeWindow": "open_in_full",
+      "closeWindow": "close",
+      "fullscreen": "fullscreen",
+      "toggleFloat": "picture_in_picture",
+      "pin": "push_pin",
+      "centerWindow": "center_focus_weak",
+      "toggleGroup": "tab_group",
+      "mouseDrag": "drag_pan",
+      "mouseResize": "drag_handle",
+      "toggleSpecial": "star",
+      "moveToSpecial": "star_half",
+      "restartShell": "restart_alt",
+      "volumeUp": "volume_up",
+      "volumeDown": "volume_down",
+      "toggleMute": "volume_off",
+      "toggleMicMute": "mic_off",
+      "brightnessUp": "brightness_high",
+      "brightnessDown": "brightness_low",
+      "mediaPlayPause": "play_pause",
+      "mediaNext": "skip_next",
+      "mediaPrevious": "skip_previous",
+      "mediaStop": "stop",
+      "terminal": "terminal",
+      "fileManager": "folder",
+      "browser": "language",
+      "screenshot": "screenshot_region",
+      "exitHyprland": "logout",
+      "exec": "code"
+    })
+
+  // [{ action, label, section, icon }], one per action, in schema order
+  readonly property var actionInfo: root.actions.map(action => ({
+        "action": action,
+        "label": root.actionLabels[action] ?? action,
+        "section": action === "exec" ? "Apps" : HyprlandConfigManager.sectionFor(action),
+        "icon": root._actionIcons[action] ?? "keyboard"
+      }))
+
+  function actionIcon(action) {
+    return root._actionIcons[action] ?? "keyboard";
+  }
+
   // What an action's argument is; actions without one aren't listed
   readonly property var _argumentKinds: ({
       "launcherSearch": "text",
@@ -67,7 +143,13 @@ QtObject {
       "moveWindowDir": "direction",
       "resizeWindow": "resize",
       "toggleSpecial": "special",
-      "moveToSpecial": "special"
+      "moveToSpecial": "special",
+      "screenshot": "screenshot"
+    })
+
+  // The argument an action starts with when picked (else empty)
+  readonly property var _argumentDefaults: ({
+      "screenshot": "region"
     })
 
   // What an action's free-text argument is, for its placeholder
@@ -88,6 +170,8 @@ QtObject {
       return Array.from({
         "length": WorkspacesConfig.size
       }, (_, i) => String(i + 1));
+    case "screenshot":
+      return ["region", "window", "screen"];
     case "edgeMenu":
       return EdgeMenusConfig.menus.map(menu => menu.id).filter(id => id);
     case "view":
@@ -95,6 +179,38 @@ QtObject {
     }
     return null;
   }
+
+  // The shown binds' indices, filtered by editQuery and sorted by editSort,
+  // joined: a string only notifies when it changes, so the rows survive
+  // edits that leave the order alone
+  readonly property string visibleKey: {
+    const query = root.editQuery.trim().toLowerCase();
+    const rows = root.binds.map((bind, index) => {
+      const key = String(bind.key ?? "").trim();
+      const label = root.actionLabels[bind.action] ?? String(bind.action ?? "");
+      const section = HyprlandConfigManager.hasOwnSection(bind.description) ? String(bind.description).split(":")[0] : HyprlandConfigManager.sectionFor(bind.action);
+      return {
+        "index": index,
+        "key": key.split("+").map(part => root.displayKey(part.trim())).join(" + "),
+        "label": label,
+        "section": section,
+        "text": [key, label, section, bind.argument ?? "", bind.description ?? "", HyprlandConfigManager.defaultLabel(bind)].join("\n").toLowerCase()
+      };
+    }).filter(row => query === "" || row.text.includes(query));
+    const compare = (a, b) => a.toLowerCase().localeCompare(b.toLowerCase());
+    // Binds with no key yet go last, next to the Add button
+    const byKey = (a, b) => Number(a.key === "") - Number(b.key === "") || compare(a.key, b.key);
+    const sorters = {
+      "key": byKey,
+      "action": (a, b) => compare(a.label, b.label) || byKey(a, b),
+      "section": (a, b) => compare(a.section, b.section) || compare(a.label, b.label) || byKey(a, b)
+    };
+    const sorter = sorters[root.editSort];
+    if (sorter)
+      rows.sort((a, b) => sorter(a, b) || a.index - b.index);
+    return rows.map(row => row.index).join(",");
+  }
+  readonly property var visibleIndices: visibleKey === "" ? [] : visibleKey.split(",").map(Number)
 
   // Loads the draft unless it holds unsaved edits (the page is rebuilt
   // whenever the overlay reopens)
@@ -130,6 +246,8 @@ QtObject {
   }
 
   function addBind(bind) {
+    // So the new row shows
+    editQuery = "";
     draft.local.push(_completeBind(bind));
     draft.changed();
   }
@@ -157,7 +275,7 @@ QtObject {
     if (field === "action") {
       const options = argumentOptions(value);
       if (!needsArgument(value) || (options && !options.includes(bind.argument)))
-        bind.argument = "";
+        bind.argument = _argumentDefaults[value] ?? "";
       const flags = HyprlandConfigManager.actionFlags[value] ?? [];
       for (const flag of HyprlandConfigManager.flagNames)
         bind[flag] = flags.includes(flag);
@@ -281,7 +399,7 @@ QtObject {
       "id": "media",
       "title": I18n.tr("Media keys"),
       "description": I18n.tr("Volume, mute, brightness and playback keys, through axiom so the OSD shows"),
-      "binds": [root._workspaceBind("XF86AudioRaiseVolume", "volumeUp", ""), root._workspaceBind("XF86AudioLowerVolume", "volumeDown", ""), root._workspaceBind("XF86AudioMute", "toggleMute", ""), root._workspaceBind("XF86AudioMicMute", "toggleMicMute", ""), root._workspaceBind("XF86MonBrightnessUp", "brightnessUp", ""), root._workspaceBind("XF86MonBrightnessDown", "brightnessDown", ""), root._workspaceBind("XF86AudioPlay", "mediaPlayPause", ""), root._workspaceBind("XF86AudioPause", "mediaPlayPause", ""), root._workspaceBind("XF86AudioNext", "mediaNext", ""), root._workspaceBind("XF86AudioPrev", "mediaPrevious", "")]
+      "binds": [root._workspaceBind("XF86AudioRaiseVolume", "volumeUp", ""), root._workspaceBind("XF86AudioLowerVolume", "volumeDown", ""), root._workspaceBind("XF86AudioMute", "toggleMute", ""), root._workspaceBind("XF86AudioMicMute", "toggleMicMute", ""), root._workspaceBind("XF86MonBrightnessUp", "brightnessUp", ""), root._workspaceBind("XF86MonBrightnessDown", "brightnessDown", ""), root._workspaceBind("XF86AudioPlay", "mediaPlayPause", ""), root._workspaceBind("XF86AudioPause", "mediaPlayPause", ""), root._workspaceBind("XF86AudioNext", "mediaNext", ""), root._workspaceBind("XF86AudioPrev", "mediaPrevious", ""), root._workspaceBind("XF86AudioStop", "mediaStop", "")]
     });
     return list;
   }

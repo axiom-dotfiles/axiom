@@ -11,7 +11,8 @@ import qs.config
  *     confirm,    asks for a second Enter first (destructive session actions)
  *     available() whether it's listed at all
  *     status()    current state, shown on the command's row
- *     options(arg) completion rows [{ title, subtitle, glyph, image, value }]
+ *     options(arg) completion rows [{ title, subtitle, glyph, image, value,
+ *                  matched: already matched to arg, so not scored by title }]
  *     run(arg, value) value is the picked option's, else undefined;
  *                     returns false to keep the launcher open (where the
  *                     change shows, so several can be tried), or a string
@@ -332,6 +333,32 @@ QtObject {
       }
     },
     {
+      name: "notes",
+      aliases: ["note"],
+      glyph: "sticky_note_2",
+      usage: "[text]",
+      description: () => I18n.tr("Search the notes, by name and text"),
+      options: arg => root._notes(arg),
+      run: (arg, value) => {
+        // After the launcher has closed, so the overlay gets the keyboard.
+        // An overlay page with a Notes module, else an edge menu with one
+        Qt.callLater(() => {
+          const page = OverlayConfig.pageWithModule("Notes");
+          const menu = page === "" ? EdgeMenusConfig.menus.find(m => m.enabled !== false && root._hasModule(m.columns, "Notes")) : null;
+          if (page === "" && !menu) {
+            NotificationManager.sendNotification("axiom", I18n.tr("No notes module"), I18n.tr("Add a Notes module to an overlay page or an edge menu."));
+            return;
+          }
+          if (value)
+            NotesManager.requestOpen(value.path, value.line, menu ? "edgeMenu:" + menu.id : "overlay");
+          if (menu)
+            EdgeMenuManager.open(menu.id);
+          else
+            ShellManager.openOverlayPage(page);
+        });
+      }
+    },
+    {
       name: "update",
       aliases: ["upgrade"],
       glyph: "update",
@@ -348,6 +375,31 @@ QtObject {
       }
     },
     {
+      name: "welcome",
+      aliases: ["setup", "onboarding"],
+      glyph: "waving_hand",
+      description: () => I18n.tr("Run the first-time setup again"),
+      run: () => {
+        OnboardingManager.open();
+      }
+    },
+    {
+      name: "screenshot",
+      aliases: ["shot", "capture"],
+      glyph: "screenshot_region",
+      usage: "<region|window|screen>",
+      description: () => I18n.tr("Take a screenshot"),
+      // I18n.tr("region") I18n.tr("window") I18n.tr("screen")
+      options: () => ["region", "window", "screen"].map(kind => ({
+              title: kind,
+              subtitle: I18n.tr(kind),
+              value: kind
+            })),
+      run: (arg, value) => {
+        ScreenshotManager.take(value ?? (arg || "region"), "");
+      }
+    },
+    {
       name: "reload",
       aliases: [],
       glyph: "refresh",
@@ -355,7 +407,7 @@ QtObject {
       run: () => Quickshell.reload(false)
     },
     // --- Other searches ---
-    root._prefix("calc", ["math"], "calculate", "Calculate (or start with =)", "=", () => LauncherConfig.calculator), root._prefix("run", ["exec", "sh"], "terminal", "Run a shell command (or start with >)", ">", () => LauncherConfig.runCommands), root._prefix("web", ["search"], "web", "Search the web (or start with ?)", "?", () => LauncherConfig.webSearch), root._prefix("help", ["commands"], "help", "List every command", "/", () => true)]
+    root._prefix("calc", ["math"], "calculate", "Calculate (or start with =)", "=", () => LauncherConfig.calculator), root._prefix("run", ["exec", "sh"], "terminal", "Run a shell command (or start with >)", ">", () => LauncherConfig.runCommands), root._prefix("web", ["search"], "web", "Search the web (or start with ?)", "?", () => LauncherConfig.webSearch), root._prefix("clipboard", ["clip", "paste"], "content_paste", "Search the clipboard history (or start with :)", ":", () => LauncherConfig.clipboard), root._prefix("help", ["commands"], "help", "List every command", "/", () => true)]
 
   // --- Builders for families of alike commands ---
 
@@ -434,6 +486,7 @@ QtObject {
       glyph: glyph,
       // I18n.tr("Calculate (or start with =)") I18n.tr("Run a shell command (or start with >)")
       // I18n.tr("Search the web (or start with ?)") I18n.tr("List every command")
+      // I18n.tr("Search the clipboard history (or start with :)")
       description: () => I18n.tr(description),
       available: available,
       run: arg => prefix + arg
@@ -607,6 +660,38 @@ QtObject {
     if (["off", "0", "false", "no"].includes(word))
       return false;
     return null;
+  }
+
+  // Every note with no text, else NotesManager.search's results (asked for
+  // here, the rows re-read when it answers; name matches meanwhile)
+  function _notes(arg) {
+    const q = arg.trim();
+    const row = result => ({
+          title: result.title,
+          subtitle: result.line < 0 ? result.path : I18n.tr("line {0}", result.line + 1) + " · " + result.snippet,
+          glyph: result.line < 0 ? "description" : "notes",
+          matched: true,
+          value: result
+        });
+    if (q === "")
+      return NotesManager.allNotes.map(path => row({
+          path: path,
+          title: NotesManager.titleOf(path),
+          line: -1
+        }));
+    if (NotesManager.lastSearch.query === q)
+      return NotesManager.lastSearch.results.map(row);
+    NotesManager.search(q, () => LauncherManager.query(LauncherManager.text));
+    return NotesManager.allNotes.filter(path => path.toLowerCase().includes(q.toLowerCase())).map(path => row({
+        path: path,
+        title: NotesManager.titleOf(path),
+        line: -1
+      }));
+  }
+
+  // Whether overlay columns hold a module of `type`
+  function _hasModule(columns, type) {
+    return (columns ?? []).some(column => (column?.cells ?? []).some(cell => Object.values(cell?.slots ?? {}).some(slot => slot?.type === type)));
   }
 
   function _overlayPages() {

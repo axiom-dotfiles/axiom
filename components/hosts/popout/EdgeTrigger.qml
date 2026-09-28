@@ -3,6 +3,7 @@ import QtQuick
 import Quickshell
 
 import qs.config
+import qs.services
 
 PanelWindow {
   id: root
@@ -26,6 +27,17 @@ PanelWindow {
   property bool triggerOnHover: true
   property bool triggerOnClick: false
   property int hoverDelay: 300
+
+  // Integrated edge menus' zones (EdgeMenuManager) move the surfaces this
+  // triggers inwards, so the trigger follows: past a zone on its own edge,
+  // and along it as the edge's free length shrinks from either end
+  readonly property string _edgeName: ["top", "bottom", "left", "right"][edge]
+  readonly property bool _vertical: edge === Bar.Left || edge === Bar.Right
+  property real edgeInset: EdgeMenuManager.zoneOn(screen?.name ?? "", _edgeName)
+  property real startInset: EdgeMenuManager.zoneOn(screen?.name ?? "", _vertical ? "top" : "left")
+  property real endInset: EdgeMenuManager.zoneOn(screen?.name ?? "", _vertical ? "bottom" : "right")
+  // The trigger's centre along the edge, within the free length
+  readonly property real _centre: startInset + ((_vertical ? screen.height : screen.width) - startInset - endInset) * position + positionOffset
 
   color: "transparent"
 
@@ -65,39 +77,10 @@ PanelWindow {
 
   // Position along the edge using margins
   margins {
-    left: {
-      if (edge === Bar.Top || edge === Bar.Bottom) {
-        let targetX = (screen.width * position) - (triggerLength / 2) + positionOffset;
-        return Math.max(0, targetX);
-      }
-      return 0;
-    }
-
-    right: {
-      if (edge === Bar.Top || edge === Bar.Bottom) {
-        let targetX = (screen.width * position) - (triggerLength / 2) + positionOffset;
-        let rightMargin = screen.width - (targetX + triggerLength);
-        return Math.max(0, rightMargin);
-      }
-      return 0;
-    }
-
-    top: {
-      if (edge === Bar.Left || edge === Bar.Right) {
-        let targetY = (screen.height * position) - (triggerLength / 2) + positionOffset;
-        return Math.max(0, targetY);
-      }
-      return 0;
-    }
-
-    bottom: {
-      if (edge === Bar.Left || edge === Bar.Right) {
-        let targetY = (screen.height * position) - (triggerLength / 2) + positionOffset;
-        let bottomMargin = screen.height - (targetY + triggerLength);
-        return Math.max(0, bottomMargin);
-      }
-      return 0;
-    }
+    left: edge === Bar.Left ? edgeInset : _vertical ? 0 : Math.max(0, _centre - triggerLength / 2)
+    right: edge === Bar.Right ? edgeInset : _vertical ? 0 : Math.max(0, screen.width - _centre - triggerLength / 2)
+    top: edge === Bar.Top ? edgeInset : !_vertical ? 0 : Math.max(0, _centre - triggerLength / 2)
+    bottom: edge === Bar.Bottom ? edgeInset : !_vertical ? 0 : Math.max(0, screen.height - _centre - triggerLength / 2)
   }
 
   // Exclude from window management

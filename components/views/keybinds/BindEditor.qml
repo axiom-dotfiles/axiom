@@ -3,11 +3,12 @@ import QtQuick
 import QtQuick.Layouts
 import qs.config
 import qs.services
+import qs.components.forms
 import qs.components.reusable
 
 // The Keybinds page's editor for axiom's own binds (Hyprland.binds):
-// presets, then one row per bind. Edits wait in KeybindManager's draft
-// until Save.
+// presets, then one row per bind, with a search and a sort that only
+// change what's shown. Edits wait in KeybindManager's draft until Save.
 ColumnLayout {
   id: root
 
@@ -133,6 +134,50 @@ ColumnLayout {
       }
     }
 
+    RowLayout {
+      visible: KeybindManager.binds.length > 0
+      Layout.fillWidth: true
+      spacing: Widget.spacing
+
+      StyledTextEntry {
+        id: search
+        Layout.fillWidth: true
+        Layout.preferredHeight: Widget.height
+        placeholderText: I18n.tr("Search binds by key, action or label")
+        Component.onCompleted: input.text = KeybindManager.editQuery
+        onTextChanged: KeybindManager.editQuery = text
+        // Add bind clears the search
+        Connections {
+          target: KeybindManager
+          function onEditQueryChanged() {
+            if (search.input.text !== KeybindManager.editQuery)
+              search.input.text = KeybindManager.editQuery;
+          }
+        }
+      }
+
+      StyledText {
+        text: I18n.tr("Sort")
+        opacity: 0.7
+      }
+
+      SchemaComboBox {
+        label: ""
+        // I18n.tr("Saved order") I18n.tr("Key") I18n.tr("Action") I18n.tr("Section")
+        options: ["manual", "key", "action", "section"]
+        optionLabels: ({
+            "manual": I18n.tr("Saved order"),
+            "key": I18n.tr("Key"),
+            "action": I18n.tr("Action"),
+            "section": I18n.tr("Section")
+          })
+        currentValue: KeybindManager.editSort
+        onSelectionChanged: value => KeybindManager.editSort = value
+        Layout.fillWidth: false
+        Layout.preferredWidth: 180
+      }
+    }
+
     StyledText {
       visible: KeybindManager.binds.length === 0
       text: I18n.tr("No binds yet. Add one, or start from a preset.")
@@ -140,11 +185,23 @@ ColumnLayout {
       Layout.fillWidth: true
     }
 
-    // By count: rows follow edits in place instead of rebuilding
-    Repeater {
-      model: KeybindManager.binds.length
+    StyledText {
+      visible: KeybindManager.editQuery.trim() !== ""
+      text: KeybindManager.visibleIndices.length > 0 ? I18n.tr("Showing {0} of {1}", KeybindManager.visibleIndices.length, KeybindManager.binds.length) : I18n.tr("No binds match \"{0}\"", KeybindManager.editQuery.trim())
+      opacity: 0.6
+      textSize: Appearance.fontSize - 2
+      Layout.fillWidth: true
+    }
 
-      delegate: BindEditorRow {}
+    // By count: rows follow edits in place instead of rebuilding. Each
+    // row's bind comes from the filtered, sorted list.
+    Repeater {
+      model: KeybindManager.visibleIndices.length
+
+      delegate: BindEditorRow {
+        required property int index
+        bindIndex: KeybindManager.visibleIndices[index] ?? -1
+      }
     }
 
     StyledTextButton {

@@ -18,16 +18,13 @@ Rectangle {
   signal submenuRequested(Item itemDelegate)
   // Pointer entered an item without a submenu (callers close open submenus)
   signal plainItemHovered
-  property int minItemWidth: 100
-  property int maxItemWidth: 600
+  readonly property int indicatorSize: Math.round(itemHeight * 0.5)
   property bool openToLeft
   // Keeps a submenu opened from this item up while the pointer is on it
   readonly property bool hovered: menuItemArea.containsMouse
 
   Layout.fillWidth: true
   Layout.preferredWidth: contentRow.implicitWidth + (itemPadding * 2)
-  Layout.minimumWidth: minItemWidth
-  Layout.maximumWidth: maxItemWidth
   Layout.preferredHeight: menuItem.isSeparator ? 1 : itemHeight
   visible: true
   color: menuItemArea.containsMouse && menuItem.enabled && !menuItem.isSeparator ? Theme.backgroundHighlight : "transparent"
@@ -47,20 +44,20 @@ Rectangle {
     // Checkbox/Radio indicator
     Rectangle {
       visible: root.menuItem.buttonType !== QsMenuButtonType.None
-      Layout.preferredWidth: 16
-      Layout.maximumWidth: 16
-      Layout.minimumWidth: 16
-      Layout.preferredHeight: 16
+      Layout.preferredWidth: root.indicatorSize
+      Layout.maximumWidth: root.indicatorSize
+      Layout.minimumWidth: root.indicatorSize
+      Layout.preferredHeight: root.indicatorSize
       color: "transparent"
       border.color: Theme.foreground
       border.width: 1
-      radius: root.menuItem.buttonType === QsMenuButtonType.RadioButton ? 8 : 2
+      radius: root.menuItem.buttonType === QsMenuButtonType.RadioButton ? width / 2 : 2
 
       Rectangle {
         anchors.centerIn: parent
         width: parent.width - 6
         height: parent.height - 6
-        radius: root.menuItem.buttonType === QsMenuButtonType.RadioButton ? 5 : 1
+        radius: root.menuItem.buttonType === QsMenuButtonType.RadioButton ? width / 2 : 1
         color: Theme.accent
         visible: root.menuItem.checkState === Qt.Checked
       }
@@ -70,12 +67,12 @@ Rectangle {
     Image {
       visible: root.menuItem.icon !== ""
       source: root.menuItem.icon
-      sourceSize.width: 16
-      sourceSize.height: 16
-      Layout.preferredWidth: 16
-      Layout.maximumWidth: 16
-      Layout.minimumWidth: 16
-      Layout.preferredHeight: 16
+      sourceSize.width: root.indicatorSize
+      sourceSize.height: root.indicatorSize
+      Layout.preferredWidth: root.indicatorSize
+      Layout.maximumWidth: root.indicatorSize
+      Layout.minimumWidth: root.indicatorSize
+      Layout.preferredHeight: root.indicatorSize
       fillMode: Image.PreserveAspectFit
       smooth: true
     }
@@ -85,7 +82,6 @@ Rectangle {
       text: root.menuItem.text
       color: Theme.foreground
       Layout.fillWidth: true
-      Layout.minimumWidth: 50
       elide: Text.ElideRight
       wrapMode: Text.NoWrap
       clip: true

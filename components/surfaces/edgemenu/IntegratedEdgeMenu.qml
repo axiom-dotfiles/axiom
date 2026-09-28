@@ -35,7 +35,7 @@ PopoutWrapperBase {
   readonly property real position: (root.menu?.position ?? 50) / 100
 
   readonly property bool framed: root.menu?.frame ?? true
-  readonly property int padding: root.menu?.padding ?? Appearance.screenMargin
+  readonly property int padding: EdgeMenusConfig.paddingOf(root.menu)
   readonly property var colors: EdgeMenusConfig.colorsOf(root.menu)
   // The frame's inset from the strip's edges (0 without one)
   readonly property int frameInset: root.framed ? (root.menu?.margin ?? 0) : 0
@@ -103,6 +103,11 @@ PopoutWrapperBase {
     visible: root.menu?.openOnHover ?? false
     edge: root.edge
     position: root.position
+    // Not its own zone, and the strip spans the whole edge regardless of
+    // the others
+    edgeInset: Math.max(0, EdgeMenuManager.zoneOn(root.screen?.name ?? "", root._edgeName) - root.reserved)
+    startInset: 0
+    endInset: 0
     triggerWidth: root.menu?.triggerSize ?? PopoutConfig.edgeTriggerSize
     // 0: the menu's own length (from config until it's first loaded)
     triggerLength: (root.menu?.triggerLength ?? 0) > 0 ? root.menu.triggerLength : loader.item ? (root.vertical ? loader.item.implicitHeight : loader.item.implicitWidth) + root.pad * 2 : EdgeMenusConfig.lengthOf(root.menu, root.vertical)

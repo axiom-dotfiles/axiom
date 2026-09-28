@@ -277,6 +277,27 @@ class ClaimHyprland(unittest.TestCase):
         self.assertEqual(len(backups), 1)
         self.assertEqual(backups[0].read_text(), "-- mine\n")
 
+    def test_stock_example_is_replaced_not_adopted(self):
+        example = self.tmp / "example.lua"
+        example.write_text("-- example\nhl.bind(\"SUPER + M\", hl.dsp.exit())\n")
+        self.env["AXIOM_HYPR_EXAMPLE"] = str(example)
+        # Whitespace and blank lines don't make it the user's own
+        (self.hypr / "hyprland.lua").write_text("-- example  \n\nhl.bind(\"SUPER + M\", hl.dsp.exit())\n")
+        self.assertEqual(self.claim("check"), "stock")
+        self.assertEqual(self.claim("claim"), "replaced")
+        self.assertEqual(self.listing(), [str(p.relative_to(self.hypr)) for p in self.hypr.glob("*.axiom-backup-*")]
+                         + ["user"])
+        self.assertFalse((self.hypr / "hyprland.lua").exists())
+        self.assertEqual(list((self.hypr / "user").iterdir()), [])
+
+    def test_edited_example_is_adopted(self):
+        example = self.tmp / "example.lua"
+        example.write_text("-- example\n")
+        self.env["AXIOM_HYPR_EXAMPLE"] = str(example)
+        (self.hypr / "hyprland.lua").write_text("-- example\n-- mine\n")
+        self.assertEqual(self.claim("check"), "adopt")
+        self.assertEqual(self.claim("claim"), "adopted")
+
     def test_ours_is_left_alone(self):
         (self.hypr / "hyprland.lua").write_text(self.HEADER + " (Hyprland mode: managed)\n")
         for action in ("check", "claim"):

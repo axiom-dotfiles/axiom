@@ -119,8 +119,10 @@ TestCase {
     compare(left[0].type, "Workspaces");
     compare(left[0].properties.textColor, "base0D");
     compare(config.Workspaces.layout, "grid");
-    // v3: the bar's inset keeps its widgets 26 px high
-    compare(config.Bars[0].inset, 4);
+    // v3 + v21: the bar's inset keeps its widgets 26 px high
+    compare(config.Bars[0].widgetSize, 26);
+    compare(config.Bars[0].padding, 4);
+    compare(config.Bars[0].extent, undefined);
     // v4, v6
     compare(config.Appearance.autoThemeSwitch, undefined);
     compare(config.General.monitors, "focused");
@@ -148,12 +150,18 @@ TestCase {
     compare(network.type, "Network");
     compare(network.properties.interval, undefined);
     compare(network.properties.showName, true);
-    // v15: OSD apps become typed bars
+    // v15: OSD apps become typed bars; v24: the OSD becomes the first of
+    // several
     compare(config.OSD.apps, undefined);
-    compare(config.OSD.bars.map(bar => bar.type), ["app", "other", "master"]);
-    compare(config.OSD.bars[0].app, "spotify");
-    compare(config.OSD.bars[0].showOsd, false);
-    compare(config.OSD.bars[1].app, "");
+    compare(config.OSD.bars, undefined);
+    compare(config.OSD.osds.length, 1);
+    const osd = config.OSD.osds[0];
+    compare(osd.id, "main");
+    compare(osd.placement, "edge");
+    compare(osd.bars.map(bar => bar.type), ["app", "other", "master"]);
+    compare(osd.bars[0].app, "spotify");
+    compare(osd.bars[0].showOsd, false);
+    compare(osd.bars[1].app, "");
     // v16: an edge menu's extraDepth becomes the size across its edge
     compare(config.EdgeMenus[0].extraDepth, undefined);
     compare(config.EdgeMenus[0].extraWidth, 120);
@@ -167,6 +175,72 @@ TestCase {
     compare(cells[3].slots.main.properties.lockNote, false);
     // v18: no monitor profiles until the Monitors page saves one
     compare(config.Hyprland.monitors.profiles, []);
+    // v19: a cell's fill becomes fillWidth and fillHeight
+    compare(cells[4].fill, undefined);
+    compare(cells[4].fillWidth, true);
+    compare(cells[4].fillHeight, true);
+    compare(cells[5].fill, undefined);
+    compare(cells[5].fillWidth, false);
+    compare(cells[5].fillHeight, false);
+  }
+
+  function test_v20_adds_app_binds_on_free_keys() {
+    const result = ConfigMigration.migrate({
+      "version": 19,
+      "Hyprland": {
+        "binds": [
+          {
+            "key": "SUPER + RETURN",
+            "action": "exec",
+            "argument": "foot"
+          }
+        ]
+      }
+    });
+    const binds = result.config.Hyprland.binds;
+    // The user's own SUPER + Return stays; the rest are added once
+    compare(binds.filter(bind => bind.action === "terminal").length, 0);
+    compare(binds[0].argument, "foot");
+    // (v22 adds SUPER + CTRL + S)
+    compare(binds.filter(bind => bind.action === "screenshot").length, 4);
+    compare(binds.filter(bind => bind.action === "exitHyprland").length, 1);
+    compare(ConfigMigration.migrate(result.config).config.Hyprland.binds.length, binds.length);
+  }
+
+  function test_v23_moves_apps_out_of_launcher() {
+    const loaded = load({
+      "version": 22,
+      "Launcher": {
+        "terminal": "foot",
+        "browser": "firefox",
+        "width": 700
+      }
+    });
+    compare(loaded.config.Apps.terminal, "foot");
+    compare(loaded.config.Apps.browser, "firefox");
+    compare(loaded.config.Apps.fileManager, "");
+    compare(loaded.config.Launcher.terminal, undefined);
+    compare(loaded.config.Launcher.width, 700);
+    compare(errors(loaded.config), []);
+  }
+
+  function test_v25_edge_menus_follow_popout_padding() {
+    const loaded = load({
+      "version": 24,
+      "EdgeMenus": [
+        {
+          "id": "old",
+          "padding": 12
+        },
+        {
+          "id": "own",
+          "padding": 20
+        }
+      ]
+    });
+    compare(loaded.config.EdgeMenus[0].padding, -1);
+    compare(loaded.config.EdgeMenus[1].padding, 20);
+    compare(errors(loaded.config), []);
   }
 
   function test_migration_is_idempotent() {

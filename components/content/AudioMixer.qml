@@ -30,7 +30,6 @@ Panel {
   readonly property string mutedGlyph: isInput ? "mic_off" : "volume_off"
   readonly property string unmutedGlyph: isInput ? "mic" : "volume_up"
 
-  margins: 16
   // A popout's list is a fixed four app rows high, so switching tabs or
   // apps coming and going never resizes (and moves) the popout
   readonly property real listHeight: defaultRow.implicitHeight * 4 + list.spacing * 3
