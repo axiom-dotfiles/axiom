@@ -136,6 +136,15 @@ StyledContainer {
         anchors.right: parent.right
         spacing: Widget.spacing * 1.5
 
+        // The section's `x-intro` (settings/<name>.qml): status and
+        // actions above the fields
+        Loader {
+          active: !!root.group.intro
+          visible: active
+          Layout.fillWidth: true
+          source: active ? Qt.resolvedUrl(root.group.intro + ".qml") : ""
+        }
+
         Repeater {
           model: root.group.rows
 

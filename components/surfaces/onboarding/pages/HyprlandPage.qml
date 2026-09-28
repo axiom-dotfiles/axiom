@@ -5,6 +5,7 @@ import QtQuick.Layouts
 import qs.config
 import qs.services
 import qs.components.reusable
+import qs.components.forms
 
 // How axiom and Hyprland's config fit together: what's in ~/.config/hypr
 // (OnboardingManager.configState), the three modes with one recommended,

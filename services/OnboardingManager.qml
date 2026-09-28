@@ -152,18 +152,7 @@ Singleton {
   // Sets config values ({ dottedPath: value }) and saves them at once;
   // false if the result doesn't validate
   function set(values) {
-    const next = JSON.parse(JSON.stringify(ConfigManager.config));
-    for (const dottedPath of Object.keys(values)) {
-      const path = dottedPath.split(".");
-      let node = next;
-      for (const key of path.slice(0, -1)) {
-        if (typeof node[key] !== "object" || node[key] === null)
-          node[key] = {};
-        node = node[key];
-      }
-      node[path[path.length - 1]] = values[dottedPath];
-    }
-    return ConfigManager.commit(next);
+    return SettingsManager.commitValues(values);
   }
 
   // --- Navigation ---

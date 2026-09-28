@@ -77,6 +77,8 @@ Singleton {
       "toggleDnd": ["notifications toggleDnd", "Do not disturb", "Axiom"],
       "clearNotifications": ["notifications clear", "Clear notifications", "Axiom"],
       "idleInhibit": ["idleInhibit toggle", "Caffeine", "Axiom"],
+      "nightLight": ["nightLight toggle", "Night light", "Axiom"],
+      "nextWallpaper": ["wallpaper next", "Next wallpaper", "Axiom"],
       "workspaceStep": ["workspaces step {0} go", "Switch {0}", "Workspace"],
       "moveWindowStep": ["workspaces step {0} move", "Move window {0}", "Workspace"],
       "workspaceNth": ["workspaces nth {0} go", "Go to workspace {0}", "Workspace"],

@@ -75,6 +75,26 @@ QtObject {
   }
 
   /**
+     * @brief Sets several monitors' wallpapers with one save.
+     * @param wallpapers Monitor name -> file URL.
+     * @param primary The primary monitor's name, whose wallpaper is also
+     *        Appearance.wallpaper.
+     */
+  function setWallpapers(wallpapers, primary) {
+    const appearance = _config.Appearance;
+    const monitors = Object.keys(wallpapers).filter(monitor => appearance.wallpapers[monitor] !== wallpapers[monitor] || (monitor === primary && appearance.wallpaper !== wallpapers[monitor]));
+    if (monitors.length === 0)
+      return;
+    console.log("[ConfigManager] Setting wallpapers on", monitors.join(", "));
+    for (const monitor of monitors) {
+      appearance.wallpapers[monitor] = wallpapers[monitor];
+      if (monitor === primary)
+        appearance.wallpaper = wallpapers[monitor];
+    }
+    saveConfig();
+  }
+
+  /**
      * @brief Saves the current configuration state to config.json and triggers a reload.
      * @return true if it was written.
      */

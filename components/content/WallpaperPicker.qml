@@ -11,9 +11,11 @@ import qs.components.content.parts
 
 // Wallpapers from Appearance.wallpaperFolder as a scrolling strip (a grid in
 // taller slots); clicking one sets it and regenerates the themes from it.
-// A tall vertical slot (the Themes page) adds a header, a monitor picker
-// and a preview of that monitor's wallpaper, and sets it on the picked
-// monitor instead of this overlay's.
+// A tall vertical slot (the Themes page) adds a header and the wallpaper
+// mode (WallpaperManager): Fixed and Rotate add a monitor picker and a
+// preview of that monitor's wallpaper, and set it on the picked monitor
+// instead of this overlay's (Rotate adds its settings and Next); Light/Dark
+// shows the two wallpapers, and a click sets the selected one's.
 Card {
   id: root
 
@@ -27,7 +29,14 @@ Card {
   property string chosenMonitor: ""
   readonly property var screenNames: Quickshell.screens.map(screen => screen.name)
   readonly property string targetMonitor: root.tall && root.screenNames.includes(root.chosenMonitor) ? root.chosenMonitor : root.monitor
-  readonly property string wallpaper: Appearance.wallpaperFor(root.targetMonitor)
+  readonly property string mode: Appearance.wallpaperMode
+  readonly property bool variantMode: root.mode === "variant"
+  // The variant a click sets in Light/Dark mode: the current one until
+  // another is picked
+  property string chosenVariant: ""
+  readonly property string variant: root.chosenVariant || (Appearance.darkMode ? "dark" : "light")
+  // What a thumbnail is marked current against
+  readonly property string wallpaper: root.tall && root.variantMode ? (root.variant === "dark" ? Appearance.darkWallpaper : Appearance.lightWallpaper) : Appearance.wallpaperFor(root.targetMonitor)
 
   ColumnLayout {
     anchors.fill: parent
@@ -44,10 +53,130 @@ Card {
         text: I18n.tr("Generating themes...")
         textColor: Theme.accent
       }
+
+      SquareIconButton {
+        visible: root.mode === "rotate"
+        iconText: "skip_next"
+        tooltipText: I18n.tr("Next wallpaper")
+        onClicked: WallpaperManager.next()
+      }
+    }
+
+    RowLayout {
+      visible: root.tall
+      Layout.fillWidth: true
+      spacing: Widget.spacing / 2
+
+      Repeater {
+        // I18n.tr("Fixed") I18n.tr("Rotate") I18n.tr("Light/Dark")
+        model: [
+          {
+            "mode": "fixed",
+            "label": "Fixed"
+          },
+          {
+            "mode": "rotate",
+            "label": "Rotate"
+          },
+          {
+            "mode": "variant",
+            "label": "Light/Dark"
+          }
+        ]
+
+        delegate: SegmentButton {
+          required property var modelData
+          text: I18n.tr(modelData.label)
+          active: root.mode === modelData.mode
+          onClicked: SettingsManager.commitValues({
+            "Appearance.wallpaperMode": modelData.mode
+          })
+        }
+      }
+    }
+
+    SettingRows {
+      visible: root.tall && root.mode === "rotate"
+      Layout.fillWidth: true
+      paths: ["Appearance.wallpaperRotation.interval", "Appearance.wallpaperRotation.order", "Appearance.wallpaperRotation.sameOnAll"]
+    }
+
+    // Light/Dark: the two wallpapers; the selected one is what a click sets
+    RowLayout {
+      visible: root.tall && root.variantMode
+      Layout.fillWidth: true
+      spacing: Widget.spacing
+
+      Repeater {
+        // I18n.tr("Dark") I18n.tr("Light")
+        model: ["dark", "light"]
+
+        delegate: ColumnLayout {
+          id: slot
+          required property string modelData
+          readonly property string url: slot.modelData === "dark" ? Appearance.darkWallpaper : Appearance.lightWallpaper
+          readonly property bool selected: root.variant === slot.modelData
+          Layout.fillWidth: true
+          Layout.preferredWidth: 1
+          spacing: 4
+
+          Rectangle {
+            Layout.fillWidth: true
+            Layout.preferredHeight: width * 10 / 16
+            radius: Appearance.borderRadius
+            color: Theme.backgroundHighlight
+            border.color: slot.selected ? Theme.accent : slotArea.containsMouse ? Theme.foreground : Theme.border
+            border.width: slot.selected ? 3 : 2
+            clip: true
+
+            Image {
+              anchors.fill: parent
+              anchors.margins: parent.border.width
+              source: root.variantMode ? slot.url : ""
+              sourceSize: Qt.size(320, 200)
+              fillMode: Image.PreserveAspectCrop
+              asynchronous: true
+            }
+
+            StyledText {
+              anchors.centerIn: parent
+              visible: slot.url === ""
+              text: I18n.tr("Pick one below")
+              opacity: 0.6
+            }
+
+            MouseArea {
+              id: slotArea
+              anchors.fill: parent
+              hoverEnabled: true
+              cursorShape: Qt.PointingHandCursor
+              onClicked: root.chosenVariant = slot.modelData
+            }
+          }
+
+          RowLayout {
+            Layout.fillWidth: true
+            spacing: 4
+
+            StyledIcon {
+              text: slot.modelData === "dark" ? "dark_mode" : "light_mode"
+              textColor: slot.selected ? Theme.accent : Theme.foreground
+            }
+
+            StyledText {
+              Layout.fillWidth: true
+              text: I18n.tr(slot.modelData === "dark" ? "Dark" : "Light")
+              textColor: slot.selected ? Theme.accent : Theme.foreground
+              font.bold: slot.selected
+              elide: Text.ElideRight
+            }
+          }
+        }
+      }
     }
 
     SchemaComboBox {
-      visible: root.tall
+      visible: root.tall && !root.variantMode
       label: I18n.tr("Monitor")
       options: root.screenNames
       currentValue: root.targetMonitor
@@ -60,7 +189,7 @@ Card {
 
     // The picked monitor's wallpaper
     Rectangle {
-      visible: root.tall
+      visible: root.tall && !root.variantMode
       Layout.fillWidth: true
       Layout.preferredHeight: width * 10 / 16
       radius: Appearance.borderRadius
@@ -87,7 +216,7 @@ Card {
     }
 
     StyledText {
-      visible: root.tall && root.wallpaper !== ""
+      visible: root.tall && !root.variantMode && root.wallpaper !== ""
       Layout.fillWidth: true
       text: root.wallpaper.split("/").pop()
       elide: Text.ElideMiddle
@@ -152,7 +281,7 @@ Card {
             anchors.fill: parent
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
-            onClicked: ThemeManager.setWallpaperAndGenerate(thumb.fileUrl, root.targetMonitor)
+            onClicked: WallpaperManager.pick(thumb.fileUrl.toString(), root.targetMonitor, root.tall ? root.variant : "")
           }
         }
       }

@@ -20,10 +20,8 @@ import qs.components.content.base
 Card {
   id: root
 
-  // Found once: which optional tools exist
-  property string nightLightTool: ""
+  // Found once: whether powerprofilesctl exists
   property bool hasPowerProfiles: false
-  property bool nightLightOn: false
   property string powerProfile: ""
   property string armed: ""
 
@@ -59,9 +57,9 @@ Card {
         "active": Appearance.darkMode
       },
       "nightLight": {
-        "icon": "pill_off",
+        "icon": "nightlight",
         "label": I18n.tr("Night light"),
-        "active": root.nightLightOn
+        "active": NightLightManager.active
       },
       "powerSaver": {
         "icon": "eco",
@@ -100,7 +98,7 @@ Card {
     case "bluetooth":
       return BluetoothManager.available;
     case "nightLight":
-      return root.nightLightTool !== "";
+      return NightLightManager.available;
     case "powerSaver":
       return root.hasPowerProfiles;
     case "pin":
@@ -153,11 +151,7 @@ Card {
       ThemeManager.toggleDarkMode();
       break;
     case "nightLight":
-      if (root.nightLightOn)
-        Quickshell.execDetached(["pkill", "-x", root.nightLightTool]);
-      else
-        Quickshell.execDetached(root.nightLightTool === "hyprsunset" ? ["hyprsunset", "-t", "4500"] : ["wlsunset", "-t", "4500"]);
-      root.nightLightOn = !root.nightLightOn;
+      NightLightManager.toggle();
       break;
     case "powerSaver":
       {
@@ -179,21 +173,13 @@ Card {
   }
 
   Process {
-    running: root.actions.includes("nightLight") || root.actions.includes("powerSaver")
-    command: ["sh", "-c", `
-      for t in hyprsunset wlsunset; do command -v $t >/dev/null && { echo "night $t"; pgrep -x $t >/dev/null && echo "nighton 1"; break; }; done
-      command -v powerprofilesctl >/dev/null && echo "profile $(powerprofilesctl get)"
-      true
-    `]
+    running: root.actions.includes("powerSaver")
+    command: ["sh", "-c", 'command -v powerprofilesctl >/dev/null && echo "profile $(powerprofilesctl get)"; true']
     stdout: StdioCollector {
       onStreamFinished: {
         for (const line of text.trim().split("\n")) {
           const [key, value] = line.split(" ");
-          if (key === "night")
-            root.nightLightTool = value;
-          else if (key === "nighton")
-            root.nightLightOn = true;
-          else if (key === "profile") {
+          if (key === "profile") {
             root.hasPowerProfiles = true;
             root.powerProfile = value;
           }

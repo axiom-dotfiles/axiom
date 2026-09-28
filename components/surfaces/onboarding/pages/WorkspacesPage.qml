@@ -5,6 +5,7 @@ import QtQuick.Layouts
 import qs.config
 import qs.services
 import qs.components.reusable
+import qs.components.forms
 
 // How workspaces are laid out (the Workspaces section), with a small
 // picture of two monitors in the chosen layout

@@ -5,6 +5,7 @@ import QtQuick.Layouts
 import qs.config
 import qs.services
 import qs.components.reusable
+import qs.components.forms
 
 // The apps the keybinds open (terminal, file manager, browser), with the
 // installed ones offered to pick from, the main modifier, and the keys

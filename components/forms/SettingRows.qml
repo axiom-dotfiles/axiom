@@ -7,9 +7,10 @@ import qs.services
 import qs.components.forms
 
 // Settings by dotted config path ("Apps.terminal"), each a SchemaField
-// row as on the settings page, saved as they change (OnboardingManager.set):
-// the onboarder applies as the user goes. Edits are gathered for a moment,
-// so typing doesn't write config.json per key. Acts as the rows' `form`.
+// row as on the settings page, saved as they change
+// (SettingsManager.commitValues), for pages that apply as the user goes
+// (the onboarder, the Themes page). Edits are gathered for a moment, so
+// typing doesn't write config.json per key. Acts as the rows' `form`.
 ColumnLayout {
   id: root
 
@@ -36,7 +37,7 @@ ColumnLayout {
 
   function valueAt(path) {
     const dotted = path.join(".");
-    return dotted in root._pending ? root._pending[dotted] : OnboardingManager.value(dotted);
+    return dotted in root._pending ? root._pending[dotted] : SettingsManager.configValueAt(dotted);
   }
 
   function flush() {
@@ -44,7 +45,7 @@ ColumnLayout {
       return;
     const values = root._pending;
     root._pending = {};
-    OnboardingManager.set(values);
+    SettingsManager.commitValues(values);
   }
 
   onEdited: (path, value) => {

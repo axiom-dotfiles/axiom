@@ -127,6 +127,16 @@ QtObject {
       }
     },
     {
+      name: "nextwallpaper",
+      aliases: ["nextwall", "rotate"],
+      glyph: "shuffle",
+      description: () => I18n.tr("Next wallpaper of the rotation"),
+      run: () => {
+        WallpaperManager.next();
+        return false;
+      }
+    },
+    {
       name: "generate",
       aliases: ["pywal"],
       glyph: "auto_fix",
@@ -272,6 +282,21 @@ QtObject {
       run: (arg, value) => {
         const on = root._onOff(value ?? arg);
         IdleInhibitManager.enabled = on === null ? !IdleInhibitManager.enabled : on;
+        return false;
+      }
+    },
+    {
+      name: "nightlight",
+      aliases: ["night", "sunset"],
+      glyph: "nightlight",
+      usage: "[on | off]",
+      description: () => I18n.tr("Warmer screen colors"),
+      available: () => NightLightManager.available,
+      status: () => NightLightManager.active ? I18n.tr("On") : I18n.tr("Off"),
+      options: () => root._onOffOptions(),
+      run: (arg, value) => {
+        const on = root._onOff(value ?? arg);
+        NightLightManager.setActive(on === null ? !NightLightManager.active : on);
         return false;
       }
     },

@@ -94,6 +94,23 @@
       }
     },
 
+    "NightLight": {
+      "type": "object",
+      "x-category": "Desktop",
+      "x-intro": "NightLightStatus",
+      "title": "Night light",
+      "description": "Warmer screen colors in the evening, through hyprsunset (or wlsunset). The Night light quick action, `/nightlight` in the launcher and `qs -c axiom ipc call nightLight toggle` switch it by hand; that lasts until the next scheduled change.",
+      "additionalProperties": false,
+      "x-order": ["schedule", "startAt", "endAt", "temperature", "gamma"],
+      "properties": {
+        "schedule": { "type": "boolean", "title": "On a schedule", "default": false, "description": "Turn the night light on and off at set times." },
+        "startAt": { "type": "string", "title": "Turn on at", "default": "20:00", "pattern": "^([01]?\\d|2[0-3]):[0-5]\\d$", "description": "24-hour time, like 20:00.", "x-showIf": { "schedule": true } },
+        "endAt": { "type": "string", "title": "Turn off at", "default": "07:00", "pattern": "^([01]?\\d|2[0-3]):[0-5]\\d$", "description": "24-hour time, like 07:00. Earlier than the start runs past midnight.", "x-showIf": { "schedule": true } },
+        "temperature": { "type": "integer", "title": "Color temperature", "x-unit": "K", "default": 4500, "minimum": 1000, "maximum": 6500, "multipleOf": 100, "description": "Lower is warmer. 6500 K is the screens' own color." },
+        "gamma": { "type": "integer", "title": "Gamma", "x-unit": "%", "default": 100, "minimum": 20, "maximum": 100, "description": "Dims the screens a little further while the night light is on. 100% leaves them as they are." }
+      }
+    },
+
     "General": {
       "type": "object",
       "x-category": "Desktop",
@@ -387,7 +404,7 @@
               "action": {
                 "type": "string",
                 "title": "Action",
-                "enum": ["launcher", "launcherSearch", "overlay", "overlayPage", "edgeMenu", "workspaceOverview", "powerMenu", "lock", "toggleDnd", "clearNotifications", "idleInhibit", "workspaceStep", "moveWindowStep", "moveWindowStepSilent", "workspaceNth", "moveWindowNth", "moveWindowNthSilent", "focusDir", "moveWindowDir", "resizeWindow", "closeWindow", "fullscreen", "toggleFloat", "pin", "centerWindow", "toggleGroup", "mouseDrag", "mouseResize", "toggleSpecial", "moveToSpecial", "restartShell", "volumeUp", "volumeDown", "toggleMute", "toggleMicMute", "brightnessUp", "brightnessDown", "mediaPlayPause", "mediaNext", "mediaPrevious", "mediaStop", "terminal", "fileManager", "browser", "screenshot", "exitHyprland", "exec"],
+                "enum": ["launcher", "launcherSearch", "overlay", "overlayPage", "edgeMenu", "workspaceOverview", "powerMenu", "lock", "toggleDnd", "clearNotifications", "idleInhibit", "nightLight", "nextWallpaper", "workspaceStep", "moveWindowStep", "moveWindowStepSilent", "workspaceNth", "moveWindowNth", "moveWindowNthSilent", "focusDir", "moveWindowDir", "resizeWindow", "closeWindow", "fullscreen", "toggleFloat", "pin", "centerWindow", "toggleGroup", "mouseDrag", "mouseResize", "toggleSpecial", "moveToSpecial", "restartShell", "volumeUp", "volumeDown", "toggleMute", "toggleMicMute", "brightnessUp", "brightnessDown", "mediaPlayPause", "mediaNext", "mediaPrevious", "mediaStop", "terminal", "fileManager", "browser", "screenshot", "exitHyprland", "exec"],
                 "x-enumLabels": {
                   "launcher": "App launcher",
                   "launcherSearch": "Launcher with text",
@@ -400,6 +417,8 @@
                   "toggleDnd": "Do not disturb",
                   "clearNotifications": "Clear notifications",
                   "idleInhibit": "Caffeine",
+                  "nightLight": "Night light",
+                  "nextWallpaper": "Next wallpaper",
                   "workspaceStep": "Workspace in a direction",
                   "moveWindowStep": "Move window in a direction",
                   "workspaceNth": "Workspace by number",
@@ -667,6 +686,48 @@
           "default": "~/Pictures/wallpapers",
           "pattern": "\\S",
           "description": "Folder the wallpaper pickers list images from (jpg, png, bmp). A leading ~ is your home folder."
+        },
+        "wallpaperMode": {
+          "type": "string",
+          "title": "Wallpaper mode",
+          "enum": ["fixed", "rotate", "variant"],
+          "x-enumLabels": { "fixed": "Fixed", "rotate": "Rotate on a timer", "variant": "One for light, one for dark" },
+          "default": "fixed",
+          "description": "Fixed keeps the wallpaper you pick. Rotate changes it on a timer, from the wallpaper folder. One for light, one for dark shows the wallpaper you picked for the theme's current variant on every monitor. A generated theme follows the wallpaper as it changes. Also set on the overlay's Themes page."
+        },
+        "wallpaperRotation": {
+          "type": "object",
+          "title": "Wallpaper rotation",
+          "additionalProperties": false,
+          "x-showIf": { "wallpaperMode": "rotate" },
+          "x-order": ["interval", "order", "sameOnAll"],
+          "properties": {
+            "interval": { "type": "integer", "title": "Change every", "x-unit": "min", "default": 30, "minimum": 1, "maximum": 1440, "description": "How long each wallpaper stays up." },
+            "order": { "type": "string", "title": "Order", "enum": ["random", "sequential"], "x-enumLabels": { "random": "Random", "sequential": "In order, by name" }, "default": "random", "description": "Random never picks the wallpaper already showing." },
+            "sameOnAll": { "type": "boolean", "title": "Same on every monitor", "default": false, "description": "Show one wallpaper on all monitors. Off, each monitor gets its own." }
+          }
+        },
+        "variantWallpapers": {
+          "type": "object",
+          "default": {},
+          "description": "The wallpapers for the light and dark variants, as file URLs (set on the overlay's Themes page).",
+          "additionalProperties": false,
+          "properties": {
+            "dark": { "type": "string", "default": "" },
+            "light": { "type": "string", "default": "" }
+          },
+          "x-settings": false
+        },
+        "themeSchedule": {
+          "type": "object",
+          "title": "Light and dark by time",
+          "additionalProperties": false,
+          "x-order": ["enabled", "lightAt", "darkAt"],
+          "properties": {
+            "enabled": { "type": "boolean", "title": "Switch by time of day", "default": false, "description": "Use the theme's light variant during the day and its dark one at night. Switching by hand lasts until the next change." },
+            "lightAt": { "type": "string", "title": "Light from", "default": "07:00", "pattern": "^([01]?\\d|2[0-3]):[0-5]\\d$", "description": "24-hour time, like 07:00.", "x-showIf": { "enabled": true } },
+            "darkAt": { "type": "string", "title": "Dark from", "default": "19:00", "pattern": "^([01]?\\d|2[0-3]):[0-5]\\d$", "description": "24-hour time, like 19:00.", "x-showIf": { "enabled": true } }
+          }
         },
         "font": {
           "type": "object",

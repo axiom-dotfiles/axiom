@@ -77,6 +77,22 @@ QtObject {
     ConfigManager.setWallpaper(wallpaperUrl, target, primary);
   }
 
+  // Sets several monitors' wallpapers at once ({ monitor: url }), with one
+  // save; true if any changed
+  function setWallpapers(wallpapers) {
+    const primary = General.primaryMonitor;
+    const changed = Object.keys(wallpapers).filter(monitor => wallpapers[monitor] && (Appearance.wallpapers[monitor] !== wallpapers[monitor] || (monitor === primary && Appearance.wallpaper !== wallpapers[monitor])));
+    if (changed.length === 0)
+      return false;
+    for (const monitor of changed)
+      _showWallpaper(wallpapers[monitor], monitor, monitor === primary);
+    ConfigManager.setWallpapers(changed.reduce((map, monitor) => {
+      map[monitor] = wallpapers[monitor];
+      return map;
+    }, {}), primary);
+    return true;
+  }
+
   // Shows the configured wallpaper on every screen without saving anything,
   // for when the config changed under them (a restored snapshot), and
   // brings a generated theme in line with it.
@@ -108,6 +124,9 @@ QtObject {
   function syncGeneratedTheme() {
     if (!Appearance.theme.startsWith("generated/") || !Appearance.wallpaper)
       return;
+    // Already on its way
+    if (isGenerating && (generationProcess.wallpaper === Appearance.wallpaper || root._pendingGeneration === Appearance.wallpaper))
+      return;
     const wanted = decodeURIComponent(Appearance.wallpaper.replace("file://", ""));
     if (root.currentTheme?.generated?.wallpaper === wanted)
       return;
@@ -120,6 +139,12 @@ QtObject {
   property string _pendingGeneration: ""
 
   function generateThemesFromWallpaper(wallpaperUrl) {
+    // The one running is the latest wanted again (Dark, Light, Dark):
+    // nothing after it
+    if (isGenerating && wallpaperUrl.toString() === generationProcess.wallpaper) {
+      root._pendingGeneration = "";
+      return;
+    }
     if (isGenerating) {
       console.log("[ThemeManager] Generation already in progress; queued:", wallpaperUrl.toString());
       root._pendingGeneration = wallpaperUrl.toString();
@@ -180,6 +205,12 @@ QtObject {
   Component.onCompleted: {
     // What the initializer loaded, so the first change check is a no-op
     root._themeContent = FileManager.read(root._themeUrl(root._themeName)) ?? "";
+    root._loadedName = root._themeName;
+    // Keep the initial value but drop its binding, which would re-read the
+    // file on every config save (mid-write during a generation);
+    // _reloadTheme owns it from here
+    const initial = root._theme;
+    root._theme = initial;
     _reloadAllThemes();
     if (!root._themeContent)
       syncGeneratedTheme();
@@ -190,6 +221,8 @@ QtObject {
   property var _defaults: _readDefaults()
   property var _theme: _parseTheme(FileManager.read(_themeUrl(ConfigManager.config.Appearance.theme)), ConfigManager.config.Appearance.theme)
   property string _themeContent: ""
+  // The theme _theme and _themeContent are from
+  property string _loadedName: ""
   readonly property string _themeName: ConfigManager.config.Appearance.theme
   on_ThemeNameChanged: _reloadTheme()
 
@@ -222,34 +255,53 @@ QtObject {
     }
   }
 
-  // A theme file's JSON, or the default palette if it's missing or broken
-  function _parseTheme(content, name) {
-    if (content) {
-      try {
-        return JSON.parse(content);
-      } catch (e) {
-        console.error("[ThemeManager] Failed to parse theme:", name, e);
-      }
-    } else {
-      console.error("[ThemeManager] Theme not found:", name);
+  // A theme file's JSON, or null if it's empty or broken
+  function _tryParse(content) {
+    if (!content)
+      return null;
+    try {
+      return JSON.parse(content);
+    } catch (e) {
+      return null;
     }
+  }
+
+  // A theme file's JSON, or the default palette if it's missing or broken,
+  // in the variant its name suggests (so a missing light theme doesn't
+  // turn Appearance.darkMode on)
+  function _parseTheme(content, name) {
+    const parsed = _tryParse(content);
+    if (parsed)
+      return parsed;
+    console.error("[ThemeManager]", content ? "Failed to parse theme:" : "Theme not found:", name);
     const defaults = root._defaults ?? _readDefaults();
+    const variant = /light$/i.test(name ?? "") ? "light" : "dark";
     return {
       "name": "Default (fallback)",
-      "variant": "dark",
+      "variant": variant,
       "colors": defaults.colors,
-      "semantic": defaults.semantic.dark
+      "semantic": defaults.semantic[variant]
     };
   }
 
   // Reloads the active theme when its name or its file's contents change,
   // and re-themes the integrated tools (not on startup)
   function _reloadTheme() {
-    const content = FileManager.read(_themeUrl(_themeName)) ?? "";
-    if (content === _themeContent)
+    const name = _themeName;
+    const content = FileManager.read(_themeUrl(name)) ?? "";
+    if (name === _loadedName && content === _themeContent)
       return;
+    // Mid-write: generate_theme.py (or an editor) truncates a file before
+    // writing it, and the watch fires in between. Keep what's showing: the
+    // next change, or the end of the generation, reads it whole. Falling
+    // back here would flash the default palette and flip darkMode.
+    if (!_tryParse(content) && (name === _loadedName || isGenerating)) {
+      console.log("[ThemeManager]", name, "is empty or partly written; keeping the current colors");
+      return;
+    }
+    _loadedName = name;
     _themeContent = content;
-    _theme = _parseTheme(content, _themeName);
+    _theme = _parseTheme(content, name);
     // A generated theme that isn't there yet (a migrated name, a cleared
     // folder) is made, and themes the tools once it's read
     if (!content) {
@@ -347,7 +399,11 @@ QtObject {
   property Process _generationProcess: Process {
     id: generationProcess
 
+    // The URL being generated from
+    property string wallpaper: ""
+
     function start(wallpaperUrl) {
+      wallpaper = wallpaperUrl.toString();
       const wallpaperPath = wallpaperUrl.toString().replace("file://", "");
       command = [Paths.scriptsPath + "venv_python.sh", root._pythonScriptPath, wallpaperPath, "--output_dir", Paths.themePath + "generated"];
       console.log("[ThemeManager] Executing:", command.join(" "));
