@@ -8,7 +8,7 @@
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 23,
+      "default": 24,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
@@ -949,74 +949,17 @@
     "OSD": {
       "type": "object",
       "x-category": "Overlay & OSD",
+      "x-card": "OSDList",
       "title": "OSD",
-      "description": "On-screen display of volume, microphone and brightness bars, shown when one of them changes.",
+      "description": "On-screen displays of volume, microphone and brightness bars, shown when one of their bars changes.",
       "additionalProperties": false,
-      "x-order": ["enabled", "monitors", "edge", "position", "orientation", "alongEdge", "openOnHover", "timeout", "showPercent", "scrollToChange", "scrollStep", "bars"],
+      "x-order": ["enabled", "scrollToChange", "scrollStep", "osds"],
       "properties": {
         "enabled": {
           "type": "boolean",
           "title": "Enabled",
           "default": true,
-          "description": "Show the OSD when one of its bars changes."
-        },
-        "monitors": {
-          "type": "string",
-          "title": "Monitors",
-          "enum": ["general", "primaryBar", "focused", "all"],
-          "x-enumLabels": { "general": "As in General", "primaryBar": "Primary bar's monitor", "focused": "Focused monitor", "all": "Every monitor" },
-          "default": "general",
-          "description": "Where the OSD appears. As in General follows General > Monitors; the primary bar's monitor is the first bar's; the focused monitor is the one with your active workspace (and mouse); every monitor shows it on all of them at once."
-        },
-        "edge": {
-          "type": "string",
-          "title": "Screen edge",
-          "default": "Bottom",
-          "enum": ["Top", "Bottom", "Left", "Right"],
-          "description": "Screen edge the OSD slides out of."
-        },
-        "position": {
-          "type": "integer",
-          "title": "Position along edge",
-          "x-unit": "%",
-          "default": 50,
-          "minimum": 0,
-          "maximum": 100,
-          "description": "Where along the edge it opens: 0 is the start (left/top), 100 the end."
-        },
-        "orientation": {
-          "type": "string",
-          "title": "Bar orientation",
-          "default": "Vertical",
-          "enum": ["Vertical", "Horizontal"],
-          "description": "Vertical bars sit side by side; horizontal bars stack as rows."
-        },
-        "alongEdge": {
-          "type": "boolean",
-          "title": "Line up along the edge",
-          "default": false,
-          "description": "Place the bars in one line along the screen edge instead of stacking them by orientation. Bars that run along the edge then sit end to end, so the OSD is longer but sticks out less."
-        },
-        "openOnHover": {
-          "type": "boolean",
-          "title": "Open on hover",
-          "default": false,
-          "description": "Also open the OSD when the mouse touches the screen edge where it appears."
-        },
-        "timeout": {
-          "type": "integer",
-          "title": "Timeout",
-          "x-unit": "ms",
-          "default": 1000,
-          "minimum": 250,
-          "maximum": 10000,
-          "description": "How long the OSD stays open after the last change."
-        },
-        "showPercent": {
-          "type": "boolean",
-          "title": "Show percentages",
-          "default": true,
-          "description": "Show each bar's level as a percentage beside its icon."
+          "description": "Show the OSDs when one of their bars changes."
         },
         "scrollToChange": {
           "type": "boolean",
@@ -1034,32 +977,13 @@
           "x-showIf": { "scrollToChange": true },
           "description": "How much one wheel notch changes the level."
         },
-        "bars": {
+        "osds": {
           "type": "array",
-          "title": "Bars",
-          "x-group": "OSD bars",
-          "description": "One bar per entry, in order. System volume is the output device's volume, Other apps is the first playing stream no App bar matches, Microphone is the input device's volume, and Brightness is the monitor's own (a laptop panel through brightnessctl, an external monitor over DDC/CI through ddcutil; left out on a monitor that has neither).",
-          "default": [
-            { "type": "other", "icon": "music_note", "showOsd": true },
-            { "type": "master", "icon": "", "showOsd": true }
-          ],
-          "items": {
-            "type": "object",
-            "additionalProperties": false,
-            "x-order": ["type", "app", "icon", "showOsd"],
-            "properties": {
-              "type": {
-                "type": "string",
-                "title": "Shows",
-                "enum": ["master", "other", "microphone", "brightness", "app"],
-                "x-enumLabels": { "master": "System volume", "other": "Other apps", "microphone": "Microphone", "brightness": "Brightness", "app": "An app" },
-                "default": "app"
-              },
-              "app": { "type": "string", "title": "App", "default": "", "x-showIf": { "type": "app" }, "description": "Matched as a substring of the stream's binary or name." },
-              "icon": { "type": "string", "title": "Icon", "default": "", "description": "Icon shown on the bar: a Material Symbols name (fonts.google.com/icons), or text. Empty follows the level for system volume, microphone and brightness." },
-              "showOsd": { "type": "boolean", "title": "Opens the OSD", "default": true, "description": "A change on this bar opens the OSD (it always keeps an open one open)." }
-            }
-          }
+          "title": "OSDs",
+          "x-settings": false,
+          "description": "Each OSD has its own place and bars. A change opens every OSD holding that bar.",
+          "default": [{ "id": "main" }],
+          "items": { "$ref": "#/definitions/OSDEntry" }
         }
       }
     },
@@ -1378,6 +1302,131 @@
   },
 
   "definitions": {
+    "OSDEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "x-order": ["name", "enabled", "monitors", "placement", "edge", "position", "x", "y", "orientation", "alongEdge", "openOnHover", "timeout", "showPercent", "bars"],
+      "properties": {
+        "id": { "type": "string", "title": "ID", "default": "main", "x-settings": false },
+        "name": { "type": "string", "title": "Name", "default": "", "description": "Shown on its tab here. Empty names it by its bars." },
+        "enabled": { "type": "boolean", "title": "Enabled", "default": true },
+        "monitors": {
+          "type": "string",
+          "title": "Monitors",
+          "enum": ["general", "primaryBar", "focused", "all"],
+          "x-enumLabels": { "general": "As in General", "primaryBar": "Primary bar's monitor", "focused": "Focused monitor", "all": "Every monitor" },
+          "default": "general",
+          "description": "Where the OSD appears. As in General follows General > Monitors; the primary bar's monitor is the first bar's; the focused monitor is the one with your active workspace (and mouse); every monitor shows it on all of them at once."
+        },
+        "placement": {
+          "type": "string",
+          "title": "Placement",
+          "enum": ["edge", "floating"],
+          "x-enumLabels": { "edge": "Slides out of a screen edge", "floating": "Floats on the screen" },
+          "default": "edge"
+        },
+        "edge": {
+          "type": "string",
+          "title": "Screen edge",
+          "default": "Bottom",
+          "enum": ["Top", "Bottom", "Left", "Right"],
+          "x-showIf": { "placement": "edge" },
+          "description": "Screen edge the OSD slides out of."
+        },
+        "position": {
+          "type": "integer",
+          "title": "Position along edge",
+          "x-unit": "%",
+          "default": 50,
+          "minimum": 0,
+          "maximum": 100,
+          "x-showIf": { "placement": "edge" },
+          "description": "Where along the edge it opens: 0 is the start (left/top), 100 the end."
+        },
+        "x": {
+          "type": "integer",
+          "title": "Across the screen",
+          "x-unit": "%",
+          "default": 50,
+          "minimum": 0,
+          "maximum": 100,
+          "x-showIf": { "placement": "floating" },
+          "description": "Where its centre sits across the free area: 0 is the left, 100 the right."
+        },
+        "y": {
+          "type": "integer",
+          "title": "Up the screen",
+          "x-unit": "%",
+          "default": 33,
+          "minimum": 0,
+          "maximum": 100,
+          "x-showIf": { "placement": "floating" },
+          "description": "Where its centre sits up the free area: 0 is the bottom, 50 the middle, 100 the top."
+        },
+        "orientation": {
+          "type": "string",
+          "title": "Bar orientation",
+          "default": "Vertical",
+          "enum": ["Vertical", "Horizontal"],
+          "description": "Vertical bars sit side by side; horizontal bars stack as rows."
+        },
+        "alongEdge": {
+          "type": "boolean",
+          "title": "Line up along the edge",
+          "default": false,
+          "x-showIf": { "placement": "edge" },
+          "description": "Place the bars in one line along the screen edge instead of stacking them by orientation. Bars that run along the edge then sit end to end, so the OSD is longer but sticks out less."
+        },
+        "openOnHover": {
+          "type": "boolean",
+          "title": "Open on hover",
+          "default": false,
+          "x-showIf": { "placement": "edge" },
+          "description": "Also open the OSD when the mouse touches the screen edge where it appears."
+        },
+        "timeout": {
+          "type": "integer",
+          "title": "Timeout",
+          "x-unit": "ms",
+          "default": 1000,
+          "minimum": 250,
+          "maximum": 10000,
+          "description": "How long the OSD stays open after the last change."
+        },
+        "showPercent": {
+          "type": "boolean",
+          "title": "Show percentages",
+          "default": true,
+          "description": "Show each bar's level as a percentage beside its icon."
+        },
+        "bars": {
+          "type": "array",
+          "title": "Bars",
+          "description": "One bar per entry, in order. System volume is the output device's volume, Other apps is the first playing stream no App bar (in any OSD) matches, Microphone is the input device's volume, and Brightness is the monitor's own (a laptop panel through brightnessctl, an external monitor over DDC/CI through ddcutil; left out on a monitor that has neither).",
+          "default": [
+            { "type": "other", "icon": "music_note", "showOsd": true },
+            { "type": "master", "icon": "", "showOsd": true }
+          ],
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "x-order": ["type", "app", "icon", "showOsd"],
+            "properties": {
+              "type": {
+                "type": "string",
+                "title": "Shows",
+                "enum": ["master", "other", "microphone", "brightness", "app"],
+                "x-enumLabels": { "master": "System volume", "other": "Other apps", "microphone": "Microphone", "brightness": "Brightness", "app": "An app" },
+                "default": "app"
+              },
+              "app": { "type": "string", "title": "App", "default": "", "x-showIf": { "type": "app" }, "x-suggestions": "audioApps", "description": "Matched as a substring of the stream's binary or name." },
+              "icon": { "type": "string", "title": "Icon", "default": "", "description": "Icon shown on the bar: a Material Symbols name (fonts.google.com/icons), or text. Empty follows the level for system volume, microphone and brightness." },
+              "showOsd": { "type": "boolean", "title": "Opens the OSD", "default": true, "description": "A change on this bar opens the OSD (it always keeps an open one open)." }
+            }
+          }
+        }
+      }
+    },
     "EdgeMenu": {
       "type": "object",
       "required": ["id"],

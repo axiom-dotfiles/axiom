@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 23
+  readonly property int currentVersion: 24
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -73,6 +73,8 @@ QtObject {
       result = _v21ToV22(result, changes);
     if (version < 23)
       result = _v22ToV23(result, changes);
+    if (version < 24)
+      result = _v23ToV24(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -645,6 +647,26 @@ QtObject {
       delete launcher[key];
       changes.push(`Launcher.${key} -> Apps.${key}`);
     }
+    return config;
+  }
+
+  // v24 has several OSDs: the one OSD's own settings become the first of
+  // OSD.osds, and its scroll settings stay shared
+  function _v23ToV24(config, changes) {
+    const osd = config.OSD;
+    if (!osd || osd.osds !== undefined)
+      return config;
+    const entry = {
+      "id": "main"
+    };
+    for (const key of ["monitors", "edge", "position", "orientation", "alongEdge", "openOnHover", "timeout", "showPercent", "bars"]) {
+      if (osd[key] === undefined)
+        continue;
+      entry[key] = osd[key];
+      delete osd[key];
+    }
+    osd.osds = [entry];
+    changes.push("OSD: its settings moved to OSD.osds[0]");
     return config;
   }
 }

@@ -17,6 +17,9 @@ ColumnLayout {
   property int maxLength: 999
   // A growing text area (`x-multiline`), e.g. for a system prompt
   property bool multiline: false
+  // Values offered as chips under the field (`x-suggestions`); a click
+  // puts one in the field
+  property var suggestions: []
 
   onCurrentConfigValueChanged: {
     if (textEntry.text !== root.currentConfigValue)
@@ -65,6 +68,23 @@ ColumnLayout {
     input.onTextChanged: {
       if (root.multiline)
         root._accept(input.text);
+    }
+  }
+
+  Flow {
+    visible: !root.multiline && root.suggestions.length > 0
+    Layout.fillWidth: true
+    spacing: Widget.spacing / 2
+
+    Repeater {
+      model: root.multiline ? [] : root.suggestions
+
+      delegate: StyledTextButton {
+        required property string modelData
+        implicitHeight: Widget.height - 8
+        text: modelData
+        onClicked: textEntry.text = modelData
+      }
     }
   }
 

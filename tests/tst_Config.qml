@@ -150,12 +150,18 @@ TestCase {
     compare(network.type, "Network");
     compare(network.properties.interval, undefined);
     compare(network.properties.showName, true);
-    // v15: OSD apps become typed bars
+    // v15: OSD apps become typed bars; v24: the OSD becomes the first of
+    // several
     compare(config.OSD.apps, undefined);
-    compare(config.OSD.bars.map(bar => bar.type), ["app", "other", "master"]);
-    compare(config.OSD.bars[0].app, "spotify");
-    compare(config.OSD.bars[0].showOsd, false);
-    compare(config.OSD.bars[1].app, "");
+    compare(config.OSD.bars, undefined);
+    compare(config.OSD.osds.length, 1);
+    const osd = config.OSD.osds[0];
+    compare(osd.id, "main");
+    compare(osd.placement, "edge");
+    compare(osd.bars.map(bar => bar.type), ["app", "other", "master"]);
+    compare(osd.bars[0].app, "spotify");
+    compare(osd.bars[0].showOsd, false);
+    compare(osd.bars[1].app, "");
     // v16: an edge menu's extraDepth becomes the size across its edge
     compare(config.EdgeMenus[0].extraDepth, undefined);
     compare(config.EdgeMenus[0].extraWidth, 120);

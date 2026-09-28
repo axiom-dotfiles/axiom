@@ -187,6 +187,17 @@ QtObject {
     return null;
   }
 
+  // Values offered as chips beside a free-text setting (`x-suggestions`):
+  // it still takes anything typed
+  function suggestionsFor(fieldSchema) {
+    switch (fieldSchema?.["x-suggestions"]) {
+    case "audioApps":
+      // The apps playing sound now
+      return AudioManager.playbackApps.map(app => app.name).filter((name, i, all) => all.indexOf(name) === i);
+    }
+    return [];
+  }
+
   // --- Setting single values from outside the page (the launcher's /config) ---
 
   // Never offered, whatever the schema says: the bar and overlay editors

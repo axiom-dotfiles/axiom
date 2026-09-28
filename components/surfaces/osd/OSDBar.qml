@@ -16,12 +16,15 @@ Loader {
 
   required property var entry
   required property string screenName
+  // The OSD's own settings: bars run vertically, levels shown as numbers
+  property bool vertical: true
+  property bool showPercent: true
 
   // The bar's level changed through the user (not a device switch or a
   // stream appearing): the OSD opens if the entry's showOsd says so
   signal poked
 
-  readonly property int orientation: OSDConfig.vertical ? Qt.Vertical : Qt.Horizontal
+  readonly property int orientation: root.vertical ? Qt.Vertical : Qt.Horizontal
   readonly property string type: entry.type
   readonly property bool isVolume: type === "master" || type === "other" || type === "app"
 
@@ -36,7 +39,7 @@ Loader {
       readonly property bool isMaster: root.type === "master"
 
       orientation: root.orientation
-      showPercent: OSDConfig.showPercent
+      showPercent: root.showPercent
       scrollStep: OSDConfig.scrollStep
       targetApplication: isMaster ? "" : (root.type === "other" ? "master" : root.entry.app)
       excludedApps: root.type === "other" ? OSDConfig.excludedApps : []
@@ -69,7 +72,7 @@ Loader {
       }
 
       orientation: root.orientation
-      showPercent: OSDConfig.showPercent
+      showPercent: root.showPercent
       scrollStep: OSDConfig.scrollStep
       volumeLevel: AudioManager.sourceVolume
       isMuted: AudioManager.sourceMuted
@@ -99,7 +102,7 @@ Loader {
       readonly property real level: BrightnessManager.valueFor(root.screenName)
 
       orientation: root.orientation
-      showPercent: OSDConfig.showPercent
+      showPercent: root.showPercent
       scrollStep: OSDConfig.scrollStep
       volumeLevel: level
       iconSource: root.entry.icon || (level < 0.34 ? "brightness_low" : (level < 0.67 ? "brightness_medium" : "brightness_high"))
