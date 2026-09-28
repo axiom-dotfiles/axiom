@@ -38,8 +38,9 @@ Rectangle {
   readonly property int pillConnector: Appearance.borderRadius * 2
   // Kept clear at both ends. A pill at an end instead sits flush on the
   // perpendicular edge's stroke (bar-window 0 along a floating bar) and
-  // joins it, so its widgets only need the stroke and the padding.
-  readonly property real endMargin: pills ? barConfig.overlap + barConfig.pillPad : Appearance.screenMargin
+  // joins it, so its widgets only need the pill inset (the stroke and the
+  // padding, or the screen margin too on a bare edge).
+  readonly property real endMargin: pills ? barConfig.pillInset : Appearance.screenMargin
 
   // One { start, length, joinStart, joinEnd } per pill along the bar: each
   // non-empty section, merged with its neighbour when they're at most

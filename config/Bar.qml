@@ -38,14 +38,18 @@ QtObject {
     // Padding past the border's stroke on the pill's outer side, so its
     // widgets sit the frame plus this in from the screen edge
     const pillPad = barConfig.pillPadding ?? 0;
+    // How far a pill's widgets sit in from the bar's outer edge (and its
+    // ends): past the border stroke, or with the border off, the screen
+    // margin the frame would have taken, so they keep the same gap from the
+    // bare screen edge
+    const pillInset = overlap + (Appearance.screenBorder ? 0 : Appearance.screenMargin) + pillPad;
     // The widgets' gap to every edge they're seen against: the screen edge
     // (through the frame), and the pill's inner side and free ends (to the
     // outside of its stroke)
-    const pillGap = Math.max(Appearance.borderWidth, (Appearance.screenBorder ? Appearance.screenMargin : 0) + pillPad);
-    // How far a pill reaches in from the bar's outer edge: the border
-    // stroke it covers, the outer padding, its widgets, and the gap to its
-    // far side
-    const pillDepth = overlap + pillPad + widgetSize + pillGap;
+    const pillGap = Math.max(Appearance.borderWidth, Appearance.screenMargin + pillPad);
+    // How far a pill reaches in from the bar's outer edge: the inset, its
+    // widgets, and the gap to its far side
+    const pillDepth = pillInset + widgetSize + pillGap;
 
     return {
       "id": barConfig.id,
@@ -59,7 +63,7 @@ QtObject {
       "padding": padding,
       // How far the widgets sit in from the bar's outer edge: past the
       // stroke and pill padding, or centred between whatever covers the bar
-      "crossStart": pills ? overlap + pillPad : outerCover + (plainExtent - outerCover - innerCover - widgetSize) / 2,
+      "crossStart": pills ? pillInset : outerCover + (plainExtent - outerCover - innerCover - widgetSize) / 2,
       "background": background,
       "pills": pills,
       // Transparent and pill bars sit inside the screen border, not under it
@@ -69,6 +73,7 @@ QtObject {
       "innerStroke": solid && !Appearance.screenBorder,
       "overlap": overlap,
       "pillPad": pillPad,
+      "pillInset": pillInset,
       "pillGap": pillGap,
       "pillMerge": barConfig.pillMerge ?? 0,
       "pillDepth": pillDepth,

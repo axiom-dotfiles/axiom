@@ -9,7 +9,7 @@ import qs.services
 import qs.components.reusable
 import qs.components.content
 
-// The look: the wallpaper folder and bar style here, with the Themes
+// The look: the wallpaper folder, bar style and screen border here, with the Themes
 // page's wallpaper picker and theme list beside it
 OnboardingPage {
   id: root
@@ -180,6 +180,11 @@ OnboardingPage {
         onClicked: root.setBar("location", modelData)
       }
     }
+  }
+
+  SettingRows {
+    Layout.fillWidth: true
+    paths: ["Appearance.shape.screenBorder"]
   }
 
   StyledText {
