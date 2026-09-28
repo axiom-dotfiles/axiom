@@ -63,6 +63,7 @@ else
 fi
 wl-copy --type image/png < "$file"
 echo "saved $file"`;
+
       root._shot.command = ["sh", "-c", script, "sh", geometry, directory];
       root._shot.running = true;
     }
