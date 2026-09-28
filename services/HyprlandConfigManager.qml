@@ -11,7 +11,8 @@ import qs.components.methods
 
 /*
  * Sets Hyprland up for axiom (the Hyprland section, HyprlandConfig.mode).
- * One Lua "layer" (binds, required settings, themed borders, blur) reaches
+ * One Lua "layer" (binds, required settings, themed borders, blur, monitor
+ * profiles) reaches
  * Hyprland in one of three ways:
  *   detached  evaluated at runtime (hyprctl eval), again after every config
  *             reload, which drops it; binds on keys already taken are skipped
@@ -42,6 +43,7 @@ Singleton {
   onModeChanged: {
     _problem = "";
     _loaded = false;
+    _monitorConflicts = [];
   }
 
   readonly property string includePath: Paths.userStatePath + "hyprland.lua"
@@ -226,6 +228,7 @@ Singleton {
     if (HyprlandConfig.blur)
       setup.push("M.blur()");
     setup.push("M.layers()");
+    setup.push("M.monitors()");
     return `${_header} from its Hyprland settings, and rewritten whenever they
 -- (or the theme) change: edit those, not this file.
 --
@@ -257,6 +260,12 @@ end
 -- Stacking order of axiom's surfaces (bars, border, edge menus, backdrops)
 function M.layers()
 ${_indent(HyprlandManager.layerRulesLua, "  ")}
+end
+
+-- Monitor profiles from the Monitors page: the one for what's connected,
+-- again whenever a monitor comes or goes
+function M.monitors()
+${_indent(HyprLua.monitorsLua(HyprlandConfig.monitorProfiles), "  ")}
 end
 
 function M.setup()
@@ -436,6 +445,8 @@ if #errors > 0 then error(table.concat(errors, "\\n")) end
   // binds, and which outlives a reload of the shell. They're unbound
   // before the binds are read, so they don't look like the user's.
   readonly property string _unbindLua: "for _, key in ipairs(AXIOM_RUNTIME_KEYS or {}) do hl.unbind(key) end\nAXIOM_RUNTIME_KEYS = nil"
+  // The monitor profiles (JSON) the runtime layer last applied
+  property var _monitorsApplied: null
   // Keys skipped as taken, so each is only reported once
   property var _reportedTaken: ({})
   property bool _runtimeWanted: false
@@ -448,6 +459,7 @@ if #errors > 0 then error(table.concat(errors, "\\n")) end
 
   function _clearRuntime() {
     _runtimeWanted = false;
+    _monitorsApplied = null;
     _skippedKeys = [];
     HyprlandManager.runLua(_unbindLua);
     KeybindManager.refreshSoon();
@@ -476,6 +488,12 @@ if #errors > 0 then error(table.concat(errors, "\\n")) end
       lines.push(..._themeLua());
     if (HyprlandConfig.blur)
       lines.push(..._blurLua());
+    // Monitors only when their profiles changed, or a reload dropped them:
+    // re-applying them unchanged could still flicker a mode set
+    if (_monitorsApplied !== HyprlandConfig._monitorsJson) {
+      lines.push(...HyprLua.monitorsLua(HyprlandConfig.monitorProfiles));
+      _monitorsApplied = HyprlandConfig._monitorsJson;
+    }
     lines.push(`AXIOM_RUNTIME_KEYS = { ${keys.map(key => _lua(key)).join(", ")} }`);
     _skippedKeys = skipped;
     HyprlandManager.runLua(lines.join("\n"));
@@ -532,6 +550,19 @@ if #errors > 0 then error(table.concat(errors, "\\n")) end
 
   // --- For the settings page ---
 
+  // Managed mode: the user/*.lua files that set monitors themselves. They
+  // load after axiom's profiles, so their rules win.
+  readonly property var monitorConflicts: _monitorConflicts
+  property var _monitorConflicts: []
+
+  Process {
+    id: findMonitorConflicts
+    command: ["sh", "-c", 'cd "$1" 2>/dev/null && grep -lE "^[[:space:]]*hl\\.monitor[[:space:]]*\\(" -- *.lua 2>/dev/null', "sh", root.userDir]
+    stdout: StdioCollector {
+      onStreamFinished: root._monitorConflicts = root.mode === "managed" ? text.split("\n").filter(name => name !== "").map(name => root.userDir + "/" + name) : []
+    }
+  }
+
   // What switching to managed would do, from checkManaged(): "ours" (the
   // file is already axiom's), "adopt" (an existing hyprland.lua is moved to
   // user/), "new" (there's none) or "blocked" (a symlinked or git-tracked
@@ -568,6 +599,7 @@ if #errors > 0 then error(table.concat(errors, "\\n")) end
     } else if (mode === "managed") {
       if (!claimManaged.running)
         claimManaged.running = true;
+      findMonitorConflicts.running = true;
     } else {
       _problem = "";
       _applyRuntime();
@@ -575,7 +607,7 @@ if #errors > 0 then error(table.concat(errors, "\\n")) end
   }
 
   // Everything the layer is made of; a change re-applies it
-  readonly property string _inputs: [mode, HyprlandConfig._bindsJson, HyprlandConfig._managedJson, HyprlandConfig.requiredSettings, HyprlandConfig.theme, HyprlandConfig.blur, Theme.borderFocus, Theme.border, Theme.baseColorNames.map(name => Theme.resolveColor(name)).join(","), Appearance.borderRadius, Appearance.borderWidth, Appearance.animFast, Appearance.animations].join("|")
+  readonly property string _inputs: [mode, HyprlandConfig._bindsJson, HyprlandConfig._monitorsJson, HyprlandConfig._managedJson, HyprlandConfig.requiredSettings, HyprlandConfig.theme, HyprlandConfig.blur, Theme.borderFocus, Theme.border, Theme.baseColorNames.map(name => Theme.resolveColor(name)).join(","), Appearance.borderRadius, Appearance.borderWidth, Appearance.animFast, Appearance.animations].join("|")
   on_InputsChanged: _debounce.restart()
 
   property Timer _debounce: Timer {
@@ -596,10 +628,14 @@ if #errors > 0 then error(table.concat(errors, "\\n")) end
       if (event.name !== "configreloaded")
         return;
       // A reload drops runtime binds and rules
+      root._monitorsApplied = null;
       if (root.mode === "detached")
         root._debounce.restart();
       else
         root._checkLoaded();
+      // Hyprland reloads when a user/*.lua file changes
+      if (root.mode === "managed")
+        findMonitorConflicts.running = true;
     }
   }
 

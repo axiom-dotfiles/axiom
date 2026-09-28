@@ -167,4 +167,147 @@ TestCase {
     const written = files.write("tests/.out/managed.lua", lua);
     tryVerify(() => written.done, 2000);
   }
+
+  // --- Monitors ---
+
+  readonly property var ruleDefaults: {
+    const schema = files.json("config/json/config.schema.json");
+    return SchemaValidation.applyDefaults({}, schema.definitions.MonitorRule, schema);
+  }
+
+  function rule(fields) {
+    return Object.assign({}, ruleDefaults, fields);
+  }
+
+  function test_monitorSpec_writes_only_changes() {
+    compare(HyprLua.monitorSpec(rule({
+      "output": "DP-1",
+      "mode": "3440x1440@240"
+    })), {
+      "output": "DP-1",
+      "mode": "3440x1440@240",
+      "position": "0x0",
+      "scale": 1
+    });
+    const spec = HyprLua.monitorSpec(rule({
+      "output": "DP-1",
+      "x": -1440,
+      "y": -1100,
+      "transform": 3,
+      "vrr": 2,
+      "bitdepth": 10,
+      "cm": "hdr",
+      "sdrBrightness": 1.2
+    }));
+    compare(spec.position, "-1440x-1100");
+    compare(spec.transform, 3);
+    compare(spec.vrr, 2);
+    compare(spec.bitdepth, 10);
+    compare(spec.cm, "hdr");
+    compare(spec.sdrbrightness, 1.2);
+    compare(spec.sdrsaturation, undefined);
+    compare(HyprLua.monitorSpec(rule({
+      "output": "HDMI-A-1",
+      "disabled": true,
+      "x": 5
+    })), {
+      "output": "HDMI-A-1",
+      "disabled": true
+    });
+  }
+
+  function test_monitorCalls_resolve_mirrors() {
+    const calls = HyprLua.monitorCalls([rule({
+        "output": "desc:TV",
+        "mirror": "desc:Main"
+      }), rule({
+        "output": "DP-3",
+        "mirror": "desc:Gone"
+      })], output => output === "desc:Main" ? "DP-1" : "");
+    compare(calls[0], `hl.monitor({ output = "desc:TV", mode = "preferred", position = "0x0", scale = 1, mirror = "DP-1" })`);
+    verify(!calls[1].includes("mirror"), "an absent mirror target is left out");
+  }
+
+  function test_monitorsLua_without_profiles_only_unsubscribes() {
+    const lines = HyprLua.monitorsLua([]);
+    verify(lines.join("\n").includes("sub:remove()"));
+    verify(!lines.join("\n").includes("axiom_apply_monitors"));
+  }
+
+  // The generated picker, run by `lua` with a stubbed hl, picks what
+  // MonitorLayout.matchProfile picks
+  function test_monitorsLua_picks_like_matchProfile() {
+    const profiles = [
+      {
+        "name": "Desk",
+        "outputs": [rule({
+            "output": "desc:AOC",
+            "mode": "3440x1440@240"
+          }), rule({
+            "output": "HDMI-A-1",
+            "disabled": true
+          })]
+      },
+      {
+        "name": "TV",
+        "outputs": [rule({
+            "output": "desc:AOC",
+            "mode": "3440x1440@144"
+          }), rule({
+            "output": "desc:LG TV",
+            "mode": "1920x1080@60",
+            "x": 3440,
+            "mirror": "desc:AOC"
+          })]
+      }
+    ];
+    const aoc = {
+      "name": "DP-1",
+      "description": "AOC"
+    };
+    const tv = {
+      "name": "HDMI-A-1",
+      "description": "LG TV"
+    };
+    const cases = [[[aoc], "3440x1440@240"], [[aoc, tv], "3440x1440@144"], [[tv], "3440x1440@144"]];
+    const monitorsLua = monitors => "{ " + monitors.map(m => `{ name = ${HyprLua.string(m.name)}, description = ${HyprLua.string(m.description)} }`).join(", ") + " }";
+    const checks = cases.map(([connected, mode]) => {
+      compare(profiles[MonitorLayout.matchProfile(profiles, connected)].outputs[0].mode, mode);
+      return `check(${monitorsLua(connected)}, ${HyprLua.string(mode)})`;
+    });
+    const lua = `local connected, applied, removed = {}, {}, 0
+hl = {
+  get_monitors = function() return connected end,
+  monitor = function(spec) applied[#applied + 1] = spec end,
+  on = function() return { remove = function() removed = removed + 1 end } end,
+}
+local function run()
+${HyprLua.monitorsLua(profiles).join("\n")}
+end
+run()
+local function check(monitors, mode)
+  connected, applied = monitors, {}
+  axiom_apply_monitors()
+  assert(applied[1].mode == mode, "picked " .. tostring(applied[1].mode) .. ", wanted " .. mode)
+end
+${checks.join("\n")}
+-- The TV profile mirrors onto the AOC's connector, and resets the output
+-- Desk disables
+check(${monitorsLua([aoc, tv])}, "3440x1440@144")
+assert(applied[2].mirror == "DP-1", "mirror resolved to a connector")
+local reset = false
+for _, spec in ipairs(applied) do
+  if spec.output == "HDMI-A-1" and spec.mode == "preferred" then reset = true end
+end
+assert(reset, "the output Desk disables goes back to its defaults")
+-- A first start, nothing reported yet: the first profile
+check({}, "3440x1440@240")
+-- Running the chunk again drops the earlier handlers
+run()
+assert(removed == 2, "earlier handlers removed")
+`;
+
+    const written = files.write("tests/.out/monitors.run.lua", lua);
+    tryVerify(() => written.done, 2000);
+  }
 }

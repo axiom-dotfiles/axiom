@@ -14,6 +14,7 @@ Rectangle {
   property bool showActions: true
   // Save stays visible while dirty but is disabled when false
   property bool canSave: true
+  property string saveLabel: I18n.tr("Save")
 
   signal save
   signal reset
@@ -43,7 +44,7 @@ Rectangle {
       visible: root.showActions && root.dirty
       enabled: root.canSave
       icon: "check"
-      label: I18n.tr("Save")
+      label: root.saveLabel
       fillColor: hovered ? Qt.lighter(Theme.accent, 1.1) : Theme.accent
       contentColor: Theme.background
       onClicked: root.save()

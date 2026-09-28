@@ -8,7 +8,7 @@
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 17,
+      "default": 18,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
@@ -205,7 +205,7 @@
     "Hyprland": {
       "type": "object",
       "x-category": "Hyprland",
-      "x-links": ["Keybinds"],
+      "x-links": ["Keybinds", "Monitors"],
       "x-card": "HyprlandStatus",
       "title": "Hyprland",
       "description": "How axiom sets Hyprland up. Needs Hyprland 0.55+ with a Lua config.",
@@ -374,6 +374,16 @@
               "release": { "type": "boolean", "title": "On release", "default": false },
               "description": { "type": "string", "title": "Description", "default": "", "description": "Label on the Keybinds page; empty uses the action's name. The action picks the section unless you write \"Section: Label\"." }
             }
+          }
+        },
+        "monitors": {
+          "type": "object",
+          "title": "Monitors",
+          "x-settings": false,
+          "description": "Edited on the Monitors page.",
+          "additionalProperties": false,
+          "properties": {
+            "profiles": { "type": "array", "default": [], "items": { "$ref": "#/definitions/MonitorProfile" } }
           }
         },
         "managed": {
@@ -1077,7 +1087,8 @@
             { "type": "Keybinds" },
             { "type": "BarEditor" },
             { "type": "Themes" },
-            { "type": "EdgeMenuEditor" }
+            { "type": "EdgeMenuEditor" },
+            { "type": "Monitors" }
           ],
           "items": { "$ref": "#/definitions/OverlayView" }
         }
@@ -1539,7 +1550,8 @@
         { "$ref": "#/definitions/BarEditorOverlayView" },
         { "$ref": "#/definitions/SettingsOverlayView" },
         { "$ref": "#/definitions/ThemesOverlayView" },
-        { "$ref": "#/definitions/EdgeMenuEditorOverlayView" }
+        { "$ref": "#/definitions/EdgeMenuEditorOverlayView" },
+        { "$ref": "#/definitions/MonitorsOverlayView" }
       ]
     },
     "CustomOverlayView": {
@@ -1602,6 +1614,45 @@
       "properties": {
         "type": { "const": "EdgeMenuEditor", "description": "Edge Menu Editor" },
         "visible": { "type": "boolean" }
+      }
+    },
+    "MonitorsOverlayView": {
+      "type": "object",
+      "x-icon": "monitor",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "Monitors", "description": "Monitors" },
+        "visible": { "type": "boolean" }
+      }
+    },
+
+    "MonitorProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "default": "" },
+        "outputs": { "type": "array", "default": [], "items": { "$ref": "#/definitions/MonitorRule" } }
+      }
+    },
+    "MonitorRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "output": { "type": "string", "default": "", "description": "desc:<description>, or a connector name (DP-1)." },
+        "label": { "type": "string", "default": "", "description": "The connector it was last seen on, for display." },
+        "mode": { "type": "string", "default": "preferred", "description": "WIDTHxHEIGHT@HZ, or preferred." },
+        "x": { "type": "integer", "default": 0 },
+        "y": { "type": "integer", "default": 0 },
+        "scale": { "type": "number", "default": 1, "exclusiveMinimum": 0, "maximum": 8 },
+        "transform": { "type": "integer", "default": 0, "minimum": 0, "maximum": 7, "description": "Rotation in quarter turns, plus 4 when flipped." },
+        "disabled": { "type": "boolean", "default": false },
+        "mirror": { "type": "string", "default": "", "description": "The output (as in `output`) this one mirrors, or empty." },
+        "vrr": { "type": "integer", "default": 0, "minimum": 0, "maximum": 3, "description": "0 off, 1 on, 2 fullscreen only, 3 fullscreen games and video." },
+        "bitdepth": { "type": "integer", "enum": [8, 10], "default": 8 },
+        "cm": { "type": "string", "enum": ["auto", "srgb", "dcip3", "dp3", "adobe", "wide", "edid", "hdr", "hdredid"], "default": "auto" },
+        "sdrBrightness": { "type": "number", "default": 1, "minimum": 0.5, "maximum": 2 },
+        "sdrSaturation": { "type": "number", "default": 1, "minimum": 0.5, "maximum": 2 }
       }
     },
 

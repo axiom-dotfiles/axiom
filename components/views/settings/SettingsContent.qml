@@ -128,6 +128,8 @@ Item {
       return I18n.tr("Edge Menu Editor");
     case "Keybinds":
       return I18n.tr("Keybinds");
+    case "Monitors":
+      return I18n.tr("Monitors");
     }
     return type;
   }

@@ -4,7 +4,8 @@
 # The tests cover components/methods/ (pure by the layering rule), imported
 # from a module tree of the shell's Quickshell-free files
 # (scripts/qml_modules.py --pure). Lua the tests write to tests/.out/ is
-# checked with `luac -p` afterwards.
+# checked with `luac -p` afterwards, and *.run.lua files are also run with
+# `lua` (they stub what they call and error on a failed check).
 #
 #   scripts/run_tests.sh             every test
 #   scripts/run_tests.sh NAME...     only tests/tst_NAME.qml
@@ -34,6 +35,9 @@ shopt -s nullglob
 for lua in "$root"/tests/.out/*.lua; do
   if ! luac -p "$lua"; then
     echo "error: ${lua#"$root"/} is not valid Lua"
+    status=1
+  elif [[ "$lua" == *.run.lua ]] && ! lua "$lua"; then
+    echo "error: ${lua#"$root"/} failed"
     status=1
   fi
 done

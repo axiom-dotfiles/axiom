@@ -129,11 +129,12 @@ TestCase {
     // v10: the grid popout's icons move onto the widget
     compare(config.Popouts.workspaceIcons, undefined);
     compare(left[0].properties.showAppIcons, true);
-    // v5, v7, v13: the pages that became views
+    // v5, v7, v13, v18: the pages that became (or were added as) views
     const types = config.Overlay.views.map(view => view.type);
     compare(types[0], "Settings");
     verify(types.includes("Themes"));
     verify(types.includes("EdgeMenuEditor"));
+    verify(types.includes("Monitors"));
     // v11: backends become providers, keeping a model the user added
     compare(config.Chat.defaultProvider, "anthropic");
     const anthropic = config.Chat.providers.find(p => p.id === "anthropic");
@@ -164,6 +165,8 @@ TestCase {
     compare(cells[2].slots.main.properties.note, "my_list.md");
     compare(cells[3].slots.main.properties.note, "");
     compare(cells[3].slots.main.properties.lockNote, false);
+    // v18: no monitor profiles until the Monitors page saves one
+    compare(config.Hyprland.monitors.profiles, []);
   }
 
   function test_migration_is_idempotent() {

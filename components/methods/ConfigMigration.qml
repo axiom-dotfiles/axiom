@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 17
+  readonly property int currentVersion: 18
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -61,6 +61,8 @@ QtObject {
       result = _v15ToV16(result, changes);
     if (version < 17)
       result = _v16ToV17(result, changes);
+    if (version < 18)
+      result = _v17ToV18(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -494,6 +496,19 @@ QtObject {
         }));
     (config.Overlay?.views ?? []).forEach((view, index) => convert(view?.columns, `Overlay.views[${index}]`));
     (config.EdgeMenus ?? []).forEach((menu, index) => convert(menu?.columns, `EdgeMenus[${index}]`));
+    return config;
+  }
+
+  // v18 added the Monitors page (monitor layout, Hyprland.monitors): a page
+  // list saved without it gets it once, as in v13
+  function _v17ToV18(config, changes) {
+    const views = config.Overlay?.views;
+    if (!Array.isArray(views) || views.some(view => view?.type === "Monitors"))
+      return config;
+    views.push({
+      "type": "Monitors"
+    });
+    changes.push("Overlay.views: added the Monitors page");
     return config;
   }
 }
