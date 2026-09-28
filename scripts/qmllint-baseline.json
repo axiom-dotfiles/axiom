@@ -33,7 +33,7 @@
   },
   "components/content/SystemTray.qml": {
     "missing-property: Member \"menuItem\" not found on type \"QQuickItem\"": 1,
-    "unqualified: Unqualified access": 1
+    "unused-imports: Unused import": 1
   },
   "components/content/TopProcesses.qml": {
     "property-override: Property \"rows\" already exists in base type \"Card\", use a different name.": 1
@@ -48,8 +48,7 @@
     "property-override: Property \"rows\" already exists in base type \"Panel\", use a different name.": 1
   },
   "components/content/parts/TraySubmenu.qml": {
-    "missing-property: Member \"menuItem\" not found on type \"QQuickItem\"": 1,
-    "unqualified: Unqualified access": 1
+    "missing-property: Member \"menuItem\" not found on type \"QQuickItem\"": 1
   },
   "components/content/parts/chat/ChatMessageList.qml": {
     "missing-property: Member \"pressed\" not found on type \"QQuickItem\"": 1

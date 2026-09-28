@@ -20,8 +20,6 @@ Item {
   required property bool openToLeft
 
   property alias popupWindow: submenuPopup
-  property int minWidth: 100
-  property int maxWidth: 600
 
   PopoutWrapperBase {
     id: root
@@ -37,11 +35,9 @@ Item {
       visible: root.occupied && loader.status === Loader.Ready && (root.currentItem?.contentReady ?? true)
       color: "transparent"
 
-      readonly property int contentWidth: {
-        const itemWidth = root.currentItem?.implicitWidth ?? outer.minWidth;
-        return Math.max(outer.minWidth, Math.min(outer.maxWidth, itemWidth));
-      }
-      readonly property int contentHeight: root.currentItem?.implicitHeight ?? 100
+      // TrayMenuList sizes itself to its entries, within its limits
+      readonly property int contentWidth: root.currentItem?.implicitWidth ?? 0
+      readonly property int contentHeight: root.currentItem?.implicitHeight ?? 0
 
       implicitWidth: surface.implicitWidth
       implicitHeight: surface.implicitHeight
@@ -57,9 +53,8 @@ Item {
       readonly property real attachX: outer.openToLeft ? attachRect.x + Appearance.borderWidth + surface.backfill - implicitWidth : attachRect.x + attachRect.width - Appearance.borderWidth - surface.backfill
 
       // Line our first menu item up with the hovered one: the fillet
-      // margin, then the loader inset, then half TraySubmenu's 20px
-      // layout inset.
-      readonly property real firstItemOffset: (root.connectorGap - Appearance.borderWidth) + surface.contentInset + 10
+      // margin, then the loader inset
+      readonly property real firstItemOffset: (root.connectorGap - Appearance.borderWidth) + surface.contentInset
       // Keep both fillets on the straight part of the parent's side, clear
       // of its rounded corners (or its fillets into the bar)
       readonly property real minY: attachRect.y + Appearance.borderRadius
@@ -100,6 +95,7 @@ Item {
             TraySubmenu {
               wrapper: root
               menuItem: root.currentData?.menuItem
+              maxWidth: (outer.screen?.width ?? 2000) * 0.3
             }
           }
 
