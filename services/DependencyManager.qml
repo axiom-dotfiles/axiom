@@ -27,6 +27,7 @@ Singleton {
   // I18n.tr("Moving notes to the trash") I18n.tr("Media keys for players axiom doesn't see")
   // I18n.tr("Generating themes from a wallpaper") I18n.tr("Idle locking and screen blanking")
   // I18n.tr("Clipboard history shared with other apps")
+  // I18n.tr("Typing emoji from the launcher")
   readonly property var tools: [
     {
       "command": "qalc",
@@ -87,6 +88,11 @@ Singleton {
       "command": "cliphist",
       "package": "cliphist",
       "purpose": "Clipboard history shared with other apps"
+    },
+    {
+      "command": "wtype",
+      "package": "wtype",
+      "purpose": "Typing emoji from the launcher"
     }
   ]
 

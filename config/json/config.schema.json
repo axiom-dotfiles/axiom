@@ -172,7 +172,8 @@
         "chat": { "type": "boolean", "title": "Ask chat (@)", "default": true, "description": "Type @ and a question to ask it in the overlay's Chat module, with the default preset." },
         "clipboard": { "type": "boolean", "title": "Clipboard history (:)", "default": true, "description": "Type : (or /clipboard) to search what you've copied; Enter copies it again, Shift+Enter removes it. axiom keeps the history in memory only, never on disk, and skips anything a password manager marks as sensitive. Turn this off if you copy passwords from apps that don't; turning it off clears the history." },
         "clipboardSource": { "type": "string", "title": "Clipboard history source", "default": "axiom", "enum": ["axiom", "cliphist"], "x-enumLabels": { "axiom": "axiom (in memory)", "cliphist": "cliphist" }, "description": "axiom records text clips itself. cliphist uses cliphist's history instead, images included, and records text and images into it while this is on (alongside any cliphist store you run yourself).", "x-showIf": { "clipboard": true } },
-        "clipboardMaxEntries": { "type": "integer", "title": "Clipboard history size", "default": 100, "minimum": 10, "maximum": 1000, "description": "How many clips axiom keeps.", "x-showIf": { "clipboard": true, "clipboardSource": "axiom" } }
+        "clipboardMaxEntries": { "type": "integer", "title": "Clipboard history size", "default": 100, "minimum": 10, "maximum": 1000, "description": "How many clips axiom keeps.", "x-showIf": { "clipboard": true, "clipboardSource": "axiom" } },
+        "emoji": { "type": "boolean", "title": "Emoji (;)", "default": true, "description": "Type ; (or /emoji) to search emoji by name or keyword; Enter copies one. With wtype installed, Shift+Enter also types it into the focused window." }
       }
     },
 
