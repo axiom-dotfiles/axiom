@@ -74,14 +74,14 @@ Item {
     textColor: root.checked ? Theme.accent : Theme.foregroundAlt
     textSize: Appearance.fontSize + 4
 
-    HoverHandler {
+    // A MouseArea, not a TapHandler: it accepts the press, so the editor's
+    // background MouseArea (which focuses the note's end) never sees it. An
+    // exclusive-grab TapHandler is cancelled by the ScrollView's Flickable,
+    // and a passive one lets the press through
+    MouseArea {
+      anchors.fill: parent
       cursorShape: Qt.PointingHandCursor
-    }
-    // An exclusive grab: otherwise the press also reaches the editor's
-    // background MouseArea, which focuses the note's end
-    TapHandler {
-      gesturePolicy: TapHandler.ReleaseWithinBounds
-      onTapped: root.editor.toggle(root.index)
+      onClicked: root.editor.toggle(root.index)
     }
   }
 
@@ -221,16 +221,16 @@ Item {
     HoverHandler {
       cursorShape: rendered.hoveredLink !== "" ? Qt.PointingHandCursor : Qt.IBeamCursor
     }
-    // Exclusive, like the checkbox's, so the editor's background MouseArea
-    // never sees the press
-    TapHandler {
-      gesturePolicy: TapHandler.ReleaseWithinBounds
-      onTapped: point => {
-        const link = rendered.linkAt(point.position.x, point.position.y);
+    // A MouseArea, like the checkbox's, so neither the hidden field nor the
+    // editor's background MouseArea sees the press
+    MouseArea {
+      anchors.fill: parent
+      onClicked: mouse => {
+        const link = rendered.linkAt(mouse.x, mouse.y);
         if (link !== "")
           Qt.openUrlExternally(link);
         else
-          field.editAt(point.position.x, point.position.y - rendered.topPadding);
+          field.editAt(mouse.x, mouse.y - rendered.topPadding);
       }
     }
   }
