@@ -167,6 +167,13 @@ TestCase {
     compare(cells[3].slots.main.properties.lockNote, false);
     // v18: no monitor profiles until the Monitors page saves one
     compare(config.Hyprland.monitors.profiles, []);
+    // v19: a cell's fill becomes fillWidth and fillHeight
+    compare(cells[4].fill, undefined);
+    compare(cells[4].fillWidth, true);
+    compare(cells[4].fillHeight, true);
+    compare(cells[5].fill, undefined);
+    compare(cells[5].fillWidth, false);
+    compare(cells[5].fillHeight, false);
   }
 
   function test_migration_is_idempotent() {

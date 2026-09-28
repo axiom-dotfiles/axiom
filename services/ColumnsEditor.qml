@@ -329,12 +329,13 @@ QtObject {
     root.edited();
   }
 
-  // A fill cell grows into free room (OverlayConfig.columnFlow)
-  function setCellFill(c, k, fill) {
+  // A fill cell grows into free room (OverlayConfig.columnFlow); `key` is
+  // "fillWidth" or "fillHeight"
+  function setCellFill(c, k, key, fill) {
     const cell = root._cell(c, k);
-    if (!cell || (cell.fill === true) === fill)
+    if (!cell || (cell[key] === true) === fill)
       return;
-    cell.fill = fill;
+    cell[key] = fill;
     root.edited();
   }
 

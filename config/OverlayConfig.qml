@@ -139,9 +139,10 @@ QtObject {
   // ({ width, height }, either optional) grows every cell: each row gets
   // the extra width, split between its cells, and the extra height, split
   // evenly between the rows. `target` (the same shape) is room for cells
-  // with `fill` to grow into past that: a row's spare width goes to its
-  // fill cells, fill cells take their row's height, and spare height goes
-  // to the rows holding one, split evenly. Without either nothing changes.
+  // to grow into past that: a row's spare width goes to its `fillWidth`
+  // cells, `fillHeight` cells take their row's height, and spare height
+  // goes to the rows holding one, split evenly. Without either nothing
+  // changes.
   function columnFlow(cells, unit, target, extra) {
     const sizes = (cells ?? []).map(cell => {
       const layout = layouts[cell?.layout] ?? layouts.Single;
@@ -175,26 +176,27 @@ QtObject {
       row.height += extraRowHeight;
     });
     const width = naturalWidth + extraWidth;
-    const fills = i => cells[i]?.fill === true;
+    const fillsWidth = i => cells[i]?.fillWidth === true;
+    const fillsHeight = i => cells[i]?.fillHeight === true;
     const naturalHeight = rows.reduce((sum, row) => sum + row.height, 0) + Math.max(0, rows.length - 1) * cardSpacing;
-    const fillRows = rows.filter(row => row.cells.some(fills));
-    const fullWidth = fillRows.length > 0 ? Math.max(width, target?.width ?? 0) : width;
-    const spareHeight = fillRows.length > 0 ? Math.max(0, (target?.height ?? 0) - naturalHeight) : 0;
+    const fullWidth = rows.some(row => row.cells.some(fillsWidth)) ? Math.max(width, target?.width ?? 0) : width;
+    const heightRows = rows.filter(row => row.cells.some(fillsHeight)).length;
+    const spareHeight = heightRows > 0 ? Math.max(0, (target?.height ?? 0) - naturalHeight) : 0;
     const rects = [];
     let y = 0;
     rows.forEach((row, rowIndex) => {
-      const rowFills = row.cells.filter(fills);
-      const rowHeight = row.height + (rowFills.length > 0 ? spareHeight / fillRows.length : 0);
-      const fillWidth = rowFills.length > 0 ? (fullWidth - row.width) / rowFills.length : 0;
+      const widthFills = row.cells.filter(fillsWidth).length;
+      const rowHeight = row.height + (row.cells.some(fillsHeight) ? spareHeight / heightRows : 0);
+      const fillWidth = widthFills > 0 ? (fullWidth - row.width) / widthFills : 0;
       let cx = 0;
       row.cells.forEach(i => {
         const [cellWidth, cellHeight] = grown(i);
-        const w = cellWidth + (fills(i) ? fillWidth : 0);
+        const w = cellWidth + (fillsWidth(i) ? fillWidth : 0);
         rects[i] = {
           "x": cx,
           "y": y,
           "width": w,
-          "height": fills(i) ? rowHeight : cellHeight,
+          "height": fillsHeight(i) ? rowHeight : cellHeight,
           "row": rowIndex
         };
         cx += w + cardSpacing;

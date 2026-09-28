@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 18
+  readonly property int currentVersion: 19
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -63,6 +63,8 @@ QtObject {
       result = _v16ToV17(result, changes);
     if (version < 18)
       result = _v17ToV18(result, changes);
+    if (version < 19)
+      result = _v18ToV19(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -509,6 +511,25 @@ QtObject {
       "type": "Monitors"
     });
     changes.push("Overlay.views: added the Monitors page");
+    return config;
+  }
+
+  // v19 split a cell's `fill` into fillWidth and fillHeight: a fill cell
+  // grew both ways
+  function _v18ToV19(config, changes) {
+    const convert = (columns, where) => (columns ?? []).forEach(column => (column?.cells ?? []).forEach(cell => {
+          if (!cell || !("fill" in cell))
+            return;
+          const fill = cell.fill === true;
+          delete cell.fill;
+          if (!fill)
+            return;
+          cell.fillWidth = true;
+          cell.fillHeight = true;
+          changes.push(`${where}: a cell's fill -> fillWidth and fillHeight`);
+        }));
+    (config.Overlay?.views ?? []).forEach((view, index) => convert(view?.columns, `Overlay.views[${index}]`));
+    (config.EdgeMenus ?? []).forEach((menu, index) => convert(menu?.columns, `EdgeMenus[${index}]`));
     return config;
   }
 }
