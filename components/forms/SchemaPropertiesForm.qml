@@ -17,6 +17,9 @@ ColumnLayout {
   // Keys to put first, in this order (the schema's `x-order`): the schema
   // reaches QML as a map, whose keys come out sorted
   property var order: []
+  // Forces every integer row's control ("slider" or "stepper"), over the
+  // schema's `x-control`; empty leaves it to each field
+  property string numberMode: ""
 
   // Emitted with the key path ([key]) of the edited field
   signal edited(var path, var value)

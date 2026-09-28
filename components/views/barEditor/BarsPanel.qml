@@ -212,6 +212,7 @@ Item {
           SchemaPropertiesForm {
             Layout.fillWidth: true
             propertiesSchema: group.modelData.schema
+            numberMode: "stepper"
             // The whole bar, so x-showIf sees keys from other groups
             values: root.bar ?? ({})
             onEdited: (path, value) => BarManager.updateBarField(path[0], value)

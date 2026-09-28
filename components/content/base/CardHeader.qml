@@ -19,10 +19,11 @@ Rectangle {
   signal reset
 
   Layout.fillWidth: true
-  Layout.preferredHeight: Widget.height + Widget.padding
+  Layout.preferredHeight: Math.max(Widget.height + Widget.padding, headerRow.implicitHeight)
   color: "transparent"
 
   RowLayout {
+    id: headerRow
     anchors.fill: parent
     spacing: Widget.spacing
 
@@ -38,82 +39,76 @@ Rectangle {
       Layout.fillWidth: true
     }
 
-    // Save button
-    Rectangle {
-      Layout.preferredWidth: 80
-      Layout.preferredHeight: Widget.height - 4
-      color: saveArea.containsMouse ? Qt.lighter(Theme.accent, 1.1) : Theme.accent
-      radius: Appearance.borderRadius
+    HeaderButton {
       visible: root.showActions && root.dirty
-      opacity: root.canSave ? 1 : 0.4
+      enabled: root.canSave
+      icon: "check"
+      label: I18n.tr("Save")
+      fillColor: hovered ? Qt.lighter(Theme.accent, 1.1) : Theme.accent
+      contentColor: Theme.background
+      onClicked: root.save()
+    }
 
-      RowLayout {
-        anchors.centerIn: parent
-        spacing: 6
+    HeaderButton {
+      visible: root.showActions
+      icon: "undo"
+      label: I18n.tr("Reset")
+      fillColor: Theme.backgroundHighlight
+      strokeColor: hovered ? Theme.accent : Theme.border
+      contentColor: Theme.foreground
+      onClicked: root.reset()
+    }
+  }
+  // Sized to its label (translations differ in width, and fonts in height),
+  // at least `minWidth` so Save and Reset line up in English
+  component HeaderButton: Rectangle {
+    id: button
 
-        StyledIcon {
-          text: "check"
-          font.pixelSize: Appearance.fontSize
-          color: Theme.background
-        }
+    property string icon
+    property string label
+    property color fillColor
+    property color strokeColor: "transparent"
+    property color contentColor
+    readonly property bool hovered: area.containsMouse
+    readonly property int minWidth: 80
 
-        Text {
-          text: I18n.tr("Save")
-          color: Theme.background
-          font.family: Appearance.fontFamily
-          font.pixelSize: Appearance.fontSize - 1
-          font.bold: true
-        }
+    signal clicked
+
+    Layout.preferredWidth: Math.max(button.minWidth, buttonRow.implicitWidth + Widget.padding * 2)
+    Layout.preferredHeight: Math.max(Widget.height - 4, buttonRow.implicitHeight + 8)
+    color: button.fillColor
+    radius: Appearance.borderRadius
+    border.color: button.strokeColor
+    border.width: 1
+    opacity: button.enabled ? 1 : 0.4
+
+    RowLayout {
+      id: buttonRow
+      anchors.centerIn: parent
+      spacing: 6
+
+      StyledIcon {
+        text: button.icon
+        textSize: Appearance.fontSize
+        textColor: button.contentColor
+        Layout.alignment: Qt.AlignVCenter
       }
 
-      MouseArea {
-        id: saveArea
-        anchors.fill: parent
-        hoverEnabled: true
-        cursorShape: Qt.PointingHandCursor
-        enabled: root.canSave
-        onClicked: root.save()
+      StyledText {
+        text: button.label
+        textSize: Appearance.fontSize - 1
+        textColor: button.contentColor
+        font.bold: true
+        Layout.alignment: Qt.AlignVCenter
       }
     }
 
-    // Reset button
-    Rectangle {
-      visible: root.showActions
-      Layout.preferredWidth: 80
-      Layout.preferredHeight: Widget.height - 4
-      color: Theme.backgroundHighlight
-      radius: Appearance.borderRadius
-      border.color: resetArea.containsMouse ? Theme.accent : Theme.border
-      border.width: 1
-
-      RowLayout {
-        anchors.fill: parent
-        anchors.margins: 4
-        spacing: 6
-
-        StyledIcon {
-          text: "undo"
-          font.pixelSize: Appearance.fontSize
-          color: Theme.foreground
-          Layout.alignment: Qt.AlignCenter
-        }
-
-        Text {
-          text: I18n.tr("Reset")
-          color: Theme.foreground
-          font.family: Appearance.fontFamily
-          font.pixelSize: Appearance.fontSize - 1
-          Layout.alignment: Qt.AlignCenter
-        }
-      }
-
-      MouseArea {
-        id: resetArea
-        anchors.fill: parent
-        hoverEnabled: true
-        cursorShape: Qt.PointingHandCursor
-        onClicked: root.reset()
-      }
+    MouseArea {
+      id: area
+      anchors.fill: parent
+      hoverEnabled: true
+      cursorShape: Qt.PointingHandCursor
+      onClicked: button.clicked()
     }
   }
 }

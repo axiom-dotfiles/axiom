@@ -154,6 +154,7 @@ Item {
               id: optionsForm
               Layout.fillWidth: true
               propertiesSchema: editorRoot.propertiesSchema
+              numberMode: "stepper"
               values: editorRoot.widget.properties ?? ({})
               onEdited: (path, value) => BarManager.updateWidgetProperty(editorRoot.zone, editorRoot.index, path[0], value)
             }
