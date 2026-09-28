@@ -169,7 +169,10 @@
         "runCommands": { "type": "boolean", "title": "Run commands (>)", "default": true, "description": "Type > and a command to run it. Shift+Enter runs it in the terminal." },
         "webSearch": { "type": "boolean", "title": "Web search (?)", "default": true, "description": "Offer a web search for what you typed, last in the list (or first after ?)." },
         "searchEngine": { "type": "string", "title": "Search engine URL", "default": "https://duckduckgo.com/?q={}", "description": "{} is replaced by the search terms.", "x-showIf": { "webSearch": true } },
-        "chat": { "type": "boolean", "title": "Ask chat (@)", "default": true, "description": "Type @ and a question to ask it in the overlay's Chat module, with the default preset." }
+        "chat": { "type": "boolean", "title": "Ask chat (@)", "default": true, "description": "Type @ and a question to ask it in the overlay's Chat module, with the default preset." },
+        "clipboard": { "type": "boolean", "title": "Clipboard history (:)", "default": true, "description": "Type : (or /clipboard) to search what you've copied; Enter copies it again, Shift+Enter removes it. axiom keeps the history in memory only, never on disk, and skips anything a password manager marks as sensitive. Turn this off if you copy passwords from apps that don't; turning it off clears the history." },
+        "clipboardSource": { "type": "string", "title": "Clipboard history source", "default": "axiom", "enum": ["axiom", "cliphist"], "x-enumLabels": { "axiom": "axiom (in memory)", "cliphist": "cliphist" }, "description": "axiom records text clips itself. cliphist shows your cliphist history instead (images included), which you record yourself with wl-paste --watch cliphist store.", "x-showIf": { "clipboard": true } },
+        "clipboardMaxEntries": { "type": "integer", "title": "Clipboard history size", "default": 100, "minimum": 10, "maximum": 1000, "description": "How many clips axiom keeps.", "x-showIf": { "clipboard": true, "clipboardSource": "axiom" } }
       }
     },
 

@@ -7,8 +7,9 @@ import qs.services
 import qs.components.reusable
 
 // Theme integrations (other apps in axiom's colors), marked by whether the
-// app is installed, then the lock screen, self-updates and whether axiom
-// runs hypridle (Idle.enabled: off by default, recommended on)
+// app is installed, then the lock screen, self-updates, the launcher's
+// clipboard history and whether axiom runs hypridle (Idle.enabled: off by
+// default, recommended on)
 OnboardingPage {
   id: root
 
@@ -105,6 +106,23 @@ OnboardingPage {
   SettingRows {
     Layout.fillWidth: true
     paths: ["Lockscreen.mode", "SelfUpdate.mode"]
+  }
+
+  StyledText {
+    Layout.topMargin: Widget.spacing
+    text: I18n.tr("Clipboard history")
+    font.bold: true
+  }
+
+  StyledText {
+    Layout.fillWidth: true
+    text: I18n.tr("Type : in the launcher to search what you've copied. axiom keeps it in memory only and skips what password managers mark as sensitive; turn it off if you copy passwords from apps that don't.")
+    wrapMode: Text.WordWrap
+  }
+
+  SettingRows {
+    Layout.fillWidth: true
+    paths: ["Launcher.clipboard", "Launcher.clipboardSource"]
   }
 
   StyledText {

@@ -26,6 +26,7 @@ Singleton {
   // I18n.tr("Pending package updates") I18n.tr("Chat API keys in the keyring")
   // I18n.tr("Moving notes to the trash") I18n.tr("Media keys for players axiom doesn't see")
   // I18n.tr("Generating themes from a wallpaper") I18n.tr("Idle locking and screen blanking")
+  // I18n.tr("Clipboard history shared with other apps")
   readonly property var tools: [
     {
       "command": "qalc",
@@ -81,6 +82,11 @@ Singleton {
       "command": "hypridle",
       "package": "hypridle",
       "purpose": "Idle locking and screen blanking"
+    },
+    {
+      "command": "cliphist",
+      "package": "cliphist",
+      "purpose": "Clipboard history shared with other apps"
     }
   ]
 
