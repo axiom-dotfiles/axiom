@@ -77,7 +77,7 @@ Item {
     anchors.margins: -root.bleed
     // A popout's surface draws its own fill
     color: root.embedded && !root.bare ? Theme.background : "transparent"
-    border.color: root.embedded && !root.bare ? Theme.foreground : "transparent"
+    border.color: root.embedded && !root.bare ? Theme.border : "transparent"
     border.width: root.embedded && !root.bare ? Appearance.borderWidth : 0
     radius: root.boxRadius
     clip: true

@@ -172,7 +172,7 @@ Rectangle {
   implicitHeight: board.height + root.pad * 2
   radius: Appearance.borderRadius
   color: Theme.background
-  border.color: Theme.border
+  border.color: Theme.foreground
   border.width: Appearance.borderWidth
 
   // Clicks on the panel's margin don't reach the backdrop (which closes)

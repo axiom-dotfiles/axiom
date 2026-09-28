@@ -26,8 +26,6 @@ Card {
   signal save
   signal reset
 
-  border.color: Theme.border
-
   ColumnLayout {
     anchors.fill: parent
     anchors.margins: Widget.padding

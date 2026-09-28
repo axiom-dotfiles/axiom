@@ -32,7 +32,7 @@ Rectangle {
 
   anchors.fill: parent
   color: bare ? "transparent" : Theme.background
-  border.color: Theme.foreground
+  border.color: Theme.border
   border.width: bare ? 0 : Appearance.borderWidth
   radius: Appearance.borderRadius
   clip: true
