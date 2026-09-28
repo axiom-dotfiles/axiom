@@ -233,7 +233,8 @@
           "title": "Start awww",
           "x-group": "Setup",
           "default": true,
-          "description": "Start awww-daemon for the wallpaper picker."
+          "description": "Start awww-daemon for the wallpaper picker.",
+          "x-showIf": { "/Appearance.wallpaperBackend": "awww" }
         },
         "theme": {
           "type": "boolean",
@@ -564,6 +565,14 @@
           "description": "Monitor name → wallpaper file URL (set on the overlay's Themes page). A monitor with no entry shows `wallpaper`.",
           "additionalProperties": { "type": "string" },
           "x-settings": false
+        },
+        "wallpaperBackend": {
+          "type": "string",
+          "title": "Wallpaper backend",
+          "enum": ["quickshell", "awww"],
+          "x-enumLabels": { "quickshell": "Axiom (built in)", "awww": "awww" },
+          "default": "quickshell",
+          "description": "What draws the wallpaper. Axiom needs nothing installed and crossfades; awww (AUR) adds wipe and wave transitions."
         },
         "wallpaperFolder": {
           "type": "string",

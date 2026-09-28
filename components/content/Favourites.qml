@@ -86,7 +86,7 @@ Card {
           cursorShape: Qt.PointingHandCursor
           onClicked: {
             LauncherManager.launchApp(app.modelData);
-            ShellManager.toggleOverlay();
+            ShellManager.closeOverlay();
           }
         }
 

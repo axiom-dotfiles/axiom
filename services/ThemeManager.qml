@@ -73,7 +73,7 @@ QtObject {
       return;
     const target = monitor || (Hyprland.focusedMonitor?.name ?? General.primaryMonitor);
     const primary = target === General.primaryMonitor;
-    Quickshell.execDetached([Paths.scriptsPath + "setWallpaper.sh", wallpaperUrl.replace("file://", ""), target, primary ? "1" : "0"]);
+    _showWallpaper(wallpaperUrl, target, primary);
     ConfigManager.setWallpaper(wallpaperUrl, target, primary);
   }
 
@@ -85,9 +85,19 @@ QtObject {
       const url = Appearance.wallpaperFor(screen.name);
       if (!url)
         continue;
-      Quickshell.execDetached([Paths.scriptsPath + "setWallpaper.sh", url.replace("file://", ""), screen.name, screen.name === General.primaryMonitor ? "1" : "0"]);
+      _showWallpaper(url, screen.name, screen.name === General.primaryMonitor);
     }
     syncGeneratedTheme();
+  }
+
+  // awww needs telling; the built-in backend (shell/Wallpaper) follows the
+  // config. Either way the primary's is linked to ~/.current_wallpaper.
+  function _showWallpaper(url, monitor, primary) {
+    const path = url.replace("file://", "");
+    if (Appearance.wallpaperBackend === "awww")
+      Quickshell.execDetached([Paths.scriptsPath + "setWallpaper.sh", path, monitor, primary ? "1" : "0"]);
+    else if (primary)
+      Quickshell.execDetached(["ln", "-sf", path, Quickshell.env("HOME") + "/.current_wallpaper"]);
   }
 
   // Generated themes are named by backend, not wallpaper, so each run

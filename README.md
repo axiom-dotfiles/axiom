@@ -152,7 +152,7 @@ The screenshots show [two setups](#%EF%B8%8F-built-in-the-shell) of the same she
 
 - Base16 themes, with dark and light pairs switched by one toggle: Catppuccin, Gruvbox, Solarized, Tokyo Night/Day and Submarine Sonar.
 - Generate a theme from your wallpaper. pywal backends pick the candidate colors, then the palette is built in OKLCH to match the contrast of the hand-made themes.
-- Wallpapers can be set per monitor, with transitions through [awww](https://github.com/LGFae/awww).
+- Wallpapers can be set per monitor. Axiom draws them itself (crossfading), or through [awww](https://github.com/LGFae/awww) for its transitions (`Appearance.wallpaperBackend`).
 - The active theme is applied to other apps too. Each app is a switch under **Settings → Theme integrations**, gets its own `axiom` theme file, and its switch's description gives the one line to add to its config. Your own config files are never edited.
 
 <details>
@@ -203,7 +203,7 @@ The whole shell runs on four things. Everything else is optional and only needed
 
 | Feature | Needs |
 | --- | --- |
-| Wallpapers | `awww` |
+| Wallpaper transitions (optional backend) | `awww` |
 | Theme generation | ImageMagick (`magick` or `convert`). The Python packages are installed into `.venv` automatically from `scripts/requirements.txt` |
 | Network widget / module, Wi-Fi menu | NetworkManager, Quickshell built with its Networking module, and `ip` (iproute2) |
 | Updates | `pacman-contrib` (`checkupdates`), plus `paru` or `yay` for AUR updates |
@@ -275,7 +275,7 @@ The same settings page holds switches for:
 - **required settings:** `misc.allow_session_lock_restore`, and a `workspaces` animation for the grid's slides
 - **theme-coloured window borders**
 - **blur behind axiom's surfaces**
-- **starting `awww-daemon`**
+- **starting `awww-daemon`** (with the awww wallpaper backend)
 
 Keybinds are edited on the **Keybinds** page. A bind can run any IPC action below, a window action (focus, move, resize, close, fullscreen, floating, special workspaces, mouse drag), or a command, and can repeat while held, work while locked or fire on release. Presets add window management on SUPER + H J K L and the media keys. A description like `Workspace: Switch left` puts the bind in its own section on that page.
 
@@ -433,7 +433,7 @@ axiom is built on:
 - [Quickshell](https://quickshell.org), the QML toolkit every surface is written in
 - [Material Symbols](https://fonts.google.com/icons), the icons
 - [pywal16](https://github.com/eylles/pywal16) and its backends ([colorz](https://github.com/metakirby5/colorz), [colorthief](https://github.com/fengsp/color-thief-py), [haishoku](https://github.com/LanceGin/haishoku)), which pick the candidate colors for generated themes
-- [awww](https://github.com/LGFae/awww), for wallpapers and their transitions
+- [awww](https://github.com/LGFae/awww), an optional wallpaper backend with transitions
 
 Four of the five theme pairs are ports of [Catppuccin](https://catppuccin.com), [Gruvbox](https://github.com/morhetz/gruvbox), [Solarized](https://ethanschoonover.com/solarized/) and [Tokyo Night](https://github.com/tokyo-night/tokyo-night-vscode-theme). Submarine Sonar is axiom's own.
 

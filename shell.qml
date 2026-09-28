@@ -33,6 +33,10 @@ ShellRoot {
     id: workspaceOverlay
   }
 
+  Wallpaper {
+    id: wallpaper
+  }
+
   RoundedCorners {
     id: roundedCorners
   }
