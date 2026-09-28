@@ -30,7 +30,6 @@ REQUIRED=(git hyprland quickshell jq python ttf-material-symbols-variable)
 # "feature|packages", offered one at a time
 OPTIONAL=(
   "Wallpapers|awww"
-  "Theme generation from wallpapers|imagemagick"
   "Wi-Fi menu and network widget|networkmanager"
   "Package update checks|pacman-contrib"
   "Copying screenshots to the clipboard|wl-clipboard"

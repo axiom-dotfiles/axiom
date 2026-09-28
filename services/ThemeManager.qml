@@ -100,7 +100,7 @@ QtObject {
       Quickshell.execDetached(["ln", "-sf", path, Quickshell.env("HOME") + "/.current_wallpaper"]);
   }
 
-  // Generated themes are named by backend, not wallpaper, so each run
+  // Generated themes are named by style, not wallpaper, so each run
   // overwrites the last and a config only records the theme's name. When
   // the active one was made from another wallpaper than the configured one
   // (a snapshot restored over a newer generation), generate it again: the
@@ -181,6 +181,8 @@ QtObject {
     // What the initializer loaded, so the first change check is a no-op
     root._themeContent = FileManager.read(root._themeUrl(root._themeName)) ?? "";
     _reloadAllThemes();
+    if (!root._themeContent)
+      syncGeneratedTheme();
   }
 
   // --- Active theme ---
@@ -248,6 +250,12 @@ QtObject {
       return;
     _themeContent = content;
     _theme = _parseTheme(content, _themeName);
+    // A generated theme that isn't there yet (a migrated name, a cleared
+    // folder) is made, and themes the tools once it's read
+    if (!content) {
+      syncGeneratedTheme();
+      return;
+    }
     // Deferred: a restored config changes the theme and the integration
     // switches at once, and ThemeIntegrations may not have caught up yet
     Qt.callLater(root.themeIntegrations);
@@ -333,16 +341,15 @@ QtObject {
   }
 
   // --- Generation Logic ---
-  // One run generates every backend's pair; it fails only if all of them do.
+  // One run generates every style's pair (generate_theme.py STYLES).
   // venv_python.sh sets up (or updates) the venv first.
-  readonly property var _generationBackends: ["wal", "colorz", "colorthief", "haishoku"]
 
   property Process _generationProcess: Process {
     id: generationProcess
 
     function start(wallpaperUrl) {
       const wallpaperPath = wallpaperUrl.toString().replace("file://", "");
-      command = [Paths.scriptsPath + "venv_python.sh", root._pythonScriptPath, wallpaperPath, "--output_dir", Paths.themePath + "generated", "--backend", ...root._generationBackends];
+      command = [Paths.scriptsPath + "venv_python.sh", root._pythonScriptPath, wallpaperPath, "--output_dir", Paths.themePath + "generated"];
       console.log("[ThemeManager] Executing:", command.join(" "));
       running = true;
     }
@@ -360,11 +367,13 @@ QtObject {
         console.error("[ThemeManager] Theme generation failed.", errors);
         root.generationFailed(errors);
       } else {
-        // Some backends failed, or the venv was set up
+        // The venv was set up
         if (errors)
           console.warn("[ThemeManager] generate_theme.py:", errors);
         console.log("[ThemeManager] Theme generation finished successfully.");
         root._reloadAllThemes();
+        // The watch misses a file that didn't exist when it started
+        root._reloadTheme();
       }
       const next = root._pendingGeneration;
       root._pendingGeneration = "";
@@ -485,6 +494,10 @@ QtObject {
     onStatusChanged: if (status === FolderListModel.Ready && count > 0) {
       root._generatedThemes = root._readThemes(root._generatedThemeLoader, "generated/");
       root._rebuildFamilies();
+      // Pairs from before styles (one per pywal backend): a run replaces
+      // them with every style's, and removes them, so this happens once
+      if (Appearance.wallpaper && root._generatedThemes.some(theme => theme.name.startsWith("generated/pywal-")))
+        root.generateThemesFromWallpaper(Appearance.wallpaper);
     }
   }
 }

@@ -207,6 +207,19 @@ TestCase {
     compare(ConfigMigration.migrate(result.config).config.Hyprland.binds.length, binds.length);
   }
 
+  function test_v26_moves_pywal_themes_to_tonal() {
+    const migrate = theme => ConfigMigration.migrate({
+        "version": 25,
+        "Appearance": {
+          "theme": theme
+        }
+      }).config.Appearance.theme;
+    compare(migrate("generated/pywal-dark-colorthief"), "generated/wallpaper-tonal-dark");
+    compare(migrate("generated/pywal-light-wal"), "generated/wallpaper-tonal-light");
+    compare(migrate("generated/pywal-dark"), "generated/wallpaper-tonal-dark");
+    compare(migrate("gruvbox-dark"), "gruvbox-dark");
+  }
+
   function test_v23_moves_apps_out_of_launcher() {
     const loaded = load({
       "version": 22,

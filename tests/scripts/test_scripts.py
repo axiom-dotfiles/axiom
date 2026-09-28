@@ -368,18 +368,24 @@ class GenerateTheme(unittest.TestCase):
                 "        img.putpixel((x, y), cols[(x // 24) % len(cols)])\n"
                 f"img.save({str(image)!r})\n")], check=True, env=env)
             out = tmp / "themes"
+            out.mkdir()
+            (out / "pywal-dark-wal.json").write_text("{}")  # from before styles: removed
             result = subprocess.run([python, str(SCRIPTS / "generate_theme.py"), str(image), "--output_dir",
-                                     str(out), "--backend", "colorthief"], env=env, capture_output=True,
-                                    text=True, timeout=300)
+                                     str(out)], env=env, capture_output=True, text=True, timeout=300)
             self.assertEqual(result.returncode, 0, result.stderr)
+            styles = ["alternate", "faithful", "muted", "tonal", "vibrant"]
             files = sorted(out.glob("*.json"))
-            self.assertEqual(len(files), 2, [f.name for f in files])
-            themes = [json.loads(f.read_text()) for f in files]
-            names = {t["name"] for t in themes} | {f.stem for f in files}
-            self.assertEqual(sorted(t["variant"] for t in themes), ["dark", "light"])
-            for f, theme in zip(files, themes):
-                with self.subTest(theme=f.name):
+            self.assertEqual([f.stem for f in files],
+                             [f"wallpaper-{s}-{v}" for s in styles for v in ("dark", "light")])
+            themes = {f.stem: json.loads(f.read_text()) for f in files}
+            names = {t["name"] for t in themes.values()} | set(themes)
+            for stem, theme in themes.items():
+                with self.subTest(theme=stem):
+                    self.assertEqual(theme["variant"], stem.rsplit("-", 1)[1])
                     self.assertEqual(theme_problems(theme, names), [])
+            # Every style looks different from every other
+            palettes = [tuple(sorted(themes[f"wallpaper-{s}-dark"]["colors"].items())) for s in styles]
+            self.assertEqual(len(set(palettes)), len(styles))
         finally:
             shutil.rmtree(tmp)
 

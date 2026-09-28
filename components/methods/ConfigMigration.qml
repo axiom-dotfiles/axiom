@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 25
+  readonly property int currentVersion: 26
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -77,6 +77,8 @@ QtObject {
       result = _v23ToV24(result, changes);
     if (version < 25)
       result = _v24ToV25(result, changes);
+    if (version < 26)
+      result = _v25ToV26(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -681,6 +683,19 @@ QtObject {
       menu.padding = -1;
       changes.push(`EdgeMenus[${menu.id}].padding: 12 -> -1 (follows Popouts.padding)`);
     }
+    return config;
+  }
+
+  // v26 generates themes in styles instead of one pair per pywal backend:
+  // a pywal pair becomes the tonal pair (ThemeManager regenerates it, since
+  // the file isn't there yet)
+  function _v25ToV26(config, changes) {
+    const theme = config.Appearance?.theme;
+    const match = /^generated\/pywal-(dark|light)(-\w+)?$/.exec(theme ?? "");
+    if (!match)
+      return config;
+    config.Appearance.theme = `generated/wallpaper-tonal-${match[1]}`;
+    changes.push(`Appearance.theme: ${theme} -> ${config.Appearance.theme}`);
     return config;
   }
 }

@@ -151,7 +151,7 @@ The screenshots show [two setups](#%EF%B8%8F-built-in-the-shell) of the same she
 | **B** | <img src="assets/screenshots/themes-dark-b.webp" alt="Themes page, dark variant, setup B"> | <img src="assets/screenshots/themes-light-b.webp" alt="Themes page, light variant, setup B"> |
 
 - Base16 themes, with dark and light pairs switched by one toggle: Catppuccin, Gruvbox, Solarized, Tokyo Night/Day and Submarine Sonar.
-- Generate a theme from your wallpaper. pywal backends pick the candidate colors, then the palette is built in OKLCH to match the contrast of the hand-made themes.
+- Generate themes from your wallpaper, in five styles (tonal, vibrant, faithful, muted, alternate). The palette is built in OKLCH from the image's main colors, to match the contrast of the hand-made themes.
 - Wallpapers can be set per monitor. Axiom draws them itself (crossfading), or through [awww](https://github.com/LGFae/awww) for its transitions (`Appearance.wallpaperBackend`).
 - The active theme is applied to other apps too. Each app is a switch under **Settings → Theme integrations**, gets its own `axiom` theme file, and its switch's description gives the one line to add to its config. Your own config files are never edited.
 
@@ -204,7 +204,7 @@ The whole shell runs on four things. Everything else is optional and only needed
 | Feature | Needs |
 | --- | --- |
 | Wallpaper transitions (optional backend) | `awww` |
-| Theme generation | ImageMagick (`magick` or `convert`). The Python packages are installed into `.venv` automatically from `scripts/requirements.txt` |
+| Theme generation | Nothing extra: numpy and Pillow are installed into `.venv` automatically from `scripts/requirements.txt` |
 | Network widget / module, Wi-Fi menu | NetworkManager, Quickshell built with its Networking module, and `ip` (iproute2) |
 | Updates | `pacman-contrib` (`checkupdates`), plus `paru` or `yay` for AUR updates |
 | Tailscale | `tailscale` |
@@ -432,7 +432,6 @@ axiom is built on:
 - [Hyprland](https://hypr.land), the compositor it's made for
 - [Quickshell](https://quickshell.org), the QML toolkit every surface is written in
 - [Material Symbols](https://fonts.google.com/icons), the icons
-- [pywal16](https://github.com/eylles/pywal16) and its backends ([colorz](https://github.com/metakirby5/colorz), [colorthief](https://github.com/fengsp/color-thief-py), [haishoku](https://github.com/LanceGin/haishoku)), which pick the candidate colors for generated themes
 - [awww](https://github.com/LGFae/awww), an optional wallpaper backend with transitions
 
 Four of the five theme pairs are ports of [Catppuccin](https://catppuccin.com), [Gruvbox](https://github.com/morhetz/gruvbox), [Solarized](https://ethanschoonover.com/solarized/) and [Tokyo Night](https://github.com/tokyo-night/tokyo-night-vscode-theme). Submarine Sonar is axiom's own.

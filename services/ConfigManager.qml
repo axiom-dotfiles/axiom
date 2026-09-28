@@ -44,7 +44,7 @@ QtObject {
      * @brief Requests a change to the current theme.
      * This is the official way to change the theme. It updates the internal
      * config object and triggers a save and reload cycle.
-     * @param themeName The full name of the theme (e.g., "catppuccin-mocha" or "generated/pywal-1").
+     * @param themeName The full name of the theme (e.g., "catppuccin-mocha" or "generated/wallpaper-tonal-dark").
      */
   function setTheme(themeName) {
     if (_config.Appearance.theme === themeName) {
