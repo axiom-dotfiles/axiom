@@ -195,7 +195,8 @@ TestCase {
     // The user's own SUPER + Return stays; the rest are added once
     compare(binds.filter(bind => bind.action === "terminal").length, 0);
     compare(binds[0].argument, "foot");
-    compare(binds.filter(bind => bind.action === "screenshot").length, 3);
+    // (v22 adds SUPER + CTRL + S)
+    compare(binds.filter(bind => bind.action === "screenshot").length, 4);
     compare(binds.filter(bind => bind.action === "exitHyprland").length, 1);
     compare(ConfigMigration.migrate(result.config).config.Hyprland.binds.length, binds.length);
   }

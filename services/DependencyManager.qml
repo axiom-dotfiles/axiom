@@ -21,7 +21,7 @@ Singleton {
   // The programs features use, with the (Arch) package that has them.
   // I18n.tr("Calculator in the launcher") I18n.tr("Brightness of a laptop screen")
   // I18n.tr("Brightness of external monitors") I18n.tr("Chat screenshots")
-  // I18n.tr("Picking a region (chat screenshots, recording)")
+  // I18n.tr("Picking an area to record")
   // I18n.tr("Copying to the clipboard") I18n.tr("Reading JSON (theme integrations)")
   // I18n.tr("Pending package updates") I18n.tr("Chat API keys in the keyring")
   // I18n.tr("Moving notes to the trash") I18n.tr("Media keys for players axiom doesn't see")
@@ -43,14 +43,9 @@ Singleton {
       "purpose": "Brightness of external monitors"
     },
     {
-      "command": "grim",
-      "package": "grim",
-      "purpose": "Chat screenshots"
-    },
-    {
       "command": "slurp",
       "package": "slurp",
-      "purpose": "Picking a region (chat screenshots, recording)"
+      "purpose": "Picking an area to record"
     },
     {
       "command": "wl-copy",

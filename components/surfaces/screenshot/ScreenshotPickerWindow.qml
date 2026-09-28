@@ -9,17 +9,21 @@ import qs.config
 import qs.services
 
 // One screen's screenshot picker: the screen frozen (one ScreencopyView
-// frame), dimmed except for what a click or release would capture. Drag a
-// region, click a window (the whole screen where there's none), Enter for
-// the screen, Esc or right-click to cancel; Shift on release, or E, opens
-// it in the annotator. An immediate capture (`window`, `screen`) shows the
-// same frame with nothing over it and grabs as soon as it arrives. The
-// capture is cropped from the frame at the screen's own resolution.
+// frame), dimmed except for what a click or release would capture, with
+// the window under the cursor highlighted. `region`: drag a region, or
+// click for the window under the cursor (the whole screen where there's
+// none), Enter for the screen. `window`: click a window. Esc or
+// right-click cancels; Shift on release, or E, opens it in the annotator.
+// An immediate `screen` capture shows the same frame with nothing over it
+// and grabs as soon as it arrives. The capture is cropped from the frame
+// at the screen's own resolution.
 PanelWindow {
   id: root
 
   readonly property var request: ScreenshotManager.request
-  readonly property bool interactive: request?.kind === "region"
+  readonly property bool interactive: request?.kind === "region" || request?.kind === "window"
+  // Only whole windows: no dragging, and a click off a window does nothing
+  readonly property bool windowsOnly: request?.kind === "window"
   readonly property bool focusedScreen: screen?.name === (Hyprland.focusedMonitor?.name ?? "")
   // Buffer pixels per logical pixel
   readonly property real pixelRatio: frame.sourceSize.width > 0 && root.width > 0 ? frame.sourceSize.width / root.width : (screen?.devicePixelRatio ?? 1)
@@ -34,7 +38,7 @@ PanelWindow {
 
   readonly property rect dragRect: Qt.rect(Math.min(dragStart.x, dragEnd.x), Math.min(dragStart.y, dragEnd.y), Math.abs(dragEnd.x - dragStart.x), Math.abs(dragEnd.y - dragStart.y))
   // What a release would capture
-  readonly property rect selection: dragging ? dragRect : hoveredWindow ? Qt.rect(hoveredWindow.x, hoveredWindow.y, hoveredWindow.width, hoveredWindow.height) : fullRect
+  readonly property rect selection: dragging ? dragRect : hoveredWindow ? Qt.rect(hoveredWindow.x, hoveredWindow.y, hoveredWindow.width, hoveredWindow.height) : windowsOnly ? Qt.rect(0, 0, 0, 0) : fullRect
 
   color: "transparent"
   exclusionMode: ExclusionMode.Ignore
@@ -50,7 +54,8 @@ PanelWindow {
   WlrLayershell.keyboardFocus: root.interactive && root.focusedScreen ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
   // This screen's windows, topmost first (fullscreen, then floating, then
-  // most recently focused), as local boxes clipped to the screen
+  // most recently focused), as local boxes clipped to the screen (by the
+  // screen's size: the window has none yet when this runs)
   function _windows() {
     const monitor = Hyprland.monitorFor(root.screen);
     const shown = [monitor?.activeWorkspace?.id, monitor?.lastIpcObject?.specialWorkspace?.id].filter(id => id !== undefined && id !== 0);
@@ -63,8 +68,8 @@ PanelWindow {
     return {
       "x": left,
       "y": top,
-      "width": Math.min(root.width, x + width) - left,
-      "height": Math.min(root.height, y + height) - top
+      "width": Math.min(root.screen.width, x + width) - left,
+      "height": Math.min(root.screen.height, y + height) - top
     };
   }
 
@@ -98,12 +103,21 @@ PanelWindow {
   function _onFrame() {
     if (!frame.hasContent || root.interactive || root.request?.screen !== root.screen?.name)
       return;
-    const w = root.request.window;
     // After the frame's first render, so the crop has something to sample
-    Qt.callLater(() => root.capture(w ? root._clip(w.x - root.screen.x, w.y - root.screen.y, w.width, w.height) : root.fullRect));
+    Qt.callLater(() => root.capture(root.fullRect));
   }
 
-  Component.onCompleted: root.windows = root.interactive ? root._windows() : []
+  Component.onCompleted: {
+    if (!root.interactive)
+      return;
+    root.windows = root._windows();
+    // Highlight what's under the cursor before it moves (the pointer only
+    // reports a position here once it does)
+    HyprlandManager.withCursorPos(pos => {
+      if (pos && !root.dragging && root.hoveredWindow === null)
+        root.hoveredWindow = root._windowAt(pos.x - root.screen.x, pos.y - root.screen.y);
+    });
+  }
 
   // Under the frame (never seen), rendered only for the grab
   Item {
@@ -144,11 +158,11 @@ PanelWindow {
     Keys.onPressed: event => {
       if (event.key === Qt.Key_Escape)
         ScreenshotManager.cancel();
-      else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter)
+      else if ((event.key === Qt.Key_Return || event.key === Qt.Key_Enter) && !root.windowsOnly)
         root.capture(root.fullRect);
-      else if (event.key === Qt.Key_C)
+      else if (event.key === Qt.Key_C && !ScreenshotManager.forCaller)
         ScreenshotManager.setCopyOnly(!ScreenshotManager.copyOnly);
-      else if (event.key === Qt.Key_E && ScreenshotManager.annotator !== "")
+      else if (event.key === Qt.Key_E && ScreenshotManager.annotator !== "" && !ScreenshotManager.forCaller)
         ScreenshotManager.annotate = !ScreenshotManager.annotate;
       else
         return;
@@ -174,9 +188,9 @@ PanelWindow {
       y: root.selection.y
       width: root.selection.width
       height: root.selection.height
-      color: "transparent"
+      color: root.dragging ? "transparent" : Qt.alpha(Theme.accent, 0.12)
       border.color: Theme.accent
-      border.width: Appearance.borderWidth
+      border.width: Math.max(2, Appearance.borderWidth)
       visible: root.dragging || root.hoveredWindow !== null
     }
 
@@ -206,7 +220,7 @@ PanelWindow {
       cursorShape: Qt.CrossCursor
 
       onPositionChanged: mouse => {
-        if (pressed && (mouse.buttons & Qt.LeftButton)) {
+        if (pressed && (mouse.buttons & Qt.LeftButton) && !root.windowsOnly) {
           root.dragEnd = Qt.point(mouse.x, mouse.y);
           if (!root.dragging && Math.hypot(mouse.x - root.dragStart.x, mouse.y - root.dragStart.y) >= 6)
             root.dragging = true;
@@ -225,11 +239,15 @@ PanelWindow {
       onReleased: mouse => {
         if (mouse.button !== Qt.LeftButton)
           return;
-        if (mouse.modifiers & Qt.ShiftModifier && ScreenshotManager.annotator !== "")
+        if (mouse.modifiers & Qt.ShiftModifier && ScreenshotManager.annotator !== "" && !ScreenshotManager.forCaller)
           ScreenshotManager.annotate = true;
-        const area = root.selection;
+        // Copied: a rect read from a property re-reads it on use, and the
+        // selection falls back to the window or screen once not dragging
+        const sel = root.selection;
+        const area = Qt.rect(sel.x, sel.y, sel.width, sel.height);
         root.dragging = false;
-        root.capture(area);
+        if (area.width > 0 && area.height > 0)
+          root.capture(area);
       }
     }
 
@@ -259,6 +277,7 @@ PanelWindow {
 
         StyledTextButton {
           anchors.verticalCenter: parent.verticalCenter
+          visible: !ScreenshotManager.forCaller
           iconText: ScreenshotManager.copyOnly ? "content_copy" : "save"
           text: ScreenshotManager.copyOnly ? I18n.tr("Copy only") : I18n.tr("Save and copy")
           onClicked: ScreenshotManager.setCopyOnly(!ScreenshotManager.copyOnly)
@@ -266,7 +285,7 @@ PanelWindow {
 
         StyledTextButton {
           anchors.verticalCenter: parent.verticalCenter
-          visible: ScreenshotManager.annotator !== ""
+          visible: ScreenshotManager.annotator !== "" && !ScreenshotManager.forCaller
           iconText: "edit"
           text: I18n.tr("Annotate")
           backgroundColor: ScreenshotManager.annotate ? Theme.accent : Theme.backgroundHighlight
@@ -276,19 +295,34 @@ PanelWindow {
 
         KeyHint {
           anchors.verticalCenter: parent.verticalCenter
+          visible: !root.windowsOnly
+          key: I18n.tr("Drag")
+          label: I18n.tr("region")
+        }
+
+        KeyHint {
+          anchors.verticalCenter: parent.verticalCenter
+          key: I18n.tr("Click")
+          label: root.windowsOnly ? I18n.tr("window") : I18n.tr("window (screen off a window)")
+        }
+
+        KeyHint {
+          anchors.verticalCenter: parent.verticalCenter
+          visible: !ScreenshotManager.forCaller && !root.windowsOnly
           key: "↵"
           label: I18n.tr("screen")
         }
 
         KeyHint {
           anchors.verticalCenter: parent.verticalCenter
+          visible: !ScreenshotManager.forCaller
           key: "C"
           label: I18n.tr("copy only")
         }
 
         KeyHint {
           anchors.verticalCenter: parent.verticalCenter
-          visible: ScreenshotManager.annotator !== ""
+          visible: ScreenshotManager.annotator !== "" && !ScreenshotManager.forCaller
           key: "E"
           label: I18n.tr("annotate")
         }

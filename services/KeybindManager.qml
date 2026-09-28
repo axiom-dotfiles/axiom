@@ -67,7 +67,13 @@ QtObject {
       "moveWindowDir": "direction",
       "resizeWindow": "resize",
       "toggleSpecial": "special",
-      "moveToSpecial": "special"
+      "moveToSpecial": "special",
+      "screenshot": "screenshot"
+    })
+
+  // The argument an action starts with when picked (else empty)
+  readonly property var _argumentDefaults: ({
+      "screenshot": "region"
     })
 
   // What an action's free-text argument is, for its placeholder
@@ -88,6 +94,8 @@ QtObject {
       return Array.from({
         "length": WorkspacesConfig.size
       }, (_, i) => String(i + 1));
+    case "screenshot":
+      return ["region", "window", "screen"];
     case "edgeMenu":
       return EdgeMenusConfig.menus.map(menu => menu.id).filter(id => id);
     case "view":
@@ -157,7 +165,7 @@ QtObject {
     if (field === "action") {
       const options = argumentOptions(value);
       if (!needsArgument(value) || (options && !options.includes(bind.argument)))
-        bind.argument = "";
+        bind.argument = _argumentDefaults[value] ?? "";
       const flags = HyprlandConfigManager.actionFlags[value] ?? [];
       for (const flag of HyprlandConfigManager.flagNames)
         bind[flag] = flags.includes(flag);

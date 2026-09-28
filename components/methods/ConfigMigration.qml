@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 21
+  readonly property int currentVersion: 22
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -69,6 +69,8 @@ QtObject {
       result = _v19ToV20(result, changes);
     if (version < 21)
       result = _v20ToV21(result, changes);
+    if (version < 22)
+      result = _v21ToV22(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -576,11 +578,17 @@ QtObject {
   // v20 added app, screenshot and exit actions: a saved bind list gets
   // their default binds, each only on a key it doesn't use yet
   function _v19ToV20(config, changes) {
+    return root._addBinds(config, changes, root._v20Binds);
+  }
+
+  // A saved bind list gets these default binds, each only on a key it
+  // doesn't use yet
+  function _addBinds(config, changes, added) {
     const binds = config.Hyprland?.binds;
     if (!Array.isArray(binds))
       return config;
     const used = new Set(binds.map(bind => HyprBinds.keyId(bind?.key)));
-    for (const bind of root._v20Binds) {
+    for (const bind of added) {
       const id = HyprBinds.keyId(bind.key);
       if (used.has(id))
         continue;
@@ -608,5 +616,16 @@ QtObject {
       changes.push(`Bars[${barIndex}]: extent ${extent}, inset ${inset} -> widgetSize ${bar.widgetSize}, padding ${bar.padding}`);
     });
     return config;
+  }
+
+  // v22 added a second region screenshot bind, on a key a laptop has
+  function _v21ToV22(config, changes) {
+    return root._addBinds(config, changes, [
+      {
+        "key": "SUPER + CTRL + S",
+        "action": "screenshot",
+        "argument": "region"
+      }
+    ]);
   }
 }

@@ -10,9 +10,9 @@ import qs.config
 // Screenshots (the `screenshot` keybind action, IPC `screenshot take <kind>`,
 // launcher `/screenshot`, the Screenshot card), taken natively: while
 // `picking`, shell/Screenshot shows a frozen frame (ScreencopyView) on each
-// screen, where a region is dragged or a window clicked, and crops it at
-// the screen's own resolution. `window` and `screen` capture the active
-// window or the focused monitor at once. The picture is saved in
+// screen, where a region is dragged or a window clicked (`region`), or a
+// window clicked (`window`), and crops it at the screen's own resolution.
+// `screen` captures the focused monitor at once. The picture is saved in
 // <Pictures>/Screenshots (or the card's folder), or only to a scratch file
 // with `copyOnly`, copied to the clipboard (wl-copy: Quickshell's clipboard
 // is text only) and either notified (click opens it) or opened in an
@@ -25,8 +25,9 @@ QtObject {
 
   // The picker is open (or an immediate capture is running)
   property bool picking: false
-  // { kind, screen: the screen an immediate capture takes, window: the
-  // active window's { x, y, width, height } for `window` }
+  // Picking, or waiting for the overlay to close first
+  readonly property bool busy: root.picking || root._delay.running
+  // { kind, screen: the screen an immediate `screen` capture takes }
   property var request: null
   // Keep nothing on disk, only copy (saved in config/state/screenshot.json)
   property bool copyOnly: false
@@ -46,8 +47,32 @@ QtObject {
   // kind: "region" | "window" | "screen"; directory: where to save it
   // (a leading ~ is home), empty for <Pictures>/Screenshots
   function take(kind, directory) {
-    if (root.picking)
+    if (root.busy)
       return;
+    root._target = null;
+    root._start(kind, directory);
+  }
+
+  // A region for another feature (the chat): saved to `path` as a PNG,
+  // with no clipboard or notification, then callback(ok). Returns false
+  // (and never calls back) when a capture is already running.
+  function pick(path, callback) {
+    if (root.busy)
+      return false;
+    root._target = {
+      "path": path,
+      "callback": callback
+    };
+    Quickshell.execDetached(["mkdir", "-p", path.replace(/\/[^/]*$/, "")]);
+    root._start("region", "");
+    return true;
+  }
+
+  // { path, callback } while pick() runs
+  property var _target: null
+  readonly property bool forCaller: root._target !== null
+
+  function _start(kind, directory) {
     if (!["region", "window", "screen"].includes(kind)) {
       console.warn(`[ScreenshotManager] Unknown screenshot kind "${kind}" (region, window or screen)`);
       return;
@@ -67,6 +92,14 @@ QtObject {
   function cancel() {
     root.picking = false;
     root.request = null;
+    root._delay.stop();
+    root._callBack(false);
+  }
+
+  function _callBack(ok) {
+    const target = root._target;
+    root._target = null;
+    target?.callback(ok);
   }
 
   function setCopyOnly(value) {
@@ -82,6 +115,10 @@ QtObject {
     root.picking = false;
     root.request = null;
     root._watchdog.stop();
+    if (root._target) {
+      root._callBack(!!result && result.saveToFile(root._target.path));
+      return;
+    }
     const name = Qt.formatDateTime(new Date(), "yyyy-MM-dd_HH-mm-ss") + ".png";
     const path = (root.copyOnly ? root._scratchDir + "/screenshot-" : root._directory + "/") + name;
     if (!result || !result.saveToFile(path)) {
@@ -105,6 +142,10 @@ QtObject {
     root.annotate = false;
     root._watchdog.stop();
     console.warn("[ScreenshotManager]", reason);
+    if (root._target) {
+      root._callBack(false);
+      return;
+    }
     NotificationManager.sendNotification("axiom", I18n.tr("Screenshot failed"), reason);
   }
 
@@ -133,55 +174,15 @@ QtObject {
     return String(directory ?? "").replace(/^~(?=\/|$)/, Quickshell.env("HOME"));
   }
 
-  // The active window's box ({ x, y, width, height }, global logical
-  // pixels), or null
-  function _activeWindow() {
-    const address = Hyprland.activeToplevel?.address;
-    const window = HyprlandManager.windowList.find(w => address ? w.address === "0x" + address || w.address === address : w.focusHistoryID === 0);
-    if (!window?.at || !window?.size)
-      return null;
-    return {
-      "x": window.at[0],
-      "y": window.at[1],
-      "width": window.size[0],
-      "height": window.size[1]
-    };
-  }
-
-  // The screen whose area holds most of a box (the focused monitor if none)
-  function _screenFor(box) {
-    let best = Hyprland.focusedMonitor?.name ?? "";
-    let bestArea = 0;
-    for (const screen of Quickshell.screens) {
-      const w = Math.min(box.x + box.width, screen.x + screen.width) - Math.max(box.x, screen.x);
-      const h = Math.min(box.y + box.height, screen.y + screen.height) - Math.max(box.y, screen.y);
-      if (w > 0 && h > 0 && w * h > bestArea) {
-        bestArea = w * h;
-        best = screen.name;
-      }
-    }
-    return best;
-  }
-
   property Timer _delay: Timer {
     property string kind: ""
     onTriggered: {
-      let request = {
+      root.request = {
         "kind": kind,
-        "screen": Hyprland.focusedMonitor?.name ?? "",
-        "window": null
+        "screen": Hyprland.focusedMonitor?.name ?? ""
       };
-      if (kind === "window") {
-        request.window = root._activeWindow();
-        if (!request.window) {
-          console.warn("[ScreenshotManager] No active window to capture");
-          return;
-        }
-        request.screen = root._screenFor(request.window);
-      }
-      root.request = request;
       root.picking = true;
-      if (kind !== "region")
+      if (kind === "screen")
         root._watchdog.restart();
     }
   }

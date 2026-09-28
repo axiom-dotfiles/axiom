@@ -81,6 +81,7 @@ StyledContainer {
           options: root.argumentOptions ?? []
           currentValue: root.bind.argument ?? ""
           // I18n.tr("left") I18n.tr("right") I18n.tr("up") I18n.tr("down")
+          // I18n.tr("region") I18n.tr("window") I18n.tr("screen")
           onSelectionChanged: value => KeybindManager.setField(root.index, "argument", value)
         }
 

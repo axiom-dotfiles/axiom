@@ -8,7 +8,7 @@
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 21,
+      "default": 22,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
@@ -273,6 +273,7 @@
             { "key": "Print", "action": "screenshot", "argument": "region" },
             { "key": "SHIFT + Print", "action": "screenshot", "argument": "window" },
             { "key": "SUPER + Print", "action": "screenshot", "argument": "screen" },
+            { "key": "SUPER + CTRL + S", "action": "screenshot", "argument": "region" },
             { "key": "SUPER + 1", "action": "workspaceNth", "argument": "1" },
             { "key": "SUPER + SHIFT + 1", "action": "moveWindowNth", "argument": "1" },
             { "key": "SUPER + 2", "action": "workspaceNth", "argument": "2" },

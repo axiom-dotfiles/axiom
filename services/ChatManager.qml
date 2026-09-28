@@ -246,25 +246,24 @@ Singleton {
     });
   }
 
-  // Closes the overlay, lets you pick a region, then reopens on the chat
+  // Closes the overlay, lets you pick a region (ScreenshotManager's
+  // picker), then reopens on the chat
   function attachScreenshot() {
     if (root.attaching)
       return;
+    const path = _attachmentPath("png");
+    const started = ScreenshotManager.pick(path, ok => {
+      root.openPage();
+      if (!ok) {
+        root.attaching = false;
+        return;
+      }
+      _attached(true, path, "image/png", I18n.tr("Screenshot"));
+    });
+    if (!started)
+      return;
     root.attaching = true;
     root.notice = "";
-    ShellManager.closeOverlay();
-    const path = _attachmentPath("png");
-    // Wait for the overlay to slide away, so it isn't in the picture
-    _later(Appearance.animSlow + 150, () => {
-      _run(["sh", "-c", "mkdir -p \"$(dirname \"$1\")\" && region=$(slurp) && grim -g \"$region\" \"$1\"", "sh", path], ok => {
-        root.openPage();
-        if (!ok) {
-          root.attaching = false;
-          return;
-        }
-        _attached(true, path, "image/png", I18n.tr("Screenshot"));
-      });
-    });
   }
 
   // A file dropped on the chat (a file:// URL)
@@ -568,17 +567,6 @@ Singleton {
     process.running = true;
   }
 
-  function _later(ms, callback) {
-    const timer = _timerComponent.createObject(root, {
-      interval: ms
-    });
-    timer.triggered.connect(() => {
-      callback();
-      timer.destroy();
-    });
-    timer.start();
-  }
-
   Timer {
     id: _flush
     // Streamed text is laid out at most this often: a reply re-renders
@@ -625,10 +613,6 @@ Singleton {
       }
       onExited: code => process.done(code === 0, out.text)
     }
-  }
-
-  property Component _timerComponent: Component {
-    Timer {}
   }
 
   IpcHandler {

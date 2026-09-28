@@ -30,7 +30,7 @@ OPTIONAL=(
   "Wi-Fi menu and network widget|networkmanager"
   "Package update checks|pacman-contrib"
   "Copying screenshots to the clipboard|wl-clipboard"
-  "Chat screenshots and screen recording|grim slurp wf-recorder"
+  "Screen recording|slurp wf-recorder"
   "Annotating screenshots|satty"
   "Launcher calculator|libqalculate wl-clipboard"
   "Brightness keys and OSD bar (laptop panels, external monitors over DDC/CI)|brightnessctl ddcutil"
