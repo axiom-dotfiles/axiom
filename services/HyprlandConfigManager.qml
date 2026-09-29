@@ -72,6 +72,7 @@ Singleton {
       "overlay": ["overlay {call}", "Overlay", "Axiom"],
       "overlayPage": ["overlay page {0}", "Overlay: {0}", "Axiom"],
       "edgeMenu": ["edgeMenu {call} {0}", "Edge menu: {0}", "Axiom"],
+      "dock": ["dock {call} {0}", "Dock: {0}", "Axiom"],
       "workspaceOverview": ["workspaceOverlay {call}", "Workspace overview", "Workspace"],
       "powerMenu": ["powermenu {call}", "Power menu", "Axiom"],
       "lock": ["lockscreen lock", "Lock", "Axiom"],
@@ -111,6 +112,10 @@ Singleton {
         "close": "close"
       },
       "edgeMenu": {
+        "open": "open",
+        "close": "close"
+      },
+      "dock": {
         "open": "open",
         "close": "close"
       },
@@ -278,7 +283,7 @@ Singleton {
   }
 
   function _blurLua() {
-    return [`hl.layer_rule({ match = { namespace = "^axiom-(bar|edge-popout|launcher)$" }, blur = true, ignore_alpha = 0.2 })`];
+    return [`hl.layer_rule({ match = { namespace = "^axiom-(bar|edge-popout|launcher|dock)$" }, blur = true, ignore_alpha = 0.2 })`];
   }
 
   function _indent(lines, prefix) {

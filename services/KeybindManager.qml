@@ -71,6 +71,7 @@ QtObject {
       "overlay": "dashboard",
       "overlayPage": "web_stories",
       "edgeMenu": "side_navigation",
+      "dock": "dock_to_bottom",
       "workspaceOverview": "grid_view",
       "powerMenu": "power_settings_new",
       "lock": "lock",
@@ -135,6 +136,7 @@ QtObject {
       "exec": "text",
       "overlayPage": "view",
       "edgeMenu": "edgeMenu",
+      "dock": "dock",
       "workspaceStep": "direction",
       "moveWindowStep": "direction",
       "moveWindowStepSilent": "direction",
@@ -151,7 +153,8 @@ QtObject {
 
   // The argument an action starts with when picked (else empty)
   readonly property var _argumentDefaults: ({
-      "screenshot": "region"
+      "screenshot": "region",
+      "dock": "main"
     })
 
   // What an action's free-text argument is, for its placeholder
@@ -176,6 +179,8 @@ QtObject {
       return ["region", "window", "screen"];
     case "edgeMenu":
       return EdgeMenusConfig.menus.map(menu => menu.id).filter(id => id);
+    case "dock":
+      return DockConfig.docks.map(dock => dock.id);
     case "view":
       return OverlayConfig.views.filter(view => view.visible !== false).map(view => view.name || view.type).concat(["OverlayEditor"]).filter((name, i, all) => all.indexOf(name) === i);
     }

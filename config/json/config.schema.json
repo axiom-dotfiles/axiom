@@ -412,13 +412,14 @@
               "action": {
                 "type": "string",
                 "title": "Action",
-                "enum": ["launcher", "launcherSearch", "overlay", "overlayPage", "edgeMenu", "workspaceOverview", "powerMenu", "lock", "toggleDnd", "clearNotifications", "idleInhibit", "nightLight", "nextWallpaper", "workspaceStep", "moveWindowStep", "moveWindowStepSilent", "workspaceNth", "moveWindowNth", "moveWindowNthSilent", "focusDir", "moveWindowDir", "resizeWindow", "closeWindow", "fullscreen", "toggleFloat", "pin", "centerWindow", "toggleGroup", "mouseDrag", "mouseResize", "toggleSpecial", "moveToSpecial", "restartShell", "volumeUp", "volumeDown", "toggleMute", "toggleMicMute", "brightnessUp", "brightnessDown", "mediaPlayPause", "mediaNext", "mediaPrevious", "mediaStop", "terminal", "fileManager", "browser", "screenshot", "exitHyprland", "exec"],
+                "enum": ["launcher", "launcherSearch", "overlay", "overlayPage", "edgeMenu", "dock", "workspaceOverview", "powerMenu", "lock", "toggleDnd", "clearNotifications", "idleInhibit", "nightLight", "nextWallpaper", "workspaceStep", "moveWindowStep", "moveWindowStepSilent", "workspaceNth", "moveWindowNth", "moveWindowNthSilent", "focusDir", "moveWindowDir", "resizeWindow", "closeWindow", "fullscreen", "toggleFloat", "pin", "centerWindow", "toggleGroup", "mouseDrag", "mouseResize", "toggleSpecial", "moveToSpecial", "restartShell", "volumeUp", "volumeDown", "toggleMute", "toggleMicMute", "brightnessUp", "brightnessDown", "mediaPlayPause", "mediaNext", "mediaPrevious", "mediaStop", "terminal", "fileManager", "browser", "screenshot", "exitHyprland", "exec"],
                 "x-enumLabels": {
                   "launcher": "App launcher",
                   "launcherSearch": "Launcher with text",
                   "overlay": "Overlay",
                   "overlayPage": "Overlay page",
                   "edgeMenu": "Edge menu",
+                  "dock": "Dock",
                   "workspaceOverview": "Workspace overview",
                   "powerMenu": "Power menu",
                   "lock": "Lock",
@@ -470,8 +471,8 @@
                 "type": "string",
                 "title": "Argument",
                 "default": "",
-                "description": "Search text, page, direction, workspace number, special workspace name, resize step (\"50 0\"), screenshot kind (region, window or screen) or command.",
-                "x-showIf": { "action": ["launcherSearch", "overlayPage", "edgeMenu", "workspaceStep", "moveWindowStep", "moveWindowStepSilent", "workspaceNth", "moveWindowNth", "moveWindowNthSilent", "focusDir", "moveWindowDir", "resizeWindow", "toggleSpecial", "moveToSpecial", "screenshot", "exec"] }
+                "description": "Search text, page, edge menu or dock id, direction, workspace number, special workspace name, resize step (\"50 0\"), screenshot kind (region, window or screen) or command.",
+                "x-showIf": { "action": ["launcherSearch", "overlayPage", "edgeMenu", "dock", "workspaceStep", "moveWindowStep", "moveWindowStepSilent", "workspaceNth", "moveWindowNth", "moveWindowNthSilent", "focusDir", "moveWindowDir", "resizeWindow", "toggleSpecial", "moveToSpecial", "screenshot", "exec"] }
               },
               "call": {
                 "type": "string",
@@ -480,7 +481,7 @@
                 "enum": ["toggle", "open", "close"],
                 "x-enumLabels": { "toggle": "Toggle", "open": "Open", "close": "Close" },
                 "description": "For actions that open and close something: whether the bind toggles it, only opens it or only closes it.",
-                "x-showIf": { "action": ["launcher", "overlay", "edgeMenu", "workspaceOverview", "powerMenu", "idleInhibit", "nightLight"] }
+                "x-showIf": { "action": ["launcher", "overlay", "edgeMenu", "dock", "workspaceOverview", "powerMenu", "idleInhibit", "nightLight"] }
               },
               "repeating": { "type": "boolean", "title": "Repeat while held", "default": false },
               "locked": { "type": "boolean", "title": "Works while locked", "default": false },
@@ -1109,6 +1110,26 @@
       }
     },
 
+    "Dock": {
+      "type": "object",
+      "x-category": "Dock",
+      "x-card": "DockList",
+      "title": "Dock",
+      "additionalProperties": false,
+      "x-order": ["enabled", "docks"],
+      "properties": {
+        "enabled": { "type": "boolean", "title": "Enabled", "default": false, "description": "Show the docks below. Off hides every dock." },
+        "docks": {
+          "type": "array",
+          "title": "Docks",
+          "x-settings": false,
+          "description": "Each dock has its own place, apps and behaviour.",
+          "default": [{ "id": "main" }],
+          "items": { "$ref": "#/definitions/DockEntry" }
+        }
+      }
+    },
+
     "ThemeIntegrations": {
       "type": "object",
       "x-category": "Look & Feel",
@@ -1436,6 +1457,142 @@
   },
 
   "definitions": {
+    "DockEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "x-order": ["name", "enabled", "monitor", "edge", "position", "edgeDistance", "visibility", "reserveSpace", "openDelay", "closeDelay", "triggerSize", "iconSize", "spacing", "padding", "magnify", "magnifiedSize", "magnifyRange", "showRunning", "windowScope", "runningIndicator", "separator", "showLabels", "backgroundColor", "borderColor"],
+      "properties": {
+        "id": { "type": "string", "title": "ID", "default": "main", "x-settings": false },
+        "name": { "type": "string", "title": "Name", "default": "", "description": "Shown on its tab here. Empty names it by its edge." },
+        "enabled": { "type": "boolean", "title": "Enabled", "default": true },
+        "monitor": {
+          "type": "string",
+          "title": "Monitor",
+          "default": "",
+          "description": "Monitor the dock is shown on. Empty uses the primary monitor; All monitors puts a copy on each.",
+          "x-options": "screens",
+          "x-allScreens": true
+        },
+        "edge": { "type": "string", "title": "Screen edge", "default": "Bottom", "enum": ["Top", "Bottom", "Left", "Right"] },
+        "position": {
+          "type": "integer",
+          "title": "Position along edge",
+          "x-unit": "%",
+          "default": 50,
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Where along the edge its centre sits: 0 is the start (left/top), 100 the end. It never runs off the screen."
+        },
+        "edgeDistance": {
+          "type": "integer",
+          "x-control": "stepper",
+          "title": "Distance from edge",
+          "default": 8,
+          "minimum": 0,
+          "maximum": 200,
+          "x-unit": "px",
+          "description": "Gap between the dock and the screen edge (or the bar or border on it)."
+        },
+        "visibility": {
+          "type": "string",
+          "title": "Visibility",
+          "default": "always",
+          "enum": ["always", "hover", "intellihide"],
+          "x-enumLabels": { "always": "Always shown", "hover": "Show on hover", "intellihide": "Hide when a window overlaps" },
+          "description": "Always shown stays up. Show on hover slides in when the pointer rests on the screen edge. Hide when a window overlaps stays up until a window on the monitor's workspace covers it, then works like Show on hover."
+        },
+        "reserveSpace": {
+          "type": "boolean",
+          "title": "Reserve space",
+          "default": true,
+          "x-showIf": { "visibility": "always" },
+          "description": "Keep windows out of the dock's strip, as a bar does. Magnified icons still grow over windows."
+        },
+        "openDelay": {
+          "type": "integer",
+          "title": "Open delay",
+          "default": 150,
+          "minimum": 0,
+          "maximum": 2000,
+          "x-unit": "ms",
+          "x-showIf": { "visibility": ["hover", "intellihide"] },
+          "description": "How long the pointer rests on the edge before the dock slides in."
+        },
+        "closeDelay": {
+          "type": "integer",
+          "title": "Close delay",
+          "default": 400,
+          "minimum": 0,
+          "maximum": 5000,
+          "x-unit": "ms",
+          "x-showIf": { "visibility": ["hover", "intellihide"] },
+          "description": "How long after the pointer leaves the dock it slides away."
+        },
+        "triggerSize": {
+          "type": "integer",
+          "x-control": "stepper",
+          "title": "Trigger size",
+          "default": 4,
+          "minimum": 1,
+          "maximum": 50,
+          "x-unit": "px",
+          "x-showIf": { "visibility": ["hover", "intellihide"] },
+          "description": "How far in from the screen edge the hover strip reaches."
+        },
+        "iconSize": { "type": "integer", "title": "Icon size", "default": 48, "minimum": 16, "maximum": 128, "x-unit": "px" },
+        "spacing": { "type": "integer", "x-control": "stepper", "title": "Icon spacing", "default": 6, "minimum": 0, "maximum": 48, "x-unit": "px" },
+        "padding": { "type": "integer", "x-control": "stepper", "title": "Padding", "default": 8, "minimum": 0, "maximum": 48, "x-unit": "px", "description": "Space between the dock's box and its icons." },
+        "magnify": { "type": "boolean", "title": "Magnify under the pointer", "default": false, "description": "Grow the icons near the pointer, as macOS does." },
+        "magnifiedSize": {
+          "type": "integer",
+          "title": "Magnified size",
+          "default": 80,
+          "minimum": 16,
+          "maximum": 256,
+          "x-unit": "px",
+          "x-showIf": { "magnify": true },
+          "description": "Size of the icon right under the pointer."
+        },
+        "magnifyRange": {
+          "type": "integer",
+          "x-control": "stepper",
+          "title": "Magnify range",
+          "default": 3,
+          "minimum": 1,
+          "maximum": 8,
+          "x-showIf": { "magnify": true },
+          "description": "How many icons to each side of the pointer grow with it."
+        },
+        "showRunning": { "type": "boolean", "title": "Show running apps", "default": true, "description": "Also show apps with open windows that aren't pinned, after the pinned ones." },
+        "windowScope": {
+          "type": "string",
+          "title": "Windows counted",
+          "default": "all",
+          "enum": ["all", "monitor", "workspace"],
+          "x-enumLabels": { "all": "Every window", "monitor": "Windows on this monitor", "workspace": "Windows on this monitor's workspace" },
+          "description": "Which windows make an app running here: its indicator, what a click focuses, and the running apps shown."
+        },
+        "runningIndicator": {
+          "type": "string",
+          "title": "Running indicator",
+          "default": "dots",
+          "enum": ["dots", "line", "none"],
+          "x-enumLabels": { "dots": "A dot per window (up to 3)", "line": "A line", "none": "None" }
+        },
+        "separator": { "type": "boolean", "title": "Separator", "default": true, "description": "A line between the pinned apps and the other running ones.", "x-showIf": { "showRunning": true } },
+        "showLabels": { "type": "boolean", "title": "Names on hover", "default": true, "description": "Show an app's name in a tooltip when the pointer rests on it." },
+        "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base00" },
+        "borderColor": { "type": "string", "title": "Border", "x-options": "colors", "default": "base05" },
+        "pinned": {
+          "type": "array",
+          "title": "Pinned apps",
+          "x-settings": false,
+          "default": [],
+          "items": { "type": "string" },
+          "description": "Desktop entry ids, in order."
+        }
+      }
+    },
     "OSDEntry": {
       "type": "object",
       "additionalProperties": false,

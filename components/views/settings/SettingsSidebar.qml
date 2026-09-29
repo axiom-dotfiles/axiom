@@ -29,6 +29,8 @@ Item {
       return "dashboard";
     case "Overlay & OSD":
       return "layers";
+    case "Dock":
+      return "dock_to_bottom";
     case "Chat":
       return "chat";
     case "Notes":
@@ -106,6 +108,7 @@ Item {
               // Category names come from the schema's x-category:
               // I18n.tr("Desktop") I18n.tr("Hyprland") I18n.tr("Look & Feel") I18n.tr("Bar & Popouts")
               // I18n.tr("Overlay & OSD") I18n.tr("Chat") I18n.tr("Notes") I18n.tr("Updates") I18n.tr("Backups")
+              // I18n.tr("Dock")
               text: I18n.tr(entry.modelData.name)
               textColor: entry.selected ? Theme.background : Theme.foreground
               font.bold: entry.selected
