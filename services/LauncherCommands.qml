@@ -369,7 +369,7 @@ QtObject {
         // An overlay page with a Notes module, else an edge menu with one
         Qt.callLater(() => {
           const page = OverlayConfig.pageWithModule("Notes");
-          const menu = page === "" ? EdgeMenusConfig.menus.find(m => m.enabled !== false && root._hasModule(m.columns, "Notes")) : null;
+          const menu = page === "" ? EdgeMenusConfig.menuWithModule("Notes") : null;
           if (page === "" && !menu) {
             NotificationManager.sendNotification("axiom", I18n.tr("No notes module"), I18n.tr("Add a Notes module to an overlay page or an edge menu."));
             return;
@@ -377,7 +377,7 @@ QtObject {
           if (value)
             NotesManager.requestOpen(value.path, value.line, menu ? "edgeMenu:" + menu.id : "overlay");
           if (menu)
-            EdgeMenuManager.open(menu.id);
+            EdgeMenuManager.reveal(menu.id);
           else
             ShellManager.openOverlayPage(page);
         });
@@ -712,11 +712,6 @@ QtObject {
         title: NotesManager.titleOf(path),
         line: -1
       }));
-  }
-
-  // Whether overlay columns hold a module of `type`
-  function _hasModule(columns, type) {
-    return (columns ?? []).some(column => (column?.cells ?? []).some(cell => Object.values(cell?.slots ?? {}).some(slot => slot?.type === type)));
   }
 
   function _overlayPages() {

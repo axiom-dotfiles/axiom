@@ -88,8 +88,10 @@ PopoutWrapperBase {
   property bool grabEnabled: true
   // Other windows the grab lets input through to
   property var grabWindows: []
-  // The surface's window
+  // The surface's window, its layer namespace, and the box within it
   readonly property var window: surfaceWindow
+  readonly property string layerNamespace: root.slidesUnder ? "axiom-popout-under" : "axiom-edge-popout"
+  readonly property rect boxInWindow: Qt.rect(boxArea.x, boxArea.y, boxArea.width, boxArea.height)
 
   property int connectorGap: Appearance.borderRadius * 2
 
@@ -243,7 +245,7 @@ PopoutWrapperBase {
     // Sliding under something, on its layer, ordered under it (see
     // HyprlandManager's layer rules)
     WlrLayershell.layer: root.slidesUnder ? root.underLayer : WlrLayer.Overlay
-    WlrLayershell.namespace: root.slidesUnder ? "axiom-popout-under" : "axiom-edge-popout"
+    WlrLayershell.namespace: root.layerNamespace
     WlrLayershell.keyboardFocus: root.wantsKeyboardFocus || root.keyboardOnDemand ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
     exclusionMode: ExclusionMode.Normal
     exclusiveZone: 0

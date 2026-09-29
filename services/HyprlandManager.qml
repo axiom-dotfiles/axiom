@@ -95,6 +95,19 @@ Singleton {
       _eval(_luaPrelude + lines.join("\n") + _luaEpilogue);
   }
 
+  // Moves the cursor to (x, y) inside one of axiom's layer surfaces: the
+  // mapped one in `namespace` on `monitor` that is `width` × `height`
+  // (layer-shell windows don't know where they are on screen, Hyprland
+  // does). Nothing happens if none matches.
+  function warpCursorToLayer(namespace, monitor, width, height, x, y) {
+    _eval(`for _, l in ipairs(hl.get_layers({ namespace = ${JSON.stringify(namespace)} })) do
+  if l.mapped and l.monitor and l.monitor.name == ${JSON.stringify(monitor)} and math.abs(l.w - ${Math.round(width)}) <= 1 and math.abs(l.h - ${Math.round(height)}) <= 1 then
+    hl.dispatch(hl.dsp.cursor.move({ x = l.x + ${Math.round(x)}, y = l.y + ${Math.round(y)} }))
+    return
+  end
+end`);
+  }
+
   // Every step runs even if an earlier one fails (so the cursor always goes
   // back); the failures are raised together at the end, and logged.
   // aim(): focus the target if it's on its monitor's active workspace, then

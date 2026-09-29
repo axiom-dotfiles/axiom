@@ -51,10 +51,26 @@ PopoutWrapperBase {
   readonly property real bodyDepth: root.vertical ? (loader.item?.implicitWidth ?? 0) : (loader.item?.implicitHeight ?? 0)
   readonly property int depth: Math.ceil(root.bodyDepth + root.pad * 2 + root.innerStroke)
 
-  autoDismiss: (root.menu?.closeOnLeave ?? true) && !root.pinned
+  autoDismiss: (root.menu?.closeOnLeave ?? true) && !root.pinned && !root.revealing
   dismissDelay: root.menu?.closeDelay ?? PopoutConfig.dismissDelay
   onAutoDismissChanged: root.updateDismissTimer()
   keepAlive: panelHover.hovered || trigger.containsMouse
+
+  // Opened by EdgeMenuManager.reveal: held open until hovered, and the
+  // cursor moved onto the modules once the strip is mapped
+  readonly property bool revealing: EdgeMenuManager.revealing[root.menuId] === true
+  Connections {
+    target: root
+    function onContentHoveredChanged() {
+      if (root.contentHovered)
+        EdgeMenuManager.revealDone(root.menuId);
+    }
+  }
+  Timer {
+    interval: 150
+    running: root.revealing && root.isOpen && panel.visible
+    onTriggered: HyprlandManager.warpCursorToLayer("axiom-edge-menu", root.screen?.name ?? "", panel.width, panel.height, loader.x + loader.width / 2, loader.y + loader.height / 2)
+  }
 
   function show(data) {
     if (root.isOpen) {
@@ -80,6 +96,8 @@ PopoutWrapperBase {
   }
   onWantedChanged: _sync()
   onIsOpenChanged: {
+    if (!root.isOpen)
+      EdgeMenuManager.revealDone(root.menuId);
     if (!root.isOpen && root.wanted && !root.hasPendingOpen)
       EdgeMenuManager.close(root.menuId);
     else if (root.isOpen && !root.wanted)

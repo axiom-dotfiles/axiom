@@ -2,6 +2,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import qs.config
 
 // CPU / memory / temperature / GPU / disk usage, polled only while something
 // is showing it. Consumers register what they need with acquire(owner,
@@ -17,7 +18,9 @@ import Quickshell.Io
 // NetworkingManager's) and "processes" (`top`, two frames so %CPU is
 // current).
 // Request `history: true` to also keep the last `historyLength` samples of
-// each polled metric (for graphs).
+// each polled metric (for graphs). The metrics any configured graph shows
+// (SystemGraphs modules, SystemStats popouts) are kept from launch, so a
+// graph opens with a minute already drawn.
 QtObject {
   id: root
 
@@ -74,6 +77,47 @@ QtObject {
 
   // -- Private --
   property ConsumerRegistry _registry: ConsumerRegistry {}
+
+  // Every metric a configured graph shows, from config only: SystemGraphs
+  // modules on overlay pages and enabled edge menus, and the popouts of
+  // SystemStats bar widgets (the metrics their bar shows)
+  readonly property var _graphMetrics: {
+    const found = [];
+    const fromColumns = columns => (columns ?? []).forEach(column => (column?.cells ?? []).forEach(cell => Object.values(cell?.slots ?? {}).forEach(slot => {
+            if (slot?.type === "SystemGraphs")
+              found.push(...(slot.properties?.metrics ?? []));
+          })));
+    (OverlayConfig.views ?? []).forEach(view => fromColumns(view?.columns));
+    EdgeMenusConfig.enabledMenus.forEach(menu => fromColumns(menu.columns));
+    Bar.bars.forEach(bar => Object.values(bar?.widgets ?? {}).forEach(section => (section ?? []).forEach(widget => {
+          const p = widget?.properties;
+          if (widget?.type !== "SystemStats" || !p?.showPopout)
+            return;
+          if (p.showCpu)
+            found.push("cpu");
+          if (p.showMemory)
+            found.push("mem");
+          if (p.showTemp)
+            found.push("cpuTemp");
+          if (p.showGpu)
+            found.push("gpu");
+        })));
+    return ["cpu", "mem", "gpu", "cpuTemp", "net"].filter(m => found.includes(m));
+  }
+  on_GraphMetricsChanged: _keepGraphHistory()
+  Component.onCompleted: _keepGraphHistory()
+
+  // Held under the service itself; the interval matches SystemGraphs'
+  function _keepGraphHistory() {
+    if (_graphMetrics.length === 0)
+      release(root);
+    else
+      acquire(root, {
+        "metrics": _graphMetrics,
+        "history": true,
+        "interval": 1000
+      });
+  }
   readonly property var _requests: _registry.requests
 
   readonly property bool _active: _registry.active
