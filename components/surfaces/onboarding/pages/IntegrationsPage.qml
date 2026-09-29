@@ -70,7 +70,7 @@ OnboardingPage {
         id: integration
         required property string modelData
         readonly property bool present: root.installed(modelData)
-        readonly property bool isOn: ConfigManager.config.ThemeIntegrations[modelData] === true
+        readonly property bool isOn: ThemeIntegrations[modelData] === true
         Layout.fillWidth: true
         spacing: Widget.spacing
 
@@ -179,7 +179,7 @@ OnboardingPage {
 
   ColumnLayout {
     Layout.fillWidth: true
-    visible: DependencyManager.found.hypridle === true && !Idle.enabled && ConfigManager.config.Lockscreen.mode !== "none"
+    visible: DependencyManager.found.hypridle === true && !Idle.enabled && LockscreenConfig.mode !== "none"
     spacing: Widget.spacing
 
     StyledText {

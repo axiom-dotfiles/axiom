@@ -14,6 +14,8 @@ QtObject {
   // owns a flat block of count ids. Standard: ids 1..count, shared by every
   // monitor. Grid/perMonitor number monitors by a stable order (see
   // WorkspaceGeometry.orderMonitors), not raw Hyprland discovery order.
+  // "standard" | "perMonitor" | "grid"
+  readonly property string layout: _c.layout
   readonly property bool grid: _c.layout === "grid"
   // True when each monitor gets its own block of ids (grid or perMonitor)
   // instead of sharing 1..count (standard).

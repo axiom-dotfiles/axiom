@@ -81,7 +81,7 @@ StyledContainer {
   }
 
   function _storeModels(provider, models) {
-    const providers = JSON.parse(JSON.stringify(SettingsManager.localConfig?.Chat?.providers ?? ConfigManager.config.Chat.providers));
+    const providers = JSON.parse(JSON.stringify(SettingsManager.localConfig?.Chat?.providers ?? ChatConfig.savedProviders));
     const index = ChatConfig.providers.findIndex(p => p.id === provider.id);
     if (index < 0 || !providers[index])
       return;

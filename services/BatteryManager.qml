@@ -19,6 +19,17 @@ QtObject {
   property string timeRemaining: formatTime(battery?.timeToEmpty ?? 0)
   property string timeToFull: formatTime(battery?.timeToFull ?? 0)
 
+  // power-profiles-daemon, over D-Bus. Quickshell can't tell whether the
+  // daemon is there, so its CLI being installed stands in for it
+  readonly property bool hasPowerProfiles: DependencyManager.found.powerprofilesctl === true
+  readonly property bool powerSaver: hasPowerProfiles && PowerProfiles.profile === PowerProfile.PowerSaver
+
+  function setPowerSaver(on) {
+    PowerProfiles.profile = on ? PowerProfile.PowerSaver : PowerProfile.Balanced;
+  }
+
+  Component.onCompleted: DependencyManager.check(["powerprofilesctl"])
+
   function formatTime(seconds) {
     if (seconds <= 0)
       return "";

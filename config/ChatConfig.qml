@@ -15,6 +15,8 @@ QtObject {
       "name": provider.name || provider.id || "Provider " + (index + 1),
       "defaultModel": provider.defaultModel || (provider.models ?? [])[0] || ""
     }))
+  // Chat.providers as saved (no filled-in ids or names), for editing
+  readonly property var savedProviders: _c.providers
   readonly property var presets: (_c.presets ?? []).filter(preset => preset.name !== "")
   readonly property string defaultProvider: _c.defaultProvider
   readonly property string defaultPreset: _c.defaultPreset

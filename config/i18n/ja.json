@@ -335,7 +335,7 @@
     "Tailscale · {0}": "Tailscale · {0}",
     "Tall": "縦長",
     "Terminal": "ターミナル",
-    "Terminal the upgrade runs in (launched as `<terminal> -e ...`).": "アップグレードを実行するターミナル（`<terminal> -e ...` として起動）。",
+    "Terminal the upgrade runs in (launched as `<terminal> -e ...`). Empty uses Apps → Terminal.": "アップグレードを実行するターミナル（`<terminal> -e ...` として起動）。空欄ならアプリ → ターミナルを使います。",
     "Text": "テキスト",
     "Text color": "文字色",
     "Text next to the icon. Replaced by the label command's output when that is set.": "アイコンの横のテキスト。ラベルコマンドを設定するとその出力に置き換わります。",

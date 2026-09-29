@@ -106,7 +106,7 @@ OnboardingPage {
   // --- Bar ---
 
   // As saved (Bar.bars turns `location` into an edge enum)
-  readonly property var bar: ConfigManager.config.Bars?.[0] ?? null
+  readonly property var bar: Bar.savedBars?.[0] ?? null
 
   function setBar(key, value) {
     const values = {};
