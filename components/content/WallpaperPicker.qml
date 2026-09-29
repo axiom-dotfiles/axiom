@@ -1,5 +1,6 @@
 pragma ComponentBehavior: Bound
 import QtQuick
+import QtQuick.Effects
 import QtQuick.Layouts
 import Quickshell
 import qs.config
@@ -37,6 +38,60 @@ Card {
   readonly property string variant: root.chosenVariant || (Appearance.darkMode ? "dark" : "light")
   // What a thumbnail is marked current against
   readonly property string wallpaper: root.tall && root.variantMode ? (root.variant === "dark" ? Appearance.darkWallpaper : Appearance.lightWallpaper) : Appearance.wallpaperFor(root.targetMonitor)
+
+  // A wallpaper cut to the rounded corners, its border drawn over it;
+  // children go on top
+  component Thumbnail: Item {
+    id: thumbnail
+    property alias source: picture.source
+    property alias sourceSize: picture.sourceSize
+    property color fillColor: Theme.backgroundHighlight
+    property color borderColor: "transparent"
+    property real borderWidth: 2
+    default property alias content: overlay.data
+
+    Rectangle {
+      anchors.fill: parent
+      radius: Widget.radius
+      color: thumbnail.fillColor
+    }
+
+    Image {
+      id: picture
+      anchors.fill: parent
+      fillMode: Image.PreserveAspectCrop
+      asynchronous: true
+      cache: true
+      layer.enabled: true
+      layer.effect: MultiEffect {
+        maskEnabled: true
+        maskSource: mask
+        maskThresholdMin: 0.5
+        maskSpreadAtMin: 1
+      }
+    }
+
+    Rectangle {
+      id: mask
+      anchors.fill: parent
+      radius: Widget.radius
+      visible: false
+      layer.enabled: true
+    }
+
+    Rectangle {
+      anchors.fill: parent
+      radius: Widget.radius
+      color: "transparent"
+      border.color: thumbnail.borderColor
+      border.width: thumbnail.borderWidth
+    }
+
+    Item {
+      id: overlay
+      anchors.fill: parent
+    }
+  }
 
   ColumnLayout {
     anchors.fill: parent
@@ -120,23 +175,13 @@ Card {
           Layout.preferredWidth: 1
           spacing: 4
 
-          Rectangle {
+          Thumbnail {
             Layout.fillWidth: true
             Layout.preferredHeight: width * 10 / 16
-            radius: Widget.radius
-            color: Theme.backgroundHighlight
-            border.color: slot.selected ? Theme.accent : slotArea.containsMouse ? Theme.foreground : Theme.border
-            border.width: slot.selected ? 3 : 2
-            clip: true
-
-            Image {
-              anchors.fill: parent
-              anchors.margins: parent.border.width
-              source: root.variantMode ? slot.url : ""
-              sourceSize: Qt.size(320, 200)
-              fillMode: Image.PreserveAspectCrop
-              asynchronous: true
-            }
+            source: root.variantMode ? slot.url : ""
+            sourceSize: Qt.size(320, 200)
+            borderColor: slot.selected ? Theme.accent : slotArea.containsMouse ? Theme.foreground : Theme.border
+            borderWidth: slot.selected ? 3 : 2
 
             StyledText {
               anchors.centerIn: parent
@@ -188,24 +233,13 @@ Card {
     }
 
     // The picked monitor's wallpaper
-    Rectangle {
+    Thumbnail {
       visible: root.tall && !root.variantMode
       Layout.fillWidth: true
       Layout.preferredHeight: width * 10 / 16
-      radius: Widget.radius
-      color: Theme.backgroundHighlight
-      border.color: Theme.accent
-      border.width: 2
-      clip: true
-
-      Image {
-        anchors.fill: parent
-        anchors.margins: parent.border.width
-        source: root.tall ? root.wallpaper : ""
-        sourceSize: Qt.size(640, 400)
-        fillMode: Image.PreserveAspectCrop
-        asynchronous: true
-      }
+      source: root.tall ? root.wallpaper : ""
+      sourceSize: Qt.size(640, 400)
+      borderColor: Theme.accent
 
       StyledText {
         anchors.centerIn: parent
@@ -256,24 +290,14 @@ Card {
           width: view.cellWidth
           height: view.cellHeight
 
-          Rectangle {
+          Thumbnail {
             anchors.fill: parent
             anchors.margins: Widget.spacing / 2
-            radius: Widget.radius
-            color: Theme.backgroundAlt
-            border.color: thumb.current ? Theme.accent : thumbArea.containsMouse ? Theme.foreground : "transparent"
-            border.width: thumb.current ? 3 : 2
-            clip: true
-
-            Image {
-              anchors.fill: parent
-              anchors.margins: parent.border.width
-              source: thumb.fileUrl
-              sourceSize: Qt.size(320, 200)
-              fillMode: Image.PreserveAspectCrop
-              asynchronous: true
-              cache: true
-            }
+            source: thumb.fileUrl
+            sourceSize: Qt.size(320, 200)
+            fillColor: Theme.backgroundAlt
+            borderColor: thumb.current ? Theme.accent : thumbArea.containsMouse ? Theme.foreground : "transparent"
+            borderWidth: thumb.current ? 3 : 2
           }
 
           MouseArea {
