@@ -30,6 +30,7 @@ Rectangle {
   readonly property real tabPadding: Widget.padding * 1.5
   readonly property real iconSize: Appearance.fontSize * 1.4
   readonly property real labelSpacing: Widget.spacing / 2
+  readonly property real tabSpacing: Widget.spacing
   // Everything but the tabs: arrows, the gaps beside them and the insets
   readonly property real chrome: root.controlHeight * 2 + row.spacing * 2 + root.inset * 2
   // Only the current tab keeps its name when all of them don't fit
@@ -62,6 +63,7 @@ Rectangle {
   Row {
     id: measureRow
     visible: false
+    spacing: root.tabSpacing
     Repeater {
       model: root.pages
       Item {
@@ -110,7 +112,7 @@ Rectangle {
   RowLayout {
     id: row
     anchors.centerIn: parent
-    spacing: Widget.spacing / 2
+    spacing: root.tabSpacing
 
     ArrowButton {
       icon: "chevron_left"
@@ -151,6 +153,7 @@ Rectangle {
       Row {
         id: tabRow
         height: parent.height
+        spacing: root.tabSpacing
 
         Repeater {
           id: tabs
