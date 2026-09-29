@@ -38,7 +38,9 @@ PopupWindow {
   implicitWidth: toastWidth
   implicitHeight: Math.min(mainColumn.implicitHeight + Widget.padding * 2, toastMaxHeight)
 
-  visible: false
+  // Out until it slides away (hidden meanwhile by a screenshot picker)
+  property bool shown: false
+  visible: shown && !ShellManager.captureFrozen
   color: "transparent"
 
   anchor.window: anchorWindow
@@ -50,7 +52,7 @@ PopupWindow {
   anchor.rect.height: implicitHeight
 
   Component.onCompleted: {
-    visible = true;
+    shown = true;
     slideIn.start();
   }
 
@@ -106,7 +108,7 @@ PopupWindow {
     duration: Appearance.animFast
     easing.type: Easing.InQuad
     onFinished: {
-      root.visible = false;
+      root.shown = false;
       root.dismissed();
     }
   }

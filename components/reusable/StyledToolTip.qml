@@ -3,6 +3,7 @@ import QtQuick
 import Quickshell
 
 import qs.config
+import qs.services
 
 // Hover tooltip in a popup window of its own, so it isn't clipped by the
 // small layer windows (bars, popouts) buttons live in. Appears after a
@@ -18,7 +19,7 @@ PopupWindow {
 
   property bool _delayed: false
 
-  visible: root._delayed && root.text !== ""
+  visible: root._delayed && root.text !== "" && !ShellManager.captureFrozen
   color: "transparent"
   implicitWidth: box.implicitWidth
   implicitHeight: box.implicitHeight

@@ -32,7 +32,7 @@ Item {
     PopupWindow {
       id: submenuPopup
 
-      visible: root.occupied && loader.status === Loader.Ready && (root.currentItem?.contentReady ?? true)
+      visible: root.occupied && loader.status === Loader.Ready && (root.currentItem?.contentReady ?? true) && !ShellManager.captureFrozen
       color: "transparent"
 
       // TrayMenuList sizes itself to its entries, within its limits

@@ -63,7 +63,7 @@ PopoutWrapperBase {
   readonly property bool wantsKeyboardFocus: root.popupWindow.visible && (root.currentItem?.wantsKeyboardFocus ?? false)
 
   HyprlandFocusGrab {
-    windows: [root.popupWindow, root.panel]
+    windows: [root.popupWindow, root.panel].concat(ShellManager.captureWindows)
     active: root.wantsKeyboardFocus
     onCleared: root.currentItem?.focusLost?.()
   }
@@ -244,7 +244,7 @@ PopoutWrapperBase {
 
   PopupWindow {
     id: mainPopup
-    visible: !root.underBar && root.occupied && root.contentReady
+    visible: !root.underBar && root.occupied && root.contentReady && !ShellManager.captureFrozen
     color: "transparent"
 
     // Content dimensions

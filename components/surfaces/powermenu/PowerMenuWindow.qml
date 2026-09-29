@@ -130,7 +130,7 @@ PanelWindow {
 
   HyprlandFocusGrab {
     active: root.shown && group.ownsGrab
-    windows: group.windows
+    windows: group.windows.concat(ShellManager.captureWindows)
     onCleared: root.shown = false
   }
 

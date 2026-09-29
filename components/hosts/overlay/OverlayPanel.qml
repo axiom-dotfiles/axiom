@@ -159,7 +159,7 @@ PanelWindow {
     active: root.visible && group.ownsGrab
     // This screen's bars and their popouts stay usable while it's open
     // (every screen's, and the other instances, when it's on all of them)
-    windows: group.windows.concat(ShellManager.grabPartnersFor(group.everywhere ? null : root.screen))
+    windows: group.windows.concat(ShellManager.grabPartnersFor(group.everywhere ? null : root.screen), ShellManager.captureWindows)
     onCleared: {
       if (!root.isOpen) {
         grab.active = true;

@@ -106,7 +106,7 @@ Scope {
         // Off for a moment to take the grab back after a drop moved focus
         property bool rearming: false
         active: overlayWindow.shown && !grab.rearming
-        windows: [overlayWindow]
+        windows: [overlayWindow].concat(ShellManager.captureWindows)
         onCleared: {
           if (overview.recentAction()) {
             grab.rearming = true;

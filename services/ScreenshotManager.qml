@@ -29,7 +29,7 @@ QtObject {
 
   // The picker is open (or an immediate capture is running)
   property bool picking: false
-  // Picking, or waiting for the overlay to close first
+  // Picking, or waiting for the launcher to close first
   readonly property bool busy: root.picking || root._delay.running
   // { kind, screen: the screen an immediate `screen` capture takes }
   property var request: null
@@ -92,12 +92,10 @@ QtObject {
     root._directory = root._expand(directory) || root._picturesDir + "/Screenshots";
     Quickshell.execDetached(["mkdir", "-p", root._directory, root._scratchDir]);
     root.annotate = false;
-    // Let an open overlay or launcher go away first, so it isn't in the
-    // picture (the launcher closes itself after running a command)
-    const covered = ShellManager.surfaceOpen("overlay") || ShellManager.surfaceOpen("launcher");
-    ShellManager.closeOverlay();
+    // The screen is taken as it is (an open overlay included), but the
+    // launcher closes itself after running a command: let it go first
     root._delay.kind = kind;
-    root._delay.interval = covered ? Appearance.animSlow + 150 : 1;
+    root._delay.interval = ShellManager.surfaceOpen("launcher") ? Appearance.animSlow + 150 : 1;
     root._delay.restart();
   }
 

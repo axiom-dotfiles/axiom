@@ -32,7 +32,7 @@ PopupWindow {
   readonly property int _edge: root.dockWindow.edge
   readonly property int _towards: _edge === Bar.Bottom ? Edges.Top : _edge === Bar.Top ? Edges.Bottom : _edge === Bar.Left ? Edges.Right : Edges.Left
 
-  visible: root.active && !!root.anchorItem?.QsWindow.window
+  visible: root.active && !!root.anchorItem?.QsWindow.window && !ShellManager.captureFrozen
   color: "transparent"
   implicitWidth: box.implicitWidth
   implicitHeight: box.implicitHeight
@@ -57,7 +57,7 @@ PopupWindow {
   }
 
   HyprlandFocusGrab {
-    windows: [root, root.grabWindow]
+    windows: [root, root.grabWindow].concat(ShellManager.captureWindows)
     active: root.visible && root.full
     onCleared: root.close()
   }

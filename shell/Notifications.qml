@@ -191,7 +191,7 @@ Scope {
         activeToasts.splice(index, 1);
         updateToastPositions();
         Qt.callLater(() => {
-          if (!toast.visible)
+          if (!toast.shown)
             toast.destroy();
         });
       }

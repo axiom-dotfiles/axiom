@@ -5,6 +5,7 @@ import Quickshell.Wayland
 import Quickshell.Hyprland
 
 import qs.config
+import qs.services
 
 // The floating launcher: a full-screen window with the LauncherPanel in a
 // card, centred or in the upper third.
@@ -43,7 +44,7 @@ PanelWindow {
 
   HyprlandFocusGrab {
     active: root.shown && root.ownsGrab
-    windows: root.grabWindows
+    windows: root.grabWindows.concat(ShellManager.captureWindows)
     onCleared: root.close()
   }
 

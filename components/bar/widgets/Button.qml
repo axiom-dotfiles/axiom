@@ -144,7 +144,7 @@ BarIconWidget {
   }
 
   PopupWindow {
-    visible: root._tooltipShown && mouseArea.containsMouse && !!root.QsWindow.window
+    visible: root._tooltipShown && mouseArea.containsMouse && !!root.QsWindow.window && !ShellManager.captureFrozen
     color: "transparent"
     implicitWidth: tooltipBox.implicitWidth
     implicitHeight: tooltipBox.implicitHeight
