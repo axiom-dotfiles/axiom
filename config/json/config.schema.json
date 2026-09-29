@@ -1376,6 +1376,7 @@
           "enum": ["tags", "main"],
           "x-enumLabels": { "tags": "Releases", "main": "Main branch" },
           "default": "tags",
+          "x-showIf": { "mode": { "not": "off" } },
           "description": "Releases updates to each new release tag. Main branch updates to every new commit on main: newer, but less tested."
         },
         "mode": {

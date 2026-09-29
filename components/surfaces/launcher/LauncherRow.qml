@@ -33,7 +33,7 @@ Item {
     anchors.leftMargin: 6
     anchors.rightMargin: 6
     radius: Widget.radius
-    color: root.current ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.14) : area.containsMouse && root.pointerActive ? Theme.backgroundHighlight : "transparent"
+    color: root.current ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.14) : area.containsMouse && root.pointerActive ? Theme.backgroundHighlight : Qt.alpha(Theme.backgroundHighlight, 0)
     Behavior on color {
       ColorAnimation {
         duration: Appearance.animFast

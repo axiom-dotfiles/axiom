@@ -106,7 +106,7 @@ OnboardingPage {
 
   SettingRows {
     Layout.fillWidth: true
-    paths: ["Lockscreen.mode", "SelfUpdate.mode"]
+    paths: ["Lockscreen.mode", "SelfUpdate.mode", "SelfUpdate.channel"]
   }
 
   StyledText {

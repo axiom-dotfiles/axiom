@@ -27,7 +27,7 @@ Rectangle {
 
   radius: Widget.radius
   color: root.hovering ? Qt.alpha(Theme.accent, 0.1) : Theme.backgroundAlt
-  border.color: root.hovering ? Theme.accent : "transparent"
+  border.color: root.hovering ? Theme.accent : Qt.alpha(Theme.accent, 0)
   border.width: 1
 
   Behavior on color {
@@ -76,7 +76,7 @@ Rectangle {
         iconText: locked ? "lock" : "lock_open"
         iconSize: Appearance.fontSize - 1
         iconColor: locked ? Theme.background : Theme.foreground
-        backgroundColor: locked ? Theme.accent : "transparent"
+        backgroundColor: Qt.alpha(Theme.accent, locked ? 1 : 0)
         tooltipText: I18n.tr(locked ? "Center locked: it stays dead center, other sections make room" : "Lock the center section in place")
         onClicked: BarManager.updateBarField("lockCenter", !locked)
       }

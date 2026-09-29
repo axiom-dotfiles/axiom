@@ -44,7 +44,7 @@ Panel {
     Layout.preferredHeight: button.size
     radius: button.size / 2
     opacity: button.enabled ? 1 : 0.4
-    color: button.primary ? (buttonArea.containsMouse ? Qt.lighter(Theme.accent, 1.15) : Theme.accent) : buttonArea.containsMouse ? Theme.backgroundHighlight : "transparent"
+    color: button.primary ? (buttonArea.containsMouse ? Qt.lighter(Theme.accent, 1.15) : Theme.accent) : buttonArea.containsMouse ? Theme.backgroundHighlight : Qt.alpha(Theme.backgroundHighlight, 0)
     scale: buttonArea.pressed ? 0.92 : 1
     Behavior on color {
       ColorAnimation {

@@ -91,7 +91,7 @@ Panel {
         Layout.preferredHeight: Widget.height
         iconText: modelData[1]
         iconColor: selected ? Theme.accent : Theme.foregroundAlt
-        backgroundColor: selected ? Theme.backgroundHighlight : "transparent"
+        backgroundColor: Qt.alpha(Theme.backgroundHighlight, selected ? 1 : 0)
         borderHoverColor: Theme.accent
         tooltipText: modelData[2]
         onClicked: root.mode = modelData[0]
@@ -215,7 +215,7 @@ Panel {
           Layout.fillWidth: true
           implicitHeight: deviceLayout.implicitHeight + Widget.spacing * 2
           radius: Widget.radius
-          color: selected ? Theme.backgroundHighlight : deviceMouse.containsMouse ? Qt.rgba(Theme.backgroundHighlight.r, Theme.backgroundHighlight.g, Theme.backgroundHighlight.b, 0.5) : "transparent"
+          color: selected ? Theme.backgroundHighlight : deviceMouse.containsMouse ? Qt.rgba(Theme.backgroundHighlight.r, Theme.backgroundHighlight.g, Theme.backgroundHighlight.b, 0.5) : Qt.alpha(Theme.backgroundHighlight, 0)
 
           Behavior on color {
             ColorAnimation {

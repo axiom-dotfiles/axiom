@@ -85,7 +85,9 @@ Rectangle {
     Layout.preferredWidth: root.controlHeight
     Layout.preferredHeight: root.controlHeight
     radius: root.innerRadius
-    color: arrowArea.containsMouse ? Theme.backgroundHighlight : "transparent"
+    // Fade the highlight in and out rather than from "transparent", which is
+    // transparent black and flashes dark mid-animation
+    color: arrowArea.containsMouse ? Theme.backgroundHighlight : Qt.alpha(Theme.backgroundHighlight, 0)
 
     StyledIcon {
       anchors.centerIn: parent
@@ -170,7 +172,7 @@ Rectangle {
             width: root.tabPadding * 2 + content.implicitWidth
             height: parent.height
             radius: root.innerRadius
-            color: !tab.isCurrent && tabArea.containsMouse ? Theme.backgroundHighlight : "transparent"
+            color: !tab.isCurrent && tabArea.containsMouse ? Theme.backgroundHighlight : Qt.alpha(Theme.backgroundHighlight, 0)
 
             Row {
               id: content

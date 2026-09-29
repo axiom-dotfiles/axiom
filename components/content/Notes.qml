@@ -134,7 +134,7 @@ Card {
         Layout.fillWidth: true
         Layout.preferredHeight: 28
         radius: Widget.radius / 2
-        color: !root.locked && (root.browserOpen || chipHover.hovered) ? Theme.backgroundHighlight : "transparent"
+        color: !root.locked && (root.browserOpen || chipHover.hovered) ? Theme.backgroundHighlight : Qt.alpha(Theme.backgroundHighlight, 0)
 
         Behavior on color {
           ColorAnimation {

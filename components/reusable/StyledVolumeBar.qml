@@ -44,7 +44,7 @@ Item {
     id: background
     anchors.fill: parent
     radius: Widget.radius
-    color: component.isMuted ? (Theme.backgroundHighlight || Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.2)) : "transparent"
+    color: component.isMuted ? (Theme.backgroundHighlight || Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.2)) : Qt.alpha(Theme.backgroundHighlight, 0)
 
     Behavior on color {
       ColorAnimation {
