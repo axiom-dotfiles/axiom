@@ -137,7 +137,7 @@ Panel {
         Layout.preferredHeight: root.cellSize
         radius: root.cellSize / 2
 
-        color: modelData.isToday ? Theme.accent : (dayMouseArea.containsMouse && modelData.inMonth ? Theme.backgroundHighlight : "transparent")
+        color: modelData.isToday ? Theme.accent : (dayMouseArea.containsMouse && modelData.inMonth ? Theme.backgroundHighlight : Qt.alpha(Theme.backgroundHighlight, 0))
 
         Behavior on color {
           ColorAnimation {

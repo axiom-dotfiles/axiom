@@ -51,7 +51,9 @@ StyledContainer {
     case "available":
       return I18n.tr("Update available");
     }
-    return SelfUpdateManager.lastChecked > 0 ? I18n.tr("No releases yet") : I18n.tr("Not checked");
+    if (SelfUpdateManager.lastChecked === 0)
+      return I18n.tr("Not checked");
+    return SelfUpdateManager.channel === "main" ? I18n.tr("No main branch") : I18n.tr("No releases yet");
   }
 
   readonly property string installed: {
@@ -119,7 +121,7 @@ StyledContainer {
       }
 
       StyledText {
-        text: I18n.tr("Latest release")
+        text: SelfUpdateManager.channel === "main" ? I18n.tr("Latest on main") : I18n.tr("Latest release")
         opacity: 0.7
       }
       StyledText {

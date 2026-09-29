@@ -62,22 +62,23 @@ Singleton {
 
   // --- The Lua layer ---
 
-  // Actions (the schema's Hyprland.binds[].action) as IPC calls, with the
-  // default label and the section on the Keybinds page. I18n.tr isn't used:
+  // Actions (the schema's Hyprland.binds[].action) as IPC calls ({call} is
+  // the bind's call, see _calls), with the default label and the section on
+  // the Keybinds page. I18n.tr isn't used:
   // labels go to Hyprland, like the user's own bind descriptions.
   readonly property var _actions: ({
-      "launcher": ["appLauncher toggle", "App launcher", "Axiom"],
+      "launcher": ["appLauncher {call}", "App launcher", "Axiom"],
       "launcherSearch": ["appLauncher search {0}", "Launcher: {0}", "Axiom"],
-      "overlay": ["overlay toggle", "Overlay", "Axiom"],
+      "overlay": ["overlay {call}", "Overlay", "Axiom"],
       "overlayPage": ["overlay page {0}", "Overlay: {0}", "Axiom"],
-      "edgeMenu": ["edgeMenu toggle {0}", "Edge menu: {0}", "Axiom"],
-      "workspaceOverview": ["workspaceOverlay toggle", "Workspace overview", "Workspace"],
-      "powerMenu": ["powermenu toggle", "Power menu", "Axiom"],
+      "edgeMenu": ["edgeMenu {call} {0}", "Edge menu: {0}", "Axiom"],
+      "workspaceOverview": ["workspaceOverlay {call}", "Workspace overview", "Workspace"],
+      "powerMenu": ["powermenu {call}", "Power menu", "Axiom"],
       "lock": ["lockscreen lock", "Lock", "Axiom"],
       "toggleDnd": ["notifications toggleDnd", "Do not disturb", "Axiom"],
       "clearNotifications": ["notifications clear", "Clear notifications", "Axiom"],
-      "idleInhibit": ["idleInhibit toggle", "Caffeine", "Axiom"],
-      "nightLight": ["nightLight toggle", "Night light", "Axiom"],
+      "idleInhibit": ["idleInhibit {call}", "Caffeine", "Axiom"],
+      "nightLight": ["nightLight {call}", "Night light", "Axiom"],
       "nextWallpaper": ["wallpaper next", "Next wallpaper", "Axiom"],
       "workspaceStep": ["workspaces step {0} go", "Switch {0}", "Workspace"],
       "moveWindowStep": ["workspaces step {0} move", "Move window {0}", "Workspace"],
@@ -97,6 +98,49 @@ Singleton {
       "mediaStop": ["media stop", "Stop", "Media"],
       "screenshot": ["screenshot take {0}", "Screenshot: {0}", "Apps"]
     })
+
+  // The IPC function behind each call ({call} above) for actions that open
+  // and close something; a toggle is always `toggle`
+  readonly property var _calls: ({
+      "launcher": {
+        "open": "open",
+        "close": "close"
+      },
+      "overlay": {
+        "open": "open",
+        "close": "close"
+      },
+      "edgeMenu": {
+        "open": "open",
+        "close": "close"
+      },
+      "powerMenu": {
+        "open": "open",
+        "close": "close"
+      },
+      "workspaceOverview": {
+        "open": "show",
+        "close": "hide"
+      },
+      "idleInhibit": {
+        "open": "enable",
+        "close": "disable"
+      },
+      "nightLight": {
+        "open": "enable",
+        "close": "disable"
+      }
+    })
+
+  // Whether an action takes a call (toggle, open or close)
+  function hasCalls(action) {
+    return _calls[action] !== undefined;
+  }
+
+  // A bind's call, "toggle" unless its action has the one it names
+  function callOf(bind) {
+    return _calls[bind.action]?.[bind.call] !== undefined ? bind.call : "toggle";
+  }
 
   // Actions that are Hyprland dispatchers, bound directly: the dispatcher's
   // Lua (from the argument), the default label and the section
@@ -156,7 +200,9 @@ Singleton {
     const argument = String(bind.argument ?? "").trim();
     if (bind.action === "exec")
       return argument;
-    return (_actions[bind.action]?.[1] ?? _dispatchers[bind.action]?.[1] ?? "").replace("{0}", argument);
+    const label = (_actions[bind.action]?.[1] ?? _dispatchers[bind.action]?.[1] ?? "").replace("{0}", argument);
+    const call = callOf(bind);
+    return call === "toggle" ? label : `${label} (${call})`;
   }
 
   // Whether a description names its own section ("Section: Label")
@@ -196,7 +242,9 @@ Singleton {
     } else if (bind.action === "exec") {
       dispatcher = `hl.dsp.exec_cmd(${_lua(argument)})`;
     } else if (_actions[bind.action]) {
-      dispatcher = `hl.dsp.exec_cmd(${_lua(`${shellCommand} ipc call ${_actions[bind.action][0].replace("{0}", _shellWord(argument))}`)})`;
+      const call = _calls[bind.action]?.[callOf(bind)] ?? "toggle";
+      const ipc = _actions[bind.action][0].replace("{call}", call).replace("{0}", _shellWord(argument));
+      dispatcher = `hl.dsp.exec_cmd(${_lua(`${shellCommand} ipc call ${ipc}`)})`;
     }
     if (!dispatcher)
       return "";

@@ -18,8 +18,9 @@ ColumnLayout {
   // A growing text area (`x-multiline`), e.g. for a system prompt
   property bool multiline: false
   // Values offered as chips under the field (`x-suggestions`); a click
-  // puts one in the field
+  // puts one in the field, or adds it to a comma-separated list
   property var suggestions: []
+  property bool commaList: false
 
   onCurrentConfigValueChanged: {
     if (textEntry.text !== root.currentConfigValue)
@@ -83,7 +84,15 @@ ColumnLayout {
         required property string modelData
         implicitHeight: Widget.height - 8
         text: modelData
-        onClicked: textEntry.text = modelData
+        onClicked: {
+          if (!root.commaList) {
+            textEntry.text = modelData;
+            return;
+          }
+          const items = textEntry.text.split(",").map(v => v.trim()).filter(v => v !== "");
+          if (!items.includes(modelData))
+            textEntry.text = items.concat([modelData]).join(", ");
+        }
       }
     }
   }

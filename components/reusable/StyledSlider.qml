@@ -55,7 +55,7 @@ Item {
     anchors.verticalCenter: parent.verticalCenter
     width: parent.width
     height: 4
-    radius: Appearance.borderRadius
+    radius: Widget.radius
     color: Theme.backgroundHighlight
   }
 
@@ -87,7 +87,7 @@ Item {
     anchors.verticalCenter: parent.verticalCenter
     width: 24
     height: 14
-    radius: Appearance.borderRadius
+    radius: Widget.radius
     color: Theme.backgroundAlt
     scale: mouseArea.isDragging ? 1.2 : (mouseArea.containsMouse ? 1.1 : 1.0)
 

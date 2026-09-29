@@ -45,7 +45,7 @@ StyledContainer {
   property color playBackgroundColor: Theme.cyan
   property color albumBorderColor: Theme.backgroundHighlight
   property int albumBorderWidth: 1
-  property real albumRadius: Appearance.borderRadius / 2
+  property real albumRadius: Widget.radius / 2
 
   property int sliderHeight: 12
   property int sliderGrooveHeight: 8

@@ -96,9 +96,9 @@ BarIconWidget {
   Rectangle {
     anchors.fill: parent
     color: "transparent"
-    radius: Appearance.borderRadius
+    radius: root.barConfig.radius
     border.width: Appearance.borderWidth
-    border.color: mouseArea.containsMouse ? Theme.border : "transparent"
+    border.color: mouseArea.containsMouse ? Theme.border : Qt.alpha(Theme.border, 0)
 
     Behavior on border.color {
       ColorAnimation {

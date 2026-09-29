@@ -63,17 +63,19 @@ StyledContainer {
         Layout.preferredWidth: 3
       }
 
-      // The argument: a choice when the action has a fixed set, else text.
-      // Kept (empty) for actions without one, so the columns line up.
-      Item {
+      // The argument (a choice when the action has a fixed set, else text)
+      // and the call (toggle, open or close). Kept (empty) for actions with
+      // neither, so the columns line up.
+      RowLayout {
         id: argument
         readonly property bool needed: KeybindManager.needsArgument(root.bind.action)
+        readonly property var callOptions: KeybindManager.callOptions(root.bind.action)
         Layout.fillWidth: true
         Layout.preferredWidth: 2
-        implicitHeight: Widget.height
+        Layout.preferredHeight: Widget.height
+        spacing: Widget.spacing / 2
 
         SchemaComboBox {
-          anchors.fill: parent
           visible: argument.needed && root.argumentOptions !== null
           label: ""
           options: root.argumentOptions ?? []
@@ -81,11 +83,12 @@ StyledContainer {
           // I18n.tr("left") I18n.tr("right") I18n.tr("up") I18n.tr("down")
           // I18n.tr("region") I18n.tr("window") I18n.tr("screen")
           onSelectionChanged: value => KeybindManager.setField(root.bindIndex, "argument", value)
+          Layout.fillWidth: true
+          Layout.preferredHeight: Widget.height
         }
 
         StyledTextEntry {
           id: argumentText
-          anchors.fill: parent
           visible: argument.needed && root.argumentOptions === null
           placeholderText: {
             switch (KeybindManager.argumentKind(root.bind.action)) {
@@ -98,6 +101,25 @@ StyledContainer {
           }
           Component.onCompleted: input.text = root.bind.argument ?? ""
           input.onEditingFinished: KeybindManager.setField(root.bindIndex, "argument", input.text)
+          Layout.fillWidth: true
+          Layout.preferredHeight: Widget.height
+        }
+
+        SchemaComboBox {
+          visible: argument.callOptions !== null
+          label: ""
+          options: argument.callOptions ?? []
+          optionLabels: KeybindManager.callLabels(root.bind.action)
+          currentValue: root.bind.call ?? "toggle"
+          onSelectionChanged: value => KeybindManager.setField(root.bindIndex, "call", value)
+          Layout.fillWidth: true
+          Layout.preferredHeight: Widget.height
+        }
+
+        // Holds the width when there's nothing to show
+        Item {
+          visible: !argument.needed && argument.callOptions === null
+          Layout.fillWidth: true
         }
       }
 

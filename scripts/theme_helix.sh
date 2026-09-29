@@ -18,6 +18,7 @@ HELIX=$(require_any_cmd hx helix)
 OUTPUT_FILE="${2:-$HOME/.config/helix/themes/axiom.toml}"
 load_theme "$1"
 export_theme_colors
+readable_text_colors
 render_template "$SCRIPT_DIR/templates/helix_template.toml" "$OUTPUT_FILE"
 
 # SIGUSR1 only reloads from 23.10 on; before that it terminates Helix

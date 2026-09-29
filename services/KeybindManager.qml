@@ -182,6 +182,25 @@ QtObject {
     return null;
   }
 
+  // The choices for an action's call, or null when it has none
+  function callOptions(action) {
+    return HyprlandConfigManager.hasCalls(action) ? ["toggle", "open", "close"] : null;
+  }
+
+  // A call's label for an action (a caffeine or night light bind turns it on or off)
+  function callLabels(action) {
+    const onOff = action === "idleInhibit" || action === "nightLight";
+    return {
+      "toggle": I18n.tr("Toggle"),
+      "open": onOff ? I18n.tr("Turn on") : I18n.tr("Open"),
+      "close": onOff ? I18n.tr("Turn off") : I18n.tr("Close")
+    };
+  }
+
+  // In the sorted views, whether binds with no key go first (after the top
+  // Add button) rather than last (after the bottom one)
+  property bool keylessFirst: false
+
   // The shown binds' indices, filtered by editQuery and sorted by editSort,
   // joined: a string only notifies when it changes, so the rows survive
   // edits that leave the order alone
@@ -200,8 +219,9 @@ QtObject {
       };
     }).filter(row => query === "" || row.text.includes(query));
     const compare = (a, b) => a.toLowerCase().localeCompare(b.toLowerCase());
-    // Binds with no key yet go last, next to the Add button
-    const byKey = (a, b) => Number(a.key === "") - Number(b.key === "") || compare(a.key, b.key);
+    // Binds with no key yet go next to the Add button last used
+    const keyless = row => Number(row.key === "") * (root.keylessFirst ? -1 : 1);
+    const byKey = (a, b) => keyless(a) - keyless(b) || compare(a.key, b.key);
     const sorters = {
       "key": byKey,
       "action": (a, b) => compare(a.label, b.label) || byKey(a, b),
@@ -240,6 +260,7 @@ QtObject {
       "key": "",
       "action": action,
       "argument": "",
+      "call": "toggle",
       "description": ""
     };
     for (const flag of HyprlandConfigManager.flagNames)
@@ -247,10 +268,15 @@ QtObject {
     return Object.assign(full, bind ?? {});
   }
 
-  function addBind(bind) {
+  // Adds a bind at the end, or at the start with atTop (the top Add button)
+  function addBind(bind, atTop) {
     // So the new row shows
     editQuery = "";
-    draft.local.push(_completeBind(bind));
+    keylessFirst = atTop === true;
+    if (keylessFirst)
+      draft.local.unshift(_completeBind(bind));
+    else
+      draft.local.push(_completeBind(bind));
     draft.changed();
   }
 
@@ -278,6 +304,8 @@ QtObject {
       const options = argumentOptions(value);
       if (!needsArgument(value) || (options && !options.includes(bind.argument)))
         bind.argument = _argumentDefaults[value] ?? "";
+      if (!HyprlandConfigManager.hasCalls(value))
+        bind.call = "toggle";
       const flags = HyprlandConfigManager.actionFlags[value] ?? [];
       for (const flag of HyprlandConfigManager.flagNames)
         bind[flag] = flags.includes(flag);
@@ -334,6 +362,25 @@ QtObject {
   }
 
   readonly property int issueCount: issues.filter(found => found.length > 0).length
+
+  // The binds on keys the user's Hyprland config binds too
+  readonly property var userConflicts: root.binds.map((bind, index) => {
+    const id = HyprBinds.keyId(bind.key);
+    return id !== "" && root._userKeyCounts[id] > 0 ? index : -1;
+  }).filter(index => index >= 0)
+
+  // Removes every bind on a key the user's Hyprland config binds too (until
+  // Save, like any edit). Returns how many.
+  function removeUserConflicts() {
+    const indices = root.userConflicts;
+    if (indices.length === 0)
+      return 0;
+    stopRecording();
+    for (let i = indices.length - 1; i >= 0; i--)
+      draft.local.splice(indices[i], 1);
+    draft.changed();
+    return indices.length;
+  }
 
   // --- Presets ---
 

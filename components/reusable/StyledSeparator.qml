@@ -19,5 +19,5 @@ Rectangle {
   // -- Implementation --
   height: Appearance.borderWidth
   color: Theme.accent
-  radius: Appearance.borderRadius
+  radius: Widget.radius
 }

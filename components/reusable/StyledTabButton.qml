@@ -34,7 +34,7 @@ TabButton {
 
   background: Rectangle {
     color: root.checked ? Theme.backgroundHighlight : "transparent"
-    radius: Appearance.borderRadius
+    radius: Widget.radius
 
     Rectangle {
       anchors.bottom: parent.bottom

@@ -16,4 +16,5 @@ require_cmds jq envsubst lazygit
 OUTPUT_FILE="${2:-$HOME/.config/lazygit/axiom.yml}"
 load_theme "$1"
 export_theme_colors
+readable_text_colors
 render_template "$SCRIPT_DIR/templates/lazygit_template.yml" "$OUTPUT_FILE"

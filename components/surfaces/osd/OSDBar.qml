@@ -8,7 +8,7 @@ import qs.components.reusable
 // One OSD bar, by its entry's type (see OSD.bars in the schema):
 //   master:     the default output's volume
 //   other:      the first playing stream no App bar matches
-//   app:        a stream matched by name
+//   app:        the streams its apps match by name
 //   microphone: the default input's volume
 //   brightness: this screen's brightness (left out without a controller)
 Loader {
@@ -41,7 +41,8 @@ Loader {
       orientation: root.orientation
       showPercent: root.showPercent
       scrollStep: OSDConfig.scrollStep
-      targetApplication: isMaster ? "" : (root.type === "other" ? "master" : root.entry.app)
+      targetApps: root.type === "app" ? root.entry.apps : []
+      otherApps: root.type === "other"
       excludedApps: root.type === "other" ? OSDConfig.excludedApps : []
       useSystemVolume: isMaster
       iconSource: {

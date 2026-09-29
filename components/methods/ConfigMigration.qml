@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 26
+  readonly property int currentVersion: 29
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -79,6 +79,12 @@ QtObject {
       result = _v24ToV25(result, changes);
     if (version < 26)
       result = _v25ToV26(result, changes);
+    if (version < 27)
+      result = _v26ToV27(result, changes);
+    if (version < 28)
+      result = _v27ToV28(result, changes);
+    if (version < 29)
+      result = _v28ToV29(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -696,6 +702,89 @@ QtObject {
       return config;
     config.Appearance.theme = `generated/wallpaper-tonal-${match[1]}`;
     changes.push(`Appearance.theme: ${theme} -> ${config.Appearance.theme}`);
+    return config;
+  }
+
+  // v27 gave each bar its own widget padding and inner spacing, which came
+  // from the global Widget section before; bars keep the values they had
+  function _v26ToV27(config, changes) {
+    (config.Bars ?? []).forEach((bar, barIndex) => {
+      if (bar.widgetPadding === undefined && config.Widget?.padding !== undefined) {
+        bar.widgetPadding = config.Widget.padding;
+        changes.push(`Bars[${barIndex}].widgetPadding = Widget.padding (${bar.widgetPadding})`);
+      }
+      if (bar.widgetSpacing === undefined && config.Widget?.spacing !== undefined) {
+        bar.widgetSpacing = config.Widget.spacing;
+        changes.push(`Bars[${barIndex}].widgetSpacing = Widget.spacing (${bar.widgetSpacing})`);
+      }
+    });
+    return config;
+  }
+
+  // Binds v28 added to the defaults: WASD steps through workspaces (around
+  // the grid in a grid layout, previous and next otherwise)
+  readonly property var _v28Binds: [
+    {
+      "key": "SUPER + W",
+      "action": "workspaceStep",
+      "argument": "up"
+    },
+    {
+      "key": "SUPER + SHIFT + W",
+      "action": "moveWindowStep",
+      "argument": "up"
+    },
+    {
+      "key": "SUPER + A",
+      "action": "workspaceStep",
+      "argument": "left"
+    },
+    {
+      "key": "SUPER + SHIFT + A",
+      "action": "moveWindowStep",
+      "argument": "left"
+    },
+    {
+      "key": "SUPER + S",
+      "action": "workspaceStep",
+      "argument": "down"
+    },
+    {
+      "key": "SUPER + SHIFT + S",
+      "action": "moveWindowStep",
+      "argument": "down"
+    },
+    {
+      "key": "SUPER + D",
+      "action": "workspaceStep",
+      "argument": "right"
+    },
+    {
+      "key": "SUPER + SHIFT + D",
+      "action": "moveWindowStep",
+      "argument": "right"
+    }
+  ]
+
+  // v28 added WASD workspace steps: a saved bind list gets them, each only
+  // on a key it doesn't use yet
+  function _v27ToV28(config, changes) {
+    return root._addBinds(config, changes, root._v28Binds);
+  }
+
+  // v29 lets an App bar match several apps: its `app` string became an
+  // `apps` list
+  function _v28ToV29(config, changes) {
+    (config.OSD?.osds ?? []).forEach(osd => {
+      (osd?.bars ?? []).forEach((bar, index) => {
+        if (!bar || !("app" in bar))
+          return;
+        if (bar.apps === undefined)
+          bar.apps = typeof bar.app === "string" && bar.app !== "" ? [bar.app] : [];
+        delete bar.app;
+        changes.push(`OSD.osds[${osd.id}].bars[${index}].app -> apps`);
+      });
+    });
     return config;
   }
 }

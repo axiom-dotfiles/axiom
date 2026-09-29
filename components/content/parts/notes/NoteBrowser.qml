@@ -84,7 +84,7 @@ Rectangle {
 
   implicitHeight: Math.min(root.maxHeight, content.implicitHeight + Widget.spacing * 2)
   color: Theme.background
-  radius: Appearance.borderRadius
+  radius: Widget.radius
   border.color: Theme.border
   border.width: 1
 
@@ -151,7 +151,7 @@ Rectangle {
                 anchors.verticalCenter: parent.verticalCenter
                 implicitWidth: (crumb.index === 0 ? crumbLabel.implicitWidth : crumbName.implicitWidth) + Widget.spacing * 1.5
                 implicitHeight: 24
-                radius: Appearance.borderRadius / 2
+                radius: Widget.radius / 2
                 color: crumbHover.hovered && !crumb.last ? Theme.backgroundHighlight : "transparent"
 
                 // The top is an icon; a folder's name is text (a name like
@@ -271,7 +271,7 @@ Rectangle {
 
         width: resultList.width
         implicitHeight: hitLayout.implicitHeight + Widget.spacing
-        radius: Appearance.borderRadius / 2
+        radius: Widget.radius / 2
         color: hitHover.hovered ? Theme.backgroundHighlight : "transparent"
 
         HoverHandler {
@@ -354,7 +354,7 @@ Rectangle {
 
         width: list.width
         implicitHeight: Math.max(Widget.height - 4, rowLayout.implicitHeight + Widget.spacing / 2)
-        radius: Appearance.borderRadius / 2
+        radius: Widget.radius / 2
         color: row.confirming ? Qt.alpha(Theme.error, 0.14) : row.isCurrent ? Qt.alpha(Theme.accent, 0.16) : rowHover.hovered ? Theme.backgroundHighlight : "transparent"
 
         HoverHandler {

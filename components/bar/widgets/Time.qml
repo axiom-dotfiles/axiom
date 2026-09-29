@@ -28,8 +28,8 @@ Item {
 
   readonly property int priority: 5
 
-  implicitWidth: isVertical ? root.barConfig.widgetSize : (layoutLoader.item ? layoutLoader.item.implicitWidth + Widget.padding * 2 : 0)
-  implicitHeight: isVertical ? (layoutLoader.item ? layoutLoader.item.implicitHeight + Widget.padding * 2 : 0) : root.barConfig.widgetSize
+  implicitWidth: isVertical ? root.barConfig.widgetSize : (layoutLoader.item ? layoutLoader.item.implicitWidth + root.barConfig.widgetPadding * 2 : 0)
+  implicitHeight: isVertical ? (layoutLoader.item ? layoutLoader.item.implicitHeight + root.barConfig.widgetPadding * 2 : 0) : root.barConfig.widgetSize
 
   SystemClock {
     id: clock
@@ -66,11 +66,12 @@ Item {
         lines.push(_line(I18n.formatDate(date, "ss") + "\n" + I18n.tr("second")));
       return lines;
     }
-    const lines = [_line(I18n.formatDate(date, use24Hour ? "HH" : "hh.ap").replace(/\.(am|pm)$/i, ""), 1.1, true), _line(I18n.formatDate(date, "mm"), 0.9, true)];
+    // Hours and minutes alike, the rest smaller and muted
+    const lines = [_line(I18n.formatDate(date, use24Hour ? "HH" : "hh.ap").replace(/\.(am|pm)$/i, ""), 1, true), _line(I18n.formatDate(date, "mm"), 1, true)];
     if (showSeconds)
-      lines.push(_line(I18n.formatDate(date, "ss"), 0.8, false, 0.8));
+      lines.push(_line(I18n.formatDate(date, "ss"), 0.75, false, 0.75));
     if (!use24Hour)
-      lines.push(_line(I18n.formatDate(date, "ap"), 0.7, false, 0.9));
+      lines.push(_line(I18n.formatDate(date, "ap"), 0.6, false, 0.75, true));
     return lines;
   }
   readonly property var dateLines: {
@@ -79,15 +80,25 @@ Item {
       return _split(dateText);
     if (japanese)
       return [_line(I18n.formatDate(date, "M") + "\n" + I18n.tr("month")), _line(I18n.formatDate(date, "d") + "\n" + I18n.tr("day")), _line(I18n.locale.dayName(date.getDay(), Locale.NarrowFormat))];
-    return [_line(I18n.formatDate(date, "MMM"), 0.8), _line(I18n.formatDate(date, "dd"), 1.1, true), _line(I18n.formatDate(date, "ddd"), 0.7, false, 0.8)];
+    const day = _line(I18n.formatDate(date, "dd"), 0.75, true, 0.75);
+    const weekday = _line(I18n.formatDate(date, "ddd"), 0.6, false, 0.75, true);
+    switch (properties.verticalDate) {
+    case "monthDay":
+      return [_line(I18n.formatDate(date, "MMM"), 0.6, false, 0.75, true), day, weekday];
+    case "numeric":
+      return [day, _line(I18n.formatDate(date, "MM"), 0.75, true, 0.75)];
+    default:
+      return [day, weekday];
+    }
   }
 
-  function _line(text, scale = 1, bold = false, opacity = 1) {
+  function _line(text, scale = 1, bold = false, opacity = 1, caps = false) {
     return {
       "text": text,
       "scale": scale,
       "bold": bold,
-      "opacity": opacity
+      "opacity": opacity,
+      "caps": caps
     };
   }
 
@@ -99,13 +110,17 @@ Item {
   Rectangle {
     anchors.fill: parent
     color: Theme.resolveColor(root.properties.backgroundColor)
-    radius: Appearance.borderRadius
+    radius: root.barConfig.radius
   }
 
   component ClockText: Text {
     color: root.foregroundColor
     font.family: Appearance.fontFamily
-    font.pixelSize: Appearance.fontSize
+    font.pixelSize: root.barConfig.fontSize
+    // Same-width digits, so the clock doesn't shift as it ticks
+    font.features: {
+      "tnum": 1
+    }
   }
 
   component LineStack: Column {
@@ -125,8 +140,10 @@ Item {
         horizontalAlignment: Text.AlignHCenter
         lineHeight: 0.9
         text: line.text
-        font.pixelSize: Appearance.fontSize * line.scale
+        font.pixelSize: root.barConfig.fontSize * line.scale
         font.bold: line.bold
+        font.capitalization: line.caps ? Font.AllUppercase : Font.MixedCase
+        font.letterSpacing: line.caps ? 0.5 : 0
         opacity: line.opacity
       }
     }
@@ -140,7 +157,7 @@ Item {
     Component {
       id: horizontalComponent
       Row {
-        spacing: Widget.spacing * 2
+        spacing: root.barConfig.widgetSpacing * 2
 
         ClockText {
           text: root.dateText
@@ -149,7 +166,7 @@ Item {
 
         Rectangle {
           width: 1
-          height: Appearance.fontSize
+          height: root.barConfig.fontSize
           color: root.foregroundColor
           opacity: 0.5
           visible: root.showDate
@@ -164,20 +181,12 @@ Item {
 
     Component {
       id: verticalComponent
+      // A gap, not a rule, between the time and the date
       Column {
-        spacing: Widget.spacing
+        spacing: root.barConfig.widgetSpacing * 2
 
         LineStack {
           lines: root.timeLines
-          anchors.horizontalCenter: parent.horizontalCenter
-        }
-
-        Rectangle {
-          width: parent.width * 0.6
-          height: 1
-          color: root.foregroundColor
-          opacity: 0.3
-          visible: root.showDate
           anchors.horizontalCenter: parent.horizontalCenter
         }
 

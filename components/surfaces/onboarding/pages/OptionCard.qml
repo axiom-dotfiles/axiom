@@ -21,7 +21,7 @@ Rectangle {
 
   Layout.fillWidth: true
   implicitHeight: row.implicitHeight + Widget.padding * 2
-  radius: Appearance.borderRadius
+  radius: Widget.radius
   color: root.selected ? Qt.alpha(Theme.accent, 0.12) : area.containsMouse && root.available ? Theme.backgroundHighlight : Theme.backgroundAlt
   border.color: root.selected ? Theme.accent : Theme.border
   border.width: Appearance.borderWidth

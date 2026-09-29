@@ -35,6 +35,11 @@ Item {
 
     isVertical: root.isVertical
     crossSize: root.barConfig.widgetSize
+    // Sized by the bar, as BarIconWidget does
+    padding: root.barConfig.widgetPadding
+    radius: root.barConfig.radius
+    fontSize: root.barConfig.fontSize
+    spacing: root.barConfig.widgetSpacing * 1.5
 
     // The artist icon goes with the state icon, before the label
     icon: (MediaManager.isPlaying ? "music_note" : "pause") + (root.artist ? (root.isVertical ? "\n" : " ") + "artist" : "")

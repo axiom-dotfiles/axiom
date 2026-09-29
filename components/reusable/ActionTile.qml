@@ -39,7 +39,7 @@ Rectangle {
   // The well fills most of what the label leaves
   readonly property real _wellSize: Math.max(Appearance.fontSize * 1.6, Math.min(root.width - Widget.spacing * 2, root.height - Widget.spacing * 2 - (root._labelShown ? labelText.implicitHeight + Widget.spacing : 0)) * (root._labelShown ? 0.7 : 0.66))
 
-  radius: Appearance.borderRadius
+  radius: Widget.radius
   color: root.active ? root.activeColor : root.hot ? Theme.backgroundHighlight : Theme.backgroundAlt
   border.color: root.active ? root.activeColor : root.hot ? root.tone : Theme.border
   border.width: Appearance.borderWidth
@@ -80,7 +80,7 @@ Rectangle {
         anchors.centerIn: parent
         width: root._wellSize * (root.hot && !root.active ? 1.06 : 1)
         height: width
-        radius: Math.min(Appearance.borderRadius * 1.5, width / 2)
+        radius: Math.min(Widget.radius * 1.5, width / 2)
         color: root.active ? Qt.rgba(0, 0, 0, 0.12) : root.hot ? Qt.alpha(root.tone, 0.16) : Theme.background
 
         Behavior on color {

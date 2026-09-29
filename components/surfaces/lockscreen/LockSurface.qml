@@ -129,7 +129,7 @@ Item {
         Layout.fillWidth: true
         Layout.preferredHeight: 100
         color: Theme.accent
-        radius: Appearance.borderRadius
+        radius: Widget.radius
 
         MediaControl {
           anchors.fill: parent

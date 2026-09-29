@@ -33,7 +33,7 @@ BarIconWidget {
   text: `${percentage}%`
   showIcon: !hidden
   showText: properties.showPercentage && !hidden
-  padding: hidden ? 0 : Widget.padding
+  padding: hidden ? 0 : root.barConfig.widgetPadding
 
   backgroundColor: getBatteryColor()
 

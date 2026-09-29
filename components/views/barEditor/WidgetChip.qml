@@ -27,7 +27,7 @@ Rectangle {
 
   implicitWidth: row.implicitWidth + Widget.padding * 2
   implicitHeight: Widget.height + Widget.padding / 2
-  radius: Appearance.borderRadius
+  radius: Widget.radius
   color: root.selected ? Theme.accent : (area.containsMouse ? Theme.backgroundHighlight : Theme.background)
   border.color: root.selected ? Theme.accent : Theme.border
   border.width: 1

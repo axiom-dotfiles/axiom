@@ -5,10 +5,13 @@ import Quickshell.Io
 import qs.config
 
 /*
- * Startup checks for what the whole shell needs to look right. Today that's
- * the icon font: every icon is a Material Symbols name (StyledIcon), which
- * shows as a word without it. Warns in the log and notifies once per qs
- * launch. Created from shell.qml's `_services`.
+ * Startup checks for what the whole shell needs to look right: the icon font
+ * (every icon is a Material Symbols name, StyledIcon, which shows as a word
+ * without it) and the text font (`Appearance.font.family`, a free-text
+ * setting: a misspelt name silently falls back to fontconfig's default).
+ * Warns in the log and notifies once per qs launch (the text font once per
+ * name, checked again whenever it changes). Created from shell.qml's
+ * `_services`.
  *
  * Also which commands are installed (`found`, filled by `check(commands)`),
  * for the onboarder: the optional `tools` below, the apps it offers.
@@ -17,6 +20,18 @@ Singleton {
   id: root
 
   readonly property bool iconFontInstalled: Qt.fontFamilies().includes(Appearance.iconFamily)
+  readonly property bool textFontInstalled: hasFontFamily(Appearance.fontFamily)
+
+  // fontconfig's generic names, which match no single family
+  readonly property var _genericFamilies: ["monospace", "mono", "sans-serif", "sans", "serif", "system-ui", "cursive", "fantasy", "emoji"]
+
+  // Whether fontconfig knows the family (any of its names, in any case)
+  function hasFontFamily(name) {
+    const wanted = String(name ?? "").trim().toLowerCase();
+    if (wanted === "" || _genericFamilies.includes(wanted))
+      return true;
+    return Qt.fontFamilies().some(family => family.toLowerCase() === wanted);
+  }
 
   // The programs features use, with the (Arch) package that has them.
   // I18n.tr("Calculator in the launcher") I18n.tr("Brightness of a laptop screen")
@@ -145,6 +160,8 @@ Singleton {
     id: _run
     reloadableId: "axiomDependencies"
     property bool notified: false
+    // The last missing text font notified, so each name is only notified once
+    property string notifiedFont: ""
   }
 
   // Let the notification server come up first
@@ -157,7 +174,27 @@ Singleton {
     }
   }
 
+  // Settings commit the family on every keystroke: check once it settles
+  readonly property string _textFont: Appearance.fontFamily
+  on_TextFontChanged: _checkTextFont.restart()
+
+  Timer {
+    id: _checkTextFont
+    interval: 3000
+    onTriggered: {
+      if (root.textFontInstalled)
+        return;
+      const family = Appearance.fontFamily;
+      console.warn(`[DependencyManager] font family "${family}" is not installed: text falls back to fontconfig's default`);
+      if (_run.notifiedFont === family)
+        return;
+      _run.notifiedFont = family;
+      NotificationManager.sendNotification("axiom", I18n.tr("Font not found"), I18n.tr("No installed font is named \"{0}\", so text uses a fallback. Check the name in Settings → Look & Feel → Font.", family));
+    }
+  }
+
   Component.onCompleted: {
+    _checkTextFont.start();
     if (root.iconFontInstalled)
       return;
     console.warn(`[DependencyManager] ${Appearance.iconFamily} is not installed (ttf-material-symbols-variable): icons will show as words`);

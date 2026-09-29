@@ -88,8 +88,8 @@ Panel {
 
     Layout.fillWidth: true
     implicitHeight: root.rowHeight + (asking ? passwordRow.implicitHeight + Widget.spacing : 0)
-    radius: Appearance.borderRadius
-    color: connected || asking ? Theme.backgroundHighlight : rowHover.hovered ? Qt.rgba(Theme.backgroundHighlight.r, Theme.backgroundHighlight.g, Theme.backgroundHighlight.b, 0.5) : "transparent"
+    radius: Widget.radius
+    color: connected || asking ? Theme.backgroundHighlight : rowHover.hovered ? Qt.rgba(Theme.backgroundHighlight.r, Theme.backgroundHighlight.g, Theme.backgroundHighlight.b, 0.5) : Qt.alpha(Theme.backgroundHighlight, 0)
     clip: true
 
     onNetworkChanged: confirmForget = false
@@ -192,7 +192,7 @@ Panel {
         opacity: rowHover.hovered || row.confirmForget ? 1 : 0
         iconText: "delete"
         iconColor: Theme.error
-        backgroundColor: row.confirmForget ? Qt.rgba(Theme.error.r, Theme.error.g, Theme.error.b, 0.2) : "transparent"
+        backgroundColor: Qt.alpha(Theme.error, row.confirmForget ? 0.2 : 0)
         borderHoverColor: Theme.error
         tooltipText: I18n.tr("Forget")
         onClicked: {

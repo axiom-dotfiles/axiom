@@ -1,5 +1,6 @@
 pragma Singleton
 import QtQuick
+import Quickshell
 
 import qs.components.methods
 
@@ -29,6 +30,15 @@ QtObject {
     })
 
   readonly property var zones: ["left", "leftCenter", "center", "rightCenter", "right"]
+
+  // A bar's look: its Size and Style settings (BarsPanel groups them from
+  // these), not its identity, placement, behaviour or widgets
+  readonly property var sizeKeys: ["widgetSize", "padding", "spacing", "widgetPadding", "widgetSpacing"]
+  readonly property var styleOnlyKeys: ["background", "pillPadding", "pillMerge", "overrideFontSize", "fontSize", "overrideRadius", "widgetRadius"]
+  readonly property var styleKeys: sizeKeys.concat(styleOnlyKeys)
+  // The style copied with copyStyle(): { from: id, values }, or null.
+  // Never saved.
+  property var copiedStyle: null
 
   onSelectedBarIndexChanged: clearSelection()
 
@@ -89,12 +99,75 @@ QtObject {
   function addBar() {
     // Every other field comes from the Bar schema's defaults
     const bar = SchemaValidation.applyDefaults({
-      "id": "bar-" + (root.localConfig.length + 1)
+      "id": _uniqueId("bar-" + (root.localConfig.length + 1))
     }, {
       "$ref": "#/definitions/Bar"
     }, ConfigManager.configSchema);
     root.localConfig.push(bar);
     root.selectedBarIndex = root.localConfig.length - 1;
+    applyChanges();
+  }
+
+  // An id no bar in the draft has: `base`, else `base-2`, `base-3`, ...
+  function _uniqueId(base) {
+    const taken = root.localConfig.map(b => b.id);
+    let id = base;
+    for (let n = 2; taken.includes(id); n++)
+      id = `${base}-${n}`;
+    return id;
+  }
+
+  // Inserts a copy after the bar and selects it. A copy of a bar on one
+  // monitor moves to the first screen with no bar on that edge yet, so it
+  // doesn't sit on the original.
+  function duplicateBar(index) {
+    const bar = root.localConfig?.[index];
+    if (!bar)
+      return;
+    const copy = _clone(bar);
+    copy.id = _uniqueId(`${bar.id}-copy`);
+    if (bar.monitor !== "*") {
+      const first = Quickshell.screens[0]?.name ?? "";
+      const onEdge = root.localConfig.filter(b => b.location === bar.location).map(b => b.monitor || first);
+      const free = Quickshell.screens.find(s => !onEdge.includes(s.name) && !onEdge.includes("*"));
+      if (free)
+        copy.monitor = free.name;
+    }
+    root.localConfig.splice(index + 1, 0, copy);
+    root.selectedBarIndex = index + 1;
+    applyChanges();
+  }
+
+  function copyStyle(index) {
+    const bar = root.localConfig?.[index];
+    if (!bar)
+      return;
+    root.copiedStyle = {
+      "from": bar.id,
+      "values": _clone(root.styleKeys.reduce((out, key) => {
+        if (key in bar)
+          out[key] = bar[key];
+        return out;
+      }, {}))
+    };
+  }
+
+  function _pasteStyleOnto(bar) {
+    Object.assign(bar, _clone(root.copiedStyle.values));
+  }
+
+  function pasteStyle(index) {
+    const bar = root.localConfig?.[index];
+    if (!bar || !root.copiedStyle)
+      return;
+    _pasteStyleOnto(bar);
+    applyChanges();
+  }
+
+  function pasteStyleToAll() {
+    if (!root.copiedStyle)
+      return;
+    root.localConfig.forEach(bar => _pasteStyleOnto(bar));
     applyChanges();
   }
 

@@ -24,9 +24,15 @@ ToolButton {
   property color pressColor: Theme.backgroundAlt
   property color borderColor: "transparent"
   property int borderWidth: Appearance.borderWidth
-  property real borderRadius: Appearance.borderRadius
+  property real borderRadius: Widget.radius
 
   // -- Implementation --
+  // A fully transparent state fades as the hover color at alpha 0: fading
+  // from "transparent" (transparent black) flashes dark mid-animation
+  function _fadeable(c: color): color {
+    return c.a === 0 ? Qt.alpha(root.hoverColor.a > 0 ? root.hoverColor : root.backgroundColor, 0) : c;
+  }
+
   Layout.fillHeight: true
   Layout.fillWidth: true
   Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
@@ -61,7 +67,7 @@ ToolButton {
   }
 
   background: Rectangle {
-    color: root.pressed ? root.pressColor : (root.hovered ? root.hoverColor : root.backgroundColor)
+    color: root._fadeable(root.pressed ? root.pressColor : (root.hovered ? root.hoverColor : root.backgroundColor))
     border.color: root.borderColor
     border.width: root.borderWidth
     radius: root.borderRadius

@@ -5,16 +5,17 @@ import Quickshell.Io
 import qs.config
 
 /*
- * Updates axiom itself (not packages: that's UpdatesManager). Releases are
- * `v*` tags on the clone's remote, and scripts/self_update.sh does the git
- * work: `check` fetches the tags and compares, `apply` fast-forwards to the
+ * Updates axiom itself (not packages: that's UpdatesManager). It follows the
+ * clone's remote on SelfUpdate.channel: "tags" (releases, `v*` tags) or
+ * "main" (every commit on the main branch). scripts/self_update.sh does the
+ * git work: `check` fetches and compares, `apply` fast-forwards to the
  * newest. A clone with changed tracked files, local commits or another
  * branch is `blocked` and never touched.
  *
  * SelfUpdate.mode: "auto" installs a new release and notifies; "notify"
  * notifies, and the notification opens Settings → Updates; "off" never
- * checks. Checks run once per qs launch (not per hot reload) and daily.
- * Each release is notified once.
+ * checks. Checks run once per qs launch (not per hot reload), daily, and
+ * when the channel changes. Each release (or main's commit) is notified once.
  *
  *   qs -c axiom ipc call selfUpdate check
  *   qs -c axiom ipc call selfUpdate update
@@ -30,8 +31,10 @@ Singleton {
   // The installed release tag ("" before the first one), and HEAD
   readonly property string current: _result.current ?? ""
   readonly property string commit: _result.commit ?? ""
-  // The newest release ("" when the remote has none)
+  // The newest release, or main's short commit ("" when the remote has none)
   readonly property string latest: _result.latest ?? ""
+  // The channel the result is for: "tags" | "main"
+  readonly property string channel: _result.channel ?? "tags"
   // "uptodate" | "available" | "diverged" | "" (no releases, or not checked)
   readonly property string state: _result.state ?? ""
   // Past the newest release (a development clone)
@@ -39,7 +42,7 @@ Singleton {
   readonly property int behind: _result.behind ?? 0
   // Why it can't update: "dirty" | "diverged" | "branch" | "nogit" | ""
   readonly property string blocked: _result.blocked ?? ""
-  // The newest release's tag message
+  // The newest release's tag message, or main's new commit subjects
   readonly property string notes: _result.notes ?? ""
   readonly property string error: _result.error ?? ""
   // ms since the epoch, 0 before the first check
@@ -50,14 +53,14 @@ Singleton {
   function check() {
     if (root.busy)
       return;
-    _check.command = [Paths.scriptsPath + "self_update.sh", "check"];
+    _check.command = [Paths.scriptsPath + "self_update.sh", "--channel", SelfUpdate.channel, "check"];
     _check.running = true;
   }
 
   function apply() {
     if (root.busy || !root.available)
       return;
-    _apply.command = [Paths.scriptsPath + "self_update.sh", "apply", root.latest];
+    _apply.command = [Paths.scriptsPath + "self_update.sh", "--channel", root.channel, "apply", root.latest];
     _apply.running = true;
   }
 
@@ -121,6 +124,11 @@ Singleton {
       lastChecked: Date.now(),
       result: result
     });
+    // The channel changed while it ran
+    if ((result.channel ?? "tags") !== SelfUpdate.channel) {
+      Qt.callLater(root.check);
+      return;
+    }
     if (result.error) {
       console.warn(`[SelfUpdateManager] Check failed: ${result.error}`);
       return;
@@ -138,10 +146,11 @@ Singleton {
     root._save({
       notifiedTag: root.latest
     });
+    const summary = root.channel === "main" ? I18n.tr("axiom has {0} new commits on main", root.behind) : I18n.tr("axiom {0} is available", root.latest);
     if (root.blocked === "")
-      root._notify(I18n.tr("axiom {0} is available", root.latest), I18n.tr("Click to see what's new and update."));
+      root._notify(summary, I18n.tr("Click to see what's new and update."));
     else
-      root._notify(I18n.tr("axiom {0} is available", root.latest), I18n.tr("Your copy can't update: {0}", root.blockedReason(root.blocked)));
+      root._notify(summary, I18n.tr("Your copy can't update: {0}", root.blockedReason(root.blocked)));
   }
 
   function _onApplied(result, exitCode) {
@@ -154,11 +163,13 @@ Singleton {
       root._notify(I18n.tr("axiom update failed"), result.error || I18n.tr("Unknown error"));
       return;
     }
-    console.log(`[SelfUpdateManager] Updated to ${result.current}`);
+    // On main, the commit: the last tag says little
+    const version = result.channel === "main" ? result.commit : result.current;
+    console.log(`[SelfUpdateManager] Updated to ${version}`);
     root._save({
-      notifiedTag: result.current
+      notifiedTag: version
     });
-    root._notify(I18n.tr("axiom updated to {0}", result.current), result.notes || I18n.tr("Click to see what's new."));
+    root._notify(I18n.tr("axiom updated to {0}", version), result.notes || I18n.tr("Click to see what's new."));
     // git replaces files rather than editing them, which qs's file
     // watcher can miss, so reload explicitly
     _reloadTimer.restart();
@@ -234,6 +245,11 @@ Singleton {
     function onModeChanged() {
       if (SelfUpdate.mode !== "off" && !_run.checked)
         _startup.restart();
+    }
+    // The last result was for the other channel
+    function onChannelChanged() {
+      if (_run.checked)
+        root.check();
     }
   }
 

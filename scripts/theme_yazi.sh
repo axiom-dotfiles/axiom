@@ -16,4 +16,5 @@ require_cmds jq envsubst yazi
 OUTPUT_FILE="${2:-$HOME/.config/yazi/flavors/axiom.yazi/flavor.toml}"
 load_theme "$1"
 export_theme_colors
+readable_text_colors
 render_template "$SCRIPT_DIR/templates/yazi_template.toml" "$OUTPUT_FILE"

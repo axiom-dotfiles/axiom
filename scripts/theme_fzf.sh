@@ -16,6 +16,7 @@ require_cmds jq fzf
 OUTPUT_FILE="${2:-${XDG_STATE_HOME:-$HOME/.local/state}/axiom/fzf-colors}"
 load_theme "$1"
 export_theme_colors
+readable_text_colors
 
 COLORS=(
     "fg:$FOREGROUND" "bg:$BACKGROUND" "hl:$ACCENT"

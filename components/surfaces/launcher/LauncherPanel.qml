@@ -229,7 +229,7 @@ FocusScope {
       visible: LauncherManager.mode !== "apps"
       implicitWidth: modeLabel.implicitWidth + 16
       implicitHeight: modeLabel.implicitHeight + 8
-      radius: Appearance.borderRadius
+      radius: Widget.radius
       color: Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.16)
 
       StyledText {

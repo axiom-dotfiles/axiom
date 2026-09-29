@@ -8,7 +8,7 @@
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 26,
+      "default": 29,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
@@ -174,8 +174,8 @@
         },
         "reverse": { "type": "boolean", "title": "Search bar at the bottom", "default": false, "description": "Put the search field under the results, with the best match nearest to it. Suits the bottom edge." },
         "width": { "type": "integer", "title": "Width", "x-unit": "px", "default": 680, "minimum": 400, "maximum": 1200, "description": "Width of the launcher." },
-        "maxResults": { "type": "integer", "title": "Results shown", "default": 8, "minimum": 3, "maximum": 20, "description": "How many rows fit before the list scrolls." },
-        "iconSize": { "type": "integer", "title": "Icon size", "x-unit": "px", "default": 32, "minimum": 16, "maximum": 64, "description": "Size of the result icons." },
+        "maxResults": { "type": "integer", "x-control": "stepper", "title": "Results shown", "default": 8, "minimum": 3, "maximum": 20, "description": "How many rows fit before the list scrolls." },
+        "iconSize": { "type": "integer", "x-control": "stepper", "title": "Icon size", "x-unit": "px", "default": 32, "minimum": 16, "maximum": 64, "description": "Size of the result icons." },
         "showBackdrop": { "type": "boolean", "title": "Dim background", "default": true, "description": "Dim the whole screen behind the launcher, under the bars and border." },
         "backdrop": { "type": "integer", "title": "Backdrop darkness", "x-unit": "%", "default": 25, "minimum": 0, "maximum": 90, "description": "How dark the screen behind the launcher goes.", "x-showIf": { "showBackdrop": true } },
         "showDescriptions": { "type": "boolean", "title": "Descriptions", "default": true, "description": "Show a second line under each result (an app's generic name, a window's class, a command's description)." },
@@ -260,15 +260,15 @@
           "description": "Corner of the work area the toasts stack from. Bottom corners stack upwards."
         },
         "evenGaps": { "type": "boolean", "title": "Even gaps", "default": true, "description": "Use one gap for both sides of the corner. Turn off to set each side on its own." },
-        "gap": { "type": "integer", "title": "Gap", "x-unit": "px", "default": 12, "minimum": 0, "maximum": 200, "description": "Space between the toasts and the edges of the work area.", "x-showIf": { "evenGaps": true } },
-        "gapTop": { "type": "integer", "title": "Top gap", "x-unit": "px", "default": 12, "minimum": 0, "maximum": 200, "description": "Space between the toasts and the top of the work area.", "x-showIf": { "evenGaps": false, "position": ["topLeft", "topRight"] } },
-        "gapBottom": { "type": "integer", "title": "Bottom gap", "x-unit": "px", "default": 12, "minimum": 0, "maximum": 200, "description": "Space between the toasts and the bottom of the work area.", "x-showIf": { "evenGaps": false, "position": ["bottomLeft", "bottomRight"] } },
-        "gapLeft": { "type": "integer", "title": "Left gap", "x-unit": "px", "default": 12, "minimum": 0, "maximum": 200, "description": "Space between the toasts and the left of the work area.", "x-showIf": { "evenGaps": false, "position": ["topLeft", "bottomLeft"] } },
-        "gapRight": { "type": "integer", "title": "Right gap", "x-unit": "px", "default": 12, "minimum": 0, "maximum": 200, "description": "Space between the toasts and the right of the work area.", "x-showIf": { "evenGaps": false, "position": ["topRight", "bottomRight"] } },
-        "timeout": { "type": "integer", "title": "Toast duration", "x-unit": "s", "x-group": "Toasts", "default": 5, "minimum": 1, "maximum": 60, "description": "How long a toast stays up. Hovering it pauses the countdown." },
+        "gap": { "type": "integer", "x-control": "stepper", "title": "Gap", "x-unit": "px", "default": 12, "minimum": 0, "maximum": 200, "description": "Space between the toasts and the edges of the work area.", "x-showIf": { "evenGaps": true } },
+        "gapTop": { "type": "integer", "x-control": "stepper", "title": "Top gap", "x-unit": "px", "default": 12, "minimum": 0, "maximum": 200, "description": "Space between the toasts and the top of the work area.", "x-showIf": { "evenGaps": false, "position": ["topLeft", "topRight"] } },
+        "gapBottom": { "type": "integer", "x-control": "stepper", "title": "Bottom gap", "x-unit": "px", "default": 12, "minimum": 0, "maximum": 200, "description": "Space between the toasts and the bottom of the work area.", "x-showIf": { "evenGaps": false, "position": ["bottomLeft", "bottomRight"] } },
+        "gapLeft": { "type": "integer", "x-control": "stepper", "title": "Left gap", "x-unit": "px", "default": 12, "minimum": 0, "maximum": 200, "description": "Space between the toasts and the left of the work area.", "x-showIf": { "evenGaps": false, "position": ["topLeft", "bottomLeft"] } },
+        "gapRight": { "type": "integer", "x-control": "stepper", "title": "Right gap", "x-unit": "px", "default": 12, "minimum": 0, "maximum": 200, "description": "Space between the toasts and the right of the work area.", "x-showIf": { "evenGaps": false, "position": ["topRight", "bottomRight"] } },
+        "timeout": { "type": "integer", "x-control": "stepper", "title": "Toast duration", "x-unit": "s", "x-group": "Toasts", "default": 5, "minimum": 1, "maximum": 60, "description": "How long a toast stays up. Hovering it pauses the countdown." },
         "appTimeouts": { "type": "boolean", "title": "Use app timeouts", "x-group": "Toasts", "default": true, "description": "When an app asks for its own duration, or for its notification to stay until dismissed, use that instead of the duration above." },
         "criticalStays": { "type": "boolean", "title": "Critical toasts stay", "x-group": "Toasts", "default": true, "description": "Critical notifications stay up until you dismiss them." },
-        "maxToasts": { "type": "integer", "title": "Visible toasts", "x-group": "Toasts", "default": 5, "minimum": 1, "maximum": 10, "description": "How many toasts stack up at once. A new one pushes out the oldest." },
+        "maxToasts": { "type": "integer", "x-control": "stepper", "title": "Visible toasts", "x-group": "Toasts", "default": 5, "minimum": 1, "maximum": 10, "description": "How many toasts stack up at once. A new one pushes out the oldest." },
         "width": { "type": "integer", "title": "Toast width", "x-unit": "px", "x-group": "Toasts", "default": 360, "minimum": 240, "maximum": 600, "description": "Width of each toast." },
         "quietFullscreen": { "type": "boolean", "title": "Quiet over fullscreen", "x-group": "Toasts", "default": true, "description": "Show no toasts on a monitor whose workspace has a fullscreen window. Critical ones still show, and everything still goes to the history." },
         "clearOnFocus": { "type": "boolean", "title": "Clear when the app is focused", "x-group": "Notification history", "default": false, "description": "Focusing an app's window removes its notifications from the history." },
@@ -368,6 +368,14 @@
             { "key": "SUPER + SHIFT + 9", "action": "moveWindowNth", "argument": "9" },
             { "key": "SUPER + 0", "action": "workspaceNth", "argument": "10" },
             { "key": "SUPER + SHIFT + 0", "action": "moveWindowNth", "argument": "10" },
+            { "key": "SUPER + W", "action": "workspaceStep", "argument": "up" },
+            { "key": "SUPER + SHIFT + W", "action": "moveWindowStep", "argument": "up" },
+            { "key": "SUPER + A", "action": "workspaceStep", "argument": "left" },
+            { "key": "SUPER + SHIFT + A", "action": "moveWindowStep", "argument": "left" },
+            { "key": "SUPER + S", "action": "workspaceStep", "argument": "down" },
+            { "key": "SUPER + SHIFT + S", "action": "moveWindowStep", "argument": "down" },
+            { "key": "SUPER + D", "action": "workspaceStep", "argument": "right" },
+            { "key": "SUPER + SHIFT + D", "action": "moveWindowStep", "argument": "right" },
             { "key": "SUPER + H", "action": "focusDir", "argument": "left" },
             { "key": "SUPER + SHIFT + H", "action": "moveWindowDir", "argument": "left" },
             { "key": "SUPER + J", "action": "focusDir", "argument": "down" },
@@ -465,6 +473,15 @@
                 "description": "Search text, page, direction, workspace number, special workspace name, resize step (\"50 0\"), screenshot kind (region, window or screen) or command.",
                 "x-showIf": { "action": ["launcherSearch", "overlayPage", "edgeMenu", "workspaceStep", "moveWindowStep", "moveWindowStepSilent", "workspaceNth", "moveWindowNth", "moveWindowNthSilent", "focusDir", "moveWindowDir", "resizeWindow", "toggleSpecial", "moveToSpecial", "screenshot", "exec"] }
               },
+              "call": {
+                "type": "string",
+                "title": "Call",
+                "default": "toggle",
+                "enum": ["toggle", "open", "close"],
+                "x-enumLabels": { "toggle": "Toggle", "open": "Open", "close": "Close" },
+                "description": "For actions that open and close something: whether the bind toggles it, only opens it or only closes it.",
+                "x-showIf": { "action": ["launcher", "overlay", "edgeMenu", "workspaceOverview", "powerMenu", "idleInhibit", "nightLight"] }
+              },
               "repeating": { "type": "boolean", "title": "Repeat while held", "default": false },
               "locked": { "type": "boolean", "title": "Works while locked", "default": false },
               "release": { "type": "boolean", "title": "On release", "default": false },
@@ -491,8 +508,8 @@
           "x-order": ["layout", "gapsIn", "gapsOut", "preserveSplit", "smartSplit", "smartResizing", "forceSplit", "splitRatio", "masterSize", "masterOrientation", "masterNewStatus", "columnWidth", "scrollDirection", "scrollFollowFocus", "snap", "matchAxiom", "borderSize", "rounding", "activeOpacity", "inactiveOpacity", "fullscreenOpacity", "dimInactive", "dimStrength", "dimSpecial", "windowBlur", "blurSize", "blurPasses", "blurXray", "blurIgnoreOpacity", "blurNewOptimizations", "blurNoise", "blurContrast", "blurVibrancy", "blurPopups", "blurSpecial", "shadow", "shadowRange", "shadowPower", "shadowThemed", "shadowColor", "animations", "animationPreset", "workspaceWraparound", "curves", "customAnimations", "kbLayout", "kbVariant", "kbOptions", "repeatRate", "repeatDelay", "numlockByDefault", "followMouse", "floatSwitchOverrideFocus", "accelProfile", "sensitivity", "leftHanded", "resizeOnBorder", "cursorTheme", "cursorSize", "cursorHideTimeout", "hideCursorOnKeyPress", "noWarps", "naturalScroll", "tapToClick", "disableWhileTyping", "touchpadScrollFactor", "hideLogo", "backgroundThemed", "backgroundColor", "focusOnActivate", "swallow", "swallowRegex", "closeSpecialOnEmpty", "hideSpecialOnWorkspaceChange", "workspaceBackAndForth", "mouseWakesScreen", "keyWakesScreen", "vrr", "scrollEventDelay", "xwaylandZeroScaling", "env", "autostart"],
           "properties": {
             "layout": { "type": "string", "title": "Layout", "x-group": "Layout", "enum": ["dwindle", "master", "scrolling"], "x-enumLabels": { "dwindle": "Dwindle (binary splits)", "master": "Master and stack", "scrolling": "Scrolling columns" }, "default": "dwindle", "x-hypr": "general.layout", "x-hyprAlways": true },
-            "gapsIn": { "type": "integer", "title": "Gaps between windows", "x-group": "Layout", "default": 3, "minimum": 0, "maximum": 50, "x-hypr": "general.gaps_in", "x-hyprAlways": true },
-            "gapsOut": { "type": "integer", "title": "Gaps to the edges", "x-group": "Layout", "default": 6, "minimum": 0, "maximum": 100, "x-hypr": "general.gaps_out", "x-hyprAlways": true },
+            "gapsIn": { "type": "integer", "x-control": "stepper", "title": "Gaps between windows", "x-group": "Layout", "default": 3, "minimum": 0, "maximum": 50, "x-hypr": "general.gaps_in", "x-hyprAlways": true },
+            "gapsOut": { "type": "integer", "x-control": "stepper", "title": "Gaps to the edges", "x-group": "Layout", "default": 6, "minimum": 0, "maximum": 100, "x-hypr": "general.gaps_out", "x-hyprAlways": true },
             "preserveSplit": { "type": "boolean", "title": "Keep split direction", "x-group": "Layout", "default": true, "description": "Dwindle keeps a split's direction when the window is resized or moved.", "x-showIf": { "layout": "dwindle" }, "x-hypr": "dwindle.preserve_split", "x-hyprAlways": true },
             "smartSplit": { "type": "boolean", "title": "Split by cursor position", "x-group": "Layout", "default": false, "description": "Dwindle splits towards the side of the window the cursor is on.", "x-showIf": { "layout": "dwindle" }, "x-hypr": "dwindle.smart_split" },
             "smartResizing": { "type": "boolean", "title": "Resize by cursor position", "x-group": "Layout", "default": true, "description": "Resizing moves the edge nearest the cursor.", "x-showIf": { "layout": "dwindle" }, "x-hypr": "dwindle.smart_resizing" },
@@ -506,8 +523,8 @@
             "scrollFollowFocus": { "type": "boolean", "title": "Scroll to the focused window", "x-group": "Layout", "default": true, "x-showIf": { "layout": "scrolling" }, "x-hypr": "scrolling.follow_focus" },
             "snap": { "type": "boolean", "title": "Snap floating windows", "x-group": "Layout", "default": false, "description": "Floating windows snap to each other and the screen edges.", "x-hypr": "general.snap.enabled" },
             "matchAxiom": { "type": "boolean", "title": "Match axiom's look", "x-group": "Decoration", "default": true, "description": "Window corners and border width follow Look & Feel → Shape." },
-            "borderSize": { "type": "integer", "title": "Border width", "x-group": "Decoration", "default": 2, "minimum": 0, "maximum": 20, "x-showIf": { "matchAxiom": false } },
-            "rounding": { "type": "integer", "title": "Corner rounding", "x-group": "Decoration", "default": 8, "minimum": 0, "maximum": 50, "x-showIf": { "matchAxiom": false } },
+            "borderSize": { "type": "integer", "x-control": "stepper", "title": "Border width", "x-group": "Decoration", "default": 2, "minimum": 0, "maximum": 20, "x-showIf": { "matchAxiom": false } },
+            "rounding": { "type": "integer", "x-control": "stepper", "title": "Corner rounding", "x-group": "Decoration", "default": 8, "minimum": 0, "maximum": 50, "x-showIf": { "matchAxiom": false } },
             "activeOpacity": { "type": "integer", "title": "Focused window opacity", "x-unit": "%", "x-group": "Decoration", "default": 100, "minimum": 10, "maximum": 100, "x-hypr": "decoration.active_opacity", "x-hyprScale": 0.01 },
             "inactiveOpacity": { "type": "integer", "title": "Unfocused window opacity", "x-unit": "%", "x-group": "Decoration", "default": 100, "minimum": 10, "maximum": 100, "x-hypr": "decoration.inactive_opacity", "x-hyprScale": 0.01 },
             "fullscreenOpacity": { "type": "integer", "title": "Fullscreen opacity", "x-unit": "%", "x-group": "Decoration", "default": 100, "minimum": 10, "maximum": 100, "x-hypr": "decoration.fullscreen_opacity", "x-hyprScale": 0.01 },
@@ -515,7 +532,7 @@
             "dimStrength": { "type": "integer", "title": "Dim strength", "x-unit": "%", "x-group": "Decoration", "default": 8, "minimum": 0, "maximum": 100, "x-showIf": { "dimInactive": true }, "x-hypr": "decoration.dim_strength", "x-hyprScale": 0.01, "x-hyprAlways": true },
             "dimSpecial": { "type": "integer", "title": "Dim behind special workspaces", "x-unit": "%", "x-group": "Decoration", "default": 20, "minimum": 0, "maximum": 100, "x-hypr": "decoration.dim_special", "x-hyprScale": 0.01 },
             "windowBlur": { "type": "boolean", "title": "Blur transparent windows", "x-group": "Blur", "default": true, "x-hypr": "decoration.blur.enabled", "x-hyprAlways": true },
-            "blurSize": { "type": "integer", "title": "Blur size", "x-group": "Blur", "default": 4, "minimum": 1, "maximum": 20, "x-showIf": { "windowBlur": true }, "x-hypr": "decoration.blur.size", "x-hyprAlways": true },
+            "blurSize": { "type": "integer", "x-control": "stepper", "title": "Blur size", "x-group": "Blur", "default": 4, "minimum": 1, "maximum": 20, "x-showIf": { "windowBlur": true }, "x-hypr": "decoration.blur.size", "x-hyprAlways": true },
             "blurPasses": { "type": "integer", "title": "Blur passes", "x-group": "Blur", "default": 3, "minimum": 1, "maximum": 6, "x-showIf": { "windowBlur": true }, "x-hypr": "decoration.blur.passes", "x-hyprAlways": true },
             "blurXray": { "type": "boolean", "title": "See-through blur", "x-group": "Blur", "default": true, "description": "Floating windows blur only the wallpaper, not the windows under them. Cheaper.", "x-showIf": { "windowBlur": true }, "x-hypr": "decoration.blur.xray", "x-hyprAlways": true },
             "blurIgnoreOpacity": { "type": "boolean", "title": "Full blur behind any transparency", "x-group": "Blur", "default": true, "x-showIf": { "windowBlur": true }, "x-hypr": "decoration.blur.ignore_opacity" },
@@ -526,7 +543,7 @@
             "blurPopups": { "type": "boolean", "title": "Blur menus and popups", "x-group": "Blur", "default": false, "x-showIf": { "windowBlur": true }, "x-hypr": "decoration.blur.popups" },
             "blurSpecial": { "type": "boolean", "title": "Blur behind special workspaces", "x-group": "Blur", "default": false, "description": "Expensive: redraws the blur on every frame.", "x-showIf": { "windowBlur": true }, "x-hypr": "decoration.blur.special" },
             "shadow": { "type": "boolean", "title": "Window shadows", "x-group": "Shadows", "default": true, "x-hypr": "decoration.shadow.enabled" },
-            "shadowRange": { "type": "integer", "title": "Shadow size", "x-group": "Shadows", "default": 4, "minimum": 0, "maximum": 100, "x-showIf": { "shadow": true }, "x-hypr": "decoration.shadow.range" },
+            "shadowRange": { "type": "integer", "x-control": "stepper", "title": "Shadow size", "x-group": "Shadows", "default": 4, "minimum": 0, "maximum": 100, "x-showIf": { "shadow": true }, "x-hypr": "decoration.shadow.range" },
             "shadowPower": { "type": "integer", "title": "Shadow falloff", "x-group": "Shadows", "default": 3, "minimum": 1, "maximum": 4, "description": "1 fades slowly, 4 ends sharply.", "x-showIf": { "shadow": true }, "x-hypr": "decoration.shadow.render_power" },
             "shadowThemed": { "type": "boolean", "title": "Shadow in a theme color", "x-group": "Shadows", "default": false, "x-showIf": { "shadow": true } },
             "shadowColor": { "type": "string", "title": "Shadow color", "x-group": "Shadows", "x-options": "colors", "default": "base00", "x-showIf": { "shadowThemed": true }, "x-hypr": "decoration.shadow.color", "x-hyprValue": "color", "x-hyprAlpha": "ee", "x-hyprIf": "shadowThemed" },
@@ -573,7 +590,7 @@
             "kbLayout": { "type": "string", "title": "Keyboard layout", "x-group": "Keyboard", "default": "us", "description": "XKB layouts, comma-separated (e.g. us,de).", "x-hypr": "input.kb_layout", "x-hyprAlways": true },
             "kbVariant": { "type": "string", "title": "Layout variant", "x-group": "Keyboard", "default": "", "description": "XKB variants, one per layout (e.g. colemak).", "x-hypr": "input.kb_variant" },
             "kbOptions": { "type": "string", "title": "XKB options", "x-group": "Keyboard", "default": "", "description": "e.g. caps:escape,grp:alt_shift_toggle.", "x-hypr": "input.kb_options" },
-            "repeatRate": { "type": "integer", "title": "Key repeat rate", "x-group": "Keyboard", "default": 50, "minimum": 1, "maximum": 100, "x-hypr": "input.repeat_rate", "x-hyprAlways": true },
+            "repeatRate": { "type": "integer", "x-control": "stepper", "title": "Key repeat rate", "x-group": "Keyboard", "default": 50, "minimum": 1, "maximum": 100, "x-hypr": "input.repeat_rate", "x-hyprAlways": true },
             "repeatDelay": { "type": "integer", "title": "Key repeat delay", "x-group": "Keyboard", "default": 300, "minimum": 100, "maximum": 2000, "x-hypr": "input.repeat_delay", "x-hyprAlways": true },
             "numlockByDefault": { "type": "boolean", "title": "Num Lock on at start", "x-group": "Keyboard", "default": true, "x-hypr": "input.numlock_by_default", "x-hyprAlways": true },
             "followMouse": { "type": "boolean", "title": "Focus follows mouse", "x-group": "Mouse & cursor", "default": true, "x-hypr": "input.follow_mouse", "x-hyprValue": "int", "x-hyprAlways": true },
@@ -583,7 +600,7 @@
             "leftHanded": { "type": "boolean", "title": "Left-handed buttons", "x-group": "Mouse & cursor", "default": false, "x-hypr": "input.left_handed" },
             "resizeOnBorder": { "type": "boolean", "title": "Resize by dragging borders", "x-group": "Mouse & cursor", "default": true, "x-hypr": "general.resize_on_border", "x-hyprAlways": true },
             "cursorTheme": { "type": "string", "title": "Cursor theme", "x-group": "Mouse & cursor", "x-options": "cursorThemes", "x-enumLabels": { "": "None" }, "default": "", "description": "An installed cursor theme. None leaves the cursor alone." },
-            "cursorSize": { "type": "integer", "title": "Cursor size", "x-group": "Mouse & cursor", "default": 24, "minimum": 8, "maximum": 128 },
+            "cursorSize": { "type": "integer", "x-control": "stepper", "title": "Cursor size", "x-group": "Mouse & cursor", "default": 24, "minimum": 8, "maximum": 128 },
             "cursorHideTimeout": { "type": "integer", "title": "Hide the cursor after", "x-unit": "s", "x-group": "Mouse & cursor", "default": 0, "minimum": 0, "maximum": 600, "description": "0 never hides it.", "x-hypr": "cursor.inactive_timeout" },
             "hideCursorOnKeyPress": { "type": "boolean", "title": "Hide the cursor while typing", "x-group": "Mouse & cursor", "default": false, "x-hypr": "cursor.hide_on_key_press" },
             "noWarps": { "type": "boolean", "title": "Never move the cursor", "x-group": "Mouse & cursor", "default": false, "description": "Hyprland won't move the cursor to a window it focuses.", "x-hypr": "cursor.no_warps" },
@@ -742,6 +759,7 @@
             },
             "size": {
               "type": "integer",
+              "x-control": "stepper",
               "title": "Size",
               "default": 14,
               "minimum": 8,
@@ -758,15 +776,17 @@
           "properties": {
             "radius": {
               "type": "integer",
+              "x-control": "stepper",
               "title": "Corner radius",
               "default": 6,
               "minimum": 0,
               "maximum": 50,
               "x-unit": "px",
-              "description": "Roundness of every corner: widgets, popouts, cards and the screen border (px)."
+              "description": "Roundness of outer edges: the screen border, bars, popouts and windows (px). Everything inside follows it unless Panels & controls sets its own."
             },
             "borderWidth": {
               "type": "integer",
+              "x-control": "stepper",
               "title": "Border width",
               "default": 1,
               "minimum": 0,
@@ -782,6 +802,7 @@
             },
             "screenMargin": {
               "type": "integer",
+              "x-control": "stepper",
               "title": "Screen margin",
               "default": 8,
               "minimum": 0,
@@ -819,36 +840,58 @@
     "Widget": {
       "type": "object",
       "x-category": "Look & Feel",
-      "title": "Widgets",
-      "description": "Shared sizing for widgets and form controls. Bar widgets are sized by their bar's widget size.",
+      "title": "Panels & controls",
+      "description": "Sizing for the overlay, popouts, launcher and settings. Each bar has its own, in the bar editor.",
       "additionalProperties": false,
       "properties": {
         "height": {
           "type": "integer",
+          "x-control": "stepper",
           "title": "Control height",
           "default": 30,
           "minimum": 16,
           "maximum": 128,
           "x-unit": "px",
-          "description": "Height of buttons, fields and other controls outside the bar (px). Bar widgets follow their bar's thickness."
+          "description": "Height of buttons, fields and other controls (px)."
         },
         "padding": {
           "type": "integer",
+          "x-control": "stepper",
           "title": "Padding",
           "default": 10,
           "minimum": 0,
           "maximum": 32,
           "x-unit": "px",
-          "description": "Inner padding of widgets and panels (px)."
+          "description": "Inner padding of panels, cards and controls (px)."
         },
         "spacing": {
           "type": "integer",
+          "x-control": "stepper",
           "title": "Spacing",
           "default": 4,
           "minimum": 0,
           "maximum": 32,
           "x-unit": "px",
-          "description": "Gap between items inside widgets and panels (px)."
+          "description": "Gap between items inside panels, cards and controls (px)."
+        },
+        "overrideRadius": {
+          "type": "boolean",
+          "title": "Own corner radius",
+          "default": false,
+          "description": "Off: follows the corner radius in Look & Feel."
+        },
+        "radius": {
+          "type": "integer",
+          "x-control": "stepper",
+          "title": "Interior corner radius",
+          "default": 6,
+          "minimum": 0,
+          "maximum": 50,
+          "x-unit": "px",
+          "x-showIf": {
+            "overrideRadius": true
+          },
+          "description": "Roundness of what sits inside panels, cards and bars: buttons, fields, rows, cells and bar widgets. Outer edges (screen border, bars, popouts, the overlay's outer box) keep the main radius."
         }
       }
     },
@@ -881,6 +924,7 @@
         },
         "edgeTriggerSize": {
           "type": "integer",
+          "x-control": "stepper",
           "title": "Edge trigger size",
           "x-unit": "px",
           "default": 5,
@@ -890,6 +934,7 @@
         },
         "padding": {
           "type": "integer",
+          "x-control": "stepper",
           "title": "Padding",
           "x-unit": "px",
           "default": 16,
@@ -1205,6 +1250,7 @@
         },
         "count": {
           "type": "integer",
+          "x-control": "stepper",
           "title": "Workspaces",
           "default": 10,
           "minimum": 1,
@@ -1213,6 +1259,7 @@
         },
         "columns": {
           "type": "integer",
+          "x-control": "stepper",
           "title": "Columns",
           "default": 5,
           "minimum": 1,
@@ -1221,6 +1268,7 @@
         },
         "rows": {
           "type": "integer",
+          "x-control": "stepper",
           "title": "Rows",
           "default": 5,
           "minimum": 1,
@@ -1318,16 +1366,26 @@
       "x-category": "Updates",
       "x-card": "SelfUpdateStatus",
       "title": "axiom updates",
-      "description": "Updates come from release tags on the repository axiom was cloned from. An update only fast-forwards: a clone with changed files or commits of its own is never touched.",
+      "description": "Updates come from the repository axiom was cloned from: its release tags, or its main branch. An update only fast-forwards: a clone with changed files or commits of its own is never touched.",
       "additionalProperties": false,
+      "x-order": ["mode", "channel"],
       "properties": {
+        "channel": {
+          "type": "string",
+          "title": "Follow",
+          "enum": ["tags", "main"],
+          "x-enumLabels": { "tags": "Releases", "main": "Main branch" },
+          "default": "tags",
+          "x-showIf": { "mode": { "not": "off" } },
+          "description": "Releases updates to each new release tag. Main branch updates to every new commit on main: newer, but less tested."
+        },
         "mode": {
           "type": "string",
           "title": "Updates",
           "enum": ["auto", "notify", "off"],
           "x-enumLabels": { "auto": "Update automatically", "notify": "Notify me", "off": "Off" },
           "default": "notify",
-          "description": "Checked when the shell starts and once a day. Update automatically installs a new release and notifies you; Notify me sends a notification that opens this page. Off never checks."
+          "description": "Checked when the shell starts and once a day. Update automatically installs an update and notifies you; Notify me sends a notification that opens this page. Off never checks."
         }
       }
     },
@@ -1486,7 +1544,7 @@
           "items": {
             "type": "object",
             "additionalProperties": false,
-            "x-order": ["type", "app", "icon", "showOsd"],
+            "x-order": ["type", "apps", "icon", "showOsd"],
             "properties": {
               "type": {
                 "type": "string",
@@ -1495,7 +1553,7 @@
                 "x-enumLabels": { "master": "System volume", "other": "Other apps", "microphone": "Microphone", "brightness": "Brightness", "app": "An app" },
                 "default": "app"
               },
-              "app": { "type": "string", "title": "App", "default": "", "x-showIf": { "type": "app" }, "x-suggestions": "audioApps", "description": "Matched as a substring of the stream's binary or name." },
+              "apps": { "type": "array", "items": { "type": "string" }, "title": "Apps", "default": [], "x-showIf": { "type": "app" }, "x-suggestions": "audioApps", "description": "Comma-separated; each matched as a substring of a stream's binary or name. The bar shows the first listed app with a stream open, and a change sets every matching stream." },
               "icon": { "type": "string", "title": "Icon", "default": "", "description": "Icon shown on the bar: a Material Symbols name (fonts.google.com/icons), or text. Empty follows the level for system volume, microphone and brightness." },
               "showOsd": { "type": "boolean", "title": "Opens the OSD", "default": true, "description": "A change on this bar opens the OSD (it always keeps an open one open)." }
             }
@@ -1553,7 +1611,7 @@
           "minimum": 0,
           "maximum": 1000,
           "x-unit": "px",
-          "x-control": "slider",
+          "x-control": "stepper",
           "description": "Width added to the menu, shared between its columns. Every module grows into it."
         },
         "extraHeight": {
@@ -1563,11 +1621,12 @@
           "minimum": 0,
           "maximum": 1000,
           "x-unit": "px",
-          "x-control": "slider",
+          "x-control": "stepper",
           "description": "Height added to the menu, shared between each column's rows. Every module grows into it."
         },
         "edgeDistance": {
           "type": "integer",
+          "x-control": "stepper",
           "title": "Distance from edge",
           "default": 0,
           "minimum": 0,
@@ -1585,16 +1644,18 @@
         },
         "margin": {
           "type": "integer",
+          "x-control": "stepper",
           "title": "Frame margin",
           "default": 8,
           "minimum": 0,
           "maximum": 64,
           "x-unit": "px",
-          "description": "Gap between the frame and the edges of the menu's strip.",
+          "description": "Gap from the edges of the menu's strip to the inner edge of the frame's stroke, like the screen margin. Matching the screen margin lines the frame up with the screen border.",
           "x-showIf": { "mode": "integrated" }
         },
         "padding": {
           "type": "integer",
+          "x-control": "stepper",
           "title": "Padding",
           "default": -1,
           "minimum": -1,
@@ -1618,6 +1679,7 @@
         },
         "triggerSize": {
           "type": "integer",
+          "x-control": "stepper",
           "title": "Trigger size",
           "default": 5,
           "minimum": 1,
@@ -1670,8 +1732,9 @@
           "type": "string",
           "title": "Monitor",
           "default": "",
-          "description": "Monitor this bar is shown on. Empty uses the first screen.",
-          "x-options": "screens"
+          "description": "Monitor this bar is shown on. All monitors puts an identical copy on each.",
+          "x-options": "screens",
+          "x-allScreens": true
         },
         "location": {
           "type": "string",
@@ -1681,6 +1744,7 @@
         },
         "widgetSize": {
           "type": "integer",
+          "x-control": "stepper",
           "title": "Widget size",
           "default": 26,
           "minimum": 10,
@@ -1690,6 +1754,7 @@
         },
         "padding": {
           "type": "integer",
+          "x-control": "stepper",
           "title": "Padding",
           "default": 4,
           "minimum": 0,
@@ -1708,6 +1773,7 @@
         },
         "pillPadding": {
           "type": "integer",
+          "x-control": "stepper",
           "title": "Pill padding",
           "default": 4,
           "minimum": 0,
@@ -1718,6 +1784,7 @@
         },
         "pillMerge": {
           "type": "integer",
+          "x-control": "stepper",
           "title": "Merge distance",
           "default": 12,
           "minimum": 0,
@@ -1728,6 +1795,7 @@
         },
         "spacing": {
           "type": "integer",
+          "x-control": "stepper",
           "title": "Spacing",
           "default": 4,
           "minimum": 0,
@@ -1746,6 +1814,62 @@
           "title": "Reserve space",
           "default": true,
           "description": "Keep windows from tiling underneath the bar."
+        },
+        "widgetPadding": {
+          "type": "integer",
+          "x-control": "stepper",
+          "title": "Widget padding",
+          "default": 10,
+          "minimum": 0,
+          "maximum": 40,
+          "x-unit": "px",
+          "description": "Space inside each widget, before its icon or text."
+        },
+        "widgetSpacing": {
+          "type": "integer",
+          "x-control": "stepper",
+          "title": "Inner spacing",
+          "default": 4,
+          "minimum": 0,
+          "maximum": 20,
+          "x-unit": "px",
+          "description": "Gap between items inside a widget."
+        },
+        "overrideFontSize": {
+          "type": "boolean",
+          "title": "Own font size",
+          "default": false,
+          "description": "Off: the bar follows the font size in Look & Feel."
+        },
+        "fontSize": {
+          "type": "integer",
+          "x-control": "stepper",
+          "title": "Font size",
+          "default": 14,
+          "minimum": 8,
+          "maximum": 32,
+          "x-unit": "px",
+          "x-showIf": {
+            "overrideFontSize": true
+          }
+        },
+        "overrideRadius": {
+          "type": "boolean",
+          "title": "Own corner radius",
+          "default": false,
+          "description": "Off: widgets follow the interior corner radius in Panels & controls. Pills follow the corner radius in Look & Feel."
+        },
+        "widgetRadius": {
+          "type": "integer",
+          "x-control": "stepper",
+          "title": "Widget corner radius",
+          "default": 6,
+          "minimum": 0,
+          "maximum": 50,
+          "x-unit": "px",
+          "x-showIf": {
+            "overrideRadius": true
+          }
         },
         "widgets": {
           "type": "object",
@@ -2046,7 +2170,7 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "count": {"type": "integer", "title": "Processes", "default": 8, "minimum": 1, "maximum": 30},
+            "count": {"type": "integer", "x-control": "stepper", "title": "Processes", "default": 8, "minimum": 1, "maximum": 30},
             "sortBy": {"type": "string", "title": "Sort by", "default": "cpu", "enum": ["cpu", "mem"]}
           }
         }
@@ -2297,7 +2421,7 @@
       "properties": {
         "size": { "type": "integer", "title": "Size", "minimum": 0, "maximum": 2000, "x-unit": "px", "description": "Length along the bar (px). Fixed and elastic widgets use it as their size / maximum." },
         "minSize": { "type": "integer", "title": "Minimum size", "minimum": 0, "maximum": 2000, "x-unit": "px", "description": "Smallest length the widget may shrink to when the bar is crowded (px)." },
-        "priority": { "type": "integer", "title": "Priority", "minimum": -100, "maximum": 100, "description": "When a section can't fit its widgets, lower priorities are hidden first." }
+        "priority": { "type": "integer", "x-control": "stepper", "title": "Priority", "minimum": -100, "maximum": 100, "description": "When a section can't fit its widgets, lower priorities are hidden first." }
       }
     },
 
@@ -2360,7 +2484,7 @@
           "additionalProperties": false,
           "properties": {
             "showArtist": { "type": "boolean", "title": "Show artist", "default": true },
-            "artistLength": { "type": "integer", "title": "Artist length", "default": 10, "minimum": 0, "maximum": 100, "description": "Longest artist name shown before it is shortened (characters)." },
+            "artistLength": { "type": "integer", "x-control": "stepper", "title": "Artist length", "default": 10, "minimum": 0, "maximum": 100, "description": "Longest artist name shown before it is shortened (characters)." },
             "idleText": { "type": "string", "title": "Idle text", "default": "No player", "description": "Shown when nothing is playing." },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Open the media controls when hovered." },
             "playingColor": { "type": "string", "title": "Playing background", "x-options": "colors", "default": "base0B" },
@@ -2384,13 +2508,15 @@
           "properties": {
             "showEmpty": { "type": "boolean", "title": "Show empty workspaces", "default": true, "x-showIf": { "/Workspaces.layout": "standard" }, "description": "Off: only workspaces with windows, plus the active one." },
             "monitorOnly": { "type": "boolean", "title": "Only this monitor", "default": false, "x-showIf": { "/Workspaces.layout": "standard" }, "description": "Hide workspaces that are open on another monitor." },
-            "labels": { "type": "string", "title": "Labels", "enum": ["numbers", "dots"], "x-enumLabels": { "numbers": "Numbers", "dots": "Dots" }, "default": "numbers", "description": "In a grid, numbers count through the monitor's grid, on the bar and in the popout." },
+            "labels": { "type": "string", "title": "Labels", "enum": ["numbers", "dots"], "x-enumLabels": { "numbers": "Numbers", "dots": "Dots" }, "default": "numbers", "description": "The workspace's number, on the bar and in the grid popout." },
+            "relativeNumbers": { "type": "boolean", "title": "Relative numbers", "default": false, "x-showIf": { "/Workspaces.layout": ["perMonitor", "grid"], "labels": "numbers" }, "description": "Number each monitor's workspaces from 1 (11 to 20 on the second monitor show as 1 to 10) instead of by their workspace id, on the bar and in the grid popout." },
             "showAppIcons": { "type": "boolean", "title": "App icons", "default": false, "description": "Show the largest window's icon on occupied workspaces (in a grid, on the bar and in the popout)." },
             "wideActive": { "type": "boolean", "title": "Wide active", "default": true, "x-showIf": { "/Workspaces.layout": "standard" }, "description": "Make the active workspace twice as long." },
             "showActiveIcon": { "type": "boolean", "title": "Active icon", "default": true, "x-showIf": { "/Workspaces.layout": "grid" }, "description": "Show an arrow on the active workspace, pointing to where the shown row (or column) is in the grid." },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "x-showIf": { "/Workspaces.layout": "grid" }, "description": "Open the whole grid when hovered." },
             "clickToSwitch": { "type": "boolean", "title": "Click to switch", "default": true, "description": "Click a workspace (on the bar or in the grid popout) to go to it." },
             "scrollToSwitch": { "type": "boolean", "title": "Scroll to switch", "default": true, "description": "Scroll over the widget to step through the workspaces (along the shown row or column in a grid)." },
+            "spacing": { "type": "integer", "x-control": "stepper", "title": "Box spacing", "default": 2, "minimum": 0, "maximum": 20, "x-unit": "px", "description": "Gap between workspace boxes, on the bar and in the grid popout." },
             "activeColor": { "type": "string", "title": "Active", "x-options": "colors", "default": "base0E" },
             "occupiedColor": { "type": "string", "title": "Occupied", "x-options": "colors", "default": "base04" },
             "emptyColor": { "type": "string", "title": "Empty", "x-options": "colors", "default": "base01" },
@@ -2416,6 +2542,7 @@
             "showDate": { "type": "boolean", "title": "Date", "default": true },
             "timeFormat": { "type": "string", "title": "Time format", "default": "", "description": "Custom Qt time format (e.g. HH:mm). Empty uses the language's format." },
             "dateFormat": { "type": "string", "title": "Date format", "default": "", "description": "Custom Qt date format (e.g. ddd d MMM). Empty uses the language's format." },
+            "verticalDate": { "type": "string", "title": "Vertical date", "default": "day", "enum": ["day", "monthDay", "numeric"], "x-enumLabels": { "day": "Day and weekday", "monthDay": "Month, day and weekday", "numeric": "Day over month number" }, "description": "The date's lines on a vertical bar, when no date format is set.", "x-showIf": { "showDate": true } },
             "showCalendar": { "type": "boolean", "title": "Calendar popout", "default": true, "description": "Open the calendar when hovered." },
             "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base0C" },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
@@ -2479,7 +2606,7 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "iconSize": { "type": "integer", "title": "Icon size", "default": 18, "minimum": 8, "maximum": 64, "x-unit": "px", "description": "Size of tray icons (px)." },
+            "iconSize": { "type": "integer", "x-control": "stepper", "title": "Icon size", "default": 18, "minimum": 8, "maximum": 64, "x-unit": "px", "description": "Size of tray icons (px)." },
             "showPassive": { "type": "boolean", "title": "Show passive", "default": true, "description": "Also show items that report themselves as passive (idle)." }
           }
         }
@@ -2718,7 +2845,7 @@
           "properties": {
             "style": { "type": "string", "title": "Style", "default": "line", "enum": ["line", "dot", "space"] },
             "size": { "type": "integer", "title": "Size", "default": 12, "minimum": 0, "maximum": 500, "x-unit": "px", "description": "Space it takes along the bar (px)." },
-            "thickness": { "type": "integer", "title": "Thickness", "default": 2, "minimum": 1, "maximum": 10, "x-unit": "px", "description": "Line width (px); dots are twice this across.", "x-showIf": { "style": { "not": "space" } } },
+            "thickness": { "type": "integer", "x-control": "stepper", "title": "Thickness", "default": 2, "minimum": 1, "maximum": 10, "x-unit": "px", "description": "Line width (px); dots are twice this across.", "x-showIf": { "style": { "not": "space" } } },
             "length": { "type": "integer", "title": "Line length", "x-unit": "%", "default": 60, "minimum": 10, "maximum": 100, "description": "Share of the widget height the line spans.", "x-showIf": { "style": "line" } },
             "color": { "type": "string", "title": "Color", "x-options": "colors", "default": "base03", "x-showIf": { "style": { "not": "space" } } }
           }

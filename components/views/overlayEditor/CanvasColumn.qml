@@ -31,7 +31,7 @@ Item {
     id: header
     width: root.width
     height: root.headerHeight
-    radius: Appearance.borderRadius
+    radius: Widget.radius
     color: headerHover.hovered || root.carried ? Theme.backgroundHighlight : "transparent"
 
     HoverHandler {
@@ -140,7 +140,7 @@ Item {
       y: root.flow.height * root.scaleFactor + Widget.spacing
       width: body.width
       height: root.endZone
-      radius: Appearance.borderRadius
+      radius: Widget.radius
       visible: root.dragLayer.carryingModule || root.dragLayer.carryingCell
       color: body.atEnd ? Qt.alpha(Theme.accent, 0.2) : "transparent"
       border.color: body.atEnd ? Theme.accent : Qt.alpha(Theme.accent, 0.35)

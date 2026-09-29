@@ -53,6 +53,8 @@ QtObject {
 
     return {
       "id": barConfig.id,
+      // The config entry's id: a bar on every monitor has one per screen
+      "sourceId": barConfig.sourceId ?? barConfig.id,
       "primary": index === 0,
       "enabled": barConfig.enabled,
       "monitor": barConfig.monitor,
@@ -78,6 +80,14 @@ QtObject {
       "pillMerge": barConfig.pillMerge ?? 0,
       "pillDepth": pillDepth,
       "spacing": barConfig.spacing,
+      // What's drawn inside the bar follows the bar, never the Widget
+      // section (that's for panels, popouts and controls)
+      "widgetPadding": barConfig.widgetPadding,
+      "widgetSpacing": barConfig.widgetSpacing,
+      "fontSize": barConfig.overrideFontSize ? barConfig.fontSize : Appearance.fontSize,
+      // Widget chips only, else the interior radius: pills and fillets keep
+      // Appearance's, to meet the border
+      "radius": barConfig.overrideRadius ? barConfig.widgetRadius : Widget.radius,
       "lockCenter": barConfig.lockCenter,
       "location": loc,
       "reserveSpace": barConfig.reserveSpace,
@@ -92,7 +102,26 @@ QtObject {
 
   // The first entry in Bars is the primary bar. While the bar editor has
   // unsaved edits, the running bars show those.
-  readonly property var bars: (ConfigManager.previews.Bars ?? ConfigManager.config.Bars).map((bar, i) => Bar.enrichBarConfig(bar, i))
+  readonly property var bars: Bar.expandBars(ConfigManager.previews.Bars ?? ConfigManager.config.Bars).map((bar, i) => Bar.enrichBarConfig(bar, i))
+
+  // A bar on every monitor (`monitor: "*"`) becomes one entry per screen,
+  // each with its own id (keying its BarPanel) and that screen as its
+  // monitor. The primary monitor's comes first, so a primary bar on every
+  // monitor still makes the primary monitor the primary bar's.
+  function expandBars(bars) {
+    const names = Array.from(Quickshell.screens).map(s => s.name);
+    const primary = names.includes(General.primaryMonitor) ? General.primaryMonitor : names[0];
+    const ordered = names.length > 0 ? [primary].concat(names.filter(n => n !== primary)) : [];
+    return [].concat(...bars.map(bar => {
+      if (bar.monitor !== "*")
+        return [bar];
+      return ordered.map(name => Object.assign({}, bar, {
+          "id": `${bar.id}@${name}`,
+          "sourceId": bar.id,
+          "monitor": name
+        }));
+    }));
+  }
 
   readonly property var availableWidgetTypes: {
     const oneOf = ConfigManager.configSchema?.definitions?.BarWidget?.oneOf || [];

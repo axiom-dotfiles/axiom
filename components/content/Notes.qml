@@ -133,8 +133,8 @@ Card {
         visible: root.showHeader
         Layout.fillWidth: true
         Layout.preferredHeight: 28
-        radius: Appearance.borderRadius / 2
-        color: !root.locked && (root.browserOpen || chipHover.hovered) ? Theme.backgroundHighlight : "transparent"
+        radius: Widget.radius / 2
+        color: !root.locked && (root.browserOpen || chipHover.hovered) ? Theme.backgroundHighlight : Qt.alpha(Theme.backgroundHighlight, 0)
 
         Behavior on color {
           ColorAnimation {

@@ -29,9 +29,9 @@ Item {
     anchors.fill: parent
     anchors.leftMargin: root.wide ? 0 : root.leadingSpace
     anchors.rightMargin: root.wide ? 0 : 2
-    radius: Appearance.borderRadius
+    radius: Widget.radius
     visible: root.active || root.isEnd || root.wide
-    color: root.hovered ? Qt.alpha(Theme.accent, 0.2) : (root.active ? Qt.alpha(Theme.accent, 0.06) : (addArea.containsMouse ? Theme.backgroundHighlight : "transparent"))
+    color: root.hovered ? Qt.alpha(Theme.accent, 0.2) : (root.active ? Qt.alpha(Theme.accent, 0.06) : (addArea.containsMouse ? Theme.backgroundHighlight : Qt.alpha(Theme.backgroundHighlight, 0)))
     border.color: root.hovered ? Theme.accent : (root.active ? Qt.alpha(Theme.accent, 0.4) : Theme.border)
     border.width: 1
     opacity: root.active || root.wide || addArea.containsMouse ? 1 : 0.6

@@ -33,7 +33,10 @@ Panel {
     const index = root.activeId - root.base;
     return index >= 0 && index < root.columns * root.rows ? index : 0;
   }
-  readonly property real cellSpacing: Widget.spacing / 2
+  readonly property real cellSpacing: root.options.spacing ?? Widget.spacing / 2
+  // The bar's, so the cells match its row
+  readonly property real cellRadius: wrapper?.currentData?.radius ?? Widget.radius
+  readonly property int cellFontSize: wrapper?.currentData?.fontSize ?? Appearance.fontSize
 
   implicitWidth: grid.implicitWidth + margins * 2
 
@@ -69,7 +72,7 @@ Panel {
 
         width: root.cell
         height: root.cell
-        radius: Appearance.borderRadius
+        radius: root.cellRadius
         color: isActive ? root.activeColor : cellArea.containsMouse ? Theme.backgroundHighlight : hasWindows ? root.occupiedColor : root.emptyColor
         opacity: inBar ? 1.0 : 0.85
 
@@ -82,13 +85,13 @@ Panel {
           visible: wsCell.iconPath !== ""
         }
 
-        // Its place in the grid, counted from 1, as on the bar
+        // The workspace id, or its place in the grid counted from 1, as on the bar
         StyledText {
           anchors.centerIn: parent
           visible: root.options.labels === "numbers" && wsCell.iconPath === ""
-          text: wsCell.index + 1
+          text: root.options.relativeNumbers ? wsCell.index + 1 : wsCell.wsId
           textColor: wsCell.isActive || wsCell.hasWindows ? root.textColor : Theme.foreground
-          textSize: Appearance.fontSize - 1
+          textSize: root.cellFontSize - 1
         }
 
         MouseArea {

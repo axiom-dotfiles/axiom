@@ -45,7 +45,7 @@ Rectangle {
 
   implicitHeight: Math.min(listColumn.implicitHeight + Widget.spacing * 2, root.maxHeight)
   color: Theme.background
-  radius: Appearance.borderRadius
+  radius: Widget.radius
   border.color: Theme.border
   border.width: 1
 
@@ -134,7 +134,7 @@ Rectangle {
               readonly property bool selected: preset ? preset.name === ChatManager.preset.name : row.rowData.provider.id === ChatManager.provider?.id && row.rowData.model === ChatManager.model
               width: row.width
               implicitHeight: Widget.height
-              radius: Appearance.borderRadius / 2
+              radius: Widget.radius / 2
               color: choiceHover.hovered ? Theme.backgroundHighlight : "transparent"
 
               HoverHandler {

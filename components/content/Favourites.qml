@@ -54,7 +54,7 @@ Card {
         y: grid.tileY(index)
         width: grid.tileWidth
         height: grid.tileHeight
-        radius: Appearance.borderRadius
+        radius: Widget.radius
         color: appArea.containsMouse ? Theme.backgroundHighlight : "transparent"
 
         ColumnLayout {

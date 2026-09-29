@@ -53,7 +53,7 @@ Item {
       Layout.maximumWidth: root.width * 0.85
       implicitWidth: Math.min(root.width * 0.85, userColumn.implicitWidth + Widget.padding * 2)
       implicitHeight: userColumn.implicitHeight + Widget.padding * 1.5
-      radius: Appearance.borderRadius + 2
+      radius: Widget.radius + 2
       color: Qt.alpha(Theme.accent, 0.16)
       border.color: Qt.alpha(Theme.accent, 0.35)
       border.width: 1

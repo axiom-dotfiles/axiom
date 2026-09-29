@@ -87,8 +87,8 @@ Panel {
 
     Layout.fillWidth: true
     implicitHeight: root.rowHeight
-    radius: Appearance.borderRadius
-    color: connected ? Theme.backgroundHighlight : rowHover.hovered ? Qt.rgba(Theme.backgroundHighlight.r, Theme.backgroundHighlight.g, Theme.backgroundHighlight.b, 0.5) : "transparent"
+    radius: Widget.radius
+    color: connected ? Theme.backgroundHighlight : rowHover.hovered ? Qt.rgba(Theme.backgroundHighlight.r, Theme.backgroundHighlight.g, Theme.backgroundHighlight.b, 0.5) : Qt.alpha(Theme.backgroundHighlight, 0)
 
     onDeviceChanged: confirmForget = false
 
@@ -161,7 +161,7 @@ Panel {
         opacity: rowHover.hovered || row.confirmForget ? 1 : 0
         iconText: "delete"
         iconColor: Theme.error
-        backgroundColor: row.confirmForget ? Qt.rgba(Theme.error.r, Theme.error.g, Theme.error.b, 0.2) : "transparent"
+        backgroundColor: Qt.alpha(Theme.error, row.confirmForget ? 0.2 : 0)
         borderHoverColor: Theme.error
         tooltipText: I18n.tr("Forget")
         onClicked: {

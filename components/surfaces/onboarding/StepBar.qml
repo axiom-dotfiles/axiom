@@ -76,7 +76,7 @@ RowLayout {
     visible: root.confirmingQuit
     Layout.preferredHeight: root.buttonHeight
     implicitWidth: confirmRow.implicitWidth + Widget.padding * 2
-    radius: Appearance.borderRadius
+    radius: Widget.radius
     color: Theme.backgroundAlt
     border.color: Theme.foreground
     border.width: Appearance.borderWidth

@@ -22,7 +22,7 @@ Loader {
   property int headerInset: 0
 
   readonly property var fieldSchema: row.schema ?? ({})
-  readonly property var current: form.valueAt(row.path)
+  readonly property var current: form?.valueAt(row.path)
   readonly property string label: row.title
   readonly property string description: fieldSchema.description ?? ""
   readonly property bool isColor: fieldSchema["x-options"] === "colors"
@@ -39,6 +39,11 @@ Loader {
         labels[menu.id] = menu.name || menu.id;
         return labels;
       }, {});
+    if (fieldSchema["x-options"] === "screens")
+      return {
+        "": I18n.tr("First screen"),
+        "*": I18n.tr("All monitors")
+      };
     if (fieldSchema["x-options"] === "notes")
       return {
         "": I18n.tr("Last opened")
@@ -147,7 +152,7 @@ Loader {
       stepSize: root.fieldSchema.multipleOf ?? 1
       headerInset: root.headerInset
       unit: root.fieldSchema["x-unit"] ?? ""
-      mode: root.form.numberMode || (root.fieldSchema["x-control"] ?? "auto")
+      mode: root.form?.numberMode || (root.fieldSchema["x-control"] ?? "auto")
       onCommitted: value => root.commit(value)
     }
   }
@@ -246,6 +251,8 @@ Loader {
     SchemaTextField {
       label: root.label
       description: root.description
+      suggestions: SettingsManager.suggestionsFor(root.fieldSchema)
+      commaList: true
       currentConfigValue: (root.current ?? []).join(", ")
       onValueChanged: root.commit(value.split(",").map(v => v.trim()).filter(v => v !== ""))
     }

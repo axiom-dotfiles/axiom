@@ -19,6 +19,7 @@ BaseWidget {
   property bool showIcon: true
   property real spacing: 6
   property color foregroundColor: Theme.background
+  property int fontSize: Appearance.fontSize
 
   readonly property bool _hasIcon: showIcon && icon !== ""
   readonly property var _iconLines: icon.split("\n")
@@ -60,7 +61,7 @@ BaseWidget {
           x: Math.round((iconLabel.width - width) / 2)
           textColor: root.foregroundColor
           text: root._iconLines[index] ?? ""
-          font.pixelSize: Appearance.fontSize * root.iconScale
+          font.pixelSize: root.fontSize * root.iconScale
         }
       }
     }
@@ -84,7 +85,7 @@ BaseWidget {
         text: root.displayText
         elide: Text.ElideRight
         font.family: Appearance.fontFamily
-        font.pixelSize: Appearance.fontSize * root.textScale
+        font.pixelSize: root.fontSize * root.textScale
       }
     }
   }

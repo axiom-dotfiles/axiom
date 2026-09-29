@@ -203,7 +203,7 @@ Item {
     z: 10
     width: ghostRow.implicitWidth + Widget.padding * 2
     height: Widget.height + Widget.padding / 2
-    radius: Appearance.borderRadius
+    radius: Widget.radius
     color: root.hoverTarget && !root.hoverValid ? Theme.error : Theme.accent
     opacity: 0.92
 

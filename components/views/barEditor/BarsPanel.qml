@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
 import qs.config
 import qs.services
 import qs.components.reusable
@@ -27,11 +28,11 @@ Item {
       },
       {
         "title": "Size",
-        "keys": ["widgetSize", "padding", "spacing"]
+        "keys": BarManager.sizeKeys
       },
       {
         "title": "Style",
-        "keys": ["background", "pillPadding", "pillMerge"]
+        "keys": BarManager.styleOnlyKeys
       },
       {
         "title": "Behaviour",
@@ -122,6 +123,26 @@ Item {
               Layout.fillWidth: true
             }
 
+            // One copy per monitor
+            StyledIcon {
+              id: everyMonitor
+              visible: entry.entryBar.monitor === "*"
+              text: "desktop_windows"
+              textColor: entry.selected ? Theme.background : Theme.foreground
+              opacity: 0.7
+
+              HoverHandler {
+                id: everyMonitorHover
+              }
+              LazyLoader {
+                active: everyMonitorHover.hovered
+                StyledToolTip {
+                  target: everyMonitor
+                  text: I18n.tr("On every monitor")
+                }
+              }
+            }
+
             // Unsaved edits to this bar
             Rectangle {
               visible: BarManager.barChanged(entry.index)
@@ -129,6 +150,42 @@ Item {
               implicitHeight: 8
               radius: 4
               color: entry.selected ? Theme.background : Theme.accent
+            }
+
+            // Copy this bar's look, then paste it onto others
+            SquareIconButton {
+              readonly property bool source: BarManager.copiedStyle?.from === entry.entryBar.id
+              size: Widget.height - 6
+              iconText: "format_paint"
+              iconColor: entry.selected ? Theme.background : (source ? Theme.accent : Theme.foreground)
+              backgroundColor: "transparent"
+              hoverColor: entry.selected ? Qt.darker(Theme.accent, 1.15) : Theme.backgroundAlt
+              opacity: source || entry.selected || entryArea.containsMouse ? 1 : 0.35
+              tooltipText: I18n.tr("Copy style")
+              onClicked: BarManager.copyStyle(entry.index)
+            }
+
+            SquareIconButton {
+              visible: !!BarManager.copiedStyle && BarManager.copiedStyle.from !== entry.entryBar.id
+              size: Widget.height - 6
+              iconText: "content_paste"
+              iconColor: entry.selected ? Theme.background : Theme.foreground
+              backgroundColor: "transparent"
+              hoverColor: entry.selected ? Qt.darker(Theme.accent, 1.15) : Theme.backgroundAlt
+              opacity: entry.selected || entryArea.containsMouse ? 1 : 0.6
+              tooltipText: I18n.tr("Paste style from {0}", BarManager.copiedStyle?.from ?? "")
+              onClicked: BarManager.pasteStyle(entry.index)
+            }
+
+            SquareIconButton {
+              size: Widget.height - 6
+              iconText: "content_copy"
+              iconColor: entry.selected ? Theme.background : Theme.foreground
+              backgroundColor: "transparent"
+              hoverColor: entry.selected ? Qt.darker(Theme.accent, 1.15) : Theme.backgroundAlt
+              opacity: entry.selected || entryArea.containsMouse ? 1 : 0.35
+              tooltipText: I18n.tr("Copy this bar")
+              onClicked: BarManager.duplicateBar(entry.index)
             }
 
             // The primary bar is the first; the star makes another one it
@@ -178,6 +235,38 @@ Item {
           hoverEnabled: true
           cursorShape: Qt.PointingHandCursor
           onClicked: BarManager.addBar()
+        }
+      }
+
+      StyledContainer {
+        visible: !!BarManager.copiedStyle
+        Layout.fillWidth: true
+        Layout.preferredHeight: Widget.height
+        Layout.bottomMargin: Widget.spacing
+        backgroundColor: pasteAllArea.containsMouse ? Theme.backgroundHighlight : "transparent"
+        borderColor: Theme.border
+        borderWidth: 1
+
+        RowLayout {
+          anchors.centerIn: parent
+          spacing: Widget.spacing
+
+          StyledIcon {
+            text: "format_paint"
+            opacity: pasteAllArea.containsMouse ? 1 : 0.7
+          }
+          StyledText {
+            text: I18n.tr("Paste style to all bars")
+            opacity: pasteAllArea.containsMouse ? 1 : 0.7
+          }
+        }
+
+        MouseArea {
+          id: pasteAllArea
+          anchors.fill: parent
+          hoverEnabled: true
+          cursorShape: Qt.PointingHandCursor
+          onClicked: BarManager.pasteStyleToAll()
         }
       }
     }

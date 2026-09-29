@@ -4,8 +4,6 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Hyprland
 
-import qs.config
-
 // Active xkb layout of the main keyboard. Read from `hyprctl devices` once,
 // then again whenever Hyprland reports a layout switch (no polling). Left
 // click cycles to the next layout, right click to the previous one.
@@ -22,7 +20,7 @@ BarIconWidget {
   text: properties.format === "full" ? keymapName : (layouts[layoutIndex] ?? "").toUpperCase()
   showIcon: !hidden
   showText: !hidden
-  padding: hidden ? 0 : Widget.padding
+  padding: hidden ? 0 : root.barConfig.widgetPadding
 
   opacity: mouseArea.pressed ? 0.8 : 1
 

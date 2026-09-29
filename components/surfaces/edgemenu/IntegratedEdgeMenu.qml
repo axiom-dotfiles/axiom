@@ -13,8 +13,8 @@ import qs.components.hosts.popout
 // border, bars and windows move inwards while it's open. The zone is set
 // once when it opens (windows retile in one step), then the strip slides
 // in; closing slides it out before the zone goes. With `frame` on, a
-// rounded box runs the strip's whole length (`margin` in from its edges)
-// and the modules sit in it, `padding` in from its stroke.
+// rounded box runs the strip's whole length (its stroke ending `margin` in
+// from its edges) and the modules sit in it, `padding` in from its stroke.
 //
 // Open/close and hover-loss dismissal are PopoutWrapperBase's, as for the
 // popouts.
@@ -37,8 +37,10 @@ PopoutWrapperBase {
   readonly property bool framed: root.menu?.frame ?? true
   readonly property int padding: EdgeMenusConfig.paddingOf(root.menu)
   readonly property var colors: EdgeMenusConfig.colorsOf(root.menu)
-  // The frame's inset from the strip's edges (0 without one)
-  readonly property int frameInset: root.framed ? (root.menu?.margin ?? 0) : 0
+  // The frame's inset from the strip's edges (0 without one). `margin`
+  // reaches its stroke's inner edge, as the screen border's does, so at the
+  // screen margin the two strokes line up
+  readonly property int frameInset: root.framed ? Math.max(0, (root.menu?.margin ?? 0) - Appearance.borderWidth) : 0
   // From the strip's edges to the cards: the frame and its stroke, then
   // the padding
   readonly property int pad: root.frameInset + (root.framed ? Appearance.borderWidth : 0) + root.padding

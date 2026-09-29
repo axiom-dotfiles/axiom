@@ -25,6 +25,7 @@ Item {
 
   readonly property HyprlandMonitor monitor: Hyprland.monitorFor(root.screen)
   readonly property int activeId: root.monitor?.activeWorkspace?.id ?? -1
+  readonly property int base: HyprlandManager.workspaceBase(root.monitor)
 
   // A string, so the cells are only rebuilt when the set of workspaces
   // shown changes, not on every Hyprland event
@@ -86,7 +87,7 @@ Item {
     flow: root.isVertical ? Grid.TopToBottom : Grid.LeftToRight
     rows: root.isVertical ? Math.max(1, root.ids.length) : 1
     columns: root.isVertical ? 1 : Math.max(1, root.ids.length)
-    spacing: Widget.spacing / 2
+    spacing: root.properties.spacing
 
     Repeater {
       model: root.ids.length
@@ -104,7 +105,7 @@ Item {
 
         width: root.isVertical ? root.barConfig.widgetSize : length
         height: root.isVertical ? length : root.barConfig.widgetSize
-        radius: Appearance.borderRadius
+        radius: root.barConfig.radius
         color: isActive ? root.activeColor : cellArea.containsMouse ? Theme.backgroundHighlight : occupied ? root.occupiedColor : root.emptyColor
 
         Image {
@@ -119,9 +120,9 @@ Item {
         StyledText {
           anchors.centerIn: parent
           visible: root.properties.labels === "numbers" && cell.iconPath === ""
-          text: cell.wsId
+          text: root.properties.relativeNumbers ? cell.wsId - root.base + 1 : cell.wsId
           textColor: cell.isActive || cell.occupied ? root.textColor : Theme.foreground
-          textSize: Appearance.fontSize - 1
+          textSize: root.barConfig.fontSize - 1
         }
 
         MouseArea {

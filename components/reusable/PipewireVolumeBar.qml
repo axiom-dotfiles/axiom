@@ -11,7 +11,12 @@ Item {
   signal visibilityChanged(real volume)
 
   // -- Public API --
-  property string targetApplication: ""
+  // Substrings of the app streams to control, in priority order: the bar
+  // shows the first matching stream (by the first app with one) and a
+  // change sets every matching stream
+  property var targetApps: []
+  // Instead the first stream that no excludedApps entry matches
+  property bool otherApps: false
   property var excludedApps: []
   property bool useSystemVolume: false
   property alias orientation: bar.orientation
@@ -30,8 +35,13 @@ Item {
   implicitWidth: bar.implicitWidth
   implicitHeight: bar.implicitHeight
 
-  property var _targetNode: null
-  property bool _suppressNextVisibility: false
+  // Every stream being controlled; _targetNode (the first) is the one shown
+  property var _targetNodes: []
+  readonly property var _targetNode: _targetNodes.length > 0 ? _targetNodes[0] : null
+  // The controlled streams' levels, so a change on any of them shows the
+  // bar; _nodeKey tells a level change from the set of streams changing
+  readonly property string _levels: _targetNodes.map(n => n.audio ? `${n.audio.volume}:${n.audio.muted}` : "").join(",")
+  property string _nodeKey: ""
 
   // All candidate audio-stream nodes, kept persistently bound so their
   // .properties are populated (and stay populated) well before we need
@@ -39,7 +49,7 @@ Item {
   readonly property var _audioStreams: Pipewire.nodes.values.filter(n => n.isStream && n.audio)
 
   PwObjectTracker {
-    objects: root._audioStreams.concat([root._targetNode])
+    objects: root._audioStreams.concat(root._targetNodes)
   }
 
   // Re-run the search whenever any individual candidate node finishes
@@ -69,13 +79,18 @@ Item {
     isMuted: root.isMuted
     enabled: root.nodeFound || root.useSystemVolume
     onVolumeChanged: root.setVolume(newVolume)
-    onVolumeLevelChanged: {
-      if (root._suppressNextVisibility) {
-        root._suppressNextVisibility = false;
-        return;
-      }
+  }
+
+  onVolumeChanged: {
+    if (root.useSystemVolume)
       root.visibilityChanged(root.volume);
-    }
+  }
+
+  on_LevelsChanged: {
+    const key = root._keyOf(root._targetNodes);
+    if (key === root._nodeKey)
+      root.visibilityChanged(root.volume);
+    root._nodeKey = key;
   }
 
   function setVolume(newVolume) {
@@ -84,9 +99,10 @@ Item {
       AudioManager.setVolume(clamped);
       return;
     }
-    if (nodeFound) {
-      _targetNode.audio.volume = clamped;
-    }
+    _targetNodes.forEach(n => {
+      if (n.ready && n.audio)
+        n.audio.volume = clamped;
+    });
   }
 
   function toggleMute() {
@@ -94,13 +110,21 @@ Item {
       AudioManager.toggleMute();
       return;
     }
-    if (nodeFound) {
-      _targetNode.audio.muted = !_targetNode.audio.muted;
-    }
+    if (!nodeFound)
+      return;
+    const muted = !_targetNode.audio.muted;
+    _targetNodes.forEach(n => {
+      if (n.ready && n.audio)
+        n.audio.muted = muted;
+    });
   }
 
   // Config changes (a reload, another saved config) pick the stream again
-  onTargetApplicationChanged: _updateTargetNode()
+  onTargetAppsChanged: _updateTargetNode()
+  onOtherAppsChanged: {
+    if (Pipewire.ready)
+      _updateTargetNode();
+  }
   onExcludedAppsChanged: {
     if (Pipewire.ready)
       _updateTargetNode();
@@ -139,62 +163,48 @@ Item {
     }
   }
 
-  function _setTargetNode(n) {
-    if (_targetNode === n)
+  function _keyOf(nodes) {
+    return nodes.map(n => n.id).join(",");
+  }
+
+  function _setTargetNodes(nodes) {
+    const key = _keyOf(nodes);
+    if (key === _keyOf(_targetNodes))
       return;
-    _suppressNextVisibility = true;
-    _targetNode = n;
+    // on_LevelsChanged sees the new key and doesn't count this as a change;
+    // set it again in case the levels read the same
+    _targetNodes = nodes;
+    _nodeKey = key;
   }
 
   function _updateTargetNode() {
-    if (useSystemVolume || targetApplication === "") {
-      if (_targetNode !== null)
-        _setTargetNode(null);
+    const apps = (targetApps ?? []).map(a => a.toLowerCase()).filter(a => a !== "");
+    if (useSystemVolume || (!otherApps && apps.length === 0)) {
+      _setTargetNodes([]);
       return;
     }
-    const nodes = Pipewire.nodes.values;
-    const searchString = targetApplication.toLowerCase();
+    const streams = Pipewire.nodes.values.filter(n => n.isStream && n.audio && n.ready).map(n => ({
+          node: n,
+          binary: n.properties["application.process.binary"]?.toLowerCase() ?? "",
+          name: n.properties["application.name"]?.toLowerCase() ?? "",
+          nickname: n.nickname?.toLowerCase() ?? ""
+        }));
 
-    if (searchString === "master") {
-      const excluded = (root.excludedApps || []).map(a => a.toLowerCase());
-      for (let i = 0; i < nodes.length; ++i) {
-        const n = nodes[i];
-        if (!n.isStream || !n.audio || !n.ready) {
-          continue;
-        }
-        const appBinary = n.properties["application.process.binary"]?.toLowerCase();
-        const appName = n.properties["application.name"]?.toLowerCase();
-        if (!appBinary && !appName) {
-          continue;
-        }
-        const isExcluded = excluded.some(ex => (appBinary && appBinary.includes(ex)) || (appName && appName.includes(ex)));
-        if (!isExcluded) {
-          root._setTargetNode(n);
-          return;
-        }
-      }
-      // No eligible "master" node found (yet) - fall through so we still
-      // clear a stale target below instead of silently keeping an old one.
-    } else {
-      for (let i = 0; i < nodes.length; ++i) {
-        const n = nodes[i];
-        if (!n.isStream || !n.audio || !n.ready) {
-          continue;
-        }
-        const appBinary = n.properties["application.process.binary"]?.toLowerCase();
-        const appName = n.properties["application.name"]?.toLowerCase();
-        const appNickname = n.nickname?.toLowerCase();
-        if ((appBinary && appBinary.includes(searchString)) || (appName && appName.includes(searchString)) || (appNickname && appNickname.includes(searchString))) {
-          console.log("[PipewireVolumeBar] Found target node for", targetApplication, "->", appBinary || appName || appNickname);
-          root._setTargetNode(n);
-          return;
-        }
-      }
+    if (otherApps) {
+      const excluded = (excludedApps ?? []).map(a => a.toLowerCase()).filter(a => a !== "");
+      const other = streams.find(s => (s.binary || s.name) && !excluded.some(ex => s.binary.includes(ex) || s.name.includes(ex)));
+      _setTargetNodes(other ? [other.node] : []);
+      return;
     }
 
-    if (_targetNode !== null) {
-      console.log("[PipewireVolumeBar] Lost target node for", targetApplication);
-      root._setTargetNode(null);
+    // By app, in the listed order, so the first listed app's stream is shown
+    const matched = [];
+    for (const app of apps) {
+      for (const s of streams) {
+        if (!matched.includes(s.node) && (s.binary.includes(app) || s.name.includes(app) || s.nickname.includes(app)))
+          matched.push(s.node);
+      }
     }
+    _setTargetNodes(matched);
   }
 }

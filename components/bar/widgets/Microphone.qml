@@ -20,7 +20,7 @@ BarIconWidget {
   text: `${Math.round(AudioManager.sourceVolume * 100)}%`
   showIcon: !hidden
   showText: properties.showPercentage && !hidden
-  padding: hidden ? 0 : Widget.padding
+  padding: hidden ? 0 : root.barConfig.widgetPadding
 
   backgroundColor: Theme.resolveColor(AudioManager.sourceMuted ? properties.mutedColor : AudioManager.micInUse ? properties.activeColor : properties.backgroundColor)
   opacity: mouseArea.pressed ? 0.8 : 1

@@ -40,7 +40,7 @@ Item {
     anchors.fill: parent
     // Just outside the cell, well inside the space between cells
     anchors.margins: -Math.min(3, OverlayConfig.cardSpacing * root.scaleFactor / 3)
-    radius: Appearance.borderRadius + 2
+    radius: Widget.radius + 2
     color: "transparent"
     visible: root.dragLayer.editor.isCellSelected(root.column, root.cell)
     border.color: Theme.accent
@@ -76,7 +76,7 @@ Item {
     z: 2
     width: Widget.height * 0.8
     height: width
-    radius: Appearance.borderRadius
+    radius: Widget.radius
     color: Theme.accent
 
     StyledIcon {
@@ -96,7 +96,7 @@ Item {
     z: 2
     width: gripRow.implicitWidth + 8
     height: Widget.height * 0.8
-    radius: Appearance.borderRadius
+    radius: Widget.radius
     color: root.selected ? Theme.accent : Theme.backgroundHighlight
     border.color: root.selected ? Theme.accent : Theme.border
     border.width: 1

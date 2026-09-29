@@ -25,7 +25,7 @@ Rectangle {
   property color borderHoverColor: component.borderColor
   property color borderPressColor: component.borderColor
   property int borderWidth: Appearance.borderWidth
-  property real borderRadius: Appearance.borderRadius
+  property real borderRadius: Widget.radius
 
   property string badgeText: ""
   property bool badgeVisible: component.badgeText !== ""
@@ -33,6 +33,13 @@ Rectangle {
   property color badgeTextColor: Theme.background
 
   // -- Implementation --
+  // A fully transparent state fades as the hover (else resting) color at
+  // alpha 0: fading from "transparent" (transparent black) flashes dark
+  // mid-animation
+  function _fadeable(c: color, hover: color, rest: color): color {
+    return c.a === 0 ? Qt.alpha(hover.a > 0 ? hover : rest, 0) : c;
+  }
+
   // UHH maybe having one button for layouts and not layouts is not the move
   Layout.fillHeight: true
   Layout.fillWidth: true
@@ -41,8 +48,8 @@ Rectangle {
   implicitWidth: Widget.height
   implicitHeight: Widget.height
 
-  color: mouseArea.pressed ? component.pressColor : (mouseArea.containsMouse ? component.hoverColor : component.backgroundColor)
-  border.color: mouseArea.pressed ? component.borderPressColor : (mouseArea.containsMouse ? component.borderHoverColor : component.borderColor)
+  color: component._fadeable(mouseArea.pressed ? component.pressColor : (mouseArea.containsMouse ? component.hoverColor : component.backgroundColor), component.hoverColor, component.backgroundColor)
+  border.color: component._fadeable(mouseArea.pressed ? component.borderPressColor : (mouseArea.containsMouse ? component.borderHoverColor : component.borderColor), component.borderHoverColor, component.borderColor)
   border.width: component.borderWidth
   radius: component.borderRadius
 

@@ -16,7 +16,7 @@ Rectangle {
   signal clicked
 
   implicitHeight: Widget.height + Widget.padding / 2
-  radius: Appearance.borderRadius
+  radius: Widget.radius
   color: area.containsMouse ? Theme.backgroundHighlight : Theme.background
   border.color: area.containsMouse ? Theme.accent : Theme.border
   border.width: 1

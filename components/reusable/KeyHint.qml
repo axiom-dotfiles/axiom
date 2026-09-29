@@ -15,7 +15,7 @@ Row {
     anchors.verticalCenter: parent.verticalCenter
     width: Math.max(height, keyText.implicitWidth + 8)
     height: keyText.implicitHeight + 4
-    radius: Appearance.borderRadius / 2
+    radius: Widget.radius / 2
     color: Theme.backgroundAlt
     border.color: Theme.border
     border.width: 1

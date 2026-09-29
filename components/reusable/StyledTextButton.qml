@@ -26,7 +26,7 @@ Rectangle {
   property color textHoverColor: Theme.background
   property color borderColor: Theme.border
   property int borderWidth: 0
-  property real borderRadius: Appearance.borderRadius
+  property real borderRadius: Widget.radius
 
   // -- Implementation --
   implicitWidth: content.implicitWidth + (textPadding * 2)

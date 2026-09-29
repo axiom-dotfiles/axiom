@@ -14,7 +14,7 @@ Item {
   property color color: Theme.backgroundAlt
   // 0-1: how dark it is drawn when it isn't the active workspace
   property real dim: 0.5
-  property real radius: Appearance.borderRadius
+  property real radius: Widget.radius
   // The monitor's active workspace
   property bool current: false
   property bool hovered: false

@@ -43,8 +43,8 @@ Item {
   Rectangle {
     id: background
     anchors.fill: parent
-    radius: Appearance.borderRadius
-    color: component.isMuted ? (Theme.backgroundHighlight || Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.2)) : "transparent"
+    radius: Widget.radius
+    color: component.isMuted ? (Theme.backgroundHighlight || Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.2)) : Qt.alpha(Theme.backgroundHighlight, 0)
 
     Behavior on color {
       ColorAnimation {
@@ -75,7 +75,7 @@ Item {
       implicitWidth: component.orientation === Qt.Vertical ? 12 : 120
       implicitHeight: component.orientation === Qt.Vertical ? 120 : 12
 
-      radius: Appearance.borderRadius
+      radius: Widget.radius
       color: Qt.rgba(Theme.foreground.r, Theme.foreground.g, Theme.foreground.b, 0.2)
 
       Rectangle {
@@ -88,7 +88,7 @@ Item {
         width: component.orientation === Qt.Horizontal ? parent.width * component.volumeLevel : parent.width
         height: component.orientation === Qt.Vertical ? parent.height * component.volumeLevel : parent.height
 
-        radius: Appearance.borderRadius
+        radius: Widget.radius
         color: component.isMuted ? Qt.rgba(Theme.foreground.r, Theme.foreground.g, Theme.foreground.b, 0.4) : Theme.accent
 
         Behavior on height {
