@@ -47,7 +47,7 @@ Card {
         y: grid.tileY(index)
         width: grid.tileWidth
         height: grid.tileHeight
-        radius: Appearance.borderRadius
+        radius: Widget.radius
         color: tile.active ? Theme.accent : tileArea.containsMouse ? Theme.backgroundHighlight : Theme.backgroundAlt
         border.color: tile.active ? Theme.accent : Theme.border
         border.width: Appearance.borderWidth

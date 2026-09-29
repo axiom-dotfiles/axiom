@@ -122,7 +122,7 @@ ColumnLayout {
             width: Appearance.fontSize * 7
             // Room for the tallest layout, so the tiles line up
             height: thumb.step * 4 + layoutName.implicitHeight + Widget.padding * 2 + 4
-            radius: Appearance.borderRadius
+            radius: Widget.radius
             color: layoutArea.containsMouse ? Theme.backgroundHighlight : Theme.background
             border.color: layoutArea.containsMouse ? Theme.accent : Theme.border
             border.width: 1

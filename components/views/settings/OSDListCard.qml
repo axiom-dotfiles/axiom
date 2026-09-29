@@ -243,7 +243,7 @@ StyledContainer {
         color: Theme.background
         border.color: Theme.border
         border.width: Appearance.borderWidth
-        radius: Appearance.borderRadius / 2
+        radius: Widget.radius / 2
 
         Repeater {
           model: root.presets

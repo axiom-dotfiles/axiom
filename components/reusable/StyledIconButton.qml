@@ -24,7 +24,7 @@ ToolButton {
   property color pressColor: Theme.backgroundAlt
   property color borderColor: "transparent"
   property int borderWidth: Appearance.borderWidth
-  property real borderRadius: Appearance.borderRadius
+  property real borderRadius: Widget.radius
 
   // -- Implementation --
   Layout.fillHeight: true

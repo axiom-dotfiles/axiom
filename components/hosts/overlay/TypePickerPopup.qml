@@ -83,7 +83,7 @@ Popup {
   background: StyledContainer {
     backgroundColor: Theme.backgroundAlt
     borderColor: Theme.border
-    borderRadius: Appearance.borderRadius
+    borderRadius: Widget.radius
 
     layer.enabled: true
     // Qt 6 MultiEffect: Qt5Compat DropShadow fails to build its shader here
@@ -131,7 +131,7 @@ Popup {
 
         width: ListView.view.width
         height: Widget.height
-        radius: Appearance.borderRadius
+        radius: Widget.radius
         color: index === root.highlighted ? Theme.backgroundHighlight : "transparent"
 
         RowLayout {

@@ -23,5 +23,5 @@ Rectangle {
   color: Theme.backgroundAlt
   border.color: "transparent"
   border.width: Appearance.borderWidth
-  radius: Appearance.borderRadius
+  radius: Widget.radius
 }

@@ -49,7 +49,7 @@ Rectangle {
 
   implicitHeight: Math.min(Widget.height + listColumn.implicitHeight + Widget.spacing * 3, root.maxHeight)
   color: Theme.background
-  radius: Appearance.borderRadius
+  radius: Widget.radius
   border.color: Theme.border
   border.width: 1
 
@@ -121,7 +121,7 @@ Rectangle {
                 readonly property bool editing: root.renaming === conversation.id
                 width: row.width
                 implicitHeight: Math.max(Widget.height, itemRowLayout.implicitHeight + Widget.spacing)
-                radius: Appearance.borderRadius / 2
+                radius: Widget.radius / 2
                 color: current ? Qt.alpha(Theme.accent, 0.16) : itemHover.hovered ? Theme.backgroundHighlight : "transparent"
 
                 HoverHandler {

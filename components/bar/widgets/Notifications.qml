@@ -23,6 +23,8 @@ Item {
   StyledRectButton {
     id: button
     anchors.fill: parent
+    borderRadius: root.barConfig.radius
+    iconSize: root.barConfig.fontSize
 
     iconText: NotificationManager.dnd ? "notifications_off" : "notifications"
     iconColor: Theme.resolveColor(NotificationManager.dnd ? root.properties.dndColor : root.properties.foregroundColor)

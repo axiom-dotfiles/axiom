@@ -90,7 +90,7 @@ ColumnLayout {
         background: StyledContainer {
           backgroundColor: Theme.backgroundAlt
           borderColor: Theme.border
-          borderRadius: Appearance.borderRadius
+          borderRadius: Widget.radius
 
           layer.enabled: true
           // Qt 6 MultiEffect: Qt5Compat DropShadow fails to build its shader here
@@ -121,7 +121,7 @@ ColumnLayout {
 
         width: ListView.view.width
         height: Widget.height
-        radius: Appearance.borderRadius
+        radius: Widget.radius
         color: root.swatches ? swatchColor : (delegateArea.containsMouse ? Theme.backgroundHighlight : "transparent")
         border.width: root.swatches && (delegateArea.containsMouse || modelData === root.currentValue) ? Appearance.borderWidth * 2 : 0
         border.color: Utils.getContrastColor(swatchColor)

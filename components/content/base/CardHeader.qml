@@ -78,7 +78,7 @@ Rectangle {
     Layout.preferredWidth: Math.max(button.minWidth, buttonRow.implicitWidth + Widget.padding * 2)
     Layout.preferredHeight: Math.max(Widget.height - 4, buttonRow.implicitHeight + 8)
     color: button.fillColor
-    radius: Appearance.borderRadius
+    radius: Widget.radius
     border.color: button.strokeColor
     border.width: 1
     opacity: button.enabled ? 1 : 0.4

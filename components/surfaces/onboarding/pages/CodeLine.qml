@@ -14,7 +14,7 @@ Rectangle {
 
   Layout.fillWidth: true
   implicitHeight: row.implicitHeight + Widget.padding
-  radius: Appearance.borderRadius
+  radius: Widget.radius
   color: Theme.backgroundAlt
   border.color: Theme.border
   border.width: Appearance.borderWidth

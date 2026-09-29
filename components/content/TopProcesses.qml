@@ -106,7 +106,7 @@ Card {
               })
             width: parent.width
             height: root.rowHeight
-            radius: Appearance.borderRadius
+            radius: Widget.radius
             color: rowHover.hovered ? Theme.backgroundHighlight : "transparent"
 
             HoverHandler {

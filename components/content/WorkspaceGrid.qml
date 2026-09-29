@@ -35,7 +35,7 @@ Panel {
   }
   readonly property real cellSpacing: root.options.spacing ?? Widget.spacing / 2
   // The bar's, so the cells match its row
-  readonly property real cellRadius: wrapper?.currentData?.radius ?? Appearance.borderRadius
+  readonly property real cellRadius: wrapper?.currentData?.radius ?? Widget.radius
   readonly property int cellFontSize: wrapper?.currentData?.fontSize ?? Appearance.fontSize
 
   implicitWidth: grid.implicitWidth + margins * 2

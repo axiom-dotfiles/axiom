@@ -32,7 +32,7 @@ Item {
     anchors.fill: parent
     anchors.leftMargin: 6
     anchors.rightMargin: 6
-    radius: Appearance.borderRadius
+    radius: Widget.radius
     color: root.current ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.14) : area.containsMouse && root.pointerActive ? Theme.backgroundHighlight : "transparent"
     Behavior on color {
       ColorAnimation {
@@ -91,7 +91,7 @@ Item {
       Rectangle {
         anchors.fill: parent
         visible: !root._image
-        radius: Appearance.borderRadius
+        radius: Widget.radius
         color: root._emoji ? "transparent" : root.current ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.18) : Theme.backgroundAlt
         Behavior on color {
           ColorAnimation {
@@ -161,7 +161,7 @@ Item {
       visible: hint.text !== ""
       implicitWidth: hint.implicitWidth + 14
       implicitHeight: hint.implicitHeight + 6
-      radius: Appearance.borderRadius
+      radius: Widget.radius
       color: root.modelData.armed ? Theme.error : Theme.backgroundAlt
 
       StyledText {

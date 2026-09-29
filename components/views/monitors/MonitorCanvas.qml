@@ -110,7 +110,7 @@ ColumnLayout {
     Layout.fillHeight: true
     Layout.minimumHeight: Widget.height * 6
     color: Theme.backgroundAlt
-    radius: Appearance.borderRadius
+    radius: Widget.radius
     border.color: Theme.border
     border.width: Appearance.borderWidth
     clip: true
@@ -146,7 +146,7 @@ ColumnLayout {
         width: rect.width * root.view.scale
         height: rect.height * root.view.scale
         z: dragging ? 2 : selected ? 1 : 0
-        radius: Appearance.borderRadius
+        radius: Widget.radius
         color: selected ? Qt.alpha(Theme.accent, 0.25) : Theme.backgroundHighlight
         border.color: selected ? Theme.accent : Theme.border
         border.width: Appearance.borderWidth * (selected ? 2 : 1)

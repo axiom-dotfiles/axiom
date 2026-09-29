@@ -24,7 +24,7 @@ Rectangle {
 
   Layout.fillWidth: true
   implicitHeight: row.implicitHeight + Widget.padding * 1.5
-  radius: Appearance.borderRadius
+  radius: Widget.radius
   color: Qt.alpha(root.toneColor, 0.12)
   border.color: root.toneColor
   border.width: Appearance.borderWidth

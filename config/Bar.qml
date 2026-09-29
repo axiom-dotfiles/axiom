@@ -85,9 +85,9 @@ QtObject {
       "widgetPadding": barConfig.widgetPadding,
       "widgetSpacing": barConfig.widgetSpacing,
       "fontSize": barConfig.overrideFontSize ? barConfig.fontSize : Appearance.fontSize,
-      // Widget chips only: pills and fillets keep Appearance's, to meet the
-      // border
-      "radius": barConfig.overrideRadius ? barConfig.widgetRadius : Appearance.borderRadius,
+      // Widget chips only, else the interior radius: pills and fillets keep
+      // Appearance's, to meet the border
+      "radius": barConfig.overrideRadius ? barConfig.widgetRadius : Widget.radius,
       "lockCenter": barConfig.lockCenter,
       "location": loc,
       "reserveSpace": barConfig.reserveSpace,

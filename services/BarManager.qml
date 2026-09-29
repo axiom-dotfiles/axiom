@@ -31,6 +31,15 @@ QtObject {
 
   readonly property var zones: ["left", "leftCenter", "center", "rightCenter", "right"]
 
+  // A bar's look: its Size and Style settings (BarsPanel groups them from
+  // these), not its identity, placement, behaviour or widgets
+  readonly property var sizeKeys: ["widgetSize", "padding", "spacing", "widgetPadding", "widgetSpacing"]
+  readonly property var styleOnlyKeys: ["background", "pillPadding", "pillMerge", "overrideFontSize", "fontSize", "overrideRadius", "widgetRadius"]
+  readonly property var styleKeys: sizeKeys.concat(styleOnlyKeys)
+  // The style copied with copyStyle(): { from: id, values }, or null.
+  // Never saved.
+  property var copiedStyle: null
+
   onSelectedBarIndexChanged: clearSelection()
 
   // Keeps the selected bar and widget where they still exist
@@ -126,6 +135,39 @@ QtObject {
     }
     root.localConfig.splice(index + 1, 0, copy);
     root.selectedBarIndex = index + 1;
+    applyChanges();
+  }
+
+  function copyStyle(index) {
+    const bar = root.localConfig?.[index];
+    if (!bar)
+      return;
+    root.copiedStyle = {
+      "from": bar.id,
+      "values": _clone(root.styleKeys.reduce((out, key) => {
+        if (key in bar)
+          out[key] = bar[key];
+        return out;
+      }, {}))
+    };
+  }
+
+  function _pasteStyleOnto(bar) {
+    Object.assign(bar, _clone(root.copiedStyle.values));
+  }
+
+  function pasteStyle(index) {
+    const bar = root.localConfig?.[index];
+    if (!bar || !root.copiedStyle)
+      return;
+    _pasteStyleOnto(bar);
+    applyChanges();
+  }
+
+  function pasteStyleToAll() {
+    if (!root.copiedStyle)
+      return;
+    root.localConfig.forEach(bar => _pasteStyleOnto(bar));
     applyChanges();
   }
 

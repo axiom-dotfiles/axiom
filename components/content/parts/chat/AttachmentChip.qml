@@ -15,7 +15,7 @@ Rectangle {
 
   implicitWidth: root.size
   implicitHeight: root.size
-  radius: Appearance.borderRadius / 2
+  radius: Widget.radius / 2
   color: Theme.backgroundHighlight
   border.color: Theme.border
   border.width: 1

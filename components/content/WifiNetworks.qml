@@ -88,7 +88,7 @@ Panel {
 
     Layout.fillWidth: true
     implicitHeight: root.rowHeight + (asking ? passwordRow.implicitHeight + Widget.spacing : 0)
-    radius: Appearance.borderRadius
+    radius: Widget.radius
     color: connected || asking ? Theme.backgroundHighlight : rowHover.hovered ? Qt.rgba(Theme.backgroundHighlight.r, Theme.backgroundHighlight.g, Theme.backgroundHighlight.b, 0.5) : "transparent"
     clip: true
 

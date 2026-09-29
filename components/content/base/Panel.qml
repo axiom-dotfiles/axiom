@@ -58,7 +58,7 @@ Item {
   readonly property real bleed: root.embedded ? 0 : PopoutConfig.padding
   // The box's corner radius, for backgrounds that follow its shape (in a
   // popout, the inside of the surface's stroke)
-  readonly property real boxRadius: root.embedded ? Appearance.borderRadius : Math.max(0, Appearance.borderRadius - Appearance.borderWidth)
+  readonly property real boxRadius: root.embedded ? Widget.radius : Math.max(0, Appearance.borderRadius - Appearance.borderWidth)
 
   // Popout only: the host's surface already pads it (Popouts.padding)
   property int margins: 0

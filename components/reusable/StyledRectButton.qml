@@ -25,7 +25,7 @@ Rectangle {
   property color borderHoverColor: component.borderColor
   property color borderPressColor: component.borderColor
   property int borderWidth: Appearance.borderWidth
-  property real borderRadius: Appearance.borderRadius
+  property real borderRadius: Widget.radius
 
   property string badgeText: ""
   property bool badgeVisible: component.badgeText !== ""

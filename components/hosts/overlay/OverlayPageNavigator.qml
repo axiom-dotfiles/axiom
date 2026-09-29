@@ -26,7 +26,7 @@ Rectangle {
 
   readonly property real inset: 6
   readonly property real controlHeight: root.height - root.inset * 2
-  readonly property real innerRadius: Math.max(0, Appearance.borderRadius - root.inset / 2)
+  readonly property real innerRadius: Math.max(0, Widget.radius - root.inset / 2)
   readonly property real tabPadding: Widget.padding * 1.5
   readonly property real iconSize: Appearance.fontSize * 1.4
   readonly property real labelSpacing: Widget.spacing / 2
@@ -38,7 +38,7 @@ Rectangle {
 
   width: row.implicitWidth + root.inset * 2
   height: Math.round(Widget.height * 1.5)
-  radius: Appearance.borderRadius
+  radius: Widget.radius
   color: Theme.backgroundAlt
   border.color: Theme.foreground
   border.width: Appearance.borderWidth

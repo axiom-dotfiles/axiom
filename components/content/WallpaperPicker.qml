@@ -123,7 +123,7 @@ Card {
           Rectangle {
             Layout.fillWidth: true
             Layout.preferredHeight: width * 10 / 16
-            radius: Appearance.borderRadius
+            radius: Widget.radius
             color: Theme.backgroundHighlight
             border.color: slot.selected ? Theme.accent : slotArea.containsMouse ? Theme.foreground : Theme.border
             border.width: slot.selected ? 3 : 2
@@ -192,7 +192,7 @@ Card {
       visible: root.tall && !root.variantMode
       Layout.fillWidth: true
       Layout.preferredHeight: width * 10 / 16
-      radius: Appearance.borderRadius
+      radius: Widget.radius
       color: Theme.backgroundHighlight
       border.color: Theme.accent
       border.width: 2
@@ -259,7 +259,7 @@ Card {
           Rectangle {
             anchors.fill: parent
             anchors.margins: Widget.spacing / 2
-            radius: Appearance.borderRadius
+            radius: Widget.radius
             color: Theme.backgroundAlt
             border.color: thumb.current ? Theme.accent : thumbArea.containsMouse ? Theme.foreground : "transparent"
             border.width: thumb.current ? 3 : 2

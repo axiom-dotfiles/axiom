@@ -59,7 +59,7 @@ Rectangle {
   Component.onCompleted: root.dragLayer.registerTarget(root)
   Component.onDestruction: root.dragLayer.unregisterTarget(root)
 
-  radius: Appearance.borderRadius
+  radius: Widget.radius
   color: root.module ? root.fill : (area.containsMouse ? Qt.alpha(Theme.accent, 0.08) : "transparent")
   border.color: root.hovered ? (root.dragLayer.hoverValid ? Theme.accent : Theme.error) : root.misfit ? Theme.error : root.selected ? Theme.accent : Theme.border
   border.width: root.hovered || root.selected || root.misfit ? Math.max(Appearance.borderWidth, 2) : Appearance.borderWidth

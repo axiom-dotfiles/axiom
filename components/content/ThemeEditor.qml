@@ -119,7 +119,7 @@ TitledCard {
 
     Layout.fillWidth: true
     Layout.preferredHeight: tileColumn.implicitHeight + Widget.padding * 2
-    radius: Appearance.borderRadius
+    radius: Widget.radius
     color: preview.background ?? Theme.backgroundAlt
     border.width: current ? Appearance.borderWidth * 2 + 1 : Appearance.borderWidth + 1
     border.color: current ? Theme.accent : tileArea.containsMouse ? Qt.alpha(Theme.foreground, 0.5) : Qt.alpha(Theme.border, 0.6)

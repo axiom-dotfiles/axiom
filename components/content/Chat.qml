@@ -130,7 +130,7 @@ Panel {
       Rectangle {
         visible: drop.containsDrag
         anchors.fill: parent
-        radius: Appearance.borderRadius
+        radius: Widget.radius
         color: Qt.alpha(Theme.accent, 0.12)
         border.color: Theme.accent
         border.width: 2

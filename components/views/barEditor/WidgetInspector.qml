@@ -68,7 +68,7 @@ Item {
         Rectangle {
           Layout.preferredWidth: Widget.height + 4
           Layout.preferredHeight: Widget.height + 4
-          radius: Appearance.borderRadius
+          radius: Widget.radius
           color: Theme.accent
 
           StyledIcon {

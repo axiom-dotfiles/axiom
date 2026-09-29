@@ -74,7 +74,7 @@ Panel {
   // The cover, rounded; a note when there's none
   component Art: Item {
     id: art
-    property real radius: Appearance.borderRadius
+    property real radius: Widget.radius
     Item {
       anchors.fill: parent
       layer.enabled: true

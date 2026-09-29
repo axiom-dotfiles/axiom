@@ -38,7 +38,7 @@ Rectangle {
   readonly property real miniScale: WorkspaceGeometry.fitScale(availableWidth - pad * 2, availableHeight - pad * 2, monitorW, monitorH, gap, columns, rows)
   readonly property real cellW: Math.floor(monitorW * miniScale)
   readonly property real cellH: Math.floor(monitorH * miniScale)
-  readonly property real cellRadius: Math.max(2, Appearance.borderRadius * 0.75)
+  readonly property real cellRadius: Math.max(2, Widget.radius * 0.75)
 
   // The windows on the board's workspaces: this monitor's in a grid or
   // perMonitor layout; in the standard layout workspaces are shared, so

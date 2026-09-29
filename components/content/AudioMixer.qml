@@ -214,7 +214,7 @@ Panel {
 
           Layout.fillWidth: true
           implicitHeight: deviceLayout.implicitHeight + Widget.spacing * 2
-          radius: Appearance.borderRadius
+          radius: Widget.radius
           color: selected ? Theme.backgroundHighlight : deviceMouse.containsMouse ? Qt.rgba(Theme.backgroundHighlight.r, Theme.backgroundHighlight.g, Theme.backgroundHighlight.b, 0.5) : "transparent"
 
           Behavior on color {

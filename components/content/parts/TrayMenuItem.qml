@@ -28,7 +28,7 @@ Rectangle {
   Layout.preferredHeight: menuItem.isSeparator ? 1 : itemHeight
   visible: true
   color: menuItemArea.containsMouse && menuItem.enabled && !menuItem.isSeparator ? Theme.backgroundHighlight : "transparent"
-  radius: Appearance.borderRadius
+  radius: Widget.radius
   opacity: menuItem.enabled ? 1.0 : 0.5
 
   // Main content row

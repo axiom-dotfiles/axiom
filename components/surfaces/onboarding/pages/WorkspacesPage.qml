@@ -68,7 +68,7 @@ OnboardingPage {
         readonly property int rows: root.layout === "grid" ? WorkspacesConfig.rows : 1
         width: root.cardWidth * 0.36
         height: width * 0.6
-        radius: Appearance.borderRadius / 2
+        radius: Widget.radius / 2
         color: Theme.backgroundAlt
         border.color: Theme.border
         border.width: Appearance.borderWidth

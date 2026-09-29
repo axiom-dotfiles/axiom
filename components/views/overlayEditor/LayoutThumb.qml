@@ -32,7 +32,7 @@ Item {
       y: rect[1] * root.step + root.gap / 2
       width: rect[2] * root.step - root.gap
       height: rect[3] * root.step - root.gap
-      radius: Math.min(Appearance.borderRadius / 2, 3)
+      radius: Math.min(Widget.radius / 2, 3)
       color: root.slotColor
       border.color: root.selected ? Theme.accent : Theme.border
       border.width: 1

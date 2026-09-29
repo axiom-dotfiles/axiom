@@ -34,6 +34,6 @@ Rectangle {
   color: bare ? "transparent" : Theme.background
   border.color: Theme.border
   border.width: bare ? 0 : Appearance.borderWidth
-  radius: Appearance.borderRadius
+  radius: Widget.radius
   clip: true
 }

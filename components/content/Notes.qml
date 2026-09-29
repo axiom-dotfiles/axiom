@@ -133,7 +133,7 @@ Card {
         visible: root.showHeader
         Layout.fillWidth: true
         Layout.preferredHeight: 28
-        radius: Appearance.borderRadius / 2
+        radius: Widget.radius / 2
         color: !root.locked && (root.browserOpen || chipHover.hovered) ? Theme.backgroundHighlight : "transparent"
 
         Behavior on color {

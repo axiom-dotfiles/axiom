@@ -12,7 +12,7 @@ Rectangle {
   property bool current: false
   // The cell's corner radius; the badge sits clear of its border (the
   // thicker, active one) and of the corner's curve
-  property real cornerRadius: Appearance.borderRadius
+  property real cornerRadius: Widget.radius
   readonly property real _edge: Appearance.borderWidth * 2 + 2
   // Its inset from the cell's corner (placed by OverviewGrid): past the
   // border along the edges, and far enough in that the pill's end circle

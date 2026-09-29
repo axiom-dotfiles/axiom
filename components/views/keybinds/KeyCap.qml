@@ -10,7 +10,7 @@ Rectangle {
 
   implicitHeight: Math.round(Widget.height * 0.75)
   implicitWidth: Math.max(implicitHeight, label.implicitWidth + Widget.padding)
-  radius: Appearance.borderRadius / 2
+  radius: Widget.radius / 2
   color: Theme.backgroundHighlight
 
   StyledText {

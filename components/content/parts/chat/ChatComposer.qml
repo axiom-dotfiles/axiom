@@ -35,7 +35,7 @@ ColumnLayout {
     backgroundColor: Theme.backgroundAlt
     borderColor: area.input.activeFocus ? Theme.accent : Theme.border
     borderWidth: 1
-    borderRadius: Appearance.borderRadius + 2
+    borderRadius: Widget.radius + 2
 
     Behavior on borderColor {
       ColorAnimation {
@@ -72,7 +72,7 @@ ColumnLayout {
           visible: ChatManager.attaching
           width: 56
           height: 56
-          radius: Appearance.borderRadius / 2
+          radius: Widget.radius / 2
           color: Theme.backgroundHighlight
 
           StyledIcon {

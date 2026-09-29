@@ -59,7 +59,7 @@ Item {
         Rectangle {
           Layout.preferredWidth: Widget.height + 4
           Layout.preferredHeight: Widget.height + 4
-          radius: Appearance.borderRadius
+          radius: Widget.radius
           color: root.cellSelected ? Theme.accent : Theme.backgroundAlt
 
           StyledIcon {
@@ -166,7 +166,7 @@ Item {
                   readonly property bool current: root.cell?.layout === choice.modelData
                   width: choiceThumb.step * 4 + Widget.padding
                   height: choiceThumb.step * 4 + Widget.padding
-                  radius: Appearance.borderRadius
+                  radius: Widget.radius
                   color: choice.current ? Qt.alpha(Theme.accent, 0.15) : (choiceArea.containsMouse ? Theme.backgroundHighlight : Theme.background)
                   border.color: choice.current || choiceArea.containsMouse ? Theme.accent : Theme.border
                   border.width: choice.current ? 2 : 1

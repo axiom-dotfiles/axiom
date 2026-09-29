@@ -25,7 +25,7 @@ Rectangle {
   // `anchor`: the + button, so the picker opens beside it
   signal addRequested(Item anchor)
 
-  radius: Appearance.borderRadius
+  radius: Widget.radius
   color: root.hovering ? Qt.alpha(Theme.accent, 0.1) : Theme.backgroundAlt
   border.color: root.hovering ? Theme.accent : "transparent"
   border.width: 1
@@ -114,7 +114,7 @@ Rectangle {
           width: list.width
           height: root.chipHeight
           y: Math.max(0, root.dragLayer.hoverIndex) * root.rowStep
-          radius: Appearance.borderRadius
+          radius: Widget.radius
           color: Qt.alpha(Theme.accent, 0.12)
           border.color: Theme.accent
           border.width: 1
