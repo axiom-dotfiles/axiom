@@ -12,7 +12,7 @@ import qs.components.forms
 OnboardingPage {
   id: root
 
-  readonly property string layout: ConfigManager.config.Workspaces.layout
+  readonly property string layout: WorkspacesConfig.layout
 
   title: I18n.tr("Workspaces")
   intro: I18n.tr("Workspaces are the desktops you switch between with Super + a number. The bar, the overview and the keybinds all follow the layout you pick here.")

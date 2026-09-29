@@ -44,7 +44,12 @@ BarIconWidget {
   // Runs until the terminal closes, then re-checks
   Process {
     id: upgrader
-    command: [root.properties.terminal, "-e", "bash", "-c", `${root.upgradeCommand}; echo; read -n 1 -s -r -p "Press any key to close"`]
+    command: {
+      const terminal = root.properties.terminal.trim() || Apps.terminal.trim();
+      const run = ["bash", "-c", `${root.upgradeCommand}; echo; read -n 1 -s -r -p "Press any key to close"`];
+      // xdg-terminal-exec takes the command itself, without -e
+      return terminal ? [terminal, "-e"].concat(run) : ["xdg-terminal-exec"].concat(run);
+    }
     onExited: UpdatesManager.refresh()
   }
 

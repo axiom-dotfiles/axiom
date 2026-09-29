@@ -102,6 +102,8 @@ QtObject {
 
   // The first entry in Bars is the primary bar. While the bar editor has
   // unsaved edits, the running bars show those.
+  // The Bars section as saved: no previews, "*" monitors unexpanded, locations as strings
+  readonly property var savedBars: ConfigManager.config.Bars
   readonly property var bars: Bar.expandBars(ConfigManager.previews.Bars ?? ConfigManager.config.Bars).map((bar, i) => Bar.enrichBarConfig(bar, i))
 
   // A bar on every monitor (`monitor: "*"`) becomes one entry per screen,

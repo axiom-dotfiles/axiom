@@ -1,7 +1,5 @@
 pragma ComponentBehavior: Bound
 import QtQuick
-import Quickshell
-import Quickshell.Io
 import qs.config
 import qs.services
 import qs.components.content.parts
@@ -10,7 +8,7 @@ import qs.components.content.base
 
 // A grid of action tiles: toggles, session actions and pin, in any mix.
 // Tiles that can't work here are hidden: night light (hyprsunset/wlsunset)
-// and power saver (powerprofilesctl) without their tool, pin outside an
+// and power saver (power-profiles-daemon) without their tool, pin outside an
 // edge menu. Log out, reboot and power off ask for a second click.
 // Names show on every tile or none ("auto": only when all fit whole),
 // always ("show", elided) or never ("hide").
@@ -20,9 +18,6 @@ import qs.components.content.base
 Card {
   id: root
 
-  // Found once: whether powerprofilesctl exists
-  property bool hasPowerProfiles: false
-  property string powerProfile: ""
   property string armed: ""
 
   readonly property bool inMenu: root.host?.kind === "edgeMenu" && !!root.host.id
@@ -64,7 +59,7 @@ Card {
       "powerSaver": {
         "icon": "eco",
         "label": I18n.tr("Power saver"),
-        "active": root.powerProfile === "power-saver"
+        "active": BatteryManager.powerSaver
       },
       "pin": {
         "icon": "push_pin",
@@ -100,7 +95,7 @@ Card {
     case "nightLight":
       return NightLightManager.available;
     case "powerSaver":
-      return root.hasPowerProfiles;
+      return BatteryManager.hasPowerProfiles;
     case "pin":
       return root.inMenu;
     default:
@@ -154,11 +149,7 @@ Card {
       NightLightManager.toggle();
       break;
     case "powerSaver":
-      {
-        const next = root.powerProfile === "power-saver" ? "balanced" : "power-saver";
-        Quickshell.execDetached(["powerprofilesctl", "set", next]);
-        root.powerProfile = next;
-      }
+      BatteryManager.setPowerSaver(!BatteryManager.powerSaver);
       break;
     case "pin":
       EdgeMenuManager.togglePinned(root.host.id);
@@ -170,22 +161,6 @@ Card {
     id: disarm
     interval: 3000
     onTriggered: root.armed = ""
-  }
-
-  Process {
-    running: root.actions.includes("powerSaver")
-    command: ["sh", "-c", 'command -v powerprofilesctl >/dev/null && echo "profile $(powerprofilesctl get)"; true']
-    stdout: StdioCollector {
-      onStreamFinished: {
-        for (const line of text.trim().split("\n")) {
-          const [key, value] = line.split(" ");
-          if (key === "profile") {
-            root.hasPowerProfiles = true;
-            root.powerProfile = value;
-          }
-        }
-      }
-    }
   }
 
   TileGrid {
