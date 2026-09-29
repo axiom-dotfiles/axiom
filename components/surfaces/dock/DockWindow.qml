@@ -137,18 +137,37 @@ Scope {
   // --- Showing and hiding ---
   readonly property bool fullscreen: HyprlandManager.hasFullscreen(root.screen?.name ?? "")
   readonly property bool hiddenByHand: !!DockManager.hidden[root.dock.id]
-  // Opened by hover (or a reveal), until the pointer has been gone for
-  // closeDelay
+  // Opened by the trigger (after openDelay), a reveal, or the pointer on
+  // the shown dock, until the pointer has been gone for closeDelay. Only
+  // `latched` opens it: resting on the trigger doesn't, or openDelay would
+  // be skipped, and a dock shown without latching would close at once.
   property bool latched: false
+  // Whether the pointer has been on it since it latched: a reveal nobody
+  // hovers (IPC, a bind) stays up a little longer than closeDelay
+  property bool _touched: false
   // Something on the dock is in use
   property int dragIndex: -1
   readonly property bool menuOpen: menu.active
-  readonly property bool pointerIn: hover.hovered || trigger.containsMouse || root.menuOpen || root.dragIndex >= 0
+  readonly property bool engaged: hover.hovered || root.menuOpen || root.dragIndex >= 0
+  // The pointer on the trigger while the dock is on screen (intellihide
+  // showing it, or sliding out) holds it at once: openDelay is only for
+  // opening a hidden dock
+  readonly property bool _triggerHold: trigger.containsMouse && root.shown > 0
+  readonly property bool _holding: root.engaged || root._triggerHold
+  on_HoldingChanged: {
+    if (root._holding) {
+      root.latched = true;
+      root._touched = true;
+    }
+  }
+  // Keeps a latched dock open; the trigger counts, so a pointer resting on
+  // the edge never lets it close
+  readonly property bool pointerIn: root.engaged || trigger.containsMouse
   readonly property bool obscured: root.mode === "intellihide" && DockManager.obscured(root.screen, root._restRect())
   readonly property bool wantShown: {
     if (root.mode === "always")
       return !root.hiddenByHand;
-    return root.latched || root.pointerIn || (root.mode === "intellihide" && !root.obscured);
+    return root.latched || root.engaged || (root.mode === "intellihide" && !root.obscured);
   }
   readonly property bool reserving: root.mode === "always" && root.dock.reserveSpace && !root.hiddenByHand && root.count > 0
 
@@ -171,7 +190,8 @@ Scope {
     return Qt.rect(reserved[0] + along, h - reserved[3] - across - root.thickness, root.restLength, root.thickness);
   }
 
-  function reveal() {
+  function reveal(byPointer) {
+    root._touched = !!byPointer || root.engaged;
     root.latched = true;
     closeTimer.restart();
   }
@@ -183,11 +203,17 @@ Scope {
 
   Timer {
     id: closeTimer
-    // A reveal nobody hovers stays up a little longer
-    interval: Math.max(root.dock.closeDelay, hover.hovered ? 0 : 1500)
+    interval: root._touched ? root.dock.closeDelay : Math.max(root.dock.closeDelay, 1500)
     running: root.latched && !root.pointerIn
-    onTriggered: root.latched = false
+    onTriggered: {
+      console.log("DOCKDBG closeTimer fired", interval);
+      root.latched = false;
+    }
   }
+
+  // DOCKDBG: temporary tracing
+  readonly property string _dbg: `hover=${hover.hovered} trig=${trigger.containsMouse} menu=${root.menuOpen} drag=${root.dragIndex} latched=${root.latched} touched=${root._touched} want=${root.wantShown} maskDepth=${inputArea.crossDepth}`
+  on_DbgChanged: console.log("DOCKDBG", root._dbg)
 
   Connections {
     target: DockManager
@@ -248,7 +274,7 @@ Scope {
     triggerWidth: root.dock.triggerSize
     triggerLength: root.restLength
     hoverDelay: root.dock.openDelay
-    onTriggered: root.reveal()
+    onTriggered: root.reveal(true)
   }
 
   PanelWindow {
@@ -272,11 +298,32 @@ Scope {
     onExclusiveZoneChanged: DockManager.refreshSoon()
 
     // What it takes off the work area (Hyprland counts the edge margin
-    // in), for the EdgePopouts that reach past it
+    // in), for the EdgePopouts and border corners that reach past it
     readonly property real reserved: window.visible && exclusiveZone > 0 ? exclusiveZone + root.edgeMargin : 0
-    onReservedChanged: DockManager.setZone(root.screen?.name ?? "", root._edgeName, root.dock.id, reserved)
-    Component.onCompleted: DockManager.setZone(root.screen?.name ?? "", root._edgeName, root.dock.id, reserved)
-    Component.onDestruction: DockManager.setZone(root.screen?.name ?? "", root._edgeName, root.dock.id, 0)
+    // Where it's reported. The zone set last is kept, so moving the dock to
+    // another edge (or renaming it) moves its zone instead of leaving the
+    // old one behind, and destruction clears it even once `dock` is gone.
+    readonly property var zoneKey: root.dock ? [root.screen?.name ?? "", root._edgeName, root.dock.id] : null
+    property var _zoneSet: null
+    function _publishZone() {
+      const key = window.zoneKey;
+      const old = window._zoneSet;
+      if (old && (!key || old.join(":") !== key.join(":"))) {
+        DockManager.setZone(old[0], old[1], old[2], 0);
+        DockManager.refreshSoon();
+      }
+      if (key)
+        DockManager.setZone(key[0], key[1], key[2], window.reserved);
+      window._zoneSet = key;
+    }
+    onReservedChanged: window._publishZone()
+    onZoneKeyChanged: window._publishZone()
+    Component.onCompleted: window._publishZone()
+    Component.onDestruction: {
+      const old = window._zoneSet;
+      if (old)
+        DockManager.setZone(old[0], old[1], old[2], 0);
+    }
 
     anchors {
       top: root.edge !== Bar.Bottom
