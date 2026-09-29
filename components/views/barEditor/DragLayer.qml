@@ -69,6 +69,7 @@ Item {
   // I18n.tr("Keyboard Layout") I18n.tr("Idle Inhibitor") I18n.tr("Privacy")
   // I18n.tr("Updates") I18n.tr("Weather") I18n.tr("Separator")
   // I18n.tr("Volume") I18n.tr("Microphone") I18n.tr("Bluetooth")
+  // I18n.tr("Screen Record")
   function shortLabel(type) {
     if (!type)
       return I18n.tr("Unknown");
@@ -107,6 +108,8 @@ Item {
       return "coffee";
     case "Privacy":
       return "visibility";
+    case "ScreenRecord":
+      return "radio_button_checked";
     case "Updates":
       return "package_2";
     case "Weather":

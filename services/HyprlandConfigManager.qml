@@ -97,7 +97,8 @@ Singleton {
       "mediaNext": ["media next", "Next track", "Media"],
       "mediaPrevious": ["media previous", "Previous track", "Media"],
       "mediaStop": ["media stop", "Stop", "Media"],
-      "screenshot": ["screenshot take {0}", "Screenshot: {0}", "Apps"]
+      "screenshot": ["screenshot take {0}", "Screenshot: {0}", "Apps"],
+      "screenRecord": ["screenRecord {call}", "Screen recording", "Apps"]
     })
 
   // The IPC function behind each call ({call} above) for actions that open
@@ -132,6 +133,10 @@ Singleton {
         "close": "disable"
       },
       "nightLight": {
+        "open": "enable",
+        "close": "disable"
+      },
+      "screenRecord": {
         "open": "enable",
         "close": "disable"
       }

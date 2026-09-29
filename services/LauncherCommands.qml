@@ -425,6 +425,16 @@ QtObject {
       }
     },
     {
+      name: "record",
+      aliases: ["recording", "screencast"],
+      glyph: "videocam",
+      description: () => ScreenshotManager.recording ? I18n.tr("Stop recording the screen") : I18n.tr("Record the screen"),
+      available: () => ScreenshotManager.hasRecorder || ScreenshotManager.recording,
+      run: () => {
+        ScreenshotManager.toggleRecording("");
+      }
+    },
+    {
       name: "reload",
       aliases: [],
       glyph: "refresh",

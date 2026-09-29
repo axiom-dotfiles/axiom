@@ -114,6 +114,7 @@ QtObject {
       "fileManager": "folder",
       "browser": "language",
       "screenshot": "screenshot_region",
+      "screenRecord": "videocam",
       "exitHyprland": "logout",
       "exec": "code"
     })
@@ -192,13 +193,15 @@ QtObject {
     return HyprlandConfigManager.hasCalls(action) ? ["toggle", "open", "close"] : null;
   }
 
-  // A call's label for an action (a caffeine or night light bind turns it on or off)
+  // A call's label for an action (a caffeine or night light bind turns it
+  // on or off, a recording bind starts or stops it)
   function callLabels(action) {
     const onOff = action === "idleInhibit" || action === "nightLight";
+    const record = action === "screenRecord";
     return {
       "toggle": I18n.tr("Toggle"),
-      "open": onOff ? I18n.tr("Turn on") : I18n.tr("Open"),
-      "close": onOff ? I18n.tr("Turn off") : I18n.tr("Close")
+      "open": record ? I18n.tr("Start") : onOff ? I18n.tr("Turn on") : I18n.tr("Open"),
+      "close": record ? I18n.tr("Stop") : onOff ? I18n.tr("Turn off") : I18n.tr("Close")
     };
   }
 

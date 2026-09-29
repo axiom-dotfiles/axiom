@@ -120,8 +120,10 @@ Singleton {
     if (wanted.length === 0)
       return;
     _pendingChecks = _pendingChecks.concat(wanted);
-    if (!_lookup.running)
-      _runLookup();
+    // Later, not now: services check while they're being built, when the
+    // Process can't start yet (running stays false), so each call would
+    // replace the last one's commands. callLater also batches them.
+    Qt.callLater(root._runLookup);
   }
 
   // Whether a command (its first word) is installed: undefined until checked
@@ -131,7 +133,13 @@ Singleton {
 
   property var _pendingChecks: []
 
+  // A lookup is running (its exit starts the next)
+  property bool _busy: false
+
   function _runLookup() {
+    if (_busy || _pendingChecks.length === 0)
+      return;
+    _busy = true;
     const commands = Array.from(new Set(_pendingChecks));
     _pendingChecks = [];
     _lookup.commands = commands;
@@ -149,9 +157,13 @@ Singleton {
         for (const command of _lookup.commands)
           next[command] = present.includes(command);
         root.found = next;
-        if (root._pendingChecks.length > 0)
-          Qt.callLater(root._runLookup);
       }
+    }
+    // Checks asked for while this ran go next: only once it has exited,
+    // since starting a running Process does nothing and they'd be lost
+    onExited: {
+      root._busy = false;
+      root._runLookup();
     }
   }
 

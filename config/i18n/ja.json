@@ -1616,7 +1616,7 @@
     "The compositor sent no picture of the screen.": "コンポジターから画面の画像が届きませんでした。",
     "Copy only": "コピーのみ",
     "Save and copy": "保存してコピー",
-    "Annotate": "注釈を付ける",
+    "Edit in {0}": "{0} で編集",
     "Drag": "ドラッグ",
     "region": "範囲",
     "Click": "クリック",
@@ -1624,7 +1624,7 @@
     "window (screen off a window)": "ウィンドウ（ウィンドウ外なら画面）",
     "screen": "画面",
     "copy only": "コピーのみ",
-    "annotate": "注釈",
+    "edit in {0}": "{0} で編集",
     "cancel": "キャンセル",
     "Emoji": "絵文字",
     "clipboard": "クリップボード",
@@ -2194,6 +2194,19 @@
     "Click command": "",
     "Config directory": "",
     "Fullest": "",
-    "Critical at": ""
+    "Critical at": "",
+    "Screen recording": "画面録画",
+    "Screen Record": "画面録画",
+    "Screen Recording": "画面録画",
+    "screenRecord": "画面録画",
+    "Stop recording the screen": "画面録画を停止",
+    "Record the screen": "画面を録画",
+    "wf-recorder stopped without writing a file.": "wf-recorder はファイルを書き出さずに終了しました。",
+    "Recording failed": "録画に失敗しました",
+    "Recording saved": "録画を保存しました",
+    "Saved in {0}. Click to open it.": "{0} に保存しました。クリックで開きます。",
+    "Start": "開始",
+    "Show time recorded": "録画時間を表示",
+    "record": "録画"
   }
 }
