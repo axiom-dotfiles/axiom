@@ -384,23 +384,33 @@ Singleton {
         live: false,
         image: (e.image || "").startsWith("image://") ? "" : (e.image || "")
       }));
-    // Notifications kept across a QML reload are still live
-    for (const notif of server.trackedNotifications.values) {
-      const entry = entries.find(e => !e.live && e.nid === notif.id && e.summary === (notif.summary || ""));
-      if (entry) {
-        entry.live = true;
-        if (!entry.image)
-          entry.image = notif.image || "";
-        root._sources[entry.uid] = notif.image || "";
-        root._link(notif, entry.uid);
-      } else {
-        const uid = root._newUid();
-        entries.push(root._entryFrom(notif, uid, Date.now()));
-        root._link(notif, uid);
-        root._cacheImage(uid, notif.image || "");
-      }
-    }
     root.entries = root._prune(entries);
+    // Usually empty here: the server only goes live after this, and then
+    // re-emits each kept notification (see onNotification)
+    for (const notif of server.trackedNotifications.values)
+      root._adopt(notif);
+  }
+
+  // Relinks a notification kept across a QML reload to its saved entry
+  // (or gives it one), at most once
+  function _adopt(notif) {
+    if (root._uidOf(notif))
+      return;
+    const entry = root.entries.find(e => !root._live[e.uid] && e.nid === notif.id && e.summary === (notif.summary || ""));
+    if (entry) {
+      root.entries = root.entries.map(e => e === entry ? Object.assign({}, e, {
+          live: true,
+          image: e.image || notif.image || ""
+        }) : e);
+      root._sources[entry.uid] = notif.image || "";
+      root._link(notif, entry.uid);
+    } else {
+      const uid = root._newUid();
+      const fresh = root._entryFrom(notif, uid, Date.now());
+      root._put(fresh);
+      root._link(notif, uid);
+      root._cacheImage(uid, fresh.image);
+    }
   }
 
   function _save() {
@@ -466,6 +476,13 @@ Singleton {
     keepOnReload: true
 
     onNotification: notification => {
+      // keepOnReload re-emits every kept notification after a reload:
+      // relink it to its entry, with no new entry or toast
+      if (notification.lastGeneration) {
+        notification.tracked = true;
+        root._adopt(notification);
+        return;
+      }
       // Tracked, so the object outlives this handler; transient ones
       // (e.g. volume changes) only pop up
       if (!notification.transient) {
