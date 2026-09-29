@@ -16,7 +16,7 @@ QtObject {
   signal showOverlayPage(string type)
   // Opens the target overlay on a page (a view type, or a view's name)
   signal openOverlayPage(string type)
-  // Closes the overlay wherever it's open (e.g. to take a screenshot)
+  // Closes the overlay wherever it's open
   signal closeOverlay
   // Opens an OSD by id where it would open for a change (the settings
   // page's Show button)
@@ -124,6 +124,14 @@ QtObject {
   function grabPartnersFor(screen) {
     return grabPartners.filter(p => !screen || p.screen === screen.name).map(p => p.window);
   }
+
+  // The screenshot pickers while one is open: every focus grab lets input
+  // through to them, so taking a screenshot closes nothing
+  property var captureWindows: []
+  // Every picker's frame is frozen: popup windows (bar popouts, tooltips,
+  // menus, toasts) hide until it closes, since Hyprland draws popups over
+  // every layer. The frame already holds them, so nothing seems to change.
+  readonly property bool captureFrozen: captureWindows.length > 0 && captureWindows.every(w => w.frozen)
 
   // The bar windows (BarPanel), for surfaces that attach to a bar without
   // being its popouts (floating edge menus)

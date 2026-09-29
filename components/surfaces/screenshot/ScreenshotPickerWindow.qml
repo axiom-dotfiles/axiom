@@ -44,6 +44,8 @@ PanelWindow {
   property point dragStart: Qt.point(0, 0)
   property point dragEnd: Qt.point(0, 0)
   property bool grabbing: false
+  // The frame is in (ShellManager.captureFrozen)
+  readonly property bool frozen: frame.hasContent
 
   readonly property rect dragRect: Qt.rect(Math.min(dragStart.x, dragEnd.x), Math.min(dragStart.y, dragEnd.y), Math.abs(dragEnd.x - dragStart.x), Math.abs(dragEnd.y - dragStart.y))
   // What a release would capture
@@ -122,6 +124,7 @@ PanelWindow {
   }
 
   Component.onCompleted: {
+    ShellManager.captureWindows = ShellManager.captureWindows.concat([root]);
     if (!root.interactive)
       return;
     root.windows = root._windows();
@@ -132,6 +135,8 @@ PanelWindow {
         root.hoveredWindow = root._windowAt(pos.x - root.screen.x, pos.y - root.screen.y);
     });
   }
+
+  Component.onDestruction: ShellManager.captureWindows = ShellManager.captureWindows.filter(w => w !== root)
 
   // Under the frame (never seen), rendered only for the grab
   Item {
