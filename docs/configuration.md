@@ -2,9 +2,9 @@
 
 [README](../README.md) · [Features](features.md) · [Installation](installation.md) · [Keybinds, IPC and launcher](usage.md) · [Configuration](configuration.md)
 
-## ⚙️ The config file
+## The config file
 
-Everything is configured from inside the shell (see [Built in the shell](../README.md#%EF%B8%8F-built-in-the-shell)). Open the overlay, and use the **Settings**, **Bar editor**, **Overlay editor**, **Edge menu editor**, **Monitors** and **Themes** pages.
+Everything is configured from inside the shell (see [Built in the shell](../README.md#built-in-the-shell)). Open the overlay, and use the **Settings**, **Bar editor**, **Overlay editor**, **Edge menu editor**, **Monitors** and **Themes** pages.
 
 - Settings are saved to `config/user/config.json`. You never need to open it, but the shell watches that file and reloads when it changes, so editing it by hand also works.
 - Configs from older versions are migrated automatically.
@@ -14,19 +14,19 @@ Everything is configured from inside the shell (see [Built in the shell](../READ
 > [!IMPORTANT]
 > An invalid `config.json` never replaces the running config. The shell keeps the last good one and refuses to save until the file is fixed.
 
-### 🎨 Themes
+### Themes
 
 - Hand-made themes live in `config/themes/`, and generated ones in `config/themes/generated/`.
 - A theme is a base16 palette (`base00`–`base0F`) plus optional semantic overrides. See `config/themes/theme.schema.json`.
 - To add a theme, drop a JSON file in `config/themes/`. To make a dark/light pair, give each file a `paired` field naming the other.
 
-### 🌐 Translations
+### Translations
 
 - Pick a language in **Settings → General → Language**.
 - To add a language, create `config/i18n/<code>.json` (see `ja.json`). It shows up in the dropdown right away.
 - Missing strings fall back to English. `scripts/check_i18n.py` reports what's missing.
 
-## 🩺 Troubleshooting
+## Troubleshooting
 
 View the shell's log with:
 

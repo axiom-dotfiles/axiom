@@ -2,9 +2,9 @@
 
 [README](../README.md) · [Features](features.md) · [Installation](installation.md) · [Keybinds, IPC and launcher](usage.md) · [Configuration](configuration.md)
 
-The screenshots show [two setups](../README.md#%EF%B8%8F-built-in-the-shell) of the same shell. **A** has a pill bar and a transparent bar down the sides of the screen, and **B** has one solid bar across the top, with rounder corners and a thicker border.
+The screenshots show [two setups](../README.md#built-in-the-shell) of the same shell. **A** has a pill bar and a transparent bar down the sides of the screen, and **B** has one solid bar across the top, with rounder corners and a thicker border.
 
-## 📊 Bar
+## Bar
 
 | A: pill bars on the sides | B: one solid top bar |
 | :---: | :---: |
@@ -20,7 +20,7 @@ The screenshots show [two setups](../README.md#%EF%B8%8F-built-in-the-shell) of 
   - the forecast
   - pending updates, and more
 
-  Buttons can run their action on hover too, or toggle an [edge menu](#-edge-menus).
+  Buttons can run their action on hover too, or toggle an [edge menu](#edge-menus).
 
 <details>
 <summary><b>Popouts</b></summary>
@@ -47,7 +47,7 @@ The screenshots show [two setups](../README.md#%EF%B8%8F-built-in-the-shell) of 
 
 </details>
 
-## 🗂️ Overlay
+## Overlay
 
 | A | B |
 | :---: | :---: |
@@ -62,11 +62,11 @@ The screenshots show [two setups](../README.md#%EF%B8%8F-built-in-the-shell) of 
 - Modules adapt to the shape of their slot (square, wide, tall or quarter).
 - Built-in pages:
   - **Settings**, generated from the config schema
-  - **Bar editor**, **Overlay editor** and **Edge menu editor** (see [Built in the shell](../README.md#%EF%B8%8F-built-in-the-shell))
+  - **Bar editor**, **Overlay editor** and **Edge menu editor** (see [Built in the shell](../README.md#built-in-the-shell))
   - **Themes**
   - **Keybinds**
-  - **Monitors** (see [The rest](#-the-rest))
-- Every module can also go in an [edge menu](#-edge-menus).
+  - **Monitors** (see [The rest](#the-rest))
+- Every module can also go in an [edge menu](#edge-menus).
 
 <details>
 <summary><b>Built-in pages</b></summary>
@@ -78,7 +78,7 @@ The screenshots show [two setups](../README.md#%EF%B8%8F-built-in-the-shell) of 
 
 </details>
 
-## 🧲 Edge menus
+## Edge menus
 
 Edge menus are the overlay's other half. Every overlay module fits in them, laid out in the same columns and cells, but a menu slides out of a screen edge and leaves the rest of your desktop in view. Use them for what you want one hover away.
 
@@ -86,7 +86,7 @@ Edge menus are the overlay's other half. Every overlay module fits in them, laid
 - **Integrated** menus open outside the border and bars. They push the bars and your windows inwards, like a sidebar.
 - Open one by resting the pointer on its edge, from a bar **Button**, with a keybind, or over IPC (`edgeMenu toggle <id>`). It can close when the pointer leaves or you click outside it, and the **Pin** module or tile keeps it open.
 - Each menu has its own edge, monitor, position along the edge, card size, padding, colors and hover timings. An integrated menu can also draw a framed box along the whole edge.
-- Build them on the **Edge menu editor** page (see [Built in the shell](../README.md#%EF%B8%8F-built-in-the-shell)).
+- Build them on the **Edge menu editor** page (see [Built in the shell](../README.md#built-in-the-shell)).
 
 An integrated menu takes its space from your windows, which retile beside it and get it back when it closes:
 
@@ -106,7 +106,7 @@ And setup B, which keeps it to one menu on the left, under the solid top bar:
 
 <p align="center"><img src="../assets/screenshots/menu-left-b.webp" alt="A menu on the left edge of setup B with now playing, AI chat and quick action tiles" width="300"></p>
 
-## ⚓ Dock
+## Dock
 
 | A: growing out of the border at the top | B: floating above the bottom edge |
 | :---: | :---: |
@@ -119,7 +119,7 @@ And setup B, which keeps it to one menu on the left, under the solid top bar:
 - Running apps can count windows everywhere, on the dock's monitor only, or on its workspace only.
 - At no gap it grows out of the screen border or a solid bar, just like the popouts. Edit docks under **Settings → Dock**.
 
-## 🎨 Theming
+## Theming
 
 | | Dark | Light |
 | --- | :---: | :---: |
@@ -144,25 +144,25 @@ And setup B, which keeps it to one menu on the left, under the solid top bar:
 
 </details>
 
-## 🧩 The rest
-- 🔔 **Notifications:** toasts and a notification center. Toasts stack from any corner of one monitor or all of them, with even or per-side gaps measured from the bar or border at each edge. You can set how long they stay (or use the app's own timeout), keep critical ones up, and keep them quiet over fullscreen windows. The history can drop an app's notifications when you focus it, or when you click or close them, and has a size and age limit. Do not disturb is kept across restarts.
-- 🔊 **OSD:** as many as you like, each on an edge or floating anywhere, holding the bars you pick: output and microphone volume, brightness, the volume of the apps you choose, or of every other app.
-- 🚀 **Launcher:** searches apps (ranked by how often and how recently you use them), open windows, a calculator, the web, your clipboard history and emoji. It runs shell commands and controls the shell with `/` commands.
-- ⏻ **Power menu:** your choice of session actions, in your order, driven by mouse or keyboard. Log out, reboot and power off ask you to confirm.
-- 🧭 **Workspaces:** laid out as 1 to N, or as a grid per monitor (5×5 by default) that you move around by row and column. The bar widget, the workspace map, the workspace overlay and your keybinds (through the `workspaces` IPC target) all follow the one setting.
-- 🪟 **Workspace overlay:** live window previews. Drag a window onto a side of another window or onto another workspace, right-drag to resize it, and middle-click to close it.
-- 🤖 **AI chat:** Anthropic, OpenAI, Gemini, or anything with an OpenAI-style API (Ollama, LM Studio, OpenRouter, …). Replies stream in as formatted Markdown with copyable code blocks and folded thinking. Also: saved conversations, presets (system prompt, model, effort), image attachments (paste, screenshot a region, drop) and `@` in the launcher to ask a question. API keys come from environment variables, your keyring or a mode-600 secrets file, never `config.json`.
-- 🔒 **Lockscreen:** three modes: the built-in `ext-session-lock` locker (PAM), a themed hyprlock config that axiom generates, or none.
-- 🖥️ **Monitors:** a page to arrange monitors by dragging (they snap edge to edge) and set each one's mode, scale, rotation, mirroring, VRR, bit depth and color management. One layout is kept per set of connected monitors and switches on its own when you plug one in. **Apply** asks you to keep the change, and puts the old layout back after 15 seconds if you don't.
-- 🔀 **Multi-monitor:** interactive surfaces open on the primary monitor, on whichever monitor has focus, or on all of them at once.
-- 👋 **First-run setup:** a guided tour through the look, monitors, workspaces, default apps, Hyprland's mode and the optional integrations, applied as you go. `/welcome` runs it again.
-- 📝 **Notes:** Markdown files in a folder you choose, edited in place with task checkboxes. A note open in two places stays in sync, and `/notes` in the launcher searches them all.
-- 📸 **Screenshots:** a region, a window or a whole screen, picked on a frozen frame. Saved and copied, or opened in satty or swappy to annotate. Also screen recording with `wf-recorder`.
-- ☀️ **Brightness:** keys and an OSD bar for a laptop screen and for external monitors over DDC/CI.
-- 🌙 **Night light:** warmer colors on a schedule, through `hyprsunset` or `wlsunset`.
-- 💤 **Idle:** axiom can run hypridle from its own settings: dim, lock, screen off and suspend timeouts.
-- 🖼️ **Wallpapers:** fixed, rotating on a timer, or one for light mode and one for dark. Light and dark themes can also switch on a schedule.
-- 🌐 **Translations:** English and Japanese, with more added as a single JSON file each.
+## The rest
+- **Notifications:** toasts and a notification center. Toasts stack from any corner of one monitor or all of them, with even or per-side gaps measured from the bar or border at each edge. You can set how long they stay (or use the app's own timeout), keep critical ones up, and keep them quiet over fullscreen windows. The history can drop an app's notifications when you focus it, or when you click or close them, and has a size and age limit. Do not disturb is kept across restarts.
+- **OSD:** as many as you like, each on an edge or floating anywhere, holding the bars you pick: output and microphone volume, brightness, the volume of the apps you choose, or of every other app.
+- **Launcher:** searches apps (ranked by how often and how recently you use them), open windows, a calculator, the web, your clipboard history and emoji. It runs shell commands and controls the shell with `/` commands.
+- **Power menu:** your choice of session actions, in your order, driven by mouse or keyboard. Log out, reboot and power off ask you to confirm.
+- **Workspaces:** laid out as 1 to N, or as a grid per monitor (5×5 by default) that you move around by row and column. The bar widget, the workspace map, the workspace overlay and your keybinds (through the `workspaces` IPC target) all follow the one setting.
+- **Workspace overlay:** live window previews. Drag a window onto a side of another window or onto another workspace, right-drag to resize it, and middle-click to close it.
+- **AI chat:** Anthropic, OpenAI, Gemini, or anything with an OpenAI-style API (Ollama, LM Studio, OpenRouter, …). Replies stream in as formatted Markdown with copyable code blocks and folded thinking. Also: saved conversations, presets (system prompt, model, effort), image attachments (paste, screenshot a region, drop) and `@` in the launcher to ask a question. API keys come from environment variables, your keyring or a mode-600 secrets file, never `config.json`.
+- **Lockscreen:** three modes: the built-in `ext-session-lock` locker (PAM), a themed hyprlock config that axiom generates, or none.
+- **Monitors:** a page to arrange monitors by dragging (they snap edge to edge) and set each one's mode, scale, rotation, mirroring, VRR, bit depth and color management. One layout is kept per set of connected monitors and switches on its own when you plug one in. **Apply** asks you to keep the change, and puts the old layout back after 15 seconds if you don't.
+- **Multi-monitor:** interactive surfaces open on the primary monitor, on whichever monitor has focus, or on all of them at once.
+- **First-run setup:** a guided tour through the look, monitors, workspaces, default apps, Hyprland's mode and the optional integrations, applied as you go. `/welcome` runs it again.
+- **Notes:** Markdown files in a folder you choose, edited in place with task checkboxes. A note open in two places stays in sync, and `/notes` in the launcher searches them all.
+- **Screenshots:** a region, a window or a whole screen, picked on a frozen frame. Saved and copied, or opened in satty or swappy to annotate. Also screen recording with `wf-recorder`.
+- **Brightness:** keys and an OSD bar for a laptop screen and for external monitors over DDC/CI.
+- **Night light:** warmer colors on a schedule, through `hyprsunset` or `wlsunset`.
+- **Idle:** axiom can run hypridle from its own settings: dim, lock, screen off and suspend timeouts.
+- **Wallpapers:** fixed, rotating on a timer, or one for light mode and one for dark. Light and dark themes can also switch on a schedule.
+- **Translations:** English and Japanese, with more added as a single JSON file each.
 
 <details>
 <summary><b>Screenshots</b></summary>

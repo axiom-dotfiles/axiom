@@ -2,7 +2,7 @@
 
 [README](../README.md) · [Features](features.md) · [Installation](installation.md) · [Keybinds, IPC and launcher](usage.md) · [Configuration](configuration.md)
 
-## ⌨️ Keybinds and IPC
+## Keybinds and IPC
 
 Every surface can be controlled over Quickshell IPC, so you can bind it to anything:
 
@@ -46,7 +46,7 @@ hl.bind("SUPER + SPACE", hl.dsp.exec_cmd("qs -c axiom ipc call appLauncher toggl
 hl.bind("SUPER + T", hl.dsp.exec_cmd("qs -c axiom ipc call appLauncher search '/theme '"), { description = "Axiom: Themes" })
 ```
 
-## 🚀 Launcher
+## Launcher
 
 Plain text searches apps and open windows. When the text is math, the result shows first, and a web search comes last. A prefix picks one kind of search:
 

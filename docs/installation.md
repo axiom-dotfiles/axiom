@@ -2,7 +2,7 @@
 
 [README](../README.md) · [Features](features.md) · [Installation](installation.md) · [Keybinds, IPC and launcher](usage.md) · [Configuration](configuration.md)
 
-## 📋 Requirements
+## Requirements
 
 The whole shell runs on five things. Everything else is optional and only needed for the feature that uses it.
 
@@ -36,7 +36,7 @@ The whole shell runs on five things. Everything else is optional and only needed
 
 </details>
 
-## 🚀 Installation
+## Installation
 
 On Arch Linux, run the installer:
 
@@ -49,7 +49,7 @@ Every package it installs comes from the official repositories. It lists the opt
 <details>
 <summary><b>By hand</b>, or on another distribution</summary>
 
-Install the [requirements](#-requirements), then clone into Quickshell's config directory:
+Install the [requirements](#requirements), then clone into Quickshell's config directory:
 
 ```bash
 git clone https://github.com/axiom-dotfiles/axiom.git ~/.config/quickshell/axiom
@@ -94,7 +94,7 @@ The same settings page holds switches for:
 
 Keybinds are edited on the **Keybinds** page. A bind can run any IPC action below, a window action (focus, move, resize, close, fullscreen, floating, special workspaces, mouse drag), or a command, and can repeat while held, work while locked or fire on release. Presets add window management on SUPER + H J K L and the media keys. A description like `Workspace: Switch left` puts the bind in its own section on that page.
 
-### 🔄 Updates
+### Updates
 
 axiom updates itself from the repository you cloned it from. It follows release tags (`v*`) by default, or every commit on `main` if you pick that channel under **Settings → Updates**. It checks when the shell starts and once a day, and the same page picks what happens next:
 
@@ -106,7 +106,7 @@ axiom updates itself from the repository you cloned it from. It follows release 
 
 An update only fast-forwards your clone. It won't touch a clone that has changed files, commits of its own, or a branch other than `main`. The page says why, and you update it yourself with git. Your config, state and generated themes aren't tracked by git, so an update never changes them.
 
-## 🔒 Locking with hypridle
+## Locking with hypridle
 
 For the `quickshell` and `hyprlock` lockscreen modes:
 
