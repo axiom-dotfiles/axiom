@@ -22,7 +22,7 @@ Loader {
   property int headerInset: 0
 
   readonly property var fieldSchema: row.schema ?? ({})
-  readonly property var current: form.valueAt(row.path)
+  readonly property var current: form?.valueAt(row.path)
   readonly property string label: row.title
   readonly property string description: fieldSchema.description ?? ""
   readonly property bool isColor: fieldSchema["x-options"] === "colors"
@@ -152,7 +152,7 @@ Loader {
       stepSize: root.fieldSchema.multipleOf ?? 1
       headerInset: root.headerInset
       unit: root.fieldSchema["x-unit"] ?? ""
-      mode: root.form.numberMode || (root.fieldSchema["x-control"] ?? "auto")
+      mode: root.form?.numberMode || (root.fieldSchema["x-control"] ?? "auto")
       onCommitted: value => root.commit(value)
     }
   }
