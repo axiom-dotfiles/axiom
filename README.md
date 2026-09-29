@@ -26,7 +26,7 @@ https://github.com/user-attachments/assets/a53f62e0-e2bc-4834-a05f-92b6cb115c35
 | --- | --- |
 | 🛠️ **Built in the shell** | Bars, overlay pages, edge menus, docks and every setting are edited on your desktop, and changes show as you make them. The layout is data, not code. |
 | 🧲 **Two ways to reach everything** | The same cards fill the full-screen overlay and menus that slide out of any screen edge. A menu floats over your windows, or opens beside the bars and pushes them inwards. |
-| 📦 **Everything in one place** | One repository and one config for the whole desktop. Beyond Hyprland and Quickshell, the only requirements are `python3` and `jq`. |
+| 📦 **Everything in one place** | One repository and one config for the whole desktop. Beyond Hyprland and Quickshell, the only requirements are `python3`, `jq` and the Material Symbols icon font. |
 | 🛡️ **Built not to break** | An invalid config never replaces the running one. Old configs migrate themselves, and API keys stay out of `config.json`. |
 | 🎨 **One theme everywhere** | Base16 themes, or one generated from your wallpaper, applied to 18 other apps. |
 | 🤝 **Fits your setup** | Three Hyprland modes, from hands-off to fully managed, and three lockscreen modes. |
@@ -83,7 +83,7 @@ The screenshots show [two setups](#%EF%B8%8F-built-in-the-shell) of the same she
 | <img src="assets/screenshots/desktop.webp" alt="A pill bar on the left and a transparent bar on the right, inside the screen border"> | <img src="assets/screenshots/desktop-b.webp" alt="One solid bar across the top of the screen"> |
 
 - Bars are defined in config. You can have any number, on any monitor and any edge. Each one can be solid, transparent, or split into floating pills.
-- 21 widget types: Workspaces, Window, Time, Media, Volume, Microphone, Network, Bluetooth, Battery, SystemStats, SystemTray, Notifications, Updates, Weather, Tailscale, KeyboardLayout, IdleInhibitor, Privacy, Claude usage (your Claude Code plan limits, for one or more logins), Button (runs any command) and Separator.
+- 22 widget types: Workspaces, Window, Time, Media, Volume, Microphone, Network, Bluetooth, Battery, SystemStats, SystemTray, Notifications, Updates, Weather, Tailscale, KeyboardLayout, IdleInhibitor, Privacy, ScreenRecord (shown while recording; click to stop), Claude usage (your Claude Code plan limits, for one or more logins), Button (runs any command) and Separator.
 - Popouts grow out of the bar, or out of the screen border, with filleted corners. Widgets open theirs on hover:
   - a calendar
   - the audio mixer
@@ -252,7 +252,7 @@ And setup B, which keeps it to one menu on the left, under the solid top bar:
 
 ## 📋 Requirements
 
-The whole shell runs on four things. Everything else is optional and only needed for the feature that uses it.
+The whole shell runs on five things. Everything else is optional and only needed for the feature that uses it.
 
 **Required**
 - [Hyprland](https://hypr.land) 0.55 or newer, with its Lua config (`hyprland.lua`)
@@ -269,7 +269,7 @@ The whole shell runs on four things. Everything else is optional and only needed
 | Network widget / module, Wi-Fi menu | NetworkManager, Quickshell built with its Networking module, and `ip` (iproute2) |
 | Updates | `pacman-contrib` (`checkupdates`), plus `paru` or `yay` for AUR updates |
 | Tailscale | `tailscale` |
-| Screenshots | `wl-copy`; `satty` or `swappy` to annotate; `wf-recorder` and `slurp` to record |
+| Screenshots | `wl-copy`; `satty` or `swappy` to annotate; `wf-recorder` to record |
 | AI chat | `curl`; `secret-tool` (libsecret) to keep keys in your keyring; `wl-clipboard` to paste images |
 | Launcher calculator | `qalc` (libqalculate), `wl-copy` |
 | Launcher emoji picker | `wl-copy` to copy; `wtype` to type an emoji into the focused window (Shift+Enter) |
@@ -317,7 +317,7 @@ That's all Hyprland needs. How axiom sets up the rest is **Settings → Desktop 
 | --- | --- |
 | **Detached** (default) | Applies axiom's keybinds and required settings at runtime, and again after every Hyprland reload. It writes no files, and skips any keybind whose key your config already uses. |
 | **Included** | Writes `~/.local/state/axiom/hyprland.lua` (under `$XDG_STATE_HOME` if it's set). Load it near the top of your `hyprland.lua`, and anything after it overrides axiom (see below). |
-| **Managed** | axiom writes `~/.config/hypr/hyprland.lua` itself, from the **Managed config** settings: layout (dwindle, master or scrolling), gaps, borders, opacity, blur, shadows, animation styles, keyboard, mouse, cursor and touchpad, behaviour (swallowing, VRR, focus), environment variables and autostart commands. It then loads your own `~/.config/hypr/user/*.lua` after it, in name order, as `require("user.<name>")`, so Hyprland reloads when one changes. Shared modules go in `user/lib/`, which isn't loaded on its own. `user/` itself may be a symlink, for example into a dotfiles repo. The first time, your old `hyprland.lua` is backed up and moved to `user/00-previous.lua`. |
+| **Managed** | axiom writes `~/.config/hypr/hyprland.lua` itself, from the **Managed config** settings: layout (dwindle, master or scrolling), gaps, borders, opacity, blur, shadows, animation styles, keyboard, mouse, cursor and touchpad, behaviour (swallowing, VRR, focus), environment variables and autostart commands. It then loads your own `~/.config/hypr/user/*.lua` after it, in name order, as `require("user.<name>")`, so Hyprland reloads when one changes. Shared modules go in `user/lib/`, which isn't loaded on its own. `user/` itself may be a symlink, for example into a dotfiles repo. The first time, your old `hyprland.lua` is backed up and moved to `user/00-previous.lua`, unless it's Hyprland's unchanged example config, which is only backed up (its binds and monitor rule would fight axiom's). |
 
 > [!IMPORTANT]
 > Managed mode never takes over a `~/.config/hypr` that is a symlink or in a git repository.
@@ -330,7 +330,7 @@ if ok then axiom.setup() end
 ```
 
 > [!TIP]
-> `setup()` applies everything switched on in the settings. To pick parts yourself, call `axiom.required()`, `axiom.binds()`, `axiom.theme()` and `axiom.blur()` instead. `hl.unbind("KEY")` after it frees one of axiom's keys.
+> `setup()` applies everything switched on in the settings. To pick parts yourself, call `axiom.required()`, `axiom.binds()`, `axiom.theme()`, `axiom.blur()`, `axiom.layers()` (the stacking order of axiom's surfaces) and `axiom.monitors()` (the Monitors page's profiles) instead. `hl.unbind("KEY")` after it frees one of axiom's keys.
 
 Whichever mode is set, axiom falls back to the runtime layer when its file isn't loaded, and logs why.
 
@@ -344,12 +344,12 @@ Keybinds are edited on the **Keybinds** page. A bind can run any IPC action belo
 
 ### 🔄 Updates
 
-axiom updates itself from release tags (`v*`) on the repository you cloned it from. It checks when the shell starts and once a day. **Settings → Updates** picks what happens next:
+axiom updates itself from the repository you cloned it from. It follows release tags (`v*`) by default, or every commit on `main` if you pick that channel under **Settings → Updates**. It checks when the shell starts and once a day, and the same page picks what happens next:
 
 | Mode | What it does |
 | --- | --- |
 | **Notify me** (default) | Sends a notification. Clicking it opens **Settings → Updates**, which shows what's new and has an **Update** button. |
-| **Update automatically** | Installs the new release, reloads the shell, and notifies you. |
+| **Update automatically** | Installs the update, reloads the shell, and notifies you. |
 | **Off** | Never checks. **Check now** still works. |
 
 An update only fast-forwards your clone. It won't touch a clone that has changed files, commits of its own, or a branch other than `main`. The page says why, and you update it yourself with git. Your config, state and generated themes aren't tracked by git, so an update never changes them.
@@ -378,6 +378,7 @@ qs -c axiom ipc call <target> <function>
 | `nightLight` | `enable`, `disable`, `toggle`, `status` |
 | `brightness` | `up`, `down`, `set <percent>`, `dim <percent>`, `dimBy <percent>`, `undim` |
 | `screenshot` | `take <region\|window\|screen>`, `cancel` |
+| `screenRecord` | `toggle`, `enable`, `disable`, `status` |
 | `wallpaper` | `next` |
 | `monitors` | `open`, `keep`, `revert`, `identify` |
 | `onboarding` | `open`, `close`, `goTo <step>`, `reset` |
@@ -425,7 +426,7 @@ Plain text searches apps and open windows. When the text is math, the result sho
 | **Look** | `/theme <name>` `/dark` `/light` `/mode` `/wallpaper <file\|Random>` `/nextwallpaper` `/generate` `/nightlight` |
 | **Audio and media** | `/volume <n\|+n\|-n>` `/mute` `/mic` `/output <device>` `/input <device>` `/play` `/next` `/prev` |
 | **Connectivity** | `/wifi [on\|off]` `/bluetooth [on\|off]` `/connect <device>` |
-| **Other** | `/dnd [on\|off]` `/clear` `/caffeine [on\|off]` `/ws <n>` `/screenshot <region\|window\|screen>` `/notes [text]` `/chat [conversation]` `/config <setting> <value>` `/config save <name>` `/config restore <name>` `/update` `/welcome` `/reload` `/emoji` `/clipboard` `/help` |
+| **Other** | `/dnd [on\|off]` `/clear` `/caffeine [on\|off]` `/ws <n>` `/screenshot <region\|window\|screen>` `/record` `/notes [text]` `/chat [conversation]` `/config <setting> <value>` `/config save <name>` `/config restore <name>` `/update` `/welcome` `/reload` `/emoji` `/clipboard` `/help` |
 
 Every provider can be switched off under **Settings › Desktop › Launcher**. The same page sets:
 - the launcher's size, hidden apps, terminal and search engine
@@ -485,7 +486,7 @@ Icons showing as words (`wifi`, `battery_full`) mean the icon font is missing: i
 
 ## 🤝 Contributing
 
-Contributions are welcome. [Open an issue](https://github.com/axiom-dotfiles/axiom/issues/new/choose) for a bug or an idea, or fork the repository and open a pull request against `main`. The pull request template has a short checklist, and CI runs the same checks (`scripts/check_structure.py`, `scripts/check_i18n.py`, JSON and script syntax).
+Contributions are welcome. [Open an issue](https://github.com/axiom-dotfiles/axiom/issues/new/choose) for a bug or an idea, or fork the repository and open a pull request against `main`. The pull request template has a short checklist, and CI runs the same checks as `scripts/check_all.sh`: structure, translations, qmllint, qmlformat, the unit tests, shellcheck and the script tests.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the directory layout and conventions, and [CLAUDE.md](CLAUDE.md) for the architecture in detail. There's no build step: `qs` interprets the QML and hot-reloads on save.
 
@@ -497,6 +498,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the directory layout and conventions,
 - [x] Clipboard manager
 - [x] Dock and edge menus
 - [x] Collaboration: CI, issue and pull request templates, changes through PRs
+- [ ] Other wayland compositor support
 - [ ] More translations
 - [ ] More widgets!
 

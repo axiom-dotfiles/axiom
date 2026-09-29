@@ -33,7 +33,7 @@ OPTIONAL=(
   "Wi-Fi menu and network widget|networkmanager"
   "Package update checks|pacman-contrib"
   "Copying screenshots to the clipboard|wl-clipboard"
-  "Screen recording|slurp wf-recorder"
+  "Screen recording|wf-recorder"
   "Annotating screenshots|satty"
   "Launcher calculator|libqalculate wl-clipboard"
   "Typing emoji from the launcher (copying needs only wl-clipboard)|wtype wl-clipboard"
