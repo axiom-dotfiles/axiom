@@ -60,6 +60,9 @@ PanelWindow {
   visible: false
   WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
   WlrLayershell.layer: WlrLayer.Overlay
+  // Its layer rule arranges it after docks and draws it over them
+  // (see HyprlandManager.layerRulesLua)
+  WlrLayershell.namespace: "axiom-overlay"
   exclusionMode: ExclusionMode.Normal
   exclusiveZone: 0
 
