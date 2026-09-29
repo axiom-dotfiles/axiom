@@ -134,6 +134,8 @@ Scope {
       closeOnClickOutside: true
       grabEnabled: group.ownsGrab
       grabWindows: group.windows.filter(w => w !== popout.window)
+      // Resized as results come and go, the window would jump
+      maxContentDepth: (popout.contentItem as LauncherPanel)?.maxHeight ?? 0
 
       content: Component {
         LauncherPanel {

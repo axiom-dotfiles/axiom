@@ -116,6 +116,29 @@ Singleton {
     _run.open = root._set(root.openMenus, id, true);
   }
 
+  // Menus opened for something outside them (the launcher, IPC) that take
+  // the cursor: the menu warps it into its box once shown
+  // (HyprlandManager.warpCursorToLayer), and doesn't close on leave until
+  // it has been hovered. Not kept across reloads.
+  property var revealing: ({})
+
+  // Opens a menu and moves the cursor into it, so one that closes when the
+  // pointer leaves stays open
+  function reveal(id) {
+    if (!EdgeMenusConfig.menuById(id)) {
+      console.warn("No edge menu with id", id);
+      return;
+    }
+    root.revealing = root._parse(root._set(root.revealing, id, true));
+    root.open(id, null);
+  }
+
+  // The menu was hovered, or closed
+  function revealDone(id) {
+    if (root.revealing[id] === true)
+      root.revealing = root._parse(root._set(root.revealing, id, false));
+  }
+
   function close(id) {
     if (!root.isOpen(id))
       return;

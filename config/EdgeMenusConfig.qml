@@ -17,6 +17,11 @@ QtObject {
     return root.menus.find(menu => menu.id === id) ?? null;
   }
 
+  // The first enabled menu holding a module of `type`, else null
+  function menuWithModule(type) {
+    return root.enabledMenus.find(menu => (menu.columns ?? []).some(column => (column?.cells ?? []).some(cell => Object.values(cell?.slots ?? {}).some(slot => slot?.type === type)))) ?? null;
+  }
+
   // The menu's named screen, else the primary monitor
   function screenFor(menu) {
     const screens = Quickshell.screens;

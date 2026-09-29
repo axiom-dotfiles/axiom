@@ -188,8 +188,27 @@ EdgePopout {
   dismissDelay: root.menu?.closeDelay ?? PopoutConfig.dismissDelay
   keyboardOnDemand: true
   closeOnClickOutside: (root.menu?.closeOnOutsideClick ?? false) && !root.pinned
-  autoDismiss: (root.menu?.closeOnLeave ?? true) && !root.pinned
+  autoDismiss: (root.menu?.closeOnLeave ?? true) && !root.pinned && !root.revealing
   onAutoDismissChanged: root.updateDismissTimer()
+
+  // Opened by EdgeMenuManager.reveal: held open until hovered, and the
+  // cursor moved into the box once it's mapped
+  readonly property bool revealing: EdgeMenuManager.revealing[root.menuId] === true
+  Connections {
+    target: root
+    function onContentHoveredChanged() {
+      if (root.contentHovered)
+        EdgeMenuManager.revealDone(root.menuId);
+    }
+  }
+  Timer {
+    interval: 150
+    running: root.revealing && root.isOpen && root.window.visible
+    onTriggered: {
+      const box = root.boxInWindow;
+      HyprlandManager.warpCursorToLayer(root.layerNamespace, root.screen?.name ?? "", root.window.width, root.window.height, box.x + box.width / 2, box.y + box.height / 2);
+    }
+  }
 
   // Follow EdgeMenuManager, and tell it when the popout closes by itself
   function _sync() {
@@ -202,6 +221,8 @@ EdgePopout {
   }
   onWantedChanged: _sync()
   onIsOpenChanged: {
+    if (!root.isOpen)
+      EdgeMenuManager.revealDone(root.menuId);
     if (!root.isOpen && root.wanted && !root.hasPendingOpen)
       EdgeMenuManager.close(root.menuId);
     else if (root.isOpen && !root.wanted)

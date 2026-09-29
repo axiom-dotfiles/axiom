@@ -97,7 +97,8 @@ Singleton {
       "mediaNext": ["media next", "Next track", "Media"],
       "mediaPrevious": ["media previous", "Previous track", "Media"],
       "mediaStop": ["media stop", "Stop", "Media"],
-      "screenshot": ["screenshot take {0}", "Screenshot: {0}", "Apps"]
+      "screenshot": ["screenshot take {0}", "Screenshot: {0}", "Apps"],
+      "screenRecord": ["screenRecord {call}", "Screen recording", "Apps"]
     })
 
   // The IPC function behind each call ({call} above) for actions that open
@@ -132,6 +133,10 @@ Singleton {
         "close": "disable"
       },
       "nightLight": {
+        "open": "enable",
+        "close": "disable"
+      },
+      "screenRecord": {
         "open": "enable",
         "close": "disable"
       }
@@ -270,8 +275,8 @@ Singleton {
   }
 
   function _requiredLua(withAnimation) {
-    // Apps may not maximize themselves: kitty (remember_window_size) saves a tiled
-    // window as "maximized" and asks for that on every launch
+    // The maximize rule is Hyprland's example config's, which managed mode replaces:
+    // without it apps like kitty (remember_window_size) reopen maximized
     const lines = ["hl.config({ misc = { allow_session_lock_restore = true } })", `hl.window_rule({ name = "axiom-suppress-maximize", match = { class = ".*" }, suppress_event = "maximize" })`];
     if (withAnimation)
       lines.push(`hl.animation({ leaf = "workspaces", enabled = true, speed = 4, bezier = "default", style = "slide" })`);

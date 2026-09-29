@@ -36,7 +36,6 @@ Singleton {
   // The programs features use, with the (Arch) package that has them.
   // I18n.tr("Calculator in the launcher") I18n.tr("Brightness of a laptop screen")
   // I18n.tr("Brightness of external monitors") I18n.tr("Chat screenshots")
-  // I18n.tr("Picking an area to record")
   // I18n.tr("Copying to the clipboard") I18n.tr("Reading JSON (theme integrations)")
   // I18n.tr("Pending package updates") I18n.tr("Chat API keys in the keyring")
   // I18n.tr("Moving notes to the trash") I18n.tr("Media keys for players axiom doesn't see")
@@ -58,11 +57,6 @@ Singleton {
       "command": "ddcutil",
       "package": "ddcutil",
       "purpose": "Brightness of external monitors"
-    },
-    {
-      "command": "slurp",
-      "package": "slurp",
-      "purpose": "Picking an area to record"
     },
     {
       "command": "wl-copy",
@@ -120,8 +114,10 @@ Singleton {
     if (wanted.length === 0)
       return;
     _pendingChecks = _pendingChecks.concat(wanted);
-    if (!_lookup.running)
-      _runLookup();
+    // Later, not now: services check while they're being built, when the
+    // Process can't start yet (running stays false), so each call would
+    // replace the last one's commands. callLater also batches them.
+    Qt.callLater(root._runLookup);
   }
 
   // Whether a command (its first word) is installed: undefined until checked
@@ -131,7 +127,13 @@ Singleton {
 
   property var _pendingChecks: []
 
+  // A lookup is running (its exit starts the next)
+  property bool _busy: false
+
   function _runLookup() {
+    if (_busy || _pendingChecks.length === 0)
+      return;
+    _busy = true;
     const commands = Array.from(new Set(_pendingChecks));
     _pendingChecks = [];
     _lookup.commands = commands;
@@ -149,9 +151,13 @@ Singleton {
         for (const command of _lookup.commands)
           next[command] = present.includes(command);
         root.found = next;
-        if (root._pendingChecks.length > 0)
-          Qt.callLater(root._runLookup);
       }
+    }
+    // Checks asked for while this ran go next: only once it has exited,
+    // since starting a running Process does nothing and they'd be lost
+    onExited: {
+      root._busy = false;
+      root._runLookup();
     }
   }
 

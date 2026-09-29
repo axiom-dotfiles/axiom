@@ -111,7 +111,15 @@ QtObject {
     root.statuses = next;
   }
 
+  // Lookups asked for before the keyring probe answers, run after it: until
+  // then a keyring key would read as missing (and be cached as "")
+  property var _waiting: []
+
   function _lookup(id, callback) {
+    if (root.keyringAvailable === null) {
+      root._waiting.push(() => root._lookup(id, callback));
+      return;
+    }
     const fromFile = () => {
       const key = root._secrets[id] ?? "";
       root._cache[id] = key;
@@ -206,6 +214,9 @@ QtObject {
       if (!root.keyringAvailable)
         console.log("[SecretsManager] No keyring:", err.trim(), "- keys go to", root.secretsPath);
       root.refresh(ChatConfig.providers);
+      const waiting = root._waiting;
+      root._waiting = [];
+      waiting.forEach(lookup => lookup());
     });
   }
 }

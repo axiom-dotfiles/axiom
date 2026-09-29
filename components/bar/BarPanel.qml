@@ -15,7 +15,8 @@ PanelWindow {
   required property var barConfig
 
   // An empty monitor means the first screen
-  screen: Quickshell.screens.find(s => s.name === barConfig.monitor) ?? Quickshell.screens[0] ?? null
+  readonly property ShellScreen targetScreen: Quickshell.screens.find(s => s.name === barConfig.monitor) ?? Quickshell.screens[0] ?? null
+  screen: targetScreen
   // A solid bar sits at the screen edge, and the screen border's strip
   // (arranged after it) overlaps its inner part, drawing the bar's inner
   // stroke. A floating bar (transparent or pills, with the border on) sits
@@ -63,7 +64,10 @@ PanelWindow {
     right: root.barConfig.floating ? -Appearance.borderWidth : 0
   }
 
-  readonly property bool fullscreenBelow: HyprlandManager.hasFullscreen(root.screen?.name ?? "")
+  // Read from targetScreen, not the window's `screen`: showing a hidden layer
+  // window rebuilds it, which emits screenChanged while `visible` is still
+  // being set from this, a binding loop
+  readonly property bool fullscreenBelow: HyprlandManager.hasFullscreen(root.targetScreen?.name ?? "")
 
   visible: barConfig.enabled && !(barConfig.floating && fullscreenBelow)
 

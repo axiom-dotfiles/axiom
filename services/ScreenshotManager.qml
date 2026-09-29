@@ -16,7 +16,11 @@ import qs.config
 // <Pictures>/Screenshots (or the card's folder), or only to a scratch file
 // with `copyOnly`, copied to the clipboard (wl-copy: Quickshell's clipboard
 // is text only) and either notified (click opens it) or opened in an
-// annotator (satty or swappy). Recording is wf-recorder over a slurp region.
+// annotator (satty or swappy; its notification also has an "Edit in …"
+// button). Recording (IPC `screenRecord`, the
+// `screenRecord` bind, launcher `/record`, or R / the Record switch in an
+// open picker) picks its area in the same picker (kind `record`) and runs
+// wf-recorder on it until stopped.
 QtObject {
   id: root
 
@@ -35,8 +39,16 @@ QtObject {
   property bool annotate: false
   // "satty" | "swappy" | "": what annotating opens
   readonly property string annotator: DependencyManager.found["satty"] ? "satty" : DependencyManager.found["swappy"] ? "swappy" : ""
+  // Its name as shown ("Satty")
+  readonly property string annotatorName: root.annotator === "" ? "" : root.annotator[0].toUpperCase() + root.annotator.slice(1)
   readonly property bool hasRecorder: DependencyManager.found["wf-recorder"] === true
   property bool recording: false
+  // When the running recording started (ms), 0 when unknown (started
+  // before a reload)
+  property real recordingSince: 0
+  // Seconds recorded so far, ticking only while recording
+  property int recordingElapsed: 0
+  property string _recordPath: ""
 
   property string _picturesDir: Quickshell.env("HOME") + "/Pictures"
   property string _directory: ""
@@ -73,8 +85,8 @@ QtObject {
   readonly property bool forCaller: root._target !== null
 
   function _start(kind, directory) {
-    if (!["region", "window", "screen"].includes(kind)) {
-      console.warn(`[ScreenshotManager] Unknown screenshot kind "${kind}" (region, window or screen)`);
+    if (!["region", "window", "screen", "record"].includes(kind)) {
+      console.warn(`[ScreenshotManager] Unknown screenshot kind "${kind}" (region, window, screen or record)`);
       return;
     }
     root._directory = root._expand(directory) || root._picturesDir + "/Screenshots";
@@ -129,11 +141,54 @@ QtObject {
     Quickshell.execDetached(["sh", "-c", 'wl-copy --type image/png < "$1"', "sh", path]);
     if (root.annotate && root.annotator !== "") {
       root.annotate = false;
-      Quickshell.execDetached(root.annotator === "satty" ? ["satty", "--filename", path, "--output-filename", path] : ["swappy", "-f", path, "-o", path]);
+      root.edit(path);
       return;
     }
     root.annotate = false;
-    Quickshell.execDetached(["notify-send", "-a", "axiom", "-i", path, "-h", "string:desktop-entry:" + _desktopEntry, "--", I18n.tr("Screenshot saved"), root.copyOnly ? I18n.tr("Copied to the clipboard.") : I18n.tr("Copied to the clipboard. Click to open it.")]);
+    const notice = ["notify-send", "-a", "axiom", "-i", path, "-h", "string:desktop-entry:" + _desktopEntry];
+    const text = ["--", I18n.tr("Screenshot saved"), root.copyOnly ? I18n.tr("Copied to the clipboard.") : I18n.tr("Copied to the clipboard. Click to open it.")];
+    if (root.annotator === "") {
+      Quickshell.execDetached(notice.concat(text));
+      return;
+    }
+    // With an "Edit in …" button: notify-send waits for it and prints the
+    // action. Only the latest notification's button stays live.
+    root._nextNotice = {
+      "path": path,
+      "command": notice.concat(["-A", "edit=" + I18n.tr("Edit in {0}", root.annotatorName)], text)
+    };
+    // The previous one is stopped first; its exit starts this one
+    if (root._savedNotice.running)
+      root._savedNotice.running = false;
+    else
+      root._startNotice();
+  }
+
+  function _startNotice() {
+    const next = root._nextNotice;
+    if (!next)
+      return;
+    root._nextNotice = null;
+    root._noticePath = next.path;
+    root._savedNotice.command = next.command;
+    root._savedNotice.running = true;
+  }
+
+  // Opens a picture in the annotator, which saves over it
+  function edit(path) {
+    if (root.annotator === "")
+      return;
+    Quickshell.execDetached(root.annotator === "satty" ? ["satty", "--filename", path, "--output-filename", path] : ["swappy", "-f", path, "-o", path]);
+  }
+
+  // Switches an open picker between taking a screenshot and recording
+  function setRecordMode(on) {
+    if (!root.picking || root.forCaller || !root.request || root.request.kind === "screen" || (on && !root.hasRecorder))
+      return;
+    root.annotate = false;
+    root.request = Object.assign({}, root.request, {
+      "kind": on ? "record" : "region"
+    });
   }
 
   function fail(reason) {
@@ -149,18 +204,14 @@ QtObject {
     NotificationManager.sendNotification("axiom", I18n.tr("Screenshot failed"), reason);
   }
 
-  // Recording: an area picked with slurp, recorded by wf-recorder until
-  // stopRecording(). Kept here, since the card that starts it is gone
-  // once the overlay closes.
+  // Recording: an area picked in the picker (kind `record`), recorded by
+  // wf-recorder until stopRecording(). Kept here, since the card that
+  // starts it is gone once the overlay closes.
   function startRecording(directory) {
-    if (root.recording || !root.hasRecorder)
+    if (root.recording || root.busy || !root.hasRecorder)
       return;
-    const dir = root._expand(directory) || root._picturesDir + "/Screenshots";
-    ShellManager.closeOverlay();
-    root.recording = true;
-    // Let the overlay slide away before picking the area
-    root._recordDelay.directory = dir;
-    root._recordDelay.restart();
+    root._target = null;
+    root._start("record", directory);
   }
 
   function stopRecording() {
@@ -168,6 +219,30 @@ QtObject {
     // One started before a reload isn't ours to see exit
     if (!root._recorder.running)
       root.recording = false;
+  }
+
+  function toggleRecording(directory) {
+    if (root.recording)
+      root.stopRecording();
+    else if (root.busy && root.request?.kind === "record")
+      root.cancel();
+    else
+      root.startRecording(directory);
+  }
+
+  // Called by the picker with the area to record: global logical pixels,
+  // or a whole screen by name
+  function record(area, screenName) {
+    root.picking = false;
+    root.request = null;
+    const path = root._directory + "/Recording_" + Qt.formatDateTime(new Date(), "yyyy-MM-dd_HH-mm-ss") + ".mp4";
+    const target = screenName ? ["-o", screenName] : ["-g", `${Math.round(area.x)},${Math.round(area.y)} ${Math.round(area.width)}x${Math.round(area.height)}`];
+    root._recordPath = path;
+    root._recorder.command = ["wf-recorder"].concat(target, ["-f", path]);
+    root._recorder.running = true;
+    root.recording = true;
+    root.recordingSince = Date.now();
+    root.recordingElapsed = 0;
   }
 
   function _expand(directory) {
@@ -197,17 +272,54 @@ QtObject {
     }
   }
 
-  property Timer _recordDelay: Timer {
-    property string directory: ""
-    interval: Appearance.animSlow + 150
-    onTriggered: {
-      root._recorder.command = ["sh", "-c", 'mkdir -p "$1" && area=$(slurp) && exec wf-recorder -g "$area" -f "$1/Recording_$(date +%Y%m%d_%H%M%S).mp4"', "sh", directory];
-      root._recorder.running = true;
-    }
+  property Timer _recordTick: Timer {
+    running: root.recording && root.recordingSince > 0
+    interval: 1000
+    repeat: true
+    onTriggered: root.recordingElapsed = Math.floor((Date.now() - root.recordingSince) / 1000)
   }
 
   property Process _recorder: Process {
-    onExited: root.recording = false
+    stderr: StdioCollector {
+      id: recorderErrors
+    }
+    onExited: {
+      root.recording = false;
+      root.recordingSince = 0;
+      root.recordingElapsed = 0;
+      root._recordCheck.command = ["test", "-s", root._recordPath];
+      root._recordCheck.running = true;
+    }
+  }
+
+  // Whether the recording left a file: saved, else it failed
+  property Process _recordCheck: Process {
+    onExited: code => {
+      const path = root._recordPath;
+      if (code !== 0) {
+        const reason = recorderErrors.text.trim().split("\n").pop() || I18n.tr("wf-recorder stopped without writing a file.");
+        console.warn("[ScreenshotManager] Recording failed:", reason);
+        NotificationManager.sendNotification("axiom", I18n.tr("Recording failed"), reason);
+        return;
+      }
+      root._lastPath = path;
+      Quickshell.execDetached(["notify-send", "-a", "axiom", "-h", "string:desktop-entry:" + root._desktopEntry, "--", I18n.tr("Recording saved"), I18n.tr("Saved in {0}. Click to open it.", path.replace(/\/[^/]*$/, ""))]);
+    }
+  }
+
+  // The picture the live "Edit in …" button opens
+  property string _noticePath: ""
+  // { path, command } waiting for the previous notice to stop
+  property var _nextNotice: null
+
+  property Process _savedNotice: Process {
+    stdout: StdioCollector {
+      onStreamFinished: {
+        if (text.trim() === "edit")
+          root.edit(root._noticePath);
+      }
+    }
+    onExited: root._startNotice()
   }
 
   property Process _probe: Process {
@@ -242,6 +354,27 @@ QtObject {
 
     function cancel(): void {
       root.cancel();
+    }
+  }
+
+  property IpcHandler _recordIpc: IpcHandler {
+    target: "screenRecord"
+
+    function toggle(): void {
+      root.toggleRecording("");
+    }
+
+    function enable(): void {
+      if (!root.recording)
+        root.startRecording("");
+    }
+
+    function disable(): void {
+      root.stopRecording();
+    }
+
+    function status(): bool {
+      return root.recording;
     }
   }
 }

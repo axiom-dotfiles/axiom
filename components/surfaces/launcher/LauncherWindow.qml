@@ -100,6 +100,9 @@ PanelWindow {
 
     LauncherPanel {
       id: panel
+      // Reversed, it hangs from the card's bottom: the card's height
+      // animates, and the panel (and its search field) must not move with it
+      y: panel.reversed ? parent.height - height : 0
       width: parent.width
       height: implicitHeight
       shown: root.shown

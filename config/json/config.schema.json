@@ -348,6 +348,7 @@
             { "key": "SHIFT + Print", "action": "screenshot", "argument": "window" },
             { "key": "SUPER + Print", "action": "screenshot", "argument": "screen" },
             { "key": "SUPER + CTRL + S", "action": "screenshot", "argument": "region" },
+            { "key": "SUPER + SHIFT + Print", "action": "screenRecord" },
             { "key": "SUPER + 1", "action": "workspaceNth", "argument": "1" },
             { "key": "SUPER + SHIFT + 1", "action": "moveWindowNth", "argument": "1" },
             { "key": "SUPER + 2", "action": "workspaceNth", "argument": "2" },
@@ -412,7 +413,7 @@
               "action": {
                 "type": "string",
                 "title": "Action",
-                "enum": ["launcher", "launcherSearch", "overlay", "overlayPage", "edgeMenu", "dock", "workspaceOverview", "powerMenu", "lock", "toggleDnd", "clearNotifications", "idleInhibit", "nightLight", "nextWallpaper", "workspaceStep", "moveWindowStep", "moveWindowStepSilent", "workspaceNth", "moveWindowNth", "moveWindowNthSilent", "focusDir", "moveWindowDir", "resizeWindow", "closeWindow", "fullscreen", "toggleFloat", "pin", "centerWindow", "toggleGroup", "mouseDrag", "mouseResize", "toggleSpecial", "moveToSpecial", "restartShell", "volumeUp", "volumeDown", "toggleMute", "toggleMicMute", "brightnessUp", "brightnessDown", "mediaPlayPause", "mediaNext", "mediaPrevious", "mediaStop", "terminal", "fileManager", "browser", "screenshot", "exitHyprland", "exec"],
+                "enum": ["launcher", "launcherSearch", "overlay", "overlayPage", "edgeMenu", "dock", "workspaceOverview", "powerMenu", "lock", "toggleDnd", "clearNotifications", "idleInhibit", "nightLight", "nextWallpaper", "workspaceStep", "moveWindowStep", "moveWindowStepSilent", "workspaceNth", "moveWindowNth", "moveWindowNthSilent", "focusDir", "moveWindowDir", "resizeWindow", "closeWindow", "fullscreen", "toggleFloat", "pin", "centerWindow", "toggleGroup", "mouseDrag", "mouseResize", "toggleSpecial", "moveToSpecial", "restartShell", "volumeUp", "volumeDown", "toggleMute", "toggleMicMute", "brightnessUp", "brightnessDown", "mediaPlayPause", "mediaNext", "mediaPrevious", "mediaStop", "terminal", "fileManager", "browser", "screenshot", "screenRecord", "exitHyprland", "exec"],
                 "x-enumLabels": {
                   "launcher": "App launcher",
                   "launcherSearch": "Launcher with text",
@@ -462,6 +463,7 @@
                   "fileManager": "File manager",
                   "browser": "Browser",
                   "screenshot": "Screenshot",
+                  "screenRecord": "Screen recording",
                   "exitHyprland": "Exit Hyprland",
                   "exec": "Run a command"
                 },
@@ -481,7 +483,7 @@
                 "enum": ["toggle", "open", "close"],
                 "x-enumLabels": { "toggle": "Toggle", "open": "Open", "close": "Close" },
                 "description": "For actions that open and close something: whether the bind toggles it, only opens it or only closes it.",
-                "x-showIf": { "action": ["launcher", "overlay", "edgeMenu", "dock", "workspaceOverview", "powerMenu", "idleInhibit", "nightLight"] }
+                "x-showIf": { "action": ["launcher", "overlay", "edgeMenu", "dock", "workspaceOverview", "powerMenu", "idleInhibit", "nightLight", "screenRecord"] }
               },
               "repeating": { "type": "boolean", "title": "Repeat while held", "default": false },
               "locked": { "type": "boolean", "title": "Works while locked", "default": false },
@@ -2600,6 +2602,7 @@
         { "$ref": "#/definitions/KeyboardLayoutWidget" },
         { "$ref": "#/definitions/IdleInhibitorWidget" },
         { "$ref": "#/definitions/PrivacyWidget" },
+        { "$ref": "#/definitions/ScreenRecordWidget" },
         { "$ref": "#/definitions/UpdatesWidget" },
         { "$ref": "#/definitions/ClaudeUsageWidget" },
         { "$ref": "#/definitions/WeatherWidget" },
@@ -2931,6 +2934,25 @@
             "showScreen": { "type": "boolean", "title": "Screen share", "default": true },
             "showCamera": { "type": "boolean", "title": "Camera", "default": true },
             "ignoreApps": { "type": "string", "title": "Ignored apps", "default": "cava", "description": "Comma-separated app names that never trigger an indicator." },
+            "activeColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base08" },
+            "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
+          }
+        }
+      }
+    },
+    "ScreenRecordWidget": {
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "ScreenRecord", "description": "Screen Recording" },
+        "visible": { "type": "boolean" },
+        "layout": { "$ref": "#/definitions/WidgetLayout" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "showTimer": { "type": "boolean", "title": "Show time recorded", "default": true },
             "activeColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base08" },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
           }

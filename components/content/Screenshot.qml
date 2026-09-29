@@ -20,12 +20,10 @@ Card {
   readonly property var modes: [["region", "screenshot_region", I18n.tr("Region")], ["window", "wrap_text", I18n.tr("Window")], ["screen", "screenshot_monitor", I18n.tr("Screen")]].concat(ScreenshotManager.hasRecorder || root.recording ? [["record", root.recording ? "stop" : "fiber_manual_record", I18n.tr(root.recording ? "Stop" : "Record")]] : [])
 
   function capture(mode) {
-    if (mode !== "record")
-      ScreenshotManager.take(mode, root.directory);
-    else if (root.recording)
-      ScreenshotManager.stopRecording();
+    if (mode === "record")
+      ScreenshotManager.toggleRecording(root.directory);
     else
-      ScreenshotManager.startRecording(root.directory);
+      ScreenshotManager.take(mode, root.directory);
   }
 
   TileGrid {

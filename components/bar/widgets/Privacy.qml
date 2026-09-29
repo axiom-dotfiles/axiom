@@ -9,7 +9,9 @@ import qs.config
 // Mic / screen share / camera indicators, derived from active Pipewire
 // links (no polling). Hidden entirely while nothing is capturing.
 //   mic:    AudioManager.micCaptures (an app recording from a microphone)
-//   screen: a video source from xdg-desktop-portal linked to a stream
+//   screen: a video source from xdg-desktop-portal linked to a stream, or
+//           axiom's own recording (wf-recorder uses screencopy, not the
+//           portal, so Pipewire never sees it)
 //   camera: any other video source linked to a stream
 BarIconWidget {
   id: root
@@ -43,7 +45,7 @@ BarIconWidget {
   }
 
   readonly property var micUsers: properties.showMic ? [...new Set(AudioManager.micCaptures.filter(n => !ignored(n)).map(n => appName(n)))] : []
-  readonly property var screenUsers: properties.showScreen ? users(s => s.type === PwNodeType.VideoSource && isPortal(s), t => isVideoStream(t)) : []
+  readonly property var screenUsers: properties.showScreen ? users(s => s.type === PwNodeType.VideoSource && isPortal(s), t => isVideoStream(t)).concat(ScreenshotManager.recording ? [I18n.tr("Screen recording")] : []) : []
   readonly property var cameraUsers: properties.showCamera ? users(s => s.type === PwNodeType.VideoSource && !isPortal(s), t => isVideoStream(t)) : []
 
   readonly property var glyphs: [...(micUsers.length ? ["mic"] : []), ...(screenUsers.length ? ["monitor"] : []), ...(cameraUsers.length ? ["camera"] : [])]

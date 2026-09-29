@@ -1,5 +1,6 @@
 pragma ComponentBehavior: Bound
 import QtQuick
+import QtQuick.Layouts
 import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Wayland
@@ -16,12 +17,20 @@ import qs.services
 // right-click cancels; Shift on release, or E, opens it in the annotator.
 // An immediate `screen` capture shows the same frame with nothing over it
 // and grabs as soon as it arrives. The capture is cropped from the frame
-// at the screen's own resolution.
+// at the screen's own resolution. `record` picks the same way, but hands
+// the area to ScreenshotManager.record instead of a picture; R or the
+// Screenshot / Record switch turns a picker into one or the other.
 PanelWindow {
   id: root
 
   readonly property var request: ScreenshotManager.request
-  readonly property bool interactive: request?.kind === "region" || request?.kind === "window"
+  readonly property bool interactive: request?.kind === "region" || request?.kind === "window" || recording
+  // Picking an area to record, not a picture
+  readonly property bool recording: request?.kind === "record"
+  // The save / copy / annotate controls apply
+  readonly property bool picture: !ScreenshotManager.forCaller && !recording
+  // Can switch between a screenshot and a recording
+  readonly property bool canSwitch: !ScreenshotManager.forCaller && ScreenshotManager.hasRecorder
   // Only whole windows: no dragging, and a click off a window does nothing
   readonly property bool windowsOnly: request?.kind === "window"
   readonly property bool focusedScreen: screen?.name === (Hyprland.focusedMonitor?.name ?? "")
@@ -87,6 +96,11 @@ PanelWindow {
     const rect = Qt.rect(Math.round(area.x), Math.round(area.y), Math.round(area.width), Math.round(area.height));
     if (rect.width < 1 || rect.height < 1) {
       ScreenshotManager.cancel();
+      return;
+    }
+    if (root.recording) {
+      const whole = rect.x === 0 && rect.y === 0 && rect.width === Math.round(root.width) && rect.height === Math.round(root.height);
+      ScreenshotManager.record(Qt.rect(rect.x + root.screen.x, rect.y + root.screen.y, rect.width, rect.height), whole ? root.screen.name : "");
       return;
     }
     root.grabbing = true;
@@ -160,9 +174,11 @@ PanelWindow {
         ScreenshotManager.cancel();
       else if ((event.key === Qt.Key_Return || event.key === Qt.Key_Enter) && !root.windowsOnly)
         root.capture(root.fullRect);
-      else if (event.key === Qt.Key_C && !ScreenshotManager.forCaller)
+      else if (event.key === Qt.Key_C && root.picture)
         ScreenshotManager.setCopyOnly(!ScreenshotManager.copyOnly);
-      else if (event.key === Qt.Key_E && ScreenshotManager.annotator !== "" && !ScreenshotManager.forCaller)
+      else if (event.key === Qt.Key_R && root.canSwitch)
+        ScreenshotManager.setRecordMode(!root.recording);
+      else if (event.key === Qt.Key_E && ScreenshotManager.annotator !== "" && root.picture)
         ScreenshotManager.annotate = !ScreenshotManager.annotate;
       else
         return;
@@ -188,8 +204,9 @@ PanelWindow {
       y: root.selection.y
       width: root.selection.width
       height: root.selection.height
-      color: root.dragging ? "transparent" : Qt.alpha(Theme.accent, 0.12)
-      border.color: Theme.accent
+      readonly property color tint: root.recording ? Theme.error : Theme.accent
+      color: root.dragging ? "transparent" : Qt.alpha(tint, 0.12)
+      border.color: tint
       border.width: Math.max(2, Appearance.borderWidth)
       visible: root.dragging || root.hoveredWindow !== null
     }
@@ -239,7 +256,7 @@ PanelWindow {
       onReleased: mouse => {
         if (mouse.button !== Qt.LeftButton)
           return;
-        if (mouse.modifiers & Qt.ShiftModifier && ScreenshotManager.annotator !== "" && !ScreenshotManager.forCaller)
+        if (mouse.modifiers & Qt.ShiftModifier && ScreenshotManager.annotator !== "" && root.picture)
           ScreenshotManager.annotate = true;
         // Copied: a rect read from a property re-reads it on use, and the
         // selection falls back to the window or screen once not dragging
@@ -251,13 +268,15 @@ PanelWindow {
       }
     }
 
-    // Controls, out of the way while dragging
+    // Controls, out of the way while dragging: what a pick does (a
+    // screenshot or a recording; for a screenshot, save or only copy, and
+    // whether it opens in the annotator), then the keys
     Rectangle {
       anchors.horizontalCenter: parent.horizontalCenter
       anchors.bottom: parent.bottom
       anchors.bottomMargin: 40
-      width: hints.implicitWidth + 24
-      height: hints.implicitHeight + 16
+      width: controls.implicitWidth + 24
+      height: controls.implicitHeight + 16
       radius: Appearance.borderRadius
       color: Theme.background
       border.color: Theme.border
@@ -270,67 +289,113 @@ PanelWindow {
         acceptedButtons: Qt.LeftButton | Qt.RightButton
       }
 
-      Row {
-        id: hints
+      Column {
+        id: controls
         anchors.centerIn: parent
-        spacing: Widget.spacing * 2
+        spacing: Widget.spacing
 
-        StyledTextButton {
-          anchors.verticalCenter: parent.verticalCenter
-          visible: !ScreenshotManager.forCaller
-          iconText: ScreenshotManager.copyOnly ? "content_copy" : "save"
-          text: ScreenshotManager.copyOnly ? I18n.tr("Copy only") : I18n.tr("Save and copy")
-          onClicked: ScreenshotManager.setCopyOnly(!ScreenshotManager.copyOnly)
+        RowLayout {
+          anchors.horizontalCenter: parent.horizontalCenter
+          visible: root.canSwitch || root.picture
+          spacing: Widget.spacing * 3
+
+          RowLayout {
+            visible: root.canSwitch
+            spacing: Widget.spacing / 2
+
+            SegmentButton {
+              Layout.fillWidth: false
+              iconText: "screenshot_region"
+              text: I18n.tr("Screenshot")
+              active: !root.recording
+              onClicked: ScreenshotManager.setRecordMode(false)
+            }
+
+            SegmentButton {
+              Layout.fillWidth: false
+              iconText: "radio_button_checked"
+              text: I18n.tr("Record")
+              active: root.recording
+              onClicked: ScreenshotManager.setRecordMode(true)
+            }
+          }
+
+          RowLayout {
+            visible: root.picture
+            spacing: Widget.spacing / 2
+
+            SegmentButton {
+              Layout.fillWidth: false
+              iconText: "save"
+              text: I18n.tr("Save and copy")
+              active: !ScreenshotManager.copyOnly
+              onClicked: ScreenshotManager.setCopyOnly(false)
+            }
+
+            SegmentButton {
+              Layout.fillWidth: false
+              iconText: "content_copy"
+              text: I18n.tr("Copy only")
+              active: ScreenshotManager.copyOnly
+              onClicked: ScreenshotManager.setCopyOnly(true)
+            }
+          }
+
+          // A switch: on, the capture opens in the annotator instead of
+          // being notified
+          SegmentButton {
+            Layout.fillWidth: false
+            visible: root.picture && ScreenshotManager.annotator !== ""
+            iconText: ScreenshotManager.annotate ? "check_box" : "check_box_outline_blank"
+            text: I18n.tr("Edit in {0}", ScreenshotManager.annotatorName)
+            active: ScreenshotManager.annotate
+            onClicked: ScreenshotManager.annotate = !ScreenshotManager.annotate
+          }
         }
 
-        StyledTextButton {
-          anchors.verticalCenter: parent.verticalCenter
-          visible: ScreenshotManager.annotator !== "" && !ScreenshotManager.forCaller
-          iconText: "edit"
-          text: I18n.tr("Annotate")
-          backgroundColor: ScreenshotManager.annotate ? Theme.accent : Theme.backgroundHighlight
-          textColor: ScreenshotManager.annotate ? Theme.background : Theme.foreground
-          onClicked: ScreenshotManager.annotate = !ScreenshotManager.annotate
-        }
+        Row {
+          anchors.horizontalCenter: parent.horizontalCenter
+          spacing: Widget.spacing * 2
 
-        KeyHint {
-          anchors.verticalCenter: parent.verticalCenter
-          visible: !root.windowsOnly
-          key: I18n.tr("Drag")
-          label: I18n.tr("region")
-        }
+          KeyHint {
+            visible: !root.windowsOnly
+            key: I18n.tr("Drag")
+            label: I18n.tr("region")
+          }
 
-        KeyHint {
-          anchors.verticalCenter: parent.verticalCenter
-          key: I18n.tr("Click")
-          label: root.windowsOnly ? I18n.tr("window") : I18n.tr("window (screen off a window)")
-        }
+          KeyHint {
+            key: I18n.tr("Click")
+            label: root.windowsOnly ? I18n.tr("window") : I18n.tr("window (screen off a window)")
+          }
 
-        KeyHint {
-          anchors.verticalCenter: parent.verticalCenter
-          visible: !ScreenshotManager.forCaller && !root.windowsOnly
-          key: "↵"
-          label: I18n.tr("screen")
-        }
+          KeyHint {
+            visible: !ScreenshotManager.forCaller && !root.windowsOnly
+            key: "↵"
+            label: I18n.tr("screen")
+          }
 
-        KeyHint {
-          anchors.verticalCenter: parent.verticalCenter
-          visible: !ScreenshotManager.forCaller
-          key: "C"
-          label: I18n.tr("copy only")
-        }
+          KeyHint {
+            visible: root.canSwitch
+            key: "R"
+            label: root.recording ? I18n.tr("screenshot") : I18n.tr("record")
+          }
 
-        KeyHint {
-          anchors.verticalCenter: parent.verticalCenter
-          visible: ScreenshotManager.annotator !== "" && !ScreenshotManager.forCaller
-          key: "E"
-          label: I18n.tr("annotate")
-        }
+          KeyHint {
+            visible: root.picture
+            key: "C"
+            label: I18n.tr("copy only")
+          }
 
-        KeyHint {
-          anchors.verticalCenter: parent.verticalCenter
-          key: "Esc"
-          label: I18n.tr("cancel")
+          KeyHint {
+            visible: ScreenshotManager.annotator !== "" && root.picture
+            key: "E"
+            label: I18n.tr("edit in {0}", ScreenshotManager.annotatorName)
+          }
+
+          KeyHint {
+            key: "Esc"
+            label: I18n.tr("cancel")
+          }
         }
       }
     }

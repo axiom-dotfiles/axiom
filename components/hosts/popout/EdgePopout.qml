@@ -46,6 +46,10 @@ PopoutWrapperBase {
 
   property Component content: null
   readonly property Item contentItem: loader.item
+  // The content's largest size across the edge, if it changes size while
+  // open: the window keeps room for it, so it isn't resized (and, on the
+  // bottom or right edge, moved by the compositor a frame late) each time
+  property real maxContentDepth: 0
   // Keep content alive while closed (e.g. content that itself decides
   // when the popout should open)
   property bool keepLoaded: false
@@ -88,8 +92,10 @@ PopoutWrapperBase {
   property bool grabEnabled: true
   // Other windows the grab lets input through to
   property var grabWindows: []
-  // The surface's window
+  // The surface's window, its layer namespace, and the box within it
   readonly property var window: surfaceWindow
+  readonly property string layerNamespace: root.slidesUnder ? "axiom-popout-under" : "axiom-edge-popout"
+  readonly property rect boxInWindow: Qt.rect(boxArea.x, boxArea.y, boxArea.width, boxArea.height)
 
   property int connectorGap: Appearance.borderRadius * 2
 
@@ -243,7 +249,7 @@ PopoutWrapperBase {
     // Sliding under something, on its layer, ordered under it (see
     // HyprlandManager's layer rules)
     WlrLayershell.layer: root.slidesUnder ? root.underLayer : WlrLayer.Overlay
-    WlrLayershell.namespace: root.slidesUnder ? "axiom-popout-under" : "axiom-edge-popout"
+    WlrLayershell.namespace: root.layerNamespace
     WlrLayershell.keyboardFocus: root.wantsKeyboardFocus || root.keyboardOnDemand ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
     exclusionMode: ExclusionMode.Normal
     exclusiveZone: 0
@@ -269,8 +275,14 @@ PopoutWrapperBase {
       right: root.edge === Bar.Right ? surfaceWindow.attachMargin : root.vertical ? 0 : -root.strokeInset - DockManager.zoneOn(surfaceWindow.screenName, "right")
     }
 
-    implicitWidth: root.vertical ? surface.implicitWidth : 0
-    implicitHeight: root.vertical ? 0 : surface.implicitHeight
+    // The surface, or room for it at the content's largest
+    readonly property real depth: {
+      const content = root.vertical ? (root.contentItem?.implicitWidth ?? 0) : (root.contentItem?.implicitHeight ?? 0);
+      const surfaceDepth = root.vertical ? surface.implicitWidth : surface.implicitHeight;
+      return surfaceDepth + Math.max(0, root.maxContentDepth - content);
+    }
+    implicitWidth: root.vertical ? surfaceWindow.depth : 0
+    implicitHeight: root.vertical ? 0 : surfaceWindow.depth
 
     // Pills a merged box reaches stay hoverable through its notches. One
     // sliding under a bar takes input on its box alone.
@@ -306,8 +318,9 @@ PopoutWrapperBase {
     AttachedSurface {
       id: surface
 
-      x: root.vertical ? 0 : root.strokeInset + root.surfaceStart
-      y: root.vertical ? root.strokeInset + root.surfaceStart : 0
+      // At the attach edge of a window that may be deeper than it
+      x: root.vertical ? (root.edge === Bar.Right ? surfaceWindow.width - width : 0) : root.strokeInset + root.surfaceStart
+      y: root.vertical ? root.strokeInset + root.surfaceStart : (root.edge === Bar.Bottom ? surfaceWindow.height - height : 0)
       width: implicitWidth
       height: implicitHeight
 
