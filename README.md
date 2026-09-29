@@ -236,6 +236,9 @@ And setup B, which keeps it to one menu on the left, under the solid top bar:
 - 🖼️ **Wallpapers:** fixed, rotating on a timer, or one for light mode and one for dark. Light and dark themes can also switch on a schedule.
 - 🌐 **Translations:** English and Japanese, with more added as a single JSON file each.
 
+<details>
+<summary><b>Screenshots</b></summary>
+
 | | A | B |
 | --- | :---: | :---: |
 | **Workspace overlay** | <img src="assets/screenshots/workspace-overlay.webp" alt="Workspace overlay as a 5×5 grid"> | <img src="assets/screenshots/workspace-overlay-b.webp" alt="Workspace overlay with eight workspaces"> |
@@ -244,6 +247,8 @@ And setup B, which keeps it to one menu on the left, under the solid top bar:
 | **Notification** | <img src="assets/screenshots/notification.webp" alt="Notification toast, setup A"> | <img src="assets/screenshots/notification-b.webp" alt="Notification toast under the top bar"> |
 | **OSD** | <img src="assets/screenshots/osd.webp" alt="Per-app volume OSD on the bottom edge"> | <img src="assets/screenshots/osd-b.webp" alt="Per-app volume OSD on the right edge"> |
 | **Monitors** | <img src="assets/screenshots/monitors.webp" alt="The Monitors page with one monitor and its settings"> | |
+
+</details>
 
 ## 📋 Requirements
 
@@ -261,7 +266,6 @@ The whole shell runs on four things. Everything else is optional and only needed
 | Feature | Needs |
 | --- | --- |
 | Wallpaper transitions (optional backend) | `awww` |
-| Theme generation | Nothing extra: numpy and Pillow are installed into `.venv` automatically from `scripts/requirements.txt` |
 | Network widget / module, Wi-Fi menu | NetworkManager, Quickshell built with its Networking module, and `ip` (iproute2) |
 | Updates | `pacman-contrib` (`checkupdates`), plus `paru` or `yay` for AUR updates |
 | Tailscale | `tailscale` |
