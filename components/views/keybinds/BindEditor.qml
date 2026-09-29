@@ -132,6 +132,21 @@ ColumnLayout {
         Layout.fillWidth: true
         Layout.leftMargin: Widget.spacing
       }
+
+      StyledTextButton {
+        visible: KeybindManager.userConflicts.length > 0
+        implicitHeight: Widget.height
+        iconText: "delete_sweep"
+        text: I18n.tr("Remove {0} your Hyprland config binds", KeybindManager.userConflicts.length)
+        onClicked: KeybindManager.removeUserConflicts()
+      }
+
+      StyledTextButton {
+        implicitHeight: Widget.height
+        iconText: "add"
+        text: I18n.tr("Add bind")
+        onClicked: KeybindManager.addBind(undefined, true)
+      }
     }
 
     RowLayout {

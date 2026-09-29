@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 27
+  readonly property int currentVersion: 28
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -81,6 +81,8 @@ QtObject {
       result = _v25ToV26(result, changes);
     if (version < 27)
       result = _v26ToV27(result, changes);
+    if (version < 28)
+      result = _v27ToV28(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -715,5 +717,56 @@ QtObject {
       }
     });
     return config;
+  }
+
+  // Binds v28 added to the defaults: WASD steps through workspaces (around
+  // the grid in a grid layout, previous and next otherwise)
+  readonly property var _v28Binds: [
+    {
+      "key": "SUPER + W",
+      "action": "workspaceStep",
+      "argument": "up"
+    },
+    {
+      "key": "SUPER + SHIFT + W",
+      "action": "moveWindowStep",
+      "argument": "up"
+    },
+    {
+      "key": "SUPER + A",
+      "action": "workspaceStep",
+      "argument": "left"
+    },
+    {
+      "key": "SUPER + SHIFT + A",
+      "action": "moveWindowStep",
+      "argument": "left"
+    },
+    {
+      "key": "SUPER + S",
+      "action": "workspaceStep",
+      "argument": "down"
+    },
+    {
+      "key": "SUPER + SHIFT + S",
+      "action": "moveWindowStep",
+      "argument": "down"
+    },
+    {
+      "key": "SUPER + D",
+      "action": "workspaceStep",
+      "argument": "right"
+    },
+    {
+      "key": "SUPER + SHIFT + D",
+      "action": "moveWindowStep",
+      "argument": "right"
+    }
+  ]
+
+  // v28 added WASD workspace steps: a saved bind list gets them, each only
+  // on a key it doesn't use yet
+  function _v27ToV28(config, changes) {
+    return root._addBinds(config, changes, root._v28Binds);
   }
 }

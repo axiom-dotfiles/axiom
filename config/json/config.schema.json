@@ -8,7 +8,7 @@
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 27,
+      "default": 28,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
@@ -368,6 +368,14 @@
             { "key": "SUPER + SHIFT + 9", "action": "moveWindowNth", "argument": "9" },
             { "key": "SUPER + 0", "action": "workspaceNth", "argument": "10" },
             { "key": "SUPER + SHIFT + 0", "action": "moveWindowNth", "argument": "10" },
+            { "key": "SUPER + W", "action": "workspaceStep", "argument": "up" },
+            { "key": "SUPER + SHIFT + W", "action": "moveWindowStep", "argument": "up" },
+            { "key": "SUPER + A", "action": "workspaceStep", "argument": "left" },
+            { "key": "SUPER + SHIFT + A", "action": "moveWindowStep", "argument": "left" },
+            { "key": "SUPER + S", "action": "workspaceStep", "argument": "down" },
+            { "key": "SUPER + SHIFT + S", "action": "moveWindowStep", "argument": "down" },
+            { "key": "SUPER + D", "action": "workspaceStep", "argument": "right" },
+            { "key": "SUPER + SHIFT + D", "action": "moveWindowStep", "argument": "right" },
             { "key": "SUPER + H", "action": "focusDir", "argument": "left" },
             { "key": "SUPER + SHIFT + H", "action": "moveWindowDir", "argument": "left" },
             { "key": "SUPER + J", "action": "focusDir", "argument": "down" },
@@ -464,6 +472,15 @@
                 "default": "",
                 "description": "Search text, page, direction, workspace number, special workspace name, resize step (\"50 0\"), screenshot kind (region, window or screen) or command.",
                 "x-showIf": { "action": ["launcherSearch", "overlayPage", "edgeMenu", "workspaceStep", "moveWindowStep", "moveWindowStepSilent", "workspaceNth", "moveWindowNth", "moveWindowNthSilent", "focusDir", "moveWindowDir", "resizeWindow", "toggleSpecial", "moveToSpecial", "screenshot", "exec"] }
+              },
+              "call": {
+                "type": "string",
+                "title": "Call",
+                "default": "toggle",
+                "enum": ["toggle", "open", "close"],
+                "x-enumLabels": { "toggle": "Toggle", "open": "Open", "close": "Close" },
+                "description": "For actions that open and close something: whether the bind toggles it, only opens it or only closes it.",
+                "x-showIf": { "action": ["launcher", "overlay", "edgeMenu", "workspaceOverview", "powerMenu", "idleInhibit", "nightLight"] }
               },
               "repeating": { "type": "boolean", "title": "Repeat while held", "default": false },
               "locked": { "type": "boolean", "title": "Works while locked", "default": false },

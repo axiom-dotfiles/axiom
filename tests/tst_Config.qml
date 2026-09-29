@@ -207,6 +207,28 @@ TestCase {
     compare(ConfigMigration.migrate(result.config).config.Hyprland.binds.length, binds.length);
   }
 
+  function test_v28_adds_wasd_binds_on_free_keys() {
+    const result = ConfigMigration.migrate({
+      "version": 27,
+      "Hyprland": {
+        "binds": [
+          {
+            "key": "SUPER + A",
+            "action": "exec",
+            "argument": "pavucontrol"
+          }
+        ]
+      }
+    });
+    const binds = result.config.Hyprland.binds;
+    // The user's own SUPER + A stays; the other seven are added once
+    compare(binds.length, 8);
+    compare(binds[0].argument, "pavucontrol");
+    compare(binds.filter(bind => bind.action === "workspaceStep").map(bind => bind.argument).sort(), ["down", "right", "up"]);
+    compare(binds.filter(bind => bind.action === "moveWindowStep").length, 4);
+    compare(ConfigMigration.migrate(result.config).config.Hyprland.binds.length, binds.length);
+  }
+
   function test_v26_moves_pywal_themes_to_tonal() {
     const migrate = theme => ConfigMigration.migrate({
         "version": 25,
