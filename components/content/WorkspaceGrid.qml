@@ -100,7 +100,7 @@ Panel {
           hoverEnabled: true
           enabled: root.options.clickToSwitch ?? true
           cursorShape: Qt.PointingHandCursor
-          onClicked: HyprlandManager.goToWorkspace(wsCell.wsId)
+          onClicked: HyprlandManager.goToWorkspace(wsCell.wsId, "go", root.monitor)
         }
 
         Behavior on color {

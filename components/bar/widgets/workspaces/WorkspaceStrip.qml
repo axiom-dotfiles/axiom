@@ -65,7 +65,7 @@ Item {
       return;
     const current = root.ids.indexOf(root.activeId);
     const next = current < 0 ? (direction > 0 ? 0 : root.ids.length - 1) : (current + direction + root.ids.length) % root.ids.length;
-    HyprlandManager.goToWorkspace(root.ids[next]);
+    HyprlandManager.goToWorkspace(root.ids[next], "go", root.monitor);
   }
 
   WheelHandler {
@@ -131,7 +131,7 @@ Item {
           enabled: root.properties.clickToSwitch
           hoverEnabled: true
           cursorShape: Qt.PointingHandCursor
-          onClicked: HyprlandManager.goToWorkspace(cell.wsId)
+          onClicked: HyprlandManager.goToWorkspace(cell.wsId, "go", root.monitor)
         }
 
         Behavior on width {

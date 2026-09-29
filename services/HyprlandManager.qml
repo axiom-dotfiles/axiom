@@ -38,8 +38,20 @@ Singleton {
     Hyprland.dispatch(`hl.dsp.window.close({ window = ${_window(windowAddress)} })`);
   }
 
+  // Focusing a window on another workspace switches to it, so that goes
+  // through goToWorkspace to slide like any other switch
   function focusWindow(windowAddress) {
-    Hyprland.dispatch(`hl.dsp.focus({ window = ${_window(windowAddress)} })`);
+    const win = root.windowList.find(w => w.address === windowAddress);
+    const monitor = Hyprland.monitors.values.find(m => m.id === win?.monitor);
+    const id = win?.workspace?.id ?? -1;
+    if (!monitor || id <= 0 || id === monitor.activeWorkspace?.id)
+      Hyprland.dispatch(_focusWindowDispatcher(windowAddress));
+    else
+      goToWorkspace(id, "go", monitor, windowAddress);
+  }
+
+  function _focusWindowDispatcher(windowAddress) {
+    return `hl.dsp.focus({ window = ${_window(windowAddress)} })`;
   }
 
   // Moves a window onto a workspace, tiling it on `side` ("left" | "right" |
@@ -152,52 +164,75 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
   // Goes to workspace `id`. mode: "go" (default), "move" (taking the
   // focused window along) or "moveSilent" (sending it there, staying put).
   // In a grid or perMonitor layout only the monitor's own workspaces are
-  // reachable (`monitor`, the focused one by default), and it goes by row,
-  // then column, sliding along each (WorkspacesConfig.animate). The
-  // standard layout is one row (columns = count), so it only ever slides
-  // sideways.
-  function goToWorkspace(id, mode, monitor) {
+  // reachable (`monitor`, the focused one by default), and it goes by
+  // column, then row, sliding along each in turn (WorkspacesConfig.animate).
+  // The standard and perMonitor layouts are one row (columns = count), so
+  // they only ever slide sideways. Callers on a monitor's surface pass its
+  // monitor, which is focused first. `focusAddress` (focusWindow) arrives
+  // by focusing that window instead of the bare workspace.
+  function goToWorkspace(id, mode, monitor, focusAddress) {
     mode = mode || "go";
     monitor = monitor ?? Hyprland.focusedMonitor;
     const base = workspaceBase(monitor);
     const size = WorkspacesConfig.size;
     if (WorkspacesConfig.perMonitorBlocks && (id < base || id >= base + size)) {
-      console.warn(`[HyprlandManager] workspace ${id} is outside ${monitor?.name ?? "the focused monitor"}'s workspaces (${base}-${base + size - 1})`);
+      if (focusAddress)
+        Hyprland.dispatch(_focusWindowDispatcher(focusAddress));
+      else
+        console.warn(`[HyprlandManager] workspace ${id} is outside ${monitor?.name ?? "the focused monitor"}'s workspaces (${base}-${base + size - 1})`);
       return;
     }
-    const current = monitor === Hyprland.focusedMonitor ? _currentWorkspaceId() : (monitor?.activeWorkspace?.id ?? -1);
-    if (id === current)
+    const focused = monitor === Hyprland.focusedMonitor;
+    const current = focused ? _currentWorkspaceId() : (monitor?.activeWorkspace?.id ?? -1);
+    if (id === current) {
+      if (focusAddress)
+        Hyprland.dispatch(_focusWindowDispatcher(focusAddress));
       return;
+    }
     if (mode === "moveSilent") {
       Hyprland.dispatch(`hl.dsp.window.move({ workspace = ${id}, follow = false })`);
       return;
     }
+    // A new switch replaces the rest of one still sliding, and slides on
+    // from wherever that one has got to
+    const sliding = root._slideSteps.length > 0;
+    root._slideSteps = [];
+    _slideTimer.stop();
+    const at = sliding ? root._slideAt : current;
     root._lastGo = {
       "id": id,
       "time": Date.now()
     };
     const cols = WorkspacesConfig.columns;
-    const from = current - base;
+    const from = at - base;
     const to = id - base;
+    // Without the monitor focused, a new workspace would open on the
+    // focused one
+    const lead = focused || !monitor ? [] : [`hl.dsp.focus({ monitor = "${monitor.name}" })`];
+    const arrive = focusAddress ? _focusWindowDispatcher(focusAddress) : _goDispatcher(id, mode);
     const steps = [];
     if (WorkspacesConfig.animate && root._workspaceAnim && from >= 0 && from < size) {
-      if (Math.floor(from / cols) !== Math.floor(to / cols))
-        steps.push({
-          "id": base + Math.floor(to / cols) * cols + from % cols,
-          "style": "slidevert"
-        });
       if (from % cols !== to % cols)
         steps.push({
-          "id": id,
+          "id": base + Math.floor(from / cols) * cols + to % cols,
           "style": "slide"
+        });
+      if (Math.floor(from / cols) !== Math.floor(to / cols))
+        steps.push({
+          "id": id,
+          "style": "slidevert"
         });
     }
     if (steps.length === 0) {
-      Hyprland.dispatch(_goDispatcher(id, mode));
+      lead.concat([arrive]).forEach(dispatcher => Hyprland.dispatch(dispatcher));
       return;
     }
-    root._slideSteps = steps.map(step => Object.assign(step, {
-        "mode": mode
+    // Two legs each take a fraction of the configured time, so going
+    // diagonally across the grid is quicker than one plain switch
+    const speed = steps.length > 1 ? Math.max(0.5, root._workspaceAnim.speed * root._legSpeed) : root._workspaceAnim.speed;
+    root._slideSteps = steps.map((step, i) => Object.assign(step, {
+        "dispatchers": (i === 0 ? lead : []).concat([step.id === id ? arrive : _goDispatcher(step.id, mode)]),
+        "speed": speed
       }));
     _nextSlide();
   }
@@ -255,29 +290,38 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
     })
 
   function _currentWorkspaceId() {
-    if (Date.now() - root._lastGo.time < 300)
+    if (root._slideSteps.length > 0 || Date.now() - root._lastGo.time < 300)
       return root._lastGo.id;
     return activeWorkspaceId();
   }
 
   // Hyprland's own "workspaces" animation ({ speed, bezier, style }), put
-  // back after each slide; null when it isn't configured (or is off), so
-  // there's nothing to slide with
+  // back after each slide (global's speed and curve when it isn't set);
+  // null when animations are off, so there's nothing to slide with
   property var _workspaceAnim: null
   property var _slideSteps: []
+  // Each leg's share of the configured speed on a two-leg slide
+  readonly property real _legSpeed: 0.35
+  // The workspace the last slide went to, while more are waiting
+  property int _slideAt: -1
 
   function _nextSlide() {
     const step = root._slideSteps.shift();
     if (!step)
       return;
     const anim = root._workspaceAnim;
-    const set = style => `hl.animation({ leaf = "workspaces", enabled = true, speed = ${anim.speed}, bezier = "${anim.bezier}", style = "${style}" })`;
-    _eval([set(step.style), `hl.dispatch(${_goDispatcher(step.id, step.mode)})`, set(anim.style)].join("\n"));
-    if (root._slideSteps.length > 0)
+    const set = (style, speed) => `hl.animation({ leaf = "workspaces", enabled = true, speed = ${speed}, bezier = "${anim.bezier}", style = "${style}" })`;
+    _eval([set(step.style, step.speed)].concat(step.dispatchers.map(dispatcher => `hl.dispatch(${dispatcher})`), [set(anim.style, anim.speed)]).join("\n"));
+    root._slideAt = step.id;
+    if (root._slideSteps.length > 0) {
+      // Hyprland's speed is in tenths of a second
+      _slideTimer.interval = Math.max(50, Math.round(step.speed * 100));
       _slideTimer.restart();
+    }
   }
 
-  // Lets the first slide start before the second changes the animation
+  // Lets the first slide finish before the second starts: switching again
+  // mid-slide cuts it short, so the workspace would jump rather than slide
   property Timer _slideTimer: Timer {
     interval: 80
     onTriggered: root._nextSlide()
@@ -524,11 +568,16 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
       onStreamFinished: {
         // [animations, beziers]
         const all = root._parse(animationsCollector.text, "animations");
-        const anim = (Array.isArray(all?.[0]) ? all[0] : []).find(a => a.name === "workspaces");
-        root._workspaceAnim = anim?.overridden && anim.enabled && anim.bezier ? {
+        // A leaf that isn't set takes its speed and curve from its parent
+        // (workspaces from global), and slides by default
+        const leaves = Array.isArray(all?.[0]) ? all[0] : [];
+        const leaf = name => leaves.find(a => a.name === name);
+        const own = leaf("workspaces");
+        const anim = own?.overridden ? own : leaf("global");
+        root._workspaceAnim = own?.enabled !== false && anim?.enabled && anim.bezier && anim.speed > 0 ? {
           "speed": anim.speed,
           "bezier": anim.bezier,
-          "style": anim.style || "slide"
+          "style": (own?.overridden && own.style) || "slide"
         } : null;
       }
     }
