@@ -25,7 +25,7 @@ k9s:
     # MenuView attributes and styles
     menu:
       fgColor: ${FOREGROUND}
-      keyColor: ${BASE09}
+      keyColor: ${ORANGE}
       numKeyColor: ${ACCENT_ALT}
 
     # CrumbView attributes for history navigation
@@ -38,10 +38,10 @@ k9s:
     status:
       newColor: ${SUCCESS}
       modifyColor: ${WARNING}
-      addColor: ${BASE0B}
+      addColor: ${GREEN}
       errorColor: ${ERROR}
-      highlightcolor: ${BASE09}
-      killColor: ${BASE08}
+      highlightcolor: ${ORANGE}
+      killColor: ${RED}
       completedColor: ${FOREGROUND_INACTIVE}
 
     # Border title styles
@@ -50,7 +50,7 @@ k9s:
       bgColor: ${BACKGROUND_ALT}
       highlightColor: ${ACCENT}
       counterColor: ${ACCENT_ALT}
-      filterColor: ${BASE09}
+      filterColor: ${ORANGE}
 
   # Views
   views:
@@ -62,11 +62,11 @@ k9s:
       header:
         fgColor: ${FOREGROUND}
         bgColor: ${BACKGROUND_ALT}
-        sorterColor: ${BASE09}
+        sorterColor: ${ORANGE}
 
     # YAML view
     yaml:
-      keyColor: ${BASE0D}
+      keyColor: ${BLUE}
       colonColor: ${FOREGROUND_INACTIVE}
       valueColor: ${FOREGROUND}
 

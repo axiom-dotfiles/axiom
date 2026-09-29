@@ -105,6 +105,46 @@ class Themes(unittest.TestCase):
                 self.assertIn(value, BASES, f"{variant}.{key}")
 
 
+def luminance(color):
+    channels = [int(color[i:i + 2], 16) / 255 for i in (1, 3, 5)]
+    r, g, b = [c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4 for c in channels]
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b
+
+
+def contrast(a, b):
+    high, low = sorted((luminance(a), luminance(b)), reverse=True)
+    return (high + 0.05) / (low + 0.05)
+
+
+class TerminalPalette(unittest.TestCase):
+    """export_theme_colors / readable_text_colors keep text readable."""
+    TEXT = ["RED", "GREEN", "YELLOW", "BLUE", "MAGENTA", "CYAN", "ORANGE",
+            "ERROR", "WARNING", "SUCCESS", "INFO"]
+
+    def palette(self, theme):
+        script = (f'set -euo pipefail; source "{SCRIPTS}/lib/theme_env.sh"; '
+                  f'load_theme "{theme}" >/dev/null; export_theme_colors; readable_text_colors; '
+                  'env | grep -E "^(ANSI_[0-9]+|BACKGROUND|THEME_VARIANT|'
+                  + "|".join(self.TEXT) + ')="')
+        result = subprocess.run(["bash", "-c", script], capture_output=True, text=True, timeout=60)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        return dict(line.split("=", 1) for line in result.stdout.splitlines())
+
+    def test_every_theme_is_readable(self):
+        files = sorted(THEMES.glob("*.json")) + sorted((THEMES / "generated").glob("*.json"))
+        for f in [f for f in files if f.name != "theme.schema.json"]:
+            with self.subTest(theme=f.name):
+                c = self.palette(f)
+                bg = c["BACKGROUND"]
+                for i in [*range(1, 7), *range(9, 15)]:
+                    self.assertGreaterEqual(contrast(c[f"ANSI_{i}"], bg), 4.5, f"ANSI_{i} {c[f'ANSI_{i}']}")
+                self.assertGreaterEqual(contrast(c["ANSI_8"], bg), 3.0, f"ANSI_8 {c['ANSI_8']}")
+                for key in self.TEXT:
+                    self.assertGreaterEqual(contrast(c[key], bg), 4.5, f"{key} {c[key]}")
+                if c["THEME_VARIANT"] == "light":
+                    self.assertLess(luminance(c["ANSI_0"]), luminance(bg), "black isn't dark")
+
+
 class ThemeIntegrations(unittest.TestCase):
     THEMES = ["tokyo-night.json", "catppuccin-latte.json"]
 

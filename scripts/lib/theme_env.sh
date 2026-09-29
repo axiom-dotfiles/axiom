@@ -110,8 +110,75 @@ theme_color() {
     echo "${value:-${2:-}}"
 }
 
+# Minimum WCAG contrast against the background for colors used as text in a
+# terminal: chromatic ANSI/semantic colors, and bright black (comments,
+# autosuggestions), which is meant to stay dim
+TERM_MIN_CONTRAST=4.5
+TERM_MIN_CONTRAST_DIM=3.0
+
+# jq: readable($bg; $min) on a "#rrggbb" string gives the color with at
+# least $min contrast against $bg. The OKLCH hue is kept; lightness moves
+# away from the background (chroma shrinking to stay in sRGB) only as far
+# as needed, so colors that already pass come back unchanged.
+# shellcheck disable=SC2016
+READABLE_JQ='
+def lin: if . <= 0.04045 then . / 12.92 else pow((. + 0.055) / 1.055; 2.4) end;
+def gam: if . <= 0.0031308 then . * 12.92 else 1.055 * pow(.; 1 / 2.4) - 0.055 end;
+def nib: if . >= 97 then . - 87 elif . >= 65 then . - 55 else . - 48 end;
+def rgb: ltrimstr("#") | [.[0:2], .[2:4], .[4:6]] | map(explode | map(nib) | .[0] * 16 + .[1] | . / 255 | lin);
+def hexof: "#" + (map(gam | if . < 0 then 0 elif . > 1 then 1 else . end | . * 255 | round
+    | [(. / 16 | floor), (. % 16)] | map(if . < 10 then . + 48 else . + 87 end) | implode) | join(""));
+def lum: 0.2126 * .[0] + 0.7152 * .[1] + 0.0722 * .[2];
+def ratio($a; $b): if $a > $b then ($a + 0.05) / ($b + 0.05) else ($b + 0.05) / ($a + 0.05) end;
+def lch: (map(if . < 0 then 0 else . end)) as [$r, $g, $b]
+    | [0.4122214708 * $r + 0.5363325363 * $g + 0.0514459929 * $b,
+       0.2119034982 * $r + 0.6806995451 * $g + 0.1073969566 * $b,
+       0.0883024619 * $r + 0.2817188376 * $g + 0.6299787005 * $b] | map(cbrt) as [$l, $m, $s]
+    | [0.2104542553 * $l + 0.7936177850 * $m - 0.0040720468 * $s,
+       1.9779984951 * $l - 2.4285922050 * $m + 0.4505937099 * $s,
+       0.0259040371 * $l + 0.7827717662 * $m - 0.8086757660 * $s] as [$L, $A, $B]
+    | [$L, ($A * $A + $B * $B | sqrt), atan2($B; $A)];
+def linof: . as [$L, $C, $h] | ($C * ($h | cos)) as $a | ($C * ($h | sin)) as $b
+    | [$L + 0.3963377774 * $a + 0.2158037573 * $b,
+       $L - 0.1055613458 * $a - 0.0638541728 * $b,
+       $L - 0.0894841775 * $a - 1.2914855480 * $b] | map(. * . * .) as [$l, $m, $s]
+    | [4.0767416621 * $l - 3.3077115913 * $m + 0.2309699292 * $s,
+       -1.2684380046 * $l + 2.6097574011 * $m - 0.3413193965 * $s,
+       -0.0041960863 * $l - 0.7034186147 * $m + 1.7076147010 * $s];
+def ingamut: all(.[]; . >= -0.0001 and . <= 1.0001);
+def fit: . as [$L, $C, $h] | [$L, $C, $h] | until((linof | ingamut) or .[1] < 0.001; .[1] *= 0.95) | linof;
+def readable($bg; $min):
+    if test("^#[0-9a-fA-F]{6}$") | not then . else
+    ($bg | rgb | lum) as $bl | rgb as $c
+    | if ratio($c | lum; $bl) >= $min then . else
+      (if ($bl + 0.05) / 0.05 >= 1.05 / ($bl + 0.05) then -0.01 else 0.01 end) as $step
+      | [($c | lch), $c] | until(ratio(.[1] | lum; $bl) >= $min or .[0][0] <= 0 or .[0][0] >= 1;
+            .[0][0] += $step | .[1] = (.[0] | fit | hexof | rgb)) | .[1] | hexof end end;
+'
+
+# floor_colors BG MIN VAR...: re-exports each variable holding a color with
+# at least MIN contrast against BG (one jq run for all of them)
+floor_colors() {
+    local bg="$1" min="$2" name value out
+    shift 2
+    [ $# -gt 0 ] || return 0
+    local pairs=()
+    for name in "$@"; do
+        pairs+=("$name=${!name:-}")
+    done
+    out=$(jq -rn --arg bg "$bg" --argjson min "$min" "$READABLE_JQ"'
+        $ARGS.positional[] | capture("^(?<k>[^=]*)=(?<v>.*)$")
+        | "\(.k)\t\(.v | readable($bg; $min))"' --args "${pairs[@]}")
+    while IFS=$'\t' read -r name value; do
+        export "$name=$value"
+    done <<< "$out"
+}
+
 # Every semantic color as an UPPER_SNAKE variable (backgroundAlt ->
-# BACKGROUND_ALT), plus the terminal palette ANSI_0..ANSI_15 (base16 order)
+# BACKGROUND_ALT), plus the terminal palette ANSI_0..ANSI_15 (base16 order).
+# A light theme's black and white slots take its dark and light shades (a
+# terminal's "black" is dark whatever the background), and the palette's
+# colors are made readable against the background.
 export_theme_colors() {
     local key name i base
     for key in "${!THEME_SEMANTIC[@]}"; do
@@ -119,10 +186,24 @@ export_theme_colors() {
         export "$name=${THEME_SEMANTIC[$key]}"
     done
     local map=(00 08 0B 0A 0D 0E 0C 05 03 09 0B 0A 0D 0E 0C 07)
+    if [[ "${THEME_VARIANT:-}" == "light" ]]; then
+        map=(05 08 0B 0A 0D 0E 0C 02 03 09 0B 0A 0D 0E 0C 01)
+    fi
     for i in "${!map[@]}"; do
         base="BASE${map[$i]}"
         export "ANSI_$i=${!base:-}"
     done
+    local bg="${BACKGROUND:-${BASE00:-}}"
+    floor_colors "$bg" "$TERM_MIN_CONTRAST" ANSI_{1..6} ANSI_{9..14}
+    floor_colors "$bg" "$TERM_MIN_CONTRAST_DIM" ANSI_8
+}
+
+# The semantic colors terminal apps draw text in, made readable against the
+# background like the ANSI palette (after export_theme_colors; not for GTK,
+# Qt or hyprlock, where they're accents)
+readable_text_colors() {
+    floor_colors "${BACKGROUND:-${BASE00:-}}" "$TERM_MIN_CONTRAST" \
+        RED GREEN YELLOW BLUE MAGENTA CYAN ORANGE ERROR WARNING SUCCESS INFO
 }
 
 # Re-exports each named variable through a formatter: map_vars hex FOO BAR

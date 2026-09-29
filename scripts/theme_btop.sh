@@ -16,4 +16,5 @@ require_cmds jq envsubst btop
 OUTPUT_FILE="${2:-$HOME/.config/btop/themes/axiom.theme}"
 load_theme "$1"
 export_theme_colors
+readable_text_colors
 render_template "$SCRIPT_DIR/templates/btop_template.theme" "$OUTPUT_FILE"

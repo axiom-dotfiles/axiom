@@ -16,6 +16,7 @@ require_cmds jq envsubst bat
 OUTPUT_FILE="${2:-$HOME/.config/bat/themes/axiom.tmTheme}"
 load_theme "$1"
 export_theme_colors
+readable_text_colors
 render_template "$SCRIPT_DIR/templates/bat_template.tmTheme" "$OUTPUT_FILE"
 
 # bat only sees themes from its cache; delta reads the same cache
