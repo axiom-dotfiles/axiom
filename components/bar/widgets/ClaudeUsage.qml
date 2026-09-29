@@ -1,0 +1,88 @@
+pragma ComponentBehavior: Bound
+import QtQuick
+import Quickshell
+
+import qs.services
+import qs.config
+import qs.components.hosts.popout
+
+// Claude plan usage from ClaudeUsageManager, for one or more Claude Code
+// accounts (one per CLAUDE_CONFIG_DIR). Shows the session or weekly limit's
+// percent: the fullest account's, or every account's. Hovering lists every
+// limit per account; right click fetches again, left click runs the click
+// command.
+BarIconWidget {
+  id: root
+
+  // One state per configured account, in the configured order, labelled as
+  // configured
+  readonly property var rows: (properties.accounts ?? []).map(a => Object.assign({}, ClaudeUsageManager.stateFor(a.configDir) ?? {
+      "status": "pending"
+    }, {
+      "label": a.label || a.configDir
+    }))
+
+  function percentOf(row) {
+    return (properties.metric === "weekly" ? row.weekly : row.session)?.percent ?? -1;
+  }
+  function abbreviation(row) {
+    return rows.length > 1 ? String(row.label).charAt(0).toUpperCase() + " " : "";
+  }
+  function figure(row) {
+    const p = percentOf(row);
+    return abbreviation(row) + (p < 0 ? "–" : p + "%");
+  }
+
+  readonly property var fullest: rows.reduce((best, r) => best === null || percentOf(r) > percentOf(best) ? r : best, null)
+  readonly property int maxPercent: fullest ? percentOf(fullest) : -1
+  // Every shown account is behind (an expired token or a failed fetch)
+  readonly property bool stale: rows.length > 0 && (properties.display === "all" ? rows.every(r => r.status !== "ok") : (fullest?.status ?? "") !== "ok")
+
+  icon: properties.icon
+  text: {
+    if (rows.length === 0)
+      return "–";
+    if (properties.display === "all")
+      return rows.map(r => figure(r)).join(" · ");
+    return figure(properties.display === "first" ? rows[0] : fullest);
+  }
+
+  backgroundColor: Theme.resolveColor(maxPercent >= properties.critPercent ? properties.critColor : maxPercent >= properties.warnPercent ? properties.warnColor : properties.backgroundColor)
+  opacity: (mouseArea.pressed ? 0.8 : 1) * (stale ? 0.6 : 1)
+
+  // Re-registering replaces the old request
+  function register() {
+    ClaudeUsageManager.acquire(root, {
+      "accounts": properties.accounts ?? [],
+      "intervalMinutes": properties.intervalMinutes
+    });
+  }
+  onPropertiesChanged: register()
+  Component.onCompleted: register()
+  Component.onDestruction: ClaudeUsageManager.release(root)
+
+  MouseArea {
+    id: mouseArea
+    anchors.fill: parent
+    cursorShape: Qt.PointingHandCursor
+    acceptedButtons: Qt.LeftButton | Qt.RightButton
+    onClicked: mouse => {
+      if (mouse.button === Qt.RightButton)
+        ClaudeUsageManager.refresh();
+      else if (root.properties.clickCommand)
+        Quickshell.execDetached(["sh", "-c", root.properties.clickCommand]);
+    }
+  }
+
+  PopoutAnchor {
+    popouts: root.popouts
+    panel: root.panel
+    popoutName: "ClaudeUsage"
+    active: root.properties.showPopout
+    extraData: ({
+        "accounts": root.properties.accounts ?? [],
+        "warnPercent": root.properties.warnPercent,
+        "critPercent": root.properties.critPercent
+      })
+  }
+}

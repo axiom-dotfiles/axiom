@@ -2601,6 +2601,7 @@
         { "$ref": "#/definitions/IdleInhibitorWidget" },
         { "$ref": "#/definitions/PrivacyWidget" },
         { "$ref": "#/definitions/UpdatesWidget" },
+        { "$ref": "#/definitions/ClaudeUsageWidget" },
         { "$ref": "#/definitions/WeatherWidget" },
         { "$ref": "#/definitions/SeparatorWidget" },
         { "$ref": "#/definitions/VolumeWidget" },
@@ -2958,6 +2959,50 @@
             "manyThreshold": { "type": "integer", "title": "Many updates", "default": 50, "minimum": 1, "maximum": 1000, "description": "At or above this count, the widget uses the many-updates background." },
             "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base0B" },
             "manyColor": { "type": "string", "title": "Many-updates background", "x-options": "colors", "default": "base09" },
+            "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
+          }
+        }
+      }
+    },
+    "ClaudeUsageWidget": {
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "ClaudeUsage", "description": "Claude Usage" },
+        "visible": { "type": "boolean" },
+        "layout": { "$ref": "#/definitions/WidgetLayout" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "x-order": ["accounts", "metric", "display", "intervalMinutes"],
+          "properties": {
+            "accounts": {
+              "type": "array",
+              "title": "Accounts",
+              "default": [{ "label": "Personal", "configDir": "~/.claude" }],
+              "description": "One per Claude Code login: the CLAUDE_CONFIG_DIR it uses (~/.claude when unset). Usage is read with that login's token, which is never changed.",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "x-order": ["label", "configDir"],
+                "properties": {
+                  "label": { "type": "string", "title": "Label", "default": "", "description": "Shown in the popout; its first letter tells accounts apart on the bar." },
+                  "configDir": { "type": "string", "title": "Config directory", "default": "~/.claude" }
+                }
+              }
+            },
+            "metric": { "type": "string", "title": "Limit shown", "default": "session", "enum": ["session", "weekly"], "x-enumLabels": { "session": "Current session", "weekly": "Weekly" } },
+            "display": { "type": "string", "title": "Accounts shown", "default": "max", "enum": ["max", "all", "first"], "x-enumLabels": { "max": "Fullest", "all": "All", "first": "First" }, "description": "Which account's usage the bar shows. The popout lists every account." },
+            "intervalMinutes": { "type": "integer", "title": "Check interval", "x-unit": "min", "default": 5, "minimum": 2, "maximum": 60 },
+            "icon": { "type": "string", "title": "Icon", "default": "data_usage", "description": "A Material Symbols name (fonts.google.com/icons), or text." },
+            "warnPercent": { "type": "integer", "title": "Warning at", "x-unit": "%", "default": 75, "minimum": 1, "maximum": 100 },
+            "critPercent": { "type": "integer", "title": "Critical at", "x-unit": "%", "default": 90, "minimum": 1, "maximum": 100 },
+            "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "List every limit per account when hovered." },
+            "clickCommand": { "type": "string", "title": "Click command", "default": "", "description": "Run on left click (e.g. `xdg-open https://claude.ai/settings/usage`). Right click checks again now." },
+            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base0E" },
+            "warnColor": { "type": "string", "title": "Warning background", "x-options": "colors", "default": "base09" },
+            "critColor": { "type": "string", "title": "Critical background", "x-options": "colors", "default": "base08" },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
           }
         }
