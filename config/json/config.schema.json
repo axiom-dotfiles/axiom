@@ -1649,7 +1649,7 @@
           "minimum": 0,
           "maximum": 64,
           "x-unit": "px",
-          "description": "Gap between the frame and the edges of the menu's strip.",
+          "description": "Gap from the edges of the menu's strip to the inner edge of the frame's stroke, like the screen margin. Matching the screen margin lines the frame up with the screen border.",
           "x-showIf": { "mode": "integrated" }
         },
         "padding": {
