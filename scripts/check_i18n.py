@@ -112,7 +112,8 @@ def collect_keys():
             # Both branches of I18n.tr(cond ? "A" : "B"), not the condition
             for arg in tr_first_args(line):
                 for literal in branch_literals(arg):
-                    keys.setdefault(unescape(literal), f"{rel}:{line_no}")
+                    if literal:  # a `?? ""` fallback isn't text
+                        keys.setdefault(unescape(literal), f"{rel}:{line_no}")
     schema = set()
     schema_strings(json.loads(SCHEMA.read_text())["properties"], schema)
     schema_strings(json.loads(SCHEMA.read_text())["definitions"], schema)
