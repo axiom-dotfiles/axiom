@@ -335,7 +335,7 @@ if ok then axiom.setup() end
 Whichever mode is set, axiom falls back to the runtime layer when its file isn't loaded, and logs why.
 
 The same settings page holds switches for:
-- **required settings:** `misc.allow_session_lock_restore`, a rule suppressing apps' `maximize` requests (kitty's `remember_window_size` otherwise reopens it maximized), and a `workspaces` animation for the grid's slides
+- **required settings:** `misc.allow_session_lock_restore`, the rule from Hyprland's example config that ignores apps' `maximize` requests (managed mode replaces that config, and without the rule apps like kitty reopen maximized), and a `workspaces` animation for the grid's slides
 - **theme-coloured window borders**
 - **blur behind axiom's surfaces**
 - **starting `awww-daemon`** (with the awww wallpaper backend)

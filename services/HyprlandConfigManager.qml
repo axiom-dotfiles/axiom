@@ -275,8 +275,8 @@ Singleton {
   }
 
   function _requiredLua(withAnimation) {
-    // Apps may not maximize themselves: kitty (remember_window_size) saves a tiled
-    // window as "maximized" and asks for that on every launch
+    // The maximize rule is Hyprland's example config's, which managed mode replaces:
+    // without it apps like kitty (remember_window_size) reopen maximized
     const lines = ["hl.config({ misc = { allow_session_lock_restore = true } })", `hl.window_rule({ name = "axiom-suppress-maximize", match = { class = ".*" }, suppress_event = "maximize" })`];
     if (withAnimation)
       lines.push(`hl.animation({ leaf = "workspaces", enabled = true, speed = 4, bezier = "default", style = "slide" })`);
