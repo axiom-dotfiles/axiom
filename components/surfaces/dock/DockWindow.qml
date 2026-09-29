@@ -193,7 +193,10 @@ Scope {
   function reveal(byPointer) {
     root._touched = !!byPointer || root.engaged;
     root.latched = true;
-    closeTimer.restart();
+    // Only restart a countdown that's due: restart() starts the timer even
+    // while its binding says not to (the pointer on the dock or trigger)
+    if (!root.pointerIn)
+      closeTimer.restart();
   }
 
   function conceal() {
@@ -214,6 +217,7 @@ Scope {
   // DOCKDBG: temporary tracing
   readonly property string _dbg: `hover=${hover.hovered} trig=${trigger.containsMouse} menu=${root.menuOpen} drag=${root.dragIndex} latched=${root.latched} touched=${root._touched} want=${root.wantShown} maskDepth=${inputArea.crossDepth}`
   on_DbgChanged: console.log("DOCKDBG", root._dbg)
+  Component.onCompleted: console.log("DOCKDBG start", root._dbg)
 
   Connections {
     target: DockManager
