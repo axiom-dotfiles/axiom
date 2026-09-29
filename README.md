@@ -39,9 +39,9 @@ The whole desktop is described by one config: which bars exist and what's on the
 > [!NOTE]
 > **Both setups in this README, A and B, were built entirely with these editors and the Settings page. No file was edited by hand.** They're two saved configs, and switching between them is one click under **Settings → Backups** (or `/config restore <name>` in the launcher).
 
-| Bar editor | Overlay editor |
-| :---: | :---: |
-| <img src="assets/screenshots/bar-editor.webp" alt="Bar editor, setup A"> | <img src="assets/screenshots/overlay-editor.webp" alt="Overlay editor, setup A"> |
+| Bar editor | Overlay editor | Edge menu editor |
+| :---: | :---: | :---: |
+| <img src="assets/screenshots/bar-editor.webp" alt="Bar editor, setup A"> | <img src="assets/screenshots/overlay-editor.webp" alt="Overlay editor, setup A"> | <img src="assets/screenshots/edge-menu-editor.webp" alt="Edge menu editor, setup A"> |
 
 **Bar editor**
 - Add as many bars as you like, on any monitor and any edge. Each one can be solid, transparent, or split into pills.
@@ -57,8 +57,6 @@ The whole desktop is described by one config: which bars exist and what's on the
 - Add menus to any edge of any monitor, and fill them with the same modules, cells and drag and drop as the overlay editor.
 - Each menu's edge, mode, size, colours and hover timings sit beside its canvas.
 - **Show on screen** keeps the selected menu open, so you see each change on the real menu as you make it.
-
-<p align="center"><img src="assets/screenshots/edge-menu-editor.webp" alt="The edge menu editor: the menus and the selected menu's settings on the left, its columns and the module library on the right" width="800"></p>
 
 **Settings**
 - Generated from the schema that defines the config, so every option is in the UI.
