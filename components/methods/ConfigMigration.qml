@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 28
+  readonly property int currentVersion: 29
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -83,6 +83,8 @@ QtObject {
       result = _v26ToV27(result, changes);
     if (version < 28)
       result = _v27ToV28(result, changes);
+    if (version < 29)
+      result = _v28ToV29(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -768,5 +770,21 @@ QtObject {
   // on a key it doesn't use yet
   function _v27ToV28(config, changes) {
     return root._addBinds(config, changes, root._v28Binds);
+  }
+
+  // v29 lets an App bar match several apps: its `app` string became an
+  // `apps` list
+  function _v28ToV29(config, changes) {
+    (config.OSD?.osds ?? []).forEach(osd => {
+      (osd?.bars ?? []).forEach((bar, index) => {
+        if (!bar || !("app" in bar))
+          return;
+        if (bar.apps === undefined)
+          bar.apps = typeof bar.app === "string" && bar.app !== "" ? [bar.app] : [];
+        delete bar.app;
+        changes.push(`OSD.osds[${osd.id}].bars[${index}].app -> apps`);
+      });
+    });
+    return config;
   }
 }

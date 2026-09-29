@@ -251,6 +251,8 @@ Loader {
     SchemaTextField {
       label: root.label
       description: root.description
+      suggestions: SettingsManager.suggestionsFor(root.fieldSchema)
+      commaList: true
       currentConfigValue: (root.current ?? []).join(", ")
       onValueChanged: root.commit(value.split(",").map(v => v.trim()).filter(v => v !== ""))
     }

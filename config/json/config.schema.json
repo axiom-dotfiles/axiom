@@ -8,7 +8,7 @@
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 28,
+      "default": 29,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
@@ -1521,7 +1521,7 @@
           "items": {
             "type": "object",
             "additionalProperties": false,
-            "x-order": ["type", "app", "icon", "showOsd"],
+            "x-order": ["type", "apps", "icon", "showOsd"],
             "properties": {
               "type": {
                 "type": "string",
@@ -1530,7 +1530,7 @@
                 "x-enumLabels": { "master": "System volume", "other": "Other apps", "microphone": "Microphone", "brightness": "Brightness", "app": "An app" },
                 "default": "app"
               },
-              "app": { "type": "string", "title": "App", "default": "", "x-showIf": { "type": "app" }, "x-suggestions": "audioApps", "description": "Matched as a substring of the stream's binary or name." },
+              "apps": { "type": "array", "items": { "type": "string" }, "title": "Apps", "default": [], "x-showIf": { "type": "app" }, "x-suggestions": "audioApps", "description": "Comma-separated; each matched as a substring of a stream's binary or name. The bar shows the first listed app with a stream open, and a change sets every matching stream." },
               "icon": { "type": "string", "title": "Icon", "default": "", "description": "Icon shown on the bar: a Material Symbols name (fonts.google.com/icons), or text. Empty follows the level for system volume, microphone and brightness." },
               "showOsd": { "type": "boolean", "title": "Opens the OSD", "default": true, "description": "A change on this bar opens the OSD (it always keeps an open one open)." }
             }

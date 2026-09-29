@@ -159,9 +159,11 @@ TestCase {
     compare(osd.id, "main");
     compare(osd.placement, "edge");
     compare(osd.bars.map(bar => bar.type), ["app", "other", "master"]);
-    compare(osd.bars[0].app, "spotify");
+    // v29: an App bar's app becomes a list
+    compare(osd.bars[0].app, undefined);
+    compare(osd.bars[0].apps, ["spotify"]);
     compare(osd.bars[0].showOsd, false);
-    compare(osd.bars[1].app, "");
+    compare(osd.bars[1].apps, []);
     // v16: an edge menu's extraDepth becomes the size across its edge
     compare(config.EdgeMenus[0].extraDepth, undefined);
     compare(config.EdgeMenus[0].extraWidth, 120);
