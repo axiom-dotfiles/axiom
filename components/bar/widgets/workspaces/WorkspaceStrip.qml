@@ -25,6 +25,7 @@ Item {
 
   readonly property HyprlandMonitor monitor: Hyprland.monitorFor(root.screen)
   readonly property int activeId: root.monitor?.activeWorkspace?.id ?? -1
+  readonly property int base: HyprlandManager.workspaceBase(root.monitor)
 
   // A string, so the cells are only rebuilt when the set of workspaces
   // shown changes, not on every Hyprland event
@@ -119,7 +120,7 @@ Item {
         StyledText {
           anchors.centerIn: parent
           visible: root.properties.labels === "numbers" && cell.iconPath === ""
-          text: cell.wsId
+          text: root.properties.relativeNumbers ? cell.wsId - root.base + 1 : cell.wsId
           textColor: cell.isActive || cell.occupied ? root.textColor : Theme.foreground
           textSize: root.barConfig.fontSize - 1
         }

@@ -130,11 +130,11 @@ Item {
             visible: cellBox.iconPath !== ""
           }
 
-          // Its place in the grid, counted from 1
+          // The workspace id, or its place in the grid counted from 1
           StyledText {
             anchors.centerIn: parent
             visible: root.properties.labels === "numbers" && !cellBox.showsArrow && cellBox.iconPath === ""
-            text: cellBox.index + 1
+            text: root.properties.relativeNumbers ? cellBox.index + 1 : cellBox.wsId
             textColor: cellBox.isActive || cellBox.hasWindows ? root.iconColor : Theme.foreground
             textSize: root.barConfig.fontSize - 1
           }

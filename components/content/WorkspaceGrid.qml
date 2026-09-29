@@ -85,11 +85,11 @@ Panel {
           visible: wsCell.iconPath !== ""
         }
 
-        // Its place in the grid, counted from 1, as on the bar
+        // The workspace id, or its place in the grid counted from 1, as on the bar
         StyledText {
           anchors.centerIn: parent
           visible: root.options.labels === "numbers" && wsCell.iconPath === ""
-          text: wsCell.index + 1
+          text: root.options.relativeNumbers ? wsCell.index + 1 : wsCell.wsId
           textColor: wsCell.isActive || wsCell.hasWindows ? root.textColor : Theme.foreground
           textSize: root.cellFontSize - 1
         }
