@@ -145,7 +145,7 @@ Item {
             hoverEnabled: true
             enabled: root.properties.clickToSwitch
             cursorShape: Qt.PointingHandCursor
-            onClicked: HyprlandManager.goToWorkspace(cellBox.wsId)
+            onClicked: HyprlandManager.goToWorkspace(cellBox.wsId, "go", root.monitor)
           }
 
           Behavior on color {

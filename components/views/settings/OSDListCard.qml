@@ -18,6 +18,9 @@ StyledContainer {
   readonly property var entrySchema: ConfigManager.configSchema?.definitions?.OSDEntry ?? ({})
   readonly property var osds: SettingsManager.localConfig?.OSD?.osds ?? OSDConfig.osds
   property int selected: 0
+  // Folded by clicking the header, like the generated cards (their key)
+  readonly property string foldKey: "OSD:OSDList"
+  readonly property bool collapsed: SettingsManager.isCollapsed(root.foldKey)
   readonly property int current: Math.max(0, Math.min(root.selected, root.osds.length - 1))
   readonly property var osd: root.osds[root.current] ?? null
 
@@ -183,19 +186,55 @@ StyledContainer {
     anchors.margins: Widget.padding
     spacing: Widget.spacing * 1.5
 
+    // Header: the title folds the card (as the generated cards do)
     RowLayout {
       Layout.fillWidth: true
       spacing: Widget.spacing
 
-      StyledText {
-        text: I18n.tr("OSDs")
-        textColor: Theme.accent
-        textSize: Appearance.fontSize + 1
-        font.bold: true
+      Item {
         Layout.fillWidth: true
+        implicitHeight: titleRow.implicitHeight
+
+        MouseArea {
+          id: headerArea
+          anchors.fill: parent
+          hoverEnabled: true
+          cursorShape: Qt.PointingHandCursor
+          onClicked: SettingsManager.setCollapsed(root.foldKey, !root.collapsed)
+        }
+
+        RowLayout {
+          id: titleRow
+          anchors.left: parent.left
+          anchors.right: parent.right
+          spacing: Widget.spacing
+
+          StyledText {
+            text: I18n.tr("OSDs")
+            textColor: Theme.accent
+            textSize: Appearance.fontSize + 1
+            font.bold: true
+            Layout.fillWidth: true
+          }
+
+          StyledIcon {
+            text: "expand_more"
+            textColor: headerArea.containsMouse ? Theme.accent : Theme.foregroundAlt
+            textSize: Appearance.fontSize + 4
+            rotation: root.collapsed ? -90 : 0
+
+            Behavior on rotation {
+              NumberAnimation {
+                duration: Appearance.animNormal
+                easing.type: Easing.OutCubic
+              }
+            }
+          }
+        }
       }
 
       StyledTextButton {
+        visible: !root.collapsed
         implicitHeight: Widget.height - 4
         iconText: "add"
         text: I18n.tr("Add")
@@ -203,153 +242,177 @@ StyledContainer {
       }
     }
 
-    // One tab per OSD
-    Flow {
+    // The rest, clipped while folding
+    Item {
+      id: body
+      property real shown: root.collapsed ? 0 : 1
       Layout.fillWidth: true
-      spacing: Widget.spacing / 2
+      Layout.preferredHeight: bodyColumn.implicitHeight * shown
+      visible: shown > 0
+      clip: shown < 1
 
-      Repeater {
-        model: root.osds.length
-
-        delegate: StyledTextButton {
-          id: tab
-          required property int index
-          readonly property var osd: root.osds[index]
-          readonly property bool isSelected: index === root.current
-
-          implicitHeight: Widget.height - 4
-          text: OSDConfig.labelOf(osd)
-          opacity: osd.enabled ? 1 : 0.6
-          backgroundColor: tab.isSelected ? Theme.accent : Theme.backgroundHighlight
-          textColor: tab.isSelected ? Theme.background : Theme.foreground
-          onClicked: root.selected = tab.index
+      Behavior on shown {
+        NumberAnimation {
+          duration: Appearance.animNormal
+          easing.type: Easing.OutCubic
         }
       }
-    }
 
-    RowLayout {
-      visible: root.osd !== null
-      Layout.fillWidth: true
-      spacing: Widget.spacing * 2
+      ColumnLayout {
+        id: bodyColumn
+        anchors.left: parent.left
+        anchors.right: parent.right
+        spacing: Widget.spacing * 1.5
 
-      // The screen, with the selected OSD's spot and the presets to click
-      Rectangle {
-        id: screen
-        readonly property real dot: 14
+        // One tab per OSD
+        Flow {
+          Layout.fillWidth: true
+          spacing: Widget.spacing / 2
 
-        Layout.preferredWidth: 192
-        Layout.preferredHeight: 108
-        Layout.alignment: Qt.AlignTop
-        color: Theme.background
-        border.color: Theme.border
-        border.width: Appearance.borderWidth
-        radius: Widget.radius / 2
+          Repeater {
+            model: root.osds.length
 
-        Repeater {
-          model: root.presets
+            delegate: StyledTextButton {
+              id: tab
+              required property int index
+              readonly property var osd: root.osds[index]
+              readonly property bool isSelected: index === root.current
 
-          delegate: Rectangle {
-            id: preset
-            required property var modelData
-            readonly property bool hovered: presetArea.containsMouse
+              implicitHeight: Widget.height - 4
+              text: OSDConfig.labelOf(osd)
+              opacity: osd.enabled ? 1 : 0.6
+              backgroundColor: tab.isSelected ? Theme.accent : Theme.backgroundHighlight
+              textColor: tab.isSelected ? Theme.background : Theme.foreground
+              onClicked: root.selected = tab.index
+            }
+          }
+        }
 
-            width: screen.dot
-            height: screen.dot
-            radius: width / 2
-            x: modelData.x * (screen.width - width)
-            y: modelData.y * (screen.height - height)
-            color: hovered ? Theme.accentAlt : Theme.backgroundHighlight
+        RowLayout {
+          visible: root.osd !== null
+          Layout.fillWidth: true
+          spacing: Widget.spacing * 2
+
+          // The screen, with the selected OSD's spot and the presets to click
+          Rectangle {
+            id: screen
+            readonly property real dot: 14
+
+            Layout.preferredWidth: 192
+            Layout.preferredHeight: 108
+            Layout.alignment: Qt.AlignTop
+            color: Theme.background
             border.color: Theme.border
-            border.width: 1
+            border.width: Appearance.borderWidth
+            radius: Widget.radius / 2
 
-            MouseArea {
-              id: presetArea
-              anchors.fill: parent
-              anchors.margins: -4
-              hoverEnabled: true
-              cursorShape: Qt.PointingHandCursor
-              onClicked: root.edit(preset.modelData.values)
+            Repeater {
+              model: root.presets
+
+              delegate: Rectangle {
+                id: preset
+                required property var modelData
+                readonly property bool hovered: presetArea.containsMouse
+
+                width: screen.dot
+                height: screen.dot
+                radius: width / 2
+                x: modelData.x * (screen.width - width)
+                y: modelData.y * (screen.height - height)
+                color: hovered ? Theme.accentAlt : Theme.backgroundHighlight
+                border.color: Theme.border
+                border.width: 1
+
+                MouseArea {
+                  id: presetArea
+                  anchors.fill: parent
+                  anchors.margins: -4
+                  hoverEnabled: true
+                  cursorShape: Qt.PointingHandCursor
+                  onClicked: root.edit(preset.modelData.values)
+                }
+
+                LazyLoader {
+                  active: preset.hovered
+                  StyledToolTip {
+                    target: preset
+                    // I18n.tr("Top edge") I18n.tr("Bottom edge") I18n.tr("Left edge") I18n.tr("Right edge") I18n.tr("Centre") I18n.tr("Upper third") I18n.tr("Lower third")
+                    text: I18n.tr(preset.modelData.label)
+                  }
+                }
+              }
             }
 
-            LazyLoader {
-              active: preset.hovered
-              StyledToolTip {
-                target: preset
-                // I18n.tr("Top edge") I18n.tr("Bottom edge") I18n.tr("Left edge") I18n.tr("Right edge") I18n.tr("Centre") I18n.tr("Upper third") I18n.tr("Lower third")
-                text: I18n.tr(preset.modelData.label)
+            // Where it is now
+            Rectangle {
+              width: screen.dot - 4
+              height: screen.dot - 4
+              radius: width / 2
+              x: root.spot.x * (screen.width - screen.dot) + 2
+              y: root.spot.y * (screen.height - screen.dot) + 2
+              color: Theme.accent
+            }
+          }
+
+          ColumnLayout {
+            Layout.fillWidth: true
+            Layout.alignment: Qt.AlignTop
+            spacing: Widget.spacing
+
+            StyledText {
+              text: I18n.tr("Click a spot to place it; fine-tune below. Show opens it as a change would.")
+              textColor: Theme.foregroundAlt
+              textSize: Appearance.fontSize - 2
+              wrapMode: Text.WordWrap
+              Layout.fillWidth: true
+            }
+
+            Flow {
+              Layout.fillWidth: true
+              spacing: Widget.spacing / 2
+
+              StyledTextButton {
+                implicitHeight: Widget.height - 4
+                iconText: "visibility"
+                text: I18n.tr("Show")
+                onClicked: ShellManager.showOsd(root.osd.id)
+              }
+
+              StyledTextButton {
+                implicitHeight: Widget.height - 4
+                iconText: "content_copy"
+                text: I18n.tr("Duplicate")
+                onClicked: root.duplicate()
+              }
+
+              StyledTextButton {
+                visible: root.osds.length > 1
+                implicitHeight: Widget.height - 4
+                iconText: "delete"
+                text: I18n.tr("Delete")
+                hoverColor: Theme.error
+                onClicked: root.remove()
               }
             }
           }
         }
 
-        // Where it is now
-        Rectangle {
-          width: screen.dot - 4
-          height: screen.dot - 4
-          radius: width / 2
-          x: root.spot.x * (screen.width - screen.dot) + 2
-          y: root.spot.y * (screen.height - screen.dot) + 2
-          color: Theme.accent
-        }
-      }
-
-      ColumnLayout {
-        Layout.fillWidth: true
-        Layout.alignment: Qt.AlignTop
-        spacing: Widget.spacing
-
-        StyledText {
-          text: I18n.tr("Click a spot to place it; fine-tune below. Show opens it as a change would.")
-          textColor: Theme.foregroundAlt
-          textSize: Appearance.fontSize - 2
-          wrapMode: Text.WordWrap
+        StyledSeparator {
+          visible: root.osd !== null
           Layout.fillWidth: true
         }
 
-        Flow {
+        SchemaPropertiesForm {
+          visible: root.osd !== null
           Layout.fillWidth: true
-          spacing: Widget.spacing / 2
-
-          StyledTextButton {
-            implicitHeight: Widget.height - 4
-            iconText: "visibility"
-            text: I18n.tr("Show")
-            onClicked: ShellManager.showOsd(root.osd.id)
-          }
-
-          StyledTextButton {
-            implicitHeight: Widget.height - 4
-            iconText: "content_copy"
-            text: I18n.tr("Duplicate")
-            onClicked: root.duplicate()
-          }
-
-          StyledTextButton {
-            visible: root.osds.length > 1
-            implicitHeight: Widget.height - 4
-            iconText: "delete"
-            text: I18n.tr("Delete")
-            hoverColor: Theme.error
-            onClicked: root.remove()
-          }
+          propertiesSchema: root.entrySchema.properties ?? ({})
+          order: root.entrySchema["x-order"] ?? []
+          values: root.osd ?? ({})
+          onEdited: (path, value) => root.edit({
+              [path[0]]: value
+            })
         }
       }
-    }
-
-    StyledSeparator {
-      visible: root.osd !== null
-      Layout.fillWidth: true
-    }
-
-    SchemaPropertiesForm {
-      visible: root.osd !== null
-      Layout.fillWidth: true
-      propertiesSchema: root.entrySchema.properties ?? ({})
-      order: root.entrySchema["x-order"] ?? []
-      values: root.osd ?? ({})
-      onEdited: (path, value) => root.edit({
-          [path[0]]: value
-        })
     }
   }
 }

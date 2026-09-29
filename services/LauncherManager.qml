@@ -165,6 +165,34 @@ QtObject {
 
   readonly property int _searchLimit: 50
 
+  // The apps best matching `text` (by name, generic name and keywords,
+  // then frecency), as desktop entries; the most used ones when it's empty
+  function searchApps(text, limit) {
+    const q = String(text ?? "").trim().toLowerCase();
+    const apps = _apps();
+    if (!q)
+      return apps.slice().sort((a, b) => _frecency(b.id) - _frecency(a.id) || a.name.localeCompare(b.name)).slice(0, limit);
+    const scored = [];
+    for (const app of apps) {
+      const s = _appScore(app, q);
+      if (s > 0)
+        scored.push({
+          s: s,
+          app: app
+        });
+    }
+    scored.sort((a, b) => b.s - a.s || a.app.name.localeCompare(b.app.name));
+    return scored.slice(0, limit).map(m => m.app);
+  }
+
+  // How well an app matches the lowercased query (name, generic name, then
+  // keywords), plus a frecency bonus; 0 when it doesn't
+  function _appScore(app, q) {
+    const keyword = Math.max(0, ...app.keywords.map(k => root.score(k, q)).filter(s => s >= 50));
+    const s = Math.max(root.score(app.name, q), 0.75 * root.score(app.genericName, q), 0.6 * keyword);
+    return s > 0 ? s + Math.min(25, 8 * Math.log2(1 + _frecency(app.id))) : 0;
+  }
+
   function _apps() {
     const hidden = LauncherConfig.hiddenApps.map(id => id.replace(/\.desktop$/, ""));
     return DesktopEntries.applications.values.filter(app => !app.noDisplay && !hidden.includes(app.id));
@@ -211,11 +239,10 @@ QtObject {
     q = q.toLowerCase();
     const scored = [];
     for (const app of _apps()) {
-      const keyword = Math.max(0, ...app.keywords.map(k => root.score(k, q)).filter(s => s >= 50));
-      const s = Math.max(root.score(app.name, q), 0.75 * root.score(app.genericName, q), 0.6 * keyword);
+      const s = _appScore(app, q);
       if (s > 0)
         scored.push({
-          s: s + Math.min(25, 8 * Math.log2(1 + _frecency(app.id))),
+          s: s,
           name: app.name,
           row: () => _appRow(app)
         });

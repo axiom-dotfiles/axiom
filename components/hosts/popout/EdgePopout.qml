@@ -258,12 +258,15 @@ PopoutWrapperBase {
 
     // On a bare screen edge (no border, no bar) there's no stroke to land
     // on: the surface sits at the edge and runs straight off it
-    readonly property real attachMargin: (root.straight ? 0 : -Appearance.borderWidth) + root.edgeOffset - (root.slidesUnder ? root.slideDistance : 0)
+    // Docks reserving space inside the border don't push it in: it reaches
+    // past them, on its own edge and at both ends
+    readonly property string screenName: root.screen?.name ?? ""
+    readonly property real attachMargin: (root.straight ? 0 : -Appearance.borderWidth) + root.edgeOffset - (root.slidesUnder ? root.slideDistance : 0) - DockManager.zoneOn(screenName, ["top", "bottom", "left", "right"][root.edge])
     margins {
-      top: root.edge === Bar.Top ? surfaceWindow.attachMargin : root.vertical ? -root.strokeInset : 0
-      bottom: root.edge === Bar.Bottom ? surfaceWindow.attachMargin : root.vertical ? -root.strokeInset : 0
-      left: root.edge === Bar.Left ? surfaceWindow.attachMargin : root.vertical ? 0 : -root.strokeInset
-      right: root.edge === Bar.Right ? surfaceWindow.attachMargin : root.vertical ? 0 : -root.strokeInset
+      top: root.edge === Bar.Top ? surfaceWindow.attachMargin : root.vertical ? -root.strokeInset - DockManager.zoneOn(surfaceWindow.screenName, "top") : 0
+      bottom: root.edge === Bar.Bottom ? surfaceWindow.attachMargin : root.vertical ? -root.strokeInset - DockManager.zoneOn(surfaceWindow.screenName, "bottom") : 0
+      left: root.edge === Bar.Left ? surfaceWindow.attachMargin : root.vertical ? 0 : -root.strokeInset - DockManager.zoneOn(surfaceWindow.screenName, "left")
+      right: root.edge === Bar.Right ? surfaceWindow.attachMargin : root.vertical ? 0 : -root.strokeInset - DockManager.zoneOn(surfaceWindow.screenName, "right")
     }
 
     implicitWidth: root.vertical ? surface.implicitWidth : 0

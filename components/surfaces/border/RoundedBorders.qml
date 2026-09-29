@@ -16,16 +16,17 @@ Item {
   property int strokeWidth: Appearance.borderWidth
 
   // Corners sit in the space left once every edge is reserved, so a
-  // floating bar (inside the border, reserving its own space) would push
-  // them in past it. Pull them back out to the border's corners.
+  // floating bar or a dock (inside the border, reserving their own space)
+  // would push them in past it. Pull them back out to the border's corners.
   readonly property var edges: Bar.edgesFor(root.screen)
   function cornerMargin(edge) {
+    const docks = DockManager.zoneOn(root.screen?.name ?? "", edge);
     const bar = root.edges[edge];
     if (!bar?.floating || !bar.reserveSpace)
-      return -root.strokeWidth;
+      return -root.strokeWidth - docks;
     // A transparent bar reserves gaps_out less (see BarPanel)
     const gap = bar.background === "transparent" ? (HyprlandManager.gapsOut[edge] ?? 0) : 0;
-    return -(bar.extent - gap);
+    return -(bar.extent - gap) - docks;
   }
   // A solid bar's strip lies over the bar's inner part (see
   // BarPanel.reservedZone): there it draws only its stroke, past the bar,
