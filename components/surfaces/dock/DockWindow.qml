@@ -8,13 +8,15 @@ import qs.services
 import qs.components.methods
 import qs.components.hosts.popout
 
-// One dock (a DockEntry) on one screen: a Top-layer strip along its edge,
-// inside the bars and border, holding a rounded box of app icons. The
-// window is as deep as the magnified icons, and only the box (and icons
-// grown out of it) take input. Always shown docks may reserve their strip;
-// hover and intellihide docks slide in from the edge through an
-// EdgeTrigger. Everything along the dock is laid out here (`starts`,
-// `sizes`), and each DockItem places itself from that.
+// One dock (a DockEntry) on one screen: a strip along its edge, inside the
+// bars and border, holding a box of app icons. At no distance from the edge
+// the box grows out of the border's (or a solid bar's) stroke as popouts
+// do (AttachedSurface), or runs straight off a bare screen edge; otherwise
+// it's a plain rounded box. The window is as deep as the magnified icons,
+// and only the box (and icons grown out of it) take input. Always shown
+// docks may reserve their strip; hover and intellihide docks slide in from
+// the edge through an EdgeTrigger. Everything along the dock is laid out
+// here (`starts`, `sizes`), and each DockItem places itself from that.
 Scope {
   id: root
 
@@ -31,8 +33,23 @@ Scope {
   readonly property real pad: root.dock.padding
   readonly property real spacing: root.dock.spacing
   readonly property real thickness: root.base + root.pad * 2
+
+  // --- Attaching to the edge ---
+  readonly property string _edgeName: ["top", "bottom", "left", "right"][root.edge]
+  readonly property var _edgeBar: Bar.edgesFor(root.screen)[root._edgeName]
+  // At no distance the box joins the edge's stroke: the border's or a
+  // solid bar's. A transparent or pill bar has none, so it stays a box.
+  readonly property bool attached: root.dock.edgeDistance === 0 && (!root._edgeBar || root._edgeBar.background === "solid")
+  // No border and no bar there: it runs straight off the screen edge
+  readonly property bool straight: root.attached && Bar.screenEdgeOpen(root.screen, root.edge)
+  readonly property int connectorGap: Appearance.borderRadius * 2
+  // An attached window reaches onto the stroke it joins, as EdgePopout's
+  readonly property real edgeMargin: root.attached && !root.straight ? -Appearance.borderWidth : 0
+  // From the window's edge to the box
+  readonly property real boxOffset: root.attached ? root.connectorGap / 2 : root.dock.edgeDistance
   // The window: the gap to the edge, the box, and room for icons to grow
-  readonly property real depth: root.dock.edgeDistance + root.thickness + (root.peak - root.base) + 2
+  // (and for an attached surface's far side)
+  readonly property real depth: root.boxOffset + root.thickness + Math.max(root.peak - root.base, root.attached ? root.connectorGap / 2 : 0) + 2
 
   // --- Items ---
   // Re-read on every window change; delegates are keyed by the joined
@@ -51,7 +68,8 @@ Scope {
   readonly property real restLength: root.count * root.base + Math.max(0, root.count - 1) * root.spacing + root.separatorLength + root.pad * 2
   // The box's centre at rest, kept on the screen
   readonly property real centre: {
-    const margin = Appearance.screenMargin;
+    // Room for an attached box's fillets too
+    const margin = Appearance.screenMargin + (root.attached && !root.straight ? root.connectorGap : 0);
     const wanted = root.length * root.dock.position / 100;
     if (root.restLength + margin * 2 >= root.length)
       return root.length / 2;
@@ -139,7 +157,7 @@ Scope {
   function _restRect() {
     const reserved = DockManager.reservedOf(root.screen);
     const along = root.restStart;
-    const across = root.dock.edgeDistance;
+    const across = root.boxOffset + root.edgeMargin;
     const w = root.screen?.width ?? 0;
     const h = root.screen?.height ?? 0;
     switch (root.edge) {
@@ -240,13 +258,25 @@ Scope {
     color: "transparent"
     visible: root.count > 0 && !root.fullscreen
 
-    WlrLayershell.layer: WlrLayer.Top
+    // Overlay, whose zones are arranged after the border's and bars' (its
+    // layer rule orders it after floating bars too): it sits inside them
+    // without shortening the bars on the other edges. Overlay draws over
+    // fullscreen windows, so it hides while there's one.
+    WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.namespace: "axiom-dock"
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
     exclusionMode: ExclusionMode.Normal
-    exclusiveZone: root.reserving ? root.dock.edgeDistance + root.thickness : 0
+    // Hyprland counts the edge margin into it, so windows start at the box
+    exclusiveZone: root.reserving ? root.boxOffset + root.thickness : 0
     // Windows retile around it without an event saying so
     onExclusiveZoneChanged: DockManager.refreshSoon()
+
+    // What it takes off the work area (Hyprland counts the edge margin
+    // in), for the EdgePopouts that reach past it
+    readonly property real reserved: window.visible && exclusiveZone > 0 ? exclusiveZone + root.edgeMargin : 0
+    onReservedChanged: DockManager.setZone(root.screen?.name ?? "", root._edgeName, root.dock.id, reserved)
+    Component.onCompleted: DockManager.setZone(root.screen?.name ?? "", root._edgeName, root.dock.id, reserved)
+    Component.onDestruction: DockManager.setZone(root.screen?.name ?? "", root._edgeName, root.dock.id, 0)
 
     anchors {
       top: root.edge !== Bar.Bottom
@@ -256,6 +286,13 @@ Scope {
     }
     implicitWidth: root.vertical ? root.depth : 0
     implicitHeight: root.vertical ? 0 : root.depth
+
+    margins {
+      top: root.edge === Bar.Top ? root.edgeMargin : 0
+      bottom: root.edge === Bar.Bottom ? root.edgeMargin : 0
+      left: root.edge === Bar.Left ? root.edgeMargin : 0
+      right: root.edge === Bar.Right ? root.edgeMargin : 0
+    }
 
     // The box and the icons grown out of it, and the gap to the edge (so
     // the pointer doesn't leave the dock on its way from the edge); nothing
@@ -268,7 +305,7 @@ Scope {
       id: inputArea
       readonly property real alongStart: root.boxStart
       readonly property real alongLength: root.shown > 0 ? root.currentLength : 0
-      readonly property real crossDepth: root.shown > 0 ? root.dock.edgeDistance + root.thickness + root.grown : 0
+      readonly property real crossDepth: root.shown > 0 ? root.boxOffset + root.thickness + root.grown : 0
 
       x: root.vertical ? root.crossAt(0, crossDepth) : alongStart
       y: root.vertical ? alongStart : root.crossAt(0, crossDepth)
@@ -284,10 +321,30 @@ Scope {
         id: hover
       }
 
-      // The box
+      // The box, joined to the edge
+      AttachedSurface {
+        id: surface
+        visible: root.attached
+        x: root.vertical ? root.crossAt(0, width) : root.boxStart - startMargin
+        y: root.vertical ? root.boxStart - startMargin : root.crossAt(0, height)
+        width: implicitWidth
+        height: implicitHeight
+
+        edge: root.edge
+        active: true
+        straight: root.straight
+        connectorGap: root.connectorGap
+        boxWidth: root.vertical ? root.thickness : root.currentLength
+        boxHeight: root.vertical ? root.currentLength : root.thickness
+        fillColor: Theme.resolveColor(root.dock.backgroundColor)
+        strokeColor: Theme.resolveColor(root.dock.borderColor)
+      }
+
+      // Or a box of its own
       Rectangle {
-        x: root.vertical ? root.crossAt(root.dock.edgeDistance, root.thickness) : root.boxStart
-        y: root.vertical ? root.boxStart : root.crossAt(root.dock.edgeDistance, root.thickness)
+        visible: !root.attached
+        x: root.vertical ? root.crossAt(root.boxOffset, root.thickness) : root.boxStart
+        y: root.vertical ? root.boxStart : root.crossAt(root.boxOffset, root.thickness)
         width: root.vertical ? root.thickness : root.currentLength
         height: root.vertical ? root.currentLength : root.thickness
         radius: Math.min(Appearance.borderRadius, root.thickness / 2)
@@ -302,8 +359,8 @@ Scope {
         readonly property real along: (root.starts[root.pinnedCount] ?? 0) - root.spacing - root.lineWidth
         readonly property real across: root.thickness - root.pad
 
-        x: root.vertical ? root.crossAt(root.dock.edgeDistance + root.pad / 2, across) : along
-        y: root.vertical ? along : root.crossAt(root.dock.edgeDistance + root.pad / 2, across)
+        x: root.vertical ? root.crossAt(root.boxOffset + root.pad / 2, across) : along
+        y: root.vertical ? along : root.crossAt(root.boxOffset + root.pad / 2, across)
         width: root.vertical ? across : root.lineWidth
         height: root.vertical ? root.lineWidth : across
         color: Theme.resolveColor(root.dock.borderColor)

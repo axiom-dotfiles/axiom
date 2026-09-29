@@ -398,7 +398,8 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
   // - Detached popouts and floating edge menus are drawn under the bars and
   //   border, so they slide out from beneath them.
   // - A dock is arranged after everything else on its edge, so it sits
-  //   inside the bars and border.
+  //   inside the bars and border. Edge popouts (the OSD, edge menus) come
+  //   after it, so they draw over it where they reach past its zone.
   // - The screenshot picker's frozen frame appears and goes at once, with no
   //   fade over the live screen.
   // Named, so re-adding one replaces it instead of piling up copies. Rules
@@ -406,7 +407,7 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
   // HyprlandConfigManager also writes them into its Lua files, since a
   // reload Hyprland does by itself (a watched file changing) doesn't always
   // send the configreloaded event that re-adds them here.
-  readonly property var layerRulesLua: [`hl.layer_rule({ name = "axiom-backdrop", match = { namespace = "^axiom-backdrop$" }, order = 10 })`, `hl.layer_rule({ name = "axiom-bar", match = { namespace = "^axiom-bar$" }, order = 5 })`, `hl.layer_rule({ name = "axiom-edge-menu", match = { namespace = "^axiom-edge-menu$" }, order = 7 })`, `hl.layer_rule({ name = "axiom-popout-under", match = { namespace = "^axiom-popout-under$" }, order = 6 })`, `hl.layer_rule({ name = "axiom-dock", match = { namespace = "^axiom-dock$" }, order = -1 })`, `hl.layer_rule({ name = "axiom-screenshot", match = { namespace = "^axiom-screenshot$" }, no_anim = true })`]
+  readonly property var layerRulesLua: [`hl.layer_rule({ name = "axiom-backdrop", match = { namespace = "^axiom-backdrop$" }, order = 10 })`, `hl.layer_rule({ name = "axiom-bar", match = { namespace = "^axiom-bar$" }, order = 5 })`, `hl.layer_rule({ name = "axiom-edge-menu", match = { namespace = "^axiom-edge-menu$" }, order = 7 })`, `hl.layer_rule({ name = "axiom-popout-under", match = { namespace = "^axiom-popout-under$" }, order = 6 })`, `hl.layer_rule({ name = "axiom-dock", match = { namespace = "^axiom-dock$" }, order = -1 })`, `hl.layer_rule({ name = "axiom-edge-popout", match = { namespace = "^axiom-edge-popout$" }, order = -2 })`, `hl.layer_rule({ name = "axiom-screenshot", match = { namespace = "^axiom-screenshot$" }, no_anim = true })`]
 
   function _addLayerRules() {
     for (const rule of layerRulesLua)

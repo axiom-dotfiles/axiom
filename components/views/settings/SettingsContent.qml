@@ -106,7 +106,7 @@ Item {
         continue;
       const group = root.groups[i];
       const folded = !root.searching && SettingsManager.layoutFolds[group.key] === true;
-      const weight = group.kind === "card" ? 6 : folded ? 1.5 : 2 + group.rows.reduce((sum, row) => sum + (row.kind === "array" ? 4 : row.schema?.description ? 1.6 : 1.2), 0);
+      const weight = folded ? 1.5 : group.kind === "card" ? 6 : 2 + group.rows.reduce((sum, row) => sum + (row.kind === "array" ? 4 : row.schema?.description ? 1.6 : 1.2), 0);
       const target = heights[0] <= heights[1] ? 0 : 1;
       result[target].push(group);
       heights[target] += weight;

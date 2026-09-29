@@ -1491,7 +1491,7 @@
           "minimum": 0,
           "maximum": 200,
           "x-unit": "px",
-          "description": "Gap between the dock and the screen edge (or the bar or border on it)."
+          "description": "Gap between the dock and the screen edge (or the bar or border on it). At 0 the dock grows out of the screen border or a solid bar, as popouts do, and runs straight off a bare screen edge."
         },
         "visibility": {
           "type": "string",

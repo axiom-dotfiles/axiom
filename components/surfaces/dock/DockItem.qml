@@ -41,7 +41,7 @@ Item {
   // from it
   Image {
     id: icon
-    readonly property real fromEdge: root.dock.edgeDistance + root.dockWindow.pad
+    readonly property real fromEdge: root.dockWindow.boxOffset + root.dockWindow.pad
 
     x: (root.vertical ? root.dockWindow.crossAt(fromEdge, root.size) : 0) + (root.dragging ? root.dragDelta.x : 0)
     y: (root.vertical ? 0 : root.dockWindow.crossAt(fromEdge, root.size)) + (root.dragging ? root.dragDelta.y : 0)
@@ -63,7 +63,7 @@ Item {
     readonly property int dots: Math.min(3, root.windows.length)
     readonly property bool line: root.dock.runningIndicator === "line"
     readonly property real alongLength: line ? root.dockWindow.base * 0.4 : dots * dot + (dots - 1) * dot
-    readonly property real fromEdge: root.dock.edgeDistance + Math.max(1, (root.dockWindow.pad - dot) / 2)
+    readonly property real fromEdge: root.dockWindow.boxOffset + Math.max(1, (root.dockWindow.pad - dot) / 2)
 
     visible: root.dock.runningIndicator !== "none" && root.windows.length > 0 && !root.dragging
     x: root.vertical ? root.dockWindow.crossAt(fromEdge, dot) : (root.size - alongLength) / 2

@@ -126,6 +126,31 @@ QtObject {
     root._editDock(dockId, dock => dock.pinned = dock.pinned.filter(k => k !== key));
   }
 
+  // --- Reserved space ---
+
+  // What each shown dock reserves, by "<screen>:<edge>:<dock id>" (edge
+  // "top" | "bottom" | "left" | "right"): EdgePopouts (the OSD, edge
+  // menus) reach past it to the border, so a dock doesn't push them in
+  property var zones: ({})
+
+  function setZone(screenName, edge, dockId, size) {
+    const key = `${screenName}:${edge}:${dockId}`;
+    if ((root.zones[key] ?? 0) === size)
+      return;
+    const zones = Object.assign({}, root.zones);
+    if (size > 0)
+      zones[key] = size;
+    else
+      delete zones[key];
+    root.zones = zones;
+  }
+
+  // The space docks reserve on a screen edge, together
+  function zoneOn(screenName, edge) {
+    const prefix = `${screenName}:${edge}:`;
+    return Object.keys(root.zones).filter(key => key.startsWith(prefix)).reduce((sum, key) => sum + root.zones[key], 0);
+  }
+
   // --- Showing and hiding ---
 
   // The space reserved on each side of a screen, [left, top, right,
