@@ -82,7 +82,8 @@ BaseWidget {
 
   isVertical: barConfig.vertical
   crossSize: barConfig.widgetSize
-  padding: segments.length > 0 ? Widget.padding : 0
+  padding: segments.length > 0 ? barConfig.widgetPadding : 0
+  radius: barConfig.radius
   backgroundColor: Theme.resolveColor(warning ? properties.warnColor : properties.backgroundColor)
 
   // Ask only for what's shown; re-registering replaces the old request
@@ -137,7 +138,7 @@ BaseWidget {
 
   content: Grid {
     columns: root.isVertical ? 1 : Math.max(1, root.segments.length)
-    spacing: root.isVertical ? Widget.spacing : Widget.padding
+    spacing: root.isVertical ? root.barConfig.widgetSpacing : root.barConfig.widgetPadding
     horizontalItemAlignment: Grid.AlignHCenter
     verticalItemAlignment: Grid.AlignVCenter
 
@@ -157,13 +158,13 @@ BaseWidget {
         StyledIcon {
           text: segment.stat.icon
           color: root.foregroundColor
-          font.pixelSize: Appearance.fontSize
+          font.pixelSize: root.barConfig.fontSize
         }
         Text {
           text: segment.stat.value
           color: root.foregroundColor
           font.family: Appearance.fontFamily
-          font.pixelSize: Appearance.fontSize * (root.isVertical ? 0.7 : 0.9)
+          font.pixelSize: root.barConfig.fontSize * (root.isVertical ? 0.7 : 0.9)
         }
       }
     }

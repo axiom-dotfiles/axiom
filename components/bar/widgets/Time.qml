@@ -28,8 +28,8 @@ Item {
 
   readonly property int priority: 5
 
-  implicitWidth: isVertical ? root.barConfig.widgetSize : (layoutLoader.item ? layoutLoader.item.implicitWidth + Widget.padding * 2 : 0)
-  implicitHeight: isVertical ? (layoutLoader.item ? layoutLoader.item.implicitHeight + Widget.padding * 2 : 0) : root.barConfig.widgetSize
+  implicitWidth: isVertical ? root.barConfig.widgetSize : (layoutLoader.item ? layoutLoader.item.implicitWidth + root.barConfig.widgetPadding * 2 : 0)
+  implicitHeight: isVertical ? (layoutLoader.item ? layoutLoader.item.implicitHeight + root.barConfig.widgetPadding * 2 : 0) : root.barConfig.widgetSize
 
   SystemClock {
     id: clock
@@ -99,13 +99,13 @@ Item {
   Rectangle {
     anchors.fill: parent
     color: Theme.resolveColor(root.properties.backgroundColor)
-    radius: Appearance.borderRadius
+    radius: root.barConfig.radius
   }
 
   component ClockText: Text {
     color: root.foregroundColor
     font.family: Appearance.fontFamily
-    font.pixelSize: Appearance.fontSize
+    font.pixelSize: root.barConfig.fontSize
   }
 
   component LineStack: Column {
@@ -125,7 +125,7 @@ Item {
         horizontalAlignment: Text.AlignHCenter
         lineHeight: 0.9
         text: line.text
-        font.pixelSize: Appearance.fontSize * line.scale
+        font.pixelSize: root.barConfig.fontSize * line.scale
         font.bold: line.bold
         opacity: line.opacity
       }
@@ -140,7 +140,7 @@ Item {
     Component {
       id: horizontalComponent
       Row {
-        spacing: Widget.spacing * 2
+        spacing: root.barConfig.widgetSpacing * 2
 
         ClockText {
           text: root.dateText
@@ -149,7 +149,7 @@ Item {
 
         Rectangle {
           width: 1
-          height: Appearance.fontSize
+          height: root.barConfig.fontSize
           color: root.foregroundColor
           opacity: 0.5
           visible: root.showDate
@@ -165,7 +165,7 @@ Item {
     Component {
       id: verticalComponent
       Column {
-        spacing: Widget.spacing
+        spacing: root.barConfig.widgetSpacing
 
         LineStack {
           lines: root.timeLines

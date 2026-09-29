@@ -39,6 +39,11 @@ Loader {
         labels[menu.id] = menu.name || menu.id;
         return labels;
       }, {});
+    if (fieldSchema["x-options"] === "screens")
+      return {
+        "": I18n.tr("First screen"),
+        "*": I18n.tr("All monitors")
+      };
     if (fieldSchema["x-options"] === "notes")
       return {
         "": I18n.tr("Last opened")

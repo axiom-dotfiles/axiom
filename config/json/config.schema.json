@@ -8,7 +8,7 @@
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 26,
+      "default": 27,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
@@ -819,8 +819,8 @@
     "Widget": {
       "type": "object",
       "x-category": "Look & Feel",
-      "title": "Widgets",
-      "description": "Shared sizing for widgets and form controls. Bar widgets are sized by their bar's widget size.",
+      "title": "Panels & controls",
+      "description": "Sizing for the overlay, popouts, launcher and settings. Each bar has its own, in the bar editor.",
       "additionalProperties": false,
       "properties": {
         "height": {
@@ -830,7 +830,7 @@
           "minimum": 16,
           "maximum": 128,
           "x-unit": "px",
-          "description": "Height of buttons, fields and other controls outside the bar (px). Bar widgets follow their bar's thickness."
+          "description": "Height of buttons, fields and other controls (px)."
         },
         "padding": {
           "type": "integer",
@@ -839,7 +839,7 @@
           "minimum": 0,
           "maximum": 32,
           "x-unit": "px",
-          "description": "Inner padding of widgets and panels (px)."
+          "description": "Inner padding of panels, cards and controls (px)."
         },
         "spacing": {
           "type": "integer",
@@ -848,7 +848,7 @@
           "minimum": 0,
           "maximum": 32,
           "x-unit": "px",
-          "description": "Gap between items inside widgets and panels (px)."
+          "description": "Gap between items inside panels, cards and controls (px)."
         }
       }
     },
@@ -1670,8 +1670,9 @@
           "type": "string",
           "title": "Monitor",
           "default": "",
-          "description": "Monitor this bar is shown on. Empty uses the first screen.",
-          "x-options": "screens"
+          "description": "Monitor this bar is shown on. All monitors puts an identical copy on each.",
+          "x-options": "screens",
+          "x-allScreens": true
         },
         "location": {
           "type": "string",
@@ -1746,6 +1747,58 @@
           "title": "Reserve space",
           "default": true,
           "description": "Keep windows from tiling underneath the bar."
+        },
+        "widgetPadding": {
+          "type": "integer",
+          "title": "Widget padding",
+          "default": 10,
+          "minimum": 0,
+          "maximum": 40,
+          "x-unit": "px",
+          "description": "Space inside each widget, before its icon or text."
+        },
+        "widgetSpacing": {
+          "type": "integer",
+          "title": "Inner spacing",
+          "default": 4,
+          "minimum": 0,
+          "maximum": 20,
+          "x-unit": "px",
+          "description": "Gap between items inside a widget."
+        },
+        "overrideFontSize": {
+          "type": "boolean",
+          "title": "Own font size",
+          "default": false,
+          "description": "Off: the bar follows the font size in Look & Feel."
+        },
+        "fontSize": {
+          "type": "integer",
+          "title": "Font size",
+          "default": 14,
+          "minimum": 8,
+          "maximum": 32,
+          "x-unit": "px",
+          "x-showIf": {
+            "overrideFontSize": true
+          }
+        },
+        "overrideRadius": {
+          "type": "boolean",
+          "title": "Own corner radius",
+          "default": false,
+          "description": "Off: widgets follow the corner radius in Look & Feel. Pills and the screen border always do."
+        },
+        "widgetRadius": {
+          "type": "integer",
+          "title": "Widget corner radius",
+          "default": 6,
+          "minimum": 0,
+          "maximum": 50,
+          "x-unit": "px",
+          "x-showIf": {
+            "overrideRadius": true
+          }
         },
         "widgets": {
           "type": "object",
@@ -2391,6 +2444,7 @@
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "x-showIf": { "/Workspaces.layout": "grid" }, "description": "Open the whole grid when hovered." },
             "clickToSwitch": { "type": "boolean", "title": "Click to switch", "default": true, "description": "Click a workspace (on the bar or in the grid popout) to go to it." },
             "scrollToSwitch": { "type": "boolean", "title": "Scroll to switch", "default": true, "description": "Scroll over the widget to step through the workspaces (along the shown row or column in a grid)." },
+            "spacing": { "type": "integer", "title": "Box spacing", "default": 2, "minimum": 0, "maximum": 20, "x-unit": "px", "description": "Gap between workspace boxes, on the bar and in the grid popout." },
             "activeColor": { "type": "string", "title": "Active", "x-options": "colors", "default": "base0E" },
             "occupiedColor": { "type": "string", "title": "Occupied", "x-options": "colors", "default": "base04" },
             "emptyColor": { "type": "string", "title": "Empty", "x-options": "colors", "default": "base01" },

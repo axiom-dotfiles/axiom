@@ -220,6 +220,39 @@ TestCase {
     compare(migrate("gruvbox-dark"), "gruvbox-dark");
   }
 
+  function test_v27_bars_keep_widget_sizing() {
+    const config = ConfigMigration.migrate({
+      "version": 26,
+      "Widget": {
+        "padding": 7,
+        "spacing": 3
+      },
+      "Bars": [
+        {
+          "id": "a"
+        },
+        {
+          "id": "b",
+          "widgetPadding": 12
+        }
+      ]
+    }).config;
+    compare(config.Bars[0].widgetPadding, 7);
+    compare(config.Bars[0].widgetSpacing, 3);
+    compare(config.Bars[1].widgetPadding, 12);
+    compare(config.Bars[1].widgetSpacing, 3);
+    // Left out of Widget: the bar gets the schema default
+    const plain = ConfigMigration.migrate({
+      "version": 26,
+      "Bars": [
+        {
+          "id": "a"
+        }
+      ]
+    }).config;
+    compare(plain.Bars[0].widgetPadding, undefined);
+  }
+
   function test_v23_moves_apps_out_of_launcher() {
     const loaded = load({
       "version": 22,

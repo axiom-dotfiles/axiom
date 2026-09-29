@@ -14,6 +14,7 @@ Item {
   property alias content: contentLoader.sourceComponent
   property alias contentItem: contentLoader.item
   property int padding: Widget.padding
+  property int radius: Appearance.borderRadius
   property bool isVertical: false
   // Thickness across the bar: bar modules set it to their bar's widgetSize
   property int crossSize: root.crossSize
@@ -26,7 +27,7 @@ Item {
   Rectangle {
     anchors.fill: parent
     color: root.backgroundColor
-    radius: Appearance.borderRadius
+    radius: root.radius
   }
 
   Loader {

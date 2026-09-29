@@ -41,7 +41,7 @@ Item {
   readonly property int activeColumn: root.activeIndex % root.columns
 
   readonly property real cell: root.barConfig.widgetSize
-  readonly property real spacing: Widget.spacing / 2
+  readonly property real spacing: root.properties.spacing
   // Cells the bar shows: a row, or a column on a vertical bar
   readonly property int shown: root.isVertical ? root.rows : root.columns
 
@@ -110,13 +110,13 @@ Item {
 
           width: root.cell
           height: root.cell
-          radius: Appearance.borderRadius
+          radius: root.barConfig.radius
           color: isActive ? root.activeColor : cellArea.containsMouse ? Theme.backgroundHighlight : hasWindows ? root.occupiedColor : root.emptyColor
 
           StyledIcon {
             anchors.centerIn: parent
             text: root.isVertical ? root.positionGlyph(root.activeColumn, root.columns) : root.positionGlyph(root.activeRow, root.rows)
-            font.pixelSize: Appearance.fontSize * 1.2
+            font.pixelSize: root.barConfig.fontSize * 1.2
             visible: cellBox.showsArrow
             color: root.iconColor
           }
@@ -136,7 +136,7 @@ Item {
             visible: root.properties.labels === "numbers" && !cellBox.showsArrow && cellBox.iconPath === ""
             text: cellBox.index + 1
             textColor: cellBox.isActive || cellBox.hasWindows ? root.iconColor : Theme.foreground
-            textSize: Appearance.fontSize - 1
+            textSize: root.barConfig.fontSize - 1
           }
 
           MouseArea {
@@ -167,6 +167,8 @@ Item {
         monitor: root.monitor,
         vertical: root.isVertical,
         cellSize: root.cell,
+        radius: root.barConfig.radius,
+        fontSize: root.barConfig.fontSize,
         properties: root.properties
       })
   }

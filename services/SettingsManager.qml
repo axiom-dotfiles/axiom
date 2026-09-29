@@ -164,7 +164,8 @@ QtObject {
       return fieldSchema.enum;
     switch (fieldSchema?.["x-options"]) {
     case "screens":
-      return ["", ...Quickshell.screens.map(screen => screen.name)];
+      // `x-allScreens`: "*" puts the thing on every screen (bars)
+      return ["", ...(fieldSchema["x-allScreens"] ? ["*"] : []), ...Quickshell.screens.map(screen => screen.name)];
     case "chatProviders":
       return ChatConfig.providers.map(provider => provider.id);
     case "chatPresets":

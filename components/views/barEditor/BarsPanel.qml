@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
 import qs.config
 import qs.services
 import qs.components.reusable
@@ -27,11 +28,11 @@ Item {
       },
       {
         "title": "Size",
-        "keys": ["widgetSize", "padding", "spacing"]
+        "keys": ["widgetSize", "padding", "spacing", "widgetPadding", "widgetSpacing"]
       },
       {
         "title": "Style",
-        "keys": ["background", "pillPadding", "pillMerge"]
+        "keys": ["background", "pillPadding", "pillMerge", "overrideFontSize", "fontSize", "overrideRadius", "widgetRadius"]
       },
       {
         "title": "Behaviour",
@@ -122,6 +123,26 @@ Item {
               Layout.fillWidth: true
             }
 
+            // One copy per monitor
+            StyledIcon {
+              id: everyMonitor
+              visible: entry.entryBar.monitor === "*"
+              text: "desktop_windows"
+              textColor: entry.selected ? Theme.background : Theme.foreground
+              opacity: 0.7
+
+              HoverHandler {
+                id: everyMonitorHover
+              }
+              LazyLoader {
+                active: everyMonitorHover.hovered
+                StyledToolTip {
+                  target: everyMonitor
+                  text: I18n.tr("On every monitor")
+                }
+              }
+            }
+
             // Unsaved edits to this bar
             Rectangle {
               visible: BarManager.barChanged(entry.index)
@@ -129,6 +150,17 @@ Item {
               implicitHeight: 8
               radius: 4
               color: entry.selected ? Theme.background : Theme.accent
+            }
+
+            SquareIconButton {
+              size: Widget.height - 6
+              iconText: "content_copy"
+              iconColor: entry.selected ? Theme.background : Theme.foreground
+              backgroundColor: "transparent"
+              hoverColor: entry.selected ? Qt.darker(Theme.accent, 1.15) : Theme.backgroundAlt
+              opacity: entry.selected || entryArea.containsMouse ? 1 : 0.35
+              tooltipText: I18n.tr("Copy this bar")
+              onClicked: BarManager.duplicateBar(entry.index)
             }
 
             // The primary bar is the first; the star makes another one it

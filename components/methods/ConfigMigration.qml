@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 26
+  readonly property int currentVersion: 27
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -79,6 +79,8 @@ QtObject {
       result = _v24ToV25(result, changes);
     if (version < 26)
       result = _v25ToV26(result, changes);
+    if (version < 27)
+      result = _v26ToV27(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -696,6 +698,22 @@ QtObject {
       return config;
     config.Appearance.theme = `generated/wallpaper-tonal-${match[1]}`;
     changes.push(`Appearance.theme: ${theme} -> ${config.Appearance.theme}`);
+    return config;
+  }
+
+  // v27 gave each bar its own widget padding and inner spacing, which came
+  // from the global Widget section before; bars keep the values they had
+  function _v26ToV27(config, changes) {
+    (config.Bars ?? []).forEach((bar, barIndex) => {
+      if (bar.widgetPadding === undefined && config.Widget?.padding !== undefined) {
+        bar.widgetPadding = config.Widget.padding;
+        changes.push(`Bars[${barIndex}].widgetPadding = Widget.padding (${bar.widgetPadding})`);
+      }
+      if (bar.widgetSpacing === undefined && config.Widget?.spacing !== undefined) {
+        bar.widgetSpacing = config.Widget.spacing;
+        changes.push(`Bars[${barIndex}].widgetSpacing = Widget.spacing (${bar.widgetSpacing})`);
+      }
+    });
     return config;
   }
 }

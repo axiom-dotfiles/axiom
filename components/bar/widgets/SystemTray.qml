@@ -22,7 +22,7 @@ Item {
   property int spacing: 6
   readonly property bool showPassive: properties.showPassive
   property color backgroundColor: Theme.backgroundAlt
-  property int backgroundRadius: Appearance.borderRadius
+  property int backgroundRadius: root.barConfig.radius
   property color backgroundBorderColor: "transparent"
   property real backgroundBorderWidth: 0
 

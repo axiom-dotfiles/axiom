@@ -29,7 +29,7 @@ BarIconWidget {
   }
   showIcon: !hidden
   showText: properties.showDevice && text !== "" && !hidden
-  padding: hidden ? 0 : Widget.padding
+  padding: hidden ? 0 : root.barConfig.widgetPadding
 
   backgroundColor: Theme.resolveColor(!BluetoothManager.enabled ? properties.disabledColor : connected.length > 0 ? properties.connectedColor : properties.backgroundColor)
   opacity: mouseArea.pressed ? 0.8 : 1

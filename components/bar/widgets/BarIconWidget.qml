@@ -16,6 +16,12 @@ IconTextWidget {
 
   isVertical: barConfig.vertical
   crossSize: barConfig.widgetSize
+  // Sized by the bar, not the Widget section (that's for panels)
+  padding: barConfig.widgetPadding
+  radius: barConfig.radius
+  fontSize: barConfig.fontSize
+  // The icon's gap to its label (6 px at the default inner spacing of 4)
+  spacing: barConfig.widgetSpacing * 1.5
   backgroundColor: Theme.resolveColor(properties.backgroundColor)
   foregroundColor: Theme.resolveColor(properties.foregroundColor)
 }

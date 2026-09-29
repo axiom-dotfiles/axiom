@@ -52,7 +52,7 @@ BarIconWidget {
   icon: glyphs.join(isVertical ? "\n" : " ")
   showIcon: !hidden
   showText: false
-  padding: hidden ? 0 : Widget.padding
+  padding: hidden ? 0 : root.barConfig.widgetPadding
 
   backgroundColor: Theme.resolveColor(properties.activeColor)
 

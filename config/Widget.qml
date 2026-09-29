@@ -2,7 +2,8 @@ pragma Singleton
 import QtQuick
 import qs.services
 
-// Reader for the Widget section: shared sizing for bar widgets and controls.
+// Reader for the Widget section: sizing for panels, cards, popouts and
+// controls. Bars size their own widgets (Bar.enrichBarConfig).
 QtObject {
   readonly property var _c: ConfigManager.config.Widget
 
