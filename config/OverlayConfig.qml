@@ -1,6 +1,7 @@
 pragma Singleton
 import QtQuick
 import qs.services
+import qs.components.methods
 
 // Overlay: the configured views, plus the card grid's layout constants.
 // (Named OverlayConfig because `Overlay` is the module type.)
@@ -90,12 +91,10 @@ QtObject {
     return best;
   }
 
-  // Card grid layout — internal design constants, not user settings.
-  // Card radius/border follow Appearance so the overlay matches the shell.
-  // cardUnit is the reference card size: the largest a card gets at 100%
-  // (each overlay's OverlayGrid sizes its cards to its screen, up to this).
-  readonly property int cardUnit: 500
-  readonly property int cardSpacing: 20
+  // Card grid layout (see OverlayLayout for the geometry). Card
+  // radius/border follow Appearance so the overlay matches the shell.
+  readonly property int cardUnit: OverlayLayout.cardUnit
+  readonly property int cardSpacing: OverlayLayout.cardSpacing
   readonly property int cardPadding: 12
   // A screen fits this many cards across its free height / width; the
   // smaller of the two sizes the cards, so height decides on landscape
@@ -104,27 +103,25 @@ QtObject {
   readonly property real fitCardsWide: 4.5
   readonly property int minCardUnit: 280
 
-  // Cells are laid out on a grid of half cards: a span of n half units is
-  // n halves plus the n - 1 gaps between them, so span(2) is one card and
-  // span(4) is two cards plus the gap between them. `unit` is the card
-  // size (the reference cardUnit unless given).
+  readonly property var layouts: OverlayLayout.layouts
+  readonly property real halfUnit: OverlayLayout.halfUnitOf(cardUnit)
   function halfUnitOf(unit) {
-    return ((unit ?? cardUnit) - cardSpacing) / 2;
+    return OverlayLayout.halfUnitOf(unit);
   }
-  readonly property real halfUnit: halfUnitOf(cardUnit)
   function span(n, unit) {
-    return n * halfUnitOf(unit) + (n - 1) * cardSpacing;
+    return OverlayLayout.span(n, unit);
   }
-
-  // A slot's shape, from its [col, row, colSpan, rowSpan] rect
   function slotShape(rect) {
-    return rect[2] === rect[3] ? "square" : rect[2] > rect[3] ? "horizontal" : "vertical";
+    return OverlayLayout.slotShape(rect);
+  }
+  function columnFlow(cells, unit, target, extra) {
+    return OverlayLayout.columnFlow(cells, unit, target, extra);
   }
 
   // Whether a module type may sit in a slot of the given rect
   function fits(type, rect) {
     const info = moduleInfo(type);
-    return !info || info.shapes.includes(slotShape(rect));
+    return !info || OverlayLayout.fitsShapes(info.shapes, rect);
   }
 
   // The one-slot layout a module gets a cell of its own in: a card if it
@@ -132,192 +129,4 @@ QtObject {
   function bestLayoutFor(type) {
     return ["Single", "Tall", "Wide", "Large"].find(name => fits(type, layouts[name].slots.main)) ?? "Single";
   }
-
-  // How a column flows its cells: left to right, wrapping at the widest
-  // cell. Returns the size, the number of rows and each cell's
-  // { x, y, width, height, row }, matching OverlayColumn. `extra`
-  // ({ width, height }, either optional) grows every cell: each row gets
-  // the extra width, split between its cells, and the extra height, split
-  // evenly between the rows. `target` (the same shape) is room for cells
-  // to grow into past that: a row's spare width goes to its `fillWidth`
-  // cells, `fillHeight` cells take their row's height, and spare height
-  // goes to the rows holding one, split evenly. Without either nothing
-  // changes.
-  function columnFlow(cells, unit, target, extra) {
-    const sizes = (cells ?? []).map(cell => {
-      const layout = layouts[cell?.layout] ?? layouts.Single;
-      return [span(layout.cols, unit), span(layout.rows, unit)];
-    });
-    const naturalWidth = Math.max(0, ...sizes.map(size => size[0]));
-    // Natural rows: which cells, their width and height
-    const rows = [];
-    let x = 0;
-    sizes.forEach(([w, h], i) => {
-      if (rows.length === 0 || (x > 0 && x + w > naturalWidth + 0.5)) {
-        rows.push({
-          "cells": [],
-          "width": 0,
-          "height": 0
-        });
-        x = 0;
-      }
-      const row = rows[rows.length - 1];
-      row.cells.push(i);
-      row.width = x + w;
-      row.height = Math.max(row.height, h);
-      x += w + cardSpacing;
-    });
-    // Every cell grows by `extra`
-    const extraWidth = rows.length > 0 ? Math.max(0, extra?.width ?? 0) : 0;
-    const extraRowHeight = rows.length > 0 ? Math.max(0, extra?.height ?? 0) / rows.length : 0;
-    const grown = i => [sizes[i][0] + extraWidth / rows.find(row => row.cells.includes(i)).cells.length, sizes[i][1] + extraRowHeight];
-    rows.forEach(row => {
-      row.width += extraWidth;
-      row.height += extraRowHeight;
-    });
-    const width = naturalWidth + extraWidth;
-    const fillsWidth = i => cells[i]?.fillWidth === true;
-    const fillsHeight = i => cells[i]?.fillHeight === true;
-    const naturalHeight = rows.reduce((sum, row) => sum + row.height, 0) + Math.max(0, rows.length - 1) * cardSpacing;
-    const fullWidth = rows.some(row => row.cells.some(fillsWidth)) ? Math.max(width, target?.width ?? 0) : width;
-    const heightRows = rows.filter(row => row.cells.some(fillsHeight)).length;
-    const spareHeight = heightRows > 0 ? Math.max(0, (target?.height ?? 0) - naturalHeight) : 0;
-    const rects = [];
-    let y = 0;
-    rows.forEach((row, rowIndex) => {
-      const widthFills = row.cells.filter(fillsWidth).length;
-      const rowHeight = row.height + (row.cells.some(fillsHeight) ? spareHeight / heightRows : 0);
-      const fillWidth = widthFills > 0 ? (fullWidth - row.width) / widthFills : 0;
-      let cx = 0;
-      row.cells.forEach(i => {
-        const [cellWidth, cellHeight] = grown(i);
-        const w = cellWidth + (fillsWidth(i) ? fillWidth : 0);
-        rects[i] = {
-          "x": cx,
-          "y": y,
-          "width": w,
-          "height": fillsHeight(i) ? rowHeight : cellHeight,
-          "row": rowIndex
-        };
-        cx += w + cardSpacing;
-      });
-      y += rowHeight + cardSpacing;
-    });
-    return {
-      "width": fullWidth,
-      "height": Math.max(0, y - cardSpacing),
-      "rows": rows.length,
-      "rects": rects
-    };
-  }
-
-  // Cell layouts, keyed by the `layout` name in config (keep in sync with
-  // the OverlayCell enum in the schema). cols/rows are the cell's size in
-  // half units; each slot is [col, row, colSpan, rowSpan] in half units.
-  readonly property var layouts: ({
-      "Single": {
-        "cols": 2,
-        "rows": 2,
-        "slots": {
-          "main": [0, 0, 2, 2]
-        }
-      },
-      "Tall": {
-        "cols": 2,
-        "rows": 4,
-        "slots": {
-          "main": [0, 0, 2, 4]
-        }
-      },
-      "Wide": {
-        "cols": 4,
-        "rows": 2,
-        "slots": {
-          "main": [0, 0, 4, 2]
-        }
-      },
-      "Large": {
-        "cols": 4,
-        "rows": 4,
-        "slots": {
-          "main": [0, 0, 4, 4]
-        }
-      },
-      "HalfWide": {
-        "cols": 2,
-        "rows": 1,
-        "slots": {
-          "main": [0, 0, 2, 1]
-        }
-      },
-      "HalfTall": {
-        "cols": 1,
-        "rows": 2,
-        "slots": {
-          "main": [0, 0, 1, 2]
-        }
-      },
-      "Grid2x2": {
-        "cols": 2,
-        "rows": 2,
-        "slots": {
-          "topLeft": [0, 0, 1, 1],
-          "topRight": [1, 0, 1, 1],
-          "bottomLeft": [0, 1, 1, 1],
-          "bottomRight": [1, 1, 1, 1]
-        }
-      },
-      "Vert1x1": {
-        "cols": 2,
-        "rows": 2,
-        "slots": {
-          "left": [0, 0, 1, 2],
-          "right": [1, 0, 1, 2]
-        }
-      },
-      "Vert1x2": {
-        "cols": 2,
-        "rows": 2,
-        "slots": {
-          "left": [0, 0, 1, 2],
-          "topRight": [1, 0, 1, 1],
-          "bottomRight": [1, 1, 1, 1]
-        }
-      },
-      "Vert2x1": {
-        "cols": 2,
-        "rows": 2,
-        "slots": {
-          "topLeft": [0, 0, 1, 1],
-          "bottomLeft": [0, 1, 1, 1],
-          "right": [1, 0, 1, 2]
-        }
-      },
-      "Horiz1x1": {
-        "cols": 2,
-        "rows": 2,
-        "slots": {
-          "top": [0, 0, 2, 1],
-          "bottom": [0, 1, 2, 1]
-        }
-      },
-      "Horiz1x2": {
-        "cols": 2,
-        "rows": 2,
-        "slots": {
-          "top": [0, 0, 2, 1],
-          "bottomLeft": [0, 1, 1, 1],
-          "bottomRight": [1, 1, 1, 1]
-        }
-      },
-      "Horiz2x1": {
-        "cols": 2,
-        "rows": 2,
-        "slots": {
-          "topLeft": [0, 0, 1, 1],
-          "topRight": [1, 0, 1, 1],
-          "bottom": [0, 1, 2, 1]
-        }
-      }
-    })
 }

@@ -61,12 +61,6 @@ QtObject {
     draft.changed();
   }
 
-  function _defaults(value, definition) {
-    return SchemaValidation.applyDefaults(value, {
-      "$ref": "#/definitions/" + definition
-    }, ConfigManager.configSchema);
-  }
-
   // Whether a page differs from the saved page at the same position
   function viewChanged(index) {
     return JSON.stringify(root.localViews?.[index]) !== JSON.stringify(root.savedViews?.[index]);
@@ -95,7 +89,7 @@ QtObject {
     } : {
       "type": type
     };
-    root.localViews.push(root._defaults(view, "OverlayView"));
+    root.localViews.push(ConfigManager.withDefaults(view, "OverlayView"));
     root.selectView(root.localViews.length - 1);
     applyChanges();
   }
@@ -109,7 +103,7 @@ QtObject {
   // The selected page stays selected wherever it ends up
   function moveView(from, to) {
     const selectedView = root.selectedView();
-    if (root.layout.moveTo(root.localViews, from, to) < 0)
+    if (OverlayLayout.moveTo(root.localViews, from, to) < 0)
       return;
     root.selectedViewIndex = Math.max(0, root.localViews.indexOf(selectedView));
     applyChanges();

@@ -59,29 +59,8 @@ QtObject {
     return out;
   }
 
-  function _defaults(value, definition) {
-    return SchemaValidation.applyDefaults(value, {
-      "$ref": "#/definitions/" + definition
-    }, ConfigManager.configSchema);
-  }
-
   function _clone(value) {
     return JSON.parse(JSON.stringify(value ?? null));
-  }
-
-  // Moves arr[from] to insertion index `to`, counted as if it were still
-  // in place. Returns the index it lands at, or -1 for no move.
-  function moveTo(arr, from, to) {
-    if (!arr || from < 0 || from >= arr.length)
-      return -1;
-    let at = Math.max(0, Math.min(to, arr.length));
-    if (at > from)
-      at--;
-    if (at === from)
-      return -1;
-    const [item] = arr.splice(from, 1);
-    arr.splice(at, 0, item);
-    return at;
   }
 
   function newCell(layout) {
@@ -191,7 +170,7 @@ QtObject {
   }
 
   function moveColumn(from, to) {
-    root._restructure(columns => root.moveTo(columns, from, to) < 0 ? false : undefined);
+    root._restructure(columns => OverlayLayout.moveTo(columns, from, to) < 0 ? false : undefined);
   }
 
   function removeColumn(c) {
@@ -305,25 +284,10 @@ QtObject {
     const slots = OverlayConfig.layouts[layout]?.slots;
     if (!cell || cell.layout === layout || !slots)
       return;
-    const old = cell.slots ?? {};
-    const kept = {};
-    const leftovers = [];
-    Object.keys(old).forEach(name => {
-      if (name in slots)
-        kept[name] = old[name];
-      else
-        leftovers.push(name);
-    });
-    const moved = {};
-    leftovers.forEach(name => {
-      const free = Object.keys(slots).find(slot => !kept[slot] && OverlayConfig.fits(old[name].type, slots[slot]));
-      if (free) {
-        kept[free] = old[name];
-        moved[name] = free;
-      }
-    });
+    const remap = OverlayLayout.remapSlots(cell.slots, slots, (module, rect) => OverlayConfig.fits(module.type, rect));
+    const moved = remap.moved;
     cell.layout = layout;
-    cell.slots = kept;
+    cell.slots = remap.slots;
     const sel = root.selected;
     if (sel && sel.column === c && sel.cell === k && sel.slot !== "")
       root.select(c, k, (sel.slot in slots) ? sel.slot : (moved[sel.slot] ?? ""));
@@ -347,7 +311,7 @@ QtObject {
   }
 
   function _newModule(type) {
-    return root._defaults({
+    return ConfigManager.withDefaults({
       "type": type
     }, "OverlayModule");
   }

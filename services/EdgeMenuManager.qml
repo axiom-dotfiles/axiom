@@ -4,7 +4,6 @@ import Quickshell
 import Quickshell.Io
 
 import qs.config
-import qs.components.methods
 
 // Which edge menus (EdgeMenusConfig) are open and which are pinned. The
 // menus themselves (shell/EdgeMenus) follow this and report back when they
@@ -259,16 +258,14 @@ Singleton {
 
   // A new menu at the schema defaults, with one empty cell to drop into
   function addMenu() {
-    const menu = SchemaValidation.applyDefaults({
+    const menu = ConfigManager.withDefaults({
       "id": root._uniqueId("menu"),
       "columns": [
         {
           "cells": [root.layout.newCell()]
         }
       ]
-    }, {
-      "$ref": "#/definitions/EdgeMenu"
-    }, ConfigManager.configSchema);
+    }, "EdgeMenu");
     root.localMenus.push(menu);
     root.applyChanges();
     root.selectMenu(root.localMenus.length - 1);

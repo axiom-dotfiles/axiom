@@ -3,6 +3,7 @@ import QtQuick
 
 import qs.config
 import qs.services
+import qs.components.methods
 import qs.components.hosts.overlay
 
 // An edge menu's modules: its columns side by side, as on a Custom overlay
@@ -56,10 +57,9 @@ Item {
       "width": root._columnExtraWidth,
       "height": root.extraHeight
     })
-  readonly property real _sideBySide: root._natural.reduce((sum, flow) => sum + flow.width, 0) + root.extraWidth + Math.max(0, root.columns.length - 1) * OverlayConfig.cardSpacing
-  readonly property real _thickest: Math.max(0, ...root._natural.map(flow => flow.height)) + root.extraHeight
+  readonly property real _thickest: OverlayLayout.columnsLength(root._natural, true, root.extraHeight)
   // Along the edge before fill cells grow or the cap applies
-  readonly property real naturalLength: root.vertical ? root._thickest : root._sideBySide
+  readonly property real naturalLength: root.vertical ? root._thickest : OverlayLayout.columnsLength(root._natural, false, root.extraWidth)
   readonly property real _spareLength: root.anyFill && root.maxLength > root.naturalLength ? root.maxLength - root.naturalLength : 0
   function targetFor(index) {
     if (!root._natural[index])

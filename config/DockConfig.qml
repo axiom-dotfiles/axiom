@@ -27,14 +27,7 @@ QtObject {
   // The screens a dock is on: every one for "*", its named one, else the
   // primary monitor
   function screensOf(dock) {
-    const all = Array.from(Quickshell.screens);
-    if (dock?.monitor === "*")
-      return all;
-    const named = all.filter(s => s.name === dock?.monitor);
-    if (named.length > 0)
-      return named;
-    const primary = all.filter(s => s.name === General.primaryMonitor);
-    return primary.length > 0 ? primary : all.slice(0, 1);
+    return dock.monitor === "*" ? Array.from(Quickshell.screens) : General.screensNamed(dock.monitor);
   }
 
   // The name on its tab: its own, else its edge's
