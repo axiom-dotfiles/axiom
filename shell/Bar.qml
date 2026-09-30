@@ -8,11 +8,6 @@ import qs.components.bar
 Scope {
   id: root
 
-  property int barHeight: Bar.extent
-  property int barWidth: Bar.vertical ? Bar.extent : 0
-  property color backgroundColor: Theme.background
-  property color foregroundColor: Theme.foreground
-
   Variants {
     // Keyed on the stable bar id so a config reload rebinds the existing
     // PanelWindow instead of rebuilding it. A remade bar still lands inside

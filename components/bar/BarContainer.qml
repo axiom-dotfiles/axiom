@@ -21,9 +21,6 @@ Rectangle {
   property var popouts
   property var panel
 
-  property color backgroundColor: Theme.background
-  property color foregroundColor: Theme.foreground
-
   readonly property bool isVertical: barConfig.vertical
   readonly property real length: isVertical ? height : width
 
@@ -31,7 +28,7 @@ Rectangle {
   // its anchor
   signal layoutUpdated
 
-  color: barConfig.background === "solid" ? backgroundColor : "transparent"
+  color: barConfig.background === "solid" ? Theme.background : "transparent"
 
   readonly property bool pills: barConfig.pills
   // Fillet room each side of a pill, as for popouts (AttachedSurface)

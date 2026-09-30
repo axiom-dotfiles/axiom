@@ -17,7 +17,7 @@ Item {
   property int radius: Widget.radius
   property bool isVertical: false
   // Thickness across the bar: bar modules set it to their bar's widgetSize
-  property int crossSize: root.crossSize
+  property int crossSize: Widget.height
 
   implicitWidth: isVertical ? root.crossSize : (contentLoader.item ? contentLoader.item.implicitWidth + padding * 2 : 0)
   implicitHeight: isVertical ? (contentLoader.item ? contentLoader.item.implicitHeight + padding * 2 : 0) : root.crossSize

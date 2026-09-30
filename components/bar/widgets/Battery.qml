@@ -9,7 +9,6 @@ BarIconWidget {
 
   // From UPower's display device (services/BatteryManager.qml)
   readonly property bool isCharging: BatteryManager.isCharging
-  readonly property bool isDischarging: BatteryManager.isDischarging
   readonly property int percentage: BatteryManager.percentage
   readonly property string timeRemaining: isCharging ? BatteryManager.timeToFull : BatteryManager.timeRemaining
   // "none" / "low" / "critical": the last level notified about, so each
