@@ -129,9 +129,10 @@ ColumnLayout {
           id: delegateArea
           anchors.fill: parent
           hoverEnabled: true
+          // currentIndex stays bound to currentValue, which the caller
+          // updates (or not, if it rejects the choice)
           onClicked: {
-            comboBox.currentIndex = parent.index;
-            comboBox.activated(parent.index);
+            comboBox.activated(optionDelegate.index);
             comboBox.popup.close();
           }
         }

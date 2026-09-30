@@ -1,6 +1,7 @@
 pragma Singleton
 import QtQuick
 import Quickshell
+import qs.config
 import qs.components.methods
 
 /* BarManager holds the bar editor's working copy of the Bars config. Edits
@@ -33,8 +34,9 @@ QtObject {
   readonly property var sizeKeys: ["widgetSize", "padding", "spacing", "widgetPadding", "widgetSpacing"]
   readonly property var styleOnlyKeys: ["background", "pillPadding", "pillMerge", "overrideFontSize", "fontSize", "overrideRadius", "widgetRadius"]
   readonly property var styleKeys: sizeKeys.concat(styleOnlyKeys)
-  // The style copied with copyStyle(): { from: id, values }, or null.
-  // Never saved.
+  // The style copied with copyStyle(): { index, values }, or null. By
+  // index, since ids may be empty or shared: kept pointing at its bar as
+  // bars are added, moved and removed. Never saved.
   property var copiedStyle: null
 
   onSelectedBarIndexChanged: clearSelection()
@@ -44,6 +46,8 @@ QtObject {
     draft.load();
     ConfigManager.clearPreview("Bars");
     selectedBarIndex = Math.max(0, Math.min(selectedBarIndex, (root.localConfig?.length ?? 1) - 1));
+    if (root.copiedStyle && root.copiedStyle.index >= (root.localConfig?.length ?? 0))
+      root.copiedStyle = null;
     if (!selectedWidgetConfig())
       clearSelection();
   }
@@ -101,11 +105,7 @@ QtObject {
 
   // An id no bar in the draft has: `base`, else `base-2`, `base-3`, ...
   function _uniqueId(base) {
-    const taken = root.localConfig.map(b => b.id);
-    let id = base;
-    for (let n = 2; taken.includes(id); n++)
-      id = `${base}-${n}`;
-    return id;
+    return Utils.freeId(base, root.localConfig.map(b => b.id), "-");
   }
 
   // Inserts a copy after the bar and selects it. A copy of a bar on one
@@ -125,8 +125,25 @@ QtObject {
         copy.monitor = free.name;
     }
     root.localConfig.splice(index + 1, 0, copy);
+    _moveCopied(i => i > index ? i + 1 : i);
     root.selectedBarIndex = index + 1;
     applyChanges();
+  }
+
+  // The name a bar is listed by: its id, else its place
+  function barLabel(index) {
+    return root.localConfig?.[index]?.id || I18n.tr("Bar {0}", index + 1);
+  }
+
+  // Follows the copied style's bar to its new index (-1: it's gone)
+  function _moveCopied(map) {
+    if (!root.copiedStyle)
+      return;
+    const index = map(root.copiedStyle.index);
+    root.copiedStyle = index < 0 ? null : {
+      "index": index,
+      "values": root.copiedStyle.values
+    };
   }
 
   function copyStyle(index) {
@@ -134,7 +151,7 @@ QtObject {
     if (!bar)
       return;
     root.copiedStyle = {
-      "from": bar.id,
+      "index": index,
       "values": Utils.clone(root.styleKeys.reduce((out, key) => {
         if (key in bar)
           out[key] = bar[key];
@@ -166,6 +183,7 @@ QtObject {
     if (root.localConfig.length <= 1)
       return; // never remove the last bar
     root.localConfig.splice(index, 1);
+    _moveCopied(i => i === index ? -1 : i > index ? i - 1 : i);
     root.selectedBarIndex = Math.max(0, Math.min(root.selectedBarIndex, root.localConfig.length - 1));
     clearSelection();
     applyChanges();
@@ -177,6 +195,7 @@ QtObject {
       return;
     const [bar] = root.localConfig.splice(index, 1);
     root.localConfig.unshift(bar);
+    _moveCopied(i => i === index ? 0 : i < index ? i + 1 : i);
     root.selectedBarIndex = 0;
     applyChanges();
   }

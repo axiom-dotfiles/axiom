@@ -18,6 +18,9 @@ StyledContainer {
 
   // One request at a time per provider: { providerId: { busy, ok, text } }
   property var results: ({})
+  // False once destroyed, for callbacks that outlive the card
+  property bool _alive: true
+  Component.onDestruction: root._alive = false
 
   function _setResult(id, result) {
     const next = Object.assign({}, root.results);
@@ -37,6 +40,9 @@ StyledContainer {
       text: ""
     });
     SecretsManager.withKey(provider, key => {
+      // The key can arrive after the overlay closed
+      if (!root || !root._alive)
+        return;
       if (provider.auth !== "none" && !key) {
         root._setResult(provider.id, {
           busy: false,
@@ -73,7 +79,7 @@ StyledContainer {
         root._setResult(provider.id, {
           busy: false,
           ok: false,
-          text: status > 0 ? `${status}: ${message}` : message
+          text: status > 0 ? I18n.tr("{0}: {1}", status, message) : message
         });
       });
       request.start(ChatProtocol.modelsRequest(provider, key), "");
@@ -81,9 +87,9 @@ StyledContainer {
   }
 
   function _storeModels(provider, models) {
-    const providers = JSON.parse(JSON.stringify(SettingsManager.localConfig?.Chat?.providers ?? ChatConfig.savedProviders));
-    const index = ChatConfig.providers.findIndex(p => p.id === provider.id);
-    if (index < 0 || !providers[index])
+    const providers = Utils.clone(SettingsManager.localConfig?.Chat?.providers ?? ChatConfig.savedProviders);
+    const index = providers.findIndex(p => p.id === provider.id);
+    if (index < 0)
       return;
     providers[index].models = models;
     if (!models.includes(providers[index].defaultModel))
@@ -122,7 +128,7 @@ StyledContainer {
       }
 
       StyledText {
-        text: SecretsManager.keyringAvailable === null ? "" : SecretsManager.keyringAvailable ? I18n.tr("Stored in your keyring") : I18n.tr("No keyring: stored in {0}", SecretsManager.secretsPath.replace(Paths.homeDirectory, "~/"))
+        text: SecretsManager.keyringAvailable === null ? "" : SecretsManager.keyringAvailable ? I18n.tr("Stored in your keyring") : I18n.tr("No keyring: stored in {0}", Paths.shortenHome(SecretsManager.secretsPath))
         textColor: Theme.foregroundAlt
         textSize: Appearance.fontSize - 2
         elide: Text.ElideMiddle

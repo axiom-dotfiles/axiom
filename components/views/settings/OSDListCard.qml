@@ -19,7 +19,8 @@ StyledContainer {
   readonly property var osds: SettingsManager.localConfig?.OSD?.osds ?? OSDConfig.osds
   property int selected: 0
   // Folded by clicking the header, like the generated cards (their key)
-  readonly property string foldKey: "OSD:OSDList"
+  // The settings group key it folds under, from SettingsContent
+  property string foldKey
   readonly property bool collapsed: SettingsManager.isCollapsed(root.foldKey)
   readonly property int current: Math.max(0, Math.min(root.selected, root.osds.length - 1))
   readonly property var osd: root.osds[root.current] ?? null
@@ -133,11 +134,7 @@ StyledContainer {
   }
 
   function _freeId(base) {
-    const taken = root.osds.map(osd => osd.id);
-    let id = base;
-    for (let n = 2; taken.includes(id); n++)
-      id = `${base}${n}`;
-    return id;
+    return Utils.freeId(base, root.osds.map(osd => osd.id));
   }
 
   function add() {

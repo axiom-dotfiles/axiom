@@ -206,9 +206,9 @@ ReservedAreaWindow {
       currentIndex: overlayPages.currentIndex
       pages: overlayPages.pages
       maxWidth: slideContainer.width - Widget.padding * 4
-      onPrevious: overlayPages.currentIndex = (overlayPages.currentIndex - 1 + overlayPages.pageCount) % overlayPages.pageCount
-      onNext: overlayPages.currentIndex = (overlayPages.currentIndex + 1) % overlayPages.pageCount
-      onSelect: index => overlayPages.currentIndex = index
+      onPrevious: overlayPages.step(-1)
+      onNext: overlayPages.step(1)
+      onSelect: index => overlayPages.goTo(index)
     }
   }
 }

@@ -12,12 +12,15 @@ ColumnLayout {
 
   readonly property bool missing: NightLightManager.tool === ""
 
+  // Empty until the tool is looked up
   readonly property string detail: {
+    if (NightLightManager.tool === undefined)
+      return "";
     if (root.missing)
       return I18n.tr("Neither hyprsunset nor wlsunset is installed. Install hyprsunset (pacman -S hyprsunset) to use the night light.");
     if (NightLight.schedule)
-      return I18n.tr("Runs {0}, on from {1} until {2}.", NightLightManager.tool ?? "", NightLight.startAt, NightLight.endAt);
-    return I18n.tr("Runs {0} when you turn it on.", NightLightManager.tool ?? "");
+      return I18n.tr("Runs {0}, on from {1} until {2}.", NightLightManager.tool, NightLight.startAt, NightLight.endAt);
+    return I18n.tr("Runs {0} when you turn it on.", NightLightManager.tool);
   }
 
   spacing: Widget.spacing

@@ -1,7 +1,7 @@
 pragma Singleton
 import QtQuick
 
-// Pure helpers: deep copies, usage counts, curl config values, text width
+// Pure helpers: deep copies, free ids, usage counts, curl config values, text width
 // and truncation, colors, calendar grids, byte sizes and rates. No file access, processes or
 // services (those live in services/).
 QtObject {
@@ -11,6 +11,19 @@ QtObject {
   // bindings, or a draft that can be mutated in place
   function clone(value) {
     return JSON.parse(JSON.stringify(value ?? null));
+  }
+
+  // `base` if `taken` doesn't hold it, else its stem (a trailing
+  // `separator` + number dropped) numbered from 2: a copy of "dock2" is
+  // "dock3", not "dock22"
+  function freeId(base, taken, separator = "") {
+    if (!taken.includes(base))
+      return base;
+    const stem = base.replace(new RegExp(separator + "\\d+$"), "");
+    let n = 2;
+    while (taken.includes(stem + separator + n))
+      n++;
+    return stem + separator + n;
   }
 
   // `usage` ({ key: { count, last } }) with one more use of `key` at `now`

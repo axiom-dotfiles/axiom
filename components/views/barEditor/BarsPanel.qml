@@ -48,6 +48,7 @@ Item {
       }
     ] : []).map(g => ({
           "title": g.title,
+          "keys": g.keys,
           "schema": g.keys.filter(key => key in root.barSchema).reduce((out, key) => {
             out[key] = root.barSchema[key];
             return out;
@@ -115,7 +116,7 @@ Item {
             }
 
             StyledText {
-              text: entry.entryBar.id || I18n.tr("Bar {0}", entry.index + 1)
+              text: BarManager.barLabel(entry.index)
               textColor: entry.selected ? Theme.background : Theme.foreground
               font.bold: entry.selected
               opacity: entry.entryBar.enabled === false ? 0.5 : 1
@@ -154,7 +155,7 @@ Item {
 
             // Copy this bar's look, then paste it onto others
             SquareIconButton {
-              readonly property bool source: BarManager.copiedStyle?.from === entry.entryBar.id
+              readonly property bool source: BarManager.copiedStyle?.index === entry.index
               size: Widget.height - 6
               iconText: "format_paint"
               iconColor: entry.selected ? Theme.background : (source ? Theme.accent : Theme.foreground)
@@ -166,14 +167,14 @@ Item {
             }
 
             SquareIconButton {
-              visible: !!BarManager.copiedStyle && BarManager.copiedStyle.from !== entry.entryBar.id
+              visible: !!BarManager.copiedStyle && BarManager.copiedStyle.index !== entry.index
               size: Widget.height - 6
               iconText: "content_paste"
               iconColor: entry.selected ? Theme.background : Theme.foreground
               backgroundColor: "transparent"
               hoverColor: entry.selected ? Qt.darker(Theme.accent, 1.15) : Theme.backgroundAlt
               opacity: entry.selected || entryArea.containsMouse ? 1 : 0.6
-              tooltipText: I18n.tr("Paste style from {0}", BarManager.copiedStyle?.from ?? "")
+              tooltipText: I18n.tr("Paste style from {0}", BarManager.barLabel(BarManager.copiedStyle?.index ?? 0))
               onClicked: BarManager.pasteStyle(entry.index)
             }
 
@@ -301,6 +302,7 @@ Item {
           SchemaPropertiesForm {
             Layout.fillWidth: true
             propertiesSchema: group.modelData.schema
+            order: group.modelData.keys
             numberMode: "stepper"
             // The whole bar, so x-showIf sees keys from other groups
             values: root.bar ?? ({})

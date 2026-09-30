@@ -73,13 +73,13 @@ Item {
   // actually changes, not on every edit
   readonly property string _shownKey: root.groups.map(group => root._groupShown(group) ? "1" : "0").join("")
 
-  // The shown cards that can fold (not hand-built ones, and none while
-  // searching)
+  // The shown cards that can fold (hand-built ones only with `x-cardFolds`,
+  // and none while searching)
   readonly property var foldableKeys: {
     if (root.searching || root.backups)
       return [];
     const shown = root._shownKey;
-    return root.groups.filter((group, i) => shown[i] === "1" && group.kind === "rows").map(group => group.key);
+    return root.groups.filter((group, i) => shown[i] === "1" && (group.kind === "rows" || group.folds)).map(group => group.key);
   }
   readonly property bool allFolded: root.foldableKeys.length > 0 && root.foldableKeys.every(key => SettingsManager.isCollapsed(key))
 
@@ -222,7 +222,9 @@ Item {
               Layout.fillWidth: true
               Component.onCompleted: {
                 if (card.modelData.kind === "card")
-                  card.setSource(Qt.resolvedUrl(card.modelData.card + "Card.qml"));
+                  card.setSource(Qt.resolvedUrl(card.modelData.card + "Card.qml"), card.modelData.folds ? {
+                    "foldKey": card.modelData.key
+                  } : {});
                 else
                   card.sourceComponent = rowsCard;
               }
