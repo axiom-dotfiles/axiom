@@ -209,4 +209,117 @@ TestCase {
     // would do) — A and C should keep their relative order.
     compare(WorkspaceGeometry.orderMonitors([a, c, d], "").map(m => m.key), ["desc:a", "desc:c", "desc:d"]);
   }
+
+  // Two monitors, A (id 0, primary) focused and B (id 1)
+  function _monitors(activeA, activeB) {
+    return [
+      {
+        "id": 0,
+        "name": "A",
+        "active": activeA,
+        "focused": true
+      },
+      {
+        "id": 1,
+        "name": "B",
+        "active": activeB,
+        "focused": false
+      }
+    ];
+  }
+
+  function _windows(list) {
+    return list.map(([address, workspace, monitor]) => ({
+          "address": address,
+          "workspace": workspace,
+          "monitor": monitor
+        }));
+  }
+
+  function _moves(plan) {
+    return plan.moves.map(m => m.address + ">" + m.to).sort().join(" ");
+  }
+
+  function _focus(plan) {
+    return plan.focus.map(f => f.monitor + ":" + f.id).join(" ");
+  }
+
+  function test_remap_standard_to_perMonitor() {
+    const windows = _windows([["a1", 1, 0], ["a2", 2, 0], ["b1", 3, 1], ["b2", 4, 1], ["b3", 4, 1]]);
+    const plan = WorkspaceGeometry.remapWorkspaces(_monitors(1, 3), windows, {
+      "blocks": false,
+      "size": 10
+    }, {
+      "blocks": true,
+      "size": 10
+    });
+    compare(_moves(plan), "b1>13 b2>14 b3>14");
+    compare(_focus(plan), "B:13 A:1");
+    verify(plan.changed);
+  }
+
+  function test_remap_perMonitor_to_standard_collides() {
+    const windows = _windows([["a1", 1, 0], ["a2", 2, 0], ["b1", 11, 1], ["b2", 12, 1], ["b3", 15, 1]]);
+    const plan = WorkspaceGeometry.remapWorkspaces(_monitors(2, 11), windows, {
+      "blocks": true,
+      "size": 10
+    }, {
+      "blocks": false,
+      "size": 10
+    });
+    // 1 and 2 are A's, so B's first two take the first free ids
+    compare(_moves(plan), "b1>3 b2>4 b3>5");
+    compare(_focus(plan), "B:3 A:2");
+  }
+
+  function test_remap_shifted_block_does_not_chain() {
+    // perMonitor 10 → grid 3×3: B's block moves from 11..20 to 10..18
+    const windows = _windows([["a1", 1, 0], ["a10", 10, 0], ["b11", 11, 1], ["b12", 12, 1]]);
+    const plan = WorkspaceGeometry.remapWorkspaces(_monitors(10, 12), windows, {
+      "blocks": true,
+      "size": 10
+    }, {
+      "blocks": true,
+      "size": 9
+    });
+    compare(_moves(plan), "a10>2 b11>10 b12>11");
+    compare(_focus(plan), "B:11 A:2");
+  }
+
+  function test_remap_shrinking_uses_free_ids() {
+    const windows = _windows([["a1", 1, 0], ["a3", 3, 0], ["a7", 7, 0], ["a9", 9, 0]]);
+    const plan = WorkspaceGeometry.remapWorkspaces(_monitors(7, 11), windows, {
+      "blocks": true,
+      "size": 10
+    }, {
+      "blocks": true,
+      "size": 3
+    });
+    // 1 and 3 keep their place, 7 takes the only free id, 9 merges into the last
+    compare(_moves(plan), "a7>2 a9>3");
+    compare(_focus(plan), "B:4 A:2");
+  }
+
+  function test_remap_unchanged_is_a_no_op() {
+    const windows = _windows([["a1", 1, 0], ["b1", 12, 1], ["s", -98, 1]]);
+    const layout = {
+      "blocks": true,
+      "size": 10
+    };
+    const plan = WorkspaceGeometry.remapWorkspaces(_monitors(1, 12), windows, layout, layout);
+    compare(plan.moves.length, 0);
+    verify(!plan.changed);
+  }
+
+  function test_remap_reconcile_rehomes_stuck_workspaces() {
+    // B shows 3, left over from the standard layout
+    const windows = _windows([["a1", 1, 0], ["b3", 3, 1]]);
+    const layout = {
+      "blocks": true,
+      "size": 10
+    };
+    const plan = WorkspaceGeometry.remapWorkspaces(_monitors(1, 3), windows, layout, layout);
+    compare(_moves(plan), "b3>11");
+    compare(_focus(plan), "B:11 A:1");
+  }
 }

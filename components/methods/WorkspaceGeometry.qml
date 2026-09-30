@@ -163,4 +163,105 @@ QtObject {
     rest.sort((a, b) => String(a.key ?? a.name).localeCompare(String(b.key ?? b.name)));
     return primary.concat(rest);
   }
+
+  // Where windows go when the workspace layout changes (HyprlandManager's
+  // remap): every workspace with windows moves into its own monitor's ids
+  // under `to`, at the same place in the block where it can, so its windows
+  // stay open and on their monitor. Ids a monitor didn't own under `from`
+  // (a workspace stuck on the wrong monitor) keep their id if it's in range,
+  // else take a free one. Where two want one id (the shared 1..size of the
+  // standard layout, or a smaller block), the first in monitor order keeps
+  // it and the rest take free ids; windows only merge when none is free.
+  // from/to: { blocks, size } (blocks: each monitor owns `size` ids, else
+  // all share 1..size). monitors: [{ id, name, active, focused }] in block
+  // order (orderMonitors); windows: [{ address, workspace, monitor }]
+  // (ids). Returns { moves: [{ address, to }], focus: [{ monitor, id }]
+  // (every monitor's mapped active workspace, the focused one last),
+  // changed }.
+  function remapWorkspaces(monitors, windows, from, to) {
+    const base = (layout, i) => layout.blocks ? i * layout.size + 1 : 1;
+    const taken = {};
+    const target = {};
+    const preferred = (i, id) => {
+      const lo = base(to, i);
+      const index = id - base(from, i);
+      if (index >= 0 && index < from.size)
+        return index < to.size ? lo + index : -1;
+      return id >= lo && id < lo + to.size ? id : -1;
+    };
+    const free = i => {
+      const lo = base(to, i);
+      for (let id = lo; id < lo + to.size; id++) {
+        if (!taken[id])
+          return id;
+      }
+      return -1;
+    };
+    // Each monitor's workspaces with windows, in id order
+    const occupied = [];
+    monitors.forEach((m, i) => {
+      const ids = [];
+      windows.forEach(w => {
+        if (w.monitor === m.id && w.workspace > 0 && !ids.includes(w.workspace))
+          ids.push(w.workspace);
+      });
+      ids.sort((a, b) => a - b).forEach(id => occupied.push({
+          "index": i,
+          "id": id
+        }));
+    });
+    const deferred = occupied.filter(o => {
+      const id = preferred(o.index, o.id);
+      if (id < 0 || taken[id])
+        return true;
+      taken[id] = true;
+      target[o.index + ":" + o.id] = id;
+      return false;
+    });
+    deferred.forEach(o => {
+      const lo = base(to, o.index);
+      const fallback = preferred(o.index, o.id);
+      const id = free(o.index);
+      const chosen = id > 0 ? id : (fallback > 0 ? fallback : lo + to.size - 1);
+      taken[chosen] = true;
+      target[o.index + ":" + o.id] = chosen;
+    });
+    const moves = windows.filter(w => w.workspace > 0).map(w => {
+      const i = monitors.findIndex(m => m.id === w.monitor);
+      return {
+        "address": w.address,
+        "from": w.workspace,
+        "to": target[i + ":" + w.workspace] ?? w.workspace
+      };
+    }).filter(move => move.to !== move.from).map(move => ({
+          "address": move.address,
+          "to": move.to
+        }));
+    const focus = monitors.map((m, i) => {
+      let id = target[i + ":" + m.active];
+      if (id === undefined) {
+        id = preferred(i, m.active);
+        if (id < 0 || taken[id])
+          id = free(i);
+        if (id < 0)
+          id = base(to, i);
+        taken[id] = true;
+      }
+      return {
+        "monitor": m.name,
+        "id": id,
+        "active": m.active,
+        "focused": !!m.focused
+      };
+    });
+    const changed = moves.length > 0 || focus.some(f => f.id !== f.active);
+    return {
+      "moves": moves,
+      "focus": focus.filter(f => !f.focused).concat(focus.filter(f => f.focused)).map(f => ({
+            "monitor": f.monitor,
+            "id": f.id
+          })),
+      "changed": changed
+    };
+  }
 }
