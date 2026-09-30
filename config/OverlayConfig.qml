@@ -96,6 +96,11 @@ QtObject {
   readonly property int cardUnit: OverlayLayout.cardUnit
   readonly property int cardSpacing: OverlayLayout.cardSpacing
   readonly property int cardPadding: 12
+  // The inner padding a module lays its content out within (Card/Panel
+  // `pad`): none when bare, less in a quarter slot
+  function cardPad(compact, bare) {
+    return bare ? 0 : compact ? cardPadding * 0.75 : cardPadding * 1.5;
+  }
   // A screen fits this many cards across its free height / width; the
   // smaller of the two sizes the cards, so height decides on landscape
   // screens and width on portrait ones. Cards never go below minCardUnit.
