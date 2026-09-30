@@ -105,6 +105,11 @@ Singleton {
     return root.pinnedMenus[id] === true;
   }
 
+  // A module's host (Card/Panel.host) is an edge menu it can pin
+  function canPin(host) {
+    return host?.kind === "edgeMenu" && !!host.id;
+  }
+
   function _exists(id) {
     if (EdgeMenusConfig.menuById(id))
       return true;

@@ -29,6 +29,7 @@ BarIconWidget {
 
   MouseArea {
     anchors.fill: parent
+    cursorShape: Qt.PointingHandCursor
     onClicked: {
       NotificationManager.sendNotification("axiom", "Tailscale", root.isConnected ? I18n.tr("Connected to: {0}", root.tailnetName) : I18n.tr("Disconnected"));
     }
