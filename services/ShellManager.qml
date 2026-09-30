@@ -40,9 +40,6 @@ QtObject {
     return General.screens[0]?.name ?? "";
   }
 
-  // targetFor with General's mode
-  readonly property string targetScreen: targetFor("general")
-
   function isTarget(screen, mode) {
     return !!screen && screen.name === targetFor(mode);
   }

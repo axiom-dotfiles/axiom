@@ -108,10 +108,6 @@ QtObject {
       draft.load();
   }
 
-  function markDirty() {
-    draft.changed();
-  }
-
   function _valueAt(object, path) {
     let cur = object;
     for (const key of path)

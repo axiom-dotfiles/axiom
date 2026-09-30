@@ -4,20 +4,22 @@ import Quickshell.Services.UPower
 
 import qs.config
 
+// The laptop battery (UPower's display device, when it is one) and the
+// power-saver profile, for the Battery widget and popout.
 QtObject {
   id: root
 
-  property UPowerDevice battery: UPower.displayDevice?.isLaptopBattery ? UPower.displayDevice : null
-  property bool isAvailable: battery !== null
+  readonly property UPowerDevice battery: UPower.displayDevice?.isLaptopBattery ? UPower.displayDevice : null
+  readonly property bool isAvailable: battery !== null
   // UPowerDevice.percentage is a 0-1 ratio
-  property int percentage: Math.round((battery?.percentage ?? 0) * 100)
-  property bool isCharging: battery?.state === UPowerDeviceState.Charging
-  property bool isDischarging: battery?.state === UPowerDeviceState.Discharging
-  property bool isFull: battery?.state === UPowerDeviceState.FullyCharged
-  property bool isLow: percentage <= 20
-  property bool isCritical: percentage <= 10
-  property string timeRemaining: formatTime(battery?.timeToEmpty ?? 0)
-  property string timeToFull: formatTime(battery?.timeToFull ?? 0)
+  readonly property int percentage: Math.round((battery?.percentage ?? 0) * 100)
+  readonly property bool isCharging: battery?.state === UPowerDeviceState.Charging
+  readonly property bool isFull: battery?.state === UPowerDeviceState.FullyCharged
+  readonly property bool isLow: percentage <= 20
+  readonly property bool isCritical: percentage <= 10
+  // "2h 5m", "" when unknown
+  readonly property string timeRemaining: formatTime(battery?.timeToEmpty ?? 0)
+  readonly property string timeToFull: formatTime(battery?.timeToFull ?? 0)
 
   // power-profiles-daemon, over D-Bus. Quickshell can't tell whether the
   // daemon is there, so its CLI being installed stands in for it
@@ -62,31 +64,15 @@ QtObject {
         return "battery_full";
       if (percentage >= 80)
         return "battery_6_bar";
-      if (percentage >= 70)
-        return "battery_5_bar";
       if (percentage >= 60)
         return "battery_5_bar";
       if (percentage >= 50)
         return "battery_4_bar";
-      if (percentage >= 40)
-        return "battery_3_bar";
       if (percentage >= 30)
         return "battery_3_bar";
       if (percentage >= 20)
         return "battery_2_bar";
-      if (percentage >= 10)
-        return "battery_1_bar";
       return "battery_1_bar";
     }
-  }
-
-  function getBatteryColor() {
-    if (isCharging)
-      return Theme.success;
-    if (isCritical)
-      return Theme.error;
-    if (isLow)
-      return Theme.warning;
-    return Theme.backgroundHighlight;
   }
 }

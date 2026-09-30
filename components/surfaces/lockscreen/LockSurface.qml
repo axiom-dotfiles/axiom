@@ -170,7 +170,7 @@ Item {
 
           onAccepted: {
             if (input.text.length > 0 && !AuthManager.isAuthenticating) {
-              AuthManager.authenticate(input.text, null);
+              AuthManager.authenticate(input.text);
               input.text = "";
             }
           }

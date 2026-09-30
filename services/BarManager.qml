@@ -28,8 +28,6 @@ QtObject {
       "index": -1
     })
 
-  readonly property var zones: ["left", "leftCenter", "center", "rightCenter", "right"]
-
   // A bar's look: its Size and Style settings (BarsPanel groups them from
   // these), not its identity, placement, behaviour or widgets
   readonly property var sizeKeys: ["widgetSize", "padding", "spacing", "widgetPadding", "widgetSpacing"]
@@ -202,10 +200,6 @@ QtObject {
 
   function clearSelection() {
     selectWidget("", -1);
-  }
-
-  function isSelected(zone, index) {
-    return root.selectedWidget.zone === zone && root.selectedWidget.index === index;
   }
 
   function selectedWidgetConfig() {

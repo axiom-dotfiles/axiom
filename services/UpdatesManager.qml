@@ -17,7 +17,6 @@ QtObject {
   property var repoPackages: []
   property var aurPackages: []
   readonly property bool checking: _repo.running || _aur.running
-  readonly property bool upgrading: _upgrader.running
 
   function acquire(owner, request) {
     _registry.acquire(owner, {

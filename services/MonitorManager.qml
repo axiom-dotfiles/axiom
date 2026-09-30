@@ -44,8 +44,7 @@ QtObject {
   readonly property int selectedIndex: rules.findIndex(rule => rule.output === selectedOutput)
   readonly property var selectedRule: rules[selectedIndex] ?? null
 
-  // The saved profile Hyprland is using now, and the draft's
-  readonly property int activeProfile: MonitorLayout.matchProfile(HyprlandConfig.monitorProfiles, enabledOutputs)
+  // The draft's profile for what's connected
   readonly property int liveProfile: MonitorLayout.matchProfile(profiles, enabledOutputs)
   // The selected profile is for what's connected: Apply tries it live
   readonly property bool selectedIsLive: selectedProfile === liveProfile
