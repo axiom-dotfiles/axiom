@@ -26,6 +26,19 @@ QtObject {
     return stem + separator + n;
   }
 
+  // The Material Symbols arrow pointing at a screen edge ("Top", "Left", ...)
+  function edgeArrow(edge) {
+    switch (edge) {
+    case "Bottom":
+      return "arrow_downward";
+    case "Left":
+      return "arrow_back";
+    case "Right":
+      return "arrow_forward";
+    }
+    return "arrow_upward";
+  }
+
   // `usage` ({ key: { count, last } }) with one more use of `key` at `now`
   // (ms), as a new object so bindings on it update
   function recordUse(usage, key, now) {

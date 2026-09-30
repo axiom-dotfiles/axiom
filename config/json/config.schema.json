@@ -1742,18 +1742,20 @@
       "additionalProperties": false,
       "x-order": ["name", "id", "enabled", "monitor", "mode", "edge", "position", "edgeDistance", "cardSize", "extraWidth", "extraHeight", "frame", "margin", "padding", "moduleBorders", "backgroundColor", "borderColor", "openOnHover", "openDelay", "triggerSize", "triggerLength", "closeOnLeave", "closeDelay", "closeOnOutsideClick"],
       "properties": {
-        "id": { "type": "string", "title": "Id", "description": "What bar buttons and IPC calls open this menu by." },
-        "name": { "type": "string", "title": "Name", "default": "" },
-        "enabled": { "type": "boolean", "title": "Enabled", "default": true },
+        "id": { "x-group": "General", "type": "string", "title": "Id", "description": "What bar buttons and IPC calls open this menu by." },
+        "name": { "x-group": "General", "type": "string", "title": "Name", "default": "" },
+        "enabled": { "x-group": "General", "type": "boolean", "title": "Enabled", "default": true },
         "monitor": {
+          "x-group": "General",
           "type": "string",
           "title": "Monitor",
           "default": "",
           "description": "Monitor this menu is shown on. Empty uses the primary monitor.",
           "x-options": "screens"
         },
-        "edge": { "type": "string", "title": "Edge", "default": "Left", "enum": ["Top", "Bottom", "Left", "Right"] },
+        "edge": { "x-group": "Placement", "type": "string", "title": "Edge", "default": "Left", "enum": ["Top", "Bottom", "Left", "Right"] },
         "mode": {
+          "x-group": "Placement",
           "type": "string",
           "title": "Mode",
           "default": "floating",
@@ -1762,6 +1764,7 @@
           "description": "Floating opens over your windows. Integrated opens outside the screen border and bars, pushing them and your windows inwards."
         },
         "position": {
+          "x-group": "Placement",
           "type": "integer",
           "title": "Position along edge",
           "default": 50,
@@ -1771,6 +1774,7 @@
           "description": "Where along the edge the menu sits: 0 is the start (left/top), 100 the end."
         },
         "cardSize": {
+          "x-group": "Placement",
           "type": "integer",
           "title": "Card size",
           "default": 320,
@@ -1780,6 +1784,7 @@
           "description": "Size of one card. Cells are laid out as on overlay pages."
         },
         "extraWidth": {
+          "x-group": "Placement",
           "type": "integer",
           "title": "Extra width",
           "default": 0,
@@ -1790,6 +1795,7 @@
           "description": "Width added to the menu, shared between its columns. Every module grows into it."
         },
         "extraHeight": {
+          "x-group": "Placement",
           "type": "integer",
           "title": "Extra height",
           "default": 0,
@@ -1800,6 +1806,7 @@
           "description": "Height added to the menu, shared between each column's rows. Every module grows into it."
         },
         "edgeDistance": {
+          "x-group": "Placement",
           "type": "integer",
           "x-control": "stepper",
           "title": "Distance from edge",
@@ -1811,6 +1818,7 @@
           "x-showIf": { "mode": "floating" }
         },
         "frame": {
+          "x-group": "Style",
           "type": "boolean",
           "title": "Frame",
           "default": true,
@@ -1818,6 +1826,7 @@
           "x-showIf": { "mode": "integrated" }
         },
         "margin": {
+          "x-group": "Style",
           "type": "integer",
           "x-control": "stepper",
           "title": "Frame margin",
@@ -1829,6 +1838,7 @@
           "x-showIf": { "mode": "integrated" }
         },
         "padding": {
+          "x-group": "Style",
           "type": "integer",
           "x-control": "stepper",
           "title": "Padding",
@@ -1838,11 +1848,12 @@
           "x-unit": "px",
           "description": "Space between the menu's box and its modules. -1 uses the Popouts padding."
         },
-        "moduleBorders": { "type": "boolean", "title": "Module borders", "default": true, "description": "Draw each module's card box. Turn off to show modules straight on the menu's background, e.g. a menu with a single module." },
-        "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base00" },
-        "borderColor": { "type": "string", "title": "Border", "x-options": "colors", "default": "base05" },
-        "openOnHover": { "type": "boolean", "title": "Open on hover", "default": false, "description": "Open when the pointer rests on the screen edge." },
+        "moduleBorders": { "x-group": "Style", "type": "boolean", "title": "Module borders", "default": true, "description": "Draw each module's card box. Turn off to show modules straight on the menu's background, e.g. a menu with a single module." },
+        "backgroundColor": { "x-group": "Style", "type": "string", "title": "Background", "x-options": "colors", "default": "base00" },
+        "borderColor": { "x-group": "Style", "type": "string", "title": "Border", "x-options": "colors", "default": "base05" },
+        "openOnHover": { "x-group": "Behaviour", "type": "boolean", "title": "Open on hover", "default": false, "description": "Open when the pointer rests on the screen edge." },
         "openDelay": {
+          "x-group": "Behaviour",
           "type": "integer",
           "title": "Open delay",
           "default": 10,
@@ -1853,6 +1864,7 @@
           "x-showIf": { "openOnHover": true }
         },
         "triggerSize": {
+          "x-group": "Behaviour",
           "type": "integer",
           "x-control": "stepper",
           "title": "Trigger size",
@@ -1864,6 +1876,7 @@
           "x-showIf": { "openOnHover": true }
         },
         "triggerLength": {
+          "x-group": "Behaviour",
           "type": "integer",
           "title": "Trigger length",
           "default": 0,
@@ -1873,8 +1886,9 @@
           "description": "Length of the hover strip along the edge, centred on the menu. 0 matches the menu's own length.",
           "x-showIf": { "openOnHover": true }
         },
-        "closeOnLeave": { "type": "boolean", "title": "Close when the pointer leaves", "default": true, "description": "A Pin module keeps the menu open while pinned." },
+        "closeOnLeave": { "x-group": "Behaviour", "type": "boolean", "title": "Close when the pointer leaves", "default": true, "description": "A Pin module keeps the menu open while pinned." },
         "closeDelay": {
+          "x-group": "Behaviour",
           "type": "integer",
           "title": "Close delay",
           "default": 250,
@@ -1884,7 +1898,7 @@
           "description": "How long after the pointer leaves the menu closes.",
           "x-showIf": { "closeOnLeave": true }
         },
-        "closeOnOutsideClick": { "type": "boolean", "title": "Close on outside click", "default": false, "x-showIf": { "mode": "floating" } },
+        "closeOnOutsideClick": { "x-group": "Behaviour", "type": "boolean", "title": "Close on outside click", "default": false, "x-showIf": { "mode": "floating" } },
         "columns": {
           "type": "array",
           "title": "Columns",
@@ -1898,12 +1912,14 @@
 
     "Bar": {
       "type": "object",
+      "x-order": ["id", "enabled", "monitor", "location", "widgetSize", "padding", "spacing", "widgetPadding", "widgetSpacing", "background", "pillPadding", "pillMerge", "overrideFontSize", "fontSize", "overrideRadius", "widgetRadius", "lockCenter", "reserveSpace"],
       "required": ["id"],
       "additionalProperties": false,
       "properties": {
-        "id": { "type": "string", "title": "Id" },
-        "enabled": { "type": "boolean", "title": "Enabled", "default": true },
+        "id": { "x-group": "General", "type": "string", "title": "Id" },
+        "enabled": { "x-group": "General", "type": "boolean", "title": "Enabled", "default": true },
         "monitor": {
+          "x-group": "General",
           "type": "string",
           "title": "Monitor",
           "default": "",
@@ -1912,12 +1928,14 @@
           "x-allScreens": true
         },
         "location": {
+          "x-group": "General",
           "type": "string",
           "title": "Location",
           "default": "Top",
           "enum": ["Top", "Bottom", "Left", "Right"]
         },
         "widgetSize": {
+          "x-group": "Size",
           "type": "integer",
           "x-control": "stepper",
           "title": "Widget size",
@@ -1928,6 +1946,7 @@
           "description": "How thick the widgets are across the bar. The bar grows to fit them, their padding, and any border it shares an edge with."
         },
         "padding": {
+          "x-group": "Size",
           "type": "integer",
           "x-control": "stepper",
           "title": "Padding",
@@ -1939,6 +1958,7 @@
           "description": "Space between the widgets and the bar's visible edges, on both sides."
         },
         "background": {
+          "x-group": "Style",
           "type": "string",
           "title": "Background",
           "default": "solid",
@@ -1947,6 +1967,7 @@
           "description": "Transparent and pill bars sit inside the screen border; pills grow out of it."
         },
         "pillPadding": {
+          "x-group": "Style",
           "type": "integer",
           "x-control": "stepper",
           "title": "Pill padding",
@@ -1958,6 +1979,7 @@
           "description": "Extra space around a pill's widgets (px). They sit the screen margin plus this from the screen edge, and as far from the pill's other edges."
         },
         "pillMerge": {
+          "x-group": "Style",
           "type": "integer",
           "x-control": "stepper",
           "title": "Merge distance",
@@ -1969,6 +1991,7 @@
           "description": "Groups closer than this share one pill (px)."
         },
         "spacing": {
+          "x-group": "Size",
           "type": "integer",
           "x-control": "stepper",
           "title": "Spacing",
@@ -1979,18 +2002,21 @@
           "description": "Gap between widgets (px)."
         },
         "lockCenter": {
+          "x-group": "Behaviour",
           "type": "boolean",
           "title": "Lock center",
           "default": false,
           "description": "Keep the center section dead center on the bar. The other sections shrink or hide widgets on their own side instead of pushing it."
         },
         "reserveSpace": {
+          "x-group": "Behaviour",
           "type": "boolean",
           "title": "Reserve space",
           "default": true,
           "description": "Keep windows from tiling underneath the bar."
         },
         "widgetPadding": {
+          "x-group": "Size",
           "type": "integer",
           "x-control": "stepper",
           "title": "Widget padding",
@@ -2001,6 +2027,7 @@
           "description": "Space inside each widget, before its icon or text."
         },
         "widgetSpacing": {
+          "x-group": "Size",
           "type": "integer",
           "x-control": "stepper",
           "title": "Inner spacing",
@@ -2011,12 +2038,14 @@
           "description": "Gap between items inside a widget."
         },
         "overrideFontSize": {
+          "x-group": "Style",
           "type": "boolean",
           "title": "Own font size",
           "default": false,
           "description": "Off: the bar follows the font size in Look & Feel."
         },
         "fontSize": {
+          "x-group": "Style",
           "type": "integer",
           "x-control": "stepper",
           "title": "Font size",
@@ -2029,12 +2058,14 @@
           }
         },
         "overrideRadius": {
+          "x-group": "Style",
           "type": "boolean",
           "title": "Own corner radius",
           "default": false,
           "description": "Off: widgets follow the interior corner radius in Panels & controls. Pills follow the corner radius in Look & Feel."
         },
         "widgetRadius": {
+          "x-group": "Style",
           "type": "integer",
           "x-control": "stepper",
           "title": "Widget corner radius",

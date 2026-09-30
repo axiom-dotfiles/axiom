@@ -14,6 +14,17 @@ QtObject {
   readonly property bool closeOnEscape: ConfigManager.config.Overlay.closeOnEscape
   readonly property bool closeOnOutsideClick: ConfigManager.config.Overlay.closeOnOutsideClick
 
+  // The pages that aren't in config, after the configured ones: the
+  // overlay editor, which can't be removed.
+  // Labels: I18n.tr("Overlay editor")
+  readonly property var pinnedPages: [
+    {
+      "type": "OverlayEditor",
+      "icon": "view_quilt",
+      "label": "Overlay editor"
+    }
+  ]
+
   // What the overlay editor offers, read from the schema's oneOfs so new
   // module/view types show up there automatically
   function _oneOfTypes(definition) {

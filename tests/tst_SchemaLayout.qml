@@ -138,6 +138,30 @@ TestCase {
     }
   }
 
+  function test_objectGroups() {
+    const groups = SchemaLayout.objectGroups({
+      "x-order": ["b", "a"],
+      "properties": {
+        "a": {
+          "x-group": "One"
+        },
+        "b": {
+          "x-group": "Two"
+        },
+        "c": {},
+        "skip": {
+          "x-group": "One"
+        }
+      }
+    }, ["skip"]);
+    compare(groups.map(g => g.title + ":" + g.keys.join(",")), ["Two:b", "One:a", "Other:c"]);
+    compare(Object.keys(groups[1].schema), ["a"]);
+    const bar = SchemaLayout.objectGroups(schema.definitions.Bar, ["widgets"]);
+    compare(bar.map(g => g.title), ["General", "Size", "Style", "Behaviour"]);
+    const menu = SchemaLayout.objectGroups(schema.definitions.EdgeMenu, ["columns"]);
+    compare(menu.map(g => g.title), ["General", "Placement", "Style", "Behaviour"]);
+  }
+
   function test_real_schema_intros_exist() {
     for (const key in schema.properties) {
       const intro = schema.properties[key]["x-intro"];

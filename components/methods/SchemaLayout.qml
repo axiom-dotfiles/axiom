@@ -72,6 +72,41 @@ QtObject {
     });
   }
 
+  // An object definition's fields as titled groups, for an editor that
+  // lays one object out itself (the bar and edge menu panels): by
+  // `x-group` in `x-order` order, fields without a group last under
+  // "Other", `exclude` (keys edited elsewhere) left out.
+  // [{ title, keys, schema: { key: fieldSchema } }]
+  function objectGroups(definition, exclude) {
+    const order = definition["x-order"] ?? [];
+    const rank = key => {
+      const index = order.indexOf(key);
+      return index < 0 ? order.length : index;
+    };
+    const keys = Object.keys(definition.properties ?? {}).filter(key => !(exclude ?? []).includes(key)).sort((a, b) => rank(a) - rank(b));
+    const named = [];
+    const other = {
+      "title": "Other",
+      "keys": [],
+      "schema": {}
+    };
+    for (const key of keys) {
+      const title = definition.properties[key]["x-group"];
+      let group = title ? named.find(g => g.title === title) : other;
+      if (!group) {
+        group = {
+          "title": title,
+          "keys": [],
+          "schema": {}
+        };
+        named.push(group);
+      }
+      group.keys.push(key);
+      group.schema[key] = definition.properties[key];
+    }
+    return other.keys.length > 0 ? named.concat([other]) : named;
+  }
+
   // One section as cards: { kind, key, title, description, section, path,
   // rows, showIf, showIfParent }. The section's direct values make the
   // first card (titled by the section), each nested object the next ones.

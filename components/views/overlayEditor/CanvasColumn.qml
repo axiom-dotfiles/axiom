@@ -66,18 +66,15 @@ Item {
     }
 
     DragArea {
-      id: headerArea
       anchors.fill: parent
       anchors.rightMargin: Widget.height
-      onDragStarted: (x, y) => root.dragLayer.begin({
+      dragLayer: root.dragLayer
+      payload: ({
           "kind": "column-move",
           "column": root.column,
           "icon": "view_column",
           "label": I18n.tr("Column {0}", root.column + 1)
-        }, headerArea, x, y)
-      onDragMoved: (x, y) => root.dragLayer.move(headerArea, x, y)
-      onDropped: root.dragLayer.end()
-      onDragCanceled: root.dragLayer.cancel()
+        })
     }
   }
 

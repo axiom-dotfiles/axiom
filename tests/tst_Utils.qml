@@ -5,6 +5,13 @@ import qs.components.methods
 TestCase {
   name: "Utils"
 
+  function test_edgeArrow() {
+    compare(Utils.edgeArrow("Top"), "arrow_upward");
+    compare(Utils.edgeArrow("Bottom"), "arrow_downward");
+    compare(Utils.edgeArrow("Left"), "arrow_back");
+    compare(Utils.edgeArrow("Right"), "arrow_forward");
+  }
+
   function test_freeId() {
     compare(Utils.freeId("dock", []), "dock");
     compare(Utils.freeId("dock", ["dock"]), "dock2");

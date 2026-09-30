@@ -34,16 +34,8 @@ Item {
     root.direction = index < root.currentIndex ? -1 : 1;
     root.currentIndex = index;
   }
-  // The configured views, then the page that isn't in config: the
-  // overlay editor, always last and can't be removed.
-  // Labels: I18n.tr("Overlay editor")
-  readonly property var pinnedPages: [
-    {
-      "type": "OverlayEditor",
-      "icon": "view_quilt",
-      "label": "Overlay editor"
-    }
-  ]
+  // The configured views, then the pages that aren't in config
+  readonly property var pinnedPages: OverlayConfig.pinnedPages
   readonly property int editorIndex: viewsModel.length
   readonly property int pageCount: viewsModel.length + pinnedPages.length
   // What the navigator shows for each page: the views, then the pinned ones

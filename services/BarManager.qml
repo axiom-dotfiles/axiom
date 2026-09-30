@@ -41,6 +41,10 @@ QtObject {
 
   onSelectedBarIndexChanged: clearSelection()
 
+  function selectBar(index) {
+    root.selectedBarIndex = index;
+  }
+
   // Keeps the selected bar and widget where they still exist
   function loadConfig() {
     draft.load();

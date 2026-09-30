@@ -3,6 +3,7 @@ import QtQuick
 import QtQuick.Layouts
 import qs.config
 import qs.services
+import qs.components.methods
 import qs.components.reusable
 import qs.components.forms
 import qs.components.content.base
@@ -14,62 +15,12 @@ import qs.components.content.base
 Item {
   id: root
 
+  readonly property bool hasMenu: root.menu !== null
   readonly property var menu: EdgeMenuManager.selectedMenu()
-  readonly property var menuSchema: ConfigManager.configSchema.definitions?.EdgeMenu?.properties ?? ({})
   readonly property bool previewingThis: !!root.menu && EdgeMenuManager.previewing !== "" && EdgeMenuManager.previewing === root.menu.id
 
-  // The EdgeMenu keys by group; any the schema adds later land in "Other".
-  // Titles: I18n.tr("General") I18n.tr("Placement") I18n.tr("Style")
+  // Group titles: I18n.tr("General") I18n.tr("Placement") I18n.tr("Style")
   // I18n.tr("Behaviour") I18n.tr("Other")
-  readonly property var groups: {
-    const named = [
-      {
-        "title": "General",
-        "keys": ["name", "id", "enabled", "monitor"]
-      },
-      {
-        "title": "Placement",
-        "keys": ["mode", "edge", "position", "edgeDistance", "cardSize", "extraWidth", "extraHeight"]
-      },
-      {
-        "title": "Style",
-        "keys": ["frame", "margin", "padding", "moduleBorders", "backgroundColor", "borderColor"]
-      },
-      {
-        "title": "Behaviour",
-        "keys": ["openOnHover", "openDelay", "triggerSize", "triggerLength", "closeOnLeave", "closeDelay", "closeOnOutsideClick"]
-      }
-    ];
-    const grouped = [].concat(...named.map(g => g.keys)).concat(["columns"]);
-    const other = Object.keys(root.menuSchema).filter(key => !grouped.includes(key));
-    return named.concat(other.length > 0 ? [
-      {
-        "title": "Other",
-        "keys": other
-      }
-    ] : []).map(g => ({
-          "title": g.title,
-          "keys": g.keys,
-          "schema": g.keys.filter(key => key in root.menuSchema).reduce((out, key) => {
-            out[key] = root.menuSchema[key];
-            return out;
-          }, {})
-        }));
-  }
-
-  // Material Symbols arrow for the edge a menu opens from
-  function edgeIcon(edge) {
-    switch (edge) {
-    case "Top":
-      return "arrow_upward";
-    case "Bottom":
-      return "arrow_downward";
-    case "Right":
-      return "arrow_forward";
-    }
-    return "arrow_back";
-  }
-
   TitledCard {
     title: I18n.tr("Edge Menu Editor")
     dirty: EdgeMenuManager.isDirty
@@ -84,107 +35,47 @@ Item {
       Repeater {
         model: EdgeMenuManager.localMenus?.length ?? 0
 
-        delegate: StyledContainer {
+        delegate: ListEntryRow {
           id: entry
           required property int index
           readonly property var entryMenu: EdgeMenuManager.localMenus[index] ?? ({})
-          readonly property bool selected: EdgeMenuManager.selectedMenuIndex === index
-          readonly property color contentColor: entry.selected ? Theme.background : Theme.foreground
 
-          Layout.fillWidth: true
-          Layout.preferredHeight: Widget.height + Widget.padding
-          backgroundColor: entry.selected ? Theme.accent : (entryArea.containsMouse ? Theme.backgroundHighlight : "transparent")
-          borderWidth: 0
+          icon: Utils.edgeArrow(entry.entryMenu.edge)
+          label: EdgeMenuManager.menuLabel(entry.entryMenu, entry.index)
+          selected: EdgeMenuManager.selectedMenuIndex === entry.index
+          dimmed: entry.entryMenu.enabled === false
+          changed: EdgeMenuManager.menuChanged(entry.index)
+          onClicked: EdgeMenuManager.selectMenu(entry.index)
 
-          MouseArea {
-            id: entryArea
-            anchors.fill: parent
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            onClicked: EdgeMenuManager.selectMenu(entry.index)
+          // Held open on screen by the editor
+          badges: StyledIcon {
+            visible: EdgeMenuManager.previewing !== "" && EdgeMenuManager.previewing === entry.entryMenu.id
+            text: "visibility"
+            textColor: entry.ink
           }
 
-          RowLayout {
-            anchors.fill: parent
-            anchors.leftMargin: Widget.padding
-            anchors.rightMargin: Widget.padding / 2
-            spacing: Widget.spacing
+          RowAction {
+            row: entry
+            iconText: "content_copy"
+            tooltipText: I18n.tr("Duplicate this menu")
+            onClicked: EdgeMenuManager.duplicateMenu(entry.index)
+          }
 
-            StyledIcon {
-              text: root.edgeIcon(entry.entryMenu.edge)
-              textColor: entry.selected ? Theme.background : Theme.accent
-              Layout.preferredWidth: Appearance.fontSize * 1.5
-            }
-
-            StyledText {
-              text: EdgeMenuManager.menuLabel(entry.entryMenu, entry.index)
-              textColor: entry.contentColor
-              font.bold: entry.selected
-              opacity: entry.entryMenu.enabled === false ? 0.5 : 1
-              elide: Text.ElideRight
-              Layout.fillWidth: true
-            }
-
-            // Held open on screen by the editor
-            StyledIcon {
-              visible: EdgeMenuManager.previewing !== "" && EdgeMenuManager.previewing === entry.entryMenu.id
-              text: "visibility"
-              textColor: entry.contentColor
-              textSize: Appearance.fontSize
-            }
-
-            // Unsaved edits to this menu
-            UnsavedDot {
-              visible: EdgeMenuManager.menuChanged(entry.index)
-              onAccent: entry.selected
-            }
-
-            SquareIconButton {
-              size: Widget.height - 6
-              iconText: "content_copy"
-              iconColor: entry.contentColor
-              backgroundColor: "transparent"
-              hoverColor: entry.selected ? Qt.darker(Theme.accent, 1.15) : Theme.backgroundAlt
-              opacity: entry.selected || entryArea.containsMouse ? 1 : 0.35
-              tooltipText: I18n.tr("Duplicate this menu")
-              onClicked: EdgeMenuManager.duplicateMenu(entry.index)
-            }
-
-            SquareIconButton {
-              size: Widget.height - 6
-              iconText: "close"
-              iconColor: entry.contentColor
-              backgroundColor: "transparent"
-              hoverColor: Theme.error
-              tooltipText: I18n.tr("Remove this menu")
-              onClicked: EdgeMenuManager.removeMenu(entry.index)
-            }
+          RowAction {
+            row: entry
+            danger: true
+            iconText: "close"
+            tooltipText: I18n.tr("Remove this menu")
+            onClicked: EdgeMenuManager.removeMenu(entry.index)
           }
         }
       }
 
-      StyledContainer {
-        Layout.fillWidth: true
-        Layout.preferredHeight: Widget.height
+      AddEntryButton {
         Layout.topMargin: Widget.spacing
         Layout.bottomMargin: Widget.spacing
-        backgroundColor: addArea.containsMouse ? Theme.backgroundHighlight : "transparent"
-        borderColor: Theme.border
-        borderWidth: 1
-
-        StyledText {
-          anchors.centerIn: parent
-          text: "+  " + I18n.tr("New menu")
-          opacity: addArea.containsMouse ? 1 : 0.7
-        }
-
-        MouseArea {
-          id: addArea
-          anchors.fill: parent
-          hoverEnabled: true
-          cursorShape: Qt.PointingHandCursor
-          onClicked: EdgeMenuManager.addMenu()
-        }
+        text: I18n.tr("New menu")
+        onClicked: EdgeMenuManager.addMenu()
       }
     }
 
@@ -207,59 +98,36 @@ Item {
       }
     }
 
+    // A ColumnLayout's Repeater re-runs its model on every draft edit:
+    // `hasEntry` keeps the model the same while one is selected
     Repeater {
-      model: root.menu ? root.groups : []
+      model: root.hasMenu ? EdgeMenusConfig.fieldGroups : []
 
-      delegate: StyledContainer {
+      delegate: FieldGroup {
         id: group
         required property var modelData
+        title: I18n.tr(group.modelData.title)
 
-        Layout.fillWidth: true
-        implicitHeight: groupColumn.implicitHeight + Widget.padding * 2
-
-        ColumnLayout {
-          id: groupColumn
-          anchors.top: parent.top
-          anchors.left: parent.left
-          anchors.right: parent.right
-          anchors.margins: Widget.padding
-          spacing: Widget.spacing * 1.5
-
-          StyledText {
-            text: I18n.tr(group.modelData.title)
-            textColor: Theme.accent
-            textSize: Appearance.fontSize + 1
-            font.bold: true
-            Layout.fillWidth: true
-          }
-
-          SchemaPropertiesForm {
-            Layout.fillWidth: true
-            propertiesSchema: group.modelData.schema
-            order: group.modelData.keys
-            // The whole menu, so x-showIf sees keys from other groups
-            values: root.menu ?? ({})
-            onEdited: (path, value) => EdgeMenuManager.updateMenuField(path[0], value)
-          }
+        SchemaPropertiesForm {
+          Layout.fillWidth: true
+          propertiesSchema: group.modelData.schema
+          order: group.modelData.keys
+          // The whole menu, so x-showIf sees keys from other groups
+          values: root.menu ?? ({})
+          onEdited: (path, value) => EdgeMenuManager.updateMenuField(path[0], value)
         }
       }
     }
 
     FieldGroup {
       visible: EdgeMenuManager.problems.length > 0
-      Layout.fillWidth: true
       title: I18n.tr("Can't save yet")
 
-      Repeater {
-        model: EdgeMenuManager.problems
-
-        StyledText {
-          required property string modelData
-          Layout.fillWidth: true
-          wrapMode: Text.WordWrap
-          text: "•  " + modelData
-          textColor: Theme.error
-        }
+      IssueList {
+        issues: EdgeMenuManager.problems.map(text => ({
+              "level": "error",
+              "text": text
+            }))
       }
     }
   }
