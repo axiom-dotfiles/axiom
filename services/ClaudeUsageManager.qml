@@ -25,7 +25,6 @@ QtObject {
   //   status: pending | ok | expired | error | missing.
   // A window is { percent, resetsAt } or null.
   property var states: ({})
-  readonly property bool fetching: _curl.running
 
   function acquire(owner, request) {
     _registry.acquire(owner, {

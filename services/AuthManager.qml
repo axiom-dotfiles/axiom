@@ -12,159 +12,106 @@ QtObject {
   id: root
 
   property bool isAuthenticating: false
+  // What to show under the password field ("" for nothing)
   property string message: ""
   property bool messageIsError: false
-  property var currentCallback: null
-  property var currentPassword: ""
 
-  // Signals
   signal authenticationSucceeded
   signal authenticationFailed(string reason)
   signal authenticationError(string error)
-  signal messageReceived(string message, bool isError)
 
-  // PAM Context
-  property PamContext pamContext: PamContext {
-    id: pamContext
-    config: "login"
-
-    onCompleted: result => {
-      root.isAuthenticating = false;
-
-      switch (result) {
-      case PamResult.Success:
-        root.message = "";
-        root.messageIsError = false;
-        if (root.currentCallback) {
-          root.currentCallback(true, "Success");
-        }
-        root.authenticationSucceeded();
-        break;
-      case PamResult.Failed:
-        root.message = I18n.tr("Authentication failed");
-        root.messageIsError = true;
-        if (root.currentCallback) {
-          root.currentCallback(false, "Authentication failed");
-        }
-        root.authenticationFailed("Authentication failed");
-        break;
-      case PamResult.Error:
-        root.message = I18n.tr("Authentication error occurred");
-        root.messageIsError = true;
-        if (root.currentCallback) {
-          root.currentCallback(false, "Authentication error");
-        }
-        root.authenticationError("Authentication error occurred");
-        break;
-      case PamResult.MaxTries:
-        root.message = I18n.tr("Maximum attempts exceeded");
-        root.messageIsError = true;
-        if (root.currentCallback) {
-          root.currentCallback(false, "Maximum attempts exceeded");
-        }
-        root.authenticationFailed("Maximum attempts exceeded");
-        break;
-      }
-
-      root.currentCallback = null;
-      root.currentPassword = "";
-    }
-
-    onPamMessage: {
-      if (message !== "") {
-        root.message = message;
-        root.messageIsError = messageIsError;
-        root.messageReceived(message, messageIsError);
-      }
-
-      if (responseRequired) {
-        // PAM is asking for password
-        pamContext.respond(root.currentPassword);
-      }
-    }
-
-    onError: error => {
-      root.isAuthenticating = false;
-      root.messageIsError = true;
-
-      let errorMessage = "";
-      switch (error) {
-      case PamError.StartFailed:
-        errorMessage = I18n.tr("Failed to start authentication");
-        break;
-      case PamError.TryAuthFailed:
-        errorMessage = I18n.tr("Failed to authenticate");
-        break;
-      case PamError.InternalError:
-        errorMessage = I18n.tr("Internal error occurred");
-        break;
-      }
-
-      root.message = errorMessage;
-      if (root.currentCallback) {
-        root.currentCallback(false, errorMessage);
-      }
-      root.authenticationError(errorMessage);
-
-      root.currentCallback = null;
-      root.currentPassword = "";
-    }
-  }
-
-  // Main authentication function
-  function authenticate(password, callback) {
-    if (root.isAuthenticating) {
-      if (callback) {
-        callback(false, "Authentication already in progress");
-      }
+  // Starts checking `password`; false if it can't start (one is already
+  // running, the password is empty, or PAM wouldn't start)
+  function authenticate(password) {
+    if (root.isAuthenticating)
+      return false;
+    if (!password) {
+      root._show(I18n.tr("Please enter a password"), true);
       return false;
     }
-
-    if (!password || password.length === 0) {
-      root.message = I18n.tr("Please enter a password");
-      root.messageIsError = true;
-      if (callback) {
-        callback(false, "No password provided");
-      }
-      return false;
-    }
-
     root.isAuthenticating = true;
-    root.currentPassword = password;
-    root.currentCallback = callback;
-    root.message = I18n.tr("Authenticating...");
-    root.messageIsError = false;
-
-    if (!pamContext.start()) {
-      root.isAuthenticating = false;
-      root.message = I18n.tr("Failed to start authentication");
-      root.messageIsError = true;
-      if (callback) {
-        callback(false, "Failed to start authentication");
-      }
-      root.currentCallback = null;
-      root.currentPassword = "";
+    root._password = password;
+    root._show(I18n.tr("Authenticating..."), false);
+    if (!_pam.start()) {
+      root._end(I18n.tr("Failed to start authentication"), true);
       return false;
     }
-
     return true;
   }
 
-  // Cancel ongoing authentication
   function cancel() {
-    if (root.isAuthenticating && pamContext.active) {
-      pamContext.abort();
-      root.isAuthenticating = false;
-      root.message = "";
-      root.messageIsError = false;
-      root.currentCallback = null;
-      root.currentPassword = "";
-    }
+    if (!root.isAuthenticating || !_pam.active)
+      return;
+    _pam.abort();
+    root._end("", false);
   }
 
-  // Clear message
   function clearMessage() {
-    root.message = "";
-    root.messageIsError = false;
+    root._show("", false);
+  }
+
+  // -- Private --
+
+  // Only held while PAM may ask for it
+  property string _password: ""
+
+  function _show(text, isError) {
+    root.message = text;
+    root.messageIsError = isError;
+  }
+
+  // An attempt is over: forget the password and show the outcome
+  function _end(text, isError) {
+    root.isAuthenticating = false;
+    root._password = "";
+    root._show(text, isError);
+  }
+
+  property PamContext _pam: PamContext {
+    config: "login"
+
+    onCompleted: result => {
+      switch (result) {
+      case PamResult.Success:
+        root._end("", false);
+        root.authenticationSucceeded();
+        break;
+      case PamResult.Failed:
+        root._end(I18n.tr("Authentication failed"), true);
+        root.authenticationFailed("Authentication failed");
+        break;
+      case PamResult.MaxTries:
+        root._end(I18n.tr("Maximum attempts exceeded"), true);
+        root.authenticationFailed("Maximum attempts exceeded");
+        break;
+      default:
+        root._end(I18n.tr("Authentication error occurred"), true);
+        root.authenticationError("Authentication error occurred");
+      }
+    }
+
+    onPamMessage: {
+      if (message !== "")
+        root._show(message, messageIsError);
+      if (responseRequired)
+        root._pam.respond(root._password);
+    }
+
+    onError: error => {
+      let text = "";
+      switch (error) {
+      case PamError.StartFailed:
+        text = I18n.tr("Failed to start authentication");
+        break;
+      case PamError.TryAuthFailed:
+        text = I18n.tr("Failed to authenticate");
+        break;
+      case PamError.InternalError:
+        text = I18n.tr("Internal error occurred");
+        break;
+      }
+      root._end(text, true);
+      root.authenticationError(text);
+    }
   }
 }

@@ -6,12 +6,12 @@ import Quickshell.Io
 
 import qs.config
 
+// The active MPRIS player (Spotify first, else one playing, else one
+// that can play; or the one picked with selectPlayer) for the media
+// widgets, the lockscreen and the media keys: its track, position and
+// controls, and its album art downloaded to a local file.
 QtObject {
   id: root
-
-  // --- Signals ---
-  signal artReady
-  signal metadataUpdated
 
   property var activePlayer: null
 
@@ -26,29 +26,21 @@ QtObject {
   readonly property real progress: length > 0 ? (position / length) : 0
 
   // --- Everything else ---
-  property string identity: activePlayer ? activePlayer.identity : ""
-  property string trackTitle: activePlayer ? activePlayer.trackTitle : ""
-  property string trackArtist: activePlayer ? activePlayer.trackArtist : ""
-  property string artUrl: activePlayer ? activePlayer.trackArtUrl : ""
-  property string artFileName: artUrl ? Qt.md5(artUrl) + ".jpg" : ""
-  property string artFilePath: artFileName ? Paths.runtimePath + "media-art/" + artFileName : ""
+  readonly property string identity: activePlayer ? activePlayer.identity : ""
+  readonly property string trackTitle: activePlayer ? activePlayer.trackTitle : ""
+  readonly property string trackArtist: activePlayer ? activePlayer.trackArtist : ""
+  readonly property string artUrl: activePlayer ? activePlayer.trackArtUrl : ""
+  readonly property string artFileName: artUrl ? Qt.md5(artUrl) + ".jpg" : ""
+  readonly property string artFilePath: artFileName ? Paths.runtimePath + "media-art/" + artFileName : ""
   property bool artDownloaded: false
+  // Bumped when new art lands, so images reload the same path
   property int artVersion: 0
-  property bool canPlay: activePlayer ? activePlayer.canPlay : false
-  property bool canPause: activePlayer ? activePlayer.canPause : false
-  property bool canTogglePlaying: activePlayer ? activePlayer.canTogglePlaying : false
-  property bool canGoNext: activePlayer ? activePlayer.canGoNext : false
-  property bool canGoPrevious: activePlayer ? activePlayer.canGoPrevious : false
-  property bool canSeek: activePlayer ? activePlayer.canSeek : false
-  property bool isInitialized: Mpris.players !== null && Mpris.players.values.length > 0
+  readonly property bool canTogglePlaying: activePlayer ? activePlayer.canTogglePlaying : false
+  readonly property bool canGoNext: activePlayer ? activePlayer.canGoNext : false
+  readonly property bool canGoPrevious: activePlayer ? activePlayer.canGoPrevious : false
+  readonly property bool canSeek: activePlayer ? activePlayer.canSeek : false
 
-  // --- Art download trigger ---
-  // artUrl is already reactively derived from activePlayer.trackArtUrl, so
-  // this single handler fires for both "track changed on the same player"
-  // and "active player switched" — the two cases that should invalidate
-  // whatever art is currently shown. Without this, _artDownloader was
-  // fully wired up (command, exit handling, artReady/artVersion bump) but
-  // nothing ever actually set it running, so no art ever downloaded.
+  // A new track, or another player: whatever art is shown is stale
   onArtUrlChanged: {
     // Reset immediately so the UI falls back to its placeholder rather
     // than briefly showing the previous track's art under the new one.
@@ -78,27 +70,6 @@ QtObject {
   }
 
   // --- Public ---
-  function logCurrentSongProperties() {
-    if (!hasActivePlayer) {
-      console.log("[MediaManager] No active MPRIS player.");
-      return;
-    }
-    console.log("[MediaManager] Active MPRIS Player Properties:");
-    console.log("[MediaManager]   Identity:", identity);
-    console.log("[MediaManager]   Playback State:", playbackState === MprisPlaybackState.Playing ? "Playing" : (playbackState === MprisPlaybackState.Paused ? "Paused" : "Stopped"));
-    console.log("[MediaManager]   Track Title:", trackTitle);
-    console.log("[MediaManager]   Track Artist:", trackArtist);
-    console.log("[MediaManager]   Position (ms):", position);
-    console.log("[MediaManager]   Length (ms):", length);
-    console.log("[MediaManager]   Progress:", (progress * 100).toFixed(2) + "%");
-    console.log("[MediaManager]   Art URL:", artUrl);
-    console.log("[MediaManager]   Can Play:", canPlay);
-    console.log("[MediaManager]   Can Pause:", canPause);
-    console.log("[MediaManager]   Can Toggle Playing:", canTogglePlaying);
-    console.log("[MediaManager]   Can Go Next:", canGoNext);
-    console.log("[MediaManager]   Can Go Previous:", canGoPrevious);
-    console.log("[MediaManager]   Can Seek:", canSeek);
-  }
 
   function updateAllMetadata() {
     if (!hasActivePlayer) {
@@ -107,8 +78,6 @@ QtObject {
     }
     length = activePlayer.length || 0;
     root.updatePosition();
-    // root.logCurrentSongProperties();
-    root.metadataUpdated();
   }
 
   function updatePosition() {
@@ -221,7 +190,6 @@ QtObject {
         console.log("[MediaManager] Album art ready:", root.artFilePath);
         root.artDownloaded = true;
         root.artVersion++;
-        root.artReady();
       } else {
         console.warn("[MediaManager] Failed to download album art from:", url, "Exit code:", exitCode);
         root.artDownloaded = false;

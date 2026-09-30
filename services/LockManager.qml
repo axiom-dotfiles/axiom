@@ -23,7 +23,6 @@ QtObject {
 
   // The built-in lock is up (set by shell/Lockscreen.qml, which owns it)
   property bool builtinLocked: false
-  readonly property bool locked: builtinLocked
 
   // For the built-in locker
   signal lockRequested
