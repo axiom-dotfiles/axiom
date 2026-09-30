@@ -7,7 +7,7 @@ import qs.components.hosts.popout
 import qs.components.surfaces.osd
 
 // Every enabled OSD (OSD.osds), each on the screens its `monitors` puts it
-// on: an EdgePopout for an edge OSD, a FloatingOSD for a floating one. A
+// on: an EdgePopout for an edge OSD, a FloatingPopout for a floating one. A
 // change opens every OSD holding that bar, on the target screen (the
 // focused one), or on all of them in "all" mode. Hiding is the host's own
 // hover-aware dismiss timer. Keyed by id, so editing an OSD's settings
@@ -62,14 +62,19 @@ Scope {
       Variants {
         model: entry.valid && entry.osd.placement === "floating" ? entry.screens : []
 
-        delegate: FloatingOSD {
+        delegate: FloatingPopout {
           id: floatingHost
           required property ShellScreen modelData
 
           screen: modelData
+          // Its centre x% across and y% up the free area
           xFraction: entry.osd.x / 100
-          yFraction: entry.osd.y / 100
+          yFraction: 1 - entry.osd.y / 100
+          layerNamespace: "axiom-osd"
           dismissDelay: entry.osd.timeout
+          // The bars inside report their own changes, so they must exist
+          // while the OSD is closed
+          keepLoaded: true
 
           content: Component {
             OSDContent {

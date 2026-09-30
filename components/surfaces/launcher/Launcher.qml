@@ -10,40 +10,36 @@ import qs.services
 
 // The search launcher on one screen. LauncherManager builds the rows from
 // the text and runs them, LauncherPanel shows them, and this picks the
-// host from Launcher.position: a floating LauncherWindow, or on the top or
-// bottom edge an EdgePopout that grows out of the border or bar there.
-// Only the host in use is created.
+// host from Launcher.position: a FloatingPopout, or on the top or bottom
+// edge an EdgePopout that grows out of the border or bar there. Both have
+// the same API (show/hide/isOpen/contentItem/window), and only the one in
+// use is created.
 Scope {
   id: root
 
   required property ShellScreen screen
 
-  readonly property bool shown: LauncherConfig.attached ? (edgeLoader.item?.isOpen ?? false) : (windowLoader.item?.shown ?? false)
-  // What an edge popout's panel searches for when it's created
+  readonly property var host: LauncherConfig.attached ? edgeLoader.item : floatingLoader.item
+  readonly property bool shown: root.host?.isOpen ?? false
+  // What the panel searches for when it's created (it only exists while
+  // the host is open)
   property string _openText: ""
 
   function open(text) {
+    root._openText = text ?? "";
     // Searched first, so instances this opens on other monitors (see
     // SurfaceGroup) show the same text
-    LauncherManager.query(text ?? "");
-    if (!LauncherConfig.attached) {
-      windowLoader.item?.open(text);
+    LauncherManager.query(root._openText);
+    if (!root.host)
       return;
-    }
-    const popout = edgeLoader.item;
-    if (!popout)
-      return;
-    root._openText = text ?? "";
-    // Its content only exists while open
-    if (popout.isOpen)
-      popout.contentItem?.reset(root._openText);
+    if (root.host.isOpen)
+      root.host.contentItem?.reset(root._openText);
     else
-      popout.show();
+      root.host.show();
   }
 
   function close() {
-    windowLoader.item?.close();
-    edgeLoader.item?.hide();
+    root.host?.hide();
   }
 
   function toggle() {
@@ -59,7 +55,7 @@ Scope {
     kind: "launcher"
     mode: LauncherConfig.monitors
     screen: root.screen
-    window: LauncherConfig.attached ? (edgeLoader.item?.window ?? null) : (windowLoader.item ?? null)
+    window: root.host?.window ?? null
     shown: root.shown
     onSyncRequested: shown => shown ? root.open(LauncherManager.text) : root.close()
   }
@@ -110,13 +106,40 @@ Scope {
   }
 
   LazyLoader {
-    id: windowLoader
+    id: floatingLoader
     active: !LauncherConfig.attached
 
-    LauncherWindow {
+    FloatingPopout {
+      id: floating
       screen: root.screen
-      ownsGrab: group.ownsGrab
-      grabWindows: group.windows
+      xFraction: 0.5
+      // Centred, or its top in the upper third
+      yFraction: LauncherConfig.position === "center" ? 0.5 : 0.18
+      yAlign: LauncherConfig.position === "center" ? 0.5 : 0
+      margin: 16
+      // Resized as results come and go, the box would move
+      maxContentHeight: (floating.contentItem as LauncherPanel)?.maxHeight ?? 0
+      // Reversed, the search field stays put at the bottom
+      growUp: LauncherConfig.reverse
+      contentPadding: Appearance.borderWidth
+      strokeColor: Theme.border
+      closedScale: 0.97
+      layerNamespace: "axiom-launcher"
+      wantsKeyboardFocus: true
+      closeOnClickOutside: true
+      grabEnabled: group.ownsGrab
+      grabWindows: group.windows.filter(w => w !== floating.window)
+
+      content: Component {
+        LauncherPanel {
+          // Stays open until Esc, a pick or a click elsewhere
+          readonly property bool autoDismiss: false
+          implicitWidth: Math.min(LauncherConfig.width, root.screen.width - 32)
+          shown: floating.isOpen
+          onCloseRequested: floating.hide()
+          Component.onCompleted: reset(root._openText)
+        }
+      }
     }
   }
 

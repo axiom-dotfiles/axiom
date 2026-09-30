@@ -3,13 +3,13 @@ import QtQuick
 
 import qs.services
 
-// What opens one OSD host (an EdgePopout or FloatingOSD) on its screen:
+// What opens one OSD host (an EdgePopout or FloatingPopout) on its screen:
 // its bars' own changes (poke, system volume and mute included) and the
 // settings page's Show button.
 QtObject {
   id: root
 
-  // An EdgePopout or FloatingOSD
+  // An EdgePopout or FloatingPopout
   required property var host
   // The OSD's entry (OSDConfig.osds)
   required property var osd
