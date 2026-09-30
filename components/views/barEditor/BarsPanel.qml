@@ -144,12 +144,9 @@ Item {
             }
 
             // Unsaved edits to this bar
-            Rectangle {
+            UnsavedDot {
               visible: BarManager.barChanged(entry.index)
-              implicitWidth: 8
-              implicitHeight: 8
-              radius: 4
-              color: entry.selected ? Theme.background : Theme.accent
+              onAccent: entry.selected
             }
 
             // Copy this bar's look, then paste it onto others

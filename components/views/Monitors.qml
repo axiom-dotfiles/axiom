@@ -151,27 +151,8 @@ BaseView {
         text: I18n.tr("This layout is for monitors that aren't all connected: saving keeps it for when they are.")
       }
 
-      Repeater {
-        model: MonitorManager.issues.length
-
-        delegate: RowLayout {
-          required property int index
-          readonly property var issue: MonitorManager.issues[index]
-          Layout.fillWidth: true
-          spacing: Widget.spacing
-
-          StyledIcon {
-            text: parent.issue?.level === "error" ? "error" : "warning"
-            textColor: parent.issue?.level === "error" ? Theme.error : Theme.warning
-            Layout.alignment: Qt.AlignTop
-          }
-
-          StyledText {
-            text: parent.issue?.text ?? ""
-            wrapMode: Text.WordWrap
-            Layout.fillWidth: true
-          }
-        }
+      IssueList {
+        issues: MonitorManager.issues
       }
 
       StyledText {

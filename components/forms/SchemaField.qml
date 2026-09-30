@@ -219,13 +219,12 @@ Loader {
         spacing: Widget.spacing / 2
         Repeater {
           model: root.fieldSchema.items.enum
-          StyledTextButton {
+          SegmentButton {
             id: chip
             required property string modelData
             readonly property bool selected: (root.current ?? []).includes(chip.modelData)
             text: root.optionLabels[chip.modelData] ?? I18n.tr(chip.modelData)
-            backgroundColor: chip.selected ? Theme.accent : Theme.backgroundHighlight
-            textColor: chip.selected ? Theme.background : Theme.foreground
+            active: chip.selected
             onClicked: {
               const current = root.current ?? [];
               const next = chip.selected ? current.filter(v => v !== chip.modelData) : current.concat([chip.modelData]);

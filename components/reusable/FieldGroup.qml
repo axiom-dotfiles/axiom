@@ -8,12 +8,13 @@ StyledContainer {
   id: root
   property string title
   property string description
+  // Items beside the heading (a status chip, a button)
+  property alias headerExtras: headerRow.data
   default property alias content: groupColumn.data
 
   Layout.fillWidth: true
   Layout.alignment: Qt.AlignTop
   implicitHeight: groupColumn.implicitHeight + Widget.padding * 2
-  backgroundColor: Theme.backgroundAlt
 
   ColumnLayout {
     id: groupColumn
@@ -23,9 +24,15 @@ StyledContainer {
     anchors.margins: Widget.padding
     spacing: Widget.spacing * 1.5
 
-    SectionHeading {
-      title: root.title
-      description: root.description
+    RowLayout {
+      id: headerRow
+      Layout.fillWidth: true
+      spacing: Widget.spacing
+
+      SectionHeading {
+        title: root.title
+        description: root.description
+      }
     }
   }
 }

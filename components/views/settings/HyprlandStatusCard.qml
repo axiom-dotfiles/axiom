@@ -8,7 +8,7 @@ import qs.components.reusable
 // The Hyprland category's first card (the section's `x-card`): whether
 // the mode is in effect and what it needs, and, while a new mode waits for
 // Save (`x-applyOnSave`), what saving will do
-StyledContainer {
+FieldGroup {
   id: root
 
   readonly property string mode: HyprlandConfigManager.mode
@@ -87,179 +87,146 @@ StyledContainer {
 
   readonly property bool blocked: root.pendingMode === "managed" && HyprlandConfigManager.managedCheck === "blocked"
 
-  implicitHeight: column.implicitHeight + Widget.padding * 2
+  title: I18n.tr("Status")
+  headerExtras: [
+    StyledText {
+      text: root._modeLabel(root.mode)
+      opacity: 0.7
+    },
+    StatusChip {
+      text: root.statusLabel
+      color: root.statusColor
+    }
+  ]
 
-  ColumnLayout {
-    id: column
-    anchors.top: parent.top
-    anchors.left: parent.left
-    anchors.right: parent.right
-    anchors.margins: Widget.padding
-    spacing: Widget.spacing * 1.5
+  // --- A mode change waiting for Save ---
 
-    RowLayout {
-      Layout.fillWidth: true
-      spacing: Widget.spacing
+  StyledContainer {
+    visible: root.pending
+    Layout.fillWidth: true
+    implicitHeight: pendingColumn.implicitHeight + Widget.padding * 2
+    backgroundColor: Theme.background
+    borderColor: root.blocked ? Theme.error : Theme.accent
+
+    ColumnLayout {
+      id: pendingColumn
+      anchors.top: parent.top
+      anchors.left: parent.left
+      anchors.right: parent.right
+      anchors.margins: Widget.padding
+      spacing: Widget.spacing / 2
 
       StyledText {
-        text: I18n.tr("Status")
-        textColor: Theme.accent
-        textSize: Appearance.fontSize + 1
+        text: root.blocked ? I18n.tr("Can't switch to Managed") : I18n.tr("Save switches to {0}:", root._modeLabel(root.pendingMode))
+        textColor: root.blocked ? Theme.error : Theme.accent
         font.bold: true
         Layout.fillWidth: true
       }
 
       StyledText {
-        text: root._modeLabel(root.mode)
-        opacity: 0.7
+        visible: root.blocked
+        text: I18n.tr("{0} is a symlink or in a git repository, so axiom won't take it over. Use Included instead.", Paths.shortenHome(Paths.hyprlandPath))
+        textSize: Appearance.fontSize - 1
+        wrapMode: Text.WordWrap
+        Layout.fillWidth: true
       }
 
-      Rectangle {
-        implicitWidth: chip.implicitWidth + Widget.padding * 2
-        implicitHeight: chip.implicitHeight + 4
-        radius: height / 2
-        color: root.statusColor
+      Repeater {
+        model: root.blocked ? [] : root.saveSteps
 
-        StyledText {
-          id: chip
-          anchors.centerIn: parent
-          text: root.statusLabel
-          textColor: Theme.background
-          textSize: Appearance.fontSize - 2
-          font.bold: true
-        }
-      }
-    }
-
-    // --- A mode change waiting for Save ---
-
-    StyledContainer {
-      visible: root.pending
-      Layout.fillWidth: true
-      implicitHeight: pendingColumn.implicitHeight + Widget.padding * 2
-      backgroundColor: Theme.background
-      borderColor: root.blocked ? Theme.error : Theme.accent
-
-      ColumnLayout {
-        id: pendingColumn
-        anchors.top: parent.top
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.margins: Widget.padding
-        spacing: Widget.spacing / 2
-
-        StyledText {
-          text: root.blocked ? I18n.tr("Can't switch to Managed") : I18n.tr("Save switches to {0}:", root._modeLabel(root.pendingMode))
-          textColor: root.blocked ? Theme.error : Theme.accent
-          font.bold: true
-          Layout.fillWidth: true
-        }
-
-        StyledText {
-          visible: root.blocked
-          text: I18n.tr("{0} is a symlink or in a git repository, so axiom won't take it over. Use Included instead.", Paths.shortenHome(Paths.hyprlandPath))
+        delegate: StyledText {
+          required property string modelData
+          text: "•  " + modelData
           textSize: Appearance.fontSize - 1
           wrapMode: Text.WordWrap
           Layout.fillWidth: true
         }
-
-        Repeater {
-          model: root.blocked ? [] : root.saveSteps
-
-          delegate: StyledText {
-            required property string modelData
-            text: "•  " + modelData
-            textSize: Appearance.fontSize - 1
-            wrapMode: Text.WordWrap
-            Layout.fillWidth: true
-          }
-        }
       }
     }
+  }
 
-    // --- The mode in effect ---
+  // --- The mode in effect ---
+
+  StyledText {
+    visible: root.status === "fallback"
+    text: HyprlandConfigManager.problem + "\n" + I18n.tr("Until then, axiom applies its layer at runtime.")
+    textColor: Theme.warning
+    textSize: Appearance.fontSize - 1
+    wrapMode: Text.WordWrap
+    Layout.fillWidth: true
+  }
+
+  StyledText {
+    visible: root.mode === "detached"
+    text: I18n.tr("Nothing to set up. Binds on keys your config uses are skipped.")
+    opacity: 0.7
+    textSize: Appearance.fontSize - 2
+    wrapMode: Text.WordWrap
+    Layout.fillWidth: true
+  }
+
+  ColumnLayout {
+    visible: root.mode === "included"
+    Layout.fillWidth: true
+    spacing: Widget.spacing
 
     StyledText {
-      visible: root.status === "fallback"
-      text: HyprlandConfigManager.problem + "\n" + I18n.tr("Until then, axiom applies its layer at runtime.")
-      textColor: Theme.warning
-      textSize: Appearance.fontSize - 1
-      wrapMode: Text.WordWrap
-      Layout.fillWidth: true
-    }
-
-    StyledText {
-      visible: root.mode === "detached"
-      text: I18n.tr("Nothing to set up. Binds on keys your config uses are skipped.")
+      text: I18n.tr("Add near the top of your hyprland.lua (anything after overrides axiom):")
       opacity: 0.7
       textSize: Appearance.fontSize - 2
       wrapMode: Text.WordWrap
       Layout.fillWidth: true
     }
 
-    ColumnLayout {
-      visible: root.mode === "included"
+    StyledContainer {
       Layout.fillWidth: true
-      spacing: Widget.spacing
+      implicitHeight: lines.implicitHeight + Widget.padding * 2
+      backgroundColor: Theme.background
 
       StyledText {
-        text: I18n.tr("Add near the top of your hyprland.lua (anything after overrides axiom):")
-        opacity: 0.7
+        id: lines
+        anchors.fill: parent
+        anchors.margins: Widget.padding
+        text: HyprlandConfigManager.includeLines
+        textFamily: "monospace"
         textSize: Appearance.fontSize - 2
-        wrapMode: Text.WordWrap
-        Layout.fillWidth: true
-      }
-
-      StyledContainer {
-        Layout.fillWidth: true
-        implicitHeight: lines.implicitHeight + Widget.padding * 2
-        backgroundColor: Theme.background
-
-        StyledText {
-          id: lines
-          anchors.fill: parent
-          anchors.margins: Widget.padding
-          text: HyprlandConfigManager.includeLines
-          textFamily: "monospace"
-          textSize: Appearance.fontSize - 2
-          wrapMode: Text.WrapAnywhere
-        }
-      }
-
-      StyledTextButton {
-        implicitHeight: Widget.height - 4
-        text: I18n.tr("Copy")
-        onClicked: HyprlandConfigManager.copyIncludeLines()
+        wrapMode: Text.WrapAnywhere
       }
     }
 
-    RowLayout {
-      visible: root.mode === "managed"
-      Layout.fillWidth: true
-      spacing: Widget.spacing
-
-      StyledText {
-        text: I18n.tr("Your own settings go in {0}/*.lua.", Paths.shortenHome(HyprlandConfigManager.userDir))
-        opacity: 0.7
-        textSize: Appearance.fontSize - 2
-        wrapMode: Text.WordWrap
-        Layout.fillWidth: true
-      }
-
-      StyledTextButton {
-        implicitHeight: Widget.height - 4
-        text: I18n.tr("Open folder")
-        onClicked: HyprlandConfigManager.openConfigDir()
-      }
+    StyledTextButton {
+      implicitHeight: Widget.height - 4
+      text: I18n.tr("Copy")
+      onClicked: HyprlandConfigManager.copyIncludeLines()
     }
+  }
+
+  RowLayout {
+    visible: root.mode === "managed"
+    Layout.fillWidth: true
+    spacing: Widget.spacing
 
     StyledText {
-      visible: root.pendingMode !== "managed"
-      text: I18n.tr("Managed mode adds layout, decoration, keyboard and mouse settings.")
-      opacity: 0.6
+      text: I18n.tr("Your own settings go in {0}/*.lua.", Paths.shortenHome(HyprlandConfigManager.userDir))
+      opacity: 0.7
       textSize: Appearance.fontSize - 2
       wrapMode: Text.WordWrap
       Layout.fillWidth: true
     }
+
+    StyledTextButton {
+      implicitHeight: Widget.height - 4
+      text: I18n.tr("Open folder")
+      onClicked: HyprlandConfigManager.openConfigDir()
+    }
+  }
+
+  StyledText {
+    visible: root.pendingMode !== "managed"
+    text: I18n.tr("Managed mode adds layout, decoration, keyboard and mouse settings.")
+    opacity: 0.6
+    textSize: Appearance.fontSize - 2
+    wrapMode: Text.WordWrap
+    Layout.fillWidth: true
   }
 }

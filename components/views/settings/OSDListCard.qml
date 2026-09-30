@@ -267,7 +267,7 @@ StyledContainer {
           Repeater {
             model: root.osds.length
 
-            delegate: StyledTextButton {
+            delegate: SegmentButton {
               id: tab
               required property int index
               readonly property var osd: root.osds[index]
@@ -276,8 +276,7 @@ StyledContainer {
               implicitHeight: Widget.height - 4
               text: OSDConfig.labelOf(osd)
               opacity: osd.enabled ? 1 : 0.6
-              backgroundColor: tab.isSelected ? Theme.accent : Theme.backgroundHighlight
-              textColor: tab.isSelected ? Theme.background : Theme.foreground
+              active: tab.isSelected
               onClicked: root.selected = tab.index
             }
           }

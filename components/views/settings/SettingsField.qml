@@ -40,13 +40,9 @@ Item {
     spacing: Widget.spacing / 2
     visible: root.isValue
 
-    Rectangle {
+    UnsavedDot {
       anchors.verticalCenter: parent.verticalCenter
       visible: root.changed
-      width: 8
-      height: 8
-      radius: 4
-      color: Theme.accent
     }
 
     SquareIconButton {

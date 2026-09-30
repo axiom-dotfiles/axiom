@@ -219,7 +219,7 @@ ColumnLayout {
     Repeater {
       model: root.others.length
 
-      delegate: StyledTextButton {
+      delegate: SegmentButton {
         required property int index
         readonly property var rule: root.others[index]
         readonly property bool selected: MonitorManager.selectedOutput === rule.output
@@ -228,8 +228,7 @@ ColumnLayout {
         text: rule.disabled ? I18n.tr("{0}: off", MonitorManager.labelFor(rule)) : I18n.tr("{0}: mirrors {1}", MonitorManager.labelFor(rule), MonitorManager.labelFor(MonitorManager.rules.find(other => other.output === rule.mirror) ?? {
           "output": rule.mirror
         }))
-        backgroundColor: selected ? Theme.accent : Theme.backgroundHighlight
-        textColor: selected ? Theme.background : Theme.foreground
+        active: selected
         onClicked: MonitorManager.selectedOutput = rule.output
       }
     }
