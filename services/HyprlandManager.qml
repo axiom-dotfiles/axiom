@@ -386,17 +386,93 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
   function workspaceBase(monitor) {
     if (!WorkspacesConfig.perMonitorBlocks)
       return WorkspacesConfig.baseFor(0);
+    const index = _orderedMonitors().findIndex(m => m.id === monitor?.id);
+    return WorkspacesConfig.baseFor(index >= 0 ? index : 0);
+  }
+
+  // Hyprland's monitors in block order (WorkspaceGeometry.orderMonitors)
+  function _orderedMonitors() {
     const monitors = Hyprland.monitors.values;
     const plain = monitors.map(m => ({
           "id": m.id,
           "name": m.name,
           "key": MonitorLayout.outputId(m, monitors),
           "x": m.x,
-          "y": m.y
+          "y": m.y,
+          "active": m.activeWorkspace?.id ?? -1,
+          "focused": m === Hyprland.focusedMonitor
         }));
-    const ordered = WorkspaceGeometry.orderMonitors(plain, General.primaryMonitor);
-    const index = ordered.findIndex(m => m.id === monitor?.id);
-    return WorkspacesConfig.baseFor(index >= 0 ? index : 0);
+    return WorkspaceGeometry.orderMonitors(plain, General.primaryMonitor);
+  }
+
+  // --- Layout changes ---
+
+  // The layout the workspaces were last laid out for ({ blocks, size })
+  property var _appliedLayout: null
+
+  function _currentLayout() {
+    return {
+      "blocks": WorkspacesConfig.perMonitorBlocks,
+      "size": WorkspacesConfig.size
+    };
+  }
+
+  // A layout or count change saved together is one remap
+  property Timer _remapTimer: Timer {
+    interval: 200
+    onTriggered: {
+      const layout = root._currentLayout();
+      if (root._appliedLayout)
+        root._remapWorkspaces(root._appliedLayout, layout);
+      root._appliedLayout = layout;
+    }
+  }
+
+  property Connections _layoutWatch: Connections {
+    target: WorkspacesConfig
+
+    function onPerMonitorBlocksChanged() {
+      root._remapTimer.restart();
+    }
+
+    function onSizeChanged() {
+      root._remapTimer.restart();
+    }
+  }
+
+  // Moves every window from its workspace under the `from` layout to the
+  // matching one in its monitor's ids under `to` (WorkspaceGeometry.
+  // remapWorkspaces), and switches each monitor to the workspace matching
+  // the one it showed. Hyprland creates a workspace on the monitor it's
+  // first used from, so windows first go to a named workspace each (on their
+  // own monitor, so a chain like 10 → 11, 11 → 12 can't merge), every
+  // monitor leaves its old workspace for a named one (so an empty old one
+  // is gone before its id is used again), then the windows go to their ids
+  // and the monitors to theirs. The named workspaces end up empty and go.
+  function _remapWorkspaces(from, to) {
+    const windows = root.windowList.map(w => ({
+          "address": w.address,
+          "workspace": w.workspace?.id ?? -1,
+          "monitor": w.monitor
+        }));
+    const monitors = _orderedMonitors();
+    const plan = WorkspaceGeometry.remapWorkspaces(monitors, windows, from, to);
+    if (!plan.changed)
+      return;
+    root._slideSteps = [];
+    _slideTimer.stop();
+    const anim = root._workspaceAnim;
+    const set = enabled => `hl.animation({ leaf = "workspaces", enabled = ${enabled}, speed = ${anim.speed}, bezier = "${anim.bezier}", style = "${anim.style}" })`;
+    const move = (address, workspace) => `run(function() return hl.dsp.window.move({ workspace = ${workspace}, follow = false, window = ${_window(address)} }) end)`;
+    const focus = (monitor, workspace) => [`run(function() return hl.dsp.focus({ monitor = ${JSON.stringify(monitor)} }) end)`, `run(function() return hl.dsp.focus({ workspace = ${workspace} }) end)`];
+    const lines = [].concat(anim ? [set(false)] : [], plan.moves.map(m => move(m.address, `"name:axiom-remap-${m.to}"`)), [].concat(...monitors.map((m, i) => focus(m.name, `"name:axiom-remap-mon-${i}"`))), plan.moves.map(m => move(m.address, m.to)), [].concat(...plan.focus.map(f => focus(f.monitor, f.id))), anim ? [set(true)] : []);
+    const focused = plan.focus[plan.focus.length - 1];
+    root._lastGo = {
+      "id": focused?.id ?? -1,
+      "time": Date.now()
+    };
+    console.log(`[HyprlandManager] remapping workspaces: ${plan.moves.length} windows, monitors to ${plan.focus.map(f => f.monitor + ":" + f.id).join(", ")}`);
+    _eval(_luaPrelude + lines.join("\n") + _luaEpilogue);
   }
 
   // The workspace ids a monitor shows, in order
@@ -475,6 +551,7 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
   }
 
   Component.onCompleted: {
+    _appliedLayout = _currentLayout();
     _fetch();
     refreshOptions();
     _addLayerRules();
@@ -669,6 +746,12 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
     // The n-th of the current row (grid), or workspace n (standard)
     function nth(n: string, mode: string): void {
       root.nthWorkspace(parseInt(n), mode);
+    }
+
+    // Moves workspaces left outside their monitor's ids (by a change
+    // made while axiom wasn't running) back into them
+    function reconcile(): void {
+      root._remapWorkspaces(root._currentLayout(), root._currentLayout());
     }
 
     // direction: left, right, up or down
