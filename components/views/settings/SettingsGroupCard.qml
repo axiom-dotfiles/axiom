@@ -25,7 +25,6 @@ StyledContainer {
 
   Layout.fillWidth: true
   implicitHeight: column.implicitHeight + Widget.padding * 2
-  backgroundColor: Theme.backgroundAlt
 
   ColumnLayout {
     id: column
@@ -116,7 +115,6 @@ StyledContainer {
     // The rows, clipped while folding. `shown` animates only on a toggle,
     // not when the page is built
     Item {
-      id: body
       property real shown: root.collapsed ? 0 : 1
       Layout.fillWidth: true
       Layout.preferredHeight: rows.implicitHeight * shown

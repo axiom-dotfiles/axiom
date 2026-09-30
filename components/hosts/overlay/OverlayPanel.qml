@@ -47,6 +47,12 @@ ReservedAreaWindow {
     }
   }
 
+  // Opens on a page by view type (e.g. "BarEditor", "Themes")
+  function openPage(type) {
+    root.open();
+    ShellManager.showOverlayPage(type);
+  }
+
   Timer {
     id: hideTimer
     interval: Appearance.animSlow
@@ -63,10 +69,8 @@ ReservedAreaWindow {
         root.toggle();
     }
     function onOpenOverlayPage(type) {
-      if (!ShellManager.isTarget(root.screen, OverlayConfig.monitors))
-        return;
-      root.open();
-      ShellManager.showOverlayPage(type);
+      if (ShellManager.isTarget(root.screen, OverlayConfig.monitors))
+        root.openPage(type);
     }
     function onCloseOverlay() {
       if (root.isOpen)
@@ -91,10 +95,8 @@ ReservedAreaWindow {
       root.toggle();
     }
 
-    // Opens on a page by view type (e.g. "BarEditor", "Themes")
     function page(type: string) {
-      root.open();
-      ShellManager.showOverlayPage(type);
+      root.openPage(type);
     }
   }
 
@@ -165,7 +167,7 @@ ReservedAreaWindow {
     }
 
     // Where pages go: everything above the navigator, so a page never
-    // sits under its dots
+    // sits under it
     Item {
       id: pageArea
       anchors {
@@ -179,7 +181,6 @@ ReservedAreaWindow {
       OverlayPages {
         id: overlayPages
         anchors.centerIn: parent
-        screen: root.screen
         open: root.visible
         grid: grid
         // The window has no size until it's first mapped: until then,

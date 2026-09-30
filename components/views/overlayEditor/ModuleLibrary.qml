@@ -16,7 +16,7 @@ ColumnLayout {
   property string shape: ""
 
   property int tab: 0
-  readonly property var modules: root.shape === "" ? OverlayConfig.modulesFor(root.dragLayer.editor.host) : OverlayConfig.modulesFor(root.dragLayer.editor.host).filter(t => t.shapes.includes(root.shape))
+  readonly property var modules: OverlayConfig.modulesFor(root.dragLayer.editor.host).filter(t => root.shape === "" || t.shapes.includes(root.shape))
 
   spacing: Widget.spacing
 
@@ -108,7 +108,6 @@ ColumnLayout {
       }
 
       Flow {
-        id: layoutFlow
         width: parent.width
         spacing: Widget.spacing
         visible: root.tab === 1

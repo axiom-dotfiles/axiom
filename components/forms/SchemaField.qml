@@ -76,12 +76,12 @@ Loader {
 
   // Array rows: every edit commits a modified copy of the whole array
   function _arrayCopy() {
-    return JSON.parse(JSON.stringify(root.current ?? []));
+    return Utils.clone(root.current ?? []);
   }
 
   function addItem() {
     const items = _arrayCopy();
-    items.push(SchemaValidation.applyDefaults({}, root.fieldSchema.items));
+    items.push(SchemaValidation.applyDefaults({}, root.fieldSchema.items, ConfigManager.configSchema));
     root.commit(items);
   }
 
@@ -180,7 +180,7 @@ Loader {
       itemDelegate: Component {
         SchemaArrayItem {
           itemSchema: root.fieldSchema.items
-          numberMode: root.form.numberMode ?? ""
+          numberMode: root.form?.numberMode ?? ""
           onItemEdited: (index, key, value) => root.editItem(index, key, value)
         }
       }
@@ -240,7 +240,7 @@ Loader {
         wrapMode: Text.WordWrap
         text: I18n.tr(root.description)
         textSize: Appearance.fontSize - 2
-        opacity: 0.6
+        opacity: 0.7
       }
     }
   }

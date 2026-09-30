@@ -10,11 +10,8 @@ ColumnLayout {
   required property string label
   required property string currentConfigValue
   property string value: root.currentConfigValue
-  property string placeholderText: ""
   property string description: ""
   property var pattern: null
-  property int minLength: 0
-  property int maxLength: 999
   // A growing text area (`x-multiline`), e.g. for a system prompt
   property bool multiline: false
   // Values offered as chips under the field (`x-suggestions`); a click
@@ -30,11 +27,8 @@ ColumnLayout {
   }
 
   function _accept(text) {
-    if (text.length >= root.minLength && text.length <= root.maxLength) {
-      if (root.pattern === null || new RegExp(root.pattern).test(text)) {
-        root.value = text;
-      }
-    }
+    if (root.pattern === null || new RegExp(root.pattern).test(text))
+      root.value = text;
   }
 
   Layout.fillWidth: true
@@ -51,7 +45,6 @@ ColumnLayout {
     Layout.fillWidth: true
     Layout.preferredHeight: Widget.height
     text: root.currentConfigValue
-    placeholderText: root.placeholderText
 
     input.onTextChanged: root._accept(input.text)
   }
@@ -64,7 +57,6 @@ ColumnLayout {
     // Enter is a new line here: nothing to submit
     newlineOnEnter: true
     text: root.currentConfigValue
-    placeholderText: root.placeholderText
 
     input.onTextChanged: {
       if (root.multiline)

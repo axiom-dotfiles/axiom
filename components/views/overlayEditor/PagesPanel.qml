@@ -41,7 +41,6 @@ Item {
   Component.onCompleted: root.syncName(true)
 
   TitledCard {
-    color: Theme.background
     title: I18n.tr("Overlay Editor")
     dirty: OverlayManager.isDirty
     canSave: OverlayManager.problems.length === 0

@@ -12,21 +12,14 @@ import qs.components.reusable
 StyledContainer {
   id: root
 
-  required property int index
+  required property int bindIndex
   required property string combo
   property bool invalid: false
 
-  readonly property bool recording: KeybindManager.recordingIndex === root.index
+  readonly property bool recording: KeybindManager.recordingIndex === root.bindIndex
   // Modifiers held so far while recording
   property var held: []
   readonly property var parts: KeyNames.split(root.combo)
-
-  readonly property var _modNames: ({
-      "SUPER": "Super",
-      "CTRL": "Ctrl",
-      "ALT": "Alt",
-      "SHIFT": "Shift"
-    })
 
   implicitHeight: Widget.height
   backgroundColor: root.recording ? Theme.background : (area.containsMouse ? Theme.backgroundHighlight : Theme.backgroundAlt)
@@ -54,7 +47,7 @@ StyledContainer {
 
       delegate: KeyCap {
         required property string modelData
-        text: root._modNames[modelData] ?? modelData
+        text: KeyNames.modifierLabel(modelData)
       }
     }
 
@@ -102,7 +95,7 @@ StyledContainer {
       if (root.recording)
         KeybindManager.stopRecording();
       else
-        KeybindManager.startRecording(root.index);
+        KeybindManager.startRecording(root.bindIndex);
     }
   }
 

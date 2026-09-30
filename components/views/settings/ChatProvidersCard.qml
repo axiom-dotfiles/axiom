@@ -14,7 +14,6 @@ StyledContainer {
   id: root
 
   implicitHeight: column.implicitHeight + Widget.padding * 2
-  backgroundColor: Theme.backgroundAlt
 
   // One request at a time per provider: { providerId: { busy, ok, text } }
   property var results: ({})

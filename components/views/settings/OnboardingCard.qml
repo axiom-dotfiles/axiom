@@ -11,7 +11,6 @@ StyledContainer {
   id: root
 
   implicitHeight: row.implicitHeight + Widget.padding * 2
-  backgroundColor: Theme.backgroundAlt
 
   RowLayout {
     id: row

@@ -5,6 +5,12 @@ import qs.components.methods
 TestCase {
   name: "KeyNames"
 
+  function test_modifierLabel() {
+    compare(KeyNames.modifierLabel("SUPER"), "Super");
+    compare(KeyNames.modifierLabel("CTRL"), "Ctrl");
+    compare(KeyNames.modifierLabel("MOD3"), "Mod3");
+  }
+
   function test_keyName() {
     compare(KeyNames.keyName(Qt.Key_A, 0), "A");
     compare(KeyNames.keyName(Qt.Key_5, 0), "5");

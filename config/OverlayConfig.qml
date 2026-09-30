@@ -112,9 +112,6 @@ QtObject {
 
   readonly property var layouts: OverlayLayout.layouts
   readonly property real halfUnit: OverlayLayout.halfUnitOf(cardUnit)
-  function halfUnitOf(unit) {
-    return OverlayLayout.halfUnitOf(unit);
-  }
   function span(n, unit) {
     return OverlayLayout.span(n, unit);
   }

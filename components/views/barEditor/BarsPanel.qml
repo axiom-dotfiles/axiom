@@ -70,7 +70,6 @@ Item {
   }
 
   TitledCard {
-    color: Theme.background
     title: I18n.tr("Bar Editor")
     dirty: BarManager.isDirty
     onSave: BarManager.saveChanges()
@@ -281,7 +280,6 @@ Item {
 
         Layout.fillWidth: true
         implicitHeight: groupColumn.implicitHeight + Widget.padding * 2
-        backgroundColor: Theme.backgroundAlt
 
         ColumnLayout {
           id: groupColumn

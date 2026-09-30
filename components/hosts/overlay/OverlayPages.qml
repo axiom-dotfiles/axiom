@@ -6,7 +6,6 @@ import qs.components.views
 
 Item {
   id: root
-  required property var screen
   // This screen's card grid (OverlayGrid), handed to every view
   required property OverlayGrid grid
   // The most room a page's box may take; a page bigger than that is
@@ -193,7 +192,6 @@ Item {
 
             OverlayView {
               anchors.centerIn: parent
-              screen: root.screen
               grid: root.grid
               viewModel: viewPage.modelData
             }
@@ -209,7 +207,6 @@ Item {
 
           OverlayEditor {
             anchors.centerIn: parent
-            screen: root.screen
             grid: root.grid
           }
         }

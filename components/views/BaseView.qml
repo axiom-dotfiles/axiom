@@ -6,7 +6,6 @@ import qs.components.hosts.overlay
 
 Item {
   id: root
-  property var screen
   // This screen's card grid (OverlayGrid): size cards and panels from it
   property OverlayGrid grid
   // This view's entry in Overlay.views

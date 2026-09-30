@@ -120,7 +120,7 @@ StyledContainer {
   }
 
   function _copy() {
-    return JSON.parse(JSON.stringify(root.osds));
+    return Utils.clone(root.osds);
   }
 
   function _commit(osds) {
@@ -156,7 +156,7 @@ StyledContainer {
 
   function duplicate() {
     const osds = root._copy();
-    const copy = JSON.parse(JSON.stringify(root.osd));
+    const copy = Utils.clone(root.osd);
     copy.id = root._freeId(copy.id);
     osds.splice(root.current + 1, 0, copy);
     root._commit(osds);
@@ -173,7 +173,6 @@ StyledContainer {
   }
 
   implicitHeight: column.implicitHeight + Widget.padding * 2
-  backgroundColor: Theme.backgroundAlt
 
   ColumnLayout {
     id: column
@@ -241,7 +240,6 @@ StyledContainer {
 
     // The rest, clipped while folding
     Item {
-      id: body
       property real shown: root.collapsed ? 0 : 1
       Layout.fillWidth: true
       Layout.preferredHeight: bodyColumn.implicitHeight * shown

@@ -1,4 +1,3 @@
-// SchemaNumberField.qml
 pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
@@ -18,7 +17,7 @@ ColumnLayout {
   property string description: ""
   required property int currentConfigValue
   property int minimum: 0
-  property int maximum: 999
+  property int maximum: 9999
   property int stepSize: 1
   // Room kept free at the header's right end (the settings row's reset
   // button sits there)

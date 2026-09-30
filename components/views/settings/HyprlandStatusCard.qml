@@ -88,7 +88,6 @@ StyledContainer {
   readonly property bool blocked: root.pendingMode === "managed" && HyprlandConfigManager.managedCheck === "blocked"
 
   implicitHeight: column.implicitHeight + Widget.padding * 2
-  backgroundColor: Theme.backgroundAlt
 
   ColumnLayout {
     id: column

@@ -25,7 +25,6 @@ StyledContainer {
 
   Layout.fillWidth: true
   implicitHeight: column.implicitHeight + Widget.padding
-  backgroundColor: Theme.backgroundAlt
   borderColor: root.hasError ? Theme.error : (root.issues.length > 0 ? Theme.warning : "transparent")
 
   // Text fields keep what's being typed; otherwise they follow the bind
@@ -49,7 +48,7 @@ StyledContainer {
       spacing: Widget.spacing
 
       KeyRecorder {
-        index: root.bindIndex
+        bindIndex: root.bindIndex
         combo: root.bind.key ?? ""
         invalid: root.hasError
         Layout.fillWidth: true
@@ -152,7 +151,6 @@ StyledContainer {
         model: [["repeating", "repeat", I18n.tr("Repeat while held")], ["locked", "lock", I18n.tr("Works while locked")], ["release", "keyboard_capslock", I18n.tr("On release")]]
 
         delegate: SquareIconButton {
-          id: flag
           required property var modelData
           readonly property bool on: root.bind[modelData[0]] === true
           size: Widget.height
