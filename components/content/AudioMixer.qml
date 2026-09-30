@@ -208,14 +208,8 @@ Panel {
               maxVolume: root.maxVolume
               mutedGlyph: root.mutedGlyph
               unmutedGlyph: root.unmutedGlyph
-              onVolumeMoved: value => (appRow.app?.nodes ?? []).forEach(n => AudioManager.setNodeVolume(n, value, root.maxVolume))
-              onMuteToggled: {
-                const mute = !appRow.muted;
-                (appRow.app?.nodes ?? []).forEach(n => {
-                  if (n.audio)
-                    n.audio.muted = mute;
-                });
-              }
+              onVolumeMoved: value => AudioManager.setNodesVolume(appRow.app?.nodes, value, root.maxVolume)
+              onMuteToggled: AudioManager.setNodesMuted(appRow.app?.nodes, !appRow.muted)
             }
           }
 

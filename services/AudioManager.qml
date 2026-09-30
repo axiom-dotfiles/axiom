@@ -102,6 +102,49 @@ QtObject {
       node.audio.muted = !node.audio.muted;
   }
 
+  // Several nodes at once (an app's streams, an OSD bar's matched streams)
+  function setNodesVolume(nodes, value, max = 1.0) {
+    (nodes ?? []).forEach(n => root.setNodeVolume(n, value, max));
+  }
+
+  function setNodesMuted(nodes, muted) {
+    (nodes ?? []).forEach(n => {
+      if (n?.audio)
+        n.audio.muted = muted;
+    });
+  }
+
+  // App streams (bound, with audio) for an OSD app bar: those whose binary,
+  // application name or nickname contains one of `apps` (case-insensitive),
+  // by app in the listed order, so the first listed app's stream comes
+  // first. With `other`, the first stream no `excluded` entry matches
+  // instead (by binary or application name).
+  function matchStreams(apps, other, excluded) {
+    const lower = list => (list ?? []).map(a => String(a).toLowerCase()).filter(a => a !== "");
+    const wanted = lower(apps);
+    if (!other && wanted.length === 0)
+      return [];
+    const streams = Pipewire.nodes.values.filter(n => n.isStream && n.audio && n.ready).map(n => ({
+          "node": n,
+          "binary": n.properties["application.process.binary"]?.toLowerCase() ?? "",
+          "name": n.properties["application.name"]?.toLowerCase() ?? "",
+          "nickname": n.nickname?.toLowerCase() ?? ""
+        }));
+    if (other) {
+      const skip = lower(excluded);
+      const found = streams.find(s => (s.binary || s.name) && !skip.some(ex => s.binary.includes(ex) || s.name.includes(ex)));
+      return found ? [found.node] : [];
+    }
+    const matched = [];
+    for (const app of wanted) {
+      for (const s of streams) {
+        if (!matched.includes(s.node) && (s.binary.includes(app) || s.name.includes(app) || s.nickname.includes(app)))
+          matched.push(s.node);
+      }
+    }
+    return matched;
+  }
+
   function setDefault(node) {
     if (!node)
       return;

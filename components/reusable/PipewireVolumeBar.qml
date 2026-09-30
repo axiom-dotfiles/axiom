@@ -40,19 +40,12 @@ Item {
   readonly property string _levels: _targetNodes.map(n => n.audio ? `${n.audio.volume}:${n.audio.muted}` : "").join(",")
   property string _nodeKey: ""
 
-  // All candidate audio-stream nodes, kept persistently bound so their
-  // .properties are populated (and stay populated) well before we need
-  // to search them. Binding is async, so we can't just bind on demand.
+  // Every audio stream. AudioManager tracks them all (which binds them,
+  // so their .properties are there to search), but binding is async
   readonly property var _audioStreams: Pipewire.nodes.values.filter(n => n.isStream && n.audio)
 
-  PwObjectTracker {
-    objects: root._audioStreams.concat(root._targetNodes)
-  }
-
-  // Re-run the search whenever any individual candidate node finishes
-  // binding (node.ready flips true). This is what actually fixes the
-  // race: tracking a node only *requests* a bind, it doesn't complete
-  // it synchronously.
+  // Re-run the search whenever a candidate finishes binding (node.ready
+  // flips true): tracking only *requests* a bind
   Instantiator {
     model: root._audioStreams
     delegate: Item {
@@ -95,29 +88,17 @@ Item {
   }
 
   function setVolume(newVolume) {
-    const clamped = Math.max(0.0, Math.min(1.0, newVolume));
-    if (useSystemVolume) {
-      AudioManager.setVolume(clamped);
-      return;
-    }
-    _targetNodes.forEach(n => {
-      if (n.ready && n.audio)
-        n.audio.volume = clamped;
-    });
+    if (useSystemVolume)
+      AudioManager.setVolume(newVolume);
+    else
+      AudioManager.setNodesVolume(_targetNodes, newVolume);
   }
 
   function toggleMute() {
-    if (useSystemVolume) {
+    if (useSystemVolume)
       AudioManager.toggleMute();
-      return;
-    }
-    if (!nodeFound)
-      return;
-    const muted = !_targetNode.audio.muted;
-    _targetNodes.forEach(n => {
-      if (n.ready && n.audio)
-        n.audio.muted = muted;
-    });
+    else if (nodeFound)
+      AudioManager.setNodesMuted(_targetNodes, !_targetNode.audio.muted);
   }
 
   // Config changes (a reload, another saved config) pick the stream again
@@ -179,33 +160,6 @@ Item {
   }
 
   function _updateTargetNode() {
-    const apps = (targetApps ?? []).map(a => a.toLowerCase()).filter(a => a !== "");
-    if (useSystemVolume || (!otherApps && apps.length === 0)) {
-      _setTargetNodes([]);
-      return;
-    }
-    const streams = Pipewire.nodes.values.filter(n => n.isStream && n.audio && n.ready).map(n => ({
-          node: n,
-          binary: n.properties["application.process.binary"]?.toLowerCase() ?? "",
-          name: n.properties["application.name"]?.toLowerCase() ?? "",
-          nickname: n.nickname?.toLowerCase() ?? ""
-        }));
-
-    if (otherApps) {
-      const excluded = (excludedApps ?? []).map(a => a.toLowerCase()).filter(a => a !== "");
-      const other = streams.find(s => (s.binary || s.name) && !excluded.some(ex => s.binary.includes(ex) || s.name.includes(ex)));
-      _setTargetNodes(other ? [other.node] : []);
-      return;
-    }
-
-    // By app, in the listed order, so the first listed app's stream is shown
-    const matched = [];
-    for (const app of apps) {
-      for (const s of streams) {
-        if (!matched.includes(s.node) && (s.binary.includes(app) || s.name.includes(app) || s.nickname.includes(app)))
-          matched.push(s.node);
-      }
-    }
-    _setTargetNodes(matched);
+    _setTargetNodes(useSystemVolume ? [] : AudioManager.matchStreams(targetApps, otherApps, excludedApps));
   }
 }

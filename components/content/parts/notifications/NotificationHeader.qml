@@ -63,7 +63,7 @@ RowLayout {
     backgroundColor: Qt.alpha(Theme.accent, NotificationManager.dnd ? 1 : 0)
     borderHoverColor: Theme.accent
     tooltipText: I18n.tr(NotificationManager.dnd ? "Do not disturb is on" : "Do not disturb")
-    onClicked: NotificationManager.dnd = !NotificationManager.dnd
+    onClicked: NotificationManager.toggleDnd()
   }
 
   StyledRectButton {

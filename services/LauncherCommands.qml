@@ -257,7 +257,7 @@ QtObject {
       options: () => root._onOffOptions(),
       run: (arg, value) => {
         const on = root._onOff(value ?? arg);
-        NotificationManager.dnd = on === null ? !NotificationManager.dnd : on;
+        NotificationManager.setDnd(on === null ? !NotificationManager.dnd : on);
         return false;
       }
     },
