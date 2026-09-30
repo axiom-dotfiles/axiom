@@ -7,15 +7,8 @@ import qs.services
 import qs.components.reusable
 import qs.components.hosts.popout
 
-Item {
+BarWidget {
   id: root
-
-  // -- Public API --
-  property var barConfig
-  property var popouts
-  property var panel
-  property var screen
-  property var properties
 
   implicitWidth: root.barConfig.widgetSize
   implicitHeight: root.barConfig.widgetSize

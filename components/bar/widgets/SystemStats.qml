@@ -18,24 +18,61 @@ BaseWidget {
   property var screen
   property var properties
 
+  // Every metric: the option that shows it, SystemManager's name for it,
+  // and whether the popout graphs it (disk has no history)
+  readonly property var _metrics: [
+    {
+      "key": "cpu",
+      "option": "showCpu",
+      "metric": "cpu",
+      "graphed": true
+    },
+    {
+      "key": "mem",
+      "option": "showMemory",
+      "metric": "mem",
+      "graphed": true
+    },
+    {
+      "key": "temp",
+      "option": "showTemp",
+      "metric": "cpuTemp",
+      "graphed": true
+    },
+    {
+      "key": "gpu",
+      "option": "showGpu",
+      "metric": "gpu",
+      "graphed": true
+    },
+    {
+      "key": "disk",
+      "option": "showDisk",
+      "metric": "disk",
+      "graphed": false
+    }
+  ]
+  readonly property var _enabled: root._metrics.filter(m => root.properties[m.option])
+
+  // Whether this machine can report a metric. Disk reads the live disks
+  // map, so only call it where re-evaluating on every sample is harmless.
+  function _reportable(key) {
+    switch (key) {
+    case "temp":
+      return SystemManager.hasCpuTemp;
+    case "gpu":
+      return SystemManager.hasGpu;
+    case "disk":
+      return !!SystemManager.disks[root.properties.diskPath];
+    default:
+      return true;
+    }
+  }
+
   // Which segments show, from config and what the machine can report. A
   // string, so it only notifies when the set changes: a model rebuilt on
   // every sample would recreate the delegates many times a second.
-  readonly property string segmentKeys: {
-    const p = properties;
-    const keys = [];
-    if (p.showCpu)
-      keys.push("cpu");
-    if (p.showMemory)
-      keys.push("mem");
-    if (p.showTemp && SystemManager.hasCpuTemp)
-      keys.push("temp");
-    if (p.showGpu && SystemManager.hasGpu)
-      keys.push("gpu");
-    if (p.showDisk && SystemManager.disks[p.diskPath])
-      keys.push("disk");
-    return keys.join(",");
-  }
+  readonly property string segmentKeys: root._enabled.filter(m => root._reportable(m.key)).map(m => m.key).join(",")
   readonly property var segments: segmentKeys === "" ? [] : segmentKeys.split(",")
 
   // Live icon/value/level for one segment key
@@ -86,45 +123,20 @@ BaseWidget {
   radius: barConfig.radius
   backgroundColor: Theme.resolveColor(warning ? properties.warnColor : properties.backgroundColor)
 
-  // Ask only for what's shown; re-registering replaces the old request
-  function register() {
-    const p = properties;
-    const metrics = [];
-    if (p.showCpu)
-      metrics.push("cpu");
-    if (p.showMemory)
-      metrics.push("mem");
-    if (p.showTemp)
-      metrics.push("cpuTemp");
-    if (p.showGpu)
-      metrics.push("gpu");
-    if (p.showDisk)
-      metrics.push("disk");
-    SystemManager.acquire(root, {
-      "interval": p.interval,
-      "metrics": metrics,
-      "diskPaths": p.showDisk ? [p.diskPath] : []
-    });
-  }
-  onPropertiesChanged: register()
-  Component.onCompleted: register()
+  // Ask only for what's shown; re-acquiring replaces the old request
+  readonly property var statsRequest: ({
+      "interval": root.properties.interval,
+      "metrics": root._enabled.map(m => m.metric),
+      "diskPaths": root.properties.showDisk ? [root.properties.diskPath] : []
+    })
+  onStatsRequestChanged: SystemManager.acquire(root, statsRequest)
+  Component.onCompleted: SystemManager.acquire(root, statsRequest)
   Component.onDestruction: SystemManager.release(root)
 
-  // The popout graphs what the bar shows (disk has no history). From config
-  // and what the machine can report only, as with segmentKeys
-  readonly property var graphMetrics: {
-    const p = properties;
-    const metrics = [];
-    if (p.showCpu)
-      metrics.push("cpu");
-    if (p.showMemory)
-      metrics.push("mem");
-    if (p.showTemp && SystemManager.hasCpuTemp)
-      metrics.push("cpuTemp");
-    if (p.showGpu && SystemManager.hasGpu)
-      metrics.push("gpu");
-    return metrics;
-  }
+  // The popout graphs what the bar shows. `graphed` is checked first, so
+  // this never reads the disks map and stays from config and what the
+  // machine can report only, as with segmentKeys
+  readonly property var graphMetrics: root._enabled.filter(m => m.graphed && root._reportable(m.key)).map(m => m.metric)
 
   PopoutAnchor {
     popouts: root.popouts

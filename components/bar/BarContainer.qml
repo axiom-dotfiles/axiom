@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 
 import qs.config
+import qs.components.methods
 import qs.components.hosts.popout
 
 // Lays out a bar's five widget sections along its main axis in one pass,
@@ -95,8 +96,8 @@ Rectangle {
 
   readonly property var _groups: [leftGroup, leftCenterGroup, centerGroup, rightCenterGroup, rightGroup]
   // Per section, the model indices hidden so the minimum sizes fit
-  readonly property var hidden: root.overflowHidden(root._groups.map(g => g.measures), root.length, root.endMargin, root.barConfig.spacing, root.barConfig.spacing, root.barConfig.lockCenter)
-  readonly property var slots: root.layoutSections(root._groups.map(g => g.preferredLength), root._groups.map(g => g.minimumLength), root.length, root.endMargin, root.barConfig.spacing, root.barConfig.lockCenter)
+  readonly property var hidden: BarLayout.overflowHidden(root._groups.map(g => g.measures), root.length, root.endMargin, root.barConfig.spacing, root.barConfig.spacing, root.barConfig.lockCenter)
+  readonly property var slots: BarLayout.layoutSections(root._groups.map(g => g.preferredLength), root._groups.map(g => g.minimumLength), root.length, root.endMargin, root.barConfig.spacing, root.barConfig.lockCenter)
   // Bindings re-run on any module change; only signal real moves
   property string _slotsKey: ""
   onSlotsChanged: {
@@ -105,139 +106,6 @@ Rectangle {
       _slotsKey = key;
       layoutUpdated();
     }
-  }
-
-  // Sections are [left, leftCenter, center, rightCenter, right]; returns
-  // [{offset, extent}] for each along the main axis. `margin` is kept clear
-  // at both ends and `gap` between adjacent non-empty sections. With
-  // `lockCenter`, the center section always sits dead center at its full
-  // size and each side fits itself into the room left on its own half.
-  function layoutSections(pref, min, length, margin, gap, lockCenter) {
-    const sum = values => values.reduce((a, b) => a + b, 0);
-    const gapsFor = sections => gap * sections.filter(i => pref[i] > 0).length;
-    // Preferred sizes if they fit, else squeezed towards the minimums,
-    // else the minimums scaled down to whatever room there is
-    const fit = (p, m, room) => {
-      room = Math.max(0, room);
-      const sumPref = sum(p);
-      const sumMin = sum(m);
-      if (sumPref <= room)
-        return p.slice();
-      if (sumMin <= room) {
-        const squeeze = (sumPref - room) / (sumPref - sumMin);
-        return p.map((v, i) => v - (v - m[i]) * squeeze);
-      }
-      return m.map(v => sumMin > 0 ? v * room / sumMin : 0);
-    };
-
-    let size, centerStart;
-    if (lockCenter) {
-      const c = Math.min(pref[2], Math.max(0, length - 2 * margin));
-      centerStart = (length - c) / 2;
-      const [l, lc] = fit([pref[0], pref[1]], [min[0], min[1]], centerStart - margin - gapsFor([0, 1]));
-      const [rc, r] = fit([pref[3], pref[4]], [min[3], min[4]], centerStart - margin - gapsFor([3, 4]));
-      size = [l, lc, c, rc, r];
-    } else {
-      size = fit(pref, min, length - 2 * margin - gapsFor([0, 1, 3, 4]));
-      const [l, lc, c, rc, r] = size;
-      const lo = margin + (l > 0 ? l + gap : 0) + (lc > 0 ? lc + gap : 0);
-      const hi = length - margin - (r > 0 ? r + gap : 0) - (rc > 0 ? rc + gap : 0) - c;
-      centerStart = Math.max(lo, Math.min((length - c) / 2, hi));
-    }
-
-    const [l, lc, c, rc, r] = size;
-    const before = lc > 0 ? lc + gap : 0;
-
-    return [
-      {
-        "offset": margin,
-        "extent": l
-      },
-      {
-        "offset": centerStart - before,
-        "extent": lc
-      },
-      {
-        "offset": centerStart,
-        "extent": c
-      },
-      {
-        "offset": centerStart + c + (rc > 0 ? gap : 0),
-        "extent": rc
-      },
-      {
-        "offset": length - margin - r,
-        "extent": r
-      }
-    ];
-  }
-
-  // measures: per section, [{pref, min, priority}]. Hides the
-  // lowest-priority widgets until every section's minimum length, plus
-  // margins and gaps as in layoutSections, fits the bar. Ties go to the
-  // outer sections first and the center last, and within a section to the
-  // widget listed last. With `lockCenter`, each half of the bar must fit
-  // beside the full-size center on its own, and only the overflowing half
-  // loses widgets; the center is only touched if it can't fit the bar.
-  function overflowHidden(measures, length, margin, gap, spacing, lockCenter) {
-    const hidden = measures.map(() => []);
-    const spanOf = (s, key) => {
-      const shown = measures[s].filter((m, i) => m.pref > 0 && !hidden[s].includes(i)).map(m => m[key]);
-      return shown.reduce((a, b) => a + b, 0) + Math.max(0, shown.length - 1) * spacing;
-    };
-    const span = s => spanOf(s, "min");
-    const sideNeed = sections => sections.reduce((sum, s) => {
-        const len = span(s);
-        return sum + (len > 0 ? len + gap : 0);
-      }, 0);
-    const room = length - 2 * margin + 0.5;
-
-    // The sections to drop from (in tie order), or null when it all fits
-    const overflowing = () => {
-      if (!lockCenter) {
-        const spans = measures.map((m, s) => span(s));
-        const needed = spans.reduce((a, b) => a + b, 0) + gap * [0, 1, 3, 4].filter(s => spans[s] > 0).length;
-        return needed > room ? [4, 0, 3, 1, 2] : null;
-      }
-      if (span(2) > room)
-        return [2];
-      const half = (length - Math.min(spanOf(2, "pref"), length - 2 * margin)) / 2 - margin + 0.5;
-      if (sideNeed([0, 1]) > half)
-        return [0, 1];
-      if (sideNeed([3, 4]) > half)
-        return [4, 3];
-      return null;
-    };
-
-    const dropped = [];
-    let order;
-    while (length > 0 && (order = overflowing())) {
-      let drop = null;
-      order.forEach(s => {
-        for (let i = measures[s].length - 1; i >= 0; i--) {
-          const m = measures[s][i];
-          if (m.pref > 0 && !hidden[s].includes(i) && (!drop || m.priority < drop.priority))
-            drop = {
-              "section": s,
-              "index": i,
-              "priority": m.priority
-            };
-        }
-      });
-      if (!drop)
-        break;
-      hidden[drop.section].push(drop.index);
-      dropped.push(drop);
-    }
-    // Hiding a big widget can free more room than was missing; bring back
-    // whatever still fits, most important (last dropped) first
-    for (let d = dropped.length - 1; d >= 0; d--) {
-      const list = hidden[dropped[d].section];
-      list.splice(list.indexOf(dropped[d].index), 1);
-      if (overflowing())
-        list.push(dropped[d].index);
-    }
-    return hidden;
   }
 
   function widgetModel(widgetConfigArray) {

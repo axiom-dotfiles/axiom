@@ -11,12 +11,11 @@ BarIconWidget {
   readonly property bool isConnected: TailscaleManager.connected
   readonly property string tailnetName: TailscaleManager.tailnetName
 
-  Component.onCompleted: TailscaleManager.acquire(root, {
-    "interval": root.properties.interval
-  })
-  onPropertiesChanged: TailscaleManager.acquire(root, {
-    "interval": root.properties.interval
-  })
+  readonly property var tailscaleRequest: ({
+      "interval": root.properties.interval
+    })
+  onTailscaleRequestChanged: TailscaleManager.acquire(root, tailscaleRequest)
+  Component.onCompleted: TailscaleManager.acquire(root, tailscaleRequest)
   Component.onDestruction: TailscaleManager.release(root)
 
   icon: isConnected ? "shield_lock" : "signal_disconnected"

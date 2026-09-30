@@ -1,6 +1,5 @@
 pragma ComponentBehavior: Bound
 import QtQuick
-import Quickshell.Io
 
 import qs.services
 import qs.config
@@ -18,40 +17,23 @@ BarIconWidget {
   readonly property var aurPackages: properties.includeAur ? UpdatesManager.aurPackages : []
   readonly property int count: repoPackages.length + aurPackages.length
 
-  readonly property bool hidden: properties.hideWhenEmpty && count === 0
+  hidden: properties.hideWhenEmpty && count === 0
   readonly property string upgradeCommand: properties.upgradeCommand || (properties.includeAur ? `${properties.aurHelper} -Syu` : "sudo pacman -Syu")
 
   icon: "download"
   text: String(count)
-  showIcon: !hidden
-  showText: !hidden
-  padding: hidden ? 0 : root.barConfig.widgetPadding
 
   backgroundColor: Theme.resolveColor(count >= properties.manyThreshold ? properties.manyColor : properties.backgroundColor)
   opacity: mouseArea.pressed ? 0.8 : 1
 
-  // Re-registering replaces the old request
-  function register() {
-    UpdatesManager.acquire(root, {
-      "intervalMinutes": properties.intervalMinutes,
-      "aurHelper": properties.includeAur ? properties.aurHelper : ""
-    });
-  }
-  onPropertiesChanged: register()
-  Component.onCompleted: register()
+  // Re-acquiring replaces the old request
+  readonly property var updatesRequest: ({
+      "intervalMinutes": root.properties.intervalMinutes,
+      "aurHelper": root.properties.includeAur ? root.properties.aurHelper : ""
+    })
+  onUpdatesRequestChanged: UpdatesManager.acquire(root, updatesRequest)
+  Component.onCompleted: UpdatesManager.acquire(root, updatesRequest)
   Component.onDestruction: UpdatesManager.release(root)
-
-  // Runs until the terminal closes, then re-checks
-  Process {
-    id: upgrader
-    command: {
-      const terminal = root.properties.terminal.trim() || Apps.terminal.trim();
-      const run = ["bash", "-c", `${root.upgradeCommand}; echo; read -n 1 -s -r -p "Press any key to close"`];
-      // xdg-terminal-exec takes the command itself, without -e
-      return terminal ? [terminal, "-e"].concat(run) : ["xdg-terminal-exec"].concat(run);
-    }
-    onExited: UpdatesManager.refresh()
-  }
 
   MouseArea {
     id: mouseArea
@@ -62,8 +44,8 @@ BarIconWidget {
     onClicked: mouse => {
       if (mouse.button === Qt.RightButton)
         UpdatesManager.refresh();
-      else if (!upgrader.running)
-        upgrader.running = true;
+      else
+        UpdatesManager.upgrade(root.upgradeCommand, root.properties.terminal);
     }
   }
 

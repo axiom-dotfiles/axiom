@@ -2,6 +2,8 @@ pragma Singleton
 import QtQuick
 import Quickshell.Io
 
+import qs.config
+
 // Pending package updates, shared by every Updates widget. Only one check
 // may run at a time: concurrent `checkupdates` runs share its temporary sync
 // db and fail with "Cannot fetch updates". Widgets register with
@@ -15,6 +17,7 @@ QtObject {
   property var repoPackages: []
   property var aurPackages: []
   readonly property bool checking: _repo.running || _aur.running
+  readonly property bool upgrading: _upgrader.running
 
   function acquire(owner, request) {
     _registry.acquire(owner, {
@@ -42,6 +45,19 @@ QtObject {
       _aur.command = ["sh", "-c", 'command -v "$1" >/dev/null || exit 127; "$1" -Qua', "sh", _aurHelper];
       _aur.running = true;
     }
+  }
+
+  // Runs `command` in a terminal (`terminal`, else Apps.terminal, else
+  // xdg-terminal-exec) and checks again once the terminal closes. Ignored
+  // while an upgrade is already running.
+  function upgrade(command, terminal) {
+    if (_upgrader.running)
+      return;
+    const term = (terminal ?? "").trim() || Apps.terminal.trim();
+    const run = ["bash", "-c", `${command}; echo; read -n 1 -s -r -p "Press any key to close"`];
+    // xdg-terminal-exec takes the command itself, without -e
+    _upgrader.command = term ? [term, "-e"].concat(run) : ["xdg-terminal-exec"].concat(run);
+    _upgrader.running = true;
   }
 
   function parse(text) {
@@ -79,6 +95,10 @@ QtObject {
     repeat: true
     running: root._active
     onTriggered: root.refresh()
+  }
+
+  property Process _upgrader: Process {
+    onExited: root.refresh()
   }
 
   property Process _repo: Process {

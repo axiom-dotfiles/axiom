@@ -1,6 +1,5 @@
 pragma ComponentBehavior: Bound
 import QtQuick
-import Quickshell
 
 import qs.services
 import qs.config
@@ -16,7 +15,7 @@ BarIconWidget {
   readonly property var connected: BluetoothManager.connectedDevices
   readonly property var firstDevice: connected[0] ?? null
 
-  readonly property bool hidden: properties.hideWhenOff && !BluetoothManager.enabled
+  hidden: properties.hideWhenOff && !BluetoothManager.enabled
 
   icon: !BluetoothManager.enabled ? "bluetooth_disabled" : connected.length > 0 ? "bluetooth_connected" : "bluetooth"
   text: {
@@ -27,9 +26,7 @@ BarIconWidget {
     const battery = properties.showBattery && firstDevice.batteryAvailable ? ` ${Math.round(firstDevice.battery * 100)}%` : "";
     return BluetoothManager.deviceLabel(firstDevice) + battery;
   }
-  showIcon: !hidden
-  showText: properties.showDevice && text !== "" && !hidden
-  padding: hidden ? 0 : root.barConfig.widgetPadding
+  showText: properties.showDevice && text !== ""
 
   backgroundColor: Theme.resolveColor(!BluetoothManager.enabled ? properties.disabledColor : connected.length > 0 ? properties.connectedColor : properties.backgroundColor)
   opacity: mouseArea.pressed ? 0.8 : 1
@@ -42,8 +39,7 @@ BarIconWidget {
     acceptedButtons: Qt.LeftButton | Qt.MiddleButton
     onClicked: mouse => {
       if (mouse.button === Qt.MiddleButton) {
-        if (root.properties.middleCommand)
-          Quickshell.execDetached(["sh", "-c", root.properties.middleCommand]);
+        CommandManager.runDetached(root.properties.middleCommand);
       } else {
         BluetoothManager.toggleEnabled();
       }

@@ -10,16 +10,9 @@ import qs.components.hosts.popout
 // Japanese uses 午前/午後 and 時分秒 / 年月日); a custom `timeFormat` /
 // `dateFormat` (Qt format strings) overrides that. On a vertical bar each
 // is stacked into short lines.
-Item {
+BarWidget {
   id: root
 
-  property var barConfig
-  property var popouts
-  property var panel
-  property var screen
-  property var properties
-
-  readonly property bool isVertical: barConfig.vertical
   readonly property bool japanese: I18n.language === "ja"
   readonly property bool use24Hour: properties.use24Hour
   readonly property bool showSeconds: properties.showSeconds

@@ -1,5 +1,6 @@
 pragma Singleton
 import QtQuick
+import Quickshell
 import Quickshell.Io
 
 // Shell commands polled for their output (e.g. a bar Button's label),
@@ -8,6 +9,8 @@ import Quickshell.Io
 // something has acquire()d it.
 //   CommandManager.acquire(owner, { command, interval })
 //   CommandManager.outputs[command]    // last stdout, trimmed
+// Also runs one-off commands for widgets (runDetached), so the UI starts
+// no processes of its own.
 QtObject {
   id: root
 
@@ -27,6 +30,13 @@ QtObject {
 
   function release(owner) {
     _registry.release(owner);
+  }
+
+  // Run a user-configured shell command once, detached (a widget's click
+  // or middle-click command). An empty command does nothing.
+  function runDetached(command) {
+    if (command)
+      Quickshell.execDetached(["sh", "-c", command]);
   }
 
   // Run a command again now (after an action that may change its output)

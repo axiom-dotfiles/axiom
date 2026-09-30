@@ -16,7 +16,7 @@ BarIconWidget {
   property string _notifiedLevel: "none"
   // No laptop battery (a desktop): collapse to nothing, so a default bar
   // can carry the widget on any machine
-  readonly property bool hidden: !BatteryManager.isAvailable
+  hidden: !BatteryManager.isAvailable
 
   readonly property string level: {
     if (isCharging)
@@ -30,9 +30,7 @@ BarIconWidget {
 
   icon: BatteryManager.getBatteryIcon()
   text: `${percentage}%`
-  showIcon: !hidden
-  showText: properties.showPercentage && !hidden
-  padding: hidden ? 0 : root.barConfig.widgetPadding
+  showText: properties.showPercentage
 
   backgroundColor: getBatteryColor()
 

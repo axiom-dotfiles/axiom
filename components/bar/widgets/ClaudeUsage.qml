@@ -1,6 +1,5 @@
 pragma ComponentBehavior: Bound
 import QtQuick
-import Quickshell
 
 import qs.services
 import qs.config
@@ -50,15 +49,13 @@ BarIconWidget {
   backgroundColor: Theme.resolveColor(maxPercent >= properties.critPercent ? properties.critColor : maxPercent >= properties.warnPercent ? properties.warnColor : properties.backgroundColor)
   opacity: (mouseArea.pressed ? 0.8 : 1) * (stale ? 0.6 : 1)
 
-  // Re-registering replaces the old request
-  function register() {
-    ClaudeUsageManager.acquire(root, {
-      "accounts": properties.accounts ?? [],
-      "intervalMinutes": properties.intervalMinutes
-    });
-  }
-  onPropertiesChanged: register()
-  Component.onCompleted: register()
+  // Re-acquiring replaces the old request
+  readonly property var usageRequest: ({
+      "accounts": root.properties.accounts ?? [],
+      "intervalMinutes": root.properties.intervalMinutes
+    })
+  onUsageRequestChanged: ClaudeUsageManager.acquire(root, usageRequest)
+  Component.onCompleted: ClaudeUsageManager.acquire(root, usageRequest)
   Component.onDestruction: ClaudeUsageManager.release(root)
 
   MouseArea {
@@ -69,8 +66,8 @@ BarIconWidget {
     onClicked: mouse => {
       if (mouse.button === Qt.RightButton)
         ClaudeUsageManager.refresh();
-      else if (root.properties.clickCommand)
-        Quickshell.execDetached(["sh", "-c", root.properties.clickCommand]);
+      else
+        CommandManager.runDetached(root.properties.clickCommand);
     }
   }
 
