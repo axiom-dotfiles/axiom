@@ -108,16 +108,7 @@ QtObject {
     if (!appEntry)
       return false;
     try {
-      const entry = usage[appEntry.id] ?? {
-        count: 0,
-        last: 0
-      };
-      const updated = Object.assign({}, usage);
-      updated[appEntry.id] = {
-        count: entry.count + 1,
-        last: Date.now()
-      };
-      usage = updated;
+      usage = Utils.recordUse(usage, appEntry.id, Date.now());
       _stateHandler.save(usage);
 
       // DesktopEntry.execute() ignores Terminal=true
@@ -706,16 +697,7 @@ QtObject {
   property var _commandStateHandler: StateManager.createStateHandler("launcher-commands")
 
   function _recordCommand(name) {
-    const entry = commandUsage[name] ?? {
-      count: 0,
-      last: 0
-    };
-    const updated = Object.assign({}, commandUsage);
-    updated[name] = {
-      count: entry.count + 1,
-      last: Date.now()
-    };
-    commandUsage = updated;
+    commandUsage = Utils.recordUse(commandUsage, name, Date.now());
     _commandStateHandler.save(commandUsage);
   }
 

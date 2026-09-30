@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell.Io
 import qs.config
+import qs.components.methods
 
 // Claude plan usage (the numbers Claude Code's /usage shows) for one or more
 // Claude Code accounts, each a CLAUDE_CONFIG_DIR. Read from
@@ -184,17 +185,13 @@ QtObject {
     root._update(dir, info);
     root._current = dir;
     // The token goes to curl on stdin, never on its command line
-    root._config = ["url = \"https://api.anthropic.com/api/oauth/usage\"", "header = " + root._quote("Authorization: Bearer " + creds.accessToken), "header = \"anthropic-beta: oauth-2025-04-20\"", "header = \"Accept: application/json\"", "max-time = 15", ""].join("\n");
+    root._config = ["url = \"https://api.anthropic.com/api/oauth/usage\"", "header = " + Utils.curlConfigValue("Authorization: Bearer " + creds.accessToken), "header = \"anthropic-beta: oauth-2025-04-20\"", "header = \"Accept: application/json\"", "max-time = 15", ""].join("\n");
     _curl.stdinEnabled = true;
     _curl.running = true;
   }
 
   property string _config: ""
   readonly property string _statusMark: "\u001eAXIOM_HTTP "
-
-  function _quote(value) {
-    return "\"" + String(value).replace(/\\/g, "\\\\").replace(/"/g, "\\\"") + "\"";
-  }
 
   function _window(w) {
     return w && typeof w.utilization === "number" ? {

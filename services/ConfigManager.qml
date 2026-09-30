@@ -28,7 +28,7 @@ QtObject {
 
   function setPreview(section, value) {
     const previews = Object.assign({}, root._previews);
-    previews[section] = JSON.parse(JSON.stringify(value ?? null));
+    previews[section] = Utils.clone(value);
     root._previews = previews;
   }
 
@@ -368,7 +368,7 @@ QtObject {
       // won't emit a change signal when the same localConfig object (mutated
       // in place across edits) is re-applied, and live updates after the
       // first change silently stop working.
-      root._config = JSON.parse(JSON.stringify(object));
+      root._config = Utils.clone(object);
     }
   }
 

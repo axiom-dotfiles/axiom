@@ -1,6 +1,7 @@
 pragma Singleton
 import QtQuick
 import Quickshell
+import qs.components.methods
 
 /* BarManager holds the bar editor's working copy of the Bars config. Edits
  * show live on the running bars (through ConfigManager.previews) as
@@ -88,10 +89,6 @@ QtObject {
     return bar.widgets[zone];
   }
 
-  function _clone(value) {
-    return JSON.parse(JSON.stringify(value ?? null));
-  }
-
   // --- Bars ---
 
   function addBar() {
@@ -120,7 +117,7 @@ QtObject {
     const bar = root.localConfig?.[index];
     if (!bar)
       return;
-    const copy = _clone(bar);
+    const copy = Utils.clone(bar);
     copy.id = _uniqueId(`${bar.id}-copy`);
     if (bar.monitor !== "*") {
       const first = Quickshell.screens[0]?.name ?? "";
@@ -140,7 +137,7 @@ QtObject {
       return;
     root.copiedStyle = {
       "from": bar.id,
-      "values": _clone(root.styleKeys.reduce((out, key) => {
+      "values": Utils.clone(root.styleKeys.reduce((out, key) => {
         if (key in bar)
           out[key] = bar[key];
         return out;
@@ -149,7 +146,7 @@ QtObject {
   }
 
   function _pasteStyleOnto(bar) {
-    Object.assign(bar, _clone(root.copiedStyle.values));
+    Object.assign(bar, Utils.clone(root.copiedStyle.values));
   }
 
   function pasteStyle(index) {
@@ -249,7 +246,7 @@ QtObject {
     const arr = selectedBar()?.widgets?.[zone];
     if (!arr?.[index])
       return;
-    arr.splice(index + 1, 0, _clone(arr[index]));
+    arr.splice(index + 1, 0, Utils.clone(arr[index]));
     selectWidget(zone, index + 1);
     applyChanges();
   }

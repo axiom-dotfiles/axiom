@@ -3,6 +3,7 @@ import QtQuick
 import Quickshell
 
 import qs.config
+import qs.components.methods
 
 /*
  * The emoji the launcher searches (";" or /emoji), while Launcher.emoji is on.
@@ -62,16 +63,7 @@ QtObject {
   property var _stateHandler: StateManager.createStateHandler("emoji")
 
   function _record(emoji) {
-    const entry = usage[emoji] ?? {
-      count: 0,
-      last: 0
-    };
-    const updated = Object.assign({}, usage);
-    updated[emoji] = {
-      count: entry.count + 1,
-      last: Date.now()
-    };
-    usage = updated;
+    usage = Utils.recordUse(usage, emoji, Date.now());
     _stateHandler.save(usage);
   }
 

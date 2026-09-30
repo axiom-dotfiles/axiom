@@ -48,13 +48,13 @@ QtObject {
     root._status = 0;
     root._other = [];
     root._bodyPath = "";
-    const config = ["url = " + _quote(request.url)].concat(request.headers.map(header => "header = " + _quote(header)));
+    const config = ["url = " + Utils.curlConfigValue(request.url)].concat(request.headers.map(header => "header = " + Utils.curlConfigValue(header)));
     if (request.body !== undefined) {
       const dir = Quickshell.env("XDG_RUNTIME_DIR") || "/tmp";
       root._bodyPath = `${dir}/axiom-chat-${Date.now()}-${Math.floor(Math.random() * 1e9)}.json`;
       _bodyFile.path = root._bodyPath;
       _bodyFile.setText(request.body);
-      config.push("data-binary = " + _quote("@" + root._bodyPath));
+      config.push("data-binary = " + Utils.curlConfigValue("@" + root._bodyPath));
     }
     root._config = config.join("\n") + "\n";
     const args = ["curl", "-sS", "--connect-timeout", "15", "-K", "-", "-w", "\n" + root._statusMark + "%{http_code}\n"];
@@ -80,11 +80,6 @@ QtObject {
   property int _status: 0
   // Lines that weren't SSE: an error body, or the whole non-streamed body
   property var _other: []
-
-  // A curl config value: double-quoted, with \ and " escaped
-  function _quote(value) {
-    return "\"" + String(value).replace(/\\/g, "\\\\").replace(/"/g, "\\\"").replace(/\n/g, "\\n") + "\"";
-  }
 
   function _onLine(line) {
     if (line.startsWith(root._statusMark)) {
