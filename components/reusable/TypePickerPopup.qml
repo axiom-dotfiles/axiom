@@ -14,8 +14,6 @@ Popup {
   id: root
 
   required property var types
-  // Optional type -> Material Symbols name, for types without an `icon`
-  property var iconFor: null
   property string placeholderText: I18n.tr("Search")
 
   property string query: ""
@@ -31,7 +29,7 @@ Popup {
   signal typeSelected(string type)
 
   function iconOf(entry) {
-    return entry?.icon ?? (root.iconFor ? root.iconFor(entry?.type) : "");
+    return entry?.icon ?? "";
   }
 
   function openAt(item) {

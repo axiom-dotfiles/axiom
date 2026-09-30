@@ -137,6 +137,8 @@ QtObject {
       return {
         "type": def.properties?.type?.const,
         "label": def.properties?.type?.description || def.properties?.type?.const,
+        // Material Symbols name (`x-icon`)
+        "icon": def["x-icon"] ?? "widgets",
         "propertiesSchema": def.properties?.properties?.properties || null
       };
     }).filter(t => t !== null);
