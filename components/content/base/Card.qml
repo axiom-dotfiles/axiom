@@ -29,7 +29,7 @@ Rectangle {
   // A quarter-card slot: room for the key figure only
   readonly property bool compact: cols <= 1 && rows <= 1
   // Inner padding modules lay their content out within
-  readonly property real pad: bare ? 0 : compact ? OverlayConfig.cardPadding * 0.75 : OverlayConfig.cardPadding * 1.5
+  readonly property real pad: OverlayConfig.cardPad(compact, bare)
 
   anchors.fill: parent
   color: bare ? "transparent" : Theme.background

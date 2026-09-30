@@ -33,7 +33,7 @@ Item {
   readonly property int rows: slotRect[3]
   readonly property string shape: OverlayConfig.slotShape(slotRect)
   readonly property bool compact: embedded && cols <= 1 && rows <= 1
-  readonly property real pad: bare ? 0 : compact ? OverlayConfig.cardPadding * 0.75 : OverlayConfig.cardPadding * 1.5
+  readonly property real pad: OverlayConfig.cardPad(compact, bare)
 
   // Bar popout only: keep the keyboard (and a focus grab) while a text
   // field is up; a click outside the popout calls focusLost()
