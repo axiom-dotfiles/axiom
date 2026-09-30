@@ -17,7 +17,7 @@ QtObject {
   // "primary" | "focused" | "all": where the power menu (and the overlay,
   // launcher and OSD, unless their own `monitors` says otherwise) appear:
   // the primary monitor, the focused one, or every monitor at once (see
-  // ShellManager.showsOn). The workspace overlay is on every screen.
+  // ShellManager.showsOn). The workspace overview is on every screen.
   readonly property string monitors: _c.monitors
   // The screens they're built on
   readonly property var screens: {
