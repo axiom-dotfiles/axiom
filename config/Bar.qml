@@ -13,7 +13,7 @@ QtObject {
   }
   // Adds derived orientation flags to a bar entry from the Bars section
   // (whose keys are always filled in from the schema defaults).
-  function enrichBarConfig(barConfig, index = 0) {
+  function enrichBarConfig(barConfig) {
     const loc = Bar.getLocationFromString(barConfig.location);
     // The bar is sized by its widgets, never the other way round, so no
     // setting can leave them cut off
@@ -55,7 +55,6 @@ QtObject {
       "id": barConfig.id,
       // The config entry's id: a bar on every monitor has one per screen
       "sourceId": barConfig.sourceId ?? barConfig.id,
-      "primary": index === 0,
       "enabled": barConfig.enabled,
       "monitor": barConfig.monitor,
       // A pill bar is as thick as its pills, so the padding always fits
@@ -74,7 +73,6 @@ QtObject {
       // off it draws its own, on its innermost pixels
       "innerStroke": solid && !Appearance.screenBorder,
       "overlap": overlap,
-      "pillPad": pillPad,
       "pillInset": pillInset,
       "pillGap": pillGap,
       "pillMerge": barConfig.pillMerge ?? 0,
@@ -104,7 +102,7 @@ QtObject {
   // unsaved edits, the running bars show those.
   // The Bars section as saved: no previews, "*" monitors unexpanded, locations as strings
   readonly property var savedBars: ConfigManager.config.Bars
-  readonly property var bars: Bar.expandBars(ConfigManager.previews.Bars ?? ConfigManager.config.Bars).map((bar, i) => Bar.enrichBarConfig(bar, i))
+  readonly property var bars: Bar.expandBars(ConfigManager.previews.Bars ?? ConfigManager.config.Bars).map(bar => Bar.enrichBarConfig(bar))
 
   // A bar on every monitor (`monitor: "*"`) becomes one entry per screen,
   // each with its own id (keying its BarPanel) and that screen as its
@@ -139,13 +137,6 @@ QtObject {
       };
     }).filter(t => t !== null);
   }
-  // Global convenience properties for first bar
-  // Convenience values for the primary bar (Bars may be empty)
-  readonly property bool enabled: Bar.bars[0]?.enabled ?? false
-  readonly property int extent: Bar.bars[0]?.extent ?? 0
-  readonly property int location: Bar.bars[0]?.location ?? Bar.Top
-  readonly property var widgets: Bar.bars[0]?.widgets ?? null
-  readonly property int spacing: Bar.bars[0]?.spacing ?? 0
   // The primary bar's monitor: its named screen, else the first screen (as
   // in BarPanel); the primary monitor when there are no bars
   readonly property string primaryMonitor: {
@@ -154,12 +145,6 @@ QtObject {
       return name;
     return Bar.bars.length > 0 ? (Quickshell.screens[0]?.name ?? "") : General.primaryMonitor;
   }
-
-  readonly property bool vertical: location === Bar.Left || location === Bar.Right
-  readonly property bool left: location === Bar.Left
-  readonly property bool right: location === Bar.Right
-  readonly property bool top: location === Bar.Top
-  readonly property bool bottom: location === Bar.Bottom
 
   // The enabled bars on a screen by edge ({ top, bottom, left, right },
   // null where there is none). A bar with no monitor is on the first screen,

@@ -1,4 +1,3 @@
-// BarPanel.qml
 pragma ComponentBehavior: Bound
 
 import Quickshell
@@ -82,12 +81,6 @@ PanelWindow {
   }
 
   Component.onCompleted: {
-    console.log("========== BAR PANEL ==========");
-    console.log("  > Screen:", barConfig.monitor, "->", screen ? "Found" : "Not Found");
-    console.log("  > Panel width:", width, "height:", height);
-    console.log("  > Visible:", visible);
-    console.log("  > implicitWidth:", implicitWidth, "implicitHeight:", implicitHeight);
-    console.log("================================");
     ShellManager.registerGrabPartner(root, root.screen?.name);
     ShellManager.registerBar(root);
   }

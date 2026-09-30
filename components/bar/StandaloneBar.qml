@@ -1,4 +1,3 @@
-// StandaloneBar.qml - Standalone reusable bar component
 pragma ComponentBehavior: Bound
 
 import QtQuick

@@ -33,7 +33,6 @@ Item {
   required property string componentPath
   property var layoutOverrides: ({})
 
-  property alias contentItem: contentLoader.item
   readonly property bool isVertical: barConfig.vertical
 
   readonly property var _item: contentLoader.item
