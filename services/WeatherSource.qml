@@ -30,6 +30,19 @@ QtObject {
   readonly property var condition: current ? conditionFor(current.weather_code, current.is_day) : null
   readonly property string unitSymbol: units === "fahrenheit" ? "°F" : "°C"
 
+  // Feels-like, humidity and wind, as a line under the temperature
+  readonly property string details: current ? I18n.tr("Feels like {0}°  ·  {1}% humidity  ·  {2} {3}", Math.round(current.apparent_temperature), current.relative_humidity_2m, Math.round(current.wind_speed_10m), weather.current_units?.wind_speed_10m ?? "") : ""
+
+  // A forecast day's short name: "Today", else its weekday. Parsed at
+  // local noon: a bare "YYYY-MM-DD" is UTC midnight, the day before west
+  // of UTC.
+  function dayLabel(index) {
+    const date = weather?.daily?.time?.[index];
+    if (!date)
+      return "";
+    return index === 0 ? I18n.tr("Today") : I18n.formatDate(new Date(date + "T12:00"), "ddd");
+  }
+
   property bool _failing: false
   property bool _alive: true
   Component.onDestruction: _alive = false
