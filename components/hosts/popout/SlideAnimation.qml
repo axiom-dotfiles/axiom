@@ -57,18 +57,16 @@ Item {
         name: "visible"
         when: root.active
         PropertyChanges {
-          target: contentWrapper
-          x: targetX
-          y: targetY
+          contentWrapper.x: contentWrapper.targetX
+          contentWrapper.y: contentWrapper.targetY
         }
       },
       State {
         name: "hidden"
         when: !root.active
         PropertyChanges {
-          target: contentWrapper
-          x: hiddenX
-          y: hiddenY
+          contentWrapper.x: contentWrapper.hiddenX
+          contentWrapper.y: contentWrapper.hiddenY
         }
       }
     ]

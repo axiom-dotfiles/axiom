@@ -27,7 +27,7 @@ A [Quickshell](https://quickshell.org) desktop shell config (QML) for Hyprland (
 ## Checks
 
 All run in CI (`.github/workflows/checks.yml`); `scripts/check_all.sh` runs every one. None of them run the shell, so still check `scripts/log.sh` after a save.
-- `scripts/check_structure.py`: **run after adding, renaming or moving QML files.** Schema types and `popoutName`s have files, URL-loaded dirs are imported, `qs.*` imports resolve, singleton names aren't typos, no file sees two same-named types.
+- `scripts/check_structure.py`: **run after adding, renaming or moving QML files.** Schema types and `popoutName`s have files, URL-loaded dirs are imported, `qs.*` imports resolve, singleton names aren't typos, no file sees two same-named types, every file has its pragma (the lockscreen is exempt until its rewrite).
 - `scripts/run_tests.sh [Name…]`: qmltestrunner tests `tests/tst_<Name>.qml` for `components/methods/`, the schema defaults and `ConfigMigration` (`tests/fixtures/configs/v1.json`). Add a case when changing a methods helper or a migration step. Generated Lua is checked with `luac -p` (`*.run.lua` also run).
 - `scripts/check_qmllint.py`: fails on warnings not in `scripts/qmllint-baseline.json`. Fix new warnings; `--update-baseline` only for Quickshell type-info gaps.
 - `scripts/check_qmlformat.sh [--fix]`, `shellcheck -x -S warning`, `tests/scripts/test_scripts.py` (themes, `theme_*.sh`, `self_update.sh`, `generate_theme.py`).

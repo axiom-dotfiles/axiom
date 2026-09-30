@@ -12,6 +12,7 @@ running anything:
   - every URL-loaded directory is imported by name somewhere (qs only makes
     sibling types visible to URL-loaded files in directories it scanned)
   - every `import qs.…` names a directory that exists
+  - every file starts with `pragma ComponentBehavior: Bound` (or Singleton)
   - no file instantiates a type that two of its visible directories define
   - every `SomethingManager.` names a service that exists, and nothing
     references a near-miss of a project singleton (a typo)
@@ -44,6 +45,8 @@ POPOUT_DIR = "components/content"
 POPOUT_IMPORT = "qs.components.content"
 # Directories retired by restructuring: nothing may live or be imported there
 RETIRED = ["components/widgets", "components/stolen"]
+# Not held to the pragma rule until its rewrite
+PRAGMA_EXEMPT = ("components/surfaces/lockscreen/", "shell/Lockscreen.qml")
 
 errors, warnings = [], []
 
@@ -110,6 +113,17 @@ def main():
         leftovers = list((ROOT / d).rglob("*.qml")) if (ROOT / d).exists() else []
         for f in leftovers:
             errors.append(f"{rel(f)}: lives under retired {d}/")
+
+    # Every file starts with `pragma ComponentBehavior: Bound` (delegates see
+    # only their required properties, and ids in nested components resolve)
+    # or `pragma Singleton`
+    for path, text in sources.items():
+        if path.startswith(PRAGMA_EXEMPT):
+            continue
+        # the first line that isn't a comment (a header, qs's //@ pragmas)
+        head = next((line.strip() for line in text.split("\n") if line.strip() and not line.strip().startswith("//")), "")
+        if head not in ("pragma ComponentBehavior: Bound", "pragma Singleton"):
+            errors.append(f"{path}: doesn't start with pragma ComponentBehavior: Bound (or pragma Singleton)")
 
     # qs.* imports resolve
     for path, text in sources.items():

@@ -1,3 +1,4 @@
+pragma ComponentBehavior: Bound
 import Quickshell
 
 import qs.config

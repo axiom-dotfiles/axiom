@@ -21,8 +21,8 @@ BarIconWidget {
   Component.onCompleted: WeatherManager.acquire(root, weatherRequest)
   Component.onDestruction: WeatherManager.release(root)
 
-  readonly property var current: source.current
-  readonly property var condition: source.condition
+  readonly property var current: root.source.current
+  readonly property var condition: root.source.condition
 
   icon: condition?.icon ?? "cloud"
   text: current ? `${Math.round(current.temperature_2m)}°` + (properties.showCondition ? ` ${condition.label}` : "") : "…"
@@ -31,12 +31,12 @@ BarIconWidget {
     popouts: root.popouts
     panel: root.panel
     popoutName: "WeatherForecast"
-    active: root.properties.showPopout && source.weather !== null
+    active: root.properties.showPopout && root.source.weather !== null
     extraData: ({
-        "weather": source.weather,
-        "placeName": source.place?.name ?? "",
-        "unitSymbol": source.unitSymbol,
-        "conditionFor": source.conditionFor
+        "weather": root.source.weather,
+        "placeName": root.source.place?.name ?? "",
+        "unitSymbol": root.source.unitSymbol,
+        "conditionFor": root.source.conditionFor
       })
   }
 }

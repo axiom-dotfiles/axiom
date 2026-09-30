@@ -43,24 +43,21 @@ Item {
       name: "left"
       when: root.pageIndex < root.currentIndex
       PropertyChanges {
-        target: slideTransform
-        x: -100
+        slideTransform.x: -100
       }
     },
     State {
       name: "center"
       when: root.pageIndex === root.currentIndex
       PropertyChanges {
-        target: slideTransform
-        x: 0
+        slideTransform.x: 0
       }
     },
     State {
       name: "right"
       when: root.pageIndex > root.currentIndex
       PropertyChanges {
-        target: slideTransform
-        x: 100
+        slideTransform.x: 100
       }
     }
   ]

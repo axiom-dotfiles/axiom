@@ -26,8 +26,8 @@ Card {
   Component.onCompleted: WeatherManager.acquire(root, weatherRequest)
   Component.onDestruction: WeatherManager.release(root)
 
-  readonly property var current: source.current
-  readonly property var daily: source.weather?.daily ?? null
+  readonly property var current: root.source.current
+  readonly property var daily: root.source.weather?.daily ?? null
   readonly property bool showHourly: !root.compact && root.cols >= 2
   readonly property bool showDaily: !root.compact && root.rows >= 2
   // Wide and large slots put the days beside the current weather
@@ -54,9 +54,9 @@ Card {
     visible: root.compact && root.current !== null
     anchors.centerIn: parent
     maxWidth: root.width - root.pad * 2
-    icon: source.condition?.icon ?? ""
+    icon: root.source.condition?.icon ?? ""
     value: root.current ? `${Math.round(root.current.temperature_2m)}°` : ""
-    label: source.condition?.label ?? ""
+    label: root.source.condition?.label ?? ""
   }
 
   // A flexible gap between sections, up to maxGap
@@ -71,11 +71,11 @@ Card {
   component Current: ColumnLayout {
     spacing: Widget.spacing
     StyledText {
-      visible: (source.place?.name ?? "") !== ""
+      visible: (root.source.place?.name ?? "") !== ""
       Layout.fillWidth: true
       horizontalAlignment: root.stacked ? Text.AlignHCenter : Text.AlignLeft
       elide: Text.ElideRight
-      text: source.place?.name ?? ""
+      text: root.source.place?.name ?? ""
       font.bold: true
       textColor: Theme.accent
     }
@@ -86,7 +86,7 @@ Card {
       rowSpacing: Widget.spacing
       StyledIcon {
         Layout.alignment: root.stacked ? Qt.AlignHCenter : Qt.AlignVCenter
-        text: source.condition?.icon ?? ""
+        text: root.source.condition?.icon ?? ""
         textSize: Appearance.fontSize * (root.stacked ? 4 * root.heroScale : 3)
       }
       ColumnLayout {
@@ -95,7 +95,7 @@ Card {
         StyledText {
           Layout.fillWidth: true
           horizontalAlignment: root.stacked ? Text.AlignHCenter : Text.AlignLeft
-          text: root.current ? `${Math.round(root.current.temperature_2m)}${source.unitSymbol}` : ""
+          text: root.current ? `${Math.round(root.current.temperature_2m)}${root.source.unitSymbol}` : ""
           textSize: Appearance.fontSize * (root.stacked ? 2.4 * root.heroScale : 2)
           font.bold: true
         }
@@ -103,13 +103,13 @@ Card {
           Layout.fillWidth: true
           horizontalAlignment: root.stacked ? Text.AlignHCenter : Text.AlignLeft
           elide: Text.ElideRight
-          text: source.condition?.label ?? ""
+          text: root.source.condition?.label ?? ""
         }
         StyledText {
           Layout.fillWidth: true
           horizontalAlignment: root.stacked ? Text.AlignHCenter : Text.AlignLeft
           elide: Text.ElideRight
-          text: I18n.tr("Feels {0}°  ·  {1}%  ·  {2} {3}", Math.round(root.current?.apparent_temperature ?? 0), root.current?.relative_humidity_2m ?? 0, Math.round(root.current?.wind_speed_10m ?? 0), source.weather?.current_units?.wind_speed_10m ?? "km/h")
+          text: I18n.tr("Feels {0}°  ·  {1}%  ·  {2} {3}", Math.round(root.current?.apparent_temperature ?? 0), root.current?.relative_humidity_2m ?? 0, Math.round(root.current?.wind_speed_10m ?? 0), root.source.weather?.current_units?.wind_speed_10m ?? "km/h")
           textColor: Theme.foregroundAlt
           textSize: Appearance.fontSize - 2
         }
@@ -139,7 +139,7 @@ Card {
         StyledIcon {
           Layout.preferredWidth: Appearance.fontSize * 1.5
           horizontalAlignment: Text.AlignHCenter
-          text: source.conditionFor(root.daily.weather_code[day.index], 1).icon
+          text: root.source.conditionFor(root.daily.weather_code[day.index], 1).icon
         }
         Item {
           Layout.fillWidth: true
@@ -234,7 +234,7 @@ Card {
         model: hours.count
         Column {
           required property int index
-          readonly property var hourly: source.weather?.hourly
+          readonly property var hourly: root.source.weather?.hourly
           width: hours.width / Math.max(1, hours.count)
           spacing: 2
           StyledText {
@@ -245,7 +245,7 @@ Card {
           }
           StyledIcon {
             anchors.horizontalCenter: parent.horizontalCenter
-            text: parent.hourly ? source.conditionFor(parent.hourly.weather_code[parent.index], parent.hourly.is_day[parent.index]).icon : ""
+            text: parent.hourly ? root.source.conditionFor(parent.hourly.weather_code[parent.index], parent.hourly.is_day[parent.index]).icon : ""
             textSize: Appearance.fontSize * 1.4
           }
           StyledText {

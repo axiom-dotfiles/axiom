@@ -1,3 +1,4 @@
+pragma ComponentBehavior: Bound
 import QtQuick
 
 // A MouseArea that tells a press-and-move drag from a click: past

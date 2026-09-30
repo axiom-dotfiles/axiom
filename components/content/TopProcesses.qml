@@ -16,7 +16,8 @@ Card {
   readonly property real rowHeight: Widget.height
   // As many as asked for, and as fit
   readonly property int fitting: Math.max(1, Math.floor((list.height + Widget.spacing / 2) / (root.rowHeight + Widget.spacing / 2)))
-  readonly property var rows: SystemManager.processes.slice().sort((a, b) => b[root.sortBy] - a[root.sortBy]).slice(0, Math.min(root.properties.count ?? 8, root.fitting))
+  // Not `rows`: that is the slot size in Card
+  readonly property var processes: SystemManager.processes.slice().sort((a, b) => b[root.sortBy] - a[root.sortBy]).slice(0, Math.min(root.properties.count ?? 8, root.fitting))
 
   Component.onCompleted: SystemManager.acquire(root, {
     "metrics": ["processes"],
@@ -40,7 +41,7 @@ Card {
 
   // Compact: the busiest process
   CompactFigure {
-    readonly property var busiest: root.rows[0] ?? null
+    readonly property var busiest: root.processes[0] ?? null
     visible: root.compact
     anchors.centerIn: parent
     maxWidth: root.width - root.pad * 2
@@ -90,15 +91,15 @@ Card {
         width: parent.width
         spacing: Widget.spacing / 2
 
-        // Modelled by count: the rows are a new array every sample, which
+        // Modelled by count: the processes are a new array every sample, which
         // would recreate the delegates (and drop the hover) each time
         Repeater {
-          model: root.rows.length
+          model: root.processes.length
 
           Rectangle {
             id: row
             required property int index
-            readonly property var proc: root.rows[index] ?? ({
+            readonly property var proc: root.processes[index] ?? ({
                 "command": "",
                 "cpu": 0,
                 "mem": 0,
