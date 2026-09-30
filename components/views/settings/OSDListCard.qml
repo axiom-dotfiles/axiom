@@ -398,6 +398,7 @@ StyledContainer {
         }
 
         StyledSeparator {
+          separatorColor: Theme.accent
           visible: root.osd !== null
           Layout.fillWidth: true
         }

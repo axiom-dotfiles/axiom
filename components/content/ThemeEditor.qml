@@ -84,31 +84,6 @@ TitledCard {
     }
   ]
 
-  component SectionHeading: ColumnLayout {
-    id: heading
-    property string title: ""
-    property string description: ""
-    Layout.fillWidth: true
-    spacing: 2
-
-    StyledText {
-      text: heading.title
-      textColor: Theme.accent
-      textSize: Appearance.fontSize + 1
-      font.bold: true
-      Layout.fillWidth: true
-    }
-
-    StyledText {
-      visible: heading.description !== ""
-      text: heading.description
-      opacity: 0.7
-      textSize: Appearance.fontSize - 2
-      wrapMode: Text.WordWrap
-      Layout.fillWidth: true
-    }
-  }
-
   // A theme painted in the variant the current mode would apply: its
   // background, name in its foreground, and a strip of its accent colors
   component ThemeTile: Rectangle {

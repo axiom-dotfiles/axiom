@@ -16,20 +16,11 @@ ColumnLayout {
 
   spacing: 0
 
-  RowLayout {
-    spacing: 2
-    StyledText {
-      text: root.value
-      textColor: root.valueColor
-      textSize: root.valueSize
-      font.bold: true
-    }
-    StyledText {
-      visible: root.unit !== ""
-      Layout.alignment: Qt.AlignBaseline
-      text: root.unit
-      opacity: 0.7
-    }
+  FigureValue {
+    value: root.value
+    unit: root.unit
+    valueColor: root.valueColor
+    valueSize: root.valueSize
   }
 
   StyledText {

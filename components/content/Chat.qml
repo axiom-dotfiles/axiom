@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import qs.config
+import qs.components.reusable
 import qs.services
 import qs.components.content.base
 import qs.components.content.parts
@@ -80,10 +81,9 @@ Panel {
           }
         }
 
-        Rectangle {
+        StyledSeparator {
           Layout.fillWidth: true
-          implicitHeight: 1
-          color: Theme.border
+          separatorHeight: 1
           opacity: 0.6
         }
 

@@ -57,6 +57,7 @@ Panel {
   }
 
   StyledSeparator {
+    separatorColor: Theme.accent
     Layout.fillWidth: true
   }
 

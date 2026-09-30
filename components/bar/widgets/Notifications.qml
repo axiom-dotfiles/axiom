@@ -26,7 +26,7 @@ BarWidget {
 
     badgeVisible: root.properties.showCount && NotificationManager.count > 0
     badgeBackgroundColor: Theme.resolveColor(root.properties.badgeColor)
-    badgeText: NotificationManager.count > 99 ? "99+" : String(NotificationManager.count)
+    badgeText: NotificationManager.countLabel
   }
 
   PopoutAnchor {

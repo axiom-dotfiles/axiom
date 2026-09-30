@@ -7,6 +7,8 @@ import qs.config
 // and pick their internal layout from `shape` / `compact` (see
 // OverlaySlot, which sets `slotRect`).
 Rectangle {
+  id: root
+
   // This module's `properties` from config (schema defaults filled in)
   property var properties: ({})
   // Set by the card host, for content that can also be a popout (see Panel)
@@ -18,18 +20,23 @@ Rectangle {
   property var host: ({
       "kind": "overlay"
     })
-  // No card box (an edge menu with moduleBorders off): no stroke, no fill
-  // and no inner padding, so the module sits on the menu's own background
-  readonly property bool bare: host?.bare ?? false
+  // Derived from the slot (see SlotContext): no card box (an edge menu
+  // with moduleBorders off), the span in half units, "square" |
+  // "horizontal" | "vertical", a quarter slot (room for the key figure
+  // only), and the inner padding modules lay their content out within
+  readonly property alias bare: slot.bare
+  readonly property alias cols: slot.cols
+  readonly property alias rows: slot.rows
+  readonly property alias shape: slot.shape
+  readonly property alias compact: slot.compact
+  readonly property alias pad: slot.pad
 
-  readonly property int cols: slotRect[2]
-  readonly property int rows: slotRect[3]
-  // "square" | "horizontal" | "vertical"
-  readonly property string shape: OverlayConfig.slotShape(slotRect)
-  // A quarter-card slot: room for the key figure only
-  readonly property bool compact: cols <= 1 && rows <= 1
-  // Inner padding modules lay their content out within
-  readonly property real pad: OverlayConfig.cardPad(compact, bare)
+  property SlotContext _slot: SlotContext {
+    id: slot
+    slotRect: root.slotRect
+    host: root.host
+    embedded: root.embedded
+  }
 
   anchors.fill: parent
   color: bare ? "transparent" : Theme.background

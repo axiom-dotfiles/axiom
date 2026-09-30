@@ -30,22 +30,13 @@ ColumnLayout {
     textSize: Appearance.fontSize * 1.8
   }
 
-  RowLayout {
+  FigureValue {
     visible: root.value !== ""
     Layout.alignment: Qt.AlignHCenter
-    spacing: 2
-    StyledText {
-      text: root.value
-      textColor: root.valueColor
-      textSize: Appearance.fontSize * 1.8
-      font.bold: true
-    }
-    StyledText {
-      visible: root.unit !== ""
-      Layout.alignment: Qt.AlignBaseline
-      text: root.unit
-      opacity: 0.7
-    }
+    value: root.value
+    unit: root.unit
+    valueColor: root.valueColor
+    valueSize: Appearance.fontSize * 1.8
   }
 
   StyledText {

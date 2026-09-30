@@ -216,6 +216,7 @@ Card {
       visible: hours.visible || days.visible
     }
     StyledSeparator {
+      separatorColor: Theme.accent
       visible: hours.visible || days.visible
       Layout.fillWidth: true
     }

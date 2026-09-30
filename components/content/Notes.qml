@@ -229,11 +229,10 @@ Card {
       }
     }
 
-    Rectangle {
+    StyledSeparator {
       visible: header.visible
       Layout.fillWidth: true
-      implicitHeight: 1
-      color: Theme.border
+      separatorHeight: 1
       opacity: 0.6
     }
 

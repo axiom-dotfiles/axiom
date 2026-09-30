@@ -32,6 +32,8 @@ Singleton {
   // Newest first
   property var entries: []
   readonly property int count: entries.length
+  // The count for a badge: "99+" past 99
+  readonly property string countLabel: count > 99 ? "99+" : String(count)
   readonly property int maxEntries: NotificationsConfig.maxEntries
   readonly property int maxAgeDays: NotificationsConfig.maxAgeDays
 
