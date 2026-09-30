@@ -486,17 +486,25 @@ StyledContainer {
           Layout.fillWidth: true
           spacing: Widget.spacing / 2
 
+          // Modelled by count, so a keystroke rebinds the rows instead of
+          // rebuilding them
           Repeater {
-            model: root.dock ? LauncherManager.searchApps(search.text, 24).filter(app => !root.pinned.includes(app.id)).slice(0, 8) : []
+            id: matches
+            readonly property var apps: root.dock ? LauncherManager.searchApps(search.text, 24).filter(app => !root.pinned.includes(app.id)).slice(0, 8) : []
+            model: matches.apps.length
 
             delegate: StyledTextButton {
               id: result
-              required property var modelData
+              required property int index
+              readonly property var app: matches.apps[result.index] ?? {
+                "id": "",
+                "name": ""
+              }
               implicitHeight: Widget.height - 4
               iconText: "add"
-              text: result.modelData.name
+              text: result.app.name
               onClicked: {
-                root.pinApp(result.modelData.id);
+                root.pinApp(result.app.id);
                 search.text = "";
               }
             }

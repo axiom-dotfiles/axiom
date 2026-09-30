@@ -8,6 +8,7 @@
       "shortDate": "M月d日 (ddd)",
       "monthYear": "yyyy年M月",
       "fullDate": "yyyy年M月d日（ddd）",
+      "dateTime": "yyyy年M月d日 H:mm",
       "time24": "H:mm",
       "time12": "AP h:mm",
       "clock24": "H時mm分",
@@ -1723,7 +1724,6 @@
     "Half Tall": "ハーフ縦長",
     "Search actions": "アクションを検索",
     "No actions match \"{0}\"": "「{0}」に一致するアクションはありません",
-    "Remove {0} your Hyprland config binds": "Hyprland の設定がバインドしている {0} を削除",
     "Search binds by key, action or label": "キー、アクション、ラベルでバインドを検索",
     "Sort": "並べ替え",
     "Saved order": "保存順",
@@ -1780,7 +1780,6 @@
     "OSDs": "OSD",
     "Left edge": "左端",
     "Right edge": "右端",
-    "Centre": "中央",
     "Lower third": "下 3 分の 1",
     "Click a spot to place it; fine-tune below. Show opens it as a change would.": "クリックで配置し、下で微調整します。「表示」で変更時と同じように開きます。",
     "Next wallpaper of the rotation": "ローテーションの次の壁紙",
@@ -2086,7 +2085,6 @@
     "Frame": "フレーム",
     "Icon spacing": "アイコンの間隔",
     "Roundness of what sits inside panels, cards and bars: buttons, fields, rows, cells and bar widgets. Outer edges (screen border, bars, popouts, the overlay's outer box) keep the main radius.": "パネル、カード、バーの内側にあるものの角の丸み：ボタン、入力欄、行、セル、バーのウィジェット。外側の端（画面の枠、バー、ポップアウト、オーバーレイの外枠）はメインの丸みを使います。",
-    "Grow into the rest of its row, shared evenly with other cells in the row that fill width.": "行の残りの幅いっぱいに広げます。同じ行で幅を広げる他のセルと均等に分け合います。",
     "Fixed keeps the wallpaper you pick. Rotate changes it on a timer, from the wallpaper folder. One for light, one for dark shows the wallpaper you picked for the theme's current variant on every monitor. A generated theme follows the wallpaper as it changes. Also set on the overlay's Themes page.": "固定は選んだ壁紙を使い続けます。ローテーションは壁紙フォルダーから一定時間ごとに変更します。ライト用とダーク用は、テーマの現在の種類に合わせて選んだ壁紙をすべてのモニターに表示します。生成テーマは壁紙の変更に追従します。オーバーレイのテーマページでも設定できます。",
     "Dim the screens after": "画面を暗くするまで",
     "One cell split into slots, defined in OverlayConfig.layouts. A column flows its cells left to right, wrapping at its widest cell, so two Singles after a Wide sit side by side under it (an empty Single leaves a gap). Cells are one card, except Tall (two cards high), Wide (two cards wide), Large (two by two cards), HalfWide (half a card high) and HalfTall (half a card wide). A cell with fillWidth grows into the rest of its row; one with fillHeight grows to its row's height and into spare height in its column (shared evenly between rows that fill). In an edge menu, a cell filling along the edge (fillHeight on a left/right edge, fillWidth on a top/bottom one) makes the menu take its whole edge. Slots per layout: Single/Tall/Wide/Large/HalfWide/HalfTall main; Grid2x2 topLeft/topRight/bottomLeft/bottomRight; Vert1x1 left/right; Vert1x2 left/topRight/bottomRight; Vert2x1 topLeft/bottomLeft/right; Horiz1x1 top/bottom; Horiz1x2 top/bottomLeft/bottomRight; Horiz2x1 topLeft/topRight/bottom.": "スロットに分割された 1 つのセル。OverlayConfig.layouts で定義されます。列はセルを左から右に並べ、最も幅の広いセルで折り返すため、Wide の後の 2 つの Single はその下に横並びになります（空の Single は隙間になります）。セルは基本的にカード 1 枚分で、Tall（カード 2 枚分の高さ）、Wide（カード 2 枚分の幅）、Large（2×2 枚分）、HalfWide（カード半分の高さ）、HalfTall（カード半分の幅）は例外です。fillWidth のセルは行の残りの幅に広がり、fillHeight のセルは行の高さまで、さらに列の余った高さに広がります（高さを広げる行で均等に分け合います）。エッジメニューでは、画面端に沿って広がるセル（左右の端では fillHeight、上下の端では fillWidth）があると、メニューが画面端全体を使います。レイアウトごとのスロット：Single/Tall/Wide/Large/HalfWide/HalfTall は main、Grid2x2 は topLeft/topRight/bottomLeft/bottomRight、Vert1x1 は left/right、Vert1x2 は left/topRight/bottomRight、Vert2x1 は topLeft/bottomLeft/right、Horiz1x1 は top/bottom、Horiz1x2 は top/bottomLeft/bottomRight、Horiz2x1 は topLeft/topRight/bottom。",
@@ -2109,7 +2107,6 @@
     "hide": "非表示",
     "brightness": "明るさ",
     "browser": "ブラウザ",
-    "Grow to its row's height and into spare height in its column, shared evenly with other rows that fill height.": "行の高さまで、さらに列の余った高さまで広げます。高さを広げる他の行と均等に分け合います。",
     "Height of buttons, fields and other controls (px).": "ボタン、入力欄などのコントロールの高さ（px）。",
     "Extra width": "追加の幅",
     "Monitor the dock is shown on. Empty uses the primary monitor; All monitors puts a copy on each.": "ドックを表示するモニター。空欄ならメインモニター、「すべてのモニター」では各モニターに表示します。",
@@ -2207,6 +2204,11 @@
     "Open an item's menu when it's hovered.": "項目にカーソルを合わせるとメニューを開きます。",
     "Menus": "メニュー",
     "Low at": "低残量のしきい値",
-    "{0}: {1}": "{0}: {1}"
+    "{0}: {1}": "{0}: {1}",
+    "Grow into the rest of its row, shared evenly with other cells in the row that fill width. In a top or bottom edge menu, the menu then takes its whole edge.": "行の残りの幅いっぱいに広げます。同じ行で幅を広げる他のセルと均等に分け合います。上端か下端のエッジメニューでは、メニューがその辺全体を占めます。",
+    "Grow to its row's height and into spare height in its column, shared evenly with other rows that fill height. In a left or right edge menu, the menu then takes its whole edge.": "行の高さまで、さらに列の余った高さまで広げます。高さを広げる他の行と均等に分け合います。左端か右端のエッジメニューでは、メニューがその辺全体を占めます。",
+    "Remove {0} binds your Hyprland config also has": "Hyprland の設定にもある {0} 件のバインドを削除",
+    "X": "X",
+    "Y": "Y"
   }
 }

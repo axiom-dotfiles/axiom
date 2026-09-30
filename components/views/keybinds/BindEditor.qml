@@ -137,7 +137,7 @@ ColumnLayout {
         visible: KeybindManager.userConflicts.length > 0
         implicitHeight: Widget.height
         iconText: "delete_sweep"
-        text: I18n.tr("Remove {0} your Hyprland config binds", KeybindManager.userConflicts.length)
+        text: I18n.tr("Remove {0} binds your Hyprland config also has", KeybindManager.userConflicts.length)
         onClicked: KeybindManager.removeUserConflicts()
       }
 

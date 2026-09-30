@@ -84,8 +84,7 @@ Rectangle {
       SquareIconButton {
         id: addButton
         size: Widget.height - 6
-        iconText: "+"
-        iconSize: Appearance.fontSize + 2
+        iconText: "add"
         backgroundColor: "transparent"
         tooltipText: I18n.tr("Add a widget")
         onClicked: root.addRequested(addButton)

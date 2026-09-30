@@ -69,7 +69,7 @@ StyledContainer {
       "y": 0.5
     },
     {
-      "label": "Centre",
+      "label": "Center",
       "values": {
         "placement": "floating",
         "x": 50,
@@ -333,7 +333,7 @@ StyledContainer {
                   active: preset.hovered
                   StyledToolTip {
                     target: preset
-                    // I18n.tr("Top edge") I18n.tr("Bottom edge") I18n.tr("Left edge") I18n.tr("Right edge") I18n.tr("Centre") I18n.tr("Upper third") I18n.tr("Lower third")
+                    // I18n.tr("Top edge") I18n.tr("Bottom edge") I18n.tr("Left edge") I18n.tr("Right edge") I18n.tr("Center") I18n.tr("Upper third") I18n.tr("Lower third")
                     text: I18n.tr(preset.modelData.label)
                   }
                 }

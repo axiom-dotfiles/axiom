@@ -78,8 +78,16 @@ StyledContainer {
       Layout.fillWidth: true
     }
 
+    // Esc cancels a recording
+    KeyCap {
+      visible: root.recording
+      text: "Esc"
+      opacity: 0.5
+    }
+
     StyledIcon {
-      text: root.recording ? "Esc" : "mic"
+      visible: !root.recording
+      text: "keyboard"
       opacity: 0.5
       textSize: Appearance.fontSize - 2
     }

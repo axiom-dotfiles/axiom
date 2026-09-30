@@ -78,6 +78,8 @@ QtObject {
       "shortDate": "ddd d MMM",
       "monthYear": "MMMM yyyy",
       "fullDate": "dddd, MMMM d, yyyy",
+      // A file's time (saved configs)
+      "dateTime": "MMM d, yyyy HH:mm",
       "time24": "HH:mm",
       "time12": "h:mm AP",
       // The bar clock (s: with seconds)

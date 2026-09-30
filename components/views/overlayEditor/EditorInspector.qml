@@ -199,15 +199,15 @@ Item {
             }
 
             SchemaSwitch {
-              label: "Fill width"
-              description: "Grow into the rest of its row, shared evenly with other cells in the row that fill width. In a top or bottom edge menu, the menu then takes its whole edge."
+              label: OverlayConfig.cellSchema.fillWidth.title
+              description: OverlayConfig.cellSchema.fillWidth.description
               checked: root.cell?.fillWidth === true
               onToggled: newValue => root.editor.setCellFill(root.sel.column, root.sel.cell, "fillWidth", newValue)
             }
 
             SchemaSwitch {
-              label: "Fill height"
-              description: "Grow to its row's height and into spare height in its column, shared evenly with other rows that fill height. In a left or right edge menu, the menu then takes its whole edge."
+              label: OverlayConfig.cellSchema.fillHeight.title
+              description: OverlayConfig.cellSchema.fillHeight.description
               checked: root.cell?.fillHeight === true
               onToggled: newValue => root.editor.setCellFill(root.sel.column, root.sel.cell, "fillHeight", newValue)
             }

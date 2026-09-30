@@ -37,6 +37,8 @@ QtObject {
     }).filter(t => t !== null);
   }
   readonly property var availableModuleTypes: _oneOfTypes("OverlayModule")
+  // A cell's own fields (fillWidth, fillHeight), for the editor's inspector
+  readonly property var cellSchema: ConfigManager.configSchema.definitions.OverlayCell.properties
   readonly property var availableViewTypes: _oneOfTypes("OverlayView")
   // The module types a host offers: "overlay" pages or "edgeMenu"s
   function modulesFor(host) {
