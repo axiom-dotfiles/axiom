@@ -2,22 +2,30 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import qs.config
 
-// One page of the overlay: shown when it's the current root, sliding in
-// from the side it sits on relative to the current one. The content is
+// One page of the overlay: shown when it's the current page, sliding in
+// from the side the navigation came from (`direction`). The content is
 // only instantiated while `loaded`.
 Item {
   id: root
 
   required property int pageIndex
   required property int currentIndex
+  required property int direction
   required property bool loaded
   default property Component content
+
+  readonly property bool current: root.currentIndex === root.pageIndex
 
   anchors.centerIn: parent
   implicitWidth: contentLoader.item ? contentLoader.item.implicitWidth : 0
   implicitHeight: contentLoader.item ? contentLoader.item.implicitHeight : 0
-  visible: root.currentIndex === root.pageIndex
-  opacity: root.currentIndex === root.pageIndex ? 1 : 0
+  visible: root.current
+  opacity: root.current ? 1 : 0
+
+  onCurrentChanged: {
+    if (root.current)
+      slideIn.restart();
+  }
 
   Loader {
     id: contentLoader
@@ -28,7 +36,6 @@ Item {
 
   transform: Translate {
     id: slideTransform
-    x: 0
   }
 
   Behavior on opacity {
@@ -38,35 +45,13 @@ Item {
     }
   }
 
-  states: [
-    State {
-      name: "left"
-      when: root.pageIndex < root.currentIndex
-      PropertyChanges {
-        slideTransform.x: -100
-      }
-    },
-    State {
-      name: "center"
-      when: root.pageIndex === root.currentIndex
-      PropertyChanges {
-        slideTransform.x: 0
-      }
-    },
-    State {
-      name: "right"
-      when: root.pageIndex > root.currentIndex
-      PropertyChanges {
-        slideTransform.x: 100
-      }
-    }
-  ]
-
-  transitions: Transition {
-    NumberAnimation {
-      property: "x"
-      duration: Appearance.animFast
-      easing.type: Easing.InOutQuad
-    }
+  NumberAnimation {
+    id: slideIn
+    target: slideTransform
+    property: "x"
+    from: 100 * root.direction
+    to: 0
+    duration: Appearance.animFast
+    easing.type: Easing.InOutQuad
   }
 }

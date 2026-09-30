@@ -17,18 +17,12 @@ StyledContainer {
   readonly property string pendingMode: SettingsManager.localConfig?.Hyprland?.mode ?? root.mode
   readonly property bool pending: root.pendingMode !== root.mode
 
-  onPendingModeChanged: {
+  function _checkPending() {
     if (root.pendingMode === "managed")
       HyprlandConfigManager.checkManaged();
   }
-  Component.onCompleted: {
-    if (root.pendingMode === "managed")
-      HyprlandConfigManager.checkManaged();
-  }
-
-  function _short(path) {
-    return path.replace(/^\/home\/[^/]+/, "~");
-  }
+  onPendingModeChanged: root._checkPending()
+  Component.onCompleted: root._checkPending()
 
   // I18n.tr("Detached") I18n.tr("Included") I18n.tr("Managed")
   function _modeLabel(mode) {
@@ -61,8 +55,8 @@ StyledContainer {
   // What saving the pending mode does, step by step
   readonly property var saveSteps: {
     const steps = [];
-    const hypr = root._short(HyprlandConfigManager.managedPath);
-    const user = root._short(HyprlandConfigManager.userDir);
+    const hypr = Paths.shortenHome(HyprlandConfigManager.managedPath);
+    const user = Paths.shortenHome(HyprlandConfigManager.userDir);
     if (root.pendingMode === "managed") {
       switch (HyprlandConfigManager.managedCheck) {
       case "adopt":
@@ -75,13 +69,13 @@ StyledContainer {
         steps.push(I18n.tr("Takes back {0}, which axiom already wrote", hypr));
         break;
       case "":
-        steps.push(I18n.tr("Checking {0}…", root._short(Paths.hyprlandPath)));
+        steps.push(I18n.tr("Checking {0}…", Paths.shortenHome(Paths.hyprlandPath)));
         break;
       }
       steps.push(I18n.tr("Writes {0} from the cards below, loading {1}/*.lua after it", hypr, user));
       steps.push(I18n.tr("Reloads Hyprland"));
     } else if (root.pendingMode === "included") {
-      steps.push(I18n.tr("Writes {0}", root._short(HyprlandConfigManager.includePath)));
+      steps.push(I18n.tr("Writes {0}", Paths.shortenHome(HyprlandConfigManager.includePath)));
       steps.push(I18n.tr("Shows the lines to add to your hyprland.lua. Until you do, axiom applies its layer at runtime"));
     } else {
       steps.push(I18n.tr("Writes no files: axiom applies its layer with hyprctl"));
@@ -164,7 +158,7 @@ StyledContainer {
 
         StyledText {
           visible: root.blocked
-          text: I18n.tr("{0} is a symlink or in a git repository, so axiom won't take it over. Use Included instead.", root._short(Paths.hyprlandPath))
+          text: I18n.tr("{0} is a symlink or in a git repository, so axiom won't take it over. Use Included instead.", Paths.shortenHome(Paths.hyprlandPath))
           textSize: Appearance.fontSize - 1
           wrapMode: Text.WordWrap
           Layout.fillWidth: true
@@ -246,7 +240,7 @@ StyledContainer {
       spacing: Widget.spacing
 
       StyledText {
-        text: I18n.tr("Your own settings go in {0}/*.lua.", root._short(HyprlandConfigManager.userDir))
+        text: I18n.tr("Your own settings go in {0}/*.lua.", Paths.shortenHome(HyprlandConfigManager.userDir))
         opacity: 0.7
         textSize: Appearance.fontSize - 2
         wrapMode: Text.WordWrap

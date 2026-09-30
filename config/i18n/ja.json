@@ -2206,6 +2206,7 @@
     "App names that never trigger an indicator, comma-separated.": "インジケーターを表示しないアプリ名（カンマ区切り）。",
     "Open an item's menu when it's hovered.": "項目にカーソルを合わせるとメニューを開きます。",
     "Menus": "メニュー",
-    "Low at": "低残量のしきい値"
+    "Low at": "低残量のしきい値",
+    "{0}: {1}": "{0}: {1}"
   }
 }

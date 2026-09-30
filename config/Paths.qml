@@ -31,4 +31,10 @@ QtObject {
   function expandHome(path) {
     return String(path ?? "").trim().replace(/^~(?=\/|$)/, Quickshell.env("HOME")).replace(/(.)\/+$/, "$1");
   }
+
+  // A path to show: home as ~ ("/home/<user>/x" -> "~/x")
+  function shortenHome(path) {
+    const home = Quickshell.env("HOME");
+    return path === home || String(path).startsWith(home + "/") ? "~" + String(path).slice(home.length) : String(path);
+  }
 }

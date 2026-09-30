@@ -63,10 +63,7 @@ BaseView {
             return labels;
           }, {})
           currentValue: String(MonitorManager.selectedProfile)
-          onSelectionChanged: value => {
-            MonitorManager.selectedProfile = Number(value);
-            MonitorManager.selectedOutput = MonitorManager.rules[0]?.output ?? "";
-          }
+          onSelectionChanged: value => MonitorManager.selectProfile(Number(value))
         }
 
         StyledTextEntry {
@@ -74,10 +71,27 @@ BaseView {
           Layout.preferredWidth: root.grid.unit * 0.6
           Layout.preferredHeight: Widget.height
           placeholderText: I18n.tr("Layout name")
-          text: MonitorManager.profile?.name ?? ""
           onTextChanged: {
             if (nameField.input.activeFocus)
               MonitorManager.renameProfile(MonitorManager.selectedProfile, text);
+          }
+
+          // StyledTextEntry writes each keystroke back to its `text`, which
+          // drops any binding on it, so the name is pushed in instead: on
+          // every draft change unless it's being typed, always on a switch
+          function syncName(force) {
+            if (force || !nameField.input.activeFocus)
+              nameField.text = MonitorManager.profiles[MonitorManager.selectedProfile]?.name ?? "";
+          }
+          Component.onCompleted: syncName(true)
+          Connections {
+            target: MonitorManager
+            function onProfileChanged() {
+              nameField.syncName(false);
+            }
+            function onSelectedProfileChanged() {
+              nameField.syncName(true);
+            }
           }
         }
 

@@ -78,7 +78,8 @@ QtObject {
   // Fields with `x-group` go on a card of that name instead, so one object
   // can make several cards. A nested object's `x-showIf` (on its siblings)
   // applies to all its cards. A section's `x-card` names a hand-built card
-  // (settings/<name>Card.qml) that goes first; its `x-intro` names a
+  // (settings/<name>Card.qml) that goes first (`x-cardFolds`: it folds like
+  // the generated cards, given its `foldKey`); its `x-intro` names a
   // hand-built piece (settings/<name>.qml) at the top of the section's own
   // card, above its fields (`intro`).
   function groups(schema, sectionKey) {
@@ -90,6 +91,7 @@ QtObject {
         "kind": "card",
         "key": sectionKey + ":" + section["x-card"],
         "card": section["x-card"],
+        "folds": section["x-cardFolds"] === true,
         "title": sectionTitle,
         "description": "",
         "section": sectionTitle,

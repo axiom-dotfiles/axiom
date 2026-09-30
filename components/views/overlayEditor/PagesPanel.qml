@@ -21,22 +21,24 @@ Item {
   readonly property real rowStep: root.rowHeight + Widget.spacing / 2
 
   // StyledTextEntry writes each keystroke back to its `text`, which drops
-  // any binding on it, so the name is pushed in whenever the selected page
-  // (or the draft) changes rather than bound
-  function syncName() {
-    if (!nameEntry.input.activeFocus)
-      nameEntry.text = root.view?.name ?? "";
+  // any binding on it, so the name is pushed in rather than bound: on every
+  // draft change unless it's being typed, always when another page is
+  // selected. Each keystroke renames the page, so there's no pending edit
+  // for a selection change to misplace.
+  function syncName(force) {
+    if (force || !nameEntry.input.activeFocus)
+      nameEntry.text = OverlayManager.selectedView()?.name ?? "";
   }
   Connections {
     target: OverlayManager
     function onSelectedViewIndexChanged() {
-      root.syncName();
+      root.syncName(true);
     }
     function onLocalViewsChanged() {
-      root.syncName();
+      root.syncName(false);
     }
   }
-  Component.onCompleted: root.syncName()
+  Component.onCompleted: root.syncName(true)
 
   TitledCard {
     color: Theme.background
@@ -251,13 +253,9 @@ Item {
         Layout.fillWidth: true
         visible: root.isCustom
         placeholderText: I18n.tr("Page name")
-        onAccepted: OverlayManager.renameView(OverlayManager.selectedViewIndex, nameEntry.text)
-
-        Connections {
-          target: nameEntry.input
-          function onEditingFinished() {
+        onTextChanged: {
+          if (nameEntry.input.activeFocus)
             OverlayManager.renameView(OverlayManager.selectedViewIndex, nameEntry.text);
-          }
         }
       }
     }

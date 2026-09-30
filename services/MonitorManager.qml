@@ -116,9 +116,7 @@ QtObject {
           edited = true;
         }
     }
-    selectedProfile = index;
-    if (selectedIndex < 0)
-      selectedOutput = local.profiles[index].outputs[0]?.output ?? "";
+    selectProfile(index);
     if (edited)
       draft.changed();
   }
@@ -164,10 +162,18 @@ QtObject {
     draft.changed();
   }
 
+  // Shows a profile, keeping the selected monitor if the profile has it
+  function selectProfile(index) {
+    const listed = draft.local?.profiles?.[index]?.outputs ?? [];
+    selectedProfile = index;
+    if (!listed.some(rule => rule.output === selectedOutput))
+      selectedOutput = listed[0]?.output ?? "";
+  }
+
   function newProfile() {
     draft.local.profiles.push(_newProfile(profiles.length));
-    selectedProfile = draft.local.profiles.length - 1;
     draft.changed();
+    selectProfile(draft.local.profiles.length - 1);
   }
 
   function renameProfile(index, name) {
@@ -182,8 +188,8 @@ QtObject {
     if (!draft.local?.profiles?.[index])
       return;
     draft.local.profiles.splice(index, 1);
-    selectedProfile = Math.max(0, Math.min(selectedProfile, draft.local.profiles.length - 1));
     draft.changed();
+    selectProfile(Math.max(0, Math.min(selectedProfile, draft.local.profiles.length - 1)));
   }
 
   // Leaves an output out of the profile (one that isn't connected)

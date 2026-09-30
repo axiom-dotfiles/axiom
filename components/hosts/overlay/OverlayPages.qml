@@ -22,6 +22,19 @@ Item {
   readonly property string _viewsKey: JSON.stringify(viewsConfig)
   property var viewsModel: buildViewsModel(JSON.parse(_viewsKey))
   property int currentIndex: 0
+  // Which way the last navigation went (1 forward, -1 back): the side the
+  // new page slides in from, so wrapping past the end still slides onward
+  property int direction: 1
+
+  function step(by) {
+    root.direction = by;
+    root.currentIndex = (root.currentIndex + by + root.pageCount) % root.pageCount;
+  }
+
+  function goTo(index) {
+    root.direction = index < root.currentIndex ? -1 : 1;
+    root.currentIndex = index;
+  }
   // The configured views, then the page that isn't in config: the
   // overlay editor, always last and can't be removed.
   // Labels: I18n.tr("Overlay editor")
@@ -68,11 +81,11 @@ Item {
     function onShowOverlayPage(type) {
       const pinned = root.pinnedPages.findIndex(page => page.type === type);
       if (pinned >= 0)
-        root.currentIndex = root.editorIndex + pinned;
+        root.goTo(root.editorIndex + pinned);
       else {
         const index = root.viewsModel.findIndex(view => view.viewConfig.type === type || view.viewConfig.name === type);
         if (index >= 0)
-          root.currentIndex = index;
+          root.goTo(index);
       }
     }
   }
@@ -175,6 +188,7 @@ Item {
             required property var modelData
             pageIndex: index
             currentIndex: root.currentIndex
+            direction: root.direction
             loaded: root.isLoaded(index)
 
             OverlayView {
@@ -190,6 +204,7 @@ Item {
           id: editorPage
           pageIndex: root.editorIndex
           currentIndex: root.currentIndex
+          direction: root.direction
           loaded: root.isLoaded(root.editorIndex)
 
           OverlayEditor {

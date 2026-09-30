@@ -5,6 +5,15 @@ import qs.components.methods
 TestCase {
   name: "Utils"
 
+  function test_freeId() {
+    compare(Utils.freeId("dock", []), "dock");
+    compare(Utils.freeId("dock", ["dock"]), "dock2");
+    compare(Utils.freeId("dock2", ["dock", "dock2"]), "dock3");
+    compare(Utils.freeId("dock5", ["dock5"]), "dock2", "the stem is numbered from 2");
+    compare(Utils.freeId("bar-2", ["bar-1", "bar-2"], "-"), "bar-3");
+    compare(Utils.freeId("bar-1", ["bar-1"], "-"), "bar-2");
+  }
+
   function test_clone() {
     const original = {
       "a": [1,

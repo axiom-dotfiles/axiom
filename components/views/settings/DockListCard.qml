@@ -20,7 +20,8 @@ StyledContainer {
   readonly property var docks: SettingsManager.localConfig?.Dock?.docks ?? DockConfig.docks
   property int selected: 0
   // Folded by clicking the header, like the generated cards (their key)
-  readonly property string foldKey: "Dock:DockList"
+  // The settings group key it folds under, from SettingsContent
+  property string foldKey
   readonly property bool collapsed: SettingsManager.isCollapsed(root.foldKey)
   readonly property int current: Math.max(0, Math.min(root.selected, root.docks.length - 1))
   readonly property var dock: root.docks[root.current] ?? null
@@ -116,11 +117,7 @@ StyledContainer {
   }
 
   function _freeId(base) {
-    const taken = root.docks.map(dock => dock.id);
-    let id = base;
-    for (let n = 2; taken.includes(id); n++)
-      id = `${base}${n}`;
-    return id;
+    return Utils.freeId(base, root.docks.map(dock => dock.id));
   }
 
   function add() {

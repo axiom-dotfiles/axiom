@@ -115,6 +115,29 @@ TestCase {
     compare(groups[1].intro, "");
   }
 
+  // A hand-built card goes first; with `x-cardFolds` it folds, and the
+  // real cards that fold take their key as `foldKey`
+  function test_card_folds() {
+    const groups = SchemaLayout.groups({
+      "properties": {
+        "S": {
+          "type": "object",
+          "x-card": "List",
+          "x-cardFolds": true,
+          "properties": {}
+        }
+      }
+    }, "S");
+    compare(groups[0].kind, "card");
+    compare(groups[0].key, "S:List");
+    verify(groups[0].folds);
+    for (const key in schema.properties) {
+      const section = schema.properties[key];
+      if (section["x-cardFolds"])
+        verify(files.text("components/views/settings/" + section["x-card"] + "Card.qml").includes("property string foldKey"), key);
+    }
+  }
+
   function test_real_schema_intros_exist() {
     for (const key in schema.properties) {
       const intro = schema.properties[key]["x-intro"];
