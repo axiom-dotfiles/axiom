@@ -21,7 +21,7 @@ BaseView {
     implicitHeight: root.pageHeight
   }
 
-  DragLayer {
+  BarDragLayer {
     id: dragLayer
     implicitWidth: root.grid.unit * 1.8
     implicitHeight: root.pageHeight

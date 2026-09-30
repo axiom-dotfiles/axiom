@@ -36,8 +36,8 @@ Rectangle {
     }
   }
 
-  Component.onCompleted: root.dragLayer.registerLane(root)
-  Component.onDestruction: root.dragLayer.unregisterLane(root)
+  Component.onCompleted: root.dragLayer.registerTarget(root)
+  Component.onDestruction: root.dragLayer.unregisterTarget(root)
 
   // Where a drop at `point` (in the drag layer) would insert: before the
   // first chip whose middle is below it
@@ -142,7 +142,8 @@ Rectangle {
                 "kind": "move",
                 "zone": root.zone,
                 "index": chip.index,
-                "type": chip.type
+                "type": chip.type,
+                "compact": true
               })
             onClicked: BarManager.selectWidget(root.zone, chip.index)
 

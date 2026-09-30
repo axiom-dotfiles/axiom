@@ -95,13 +95,6 @@
   "components/surfaces/notifications/NotificationToast.qml": {
     "missing-type: No type found for property \"adjustment\". This may be due to a missing import statement or incomplete qmltypes files.": 1
   },
-  "components/views/overlayEditor/EditorDragLayer.qml": {
-    "missing-property: Member \"cell\" not found on type \"QQuickItem\"": 2,
-    "missing-property: Member \"column\" not found on type \"QQuickItem\"": 3,
-    "missing-property: Member \"index\" not found on type \"QQuickItem\"": 2,
-    "missing-property: Member \"slot\" not found on type \"QQuickItem\"": 2,
-    "missing-property: Member \"targetKind\" not found on type \"QQuickItem\"": 1
-  },
   "services/BluetoothManager.qml": {
     "unresolved-type: Type \"BluetoothAdapter\" of property \"defaultAdapter\" not found. This is likely due to a missing dependency entry or a type not being exposed declaratively.": 1
   },
