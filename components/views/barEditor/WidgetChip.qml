@@ -73,10 +73,8 @@ Rectangle {
     id: area
     anchors.fill: parent
     dragEnabled: root.payload !== null
-    onDragStarted: (x, y) => root.dragLayer.begin(root.payload, root, x, y)
-    onDragMoved: (x, y) => root.dragLayer.move(root, x, y)
-    onDropped: root.dragLayer.end()
-    onDragCanceled: root.dragLayer.cancel()
+    dragLayer: root.dragLayer
+    payload: root.payload
     onTapped: root.clicked()
   }
 }

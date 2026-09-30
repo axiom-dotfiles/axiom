@@ -12,6 +12,8 @@ QtObject {
 
   readonly property var menus: ConfigManager.previews.EdgeMenus ?? ConfigManager.config.EdgeMenus
   readonly property var enabledMenus: root.menus.filter(menu => menu.enabled && menu.id)
+  // A menu's own fields in groups (`x-group`), for the edge menu editor
+  readonly property var fieldGroups: SchemaLayout.objectGroups(ConfigManager.configSchema.definitions.EdgeMenu, ["columns"])
 
   function menuById(id) {
     return root.menus.find(menu => menu.id === id) ?? null;

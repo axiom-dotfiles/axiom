@@ -71,15 +71,13 @@ Rectangle {
   DragArea {
     id: area
     anchors.fill: parent
-    onDragStarted: (x, y) => root.dragLayer.begin({
+    dragLayer: root.dragLayer
+    payload: ({
         "kind": "module-add",
         "type": root.typeInfo.type,
         "icon": root.typeInfo.icon,
         "label": I18n.tr(root.typeInfo.label)
-      }, area, x, y)
-    onDragMoved: (x, y) => root.dragLayer.move(area, x, y)
-    onDropped: root.dragLayer.end()
-    onDragCanceled: root.dragLayer.cancel()
+      })
     onTapped: root.clicked()
   }
 }

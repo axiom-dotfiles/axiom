@@ -117,7 +117,8 @@ Rectangle {
     anchors.fill: parent
     dragEnabled: root.module !== null
     cursorShape: root.dragLayer.dragging !== null ? Qt.ClosedHandCursor : (root.module ? Qt.OpenHandCursor : Qt.PointingHandCursor)
-    onDragStarted: (x, y) => root.dragLayer.begin({
+    dragLayer: root.dragLayer
+    payload: ({
         "kind": "module-move",
         "type": root.type,
         "column": root.column,
@@ -125,10 +126,7 @@ Rectangle {
         "slot": root.slot,
         "icon": root.dragLayer.moduleIcon(root.type),
         "label": root.dragLayer.moduleLabel(root.type)
-      }, area, x, y)
-    onDragMoved: (x, y) => root.dragLayer.move(area, x, y)
-    onDropped: root.dragLayer.end()
-    onDragCanceled: root.dragLayer.cancel()
+      })
     onTapped: root.dragLayer.editor.select(root.column, root.cell, root.slot)
   }
 }

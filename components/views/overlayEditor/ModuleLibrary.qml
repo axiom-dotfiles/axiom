@@ -147,15 +147,13 @@ ColumnLayout {
             DragArea {
               id: layoutArea
               anchors.fill: parent
-              onDragStarted: (x, y) => root.dragLayer.begin({
+              dragLayer: root.dragLayer
+              payload: ({
                   "kind": "cell-add",
                   "layout": layoutTile.modelData,
                   "icon": "view_quilt",
                   "label": root.dragLayer.layoutLabel(layoutTile.modelData)
-                }, layoutArea, x, y)
-              onDragMoved: (x, y) => root.dragLayer.move(layoutArea, x, y)
-              onDropped: root.dragLayer.end()
-              onDragCanceled: root.dragLayer.cancel()
+                })
               onTapped: root.dragLayer.editor.appendCell(layoutTile.modelData)
             }
           }

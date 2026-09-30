@@ -125,17 +125,15 @@ Item {
     DragArea {
       id: gripArea
       anchors.fill: parent
-      onDragStarted: (x, y) => root.dragLayer.begin({
+      dragLayer: root.dragLayer
+      payload: ({
           "kind": "cell-move",
           "layout": root.layoutName,
           "column": root.column,
           "cell": root.cell,
           "icon": "view_quilt",
           "label": root.dragLayer.layoutLabel(root.layoutName)
-        }, gripArea, x, y)
-      onDragMoved: (x, y) => root.dragLayer.move(gripArea, x, y)
-      onDropped: root.dragLayer.end()
-      onDragCanceled: root.dragLayer.cancel()
+        })
       onTapped: root.dragLayer.editor.select(root.column, root.cell, "")
     }
   }

@@ -4,12 +4,17 @@ import QtQuick
 // A MouseArea that tells a press-and-move drag from a click: past
 // `threshold` pixels it's a drag (dragStarted at the press point, then
 // dragMoved), released it's dropped; a press that didn't move is tapped.
-// Drag layers (bar and overlay editors) listen to it and do the carrying.
+// With a `dragLayer` (the bar and overlay editors'), the drag carries
+// `payload` there: begin, move, end and cancel are forwarded to it.
 MouseArea {
   id: root
 
   // False: it only taps
   property bool dragEnabled: true
+  // An object with begin(payload, item, x, y), move(item, x, y), end()
+  // and cancel()
+  property var dragLayer: null
+  property var payload: null
   property real threshold: 6
   // Set from the drag's start until the next press, so the click that
   // follows a drop isn't taken for a tap
@@ -44,6 +49,23 @@ MouseArea {
     if (root.dragged)
       root.dragMoved(mouse.x, mouse.y);
   }
+  onDragStarted: (x, y) => {
+    if (root.dragLayer)
+      root.dragLayer.begin(root.payload, root, x, y);
+  }
+  onDragMoved: (x, y) => {
+    if (root.dragLayer)
+      root.dragLayer.move(root, x, y);
+  }
+  onDropped: {
+    if (root.dragLayer)
+      root.dragLayer.end();
+  }
+  onDragCanceled: {
+    if (root.dragLayer)
+      root.dragLayer.cancel();
+  }
+
   onReleased: {
     if (root.dragged)
       root.dropped();

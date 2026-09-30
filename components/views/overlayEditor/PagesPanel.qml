@@ -78,81 +78,43 @@ Item {
         Repeater {
           model: OverlayManager.localViews?.length ?? 0
 
-          delegate: StyledContainer {
+          delegate: ListEntryRow {
             id: entry
             required property int index
             readonly property var entryView: OverlayManager.localViews[entry.index] ?? ({})
-            readonly property bool selected: OverlayManager.selectedViewIndex === entry.index
-            readonly property bool fixed: entry.entryView.type !== "Custom"
             readonly property bool carried: root.dragLayer.draggingKind === "page-move" && root.dragLayer.dragging.index === entry.index
-            readonly property color ink: entry.selected ? Theme.background : Theme.foreground
 
             width: pageList.width
             height: root.rowHeight
             y: entry.index * root.rowStep
-            backgroundColor: entry.selected ? Theme.accent : (entryArea.containsMouse ? Theme.backgroundHighlight : "transparent")
-            borderWidth: 0
             opacity: entry.carried ? 0.3 : 1
+            icon: OverlayConfig.viewIcon(entry.entryView.type)
+            label: OverlayConfig.viewLabel(entry.entryView, entry.index)
+            selected: OverlayManager.selectedViewIndex === entry.index
+            changed: OverlayManager.viewChanged(entry.index)
+            onClicked: OverlayManager.selectView(entry.index)
+            dragArea.dragLayer: root.dragLayer
+            dragArea.payload: ({
+                "kind": "page-move",
+                "index": entry.index,
+                "icon": entry.icon,
+                "label": entry.label
+              })
 
-            DragArea {
-              id: entryArea
-              anchors.fill: parent
-              onDragStarted: (x, y) => root.dragLayer.begin({
-                  "kind": "page-move",
-                  "index": entry.index,
-                  "icon": OverlayConfig.viewIcon(entry.entryView.type),
-                  "label": OverlayConfig.viewLabel(entry.entryView, entry.index)
-                }, entryArea, x, y)
-              onDragMoved: (x, y) => root.dragLayer.move(entryArea, x, y)
-              onDropped: root.dragLayer.end()
-              onDragCanceled: root.dragLayer.cancel()
-              onTapped: OverlayManager.selectView(entry.index)
+            badges: StyledText {
+              visible: entry.entryView.type !== "Custom"
+              text: I18n.tr("fixed")
+              textColor: entry.ink
+              textSize: Appearance.fontSize - 2
+              opacity: 0.6
             }
 
-            RowLayout {
-              anchors.fill: parent
-              anchors.leftMargin: Widget.padding
-              anchors.rightMargin: Widget.padding / 2
-              spacing: Widget.spacing
-
-              StyledIcon {
-                text: OverlayConfig.viewIcon(entry.entryView.type)
-                textColor: entry.selected ? Theme.background : Theme.accent
-                Layout.preferredWidth: Appearance.fontSize * 1.5
-              }
-
-              StyledText {
-                text: OverlayConfig.viewLabel(entry.entryView, entry.index)
-                textColor: entry.ink
-                font.bold: entry.selected
-                elide: Text.ElideRight
-                Layout.fillWidth: true
-              }
-
-              StyledText {
-                visible: entry.fixed
-                text: I18n.tr("fixed")
-                textColor: entry.ink
-                textSize: Appearance.fontSize - 2
-                opacity: 0.6
-              }
-
-              // Unsaved edits to this page
-              UnsavedDot {
-                visible: OverlayManager.viewChanged(entry.index)
-                onAccent: entry.selected
-              }
-
-              SquareIconButton {
-                size: Widget.height - 6
-                iconText: "close"
-                iconColor: entry.ink
-                backgroundColor: "transparent"
-                hoverColor: Theme.error
-                opacity: entry.selected || entryArea.containsMouse ? 1 : 0.35
-                tooltipText: I18n.tr("Remove this page")
-                onClicked: OverlayManager.removeView(entry.index)
-              }
+            RowAction {
+              row: entry
+              danger: true
+              iconText: "close"
+              tooltipText: I18n.tr("Remove this page")
+              onClicked: OverlayManager.removeView(entry.index)
             }
           }
         }
@@ -169,15 +131,9 @@ Item {
         }
       }
 
-      // The page that isn't in config, always last
+      // The pages that aren't in config, always last
       Repeater {
-        // Labels: I18n.tr("Overlay editor")
-        model: [
-          {
-            "label": "Overlay editor",
-            "icon": "view_quilt"
-          }
-        ]
+        model: OverlayConfig.pinnedPages
 
         delegate: RowLayout {
           id: pinned
@@ -205,27 +161,10 @@ Item {
         }
       }
 
-      StyledContainer {
+      AddEntryButton {
         id: addButton
-        Layout.fillWidth: true
-        Layout.preferredHeight: Widget.height
-        backgroundColor: addArea.containsMouse ? Theme.backgroundHighlight : "transparent"
-        borderColor: Theme.border
-        borderWidth: 1
-
-        StyledText {
-          anchors.centerIn: parent
-          text: "+  " + I18n.tr("New page")
-          opacity: addArea.containsMouse ? 1 : 0.7
-        }
-
-        MouseArea {
-          id: addArea
-          anchors.fill: parent
-          hoverEnabled: true
-          cursorShape: Qt.PointingHandCursor
-          onClicked: viewPicker.open()
-        }
+        text: I18n.tr("New page")
+        onClicked: viewPicker.open()
 
         TypePickerPopup {
           id: viewPicker
@@ -260,16 +199,11 @@ Item {
       visible: OverlayManager.problems.length > 0
       title: I18n.tr("Can't save yet")
 
-      Repeater {
-        model: OverlayManager.problems
-
-        StyledText {
-          required property string modelData
-          Layout.fillWidth: true
-          wrapMode: Text.WordWrap
-          text: "•  " + modelData
-          textColor: Theme.error
-        }
+      IssueList {
+        issues: OverlayManager.problems.map(text => ({
+              "level": "error",
+              "text": text
+            }))
       }
     }
   }

@@ -3,6 +3,7 @@ import QtQuick
 import Quickshell
 
 import qs.services
+import qs.components.methods
 
 QtObject {
   enum Location {
@@ -122,6 +123,9 @@ QtObject {
         }));
     }));
   }
+
+  // A bar's own fields in groups (`x-group`), for the bar editor
+  readonly property var fieldGroups: SchemaLayout.objectGroups(ConfigManager.configSchema.definitions.Bar, ["widgets"])
 
   readonly property var availableWidgetTypes: {
     const oneOf = ConfigManager.configSchema?.definitions?.BarWidget?.oneOf || [];
