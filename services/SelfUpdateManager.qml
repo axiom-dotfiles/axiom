@@ -65,9 +65,7 @@ Singleton {
   }
 
   function openSettings() {
-    SettingsManager.query = "";
-    SettingsManager.category = "Updates";
-    ShellManager.openOverlayPage("Settings");
+    SettingsManager.openCategory("Updates");
   }
 
   // I18n.tr("It has changed files. Commit or discard them to update.")

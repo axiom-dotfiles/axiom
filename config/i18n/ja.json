@@ -340,7 +340,6 @@
     "Text next to the icon. Replaced by the label command's output when that is set.": "アイコンの横のテキスト。ラベルコマンドを設定するとその出力に置き換わります。",
     "Text shown while connected. Empty shows the tailnet name.": "接続中に表示するテキスト。空欄の場合は tailnet 名を表示します。",
     "Theme": "テーマ",
-    "Theme Generation": "テーマの生成",
     "Theme color swatch": "テーマカラーの見本",
     "Theme editor (use a Tall cell)": "テーマエディター（Tall セル用）",
     "Theme integrations": "テーマ連携",

@@ -204,7 +204,7 @@ QtObject {
           const addresses = [].concat(...JSON.parse(text || "[]").map(i => i.addr_info ?? []));
           ip = addresses.find(a => a.family === "inet")?.local ?? "";
         } catch (e) {
-          console.warn(`NetworkingManager: couldn't parse ip output: ${e}`);
+          console.warn("[NetworkingManager] Could not parse ip output:", e);
         }
         root.primaryIp = ip;
       }

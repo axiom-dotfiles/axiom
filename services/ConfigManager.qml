@@ -175,7 +175,7 @@ QtObject {
      */
   function forceReload() {
     _fileHashes = {};
-    _checkForChanges();
+    _checkConfigFile();
   }
 
   /**
@@ -191,7 +191,7 @@ QtObject {
   // --- Private Implementation ---
   Component.onCompleted: {
     console.log("[ConfigManager] ♻ ConfigManager service started.");
-    _checkForChanges();
+    _checkConfigFile();
   }
 
   // Loaded eagerly (synchronous reads) so the config readers never see a
@@ -225,7 +225,7 @@ QtObject {
     printErrors: false
     onFileChanged: {
       reload();
-      root._checkForChanges();
+      root._checkConfigFile();
     }
   }
 
@@ -235,16 +235,15 @@ QtObject {
     interval: 5000
     running: true
     repeat: true
-    onTriggered: root._checkForChanges()
+    onTriggered: root._checkConfigFile()
   }
 
   function _hashString(str) {
-    var hash = 0;
+    let hash = 0;
     if (!str || str.length === 0)
       return hash;
-    for (var i = 0; i < str.length; i++) {
-      var chars = str.charCodeAt(i);
-      hash = ((hash << 5) - hash) + chars;
+    for (let i = 0; i < str.length; i++) {
+      hash = ((hash << 5) - hash) + str.charCodeAt(i);
       hash = hash & hash;
     }
     return hash.toString();
@@ -255,7 +254,7 @@ QtObject {
   }
 
   function _loadSchema() {
-    var content = _getFileContent(_configSchemaPath);
+    const content = _getFileContent(_configSchemaPath);
     console.log("[ConfigManager] Loading config schema from", _configSchemaPath);
     if (content) {
       try {
@@ -317,7 +316,7 @@ QtObject {
   }
 
   // The config for the very first evaluation. Anything but a good file
-  // gives schema defaults; the first _checkForChanges() then decides
+  // gives schema defaults; the first _checkConfigFile() then decides
   // whether that means first run (write defaults) or blocking saves.
   function _initialConfig(schema) {
     console.log("[ConfigManager] Loading configuration from", configDir + configFile);
@@ -438,9 +437,5 @@ QtObject {
     if (result.migrated)
       Qt.callLater(() => _write(result.config));
     return true;
-  }
-
-  function _checkForChanges() {
-    _checkConfigFile();
   }
 }

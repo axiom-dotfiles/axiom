@@ -387,7 +387,7 @@ QtObject {
 
   // --- Calculator ---
 
-  property bool _qalc: false
+  readonly property bool _qalc: DependencyManager.found.qalc === true
   // The expression wanted, and the last one qalc answered
   property string _calcExpr: ""
   property string _calcDoneExpr: ""
@@ -472,11 +472,6 @@ QtObject {
         root._refresh();
       }
     }
-  }
-
-  property Process _qalcCheck: Process {
-    command: ["sh", "-c", "command -v qalc"]
-    onExited: exitCode => root._qalc = exitCode === 0
   }
 
   // --- Run & web ---
@@ -717,6 +712,6 @@ QtObject {
       return all;
     }, {});
     commandUsage = _commandStateHandler.load({});
-    _qalcCheck.running = true;
+    DependencyManager.check(["qalc"]);
   }
 }

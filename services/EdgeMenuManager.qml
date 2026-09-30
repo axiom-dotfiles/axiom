@@ -105,11 +105,16 @@ Singleton {
     return root.pinnedMenus[id] === true;
   }
 
+  function _exists(id) {
+    if (EdgeMenusConfig.menuById(id))
+      return true;
+    console.warn("[EdgeMenuManager] No edge menu with id", id);
+    return false;
+  }
+
   function open(id, anchor) {
-    if (!EdgeMenusConfig.menuById(id)) {
-      console.warn("No edge menu with id", id);
+    if (!root._exists(id))
       return;
-    }
     const anchors = Object.assign({}, root.anchors);
     anchors[id] = anchor ?? null;
     root.anchors = anchors;
@@ -125,10 +130,8 @@ Singleton {
   // Opens a menu and moves the cursor into it, so one that closes when the
   // pointer leaves stays open
   function reveal(id) {
-    if (!EdgeMenusConfig.menuById(id)) {
-      console.warn("No edge menu with id", id);
+    if (!root._exists(id))
       return;
-    }
     root.revealing = root._parse(root._set(root.revealing, id, true));
     root.open(id, null);
   }

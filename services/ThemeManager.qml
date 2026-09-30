@@ -42,7 +42,7 @@ QtObject {
   readonly property var defaults: _defaults
 
   signal generationFailed(string errorText)
-  onGenerationFailed: errorText => NotificationManager.sendNotification(I18n.tr("Theme Generation"), I18n.tr("Failed to generate themes"), I18n.tr("There was an error while processing the wallpaper. Details: {0}", errorText), {})
+  onGenerationFailed: errorText => NotificationManager.sendNotification("axiom", I18n.tr("Failed to generate themes"), I18n.tr("There was an error while processing the wallpaper. Details: {0}", errorText))
 
   //=========================================================================
   // Public Functions
