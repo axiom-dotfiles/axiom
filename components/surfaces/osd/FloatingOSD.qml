@@ -19,24 +19,11 @@ PopoutWrapperBase {
   property real yFraction: 0.33
   property Component content: null
   readonly property Item contentItem: loader.item as Item
-  readonly property bool isOpen: occupied && !isClosing
   // Space between the box and its content
   property real contentPadding: Appearance.borderWidth + PopoutConfig.padding
 
   currentItem: root.contentItem
   keepAlive: boxHover.hovered
-
-  function show() {
-    if (isOpen)
-      updateDismissTimer();
-    else
-      safeOpenPopout(null, {});
-  }
-
-  function hide() {
-    if (isOpen)
-      requestDismiss();
-  }
 
   PanelWindow {
     id: window

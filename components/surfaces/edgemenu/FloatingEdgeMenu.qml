@@ -18,9 +18,6 @@ EdgePopout {
 
   required property var menu
   readonly property string menuId: root.menu.id
-  // Pinned, or held open by the editor
-  readonly property bool pinned: EdgeMenuManager.isHeld(root.menuId)
-  readonly property bool wanted: EdgeMenuManager.openMenus[root.menuId] === true
 
   readonly property real edgeDistance: root.menu.edgeDistance
 
@@ -183,59 +180,24 @@ EdgePopout {
   triggerEnabled: root.menu.openOnHover
   hoverDelay: root.menu.openDelay
   triggerWidth: root.menu.triggerSize
-  // 0: the menu's own length (from config until it's first loaded)
-  triggerLength: root.menu.triggerLength > 0 ? root.menu.triggerLength : root.contentItem ? (root.vertical ? root.contentItem.implicitHeight : root.contentItem.implicitWidth) + root.contentPadding * 2 : EdgeMenusConfig.lengthOf(root.menu, root.vertical)
+  triggerLength: sync.triggerLength(root.contentItem, root.vertical, root.contentPadding)
   dismissDelay: root.menu.closeDelay
   keyboardOnDemand: true
-  closeOnClickOutside: root.menu.closeOnOutsideClick && !root.pinned
-  autoDismiss: root.menu.closeOnLeave && !root.pinned && !root.revealing
-  onAutoDismissChanged: root.updateDismissTimer()
+  closeOnClickOutside: root.menu.closeOnOutsideClick && !sync.held
+  autoDismiss: sync.autoDismiss
 
-  // Opened by EdgeMenuManager.reveal: held open until hovered, and the
-  // cursor moved into the box once it's mapped
-  readonly property bool revealing: EdgeMenuManager.revealing[root.menuId] === true
-  Connections {
-    target: root
-    function onContentHoveredChanged() {
-      if (root.contentHovered)
-        EdgeMenuManager.revealDone(root.menuId);
-    }
-  }
-  Timer {
-    interval: 150
-    running: root.revealing && root.isOpen && root.window.visible
-    onTriggered: {
+  EdgeMenuSync {
+    id: sync
+    host: root
+    menu: root.menu
+    screen: root.screen
+    window: root.window
+    onWarpRequested: {
       const box = root.boxInWindow;
       HyprlandManager.warpCursorToLayer(root.layerNamespace, root.screen?.name ?? "", root.window.width, root.window.height, box.x + box.width / 2, box.y + box.height / 2);
     }
   }
-
-  // Follow EdgeMenuManager, and tell it when the popout closes by itself
-  function _sync() {
-    if (root.wanted && !root.isOpen)
-      root.show({
-        "anchorItem": EdgeMenuManager.anchors[root.menuId] ?? null
-      });
-    else if (!root.wanted && root.isOpen)
-      root.hide();
-  }
-  onWantedChanged: _sync()
-  onIsOpenChanged: {
-    if (!root.isOpen)
-      EdgeMenuManager.revealDone(root.menuId);
-    if (!root.isOpen && root.wanted && !root.hasPendingOpen)
-      EdgeMenuManager.close(root.menuId);
-    else if (root.isOpen && !root.wanted)
-      EdgeMenuManager.open(root.menuId, null);
-  }
-  Component.onCompleted: {
-    ShellManager.registerGrabPartner(root.window, root.screen?.name ?? "");
-    Qt.callLater(root._sync);
-  }
-  Component.onDestruction: {
-    ShellManager.unregisterGrabPartner(root.window);
-    root._clearStretch();
-  }
+  Component.onDestruction: root._clearStretch()
 
   content: Component {
     EdgeMenuBody {

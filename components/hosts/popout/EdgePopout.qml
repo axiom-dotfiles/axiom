@@ -54,14 +54,6 @@ PopoutWrapperBase {
   // when the popout should open)
   property bool keepLoaded: false
 
-  // When false the popout can't open at all (and closes if open), and its
-  // trigger strip is removed
-  property bool available: true
-  onAvailableChanged: {
-    if (!available)
-      hide();
-  }
-
   // Hover strip at the very edge of the screen that opens the popout
   property bool triggerEnabled: true
   property int triggerWidth: PopoutConfig.edgeTriggerSize
@@ -127,7 +119,6 @@ PopoutWrapperBase {
   // the capped length would feed back into itself. Infinity for content
   // that grows to fill whatever room it's given.
   property real reachLength: root.contentItem ? (root.vertical ? root.contentItem.implicitHeight : root.contentItem.implicitWidth) : 0
-  readonly property bool isOpen: occupied && !isClosing
 
   // A joining window reaches onto the perpendicular strokes (as a floating
   // bar's does), so a joined end can sit on the stroke's outer edge.
@@ -194,28 +185,10 @@ PopoutWrapperBase {
   currentItem: root.contentItem
   keepAlive: surfaceHover.hovered || trigger.containsMouse || (focusGrab.active && wantsKeyboardFocus)
 
-  // `data` is the open payload: { anchorItem } keeps it open while that
-  // item is hovered, as for bar popouts
-  function show(data) {
-    if (!available)
-      return;
-    if (isOpen) {
-      // Already open: just restart the countdown
-      updateDismissTimer();
-      return;
-    }
-    safeOpenPopout(null, data ?? ({}));
-  }
-
-  function hide() {
-    if (isOpen)
-      requestDismiss();
-  }
-
   EdgeTrigger {
     id: trigger
     screen: root.screen
-    visible: root.available && root.triggerEnabled
+    visible: root.triggerEnabled
     edge: root.edge
     position: root.position
     positionOffset: root.positionOffset

@@ -24,12 +24,6 @@ PopoutWrapperBase {
   required property var menu
   required property ShellScreen screen
 
-  readonly property string menuId: root.menu.id
-  // Pinned, or held open by the editor
-  readonly property bool pinned: EdgeMenuManager.isHeld(root.menuId)
-  readonly property bool wanted: EdgeMenuManager.openMenus[root.menuId] === true
-  readonly property bool isOpen: root.occupied && !root.isClosing
-
   readonly property int edge: EdgeMenusConfig.edgeOf(root.menu)
   readonly property bool vertical: root.edge === Bar.Left || root.edge === Bar.Right
   readonly property real position: root.menu.position / 100
@@ -51,66 +45,19 @@ PopoutWrapperBase {
   readonly property real bodyDepth: root.vertical ? (loader.item?.implicitWidth ?? 0) : (loader.item?.implicitHeight ?? 0)
   readonly property int depth: Math.ceil(root.bodyDepth + root.pad * 2 + root.innerStroke)
 
-  autoDismiss: root.menu.closeOnLeave && !root.pinned && !root.revealing
+  autoDismiss: sync.autoDismiss
   dismissDelay: root.menu.closeDelay
-  onAutoDismissChanged: root.updateDismissTimer()
   keepAlive: panelHover.hovered || trigger.containsMouse
 
-  // Opened by EdgeMenuManager.reveal: held open until hovered, and the
-  // cursor moved onto the modules once the strip is mapped
-  readonly property bool revealing: EdgeMenuManager.revealing[root.menuId] === true
-  Connections {
-    target: root
-    function onContentHoveredChanged() {
-      if (root.contentHovered)
-        EdgeMenuManager.revealDone(root.menuId);
-    }
+  EdgeMenuSync {
+    id: sync
+    host: root
+    menu: root.menu
+    screen: root.screen
+    window: panel
+    onWarpRequested: HyprlandManager.warpCursorToLayer("axiom-edge-menu", root.screen?.name ?? "", panel.width, panel.height, loader.x + loader.width / 2, loader.y + loader.height / 2)
   }
-  Timer {
-    interval: 150
-    running: root.revealing && root.isOpen && panel.visible
-    onTriggered: HyprlandManager.warpCursorToLayer("axiom-edge-menu", root.screen?.name ?? "", panel.width, panel.height, loader.x + loader.width / 2, loader.y + loader.height / 2)
-  }
-
-  function show(data) {
-    if (root.isOpen) {
-      root.updateDismissTimer();
-      return;
-    }
-    root.safeOpenPopout(null, data ?? ({}));
-  }
-
-  function hide() {
-    if (root.isOpen)
-      root.requestDismiss();
-  }
-
-  // Follow EdgeMenuManager, and tell it when the menu closes by itself
-  function _sync() {
-    if (root.wanted && !root.isOpen)
-      root.show({
-        "anchorItem": EdgeMenuManager.anchors[root.menuId] ?? null
-      });
-    else if (!root.wanted && root.isOpen)
-      root.hide();
-  }
-  onWantedChanged: _sync()
-  onIsOpenChanged: {
-    if (!root.isOpen)
-      EdgeMenuManager.revealDone(root.menuId);
-    if (!root.isOpen && root.wanted && !root.hasPendingOpen)
-      EdgeMenuManager.close(root.menuId);
-    else if (root.isOpen && !root.wanted)
-      EdgeMenuManager.open(root.menuId, null);
-  }
-  Component.onCompleted: {
-    ShellManager.registerGrabPartner(panel, root.screen?.name ?? "");
-    Qt.callLater(root._sync);
-  }
-  Component.onDestruction: {
-    ShellManager.unregisterGrabPartner(panel);
-    EdgeMenuManager.setZone(root.screen?.name ?? "", root._edgeName, 0);
-  }
+  Component.onDestruction: EdgeMenuManager.setZone(root.screen?.name ?? "", root._edgeName, 0)
 
   // Report the space taken, for surfaces laid out against this edge
   readonly property string _edgeName: Bar.edgeName(root.edge)
@@ -129,8 +76,7 @@ PopoutWrapperBase {
     startInset: 0
     endInset: 0
     triggerWidth: root.menu.triggerSize
-    // 0: the menu's own length (from config until it's first loaded)
-    triggerLength: root.menu.triggerLength > 0 ? root.menu.triggerLength : loader.item ? (root.vertical ? loader.item.implicitHeight : loader.item.implicitWidth) + root.pad * 2 : EdgeMenusConfig.lengthOf(root.menu, root.vertical)
+    triggerLength: sync.triggerLength(loader.item, root.vertical, root.pad)
     hoverDelay: root.menu.openDelay
     onTriggered: root.show()
   }

@@ -33,6 +33,24 @@ Item {
   property var pendingOpenAnchor: null
   property bool hasPendingOpen: false
 
+  // Open and not on its way out
+  readonly property bool isOpen: occupied && !isClosing
+
+  // Opens with `data` as the payload ({ anchorItem } keeps it open while
+  // that item is hovered), or restarts the countdown when already open
+  function show(data) {
+    if (isOpen) {
+      updateDismissTimer();
+      return;
+    }
+    safeOpenPopout(null, data ?? ({}));
+  }
+
+  function hide() {
+    if (isOpen)
+      requestDismiss();
+  }
+
   // ---- Centralized dismiss logic ----
   // Content just exposes `hovered` (optionally folding in its own extra
   // "keep me alive" conditions, e.g. an active drag or an open submenu).
