@@ -110,7 +110,7 @@ QtObject {
         }
         // Warn once per outage, not on every retry
         if (!root._failing)
-          console.warn(`[Weather] Request failed (${xhr.status}): ${url}`);
+          console.warn(`[WeatherSource] Request failed (${xhr.status}): ${url}`);
         root._failing = true;
         return;
       }
@@ -135,7 +135,7 @@ QtObject {
       getJson(`https://geocoding-api.open-meteo.com/v1/search?count=1&name=${encodeURIComponent(p.location)}`, data => {
         const r = data.results?.[0];
         if (!r) {
-          console.warn(`[Weather] Unknown location: ${p.location}`);
+          console.warn(`[WeatherSource] Unknown location: ${p.location}`);
           return;
         }
         root.place = {

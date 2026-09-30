@@ -4,6 +4,8 @@ import QtQuick
 import Quickshell.Io
 import Quickshell.Services.Pipewire
 
+import qs.config
+
 // Pipewire audio state: the default output (sink) and input (source), every
 // device and app stream, and helpers to control them. All audio nodes are
 // tracked, which is what makes their `.audio` and `.properties` available.
@@ -34,27 +36,19 @@ QtObject {
   readonly property string description: Pipewire.defaultAudioSink?.description ?? ""
 
   function increaseVolume(amount = 0.05) {
-    if (defaultSink?.audio) {
-      defaultSink.audio.volume = Math.min(1.0, defaultSink.audio.volume + amount);
-    }
+    stepNodeVolume(defaultSink, amount);
   }
 
   function decreaseVolume(amount = 0.05) {
-    if (defaultSink?.audio) {
-      defaultSink.audio.volume = Math.max(0.0, defaultSink.audio.volume - amount);
-    }
+    stepNodeVolume(defaultSink, -amount);
   }
 
   function toggleMute() {
-    if (defaultSink?.audio) {
-      defaultSink.audio.muted = !defaultSink.audio.muted;
-    }
+    toggleNodeMute(defaultSink);
   }
 
   function setVolume(value) {
-    if (defaultSink?.audio) {
-      defaultSink.audio.volume = Math.max(0.0, Math.min(1.0, value));
-    }
+    setNodeVolume(defaultSink, value);
   }
 
   // Volume keys (keybind actions volumeUp, ...): the OSD shows the change
@@ -124,7 +118,7 @@ QtObject {
       if (!node?.audio)
         continue;
       const props = node.properties || {};
-      const name = props["application.name"] || props["application.process.binary"] || node.nickname || node.name || "Unknown";
+      const name = appName(node);
       const key = name.toLowerCase();
       if (!byKey[key]) {
         byKey[key] = {
@@ -226,7 +220,9 @@ QtObject {
   readonly property var micUsers: [...new Set(micCaptures.map(n => appName(n)))]
   readonly property bool micInUse: micCaptures.length > 0
 
+  // An app stream's name: its application, else its binary or node name
   function appName(node) {
-    return node?.properties?.["application.name"] || node?.nickname || node?.name || "Unknown";
+    const props = node?.properties ?? {};
+    return props["application.name"] || props["application.process.binary"] || node?.nickname || node?.name || I18n.tr("Unknown");
   }
 }

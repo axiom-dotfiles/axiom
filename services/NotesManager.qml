@@ -24,7 +24,7 @@ QtObject {
   // Every note under the folder (relative paths, sorted), for pickers
   property var allNotes: []
   // `gio trash` works; otherwise deleting is permanent
-  property bool canTrash: false
+  readonly property bool canTrash: DependencyManager.found.gio === true
   // The last failed file operation, for the UI ("" when none)
   property string error: ""
 
@@ -402,7 +402,7 @@ QtObject {
   Component.onCompleted: {
     const saved = root._state.load({})?.lastOpened;
     root._lastOpened = saved && typeof saved === "object" ? saved : {};
-    root._run(["sh", "-c", "command -v gio"], ok => root.canTrash = ok);
+    DependencyManager.check(["gio"]);
     root._start();
   }
 

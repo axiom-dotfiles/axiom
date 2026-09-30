@@ -753,7 +753,7 @@ hl.dispatch(hl.dsp.submap("${_recordSubmap}"))`
           root.keybindings = root._buildKeybindings(entries);
           root.count = entries.length;
         } catch (e) {
-          console.error("KeybindManager: could not parse hyprctl binds:", e);
+          console.warn("[KeybindManager] Could not parse hyprctl binds:", e);
         }
       }
     }

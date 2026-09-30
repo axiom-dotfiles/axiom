@@ -32,6 +32,13 @@ QtObject {
   property string category: ""
   property string query: ""
 
+  // Opens the overlay's settings page on a category (its sidebar name)
+  function openCategory(name) {
+    root.query = "";
+    root.category = name;
+    ShellManager.openOverlayPage("Settings");
+  }
+
   // Settings cards the user folded, by SchemaLayout group key; saved in
   // state/settings.json so they stay folded across restarts
   property var collapsed: ({})

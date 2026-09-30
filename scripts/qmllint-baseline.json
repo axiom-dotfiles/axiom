@@ -108,7 +108,7 @@
     "missing-property: Member \"targetKind\" not found on type \"QQuickItem\"": 1
   },
   "services/BluetoothManager.qml": {
-    "missing-property: Member \"defaultAdapter\" not found on type \"Bluetooth\"": 1
+    "unresolved-type: Type \"BluetoothAdapter\" of property \"defaultAdapter\" not found. This is likely due to a missing dependency entry or a type not being exposed declaratively.": 1
   },
   "services/FileManager.qml": {
     "missing-property: Member \"loaded\" not found on type \"QObject\"": 1,

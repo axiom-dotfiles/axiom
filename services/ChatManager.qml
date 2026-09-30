@@ -204,9 +204,7 @@ Singleton {
 
   // Settings → Chat (keys, providers, presets)
   function openSettings() {
-    SettingsManager.query = "";
-    SettingsManager.category = "Chat";
-    ShellManager.openOverlayPage("Settings");
+    SettingsManager.openCategory("Chat");
   }
 
   // Opens the overlay on the page with the (biggest) Chat module, else an

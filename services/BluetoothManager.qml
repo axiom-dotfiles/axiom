@@ -4,11 +4,10 @@ import QtQuick
 import Quickshell.Bluetooth
 
 import qs.config
-import qs.components.bar.widgets
 
 // Bluetooth state and actions over the default adapter (BlueZ via
 // Quickshell.Bluetooth). Named BluetoothManager so it doesn't shadow
-// Quickshell's `Bluetooth` singleton, or the `Bluetooth` bar widget.
+// Quickshell's `Bluetooth` singleton.
 QtObject {
   id: root
 
@@ -64,7 +63,7 @@ QtObject {
   }
 
   function deviceLabel(device) {
-    return device?.name || device?.deviceName || device?.address || "Unknown";
+    return device?.name || device?.deviceName || device?.address || I18n.tr("Unknown");
   }
 
   function deviceStatus(device) {
