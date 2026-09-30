@@ -288,30 +288,7 @@ Singleton {
   // --- Processes ---
 
   function _run(command, input, done) {
-    const process = _processComponent.createObject(root, {
-      "command": command,
-      "input": input ?? "",
-      "stdinEnabled": input !== null && input !== undefined
-    });
-    process.exited.connect(() => {
-      done?.();
-      process.destroy();
-    });
-    process.running = true;
-  }
-
-  property Component _processComponent: Component {
-    Process {
-      id: process
-      property string input: ""
-      onStarted: {
-        if (!process.stdinEnabled)
-          return;
-        process.write(process.input);
-        process.input = "";
-        process.stdinEnabled = false;
-      }
-    }
+    CommandManager.run(command, () => done?.(), input);
   }
 
   Component.onCompleted: {

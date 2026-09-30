@@ -352,14 +352,7 @@ QtObject {
 
   // Runs a command, calling back with (ok, stdout, exit code)
   function _run(command, callback) {
-    const process = _processComponent.createObject(root, {
-      "command": command
-    });
-    process.done.connect((code, out) => {
-      callback(code === 0, out, code);
-      process.destroy();
-    });
-    process.running = true;
+    CommandManager.run(command, (code, out) => callback(code === 0, out, code));
   }
 
   // Notes from before v17 were JSON state files (config/state/note-<name>.json):
@@ -512,17 +505,6 @@ QtObject {
       blockWrites: true
       atomicWrites: true
       printErrors: false
-    }
-  }
-
-  property Component _processComponent: Component {
-    Process {
-      id: process
-      signal done(int code, string out)
-      stdout: StdioCollector {
-        id: out
-      }
-      onExited: code => process.done(code, out.text)
     }
   }
 }

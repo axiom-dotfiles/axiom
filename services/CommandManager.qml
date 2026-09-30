@@ -10,8 +10,11 @@ import Quickshell.Io
 // something has acquire()d it.
 //   CommandManager.acquire(owner, { command, interval })
 //   CommandManager.outputs[command]    // last stdout, trimmed
-// Also runs one-off commands for widgets (runDetached), so the UI starts
-// no processes of its own.
+// Also runs one-off commands: runDetached for widgets (so the UI starts no
+// processes of its own), and run() for services that want the output:
+//   CommandManager.run(["cmd", "arg"], (exitCode, stdout, stderr) => ..., input)
+// `input` (optional) is written to stdin, which is then closed: how secrets
+// and clipboard text reach a command without going through argv.
 QtObject {
   id: root
 
@@ -38,6 +41,21 @@ QtObject {
   function runDetached(command) {
     if (command)
       Quickshell.execDetached(["sh", "-c", command]);
+  }
+
+  // Runs a command once and calls back with (exitCode, stdout, stderr).
+  // With `input` (a string), it's written to stdin, then stdin is closed.
+  function run(command, callback, input) {
+    const process = root._oneShotComponent.createObject(root, {
+      "command": command,
+      "input": input ?? "",
+      "stdinEnabled": input !== null && input !== undefined
+    });
+    process.done.connect((exitCode, out, err) => {
+      callback?.(exitCode, out, err);
+      process.destroy();
+    });
+    process.running = true;
   }
 
   // Run a command again now (after an action that may change its output)
@@ -85,6 +103,29 @@ QtObject {
           }
         }
       }
+    }
+  }
+
+  property Component _oneShotComponent: Component {
+    Process {
+      id: oneShot
+      property string input: ""
+      signal done(int exitCode, string out, string err)
+
+      stdout: StdioCollector {
+        id: oneShotOut
+      }
+      stderr: StdioCollector {
+        id: oneShotErr
+      }
+      onStarted: {
+        if (!oneShot.stdinEnabled)
+          return;
+        oneShot.write(oneShot.input);
+        oneShot.input = "";
+        oneShot.stdinEnabled = false; // closes stdin
+      }
+      onExited: exitCode => oneShot.done(exitCode, oneShotOut.text, oneShotErr.text)
     }
   }
 
