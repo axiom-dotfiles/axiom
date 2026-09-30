@@ -17,16 +17,6 @@ Card {
   // "Running 100.x.y.z", or "" when Tailscale isn't installed
   readonly property string tailscale: TailscaleManager.available ? (TailscaleManager.backendState + " " + TailscaleManager.ip).trim() : ""
 
-  function rate(bytes) {
-    const units = ["B/s", "KB/s", "MB/s", "GB/s"];
-    let i = 0;
-    while (bytes >= 1024 && i < units.length - 1) {
-      bytes /= 1024;
-      i++;
-    }
-    return `${bytes < 10 && i > 0 ? bytes.toFixed(1) : Math.round(bytes)} ${units[i]}`;
-  }
-
   Component.onCompleted: {
     NetworkingManager.refreshIp();
     SystemManager.acquire(root, {
@@ -53,23 +43,14 @@ Card {
     label: root.info.name || I18n.tr("Disconnected")
   }
 
-  Row {
+  RateLabel {
     visible: root.compact
     anchors.bottom: parent.bottom
     anchors.bottomMargin: root.pad
     anchors.horizontalCenter: parent.horizontalCenter
-    spacing: 2
     opacity: 0.8
-    StyledIcon {
-      anchors.verticalCenter: parent.verticalCenter
-      text: "arrow_downward"
-      textSize: Appearance.fontSize - 2
-    }
-    StyledText {
-      anchors.verticalCenter: parent.verticalCenter
-      text: root.rate(SystemManager.netRx)
-      textSize: Appearance.fontSize - 2
-    }
+    rate: SystemManager.netRx
+    textSize: Appearance.fontSize - 2
   }
 
   ColumnLayout {
@@ -135,38 +116,17 @@ Card {
 
     RowLayout {
       Layout.fillWidth: true
-      Row {
-        spacing: 2
-        StyledIcon {
-          anchors.verticalCenter: parent.verticalCenter
-          text: "arrow_downward"
-          textColor: Theme.accentAlt
-          textSize: Appearance.fontSize - 1
-        }
-        StyledText {
-          anchors.verticalCenter: parent.verticalCenter
-          text: root.rate(SystemManager.netRx)
-          textColor: Theme.accentAlt
-          textSize: Appearance.fontSize - 1
-        }
+      RateLabel {
+        rate: SystemManager.netRx
+        textColor: Theme.accentAlt
       }
       Item {
         Layout.fillWidth: true
       }
-      Row {
-        spacing: 2
-        StyledIcon {
-          anchors.verticalCenter: parent.verticalCenter
-          text: "arrow_upward"
-          textColor: Theme.accent
-          textSize: Appearance.fontSize - 1
-        }
-        StyledText {
-          anchors.verticalCenter: parent.verticalCenter
-          text: root.rate(SystemManager.netTx)
-          textColor: Theme.accent
-          textSize: Appearance.fontSize - 1
-        }
+      RateLabel {
+        direction: "up"
+        rate: SystemManager.netTx
+        textColor: Theme.accent
       }
     }
   }

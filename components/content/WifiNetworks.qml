@@ -29,16 +29,6 @@ Panel {
 
   implicitWidth: 380
 
-  function rate(bytes) {
-    const units = ["B/s", "KB/s", "MB/s", "GB/s"];
-    let i = 0;
-    while (bytes >= 1024 && i < units.length - 1) {
-      bytes /= 1024;
-      i++;
-    }
-    return `${bytes < 10 && i > 0 ? bytes.toFixed(1) : Math.round(bytes)} ${units[i]}`;
-  }
-
   Component.onCompleted: {
     NetworkingManager.acquireScan(root);
     NetworkingManager.refreshIp();
@@ -175,37 +165,18 @@ Panel {
       visible: root.info.kind !== ""
       spacing: 0
 
-      Row {
+      RateLabel {
         Layout.alignment: Qt.AlignRight
-        spacing: 2
-        StyledIcon {
-          anchors.verticalCenter: parent.verticalCenter
-          text: "arrow_downward"
-          textSize: Appearance.fontSize - 3
-          textColor: Theme.accentAlt
-        }
-        StyledText {
-          anchors.verticalCenter: parent.verticalCenter
-          text: root.rate(SystemManager.netRx)
-          textSize: Appearance.fontSize - 3
-          textColor: Theme.accentAlt
-        }
+        rate: SystemManager.netRx
+        textColor: Theme.accentAlt
+        textSize: Appearance.fontSize - 3
       }
-      Row {
+      RateLabel {
         Layout.alignment: Qt.AlignRight
-        spacing: 2
-        StyledIcon {
-          anchors.verticalCenter: parent.verticalCenter
-          text: "arrow_upward"
-          textSize: Appearance.fontSize - 3
-          textColor: Theme.accent
-        }
-        StyledText {
-          anchors.verticalCenter: parent.verticalCenter
-          text: root.rate(SystemManager.netTx)
-          textSize: Appearance.fontSize - 3
-          textColor: Theme.accent
-        }
+        direction: "up"
+        rate: SystemManager.netTx
+        textColor: Theme.accent
+        textSize: Appearance.fontSize - 3
       }
     }
   }

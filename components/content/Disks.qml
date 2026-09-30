@@ -3,6 +3,7 @@ import QtQuick
 import QtQuick.Layouts
 import qs.config
 import qs.services
+import qs.components.methods
 import qs.components.reusable
 import qs.components.content.parts
 import qs.components.content.base
@@ -12,11 +13,6 @@ Card {
   id: root
 
   readonly property var paths: root.properties.paths?.length > 0 ? root.properties.paths : ["/"]
-
-  function formatSize(bytes) {
-    const gib = bytes / 1073741824;
-    return gib >= 1000 ? `${(gib / 1024).toFixed(1)}T` : `${Math.round(gib)}G`;
-  }
 
   function register() {
     SystemManager.acquire(root, {
@@ -86,7 +82,7 @@ Card {
                 font.bold: true
               }
               StyledText {
-                text: disk.usage ? `${root.formatSize(disk.usage.used)} / ${root.formatSize(disk.usage.total)}` : "…"
+                text: disk.usage ? Utils.formatSize(disk.usage.used) + " / " + Utils.formatSize(disk.usage.total) : "…"
                 textSize: Appearance.fontSize - 2
                 opacity: 0.7
               }
