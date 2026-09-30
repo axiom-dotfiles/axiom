@@ -187,17 +187,23 @@ ColumnLayout {
       }
     }
 
-    // The lines a dragged tile snapped to
+    // The lines a dragged tile snapped to (by count: `guides` is a new
+    // array on every move)
     Repeater {
-      model: root.guides
+      model: root.guides.length
 
       delegate: Rectangle {
-        required property var modelData
-        readonly property bool vertical: modelData.axis === "x"
+        id: guideLine
+        required property int index
+        readonly property var guide: root.guides[guideLine.index] ?? {
+          "axis": "x",
+          "at": 0
+        }
+        readonly property bool vertical: guide.axis === "x"
         z: 3
         color: Theme.accent
-        x: vertical ? (modelData.at - root.view.x) * root.view.scale : 0
-        y: vertical ? 0 : (modelData.at - root.view.y) * root.view.scale
+        x: vertical ? (guide.at - root.view.x) * root.view.scale : 0
+        y: vertical ? 0 : (guide.at - root.view.y) * root.view.scale
         width: vertical ? 1 : board.width
         height: vertical ? board.height : 1
       }

@@ -14,7 +14,7 @@ import qs.components.methods
 // I18n.tr("Primary") I18n.tr("Resolution") I18n.tr("Refresh rate")
 // I18n.tr("Scale") I18n.tr("Mirror") I18n.tr("Variable refresh rate")
 // I18n.tr("10-bit color") I18n.tr("Color mode") I18n.tr("SDR brightness")
-// I18n.tr("SDR saturation")
+// I18n.tr("SDR saturation") I18n.tr("X") I18n.tr("Y")
 ColumnLayout {
   id: root
 

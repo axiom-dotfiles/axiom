@@ -132,7 +132,7 @@ StyledContainer {
 
         StyledText {
           visible: !HyprlandConfigManager.hasOwnSection(label.input.text)
-          text: HyprlandConfigManager.sectionFor(root.bind.action) + "  ›"
+          text: I18n.tr(HyprlandConfigManager.sectionFor(root.bind.action)) + "  ›"
           opacity: 0.5
           textSize: Appearance.fontSize - 1
         }

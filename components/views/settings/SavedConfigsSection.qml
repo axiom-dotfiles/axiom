@@ -92,7 +92,7 @@ ColumnLayout {
           }
 
           StyledText {
-            text: I18n.formatDate(row.fileModified, "yyyy-MM-dd hh:mm")
+            text: I18n.formatDate(row.fileModified, I18n.dateFormat("dateTime"))
             opacity: 0.6
             textSize: Appearance.fontSize - 2
             Layout.fillWidth: true

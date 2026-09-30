@@ -39,7 +39,7 @@ Rectangle {
 
   width: row.implicitWidth + root.inset * 2
   height: Math.round(Widget.height * 1.5)
-  radius: Widget.radius
+  radius: Appearance.borderRadius
   color: Theme.backgroundAlt
   border.color: Theme.foreground
   border.width: Appearance.borderWidth
@@ -184,7 +184,7 @@ Rectangle {
                 text: tab.modelData.icon
                 textSize: root.iconSize
                 fill: tab.isCurrent ? 1 : 0
-                color: tab.ink
+                textColor: tab.ink
               }
 
               StyledText {
@@ -192,7 +192,7 @@ Rectangle {
                 text: tab.modelData.label
                 visible: tab.showLabel
                 font.weight: tab.isCurrent ? Font.DemiBold : Font.Normal
-                color: tab.ink
+                textColor: tab.ink
               }
             }
 

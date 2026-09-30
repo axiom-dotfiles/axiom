@@ -55,7 +55,7 @@ Also `pragma Singleton`, but these are typed config *readers*, not owners — on
 
 `General.language` picks the language. English is the source language: user-visible text is written in English, inline, as `I18n.tr("Text")`.
 - **Dynamic values** use placeholders, so the whole sentence stays one key: `I18n.tr("{0} updates", count)`. Don't build sentences with template strings.
-- **Dates and times** go through `I18n.formatDate(date, format)`, never `Qt.formatDateTime`, so day and month names follow the language. Named formats come from `I18n.dateFormat("longDate" | "mediumDate" | "shortDate" | "monthYear" | "fullDate" | "time24" | "time12")`.
+- **Dates and times** go through `I18n.formatDate(date, format)`, never `Qt.formatDateTime`, so day and month names follow the language. Named formats come from `I18n.dateFormat("longDate" | "mediumDate" | "shortDate" | "monthYear" | "fullDate" | "dateTime" | "time24" | "time12")`.
 - **The schema form translates itself.** The generic `Schema*` form widgets translate their own `label`/`title`/`description` and dropdown option labels. Callers pass English, and schema titles and descriptions need no code.
 - **Adding a language** means adding `config/i18n/<code>.json`: `{"_meta": {"name", "locale", "formats"}, "strings": {english: translation}}`. It then appears in the language dropdown (`x-options: "languages"`).
 - **Missing entries fall back to English.** The active dictionary reloads live when edited.
