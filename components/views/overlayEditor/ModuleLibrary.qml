@@ -28,32 +28,13 @@ ColumnLayout {
       // One tab when filling a slot. Tabs: I18n.tr("Modules") I18n.tr("Cells")
       model: root.shape === "" ? ["Modules", "Cells"] : ["Modules"]
 
-      StyledContainer {
-        id: tabButton
+      SegmentButton {
         required property int index
         required property string modelData
-        readonly property bool active: root.tab === tabButton.index
-        Layout.preferredHeight: Widget.height
-        Layout.preferredWidth: tabLabel.implicitWidth + Widget.padding * 2
-        backgroundColor: tabButton.active ? Theme.accent : (tabArea.containsMouse ? Theme.backgroundHighlight : "transparent")
-        borderColor: tabButton.active ? Theme.accent : Theme.border
-        borderWidth: 1
-
-        StyledText {
-          id: tabLabel
-          anchors.centerIn: parent
-          text: I18n.tr(tabButton.modelData)
-          textColor: tabButton.active ? Theme.background : Theme.foreground
-          font.bold: tabButton.active
-        }
-
-        MouseArea {
-          id: tabArea
-          anchors.fill: parent
-          hoverEnabled: true
-          cursorShape: Qt.PointingHandCursor
-          onClicked: root.tab = tabButton.index
-        }
+        Layout.fillWidth: false
+        text: I18n.tr(modelData)
+        active: root.tab === index
+        onClicked: root.tab = index
       }
     }
 
@@ -79,13 +60,10 @@ ColumnLayout {
     Column {
       width: scroll.availableWidth
 
-      Flow {
+      TileFlow {
         id: flow
-        readonly property int columns: Math.max(1, Math.floor(width / (Appearance.fontSize * 16)))
-        readonly property real tileWidth: (width - spacing * (columns - 1)) / columns
-
+        minTileWidth: Appearance.fontSize * 16
         width: parent.width
-        spacing: Widget.spacing
         visible: root.tab === 0
 
         Repeater {

@@ -124,6 +124,9 @@ QtObject {
     }));
   }
 
+  // A widget's `layout` overrides (size, minSize, priority), for the bar
+  // editor's inspector
+  readonly property var widgetLayoutSchema: ConfigManager.configSchema.definitions.WidgetLayout
   // A bar's own fields in groups (`x-group`), for the bar editor
   readonly property var fieldGroups: SchemaLayout.objectGroups(ConfigManager.configSchema.definitions.Bar, ["widgets"])
 

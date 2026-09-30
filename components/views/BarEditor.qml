@@ -11,13 +11,12 @@ import qs.components.views.barEditor
 BaseView {
   id: root
 
-  readonly property real pageHeight: root.grid.span(4)
   readonly property real halfHeight: (root.pageHeight - OverlayConfig.cardSpacing) / 2
 
   Component.onCompleted: BarManager.ensureLoaded()
 
   BarsPanel {
-    implicitWidth: root.grid.unit * 0.8
+    implicitWidth: root.sideWidth
     implicitHeight: root.pageHeight
   }
 

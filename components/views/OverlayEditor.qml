@@ -25,7 +25,7 @@ BaseView {
     onPageMoved: (from, to) => OverlayManager.moveView(from, to)
     editColumns: root.isCustom ? (root.view.columns ?? []) : null
     canvasIcon: root.view ? OverlayConfig.viewIcon(root.view.type) : "view_quilt"
-    canvasTitle: !root.view ? I18n.tr("No pages") : root.isCustom ? (root.view.name || I18n.tr("Page {0}", OverlayManager.selectedViewIndex + 1)) : I18n.tr(OverlayConfig.viewInfo(root.view.type)?.label ?? root.view.type)
+    canvasTitle: root.view ? OverlayConfig.viewLabel(root.view, OverlayManager.selectedViewIndex) : I18n.tr("No pages")
     emptyText: I18n.tr(root.view ? "A fixed page: it has no layout to edit. Drag it in the page list to reorder it." : "No pages yet: add one with New page.")
     editable: root.isCustom
     notEditableHint: I18n.tr("Pick a custom page to add modules to it")
