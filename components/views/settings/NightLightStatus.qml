@@ -29,20 +29,9 @@ ColumnLayout {
     Layout.fillWidth: true
     spacing: Widget.spacing
 
-    Rectangle {
-      implicitWidth: chip.implicitWidth + Widget.padding * 2
-      implicitHeight: chip.implicitHeight + 4
-      radius: height / 2
+    StatusChip {
+      text: root.missing ? I18n.tr("Not installed") : NightLightManager.active ? I18n.tr("On") : I18n.tr("Off")
       color: root.missing ? Theme.error : NightLightManager.active ? Theme.success : Theme.foregroundAlt
-
-      StyledText {
-        id: chip
-        anchors.centerIn: parent
-        text: root.missing ? I18n.tr("Not installed") : NightLightManager.active ? I18n.tr("On") : I18n.tr("Off")
-        textColor: Theme.background
-        textSize: Appearance.fontSize - 2
-        font.bold: true
-      }
     }
 
     StyledText {

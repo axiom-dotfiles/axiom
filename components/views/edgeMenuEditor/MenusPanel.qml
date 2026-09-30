@@ -134,12 +134,9 @@ Item {
             }
 
             // Unsaved edits to this menu
-            Rectangle {
+            UnsavedDot {
               visible: EdgeMenuManager.menuChanged(entry.index)
-              implicitWidth: 8
-              implicitHeight: 8
-              radius: 4
-              color: entry.selected ? Theme.background : Theme.accent
+              onAccent: entry.selected
             }
 
             SquareIconButton {

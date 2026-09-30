@@ -22,23 +22,10 @@ StyledContainer {
     anchors.margins: Widget.padding
     spacing: Widget.spacing
 
-    StyledText {
-      text: root.section.undescribed ? I18n.tr("Undescribed") : (root.section.title || I18n.tr("Other"))
-      textColor: Theme.accent
-      textSize: Appearance.fontSize + 1
-      font.bold: true
-      elide: Text.ElideRight
-      Layout.fillWidth: true
+    SectionHeading {
+      title: root.section.undescribed ? I18n.tr("Undescribed") : (root.section.title || I18n.tr("Other"))
+      description: root.section.undescribed ? I18n.tr("A bind's description sets its label, and a \"Section: Label\" prefix picks its section.") : ""
       Layout.bottomMargin: Widget.spacing / 2
-    }
-
-    StyledText {
-      visible: root.section.undescribed
-      text: I18n.tr("A bind's description sets its label, and a \"Section: Label\" prefix picks its section.")
-      opacity: 0.6
-      textSize: Appearance.fontSize - 2
-      wrapMode: Text.WordWrap
-      Layout.fillWidth: true
     }
 
     Repeater {

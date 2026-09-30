@@ -84,12 +84,8 @@ StyledContainer {
           }
         }
 
-        Rectangle {
+        UnsavedDot {
           visible: root.collapsed && root.hasChanges
-          implicitWidth: 8
-          implicitHeight: 8
-          radius: 4
-          color: Theme.accent
           Layout.alignment: Qt.AlignTop
           Layout.topMargin: Appearance.fontSize / 2
         }

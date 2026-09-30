@@ -119,12 +119,9 @@ Item {
             }
 
             // Unsaved edits in this category
-            Rectangle {
+            UnsavedDot {
               visible: entry.changed
-              implicitWidth: 8
-              implicitHeight: 8
-              radius: 4
-              color: entry.selected ? Theme.background : Theme.accent
+              onAccent: entry.selected
             }
           }
 

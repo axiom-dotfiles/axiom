@@ -138,12 +138,9 @@ Item {
               }
 
               // Unsaved edits to this page
-              Rectangle {
+              UnsavedDot {
                 visible: OverlayManager.viewChanged(entry.index)
-                implicitWidth: 8
-                implicitHeight: 8
-                radius: 4
-                color: entry.selected ? Theme.background : Theme.accent
+                onAccent: entry.selected
               }
 
               SquareIconButton {

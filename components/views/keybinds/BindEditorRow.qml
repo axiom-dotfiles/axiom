@@ -190,32 +190,10 @@ StyledContainer {
       }
     }
 
-    Repeater {
-      model: root.issues
-
-      delegate: RowLayout {
-        id: issue
-        required property var modelData
-        readonly property color issueColor: modelData.level === "error" ? Theme.error : Theme.warning
-        Layout.fillWidth: true
-        Layout.leftMargin: Widget.padding / 2
-        spacing: Widget.spacing / 2
-
-        StyledIcon {
-          Layout.alignment: Qt.AlignTop
-          text: issue.modelData.level === "error" ? "cancel" : "warning"
-          textColor: issue.issueColor
-          textSize: Appearance.fontSize - 2
-        }
-
-        StyledText {
-          text: issue.modelData.text
-          textColor: issue.issueColor
-          textSize: Appearance.fontSize - 2
-          wrapMode: Text.WordWrap
-          Layout.fillWidth: true
-        }
-      }
+    IssueList {
+      issues: root.issues
+      textSize: Appearance.fontSize - 2
+      Layout.leftMargin: Widget.padding / 2
     }
   }
 }
