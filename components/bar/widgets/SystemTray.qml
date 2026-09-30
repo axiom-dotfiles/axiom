@@ -21,7 +21,7 @@ BarWidget {
   Rectangle {
     anchors.fill: parent
     radius: root.barConfig.radius
-    color: Theme.backgroundAlt
+    color: Theme.resolveColor(root.properties.backgroundColor)
   }
 
   Grid {
@@ -60,7 +60,7 @@ BarWidget {
           panel: root.panel
           popoutName: "SystemTray"
           openDelay: 150
-          active: trayItem.modelData.hasMenu
+          active: root.properties.showPopout && trayItem.modelData.hasMenu
           extraData: ({
               "trayItem": trayItem.modelData,
               "barConfig": root.barConfig,

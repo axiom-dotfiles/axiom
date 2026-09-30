@@ -15,8 +15,8 @@ Panel {
 
   // [{ label, configDir }], from the widget's config
   property var accounts: []
-  property int warnPercent: 75
-  property int critPercent: 90
+  property int warnThreshold: 75
+  property int criticalThreshold: 90
 
   // Re-read on every update, so the relative times stay current
   readonly property real now: {
@@ -45,7 +45,7 @@ Panel {
     return isNaN(t) ? "" : I18n.tr("resets in {0}", duration(t - root.now));
   }
   function colorFor(percent) {
-    return percent >= root.critPercent ? Theme.error : percent >= root.warnPercent ? Theme.warning : Theme.accent;
+    return percent >= root.criticalThreshold ? Theme.error : percent >= root.warnThreshold ? Theme.warning : Theme.accent;
   }
 
   component Meter: ColumnLayout {

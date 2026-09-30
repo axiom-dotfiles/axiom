@@ -15,7 +15,7 @@ import qs.config
 BarIconWidget {
   id: root
 
-  readonly property var ignoredApps: (properties.ignoreApps || "").split(",").map(a => a.trim().toLowerCase()).filter(a => a !== "")
+  readonly property var ignoredApps: properties.ignoreApps.map(a => a.trim().toLowerCase()).filter(a => a !== "")
 
   // Links out of a video source (mic use comes from Audio). A link group's
   // state reads Unlinked until the group is bound, so all are tracked.

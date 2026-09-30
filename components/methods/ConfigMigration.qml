@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 29
+  readonly property int currentVersion: 30
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -85,6 +85,8 @@ QtObject {
       result = _v27ToV28(result, changes);
     if (version < 29)
       result = _v28ToV29(result, changes);
+    if (version < 30)
+      result = _v29ToV30(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -784,6 +786,88 @@ QtObject {
         delete bar.app;
         changes.push(`OSD.osds[${osd.id}].bars[${index}].app -> apps`);
       });
+    });
+    return config;
+  }
+
+  // Every bar widget: fn(widget, where)
+  function _eachWidget(config, fn) {
+    (config.Bars ?? []).forEach((bar, barIndex) => {
+      const widgets = bar?.widgets ?? {};
+      Object.keys(widgets).forEach(section => (widgets[section] ?? []).forEach((widget, index) => {
+          if (widget)
+            fn(widget, `Bars[${barIndex}].widgets.${section}[${index}]`);
+        }));
+    });
+  }
+
+  // Every module on an overlay page or in an edge menu: fn(module, where)
+  function _eachModule(config, fn) {
+    const walk = (columns, where) => (columns ?? []).forEach((column, c) => (column?.cells ?? []).forEach((cell, k) => {
+          const slots = cell?.slots ?? {};
+          Object.keys(slots).forEach(key => {
+            if (slots[key])
+              fn(slots[key], `${where}.columns[${c}].cells[${k}].slots.${key}`);
+          });
+        }));
+    (config.Overlay?.views ?? []).forEach((view, index) => walk(view?.columns, `Overlay.views[${index}]`));
+    (config.EdgeMenus ?? []).forEach((menu, index) => walk(menu?.columns, `EdgeMenus[${index}]`));
+  }
+
+  // Renames a key of `object` (keeping a value already under the new name)
+  function _renameKey(object, from, to, where, changes) {
+    if (!object || !(from in object))
+      return;
+    if (!(to in object))
+      object[to] = object[from];
+    delete object[from];
+    changes.push(`${where}: ${from} -> ${to}`);
+  }
+
+  // v30 moved the battery levels and notifications from the Battery widget
+  // to a Battery section (the first widget's settings carry over), and
+  // evened out names: the ClaudeUsage widget's warnPercent / critPercent /
+  // critColor became warnThreshold / criticalThreshold / criticalColor, as
+  // on the other widgets; the ClockCalendar module's use24h became
+  // use24Hour, as on the Time widget; and the Privacy widget's ignoreApps,
+  // a comma-separated string, became a list
+  function _v29ToV30(config, changes) {
+    root._eachWidget(config, (widget, where) => {
+      const props = widget.properties;
+      if (!props || typeof props !== "object")
+        return;
+      switch (widget.type) {
+      case "Battery":
+        ["notify", "lowThreshold", "criticalThreshold"].forEach(key => {
+          if (!(key in props))
+            return;
+          if (typeof config.Battery !== "object" || config.Battery === null)
+            config.Battery = {};
+          if (config.Battery[key] === undefined) {
+            config.Battery[key] = props[key];
+            changes.push(`${where}.properties.${key} -> Battery.${key}`);
+          } else {
+            changes.push(`${where}.properties.${key}: removed (Battery.${key} is set)`);
+          }
+          delete props[key];
+        });
+        break;
+      case "ClaudeUsage":
+        root._renameKey(props, "warnPercent", "warnThreshold", where, changes);
+        root._renameKey(props, "critPercent", "criticalThreshold", where, changes);
+        root._renameKey(props, "critColor", "criticalColor", where, changes);
+        break;
+      case "Privacy":
+        if (typeof props.ignoreApps === "string") {
+          props.ignoreApps = props.ignoreApps.split(",").map(app => app.trim()).filter(app => app !== "");
+          changes.push(`${where}: ignoreApps -> a list`);
+        }
+        break;
+      }
+    });
+    root._eachModule(config, (module, where) => {
+      if (module.type === "ClockCalendar")
+        root._renameKey(module.properties, "use24h", "use24Hour", where, changes);
     });
     return config;
   }

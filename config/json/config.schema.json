@@ -8,7 +8,7 @@
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 29,
+      "default": 30,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
@@ -232,6 +232,20 @@
         "showHint": { "type": "boolean", "title": "Controls hint", "default": true, "description": "Show the keys under the actions." },
         "showBackdrop": { "type": "boolean", "title": "Dim background", "default": true, "description": "Dim the whole screen behind the power menu, under the bars and border." },
         "backdrop": { "type": "integer", "title": "Backdrop darkness", "x-unit": "%", "default": 35, "minimum": 0, "maximum": 90, "description": "How dark the screen behind the power menu goes.", "x-showIf": { "showBackdrop": true } }
+      }
+    },
+
+    "Battery": {
+      "type": "object",
+      "x-category": "Desktop",
+      "title": "Battery",
+      "description": "Low and critical battery levels, on laptops: the Battery widget takes its low and critical colors at them, and a notification says when the battery drops to one.",
+      "additionalProperties": false,
+      "x-order": ["notify", "lowThreshold", "criticalThreshold"],
+      "properties": {
+        "notify": { "type": "boolean", "title": "Low battery notifications", "default": true, "description": "Send a notification when the battery becomes low, and again when it becomes critical." },
+        "lowThreshold": { "type": "integer", "title": "Low at", "x-unit": "%", "default": 20, "minimum": 0, "maximum": 100 },
+        "criticalThreshold": { "type": "integer", "title": "Critical at", "x-unit": "%", "default": 10, "minimum": 0, "maximum": 100 }
       }
     },
 
@@ -1072,7 +1086,7 @@
 
     "OSD": {
       "type": "object",
-      "x-category": "Overlay & OSD",
+      "x-category": "OSD",
       "x-card": "OSDList",
       "title": "OSD",
       "description": "On-screen displays of volume, microphone and brightness bars, shown when one of their bars changes.",
@@ -1178,7 +1192,7 @@
 
     "Overlay": {
       "type": "object",
-      "x-category": "Overlay & OSD",
+      "x-category": "Overlay",
       "x-links": ["OverlayEditor"],
       "title": "Overlay",
       "additionalProperties": false,
@@ -1315,7 +1329,7 @@
 
     "WorkspaceOverlay": {
       "type": "object",
-      "x-category": "Overlay & OSD",
+      "x-category": "Overlay",
       "title": "Workspace overview",
       "description": "The full-screen workspace board (laid out as in Workspaces): drag windows between workspaces, right-drag to resize, middle-click to close.",
       "additionalProperties": false,
@@ -2448,7 +2462,7 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "use24h": {"type": "boolean", "title": "24-hour clock", "default": true},
+            "use24Hour": {"type": "boolean", "title": "24-hour clock", "default": true},
             "showSeconds": {"type": "boolean", "title": "Show seconds", "default": false}
           }
         }
@@ -2768,7 +2782,9 @@
           "additionalProperties": false,
           "properties": {
             "iconSize": { "type": "integer", "x-control": "stepper", "title": "Icon size", "default": 18, "minimum": 8, "maximum": 64, "x-unit": "px", "description": "Size of tray icons (px)." },
-            "showPassive": { "type": "boolean", "title": "Show passive", "default": true, "description": "Also show items that report themselves as passive (idle)." }
+            "showPassive": { "type": "boolean", "title": "Show passive", "default": true, "description": "Also show items that report themselves as passive (idle)." },
+            "showPopout": { "type": "boolean", "title": "Menus", "default": true, "description": "Open an item's menu when it's hovered." },
+            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "backgroundAlt" }
           }
         }
       }
@@ -2837,13 +2853,10 @@
           "additionalProperties": false,
           "properties": {
             "showPercentage": { "type": "boolean", "title": "Show percentage", "default": true },
-            "lowThreshold": { "type": "integer", "title": "Low", "x-unit": "%", "default": 20, "minimum": 0, "maximum": 100, "description": "At or below this, the widget uses the low color." },
-            "criticalThreshold": { "type": "integer", "title": "Critical", "x-unit": "%", "default": 10, "minimum": 0, "maximum": 100, "description": "At or below this, the widget uses the critical color." },
-            "notify": { "type": "boolean", "title": "Notifications", "default": true, "description": "Send a notification when the battery becomes low or critical." },
             "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base0D" },
             "chargingColor": { "type": "string", "title": "Charging background", "x-options": "colors", "default": "base0B" },
-            "lowColor": { "type": "string", "title": "Low background", "x-options": "colors", "default": "base0C" },
-            "criticalColor": { "type": "string", "title": "Critical background", "x-options": "colors", "default": "base08" },
+            "lowColor": { "type": "string", "title": "Low background", "x-options": "colors", "default": "base0C", "description": "At or below Battery > Low at (in settings)." },
+            "criticalColor": { "type": "string", "title": "Critical background", "x-options": "colors", "default": "base08", "description": "At or below Battery > Critical at (in settings)." },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
           }
         }
@@ -2933,7 +2946,7 @@
             "showMic": { "type": "boolean", "title": "Microphone", "default": true },
             "showScreen": { "type": "boolean", "title": "Screen share", "default": true },
             "showCamera": { "type": "boolean", "title": "Camera", "default": true },
-            "ignoreApps": { "type": "string", "title": "Ignored apps", "default": "cava", "description": "Comma-separated app names that never trigger an indicator." },
+            "ignoreApps": { "type": "array", "items": { "type": "string" }, "title": "Ignored apps", "default": ["cava"], "description": "App names that never trigger an indicator, comma-separated." },
             "activeColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base08" },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
           }
@@ -3018,13 +3031,13 @@
             "display": { "type": "string", "title": "Accounts shown", "default": "max", "enum": ["max", "all", "first"], "x-enumLabels": { "max": "Fullest", "all": "All", "first": "First" }, "description": "Which account's usage the bar shows. The popout lists every account." },
             "intervalMinutes": { "type": "integer", "title": "Check interval", "x-unit": "min", "default": 5, "minimum": 2, "maximum": 60 },
             "icon": { "type": "string", "title": "Icon", "default": "data_usage", "description": "A Material Symbols name (fonts.google.com/icons), or text." },
-            "warnPercent": { "type": "integer", "title": "Warning at", "x-unit": "%", "default": 75, "minimum": 1, "maximum": 100 },
-            "critPercent": { "type": "integer", "title": "Critical at", "x-unit": "%", "default": 90, "minimum": 1, "maximum": 100 },
+            "warnThreshold": { "type": "integer", "title": "Warning at", "x-unit": "%", "default": 75, "minimum": 1, "maximum": 100 },
+            "criticalThreshold": { "type": "integer", "title": "Critical at", "x-unit": "%", "default": 90, "minimum": 1, "maximum": 100 },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "List every limit per account when hovered." },
             "clickCommand": { "type": "string", "title": "Click command", "default": "", "description": "Run on left click (e.g. `xdg-open https://claude.ai/settings/usage`). Right click checks again now." },
             "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base0E" },
             "warnColor": { "type": "string", "title": "Warning background", "x-options": "colors", "default": "base09" },
-            "critColor": { "type": "string", "title": "Critical background", "x-options": "colors", "default": "base08" },
+            "criticalColor": { "type": "string", "title": "Critical background", "x-options": "colors", "default": "base08" },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
           }
         }
