@@ -42,7 +42,11 @@ QtObject {
       root.status = I18n.tr("Enter a name to save as");
       return;
     }
-    _run(["sh", "-c", "mkdir -p \"$(dirname \"$1\")\" && printf '%s\\n' \"$2\" > \"$1\"", "sh", savedDir + fileName + ".json", JSON.stringify(ConfigManager.config, null, 2)], I18n.tr("Saved \"{0}\"", fileName), I18n.tr("Failed to save \"{0}\"", fileName));
+    // Written by a FileView, not through argv, which caps one argument at
+    // 128 KiB (the folder was made at startup)
+    _writer.name = fileName;
+    _writer.path = savedDir + fileName + ".json";
+    _writer.setText(JSON.stringify(ConfigManager.config, null, 2) + "\n");
   }
 
   function restore(name) {
@@ -115,6 +119,21 @@ QtObject {
     onExited: code => {
       root.status = code === 0 ? okText : failText;
       console.log("[SavedConfigsManager]", root.status);
+    }
+  }
+
+  property FileView _writer: FileView {
+    property string name
+    blockWrites: true
+    atomicWrites: true
+    printErrors: false
+    onSaved: {
+      root.status = I18n.tr("Saved \"{0}\"", name);
+      console.log("[SavedConfigsManager]", root.status);
+    }
+    onSaveFailed: error => {
+      root.status = I18n.tr("Failed to save \"{0}\"", name);
+      console.warn("[SavedConfigsManager] Could not write", path + ":", FileViewError.toString(error));
     }
   }
 

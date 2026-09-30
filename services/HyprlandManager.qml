@@ -180,6 +180,10 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
   // monitor, which is focused first. `focusAddress` (focusWindow) arrives
   // by focusing that window instead of the bare workspace.
   function goToWorkspace(id, mode, monitor, focusAddress) {
+    if (!Number.isInteger(id) || id < 1) {
+      console.warn(`[HyprlandManager] Not a workspace id: ${id}`);
+      return;
+    }
     mode = mode || "go";
     monitor = monitor ?? Hyprland.focusedMonitor;
     const base = workspaceBase(monitor);
