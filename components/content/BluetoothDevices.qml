@@ -25,21 +25,6 @@ Panel {
   readonly property var shownDevices: currentTab === 0 ? BluetoothManager.pairedDevices : BluetoothManager.discoveredDevices
   readonly property string offMessage: I18n.tr(!BluetoothManager.available ? "No Bluetooth adapter found" : BluetoothManager.blocked ? "Bluetooth is blocked (rfkill)" : "Bluetooth is off")
 
-  // A popout's list is a fixed five rows high
-  readonly property real rowHeight: Math.max(titleMetrics.height + statusMetrics.height, 28) + Widget.spacing * 2
-  readonly property real listHeight: rowHeight * 5 + list.spacing * 4
-
-  FontMetrics {
-    id: titleMetrics
-    font.family: Appearance.fontFamily
-    font.pixelSize: Appearance.fontSize - 1
-  }
-  FontMetrics {
-    id: statusMetrics
-    font.family: Appearance.fontFamily
-    font.pixelSize: Appearance.fontSize - 3
-  }
-
   compactContent: CompactFigure {
     icon: BluetoothManager.enabled ? "bluetooth" : "bluetooth_disabled"
     iconColor: BluetoothManager.connectedDevices.length > 0 ? Theme.accent : Theme.foregroundAlt
@@ -62,7 +47,7 @@ Panel {
 
   onCurrentTabChanged: {
     updateScan();
-    fadeIn.restart();
+    list.fadeIn();
   }
   Connections {
     target: BluetoothManager
@@ -75,164 +60,31 @@ Panel {
       BluetoothManager.setDiscovering(false);
   }
 
-  component DeviceRow: Rectangle {
+  component BluetoothRow: DeviceRow {
     id: row
     required property int index
     readonly property var device: root.shownDevices[index] ?? null
-    readonly property bool connected: device?.connected ?? false
-    readonly property bool known: (device?.paired || device?.bonded) ?? false
-    readonly property bool busy: device !== null && (device.pairing || device.state === BluetoothDeviceState.Connecting || device.state === BluetoothDeviceState.Disconnecting)
-    // Forgetting takes a second click, within a few seconds
-    property bool confirmForget: false
 
-    Layout.fillWidth: true
-    implicitHeight: root.rowHeight
-    radius: Widget.radius
-    color: connected ? Theme.backgroundHighlight : rowHover.hovered ? Qt.alpha(Theme.backgroundHighlight, 0.5) : Qt.alpha(Theme.backgroundHighlight, 0)
-
-    onDeviceChanged: confirmForget = false
-
-    Behavior on color {
-      ColorAnimation {
-        duration: Appearance.animFast
-      }
-    }
-
-    HoverHandler {
-      id: rowHover
-      onHoveredChanged: if (!hovered)
-        row.confirmForget = false
-    }
-
-    Timer {
-      running: row.confirmForget
-      interval: 3000
-      onTriggered: row.confirmForget = false
-    }
-
-    MouseArea {
-      anchors.fill: parent
-      cursorShape: row.busy ? Qt.BusyCursor : Qt.PointingHandCursor
-      onClicked: BluetoothManager.toggleDevice(row.device)
-    }
-
-    RowLayout {
-      anchors.fill: parent
-      anchors.leftMargin: Widget.padding
-      anchors.rightMargin: Widget.spacing
-      spacing: Widget.padding
-
-      StyledIcon {
-        Layout.preferredWidth: 26
-        horizontalAlignment: Text.AlignHCenter
-        text: BluetoothManager.deviceIcon(row.device)
-        textSize: Appearance.fontSize * 1.4
-        textColor: row.connected ? Theme.accent : Theme.foregroundAlt
-      }
-
-      ColumnLayout {
-        Layout.fillWidth: true
-        spacing: 0
-
-        StyledText {
-          Layout.fillWidth: true
-          text: BluetoothManager.deviceLabel(row.device)
-          elide: Text.ElideRight
-          textSize: Appearance.fontSize - 1
-          textColor: row.connected ? Theme.foreground : Theme.foregroundAlt
-        }
-        StyledText {
-          Layout.fillWidth: true
-          text: row.confirmForget ? I18n.tr("Click again to forget") : BluetoothManager.deviceStatus(row.device)
-          elide: Text.ElideRight
-          textSize: Appearance.fontSize - 3
-          textColor: row.confirmForget ? Theme.error : row.busy || row.connected ? Theme.accent : Theme.foregroundAlt
-        }
-      }
-
-      // Only on hover, but always laid out so showing it moves nothing
-      StyledRectButton {
-        Layout.fillWidth: false
-        Layout.fillHeight: false
-        Layout.preferredWidth: 28
-        Layout.preferredHeight: 28
-        visible: row.known
-        enabled: rowHover.hovered && !row.busy
-        opacity: rowHover.hovered || row.confirmForget ? 1 : 0
-        iconText: "delete"
-        iconColor: Theme.error
-        backgroundColor: Qt.alpha(Theme.error, row.confirmForget ? 0.2 : 0)
-        borderHoverColor: Theme.error
-        tooltipText: I18n.tr("Forget")
-        onClicked: {
-          if (row.confirmForget)
-            BluetoothManager.forget(row.device);
-          row.confirmForget = !row.confirmForget;
-        }
-
-        Behavior on opacity {
-          NumberAnimation {
-            duration: Appearance.animFast
-          }
-        }
-      }
-
-      StyledRectButton {
-        Layout.fillWidth: false
-        Layout.fillHeight: false
-        Layout.preferredWidth: 28
-        Layout.preferredHeight: 28
-        enabled: !row.busy
-        opacity: enabled ? 1 : 0.5
-        iconText: row.connected ? "link_off" : "link"
-        iconColor: row.connected ? Theme.accent : Theme.foreground
-        backgroundColor: "transparent"
-        borderHoverColor: Theme.accent
-        tooltipText: I18n.tr(row.connected ? "Disconnect" : (row.known ? "Connect" : "Pair and connect"))
-        onClicked: BluetoothManager.toggleDevice(row.device)
-      }
-    }
+    rowHeight: list.rowHeight
+    icon: BluetoothManager.deviceIcon(row.device)
+    title: BluetoothManager.deviceLabel(row.device)
+    status: BluetoothManager.deviceStatus(row.device)
+    connected: row.device?.connected ?? false
+    known: (row.device?.paired || row.device?.bonded) ?? false
+    busy: row.device !== null && (row.device.pairing || row.device.state === BluetoothDeviceState.Connecting || row.device.state === BluetoothDeviceState.Disconnecting)
+    connectTip: I18n.tr(row.known ? "Connect" : "Pair and connect")
+    onDeviceChanged: row.reset()
+    onActivated: BluetoothManager.toggleDevice(row.device)
+    onConnectClicked: BluetoothManager.toggleDevice(row.device)
+    onForgetConfirmed: BluetoothManager.forget(row.device)
   }
 
-  RowLayout {
-    Layout.fillWidth: true
-    Layout.fillHeight: false
-    spacing: Widget.spacing
-
-    StyledText {
-      Layout.fillWidth: true
-      text: I18n.tr("Bluetooth")
-      elide: Text.ElideRight
-      font.bold: true
-      textColor: Theme.accent
-    }
-
-    // Spins while scanning; always laid out, so the header never shifts
-    StyledIcon {
-      text: "refresh"
-      textColor: Theme.foregroundAlt
-      opacity: BluetoothManager.discovering ? 1 : 0
-
-      RotationAnimation on rotation {
-        running: BluetoothManager.discovering && Appearance.animations
-        loops: Animation.Infinite
-        from: 0
-        to: 360
-        duration: Appearance.animSlow * 4
-      }
-
-      Behavior on opacity {
-        NumberAnimation {
-          duration: Appearance.animFast
-        }
-      }
-    }
-
-    StyledSwitch {
-      enabled: BluetoothManager.available && !BluetoothManager.blocked
-      checked: BluetoothManager.enabled
-      onToggled: BluetoothManager.setEnabled(checked)
-    }
+  RadioHeader {
+    title: I18n.tr("Bluetooth")
+    scanning: BluetoothManager.discovering
+    checked: BluetoothManager.enabled
+    switchEnabled: BluetoothManager.available && !BluetoothManager.blocked
+    onToggled: checked => BluetoothManager.setEnabled(checked)
   }
 
   StyledSeparator {
@@ -262,59 +114,14 @@ Panel {
     }
   }
 
-  // Off: the message fills the list's place, keeping the popout's size
-  Item {
-    visible: !BluetoothManager.enabled
-    Layout.fillWidth: true
-    Layout.preferredHeight: root.embedded ? -1 : root.listHeight
-    Layout.fillHeight: root.embedded
-
-    EmptyState {
-      anchors.centerIn: parent
-      maxWidth: parent.width
-      icon: "bluetooth_disabled"
-      text: root.offMessage
-    }
-  }
-
-  StyledScrollView {
-    id: scroll
-    visible: BluetoothManager.enabled
-    Layout.fillWidth: true
-    Layout.preferredHeight: root.embedded ? -1 : root.listHeight
-    Layout.fillHeight: root.embedded
-    contentPadding: 0
-    showScrollBar: list.implicitHeight > scroll.height
-
-    ColumnLayout {
-      id: list
-      width: scroll.availableWidth
-      spacing: 2
-
-      NumberAnimation on opacity {
-        id: fadeIn
-        from: 0
-        to: 1
-        duration: Appearance.animNormal
-      }
-
-      // Modelled by count, so rows survive device changes (a connect
-      // re-evaluates the list) instead of being rebuilt under the pointer
-      Repeater {
-        model: root.shownDevices.length
-
-        DeviceRow {}
-      }
-
-      StyledText {
-        Layout.fillWidth: true
-        Layout.preferredHeight: scroll.availableHeight
-        visible: root.shownDevices.length === 0
-        horizontalAlignment: Text.AlignHCenter
-        verticalAlignment: Text.AlignVCenter
-        text: I18n.tr(root.currentTab === 0 ? "No paired devices" : "Looking for devices…")
-        textColor: Theme.foregroundAlt
-      }
-    }
+  DeviceList {
+    id: list
+    embedded: root.embedded
+    on: BluetoothManager.enabled
+    offIcon: "bluetooth_disabled"
+    offMessage: root.offMessage
+    count: root.shownDevices.length
+    emptyText: I18n.tr(root.currentTab === 0 ? "No paired devices" : "Looking for devices…")
+    delegate: BluetoothRow {}
   }
 }
