@@ -1,7 +1,7 @@
 pragma ComponentBehavior: Bound
 import QtQuick
-import QtQuick.Effects
 import Quickshell
+import Quickshell.Widgets
 
 import qs.config
 import qs.components.reusable
@@ -42,29 +42,20 @@ Item {
   implicitWidth: size
   implicitHeight: size
 
-  Image {
-    id: picture
+  ClippingRectangle {
     anchors.fill: parent
     visible: root.showImage
-    source: root.image
-    sourceSize: Qt.size(root.size * 2, root.size * 2)
-    fillMode: Image.PreserveAspectCrop
-    asynchronous: true
-    layer.enabled: true
-    layer.effect: MultiEffect {
-      maskEnabled: true
-      maskSource: mask
-      maskThresholdMin: 0.5
-      maskSpreadAtMin: 1
-    }
-  }
-
-  Rectangle {
-    id: mask
-    anchors.fill: parent
     radius: root.radius
-    visible: false
-    layer.enabled: true
+    color: "transparent"
+
+    Image {
+      id: picture
+      anchors.fill: parent
+      source: root.image
+      sourceSize: Qt.size(root.size * 2, root.size * 2)
+      fillMode: Image.PreserveAspectCrop
+      asynchronous: true
+    }
   }
 
   Image {
