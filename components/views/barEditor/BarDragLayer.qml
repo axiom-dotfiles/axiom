@@ -2,23 +2,19 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import qs.config
 import qs.services
+import qs.components.methods
+import qs.components.reusable
 
-// The bar editor's widget area (sections board and inspector). Owns the one
-// drag in progress and its ghost, drawn above both so a widget can be
-// carried out of the library or from one section to another. Lanes
-// register themselves to be hit-tested; chips report their pointer here.
-Item {
+// The bar editor's widget area (sections board and inspector): a
+// DragLayer whose ghost is drawn above both, so a widget can be carried
+// out of the library or from one section to another. Its targets are the
+// section lanes (SectionLane: `zone`, `indexAt`). Payloads: { kind:
+// "move" | "add", zone, index, type, compact (drawn as a lane's chip) }.
+DragLayer {
   id: root
 
-  default property alias content: contentItem.data
-
-  // { kind: "move" | "add", zone, index, type } while dragging, else null
-  property var dragging: null
-  // The lane under the pointer and the index the drop would insert at
-  property string hoverZone: ""
-  property int hoverIndex: -1
-
-  property var _lanes: []
+  // The section under the pointer
+  readonly property string hoverZone: root.hoverTarget?.zone ?? ""
 
   readonly property string location: BarManager.selectedBar()?.location ?? "Top"
   readonly property bool vertical: root.location === "Left" || root.location === "Right"
@@ -73,8 +69,7 @@ Item {
   function shortLabel(type) {
     if (!type)
       return I18n.tr("Unknown");
-    const spaced = type.replace(/([a-z])([A-Z])/g, "$1 $2");
-    return I18n.tr(spaced);
+    return I18n.tr(Utils.spaceWords(type));
   }
 
   // Material Symbols icon per widget type
@@ -126,67 +121,23 @@ Item {
     return "settings";
   }
 
-  function registerLane(lane) {
-    root._lanes = root._lanes.concat([lane]);
-  }
-
-  function unregisterLane(lane) {
-    root._lanes = root._lanes.filter(l => l !== lane);
-  }
-
-  // Starts carrying `payload`, picked up at (x, y) in `item` (the chip)
-  function begin(payload, item, x, y) {
+  onStarted: (payload, item, x, y) => {
     ghost.type = payload.type;
-    ghost.compact = item.compact;
+    ghost.compact = payload.compact === true;
     ghost.width = item.width;
     ghost.hotX = x;
     ghost.hotY = y;
-    root.dragging = payload;
-    root.move(item, x, y);
   }
-
-  // The pointer is at (x, y) in `item`
-  function move(item, x, y) {
-    const p = item.mapToItem(root, x, y);
-    ghost.x = p.x - ghost.hotX;
-    ghost.y = p.y - ghost.hotY;
-    let zone = "";
-    let index = -1;
-    for (const lane of root._lanes) {
-      const q = root.mapToItem(lane, p.x, p.y);
-      if (q.x >= 0 && q.y >= 0 && q.x < lane.width && q.y < lane.height) {
-        zone = lane.zone;
-        index = lane.indexAt(p);
-        break;
-      }
-    }
-    root.hoverZone = zone;
-    root.hoverIndex = index;
+  onMoved: point => {
+    ghost.x = point.x - ghost.hotX;
+    ghost.y = point.y - ghost.hotY;
   }
-
-  // Dropped: moves or adds the widget where the pointer is, if over a lane
-  function end() {
-    const drag = root.dragging;
-    const zone = root.hoverZone;
-    const index = root.hoverIndex;
-    root.cancel();
-    if (!drag || zone === "")
-      return;
+  // Moves or adds the widget where it was dropped
+  onDropped: (drag, target, index) => {
     if (drag.kind === "move")
-      BarManager.moveWidget(drag.zone, drag.index, zone, index);
+      BarManager.moveWidget(drag.zone, drag.index, target.zone, index);
     else
-      BarManager.addWidget(zone, drag.type, index);
-  }
-
-  function cancel() {
-    root.dragging = null;
-    root.hoverZone = "";
-    root.hoverIndex = -1;
-  }
-
-  Item {
-    id: contentItem
-    anchors.fill: parent
+      BarManager.addWidget(target.zone, drag.type, index);
   }
 
   WidgetChip {

@@ -26,6 +26,12 @@ QtObject {
     return stem + separator + n;
   }
 
+  // A CamelCase name as words: "SystemTray" -> "System Tray",
+  // "Grid2x2" -> "Grid 2x2"
+  function spaceWords(name) {
+    return String(name ?? "").replace(/([a-zA-Z]{2,})(\d)/g, "$1 $2").replace(/([a-z])([A-Z])/g, "$1 $2");
+  }
+
   // The Material Symbols arrow pointing at a screen edge ("Top", "Left", ...)
   function edgeArrow(edge) {
     switch (edge) {

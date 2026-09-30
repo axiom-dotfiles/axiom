@@ -8,7 +8,7 @@ import qs.components.hosts.overlay
 // at `sideWidth` × `pageHeight`), and on the right the columns being
 // edited drawn on a PageCanvas above the EditorInspector. Sized from the
 // page's card grid; the drag layer covers all of it.
-EditorDragLayer {
+ColumnsDragLayer {
   id: root
 
   // The overlay page's card grid (BaseView.grid)

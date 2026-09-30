@@ -29,11 +29,7 @@ Rectangle {
   readonly property bool carried: root.dragLayer.draggingKind === "module-move" && root.dragLayer.dragging.column === root.column && root.dragLayer.dragging.cell === root.cell && root.dragLayer.dragging.slot === root.slot
   readonly property bool hovered: root.dragLayer.hoverTarget === root
   // While a module is carried: whether it could land here
-  readonly property bool takesCarried: root.dragLayer.carryingModule && (root.dragLayer.draggingKind === "module-add" ? OverlayConfig.fits(root.dragLayer.dragging.type, root.rect) : root.dragLayer.editor.canMoveModule(root.dragLayer.dragging, {
-      "column": root.column,
-      "cell": root.cell,
-      "slot": root.slot
-    }))
+  readonly property bool takesCarried: root.dragLayer.carryingModule && root.dragLayer.canDrop(root, root.dragLayer.dragging)
   readonly property bool small: root.width < Appearance.fontSize * 7 || root.height < Appearance.fontSize * 4
 
   readonly property bool isSwatch: root.type === "ColorSwatch"

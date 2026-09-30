@@ -5,6 +5,14 @@ import qs.components.methods
 TestCase {
   name: "Utils"
 
+  function test_spaceWords() {
+    compare(Utils.spaceWords("SystemTray"), "System Tray");
+    compare(Utils.spaceWords("Grid2x2"), "Grid 2x2");
+    compare(Utils.spaceWords("HalfWide"), "Half Wide");
+    compare(Utils.spaceWords("Time"), "Time");
+    compare(Utils.spaceWords(undefined), "");
+  }
+
   function test_edgeArrow() {
     compare(Utils.edgeArrow("Top"), "arrow_upward");
     compare(Utils.edgeArrow("Bottom"), "arrow_downward");

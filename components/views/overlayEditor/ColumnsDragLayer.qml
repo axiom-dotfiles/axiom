@@ -3,13 +3,14 @@ import QtQuick
 import QtQuick.Layouts
 import qs.config
 import qs.services
+import qs.components.methods
 import qs.components.reusable
 
 // i18n: keys from the schema (module, view and layout labels)
-// An editor page's whole area (overlay editor, edge menu editor). Owns the one drag in progress and its
-// ghost, drawn above every panel so a module can be carried from the
-// library onto the canvas, a cell between columns, a page up the list.
-// Drop targets register themselves; draggables report their pointer here.
+// A columns editor's whole area (overlay editor, edge menu editor): a
+// DragLayer whose ghost is drawn above every panel, so a module can be
+// carried from the library onto the canvas, a cell between columns, a
+// page up the list.
 //
 // Payloads: { kind, icon, label, ... }, kind one of
 //   "module-add" { type }                  from the library
@@ -22,23 +23,15 @@ import qs.components.reusable
 // "column" (column, indexAt), "gap" (index) or "pages" (indexAt).
 // Every edit goes to `editor` (a ColumnsEditor); page rows are the page's
 // own business, so a "pages" drop is only reported (pageMoved).
-Item {
+DragLayer {
   id: root
 
   required property ColumnsEditor editor
 
   signal pageMoved(int from, int to)
 
-  default property alias content: contentItem.data
-
-  property var dragging: null
-  // The target under the pointer, the index a drop would insert at, and
-  // whether dropping there would do anything
-  property Item hoverTarget: null
-  property int hoverIndex: -1
-  property bool hoverValid: false
-
-  property var _targets: []
+  // Whether dropping on the target under the pointer would do anything
+  readonly property bool hoverValid: root.hoverTarget !== null && root.dragging !== null && root.canDrop(root.hoverTarget, root.dragging)
 
   readonly property string draggingKind: root.dragging?.kind ?? ""
   readonly property bool carryingModule: root.draggingKind === "module-add" || root.draggingKind === "module-move"
@@ -61,26 +54,13 @@ Item {
   // I18n.tr("Horiz 1x2") I18n.tr("Horiz 2x1") I18n.tr("Half Wide")
   // I18n.tr("Half Tall")
   function layoutLabel(layout) {
-    const spaced = (layout ?? "").replace(/([a-zA-Z]{2,})(\d)/g, "$1 $2").replace(/([a-z])([A-Z])/g, "$1 $2");
-    return I18n.tr(spaced);
+    return I18n.tr(Utils.spaceWords(layout));
   }
 
-  function registerTarget(target) {
-    root._targets = root._targets.concat([target]);
-  }
-
-  function unregisterTarget(target) {
-    root._targets = root._targets.filter(t => t !== target);
-    if (root.hoverTarget === target)
-      root.hoverTarget = null;
-  }
-
-  function _priority(kind) {
-    return kind === "slot" ? 3 : kind === "gap" ? 2 : 1;
-  }
-
-  function _accepts(kind, drag) {
-    switch (kind) {
+  // A slot wins over a gap, a gap over a column
+  priority: target => target.targetKind === "slot" ? 3 : target.targetKind === "gap" ? 2 : 1
+  accepts: (target, drag) => {
+    switch (target.targetKind) {
     case "slot":
       return drag.kind === "module-add" || drag.kind === "module-move";
     case "column":
@@ -93,7 +73,8 @@ Item {
     return false;
   }
 
-  function _valid(target, drag) {
+  // Whether `drag` would land on `target` (a module fits its slot)
+  function canDrop(target, drag) {
     if (target.targetKind !== "slot")
       return true;
     const to = {
@@ -106,40 +87,14 @@ Item {
     return root.editor.canMoveModule(drag, to);
   }
 
-  // Starts carrying `payload`, picked up at (x, y) in `item`
-  function begin(payload, item, x, y) {
-    root.dragging = payload;
-    root.move(item, x, y);
+  onMoved: point => {
+    ghost.x = point.x - ghost.height / 2;
+    ghost.y = point.y - ghost.height / 2;
   }
 
-  // The pointer is at (x, y) in `item`
-  function move(item, x, y) {
-    const p = item.mapToItem(root, x, y);
-    ghost.x = p.x - ghost.height / 2;
-    ghost.y = p.y - ghost.height / 2;
-    let best = null;
-    for (const target of root._targets) {
-      if (!target.visible || !root._accepts(target.targetKind, root.dragging))
-        continue;
-      const q = root.mapToItem(target, p.x, p.y);
-      if (q.x < 0 || q.y < 0 || q.x >= target.width || q.y >= target.height)
-        continue;
-      if (!best || root._priority(target.targetKind) > root._priority(best.targetKind))
-        best = target;
-    }
-    root.hoverTarget = best;
-    root.hoverIndex = best && best.indexAt ? best.indexAt(p) : -1;
-    root.hoverValid = best !== null && root._valid(best, root.dragging);
-  }
-
-  // Dropped: does whatever the target under the pointer takes
-  function end() {
-    const drag = root.dragging;
-    const target = root.hoverTarget;
-    const index = root.hoverIndex;
-    const valid = root.hoverValid;
-    root.cancel();
-    if (!drag || !target || !valid)
+  // Does whatever the target takes
+  onDropped: (drag, target, index) => {
+    if (!root.canDrop(target, drag))
       return;
     const kind = target.targetKind;
     if (kind === "pages") {
@@ -182,18 +137,6 @@ Item {
       root.editor.moveColumn(drag.column, target.index);
       break;
     }
-  }
-
-  function cancel() {
-    root.dragging = null;
-    root.hoverTarget = null;
-    root.hoverIndex = -1;
-    root.hoverValid = false;
-  }
-
-  Item {
-    id: contentItem
-    anchors.fill: parent
   }
 
   // What's being carried, as a pill under the pointer

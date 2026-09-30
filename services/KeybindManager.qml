@@ -734,7 +734,7 @@ hl.dispatch(hl.dsp.submap("${_recordSubmap}"))`
     if (root._keyNames[key.toLowerCase()] !== undefined)
       return root._keyNames[key.toLowerCase()];
     if (key.startsWith("XF86"))
-      return key.slice(4).replace(/([a-z])([A-Z])/g, "$1 $2");
+      return Utils.spaceWords(key.slice(4));
     if (key.length === 1)
       return key.toUpperCase();
     return key.charAt(0).toUpperCase() + key.slice(1);
