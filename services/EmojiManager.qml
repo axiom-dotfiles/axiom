@@ -40,7 +40,7 @@ QtObject {
 
   function copy(emoji) {
     _record(emoji);
-    Quickshell.execDetached(["wl-copy", "--", emoji]);
+    ClipboardManager.copyText(emoji);
   }
 
   // Types it once the launcher has closed and the window has the keyboard

@@ -19,4 +19,10 @@ QtObject {
   // Per-user state outside the repo ($XDG_STATE_HOME/axiom/): secrets,
   // the generated hyprlock config
   readonly property string userStatePath: (Quickshell.env("XDG_STATE_HOME") || root.homeDirectory + ".local/state") + "/axiom/"
+
+  // A path from config or the user: trimmed, a leading ~ as home, no
+  // trailing slash ("~/Pictures/" -> "/home/<user>/Pictures")
+  function expandHome(path) {
+    return String(path ?? "").trim().replace(/^~(?=\/|$)/, Quickshell.env("HOME")).replace(/(.)\/+$/, "$1");
+  }
 }

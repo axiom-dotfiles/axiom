@@ -1,6 +1,5 @@
 pragma ComponentBehavior: Bound
 import QtQuick
-import Quickshell
 import Quickshell.Wayland
 
 import qs.config
@@ -10,43 +9,13 @@ import qs.components.surfaces.onboarding.pages
 
 // The onboarder (OnboardingManager): one page at a time over the dimmed
 // screen, with the step bar where the overlay has its page navigator. It
-// sits in the same reserved area as the overlay (OverlayPanel) with the
+// sits in the same reserved area as the overlay (ReservedAreaWindow) with the
 // same OverlayGrid, so its cards are the size the overlay's will be, and
 // the Welcome page's size setting shows on it at once.
-PanelWindow {
+ReservedAreaWindow {
   id: root
 
-  anchors {
-    left: true
-    right: true
-    top: true
-    bottom: true
-  }
-
-  // As OverlayPanel: inside the bars' and border's reserved area, lined up
-  // with their inner stroke; at a bare screen edge, at the edge
-  readonly property var _edges: Bar.edgesFor(root.screen)
-  function _margin(side, open) {
-    if (open)
-      return 0;
-    if (root._edges[side]?.background === "transparent")
-      return HyprlandManager.gapsOut[side] ?? 0;
-    return -Appearance.borderWidth;
-  }
-  margins {
-    left: root._margin("left", Bar.screenEdgeOpen(root.screen, Bar.Left))
-    right: root._margin("right", Bar.screenEdgeOpen(root.screen, Bar.Right))
-    top: root._margin("top", Bar.screenEdgeOpen(root.screen, Bar.Top))
-    bottom: root._margin("bottom", Bar.screenEdgeOpen(root.screen, Bar.Bottom))
-  }
-
-  color: "transparent"
-  focusable: true
   WlrLayershell.namespace: "axiom-onboarding"
-  WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
-  WlrLayershell.layer: WlrLayer.Overlay
-  exclusionMode: ExclusionMode.Normal
-  exclusiveZone: 0
 
   // Esc (or Skip setup) asks first
   property bool confirmingQuit: false

@@ -27,7 +27,7 @@ Rectangle {
   width: Math.max(height, label.implicitWidth + 10)
   height: label.implicitHeight + 4
   radius: height / 2
-  color: root.current ? Theme.accent : Qt.rgba(Theme.background.r, Theme.background.g, Theme.background.b, 0.75)
+  color: root.current ? Theme.accent : Qt.alpha(Theme.background, 0.75)
 
   StyledText {
     id: label

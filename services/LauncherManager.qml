@@ -428,7 +428,7 @@ QtObject {
       hint: I18n.tr("Enter to copy"),
       complete: "=" + result,
       run: () => {
-        Quickshell.execDetached(["wl-copy", "--", result]);
+        ClipboardManager.copyText(result);
         return true;
       }
     };

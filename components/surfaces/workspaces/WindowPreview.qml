@@ -90,7 +90,7 @@ Item {
       anchors.bottom: parent.bottom
       height: title.implicitHeight + 6
       visible: root.showTitle && root.hovered && !root.resizing && root.height > height * 2.5
-      color: Qt.rgba(Theme.background.r, Theme.background.g, Theme.background.b, 0.85)
+      color: Qt.alpha(Theme.background, 0.85)
 
       StyledText {
         id: title

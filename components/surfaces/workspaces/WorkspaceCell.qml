@@ -75,7 +75,7 @@ Item {
   Rectangle {
     anchors.fill: parent
     radius: root.radius
-    color: root.dropFill ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.3) : "transparent"
+    color: root.dropFill ? Qt.alpha(Theme.accent, 0.3) : "transparent"
     border.width: root.current || root.dropTarget ? Appearance.borderWidth * 2 : Appearance.borderWidth
     border.color: root.dropTarget ? Theme.accent : root.current ? Theme.accent : root.hovered ? Theme.borderFocus : Theme.border
 

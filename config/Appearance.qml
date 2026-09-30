@@ -1,6 +1,5 @@
 pragma Singleton
 import QtQuick
-import Quickshell
 import qs.services
 
 // Reader for the Appearance section. Values are always present: schema
@@ -25,7 +24,7 @@ QtObject {
   // "quickshell" (shell/Wallpaper draws it) | "awww" (setWallpaper.sh)
   readonly property string wallpaperBackend: _c.wallpaperBackend
   readonly property string wallpaperFolder: _c.wallpaperFolder
-  readonly property string wallpaperPath: _c.wallpaperFolder.trim().replace(/^~(?=\/|$)/, Quickshell.env("HOME")).replace(/\/+$/, "")
+  readonly property string wallpaperPath: Paths.expandHome(_c.wallpaperFolder)
   // "fixed" | "rotate" (wallpaperRotation) | "variant" (variantWallpapers),
   // driven by WallpaperManager
   readonly property string wallpaperMode: _c.wallpaperMode
