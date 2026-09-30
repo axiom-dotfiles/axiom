@@ -17,7 +17,9 @@ Card {
   readonly property string directory: root.properties.directory || "~/Pictures/Screenshots"
   readonly property bool recording: ScreenshotManager.recording
 
-  readonly property var modes: [["region", "screenshot_region", I18n.tr("Region")], ["window", "wrap_text", I18n.tr("Window")], ["screen", "screenshot_monitor", I18n.tr("Screen")]].concat(ScreenshotManager.hasRecorder || root.recording ? [["record", root.recording ? "stop" : "fiber_manual_record", I18n.tr(root.recording ? "Stop" : "Record")]] : [])
+  // [mode, icon, label]; the record tile's icon and label follow
+  // `recording` in the delegate, so a toggle rebuilds nothing
+  readonly property var modes: [["region", "screenshot_region", I18n.tr("Region")], ["window", "wrap_text", I18n.tr("Window")], ["screen", "screenshot_monitor", I18n.tr("Screen")]].concat(ScreenshotManager.hasRecorder ? [["record", "fiber_manual_record", I18n.tr("Record")]] : [])
 
   function capture(mode) {
     if (mode === "record")
@@ -38,14 +40,15 @@ Card {
       ActionTile {
         required property var modelData
         required property int index
+        readonly property bool stops: modelData[0] === "record" && root.recording
         x: grid.tileX(index)
         y: grid.tileY(index)
         width: grid.tileWidth
         height: grid.tileHeight
-        icon: modelData[1]
-        label: modelData[2]
+        icon: stops ? "stop" : modelData[1]
+        label: stops ? I18n.tr("Stop") : modelData[2]
         showLabel: !root.compact
-        active: modelData[0] === "record" && root.recording
+        active: stops
         activeColor: Theme.error
         onClicked: root.capture(modelData[0])
       }

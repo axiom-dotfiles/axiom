@@ -26,12 +26,13 @@ Panel {
   readonly property color emptyColor: Theme.resolveColor(options.emptyColor ?? "backgroundAlt")
   readonly property color textColor: Theme.resolveColor(options.textColor ?? "background")
   readonly property int base: HyprlandManager.workspaceBase(root.monitor)
-  readonly property int columns: WorkspacesConfig.columns
-  readonly property int rows: WorkspacesConfig.rows
+  // Not `cols`/`rows`: those are Panel's slot size
+  readonly property int gridColumns: WorkspacesConfig.columns
+  readonly property int gridRows: WorkspacesConfig.rows
   readonly property int activeId: root.monitor?.activeWorkspace?.id ?? -1
   readonly property int activeIndex: {
     const index = root.activeId - root.base;
-    return index >= 0 && index < root.columns * root.rows ? index : 0;
+    return index >= 0 && index < root.gridColumns * root.gridRows ? index : 0;
   }
   readonly property real cellSpacing: root.options.spacing ?? Widget.spacing / 2
   // The bar's, so the cells match its row
@@ -41,21 +42,16 @@ Panel {
   implicitWidth: grid.implicitWidth + margins * 2
 
   function wsById(id) {
-    const arr = Hyprland.workspaces.values;
-    for (let i = 0; i < arr.length; i++) {
-      if (arr[i].id === id)
-        return arr[i];
-    }
-    return null;
+    return Hyprland.workspaces.values.find(ws => ws.id === id) ?? null;
   }
 
   Grid {
     id: grid
-    columns: root.columns
+    columns: root.gridColumns
     spacing: root.cellSpacing
 
     Repeater {
-      model: root.columns * root.rows
+      model: root.gridColumns * root.gridRows
 
       Rectangle {
         id: wsCell
@@ -66,7 +62,7 @@ Panel {
         readonly property bool isActive: wsId === root.activeId
         readonly property bool hasWindows: (workspace?.toplevels?.values?.length ?? 0) > 0
         // In the row (or column) the bar shows
-        readonly property bool inBar: root.vertical ? index % root.columns === root.activeIndex % root.columns : Math.floor(index / root.columns) === Math.floor(root.activeIndex / root.columns)
+        readonly property bool inBar: root.vertical ? index % root.gridColumns === root.activeIndex % root.gridColumns : Math.floor(index / root.gridColumns) === Math.floor(root.activeIndex / root.gridColumns)
         readonly property var windowData: root.options.showAppIcons && hasWindows ? HyprlandManager.biggestWindowForWorkspace(wsId) : null
         readonly property string iconPath: windowData ? IconResolver.resolveWindowIcon(windowData.class, windowData.title) : ""
 

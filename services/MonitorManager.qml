@@ -106,10 +106,7 @@ QtObject {
     let index = MonitorLayout.matchProfile(local.profiles, enabledOutputs);
     let edited = false;
     if (index < 0) {
-      local.profiles.push({
-        "name": _uniqueName(I18n.tr("Layout {0}", local.profiles.length + 1)),
-        "outputs": outputs.map(monitor => MonitorLayout.ruleFromMonitor(monitor, outputs))
-      });
+      local.profiles.push(_newProfile(local.profiles.length));
       index = local.profiles.length - 1;
       edited = true;
     } else {
@@ -136,8 +133,21 @@ QtObject {
 
   // --- Editing ---
 
+  // The selected profile's rule for an output, in the draft, or undefined
+  function _ruleOf(output) {
+    return draft.local?.profiles?.[selectedProfile]?.outputs?.find(r => r.output === output);
+  }
+
+  // A profile from how the monitors are now, named after its place
+  function _newProfile(count) {
+    return {
+      "name": _uniqueName(I18n.tr("Layout {0}", count + 1)),
+      "outputs": outputs.map(monitor => MonitorLayout.ruleFromMonitor(monitor, outputs))
+    };
+  }
+
   function setField(output, key, value) {
-    const rule = draft.local?.profiles?.[selectedProfile]?.outputs?.find(r => r.output === output);
+    const rule = _ruleOf(output);
     if (!rule || rule[key] === value)
       return;
     rule[key] = value;
@@ -145,20 +155,18 @@ QtObject {
   }
 
   function move(output, x, y) {
-    const rule = draft.local?.profiles?.[selectedProfile]?.outputs?.find(r => r.output === output);
-    if (!rule || (rule.x === x && rule.y === y))
+    const rule = _ruleOf(output);
+    const rx = Math.round(x);
+    const ry = Math.round(y);
+    if (!rule || (rule.x === rx && rule.y === ry))
       return;
-    rule.x = Math.round(x);
-    rule.y = Math.round(y);
+    rule.x = rx;
+    rule.y = ry;
     draft.changed();
   }
 
-  // A new profile from how the monitors are now
   function newProfile() {
-    draft.local.profiles.push({
-      "name": _uniqueName(I18n.tr("Layout {0}", profiles.length + 1)),
-      "outputs": outputs.map(monitor => MonitorLayout.ruleFromMonitor(monitor, outputs))
-    });
+    draft.local.profiles.push(_newProfile(profiles.length));
     selectedProfile = draft.local.profiles.length - 1;
     draft.changed();
   }

@@ -212,11 +212,16 @@ QtObject {
     root._start("record", directory);
   }
 
+  // Ours gets SIGINT (wf-recorder finishes the file on it). One started
+  // before a reload isn't ours to signal or see exit: only then does it
+  // go by name, which would stop any wf-recorder.
   function stopRecording() {
+    if (root._recorder.running) {
+      root._recorder.signal(2);
+      return;
+    }
     Quickshell.execDetached(["pkill", "-INT", "-x", "wf-recorder"]);
-    // One started before a reload isn't ours to see exit
-    if (!root._recorder.running)
-      root.recording = false;
+    root.recording = false;
   }
 
   function toggleRecording(directory) {

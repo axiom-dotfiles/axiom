@@ -237,9 +237,10 @@ Singleton {
 
   Component.onCompleted: {
     root._saved = root._state.load({});
-    // A restart in the middle of it (the state says it isn't done), or a
-    // first run already seen before this was created
-    const unfinished = root._saved.step !== undefined && (root._saved.completedVersion ?? 0) < 1;
+    // A restart in the middle of it (the state says it isn't done), one
+    // finished before `version` was bumped, or a first run already seen
+    // before this was created
+    const unfinished = root._saved.step !== undefined && (root._saved.completedVersion ?? 0) < root.version;
     if (ConfigManager.firstRun || (unfinished && !_run.shown)) {
       _run.step = root._saved.step ?? 0;
       root.open();
