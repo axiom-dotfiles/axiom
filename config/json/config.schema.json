@@ -136,7 +136,8 @@
           "title": "Primary monitor",
           "default": "",
           "description": "Monitor that hosts the lockscreen input, and the surfaces below when they're on one monitor. Empty uses the first screen.",
-          "x-options": "screens"
+          "x-options": "screens",
+          "x-emptyLabel": "First screen"
         },
         "monitors": {
           "type": "string",
@@ -1923,7 +1924,7 @@
           "type": "string",
           "title": "Monitor",
           "default": "",
-          "description": "Monitor this bar is shown on. All monitors puts an identical copy on each.",
+          "description": "Monitor this bar is shown on. Empty uses the primary monitor; All monitors puts an identical copy on each.",
           "x-options": "screens",
           "x-allScreens": true
         },
