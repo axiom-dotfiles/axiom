@@ -19,7 +19,7 @@ QtObject {
 
   // The first enabled menu holding a module of `type`, else null
   function menuWithModule(type) {
-    return root.enabledMenus.find(menu => (menu.columns ?? []).some(column => (column?.cells ?? []).some(cell => Object.values(cell?.slots ?? {}).some(slot => slot?.type === type)))) ?? null;
+    return root.enabledMenus.find(menu => menu.columns.some(column => column.cells.some(cell => Object.values(cell.slots).some(slot => slot?.type === type)))) ?? null;
   }
 
   // The menu's named screen, else the primary monitor
@@ -30,30 +30,30 @@ QtObject {
 
   // The menu's edge as a Bar.Location
   function edgeOf(menu) {
-    return Bar.getLocationFromString(menu?.edge ?? "Left");
+    return Bar.getLocationFromString(menu.edge);
   }
 
   // The menu's box colours
   function colorsOf(menu) {
     return {
-      "fill": Theme.resolveColor(menu?.backgroundColor ?? "base00"),
-      "stroke": Theme.resolveColor(menu?.borderColor ?? "base05")
+      "fill": Theme.resolveColor(menu.backgroundColor),
+      "stroke": Theme.resolveColor(menu.borderColor)
     };
   }
 
   // Space between the menu's box and its modules: its own, else (-1) the
   // popouts'
   function paddingOf(menu) {
-    return (menu?.padding ?? -1) >= 0 ? menu.padding : PopoutConfig.padding;
+    return menu.padding >= 0 ? menu.padding : PopoutConfig.padding;
   }
 
   // The menu's length along its edge, from config alone (for the hover
   // strip before the menu has ever been loaded): its columns side by side
   // at its card size, as EdgeMenuBody lays them out, plus its padding
   function lengthOf(menu, vertical) {
-    const unit = menu?.cardSize ?? OverlayConfig.minCardUnit;
-    const flows = (menu?.columns ?? []).map(column => OverlayConfig.columnFlow(column.cells, unit));
-    const extra = flows.length > 0 ? Math.max(0, (vertical ? menu?.extraHeight : menu?.extraWidth) ?? 0) : 0;
+    const unit = menu.cardSize;
+    const flows = menu.columns.map(column => OverlayConfig.columnFlow(column.cells, unit));
+    const extra = flows.length > 0 ? Math.max(0, vertical ? menu.extraHeight : menu.extraWidth) : 0;
     const length = (vertical ? Math.max(0, ...flows.map(flow => flow.height)) : flows.reduce((sum, flow) => sum + flow.width, 0) + Math.max(0, flows.length - 1) * OverlayConfig.cardSpacing) + extra;
     return length + root.paddingOf(menu) * 2;
   }

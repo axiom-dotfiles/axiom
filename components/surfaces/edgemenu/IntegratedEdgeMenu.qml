@@ -24,7 +24,7 @@ PopoutWrapperBase {
   required property var menu
   required property ShellScreen screen
 
-  readonly property string menuId: root.menu?.id ?? ""
+  readonly property string menuId: root.menu.id
   // Pinned, or held open by the editor
   readonly property bool pinned: EdgeMenuManager.isHeld(root.menuId)
   readonly property bool wanted: EdgeMenuManager.openMenus[root.menuId] === true
@@ -32,15 +32,15 @@ PopoutWrapperBase {
 
   readonly property int edge: EdgeMenusConfig.edgeOf(root.menu)
   readonly property bool vertical: root.edge === Bar.Left || root.edge === Bar.Right
-  readonly property real position: (root.menu?.position ?? 50) / 100
+  readonly property real position: root.menu.position / 100
 
-  readonly property bool framed: root.menu?.frame ?? true
+  readonly property bool framed: root.menu.frame
   readonly property int padding: EdgeMenusConfig.paddingOf(root.menu)
   readonly property var colors: EdgeMenusConfig.colorsOf(root.menu)
   // The frame's inset from the strip's edges (0 without one). `margin`
   // reaches its stroke's inner edge, as the screen border's does, so at the
   // screen margin the two strokes line up
-  readonly property int frameInset: root.framed ? Math.max(0, (root.menu?.margin ?? 0) - Appearance.borderWidth) : 0
+  readonly property int frameInset: root.framed ? Math.max(0, root.menu.margin - Appearance.borderWidth) : 0
   // From the strip's edges to the cards: the frame and its stroke, then
   // the padding
   readonly property int pad: root.frameInset + (root.framed ? Appearance.borderWidth : 0) + root.padding
@@ -51,8 +51,8 @@ PopoutWrapperBase {
   readonly property real bodyDepth: root.vertical ? (loader.item?.implicitWidth ?? 0) : (loader.item?.implicitHeight ?? 0)
   readonly property int depth: Math.ceil(root.bodyDepth + root.pad * 2 + root.innerStroke)
 
-  autoDismiss: (root.menu?.closeOnLeave ?? true) && !root.pinned && !root.revealing
-  dismissDelay: root.menu?.closeDelay ?? PopoutConfig.dismissDelay
+  autoDismiss: root.menu.closeOnLeave && !root.pinned && !root.revealing
+  dismissDelay: root.menu.closeDelay
   onAutoDismissChanged: root.updateDismissTimer()
   keepAlive: panelHover.hovered || trigger.containsMouse
 
@@ -113,14 +113,14 @@ PopoutWrapperBase {
   }
 
   // Report the space taken, for surfaces laid out against this edge
-  readonly property string _edgeName: ["top", "bottom", "left", "right"][root.edge]
+  readonly property string _edgeName: Bar.edgeName(root.edge)
   readonly property int reserved: panel.visible ? root.depth : 0
   onReservedChanged: EdgeMenuManager.setZone(root.screen?.name ?? "", root._edgeName, root.reserved)
 
   EdgeTrigger {
     id: trigger
     screen: root.screen
-    visible: root.menu?.openOnHover ?? false
+    visible: root.menu.openOnHover
     edge: root.edge
     position: root.position
     // Not its own zone, and the strip spans the whole edge regardless of
@@ -128,10 +128,10 @@ PopoutWrapperBase {
     edgeInset: Math.max(0, EdgeMenuManager.zoneOn(root.screen?.name ?? "", root._edgeName) - root.reserved)
     startInset: 0
     endInset: 0
-    triggerWidth: root.menu?.triggerSize ?? PopoutConfig.edgeTriggerSize
+    triggerWidth: root.menu.triggerSize
     // 0: the menu's own length (from config until it's first loaded)
-    triggerLength: (root.menu?.triggerLength ?? 0) > 0 ? root.menu.triggerLength : loader.item ? (root.vertical ? loader.item.implicitHeight : loader.item.implicitWidth) + root.pad * 2 : EdgeMenusConfig.lengthOf(root.menu, root.vertical)
-    hoverDelay: root.menu?.openDelay ?? PopoutConfig.openDelay
+    triggerLength: root.menu.triggerLength > 0 ? root.menu.triggerLength : loader.item ? (root.vertical ? loader.item.implicitHeight : loader.item.implicitWidth) + root.pad * 2 : EdgeMenusConfig.lengthOf(root.menu, root.vertical)
+    hoverDelay: root.menu.openDelay
     onTriggered: root.show()
   }
 

@@ -53,7 +53,7 @@ Loader {
         return AudioManager.volume > 0.4 ? "volume_up" : "volume_down";
       }
 
-      onVisibilityChanged: root.poked()
+      onPoked: root.poked()
     }
   }
 

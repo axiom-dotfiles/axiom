@@ -33,7 +33,7 @@ PanelWindow {
     // Transparent bars have no inner edge to see: windows start where it
     // would be, so the gap from the widgets to them (padding + Hyprland's own
     // gaps_out, taken off here) matches the gap to the screen edge
-    const gap = barConfig.background === "transparent" ? (HyprlandManager.gapsOut[["top", "bottom", "left", "right"][barConfig.location]] ?? 0) : 0;
+    const gap = barConfig.background === "transparent" ? (HyprlandManager.gapsOut[Bar.edgeName(barConfig.location)] ?? 0) : 0;
     // Hyprland counts the -borderWidth margin into the reserved space
     if (barConfig.floating)
       return Math.max(0, barConfig.extent - gap);

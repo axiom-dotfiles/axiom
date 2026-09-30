@@ -5,7 +5,6 @@ import qs.config
 import qs.services
 import qs.components.reusable
 import qs.components.content.base
-import qs.components.hosts.overlay
 
 // Bar editor: the selected bar's five sections side by side, in bar order,
 // each a lane of draggable widget chips

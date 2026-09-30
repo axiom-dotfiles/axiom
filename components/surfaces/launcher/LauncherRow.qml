@@ -33,7 +33,7 @@ Item {
     anchors.leftMargin: 6
     anchors.rightMargin: 6
     radius: Widget.radius
-    color: root.current ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.14) : area.containsMouse && root.pointerActive ? Theme.backgroundHighlight : Qt.alpha(Theme.backgroundHighlight, 0)
+    color: root.current ? Qt.alpha(Theme.accent, 0.14) : area.containsMouse && root.pointerActive ? Theme.backgroundHighlight : Qt.alpha(Theme.backgroundHighlight, 0)
     Behavior on color {
       ColorAnimation {
         duration: Appearance.animFast
@@ -92,7 +92,7 @@ Item {
         anchors.fill: parent
         visible: !root._image
         radius: Widget.radius
-        color: root._emoji ? "transparent" : root.current ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.18) : Theme.backgroundAlt
+        color: root._emoji ? "transparent" : root.current ? Qt.alpha(Theme.accent, 0.18) : Theme.backgroundAlt
         Behavior on color {
           ColorAnimation {
             duration: Appearance.animFast

@@ -126,11 +126,8 @@ PopoutWrapperBase {
   // which the joins are decided from: they raise the cap, so deciding from
   // the capped length would feed back into itself. Infinity for content
   // that grows to fill whatever room it's given.
-  property real reachLength: loader.item ? (root.vertical ? loader.item.implicitHeight : loader.item.implicitWidth) : 0
+  property real reachLength: root.contentItem ? (root.vertical ? root.contentItem.implicitHeight : root.contentItem.implicitWidth) : 0
   readonly property bool isOpen: occupied && !isClosing
-  // For opens driven by global events (volume changes, IPC) rather than
-  // hovering this screen's edge.
-  readonly property bool isFocusedScreen: Hyprland.focusedMonitor?.name === screen?.name
 
   // A joining window reaches onto the perpendicular strokes (as a floating
   // bar's does), so a joined end can sit on the stroke's outer edge.
@@ -189,12 +186,12 @@ PopoutWrapperBase {
     return root.boxSnap ? Math.max(lo, Math.min(clamped + root.boxSnap(clamped), hi)) : clamped;
   }
   // Both ends joined, the box runs the whole edge, the content centred
-  readonly property real _boxAlong: joinStart && joinEnd ? maxBoxLength : (vertical ? loader.item?.implicitHeight ?? 100 : loader.item?.implicitWidth ?? 100) + contentPadding * 2
+  readonly property real _boxAlong: joinStart && joinEnd ? maxBoxLength : (vertical ? root.contentItem?.implicitHeight ?? 100 : root.contentItem?.implicitWidth ?? 100) + contentPadding * 2
   // The surface (fillets included) along the edge
   readonly property real surfaceStart: boxStart - surface.startMargin
   readonly property real surfaceLength: vertical ? surface.implicitHeight : surface.implicitWidth
 
-  currentItem: loader.item ?? null
+  currentItem: root.contentItem
   keepAlive: surfaceHover.hovered || trigger.containsMouse || (focusGrab.active && wantsKeyboardFocus)
 
   // `data` is the open payload: { anchorItem } keeps it open while that
@@ -213,13 +210,6 @@ PopoutWrapperBase {
   function hide() {
     if (isOpen)
       requestDismiss();
-  }
-
-  function toggle() {
-    if (isOpen)
-      hide();
-    else
-      show();
   }
 
   EdgeTrigger {
@@ -267,7 +257,7 @@ PopoutWrapperBase {
     // Docks reserving space inside the border don't push it in: it reaches
     // past them, on its own edge and at both ends
     readonly property string screenName: root.screen?.name ?? ""
-    readonly property real attachMargin: (root.straight ? 0 : -Appearance.borderWidth) + root.edgeOffset - (root.slidesUnder ? root.slideDistance : 0) - DockManager.zoneOn(screenName, ["top", "bottom", "left", "right"][root.edge])
+    readonly property real attachMargin: (root.straight ? 0 : -Appearance.borderWidth) + root.edgeOffset - (root.slidesUnder ? root.slideDistance : 0) - DockManager.zoneOn(screenName, Bar.edgeName(root.edge))
     margins {
       top: root.edge === Bar.Top ? surfaceWindow.attachMargin : root.vertical ? -root.strokeInset - DockManager.zoneOn(surfaceWindow.screenName, "top") : 0
       bottom: root.edge === Bar.Bottom ? surfaceWindow.attachMargin : root.vertical ? -root.strokeInset - DockManager.zoneOn(surfaceWindow.screenName, "bottom") : 0
@@ -306,7 +296,7 @@ PopoutWrapperBase {
 
       onActiveChanged: {
         if (active)
-          loader.item?.forceActiveFocus();
+          root.contentItem?.forceActiveFocus();
       }
 
       onCleared: {
@@ -330,8 +320,8 @@ PopoutWrapperBase {
       detachedOffset: root.slidesUnder ? root.slideDistance : 0
       active: root.isOpen
       connectorGap: root.connectorGap
-      boxWidth: root.vertical ? (loader.item?.implicitWidth ?? 100) + root.contentPadding * 2 + root.attachClearance : root._boxAlong
-      boxHeight: root.vertical ? root._boxAlong : (loader.item?.implicitHeight ?? 100) + root.contentPadding * 2 + root.attachClearance
+      boxWidth: root.vertical ? (root.contentItem?.implicitWidth ?? 100) + root.contentPadding * 2 + root.attachClearance : root._boxAlong
+      boxHeight: root.vertical ? root._boxAlong : (root.contentItem?.implicitHeight ?? 100) + root.contentPadding * 2 + root.attachClearance
       joinStart: root.joinStart
       joinEnd: root.joinEnd
       straightJoins: !Appearance.screenBorder

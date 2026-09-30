@@ -5,7 +5,7 @@ import qs.services
 import qs.components.views
 
 Item {
-  id: wrapper
+  id: root
   required property var screen
   // This screen's card grid (OverlayGrid), handed to every view
   required property OverlayGrid grid
@@ -44,10 +44,10 @@ Item {
       })))
   // itemAt() isn't a notifying read: `count` makes this re-evaluate once
   // the Repeater has created its pages (on launch they don't exist yet)
-  readonly property Item currentPage: wrapper.currentIndex >= wrapper.editorIndex ? editorPage : (viewsRepeater.count > wrapper.currentIndex ? viewsRepeater.itemAt(wrapper.currentIndex) : null)
+  readonly property Item currentPage: root.currentIndex >= root.editorIndex ? editorPage : (viewsRepeater.count > root.currentIndex ? viewsRepeater.itemAt(root.currentIndex) : null)
 
   // A new launch opens on the first page; closing and re-opening keeps the
-  // page (this wrapper lives as long as the overlay window). The views
+  // page (this item lives as long as the overlay window). The views
   // rebuild whenever Overlay.views changes, including saves from the
   // overlay editor: stay on a pinned page if the user is on one, otherwise
   // keep the index valid. Tracked from real navigation only: while the
@@ -55,24 +55,24 @@ Item {
   // which isn't the user being on them.
   // Which pinned page the user is on (index into pinnedPages), or -1
   property int _onPinned: -1
-  onCurrentIndexChanged: wrapper._onPinned = wrapper.viewsModel.length > 0 && wrapper.currentIndex >= wrapper.editorIndex ? wrapper.currentIndex - wrapper.editorIndex : -1
+  onCurrentIndexChanged: root._onPinned = root.viewsModel.length > 0 && root.currentIndex >= root.editorIndex ? root.currentIndex - root.editorIndex : -1
   onPageCountChanged: {
-    if (wrapper._onPinned >= 0)
-      wrapper.currentIndex = wrapper.editorIndex + wrapper._onPinned;
+    if (root._onPinned >= 0)
+      root.currentIndex = root.editorIndex + root._onPinned;
     else
-      wrapper.currentIndex = Math.max(0, Math.min(wrapper.currentIndex, wrapper.editorIndex - 1));
+      root.currentIndex = Math.max(0, Math.min(root.currentIndex, root.editorIndex - 1));
   }
 
   Connections {
     target: ShellManager
     function onShowOverlayPage(type) {
-      const pinned = wrapper.pinnedPages.findIndex(page => page.type === type);
+      const pinned = root.pinnedPages.findIndex(page => page.type === type);
       if (pinned >= 0)
-        wrapper.currentIndex = wrapper.editorIndex + pinned;
+        root.currentIndex = root.editorIndex + pinned;
       else {
-        const index = wrapper.viewsModel.findIndex(view => view.viewConfig.type === type || view.viewConfig.name === type);
+        const index = root.viewsModel.findIndex(view => view.viewConfig.type === type || view.viewConfig.name === type);
         if (index >= 0)
-          wrapper.currentIndex = index;
+          root.currentIndex = index;
       }
     }
   }
@@ -81,23 +81,23 @@ Item {
   implicitHeight: currentViewHeight * fitScale + OverlayConfig.cardSpacing * 2
 
   // Store current view dimensions to avoid binding loops
-  property real currentViewWidth: wrapper.currentPage ? wrapper.currentPage.implicitWidth : 0
-  property real currentViewHeight: wrapper.currentPage ? wrapper.currentPage.implicitHeight : 0
+  property real currentViewWidth: root.currentPage ? root.currentPage.implicitWidth : 0
+  property real currentViewHeight: root.currentPage ? root.currentPage.implicitHeight : 0
 
   // The grid already sizes cards to the screen; this is the last resort
   // for a page that still doesn't fit (many columns, a large Overlay size).
   // Item.scale doesn't feed back into implicit sizes, so no binding loop.
   readonly property real fitScale: {
     const room = OverlayConfig.cardSpacing * 2;
-    const scaleW = wrapper.currentViewWidth > 0 && wrapper.maxWidth > room ? (wrapper.maxWidth - room) / wrapper.currentViewWidth : 1;
-    const scaleH = wrapper.currentViewHeight > 0 && wrapper.maxHeight > room ? (wrapper.maxHeight - room) / wrapper.currentViewHeight : 1;
+    const scaleW = root.currentViewWidth > 0 && root.maxWidth > room ? (root.maxWidth - room) / root.currentViewWidth : 1;
+    const scaleH = root.currentViewHeight > 0 && root.maxHeight > room ? (root.maxHeight - room) / root.currentViewHeight : 1;
     return Math.min(1, scaleW, scaleH);
   }
-  onFitScaleChanged: console.log(`Overlay page ${wrapper.currentIndex} scaled to ${wrapper.fitScale.toFixed(3)} (card unit ${wrapper.grid.unit})`)
+  onFitScaleChanged: console.log(`Overlay page ${root.currentIndex} scaled to ${root.fitScale.toFixed(3)} (card unit ${root.grid.unit})`)
   Connections {
-    target: wrapper.grid
+    target: root.grid
     function onUnitChanged() {
-      console.log(`Overlay card unit ${wrapper.grid.unit} for ${wrapper.maxWidth}x${wrapper.maxHeight}`);
+      console.log(`Overlay card unit ${root.grid.unit} for ${root.maxWidth}x${root.maxHeight}`);
     }
   }
 
@@ -105,10 +105,10 @@ Item {
   // loaded, and only while the overlay is open, so hidden pages don't keep
   // polling. Neighbours stay loaded so the slide in has something to show.
   function isLoaded(pageIndex) {
-    if (!wrapper.open)
+    if (!root.open)
       return false;
-    const distance = Math.abs(pageIndex - wrapper.currentIndex);
-    return Math.min(distance, wrapper.pageCount - distance) <= 1;
+    const distance = Math.abs(pageIndex - root.currentIndex);
+    return Math.min(distance, root.pageCount - distance) <= 1;
   }
 
   function buildViewsModel(viewConfigArray) {
@@ -128,8 +128,8 @@ Item {
       left: parent.left
       right: parent.right
     }
-    height: wrapper.implicitHeight
-    width: wrapper.implicitWidth
+    height: root.implicitHeight
+    width: root.implicitWidth
     clip: true
 
     Behavior on height {
@@ -161,26 +161,26 @@ Item {
       Item {
         id: viewsContainer
         anchors.centerIn: parent
-        width: wrapper.currentViewWidth
-        height: wrapper.currentViewHeight
-        scale: wrapper.fitScale
+        width: root.currentViewWidth
+        height: root.currentViewHeight
+        scale: root.fitScale
 
         Repeater {
           id: viewsRepeater
-          model: wrapper.viewsModel
+          model: root.viewsModel
 
           OverlayPage {
             id: viewPage
             required property int index
             required property var modelData
             pageIndex: index
-            currentIndex: wrapper.currentIndex
-            loaded: wrapper.isLoaded(index)
+            currentIndex: root.currentIndex
+            loaded: root.isLoaded(index)
 
             OverlayView {
               anchors.centerIn: parent
-              screen: wrapper.screen
-              grid: wrapper.grid
+              screen: root.screen
+              grid: root.grid
               viewModel: viewPage.modelData
             }
           }
@@ -188,14 +188,14 @@ Item {
 
         OverlayPage {
           id: editorPage
-          pageIndex: wrapper.editorIndex
-          currentIndex: wrapper.currentIndex
-          loaded: wrapper.isLoaded(wrapper.editorIndex)
+          pageIndex: root.editorIndex
+          currentIndex: root.currentIndex
+          loaded: root.isLoaded(root.editorIndex)
 
           OverlayEditor {
             anchors.centerIn: parent
-            screen: wrapper.screen
-            grid: wrapper.grid
+            screen: root.screen
+            grid: root.grid
           }
         }
       }

@@ -41,7 +41,12 @@ QtObject {
   function labelOf(dock) {
     if (dock.name)
       return dock.name;
-    // I18n.tr("Top dock") I18n.tr("Bottom dock") I18n.tr("Left dock") I18n.tr("Right dock")
-    return I18n.tr(`${dock.edge} dock`);
+    const names = {
+      "Top": I18n.tr("Top dock"),
+      "Bottom": I18n.tr("Bottom dock"),
+      "Left": I18n.tr("Left dock"),
+      "Right": I18n.tr("Right dock")
+    };
+    return names[dock.edge] ?? dock.edge;
   }
 }

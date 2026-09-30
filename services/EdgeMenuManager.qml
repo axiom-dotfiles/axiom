@@ -12,7 +12,7 @@ import qs.components.methods
 // integrated menu and reflow the windows. Pins are also saved to
 // config/state/edgemenus.json, and a pinned menu opens again when qs starts.
 //
-// Also the edge menu editor's working copy of EdgeMenus (the pinned
+// Also the edge menu editor's working copy of EdgeMenus (the
 // EdgeMenuEditor overlay page), as BarManager is the bar editor's: edits
 // show live on the running menus (ConfigManager.previews) until saved or
 // reset, and `previewing` holds one menu open to try them on.
