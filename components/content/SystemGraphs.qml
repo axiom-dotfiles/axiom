@@ -3,6 +3,7 @@ import QtQuick
 import QtQuick.Layouts
 import qs.config
 import qs.services
+import qs.components.methods
 import qs.components.content.parts
 import qs.components.content.base
 
@@ -27,16 +28,6 @@ Panel {
   // A popout's graphs are a fixed height
   readonly property real graphHeight: 56
 
-  function formatRate(bytes) {
-    const units = ["B/s", "KB/s", "MB/s", "GB/s"];
-    let i = 0;
-    while (bytes >= 1024 && i < units.length - 1) {
-      bytes /= 1024;
-      i++;
-    }
-    return [bytes < 10 && i > 0 ? bytes.toFixed(1) : Math.round(bytes), units[i]];
-  }
-
   // What each metric shows: label, value, unit, subtitle, history, scale
   function info(metric) {
     switch (metric) {
@@ -55,7 +46,7 @@ Panel {
         "label": I18n.tr("Memory"),
         "value": Math.round(SystemManager.memUsage),
         "unit": "%",
-        "sub": `${(SystemManager.memUsedBytes / 1073741824).toFixed(1)} / ${(SystemManager.memTotalBytes / 1073741824).toFixed(1)} GiB`,
+        "sub": `${(SystemManager.memUsedBytes / Utils.bytesPerGiB).toFixed(1)} / ${(SystemManager.memTotalBytes / Utils.bytesPerGiB).toFixed(1)} GiB`,
         "history": SystemManager.memHistory,
         "max": 100,
         "color": Theme.success
@@ -82,8 +73,8 @@ Panel {
       };
     case "net":
       {
-        const rx = root.formatRate(SystemManager.netRx);
-        const tx = root.formatRate(SystemManager.netTx);
+        const rx = Utils.rateParts(SystemManager.netRx);
+        const tx = Utils.rateParts(SystemManager.netTx);
         return {
           "label": I18n.tr("Network"),
           "value": rx[0],

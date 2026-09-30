@@ -64,6 +64,21 @@ TestCase {
     compare(Utils.getContrastColor("#ffffff"), "#000000");
   }
 
+  function test_rates() {
+    compare(Utils.rateParts(0), [0, "B/s"]);
+    compare(Utils.rateParts(900), [900, "B/s"]);
+    compare(Utils.rateParts(1536), [1.5, "KB/s"]);
+    compare(Utils.rateParts(512 * 1024), [512, "KB/s"]);
+    compare(Utils.rateParts(3 * 1024 * 1024 * 1024 * 1024), [3072, "GB/s"]);
+    compare(Utils.formatRate(1.5 * 1024 * 1024), "1.5 MB/s");
+    compare(Utils.formatRate(undefined), "0 B/s");
+  }
+
+  function test_formatSize() {
+    compare(Utils.formatSize(512 * Utils.bytesPerGiB), "512G");
+    compare(Utils.formatSize(1843 * Utils.bytesPerGiB), "1.8T");
+  }
+
   function test_monthGrid() {
     // September 2026 starts on a Tuesday
     const sunday = Utils.monthGrid(2026, 8, 0, new Date(2026, 8, 26).toDateString());

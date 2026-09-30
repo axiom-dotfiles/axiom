@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 
 import qs.services
+import qs.components.methods
 import qs.config
 import qs.components.reusable
 import qs.components.hosts.popout
@@ -88,7 +89,7 @@ BaseWidget {
     case "mem":
       return {
         "icon": "memory_alt",
-        "value": p.memoryFormat === "used" ? `${(SystemManager.memUsedBytes / 1073741824).toFixed(1)}G` : `${SystemManager.memUsage}%`,
+        "value": p.memoryFormat === "used" ? (SystemManager.memUsedBytes / Utils.bytesPerGiB).toFixed(1) + "G" : `${SystemManager.memUsage}%`,
         "level": SystemManager.memUsage
       };
     case "temp":

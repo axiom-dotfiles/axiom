@@ -2,7 +2,7 @@ pragma Singleton
 import QtQuick
 
 // Pure helpers: deep copies, usage counts, curl config values, text width
-// and truncation, colors, calendar grids. No file access, processes or
+// and truncation, colors, calendar grids, byte sizes and rates. No file access, processes or
 // services (those live in services/).
 QtObject {
   id: root
@@ -63,6 +63,33 @@ QtObject {
       width += w;
     }
     return result + ellipsis;
+  }
+
+  readonly property real bytesPerGiB: 1073741824
+
+  // A transfer rate as [value, unit]: "B/s" to "GB/s", one decimal under
+  // 10 (past bytes), e.g. [1.5, "MB/s"], [512, "KB/s"]
+  function rateParts(bytesPerSecond) {
+    const units = ["B/s", "KB/s", "MB/s", "GB/s"];
+    let value = Math.max(0, bytesPerSecond || 0);
+    let i = 0;
+    while (value >= 1024 && i < units.length - 1) {
+      value /= 1024;
+      i++;
+    }
+    return [value < 10 && i > 0 ? Number(value.toFixed(1)) : Math.round(value), units[i]];
+  }
+
+  // "1.5 MB/s"
+  function formatRate(bytesPerSecond) {
+    return root.rateParts(bytesPerSecond).join(" ");
+  }
+
+  // A disk size: whole GiB ("512G"), or TiB with one decimal from 1000 GiB
+  // ("1.8T")
+  function formatSize(bytes) {
+    const gib = bytes / root.bytesPerGiB;
+    return gib >= 1000 ? `${(gib / 1024).toFixed(1)}T` : `${Math.round(gib)}G`;
   }
 
   // Check if color is dark
