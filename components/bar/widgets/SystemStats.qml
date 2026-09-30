@@ -10,14 +10,8 @@ import qs.components.hosts.popout
 // CPU / memory / temperature / GPU / disk readouts from SystemManager, one
 // icon + value segment per enabled metric. Metrics the machine can't report
 // (no GPU, no CPU sensor) are left out.
-BaseWidget {
+BarWidget {
   id: root
-
-  property var barConfig
-  property var popouts
-  property var panel
-  property var screen
-  property var properties
 
   // Every metric: the option that shows it, SystemManager's name for it,
   // and whether the popout graphs it (disk has no history)
@@ -118,11 +112,8 @@ BaseWidget {
   readonly property bool warning: segments.some(key => segmentData(key).level >= properties.warnThreshold)
   readonly property color foregroundColor: Theme.resolveColor(properties.foregroundColor)
 
-  isVertical: barConfig.vertical
-  crossSize: barConfig.widgetSize
-  padding: segments.length > 0 ? barConfig.widgetPadding : 0
-  radius: barConfig.radius
-  backgroundColor: Theme.resolveColor(warning ? properties.warnColor : properties.backgroundColor)
+  implicitWidth: box.implicitWidth
+  implicitHeight: box.implicitHeight
 
   // Ask only for what's shown; re-acquiring replaces the old request
   readonly property var statsRequest: ({
@@ -149,34 +140,44 @@ BaseWidget {
       })
   }
 
-  content: Grid {
-    columns: root.isVertical ? 1 : Math.max(1, root.segments.length)
-    spacing: root.isVertical ? root.barConfig.widgetSpacing : root.barConfig.widgetPadding
-    horizontalItemAlignment: Grid.AlignHCenter
-    verticalItemAlignment: Grid.AlignVCenter
+  BaseWidget {
+    id: box
+    anchors.fill: parent
+    isVertical: root.isVertical
+    crossSize: root.barConfig.widgetSize
+    padding: root.segments.length > 0 ? root.barConfig.widgetPadding : 0
+    radius: root.barConfig.radius
+    backgroundColor: Theme.resolveColor(root.warning ? root.properties.warnColor : root.properties.backgroundColor)
 
-    Repeater {
-      model: root.segments
+    content: Grid {
+      columns: root.isVertical ? 1 : Math.max(1, root.segments.length)
+      spacing: root.isVertical ? root.barConfig.widgetSpacing : root.barConfig.widgetPadding
+      horizontalItemAlignment: Grid.AlignHCenter
+      verticalItemAlignment: Grid.AlignVCenter
 
-      delegate: Grid {
-        id: segment
-        required property var modelData
-        readonly property var stat: root.segmentData(modelData)
+      Repeater {
+        model: root.segments
 
-        columns: root.isVertical ? 1 : 2
-        spacing: root.isVertical ? 0 : 4
-        horizontalItemAlignment: Grid.AlignHCenter
-        verticalItemAlignment: Grid.AlignVCenter
+        delegate: Grid {
+          id: segment
+          required property var modelData
+          readonly property var stat: root.segmentData(modelData)
 
-        StyledIcon {
-          text: segment.stat.icon
-          textColor: root.foregroundColor
-          textSize: root.barConfig.fontSize
-        }
-        StyledText {
-          text: segment.stat.value
-          textColor: root.foregroundColor
-          textSize: root.barConfig.fontSize * (root.isVertical ? 0.7 : 0.9)
+          columns: root.isVertical ? 1 : 2
+          spacing: root.isVertical ? 0 : 4
+          horizontalItemAlignment: Grid.AlignHCenter
+          verticalItemAlignment: Grid.AlignVCenter
+
+          StyledIcon {
+            text: segment.stat.icon
+            textColor: root.foregroundColor
+            textSize: root.barConfig.fontSize
+          }
+          StyledText {
+            text: segment.stat.value
+            textColor: root.foregroundColor
+            textSize: root.barConfig.fontSize * (root.isVertical ? 0.7 : 0.9)
+          }
         }
       }
     }

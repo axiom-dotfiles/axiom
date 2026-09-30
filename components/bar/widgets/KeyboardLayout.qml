@@ -17,14 +17,7 @@ BarIconWidget {
   icon: "keyboard"
   text: properties.format === "full" ? keymapName : (layouts[layoutIndex] ?? "").toUpperCase()
 
-  opacity: mouseArea.pressed ? 0.8 : 1
-
-  MouseArea {
-    id: mouseArea
-    anchors.fill: parent
-    enabled: !root.hidden
-    cursorShape: Qt.PointingHandCursor
-    acceptedButtons: Qt.LeftButton | Qt.RightButton
-    onClicked: mouse => KeyboardLayoutManager.cycle(mouse.button === Qt.RightButton ? "prev" : "next")
-  }
+  clickable: true
+  acceptedButtons: Qt.LeftButton | Qt.RightButton
+  onClicked: button => KeyboardLayoutManager.cycle(button === Qt.RightButton ? "prev" : "next")
 }

@@ -61,19 +61,15 @@ BarIconWidget {
     objects: root.videoGroups.concat(...root.videoGroups.map(g => [g.source, g.target]))
   }
 
-  MouseArea {
-    anchors.fill: parent
-    enabled: !root.hidden
-    cursorShape: Qt.PointingHandCursor
-    onClicked: {
-      const lines = [];
-      if (root.micUsers.length)
-        lines.push(I18n.tr("Microphone: {0}", root.micUsers.join(", ")));
-      if (root.screenUsers.length)
-        lines.push(I18n.tr("Screen: {0}", root.screenUsers.join(", ")));
-      if (root.cameraUsers.length)
-        lines.push(I18n.tr("Camera: {0}", root.cameraUsers.join(", ")));
-      NotificationManager.sendNotification("axiom", I18n.tr("Privacy"), lines.join("\n"));
-    }
+  clickable: true
+  onClicked: {
+    const lines = [];
+    if (root.micUsers.length)
+      lines.push(I18n.tr("Microphone: {0}", root.micUsers.join(", ")));
+    if (root.screenUsers.length)
+      lines.push(I18n.tr("Screen: {0}", root.screenUsers.join(", ")));
+    if (root.cameraUsers.length)
+      lines.push(I18n.tr("Camera: {0}", root.cameraUsers.join(", ")));
+    NotificationManager.sendNotification("axiom", I18n.tr("Privacy"), lines.join("\n"));
   }
 }

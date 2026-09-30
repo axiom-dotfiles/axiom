@@ -47,7 +47,7 @@ BarIconWidget {
   }
 
   backgroundColor: Theme.resolveColor(maxPercent >= properties.criticalThreshold ? properties.criticalColor : maxPercent >= properties.warnThreshold ? properties.warnColor : properties.backgroundColor)
-  opacity: (mouseArea.pressed ? 0.8 : 1) * (stale ? 0.6 : 1)
+  dim: stale ? 0.6 : 1
 
   // Re-acquiring replaces the old request
   readonly property var usageRequest: ({
@@ -58,17 +58,13 @@ BarIconWidget {
   Component.onCompleted: ClaudeUsageManager.acquire(root, usageRequest)
   Component.onDestruction: ClaudeUsageManager.release(root)
 
-  MouseArea {
-    id: mouseArea
-    anchors.fill: parent
-    cursorShape: Qt.PointingHandCursor
-    acceptedButtons: Qt.LeftButton | Qt.RightButton
-    onClicked: mouse => {
-      if (mouse.button === Qt.RightButton)
-        ClaudeUsageManager.refresh();
-      else
-        CommandManager.runDetached(root.properties.clickCommand);
-    }
+  clickable: true
+  acceptedButtons: Qt.LeftButton | Qt.RightButton
+  onClicked: button => {
+    if (button === Qt.RightButton)
+      ClaudeUsageManager.refresh();
+    else
+      CommandManager.runDetached(root.properties.clickCommand);
   }
 
   PopoutAnchor {
