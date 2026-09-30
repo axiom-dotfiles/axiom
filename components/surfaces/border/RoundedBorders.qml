@@ -1,19 +1,26 @@
+pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
+import Quickshell.Wayland
 import qs.config
 import qs.services
 import qs.components.reusable
 
+// One screen's border (Appearance.screenBorder): an edge strip per side
+// (BorderPanel), reserving `frameWidth`, and a concave corner piece
+// (CornerPiece) in each corner joining their inner strokes. A solid bar's
+// edge draws only the stroke, so the bar shows through.
 Item {
   id: root
+
   property var screen: null
   property int frameWidth: Appearance.screenMargin
   property int innerBorderRadius: Appearance.borderRadius
-  property int curveSize: innerBorderRadius - Appearance.borderWidth
   property color frameColor: Theme.background
   property color innerStrokeColor: Theme.foreground
-  property color centerColor: "transparent"
   property int strokeWidth: Appearance.borderWidth
+  // The corner's curve plus its stroke
+  readonly property int cornerSize: root.innerBorderRadius + root.strokeWidth
 
   // Corners sit in the space left once every edge is reserved, so a
   // floating bar or a dock (inside the border, reserving their own space)
@@ -36,163 +43,78 @@ Item {
     return bar && bar.background === "solid" && bar.reserveSpace ? "transparent" : root.frameColor;
   }
 
-  Component.onCompleted: {
-    console.log("RoundedBorders initialized");
-  }
+  // An edge strip per side
+  Variants {
+    model: ["top", "bottom", "left", "right"]
 
-  // Top border
-  BorderPanel {
-    id: topBorder
-    screen: root.screen
-    edge: "top"
-    frameWidth: root.frameWidth
-    innerBorderRadius: root.innerBorderRadius
-    frameColor: root.frameColorFor("top")
-    innerStrokeColor: root.innerStrokeColor
-    strokeWidth: root.strokeWidth
-  }
-
-  // Bottom border
-  BorderPanel {
-    id: bottomBorder
-    screen: root.screen
-    edge: "bottom"
-    frameWidth: root.frameWidth
-    innerBorderRadius: root.innerBorderRadius
-    frameColor: root.frameColorFor("bottom")
-    innerStrokeColor: root.innerStrokeColor
-    strokeWidth: root.strokeWidth
-  }
-
-  // Left border
-  BorderPanel {
-    id: leftBorder
-    screen: root.screen
-    edge: "left"
-    frameWidth: root.frameWidth
-    innerBorderRadius: root.innerBorderRadius
-    frameColor: root.frameColorFor("left")
-    innerStrokeColor: root.innerStrokeColor
-    strokeWidth: root.strokeWidth
-  }
-
-  // Right border
-  BorderPanel {
-    id: rightBorder
-    screen: root.screen
-    edge: "right"
-    frameWidth: root.frameWidth
-    innerBorderRadius: root.innerBorderRadius
-    frameColor: root.frameColorFor("right")
-    innerStrokeColor: root.innerStrokeColor
-    strokeWidth: root.strokeWidth
-  }
-
-  // Top-left corner
-  PanelWindow {
-    screen: root.screen
-    anchors {
-      left: true
-      top: true
-    }
-    margins {
-      left: root.cornerMargin("left")
-      top: root.cornerMargin("top")
-    }
-    implicitWidth: curveSize + strokeWidth * 2
-    implicitHeight: curveSize + strokeWidth * 2
-    color: "transparent"
-    mask: Region {}
-    aboveWindows: true
-
-    CornerPiece {
-      borderRadius: root.innerBorderRadius
-      fillColor: root.frameColor
-      strokeColor: root.innerStrokeColor
+    delegate: BorderPanel {
+      required property string modelData
+      edge: modelData
+      screen: root.screen
+      frameWidth: root.frameWidth
+      innerBorderRadius: root.innerBorderRadius
+      frameColor: root.frameColorFor(modelData)
+      innerStrokeColor: root.innerStrokeColor
       strokeWidth: root.strokeWidth
-      isLeft: true
-      isTop: true
     }
   }
 
-  // Top-right corner
-  PanelWindow {
-    screen: root.screen
-    anchors {
-      right: true
-      top: true
-    }
-    margins {
-      right: root.cornerMargin("right")
-      top: root.cornerMargin("top")
-    }
-    implicitWidth: curveSize + strokeWidth * 2
-    implicitHeight: curveSize + strokeWidth * 2
-    color: "transparent"
-    mask: Region {}
-    aboveWindows: true
+  // A corner piece in each corner
+  Variants {
+    model: [
+      {
+        "isLeft": true,
+        "isTop": true
+      },
+      {
+        "isLeft": false,
+        "isTop": true
+      },
+      {
+        "isLeft": true,
+        "isTop": false
+      },
+      {
+        "isLeft": false,
+        "isTop": false
+      }
+    ]
 
-    CornerPiece {
-      borderRadius: root.innerBorderRadius
-      fillColor: root.frameColor
-      strokeColor: root.innerStrokeColor
-      strokeWidth: root.strokeWidth
-      isLeft: false
-      isTop: true
-    }
-  }
+    delegate: PanelWindow {
+      id: corner
 
-  // Bottom-left corner
-  PanelWindow {
-    screen: root.screen
-    anchors {
-      left: true
-      bottom: true
-    }
-    margins {
-      left: root.cornerMargin("left")
-      bottom: root.cornerMargin("bottom")
-    }
-    implicitWidth: curveSize + strokeWidth * 2
-    implicitHeight: curveSize + strokeWidth * 2
-    color: "transparent"
-    mask: Region {}
-    aboveWindows: true
+      required property var modelData
+      readonly property bool isLeft: modelData.isLeft
+      readonly property bool isTop: modelData.isTop
 
-    CornerPiece {
-      borderRadius: root.innerBorderRadius
-      fillColor: root.frameColor
-      strokeColor: root.innerStrokeColor
-      strokeWidth: root.strokeWidth
-      isLeft: true
-      isTop: false
-    }
-  }
+      screen: root.screen
+      anchors {
+        left: corner.isLeft
+        right: !corner.isLeft
+        top: corner.isTop
+        bottom: !corner.isTop
+      }
+      margins {
+        left: corner.isLeft ? root.cornerMargin("left") : 0
+        right: corner.isLeft ? 0 : root.cornerMargin("right")
+        top: corner.isTop ? root.cornerMargin("top") : 0
+        bottom: corner.isTop ? 0 : root.cornerMargin("bottom")
+      }
+      implicitWidth: root.cornerSize
+      implicitHeight: root.cornerSize
+      color: "transparent"
+      mask: Region {}
+      aboveWindows: true
+      WlrLayershell.namespace: "axiom-border"
 
-  // Bottom-right corner
-  PanelWindow {
-    screen: root.screen
-    anchors {
-      right: true
-      bottom: true
-    }
-    margins {
-      right: root.cornerMargin("right")
-      bottom: root.cornerMargin("bottom")
-    }
-    implicitWidth: curveSize + strokeWidth * 2
-    implicitHeight: curveSize + strokeWidth * 2
-    color: "transparent"
-    mask: Region {}
-    aboveWindows: true
-
-    CornerPiece {
-      borderRadius: root.innerBorderRadius
-      fillColor: root.frameColor
-      strokeColor: root.innerStrokeColor
-      strokeWidth: root.strokeWidth
-      isLeft: false
-      isTop: false
+      CornerPiece {
+        borderRadius: root.innerBorderRadius
+        fillColor: root.frameColor
+        strokeColor: root.innerStrokeColor
+        strokeWidth: root.strokeWidth
+        isLeft: corner.isLeft
+        isTop: corner.isTop
+      }
     }
   }
 }

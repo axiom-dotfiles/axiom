@@ -41,8 +41,8 @@ ShellRoot {
     id: screenshot
   }
 
-  RoundedCorners {
-    id: roundedCorners
+  ScreenBorder {
+    id: screenBorder
   }
 
   OSD {

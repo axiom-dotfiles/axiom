@@ -1,16 +1,17 @@
-import QtQuick
+pragma ComponentBehavior: Bound
 import Quickshell
 
 import qs.config
 import qs.components.surfaces.border
 
+// The screen border on every screen (Appearance.screenBorder)
 Scope {
   Variants {
-    // Appearance.screenBorder switches the frame off entirely
     model: Appearance.screenBorder ? Quickshell.screens : []
     delegate: RoundedBorders {
+      id: border
       required property ShellScreen modelData
-      screen: modelData
+      screen: border.modelData
     }
   }
 }

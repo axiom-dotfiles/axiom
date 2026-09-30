@@ -1,34 +1,38 @@
+pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
+import Quickshell.Wayland
 
+// One edge of the screen border (RoundedBorders): a strip that reserves
+// `frameWidth` and draws the frame with its inner stroke, which stops short
+// of the corners by `innerBorderRadius` where the corner pieces take over.
+// Input passes through it.
 PanelWindow {
   id: root
-  required property string edge // "top", "bottom", "left", "right"
+
+  // "top" | "bottom" | "left" | "right"
+  required property string edge
   required property int frameWidth
   required property int innerBorderRadius
   required property color frameColor
   required property color innerStrokeColor
   required property int strokeWidth
 
-  Component.onCompleted: {}
-
-  property int inset: innerBorderRadius
-  property bool isHorizontal: edge === "top" || edge === "bottom"
-  property bool isVertical: edge === "left" || edge === "right"
+  readonly property bool horizontal: edge === "top" || edge === "bottom"
 
   anchors {
-    left: edge === "left" || edge === "top" || edge === "bottom"
-    right: edge === "right" || edge === "top" || edge === "bottom"
-    top: edge === "top" || edge === "left" || edge === "right"
-    bottom: edge === "bottom" || edge === "left" || edge === "right"
+    left: root.edge !== "right"
+    right: root.edge !== "left"
+    top: root.edge !== "bottom"
+    bottom: root.edge !== "top"
   }
 
-  implicitWidth: isVertical ? frameWidth : 0
-  implicitHeight: isHorizontal ? frameWidth : 0
+  implicitWidth: root.horizontal ? 0 : root.frameWidth
+  implicitHeight: root.horizontal ? root.frameWidth : 0
 
-  exclusiveZone: frameWidth
+  exclusiveZone: root.frameWidth
   aboveWindows: true
-  // WlrLayershell.layer: WlrLayer.Overlay
+  WlrLayershell.namespace: "axiom-border"
   color: "transparent"
   mask: Region {}
 
@@ -37,25 +41,26 @@ PanelWindow {
     color: root.frameColor
   }
 
+  // The inner stroke, on the strip's screen-facing side
   Rectangle {
     color: root.innerStrokeColor
 
     anchors {
-      left: root.isHorizontal ? parent.left : undefined
-      right: root.isHorizontal ? parent.right : undefined
-      leftMargin: root.isHorizontal ? (root.frameWidth + root.inset) : 0
-      rightMargin: root.isHorizontal ? (root.frameWidth + root.inset) : 0
+      left: root.horizontal ? parent.left : undefined
+      right: root.horizontal ? parent.right : undefined
+      leftMargin: root.frameWidth + root.innerBorderRadius
+      rightMargin: root.frameWidth + root.innerBorderRadius
 
-      top: root.isVertical ? parent.top : undefined
-      bottom: root.isVertical ? parent.bottom : undefined
-      topMargin: root.isVertical ? root.inset : 0
-      bottomMargin: root.isVertical ? root.inset : 0
+      top: root.horizontal ? undefined : parent.top
+      bottom: root.horizontal ? undefined : parent.bottom
+      topMargin: root.innerBorderRadius
+      bottomMargin: root.innerBorderRadius
     }
 
-    x: root.edge === "left" ? (root.frameWidth - root.strokeWidth) : (root.isVertical ? 0 : null)
-    y: root.edge === "top" ? (root.frameWidth - root.strokeWidth) : (root.isHorizontal ? 0 : null)
-
-    implicitWidth: root.isVertical ? root.strokeWidth : (parent.width - (root.frameWidth + root.inset))
-    implicitHeight: root.isHorizontal ? root.strokeWidth : (parent.height - root.inset)
+    x: root.edge === "left" ? root.frameWidth - root.strokeWidth : 0
+    y: root.edge === "top" ? root.frameWidth - root.strokeWidth : 0
+    // Across the strip; the anchors stretch it along
+    implicitWidth: root.strokeWidth
+    implicitHeight: root.strokeWidth
   }
 }
