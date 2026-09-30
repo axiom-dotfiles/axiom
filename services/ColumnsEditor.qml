@@ -59,10 +59,6 @@ QtObject {
     return out;
   }
 
-  function _clone(value) {
-    return JSON.parse(JSON.stringify(value ?? null));
-  }
-
   function newCell(layout) {
     return {
       "layout": layout ?? "Single",
@@ -260,7 +256,7 @@ QtObject {
       const cells = columns[c]?.cells;
       if (!cells?.[k])
         return false;
-      const copy = root._clone(cells[k]);
+      const copy = Utils.clone(cells[k]);
       cells.splice(k + 1, 0, copy);
       return {
         "cell": copy

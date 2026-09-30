@@ -4,6 +4,7 @@ import Quickshell
 import Quickshell.Io
 
 import qs.config
+import qs.components.methods
 
 // Which edge menus (EdgeMenusConfig) are open and which are pinned. The
 // menus themselves (shell/EdgeMenus) follow this and report back when they
@@ -275,7 +276,7 @@ Singleton {
     const menu = root.localMenus?.[index];
     if (!menu)
       return;
-    const copy = JSON.parse(JSON.stringify(menu));
+    const copy = Utils.clone(menu);
     copy.id = root._uniqueId(menu.id || "menu");
     if (copy.name)
       copy.name = I18n.tr("{0} (copy)", copy.name);

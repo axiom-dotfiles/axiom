@@ -102,7 +102,7 @@ QtObject {
   // --- Pinning (saved at once) ---
 
   function _editDock(dockId, change) {
-    const docks = JSON.parse(JSON.stringify(DockConfig.docks));
+    const docks = Utils.clone(DockConfig.docks);
     const dock = docks.find(d => d.id === dockId);
     if (!dock)
       return;

@@ -477,7 +477,7 @@ QtObject {
       if (used.includes(id))
         continue;
       used.push(id);
-      draft.local.push(_completeBind(JSON.parse(JSON.stringify(bind))));
+      draft.local.push(_completeBind(Utils.clone(bind)));
       added++;
     }
     if (added > 0)

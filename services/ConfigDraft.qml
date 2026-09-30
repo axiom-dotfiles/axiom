@@ -1,5 +1,6 @@
 pragma ComponentBehavior: Bound
 import QtQuick
+import qs.components.methods
 
 // A working copy of one config section for an editor (settings menu, bar
 // editor, overlay editor). Edits mutate `local` in place, then call
@@ -19,10 +20,6 @@ QtObject {
 
   Component.onCompleted: load()
 
-  function _clone(value) {
-    return JSON.parse(JSON.stringify(value ?? null));
-  }
-
   function _read() {
     let value = ConfigManager.config;
     for (const key of root.path)
@@ -32,8 +29,8 @@ QtObject {
 
   // Start over from the current config
   function load() {
-    root.local = _clone(_read());
-    root.saved = _clone(root.local);
+    root.local = Utils.clone(_read());
+    root.saved = Utils.clone(root.local);
     root.isDirty = false;
   }
 
@@ -43,24 +40,24 @@ QtObject {
   // that made the edit.
   function changed() {
     root.isDirty = JSON.stringify(root.local) !== JSON.stringify(root.saved);
-    Qt.callLater(() => root.local = _clone(root.local));
+    Qt.callLater(() => root.local = Utils.clone(root.local));
   }
 
   // Merges `local` onto the LATEST config (so settings edited elsewhere
   // meanwhile survive) and commits it. Returns false, staying dirty, if
   // ConfigManager rejects it.
   function save() {
-    let merged = _clone(root.local);
+    let merged = Utils.clone(root.local);
     if (root.path.length > 0) {
-      merged = _clone(ConfigManager.config);
+      merged = Utils.clone(ConfigManager.config);
       let cur = merged;
       for (let i = 0; i < root.path.length - 1; i++)
         cur = cur[root.path[i]];
-      cur[root.path[root.path.length - 1]] = _clone(root.local);
+      cur[root.path[root.path.length - 1]] = Utils.clone(root.local);
     }
     if (!ConfigManager.commit(merged))
       return false;
-    root.saved = _clone(root.local);
+    root.saved = Utils.clone(root.local);
     root.isDirty = false;
     return true;
   }

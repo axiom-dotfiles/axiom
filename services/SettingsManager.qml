@@ -105,10 +105,6 @@ QtObject {
     draft.changed();
   }
 
-  function _clone(value) {
-    return JSON.parse(JSON.stringify(value ?? null));
-  }
-
   function _valueAt(object, path) {
     let cur = object;
     for (const key of path)
@@ -123,12 +119,12 @@ QtObject {
         cur[path[i]] = {};
       cur = cur[path[i]];
     }
-    cur[path[path.length - 1]] = _clone(value);
+    cur[path[path.length - 1]] = Utils.clone(value);
   }
 
   // The latest config with every changed setting from the draft on top
   function _merged() {
-    const merged = _clone(ConfigManager.config);
+    const merged = Utils.clone(ConfigManager.config);
     for (const changed of root.changedPaths) {
       const path = changed.split(".");
       _setAt(merged, path, _valueAt(draft.local, path));
@@ -143,7 +139,7 @@ QtObject {
     // `x-applyOnSave` settings (Hyprland's mode, which can take over files)
     // wait in the draft until Save
     if (!schemaAt(path)?.["x-applyOnSave"]) {
-      const live = _clone(ConfigManager.config);
+      const live = Utils.clone(ConfigManager.config);
       _setAt(live, path, value);
       ConfigManager.applyConfig(live);
     }
@@ -296,7 +292,7 @@ QtObject {
     const entry = settingFor(key);
     if (!entry)
       return false;
-    const next = _clone(ConfigManager.config);
+    const next = Utils.clone(ConfigManager.config);
     _setAt(next, entry.path, value);
     if (!ConfigManager.commit(next))
       return false;
@@ -308,7 +304,7 @@ QtObject {
   // saves them at once; false if the result doesn't validate. For pages
   // that apply as they go (SettingRows), not the settings page's draft.
   function commitValues(values) {
-    const next = _clone(ConfigManager.config);
+    const next = Utils.clone(ConfigManager.config);
     for (const dottedPath of Object.keys(values))
       _setAt(next, dottedPath.split("."), values[dottedPath]);
     if (!ConfigManager.commit(next))
