@@ -102,6 +102,12 @@ QtObject {
     return openSurfaces.some(e => e.kind === kind);
   }
 
+  // Whether one is up on `screen` (a ShellScreen or its name)
+  function surfaceOpenOn(kind, screen) {
+    const name = typeof screen === "string" ? screen : screen?.name ?? "";
+    return openSurfaces.some(e => e.kind === kind && (e.group.screen?.name ?? "") === name);
+  }
+
   // Windows a full-screen surface's focus grab lets input through to on
   // their screen: the bars and their popouts, so they stay usable while the
   // overlay is open. `{ window, screen }` (a screen name)

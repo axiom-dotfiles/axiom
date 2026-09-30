@@ -164,7 +164,17 @@ Scope {
   // the edge never lets it close
   readonly property bool pointerIn: root.engaged || trigger.containsMouse
   readonly property bool obscured: root.mode === "intellihide" && DockManager.obscured(root.screen, root._restRect())
+  // The overlay on this screen puts it away, whatever its visibility, unless
+  // it reserves its strip (hiding that would retile the windows under it)
+  readonly property bool overlayOpen: ShellManager.surfaceOpenOn("overlay", root.screen)
+  readonly property bool underOverlay: root.overlayOpen && !root.reserving
+  onUnderOverlayChanged: {
+    if (root.underOverlay)
+      root.conceal();
+  }
   readonly property bool wantShown: {
+    if (root.underOverlay)
+      return false;
     if (root.mode === "always")
       return !root.hiddenByHand;
     return root.latched || root.engaged || (root.mode === "intellihide" && !root.obscured);
@@ -215,7 +225,7 @@ Scope {
   }
 
   // DOCKDBG: temporary tracing
-  readonly property string _dbg: `hover=${hover.hovered} trig=${trigger.containsMouse} menu=${root.menuOpen} drag=${root.dragIndex} latched=${root.latched} touched=${root._touched} want=${root.wantShown} maskDepth=${inputArea.crossDepth}`
+  readonly property string _dbg: `hover=${hover.hovered} trig=${trigger.containsMouse} menu=${root.menuOpen} drag=${root.dragIndex} latched=${root.latched} touched=${root._touched} want=${root.wantShown} maskDepth=${inputArea.crossDepth} ovl=${root.underOverlay} obs=${root.obscured}`
   on_DbgChanged: console.log("DOCKDBG", root._dbg)
   Component.onCompleted: console.log("DOCKDBG start", root._dbg)
 
@@ -268,7 +278,7 @@ Scope {
   EdgeTrigger {
     id: trigger
     screen: root.screen
-    visible: root.mode !== "always" && !root.fullscreen && root.count > 0
+    visible: root.mode !== "always" && !root.fullscreen && !root.underOverlay && root.count > 0
     edge: root.edge
     // Placed along the work area (inside the reserved zones), as the dock is
     position: 0
