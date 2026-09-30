@@ -52,8 +52,8 @@ Item {
         anchors.centerIn: parent
         visible: !image.visible
         text: root.icon
-        color: root.muted ? Theme.foregroundAlt : Theme.foreground
-        font.pixelSize: Appearance.fontSize * 1.4
+        textColor: root.muted ? Theme.foregroundAlt : Theme.foreground
+        textSize: Appearance.fontSize * 1.4
       }
     }
 

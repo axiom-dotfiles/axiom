@@ -9,7 +9,7 @@ Item {
   property string iconText: "●"
   property color iconColor: Theme.background
   property color fillColor: Theme.accentAlt
-  property color backgroundColor: "#ffffff"
+  property color backgroundColor: Theme.foreground
   property real backgroundOpacity: 0.1
   property real strokeInset: 0.85
 
@@ -35,11 +35,11 @@ Item {
     height: bgCircle.height
 
     onPaint: {
-      var ctx = getContext("2d");
-      var centerX = width / 2;
-      var centerY = height / 2;
-      var radius = (width / 2) * root.strokeInset;
-      var lineWidth = width * 0.15;
+      const ctx = getContext("2d");
+      const centerX = width / 2;
+      const centerY = height / 2;
+      const radius = (width / 2) * root.strokeInset;
+      const lineWidth = width * 0.15;
 
       ctx.clearRect(0, 0, width, height);
 
@@ -70,8 +70,8 @@ Item {
   StyledIcon {
     anchors.centerIn: parent
     text: root.iconText
-    color: root.iconColor
-    font.pixelSize: bgCircle.width * 0.35
+    textColor: root.iconColor
+    textSize: bgCircle.width * 0.35
   }
 
   Behavior on percentage {

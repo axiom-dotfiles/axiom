@@ -66,7 +66,7 @@ BaseWidget {
           x: Math.round((iconLabel.width - width) / 2)
           textColor: root.foregroundColor
           text: root._iconLines[index] ?? ""
-          font.pixelSize: root.fontSize * root.iconScale
+          textSize: root.fontSize * root.iconScale
         }
       }
     }

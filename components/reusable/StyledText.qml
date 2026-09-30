@@ -1,13 +1,9 @@
-// qs/components/reusable/StyledText.qml
 pragma ComponentBehavior: Bound
 import QtQuick
 import qs.config
 
 Text {
   id: root
-
-  // -- Signals --
-  // null
 
   // -- Public API --
   property bool isVertical: false

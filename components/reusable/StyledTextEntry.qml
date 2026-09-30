@@ -1,8 +1,6 @@
-// components/reusable/StyledTextEntry.qml
 pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Window
 import qs.config
 
 StyledContainer {
@@ -12,12 +10,9 @@ StyledContainer {
   property string text: ""
   property alias placeholderText: textField.placeholderText
   property alias input: textField
-  property alias acceptableInput: textField.validator
   property alias readOnly: textField.readOnly
-  property alias wantsKeyboardFocus: textField.activeFocus
 
   signal accepted
-  signal boxClicked
 
   implicitHeight: textField.implicitHeight + 20
   borderColor: textField.activeFocus ? Theme.accent : Theme.border

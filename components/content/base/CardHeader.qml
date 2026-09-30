@@ -28,11 +28,9 @@ Rectangle {
     anchors.fill: parent
     spacing: Widget.spacing
 
-    Text {
+    StyledText {
       text: root.title
-      color: Theme.foreground
-      font.family: Appearance.fontFamily
-      font.pixelSize: Appearance.fontSize + 4
+      textSize: Appearance.fontSize + 4
       font.bold: true
     }
 

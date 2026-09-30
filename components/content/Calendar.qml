@@ -59,8 +59,8 @@ Panel {
       Layout.preferredWidth: root.headerHeight
       Layout.preferredHeight: root.headerHeight
 
-      iconText: "‹"
-      iconSize: root.headerHeight * 0.5
+      iconText: "chevron_left"
+      iconSize: root.headerHeight * 0.6
       borderRadius: root.headerHeight / 2
       iconColor: Theme.foregroundAlt
       backgroundColor: Theme.backgroundAlt
@@ -83,8 +83,8 @@ Panel {
       Layout.preferredWidth: root.headerHeight
       Layout.preferredHeight: root.headerHeight
 
-      iconText: "›"
-      iconSize: root.headerHeight * 0.5
+      iconText: "chevron_right"
+      iconSize: root.headerHeight * 0.6
       borderRadius: root.headerHeight / 2
       iconColor: Theme.foregroundAlt
       backgroundColor: Theme.backgroundAlt

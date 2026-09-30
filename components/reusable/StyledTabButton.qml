@@ -1,4 +1,3 @@
-// qs/components/reusable/StyledTabButton.qml
 pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Controls
@@ -8,12 +7,6 @@ import qs.config
 TabButton {
   id: root
 
-  // -- Signals --
-  // null
-
-  // -- Public API --
-  // null
-
   // -- Configurable Appearance --
   property color activeColor: Theme.accent
   property color inactiveColor: Theme.foregroundAlt
@@ -22,11 +15,10 @@ TabButton {
   Layout.fillWidth: true
   Layout.fillHeight: true
 
-  contentItem: Text {
+  contentItem: StyledText {
     text: root.text
-    font.family: Appearance.fontFamily
-    font.pixelSize: Appearance.fontSize - 2
-    color: root.checked ? root.activeColor : root.inactiveColor
+    textSize: Appearance.fontSize - 2
+    textColor: root.checked ? root.activeColor : root.inactiveColor
     horizontalAlignment: Text.AlignHCenter
     verticalAlignment: Text.AlignVCenter
     elide: Text.ElideRight
@@ -44,24 +36,6 @@ TabButton {
       color: root.activeColor
       visible: root.checked
       radius: 1
-
-      Behavior on width {
-        NumberAnimation {
-          duration: Appearance.animNormal
-        }
-      }
-    }
-
-    Behavior on width {
-      NumberAnimation {
-        duration: Appearance.animNormal
-      }
-    }
-
-    Behavior on height {
-      NumberAnimation {
-        duration: Appearance.animNormal
-      }
     }
   }
 }

@@ -1,4 +1,3 @@
-// qs/components/reusable/StyledSwitch.qml
 pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Controls
@@ -6,15 +5,6 @@ import qs.config
 
 Switch {
   id: root
-
-  // -- Signals --
-  // null
-
-  // -- Public API --
-  // null
-
-  // -- Configurable Appearance --
-  // null
 
   // -- Implementation --
   implicitWidth: 50

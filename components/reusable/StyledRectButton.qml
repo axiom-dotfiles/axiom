@@ -1,4 +1,3 @@
-// qs/components/reusable/StyledRectButton.qml
 pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
@@ -7,7 +6,7 @@ import qs.config
 import qs.components.methods
 
 Rectangle {
-  id: component
+  id: root
 
   // -- Signals --
   signal clicked
@@ -20,16 +19,16 @@ Rectangle {
   property alias iconSize: iconLabel.textSize
   property alias iconColor: iconLabel.textColor
   property color backgroundColor: Theme.backgroundAlt
-  property color hoverColor: component.backgroundColor
-  property color pressColor: component.backgroundColor
+  property color hoverColor: root.backgroundColor
+  property color pressColor: root.backgroundColor
   property color borderColor: "transparent"
-  property color borderHoverColor: component.borderColor
-  property color borderPressColor: component.borderColor
+  property color borderHoverColor: root.borderColor
+  property color borderPressColor: root.borderColor
   property int borderWidth: Appearance.borderWidth
   property real borderRadius: Widget.radius
 
   property string badgeText: ""
-  property bool badgeVisible: component.badgeText !== ""
+  property bool badgeVisible: root.badgeText !== ""
   property color badgeBackgroundColor: Theme.error
   property color badgeTextColor: Theme.background
 
@@ -40,13 +39,13 @@ Rectangle {
   property int size: Widget.height
 
   Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
-  implicitWidth: component.size
-  implicitHeight: component.size
+  implicitWidth: root.size
+  implicitHeight: root.size
 
-  color: Utils.fadeable(mouseArea.pressed ? component.pressColor : (mouseArea.containsMouse ? component.hoverColor : component.backgroundColor), component.hoverColor, component.backgroundColor)
-  border.color: Utils.fadeable(mouseArea.pressed ? component.borderPressColor : (mouseArea.containsMouse ? component.borderHoverColor : component.borderColor), component.borderHoverColor, component.borderColor)
-  border.width: component.borderWidth
-  radius: component.borderRadius
+  color: Utils.fadeable(mouseArea.pressed ? root.pressColor : (mouseArea.containsMouse ? root.hoverColor : root.backgroundColor), root.hoverColor, root.backgroundColor)
+  border.color: Utils.fadeable(mouseArea.pressed ? root.borderPressColor : (mouseArea.containsMouse ? root.borderHoverColor : root.borderColor), root.borderHoverColor, root.borderColor)
+  border.width: root.borderWidth
+  radius: root.borderRadius
 
   Behavior on color {
     ColorAnimation {
@@ -63,7 +62,7 @@ Rectangle {
   StyledIcon {
     id: iconLabel
     anchors.centerIn: parent
-    text: component.iconText
+    text: root.iconText
     textSize: Appearance.fontSize
     textColor: Theme.foreground
   }
@@ -73,20 +72,20 @@ Rectangle {
     anchors.fill: parent
     hoverEnabled: true
     cursorShape: Qt.PointingHandCursor
-    onClicked: component.clicked()
+    onClicked: root.clicked()
   }
 
   LazyLoader {
-    active: mouseArea.containsMouse && component.tooltipText !== ""
+    active: mouseArea.containsMouse && root.tooltipText !== ""
     StyledToolTip {
-      target: component
-      text: component.tooltipText
+      target: root
+      text: root.tooltipText
     }
   }
 
   Rectangle {
     id: badge
-    visible: component.badgeVisible
+    visible: root.badgeVisible
     anchors.top: parent.top
     anchors.right: parent.right
     anchors.topMargin: -2
@@ -94,14 +93,14 @@ Rectangle {
     implicitWidth: Math.max(14, badgeLabel.implicitWidth + 6)
     implicitHeight: 14
     radius: height / 2
-    color: component.badgeBackgroundColor
+    color: root.badgeBackgroundColor
 
     StyledText {
       id: badgeLabel
       anchors.centerIn: parent
-      text: component.badgeText
+      text: root.badgeText
       textSize: Appearance.fontSize - 4
-      textColor: component.badgeTextColor
+      textColor: root.badgeTextColor
     }
   }
 }

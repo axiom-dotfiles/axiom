@@ -1,11 +1,10 @@
-// qs/components/reusable/StyledVolumeBar.qml
 pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import qs.config
 
 Item {
-  id: component
+  id: root
 
   // -- Signals --
   signal volumeChanged(real newVolume)
@@ -15,14 +14,10 @@ Item {
   property real volumeLevel: 0.75
   property bool isMuted: false
   property string iconSource: "volume_up"
-  property string labelText: ""
-  // Shows the level as a percentage (in place of labelText)
+  // Shows the level as a percentage under the bar
   property bool showPercent: false
   // Level change per wheel notch (0-1); 0 turns scrolling off
   property real scrollStep: 0
-
-  // -- Configurable Appearance --
-  // null
 
   // -- Implementation --
   // Wide enough for "100%" under the icon
@@ -31,12 +26,12 @@ Item {
 
   // Anywhere on the bar; a notch is 120, so touchpads step smoothly
   WheelHandler {
-    enabled: component.enabled && component.scrollStep > 0
+    enabled: root.enabled && root.scrollStep > 0
     acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
     onWheel: event => {
       const delta = event.angleDelta.y !== 0 ? event.angleDelta.y : -event.angleDelta.x;
-      const level = component.volumeLevel + component.scrollStep * delta / 120;
-      component.volumeChanged(Math.round(Math.max(0, Math.min(1, level)) * 100) / 100);
+      const level = root.volumeLevel + root.scrollStep * delta / 120;
+      root.volumeChanged(Math.round(Math.max(0, Math.min(1, level)) * 100) / 100);
     }
   }
 
@@ -44,7 +39,7 @@ Item {
     id: background
     anchors.fill: parent
     radius: Widget.radius
-    color: component.isMuted ? (Theme.backgroundHighlight || Qt.alpha(Theme.accent, 0.2)) : Qt.alpha(Theme.backgroundHighlight, 0)
+    color: root.isMuted ? Theme.backgroundHighlight : Qt.alpha(Theme.backgroundHighlight, 0)
 
     Behavior on color {
       ColorAnimation {
@@ -57,7 +52,7 @@ Item {
   // column there would squeeze the bar to nothing in the 48px height).
   GridLayout {
     id: content
-    readonly property bool isVertical: component.orientation === Qt.Vertical
+    readonly property bool isVertical: root.orientation === Qt.Vertical
 
     anchors.fill: parent
     anchors.margins: 8
@@ -72,27 +67,27 @@ Item {
       Layout.fillHeight: true
       Layout.alignment: Qt.AlignCenter
 
-      implicitWidth: component.orientation === Qt.Vertical ? 12 : 120
-      implicitHeight: component.orientation === Qt.Vertical ? 120 : 12
+      implicitWidth: root.orientation === Qt.Vertical ? 12 : 120
+      implicitHeight: root.orientation === Qt.Vertical ? 120 : 12
 
       radius: Widget.radius
       color: Qt.alpha(Theme.foreground, 0.2)
 
       Rectangle {
         id: barFill
-        anchors.left: component.orientation === Qt.Horizontal ? parent.left : undefined
+        anchors.left: root.orientation === Qt.Horizontal ? parent.left : undefined
         anchors.bottom: parent.bottom
-        anchors.right: component.orientation === Qt.Vertical ? parent.right : undefined
-        anchors.leftMargin: component.orientation === Qt.Vertical ? parent.width - width : 0
+        anchors.right: root.orientation === Qt.Vertical ? parent.right : undefined
+        anchors.leftMargin: root.orientation === Qt.Vertical ? parent.width - width : 0
 
-        width: component.orientation === Qt.Horizontal ? parent.width * component.volumeLevel : parent.width
-        height: component.orientation === Qt.Vertical ? parent.height * component.volumeLevel : parent.height
+        width: root.orientation === Qt.Horizontal ? parent.width * root.volumeLevel : parent.width
+        height: root.orientation === Qt.Vertical ? parent.height * root.volumeLevel : parent.height
 
         radius: Widget.radius
-        color: component.isMuted ? Qt.alpha(Theme.foreground, 0.4) : Theme.accent
+        color: root.isMuted ? Qt.alpha(Theme.foreground, 0.4) : Theme.accent
 
         Behavior on height {
-          enabled: component.orientation === Qt.Vertical
+          enabled: root.orientation === Qt.Vertical
           NumberAnimation {
             duration: Appearance.animNormal
             easing.type: Easing.OutCubic
@@ -100,7 +95,7 @@ Item {
         }
 
         Behavior on width {
-          enabled: component.orientation === Qt.Horizontal
+          enabled: root.orientation === Qt.Horizontal
           NumberAnimation {
             duration: Appearance.animNormal
             easing.type: Easing.OutCubic
@@ -116,12 +111,12 @@ Item {
 
         function updateVolume(mousePoint) {
           var newVol = 0.0;
-          if (component.orientation === Qt.Vertical) {
+          if (root.orientation === Qt.Vertical) {
             newVol = 1.0 - (mousePoint.y / height);
           } else {
             newVol = mousePoint.x / width;
           }
-          component.volumeChanged(Math.max(0.0, Math.min(1.0, newVol)));
+          root.volumeChanged(Math.max(0.0, Math.min(1.0, newVol)));
         }
 
         onPressed: mouse => dragArea.updateVolume(mouse)
@@ -142,9 +137,8 @@ Item {
 
       StyledIcon {
         id: iconText
-        text: component.iconSource
-        color: Theme.foreground
-        font.pixelSize: 24
+        text: root.iconSource
+        textSize: 24
         anchors.centerIn: parent
       }
 
@@ -156,22 +150,22 @@ Item {
         rotation: 45
         color: Theme.foreground
         radius: 1
-        visible: component.isMuted
+        visible: root.isMuted
       }
     }
 
     StyledText {
-      text: component.showPercent ? Math.round(component.volumeLevel * 100) + "%" : component.labelText
+      text: root.showPercent ? Math.round(root.volumeLevel * 100) + "%" : ""
       textSize: 12
       horizontalAlignment: Text.AlignHCenter
       Layout.row: content.isVertical ? 2 : 0
       Layout.column: content.isVertical ? 0 : 2
       Layout.alignment: Qt.AlignCenter
       // A fixed width for percentages, so the bar doesn't shift as it changes
-      Layout.preferredWidth: component.showPercent ? widest.advanceWidth : -1
+      Layout.preferredWidth: root.showPercent ? widest.advanceWidth : -1
       visible: text !== ""
       elide: Text.ElideRight
-      Layout.maximumWidth: component.showPercent ? Infinity : parent.width - 4
+      Layout.maximumWidth: root.showPercent ? Infinity : parent.width - 4
 
       TextMetrics {
         id: widest

@@ -1,4 +1,3 @@
-// /components/reusable/StyledSlider.qml
 pragma ComponentBehavior: Bound
 import QtQuick
 
@@ -16,7 +15,6 @@ Item {
   property real targetValue: value
   property real _internalValue: value
   property bool pressed: mouseArea.isDragging
-  property bool smoothUpdate: true
 
   // -- Configurable Appearance --
   property alias troughColor: troughRect.color
@@ -33,17 +31,11 @@ Item {
     target: root
     property: "_internalValue"
     value: root.targetValue
-    when: !mouseArea.isDragging && root.smoothUpdate
-  }
-
-  onValueChanged: {
-    if (!mouseArea.isDragging && !root.smoothUpdate) {
-      _internalValue = value;
-    }
+    when: !mouseArea.isDragging
   }
 
   Behavior on _internalValue {
-    enabled: !mouseArea.isDragging && root.smoothUpdate
+    enabled: !mouseArea.isDragging
     NumberAnimation {
       duration: Appearance.animNormal
       easing.type: Easing.OutQuad
@@ -95,12 +87,6 @@ Item {
       NumberAnimation {
         duration: Appearance.animNormal
         easing.type: Easing.OutQuad
-      }
-    }
-
-    Behavior on opacity {
-      NumberAnimation {
-        duration: Appearance.animNormal
       }
     }
   }
