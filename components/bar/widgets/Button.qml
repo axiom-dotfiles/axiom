@@ -23,13 +23,10 @@ BarIconWidget {
   onLabelRequestChanged: CommandManager.acquire(root, labelRequest)
   Component.onCompleted: CommandManager.acquire(root, labelRequest)
   Component.onDestruction: CommandManager.release(root)
-  // Read by an edge menu this opened, which stays open while it's hovered
-  readonly property bool hovered: mouseArea.containsMouse
 
   icon: properties.icon
   text: properties.labelCommand ? commandLabel : properties.label
   showText: text !== ""
-  opacity: mouseArea.pressed ? 0.8 : 1
 
   function runAction() {
     switch (properties.action) {
@@ -95,7 +92,7 @@ BarIconWidget {
     color: "transparent"
     radius: root.barConfig.radius
     border.width: Appearance.borderWidth
-    border.color: mouseArea.containsMouse ? Theme.border : Qt.alpha(Theme.border, 0)
+    border.color: root.hovered ? Theme.border : Qt.alpha(Theme.border, 0)
 
     Behavior on border.color {
       ColorAnimation {
@@ -104,33 +101,28 @@ BarIconWidget {
     }
   }
 
-  MouseArea {
-    id: mouseArea
-    anchors.fill: parent
-    hoverEnabled: true
-    cursorShape: Qt.PointingHandCursor
-    acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
-    onClicked: mouse => {
-      if (mouse.button === Qt.RightButton)
-        root.runCommand(root.properties.rightCommand);
-      else if (mouse.button === Qt.MiddleButton)
-        root.runCommand(root.properties.middleCommand);
-      else
-        root.runAction();
-    }
+  clickable: true
+  acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
+  onClicked: button => {
+    if (button === Qt.RightButton)
+      root.runCommand(root.properties.rightCommand);
+    else if (button === Qt.MiddleButton)
+      root.runCommand(root.properties.middleCommand);
+    else
+      root.runAction();
   }
 
   // "Activate on hover": the click action once per hover, after the
   // popout open delay
   Timer {
     interval: PopoutConfig.openDelay
-    running: mouseArea.containsMouse && root.properties.hoverActivate && root.properties.action !== "none"
+    running: root.hovered && root.properties.hoverActivate && root.properties.action !== "none"
     onTriggered: root.hoverAction()
   }
 
   // Tooltip after hovering for a moment, on the bar's inner side
   LazyLoader {
-    active: mouseArea.containsMouse && root.properties.tooltip !== ""
+    active: root.hovered && root.properties.tooltip !== ""
     StyledToolTip {
       target: root
       text: root.properties.tooltip

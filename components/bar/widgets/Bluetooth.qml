@@ -29,21 +29,13 @@ BarIconWidget {
   showText: properties.showDevice && text !== ""
 
   backgroundColor: Theme.resolveColor(!BluetoothManager.enabled ? properties.disabledColor : connected.length > 0 ? properties.connectedColor : properties.backgroundColor)
-  opacity: mouseArea.pressed ? 0.8 : 1
-
-  MouseArea {
-    id: mouseArea
-    anchors.fill: parent
-    enabled: !root.hidden
-    cursorShape: Qt.PointingHandCursor
-    acceptedButtons: Qt.LeftButton | Qt.MiddleButton
-    onClicked: mouse => {
-      if (mouse.button === Qt.MiddleButton) {
-        CommandManager.runDetached(root.properties.middleCommand);
-      } else {
-        BluetoothManager.toggleEnabled();
-      }
-    }
+  clickable: true
+  acceptedButtons: Qt.LeftButton | Qt.MiddleButton
+  onClicked: button => {
+    if (button === Qt.MiddleButton)
+      CommandManager.runDetached(root.properties.middleCommand);
+    else
+      BluetoothManager.toggleEnabled();
   }
 
   PopoutAnchor {

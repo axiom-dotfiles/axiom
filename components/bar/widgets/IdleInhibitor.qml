@@ -16,12 +16,6 @@ BarIconWidget {
   showText: properties.showLabel
 
   backgroundColor: Theme.resolveColor(IdleInhibitManager.enabled ? properties.activeColor : properties.inactiveColor)
-  opacity: mouseArea.pressed ? 0.8 : 1
-
-  MouseArea {
-    id: mouseArea
-    anchors.fill: parent
-    cursorShape: Qt.PointingHandCursor
-    onClicked: IdleInhibitManager.toggle()
-  }
+  clickable: true
+  onClicked: IdleInhibitManager.toggle()
 }

@@ -17,13 +17,6 @@ BarIconWidget {
   showText: properties.showTimer && ScreenshotManager.recordingSince > 0
 
   backgroundColor: Theme.resolveColor(properties.activeColor)
-  opacity: mouseArea.pressed ? 0.8 : 1
-
-  MouseArea {
-    id: mouseArea
-    anchors.fill: parent
-    enabled: !root.hidden
-    cursorShape: Qt.PointingHandCursor
-    onClicked: ScreenshotManager.stopRecording()
-  }
+  clickable: true
+  onClicked: ScreenshotManager.stopRecording()
 }

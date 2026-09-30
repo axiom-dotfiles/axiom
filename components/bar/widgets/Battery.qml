@@ -43,14 +43,18 @@ BarIconWidget {
     return details;
   }
 
-  // Charging animation
+  // Charging: a slow pulse, back to full when it stops
   SequentialAnimation {
     running: root.isCharging && !root.hidden && Appearance.animations
     loops: Animation.Infinite
+    onRunningChanged: {
+      if (!running)
+        root.dim = 1;
+    }
 
     PropertyAnimation {
       target: root
-      property: "opacity"
+      property: "dim"
       from: 1.0
       to: 0.7
       duration: Appearance.animSlow * 5
@@ -59,7 +63,7 @@ BarIconWidget {
 
     PropertyAnimation {
       target: root
-      property: "opacity"
+      property: "dim"
       from: 0.7
       to: 1.0
       duration: Appearance.animSlow * 5
@@ -67,11 +71,6 @@ BarIconWidget {
     }
   }
 
-  MouseArea {
-    anchors.fill: parent
-    enabled: !root.hidden
-    onClicked: {
-      NotificationManager.sendNotification("axiom", I18n.tr("Battery Status"), root.getBatteryStatus());
-    }
-  }
+  clickable: true
+  onClicked: NotificationManager.sendNotification("axiom", I18n.tr("Battery Status"), root.getBatteryStatus())
 }

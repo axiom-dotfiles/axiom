@@ -24,7 +24,6 @@ BarIconWidget {
   text: String(count)
 
   backgroundColor: Theme.resolveColor(count >= properties.manyThreshold ? properties.manyColor : properties.backgroundColor)
-  opacity: mouseArea.pressed ? 0.8 : 1
 
   // Re-acquiring replaces the old request
   readonly property var updatesRequest: ({
@@ -35,18 +34,13 @@ BarIconWidget {
   Component.onCompleted: UpdatesManager.acquire(root, updatesRequest)
   Component.onDestruction: UpdatesManager.release(root)
 
-  MouseArea {
-    id: mouseArea
-    anchors.fill: parent
-    enabled: !root.hidden
-    cursorShape: Qt.PointingHandCursor
-    acceptedButtons: Qt.LeftButton | Qt.RightButton
-    onClicked: mouse => {
-      if (mouse.button === Qt.RightButton)
-        UpdatesManager.refresh();
-      else
-        UpdatesManager.upgrade(root.upgradeCommand, root.properties.terminal);
-    }
+  clickable: true
+  acceptedButtons: Qt.LeftButton | Qt.RightButton
+  onClicked: button => {
+    if (button === Qt.RightButton)
+      UpdatesManager.refresh();
+    else
+      UpdatesManager.upgrade(root.upgradeCommand, root.properties.terminal);
   }
 
   PopoutAnchor {

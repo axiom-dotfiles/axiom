@@ -30,13 +30,9 @@ BarIconWidget {
     }
   }
 
-  MouseArea {
-    anchors.fill: parent
-    enabled: root.properties.middleCommand !== ""
-    cursorShape: Qt.PointingHandCursor
-    acceptedButtons: Qt.MiddleButton
-    onClicked: CommandManager.runDetached(root.properties.middleCommand)
-  }
+  clickable: root.properties.middleCommand !== ""
+  acceptedButtons: Qt.MiddleButton
+  onClicked: CommandManager.runDetached(root.properties.middleCommand)
 
   PopoutAnchor {
     popouts: root.popouts
