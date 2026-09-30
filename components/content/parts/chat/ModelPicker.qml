@@ -1,13 +1,12 @@
 pragma ComponentBehavior: Bound
 import QtQuick
-import QtQuick.Effects
 import QtQuick.Layouts
 import qs.config
 import qs.services
 import qs.components.reusable
 
 // The conversation's preset, then each provider's models, in one list
-Rectangle {
+DropdownSurface {
   id: root
 
   signal picked
@@ -44,20 +43,6 @@ Rectangle {
   property real maxHeight: 420
 
   implicitHeight: Math.min(listColumn.implicitHeight + Widget.spacing * 2, root.maxHeight)
-  color: Theme.background
-  radius: Widget.radius
-  border.color: Theme.border
-  border.width: 1
-
-  // Floats over the chat, like a combo box's list
-  layer.enabled: true
-  // Qt 6 MultiEffect: Qt5Compat DropShadow fails to build its shader here
-  layer.effect: MultiEffect {
-    shadowEnabled: true
-    shadowColor: "#40000000"
-    shadowBlur: 0.5
-    shadowVerticalOffset: 2
-  }
 
   StyledScrollView {
     id: scroll
