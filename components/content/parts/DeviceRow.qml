@@ -129,7 +129,7 @@ Rectangle {
     }
 
     // Only on hover, but always laid out so showing it moves nothing
-    SquareIconButton {
+    StyledRectButton {
       size: 28
       visible: root.known
       enabled: rowHover.hovered && !root.busy
@@ -137,7 +137,6 @@ Rectangle {
       iconText: "delete"
       iconColor: Theme.error
       backgroundColor: Qt.alpha(Theme.error, root._confirmForget ? 0.2 : 0)
-      hoverColor: backgroundColor
       borderHoverColor: Theme.error
       tooltipText: I18n.tr("Forget")
       onClicked: {
@@ -153,14 +152,13 @@ Rectangle {
       }
     }
 
-    SquareIconButton {
+    StyledRectButton {
       size: 28
       enabled: !root.busy
       opacity: enabled ? 1 : 0.5
       iconText: root.connected ? "link_off" : "link"
       iconColor: root.connected ? Theme.accent : Theme.foreground
       backgroundColor: "transparent"
-      hoverColor: "transparent"
       borderHoverColor: Theme.accent
       tooltipText: root.connected ? root.disconnectTip : root.connectTip
       onClicked: root.connectClicked()

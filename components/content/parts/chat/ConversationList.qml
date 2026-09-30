@@ -153,7 +153,7 @@ DropdownSurface {
                     input.Keys.onEscapePressed: root.renaming = ""
                   }
 
-                  ChatIconButton {
+                  FlatIconButton {
                     visible: itemHover.hovered && !item.editing
                     size: 24
                     iconText: "edit"
@@ -161,7 +161,7 @@ DropdownSurface {
                     tooltipText: I18n.tr("Rename")
                     onClicked: root.renaming = item.conversation.id
                   }
-                  ChatIconButton {
+                  FlatIconButton {
                     visible: itemHover.hovered && !item.editing
                     size: 24
                     iconText: "delete"

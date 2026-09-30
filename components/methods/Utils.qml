@@ -92,6 +92,16 @@ QtObject {
     return gib >= 1000 ? `${(gib / 1024).toFixed(1)}T` : `${Math.round(gib)}G`;
   }
 
+  // A colour to animate to or from: a fully transparent `c` becomes the
+  // first visible one of `fallbacks` at alpha 0, since fading through
+  // "transparent" (transparent black) flashes dark mid-animation
+  function fadeable(c, ...fallbacks) {
+    if (Qt.color(c).a > 0)
+      return c;
+    const visible = fallbacks.find(f => Qt.color(f).a > 0);
+    return visible !== undefined ? Qt.alpha(visible, 0) : c;
+  }
+
   // Check if color is dark
   function isColorDark(color) {
     const c = Qt.color(color);

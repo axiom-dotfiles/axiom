@@ -2,10 +2,10 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import qs.config
-import qs.components.reusable
 
-// The chat's icon button: a fixed square that doesn't stretch in layouts,
-// so every button in a row shares one size and centre line
+// A flat icon button (no fill until hovered) of a fixed square size that
+// doesn't stretch in layouts, so every button in a row shares one size and
+// centre line (the chat's and notes' toolbars)
 StyledIconButton {
   property int size: 28
 

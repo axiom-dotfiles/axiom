@@ -47,10 +47,6 @@ ColumnLayout {
 
     StyledRectButton {
       visible: root.items.length < root.maxItems
-      Layout.preferredWidth: Widget.height
-      Layout.preferredHeight: Widget.height
-      Layout.fillWidth: false
-      Layout.fillHeight: false
       iconText: "add"
       iconSize: Appearance.fontSize + 4
       hoverColor: Theme.accent

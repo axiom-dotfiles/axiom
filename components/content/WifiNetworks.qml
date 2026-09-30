@@ -104,14 +104,13 @@ Panel {
         Keys.onEscapePressed: NetworkingManager.cancelPassword()
       }
 
-      SquareIconButton {
+      StyledRectButton {
         size: 28
         enabled: passwordField.text !== ""
         opacity: enabled ? 1 : 0.5
         iconText: "link"
         iconColor: Theme.accent
         backgroundColor: "transparent"
-        hoverColor: "transparent"
         borderHoverColor: Theme.accent
         tooltipText: I18n.tr("Connect")
         onClicked: NetworkingManager.connectWithPsk(row.network, passwordField.text)

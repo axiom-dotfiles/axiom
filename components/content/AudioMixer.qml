@@ -104,10 +104,6 @@ Panel {
           StyledRectButton {
             required property var modelData
             readonly property bool selected: root.mode === modelData[0]
-            Layout.fillWidth: false
-            Layout.fillHeight: false
-            Layout.preferredWidth: Widget.height
-            Layout.preferredHeight: Widget.height
             iconText: modelData[1]
             iconColor: selected ? Theme.accent : Theme.foregroundAlt
             backgroundColor: Qt.alpha(Theme.backgroundHighlight, selected ? 1 : 0)
@@ -148,24 +144,10 @@ Panel {
       Layout.preferredWidth: root.sideBySide ? root.sideWidth : -1
       spacing: Widget.spacing
 
-      RowLayout {
-        Layout.fillWidth: true
-        Layout.fillHeight: false
-        Layout.preferredHeight: 32
-        spacing: Widget.spacing
-        uniformCellSizes: true
-
-        Repeater {
-          model: [I18n.tr("Applications ({0})", root.apps.length), I18n.tr("Devices")]
-
-          StyledTabButton {
-            required property int index
-            required property string modelData
-            text: modelData
-            checked: root.currentTab === index
-            onClicked: root.currentTab = index
-          }
-        }
+      StyledTabBar {
+        tabs: [I18n.tr("Applications ({0})", root.apps.length), I18n.tr("Devices")]
+        currentIndex: root.currentTab
+        onTabClicked: index => root.currentTab = index
       }
 
       StyledScrollView {

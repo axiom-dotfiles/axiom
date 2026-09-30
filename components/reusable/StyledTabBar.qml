@@ -1,48 +1,34 @@
 pragma ComponentBehavior: Bound
-
 import QtQuick
 import QtQuick.Layouts
-
 import qs.config
 
-StyledContainer {
+// A row of equal-width tabs (StyledTabButtons), one per label in `tabs`.
+// The owner keeps the current index: set `currentIndex`, and update it
+// from tabClicked.
+RowLayout {
   id: root
 
-  property int currentTab: 0
-  property color activeColor: Theme.accent
-  property color inactiveColor: Theme.foregroundAlt
-
   property var tabs: []
+  property int currentIndex: 0
+
   signal tabClicked(int index)
 
-  RowLayout {
-    anchors.fill: parent
-    anchors.leftMargin: Widget.padding
-    anchors.rightMargin: Widget.padding
-    uniformCellSizes: true
+  Layout.fillWidth: true
+  Layout.fillHeight: false
+  Layout.preferredHeight: 32
+  spacing: Widget.spacing
+  uniformCellSizes: true
 
-    Repeater {
-      model: root.tabs
+  Repeater {
+    model: root.tabs
 
-      delegate: StyledTabButton {
-        required property int index
-        required property var modelData
-        activeColor: root.activeColor
-        inactiveColor: root.inactiveColor
-
-        text: modelData.name
-        checked: root.currentTab === index
-
-        onClicked: root.tabClicked(index)
-      }
+    StyledTabButton {
+      required property int index
+      required property string modelData
+      text: modelData
+      checked: root.currentIndex === index
+      onClicked: root.tabClicked(index)
     }
-  }
-
-  StyledSeparator {
-    anchors.bottom: parent.bottom
-    anchors.left: parent.left
-    anchors.right: parent.right
-    separatorColor: "transparent"
-    separatorHeight: 10
   }
 }

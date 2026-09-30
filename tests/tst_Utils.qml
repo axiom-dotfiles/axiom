@@ -79,6 +79,13 @@ TestCase {
     compare(Utils.formatSize(1843 * Utils.bytesPerGiB), "1.8T");
   }
 
+  function test_fadeable() {
+    compare(Utils.fadeable("#ff0000", "#00ff00"), "#ff0000");
+    const faded = Qt.color(Utils.fadeable("transparent", "#00000000", "#336699"));
+    compare([faded.a, Math.round(faded.b * 255)], [0, 0x99]);
+    compare(Qt.color(Utils.fadeable("transparent")).a, 0);
+  }
+
   function test_monthGrid() {
     // September 2026 starts on a Tuesday
     const sunday = Utils.monthGrid(2026, 8, 0, new Date(2026, 8, 26).toDateString());

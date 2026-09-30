@@ -5,6 +5,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell
 import qs.config
+import qs.components.methods
 
 ToolButton {
   id: root
@@ -27,11 +28,6 @@ ToolButton {
   property real borderRadius: Widget.radius
 
   // -- Implementation --
-  // A fully transparent state fades as the hover color at alpha 0: fading
-  // from "transparent" (transparent black) flashes dark mid-animation
-  function _fadeable(c: color): color {
-    return c.a === 0 ? Qt.alpha(root.hoverColor.a > 0 ? root.hoverColor : root.backgroundColor, 0) : c;
-  }
 
   Layout.fillHeight: true
   Layout.fillWidth: true
@@ -67,7 +63,7 @@ ToolButton {
   }
 
   background: Rectangle {
-    color: root._fadeable(root.pressed ? root.pressColor : (root.hovered ? root.hoverColor : root.backgroundColor))
+    color: Utils.fadeable(root.pressed ? root.pressColor : (root.hovered ? root.hoverColor : root.backgroundColor), root.hoverColor, root.backgroundColor)
     border.color: root.borderColor
     border.width: root.borderWidth
     radius: root.borderRadius
