@@ -72,15 +72,16 @@ QtObject {
   }
 
   // Each icon's size along the dock with the pointer at `pos` (pixels from
-  // the start of the row as laid out at rest, -1 when it's elsewhere): the
-  // icon under it `max`, falling off as a cosine to `base` at `range`
-  // icons away. Distances are taken at rest, so the icon under the pointer
-  // stays under it while the row grows.
+  // the start of the row as laid out at rest, null when it's elsewhere;
+  // negative before the row's first icon, as the grown box reaches past
+  // it): the icon under it `max`, falling off as a cosine to `base` at
+  // `range` icons away. Distances are taken at rest, so the icon under the
+  // pointer stays under it while the row grows.
   function magnifiedSizes(count, pos, base, max, range, spacing) {
     const sizes = [];
     const step = base + spacing;
     for (let i = 0; i < count; i++) {
-      if (pos < 0 || range <= 0 || max <= base) {
+      if (pos === null || range <= 0 || max <= base) {
         sizes.push(base);
         continue;
       }

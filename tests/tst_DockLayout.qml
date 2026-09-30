@@ -88,7 +88,7 @@ TestCase {
   }
 
   function test_magnifyOff() {
-    compare(DockLayout.magnifiedSizes(3, -1, 48, 80, 3, 6), [48, 48, 48]);
+    compare(DockLayout.magnifiedSizes(3, null, 48, 80, 3, 6), [48, 48, 48]);
     compare(DockLayout.magnifiedSizes(3, 30, 48, 48, 3, 6), [48, 48, 48], "max not above base");
   }
 
@@ -101,6 +101,16 @@ TestCase {
     compare(sizes[0], 48, "outside the range");
     compare(sizes[4], 48);
     compare(sizes[6], 48);
+  }
+
+  function test_magnifyBeforeRow() {
+    // Left of the first icon (the grown box reaching past the row at rest)
+    // still magnifies, falling off as it does past the last icon
+    const before = DockLayout.magnifiedSizes(3, -10, 48, 80, 2, 6);
+    const after = DockLayout.magnifiedSizes(3, 3 * 54 - 6 + 10, 48, 80, 2, 6);
+    verify(before[0] > 48, "first icon still grown");
+    fuzzyCompare(before[0], after[2], 0.001, "mirrors the far end");
+    fuzzyCompare(before[1], after[1], 0.001);
   }
 
   function test_overlap() {
