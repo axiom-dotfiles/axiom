@@ -72,53 +72,9 @@ DragLayer {
     return I18n.tr(Utils.spaceWords(type));
   }
 
-  // Material Symbols icon per widget type
+  // The type's Material Symbols icon (its schema `x-icon`)
   function icon(type) {
-    switch (type) {
-    case "Window":
-      return "wrap_text";
-    case "Media":
-      return "music_note";
-    case "Workspaces":
-      return "grid_view";
-    case "Time":
-      return "schedule";
-    case "Tailscale":
-      return "vpn_lock";
-    case "Network":
-      return "wifi";
-    case "SystemTray":
-      return "apps";
-    case "Notifications":
-      return "notifications";
-    case "Button":
-      return "terminal";
-    case "Battery":
-      return "battery_full";
-    case "SystemStats":
-      return "memory_alt";
-    case "KeyboardLayout":
-      return "keyboard";
-    case "IdleInhibitor":
-      return "coffee";
-    case "Privacy":
-      return "visibility";
-    case "ScreenRecord":
-      return "radio_button_checked";
-    case "Updates":
-      return "package_2";
-    case "Weather":
-      return "partly_cloudy_day";
-    case "Separator":
-      return "more_vert";
-    case "Volume":
-      return "volume_up";
-    case "Microphone":
-      return "mic";
-    case "Bluetooth":
-      return "bluetooth";
-    }
-    return "settings";
+    return root.typeInfo(type)?.icon ?? "widgets";
   }
 
   onStarted: (payload, item, x, y) => {

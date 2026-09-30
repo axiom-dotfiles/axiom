@@ -19,7 +19,6 @@ Item {
     id: addPopup
     types: Bar.availableWidgetTypes
     parent: root
-    iconFor: type => root.dragLayer.icon(type)
     placeholderText: I18n.tr("Search widgets")
     onTypeSelected: type => BarManager.addWidget(root._pendingZone, type)
   }

@@ -2661,6 +2661,7 @@
     },
     "WindowWidget": {
       "type": "object",
+      "x-icon": "wrap_text",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -2681,6 +2682,7 @@
     },
     "MediaWidget": {
       "type": "object",
+      "x-icon": "music_note",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -2704,6 +2706,7 @@
     },
     "WorkspacesWidget": {
       "type": "object",
+      "x-icon": "grid_view",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -2735,6 +2738,7 @@
     },
     "TimeWidget": {
       "type": "object",
+      "x-icon": "schedule",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -2760,6 +2764,7 @@
     },
     "TailscaleWidget": {
       "type": "object",
+      "x-icon": "vpn_lock",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -2782,6 +2787,7 @@
     },
     "NetworkWidget": {
       "type": "object",
+      "x-icon": "wifi",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -2804,6 +2810,7 @@
     },
     "SystemTrayWidget": {
       "type": "object",
+      "x-icon": "apps",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -2824,6 +2831,7 @@
     },
     "NotificationsWidget": {
       "type": "object",
+      "x-icon": "notifications",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -2846,6 +2854,7 @@
     },
     "ButtonWidget": {
       "type": "object",
+      "x-icon": "terminal",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -2875,6 +2884,7 @@
     },
     "BatteryWidget": {
       "type": "object",
+      "x-icon": "battery_full",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -2897,6 +2907,7 @@
     },
     "SystemStatsWidget": {
       "type": "object",
+      "x-icon": "memory_alt",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -2926,6 +2937,7 @@
     },
     "KeyboardLayoutWidget": {
       "type": "object",
+      "x-icon": "keyboard",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -2946,6 +2958,7 @@
     },
     "IdleInhibitorWidget": {
       "type": "object",
+      "x-icon": "coffee",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -2966,6 +2979,7 @@
     },
     "PrivacyWidget": {
       "type": "object",
+      "x-icon": "visibility",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -2988,6 +3002,7 @@
     },
     "ScreenRecordWidget": {
       "type": "object",
+      "x-icon": "radio_button_checked",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -3007,6 +3022,7 @@
     },
     "UpdatesWidget": {
       "type": "object",
+      "x-icon": "package_2",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -3034,6 +3050,7 @@
     },
     "ClaudeUsageWidget": {
       "type": "object",
+      "x-icon": "data_usage",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -3078,6 +3095,7 @@
     },
     "WeatherWidget": {
       "type": "object",
+      "x-icon": "partly_cloudy_day",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -3103,6 +3121,7 @@
     },
     "SeparatorWidget": {
       "type": "object",
+      "x-icon": "more_vert",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -3124,6 +3143,7 @@
     },
     "VolumeWidget": {
       "type": "object",
+      "x-icon": "volume_up",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -3148,6 +3168,7 @@
     },
     "MicrophoneWidget": {
       "type": "object",
+      "x-icon": "mic",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -3174,6 +3195,7 @@
     },
     "BluetoothWidget": {
       "type": "object",
+      "x-icon": "bluetooth",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
