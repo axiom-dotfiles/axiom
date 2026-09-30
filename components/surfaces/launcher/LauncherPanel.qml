@@ -147,6 +147,8 @@ FocusScope {
           calc: "calculate",
           run: "terminal",
           web: "web",
+          chat: "forum",
+          clipboard: "content_paste",
           emoji: "mood"
         })
       text: glyphs[LauncherManager.mode] ?? glyphs.apps
@@ -227,9 +229,11 @@ FocusScope {
           calc: I18n.tr("Calculator"),
           run: I18n.tr("Run"),
           web: I18n.tr("Web"),
+          chat: I18n.tr("Chat"),
+          clipboard: I18n.tr("Clipboard"),
           emoji: I18n.tr("Emoji")
         })
-      visible: LauncherManager.mode !== "apps"
+      visible: modeLabel.text !== ""
       implicitWidth: modeLabel.implicitWidth + 16
       implicitHeight: modeLabel.implicitHeight + 8
       radius: Widget.radius

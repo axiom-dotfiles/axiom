@@ -156,14 +156,14 @@ PanelWindow {
 
   HyprlandFocusGrab {
     id: grab
-    active: root.visible && group.ownsGrab
+    // Only while open: a grab held through the close animation would be
+    // cleared by any click then, for nothing
+    active: root.isOpen && group.ownsGrab
     // This screen's bars and their popouts stay usable while it's open
     // (every screen's, and the other instances, when it's on all of them)
     windows: group.windows.concat(ShellManager.grabPartnersFor(group.everywhere ? null : root.screen), ShellManager.captureWindows)
     onCleared: {
-      if (!root.isOpen) {
-        grab.active = true;
-      } else if (OverlayConfig.closeOnOutsideClick) {
+      if (root.isOpen && OverlayConfig.closeOnOutsideClick) {
         root._outsideCloseTime = Date.now();
         root.close();
       }

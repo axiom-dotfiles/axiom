@@ -27,7 +27,8 @@ Item {
   }
   readonly property var slots: root.cellConfig.slots || {}
 
-  onSlotsChanged: {
+  // Logs slots the layout lacks and modules that don't fit their slot
+  function _checkSlots() {
     const unknown = Object.keys(root.slots).filter(name => !(name in root.layout.slots));
     if (unknown.length > 0)
       console.warn(`Overlay cell layout ${root.cellConfig.layout} has no slot(s): ${unknown.join(", ")}`);
@@ -37,6 +38,8 @@ Item {
         console.warn(`Overlay module ${type} doesn't fit the ${OverlayConfig.slotShape(root.layout.slots[name])} ${name} slot of ${root.cellConfig.layout}`);
     });
   }
+  onSlotsChanged: root._checkSlots()
+  Component.onCompleted: root._checkSlots()
 
   implicitWidth: root.grid.span(root.layout.cols)
   implicitHeight: root.grid.span(root.layout.rows)
