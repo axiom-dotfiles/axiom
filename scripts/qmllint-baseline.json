@@ -3,11 +3,6 @@
     "unqualified: unknown grouped property scope margins.": 1,
     "unresolved-type: Type margins is used but it is not resolved": 1
   },
-  "components/bar/widgets/Button.qml": {
-    "missing-type: No type found for property \"edges\". This may be due to a missing import statement or incomplete qmltypes files.": 1,
-    "missing-type: No type found for property \"gravity\". This may be due to a missing import statement or incomplete qmltypes files.": 1,
-    "unresolved-type: Type \"PopupAnchor\" of property \"anchor\" not found. This is likely due to a missing dependency entry or a type not being exposed declaratively.": 1
-  },
   "components/bar/widgets/Time.qml": {
     "missing-property: Member \"implicitHeight\" not found on type \"QObject\"": 1,
     "missing-property: Member \"implicitWidth\" not found on type \"QObject\"": 1

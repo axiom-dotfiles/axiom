@@ -20,8 +20,8 @@ Card {
 
   property string armed: ""
 
-  readonly property bool inMenu: root.host?.kind === "edgeMenu" && !!root.host.id
-  readonly property bool pinned: root.inMenu && EdgeMenuManager.pinnedMenus[root.host.id] === true
+  readonly property bool inMenu: EdgeMenuManager.canPin(root.host)
+  readonly property bool pinned: root.inMenu && EdgeMenuManager.isPinned(root.host.id)
 
   readonly property var sessionActions: ["lock", "suspend", "hibernate", "logout", "reboot", "poweroff"]
 

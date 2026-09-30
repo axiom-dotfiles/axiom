@@ -23,7 +23,6 @@ BarIconWidget {
   onLabelRequestChanged: CommandManager.acquire(root, labelRequest)
   Component.onCompleted: CommandManager.acquire(root, labelRequest)
   Component.onDestruction: CommandManager.release(root)
-  property bool _tooltipShown: false
   // Read by an edge menu this opened, which stays open while it's hovered
   readonly property bool hovered: mouseArea.containsMouse
 
@@ -111,10 +110,6 @@ BarIconWidget {
     hoverEnabled: true
     cursorShape: Qt.PointingHandCursor
     acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
-    onContainsMouseChanged: {
-      if (!containsMouse)
-        root._tooltipShown = false;
-    }
     onClicked: mouse => {
       if (mouse.button === Qt.RightButton)
         root.runCommand(root.properties.rightCommand);
@@ -133,41 +128,13 @@ BarIconWidget {
     onTriggered: root.hoverAction()
   }
 
-  // Tooltip after hovering for a moment
-  Timer {
-    id: tooltipDelay
-    interval: 500
-    running: mouseArea.containsMouse && root.properties.tooltip !== ""
-    onTriggered: root._tooltipShown = true
-  }
-
-  PopupWindow {
-    visible: root._tooltipShown && mouseArea.containsMouse && !!root.QsWindow.window && !ShellManager.captureFrozen
-    color: "transparent"
-    implicitWidth: tooltipBox.implicitWidth
-    implicitHeight: tooltipBox.implicitHeight
-
-    anchor.item: root
-    anchor.edges: root.barConfig.top ? Edges.Bottom : root.barConfig.bottom ? Edges.Top : root.barConfig.left ? Edges.Right : Edges.Left
-    anchor.gravity: anchor.edges
-    anchor.margins.top: root.barConfig.top ? Widget.spacing : 0
-    anchor.margins.bottom: root.barConfig.bottom ? Widget.spacing : 0
-    anchor.margins.left: root.barConfig.left ? Widget.spacing : 0
-    anchor.margins.right: root.barConfig.right ? Widget.spacing : 0
-
-    StyledContainer {
-      id: tooltipBox
-      anchors.fill: parent
-      implicitWidth: tooltipText.implicitWidth + Widget.padding * 2
-      implicitHeight: tooltipText.implicitHeight + Widget.spacing * 2
-      backgroundColor: Theme.background
-      borderColor: Theme.border
-
-      StyledText {
-        id: tooltipText
-        anchors.centerIn: parent
-        text: root.properties.tooltip
-      }
+  // Tooltip after hovering for a moment, on the bar's inner side
+  LazyLoader {
+    active: mouseArea.containsMouse && root.properties.tooltip !== ""
+    StyledToolTip {
+      target: root
+      text: root.properties.tooltip
+      edges: root.barConfig.top ? Edges.Bottom : root.barConfig.bottom ? Edges.Top : root.barConfig.left ? Edges.Right : Edges.Left
     }
   }
 }

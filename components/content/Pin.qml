@@ -11,8 +11,8 @@ import qs.components.content.base
 Card {
   id: root
 
-  readonly property bool inMenu: root.host?.kind === "edgeMenu" && !!root.host.id
-  readonly property bool pinned: root.inMenu && EdgeMenuManager.pinnedMenus[root.host.id] === true
+  readonly property bool inMenu: EdgeMenuManager.canPin(root.host)
+  readonly property bool pinned: root.inMenu && EdgeMenuManager.isPinned(root.host.id)
 
   color: root.pinned ? Theme.accent : root.bare ? Qt.alpha(Theme.accent, 0) : Theme.background
   opacity: root.inMenu ? 1 : 0.5
