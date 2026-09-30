@@ -142,6 +142,26 @@ QtObject {
     };
   }
 
+  // The box around rects ({ x, y, width, height }); a 1920×1080 one at the
+  // origin when there are none
+  function bounds(rects) {
+    if (rects.length === 0)
+      return {
+        "x": 0,
+        "y": 0,
+        "width": 1920,
+        "height": 1080
+      };
+    const x = Math.min(...rects.map(r => r.x));
+    const y = Math.min(...rects.map(r => r.y));
+    return {
+      "x": x,
+      "y": y,
+      "width": Math.max(...rects.map(r => r.x + r.width)) - x,
+      "height": Math.max(...rects.map(r => r.y + r.height)) - y
+    };
+  }
+
   function _intersects(a, b) {
     return a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;
   }

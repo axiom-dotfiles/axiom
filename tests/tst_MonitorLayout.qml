@@ -98,6 +98,47 @@ TestCase {
     compare(result.guides.length, 1);
   }
 
+  function test_bounds() {
+    compare(MonitorLayout.bounds([]), {
+      "x": 0,
+      "y": 0,
+      "width": 1920,
+      "height": 1080
+    });
+    compare(MonitorLayout.bounds([
+      {
+        "x": 0,
+        "y": 200,
+        "width": 3440,
+        "height": 1440
+      },
+      {
+        "x": 3440,
+        "y": 0,
+        "width": 1080,
+        "height": 1920
+      }
+    ]), {
+      "x": 0,
+      "y": 0,
+      "width": 4520,
+      "height": 1920
+    });
+    compare(MonitorLayout.bounds([
+      {
+        "x": -1920,
+        "y": -1080,
+        "width": 1920,
+        "height": 1080
+      }
+    ]), {
+      "x": -1920,
+      "y": -1080,
+      "width": 1920,
+      "height": 1080
+    });
+  }
+
   function test_overlaps() {
     const beside = {
       "x": 3440,

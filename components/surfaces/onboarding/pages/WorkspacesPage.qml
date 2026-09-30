@@ -46,7 +46,7 @@ OnboardingPage {
       description: modelData.description
       selected: root.layout === modelData.layout
       recommended: modelData.layout === "perMonitor"
-      onClicked: OnboardingManager.set({
+      onClicked: SettingsManager.commitValues({
         "Workspaces.layout": modelData.layout
       })
     }

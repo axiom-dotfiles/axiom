@@ -1,3 +1,4 @@
+pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
 import Quickshell.Services.Notifications
@@ -140,28 +141,28 @@ Scope {
           return;
 
         // Make room: the oldest go (they leave the list once faded out)
-        const showing = activeToasts.filter(t => !t.closing);
+        const showing = stack.activeToasts.filter(t => !t.closing);
         showing.slice(0, Math.max(0, showing.length - NotificationsConfig.maxToasts + 1)).forEach(t => t.dismiss());
 
         const toast = toastComponent.createObject(stack, {
           notification: notification,
           uid: NotificationManager.uidOf(notification),
-          targetY: calculateTargetY(activeToasts.length)
+          targetY: stack.calculateTargetY(stack.activeToasts.length)
         });
 
         if (!toast) {
-          console.error("Notifications: failed to create toast for", notification.summary);
+          console.warn("[Notifications] Could not create a toast for", notification.summary);
           return;
         }
 
-        activeToasts.push(toast);
+        stack.activeToasts.push(toast);
 
         // If the notification is dismissed elsewhere (e.g. from the bell
         // popout) while its toast is still showing, animate the toast out too.
         // Disconnected once the toast is gone, so a later close doesn't call
         // into a destroyed toast.
         const onClosed = () => {
-          if (activeToasts.includes(toast))
+          if (stack.activeToasts.includes(toast))
             toast.dismiss();
         };
         notification.closed.connect(onClosed);
@@ -172,24 +173,24 @@ Scope {
           } catch (e) {
             // The notification itself is already gone
           }
-          removeToast(toast);
+          stack.removeToast(toast);
         });
       }
 
       function calculateTargetY(index) {
         let y = 0;
-        for (let i = 0; i < index && i < activeToasts.length; i++) {
-          y += activeToasts[i].implicitHeight + root.stackSpacing;
+        for (let i = 0; i < index && i < stack.activeToasts.length; i++) {
+          y += stack.activeToasts[i].implicitHeight + root.stackSpacing;
         }
         return y;
       }
 
       function removeToast(toast) {
-        const index = activeToasts.indexOf(toast);
+        const index = stack.activeToasts.indexOf(toast);
         if (index === -1)
           return;
-        activeToasts.splice(index, 1);
-        updateToastPositions();
+        stack.activeToasts.splice(index, 1);
+        stack.updateToastPositions();
         Qt.callLater(() => {
           if (!toast.shown)
             toast.destroy();
@@ -197,8 +198,8 @@ Scope {
       }
 
       function updateToastPositions() {
-        for (let i = 0; i < activeToasts.length; i++) {
-          activeToasts[i].updatePosition(calculateTargetY(i));
+        for (let i = 0; i < stack.activeToasts.length; i++) {
+          stack.activeToasts[i].targetY = stack.calculateTargetY(i);
         }
       }
     }

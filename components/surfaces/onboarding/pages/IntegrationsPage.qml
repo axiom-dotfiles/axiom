@@ -27,7 +27,7 @@ OnboardingPage {
   StyledTextButton {
     text: I18n.tr("Turn on for installed apps")
     iconText: "done_all"
-    onClicked: OnboardingManager.set(ThemeManager.integrations.filter(key => root.installed(key) && key !== "gtk" && key !== "qt").reduce((values, key) => {
+    onClicked: SettingsManager.commitValues(ThemeManager.integrations.filter(key => root.installed(key) && key !== "gtk" && key !== "qt").reduce((values, key) => {
       values["ThemeIntegrations." + key] = true;
       return values;
     }, {}))
@@ -67,7 +67,7 @@ OnboardingPage {
           onToggled: {
             const values = {};
             values["ThemeIntegrations." + integration.modelData] = checked;
-            OnboardingManager.set(values);
+            SettingsManager.commitValues(values);
           }
         }
       }
@@ -128,7 +128,7 @@ OnboardingPage {
       description: I18n.tr("Dims, locks and turns the screens off when you're away, set up from axiom's settings. Stops any hypridle you run yourself.")
       selected: Idle.enabled
       recommended: true
-      onClicked: OnboardingManager.set({
+      onClicked: SettingsManager.commitValues({
         "Idle.enabled": true
       })
     }
@@ -141,7 +141,7 @@ OnboardingPage {
       title: I18n.tr("Use my own")
       description: I18n.tr("Leaves hypridle, and your hypridle.conf, to you.")
       selected: !Idle.enabled
-      onClicked: OnboardingManager.set({
+      onClicked: SettingsManager.commitValues({
         "Idle.enabled": false
       })
     }

@@ -73,6 +73,47 @@ Singleton {
     root._show(wallpapers, false);
   }
 
+  // --- The wallpaper folder (the onboarding's Look page) ---
+
+  // Images in Appearance.wallpaperPath: -1 until checked (or while
+  // checking), -2 when the folder doesn't exist
+  property int folderImages: -1
+  // Hyprland's own wallpapers, offered as a folder to start from
+  readonly property string hyprlandWallpapers: "/usr/share/hypr"
+  property bool hasHyprlandWallpapers: false
+
+  function checkFolder() {
+    _folderCheck.running = false;
+    _folderCheck.running = true;
+  }
+
+  // Creates the folder, opens it in the file manager and checks it again
+  function createFolder() {
+    Quickshell.execDetached(["sh", "-c", 'mkdir -p "$1" && xdg-open "$1"', "sh", Appearance.wallpaperPath]);
+    _recheck.restart();
+  }
+
+  function openFolder() {
+    Quickshell.execDetached(["xdg-open", Appearance.wallpaperPath]);
+  }
+
+  property Process _folderCheck: Process {
+    command: ["sh", "-c", '[ -d "$1" ] || { echo -2; exit; }; find "$1" -maxdepth 1 -type f \\( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.bmp" \\) | wc -l; ls "$2"/wall*.png >/dev/null 2>&1 && echo hypr', "sh", Appearance.wallpaperPath, root.hyprlandWallpapers]
+    stdout: StdioCollector {
+      onStreamFinished: {
+        const lines = text.split("\n").filter(line => line !== "");
+        root.folderImages = parseInt(lines[0] ?? "-1");
+        root.hasHyprlandWallpapers = lines.includes("hypr");
+      }
+    }
+  }
+
+  // mkdir runs detached: look again once it has
+  property Timer _recheck: Timer {
+    interval: 1000
+    onTriggered: root.checkFolder()
+  }
+
   // --- Private ---
 
   PersistentProperties {

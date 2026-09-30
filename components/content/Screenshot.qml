@@ -14,7 +14,8 @@ import qs.components.content.base
 Card {
   id: root
 
-  readonly property string directory: root.properties.directory || "~/Pictures/Screenshots"
+  // Empty: ScreenshotManager's <Pictures>/Screenshots
+  readonly property string directory: root.properties.directory
   readonly property bool recording: ScreenshotManager.recording
 
   // [mode, icon, label]; the record tile's icon and label follow
