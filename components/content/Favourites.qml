@@ -16,7 +16,7 @@ Card {
 
   readonly property int capacity: Math.max(1, root.cols * root.rows * 2)
   readonly property var ids: {
-    const configured = root.properties.apps ?? [];
+    const configured = root.properties.apps;
     if (configured.length > 0)
       return configured;
     const times = LauncherManager.launchTimes ?? {};
@@ -49,7 +49,7 @@ Card {
         id: app
         required property var modelData
         required property int index
-        readonly property bool labelled: (root.properties.showLabels ?? true) && height > Appearance.fontSize * 5
+        readonly property bool labelled: root.properties.showLabels && height > Appearance.fontSize * 5
         x: grid.tileX(index)
         y: grid.tileY(index)
         width: grid.tileWidth

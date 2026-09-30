@@ -15,7 +15,7 @@ BarIconWidget {
 
   // One state per configured account, in the configured order, labelled as
   // configured
-  readonly property var rows: (properties.accounts ?? []).map(a => Object.assign({}, ClaudeUsageManager.stateFor(a.configDir) ?? {
+  readonly property var rows: properties.accounts.map(a => Object.assign({}, ClaudeUsageManager.stateFor(a.configDir) ?? {
       "status": "pending"
     }, {
       "label": a.label || a.configDir
@@ -51,7 +51,7 @@ BarIconWidget {
 
   // Re-acquiring replaces the old request
   readonly property var usageRequest: ({
-      "accounts": root.properties.accounts ?? [],
+      "accounts": root.properties.accounts,
       "intervalMinutes": root.properties.intervalMinutes
     })
   onUsageRequestChanged: ClaudeUsageManager.acquire(root, usageRequest)
@@ -77,7 +77,7 @@ BarIconWidget {
     popoutName: "ClaudeUsage"
     active: root.properties.showPopout
     extraData: ({
-        "accounts": root.properties.accounts ?? [],
+        "accounts": root.properties.accounts,
         "warnPercent": root.properties.warnPercent,
         "critPercent": root.properties.critPercent
       })

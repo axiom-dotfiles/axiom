@@ -17,8 +17,8 @@ import qs.components.content.base
 Card {
   id: root
 
-  readonly property string configuredNote: NotesManager.clean(root.properties.note ?? "")
-  readonly property bool locked: root.properties.lockNote === true && root.configuredNote !== ""
+  readonly property string configuredNote: NotesManager.clean(root.properties.note)
+  readonly property bool locked: root.properties.lockNote && root.configuredNote !== ""
   // The last note is remembered per place the module is shown
   readonly property string placeKey: root.host.kind === "edgeMenu" ? "edgeMenu:" + root.host.id : "overlay"
 
@@ -27,10 +27,10 @@ Card {
   property var note: null
   property bool browserOpen: false
   property bool findOpen: false
-  property bool showCompleted: root.properties.showCompleted !== false
+  property bool showCompleted: root.properties.showCompleted
 
-  readonly property bool showHeader: root.properties.showHeader !== false && !root.compact
-  readonly property bool showToolbar: root.properties.showToolbar !== false && !root.compact
+  readonly property bool showHeader: root.properties.showHeader && !root.compact
+  readonly property bool showToolbar: root.properties.showToolbar && !root.compact
 
   function show(path) {
     const rel = NotesManager.clean(path);

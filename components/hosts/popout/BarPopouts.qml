@@ -520,8 +520,8 @@ PopoutWrapperBase {
           if (root.currentData) {
             for (let key in root.currentData) {
               if (item.hasOwnProperty(key)) {
-                // Content may derive one itself (readonly, e.g.
-                // WorkspaceGrid's monitor): skip it rather than abort
+                // Content may derive one itself (a readonly property):
+                // skip it rather than abort
                 try {
                   item[key] = root.currentData[key];
                 } catch (e) {}
