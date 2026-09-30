@@ -109,6 +109,7 @@ Item {
       }
 
       MouseArea {
+        id: dragArea
         anchors.fill: parent
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
@@ -123,10 +124,10 @@ Item {
           component.volumeChanged(Math.max(0.0, Math.min(1.0, newVol)));
         }
 
-        onPressed: updateVolume(mouse)
+        onPressed: mouse => dragArea.updateVolume(mouse)
         onPositionChanged: mouse => {
-          if (pressed)
-            updateVolume(mouse);
+          if (dragArea.pressed)
+            dragArea.updateVolume(mouse);
         }
       }
     }
@@ -136,8 +137,8 @@ Item {
       Layout.row: content.isVertical ? 1 : 0
       Layout.column: 0
       Layout.alignment: Qt.AlignCenter
-      width: iconText.width
-      height: iconText.height
+      implicitWidth: iconText.width
+      implicitHeight: iconText.height
 
       StyledIcon {
         id: iconText

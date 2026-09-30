@@ -75,7 +75,7 @@ Item {
     volumeLevel: root.volume
     isMuted: root.isMuted
     enabled: root.nodeFound || root.useSystemVolume
-    onVolumeChanged: root.setVolume(newVolume)
+    onVolumeChanged: newVolume => root.setVolume(newVolume)
   }
 
   onVolumeChanged: {

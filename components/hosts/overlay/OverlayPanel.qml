@@ -1,6 +1,5 @@
 pragma ComponentBehavior: Bound
 import QtQuick
-import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
 import Quickshell.Hyprland
@@ -13,8 +12,6 @@ import qs.components.views // qmllint disable unused-imports
 
 ReservedAreaWindow {
   id: root
-
-  required property ShellScreen screen
 
   property bool isOpen: false
   property real slideOffset: isOpen ? 0 : -height

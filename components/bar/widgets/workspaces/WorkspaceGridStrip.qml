@@ -102,7 +102,7 @@ Item {
           readonly property int wsId: root.base + index
           readonly property HyprlandWorkspace ws: root.wsById(wsId)
           readonly property bool isActive: wsId === root.activeId
-          readonly property bool hasWindows: (ws?.toplevels?.values?.length ?? 0) > 0
+          readonly property bool hasWindows: (ws?.toplevels.values.length ?? 0) > 0
           // The active arrow takes the active cell's place
           readonly property bool showsArrow: isActive && root.properties.showActiveIcon
           readonly property var biggestWindow: root.properties.showAppIcons && hasWindows && !showsArrow ? HyprlandManager.biggestWindowForWorkspace(wsId) : null

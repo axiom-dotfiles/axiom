@@ -1,3 +1,4 @@
+pragma ComponentBehavior: Bound
 import QtQuick
 
 // Reference-counted consumers of a shared poller (SystemManager,
