@@ -35,11 +35,8 @@ Singleton {
   readonly property int maxEntries: NotificationsConfig.maxEntries
   readonly property int maxAgeDays: NotificationsConfig.maxAgeDays
 
-  /**
-     * A "Do Not Disturb" flag. When true, new notification popups will be suppressed,
-     * except for those marked with 'Critical' urgency. Notifications are still
-     * added to the history. Kept across restarts.
-     */
+  // Do Not Disturb: no toasts but critical ones (notifications still go
+  // into the history). Kept across restarts.
   property bool dnd: false
   onDndChanged: {
     if (root._stateLoaded)
@@ -55,10 +52,7 @@ Singleton {
   readonly property string historyPath: Paths.userStatePath + "notifications.json"
   readonly property string imageDir: Paths.userStatePath + "notifications/"
 
-  /**
-     * Emitted when a new notification should show as a popup; the UI layer
-     * connects to it.
-     */
+  // A new notification to show as a toast (shell/Notifications)
   signal showPopup(variant notification)
 
   // The live Notification behind an entry, or null
@@ -122,10 +116,11 @@ Singleton {
 
   // NotificationServer can't create notifications itself, so send one over
   // DBus; it comes back through our own server like any other (DND applies).
-  // opts: { desktopEntry } (see registerHandler)
+  // opts: { desktopEntry (see registerHandler), icon (a name or path) }
   function sendNotification(appName, summary, body, opts) {
     const hints = opts?.desktopEntry ? ["-h", "string:desktop-entry:" + opts.desktopEntry] : [];
-    Quickshell.execDetached(["notify-send", "-a", appName].concat(hints, ["--", summary, body]));
+    const icon = opts?.icon ? ["-i", opts.icon] : [];
+    Quickshell.execDetached(["notify-send", "-a", appName].concat(icon, hints, ["--", summary, body]));
   }
 
   // -- Private --

@@ -1,3 +1,4 @@
+pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
 import Quickshell.Io
@@ -8,8 +9,8 @@ import qs.config
 import qs.components.reusable
 import qs.components.surfaces.workspaces
 
-// The workspace overview: this monitor's 5×5 workspace grid with its
-// windows, full screen. Drag a window to move it (onto a side of another
+// The workspace overview: the hovered monitor's workspace board
+// (WorkspacesConfig's layout) with its windows, full screen. Drag a window to move it (onto a side of another
 // window), right-drag to resize, middle-click to close.
 Scope {
   id: root
@@ -50,7 +51,8 @@ Scope {
       root.toggle();
     }
 
-    function show(): void {
+    // Not "show": `qs ipc call <target> show` is taken by the CLI
+    function open(): void {
       root.open();
     }
 
@@ -76,11 +78,11 @@ Scope {
         fillOpacity: WorkspaceOverlayConfig.backdrop
       }
 
-      readonly property bool shown: root.overlayVisible && modelData.name === root.openScreen
+      readonly property bool shown: root.overlayVisible && overlayWindow.modelData.name === root.openScreen
       // Room the controls hint takes under the grid
       readonly property real hintSpace: hint.visible ? hint.height + Widget.spacing : 0
 
-      screen: modelData
+      screen: overlayWindow.modelData
       anchors {
         top: true
         bottom: true

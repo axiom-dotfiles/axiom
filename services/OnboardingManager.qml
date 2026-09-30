@@ -139,22 +139,6 @@ Singleton {
     }
   }
 
-  // --- Config ---
-
-  // A config value by dotted path ("Apps.terminal")
-  function value(dottedPath) {
-    let node = ConfigManager.config;
-    for (const key of dottedPath.split("."))
-      node = node?.[key];
-    return node;
-  }
-
-  // Sets config values ({ dottedPath: value }) and saves them at once;
-  // false if the result doesn't validate
-  function set(values) {
-    return SettingsManager.commitValues(values);
-  }
-
   // --- Navigation ---
 
   function open() {
@@ -182,7 +166,7 @@ Singleton {
   // Applies the Hyprland mode (which may take over hyprland.lua) and closes
   function finish() {
     if (hyprlandSupported && modeAllowed && chosenMode !== HyprlandConfig.mode)
-      set({
+      SettingsManager.commitValues({
         "Hyprland.mode": chosenMode
       });
     close();

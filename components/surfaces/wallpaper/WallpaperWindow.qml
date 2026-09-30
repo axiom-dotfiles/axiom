@@ -68,7 +68,7 @@ PanelWindow {
       from: 0
       to: 1
       duration: Appearance.animSlow
-      easing.type: Easing.InOutQuad
+      easing.type: Appearance.easing
     }
   }
 

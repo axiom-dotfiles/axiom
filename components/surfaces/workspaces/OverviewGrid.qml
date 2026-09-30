@@ -39,6 +39,8 @@ Rectangle {
   readonly property real cellW: Math.floor(monitorW * miniScale)
   readonly property real cellH: Math.floor(monitorH * miniScale)
   readonly property real cellRadius: Math.max(2, Widget.radius * 0.75)
+  // A window preview's (and the drop box's), inside its cell's
+  readonly property real previewRadius: Math.max(2, root.cellRadius * 0.6)
 
   // The windows on the board's workspaces: this monitor's in a grid or
   // perMonitor layout; in the standard layout workspaces are shared, so
@@ -236,7 +238,7 @@ Rectangle {
         windowData: root.byAddress[modelData] ?? null
         capturing: root.active
         showTitle: WorkspaceOverlayConfig.showTitles
-        radius: Math.max(2, root.cellRadius * 0.6)
+        radius: root.previewRadius
         hovered: input.hoveredAddress === modelData && (input.mode === "" || input.mode === "resize")
         resizing: input.mode === "resize" && input.activeAddress === modelData
         opacity: input.mode === "drag" && input.activeAddress === modelData ? 0.3 : 1
@@ -308,7 +310,7 @@ Rectangle {
       width: hint?.rect.w ?? 0
       height: hint?.rect.h ?? 0
       z: 3
-      radius: Math.max(2, root.cellRadius * 0.6)
+      radius: root.previewRadius
       color: Qt.alpha(Theme.accent, 0.3)
       border.color: Theme.accent
       border.width: Appearance.borderWidth * 2
@@ -357,7 +359,7 @@ Rectangle {
       z: 4
       windowData: input.mode === "drag" ? root.byAddress[input.activeAddress] ?? null : null
       capturing: root.active && visible
-      radius: Math.max(2, root.cellRadius * 0.6)
+      radius: root.previewRadius
       hovered: true
       opacity: 0.9
     }

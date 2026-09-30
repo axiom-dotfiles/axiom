@@ -60,7 +60,7 @@ PanelWindow {
       StyledText {
         visible: !root.asking
         Layout.alignment: Qt.AlignHCenter
-        text: root.screen ? `${root.screen.model || ""}`.trim() : ""
+        text: String(root.screen?.model ?? "").trim()
         opacity: 0.7
       }
 

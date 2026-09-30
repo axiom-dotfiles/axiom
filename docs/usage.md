@@ -20,7 +20,7 @@ qs -c axiom ipc call <target> <function>
 | `dock` | `open <id>`, `close <id>`, `toggle <id>` (no id: every dock) |
 | `appLauncher` | `open`, `close`, `toggle`, `search <text>` |
 | `powermenu` | `open`, `close`, `toggle` |
-| `workspaceOverlay` | `show`, `hide`, `toggle` |
+| `workspaceOverlay` | `open`, `hide`, `toggle` |
 | `workspaces` | `go <id>`, `move <id>`, `moveSilent <id>`, `left`, `right`, `up`, `down`, `step <direction> <mode>`, `nth <n> <mode>` |
 | `idleInhibit` | `enable`, `disable`, `toggle`, `status` |
 | `nightLight` | `enable`, `disable`, `toggle`, `status` |

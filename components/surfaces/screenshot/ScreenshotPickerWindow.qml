@@ -117,7 +117,10 @@ PanelWindow {
 
   // The frame arrives once; an immediate capture takes it straight away
   function _onFrame() {
-    if (!frame.hasContent || root.interactive || root.request?.screen !== root.screen?.name)
+    if (!frame.hasContent)
+      return;
+    ScreenshotManager.frameArrived();
+    if (root.interactive || root.request?.screen !== root.screen?.name)
       return;
     // After the frame's first render, so the crop has something to sample
     Qt.callLater(() => root.capture(root.fullRect));
@@ -159,13 +162,6 @@ PanelWindow {
     live: false
     paintCursor: false
     onHasContentChanged: root._onFrame()
-  }
-
-  // A picker that never gets its frame (no screencopy support) gives up
-  Timer {
-    running: root.interactive && root.focusedScreen && !frame.hasContent
-    interval: 3000
-    onTriggered: ScreenshotManager.fail(I18n.tr("The compositor sent no picture of the screen."))
   }
 
   Item {

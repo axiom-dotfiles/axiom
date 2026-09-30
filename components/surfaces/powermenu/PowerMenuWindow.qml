@@ -15,8 +15,6 @@ import qs.services
 PanelWindow {
   id: root
 
-  required property var screen
-
   property bool shown: false
   // Session actions shown, in order
   readonly property var actions: PowerMenuConfig.actions.filter(a => ShellManager.sessionActionInfo(a) !== null)

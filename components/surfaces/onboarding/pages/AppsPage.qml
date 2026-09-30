@@ -38,7 +38,7 @@ OnboardingPage {
     delegate: ColumnLayout {
       id: app
       required property string modelData
-      readonly property string current: String(OnboardingManager.value(modelData) ?? "")
+      readonly property string current: String(SettingsManager.configValueAt(modelData) ?? "")
       readonly property var installed: root.candidates[modelData].filter(command => DependencyManager.found[command])
       Layout.fillWidth: true
       spacing: Widget.spacing
@@ -65,7 +65,7 @@ OnboardingPage {
             onClicked: {
               const values = {};
               values[app.modelData] = modelData;
-              OnboardingManager.set(values);
+              SettingsManager.commitValues(values);
             }
           }
         }
@@ -96,7 +96,7 @@ OnboardingPage {
     const binds = HyprlandConfig.binds.map(bind => Object.assign({}, bind, {
         "key": String(bind.key ?? "").split("+").map(part => swap[part.trim().toUpperCase()] ?? part.trim()).join(" + ")
       }));
-    OnboardingManager.set({
+    SettingsManager.commitValues({
       "Hyprland.binds": binds
     });
   }

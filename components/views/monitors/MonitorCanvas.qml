@@ -31,27 +31,9 @@ ColumnLayout {
 
   spacing: Widget.spacing
 
-  function _union(list) {
-    if (list.length === 0)
-      return {
-        "x": 0,
-        "y": 0,
-        "width": 1920,
-        "height": 1080
-      };
-    const x = Math.min(...list.map(r => r.x));
-    const y = Math.min(...list.map(r => r.y));
-    return {
-      "x": x,
-      "y": y,
-      "width": Math.max(...list.map(r => r.x + r.width)) - x,
-      "height": Math.max(...list.map(r => r.y + r.height)) - y
-    };
-  }
-
   // { scale, x, y }: layout pixels to canvas pixels, the bounds centred
   readonly property var _fitView: {
-    const bounds = root._union(root.rects);
+    const bounds = MonitorLayout.bounds(root.rects);
     const margin = Widget.padding * 3;
     const scale = Math.max(0.01, Math.min((board.width - margin * 2) / bounds.width, (board.height - margin * 2) / bounds.height));
     return {

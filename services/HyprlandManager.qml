@@ -30,10 +30,6 @@ Singleton {
     return `"address:${address}"`;
   }
 
-  function moveWindowToWorkspace(windowAddress, targetWorkspace) {
-    Hyprland.dispatch(`hl.dsp.window.move({ workspace = ${targetWorkspace}, follow = false, window = ${_window(windowAddress)} })`);
-  }
-
   function closeWindow(windowAddress) {
     Hyprland.dispatch(`hl.dsp.window.close({ window = ${_window(windowAddress)} })`);
   }
@@ -493,13 +489,11 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
     return workspace !== undefined && root.windowList.some(w => w.workspace?.id === workspace && (w.fullscreen & 2));
   }
 
+  // The largest window on a workspace (its icon stands for the
+  // workspace), or null
   function biggestWindowForWorkspace(workspaceId) {
-    const windowsInThisWorkspace = root.windowList.filter(w => w.workspace.id == workspaceId);
-    return windowsInThisWorkspace.reduce((maxWin, win) => {
-      const maxArea = (maxWin?.size[0] ?? 0) * (maxWin?.size[1] ?? 0);
-      const winArea = (win?.size[0] ?? 0) * (win?.size[1] ?? 0);
-      return winArea > maxArea ? win : maxWin;
-    }, null);
+    const area = w => (w?.size?.[0] ?? 0) * (w?.size?.[1] ?? 0);
+    return root.windowList.filter(w => w.workspace?.id === workspaceId).reduce((biggest, w) => area(w) > area(biggest) ? w : biggest, null);
   }
 
   // Hyprland's general:gaps_out per side, which it adds after every

@@ -103,6 +103,7 @@ QtObject {
     root.picking = false;
     root.request = null;
     root._delay.stop();
+    root._watchdog.stop();
     root._callBack(false);
   }
 
@@ -143,17 +144,20 @@ QtObject {
       return;
     }
     root.annotate = false;
-    const notice = ["notify-send", "-a", "axiom", "-i", path, "-h", "string:desktop-entry:" + _desktopEntry];
-    const text = ["--", I18n.tr("Screenshot saved"), root.copyOnly ? I18n.tr("Copied to the clipboard.") : I18n.tr("Copied to the clipboard. Click to open it.")];
+    const summary = I18n.tr("Screenshot saved");
+    const body = root.copyOnly ? I18n.tr("Copied to the clipboard.") : I18n.tr("Copied to the clipboard. Click to open it.");
     if (root.annotator === "") {
-      Quickshell.execDetached(notice.concat(text));
+      NotificationManager.sendNotification("axiom", summary, body, {
+        "desktopEntry": root._desktopEntry,
+        "icon": path
+      });
       return;
     }
     // With an "Edit in …" button: notify-send waits for it and prints the
     // action. Only the latest notification's button stays live.
     root._nextNotice = {
       "path": path,
-      "command": notice.concat(["-A", "edit=" + I18n.tr("Edit in {0}", root.annotatorName)], text)
+      "command": ["notify-send", "-a", "axiom", "-i", path, "-h", "string:desktop-entry:" + root._desktopEntry, "-A", "edit=" + I18n.tr("Edit in {0}", root.annotatorName), "--", summary, body]
     };
     // The previous one is stopped first; its exit starts this one
     if (root._savedNotice.running)
@@ -238,6 +242,7 @@ QtObject {
   function record(area, screenName) {
     root.picking = false;
     root.request = null;
+    root._watchdog.stop();
     const path = root._directory + "/Recording_" + Qt.formatDateTime(new Date(), "yyyy-MM-dd_HH-mm-ss") + ".mp4";
     const target = screenName ? ["-o", screenName] : ["-g", `${Math.round(area.x)},${Math.round(area.y)} ${Math.round(area.width)}x${Math.round(area.height)}`];
     root._recordPath = path;
@@ -256,13 +261,20 @@ QtObject {
         "screen": Hyprland.focusedMonitor?.name ?? ""
       };
       root.picking = true;
-      if (kind === "screen")
-        root._watchdog.restart();
+      root._watchdog.restart();
     }
   }
 
-  // An immediate capture that never reports back (no frame from the
-  // compositor) gives up rather than blocking every later one
+  // Called by a picker when its frame is in. A picker keeps waiting on the
+  // user from then on; an immediate capture still has to report back.
+  function frameArrived() {
+    if (root.request?.kind !== "screen")
+      root._watchdog.stop();
+  }
+
+  // A picker that never gets its frame (no screencopy support), or an
+  // immediate capture that never reports back, gives up rather than
+  // blocking every later one
   property Timer _watchdog: Timer {
     interval: 3000
     onTriggered: {
@@ -302,7 +314,9 @@ QtObject {
         return;
       }
       root._lastPath = path;
-      Quickshell.execDetached(["notify-send", "-a", "axiom", "-h", "string:desktop-entry:" + root._desktopEntry, "--", I18n.tr("Recording saved"), I18n.tr("Saved in {0}. Click to open it.", path.replace(/\/[^/]*$/, ""))]);
+      NotificationManager.sendNotification("axiom", I18n.tr("Recording saved"), I18n.tr("Saved in {0}. Click to open it.", path.replace(/\/[^/]*$/, "")), {
+        "desktopEntry": root._desktopEntry
+      });
     }
   }
 

@@ -26,7 +26,8 @@ PopupWindow {
   // a right-hand toast ends at it and a bottom one stacks upwards from it
   property bool alignRight: false
   property bool fromBottom: false
-  // Distance from the corner along the stack
+  // Distance from the corner along the stack; the host resets it when the
+  // stack reflows (an instant move, read as one with the others')
   property int targetY: 0
 
   signal dismissed
@@ -56,12 +57,6 @@ PopupWindow {
     slideIn.start();
   }
 
-  // Reposition instantly (used for stack reflow); the visual "movement"
-  // reads fine since it's accompanied by other toasts sliding at once.
-  function updatePosition(newTargetY) {
-    targetY = newTargetY;
-  }
-
   // Only hides the toast — the notification stays tracked so it's still
   // visible/actionable from the bell popout afterwards.
   function dismiss() {
@@ -88,7 +83,7 @@ PopupWindow {
       from: root.fromBottom ? 16 : -16
       to: 0
       duration: Appearance.animNormal
-      easing.type: Easing.OutCubic
+      easing.type: Appearance.easing
     }
     NumberAnimation {
       target: card
@@ -96,7 +91,7 @@ PopupWindow {
       from: 0
       to: 1
       duration: Appearance.animNormal
-      easing.type: Easing.OutCubic
+      easing.type: Appearance.easing
     }
   }
 
@@ -106,7 +101,7 @@ PopupWindow {
     property: "opacity"
     to: 0
     duration: Appearance.animFast
-    easing.type: Easing.InQuad
+    easing.type: Appearance.easing
     onFinished: {
       root.shown = false;
       root.dismissed();
@@ -121,14 +116,14 @@ PopupWindow {
       property: "x"
       to: 0
       duration: Appearance.animFast
-      easing.type: Easing.OutCubic
+      easing.type: Appearance.easing
     }
     NumberAnimation {
       target: card
       property: "opacity"
       to: 1
       duration: Appearance.animFast
-      easing.type: Easing.OutCubic
+      easing.type: Appearance.easing
     }
   }
 

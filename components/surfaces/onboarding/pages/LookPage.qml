@@ -1,8 +1,6 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
-import Quickshell
-import Quickshell.Io
 
 import qs.config
 import qs.services
@@ -24,30 +22,10 @@ OnboardingPage {
   // --- Wallpaper folder ---
 
   readonly property string folder: Appearance.wallpaperFolder
-  readonly property string folderPath: Paths.expandHome(root.folder)
-  // Images in the folder: -1 while checking, -2 when it doesn't exist
-  property int imageCount: -1
-  readonly property string hyprlandWallpapers: "/usr/share/hypr"
-  property bool hasHyprlandWallpapers: false
-
-  function checkFolder() {
-    folderCheck.running = false;
-    folderCheck.running = true;
-  }
-  onFolderChanged: checkFolder()
-  Component.onCompleted: checkFolder()
-
-  Process {
-    id: folderCheck
-    command: ["sh", "-c", '[ -d "$1" ] || { echo -2; exit; }; find "$1" -maxdepth 1 -type f \\( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.bmp" \\) | wc -l; ls "$2"/wall*.png >/dev/null 2>&1 && echo hypr', "sh", root.folderPath, root.hyprlandWallpapers]
-    stdout: StdioCollector {
-      onStreamFinished: {
-        const lines = text.split("\n").filter(line => line !== "");
-        root.imageCount = parseInt(lines[0] ?? "-1");
-        root.hasHyprlandWallpapers = lines.includes("hypr");
-      }
-    }
-  }
+  // WallpaperManager.folderImages: -1 checking, -2 missing
+  readonly property int imageCount: WallpaperManager.folderImages
+  onFolderChanged: WallpaperManager.checkFolder()
+  Component.onCompleted: WallpaperManager.checkFolder()
 
   SettingRows {
     Layout.fillWidth: true
@@ -68,39 +46,30 @@ OnboardingPage {
       visible: root.imageCount === -2
       text: I18n.tr("Create it")
       iconText: "create_new_folder"
-      onClicked: {
-        Quickshell.execDetached(["sh", "-c", 'mkdir -p "$1" && xdg-open "$1"', "sh", root.folderPath]);
-        recheck.restart();
-      }
+      onClicked: WallpaperManager.createFolder()
     }
 
     StyledTextButton {
       visible: root.imageCount === 0
       text: I18n.tr("Open it")
       iconText: "folder_open"
-      onClicked: Quickshell.execDetached(["xdg-open", root.folderPath])
+      onClicked: WallpaperManager.openFolder()
     }
 
     StyledTextButton {
-      visible: root.hasHyprlandWallpapers
+      visible: WallpaperManager.hasHyprlandWallpapers
       text: I18n.tr("Use Hyprland's wallpapers")
       iconText: "wallpaper"
-      onClicked: OnboardingManager.set({
-        "Appearance.wallpaperFolder": root.hyprlandWallpapers
+      onClicked: SettingsManager.commitValues({
+        "Appearance.wallpaperFolder": WallpaperManager.hyprlandWallpapers
       })
     }
 
     StyledTextButton {
       text: I18n.tr("Check again")
       iconText: "refresh"
-      onClicked: root.checkFolder()
+      onClicked: WallpaperManager.checkFolder()
     }
-  }
-
-  Timer {
-    id: recheck
-    interval: 1000
-    onTriggered: root.checkFolder()
   }
 
   // --- Bar ---
@@ -111,7 +80,7 @@ OnboardingPage {
   function setBar(key, value) {
     const values = {};
     values["Bars.0." + key] = value;
-    OnboardingManager.set(values);
+    SettingsManager.commitValues(values);
   }
 
   StyledText {
