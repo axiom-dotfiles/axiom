@@ -15,16 +15,6 @@ BarIconWidget {
   // can carry the widget on any machine
   hidden: !BatteryManager.isAvailable
 
-  readonly property string level: {
-    if (isCharging)
-      return "none";
-    if (percentage <= properties.criticalThreshold)
-      return "critical";
-    if (percentage <= properties.lowThreshold)
-      return "low";
-    return "none";
-  }
-
   icon: BatteryManager.getBatteryIcon()
   text: `${percentage}%`
   showText: properties.showPercentage
@@ -37,9 +27,9 @@ BarIconWidget {
   function getBatteryColor() {
     if (isCharging)
       return Theme.resolveColor(properties.chargingColor);
-    if (level === "critical")
+    if (BatteryManager.level === "critical")
       return Theme.resolveColor(properties.criticalColor);
-    if (level === "low")
+    if (BatteryManager.level === "low")
       return Theme.resolveColor(properties.lowColor);
     return Theme.resolveColor(properties.backgroundColor);
   }
@@ -83,12 +73,5 @@ BarIconWidget {
     onClicked: {
       NotificationManager.sendNotification("axiom", I18n.tr("Battery Status"), root.getBatteryStatus());
     }
-  }
-
-  // Low battery notifications: BatteryManager notifies once per crossing,
-  // however many Battery widgets report it
-  onLevelChanged: {
-    if (properties.notify && !hidden)
-      BatteryManager.reportLevel(level);
   }
 }

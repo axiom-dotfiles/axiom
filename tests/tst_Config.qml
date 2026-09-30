@@ -313,6 +313,88 @@ TestCase {
     compare(errors(loaded.config), []);
   }
 
+  function test_v30_moves_battery_levels_and_renames_keys() {
+    const loaded = load({
+      "version": 29,
+      "Bars": [
+        {
+          "id": "a",
+          "widgets": {
+            "left": [
+              {
+                "type": "Battery",
+                "properties": {
+                  "notify": false,
+                  "lowThreshold": 30,
+                  "lowColor": "base09"
+                }
+              },
+              {
+                "type": "Battery",
+                "properties": {
+                  "notify": true,
+                  "criticalThreshold": 5
+                }
+              },
+              {
+                "type": "ClaudeUsage",
+                "properties": {
+                  "warnPercent": 60,
+                  "critPercent": 80,
+                  "critColor": "base0A"
+                }
+              },
+              {
+                "type": "Privacy",
+                "properties": {
+                  "ignoreApps": "cava, easyeffects,,"
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "Overlay": {
+        "views": [
+          {
+            "type": "Custom",
+            "columns": [
+              {
+                "cells": [
+                  {
+                    "layout": "Tall",
+                    "slots": {
+                      "main": {
+                        "type": "ClockCalendar",
+                        "properties": {
+                          "use24h": false
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    });
+    const config = loaded.config;
+    // The first widget's settings win; the second only adds what's left
+    compare([config.Battery.notify, config.Battery.lowThreshold, config.Battery.criticalThreshold], [false, 30, 5]);
+    const left = config.Bars[0].widgets.left;
+    compare(left[0].properties.lowThreshold, undefined);
+    compare(left[0].properties.notify, undefined);
+    compare(left[0].properties.lowColor, "base09");
+    compare(left[1].properties.criticalThreshold, undefined);
+    compare([left[2].properties.warnThreshold, left[2].properties.criticalThreshold, left[2].properties.criticalColor], [60, 80, "base0A"]);
+    compare(left[2].properties.critPercent, undefined);
+    compare(left[3].properties.ignoreApps, ["cava", "easyeffects"]);
+    compare(config.Overlay.views[0].columns[0].cells[0].slots.main.properties.use24Hour, false);
+    compare(loaded.removed, []);
+    compare(errors(config), []);
+  }
+
   function test_migration_is_idempotent() {
     const once = load(files.json("tests/fixtures/configs/v1.json")).config;
     const again = ConfigMigration.migrate(once);

@@ -46,7 +46,7 @@ BarIconWidget {
     return figure(properties.display === "first" ? rows[0] : fullest);
   }
 
-  backgroundColor: Theme.resolveColor(maxPercent >= properties.critPercent ? properties.critColor : maxPercent >= properties.warnPercent ? properties.warnColor : properties.backgroundColor)
+  backgroundColor: Theme.resolveColor(maxPercent >= properties.criticalThreshold ? properties.criticalColor : maxPercent >= properties.warnThreshold ? properties.warnColor : properties.backgroundColor)
   opacity: (mouseArea.pressed ? 0.8 : 1) * (stale ? 0.6 : 1)
 
   // Re-acquiring replaces the old request
@@ -78,8 +78,8 @@ BarIconWidget {
     active: root.properties.showPopout
     extraData: ({
         "accounts": root.properties.accounts,
-        "warnPercent": root.properties.warnPercent,
-        "critPercent": root.properties.critPercent
+        "warnThreshold": root.properties.warnThreshold,
+        "criticalThreshold": root.properties.criticalThreshold
       })
   }
 }

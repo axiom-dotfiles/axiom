@@ -9,7 +9,7 @@ import qs.components.content.base
 
 // A clock with the date, plus a month calendar when there's room (a card
 // or more; beside the clock in wide slots). Arrows page through months.
-// properties: { use24h, showSeconds }
+// properties: { use24Hour, showSeconds }
 Card {
   id: root
 
@@ -36,7 +36,7 @@ Card {
   readonly property string today: root.now.toDateString()
   readonly property int firstDay: I18n.locale.firstDayOfWeek % 7
   // The language's time format (e.g. 午後 3:05 in Japanese), seconds added after the minutes
-  readonly property string timeFormat: I18n.dateFormat(root.properties.use24h ? "time24" : "time12").replace("mm", root.properties.showSeconds ? "mm:ss" : "mm")
+  readonly property string timeFormat: I18n.dateFormat(root.properties.use24Hour ? "time24" : "time12").replace("mm", root.properties.showSeconds ? "mm:ss" : "mm")
 
   // 6 weeks of days for the shown month
   readonly property var days: Utils.monthGrid(root.shownYear, root.shownMonthIndex, root.firstDay, root.today)
