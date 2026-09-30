@@ -2,7 +2,7 @@
 
 # axiom
 
-axiom is a complete desktop shell for [Hyprland](https://hypr.land), written in QML, powered by [Quickshell](https://quickshell.org). Its bars, overlay pages, and edge menus are composed with drag and drop on your running desktop, and every setting is in the UI. You never have to write a config file.
+axiom is a complete, extensively customizable desktop shell for [Hyprland](https://hypr.land), written in QML, powered by [Quickshell](https://quickshell.org). Its bars, overlay pages, and edge menus are composed with drag and drop on your running desktop, and every setting is in the UI. You never have to write a config file.
 
 <a href="https://github.com/axiom-dotfiles/axiom/stargazers"><picture><source media="(prefers-color-scheme: light)" srcset="https://img.shields.io/github/stars/axiom-dotfiles/axiom?style=for-the-badge&color=8c6c3e&labelColor=e1e2e7"><img alt="Stars" src="https://img.shields.io/github/stars/axiom-dotfiles/axiom?style=for-the-badge&color=e0af68&labelColor=1a1b26"></picture></a>
 <a href="https://github.com/axiom-dotfiles/axiom/tags"><picture><source media="(prefers-color-scheme: light)" srcset="https://img.shields.io/github/v/tag/axiom-dotfiles/axiom?sort=semver&label=version&style=for-the-badge&color=b15c00&labelColor=e1e2e7"><img alt="Version" src="https://img.shields.io/github/v/tag/axiom-dotfiles/axiom?sort=semver&label=version&style=for-the-badge&color=ff9e64&labelColor=1a1b26"></picture></a>
@@ -60,7 +60,7 @@ In addition to standard floating menus, an integrated edge menu opens beside you
 
 ### Workspaces in two dimensions
 
-Workspaces don't have to be a line numbered 1 to N. Set **Settings → Desktop → Workspaces → Layout** to **Grid per monitor**, and each monitor gets its own grid (5×5 by default, up to 10×10) that you move around by row and column.
+Workspaces don't have to be a line numbered 1 to N. Set **Settings → Desktop → Workspaces → Layout** to **Grid per monitor**, and each monitor gets its own grid (5×5 by default, up to 10×10, I can't imagine why someone would need 100 workspaces, but it is possible) that you move around by row and column.
 
 <!-- TODO: a short clip of moving around the grid: the slide direction sells it better than any screenshot. -->
 
