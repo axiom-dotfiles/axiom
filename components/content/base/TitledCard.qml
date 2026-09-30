@@ -3,6 +3,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import qs.config
+import qs.components.reusable
 
 // A titled, scrolling panel card (settings, theme, bar editor panels):
 // header with optional Save/Reset, divider, optional fixed extras (e.g. a
@@ -37,12 +38,11 @@ Card {
       onReset: root.reset()
     }
 
-    Rectangle {
+    StyledSeparator {
       Layout.fillWidth: true
-      Layout.preferredHeight: 1
       Layout.topMargin: Widget.spacing / 2
       Layout.bottomMargin: Widget.spacing / 2
-      color: Theme.border
+      separatorHeight: 1
       opacity: 0.3
     }
 

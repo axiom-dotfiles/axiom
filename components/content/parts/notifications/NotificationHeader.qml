@@ -42,7 +42,7 @@ RowLayout {
     StyledText {
       id: countLabel
       anchors.centerIn: parent
-      text: NotificationManager.count > 99 ? "99+" : String(NotificationManager.count)
+      text: NotificationManager.countLabel
       textSize: Appearance.fontSize - 3
       textColor: Theme.background
       font.bold: true

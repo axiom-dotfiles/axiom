@@ -108,6 +108,7 @@ PopupWindow {
       }
 
       StyledSeparator {
+        separatorColor: Theme.accent
         visible: root.full
         Layout.fillWidth: true
       }

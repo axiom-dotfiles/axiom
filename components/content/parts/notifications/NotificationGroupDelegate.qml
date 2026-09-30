@@ -259,11 +259,11 @@ Item {
           Layout.fillWidth: true
           spacing: Widget.spacing
 
-          Rectangle {
+          StyledSeparator {
             visible: row.index > 0
             Layout.fillWidth: true
-            implicitHeight: 1
-            color: Theme.backgroundHighlight
+            separatorHeight: 1
+            separatorColor: Theme.backgroundHighlight
           }
 
           NotificationItemDelegate {

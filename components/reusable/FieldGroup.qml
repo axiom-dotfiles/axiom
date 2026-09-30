@@ -23,22 +23,9 @@ StyledContainer {
     anchors.margins: Widget.padding
     spacing: Widget.spacing * 1.5
 
-    StyledText {
-      text: root.title
-      textColor: Theme.accent
-      textSize: Appearance.fontSize + 1
-      font.bold: true
-      Layout.fillWidth: true
-    }
-
-    StyledText {
-      visible: root.description !== ""
-      text: root.description
-      opacity: 0.7
-      textSize: Appearance.fontSize - 2
-      wrapMode: Text.WordWrap
-      Layout.fillWidth: true
-      Layout.topMargin: -Widget.spacing
+    SectionHeading {
+      title: root.title
+      description: root.description
     }
   }
 }

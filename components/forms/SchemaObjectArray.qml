@@ -152,7 +152,6 @@ ColumnLayout {
           StyledSeparator {
             Layout.fillWidth: true
             separatorHeight: 1
-            separatorColor: Theme.border
             opacity: 0.3
           }
 

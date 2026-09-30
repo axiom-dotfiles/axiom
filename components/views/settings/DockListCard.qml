@@ -406,6 +406,7 @@ StyledContainer {
         }
 
         StyledSeparator {
+          separatorColor: Theme.accent
           visible: root.dock !== null
           Layout.fillWidth: true
         }
@@ -506,6 +507,7 @@ StyledContainer {
         }
 
         StyledSeparator {
+          separatorColor: Theme.accent
           visible: root.dock !== null
           Layout.fillWidth: true
         }

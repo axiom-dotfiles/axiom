@@ -27,13 +27,21 @@ Item {
   property var host: ({
       "kind": "overlay"
     })
-  // Card only: no card box (see Card.bare)
-  readonly property bool bare: embedded && (host?.bare ?? false)
-  readonly property int cols: slotRect[2]
-  readonly property int rows: slotRect[3]
-  readonly property string shape: OverlayConfig.slotShape(slotRect)
-  readonly property bool compact: embedded && cols <= 1 && rows <= 1
-  readonly property real pad: OverlayConfig.cardPad(compact, bare)
+  // Derived from the slot, as on Card (see SlotContext); a popout is never
+  // bare or compact
+  readonly property alias bare: slot.bare
+  readonly property alias cols: slot.cols
+  readonly property alias rows: slot.rows
+  readonly property alias shape: slot.shape
+  readonly property alias compact: slot.compact
+  readonly property alias pad: slot.pad
+
+  property SlotContext _slot: SlotContext {
+    id: slot
+    slotRect: root.slotRect
+    host: root.host
+    embedded: root.embedded
+  }
 
   // Bar popout only: keep the keyboard (and a focus grab) while a text
   // field is up; a click outside the popout calls focusLost()
