@@ -47,16 +47,13 @@ QtObject {
     }
   }
 
-  // Runs `command` in a terminal (`terminal`, else Apps.terminal, else
-  // xdg-terminal-exec) and checks again once the terminal closes. Ignored
-  // while an upgrade is already running.
+  // Runs `command` in a terminal (`terminal`, else Apps.inTerminal's) and
+  // checks again once the terminal closes. Ignored while an upgrade is
+  // already running.
   function upgrade(command, terminal) {
     if (_upgrader.running)
       return;
-    const term = (terminal ?? "").trim() || Apps.terminal.trim();
-    const run = ["bash", "-c", `${command}; echo; read -n 1 -s -r -p "Press any key to close"`];
-    // xdg-terminal-exec takes the command itself, without -e
-    _upgrader.command = term ? [term, "-e"].concat(run) : ["xdg-terminal-exec"].concat(run);
+    _upgrader.command = Apps.inTerminal(["bash", "-c", `${command}; echo; read -n 1 -s -r -p "Press any key to close"`], terminal);
     _upgrader.running = true;
   }
 

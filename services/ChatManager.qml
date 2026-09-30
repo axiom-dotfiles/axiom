@@ -75,13 +75,7 @@ Singleton {
   function open(id) {
     if (id === root.conversation.id)
       return;
-    const text = FileManager.read("file://" + root.chatDir + id + ".json");
-    let loaded = null;
-    try {
-      loaded = text ? JSON.parse(text) : null;
-    } catch (e) {
-      console.warn("[ChatManager] Could not parse conversation", id, e);
-    }
+    const loaded = _readConversation(id);
     if (!loaded?.messages) {
       root.notice = I18n.tr("That conversation couldn't be opened.");
       return;
@@ -108,15 +102,17 @@ Singleton {
       _save();
       return;
     }
-    const text = FileManager.read("file://" + root.chatDir + id + ".json");
-    if (!text)
+    const loaded = _readConversation(id);
+    if (!loaded)
       return;
-    const loaded = JSON.parse(text);
     loaded.title = trimmed;
     _writeConversation(loaded);
   }
 
   function remove(id) {
+    // The id names files to delete: never an empty or made-up one
+    if (!_validId(id))
+      return;
     root.conversations = root.conversations.filter(c => c.id !== id);
     _saveIndex();
     Quickshell.execDetached(["rm", "-rf", "--", root.chatDir + id + ".json", root.chatDir + id]);
@@ -321,6 +317,24 @@ Singleton {
       model: preset.model,
       messages: []
     };
+  }
+
+  // Ids are made by _blank (base 36), so they're safe in a path
+  function _validId(id) {
+    return /^[a-z0-9]+$/.test(String(id ?? ""));
+  }
+
+  // A saved conversation, or null when it's missing or unreadable
+  function _readConversation(id) {
+    if (!_validId(id))
+      return null;
+    const text = FileManager.read("file://" + root.chatDir + id + ".json");
+    try {
+      return text ? JSON.parse(text) : null;
+    } catch (e) {
+      console.warn("[ChatManager] Could not parse conversation", id, e);
+      return null;
+    }
   }
 
   function _update(changes) {

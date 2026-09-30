@@ -5,6 +5,8 @@ import qs.services
 // Reader for the Apps section: the apps axiom opens (keybinds, the
 // launcher's terminal apps and Shift+Enter commands)
 QtObject {
+  id: root
+
   readonly property var _c: ConfigManager.config.Apps
 
   readonly property string terminal: _c.terminal
@@ -14,5 +16,12 @@ QtObject {
   // What a bind (or the onboarder) runs to open each
   readonly property string terminalCommand: terminal.trim() || "xdg-terminal-exec"
   readonly property string fileManagerCommand: fileManager.trim() || 'xdg-open "$HOME"'
+  // `argv` run in a terminal: `terminal` (a widget's own), else the Apps
+  // one (which may carry arguments of its own), else xdg-terminal-exec,
+  // which takes the command without -e
+  function inTerminal(argv, terminal) {
+    const term = String(terminal ?? "").trim() || root.terminal.trim();
+    return term ? ["sh", "-c", term + ' -e "$@"', "sh"].concat(argv) : ["xdg-terminal-exec"].concat(argv);
+  }
   readonly property string browserCommand: browser.trim() || 'b=$(xdg-settings get default-web-browser 2>/dev/null) && [ -n "$b" ] && gtk-launch "${b%.desktop}" || xdg-open https://'
 }

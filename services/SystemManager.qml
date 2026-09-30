@@ -190,7 +190,7 @@ QtObject {
 
   function _pollDisks() {
     if (wants("disk") && _diskPaths.length > 0 && !_df.running) {
-      _df.command = ["df", "-B1", "--output=used,size", ..._diskPaths];
+      _df.command = ["df", "-B1", "--output=used,size", "--", ..._diskPaths];
       _df.running = true;
     }
   }
@@ -340,7 +340,7 @@ QtObject {
       onStreamFinished: {
         // Header line, then one "used size" line per requested path, in order
         const lines = text.trim().split("\n").slice(1);
-        const paths = root._df.command.slice(3);
+        const paths = root._df.command.slice(4);
         const disks = {};
         lines.forEach((line, i) => {
           const [used, total] = line.trim().split(/\s+/).map(Number);

@@ -113,7 +113,7 @@ QtObject {
 
       // DesktopEntry.execute() ignores Terminal=true
       if (appEntry.runInTerminal)
-        Quickshell.execDetached([Apps.terminal, "-e"].concat(appEntry.command));
+        Quickshell.execDetached(Apps.inTerminal(appEntry.command));
       else
         appEntry.execute();
       return true;
@@ -482,17 +482,16 @@ QtObject {
   // --- Run & web ---
 
   function _runRow(command) {
-    const terminal = Apps.terminal;
     return {
       kind: "run",
       glyph: "terminal",
       title: command || I18n.tr("Type a command"),
-      subtitle: I18n.tr("Enter runs it, Shift+Enter runs it in {0}", terminal),
+      subtitle: I18n.tr("Enter runs it, Shift+Enter runs it in {0}", Apps.terminal.trim() || "xdg-terminal-exec"),
       run: shift => {
         if (command === "")
           return false;
         if (shift)
-          Quickshell.execDetached([terminal, "-e", "sh", "-c", command + "; exec \"${SHELL:-sh}\""]);
+          Quickshell.execDetached(Apps.inTerminal(["sh", "-c", command + "; exec \"${SHELL:-sh}\""]));
         else
           Quickshell.execDetached(["sh", "-c", command]);
         return true;
