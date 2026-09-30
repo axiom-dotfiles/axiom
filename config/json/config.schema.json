@@ -1325,7 +1325,7 @@
           "title": "Workspace background",
           "enum": ["wallpaper", "color"],
           "x-enumLabels": { "wallpaper": "Monitor's wallpaper", "color": "Theme color" },
-          "default": "wallpaper",
+          "default": "color",
           "description": "What each workspace shows behind its windows."
         },
         "color": {
