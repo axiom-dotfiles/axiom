@@ -138,12 +138,6 @@
   "components/surfaces/notifications/NotificationToast.qml": {
     "missing-type: No type found for property \"adjustment\". This may be due to a missing import statement or incomplete qmltypes files.": 1
   },
-  "components/surfaces/workspaces/WindowPreview.qml": {
-    "unqualified: Unqualified access": 1
-  },
-  "components/surfaces/workspaces/WorkspaceCell.qml": {
-    "unqualified: Unqualified access": 1
-  },
   "components/views/overlayEditor/EditorDragLayer.qml": {
     "missing-property: Member \"cell\" not found on type \"QQuickItem\"": 2,
     "missing-property: Member \"column\" not found on type \"QQuickItem\"": 3,

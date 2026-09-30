@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Effects
 import QtQuick.Layouts
+import Quickshell.Widgets
 import qs.config
 import qs.services
 import qs.components.reusable
@@ -75,19 +76,10 @@ Panel {
   component Art: Item {
     id: art
     property real radius: Widget.radius
-    Item {
+    ClippingRectangle {
       anchors.fill: parent
-      layer.enabled: true
-      layer.effect: MultiEffect {
-        maskEnabled: true
-        maskSource: artMask
-        maskThresholdMin: 0.5
-        maskSpreadAtMin: 1
-      }
-      Rectangle {
-        anchors.fill: parent
-        color: Theme.backgroundAlt
-      }
+      radius: art.radius
+      color: Theme.backgroundAlt
       Image {
         anchors.fill: parent
         source: root.artSource
@@ -102,13 +94,6 @@ Panel {
         textSize: Math.min(art.width, art.height) * 0.4
         opacity: 0.4
       }
-    }
-    Rectangle {
-      id: artMask
-      anchors.fill: parent
-      radius: art.radius
-      visible: false
-      layer.enabled: true
     }
   }
 
@@ -245,16 +230,11 @@ Panel {
   // background, so text reads on it in light and dark themes alike
   background: Item {
     visible: root.hasPlayer && root.artSource !== ""
-    Item {
+    ClippingRectangle {
       anchors.fill: parent
       anchors.margins: root.embedded ? Appearance.borderWidth : 0
-      layer.enabled: true
-      layer.effect: MultiEffect {
-        maskEnabled: true
-        maskSource: backdropMask
-        maskThresholdMin: 0.5
-        maskSpreadAtMin: 1
-      }
+      radius: Math.max(0, root.boxRadius - (root.embedded ? Appearance.borderWidth : 0))
+      color: "transparent"
       // Larger than the box, so the blur doesn't fade out at its edges
       Image {
         anchors.fill: parent
@@ -275,14 +255,6 @@ Panel {
         color: Theme.background
         opacity: 0.6
       }
-    }
-    Rectangle {
-      id: backdropMask
-      anchors.fill: parent
-      anchors.margins: root.embedded ? Appearance.borderWidth : 0
-      radius: Math.max(0, root.boxRadius - (root.embedded ? Appearance.borderWidth : 0))
-      visible: false
-      layer.enabled: true
     }
   }
 

@@ -1,8 +1,8 @@
 pragma ComponentBehavior: Bound
 import QtQuick
-import QtQuick.Effects
 import QtQuick.Layouts
 import Quickshell
+import Quickshell.Widgets
 import qs.config
 import qs.services
 import qs.components.reusable
@@ -50,33 +50,18 @@ Card {
     property real borderWidth: 2
     default property alias content: overlay.data
 
-    Rectangle {
+    ClippingRectangle {
       anchors.fill: parent
       radius: Widget.radius
       color: thumbnail.fillColor
-    }
 
-    Image {
-      id: picture
-      anchors.fill: parent
-      fillMode: Image.PreserveAspectCrop
-      asynchronous: true
-      cache: true
-      layer.enabled: true
-      layer.effect: MultiEffect {
-        maskEnabled: true
-        maskSource: mask
-        maskThresholdMin: 0.5
-        maskSpreadAtMin: 1
+      Image {
+        id: picture
+        anchors.fill: parent
+        fillMode: Image.PreserveAspectCrop
+        asynchronous: true
+        cache: true
       }
-    }
-
-    Rectangle {
-      id: mask
-      anchors.fill: parent
-      radius: Widget.radius
-      visible: false
-      layer.enabled: true
     }
 
     Rectangle {

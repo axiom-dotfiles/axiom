@@ -1,5 +1,6 @@
+pragma ComponentBehavior: Bound
 import QtQuick
-import QtQuick.Effects
+import Quickshell.Widgets
 
 import qs.config
 
@@ -23,21 +24,11 @@ Item {
   property bool dropTarget: false
   property bool dropFill: false
 
-  Item {
+  ClippingRectangle {
     id: desktop
     anchors.fill: parent
-    layer.enabled: true
-    layer.effect: MultiEffect {
-      maskEnabled: true
-      maskSource: mask
-      maskThresholdMin: 0.5
-      maskSpreadAtMin: 1
-    }
-
-    Rectangle {
-      anchors.fill: parent
-      color: root.color
-    }
+    radius: root.radius
+    color: root.color
 
     Image {
       anchors.fill: parent
@@ -62,14 +53,6 @@ Item {
         }
       }
     }
-  }
-
-  Rectangle {
-    id: mask
-    anchors.fill: parent
-    radius: root.radius
-    visible: false
-    layer.enabled: true
   }
 
   Rectangle {

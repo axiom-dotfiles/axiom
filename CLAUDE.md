@@ -107,6 +107,7 @@ Dependencies point one way:
 - **Adding a module to a live config**: confirm the schema reloaded first (a config validated against a stale schema falls back to defaults), add one at a time and watch qs's RSS.
 - **Bar widgets are sized by their bar**: cross size `barConfig.widgetSize`; padding, spacing, font size and radius from `barConfig`, never `Widget.*` (which is for controls and panels outside the bar). Icon + label widgets extend `bar/widgets/BarIconWidget.qml`.
 - **Radii**: `Appearance.borderRadius` only for outer edges (border, bars, pills, popout surfaces, the overlay box, windows); `Widget.radius` for anything inside.
+- **Rounded clipping** (images, captures, anything cut to rounded corners) is Quickshell.Widgets' `ClippingRectangle` (set its `color`: it defaults to white), not a MultiEffect mask.
 - **Icons** are Material Symbols names drawn by `reusable/StyledIcon`; an icon never shares a Text with a label.
 - **Layer ordering** (bars, border, popouts, dock, edge menus, backdrop, screenshot) is set by Hyprland layer rules in `HyprlandManager.layerRulesLua`; see docs/architecture.md (Popouts) before changing how surfaces sit on an edge.
 - **Screen targeting**: surfaces are built on `General.screensFor(mode)`; only `ShellManager.isTarget(screen, mode)` answers shortcuts, IPC and OSD events. IPC handlers are `enabled` on the target instance only.

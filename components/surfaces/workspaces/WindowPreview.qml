@@ -1,6 +1,7 @@
+pragma ComponentBehavior: Bound
 import QtQuick
-import QtQuick.Effects
 import Quickshell.Wayland
+import Quickshell.Widgets
 
 import qs.services
 import qs.config
@@ -46,20 +47,10 @@ Item {
     onTriggered: root._waited = true
   }
 
-  Item {
+  ClippingRectangle {
     anchors.fill: parent
-    layer.enabled: true
-    layer.effect: MultiEffect {
-      maskEnabled: true
-      maskSource: mask
-      maskThresholdMin: 0.5
-      maskSpreadAtMin: 1
-    }
-
-    Rectangle {
-      anchors.fill: parent
-      color: Theme.backgroundAlt
-    }
+    radius: root.radius
+    color: Theme.backgroundAlt
 
     ScreencopyView {
       id: capture
@@ -69,7 +60,7 @@ Item {
       // resized (otherwise one frame per open)
       constraintSize: Qt.size(Math.round(root.width), Math.round(root.height))
       live: root.hovered || root.resizing
-      onHasContentChanged: if (hasContent)
+      onHasContentChanged: if (capture.hasContent)
         root._hadContent = true
     }
 
@@ -105,14 +96,6 @@ Item {
         horizontalAlignment: Text.AlignHCenter
       }
     }
-  }
-
-  Rectangle {
-    id: mask
-    anchors.fill: parent
-    radius: root.radius
-    visible: false
-    layer.enabled: true
   }
 
   Rectangle {
