@@ -8,8 +8,8 @@ import qs.config
 import qs.services
 
 // The launcher's contents: the search field, the results and the controls
-// hint, without a box of its own. The floating LauncherWindow puts it in a
-// card; on a screen edge an EdgePopout's surface is the box. Reversed, the
+// hint, without a box of its own: its host's surface is the box (a
+// FloatingPopout, or on a screen edge an EdgePopout). Reversed, the
 // search field is at the bottom and the best match sits just above it.
 FocusScope {
   id: root
@@ -40,11 +40,13 @@ FocusScope {
   implicitWidth: LauncherConfig.width
   implicitHeight: _offset(_order.length)
 
-  // Starts over with `text` searched
+  // Starts over with `text` searched (the search itself is skipped when the
+  // launcher already ran it on opening)
   function reset(text) {
     input.text = text ?? "";
     input.cursorPosition = input.text.length;
-    LauncherManager.query(input.text);
+    if (LauncherManager.text !== input.text)
+      LauncherManager.query(input.text);
     root.selected = 0;
     list.currentIndex = 0;
     root.pointerActive = false;
