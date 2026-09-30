@@ -2,7 +2,6 @@ pragma Singleton
 pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
-import Quickshell.Io
 
 import qs.config
 
@@ -171,39 +170,7 @@ QtObject {
   // Runs a command, writing `input` (if any) to its stdin, then calls
   // back with (ok, stdout, stderr)
   function _run(command, input, callback) {
-    const process = _processComponent.createObject(root, {
-      command: command,
-      input: input ?? "",
-      stdinEnabled: input !== null && input !== undefined
-    });
-    process.done.connect((ok, out, err) => {
-      callback(ok, out, err);
-      process.destroy();
-    });
-    process.running = true;
-  }
-
-  property Component _processComponent: Component {
-    Process {
-      id: process
-      property string input: ""
-      signal done(bool ok, string out, string err)
-
-      stdout: StdioCollector {
-        id: out
-      }
-      stderr: StdioCollector {
-        id: err
-      }
-      onStarted: {
-        if (!process.stdinEnabled)
-          return;
-        process.write(process.input);
-        process.input = "";
-        process.stdinEnabled = false;
-      }
-      onExited: code => process.done(code === 0, out.text, err.text)
-    }
+    CommandManager.run(command, (code, out, err) => callback(code === 0, out, err), input);
   }
 
   Component.onCompleted: {

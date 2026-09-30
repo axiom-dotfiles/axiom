@@ -132,26 +132,7 @@ QtObject {
 
   // Runs a command once and hands its stdout and exit code to `done`
   function _run(command, done) {
-    const process = _oneShot.createObject(root, {
-      "command": command
-    });
-    process.finished.connect((text, exitCode) => {
-      done(text, exitCode);
-      process.destroy();
-    });
-    process.running = true;
-  }
-
-  property Component _oneShot: Component {
-    Process {
-      id: process
-      signal finished(string text, int exitCode)
-      property string _text: ""
-      stdout: StdioCollector {
-        onStreamFinished: process._text = text
-      }
-      onExited: exitCode => process.finished(process._text, exitCode)
-    }
+    CommandManager.run(command, (code, out) => done(out, code));
   }
 
   // -- Detection --

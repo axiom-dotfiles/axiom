@@ -563,14 +563,7 @@ Singleton {
 
   // Runs a command and calls back with (ok, stdout)
   function _run(command, callback) {
-    const process = _processComponent.createObject(root, {
-      command: command
-    });
-    process.done.connect((ok, out) => {
-      callback(ok, out);
-      process.destroy();
-    });
-    process.running = true;
+    CommandManager.run(command, (code, out) => callback(code === 0, out));
   }
 
   Timer {
@@ -607,17 +600,6 @@ Singleton {
       atomicWrites: true
       printErrors: false
       onSaveFailed: error => console.warn("[ChatManager] Could not save", path + ":", FileViewError.toString(error))
-    }
-  }
-
-  property Component _processComponent: Component {
-    Process {
-      id: process
-      signal done(bool ok, string out)
-      stdout: StdioCollector {
-        id: out
-      }
-      onExited: code => process.done(code === 0, out.text)
     }
   }
 
