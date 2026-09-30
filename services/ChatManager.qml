@@ -333,7 +333,7 @@ Singleton {
   }
 
   function _attachmentPath(ext) {
-    const dir = root.persistent ? root.chatDir + root.conversation.id : (Quickshell.env("XDG_RUNTIME_DIR") || "/tmp") + "/axiom-chat/" + root.conversation.id;
+    const dir = root.persistent ? root.chatDir + root.conversation.id : Paths.runtimePath + "chat/" + root.conversation.id;
     return `${dir}/${Date.now().toString(36)}.${ext}`;
   }
 

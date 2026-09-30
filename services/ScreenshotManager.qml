@@ -52,7 +52,7 @@ QtObject {
 
   property string _picturesDir: Quickshell.env("HOME") + "/Pictures"
   property string _directory: ""
-  readonly property string _scratchDir: (Quickshell.env("XDG_RUNTIME_DIR") || "/tmp") + "/axiom"
+  readonly property string _scratchDir: Paths.runtimePath.replace(/\/$/, "")
 
   readonly property var _state: StateManager.createStateHandler("screenshot")
 

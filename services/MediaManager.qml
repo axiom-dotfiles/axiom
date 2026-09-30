@@ -4,6 +4,8 @@ import QtQuick
 import Quickshell.Services.Mpris
 import Quickshell.Io
 
+import qs.config
+
 QtObject {
   id: root
 
@@ -29,7 +31,7 @@ QtObject {
   property string trackArtist: activePlayer ? activePlayer.trackArtist : ""
   property string artUrl: activePlayer ? activePlayer.trackArtUrl : ""
   property string artFileName: artUrl ? Qt.md5(artUrl) + ".jpg" : ""
-  property string artFilePath: artFileName ? `/tmp/quickshell-media-art/${artFileName}` : ""
+  property string artFilePath: artFileName ? Paths.runtimePath + "media-art/" + artFileName : ""
   property bool artDownloaded: false
   property int artVersion: 0
   property bool canPlay: activePlayer ? activePlayer.canPlay : false
