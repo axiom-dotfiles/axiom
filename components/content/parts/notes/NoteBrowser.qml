@@ -1,6 +1,5 @@
 pragma ComponentBehavior: Bound
 import QtQuick
-import QtQuick.Effects
 import QtQuick.Layouts
 import Qt.labs.folderlistmodel
 import qs.config
@@ -12,7 +11,7 @@ import qs.components.content.parts.chat
 // folder opens on click; the path above goes back up. Notes and folders
 // can be made, renamed and sent to the trash here. The search field above
 // looks through every note's name and text instead (NotesManager.search).
-Rectangle {
+DropdownSurface {
   id: root
 
   // The open note, highlighted
@@ -83,19 +82,6 @@ Rectangle {
   }
 
   implicitHeight: Math.min(root.maxHeight, content.implicitHeight + Widget.spacing * 2)
-  color: Theme.background
-  radius: Widget.radius
-  border.color: Theme.border
-  border.width: 1
-
-  // Floats over the note, like a combo box's list
-  layer.enabled: true
-  layer.effect: MultiEffect {
-    shadowEnabled: true
-    shadowColor: "#40000000"
-    shadowBlur: 0.5
-    shadowVerticalOffset: 2
-  }
 
   FolderListModel {
     id: folderModel

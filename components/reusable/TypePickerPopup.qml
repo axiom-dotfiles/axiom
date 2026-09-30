@@ -2,7 +2,6 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import QtQuick.Effects
 import qs.config
 
 // i18n: keys from callers and the schema (titles, descriptions, type labels)
@@ -79,19 +78,9 @@ Popup {
   }
   onOpened: search.input.forceActiveFocus()
 
-  background: StyledContainer {
-    backgroundColor: Theme.backgroundAlt
-    borderColor: Theme.border
-    borderRadius: Widget.radius
-
-    layer.enabled: true
-    // Qt 6 MultiEffect: Qt5Compat DropShadow fails to build its shader here
-    layer.effect: MultiEffect {
-      shadowEnabled: true
-      shadowColor: "#40000000"
-      shadowBlur: 0.5
-      shadowVerticalOffset: 2
-    }
+  background: DropdownSurface {
+    color: Theme.backgroundAlt
+    border.width: Appearance.borderWidth
   }
 
   contentItem: ColumnLayout {

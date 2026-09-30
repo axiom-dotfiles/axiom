@@ -1,20 +1,17 @@
 pragma ComponentBehavior: Bound
 import QtQuick
-import QtQuick.Effects
 import QtQuick.Layouts
 import qs.config
 import qs.services
 import qs.components.reusable
 
 // Saved conversations, newest first under Today / Yesterday / Earlier,
-// with search, rename and delete
-Rectangle {
+// with search, rename and delete. Over the chat, or docked beside it
+// (`floating` off: no shadow)
+DropdownSurface {
   id: root
 
   signal picked
-
-  // Over the chat (not docked beside it): casts a shadow
-  property bool floating: true
 
   property string query: ""
   // The conversation being renamed ("" when none)
@@ -48,20 +45,6 @@ Rectangle {
   }
 
   implicitHeight: Math.min(Widget.height + listColumn.implicitHeight + Widget.spacing * 3, root.maxHeight)
-  color: Theme.background
-  radius: Widget.radius
-  border.color: Theme.border
-  border.width: 1
-
-  // Floats over the chat, like a combo box's list
-  layer.enabled: root.floating
-  // Qt 6 MultiEffect: Qt5Compat DropShadow fails to build its shader here
-  layer.effect: MultiEffect {
-    shadowEnabled: true
-    shadowColor: "#40000000"
-    shadowBlur: 0.5
-    shadowVerticalOffset: 2
-  }
 
   ColumnLayout {
     anchors.fill: parent
