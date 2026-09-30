@@ -18,11 +18,8 @@ Item {
 
   readonly property var selection: BarManager.selectedWidget
   readonly property var widget: BarManager.selectedWidgetConfig()
-  // A new form per widget: SchemaField rows commit when their value
-  // changes, so reusing one for another widget would write the old values
+  // A new form per widget (KeyedLoader)
   readonly property string selectionKey: root.widget ? [BarManager.selectedBarIndex, root.selection.zone, root.selection.index, root.widget.type].join(":") : ""
-
-  readonly property var layoutSchema: ConfigManager.configSchema.definitions?.WidgetLayout ?? ({})
 
   Card {
     color: Theme.background
@@ -32,9 +29,10 @@ Item {
       anchors.fill: parent
       anchors.margins: Widget.padding
 
-      Repeater {
-        model: root.selectionKey === "" ? [] : [root.selectionKey]
-        delegate: editor
+      KeyedLoader {
+        anchors.fill: parent
+        key: root.selectionKey
+        sourceComponent: editor
       }
 
       Loader {
@@ -60,45 +58,10 @@ Item {
       anchors.fill: parent
       spacing: Widget.spacing
 
-      RowLayout {
-        Layout.fillWidth: true
-        Layout.preferredHeight: Widget.height + Widget.padding
-        spacing: Widget.spacing
-
-        Rectangle {
-          Layout.preferredWidth: Widget.height + 4
-          Layout.preferredHeight: Widget.height + 4
-          radius: Widget.radius
-          color: Theme.accent
-
-          StyledIcon {
-            anchors.centerIn: parent
-            text: root.dragLayer.icon(editorRoot.widget.type)
-            textColor: Theme.background
-            textSize: Appearance.fontSize + 4
-          }
-        }
-
-        ColumnLayout {
-          Layout.fillWidth: true
-          spacing: 0
-
-          StyledText {
-            text: root.dragLayer.label(editorRoot.widget.type)
-            textSize: Appearance.fontSize + 4
-            font.bold: true
-            elide: Text.ElideRight
-            Layout.fillWidth: true
-          }
-
-          StyledText {
-            text: I18n.tr("{0} section, position {1}", root.dragLayer.zoneLabel(editorRoot.zone), editorRoot.index + 1) + (editorRoot.hidden ? "  ·  " + I18n.tr("Hidden on the bar") : "")
-            opacity: 0.6
-            textSize: Appearance.fontSize - 2
-            elide: Text.ElideRight
-            Layout.fillWidth: true
-          }
-        }
+      InspectorHeader {
+        icon: root.dragLayer.icon(editorRoot.widget.type)
+        title: root.dragLayer.label(editorRoot.widget.type)
+        subtitle: editorRoot.hidden ? I18n.tr("{0} section, position {1} · hidden on the bar", root.dragLayer.zoneLabel(editorRoot.zone), editorRoot.index + 1) : I18n.tr("{0} section, position {1}", root.dragLayer.zoneLabel(editorRoot.zone), editorRoot.index + 1)
 
         SquareIconButton {
           iconText: editorRoot.hidden ? "visibility_off" : "visibility"
@@ -128,13 +91,6 @@ Item {
         }
       }
 
-      Rectangle {
-        Layout.fillWidth: true
-        Layout.preferredHeight: 1
-        color: Theme.border
-        opacity: 0.3
-      }
-
       ScrollView {
         id: scroll
         Layout.fillWidth: true
@@ -146,31 +102,19 @@ Item {
           width: scroll.availableWidth
           spacing: Widget.spacing * 2
 
-          FieldGroup {
+          OptionsGroup {
             Layout.preferredWidth: 3
-            title: I18n.tr("Options")
-
-            SchemaPropertiesForm {
-              id: optionsForm
-              Layout.fillWidth: true
-              propertiesSchema: editorRoot.propertiesSchema
-              numberMode: "stepper"
-              values: editorRoot.widget.properties ?? ({})
-              onEdited: (path, value) => BarManager.updateWidgetProperty(editorRoot.zone, editorRoot.index, path[0], value)
-            }
-
-            StyledText {
-              visible: optionsForm.rows.length === 0
-              text: I18n.tr("This widget has no options")
-              opacity: 0.6
-              Layout.fillWidth: true
-            }
+            propertiesSchema: editorRoot.propertiesSchema
+            numberMode: "stepper"
+            values: editorRoot.widget.properties ?? ({})
+            emptyText: I18n.tr("This widget has no options")
+            onEdited: (path, value) => BarManager.updateWidgetProperty(editorRoot.zone, editorRoot.index, path[0], value)
           }
 
           FieldGroup {
             Layout.preferredWidth: 2
-            title: I18n.tr(root.layoutSchema.title ?? "Layout")
-            description: root.layoutSchema.description ? I18n.tr(root.layoutSchema.description) : ""
+            title: I18n.tr(Bar.widgetLayoutSchema.title ?? "Layout")
+            description: Bar.widgetLayoutSchema.description ? I18n.tr(Bar.widgetLayoutSchema.description) : ""
 
             Repeater {
               model: [
@@ -192,7 +136,7 @@ Item {
                 required property var modelData
                 key: modelData.key
                 initial: modelData.initial
-                fieldSchema: root.layoutSchema.properties?.[modelData.key] ?? ({})
+                fieldSchema: Bar.widgetLayoutSchema.properties?.[modelData.key] ?? ({})
                 value: editorRoot.widget.layout?.[modelData.key]
                 onEdited: value => BarManager.updateWidgetLayout(editorRoot.zone, editorRoot.index, modelData.key, value)
               }
@@ -230,13 +174,10 @@ Item {
         clip: true
         ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
 
-        Flow {
+        TileFlow {
           id: flow
-          readonly property int columns: Math.max(2, Math.floor(width / (Appearance.fontSize * 14)))
-          readonly property real tileWidth: (width - spacing * (columns - 1)) / columns
-
+          minColumns: 2
           width: libraryScroll.availableWidth
-          spacing: Widget.spacing
 
           Repeater {
             model: Bar.availableWidgetTypes

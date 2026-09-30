@@ -17,8 +17,7 @@ BaseView {
 
   Component.onCompleted: KeybindManager.ensureLoaded()
 
-  readonly property real pageWidth: root.grid.unit * 2.6 + OverlayConfig.cardSpacing
-  readonly property int columnCount: Math.max(1, Math.floor(root.pageWidth / (root.grid.unit * 0.8)))
+  readonly property int columnCount: Math.max(1, Math.floor(root.cardPageWidth / (root.grid.unit * 0.8)))
 
   readonly property string query: KeybindManager.query.trim().toLowerCase()
 
@@ -60,8 +59,8 @@ BaseView {
   }
 
   Item {
-    implicitWidth: root.pageWidth
-    implicitHeight: root.grid.span(4)
+    implicitWidth: root.cardPageWidth
+    implicitHeight: root.pageHeight
 
     TitledCard {
       title: I18n.tr("Keybinds")

@@ -22,8 +22,6 @@ BaseView {
   }
   Component.onDestruction: MonitorManager.pageShown = false
 
-  readonly property real pageWidth: root.grid.unit * 2.6 + OverlayConfig.cardSpacing
-
   // Where Hyprland gets the profiles from, per HyprlandConfig.mode
   readonly property string modeNote: {
     switch (HyprlandConfigManager.mode) {
@@ -36,8 +34,8 @@ BaseView {
   }
 
   Item {
-    implicitWidth: root.pageWidth
-    implicitHeight: root.grid.span(4)
+    implicitWidth: root.cardPageWidth
+    implicitHeight: root.pageHeight
 
     TitledCard {
       title: I18n.tr("Monitors")
@@ -123,7 +121,7 @@ BaseView {
 
       RowLayout {
         Layout.fillWidth: true
-        Layout.preferredHeight: root.grid.span(4) - Widget.height * 6
+        Layout.preferredHeight: root.pageHeight - Widget.height * 6
         spacing: Widget.spacing * 3
 
         MonitorCanvas {

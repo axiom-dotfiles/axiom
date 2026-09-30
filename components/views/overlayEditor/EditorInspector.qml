@@ -36,11 +36,10 @@ Item {
   readonly property string shape: root.rect ? OverlayConfig.slotShape(root.rect) : ""
   readonly property string moduleType: root.module?.type ?? ""
   readonly property bool fits: !root.module || !root.rect || OverlayConfig.fits(root.moduleType, root.rect)
-  // A new form per slot: SchemaField rows commit when their value
-  // changes, so reusing one for another module would write the old values
+  // A new form per slot (KeyedLoader)
   readonly property string selectionKey: root.module ? [root.editor.scopeKey, root.sel.column, root.sel.cell, root.sel.slot, root.moduleType].join(":") : ""
 
-  readonly property string where: root.cellSelected ? I18n.tr("Column {0} · cell {1}", root.sel.column + 1, root.sel.cell + 1) + (root.slotSelected ? " · " + I18n.tr("{0} slot ({1})", I18n.tr(root.sel.slot), I18n.tr(root.shape)) : "") : ""
+  readonly property string where: !root.cellSelected ? "" : root.slotSelected ? I18n.tr("Column {0} · cell {1} · {2} slot ({3})", root.sel.column + 1, root.sel.cell + 1, I18n.tr(root.sel.slot), I18n.tr(root.shape)) : I18n.tr("Column {0} · cell {1}", root.sel.column + 1, root.sel.cell + 1)
 
   Card {
     color: Theme.background
@@ -51,45 +50,11 @@ Item {
       anchors.margins: Widget.padding
       spacing: Widget.spacing
 
-      RowLayout {
-        Layout.fillWidth: true
-        Layout.preferredHeight: Widget.height + Widget.padding
-        spacing: Widget.spacing
-
-        Rectangle {
-          Layout.preferredWidth: Widget.height + 4
-          Layout.preferredHeight: Widget.height + 4
-          radius: Widget.radius
-          color: root.cellSelected ? Theme.accent : Theme.backgroundAlt
-
-          StyledIcon {
-            anchors.centerIn: parent
-            text: root.module ? root.dragLayer.moduleIcon(root.moduleType) : root.slotSelected ? "add" : root.cellSelected ? "view_quilt" : "extension"
-            textColor: root.cellSelected ? Theme.background : Theme.accent
-            textSize: Appearance.fontSize + 4
-          }
-        }
-
-        ColumnLayout {
-          Layout.fillWidth: true
-          spacing: 0
-
-          StyledText {
-            text: root.module ? root.dragLayer.moduleLabel(root.moduleType) : root.slotSelected ? I18n.tr("Empty slot") : root.cellSelected ? I18n.tr("{0} cell", root.dragLayer.layoutLabel(root.cell.layout)) : I18n.tr("Library")
-            textSize: Appearance.fontSize + 4
-            font.bold: true
-            elide: Text.ElideRight
-            Layout.fillWidth: true
-          }
-
-          StyledText {
-            text: root.cellSelected ? root.where : root.editable ? I18n.tr("Click a slot, or a cell's grip, on the page to edit it") : root.notEditableHint
-            opacity: 0.6
-            textSize: Appearance.fontSize - 2
-            elide: Text.ElideRight
-            Layout.fillWidth: true
-          }
-        }
+      InspectorHeader {
+        icon: root.module ? root.dragLayer.moduleIcon(root.moduleType) : root.slotSelected ? "add" : root.cellSelected ? "view_quilt" : "extension"
+        filled: root.cellSelected
+        title: root.module ? root.dragLayer.moduleLabel(root.moduleType) : root.slotSelected ? I18n.tr("Empty slot") : root.cellSelected ? I18n.tr("{0} cell", root.dragLayer.layoutLabel(root.cell.layout)) : I18n.tr("Library")
+        subtitle: root.cellSelected ? root.where : root.editable ? I18n.tr("Click a slot, or a cell's grip, on the page to edit it") : root.notEditableHint
 
         SquareIconButton {
           visible: root.module !== null
@@ -107,13 +72,6 @@ Item {
         }
       }
 
-      Rectangle {
-        Layout.fillWidth: true
-        Layout.preferredHeight: 1
-        color: Theme.border
-        opacity: 0.3
-      }
-
       RowLayout {
         Layout.fillWidth: true
         Layout.fillHeight: true
@@ -125,9 +83,10 @@ Item {
           Layout.fillHeight: true
           Layout.preferredWidth: 3
 
-          Repeater {
-            model: root.selectionKey === "" ? [] : [root.selectionKey]
-            delegate: options
+          KeyedLoader {
+            anchors.fill: parent
+            key: root.selectionKey
+            sourceComponent: options
           }
 
           ModuleLibrary {
@@ -244,34 +203,13 @@ Item {
       clip: true
       ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
 
-      readonly property var propertiesSchema: OverlayConfig.moduleInfo(root.moduleType)?.propertiesSchema ?? ({})
-
-      FieldGroup {
+      OptionsGroup {
         width: optionsScroll.availableWidth
-        title: I18n.tr("Options")
-
-        StyledText {
-          visible: !root.fits
-          Layout.fillWidth: true
-          wrapMode: Text.WordWrap
-          text: I18n.tr("{0} doesn't fit a {1} slot: move it, or change the cell's layout.", root.dragLayer.moduleLabel(root.moduleType), I18n.tr(root.shape))
-          textColor: Theme.error
-        }
-
-        SchemaPropertiesForm {
-          id: optionsForm
-          Layout.fillWidth: true
-          propertiesSchema: optionsScroll.propertiesSchema
-          values: root.module?.properties ?? ({})
-          onEdited: (path, value) => root.editor.updateModuleProperty(root.sel.column, root.sel.cell, root.sel.slot, path[0], value)
-        }
-
-        StyledText {
-          visible: optionsForm.rows.length === 0
-          text: I18n.tr("This module has no options")
-          opacity: 0.6
-          Layout.fillWidth: true
-        }
+        propertiesSchema: OverlayConfig.moduleInfo(root.moduleType)?.propertiesSchema ?? ({})
+        values: root.module?.properties ?? ({})
+        problem: root.fits ? "" : I18n.tr("{0} doesn't fit a {1} slot: move it, or change the cell's layout.", root.dragLayer.moduleLabel(root.moduleType), I18n.tr(root.shape))
+        emptyText: I18n.tr("This module has no options")
+        onEdited: (path, value) => root.editor.updateModuleProperty(root.sel.column, root.sel.cell, root.sel.slot, path[0], value)
       }
     }
   }

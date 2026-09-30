@@ -20,8 +20,6 @@ BaseView {
   ])
   readonly property var category: categories.find(c => c.name === SettingsManager.category) ?? categories[0]
 
-  readonly property real pageHeight: root.grid.span(4)
-
   Component.onCompleted: SettingsManager.ensureLoaded()
 
   SettingsSidebar {

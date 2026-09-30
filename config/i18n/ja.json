@@ -615,7 +615,6 @@
     "Override": "上書き",
     "Use the widget's own sizing": "ウィジェット自身のサイズを使う",
     "{0} section, position {1}": "{0}セクション・{1}番目",
-    "Hidden on the bar": "バーに非表示",
     "Hidden on the bar: click to show it": "バーに非表示：クリックで表示",
     "Hide it on the bar, keeping its settings": "設定を残したままバーから隠す",
     "Duplicate": "複製",
@@ -651,7 +650,6 @@
     "A fixed page: it has no layout to edit. Drag it in the page list to reorder it.": "固定ページ：編集できるレイアウトはありません。ページ一覧でドラッグして並べ替えられます。",
     "No pages yet: add one with New page.": "ページがありません：「新しいページ」で追加してください。",
     "Column {0} · cell {1}": "列 {0} · セル {1}",
-    "{0} slot ({1})": "{0}スロット（{1}）",
     "Empty slot": "空きスロット",
     "{0} cell": "{0}セル",
     "Library": "ライブラリ",
@@ -2209,6 +2207,8 @@
     "Grow to its row's height and into spare height in its column, shared evenly with other rows that fill height. In a left or right edge menu, the menu then takes its whole edge.": "行の高さまで、さらに列の余った高さまで広げます。高さを広げる他の行と均等に分け合います。左端か右端のエッジメニューでは、メニューがその辺全体を占めます。",
     "Remove {0} binds your Hyprland config also has": "Hyprland の設定にもある {0} 件のバインドを削除",
     "X": "X",
-    "Y": "Y"
+    "Y": "Y",
+    "Column {0} · cell {1} · {2} slot ({3})": "列 {0} · セル {1} · {2}スロット（{3}）",
+    "{0} section, position {1} · hidden on the bar": "{0}セクション・{1}番目 · バーに非表示"
   }
 }
