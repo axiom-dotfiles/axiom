@@ -20,19 +20,24 @@ BaseWidget {
   property real spacing: 6
   property color foregroundColor: Theme.background
   property int fontSize: Appearance.fontSize
+  // Draws nothing and takes no room, padding included (a widget with
+  // nothing to show). Not `visible: false`, which would still be measured.
+  property bool hidden: false
 
-  readonly property bool _hasIcon: showIcon && icon !== ""
+  readonly property bool _hasIcon: !hidden && showIcon && icon !== ""
   readonly property var _iconLines: icon.split("\n")
-  readonly property string displayText: showText ? (text || "—") : ""
+  readonly property string displayText: !hidden && showText ? (text || "—") : ""
   readonly property bool _hasText: displayText !== ""
   readonly property real _gap: _hasIcon && _hasText ? spacing : 0
 
   // Icon footprint along the main axis; the label's is its (unrotated) width
-  readonly property real _iconLength: _hasIcon ? (isVertical ? iconLabel.implicitHeight : iconLabel.implicitWidth) : 0
-  readonly property real _naturalLength: _iconLength + _gap + (_hasText ? textLabel.implicitWidth : 0)
+  readonly property real iconLength: _hasIcon ? (isVertical ? iconLabel.implicitHeight : iconLabel.implicitWidth) : 0
+  readonly property real _naturalLength: iconLength + _gap + (_hasText ? textLabel.implicitWidth : 0)
 
-  implicitWidth: isVertical ? root.crossSize : _naturalLength + padding * 2
-  implicitHeight: isVertical ? _naturalLength + padding * 2 : root.crossSize
+  readonly property real _padding: hidden ? 0 : padding
+
+  implicitWidth: isVertical ? root.crossSize : _naturalLength + _padding * 2
+  implicitHeight: isVertical ? _naturalLength + _padding * 2 : root.crossSize
 
   // Centered run of icon + label, at most the space inside the padding
   Item {
@@ -70,7 +75,7 @@ BaseWidget {
     Item {
       id: textSlot
       visible: root._hasText
-      readonly property real start: root._iconLength + root._gap
+      readonly property real start: root.iconLength + root._gap
       x: root.isVertical ? 0 : start
       y: root.isVertical ? start : 0
       width: root.isVertical ? run.width : Math.max(0, run.length - start)

@@ -9,14 +9,12 @@ import qs.config
 BarIconWidget {
   id: root
 
-  readonly property bool hidden: !ScreenshotManager.recording
+  hidden: !ScreenshotManager.recording
   readonly property int elapsed: ScreenshotManager.recordingElapsed
 
   icon: "radio_button_checked"
   text: `${Math.floor(root.elapsed / 60)}:${String(root.elapsed % 60).padStart(2, "0")}`
-  showIcon: !root.hidden
-  showText: !root.hidden && properties.showTimer && ScreenshotManager.recordingSince > 0
-  padding: root.hidden ? 0 : root.barConfig.widgetPadding
+  showText: properties.showTimer && ScreenshotManager.recordingSince > 0
 
   backgroundColor: Theme.resolveColor(properties.activeColor)
   opacity: mouseArea.pressed ? 0.8 : 1

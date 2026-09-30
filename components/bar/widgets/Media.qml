@@ -8,23 +8,15 @@ import qs.components.reusable
 import qs.components.methods
 import qs.components.hosts.popout
 
-Item {
+BarWidget {
   id: root
-
-  property var barConfig
-  property var popouts
-  property var panel
-  property var screen
-  property var properties
-
-  property bool isVertical: barConfig.vertical
 
   // Sized to the track, shrinking (the label elides) down to just the icon
   // when the bar is crowded. The popout centres on the widget when it
   // opens and stays put while open, so a resize doesn't move it.
   // `layout.size` caps it.
   readonly property string sizePolicy: "elastic"
-  readonly property real minimumSize: iconText._iconLength + iconText.padding * 2
+  readonly property real minimumSize: iconText.iconLength + iconText.padding * 2
 
   implicitWidth: iconText.implicitWidth
   implicitHeight: iconText.implicitHeight

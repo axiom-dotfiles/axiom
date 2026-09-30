@@ -1,6 +1,5 @@
 pragma ComponentBehavior: Bound
 import QtQuick
-import Quickshell
 
 import qs.services
 import qs.config
@@ -14,13 +13,11 @@ BarIconWidget {
   id: root
 
   readonly property real maxVolume: properties.maxVolume / 100
-  readonly property bool hidden: properties.hideWhenIdle && !AudioManager.micInUse && !AudioManager.sourceMuted
+  hidden: properties.hideWhenIdle && !AudioManager.micInUse && !AudioManager.sourceMuted
 
   icon: AudioManager.inputIcon(AudioManager.deviceKind(AudioManager.defaultSource), AudioManager.sourceMuted)
   text: `${Math.round(AudioManager.sourceVolume * 100)}%`
-  showIcon: !hidden
-  showText: properties.showPercentage && !hidden
-  padding: hidden ? 0 : root.barConfig.widgetPadding
+  showText: properties.showPercentage
 
   backgroundColor: Theme.resolveColor(AudioManager.sourceMuted ? properties.mutedColor : AudioManager.micInUse ? properties.activeColor : properties.backgroundColor)
   opacity: mouseArea.pressed ? 0.8 : 1
@@ -33,8 +30,7 @@ BarIconWidget {
     acceptedButtons: Qt.LeftButton | Qt.MiddleButton
     onClicked: mouse => {
       if (mouse.button === Qt.MiddleButton) {
-        if (root.properties.middleCommand)
-          Quickshell.execDetached(["sh", "-c", root.properties.middleCommand]);
+        CommandManager.runDetached(root.properties.middleCommand);
       } else {
         AudioManager.toggleSourceMute();
       }

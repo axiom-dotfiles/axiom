@@ -1,6 +1,5 @@
 pragma ComponentBehavior: Bound
 import QtQuick
-import Quickshell
 import Quickshell.Services.Pipewire
 
 import qs.services
@@ -49,12 +48,10 @@ BarIconWidget {
   readonly property var cameraUsers: properties.showCamera ? users(s => s.type === PwNodeType.VideoSource && !isPortal(s), t => isVideoStream(t)) : []
 
   readonly property var glyphs: [...(micUsers.length ? ["mic"] : []), ...(screenUsers.length ? ["monitor"] : []), ...(cameraUsers.length ? ["camera"] : [])]
-  readonly property bool hidden: glyphs.length === 0
+  hidden: glyphs.length === 0
 
   icon: glyphs.join(isVertical ? "\n" : " ")
-  showIcon: !hidden
   showText: false
-  padding: hidden ? 0 : root.barConfig.widgetPadding
 
   backgroundColor: Theme.resolveColor(properties.activeColor)
 
@@ -76,7 +73,7 @@ BarIconWidget {
         lines.push(I18n.tr("Screen: {0}", root.screenUsers.join(", ")));
       if (root.cameraUsers.length)
         lines.push(I18n.tr("Camera: {0}", root.cameraUsers.join(", ")));
-      Quickshell.execDetached(["notify-send", "-a", I18n.tr("Privacy"), I18n.tr("In use"), lines.join("\n")]);
+      NotificationManager.sendNotification("axiom", I18n.tr("Privacy"), lines.join("\n"));
     }
   }
 }

@@ -7,13 +7,8 @@ import qs.components.bar.widgets.workspaces
 // The workspace switcher, laid out as the Workspaces section says: a row of
 // 1..count (WorkspaceStrip), or the active row or column of this monitor's
 // grid with the whole grid as a popout (WorkspaceGridStrip).
-Item {
+BarWidget {
   id: root
-  property var screen
-  property var popouts
-  property var panel
-  property var barConfig
-  property var properties
 
   readonly property int priority: 10
 

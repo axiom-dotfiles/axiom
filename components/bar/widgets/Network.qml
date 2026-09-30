@@ -1,6 +1,5 @@
 pragma ComponentBehavior: Bound
 import QtQuick
-import Quickshell
 
 import qs.config
 import qs.services
@@ -36,7 +35,7 @@ BarIconWidget {
     enabled: root.properties.middleCommand !== ""
     cursorShape: Qt.PointingHandCursor
     acceptedButtons: Qt.MiddleButton
-    onClicked: Quickshell.execDetached(["sh", "-c", root.properties.middleCommand])
+    onClicked: CommandManager.runDetached(root.properties.middleCommand)
   }
 
   PopoutAnchor {

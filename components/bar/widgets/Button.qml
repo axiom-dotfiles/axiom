@@ -16,14 +16,12 @@ BarIconWidget {
   // First line of the label command's output (CommandManager runs it)
   readonly property string commandLabel: (CommandManager.outputs[properties.labelCommand] ?? "").split("\n")[0]
 
-  function registerLabel() {
-    CommandManager.acquire(root, {
+  readonly property var labelRequest: ({
       "command": root.properties.labelCommand,
       "interval": root.properties.labelInterval
-    });
-  }
-  onPropertiesChanged: registerLabel()
-  Component.onCompleted: registerLabel()
+    })
+  onLabelRequestChanged: CommandManager.acquire(root, labelRequest)
+  Component.onCompleted: CommandManager.acquire(root, labelRequest)
   Component.onDestruction: CommandManager.release(root)
   property bool _tooltipShown: false
   // Read by an edge menu this opened, which stays open while it's hovered
@@ -79,7 +77,7 @@ BarIconWidget {
   function runCommand(command) {
     if (!command)
       return;
-    Quickshell.execDetached(["sh", "-c", command]);
+    CommandManager.runDetached(command);
     // The command may change what the label shows (e.g. a toggle)
     if (properties.labelCommand)
       labelRefresh.restart();

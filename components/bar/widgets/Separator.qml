@@ -5,16 +5,9 @@ import qs.config
 
 // Layout helper for the bar: a divider line, a dot, or plain space, taking
 // exactly `size` px along the bar.
-Item {
+BarWidget {
   id: root
 
-  property var barConfig
-  property var popouts
-  property var panel
-  property var screen
-  property var properties
-
-  readonly property bool isVertical: barConfig.vertical
   readonly property color color: Theme.resolveColor(properties.color)
 
   // BarWidgetHost sizing contract

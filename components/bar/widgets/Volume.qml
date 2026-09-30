@@ -1,6 +1,5 @@
 pragma ComponentBehavior: Bound
 import QtQuick
-import Quickshell
 
 import qs.services
 import qs.config
@@ -28,8 +27,7 @@ BarIconWidget {
     acceptedButtons: Qt.LeftButton | Qt.MiddleButton
     onClicked: mouse => {
       if (mouse.button === Qt.MiddleButton) {
-        if (root.properties.middleCommand)
-          Quickshell.execDetached(["sh", "-c", root.properties.middleCommand]);
+        CommandManager.runDetached(root.properties.middleCommand);
       } else {
         AudioManager.toggleMute();
       }

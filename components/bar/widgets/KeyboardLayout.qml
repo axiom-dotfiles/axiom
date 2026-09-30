@@ -12,13 +12,10 @@ BarIconWidget {
   readonly property int layoutIndex: KeyboardLayoutManager.layoutIndex
   readonly property string keymapName: KeyboardLayoutManager.keymapName
 
-  readonly property bool hidden: properties.hideSingle && layouts.length <= 1
+  hidden: properties.hideSingle && layouts.length <= 1
 
   icon: "keyboard"
   text: properties.format === "full" ? keymapName : (layouts[layoutIndex] ?? "").toUpperCase()
-  showIcon: !hidden
-  showText: !hidden
-  padding: hidden ? 0 : root.barConfig.widgetPadding
 
   opacity: mouseArea.pressed ? 0.8 : 1
 
