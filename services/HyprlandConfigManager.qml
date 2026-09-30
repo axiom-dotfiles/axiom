@@ -666,7 +666,7 @@ if #errors > 0 then error(table.concat(errors, "\\n")) end
   }
 
   function copyIncludeLines() {
-    Quickshell.execDetached(["wl-copy", "--", includeLines]);
+    ClipboardManager.copyText(includeLines);
   }
 
   function openConfigDir() {

@@ -309,7 +309,7 @@ Rectangle {
       height: hint?.rect.h ?? 0
       z: 3
       radius: Math.max(2, root.cellRadius * 0.6)
-      color: Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.3)
+      color: Qt.alpha(Theme.accent, 0.3)
       border.color: Theme.accent
       border.width: Appearance.borderWidth * 2
 

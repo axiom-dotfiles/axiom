@@ -83,7 +83,7 @@ StyledContainer {
       wrapMode: root.expandable ? TextEdit.Wrap : TextEdit.NoWrap
 
       // --- Placeholder Properties ---
-      placeholderTextColor: Qt.rgba(Theme.foreground.r, Theme.foreground.g, Theme.foreground.b, 0.5)
+      placeholderTextColor: Qt.alpha(Theme.foreground, 0.5)
 
       // Handle Enter/Return key
       Keys.onPressed: event => {

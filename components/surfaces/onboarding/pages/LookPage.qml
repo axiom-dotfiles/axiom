@@ -24,7 +24,7 @@ OnboardingPage {
   // --- Wallpaper folder ---
 
   readonly property string folder: Appearance.wallpaperFolder
-  readonly property string folderPath: root.folder.replace(/^~(?=\/|$)/, Quickshell.env("HOME"))
+  readonly property string folderPath: Paths.expandHome(root.folder)
   // Images in the folder: -1 while checking, -2 when it doesn't exist
   property int imageCount: -1
   readonly property string hyprlandWallpapers: "/usr/share/hypr"

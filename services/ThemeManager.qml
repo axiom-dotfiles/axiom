@@ -174,8 +174,8 @@ QtObject {
     const themePath = Paths.themePath + themeName + ".json";
     if (LockscreenConfig.mode === "hyprlock")
       root.generateHyprlockConfig();
-    for (let i = 0; i < root._integrations.length; i++) {
-      const key = root._integrations[i];
+    for (let i = 0; i < root.integrations.length; i++) {
+      const key = root.integrations[i];
       const process = root._integrationRunner.objectAt(i);
       if (!ThemeIntegrations[key] || !process)
         continue;
@@ -330,10 +330,34 @@ QtObject {
   property var _families: []
 
   // --- Integration processes ---
-  // One per ThemeIntegrations key, each running scripts/theme_<key>.sh
-  readonly property var _integrations: ["gtk", "qt", "kitty", "alacritty", "foot", "wezterm", "ghostty", "nvim", "helix", "vscode", "k9s", "cava", "btop", "fzf", "lazygit", "bat", "yazi"]
+
+  // The ThemeIntegrations switches, in schema order: one per
+  // scripts/theme_<key>.sh
+  readonly property var integrations: {
+    const props = ConfigManager.configSchema.properties.ThemeIntegrations.properties;
+    return Object.keys(props).filter(key => props[key].type === "boolean");
+  }
+
+  // An integration's name (its schema title, untranslated)
+  function integrationTitle(key) {
+    return ConfigManager.configSchema.properties.ThemeIntegrations.properties[key]?.title ?? key;
+  }
+
+  // The command whose presence shows an integration's app is installed:
+  // its key unless listed here, "" for ones every desktop has
+  readonly property var _integrationCommands: ({
+      "gtk": "",
+      "qt": "qt6ct",
+      "helix": "hx",
+      "vscode": "code"
+    })
+  function integrationCommand(key) {
+    return root._integrationCommands[key] ?? key;
+  }
+
+  // One process per integration, each running its script
   property Instantiator _integrationRunner: Instantiator {
-    model: root._integrations
+    model: root.integrations
     delegate: Process {
       id: integration
       required property string modelData

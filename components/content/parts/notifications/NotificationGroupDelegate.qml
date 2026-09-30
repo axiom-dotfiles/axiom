@@ -111,9 +111,9 @@ Item {
     height: body.implicitHeight + Widget.padding * 2
     clip: true
     radius: Widget.radius
-    color: hover.hovered ? Qt.tint(Theme.backgroundAlt, Qt.rgba(Theme.backgroundHighlight.r, Theme.backgroundHighlight.g, Theme.backgroundHighlight.b, 0.4)) : Theme.backgroundAlt
+    color: hover.hovered ? Qt.tint(Theme.backgroundAlt, Qt.alpha(Theme.backgroundHighlight, 0.4)) : Theme.backgroundAlt
     border.width: root.group?.critical ? Appearance.borderWidth : 0
-    border.color: Qt.rgba(Theme.error.r, Theme.error.g, Theme.error.b, 0.6)
+    border.color: Qt.alpha(Theme.error, 0.6)
 
     Behavior on height {
       NumberAnimation {

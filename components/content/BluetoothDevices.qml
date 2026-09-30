@@ -88,7 +88,7 @@ Panel {
     Layout.fillWidth: true
     implicitHeight: root.rowHeight
     radius: Widget.radius
-    color: connected ? Theme.backgroundHighlight : rowHover.hovered ? Qt.rgba(Theme.backgroundHighlight.r, Theme.backgroundHighlight.g, Theme.backgroundHighlight.b, 0.5) : Qt.alpha(Theme.backgroundHighlight, 0)
+    color: connected ? Theme.backgroundHighlight : rowHover.hovered ? Qt.alpha(Theme.backgroundHighlight, 0.5) : Qt.alpha(Theme.backgroundHighlight, 0)
 
     onDeviceChanged: confirmForget = false
 

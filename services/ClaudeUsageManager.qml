@@ -1,7 +1,6 @@
 pragma Singleton
 pragma ComponentBehavior: Bound
 import QtQuick
-import Quickshell
 import Quickshell.Io
 import qs.config
 
@@ -32,7 +31,7 @@ QtObject {
       "interval": Math.max(1, request?.intervalMinutes ?? 5) * 60000,
       "accounts": (request?.accounts ?? []).filter(a => a?.configDir).map(a => ({
             "label": a.label ?? "",
-            "dir": root.expand(a.configDir)
+            "dir": Paths.expandHome(a.configDir)
           }))
     });
   }
@@ -48,12 +47,7 @@ QtObject {
   }
 
   function stateFor(configDir) {
-    return root.states[root.expand(configDir)] ?? null;
-  }
-
-  // "~/.claude-team/" -> "/home/<user>/.claude-team"
-  function expand(dir) {
-    return String(dir ?? "").trim().replace(/^~(?=\/|$)/, Quickshell.env("HOME")).replace(/\/+$/, "");
+    return root.states[Paths.expandHome(configDir)] ?? null;
   }
 
   // -- Private --

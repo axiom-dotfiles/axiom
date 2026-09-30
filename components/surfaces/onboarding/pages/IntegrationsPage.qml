@@ -17,41 +17,17 @@ OnboardingPage {
   title: I18n.tr("Integrations")
   intro: I18n.tr("axiom can color other apps to match its theme. Each one writes only its own axiom file: the setting's description in Settings says the line to add to that app's config. A tick marks the apps you have installed.")
 
-  // The command that shows each integration's app is installed ("" for
-  // ones every desktop has)
-  readonly property var commands: ({
-      "gtk": "",
-      "qt": "qt6ct",
-      "kitty": "kitty",
-      "alacritty": "alacritty",
-      "foot": "foot",
-      "wezterm": "wezterm",
-      "ghostty": "ghostty",
-      "nvim": "nvim",
-      "helix": "hx",
-      "vscode": "code",
-      "k9s": "k9s",
-      "cava": "cava",
-      "btop": "btop",
-      "fzf": "fzf",
-      "lazygit": "lazygit",
-      "bat": "bat",
-      "yazi": "yazi"
-    })
-  readonly property var schema: ConfigManager.configSchema?.properties?.ThemeIntegrations?.properties ?? ({})
-  readonly property var keys: Object.keys(root.schema).filter(key => root.schema[key].type === "boolean")
-
   function installed(key) {
-    const command = root.commands[key] ?? key;
+    const command = ThemeManager.integrationCommand(key);
     return command === "" || DependencyManager.found[command] === true;
   }
 
-  Component.onCompleted: DependencyManager.check(Object.keys(commands).map(key => commands[key]).filter(command => command !== "").concat(["hypridle"]))
+  Component.onCompleted: DependencyManager.check(ThemeManager.integrations.map(key => ThemeManager.integrationCommand(key)).filter(command => command !== "").concat(["hypridle"]))
 
   StyledTextButton {
     text: I18n.tr("Turn on for installed apps")
     iconText: "done_all"
-    onClicked: OnboardingManager.set(root.keys.filter(key => root.installed(key) && key !== "gtk" && key !== "qt").reduce((values, key) => {
+    onClicked: OnboardingManager.set(ThemeManager.integrations.filter(key => root.installed(key) && key !== "gtk" && key !== "qt").reduce((values, key) => {
       values["ThemeIntegrations." + key] = true;
       return values;
     }, {}))
@@ -64,7 +40,7 @@ OnboardingPage {
     rowSpacing: Widget.spacing
 
     Repeater {
-      model: root.keys
+      model: ThemeManager.integrations
 
       delegate: RowLayout {
         id: integration
@@ -81,7 +57,7 @@ OnboardingPage {
 
         StyledText {
           Layout.fillWidth: true
-          text: I18n.tr(root.schema[integration.modelData].title ?? integration.modelData)
+          text: I18n.tr(ThemeManager.integrationTitle(integration.modelData))
           elide: Text.ElideRight
           textColor: integration.present ? Theme.foreground : Theme.foregroundInactive
         }

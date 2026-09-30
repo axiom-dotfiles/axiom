@@ -203,7 +203,7 @@ Singleton {
   }
 
   function copy(text) {
-    Quickshell.execDetached(["wl-copy", "--", String(text ?? "")]);
+    ClipboardManager.copyText(text);
   }
 
   // Settings → Chat (keys, providers, presets)

@@ -11,7 +11,7 @@ import qs.components.reusable
 // Imported (though views load by URL) so qs scans the view types
 import qs.components.views // qmllint disable unused-imports
 
-PanelWindow {
+ReservedAreaWindow {
   id: root
 
   required property ShellScreen screen
@@ -19,52 +19,10 @@ PanelWindow {
   property bool isOpen: false
   property real slideOffset: isOpen ? 0 : -height
 
-  anchors {
-    left: true
-    right: true
-    top: true
-    bottom: true
-  }
-
-  // Normal exclusion with no zone of its own places the window inside the
-  // border's and bars' reserved area, wherever the bars are, so pages
-  // center in the free space and the bars stay reachable; the
-  // -borderWidth margin lines it up with their inner stroke (as EdgePopout).
-  // The window itself is transparent: ScreenBackdrop dims the whole
-  // monitor under it. A bare screen edge (no border, no bar) has no stroke
-  // to land on: the panel meets the edge.
-  readonly property bool openTop: Bar.screenEdgeOpen(root.screen, Bar.Top)
-  readonly property bool openBottom: Bar.screenEdgeOpen(root.screen, Bar.Bottom)
-  readonly property bool openLeft: Bar.screenEdgeOpen(root.screen, Bar.Left)
-  readonly property bool openRight: Bar.screenEdgeOpen(root.screen, Bar.Right)
-  // A transparent bar reserves Hyprland's gaps_out less than its extent
-  // (see BarPanel) and has no stroke to land on: sit at its invisible
-  // inner edge instead, past the reserved space by that gap
-  readonly property var _edges: Bar.edgesFor(root.screen)
-  function _margin(side, open) {
-    if (open)
-      return 0;
-    if (root._edges[side]?.background === "transparent")
-      return HyprlandManager.gapsOut[side] ?? 0;
-    return -Appearance.borderWidth;
-  }
-  margins {
-    left: root._margin("left", root.openLeft)
-    right: root._margin("right", root.openRight)
-    top: root._margin("top", root.openTop)
-    bottom: root._margin("bottom", root.openBottom)
-  }
-
-  color: "transparent"
-  focusable: true
   visible: false
-  WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
-  WlrLayershell.layer: WlrLayer.Overlay
   // Its layer rule arranges it after docks and draws it over them
   // (see HyprlandManager.layerRulesLua)
   WlrLayershell.namespace: "axiom-overlay"
-  exclusionMode: ExclusionMode.Normal
-  exclusiveZone: 0
 
   function open() {
     visible = true;

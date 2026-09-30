@@ -1,8 +1,8 @@
 import QtQuick
 import QtQuick.Layouts
-import Quickshell
 
 import qs.config
+import qs.services
 import qs.components.reusable
 
 // Text to paste somewhere (a config line, a command), in a monospace box
@@ -40,7 +40,7 @@ Rectangle {
       text: copied ? I18n.tr("Copied") : I18n.tr("Copy")
       iconText: copied ? "check" : "content_copy"
       onClicked: {
-        Quickshell.execDetached(["wl-copy", "--", root.text]);
+        ClipboardManager.copyText(root.text);
         copied = true;
         copiedTimer.restart();
       }

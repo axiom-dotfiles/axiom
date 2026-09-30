@@ -31,9 +31,6 @@
   "components/content/Weather.qml": {
     "unqualified: Unqualified access": 11
   },
-  "components/content/WorkspaceGrid.qml": {
-    "property-override: Property \"rows\" already exists in base type \"Panel\", use a different name.": 1
-  },
   "components/content/parts/TraySubmenu.qml": {
     "missing-property: Member \"menuItem\" not found on type \"QQuickItem\"": 1
   },
@@ -49,13 +46,15 @@
     "missing-property: Member \"implicitWidth\" not found on type \"QObject\"": 1
   },
   "components/hosts/overlay/OverlayPanel.qml": {
-    "property-override: Property \"screen\" already exists in base type \"WindowInterface\", use a different name.": 1,
-    "unqualified: unknown grouped property scope margins.": 1,
-    "unresolved-type: Type margins is used but it is not resolved": 1
+    "property-override: Property \"screen\" already exists in base type \"WindowInterface\", use a different name.": 1
   },
   "components/hosts/overlay/OverlayView.qml": {
     "missing-property: Member \"implicitHeight\" not found on type \"QObject\"": 1,
     "missing-property: Member \"implicitWidth\" not found on type \"QObject\"": 1
+  },
+  "components/hosts/overlay/ReservedAreaWindow.qml": {
+    "unqualified: unknown grouped property scope margins.": 1,
+    "unresolved-type: Type margins is used but it is not resolved": 1
   },
   "components/hosts/popout/BarPopouts.qml": {
     "incompatible-type: Cannot assign binding of type QObject to QQuickItem": 1,
@@ -119,9 +118,7 @@
     "unqualified: Unqualified access": 1
   },
   "components/surfaces/border/RoundedBorders.qml": {
-    "unqualified: Unqualified access": 16,
-    "unqualified: unknown grouped property scope margins.": 4,
-    "unresolved-type: Type margins is used but it is not resolved": 4
+    "unresolved-type: Type margins is used but it is not resolved": 1
   },
   "components/surfaces/dock/DockMenu.qml": {
     "missing-type: No type found for property \"edges\". This may be due to a missing import statement or incomplete qmltypes files.": 1,
@@ -140,10 +137,6 @@
   },
   "components/surfaces/notifications/NotificationToast.qml": {
     "missing-type: No type found for property \"adjustment\". This may be due to a missing import statement or incomplete qmltypes files.": 1
-  },
-  "components/surfaces/onboarding/OnboardingWindow.qml": {
-    "unqualified: unknown grouped property scope margins.": 1,
-    "unresolved-type: Type margins is used but it is not resolved": 1
   },
   "components/surfaces/powermenu/PowerMenuWindow.qml": {
     "property-override: Property \"screen\" already exists in base type \"WindowInterface\", use a different name.": 1

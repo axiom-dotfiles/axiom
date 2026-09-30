@@ -89,7 +89,7 @@ QtObject {
       console.warn(`[ScreenshotManager] Unknown screenshot kind "${kind}" (region, window, screen or record)`);
       return;
     }
-    root._directory = root._expand(directory) || root._picturesDir + "/Screenshots";
+    root._directory = Paths.expandHome(directory) || root._picturesDir + "/Screenshots";
     Quickshell.execDetached(["mkdir", "-p", root._directory, root._scratchDir]);
     root.annotate = false;
     // The screen is taken as it is (an open overlay included), but the
@@ -246,10 +246,6 @@ QtObject {
     root.recording = true;
     root.recordingSince = Date.now();
     root.recordingElapsed = 0;
-  }
-
-  function _expand(directory) {
-    return String(directory ?? "").replace(/^~(?=\/|$)/, Quickshell.env("HOME"));
   }
 
   property Timer _delay: Timer {

@@ -66,6 +66,11 @@ Singleton {
       _run(["wl-copy"], entry.text);
   }
 
+  // Puts text on the clipboard (through wl-copy's stdin, never argv)
+  function copyText(text) {
+    _run(["wl-copy"], String(text ?? ""));
+  }
+
   function remove(entry) {
     if (!entry)
       return;

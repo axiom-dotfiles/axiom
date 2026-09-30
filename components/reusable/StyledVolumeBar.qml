@@ -44,7 +44,7 @@ Item {
     id: background
     anchors.fill: parent
     radius: Widget.radius
-    color: component.isMuted ? (Theme.backgroundHighlight || Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.2)) : Qt.alpha(Theme.backgroundHighlight, 0)
+    color: component.isMuted ? (Theme.backgroundHighlight || Qt.alpha(Theme.accent, 0.2)) : Qt.alpha(Theme.backgroundHighlight, 0)
 
     Behavior on color {
       ColorAnimation {
@@ -76,7 +76,7 @@ Item {
       implicitHeight: component.orientation === Qt.Vertical ? 120 : 12
 
       radius: Widget.radius
-      color: Qt.rgba(Theme.foreground.r, Theme.foreground.g, Theme.foreground.b, 0.2)
+      color: Qt.alpha(Theme.foreground, 0.2)
 
       Rectangle {
         id: barFill
@@ -89,7 +89,7 @@ Item {
         height: component.orientation === Qt.Vertical ? parent.height * component.volumeLevel : parent.height
 
         radius: Widget.radius
-        color: component.isMuted ? Qt.rgba(Theme.foreground.r, Theme.foreground.g, Theme.foreground.b, 0.4) : Theme.accent
+        color: component.isMuted ? Qt.alpha(Theme.foreground, 0.4) : Theme.accent
 
         Behavior on height {
           enabled: component.orientation === Qt.Vertical

@@ -49,7 +49,7 @@ StyledContainer {
     wrapMode: Text.Wrap
 
     // --- Placeholder Properties ---
-    placeholderTextColor: Qt.rgba(Theme.foreground.r, Theme.foreground.g, Theme.foreground.b, 0.5)
+    placeholderTextColor: Qt.alpha(Theme.foreground, 0.5)
 
     onAccepted: root.accepted()
 
