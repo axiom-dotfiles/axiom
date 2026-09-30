@@ -36,13 +36,22 @@ Singleton {
   readonly property int maxAgeDays: NotificationsConfig.maxAgeDays
 
   // Do Not Disturb: no toasts but critical ones (notifications still go
-  // into the history). Kept across restarts.
-  property bool dnd: false
-  onDndChanged: {
+  // into the history). Kept across restarts. Set through setDnd/toggleDnd.
+  readonly property bool dnd: root._dnd
+  property bool _dnd: false
+  on_DndChanged: {
     if (root._stateLoaded)
       root._state.save({
-        dnd: root.dnd
+        dnd: root._dnd
       });
+  }
+
+  function setDnd(on: bool): void {
+    root._dnd = on;
+  }
+
+  function toggleDnd(): void {
+    root._dnd = !root._dnd;
   }
 
   // An item in a window, set by the toast host (shell/Notifications):
@@ -437,7 +446,7 @@ Singleton {
   Component.onCompleted: {
     Quickshell.execDetached(["mkdir", "-p", root.imageDir]);
     root._load();
-    root.dnd = root._state.load({}).dnd === true;
+    root._dnd = root._state.load({}).dnd === true;
     root._stateLoaded = true;
   }
 
@@ -453,7 +462,7 @@ Singleton {
       root.clearAll();
     }
     function toggleDnd(): void {
-      root.dnd = !root.dnd;
+      root.toggleDnd();
     }
   }
 

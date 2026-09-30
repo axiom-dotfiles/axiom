@@ -141,7 +141,7 @@ Card {
       IdleInhibitManager.toggle();
       break;
     case "dnd":
-      NotificationManager.dnd = !NotificationManager.dnd;
+      NotificationManager.toggleDnd();
       break;
     case "darkMode":
       ThemeManager.toggleDarkMode();

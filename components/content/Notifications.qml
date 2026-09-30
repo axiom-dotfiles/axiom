@@ -34,8 +34,8 @@ Panel {
   property var groups: ({})
   property var groupKeys: []
 
-  // Refreshes relative times
-  property real now: Date.now()
+  // Refreshes relative times, each minute
+  readonly property real now: clock.date.getTime()
 
   function rebuildGroups() {
     const byKey = {};
@@ -66,7 +66,6 @@ Panel {
     }
     root.groups = byKey;
     root.groupKeys = keys;
-    root.now = Date.now();
   }
 
   function clearAll() {
@@ -83,11 +82,9 @@ Panel {
 
   Component.onCompleted: rebuildGroups()
 
-  Timer {
-    interval: 30000
-    repeat: true
-    running: true
-    onTriggered: root.now = Date.now()
+  SystemClock {
+    id: clock
+    precision: SystemClock.Minutes
   }
 
   // Everything slides out together, then goes
