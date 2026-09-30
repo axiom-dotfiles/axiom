@@ -2,8 +2,6 @@ pragma Singleton
 import QtQuick
 import Quickshell
 
-import qs.components.methods
-
 /* BarManager holds the bar editor's working copy of the Bars config. Edits
  * show live on the running bars (through ConfigManager.previews) as
  * they're made; saveChanges() writes them to config.json, resetChanges()
@@ -98,11 +96,9 @@ QtObject {
 
   function addBar() {
     // Every other field comes from the Bar schema's defaults
-    const bar = SchemaValidation.applyDefaults({
+    const bar = ConfigManager.withDefaults({
       "id": _uniqueId("bar-" + (root.localConfig.length + 1))
-    }, {
-      "$ref": "#/definitions/Bar"
-    }, ConfigManager.configSchema);
+    }, "Bar");
     root.localConfig.push(bar);
     root.selectedBarIndex = root.localConfig.length - 1;
     applyChanges();
@@ -227,11 +223,9 @@ QtObject {
       return;
     const at = index < 0 || index > arr.length ? arr.length : index;
     // Properties start at the widget schema's defaults
-    arr.splice(at, 0, SchemaValidation.applyDefaults({
+    arr.splice(at, 0, ConfigManager.withDefaults({
       "type": widgetType
-    }, {
-      "$ref": "#/definitions/BarWidget"
-    }, ConfigManager.configSchema));
+    }, "BarWidget"));
     selectWidget(zone, at);
     applyChanges();
   }

@@ -20,10 +20,15 @@ QtObject {
   // ShellManager.showsOn). The workspace overview is on every screen.
   readonly property string monitors: _c.monitors
   // The screens they're built on
-  readonly property var screens: {
+  readonly property var screens: root.monitors === "primary" ? root.screensNamed(root.primaryMonitor) : Array.from(Quickshell.screens)
+
+  // The screen named `name` (as a one-screen list), else the primary
+  // monitor, else the first screen
+  function screensNamed(name) {
     const all = Array.from(Quickshell.screens);
-    if (root.monitors !== "primary")
-      return all;
+    const named = all.filter(s => s.name === name);
+    if (named.length > 0)
+      return named;
     const primary = all.filter(s => s.name === root.primaryMonitor);
     return primary.length > 0 ? primary : all.slice(0, 1);
   }
@@ -36,10 +41,8 @@ QtObject {
     const all = Array.from(Quickshell.screens);
     if (mode === "focused" || mode === "all")
       return all;
-    if (mode === "primaryBar") {
-      const primary = all.filter(s => s.name === Bar.primaryMonitor);
-      return primary.length > 0 ? primary : all.slice(0, 1);
-    }
+    if (mode === "primaryBar")
+      return root.screensNamed(Bar.primaryMonitor);
     return root.screens;
   }
 }

@@ -32,6 +32,14 @@ QtObject {
     root._previews = previews;
   }
 
+  // `value` with the defaults of a schema definition (e.g. "Bar",
+  // "OverlayModule") filled in: a new entry for an editor to add
+  function withDefaults(value, definition) {
+    return SchemaValidation.applyDefaults(value, {
+      "$ref": "#/definitions/" + definition
+    }, root._configSchema);
+  }
+
   function clearPreview(section) {
     if (!(section in root._previews))
       return;

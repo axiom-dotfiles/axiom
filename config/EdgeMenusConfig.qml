@@ -1,7 +1,7 @@
 pragma Singleton
 import QtQuick
-import Quickshell
 import qs.services
+import qs.components.methods
 
 // EdgeMenus: menus that pop out of a screen edge, holding overlay modules.
 // While the edge menu editor has unsaved edits, the running menus show
@@ -24,8 +24,7 @@ QtObject {
 
   // The menu's named screen, else the primary monitor
   function screenFor(menu) {
-    const screens = Quickshell.screens;
-    return screens.find(s => s.name === menu?.monitor) ?? screens.find(s => s.name === General.primaryMonitor) ?? screens[0] ?? null;
+    return General.screensNamed(menu.monitor)[0] ?? null;
   }
 
   // The menu's edge as a Bar.Location
@@ -51,10 +50,7 @@ QtObject {
   // strip before the menu has ever been loaded): its columns side by side
   // at its card size, as EdgeMenuBody lays them out, plus its padding
   function lengthOf(menu, vertical) {
-    const unit = menu.cardSize;
-    const flows = menu.columns.map(column => OverlayConfig.columnFlow(column.cells, unit));
-    const extra = flows.length > 0 ? Math.max(0, vertical ? menu.extraHeight : menu.extraWidth) : 0;
-    const length = (vertical ? Math.max(0, ...flows.map(flow => flow.height)) : flows.reduce((sum, flow) => sum + flow.width, 0) + Math.max(0, flows.length - 1) * OverlayConfig.cardSpacing) + extra;
-    return length + root.paddingOf(menu) * 2;
+    const flows = menu.columns.map(column => OverlayLayout.columnFlow(column.cells, menu.cardSize));
+    return OverlayLayout.columnsLength(flows, vertical, vertical ? menu.extraHeight : menu.extraWidth) + root.paddingOf(menu) * 2;
   }
 }
