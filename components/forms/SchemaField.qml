@@ -39,9 +39,11 @@ Loader {
         labels[menu.id] = menu.name || menu.id;
         return labels;
       }, {});
+    // An empty monitor is the primary one, except in the primary monitor's
+    // own field (`x-emptyLabel`). I18n.tr("First screen")
     if (fieldSchema["x-options"] === "screens")
       return {
-        "": I18n.tr("First screen"),
+        "": I18n.tr(fieldSchema["x-emptyLabel"] ?? "Primary monitor"),
         "*": I18n.tr("All monitors")
       };
     if (fieldSchema["x-options"] === "notes")

@@ -108,14 +108,18 @@ QtObject {
   // A bar on every monitor (`monitor: "*"`) becomes one entry per screen,
   // each with its own id (keying its BarPanel) and that screen as its
   // monitor. The primary monitor's comes first, so a primary bar on every
-  // monitor still makes the primary monitor the primary bar's.
+  // monitor still makes the primary monitor the primary bar's. Any other
+  // bar's monitor is resolved like a dock's or edge menu's: its named
+  // screen, else (empty or not connected) the primary monitor.
   function expandBars(bars) {
     const names = Array.from(Quickshell.screens).map(s => s.name);
     const primary = names.includes(General.primaryMonitor) ? General.primaryMonitor : names[0];
     const ordered = names.length > 0 ? [primary].concat(names.filter(n => n !== primary)) : [];
     return [].concat(...bars.map(bar => {
       if (bar.monitor !== "*")
-        return [bar];
+        return [Object.assign({}, bar, {
+            "monitor": General.screensNamed(bar.monitor)[0]?.name ?? ""
+          })];
       return ordered.map(name => Object.assign({}, bar, {
           "id": `${bar.id}@${name}`,
           "sourceId": bar.id,
@@ -146,18 +150,17 @@ QtObject {
       };
     }).filter(t => t !== null);
   }
-  // The primary bar's monitor: its named screen, else the first screen (as
-  // in BarPanel); the primary monitor when there are no bars
+  // The primary bar's monitor (bars' monitors are resolved in expandBars);
+  // the primary monitor when there are no bars
   readonly property string primaryMonitor: {
     const name = Bar.bars[0]?.monitor ?? "";
     if (Quickshell.screens.some(s => s.name === name))
       return name;
-    return Bar.bars.length > 0 ? (Quickshell.screens[0]?.name ?? "") : General.primaryMonitor;
+    return General.primaryMonitor;
   }
 
   // The enabled bars on a screen by edge ({ top, bottom, left, right },
-  // null where there is none). A bar with no monitor is on the first screen,
-  // as in BarPanel.
+  // null where there is none)
   function edgesFor(screen) {
     const edges = {
       "top": null,
@@ -165,12 +168,8 @@ QtObject {
       "left": null,
       "right": null
     };
-    const first = Quickshell.screens[0]?.name ?? "";
     Bar.bars.forEach(bar => {
-      if (!bar.enabled)
-        return;
-      const named = Quickshell.screens.some(s => s.name === bar.monitor);
-      if ((named ? bar.monitor : first) !== screen?.name)
+      if (!bar.enabled || bar.monitor !== screen?.name)
         return;
       const edge = bar.top ? "top" : bar.bottom ? "bottom" : bar.left ? "left" : "right";
       if (!edges[edge])

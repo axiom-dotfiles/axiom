@@ -1978,7 +1978,6 @@
     "Commands of your own to run after a time idle, and when you return.": "一定時間アイドルになったときと、復帰したときに実行する独自のコマンド。",
     "Also show apps with open windows that aren't pinned, after the pinned ones.": "固定したアプリの後に、固定していないウィンドウを開いているアプリも表示します。",
     "cliphist": "cliphist",
-    "Monitor this bar is shown on. All monitors puts an identical copy on each.": "このバーを表示するモニター。「すべてのモニター」では各モニターに同じバーを表示します。",
     "Show percentages": "パーセントを表示",
     "fileManager": "ファイルマネージャー",
     "How many notifications the history keeps. The oldest go first.": "履歴に残す通知の件数。古いものから削除されます。",
@@ -2209,6 +2208,7 @@
     "X": "X",
     "Y": "Y",
     "Column {0} · cell {1} · {2} slot ({3})": "列 {0} · セル {1} · {2}スロット（{3}）",
-    "{0} section, position {1} · hidden on the bar": "{0}セクション・{1}番目 · バーに非表示"
+    "{0} section, position {1} · hidden on the bar": "{0}セクション・{1}番目 · バーに非表示",
+    "Monitor this bar is shown on. Empty uses the primary monitor; All monitors puts an identical copy on each.": "このバーを表示するモニター。空欄ではメインモニター、「すべてのモニター」では各モニターに同じバーを表示します。"
   }
 }

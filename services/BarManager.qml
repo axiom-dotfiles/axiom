@@ -122,8 +122,7 @@ QtObject {
     const copy = Utils.clone(bar);
     copy.id = _uniqueId(`${bar.id}-copy`);
     if (bar.monitor !== "*") {
-      const first = Quickshell.screens[0]?.name ?? "";
-      const onEdge = root.localConfig.filter(b => b.location === bar.location).map(b => b.monitor || first);
+      const onEdge = root.localConfig.filter(b => b.location === bar.location).map(b => b.monitor === "*" ? "*" : General.screensNamed(b.monitor)[0]?.name ?? "");
       const free = Quickshell.screens.find(s => !onEdge.includes(s.name) && !onEdge.includes("*"));
       if (free)
         copy.monitor = free.name;
