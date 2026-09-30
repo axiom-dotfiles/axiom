@@ -149,8 +149,8 @@ And setup B, which keeps it to one menu on the left, under the solid top bar:
 - **OSD:** as many as you like, each on an edge or floating anywhere, holding the bars you pick: output and microphone volume, brightness, the volume of the apps you choose, or of every other app.
 - **Launcher:** searches apps (ranked by how often and how recently you use them), open windows, a calculator, the web, your clipboard history and emoji. It runs shell commands and controls the shell with `/` commands.
 - **Power menu:** your choice of session actions, in your order, driven by mouse or keyboard. Log out, reboot and power off ask you to confirm.
-- **Workspaces:** laid out as 1 to N, or as a grid per monitor (5×5 by default) that you move around by row and column. The bar widget, the workspace map, the workspace overlay and your keybinds (through the `workspaces` IPC target) all follow the one setting.
-- **Workspace overlay:** live window previews. Drag a window onto a side of another window or onto another workspace, right-drag to resize it, and middle-click to close it.
+- **Workspaces:** laid out as 1 to N, or as a grid per monitor (5×5 by default) that you move around by row and column. The bar widget, the workspace map, the workspace overview and your keybinds (through the `workspaces` IPC target) all follow the one setting.
+- **Workspace overview:** live window previews. Drag a window onto a side of another window or onto another workspace, right-drag to resize it, and middle-click to close it.
 - **AI chat:** Anthropic, OpenAI, Gemini, or anything with an OpenAI-style API (Ollama, LM Studio, OpenRouter, …). Replies stream in as formatted Markdown with copyable code blocks and folded thinking. Also: saved conversations, presets (system prompt, model, effort), image attachments (paste, screenshot a region, drop) and `@` in the launcher to ask a question. API keys come from environment variables, your keyring or a mode-600 secrets file, never `config.json`.
 - **Lockscreen:** three modes: the built-in `ext-session-lock` locker (PAM), a themed hyprlock config that axiom generates, or none.
 - **Monitors:** a page to arrange monitors by dragging (they snap edge to edge) and set each one's mode, scale, rotation, mirroring, VRR, bit depth and color management. One layout is kept per set of connected monitors and switches on its own when you plug one in. **Apply** asks you to keep the change, and puts the old layout back after 15 seconds if you don't.
@@ -169,7 +169,7 @@ And setup B, which keeps it to one menu on the left, under the solid top bar:
 
 | | A | B |
 | --- | :---: | :---: |
-| **Workspace overlay** | <img src="../assets/screenshots/workspace-overlay.webp" alt="Workspace overlay as a 5×5 grid"> | <img src="../assets/screenshots/workspace-overlay-b.webp" alt="Workspace overlay with eight workspaces"> |
+| **Workspace overview** | <img src="../assets/screenshots/workspace-overlay.webp" alt="Workspace overview as a 5×5 grid"> | <img src="../assets/screenshots/workspace-overlay-b.webp" alt="Workspace overview with eight workspaces"> |
 | **AI chat** | <img src="../assets/screenshots/chat.webp" alt="AI chat page, setup A"> | <img src="../assets/screenshots/chat-b.webp" alt="AI chat page, setup B"> |
 | **Power menu** | <img src="../assets/screenshots/powermenu.webp" alt="Power menu, setup A"> | <img src="../assets/screenshots/powermenu-b.webp" alt="Power menu, setup B"> |
 | **Notification** | <img src="../assets/screenshots/notification.webp" alt="Notification toast, setup A"> | <img src="../assets/screenshots/notification-b.webp" alt="Notification toast under the top bar"> |
