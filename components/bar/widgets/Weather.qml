@@ -33,10 +33,7 @@ BarIconWidget {
     popoutName: "WeatherForecast"
     active: root.properties.showPopout && root.source.weather !== null
     extraData: ({
-        "weather": root.source.weather,
-        "placeName": root.source.place?.name ?? "",
-        "unitSymbol": root.source.unitSymbol,
-        "conditionFor": root.source.conditionFor
+        "weatherRequest": root.weatherRequest
       })
   }
 }

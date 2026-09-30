@@ -3,40 +3,31 @@ import QtQuick
 import QtQuick.Layouts
 
 import qs.config
+import qs.services
 import qs.components.reusable
 import qs.components.content.base
 
-// Current conditions and a 5-day forecast. Filled from the Weather widget's
-// PopoutAnchor payload (the Open-Meteo response plus its WMO code lookup).
+// Current conditions and a 5-day forecast: the Weather widget's popout,
+// from the same WeatherSource (the widget passes its request and keeps it
+// acquired).
 Panel {
   id: root
 
-  property var weather: null
-  property string placeName: ""
-  property string unitSymbol: "°C"
-  property var conditionFor: null
+  // The widget's WeatherManager request, from its payload
+  property var weatherRequest: null
 
-  readonly property var current: weather?.current ?? null
-  readonly property var condition: current && conditionFor ? conditionFor(current.weather_code, current.is_day) : null
-  readonly property var days: {
-    const daily = weather?.daily;
-    if (!daily || !conditionFor)
-      return [];
-    return daily.time.map((date, i) => ({
-          "label": i === 0 ? I18n.tr("Today") : I18n.formatDate(new Date(date + "T12:00"), "ddd"),
-          "icon": conditionFor(daily.weather_code[i], 1).icon,
-          "max": Math.round(daily.temperature_2m_max[i]),
-          "min": Math.round(daily.temperature_2m_min[i])
-        }));
-  }
+  readonly property var source: root.weatherRequest ? WeatherManager.sourceFor(root.weatherRequest) : null
+  readonly property var current: root.source?.current ?? null
+  readonly property var condition: root.source?.condition ?? null
+  readonly property var daily: root.source?.weather?.daily ?? null
 
   spacing: Widget.padding
 
   implicitWidth: Math.max(300, body.implicitWidth + margins * 2)
 
   StyledText {
-    visible: root.placeName !== ""
-    text: root.placeName
+    visible: text !== ""
+    text: root.source?.place?.name ?? ""
     font.bold: true
     textColor: Theme.accent
   }
@@ -53,12 +44,12 @@ Panel {
       spacing: 2
 
       StyledText {
-        text: root.current ? `${Math.round(root.current.temperature_2m)}${root.unitSymbol}  ${root.condition.label}` : ""
+        text: root.current ? `${Math.round(root.current.temperature_2m)}${root.source.unitSymbol}  ${root.condition?.label ?? ""}` : ""
         textSize: Appearance.fontSize * 1.3
         font.bold: true
       }
       StyledText {
-        text: root.current ? I18n.tr("Feels like {0}°  ·  {1}% humidity  ·  {2} {3}", Math.round(root.current.apparent_temperature), root.current.relative_humidity_2m, Math.round(root.current.wind_speed_10m), root.weather.current_units?.wind_speed_10m ?? "km/h") : ""
+        text: root.source?.details ?? ""
         textColor: Theme.foregroundAlt
         textSize: Appearance.fontSize - 2
       }
@@ -74,28 +65,28 @@ Panel {
     spacing: Widget.padding
 
     Repeater {
-      model: root.days
+      model: root.daily?.time?.length ?? 0
 
       ColumnLayout {
         id: day
-        required property var modelData
+        required property int index
         Layout.fillWidth: true
         spacing: 2
 
         StyledText {
           Layout.alignment: Qt.AlignHCenter
-          text: day.modelData.label
+          text: root.source.dayLabel(day.index)
           textColor: Theme.foregroundAlt
           textSize: Appearance.fontSize - 2
         }
         StyledIcon {
           Layout.alignment: Qt.AlignHCenter
-          text: day.modelData.icon
+          text: root.source.conditionFor(root.daily.weather_code[day.index], 1).icon
           textSize: Appearance.fontSize * 1.5
         }
         StyledText {
           Layout.alignment: Qt.AlignHCenter
-          text: `${day.modelData.max}° / ${day.modelData.min}°`
+          text: `${Math.round(root.daily.temperature_2m_max[day.index])}° / ${Math.round(root.daily.temperature_2m_min[day.index])}°`
           textSize: Appearance.fontSize - 2
         }
       }

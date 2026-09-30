@@ -860,7 +860,6 @@
     "Writes the \"axiom\" theme: set 'theme = axiom' in the Ghostty config. Ghostty 1.2+ reloads it.": "「axiom」テーマを書き込みます。Ghostty の設定で 'theme = axiom' を指定してください。Ghostty 1.2 以降は自動で再読み込みします。",
     "Mem": "メモリ",
     "Loading weather…": "天気を読み込み中…",
-    "Feels {0}°  ·  {1}%  ·  {2} {3}": "体感 {0}°  ·  {1}%  ·  {2} {3}",
     "Click again to forget": "もう一度クリックすると削除します",
     "No Wi-Fi adapter found": "Wi-Fiアダプターが見つかりません",
     "Wi-Fi is blocked (rfkill)": "Wi-Fiはブロックされています（rfkill）",

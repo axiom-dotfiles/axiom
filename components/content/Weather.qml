@@ -109,7 +109,7 @@ Card {
           Layout.fillWidth: true
           horizontalAlignment: root.stacked ? Text.AlignHCenter : Text.AlignLeft
           elide: Text.ElideRight
-          text: I18n.tr("Feels {0}°  ·  {1}%  ·  {2} {3}", Math.round(root.current?.apparent_temperature ?? 0), root.current?.relative_humidity_2m ?? 0, Math.round(root.current?.wind_speed_10m ?? 0), root.source.weather?.current_units?.wind_speed_10m ?? "km/h")
+          text: root.source.details
           textColor: Theme.foregroundAlt
           textSize: Appearance.fontSize - 2
         }
@@ -134,9 +134,7 @@ Card {
         spacing: Widget.spacing * 1.5
         StyledText {
           Layout.preferredWidth: Appearance.fontSize * 3.5
-          // Local noon: a bare "YYYY-MM-DD" parses as UTC midnight, the
-          // day before west of UTC
-          text: day.index === 0 ? I18n.tr("Today") : I18n.formatDate(new Date(root.daily.time[day.index] + "T12:00"), "ddd")
+          text: root.source.dayLabel(day.index)
         }
         StyledIcon {
           Layout.preferredWidth: Appearance.fontSize * 1.5
