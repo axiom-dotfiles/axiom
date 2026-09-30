@@ -83,8 +83,9 @@ Card {
   }
 
   // Config, tool availability and host only (never toggle state), so the
-  // tiles aren't rebuilt whenever something is switched
-  readonly property var known: Object.keys(root.defs).concat(root.sessionActions)
+  // tiles aren't rebuilt whenever something is switched: a literal list,
+  // not defs' keys (defs follows the toggles)
+  readonly property var known: ["wifi", "bluetooth", "caffeine", "dnd", "darkMode", "nightLight", "powerSaver", "pin"].concat(root.sessionActions)
   readonly property var actions: (root.properties.actions ?? ["wifi", "bluetooth", "caffeine", "dnd", "darkMode"]).filter(a => root.known.includes(a))
   readonly property var shown: root.actions.filter(a => {
     switch (a) {

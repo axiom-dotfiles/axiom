@@ -2,9 +2,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import qs.config
 
-/**
- * Submenu content
- */
+// A tray submenu's content, in TraySubmenuWrapper
 Item {
   id: root
   required property var wrapper

@@ -23,6 +23,17 @@ Panel {
   wantsKeyboardFocus: true
   spacing: 0
 
+  // Ready to type as soon as it's shown (its page becomes current, its
+  // menu or popout opens)
+  onVisibleChanged: {
+    if (root.visible)
+      Qt.callLater(composer.focusInput);
+  }
+  Component.onCompleted: {
+    if (root.visible)
+      Qt.callLater(composer.focusInput);
+  }
+
   compactContent: Component {
     CompactFigure {
       icon: "smart_toy"

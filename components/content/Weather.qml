@@ -134,7 +134,9 @@ Card {
         spacing: Widget.spacing * 1.5
         StyledText {
           Layout.preferredWidth: Appearance.fontSize * 3.5
-          text: day.index === 0 ? I18n.tr("Today") : I18n.formatDate(new Date(root.daily.time[day.index]), "ddd")
+          // Local noon: a bare "YYYY-MM-DD" parses as UTC midnight, the
+          // day before west of UTC
+          text: day.index === 0 ? I18n.tr("Today") : I18n.formatDate(new Date(root.daily.time[day.index] + "T12:00"), "ddd")
         }
         StyledIcon {
           Layout.preferredWidth: Appearance.fontSize * 1.5

@@ -1,13 +1,13 @@
 pragma ComponentBehavior: Bound
 import QtQuick
-import Quickshell.Wayland
 
 import qs.services
 import qs.config
 
 // Caffeine toggle: while on, the compositor (and hypridle) won't treat the
-// session as idle. State is shared through IdleInhibit, so every bar's
-// widget and the IPC target stay in sync.
+// session as idle. The state and the inhibitor itself live outside the bar
+// (IdleInhibitManager, shell/IdleInhibit), so every bar's widget, the IPC
+// target and the quick action stay in sync.
 BarIconWidget {
   id: root
 
@@ -17,11 +17,6 @@ BarIconWidget {
 
   backgroundColor: Theme.resolveColor(IdleInhibitManager.enabled ? properties.activeColor : properties.inactiveColor)
   opacity: mouseArea.pressed ? 0.8 : 1
-
-  IdleInhibitor {
-    window: root.panel
-    enabled: IdleInhibitManager.enabled
-  }
 
   MouseArea {
     id: mouseArea

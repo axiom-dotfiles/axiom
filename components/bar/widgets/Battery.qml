@@ -11,9 +11,6 @@ BarIconWidget {
   readonly property bool isCharging: BatteryManager.isCharging
   readonly property int percentage: BatteryManager.percentage
   readonly property string timeRemaining: isCharging ? BatteryManager.timeToFull : BatteryManager.timeRemaining
-  // "none" / "low" / "critical": the last level notified about, so each
-  // threshold notifies once per crossing
-  property string _notifiedLevel: "none"
   // No laptop battery (a desktop): collapse to nothing, so a default bar
   // can carry the widget on any machine
   hidden: !BatteryManager.isAvailable
@@ -88,14 +85,10 @@ BarIconWidget {
     }
   }
 
-  // Low battery notifications, once each time a threshold is crossed
+  // Low battery notifications: BatteryManager notifies once per crossing,
+  // however many Battery widgets report it
   onLevelChanged: {
-    if (properties.notify && !hidden && level !== _notifiedLevel) {
-      if (level === "critical")
-        NotificationManager.sendNotification("axiom", I18n.tr("Critical Battery"), I18n.tr("Battery critically low: {0}%", percentage));
-      else if (level === "low" && _notifiedLevel !== "critical")
-        NotificationManager.sendNotification("axiom", I18n.tr("Low Battery"), I18n.tr("Battery low: {0}%", percentage));
-    }
-    _notifiedLevel = level;
+    if (properties.notify && !hidden)
+      BatteryManager.reportLevel(level);
   }
 }
