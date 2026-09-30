@@ -2259,7 +2259,7 @@
     "AudioMixerOverlayModule": {
       "type": "object",
       "x-icon": "tune",
-      "x-shapes": ["vertical", "square"],
+      "x-shapes": ["vertical", "square", "horizontal"],
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
