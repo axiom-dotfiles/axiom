@@ -11,7 +11,6 @@ import qs.components.reusable
 ColumnLayout {
   id: root
 
-  readonly property alias input: area.input
   readonly property bool ctrlEnter: ChatConfig.sendKey === "ctrlEnter"
   // The key hints need room beside the buttons
   readonly property bool showHints: root.width >= 320

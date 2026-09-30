@@ -4,9 +4,9 @@ import Quickshell
 import Quickshell.Io
 
 // Shared on/off state for keeping the session awake. The Wayland idle
-// inhibitor itself needs a visible surface, so it lives in the bar widget
-// (bar/widgets/IdleInhibitor.qml) and binds to `enabled` here. Kept across
-// QML reloads, but a restart always starts with idle allowed.
+// inhibitor itself needs a mapped surface, so shell/IdleInhibit holds one
+// while `enabled` is on. Kept across QML reloads, but a restart always
+// starts with idle allowed.
 //
 //   qs -c axiom ipc call idleInhibit toggle
 Singleton {

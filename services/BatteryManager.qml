@@ -5,7 +5,8 @@ import Quickshell.Services.UPower
 import qs.config
 
 // The laptop battery (UPower's display device, when it is one) and the
-// power-saver profile, for the Battery widget and popout.
+// power-saver profile, for the Battery widget and popout, and the low
+// battery notifications.
 QtObject {
   id: root
 
@@ -25,6 +26,23 @@ QtObject {
   // daemon is there, so its CLI being installed stands in for it
   readonly property bool hasPowerProfiles: DependencyManager.found.powerprofilesctl === true
   readonly property bool powerSaver: hasPowerProfiles && PowerProfiles.profile === PowerProfile.PowerSaver
+
+  // "none" / "low" / "critical": the last level notified about, shared by
+  // every Battery widget so a threshold crossing notifies once however many
+  // bars show one
+  property string _notifiedLevel: "none"
+
+  // A Battery widget with `notify` on reports its level (from its
+  // thresholds); each crossing into low or critical notifies once
+  function reportLevel(level) {
+    if (level === root._notifiedLevel)
+      return;
+    if (level === "critical")
+      NotificationManager.sendNotification("axiom", I18n.tr("Critical Battery"), I18n.tr("Battery critically low: {0}%", root.percentage));
+    else if (level === "low" && root._notifiedLevel !== "critical")
+      NotificationManager.sendNotification("axiom", I18n.tr("Low Battery"), I18n.tr("Battery low: {0}%", root.percentage));
+    root._notifiedLevel = level;
+  }
 
   function setPowerSaver(on) {
     PowerProfiles.profile = on ? PowerProfile.PowerSaver : PowerProfile.Balanced;

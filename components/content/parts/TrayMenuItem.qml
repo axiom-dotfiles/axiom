@@ -1,14 +1,12 @@
-// TrayMenuItem.qml
 pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import qs.config
+import qs.components.reusable
 
-// TODO: Use styled components to make this way cleaner
-/**
- * Reusable tray menu item component
- */
+// One entry of a tray menu (TrayMenuList): a separator, or a label with its
+// check/radio indicator, icon and submenu chevron
 Rectangle {
   id: root
   required property var menuItem
@@ -26,7 +24,6 @@ Rectangle {
   Layout.fillWidth: true
   Layout.preferredWidth: contentRow.implicitWidth + (itemPadding * 2)
   Layout.preferredHeight: menuItem.isSeparator ? 1 : itemHeight
-  visible: true
   color: menuItemArea.containsMouse && menuItem.enabled && !menuItem.isSeparator ? Theme.backgroundHighlight : "transparent"
   radius: Widget.radius
   opacity: menuItem.enabled ? 1.0 : 0.5
@@ -78,9 +75,8 @@ Rectangle {
     }
 
     // Label
-    Text {
+    StyledText {
       text: root.menuItem.text
-      color: Theme.foreground
       Layout.fillWidth: true
       elide: Text.ElideRight
       wrapMode: Text.NoWrap
@@ -89,11 +85,10 @@ Rectangle {
     }
 
     // Submenu indicator
-    Text {
+    StyledIcon {
       visible: root.menuItem.hasChildren
-      text: root.openToLeft ? "‹" : "›"
-      color: Theme.accent
-      font.pixelSize: 20
+      text: root.openToLeft ? "chevron_left" : "chevron_right"
+      textColor: Theme.accent
       Layout.preferredWidth: implicitWidth
       Layout.maximumWidth: implicitWidth
       Layout.minimumWidth: implicitWidth

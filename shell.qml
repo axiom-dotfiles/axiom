@@ -73,4 +73,8 @@ ShellRoot {
   Onboarding {
     id: onboarding
   }
+
+  IdleInhibit {
+    id: idleInhibit
+  }
 }

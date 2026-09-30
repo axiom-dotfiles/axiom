@@ -5,11 +5,9 @@ import Quickshell
 import qs.config
 import qs.components.reusable
 
-/**
- * A tray menu's entries, shared by the tray popout and its submenus.
- * Sized to its widest entry, between `minWidth` and `maxWidth` (longer
- * labels elide); the host surface pads it.
- */
+// A tray menu's entries, shared by the tray popout and its submenus. Sized
+// to its widest entry, between `minWidth` and `maxWidth` (longer labels
+// elide); the host surface pads it.
 Item {
   id: root
 
@@ -73,7 +71,7 @@ Item {
     StyledText {
       visible: root.contentReady && menuRepeater.count === 0
       text: root.emptyText
-      color: Theme.accent
+      textColor: Theme.accent
       opacity: 0.5
       Layout.fillWidth: true
       Layout.preferredHeight: root.itemHeight
