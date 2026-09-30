@@ -1,0 +1,260 @@
+pragma ComponentBehavior: Bound
+import QtQuick
+import QtQuick.Layouts
+import Quickshell
+import qs.config
+import qs.services
+import qs.components.forms
+import qs.components.methods
+import qs.components.reusable
+
+// A section's list of entries as one card (the Dock and OSD `x-card`s):
+// the entries as tabs, one shown at a time: where it sits (a screen picker
+// with `presets`), Show, Duplicate and Delete, then `entryContent` and its
+// settings. Edits go through the settings draft like any other row (the
+// list as one value), so they show live and wait for Save. Folds like the
+// generated cards, under `foldKey`.
+FoldingCard {
+  id: root
+
+  // Where the list is: config[section][listKey], each item a
+  // definitions[entryType]
+  required property string sectionKey
+  required property string listKey
+  required property string entryType
+  // The list as saved (the reader's), until the draft has one
+  required property var savedEntries
+  // The settings group key it folds under, from SettingsContent
+  property string foldKey
+  // [{ label, values, x, y }]: a dot at (x, y) on the screen (0-1 from the
+  // top left) that applies `values`
+  property var presets: []
+  // What the picker's hint says
+  property string pickerHint
+  // A new entry: `idBase` numbered, over `seed`, over the schema defaults
+  property string idBase
+  property var seed: ({})
+  // Functions: an entry's tab name, and where it sits on the screen (0-1
+  // from the top left)
+  required property var labelOf
+  required property var spotOf
+  // Between the picker and the settings
+  property alias entryContent: entrySlot.data
+
+  // Show was clicked for the entry with this id
+  signal show(string id)
+
+  readonly property var entrySchema: ConfigManager.configSchema.definitions[root.entryType]
+  readonly property var entries: SettingsManager.localConfig?.[root.sectionKey]?.[root.listKey] ?? root.savedEntries
+  property int selected: 0
+  readonly property int current: Math.max(0, Math.min(root.selected, root.entries.length - 1))
+  readonly property var entry: root.entries[root.current] ?? null
+  readonly property point spot: root.entry ? root.spotOf(root.entry) : Qt.point(0.5, 0.5)
+
+  collapsed: SettingsManager.isCollapsed(root.foldKey)
+  onToggled: SettingsManager.setCollapsed(root.foldKey, !root.collapsed)
+
+  function _commit(entries) {
+    SettingsManager.setValue([root.sectionKey, root.listKey], entries);
+  }
+
+  function _freeId(base) {
+    return Utils.freeId(base, root.entries.map(entry => entry.id));
+  }
+
+  // Merges `values` into the shown entry
+  function edit(values) {
+    const entries = Utils.clone(root.entries);
+    Object.assign(entries[root.current], values);
+    root._commit(entries);
+  }
+
+  function add() {
+    const entries = Utils.clone(root.entries);
+    entries.push(SchemaValidation.applyDefaults(Object.assign(Utils.clone(root.seed), {
+      "id": root._freeId(root.idBase)
+    }), root.entrySchema, ConfigManager.configSchema));
+    root._commit(entries);
+    root.selected = entries.length - 1;
+  }
+
+  function duplicate() {
+    const entries = Utils.clone(root.entries);
+    const copy = Utils.clone(root.entry);
+    copy.id = root._freeId(copy.id);
+    entries.splice(root.current + 1, 0, copy);
+    root._commit(entries);
+    root.selected = root.current + 1;
+  }
+
+  function remove() {
+    if (root.entries.length <= 1)
+      return;
+    const entries = Utils.clone(root.entries);
+    entries.splice(root.current, 1);
+    root._commit(entries);
+    root.selected = Math.min(root.current, entries.length - 1);
+  }
+
+  headerExtras: StyledTextButton {
+    implicitHeight: Widget.height - 4
+    iconText: "add"
+    text: I18n.tr("Add")
+    onClicked: root.add()
+  }
+
+  // One tab per entry
+  Flow {
+    Layout.fillWidth: true
+    spacing: Widget.spacing / 2
+
+    Repeater {
+      model: root.entries.length
+
+      delegate: SegmentButton {
+        id: tab
+        required property int index
+        readonly property var entry: root.entries[tab.index]
+
+        implicitHeight: Widget.height - 4
+        text: root.labelOf(tab.entry)
+        opacity: tab.entry.enabled ? 1 : 0.6
+        active: tab.index === root.current
+        onClicked: root.selected = tab.index
+      }
+    }
+  }
+
+  RowLayout {
+    visible: root.entry !== null
+    Layout.fillWidth: true
+    spacing: Widget.spacing * 2
+
+    // The screen, with the shown entry's spot and the presets to click
+    Rectangle {
+      id: screen
+      readonly property real dot: 14
+
+      Layout.preferredWidth: 192
+      Layout.preferredHeight: 108
+      Layout.alignment: Qt.AlignTop
+      color: Theme.background
+      border.color: Theme.border
+      border.width: Appearance.borderWidth
+      radius: Widget.radius / 2
+
+      Repeater {
+        model: root.presets
+
+        delegate: Rectangle {
+          id: preset
+          required property var modelData
+          readonly property bool hovered: presetArea.containsMouse
+
+          width: screen.dot
+          height: screen.dot
+          radius: width / 2
+          x: modelData.x * (screen.width - width)
+          y: modelData.y * (screen.height - height)
+          color: hovered ? Theme.accentAlt : Theme.backgroundHighlight
+          border.color: Theme.border
+          border.width: 1
+
+          MouseArea {
+            id: presetArea
+            anchors.fill: parent
+            anchors.margins: -4
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
+            onClicked: root.edit(preset.modelData.values)
+          }
+
+          LazyLoader {
+            active: preset.hovered
+            StyledToolTip {
+              target: preset
+              // i18n: keys from the callers' presets
+              text: I18n.tr(preset.modelData.label)
+            }
+          }
+        }
+      }
+
+      // Where it is now
+      Rectangle {
+        width: screen.dot - 4
+        height: screen.dot - 4
+        radius: width / 2
+        x: root.spot.x * (screen.width - screen.dot) + 2
+        y: root.spot.y * (screen.height - screen.dot) + 2
+        color: Theme.accent
+      }
+    }
+
+    ColumnLayout {
+      Layout.fillWidth: true
+      Layout.alignment: Qt.AlignTop
+      spacing: Widget.spacing
+
+      StyledText {
+        text: root.pickerHint
+        textColor: Theme.foregroundAlt
+        textSize: Appearance.fontSize - 2
+        wrapMode: Text.WordWrap
+        Layout.fillWidth: true
+      }
+
+      Flow {
+        Layout.fillWidth: true
+        spacing: Widget.spacing / 2
+
+        StyledTextButton {
+          implicitHeight: Widget.height - 4
+          iconText: "visibility"
+          text: I18n.tr("Show")
+          onClicked: root.show(root.entry.id)
+        }
+
+        StyledTextButton {
+          implicitHeight: Widget.height - 4
+          iconText: "content_copy"
+          text: I18n.tr("Duplicate")
+          onClicked: root.duplicate()
+        }
+
+        StyledTextButton {
+          visible: root.entries.length > 1
+          implicitHeight: Widget.height - 4
+          iconText: "delete"
+          text: I18n.tr("Delete")
+          hoverColor: Theme.error
+          onClicked: root.remove()
+        }
+      }
+    }
+  }
+
+  StyledSeparator {
+    separatorColor: Theme.accent
+    visible: root.entry !== null
+    Layout.fillWidth: true
+  }
+
+  ColumnLayout {
+    id: entrySlot
+    visible: root.entry !== null && children.length > 0
+    Layout.fillWidth: true
+    spacing: Widget.spacing * 1.5
+  }
+
+  SchemaPropertiesForm {
+    visible: root.entry !== null
+    Layout.fillWidth: true
+    propertiesSchema: root.entrySchema.properties
+    order: root.entrySchema["x-order"] ?? []
+    values: root.entry ?? ({})
+    onEdited: (path, value) => root.edit({
+        [path[0]]: value
+      })
+  }
+}

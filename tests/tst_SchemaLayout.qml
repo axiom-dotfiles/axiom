@@ -116,7 +116,7 @@ TestCase {
   }
 
   // A hand-built card goes first; with `x-cardFolds` it folds, and the
-  // real cards that fold take their key as `foldKey`
+  // real cards that fold take their key as `foldKey` (EntryListCards do)
   function test_card_folds() {
     const groups = SchemaLayout.groups({
       "properties": {
@@ -134,7 +134,7 @@ TestCase {
     for (const key in schema.properties) {
       const section = schema.properties[key];
       if (section["x-cardFolds"])
-        verify(files.text("components/views/settings/" + section["x-card"] + "Card.qml").includes("property string foldKey"), key);
+        verify(/^EntryListCard \{|property string foldKey/m.test(files.text("components/views/settings/" + section["x-card"] + "Card.qml")), key);
     }
   }
 
