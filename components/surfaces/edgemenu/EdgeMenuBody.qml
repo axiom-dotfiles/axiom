@@ -19,7 +19,7 @@ Item {
 
   // Columns re-read only when they actually change, so an unrelated config
   // save doesn't rebuild every module
-  readonly property string _columnsKey: JSON.stringify(root.menu?.columns ?? [])
+  readonly property string _columnsKey: JSON.stringify(root.menu.columns)
   property var columns: []
   on_ColumnsKeyChanged: root.columns = JSON.parse(root._columnsKey)
   Component.onCompleted: root.columns = JSON.parse(root._columnsKey)
@@ -27,13 +27,13 @@ Item {
   // `bare`: the menu hides its modules' card boxes (moduleBorders off)
   readonly property var host: ({
       "kind": "edgeMenu",
-      "id": root.menu?.id ?? "",
-      "bare": root.menu?.moduleBorders === false
+      "id": root.menu.id,
+      "bare": !root.menu.moduleBorders
     })
 
   OverlayGrid {
     id: grid
-    fixedUnit: root.menu?.cardSize ?? OverlayConfig.minCardUnit
+    fixedUnit: root.menu.cardSize
   }
 
   // `extraWidth` and `extraHeight` grow every cell (OverlayConfig.columnFlow's
@@ -49,8 +49,8 @@ Item {
   readonly property var _fillColumns: root.columns.map(column => (column?.cells ?? []).some(cell => cell?.[root._alongKey] === true))
   readonly property bool anyFill: root._fillColumns.includes(true)
   readonly property int _fillCount: root._fillColumns.filter(fills => fills).length
-  readonly property real extraWidth: root.columns.length > 0 ? Math.max(0, root.menu?.extraWidth ?? 0) : 0
-  readonly property real extraHeight: root.columns.length > 0 ? Math.max(0, root.menu?.extraHeight ?? 0) : 0
+  readonly property real extraWidth: root.columns.length > 0 ? Math.max(0, root.menu.extraWidth) : 0
+  readonly property real extraHeight: root.columns.length > 0 ? Math.max(0, root.menu.extraHeight) : 0
   readonly property real _columnExtraWidth: root.extraWidth / Math.max(1, root.columns.length)
   readonly property var _extra: ({
       "width": root._columnExtraWidth,
@@ -58,16 +58,15 @@ Item {
     })
   readonly property real _sideBySide: root._natural.reduce((sum, flow) => sum + flow.width, 0) + root.extraWidth + Math.max(0, root.columns.length - 1) * OverlayConfig.cardSpacing
   readonly property real _thickest: Math.max(0, ...root._natural.map(flow => flow.height)) + root.extraHeight
-  readonly property real _naturalLength: root.vertical ? root._thickest : root._sideBySide
   // Along the edge before fill cells grow or the cap applies
-  readonly property real naturalLength: root._naturalLength
-  readonly property real _spareLength: root.anyFill && root.maxLength > root._naturalLength ? root.maxLength - root._naturalLength : 0
+  readonly property real naturalLength: root.vertical ? root._thickest : root._sideBySide
+  readonly property real _spareLength: root.anyFill && root.maxLength > root.naturalLength ? root.maxLength - root.naturalLength : 0
   function targetFor(index) {
     if (!root._natural[index])
       return null;
     if (root.vertical)
       return {
-        "height": root._naturalLength + root._spareLength
+        "height": root.naturalLength + root._spareLength
       };
     return {
       "width": root._natural[index].width + root._columnExtraWidth + (root._fillColumns[index] ? root._spareLength / root._fillCount : 0),
@@ -81,7 +80,7 @@ Item {
   // Escape closes the menu once it has the keyboard (both hosts take it
   // on demand, when clicked)
   focus: true
-  Keys.onEscapePressed: EdgeMenuManager.close(root.menu?.id ?? "")
+  Keys.onEscapePressed: EdgeMenuManager.close(root.menu.id)
 
   implicitWidth: root.vertical ? row.implicitWidth : root.length
   implicitHeight: root.vertical ? root.length : row.implicitHeight

@@ -1,3 +1,4 @@
+pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
 
@@ -8,7 +9,7 @@ Scope {
   Variants {
     model: General.screensFor(LauncherConfig.monitors)
     delegate: Launcher {
-      required property var modelData
+      required property ShellScreen modelData
       screen: modelData
     }
   }

@@ -35,7 +35,7 @@ Scope {
   readonly property real thickness: root.base + root.pad * 2
 
   // --- Attaching to the edge ---
-  readonly property string _edgeName: ["top", "bottom", "left", "right"][root.edge]
+  readonly property string _edgeName: Bar.edgeName(root.edge)
   readonly property var _edgeBar: Bar.edgesFor(root.screen)[root._edgeName]
   // At no distance the box joins the edge's stroke: the border's or a
   // solid bar's. A transparent or pill bar has none, so it stays a box.

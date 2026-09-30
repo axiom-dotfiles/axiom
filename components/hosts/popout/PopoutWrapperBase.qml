@@ -7,16 +7,15 @@ import qs.services
  * Shared state machine for any "popout wrapper": open/close/reopen
  * queueing, and centralized dismiss-on-hover-loss timing.
  *
- * Concrete wrappers (bar/popouts/Popouts.qml for bar popouts,
- * TraySubmenuWrapper.qml for submenus, EdgePopout.qml for screen-edge
- * popouts) instantiate this as their root type and add their own
- * PopupWindow, positioning, and content Loader as children, binding
+ * Concrete wrappers (BarPopouts, TraySubmenuWrapper, EdgePopout,
+ * FloatingOSD, IntegratedEdgeMenu) use this as their root type and add
+ * their own window, positioning, and content Loader as children, binding
  * `currentItem` to their Loader's item.
  *
  * Deliberately generic on (anchor, data) — no fixed signature per
- * subclass. If a subclass needs extra routing info (e.g. Popout.qml's
- * content-type name), it travels as a field inside `data` rather than
- * as an extra positional argument, so this base never needs overriding.
+ * subclass. If a subclass needs extra routing info (e.g. BarPopouts'
+ * popout name), it travels as a field inside `data` rather than as an
+ * extra positional argument, so this base never needs overriding.
  */
 Item {
   id: root

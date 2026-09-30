@@ -14,7 +14,7 @@ import qs.components.views // qmllint disable unused-imports
 PanelWindow {
   id: root
 
-  required property var screen
+  required property ShellScreen screen
 
   property bool isOpen: false
   property real slideOffset: isOpen ? 0 : -height
@@ -204,7 +204,7 @@ PanelWindow {
           const p = backgroundClicks.mapToItem(item, mouse.x, mouse.y);
           return item.contains(p);
         };
-        if (!inside(tabWrapper) && !inside(navigator))
+        if (!inside(overlayPages) && !inside(navigator))
           root.close();
       }
     }
@@ -222,7 +222,7 @@ PanelWindow {
       }
 
       OverlayPages {
-        id: tabWrapper
+        id: overlayPages
         anchors.centerIn: parent
         screen: root.screen
         open: root.visible
@@ -237,8 +237,8 @@ PanelWindow {
     // This screen's card size: what fits the space the pages get
     OverlayGrid {
       id: grid
-      availableWidth: tabWrapper.maxWidth - OverlayConfig.cardSpacing * 2
-      availableHeight: tabWrapper.maxHeight - OverlayConfig.cardSpacing * 2
+      availableWidth: overlayPages.maxWidth - OverlayConfig.cardSpacing * 2
+      availableHeight: overlayPages.maxHeight - OverlayConfig.cardSpacing * 2
     }
 
     OverlayPageNavigator {
@@ -248,12 +248,12 @@ PanelWindow {
         bottomMargin: Widget.padding * 2
         horizontalCenter: parent.horizontalCenter
       }
-      currentIndex: tabWrapper.currentIndex
-      pages: tabWrapper.pages
+      currentIndex: overlayPages.currentIndex
+      pages: overlayPages.pages
       maxWidth: slideContainer.width - Widget.padding * 4
-      onPrevious: tabWrapper.currentIndex = (tabWrapper.currentIndex - 1 + tabWrapper.pageCount) % tabWrapper.pageCount
-      onNext: tabWrapper.currentIndex = (tabWrapper.currentIndex + 1) % tabWrapper.pageCount
-      onSelect: index => tabWrapper.currentIndex = index
+      onPrevious: overlayPages.currentIndex = (overlayPages.currentIndex - 1 + overlayPages.pageCount) % overlayPages.pageCount
+      onNext: overlayPages.currentIndex = (overlayPages.currentIndex + 1) % overlayPages.pageCount
+      onSelect: index => overlayPages.currentIndex = index
     }
   }
 }

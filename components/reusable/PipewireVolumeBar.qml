@@ -1,4 +1,3 @@
-// qs/components/reusable/PipewireVolumeBar.qml
 pragma ComponentBehavior: Bound
 import QtQuick
 import qs.services
@@ -7,8 +6,9 @@ import Quickshell.Services.Pipewire
 Item {
   id: root
 
-  // -- Signals --
-  signal visibilityChanged(real volume)
+  // The level changed by the user (not a stream appearing or a device
+  // switch): an OSD opens on it
+  signal poked
 
   // -- Public API --
   // Substrings of the app streams to control, in priority order: the bar
@@ -27,9 +27,6 @@ Item {
   readonly property bool nodeFound: !useSystemVolume && _targetNode !== null && _targetNode.ready && _targetNode.audio
   property real volume: useSystemVolume ? AudioManager.volume : (nodeFound ? _targetNode.audio.volume : 0.0)
   property bool isMuted: useSystemVolume ? AudioManager.muted : (!nodeFound || _targetNode.audio.muted)
-
-  // -- Configurable Appearance --
-  // null
 
   // -- Implementation --
   implicitWidth: bar.implicitWidth
@@ -83,13 +80,17 @@ Item {
 
   onVolumeChanged: {
     if (root.useSystemVolume)
-      root.visibilityChanged(root.volume);
+      root.poked();
+  }
+  onIsMutedChanged: {
+    if (root.useSystemVolume)
+      root.poked();
   }
 
   on_LevelsChanged: {
     const key = root._keyOf(root._targetNodes);
     if (key === root._nodeKey)
-      root.visibilityChanged(root.volume);
+      root.poked();
     root._nodeKey = key;
   }
 

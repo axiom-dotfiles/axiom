@@ -10,19 +10,13 @@ import qs.components.surfaces.osd
 // on: an EdgePopout for an edge OSD, a FloatingOSD for a floating one. A
 // change opens every OSD holding that bar, on the target screen (the
 // focused one), or on all of them in "all" mode. Hiding is the host's own
-// hover-aware dismiss timer.
-Item {
-  id: osdRoot
-  anchors.fill: parent
+// hover-aware dismiss timer. Keyed by id, so editing an OSD's settings
+// updates it in place instead of rebuilding every OSD.
+Scope {
+  Variants {
+    model: OSDConfig.enabled ? OSDConfig.shownIds : []
 
-  // By a joined key, so editing an OSD's settings updates it in place
-  // instead of rebuilding every OSD
-  readonly property string _idsKey: OSDConfig.enabled ? OSDConfig.shownIds.join("\n") : ""
-
-  Repeater {
-    model: osdRoot._idsKey ? osdRoot._idsKey.split("\n") : []
-
-    delegate: Item {
+    delegate: Scope {
       id: entry
       required property string modelData
       readonly property var osd: OSDConfig.osdById(modelData)
@@ -41,12 +35,7 @@ Item {
           position: entry.osd.position / 100
           triggerEnabled: entry.osd.openOnHover
           // The strip spans the OSD's own length along the edge
-          triggerLength: {
-            const item = edgeHost.contentItem;
-            if (!item)
-              return 200;
-            return edgeHost.vertical ? item.implicitHeight : item.implicitWidth;
-          }
+          triggerLength: edgeHost.vertical ? (edgeHost.contentItem?.implicitHeight ?? 0) : (edgeHost.contentItem?.implicitWidth ?? 0)
           dismissDelay: entry.osd.timeout
           // The bars inside also report their own changes, so they must
           // exist while the OSD is closed

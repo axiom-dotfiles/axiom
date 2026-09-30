@@ -5,7 +5,6 @@ import qs.config
 import qs.services
 import qs.components.reusable
 import qs.components.content.base
-import qs.components.hosts.overlay
 
 // i18n: keys from the schema (view labels)
 // Overlay editor, left: the overlay's pages in order (drag to reorder,

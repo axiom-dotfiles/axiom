@@ -175,8 +175,13 @@ QtObject {
   function screenEdgeOpen(screen, location) {
     if (Appearance.screenBorder)
       return false;
-    const name = ["top", "bottom", "left", "right"][location];
-    return !Bar.edgesFor(screen)[name];
+    return !Bar.edgesFor(screen)[Bar.edgeName(location)];
+  }
+
+  // A Bar.Location as the edge names zones and Hyprland use: "top" |
+  // "bottom" | "left" | "right"
+  function edgeName(location) {
+    return ["top", "bottom", "left", "right"][location];
   }
 
   function getLocationFromString(locStr) {

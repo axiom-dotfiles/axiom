@@ -28,12 +28,14 @@ FocusScope {
   // Esc, or a row that closes the launcher
   signal closeRequested
 
+  // Above and below the list, while it has rows
+  readonly property int listMargin: 6
   readonly property int rowHeight: Math.max(LauncherConfig.iconSize + 14, LauncherConfig.showDescriptions ? Appearance.fontSize * 2 + 24 : Appearance.fontSize + 22)
   // The tallest it gets, so a host can keep it from moving as rows come and
   // go: every block at its largest (a full list under the Frequent header).
   // Exact, not estimated: content taller than this resizes the host, which
   // on the bottom edge moves it a frame late
-  readonly property int maxHeight: searchRow.height + searchLine.height + frequentLabel.implicitHeight + frequentLabel.Layout.topMargin + rowHeight * LauncherConfig.maxResults + 12 /* the list's margins */ + (LauncherConfig.showHint ? hintLine.height + hint.height : 0)
+  readonly property int maxHeight: searchRow.height + searchLine.height + frequentLabel.implicitHeight + frequentLabel.Layout.topMargin + rowHeight * LauncherConfig.maxResults + listMargin * 2 + (LauncherConfig.showHint ? hintLine.height + hint.height : 0)
 
   implicitWidth: LauncherConfig.width
   implicitHeight: _offset(_order.length)
@@ -237,7 +239,7 @@ FocusScope {
       implicitWidth: modeLabel.implicitWidth + 16
       implicitHeight: modeLabel.implicitHeight + 8
       radius: Widget.radius
-      color: Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.16)
+      color: Qt.alpha(Theme.accent, 0.16)
 
       StyledText {
         id: modeLabel
@@ -293,8 +295,8 @@ FocusScope {
     ListView {
       id: list
       Layout.fillWidth: true
-      Layout.topMargin: count > 0 ? 6 : 0
-      Layout.bottomMargin: count > 0 ? 6 : 0
+      Layout.topMargin: count > 0 ? root.listMargin : 0
+      Layout.bottomMargin: count > 0 ? root.listMargin : 0
       Layout.preferredHeight: Math.min(count, LauncherConfig.maxResults) * root.rowHeight
       clip: true
       interactive: count > LauncherConfig.maxResults

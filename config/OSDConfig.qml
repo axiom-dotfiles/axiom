@@ -27,11 +27,6 @@ QtObject {
     return osds.find(osd => osd.id === id) ?? null;
   }
 
-  // Whether an OSD opens for a bar of this type
-  function opensFor(osd, type) {
-    return osd.bars.some(bar => bar.type === type && bar.showOsd);
-  }
-
   // The name on its tab: its own, else its bars'
   function labelOf(osd) {
     if (osd.name)

@@ -17,12 +17,12 @@ EdgePopout {
   id: root
 
   required property var menu
-  readonly property string menuId: root.menu?.id ?? ""
+  readonly property string menuId: root.menu.id
   // Pinned, or held open by the editor
   readonly property bool pinned: EdgeMenuManager.isHeld(root.menuId)
   readonly property bool wanted: EdgeMenuManager.openMenus[root.menuId] === true
 
-  readonly property real edgeDistance: root.menu?.edgeDistance ?? 0
+  readonly property real edgeDistance: root.menu.edgeDistance
 
   // A transparent or pill bar on this edge (BarPanel), while it shows: a
   // floating bar hides under fullscreen windows
@@ -144,7 +144,7 @@ EdgePopout {
   }
 
   edge: EdgeMenusConfig.edgeOf(root.menu)
-  position: (root.menu?.position ?? 50) / 100
+  position: root.menu.position / 100
   detached: root.edgeDistance > 0 || (root.barPanel !== null && !root.pillBar)
   // The window would sit where the windows start, less a border width
   // (none when straight)
@@ -180,15 +180,15 @@ EdgePopout {
   contentPadding: Appearance.borderWidth + EdgeMenusConfig.paddingOf(root.menu)
   fillColor: EdgeMenusConfig.colorsOf(root.menu).fill
   strokeColor: EdgeMenusConfig.colorsOf(root.menu).stroke
-  triggerEnabled: root.menu?.openOnHover ?? false
-  hoverDelay: root.menu?.openDelay ?? PopoutConfig.openDelay
-  triggerWidth: root.menu?.triggerSize ?? PopoutConfig.edgeTriggerSize
+  triggerEnabled: root.menu.openOnHover
+  hoverDelay: root.menu.openDelay
+  triggerWidth: root.menu.triggerSize
   // 0: the menu's own length (from config until it's first loaded)
-  triggerLength: (root.menu?.triggerLength ?? 0) > 0 ? root.menu.triggerLength : root.contentItem ? (root.vertical ? root.contentItem.implicitHeight : root.contentItem.implicitWidth) + root.contentPadding * 2 : EdgeMenusConfig.lengthOf(root.menu, root.vertical)
-  dismissDelay: root.menu?.closeDelay ?? PopoutConfig.dismissDelay
+  triggerLength: root.menu.triggerLength > 0 ? root.menu.triggerLength : root.contentItem ? (root.vertical ? root.contentItem.implicitHeight : root.contentItem.implicitWidth) + root.contentPadding * 2 : EdgeMenusConfig.lengthOf(root.menu, root.vertical)
+  dismissDelay: root.menu.closeDelay
   keyboardOnDemand: true
-  closeOnClickOutside: (root.menu?.closeOnOutsideClick ?? false) && !root.pinned
-  autoDismiss: (root.menu?.closeOnLeave ?? true) && !root.pinned && !root.revealing
+  closeOnClickOutside: root.menu.closeOnOutsideClick && !root.pinned
+  autoDismiss: root.menu.closeOnLeave && !root.pinned && !root.revealing
   onAutoDismissChanged: root.updateDismissTimer()
 
   // Opened by EdgeMenuManager.reveal: held open until hovered, and the
