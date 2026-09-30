@@ -1,4 +1,3 @@
-// SchemaObjectArray.qml
 pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
@@ -11,11 +10,7 @@ ColumnLayout {
   required property string label
   required property var items
   property string description: ""
-  property int maxItems: 99
   property var itemDelegate: null
-  property var itemHeaderExtra: null
-  // Optional component shown in the header, between the label and "+"
-  property var headerExtra: null
   // Room kept clear at the header's right end (the settings page's reset
   // button sits there)
   property int headerInset: 0
@@ -39,14 +34,7 @@ ColumnLayout {
       Layout.fillWidth: true
     }
 
-    Loader {
-      active: root.headerExtra !== null
-      sourceComponent: root.headerExtra
-      Layout.alignment: Qt.AlignVCenter
-    }
-
     StyledRectButton {
-      visible: root.items.length < root.maxItems
       iconText: "add"
       iconSize: Appearance.fontSize + 4
       hoverColor: Theme.accent
@@ -101,14 +89,6 @@ ColumnLayout {
               font.bold: true
             }
 
-            Loader {
-              sourceComponent: root.itemHeaderExtra
-              onLoaded: {
-                item.itemData = Qt.binding(() => entry.modelData);
-                item.itemIndex = Qt.binding(() => entry.index);
-              }
-            }
-
             Item {
               Layout.fillWidth: true
             }
@@ -118,7 +98,6 @@ ColumnLayout {
               size: 24
               iconText: "expand_less"
               iconSize: 16
-              hoverColor: Theme.accent
 
               onClicked: {
                 root.itemMoved(entry.index, entry.index - 1);
@@ -130,7 +109,6 @@ ColumnLayout {
               size: 24
               iconText: "expand_more"
               iconSize: 16
-              hoverColor: Theme.accent
 
               onClicked: {
                 root.itemMoved(entry.index, entry.index + 1);

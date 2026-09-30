@@ -19,7 +19,6 @@ QtObject {
 
   readonly property real fit: Math.min(root.availableHeight / OverlayConfig.fitCardsHigh, root.availableWidth / OverlayConfig.fitCardsWide)
   readonly property int unit: root.fixedUnit > 0 ? root.fixedUnit : Math.round(Math.max(OverlayConfig.minCardUnit, Math.min(OverlayConfig.cardUnit, root.fit) * OverlayConfig.size / 100))
-  readonly property real halfUnit: OverlayConfig.halfUnitOf(root.unit)
 
   function span(n) {
     return OverlayConfig.span(n, root.unit);

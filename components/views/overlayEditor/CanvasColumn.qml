@@ -28,7 +28,6 @@ Item {
 
   // Header: the grip is the whole title, so it's easy to grab
   Rectangle {
-    id: header
     width: root.width
     height: root.headerHeight
     radius: Widget.radius

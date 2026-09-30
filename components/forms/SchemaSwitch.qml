@@ -1,4 +1,3 @@
-// SchemaSwitch.qml
 pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
@@ -34,6 +33,5 @@ ColumnLayout {
     textSize: Appearance.fontSize - 2
     wrapMode: Text.WordWrap
     Layout.fillWidth: true
-    Layout.columnSpan: 2
   }
 }

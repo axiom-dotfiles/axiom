@@ -72,7 +72,6 @@ ColumnLayout {
 
       Layout.fillWidth: true
       Layout.preferredHeight: Widget.height + Widget.padding * 2
-      backgroundColor: Theme.backgroundAlt
 
       RowLayout {
         anchors.fill: parent
@@ -118,7 +117,6 @@ ColumnLayout {
   StyledContainer {
     Layout.fillWidth: true
     Layout.preferredHeight: Widget.height + Widget.padding * 2
-    backgroundColor: Theme.backgroundAlt
 
     RowLayout {
       anchors.fill: parent

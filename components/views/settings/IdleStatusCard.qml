@@ -49,7 +49,6 @@ StyledContainer {
   }
 
   implicitHeight: column.implicitHeight + Widget.padding * 2
-  backgroundColor: Theme.backgroundAlt
 
   ColumnLayout {
     id: column

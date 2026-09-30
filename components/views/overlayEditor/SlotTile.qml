@@ -52,10 +52,6 @@ Rectangle {
     return "";
   }
 
-  function indexAt(point) {
-    return -1;
-  }
-
   Component.onCompleted: root.dragLayer.registerTarget(root)
   Component.onDestruction: root.dragLayer.unregisterTarget(root)
 

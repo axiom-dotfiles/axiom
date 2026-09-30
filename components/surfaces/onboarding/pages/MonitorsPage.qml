@@ -28,7 +28,6 @@ OnboardingPage {
   extras: [
     Monitors {
       grid: root.grid
-      screen: root.screen
       viewConfig: ({
           "type": "Monitors"
         })

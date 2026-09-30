@@ -4,6 +4,7 @@ import QtQuick.Layouts
 import qs.config
 import qs.services
 import qs.components.forms
+import qs.components.methods
 import qs.components.reusable
 
 // One settings row: the SchemaField, with a dot while it has an unsaved
@@ -51,13 +52,11 @@ Item {
     SquareIconButton {
       visible: !root.atDefault
       size: Appearance.fontSize + 8
-      width: size
-      height: size
       iconText: "undo"
       iconSize: Appearance.fontSize - 1
       backgroundColor: Theme.backgroundHighlight
       tooltipText: I18n.tr("Reset to default")
-      onClicked: root.form.edited(root.row.path, JSON.parse(JSON.stringify(root.defaultValue)))
+      onClicked: root.form.edited(root.row.path, Utils.clone(root.defaultValue))
     }
   }
 }

@@ -71,7 +71,6 @@ Item {
   }
 
   TitledCard {
-    color: Theme.background
     title: I18n.tr("Edge Menu Editor")
     dirty: EdgeMenuManager.isDirty
     canSave: EdgeMenuManager.problems.length === 0
@@ -220,7 +219,6 @@ Item {
 
         Layout.fillWidth: true
         implicitHeight: groupColumn.implicitHeight + Widget.padding * 2
-        backgroundColor: Theme.backgroundAlt
 
         ColumnLayout {
           id: groupColumn

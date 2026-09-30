@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import qs.config
+import qs.components.methods
 import qs.components.reusable
 
 // One action: its label on the left, its key combos on the right,
@@ -11,14 +12,6 @@ RowLayout {
 
   // { label, combos: [{ mods: ["SUPER"], keys: ["H", "←"] }] } (KeybindManager)
   required property var bind
-
-  readonly property var _modNames: ({
-      SUPER: "Super",
-      CTRL: "Ctrl",
-      ALT: "Alt",
-      SHIFT: "Shift",
-      CAPS: "Caps"
-    })
 
   Layout.fillWidth: true
   spacing: Widget.spacing * 2
@@ -51,7 +44,7 @@ RowLayout {
 
         delegate: KeyCap {
           required property string modelData
-          text: root._modNames[modelData] ?? modelData
+          text: KeyNames.modifierLabel(modelData)
         }
       }
 

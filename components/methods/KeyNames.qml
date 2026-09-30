@@ -9,6 +9,18 @@ QtObject {
   // Modifier names, in the order a combo is written
   readonly property var modifiers: ["SUPER", "CTRL", "ALT", "SHIFT"]
 
+  // A modifier as a keycap shows it ("SUPER" -> "Super", "MOD3" -> "Mod3")
+  function modifierLabel(name) {
+    return root._modifierLabels[name] ?? name.charAt(0) + name.slice(1).toLowerCase();
+  }
+  readonly property var _modifierLabels: ({
+      "SUPER": "Super",
+      "CTRL": "Ctrl",
+      "ALT": "Alt",
+      "SHIFT": "Shift",
+      "CAPS": "Caps"
+    })
+
   // Other spellings Hyprland accepts, by the name used here
   readonly property var _aliases: ({
       "WIN": "SUPER",

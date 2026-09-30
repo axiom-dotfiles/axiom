@@ -40,7 +40,6 @@ BaseView {
     implicitHeight: root.grid.span(4)
 
     TitledCard {
-      color: Theme.background
       title: I18n.tr("Monitors")
       dirty: MonitorManager.isDirty
       canSave: MonitorManager.canApply && !MonitorManager.pending

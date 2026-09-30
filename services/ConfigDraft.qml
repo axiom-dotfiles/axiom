@@ -2,8 +2,8 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import qs.components.methods
 
-// A working copy of one config section for an editor (settings menu, bar
-// editor, overlay editor). Edits mutate `local` in place, then call
+// A working copy of one config section for an editor (settings, bar,
+// overlay, edge menu, keybind and monitor editors). Edits mutate `local` in place, then call
 // changed(); nothing reaches the running config or disk until save().
 // Not a singleton: each editor service owns one.
 QtObject {

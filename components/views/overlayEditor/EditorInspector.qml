@@ -244,7 +244,6 @@ Item {
       clip: true
       ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
 
-      readonly property var sel: root.sel
       readonly property var propertiesSchema: OverlayConfig.moduleInfo(root.moduleType)?.propertiesSchema ?? ({})
 
       FieldGroup {
@@ -264,7 +263,7 @@ Item {
           Layout.fillWidth: true
           propertiesSchema: optionsScroll.propertiesSchema
           values: root.module?.properties ?? ({})
-          onEdited: (path, value) => root.editor.updateModuleProperty(optionsScroll.sel.column, optionsScroll.sel.cell, optionsScroll.sel.slot, path[0], value)
+          onEdited: (path, value) => root.editor.updateModuleProperty(root.sel.column, root.sel.cell, root.sel.slot, path[0], value)
         }
 
         StyledText {

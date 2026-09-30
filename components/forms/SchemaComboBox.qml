@@ -1,4 +1,3 @@
-// SchemaComboBox.qml
 pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Controls

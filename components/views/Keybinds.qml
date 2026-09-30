@@ -64,7 +64,6 @@ BaseView {
     implicitHeight: root.grid.span(4)
 
     TitledCard {
-      color: Theme.background
       title: I18n.tr("Keybinds")
       showActions: root.editing
       dirty: KeybindManager.isDirty
@@ -98,7 +97,6 @@ BaseView {
         }
 
         StyledTextEntry {
-          id: search
           visible: !root.editing
           Layout.fillWidth: true
           Layout.preferredHeight: Widget.height

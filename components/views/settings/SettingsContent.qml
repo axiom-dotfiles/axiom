@@ -141,7 +141,6 @@ Item {
   readonly property var links: root.searching ? [] : (root.category?.links ?? []).filter(type => root._linkAvailable(type))
 
   TitledCard {
-    color: Theme.background
     // I18n.tr("Search results") and category names, see SettingsSidebar
     title: root.searching ? I18n.tr("Search results") : (root.category ? I18n.tr(root.category.name) : "")
     dirty: SettingsManager.isDirty

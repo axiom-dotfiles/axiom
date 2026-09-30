@@ -90,7 +90,6 @@ Item {
 
   // Carries the cell; a click selects it
   Rectangle {
-    id: grip
     x: 4
     y: 4
     z: 2
