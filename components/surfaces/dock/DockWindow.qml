@@ -92,7 +92,7 @@ Scope {
     let p = root.pointer - root.restStart - root.pad;
     if (root.separator && p > root.pinnedCount * root._step)
       p = Math.max(root.pinnedCount * root._step, p - root.separatorLength);
-    const full = DockLayout.magnifiedSizes(root.count, root.pointer < 0 ? -1 : p, root.base, root.peak, root.dock.magnifyRange, root.spacing);
+    const full = DockLayout.magnifiedSizes(root.count, root.pointer < 0 ? null : p, root.base, root.peak, root.dock.magnifyRange, root.spacing);
     return full.map(size => root.base + (size - root.base) * root.magnifyAmount);
   }
   readonly property real currentLength: root.sizes.reduce((sum, size) => sum + size, 0) + Math.max(0, root.count - 1) * root.spacing + root.separatorLength + root.pad * 2
@@ -218,16 +218,8 @@ Scope {
     id: closeTimer
     interval: root._touched ? root.dock.closeDelay : Math.max(root.dock.closeDelay, 1500)
     running: root.latched && !root.pointerIn
-    onTriggered: {
-      console.log("DOCKDBG closeTimer fired", interval);
-      root.latched = false;
-    }
+    onTriggered: root.latched = false
   }
-
-  // DOCKDBG: temporary tracing
-  readonly property string _dbg: `hover=${hover.hovered} trig=${trigger.containsMouse} menu=${root.menuOpen} drag=${root.dragIndex} latched=${root.latched} touched=${root._touched} want=${root.wantShown} maskDepth=${inputArea.crossDepth} ovl=${root.underOverlay} obs=${root.obscured}`
-  on_DbgChanged: console.log("DOCKDBG", root._dbg)
-  Component.onCompleted: console.log("DOCKDBG start", root._dbg)
 
   Connections {
     target: DockManager
