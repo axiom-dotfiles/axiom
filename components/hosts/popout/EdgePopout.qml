@@ -45,7 +45,7 @@ PopoutWrapperBase {
   property real positionOffset: 0
 
   property Component content: null
-  readonly property Item contentItem: loader.item
+  readonly property Item contentItem: loader.item as Item
   // The content's largest size across the edge, if it changes size while
   // open: the window keeps room for it, so it isn't resized (and, on the
   // bottom or right edge, moved by the compositor a frame late) each time
