@@ -119,10 +119,7 @@ Item {
     }
 
     StyledRectButton {
-      Layout.fillWidth: false
-      Layout.fillHeight: false
-      Layout.preferredWidth: 28
-      Layout.preferredHeight: 28
+      size: 28
       iconText: root.muted ? root.mutedGlyph : root.unmutedGlyph
       iconColor: root.muted ? Theme.error : Theme.foreground
       backgroundColor: "transparent"

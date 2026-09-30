@@ -301,7 +301,7 @@ Item {
         textSize: Appearance.fontSize - 3
       }
 
-      ChatIconButton {
+      FlatIconButton {
         visible: root.text !== ""
         size: 24
         iconText: "content_copy"
@@ -310,7 +310,7 @@ Item {
         onClicked: ChatManager.copy(root.text)
       }
 
-      ChatIconButton {
+      FlatIconButton {
         visible: !root.isUser && root.isLast && root.message?.state !== "error"
         size: 24
         iconText: "refresh"
@@ -319,7 +319,7 @@ Item {
         onClicked: ChatManager.regenerate()
       }
 
-      ChatIconButton {
+      FlatIconButton {
         size: 24
         iconText: "delete"
         iconSize: Appearance.fontSize - 2

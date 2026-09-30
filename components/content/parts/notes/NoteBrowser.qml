@@ -5,7 +5,6 @@ import Qt.labs.folderlistmodel
 import qs.config
 import qs.services
 import qs.components.reusable
-import qs.components.content.parts.chat
 
 // The notes folder, one level at a time: folders first, then notes. A
 // folder opens on click; the path above goes back up. Notes and folders
@@ -173,14 +172,14 @@ DropdownSurface {
         }
       }
 
-      ChatIconButton {
+      FlatIconButton {
         size: 26
         iconText: "note_add"
         iconColor: root.creating === "note" ? Theme.accent : Theme.foreground
         tooltipText: I18n.tr("New note")
         onClicked: root.creating = root.creating === "note" ? "" : "note"
       }
-      ChatIconButton {
+      FlatIconButton {
         size: 26
         iconText: "create_new_folder"
         iconColor: root.creating === "folder" ? Theme.accent : Theme.foreground
@@ -406,7 +405,7 @@ DropdownSurface {
           }
 
           // Delete: confirm or cancel
-          ChatIconButton {
+          FlatIconButton {
             visible: row.confirming
             size: 24
             iconText: "check"
@@ -415,7 +414,7 @@ DropdownSurface {
             tooltipText: I18n.tr("Delete")
             onClicked: root.remove(row.path)
           }
-          ChatIconButton {
+          FlatIconButton {
             visible: row.confirming
             size: 24
             iconText: "close"
@@ -424,7 +423,7 @@ DropdownSurface {
             onClicked: root.confirming = ""
           }
 
-          ChatIconButton {
+          FlatIconButton {
             visible: rowHover.hovered && !row.editing && !row.confirming
             size: 24
             iconText: "edit"
@@ -435,7 +434,7 @@ DropdownSurface {
               root.renaming = row.path;
             }
           }
-          ChatIconButton {
+          FlatIconButton {
             visible: rowHover.hovered && !row.editing && !row.confirming
             size: 24
             iconText: "delete"

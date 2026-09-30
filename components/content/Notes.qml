@@ -4,7 +4,6 @@ import QtQuick.Layouts
 import qs.config
 import qs.services
 import qs.components.reusable
-import qs.components.content.parts.chat
 import qs.components.content.parts.notes
 import qs.components.content.base
 
@@ -189,7 +188,7 @@ Card {
         Layout.fillWidth: true
       }
 
-      ChatIconButton {
+      FlatIconButton {
         visible: root.showToolbar
         iconText: "checklist"
         iconColor: Theme.foreground
@@ -197,7 +196,7 @@ Card {
         focusPolicy: Qt.NoFocus
         onClicked: editor.toggleTask()
       }
-      ChatIconButton {
+      FlatIconButton {
         visible: root.showToolbar
         iconText: "format_list_bulleted"
         iconColor: Theme.foreground
@@ -205,7 +204,7 @@ Card {
         focusPolicy: Qt.NoFocus
         onClicked: editor.toggleBullet()
       }
-      ChatIconButton {
+      FlatIconButton {
         visible: root.showToolbar
         iconText: "search"
         iconColor: root.findOpen ? Theme.accent : Theme.foreground
@@ -213,7 +212,7 @@ Card {
         focusPolicy: Qt.NoFocus
         onClicked: root.findOpen ? root.closeFind(false) : root.openFind("")
       }
-      ChatIconButton {
+      FlatIconButton {
         visible: root.showToolbar && editor.progress.done > 0
         iconText: root.showCompleted ? "visibility" : "visibility_off"
         iconColor: root.showCompleted ? Theme.foreground : Theme.accent
@@ -221,7 +220,7 @@ Card {
         focusPolicy: Qt.NoFocus
         onClicked: root.showCompleted = !root.showCompleted
       }
-      ChatIconButton {
+      FlatIconButton {
         visible: root.showHeader && !root.locked
         iconText: "note_add"
         iconColor: Theme.foreground
@@ -270,21 +269,21 @@ Card {
         textColor: editor.findCount === 0 ? Theme.error : Theme.foregroundAlt
         textSize: Appearance.fontSize - 2
       }
-      ChatIconButton {
+      FlatIconButton {
         iconText: "keyboard_arrow_up"
         iconColor: Theme.foreground
         tooltipText: I18n.tr("Previous match")
         focusPolicy: Qt.NoFocus
         onClicked: editor.find(findField.text, -1)
       }
-      ChatIconButton {
+      FlatIconButton {
         iconText: "keyboard_arrow_down"
         iconColor: Theme.foreground
         tooltipText: I18n.tr("Next match")
         focusPolicy: Qt.NoFocus
         onClicked: editor.find(findField.text, 1)
       }
-      ChatIconButton {
+      FlatIconButton {
         iconText: "close"
         iconColor: Theme.foreground
         tooltipText: I18n.tr("Close")

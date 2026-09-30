@@ -22,7 +22,7 @@ RowLayout {
 
   spacing: Widget.spacing
 
-  ChatIconButton {
+  FlatIconButton {
     visible: !root.listDocked
     size: root.rowHeight
     iconText: "history"
@@ -94,7 +94,7 @@ RowLayout {
     }
   }
 
-  ChatIconButton {
+  FlatIconButton {
     size: root.rowHeight
     iconText: "edit_square"
     iconColor: Theme.foreground

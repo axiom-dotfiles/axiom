@@ -54,10 +54,7 @@ RowLayout {
   }
 
   StyledRectButton {
-    Layout.fillWidth: false
-    Layout.fillHeight: false
-    Layout.preferredWidth: 28
-    Layout.preferredHeight: 28
+    size: 28
     iconText: NotificationManager.dnd ? "notifications_paused" : "notifications_off"
     iconColor: NotificationManager.dnd ? Theme.background : Theme.foreground
     backgroundColor: Qt.alpha(Theme.accent, NotificationManager.dnd ? 1 : 0)
@@ -67,10 +64,7 @@ RowLayout {
   }
 
   StyledRectButton {
-    Layout.fillWidth: false
-    Layout.fillHeight: false
-    Layout.preferredWidth: 28
-    Layout.preferredHeight: 28
+    size: 28
     enabled: NotificationManager.count > 0
     opacity: enabled ? 1 : 0.4
     iconText: "clear_all"

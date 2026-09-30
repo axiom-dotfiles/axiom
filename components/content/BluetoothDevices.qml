@@ -92,26 +92,12 @@ Panel {
     separatorColor: Theme.backgroundHighlight
   }
 
-  RowLayout {
-    Layout.fillWidth: true
-    Layout.fillHeight: false
-    Layout.preferredHeight: 32
-    spacing: Widget.spacing
-    uniformCellSizes: true
+  StyledTabBar {
     enabled: BluetoothManager.enabled
     opacity: enabled ? 1 : 0.5
-
-    Repeater {
-      model: [I18n.tr("Devices ({0})", BluetoothManager.pairedDevices.length), I18n.tr("Discover")]
-
-      StyledTabButton {
-        required property int index
-        required property string modelData
-        text: modelData
-        checked: root.currentTab === index
-        onClicked: root.currentTab = index
-      }
-    }
+    tabs: [I18n.tr("Devices ({0})", BluetoothManager.pairedDevices.length), I18n.tr("Discover")]
+    currentIndex: root.currentTab
+    onTabClicked: index => root.currentTab = index
   }
 
   DeviceList {

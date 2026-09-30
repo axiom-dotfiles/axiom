@@ -103,14 +103,14 @@ ColumnLayout {
         Layout.fillWidth: true
         spacing: Widget.spacing / 2
 
-        ChatIconButton {
+        FlatIconButton {
           enabled: !ChatManager.attaching
           iconText: "content_paste"
           tooltipText: I18n.tr("Paste image")
           onClicked: ChatManager.attachClipboard()
         }
 
-        ChatIconButton {
+        FlatIconButton {
           enabled: !ChatManager.attaching
           iconText: "screenshot_region"
           tooltipText: I18n.tr("Screenshot a region")

@@ -4,6 +4,7 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import qs.config
+import qs.components.methods
 
 Rectangle {
   id: component
@@ -33,23 +34,17 @@ Rectangle {
   property color badgeTextColor: Theme.background
 
   // -- Implementation --
-  // A fully transparent state fades as the hover (else resting) color at
-  // alpha 0: fading from "transparent" (transparent black) flashes dark
-  // mid-animation
-  function _fadeable(c: color, hover: color, rest: color): color {
-    return c.a === 0 ? Qt.alpha(hover.a > 0 ? hover : rest, 0) : c;
-  }
 
-  // UHH maybe having one button for layouts and not layouts is not the move
-  Layout.fillHeight: true
-  Layout.fillWidth: true
+  // A square of this side, which layouts keep (anchor or size it to
+  // change that)
+  property int size: Widget.height
+
   Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
-  // TODO: different bar extents break this
-  implicitWidth: Widget.height
-  implicitHeight: Widget.height
+  implicitWidth: component.size
+  implicitHeight: component.size
 
-  color: component._fadeable(mouseArea.pressed ? component.pressColor : (mouseArea.containsMouse ? component.hoverColor : component.backgroundColor), component.hoverColor, component.backgroundColor)
-  border.color: component._fadeable(mouseArea.pressed ? component.borderPressColor : (mouseArea.containsMouse ? component.borderHoverColor : component.borderColor), component.borderHoverColor, component.borderColor)
+  color: Utils.fadeable(mouseArea.pressed ? component.pressColor : (mouseArea.containsMouse ? component.hoverColor : component.backgroundColor), component.hoverColor, component.backgroundColor)
+  border.color: Utils.fadeable(mouseArea.pressed ? component.borderPressColor : (mouseArea.containsMouse ? component.borderHoverColor : component.borderColor), component.borderHoverColor, component.borderColor)
   border.width: component.borderWidth
   radius: component.borderRadius
 
