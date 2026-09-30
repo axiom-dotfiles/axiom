@@ -1,4 +1,3 @@
-// qs/components/reusable/StyledIcon.qml
 pragma ComponentBehavior: Bound
 import QtQuick
 import qs.config

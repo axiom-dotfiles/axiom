@@ -1,4 +1,3 @@
-// qs/components/reusable/StyledIconButton.qml
 pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Controls
@@ -9,9 +8,6 @@ import qs.components.methods
 
 ToolButton {
   id: root
-
-  // -- Signals --
-  // null
 
   // -- Public API --
   property string iconText: ""
@@ -56,8 +52,8 @@ ToolButton {
 
   contentItem: StyledIcon {
     text: root.iconText
-    font.pixelSize: root.iconSize
-    color: root.iconColor
+    textSize: root.iconSize
+    textColor: root.iconColor
     horizontalAlignment: Text.AlignHCenter
     verticalAlignment: Text.AlignVCenter
   }

@@ -5,7 +5,7 @@ import qs.config
 
 // A titled group of fields, as on the settings page (editor inspectors)
 StyledContainer {
-  id: group
+  id: root
   property string title
   property string description
   default property alias content: groupColumn.data
@@ -24,7 +24,7 @@ StyledContainer {
     spacing: Widget.spacing * 1.5
 
     StyledText {
-      text: group.title
+      text: root.title
       textColor: Theme.accent
       textSize: Appearance.fontSize + 1
       font.bold: true
@@ -32,8 +32,8 @@ StyledContainer {
     }
 
     StyledText {
-      visible: group.description !== ""
-      text: group.description
+      visible: root.description !== ""
+      text: root.description
       opacity: 0.7
       textSize: Appearance.fontSize - 2
       wrapMode: Text.WordWrap

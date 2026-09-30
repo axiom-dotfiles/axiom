@@ -170,14 +170,13 @@ BaseWidget {
 
         StyledIcon {
           text: segment.stat.icon
-          color: root.foregroundColor
-          font.pixelSize: root.barConfig.fontSize
+          textColor: root.foregroundColor
+          textSize: root.barConfig.fontSize
         }
-        Text {
+        StyledText {
           text: segment.stat.value
-          color: root.foregroundColor
-          font.family: Appearance.fontFamily
-          font.pixelSize: root.barConfig.fontSize * (root.isVertical ? 0.7 : 0.9)
+          textColor: root.foregroundColor
+          textSize: root.barConfig.fontSize * (root.isVertical ? 0.7 : 0.9)
         }
       }
     }

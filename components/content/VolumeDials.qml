@@ -26,7 +26,7 @@ Card {
       anchors.centerIn: parent
       spacing: Widget.spacing
       PercentageCircle {
-        readonly property real side: Math.max(0, Math.min(dial.width, dial.height - (label.visible ? label.height + Widget.spacing : 0)))
+        readonly property real side: Math.max(0, Math.min(dial.width, dial.height - (dialLabel.visible ? dialLabel.height + Widget.spacing : 0)))
         anchors.horizontalCenter: parent.horizontalCenter
         width: side
         height: side
@@ -42,7 +42,7 @@ Card {
         }
       }
       StyledText {
-        id: label
+        id: dialLabel
         visible: !root.compact
         anchors.horizontalCenter: parent.horizontalCenter
         text: dial.muted ? I18n.tr("{0} · muted", dial.label) : `${dial.label} · ${Math.round(dial.level * 100)}%`
@@ -67,7 +67,7 @@ Card {
       icon: AudioManager.muted ? "volume_off" : "volume_up"
       label: I18n.tr("Output")
       onToggled: AudioManager.toggleMute()
-      onStepped: delta => AudioManager.setVolume(Math.max(0, Math.min(1, AudioManager.volume + delta)))
+      onStepped: delta => AudioManager.stepNodeVolume(AudioManager.defaultSink, delta)
     }
     Dial {
       visible: !root.compact
@@ -76,9 +76,9 @@ Card {
       level: AudioManager.sourceVolume
       muted: AudioManager.sourceMuted
       icon: AudioManager.sourceMuted ? "mic_off" : "mic"
-      label: I18n.tr("Mic")
+      label: I18n.tr("Input")
       onToggled: AudioManager.toggleSourceMute()
-      onStepped: delta => AudioManager.setSourceVolume(Math.max(0, Math.min(1, AudioManager.sourceVolume + delta)), 1)
+      onStepped: delta => AudioManager.stepNodeVolume(AudioManager.defaultSource, delta)
     }
   }
 }

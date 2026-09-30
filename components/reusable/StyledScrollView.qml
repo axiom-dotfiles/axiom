@@ -1,4 +1,3 @@
-// qs/components/reusable/StyledScrollView.qml
 pragma ComponentBehavior: Bound
 
 import QtQuick

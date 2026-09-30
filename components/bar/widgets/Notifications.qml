@@ -30,7 +30,6 @@ BarWidget {
   }
 
   PopoutAnchor {
-    id: anchor
     popouts: root.popouts
     panel: root.panel
     popoutName: "Notifications"

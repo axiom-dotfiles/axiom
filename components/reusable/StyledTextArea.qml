@@ -1,7 +1,6 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Window
 import qs.config
 
 StyledContainer {
@@ -12,7 +11,6 @@ StyledContainer {
   property alias placeholderText: textInput.placeholderText
   property alias input: textInput
   property alias readOnly: textInput.readOnly
-  property alias wantsKeyboardFocus: textInput.activeFocus
   property bool expandable: false
   // Expandable only: Enter is a new line and Ctrl+Enter submits, instead
   // of Enter submitting and Shift+Enter being a new line
@@ -23,7 +21,6 @@ StyledContainer {
   property int minHeight: 40
 
   signal accepted
-  signal boxClicked
 
   implicitHeight: {
     if (!expandable)
@@ -97,14 +94,10 @@ StyledContainer {
               event.accepted = false;
             }
           } else if (root.expandable && (event.modifiers & Qt.ShiftModifier)) {
-            // Shift+Enter in expandable mode: insert newline (default behavior)
+            // Shift+Enter in expandable mode: a new line
             event.accepted = false;
-          } else if (!root.expandable) {
-            // Enter in non-expandable mode: emit accepted
-            root.accepted();
-            event.accepted = true;
           } else {
-            // Enter in expandable mode without Shift: emit accepted
+            // Enter submits
             root.accepted();
             event.accepted = true;
           }
@@ -115,7 +108,7 @@ StyledContainer {
         color: "transparent"
       }
 
-      // Custom cursor for consistency with your original design
+      // An accent bar, blinking while focused
       cursorDelegate: Rectangle {
         width: 2
         color: Theme.accent
