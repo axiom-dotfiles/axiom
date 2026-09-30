@@ -2205,6 +2205,7 @@
     "Saved in {0}. Click to open it.": "{0} に保存しました。クリックで開きます。",
     "Start": "開始",
     "Show time recorded": "録画時間を表示",
-    "record": "録画"
+    "record": "録画",
+    "Clipboard": "クリップボード"
   }
 }

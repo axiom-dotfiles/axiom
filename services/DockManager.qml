@@ -176,8 +176,17 @@ QtObject {
     }
   }
 
+  // Only while a dock is built: nothing else reads the refreshed state,
+  // and every popout, OSD and toast opens a layer
+  readonly property bool _active: DockConfig.shownIds.length > 0
+  on_ActiveChanged: {
+    if (root._active)
+      Hyprland.refreshMonitors();
+  }
+
   property Connections _layers: Connections {
     target: Hyprland
+    enabled: root._active
 
     function onRawEvent(event) {
       if (event.name === "openlayer" || event.name === "closelayer" || event.name === "configreloaded")
@@ -240,7 +249,10 @@ QtObject {
     });
   }
 
-  Component.onCompleted: Hyprland.refreshMonitors()
+  Component.onCompleted: {
+    if (root._active)
+      Hyprland.refreshMonitors();
+  }
 
   property IpcHandler _ipc: IpcHandler {
     target: "dock"
