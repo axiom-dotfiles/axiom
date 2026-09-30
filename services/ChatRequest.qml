@@ -3,6 +3,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
+import qs.config
 import qs.components.methods
 
 /**
@@ -50,8 +51,7 @@ QtObject {
     root._bodyPath = "";
     const config = ["url = " + Utils.curlConfigValue(request.url)].concat(request.headers.map(header => "header = " + Utils.curlConfigValue(header)));
     if (request.body !== undefined) {
-      const dir = Quickshell.env("XDG_RUNTIME_DIR") || "/tmp";
-      root._bodyPath = `${dir}/axiom-chat-${Date.now()}-${Math.floor(Math.random() * 1e9)}.json`;
+      root._bodyPath = Paths.runtimeDir + "/axiom-chat-" + Date.now() + "-" + Math.floor(Math.random() * 1e9) + ".json";
       _bodyFile.path = root._bodyPath;
       _bodyFile.setText(request.body);
       config.push("data-binary = " + Utils.curlConfigValue("@" + root._bodyPath));

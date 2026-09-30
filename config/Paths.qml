@@ -19,6 +19,12 @@ QtObject {
   // Per-user state outside the repo ($XDG_STATE_HOME/axiom/): secrets,
   // the generated hyprlock config
   readonly property string userStatePath: (Quickshell.env("XDG_STATE_HOME") || root.homeDirectory + ".local/state") + "/axiom/"
+  // $XDG_RUNTIME_DIR, the user's own 0700 tmpfs (always there, unlike
+  // runtimePath, which is made by whatever writes into it)
+  readonly property string runtimeDir: Quickshell.env("XDG_RUNTIME_DIR") || "/tmp"
+  // Scratch files that go with the session: unsaved chat attachments,
+  // clipboard thumbnails, copy-only screenshots, album art
+  readonly property string runtimePath: root.runtimeDir + "/axiom/"
 
   // A path from config or the user: trimmed, a leading ~ as home, no
   // trailing slash ("~/Pictures/" -> "/home/<user>/Pictures")

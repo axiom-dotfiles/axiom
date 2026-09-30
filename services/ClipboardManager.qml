@@ -41,7 +41,7 @@ Singleton {
   readonly property int _maxLength: 100000
   // The newest images given a thumbnail
   readonly property int _maxThumbnails: 50
-  readonly property string _thumbDir: (Quickshell.env("XDG_RUNTIME_DIR") || "/tmp") + "/axiom/clipboard"
+  readonly property string _thumbDir: Paths.runtimePath + "clipboard"
 
   // Lists cliphist's history again (axiom's own is always current), at most
   // once a second: the launcher asks on every keystroke
