@@ -36,7 +36,7 @@ Card {
   readonly property string today: root.now.toDateString()
   readonly property int firstDay: I18n.locale.firstDayOfWeek % 7
   // The language's time format (e.g. 午後 3:05 in Japanese), seconds added after the minutes
-  readonly property string timeFormat: I18n.dateFormat(root.properties.use24h ?? true ? "time24" : "time12").replace("mm", root.properties.showSeconds ? "mm:ss" : "mm")
+  readonly property string timeFormat: I18n.dateFormat(root.properties.use24h ? "time24" : "time12").replace("mm", root.properties.showSeconds ? "mm:ss" : "mm")
 
   // 6 weeks of days for the shown month
   readonly property var days: Utils.monthGrid(root.shownYear, root.shownMonthIndex, root.firstDay, root.today)

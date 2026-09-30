@@ -86,7 +86,7 @@ Card {
   // tiles aren't rebuilt whenever something is switched: a literal list,
   // not defs' keys (defs follows the toggles)
   readonly property var known: ["wifi", "bluetooth", "caffeine", "dnd", "darkMode", "nightLight", "powerSaver", "pin"].concat(root.sessionActions)
-  readonly property var actions: (root.properties.actions ?? ["wifi", "bluetooth", "caffeine", "dnd", "darkMode"]).filter(a => root.known.includes(a))
+  readonly property var actions: root.properties.actions.filter(a => root.known.includes(a))
   readonly property var shown: root.actions.filter(a => {
     switch (a) {
     case "wifi":
@@ -106,7 +106,7 @@ Card {
 
   // Every tile is the same size, so the names all fit when the widest does
   // (ActionTile.labelFits, measured in its label font)
-  readonly property string labels: root.properties.labels ?? "auto"
+  readonly property string labels: root.properties.labels
   // "Confirm?" counts for the actions that ask, so arming one doesn't hide
   // every name
   readonly property var _fitLabels: root.shown.map(a => root.def(a).label).concat(root.shown.some(a => ShellManager.destructiveActions.includes(a)) ? [I18n.tr("Confirm?")] : [])

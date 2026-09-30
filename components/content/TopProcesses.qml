@@ -12,12 +12,12 @@ import qs.components.content.base
 Card {
   id: root
 
-  readonly property string sortBy: root.properties.sortBy ?? "cpu"
+  readonly property string sortBy: root.properties.sortBy
   readonly property real rowHeight: Widget.height
   // As many as asked for, and as fit
   readonly property int fitting: Math.max(1, Math.floor((list.height + Widget.spacing / 2) / (root.rowHeight + Widget.spacing / 2)))
   // Not `rows`: that is the slot size in Card
-  readonly property var processes: SystemManager.processes.slice().sort((a, b) => b[root.sortBy] - a[root.sortBy]).slice(0, Math.min(root.properties.count ?? 8, root.fitting))
+  readonly property var processes: SystemManager.processes.slice().sort((a, b) => b[root.sortBy] - a[root.sortBy]).slice(0, Math.min(root.properties.count, root.fitting))
 
   Component.onCompleted: SystemManager.acquire(root, {
     "metrics": ["processes"],

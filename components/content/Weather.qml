@@ -16,10 +16,10 @@ Card {
 
   // From config only (acquire() must not follow live values)
   readonly property var weatherRequest: ({
-      "latitude": root.properties.latitude ?? "",
-      "longitude": root.properties.longitude ?? "",
-      "location": root.properties.location ?? "",
-      "units": root.properties.units ?? "celsius"
+      "latitude": root.properties.latitude,
+      "longitude": root.properties.longitude,
+      "location": root.properties.location,
+      "units": root.properties.units
     })
   readonly property var source: WeatherManager.sourceFor(weatherRequest)
   onWeatherRequestChanged: WeatherManager.acquire(root, weatherRequest)

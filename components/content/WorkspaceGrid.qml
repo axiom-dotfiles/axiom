@@ -16,15 +16,20 @@ import qs.components.content.base
 Panel {
   id: root
 
-  readonly property HyprlandMonitor monitor: wrapper?.currentData?.monitor ?? null
-  readonly property bool vertical: wrapper?.currentData?.vertical ?? false
-  readonly property real cell: wrapper?.currentData?.cellSize ?? Widget.height
-  // The widget's options
-  readonly property var options: wrapper?.currentData?.properties ?? ({})
-  readonly property color activeColor: Theme.resolveColor(options.activeColor ?? "accent")
-  readonly property color occupiedColor: Theme.resolveColor(options.occupiedColor ?? "border")
-  readonly property color emptyColor: Theme.resolveColor(options.emptyColor ?? "backgroundAlt")
-  readonly property color textColor: Theme.resolveColor(options.textColor ?? "background")
+  // From the widget's payload (BarPopouts copies it onto these, and the
+  // widget's options onto `properties`, once the popout has loaded: until
+  // then `properties` is empty, hence the few `??` below)
+  property HyprlandMonitor monitor: null
+  property bool vertical: false
+  property real cellSize: Widget.height
+  // The bar's, so the cells match its row
+  property real radius: Widget.radius
+  property int fontSize: Appearance.fontSize
+
+  readonly property color activeColor: Theme.resolveColor(root.properties.activeColor)
+  readonly property color occupiedColor: Theme.resolveColor(root.properties.occupiedColor)
+  readonly property color emptyColor: Theme.resolveColor(root.properties.emptyColor)
+  readonly property color textColor: Theme.resolveColor(root.properties.textColor)
   readonly property int base: HyprlandManager.workspaceBase(root.monitor)
   // Not `cols`/`rows`: those are Panel's slot size
   readonly property int gridColumns: WorkspacesConfig.columns
@@ -34,10 +39,6 @@ Panel {
     const index = root.activeId - root.base;
     return index >= 0 && index < root.gridColumns * root.gridRows ? index : 0;
   }
-  readonly property real cellSpacing: root.options.spacing ?? Widget.spacing / 2
-  // The bar's, so the cells match its row
-  readonly property real cellRadius: wrapper?.currentData?.radius ?? Widget.radius
-  readonly property int cellFontSize: wrapper?.currentData?.fontSize ?? Appearance.fontSize
 
   implicitWidth: grid.implicitWidth + margins * 2
 
@@ -48,7 +49,7 @@ Panel {
   Grid {
     id: grid
     columns: root.gridColumns
-    spacing: root.cellSpacing
+    spacing: root.properties.spacing ?? 0
 
     Repeater {
       model: root.gridColumns * root.gridRows
@@ -63,12 +64,12 @@ Panel {
         readonly property bool hasWindows: (workspace?.toplevels?.values?.length ?? 0) > 0
         // In the row (or column) the bar shows
         readonly property bool inBar: root.vertical ? index % root.gridColumns === root.activeIndex % root.gridColumns : Math.floor(index / root.gridColumns) === Math.floor(root.activeIndex / root.gridColumns)
-        readonly property var windowData: root.options.showAppIcons && hasWindows ? HyprlandManager.biggestWindowForWorkspace(wsId) : null
+        readonly property var windowData: root.properties.showAppIcons && hasWindows ? HyprlandManager.biggestWindowForWorkspace(wsId) : null
         readonly property string iconPath: windowData ? IconResolver.resolveWindowIcon(windowData.class, windowData.title) : ""
 
-        width: root.cell
-        height: root.cell
-        radius: root.cellRadius
+        width: root.cellSize
+        height: root.cellSize
+        radius: root.radius
         color: isActive ? root.activeColor : cellArea.containsMouse ? Theme.backgroundHighlight : hasWindows ? root.occupiedColor : root.emptyColor
         opacity: inBar ? 1.0 : 0.85
 
@@ -84,17 +85,17 @@ Panel {
         // The workspace id, or its place in the grid counted from 1, as on the bar
         StyledText {
           anchors.centerIn: parent
-          visible: root.options.labels === "numbers" && wsCell.iconPath === ""
-          text: root.options.relativeNumbers ? wsCell.index + 1 : wsCell.wsId
+          visible: root.properties.labels === "numbers" && wsCell.iconPath === ""
+          text: root.properties.relativeNumbers ? wsCell.index + 1 : wsCell.wsId
           textColor: wsCell.isActive || wsCell.hasWindows ? root.textColor : Theme.foreground
-          textSize: root.cellFontSize - 1
+          textSize: root.fontSize - 1
         }
 
         MouseArea {
           id: cellArea
           anchors.fill: parent
           hoverEnabled: true
-          enabled: root.options.clickToSwitch ?? true
+          enabled: root.properties.clickToSwitch ?? false
           cursorShape: Qt.PointingHandCursor
           onClicked: HyprlandManager.goToWorkspace(wsCell.wsId, "go", root.monitor)
         }
