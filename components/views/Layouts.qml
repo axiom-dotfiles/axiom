@@ -37,24 +37,6 @@ BaseView {
   readonly property real edgeLength: root.menuScreen ? (root.menuVertical ? root.menuScreen.height : root.menuScreen.width) : 0
   // Where the menu's modules sit on its screen (EdgeMenuManager.placementOf)
   readonly property var menuPlace: root.menu ? EdgeMenuManager.placementOf(root.menu) : null
-  // The menu's screen around it, in grid units from its origin
-  // (GridPlacement.screenBox), else null
-  readonly property var menuScreenBox: root.menuPlace ? GridPlacement.screenBox(root.menuScreen.width, root.menuScreen.height, EdgeMenuManager.cardUnitOf(root.menu), GridPlacement.bounds(root.menu.modules), root.menu.edge, root.menuPlace.along, root.menuPlace.across) : null
-  // What's taken along its edge: the strip an integrated menu reserves,
-  // else the bars' and border's room the menu sits past
-  readonly property real reservedDepth: {
-    const place = root.menuPlace;
-    if (!place)
-      return 0;
-    return place.frame.reserves ? place.across + place.depth + place.frame.after : place.frame.before;
-  }
-  // The other enabled menus on its screen, in screen px (GridCanvas.ghosts)
-  readonly property var ghosts: {
-    if (!root.menu || !root.menuScreen || !EdgeMenuManager.showingOthers)
-      return [];
-    const screenName = root.menuScreen.name;
-    return (EdgeMenuManager.localMenus ?? []).map((other, i) => i !== EdgeMenuManager.selectedMenuIndex && other.enabled && EdgeMenusConfig.screenFor(other)?.name === screenName ? EdgeMenuManager.screenRectsOf(other, i) : null).filter(ghost => ghost !== null);
-  }
   readonly property bool menuTooLong: root.menu?.length !== "edge" && root.edgeLength > 0 && root.menuLength > root.edgeLength
   readonly property string menuFitText: {
     if (!root.menu)
@@ -82,14 +64,15 @@ BaseView {
     canvasTitle: root.editingMenu ? (root.menu ? EdgeMenuManager.menuLabel(root.menu, EdgeMenuManager.selectedMenuIndex) : I18n.tr("No edge menus")) : (root.view ? OverlayConfig.viewLabel(root.view, OverlayManager.selectedViewIndex) : I18n.tr("No pages"))
     emptyText: root.editingMenu ? I18n.tr("No edge menus yet: add one with New menu.") : I18n.tr(root.view ? "A tool page: it has no layout to edit. Drag it in the list to reorder it." : "No pages yet: add one with New page.")
     edge: root.editingMenu && root.menu ? root.menu.edge : ""
-    screenBox: root.editingMenu ? root.menuScreenBox : null
+    screenBox: root.editingMenu && root.menu ? EdgeMenuManager.screenBoxOf(root.menu) : null
     screenSize: root.editingMenu && root.menuScreen ? ({
         "width": root.menuScreen.width,
         "height": root.menuScreen.height
       }) : null
-    reservedDepth: root.editingMenu ? root.reservedDepth : 0
+    reservedDepth: root.editingMenu && root.menuPlace ? GridPlacement.menuReservedDepth(root.menuPlace) : 0
     reservedLabel: root.menuPlace?.frame.reserves ? I18n.tr("Reserved while open") : I18n.tr("Bars and border")
-    ghosts: root.editingMenu ? root.ghosts : []
+    // The other enabled menus on its screen, in screen px
+    ghosts: root.editingMenu && EdgeMenuManager.showingOthers ? EdgeMenuManager.othersOn(EdgeMenuManager.selectedMenuIndex) : []
     fitText: root.editingMenu ? root.menuFitText : root.pageFitText
     fitWarning: root.editingMenu ? root.menuTooLong : root.shrunk
     editable: root.editingMenu ? root.menu !== null : root.isCustom

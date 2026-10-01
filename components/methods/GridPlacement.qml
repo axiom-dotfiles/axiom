@@ -232,6 +232,238 @@ QtObject {
     };
   }
 
+  // How much an area `width` × `height` px with card size `unit` shrinks
+  // modules reaching `bounds`: 1 where they fit
+  function fitScale(bounds, width, height, unit) {
+    const sizes = root.trackSizes(bounds, unit);
+    return sizes.width <= 0 ? 1 : Math.min(1, width / sizes.width, height / sizes.height);
+  }
+
+  // --- Edge menus on their screen ---
+
+  // Where a menu's modules (`length` px along the edge) start along its
+  // edge, `edgeLength` px long: from its anchor (`menu.align`,
+  // `menu.offset`; alongStart), or at `startPad` when it takes the whole
+  // edge (`menu.length` "edge")
+  function menuAlong(menu, length, edgeLength, unit, startPad, endPad) {
+    if (menu.length === "edge")
+      return startPad;
+    return root.alongStart(menu.align, menu.offset, length, edgeLength, unit, startPad, endPad);
+  }
+
+  // Where a menu's modules (reaching `bounds`, at card size `unit`) sit on
+  // a `screenWidth` × `screenHeight` screen, its `frame` (EdgeMenuManager's
+  // frames) around them, in px: { along (from the edge's start), across
+  // (from the edge), length, depth (the grid along and across the edge),
+  // edgeLength, frame, screenWidth, screenHeight }
+  function menuPlacement(menu, bounds, unit, frame, screenWidth, screenHeight) {
+    const vertical = menu.edge === "Left" || menu.edge === "Right";
+    const sizes = root.trackSizes(bounds, unit);
+    const length = vertical ? sizes.height : sizes.width;
+    const edgeLength = vertical ? screenHeight : screenWidth;
+    return {
+      "along": root.menuAlong(menu, length, edgeLength, unit, frame.startPad, frame.endPad),
+      "across": frame.across,
+      "length": length,
+      "depth": vertical ? sizes.width : sizes.height,
+      "edgeLength": edgeLength,
+      "frame": frame,
+      "screenWidth": screenWidth,
+      "screenHeight": screenHeight
+    };
+  }
+
+  // A menu as it sits on its screen (`place`, from menuPlacement), in
+  // screen px: { rect (its box: the modules plus the frame's `after` all
+  // round), modules: [{ type, rect }] } (rects { x, y, width, height }),
+  // stretched along its edge when it takes the whole edge
+  function menuOnScreen(menu, place, unit) {
+    const vertical = menu.edge === "Left" || menu.edge === "Right";
+    const room = place.edgeLength - place.frame.startPad - place.frame.endPad;
+    const stretch = menu.length !== "edge" ? null : vertical ? {
+      "height": room
+    } : {
+      "width": room
+    };
+    const sizes = root.trackSizes(root.bounds(menu.modules), unit, stretch);
+    const depth = vertical ? sizes.width : sizes.height;
+    const acrossAt = menu.edge === "Right" ? place.screenWidth - place.across - depth : menu.edge === "Bottom" ? place.screenHeight - place.across - depth : place.across;
+    const x = vertical ? acrossAt : place.along;
+    const y = vertical ? place.along : acrossAt;
+    const pad = place.frame.after;
+    return {
+      "rect": {
+        "x": x - pad,
+        "y": y - pad,
+        "width": sizes.width + pad * 2,
+        "height": sizes.height + pad * 2
+      },
+      "modules": (menu.modules ?? []).map(module => {
+        const r = root.rectPx(module.place, sizes);
+        return {
+          "type": module.type,
+          "rect": {
+            "x": x + r.x,
+            "y": y + r.y,
+            "width": r.width,
+            "height": r.height
+          }
+        };
+      })
+    };
+  }
+
+  // How deep the band along a menu's edge is (`place`, from
+  // menuPlacement): the strip an integrated menu reserves, else the room
+  // the bars and border take, which the menu sits past
+  function menuReservedDepth(place) {
+    return place.frame.reserves ? place.across + place.depth + place.frame.after : place.frame.before;
+  }
+
+  // --- The layouts editor's canvas ---
+
+  // The grid the editor draws for modules reaching `bounds`: `lead` units
+  // before them and `trail` after (at least 8 × 4 units), or with a screen
+  // (`screenBox`, from screenBox) reaching one unit past it all round.
+  // { leadCols, leadRows (units before 0, 0), cols, rows (in all) }
+  function canvasExtent(bounds, screenBox, lead, trail) {
+    if (!screenBox)
+      return {
+        "leadCols": lead,
+        "leadRows": lead,
+        "cols": lead + Math.max(bounds.cols, 8) + trail,
+        "rows": lead + Math.max(bounds.rows, 4) + trail
+      };
+    // A hair under, so a side exactly on a unit doesn't add one
+    const leadCols = Math.max(0, Math.ceil(-screenBox.x - 0.001)) + 1;
+    const leadRows = Math.max(0, Math.ceil(-screenBox.y - 0.001)) + 1;
+    return {
+      "leadCols": leadCols,
+      "leadRows": leadRows,
+      "cols": leadCols + Math.max(bounds.cols, Math.ceil(screenBox.x + screenBox.w - 0.001)) + 1,
+      "rows": leadRows + Math.max(bounds.rows, Math.ceil(screenBox.y + screenBox.h - 0.001)) + 1
+    };
+  }
+
+  // That grid (canvasExtent) drawn centred in an area `width` × `height`
+  // px, scaled from the reference card size to fit (at most `maxScale`):
+  // { scale, step (a unit and the gap after it), gap, unitSize, originX,
+  // originY (where unit 0, 0 sits) }
+  function canvasFit(extent, width, height, maxScale) {
+    const refStep = root.stepOf();
+    const scale = Math.max(0.05, Math.min(maxScale, width / (extent.cols * refStep), height / (extent.rows * refStep)));
+    const step = refStep * scale;
+    const gap = root.cardSpacing * scale;
+    return {
+      "scale": scale,
+      "step": step,
+      "gap": gap,
+      "unitSize": step - gap,
+      "originX": (width - extent.cols * step + gap) / 2 + extent.leadCols * step,
+      "originY": (height - extent.rows * step + gap) / 2 + extent.leadRows * step
+    };
+  }
+
+  // A place ({ x, y, w, h } in units) on the canvas (`fit`, from
+  // canvasFit), in px: { x, y, width, height }
+  function canvasRect(fit, place) {
+    return {
+      "x": fit.originX + place.x * fit.step,
+      "y": fit.originY + place.y * fit.step,
+      "width": place.w * fit.unitSize + (place.w - 1) * fit.gap,
+      "height": place.h * fit.unitSize + (place.h - 1) * fit.gap
+    };
+  }
+
+  // A screen box (from screenBox) on the canvas, in px, its sides midway
+  // in the gaps
+  function canvasScreenRect(fit, box) {
+    return {
+      "x": fit.originX + box.x * fit.step - fit.gap / 2,
+      "y": fit.originY + box.y * fit.step - fit.gap / 2,
+      "width": box.w * fit.step,
+      "height": box.h * fit.step
+    };
+  }
+
+  // Where a w × h module dropped with the pointer at `x`, `y` (canvas px)
+  // lands: the unit it's held by stays under the pointer. `grab`: where
+  // it's held, in px from its top left, or null to hold it by the middle.
+  // { x, y, w, h }
+  function canvasDropPlace(fit, x, y, w, h, grab) {
+    const col = Math.floor((x - fit.originX + fit.gap / 2) / fit.step);
+    const row = Math.floor((y - fit.originY + fit.gap / 2) / fit.step);
+    const grabCol = grab ? Math.max(0, Math.min(w - 1, Math.floor(grab.x / fit.step))) : Math.floor((w - 1) / 2);
+    const grabRow = grab ? Math.max(0, Math.min(h - 1, Math.floor(grab.y / fit.step))) : Math.floor((h - 1) / 2);
+    return {
+      "x": col - grabCol,
+      "y": row - grabRow,
+      "w": w,
+      "h": h
+    };
+  }
+
+  // The band `depth` px deep inside `rect` ({ x, y, width, height }) along
+  // its `edge` side ("Left" | "Right" | "Top" | "Bottom")
+  function edgeBand(rect, edge, depth) {
+    switch (edge) {
+    case "Left":
+      return {
+        "x": rect.x,
+        "y": rect.y,
+        "width": depth,
+        "height": rect.height
+      };
+    case "Right":
+      return {
+        "x": rect.x + rect.width - depth,
+        "y": rect.y,
+        "width": depth,
+        "height": rect.height
+      };
+    case "Top":
+      return {
+        "x": rect.x,
+        "y": rect.y,
+        "width": rect.width,
+        "height": depth
+      };
+    case "Bottom":
+      return {
+        "x": rect.x,
+        "y": rect.y + rect.height - depth,
+        "width": rect.width,
+        "height": depth
+      };
+    }
+    return {
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0
+    };
+  }
+
+  // A bar `thick` px wide centred on `rect`'s `edge` side, running along
+  // `span`'s extent on that side (a rect; `rect` itself for the whole side)
+  function edgeBar(rect, edge, span, thick) {
+    const alongRows = edge === "Left" || edge === "Right";
+    const across = edge === "Left" ? rect.x : edge === "Right" ? rect.x + rect.width : edge === "Top" ? rect.y : rect.y + rect.height;
+    const start = alongRows ? span.y : span.x;
+    const length = alongRows ? span.height : span.width;
+    return alongRows ? {
+      "x": across - thick / 2,
+      "y": start,
+      "width": thick,
+      "height": length
+    } : {
+      "x": start,
+      "y": across - thick / 2,
+      "width": length,
+      "height": thick
+    };
+  }
+
   // Moves arr[from] to insertion index `to`, counted as if it were still
   // in place. Returns the index it lands at, or -1 for no move.
   function moveTo(arr, from, to) {

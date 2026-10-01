@@ -213,6 +213,136 @@ TestCase {
     compare(box("Bottom", 0, 0).slice(1, 2), [-250], "against a bottom edge");
   }
 
+  // A rect as [x, y, width, height], as compare() doesn't compare objects
+  // by value
+  function r4(r) {
+    return [r.x, r.y, r.width, r.height].map(v => Math.round(v * 100) / 100);
+  }
+
+  function test_fitScale() {
+    const bounds = {
+      "cols": 8,
+      "rows": 4
+    };
+    compare(GridPlacement.fitScale(bounds, 1200, 600, 500), 1, "fits");
+    compare(GridPlacement.fitScale(bounds, 510, 600, 500), 0.5, "half as wide as two cards");
+    compare(GridPlacement.fitScale({
+      "cols": 0,
+      "rows": 0
+    }, 10, 10, 500), 1, "nothing to fit");
+  }
+
+  function test_menuPlacement_and_onScreen() {
+    const frame = {
+      "startPad": 10,
+      "endPad": 10,
+      "across": 20,
+      "before": 5,
+      "after": 8,
+      "reserves": true
+    };
+    const menu = {
+      "edge": "Right",
+      "length": "fit",
+      "align": "start",
+      "offset": 1,
+      "modules": [at(0, 0, 2, 4)]
+    };
+    const place = GridPlacement.menuPlacement(menu, GridPlacement.bounds(menu.modules), 500, frame, 1920, 1080);
+    // Two units across (240), four along (500), a step (130) from the start
+    compare([place.along, place.across, place.length, place.depth, place.edgeLength], [140, 20, 500, 240, 1080]);
+    compare(GridPlacement.menuReservedDepth(place), 268, "across + depth + after");
+    frame.reserves = false;
+    compare(GridPlacement.menuReservedDepth(place), 5, "a floating menu: what it sits past");
+    const onScreen = GridPlacement.menuOnScreen(menu, place, 500);
+    // Against the right edge: 1920 - 20 - 240 = 1660
+    compare(r4(onScreen.rect), [1652, 132, 256, 516], "the modules plus `after` all round");
+    compare(r4(onScreen.modules[0].rect), [1660, 140, 240, 500]);
+    menu.length = "edge";
+    const whole = GridPlacement.menuOnScreen(menu, GridPlacement.menuPlacement(menu, GridPlacement.bounds(menu.modules), 500, frame, 1920, 1080), 500);
+    compare(r4(whole.modules[0].rect), [1660, 10, 240, 1060], "taking the whole edge: stretched along it");
+  }
+
+  function test_canvasExtent() {
+    const bounds = {
+      "cols": 2,
+      "rows": 6
+    };
+    const free = GridPlacement.canvasExtent(bounds, null, 1, 3);
+    compare([free.leadCols, free.leadRows, free.cols, free.rows], [1, 1, 12, 10], "at least 8 × 4, plus lead and trail");
+    const onScreen = GridPlacement.canvasExtent(bounds, {
+      "x": -0.5,
+      "y": -2,
+      "w": 10,
+      "h": 4
+    }, 1, 3);
+    // One unit past the screen all round; a side exactly on a unit adds none
+    compare([onScreen.leadCols, onScreen.leadRows, onScreen.cols, onScreen.rows], [2, 3, 13, 10]);
+  }
+
+  function test_canvas_geometry() {
+    const extent = {
+      "leadCols": 1,
+      "leadRows": 1,
+      "cols": 10,
+      "rows": 6
+    };
+    // A step is 130 px at the reference size: 1300 × 780 fits at 0.5
+    const fit = GridPlacement.canvasFit(extent, 650, 390, 0.6);
+    compare([fit.scale, fit.step, fit.gap, fit.unitSize], [0.5, 65, 10, 55]);
+    compare([fit.originX, fit.originY], [70, 70], "centred, a lead unit in (plus half a gap)");
+    compare(GridPlacement.canvasFit(extent, 6500, 3900, 0.6).scale, 0.6, "at most maxScale");
+    compare(r4(GridPlacement.canvasRect(fit, {
+      "x": 1,
+      "y": 0,
+      "w": 2,
+      "h": 1
+    })), [135, 70, 120, 55]);
+    compare(r4(GridPlacement.canvasScreenRect(fit, {
+      "x": 0,
+      "y": 0,
+      "w": 2,
+      "h": 1
+    })), [65, 65, 130, 65], "its sides midway in the gaps");
+    function drop(x, y, w, h, grab) {
+      const p = GridPlacement.canvasDropPlace(fit, x, y, w, h, grab);
+      return [p.x, p.y, p.w, p.h];
+    }
+    compare(drop(70, 70, 1, 1, null), [0, 0, 1, 1]);
+    compare(drop(200, 140, 3, 3, null), [1, 0, 3, 3], "a new module held by its middle unit");
+    compare(drop(200, 140, 3, 3, {
+      "x": 0,
+      "y": 0
+    }), [2, 1, 3, 3], "a moved one by the unit it was grabbed by");
+    compare(drop(200, 140, 3, 3, {
+      "x": 500,
+      "y": 500
+    }), [0, -1, 3, 3], "the grab kept inside the module");
+  }
+
+  function test_edgeBand_and_edgeBar() {
+    const rect = {
+      "x": 10,
+      "y": 20,
+      "width": 100,
+      "height": 50
+    };
+    compare(r4(GridPlacement.edgeBand(rect, "Left", 5)), [10, 20, 5, 50]);
+    compare(r4(GridPlacement.edgeBand(rect, "Right", 5)), [105, 20, 5, 50]);
+    compare(r4(GridPlacement.edgeBand(rect, "Top", 5)), [10, 20, 100, 5]);
+    compare(r4(GridPlacement.edgeBand(rect, "Bottom", 5)), [10, 65, 100, 5]);
+    compare(r4(GridPlacement.edgeBand(rect, "", 5)), [0, 0, 0, 0]);
+    const span = {
+      "x": 30,
+      "y": 25,
+      "width": 20,
+      "height": 10
+    };
+    compare(r4(GridPlacement.edgeBar(rect, "Left", rect, 4)), [8, 20, 4, 50], "the whole side, centred on it");
+    compare(r4(GridPlacement.edgeBar(rect, "Right", span, 4)), [108, 25, 4, 10], "along the span");
+    compare(r4(GridPlacement.edgeBar(rect, "Bottom", span, 4)), [30, 68, 20, 4]);
+  }
+
   function test_trackSizes() {
     const natural = GridPlacement.trackSizes({
       "cols": 8,

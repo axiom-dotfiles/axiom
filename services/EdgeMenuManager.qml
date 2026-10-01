@@ -94,73 +94,46 @@ Singleton {
     };
   }
 
-  // Where a menu's modules sit on its screen, in px: { along (from the
-  // edge's start), across (from the edge), length, depth (the modules'
-  // grid along and across the edge), frame, screen }, or null without a
+  // Where a menu's modules sit on its screen, in px
+  // (GridPlacement.menuPlacement, plus its `screen`), or null without a
   // screen. Modules from `modules` when given (an edit's, before it).
   function placementOf(menu, modules) {
     const screen = EdgeMenusConfig.screenFor(menu);
     if (!menu || !screen)
       return null;
-    const vertical = menu.edge === "Left" || menu.edge === "Right";
-    const frame = root.frameOf(menu);
-    const sizes = GridPlacement.trackSizes(GridPlacement.bounds(modules ?? menu.modules), root.cardUnitOf(menu));
-    const length = vertical ? sizes.height : sizes.width;
-    const edgeLength = vertical ? screen.height : screen.width;
-    return {
-      "along": EdgeMenusConfig.alongStartOf(menu, length, edgeLength, frame.startPad, frame.endPad),
-      "across": frame.across,
-      "length": length,
-      "depth": vertical ? sizes.width : sizes.height,
-      "edgeLength": edgeLength,
-      "frame": frame,
-      "screen": screen
-    };
+    const place = GridPlacement.menuPlacement(menu, GridPlacement.bounds(modules ?? menu.modules), root.cardUnitOf(menu), root.frameOf(menu), screen.width, screen.height);
+    place.screen = screen;
+    return place;
   }
 
-  // A menu as it sits on its screen, in screen px: { name, rect (its box:
-  // the modules plus the frame's `after` all round), modules: [{ type,
-  // rect }] } (rects { x, y, width, height }), stretched along its edge
-  // when it takes the whole edge. `index`: its place in the draft, for its
-  // label.
+  // A menu as it sits on its screen, in screen px
+  // (GridPlacement.menuOnScreen), with its `name`. `index`: its place in
+  // the draft, for its label.
   function screenRectsOf(menu, index) {
     const place = root.placementOf(menu);
     if (!place)
       return null;
-    const vertical = menu.edge === "Left" || menu.edge === "Right";
-    const room = place.edgeLength - place.frame.startPad - place.frame.endPad;
-    const stretch = menu.length !== "edge" ? null : vertical ? {
-      "height": room
-    } : {
-      "width": room
-    };
-    const sizes = GridPlacement.trackSizes(GridPlacement.bounds(menu.modules), root.cardUnitOf(menu), stretch);
-    const depth = vertical ? sizes.width : sizes.height;
-    const acrossAt = menu.edge === "Right" ? place.screen.width - place.across - depth : menu.edge === "Bottom" ? place.screen.height - place.across - depth : place.across;
-    const x = vertical ? acrossAt : place.along;
-    const y = vertical ? place.along : acrossAt;
-    const pad = place.frame.after;
-    return {
-      "name": root.menuLabel(menu, index),
-      "rect": {
-        "x": x - pad,
-        "y": y - pad,
-        "width": sizes.width + pad * 2,
-        "height": sizes.height + pad * 2
-      },
-      "modules": menu.modules.map(module => {
-        const r = GridPlacement.rectPx(module.place, sizes);
-        return {
-          "type": module.type,
-          "rect": {
-            "x": x + r.x,
-            "y": y + r.y,
-            "width": r.width,
-            "height": r.height
-          }
-        };
-      })
-    };
+    const onScreen = GridPlacement.menuOnScreen(menu, place, root.cardUnitOf(menu));
+    onScreen.name = root.menuLabel(menu, index);
+    return onScreen;
+  }
+
+  // A menu's screen around its grid, in grid units from its origin
+  // (GridPlacement.screenBox), for the layouts editor; null without one
+  function screenBoxOf(menu) {
+    const place = root.placementOf(menu);
+    if (!place)
+      return null;
+    return GridPlacement.screenBox(place.screenWidth, place.screenHeight, root.cardUnitOf(menu), GridPlacement.bounds(menu.modules), menu.edge, place.along, place.across);
+  }
+
+  // The draft's other enabled menus on the screen of the one at `index`,
+  // as they sit on it (screenRectsOf)
+  function othersOn(index) {
+    const screenName = EdgeMenusConfig.screenFor(root.localMenus?.[index])?.name;
+    if (!screenName)
+      return [];
+    return (root.localMenus ?? []).map((other, i) => i !== index && other.enabled && EdgeMenusConfig.screenFor(other)?.name === screenName ? root.screenRectsOf(other, i) : null).filter(other => other !== null);
   }
 
   // After the editor's grid shifted by `shift` grid units ({ x, y }; a

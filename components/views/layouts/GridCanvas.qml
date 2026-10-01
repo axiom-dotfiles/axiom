@@ -51,34 +51,30 @@ Card {
   readonly property var list: root.editable ? root.modules : []
   readonly property var bounds: GridPlacement.bounds(root.list)
 
-  // Room around the grid, in grid units: to make space left of / above it,
-  // and to grow it right / down
-  readonly property int lead: 1
-  readonly property int trail: 3
   // The axis the menu's edge runs along (a side menu's rows, else columns)
   readonly property bool alongRows: root.edge === "Left" || root.edge === "Right"
-  // With a screen, the grid reaches one unit past it all round
   readonly property bool hasScreen: root.screenBox !== null && root.screenBox !== undefined
-  readonly property int leadCols: root.hasScreen ? Math.max(0, Math.ceil(-root.screenBox.x - 0.001)) + 1 : root.lead
-  readonly property int leadRows: root.hasScreen ? Math.max(0, Math.ceil(-root.screenBox.y - 0.001)) + 1 : root.lead
-  readonly property int gridCols: root.leadCols + (root.hasScreen ? Math.max(root.bounds.cols, Math.ceil(root.screenBox.x + root.screenBox.w - 0.001)) + 1 : Math.max(root.bounds.cols, 8) + root.trail)
-  readonly property int gridRows: root.leadRows + (root.hasScreen ? Math.max(root.bounds.rows, Math.ceil(root.screenBox.y + root.screenBox.h - 0.001)) + 1 : Math.max(root.bounds.rows, 4) + root.trail)
-
-  // One grid unit and the gap after it, at the reference card size, then
-  // scaled to fit the area
-  readonly property real refStep: OverlayConfig.gridUnit + OverlayConfig.cardSpacing
-  readonly property real scaleFactor: Math.max(0.05, Math.min(0.6, area.width / (root.gridCols * root.refStep), area.height / (root.gridRows * root.refStep)))
-  readonly property real step: root.refStep * root.scaleFactor
-  readonly property real gap: OverlayConfig.cardSpacing * root.scaleFactor
-  readonly property real unitSize: root.step - root.gap
+  // The grid drawn: a unit of room before the modules and three after
+  // (to make space left of / above them, and to grow them right / down),
+  // or one unit past the screen all round (GridPlacement.canvasExtent)
+  readonly property var extent: GridPlacement.canvasExtent(root.bounds, root.hasScreen ? root.screenBox : null, 1, 3)
+  // Its scale to fit the area, from the reference card size; geometry is
+  // scaled by hand (GridPlacement.canvasFit)
+  readonly property var fit: GridPlacement.canvasFit(root.extent, area.width, area.height, 0.6)
+  readonly property real step: root.fit.step
+  readonly property real gap: root.fit.gap
+  readonly property real unitSize: root.fit.unitSize
   // The corners of the lattice's squares and of the modules on it, the
   // same so they line up
   readonly property real cellRadius: Math.min(Widget.radius, root.unitSize / 4)
-  // Where grid 0, 0 sits in the area
-  readonly property real originX: (area.width - root.gridCols * root.step + root.gap) / 2 + root.leadCols * root.step
-  readonly property real originY: (area.height - root.gridRows * root.step + root.gap) / 2 + root.leadRows * root.step
   // The screen, in the area's px (its sides midway in the gaps)
-  readonly property rect screenRect: root.hasScreen ? Qt.rect(root.originX + root.screenBox.x * root.step - root.gap / 2, root.originY + root.screenBox.y * root.step - root.gap / 2, root.screenBox.w * root.step, root.screenBox.h * root.step) : Qt.rect(0, 0, 0, 0)
+  readonly property var screenRect: root.hasScreen ? GridPlacement.canvasScreenRect(root.fit, root.screenBox) : root.noRect
+  readonly property var noRect: ({
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0
+    })
 
   // Screen px in the area, through the screen's outline
   readonly property real pxScale: root.hasScreen && root.screenSize && root.screenSize.width > 0 ? root.screenRect.width / root.screenSize.width : 0
@@ -86,24 +82,11 @@ Card {
     return Qt.rect(root.screenRect.x + r.x * root.pxScale, root.screenRect.y + r.y * root.pxScale, r.width * root.pxScale, r.height * root.pxScale);
   }
   // The band along the menu's edge, in the area
-  readonly property rect reservedRect: {
-    const r = root.screenRect;
-    const d = root.reservedDepth * root.pxScale;
-    switch (root.edge) {
-    case "Left":
-      return Qt.rect(r.x, r.y, d, r.height);
-    case "Right":
-      return Qt.rect(r.x + r.width - d, r.y, d, r.height);
-    case "Top":
-      return Qt.rect(r.x, r.y, r.width, d);
-    case "Bottom":
-      return Qt.rect(r.x, r.y + r.height - d, r.width, d);
-    }
-    return Qt.rect(0, 0, 0, 0);
-  }
+  readonly property var reservedRect: GridPlacement.edgeBand(root.screenRect, root.edge, root.reservedDepth * root.pxScale)
 
   function rectFor(place) {
-    return Qt.rect(root.originX + place.x * root.step, root.originY + place.y * root.step, place.w * root.unitSize + (place.w - 1) * root.gap, place.h * root.unitSize + (place.h - 1) * root.gap);
+    const r = GridPlacement.canvasRect(root.fit, place);
+    return Qt.rect(r.x, r.y, r.width, r.height);
   }
 
   color: Theme.background
@@ -231,27 +214,10 @@ Card {
         // under the pointer, a new one is centred on it
         function placeAt(point, drag, grab) {
           const p = root.dragLayer.mapToItem(gridTarget, point.x, point.y);
-          const col = Math.floor((p.x - root.originX + root.gap / 2) / root.step);
-          const row = Math.floor((p.y - root.originY + root.gap / 2) / root.step);
-          let w = drag.w ?? 2;
-          let h = drag.h ?? 2;
-          let grabCol = Math.floor((w - 1) / 2);
-          let grabRow = Math.floor((h - 1) / 2);
-          if (drag.kind === "module-move") {
-            const module = root.list[drag.index];
-            if (!module)
-              return null;
-            w = module.place.w;
-            h = module.place.h;
-            grabCol = Math.max(0, Math.min(w - 1, Math.floor(grab.x / root.step)));
-            grabRow = Math.max(0, Math.min(h - 1, Math.floor(grab.y / root.step)));
-          }
-          return {
-            "x": col - grabCol,
-            "y": row - grabRow,
-            "w": w,
-            "h": h
-          };
+          if (drag.kind !== "module-move")
+            return GridPlacement.canvasDropPlace(root.fit, p.x, p.y, drag.w ?? 2, drag.h ?? 2, null);
+          const module = root.list[drag.index];
+          return module ? GridPlacement.canvasDropPlace(root.fit, p.x, p.y, module.place.w, module.place.h, grab) : null;
         }
 
         Component.onCompleted: root.dragLayer.registerTarget(gridTarget)
@@ -264,7 +230,7 @@ Card {
         id: lattice
         anchors.fill: parent
         visible: root.editable
-        readonly property string paintKey: [root.gridCols, root.gridRows, root.step, root.originX, root.originY, root.bounds.cols, root.bounds.rows, root.screenRect.x, root.screenRect.y, root.screenRect.width, root.screenRect.height, root.cellRadius, width, height, Theme.border, Theme.warning].join(",")
+        readonly property string paintKey: [root.extent.cols, root.extent.rows, root.step, root.fit.originX, root.fit.originY, root.bounds.cols, root.bounds.rows, root.screenRect.x, root.screenRect.y, root.screenRect.width, root.screenRect.height, root.cellRadius, width, height, Theme.border, Theme.warning].join(",")
         onPaintKeyChanged: lattice.requestPaint()
         onPaint: {
           const ctx = lattice.getContext("2d");
@@ -273,13 +239,14 @@ Card {
           ctx.lineWidth = 1;
           ctx.fillStyle = Theme.warning;
           const radius = root.cellRadius;
-          for (let row = -root.leadRows; row < root.gridRows - root.leadRows; row++) {
-            for (let col = -root.leadCols; col < root.gridCols - root.leadCols; col++) {
+          const extent = root.extent;
+          for (let row = -extent.leadRows; row < extent.rows - extent.leadRows; row++) {
+            for (let col = -extent.leadCols; col < extent.cols - extent.leadCols; col++) {
               const inside = col >= 0 && row >= 0 && col < root.bounds.cols && row < root.bounds.rows;
               const box = root.screenBox;
               const past = root.hasScreen && (col + 0.5 < box.x || col + 0.5 > box.x + box.w || row + 0.5 < box.y || row + 0.5 > box.y + box.h);
-              const x = Math.round(root.originX + col * root.step) + 0.5;
-              const y = Math.round(root.originY + row * root.step) + 0.5;
+              const x = Math.round(root.fit.originX + col * root.step) + 0.5;
+              const y = Math.round(root.fit.originY + row * root.step) + 0.5;
               ctx.beginPath();
               ctx.roundedRect(x, y, root.unitSize - 1, root.unitSize - 1, radius, radius);
               if (past) {
@@ -410,17 +377,14 @@ Card {
             "w": Math.max(1, root.bounds.cols),
             "h": Math.max(1, root.bounds.rows)
           })
-          readonly property rect screen: root.screenRect
           readonly property real thick: Math.max(3, root.gap / 2)
-          readonly property real across: root.edge === "Left" ? screen.x - thick / 2 : root.edge === "Right" ? screen.x + screen.width - thick / 2 : root.edge === "Top" ? screen.y - thick / 2 : screen.y + screen.height - thick / 2
-          readonly property real start: edgeLine.whole ? (root.alongRows ? screen.y : screen.x) : (root.alongRows ? box.y : box.x)
-          readonly property real length: edgeLine.whole ? (root.alongRows ? screen.height : screen.width) : (root.alongRows ? box.height : box.width)
+          readonly property var bar: GridPlacement.edgeBar(root.screenRect, root.edge, edgeLine.whole ? root.screenRect : edgeLine.box, edgeLine.thick)
           visible: edgeLine.whole || root.list.length > 0
           z: edgeLine.whole ? 0 : 1
-          x: root.alongRows ? edgeLine.across : edgeLine.start
-          y: root.alongRows ? edgeLine.start : edgeLine.across
-          width: root.alongRows ? edgeLine.thick : edgeLine.length
-          height: root.alongRows ? edgeLine.length : edgeLine.thick
+          x: edgeLine.bar.x
+          y: edgeLine.bar.y
+          width: edgeLine.bar.width
+          height: edgeLine.bar.height
           radius: edgeLine.thick / 2
           color: Theme.accent
           opacity: edgeLine.whole ? 0.3 : 1

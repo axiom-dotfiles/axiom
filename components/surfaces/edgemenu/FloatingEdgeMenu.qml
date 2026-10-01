@@ -4,6 +4,7 @@ import Quickshell.Wayland
 
 import qs.config
 import qs.services
+import qs.components.methods
 import qs.components.hosts.popout
 
 // A floating edge menu: an EdgePopout over the windows, growing out of the
@@ -29,7 +30,7 @@ EdgePopout {
     return (Appearance.screenBorder ? Appearance.screenMargin : 0) + (ShellManager.barOn(screenName, location)?.reservedZone ?? 0) + EdgeMenuManager.zoneOn(screenName, Bar.edgeName(location));
   }
 
-  // Along the edge, from the menu's anchor (EdgeMenusConfig.alongStartOf),
+  // Along the edge, from the menu's anchor (GridPlacement.menuAlong),
   // in screen px: this window's edge coordinates start past what's
   // reserved on the perpendicular edge at its start
   readonly property real screenLength: root.vertical ? root.screen.height : root.screen.width
@@ -39,8 +40,10 @@ EdgePopout {
   readonly property real startPad: root.alongOrigin + root.filletMargin + root.contentPadding
   readonly property real endPad: root.reservedOn(root.vertical ? Bar.Bottom : Bar.Right) + root.filletMargin + root.contentPadding
   // From config, so the hover strip lines up before the body has loaded
-  readonly property real gridLength: EdgeMenusConfig.gridLengthOf(root.menu, root.vertical, EdgeMenuManager.cardUnitOf(root.menu))
-  readonly property real modulesStart: EdgeMenusConfig.alongStartOf(root.menu, root.gridLength, root.screenLength, root.startPad, root.endPad)
+  // Its card size (EdgeMenuManager.cardUnitOf)
+  readonly property int unit: EdgeMenuManager.cardUnitOf(root.menu)
+  readonly property real gridLength: EdgeMenusConfig.gridLengthOf(root.menu, root.vertical, root.unit)
+  readonly property real modulesStart: GridPlacement.menuAlong(root.menu, root.gridLength, root.screenLength, root.unit, root.startPad, root.endPad)
 
   // Across the edge, in px from the screen edge
   readonly property real reservedBefore: root.reservedOn(root.edge)

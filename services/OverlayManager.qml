@@ -126,11 +126,9 @@ QtObject {
     const bounds = GridPlacement.bounds(modules);
     return Object.keys(root.areas).sort().map(screenName => {
       const area = root.areas[screenName];
-      const sizes = GridPlacement.trackSizes(bounds, area.unit);
-      const scale = sizes.width <= 0 ? 1 : Math.min(1, area.width / sizes.width, area.height / sizes.height);
       return {
         "screen": screenName,
-        "scale": scale
+        "scale": GridPlacement.fitScale(bounds, area.width, area.height, area.unit)
       };
     });
   }
