@@ -16,9 +16,10 @@ BaseView {
   id: root
 
   readonly property bool editingMenu: OverlayManager.editTarget === "menu"
-  readonly property var view: OverlayManager.selectedView()
+  // What's being edited: a page (view), or a menu
+  readonly property var view: root.editingMenu ? null : OverlayManager.selectedView()
   readonly property bool isCustom: root.view?.type === "Custom"
-  readonly property var menu: EdgeMenuManager.selectedMenu()
+  readonly property var menu: root.editingMenu ? EdgeMenuManager.selectedMenu() : null
 
   // How the page fits each monitor's overlay, or the menu its edge
   readonly property var fits: root.isCustom ? OverlayManager.fitOf(root.view.modules) : []
@@ -59,26 +60,26 @@ BaseView {
     id: layout
     grid: root.grid
     editor: root.editingMenu ? EdgeMenuManager.layout : OverlayManager.layout
-    editModules: root.editingMenu ? (root.menu ? root.menu.modules : null) : (root.isCustom ? root.view.modules : null)
-    canvasIcon: root.editingMenu ? (root.menu ? Utils.edgeArrow(root.menu.edge) : "side_navigation") : (root.view ? OverlayConfig.pageIcon(root.view) : "dashboard")
-    canvasTitle: root.editingMenu ? (root.menu ? EdgeMenuManager.menuLabel(root.menu, EdgeMenuManager.selectedMenuIndex) : I18n.tr("No edge menus")) : (root.view ? OverlayConfig.viewLabel(root.view, OverlayManager.selectedViewIndex) : I18n.tr("No pages"))
-    emptyText: root.editingMenu ? I18n.tr("No edge menus yet: add one with New menu.") : I18n.tr(root.view ? "A tool page: it has no layout to edit. Drag it in the list to reorder it." : "No pages yet: add one with New page.")
-    edge: root.editingMenu && root.menu ? root.menu.edge : ""
-    screenBox: root.editingMenu && root.menu ? EdgeMenuManager.screenBoxOf(root.menu) : null
-    screenSize: root.editingMenu && root.menuScreen ? ({
+    canvas.modules: root.editingMenu ? (root.menu ? root.menu.modules : null) : (root.isCustom ? root.view.modules : null)
+    canvas.icon: root.editingMenu ? (root.menu ? Utils.edgeArrow(root.menu.edge) : "side_navigation") : (root.view ? OverlayConfig.pageIcon(root.view) : "dashboard")
+    canvas.title: root.editingMenu ? (root.menu ? EdgeMenuManager.menuLabel(root.menu, EdgeMenuManager.selectedMenuIndex) : I18n.tr("No edge menus")) : (root.view ? OverlayConfig.viewLabel(root.view, OverlayManager.selectedViewIndex) : I18n.tr("No pages"))
+    canvas.emptyText: root.editingMenu ? I18n.tr("No edge menus yet: add one with New menu.") : I18n.tr(root.view ? "A tool page: it has no layout to edit. Drag it in the list to reorder it." : "No pages yet: add one with New page.")
+    canvas.edge: root.menu ? root.menu.edge : ""
+    canvas.screenBox: root.menu ? EdgeMenuManager.screenBoxOf(root.menu) : null
+    canvas.screenSize: root.menuScreen ? ({
         "width": root.menuScreen.width,
         "height": root.menuScreen.height
       }) : null
-    reservedDepth: root.editingMenu && root.menuPlace ? GridPlacement.menuReservedDepth(root.menuPlace) : 0
-    reservedLabel: root.menuPlace?.frame.reserves ? I18n.tr("Reserved while open") : I18n.tr("Bars and border")
+    canvas.reservedDepth: root.menuPlace ? GridPlacement.menuReservedDepth(root.menuPlace) : 0
+    canvas.reservedLabel: root.menuPlace?.frame.reserves ? I18n.tr("Reserved while open") : I18n.tr("Bars and border")
     // The other enabled menus on its screen, in screen px
-    ghosts: root.editingMenu && EdgeMenuManager.showingOthers ? EdgeMenuManager.othersOn(EdgeMenuManager.selectedMenuIndex) : []
-    fitText: root.editingMenu ? root.menuFitText : root.pageFitText
-    fitWarning: root.editingMenu ? root.menuTooLong : root.shrunk
-    editable: root.editingMenu ? root.menu !== null : root.isCustom
-    notEditableHint: root.editingMenu ? I18n.tr("Add a menu to put modules in it") : I18n.tr("Pick one of your pages to add modules to it")
-    dirty: OverlayManager.isDirty || EdgeMenuManager.isDirty
-    canSave: OverlayManager.problems.length === 0 && EdgeMenuManager.problems.length === 0
+    canvas.ghosts: root.menu && EdgeMenuManager.showingOthers ? EdgeMenuManager.othersOn(EdgeMenuManager.selectedMenuIndex) : []
+    canvas.fitText: root.editingMenu ? root.menuFitText : root.pageFitText
+    canvas.fitWarning: root.editingMenu ? root.menuTooLong : root.shrunk
+    canvas.dirty: OverlayManager.isDirty || EdgeMenuManager.isDirty
+    canvas.canSave: OverlayManager.problems.length === 0 && EdgeMenuManager.problems.length === 0
+    inspector.editable: root.editingMenu ? root.menu !== null : root.isCustom
+    inspector.notEditableHint: root.editingMenu ? I18n.tr("Add a menu to put modules in it") : I18n.tr("Pick one of your pages to add modules to it")
     onSave: {
       if (OverlayManager.isDirty)
         OverlayManager.saveChanges();
@@ -91,6 +92,9 @@ BaseView {
     }
 
     LayoutsPanel {
+      editingMenu: root.editingMenu
+      view: root.view
+      menu: root.menu
       width: layout.sideWidth
       height: layout.pageHeight
       dragLayer: layout

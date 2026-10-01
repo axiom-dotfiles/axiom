@@ -17,10 +17,11 @@ Item {
 
   required property var dragLayer
 
-  readonly property bool editingMenu: OverlayManager.editTarget === "menu"
-  readonly property var view: root.editingMenu ? null : OverlayManager.selectedView()
+  // What's being edited (Layouts): a page (`view`), or a `menu`
+  required property bool editingMenu
+  required property var view
+  required property var menu
   readonly property bool isCustom: root.view?.type === "Custom"
-  readonly property var menu: root.editingMenu ? EdgeMenuManager.selectedMenu() : null
   readonly property var problems: OverlayManager.problems.concat(EdgeMenuManager.problems)
 
   // StyledTextEntry writes each keystroke back to its `text`, which drops

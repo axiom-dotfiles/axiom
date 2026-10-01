@@ -14,29 +14,12 @@ GridDragLayer {
   // The overlay page's card grid (BaseView.grid)
   required property OverlayGrid grid
 
-  // The canvas: the modules to edit (null: nothing to edit), and what it's
-  // headed with, or says when there's nothing
-  property var editModules: null
-  property string canvasTitle: ""
-  property string canvasIcon: "dashboard"
-  property string emptyText: ""
-  property string edge: ""
-  // An edge menu's screen around it (GridPlacement.screenBox), its size,
-  // the band along its edge and the other menus on it (see GridCanvas)
-  property var screenBox: null
-  property var screenSize: null
-  property real reservedDepth: 0
-  property string reservedLabel: ""
-  property var ghosts: []
-  property string fitText: ""
-  property bool fitWarning: false
-  // The inspector: whether modules can be added, and the hint when not
-  property bool editable: true
-  property string notEditableHint: ""
-  // The editor's Save / Reset, on the canvas header
-  property bool dirty: false
-  property bool canSave: true
+  // The canvas and the inspector, for the caller to fill in (what's
+  // edited and how it's headed: see GridCanvas, EditorInspector)
+  readonly property alias canvas: canvas
+  readonly property alias inspector: inspector
 
+  // The canvas header's Save / Reset, for the whole editor
   signal save
   signal reset
 
@@ -56,33 +39,19 @@ GridDragLayer {
     height: root.canvasHeight
 
     GridCanvas {
+      id: canvas
       dragLayer: root
-      modules: root.editModules
-      icon: root.canvasIcon
-      title: root.canvasTitle
-      emptyText: root.emptyText
-      edge: root.edge
-      screenBox: root.screenBox
-      screenSize: root.screenSize
-      reservedDepth: root.reservedDepth
-      reservedLabel: root.reservedLabel
-      ghosts: root.ghosts
-      fitText: root.fitText
-      fitWarning: root.fitWarning
-      dirty: root.dirty
-      canSave: root.canSave
       onSave: root.save()
       onReset: root.reset()
     }
   }
 
   EditorInspector {
+    id: inspector
     x: root.sideWidth + OverlayConfig.cardSpacing
     y: root.canvasHeight + OverlayConfig.cardSpacing
     width: root.mainWidth
     height: root.pageHeight - root.canvasHeight - OverlayConfig.cardSpacing
     dragLayer: root
-    editable: root.editable
-    notEditableHint: root.notEditableHint
   }
 }

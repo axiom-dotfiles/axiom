@@ -18,7 +18,7 @@ Card {
   required property var dragLayer
   // The modules being edited, or null when there's nothing to edit (then
   // `emptyText` shows under the icon)
-  required property var modules
+  property var modules: null
   property string title: ""
   property string icon: "dashboard"
   property string emptyText: ""
