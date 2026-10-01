@@ -27,8 +27,9 @@ QtObject {
   // "square" | "horizontal" | "vertical"
   readonly property string shape: OverlayConfig.slotShape(slotRect)
   // A quarter card or smaller, or smaller than the full layout needs:
-  // room for the key figure only
-  readonly property bool compact: embedded && ((cols <= 2 && rows <= 2) || width < fullMinWidth || height < fullMinHeight)
+  // room for the key figure only (by px once laid out, so a module isn't
+  // built compact and rebuilt before it has a size)
+  readonly property bool compact: embedded && ((cols <= 2 && rows <= 2) || (width > 0 && width < fullMinWidth) || (height > 0 && height < fullMinHeight))
   // No card box (an edge menu with moduleBorders off)
   readonly property bool bare: embedded && (host?.bare ?? false)
   readonly property real pad: OverlayConfig.cardPad(compact, bare)
