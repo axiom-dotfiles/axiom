@@ -91,6 +91,22 @@ Rectangle {
     return repeater.count;
   }
 
+  // The wheel scrolls the chips, sideways along a horizontal lane
+  WheelHandler {
+    enabled: root.overflowing
+    target: null
+    acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
+    onWheel: event => {
+      const pixels = event.pixelDelta.y !== 0 ? event.pixelDelta.y : event.pixelDelta.x;
+      const angle = event.angleDelta.y !== 0 ? event.angleDelta.y : event.angleDelta.x;
+      const step = pixels !== 0 ? pixels : angle / 120 * Appearance.fontSize * 4;
+      if (root.vertical)
+        flick.contentY = Math.max(0, Math.min(flick.contentHeight - flick.height, flick.contentY - step));
+      else
+        flick.contentX = Math.max(0, Math.min(flick.contentWidth - flick.width, flick.contentX - step));
+    }
+  }
+
   ColumnLayout {
     anchors.fill: parent
     anchors.margins: Widget.padding
@@ -142,18 +158,8 @@ Rectangle {
       contentHeight: root.vertical ? chips.implicitHeight + root.gap : height
       flickableDirection: root.vertical ? Flickable.VerticalFlick : Flickable.HorizontalFlick
       boundsBehavior: Flickable.StopAtBounds
-      interactive: root.dragLayer.dragging === null
-
-      // A wheel turns vertically: along a horizontal lane, that scrolls it
-      // sideways (a vertical lane scrolls by itself)
-      WheelHandler {
-        enabled: !root.vertical && root.overflowing
-        target: null
-        onWheel: event => {
-          const delta = event.angleDelta.y !== 0 ? event.angleDelta.y : event.angleDelta.x;
-          flick.contentX = Math.max(0, Math.min(flick.contentWidth - flick.width, flick.contentX - delta / 2));
-        }
-      }
+      // Chips take mouse drags; the wheel scrolls (below)
+      interactive: false
 
       ScrollBar.horizontal: LaneScrollBar {
         policy: !root.vertical && root.overflowing ? ScrollBar.AlwaysOn : ScrollBar.AlwaysOff
