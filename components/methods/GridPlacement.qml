@@ -27,6 +27,37 @@ QtObject {
     return n * root.unitOf(unit) + (n - 1) * root.cardSpacing;
   }
 
+  // How many grid units (fractional) of card size `unit` span `length` px
+  function unitsAlong(length, unit) {
+    return Math.max(0, (length + root.cardSpacing) / (root.unitOf(unit) + root.cardSpacing));
+  }
+
+  // The screen (`width` × `height` px) around an edge menu with modules
+  // reaching `bounds`, on `edge` ("Left" | "Right" | "Top" | "Bottom") at
+  // `position` (0-1) along it: centred there and kept on the screen
+  // (`fills`: stretched along all of it), against its edge. In grid units
+  // from the menu's grid origin: { x, y, w, h }.
+  function screenBox(width, height, unit, bounds, edge, position, fills) {
+    const vertical = edge === "Left" || edge === "Right";
+    const along = root.unitsAlong(vertical ? height : width, unit);
+    const across = root.unitsAlong(vertical ? width : height, unit);
+    const length = vertical ? bounds.rows : bounds.cols;
+    const thick = vertical ? bounds.cols : bounds.rows;
+    const at = fills ? 0 : Math.max(0, Math.min(along * position - length / 2, along - length));
+    const from = edge === "Right" || edge === "Bottom" ? thick - across : 0;
+    return vertical ? {
+      "x": from,
+      "y": -at,
+      "w": across,
+      "h": along
+    } : {
+      "x": -at,
+      "y": from,
+      "w": along,
+      "h": across
+    };
+  }
+
   // A place as the [x, y, w, h] rect modules get as `slotRect`
   function rectOf(place) {
     return [place?.x ?? 0, place?.y ?? 0, place?.w ?? 2, place?.h ?? 2];

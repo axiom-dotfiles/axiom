@@ -21,6 +21,8 @@ GridDragLayer {
   property string canvasIcon: "dashboard"
   property string emptyText: ""
   property string edge: ""
+  // An edge menu's screen around it (GridPlacement.screenBox)
+  property var screenBox: null
   property string fitText: ""
   property bool fitWarning: false
   // The inspector: whether modules can be added, and the hint when not
@@ -55,6 +57,7 @@ GridDragLayer {
       title: root.canvasTitle
       emptyText: root.emptyText
       edge: root.edge
+      screenBox: root.screenBox
       fitText: root.fitText
       fitWarning: root.fitWarning
       dirty: root.dirty

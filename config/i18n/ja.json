@@ -1417,6 +1417,8 @@
     "Position along edge": "端に沿った位置",
     "Timeout": "表示時間",
     "Overlay size": "オーバーレイのサイズ",
+    "Module size": "モジュールのサイズ",
+    "Size of the menu's modules, relative to the overlay's cards on its monitor (which follow Overlay size).": "モニターのオーバーレイのカード（オーバーレイのサイズに従う）を基準にした、メニューのモジュールの大きさ。",
     "Dim other workspaces": "他のワークスペースを暗く",
     "Check interval": "確認間隔",
     "Poll interval": "更新間隔",
@@ -2017,7 +2019,6 @@
     "Standard: workspaces 1 to N, shared by every monitor. Per monitor: each monitor has its own 1 to N workspaces. Grid: each monitor has its own columns × rows workspaces. Per monitor and grid assign monitors a stable order (the primary monitor first, then the rest by their monitor identity), so a hotplug or Hyprland restart can't reshuffle which monitor owns which ids.": "標準：1〜N のワークスペースをすべてのモニターで共有します。モニターごと：各モニターに独自の 1〜N のワークスペースがあります。グリッド：各モニターに独自の 列 × 行 のワークスペースがあります。モニターごととグリッドでは、モニターに固定の順番（メインモニターが最初、残りはモニターの識別情報順）を割り当てるため、ホットプラグや Hyprland の再起動でどのモニターがどの ID を持つかが入れ替わることはありません。",
     "Widget padding": "ウィジェットの余白",
     "0 never suspends on idle.": "0 でアイドル時にスリープしません。",
-    "Card size": "カードのサイズ",
     "dp3": "Display P3",
     "Video players and browsers can ask to stay awake over D-Bus and systemd. The caffeine widget works either way.": "動画プレーヤーやブラウザは D-Bus や systemd 経由でスリープしないよう要求できます。スリープ防止ウィジェットはどちらの場合でも動作します。",
     "Stop playback": "再生を停止",
@@ -2187,7 +2188,6 @@
     "Stretch": "引き伸ばし",
     "Length of the hover strip along the edge, centred on the menu. Auto matches the menu's own length.": "辺に沿ったホバー領域の長さ（メニューの中央基準）。自動ではメニュー自体の長さに合わせます。",
     "Space between the menu's box and its modules. Auto uses the Popouts padding.": "メニューの枠とモジュールの間隔。自動ではポップアウトの余白を使います。",
-    "Size of one card. Modules are placed on a grid of quarter cards, as on overlay pages.": "1 枚のカードのサイズ。オーバーレイページと同じく、モジュールは¼カードのグリッドに配置されます。",
     "Theme editor": "テーマエディター",
     "What bar buttons, keybinds and IPC calls open this menu by. Set when the menu is made.": "バーのボタン、キーバインド、IPC 呼び出しがこのメニューを開くときに使う ID。メニュー作成時に設定されます。"
   }

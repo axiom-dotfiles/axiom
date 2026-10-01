@@ -135,6 +135,33 @@ TestCase {
     verify(!GridPlacement.normalize([]));
   }
 
+  function test_screenBox() {
+    // As [x, y, w, h], as compare() doesn't compare objects by value
+    function box(width, height, unit, bounds, edge, position, fills) {
+      const b = GridPlacement.screenBox(width, height, unit, bounds, edge, position, fills);
+      return [b.x, b.y, b.w, b.h];
+    }
+    // 500 px is four units of a 500 px card: a 1020 × 500 screen is 8 × 4
+    compare(GridPlacement.unitsAlong(500, 500), 4);
+    const two = {
+      "cols": 2,
+      "rows": 2
+    };
+    compare(box(1020, 500, 500, two, "Left", 0.5, false), [0, -1, 8, 4], "centred on a left edge");
+    compare(box(1020, 500, 500, two, "Right", 0, false), [-6, 0, 8, 4], "at the start of a right edge, against it");
+    compare(box(1020, 500, 500, two, "Top", 1, false), [-6, 0, 8, 4], "at the end of a top edge");
+    compare(GridPlacement.screenBox(1020, 500, 500, two, "Bottom", 0.5, false).y, -2, "against a bottom edge");
+    compare(GridPlacement.screenBox(1020, 500, 500, {
+      "cols": 1,
+      "rows": 1
+    }, "Left", 0.9, false).y, -3, "kept on the screen");
+    compare(GridPlacement.screenBox(1020, 500, 500, {
+      "cols": 2,
+      "rows": 6
+    }, "Left", 0.5, false).y, 0, "longer than the edge: from its start, scrolling");
+    compare(GridPlacement.screenBox(1020, 500, 500, two, "Left", 0.5, true).y, 0, "filling the edge");
+  }
+
   function test_trackSizes() {
     const natural = GridPlacement.trackSizes({
       "cols": 8,

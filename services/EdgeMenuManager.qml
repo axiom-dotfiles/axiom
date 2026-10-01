@@ -245,6 +245,16 @@ Singleton {
     return JSON.stringify(menu) !== JSON.stringify(saved);
   }
 
+  // A menu's card size: its screen's overlay's (OverlayManager.areas, or
+  // what the overlay would take on that screen before it reports one),
+  // scaled by the menu's moduleScale
+  function cardUnitOf(menu) {
+    const screen = EdgeMenusConfig.screenFor(menu);
+    const area = OverlayManager.areas[screen?.name ?? ""];
+    const unit = area ? area.unit : screen ? OverlayConfig.cardUnitFor(screen.width, screen.height) : OverlayConfig.cardUnit;
+    return Math.round(unit * menu.moduleScale / 100);
+  }
+
   function selectedMenu() {
     return root.localMenus?.[root.selectedMenuIndex] || null;
   }

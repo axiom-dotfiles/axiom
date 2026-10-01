@@ -166,12 +166,12 @@ TestCase {
     compare(osd.bars[0].showOsd, false);
     compare(osd.bars[1].apps, []);
     // v16: an edge menu's extraDepth becomes the size across its edge;
-    // v31: which goes into its card size (an empty menu is a card thick)
+    // v31: which is dropped with its card size (menus use the overlay's)
     compare(config.EdgeMenus[0].extraDepth, undefined);
     compare(config.EdgeMenus[0].extraWidth, undefined);
-    compare(config.EdgeMenus[0].cardSize, 440);
+    compare(config.EdgeMenus[0].cardSize, undefined);
     compare(config.EdgeMenus[1].extraHeight, undefined);
-    compare(config.EdgeMenus[1].cardSize, 360);
+    compare(config.EdgeMenus[1].cardSize, undefined);
     // v17: a Notes module's name becomes the Markdown file it moved to
     compare(modules[2].properties.name, undefined);
     compare(modules[2].properties.note, "my_list.md");
@@ -429,18 +429,18 @@ TestCase {
     compare(left.columns, undefined);
     compare(left.length, "edge");
     compare(left.modules.map(m => [m.type].concat(place(m))), [["NowPlaying", 0, 2, 4, 2], ["QuickActions", 0, 0, 4, 2], ["ClockCalendar", 0, 4, 4, 4]]);
-    // The extra width across a right edge goes into the card size
+    // The extra width across a right edge is dropped with the card size
     const right = menus[1];
     compare(right.length, "edge");
-    compare(right.cardSize, 445);
+    compare(right.cardSize, undefined);
     compare(right.extraWidth, undefined);
     compare(right.modules.map(m => [m.type].concat(place(m))), [["NowPlaying", 0, 0, 4, 2], ["Chat", 0, 2, 4, 8], ["QuickActions", 0, 10, 4, 2]]);
-    // Two Talls side by side on a top edge, 8 quarter units thick: 5 px
-    // across adds 2.5 to the card size
+    // Two Talls side by side on a top edge, 8 quarter units thick
     compare(menus[2].length, "content");
-    compare(menus[2].cardSize, 322);
+    compare(menus[2].cardSize, undefined);
     compare(menus[2].modules.map(place), [[0, 0, 4, 8], [4, 0, 4, 8]]);
-    verify(loaded.changes.some(change => change.includes("along the edge (200 px) dropped")));
+    verify(loaded.changes.some(change => change.includes("(200 px) dropped")));
+    verify(loaded.changes.some(change => change.includes("card size (395 px) dropped")));
   }
 
   function test_v31_pin_modules_become_a_pin_button() {

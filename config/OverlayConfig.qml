@@ -120,6 +120,12 @@ QtObject {
   readonly property real fitCardsHigh: 2.5
   readonly property real fitCardsWide: 4.5
   readonly property int minCardUnit: 280
+  // The card size for `width` × `height` px of free space: what fits,
+  // capped at the reference cardUnit, then scaled by Overlay size
+  function cardUnitFor(width, height) {
+    const fit = Math.min(height / fitCardsHigh, width / fitCardsWide);
+    return Math.round(Math.max(minCardUnit, Math.min(cardUnit, fit) * size / 100));
+  }
 
   // One grid unit (a quarter card) at the reference card size
   readonly property real gridUnit: GridPlacement.unitOf(cardUnit)

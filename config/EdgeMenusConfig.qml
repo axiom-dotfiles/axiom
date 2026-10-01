@@ -49,10 +49,11 @@ QtObject {
   }
 
   // The menu's length along its edge, from config alone (for the hover
-  // strip before the menu has ever been loaded): its modules' grid at its
-  // card size, as EdgeMenuBody lays it out, plus its padding
-  function lengthOf(menu, vertical) {
-    const sizes = GridPlacement.trackSizes(GridPlacement.bounds(menu.modules), menu.cardSize);
+  // strip before the menu has ever been loaded): its modules' grid at
+  // card size `unit` (EdgeMenuManager.cardUnitOf), as EdgeMenuBody lays
+  // it out, plus its padding
+  function lengthOf(menu, vertical, unit) {
+    const sizes = GridPlacement.trackSizes(GridPlacement.bounds(menu.modules), unit);
     return (vertical ? sizes.height : sizes.width) + root.paddingOf(menu) * 2;
   }
 }

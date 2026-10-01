@@ -1722,7 +1722,7 @@
       "type": "object",
       "required": ["id"],
       "additionalProperties": false,
-      "x-order": ["name", "enabled", "monitor", "openOnHover", "openDelay", "triggerSize", "triggerLength", "mode", "edge", "position", "length", "edgeDistance", "cardSize", "frame", "margin", "padding", "moduleBorders", "pinButton", "backgroundColor", "borderColor", "closeOnLeave", "closeDelay", "closeOnOutsideClick", "id"],
+      "x-order": ["name", "enabled", "monitor", "openOnHover", "openDelay", "triggerSize", "triggerLength", "mode", "edge", "position", "length", "moduleScale", "edgeDistance", "frame", "margin", "padding", "moduleBorders", "pinButton", "backgroundColor", "borderColor", "closeOnLeave", "closeDelay", "closeOnOutsideClick", "id"],
       "properties": {
         "id": { "x-group": "Advanced", "type": "string", "title": "Id", "x-control": "readonly", "description": "What bar buttons, keybinds and IPC calls open this menu by. Set when the menu is made." },
         "name": { "x-group": "General", "type": "string", "title": "Name", "default": "" },
@@ -1764,15 +1764,16 @@
           "x-enumLabels": { "content": "Fit its modules", "edge": "Whole edge" },
           "description": "Whole edge stretches the menu along its edge, sharing the room evenly between its rows (or columns on a top or bottom edge)."
         },
-        "cardSize": {
+        "moduleScale": {
           "x-group": "Placement",
           "type": "integer",
-          "title": "Card size",
-          "default": 320,
-          "minimum": 160,
-          "maximum": 600,
-          "x-unit": "px",
-          "description": "Size of one card. Modules are placed on a grid of quarter cards, as on overlay pages."
+          "x-control": "stepper",
+          "title": "Module size",
+          "default": 100,
+          "minimum": 50,
+          "maximum": 200,
+          "x-unit": "%",
+          "description": "Size of the menu's modules, relative to the overlay's cards on its monitor (which follow Overlay size)."
         },
         "edgeDistance": {
           "x-group": "Placement",

@@ -1072,10 +1072,11 @@ QtObject {
   // each module has a `place` { x, y, w, h } in quarter-card units. Custom
   // pages and edge menus get `modules` instead of `columns`. Fill cells
   // grow into the room they took; in an edge menu a cell filling along
-  // the edge makes it take the whole edge (`length: "edge"`), and the
-  // extra size across the edge goes into its card size (the extra along
-  // it is dropped). Pin modules became the menu's `pinButton`. The edge
-  // menu editor became part of the pinned Layouts page.
+  // the edge makes it take the whole edge (`length: "edge"`). Menus use
+  // their screen's overlay card size, so their own `cardSize` and extra
+  // sizes are dropped (modules are sized in units instead). Pin modules
+  // became the menu's `pinButton`. The edge menu editor became part of
+  // the pinned Layouts page.
   function _v30ToV31(config, changes) {
     const views = config.Overlay?.views;
     if (Array.isArray(views)) {
@@ -1115,26 +1116,15 @@ QtObject {
           changes.push(`${where}: Pin module -> pinButton`);
         }
       }
-      const extraAcross = (vertical ? menu.extraWidth : menu.extraHeight) ?? 0;
-      const extraAlong = (vertical ? menu.extraHeight : menu.extraWidth) ?? 0;
-      if (extraAcross > 0) {
-        // Across the edge the menu is n quarter units thick: span(n) grows
-        // by n / 4 for each pixel the card size grows
-        let thick = 0;
-        (menu.modules ?? []).forEach(module => {
-          const p = module.place;
-          thick = Math.max(thick, vertical ? p.x + p.w : p.y + p.h);
-        });
-        // An empty menu counts as one card thick
-        const n = thick > 0 ? thick : 4;
-        const size = Math.round((menu.cardSize ?? 320) + extraAcross * 4 / n);
-        menu.cardSize = Math.max(160, Math.min(600, size));
-        changes.push(`${where}: extra size across the edge -> cardSize ${menu.cardSize}`);
+      if ("cardSize" in menu) {
+        changes.push(`${where}: card size (${menu.cardSize} px) dropped: menus use the overlay's`);
+        delete menu.cardSize;
       }
-      if (extraAlong > 0)
-        changes.push(`${where}: extra size along the edge (${extraAlong} px) dropped`);
-      delete menu.extraWidth;
-      delete menu.extraHeight;
+      ["extraWidth", "extraHeight"].forEach(key => {
+        if ((menu[key] ?? 0) > 0)
+          changes.push(`${where}: ${key} (${menu[key]} px) dropped`);
+        delete menu[key];
+      });
     });
     return config;
   }

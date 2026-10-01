@@ -24,6 +24,10 @@ Card {
   property string emptyText: ""
   // An edge menu's edge ("Left", …), drawn along that side; "" for a page
   property string edge: ""
+  // An edge menu's screen around it ({ x, y, w, h } in grid units from
+  // the grid's origin, GridPlacement.screenBox), else null: drawn as a
+  // dashed outline, with what lies outside it tinted (it'd scroll)
+  property var screenBox: null
   // How the result fits, under the title (e.g. per monitor)
   property string fitText: ""
   property bool fitWarning: false
@@ -42,8 +46,14 @@ Card {
   // and to grow it right / down
   readonly property int lead: 1
   readonly property int trail: 3
-  readonly property int gridCols: Math.max(root.bounds.cols, 8) + root.lead + root.trail
-  readonly property int gridRows: Math.max(root.bounds.rows, 4) + root.lead + root.trail
+  // The axis the menu's edge runs along (a side menu's rows, else columns)
+  readonly property bool alongRows: root.edge === "Left" || root.edge === "Right"
+  // With a screen, the grid reaches one unit past it all round
+  readonly property bool hasScreen: root.screenBox !== null && root.screenBox !== undefined
+  readonly property int leadCols: root.hasScreen ? Math.max(0, Math.ceil(-root.screenBox.x - 0.001)) + 1 : root.lead
+  readonly property int leadRows: root.hasScreen ? Math.max(0, Math.ceil(-root.screenBox.y - 0.001)) + 1 : root.lead
+  readonly property int gridCols: root.leadCols + (root.hasScreen ? Math.max(root.bounds.cols, Math.ceil(root.screenBox.x + root.screenBox.w - 0.001)) + 1 : Math.max(root.bounds.cols, 8) + root.trail)
+  readonly property int gridRows: root.leadRows + (root.hasScreen ? Math.max(root.bounds.rows, Math.ceil(root.screenBox.y + root.screenBox.h - 0.001)) + 1 : Math.max(root.bounds.rows, 4) + root.trail)
 
   // One grid unit and the gap after it, at the reference card size, then
   // scaled to fit the area
@@ -52,9 +62,16 @@ Card {
   readonly property real step: root.refStep * root.scaleFactor
   readonly property real gap: OverlayConfig.cardSpacing * root.scaleFactor
   readonly property real unitSize: root.step - root.gap
+  // The corners of the lattice's squares and of the modules on it, the
+  // same so they line up
+  readonly property real cellRadius: Math.min(Widget.radius, root.unitSize / 4)
   // Where grid 0, 0 sits in the area
-  readonly property real originX: (area.width - root.gridCols * root.step + root.gap) / 2 + root.lead * root.step
-  readonly property real originY: (area.height - root.gridRows * root.step + root.gap) / 2 + root.lead * root.step
+  readonly property real originX: (area.width - root.gridCols * root.step + root.gap) / 2 + root.leadCols * root.step
+  readonly property real originY: (area.height - root.gridRows * root.step + root.gap) / 2 + root.leadRows * root.step
+  // The lattice's drawn box, in the area
+  readonly property rect latticeBox: Qt.rect(root.originX - root.leadCols * root.step, root.originY - root.leadRows * root.step, root.gridCols * root.step - root.gap, root.gridRows * root.step - root.gap)
+  // The screen, in the area's px (its sides midway in the gaps)
+  readonly property rect screenRect: root.hasScreen ? Qt.rect(root.originX + root.screenBox.x * root.step - root.gap / 2, root.originY + root.screenBox.y * root.step - root.gap / 2, root.screenBox.w * root.step, root.screenBox.h * root.step) : Qt.rect(0, 0, 0, 0)
 
   function rectFor(place) {
     return Qt.rect(root.originX + place.x * root.step, root.originY + place.y * root.step, place.w * root.unitSize + (place.w - 1) * root.gap, place.h * root.unitSize + (place.h - 1) * root.gap);
@@ -218,44 +235,87 @@ Card {
         id: lattice
         anchors.fill: parent
         visible: root.editable
-        readonly property string paintKey: [root.gridCols, root.gridRows, root.step, root.originX, root.originY, root.bounds.cols, root.bounds.rows, width, height, Theme.border].join(",")
+        readonly property string paintKey: [root.gridCols, root.gridRows, root.step, root.originX, root.originY, root.bounds.cols, root.bounds.rows, root.screenRect.x, root.screenRect.y, root.screenRect.width, root.screenRect.height, root.cellRadius, width, height, Theme.border, Theme.warning].join(",")
         onPaintKeyChanged: lattice.requestPaint()
         onPaint: {
           const ctx = lattice.getContext("2d");
           ctx.reset();
           ctx.strokeStyle = Theme.border;
           ctx.lineWidth = 1;
-          const radius = Math.min(Widget.radius / 2, root.unitSize / 4);
-          for (let row = -root.lead; row < root.gridRows - root.lead; row++) {
-            for (let col = -root.lead; col < root.gridCols - root.lead; col++) {
+          ctx.fillStyle = Theme.warning;
+          const radius = root.cellRadius;
+          for (let row = -root.leadRows; row < root.gridRows - root.leadRows; row++) {
+            for (let col = -root.leadCols; col < root.gridCols - root.leadCols; col++) {
               const inside = col >= 0 && row >= 0 && col < root.bounds.cols && row < root.bounds.rows;
-              ctx.globalAlpha = inside ? 0.45 : 0.18;
+              const box = root.screenBox;
+              const past = root.hasScreen && (col + 0.5 < box.x || col + 0.5 > box.x + box.w || row + 0.5 < box.y || row + 0.5 > box.y + box.h);
               const x = Math.round(root.originX + col * root.step) + 0.5;
               const y = Math.round(root.originY + row * root.step) + 0.5;
               ctx.beginPath();
               ctx.roundedRect(x, y, root.unitSize - 1, root.unitSize - 1, radius, radius);
+              if (past) {
+                ctx.globalAlpha = 0.08;
+                ctx.fill();
+              }
+              ctx.globalAlpha = inside ? 0.45 : 0.18;
               ctx.stroke();
             }
+          }
+          // The screen's outline, past which the menu scrolls
+          if (root.hasScreen) {
+            const r = root.screenRect;
+            ctx.globalAlpha = 0.9;
+            ctx.strokeStyle = Theme.warning;
+            ctx.lineWidth = 2;
+            ctx.setLineDash([6, 4]);
+            ctx.beginPath();
+            ctx.rect(Math.round(r.x) + 0.5, Math.round(r.y) + 0.5, Math.round(r.width), Math.round(r.height));
+            ctx.stroke();
           }
         }
       }
 
-      // An edge menu's edge, along its side of the grid
-      Rectangle {
-        visible: root.editable && root.edge !== "" && root.list.length > 0
-        readonly property rect box: root.rectFor({
-          "x": 0,
-          "y": 0,
-          "w": Math.max(1, root.bounds.cols),
-          "h": Math.max(1, root.bounds.rows)
-        })
-        readonly property real thick: Math.max(3, root.gap / 2)
-        x: root.edge === "Left" ? box.x - root.gap / 2 - thick / 2 : root.edge === "Right" ? box.x + box.width + root.gap / 2 - thick / 2 : box.x
-        y: root.edge === "Top" ? box.y - root.gap / 2 - thick / 2 : root.edge === "Bottom" ? box.y + box.height + root.gap / 2 - thick / 2 : box.y
-        width: root.edge === "Left" || root.edge === "Right" ? thick : box.width
-        height: root.edge === "Left" || root.edge === "Right" ? box.height : thick
-        radius: thick / 2
-        color: Theme.accent
+      // An edge menu's screen edge along its side of the grid: all of it
+      // faintly, with the menu where it sits on it, and the part the menu
+      // covers solid
+      Repeater {
+        model: root.editable && root.edge !== "" ? (root.hasScreen ? 2 : 1) : 0
+
+        Rectangle {
+          id: edgeLine
+          required property int index
+          // 0: the menu's part, 1: the whole edge
+          readonly property bool whole: edgeLine.index === 1
+          readonly property rect box: root.rectFor({
+            "x": 0,
+            "y": 0,
+            "w": Math.max(1, root.bounds.cols),
+            "h": Math.max(1, root.bounds.rows)
+          })
+          readonly property real thick: Math.max(3, root.gap / 2)
+          readonly property real across: root.edge === "Left" ? box.x - root.gap / 2 - thick / 2 : root.edge === "Right" ? box.x + box.width + root.gap / 2 - thick / 2 : root.edge === "Top" ? box.y - root.gap / 2 - thick / 2 : box.y + box.height + root.gap / 2 - thick / 2
+          readonly property real start: edgeLine.whole ? (root.alongRows ? root.screenRect.y : root.screenRect.x) : (root.alongRows ? box.y : box.x)
+          readonly property real length: edgeLine.whole ? (root.alongRows ? root.screenRect.height : root.screenRect.width) : (root.alongRows ? box.height : box.width)
+          visible: edgeLine.whole || root.list.length > 0
+          z: edgeLine.whole ? 0 : 1
+          x: root.alongRows ? edgeLine.across : edgeLine.start
+          y: root.alongRows ? edgeLine.start : edgeLine.across
+          width: root.alongRows ? edgeLine.thick : edgeLine.length
+          height: root.alongRows ? edgeLine.length : edgeLine.thick
+          radius: edgeLine.thick / 2
+          color: Theme.accent
+          opacity: edgeLine.whole ? 0.3 : 1
+        }
+      }
+
+      // The screen's name, under its outline's far corner
+      StyledText {
+        visible: root.editable && root.hasScreen
+        x: Math.max(0, Math.min(area.width - width, root.screenRect.x + root.screenRect.width - width))
+        y: Math.max(0, Math.min(area.height - height, root.screenRect.y + root.screenRect.height + 2))
+        text: I18n.tr("Screen edge")
+        textColor: Theme.warning
+        textSize: Appearance.fontSize - 3
       }
 
       StyledText {
@@ -281,6 +341,7 @@ Card {
             "h": 1
           })
           dragLayer: root.dragLayer
+          radius: root.cellRadius
           module: root.list[tile.index] ?? null
           step: root.step
           gap: root.gap
@@ -301,7 +362,7 @@ Card {
         y: r.y
         width: r.width
         height: r.height
-        radius: Widget.radius
+        radius: root.cellRadius
         color: Qt.alpha(root.dragLayer.hoverValid ? Theme.accent : Theme.error, 0.18)
         border.color: root.dragLayer.hoverValid ? Theme.accent : Theme.error
         border.width: 2

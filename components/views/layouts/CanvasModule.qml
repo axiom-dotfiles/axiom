@@ -53,6 +53,7 @@ Rectangle {
   readonly property bool resizeValid: root.resizing !== null && root.editor.canResize(root.index, root.resizing[0], root.resizing[1])
 
   z: root.selected || root.resizing ? 2 : 1
+  // Set by GridCanvas, matching its lattice
   radius: Widget.radius
   color: root.fill
   border.color: root.selected ? Theme.accent : Theme.border
@@ -132,11 +133,11 @@ Rectangle {
   // The resize handle, in the bottom right corner
   Rectangle {
     id: handle
-    readonly property real size: Math.max(10, Math.min(root.width, root.height) / 5)
+    readonly property real size: Appearance.fontSize + 6
     visible: root.dragLayer.dragging === null && (area.containsMouse || handleArea.containsMouse || root.selected || root.resizing !== null)
     anchors.right: parent.right
     anchors.bottom: parent.bottom
-    anchors.margins: 2
+    anchors.margins: 6
     width: handle.size
     height: handle.size
     radius: Widget.radius / 2
@@ -148,7 +149,7 @@ Rectangle {
       anchors.centerIn: parent
       text: "open_in_full"
       rotation: 90
-      textSize: Math.max(8, handle.size * 0.6)
+      textSize: Appearance.fontSize - 1
       textColor: handleArea.containsMouse || root.resizing ? Theme.background : Theme.accent
     }
 

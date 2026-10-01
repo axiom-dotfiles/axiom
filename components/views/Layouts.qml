@@ -35,8 +35,16 @@ BaseView {
   }
   readonly property bool menuVertical: root.menu?.edge === "Left" || root.menu?.edge === "Right"
   readonly property var menuScreen: root.menu ? EdgeMenusConfig.screenFor(root.menu) : null
-  readonly property real menuLength: root.menu ? EdgeMenusConfig.lengthOf(root.menu, root.menuVertical) : 0
+  readonly property real menuLength: root.menu ? EdgeMenusConfig.lengthOf(root.menu, root.menuVertical, EdgeMenuManager.cardUnitOf(root.menu)) : 0
   readonly property real edgeLength: root.menuScreen ? (root.menuVertical ? root.menuScreen.height : root.menuScreen.width) : 0
+  // The menu's screen around it, in grid units from its origin
+  // (GridPlacement.screenBox), else null
+  readonly property var menuScreenBox: {
+    if (!root.menu || !root.menuScreen)
+      return null;
+    const pad = EdgeMenusConfig.paddingOf(root.menu) * 2;
+    return GridPlacement.screenBox(root.menuScreen.width - pad, root.menuScreen.height - pad, EdgeMenuManager.cardUnitOf(root.menu), GridPlacement.bounds(root.menu.modules), root.menu.edge, root.menu.position / 100, root.menu.length === "edge");
+  }
   readonly property bool menuTooLong: root.menu?.length !== "edge" && root.edgeLength > 0 && root.menuLength > root.edgeLength
   readonly property string menuFitText: {
     if (!root.menu)
@@ -64,6 +72,7 @@ BaseView {
     canvasTitle: root.editingMenu ? (root.menu ? EdgeMenuManager.menuLabel(root.menu, EdgeMenuManager.selectedMenuIndex) : I18n.tr("No edge menus")) : (root.view ? OverlayConfig.viewLabel(root.view, OverlayManager.selectedViewIndex) : I18n.tr("No pages"))
     emptyText: root.editingMenu ? I18n.tr("No edge menus yet: add one with New menu.") : I18n.tr(root.view ? "A tool page: it has no layout to edit. Drag it in the list to reorder it." : "No pages yet: add one with New page.")
     edge: root.editingMenu && root.menu ? root.menu.edge : ""
+    screenBox: root.editingMenu ? root.menuScreenBox : null
     fitText: root.editingMenu ? root.menuFitText : root.pageFitText
     fitWarning: root.editingMenu ? root.menuTooLong : root.shrunk
     editable: root.editingMenu ? root.menu !== null : root.isCustom
