@@ -20,7 +20,7 @@ DragChip {
       "type": root.typeInfo.type,
       "w": root.size[0],
       "h": root.size[1],
-      "icon": root.typeInfo.icon,
-      "label": I18n.tr(root.typeInfo.label)
+      "icon": root.icon,
+      "label": root.label
     })
 }
