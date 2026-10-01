@@ -1,0 +1,299 @@
+#!/usr/bin/env python3
+"""Hooks a theme integration's axiom file into the app's own config.
+
+Usage: integration_hookup.py status|apply KEY [--schema PATH]
+
+The targets are the `x-hookup` list of ThemeIntegrations.KEY in the config
+schema. Each is one of:
+  {file, text, place, ...}  something apply can do
+  {text, where}             copy only: the settings page shows it to copy
+  {file, from, place: "copy"}  a file to copy into place when missing
+
+`file` (a path, or a list whose first existing entry is used) and `text`
+may hold {config} ($XDG_CONFIG_HOME), {state} ($XDG_STATE_HOME) and {home}.
+Places:
+  end      append the text (later settings win)
+  start    insert it first (CSS: @import must come first)
+  top      before the first [section] header (TOML top-level keys, INI main)
+  section  inside [section], which is added at the end when missing
+  shellrc  the rc file of $SHELL (fish: conf.d/axiom.fish, as `set -gx`)
+  copy     copy `from` (relative to scripts/) to `file` if that's missing
+`accept` is a regex: a line matching it anywhere (not commented out) means
+the target is already done, however it's spelled. `replace` (top/section/shellrc) is what happens to a line already setting a
+key the text sets: "comment" (the default: commented out), "keep" (left
+beside it) or "conflict" (nothing is done: copy only). `requires` names a
+command without which the target is skipped; `comment` is the comment
+prefix (default "#").
+
+apply backs up each file it changes beside the real file (a symlink is
+followed and kept) as <name>.axiom-bak-<time>, then writes it atomically.
+Nothing is deleted: replaced lines are commented out. Prints JSON.
+"""
+import json
+import os
+import re
+import shutil
+import sys
+import tempfile
+import time
+from pathlib import Path
+
+SCRIPTS = Path(__file__).resolve().parent
+SCHEMA = SCRIPTS.parent / "config" / "json" / "config.schema.json"
+HEADER = re.compile(r"^\s*\[")
+NAMED_HEADER = re.compile(r"^\s*\[\s*([^\[\]\"]+?)\s*\]\s*(?:[#;].*)?$")
+EXPORT = re.compile(r'^export\s+([A-Za-z_][A-Za-z0-9_]*)=(.*)$')
+
+
+def dirs():
+    home = os.environ.get("HOME") or str(Path.home())
+    return {
+        "home": home,
+        "config": os.environ.get("XDG_CONFIG_HOME") or home + "/.config",
+        "state": os.environ.get("XDG_STATE_HOME") or home + "/.local/state",
+    }
+
+
+def fill(text, d):
+    return text.replace("{config}", d["config"]).replace("{state}", d["state"]).replace("{home}", d["home"])
+
+
+def shown(path, d):
+    """A path with $HOME as ~"""
+    path = str(path)
+    home = d["home"].rstrip("/")
+    return "~" + path[len(home):] if path == home or path.startswith(home + "/") else path
+
+
+def key_of(line, place):
+    """The key a config line sets, or None"""
+    line = line.strip()
+    if place == "shellrc":
+        m = EXPORT.match(line)
+        return m.group(1) if m else None
+    if not line or line[0] in "#;[" or "=" not in line:
+        return None
+    return line.split("=", 1)[0].strip() or None
+
+
+def is_comment(line, comment):
+    stripped = line.lstrip()
+    return stripped.startswith(comment) or stripped.startswith("#") or stripped.startswith(";")
+
+
+def fish_line(line):
+    m = EXPORT.match(line.strip())
+    if not m:
+        return line
+    value = m.group(2)
+    return f"set -gx {m.group(1)} {value}"
+
+
+def which(cmd):
+    return shutil.which(cmd) is not None
+
+
+def resolve_target(target, d):
+    """Fills in the file, text and lines a target works with"""
+    t = dict(target)
+    place = t.get("place", "")
+    t["text"] = fill(t.get("text", ""), d)
+    if place == "shellrc":
+        shell = os.path.basename(os.environ.get("SHELL", ""))
+        if shell == "zsh":
+            t["file"] = (os.environ.get("ZDOTDIR") or d["home"]) + "/.zshrc"
+        elif shell == "bash":
+            t["file"] = d["home"] + "/.bashrc"
+        elif shell == "fish":
+            t["file"] = d["config"] + "/fish/conf.d/axiom.fish"
+            t["text"] = "\n".join(fish_line(line) for line in t["text"].splitlines())
+            t["shell"] = "fish"
+        else:
+            t["file"] = None
+            t["skipped"] = "shell"
+        t.setdefault("shell", shell)
+    elif "file" in t:
+        files = t["file"] if isinstance(t["file"], list) else [t["file"]]
+        files = [fill(f, d) for f in files]
+        t["file"] = next((f for f in files if os.path.lexists(f)), files[0])
+    return t
+
+
+def scope(lines, place, section):
+    """[start, end) of the lines a target's keys live in, or None for a
+    section that isn't there"""
+    if place == "top":
+        end = next((i for i, line in enumerate(lines) if HEADER.match(line)), len(lines))
+        return 0, end
+    if place == "section":
+        for i, line in enumerate(lines):
+            m = NAMED_HEADER.match(line)
+            if m and m.group(1) == section:
+                end = next((j for j in range(i + 1, len(lines)) if HEADER.match(lines[j])), len(lines))
+                return i + 1, end
+        return None
+    return 0, len(lines)
+
+
+def plan(t):
+    """What applying a resolved target would do, and whether it's done"""
+    place = t.get("place", "")
+    comment = t.get("comment", "#")
+    path = t.get("file")
+    out = {"text": t["text"], "place": place, "skipped": t.get("skipped", ""), "where": t.get("where", ""),
+           "note": t.get("note", ""), "copyOnly": not path and not t.get("skipped"),
+           "exists": False, "link": False, "done": False, "replaces": [], "alongside": [], "conflicts": [],
+           "createsSection": False, "shell": t.get("shell", ""),
+           "section": t.get("section", ""), "requires": t.get("requires", "")}
+    if not path or out["skipped"]:
+        return out, None
+    if t.get("requires") and not which(t["requires"]):
+        out["skipped"] = "requires"
+        return out, None
+    real = os.path.realpath(path)
+    out.update({"exists": os.path.isfile(real), "link": os.path.islink(path) or real != os.path.abspath(path),
+                "path": path, "resolved": real})
+    if place == "copy":
+        out["done"] = out["exists"]
+        return out, None
+    lines = Path(real).read_text().splitlines() if out["exists"] else []
+    want = [line for line in t["text"].splitlines() if line.strip()]
+    span = scope(lines, place, t.get("section"))
+    if place == "section" and span is None:
+        out["createsSection"] = True
+        span = (len(lines), len(lines))
+    start, end = span
+    region = [line.strip() for line in lines[start:end]]
+    missing = [line for line in want if line.strip() not in region]
+    # An equivalent line anywhere (another spelling of the path, a key set
+    # elsewhere) counts as hooked up too
+    accept = re.compile(t["accept"]) if t.get("accept") else None
+    if accept and any(accept.search(line.strip()) for line in lines if not is_comment(line, comment)):
+        missing = []
+    out["done"] = out["exists"] and not missing
+    if place in ("top", "section", "shellrc") and missing:
+        keys = {key_of(line, place) for line in missing} - {None}
+        if t.get("shell") == "fish":
+            keys = set()
+        same = [line for line in lines[start:end]
+                if not is_comment(line, comment) and key_of(line, place) in keys]
+        how = t.get("replace", "comment")
+        bucket = {"comment": "replaces", "keep": "alongside", "conflict": "conflicts"}[how]
+        out[bucket] = [line.strip() for line in same]
+    return out, (lines, missing, span)
+
+
+def status(targets, d):
+    return [plan(resolve_target(t, d))[0] for t in targets]
+
+
+def write_atomic(path, text, mode):
+    fd, tmp = tempfile.mkstemp(prefix=os.path.basename(path) + ".", dir=os.path.dirname(path))
+    try:
+        with os.fdopen(fd, "w") as f:
+            f.write(text)
+        os.chmod(tmp, mode)
+        os.replace(tmp, path)
+    except BaseException:
+        os.unlink(tmp)
+        raise
+
+
+def apply_one(t, d, stamp):
+    out, work = plan(t)
+    result = {"path": shown(out.get("path", ""), d), "changed": False, "backup": "", "error": ""}
+    if out["copyOnly"] or out["skipped"] or out["done"]:
+        return result
+    if out["conflicts"]:
+        result["error"] = "conflict"
+        return result
+    real = out["resolved"]
+    os.makedirs(os.path.dirname(real), exist_ok=True)
+    if t.get("place") == "copy":
+        shutil.copyfile(SCRIPTS / t["from"], real)
+        result["changed"] = True
+        return result
+    lines, missing, (start, end) = work
+    comment = t.get("comment", "#")
+    place = t.get("place", "")
+    if place in ("top", "section", "shellrc") and t.get("replace", "comment") == "comment" and t.get("shell") != "fish":
+        keys = {key_of(line, place) for line in missing} - {None}
+        for i in range(start, end):
+            if not is_comment(lines[i], comment) and key_of(lines[i], place) in keys:
+                lines[i] = f"{comment} axiom: {lines[i]}"
+    if place == "start":
+        lines[0:0] = missing
+    elif place == "top":
+        # After any blank lines ending the top-level block, so it reads as
+        # part of it, not of the section below
+        at = end
+        while at > start and not lines[at - 1].strip():
+            at -= 1
+        lines[at:at] = missing
+    elif place == "section":
+        if out["createsSection"]:
+            if lines and lines[-1].strip():
+                lines.append("")
+            lines += [f"[{t['section']}]"] + missing
+        else:
+            at = end
+            while at > start and not lines[at - 1].strip():
+                at -= 1
+            lines[at:at] = missing
+    else:  # end, shellrc
+        if lines and lines[-1].strip():
+            lines.append("")
+        lines += missing
+    mode = 0o644
+    if out["exists"]:
+        mode = os.stat(real).st_mode & 0o777
+        backup = f"{real}.axiom-bak-{stamp}"
+        shutil.copy2(real, backup)
+        result["backup"] = shown(backup, d)
+    write_atomic(real, "\n".join(lines) + "\n", mode)
+    result["changed"] = True
+    return result
+
+
+def apply(targets, d):
+    stamp = time.strftime("%Y%m%d-%H%M%S")
+    results = []
+    for target in targets:
+        try:
+            results.append(apply_one(resolve_target(target, d), d, stamp))
+        except OSError as e:
+            results.append({"path": "", "changed": False, "backup": "", "error": str(e)})
+    return results
+
+
+def main(argv):
+    args = argv[1:]
+    schema = SCHEMA
+    if "--schema" in args:
+        i = args.index("--schema")
+        schema = Path(args[i + 1])
+        del args[i:i + 2]
+    if len(args) != 2 or args[0] not in ("status", "apply"):
+        print(__doc__.strip().splitlines()[2], file=sys.stderr)
+        return 2
+    action, key = args
+    props = json.loads(schema.read_text())["properties"]["ThemeIntegrations"]["properties"]
+    if key not in props:
+        print(f"Error: no integration '{key}'", file=sys.stderr)
+        return 2
+    targets = props[key].get("x-hookup", [])
+    d = dirs()
+    if action == "status":
+        rows = status(targets, d)
+        for row in rows:
+            for k in ("path", "resolved"):
+                if k in row:
+                    row[k] = shown(row[k], d)
+        print(json.dumps({"key": key, "targets": rows}))
+    else:
+        print(json.dumps({"key": key, "results": apply(targets, d)}))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv))

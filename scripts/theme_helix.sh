@@ -15,7 +15,7 @@ require_cmds jq envsubst
 # Arch names the binary helix, most others hx
 HELIX=$(require_any_cmd hx helix)
 
-OUTPUT_FILE="${2:-$HOME/.config/helix/themes/axiom.toml}"
+OUTPUT_FILE="${2:-${XDG_CONFIG_HOME:-$HOME/.config}/helix/themes/axiom.toml}"
 load_theme "$1"
 export_theme_colors
 readable_text_colors

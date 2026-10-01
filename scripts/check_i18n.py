@@ -55,11 +55,13 @@ def unescape(s):
 
 def schema_strings(node, out):
     if isinstance(node, dict):
-        for key in ("title", "description", "x-group"):
+        for key in ("title", "description", "x-group", "x-hookupNote"):
             if isinstance(node.get(key), str):
                 out.add(node[key])
         if isinstance(node.get("x-categories"), list):
             out.update(c["name"] for c in node["x-categories"] if isinstance(c, dict) and isinstance(c.get("name"), str))
+        if isinstance(node.get("x-hookup"), list):
+            out.update(t["where"] for t in node["x-hookup"] if isinstance(t, dict) and isinstance(t.get("where"), str))
         if isinstance(node.get("x-enumLabels"), dict):
             out.update(v for v in node["x-enumLabels"].values() if isinstance(v, str))
         if node.get("type") == "string" and isinstance(node.get("enum"), list):

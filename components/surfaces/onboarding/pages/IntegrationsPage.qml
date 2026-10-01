@@ -8,21 +8,25 @@ import qs.components.reusable
 import qs.components.forms
 
 // Theme integrations (other apps in axiom's colors), marked by whether the
-// app is installed, then the lock screen, self-updates, the launcher's
+// app is installed, and the switched-on ones' hookups (IntegrationHookup),
+// then the lock screen, self-updates, the launcher's
 // clipboard history and whether axiom runs hypridle (Idle.enabled: off by
 // default, recommended on)
 OnboardingPage {
   id: root
 
   title: I18n.tr("Integrations")
-  intro: I18n.tr("axiom can color other apps to match its theme. Each one writes only its own axiom file: the setting's description in Settings says the line to add to that app's config. A tick marks the apps you have installed.")
+  intro: I18n.tr("axiom can color other apps to match its theme. Each one writes only its own axiom file; once it's on, below shows the line that loads it from the app's config, to copy or to apply for you. A tick marks the apps you have installed.")
+
+  // The switched-on integrations with something to hook up
+  readonly property var hookups: ThemeManager.integrations.filter(key => ThemeIntegrations[key] === true && IntegrationHookupManager.targets(key).length > 0)
 
   function installed(key) {
-    const command = ThemeManager.integrationCommand(key);
-    return command === "" || DependencyManager.found[command] === true;
+    const commands = ThemeManager.integrationCommands(key);
+    return commands.length === 0 || commands.some(command => DependencyManager.found[command] === true);
   }
 
-  Component.onCompleted: DependencyManager.check(ThemeManager.integrations.map(key => ThemeManager.integrationCommand(key)).filter(command => command !== "").concat(["hypridle"]))
+  Component.onCompleted: DependencyManager.check([].concat(...ThemeManager.integrations.map(key => ThemeManager.integrationCommands(key))).concat(["hypridle"]))
 
   StyledTextButton {
     text: I18n.tr("Turn on for installed apps")
@@ -70,6 +74,39 @@ OnboardingPage {
             SettingsManager.commitValues(values);
           }
         }
+      }
+    }
+  }
+
+  // The switched-on integrations' hookups: the line to add, and Apply
+  // (i18n: keys from the schema: integration titles)
+  StyledText {
+    Layout.topMargin: Widget.spacing
+    visible: root.hookups.length > 0
+    text: root.hookups.every(key => IntegrationHookupManager.isDone(key)) ? I18n.tr("Every app you turned on is set up") : I18n.tr("Finish setting up")
+    font.bold: true
+  }
+
+  Repeater {
+    model: root.hookups
+
+    // Set up ones drop out once checked (Settings still shows them)
+    delegate: ColumnLayout {
+      id: hookup
+      required property string modelData
+      Layout.fillWidth: true
+      visible: !IntegrationHookupManager.isDone(hookup.modelData)
+      spacing: Widget.spacing / 2
+
+      StyledText {
+        text: I18n.tr(ThemeManager.integrationTitle(hookup.modelData))
+        textColor: Theme.accent
+        font.bold: true
+      }
+
+      IntegrationHookup {
+        Layout.fillWidth: true
+        integration: hookup.modelData
       }
     }
   }

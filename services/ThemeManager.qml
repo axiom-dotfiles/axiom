@@ -169,15 +169,17 @@ QtObject {
   }
 
   // Runs the enabled integrations (scripts/theme_<key>.sh, one per
-  // ThemeIntegrations switch) for a theme
-  function themeIntegrations(themeName = Appearance.theme) {
+  // ThemeIntegrations switch) for a theme; `keys` limits it to those (none:
+  // all of them)
+  function themeIntegrations(themeName = Appearance.theme, keys = []) {
     const themePath = Paths.themePath + themeName + ".json";
-    if (LockscreenConfig.mode === "hyprlock")
+    const all = keys.length === 0;
+    if (all && LockscreenConfig.mode === "hyprlock")
       root.generateHyprlockConfig();
     for (let i = 0; i < root.integrations.length; i++) {
       const key = root.integrations[i];
       const process = root._integrationRunner.objectAt(i);
-      if (!ThemeIntegrations[key] || !process)
+      if (!ThemeIntegrations[key] || !process || (!all && !keys.includes(key)))
         continue;
       // A busy one runs again for the latest theme once it's done, or a
       // quick light-dark-light would leave it on the middle one
@@ -188,6 +190,23 @@ QtObject {
       process.command = [Paths.scriptsPath + "theme_" + key + ".sh", themePath];
       process.running = true;
     }
+    if (all)
+      root._themed = root._enabledIntegrations;
+  }
+
+  // The switched-on integrations (keys, in schema order), and those as of the
+  // last full run (null before the first, while config and theme load):
+  // one switched on since is themed right away, not at the next theme
+  // change
+  readonly property var _enabledIntegrations: root.integrations.filter(key => ThemeIntegrations[key] === true)
+  property var _themed: null
+  on_EnabledIntegrationsChanged: {
+    if (root._themed === null)
+      return;
+    const added = root._enabledIntegrations.filter(key => !root._themed.includes(key));
+    root._themed = root._enabledIntegrations;
+    if (added.length > 0)
+      root.themeIntegrations(Appearance.theme, added);
   }
 
   // The themed hyprlock config (Lockscreen.mode "hyprlock"): the theme's
@@ -343,16 +362,16 @@ QtObject {
     return ConfigManager.configSchema.properties.ThemeIntegrations.properties[key]?.title ?? key;
   }
 
-  // The command whose presence shows an integration's app is installed:
-  // its key unless listed here, "" for ones every desktop has
+  // The commands any of which shows an integration's app is installed: its
+  // key unless listed here, none for ones every desktop has
   readonly property var _integrationCommands: ({
-      "gtk": "",
-      "qt": "qt6ct",
-      "helix": "hx",
-      "vscode": "code"
+      "gtk": [],
+      "qt": ["qt6ct", "qt5ct"],
+      "helix": ["hx", "helix"],
+      "vscode": ["code", "codium"]
     })
-  function integrationCommand(key) {
-    return root._integrationCommands[key] ?? key;
+  function integrationCommands(key) {
+    return root._integrationCommands[key] ?? [key];
   }
 
   // One process per integration, each running its script

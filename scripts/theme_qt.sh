@@ -18,7 +18,7 @@ if [ $# -ge 2 ]; then
 else
     OUTPUTS=()
     for TOOL in qt5ct qt6ct; do
-        command -v "$TOOL" &>/dev/null && OUTPUTS+=("$HOME/.config/$TOOL/colors/axiom.conf")
+        command -v "$TOOL" &>/dev/null && OUTPUTS+=("${XDG_CONFIG_HOME:-$HOME/.config}/$TOOL/colors/axiom.conf")
     done
     if [ ${#OUTPUTS[@]} -eq 0 ]; then
         echo "Error: neither 'qt5ct' nor 'qt6ct' is installed." >&2

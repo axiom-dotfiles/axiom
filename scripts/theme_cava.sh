@@ -14,7 +14,7 @@ source "$SCRIPT_DIR/lib/theme_env.sh"
 usage_or_help 3 9 "$@"
 require_cmds jq envsubst
 
-OUTPUT_FILE="${2:-$HOME/.config/cava/colors/axiom.conf}"
+OUTPUT_FILE="${2:-${XDG_CONFIG_HOME:-$HOME/.config}/cava/colors/axiom.conf}"
 load_theme "$1"
 export_theme_colors
 map_theme_colors quote_color
@@ -24,9 +24,9 @@ else
     export GRADIENT_COUNT=6 GRADIENT_7="" GRADIENT_8=""
 fi
 render_template "$SCRIPT_DIR/templates/cava_template.conf" "$OUTPUT_FILE"
-[ $# -ge 2 ] || old_output_notice "$HOME/.config/cava/colors/wal-generated.conf" "$OUTPUT_FILE"
+[ $# -ge 2 ] || old_output_notice "${XDG_CONFIG_HOME:-$HOME/.config}/cava/colors/wal-generated.conf" "$OUTPUT_FILE"
 
-MAIN_CONFIG="$HOME/.config/cava/config"
+MAIN_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/cava/config"
 if [ ! -e "$MAIN_CONFIG" ]; then
     write_atomic "$MAIN_CONFIG" <<CONF
 # Main Cava configuration (created by axiom; yours to edit)
