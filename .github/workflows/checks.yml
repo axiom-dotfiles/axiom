@@ -1,7 +1,9 @@
 name: Checks
 
 on:
+  # Pushes run only on main (after a merge); branches are checked by their PR
   push:
+    branches: [main]
   pull_request:
 
 permissions:
