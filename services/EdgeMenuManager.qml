@@ -510,7 +510,8 @@ Singleton {
   }
 
   // Adds a Button that toggles the selected menu to bar `barIndex`'s
-  // `zone`, in the bar editor's draft (saved from there or with Save all)
+  // `zone`, in the bar editor's draft (saved from there or with Save all),
+  // then opens the bar editor on that bar
   function addBarButton(barIndex, zone) {
     const menu = root.selectedMenu();
     if (!root.isSaved(menu))
@@ -524,10 +525,11 @@ Singleton {
         "tooltip": menu.name || menu.id
       }
     });
+    ShellManager.openOverlayPage("BarEditor");
   }
 
   // Adds a keybind that toggles the selected menu, then opens the keybinds
-  // page recording its key
+  // page's editor recording its key
   function addKeybind() {
     const menu = root.selectedMenu();
     if (!root.isSaved(menu))
@@ -538,6 +540,7 @@ Singleton {
       "argument": menu.id,
       "call": "toggle"
     }, true);
+    KeybindManager.editing = true;
     ShellManager.openOverlayPage("Keybinds");
     Qt.callLater(() => KeybindManager.startRecording(0));
   }
