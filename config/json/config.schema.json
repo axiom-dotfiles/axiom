@@ -62,7 +62,7 @@
           "title": "Built-in lock screen",
           "description": "What the built-in locker shows, edited on the Layouts page: its modules on a grid of columns × rows units, fitted to each monitor.",
           "additionalProperties": false,
-          "x-order": ["columns", "rows", "otherScreens", "background", "backgroundColor", "dim", "moduleBorders"],
+          "x-order": ["columns", "rows", "otherScreens", "background", "backgroundColor", "dim", "moduleBorders", "passwordBorder", "greetingBorder"],
           "properties": {
             "columns": { "x-group": "Grid", "type": "integer", "title": "Columns", "default": 16, "minimum": 4, "maximum": 32, "description": "Grid units across. The grid is stretched to fill each monitor, so match your screen's shape (16 × 9 for 16:9)." },
             "rows": { "x-group": "Grid", "type": "integer", "title": "Rows", "default": 9, "minimum": 2, "maximum": 32, "description": "Grid units down." },
@@ -86,7 +86,9 @@
             },
             "backgroundColor": { "x-group": "Background", "type": "string", "title": "Color", "x-options": "colors", "default": "base00", "x-showIf": { "background": "color" } },
             "dim": { "x-group": "Background", "type": "integer", "title": "Dim", "default": 40, "minimum": 0, "maximum": 100, "x-unit": "%", "x-control": "slider", "description": "Darken the background so the modules stand out." },
-            "moduleBorders": { "x-group": "Style", "type": "boolean", "title": "Module borders", "default": true, "description": "Draw each module's card box. Off shows modules straight on the background. The greeting and the password field never have one." },
+            "moduleBorders": { "x-group": "Style", "type": "boolean", "title": "Module borders", "default": true, "description": "Draw each module's card box. Off shows modules straight on the background. The password field and the greeting have their own switches." },
+            "passwordBorder": { "x-group": "Style", "type": "boolean", "title": "Password field border", "default": false, "description": "Draw a card box around the password field." },
+            "greetingBorder": { "x-group": "Style", "type": "boolean", "title": "Greeting border", "default": false, "description": "Draw a card box around the greeting." },
             "modules": {
               "type": "array",
               "x-settings": false,

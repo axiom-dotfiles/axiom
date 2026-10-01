@@ -67,6 +67,17 @@ QtObject {
   readonly property var passwordFields: root._passwordFields
   property var _passwordFields: ({})
 
+  // A key for one lock surface, never reused: a screen that drops out and
+  // comes back (a monitor turned off) gets a new surface while the old one
+  // is still being torn down, and a key shared by screen name let the old
+  // Password module's goodbye clear the new one's report, flickering in the
+  // fallback field
+  property int _surfaceCount: 0
+  function newSurfaceKey(preview) {
+    root._surfaceCount += 1;
+    return (preview ? "preview:" : "lock:") + root._surfaceCount;
+  }
+
   function reportPasswordField(key, present) {
     if (!key || (root._passwordFields[key] === true) === present)
       return;
