@@ -52,7 +52,9 @@ Card {
         border.color: tile.active ? Theme.accent : Theme.border
         border.width: Appearance.borderWidth
 
+        // The number, where it doesn't crowd the icons
         StyledText {
+          visible: tile.width >= Appearance.fontSize * 3 && tile.height >= Appearance.fontSize * 3
           anchors.left: parent.left
           anchors.top: parent.top
           anchors.margins: 4

@@ -21,10 +21,15 @@ Rectangle {
   property var host: ({
       "kind": "overlay"
     })
+  // The least width and height (px) the module's full layout needs; a
+  // smaller slot is compact (see SlotContext)
+  property real fullMinWidth: 0
+  property real fullMinHeight: 0
   // Derived from the slot (see SlotContext): no card box (an edge menu
   // with moduleBorders off), the span in grid units, "square" |
-  // "horizontal" | "vertical", a quarter card or less (room for the key
-  // figure only), and the inner padding modules lay their content out within
+  // "horizontal" | "vertical", compact (a quarter card or less, or under
+  // the full layout's minimum: room for the key figure only), and the inner
+  // padding modules lay their content out within
   readonly property alias bare: slot.bare
   readonly property alias cols: slot.cols
   readonly property alias rows: slot.rows
@@ -37,6 +42,10 @@ Rectangle {
     slotRect: root.slotRect
     host: root.host
     embedded: root.embedded
+    width: root.width
+    height: root.height
+    fullMinWidth: root.fullMinWidth
+    fullMinHeight: root.fullMinHeight
   }
 
   anchors.fill: parent

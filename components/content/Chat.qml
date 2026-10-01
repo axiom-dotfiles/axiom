@@ -14,13 +14,17 @@ import qs.components.content.parts.chat
 Panel {
   id: root
 
-  readonly property bool listDocked: root.embedded && root.shape === "horizontal"
+  // A wide card docks the conversation list beside the chat
+  readonly property bool listDocked: root.embedded && root.shape === "horizontal" && root.width - root.pad * 2 >= Appearance.fontSize * 40
   property bool listOpen: false
   property bool pickerOpen: false
   // The dropdowns open just under the header
   readonly property real popupTop: header.height + Widget.spacing
 
   implicitWidth: 440 + root.margins * 2
+  // The header, a message or two and the composer, else the figure
+  fullMinWidth: Appearance.fontSize * 18
+  fullMinHeight: Appearance.fontSize * 16
   wantsKeyboardFocus: true
   spacing: 0
 

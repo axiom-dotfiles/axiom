@@ -21,8 +21,22 @@ Panel {
   readonly property int total: repoPackages.length + aurPackages.length
 
   spacing: Widget.padding
-  // A card fits rows of roughly one text line each into its height
-  property int maxRows: root.embedded ? Math.max(3, Math.floor(root.height / (Appearance.fontSize * 2)) - 4) : 15
+  // A wide card puts the repositories and the AUR side by side
+  readonly property int sectionCount: (root.repoPackages.length > 0 ? 1 : 0) + (root.aurPackages.length > 0 ? 1 : 0)
+  readonly property bool sideBySide: root.embedded && root.sectionCount > 1 && root.width - root.pad * 2 >= Appearance.fontSize * 44
+  // One package row, and as many as fit under the header and each
+  // section's title and "+n more" line (a popout lists 15)
+  readonly property real rowLine: Appearance.fontSize * 1.45
+  readonly property int maxRows: {
+    if (!root.embedded)
+      return 15;
+    const stacked = root.sideBySide ? 1 : Math.max(1, root.sectionCount);
+    const room = root.height - root.pad * 2 - Appearance.fontSize * 2 - root.spacing * (stacked + 1) - stacked * root.rowLine * 2;
+    return Math.max(1, Math.floor(room / stacked / root.rowLine));
+  }
+
+  fullMinWidth: Appearance.fontSize * 10
+  fullMinHeight: Appearance.fontSize * 6
 
   function register() {
     if (!root.embedded)
@@ -43,8 +57,6 @@ Panel {
     value: UpdatesManager.checking && root.total === 0 ? "…" : String(root.total)
     label: I18n.tr("updates")
   }
-  // Narrow cards show only the new version
-  readonly property bool narrow: root.embedded && root.width < 360
 
   implicitWidth: Math.max(320, body.implicitWidth + margins * 2)
 
@@ -53,9 +65,14 @@ Panel {
     required property string title
     required property var packages
 
+    // Narrow, only the new version
+    readonly property bool narrow: root.embedded && section.width < Appearance.fontSize * 25
+
     visible: packages.length > 0
     spacing: 2
     Layout.fillWidth: true
+    Layout.preferredWidth: 1
+    Layout.alignment: Qt.AlignTop
 
     StyledText {
       text: `${section.title} (${section.packages.length})`
@@ -79,9 +96,9 @@ Panel {
           elide: Text.ElideRight
         }
         StyledText {
-          Layout.maximumWidth: root.width * 0.45
+          Layout.maximumWidth: section.width * 0.45
           elide: Text.ElideLeft
-          text: root.narrow ? row.modelData.to : `${row.modelData.from} → ${row.modelData.to}`
+          text: section.narrow ? row.modelData.to : `${row.modelData.from} → ${row.modelData.to}`
           textColor: Theme.foregroundAlt
           textSize: Appearance.fontSize - 2
         }
@@ -108,14 +125,21 @@ Panel {
     }
   }
 
-  Section {
-    title: I18n.tr("Repositories")
-    packages: root.repoPackages
-  }
+  GridLayout {
+    Layout.fillWidth: true
+    columns: root.sideBySide ? 2 : 1
+    columnSpacing: root.pad
+    rowSpacing: root.spacing
 
-  Section {
-    title: I18n.tr("AUR")
-    packages: root.aurPackages
+    Section {
+      title: I18n.tr("Repositories")
+      packages: root.repoPackages
+    }
+
+    Section {
+      title: I18n.tr("AUR")
+      packages: root.aurPackages
+    }
   }
 
   StyledText {
@@ -132,6 +156,8 @@ Panel {
     EmptyState {
       visible: root.total === 0
       anchors.centerIn: parent
+      maxWidth: parent.width
+      availableHeight: parent.height
       icon: "check"
       text: UpdatesManager.checking ? I18n.tr("checking…") : I18n.tr("System is up to date")
     }

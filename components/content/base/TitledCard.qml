@@ -23,11 +23,23 @@ Card {
   property bool showExtras: true
   property alias contentSpacing: body.spacing
   default property alias content: body.data
+  // What a compact card shows instead (as Panel's), filling the box inside
+  // `pad`; without one, a compact card shows the panel as usual
+  property Component compactContent: null
+  readonly property bool _showCompact: root.compact && root.compactContent !== null
 
   signal save
   signal reset
 
+  Loader {
+    anchors.fill: parent
+    anchors.margins: root.pad
+    active: root._showCompact
+    sourceComponent: root.compactContent
+  }
+
   ColumnLayout {
+    visible: !root._showCompact
     anchors.fill: parent
     anchors.margins: Widget.padding
     spacing: 0

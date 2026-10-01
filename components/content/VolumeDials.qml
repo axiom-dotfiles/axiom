@@ -7,8 +7,8 @@ import qs.components.reusable
 import qs.components.content.base
 
 // Output and microphone volume as two dials: scroll to adjust, click to
-// mute. Side by side in wide and square slots, stacked in tall ones;
-// compact shows the output only.
+// mute. Side by side in wide and square slots, stacked in tall ones, each
+// labelled where there's room; compact shows the output only.
 Card {
   id: root
 
@@ -21,15 +21,22 @@ Card {
     signal toggled
     signal stepped(real delta)
 
+    // The label beside the dial in a wide cell, under it otherwise, and
+    // only where it has room
+    readonly property bool beside: dial.width > dial.height * 1.8
+    readonly property bool labelled: !root.compact && (dial.beside ? dial.width - dial.height >= Appearance.fontSize * 5 : dial.width >= Appearance.fontSize * 5 && dial.height >= Appearance.fontSize * 5)
+    readonly property real side: Math.max(0, dial.beside ? Math.min(dial.height, dial.width * 0.5) : Math.min(dial.width, dial.height - (dial.labelled ? dialLabel.implicitHeight + Widget.spacing : 0)))
+
     // The dial and its label, kept together and centred
-    Column {
+    GridLayout {
       anchors.centerIn: parent
-      spacing: Widget.spacing
+      columns: dial.beside ? 2 : 1
+      columnSpacing: Widget.spacing
+      rowSpacing: Widget.spacing
       PercentageCircle {
-        readonly property real side: Math.max(0, Math.min(dial.width, dial.height - (dialLabel.visible ? dialLabel.height + Widget.spacing : 0)))
-        anchors.horizontalCenter: parent.horizontalCenter
-        width: side
-        height: side
+        Layout.alignment: Qt.AlignCenter
+        Layout.preferredWidth: dial.side
+        Layout.preferredHeight: dial.side
         percentage: dial.muted ? 0 : Math.round(dial.level * 100)
         iconText: dial.icon
         iconColor: dial.muted ? Theme.error : Theme.foreground
@@ -43,8 +50,10 @@ Card {
       }
       StyledText {
         id: dialLabel
-        visible: !root.compact
-        anchors.horizontalCenter: parent.horizontalCenter
+        visible: dial.labelled
+        Layout.alignment: Qt.AlignCenter
+        Layout.maximumWidth: dial.beside ? dial.width - dial.side - Widget.spacing : dial.width
+        elide: Text.ElideRight
         text: dial.muted ? I18n.tr("{0} · muted", dial.label) : `${dial.label} · ${Math.round(dial.level * 100)}%`
         textSize: Appearance.fontSize - 1
         opacity: 0.8

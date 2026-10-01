@@ -29,8 +29,6 @@ Rectangle {
     "h": 1
   }
   readonly property bool selected: root.editor.selected === root.index
-  // Doesn't fit its own size (blocks Save)
-  readonly property bool misfit: root.type !== "" && !OverlayConfig.fits(root.type, GridPlacement.rectOf(root.place))
   readonly property bool carried: root.dragLayer.draggingKind === "module-move" && root.dragLayer.dragging.index === root.index
   readonly property bool small: root.width < Appearance.fontSize * 7 || root.height < Appearance.fontSize * 4
 
@@ -57,8 +55,8 @@ Rectangle {
   z: root.selected || root.resizing ? 2 : 1
   radius: Widget.radius
   color: root.fill
-  border.color: root.misfit ? Theme.error : root.selected ? Theme.accent : Theme.border
-  border.width: root.selected || root.misfit ? Math.max(Appearance.borderWidth, 2) : Appearance.borderWidth
+  border.color: root.selected ? Theme.accent : Theme.border
+  border.width: root.selected ? Math.max(Appearance.borderWidth, 2) : Appearance.borderWidth
   opacity: root.carried ? 0.3 : 1
 
   Behavior on opacity {
@@ -96,8 +94,8 @@ Rectangle {
       visible: text !== "" && !root.small
       horizontalAlignment: Text.AlignHCenter
       elide: Text.ElideRight
-      text: root.misfit ? I18n.tr("doesn't fit this size") : root.detail
-      textColor: root.misfit ? Theme.error : root.ink
+      text: root.detail
+      textColor: root.ink
       textSize: Appearance.fontSize - 3
       opacity: 0.75
     }

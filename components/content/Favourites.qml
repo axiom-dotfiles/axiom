@@ -14,7 +14,8 @@ import qs.components.content.base
 Card {
   id: root
 
-  readonly property int capacity: Math.max(1, Math.floor(root.cols * root.rows / 2))
+  // Recent apps: one per unit along a strip, else one per two units
+  readonly property int capacity: Math.max(1, Math.min(root.cols, root.rows) === 1 ? root.cols * root.rows : Math.floor(root.cols * root.rows / 2))
   readonly property var ids: {
     const configured = root.properties.apps;
     if (configured.length > 0)
@@ -24,14 +25,13 @@ Card {
   }
   readonly property var entries: root.ids.map(id => DesktopEntries.heuristicLookup(id)).filter(e => e)
 
-  StyledText {
+  EmptyState {
     anchors.centerIn: parent
     visible: root.entries.length === 0
-    width: parent.width - root.pad * 2
-    horizontalAlignment: Text.AlignHCenter
-    wrapMode: Text.WordWrap
+    maxWidth: root.width - root.pad * 2
+    availableHeight: root.height - root.pad * 2
+    icon: "star"
     text: I18n.tr("Add apps in this module's settings")
-    opacity: 0.6
   }
 
   TileGrid {

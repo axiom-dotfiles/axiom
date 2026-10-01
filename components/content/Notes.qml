@@ -5,6 +5,7 @@ import qs.config
 import qs.services
 import qs.components.reusable
 import qs.components.content.parts.notes
+import qs.components.content.parts
 import qs.components.content.base
 
 // Markdown notes from the notes folder (NotesManager), with checklists,
@@ -29,8 +30,12 @@ Card {
   property bool findOpen: false
   property bool showCompleted: root.properties.showCompleted
 
+  // Compact, a headerless scratchpad; too small for a few lines, the
+  // note's name and checklist progress
+  readonly property bool tiny: root.height - root.pad * 2 < Appearance.fontSize * 4 || root.width - root.pad * 2 < Appearance.fontSize * 6
   readonly property bool showHeader: root.properties.showHeader && !root.compact
-  readonly property bool showToolbar: root.properties.showToolbar && !root.compact
+  // The toolbar's buttons only where they leave the name some room
+  readonly property bool showToolbar: root.properties.showToolbar && !root.compact && root.width - root.pad * 2 >= Appearance.fontSize * 16
 
   function show(path) {
     const rel = NotesManager.clean(path);
@@ -116,7 +121,17 @@ Card {
     }
   }
 
+  CompactFigure {
+    visible: root.tiny
+    anchors.fill: parent
+    anchors.margins: root.pad
+    icon: "sticky_note_2"
+    value: editor.progress.total > 0 ? `${editor.progress.done}/${editor.progress.total}` : ""
+    label: NotesManager.titleOf(root.path)
+  }
+
   ColumnLayout {
+    visible: !root.tiny
     anchors.fill: parent
     anchors.margins: root.pad
     spacing: Widget.spacing

@@ -1,7 +1,6 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 
-import qs.config
 import qs.components.methods
 
 // A Custom page's or an edge menu's modules, each in its own place on a
@@ -26,16 +25,13 @@ Item {
   implicitWidth: root.sizes.width
   implicitHeight: root.sizes.height
 
-  // Logs modules that don't fit their place or overlap another
+  // Logs modules that overlap another
   readonly property string _checkKey: JSON.stringify((root.modules ?? []).map(module => [module?.type, module?.place]))
   on_CheckKeyChanged: root._check()
   Component.onCompleted: root._check()
   function _check() {
     const modules = root.modules ?? [];
     modules.forEach((module, i) => {
-      const rect = GridPlacement.rectOf(module?.place);
-      if (module?.type && !OverlayConfig.fits(module.type, rect))
-        console.warn(`Overlay module ${module.type} doesn't fit a ${rect[2]}×${rect[3]} place`);
       if (!GridPlacement.canPlace(modules.slice(0, i), module?.place, -1))
         console.warn(`Overlay module ${module?.type} overlaps another`);
     });

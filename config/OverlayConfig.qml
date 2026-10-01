@@ -38,12 +38,8 @@ QtObject {
         "type": type.const,
         "label": type.description || type.const,
         "propertiesSchema": def.properties?.properties?.properties ?? null,
-        // Shapes a module fits (`x-shapes`); views don't declare any
-        "shapes": def["x-shapes"] ?? ["square", "horizontal", "vertical"],
-        // Smallest size, and the size it's added at ([w, h] in grid units,
-        // four to a card;
-        // `x-minSize`, `x-defaultSize`), null when not declared
-        "minSize": def["x-minSize"] ?? null,
+        // The size a module is added at ([w, h] in grid units, four to a
+        // card; `x-defaultSize`), null when not declared
         "defaultSize": def["x-defaultSize"] ?? null,
         // A tool page (`x-tool`), shown apart from the user's own pages
         "tool": def["x-tool"] === true,
@@ -134,24 +130,10 @@ QtObject {
     return GridPlacement.slotShape(rect);
   }
 
-  // Whether a module type may take a [x, y, w, h] rect: its shape and size
-  function fits(type, rect) {
-    const info = moduleInfo(type);
-    return !info || (GridPlacement.fitsShapes(info.shapes, rect) && GridPlacement.fitsSize(info.minSize, rect));
-  }
-
-  // The size [w, h] a module is added at: its declared one, else a card if
-  // it fits a square, else two cards tall or wide, else two by two
+  // The size [w, h] a module is added at: its declared one, else a card.
+  // Modules take any size (each lays itself out for its slot), so this is
+  // only a starting point
   function defaultSize(type) {
-    const declared = moduleInfo(type)?.defaultSize;
-    if (declared)
-      return declared;
-    return [[4, 4], [4, 8], [8, 4], [8, 8]].find(size => fits(type, [0, 0, size[0], size[1]])) ?? [4, 4];
-  }
-
-  // The smallest size [w, h] a module may shrink to with `shape` ignored:
-  // its declared minimum, else one grid unit
-  function minSize(type) {
-    return moduleInfo(type)?.minSize ?? [1, 1];
+    return moduleInfo(type)?.defaultSize ?? [4, 4];
   }
 }

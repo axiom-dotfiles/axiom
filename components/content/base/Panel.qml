@@ -27,6 +27,10 @@ Item {
   property var host: ({
       "kind": "overlay"
     })
+  // Card only: the least width and height (px) the full column needs; a
+  // smaller slot is compact (see SlotContext)
+  property real fullMinWidth: 0
+  property real fullMinHeight: 0
   // Derived from the slot, as on Card (see SlotContext); a popout is never
   // bare or compact
   readonly property alias bare: slot.bare
@@ -41,6 +45,10 @@ Item {
     slotRect: root.slotRect
     host: root.host
     embedded: root.embedded
+    width: root.width
+    height: root.height
+    fullMinWidth: root.fullMinWidth
+    fullMinHeight: root.fullMinHeight
   }
 
   // Bar popout only: keep the keyboard (and a focus grab) while a text
@@ -53,8 +61,9 @@ Item {
   readonly property bool pointerInside: hoverHandler.hovered
   property bool hovered: pointerInside
 
-  // What a quarter card (or less) shows instead of the column (e.g. a
-  // CompactFigure); without one, a compact card shows the column as usual
+  // What a compact card shows instead of the column (e.g. a
+  // CompactFigure), filling the box inside `pad`; without one, a compact
+  // card shows the column as usual
   property Component compactContent: null
   // Drawn under the content, filling the box (e.g. a blurred cover)
   property Component background: null
@@ -101,7 +110,8 @@ Item {
     }
 
     Loader {
-      anchors.centerIn: parent
+      anchors.fill: parent
+      anchors.margins: root.pad
       active: root._showCompact
       sourceComponent: root.compactContent
     }

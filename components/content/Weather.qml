@@ -7,9 +7,9 @@ import qs.services
 import qs.components.content.parts
 import qs.components.content.base
 
-// Current weather, plus the next hours (a card wide or more) and days (a
-// card high or more; beside it in wide and large slots), centred as one
-// block. Same source and settings as the bar widget.
+// Current weather, plus the next hours and days where they fit (the days
+// beside it in wide slots), centred as one block; compact, the figure (in
+// a row along a strip). Same source and settings as the bar widget.
 // properties: { location, latitude, longitude, units }
 Card {
   id: root
@@ -28,16 +28,28 @@ Card {
 
   readonly property var current: root.source.current
   readonly property var daily: root.source.weather?.daily ?? null
-  readonly property bool showHourly: !root.compact && root.cols >= 4
-  readonly property bool showDaily: !root.compact && root.rows >= 4
-  // Wide and large slots put the days beside the current weather
-  readonly property bool sideBySide: root.showDaily && root.cols >= 8
+  // What each section needs (px), and what fits in the room inside
+  readonly property real bodyWidth: root.width - root.pad * 2
+  readonly property real bodyHeight: root.height - root.pad * 2
+  readonly property real currentHeight: Appearance.fontSize * 6
+  readonly property real hourlyHeight: Appearance.fontSize * 4.2
+  readonly property real dailyHeight: Appearance.fontSize * 1.5 * 7
+  readonly property real sectionGap: Widget.spacing * 3
+  // Wide slots put the days beside the current weather
+  readonly property bool sideBySide: !root.compact && root.bodyWidth >= Appearance.fontSize * 36 && root.bodyHeight >= root.dailyHeight
+  readonly property bool showDaily: !root.compact && (root.sideBySide || root.bodyHeight >= root.currentHeight + root.sectionGap + root.dailyHeight)
+  readonly property bool showHourly: !root.compact && root.bodyWidth >= Appearance.fontSize * 12 && root.bodyHeight >= (root.sideBySide ? Math.max(root.currentHeight, root.dailyHeight) : root.currentHeight + (root.showDaily ? root.sectionGap + root.dailyHeight : 0)) + root.sectionGap + root.hourlyHeight
+  // Room to spare: a bigger hero and airier days
+  readonly property bool roomy: root.bodyHeight >= Appearance.fontSize * 30
   // The current weather stacked and centred (tall, narrow and side by side
   // slots), else icon beside the figures
   readonly property bool stacked: !root.compact && (root.shape === "vertical" || root.sideBySide)
-  readonly property real heroScale: root.rows >= 8 ? 1.5 : 1
+  readonly property real heroScale: root.roomy ? 1.5 : 1
   // Most a gap between sections grows; what's left centres the whole block
   readonly property real maxGap: root.pad * 2
+
+  fullMinWidth: Appearance.fontSize * 9
+  fullMinHeight: Appearance.fontSize * 6
   // The week's range, which each day's bar is drawn against
   readonly property real weekMin: root.daily ? Math.min(...root.daily.temperature_2m_min) : 0
   readonly property real weekMax: root.daily ? Math.max(...root.daily.temperature_2m_max) : 1
@@ -45,6 +57,8 @@ Card {
   EmptyState {
     anchors.centerIn: parent
     visible: !root.current
+    maxWidth: root.bodyWidth
+    availableHeight: root.bodyHeight
     icon: "cloud"
     text: root.compact ? "" : I18n.tr("Loading weather…")
   }
@@ -52,8 +66,8 @@ Card {
   // Compact: the condition and temperature
   CompactFigure {
     visible: root.compact && root.current !== null
-    anchors.centerIn: parent
-    maxWidth: root.width - root.pad * 2
+    anchors.fill: parent
+    anchors.margins: root.pad
     icon: root.source.condition?.icon ?? ""
     value: root.current ? `${Math.round(root.current.temperature_2m)}°` : ""
     label: root.source.condition?.label ?? ""
@@ -122,7 +136,7 @@ Card {
   component DailyList: ColumnLayout {
     id: list
     readonly property bool bars: list.width >= Appearance.fontSize * 15
-    spacing: root.rows >= 8 ? Widget.spacing * 1.5 : Widget.spacing / 2
+    spacing: root.roomy ? Widget.spacing * 1.5 : Widget.spacing / 2
     Repeater {
       model: root.showDaily ? (root.daily?.time?.length ?? 0) : 0
       RowLayout {

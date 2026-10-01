@@ -122,16 +122,15 @@ Panel {
 
   // Compact: the first metric's figure centred over its graph
   compactContent: Item {
-    implicitWidth: root.width
-    implicitHeight: root.height
     readonly property var metric: root.info(root.shown[0])
 
+    // Out to the card's edges, under the figure
     Sparkline {
       anchors.left: parent.left
       anchors.right: parent.right
       anchors.bottom: parent.bottom
-      anchors.margins: Appearance.borderWidth
-      height: parent.height * 0.45
+      anchors.margins: Appearance.borderWidth - root.pad
+      height: (parent.height + root.pad * 2) * 0.45
       values: parent.metric?.history ?? []
       maxValue: parent.metric?.max ?? 100
       lineColor: parent.metric?.color ?? Theme.accent
@@ -141,8 +140,10 @@ Panel {
     }
 
     CompactFigure {
-      anchors.centerIn: parent
-      anchors.verticalCenterOffset: -parent.height * 0.1
+      anchors.left: parent.left
+      anchors.right: parent.right
+      anchors.top: parent.top
+      height: parent.height * 0.75
       value: String(parent.metric?.value ?? "")
       unit: parent.metric?.unit ?? ""
       label: parent.metric?.label ?? ""

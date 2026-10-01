@@ -30,15 +30,11 @@ QtObject {
   // Index of the selected module, -1 for none
   property int selected: -1
 
-  // Why these modules can't be saved as is, each prefixed with `name`.
-  // Shapes are shown translated: I18n.tr("square") I18n.tr("horizontal") I18n.tr("vertical")
+  // Why these modules can't be saved as is, each prefixed with `name`
   function problemsFor(modules, name) {
     const out = [];
     (modules ?? []).forEach((module, i) => {
       const type = module?.type;
-      const rect = GridPlacement.rectOf(module?.place);
-      if (type && !OverlayConfig.fits(type, rect))
-        out.push(I18n.tr("{0}: {1} doesn't fit a {2} × {3} place", name, type, rect[2], rect[3]));
       if (type && !OverlayConfig.allowedIn(type, root.host))
         out.push(root.host === "overlay" ? I18n.tr("{0}: {1} only works in an edge menu", name, type) : I18n.tr("{0}: {1} only works on an overlay page", name, type));
       if (!GridPlacement.canPlace(modules.slice(0, i), module?.place, -1))
@@ -93,7 +89,7 @@ QtObject {
 
   // Whether a new module of `type` may be added at `place` ({ x, y, w, h })
   function canAdd(type, place) {
-    return OverlayConfig.fits(type, GridPlacement.rectOf(place)) && root._clear(root._modules(), place, -1);
+    return root._clear(root._modules(), place, -1);
   }
 
   // Whether module `index` may move with its top left to x, y: somewhere
@@ -114,7 +110,7 @@ QtObject {
     if (!module)
       return false;
     const place = root._place(module.place.x, module.place.y, w, h);
-    return OverlayConfig.fits(module.type, GridPlacement.rectOf(place)) && root._clear(modules, place, index);
+    return root._clear(modules, place, index);
   }
 
   // --- Editing ---

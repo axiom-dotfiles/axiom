@@ -13,8 +13,9 @@ import qs.components.content.base
 // info, a seek bar and controls. As the Media widget's popout: art beside
 // the track info, the controls beneath, at a fixed size so track changes
 // never resize it. As an overlay card: art beside everything when wide,
-// stacked when square; a half-card-high strip drops the player name, album
-// and times; a quarter card is just the art and play/pause.
+// stacked when square or tall; a short slot drops the player name, album
+// and times; a strip is one row (art, title, artist and the buttons); a
+// compact card is just the art and play/pause.
 Panel {
   id: root
 
@@ -22,13 +23,18 @@ Panel {
   readonly property string artSource: MediaManager.artDownloaded && MediaManager.artVersion >= 0 ? "file://" + MediaManager.artFilePath : ""
   // Card only: the art beside the info and controls
   readonly property bool sideBySide: root.embedded && root.shape === "horizontal"
-  // A half-card-high strip or less: title, artist and a slim transport only
-  readonly property bool short: root.sideBySide && root.rows <= 2
+  // A short wide slot: title, artist and a slim transport only
+  readonly property bool short: root.sideBySide && root.height < Appearance.fontSize * 13
+  // A strip: one row of small art, the track and the buttons
+  readonly property bool mini: root.embedded && !root.compact && root.height < Appearance.fontSize * 7
   readonly property real artSize: 96
   // A seek bar is being dragged, so the popout mustn't dismiss
   property bool seeking: false
 
   hovered: pointerInside || root.seeking
+
+  fullMinWidth: Appearance.fontSize * 10
+  fullMinHeight: Appearance.fontSize * 3.5
 
   spacing: Widget.spacing
   implicitWidth: 380
@@ -260,8 +266,6 @@ Panel {
 
   // Quarter card: the art with play/pause over it
   compactContent: Item {
-    implicitWidth: root.width - root.pad * 2
-    implicitHeight: root.height - root.pad * 2
     Art {
       anchors.fill: parent
     }
@@ -283,14 +287,74 @@ Panel {
     Layout.preferredHeight: root.embedded ? -1 : root.artSize
     EmptyState {
       anchors.centerIn: parent
+      maxWidth: parent.width
+      availableHeight: root.embedded ? parent.height : -1
       icon: "music_note"
       text: I18n.tr("Nothing playing")
     }
   }
 
+  // --- A strip: art, track and buttons in a row ---
+  RowLayout {
+    visible: root.hasPlayer && root.mini
+    Layout.fillWidth: true
+    Layout.fillHeight: true
+    spacing: Widget.spacing
+    // Room for previous and next beside play/pause
+    readonly property bool wide: root.width >= Appearance.fontSize * 22
+
+    Art {
+      readonly property real side: root.height - root.pad * 2
+      visible: side >= 24
+      Layout.preferredWidth: side
+      Layout.preferredHeight: side
+    }
+    ColumnLayout {
+      Layout.fillWidth: true
+      Layout.minimumWidth: 0
+      spacing: 0
+      StyledText {
+        Layout.fillWidth: true
+        elide: Text.ElideRight
+        text: MediaManager.trackTitle || I18n.tr("Unknown track")
+        textColor: Theme.accent
+        font.bold: true
+      }
+      StyledText {
+        visible: root.height - root.pad * 2 >= Appearance.fontSize * 2.6
+        Layout.fillWidth: true
+        elide: Text.ElideRight
+        text: MediaManager.trackArtist
+        textSize: Appearance.fontSize - 2
+        opacity: 0.8
+      }
+    }
+    MediaButton {
+      visible: parent.wide
+      size: Math.min(Widget.height, root.height - root.pad * 2)
+      icon: "skip_previous"
+      enabled: MediaManager.canGoPrevious
+      onClicked: MediaManager.previous()
+    }
+    MediaButton {
+      primary: true
+      size: Math.min(Widget.height * 1.2, root.height - root.pad * 2)
+      icon: MediaManager.isPlaying ? "pause" : "play_arrow"
+      enabled: MediaManager.canTogglePlaying
+      onClicked: MediaManager.togglePlayPause()
+    }
+    MediaButton {
+      visible: parent.wide
+      size: Math.min(Widget.height, root.height - root.pad * 2)
+      icon: "skip_next"
+      enabled: MediaManager.canGoNext
+      onClicked: MediaManager.next()
+    }
+  }
+
   // --- Art and info (and, wide, the controls) ---
   GridLayout {
-    visible: root.hasPlayer
+    visible: root.hasPlayer && !root.mini
     Layout.fillWidth: true
     Layout.fillHeight: root.embedded
     columns: root.embedded && !root.sideBySide ? 1 : 2

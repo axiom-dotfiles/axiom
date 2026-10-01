@@ -31,11 +31,11 @@ TestCase {
     compare(GridPlacement.slotShape([0, 0, 2, 2]), "square");
     compare(GridPlacement.slotShape([0, 0, 2, 1]), "horizontal");
     compare(GridPlacement.slotShape([0, 0, 1, 2]), "vertical");
-    verify(GridPlacement.fitsShapes(["square", "vertical"], [0, 0, 1, 2]));
-    verify(!GridPlacement.fitsShapes(["square"], [0, 0, 4, 2]));
-    verify(GridPlacement.fitsSize(null, [0, 0, 1, 1]));
-    verify(GridPlacement.fitsSize([2, 2], [3, 1, 2, 4]));
-    verify(!GridPlacement.fitsSize([2, 2], [0, 0, 2, 1]));
+    compare(GridPlacement.slotShape([0, 0, 5, 4]), "square", "near square counts as square");
+    compare(GridPlacement.slotShape([0, 0, 4, 3]), "square");
+    compare(GridPlacement.slotShape([0, 0, 3, 2]), "horizontal", "from 1.5 times as wide");
+    compare(GridPlacement.slotShape([0, 0, 4, 6]), "vertical");
+    compare(GridPlacement.slotShape([0, 0, 8, 1]), "horizontal");
     compare(GridPlacement.rectOf({
       "x": 3,
       "y": 1,

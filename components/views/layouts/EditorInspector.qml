@@ -4,7 +4,6 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import qs.config
 import qs.services
-import qs.components.methods
 import qs.components.reusable
 import qs.components.forms
 import qs.components.content.base
@@ -26,8 +25,6 @@ Item {
   readonly property var module: root.editor.selectedModule()
   readonly property string moduleType: root.module?.type ?? ""
   readonly property var place: root.module?.place ?? null
-  readonly property var rect: root.place ? GridPlacement.rectOf(root.place) : null
-  readonly property bool fits: !root.module || OverlayConfig.fits(root.moduleType, root.rect)
   // A new form per module (KeyedLoader)
   readonly property string selectionKey: root.module ? [root.editor.scopeKey, root.index, root.moduleType].join(":") : ""
 
@@ -180,16 +177,6 @@ Item {
                 }
               }
             }
-
-            StyledText {
-              Layout.fillWidth: true
-              wrapMode: Text.WordWrap
-              readonly property var info: OverlayConfig.moduleInfo(root.moduleType)
-              // Shapes are shown translated: I18n.tr("square") I18n.tr("horizontal") I18n.tr("vertical")
-              text: info ? I18n.tr("Fits: {0}", info.shapes.map(shape => I18n.tr(shape)).join(", ")) + (info.minSize ? " · " + I18n.tr("at least {0} × {1}", info.minSize[0], info.minSize[1]) : "") : ""
-              opacity: 0.6
-              textSize: Appearance.fontSize - 2
-            }
           }
         }
       }
@@ -209,7 +196,6 @@ Item {
         width: optionsScroll.availableWidth
         propertiesSchema: OverlayConfig.moduleInfo(root.moduleType)?.propertiesSchema ?? ({})
         values: root.module?.properties ?? ({})
-        problem: root.fits ? "" : I18n.tr("{0} doesn't fit a {1} × {2} place: resize it.", root.dragLayer.moduleLabel(root.moduleType), root.place?.w ?? 0, root.place?.h ?? 0)
         emptyText: I18n.tr("This module has no options")
         onEdited: (path, value) => root.editor.updateModuleProperty(root.index, path[0], value)
       }

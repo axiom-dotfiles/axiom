@@ -37,8 +37,9 @@ Rectangle {
   readonly property bool hot: root.selected || area.containsMouse
   readonly property color contentColor: root.active ? Theme.background : root.hot ? root.tone : Theme.foreground
   readonly property bool _labelShown: root.showLabel && root.label !== "" && (root.forceLabel || root.labelFits)
-  // The well fills most of what the label leaves
-  readonly property real _wellSize: Math.max(Appearance.fontSize * 1.6, Math.min(root.width - Widget.spacing * 2, root.height - Widget.spacing * 2 - (root._labelShown ? labelText.implicitHeight + Widget.spacing : 0)) * (root._labelShown ? 0.7 : 0.66))
+  // The well fills most of what the label leaves, never less than an icon
+  // (unless the tile itself is smaller)
+  readonly property real _wellSize: Math.max(Math.min(Appearance.fontSize * 1.6, Math.min(root.width, root.height) - 4), Math.min(root.width - Widget.spacing * 2, root.height - Widget.spacing * 2 - (root._labelShown ? labelText.implicitHeight + Widget.spacing : 0)) * (root._labelShown ? 0.7 : 0.66))
 
   radius: Widget.radius
   color: root.active ? root.activeColor : root.hot ? Theme.backgroundHighlight : Theme.backgroundAlt

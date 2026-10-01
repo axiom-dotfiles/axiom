@@ -32,19 +32,13 @@ QtObject {
     return [place?.x ?? 0, place?.y ?? 0, place?.w ?? 2, place?.h ?? 2];
   }
 
-  // A rect's shape: "square", "horizontal" or "vertical"
+  // A rect's shape: "square" while its longer side is under 1.5 times the
+  // shorter (so 4 × 3 and 5 × 4 are square), else "horizontal" or
+  // "vertical". Modules pick their orientation from it; any module takes
+  // any size
   function slotShape(rect) {
-    return rect[2] === rect[3] ? "square" : rect[2] > rect[3] ? "horizontal" : "vertical";
-  }
-
-  // Whether something fitting `shapes` (a list of shapes) may take `rect`
-  function fitsShapes(shapes, rect) {
-    return shapes.includes(root.slotShape(rect));
-  }
-
-  // Whether `rect` is at least `minSize` ([w, h]; null for any size)
-  function fitsSize(minSize, rect) {
-    return !minSize || (rect[2] >= minSize[0] && rect[3] >= minSize[1]);
+    const w = rect[2], h = rect[3];
+    return Math.max(w, h) < Math.min(w, h) * 1.5 ? "square" : w > h ? "horizontal" : "vertical";
   }
 
   // How far the modules reach, in grid units

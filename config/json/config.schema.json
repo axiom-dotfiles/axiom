@@ -2217,8 +2217,6 @@
     "ThemeEditorOverlayModule": {
       "type": "object",
       "x-icon": "palette",
-      "x-shapes": ["vertical"],
-      "x-minSize": [4, 6],
       "x-defaultSize": [4, 8],
       "required": ["type"],
       "additionalProperties": false,
@@ -2230,8 +2228,7 @@
     "NowPlayingOverlayModule": {
       "type": "object",
       "x-icon": "music_note",
-      "x-shapes": ["square", "horizontal"],
-      "x-minSize": [4, 2],
+      "x-defaultSize": [4, 2],
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -2242,7 +2239,6 @@
     "AudioMixerOverlayModule": {
       "type": "object",
       "x-icon": "tune",
-      "x-shapes": ["vertical", "square", "horizontal"],
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -2260,7 +2256,7 @@
     "VolumeDialsOverlayModule": {
       "type": "object",
       "x-icon": "volume_up",
-      "x-shapes": ["square", "horizontal", "vertical"],
+      "x-defaultSize": [4, 2],
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -2271,7 +2267,6 @@
     "SystemGraphsOverlayModule": {
       "type": "object",
       "x-icon": "show_chart",
-      "x-shapes": ["square", "horizontal", "vertical"],
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -2289,7 +2284,7 @@
     "DisksOverlayModule": {
       "type": "object",
       "x-icon": "hard_drive",
-      "x-shapes": ["horizontal", "square", "vertical"],
+      "x-defaultSize": [4, 2],
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -2307,8 +2302,6 @@
     "TopProcessesOverlayModule": {
       "type": "object",
       "x-icon": "format_list_bulleted",
-      "x-shapes": ["vertical", "square"],
-      "x-minSize": [4, 4],
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -2327,7 +2320,6 @@
     "UpdatesOverlayModule": {
       "type": "object",
       "x-icon": "upload",
-      "x-shapes": ["square", "vertical"],
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -2347,7 +2339,7 @@
     "QuickActionsOverlayModule": {
       "type": "object",
       "x-icon": "toggle_on",
-      "x-shapes": ["square", "horizontal", "vertical"],
+      "x-defaultSize": [4, 2],
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -2366,7 +2358,7 @@
     "WorkspacesMapOverlayModule": {
       "type": "object",
       "x-icon": "grid_view",
-      "x-shapes": ["horizontal", "square", "vertical"],
+      "x-defaultSize": [4, 2],
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -2384,8 +2376,6 @@
     "NotificationsOverlayModule": {
       "type": "object",
       "x-icon": "notifications",
-      "x-shapes": ["vertical", "square"],
-      "x-minSize": [4, 4],
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -2396,8 +2386,6 @@
     "WifiNetworksOverlayModule": {
       "type": "object",
       "x-icon": "wifi",
-      "x-shapes": ["vertical", "square"],
-      "x-minSize": [4, 4],
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -2408,8 +2396,6 @@
     "BluetoothDevicesOverlayModule": {
       "type": "object",
       "x-icon": "bluetooth",
-      "x-shapes": ["vertical", "square"],
-      "x-minSize": [4, 4],
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -2420,7 +2406,7 @@
     "ScreenshotOverlayModule": {
       "type": "object",
       "x-icon": "camera",
-      "x-shapes": ["square", "horizontal"],
+      "x-defaultSize": [4, 2],
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -2438,7 +2424,6 @@
     "ClockCalendarOverlayModule": {
       "type": "object",
       "x-icon": "calendar_clock",
-      "x-shapes": ["square", "vertical", "horizontal"],
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -2457,7 +2442,6 @@
     "WeatherOverlayModule": {
       "type": "object",
       "x-icon": "partly_cloudy_day",
-      "x-shapes": ["square", "horizontal", "vertical"],
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -2478,7 +2462,7 @@
     "BatteryOverlayModule": {
       "type": "object",
       "x-icon": "battery_full",
-      "x-shapes": ["square", "vertical"],
+      "x-defaultSize": [2, 2],
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -2489,7 +2473,7 @@
     "NetworkOverlayModule": {
       "type": "object",
       "x-icon": "wifi",
-      "x-shapes": ["square", "horizontal", "vertical"],
+      "x-defaultSize": [4, 2],
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -2500,7 +2484,7 @@
     "FavouritesOverlayModule": {
       "type": "object",
       "x-icon": "star",
-      "x-shapes": ["square", "horizontal", "vertical"],
+      "x-defaultSize": [4, 2],
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -2519,8 +2503,6 @@
     "ChatOverlayModule": {
       "type": "object",
       "x-icon": "smart_toy",
-      "x-shapes": ["vertical", "square", "horizontal"],
-      "x-minSize": [4, 4],
       "x-defaultSize": [4, 8],
       "required": ["type"],
       "additionalProperties": false,
@@ -2532,8 +2514,6 @@
     "NotesOverlayModule": {
       "type": "object",
       "x-icon": "sticky_note_2",
-      "x-shapes": ["vertical", "square", "horizontal"],
-      "x-minSize": [4, 4],
       "x-defaultSize": [4, 8],
       "required": ["type"],
       "additionalProperties": false,
@@ -2556,8 +2536,6 @@
     "WallpaperPickerOverlayModule": {
       "type": "object",
       "x-icon": "photo_library",
-      "x-shapes": ["horizontal", "square", "vertical"],
-      "x-minSize": [4, 4],
       "x-defaultSize": [4, 8],
       "required": ["type"],
       "additionalProperties": false,
@@ -2569,7 +2547,7 @@
     "ColorSwatchOverlayModule": {
       "type": "object",
       "x-icon": "palette",
-      "x-shapes": ["square", "horizontal", "vertical"],
+      "x-defaultSize": [2, 2],
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
