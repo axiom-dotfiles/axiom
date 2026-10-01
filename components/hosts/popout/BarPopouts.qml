@@ -26,8 +26,11 @@ PopoutWrapperBase {
   // The window showing the popout: on a transparent bar, a layer surface
   // of its own under the bar (a popup always draws over its parent), so a
   // detached box slides out from beneath the bar rather than out of thin
-  // air at its invisible inner edge. Else a popup of the bar.
-  readonly property bool underBar: root.barConfig.background === "transparent"
+  // air at its invisible inner edge. Else a popup of the bar, which also
+  // draws over the overlay: while that's open here, the box shows from
+  // the popup instead, without sliding (the under-bar layer is ordered
+  // under the overlay, see HyprlandManager's layer rules).
+  readonly property bool underBar: root.barConfig.background === "transparent" && !ShellManager.surfaceOpenOn("overlay", root.screen)
   readonly property var popupWindow: root.underBar ? underWindow : mainPopup
   // Content box in popupWindow coordinates (see AttachedSurface.boxRect)
   readonly property rect boxRect: Qt.rect(surface.x + surface.boxRect.x, surface.y + surface.boxRect.y, surface.boxRect.width, surface.boxRect.height)
@@ -204,7 +207,7 @@ PopoutWrapperBase {
   }
   // Where the surface starts, from the bar's outer edge: a detached box's
   // reaches back to the under-bar window's edge, to slide in from there
-  readonly property real surfaceFrom: surface.detached ? root.underStart : root.attachAt
+  readonly property real surfaceFrom: surface.detached && root.underBar ? root.underStart : root.attachAt
 
   Connections {
     target: root.layoutSource
@@ -459,7 +462,7 @@ PopoutWrapperBase {
 
     // A transparent bar has nothing to join onto (see cornerAttach)
     detached: mainPopup.detached && !mainPopup.cornerAttach
-    detachedOffset: root.attachAt - root.underStart
+    detachedOffset: root.underBar ? root.attachAt - root.underStart : 0
     joinStart: !mainPopup.cornerAttach && mainPopup.joinStart
     joinEnd: !mainPopup.cornerAttach && mainPopup.joinEnd
     // Without the border, a popout merged around a pill runs straight off
