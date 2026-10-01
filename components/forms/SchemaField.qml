@@ -62,7 +62,7 @@ Loader {
   // `/`-rooted config path), in any form
   readonly property bool shown: {
     const parent = row.path.slice(0, -1);
-    return SchemaLayout.showIfHolds(fieldSchema["x-showIf"], key => key.startsWith("/") ? SettingsManager.configValueAt(key.slice(1)) : form.valueAt(parent.concat(key)));
+    return SchemaLayout.showIfHolds(fieldSchema["x-showIf"], key => key.startsWith("/") ? SettingsManager.configValueAt(key.slice(1)) : root.form?.valueAt(parent.concat(key)));
   }
 
   visible: shown
@@ -110,6 +110,9 @@ Loader {
       return groupHeader;
     if (row.kind === "array")
       return arrayField;
+    // Shown, not edited, whatever its type
+    if (fieldSchema["x-control"] === "readonly")
+      return readonlyField;
     switch (fieldSchema.type) {
     case "array":
       // Strings only: from a fixed set (chips), or free text
@@ -119,7 +122,7 @@ Loader {
     case "integer":
       return fieldSchema["x-auto"] ? autoSpinField : spinField;
     default:
-      return fieldSchema["x-control"] === "readonly" ? readonlyField : root.options ? comboField : textField;
+      return root.options ? comboField : textField;
     }
   }
 
@@ -165,20 +168,25 @@ Loader {
   Component {
     id: autoSpinField
     ColumnLayout {
-      readonly property var auto: root.fieldSchema["x-auto"]
-      readonly property bool custom: root.current !== auto.value
+      id: autoField
+      // (While the row is torn down its schema can go first)
+      readonly property var auto: root.fieldSchema["x-auto"] ?? ({
+          "value": 0,
+          "start": 0
+        })
+      readonly property bool custom: root.current !== undefined && root.current !== autoField.auto.value
       spacing: 4
       SchemaSwitch {
         label: root.label
         description: root.description
-        checked: parent.custom
-        onToggled: value => root.commit(value ? parent.auto.start : parent.auto.value)
+        checked: autoField.custom
+        onToggled: value => root.commit(value ? autoField.auto.start : autoField.auto.value)
       }
       SchemaNumberField {
-        visible: parent.custom
+        visible: autoField.custom
         label: ""
-        currentConfigValue: parent.custom ? root.current : parent.auto.start
-        minimum: Math.max(root.fieldSchema.minimum ?? 0, parent.auto.value + 1)
+        currentConfigValue: autoField.custom ? root.current : autoField.auto.start
+        minimum: Math.max(root.fieldSchema.minimum ?? 0, autoField.auto.value + 1)
         maximum: root.fieldSchema.maximum ?? 9999
         stepSize: root.fieldSchema.multipleOf ?? 1
         headerInset: root.headerInset
