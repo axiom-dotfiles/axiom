@@ -42,7 +42,7 @@ QtObject {
     const out = [];
     (root.localViews ?? []).forEach((view, v) => {
       if (view.type === "Custom")
-        out.push(...root.layout.problemsFor(view.modules, view.name || I18n.tr("Page {0}", v + 1)));
+        out.push(...root.layout.problemsFor(view.modules, OverlayConfig.viewLabel(view, v)));
     });
     return out;
   }
@@ -140,9 +140,13 @@ QtObject {
   // A new Custom page, selected (tool pages are always in config: they're
   // hidden, never added or removed)
   function addView() {
+    const taken = root.localViews.map(v => v.name);
+    let n = 1;
+    while (taken.includes(I18n.tr("Page {0}", n)))
+      n++;
     root.localViews.push(ConfigManager.withDefaults({
       "type": "Custom",
-      "name": I18n.tr("Page {0}", root.localViews.filter(v => v.type === "Custom").length + 1),
+      "name": I18n.tr("Page {0}", n),
       "modules": []
     }, "OverlayView"));
     root.editPage(root.localViews.length - 1);
@@ -164,8 +168,14 @@ QtObject {
   function removeView(index) {
     if (root.localViews?.[index]?.type !== "Custom")
       return;
+    // The selected page stays selected unless it's the one removed
+    const selectedView = root.selectedView();
     root.localViews.splice(index, 1);
-    root.selectView(Math.max(0, Math.min(root.selectedViewIndex, root.localViews.length - 1)));
+    const kept = root.localViews.indexOf(selectedView);
+    if (kept >= 0)
+      root.selectedViewIndex = kept;
+    else
+      root.selectView(Math.max(0, Math.min(root.selectedViewIndex, root.localViews.length - 1)));
     applyChanges();
   }
 

@@ -460,9 +460,16 @@ Singleton {
       return;
     if (root.previewing === menu.id)
       root._showPreview("");
+    // The selected menu stays selected unless it's the one removed
+    const selected = root.selectedMenu();
     root.localMenus.splice(index, 1);
-    root.selectedMenuIndex = Math.max(0, Math.min(root.selectedMenuIndex, root.localMenus.length - 1));
-    root.layout.clearSelection();
+    const kept = root.localMenus.indexOf(selected);
+    if (kept >= 0) {
+      root.selectedMenuIndex = kept;
+    } else {
+      root.selectedMenuIndex = Math.max(0, Math.min(root.selectedMenuIndex, root.localMenus.length - 1));
+      root.layout.clearSelection();
+    }
     root.applyChanges();
     root._followPreview();
   }
