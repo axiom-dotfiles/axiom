@@ -9,7 +9,7 @@ import qs.components.content.base
 
 // i18n: keys from the schema (titles, descriptions)
 // Layouts editor, left: the overlay pages and the edge menus, then what's
-// selected: a page's name and stretch, or a menu's settings in groups
+// selected: a page's name and icon, or a menu's settings in groups
 // (from the schema's EdgeMenu definition, its Opening group led by how to
 // try and open it), and anything that blocks saving
 Item {
@@ -69,7 +69,7 @@ Item {
       visible: root.isCustom
       Layout.topMargin: Widget.spacing
       title: I18n.tr("Page")
-      description: I18n.tr("Its name shows in the page navigator.")
+      description: I18n.tr("Its name and icon show in the page navigator.")
 
       StyledTextEntry {
         id: nameEntry
@@ -81,11 +81,13 @@ Item {
         }
       }
 
-      SchemaSwitch {
-        label: OverlayConfig.customViewSchema.stretch.title
-        description: OverlayConfig.customViewSchema.stretch.description
-        checked: root.view?.stretch === true
-        onToggled: newValue => OverlayManager.updateViewField(OverlayManager.selectedViewIndex, "stretch", newValue)
+      SchemaPropertiesForm {
+        Layout.fillWidth: true
+        propertiesSchema: ({
+            "icon": OverlayConfig.customViewSchema.icon
+          })
+        values: root.view ?? ({})
+        onEdited: (path, value) => OverlayManager.updateViewField(OverlayManager.selectedViewIndex, path[0], value)
       }
     }
 

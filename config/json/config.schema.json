@@ -2094,7 +2094,7 @@
         "type": { "const": "Custom", "description": "Custom" },
         "visible": { "type": "boolean" },
         "name": { "type": "string", "title": "Name", "default": "" },
-        "stretch": { "type": "boolean", "title": "Stretch", "default": false, "description": "Grow the modules to fill the overlay, instead of keeping their cards square." },
+        "icon": { "type": "string", "title": "Icon", "default": "", "description": "Shown in the page navigator: a Material Symbols name (fonts.google.com/icons). Empty shows the default." },
         "modules": { "type": "array", "default": [], "items": { "$ref": "#/definitions/OverlayModule" } }
       }
     },

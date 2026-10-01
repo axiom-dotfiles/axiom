@@ -1163,10 +1163,17 @@ QtObject {
   // every weather widget and module shows one location, from the new
   // Weather section: the first one that set a location (else the first
   // one) gives it, with its units, and the bar widgets' shortest refresh
-  // interval
+  // interval. Custom pages lost `stretch`: they keep their cards square
   function _v32ToV33(config, changes) {
     const views = config.Overlay?.views;
     if (Array.isArray(views)) {
+      views.forEach((view, v) => {
+        if (!view || typeof view !== "object" || !("stretch" in view))
+          return;
+        if (view.stretch === true)
+          changes.push(`Overlay.views[${v}]: stretch dropped: pages keep their cards square`);
+        delete view.stretch;
+      });
       ["Settings", "Keybinds", "BarEditor", "Themes", "Monitors"].forEach(type => {
         if (views.some(view => view?.type === type))
           return;

@@ -41,7 +41,7 @@ Item {
   // What the navigator shows for each page: the views, then the pinned ones
   readonly property var pages: viewsModel.map(view => ({
         "type": view.viewConfig.type,
-        "icon": OverlayConfig.viewIcon(view.viewConfig.type),
+        "icon": OverlayConfig.pageIcon(view.viewConfig),
         "label": OverlayConfig.viewLabel(view.viewConfig, view.index),
         "tool": OverlayConfig.isTool(view.viewConfig.type)
       })).concat(pinnedPages.map(page => ({

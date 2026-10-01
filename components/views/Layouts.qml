@@ -21,13 +21,11 @@ BaseView {
   readonly property var menu: EdgeMenuManager.selectedMenu()
 
   // How the page fits each monitor's overlay, or the menu its edge
-  readonly property var fits: root.isCustom ? OverlayManager.fitOf(root.view.modules, root.view.stretch === true) : []
+  readonly property var fits: root.isCustom ? OverlayManager.fitOf(root.view.modules) : []
   readonly property bool shrunk: root.fits.some(fit => fit.scale < 0.999)
   readonly property string pageFitText: {
     if (root.fits.length === 0)
       return "";
-    if (root.view.stretch === true)
-      return I18n.tr("Stretched to fill the overlay");
     const shrunk = root.fits.filter(fit => fit.scale < 0.999);
     if (shrunk.length === 0)
       return I18n.tr("Fits {0}", root.fits.map(fit => fit.screen).join(", "));
@@ -80,7 +78,7 @@ BaseView {
     grid: root.grid
     editor: root.editingMenu ? EdgeMenuManager.layout : OverlayManager.layout
     editModules: root.editingMenu ? (root.menu ? root.menu.modules : null) : (root.isCustom ? root.view.modules : null)
-    canvasIcon: root.editingMenu ? (root.menu ? Utils.edgeArrow(root.menu.edge) : "side_navigation") : (root.view ? OverlayConfig.viewIcon(root.view.type) : "dashboard")
+    canvasIcon: root.editingMenu ? (root.menu ? Utils.edgeArrow(root.menu.edge) : "side_navigation") : (root.view ? OverlayConfig.pageIcon(root.view) : "dashboard")
     canvasTitle: root.editingMenu ? (root.menu ? EdgeMenuManager.menuLabel(root.menu, EdgeMenuManager.selectedMenuIndex) : I18n.tr("No edge menus")) : (root.view ? OverlayConfig.viewLabel(root.view, OverlayManager.selectedViewIndex) : I18n.tr("No pages"))
     emptyText: root.editingMenu ? I18n.tr("No edge menus yet: add one with New menu.") : I18n.tr(root.view ? "A tool page: it has no layout to edit. Drag it in the list to reorder it." : "No pages yet: add one with New page.")
     edge: root.editingMenu && root.menu ? root.menu.edge : ""

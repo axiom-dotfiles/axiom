@@ -112,13 +112,13 @@ QtObject {
   }
 
   // How much each screen's overlay shrinks a page of these modules:
-  // [{ screen, scale }], 1 where it fits (stretched pages always fit)
-  function fitOf(modules, stretch) {
+  // [{ screen, scale }], 1 where it fits
+  function fitOf(modules) {
     const bounds = GridPlacement.bounds(modules);
     return Object.keys(root.areas).sort().map(screenName => {
       const area = root.areas[screenName];
       const sizes = GridPlacement.trackSizes(bounds, area.unit);
-      const scale = stretch || sizes.width <= 0 ? 1 : Math.min(1, area.width / sizes.width, area.height / sizes.height);
+      const scale = sizes.width <= 0 ? 1 : Math.min(1, area.width / sizes.width, area.height / sizes.height);
       return {
         "screen": screenName,
         "scale": scale
@@ -178,7 +178,7 @@ QtObject {
     applyChanges();
   }
 
-  // One of a page's own fields (name, stretch, visible)
+  // One of a page's own fields (name, icon, visible)
   function updateViewField(index, key, value) {
     const view = root.localViews?.[index];
     if (!view || JSON.stringify(view[key]) === JSON.stringify(value))

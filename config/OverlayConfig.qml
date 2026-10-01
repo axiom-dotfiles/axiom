@@ -51,7 +51,7 @@ QtObject {
     }).filter(t => t !== null);
   }
   readonly property var availableModuleTypes: _oneOfTypes("OverlayModule")
-  // A Custom page's own fields (name, stretch), for the layouts editor
+  // A Custom page's own fields (name, icon), for the layouts editor
   readonly property var customViewSchema: ConfigManager.configSchema.definitions.CustomOverlayView.properties
   readonly property var availableViewTypes: _oneOfTypes("OverlayView")
   // The module types a host offers: "overlay" pages or "edgeMenu"s
@@ -80,6 +80,10 @@ QtObject {
   }
   function viewIcon(type) {
     return pinnedPages.find(page => page.type === type)?.icon ?? viewInfo(type)?.icon ?? "dashboard";
+  }
+  // A page's icon: a Custom page's own, else its type's
+  function pageIcon(view) {
+    return (view?.type === "Custom" && view.icon) || viewIcon(view?.type);
   }
   function isTool(type) {
     return viewInfo(type)?.tool ?? false;

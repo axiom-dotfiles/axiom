@@ -57,7 +57,7 @@ ColumnLayout {
         height: pageList.rowHeight
         y: entry.index * pageList.rowStep
         opacity: entry.carried ? 0.3 : 1
-        icon: OverlayConfig.viewIcon(entry.entryView.type)
+        icon: OverlayConfig.pageIcon(entry.entryView)
         label: OverlayConfig.viewLabel(entry.entryView, entry.viewIndex)
         dimmed: entry.entryView.visible === false
         selected: OverlayManager.editTarget === "page" && OverlayManager.selectedViewIndex === entry.viewIndex

@@ -587,6 +587,34 @@ TestCase {
     compare(errors(loaded.config), []);
   }
 
+  function test_v33_custom_pages_lose_stretch() {
+    const loaded = load({
+      "version": 32,
+      "Overlay": {
+        "views": [
+          {
+            "type": "Custom",
+            "name": "Home",
+            "stretch": true,
+            "modules": []
+          },
+          {
+            "type": "Custom",
+            "name": "Other",
+            "stretch": false,
+            "modules": []
+          }
+        ]
+      }
+    });
+    const views = loaded.config.Overlay.views;
+    compare(views[0].stretch, undefined);
+    compare(views[1].stretch, undefined);
+    compare(views[0].icon, "");
+    compare(loaded.changes.filter(change => change.includes("stretch dropped")).length, 1);
+    compare(errors(loaded.config), []);
+  }
+
   function test_v33_weather_settings_become_global() {
     const loaded = load({
       "version": 32,

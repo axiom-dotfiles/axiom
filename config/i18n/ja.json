@@ -619,7 +619,7 @@
     "Remove this page": "このページを削除",
     "New page": "新しいページ",
     "Page": "ページ",
-    "Its name shows in the page navigator.": "名前はページナビゲーターに表示されます。",
+    "Its name and icon show in the page navigator.": "名前とアイコンはページナビゲーターに表示されます。",
     "Can't save yet": "まだ保存できません",
     "Doesn't fit here": "ここには合いません",
     "Line up along the edge": "端に沿って並べる",
@@ -2125,7 +2125,6 @@
     "Monitor this bar is shown on. Empty uses the primary monitor; All monitors puts an identical copy on each.": "このバーを表示するモニター。空欄ではメインモニター、「すべてのモニター」では各モニターに同じバーを表示します。",
     "Save all unsaved changes": "未保存の変更をすべて保存",
     "Discard all unsaved changes": "未保存の変更をすべて破棄",
-    "Stretched to fill the overlay": "オーバーレイいっぱいに引き伸ばし",
     "Fits {0}": "{0} に収まります",
     "Shrunk to {0}% on {1}": "{1} では {0}% に縮小",
     "Takes its whole edge": "辺全体を使います",
@@ -2177,9 +2176,7 @@
     "Menus that pop out of a screen edge, filled with overlay modules, edited on the overlay's Layouts page. Opened by a bar Button (Edge menu action), their edge trigger, or `qs -c axiom ipc call edgeMenu toggle <id>`.": "画面の端から出てくる、オーバーレイモジュールを入れたメニュー。オーバーレイの「レイアウト」ページで編集します。バーのボタン（エッジメニュー操作）、辺のトリガー、または `qs -c axiom ipc call edgeMenu toggle <id>` で開きます。",
     "Length": "長さ",
     "Where a module sits on its page's or menu's grid, in quarter cards: x and y from the top left, w and h its size.": "ページまたはメニューのグリッド上のモジュールの位置（¼カード単位）：x と y は左上から、w と h はサイズ。",
-    "Grow the modules to fill the overlay, instead of keeping their cards square.": "カードを正方形に保たず、モジュールをオーバーレイいっぱいに広げます。",
     "content": "内容",
-    "Stretch": "引き伸ばし",
     "Length of the hover strip along the edge, centred on the menu. Auto matches the menu's own length.": "辺に沿ったホバー領域の長さ（メニューの中央基準）。自動ではメニュー自体の長さに合わせます。",
     "Space between the menu's box and its modules. Auto uses the Popouts padding.": "メニューの枠とモジュールの間隔。自動ではポップアウトの余白を使います。",
     "Theme editor": "テーマエディター",
@@ -2194,6 +2191,7 @@
     "Grid units between the menu and its `align` anchor (towards the middle; from the middle, positive is towards the end). Set by the layouts editor's grid.": "メニューと `align` の基準点との間のグリッド単位数（中央に向かって。中央からの場合は正の値が終端側）。レイアウトエディタのグリッドで設定されます。",
     "The end of its edge (or its middle) the menu is placed from, set by where its modules sit on the layouts editor's grid: start is left/top.": "メニューを配置する基準となる端（または中央）。レイアウトエディタのグリッド上のモジュールの位置で決まります。開始は左／上です。",
     "City name to look up. Empty uses your IP's location.": "検索する都市名。空欄の場合は IP アドレスから推定した場所を使います。",
-    "Where and how every weather widget and module gets its weather, from Open-Meteo (no account needed).": "すべての天気ウィジェットとモジュールが天気を取得する場所と方法(Open-Meteo、アカウント不要)。"
+    "Where and how every weather widget and module gets its weather, from Open-Meteo (no account needed).": "すべての天気ウィジェットとモジュールが天気を取得する場所と方法(Open-Meteo、アカウント不要)。",
+    "Shown in the page navigator: a Material Symbols name (fonts.google.com/icons). Empty shows the default.": "ページナビゲーターに表示されます。Material Symbols の名前（fonts.google.com/icons）。空欄ではデフォルトを表示します。"
   }
 }
