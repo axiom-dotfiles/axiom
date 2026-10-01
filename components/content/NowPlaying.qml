@@ -264,7 +264,7 @@ Panel {
     }
   }
 
-  // Quarter card: the art with play/pause over it
+  // Compact: the art with play/pause over it
   compactContent: Item {
     Art {
       anchors.fill: parent

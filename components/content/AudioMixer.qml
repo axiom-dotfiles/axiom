@@ -57,7 +57,7 @@ Panel {
 
   onCurrentTabChanged: fadeIn.restart()
 
-  // Quarter card: the default device's volume; click to mute
+  // Compact: the default device's volume; click to mute
   compactContent: Item {
     readonly property var node: root.defaultDevice
     readonly property bool muted: node?.audio?.muted ?? false

@@ -53,7 +53,7 @@ The screenshots show [two setups](../README.md#built-in-the-shell) of the same s
 | :---: | :---: |
 | <img src="../assets/screenshots/overlay-home.webp" alt="The overlay's Home page, setup A"> | <img src="../assets/screenshots/overlay-home-b.webp" alt="The overlay's Home page, setup B"> |
 
-- A full-screen overlay made of pages of cards. Each page is a grid you place modules on, sized in quarter cards, with gaps wherever you like. A page can stretch to fill the screen.
+- A full-screen overlay made of pages of cards. Each page is a grid you place modules on, sized in quarter cards, with gaps wherever you like.
 - 23 modules, including:
   - a media player, audio mixer, system graphs and top processes
   - disks, updates, quick actions (toggles, power, pin), Bluetooth, network and Wi-Fi networks

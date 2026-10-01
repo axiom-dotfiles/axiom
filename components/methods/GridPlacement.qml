@@ -29,11 +29,6 @@ QtObject {
     return n * root.unitOf(unit) + (n - 1) * root.cardSpacing;
   }
 
-  // How many grid units (fractional) of card size `unit` span `length` px
-  function unitsAlong(length, unit) {
-    return Math.max(0, (length + root.cardSpacing) / (root.unitOf(unit) + root.cardSpacing));
-  }
-
   // One grid unit plus the gap after it, in px, at card size `unit`
   function stepOf(unit) {
     return root.unitOf(unit) + root.cardSpacing;
@@ -108,7 +103,7 @@ QtObject {
 
   // A place as the [x, y, w, h] rect modules get as `slotRect`
   function rectOf(place) {
-    return [place?.x ?? 0, place?.y ?? 0, place?.w ?? 2, place?.h ?? 2];
+    return [place?.x ?? 0, place?.y ?? 0, place?.w ?? 4, place?.h ?? 4];
   }
 
   // A rect's shape: "square" while its longer side is under 1.5 times the

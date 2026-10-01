@@ -49,7 +49,7 @@ components/
   reusable/     generic Styled* widgets, no feature logic
   forms/        schema-driven form widgets (SchemaField, SchemaPropertiesForm, …)
   content/      loadable panels, by name: overlay module types and bar popouts (base/: Card, Panel, TitledCard; parts/: helpers)
-  hosts/        where content appears: popout/ (bar + edge popouts) and overlay/ (pages, columns, cells, slots)
+  hosts/        where content appears: popout/ (bar + edge popouts) and overlay/ (pages, the module grid, slots)
   views/        overlay pages by view type, with their pieces in subfolders
   bar/          the bar; widgets/ = bar widget types
   surfaces/     standalone windows (launcher, lockscreen, toasts, dock, onboarding, screenshot, …)
@@ -72,10 +72,10 @@ Dependencies point one way:
 
 ## Services
 
-- One `pragma Singleton QtObject` per domain, named `*Manager`, exposing readonly properties, signals and functions. Non-singleton helpers are named for what they are (`ConfigDraft`, `ColumnsEditor`, `ConsumerRegistry`, `WeatherSource`, `ChatRequest`, `DailySchedule`).
+- One `pragma Singleton QtObject` per domain, named `*Manager`, exposing readonly properties, signals and functions. Non-singleton helpers are named for what they are (`ConfigDraft`, `GridEditor`, `ConsumerRegistry`, `WeatherSource`, `ChatRequest`, `DailySchedule`).
 - Don't shadow Quickshell singletons: `NetworkingManager`, `BluetoothManager`, not `Networking`/`Bluetooth`.
 - A service with an IPC target that nothing else references is created from `shell.qml`'s `_services`.
-- **Anything polled goes through `acquire(owner, request)` / `release(owner)`** (a `ConsumerRegistry`): fetched once for all consumers, at the shortest interval asked, not at all with none. Acquire in `Component.onCompleted` (again when the config-derived request changes; identical requests are no-ops), release in `onDestruction`. SystemManager, UpdatesManager, WeatherManager, TailscaleManager and CommandManager (any shell command's output) work this way.
+- **Anything polled goes through `acquire(owner, request)` / `release(owner)`** (a `ConsumerRegistry`): fetched once for all consumers, at the shortest interval asked (or a configured one: WeatherManager's comes from `WeatherConfig`), not at all with none. Acquire in `Component.onCompleted` (again when the config-derived request changes; identical requests are no-ops), release in `onDestruction`. SystemManager, UpdatesManager, WeatherManager, TailscaleManager and CommandManager (any shell command's output) work this way.
 - **Config writes** go only through `ConfigManager.setTheme` / `setWallpaper(s)` / `saveConfig` / `commit(object)` (validates first; returns false and changes nothing if rejected), or `SettingsManager.setValue` / `commitValue(s)` from UI. Never mutate `ConfigManager.config` and expect it to persist.
 - **Editors** (settings, bar, overlay, edge menus, keybinds, monitors) edit a `ConfigDraft` (a working copy of one config path; `save()` merges onto the latest config). Unsaved edits show live through `ConfigManager.setPreview(section, value)`; readers read `previews.X ?? config.X`. Selection lives in the manager and changes through its `select*()` (`selectBar`, `selectView`, `selectMenu`, `selectProfile`), which keeps what depends on it valid; views don't assign it.
 - Secrets (chat API keys) never go in config.json or argv: `SecretsManager`, written through stdin. Clipboard history is never written to disk.

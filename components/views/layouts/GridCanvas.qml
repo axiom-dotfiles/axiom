@@ -77,8 +77,6 @@ Card {
   // Where grid 0, 0 sits in the area
   readonly property real originX: (area.width - root.gridCols * root.step + root.gap) / 2 + root.leadCols * root.step
   readonly property real originY: (area.height - root.gridRows * root.step + root.gap) / 2 + root.leadRows * root.step
-  // The lattice's drawn box, in the area
-  readonly property rect latticeBox: Qt.rect(root.originX - root.leadCols * root.step, root.originY - root.leadRows * root.step, root.gridCols * root.step - root.gap, root.gridRows * root.step - root.gap)
   // The screen, in the area's px (its sides midway in the gaps)
   readonly property rect screenRect: root.hasScreen ? Qt.rect(root.originX + root.screenBox.x * root.step - root.gap / 2, root.originY + root.screenBox.y * root.step - root.gap / 2, root.screenBox.w * root.step, root.screenBox.h * root.step) : Qt.rect(0, 0, 0, 0)
 

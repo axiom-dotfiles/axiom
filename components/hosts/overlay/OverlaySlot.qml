@@ -4,7 +4,7 @@ import QtQuick
 // scan them, so their own qs.* imports (e.g. modules.settings) resolve
 import qs.components.content // qmllint disable unused-imports
 
-// Hosts one overlay module in a cell slot: loads content/<type>.qml and
+// Hosts one overlay module in its slot on a grid: loads content/<type>.qml and
 // hands it the entry's `properties` (defaults filled from the schema, as
 // for bar widgets). An empty slot renders nothing.
 Item {
@@ -12,7 +12,7 @@ Item {
 
   // A slot entry: { type, properties }, or undefined for an empty slot
   property var config
-  // The slot's [col, row, colSpan, rowSpan] in its cell's layout; passed on
+  // The slot's [x, y, w, h] in grid units (its place); passed on
   // as the module's `slotRect`, from which Card derives its shape
   property var rect: [0, 0, 4, 4]
   // Where the module is shown: { kind: "overlay" } or { kind: "edgeMenu",

@@ -14,6 +14,7 @@ import qs.components.reusable
 //   "module-add" { type, w, h }   from the library
 //   "module-move" { index }       a module on the canvas
 //   "page-move" { index }         a page row
+//   "tool-move" { index }         a tool page row
 //   "menu-move" { index }         an edge menu row
 // Targets: items with `targetKind` "grid" (placeAt(point, drag, grab)
 // → { x, y, w, h }) or "list" (EntryListTarget: takes(drag), indexAt,
