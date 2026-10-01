@@ -183,7 +183,7 @@ QtObject {
     case "dock":
       return DockConfig.docks.map(dock => dock.id);
     case "view":
-      return OverlayConfig.views.filter(view => view.visible !== false).map(view => view.name || view.type).concat(["OverlayEditor"]).filter((name, i, all) => all.indexOf(name) === i);
+      return OverlayConfig.views.filter(view => view.visible !== false).map(view => view.name || view.type).concat(["Layouts"]).filter((name, i, all) => all.indexOf(name) === i);
     }
     return null;
   }

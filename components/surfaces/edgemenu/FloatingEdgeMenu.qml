@@ -156,7 +156,7 @@ EdgePopout {
   // At 0px its ends join the perpendicular edges once it reaches them.
   // Fill cells grow to whatever room there is, so reach them always.
   joinEnds: root.edgeDistance === 0
-  reachLength: root.contentItem ? (root.contentItem.anyFill ? Infinity : root.contentItem.naturalLength) : 0
+  reachLength: root.contentItem ? (root.contentItem.fillsEdge ? Infinity : root.contentItem.naturalLength) : 0
   boxSnap: root.attachedToPills ? (start => root.pillSnap(start + root.barShift)) : null
   attachClearance: root.merged ? root.pillFoot : 0
   startFoot: root.merged && root.pills.some(p => p.start <= root.barBoxStart - Appearance.borderRadius && p.start + p.length >= root.barBoxStart) ? root.pillFoot : 0

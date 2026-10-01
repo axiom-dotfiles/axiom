@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import qs.config
+import qs.components.methods
 
 // One overlay's card grid, sized to its screen: the card unit is what fits
 // the free space (OverlayConfig.fitCardsHigh / fitCardsWide), capped at the
@@ -24,7 +25,9 @@ QtObject {
     return OverlayConfig.span(n, root.unit);
   }
 
-  function columnFlow(cells, target, extra) {
-    return OverlayConfig.columnFlow(cells, root.unit, target, extra);
+  // One half unit across and down, and the whole grid, for modules
+  // reaching `bounds` (see GridPlacement.trackSizes)
+  function sizes(bounds, stretch) {
+    return GridPlacement.trackSizes(bounds, root.unit, stretch);
   }
 }

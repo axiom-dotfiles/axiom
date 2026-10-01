@@ -13,7 +13,7 @@ QtObject {
   readonly property var menus: ConfigManager.previews.EdgeMenus ?? ConfigManager.config.EdgeMenus
   readonly property var enabledMenus: root.menus.filter(menu => menu.enabled && menu.id)
   // A menu's own fields in groups (`x-group`), for the edge menu editor
-  readonly property var fieldGroups: SchemaLayout.objectGroups(ConfigManager.configSchema.definitions.EdgeMenu, ["columns"])
+  readonly property var fieldGroups: SchemaLayout.objectGroups(ConfigManager.configSchema.definitions.EdgeMenu, ["modules"])
 
   function menuById(id) {
     return root.menus.find(menu => menu.id === id) ?? null;
@@ -21,7 +21,7 @@ QtObject {
 
   // The first enabled menu holding a module of `type`, else null
   function menuWithModule(type) {
-    return root.enabledMenus.find(menu => menu.columns.some(column => column.cells.some(cell => Object.values(cell.slots).some(slot => slot?.type === type)))) ?? null;
+    return root.enabledMenus.find(menu => menu.modules.some(module => module.type === type)) ?? null;
   }
 
   // The menu's named screen, else the primary monitor
@@ -49,10 +49,10 @@ QtObject {
   }
 
   // The menu's length along its edge, from config alone (for the hover
-  // strip before the menu has ever been loaded): its columns side by side
-  // at its card size, as EdgeMenuBody lays them out, plus its padding
+  // strip before the menu has ever been loaded): its modules' grid at its
+  // card size, as EdgeMenuBody lays it out, plus its padding
   function lengthOf(menu, vertical) {
-    const flows = menu.columns.map(column => OverlayLayout.columnFlow(column.cells, menu.cardSize));
-    return OverlayLayout.columnsLength(flows, vertical, vertical ? menu.extraHeight : menu.extraWidth) + root.paddingOf(menu) * 2;
+    const sizes = GridPlacement.trackSizes(GridPlacement.bounds(menu.modules), menu.cardSize);
+    return (vertical ? sizes.height : sizes.width) + root.paddingOf(menu) * 2;
   }
 }

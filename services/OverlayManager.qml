@@ -4,15 +4,17 @@ import QtQuick
 import qs.config
 import qs.components.methods
 
-/* OverlayManager holds the overlay editor's working copy of Overlay.views
+/* OverlayManager holds the layouts editor's working copy of Overlay.views
  * (the editor is the pinned last page). Edits only affect localViews and
  * the editor's canvas; the real overlay pages and config.json are
  * untouched until saveChanges(). Mirrors BarManager.
  *
- * Also keeps the page's own state (selected page), since the page is
- * unloaded whenever the overlay closes. The selected page's columns are
- * edited through `layout` (ColumnsEditor, which also holds the selected
- * slot). */
+ * Also keeps the page's own state, since the page is unloaded whenever the
+ * overlay closes: whether it's editing a page or an edge menu
+ * (`editTarget`; the menus themselves are EdgeMenuManager's), the selected
+ * page, and each overlay's room (for the canvas's "fits" line). The
+ * selected page's modules are edited through `layout` (GridEditor, which
+ * also holds the selected module). */
 QtObject {
   id: root
 
@@ -24,10 +26,13 @@ QtObject {
   readonly property alias savedViews: draft.saved
   readonly property alias isDirty: draft.isDirty
   property int selectedViewIndex: 0
+  // What the layouts editor shows: "page" (selectedViewIndex) or "menu"
+  // (EdgeMenuManager.selectedMenuIndex)
+  property string editTarget: "page"
 
-  property ColumnsEditor layout: ColumnsEditor {
+  property GridEditor layout: GridEditor {
     host: "overlay"
-    columnsOf: () => root.selectedView()?.columns ?? null
+    modulesOf: () => root.selectedView()?.type === "Custom" ? root.selectedView().modules : null
     scopeKey: String(root.selectedViewIndex)
     onEdited: root.applyChanges()
   }
@@ -37,7 +42,7 @@ QtObject {
     const out = [];
     (root.localViews ?? []).forEach((view, v) => {
       if (view.type === "Custom")
-        out.push(...root.layout.problemsFor(view.columns, view.name || I18n.tr("Page {0}", v + 1)));
+        out.push(...root.layout.problemsFor(view.modules, view.name || I18n.tr("Page {0}", v + 1)));
     });
     return out;
   }
@@ -66,6 +71,61 @@ QtObject {
     return JSON.stringify(root.localViews?.[index]) !== JSON.stringify(root.savedViews?.[index]);
   }
 
+  // --- What the editor shows ---
+
+  function editPage(index) {
+    root.editTarget = "page";
+    root.selectView(index);
+  }
+
+  function editMenu(index) {
+    root.editTarget = "menu";
+    EdgeMenuManager.selectMenu(index);
+  }
+
+  // The pages, or the menus, keeping what was selected in each
+  function editPages() {
+    root.editTarget = "page";
+  }
+
+  function editMenus() {
+    root.editTarget = "menu";
+  }
+
+  // --- Room on each screen ---
+
+  // { screenName: { width, height, unit } }: the room each overlay has for
+  // a page, and its card size, as its OverlayPanel reports them
+  property var areas: ({})
+
+  function reportArea(screenName, width, height, unit) {
+    const old = root.areas[screenName];
+    if (old && old.width === width && old.height === height && old.unit === unit)
+      return;
+    const areas = Object.assign({}, root.areas);
+    areas[screenName] = {
+      "width": width,
+      "height": height,
+      "unit": unit
+    };
+    root.areas = areas;
+  }
+
+  // How much each screen's overlay shrinks a page of these modules:
+  // [{ screen, scale }], 1 where it fits (stretched pages always fit)
+  function fitOf(modules, stretch) {
+    const bounds = GridPlacement.bounds(modules);
+    return Object.keys(root.areas).sort().map(screenName => {
+      const area = root.areas[screenName];
+      const sizes = GridPlacement.trackSizes(bounds, area.unit);
+      const scale = stretch || sizes.width <= 0 ? 1 : Math.min(1, area.width / sizes.width, area.height / sizes.height);
+      return {
+        "screen": screenName,
+        "scale": scale
+      };
+    });
+  }
+
   // --- Pages ---
 
   function selectedView() {
@@ -80,17 +140,13 @@ QtObject {
   function addView(type) {
     const view = type === "Custom" ? {
       "type": "Custom",
-      "name": I18n.tr("Page {0}", root.localViews.length + 1),
-      "columns": [
-        {
-          "cells": [root.layout.newCell()]
-        }
-      ]
+      "name": I18n.tr("Page {0}", root.localViews.filter(v => v.type === "Custom").length + 1),
+      "modules": []
     } : {
       "type": type
     };
     root.localViews.push(ConfigManager.withDefaults(view, "OverlayView"));
-    root.selectView(root.localViews.length - 1);
+    root.editPage(root.localViews.length - 1);
     applyChanges();
   }
 
@@ -103,17 +159,34 @@ QtObject {
   // The selected page stays selected wherever it ends up
   function moveView(from, to) {
     const selectedView = root.selectedView();
-    if (OverlayLayout.moveTo(root.localViews, from, to) < 0)
+    if (GridPlacement.moveTo(root.localViews, from, to) < 0)
       return;
     root.selectedViewIndex = Math.max(0, root.localViews.indexOf(selectedView));
     applyChanges();
   }
 
-  function renameView(index, name) {
-    const view = root.localViews[index];
-    if (!view || view.name === name)
+  // One of a page's own fields (name, stretch, visible)
+  function updateViewField(index, key, value) {
+    const view = root.localViews?.[index];
+    if (!view || JSON.stringify(view[key]) === JSON.stringify(value))
       return;
-    view.name = name;
+    view[key] = value;
+    applyChanges();
+  }
+
+  function renameView(index, name) {
+    root.updateViewField(index, "name", name);
+  }
+
+  // Shown in the navigator (true) or hidden; hidden pages keep their place
+  function setViewVisible(index, visible) {
+    const view = root.localViews?.[index];
+    if (!view || (view.visible !== false) === visible)
+      return;
+    if (visible)
+      delete view.visible;
+    else
+      view.visible = false;
     applyChanges();
   }
 

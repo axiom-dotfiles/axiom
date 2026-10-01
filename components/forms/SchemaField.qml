@@ -117,9 +117,9 @@ Loader {
     case "boolean":
       return switchField;
     case "integer":
-      return spinField;
+      return fieldSchema["x-auto"] ? autoSpinField : spinField;
     default:
-      return root.options ? comboField : textField;
+      return fieldSchema["x-control"] === "readonly" ? readonlyField : root.options ? comboField : textField;
     }
   }
 
@@ -156,6 +156,72 @@ Loader {
       unit: root.fieldSchema["x-unit"] ?? ""
       mode: root.form?.numberMode || (root.fieldSchema["x-control"] ?? "auto")
       onCommitted: value => root.commit(value)
+    }
+  }
+
+  // An integer with an automatic value (`x-auto`: { value, start }): a
+  // switch for setting it by hand, then the number. Turning it on starts
+  // at `start`; off stores `value`.
+  Component {
+    id: autoSpinField
+    ColumnLayout {
+      readonly property var auto: root.fieldSchema["x-auto"]
+      readonly property bool custom: root.current !== auto.value
+      spacing: 4
+      SchemaSwitch {
+        label: root.label
+        description: root.description
+        checked: parent.custom
+        onToggled: value => root.commit(value ? parent.auto.start : parent.auto.value)
+      }
+      SchemaNumberField {
+        visible: parent.custom
+        label: ""
+        currentConfigValue: parent.custom ? root.current : parent.auto.start
+        minimum: Math.max(root.fieldSchema.minimum ?? 0, parent.auto.value + 1)
+        maximum: root.fieldSchema.maximum ?? 9999
+        stepSize: root.fieldSchema.multipleOf ?? 1
+        headerInset: root.headerInset
+        unit: root.fieldSchema["x-unit"] ?? ""
+        mode: root.form?.numberMode || (root.fieldSchema["x-control"] ?? "auto")
+        onCommitted: value => root.commit(value)
+      }
+    }
+  }
+
+  // A value shown, not edited (`x-control: "readonly"`), with a copy button
+  Component {
+    id: readonlyField
+    ColumnLayout {
+      spacing: 4
+      RowLayout {
+        Layout.fillWidth: true
+        spacing: Widget.spacing
+        StyledText {
+          text: I18n.tr(root.label)
+        }
+        StyledText {
+          Layout.fillWidth: true
+          horizontalAlignment: Text.AlignRight
+          text: String(root.current ?? "")
+          elide: Text.ElideMiddle
+          opacity: 0.8
+        }
+        SquareIconButton {
+          size: Widget.height - 6
+          iconText: "content_copy"
+          tooltipText: I18n.tr("Copy")
+          onClicked: ClipboardManager.copyText(String(root.current ?? ""))
+        }
+      }
+      StyledText {
+        visible: root.description !== ""
+        Layout.fillWidth: true
+        wrapMode: Text.WordWrap
+        text: I18n.tr(root.description)
+        textSize: Appearance.fontSize - 2
+        opacity: 0.7
+      }
     }
   }
 

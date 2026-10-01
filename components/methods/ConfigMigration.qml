@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 30
+  readonly property int currentVersion: 31
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -87,6 +87,8 @@ QtObject {
       result = _v28ToV29(result, changes);
     if (version < 30)
       result = _v29ToV30(result, changes);
+    if (version < 31)
+      result = _v30ToV31(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -868,6 +870,264 @@ QtObject {
     root._eachModule(config, (module, where) => {
       if (module.type === "ClockCalendar")
         root._renameKey(module.properties, "use24h", "use24Hour", where, changes);
+    });
+    return config;
+  }
+
+  // The overlay cell layouts as they were up to v30: { cols, rows, slots:
+  // { name: [col, row, colSpan, rowSpan] } } in half-card units
+  readonly property var _v30Layouts: ({
+      "Single": [2, 2,
+        {
+          "main": [0, 0, 2, 2]
+        }
+      ],
+      "Tall": [2, 4,
+        {
+          "main": [0, 0, 2, 4]
+        }
+      ],
+      "Wide": [4, 2,
+        {
+          "main": [0, 0, 4, 2]
+        }
+      ],
+      "Large": [4, 4,
+        {
+          "main": [0, 0, 4, 4]
+        }
+      ],
+      "HalfWide": [2, 1,
+        {
+          "main": [0, 0, 2, 1]
+        }
+      ],
+      "HalfTall": [1, 2,
+        {
+          "main": [0, 0, 1, 2]
+        }
+      ],
+      "Grid2x2": [2, 2,
+        {
+          "topLeft": [0, 0, 1, 1],
+          "topRight": [1, 0, 1, 1],
+          "bottomLeft": [0, 1, 1, 1],
+          "bottomRight": [1, 1, 1, 1]
+        }
+      ],
+      "Vert1x1": [2, 2,
+        {
+          "left": [0, 0, 1, 2],
+          "right": [1, 0, 1, 2]
+        }
+      ],
+      "Vert1x2": [2, 2,
+        {
+          "left": [0, 0, 1, 2],
+          "topRight": [1, 0, 1, 1],
+          "bottomRight": [1, 1, 1, 1]
+        }
+      ],
+      "Vert2x1": [2, 2,
+        {
+          "topLeft": [0, 0, 1, 1],
+          "bottomLeft": [0, 1, 1, 1],
+          "right": [1, 0, 1, 2]
+        }
+      ],
+      "Horiz1x1": [2, 2,
+        {
+          "top": [0, 0, 2, 1],
+          "bottom": [0, 1, 2, 1]
+        }
+      ],
+      "Horiz1x2": [2, 2,
+        {
+          "top": [0, 0, 2, 1],
+          "bottomLeft": [0, 1, 1, 1],
+          "bottomRight": [1, 1, 1, 1]
+        }
+      ],
+      "Horiz2x1": [2, 2,
+        {
+          "topLeft": [0, 0, 1, 1],
+          "topRight": [1, 0, 1, 1],
+          "bottom": [0, 1, 2, 1]
+        }
+      ]
+    })
+
+  // Columns of cells (v30) as modules placed on one grid: the columns side
+  // by side, each flowing its cells left to right and wrapping at its
+  // widest, all in half-card units. A cell filling `acrossKeys` grows to
+  // its column's width (fillWidth) or the grid's height (fillHeight), and
+  // its modules on that side with it. Returns { modules, pins, fillKeys }:
+  // the number of Pin modules dropped and which fill keys were set.
+  function _placeColumns(columns, acrossKeys) {
+    const placed = [];
+    const fillKeys = {};
+    let pins = 0;
+    let x0 = 0;
+    (columns ?? []).forEach(column => {
+      const cells = (column?.cells ?? []).map(cell => {
+        const layout = root._v30Layouts[cell?.layout] ?? root._v30Layouts.Single;
+        return {
+          "cell": cell,
+          "cols": layout[0],
+          "rows": layout[1],
+          "slots": layout[2]
+        };
+      });
+      const width = Math.max(0, ...cells.map(c => c.cols));
+      // Flow: rows of cells, each as tall as its tallest
+      const rows = [];
+      let x = 0;
+      cells.forEach(c => {
+        if (rows.length === 0 || (x > 0 && x + c.cols > width)) {
+          rows.push({
+            "cells": [],
+            "y": 0,
+            "height": 0
+          });
+          x = 0;
+        }
+        const row = rows[rows.length - 1];
+        c.x = x;
+        c.row = row;
+        row.cells.push(c);
+        row.height = Math.max(row.height, c.rows);
+        x += c.cols;
+      });
+      let y = 0;
+      rows.forEach(row => {
+        row.y = y;
+        y += row.height;
+      });
+      cells.forEach((c, i) => {
+        ["fillWidth", "fillHeight"].forEach(key => {
+          if (c.cell?.[key] === true)
+            fillKeys[key] = true;
+        });
+        const last = c.row.cells[c.row.cells.length - 1] === c;
+        // Room to grow: to the column's width if last in its row; to the
+        // row's height (the grid's bottom is applied once all are placed)
+        const growW = acrossKeys.includes("fillWidth") && c.cell?.fillWidth === true && last ? width - (c.x + c.cols) : 0;
+        const fillsDown = acrossKeys.includes("fillHeight") && c.cell?.fillHeight === true;
+        const slots = c.cell?.slots ?? {};
+        Object.keys(slots).forEach(name => {
+          const module = slots[name];
+          const rect = c.slots[name];
+          if (!module?.type || !rect)
+            return;
+          if (module.type === "Pin") {
+            pins++;
+            return;
+          }
+          const place = {
+            "x": x0 + c.x + rect[0],
+            "y": c.row.y + rect[1],
+            "w": rect[2] + (rect[0] + rect[2] === c.cols ? growW : 0),
+            "h": rect[3]
+          };
+          // Grows down later if it touches its cell's bottom
+          const growsDown = fillsDown && rect[1] + rect[3] === c.rows;
+          placed.push({
+            "module": module,
+            "place": place,
+            "growsDown": growsDown,
+            "cellBottom": c.row.y + c.rows,
+            "lastRow": c.row === rows[rows.length - 1],
+            "rowBottom": c.row.y + c.row.height
+          });
+        });
+      });
+      x0 += width;
+    });
+    const bottom = Math.max(0, ...placed.map(p => p.place.y + p.place.h));
+    placed.forEach(p => {
+      if (!p.growsDown)
+        return;
+      const to = p.lastRow ? Math.max(bottom, p.rowBottom) : p.rowBottom;
+      p.place.h += to - p.cellBottom;
+    });
+    return {
+      "modules": placed.map(p => {
+        const module = Object.assign({}, p.module);
+        module.place = p.place;
+        return module;
+      }),
+      "pins": pins,
+      "fillKeys": fillKeys
+    };
+  }
+
+  // v31 replaced columns → cells → slots with modules placed on a grid:
+  // each module has a `place` { x, y, w, h } in half-card units. Custom
+  // pages and edge menus get `modules` instead of `columns`. Fill cells
+  // grow into the room they took; in an edge menu a cell filling along
+  // the edge makes it take the whole edge (`length: "edge"`), and the
+  // extra size across the edge goes into its card size (the extra along
+  // it is dropped). Pin modules became the menu's `pinButton`. The edge
+  // menu editor became part of the pinned Layouts page.
+  function _v30ToV31(config, changes) {
+    const views = config.Overlay?.views;
+    if (Array.isArray(views)) {
+      for (let v = views.length - 1; v >= 0; v--) {
+        const view = views[v];
+        if (view?.type === "EdgeMenuEditor") {
+          views.splice(v, 1);
+          changes.push(`Overlay.views[${v}]: EdgeMenuEditor removed (now part of the Layouts page)`);
+          continue;
+        }
+        if (view?.type !== "Custom" || !("columns" in view))
+          continue;
+        const result = root._placeColumns(view.columns, ["fillWidth", "fillHeight"]);
+        view.modules = result.modules;
+        delete view.columns;
+        changes.push(`Overlay.views[${v}]: columns -> ${result.modules.length} placed modules`);
+      }
+    }
+    (Array.isArray(config.EdgeMenus) ? config.EdgeMenus : []).forEach((menu, m) => {
+      if (!menu || typeof menu !== "object")
+        return;
+      const where = `EdgeMenus[${m}]`;
+      const vertical = menu.edge === undefined || menu.edge === "Left" || menu.edge === "Right";
+      const alongKey = vertical ? "fillHeight" : "fillWidth";
+      const acrossKey = vertical ? "fillWidth" : "fillHeight";
+      if ("columns" in menu) {
+        const result = root._placeColumns(menu.columns, [acrossKey]);
+        menu.modules = result.modules;
+        delete menu.columns;
+        changes.push(`${where}: columns -> ${result.modules.length} placed modules`);
+        if (result.fillKeys[alongKey]) {
+          menu.length = "edge";
+          changes.push(`${where}: a cell filling along the edge -> length "edge"`);
+        }
+        if (result.pins > 0) {
+          menu.pinButton = true;
+          changes.push(`${where}: Pin module -> pinButton`);
+        }
+      }
+      const extraAcross = (vertical ? menu.extraWidth : menu.extraHeight) ?? 0;
+      const extraAlong = (vertical ? menu.extraHeight : menu.extraWidth) ?? 0;
+      if (extraAcross > 0) {
+        // Across the edge the menu is n half units thick: span(n) grows by
+        // n / 2 for each pixel the card size grows
+        let thick = 0;
+        (menu.modules ?? []).forEach(module => {
+          const p = module.place;
+          thick = Math.max(thick, vertical ? p.x + p.w : p.y + p.h);
+        });
+        // An empty menu counts as one card thick
+        const n = thick > 0 ? thick : 2;
+        const size = Math.round((menu.cardSize ?? 320) + extraAcross * 2 / n);
+        menu.cardSize = Math.max(160, Math.min(600, size));
+        changes.push(`${where}: extra size across the edge -> cardSize ${menu.cardSize}`);
+      }
+      if (extraAlong > 0)
+        changes.push(`${where}: extra size along the edge (${extraAlong} px) dropped`);
+      delete menu.extraWidth;
+      delete menu.extraHeight;
     });
     return config;
   }

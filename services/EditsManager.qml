@@ -23,16 +23,12 @@ QtObject {
       "dirty": KeybindManager.isDirty
     },
     {
-      "type": "EdgeMenuEditor",
-      "dirty": EdgeMenuManager.isDirty
-    },
-    {
       "type": "Monitors",
       "dirty": MonitorManager.isDirty
     },
     {
-      "type": "OverlayEditor",
-      "dirty": OverlayManager.isDirty
+      "type": "Layouts",
+      "dirty": OverlayManager.isDirty || EdgeMenuManager.isDirty
     }
   ].filter(page => page.dirty).map(page => page.type)
 

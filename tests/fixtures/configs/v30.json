@@ -1,0 +1,444 @@
+{
+  "version": 30,
+  "Overlay": {
+    "views": [
+      {
+        "type": "Custom",
+        "name": "Home",
+        "columns": [
+          {
+            "cells": [
+              {
+                "layout": "Tall",
+                "slots": {
+                  "main": {
+                    "type": "ClockCalendar",
+                    "properties": {
+                      "use24Hour": true,
+                      "showSeconds": false
+                    }
+                  }
+                },
+                "fillWidth": false,
+                "fillHeight": false
+              }
+            ]
+          },
+          {
+            "cells": [
+              {
+                "layout": "Horiz1x1",
+                "slots": {
+                  "top": {
+                    "type": "QuickActions",
+                    "properties": {
+                      "actions": [
+                        "wifi",
+                        "bluetooth",
+                        "caffeine",
+                        "dnd",
+                        "darkMode",
+                        "nightLight"
+                      ],
+                      "labels": "auto"
+                    }
+                  },
+                  "bottom": {
+                    "type": "QuickActions",
+                    "properties": {
+                      "actions": [
+                        "lock",
+                        "suspend",
+                        "hibernate",
+                        "logout",
+                        "reboot",
+                        "poweroff"
+                      ],
+                      "labels": "auto"
+                    }
+                  }
+                },
+                "fillWidth": false,
+                "fillHeight": false
+              },
+              {
+                "layout": "Single",
+                "slots": {
+                  "main": {
+                    "type": "SystemGraphs",
+                    "properties": {
+                      "metrics": [
+                        "cpu",
+                        "mem",
+                        "gpu",
+                        "cpuTemp"
+                      ]
+                    }
+                  }
+                },
+                "fillWidth": false,
+                "fillHeight": false
+              }
+            ]
+          },
+          {
+            "cells": [
+              {
+                "layout": "Wide",
+                "slots": {
+                  "main": {
+                    "type": "NowPlaying"
+                  }
+                },
+                "fillWidth": false,
+                "fillHeight": false
+              },
+              {
+                "layout": "Single",
+                "slots": {
+                  "main": {
+                    "type": "AudioMixer",
+                    "properties": {
+                      "mode": "output"
+                    }
+                  }
+                },
+                "fillWidth": false,
+                "fillHeight": false
+              },
+              {
+                "layout": "Horiz1x2",
+                "slots": {
+                  "bottomLeft": {
+                    "type": "Favourites",
+                    "properties": {
+                      "apps": [
+                        "firefox",
+                        "kitty"
+                      ],
+                      "showLabels": false
+                    }
+                  },
+                  "top": {
+                    "type": "Network"
+                  },
+                  "bottomRight": {
+                    "type": "Screenshot",
+                    "properties": {
+                      "directory": "~/Pictures/Screenshots"
+                    }
+                  }
+                },
+                "fillWidth": false,
+                "fillHeight": false
+              }
+            ]
+          },
+          {
+            "cells": [
+              {
+                "layout": "Single",
+                "slots": {
+                  "main": {
+                    "type": "Notifications"
+                  }
+                },
+                "fillWidth": false,
+                "fillHeight": false
+              },
+              {
+                "layout": "Horiz1x1",
+                "slots": {
+                  "top": {
+                    "type": "Weather",
+                    "properties": {
+                      "location": "",
+                      "latitude": "",
+                      "longitude": "",
+                      "units": "celsius"
+                    }
+                  },
+                  "bottom": {
+                    "type": "Disks",
+                    "properties": {
+                      "paths": [
+                        "/",
+                        "/home"
+                      ]
+                    }
+                  }
+                },
+                "fillWidth": false,
+                "fillHeight": false
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Settings"
+      },
+      {
+        "type": "BarEditor"
+      },
+      {
+        "type": "Themes"
+      },
+      {
+        "type": "Keybinds"
+      },
+      {
+        "type": "EdgeMenuEditor"
+      },
+      {
+        "type": "Monitors"
+      }
+    ]
+  },
+  "EdgeMenus": [
+    {
+      "id": "left-menu",
+      "name": "Left menu",
+      "monitor": "DP-1",
+      "edge": "Left",
+      "mode": "floating",
+      "position": 50,
+      "columns": [
+        {
+          "cells": [
+            {
+              "layout": "Horiz1x1",
+              "slots": {
+                "bottom": {
+                  "type": "NowPlaying"
+                },
+                "top": {
+                  "type": "QuickActions",
+                  "properties": {
+                    "actions": [
+                      "caffeine",
+                      "dnd",
+                      "darkMode",
+                      "pin"
+                    ],
+                    "labels": "auto"
+                  }
+                }
+              },
+              "fillWidth": false,
+              "fillHeight": false
+            },
+            {
+              "layout": "Single",
+              "slots": {
+                "main": {
+                  "type": "ClockCalendar",
+                  "properties": {
+                    "showSeconds": false,
+                    "use24Hour": true
+                  }
+                }
+              },
+              "fillWidth": false,
+              "fillHeight": true
+            }
+          ]
+        }
+      ],
+      "enabled": true,
+      "cardSize": 395,
+      "openOnHover": true,
+      "closeOnLeave": true,
+      "closeOnOutsideClick": false,
+      "edgeDistance": 20,
+      "frame": true,
+      "margin": 8,
+      "padding": 13,
+      "backgroundColor": "base00",
+      "borderColor": "base05",
+      "openDelay": 10,
+      "triggerSize": 5,
+      "triggerLength": 0,
+      "closeDelay": 250,
+      "extraWidth": 0,
+      "extraHeight": 0,
+      "moduleBorders": true
+    },
+    {
+      "id": "right-menu",
+      "name": "Right menu",
+      "monitor": "DP-1",
+      "edge": "Right",
+      "mode": "integrated",
+      "position": 0,
+      "columns": [
+        {
+          "cells": [
+            {
+              "layout": "HalfWide",
+              "slots": {
+                "main": {
+                  "type": "NowPlaying"
+                }
+              },
+              "fillWidth": false,
+              "fillHeight": false
+            },
+            {
+              "layout": "Tall",
+              "slots": {
+                "main": {
+                  "type": "Chat"
+                }
+              },
+              "fillWidth": false,
+              "fillHeight": true
+            },
+            {
+              "layout": "HalfWide",
+              "slots": {
+                "main": {
+                  "type": "QuickActions",
+                  "properties": {
+                    "actions": [
+                      "caffeine",
+                      "dnd",
+                      "darkMode",
+                      "pin"
+                    ],
+                    "labels": "auto"
+                  }
+                }
+              },
+              "fillWidth": false,
+              "fillHeight": false
+            }
+          ]
+        }
+      ],
+      "enabled": true,
+      "cardSize": 325,
+      "openOnHover": false,
+      "closeOnLeave": true,
+      "closeOnOutsideClick": false,
+      "edgeDistance": 0,
+      "frame": true,
+      "margin": 8,
+      "padding": -1,
+      "backgroundColor": "base00",
+      "borderColor": "base05",
+      "openDelay": 10,
+      "triggerSize": 5,
+      "triggerLength": 0,
+      "closeDelay": 250,
+      "extraWidth": 120,
+      "extraHeight": 0,
+      "moduleBorders": true
+    },
+    {
+      "id": "menu-1",
+      "columns": [
+        {
+          "cells": [
+            {
+              "layout": "Tall",
+              "slots": {
+                "main": {
+                  "type": "WallpaperPicker"
+                }
+              },
+              "fillWidth": false,
+              "fillHeight": false
+            }
+          ]
+        },
+        {
+          "cells": [
+            {
+              "layout": "Tall",
+              "slots": {
+                "main": {
+                  "type": "ThemeEditor"
+                }
+              },
+              "fillWidth": false,
+              "fillHeight": false
+            }
+          ]
+        }
+      ],
+      "name": "Theme Menu",
+      "enabled": true,
+      "monitor": "DP-1",
+      "edge": "Top",
+      "mode": "floating",
+      "position": 80,
+      "cardSize": 319,
+      "edgeDistance": 0,
+      "frame": true,
+      "margin": 8,
+      "padding": -1,
+      "backgroundColor": "base00",
+      "borderColor": "base05",
+      "openOnHover": true,
+      "openDelay": 10,
+      "triggerSize": 4,
+      "triggerLength": 0,
+      "closeOnLeave": true,
+      "closeDelay": 250,
+      "closeOnOutsideClick": false,
+      "extraHeight": 5,
+      "extraWidth": 0,
+      "moduleBorders": true
+    },
+    {
+      "id": "menu-3",
+      "columns": [
+        {
+          "cells": [
+            {
+              "layout": "Tall",
+              "slots": {
+                "main": {
+                  "type": "Notes",
+                  "properties": {
+                    "note": "",
+                    "lockNote": false,
+                    "showHeader": true,
+                    "showToolbar": true,
+                    "showCompleted": true
+                  }
+                }
+              },
+              "fillWidth": false,
+              "fillHeight": false
+            }
+          ]
+        }
+      ],
+      "name": "notes",
+      "enabled": true,
+      "monitor": "",
+      "edge": "Top",
+      "mode": "floating",
+      "position": 20,
+      "cardSize": 320,
+      "edgeDistance": 0,
+      "frame": true,
+      "margin": 8,
+      "padding": -1,
+      "backgroundColor": "base00",
+      "borderColor": "base05",
+      "openOnHover": true,
+      "openDelay": 10,
+      "triggerSize": 5,
+      "triggerLength": 0,
+      "closeOnLeave": true,
+      "closeDelay": 250,
+      "closeOnOutsideClick": false,
+      "extraWidth": 200,
+      "extraHeight": 75,
+      "moduleBorders": false
+    }
+  ]
+}

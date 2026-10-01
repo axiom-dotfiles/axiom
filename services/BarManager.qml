@@ -243,6 +243,24 @@ QtObject {
     applyChanges();
   }
 
+  // Appends `widget` ({ type, properties }, the rest from the schema's
+  // defaults) to bar `barIndex`'s `zone` and selects that bar and widget;
+  // for other editors (an edge menu's "Add to a bar")
+  function addWidgetTo(barIndex, zone, widget) {
+    ensureLoaded();
+    const bar = root.localConfig?.[barIndex];
+    if (!bar)
+      return;
+    if (!bar.widgets)
+      bar.widgets = {};
+    if (!bar.widgets[zone])
+      bar.widgets[zone] = [];
+    bar.widgets[zone].push(ConfigManager.withDefaults(widget, "BarWidget"));
+    selectBar(barIndex);
+    selectWidget(zone, bar.widgets[zone].length - 1);
+    applyChanges();
+  }
+
   function removeWidget(zone, index) {
     const arr = selectedBar()?.widgets?.[zone];
     if (!arr || index < 0 || index >= arr.length)

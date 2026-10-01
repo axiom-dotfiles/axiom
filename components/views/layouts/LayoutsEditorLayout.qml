@@ -3,27 +3,30 @@ import QtQuick
 import qs.config
 import qs.components.hosts.overlay
 
-// The page layout the overlay editor and the edge menu editor share: their
-// own side panel on the left (this item's children, placed by the caller
-// at `sideWidth` × `pageHeight`), and on the right the columns being
-// edited drawn on a PageCanvas above the EditorInspector. Sized from the
-// page's card grid; the drag layer covers all of it.
-ColumnsDragLayer {
+// The layouts editor's page layout: its side panel on the left (this
+// item's children, placed by the caller at `sideWidth` × `pageHeight`),
+// and on the right the modules being edited drawn on a GridCanvas above
+// the EditorInspector. Sized from the page's card grid; the drag layer
+// covers all of it.
+GridDragLayer {
   id: root
 
   // The overlay page's card grid (BaseView.grid)
   required property OverlayGrid grid
 
-  // The canvas: the columns to edit (null: nothing to edit), and what it's
+  // The canvas: the modules to edit (null: nothing to edit), and what it's
   // headed with, or says when there's nothing
-  property var editColumns: null
+  property var editModules: null
   property string canvasTitle: ""
-  property string canvasIcon: "view_quilt"
+  property string canvasIcon: "dashboard"
   property string emptyText: ""
+  property string edge: ""
+  property string fitText: ""
+  property bool fitWarning: false
   // The inspector: whether modules can be added, and the hint when not
   property bool editable: true
   property string notEditableHint: ""
-  // The page's Save / Reset, on the canvas header
+  // The editor's Save / Reset, on the canvas header
   property bool dirty: false
   property bool canSave: true
 
@@ -45,12 +48,15 @@ ColumnsDragLayer {
     width: root.mainWidth
     height: root.canvasHeight
 
-    PageCanvas {
+    GridCanvas {
       dragLayer: root
-      editColumns: root.editColumns
+      modules: root.editModules
       icon: root.canvasIcon
       title: root.canvasTitle
       emptyText: root.emptyText
+      edge: root.edge
+      fitText: root.fitText
+      fitWarning: root.fitWarning
       dirty: root.dirty
       canSave: root.canSave
       onSave: root.save()

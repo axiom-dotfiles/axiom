@@ -15,13 +15,13 @@ QtObject {
   readonly property bool closeOnOutsideClick: ConfigManager.config.Overlay.closeOnOutsideClick
 
   // The pages that aren't in config, after the configured ones: the
-  // overlay editor, which can't be removed.
-  // Labels: I18n.tr("Overlay editor")
+  // layouts editor (overlay pages and edge menus), which can't be removed.
+  // Labels: I18n.tr("Layouts")
   readonly property var pinnedPages: [
     {
-      "type": "OverlayEditor",
-      "icon": "view_quilt",
-      "label": "Overlay editor"
+      "type": "Layouts",
+      "icon": "dashboard_customize",
+      "label": "Layouts"
     }
   ]
 
@@ -38,8 +38,14 @@ QtObject {
         "type": type.const,
         "label": type.description || type.const,
         "propertiesSchema": def.properties?.properties?.properties ?? null,
-        // Slot shapes a module fits (`x-shapes`); views don't declare any
+        // Shapes a module fits (`x-shapes`); views don't declare any
         "shapes": def["x-shapes"] ?? ["square", "horizontal", "vertical"],
+        // Smallest size, and the size it's added at ([w, h] in half cards;
+        // `x-minSize`, `x-defaultSize`), null when not declared
+        "minSize": def["x-minSize"] ?? null,
+        "defaultSize": def["x-defaultSize"] ?? null,
+        // A tool page (`x-tool`), shown apart from the user's own pages
+        "tool": def["x-tool"] === true,
         // Material Symbols name (`x-icon`)
         "icon": def["x-icon"] ?? "extension",
         // Where a module may be placed (`x-hosts`): "overlay", "edgeMenu"
@@ -48,8 +54,8 @@ QtObject {
     }).filter(t => t !== null);
   }
   readonly property var availableModuleTypes: _oneOfTypes("OverlayModule")
-  // A cell's own fields (fillWidth, fillHeight), for the editor's inspector
-  readonly property var cellSchema: ConfigManager.configSchema.definitions.OverlayCell.properties
+  // A Custom page's own fields (name, stretch), for the layouts editor
+  readonly property var customViewSchema: ConfigManager.configSchema.definitions.CustomOverlayView.properties
   readonly property var availableViewTypes: _oneOfTypes("OverlayView")
   // The module types a host offers: "overlay" pages or "edgeMenu"s
   function modulesFor(host) {
@@ -76,38 +82,35 @@ QtObject {
     return I18n.tr(label);
   }
   function viewIcon(type) {
-    return viewInfo(type)?.icon ?? "dashboard";
+    return pinnedPages.find(page => page.type === type)?.icon ?? viewInfo(type)?.icon ?? "dashboard";
+  }
+  function isTool(type) {
+    return viewInfo(type)?.tool ?? false;
   }
 
   // The page to open for a module type (what openOverlayPage takes): the
-  // named Custom page where it has the biggest slot, "" when no page has it
+  // named Custom page where it's biggest, "" when no page has it
   function pageWithModule(type) {
     let best = "";
     let bestArea = 0;
     (views ?? []).forEach(view => {
       if (view?.type !== "Custom" || !view.name || view.visible === false)
         return;
-      (view.columns ?? []).forEach(column => (column?.cells ?? []).forEach(cell => {
-          const layout = layouts[cell?.layout];
-          Object.keys(cell?.slots ?? {}).forEach(slot => {
-            if (cell.slots[slot]?.type !== type)
-              return;
-            const rect = layout?.slots?.[slot] ?? [0, 0, 1, 1];
-            const area = rect[2] * rect[3];
-            if (area > bestArea) {
-              best = view.name;
-              bestArea = area;
-            }
-          });
-        }));
+      (view.modules ?? []).forEach(module => {
+        const area = module?.type === type ? module.place.w * module.place.h : 0;
+        if (area > bestArea) {
+          best = view.name;
+          bestArea = area;
+        }
+      });
     });
     return best;
   }
 
-  // Card grid layout (see OverlayLayout for the geometry). Card
-  // radius/border follow Appearance so the overlay matches the shell.
-  readonly property int cardUnit: OverlayLayout.cardUnit
-  readonly property int cardSpacing: OverlayLayout.cardSpacing
+  // Card grid layout (see GridPlacement for the geometry). Card radius/border
+  // follow Appearance so the overlay matches the shell.
+  readonly property int cardUnit: GridPlacement.cardUnit
+  readonly property int cardSpacing: GridPlacement.cardSpacing
   readonly property int cardPadding: 12
   // The inner padding a module lays its content out within (Card/Panel
   // `pad`): none when bare, less in a quarter slot
@@ -121,27 +124,32 @@ QtObject {
   readonly property real fitCardsWide: 4.5
   readonly property int minCardUnit: 280
 
-  readonly property var layouts: OverlayLayout.layouts
-  readonly property real halfUnit: OverlayLayout.halfUnitOf(cardUnit)
+  readonly property real halfUnit: GridPlacement.halfUnitOf(cardUnit)
   function span(n, unit) {
-    return OverlayLayout.span(n, unit);
+    return GridPlacement.span(n, unit);
   }
   function slotShape(rect) {
-    return OverlayLayout.slotShape(rect);
-  }
-  function columnFlow(cells, unit, target, extra) {
-    return OverlayLayout.columnFlow(cells, unit, target, extra);
+    return GridPlacement.slotShape(rect);
   }
 
-  // Whether a module type may sit in a slot of the given rect
+  // Whether a module type may take a [x, y, w, h] rect: its shape and size
   function fits(type, rect) {
     const info = moduleInfo(type);
-    return !info || OverlayLayout.fitsShapes(info.shapes, rect);
+    return !info || (GridPlacement.fitsShapes(info.shapes, rect) && GridPlacement.fitsSize(info.minSize, rect));
   }
 
-  // The one-slot layout a module gets a cell of its own in: a card if it
-  // fits a square, else Tall or Wide
-  function bestLayoutFor(type) {
-    return ["Single", "Tall", "Wide", "Large"].find(name => fits(type, layouts[name].slots.main)) ?? "Single";
+  // The size [w, h] a module is added at: its declared one, else a card if
+  // it fits a square, else two cards tall or wide, else two by two
+  function defaultSize(type) {
+    const declared = moduleInfo(type)?.defaultSize;
+    if (declared)
+      return declared;
+    return [[2, 2], [2, 4], [4, 2], [4, 4]].find(size => fits(type, [0, 0, size[0], size[1]])) ?? [2, 2];
+  }
+
+  // The smallest size [w, h] a module may shrink to with `shape` ignored:
+  // its declared minimum, else a quarter card
+  function minSize(type) {
+    return moduleInfo(type)?.minSize ?? [1, 1];
   }
 }

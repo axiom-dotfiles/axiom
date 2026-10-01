@@ -8,7 +8,7 @@
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 30,
+      "default": 31,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
@@ -1196,7 +1196,7 @@
     "Overlay": {
       "type": "object",
       "x-category": "Overlay",
-      "x-links": ["OverlayEditor"],
+      "x-links": ["Layouts"],
       "title": "Overlay",
       "additionalProperties": false,
       "properties": {
@@ -1232,40 +1232,21 @@
         "views": {
           "type": "array",
           "x-settings": false,
-          "description": "Pages shown in the overlay, in order. A Custom view lays out columns side by side; a Cells column stacks cell layouts, whose slots each hold one module.",
+          "description": "Pages shown in the overlay, in order: your Custom pages, each a grid of modules, and the tool pages (shown as icons after them).",
           "default": [
-            { "type": "Custom", "name": "Home", "columns": [
-              { "cells": [
-                { "layout": "Tall", "slots": {
-                  "main": { "type": "ClockCalendar" }
-                } }
-              ] },
-              { "cells": [
-                { "layout": "Horiz1x1", "slots": {
-                  "top": { "type": "QuickActions" },
-                  "bottom": { "type": "QuickActions", "properties": { "actions": ["lock", "suspend", "hibernate", "logout", "reboot", "poweroff"] } }
-                } },
-                { "layout": "Single", "slots": {
-                  "main": { "type": "SystemGraphs" }
-                } }
-              ] },
-              { "cells": [
-                { "layout": "Wide", "slots": {
-                  "main": { "type": "NowPlaying" }
-                } },
-                { "layout": "Single", "slots": {
-                  "main": { "type": "Notifications" }
-                } },
-                { "layout": "Single", "slots": {
-                  "main": { "type": "VolumeDials" }
-                } }
-              ] }
+            { "type": "Custom", "name": "Home", "modules": [
+              { "type": "ClockCalendar", "place": { "x": 0, "y": 0, "w": 2, "h": 4 } },
+              { "type": "QuickActions", "place": { "x": 2, "y": 0, "w": 2, "h": 1 } },
+              { "type": "QuickActions", "properties": { "actions": ["lock", "suspend", "hibernate", "logout", "reboot", "poweroff"] }, "place": { "x": 2, "y": 1, "w": 2, "h": 1 } },
+              { "type": "SystemGraphs", "place": { "x": 2, "y": 2, "w": 2, "h": 2 } },
+              { "type": "NowPlaying", "place": { "x": 4, "y": 0, "w": 4, "h": 2 } },
+              { "type": "Notifications", "place": { "x": 4, "y": 2, "w": 2, "h": 2 } },
+              { "type": "VolumeDials", "place": { "x": 6, "y": 2, "w": 2, "h": 2 } }
             ] },
             { "type": "Settings" },
             { "type": "Keybinds" },
             { "type": "BarEditor" },
             { "type": "Themes" },
-            { "type": "EdgeMenuEditor" },
             { "type": "Monitors" }
           ],
           "items": { "$ref": "#/definitions/OverlayView" }
@@ -1468,7 +1449,7 @@
 
     "EdgeMenus": {
       "type": "array",
-      "description": "Menus that pop out of a screen edge, filled with overlay modules, edited on the overlay's Edge menu editor page. Opened by a bar Button (Edge menu action), their edge trigger, or `qs -c axiom ipc call edgeMenu toggle <id>`.",
+      "description": "Menus that pop out of a screen edge, filled with overlay modules, edited on the overlay's Layouts page. Opened by a bar Button (Edge menu action), their edge trigger, or `qs -c axiom ipc call edgeMenu toggle <id>`.",
       "x-settings": false,
       "default": [],
       "items": { "$ref": "#/definitions/EdgeMenu" }
@@ -1741,9 +1722,9 @@
       "type": "object",
       "required": ["id"],
       "additionalProperties": false,
-      "x-order": ["name", "id", "enabled", "monitor", "mode", "edge", "position", "edgeDistance", "cardSize", "extraWidth", "extraHeight", "frame", "margin", "padding", "moduleBorders", "backgroundColor", "borderColor", "openOnHover", "openDelay", "triggerSize", "triggerLength", "closeOnLeave", "closeDelay", "closeOnOutsideClick"],
+      "x-order": ["name", "enabled", "monitor", "openOnHover", "openDelay", "triggerSize", "triggerLength", "mode", "edge", "position", "length", "edgeDistance", "cardSize", "frame", "margin", "padding", "moduleBorders", "pinButton", "backgroundColor", "borderColor", "closeOnLeave", "closeDelay", "closeOnOutsideClick", "id"],
       "properties": {
-        "id": { "x-group": "General", "type": "string", "title": "Id", "description": "What bar buttons and IPC calls open this menu by." },
+        "id": { "x-group": "Advanced", "type": "string", "title": "Id", "x-control": "readonly", "description": "What bar buttons, keybinds and IPC calls open this menu by. Set when the menu is made." },
         "name": { "x-group": "General", "type": "string", "title": "Name", "default": "" },
         "enabled": { "x-group": "General", "type": "boolean", "title": "Enabled", "default": true },
         "monitor": {
@@ -1774,6 +1755,15 @@
           "x-unit": "%",
           "description": "Where along the edge the menu sits: 0 is the start (left/top), 100 the end."
         },
+        "length": {
+          "x-group": "Placement",
+          "type": "string",
+          "title": "Length",
+          "default": "content",
+          "enum": ["content", "edge"],
+          "x-enumLabels": { "content": "Fit its modules", "edge": "Whole edge" },
+          "description": "Whole edge stretches the menu along its edge, sharing the room evenly between its rows (or columns on a top or bottom edge)."
+        },
         "cardSize": {
           "x-group": "Placement",
           "type": "integer",
@@ -1782,29 +1772,7 @@
           "minimum": 160,
           "maximum": 600,
           "x-unit": "px",
-          "description": "Size of one card. Cells are laid out as on overlay pages."
-        },
-        "extraWidth": {
-          "x-group": "Placement",
-          "type": "integer",
-          "title": "Extra width",
-          "default": 0,
-          "minimum": 0,
-          "maximum": 1000,
-          "x-unit": "px",
-          "x-control": "stepper",
-          "description": "Width added to the menu, shared between its columns. Every module grows into it."
-        },
-        "extraHeight": {
-          "x-group": "Placement",
-          "type": "integer",
-          "title": "Extra height",
-          "default": 0,
-          "minimum": 0,
-          "maximum": 1000,
-          "x-unit": "px",
-          "x-control": "stepper",
-          "description": "Height added to the menu, shared between each column's rows. Every module grows into it."
+          "description": "Size of one card. Modules are placed on a grid of half cards, as on overlay pages."
         },
         "edgeDistance": {
           "x-group": "Placement",
@@ -1842,19 +1810,21 @@
           "x-group": "Style",
           "type": "integer",
           "x-control": "stepper",
+          "x-auto": { "value": -1, "start": 12 },
           "title": "Padding",
           "default": -1,
           "minimum": -1,
           "maximum": 64,
           "x-unit": "px",
-          "description": "Space between the menu's box and its modules. -1 uses the Popouts padding."
+          "description": "Space between the menu's box and its modules. Auto uses the Popouts padding."
         },
         "moduleBorders": { "x-group": "Style", "type": "boolean", "title": "Module borders", "default": true, "description": "Draw each module's card box. Turn off to show modules straight on the menu's background, e.g. a menu with a single module." },
+        "pinButton": { "x-group": "Style", "type": "boolean", "title": "Pin button", "default": false, "description": "Show a pin in the menu's corner. A pinned menu stays open until you unpin it." },
         "backgroundColor": { "x-group": "Style", "type": "string", "title": "Background", "x-options": "colors", "default": "base00" },
         "borderColor": { "x-group": "Style", "type": "string", "title": "Border", "x-options": "colors", "default": "base05" },
-        "openOnHover": { "x-group": "Behaviour", "type": "boolean", "title": "Open on hover", "default": false, "description": "Open when the pointer rests on the screen edge." },
+        "openOnHover": { "x-group": "Opening", "type": "boolean", "title": "Open on hover", "default": false, "description": "Open when the pointer rests on the screen edge." },
         "openDelay": {
-          "x-group": "Behaviour",
+          "x-group": "Opening",
           "type": "integer",
           "title": "Open delay",
           "default": 10,
@@ -1865,7 +1835,7 @@
           "x-showIf": { "openOnHover": true }
         },
         "triggerSize": {
-          "x-group": "Behaviour",
+          "x-group": "Opening",
           "type": "integer",
           "x-control": "stepper",
           "title": "Trigger size",
@@ -1877,19 +1847,20 @@
           "x-showIf": { "openOnHover": true }
         },
         "triggerLength": {
-          "x-group": "Behaviour",
+          "x-group": "Opening",
           "type": "integer",
+          "x-auto": { "value": 0, "start": 300 },
           "title": "Trigger length",
           "default": 0,
           "minimum": 0,
           "maximum": 4000,
           "x-unit": "px",
-          "description": "Length of the hover strip along the edge, centred on the menu. 0 matches the menu's own length.",
+          "description": "Length of the hover strip along the edge, centred on the menu. Auto matches the menu's own length.",
           "x-showIf": { "openOnHover": true }
         },
-        "closeOnLeave": { "x-group": "Behaviour", "type": "boolean", "title": "Close when the pointer leaves", "default": true, "description": "A Pin module keeps the menu open while pinned." },
+        "closeOnLeave": { "x-group": "Closing", "type": "boolean", "title": "Close when the pointer leaves", "default": true, "description": "Close shortly after the pointer leaves the menu. A pinned menu stays open." },
         "closeDelay": {
-          "x-group": "Behaviour",
+          "x-group": "Closing",
           "type": "integer",
           "title": "Close delay",
           "default": 250,
@@ -1899,14 +1870,14 @@
           "description": "How long after the pointer leaves the menu closes.",
           "x-showIf": { "closeOnLeave": true }
         },
-        "closeOnOutsideClick": { "x-group": "Behaviour", "type": "boolean", "title": "Close on outside click", "default": false, "x-showIf": { "mode": "floating" } },
-        "columns": {
+        "closeOnOutsideClick": { "x-group": "Closing", "type": "boolean", "title": "Close on outside click", "default": false, "x-showIf": { "mode": "floating" } },
+        "modules": {
           "type": "array",
-          "title": "Columns",
+          "title": "Modules",
           "default": [],
           "x-settings": false,
-          "description": "Placed side by side, like a Custom overlay page's.",
-          "items": { "$ref": "#/definitions/OverlayColumn" }
+          "description": "Placed on a grid of half cards, like a Custom overlay page's.",
+          "items": { "$ref": "#/definitions/OverlayModule" }
         }
       }
     },
@@ -2101,7 +2072,6 @@
         { "$ref": "#/definitions/BarEditorOverlayView" },
         { "$ref": "#/definitions/SettingsOverlayView" },
         { "$ref": "#/definitions/ThemesOverlayView" },
-        { "$ref": "#/definitions/EdgeMenuEditorOverlayView" },
         { "$ref": "#/definitions/MonitorsOverlayView" }
       ]
     },
@@ -2114,12 +2084,14 @@
         "type": { "const": "Custom", "description": "Custom" },
         "visible": { "type": "boolean" },
         "name": { "type": "string", "title": "Name", "default": "" },
-        "columns": { "type": "array", "default": [], "items": { "$ref": "#/definitions/OverlayColumn" } }
+        "stretch": { "type": "boolean", "title": "Stretch", "default": false, "description": "Grow the modules to fill the overlay, instead of keeping their cards square." },
+        "modules": { "type": "array", "default": [], "items": { "$ref": "#/definitions/OverlayModule" } }
       }
     },
     "KeybindsOverlayView": {
       "type": "object",
       "x-icon": "keyboard",
+      "x-tool": true,
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -2130,6 +2102,7 @@
     "SettingsOverlayView": {
       "type": "object",
       "x-icon": "settings",
+      "x-tool": true,
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -2140,6 +2113,7 @@
     "BarEditorOverlayView": {
       "type": "object",
       "x-icon": "toolbar",
+      "x-tool": true,
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -2150,6 +2124,7 @@
     "ThemesOverlayView": {
       "type": "object",
       "x-icon": "palette",
+      "x-tool": true,
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -2157,19 +2132,10 @@
         "visible": { "type": "boolean" }
       }
     },
-    "EdgeMenuEditorOverlayView": {
-      "type": "object",
-      "x-icon": "dock_to_right",
-      "required": ["type"],
-      "additionalProperties": false,
-      "properties": {
-        "type": { "const": "EdgeMenuEditor", "description": "Edge Menu Editor" },
-        "visible": { "type": "boolean" }
-      }
-    },
     "MonitorsOverlayView": {
       "type": "object",
       "x-icon": "monitor",
+      "x-tool": true,
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -2207,39 +2173,15 @@
       }
     },
 
-    "OverlayColumn": {
+    "GridPlace": {
       "type": "object",
       "additionalProperties": false,
+      "description": "Where a module sits on its page's or menu's grid, in half cards: x and y from the top left, w and h its size.",
       "properties": {
-        "cells": { "type": "array", "default": [], "items": { "$ref": "#/definitions/OverlayCell" } }
-      }
-    },
-
-    "OverlayCell": {
-      "type": "object",
-      "required": ["layout"],
-      "additionalProperties": false,
-      "description": "One cell split into slots, defined in OverlayConfig.layouts. A column flows its cells left to right, wrapping at its widest cell, so two Singles after a Wide sit side by side under it (an empty Single leaves a gap). Cells are one card, except Tall (two cards high), Wide (two cards wide), Large (two by two cards), HalfWide (half a card high) and HalfTall (half a card wide). A cell with fillWidth grows into the rest of its row; one with fillHeight grows to its row's height and into spare height in its column (shared evenly between rows that fill). In an edge menu, a cell filling along the edge (fillHeight on a left/right edge, fillWidth on a top/bottom one) makes the menu take its whole edge. Slots per layout: Single/Tall/Wide/Large/HalfWide/HalfTall main; Grid2x2 topLeft/topRight/bottomLeft/bottomRight; Vert1x1 left/right; Vert1x2 left/topRight/bottomRight; Vert2x1 topLeft/bottomLeft/right; Horiz1x1 top/bottom; Horiz1x2 top/bottomLeft/bottomRight; Horiz2x1 topLeft/topRight/bottom.",
-      "properties": {
-        "layout": { "type": "string", "title": "Layout", "default": "Single", "enum": ["Single", "Tall", "Wide", "Large", "HalfWide", "HalfTall", "Grid2x2", "Vert1x1", "Vert1x2", "Vert2x1", "Horiz1x1", "Horiz1x2", "Horiz2x1"] },
-        "fillWidth": { "type": "boolean", "title": "Fill width", "default": false, "description": "Grow into the rest of its row, shared evenly with other cells in the row that fill width. In a top or bottom edge menu, the menu then takes its whole edge." },
-        "fillHeight": { "type": "boolean", "title": "Fill height", "default": false, "description": "Grow to its row's height and into spare height in its column, shared evenly with other rows that fill height. In a left or right edge menu, the menu then takes its whole edge." },
-        "slots": {
-          "type": "object",
-          "default": {},
-          "additionalProperties": false,
-          "properties": {
-            "main": { "$ref": "#/definitions/OverlayModule" },
-            "topLeft": { "$ref": "#/definitions/OverlayModule" },
-            "topRight": { "$ref": "#/definitions/OverlayModule" },
-            "bottomLeft": { "$ref": "#/definitions/OverlayModule" },
-            "bottomRight": { "$ref": "#/definitions/OverlayModule" },
-            "top": { "$ref": "#/definitions/OverlayModule" },
-            "bottom": { "$ref": "#/definitions/OverlayModule" },
-            "left": { "$ref": "#/definitions/OverlayModule" },
-            "right": { "$ref": "#/definitions/OverlayModule" }
-          }
-        }
+        "x": { "type": "integer", "default": 0, "minimum": 0 },
+        "y": { "type": "integer", "default": 0, "minimum": 0 },
+        "w": { "type": "integer", "default": 2, "minimum": 1, "maximum": 16 },
+        "h": { "type": "integer", "default": 2, "minimum": 1, "maximum": 16 }
       }
     },
 
@@ -2269,38 +2211,31 @@
         { "$ref": "#/definitions/ChatOverlayModule" },
         { "$ref": "#/definitions/NotesOverlayModule" },
         { "$ref": "#/definitions/WallpaperPickerOverlayModule" },
-        { "$ref": "#/definitions/ColorSwatchOverlayModule" },
-        { "$ref": "#/definitions/PinOverlayModule" }
+        { "$ref": "#/definitions/ColorSwatchOverlayModule" }
       ]
-    },
-    "PinOverlayModule": {
-      "type": "object",
-      "x-icon": "push_pin",
-      "x-hosts": ["edgeMenu"],
-      "required": ["type"],
-      "additionalProperties": false,
-      "properties": {
-        "type": { "const": "Pin", "description": "Pin (keeps an edge menu open)" },
-        "properties": { "type": "object", "additionalProperties": false, "properties": {} }
-      }
     },
     "ThemeEditorOverlayModule": {
       "type": "object",
       "x-icon": "palette",
       "x-shapes": ["vertical"],
+      "x-minSize": [2, 3],
+      "x-defaultSize": [2, 4],
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
-        "type": { "const": "ThemeEditor", "description": "Theme editor (use a Tall cell)" }
+        "place": { "$ref": "#/definitions/GridPlace" },
+        "type": { "const": "ThemeEditor", "description": "Theme editor" }
       }
     },
     "NowPlayingOverlayModule": {
       "type": "object",
       "x-icon": "music_note",
       "x-shapes": ["square", "horizontal"],
+      "x-minSize": [2, 1],
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
+        "place": { "$ref": "#/definitions/GridPlace" },
         "type": { "const": "NowPlaying", "description": "Now playing" }
       }
     },
@@ -2311,6 +2246,7 @@
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
+        "place": { "$ref": "#/definitions/GridPlace" },
         "type": { "const": "AudioMixer", "description": "Audio mixer" },
         "properties": {
           "type": "object",
@@ -2328,6 +2264,7 @@
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
+        "place": { "$ref": "#/definitions/GridPlace" },
         "type": { "const": "VolumeDials", "description": "Volume dials" }
       }
     },
@@ -2338,6 +2275,7 @@
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
+        "place": { "$ref": "#/definitions/GridPlace" },
         "type": { "const": "SystemGraphs", "description": "System graphs" },
         "properties": {
           "type": "object",
@@ -2355,6 +2293,7 @@
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
+        "place": { "$ref": "#/definitions/GridPlace" },
         "type": { "const": "Disks", "description": "Disk usage" },
         "properties": {
           "type": "object",
@@ -2369,9 +2308,11 @@
       "type": "object",
       "x-icon": "format_list_bulleted",
       "x-shapes": ["vertical", "square"],
+      "x-minSize": [2, 2],
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
+        "place": { "$ref": "#/definitions/GridPlace" },
         "type": { "const": "TopProcesses", "description": "Top processes" },
         "properties": {
           "type": "object",
@@ -2390,6 +2331,7 @@
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
+        "place": { "$ref": "#/definitions/GridPlace" },
         "type": { "const": "Updates", "description": "Package updates" },
         "properties": {
           "type": "object",
@@ -2409,6 +2351,7 @@
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
+        "place": { "$ref": "#/definitions/GridPlace" },
         "type": { "const": "QuickActions", "description": "Quick actions" },
         "properties": {
           "type": "object",
@@ -2427,6 +2370,7 @@
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
+        "place": { "$ref": "#/definitions/GridPlace" },
         "type": { "const": "WorkspacesMap", "description": "Workspaces" },
         "properties": {
           "type": "object",
@@ -2441,9 +2385,11 @@
       "type": "object",
       "x-icon": "notifications",
       "x-shapes": ["vertical", "square"],
+      "x-minSize": [2, 2],
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
+        "place": { "$ref": "#/definitions/GridPlace" },
         "type": { "const": "Notifications", "description": "Notifications" }
       }
     },
@@ -2451,9 +2397,11 @@
       "type": "object",
       "x-icon": "wifi",
       "x-shapes": ["vertical", "square"],
+      "x-minSize": [2, 2],
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
+        "place": { "$ref": "#/definitions/GridPlace" },
         "type": { "const": "WifiNetworks", "description": "Wi-Fi networks" }
       }
     },
@@ -2461,9 +2409,11 @@
       "type": "object",
       "x-icon": "bluetooth",
       "x-shapes": ["vertical", "square"],
+      "x-minSize": [2, 2],
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
+        "place": { "$ref": "#/definitions/GridPlace" },
         "type": { "const": "BluetoothDevices", "description": "Bluetooth devices" }
       }
     },
@@ -2474,6 +2424,7 @@
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
+        "place": { "$ref": "#/definitions/GridPlace" },
         "type": { "const": "Screenshot", "description": "Screenshot" },
         "properties": {
           "type": "object",
@@ -2491,6 +2442,7 @@
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
+        "place": { "$ref": "#/definitions/GridPlace" },
         "type": { "const": "ClockCalendar", "description": "Clock & calendar" },
         "properties": {
           "type": "object",
@@ -2509,6 +2461,7 @@
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
+        "place": { "$ref": "#/definitions/GridPlace" },
         "type": { "const": "Weather", "description": "Weather" },
         "properties": {
           "type": "object",
@@ -2529,6 +2482,7 @@
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
+        "place": { "$ref": "#/definitions/GridPlace" },
         "type": { "const": "Battery", "description": "Battery" }
       }
     },
@@ -2539,6 +2493,7 @@
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
+        "place": { "$ref": "#/definitions/GridPlace" },
         "type": { "const": "Network", "description": "Network" }
       }
     },
@@ -2549,6 +2504,7 @@
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
+        "place": { "$ref": "#/definitions/GridPlace" },
         "type": { "const": "Favourites", "description": "Favourite apps" },
         "properties": {
           "type": "object",
@@ -2564,9 +2520,12 @@
       "type": "object",
       "x-icon": "smart_toy",
       "x-shapes": ["vertical", "square", "horizontal"],
+      "x-minSize": [2, 2],
+      "x-defaultSize": [2, 4],
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
+        "place": { "$ref": "#/definitions/GridPlace" },
         "type": { "const": "Chat", "description": "AI chat" }
       }
     },
@@ -2574,9 +2533,12 @@
       "type": "object",
       "x-icon": "sticky_note_2",
       "x-shapes": ["vertical", "square", "horizontal"],
+      "x-minSize": [2, 2],
+      "x-defaultSize": [2, 4],
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
+        "place": { "$ref": "#/definitions/GridPlace" },
         "type": { "const": "Notes", "description": "Notes" },
         "properties": {
           "type": "object",
@@ -2595,10 +2557,13 @@
       "type": "object",
       "x-icon": "photo_library",
       "x-shapes": ["horizontal", "square", "vertical"],
+      "x-minSize": [2, 2],
+      "x-defaultSize": [2, 4],
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
-        "type": { "const": "WallpaperPicker", "description": "Wallpapers (a Tall cell adds a monitor picker and a preview)" }
+        "place": { "$ref": "#/definitions/GridPlace" },
+        "type": { "const": "WallpaperPicker", "description": "Wallpapers" }
       }
     },
     "ColorSwatchOverlayModule": {
@@ -2608,6 +2573,7 @@
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
+        "place": { "$ref": "#/definitions/GridPlace" },
         "type": { "const": "ColorSwatch", "description": "Theme color swatch" },
         "properties": {
           "type": "object",

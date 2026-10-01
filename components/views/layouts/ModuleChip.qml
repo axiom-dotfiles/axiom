@@ -5,8 +5,9 @@ import qs.config
 import qs.components.reusable
 
 // i18n: keys from the schema (module labels)
-// A module type in the library: its icon, name and the slot shapes it
-// fits. Dragging it carries a new module; a click is `clicked`.
+// A module type in the library: its icon, name and the shapes it fits.
+// Dragging it carries a new module at its default size; a click is
+// `clicked`.
 DragChip {
   id: root
 
@@ -14,14 +15,17 @@ DragChip {
 
   icon: root.typeInfo.icon
   label: I18n.tr(root.typeInfo.label)
+  readonly property var size: OverlayConfig.defaultSize(root.typeInfo.type)
   payload: ({
       "kind": "module-add",
       "type": root.typeInfo.type,
+      "w": root.size[0],
+      "h": root.size[1],
       "icon": root.typeInfo.icon,
       "label": I18n.tr(root.typeInfo.label)
     })
 
-  // The slot shapes it fits, drawn: square, wide, tall
+  // The shapes it fits, drawn: square, wide, tall
   Row {
     spacing: 3
     Layout.alignment: Qt.AlignVCenter

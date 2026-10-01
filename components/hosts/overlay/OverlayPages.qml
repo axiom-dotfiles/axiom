@@ -39,14 +39,16 @@ Item {
   readonly property int editorIndex: viewsModel.length
   readonly property int pageCount: viewsModel.length + pinnedPages.length
   // What the navigator shows for each page: the views, then the pinned ones
-  readonly property var pages: viewsModel.map((view, index) => ({
+  readonly property var pages: viewsModel.map(view => ({
         "type": view.viewConfig.type,
         "icon": OverlayConfig.viewIcon(view.viewConfig.type),
-        "label": OverlayConfig.viewLabel(view.viewConfig, index)
+        "label": OverlayConfig.viewLabel(view.viewConfig, view.index),
+        "tool": OverlayConfig.isTool(view.viewConfig.type)
       })).concat(pinnedPages.map(page => ({
         "type": page.type,
         "icon": page.icon,
-        "label": I18n.tr(page.label)
+        "label": I18n.tr(page.label),
+        "tool": true
       })))
   // itemAt() isn't a notifying read: `count` makes this re-evaluate once
   // the Repeater has created its pages (on launch they don't exist yet)
@@ -117,14 +119,16 @@ Item {
     return Math.min(distance, root.pageCount - distance) <= 1;
   }
 
+  // The shown views, the user's own pages first, then the tool pages, each
+  // in config order. `index` is the view's place in config.
   function buildViewsModel(viewConfigArray) {
-    return (viewConfigArray || []).filter(viewConf => viewConf.visible !== false).map(viewConf => {
-      // views/<type>.qml; unknown types are rejected by schema validation
-      return {
-        "component": Qt.resolvedUrl("../../views/" + viewConf.type + ".qml"),
-        "viewConfig": viewConf
-      };
-    });
+    const shown = (viewConfigArray || []).map((viewConf, index) => ({
+          // views/<type>.qml; unknown types are rejected by schema validation
+          "component": Qt.resolvedUrl("../../views/" + viewConf.type + ".qml"),
+          "viewConfig": viewConf,
+          "index": index
+        })).filter(view => view.viewConfig.visible !== false);
+    return shown.filter(view => !OverlayConfig.isTool(view.viewConfig.type)).concat(shown.filter(view => OverlayConfig.isTool(view.viewConfig.type)));
   }
 
   Item {
@@ -199,7 +203,7 @@ Item {
           direction: root.direction
           loaded: root.isLoaded(root.editorIndex)
 
-          OverlayEditor {
+          Layouts {
             anchors.centerIn: parent
             grid: root.grid
           }

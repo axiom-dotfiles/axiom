@@ -56,7 +56,7 @@ QtObject {
           ShellManager.openOverlayPage(page);
       }
     },
-    root._page("settings", ["prefs", "options"], "Settings", "Open the settings"), root._page("themes", [], "Themes", "Open the themes page"), root._page("bar", ["bareditor"], "BarEditor", "Open the bar editor"), root._page("keybinds", ["keys", "shortcuts"], "Keybinds", "Show the keybinds"), root._page("editor", ["overlay-editor"], "OverlayEditor", "Open the overlay editor"), root._page("menus", ["edge-menus", "menu-editor"], "EdgeMenuEditor", "Open the edge menu editor"), root._page("monitors", ["displays", "screens"], "Monitors", "Arrange and set up monitors"),
+    root._page("settings", ["prefs", "options"], "Settings", "Open the settings"), root._page("themes", [], "Themes", "Open the themes page"), root._page("bar", ["bareditor"], "BarEditor", "Open the bar editor"), root._page("keybinds", ["keys", "shortcuts"], "Keybinds", "Show the keybinds"), root._page("layouts", ["editor", "overlay-editor"], "Layouts", "Edit the overlay pages and edge menus", () => OverlayManager.editPages()), root._page("menus", ["edge-menus", "menu-editor"], "Layouts", "Edit the edge menus", () => OverlayManager.editMenus()), root._page("monitors", ["displays", "screens"], "Monitors", "Arrange and set up monitors"),
     // --- Appearance ---
     {
       name: "theme",
@@ -461,16 +461,21 @@ QtObject {
   }
 
   // Opens the overlay on a page by view type
-  function _page(name, aliases, type, description) {
+  // `before` (optional) runs first, e.g. to pick what the page shows
+  function _page(name, aliases, type, description, before) {
     return {
       name: name,
       aliases: aliases,
-      glyph: OverlayConfig.viewInfo(type)?.icon ?? "dashboard",
+      glyph: OverlayConfig.viewIcon(type),
       // I18n.tr("Open the settings") I18n.tr("Open the themes page") I18n.tr("Open the bar editor")
-      // I18n.tr("Show the keybinds") I18n.tr("Open the overlay editor")
-      // I18n.tr("Open the edge menu editor") I18n.tr("Arrange and set up monitors")
+      // I18n.tr("Show the keybinds") I18n.tr("Edit the overlay pages and edge menus")
+      // I18n.tr("Edit the edge menus") I18n.tr("Arrange and set up monitors")
       description: () => I18n.tr(description),
-      run: () => ShellManager.openOverlayPage(type)
+      run: () => {
+        if (before)
+          before();
+        ShellManager.openOverlayPage(type);
+      }
     };
   }
 
@@ -737,9 +742,9 @@ QtObject {
     });
     return pages.concat([
       {
-        title: I18n.tr("Overlay editor"),
-        glyph: "dashboard",
-        value: "OverlayEditor"
+        title: I18n.tr("Layouts"),
+        glyph: OverlayConfig.viewIcon("Layouts"),
+        value: "Layouts"
       }
     ]);
   }

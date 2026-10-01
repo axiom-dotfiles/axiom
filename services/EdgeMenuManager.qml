@@ -12,8 +12,8 @@ import qs.components.methods
 // integrated menu and reflow the windows. Pins are also saved to
 // config/state/edgemenus.json, and a pinned menu opens again when qs starts.
 //
-// Also the edge menu editor's working copy of EdgeMenus (the
-// EdgeMenuEditor overlay page), as BarManager is the bar editor's: edits
+// Also the layouts editor's working copy of EdgeMenus (the pinned Layouts
+// overlay page), as BarManager is the bar editor's: edits
 // show live on the running menus (ConfigManager.previews) until saved or
 // reset, and `previewing` holds one menu open to try them on.
 //
@@ -182,10 +182,10 @@ Singleton {
   readonly property alias isDirty: draft.isDirty
   property int selectedMenuIndex: 0
 
-  // The selected menu's columns (see ColumnsEditor)
-  property ColumnsEditor layout: ColumnsEditor {
+  // The selected menu's modules (see GridEditor)
+  property GridEditor layout: GridEditor {
     host: "edgeMenu"
-    columnsOf: () => root.selectedMenu()?.columns ?? null
+    modulesOf: () => root.selectedMenu()?.modules ?? null
     scopeKey: String(root.selectedMenuIndex)
     onEdited: root.applyChanges()
   }
@@ -203,7 +203,7 @@ Singleton {
         out.push(I18n.tr("{0} has no id", name));
       else if (menus.findIndex(other => other.id === menu.id) !== m)
         out.push(I18n.tr("{0}: another menu has the id {1}", name, menu.id));
-      out.push(...root.layout.problemsFor(menu.columns, name));
+      out.push(...root.layout.problemsFor(menu.modules, name));
     });
     return out;
   }
@@ -265,19 +265,20 @@ Singleton {
     return `${base}-${n}`;
   }
 
-  // A new menu at the schema defaults, with one empty cell to drop into
+  // A new menu at the schema defaults, opening on hover, and held open on
+  // screen so edits show as they're made
   function addMenu() {
+    const id = root._uniqueId("menu");
     const menu = ConfigManager.withDefaults({
-      "id": root._uniqueId("menu"),
-      "columns": [
-        {
-          "cells": [root.layout.newCell()]
-        }
-      ]
+      "id": id,
+      "name": I18n.tr("Menu {0}", id.split("-").pop()),
+      "openOnHover": true,
+      "modules": []
     }, "EdgeMenu");
     root.localMenus.push(menu);
     root.applyChanges();
     root.selectMenu(root.localMenus.length - 1);
+    root.startPreviewing();
   }
 
   function duplicateMenu(index) {
@@ -291,6 +292,15 @@ Singleton {
     root.localMenus.splice(index + 1, 0, copy);
     root.applyChanges();
     root.selectMenu(index + 1);
+  }
+
+  // The selected menu stays selected wherever it ends up
+  function moveMenu(from, to) {
+    const selected = root.selectedMenu();
+    if (GridPlacement.moveTo(root.localMenus, from, to) < 0)
+      return;
+    root.selectedMenuIndex = Math.max(0, root.localMenus.indexOf(selected));
+    root.applyChanges();
   }
 
   function removeMenu(index) {
@@ -319,6 +329,65 @@ Singleton {
     // A renamed (or re-enabled) menu is a new window: open that one
     if (wasPreviewing || (root._wantPreview && key === "enabled"))
       Qt.callLater(root._followPreview);
+  }
+
+  // --- How a menu opens ---
+
+  // What opens menu `id` besides hovering its edge: bar Buttons (in the
+  // bar editor's draft) and keybinds (in the keybind editor's).
+  // [{ kind: "bar" | "bind", label }]
+  function references(id) {
+    if (!id)
+      return [];
+    const out = [];
+    (BarManager.localConfig ?? Bar.savedBars).forEach((bar, b) => Object.keys(bar?.widgets ?? {}).forEach(zone => (bar.widgets[zone] ?? []).forEach(widget => {
+          if (widget?.type === "Button" && widget.properties?.action === "edgeMenu" && widget.properties?.menu === id)
+            out.push({
+              "kind": "bar",
+              "label": I18n.tr("Button on {0}", bar.id || I18n.tr("Bar {0}", b + 1))
+            });
+        })));
+    (KeybindManager.isDirty ? KeybindManager.binds : HyprlandConfig.binds).forEach(bind => {
+      if (bind?.action === "edgeMenu" && bind.argument === id)
+        out.push({
+          "kind": "bind",
+          "label": bind.key ? I18n.tr("Keybind {0}", KeybindManager.displayKey(bind.key)) : I18n.tr("Keybind (no key yet)")
+        });
+    });
+    return out;
+  }
+
+  // Adds a Button that toggles the selected menu to bar `barIndex`'s
+  // `zone`, in the bar editor's draft (saved from there or with Save all)
+  function addBarButton(barIndex, zone) {
+    const menu = root.selectedMenu();
+    if (!menu?.id)
+      return;
+    BarManager.addWidgetTo(barIndex, zone, {
+      "type": "Button",
+      "properties": {
+        "action": "edgeMenu",
+        "menu": menu.id,
+        "icon": Utils.edgeArrow(menu.edge),
+        "tooltip": menu.name || menu.id
+      }
+    });
+  }
+
+  // Adds a keybind that toggles the selected menu, then opens the keybinds
+  // page recording its key
+  function addKeybind() {
+    const menu = root.selectedMenu();
+    if (!menu?.id)
+      return;
+    KeybindManager.ensureLoaded();
+    KeybindManager.addBind({
+      "action": "edgeMenu",
+      "argument": menu.id,
+      "call": "toggle"
+    }, true);
+    ShellManager.openOverlayPage("Keybinds");
+    Qt.callLater(() => KeybindManager.startRecording(0));
   }
 
   // --- Trying a menu out ---
@@ -405,9 +474,10 @@ Singleton {
       root.setPinned(id, false);
     }
 
-    // Opens the edge menu editor
+    // Opens the layouts editor on the edge menus
     function edit(): void {
-      ShellManager.openOverlayPage("EdgeMenuEditor");
+      OverlayManager.editMenus();
+      ShellManager.openOverlayPage("Layouts");
     }
 
     function list(): string {
