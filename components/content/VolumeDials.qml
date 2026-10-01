@@ -25,14 +25,15 @@ Card {
     // only where it has room
     readonly property bool beside: dial.width > dial.height * 1.8
     readonly property bool labelled: !root.compact && (dial.beside ? dial.width - dial.height >= Appearance.fontSize * 5 : dial.width >= Appearance.fontSize * 5 && dial.height >= Appearance.fontSize * 5)
-    readonly property real side: Math.max(0, dial.beside ? Math.min(dial.height, dial.width * 0.5) : Math.min(dial.width, dial.height - (dial.labelled ? dialLabel.implicitHeight + Widget.spacing : 0)))
+    readonly property real side: Math.max(0, dial.beside ? Math.min(dial.height, dial.width * 0.5) : Math.min(dial.width, dial.height - (dial.labelled ? dialLabel.implicitHeight + dial.gap : 0)))
+    readonly property real gap: Widget.spacing * 2
 
     // The dial and its label, kept together and centred
     GridLayout {
       anchors.centerIn: parent
       columns: dial.beside ? 2 : 1
-      columnSpacing: Widget.spacing
-      rowSpacing: Widget.spacing
+      columnSpacing: dial.gap
+      rowSpacing: dial.gap
       PercentageCircle {
         Layout.alignment: Qt.AlignCenter
         Layout.preferredWidth: dial.side
@@ -52,7 +53,7 @@ Card {
         id: dialLabel
         visible: dial.labelled
         Layout.alignment: Qt.AlignCenter
-        Layout.maximumWidth: dial.beside ? dial.width - dial.side - Widget.spacing : dial.width
+        Layout.maximumWidth: dial.beside ? dial.width - dial.side - dial.gap : dial.width
         elide: Text.ElideRight
         text: dial.muted ? I18n.tr("{0} · muted", dial.label) : `${dial.label} · ${Math.round(dial.level * 100)}%`
         textSize: Appearance.fontSize - 1

@@ -49,10 +49,7 @@ Card {
       Layout.fillWidth: true
       Layout.fillHeight: true
       PercentageCircle {
-        readonly property real side: Math.min(parent.width, parent.height)
-        anchors.centerIn: parent
-        width: side
-        height: side
+        anchors.fill: parent
         percentage: Math.round(BatteryManager.percentage)
         iconText: BatteryManager.getBatteryIcon()
         iconColor: Theme.foreground

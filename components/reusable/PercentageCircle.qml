@@ -2,6 +2,8 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import qs.config
 
+// A ring gauge: a thin track with a round-capped arc over it, like a
+// StyledSlider bent into a circle, and an icon in the middle
 Item {
   id: root
 
@@ -9,69 +11,68 @@ Item {
   property string iconText: "●"
   property color iconColor: Theme.background
   property color fillColor: Theme.accentAlt
-  property color backgroundColor: Theme.foreground
-  property real backgroundOpacity: 0.1
-  property real strokeInset: 0.85
+  property color trackColor: Theme.backgroundHighlight
+  // The stroke, as a share of the side, but never thinner than a slider's trough
+  property real thickness: Math.max(4, side * 0.07)
+
+  readonly property real side: Math.min(root.width, root.height)
 
   implicitWidth: 120
   implicitHeight: 120
 
-  // Background circle
-  Rectangle {
-    id: bgCircle
-    anchors.centerIn: parent
-    width: Math.min(root.width, root.height)
-    height: width
-    radius: width / 2
-    color: root.backgroundColor
-    opacity: root.backgroundOpacity
-  }
-
-  // Progress circle using Canvas
   Canvas {
-    id: progressCanvas
+    id: ring
     anchors.centerIn: parent
-    width: bgCircle.width
-    height: bgCircle.height
+    width: root.side
+    height: root.side
 
     onPaint: {
       const ctx = getContext("2d");
-      const centerX = width / 2;
-      const centerY = height / 2;
-      const radius = (width / 2) * root.strokeInset;
-      const lineWidth = width * 0.15;
-
+      const centre = width / 2;
+      const radius = centre - root.thickness / 2;
       ctx.clearRect(0, 0, width, height);
+      if (radius <= 0)
+        return;
+      ctx.lineWidth = root.thickness;
 
-      // Draw the arc
       ctx.beginPath();
-      ctx.arc(centerX, centerY, radius, -Math.PI / 2, -Math.PI / 2 + (root.percentage / 100) * 2 * Math.PI, false);
-      ctx.lineWidth = lineWidth;
+      ctx.arc(centre, centre, radius, 0, 2 * Math.PI, false);
+      ctx.strokeStyle = root.trackColor;
+      ctx.stroke();
+
+      // A round cap would draw a dot at zero
+      const share = Math.max(0, Math.min(1, root.percentage / 100));
+      if (share <= 0)
+        return;
+      ctx.beginPath();
+      ctx.arc(centre, centre, radius, -Math.PI / 2, -Math.PI / 2 + share * 2 * Math.PI, false);
+      ctx.lineCap = "round";
       ctx.strokeStyle = root.fillColor;
-      ctx.lineCap = "butt";
       ctx.stroke();
     }
 
     Connections {
       target: root
       function onPercentageChanged() {
-        progressCanvas.requestPaint();
+        ring.requestPaint();
       }
       function onFillColorChanged() {
-        progressCanvas.requestPaint();
+        ring.requestPaint();
       }
-      function onStrokeInsetChanged() {
-        progressCanvas.requestPaint();
+      function onTrackColorChanged() {
+        ring.requestPaint();
+      }
+      function onThicknessChanged() {
+        ring.requestPaint();
       }
     }
   }
 
-  // Center icon
   StyledIcon {
     anchors.centerIn: parent
     text: root.iconText
     textColor: root.iconColor
-    textSize: bgCircle.width * 0.35
+    textSize: root.side * 0.3
   }
 
   Behavior on percentage {
