@@ -288,6 +288,16 @@ QtObject {
     draft.changed();
   }
 
+  // Adds `bind` at the top, then opens the Keybinds page's editor
+  // recording its key (the layouts editor's Add a keybind)
+  function addAndRecord(bind) {
+    ensureLoaded();
+    addBind(bind, true);
+    root.editing = true;
+    ShellManager.openOverlayPage("Keybinds");
+    Qt.callLater(() => root.startRecording(0));
+  }
+
   function removeBind(index) {
     stopRecording();
     draft.local.splice(index, 1);

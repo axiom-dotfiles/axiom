@@ -14,8 +14,6 @@ ColumnLayout {
   required property var menu
   readonly property bool previewingThis: !!root.menu && EdgeMenuManager.previewing !== "" && EdgeMenuManager.previewing === root.menu.id
   readonly property var references: EdgeMenuManager.references(root.menu?.id ?? "")
-  readonly property var bars: BarManager.localConfig ?? Bar.savedBars
-  readonly property bool saved: EdgeMenuManager.isSaved(root.menu)
 
   Layout.fillWidth: true
   spacing: Widget.spacing
@@ -92,38 +90,10 @@ ColumnLayout {
     opacity: root.menu?.openOnHover ? 0.7 : 1
   }
 
-  StyledText {
-    visible: !root.saved
-    Layout.fillWidth: true
-    wrapMode: Text.WordWrap
-    text: I18n.tr("Save the menu to add a bar button or keybind for it.")
-    textSize: Appearance.fontSize - 2
-    opacity: 0.7
-  }
-
-  Flow {
-    Layout.fillWidth: true
-    spacing: Widget.spacing / 2
-    enabled: root.saved
-    opacity: enabled ? 1 : 0.5
-
-    Repeater {
-      model: root.bars.length
-
-      StyledTextButton {
-        required property int index
-        iconText: "add"
-        text: I18n.tr("Button on {0}", BarManager.barLabel(index))
-        textPadding: 6
-        onClicked: EdgeMenuManager.addBarButton(index, "right")
-      }
-    }
-
-    StyledTextButton {
-      iconText: "keyboard"
-      text: I18n.tr("Add a keybind")
-      textPadding: 6
-      onClicked: EdgeMenuManager.addKeybind()
-    }
+  OpenerButtons {
+    saved: EdgeMenuManager.isSaved(root.menu)
+    unsavedHint: I18n.tr("Save the menu to add a bar button or keybind for it.")
+    onBarButtonRequested: barIndex => EdgeMenuManager.addBarButton(barIndex, "right")
+    onKeybindRequested: EdgeMenuManager.addKeybind()
   }
 }

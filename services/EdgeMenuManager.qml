@@ -534,15 +534,11 @@ Singleton {
     const menu = root.selectedMenu();
     if (!root.isSaved(menu))
       return;
-    KeybindManager.ensureLoaded();
-    KeybindManager.addBind({
+    KeybindManager.addAndRecord({
       "action": "edgeMenu",
       "argument": menu.id,
       "call": "toggle"
-    }, true);
-    KeybindManager.editing = true;
-    ShellManager.openOverlayPage("Keybinds");
-    Qt.callLater(() => KeybindManager.startRecording(0));
+    });
   }
 
   // --- Trying a menu out ---

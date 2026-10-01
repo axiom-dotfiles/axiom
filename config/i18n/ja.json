@@ -2235,6 +2235,9 @@
     "{0} left of the centre": "中央から{0}左",
     "{0} right of the centre": "中央から{0}右",
     "Cells of its lattice the menu sits from centred along its edge, positive towards the end (right or down), kept on the screen. Set by the arrows on the layouts editor's grid.": "辺に沿って、中央の位置からメニューまでのラティスのセル数。正の値は終端側（右または下）で、画面内に収まります。レイアウトエディターのグリッドの矢印で設定します。",
-    "Shifts the lattice the menu's modules sit on along its edge (centred on the screen) by this many px, positive towards the end. Set beside the arrows on the layouts editor's grid.": "メニューのモジュールが並ぶラティス（画面の中央に配置）を辺に沿ってこのpx数だけずらします。正の値は終端側です。レイアウトエディターのグリッドの矢印の横で設定します。"
+    "Shifts the lattice the menu's modules sit on along its edge (centred on the screen) by this many px, positive towards the end. Set beside the arrows on the layouts editor's grid.": "メニューのモジュールが並ぶラティス（画面の中央に配置）を辺に沿ってこのpx数だけずらします。正の値は終端側です。レイアウトエディターのグリッドの矢印の横で設定します。",
+    "A bar button or keybind that opens the overlay on this page.": "このページでオーバーレイを開くバーのボタンやキーバインド。",
+    "Name and save the page to add a bar button or keybind for it.": "バーのボタンやキーバインドを追加するには、先にページに名前を付けて保存してください。",
+    "The page the button opens the overlay on.": "ボタンで開くオーバーレイのページ。"
   }
 }
