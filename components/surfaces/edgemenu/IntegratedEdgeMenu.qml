@@ -74,6 +74,7 @@ PopoutWrapperBase {
     menu: root.menu
     screen: root.screen
     window: panel
+    triggerWindow: trigger
     frame: root.frame
     onWarpRequested: HyprlandManager.warpCursorToLayer("axiom-edge-menu", root.screen?.name ?? "", panel.width, panel.height, loader.x + loader.width / 2, loader.y + loader.height / 2)
   }

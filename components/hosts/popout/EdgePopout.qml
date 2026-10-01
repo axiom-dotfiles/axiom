@@ -91,6 +91,8 @@ PopoutWrapperBase {
   property string overNamespace: "axiom-edge-popout"
   // The surface's window, its layer namespace, and the box within it
   readonly property var window: surfaceWindow
+  // The hover strip's window (a focus grab's partner, see EdgeMenuSync)
+  readonly property var triggerWindow: trigger
   readonly property string layerNamespace: root.slidesUnder ? "axiom-popout-under" : root.overNamespace
   readonly property rect boxInWindow: Qt.rect(boxArea.x, boxArea.y, boxArea.width, boxArea.height)
 

@@ -168,12 +168,16 @@ Scope {
   // it reserves its strip (hiding that would retile the windows under it)
   readonly property bool overlayOpen: ShellManager.surfaceOpenOn("overlay", root.screen)
   readonly property bool underOverlay: root.overlayOpen && !root.reserving
-  onUnderOverlayChanged: {
-    if (root.underOverlay)
+  // An edge OSD or floating edge menu on its edge puts it away too, a
+  // reserving one included: that keeps its zone, so nothing retiles
+  readonly property bool outranked: ShellManager.edgeOutranked(root.screen?.name ?? "", root._edgeName, "dock")
+  readonly property bool away: root.underOverlay || root.outranked
+  onAwayChanged: {
+    if (root.away)
       root.conceal();
   }
   readonly property bool wantShown: {
-    if (root.underOverlay)
+    if (root.away)
       return false;
     if (root.mode === "always")
       return !root.hiddenByHand;
@@ -201,6 +205,9 @@ Scope {
   }
 
   function reveal(byPointer) {
+    // Put away, it would only latch to show once whatever outranks it goes
+    if (root.away)
+      return;
     root._touched = !!byPointer || root.engaged;
     root.latched = true;
     // Only restart a countdown that's due: restart() starts the timer even
@@ -270,7 +277,7 @@ Scope {
   EdgeTrigger {
     id: trigger
     screen: root.screen
-    visible: root.mode !== "always" && !root.fullscreen && !root.underOverlay && root.count > 0
+    visible: root.mode !== "always" && !root.fullscreen && !root.away && root.count > 0
     edge: root.edge
     // Placed along the work area (inside the reserved zones), as the dock is
     position: 0
