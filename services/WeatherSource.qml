@@ -197,6 +197,7 @@ QtObject {
 
   on_LocationKeyChanged: {
     place = null;
+    weather = null;
     if (active)
       refreshSoon.restart();
   }
