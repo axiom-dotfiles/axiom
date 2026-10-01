@@ -37,7 +37,8 @@ FoldingCard {
   }
 
   // Rows a field marked `x-beside` shares with the field before it, each
-  // taking half; every other field takes the whole width
+  // taking half; every other field takes the whole width. The pair should
+  // share an `x-showIf`, or one shown alone keeps half the width
   GridLayout {
     Layout.fillWidth: true
     columns: 2

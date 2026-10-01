@@ -29,6 +29,7 @@ Card {
     id: chip
     required property string modelData
     readonly property color value: Theme.resolveColor(chip.modelData)
+    readonly property var roles: Theme.roles[chip.modelData] ?? []
 
     Layout.fillWidth: true
     Layout.fillHeight: true
@@ -69,7 +70,7 @@ Card {
     // Padded to roleLines; long role names break rather than hide
     StyledText {
       Layout.fillWidth: true
-      text: (Theme.roles[chip.modelData] ?? []).concat(Array(root.roleLines).fill("")).slice(0, Math.max(root.roleLines, (Theme.roles[chip.modelData] ?? []).length)).join("\n")
+      text: chip.roles.concat(Array(Math.max(0, root.roleLines - chip.roles.length)).fill("")).join("\n")
       textColor: Theme.accent
       textSize: Appearance.fontSize - 3
       wrapMode: Text.WrapAtWordBoundaryOrAnywhere
