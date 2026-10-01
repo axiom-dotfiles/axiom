@@ -198,7 +198,13 @@ ReservedAreaWindow {
 
       // The layouts editor's "fits" line reads each screen's room
       readonly property string areaKey: [grid.availableWidth, grid.availableHeight, grid.unit].join(",")
-      onAreaKeyChanged: OverlayManager.reportArea(root.screen?.name ?? "", grid.availableWidth, grid.availableHeight, grid.unit)
+      onAreaKeyChanged: report()
+      Component.onCompleted: report()
+      Component.onDestruction: OverlayManager.clearArea(root.screen?.name ?? "")
+
+      function report() {
+        OverlayManager.reportArea(root.screen?.name ?? "", grid.availableWidth, grid.availableHeight, grid.unit);
+      }
     }
 
     OverlayPageNavigator {

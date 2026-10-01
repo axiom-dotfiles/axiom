@@ -111,6 +111,15 @@ QtObject {
     root.areas = areas;
   }
 
+  // A screen's overlay is gone (its screen was unplugged)
+  function clearArea(screenName) {
+    if (!(screenName in root.areas))
+      return;
+    const areas = Object.assign({}, root.areas);
+    delete areas[screenName];
+    root.areas = areas;
+  }
+
   // How much each screen's overlay shrinks a page of these modules:
   // [{ screen, scale }], 1 where it fits
   function fitOf(modules) {
