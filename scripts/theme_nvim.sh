@@ -18,13 +18,25 @@ OUTPUT_FILE="${2:-${XDG_STATE_HOME:-$HOME/.local/state}/axiom/nvim-theme.json}"
 load_theme "$INPUT_FILE"
 
 # The file stem picks a native colorscheme on the nvim side; the palette is
-# the mini.base16 fallback for themes it doesn't map
+# the mini.base16 fallback for themes it doesn't map, and the semantic colors
+# (accent, borders, ...) are drawn on top of it. "text" holds the accents
+# made readable against the background, for highlights that color text.
 STEM="$(basename "$INPUT_FILE" .json)"
-jq --arg stem "$STEM" --arg variant "$THEME_VARIANT" '{
+SEMANTIC_PAIRS=()
+for KEY in "${!THEME_SEMANTIC[@]}"; do
+    SEMANTIC_PAIRS+=("$KEY=${THEME_SEMANTIC[$KEY]}")
+done
+SEMANTIC_JSON=$(jq -n '[$ARGS.positional[] | capture("^(?<key>[^=]*)=(?<value>.*)$")] | from_entries' \
+    --args "${SEMANTIC_PAIRS[@]}")
+jq --arg stem "$STEM" --arg variant "$THEME_VARIANT" --argjson sem "$SEMANTIC_JSON" \
+    --argjson min "$TERM_MIN_CONTRAST" "$READABLE_JQ"'{
     stem: $stem,
     name: (.name // $stem),
     variant: (if $variant == "light" then "light" else "dark" end),
-    colors: (.colors // {})
+    colors: (.colors // {}),
+    semantic: $sem,
+    text: ($sem.background as $bg | ["accent", "accentAlt"]
+        | map(select($sem[.]) | {key: ., value: ($sem[.] | readable($bg; $min))}) | from_entries)
 }' "$INPUT_FILE" | write_atomic "$OUTPUT_FILE"
 echo "✅ Written to '$OUTPUT_FILE'"
 

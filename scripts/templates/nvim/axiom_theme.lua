@@ -8,17 +8,79 @@
 --
 --   require("axiom_theme").setup({
 --     -- axiom theme file stem -> a colorscheme you have installed
+--     -- (merged over the defaults in M.map below)
 --     map = { ["tokyo-night"] = { colorscheme = "tokyonight-night", plugin = "tokyonight.nvim" } },
 --   })
 --
--- A theme without a map entry is built from its base16 palette: by
--- mini.base16 when it's installed, otherwise by the plain highlights below.
+-- A theme without a map entry, or whose colorscheme isn't installed, is
+-- built from its base16 palette: by mini.base16 when it's installed,
+-- otherwise by the plain highlights below.
 local M = {}
 
 M.path = (vim.env.XDG_STATE_HOME or (vim.env.HOME .. "/.local/state")) .. "/axiom/nvim-theme.json"
 
--- axiom theme file stem -> { colorscheme = name, plugin = lazy.nvim plugin name (optional) }
-M.map = {}
+-- axiom theme file stem -> { colorscheme = name, plugin = lazy.nvim plugin name (optional) }.
+-- Each shipped theme's usual plugin; one you don't have installed falls back
+-- to the palette, so these only take effect once you install the plugin.
+-- Light/dark-by-'background' schemes rely on reload() setting it first.
+local function scheme(plugin, colorscheme)
+  return { plugin = plugin, colorscheme = colorscheme }
+end
+M.map = {
+  -- catppuccin/nvim (name = "catppuccin")
+  ["catppuccin-latte"] = scheme("catppuccin", "catppuccin-latte"),
+  ["catppuccin-frappe"] = scheme("catppuccin", "catppuccin-frappe"),
+  ["catppuccin-macchiato"] = scheme("catppuccin", "catppuccin-macchiato"),
+  ["catppuccin-mocha"] = scheme("catppuccin", "catppuccin-mocha"),
+  -- folke/tokyonight.nvim
+  ["tokyo-night"] = scheme("tokyonight.nvim", "tokyonight-night"),
+  ["tokyo-storm"] = scheme("tokyonight.nvim", "tokyonight-storm"),
+  ["tokyo-moon"] = scheme("tokyonight.nvim", "tokyonight-moon"),
+  ["tokyo-day"] = scheme("tokyonight.nvim", "tokyonight-day"),
+  -- ellisonleao/gruvbox.nvim
+  ["gruvbox-dark"] = scheme("gruvbox.nvim", "gruvbox"),
+  ["gruvbox-light"] = scheme("gruvbox.nvim", "gruvbox"),
+  -- sainnhe/gruvbox-material
+  ["gruvbox-material-dark"] = scheme("gruvbox-material", "gruvbox-material"),
+  ["gruvbox-material-light"] = scheme("gruvbox-material", "gruvbox-material"),
+  -- maxmx03/solarized.nvim
+  ["solarized-dark"] = scheme("solarized.nvim", "solarized"),
+  ["solarized-light"] = scheme("solarized.nvim", "solarized"),
+  -- rose-pine/neovim (name = "rose-pine")
+  ["rose-pine"] = scheme("rose-pine", "rose-pine-main"),
+  ["rose-pine-moon"] = scheme("rose-pine", "rose-pine-moon"),
+  ["rose-pine-dawn"] = scheme("rose-pine", "rose-pine-dawn"),
+  -- gbprod/nord.nvim (no light variant: nord-light uses the palette)
+  ["nord"] = scheme("nord.nvim", "nord"),
+  -- Mofiqul/dracula.nvim (no light variant: alucard uses the palette)
+  ["dracula"] = scheme("dracula.nvim", "dracula"),
+  -- sainnhe/everforest
+  ["everforest-dark"] = scheme("everforest", "everforest"),
+  ["everforest-light"] = scheme("everforest", "everforest"),
+  -- rebelot/kanagawa.nvim
+  ["kanagawa-wave"] = scheme("kanagawa.nvim", "kanagawa-wave"),
+  ["kanagawa-dragon"] = scheme("kanagawa.nvim", "kanagawa-dragon"),
+  ["kanagawa-lotus"] = scheme("kanagawa.nvim", "kanagawa-lotus"),
+  -- olimorris/onedarkpro.nvim
+  ["one-dark"] = scheme("onedarkpro.nvim", "onedark"),
+  ["one-light"] = scheme("onedarkpro.nvim", "onelight"),
+  -- Shatur/neovim-ayu
+  ["ayu-dark"] = scheme("neovim-ayu", "ayu-dark"),
+  ["ayu-mirage"] = scheme("neovim-ayu", "ayu-mirage"),
+  ["ayu-light"] = scheme("neovim-ayu", "ayu-light"),
+  -- EdenEast/nightfox.nvim
+  ["nightfox"] = scheme("nightfox.nvim", "nightfox"),
+  ["carbonfox"] = scheme("nightfox.nvim", "carbonfox"),
+  ["nordfox"] = scheme("nightfox.nvim", "nordfox"),
+  ["terafox"] = scheme("nightfox.nvim", "terafox"),
+  ["dayfox"] = scheme("nightfox.nvim", "dayfox"),
+  -- projekt0n/github-nvim-theme
+  ["github-dark"] = scheme("github-nvim-theme", "github_dark"),
+  ["github-light"] = scheme("github-nvim-theme", "github_light"),
+  -- nyoom-engineering/oxocarbon.nvim
+  ["oxocarbon-dark"] = scheme("oxocarbon.nvim", "oxocarbon"),
+  ["oxocarbon-light"] = scheme("oxocarbon.nvim", "oxocarbon"),
+}
 
 -- Colorscheme when there's no axiom theme file (nil: leave it alone)
 M.fallback = nil
@@ -40,10 +102,17 @@ local function apply_native(scheme)
     return false
   end
   if scheme.plugin then
-    -- A lazily loaded colorscheme plugin (lazy.nvim); harmless without it
-    pcall(function()
-      require("lazy").load({ plugins = { scheme.plugin } })
-    end)
+    -- A lazily loaded colorscheme plugin (lazy.nvim). One lazy.nvim doesn't
+    -- know isn't installed: skip it quietly (load() would notify an error)
+    local ok, lazy_config = pcall(require, "lazy.core.config")
+    if ok then
+      if not lazy_config.plugins[scheme.plugin] then
+        return false
+      end
+      pcall(function()
+        require("lazy").load({ plugins = { scheme.plugin } })
+      end)
+    end
   end
   return pcall(vim.cmd.colorscheme, scheme.colorscheme)
 end
@@ -112,6 +181,62 @@ local function apply_plain(c)
   return true
 end
 
+-- a over b by alpha, both "#rrggbb"
+local function blend(a, b, alpha)
+  local function rgb(h)
+    return tonumber(h:sub(2, 3), 16), tonumber(h:sub(4, 5), 16), tonumber(h:sub(6, 7), 16)
+  end
+  local r1, g1, b1 = rgb(a)
+  local r2, g2, b2 = rgb(b)
+  local function mix(x, y)
+    return math.floor(x * alpha + y * (1 - alpha) + 0.5)
+  end
+  return string.format("#%02x%02x%02x", mix(r1, r2), mix(g1, g2), mix(b1, b2))
+end
+
+-- The theme's own accent over the base16 groups, Material-style: base16
+-- leaves a wallpaper theme's seed color (its accent) on delimiters only
+local function apply_accents(theme)
+  local s, t = theme.semantic, theme.text or {}
+  if type(s) ~= "table" or not (s.accent and s.background and s.foreground) then
+    return
+  end
+  local accent, alt = t.accent or s.accent, t.accentAlt or s.accentAlt or s.accent
+  local bg, border = s.background, s.border or s.backgroundHighlight
+  local function tint(alpha)
+    return blend(s.accent, bg, alpha)
+  end
+  local groups = {
+    Keyword = { fg = accent },
+    Statement = { fg = accent },
+    Conditional = { fg = accent },
+    Repeat = { fg = accent },
+    Exception = { fg = accent },
+    ["@keyword"] = { link = "Keyword" },
+    ["@keyword.function"] = { link = "Keyword" },
+    ["@keyword.return"] = { link = "Keyword" },
+    ["@keyword.conditional"] = { link = "Conditional" },
+    ["@keyword.repeat"] = { link = "Repeat" },
+    Title = { fg = accent, bold = true },
+    Directory = { fg = alt },
+    CursorLineNr = { fg = accent, bold = true },
+    Visual = { bg = tint(0.25) },
+    Search = { fg = s.foreground, bg = tint(0.35) },
+    IncSearch = { fg = bg, bg = s.accent },
+    CurSearch = { fg = bg, bg = s.accent },
+    MatchParen = { fg = accent, bg = tint(0.2), bold = true },
+    FloatBorder = { fg = border, bg = s.backgroundAlt },
+    FloatTitle = { fg = accent, bg = s.backgroundAlt, bold = true },
+    WinSeparator = { fg = border },
+    PmenuSel = { fg = s.foreground, bg = tint(0.3), bold = true },
+    PmenuThumb = { bg = s.accent },
+    TabLineSel = { fg = accent, bg = s.backgroundAlt, bold = true },
+  }
+  for name, spec in pairs(groups) do
+    vim.api.nvim_set_hl(0, name, spec)
+  end
+end
+
 local function apply_palette(theme)
   local ok = pcall(function()
     require("mini.base16").setup({ palette = theme.colors, use_cterm = true })
@@ -122,6 +247,7 @@ local function apply_palette(theme)
   if not ok then
     return false
   end
+  pcall(apply_accents, theme)
   vim.g.colors_name = "axiom-" .. theme.stem
   -- Neither fires ColorScheme itself; statuslines ('auto' themes) listen for it
   vim.api.nvim_exec_autocmds("ColorScheme", { pattern = vim.g.colors_name })

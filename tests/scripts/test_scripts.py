@@ -264,6 +264,25 @@ class ThemeIntegrations(unittest.TestCase):
         result = subprocess.run([luac, "-p", str(module)], capture_output=True, text=True)
         self.assertEqual(result.returncode, 0, result.stderr)
 
+    def test_nvim_palette_has_readable_accents(self):
+        target = self.out / "nvim-theme.json"
+        for theme in (THEMES / "ayu-light.json", THEMES / "submarine-sonar.json"):
+            with self.subTest(theme=theme.name):
+                self.run_script(SCRIPTS / "theme_nvim.sh", [theme, target])
+                data = json.loads(target.read_text())
+                semantic = data["semantic"]
+                self.assertRegex(semantic["accent"], HEX)
+                for key in ("accent", "accentAlt"):
+                    self.assertGreaterEqual(contrast(data["text"][key], semantic["background"]), 4.5, key)
+
+    def test_nvim_module_maps_shipped_themes(self):
+        text = (SCRIPTS / "templates" / "nvim" / "axiom_theme.lua").read_text()
+        mapped = set(re.findall(r'^\s*\["([\w-]+)"\] = scheme\(', text, re.M))
+        shipped = {p.stem for p in THEMES.glob("*.json")} - {"theme.schema"}
+        self.assertEqual(mapped - shipped, set(), "map entries without a theme")
+        self.assertEqual(shipped - mapped - {"submarine-sonar", "submarine-sonar-light", "nord-light", "alucard"},
+                         set(), "themes without a map entry")
+
     def test_hyprlock_keeps_its_own_variables(self):
         target = self.out / "hyprlock.conf"
         self.run_script(SCRIPTS / "theme_hyprlock.sh",
