@@ -3,19 +3,23 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import qs.config
+import qs.services
 import qs.components.reusable
 
 // Fixed page navigator for the overlay's pages: arrows at the ends and a tab
 // per page (icon and name), the current one under a sliding accent pill.
 // When every name doesn't fit `maxWidth`, the other tabs drop to their
 // icons (named in a tooltip). Scrolling over it steps through the pages.
+// Pages with unsaved edits get a dot, and while another page has some,
+// Save all / Discard all follow the arrows (EditsManager: a reminder, as
+// drafts survive leaving a page or closing the overlay).
 // Kept as its own item, anchored directly to the overlay's screen edge,
 // so it doesn't move when the current page's content height changes.
 Rectangle {
   id: root
 
   required property int currentIndex
-  // [{ icon, label }], one per page (OverlayPages.pages)
+  // [{ type, icon, label }], one per page (OverlayPages.pages)
   required property var pages
   // The widest it may get; 0 for no limit
   property real maxWidth: 0
@@ -31,8 +35,13 @@ Rectangle {
   readonly property real iconSize: Appearance.fontSize * 1.4
   readonly property real labelSpacing: Widget.spacing / 2
   readonly property real tabSpacing: Widget.spacing
-  // Everything but the tabs: arrows, the gaps beside them and the insets
-  readonly property real chrome: root.controlHeight * 2 + row.spacing * 2 + root.inset * 2
+  readonly property string currentType: root.pages[root.currentIndex]?.type ?? ""
+  // Save all / Discard all: while a page other than this one has edits
+  // they'd act on (the current page has its own buttons)
+  readonly property bool showEditActions: EditsManager.canActOnAll && EditsManager.unsaved.some(type => type !== root.currentType && !EditsManager.separate.includes(type))
+  // Everything but the tabs: arrows, the gaps beside them and the insets,
+  // and the edit actions while they show
+  readonly property real chrome: root.controlHeight * 2 + row.spacing * 2 + root.inset * 2 + (root.showEditActions ? editActions.implicitWidth + row.spacing : 0)
   // Only the current tab keeps its name when all of them don't fit
   readonly property bool compact: root.maxWidth > 0 && root.chrome + measureRow.implicitWidth > root.maxWidth
   readonly property color onAccent: Theme.background
@@ -68,7 +77,7 @@ Rectangle {
       model: root.pages
       Item {
         required property var modelData
-        implicitWidth: root.tabPadding * 2 + root.iconSize + root.labelSpacing + measureLabel.implicitWidth
+        implicitWidth: root.tabPadding * 2 + root.iconSize + root.labelSpacing + measureLabel.implicitWidth + (EditsManager.isUnsaved(modelData.type) ? root.labelSpacing + 8 : 0)
         StyledText {
           id: measureLabel
           text: parent.modelData.label
@@ -77,9 +86,13 @@ Rectangle {
     }
   }
 
+  // An icon button in the pill (the arrows, the edit actions), named in a
+  // tooltip when `tip` is set
   component ArrowButton: Rectangle {
     id: arrow
     property string icon
+    property color iconColor: Theme.foreground
+    property string tip: ""
     signal clicked
 
     Layout.preferredWidth: root.controlHeight
@@ -93,7 +106,7 @@ Rectangle {
       anchors.centerIn: parent
       text: arrow.icon
       textSize: root.iconSize * 1.2
-      color: Theme.foreground
+      color: arrow.iconColor
     }
 
     MouseArea {
@@ -102,6 +115,15 @@ Rectangle {
       hoverEnabled: true
       cursorShape: Qt.PointingHandCursor
       onClicked: arrow.clicked()
+    }
+
+    LazyLoader {
+      active: arrow.tip !== "" && arrowArea.containsMouse
+      StyledToolTip {
+        target: arrow
+        text: arrow.tip
+        edges: Edges.Top
+      }
     }
 
     Behavior on color {
@@ -177,7 +199,7 @@ Rectangle {
             Row {
               id: content
               anchors.centerIn: parent
-              spacing: tab.showLabel ? root.labelSpacing : 0
+              spacing: root.labelSpacing
 
               StyledIcon {
                 anchors.verticalCenter: parent.verticalCenter
@@ -193,6 +215,12 @@ Rectangle {
                 visible: tab.showLabel
                 font.weight: tab.isCurrent ? Font.DemiBold : Font.Normal
                 textColor: tab.ink
+              }
+
+              UnsavedDot {
+                anchors.verticalCenter: parent.verticalCenter
+                visible: EditsManager.isUnsaved(tab.modelData.type)
+                onAccent: tab.isCurrent
               }
             }
 
@@ -226,6 +254,32 @@ Rectangle {
     ArrowButton {
       icon: "chevron_right"
       onClicked: root.next()
+    }
+
+    RowLayout {
+      id: editActions
+      visible: root.showEditActions
+      spacing: root.tabSpacing / 2
+
+      StyledSeparator {
+        Layout.preferredWidth: Appearance.borderWidth
+        Layout.preferredHeight: root.controlHeight * 0.6
+        Layout.rightMargin: root.tabSpacing / 2
+        opacity: 0.5
+      }
+
+      ArrowButton {
+        icon: "save"
+        iconColor: Theme.accent
+        tip: I18n.tr("Save all unsaved changes")
+        onClicked: EditsManager.saveAll()
+      }
+
+      ArrowButton {
+        icon: "undo"
+        tip: I18n.tr("Discard all unsaved changes")
+        onClicked: EditsManager.discardAll()
+      }
     }
   }
 }

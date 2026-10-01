@@ -2209,6 +2209,8 @@
     "Y": "Y",
     "Column {0} · cell {1} · {2} slot ({3})": "列 {0} · セル {1} · {2}スロット（{3}）",
     "{0} section, position {1} · hidden on the bar": "{0}セクション・{1}番目 · バーに非表示",
-    "Monitor this bar is shown on. Empty uses the primary monitor; All monitors puts an identical copy on each.": "このバーを表示するモニター。空欄ではメインモニター、「すべてのモニター」では各モニターに同じバーを表示します。"
+    "Monitor this bar is shown on. Empty uses the primary monitor; All monitors puts an identical copy on each.": "このバーを表示するモニター。空欄ではメインモニター、「すべてのモニター」では各モニターに同じバーを表示します。",
+    "Save all unsaved changes": "未保存の変更をすべて保存",
+    "Discard all unsaved changes": "未保存の変更をすべて破棄"
   }
 }
