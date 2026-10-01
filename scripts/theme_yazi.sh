@@ -13,7 +13,7 @@ source "$SCRIPT_DIR/lib/theme_env.sh"
 usage_or_help 3 8 "$@"
 require_cmds jq envsubst yazi
 
-OUTPUT_FILE="${2:-$HOME/.config/yazi/flavors/axiom.yazi/flavor.toml}"
+OUTPUT_FILE="${2:-${XDG_CONFIG_HOME:-$HOME/.config}/yazi/flavors/axiom.yazi/flavor.toml}"
 load_theme "$1"
 export_theme_colors
 readable_text_colors

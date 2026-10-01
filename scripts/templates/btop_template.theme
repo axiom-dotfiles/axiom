@@ -43,3 +43,13 @@ theme[upload_end]="${ORANGE}"
 theme[process_start]="${SUCCESS}"
 theme[process_mid]="${WARNING}"
 theme[process_end]="${ERROR}"
+
+# Process box banners (btop 1.4+: paused, following a process)
+theme[proc_pause_bg]="${ERROR}"
+theme[proc_follow_bg]="${INFO}"
+theme[proc_banner_bg]="${ACCENT}"
+theme[proc_banner_fg]="${BACKGROUND}"
+
+# The followed process's row
+theme[followed_bg]="${INFO}"
+theme[followed_fg]="${BACKGROUND}"

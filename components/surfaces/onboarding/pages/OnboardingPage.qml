@@ -19,7 +19,7 @@ Item {
   property string intro
   // Content beside the card, left to right after it
   property alias extras: extraRow.data
-  default property alias content: card.content
+  default property alias content: card.bodyContent
 
   // As wide as the Monitors page unless the page sets its own (a page
   // with extras beside the card)

@@ -13,7 +13,7 @@ source "$SCRIPT_DIR/lib/theme_env.sh"
 usage_or_help 3 8 "$@"
 require_cmds jq envsubst ghostty
 
-OUTPUT_FILE="${2:-$HOME/.config/ghostty/themes/axiom}"
+OUTPUT_FILE="${2:-${XDG_CONFIG_HOME:-$HOME/.config}/ghostty/themes/axiom}"
 load_theme "$1"
 export_theme_colors
 render_template "$SCRIPT_DIR/templates/ghostty_template" "$OUTPUT_FILE"

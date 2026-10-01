@@ -13,7 +13,7 @@ source "$SCRIPT_DIR/lib/theme_env.sh"
 usage_or_help 3 8 "$@"
 require_cmds jq envsubst btop
 
-OUTPUT_FILE="${2:-$HOME/.config/btop/themes/axiom.theme}"
+OUTPUT_FILE="${2:-${XDG_CONFIG_HOME:-$HOME/.config}/btop/themes/axiom.theme}"
 load_theme "$1"
 export_theme_colors
 readable_text_colors

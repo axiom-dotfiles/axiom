@@ -13,7 +13,7 @@ source "$SCRIPT_DIR/lib/theme_env.sh"
 usage_or_help 3 8 "$@"
 require_cmds jq envsubst lazygit
 
-OUTPUT_FILE="${2:-$HOME/.config/lazygit/axiom.yml}"
+OUTPUT_FILE="${2:-${XDG_CONFIG_HOME:-$HOME/.config}/lazygit/axiom.yml}"
 load_theme "$1"
 export_theme_colors
 readable_text_colors

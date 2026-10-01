@@ -3,9 +3,14 @@
 
   - every shipped theme is complete (config/themes/theme.schema.json's
     required keys, hex colors, semantic names that resolve, pairs that exist)
-  - every theme_*.sh integration renders a dark and a light theme into a
-    scratch dir with no warnings and no unfilled ${VAR}s. The apps they
-    need (and pkill, which they signal running apps with) are stubbed
+  - every theme_*.sh integration renders every shipped theme (and any
+    generated ones) into a scratch dir with no warnings, no unfilled
+    ${VAR}s and only well-formed colors, and each output parses as its
+    format (TOML, JSON, plist, INI; YAML and GTK CSS when PyYAML / PyGObject
+    are installed). The apps they need (and pkill, which they signal
+    running apps with) are stubbed
+  - integration_hookup.py (Settings' Apply) adds each placement where it
+    belongs, backs files up, follows symlinks, and does nothing twice
   - self_update.sh reports and applies updates on scratch git clones, and
     refuses the blocked cases
   - claim_hyprland.sh (the "managed" Hyprland mode's takeover) adopts a
@@ -15,13 +20,17 @@
 
   python3 tests/scripts/test_scripts.py [-v] [TestCase[.test_name]]
 """
+import configparser
 import json
 import os
+import plistlib
 import re
 import shutil
 import stat
 import subprocess
+import sys
 import tempfile
+import tomllib
 import unittest
 from pathlib import Path
 
@@ -145,8 +154,19 @@ class TerminalPalette(unittest.TestCase):
                     self.assertLess(luminance(c["ANSI_0"]), luminance(bg), "black isn't dark")
 
 
+# Each integration's output format, for the parse checks (the others are
+# key=value lines, checked for their colors only)
+FORMATS = {
+    "alacritty": "toml", "helix": "toml", "wezterm": "toml", "yazi": "toml",
+    "k9s": "yaml", "lazygit": "yaml", "bat": "plist", "nvim": "json",
+    "vscode": "json", "qt": "ini", "foot": "ini", "gtk": "css",
+}
+COLOR = re.compile(r"#([0-9a-fA-F]+)\b")
+
+
 class ThemeIntegrations(unittest.TestCase):
-    THEMES = ["tokyo-night.json", "catppuccin-latte.json"]
+    THEMES = sorted(p for p in THEMES.glob("*.json") if p.name != "theme.schema.json") + \
+        sorted((THEMES / "generated").glob("*.json"))
 
     def setUp(self):
         self.tmp = tempfile.mkdtemp()
@@ -172,24 +192,77 @@ class ThemeIntegrations(unittest.TestCase):
             self.assertTrue(text.strip(), f"{f} is empty")
             self.assertEqual(UNFILLED.findall(text), [], f"{f} has unfilled variables")
 
+    def assert_parses(self, key, root):
+        """Each output file of an integration parses as its format"""
+        fmt = FORMATS.get(key)
+        files = [p for p in Path(root).rglob("*") if p.is_file()] if Path(root).is_dir() else [Path(root)]
+        for f in files:
+            text = f.read_text()
+            odd = [m.group(0) for m in COLOR.finditer(text) if len(m.group(1)) not in (6, 8)]
+            self.assertEqual(odd, [], f"{f}: malformed colors")
+            if fmt == "toml":
+                tomllib.loads(text)
+            elif fmt == "json" and (f.suffix == ".json" or key == "nvim"):
+                json.loads(text)
+            elif fmt == "plist":
+                plistlib.loads(f.read_bytes())
+            elif fmt == "ini":
+                configparser.ConfigParser(interpolation=None, strict=False).read_string(text)
+            elif fmt == "yaml":
+                try:
+                    import yaml
+                except ImportError:
+                    return
+                yaml.safe_load(text)
+            elif fmt == "css" and f.suffix == ".css":
+                self.assertEqual(text.count("{"), text.count("}"), f"{f}: unbalanced braces")
+                self.assert_gtk_css(f)
+
+    def assert_gtk_css(self, path):
+        """GTK's own parser, when PyGObject and GTK are installed"""
+        version = "4.0" if path.parent.name == "gtk-4.0" else "3.0"
+        check = (
+            "import sys, gi\n"
+            "gi.require_version('Gtk', sys.argv[1])\n"
+            "from gi.repository import Gtk\n"
+            "errors = []\n"
+            "p = Gtk.CssProvider()\n"
+            "p.connect('parsing-error', lambda p, s, e: errors.append(e.message))\n"
+            "p.load_from_path(sys.argv[2])\n"
+            "print('\\n'.join(errors))\n"
+        )
+        result = subprocess.run([sys.executable, "-c", check, version, str(path)], capture_output=True, text=True)
+        if result.returncode != 0:
+            return  # no PyGObject or no GTK of that version
+        self.assertEqual(result.stdout.strip(), "", f"{path}: GTK CSS errors")
+
     def test_every_integration_renders(self):
         scripts = sorted(SCRIPTS.glob("theme_*.sh"))
         self.assertTrue(scripts)
         for theme in self.THEMES:
             for script in scripts:
                 key = script.stem.removeprefix("theme_")
-                with self.subTest(script=script.name, theme=theme):
-                    target = self.out / theme / key
+                with self.subTest(script=script.name, theme=theme.name):
+                    target = self.out / theme.stem / key
                     if key == "hyprlock":
                         target = target / "hyprlock.conf"
-                        args = [THEMES / theme, target, "Sans", "file:///tmp/wall.png", "1", "Hey you", "Password..."]
+                        args = [theme, target, "Sans", "file:///tmp/wall.png", "1", "Hey you", "Password..."]
                     elif key in ("gtk", "vscode"):
-                        args = [THEMES / theme, target]
+                        args = [theme, target]
                     else:
                         target = target / "axiom.out"
-                        args = [THEMES / theme, target]
+                        args = [theme, target]
                     self.run_script(script, args)
                     self.assert_rendered(target)
+                    self.assert_parses(key, target)
+
+    def test_nvim_module_compiles(self):
+        luac = shutil.which("luac")
+        if not luac:
+            self.skipTest("no luac")
+        module = SCRIPTS / "templates" / "nvim" / "axiom_theme.lua"
+        result = subprocess.run([luac, "-p", str(module)], capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
 
     def test_hyprlock_keeps_its_own_variables(self):
         target = self.out / "hyprlock.conf"
@@ -199,6 +272,135 @@ class ThemeIntegrations(unittest.TestCase):
         self.assertIn("$TIME", text)
         self.assertIn("/w.png", text)
         self.assertNotIn("file://", text)
+
+
+class HookupScript(unittest.TestCase):
+    """integration_hookup.py on scratch configs (ThemeIntegrations' x-hookup)"""
+
+    def setUp(self):
+        self.tmp = tempfile.mkdtemp()
+        self.env = scratch_env(self.tmp)
+        self.env["SHELL"] = "/bin/bash"
+        self.config = Path(self.env["XDG_CONFIG_HOME"])
+
+    def tearDown(self):
+        shutil.rmtree(self.tmp)
+
+    def hookup(self, action, key, schema=None):
+        args = [sys.executable, str(SCRIPTS / "integration_hookup.py"), action, key]
+        if schema:
+            args += ["--schema", str(schema)]
+        result = subprocess.run(args, env=self.env, capture_output=True, text=True, timeout=30)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        return json.loads(result.stdout)
+
+    def write(self, rel, text):
+        path = self.config / rel
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text)
+        return path
+
+    def backups(self, path):
+        return sorted(Path(path).parent.glob(Path(path).name + ".axiom-bak-*"))
+
+    def test_every_hookup_applies_to_empty_configs(self):
+        schema = json.loads((ROOT / "config/json/config.schema.json").read_text())
+        for key, prop in schema["properties"]["ThemeIntegrations"]["properties"].items():
+            with self.subTest(key=key):
+                self.assertIn("x-hookup", prop)
+                self.hookup("apply", key)
+                for target in self.hookup("status", key)["targets"]:
+                    if not target["copyOnly"] and not target["skipped"]:
+                        self.assertTrue(target["done"], f"{key}: {target}")
+
+    def test_end_keeps_a_symlink_and_backs_up(self):
+        real = Path(self.tmp) / "dotfiles" / "kitty.conf"
+        real.parent.mkdir()
+        real.write_text("font_size 12\n")
+        link = self.config / "kitty" / "kitty.conf"
+        link.parent.mkdir(parents=True)
+        link.symlink_to(real)
+        status = self.hookup("status", "kitty")["targets"][0]
+        self.assertTrue(status["link"])
+        self.hookup("apply", "kitty")
+        self.assertTrue(link.is_symlink())
+        self.assertEqual(real.read_text(), "font_size 12\n\ninclude axiom.conf\n")
+        self.assertEqual(len(self.backups(real)), 1)
+        self.assertEqual(self.backups(real)[0].read_text(), "font_size 12\n")
+        # Done: a second Apply changes nothing
+        self.assertFalse(self.hookup("apply", "kitty")["results"][0]["changed"])
+        self.assertEqual(len(self.backups(real)), 1)
+
+    def test_start_goes_first(self):
+        path = self.write("gtk-3.0/gtk.css", "window { color: red; }\n")
+        self.hookup("apply", "gtk")
+        self.assertEqual(path.read_text().splitlines()[0], '@import url("axiom.css");')
+
+    def test_top_comments_out_the_old_key(self):
+        path = self.write("helix/config.toml", 'theme = "onedark"\n\n[editor]\nline-number = "relative"\n')
+        status = self.hookup("status", "helix")["targets"][0]
+        self.assertEqual(status["replaces"], ['theme = "onedark"'])
+        self.hookup("apply", "helix")
+        parsed = tomllib.loads(path.read_text())
+        self.assertEqual(parsed["theme"], "axiom")
+        self.assertEqual(parsed["editor"], {"line-number": "relative"})
+        self.assertIn('# axiom: theme = "onedark"', path.read_text())
+
+    def test_section_present_and_missing(self):
+        path = self.write("yazi/theme.toml", '[flavor]\ndark = "x"\n\n[mgr]\nfoo = 1\n')
+        self.hookup("apply", "yazi")
+        self.assertEqual(tomllib.loads(path.read_text())["flavor"], {"dark": "axiom", "light": "axiom"})
+        path.write_text("[mgr]\nfoo = 1\n")
+        self.assertTrue(self.hookup("status", "yazi")["targets"][0]["createsSection"])
+        self.hookup("apply", "yazi")
+        self.assertEqual(tomllib.loads(path.read_text())["flavor"], {"dark": "axiom", "light": "axiom"})
+
+    def test_keep_leaves_other_lines(self):
+        path = self.write("foot/foot.ini", "include=~/mine.ini\n\n[main]\nfont=x\n")
+        status = self.hookup("status", "foot")["targets"][0]
+        self.assertEqual(status["alongside"], ["include=~/mine.ini"])
+        self.hookup("apply", "foot")
+        lines = path.read_text().splitlines()
+        self.assertEqual(lines[0], "include=~/mine.ini")
+        self.assertTrue(lines[1].startswith("include=") and lines[1].endswith("foot/axiom.ini"))
+
+    def test_conflict_is_left_alone(self):
+        path = self.write("alacritty/alacritty.toml", '[general]\nimport = ["~/mine.toml"]\n')
+        status = self.hookup("status", "alacritty")["targets"][0]
+        self.assertEqual(status["conflicts"], ['import = ["~/mine.toml"]'])
+        result = self.hookup("apply", "alacritty")["results"][0]
+        self.assertEqual(result["error"], "conflict")
+        self.assertEqual(path.read_text(), '[general]\nimport = ["~/mine.toml"]\n')
+
+    def test_accept_counts_another_spelling(self):
+        self.write("btop/btop.conf", 'color_theme = "/home/me/.config/btop/themes/axiom.theme"\n')
+        self.assertTrue(self.hookup("status", "btop")["targets"][0]["done"])
+
+    def test_shellrc_and_fish(self):
+        self.hookup("apply", "fzf")
+        rc = Path(self.env["HOME"]) / ".bashrc"
+        self.assertIn("export FZF_DEFAULT_OPTS_FILE=", rc.read_text())
+        self.env["SHELL"] = "/usr/bin/fish"
+        self.hookup("apply", "fzf")
+        fish = self.config / "fish" / "conf.d" / "axiom.fish"
+        self.assertTrue(fish.read_text().startswith("set -gx FZF_DEFAULT_OPTS_FILE "))
+
+    def test_requires_skips(self):
+        schema = {"properties": {"ThemeIntegrations": {"properties": {"x": {"x-hookup": [
+            {"file": "{config}/x.conf", "place": "end", "text": "x", "requires": "axiom-no-such-command"}]}}}}}
+        path = Path(self.tmp) / "schema.json"
+        path.write_text(json.dumps(schema))
+        self.assertEqual(self.hookup("status", "x", path)["targets"][0]["skipped"], "requires")
+        self.hookup("apply", "x", path)
+        self.assertFalse((self.config / "x.conf").exists())
+
+    def test_copy_never_overwrites(self):
+        module = self.write("nvim/lua/axiom_theme.lua", "-- mine\n")
+        self.hookup("apply", "nvim")
+        self.assertEqual(module.read_text(), "-- mine\n")
+        module.unlink()
+        self.hookup("apply", "nvim")
+        self.assertEqual(module.read_text(), (SCRIPTS / "templates/nvim/axiom_theme.lua").read_text())
 
 
 class SelfUpdate(unittest.TestCase):
