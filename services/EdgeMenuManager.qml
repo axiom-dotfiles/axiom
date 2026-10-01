@@ -515,11 +515,17 @@ Singleton {
     return out;
   }
 
+  // Whether `menu` is saved under its id: bar buttons and keybinds are
+  // saved by other editors, so they may only point at a saved menu
+  function isSaved(menu) {
+    return !!menu?.id && (root.savedMenus ?? []).some(saved => saved.id === menu.id);
+  }
+
   // Adds a Button that toggles the selected menu to bar `barIndex`'s
   // `zone`, in the bar editor's draft (saved from there or with Save all)
   function addBarButton(barIndex, zone) {
     const menu = root.selectedMenu();
-    if (!menu?.id)
+    if (!root.isSaved(menu))
       return;
     BarManager.addWidgetTo(barIndex, zone, {
       "type": "Button",
@@ -536,7 +542,7 @@ Singleton {
   // page recording its key
   function addKeybind() {
     const menu = root.selectedMenu();
-    if (!menu?.id)
+    if (!root.isSaved(menu))
       return;
     KeybindManager.ensureLoaded();
     KeybindManager.addBind({

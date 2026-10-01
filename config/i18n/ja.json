@@ -2142,6 +2142,7 @@
     "Nothing yet: turn on Open on hover, or add a bar button or keybind.": "まだありません：「ホバーで開く」をオンにするか、バーのボタンかキーバインドを追加してください。",
     "Button on {0}": "{0} のボタン",
     "Add a keybind": "キーバインドを追加",
+    "Save the menu to add a bar button or keybind for it.": "バーのボタンやキーバインドを追加するには、先にメニューを保存してください。",
     "Drag a module onto the canvas, or click one to add it.": "モジュールをキャンバスにドラッグするか、クリックして追加します。",
     "{0} × {1} cards": "{0} × {1} カード",
     "Click a module on the canvas to edit it": "キャンバス上のモジュールをクリックして編集",
