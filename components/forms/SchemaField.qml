@@ -39,6 +39,13 @@ Loader {
         labels[menu.id] = menu.name || menu.id;
         return labels;
       }, {});
+    if (fieldSchema["x-options"] === "overlayPages")
+      return OverlayConfig.views.reduce((labels, view, index) => {
+        const key = OverlayConfig.pageKey(view);
+        if (key !== "")
+          labels[key] = OverlayConfig.viewLabel(view, index);
+        return labels;
+      }, {});
     // An empty monitor is the primary one, except in the primary monitor's
     // own field (`x-emptyLabel`). I18n.tr("First screen")
     if (fieldSchema["x-options"] === "screens")

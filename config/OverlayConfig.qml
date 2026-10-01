@@ -94,6 +94,12 @@ QtObject {
     const label = viewInfo(view?.type)?.label ?? view?.type ?? "";
     return I18n.tr(label);
   }
+  // What opens a page by name (`openOverlayPage`, a bar Button or bind's
+  // `overlayPage` action): a Custom page's name, other pages' type; "" for
+  // a Custom page with no name
+  function pageKey(view) {
+    return view?.type === "Custom" ? view.name ?? "" : view?.type ?? "";
+  }
   function viewIcon(type) {
     return pinnedPages.find(page => page.type === type)?.icon ?? viewInfo(type)?.icon ?? "dashboard";
   }

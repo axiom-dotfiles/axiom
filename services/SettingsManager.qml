@@ -181,6 +181,8 @@ QtObject {
       return I18n.languages.map(l => l.code);
     case "edgeMenus":
       return ["", ...EdgeMenusConfig.menus.map(menu => menu.id)];
+    case "overlayPages":
+      return ["", ...OverlayConfig.views.map(view => OverlayConfig.pageKey(view)).filter(key => key !== "")];
     case "notes":
       return ["", ...NotesManager.allNotes];
     }

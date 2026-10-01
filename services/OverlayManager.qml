@@ -224,6 +224,46 @@ QtObject {
     applyChanges();
   }
 
+  // --- How a page opens ---
+
+  // Whether `view` is saved under its page key: bar buttons and keybinds
+  // are saved by other editors, so they may only open a saved page
+  function isSaved(view) {
+    const key = OverlayConfig.pageKey(view);
+    return key !== "" && (root.savedViews ?? []).some(saved => OverlayConfig.pageKey(saved) === key);
+  }
+
+  // Adds a Button that opens the selected page to bar `barIndex`'s `zone`,
+  // in the bar editor's draft (saved from there or with Save all), then
+  // opens the bar editor on that bar
+  function addBarButton(barIndex, zone) {
+    const view = root.selectedView();
+    if (!root.isSaved(view))
+      return;
+    BarManager.addWidgetTo(barIndex, zone, {
+      "type": "Button",
+      "properties": {
+        "action": "overlayPage",
+        "page": OverlayConfig.pageKey(view),
+        "icon": OverlayConfig.pageIcon(view),
+        "tooltip": OverlayConfig.viewLabel(view, root.selectedViewIndex)
+      }
+    });
+    ShellManager.openOverlayPage("BarEditor");
+  }
+
+  // Adds a keybind that opens the selected page, then opens the keybinds
+  // page's editor recording its key
+  function addKeybind() {
+    const view = root.selectedView();
+    if (!root.isSaved(view))
+      return;
+    KeybindManager.addAndRecord({
+      "action": "overlayPage",
+      "argument": OverlayConfig.pageKey(view)
+    });
+  }
+
   // --- Save / reset ---
 
   // Merged onto the latest real config; stays dirty if rejected

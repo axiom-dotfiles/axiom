@@ -87,9 +87,11 @@ PopoutWrapperBase {
   property bool grabEnabled: true
   // Other windows the grab lets input through to
   property var grabWindows: []
+  // Its layer namespace unless it slides under (layer rules stack by it)
+  property string overNamespace: "axiom-edge-popout"
   // The surface's window, its layer namespace, and the box within it
   readonly property var window: surfaceWindow
-  readonly property string layerNamespace: root.slidesUnder ? "axiom-popout-under" : "axiom-edge-popout"
+  readonly property string layerNamespace: root.slidesUnder ? "axiom-popout-under" : root.overNamespace
   readonly property rect boxInWindow: Qt.rect(boxArea.x, boxArea.y, boxArea.width, boxArea.height)
 
   property int connectorGap: Appearance.borderRadius * 2

@@ -9,10 +9,10 @@ import qs.components.content.base
 
 // i18n: keys from the schema (titles, descriptions)
 // Layouts editor, left: the overlay pages, the lock screen and the edge
-// menus, then what's selected: a page's name and icon, a menu's settings in
-// groups (from the schema's EdgeMenu definition, its Opening group led by
-// how to try and open it), or the lock screen's (led by its preview), and
-// anything that blocks saving
+// menus, then what's selected: a page's name and icon and what opens it, a
+// menu's settings in groups (from the schema's EdgeMenu definition, its
+// Opening group led by how to try and open it), or the lock screen's (led
+// by its preview), and anything that blocks saving
 Item {
   id: root
 
@@ -106,6 +106,21 @@ Item {
         label: I18n.tr("Show in the navigator")
         checked: root.view?.visible !== false
         onToggled: newValue => OverlayManager.setViewVisible(OverlayManager.selectedViewIndex, newValue)
+      }
+    }
+
+    // How a page opens besides the navigator
+    FieldGroup {
+      visible: root.view !== null
+      Layout.topMargin: Widget.spacing
+      title: I18n.tr("Opening")
+      description: I18n.tr("A bar button or keybind that opens the overlay on this page.")
+
+      OpenerButtons {
+        saved: OverlayManager.isSaved(root.view)
+        unsavedHint: I18n.tr("Name and save the page to add a bar button or keybind for it.")
+        onBarButtonRequested: barIndex => OverlayManager.addBarButton(barIndex, "right")
+        onKeybindRequested: OverlayManager.addKeybind()
       }
     }
 

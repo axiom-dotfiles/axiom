@@ -39,6 +39,9 @@ BarIconWidget {
     case "overlay":
       ShellManager.toggleOverlay();
       break;
+    case "overlayPage":
+      ShellManager.openOverlayPage(properties.page);
+      break;
     case "workspaceOverlay":
       ShellManager.toggleWorkspaceOverlay();
       break;
@@ -58,7 +61,8 @@ BarIconWidget {
   readonly property var _surfaceFor: ({
       "powerMenu": "powermenu",
       "appLauncher": "launcher",
-      "overlay": "overlay"
+      "overlay": "overlay",
+      "overlayPage": "overlay"
     })
 
   function hoverAction() {
