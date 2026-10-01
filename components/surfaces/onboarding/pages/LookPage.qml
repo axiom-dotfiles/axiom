@@ -170,7 +170,7 @@ OnboardingPage {
       implicitHeight: root.grid.span(8)
 
       WallpaperPicker {
-        slotRect: [0, 0, 2, 4]
+        slotRect: [0, 0, 4, 8]
       }
     },
     Item {
@@ -178,7 +178,7 @@ OnboardingPage {
       implicitHeight: root.grid.span(8)
 
       ThemeEditor {
-        slotRect: [0, 0, 2, 4]
+        slotRect: [0, 0, 4, 8]
       }
     }
   ]
