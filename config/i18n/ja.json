@@ -2182,10 +2182,6 @@
     "Hide other menus": "他のメニューを隠す",
     "Show other menus": "他のメニューを表示",
     "Draw a rounded box along the whole edge, with the modules inside it, lined up with the screen border.": "端全体に沿って角丸の枠を描き、その中にモジュールを配置します。枠は画面の枠と揃います。",
-    "start": "開始",
-    "end": "終了",
-    "Grid units between the menu and its `align` anchor (towards the middle; from the middle, positive is towards the end). Set by the layouts editor's grid.": "メニューと `align` の基準点との間のグリッド単位数（中央に向かって。中央からの場合は正の値が終端側）。レイアウトエディタのグリッドで設定されます。",
-    "The end of its edge (or its middle) the menu is placed from, set by where its modules sit on the layouts editor's grid: start is left/top.": "メニューを配置する基準となる端（または中央）。レイアウトエディタのグリッド上のモジュールの位置で決まります。開始は左／上です。",
     "City name to look up. Empty uses your IP's location.": "検索する都市名。空欄の場合は IP アドレスから推定した場所を使います。",
     "Where and how every weather widget and module gets its weather, from Open-Meteo (no account needed).": "すべての天気ウィジェットとモジュールが天気を取得する場所と方法(Open-Meteo、アカウント不要)。",
     "Shown in the page navigator: a Material Symbols name (fonts.google.com/icons). Empty shows the default.": "ページナビゲーターに表示されます。Material Symbols の名前（fonts.google.com/icons）。空欄ではデフォルトを表示します。",
@@ -2226,6 +2222,19 @@
     "Darken the background so the modules stand out.": "モジュールが目立つように背景を暗くします。",
     "What it says. {name} is your display name, {user} your user name and {greeting} good morning, afternoon or evening. Empty says hey to your display name.": "表示する文です。{name} は表示名、{user} はユーザー名、{greeting} は時間帯に応じたあいさつになります。空の場合は表示名にあいさつします。",
     "Each monitor's wallpaper (blurred when Blur wallpaper is on), or a plain color.": "各モニターの壁紙（「壁紙をぼかす」がオンならぼかしあり）、または単色です。",
-    "Draw each module's card box. Off shows modules straight on the background. The greeting and the password field never have one.": "各モジュールのカード枠を描きます。オフにするとモジュールを背景の上に直接表示します。あいさつとパスワード欄には枠がありません。"
+    "Draw each module's card box. Off shows modules straight on the background. The greeting and the password field never have one.": "各モジュールのカード枠を描きます。オフにするとモジュールを背景の上に直接表示します。あいさつとパスワード欄には枠がありません。",
+    "Move left": "左へ移動",
+    "Move right": "右へ移動",
+    "Centred": "中央",
+    "At the top": "上端",
+    "At the left end": "左端",
+    "At the bottom": "下端",
+    "At the right end": "右端",
+    "{0} up from the centre": "中央から{0}上",
+    "{0} down from the centre": "中央から{0}下",
+    "{0} left of the centre": "中央から{0}左",
+    "{0} right of the centre": "中央から{0}右",
+    "Cells of its lattice the menu sits from centred along its edge, positive towards the end (right or down), kept on the screen. Set by the arrows on the layouts editor's grid.": "辺に沿って、中央の位置からメニューまでのラティスのセル数。正の値は終端側（右または下）で、画面内に収まります。レイアウトエディターのグリッドの矢印で設定します。",
+    "Shifts the lattice the menu's modules sit on along its edge (centred on the screen) by this many px, positive towards the end. Set beside the arrows on the layouts editor's grid.": "メニューのモジュールが並ぶラティス（画面の中央に配置）を辺に沿ってこのpx数だけずらします。正の値は終端側です。レイアウトエディターのグリッドの矢印の横で設定します。"
   }
 }

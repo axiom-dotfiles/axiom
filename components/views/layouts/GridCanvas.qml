@@ -4,6 +4,7 @@ import QtQuick.Layouts
 import qs.config
 import qs.components.methods
 import qs.components.reusable
+import qs.components.forms
 import qs.components.content.base
 
 // The edited page (or edge menu) as it will look: its modules on their
@@ -40,6 +41,24 @@ Card {
   // How the result fits, under the title (e.g. per monitor)
   property string fitText: ""
   property bool fitWarning: false
+  // Arrows under the title moving it along its edge (EditTarget's nudge
+  // fields): hidden while `nudgeText` is ""
+  property string nudgeText: ""
+  property bool nudgeVertical: false
+  property bool canNudgeBack: false
+  property bool canNudgeForward: false
+  property bool canCentre: false
+  property var nudge: step => {}
+  property var centre: () => {}
+  // Beside them, the px its lattice is moved (up to `gridOffsetLimit`
+  // either way), set through `setGridOffset`
+  property int gridOffset: 0
+  property int gridOffsetLimit: 0
+  property var setGridOffset: px => {}
+  // A menu's lattice along its edge ({ from, to } in units from the
+  // grid's origin), else null: the units past it are tinted as past the
+  // screen are
+  property var latticeSpan: null
   // Save / Reset for the whole editor's edits
   property bool dirty: false
   property bool canSave: true
@@ -99,7 +118,7 @@ Card {
 
     RowLayout {
       Layout.fillWidth: true
-      Layout.preferredHeight: Widget.height + Widget.padding
+      Layout.minimumHeight: Widget.height + Widget.padding
       spacing: Widget.spacing
 
       StyledIcon {
@@ -133,6 +152,52 @@ Card {
 
           Item {
             Layout.fillWidth: true
+          }
+        }
+
+        RowLayout {
+          visible: root.editable && root.nudgeText !== ""
+          spacing: 0
+
+          FlatIconButton {
+            size: 24
+            iconText: root.nudgeVertical ? "keyboard_arrow_up" : "chevron_left"
+            tooltipText: root.nudgeVertical ? I18n.tr("Move up") : I18n.tr("Move left")
+            enabled: root.canNudgeBack
+            onClicked: root.nudge(-1)
+          }
+          FlatIconButton {
+            size: 24
+            iconText: root.nudgeVertical ? "keyboard_arrow_down" : "chevron_right"
+            tooltipText: root.nudgeVertical ? I18n.tr("Move down") : I18n.tr("Move right")
+            enabled: root.canNudgeForward
+            onClicked: root.nudge(1)
+          }
+          StyledText {
+            Layout.leftMargin: Widget.spacing / 2
+            text: root.nudgeText
+            opacity: 0.6
+            textSize: Appearance.fontSize - 2
+          }
+          FlatIconButton {
+            visible: root.canCentre
+            size: 24
+            iconText: root.nudgeVertical ? "align_vertical_center" : "align_horizontal_center"
+            tooltipText: I18n.tr("Centre")
+            onClicked: root.centre()
+          }
+          SchemaNumberField {
+            Layout.fillWidth: false
+            Layout.leftMargin: Widget.spacing
+            label: I18n.tr("Grid")
+            mode: "stepper"
+            unit: "px"
+            minimum: -root.gridOffsetLimit
+            maximum: root.gridOffsetLimit
+            currentConfigValue: root.gridOffset
+            // It outlives the menu it edits when another is selected
+            debounced: false
+            onCommitted: value => root.setGridOffset(value)
           }
         }
 
@@ -230,7 +295,7 @@ Card {
         id: lattice
         anchors.fill: parent
         visible: root.editable
-        readonly property string paintKey: [root.extent.cols, root.extent.rows, root.step, root.fit.originX, root.fit.originY, root.bounds.cols, root.bounds.rows, root.screenRect.x, root.screenRect.y, root.screenRect.width, root.screenRect.height, root.cellRadius, width, height, Theme.border, Theme.warning].join(",")
+        readonly property string paintKey: [root.extent.cols, root.extent.rows, root.step, root.fit.originX, root.fit.originY, root.bounds.cols, root.bounds.rows, root.screenRect.x, root.screenRect.y, root.screenRect.width, root.screenRect.height, root.cellRadius, JSON.stringify(root.latticeSpan), width, height, Theme.border, Theme.warning].join(",")
         onPaintKeyChanged: lattice.requestPaint()
         onPaint: {
           const ctx = lattice.getContext("2d");
@@ -244,7 +309,9 @@ Card {
             for (let col = -extent.leadCols; col < extent.cols - extent.leadCols; col++) {
               const inside = col >= 0 && row >= 0 && col < root.bounds.cols && row < root.bounds.rows;
               const box = root.screenBox;
-              const past = root.hasScreen && (col + 0.5 < box.x || col + 0.5 > box.x + box.w || row + 0.5 < box.y || row + 0.5 > box.y + box.h);
+              const along = root.alongRows ? row : col;
+              const span = root.latticeSpan;
+              const past = root.hasScreen && (col + 0.5 < box.x || col + 0.5 > box.x + box.w || row + 0.5 < box.y || row + 0.5 > box.y + box.h) || (span !== null && (along < span.from || along > span.to));
               const x = Math.round(root.fit.originX + col * root.step) + 0.5;
               const y = Math.round(root.fit.originY + row * root.step) + 0.5;
               ctx.beginPath();

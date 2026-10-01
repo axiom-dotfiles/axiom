@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 34
+  readonly property int currentVersion: 35
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -95,6 +95,8 @@ QtObject {
       result = _v32ToV33(result, changes);
     if (version < 34)
       result = _v33ToV34(result, changes);
+    if (version < 35)
+      result = _v34ToV35(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -1272,6 +1274,22 @@ QtObject {
       "modules": modules
     };
     changes.push(`Lockscreen: showMedia became the lock screen's modules${media ? " (with NowPlaying)" : ""}`);
+    return config;
+  }
+
+  // v35: an edge menu sits centred on its edge, `offset` grid units from
+  // the middle, instead of from an `align` anchor. A menu from an end gets
+  // the furthest offset, which keeps it flush with that end
+  function _v34ToV35(config, changes) {
+    (Array.isArray(config.EdgeMenus) ? config.EdgeMenus : []).forEach((menu, m) => {
+      if (!menu || typeof menu !== "object" || !("align" in menu))
+        return;
+      if (menu.align === "start" || menu.align === "end") {
+        menu.offset = menu.align === "start" ? -200 : 200;
+        changes.push(`EdgeMenus[${m}]: align "${menu.align}" -> offset ${menu.offset} (flush with that end)`);
+      }
+      delete menu.align;
+    });
     return config;
   }
 }

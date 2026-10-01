@@ -34,42 +34,63 @@ QtObject {
     return root.unitOf(unit) + root.cardSpacing;
   }
 
-  // Where an edge menu's modules (`length` px along the edge) start along
-  // an edge `edgeLength` px long, in px from its start: `offset` grid units
-  // in from the anchor `align` ("start" | "end"), or from the middle
-  // ("center", positive towards the end), and kept between `startPad` and
-  // `endPad` from the ends (a menu longer than the room starts at
-  // `startPad`)
-  function alongStart(align, offset, length, edgeLength, unit, startPad, endPad) {
-    const step = root.stepOf(unit) * (offset ?? 0);
-    const at = align === "start" ? startPad + step : align === "end" ? edgeLength - endPad - length - step : (edgeLength - length) / 2 + step;
-    return Math.max(startPad, Math.min(at, edgeLength - endPad - length));
+  // The lattice an edge menu's modules sit on along an edge `edgeLength`
+  // px long, at card size `unit`: as many whole cells as fit between
+  // `startPad` and `endPad`, centred there, then moved `shift` px towards
+  // the end. { origin (where cell 0 starts, in px from the edge's start),
+  // step, cols (the cells of the centred run), first, last (the cells
+  // wholly inside the room once moved), startPad }
+  function menuLattice(edgeLength, unit, startPad, endPad, shift) {
+    const step = root.stepOf(unit);
+    const room = edgeLength - startPad - endPad;
+    // A hair over (and under), so a room exactly n cells long holds n
+    const cols = Math.max(0, Math.floor((room + root.cardSpacing) / step + 0.001));
+    const origin = startPad + (room - cols * step + root.cardSpacing) / 2 + (shift ?? 0);
+    return {
+      "origin": origin,
+      "step": step,
+      "cols": cols,
+      "first": Math.ceil((startPad - origin) / step - 0.001),
+      "last": Math.floor((edgeLength - endPad - origin + root.cardSpacing) / step + 0.001) - 1,
+      "startPad": startPad
+    };
   }
 
-  // The anchor for modules starting `start` px along the edge (see
-  // alongStart), with the whole grid units from it: { align, offset }.
-  // Within half a unit of an anchor they snap to it (flush, or centred);
-  // otherwise they keep `current` (an align), so moving them by whole
-  // units keeps them exactly where they're put. Without `current`, the
-  // nearest anchor. Halfway between two whole units (a centred run that
-  // grew or shrank by an odd number of units) the offset rounds towards
-  // `currentOffset`, so growing and shrinking back returns it where it was.
-  function anchorFor(start, length, edgeLength, unit, startPad, endPad, current, currentOffset) {
-    const step = root.stepOf(unit);
-    const units = {
-      "start": (start - startPad) / step,
-      "end": (edgeLength - endPad - length - start) / step,
-      "center": (start - (edgeLength - length) / 2) / step
-    };
-    const nearest = ["start", "end", "center"].reduce((best, align) => Math.abs(units[align]) < Math.abs(units[best]) ? align : best, "start");
-    const align = Math.abs(units[nearest]) < 0.5 || !(current in units) ? nearest : current;
-    const raw = units[align];
-    const towards = currentOffset ?? 0;
-    const half = Math.abs(Math.abs(raw % 1) - 0.5) < 0.001;
-    const offset = half ? (Math.abs(Math.floor(raw) - towards) <= Math.abs(Math.ceil(raw) - towards) ? Math.floor(raw) : Math.ceil(raw)) : Math.round(raw);
+  // The cell a menu `units` cells long starts at on `lattice`: centred on
+  // its run (the earlier of two middles), then `offset` cells towards the
+  // end (negative: the start), kept on the lattice. null when it's longer
+  // than the lattice.
+  function menuCell(lattice, offset, units) {
+    if (units > lattice.last - lattice.first + 1)
+      return null;
+    const cell = Math.floor((lattice.cols - units) / 2) + (offset ?? 0);
+    return Math.max(lattice.first, Math.min(cell, lattice.last - units + 1));
+  }
+
+  // Where that menu starts along the edge, in px: at its cell, or at the
+  // lattice's `startPad` when it's longer than the lattice (it scrolls)
+  function alongStart(lattice, offset, units) {
+    const cell = root.menuCell(lattice, offset, units);
+    return cell === null ? lattice.startPad : lattice.origin + cell * lattice.step;
+  }
+
+  // The offset (see menuCell) that starts a menu `units` cells long at
+  // `cell`
+  function offsetFor(lattice, cell, units) {
+    return cell - Math.floor((lattice.cols - units) / 2);
+  }
+
+  // The offsets that keep that menu on the lattice: { min, max }, both 0
+  // when it's longer than the lattice
+  function offsetRange(lattice, units) {
+    if (units > lattice.last - lattice.first + 1)
+      return {
+        "min": 0,
+        "max": 0
+      };
     return {
-      "align": align,
-      "offset": align === "center" ? offset : Math.max(0, offset)
+      "min": root.offsetFor(lattice, lattice.first, units),
+      "max": root.offsetFor(lattice, lattice.last - units + 1, units)
     };
   }
 
@@ -274,32 +295,51 @@ QtObject {
 
   // --- Edge menus on their screen ---
 
-  // Where a menu's modules (`length` px along the edge) start along its
-  // edge, `edgeLength` px long: from its anchor (`menu.align`,
-  // `menu.offset`; alongStart), or at `startPad` when it takes the whole
-  // edge (`menu.length` "edge")
-  function menuAlong(menu, length, edgeLength, unit, startPad, endPad) {
+  // A menu's lattice along its edge, `edgeLength` px long (menuLattice,
+  // moved by `menu.gridOffset`)
+  function latticeOf(menu, edgeLength, unit, startPad, endPad) {
+    return root.menuLattice(edgeLength, unit, startPad, endPad, menu.gridOffset);
+  }
+
+  // How many cells a menu's modules (reaching `bounds`, else its own)
+  // take along its edge
+  function unitsAlong(menu, bounds) {
+    const reach = bounds ?? root.bounds(menu.modules);
+    return menu.edge === "Left" || menu.edge === "Right" ? reach.rows : reach.cols;
+  }
+
+  // Where a menu's modules start along its edge, `edgeLength` px long: on
+  // its lattice, `menu.offset` cells from centred (alongStart), or at
+  // `startPad` when it takes the whole edge (`menu.length` "edge")
+  function menuAlong(menu, edgeLength, unit, startPad, endPad) {
     if (menu.length === "edge")
       return startPad;
-    return root.alongStart(menu.align, menu.offset, length, edgeLength, unit, startPad, endPad);
+    return root.alongStart(root.latticeOf(menu, edgeLength, unit, startPad, endPad), menu.offset, root.unitsAlong(menu));
   }
 
   // Where a menu's modules (reaching `bounds`, at card size `unit`) sit on
   // a `screenWidth` × `screenHeight` screen, its `frame` (EdgeMenuManager's
   // frames) around them, in px: { along (from the edge's start), across
   // (from the edge), length, depth (the grid along and across the edge),
-  // edgeLength, frame, screenWidth, screenHeight }
+  // edgeLength, lattice (latticeOf), units (cells along the edge), cell
+  // (where they start on the lattice: null when the menu takes its whole
+  // edge or is longer than the lattice), frame, screenWidth, screenHeight }
   function menuPlacement(menu, bounds, unit, frame, screenWidth, screenHeight) {
     const vertical = menu.edge === "Left" || menu.edge === "Right";
     const sizes = root.trackSizes(bounds, unit);
-    const length = vertical ? sizes.height : sizes.width;
     const edgeLength = vertical ? screenHeight : screenWidth;
+    const lattice = root.latticeOf(menu, edgeLength, unit, frame.startPad, frame.endPad);
+    const units = root.unitsAlong(menu, bounds);
+    const cell = menu.length === "edge" ? null : root.menuCell(lattice, menu.offset, units);
     return {
-      "along": root.menuAlong(menu, length, edgeLength, unit, frame.startPad, frame.endPad),
+      "along": cell === null ? frame.startPad : lattice.origin + cell * lattice.step,
       "across": frame.across,
-      "length": length,
+      "length": vertical ? sizes.height : sizes.width,
       "depth": vertical ? sizes.width : sizes.height,
       "edgeLength": edgeLength,
+      "lattice": lattice,
+      "units": units,
+      "cell": cell,
       "frame": frame,
       "screenWidth": screenWidth,
       "screenHeight": screenHeight
@@ -358,33 +398,54 @@ QtObject {
   // The grid the editor draws for modules reaching `bounds`: `lead` units
   // before them and `trail` after (at least 8 × 4 units), or with a screen
   // (`screenBox`, from screenBox) reaching one unit past it all round.
-  // { leadCols, leadRows (units before 0, 0), cols, rows (in all) }
+  // { leadCols, leadRows (units before 0, 0), cols, rows (in all), view
+  // (what canvasFit fits: { x, y, w, h } in units from 0, 0) }. The view
+  // of a screen is the screen (and any grid past it) and a unit round it,
+  // in fractions of a unit, so it stays put while the modules move on it.
   function canvasExtent(bounds, screenBox, lead, trail) {
-    if (!screenBox)
+    if (!screenBox) {
+      const cols = lead + Math.max(bounds.cols, 8) + trail;
+      const rows = lead + Math.max(bounds.rows, 4) + trail;
       return {
         "leadCols": lead,
         "leadRows": lead,
-        "cols": lead + Math.max(bounds.cols, 8) + trail,
-        "rows": lead + Math.max(bounds.rows, 4) + trail
+        "cols": cols,
+        "rows": rows,
+        "view": {
+          "x": -lead,
+          "y": -lead,
+          "w": cols,
+          "h": rows
+        }
       };
+    }
     // A hair under, so a side exactly on a unit doesn't add one
     const leadCols = Math.max(0, Math.ceil(-screenBox.x - 0.001)) + 1;
     const leadRows = Math.max(0, Math.ceil(-screenBox.y - 0.001)) + 1;
+    const x = Math.min(screenBox.x - 1, -1);
+    const y = Math.min(screenBox.y - 1, -1);
     return {
       "leadCols": leadCols,
       "leadRows": leadRows,
       "cols": leadCols + Math.max(bounds.cols, Math.ceil(screenBox.x + screenBox.w - 0.001)) + 1,
-      "rows": leadRows + Math.max(bounds.rows, Math.ceil(screenBox.y + screenBox.h - 0.001)) + 1
+      "rows": leadRows + Math.max(bounds.rows, Math.ceil(screenBox.y + screenBox.h - 0.001)) + 1,
+      "view": {
+        "x": x,
+        "y": y,
+        "w": Math.max(screenBox.x + screenBox.w + 1, bounds.cols + 1) - x,
+        "h": Math.max(screenBox.y + screenBox.h + 1, bounds.rows + 1) - y
+      }
     };
   }
 
-  // That grid (canvasExtent) drawn centred in an area `width` × `height`
-  // px, scaled from the reference card size to fit (at most `maxScale`):
-  // { scale, step (a unit and the gap after it), gap, unitSize, originX,
-  // originY (where unit 0, 0 sits) }
+  // The view of that grid (canvasExtent) drawn centred in an area `width`
+  // × `height` px, scaled from the reference card size to fit (at most
+  // `maxScale`): { scale, step (a unit and the gap after it), gap,
+  // unitSize, originX, originY (where unit 0, 0 sits) }
   function canvasFit(extent, width, height, maxScale) {
+    const view = extent.view;
     const refStep = root.stepOf();
-    const scale = Math.max(0.05, Math.min(maxScale, width / (extent.cols * refStep), height / (extent.rows * refStep)));
+    const scale = Math.max(0.05, Math.min(maxScale, width / (view.w * refStep), height / (view.h * refStep)));
     const step = refStep * scale;
     const gap = root.cardSpacing * scale;
     return {
@@ -392,8 +453,8 @@ QtObject {
       "step": step,
       "gap": gap,
       "unitSize": step - gap,
-      "originX": (width - extent.cols * step + gap) / 2 + extent.leadCols * step,
-      "originY": (height - extent.rows * step + gap) / 2 + extent.leadRows * step
+      "originX": (width - view.w * step + gap) / 2 - view.x * step,
+      "originY": (height - view.h * step + gap) / 2 - view.y * step
     };
   }
 

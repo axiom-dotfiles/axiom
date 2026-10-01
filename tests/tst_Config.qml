@@ -607,13 +607,40 @@ TestCase {
       ]
     });
     const menus = loaded.config.EdgeMenus;
-    compare(menus.map(menu => menu.align), ["start", "center", "end", "center"]);
-    compare(menus.map(menu => menu.offset), [0, 0, 0, 0]);
+    // Anchors, then (v35) offsets from the middle: an end's is the furthest
+    compare(menus.map(menu => menu.offset), [-200, 0, 200, 0]);
+    compare(menus[0].align, undefined);
     compare(menus[0].position, undefined);
     compare(menus[0].margin, undefined);
     verify(loaded.changes.some(change => change.includes("position 30%")));
     verify(loaded.changes.some(change => change.includes("frame margin dropped")));
     verify(!loaded.changes.some(change => change.includes("position 50%")));
+    compare(errors(loaded.config), []);
+  }
+  function test_v35_align_becomes_an_offset_from_the_middle() {
+    const loaded = load({
+      "version": 34,
+      "EdgeMenus": [
+        {
+          "id": "a",
+          "align": "center",
+          "offset": 2
+        },
+        {
+          "id": "b",
+          "align": "start",
+          "offset": 1
+        },
+        {
+          "id": "c",
+          "align": "end"
+        }
+      ]
+    });
+    const menus = loaded.config.EdgeMenus;
+    compare(menus.map(menu => menu.offset), [2, -200, 200]);
+    verify(menus.every(menu => !("align" in menu)));
+    verify(loaded.changes.some(change => change.includes("align \"start\"")));
     compare(errors(loaded.config), []);
   }
 

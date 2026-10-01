@@ -18,6 +18,12 @@ EditTarget {
   // Where the menu's modules sit on its screen (EdgeMenuManager.placementOf)
   readonly property var place: root.menu ? EdgeMenuManager.placementOf(root.menu) : null
   readonly property bool tooLong: root.menu?.length !== "edge" && root.edgeLength > 0 && root.length > root.edgeLength
+  // Whether it has a place on its lattice (not taking its whole edge or
+  // longer than it), the offsets that keep it there, and its offset among
+  // them (a config's can be past them, kept on the lattice)
+  readonly property bool onLattice: root.place !== null && root.place.cell !== null
+  readonly property var offsetRange: root.onLattice ? GridPlacement.offsetRange(root.place.lattice, root.place.units) : null
+  readonly property int offset: root.onLattice ? GridPlacement.offsetFor(root.place.lattice, root.place.cell, root.place.units) : 0
 
   editor: EdgeMenuManager.layout
   modules: root.menu ? root.menu.modules : null
@@ -44,6 +50,35 @@ EditTarget {
     return I18n.tr("{0} px along its edge", Math.round(root.length));
   }
   fitWarning: root.tooLong
+  nudgeText: {
+    const range = root.offsetRange;
+    if (!range)
+      return "";
+    const units = Math.abs(root.offset);
+    if (root.offset === 0)
+      return I18n.tr("Centred");
+    if (root.offset === range.min)
+      return root.vertical ? I18n.tr("At the top") : I18n.tr("At the left end");
+    if (root.offset === range.max)
+      return root.vertical ? I18n.tr("At the bottom") : I18n.tr("At the right end");
+    if (root.vertical)
+      return root.offset < 0 ? I18n.tr("{0} up from the centre", units) : I18n.tr("{0} down from the centre", units);
+    return root.offset < 0 ? I18n.tr("{0} left of the centre", units) : I18n.tr("{0} right of the centre", units);
+  }
+  nudgeVertical: root.vertical
+  canNudgeBack: root.onLattice && root.offset > root.offsetRange.min
+  canNudgeForward: root.onLattice && root.offset < root.offsetRange.max
+  canCentre: root.offset !== 0
+  nudge: step => EdgeMenuManager.nudgeSelected(step)
+  centre: () => EdgeMenuManager.centreSelected()
+  gridOffset: root.menu ? root.menu.gridOffset : 0
+  gridOffsetLimit: EdgeMenuManager.gridOffsetLimit(root.menu)
+  setGridOffset: px => EdgeMenuManager.setGridOffset(px)
+  // The lattice's cells along the edge, in units from the grid's origin
+  latticeSpan: root.onLattice ? ({
+      "from": root.place.lattice.first - root.place.cell,
+      "to": root.place.lattice.last - root.place.cell
+    }) : null
   editable: root.menu !== null
   notEditableHint: I18n.tr("Add a menu to put modules in it")
 }

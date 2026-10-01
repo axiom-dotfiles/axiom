@@ -49,6 +49,17 @@ BaseView {
     canvas.ghosts: root.target.ghosts
     canvas.fitText: root.target.fitText
     canvas.fitWarning: root.target.fitWarning
+    canvas.nudgeText: root.target.nudgeText
+    canvas.nudgeVertical: root.target.nudgeVertical
+    canvas.canNudgeBack: root.target.canNudgeBack
+    canvas.canNudgeForward: root.target.canNudgeForward
+    canvas.canCentre: root.target.canCentre
+    canvas.nudge: root.target.nudge
+    canvas.centre: root.target.centre
+    canvas.gridOffset: root.target.gridOffset
+    canvas.gridOffsetLimit: root.target.gridOffsetLimit
+    canvas.setGridOffset: root.target.setGridOffset
+    canvas.latticeSpan: root.target.latticeSpan
     canvas.dirty: OverlayManager.isDirty || EdgeMenuManager.isDirty || LockManager.isDirty
     canvas.canSave: OverlayManager.problems.length === 0 && EdgeMenuManager.problems.length === 0 && LockManager.problems.length === 0
     inspector.editable: root.target.editable

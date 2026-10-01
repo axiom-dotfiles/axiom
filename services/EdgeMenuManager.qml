@@ -85,12 +85,13 @@ Singleton {
 
   // Where a menu's modules sit on its screen, in px
   // (GridPlacement.menuPlacement, plus its `screen`), or null without a
-  // screen. Modules from `modules` when given (an edit's, before it).
-  function placementOf(menu, modules) {
+  // screen. With `bounds`, for modules reaching that far (an edit's,
+  // before it).
+  function placementOf(menu, bounds) {
     const screen = EdgeMenusConfig.screenFor(menu);
     if (!menu || !screen)
       return null;
-    const place = GridPlacement.menuPlacement(menu, GridPlacement.bounds(modules ?? menu.modules), root.cardUnitOf(menu), root.frameOf(menu), screen.width, screen.height);
+    const place = GridPlacement.menuPlacement(menu, bounds ?? GridPlacement.bounds(menu.modules), root.cardUnitOf(menu), root.frameOf(menu), screen.width, screen.height);
     place.screen = screen;
     return place;
   }
@@ -125,24 +126,47 @@ Singleton {
     return (root.localMenus ?? []).map((other, i) => i !== index && other.enabled && EdgeMenusConfig.screenFor(other)?.name === screenName ? root.screenRectsOf(other, i) : null).filter(other => other !== null);
   }
 
-  // After the editor's grid shifted by `shift` grid units ({ x, y }; a
-  // module put before the first moves the menu that way), keeps the
-  // selected menu's modules where they were on its screen: its anchor
-  // (align, offset) follows, snapping to an end or the middle within half
-  // a unit of it (GridPlacement.anchorFor). `before`: its modules before
-  // the edit.
-  function _followShift(menu, shift, before) {
-    if (!menu || menu.length === "edge")
+  // Moves the selected menu `step` cells along its lattice (negative:
+  // towards the start), from where it is (an offset past the lattice
+  // counts as its end's)
+  function nudgeSelected(step) {
+    const menu = root.selectedMenu();
+    const place = menu ? root.placementOf(menu) : null;
+    if (!place || place.cell === null)
       return;
-    const was = root.placementOf(menu, before);
-    const now = root.placementOf(menu);
-    if (!was || !now)
+    const range = GridPlacement.offsetRange(place.lattice, place.units);
+    const offset = GridPlacement.offsetFor(place.lattice, place.cell, place.units) + step;
+    root.updateMenuField("offset", Math.max(range.min, Math.min(offset, range.max)));
+  }
+
+  function centreSelected() {
+    root.updateMenuField("offset", 0);
+  }
+
+  // How far a menu's lattice can be moved, in px either way: half a cell,
+  // as a whole one is what the arrows do
+  function gridOffsetLimit(menu) {
+    return menu ? Math.floor(GridPlacement.stepOf(root.cardUnitOf(menu)) / 2) : 0;
+  }
+
+  function setGridOffset(px) {
+    const limit = root.gridOffsetLimit(root.selectedMenu());
+    root.updateMenuField("gridOffset", Math.max(-limit, Math.min(px, limit)));
+  }
+
+  // After an edit to the selected menu's grid, which then shifted by
+  // `shift` grid units ({ x, y }: GridPlacement.normalize) from modules
+  // reaching `boundsBefore`: keeps its modules on the lattice cells they
+  // were on, so edits never move them on the screen
+  function _keepPlace(menu, shift, boundsBefore) {
+    const was = menu ? root.placementOf(menu, boundsBefore) : null;
+    if (!was || was.cell === null)
       return;
     const vertical = menu.edge === "Left" || menu.edge === "Right";
-    const start = was.along + (vertical ? shift.y : shift.x) * GridPlacement.stepOf(root.cardUnitOf(menu));
-    const anchor = GridPlacement.anchorFor(start, now.length, now.edgeLength, root.cardUnitOf(menu), now.frame.startPad, now.frame.endPad, menu.align, menu.offset);
-    menu.align = anchor.align;
-    menu.offset = anchor.offset;
+    const units = GridPlacement.unitsAlong(menu);
+    const range = GridPlacement.offsetRange(was.lattice, units);
+    const offset = GridPlacement.offsetFor(was.lattice, was.cell + (vertical ? shift.y : shift.x), units);
+    menu.offset = Math.max(range.min, Math.min(offset, range.max));
   }
 
   // The editor draws the other menus on the selected one's screen
@@ -289,7 +313,7 @@ Singleton {
   property GridEditor layout: GridEditor {
     host: "edgeMenu"
     modulesOf: () => root.selectedMenu()?.modules ?? null
-    shifted: (shift, before) => root._followShift(root.selectedMenu(), shift, before)
+    shifted: (shift, boundsBefore) => root._keepPlace(root.selectedMenu(), shift, boundsBefore)
     scopeKey: String(root.selectedMenuIndex)
     onEdited: root.applyChanges()
   }

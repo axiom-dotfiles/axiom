@@ -17,7 +17,7 @@ import qs.components.hosts.popout
 // rounded box runs the strip's whole length (its stroke ending the screen
 // margin in from its edges, lining up with the screen border's) and the
 // modules sit in it, `padding` in from its stroke. Along the edge they sit
-// at the menu's anchor (GridPlacement.menuAlong).
+// on the menu's lattice (GridPlacement.menuAlong).
 //
 // Open/close and hover-loss dismissal are PopoutWrapperBase's, as for the
 // popouts.
@@ -51,7 +51,7 @@ PopoutWrapperBase {
   // Its card size (EdgeMenuManager.cardUnitOf)
   readonly property int unit: EdgeMenuManager.cardUnitOf(root.menu)
   readonly property real gridLength: EdgeMenusConfig.gridLengthOf(root.menu, root.vertical, root.unit)
-  readonly property real alongPos: GridPlacement.menuAlong(root.menu, root.gridLength, root.edgeLength, root.unit, root.pad, root.pad)
+  readonly property real alongPos: GridPlacement.menuAlong(root.menu, root.edgeLength, root.unit, root.pad, root.pad)
 
   // Where the modules can sit, for the layouts editor (EdgeMenuManager.frames)
   readonly property var frame: ({

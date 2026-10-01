@@ -179,54 +179,48 @@ TestCase {
     });
   }
 
-  // A 500 px card's unit is 110 px, a step (unit + gap) 130 px
-  function test_alongStart() {
-    compare(GridPlacement.stepOf(500), 130);
-    function start(align, offset, length) {
-      return GridPlacement.alongStart(align, offset, length ?? 240, 1000, 500, 10, 10);
-    }
-    compare(start("start", 0), 10);
-    compare(start("start", 2), 270);
-    compare(start("end", 0), 750);
-    compare(start("end", 1), 620);
-    compare(start("center", 0), 380);
-    compare(start("center", -1), 250);
-    compare(start("start", 10), 750, "kept on the edge");
-    compare(start("center", -10), 10);
-    compare(start("end", 0, 1200), 10, "longer than the edge: from its start");
+  // A 500 px card's unit is 110 px, a step (unit + gap) 130 px. A 1000 px
+  // edge with 10 px pads holds 7 cells (890 px), centred from 55 px
+  function lattice(shift) {
+    return GridPlacement.menuLattice(1000, 500, 10, 10, shift);
   }
 
-  function test_anchorFor() {
-    function anchor(start, current) {
-      const a = GridPlacement.anchorFor(start, 240, 1000, 500, 10, 10, current);
-      return [a.align, a.offset];
+  function test_menuLattice() {
+    compare(GridPlacement.stepOf(500), 130);
+    const l = lattice(0);
+    compare([l.origin, l.step, l.cols, l.first, l.last, l.startPad], [55, 130, 7, 0, 6, 10]);
+    compare([lattice(40).origin, lattice(40).first, lattice(40).last], [95, 0, 6], "moved, every cell still inside");
+    compare(lattice(70).last, 5, "moved past the end: the last cell drops out");
+    compare(lattice(-50).first, 1, "and past the start");
+    compare(GridPlacement.menuLattice(910, 500, 10, 10, 0).cols, 7, "a room exactly 7 cells long holds 7");
+  }
+
+  function test_alongStart() {
+    const l = lattice(0);
+    compare(GridPlacement.alongStart(l, 0, 2), 315, "centred: cell 2 of 7");
+    compare(GridPlacement.alongStart(l, 0, 3), 315, "one longer: the same cells, not half a cell over");
+    compare(GridPlacement.alongStart(l, 0, 4), 185);
+    compare(GridPlacement.alongStart(l, 1, 2), 445);
+    compare(GridPlacement.alongStart(l, 10, 2), 705, "kept on the lattice");
+    compare(GridPlacement.alongStart(l, -10, 2), 55);
+    compare(GridPlacement.alongStart(lattice(40), 0, 2), 355, "a moved lattice moves it by px, on the same cell");
+    compare(GridPlacement.alongStart(lattice(70), 10, 2), 125 + 4 * 130, "kept off a cell that dropped out");
+    compare(GridPlacement.menuCell(l, 0, 8), null);
+    compare(GridPlacement.alongStart(l, 0, 8), 10, "longer than the lattice: from its start");
+  }
+
+  function test_offsetRange() {
+    const l = lattice(0);
+    function range(units) {
+      const r = GridPlacement.offsetRange(l, units);
+      return [r.min, r.max];
     }
-    compare(anchor(10), ["start", 0]);
-    compare(anchor(750), ["end", 0]);
-    compare(anchor(380), ["center", 0]);
-    compare(anchor(390, "start"), ["center", 0], "near the middle snaps to it");
-    compare(anchor(740, "start"), ["end", 0], "near the end snaps flush");
-    compare(anchor(-50, "center"), ["start", 0], "past the start");
-    compare(anchor(270, "start"), ["start", 2], "otherwise it keeps its anchor");
-    compare(anchor(250, "center"), ["center", -1]);
-    compare(anchor(620, "end"), ["end", 1]);
-    compare(anchor(620), ["end", 1], "with none, the nearest");
-    // Halfway between units, towards the current offset: a centred run
-    // grown by one unit and shrunk back doesn't drift
-    compare(GridPlacement.anchorFor(380, 370, 1000, 500, 10, 10, "center", 0).offset, 0, "grown: keeps its offset");
-    compare(GridPlacement.anchorFor(380 - 65, 240, 1000, 500, 10, 10, "center", 0).offset, 0, "shrunk back: still centred");
-    compare(GridPlacement.anchorFor(380 + 65, 240, 1000, 500, 10, 10, "center", 1).offset, 1, "towards a positive offset");
-    // Round trips: moved by whole steps from an anchor, it stays put
-    ["start", "end", "center"].forEach(align => {
-      for (let units = -3; units <= 3; units++) {
-        const at = GridPlacement.alongStart(align, 0, 240, 1000, 500, 10, 10) + units * 130;
-        // Off the edge, or within half a step of another anchor (it snaps)
-        if (at < 10 || at > 750 || [10, 380, 750].some(anchorAt => anchorAt !== at - units * 130 && Math.abs(at - anchorAt) < 65))
-          continue;
-        const a = GridPlacement.anchorFor(at, 240, 1000, 500, 10, 10, align);
-        compare(GridPlacement.alongStart(a.align, a.offset, 240, 1000, 500, 10, 10), at, `${units} from ${align}`);
-      }
-    });
+    compare(range(2), [-2, 3]);
+    compare(range(7), [0, 0], "filling the lattice");
+    compare(range(8), [0, 0], "longer than it");
+    compare(GridPlacement.offsetFor(l, 4, 2), 2);
+    for (let cell = 0; cell <= 5; cell++)
+      compare(GridPlacement.menuCell(l, GridPlacement.offsetFor(l, cell, 2), 2), cell, `round trip at cell ${cell}`);
   }
 
   function test_screenBox() {
@@ -279,20 +273,21 @@ TestCase {
     const menu = {
       "edge": "Right",
       "length": "fit",
-      "align": "start",
-      "offset": 1,
+      "offset": -1,
       "modules": [at(0, 0, 2, 4)]
     };
     const place = GridPlacement.menuPlacement(menu, GridPlacement.bounds(menu.modules), 500, frame, 1920, 1080);
-    // Two units across (240), four along (500), a step (130) from the start
-    compare([place.along, place.across, place.length, place.depth, place.edgeLength], [140, 20, 500, 240, 1080]);
+    // Two units across (240), four along (500). The edge holds 8 cells
+    // from 30 px: centred is cell 2, one before it cell 1, at 160
+    compare([place.along, place.across, place.length, place.depth, place.edgeLength], [160, 20, 500, 240, 1080]);
+    compare([place.units, place.cell, place.lattice.origin], [4, 1, 30]);
     compare(GridPlacement.menuReservedDepth(place), 268, "across + depth + after");
     frame.reserves = false;
     compare(GridPlacement.menuReservedDepth(place), 5, "a floating menu: what it sits past");
     const onScreen = GridPlacement.menuOnScreen(menu, place, 500);
     // Against the right edge: 1920 - 20 - 240 = 1660
-    compare(r4(onScreen.rect), [1652, 132, 256, 516], "the modules plus `after` all round");
-    compare(r4(onScreen.modules[0].rect), [1660, 140, 240, 500]);
+    compare(r4(onScreen.rect), [1652, 152, 256, 516], "the modules plus `after` all round");
+    compare(r4(onScreen.modules[0].rect), [1660, 160, 240, 500]);
     menu.length = "edge";
     const whole = GridPlacement.menuOnScreen(menu, GridPlacement.menuPlacement(menu, GridPlacement.bounds(menu.modules), 500, frame, 1920, 1080), 500);
     compare(r4(whole.modules[0].rect), [1660, 10, 240, 1060], "taking the whole edge: stretched along it");
@@ -313,6 +308,12 @@ TestCase {
     }, 1, 3);
     // One unit past the screen all round; a side exactly on a unit adds none
     compare([onScreen.leadCols, onScreen.leadRows, onScreen.cols, onScreen.rows], [2, 3, 13, 10]);
+    compare(r4({
+      "x": onScreen.view.x,
+      "y": onScreen.view.y,
+      "width": onScreen.view.w,
+      "height": onScreen.view.h
+    }), [-1.5, -3, 12, 10], "the view: the screen (and the grid below it) and a unit round, in fractions");
   }
 
   function test_canvas_geometry() {
@@ -320,13 +321,34 @@ TestCase {
       "leadCols": 1,
       "leadRows": 1,
       "cols": 10,
-      "rows": 6
+      "rows": 6,
+      "view": {
+        "x": -1,
+        "y": -1,
+        "w": 10,
+        "h": 6
+      }
     };
     // A step is 130 px at the reference size: 1300 × 780 fits at 0.5
     const fit = GridPlacement.canvasFit(extent, 650, 390, 0.6);
     compare([fit.scale, fit.step, fit.gap, fit.unitSize], [0.5, 65, 10, 55]);
     compare([fit.originX, fit.originY], [70, 70], "centred, a lead unit in (plus half a gap)");
     compare(GridPlacement.canvasFit(extent, 6500, 3900, 0.6).scale, 0.6, "at most maxScale");
+    // The screen stays put on the canvas as the grid moves on it
+    const screenAt = boxX => {
+      const box = {
+        "x": boxX,
+        "y": -2,
+        "w": 10,
+        "h": 4
+      };
+      const at = GridPlacement.canvasScreenRect(GridPlacement.canvasFit(GridPlacement.canvasExtent({
+        "cols": 2,
+        "rows": 2
+      }, box, 1, 3), 650, 390, 0.6), box);
+      return r4(at);
+    };
+    compare(screenAt(-3.5), screenAt(-4), "half a unit along");
     compare(r4(GridPlacement.canvasRect(fit, {
       "x": 1,
       "y": 0,

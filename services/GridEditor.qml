@@ -33,8 +33,9 @@ QtObject {
 
   // Called in every edit, as the grid shifts back to 0, 0: with the shift
   // taken off ({ x, y } grid units, a place left of or above the grid
-  // being negative) and a copy of the modules before the edit
-  property var shifted: (shift, before) => {}
+  // being negative) and how far the modules reached before the edit
+  // (GridPlacement.bounds), so an owner can keep them where they were
+  property var shifted: (shift, boundsBefore) => {}
 
   // After every edit: the owner marks its draft changed
   signal edited
@@ -165,12 +166,12 @@ QtObject {
     if (!modules)
       return;
     const before = modules[root.selected] ?? null;
-    const was = JSON.parse(JSON.stringify(modules));
+    const boundsBefore = GridPlacement.bounds(modules);
     const focus = edit(modules);
     if (focus === false)
       return;
     if (!root.area)
-      root.shifted(GridPlacement.normalize(modules), was);
+      root.shifted(GridPlacement.normalize(modules), boundsBefore);
     const target = focus ?? before;
     root._selected = target ? modules.indexOf(target) : -1;
     root.edited();

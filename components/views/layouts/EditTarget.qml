@@ -23,6 +23,24 @@ QtObject {
   // How it fits, under the canvas title
   property string fitText: ""
   property bool fitWarning: false
+  // Arrows under the canvas title moving it along its edge (an edge
+  // menu's): what they say ("" for no arrows), whether they run up and
+  // down, which way they can go, and what they and recentring do
+  property string nudgeText: ""
+  property bool nudgeVertical: false
+  property bool canNudgeBack: false
+  property bool canNudgeForward: false
+  property bool canCentre: false
+  property var nudge: step => {}
+  property var centre: () => {}
+  // The px its lattice is moved along the edge, how far it can be either
+  // way, and setting it
+  property int gridOffset: 0
+  property int gridOffsetLimit: 0
+  property var setGridOffset: px => {}
+  // The cells of a menu's lattice along its edge ({ from, to } in units
+  // from the grid's origin; null for none): the canvas tints the rest
+  property var latticeSpan: null
   // Whether modules can be added (else `notEditableHint` in the inspector)
   property bool editable: false
   property string notEditableHint: ""

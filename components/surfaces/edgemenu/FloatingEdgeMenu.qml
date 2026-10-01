@@ -30,7 +30,7 @@ EdgePopout {
     return (Appearance.screenBorder ? Appearance.screenMargin : 0) + (ShellManager.barOn(screenName, location)?.reservedZone ?? 0) + EdgeMenuManager.zoneOn(screenName, Bar.edgeName(location));
   }
 
-  // Along the edge, from the menu's anchor (GridPlacement.menuAlong),
+  // Along the edge, on the menu's lattice (GridPlacement.menuAlong),
   // in screen px: this window's edge coordinates start past what's
   // reserved on the perpendicular edge at its start
   readonly property real screenLength: root.vertical ? root.screen.height : root.screen.width
@@ -43,7 +43,7 @@ EdgePopout {
   // Its card size (EdgeMenuManager.cardUnitOf)
   readonly property int unit: EdgeMenuManager.cardUnitOf(root.menu)
   readonly property real gridLength: EdgeMenusConfig.gridLengthOf(root.menu, root.vertical, root.unit)
-  readonly property real modulesStart: GridPlacement.menuAlong(root.menu, root.gridLength, root.screenLength, root.unit, root.startPad, root.endPad)
+  readonly property real modulesStart: GridPlacement.menuAlong(root.menu, root.screenLength, root.unit, root.startPad, root.endPad)
 
   // Across the edge, in px from the screen edge
   readonly property real reservedBefore: root.reservedOn(root.edge)

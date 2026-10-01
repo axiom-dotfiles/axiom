@@ -8,7 +8,7 @@
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 34,
+      "default": 35,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
@@ -1776,7 +1776,7 @@
       "type": "object",
       "required": ["id"],
       "additionalProperties": false,
-      "x-order": ["name", "enabled", "monitor", "openOnHover", "openDelay", "triggerSize", "triggerLength", "mode", "edge", "align", "offset", "length", "moduleScale", "edgeDistance", "frame", "padding", "moduleBorders", "pinButton", "backgroundColor", "borderColor", "closeOnLeave", "closeDelay", "closeOnOutsideClick", "id"],
+      "x-order": ["name", "enabled", "monitor", "openOnHover", "openDelay", "triggerSize", "triggerLength", "mode", "edge", "offset", "gridOffset", "length", "moduleScale", "edgeDistance", "frame", "padding", "moduleBorders", "pinButton", "backgroundColor", "borderColor", "closeOnLeave", "closeDelay", "closeOnOutsideClick", "id"],
       "properties": {
         "id": { "x-group": "Advanced", "type": "string", "title": "Id", "x-control": "readonly", "description": "What bar buttons, keybinds and IPC calls open this menu by. Set when the menu is made." },
         "name": { "x-group": "General", "type": "string", "title": "Name", "default": "" },
@@ -1799,20 +1799,22 @@
           "x-enumLabels": { "floating": "Floating", "integrated": "Integrated" },
           "description": "Floating opens over your windows. Integrated opens outside the screen border and bars, pushing them and your windows inwards."
         },
-        "align": {
-          "x-settings": false,
-          "type": "string",
-          "default": "center",
-          "enum": ["start", "center", "end"],
-          "description": "The end of its edge (or its middle) the menu is placed from, set by where its modules sit on the layouts editor's grid: start is left/top."
-        },
         "offset": {
           "x-settings": false,
           "type": "integer",
           "default": 0,
           "minimum": -200,
           "maximum": 200,
-          "description": "Grid units between the menu and its `align` anchor (towards the middle; from the middle, positive is towards the end). Set by the layouts editor's grid."
+          "description": "Cells of its lattice the menu sits from centred along its edge, positive towards the end (right or down), kept on the screen. Set by the arrows on the layouts editor's grid."
+        },
+        "gridOffset": {
+          "x-settings": false,
+          "type": "integer",
+          "default": 0,
+          "minimum": -200,
+          "maximum": 200,
+          "x-unit": "px",
+          "description": "Shifts the lattice the menu's modules sit on along its edge (centred on the screen) by this many px, positive towards the end. Set beside the arrows on the layouts editor's grid."
         },
         "length": {
           "x-group": "Placement",
