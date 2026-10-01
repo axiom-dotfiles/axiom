@@ -136,6 +136,14 @@ ColumnLayout {
     }
   }
 
+  // Set apart from the tools: it isn't a page
+  StyledSeparator {
+    Layout.fillWidth: true
+    Layout.topMargin: Widget.spacing / 2
+    separatorHeight: 1
+    opacity: 0.3
+  }
+
   // Not dragged: it isn't one of the navigator's pages
   ListEntryRow {
     Layout.fillWidth: true
