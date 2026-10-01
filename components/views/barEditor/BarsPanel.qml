@@ -22,9 +22,7 @@ Item {
   // I18n.tr("Behaviour") I18n.tr("Other")
   TitledCard {
     title: I18n.tr("Bar Editor")
-    dirty: BarManager.isDirty
-    onSave: BarManager.saveChanges()
-    onReset: BarManager.resetChanges()
+    showActions: false
 
     headerExtras: ColumnLayout {
       Layout.fillWidth: true

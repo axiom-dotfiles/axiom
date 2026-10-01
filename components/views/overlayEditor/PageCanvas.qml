@@ -18,6 +18,12 @@ Card {
   required property var editColumns
   property string title: ""
   property string icon: "view_quilt"
+  // Save / Reset for the whole page's edits
+  property bool dirty: false
+  property bool canSave: true
+
+  signal save
+  signal reset
   property string emptyText: ""
 
   readonly property bool isCustom: root.editColumns !== null && root.editColumns !== undefined
@@ -88,6 +94,13 @@ Card {
         text: I18n.tr("Drag to rearrange · click to edit")
         opacity: 0.5
         textSize: Appearance.fontSize - 2
+      }
+
+      SaveResetActions {
+        dirty: root.dirty
+        canSave: root.canSave
+        onSave: root.save()
+        onReset: root.reset()
       }
     }
 

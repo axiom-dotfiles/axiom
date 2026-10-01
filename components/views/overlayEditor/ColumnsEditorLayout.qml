@@ -23,6 +23,12 @@ ColumnsDragLayer {
   // The inspector: whether modules can be added, and the hint when not
   property bool editable: true
   property string notEditableHint: ""
+  // The page's Save / Reset, on the canvas header
+  property bool dirty: false
+  property bool canSave: true
+
+  signal save
+  signal reset
 
   readonly property real pageHeight: root.grid.span(4)
   readonly property real sideWidth: root.grid.unit * 0.8
@@ -45,6 +51,10 @@ ColumnsDragLayer {
       icon: root.canvasIcon
       title: root.canvasTitle
       emptyText: root.emptyText
+      dirty: root.dirty
+      canSave: root.canSave
+      onSave: root.save()
+      onReset: root.reset()
     }
   }
 

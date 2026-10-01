@@ -30,6 +30,10 @@ BaseView {
     emptyText: I18n.tr("No edge menus yet: add one with New menu.")
     editable: root.menu !== null
     notEditableHint: I18n.tr("Add a menu to put modules in it")
+    dirty: EdgeMenuManager.isDirty
+    canSave: EdgeMenuManager.problems.length === 0
+    onSave: EdgeMenuManager.saveChanges()
+    onReset: EdgeMenuManager.resetChanges()
 
     MenusPanel {
       width: layout.sideWidth

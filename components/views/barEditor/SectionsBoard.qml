@@ -34,7 +34,9 @@ Item {
 
       CardHeader {
         title: I18n.tr("Widgets")
-        showActions: false
+        dirty: BarManager.isDirty
+        onSave: BarManager.saveChanges()
+        onReset: BarManager.resetChanges()
       }
 
       StyledText {

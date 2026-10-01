@@ -40,9 +40,11 @@ Item {
   readonly property int pageCount: viewsModel.length + pinnedPages.length
   // What the navigator shows for each page: the views, then the pinned ones
   readonly property var pages: viewsModel.map((view, index) => ({
+        "type": view.viewConfig.type,
         "icon": OverlayConfig.viewIcon(view.viewConfig.type),
         "label": OverlayConfig.viewLabel(view.viewConfig, index)
       })).concat(pinnedPages.map(page => ({
+        "type": page.type,
         "icon": page.icon,
         "label": I18n.tr(page.label)
       })))
