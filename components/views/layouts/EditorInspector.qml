@@ -5,6 +5,7 @@ import QtQuick.Layouts
 import qs.config
 import qs.services
 import qs.components.reusable
+import qs.components.methods
 import qs.components.forms
 import qs.components.content.base
 
@@ -125,56 +126,29 @@ Item {
                 }
               ]
 
-              RowLayout {
-                id: sizeRow
+              SchemaNumberField {
+                id: sizeField
                 required property var modelData
-                readonly property int value: root.place ? (sizeRow.modelData.axis === 0 ? root.place.w : root.place.h) : 0
-                function sized(by) {
+                readonly property bool across: sizeField.modelData.axis === 0
+                // The size it can grow to before it would overlap a module
+                // (or reach the grid's limit), keeping the other side
+                readonly property int grows: {
                   if (!root.place)
-                    return [0, 0];
-                  const w = root.place.w + (sizeRow.modelData.axis === 0 ? by : 0);
-                  const h = root.place.h + (sizeRow.modelData.axis === 1 ? by : 0);
-                  return [w, h];
+                    return 1;
+                  let n = sizeField.currentConfigValue;
+                  while (n < GridPlacement.maxSpan && root.editor.canResize(root.index, sizeField.across ? n + 1 : root.place.w, sizeField.across ? root.place.h : n + 1))
+                    n++;
+                  return n;
                 }
-                function canStep(by) {
-                  if (!root.place)
-                    return false;
-                  const size = sizeRow.sized(by);
-                  return root.module !== null && size[0] >= 1 && size[1] >= 1 && root.editor.canResize(root.index, size[0], size[1]);
-                }
-                Layout.fillWidth: true
-                spacing: Widget.spacing
-
-                StyledText {
-                  Layout.fillWidth: true
-                  text: I18n.tr(sizeRow.modelData.label)
-                }
-                SquareIconButton {
-                  size: Widget.height - 4
-                  iconText: "remove"
-                  enabled: sizeRow.canStep(-1)
-                  opacity: enabled ? 1 : 0.35
-                  onClicked: {
-                    const size = sizeRow.sized(-1);
-                    root.editor.resizeModule(root.index, size[0], size[1]);
-                  }
-                }
-                StyledText {
-                  Layout.preferredWidth: Appearance.fontSize * 3
-                  horizontalAlignment: Text.AlignHCenter
-                  text: String(sizeRow.value)
-                  font.bold: true
-                }
-                SquareIconButton {
-                  size: Widget.height - 4
-                  iconText: "add"
-                  enabled: sizeRow.canStep(1)
-                  opacity: enabled ? 1 : 0.35
-                  onClicked: {
-                    const size = sizeRow.sized(1);
-                    root.editor.resizeModule(root.index, size[0], size[1]);
-                  }
-                }
+                label: sizeField.modelData.label
+                currentConfigValue: root.place ? (sizeField.across ? root.place.w : root.place.h) : 1
+                minimum: 1
+                maximum: sizeField.grows
+                mode: "stepper"
+                showCoarse: false
+                // The field stays as the selection changes
+                debounced: false
+                onCommitted: value => root.editor.resizeModule(root.index, sizeField.across ? value : root.place.w, sizeField.across ? root.place.h : value)
               }
             }
           }

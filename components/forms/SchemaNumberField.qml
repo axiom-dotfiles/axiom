@@ -29,6 +29,9 @@ ColumnLayout {
   // ±10 buttons in stepper mode; defaults to wide ranges only
   property bool showCoarse: root.steps > 20
   readonly property int coarseStep: root.stepSize * 10
+  // Off: every step commits at once (for a field that outlives what it
+  // edits, so a pending step can't land on the next one)
+  property bool debounced: true
 
   // The value shown, ahead of the config while a commit is pending
   property int value: currentConfigValue
@@ -64,7 +67,7 @@ ColumnLayout {
   }
 
   function stepBy(delta) {
-    root.setValue(root.value + delta, false);
+    root.setValue(root.value + delta, !root.debounced);
   }
 
   function commit() {
