@@ -55,7 +55,8 @@ QtObject {
     return root._modifiers.map(m => m.name).filter(name => used[name]);
   }
 
-  // group: "section" | "mod" | "source"
+  // group: "section" | "mod" | "source", or the editor's "editSection" |
+  // "editMod"
   function toggleFilter(group, value) {
     const name = group + "Filter";
     const current = root[name];
@@ -67,6 +68,12 @@ QtObject {
     root.modFilter = [];
     root.sourceFilter = [];
   }
+
+  function clearEditFilters() {
+    root.editSectionFilter = [];
+    root.editModFilter = [];
+    root.editIssuesOnly = false;
+  }
   // The Keybinds page shows the editor instead of the list
   property bool editing: false
 
@@ -77,7 +84,12 @@ QtObject {
   // the saved order stays as it is.
   property string editQuery: ""
   property string editSort: "manual"
-  readonly property bool reorderable: editSort === "manual" && editQuery.trim() === ""
+  // The editor's chips: sections, modifier names, and only binds with issues
+  property var editSectionFilter: []
+  property var editModFilter: []
+  property bool editIssuesOnly: false
+  readonly property bool editFiltering: editSectionFilter.length > 0 || editModFilter.length > 0 || editIssuesOnly
+  readonly property bool reorderable: editSort === "manual" && editQuery.trim() === "" && !editFiltering
 
   property ConfigDraft _draft: ConfigDraft {
     id: draft
@@ -248,23 +260,62 @@ QtObject {
   // Add button) rather than last (after the bottom one)
   property bool keylessFirst: false
 
-  // The shown binds' indices, filtered by editQuery and sorted by editSort,
-  // joined: a string only notifies when it changes, so the rows survive
-  // edits that leave the order alone
+  // An editor bind's section on the Keybinds page: its description's
+  // "Section:" prefix, else its action's
+  function _bindSection(bind) {
+    return HyprlandConfigManager.hasOwnSection(bind.description) ? String(bind.description).split(":")[0] : HyprlandConfigManager.sectionFor(bind.action);
+  }
+
+  // An editor bind's modifiers, by the names hyprctl's binds decode to
+  function _bindMods(bind) {
+    const id = HyprBinds.keyId(bind.key);
+    return id === "" ? [] : root._decodeMods(parseInt(id));
+  }
+
+  // The editor's chips: [{ key, title, count }] per section (actionSections
+  // order, then any others), and the modifiers its binds use
+  readonly property var editSectionOptions: {
+    const counts = {};
+    for (const bind of root.binds) {
+      const section = root._bindSection(bind);
+      counts[section] = (counts[section] ?? 0) + 1;
+    }
+    const others = Object.keys(counts).filter(section => !root.actionSections.includes(section)).sort();
+    return root.actionSections.filter(section => counts[section]).concat(others).map(section => ({
+          "key": section,
+          "title": section,
+          "count": counts[section]
+        }));
+  }
+  readonly property var editModOptions: {
+    const used = {};
+    for (const bind of root.binds)
+      for (const mod of root._bindMods(bind))
+        used[mod] = true;
+    return root._modifiers.map(m => m.name).filter(name => used[name]);
+  }
+
+  // The shown binds' indices, filtered by editQuery and the chips and
+  // sorted by editSort, joined: a string only notifies when it changes, so
+  // the rows survive edits that leave the order alone
   readonly property string visibleKey: {
     const query = root.editQuery.trim().toLowerCase();
+    const sections = root.editSectionFilter;
+    const mods = root.editModFilter;
+    const issuesOnly = root.editIssuesOnly;
     const rows = root.binds.map((bind, index) => {
       const key = String(bind.key ?? "").trim();
       const label = root.actionLabels[bind.action] ?? String(bind.action ?? "");
-      const section = HyprlandConfigManager.hasOwnSection(bind.description) ? String(bind.description).split(":")[0] : HyprlandConfigManager.sectionFor(bind.action);
+      const section = root._bindSection(bind);
       return {
         "index": index,
         "key": key.split("+").map(part => root.displayKey(part.trim())).join(" + "),
         "label": label,
         "section": section,
+        "mods": root._bindMods(bind),
         "text": [key, label, section, bind.argument ?? "", bind.description ?? "", HyprlandConfigManager.defaultLabel(bind)].join("\n").toLowerCase()
       };
-    }).filter(row => query === "" || row.text.includes(query));
+    }).filter(row => (query === "" || row.text.includes(query)) && (sections.length === 0 || sections.includes(row.section)) && mods.every(mod => row.mods.includes(mod)) && (!issuesOnly || (root.issues[row.index] ?? []).length > 0));
     const compare = (a, b) => a.toLowerCase().localeCompare(b.toLowerCase());
     // Binds with no key yet go next to the Add button last used
     const keyless = row => Number(row.key === "") * (root.keylessFirst ? -1 : 1);
@@ -319,6 +370,7 @@ QtObject {
   function addBind(bind, atTop) {
     // So the new row shows
     editQuery = "";
+    clearEditFilters();
     keylessFirst = atTop === true;
     if (keylessFirst)
       draft.local.unshift(_completeBind(bind));

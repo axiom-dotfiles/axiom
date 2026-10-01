@@ -106,70 +106,46 @@ BaseView {
             opacity: 0.6
           }
         },
-
-        // Toggle chips: sections, then modifiers, then sources, each group
-        // set apart by a divider
-        Flow {
+        FilterChips {
           visible: !root.editing
           Layout.fillWidth: true
-          spacing: Widget.spacing
-
-          Repeater {
-            model: KeybindManager.sectionOptions
-
-            delegate: SegmentButton {
-              required property var modelData
-              implicitHeight: Widget.height
-              text: (modelData.undescribed ? I18n.tr("Undescribed") : (modelData.title || I18n.tr("Other"))) + "  " + modelData.count
-              active: KeybindManager.sectionFilter.includes(modelData.key)
-              onClicked: KeybindManager.toggleFilter("section", modelData.key)
+          groups: [
+            {
+              "id": "section",
+              "options": KeybindManager.sectionOptions.map(option => ({
+                    "value": option.key,
+                    "label": (option.undescribed ? I18n.tr("Undescribed") : (option.title || I18n.tr("Other"))) + "  " + option.count
+                  }))
+            },
+            {
+              "id": "mod",
+              "options": KeybindManager.modOptions.map(mod => ({
+                    "value": mod,
+                    "label": KeyNames.modifierLabel(mod)
+                  }))
+            },
+            {
+              "id": "source",
+              "options": [
+                {
+                  "value": "axiom",
+                  "label": I18n.tr("Axiom binds")
+                },
+                {
+                  "value": "user",
+                  "label": I18n.tr("Your binds")
+                }
+              ]
             }
-          }
-
-          ChipDivider {}
-
-          Repeater {
-            model: KeybindManager.modOptions
-
-            delegate: SegmentButton {
-              required property string modelData
-              implicitHeight: Widget.height
-              text: KeyNames.modifierLabel(modelData)
-              active: KeybindManager.modFilter.includes(modelData)
-              onClicked: KeybindManager.toggleFilter("mod", modelData)
-            }
-          }
-
-          ChipDivider {}
-
-          Repeater {
-            // I18n.tr("Axiom binds") I18n.tr("Your binds")
-            model: [
-              {
-                "key": "axiom",
-                "label": "Axiom binds"
-              },
-              {
-                "key": "user",
-                "label": "Your binds"
-              }
-            ]
-
-            delegate: SegmentButton {
-              required property var modelData
-              implicitHeight: Widget.height
-              text: I18n.tr(modelData.label)
-              active: KeybindManager.sourceFilter.includes(modelData.key)
-              onClicked: KeybindManager.toggleFilter("source", modelData.key)
-            }
-          }
-
-          SegmentButton {
-            visible: KeybindManager.filtering
-            implicitHeight: Widget.height
-            text: I18n.tr("Clear")
-            onClicked: KeybindManager.clearFilters()
-          }
+          ]
+          selection: ({
+              "section": KeybindManager.sectionFilter,
+              "mod": KeybindManager.modFilter,
+              "source": KeybindManager.sourceFilter
+            })
+          filtering: KeybindManager.filtering
+          onToggled: (group, value) => KeybindManager.toggleFilter(group, value)
+          onCleared: KeybindManager.clearFilters()
         }
       ]
 
@@ -215,19 +191,6 @@ BaseView {
           }
         }
       }
-    }
-  }
-
-  // A short upright line between chip groups
-  component ChipDivider: Item {
-    implicitWidth: Widget.spacing
-    implicitHeight: Widget.height
-
-    StyledSeparator {
-      anchors.centerIn: parent
-      width: 1
-      separatorHeight: parent.height * 0.6
-      opacity: 0.6
     }
   }
 }

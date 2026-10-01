@@ -566,6 +566,7 @@
     "{0} binds": "{0} 件のバインド",
     "{0} of {1} binds": "{1} 件中 {0} 件のバインド",
     "Your binds": "自分のバインド",
+    "With issues": "問題あり",
     "No keybinds match the filters": "フィルターに一致するキーバインドはありません",
     "No keybinds match \"{0}\"": "「{0}」に一致するキーバインドはありません",
     "Undescribed": "説明なし",
