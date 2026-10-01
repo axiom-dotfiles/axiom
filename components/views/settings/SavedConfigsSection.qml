@@ -6,8 +6,9 @@ import qs.services
 import qs.components.reusable
 
 /**
- * Settings page, Backups: save the whole config under a name, and restore or delete saved ones.
- * Restore, delete and reverting to the defaults ask for a second click to
+ * Settings page, Backups: save the whole config under a name, and overwrite
+ * (with the current config), restore or delete saved ones. Overwrite,
+ * restore, delete and reverting to the defaults ask for a second click to
  * confirm.
  */
 ColumnLayout {
@@ -100,6 +101,12 @@ ColumnLayout {
 
         StyledTextButton {
           Layout.preferredHeight: Widget.height
+          text: I18n.tr(row.pendingAction === "overwrite" ? "Confirm" : "Overwrite")
+          onClicked: root.confirm(row.fileBaseName, "overwrite")
+        }
+
+        StyledTextButton {
+          Layout.preferredHeight: Widget.height
           text: I18n.tr(row.pendingAction === "restore" ? "Confirm" : "Restore")
           onClicked: root.confirm(row.fileBaseName, "restore")
         }
@@ -174,6 +181,8 @@ ColumnLayout {
       SavedConfigsManager.restoreDefaults();
     else if (action === "restore")
       SavedConfigsManager.restore(name);
+    else if (action === "overwrite")
+      SavedConfigsManager.save(name);
     else
       SavedConfigsManager.remove(name);
   }

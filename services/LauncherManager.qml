@@ -281,6 +281,17 @@ QtObject {
     onTriggered: root._refresh()
   }
 
+  // /config save and restore list the saved configs, which the folder
+  // model reads in the background (at first only once something has
+  // reached SavedConfigsManager, as this does)
+  property Connections _savedConfigUpdates: Connections {
+    target: SavedConfigsManager.model
+    function onCountChanged() {
+      if (root.mode === "commands")
+        root._refresh();
+    }
+  }
+
   function _refresh() {
     query(root.text);
   }
