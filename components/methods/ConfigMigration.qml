@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 36
+  readonly property int currentVersion: 37
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -99,6 +99,8 @@ QtObject {
       result = _v34ToV35(result, changes);
     if (version < 36)
       result = _v35ToV36(result, changes);
+    if (version < 37)
+      result = _v36ToV37(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -1306,6 +1308,20 @@ QtObject {
     };
     ["Launcher", "PowerMenu", "Notifications", "Overlay"].forEach(name => retarget(config[name], name));
     (Array.isArray(config.OSD?.osds) ? config.OSD.osds : []).forEach((osd, i) => retarget(osd, `OSD.osds[${i}]`));
+    return config;
+  }
+
+  // v37 renamed the ThemeEditor module ThemePicker (it picks a theme)
+  function _v36ToV37(config, changes) {
+    const rename = (list, where) => (Array.isArray(list) ? list : []).forEach((module, i) => {
+        if (module?.type !== "ThemeEditor")
+          return;
+        module.type = "ThemePicker";
+        changes.push(`${where}[${i}]: ThemeEditor -> ThemePicker`);
+      });
+    (Array.isArray(config.Overlay?.views) ? config.Overlay.views : []).forEach((view, v) => rename(view?.modules, `Overlay.views[${v}].modules`));
+    (Array.isArray(config.EdgeMenus) ? config.EdgeMenus : []).forEach((menu, m) => rename(menu?.modules, `EdgeMenus[${m}].modules`));
+    rename(config.Lockscreen?.layout?.modules, "Lockscreen.layout.modules");
     return config;
   }
 }

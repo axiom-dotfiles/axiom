@@ -6,23 +6,16 @@ import qs.services
 import qs.components.reusable
 
 /**
- * Settings page, Backups: save the whole config under a name, and overwrite
- * (with the current config), restore or delete saved ones. Overwrite,
- * restore, delete and reverting to the defaults ask for a second click to
- * confirm.
+ * Settings page, Maintenance (the category's `page`): save the whole config
+ * under a name, and overwrite (with the current config), restore or delete
+ * saved ones. Overwrite, restore, delete and reverting to the defaults ask
+ * for a second click to confirm.
  */
-ColumnLayout {
+FieldGroup {
   id: root
-  spacing: Widget.spacing
 
-  StyledText {
-    text: I18n.tr("Snapshots of the entire configuration, stored in {0}. Restoring replaces the current configuration.", SavedConfigsManager.savedDir)
-    opacity: 0.7
-    textSize: Appearance.fontSize - 1
-    wrapMode: Text.WordWrap
-    Layout.fillWidth: true
-    Layout.bottomMargin: Widget.spacing
-  }
+  title: I18n.tr("Saved configurations")
+  description: I18n.tr("Snapshots of the entire configuration, stored in {0}. Restoring replaces the current configuration.", SavedConfigsManager.savedDir)
 
   // Row awaiting a confirming click: { name, action }. The defaults row uses
   // an empty name, which no saved file can have.

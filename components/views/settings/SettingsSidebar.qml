@@ -6,161 +6,127 @@ import qs.services
 import qs.components.reusable
 import qs.components.content.base
 
-// Settings page, left: search and the category list. The selection and
-// search text live in SettingsManager, so they survive the page reloading.
+// i18n: keys from the schema (category names, card titles)
+// Settings page, left: search and the category list; the selected
+// category also lists its cards, and clicking one scrolls the page to it.
+// The selection and search text live in SettingsManager, so they survive
+// the page reloading.
 Item {
   id: root
 
-  // SchemaLayout.categories(), plus the built-in Backups page
+  // SchemaLayout.categories()
   required property var categories
   // The category shown (the first one until one is picked)
   required property string selected
+  // The selected category's shown cards (SettingsContent.shownGroups)
+  required property var cards
 
-  // Material Symbols icon per category
-  function icon(name) {
-    switch (name) {
-    case "Desktop":
-      return "monitor";
-    case "Hyprland":
-      return "desktop_windows";
-    case "Look & Feel":
-      return "palette";
-    case "Bar & Popouts":
-      return "dashboard";
-    case "Overlay":
-      return "layers";
-    case "OSD":
-      return "tune";
-    case "Dock":
-      return "dock_to_bottom";
-    case "Chat":
-      return "chat";
-    case "Notes":
-      return "sticky_note_2";
-    case "Weather":
-      return "partly_cloudy_day";
-    case "Updates":
-      return "update";
-    case "Backups":
-      return "settings_backup_restore";
+  // One entry per card title: a section's hand-built card and its fields'
+  // card share the section's title
+  readonly property var cardLinks: root.cards.filter((card, i) => root.cards.findIndex(other => other.title === card.title) === i)
+
+  TitledCard {
+    title: I18n.tr("Settings")
+    showActions: false
+    contentSpacing: Widget.spacing / 2
+
+    headerExtras: StyledTextEntry {
+      id: search
+      Layout.fillWidth: true
+      Layout.preferredHeight: Widget.height
+      placeholderText: I18n.tr("Search settings")
+      Component.onCompleted: input.text = SettingsManager.query
+      onTextChanged: SettingsManager.query = text
+
+      // Cleared from outside, e.g. by picking a category
+      Connections {
+        target: SettingsManager
+        function onQueryChanged() {
+          if (search.input.text !== SettingsManager.query)
+            search.input.text = SettingsManager.query;
+        }
+      }
     }
-    return "settings";
-  }
 
-  Card {
-    color: Theme.background
-    border.color: Theme.border
+    Repeater {
+      model: root.categories
 
-    ColumnLayout {
-      anchors.fill: parent
-      anchors.margins: Widget.padding
-      spacing: Widget.spacing
-
-      StyledText {
-        text: I18n.tr("Settings")
-        textSize: Appearance.fontSize + 4
-        font.bold: true
+      delegate: ColumnLayout {
+        id: entry
+        required property var modelData
+        readonly property bool current: SettingsManager.query === "" && root.selected === entry.modelData.name
         Layout.fillWidth: true
-        Layout.bottomMargin: Widget.spacing / 2
-      }
+        spacing: 2
 
-      StyledTextEntry {
-        id: search
-        Layout.fillWidth: true
-        Layout.preferredHeight: Widget.height
-        placeholderText: I18n.tr("Search settings")
-        Component.onCompleted: input.text = SettingsManager.query
-        onTextChanged: SettingsManager.query = text
-
-        // Cleared from outside, e.g. by picking a category
-        Connections {
-          target: SettingsManager
-          function onQueryChanged() {
-            if (search.input.text !== SettingsManager.query)
-              search.input.text = SettingsManager.query;
+        ListEntryRow {
+          icon: entry.modelData.icon
+          label: I18n.tr(entry.modelData.name)
+          selected: entry.current
+          changed: entry.modelData.sections.some(section => SettingsManager.hasChangesUnder(section))
+          onClicked: {
+            SettingsManager.query = "";
+            SettingsManager.category = entry.modelData.name;
           }
         }
-      }
 
-      Repeater {
-        model: root.categories
-
-        delegate: StyledContainer {
-          id: entry
-          required property var modelData
-          readonly property bool selected: SettingsManager.query === "" && root.selected === modelData.name
-          readonly property bool changed: modelData.sections.some(section => SettingsManager.hasChangesUnder(section))
-
+        // Its cards, along a rule under the row
+        ColumnLayout {
+          visible: entry.current && root.cardLinks.length > 1
           Layout.fillWidth: true
-          Layout.preferredHeight: Widget.height + Widget.padding
-          backgroundColor: selected ? Theme.accent : (entryArea.containsMouse ? Theme.backgroundHighlight : "transparent")
-          borderWidth: 0
+          Layout.leftMargin: Widget.padding + Appearance.fontSize * 0.75
+          Layout.bottomMargin: Widget.spacing / 2
+          spacing: 0
 
-          RowLayout {
-            anchors.fill: parent
-            anchors.leftMargin: Widget.padding
-            anchors.rightMargin: Widget.padding
-            spacing: Widget.spacing
+          Repeater {
+            model: entry.current ? root.cardLinks : []
 
-            StyledIcon {
-              text: root.icon(entry.modelData.name)
-              textColor: entry.selected ? Theme.background : Theme.accent
-              Layout.preferredWidth: Appearance.fontSize * 1.5
-            }
-
-            StyledText {
-              // Category names come from the schema's x-category:
-              // I18n.tr("Desktop") I18n.tr("Hyprland") I18n.tr("Look & Feel") I18n.tr("Bar & Popouts")
-              // I18n.tr("Overlay") I18n.tr("OSD") I18n.tr("Chat") I18n.tr("Notes") I18n.tr("Updates") I18n.tr("Backups")
-              // I18n.tr("Dock") I18n.tr("Weather")
-              text: I18n.tr(entry.modelData.name)
-              textColor: entry.selected ? Theme.background : Theme.foreground
-              font.bold: entry.selected
-              elide: Text.ElideRight
+            delegate: Item {
+              id: link
+              required property var modelData
               Layout.fillWidth: true
-            }
+              implicitHeight: Appearance.fontSize * 2
 
-            // Unsaved edits in this category
-            UnsavedDot {
-              visible: entry.changed
-              onAccent: entry.selected
-            }
-          }
+              Rectangle {
+                anchors.left: parent.left
+                anchors.top: parent.top
+                anchors.bottom: parent.bottom
+                width: linkArea.containsMouse ? 2 : 1
+                color: linkArea.containsMouse ? Theme.accent : Theme.border
+              }
 
-          MouseArea {
-            id: entryArea
-            anchors.fill: parent
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            onClicked: {
-              SettingsManager.query = "";
-              SettingsManager.category = entry.modelData.name;
+              StyledText {
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.leftMargin: Widget.padding
+                anchors.verticalCenter: parent.verticalCenter
+                text: I18n.tr(link.modelData.title)
+                textSize: Appearance.fontSize - 1
+                textColor: linkArea.containsMouse ? Theme.accent : Theme.foreground
+                opacity: linkArea.containsMouse ? 1 : 0.7
+                elide: Text.ElideRight
+              }
+
+              MouseArea {
+                id: linkArea
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: SettingsManager.jumpTo(link.modelData.key)
+              }
             }
           }
         }
       }
+    }
 
-      Item {
-        Layout.fillHeight: true
-      }
-
-      StyledText {
-        visible: SettingsManager.changedCount > 0
-        text: I18n.tr("{0} unsaved changes", SettingsManager.changedCount)
-        textColor: Theme.accent
-        textSize: Appearance.fontSize - 1
-        wrapMode: Text.WordWrap
-        Layout.fillWidth: true
-      }
-
-      StyledText {
-        visible: SettingsManager.changedCount === 0
-        text: I18n.tr("Changes apply as you make them. Save keeps them.")
-        opacity: 0.6
-        textSize: Appearance.fontSize - 2
-        wrapMode: Text.WordWrap
-        Layout.fillWidth: true
-      }
+    StyledText {
+      Layout.fillWidth: true
+      Layout.topMargin: Widget.spacing
+      text: SettingsManager.changedCount > 0 ? I18n.tr("{0} unsaved changes", SettingsManager.changedCount) : I18n.tr("Changes apply as you make them. Save keeps them.")
+      textColor: SettingsManager.changedCount > 0 ? Theme.accent : Theme.foreground
+      opacity: SettingsManager.changedCount > 0 ? 1 : 0.6
+      textSize: Appearance.fontSize - 2
+      wrapMode: Text.WordWrap
     }
   }
 }

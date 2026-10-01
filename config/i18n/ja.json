@@ -554,10 +554,7 @@
     "Monitor name → wallpaper file URL (set on the overlay's Themes page). A monitor with no entry shows `wallpaper`.": "モニター名 → 壁紙のファイルURL（オーバーレイのテーマページで設定）。エントリのないモニターには `wallpaper` が表示されます。",
     "Reset to default": "デフォルトに戻す",
     "Search settings": "設定を検索",
-    "Desktop": "デスクトップ",
     "Look & Feel": "外観と操作感",
-    "Bar & Popouts": "バーとポップアウト",
-    "Backups": "バックアップ",
     "{0} unsaved changes": "未保存の変更: {0}件",
     "Changes apply as you make them. Save keeps them.": "変更はすぐに反映されます。保存すると保持されます。",
     "Search results": "検索結果",
@@ -2157,7 +2154,6 @@
     "content": "内容",
     "Length of the hover strip along the edge, centred on the menu. Auto matches the menu's own length.": "辺に沿ったホバー領域の長さ（メニューの中央基準）。自動ではメニュー自体の長さに合わせます。",
     "Space between the menu's box and its modules. Auto uses the Popouts padding.": "メニューの枠とモジュールの間隔。自動ではポップアウトの余白を使います。",
-    "Theme editor": "テーマエディター",
     "What bar buttons, keybinds and IPC calls open this menu by. Set when the menu is made.": "バーのボタン、キーバインド、IPC 呼び出しがこのメニューを開くときに使う ID。メニュー作成時に設定されます。",
     "Reserved while open": "開いている間は確保",
     "Bars and border": "バーと枠",
@@ -2242,6 +2238,13 @@
     "Where the power menu opens. As in General follows General > Monitors; the primary monitor is the one set in General; the focused monitor is the one with your active workspace (and mouse); every monitor shows it on all of them at once.": "電源メニューを開く場所。「一般設定に従う」は 一般 > モニター に従い、「メインモニター」は一般設定で選んだモニター、「フォーカス中のモニター」はアクティブなワークスペース（とマウス）のあるモニター、「すべてのモニター」はすべてのモニターに同時に表示します。",
     "When the bar can't fit its widgets, lower priorities are hidden first: higher ones stay longest.": "バーにウィジェットが収まらないとき、優先度の低いものから非表示になります。高いものほど長く残ります。",
     "Sizing": "サイズ",
-    "Where the OSD appears. As in General follows General > Monitors; the primary monitor is the one set in General; the focused monitor is the one with your active workspace (and mouse); every monitor shows it on all of them at once.": "OSDを表示する場所。「一般設定に従う」は 一般 > モニター に従い、「メインモニター」は一般設定で選んだモニター、「フォーカス中のモニター」はアクティブなワークスペース（とマウス）のあるモニター、「すべてのモニター」はすべてのモニターに同時に表示します。"
+    "Where the OSD appears. As in General follows General > Monitors; the primary monitor is the one set in General; the focused monitor is the one with your active workspace (and mouse); every monitor shows it on all of them at once.": "OSDを表示する場所。「一般設定に従う」は 一般 > モニター に従い、「メインモニター」は一般設定で選んだモニター、「フォーカス中のモニター」はアクティブなワークスペース（とマウス）のあるモニター、「すべてのモニター」はすべてのモニターに同時に表示します。",
+    "More in Look & Feel": "外観と操作感の設定をさらに表示",
+    "Palette": "パレット",
+    "Saved configurations": "保存済みの設定",
+    "Screen & Power": "画面と電源",
+    "Maintenance": "メンテナンス",
+    "Dock & OSD": "ドックとOSD",
+    "Overlay & Popouts": "オーバーレイとポップアウト"
   }
 }

@@ -29,6 +29,21 @@ Card {
   signal save
   signal reset
 
+  // Scrolls the body so `item` (one of its descendants) sits at the top,
+  // or as near as the body's length allows
+  function scrollTo(item) {
+    scrollAnimation.to = Math.max(0, Math.min(item.mapToItem(body, 0, 0).y, scroll.contentHeight - scroll.availableHeight));
+    scrollAnimation.restart();
+  }
+
+  NumberAnimation {
+    id: scrollAnimation
+    target: scroll.contentItem
+    property: "contentY"
+    duration: Appearance.animNormal
+    easing.type: Easing.OutCubic
+  }
+
   // Hidden by Card while its compactContent shows
   ColumnLayout {
     anchors.fill: parent

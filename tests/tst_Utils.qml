@@ -13,6 +13,13 @@ TestCase {
     compare(Utils.spaceWords(undefined), "");
   }
 
+  function test_inkOn() {
+    compare(Utils.inkOn("#ffffff", "#000000", "#eeeeee"), "#000000");
+    compare(Utils.inkOn("#111111", "#000000", "#eeeeee"), "#eeeeee");
+    // A mid-tone takes the further of the two, not just the light one
+    compare(Utils.inkOn("#c08040", "#202020", "#f0f0f0"), "#202020");
+  }
+
   function test_edgeArrow() {
     compare(Utils.edgeArrow("Top"), "arrow_upward");
     compare(Utils.edgeArrow("Bottom"), "arrow_downward");

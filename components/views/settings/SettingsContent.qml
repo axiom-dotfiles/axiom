@@ -8,8 +8,9 @@ import qs.components.reusable
 import qs.components.content.base
 
 // Settings page, right: the selected category's groups as cards in two
-// columns, or every setting matching the search. Acts as the `form` for
-// its SchemaField rows.
+// columns (then its hand-built `page`, if any), or every setting matching
+// the search, under its category's name. Acts as the `form` for its
+// SchemaField rows.
 Item {
   id: root
 
@@ -20,7 +21,8 @@ Item {
   readonly property var schema: ConfigManager.configSchema
   readonly property string query: SettingsManager.query.trim().toLowerCase()
   readonly property bool searching: query !== ""
-  readonly property bool backups: !searching && category?.name === "Backups"
+  // The category's hand-built part (settings/<page>.qml), after its cards
+  readonly property string page: root.searching ? "" : root.category?.page ?? ""
 
   signal edited(var path, var value)
   onEdited: (path, value) => SettingsManager.setValue(path, value)
@@ -55,28 +57,38 @@ Item {
   }
 
   // From the schema, category and search only: never from config values,
-  // so editing doesn't rebuild the cards
+  // so editing doesn't rebuild the cards. Search results carry their
+  // category's name
   readonly property var groups: {
     if (!root.searching)
       return root._groupsOf(root.category);
     // Hand-built cards have no rows to search
-    const all = [].concat(...root.categories.map(c => root._groupsOf(c))).filter(group => group.kind !== "card");
-    return all.map(group => {
-      const rows = root._matches(group.title) || root._matches(group.section) ? group.rows : group.rows.filter(row => root._rowMatches(row));
-      return rows.length > 0 ? Object.assign({}, group, {
-        "rows": rows
-      }) : null;
-    }).filter(group => group !== null);
+    return [].concat(...root.categories.map(category => root._groupsOf(category).filter(group => group.kind !== "card").map(group => {
+        const rows = root._matches(group.title) || root._matches(group.section) ? group.rows : group.rows.filter(row => root._rowMatches(row));
+        return rows.length > 0 ? Object.assign({}, group, {
+          "rows": rows,
+          "category": category.name,
+          "categoryIcon": category.icon
+        }) : null;
+      }).filter(group => group !== null)));
   }
 
   // Which groups are shown, as a string so it only notifies when that
   // actually changes, not on every edit
   readonly property string _shownKey: root.groups.map(group => root._groupShown(group) ? "1" : "0").join("")
 
+  // The selected category's shown cards, for the sidebar to jump to
+  readonly property var shownGroups: {
+    if (root.searching)
+      return [];
+    const shown = root._shownKey;
+    return root.groups.filter((group, i) => shown[i] === "1");
+  }
+
   // The shown cards that can fold (hand-built ones only with `x-cardFolds`,
   // and none while searching)
   readonly property var foldableKeys: {
-    if (root.searching || root.backups)
+    if (root.searching)
       return [];
     const shown = root._shownKey;
     return root.groups.filter((group, i) => shown[i] === "1" && (group.kind === "rows" || group.folds)).map(group => group.key);
@@ -95,16 +107,11 @@ Item {
   onQueryChanged: SettingsManager.snapshotFolds()
   Component.onDestruction: SettingsManager.snapshotFolds()
 
-  // Masonry: each shown group goes to the shorter column, by estimated
-  // height
-  readonly property var columns: {
+  // Masonry: each group goes to the shorter column, by estimated height
+  function _columnsOf(groups) {
     const result = [[], []];
     const heights = [0, 0];
-    const shown = root._shownKey;
-    for (let i = 0; i < root.groups.length; i++) {
-      if (shown[i] !== "1")
-        continue;
-      const group = root.groups[i];
+    for (const group of groups) {
       const folded = !root.searching && SettingsManager.layoutFolds[group.key] === true;
       const weight = folded ? 1.5 : group.kind === "card" ? 6 : 2 + group.rows.reduce((sum, row) => sum + (row.kind === "array" ? 4 : row.schema?.description ? 1.6 : 1.2), 0);
       const target = heights[0] <= heights[1] ? 0 : 1;
@@ -114,32 +121,66 @@ Item {
     return result;
   }
 
+  // The shown groups in two columns: one block per category while
+  // searching (`name`, its heading), else one for the selected category
+  readonly property var blocks: {
+    const shown = root._shownKey;
+    const blocks = [];
+    root.groups.forEach((group, i) => {
+      if (shown[i] !== "1")
+        return;
+      const name = group.category ?? "";
+      if (blocks.length === 0 || blocks[blocks.length - 1].name !== name)
+        blocks.push({
+          "name": name,
+          "icon": group.categoryIcon ?? "",
+          "groups": []
+        });
+      blocks[blocks.length - 1].groups.push(group);
+    });
+    return blocks.map(block => ({
+          "name": block.name,
+          "icon": block.icon,
+          "columns": root._columnsOf(block.groups)
+        }));
+  }
+
+  // The card each group key is drawn by, to scroll to
+  property var _cards: ({})
+
+  Connections {
+    target: SettingsManager
+    function onJumpRequested(key, unfolded) {
+      jumpDelay.key = key;
+      jumpDelay.interval = unfolded ? Appearance.animNormal : 0;
+      jumpDelay.restart();
+    }
+  }
+
+  // Waits for an unfolding card to open, so the page is long enough to
+  // bring it to the top
+  Timer {
+    id: jumpDelay
+    property string key
+    onTriggered: {
+      const card = root._cards[jumpDelay.key];
+      if (card)
+        titledCard.scrollTo(card);
+    }
+  }
+
   // Pages the category links to: the pinned layouts editor always exists,
   // others only while they're in Overlay.views
   function _linkAvailable(type) {
     return type === "Layouts" || OverlayConfig.views.some(view => view.type === type && view.visible !== false);
   }
 
-  function _linkLabel(type) {
-    switch (type) {
-    case "Themes":
-      return I18n.tr("Themes");
-    case "BarEditor":
-      return I18n.tr("Bar Editor");
-    case "Layouts":
-      return I18n.tr("Layouts");
-    case "Keybinds":
-      return I18n.tr("Keybinds");
-    case "Monitors":
-      return I18n.tr("Monitors");
-    }
-    return type;
-  }
-
   readonly property var links: root.searching ? [] : (root.category?.links ?? []).filter(type => root._linkAvailable(type))
 
   TitledCard {
-    // I18n.tr("Search results") and category names, see SettingsSidebar
+    id: titledCard
+    // I18n.tr("Search results"); category names come from the schema's
+    // x-categories
     title: root.searching ? I18n.tr("Search results") : (root.category ? I18n.tr(root.category.name) : "")
     dirty: SettingsManager.isDirty
     onSave: SettingsManager.saveChanges()
@@ -177,9 +218,10 @@ Item {
         delegate: StyledTextButton {
           required property string modelData
           Layout.preferredHeight: Widget.height - 4
-          text: root._linkLabel(modelData)
-          iconText: "chevron_right"
-          iconAfter: true
+          text: OverlayConfig.viewLabel({
+            "type": modelData
+          }, 0)
+          iconText: OverlayConfig.viewIcon(modelData)
           onClicked: ShellManager.showOverlayPage(modelData)
         }
       }
@@ -193,45 +235,87 @@ Item {
       Layout.topMargin: Widget.padding
     }
 
-    RowLayout {
-      visible: !root.backups
-      Layout.fillWidth: true
-      spacing: Widget.spacing * 2
+    Repeater {
+      model: root.blocks
 
-      Repeater {
-        model: 2
+      delegate: ColumnLayout {
+        id: block
+        required property var modelData
+        Layout.fillWidth: true
+        spacing: Widget.spacing
 
-        delegate: ColumnLayout {
-          id: column
-          required property int index
+        // A search result's category: its icon and name, then a rule.
+        // Names come from the schema's x-categories
+        RowLayout {
+          visible: block.modelData.name !== ""
           Layout.fillWidth: true
-          Layout.preferredWidth: 1
-          Layout.alignment: Qt.AlignTop
+          Layout.topMargin: Widget.spacing
+          spacing: Widget.spacing
+
+          StyledIcon {
+            text: block.modelData.icon
+            textColor: Theme.accent
+          }
+
+          StyledText {
+            text: I18n.tr(block.modelData.name)
+            textSize: Appearance.fontSize + 2
+            font.bold: true
+          }
+
+          StyledSeparator {
+            Layout.fillWidth: true
+            separatorHeight: 1
+            opacity: 0.3
+          }
+        }
+
+        RowLayout {
+          Layout.fillWidth: true
           spacing: Widget.spacing * 2
 
           Repeater {
-            model: root.columns[column.index]
+            model: 2
 
-            // A hand-built card (`x-card`: settings/<name>Card.qml) or rows
-            delegate: Loader {
-              id: card
-              required property var modelData
+            delegate: ColumnLayout {
+              id: column
+              required property int index
               Layout.fillWidth: true
-              Component.onCompleted: {
-                if (card.modelData.kind === "card")
-                  card.setSource(Qt.resolvedUrl(card.modelData.card + "Card.qml"), card.modelData.folds ? {
-                    "foldKey": card.modelData.key
-                  } : {});
-                else
-                  card.sourceComponent = rowsCard;
-              }
+              Layout.preferredWidth: 1
+              Layout.alignment: Qt.AlignTop
+              spacing: Widget.spacing * 2
 
-              Component {
-                id: rowsCard
-                SettingsGroupCard {
-                  group: card.modelData
-                  form: root
-                  showSection: root.searching
+              Repeater {
+                model: block.modelData.columns[column.index]
+
+                // A hand-built card (`x-card`: settings/<name>Card.qml) or rows
+                delegate: Loader {
+                  id: card
+                  required property var modelData
+                  Layout.fillWidth: true
+                  Component.onCompleted: {
+                    if (!root.searching)
+                      root._cards[card.modelData.key] = card;
+                    if (card.modelData.kind === "card")
+                      card.setSource(Qt.resolvedUrl(card.modelData.card + "Card.qml"), card.modelData.folds ? {
+                        "foldKey": card.modelData.key
+                      } : {});
+                    else
+                      card.sourceComponent = rowsCard;
+                  }
+                  Component.onDestruction: {
+                    if (root._cards[card.modelData.key] === card)
+                      delete root._cards[card.modelData.key];
+                  }
+
+                  Component {
+                    id: rowsCard
+                    SettingsGroupCard {
+                      group: card.modelData
+                      form: root
+                      showSection: root.searching
+                    }
+                  }
                 }
               }
             }
@@ -240,9 +324,12 @@ Item {
       }
     }
 
-    SavedConfigsSection {
-      visible: root.backups
+    // The category's hand-built part (Maintenance's saved configurations)
+    Loader {
+      active: root.page !== ""
+      visible: active
       Layout.fillWidth: true
+      source: active ? Qt.resolvedUrl(root.page + ".qml") : ""
     }
   }
 }

@@ -126,6 +126,16 @@ QtObject {
   // The 16 base colors offered by color pickers (`x-options: "colors"`)
   readonly property var baseColorNames: ["base00", "base01", "base02", "base03", "base04", "base05", "base06", "base07", "base08", "base09", "base0A", "base0B", "base0C", "base0D", "base0E", "base0F"]
 
+  // The roles the shell's own UI paints with (the Palette module names
+  // them on their base colors), and which base colors play them in this
+  // theme: { base0D: ["borderFocus", "accent"], … }
+  readonly property var uiRoles: ["background", "backgroundAlt", "backgroundHighlight", "foreground", "foregroundAlt", "foregroundHighlight", "foregroundInactive", "border", "borderFocus", "accent", "accentAlt", "success", "warning", "error", "info"]
+  readonly property var roles: root.uiRoles.reduce((result, role) => {
+    const key = root._themeData.semantic?.[role] ?? root._defaultSemantic[role];
+    result[key] = (result[key] ?? []).concat(role);
+    return result;
+  }, {})
+
   // Color from a config string: a base key ("base0C"), a semantic name
   // ("info", or the older "Theme.info" form) or anything Qt parses as a
   // color ("#ff5733"). Reading stringToColorMap here makes callers'

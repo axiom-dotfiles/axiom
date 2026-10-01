@@ -153,6 +153,17 @@ QtObject {
     return luminance < 0.5;
   }
 
+  // Whichever of `a` and `b` reads better on `color` (the further from it
+  // in luminance), e.g. a theme's background or foreground on a swatch
+  function inkOn(color, a, b) {
+    const luminance = value => {
+      const c = Qt.color(value);
+      return 0.299 * c.r + 0.587 * c.g + 0.114 * c.b;
+    };
+    const base = luminance(color);
+    return Math.abs(luminance(a) - base) >= Math.abs(luminance(b) - base) ? a : b;
+  }
+
   // Get contrasting text color for background
   function getContrastColor(backgroundColor) {
     return isColorDark(backgroundColor) ? "#FFFFFF" : "#000000";
