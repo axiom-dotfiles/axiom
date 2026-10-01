@@ -3,7 +3,7 @@ import QtQuick
 import qs.components.hosts.overlay
 
 // A view assembled from config: its modules, each in its place on a grid
-// of half cards. With `stretch` the grid grows to fill the overlay.
+// of quarter cards. With `stretch` the grid grows to fill the overlay.
 BaseView {
   id: root
 

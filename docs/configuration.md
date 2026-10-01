@@ -4,7 +4,7 @@
 
 ## The config file
 
-Everything is configured from inside the shell (see [Built in the shell](../README.md#built-in-the-shell)). Open the overlay, and use the **Settings**, **Bar editor**, **Overlay editor**, **Edge menu editor**, **Monitors** and **Themes** pages.
+Everything is configured from inside the shell (see [Built in the shell](../README.md#built-in-the-shell)). Open the overlay, and use the **Settings**, **Bar editor**, **Layouts**, **Monitors** and **Themes** pages.
 
 - Settings are saved to `config/user/config.json`. You never need to open it, but the shell watches that file and reloads when it changes, so editing it by hand also works.
 - Configs from older versions are migrated automatically.

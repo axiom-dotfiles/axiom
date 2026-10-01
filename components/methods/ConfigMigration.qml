@@ -959,9 +959,11 @@ QtObject {
 
   // Columns of cells (v30) as modules placed on one grid: the columns side
   // by side, each flowing its cells left to right and wrapping at its
-  // widest, all in half-card units. A cell filling `acrossKeys` grows to
-  // its column's width (fillWidth) or the grid's height (fillHeight), and
-  // its modules on that side with it. Returns { modules, pins, fillKeys }:
+  // widest, worked out in the v30 layouts' half-card units. A cell filling
+  // `acrossKeys` grows to its column's width (fillWidth) or the grid's
+  // height (fillHeight), and its modules on that side with it. Returns
+  // { modules, pins, fillKeys }: the modules placed in quarter-card units
+  // (the half units doubled: a span of 2n quarters is a span of n halves),
   // the number of Pin modules dropped and which fill keys were set.
   function _placeColumns(columns, acrossKeys) {
     const placed = [];
@@ -1053,7 +1055,12 @@ QtObject {
     return {
       "modules": placed.map(p => {
         const module = Object.assign({}, p.module);
-        module.place = p.place;
+        module.place = {
+          "x": p.place.x * 2,
+          "y": p.place.y * 2,
+          "w": p.place.w * 2,
+          "h": p.place.h * 2
+        };
         return module;
       }),
       "pins": pins,
@@ -1062,7 +1069,7 @@ QtObject {
   }
 
   // v31 replaced columns → cells → slots with modules placed on a grid:
-  // each module has a `place` { x, y, w, h } in half-card units. Custom
+  // each module has a `place` { x, y, w, h } in quarter-card units. Custom
   // pages and edge menus get `modules` instead of `columns`. Fill cells
   // grow into the room they took; in an edge menu a cell filling along
   // the edge makes it take the whole edge (`length: "edge"`), and the
@@ -1111,16 +1118,16 @@ QtObject {
       const extraAcross = (vertical ? menu.extraWidth : menu.extraHeight) ?? 0;
       const extraAlong = (vertical ? menu.extraHeight : menu.extraWidth) ?? 0;
       if (extraAcross > 0) {
-        // Across the edge the menu is n half units thick: span(n) grows by
-        // n / 2 for each pixel the card size grows
+        // Across the edge the menu is n quarter units thick: span(n) grows
+        // by n / 4 for each pixel the card size grows
         let thick = 0;
         (menu.modules ?? []).forEach(module => {
           const p = module.place;
           thick = Math.max(thick, vertical ? p.x + p.w : p.y + p.h);
         });
         // An empty menu counts as one card thick
-        const n = thick > 0 ? thick : 2;
-        const size = Math.round((menu.cardSize ?? 320) + extraAcross * 2 / n);
+        const n = thick > 0 ? thick : 4;
+        const size = Math.round((menu.cardSize ?? 320) + extraAcross * 4 / n);
         menu.cardSize = Math.max(160, Math.min(600, size));
         changes.push(`${where}: extra size across the edge -> cardSize ${menu.cardSize}`);
       }

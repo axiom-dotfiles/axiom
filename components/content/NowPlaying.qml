@@ -14,7 +14,7 @@ import qs.components.content.base
 // the track info, the controls beneath, at a fixed size so track changes
 // never resize it. As an overlay card: art beside everything when wide,
 // stacked when square; a half-card-high strip drops the player name, album
-// and times; a quarter slot is just the art and play/pause.
+// and times; a quarter card is just the art and play/pause.
 Panel {
   id: root
 
@@ -22,8 +22,8 @@ Panel {
   readonly property string artSource: MediaManager.artDownloaded && MediaManager.artVersion >= 0 ? "file://" + MediaManager.artFilePath : ""
   // Card only: the art beside the info and controls
   readonly property bool sideBySide: root.embedded && root.shape === "horizontal"
-  // A half-card-high strip: title, artist and a slim transport only
-  readonly property bool short: root.sideBySide && root.rows <= 1
+  // A half-card-high strip or less: title, artist and a slim transport only
+  readonly property bool short: root.sideBySide && root.rows <= 2
   readonly property real artSize: 96
   // A seek bar is being dragged, so the popout mustn't dismiss
   property bool seeking: false

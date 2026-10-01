@@ -14,7 +14,7 @@ import qs.components.content.base
 Card {
   id: root
 
-  readonly property int capacity: Math.max(1, root.cols * root.rows * 2)
+  readonly property int capacity: Math.max(1, Math.floor(root.cols * root.rows / 2))
   readonly property var ids: {
     const configured = root.properties.apps;
     if (configured.length > 0)

@@ -16,7 +16,7 @@ Rectangle {
   required property int index
   // { type, properties, place }
   property var module: null
-  // One half unit plus its gap, and the gap, at the canvas's scale
+  // One grid unit plus its gap, and the gap, at the canvas's scale
   required property real step
   required property real gap
 

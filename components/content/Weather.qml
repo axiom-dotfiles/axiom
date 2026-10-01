@@ -28,14 +28,14 @@ Card {
 
   readonly property var current: root.source.current
   readonly property var daily: root.source.weather?.daily ?? null
-  readonly property bool showHourly: !root.compact && root.cols >= 2
-  readonly property bool showDaily: !root.compact && root.rows >= 2
+  readonly property bool showHourly: !root.compact && root.cols >= 4
+  readonly property bool showDaily: !root.compact && root.rows >= 4
   // Wide and large slots put the days beside the current weather
-  readonly property bool sideBySide: root.showDaily && root.cols >= 4
+  readonly property bool sideBySide: root.showDaily && root.cols >= 8
   // The current weather stacked and centred (tall, narrow and side by side
   // slots), else icon beside the figures
   readonly property bool stacked: !root.compact && (root.shape === "vertical" || root.sideBySide)
-  readonly property real heroScale: root.rows >= 4 ? 1.5 : 1
+  readonly property real heroScale: root.rows >= 8 ? 1.5 : 1
   // Most a gap between sections grows; what's left centres the whole block
   readonly property real maxGap: root.pad * 2
   // The week's range, which each day's bar is drawn against
@@ -122,7 +122,7 @@ Card {
   component DailyList: ColumnLayout {
     id: list
     readonly property bool bars: list.width >= Appearance.fontSize * 15
-    spacing: root.rows >= 4 ? Widget.spacing * 1.5 : Widget.spacing / 2
+    spacing: root.rows >= 8 ? Widget.spacing * 1.5 : Widget.spacing / 2
     Repeater {
       model: root.showDaily ? (root.daily?.time?.length ?? 0) : 0
       RowLayout {

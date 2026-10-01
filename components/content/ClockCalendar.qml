@@ -13,7 +13,7 @@ import qs.components.content.base
 Card {
   id: root
 
-  readonly property bool showCalendar: !root.compact && root.rows >= 2
+  readonly property bool showCalendar: !root.compact && root.rows >= 4
   readonly property bool sideBySide: root.showCalendar && root.shape === "horizontal"
 
   // Calendar sizing: day cells close to square, never taller than they

@@ -14,7 +14,7 @@ Item {
   property var config
   // The slot's [col, row, colSpan, rowSpan] in its cell's layout; passed on
   // as the module's `slotRect`, from which Card derives its shape
-  property var rect: [0, 0, 2, 2]
+  property var rect: [0, 0, 4, 4]
   // Where the module is shown: { kind: "overlay" } or { kind: "edgeMenu",
   // id }, passed on as its `host`
   property var host: ({

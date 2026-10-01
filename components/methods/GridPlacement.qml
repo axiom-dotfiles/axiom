@@ -3,9 +3,9 @@ pragma Singleton
 import QtQuick
 
 // Pure geometry of the module grid shared by overlay pages, edge menus and
-// the layouts editor. Modules are placed on a grid of half cards: each has
-// a `place` { x, y, w, h } in half units. Holes are allowed; modules never
-// overlap. OverlayConfig wraps these with the schema's module info.
+// the layouts editor. Modules are placed on a grid of quarter cards: each
+// has a `place` { x, y, w, h } in grid units, four to a card. Holes are
+// allowed; modules never overlap. OverlayConfig wraps these with the schema's module info.
 QtObject {
   id: root
 
@@ -15,15 +15,16 @@ QtObject {
   readonly property int cardUnit: 500
   readonly property int cardSpacing: 20
 
-  // A span of n half units is n halves plus the n - 1 gaps between them,
-  // so span(2) is one card and span(4) is two cards plus the gap between
-  // them. `unit` is the card size (the reference cardUnit unless given).
-  function halfUnitOf(unit) {
-    return ((unit ?? root.cardUnit) - root.cardSpacing) / 2;
+  // A span of n grid units is n units plus the n - 1 gaps between them,
+  // so span(4) is one card, span(2) half a card and span(8) two cards plus
+  // the gap between them. `unit` is the card size (the reference cardUnit
+  // unless given).
+  function unitOf(unit) {
+    return ((unit ?? root.cardUnit) - 3 * root.cardSpacing) / 4;
   }
 
   function span(n, unit) {
-    return n * root.halfUnitOf(unit) + (n - 1) * root.cardSpacing;
+    return n * root.unitOf(unit) + (n - 1) * root.cardSpacing;
   }
 
   // A place as the [x, y, w, h] rect modules get as `slotRect`
@@ -46,7 +47,7 @@ QtObject {
     return !minSize || (rect[2] >= minSize[0] && rect[3] >= minSize[1]);
   }
 
-  // How far the modules reach, in half units
+  // How far the modules reach, in grid units
   function bounds(modules) {
     let cols = 0;
     let rows = 0;
@@ -130,21 +131,21 @@ QtObject {
     return true;
   }
 
-  // The size of one half unit across and down, and of the whole grid, for
+  // The size of one grid unit across and down, and of the whole grid, for
   // `bounds` at card size `unit`. `stretch` ({ width, height }, either
-  // optional) is room to grow into: that axis's half units share it evenly.
-  // A grid never shrinks below its natural size.
+  // optional) is room to grow into: that axis's units share it evenly. A
+  // grid never shrinks below its natural size.
   function trackSizes(bounds, unit, stretch) {
-    const half = root.halfUnitOf(unit);
+    const size = root.unitOf(unit);
     const spacing = root.cardSpacing;
-    const grow = (count, room) => count > 0 && room > 0 ? Math.max(half, (room - (count - 1) * spacing) / count) : half;
-    const halfW = grow(bounds.cols, stretch?.width ?? 0);
-    const halfH = grow(bounds.rows, stretch?.height ?? 0);
+    const grow = (count, room) => count > 0 && room > 0 ? Math.max(size, (room - (count - 1) * spacing) / count) : size;
+    const unitW = grow(bounds.cols, stretch?.width ?? 0);
+    const unitH = grow(bounds.rows, stretch?.height ?? 0);
     return {
-      "halfW": halfW,
-      "halfH": halfH,
-      "width": bounds.cols > 0 ? bounds.cols * halfW + (bounds.cols - 1) * spacing : 0,
-      "height": bounds.rows > 0 ? bounds.rows * halfH + (bounds.rows - 1) * spacing : 0
+      "unitW": unitW,
+      "unitH": unitH,
+      "width": bounds.cols > 0 ? bounds.cols * unitW + (bounds.cols - 1) * spacing : 0,
+      "height": bounds.rows > 0 ? bounds.rows * unitH + (bounds.rows - 1) * spacing : 0
     };
   }
 
@@ -152,10 +153,10 @@ QtObject {
   function rectPx(place, sizes) {
     const spacing = root.cardSpacing;
     return {
-      "x": place.x * (sizes.halfW + spacing),
-      "y": place.y * (sizes.halfH + spacing),
-      "width": place.w * sizes.halfW + (place.w - 1) * spacing,
-      "height": place.h * sizes.halfH + (place.h - 1) * spacing
+      "x": place.x * (sizes.unitW + spacing),
+      "y": place.y * (sizes.unitH + spacing),
+      "width": place.w * sizes.unitW + (place.w - 1) * spacing,
+      "height": place.h * sizes.unitH + (place.h - 1) * spacing
     };
   }
 

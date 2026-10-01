@@ -25,7 +25,7 @@ QtObject {
     return OverlayConfig.span(n, root.unit);
   }
 
-  // One half unit across and down, and the whole grid, for modules
+  // One grid unit across and down, and the whole grid, for modules
   // reaching `bounds` (see GridPlacement.trackSizes)
   function sizes(bounds, stretch) {
     return GridPlacement.trackSizes(bounds, root.unit, stretch);

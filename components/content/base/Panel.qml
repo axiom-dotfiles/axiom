@@ -19,9 +19,9 @@ Item {
   // fill the height instead of their popout cap
   property bool embedded: false
   // Card only: this module's `properties` from config, and its slot
-  // ([col, row, colSpan, rowSpan] in half-card units, see Card)
+  // ([col, row, colSpan, rowSpan] in grid units, see Card)
   property var properties: ({})
-  property var slotRect: [0, 0, 2, 2]
+  property var slotRect: [0, 0, 4, 4]
   // Card only: where it's shown, { kind: "overlay" } or { kind: "edgeMenu",
   // id, bare }
   property var host: ({
@@ -53,7 +53,7 @@ Item {
   readonly property bool pointerInside: hoverHandler.hovered
   property bool hovered: pointerInside
 
-  // What a quarter-card slot shows instead of the column (e.g. a
+  // What a quarter card (or less) shows instead of the column (e.g. a
   // CompactFigure); without one, a compact card shows the column as usual
   property Component compactContent: null
   // Drawn under the content, filling the box (e.g. a blurred cover)

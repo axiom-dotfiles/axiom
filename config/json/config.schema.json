@@ -1235,13 +1235,13 @@
           "description": "Pages shown in the overlay, in order: your Custom pages, each a grid of modules, and the tool pages (shown as icons after them).",
           "default": [
             { "type": "Custom", "name": "Home", "modules": [
-              { "type": "ClockCalendar", "place": { "x": 0, "y": 0, "w": 2, "h": 4 } },
-              { "type": "QuickActions", "place": { "x": 2, "y": 0, "w": 2, "h": 1 } },
-              { "type": "QuickActions", "properties": { "actions": ["lock", "suspend", "hibernate", "logout", "reboot", "poweroff"] }, "place": { "x": 2, "y": 1, "w": 2, "h": 1 } },
-              { "type": "SystemGraphs", "place": { "x": 2, "y": 2, "w": 2, "h": 2 } },
-              { "type": "NowPlaying", "place": { "x": 4, "y": 0, "w": 4, "h": 2 } },
-              { "type": "Notifications", "place": { "x": 4, "y": 2, "w": 2, "h": 2 } },
-              { "type": "VolumeDials", "place": { "x": 6, "y": 2, "w": 2, "h": 2 } }
+              { "type": "ClockCalendar", "place": { "x": 0, "y": 0, "w": 4, "h": 8 } },
+              { "type": "QuickActions", "place": { "x": 4, "y": 0, "w": 4, "h": 2 } },
+              { "type": "QuickActions", "properties": { "actions": ["lock", "suspend", "hibernate", "logout", "reboot", "poweroff"] }, "place": { "x": 4, "y": 2, "w": 4, "h": 2 } },
+              { "type": "SystemGraphs", "place": { "x": 4, "y": 4, "w": 4, "h": 4 } },
+              { "type": "NowPlaying", "place": { "x": 8, "y": 0, "w": 8, "h": 4 } },
+              { "type": "Notifications", "place": { "x": 8, "y": 4, "w": 4, "h": 4 } },
+              { "type": "VolumeDials", "place": { "x": 12, "y": 4, "w": 4, "h": 4 } }
             ] },
             { "type": "Settings" },
             { "type": "Keybinds" },
@@ -1772,7 +1772,7 @@
           "minimum": 160,
           "maximum": 600,
           "x-unit": "px",
-          "description": "Size of one card. Modules are placed on a grid of half cards, as on overlay pages."
+          "description": "Size of one card. Modules are placed on a grid of quarter cards, as on overlay pages."
         },
         "edgeDistance": {
           "x-group": "Placement",
@@ -1876,7 +1876,7 @@
           "title": "Modules",
           "default": [],
           "x-settings": false,
-          "description": "Placed on a grid of half cards, like a Custom overlay page's.",
+          "description": "Placed on a grid of quarter cards, like a Custom overlay page's.",
           "items": { "$ref": "#/definitions/OverlayModule" }
         }
       }
@@ -2176,12 +2176,12 @@
     "GridPlace": {
       "type": "object",
       "additionalProperties": false,
-      "description": "Where a module sits on its page's or menu's grid, in half cards: x and y from the top left, w and h its size.",
+      "description": "Where a module sits on its page's or menu's grid, in quarter cards: x and y from the top left, w and h its size.",
       "properties": {
         "x": { "type": "integer", "default": 0, "minimum": 0 },
         "y": { "type": "integer", "default": 0, "minimum": 0 },
-        "w": { "type": "integer", "default": 2, "minimum": 1, "maximum": 16 },
-        "h": { "type": "integer", "default": 2, "minimum": 1, "maximum": 16 }
+        "w": { "type": "integer", "default": 4, "minimum": 1, "maximum": 32 },
+        "h": { "type": "integer", "default": 4, "minimum": 1, "maximum": 32 }
       }
     },
 
@@ -2218,8 +2218,8 @@
       "type": "object",
       "x-icon": "palette",
       "x-shapes": ["vertical"],
-      "x-minSize": [2, 3],
-      "x-defaultSize": [2, 4],
+      "x-minSize": [4, 6],
+      "x-defaultSize": [4, 8],
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -2231,7 +2231,7 @@
       "type": "object",
       "x-icon": "music_note",
       "x-shapes": ["square", "horizontal"],
-      "x-minSize": [2, 1],
+      "x-minSize": [4, 2],
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -2308,7 +2308,7 @@
       "type": "object",
       "x-icon": "format_list_bulleted",
       "x-shapes": ["vertical", "square"],
-      "x-minSize": [2, 2],
+      "x-minSize": [4, 4],
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -2385,7 +2385,7 @@
       "type": "object",
       "x-icon": "notifications",
       "x-shapes": ["vertical", "square"],
-      "x-minSize": [2, 2],
+      "x-minSize": [4, 4],
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -2397,7 +2397,7 @@
       "type": "object",
       "x-icon": "wifi",
       "x-shapes": ["vertical", "square"],
-      "x-minSize": [2, 2],
+      "x-minSize": [4, 4],
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -2409,7 +2409,7 @@
       "type": "object",
       "x-icon": "bluetooth",
       "x-shapes": ["vertical", "square"],
-      "x-minSize": [2, 2],
+      "x-minSize": [4, 4],
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -2520,8 +2520,8 @@
       "type": "object",
       "x-icon": "smart_toy",
       "x-shapes": ["vertical", "square", "horizontal"],
-      "x-minSize": [2, 2],
-      "x-defaultSize": [2, 4],
+      "x-minSize": [4, 4],
+      "x-defaultSize": [4, 8],
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -2533,8 +2533,8 @@
       "type": "object",
       "x-icon": "sticky_note_2",
       "x-shapes": ["vertical", "square", "horizontal"],
-      "x-minSize": [2, 2],
-      "x-defaultSize": [2, 4],
+      "x-minSize": [4, 4],
+      "x-defaultSize": [4, 8],
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -2557,8 +2557,8 @@
       "type": "object",
       "x-icon": "photo_library",
       "x-shapes": ["horizontal", "square", "vertical"],
-      "x-minSize": [2, 2],
-      "x-defaultSize": [2, 4],
+      "x-minSize": [4, 4],
+      "x-defaultSize": [4, 8],
       "required": ["type"],
       "additionalProperties": false,
       "properties": {

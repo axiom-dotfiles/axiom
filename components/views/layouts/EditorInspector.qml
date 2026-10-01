@@ -31,10 +31,11 @@ Item {
   // A new form per module (KeyedLoader)
   readonly property string selectionKey: root.module ? [root.editor.scopeKey, root.index, root.moduleType].join(":") : ""
 
-  // A size in half cards as cards: 1 → "½", 3 → "1½"
-  function cards(halves) {
-    const whole = Math.floor(halves / 2);
-    return halves % 2 === 0 ? String(whole) : (whole > 0 ? whole : "") + "½";
+  // A size in grid units as cards: 4 → "1", 2 → "½", 5 → "1¼"
+  function cards(units) {
+    const whole = Math.floor(units / 4);
+    const part = ["", "¼", "½", "¾"][units % 4];
+    return part === "" ? String(whole) : (whole > 0 ? whole : "") + part;
   }
 
   Card {
@@ -50,7 +51,7 @@ Item {
         icon: root.module ? root.dragLayer.moduleIcon(root.moduleType) : "extension"
         filled: root.module !== null
         title: root.module ? root.dragLayer.moduleLabel(root.moduleType) : I18n.tr("Library")
-        subtitle: root.module ? I18n.tr("{0} × {1} cards", root.cards(root.place.w), root.cards(root.place.h)) : root.editable ? I18n.tr("Click a module on the canvas to edit it") : root.notEditableHint
+        subtitle: root.place ? I18n.tr("{0} × {1} cards", root.cards(root.place.w), root.cards(root.place.h)) : root.editable ? I18n.tr("Click a module on the canvas to edit it") : root.notEditableHint
 
         SquareIconButton {
           visible: root.module !== null
@@ -112,7 +113,7 @@ Item {
           FieldGroup {
             width: sizeScroll.availableWidth
             title: I18n.tr("Size")
-            description: I18n.tr("In half cards. Drag its corner on the canvas, or step it here.")
+            description: I18n.tr("In quarter cards. Drag its corner on the canvas, or step it here.")
 
             Repeater {
               // I18n.tr("Width") I18n.tr("Height")
@@ -132,11 +133,15 @@ Item {
                 required property var modelData
                 readonly property int value: root.place ? (sizeRow.modelData.axis === 0 ? root.place.w : root.place.h) : 0
                 function sized(by) {
+                  if (!root.place)
+                    return [0, 0];
                   const w = root.place.w + (sizeRow.modelData.axis === 0 ? by : 0);
                   const h = root.place.h + (sizeRow.modelData.axis === 1 ? by : 0);
                   return [w, h];
                 }
                 function canStep(by) {
+                  if (!root.place)
+                    return false;
                   const size = sizeRow.sized(by);
                   return root.module !== null && size[0] >= 1 && size[1] >= 1 && root.editor.canResize(root.index, size[0], size[1]);
                 }

@@ -23,8 +23,8 @@ Card {
   // This overlay's screen
   readonly property string monitor: root.QsWindow.window?.screen?.name ?? ""
 
-  readonly property bool tall: root.shape === "vertical" && root.rows >= 3
-  readonly property bool grid: root.rows >= 3
+  readonly property bool tall: root.shape === "vertical" && root.rows >= 6
+  readonly property bool grid: root.rows >= 6
 
   // The picked monitor while it's connected, else this overlay's
   property string chosenMonitor: ""

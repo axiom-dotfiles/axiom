@@ -13,17 +13,18 @@ Rectangle {
   property var properties: ({})
   // Set by the card host, for content that can also be a popout (see Panel)
   property bool embedded: true
-  // The slot this module fills, in half-card units: [col, row, colSpan, rowSpan]
-  property var slotRect: [0, 0, 2, 2]
+  // The slot this module fills, in grid units (four to a card): [col, row,
+  // colSpan, rowSpan]
+  property var slotRect: [0, 0, 4, 4]
   // Where the card is shown: { kind: "overlay" } or { kind: "edgeMenu", id,
   // bare }
   property var host: ({
       "kind": "overlay"
     })
   // Derived from the slot (see SlotContext): no card box (an edge menu
-  // with moduleBorders off), the span in half units, "square" |
-  // "horizontal" | "vertical", a quarter slot (room for the key figure
-  // only), and the inner padding modules lay their content out within
+  // with moduleBorders off), the span in grid units, "square" |
+  // "horizontal" | "vertical", a quarter card or less (room for the key
+  // figure only), and the inner padding modules lay their content out within
   readonly property alias bare: slot.bare
   readonly property alias cols: slot.cols
   readonly property alias rows: slot.rows

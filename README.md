@@ -40,13 +40,12 @@ In axiom the layout itself is what you edit:
 
 The editors that built them:
 
-| Bar editor | Overlay editor | Edge menu editor |
+| Bar editor | Layouts: a page | Layouts: an edge menu |
 | :---: | :---: | :---: |
 | <img src="assets/screenshots/bar-editor.webp" alt="Bar editor, setup A"> | <img src="assets/screenshots/overlay-editor.webp" alt="Overlay editor, setup A"> | <img src="assets/screenshots/edge-menu-editor.webp" alt="Edge menu editor, setup A"> |
 
 - **Bar editor:** any number of bars, on any monitor and edge, solid, transparent or split into pills. Drag widgets from the library into a bar's sections, and click one to edit it.
-- **Overlay editor:** pages of cards, built by dragging modules and cell layouts onto a page.
-- **Edge menu editor:** the same modules and cells, in menus that slide out of any screen edge.
+- **Layouts:** your overlay pages and edge menus in one editor. Drag modules from the library onto a page's grid, move them anywhere, and drag a corner to resize them in quarter cards. Edge menus use the same grid, in menus that slide out of any screen edge.
 
 Everything else is on the **Settings** page, and every option can also be set from the launcher (`/config Appearance.font.size 14`).
 

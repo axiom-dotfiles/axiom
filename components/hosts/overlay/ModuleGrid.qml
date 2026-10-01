@@ -5,7 +5,7 @@ import qs.config
 import qs.components.methods
 
 // A Custom page's or an edge menu's modules, each in its own place on a
-// grid of half cards (GridPlacement). The grid is as big as its modules
+// grid of quarter cards (GridPlacement). The grid is as big as its modules
 // reach, at the card size of `grid`; `stretch` grows it into room.
 Item {
   id: root
@@ -52,8 +52,8 @@ Item {
       readonly property var place: slot.module?.place ?? {
         "x": 0,
         "y": 0,
-        "w": 2,
-        "h": 2
+        "w": 4,
+        "h": 4
       }
       readonly property var r: GridPlacement.rectPx(slot.place, root.sizes)
 

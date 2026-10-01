@@ -4,7 +4,7 @@ import QtQuick.Layouts
 import qs.config
 import qs.components.reusable
 
-// What a quarter-card slot shows: an icon over one big value and a small
+// What a quarter card (or less) shows: an icon over one big value and a small
 // label, centred in the slot. Put it in a Card's compact branch or a
 // Panel's compactContent.
 ColumnLayout {

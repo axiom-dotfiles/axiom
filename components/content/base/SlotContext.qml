@@ -3,11 +3,12 @@ import QtQuick
 import qs.config
 
 // What Card and Panel derive from their slot, in one place: its size in
-// half-card units, shape, whether it's a quarter slot, bare, and the
+// grid units (four to a card), shape, whether it's a quarter card or less,
+// bare, and the
 // padding content lays out within
 QtObject {
-  // [col, row, colSpan, rowSpan] in half-card units
-  property var slotRect: [0, 0, 2, 2]
+  // [col, row, colSpan, rowSpan] in grid units, four to a card
+  property var slotRect: [0, 0, 4, 4]
   // { kind: "overlay" } or { kind: "edgeMenu", id, bare }
   property var host: ({
       "kind": "overlay"
@@ -19,8 +20,8 @@ QtObject {
   readonly property int rows: slotRect[3]
   // "square" | "horizontal" | "vertical"
   readonly property string shape: OverlayConfig.slotShape(slotRect)
-  // A quarter-card slot: room for the key figure only
-  readonly property bool compact: embedded && cols <= 1 && rows <= 1
+  // A quarter card or smaller: room for the key figure only
+  readonly property bool compact: embedded && cols <= 2 && rows <= 2
   // No card box (an edge menu with moduleBorders off)
   readonly property bool bare: embedded && (host?.bare ?? false)
   readonly property real pad: OverlayConfig.cardPad(compact, bare)

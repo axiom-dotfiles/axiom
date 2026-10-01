@@ -7,7 +7,7 @@ import qs.components.reusable
 import qs.components.content.base
 
 // The edited page (or edge menu) as it will look: its modules on their
-// grid of half cards, drawn at the scale that fits, with room around them
+// grid of quarter cards, drawn at the scale that fits, with room around them
 // to drop into (left of or above the grid shifts it to make room). Drag a
 // module to move it, its corner to resize it; the library's modules drop
 // anywhere free. Geometry is scaled by hand (not Item.scale) so text and
@@ -38,26 +38,26 @@ Card {
   readonly property var list: root.editable ? root.modules : []
   readonly property var bounds: GridPlacement.bounds(root.list)
 
-  // Room around the grid, in half units: to make space left of / above it,
+  // Room around the grid, in grid units: to make space left of / above it,
   // and to grow it right / down
-  readonly property int lead: 2
+  readonly property int lead: 1
   readonly property int trail: 3
-  readonly property int gridCols: Math.max(root.bounds.cols, 4) + root.lead + root.trail
-  readonly property int gridRows: Math.max(root.bounds.rows, 2) + root.lead + root.trail
+  readonly property int gridCols: Math.max(root.bounds.cols, 8) + root.lead + root.trail
+  readonly property int gridRows: Math.max(root.bounds.rows, 4) + root.lead + root.trail
 
-  // One half unit and the gap after it, at the reference card size, then
+  // One grid unit and the gap after it, at the reference card size, then
   // scaled to fit the area
-  readonly property real refStep: OverlayConfig.halfUnit + OverlayConfig.cardSpacing
+  readonly property real refStep: OverlayConfig.gridUnit + OverlayConfig.cardSpacing
   readonly property real scaleFactor: Math.max(0.05, Math.min(0.6, area.width / (root.gridCols * root.refStep), area.height / (root.gridRows * root.refStep)))
   readonly property real step: root.refStep * root.scaleFactor
   readonly property real gap: OverlayConfig.cardSpacing * root.scaleFactor
-  readonly property real half: root.step - root.gap
+  readonly property real unitSize: root.step - root.gap
   // Where grid 0, 0 sits in the area
   readonly property real originX: (area.width - root.gridCols * root.step + root.gap) / 2 + root.lead * root.step
   readonly property real originY: (area.height - root.gridRows * root.step + root.gap) / 2 + root.lead * root.step
 
   function rectFor(place) {
-    return Qt.rect(root.originX + place.x * root.step, root.originY + place.y * root.step, place.w * root.half + (place.w - 1) * root.gap, place.h * root.half + (place.h - 1) * root.gap);
+    return Qt.rect(root.originX + place.x * root.step, root.originY + place.y * root.step, place.w * root.unitSize + (place.w - 1) * root.gap, place.h * root.unitSize + (place.h - 1) * root.gap);
   }
 
   color: Theme.background
@@ -181,7 +181,7 @@ Card {
         readonly property string targetKind: "grid"
 
         // Where `drag` would go with the pointer at `point` (in the drag
-        // layer): a moved module keeps the half unit it was grabbed by
+        // layer): a moved module keeps the unit it was grabbed by
         // under the pointer, a new one is centred on it
         function placeAt(point, drag, grab) {
           const p = root.dragLayer.mapToItem(gridTarget, point.x, point.y);
@@ -212,24 +212,31 @@ Card {
         Component.onDestruction: root.dragLayer.unregisterTarget(gridTarget)
       }
 
-      // The half-unit lattice
-      Repeater {
-        model: root.editable ? root.gridCols * root.gridRows : 0
-
-        Rectangle {
-          required property int index
-          readonly property int col: index % root.gridCols - root.lead
-          readonly property int row: Math.floor(index / root.gridCols) - root.lead
-          readonly property bool inside: col >= 0 && row >= 0 && col < root.bounds.cols && row < root.bounds.rows
-          x: root.originX + col * root.step
-          y: root.originY + row * root.step
-          width: root.half
-          height: root.half
-          radius: Widget.radius / 2
-          color: "transparent"
-          border.color: Theme.border
-          border.width: 1
-          opacity: inside ? 0.45 : 0.18
+      // The unit lattice, one square per grid unit: stronger inside the
+      // modules' bounds. One Canvas, as there can be hundreds of squares.
+      Canvas {
+        id: lattice
+        anchors.fill: parent
+        visible: root.editable
+        readonly property string paintKey: [root.gridCols, root.gridRows, root.step, root.originX, root.originY, root.bounds.cols, root.bounds.rows, width, height, Theme.border].join(",")
+        onPaintKeyChanged: lattice.requestPaint()
+        onPaint: {
+          const ctx = lattice.getContext("2d");
+          ctx.reset();
+          ctx.strokeStyle = Theme.border;
+          ctx.lineWidth = 1;
+          const radius = Math.min(Widget.radius / 2, root.unitSize / 4);
+          for (let row = -root.lead; row < root.gridRows - root.lead; row++) {
+            for (let col = -root.lead; col < root.gridCols - root.lead; col++) {
+              const inside = col >= 0 && row >= 0 && col < root.bounds.cols && row < root.bounds.rows;
+              ctx.globalAlpha = inside ? 0.45 : 0.18;
+              const x = Math.round(root.originX + col * root.step) + 0.5;
+              const y = Math.round(root.originY + row * root.step) + 0.5;
+              ctx.beginPath();
+              ctx.roundedRect(x, y, root.unitSize - 1, root.unitSize - 1, radius, radius);
+              ctx.stroke();
+            }
+          }
         }
       }
 

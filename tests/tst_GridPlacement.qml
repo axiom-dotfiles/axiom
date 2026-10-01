@@ -18,12 +18,13 @@ TestCase {
   }
 
   function test_span() {
-    // cardUnit 500, cardSpacing 20: a half unit is 240
-    compare(GridPlacement.halfUnitOf(), 240);
-    compare(GridPlacement.span(1), 240);
-    compare(GridPlacement.span(2), 500, "two halves are one card");
-    compare(GridPlacement.span(4), 1020, "two cards and the gap between");
-    compare(GridPlacement.span(2, 300), 300, "at another card size");
+    // cardUnit 500, cardSpacing 20: a grid unit is 110
+    compare(GridPlacement.unitOf(), 110);
+    compare(GridPlacement.span(1), 110);
+    compare(GridPlacement.span(2), 240, "two units are half a card");
+    compare(GridPlacement.span(4), 500, "four units are one card");
+    compare(GridPlacement.span(8), 1020, "two cards and the gap between");
+    compare(GridPlacement.span(4, 300), 300, "at another card size");
   }
 
   function test_shapes() {
@@ -136,25 +137,25 @@ TestCase {
 
   function test_trackSizes() {
     const natural = GridPlacement.trackSizes({
-      "cols": 4,
-      "rows": 2
+      "cols": 8,
+      "rows": 4
     }, 500);
-    compare(natural.halfW, 240);
-    compare(natural.halfH, 240);
+    compare(natural.unitW, 110);
+    compare(natural.unitH, 110);
     compare(natural.width, 1020);
     compare(natural.height, 500);
     const stretched = GridPlacement.trackSizes({
-      "cols": 4,
-      "rows": 2
+      "cols": 8,
+      "rows": 4
     }, 500, {
       "height": 1020
     });
-    compare(stretched.halfW, 240, "only the stretched axis grows");
-    compare(stretched.halfH, 500);
+    compare(stretched.unitW, 110, "only the stretched axis grows");
+    compare(stretched.unitH, 240);
     compare(stretched.height, 1020);
     const smaller = GridPlacement.trackSizes({
-      "cols": 2,
-      "rows": 2
+      "cols": 4,
+      "rows": 4
     }, 500, {
       "width": 100
     });
@@ -167,14 +168,14 @@ TestCase {
 
   function test_rectPx() {
     const sizes = GridPlacement.trackSizes({
-      "cols": 4,
-      "rows": 4
+      "cols": 8,
+      "rows": 8
     }, 500);
     compare(GridPlacement.rectPx({
-      "x": 2,
-      "y": 1,
-      "w": 2,
-      "h": 3
+      "x": 4,
+      "y": 2,
+      "w": 4,
+      "h": 6
     }, sizes), {
       "x": 520,
       "y": 260,

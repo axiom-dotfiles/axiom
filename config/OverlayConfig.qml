@@ -40,7 +40,8 @@ QtObject {
         "propertiesSchema": def.properties?.properties?.properties ?? null,
         // Shapes a module fits (`x-shapes`); views don't declare any
         "shapes": def["x-shapes"] ?? ["square", "horizontal", "vertical"],
-        // Smallest size, and the size it's added at ([w, h] in half cards;
+        // Smallest size, and the size it's added at ([w, h] in grid units,
+        // four to a card;
         // `x-minSize`, `x-defaultSize`), null when not declared
         "minSize": def["x-minSize"] ?? null,
         "defaultSize": def["x-defaultSize"] ?? null,
@@ -124,7 +125,8 @@ QtObject {
   readonly property real fitCardsWide: 4.5
   readonly property int minCardUnit: 280
 
-  readonly property real halfUnit: GridPlacement.halfUnitOf(cardUnit)
+  // One grid unit (a quarter card) at the reference card size
+  readonly property real gridUnit: GridPlacement.unitOf(cardUnit)
   function span(n, unit) {
     return GridPlacement.span(n, unit);
   }
@@ -144,11 +146,11 @@ QtObject {
     const declared = moduleInfo(type)?.defaultSize;
     if (declared)
       return declared;
-    return [[2, 2], [2, 4], [4, 2], [4, 4]].find(size => fits(type, [0, 0, size[0], size[1]])) ?? [2, 2];
+    return [[4, 4], [4, 8], [8, 4], [8, 8]].find(size => fits(type, [0, 0, size[0], size[1]])) ?? [4, 4];
   }
 
   // The smallest size [w, h] a module may shrink to with `shape` ignored:
-  // its declared minimum, else a quarter card
+  // its declared minimum, else one grid unit
   function minSize(type) {
     return moduleInfo(type)?.minSize ?? [1, 1];
   }

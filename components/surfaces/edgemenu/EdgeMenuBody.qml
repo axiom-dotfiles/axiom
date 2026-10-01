@@ -7,7 +7,7 @@ import qs.components.methods
 import qs.components.reusable
 import qs.components.hosts.overlay
 
-// An edge menu's modules on a grid of half cards, as on a Custom overlay
+// An edge menu's modules on a grid of quarter cards, as on a Custom overlay
 // page, with cards of the menu's own cardSize. With `length: "edge"` the
 // grid stretches along the edge to `maxLength`; otherwise it's capped
 // there and scrolls past that.

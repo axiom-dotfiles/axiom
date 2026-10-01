@@ -183,7 +183,7 @@ TestCase {
     // cells leave nothing behind
     compare(config.Overlay.views[1].columns, undefined);
     compare(modules.length, 4);
-    compare(modules.map(m => [m.place.x, m.place.y, m.place.w, m.place.h]), [[0, 0, 2, 2], [0, 2, 2, 2], [0, 4, 2, 2], [0, 6, 2, 2]]);
+    compare(modules.map(m => [m.place.x, m.place.y, m.place.w, m.place.h]), [[0, 0, 4, 4], [0, 4, 4, 4], [0, 8, 4, 4], [0, 12, 4, 4]]);
   }
 
   function test_v20_adds_app_binds_on_free_keys() {
@@ -410,17 +410,17 @@ TestCase {
     const home = views[0];
     compare(home.columns, undefined);
     const at = type => home.modules.filter(m => m.type === type).map(place);
-    compare(at("ClockCalendar"), [[0, 0, 2, 4]]);
-    compare(at("QuickActions"), [[2, 0, 2, 1], [2, 1, 2, 1]]);
-    compare(at("SystemGraphs"), [[2, 2, 2, 2]]);
-    compare(at("NowPlaying"), [[4, 0, 4, 2]]);
-    compare(at("AudioMixer"), [[4, 2, 2, 2]]);
-    compare(at("Network"), [[6, 2, 2, 1]]);
-    compare(at("Favourites"), [[6, 3, 1, 1]]);
-    compare(at("Screenshot"), [[7, 3, 1, 1]]);
-    compare(at("Notifications"), [[8, 0, 2, 2]]);
-    compare(at("Weather"), [[8, 2, 2, 1]]);
-    compare(at("Disks"), [[8, 3, 2, 1]]);
+    compare(at("ClockCalendar"), [[0, 0, 4, 8]]);
+    compare(at("QuickActions"), [[4, 0, 4, 2], [4, 2, 4, 2]]);
+    compare(at("SystemGraphs"), [[4, 4, 4, 4]]);
+    compare(at("NowPlaying"), [[8, 0, 8, 4]]);
+    compare(at("AudioMixer"), [[8, 4, 4, 4]]);
+    compare(at("Network"), [[12, 4, 4, 2]]);
+    compare(at("Favourites"), [[12, 6, 2, 2]]);
+    compare(at("Screenshot"), [[14, 6, 2, 2]]);
+    compare(at("Notifications"), [[16, 0, 4, 4]]);
+    compare(at("Weather"), [[16, 4, 4, 2]]);
+    compare(at("Disks"), [[16, 6, 4, 2]]);
     compare(home.modules.find(m => m.type === "Disks").properties.paths, ["/", "/home"]);
 
     const menus = config.EdgeMenus;
@@ -428,18 +428,18 @@ TestCase {
     const left = menus[0];
     compare(left.columns, undefined);
     compare(left.length, "edge");
-    compare(left.modules.map(m => [m.type].concat(place(m))), [["NowPlaying", 0, 1, 2, 1], ["QuickActions", 0, 0, 2, 1], ["ClockCalendar", 0, 2, 2, 2]]);
+    compare(left.modules.map(m => [m.type].concat(place(m))), [["NowPlaying", 0, 2, 4, 2], ["QuickActions", 0, 0, 4, 2], ["ClockCalendar", 0, 4, 4, 4]]);
     // The extra width across a right edge goes into the card size
     const right = menus[1];
     compare(right.length, "edge");
     compare(right.cardSize, 445);
     compare(right.extraWidth, undefined);
-    compare(right.modules.map(m => [m.type].concat(place(m))), [["NowPlaying", 0, 0, 2, 1], ["Chat", 0, 1, 2, 4], ["QuickActions", 0, 5, 2, 1]]);
-    // Two Talls side by side on a top edge, 4 half units thick: 5 px
+    compare(right.modules.map(m => [m.type].concat(place(m))), [["NowPlaying", 0, 0, 4, 2], ["Chat", 0, 2, 4, 8], ["QuickActions", 0, 10, 4, 2]]);
+    // Two Talls side by side on a top edge, 8 quarter units thick: 5 px
     // across adds 2.5 to the card size
     compare(menus[2].length, "content");
     compare(menus[2].cardSize, 322);
-    compare(menus[2].modules.map(place), [[0, 0, 2, 4], [2, 0, 2, 4]]);
+    compare(menus[2].modules.map(place), [[0, 0, 4, 8], [4, 0, 4, 8]]);
     verify(loaded.changes.some(change => change.includes("along the edge (200 px) dropped")));
   }
 
@@ -475,7 +475,7 @@ TestCase {
     compare(menu.pinButton, true);
     compare(menu.length, "edge");
     compare(menu.modules.length, 1);
-    compare(place(menu.modules[0]), [0, 0, 2, 1]);
+    compare(place(menu.modules[0]), [0, 0, 4, 2]);
     compare(errors(loaded.config), []);
   }
 
@@ -523,7 +523,7 @@ TestCase {
       }
     });
     const modules = loaded.config.Overlay.views[0].modules;
-    compare(modules.map(place), [[0, 0, 2, 4], [2, 2, 4, 2]]);
+    compare(modules.map(place), [[0, 0, 4, 8], [4, 4, 8, 4]]);
     compare(errors(loaded.config), []);
   }
 

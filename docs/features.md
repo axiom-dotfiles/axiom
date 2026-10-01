@@ -53,19 +53,20 @@ The screenshots show [two setups](../README.md#built-in-the-shell) of the same s
 | :---: | :---: |
 | <img src="../assets/screenshots/overlay-home.webp" alt="The overlay's Home page, setup A"> | <img src="../assets/screenshots/overlay-home-b.webp" alt="The overlay's Home page, setup B"> |
 
-- A full-screen overlay made of pages of cards. Each page is built from columns, each column from cells, and each cell holds modules.
-- 24 modules, including:
+- A full-screen overlay made of pages of cards. Each page is a grid you place modules on, sized in quarter cards, with gaps wherever you like. A page can stretch to fill the screen.
+- 23 modules, including:
   - a media player, audio mixer, system graphs and top processes
   - disks, updates, quick actions (toggles, power, pin), Bluetooth, network and Wi-Fi networks
   - weather, calendar, notes and favorites
   - screenshot, session controls, a workspace map and AI chat
-- Modules adapt to the shape of their slot (square, wide, tall or quarter).
+- Modules adapt to their size and shape (square, wide or tall, down to a quarter card).
 - Built-in pages:
   - **Settings**, generated from the config schema
-  - **Bar editor**, **Overlay editor** and **Edge menu editor** (see [Built in the shell](../README.md#built-in-the-shell))
+  - **Bar editor** and **Layouts** (overlay pages and edge menus, see [Built in the shell](../README.md#built-in-the-shell))
   - **Themes**
   - **Keybinds**
   - **Monitors** (see [The rest](#the-rest))
+  - Tool pages sit after your own pages in the navigator, as icons.
 - Every module can also go in an [edge menu](#edge-menus).
 
 <details>
@@ -80,13 +81,13 @@ The screenshots show [two setups](../README.md#built-in-the-shell) of the same s
 
 ## Edge menus
 
-Edge menus are the overlay's other half. Every overlay module fits in them, laid out in the same columns and cells, but a menu slides out of a screen edge and leaves the rest of your desktop in view. Use them for what you want one hover away.
+Edge menus are the overlay's other half. Every overlay module fits in them, placed on the same grid, but a menu slides out of a screen edge and leaves the rest of your desktop in view. Use them for what you want one hover away.
 
 - **Floating** menus open over your windows. They grow out of the screen border or a solid bar like the popouts, or sit apart as a box.
 - **Integrated** menus open outside the border and bars. They push the bars and your windows inwards, like a sidebar.
-- Open one by resting the pointer on its edge, from a bar **Button**, with a keybind, or over IPC (`edgeMenu toggle <id>`). It can close when the pointer leaves or you click outside it, and the **Pin** module or tile keeps it open.
-- Each menu has its own edge, monitor, position along the edge, card size, padding, colors and hover timings. An integrated menu can also draw a framed box along the whole edge.
-- Build them on the **Edge menu editor** page (see [Built in the shell](../README.md#built-in-the-shell)).
+- Open one by resting the pointer on its edge, from a bar **Button**, with a keybind, or over IPC (`edgeMenu toggle <id>`). It can close when the pointer leaves or you click outside it, and its pin button or the pin quick action keeps it open. The editor lists what opens a menu and adds a bar button or keybind for it in one click.
+- Each menu has its own edge, monitor, position along the edge, length (fit its modules or take the whole edge), card size, padding, colors and hover timings. An integrated menu can also draw a framed box along the whole edge.
+- Build them on the **Layouts** page, next to your overlay pages (see [Built in the shell](../README.md#built-in-the-shell)).
 
 An integrated menu takes its space from your windows, which retile beside it and get it back when it closes:
 

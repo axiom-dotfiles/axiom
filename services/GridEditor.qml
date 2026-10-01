@@ -5,7 +5,7 @@ import qs.config
 import qs.components.methods
 
 /* Editing of one grid of modules (each with a `place` { x, y, w, h } in
- * half cards), shared by the layouts editor's overlay pages and edge
+ * quarter cards), shared by the layouts editor's overlay pages and edge
  * menus. Not a singleton: OverlayManager and EdgeMenuManager each own one,
  * point `modulesOf` at the live modules array in their draft and run their
  * draft's changed() on `edited`.
