@@ -3,7 +3,7 @@ import QtQuick
 import QtQuick.Layouts
 import qs.config
 
-// A list of rows (ListEntryRows as children, each at `y: index * rowStep`)
+// A list of rows (EntryListRows as children, each at `y: index * rowStep`)
 // that takes drops of its own rows to reorder them: a "list" target of the
 // layouts editor's drag layer. A drop is `dropRequested(drag, index)`,
 // index counted as if the carried row were still in place.
@@ -24,10 +24,6 @@ Item {
 
   function takes(drag) {
     return drag.kind === root.moveKind;
-  }
-
-  function listDrop(drag, index) {
-    root.dropRequested(drag, index);
   }
 
   // Before the first row whose middle is below the point

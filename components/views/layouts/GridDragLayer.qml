@@ -18,7 +18,7 @@ import qs.components.reusable
 //   "menu-move" { index }         an edge menu row
 // Targets: items with `targetKind` "grid" (placeAt(point, drag, grab)
 // → { x, y, w, h }) or "list" (EntryListTarget: takes(drag), indexAt,
-// listDrop(drag, index)). Module edits go to `editor` (a GridEditor); a
+// dropRequested(drag, index)). Module edits go to `editor` (a GridEditor); a
 // list handles its own drops.
 DragLayer {
   id: root
@@ -77,7 +77,7 @@ DragLayer {
   // Does whatever the target takes
   onDropped: (drag, target, index) => {
     if (target.targetKind === "list") {
-      target.listDrop(drag, index);
+      target.dropRequested(drag, index);
       return;
     }
     const place = target.placeAt(root.pointer, drag, root.grab);

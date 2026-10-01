@@ -46,30 +46,19 @@ ColumnLayout {
     Repeater {
       model: pageList.count
 
-      ListEntryRow {
+      EntryListRow {
         id: entry
-        required property int index
         readonly property int viewIndex: root.dashboards[entry.index] ?? -1
         readonly property var entryView: root.views[entry.viewIndex] ?? ({})
-        readonly property bool carried: root.dragLayer.draggingKind === "page-move" && root.dragLayer.dragging.index === entry.viewIndex
 
-        width: pageList.width
-        height: pageList.rowHeight
-        y: entry.index * pageList.rowStep
-        opacity: entry.carried ? 0.3 : 1
+        list: pageList
+        entryIndex: entry.viewIndex
         icon: OverlayConfig.pageIcon(entry.entryView)
         label: OverlayConfig.viewLabel(entry.entryView, entry.viewIndex)
         dimmed: entry.entryView.visible === false
         selected: OverlayManager.editTarget === "page" && OverlayManager.selectedViewIndex === entry.viewIndex
         changed: OverlayManager.viewChanged(entry.viewIndex)
         onClicked: OverlayManager.editPage(entry.viewIndex)
-        dragArea.dragLayer: root.dragLayer
-        dragArea.payload: ({
-            "kind": "page-move",
-            "index": entry.viewIndex,
-            "icon": entry.icon,
-            "label": entry.label
-          })
 
         RowAction {
           row: entry
@@ -120,31 +109,20 @@ ColumnLayout {
     Repeater {
       model: toolList.count
 
-      ListEntryRow {
+      EntryListRow {
         id: tool
-        required property int index
         readonly property int viewIndex: root.tools[tool.index] ?? -1
         readonly property var entryView: root.views[tool.viewIndex] ?? ({})
         readonly property bool shown: tool.entryView.visible !== false
-        readonly property bool carried: root.dragLayer.draggingKind === "tool-move" && root.dragLayer.dragging.index === tool.viewIndex
 
-        width: toolList.width
-        height: toolList.rowHeight
-        y: tool.index * toolList.rowStep
-        opacity: tool.carried ? 0.3 : 1
+        list: toolList
+        entryIndex: tool.viewIndex
         icon: OverlayConfig.viewIcon(tool.entryView.type)
         label: OverlayConfig.viewLabel(tool.entryView, tool.viewIndex)
         dimmed: !tool.shown
         selected: OverlayManager.editTarget === "page" && OverlayManager.selectedViewIndex === tool.viewIndex
         changed: OverlayManager.viewChanged(tool.viewIndex)
         onClicked: OverlayManager.editPage(tool.viewIndex)
-        dragArea.dragLayer: root.dragLayer
-        dragArea.payload: ({
-            "kind": "tool-move",
-            "index": tool.viewIndex,
-            "icon": tool.icon,
-            "label": tool.label
-          })
 
         RowAction {
           row: tool

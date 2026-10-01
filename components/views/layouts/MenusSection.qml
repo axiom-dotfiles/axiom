@@ -32,29 +32,17 @@ ColumnLayout {
     Repeater {
       model: menuList.count
 
-      ListEntryRow {
+      EntryListRow {
         id: entry
-        required property int index
         readonly property var entryMenu: EdgeMenuManager.localMenus[entry.index] ?? ({})
-        readonly property bool carried: root.dragLayer.draggingKind === "menu-move" && root.dragLayer.dragging.index === entry.index
 
-        width: menuList.width
-        height: menuList.rowHeight
-        y: entry.index * menuList.rowStep
-        opacity: entry.carried ? 0.3 : 1
+        list: menuList
         icon: Utils.edgeArrow(entry.entryMenu.edge)
         label: EdgeMenuManager.menuLabel(entry.entryMenu, entry.index)
         selected: OverlayManager.editTarget === "menu" && EdgeMenuManager.selectedMenuIndex === entry.index
         dimmed: entry.entryMenu.enabled === false
         changed: EdgeMenuManager.menuChanged(entry.index)
         onClicked: OverlayManager.editMenu(entry.index)
-        dragArea.dragLayer: root.dragLayer
-        dragArea.payload: ({
-            "kind": "menu-move",
-            "index": entry.index,
-            "icon": entry.icon,
-            "label": entry.label
-          })
 
         // Held open on screen by the editor
         badges: StyledIcon {
