@@ -587,6 +587,89 @@ TestCase {
     compare(errors(loaded.config), []);
   }
 
+  function test_v33_weather_settings_become_global() {
+    const loaded = load({
+      "version": 32,
+      "Bars": [
+        {
+          "id": "primary",
+          "widgets": {
+            "left": [
+              {
+                "type": "Weather",
+                "properties": {
+                  "location": "",
+                  "units": "celsius",
+                  "intervalMinutes": 30,
+                  "showCondition": true
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "Overlay": {
+        "views": [
+          {
+            "type": "Custom",
+            "name": "Home",
+            "modules": [
+              {
+                "type": "Weather",
+                "place": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 4,
+                  "h": 4
+                },
+                "properties": {
+                  "location": "Kyoto",
+                  "latitude": "",
+                  "longitude": "",
+                  "units": "fahrenheit"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "EdgeMenus": [
+        {
+          "id": "a",
+          "modules": [
+            {
+              "type": "Weather",
+              "place": {
+                "x": 0,
+                "y": 0,
+                "w": 2,
+                "h": 1
+              },
+              "properties": {
+                "location": "Oslo"
+              }
+            }
+          ]
+        }
+      ]
+    });
+    const config = loaded.config;
+    compare(config.Weather, {
+      "location": "Kyoto",
+      "latitude": "",
+      "longitude": "",
+      "units": "fahrenheit",
+      "intervalMinutes": 30
+    });
+    compare(config.Bars[0].widgets.left[0].properties.location, undefined);
+    compare(config.Bars[0].widgets.left[0].properties.showCondition, true);
+    compare(config.Overlay.views[0].modules[0].properties, undefined);
+    compare(config.EdgeMenus[0].modules[0].properties, undefined);
+    verify(loaded.changes.some(change => change.includes("from Overlay.views[0].modules[0]")));
+    verify(loaded.changes.some(change => change.startsWith("EdgeMenus[0].modules[0]: its own location dropped")));
+    compare(errors(config), []);
+  }
+
   function test_migration_is_idempotent() {
     const once = load(files.json("tests/fixtures/configs/v1.json")).config;
     const again = ConfigMigration.migrate(once);

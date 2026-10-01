@@ -1159,19 +1159,66 @@ QtObject {
   }
 
   // v33: tool pages can't be removed, only hidden, so every one is in
-  // Overlay.views; one missing was removed, so it comes back hidden
+  // Overlay.views; one missing was removed, so it comes back hidden. And
+  // every weather widget and module shows one location, from the new
+  // Weather section: the first one that set a location (else the first
+  // one) gives it, with its units, and the bar widgets' shortest refresh
+  // interval
   function _v32ToV33(config, changes) {
     const views = config.Overlay?.views;
-    if (!Array.isArray(views))
-      return config;
-    ["Settings", "Keybinds", "BarEditor", "Themes", "Monitors"].forEach(type => {
-      if (views.some(view => view?.type === type))
-        return;
-      views.push({
-        "type": type,
-        "visible": false
+    if (Array.isArray(views)) {
+      ["Settings", "Keybinds", "BarEditor", "Themes", "Monitors"].forEach(type => {
+        if (views.some(view => view?.type === type))
+          return;
+        views.push({
+          "type": type,
+          "visible": false
+        });
+        changes.push(`Overlay.views: tool page ${type} added back, hidden`);
       });
-      changes.push(`Overlay.views: tool page ${type} added back, hidden`);
+    }
+
+    // [{ where, item }] for every Weather widget and module, bars first
+    const found = [];
+    const collect = (list, where) => (Array.isArray(list) ? list : []).forEach((item, i) => {
+        if (item?.type === "Weather")
+          found.push({
+            "where": `${where}[${i}]`,
+            "item": item
+          });
+      });
+    (Array.isArray(config.Bars) ? config.Bars : []).forEach((bar, b) => {
+      const widgets = bar?.widgets ?? {};
+      Object.keys(widgets).forEach(section => collect(widgets[section], `Bars[${b}].widgets.${section}`));
+    });
+    (Array.isArray(views) ? views : []).forEach((view, v) => collect(view?.modules, `Overlay.views[${v}].modules`));
+    (Array.isArray(config.EdgeMenus) ? config.EdgeMenus : []).forEach((menu, m) => collect(menu?.modules, `EdgeMenus[${m}].modules`));
+    const keys = ["location", "latitude", "longitude", "units", "intervalMinutes"];
+    const withProps = found.filter(f => f.item.properties && typeof f.item.properties === "object" && keys.some(key => key in f.item.properties));
+    if (withProps.length === 0)
+      return config;
+    const isSet = props => ["location", "latitude", "longitude"].some(key => String(props[key] ?? "").trim() !== "");
+    const source = withProps.find(f => isSet(f.item.properties)) ?? withProps[0];
+    const sourceProps = Object.assign({}, source.item.properties);
+    const intervals = withProps.map(f => Number(f.item.properties.intervalMinutes)).filter(n => !isNaN(n));
+    if (!config.Weather || typeof config.Weather !== "object") {
+      const weather = {};
+      ["location", "latitude", "longitude", "units"].forEach(key => {
+        if (key in sourceProps)
+          weather[key] = sourceProps[key];
+      });
+      if (intervals.length > 0)
+        weather.intervalMinutes = Math.min(...intervals);
+      config.Weather = weather;
+      changes.push(`Weather: location and units from ${source.where}`);
+    }
+    withProps.forEach(f => {
+      const props = f.item.properties;
+      if (f !== source && isSet(props) && ["location", "latitude", "longitude"].some(key => props[key] !== sourceProps[key]))
+        changes.push(`${f.where}: its own location dropped: weather follows the Weather settings`);
+      keys.forEach(key => delete props[key]);
+      if (Object.keys(props).length === 0)
+        delete f.item.properties;
     });
     return config;
   }

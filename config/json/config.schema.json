@@ -1085,6 +1085,22 @@
       }
     },
 
+    "Weather": {
+      "type": "object",
+      "x-category": "Weather",
+      "title": "Weather",
+      "description": "Where and how every weather widget and module gets its weather, from Open-Meteo (no account needed).",
+      "additionalProperties": false,
+      "x-order": ["location", "latitude", "longitude", "units", "intervalMinutes"],
+      "properties": {
+        "location": { "type": "string", "title": "Location", "default": "", "description": "City name to look up. Empty uses your IP's location." },
+        "latitude": { "type": "string", "title": "Latitude", "default": "", "description": "Exact coordinates; with longitude, overrides the location lookup." },
+        "longitude": { "type": "string", "title": "Longitude", "default": "" },
+        "units": { "type": "string", "title": "Units", "default": "celsius", "enum": ["celsius", "fahrenheit"] },
+        "intervalMinutes": { "type": "integer", "title": "Refresh interval", "x-unit": "min", "default": 15, "minimum": 5, "maximum": 1440 }
+      }
+    },
+
     "OSD": {
       "type": "object",
       "x-category": "OSD",
@@ -2440,17 +2456,7 @@
       "additionalProperties": false,
       "properties": {
         "place": { "$ref": "#/definitions/GridPlace" },
-        "type": { "const": "Weather", "description": "Weather" },
-        "properties": {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "location": {"type": "string", "title": "Location", "default": "", "description": "City name; empty uses your IP's location."},
-            "latitude": {"type": "string", "title": "Latitude", "default": "", "description": "Exact coordinates; with longitude, overrides the location lookup."},
-            "longitude": {"type": "string", "title": "Longitude", "default": ""},
-            "units": {"type": "string", "title": "Units", "default": "celsius", "enum": ["celsius", "fahrenheit"]}
-          }
-        }
+        "type": { "const": "Weather", "description": "Weather" }
       }
     },
     "BatteryOverlayModule": {
@@ -3045,11 +3051,6 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "location": { "type": "string", "title": "Location", "default": "", "description": "City name to look up. Empty uses your IP location." },
-            "latitude": { "type": "string", "title": "Latitude", "default": "", "description": "Exact coordinates; with longitude, overrides the location lookup." },
-            "longitude": { "type": "string", "title": "Longitude", "default": "" },
-            "units": { "type": "string", "title": "Units", "default": "celsius", "enum": ["celsius", "fahrenheit"] },
-            "intervalMinutes": { "type": "integer", "title": "Refresh interval", "x-unit": "min", "default": 15, "minimum": 5, "maximum": 1440 },
             "showCondition": { "type": "boolean", "title": "Show condition", "default": false, "description": "Show the condition (e.g. Rain) next to the temperature." },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Show the forecast when hovered." },
             "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base0C" },

@@ -9,21 +9,13 @@ import qs.components.content.base
 
 // Current weather, plus the next hours and days where they fit (the days
 // beside it in wide slots), centred as one block; compact, the figure (in
-// a row along a strip). Same source and settings as the bar widget.
-// properties: { location, latitude, longitude, units }
+// a row along a strip). Same source as the bar widget: the Weather
+// settings' location and units.
 Card {
   id: root
 
-  // From config only (acquire() must not follow live values)
-  readonly property var weatherRequest: ({
-      "latitude": root.properties.latitude,
-      "longitude": root.properties.longitude,
-      "location": root.properties.location,
-      "units": root.properties.units
-    })
-  readonly property var source: WeatherManager.sourceFor(weatherRequest)
-  onWeatherRequestChanged: WeatherManager.acquire(root, weatherRequest)
-  Component.onCompleted: WeatherManager.acquire(root, weatherRequest)
+  readonly property var source: WeatherManager.source
+  Component.onCompleted: WeatherManager.acquire(root)
   Component.onDestruction: WeatherManager.release(root)
 
   readonly property var current: root.source.current

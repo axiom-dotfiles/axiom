@@ -75,8 +75,6 @@
     "Charging background": "充電中の背景",
     "Charging · {0} to full": "充電中 · 満充電まで{0}",
     "Chat": "チャット",
-    "City name to look up. Empty uses your IP location.": "検索する都市名。空欄の場合は IP アドレスから推定した場所を使います。",
-    "City name; empty uses your IP's location.": "都市名。空欄の場合は IP アドレスから推定した場所を使います。",
     "Clear": "晴れ",
     "Click action": "クリック時の動作",
     "Clock": "時計",
@@ -2194,6 +2192,8 @@
     "start": "開始",
     "end": "終了",
     "Grid units between the menu and its `align` anchor (towards the middle; from the middle, positive is towards the end). Set by the layouts editor's grid.": "メニューと `align` の基準点との間のグリッド単位数（中央に向かって。中央からの場合は正の値が終端側）。レイアウトエディタのグリッドで設定されます。",
-    "The end of its edge (or its middle) the menu is placed from, set by where its modules sit on the layouts editor's grid: start is left/top.": "メニューを配置する基準となる端（または中央）。レイアウトエディタのグリッド上のモジュールの位置で決まります。開始は左／上です。"
+    "The end of its edge (or its middle) the menu is placed from, set by where its modules sit on the layouts editor's grid: start is left/top.": "メニューを配置する基準となる端（または中央）。レイアウトエディタのグリッド上のモジュールの位置で決まります。開始は左／上です。",
+    "City name to look up. Empty uses your IP's location.": "検索する都市名。空欄の場合は IP アドレスから推定した場所を使います。",
+    "Where and how every weather widget and module gets its weather, from Open-Meteo (no account needed).": "すべての天気ウィジェットとモジュールが天気を取得する場所と方法(Open-Meteo、アカウント不要)。"
   }
 }
