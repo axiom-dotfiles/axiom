@@ -1664,7 +1664,7 @@
     "File manager": "ファイルマネージャー",
     "Browser": "ブラウザ",
     "Every key can be changed on the overlay's Keybinds page.": "すべてのキーはオーバーレイのキーバインドページで変更できます。",
-    "Search page types": "ページの種類を検索",
+    "Duplicate this page": "このページを複製",
     "Search actions": "アクションを検索",
     "No actions match \"{0}\"": "「{0}」に一致するアクションはありません",
     "Search binds by key, action or label": "キー、アクション、ラベルでバインドを検索",

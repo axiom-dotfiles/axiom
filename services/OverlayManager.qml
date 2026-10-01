@@ -137,20 +137,33 @@ QtObject {
     root.layout.clearSelection();
   }
 
-  function addView(type) {
-    const view = type === "Custom" ? {
+  // A new Custom page, selected (tool pages are always in config: they're
+  // hidden, never added or removed)
+  function addView() {
+    root.localViews.push(ConfigManager.withDefaults({
       "type": "Custom",
       "name": I18n.tr("Page {0}", root.localViews.filter(v => v.type === "Custom").length + 1),
       "modules": []
-    } : {
-      "type": type
-    };
-    root.localViews.push(ConfigManager.withDefaults(view, "OverlayView"));
+    }, "OverlayView"));
     root.editPage(root.localViews.length - 1);
     applyChanges();
   }
 
+  // Inserts a copy of a Custom page after it and selects it
+  function duplicateView(index) {
+    const view = root.localViews?.[index];
+    if (view?.type !== "Custom")
+      return;
+    const copy = Utils.clone(view);
+    copy.name = I18n.tr("{0} (copy)", OverlayConfig.viewLabel(view, index));
+    root.localViews.splice(index + 1, 0, copy);
+    root.editPage(index + 1);
+    applyChanges();
+  }
+
   function removeView(index) {
+    if (root.localViews?.[index]?.type !== "Custom")
+      return;
     root.localViews.splice(index, 1);
     root.selectView(Math.max(0, Math.min(root.selectedViewIndex, root.localViews.length - 1)));
     applyChanges();

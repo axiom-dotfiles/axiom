@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 32
+  readonly property int currentVersion: 33
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -91,6 +91,8 @@ QtObject {
       result = _v30ToV31(result, changes);
     if (version < 32)
       result = _v31ToV32(result, changes);
+    if (version < 33)
+      result = _v32ToV33(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -1152,6 +1154,24 @@ QtObject {
         changes.push(`${where}: frame margin dropped: the frame follows the screen margin`);
         delete menu.margin;
       }
+    });
+    return config;
+  }
+
+  // v33: tool pages can't be removed, only hidden, so every one is in
+  // Overlay.views; one missing was removed, so it comes back hidden
+  function _v32ToV33(config, changes) {
+    const views = config.Overlay?.views;
+    if (!Array.isArray(views))
+      return config;
+    ["Settings", "Keybinds", "BarEditor", "Themes", "Monitors"].forEach(type => {
+      if (views.some(view => view?.type === type))
+        return;
+      views.push({
+        "type": type,
+        "visible": false
+      });
+      changes.push(`Overlay.views: tool page ${type} added back, hidden`);
     });
     return config;
   }

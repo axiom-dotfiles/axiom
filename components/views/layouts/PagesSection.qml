@@ -7,8 +7,9 @@ import qs.components.reusable
 
 // i18n: keys from the schema (view labels)
 // Layouts editor, left: the overlay's pages as the navigator shows them,
-// your own pages then the tool pages, each group dragged to reorder within
-// itself (click to edit), and New page
+// your own pages (duplicate, remove, New page) then the tool pages (only
+// hidden, never removed), each group dragged to reorder within itself
+// (click to edit)
 ColumnLayout {
   id: root
 
@@ -79,6 +80,13 @@ ColumnLayout {
 
         RowAction {
           row: entry
+          iconText: "content_copy"
+          tooltipText: I18n.tr("Duplicate this page")
+          onClicked: OverlayManager.duplicateView(entry.viewIndex)
+        }
+
+        RowAction {
+          row: entry
           danger: true
           iconText: "close"
           tooltipText: I18n.tr("Remove this page")
@@ -86,6 +94,12 @@ ColumnLayout {
         }
       }
     }
+  }
+
+  AddEntryButton {
+    Layout.topMargin: Widget.spacing / 2
+    text: I18n.tr("New page")
+    onClicked: OverlayManager.addView()
   }
 
   StyledText {
@@ -139,32 +153,7 @@ ColumnLayout {
           tooltipText: tool.shown ? I18n.tr("Hide from the navigator") : I18n.tr("Show in the navigator")
           onClicked: OverlayManager.setViewVisible(tool.viewIndex, !tool.shown)
         }
-
-        RowAction {
-          row: tool
-          danger: true
-          iconText: "close"
-          tooltipText: I18n.tr("Remove this page")
-          onClicked: OverlayManager.removeView(tool.viewIndex)
-        }
       }
-    }
-  }
-
-  AddEntryButton {
-    id: addButton
-    Layout.topMargin: Widget.spacing / 2
-    text: I18n.tr("New page")
-    onClicked: viewPicker.open()
-
-    TypePickerPopup {
-      id: viewPicker
-      y: addButton.height + Widget.spacing / 2
-      width: addButton.width
-      // Custom pages as many as wanted; each tool page once
-      types: OverlayConfig.availableViewTypes.filter(t => t.type === "Custom" || !root.views.some(view => view.type === t.type))
-      placeholderText: I18n.tr("Search page types")
-      onTypeSelected: type => OverlayManager.addView(type)
     }
   }
 }

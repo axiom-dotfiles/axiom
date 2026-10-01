@@ -8,7 +8,7 @@
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 32,
+      "default": 33,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },

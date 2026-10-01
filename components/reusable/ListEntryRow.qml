@@ -22,7 +22,9 @@ StyledContainer {
   default property alias actions: actionRow.data
   property alias dragArea: area
 
-  readonly property bool hovered: area.containsMouse
+  // A HoverHandler, not the drag area's containsMouse, so the row stays
+  // hovered while the pointer is on one of its actions
+  readonly property bool hovered: hover.hovered
   // The colour of text and icons on the row
   readonly property color ink: root.selected ? Theme.background : Theme.foreground
 
@@ -32,6 +34,10 @@ StyledContainer {
   Layout.preferredHeight: Widget.height + Widget.padding
   backgroundColor: root.selected ? Theme.accent : (root.hovered ? Theme.backgroundHighlight : "transparent")
   borderWidth: 0
+
+  HoverHandler {
+    id: hover
+  }
 
   DragArea {
     id: area

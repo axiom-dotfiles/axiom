@@ -561,6 +561,32 @@ TestCase {
     compare(errors(loaded.config), []);
   }
 
+  function test_v33_missing_tool_pages_come_back_hidden() {
+    const loaded = load({
+      "version": 32,
+      "Overlay": {
+        "views": [
+          {
+            "type": "Custom",
+            "name": "Home",
+            "modules": []
+          },
+          {
+            "type": "Themes"
+          },
+          {
+            "type": "Settings"
+          }
+        ]
+      }
+    });
+    const views = loaded.config.Overlay.views;
+    compare(views.map(view => view.type), ["Custom", "Themes", "Settings", "Keybinds", "BarEditor", "Monitors"]);
+    compare(views.map(view => view.visible === false), [false, false, false, true, true, true]);
+    compare(loaded.changes.filter(change => change.includes("added back")).length, 3);
+    compare(errors(loaded.config), []);
+  }
+
   function test_migration_is_idempotent() {
     const once = load(files.json("tests/fixtures/configs/v1.json")).config;
     const again = ConfigMigration.migrate(once);
