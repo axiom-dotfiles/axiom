@@ -1057,13 +1057,15 @@ QtObject {
       p.place.h += to - p.cellBottom;
     });
     return {
+      // w and h kept to v31's GridPlace maximum (32): a fill cell grown
+      // down a tall column could reach past it
       "modules": placed.map(p => {
         const module = Object.assign({}, p.module);
         module.place = {
           "x": p.place.x * 2,
           "y": p.place.y * 2,
-          "w": p.place.w * 2,
-          "h": p.place.h * 2
+          "w": Math.min(32, p.place.w * 2),
+          "h": Math.min(32, p.place.h * 2)
         };
         return module;
       }),
@@ -1097,6 +1099,8 @@ QtObject {
         view.modules = result.modules;
         delete view.columns;
         changes.push(`Overlay.views[${v}]: columns -> ${result.modules.length} placed modules`);
+        if (result.pins > 0)
+          changes.push(`Overlay.views[${v}]: ${result.pins} Pin module(s) removed (pinning is an edge menu's pinButton)`);
       }
     }
     (Array.isArray(config.EdgeMenus) ? config.EdgeMenus : []).forEach((menu, m) => {

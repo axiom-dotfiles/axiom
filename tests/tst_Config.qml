@@ -527,6 +527,62 @@ TestCase {
     compare(errors(loaded.config), []);
   }
 
+  function test_v31_fill_growth_stays_in_bounds_and_page_pins_are_noted() {
+    const tall = {
+      "layout": "Tall",
+      "slots": {
+        "main": {
+          "type": "Weather"
+        }
+      }
+    };
+    const loaded = load({
+      "version": 30,
+      "Overlay": {
+        "views": [
+          {
+            "type": "Custom",
+            "columns": [
+              {
+                "cells": [tall, tall, tall, tall, tall]
+              },
+              {
+                "cells": [
+                  {
+                    "layout": "Single",
+                    "fillHeight": true,
+                    "slots": {
+                      "main": {
+                        "type": "NowPlaying"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "cells": [
+                  {
+                    "layout": "Single",
+                    "slots": {
+                      "main": {
+                        "type": "Pin"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    });
+    const modules = loaded.config.Overlay.views[0].modules;
+    compare(modules.length, 6);
+    verify(modules.every(module => module.place.h <= 32), "grown down a 40-unit column, kept to 32");
+    verify(loaded.changes.some(change => change.includes("Pin module(s) removed")));
+    compare(errors(loaded.config), []);
+  }
+
   function test_v32_position_becomes_an_anchor() {
     const loaded = load({
       "version": 31,

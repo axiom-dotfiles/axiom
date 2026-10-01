@@ -14,6 +14,8 @@ QtObject {
   // (each overlay's OverlayGrid sizes its cards to its screen, up to this).
   readonly property int cardUnit: 500
   readonly property int cardSpacing: 20
+  // The largest a module's w or h may be (the schema's GridPlace maximum)
+  readonly property int maxSpan: 32
 
   // A span of n grid units is n units plus the n - 1 gaps between them,
   // so span(4) is one card, span(2) half a card and span(8) two cards plus

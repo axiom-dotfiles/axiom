@@ -94,7 +94,7 @@ QtObject {
 
   // Whether a new module of `type` may be added at `place` ({ x, y, w, h })
   function canAdd(type, place) {
-    return root._clear(root._modules(), place, -1);
+    return OverlayConfig.allowedIn(type, root.host) && root._clear(root._modules(), place, -1);
   }
 
   // Whether module `index` may move with its top left to x, y: somewhere
@@ -115,7 +115,7 @@ QtObject {
     if (!module)
       return false;
     const place = root._place(module.place.x, module.place.y, w, h);
-    return root._clear(modules, place, index);
+    return w <= GridPlacement.maxSpan && h <= GridPlacement.maxSpan && root._clear(modules, place, index);
   }
 
   // --- Editing ---
