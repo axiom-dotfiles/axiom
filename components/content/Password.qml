@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 
+import qs.config
 import qs.services
 import qs.components.content.base
 import qs.components.content.parts
@@ -14,12 +15,15 @@ Card {
   id: root
 
   // The lock surface's host: { kind: "lockscreen", target, preview, key,
-  // bare }
+  // bare, passwordBorder, greetingBorder }
   readonly property bool onLockscreen: root.host?.kind === "lockscreen"
   readonly property bool live: root.onLockscreen && root.host.target === true && root.host.preview !== true
 
-  // The field draws its own box, so no card around it, whatever the lock
-  // screen's moduleBorders
+  // The field draws its own box, so no card around it: with the lock
+  // screen's passwordBorder (independent of its moduleBorders) a box hugs
+  // the field instead of filling the slot
+  readonly property bool boxed: root.host?.passwordBorder === true
+
   color: "transparent"
   border.width: 0
 
@@ -38,12 +42,27 @@ Card {
   onHostChanged: root._report()
   Component.onDestruction: LockManager.reportPasswordField(root._reportedKey, false)
 
-  PasswordField {
-    anchors.fill: parent
+  // Boxed, it's drawn like LockSurface's fallback field: a box as tall as
+  // the field plus padding, across the slot
+  Rectangle {
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.verticalCenter: parent.verticalCenter
     anchors.margins: root.pad
-    active: root.live
-    placeholder: root.properties.placeholder
-    centered: root.properties.centered
-    showMessages: root.properties.showMessages
+    height: root.boxed ? field.implicitHeight + Widget.padding * 2 : parent.height - root.pad * 2
+    radius: Widget.radius
+    color: root.boxed ? Theme.background : "transparent"
+    border.color: Theme.border
+    border.width: root.boxed ? Appearance.borderWidth : 0
+
+    PasswordField {
+      id: field
+      anchors.fill: parent
+      anchors.margins: root.boxed ? Widget.padding : 0
+      active: root.live
+      placeholder: root.properties.placeholder
+      centered: root.properties.centered
+      showMessages: root.properties.showMessages
+    }
   }
 }

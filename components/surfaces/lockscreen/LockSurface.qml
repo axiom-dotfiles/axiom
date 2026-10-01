@@ -35,8 +35,9 @@ Item {
   readonly property var allModules: root.layout?.modules ?? []
   readonly property var modules: root.isTarget ? root.allModules : root.layout?.otherScreens === "layout" ? root.allModules.filter(module => module?.type !== "Password") : []
   // Where this surface's Password module reports itself
-  // (LockManager.passwordFields)
-  readonly property string passwordKey: (root.preview ? "preview:" : "lock:") + (root.screen?.name ?? "")
+  // (LockManager.passwordFields): this instance's own, set once on
+  // creation (a binding would loop on the counter newSurfaceKey bumps)
+  property string passwordKey: ""
 
   // The grid: at least columns × rows, fitted inside a margin
   readonly property real margin: OverlayConfig.cardSpacing
@@ -48,7 +49,10 @@ Item {
 
   // The fallback field waits a tick, so a Password module can report first
   property bool _settled: false
-  Component.onCompleted: Qt.callLater(() => root._settled = true)
+  Component.onCompleted: {
+    root.passwordKey = LockManager.newSurfaceKey(root.preview);
+    Qt.callLater(() => root._settled = true);
+  }
 
   Rectangle {
     anchors.fill: parent
@@ -108,7 +112,9 @@ Item {
           "target": root.isTarget,
           "preview": root.preview,
           "key": root.passwordKey,
-          "bare": !(root.layout?.moduleBorders ?? false)
+          "bare": !(root.layout?.moduleBorders ?? false),
+          "passwordBorder": root.layout?.passwordBorder ?? false,
+          "greetingBorder": root.layout?.greetingBorder ?? false
         })
       grid: OverlayGrid {
         fixedUnit: GridPlacement.latticeUnit(root.cols, root.rows, root.width, root.height, root.margin)

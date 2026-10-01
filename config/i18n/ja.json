@@ -2204,7 +2204,6 @@
     "Darken the background so the modules stand out.": "モジュールが目立つように背景を暗くします。",
     "What it says. {name} is your display name, {user} your user name and {greeting} good morning, afternoon or evening. Empty says hey to your display name.": "表示する文です。{name} は表示名、{user} はユーザー名、{greeting} は時間帯に応じたあいさつになります。空の場合は表示名にあいさつします。",
     "Each monitor's wallpaper (blurred when Blur wallpaper is on), or a plain color.": "各モニターの壁紙（「壁紙をぼかす」がオンならぼかしあり）、または単色です。",
-    "Draw each module's card box. Off shows modules straight on the background. The greeting and the password field never have one.": "各モジュールのカード枠を描きます。オフにするとモジュールを背景の上に直接表示します。あいさつとパスワード欄には枠がありません。",
     "Move left": "左へ移動",
     "Move right": "右へ移動",
     "Centred": "中央",
@@ -2249,6 +2248,11 @@
     "Screen & Power": "画面と電源",
     "Maintenance": "メンテナンス",
     "Dock & OSD": "ドックとOSD",
-    "Overlay & Popouts": "オーバーレイとポップアウト"
+    "Overlay & Popouts": "オーバーレイとポップアウト",
+    "Draw each module's card box. Off shows modules straight on the background. The password field and the greeting have their own switches.": "各モジュールのカード枠を描画します。オフにするとモジュールを背景に直接表示します。パスワード欄と挨拶には個別のスイッチがあります。",
+    "Password field border": "パスワード欄の枠",
+    "Draw a card box around the password field.": "パスワード欄の周りにカード枠を描画します。",
+    "Greeting border": "挨拶の枠",
+    "Draw a card box around the greeting.": "挨拶の周りにカード枠を描画します。"
   }
 }

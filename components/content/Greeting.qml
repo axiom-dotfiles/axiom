@@ -14,9 +14,9 @@ import qs.components.content.base
 Card {
   id: root
 
-  // On the lock screen it's text on the background, whatever its
-  // moduleBorders: a card box around a greeting looks like a mistake
-  readonly property bool boxless: root.bare || root.host?.kind === "lockscreen"
+  // On the lock screen its box follows the layout's greetingBorder, not
+  // moduleBorders (off by default: text straight on the background)
+  readonly property bool boxless: root.host?.kind === "lockscreen" ? root.host.greetingBorder !== true : root.bare
   readonly property string template: root.properties.text
   readonly property bool wantsGreeting: root.template.includes("{greeting}")
 
