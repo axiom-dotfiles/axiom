@@ -48,6 +48,7 @@ TitledCard {
   headerExtras: [
     RowLayout {
       Layout.fillWidth: true
+      Layout.topMargin: Widget.spacing
       spacing: Widget.spacing / 2
 
       SegmentButton {

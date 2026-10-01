@@ -2,75 +2,77 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import qs.config
-import qs.components.methods
 import qs.components.reusable
 import qs.components.content.base
 import qs.components.content.parts
 
-// The current theme's 16 base colors, each with its key, its hex value and
-// the UI roles it plays (Theme.roles): the neutrals in the first row, the
-// accents in the second where it's wide enough. Compact, a strip of the 16.
+// The current theme's 16 base colors, each a tile with its key, hex value
+// and the UI roles it plays (Theme.roles) beneath: the neutrals in the
+// first row, the accents in the second where it's wide enough. Compact, a
+// strip of the 16.
 Card {
   id: root
 
   // Eight chips across where they have room, else four or two
   readonly property int columns: root.innerWidth >= Appearance.fontSize * 56 ? 8 : root.innerWidth >= Appearance.fontSize * 24 ? 4 : 2
 
+  // Every chip keeps room for the most roles any color plays, so the
+  // tiles line up
+  readonly property int roleLines: Math.max(1, ...Object.keys(Theme.roles).map(key => Theme.roles[key].length))
+
   fullMinWidth: Appearance.fontSize * 14
   fullMinHeight: Appearance.fontSize * 12
 
-  // One color, its name and value in whichever of the theme's background
-  // and foreground reads on it
-  component Chip: Rectangle {
+  // One color: a tile of it, then its key, hex value and roles beneath in
+  // the theme's own text colors, so they read whatever the color
+  component Chip: ColumnLayout {
     id: chip
     required property string modelData
-    readonly property color ink: Utils.inkOn(chip.color, Theme.background, Theme.foreground)
+    readonly property color value: Theme.resolveColor(chip.modelData)
 
     Layout.fillWidth: true
     Layout.fillHeight: true
     Layout.preferredWidth: 1
     Layout.preferredHeight: 1
-    radius: Widget.radius
-    color: Theme.resolveColor(chip.modelData)
-    border.width: Appearance.borderWidth
-    border.color: Qt.alpha(Theme.border, 0.6)
+    spacing: 2
 
-    ColumnLayout {
-      anchors.fill: parent
-      anchors.margins: Widget.padding / 2 + 2
-      spacing: 0
+    Rectangle {
+      Layout.fillWidth: true
+      Layout.fillHeight: true
+      Layout.minimumHeight: Appearance.fontSize * 1.5
+      radius: Widget.radius
+      color: chip.value
+      border.width: Appearance.borderWidth
+      border.color: Qt.alpha(Theme.border, 0.6)
+    }
+
+    RowLayout {
+      Layout.fillWidth: true
+      Layout.topMargin: 2
+      spacing: Widget.spacing / 2
 
       StyledText {
-        Layout.fillWidth: true
         text: chip.modelData
-        textColor: chip.ink
         textSize: Appearance.fontSize - 2
         font.bold: true
-        elide: Text.ElideRight
       }
 
       StyledText {
         Layout.fillWidth: true
-        text: chip.color.toString().toUpperCase()
-        textColor: chip.ink
+        text: chip.value.toString().toUpperCase()
         textSize: Appearance.fontSize - 3
-        opacity: 0.75
+        opacity: 0.6
         elide: Text.ElideRight
       }
+    }
 
-      Item {
-        Layout.fillHeight: true
-      }
-
-      StyledText {
-        Layout.fillWidth: true
-        text: (Theme.roles[chip.modelData] ?? []).join("\n")
-        textColor: chip.ink
-        textSize: Appearance.fontSize - 3
-        opacity: 0.9
-        elide: Text.ElideRight
-        maximumLineCount: Math.max(1, Math.floor(chip.height / Appearance.fontSize / 2) - 1)
-      }
+    // Padded to roleLines; long role names break rather than hide
+    StyledText {
+      Layout.fillWidth: true
+      text: (Theme.roles[chip.modelData] ?? []).concat(Array(root.roleLines).fill("")).slice(0, Math.max(root.roleLines, (Theme.roles[chip.modelData] ?? []).length)).join("\n")
+      textColor: Theme.accent
+      textSize: Appearance.fontSize - 3
+      wrapMode: Text.WrapAtWordBoundaryOrAnywhere
     }
   }
 

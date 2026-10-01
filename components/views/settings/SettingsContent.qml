@@ -164,8 +164,10 @@ Item {
     property string key
     onTriggered: {
       const card = root._cards[jumpDelay.key];
-      if (card)
-        titledCard.scrollTo(card);
+      if (!card)
+        return;
+      titledCard.scrollTo(card);
+      card.flash();
     }
   }
 
@@ -306,6 +308,42 @@ Item {
                   Component.onDestruction: {
                     if (root._cards[card.modelData.key] === card)
                       delete root._cards[card.modelData.key];
+                  }
+
+                  // Outlines the card for a moment (jumped to from the
+                  // sidebar)
+                  function flash() {
+                    flashAnimation.restart();
+                  }
+
+                  Rectangle {
+                    id: outline
+                    anchors.fill: parent
+                    z: 1
+                    radius: Widget.radius
+                    color: "transparent"
+                    border.color: Theme.accent
+                    border.width: Appearance.borderWidth + 1
+                    opacity: 0
+                  }
+
+                  SequentialAnimation {
+                    id: flashAnimation
+                    NumberAnimation {
+                      target: outline
+                      property: "opacity"
+                      to: 1
+                      duration: Appearance.animFast
+                    }
+                    PauseAnimation {
+                      duration: Appearance.animSlow
+                    }
+                    NumberAnimation {
+                      target: outline
+                      property: "opacity"
+                      to: 0
+                      duration: Appearance.animSlow
+                    }
                   }
 
                   Component {

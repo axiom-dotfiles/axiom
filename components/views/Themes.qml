@@ -8,32 +8,32 @@ import qs.components.forms
 import qs.components.content
 import qs.components.content.base
 
-// The Themes page, in the editors' shape: the theme list on the left; the
-// wallpapers beside the current palette and a few look settings. The
-// pieces are the ordinary ThemePicker, WallpaperPicker and Palette
-// modules, so they can go on any page too. A view type with nothing to
-// configure.
+// The Themes page, in the editors' shape: the wallpapers on the left, the
+// theme list beside them, then the current palette and a few look
+// settings. The pieces are the ordinary WallpaperPicker, ThemePicker and
+// Palette modules, so they can go on any page too. A view type with
+// nothing to configure.
 BaseView {
   id: root
 
-  // The wallpapers are one card wide, as tall as the page
-  readonly property real wallpaperWidth: root.grid.unit * 0.9
-  readonly property real columnWidth: root.editorWidth - root.wallpaperWidth - OverlayConfig.cardSpacing
+  // The theme list is about one card wide, as tall as the page
+  readonly property real themesWidth: root.grid.unit * 0.9
+  readonly property real columnWidth: root.editorWidth - root.themesWidth - OverlayConfig.cardSpacing
 
   Item {
     implicitWidth: root.sideWidth
     implicitHeight: root.pageHeight
 
-    ThemePicker {
+    WallpaperPicker {
       slotRect: [0, 0, 4, 8]
     }
   }
 
   Item {
-    implicitWidth: root.wallpaperWidth
+    implicitWidth: root.themesWidth
     implicitHeight: root.pageHeight
 
-    WallpaperPicker {
+    ThemePicker {
       slotRect: [0, 0, 4, 8]
     }
   }
