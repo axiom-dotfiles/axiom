@@ -42,10 +42,7 @@ Item {
 
   TitledCard {
     title: I18n.tr("Overlay Editor")
-    dirty: OverlayManager.isDirty
-    canSave: OverlayManager.problems.length === 0
-    onSave: OverlayManager.saveChanges()
-    onReset: OverlayManager.resetChanges()
+    showActions: false
 
     headerExtras: ColumnLayout {
       Layout.fillWidth: true

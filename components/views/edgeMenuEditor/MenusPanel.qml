@@ -23,10 +23,7 @@ Item {
   // I18n.tr("Behaviour") I18n.tr("Other")
   TitledCard {
     title: I18n.tr("Edge Menu Editor")
-    dirty: EdgeMenuManager.isDirty
-    canSave: EdgeMenuManager.problems.length === 0
-    onSave: EdgeMenuManager.saveChanges()
-    onReset: EdgeMenuManager.resetChanges()
+    showActions: false
 
     headerExtras: ColumnLayout {
       Layout.fillWidth: true

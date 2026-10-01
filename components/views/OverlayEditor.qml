@@ -29,6 +29,10 @@ BaseView {
     emptyText: I18n.tr(root.view ? "A fixed page: it has no layout to edit. Drag it in the page list to reorder it." : "No pages yet: add one with New page.")
     editable: root.isCustom
     notEditableHint: I18n.tr("Pick a custom page to add modules to it")
+    dirty: OverlayManager.isDirty
+    canSave: OverlayManager.problems.length === 0
+    onSave: OverlayManager.saveChanges()
+    onReset: OverlayManager.resetChanges()
 
     PagesPanel {
       width: layout.sideWidth
