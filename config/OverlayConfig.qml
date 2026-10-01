@@ -46,7 +46,11 @@ QtObject {
         // Material Symbols name (`x-icon`)
         "icon": def["x-icon"] ?? "extension",
         // Where a module may be placed (`x-hosts`): "overlay", "edgeMenu"
-        "hosts": def["x-hosts"] ?? ["overlay", "edgeMenu"]
+        "hosts": def["x-hosts"] ?? ["overlay", "edgeMenu"],
+        // The property shown on its layouts editor tile (`x-canvasDetail`),
+        // and the color property filling it (`x-canvasFill`), else ""
+        "canvasDetail": def["x-canvasDetail"] ?? "",
+        "canvasFill": def["x-canvasFill"] ?? ""
       };
     }).filter(t => t !== null);
   }

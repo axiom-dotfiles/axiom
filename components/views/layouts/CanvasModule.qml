@@ -32,20 +32,16 @@ Rectangle {
   readonly property bool carried: root.dragLayer.draggingKind === "module-move" && root.dragLayer.dragging.index === root.index
   readonly property bool small: root.width < Appearance.fontSize * 7 || root.height < Appearance.fontSize * 4
 
-  readonly property bool isSwatch: root.type === "ColorSwatch"
-  readonly property color fill: root.isSwatch ? Theme.resolveColor(root.module.properties?.color) : Theme.backgroundAlt
-  readonly property color ink: root.isSwatch ? Utils.getContrastColor(root.fill) : Theme.foreground
+  // From the schema: a color property that fills the tile, and one shown
+  // on it (OverlayConfig.moduleInfo)
+  readonly property var info: OverlayConfig.moduleInfo(root.type)
+  readonly property var props: root.module?.properties ?? {}
+  readonly property bool filled: (root.info?.canvasFill ?? "") !== ""
+  readonly property color fill: root.filled ? Theme.resolveColor(root.props[root.info.canvasFill]) : Theme.backgroundAlt
+  readonly property color ink: root.filled ? Utils.getContrastColor(root.fill) : Theme.foreground
   readonly property string detail: {
-    const props = root.module?.properties ?? {};
-    switch (root.type) {
-    case "ColorSwatch":
-      return props.color ?? "";
-    case "SystemGraphs":
-      return (props.metrics ?? []).join(", ");
-    case "Disks":
-      return (props.paths ?? []).join(", ");
-    }
-    return "";
+    const value = root.info?.canvasDetail ? root.props[root.info.canvasDetail] : undefined;
+    return Array.isArray(value) ? value.join(", ") : String(value ?? "");
   }
 
   // The size being dragged to with the corner handle ([w, h]), else null
@@ -75,7 +71,7 @@ Rectangle {
       width: parent.width
       horizontalAlignment: Text.AlignHCenter
       text: root.dragLayer.moduleIcon(root.type)
-      textColor: root.isSwatch ? root.ink : Theme.accent
+      textColor: root.filled ? root.ink : Theme.accent
       textSize: root.small ? Appearance.fontSize + 2 : Appearance.fontSize + 8
     }
 
