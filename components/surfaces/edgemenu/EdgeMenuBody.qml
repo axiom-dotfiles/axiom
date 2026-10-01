@@ -90,7 +90,7 @@ Item {
     anchors.bottom: root.menu.edge === "Top" ? parent.bottom : undefined
     anchors.right: root.menu.edge === "Right" ? undefined : parent.right
     anchors.left: root.menu.edge === "Right" ? parent.left : undefined
-    anchors.margins: Widget.spacing / 2
+    anchors.margins: Widget.spacing / 4
     iconText: "push_pin"
     iconColor: root.pinned ? Theme.background : Theme.foreground
     backgroundColor: root.pinned ? Theme.accent : Qt.alpha(Theme.background, 0.85)

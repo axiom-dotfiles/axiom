@@ -130,14 +130,19 @@ Rectangle {
     border.width: 2
   }
 
-  // The resize handle, in the bottom right corner
+  // The resize handle, in the bottom right corner. On a module so small
+  // the full handle would leave nothing of it to grab for moving, it
+  // shrinks into the corner
   Rectangle {
     id: handle
-    readonly property real size: Appearance.fontSize + 6
+    readonly property real fullSize: Appearance.fontSize + 6
+    // Room left of and above the full handle's grab area
+    readonly property bool cramped: root.width - handle.fullSize - 10 < 10 && root.height - handle.fullSize - 10 < 10
+    readonly property real size: handle.cramped ? Math.max(8, Math.min(root.width, root.height) * 0.35) : handle.fullSize
     visible: root.dragLayer.dragging === null && (area.containsMouse || handleArea.containsMouse || root.selected || root.resizing !== null)
     anchors.right: parent.right
     anchors.bottom: parent.bottom
-    anchors.margins: 6
+    anchors.margins: handle.cramped ? 2 : 6
     width: handle.size
     height: handle.size
     radius: Widget.radius / 2
@@ -149,14 +154,14 @@ Rectangle {
       anchors.centerIn: parent
       text: "open_in_full"
       rotation: 90
-      textSize: Appearance.fontSize - 1
+      textSize: handle.cramped ? handle.size - 2 : Appearance.fontSize - 1
       textColor: handleArea.containsMouse || root.resizing ? Theme.background : Theme.accent
     }
 
     MouseArea {
       id: handleArea
       anchors.fill: parent
-      anchors.margins: -4
+      anchors.margins: handle.cramped ? 0 : -4
       hoverEnabled: true
       preventStealing: true
       cursorShape: Qt.SizeFDiagCursor
