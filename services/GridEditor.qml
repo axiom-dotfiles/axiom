@@ -214,7 +214,7 @@ QtObject {
 
   function updateModuleProperty(index, key, value) {
     const module = root.module(index);
-    if (!module)
+    if (!module || JSON.stringify(module.properties?.[key]) === JSON.stringify(value))
       return;
     if (!module.properties)
       module.properties = {};
