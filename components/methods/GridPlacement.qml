@@ -203,6 +203,28 @@ QtObject {
     };
   }
 
+  // `place` on a grid with units split in two each way (`finer`), or
+  // merged back in pairs: it keeps its spot and size. Merging rounds each
+  // edge, so modules that met still meet; a span stays at least 1 and at
+  // most maxSpan.
+  function scalePlace(place, finer) {
+    if (finer)
+      return {
+        "x": place.x * 2,
+        "y": place.y * 2,
+        "w": Math.min(root.maxSpan, place.w * 2),
+        "h": Math.min(root.maxSpan, place.h * 2)
+      };
+    const x = Math.round(place.x / 2);
+    const y = Math.round(place.y / 2);
+    return {
+      "x": x,
+      "y": y,
+      "w": Math.max(1, Math.round((place.x + place.w) / 2) - x),
+      "h": Math.max(1, Math.round((place.y + place.h) / 2) - y)
+    };
+  }
+
   // Whether `place` lies wholly inside a `cols` × `rows` grid
   function within(place, cols, rows) {
     return !!place && place.x >= 0 && place.y >= 0 && place.x + place.w <= cols && place.y + place.h <= rows;

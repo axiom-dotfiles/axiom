@@ -39,11 +39,13 @@ Item {
   // creation (a binding would loop on the counter newSurfaceKey bumps)
   property string passwordKey: ""
 
-  // The grid: at least columns × rows, fitted inside a margin
+  // The grid: at least columns × rows (doubled with fineGrid), fitted
+  // inside a margin
   readonly property real margin: OverlayConfig.cardSpacing
   readonly property var reach: GridPlacement.bounds(root.allModules)
-  readonly property int cols: Math.max(root.layout?.columns ?? 1, root.reach.cols)
-  readonly property int rows: Math.max(root.layout?.rows ?? 1, root.reach.rows)
+  readonly property var gridSize: LockscreenConfig.gridOf(root.layout)
+  readonly property int cols: Math.max(root.gridSize.cols, root.reach.cols, 1)
+  readonly property int rows: Math.max(root.gridSize.rows, root.reach.rows, 1)
 
   anchors.fill: parent
 

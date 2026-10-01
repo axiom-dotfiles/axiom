@@ -2178,6 +2178,8 @@
     "What monitors other than the one with the password field show.": "パスワード欄のあるモニター以外に表示する内容です。",
     "Messages": "メッセージ",
     "Grid units down.": "縦方向のグリッドユニット数です。",
+    "Double grid": "グリッドを細かくする",
+    "Split each grid unit in two each way, for finer placement. Modules keep their size and spot.": "グリッドの各ユニットを縦横に2分割し、より細かく配置できるようにします。モジュールの大きさと位置はそのままです。",
     "Placeholder": "プレースホルダー",
     "Built-in lock screen": "内蔵ロック画面",
     "Grid units across. The grid is stretched to fill each monitor, so match your screen's shape (16 × 9 for 16:9).": "横方向のグリッドユニット数です。グリッドは各モニターいっぱいに引き伸ばされるので、画面の比率に合わせてください（16:9 なら 16 × 9）。",

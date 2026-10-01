@@ -62,10 +62,11 @@
           "title": "Built-in lock screen",
           "description": "What the built-in locker shows, edited on the Layouts page: its modules on a grid of columns × rows units, fitted to each monitor.",
           "additionalProperties": false,
-          "x-order": ["columns", "rows", "otherScreens", "background", "backgroundColor", "dim", "moduleBorders", "passwordBorder", "greetingBorder"],
+          "x-order": ["columns", "rows", "fineGrid", "otherScreens", "background", "backgroundColor", "dim", "moduleBorders", "passwordBorder", "greetingBorder"],
           "properties": {
             "columns": { "x-group": "Grid", "type": "integer", "title": "Columns", "default": 16, "minimum": 4, "maximum": 32, "description": "Grid units across. The grid is stretched to fill each monitor, so match your screen's shape (16 × 9 for 16:9)." },
             "rows": { "x-group": "Grid", "type": "integer", "title": "Rows", "default": 9, "minimum": 2, "maximum": 32, "description": "Grid units down." },
+            "fineGrid": { "x-group": "Grid", "type": "boolean", "title": "Double grid", "default": false, "description": "Split each grid unit in two each way, for finer placement. Modules keep their size and spot." },
             "otherScreens": {
               "x-group": "Grid",
               "type": "string",

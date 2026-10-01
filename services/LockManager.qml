@@ -96,10 +96,8 @@ QtObject {
 
   property GridEditor layout: GridEditor {
     host: "lockscreen"
-    area: ({
-        "cols": root.localLayout?.columns ?? 0,
-        "rows": root.localLayout?.rows ?? 0
-      })
+    area: LockscreenConfig.gridOf(root.localLayout)
+    sizeScale: root.localLayout?.fineGrid ? 2 : 1
     modulesOf: () => root.localLayout?.modules ?? null
     scopeKey: "lockscreen"
     onEdited: draft.changed()
@@ -114,11 +112,17 @@ QtObject {
       root.resetChanges();
   }
 
-  // One of the layout's own fields (columns, background, …)
+  // One of the layout's own fields (columns, background, …). Doubling the
+  // grid (fineGrid) rescales the modules' places so they stay put
   function updateLayoutField(key, value) {
     const layout = root.localLayout;
     if (!layout || JSON.stringify(layout[key]) === JSON.stringify(value))
       return;
+    if (key === "fineGrid")
+      (layout.modules ?? []).forEach(module => {
+        if (module?.place)
+          module.place = GridPlacement.scalePlace(module.place, value);
+      });
     layout[key] = value;
     draft.changed();
   }

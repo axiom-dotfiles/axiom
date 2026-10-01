@@ -19,11 +19,22 @@ QtObject {
   readonly property bool blurWallpaper: _c.blurWallpaper
 
   // The built-in lock screen: { columns, rows (its grid, fitted to each
-  // monitor), otherScreens ("layout": the modules without the password |
-  // "background"), background ("wallpaper" | "color"), backgroundColor,
-  // dim (%), moduleBorders, modules }. LockSurface takes it whole, so the
-  // layouts editor's preview can hand it the draft instead
+  // monitor; fineGrid splits its units in two), otherScreens ("layout":
+  // the modules without the password | "background"), background
+  // ("wallpaper" | "color"), backgroundColor, dim (%), moduleBorders,
+  // modules }. LockSurface takes it whole, so the layouts editor's preview
+  // can hand it the draft instead
   readonly property var layout: _c.layout
+  // A layout's grid in the units its places use: columns × rows, each
+  // split in two with `fineGrid`. { cols, rows }
+  function gridOf(layout) {
+    const scale = layout?.fineGrid ? 2 : 1;
+    return {
+      "cols": (layout?.columns ?? 0) * scale,
+      "rows": (layout?.rows ?? 0) * scale
+    };
+  }
+
   // Its own fields in groups (`x-group`), for the layouts editor
   readonly property var fieldGroups: SchemaLayout.objectGroups(ConfigManager.configSchema.properties.Lockscreen.properties.layout, ["modules"])
 }

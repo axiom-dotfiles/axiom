@@ -14,7 +14,7 @@ DragChip {
 
   icon: root.typeInfo.icon
   label: I18n.tr(root.typeInfo.label)
-  readonly property var size: OverlayConfig.defaultSize(root.typeInfo.type)
+  readonly property var size: root.dragLayer?.editor.defaultSize(root.typeInfo.type) ?? OverlayConfig.defaultSize(root.typeInfo.type)
   payload: ({
       "kind": "module-add",
       "type": root.typeInfo.type,

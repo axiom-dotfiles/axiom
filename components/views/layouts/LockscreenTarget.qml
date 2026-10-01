@@ -11,6 +11,7 @@ EditTarget {
   id: root
 
   readonly property var layout: LockManager.localLayout
+  readonly property var grid: LockscreenConfig.gridOf(root.layout)
 
   editor: LockManager.layout
   modules: root.layout ? root.layout.modules : null
@@ -19,10 +20,10 @@ EditTarget {
   screenBox: root.layout ? ({
       "x": 0,
       "y": 0,
-      "w": root.layout.columns,
-      "h": root.layout.rows
+      "w": root.grid.cols,
+      "h": root.grid.rows
     }) : null
-  fitText: LockscreenConfig.mode !== "quickshell" ? I18n.tr("Only the built-in locker shows this layout") : root.layout ? I18n.tr("{0} × {1} units, stretched to fill each monitor", root.layout.columns, root.layout.rows) : ""
+  fitText: LockscreenConfig.mode !== "quickshell" ? I18n.tr("Only the built-in locker shows this layout") : root.layout ? I18n.tr("{0} × {1} units, stretched to fill each monitor", root.grid.cols, root.grid.rows) : ""
   fitWarning: LockscreenConfig.mode !== "quickshell"
   editable: root.layout !== null
 }
