@@ -28,7 +28,8 @@ QtObject {
   property int selectedViewIndex: 0
   // What the layouts editor shows: "page" (selectedViewIndex) or "menu"
   // (EdgeMenuManager.selectedMenuIndex)
-  property string editTarget: "page"
+  readonly property string editTarget: root._editTarget
+  property string _editTarget: "page"
 
   property GridEditor layout: GridEditor {
     host: "overlay"
@@ -74,50 +75,46 @@ QtObject {
   // --- What the editor shows ---
 
   function editPage(index) {
-    root.editTarget = "page";
+    root._editTarget = "page";
     root.selectView(index);
   }
 
   function editMenu(index) {
-    root.editTarget = "menu";
+    root._editTarget = "menu";
     EdgeMenuManager.selectMenu(index);
   }
 
   // The pages, or the menus, keeping what was selected in each
   function editPages() {
-    root.editTarget = "page";
+    root._editTarget = "page";
   }
 
   function editMenus() {
-    root.editTarget = "menu";
+    root._editTarget = "menu";
   }
 
   // --- Room on each screen ---
 
   // { screenName: { width, height, unit } }: the room each overlay has for
   // a page, and its card size, as its OverlayPanel reports them
-  property var areas: ({})
+  readonly property var areas: root._areas
+  property var _areas: ({})
 
   function reportArea(screenName, width, height, unit) {
-    const old = root.areas[screenName];
+    const old = root._areas[screenName];
     if (old && old.width === width && old.height === height && old.unit === unit)
       return;
-    const areas = Object.assign({}, root.areas);
-    areas[screenName] = {
+    root._areas = Utils.withEntry(root._areas, screenName, {
       "width": width,
       "height": height,
       "unit": unit
-    };
-    root.areas = areas;
+    });
   }
 
   // A screen's overlay is gone (its screen was unplugged)
   function clearArea(screenName) {
-    if (!(screenName in root.areas))
-      return;
-    const areas = Object.assign({}, root.areas);
-    delete areas[screenName];
-    root.areas = areas;
+    if (screenName in root._areas)
+      root._areas = Utils.withEntry(root._areas, screenName, undefined);
   }
 
   // How much each screen's overlay shrinks a page of these modules:

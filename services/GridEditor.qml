@@ -33,7 +33,8 @@ QtObject {
   signal edited
 
   // Index of the selected module, -1 for none
-  property int selected: -1
+  readonly property int selected: root._selected
+  property int _selected: -1
 
   // Why these modules can't be saved as is, each prefixed with `name`
   function problemsFor(modules, name) {
@@ -51,11 +52,11 @@ QtObject {
   // --- Selection ---
 
   function select(index) {
-    root.selected = index;
+    root._selected = index;
   }
 
   function clearSelection() {
-    root.selected = -1;
+    root._selected = -1;
   }
 
   function module(index) {
@@ -134,7 +135,7 @@ QtObject {
       return;
     root.shifted(GridPlacement.normalize(modules), was);
     const target = focus ?? before;
-    root.selected = target ? modules.indexOf(target) : -1;
+    root._selected = target ? modules.indexOf(target) : -1;
     root.edited();
   }
 

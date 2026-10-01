@@ -36,14 +36,8 @@ Singleton {
 
   function setZone(screenName, edge, size) {
     const key = `${screenName}:${edge}`;
-    if ((root.zones[key] ?? 0) === size)
-      return;
-    const zones = Object.assign({}, root.zones);
-    if (size > 0)
-      zones[key] = size;
-    else
-      delete zones[key];
-    root.zones = zones;
+    if ((root.zones[key] ?? 0) !== size)
+      root.zones = Utils.withEntry(root.zones, key, size > 0 ? size : undefined);
   }
 
   function zoneOn(screenName, edge) {
@@ -57,22 +51,17 @@ Singleton {
   // screen edge to the modules), before (across, taken by what's on the
   // edge outside the menu: bars, the border), after (from the modules to
   // the menu's inner side), reserves (whether the menu reserves its strip) }
-  property var frames: ({})
+  readonly property var frames: root._frames
+  property var _frames: ({})
 
   function setFrame(id, frame) {
-    if (!id || JSON.stringify(root.frames[id]) === JSON.stringify(frame))
-      return;
-    const frames = Object.assign({}, root.frames);
-    frames[id] = frame;
-    root.frames = frames;
+    if (id && JSON.stringify(root._frames[id]) !== JSON.stringify(frame))
+      root._frames = Utils.withEntry(root._frames, id, frame);
   }
 
   function clearFrame(id, screenName) {
-    if (root.frames[id]?.screen !== screenName)
-      return;
-    const frames = Object.assign({}, root.frames);
-    delete frames[id];
-    root.frames = frames;
+    if (root._frames[id]?.screen === screenName)
+      root._frames = Utils.withEntry(root._frames, id, undefined);
   }
 
   // A menu's frame (see `frames`): its running one's, else (a disabled
@@ -157,10 +146,11 @@ Singleton {
   }
 
   // The editor draws the other menus on the selected one's screen
-  property bool showingOthers: false
+  readonly property bool showingOthers: root._showingOthers
+  property bool _showingOthers: false
 
   function toggleShowingOthers() {
-    root.showingOthers = !root.showingOthers;
+    root._showingOthers = !root._showingOthers;
   }
 
   PersistentProperties {
@@ -305,7 +295,8 @@ Singleton {
   }
 
   // The menu the editor holds open to try edits on ("" for none)
-  property string previewing: ""
+  readonly property string previewing: root._previewing
+  property string _previewing: ""
 
   // Why the draft can't be saved as is (empty = savable)
   readonly property var problems: {
@@ -566,7 +557,7 @@ Singleton {
       return;
     if (root.previewing !== "")
       root.close(root.previewing);
-    root.previewing = id;
+    root._previewing = id;
     // After the preview reaches EdgeMenusConfig, so a new menu exists
     if (id !== "")
       Qt.callLater(() => {

@@ -13,6 +13,18 @@ QtObject {
     return JSON.parse(JSON.stringify(value ?? null));
   }
 
+  // A copy of the object `map` with `key` set to `value`, or left out when
+  // `value` is undefined: for map properties, whose bindings only update
+  // when the property is assigned a new object
+  function withEntry(map, key, value) {
+    const out = Object.assign({}, map);
+    if (value === undefined)
+      delete out[key];
+    else
+      out[key] = value;
+    return out;
+  }
+
   // `base` if `taken` doesn't hold it, else its stem (a trailing
   // `separator` + number dropped) numbered from 2: a copy of "dock2" is
   // "dock3", not "dock22"
