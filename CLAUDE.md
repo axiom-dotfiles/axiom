@@ -28,7 +28,7 @@ A [Quickshell](https://quickshell.org) desktop shell config (QML) for Hyprland (
 ## Checks
 
 All run in CI (`.github/workflows/checks.yml`); `scripts/check_all.sh` runs every one. None of them run the shell, so still check `scripts/log.sh` after a save.
-- `scripts/check_structure.py`: **run after adding, renaming or moving QML files.** Schema types and `popoutName`s have files, URL-loaded dirs are imported, `qs.*` imports resolve, singleton names aren't typos, no file sees two same-named types, every file has its pragma (the lockscreen is exempt until its rewrite).
+- `scripts/check_structure.py`: **run after adding, renaming or moving QML files.** Schema types and `popoutName`s have files, URL-loaded dirs are imported, `qs.*` imports resolve, singleton names aren't typos, no file sees two same-named types, every file has its pragma.
 - `scripts/run_tests.sh [Name…]`: qmltestrunner tests `tests/tst_<Name>.qml` for `components/methods/`, the schema defaults and `ConfigMigration` (`tests/fixtures/configs/v1.json`). Add a case when changing a methods helper or a migration step. Generated Lua is checked with `luac -p` (`*.run.lua` also run).
 - `scripts/check_qmllint.py`: fails on warnings not in `scripts/qmllint-baseline.json`. Fix new warnings; `--update-baseline` only for Quickshell type-info gaps, or when it reports baselined warnings gone.
 - `scripts/check_qmlformat.sh [--fix]`, `shellcheck -x -S warning`, `tests/scripts/test_scripts.py` (themes, `theme_*.sh`, `self_update.sh`, `generate_theme.py`).
@@ -49,7 +49,7 @@ components/
   reusable/     generic Styled* widgets, no feature logic
   forms/        schema-driven form widgets (SchemaField, SchemaPropertiesForm, …)
   content/      loadable panels, by name: overlay module types and bar popouts (base/: Card, Panel, TitledCard; parts/: helpers)
-  hosts/        where content appears: popout/ (bar + edge popouts) and overlay/ (pages, columns, cells, slots)
+  hosts/        where content appears: popout/ (bar + edge popouts) and overlay/ (pages, the module grid, slots)
   views/        overlay pages by view type, with their pieces in subfolders
   bar/          the bar; widgets/ = bar widget types
   surfaces/     standalone windows (launcher, lockscreen, toasts, dock, onboarding, screenshot, …)
@@ -72,10 +72,10 @@ Dependencies point one way:
 
 ## Services
 
-- One `pragma Singleton QtObject` per domain, named `*Manager`, exposing readonly properties, signals and functions. Non-singleton helpers are named for what they are (`ConfigDraft`, `ColumnsEditor`, `ConsumerRegistry`, `WeatherSource`, `ChatRequest`, `DailySchedule`).
+- One `pragma Singleton QtObject` per domain, named `*Manager`, exposing readonly properties, signals and functions. Non-singleton helpers are named for what they are (`ConfigDraft`, `GridEditor`, `ConsumerRegistry`, `WeatherSource`, `ChatRequest`, `DailySchedule`).
 - Don't shadow Quickshell singletons: `NetworkingManager`, `BluetoothManager`, not `Networking`/`Bluetooth`.
 - A service with an IPC target that nothing else references is created from `shell.qml`'s `_services`.
-- **Anything polled goes through `acquire(owner, request)` / `release(owner)`** (a `ConsumerRegistry`): fetched once for all consumers, at the shortest interval asked, not at all with none. Acquire in `Component.onCompleted` (again when the config-derived request changes; identical requests are no-ops), release in `onDestruction`. SystemManager, UpdatesManager, WeatherManager, TailscaleManager and CommandManager (any shell command's output) work this way.
+- **Anything polled goes through `acquire(owner, request)` / `release(owner)`** (a `ConsumerRegistry`): fetched once for all consumers, at the shortest interval asked (or a configured one: WeatherManager's comes from `WeatherConfig`), not at all with none. Acquire in `Component.onCompleted` (again when the config-derived request changes; identical requests are no-ops), release in `onDestruction`. SystemManager, UpdatesManager, WeatherManager, TailscaleManager and CommandManager (any shell command's output) work this way.
 - **Config writes** go only through `ConfigManager.setTheme` / `setWallpaper(s)` / `saveConfig` / `commit(object)` (validates first; returns false and changes nothing if rejected), or `SettingsManager.setValue` / `commitValue(s)` from UI. Never mutate `ConfigManager.config` and expect it to persist.
 - **Editors** (settings, bar, overlay, edge menus, keybinds, monitors) edit a `ConfigDraft` (a working copy of one config path; `save()` merges onto the latest config). Unsaved edits show live through `ConfigManager.setPreview(section, value)`; readers read `previews.X ?? config.X`. Selection lives in the manager and changes through its `select*()` (`selectBar`, `selectView`, `selectMenu`, `selectProfile`), which keeps what depends on it valid; views don't assign it.
 - Secrets (chat API keys) never go in config.json or argv: `SecretsManager`, written through stdin. Clipboard history is never written to disk.
@@ -87,7 +87,7 @@ Dependencies point one way:
 - `config/json/config.schema.json` is the single source of truth: shape, defaults, and the generated settings page. Adding a setting = a schema entry with a `default` + a reader property. Changing the layout of existing config = bump `version` + a `ConfigMigration` step + a test.
 - Load pipeline: parse → `ConfigMigration.migrate` → `SchemaValidation.pruneUnknown` → `applyDefaults` → validate. Every default is filled, so **readers use no `??` fallbacks**.
 - Readers are named for their section, with a `Config` suffix where the name is a type (`OSDConfig`, `OverlayConfig`, `LauncherConfig`, `NotificationsConfig`, `PopoutConfig`, `IconConfig`, `ChatConfig`, `WorkspacesConfig`, `LockscreenConfig`, …). `Paths` holds derived paths. A reader that also exposes the config as saved says so (`Bar.savedBars`, `ChatConfig.savedProviders`).
-- Schema annotations drive the UI; prefer a new annotation to a hand-kept list in QML: `x-settings: false` (hide), `x-category`, `x-group`/`x-order` (settings cards and order; also the bar and edge menu editors' field groups), `x-card`/`x-intro` (hand-built `views/settings/<Name>Card.qml` / `<Name>.qml`; `x-cardFolds` if the card folds), `x-showIf` (sibling value, or `/Dotted.path` from the root), `x-applyOnSave`, `x-options` (`colors`, `screens`, `languages`, …; `x-emptyLabel`, `x-allScreens`, `x-suggestions`), `x-unit`, `x-control`, `x-multiline`, `x-icon` (bar widgets, overlay modules and views), `x-shapes`/`x-hosts` on overlay modules, `x-hypr*` for Hyprland options. `oneOf`s are discriminated by `type` (bar widgets, overlay views and modules).
+- Schema annotations drive the UI; prefer a new annotation to a hand-kept list in QML: `x-settings: false` (hide), `x-category`, `x-group`/`x-order` (settings cards and order; also the bar and edge menu editors' field groups), `x-card`/`x-intro` (hand-built `views/settings/<Name>Card.qml` / `<Name>.qml`; `x-cardFolds` if the card folds), `x-showIf` (sibling value, or `/Dotted.path` from the root), `x-applyOnSave`, `x-options` (`colors`, `screens`, `languages`, …; `x-emptyLabel`, `x-allScreens`, `x-suggestions`), `x-unit`, `x-control`, `x-multiline`, `x-icon` (bar widgets, overlay modules and views), `x-defaultSize`/`x-hosts`/`x-required` on overlay modules (the lock screen is an opt-in host), `x-tool` (tool pages), `x-auto` (an integer's automatic value), `x-control: readonly`, `x-hypr*` for Hyprland options. `oneOf`s are discriminated by `type` (bar widgets, overlay views and modules).
 - An empty monitor means the primary monitor everywhere (`General.screensNamed`), except in `General.primaryMonitor` itself.
 - **Theme**: `Theme.base00`–`base0F` plus semantic names; `Theme.resolveColor(name)` for names from config. `config/json/theme-defaults.json` fills what a theme omits. Theme integrations (`scripts/theme_<key>.sh`) write only their own `axiom.*` file and never edit a user's config.
 - **Animation**: every `duration:` is `Appearance.animFast` / `animNormal` / `animSlow`, never a literal; looping animations gate `running` on `Appearance.animations`. Only behaviour timings (cursor blink, timeouts, polling) are literals.
@@ -103,7 +103,7 @@ Dependencies point one way:
 
 - **Reuse before building.** Check the shared pieces (docs/architecture.md, "Shared UI pieces") before drawing a card, heading, chip, list row, dot, divider, drag or inspector; a second copy of a pattern becomes a shared piece.
 - **Data-driven surfaces.** `Bars`, `Overlay.views`, `EdgeMenus`, `Dock.docks` and `OSD.osds` are arrays in config; surfaces are `Variants`/Repeaters over them, keyed by stable ids.
-- **Loaded by name.** A bar widget is `bar/widgets/<type>.qml`; a popout or overlay module is `content/<Name>.qml`; a view is `views/<type>.qml`. A new one = the file + its schema `oneOf` entry (modules with `x-shapes`). A widget opens a popout with a `PopoutAnchor { popoutName }`.
+- **Loaded by name.** A bar widget is `bar/widgets/<type>.qml`; a popout or overlay module is `content/<Name>.qml`; a view is `views/<type>.qml`. A new one = the file + its schema `oneOf` entry (modules with a `place` property and, if a card is the wrong size to start at, `x-defaultSize`; sizes are in grid units, four to a card). Modules take any size: each sets `fullMinWidth`/`fullMinHeight` (px) and shows its compact figure below them. A widget opens a popout with a `PopoutAnchor { popoutName }`.
 - **Content roots.** `Card` (free-form card) or `Panel` (a column, usable both as a bar popout and as a card: `embedded` is true in a card). Both expose `properties`, `slotRect`, `cols`/`rows`, `shape`, `compact`, `pad`, `host`; modules adapt their layout to `shape`/`compact`.
 - **Overlay lifetime.** Only the current page and its neighbours exist, and only while the overlay is open. Acquire in `Component.onCompleted`, release in `onDestruction`, keep lasting state in a service.
 - **Repeater models and `acquire()` requests come from config and tool availability only, never live values.** For derived item sets, model by a count or a joined string key. A model re-evaluated on every sample once pushed qs past 25 GB.
@@ -115,7 +115,7 @@ Dependencies point one way:
 - **Layer ordering** (bars, border, popouts, dock, edge menus, backdrop, screenshot) is set by Hyprland layer rules in `HyprlandManager.layerRulesLua`; see docs/architecture.md (Popouts) before changing how surfaces sit on an edge.
 - **Screen targeting**: surfaces are built on `General.screensFor(mode)`; only `ShellManager.isTarget(screen, mode)` answers shortcuts, IPC and OSD events. IPC handlers are `enabled` on the target instance only.
 - **Launcher**: every provider returns rows `{ kind, image, glyph, title, usage, subtitle, hint, complete, run(shift) }`; a new command is an entry in `services/LauncherCommands.qml`. `/config` can never edit `Bars` or `Overlay.views`.
-- **Lockscreen**: `LockManager.lock()` is the only way to lock. In `quickshell` mode only PAM success (`AuthManager`) unlocks: no IPC unlock, and nothing on the lock surface may run commands.
+- **Lockscreen**: `LockManager.lock()` is the only way to lock. In `quickshell` mode only PAM success (`AuthManager`) unlocks: no IPC unlock, and nothing on the lock surface may run commands. Its modules are the ones whose `x-hosts` list `lockscreen`: add it only to a module that launches, dispatches and writes nothing and shows nothing private. The surface keeps a fallback password field for a layout without one.
 
 ## QML pitfalls (each has bitten)
 
@@ -137,6 +137,5 @@ Dependencies point one way:
 
 ## Known housekeeping
 
-- The lockscreen is due a rewrite (exempt from the pragma check).
 - `views/settings/ChatProvidersCard` creates its own `ChatRequest` for Test/Fetch models (documented exception to services owning processes).
 - The key recorder doesn't tell keypad keys apart or map AltGr.

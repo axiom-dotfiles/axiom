@@ -28,6 +28,9 @@ Panel {
   onFocusLost: NetworkingManager.cancelPassword()
 
   implicitWidth: 380
+  // The switch, the connection and a row or two, else the figure
+  fullMinWidth: Appearance.fontSize * 15
+  fullMinHeight: Appearance.fontSize * 12
 
   Component.onCompleted: {
     NetworkingManager.acquireScan(root);

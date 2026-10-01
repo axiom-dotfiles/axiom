@@ -16,15 +16,18 @@ import qs.components.content.parts
 // mode (WallpaperManager): Fixed and Rotate add a monitor picker and a
 // preview of that monitor's wallpaper, and set it on the picked monitor
 // instead of this overlay's (Rotate adds its settings and Next); Light/Dark
-// shows the two wallpapers, and a click sets the selected one's.
+// shows the two wallpapers, and a click sets the selected one's. Compact,
+// just this monitor's wallpaper.
 Card {
   id: root
 
   // This overlay's screen
   readonly property string monitor: root.QsWindow.window?.screen?.name ?? ""
 
-  readonly property bool tall: root.shape === "vertical" && root.rows >= 3
-  readonly property bool grid: root.rows >= 3
+  // Tall enough for the header, mode and preview over the thumbnails;
+  // high enough for rows of thumbnails rather than one strip
+  readonly property bool tall: root.shape === "vertical" && root.height >= Appearance.fontSize * 42
+  readonly property bool grid: root.height >= Appearance.fontSize * 20
 
   // The picked monitor while it's connected, else this overlay's
   property string chosenMonitor: ""
@@ -76,6 +79,13 @@ Card {
       id: overlay
       anchors.fill: parent
     }
+  }
+
+  // Compact: this monitor's wallpaper
+  compactContent: Thumbnail {
+    source: root.wallpaper
+    sourceSize: Qt.size(320, 200)
+    borderColor: Theme.border
   }
 
   ColumnLayout {

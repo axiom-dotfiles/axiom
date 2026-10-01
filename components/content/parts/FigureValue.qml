@@ -26,6 +26,8 @@ RowLayout {
     visible: root.unit !== ""
     Layout.alignment: Qt.AlignBaseline
     text: root.unit
+    // Never larger than the value it follows
+    textSize: Math.min(Appearance.fontSize, root.valueSize * 0.7)
     opacity: 0.7
   }
 }

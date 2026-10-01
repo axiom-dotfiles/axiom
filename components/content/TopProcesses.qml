@@ -7,13 +7,21 @@ import qs.components.reusable
 import qs.components.content.parts
 import qs.components.content.base
 
-// The busiest processes, with a kill button on hover.
+// The busiest processes, with a kill button on hover. Narrow, only the
+// sorted figure; short, no header; compact, the busiest one's figure.
 // properties: { count, sortBy: "cpu" | "mem" }
 Card {
   id: root
 
   readonly property string sortBy: root.properties.sortBy
   readonly property real rowHeight: Widget.height
+  // Room for the command beside both figures
+  readonly property bool narrow: root.innerWidth < Appearance.fontSize * 18
+  // The header only above two rows or more
+  readonly property bool showHeader: root.innerHeight >= Appearance.fontSize * 2 + Widget.spacing + root.rowHeight * 2
+
+  fullMinWidth: Appearance.fontSize * 9
+  fullMinHeight: Widget.height + Appearance.fontSize * 1.5
   // As many as asked for, and as fit
   readonly property int fitting: Math.max(1, Math.floor((list.height + Widget.spacing / 2) / (root.rowHeight + Widget.spacing / 2)))
   // Not `rows`: that is the slot size in Card
@@ -40,11 +48,8 @@ Card {
   }
 
   // Compact: the busiest process
-  CompactFigure {
+  compactContent: CompactFigure {
     readonly property var busiest: root.processes[0] ?? null
-    visible: root.compact
-    anchors.centerIn: parent
-    maxWidth: root.width - root.pad * 2
     icon: "bug_report"
     value: busiest ? busiest[root.sortBy].toFixed(0) : "…"
     unit: busiest ? "%" : ""
@@ -52,19 +57,19 @@ Card {
   }
 
   ColumnLayout {
-    visible: !root.compact
     anchors.fill: parent
     anchors.margins: root.pad
     spacing: Widget.spacing
 
     ModuleHeader {
-      visible: !root.compact
+      visible: root.showHeader
       icon: "bug_report"
       title: I18n.tr("Processes")
       // Column heads over the figures (the kill button's room at the end)
       StyledText {
+        visible: !root.narrow || root.sortBy === "cpu"
         Layout.preferredWidth: numberMetrics.advanceWidth
-        Layout.rightMargin: Widget.spacing / 2
+        Layout.rightMargin: root.narrow ? Widget.spacing * 1.5 + killMetrics.advanceWidth : Widget.spacing / 2
         horizontalAlignment: Text.AlignRight
         text: "CPU"
         textColor: root.sortBy === "cpu" ? Theme.accent : Theme.foreground
@@ -72,6 +77,7 @@ Card {
         opacity: 0.7
       }
       StyledText {
+        visible: !root.narrow || root.sortBy === "mem"
         Layout.preferredWidth: numberMetrics.advanceWidth
         Layout.rightMargin: Widget.spacing * 1.5 + killMetrics.advanceWidth
         horizontalAlignment: Text.AlignRight
@@ -126,6 +132,7 @@ Card {
                 text: row.proc.command
               }
               StyledText {
+                visible: !root.narrow || root.sortBy === "cpu"
                 Layout.preferredWidth: numberMetrics.advanceWidth
                 horizontalAlignment: Text.AlignRight
                 text: `${row.proc.cpu.toFixed(1)}%`
@@ -133,6 +140,7 @@ Card {
                 textSize: Appearance.fontSize - 1
               }
               StyledText {
+                visible: !root.narrow || root.sortBy === "mem"
                 Layout.preferredWidth: numberMetrics.advanceWidth
                 horizontalAlignment: Text.AlignRight
                 text: `${row.proc.mem.toFixed(1)}%`

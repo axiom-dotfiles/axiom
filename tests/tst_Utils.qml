@@ -29,6 +29,23 @@ TestCase {
     compare(Utils.freeId("bar-1", ["bar-1"], "-"), "bar-2");
   }
 
+  function test_withEntry() {
+    const map = {
+      "a": 1,
+      "b": 2
+    };
+    compare(Utils.withEntry(map, "c", 3), {
+      "a": 1,
+      "b": 2,
+      "c": 3
+    });
+    compare(Utils.withEntry(map, "a", undefined), {
+      "b": 2
+    }, "undefined leaves it out");
+    verify(Utils.withEntry(map, "a", 5) !== map, "a new object");
+    compare(map.a, 1, "the original is untouched");
+  }
+
   function test_clone() {
     const original = {
       "a": [1,

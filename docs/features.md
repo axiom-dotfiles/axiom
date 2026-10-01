@@ -53,19 +53,20 @@ The screenshots show [two setups](../README.md#built-in-the-shell) of the same s
 | :---: | :---: |
 | <img src="../assets/screenshots/overlay-home.webp" alt="The overlay's Home page, setup A"> | <img src="../assets/screenshots/overlay-home-b.webp" alt="The overlay's Home page, setup B"> |
 
-- A full-screen overlay made of pages of cards. Each page is built from columns, each column from cells, and each cell holds modules.
-- 24 modules, including:
+- A full-screen overlay made of pages of cards. Each page is a grid you place modules on, sized in quarter cards, with gaps wherever you like.
+- 23 modules, including:
   - a media player, audio mixer, system graphs and top processes
   - disks, updates, quick actions (toggles, power, pin), Bluetooth, network and Wi-Fi networks
   - weather, calendar, notes and favorites
   - screenshot, session controls, a workspace map and AI chat
-- Modules adapt to the shape of their slot (square, wide, tall or quarter).
+- Modules adapt to their size and shape (square, wide or tall, down to a quarter card).
 - Built-in pages:
   - **Settings**, generated from the config schema
-  - **Bar editor**, **Overlay editor** and **Edge menu editor** (see [Built in the shell](../README.md#built-in-the-shell))
+  - **Bar editor** and **Layouts** (overlay pages and edge menus, see [Built in the shell](../README.md#built-in-the-shell))
   - **Themes**
   - **Keybinds**
   - **Monitors** (see [The rest](#the-rest))
+  - Tool pages sit after your own pages in the navigator, as icons.
 - Every module can also go in an [edge menu](#edge-menus).
 
 <details>
@@ -80,13 +81,13 @@ The screenshots show [two setups](../README.md#built-in-the-shell) of the same s
 
 ## Edge menus
 
-Edge menus are the overlay's other half. Every overlay module fits in them, laid out in the same columns and cells, but a menu slides out of a screen edge and leaves the rest of your desktop in view. Use them for what you want one hover away.
+Edge menus are the overlay's other half. Every overlay module fits in them, placed on the same grid, but a menu slides out of a screen edge and leaves the rest of your desktop in view. Use them for what you want one hover away.
 
 - **Floating** menus open over your windows. They grow out of the screen border or a solid bar like the popouts, or sit apart as a box.
 - **Integrated** menus open outside the border and bars. They push the bars and your windows inwards, like a sidebar.
-- Open one by resting the pointer on its edge, from a bar **Button**, with a keybind, or over IPC (`edgeMenu toggle <id>`). It can close when the pointer leaves or you click outside it, and the **Pin** module or tile keeps it open.
-- Each menu has its own edge, monitor, position along the edge, card size, padding, colors and hover timings. An integrated menu can also draw a framed box along the whole edge.
-- Build them on the **Edge menu editor** page (see [Built in the shell](../README.md#built-in-the-shell)).
+- Open one by resting the pointer on its edge, from a bar **Button**, with a keybind, or over IPC (`edgeMenu toggle <id>`). It can close when the pointer leaves or you click outside it, and its pin button or the pin quick action keeps it open. The editor lists what opens a menu and adds a bar button or keybind for it in one click.
+- Each menu has its own edge, monitor, position along the edge, length (fit its modules or take the whole edge), card size, padding, colors and hover timings. An integrated menu can also draw a framed box along the whole edge.
+- Build them on the **Layouts** page, next to your overlay pages (see [Built in the shell](../README.md#built-in-the-shell)).
 
 An integrated menu takes its space from your windows, which retile beside it and get it back when it closes:
 
@@ -152,7 +153,7 @@ And setup B, which keeps it to one menu on the left, under the solid top bar:
 - **Workspaces:** laid out as 1 to N, or as a grid per monitor (5×5 by default) that you move around by row and column. The bar widget, the workspace map, the workspace overview and your keybinds (through the `workspaces` IPC target) all follow the one setting.
 - **Workspace overview:** live window previews. Drag a window onto a side of another window or onto another workspace, right-drag to resize it, and middle-click to close it.
 - **AI chat:** Anthropic, OpenAI, Gemini, or anything with an OpenAI-style API (Ollama, LM Studio, OpenRouter, …). Replies stream in as formatted Markdown with copyable code blocks and folded thinking. Also: saved conversations, presets (system prompt, model, effort), image attachments (paste, screenshot a region, drop) and `@` in the launcher to ask a question. API keys come from environment variables, your keyring or a mode-600 secrets file, never `config.json`.
-- **Lockscreen:** three modes: the built-in `ext-session-lock` locker (PAM), a themed hyprlock config that axiom generates, or none.
+- **Lockscreen:** three modes: the built-in `ext-session-lock` locker (PAM), a themed hyprlock config that axiom generates, or none. The built-in one is laid out on the Layouts page like an overlay page: a greeting, the password field, a clock, media, weather and other display-only modules anywhere on a screen-sized grid, over your wallpaper (blurred and dimmed) or a color, with a preview on screen.
 - **Monitors:** a page to arrange monitors by dragging (they snap edge to edge) and set each one's mode, scale, rotation, mirroring, VRR, bit depth and color management. One layout is kept per set of connected monitors and switches on its own when you plug one in. **Apply** asks you to keep the change, and puts the old layout back after 15 seconds if you don't.
 - **Multi-monitor:** interactive surfaces open on the primary monitor, on whichever monitor has focus, or on all of them at once.
 - **First-run setup:** a guided tour through the look, monitors, workspaces, default apps, Hyprland's mode and the optional integrations, applied as you go. `/welcome` runs it again.

@@ -5,12 +5,14 @@ import qs.config
 import qs.services
 import qs.components.reusable
 import qs.components.forms
+import qs.components.content.parts
 import qs.components.content.base
 
 // The theme list: one tile per theme (a dark/light pair is one theme),
 // stock and generated, each painted in its own colors, plus the Dark/Light
 // switch that picks the variant and Auto, which switches it by time of day
 // (WallpaperManager). Themes apply immediately, so there's nothing to save.
+// Compact, the current theme's name; a click switches Dark/Light.
 TitledCard {
   id: root
 
@@ -20,8 +22,25 @@ TitledCard {
   // Rebuilt only when the theme folders are rescanned
   readonly property var stockFamilies: ThemeManager.themeFamilies.filter(family => !family.generated)
   readonly property var generatedFamilies: ThemeManager.themeFamilies.filter(family => family.generated)
-  // Two tiles across unless the slot is narrow
-  readonly property int tileColumns: root.width > 360 ? 2 : 1
+  // As many tiles across as fit
+  readonly property int tileColumns: Math.max(1, Math.floor((root.width - Widget.padding * 2) / (Appearance.fontSize * 13)))
+
+  fullMinWidth: Appearance.fontSize * 14
+  fullMinHeight: Appearance.fontSize * 14
+
+  compactContent: Item {
+    CompactFigure {
+      anchors.fill: parent
+      icon: Appearance.darkMode ? "dark_mode" : "light_mode"
+      label: root.family?.label ?? I18n.tr("Theme")
+    }
+    MouseArea {
+      anchors.fill: parent
+      enabled: root.hasDark && root.hasLight
+      cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+      onClicked: ThemeManager.setLightMode(Appearance.darkMode)
+    }
+  }
 
   title: I18n.tr("Theme")
   showActions: false

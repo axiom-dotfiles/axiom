@@ -8,15 +8,11 @@ import qs.components.reusable
 import qs.components.content.base
 
 // Current conditions and a 5-day forecast: the Weather widget's popout,
-// from the same WeatherSource (the widget passes its request and keeps it
-// acquired).
+// from WeatherManager's source (the widget keeps it acquired).
 Panel {
   id: root
 
-  // The widget's WeatherManager request, from its payload
-  property var weatherRequest: null
-
-  readonly property var source: root.weatherRequest ? WeatherManager.sourceFor(root.weatherRequest) : null
+  readonly property var source: WeatherManager.source
   readonly property var current: root.source?.current ?? null
   readonly property var condition: root.source?.condition ?? null
   readonly property var daily: root.source?.weather?.daily ?? null

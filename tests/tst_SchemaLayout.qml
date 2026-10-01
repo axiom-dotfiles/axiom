@@ -151,6 +151,10 @@ TestCase {
         "c": {},
         "skip": {
           "x-group": "One"
+        },
+        "hidden": {
+          "x-group": "One",
+          "x-settings": false
         }
       }
     }, ["skip"]);
@@ -158,8 +162,8 @@ TestCase {
     compare(Object.keys(groups[1].schema), ["a"]);
     const bar = SchemaLayout.objectGroups(schema.definitions.Bar, ["widgets"]);
     compare(bar.map(g => g.title), ["General", "Size", "Style", "Behaviour"]);
-    const menu = SchemaLayout.objectGroups(schema.definitions.EdgeMenu, ["columns"]);
-    compare(menu.map(g => g.title), ["General", "Placement", "Style", "Behaviour"]);
+    const menu = SchemaLayout.objectGroups(schema.definitions.EdgeMenu, ["modules"]);
+    compare(menu.map(g => g.title), ["General", "Opening", "Placement", "Style", "Closing", "Advanced"]);
   }
 
   function test_real_schema_intros_exist() {

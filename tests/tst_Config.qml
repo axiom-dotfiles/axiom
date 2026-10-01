@@ -135,16 +135,17 @@ TestCase {
     const types = config.Overlay.views.map(view => view.type);
     compare(types[0], "Settings");
     verify(types.includes("Themes"));
-    verify(types.includes("EdgeMenuEditor"));
+    // v31: the edge menu editor became part of the pinned Layouts page
+    verify(!types.includes("EdgeMenuEditor"));
     verify(types.includes("Monitors"));
     // v11: backends become providers, keeping a model the user added
     compare(config.Chat.defaultProvider, "anthropic");
     const anthropic = config.Chat.providers.find(p => p.id === "anthropic");
     verify(anthropic.models.includes("my-own-model"));
     // v12: QuickToggles and Session become QuickActions
-    const cells = config.Overlay.views[1].columns[0].cells;
-    compare(cells[0].slots.main.type, "QuickActions");
-    compare(cells[1].slots.main.properties.actions, ["lock", "reboot"]);
+    const modules = config.Overlay.views[1].modules;
+    compare(modules[0].type, "QuickActions");
+    compare(modules[1].properties.actions, ["lock", "reboot"]);
     // v14: the Network widget no longer polls
     const network = config.Bars[0].widgets.right[0];
     compare(network.type, "Network");
@@ -164,26 +165,25 @@ TestCase {
     compare(osd.bars[0].apps, ["spotify"]);
     compare(osd.bars[0].showOsd, false);
     compare(osd.bars[1].apps, []);
-    // v16: an edge menu's extraDepth becomes the size across its edge
+    // v16: an edge menu's extraDepth becomes the size across its edge;
+    // v31: which is dropped with its card size (menus use the overlay's)
     compare(config.EdgeMenus[0].extraDepth, undefined);
-    compare(config.EdgeMenus[0].extraWidth, 120);
-    compare(config.EdgeMenus[0].extraHeight, 0);
-    compare(config.EdgeMenus[1].extraWidth, 0);
-    compare(config.EdgeMenus[1].extraHeight, 40);
+    compare(config.EdgeMenus[0].extraWidth, undefined);
+    compare(config.EdgeMenus[0].cardSize, undefined);
+    compare(config.EdgeMenus[1].extraHeight, undefined);
+    compare(config.EdgeMenus[1].cardSize, undefined);
     // v17: a Notes module's name becomes the Markdown file it moved to
-    compare(cells[2].slots.main.properties.name, undefined);
-    compare(cells[2].slots.main.properties.note, "my_list.md");
-    compare(cells[3].slots.main.properties.note, "");
-    compare(cells[3].slots.main.properties.lockNote, false);
+    compare(modules[2].properties.name, undefined);
+    compare(modules[2].properties.note, "my_list.md");
+    compare(modules[3].properties.note, "");
+    compare(modules[3].properties.lockNote, false);
     // v18: no monitor profiles until the Monitors page saves one
     compare(config.Hyprland.monitors.profiles, []);
-    // v19: a cell's fill becomes fillWidth and fillHeight
-    compare(cells[4].fill, undefined);
-    compare(cells[4].fillWidth, true);
-    compare(cells[4].fillHeight, true);
-    compare(cells[5].fill, undefined);
-    compare(cells[5].fillWidth, false);
-    compare(cells[5].fillHeight, false);
+    // v31: a column's cells become modules placed down the grid; empty
+    // cells leave nothing behind
+    compare(config.Overlay.views[1].columns, undefined);
+    compare(modules.length, 4);
+    compare(modules.map(m => [m.place.x, m.place.y, m.place.w, m.place.h]), [[0, 0, 4, 4], [0, 4, 4, 4], [0, 8, 4, 4], [0, 12, 4, 4]]);
   }
 
   function test_v20_adds_app_binds_on_free_keys() {
@@ -390,8 +390,394 @@ TestCase {
     compare([left[2].properties.warnThreshold, left[2].properties.criticalThreshold, left[2].properties.criticalColor], [60, 80, "base0A"]);
     compare(left[2].properties.critPercent, undefined);
     compare(left[3].properties.ignoreApps, ["cava", "easyeffects"]);
-    compare(config.Overlay.views[0].columns[0].cells[0].slots.main.properties.use24Hour, false);
+    compare(config.Overlay.views[0].modules[0].properties.use24Hour, false);
     compare(loaded.removed, []);
+    compare(errors(config), []);
+  }
+
+  function place(module) {
+    return [module.place.x, module.place.y, module.place.w, module.place.h];
+  }
+
+  function test_v31_places_modules_on_a_grid() {
+    const loaded = load(files.json("tests/fixtures/configs/v30.json"));
+    const config = loaded.config;
+    compare(loaded.removed, []);
+    compare(errors(config), []);
+    const views = config.Overlay.views;
+    compare(views.map(view => view.type), ["Custom", "Settings", "BarEditor", "Themes", "Keybinds", "Monitors"]);
+    // Columns side by side, each flowing its cells, slots within them
+    const home = views[0];
+    compare(home.columns, undefined);
+    const at = type => home.modules.filter(m => m.type === type).map(place);
+    compare(at("ClockCalendar"), [[0, 0, 4, 8]]);
+    compare(at("QuickActions"), [[4, 0, 4, 2], [4, 2, 4, 2]]);
+    compare(at("SystemGraphs"), [[4, 4, 4, 4]]);
+    compare(at("NowPlaying"), [[8, 0, 8, 4]]);
+    compare(at("AudioMixer"), [[8, 4, 4, 4]]);
+    compare(at("Network"), [[12, 4, 4, 2]]);
+    compare(at("Favourites"), [[12, 6, 2, 2]]);
+    compare(at("Screenshot"), [[14, 6, 2, 2]]);
+    compare(at("Notifications"), [[16, 0, 4, 4]]);
+    compare(at("Weather"), [[16, 4, 4, 2]]);
+    compare(at("Disks"), [[16, 6, 4, 2]]);
+    compare(home.modules.find(m => m.type === "Disks").properties.paths, ["/", "/home"]);
+
+    const menus = config.EdgeMenus;
+    // A cell filling along a left edge: the menu takes the whole edge
+    const left = menus[0];
+    compare(left.columns, undefined);
+    compare(left.length, "edge");
+    compare(left.modules.map(m => [m.type].concat(place(m))), [["NowPlaying", 0, 2, 4, 2], ["QuickActions", 0, 0, 4, 2], ["ClockCalendar", 0, 4, 4, 4]]);
+    // The extra width across a right edge is dropped with the card size
+    const right = menus[1];
+    compare(right.length, "edge");
+    compare(right.cardSize, undefined);
+    compare(right.extraWidth, undefined);
+    compare(right.modules.map(m => [m.type].concat(place(m))), [["NowPlaying", 0, 0, 4, 2], ["Chat", 0, 2, 4, 8], ["QuickActions", 0, 10, 4, 2]]);
+    // Two Talls side by side on a top edge, 8 quarter units thick
+    compare(menus[2].length, "content");
+    compare(menus[2].cardSize, undefined);
+    compare(menus[2].modules.map(place), [[0, 0, 4, 8], [4, 0, 4, 8]]);
+    verify(loaded.changes.some(change => change.includes("(200 px) dropped")));
+    verify(loaded.changes.some(change => change.includes("card size (395 px) dropped")));
+  }
+
+  function test_v31_pin_modules_become_a_pin_button() {
+    const loaded = load({
+      "version": 30,
+      "EdgeMenus": [
+        {
+          "id": "m",
+          "edge": "Bottom",
+          "columns": [
+            {
+              "cells": [
+                {
+                  "layout": "Horiz1x2",
+                  "fillWidth": true,
+                  "slots": {
+                    "top": {
+                      "type": "NowPlaying"
+                    },
+                    "bottomRight": {
+                      "type": "Pin"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    });
+    const menu = loaded.config.EdgeMenus[0];
+    compare(menu.pinButton, true);
+    compare(menu.length, "edge");
+    compare(menu.modules.length, 1);
+    compare(place(menu.modules[0]), [0, 0, 4, 2]);
+    compare(errors(loaded.config), []);
+  }
+
+  function test_v31_fill_cells_grow_on_pages() {
+    const loaded = load({
+      "version": 30,
+      "Overlay": {
+        "views": [
+          {
+            "type": "Custom",
+            "columns": [
+              {
+                "cells": [
+                  {
+                    "layout": "Tall",
+                    "slots": {
+                      "main": {
+                        "type": "ClockCalendar"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "cells": [
+                  {
+                    "layout": "Wide",
+                    "slots": {}
+                  },
+                  {
+                    "layout": "HalfWide",
+                    "fillWidth": true,
+                    "fillHeight": true,
+                    "slots": {
+                      "main": {
+                        "type": "NowPlaying"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    });
+    const modules = loaded.config.Overlay.views[0].modules;
+    compare(modules.map(place), [[0, 0, 4, 8], [4, 4, 8, 4]]);
+    compare(errors(loaded.config), []);
+  }
+
+  function test_v31_fill_growth_stays_in_bounds_and_page_pins_are_noted() {
+    const tall = {
+      "layout": "Tall",
+      "slots": {
+        "main": {
+          "type": "Weather"
+        }
+      }
+    };
+    const loaded = load({
+      "version": 30,
+      "Overlay": {
+        "views": [
+          {
+            "type": "Custom",
+            "columns": [
+              {
+                "cells": [tall, tall, tall, tall, tall]
+              },
+              {
+                "cells": [
+                  {
+                    "layout": "Single",
+                    "fillHeight": true,
+                    "slots": {
+                      "main": {
+                        "type": "NowPlaying"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "cells": [
+                  {
+                    "layout": "Single",
+                    "slots": {
+                      "main": {
+                        "type": "Pin"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    });
+    const modules = loaded.config.Overlay.views[0].modules;
+    compare(modules.length, 6);
+    verify(modules.every(module => module.place.h <= 32), "grown down a 40-unit column, kept to 32");
+    verify(loaded.changes.some(change => change.includes("Pin module(s) removed")));
+    compare(errors(loaded.config), []);
+  }
+
+  function test_v32_position_becomes_an_anchor() {
+    const loaded = load({
+      "version": 31,
+      "EdgeMenus": [
+        {
+          "id": "a",
+          "position": 0,
+          "margin": 12
+        },
+        {
+          "id": "b",
+          "position": 50
+        },
+        {
+          "id": "c",
+          "position": 90
+        },
+        {
+          "id": "d",
+          "position": 30
+        }
+      ]
+    });
+    const menus = loaded.config.EdgeMenus;
+    // Anchors, then (v35) offsets from the middle: an end's is the furthest
+    compare(menus.map(menu => menu.offset), [-200, 0, 200, 0]);
+    compare(menus[0].align, undefined);
+    compare(menus[0].position, undefined);
+    compare(menus[0].margin, undefined);
+    verify(loaded.changes.some(change => change.includes("position 30%")));
+    verify(loaded.changes.some(change => change.includes("frame margin dropped")));
+    verify(!loaded.changes.some(change => change.includes("position 50%")));
+    compare(errors(loaded.config), []);
+  }
+  function test_v35_align_becomes_an_offset_from_the_middle() {
+    const loaded = load({
+      "version": 34,
+      "EdgeMenus": [
+        {
+          "id": "a",
+          "align": "center",
+          "offset": 2
+        },
+        {
+          "id": "b",
+          "align": "start",
+          "offset": 1
+        },
+        {
+          "id": "c",
+          "align": "end"
+        }
+      ]
+    });
+    const menus = loaded.config.EdgeMenus;
+    compare(menus.map(menu => menu.offset), [2, -200, 200]);
+    verify(menus.every(menu => !("align" in menu)));
+    verify(loaded.changes.some(change => change.includes("align \"start\"")));
+    compare(errors(loaded.config), []);
+  }
+
+  function test_v33_missing_tool_pages_come_back_hidden() {
+    const loaded = load({
+      "version": 32,
+      "Overlay": {
+        "views": [
+          {
+            "type": "Custom",
+            "name": "Home",
+            "modules": []
+          },
+          {
+            "type": "Themes"
+          },
+          {
+            "type": "Settings"
+          }
+        ]
+      }
+    });
+    const views = loaded.config.Overlay.views;
+    compare(views.map(view => view.type), ["Custom", "Themes", "Settings", "Keybinds", "BarEditor", "Monitors"]);
+    compare(views.map(view => view.visible === false), [false, false, false, true, true, true]);
+    compare(loaded.changes.filter(change => change.includes("added back")).length, 3);
+    compare(errors(loaded.config), []);
+  }
+
+  function test_v33_custom_pages_lose_stretch() {
+    const loaded = load({
+      "version": 32,
+      "Overlay": {
+        "views": [
+          {
+            "type": "Custom",
+            "name": "Home",
+            "stretch": true,
+            "modules": []
+          },
+          {
+            "type": "Custom",
+            "name": "Other",
+            "stretch": false,
+            "modules": []
+          }
+        ]
+      }
+    });
+    const views = loaded.config.Overlay.views;
+    compare(views[0].stretch, undefined);
+    compare(views[1].stretch, undefined);
+    compare(views[0].icon, "");
+    compare(loaded.changes.filter(change => change.includes("stretch dropped")).length, 1);
+    compare(errors(loaded.config), []);
+  }
+
+  function test_v33_weather_settings_become_global() {
+    const loaded = load({
+      "version": 32,
+      "Bars": [
+        {
+          "id": "primary",
+          "widgets": {
+            "left": [
+              {
+                "type": "Weather",
+                "properties": {
+                  "location": "",
+                  "units": "celsius",
+                  "intervalMinutes": 30,
+                  "showCondition": true
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "Overlay": {
+        "views": [
+          {
+            "type": "Custom",
+            "name": "Home",
+            "modules": [
+              {
+                "type": "Weather",
+                "place": {
+                  "x": 0,
+                  "y": 0,
+                  "w": 4,
+                  "h": 4
+                },
+                "properties": {
+                  "location": "Kyoto",
+                  "latitude": "",
+                  "longitude": "",
+                  "units": "fahrenheit"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "EdgeMenus": [
+        {
+          "id": "a",
+          "modules": [
+            {
+              "type": "Weather",
+              "place": {
+                "x": 0,
+                "y": 0,
+                "w": 2,
+                "h": 1
+              },
+              "properties": {
+                "location": "Oslo"
+              }
+            }
+          ]
+        }
+      ]
+    });
+    const config = loaded.config;
+    compare(config.Weather, {
+      "location": "Kyoto",
+      "latitude": "",
+      "longitude": "",
+      "units": "fahrenheit",
+      "intervalMinutes": 30
+    });
+    compare(config.Bars[0].widgets.left[0].properties.location, undefined);
+    compare(config.Bars[0].widgets.left[0].properties.showCondition, true);
+    compare(config.Overlay.views[0].modules[0].properties, undefined);
+    compare(config.EdgeMenus[0].modules[0].properties, undefined);
+    verify(loaded.changes.some(change => change.includes("from Overlay.views[0].modules[0]")));
+    verify(loaded.changes.some(change => change.startsWith("EdgeMenus[0].modules[0]: its own location dropped")));
     compare(errors(config), []);
   }
 
@@ -416,5 +802,46 @@ TestCase {
     });
     compare(result.config.version, ConfigMigration.currentVersion + 1);
     compare(result.migrated, false);
+  }
+
+  function test_v34_lockscreen_becomes_modules_data() {
+    return [
+      {
+        "tag": "with media",
+        "showMedia": true,
+        "types": ["Greeting", "NowPlaying", "Password"]
+      },
+      {
+        "tag": "without media",
+        "showMedia": false,
+        "types": ["Greeting", "Password"]
+      }
+    ];
+  }
+
+  function test_v34_lockscreen_becomes_modules(data) {
+    const loaded = load({
+      "version": 33,
+      "Lockscreen": {
+        "mode": "quickshell",
+        "showMedia": data.showMedia
+      }
+    });
+    const lockscreen = loaded.config.Lockscreen;
+    compare(lockscreen.showMedia, undefined);
+    compare(lockscreen.layout.modules.map(module => module.type), data.types);
+    compare(lockscreen.layout.columns, 16);
+    compare(lockscreen.layout.modules[0].properties.text, "");
+    compare(loaded.changes.filter(change => change.startsWith("Lockscreen:")).length, 1);
+    compare(loaded.removed, []);
+    compare(errors(loaded.config), []);
+  }
+
+  function test_lockscreen_default_layout_fits_its_grid() {
+    const layout = SchemaValidation.applyDefaults({}, schema).Lockscreen.layout;
+    const bounds = GridPlacement.bounds(layout.modules);
+    verify(bounds.cols <= layout.columns && bounds.rows <= layout.rows);
+    compare(layout.modules.filter(module => module.type === "Password").length, 1);
+    layout.modules.forEach((module, i) => verify(GridPlacement.canPlace(layout.modules.slice(0, i), module.place, -1)));
   }
 }

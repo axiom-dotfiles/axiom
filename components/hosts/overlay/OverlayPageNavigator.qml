@@ -8,8 +8,9 @@ import qs.components.reusable
 
 // Fixed page navigator for the overlay's pages: arrows at the ends and a tab
 // per page (icon and name), the current one under a sliding accent pill.
-// When every name doesn't fit `maxWidth`, the other tabs drop to their
-// icons (named in a tooltip). Scrolling over it steps through the pages.
+// Tool pages follow the user's own after a divider, as icons (named in a
+// tooltip), even when current. When every name doesn't fit `maxWidth`, the
+// other tabs drop to their icons too. Scrolling over it steps through the pages.
 // Pages with unsaved edits get a dot, and while another page has some,
 // Save all / Discard all follow the arrows (EditsManager: a reminder, as
 // drafts survive leaving a page or closing the overlay).
@@ -19,7 +20,7 @@ Rectangle {
   id: root
 
   required property int currentIndex
-  // [{ type, icon, label }], one per page (OverlayPages.pages)
+  // [{ type, icon, label, tool }], one per page (OverlayPages.pages)
   required property var pages
   // The widest it may get; 0 for no limit
   property real maxWidth: 0
@@ -77,7 +78,7 @@ Rectangle {
       model: root.pages
       Item {
         required property var modelData
-        implicitWidth: root.tabPadding * 2 + root.iconSize + root.labelSpacing + measureLabel.implicitWidth + (EditsManager.isUnsaved(modelData.type) ? root.labelSpacing + 8 : 0)
+        implicitWidth: root.tabPadding * 2 + root.iconSize + (modelData.tool ? 0 : root.labelSpacing + measureLabel.implicitWidth) + (EditsManager.isUnsaved(modelData.type) ? root.labelSpacing + 8 : 0)
         StyledText {
           id: measureLabel
           text: parent.modelData.label
@@ -149,12 +150,12 @@ Rectangle {
 
       // itemAt() isn't a notifying read: `count` re-evaluates it once the
       // tabs exist
-      readonly property Item currentTab: tabs.count > root.currentIndex ? tabs.itemAt(root.currentIndex) : null
+      readonly property var currentTab: tabs.count > root.currentIndex ? tabs.itemAt(root.currentIndex) : null
 
       Rectangle {
         id: pill
-        x: parent.currentTab?.x ?? 0
-        width: parent.currentTab?.width ?? 0
+        x: (parent.currentTab?.x ?? 0) + (parent.currentTab?.divider ?? 0)
+        width: parent.currentTab?.tabWidth ?? 0
         height: parent.height
         radius: root.innerRadius
         color: Theme.accent
@@ -183,67 +184,87 @@ Rectangle {
           id: tabs
           model: root.pages
 
-          Rectangle {
+          // The tab, after a divider where the tool pages start
+          Item {
             id: tab
             required property int index
             required property var modelData
             readonly property bool isCurrent: index === root.currentIndex
-            readonly property bool showLabel: tab.isCurrent || !root.compact
+            readonly property bool showLabel: !tab.modelData.tool && (tab.isCurrent || !root.compact)
             readonly property color ink: tab.isCurrent ? root.onAccent : Theme.foreground
+            readonly property bool firstTool: tab.modelData.tool === true && tab.index > 0 && root.pages[tab.index - 1]?.tool !== true
+            readonly property real divider: tab.firstTool ? root.tabSpacing + Appearance.borderWidth : 0
+            readonly property real tabWidth: root.tabPadding * 2 + content.implicitWidth
 
-            width: root.tabPadding * 2 + content.implicitWidth
+            width: tab.divider + tab.tabWidth
             height: parent.height
-            radius: root.innerRadius
-            color: !tab.isCurrent && tabArea.containsMouse ? Theme.backgroundHighlight : Qt.alpha(Theme.backgroundHighlight, 0)
 
-            Row {
-              id: content
-              anchors.centerIn: parent
-              spacing: root.labelSpacing
-
-              StyledIcon {
-                anchors.verticalCenter: parent.verticalCenter
-                text: tab.modelData.icon
-                textSize: root.iconSize
-                fill: tab.isCurrent ? 1 : 0
-                textColor: tab.ink
-              }
-
-              StyledText {
-                anchors.verticalCenter: parent.verticalCenter
-                text: tab.modelData.label
-                visible: tab.showLabel
-                font.weight: tab.isCurrent ? Font.DemiBold : Font.Normal
-                textColor: tab.ink
-              }
-
-              UnsavedDot {
-                anchors.verticalCenter: parent.verticalCenter
-                visible: EditsManager.isUnsaved(tab.modelData.type)
-                onAccent: tab.isCurrent
-              }
+            StyledSeparator {
+              visible: tab.firstTool
+              x: root.tabSpacing / 2 - width
+              anchors.verticalCenter: parent.verticalCenter
+              width: Appearance.borderWidth
+              height: root.controlHeight * 0.6
+              opacity: 0.5
             }
 
-            MouseArea {
-              id: tabArea
-              anchors.fill: parent
-              hoverEnabled: true
-              cursorShape: Qt.PointingHandCursor
-              onClicked: root.select(tab.index)
-            }
+            Rectangle {
+              id: tabBox
+              x: tab.divider
+              width: tab.tabWidth
+              height: parent.height
+              radius: root.innerRadius
+              color: !tab.isCurrent && tabArea.containsMouse ? Theme.backgroundHighlight : Qt.alpha(Theme.backgroundHighlight, 0)
 
-            LazyLoader {
-              active: !tab.showLabel && tabArea.containsMouse
-              StyledToolTip {
-                target: tab
-                text: tab.modelData.label
-                edges: Edges.Top
+              Row {
+                id: content
+                anchors.centerIn: parent
+                spacing: root.labelSpacing
+
+                StyledIcon {
+                  anchors.verticalCenter: parent.verticalCenter
+                  text: tab.modelData.icon
+                  textSize: root.iconSize
+                  fill: tab.isCurrent ? 1 : 0
+                  textColor: tab.ink
+                }
+
+                StyledText {
+                  anchors.verticalCenter: parent.verticalCenter
+                  text: tab.modelData.label
+                  visible: tab.showLabel
+                  font.weight: tab.isCurrent ? Font.DemiBold : Font.Normal
+                  textColor: tab.ink
+                }
+
+                UnsavedDot {
+                  anchors.verticalCenter: parent.verticalCenter
+                  visible: EditsManager.isUnsaved(tab.modelData.type)
+                  onAccent: tab.isCurrent
+                }
               }
-            }
 
-            Behavior on color {
-              ColorAnimation {
-                duration: Appearance.animFast
+              MouseArea {
+                id: tabArea
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: root.select(tab.index)
+              }
+
+              LazyLoader {
+                active: !tab.showLabel && tabArea.containsMouse
+                StyledToolTip {
+                  target: tabBox
+                  text: tab.modelData.label
+                  edges: Edges.Top
+                }
+              }
+
+              Behavior on color {
+                ColorAnimation {
+                  duration: Appearance.animFast
+                }
               }
             }
           }

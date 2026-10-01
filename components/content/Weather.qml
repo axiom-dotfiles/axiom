@@ -7,37 +7,39 @@ import qs.services
 import qs.components.content.parts
 import qs.components.content.base
 
-// Current weather, plus the next hours (a card wide or more) and days (a
-// card high or more; beside it in wide and large slots), centred as one
-// block. Same source and settings as the bar widget.
-// properties: { location, latitude, longitude, units }
+// Current weather, plus the next hours and days where they fit (the days
+// beside it in wide slots), centred as one block; compact, the figure (in
+// a row along a strip). Same source as the bar widget: the Weather
+// settings' location and units.
 Card {
   id: root
 
-  // From config only (acquire() must not follow live values)
-  readonly property var weatherRequest: ({
-      "latitude": root.properties.latitude,
-      "longitude": root.properties.longitude,
-      "location": root.properties.location,
-      "units": root.properties.units
-    })
-  readonly property var source: WeatherManager.sourceFor(weatherRequest)
-  onWeatherRequestChanged: WeatherManager.acquire(root, weatherRequest)
-  Component.onCompleted: WeatherManager.acquire(root, weatherRequest)
+  readonly property var source: WeatherManager.source
+  Component.onCompleted: WeatherManager.acquire(root)
   Component.onDestruction: WeatherManager.release(root)
 
   readonly property var current: root.source.current
   readonly property var daily: root.source.weather?.daily ?? null
-  readonly property bool showHourly: !root.compact && root.cols >= 2
-  readonly property bool showDaily: !root.compact && root.rows >= 2
-  // Wide and large slots put the days beside the current weather
-  readonly property bool sideBySide: root.showDaily && root.cols >= 4
+  // What each section needs (px), and what fits in the room inside
+  readonly property real currentHeight: Appearance.fontSize * 6
+  readonly property real hourlyHeight: Appearance.fontSize * 4.2
+  readonly property real dailyHeight: Appearance.fontSize * 1.5 * 7
+  readonly property real sectionGap: Widget.spacing * 3
+  // Wide slots put the days beside the current weather
+  readonly property bool sideBySide: !root.compact && root.innerWidth >= Appearance.fontSize * 36 && root.innerHeight >= root.dailyHeight
+  readonly property bool showDaily: !root.compact && (root.sideBySide || root.innerHeight >= root.currentHeight + root.sectionGap + root.dailyHeight)
+  readonly property bool showHourly: !root.compact && root.innerWidth >= Appearance.fontSize * 12 && root.innerHeight >= (root.sideBySide ? Math.max(root.currentHeight, root.dailyHeight) : root.currentHeight + (root.showDaily ? root.sectionGap + root.dailyHeight : 0)) + root.sectionGap + root.hourlyHeight
+  // Room to spare: a bigger hero and airier days
+  readonly property bool roomy: root.innerHeight >= Appearance.fontSize * 30
   // The current weather stacked and centred (tall, narrow and side by side
   // slots), else icon beside the figures
   readonly property bool stacked: !root.compact && (root.shape === "vertical" || root.sideBySide)
-  readonly property real heroScale: root.rows >= 4 ? 1.5 : 1
+  readonly property real heroScale: root.roomy ? 1.5 : 1
   // Most a gap between sections grows; what's left centres the whole block
   readonly property real maxGap: root.pad * 2
+
+  fullMinWidth: Appearance.fontSize * 9
+  fullMinHeight: Appearance.fontSize * 6
   // The week's range, which each day's bar is drawn against
   readonly property real weekMin: root.daily ? Math.min(...root.daily.temperature_2m_min) : 0
   readonly property real weekMax: root.daily ? Math.max(...root.daily.temperature_2m_max) : 1
@@ -45,16 +47,16 @@ Card {
   EmptyState {
     anchors.centerIn: parent
     visible: !root.current
+    maxWidth: root.innerWidth
+    availableHeight: root.innerHeight
     icon: "cloud"
-    text: root.compact ? "" : I18n.tr("Loading weather…")
+    text: I18n.tr("Loading weather…")
   }
 
   // Compact: the condition and temperature
-  CompactFigure {
-    visible: root.compact && root.current !== null
-    anchors.centerIn: parent
-    maxWidth: root.width - root.pad * 2
-    icon: root.source.condition?.icon ?? ""
+  // (until it's loaded, a cloud)
+  compactContent: CompactFigure {
+    icon: root.current ? (root.source.condition?.icon ?? "") : "cloud"
     value: root.current ? `${Math.round(root.current.temperature_2m)}°` : ""
     label: root.source.condition?.label ?? ""
   }
@@ -122,7 +124,7 @@ Card {
   component DailyList: ColumnLayout {
     id: list
     readonly property bool bars: list.width >= Appearance.fontSize * 15
-    spacing: root.rows >= 4 ? Widget.spacing * 1.5 : Widget.spacing / 2
+    spacing: root.roomy ? Widget.spacing * 1.5 : Widget.spacing / 2
     Repeater {
       model: root.showDaily ? (root.daily?.time?.length ?? 0) : 0
       RowLayout {
@@ -187,7 +189,7 @@ Card {
 
   // The sections, centred as one block with gaps of at most maxGap
   ColumnLayout {
-    visible: !root.compact && root.current !== null
+    visible: root.current !== null
     anchors.fill: parent
     anchors.margins: root.pad
     spacing: 0
@@ -229,7 +231,7 @@ Card {
       id: hours
       visible: root.showHourly
       Layout.fillWidth: true
-      readonly property int count: root.showHourly ? Math.max(0, Math.min(12, Math.floor((root.width - root.pad * 2) / (Appearance.fontSize * 3.5)))) : 0
+      readonly property int count: root.showHourly ? Math.max(0, Math.min(12, Math.floor(root.innerWidth / (Appearance.fontSize * 3.5)))) : 0
 
       Repeater {
         model: hours.count

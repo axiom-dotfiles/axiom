@@ -22,11 +22,14 @@ Card {
   // leave the column its old height)
   property bool showExtras: true
   property alias contentSpacing: body.spacing
-  default property alias content: body.data
+  // Children go into the scrolling body (Card's own `content` holds this
+  // file's column)
+  default property alias bodyContent: body.data
 
   signal save
   signal reset
 
+  // Hidden by Card while its compactContent shows
   ColumnLayout {
     anchors.fill: parent
     anchors.margins: Widget.padding

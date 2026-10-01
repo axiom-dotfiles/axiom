@@ -14,11 +14,19 @@ Card {
   readonly property bool _foregroundIsLight: !Utils.isColorDark(Theme.foreground)
   readonly property color labelColor: Utils.isColorDark(root.color) === root._foregroundIsLight ? Theme.foreground : Theme.background
 
+  // Both labels where they fit apart, else just the color's name, centred,
+  // else none
+  readonly property bool bothLabels: root.height >= Appearance.fontSize * 4.5
+  readonly property bool nameLabel: root.height >= Appearance.fontSize * 2 && root.width >= Appearance.fontSize * 3
+
   color: Theme.resolveColor(root.properties.color)
   border.width: Math.max(Appearance.borderWidth, 3)
 
   component SwatchLabel: StyledText {
     anchors.horizontalCenter: parent.horizontalCenter
+    width: Math.min(implicitWidth, root.width - 8)
+    horizontalAlignment: Text.AlignHCenter
+    elide: Text.ElideRight
     textColor: root.labelColor
     textSize: Appearance.fontSize - 4
     font.bold: true
@@ -26,14 +34,17 @@ Card {
   }
 
   SwatchLabel {
+    visible: root.bothLabels
     anchors.top: parent.top
     anchors.topMargin: OverlayConfig.cardSpacing / 2
     text: root.properties.label
   }
 
   SwatchLabel {
-    anchors.bottom: parent.bottom
+    visible: root.nameLabel
+    anchors.bottom: root.bothLabels ? parent.bottom : undefined
     anchors.bottomMargin: OverlayConfig.cardSpacing / 2
+    anchors.verticalCenter: root.bothLabels ? undefined : parent.verticalCenter
     text: root.properties.color
   }
 }

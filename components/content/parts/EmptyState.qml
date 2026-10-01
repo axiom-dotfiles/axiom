@@ -13,6 +13,11 @@ ColumnLayout {
   property string text: ""
   // Widest the text may be before it wraps
   property real maxWidth: 220
+  // The height it has (negative: no limit). Short of room for the text,
+  // only the icon shows, sized to fit
+  property real availableHeight: -1
+  readonly property bool _limited: root.availableHeight >= 0
+  readonly property bool _textFits: !root._limited || root.availableHeight >= Appearance.fontSize * 2.4 + Widget.spacing / 2 + textLine.implicitHeight
 
   spacing: Widget.spacing / 2
   opacity: 0.55
@@ -21,10 +26,11 @@ ColumnLayout {
     visible: root.icon !== ""
     Layout.alignment: Qt.AlignHCenter
     text: root.icon
-    textSize: Appearance.fontSize * 2
+    textSize: root._limited && !root._textFits ? Math.max(8, Math.min(Appearance.fontSize * 2, root.availableHeight * 0.7)) : Appearance.fontSize * 2
   }
   StyledText {
-    visible: root.text !== ""
+    id: textLine
+    visible: root.text !== "" && root._textFits
     Layout.alignment: Qt.AlignHCenter
     Layout.maximumWidth: root.maxWidth
     horizontalAlignment: Text.AlignHCenter

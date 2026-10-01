@@ -1,8 +1,11 @@
 pragma Singleton
 import QtQuick
 import qs.services
+import qs.components.methods
 
-// Reader for the Lockscreen section: which locker locks the session.
+// Reader for the Lockscreen section: which locker locks the session, and
+// what the built-in one shows (`layout`, as saved: the lock never shows
+// the layouts editor's unsaved draft, LockManager.localLayout).
 // Named LockscreenConfig because `Lockscreen` is the shell entry type.
 QtObject {
   id: root
@@ -13,6 +16,14 @@ QtObject {
   readonly property string mode: _c.mode
   // What lock buttons run in "none" mode
   readonly property string lockCommand: _c.lockCommand
-  readonly property bool showMedia: _c.showMedia
   readonly property bool blurWallpaper: _c.blurWallpaper
+
+  // The built-in lock screen: { columns, rows (its grid, fitted to each
+  // monitor), otherScreens ("layout": the modules without the password |
+  // "background"), background ("wallpaper" | "color"), backgroundColor,
+  // dim (%), moduleBorders, modules }. LockSurface takes it whole, so the
+  // layouts editor's preview can hand it the draft instead
+  readonly property var layout: _c.layout
+  // Its own fields in groups (`x-group`), for the layouts editor
+  readonly property var fieldGroups: SchemaLayout.objectGroups(ConfigManager.configSchema.properties.Lockscreen.properties.layout, ["modules"])
 }

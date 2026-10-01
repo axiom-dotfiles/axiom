@@ -10,7 +10,8 @@ import qs.components.hosts.popout
 // following EdgeMenuManager (opening and closing when it says, telling it
 // when the menu closes by itself), being held open (pinned, or by the
 // editor), and a reveal (EdgeMenuManager.reveal): held open until hovered,
-// the cursor moved into it once shown (`warpRequested`).
+// the cursor moved into it once shown (`warpRequested`). Also reports
+// where the host's modules can sit (`frame`, EdgeMenuManager.frames).
 QtObject {
   id: root
 
@@ -19,6 +20,9 @@ QtObject {
   required property ShellScreen screen
   // The host's window: a grab partner, and what must be mapped to warp
   required property var window
+
+  // Where the host's modules can sit on its screen (EdgeMenuManager.frames)
+  property var frame: null
 
   // The cursor should move into the menu (it's being revealed and shown)
   signal warpRequested
@@ -40,7 +44,7 @@ QtObject {
       return root.menu.triggerLength;
     if (body)
       return (vertical ? body.implicitHeight : body.implicitWidth) + pad * 2;
-    return EdgeMenusConfig.lengthOf(root.menu, vertical);
+    return EdgeMenusConfig.lengthOf(root.menu, vertical, EdgeMenuManager.cardUnitOf(root.menu));
   }
 
   function _sync() {
@@ -77,9 +81,25 @@ QtObject {
     onTriggered: root.warpRequested()
   }
 
+  // The id the frame was reported under: a renamed menu drops the old one
+  property string _frameId: ""
+  function _publishFrame() {
+    if (root._frameId !== root.menuId)
+      EdgeMenuManager.clearFrame(root._frameId, root.screen?.name ?? "");
+    root._frameId = root.menuId;
+    if (root.frame)
+      EdgeMenuManager.setFrame(root._frameId, root.frame);
+  }
+  onFrameChanged: root._publishFrame()
+  onMenuIdChanged: root._publishFrame()
+
   Component.onCompleted: {
     ShellManager.registerGrabPartner(root.window, root.screen?.name ?? "");
     Qt.callLater(root._sync);
+    root._publishFrame();
   }
-  Component.onDestruction: ShellManager.unregisterGrabPartner(root.window)
+  Component.onDestruction: {
+    ShellManager.unregisterGrabPartner(root.window);
+    EdgeMenuManager.clearFrame(root._frameId, root.screen?.name ?? "");
+  }
 }

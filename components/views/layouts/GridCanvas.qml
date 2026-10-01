@@ -1,0 +1,522 @@
+pragma ComponentBehavior: Bound
+import QtQuick
+import QtQuick.Layouts
+import qs.config
+import qs.components.methods
+import qs.components.reusable
+import qs.components.forms
+import qs.components.content.base
+
+// The edited page (or edge menu) as it will look: its modules on their
+// grid of quarter cards, drawn at the scale that fits, with room around them
+// to drop into (left of or above the grid shifts it to make room). Drag a
+// module to move it, its corner to resize it; the library's modules drop
+// anywhere free. Geometry is scaled by hand (not Item.scale) so text and
+// controls stay crisp.
+Card {
+  id: root
+
+  required property var dragLayer
+  // The modules being edited, or null when there's nothing to edit (then
+  // `emptyText` shows under the icon)
+  property var modules: null
+  property string title: ""
+  property string icon: "dashboard"
+  property string emptyText: ""
+  // An edge menu's edge ("Left", …), drawn along that side; "" for a page
+  property string edge: ""
+  // An edge menu's screen around it ({ x, y, w, h } in grid units from
+  // the grid's origin, GridPlacement.screenBox), else null: drawn as a
+  // dashed outline, with what lies outside it tinted (it'd scroll)
+  property var screenBox: null
+  // That screen's size in px ({ width, height }), for what's drawn on it in
+  // px: the band along its edge taken by the bars and border, or reserved
+  // by an integrated menu (`reservedDepth` px deep, labelled
+  // `reservedLabel`), and the other menus (`ghosts`: [{ name, rect, modules:
+  // [{ type, rect }] }], rects { x, y, width, height } in screen px)
+  property var screenSize: null
+  property real reservedDepth: 0
+  property string reservedLabel: ""
+  property var ghosts: []
+  // How the result fits, under the title (e.g. per monitor)
+  property string fitText: ""
+  property bool fitWarning: false
+  // Arrows under the title moving it along its edge (EditTarget's nudge
+  // fields): hidden while `nudgeText` is ""
+  property string nudgeText: ""
+  property bool nudgeVertical: false
+  property bool canNudgeBack: false
+  property bool canNudgeForward: false
+  property bool canCentre: false
+  property var nudge: step => {}
+  property var centre: () => {}
+  // Beside them, the px its lattice is moved (up to `gridOffsetLimit`
+  // either way), set through `setGridOffset`
+  property int gridOffset: 0
+  property int gridOffsetLimit: 0
+  property var setGridOffset: px => {}
+  // A menu's lattice along its edge ({ from, to } in units from the
+  // grid's origin), else null: the units past it are tinted as past the
+  // screen are
+  property var latticeSpan: null
+  // Save / Reset for the whole editor's edits
+  property bool dirty: false
+  property bool canSave: true
+
+  signal save
+  signal reset
+
+  readonly property bool editable: root.modules !== null && root.modules !== undefined
+  readonly property var list: root.editable ? root.modules : []
+  readonly property var bounds: GridPlacement.bounds(root.list)
+
+  // The axis the menu's edge runs along (a side menu's rows, else columns)
+  readonly property bool alongRows: root.edge === "Left" || root.edge === "Right"
+  readonly property bool hasScreen: root.screenBox !== null && root.screenBox !== undefined
+  // The grid drawn: a unit of room before the modules and three after
+  // (to make space left of / above them, and to grow them right / down),
+  // or one unit past the screen all round (GridPlacement.canvasExtent)
+  readonly property var extent: GridPlacement.canvasExtent(root.bounds, root.hasScreen ? root.screenBox : null, 1, 3)
+  // Its scale to fit the area, from the reference card size; geometry is
+  // scaled by hand (GridPlacement.canvasFit)
+  readonly property var fit: GridPlacement.canvasFit(root.extent, area.width, area.height, 0.6)
+  readonly property real step: root.fit.step
+  readonly property real gap: root.fit.gap
+  readonly property real unitSize: root.fit.unitSize
+  // The corners of the lattice's squares and of the modules on it, the
+  // same so they line up
+  readonly property real cellRadius: Math.min(Widget.radius, root.unitSize / 4)
+  // The screen, in the area's px (its sides midway in the gaps)
+  readonly property var screenRect: root.hasScreen ? GridPlacement.canvasScreenRect(root.fit, root.screenBox) : root.noRect
+  readonly property var noRect: ({
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0
+    })
+
+  // Screen px in the area, through the screen's outline
+  readonly property real pxScale: root.hasScreen && root.screenSize && root.screenSize.width > 0 ? root.screenRect.width / root.screenSize.width : 0
+  function screenPx(r) {
+    return Qt.rect(root.screenRect.x + r.x * root.pxScale, root.screenRect.y + r.y * root.pxScale, r.width * root.pxScale, r.height * root.pxScale);
+  }
+  // The band along the menu's edge, in the area
+  readonly property var reservedRect: GridPlacement.edgeBand(root.screenRect, root.edge, root.reservedDepth * root.pxScale)
+
+  function rectFor(place) {
+    const r = GridPlacement.canvasRect(root.fit, place);
+    return Qt.rect(r.x, r.y, r.width, r.height);
+  }
+
+  color: Theme.background
+  border.color: Theme.border
+
+  ColumnLayout {
+    anchors.fill: parent
+    anchors.margins: Widget.padding
+    spacing: Widget.spacing
+
+    RowLayout {
+      Layout.fillWidth: true
+      Layout.minimumHeight: Widget.height + Widget.padding
+      spacing: Widget.spacing
+
+      StyledIcon {
+        text: root.icon
+        textColor: Theme.accent
+        textSize: Appearance.fontSize + 6
+      }
+
+      ColumnLayout {
+        Layout.fillWidth: true
+        spacing: 0
+
+        RowLayout {
+          Layout.fillWidth: true
+          spacing: Widget.spacing
+
+          StyledText {
+            text: root.title
+            textSize: Appearance.fontSize + 4
+            font.bold: true
+            elide: Text.ElideRight
+            Layout.maximumWidth: root.width / 3
+          }
+
+          StyledText {
+            visible: root.editable
+            text: I18n.tr("{0} modules", root.list.length)
+            opacity: 0.6
+            textSize: Appearance.fontSize - 1
+          }
+
+          Item {
+            Layout.fillWidth: true
+          }
+        }
+
+        RowLayout {
+          visible: root.editable && root.nudgeText !== ""
+          spacing: 0
+
+          FlatIconButton {
+            size: 24
+            iconText: root.nudgeVertical ? "keyboard_arrow_up" : "chevron_left"
+            tooltipText: root.nudgeVertical ? I18n.tr("Move up") : I18n.tr("Move left")
+            enabled: root.canNudgeBack
+            onClicked: root.nudge(-1)
+          }
+          FlatIconButton {
+            size: 24
+            iconText: root.nudgeVertical ? "keyboard_arrow_down" : "chevron_right"
+            tooltipText: root.nudgeVertical ? I18n.tr("Move down") : I18n.tr("Move right")
+            enabled: root.canNudgeForward
+            onClicked: root.nudge(1)
+          }
+          StyledText {
+            Layout.leftMargin: Widget.spacing / 2
+            text: root.nudgeText
+            opacity: 0.6
+            textSize: Appearance.fontSize - 2
+          }
+          FlatIconButton {
+            visible: root.canCentre
+            size: 24
+            iconText: root.nudgeVertical ? "align_vertical_center" : "align_horizontal_center"
+            tooltipText: I18n.tr("Centre")
+            onClicked: root.centre()
+          }
+          SchemaNumberField {
+            Layout.fillWidth: false
+            Layout.leftMargin: Widget.spacing
+            label: I18n.tr("Grid")
+            mode: "stepper"
+            unit: "px"
+            minimum: -root.gridOffsetLimit
+            maximum: root.gridOffsetLimit
+            currentConfigValue: root.gridOffset
+            // It outlives the menu it edits when another is selected
+            debounced: false
+            onCommitted: value => root.setGridOffset(value)
+          }
+        }
+
+        StyledText {
+          visible: root.editable && root.fitText !== ""
+          Layout.fillWidth: true
+          text: root.fitText
+          textColor: root.fitWarning ? Theme.warning : Theme.foreground
+          opacity: root.fitWarning ? 1 : 0.6
+          textSize: Appearance.fontSize - 2
+          elide: Text.ElideRight
+        }
+      }
+
+      StyledText {
+        visible: root.editable
+        Layout.maximumWidth: root.width / 3
+        horizontalAlignment: Text.AlignRight
+        elide: Text.ElideRight
+        text: I18n.tr("Drag to move · drag a corner to resize · click to edit")
+        opacity: 0.5
+        textSize: Appearance.fontSize - 2
+      }
+
+      SaveResetActions {
+        dirty: root.dirty
+        canSave: root.canSave
+        onSave: root.save()
+        onReset: root.reset()
+      }
+    }
+
+    Item {
+      id: area
+      Layout.fillWidth: true
+      Layout.fillHeight: true
+      clip: true
+
+      // Clicking the background drops the selection
+      MouseArea {
+        anchors.fill: parent
+        onClicked: root.dragLayer.editor.clearSelection()
+      }
+
+      // Nothing to edit: a tool page, or none at all
+      Column {
+        anchors.centerIn: parent
+        width: Math.min(parent.width, Appearance.fontSize * 30)
+        spacing: Widget.spacing
+        visible: !root.editable
+
+        StyledIcon {
+          width: parent.width
+          horizontalAlignment: Text.AlignHCenter
+          text: root.icon
+          textColor: Theme.accent
+          textSize: Appearance.fontSize * 4
+          opacity: 0.8
+        }
+        StyledText {
+          width: parent.width
+          horizontalAlignment: Text.AlignHCenter
+          wrapMode: Text.WordWrap
+          text: root.emptyText
+          opacity: 0.7
+        }
+      }
+
+      // The drop target: the whole area, snapped to the grid
+      Item {
+        id: gridTarget
+        anchors.fill: parent
+        visible: root.editable
+
+        readonly property string targetKind: "grid"
+
+        // Where `drag` would go with the pointer at `point` (in the drag
+        // layer): a moved module keeps the unit it was grabbed by
+        // under the pointer, a new one is centred on it
+        function placeAt(point, drag, grab) {
+          const p = root.dragLayer.mapToItem(gridTarget, point.x, point.y);
+          if (drag.kind !== "module-move")
+            return GridPlacement.canvasDropPlace(root.fit, p.x, p.y, drag.w ?? 2, drag.h ?? 2, null);
+          const module = root.list[drag.index];
+          return module ? GridPlacement.canvasDropPlace(root.fit, p.x, p.y, module.place.w, module.place.h, grab) : null;
+        }
+
+        Component.onCompleted: root.dragLayer.registerTarget(gridTarget)
+        Component.onDestruction: root.dragLayer.unregisterTarget(gridTarget)
+      }
+
+      // The unit lattice, one square per grid unit: stronger inside the
+      // modules' bounds. One Canvas, as there can be hundreds of squares.
+      Canvas {
+        id: lattice
+        anchors.fill: parent
+        visible: root.editable
+        readonly property string paintKey: [root.extent.cols, root.extent.rows, root.step, root.fit.originX, root.fit.originY, root.bounds.cols, root.bounds.rows, root.screenRect.x, root.screenRect.y, root.screenRect.width, root.screenRect.height, root.cellRadius, JSON.stringify(root.latticeSpan), width, height, Theme.border, Theme.warning].join(",")
+        onPaintKeyChanged: lattice.requestPaint()
+        onPaint: {
+          const ctx = lattice.getContext("2d");
+          ctx.reset();
+          ctx.strokeStyle = Theme.border;
+          ctx.lineWidth = 1;
+          ctx.fillStyle = Theme.warning;
+          const radius = root.cellRadius;
+          const extent = root.extent;
+          for (let row = -extent.leadRows; row < extent.rows - extent.leadRows; row++) {
+            for (let col = -extent.leadCols; col < extent.cols - extent.leadCols; col++) {
+              const inside = col >= 0 && row >= 0 && col < root.bounds.cols && row < root.bounds.rows;
+              const box = root.screenBox;
+              const along = root.alongRows ? row : col;
+              const span = root.latticeSpan;
+              const past = root.hasScreen && (col + 0.5 < box.x || col + 0.5 > box.x + box.w || row + 0.5 < box.y || row + 0.5 > box.y + box.h) || (span !== null && (along < span.from || along > span.to));
+              const x = Math.round(root.fit.originX + col * root.step) + 0.5;
+              const y = Math.round(root.fit.originY + row * root.step) + 0.5;
+              ctx.beginPath();
+              ctx.roundedRect(x, y, root.unitSize - 1, root.unitSize - 1, radius, radius);
+              if (past) {
+                ctx.globalAlpha = 0.08;
+                ctx.fill();
+              }
+              ctx.globalAlpha = inside ? 0.45 : 0.18;
+              ctx.stroke();
+            }
+          }
+          // The screen's outline, past which the menu scrolls
+          if (root.hasScreen) {
+            const r = root.screenRect;
+            ctx.globalAlpha = 0.9;
+            ctx.strokeStyle = Theme.warning;
+            ctx.lineWidth = 2;
+            ctx.setLineDash([6, 4]);
+            ctx.beginPath();
+            ctx.rect(Math.round(r.x) + 0.5, Math.round(r.y) + 0.5, Math.round(r.width), Math.round(r.height));
+            ctx.stroke();
+          }
+        }
+      }
+
+      // The band the bars and border take along the menu's edge, or that an
+      // integrated menu reserves while open
+      Rectangle {
+        visible: root.editable && root.hasScreen && root.reservedDepth > 0
+        x: root.reservedRect.x
+        y: root.reservedRect.y
+        width: root.reservedRect.width
+        height: root.reservedRect.height
+        color: Qt.alpha(Theme.accent, 0.18)
+
+        // Its inner side, where the windows start
+        Rectangle {
+          color: Theme.accent
+          opacity: 0.7
+          width: root.alongRows ? 1 : parent.width
+          height: root.alongRows ? parent.height : 1
+          x: root.edge === "Left" ? parent.width - 1 : 0
+          y: root.edge === "Top" ? parent.height - 1 : 0
+        }
+
+        StyledText {
+          visible: root.reservedLabel !== "" && parent.width > width && parent.height > height
+          anchors.centerIn: parent
+          rotation: root.alongRows && parent.width < width + Widget.padding ? -90 : 0
+          text: root.reservedLabel
+          textColor: Theme.accent
+          textSize: Appearance.fontSize - 3
+          opacity: 0.8
+        }
+      }
+
+      // The other menus on the screen, dimmed (EdgeMenuManager.showingOthers)
+      Repeater {
+        model: root.editable && root.pxScale > 0 ? root.ghosts.length : 0
+
+        Item {
+          id: ghost
+          required property int index
+          readonly property var info: root.ghosts[ghost.index] ?? null
+          readonly property rect r: ghost.info ? root.screenPx(ghost.info.rect) : Qt.rect(0, 0, 0, 0)
+          x: ghost.r.x
+          y: ghost.r.y
+          width: ghost.r.width
+          height: ghost.r.height
+          opacity: 0.4
+
+          Rectangle {
+            anchors.fill: parent
+            radius: root.cellRadius
+            color: "transparent"
+            border.color: Theme.border
+            border.width: 1
+          }
+
+          Repeater {
+            model: ghost.info ? ghost.info.modules.length : 0
+
+            Rectangle {
+              id: ghostModule
+              required property int index
+              readonly property var module: ghost.info.modules[ghostModule.index] ?? null
+              readonly property rect r: ghostModule.module ? root.screenPx(ghostModule.module.rect) : Qt.rect(0, 0, 0, 0)
+              x: ghostModule.r.x - ghost.r.x
+              y: ghostModule.r.y - ghost.r.y
+              width: ghostModule.r.width
+              height: ghostModule.r.height
+              radius: root.cellRadius
+              color: Theme.backgroundAlt
+              border.color: Theme.border
+              border.width: 1
+
+              StyledIcon {
+                anchors.centerIn: parent
+                visible: parent.width > Appearance.fontSize * 1.5 && parent.height > Appearance.fontSize * 1.5
+                text: root.dragLayer.moduleIcon(ghostModule.module?.type ?? "")
+                textColor: Theme.foreground
+              }
+            }
+          }
+
+          StyledText {
+            anchors.top: parent.bottom
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.topMargin: 2
+            text: ghost.info?.name ?? ""
+            textSize: Appearance.fontSize - 3
+          }
+        }
+      }
+
+      // The menu's screen edge: all of it faintly, and the part the menu
+      // covers solid
+      Repeater {
+        model: root.editable && root.edge !== "" && root.hasScreen ? 2 : 0
+
+        Rectangle {
+          id: edgeLine
+          required property int index
+          // 0: the menu's part, 1: the whole edge
+          readonly property bool whole: edgeLine.index === 1
+          readonly property rect box: root.rectFor({
+            "x": 0,
+            "y": 0,
+            "w": Math.max(1, root.bounds.cols),
+            "h": Math.max(1, root.bounds.rows)
+          })
+          readonly property real thick: Math.max(3, root.gap / 2)
+          readonly property var bar: GridPlacement.edgeBar(root.screenRect, root.edge, edgeLine.whole ? root.screenRect : edgeLine.box, edgeLine.thick)
+          visible: edgeLine.whole || root.list.length > 0
+          z: edgeLine.whole ? 0 : 1
+          x: edgeLine.bar.x
+          y: edgeLine.bar.y
+          width: edgeLine.bar.width
+          height: edgeLine.bar.height
+          radius: edgeLine.thick / 2
+          color: Theme.accent
+          opacity: edgeLine.whole ? 0.3 : 1
+        }
+      }
+
+      // The screen's name, under its outline's far corner
+      StyledText {
+        visible: root.editable && root.hasScreen
+        x: Math.max(0, Math.min(area.width - width, root.screenRect.x + root.screenRect.width - width))
+        y: Math.max(0, Math.min(area.height - height, root.screenRect.y + root.screenRect.height + 2))
+        text: I18n.tr("Screen edge")
+        textColor: Theme.warning
+        textSize: Appearance.fontSize - 3
+      }
+
+      StyledText {
+        visible: root.editable && root.list.length === 0 && root.dragLayer.dragging === null
+        anchors.centerIn: parent
+        width: Math.min(parent.width, Appearance.fontSize * 26)
+        horizontalAlignment: Text.AlignHCenter
+        wrapMode: Text.WordWrap
+        text: I18n.tr("Empty: drag modules here from the library below, or click one to add it.")
+        opacity: 0.7
+      }
+
+      // Keyed by count: edits update the modules in place
+      Repeater {
+        model: root.list.length
+
+        CanvasModule {
+          id: tile
+          readonly property rect r: root.rectFor(tile.module?.place ?? {
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1
+          })
+          dragLayer: root.dragLayer
+          radius: root.cellRadius
+          module: root.list[tile.index] ?? null
+          step: root.step
+          gap: root.gap
+          x: tile.r.x
+          y: tile.r.y
+          width: tile.r.width
+          height: tile.r.height
+        }
+      }
+
+      // Where the carried module would land
+      Rectangle {
+        readonly property var place: root.dragLayer.hoverPlace
+        readonly property rect r: place ? root.rectFor(place) : Qt.rect(0, 0, 0, 0)
+        visible: place !== null
+        z: 5
+        x: r.x
+        y: r.y
+        width: r.width
+        height: r.height
+        radius: root.cellRadius
+        color: Qt.alpha(root.dragLayer.hoverValid ? Theme.accent : Theme.error, 0.18)
+        border.color: root.dragLayer.hoverValid ? Theme.accent : Theme.error
+        border.width: 2
+      }
+    }
+  }
+}

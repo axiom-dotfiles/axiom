@@ -24,7 +24,7 @@ Item {
   // As wide as the Monitors page unless the page sets its own (a page
   // with extras beside the card)
   property real cardWidth: root.grid ? root.grid.unit * 2.6 + OverlayConfig.cardSpacing : 0
-  readonly property real cardHeight: root.grid ? root.grid.span(4) : 0
+  readonly property real cardHeight: root.grid ? root.grid.span(8) : 0
 
   implicitWidth: row.implicitWidth
   implicitHeight: row.implicitHeight

@@ -7,24 +7,30 @@ import qs.components.methods
 import qs.components.reusable
 import qs.components.content.base
 
-// A clock with the date, plus a month calendar when there's room (a card
-// or more; beside the clock in wide slots). Arrows page through months.
+// A clock with the date, plus a month calendar where it fits (beside the
+// clock in wide slots, or where it only fits that way); a wide strip puts
+// the date beside the time. Arrows page through months.
 // properties: { use24Hour, showSeconds }
 Card {
   id: root
 
-  readonly property bool showCalendar: !root.compact && root.rows >= 2
-  readonly property bool sideBySide: root.showCalendar && root.shape === "horizontal"
-
   // Calendar sizing: day cells close to square, never taller than they
   // are wide, and the whole grid capped so large slots keep a big clock
-  readonly property real bodyWidth: root.width - root.pad * 2
-  readonly property real bodyHeight: root.height - root.pad * 2
   readonly property real headerHeight: Appearance.fontSize * 1.8
   readonly property real weekdayHeight: Appearance.fontSize * 1.6
-  readonly property real calendarWidth: Math.min(root.sideBySide ? (root.bodyWidth - root.pad) / 2 : root.bodyWidth, Appearance.fontSize * 32)
+  // The smallest calendar (six weeks of the smallest cells), and whether
+  // it fits under the clock or beside it
+  readonly property real calendarMinHeight: root.headerHeight + root.weekdayHeight + Appearance.fontSize * 1.4 * 6
+  readonly property real calendarMinWidth: Appearance.fontSize * 12
+  readonly property bool fitsUnder: root.innerHeight >= root.clockMinHeight + Widget.spacing + root.calendarMinHeight && root.innerWidth >= root.calendarMinWidth
+  readonly property bool fitsBeside: root.innerHeight >= root.calendarMinHeight && root.innerWidth >= root.calendarMinWidth + root.pad + Appearance.fontSize * 8
+  readonly property bool showCalendar: !root.compact && (root.fitsUnder || root.fitsBeside)
+  readonly property bool sideBySide: root.showCalendar && root.fitsBeside && (root.shape === "horizontal" || !root.fitsUnder)
+  // A wide strip: the date beside the time
+  readonly property bool clockRow: !root.showCalendar && root.innerWidth > root.innerHeight * 2.5
+  readonly property real calendarWidth: Math.min(root.sideBySide ? (root.innerWidth - root.pad) / 2 : root.innerWidth, Appearance.fontSize * 32)
   readonly property real clockMinHeight: Appearance.fontSize * 5
-  readonly property real cellHeight: Math.max(Appearance.fontSize * 1.4, Math.min(root.calendarWidth / 7 * 0.85, ((root.sideBySide ? root.bodyHeight : root.bodyHeight - root.clockMinHeight - Widget.spacing) - root.headerHeight - root.weekdayHeight) / 6))
+  readonly property real cellHeight: Math.max(Appearance.fontSize * 1.4, Math.min(root.calendarWidth / 7 * 0.85, ((root.sideBySide ? root.innerHeight : root.innerHeight - root.clockMinHeight - Widget.spacing) - root.headerHeight - root.weekdayHeight) / 6))
   readonly property real calendarHeight: root.headerHeight + root.weekdayHeight + root.cellHeight * 6
   readonly property date now: clock.date
   property int monthOffset: 0
@@ -57,29 +63,34 @@ Card {
     Item {
       Layout.fillWidth: true
       Layout.fillHeight: true
-      Layout.preferredWidth: root.sideBySide ? root.bodyWidth - root.calendarWidth - root.pad : root.bodyWidth
+      Layout.preferredWidth: root.sideBySide ? root.innerWidth - root.calendarWidth - root.pad : root.innerWidth
 
-      ColumnLayout {
+      GridLayout {
+        id: clockBox
         anchors.centerIn: parent
         width: parent.width
-        spacing: 0
+        columns: root.clockRow ? 2 : 1
+        columnSpacing: root.pad
+        rowSpacing: 0
         StyledText {
           Layout.fillWidth: true
           // No taller than the digits fitted to the width need, so the date
-          // stays right under them
-          Layout.preferredHeight: Math.min(parent.width * 0.42, Math.max(Appearance.fontSize * 2, parent.parent.height - dateText.height) * 0.8)
-          horizontalAlignment: Text.AlignHCenter
+          // stays right under them (beside them in a row: the strip's height)
+          Layout.preferredHeight: root.clockRow ? clockBox.parent.height : Math.min(clockBox.width * 0.42, Math.max(Appearance.fontSize * 2, clockBox.parent.height - dateText.height) * 0.8)
+          horizontalAlignment: root.clockRow ? Text.AlignRight : Text.AlignHCenter
           verticalAlignment: Text.AlignVCenter
           fontSizeMode: Text.Fit
-          minimumPixelSize: Appearance.fontSize
+          minimumPixelSize: Math.min(Appearance.fontSize, 8)
           textSize: Appearance.fontSize * 9
           text: I18n.formatDate(root.now, root.timeFormat)
           font.bold: true
         }
         StyledText {
           id: dateText
-          Layout.fillWidth: true
-          horizontalAlignment: Text.AlignHCenter
+          visible: clockBox.parent.height >= Appearance.fontSize * 3 || root.clockRow
+          Layout.fillWidth: !root.clockRow
+          Layout.maximumWidth: root.clockRow ? clockBox.width * 0.45 : -1
+          horizontalAlignment: root.clockRow ? Text.AlignLeft : Text.AlignHCenter
           elide: Text.ElideRight
           text: I18n.formatDate(root.now, I18n.dateFormat(root.compact ? "shortDate" : "longDate"))
           textSize: root.compact ? Appearance.fontSize - 2 : Appearance.fontSize

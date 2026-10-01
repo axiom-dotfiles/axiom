@@ -12,8 +12,8 @@ import qs.components.methods
 // integrated menu and reflow the windows. Pins are also saved to
 // config/state/edgemenus.json, and a pinned menu opens again when qs starts.
 //
-// Also the edge menu editor's working copy of EdgeMenus (the
-// EdgeMenuEditor overlay page), as BarManager is the bar editor's: edits
+// Also the layouts editor's working copy of EdgeMenus (the pinned Layouts
+// overlay page), as BarManager is the bar editor's: edits
 // show live on the running menus (ConfigManager.previews) until saved or
 // reset, and `previewing` holds one menu open to try them on.
 //
@@ -36,18 +36,145 @@ Singleton {
 
   function setZone(screenName, edge, size) {
     const key = `${screenName}:${edge}`;
-    if ((root.zones[key] ?? 0) === size)
-      return;
-    const zones = Object.assign({}, root.zones);
-    if (size > 0)
-      zones[key] = size;
-    else
-      delete zones[key];
-    root.zones = zones;
+    if ((root.zones[key] ?? 0) !== size)
+      root.zones = Utils.withEntry(root.zones, key, size > 0 ? size : undefined);
   }
 
   function zoneOn(screenName, edge) {
     return root.zones[`${screenName}:${edge}`] ?? 0;
+  }
+
+  // Where each running menu's modules can sit on its screen, by id, as the
+  // menu reports it (IntegratedEdgeMenu, FloatingEdgeMenu), for the
+  // layouts editor. In px: { screen (its name), startPad, endPad (the
+  // least room between the modules and the edge's ends), across (from the
+  // screen edge to the modules), before (across, taken by what's on the
+  // edge outside the menu: bars, the border), after (from the modules to
+  // the menu's inner side), reserves (whether the menu reserves its strip) }
+  readonly property var frames: root._frames
+  property var _frames: ({})
+
+  function setFrame(id, frame) {
+    if (id && JSON.stringify(root._frames[id]) !== JSON.stringify(frame))
+      root._frames = Utils.withEntry(root._frames, id, frame);
+  }
+
+  function clearFrame(id, screenName) {
+    if (root._frames[id]?.screen === screenName)
+      root._frames = Utils.withEntry(root._frames, id, undefined);
+  }
+
+  // A menu's frame (see `frames`): its running one's, else (a disabled
+  // menu, or one not yet reported) its padding all round
+  function frameOf(menu) {
+    const screenName = EdgeMenusConfig.screenFor(menu)?.name ?? "";
+    const live = root.frames[menu?.id ?? ""];
+    if (live && live.screen === screenName)
+      return live;
+    const pad = Appearance.borderWidth + EdgeMenusConfig.paddingOf(menu);
+    return {
+      "screen": screenName,
+      "startPad": pad,
+      "endPad": pad,
+      "across": pad,
+      "before": 0,
+      "after": pad,
+      "reserves": menu?.mode === "integrated"
+    };
+  }
+
+  // Where a menu's modules sit on its screen, in px
+  // (GridPlacement.menuPlacement, plus its `screen`), or null without a
+  // screen. With `bounds`, for modules reaching that far (an edit's,
+  // before it).
+  function placementOf(menu, bounds) {
+    const screen = EdgeMenusConfig.screenFor(menu);
+    if (!menu || !screen)
+      return null;
+    const place = GridPlacement.menuPlacement(menu, bounds ?? GridPlacement.bounds(menu.modules), root.cardUnitOf(menu), root.frameOf(menu), screen.width, screen.height);
+    place.screen = screen;
+    return place;
+  }
+
+  // A menu as it sits on its screen, in screen px
+  // (GridPlacement.menuOnScreen), with its `name`. `index`: its place in
+  // the draft, for its label.
+  function screenRectsOf(menu, index) {
+    const place = root.placementOf(menu);
+    if (!place)
+      return null;
+    const onScreen = GridPlacement.menuOnScreen(menu, place, root.cardUnitOf(menu));
+    onScreen.name = root.menuLabel(menu, index);
+    return onScreen;
+  }
+
+  // A menu's screen around its grid, in grid units from its origin
+  // (GridPlacement.screenBox), for the layouts editor; null without one
+  function screenBoxOf(menu) {
+    const place = root.placementOf(menu);
+    if (!place)
+      return null;
+    return GridPlacement.screenBox(place.screenWidth, place.screenHeight, root.cardUnitOf(menu), GridPlacement.bounds(menu.modules), menu.edge, place.along, place.across);
+  }
+
+  // The draft's other enabled menus on the screen of the one at `index`,
+  // as they sit on it (screenRectsOf)
+  function othersOn(index) {
+    const screenName = EdgeMenusConfig.screenFor(root.localMenus?.[index])?.name;
+    if (!screenName)
+      return [];
+    return (root.localMenus ?? []).map((other, i) => i !== index && other.enabled && EdgeMenusConfig.screenFor(other)?.name === screenName ? root.screenRectsOf(other, i) : null).filter(other => other !== null);
+  }
+
+  // Moves the selected menu `step` cells along its lattice (negative:
+  // towards the start), from where it is (an offset past the lattice
+  // counts as its end's)
+  function nudgeSelected(step) {
+    const menu = root.selectedMenu();
+    const place = menu ? root.placementOf(menu) : null;
+    if (!place || place.cell === null)
+      return;
+    const range = GridPlacement.offsetRange(place.lattice, place.units);
+    const offset = GridPlacement.offsetFor(place.lattice, place.cell, place.units) + step;
+    root.updateMenuField("offset", Math.max(range.min, Math.min(offset, range.max)));
+  }
+
+  function centreSelected() {
+    root.updateMenuField("offset", 0);
+  }
+
+  // How far a menu's lattice can be moved, in px either way: half a cell,
+  // as a whole one is what the arrows do
+  function gridOffsetLimit(menu) {
+    return menu ? Math.floor(GridPlacement.stepOf(root.cardUnitOf(menu)) / 2) : 0;
+  }
+
+  function setGridOffset(px) {
+    const limit = root.gridOffsetLimit(root.selectedMenu());
+    root.updateMenuField("gridOffset", Math.max(-limit, Math.min(px, limit)));
+  }
+
+  // After an edit to the selected menu's grid, which then shifted by
+  // `shift` grid units ({ x, y }: GridPlacement.normalize) from modules
+  // reaching `boundsBefore`: keeps its modules on the lattice cells they
+  // were on, so edits never move them on the screen
+  function _keepPlace(menu, shift, boundsBefore) {
+    const was = menu ? root.placementOf(menu, boundsBefore) : null;
+    if (!was || was.cell === null)
+      return;
+    const vertical = menu.edge === "Left" || menu.edge === "Right";
+    const units = GridPlacement.unitsAlong(menu);
+    const range = GridPlacement.offsetRange(was.lattice, units);
+    const offset = GridPlacement.offsetFor(was.lattice, was.cell + (vertical ? shift.y : shift.x), units);
+    menu.offset = Math.max(range.min, Math.min(offset, range.max));
+  }
+
+  // The editor draws the other menus on the selected one's screen
+  readonly property bool showingOthers: root._showingOthers
+  property bool _showingOthers: false
+
+  function toggleShowingOthers() {
+    root._showingOthers = !root._showingOthers;
   }
 
   PersistentProperties {
@@ -182,16 +309,18 @@ Singleton {
   readonly property alias isDirty: draft.isDirty
   property int selectedMenuIndex: 0
 
-  // The selected menu's columns (see ColumnsEditor)
-  property ColumnsEditor layout: ColumnsEditor {
+  // The selected menu's modules (see GridEditor)
+  property GridEditor layout: GridEditor {
     host: "edgeMenu"
-    columnsOf: () => root.selectedMenu()?.columns ?? null
+    modulesOf: () => root.selectedMenu()?.modules ?? null
+    shifted: (shift, boundsBefore) => root._keepPlace(root.selectedMenu(), shift, boundsBefore)
     scopeKey: String(root.selectedMenuIndex)
     onEdited: root.applyChanges()
   }
 
   // The menu the editor holds open to try edits on ("" for none)
-  property string previewing: ""
+  readonly property string previewing: root._previewing
+  property string _previewing: ""
 
   // Why the draft can't be saved as is (empty = savable)
   readonly property var problems: {
@@ -203,7 +332,7 @@ Singleton {
         out.push(I18n.tr("{0} has no id", name));
       else if (menus.findIndex(other => other.id === menu.id) !== m)
         out.push(I18n.tr("{0}: another menu has the id {1}", name, menu.id));
-      out.push(...root.layout.problemsFor(menu.columns, name));
+      out.push(...root.layout.problemsFor(menu.modules, name));
     });
     return out;
   }
@@ -245,6 +374,16 @@ Singleton {
     return JSON.stringify(menu) !== JSON.stringify(saved);
   }
 
+  // A menu's card size: its screen's overlay's (OverlayManager.areas, or
+  // what the overlay would take on that screen before it reports one),
+  // scaled by the menu's moduleScale
+  function cardUnitOf(menu) {
+    const screen = EdgeMenusConfig.screenFor(menu);
+    const area = OverlayManager.areas[screen?.name ?? ""];
+    const unit = area ? area.unit : screen ? OverlayConfig.cardUnitFor(screen.width, screen.height) : OverlayConfig.cardUnit;
+    return Math.round(unit * menu.moduleScale / 100);
+  }
+
   function selectedMenu() {
     return root.localMenus?.[root.selectedMenuIndex] || null;
   }
@@ -265,19 +404,20 @@ Singleton {
     return `${base}-${n}`;
   }
 
-  // A new menu at the schema defaults, with one empty cell to drop into
+  // A new menu at the schema defaults, opening on hover, and held open on
+  // screen so edits show as they're made
   function addMenu() {
+    const id = root._uniqueId("menu");
     const menu = ConfigManager.withDefaults({
-      "id": root._uniqueId("menu"),
-      "columns": [
-        {
-          "cells": [root.layout.newCell()]
-        }
-      ]
+      "id": id,
+      "name": I18n.tr("Menu {0}", id.split("-").pop()),
+      "openOnHover": true,
+      "modules": []
     }, "EdgeMenu");
     root.localMenus.push(menu);
     root.applyChanges();
     root.selectMenu(root.localMenus.length - 1);
+    root.startPreviewing();
   }
 
   function duplicateMenu(index) {
@@ -293,15 +433,31 @@ Singleton {
     root.selectMenu(index + 1);
   }
 
+  // The selected menu stays selected wherever it ends up
+  function moveMenu(from, to) {
+    const selected = root.selectedMenu();
+    if (GridPlacement.moveTo(root.localMenus, from, to) < 0)
+      return;
+    root.selectedMenuIndex = Math.max(0, root.localMenus.indexOf(selected));
+    root.applyChanges();
+  }
+
   function removeMenu(index) {
     const menu = root.localMenus?.[index];
     if (!menu)
       return;
     if (root.previewing === menu.id)
       root._showPreview("");
+    // The selected menu stays selected unless it's the one removed
+    const selected = root.selectedMenu();
     root.localMenus.splice(index, 1);
-    root.selectedMenuIndex = Math.max(0, Math.min(root.selectedMenuIndex, root.localMenus.length - 1));
-    root.layout.clearSelection();
+    const kept = root.localMenus.indexOf(selected);
+    if (kept >= 0) {
+      root.selectedMenuIndex = kept;
+    } else {
+      root.selectedMenuIndex = Math.max(0, Math.min(root.selectedMenuIndex, root.localMenus.length - 1));
+      root.layout.clearSelection();
+    }
     root.applyChanges();
     root._followPreview();
   }
@@ -319,6 +475,74 @@ Singleton {
     // A renamed (or re-enabled) menu is a new window: open that one
     if (wasPreviewing || (root._wantPreview && key === "enabled"))
       Qt.callLater(root._followPreview);
+  }
+
+  // --- How a menu opens ---
+
+  // What opens menu `id` besides hovering its edge: bar Buttons (in the
+  // bar editor's draft) and keybinds (in the keybind editor's).
+  // [{ kind: "bar" | "bind", label }]
+  function references(id) {
+    if (!id)
+      return [];
+    const out = [];
+    (BarManager.localConfig ?? Bar.savedBars).forEach((bar, b) => Object.keys(bar?.widgets ?? {}).forEach(zone => (bar.widgets[zone] ?? []).forEach(widget => {
+          if (widget?.type === "Button" && widget.properties?.action === "edgeMenu" && widget.properties?.menu === id)
+            out.push({
+              "kind": "bar",
+              "label": I18n.tr("Button on {0}", bar.id || I18n.tr("Bar {0}", b + 1))
+            });
+        })));
+    (KeybindManager.isDirty ? KeybindManager.binds : HyprlandConfig.binds).forEach(bind => {
+      if (bind?.action === "edgeMenu" && bind.argument === id)
+        out.push({
+          "kind": "bind",
+          "label": bind.key ? I18n.tr("Keybind {0}", KeybindManager.displayKey(bind.key)) : I18n.tr("Keybind (no key yet)")
+        });
+    });
+    return out;
+  }
+
+  // Whether `menu` is saved under its id: bar buttons and keybinds are
+  // saved by other editors, so they may only point at a saved menu
+  function isSaved(menu) {
+    return !!menu?.id && (root.savedMenus ?? []).some(saved => saved.id === menu.id);
+  }
+
+  // Adds a Button that toggles the selected menu to bar `barIndex`'s
+  // `zone`, in the bar editor's draft (saved from there or with Save all),
+  // then opens the bar editor on that bar
+  function addBarButton(barIndex, zone) {
+    const menu = root.selectedMenu();
+    if (!root.isSaved(menu))
+      return;
+    BarManager.addWidgetTo(barIndex, zone, {
+      "type": "Button",
+      "properties": {
+        "action": "edgeMenu",
+        "menu": menu.id,
+        "icon": Utils.edgeArrow(menu.edge),
+        "tooltip": menu.name || menu.id
+      }
+    });
+    ShellManager.openOverlayPage("BarEditor");
+  }
+
+  // Adds a keybind that toggles the selected menu, then opens the keybinds
+  // page's editor recording its key
+  function addKeybind() {
+    const menu = root.selectedMenu();
+    if (!root.isSaved(menu))
+      return;
+    KeybindManager.ensureLoaded();
+    KeybindManager.addBind({
+      "action": "edgeMenu",
+      "argument": menu.id,
+      "call": "toggle"
+    }, true);
+    KeybindManager.editing = true;
+    ShellManager.openOverlayPage("Keybinds");
+    Qt.callLater(() => KeybindManager.startRecording(0));
   }
 
   // --- Trying a menu out ---
@@ -360,7 +584,7 @@ Singleton {
       return;
     if (root.previewing !== "")
       root.close(root.previewing);
-    root.previewing = id;
+    root._previewing = id;
     // After the preview reaches EdgeMenusConfig, so a new menu exists
     if (id !== "")
       Qt.callLater(() => {
@@ -405,9 +629,10 @@ Singleton {
       root.setPinned(id, false);
     }
 
-    // Opens the edge menu editor
+    // Opens the layouts editor on the edge menus
     function edit(): void {
-      ShellManager.openOverlayPage("EdgeMenuEditor");
+      OverlayManager.editMenus();
+      ShellManager.openOverlayPage("Layouts");
     }
 
     function list(): string {

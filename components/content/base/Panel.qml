@@ -19,14 +19,18 @@ Item {
   // fill the height instead of their popout cap
   property bool embedded: false
   // Card only: this module's `properties` from config, and its slot
-  // ([col, row, colSpan, rowSpan] in half-card units, see Card)
+  // ([col, row, colSpan, rowSpan] in grid units, see Card)
   property var properties: ({})
-  property var slotRect: [0, 0, 2, 2]
+  property var slotRect: [0, 0, 4, 4]
   // Card only: where it's shown, { kind: "overlay" } or { kind: "edgeMenu",
   // id, bare }
   property var host: ({
       "kind": "overlay"
     })
+  // Card only: the least width and height (px) the full column needs; a
+  // smaller slot is compact (see SlotContext)
+  property real fullMinWidth: 0
+  property real fullMinHeight: 0
   // Derived from the slot, as on Card (see SlotContext); a popout is never
   // bare or compact
   readonly property alias bare: slot.bare
@@ -35,12 +39,18 @@ Item {
   readonly property alias shape: slot.shape
   readonly property alias compact: slot.compact
   readonly property alias pad: slot.pad
+  readonly property alias innerWidth: slot.innerWidth
+  readonly property alias innerHeight: slot.innerHeight
 
   property SlotContext _slot: SlotContext {
     id: slot
     slotRect: root.slotRect
     host: root.host
     embedded: root.embedded
+    width: root.width
+    height: root.height
+    fullMinWidth: root.fullMinWidth
+    fullMinHeight: root.fullMinHeight
   }
 
   // Bar popout only: keep the keyboard (and a focus grab) while a text
@@ -53,8 +63,9 @@ Item {
   readonly property bool pointerInside: hoverHandler.hovered
   property bool hovered: pointerInside
 
-  // What a quarter-card slot shows instead of the column (e.g. a
-  // CompactFigure); without one, a compact card shows the column as usual
+  // What a compact card shows instead of the column (e.g. a
+  // CompactFigure), filling the box inside `pad`; without one, a compact
+  // card shows the column as usual
   property Component compactContent: null
   // Drawn under the content, filling the box (e.g. a blurred cover)
   property Component background: null
@@ -101,7 +112,8 @@ Item {
     }
 
     Loader {
-      anchors.centerIn: parent
+      anchors.fill: parent
+      anchors.margins: root.pad
       active: root._showCompact
       sourceComponent: root.compactContent
     }

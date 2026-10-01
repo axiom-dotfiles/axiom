@@ -13,8 +13,9 @@ import qs.components.content.base
 // (per-app volume, one row per app however many streams it has) and a
 // Devices tab (pick the default, adjust each device). As the Volume
 // ("output") and Microphone ("input") widgets' popout, or an overlay card
-// with its own output/input switch (a horizontal card puts the device
-// beside the list). properties: { mode: "output" | "input" }
+// with its own output/input switch (a wide card puts the device beside
+// the list; a short one is just the device's slider; compact, its figure).
+// properties: { mode: "output" | "input" }
 Panel {
   id: root
 
@@ -30,17 +31,21 @@ Panel {
   readonly property var devices: isInput ? AudioManager.sources : AudioManager.sinks
   readonly property string mutedGlyph: isInput ? "mic_off" : "volume_off"
   readonly property string unmutedGlyph: isInput ? "mic" : "volume_up"
-  // A horizontal card puts the default device beside the tabs and list
-  readonly property bool sideBySide: root.embedded && root.shape === "horizontal"
+  // A wide card puts the default device beside the tabs and list
+  readonly property bool sideBySide: root.embedded && !root.sliderOnly && root.shape === "horizontal" && root.innerWidth >= Appearance.fontSize * 40
+  // A short card: the default device's slider alone
+  readonly property bool sliderOnly: root.embedded && root.height < Appearance.fontSize * 13
   // Each side's width in a horizontal card (from the card's size, not the
   // grid's, which depends on it)
-  readonly property real sideWidth: (root.width - root.pad * 2 - Appearance.borderWidth - root.pad * 2) / 2
+  readonly property real sideWidth: (root.innerWidth - Appearance.borderWidth - root.pad * 2) / 2
 
   // A popout's list is a fixed four app rows high, so switching tabs or
   // apps coming and going never resizes (and moves) the popout
   readonly property real listHeight: defaultRow.implicitHeight * 4 + list.spacing * 3
 
   implicitWidth: 380
+  fullMinWidth: Appearance.fontSize * 12
+  fullMinHeight: Appearance.fontSize * 3.5
 
   function deviceName(node) {
     return node?.description || node?.nickname || node?.name || I18n.tr("No device");
@@ -52,15 +57,12 @@ Panel {
 
   onCurrentTabChanged: fadeIn.restart()
 
-  // Quarter card: the default device's volume; click to mute
+  // Compact: the default device's volume; click to mute
   compactContent: Item {
-    implicitWidth: figure.implicitWidth
-    implicitHeight: figure.implicitHeight
     readonly property var node: root.defaultDevice
     readonly property bool muted: node?.audio?.muted ?? false
     CompactFigure {
-      id: figure
-      anchors.centerIn: parent
+      anchors.fill: parent
       icon: parent.muted ? root.mutedGlyph : root.unmutedGlyph
       iconColor: parent.muted ? Theme.foregroundAlt : Theme.accent
       value: String(Math.round((parent.node?.audio?.volume ?? 0) * 100))
@@ -84,7 +86,7 @@ Panel {
     ColumnLayout {
       Layout.fillWidth: true
       Layout.preferredWidth: root.sideBySide ? root.sideWidth : -1
-      Layout.alignment: Qt.AlignTop
+      Layout.alignment: root.sliderOnly ? Qt.AlignVCenter : Qt.AlignTop
       spacing: Widget.spacing
 
       StyledText {
@@ -96,7 +98,7 @@ Panel {
 
       // A card switches between output and input itself, from its header
       ModuleHeader {
-        visible: root.embedded
+        visible: root.embedded && !root.sliderOnly
         icon: root.unmutedGlyph
         title: I18n.tr(root.isInput ? "Input" : "Output")
         Repeater {
@@ -131,6 +133,7 @@ Panel {
     }
 
     StyledSeparator {
+      visible: !root.sliderOnly
       Layout.fillWidth: !root.sideBySide
       Layout.fillHeight: root.sideBySide
       Layout.preferredWidth: root.sideBySide ? Appearance.borderWidth : -1
@@ -139,6 +142,7 @@ Panel {
     }
 
     ColumnLayout {
+      visible: !root.sliderOnly
       Layout.fillWidth: true
       Layout.fillHeight: root.embedded
       Layout.preferredWidth: root.sideBySide ? root.sideWidth : -1

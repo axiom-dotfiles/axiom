@@ -75,7 +75,8 @@ QtObject {
   // An object definition's fields as titled groups, for an editor that
   // lays one object out itself (the bar and edge menu panels): by
   // `x-group` in `x-order` order, fields without a group last under
-  // "Other", `exclude` (keys edited elsewhere) left out.
+  // "Other", `exclude` (keys edited elsewhere) and `x-settings: false`
+  // keys left out.
   // [{ title, keys, schema: { key: fieldSchema } }]
   function objectGroups(definition, exclude) {
     const order = definition["x-order"] ?? [];
@@ -83,7 +84,7 @@ QtObject {
       const index = order.indexOf(key);
       return index < 0 ? order.length : index;
     };
-    const keys = Object.keys(definition.properties ?? {}).filter(key => !(exclude ?? []).includes(key)).sort((a, b) => rank(a) - rank(b));
+    const keys = Object.keys(definition.properties ?? {}).filter(key => !(exclude ?? []).includes(key) && definition.properties[key]["x-settings"] !== false).sort((a, b) => rank(a) - rank(b));
     const named = [];
     const other = {
       "title": "Other",

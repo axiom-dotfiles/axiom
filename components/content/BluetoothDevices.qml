@@ -33,6 +33,9 @@ Panel {
   }
 
   implicitWidth: 380
+  // The switch, the tabs and a row or two, else the figure
+  fullMinWidth: Appearance.fontSize * 15
+  fullMinHeight: Appearance.fontSize * 12
 
   function updateScan() {
     const want = currentTab === 1 && BluetoothManager.enabled;

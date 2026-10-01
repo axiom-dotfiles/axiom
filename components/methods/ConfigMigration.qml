@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 30
+  readonly property int currentVersion: 35
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -87,6 +87,16 @@ QtObject {
       result = _v28ToV29(result, changes);
     if (version < 30)
       result = _v29ToV30(result, changes);
+    if (version < 31)
+      result = _v30ToV31(result, changes);
+    if (version < 32)
+      result = _v31ToV32(result, changes);
+    if (version < 33)
+      result = _v32ToV33(result, changes);
+    if (version < 34)
+      result = _v33ToV34(result, changes);
+    if (version < 35)
+      result = _v34ToV35(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -868,6 +878,417 @@ QtObject {
     root._eachModule(config, (module, where) => {
       if (module.type === "ClockCalendar")
         root._renameKey(module.properties, "use24h", "use24Hour", where, changes);
+    });
+    return config;
+  }
+
+  // The overlay cell layouts as they were up to v30: { cols, rows, slots:
+  // { name: [col, row, colSpan, rowSpan] } } in half-card units
+  readonly property var _v30Layouts: ({
+      "Single": [2, 2,
+        {
+          "main": [0, 0, 2, 2]
+        }
+      ],
+      "Tall": [2, 4,
+        {
+          "main": [0, 0, 2, 4]
+        }
+      ],
+      "Wide": [4, 2,
+        {
+          "main": [0, 0, 4, 2]
+        }
+      ],
+      "Large": [4, 4,
+        {
+          "main": [0, 0, 4, 4]
+        }
+      ],
+      "HalfWide": [2, 1,
+        {
+          "main": [0, 0, 2, 1]
+        }
+      ],
+      "HalfTall": [1, 2,
+        {
+          "main": [0, 0, 1, 2]
+        }
+      ],
+      "Grid2x2": [2, 2,
+        {
+          "topLeft": [0, 0, 1, 1],
+          "topRight": [1, 0, 1, 1],
+          "bottomLeft": [0, 1, 1, 1],
+          "bottomRight": [1, 1, 1, 1]
+        }
+      ],
+      "Vert1x1": [2, 2,
+        {
+          "left": [0, 0, 1, 2],
+          "right": [1, 0, 1, 2]
+        }
+      ],
+      "Vert1x2": [2, 2,
+        {
+          "left": [0, 0, 1, 2],
+          "topRight": [1, 0, 1, 1],
+          "bottomRight": [1, 1, 1, 1]
+        }
+      ],
+      "Vert2x1": [2, 2,
+        {
+          "topLeft": [0, 0, 1, 1],
+          "bottomLeft": [0, 1, 1, 1],
+          "right": [1, 0, 1, 2]
+        }
+      ],
+      "Horiz1x1": [2, 2,
+        {
+          "top": [0, 0, 2, 1],
+          "bottom": [0, 1, 2, 1]
+        }
+      ],
+      "Horiz1x2": [2, 2,
+        {
+          "top": [0, 0, 2, 1],
+          "bottomLeft": [0, 1, 1, 1],
+          "bottomRight": [1, 1, 1, 1]
+        }
+      ],
+      "Horiz2x1": [2, 2,
+        {
+          "topLeft": [0, 0, 1, 1],
+          "topRight": [1, 0, 1, 1],
+          "bottom": [0, 1, 2, 1]
+        }
+      ]
+    })
+
+  // Columns of cells (v30) as modules placed on one grid: the columns side
+  // by side, each flowing its cells left to right and wrapping at its
+  // widest, worked out in the v30 layouts' half-card units. A cell filling
+  // `acrossKeys` grows to its column's width (fillWidth) or the grid's
+  // height (fillHeight), and its modules on that side with it. Returns
+  // { modules, pins, fillKeys }: the modules placed in quarter-card units
+  // (the half units doubled: a span of 2n quarters is a span of n halves),
+  // the number of Pin modules dropped and which fill keys were set.
+  function _placeColumns(columns, acrossKeys) {
+    const placed = [];
+    const fillKeys = {};
+    let pins = 0;
+    let x0 = 0;
+    (columns ?? []).forEach(column => {
+      const cells = (column?.cells ?? []).map(cell => {
+        const layout = root._v30Layouts[cell?.layout] ?? root._v30Layouts.Single;
+        return {
+          "cell": cell,
+          "cols": layout[0],
+          "rows": layout[1],
+          "slots": layout[2]
+        };
+      });
+      const width = Math.max(0, ...cells.map(c => c.cols));
+      // Flow: rows of cells, each as tall as its tallest
+      const rows = [];
+      let x = 0;
+      cells.forEach(c => {
+        if (rows.length === 0 || (x > 0 && x + c.cols > width)) {
+          rows.push({
+            "cells": [],
+            "y": 0,
+            "height": 0
+          });
+          x = 0;
+        }
+        const row = rows[rows.length - 1];
+        c.x = x;
+        c.row = row;
+        row.cells.push(c);
+        row.height = Math.max(row.height, c.rows);
+        x += c.cols;
+      });
+      let y = 0;
+      rows.forEach(row => {
+        row.y = y;
+        y += row.height;
+      });
+      cells.forEach((c, i) => {
+        ["fillWidth", "fillHeight"].forEach(key => {
+          if (c.cell?.[key] === true)
+            fillKeys[key] = true;
+        });
+        const last = c.row.cells[c.row.cells.length - 1] === c;
+        // Room to grow: to the column's width if last in its row; to the
+        // row's height (the grid's bottom is applied once all are placed)
+        const growW = acrossKeys.includes("fillWidth") && c.cell?.fillWidth === true && last ? width - (c.x + c.cols) : 0;
+        const fillsDown = acrossKeys.includes("fillHeight") && c.cell?.fillHeight === true;
+        const slots = c.cell?.slots ?? {};
+        Object.keys(slots).forEach(name => {
+          const module = slots[name];
+          const rect = c.slots[name];
+          if (!module?.type || !rect)
+            return;
+          if (module.type === "Pin") {
+            pins++;
+            return;
+          }
+          const place = {
+            "x": x0 + c.x + rect[0],
+            "y": c.row.y + rect[1],
+            "w": rect[2] + (rect[0] + rect[2] === c.cols ? growW : 0),
+            "h": rect[3]
+          };
+          // Grows down later if it touches its cell's bottom
+          const growsDown = fillsDown && rect[1] + rect[3] === c.rows;
+          placed.push({
+            "module": module,
+            "place": place,
+            "growsDown": growsDown,
+            "cellBottom": c.row.y + c.rows,
+            "lastRow": c.row === rows[rows.length - 1],
+            "rowBottom": c.row.y + c.row.height
+          });
+        });
+      });
+      x0 += width;
+    });
+    const bottom = Math.max(0, ...placed.map(p => p.place.y + p.place.h));
+    placed.forEach(p => {
+      if (!p.growsDown)
+        return;
+      const to = p.lastRow ? Math.max(bottom, p.rowBottom) : p.rowBottom;
+      p.place.h += to - p.cellBottom;
+    });
+    return {
+      // w and h kept to v31's GridPlace maximum (32): a fill cell grown
+      // down a tall column could reach past it
+      "modules": placed.map(p => {
+        const module = Object.assign({}, p.module);
+        module.place = {
+          "x": p.place.x * 2,
+          "y": p.place.y * 2,
+          "w": Math.min(32, p.place.w * 2),
+          "h": Math.min(32, p.place.h * 2)
+        };
+        return module;
+      }),
+      "pins": pins,
+      "fillKeys": fillKeys
+    };
+  }
+
+  // v31 replaced columns → cells → slots with modules placed on a grid:
+  // each module has a `place` { x, y, w, h } in quarter-card units. Custom
+  // pages and edge menus get `modules` instead of `columns`. Fill cells
+  // grow into the room they took; in an edge menu a cell filling along
+  // the edge makes it take the whole edge (`length: "edge"`). Menus use
+  // their screen's overlay card size, so their own `cardSize` and extra
+  // sizes are dropped (modules are sized in units instead). Pin modules
+  // became the menu's `pinButton`. The edge menu editor became part of
+  // the pinned Layouts page.
+  function _v30ToV31(config, changes) {
+    const views = config.Overlay?.views;
+    if (Array.isArray(views)) {
+      for (let v = views.length - 1; v >= 0; v--) {
+        const view = views[v];
+        if (view?.type === "EdgeMenuEditor") {
+          views.splice(v, 1);
+          changes.push(`Overlay.views[${v}]: EdgeMenuEditor removed (now part of the Layouts page)`);
+          continue;
+        }
+        if (view?.type !== "Custom" || !("columns" in view))
+          continue;
+        const result = root._placeColumns(view.columns, ["fillWidth", "fillHeight"]);
+        view.modules = result.modules;
+        delete view.columns;
+        changes.push(`Overlay.views[${v}]: columns -> ${result.modules.length} placed modules`);
+        if (result.pins > 0)
+          changes.push(`Overlay.views[${v}]: ${result.pins} Pin module(s) removed (pinning is an edge menu's pinButton)`);
+      }
+    }
+    (Array.isArray(config.EdgeMenus) ? config.EdgeMenus : []).forEach((menu, m) => {
+      if (!menu || typeof menu !== "object")
+        return;
+      const where = `EdgeMenus[${m}]`;
+      const vertical = menu.edge === undefined || menu.edge === "Left" || menu.edge === "Right";
+      const alongKey = vertical ? "fillHeight" : "fillWidth";
+      const acrossKey = vertical ? "fillWidth" : "fillHeight";
+      if ("columns" in menu) {
+        const result = root._placeColumns(menu.columns, [acrossKey]);
+        menu.modules = result.modules;
+        delete menu.columns;
+        changes.push(`${where}: columns -> ${result.modules.length} placed modules`);
+        if (result.fillKeys[alongKey]) {
+          menu.length = "edge";
+          changes.push(`${where}: a cell filling along the edge -> length "edge"`);
+        }
+        if (result.pins > 0) {
+          menu.pinButton = true;
+          changes.push(`${where}: Pin module -> pinButton`);
+        }
+      }
+      if ("cardSize" in menu) {
+        changes.push(`${where}: card size (${menu.cardSize} px) dropped: menus use the overlay's`);
+        delete menu.cardSize;
+      }
+      ["extraWidth", "extraHeight"].forEach(key => {
+        if ((menu[key] ?? 0) > 0)
+          changes.push(`${where}: ${key} (${menu[key]} px) dropped`);
+        delete menu[key];
+      });
+    });
+    return config;
+  }
+
+  // v32: an edge menu's place along its edge comes from the layouts
+  // editor's grid, as an anchor (start, center or end) and a whole number
+  // of grid units from it, instead of a percentage; and its frame lines up
+  // with the screen border instead of taking its own margin
+  function _v31ToV32(config, changes) {
+    (Array.isArray(config.EdgeMenus) ? config.EdgeMenus : []).forEach((menu, m) => {
+      if (!menu || typeof menu !== "object")
+        return;
+      const where = `EdgeMenus[${m}]`;
+      if ("position" in menu) {
+        const position = Number(menu.position);
+        menu.align = position <= 15 ? "start" : position >= 85 ? "end" : "center";
+        menu.offset = 0;
+        if (![0, 50, 100].includes(position))
+          changes.push(`${where}: position ${menu.position}% -> align "${menu.align}" (approximate)`);
+        delete menu.position;
+      }
+      if ("margin" in menu) {
+        changes.push(`${where}: frame margin dropped: the frame follows the screen margin`);
+        delete menu.margin;
+      }
+    });
+    return config;
+  }
+
+  // v33: tool pages can't be removed, only hidden, so every one is in
+  // Overlay.views; one missing was removed, so it comes back hidden. And
+  // every weather widget and module shows one location, from the new
+  // Weather section: the first one that set a location (else the first
+  // one) gives it, with its units, and the bar widgets' shortest refresh
+  // interval. Custom pages lost `stretch`: they keep their cards square
+  function _v32ToV33(config, changes) {
+    const views = config.Overlay?.views;
+    if (Array.isArray(views)) {
+      views.forEach((view, v) => {
+        if (!view || typeof view !== "object" || !("stretch" in view))
+          return;
+        if (view.stretch === true)
+          changes.push(`Overlay.views[${v}]: stretch dropped: pages keep their cards square`);
+        delete view.stretch;
+      });
+      ["Settings", "Keybinds", "BarEditor", "Themes", "Monitors"].forEach(type => {
+        if (views.some(view => view?.type === type))
+          return;
+        views.push({
+          "type": type,
+          "visible": false
+        });
+        changes.push(`Overlay.views: tool page ${type} added back, hidden`);
+      });
+    }
+
+    // [{ where, item }] for every Weather widget and module, bars first
+    const found = [];
+    const collect = (list, where) => (Array.isArray(list) ? list : []).forEach((item, i) => {
+        if (item?.type === "Weather")
+          found.push({
+            "where": `${where}[${i}]`,
+            "item": item
+          });
+      });
+    (Array.isArray(config.Bars) ? config.Bars : []).forEach((bar, b) => {
+      const widgets = bar?.widgets ?? {};
+      Object.keys(widgets).forEach(section => collect(widgets[section], `Bars[${b}].widgets.${section}`));
+    });
+    (Array.isArray(views) ? views : []).forEach((view, v) => collect(view?.modules, `Overlay.views[${v}].modules`));
+    (Array.isArray(config.EdgeMenus) ? config.EdgeMenus : []).forEach((menu, m) => collect(menu?.modules, `EdgeMenus[${m}].modules`));
+    const keys = ["location", "latitude", "longitude", "units", "intervalMinutes"];
+    const withProps = found.filter(f => f.item.properties && typeof f.item.properties === "object" && keys.some(key => key in f.item.properties));
+    if (withProps.length === 0)
+      return config;
+    const isSet = props => ["location", "latitude", "longitude"].some(key => String(props[key] ?? "").trim() !== "");
+    const source = withProps.find(f => isSet(f.item.properties)) ?? withProps[0];
+    const sourceProps = Object.assign({}, source.item.properties);
+    const intervals = withProps.map(f => Number(f.item.properties.intervalMinutes)).filter(n => !isNaN(n));
+    if (!config.Weather || typeof config.Weather !== "object") {
+      const weather = {};
+      ["location", "latitude", "longitude", "units"].forEach(key => {
+        if (key in sourceProps)
+          weather[key] = sourceProps[key];
+      });
+      if (intervals.length > 0)
+        weather.intervalMinutes = Math.min(...intervals);
+      config.Weather = weather;
+      changes.push(`Weather: location and units from ${source.where}`);
+    }
+    withProps.forEach(f => {
+      const props = f.item.properties;
+      if (f !== source && isSet(props) && ["location", "latitude", "longitude"].some(key => props[key] !== sourceProps[key]))
+        changes.push(`${f.where}: its own location dropped: weather follows the Weather settings`);
+      keys.forEach(key => delete props[key]);
+      if (Object.keys(props).length === 0)
+        delete f.item.properties;
+    });
+    return config;
+  }
+
+  // v34 put the built-in lock screen on a grid of modules
+  // (Lockscreen.layout): the old one's greeting, playing track (unless
+  // showMedia was off) and password field become modules where they were
+  function _v33ToV34(config, changes) {
+    const lockscreen = config.Lockscreen;
+    if (!lockscreen || typeof lockscreen !== "object" || !("showMedia" in lockscreen))
+      return config;
+    const media = lockscreen.showMedia !== false;
+    delete lockscreen.showMedia;
+    if (lockscreen.layout && typeof lockscreen.layout === "object")
+      return config;
+    const at = (x, y, w, h) => ({
+          "x": x,
+          "y": y,
+          "w": w,
+          "h": h
+        });
+    const modules = [
+      {
+        "type": "Greeting",
+        "place": at(4, 2, 8, 2)
+      }
+    ];
+    if (media)
+      modules.push({
+        "type": "NowPlaying",
+        "place": at(5, 4, 6, 2)
+      });
+    modules.push({
+      "type": "Password",
+      "place": at(5, media ? 6 : 4, 6, 1)
+    });
+    lockscreen.layout = {
+      "modules": modules
+    };
+    changes.push(`Lockscreen: showMedia became the lock screen's modules${media ? " (with NowPlaying)" : ""}`);
+    return config;
+  }
+
+  // v35: an edge menu sits centred on its edge, `offset` grid units from
+  // the middle, instead of from an `align` anchor. A menu from an end gets
+  // the furthest offset, which keeps it flush with that end
+  function _v34ToV35(config, changes) {
+    (Array.isArray(config.EdgeMenus) ? config.EdgeMenus : []).forEach((menu, m) => {
+      if (!menu || typeof menu !== "object" || !("align" in menu))
+        return;
+      if (menu.align === "start" || menu.align === "end") {
+        menu.offset = menu.align === "start" ? -200 : 200;
+        changes.push(`EdgeMenus[${m}]: align "${menu.align}" -> offset ${menu.offset} (flush with that end)`);
+      }
+      delete menu.align;
     });
     return config;
   }

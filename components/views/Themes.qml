@@ -3,59 +3,42 @@ import QtQuick
 
 // The Themes page: wallpapers, the theme list and the palette's 16 colors.
 // A view type with nothing to configure: Custom lays out the fixed
-// columns below instead of the view's own.
+// modules below instead of the view's own.
 Custom {
   id: root
 
-  function swatches(first) {
-    const labels = ["bg0", "bg1", "bg2", "bg3", "fg4", "fg3", "fg2", "fg1", "error", "warning", "info", "success", "accentAlt", "accentHighlight", "accent", "decorative"];
-    const slots = ["topLeft", "topRight", "bottomLeft", "bottomRight"];
+  function at(x, y, w, h) {
     return {
-      "layout": "Grid2x2",
-      "slots": slots.reduce((cell, slot, i) => {
-        const n = first + i;
-        cell[slot] = {
-          "type": "ColorSwatch",
-          "properties": {
-            "color": "base0" + n.toString(16).toUpperCase(),
-            "label": labels[n]
-          }
-        };
-        return cell;
-      }, {})
+      "x": x,
+      "y": y,
+      "w": w,
+      "h": h
     };
   }
 
-  columns: [
+  // The 16 swatches as a 4 × 4 block of quarter cards right of the editor,
+  // each 2 × 2 grid units
+  function swatches() {
+    const labels = ["bg0", "bg1", "bg2", "bg3", "fg4", "fg3", "fg2", "fg1", "error", "warning", "info", "success", "accentAlt", "accentHighlight", "accent", "decorative"];
+    return labels.map((label, n) => ({
+          "type": "ColorSwatch",
+          "properties": {
+            "color": "base0" + n.toString(16).toUpperCase(),
+            "label": label
+          },
+          // Four colors per card, two cards to a column
+          "place": root.at(8 + Math.floor(n / 8) * 4 + n % 2 * 2, Math.floor(n % 8 / 2) * 2, 2, 2)
+        }));
+  }
+
+  modules: [
     {
-      "cells": [
-        {
-          "layout": "Tall",
-          "slots": {
-            "main": {
-              "type": "WallpaperPicker"
-            }
-          }
-        }
-      ]
+      "type": "WallpaperPicker",
+      "place": root.at(0, 0, 4, 8)
     },
     {
-      "cells": [
-        {
-          "layout": "Tall",
-          "slots": {
-            "main": {
-              "type": "ThemeEditor"
-            }
-          }
-        }
-      ]
-    },
-    {
-      "cells": [root.swatches(0), root.swatches(4)]
-    },
-    {
-      "cells": [root.swatches(8), root.swatches(12)]
+      "type": "ThemeEditor",
+      "place": root.at(4, 0, 4, 8)
     }
-  ]
+  ].concat(root.swatches())
 }

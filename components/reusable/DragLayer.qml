@@ -3,7 +3,7 @@ import QtQuick
 
 // An editor area that carries one drag at a time over its content
 // (`content`, the default property): the bar editor's (BarDragLayer) and
-// the overlay and edge menu editors' (ColumnsDragLayer). Drop targets
+// the layouts editor's (GridDragLayer). Drop targets
 // register themselves; draggables (DragArea with this as `dragLayer`)
 // report their pointer. The target under the pointer is the visible one
 // that `accepts` the drag, the highest `priority` winning where targets

@@ -32,8 +32,11 @@ PanelWindow {
   property real edgeInset: EdgeMenuManager.zoneOn(root.screen?.name ?? "", Bar.edgeName(root.edge))
   property real startInset: EdgeMenuManager.zoneOn(root.screen?.name ?? "", root._vertical ? "top" : "left")
   property real endInset: EdgeMenuManager.zoneOn(root.screen?.name ?? "", root._vertical ? "bottom" : "right")
+  // Its centre along the edge in screen px, overriding the above (NaN:
+  // from `position`)
+  property real centre: NaN
   // The trigger's centre along the edge, within the free length
-  readonly property real _centre: root.startInset + ((root._vertical ? root.screen.height : root.screen.width) - root.startInset - root.endInset) * root.position + root.positionOffset
+  readonly property real _centre: !isNaN(root.centre) ? root.centre : root.startInset + ((root._vertical ? root.screen.height : root.screen.width) - root.startInset - root.endInset) * root.position + root.positionOffset
 
   color: "transparent"
   exclusionMode: ExclusionMode.Ignore

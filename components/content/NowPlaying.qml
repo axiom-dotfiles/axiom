@@ -13,8 +13,10 @@ import qs.components.content.base
 // info, a seek bar and controls. As the Media widget's popout: art beside
 // the track info, the controls beneath, at a fixed size so track changes
 // never resize it. As an overlay card: art beside everything when wide,
-// stacked when square; a half-card-high strip drops the player name, album
-// and times; a quarter slot is just the art and play/pause.
+// stacked when square or tall; a short slot drops the player name, album
+// and times; a tall wide one has larger text and controls, centred beside
+// the art; a strip is one row (art, title, artist and the buttons); a
+// compact card is just the art and play/pause.
 Panel {
   id: root
 
@@ -22,13 +24,21 @@ Panel {
   readonly property string artSource: MediaManager.artDownloaded && MediaManager.artVersion >= 0 ? "file://" + MediaManager.artFilePath : ""
   // Card only: the art beside the info and controls
   readonly property bool sideBySide: root.embedded && root.shape === "horizontal"
-  // A half-card-high strip: title, artist and a slim transport only
-  readonly property bool short: root.sideBySide && root.rows <= 1
+  // A short wide slot: title, artist and a slim transport only
+  readonly property bool short: root.sideBySide && root.height < Appearance.fontSize * 13
+  // A tall wide slot (a big lock screen or page card): larger text and
+  // controls, centred beside the art
+  readonly property bool large: root.sideBySide && root.innerHeight >= Appearance.fontSize * 20
+  // A strip: one row of small art, the track and the buttons
+  readonly property bool mini: root.embedded && !root.compact && root.height < Appearance.fontSize * 7
   readonly property real artSize: 96
   // A seek bar is being dragged, so the popout mustn't dismiss
   property bool seeking: false
 
   hovered: pointerInside || root.seeking
+
+  fullMinWidth: Appearance.fontSize * 10
+  fullMinHeight: Appearance.fontSize * 3.5
 
   spacing: Widget.spacing
   implicitWidth: 380
@@ -144,7 +154,7 @@ Panel {
       elide: Text.ElideRight
       text: MediaManager.trackTitle || I18n.tr("Unknown track")
       textColor: Theme.accent
-      textSize: root.short ? Appearance.fontSize : Appearance.fontSize + 3
+      textSize: root.large ? Appearance.fontSize * 2 : root.short ? Appearance.fontSize : Appearance.fontSize + 3
       font.bold: true
     }
     StyledText {
@@ -152,7 +162,7 @@ Panel {
       elide: Text.ElideRight
       // Kept as a line when empty, so the popout's height never changes
       text: MediaManager.trackArtist || " "
-      textSize: root.short ? Appearance.fontSize - 2 : Appearance.fontSize
+      textSize: root.large ? Appearance.fontSize + 4 : root.short ? Appearance.fontSize - 2 : Appearance.fontSize
     }
     StyledText {
       visible: !root.short
@@ -160,7 +170,7 @@ Panel {
       elide: Text.ElideRight
       // MediaManager doesn't surface the album, but the Mpris player does
       text: (MediaManager.activePlayer?.trackAlbum ?? "") || " "
-      textSize: Appearance.fontSize - 2
+      textSize: root.large ? Appearance.fontSize : Appearance.fontSize - 2
       opacity: 0.6
     }
   }
@@ -171,12 +181,12 @@ Panel {
     StyledSlider {
       id: seek
       Layout.fillWidth: true
-      Layout.preferredHeight: root.short ? 10 : 16
+      Layout.preferredHeight: root.short ? 10 : root.large ? 20 : 16
       enabled: MediaManager.canSeek
-      troughHeight: root.short ? 4 : 6
-      handleWidth: root.short ? 10 : 14
-      handleHeight: root.short ? 10 : 14
-      handleRadius: root.short ? 5 : 7
+      troughHeight: root.short ? 4 : root.large ? 8 : 6
+      handleWidth: root.short ? 10 : root.large ? 18 : 14
+      handleHeight: root.short ? 10 : root.large ? 18 : 14
+      handleRadius: root.short ? 5 : root.large ? 9 : 7
       handleColor: Theme.foreground
       fillColor: Theme.accent
       // Not `value`: dragging assigns that, which would drop the binding
@@ -189,7 +199,7 @@ Panel {
       Layout.fillWidth: true
       StyledText {
         text: MediaManager.formatTime(seek.pressed ? seek.value * MediaManager.length : MediaManager.position)
-        textSize: Appearance.fontSize - 3
+        textSize: root.large ? Appearance.fontSize - 1 : Appearance.fontSize - 3
         opacity: 0.6
       }
       Item {
@@ -197,7 +207,7 @@ Panel {
       }
       StyledText {
         text: MediaManager.formatTime(MediaManager.length)
-        textSize: Appearance.fontSize - 3
+        textSize: root.large ? Appearance.fontSize - 1 : Appearance.fontSize - 3
         opacity: 0.6
       }
     }
@@ -205,20 +215,20 @@ Panel {
       Layout.alignment: Qt.AlignHCenter
       spacing: root.short ? Widget.spacing : Widget.spacing * 1.5
       MediaButton {
-        size: Widget.height
+        size: Widget.height * (root.large ? 1.4 : 1)
         icon: "skip_previous"
         enabled: MediaManager.canGoPrevious
         onClicked: MediaManager.previous()
       }
       MediaButton {
         primary: true
-        size: Widget.height * (root.short ? 1.2 : 1.4)
+        size: Widget.height * (root.short ? 1.2 : root.large ? 2 : 1.4)
         icon: MediaManager.isPlaying ? "pause" : "play_arrow"
         enabled: MediaManager.canTogglePlaying
         onClicked: MediaManager.togglePlayPause()
       }
       MediaButton {
-        size: Widget.height
+        size: Widget.height * (root.large ? 1.4 : 1)
         icon: "skip_next"
         enabled: MediaManager.canGoNext
         onClicked: MediaManager.next()
@@ -258,10 +268,8 @@ Panel {
     }
   }
 
-  // Quarter card: the art with play/pause over it
+  // Compact: the art with play/pause over it
   compactContent: Item {
-    implicitWidth: root.width - root.pad * 2
-    implicitHeight: root.height - root.pad * 2
     Art {
       anchors.fill: parent
     }
@@ -283,14 +291,74 @@ Panel {
     Layout.preferredHeight: root.embedded ? -1 : root.artSize
     EmptyState {
       anchors.centerIn: parent
+      maxWidth: parent.width
+      availableHeight: root.embedded ? parent.height : -1
       icon: "music_note"
       text: I18n.tr("Nothing playing")
     }
   }
 
+  // --- A strip: art, track and buttons in a row ---
+  RowLayout {
+    visible: root.hasPlayer && root.mini
+    Layout.fillWidth: true
+    Layout.fillHeight: true
+    spacing: Widget.spacing
+    // Room for previous and next beside play/pause
+    readonly property bool wide: root.width >= Appearance.fontSize * 22
+
+    Art {
+      readonly property real side: root.innerHeight
+      visible: side >= 24
+      Layout.preferredWidth: side
+      Layout.preferredHeight: side
+    }
+    ColumnLayout {
+      Layout.fillWidth: true
+      Layout.minimumWidth: 0
+      spacing: 0
+      StyledText {
+        Layout.fillWidth: true
+        elide: Text.ElideRight
+        text: MediaManager.trackTitle || I18n.tr("Unknown track")
+        textColor: Theme.accent
+        font.bold: true
+      }
+      StyledText {
+        visible: root.innerHeight >= Appearance.fontSize * 2.6
+        Layout.fillWidth: true
+        elide: Text.ElideRight
+        text: MediaManager.trackArtist
+        textSize: Appearance.fontSize - 2
+        opacity: 0.8
+      }
+    }
+    MediaButton {
+      visible: parent.wide
+      size: Math.min(Widget.height, root.innerHeight)
+      icon: "skip_previous"
+      enabled: MediaManager.canGoPrevious
+      onClicked: MediaManager.previous()
+    }
+    MediaButton {
+      primary: true
+      size: Math.min(Widget.height * 1.2, root.innerHeight)
+      icon: MediaManager.isPlaying ? "pause" : "play_arrow"
+      enabled: MediaManager.canTogglePlaying
+      onClicked: MediaManager.togglePlayPause()
+    }
+    MediaButton {
+      visible: parent.wide
+      size: Math.min(Widget.height, root.innerHeight)
+      icon: "skip_next"
+      enabled: MediaManager.canGoNext
+      onClicked: MediaManager.next()
+    }
+  }
+
   // --- Art and info (and, wide, the controls) ---
   GridLayout {
-    visible: root.hasPlayer
+    visible: root.hasPlayer && !root.mini
     Layout.fillWidth: true
     Layout.fillHeight: root.embedded
     columns: root.embedded && !root.sideBySide ? 1 : 2
@@ -299,12 +367,10 @@ Panel {
 
     Art {
       // From the card's size, not the grid's: that depends on this
-      readonly property real innerWidth: root.width - root.pad * 2
-      readonly property real innerHeight: root.height - root.pad * 2
       // Beside the info, never over 40% of the width, so the text keeps room;
       // stacked, whatever height the info and controls leave (a small card
       // would otherwise push them out of the box)
-      readonly property real side: !root.embedded ? root.artSize : root.sideBySide ? Math.min(innerHeight, innerWidth * 0.4) : Math.max(0, Math.min(innerWidth, innerHeight * 0.5, innerHeight - details.implicitHeight - Widget.spacing))
+      readonly property real side: !root.embedded ? root.artSize : root.sideBySide ? Math.min(root.innerHeight, root.innerWidth * 0.4) : Math.max(0, Math.min(root.innerWidth, root.innerHeight * 0.5, root.innerHeight - details.implicitHeight - Widget.spacing))
       visible: side >= 32
       Layout.preferredWidth: side
       Layout.preferredHeight: side
@@ -317,13 +383,23 @@ Panel {
       Layout.fillHeight: true
       Layout.minimumWidth: 0
       spacing: root.short ? 2 : Widget.spacing
+      // Large: the track and controls centred, not spread down the side
+      Item {
+        visible: root.large
+        Layout.fillHeight: true
+      }
       TrackInfo {
         Layout.fillWidth: true
-        Layout.fillHeight: true
+        Layout.fillHeight: !root.large
       }
       Transport {
         visible: root.embedded
         Layout.fillWidth: true
+        Layout.topMargin: root.large ? Widget.spacing : 0
+      }
+      Item {
+        visible: root.large
+        Layout.fillHeight: true
       }
     }
   }

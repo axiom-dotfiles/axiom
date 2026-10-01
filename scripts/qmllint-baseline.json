@@ -89,9 +89,6 @@
     "missing-property: Member \"implicitHeight\" not found on type \"QObject\"": 1,
     "missing-property: Member \"implicitWidth\" not found on type \"QObject\"": 1
   },
-  "components/surfaces/lockscreen/MediaControl.qml": {
-    "missing-property: Member \"implicitHeight\" not found on type \"QObject\"": 1
-  },
   "components/surfaces/notifications/NotificationToast.qml": {
     "missing-type: No type found for property \"adjustment\". This may be due to a missing import statement or incomplete qmltypes files.": 1
   },

@@ -114,10 +114,10 @@ Item {
     return result;
   }
 
-  // Pages the category links to: the pinned overlay editor always exists,
+  // Pages the category links to: the pinned layouts editor always exists,
   // others only while they're in Overlay.views
   function _linkAvailable(type) {
-    return type === "OverlayEditor" || OverlayConfig.views.some(view => view.type === type && view.visible !== false);
+    return type === "Layouts" || OverlayConfig.views.some(view => view.type === type && view.visible !== false);
   }
 
   function _linkLabel(type) {
@@ -126,10 +126,8 @@ Item {
       return I18n.tr("Themes");
     case "BarEditor":
       return I18n.tr("Bar Editor");
-    case "OverlayEditor":
-      return I18n.tr("Overlay Editor");
-    case "EdgeMenuEditor":
-      return I18n.tr("Edge Menu Editor");
+    case "Layouts":
+      return I18n.tr("Layouts");
     case "Keybinds":
       return I18n.tr("Keybinds");
     case "Monitors":

@@ -19,10 +19,18 @@ Canvas {
   // reads as a graph
   property bool showBaseline: true
 
-  onValuesChanged: requestPaint()
-  onLineColorChanged: requestPaint()
-  onWidthChanged: requestPaint()
-  onHeightChanged: requestPaint()
+  // Hidden (a strip's or full layout's graph not shown), it skips every
+  // sample and catches up when shown
+  function _repaint() {
+    if (root.visible)
+      root.requestPaint();
+  }
+
+  onValuesChanged: _repaint()
+  onLineColorChanged: _repaint()
+  onWidthChanged: _repaint()
+  onHeightChanged: _repaint()
+  onVisibleChanged: _repaint()
 
   onPaint: {
     const ctx = getContext("2d");

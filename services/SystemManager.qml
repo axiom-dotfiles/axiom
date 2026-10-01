@@ -83,12 +83,12 @@ QtObject {
   // SystemStats bar widgets (the metrics their bar shows)
   readonly property var _graphMetrics: {
     const found = [];
-    const fromColumns = columns => (columns ?? []).forEach(column => (column?.cells ?? []).forEach(cell => Object.values(cell?.slots ?? {}).forEach(slot => {
-            if (slot?.type === "SystemGraphs")
-              found.push(...(slot.properties?.metrics ?? []));
-          })));
-    (OverlayConfig.views ?? []).forEach(view => fromColumns(view?.columns));
-    EdgeMenusConfig.enabledMenus.forEach(menu => fromColumns(menu.columns));
+    const fromModules = modules => (modules ?? []).forEach(module => {
+        if (module?.type === "SystemGraphs")
+          found.push(...(module.properties?.metrics ?? []));
+      });
+    (OverlayConfig.views ?? []).forEach(view => fromModules(view?.modules));
+    EdgeMenusConfig.enabledMenus.forEach(menu => fromModules(menu.modules));
     Bar.bars.forEach(bar => Object.values(bar?.widgets ?? {}).forEach(section => (section ?? []).forEach(widget => {
           const p = widget?.properties;
           if (widget?.type !== "SystemStats" || !p?.showPopout)

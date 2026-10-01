@@ -25,6 +25,9 @@ Panel {
   }
 
   readonly property int maxListHeight: 440
+  // A header and a notification, else the figure
+  fullMinWidth: Appearance.fontSize * 16
+  fullMinHeight: Appearance.fontSize * 11
 
   implicitWidth: 400
 
