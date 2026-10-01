@@ -7,29 +7,40 @@ import qs.components.content.base
 import qs.components.content.parts
 
 // The current theme's 16 base colors, each a tile with its key, hex value
-// and the UI roles it plays (Theme.roles) beneath: the neutrals in the
-// first row, the accents in the second where it's wide enough. Compact, a
-// strip of the 16.
+// and up to two of the semantic names that map to it (Theme.roles)
+// beneath: the neutrals in the first row, the accents in the second where
+// it's wide enough. Compact, a strip of the 16.
 Card {
   id: root
 
   // Eight chips across where they have room, else four or two
   readonly property int columns: root.innerWidth >= Appearance.fontSize * 56 ? 8 : root.innerWidth >= Appearance.fontSize * 24 ? 4 : 2
 
-  // Every chip keeps room for the most roles any color plays, so the
-  // tiles line up
-  readonly property int roleLines: Math.max(1, ...Object.keys(Theme.roles).map(key => Theme.roles[key].length))
+  // At most two of a color's names (Theme.roles): its first UI role that
+  // isn't a border (borders follow other colors), then its plain color
+  // name, else whichever name comes next
+  readonly property var _hues: ["red", "orange", "yellow", "green", "cyan", "blue", "magenta", "grey", "white"]
+  function shownNames(names) {
+    const role = names.find(name => !name.startsWith("border")) ?? names[0];
+    const rest = names.filter(name => name !== role);
+    const second = rest.find(name => root._hues.includes(name)) ?? rest[0];
+    return [role, second].filter(name => name !== undefined);
+  }
+
+  // Every chip keeps room for the most names any color shows, so the tiles
+  // line up
+  readonly property int roleLines: Math.max(1, ...Object.keys(Theme.roles).map(key => root.shownNames(Theme.roles[key]).length))
 
   fullMinWidth: Appearance.fontSize * 14
   fullMinHeight: Appearance.fontSize * 12
 
-  // One color: a tile of it, then its key, hex value and roles beneath in
+  // One color: a tile of it, then its key, hex value and names beneath in
   // the theme's own text colors, so they read whatever the color
   component Chip: ColumnLayout {
     id: chip
     required property string modelData
     readonly property color value: Theme.resolveColor(chip.modelData)
-    readonly property var roles: Theme.roles[chip.modelData] ?? []
+    readonly property var roles: root.shownNames(Theme.roles[chip.modelData] ?? [])
 
     Layout.fillWidth: true
     Layout.fillHeight: true

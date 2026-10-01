@@ -20,14 +20,53 @@ import qs.components.methods
 QtObject {
   id: root
 
-  // [{ title, undescribed, binds: [{ label, combos: [{ mods: ["SUPER", "SHIFT"], keys: ["H", "←"] }] }] }]
+  // [{ title, undescribed, binds: [{ label, combos: [{ mods: ["SUPER", "SHIFT"], keys: ["H", "←"] }], axiom, user }] }]
   // `title` is "" for binds with no section (shown as "Other"); `undescribed`
-  // marks the section of binds without a description (label "").
-  property var keybindings: []
+  // marks the section of binds without a description (label ""). A row's
+  // `axiom` / `user` say whether any of its binds are axiom's own (applied
+  // from Hyprland.binds) / from the user's Hyprland config.
+  readonly property var keybindings: root._buildKeybindings(root._entries, root._axiomIds)
   // How many binds Hyprland reported
   property int count: 0
-  // The Keybinds page's search, here so it survives the page reloading
+  // The Keybinds page's search and filter chips (KeybindFilter), here so
+  // they survive the page reloading: section keys (KeybindFilter.sectionKey),
+  // modifier names, sources ("axiom" | "user")
   property string query: ""
+  property var sectionFilter: []
+  property var modFilter: []
+  property var sourceFilter: []
+  readonly property bool filtering: sectionFilter.length > 0 || modFilter.length > 0 || sourceFilter.length > 0
+
+  // The chips: [{ key, title, undescribed, count }] per section, and the
+  // modifiers the binds use, in _modifiers order
+  readonly property var sectionOptions: root.keybindings.filter(section => section.binds.length > 0).map(section => ({
+        "key": KeybindFilter.sectionKey(section),
+        "title": section.title,
+        "undescribed": section.undescribed,
+        "count": section.binds.length
+      }))
+  readonly property var modOptions: {
+    const used = {};
+    for (const section of root.keybindings)
+      for (const row of section.binds)
+        for (const combo of row.combos)
+          for (const mod of combo.mods)
+            used[mod] = true;
+    return root._modifiers.map(m => m.name).filter(name => used[name]);
+  }
+
+  // group: "section" | "mod" | "source"
+  function toggleFilter(group, value) {
+    const name = group + "Filter";
+    const current = root[name];
+    root[name] = current.includes(value) ? current.filter(v => v !== value) : current.concat([value]);
+  }
+
+  function clearFilters() {
+    root.sectionFilter = [];
+    root.modFilter = [];
+    root.sourceFilter = [];
+  }
   // The Keybinds page shows the editor instead of the list
   property bool editing: false
 
@@ -333,11 +372,21 @@ QtObject {
 
   // Keys Hyprland binds outside axiom, by HyprBinds.keyId: every bind
   // Hyprland reports, less the saved axiom binds it applied
-  readonly property var _userKeyCounts: {
+  readonly property var _userKeyCounts: HyprBinds.userKeyCounts(root._entries, root._appliedBinds)
+
+  // The saved axiom binds the runtime layer applied (the rest it skipped)
+  readonly property var _appliedBinds: {
     const skipped = HyprlandConfigManager.skippedKeys.map(key => HyprBinds.keyId(key));
-    const applied = HyprlandConfig.binds.filter(bind => HyprlandConfigManager.isComplete(bind) && !skipped.includes(HyprBinds.keyId(bind.key)));
-    return HyprBinds.userKeyCounts(root._entries, applied);
+    return HyprlandConfig.binds.filter(bind => HyprlandConfigManager.isComplete(bind) && !skipped.includes(HyprBinds.keyId(bind.key)));
   }
+
+  // Their keys, by HyprBinds.keyId: { "64:return": true }
+  readonly property var _axiomIds: root._appliedBinds.reduce((ids, bind) => {
+    const id = HyprBinds.keyId(bind.key);
+    if (id !== "")
+      ids[id] = true;
+    return ids;
+  }, {})
 
   // Per bind: [{ level: "error" | "warning", text }]
   readonly property var issues: {
@@ -604,7 +653,7 @@ hl.dispatch(hl.dsp.submap("${_recordSubmap}"))`
     onTriggered: root.refresh()
   }
 
-  function _buildKeybindings(entries) {
+  function _buildKeybindings(entries, axiomIds) {
     const sections = [];
     const sectionByTitle = {};
     const rowByKey = {};
@@ -645,11 +694,15 @@ hl.dispatch(hl.dsp.submap("${_recordSubmap}"))`
       const mods = root._decodeMods(entry.modmask);
       const key = root._formatKey(entry.key);
       const rowKey = `${section.title}\u0000${label}`;
+      // Axiom's runtime binds are never in a submap
+      const isAxiom = !entry.submap && !!axiomIds[HyprBinds.entryId(entry)];
 
       // Undescribed binds each get their own row, since they share an empty label.
       // Alternatives with the same modifiers share a combo: Super + H / ←.
       const row = label ? rowByKey[rowKey] : undefined;
       if (row) {
+        row.axiom = row.axiom || isAxiom;
+        row.user = row.user || !isAxiom;
         const combo = row.combos.find(c => c.mods.join("+") === mods.join("+"));
         if (!combo)
           row.combos.push({
@@ -667,7 +720,9 @@ hl.dispatch(hl.dsp.submap("${_recordSubmap}"))`
             mods: mods,
             keys: [key]
           }
-        ]
+        ],
+        axiom: isAxiom,
+        user: !isAxiom
       };
       if (label)
         rowByKey[rowKey] = newRow;
@@ -725,7 +780,9 @@ hl.dispatch(hl.dsp.submap("${_recordSubmap}"))`
             mods: run.mods,
             keys: contiguous ? [`${numbers[0]}–${numbers[numbers.length - 1]}`] : numbers.map(String)
           }
-        ]
+        ],
+        axiom: run.rows.some(r => r.axiom),
+        user: run.rows.some(r => r.user)
       });
     }
     return result;
@@ -760,7 +817,6 @@ hl.dispatch(hl.dsp.submap("${_recordSubmap}"))`
         try {
           const entries = JSON.parse(bindsCollector.text).filter(entry => entry.submap !== root._recordSubmap);
           root._entries = entries;
-          root.keybindings = root._buildKeybindings(entries);
           root.count = entries.length;
         } catch (e) {
           console.warn("[KeybindManager] Could not parse hyprctl binds:", e);

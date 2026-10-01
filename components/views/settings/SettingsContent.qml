@@ -192,8 +192,6 @@ Item {
     showExtras: root.links.length > 0 || root.foldableKeys.length > 0
     headerExtras: RowLayout {
       Layout.fillWidth: true
-      Layout.topMargin: Widget.spacing / 2
-      Layout.bottomMargin: Widget.spacing / 2
       spacing: Widget.spacing
 
       StyledTextButton {
