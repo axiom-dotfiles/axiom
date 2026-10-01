@@ -28,6 +28,15 @@ Card {
   // the grid's origin, GridPlacement.screenBox), else null: drawn as a
   // dashed outline, with what lies outside it tinted (it'd scroll)
   property var screenBox: null
+  // That screen's size in px ({ width, height }), for what's drawn on it in
+  // px: the band along its edge taken by the bars and border, or reserved
+  // by an integrated menu (`reservedDepth` px deep, labelled
+  // `reservedLabel`), and the other menus (`ghosts`: [{ name, rect, modules:
+  // [{ type, rect }] }], rects { x, y, width, height } in screen px)
+  property var screenSize: null
+  property real reservedDepth: 0
+  property string reservedLabel: ""
+  property var ghosts: []
   // How the result fits, under the title (e.g. per monitor)
   property string fitText: ""
   property bool fitWarning: false
@@ -72,6 +81,28 @@ Card {
   readonly property rect latticeBox: Qt.rect(root.originX - root.leadCols * root.step, root.originY - root.leadRows * root.step, root.gridCols * root.step - root.gap, root.gridRows * root.step - root.gap)
   // The screen, in the area's px (its sides midway in the gaps)
   readonly property rect screenRect: root.hasScreen ? Qt.rect(root.originX + root.screenBox.x * root.step - root.gap / 2, root.originY + root.screenBox.y * root.step - root.gap / 2, root.screenBox.w * root.step, root.screenBox.h * root.step) : Qt.rect(0, 0, 0, 0)
+
+  // Screen px in the area, through the screen's outline
+  readonly property real pxScale: root.hasScreen && root.screenSize && root.screenSize.width > 0 ? root.screenRect.width / root.screenSize.width : 0
+  function screenPx(r) {
+    return Qt.rect(root.screenRect.x + r.x * root.pxScale, root.screenRect.y + r.y * root.pxScale, r.width * root.pxScale, r.height * root.pxScale);
+  }
+  // The band along the menu's edge, in the area
+  readonly property rect reservedRect: {
+    const r = root.screenRect;
+    const d = root.reservedDepth * root.pxScale;
+    switch (root.edge) {
+    case "Left":
+      return Qt.rect(r.x, r.y, d, r.height);
+    case "Right":
+      return Qt.rect(r.x + r.width - d, r.y, d, r.height);
+    case "Top":
+      return Qt.rect(r.x, r.y, r.width, d);
+    case "Bottom":
+      return Qt.rect(r.x, r.y + r.height - d, r.width, d);
+    }
+    return Qt.rect(0, 0, 0, 0);
+  }
 
   function rectFor(place) {
     return Qt.rect(root.originX + place.x * root.step, root.originY + place.y * root.step, place.w * root.unitSize + (place.w - 1) * root.gap, place.h * root.unitSize + (place.h - 1) * root.gap);
@@ -275,11 +306,100 @@ Card {
         }
       }
 
-      // An edge menu's screen edge along its side of the grid: all of it
-      // faintly, with the menu where it sits on it, and the part the menu
+      // The band the bars and border take along the menu's edge, or that an
+      // integrated menu reserves while open
+      Rectangle {
+        visible: root.editable && root.hasScreen && root.reservedDepth > 0
+        x: root.reservedRect.x
+        y: root.reservedRect.y
+        width: root.reservedRect.width
+        height: root.reservedRect.height
+        color: Qt.alpha(Theme.accent, 0.18)
+
+        // Its inner side, where the windows start
+        Rectangle {
+          color: Theme.accent
+          opacity: 0.7
+          width: root.alongRows ? 1 : parent.width
+          height: root.alongRows ? parent.height : 1
+          x: root.edge === "Left" ? parent.width - 1 : 0
+          y: root.edge === "Top" ? parent.height - 1 : 0
+        }
+
+        StyledText {
+          visible: root.reservedLabel !== "" && parent.width > width && parent.height > height
+          anchors.centerIn: parent
+          rotation: root.alongRows && parent.width < width + Widget.padding ? -90 : 0
+          text: root.reservedLabel
+          textColor: Theme.accent
+          textSize: Appearance.fontSize - 3
+          opacity: 0.8
+        }
+      }
+
+      // The other menus on the screen, dimmed (EdgeMenuManager.showingOthers)
+      Repeater {
+        model: root.editable && root.pxScale > 0 ? root.ghosts.length : 0
+
+        Item {
+          id: ghost
+          required property int index
+          readonly property var info: root.ghosts[ghost.index] ?? null
+          readonly property rect r: ghost.info ? root.screenPx(ghost.info.rect) : Qt.rect(0, 0, 0, 0)
+          x: ghost.r.x
+          y: ghost.r.y
+          width: ghost.r.width
+          height: ghost.r.height
+          opacity: 0.4
+
+          Rectangle {
+            anchors.fill: parent
+            radius: root.cellRadius
+            color: "transparent"
+            border.color: Theme.border
+            border.width: 1
+          }
+
+          Repeater {
+            model: ghost.info ? ghost.info.modules.length : 0
+
+            Rectangle {
+              id: ghostModule
+              required property int index
+              readonly property var module: ghost.info.modules[ghostModule.index] ?? null
+              readonly property rect r: ghostModule.module ? root.screenPx(ghostModule.module.rect) : Qt.rect(0, 0, 0, 0)
+              x: ghostModule.r.x - ghost.r.x
+              y: ghostModule.r.y - ghost.r.y
+              width: ghostModule.r.width
+              height: ghostModule.r.height
+              radius: root.cellRadius
+              color: Theme.backgroundAlt
+              border.color: Theme.border
+              border.width: 1
+
+              StyledIcon {
+                anchors.centerIn: parent
+                visible: parent.width > Appearance.fontSize * 1.5 && parent.height > Appearance.fontSize * 1.5
+                text: root.dragLayer.moduleIcon(ghostModule.module?.type ?? "")
+                textColor: Theme.foreground
+              }
+            }
+          }
+
+          StyledText {
+            anchors.top: parent.bottom
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.topMargin: 2
+            text: ghost.info?.name ?? ""
+            textSize: Appearance.fontSize - 3
+          }
+        }
+      }
+
+      // The menu's screen edge: all of it faintly, and the part the menu
       // covers solid
       Repeater {
-        model: root.editable && root.edge !== "" ? (root.hasScreen ? 2 : 1) : 0
+        model: root.editable && root.edge !== "" && root.hasScreen ? 2 : 0
 
         Rectangle {
           id: edgeLine
@@ -292,10 +412,11 @@ Card {
             "w": Math.max(1, root.bounds.cols),
             "h": Math.max(1, root.bounds.rows)
           })
+          readonly property rect screen: root.screenRect
           readonly property real thick: Math.max(3, root.gap / 2)
-          readonly property real across: root.edge === "Left" ? box.x - root.gap / 2 - thick / 2 : root.edge === "Right" ? box.x + box.width + root.gap / 2 - thick / 2 : root.edge === "Top" ? box.y - root.gap / 2 - thick / 2 : box.y + box.height + root.gap / 2 - thick / 2
-          readonly property real start: edgeLine.whole ? (root.alongRows ? root.screenRect.y : root.screenRect.x) : (root.alongRows ? box.y : box.x)
-          readonly property real length: edgeLine.whole ? (root.alongRows ? root.screenRect.height : root.screenRect.width) : (root.alongRows ? box.height : box.width)
+          readonly property real across: root.edge === "Left" ? screen.x - thick / 2 : root.edge === "Right" ? screen.x + screen.width - thick / 2 : root.edge === "Top" ? screen.y - thick / 2 : screen.y + screen.height - thick / 2
+          readonly property real start: edgeLine.whole ? (root.alongRows ? screen.y : screen.x) : (root.alongRows ? box.y : box.x)
+          readonly property real length: edgeLine.whole ? (root.alongRows ? screen.height : screen.width) : (root.alongRows ? box.height : box.width)
           visible: edgeLine.whole || root.list.length > 0
           z: edgeLine.whole ? 0 : 1
           x: root.alongRows ? edgeLine.across : edgeLine.start

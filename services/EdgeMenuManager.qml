@@ -50,6 +50,101 @@ Singleton {
     return root.zones[`${screenName}:${edge}`] ?? 0;
   }
 
+  // Where each running menu's modules can sit on its screen, by id, as the
+  // menu reports it (IntegratedEdgeMenu, FloatingEdgeMenu), for the
+  // layouts editor. In px: { screen (its name), startPad, endPad (the
+  // least room between the modules and the edge's ends), across (from the
+  // screen edge to the modules), before (across, taken by what's on the
+  // edge outside the menu: bars, the border), after (from the modules to
+  // the menu's inner side), reserves (whether the menu reserves its strip) }
+  property var frames: ({})
+
+  function setFrame(id, frame) {
+    if (!id || JSON.stringify(root.frames[id]) === JSON.stringify(frame))
+      return;
+    const frames = Object.assign({}, root.frames);
+    frames[id] = frame;
+    root.frames = frames;
+  }
+
+  function clearFrame(id, screenName) {
+    if (root.frames[id]?.screen !== screenName)
+      return;
+    const frames = Object.assign({}, root.frames);
+    delete frames[id];
+    root.frames = frames;
+  }
+
+  // A menu's frame (see `frames`): its running one's, else (a disabled
+  // menu, or one not yet reported) its padding all round
+  function frameOf(menu) {
+    const screenName = EdgeMenusConfig.screenFor(menu)?.name ?? "";
+    const live = root.frames[menu?.id ?? ""];
+    if (live && live.screen === screenName)
+      return live;
+    const pad = Appearance.borderWidth + EdgeMenusConfig.paddingOf(menu);
+    return {
+      "screen": screenName,
+      "startPad": pad,
+      "endPad": pad,
+      "across": pad,
+      "before": 0,
+      "after": pad,
+      "reserves": menu?.mode === "integrated"
+    };
+  }
+
+  // Where a menu's modules sit on its screen, in px: { along (from the
+  // edge's start), across (from the edge), length, depth (the modules'
+  // grid along and across the edge), frame, screen }, or null without a
+  // screen. Modules from `modules` when given (an edit's, before it).
+  function placementOf(menu, modules) {
+    const screen = EdgeMenusConfig.screenFor(menu);
+    if (!menu || !screen)
+      return null;
+    const vertical = menu.edge === "Left" || menu.edge === "Right";
+    const frame = root.frameOf(menu);
+    const sizes = GridPlacement.trackSizes(GridPlacement.bounds(modules ?? menu.modules), root.cardUnitOf(menu));
+    const length = vertical ? sizes.height : sizes.width;
+    const edgeLength = vertical ? screen.height : screen.width;
+    return {
+      "along": EdgeMenusConfig.alongStartOf(menu, length, edgeLength, frame.startPad, frame.endPad),
+      "across": frame.across,
+      "length": length,
+      "depth": vertical ? sizes.width : sizes.height,
+      "edgeLength": edgeLength,
+      "frame": frame,
+      "screen": screen
+    };
+  }
+
+  // After the editor's grid shifted by `shift` grid units ({ x, y }; a
+  // module put before the first moves the menu that way), keeps the
+  // selected menu's modules where they were on its screen: its anchor
+  // (align, offset) follows, snapping to an end or the middle within half
+  // a unit of it (GridPlacement.anchorFor). `before`: its modules before
+  // the edit.
+  function _followShift(menu, shift, before) {
+    if (!menu || menu.length === "edge")
+      return;
+    const was = root.placementOf(menu, before);
+    const now = root.placementOf(menu);
+    if (!was || !now)
+      return;
+    const vertical = menu.edge === "Left" || menu.edge === "Right";
+    const start = was.along + (vertical ? shift.y : shift.x) * GridPlacement.stepOf(root.cardUnitOf(menu));
+    const anchor = GridPlacement.anchorFor(start, now.length, now.edgeLength, root.cardUnitOf(menu), now.frame.startPad, now.frame.endPad, menu.align);
+    menu.align = anchor.align;
+    menu.offset = anchor.offset;
+  }
+
+  // The editor draws the other menus on the selected one's screen
+  property bool showingOthers: false
+
+  function toggleShowingOthers() {
+    root.showingOthers = !root.showingOthers;
+  }
+
   PersistentProperties {
     id: _run
     reloadableId: "axiomEdgeMenus"
@@ -186,6 +281,7 @@ Singleton {
   property GridEditor layout: GridEditor {
     host: "edgeMenu"
     modulesOf: () => root.selectedMenu()?.modules ?? null
+    shifted: (shift, before) => root._followShift(root.selectedMenu(), shift, before)
     scopeKey: String(root.selectedMenuIndex)
     onEdited: root.applyChanges()
   }

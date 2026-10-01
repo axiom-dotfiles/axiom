@@ -126,40 +126,86 @@ TestCase {
 
   function test_normalize() {
     const modules = [at(2, 1, 2, 2), at(4, 3, 1, 1)];
-    verify(GridPlacement.normalize(modules));
+    compare(GridPlacement.normalize(modules), {
+      "x": 2,
+      "y": 1
+    });
     compare(modules[0].place.x, 0);
     compare(modules[0].place.y, 0);
     compare(modules[1].place.x, 2);
     compare(modules[1].place.y, 2);
-    verify(!GridPlacement.normalize(modules), "already at 0");
-    verify(!GridPlacement.normalize([]));
+    compare(GridPlacement.normalize(modules), {
+      "x": 0,
+      "y": 0
+    }, "already at 0");
+    compare(GridPlacement.normalize([]), {
+      "x": 0,
+      "y": 0
+    });
+  }
+
+  // A 500 px card's unit is 110 px, a step (unit + gap) 130 px
+  function test_alongStart() {
+    compare(GridPlacement.stepOf(500), 130);
+    function start(align, offset, length) {
+      return GridPlacement.alongStart(align, offset, length ?? 240, 1000, 500, 10, 10);
+    }
+    compare(start("start", 0), 10);
+    compare(start("start", 2), 270);
+    compare(start("end", 0), 750);
+    compare(start("end", 1), 620);
+    compare(start("center", 0), 380);
+    compare(start("center", -1), 250);
+    compare(start("start", 10), 750, "kept on the edge");
+    compare(start("center", -10), 10);
+    compare(start("end", 0, 1200), 10, "longer than the edge: from its start");
+  }
+
+  function test_anchorFor() {
+    function anchor(start, current) {
+      const a = GridPlacement.anchorFor(start, 240, 1000, 500, 10, 10, current);
+      return [a.align, a.offset];
+    }
+    compare(anchor(10), ["start", 0]);
+    compare(anchor(750), ["end", 0]);
+    compare(anchor(380), ["center", 0]);
+    compare(anchor(390, "start"), ["center", 0], "near the middle snaps to it");
+    compare(anchor(740, "start"), ["end", 0], "near the end snaps flush");
+    compare(anchor(-50, "center"), ["start", 0], "past the start");
+    compare(anchor(270, "start"), ["start", 2], "otherwise it keeps its anchor");
+    compare(anchor(250, "center"), ["center", -1]);
+    compare(anchor(620, "end"), ["end", 1]);
+    compare(anchor(620), ["end", 1], "with none, the nearest");
+    // Round trips: moved by whole steps from an anchor, it stays put
+    ["start", "end", "center"].forEach(align => {
+      for (let units = -3; units <= 3; units++) {
+        const at = GridPlacement.alongStart(align, 0, 240, 1000, 500, 10, 10) + units * 130;
+        // Off the edge, or within half a step of another anchor (it snaps)
+        if (at < 10 || at > 750 || [10, 380, 750].some(anchorAt => anchorAt !== at - units * 130 && Math.abs(at - anchorAt) < 65))
+          continue;
+        const a = GridPlacement.anchorFor(at, 240, 1000, 500, 10, 10, align);
+        compare(GridPlacement.alongStart(a.align, a.offset, 240, 1000, 500, 10, 10), at, `${units} from ${align}`);
+      }
+    });
   }
 
   function test_screenBox() {
-    // As [x, y, w, h], as compare() doesn't compare objects by value
-    function box(width, height, unit, bounds, edge, position, fills) {
-      const b = GridPlacement.screenBox(width, height, unit, bounds, edge, position, fills);
-      return [b.x, b.y, b.w, b.h];
+    // As [x, y, w, h] in px (a step is 130 px), as compare() doesn't
+    // compare objects by value
+    function box(edge, along, across) {
+      const b = GridPlacement.screenBox(1020, 500, 500, {
+        "cols": 2,
+        "rows": 2
+      }, edge, along, across);
+      return [b.x, b.y, b.w, b.h].map(v => Math.round(v * 130));
     }
-    // 500 px is four units of a 500 px card: a 1020 × 500 screen is 8 × 4
-    compare(GridPlacement.unitsAlong(500, 500), 4);
-    const two = {
-      "cols": 2,
-      "rows": 2
-    };
-    compare(box(1020, 500, 500, two, "Left", 0.5, false), [0, -1, 8, 4], "centred on a left edge");
-    compare(box(1020, 500, 500, two, "Right", 0, false), [-6, 0, 8, 4], "at the start of a right edge, against it");
-    compare(box(1020, 500, 500, two, "Top", 1, false), [-6, 0, 8, 4], "at the end of a top edge");
-    compare(GridPlacement.screenBox(1020, 500, 500, two, "Bottom", 0.5, false).y, -2, "against a bottom edge");
-    compare(GridPlacement.screenBox(1020, 500, 500, {
-      "cols": 1,
-      "rows": 1
-    }, "Left", 0.9, false).y, -3, "kept on the screen");
-    compare(GridPlacement.screenBox(1020, 500, 500, {
-      "cols": 2,
-      "rows": 6
-    }, "Left", 0.5, false).y, 0, "longer than the edge: from its start, scrolling");
-    compare(GridPlacement.screenBox(1020, 500, 500, two, "Left", 0.5, true).y, 0, "filling the edge");
+    // Its sides lie midway in the gaps: half a gap (10 px) on
+    compare(box("Left", 0, 0), [10, 10, 1020, 500], "at the start, against the edge");
+    compare(box("Left", 130, 20), [-10, -120, 1020, 500], "a step along, 20 px in");
+    // The grid is 240 px across: the screen's right side is 20 px past it
+    compare(box("Right", 0, 20), [-750, 10, 1020, 500], "against a right edge");
+    compare(box("Top", 260, 0), [-250, 10, 1020, 500], "along a top edge");
+    compare(box("Bottom", 0, 0).slice(1, 2), [-250], "against a bottom edge");
   }
 
   function test_trackSizes() {

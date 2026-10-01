@@ -37,13 +37,66 @@ BaseView {
   readonly property var menuScreen: root.menu ? EdgeMenusConfig.screenFor(root.menu) : null
   readonly property real menuLength: root.menu ? EdgeMenusConfig.lengthOf(root.menu, root.menuVertical, EdgeMenuManager.cardUnitOf(root.menu)) : 0
   readonly property real edgeLength: root.menuScreen ? (root.menuVertical ? root.menuScreen.height : root.menuScreen.width) : 0
+  // Where the menu's modules sit on its screen (EdgeMenuManager.placementOf)
+  readonly property var menuPlace: root.menu ? EdgeMenuManager.placementOf(root.menu) : null
   // The menu's screen around it, in grid units from its origin
   // (GridPlacement.screenBox), else null
-  readonly property var menuScreenBox: {
-    if (!root.menu || !root.menuScreen)
-      return null;
-    const pad = EdgeMenusConfig.paddingOf(root.menu) * 2;
-    return GridPlacement.screenBox(root.menuScreen.width - pad, root.menuScreen.height - pad, EdgeMenuManager.cardUnitOf(root.menu), GridPlacement.bounds(root.menu.modules), root.menu.edge, root.menu.position / 100, root.menu.length === "edge");
+  readonly property var menuScreenBox: root.menuPlace ? GridPlacement.screenBox(root.menuScreen.width, root.menuScreen.height, EdgeMenuManager.cardUnitOf(root.menu), GridPlacement.bounds(root.menu.modules), root.menu.edge, root.menuPlace.along, root.menuPlace.across) : null
+  // What's taken along its edge: the strip an integrated menu reserves,
+  // else the bars' and border's room the menu sits past
+  readonly property real reservedDepth: {
+    const place = root.menuPlace;
+    if (!place)
+      return 0;
+    return place.frame.reserves ? place.across + place.depth + place.frame.after : place.frame.before;
+  }
+  // The other enabled menus on its screen, in screen px (GridCanvas.ghosts)
+  readonly property var ghosts: {
+    if (!root.menu || !root.menuScreen || !EdgeMenuManager.showingOthers)
+      return [];
+    const screenName = root.menuScreen.name;
+    return (EdgeMenuManager.localMenus ?? []).filter((other, i) => i !== EdgeMenuManager.selectedMenuIndex && other.enabled && EdgeMenusConfig.screenFor(other)?.name === screenName).map(other => root._ghostOf(other));
+  }
+  function _ghostOf(menu) {
+    const place = EdgeMenuManager.placementOf(menu);
+    const unit = EdgeMenuManager.cardUnitOf(menu);
+    const vertical = menu.edge === "Left" || menu.edge === "Right";
+    const screen = place.screen;
+    // Taking the whole edge, it stretches along all of it
+    const room = place.edgeLength - place.frame.startPad - place.frame.endPad;
+    const stretch = menu.length === "edge" ? (vertical ? {
+        "height": room
+      } : {
+        "width": room
+      }) : null;
+    const sizes = GridPlacement.trackSizes(GridPlacement.bounds(menu.modules), unit, stretch);
+    const length = vertical ? sizes.height : sizes.width;
+    const depth = vertical ? sizes.width : sizes.height;
+    const acrossAt = menu.edge === "Right" ? screen.width - place.across - depth : menu.edge === "Bottom" ? screen.height - place.across - depth : place.across;
+    const x = vertical ? acrossAt : place.along;
+    const y = vertical ? place.along : acrossAt;
+    const pad = place.frame.after;
+    return {
+      "name": EdgeMenuManager.menuLabel(menu, (EdgeMenuManager.localMenus ?? []).indexOf(menu)),
+      "rect": {
+        "x": x - pad,
+        "y": y - pad,
+        "width": sizes.width + pad * 2,
+        "height": sizes.height + pad * 2
+      },
+      "modules": menu.modules.map(module => {
+        const r = GridPlacement.rectPx(module.place, sizes);
+        return {
+          "type": module.type,
+          "rect": {
+            "x": x + r.x,
+            "y": y + r.y,
+            "width": r.width,
+            "height": r.height
+          }
+        };
+      })
+    };
   }
   readonly property bool menuTooLong: root.menu?.length !== "edge" && root.edgeLength > 0 && root.menuLength > root.edgeLength
   readonly property string menuFitText: {
@@ -73,6 +126,13 @@ BaseView {
     emptyText: root.editingMenu ? I18n.tr("No edge menus yet: add one with New menu.") : I18n.tr(root.view ? "A tool page: it has no layout to edit. Drag it in the list to reorder it." : "No pages yet: add one with New page.")
     edge: root.editingMenu && root.menu ? root.menu.edge : ""
     screenBox: root.editingMenu ? root.menuScreenBox : null
+    screenSize: root.editingMenu && root.menuScreen ? ({
+        "width": root.menuScreen.width,
+        "height": root.menuScreen.height
+      }) : null
+    reservedDepth: root.editingMenu ? root.reservedDepth : 0
+    reservedLabel: root.menuPlace?.frame.reserves ? I18n.tr("Reserved while open") : I18n.tr("Bars and border")
+    ghosts: root.editingMenu ? root.ghosts : []
     fitText: root.editingMenu ? root.menuFitText : root.pageFitText
     fitWarning: root.editingMenu ? root.menuTooLong : root.shrunk
     editable: root.editingMenu ? root.menu !== null : root.isCustom

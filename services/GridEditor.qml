@@ -24,6 +24,11 @@ QtObject {
   // What's being edited (a page, a menu): forms are rebuilt when it changes
   property string scopeKey: ""
 
+  // Called in every edit, as the grid shifts back to 0, 0: with the shift
+  // taken off ({ x, y } grid units, a place left of or above the grid
+  // being negative) and a copy of the modules before the edit
+  property var shifted: (shift, before) => {}
+
   // After every edit: the owner marks its draft changed
   signal edited
 
@@ -123,10 +128,11 @@ QtObject {
     if (!modules)
       return;
     const before = modules[root.selected] ?? null;
+    const was = JSON.parse(JSON.stringify(modules));
     const focus = edit(modules);
     if (focus === false)
       return;
-    GridPlacement.normalize(modules);
+    root.shifted(GridPlacement.normalize(modules), was);
     const target = focus ?? before;
     root.selected = target ? modules.indexOf(target) : -1;
     root.edited();

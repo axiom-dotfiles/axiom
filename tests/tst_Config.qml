@@ -527,6 +527,40 @@ TestCase {
     compare(errors(loaded.config), []);
   }
 
+  function test_v32_position_becomes_an_anchor() {
+    const loaded = load({
+      "version": 31,
+      "EdgeMenus": [
+        {
+          "id": "a",
+          "position": 0,
+          "margin": 12
+        },
+        {
+          "id": "b",
+          "position": 50
+        },
+        {
+          "id": "c",
+          "position": 90
+        },
+        {
+          "id": "d",
+          "position": 30
+        }
+      ]
+    });
+    const menus = loaded.config.EdgeMenus;
+    compare(menus.map(menu => menu.align), ["start", "center", "end", "center"]);
+    compare(menus.map(menu => menu.offset), [0, 0, 0, 0]);
+    compare(menus[0].position, undefined);
+    compare(menus[0].margin, undefined);
+    verify(loaded.changes.some(change => change.includes("position 30%")));
+    verify(loaded.changes.some(change => change.includes("frame margin dropped")));
+    verify(!loaded.changes.some(change => change.includes("position 50%")));
+    compare(errors(loaded.config), []);
+  }
+
   function test_migration_is_idempotent() {
     const once = load(files.json("tests/fixtures/configs/v1.json")).config;
     const again = ConfigMigration.migrate(once);

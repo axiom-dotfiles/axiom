@@ -151,6 +151,10 @@ TestCase {
         "c": {},
         "skip": {
           "x-group": "One"
+        },
+        "hidden": {
+          "x-group": "One",
+          "x-settings": false
         }
       }
     }, ["skip"]);

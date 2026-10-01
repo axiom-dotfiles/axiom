@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 31
+  readonly property int currentVersion: 32
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -89,6 +89,8 @@ QtObject {
       result = _v29ToV30(result, changes);
     if (version < 31)
       result = _v30ToV31(result, changes);
+    if (version < 32)
+      result = _v31ToV32(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -1125,6 +1127,31 @@ QtObject {
           changes.push(`${where}: ${key} (${menu[key]} px) dropped`);
         delete menu[key];
       });
+    });
+    return config;
+  }
+
+  // v32: an edge menu's place along its edge comes from the layouts
+  // editor's grid, as an anchor (start, center or end) and a whole number
+  // of grid units from it, instead of a percentage; and its frame lines up
+  // with the screen border instead of taking its own margin
+  function _v31ToV32(config, changes) {
+    (Array.isArray(config.EdgeMenus) ? config.EdgeMenus : []).forEach((menu, m) => {
+      if (!menu || typeof menu !== "object")
+        return;
+      const where = `EdgeMenus[${m}]`;
+      if ("position" in menu) {
+        const position = Number(menu.position);
+        menu.align = position <= 15 ? "start" : position >= 85 ? "end" : "center";
+        menu.offset = 0;
+        if (![0, 50, 100].includes(position))
+          changes.push(`${where}: position ${menu.position}% -> align "${menu.align}" (approximate)`);
+        delete menu.position;
+      }
+      if ("margin" in menu) {
+        changes.push(`${where}: frame margin dropped: the frame follows the screen margin`);
+        delete menu.margin;
+      }
     });
     return config;
   }

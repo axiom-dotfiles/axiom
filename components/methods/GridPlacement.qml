@@ -32,29 +32,70 @@ QtObject {
     return Math.max(0, (length + root.cardSpacing) / (root.unitOf(unit) + root.cardSpacing));
   }
 
+  // One grid unit plus the gap after it, in px, at card size `unit`
+  function stepOf(unit) {
+    return root.unitOf(unit) + root.cardSpacing;
+  }
+
+  // Where an edge menu's modules (`length` px along the edge) start along
+  // an edge `edgeLength` px long, in px from its start: `offset` grid units
+  // in from the anchor `align` ("start" | "end"), or from the middle
+  // ("center", positive towards the end), and kept between `startPad` and
+  // `endPad` from the ends (a menu longer than the room starts at
+  // `startPad`)
+  function alongStart(align, offset, length, edgeLength, unit, startPad, endPad) {
+    const step = root.stepOf(unit) * (offset ?? 0);
+    const at = align === "start" ? startPad + step : align === "end" ? edgeLength - endPad - length - step : (edgeLength - length) / 2 + step;
+    return Math.max(startPad, Math.min(at, edgeLength - endPad - length));
+  }
+
+  // The anchor for modules starting `start` px along the edge (see
+  // alongStart), with the whole grid units from it: { align, offset }.
+  // Within half a unit of an anchor they snap to it (flush, or centred);
+  // otherwise they keep `current` (an align), so moving them by whole
+  // units keeps them exactly where they're put. Without `current`, the
+  // nearest anchor.
+  function anchorFor(start, length, edgeLength, unit, startPad, endPad, current) {
+    const step = root.stepOf(unit);
+    const units = {
+      "start": (start - startPad) / step,
+      "end": (edgeLength - endPad - length - start) / step,
+      "center": (start - (edgeLength - length) / 2) / step
+    };
+    const nearest = ["start", "end", "center"].reduce((best, align) => Math.abs(units[align]) < Math.abs(units[best]) ? align : best, "start");
+    const align = Math.abs(units[nearest]) < 0.5 || !(current in units) ? nearest : current;
+    const offset = Math.round(units[align]);
+    return {
+      "align": align,
+      "offset": align === "center" ? offset : Math.max(0, offset)
+    };
+  }
+
   // The screen (`width` × `height` px) around an edge menu with modules
-  // reaching `bounds`, on `edge` ("Left" | "Right" | "Top" | "Bottom") at
-  // `position` (0-1) along it: centred there and kept on the screen
-  // (`fills`: stretched along all of it), against its edge. In grid units
-  // from the menu's grid origin: { x, y, w, h }.
-  function screenBox(width, height, unit, bounds, edge, position, fills) {
+  // reaching `bounds` (at card size `unit`) on `edge` ("Left" | "Right" |
+  // "Top" | "Bottom"), starting `along` px along the edge and `across` px
+  // in from it. In grid units from the menu's grid origin, as the editor
+  // draws it (its sides midway in the gaps): { x, y, w, h }.
+  function screenBox(width, height, unit, bounds, edge, along, across) {
     const vertical = edge === "Left" || edge === "Right";
-    const along = root.unitsAlong(vertical ? height : width, unit);
-    const across = root.unitsAlong(vertical ? width : height, unit);
-    const length = vertical ? bounds.rows : bounds.cols;
+    const step = root.stepOf(unit);
     const thick = vertical ? bounds.cols : bounds.rows;
-    const at = fills ? 0 : Math.max(0, Math.min(along * position - length / 2, along - length));
-    const from = edge === "Right" || edge === "Bottom" ? thick - across : 0;
+    const thickPx = thick > 0 ? thick * step - root.cardSpacing : 0;
+    const acrossLen = vertical ? width : height;
+    // The screen's start, in px from the grid's origin
+    const alongFrom = -along;
+    const acrossFrom = edge === "Right" || edge === "Bottom" ? thickPx + across - acrossLen : -across;
+    const half = root.cardSpacing / 2;
     return vertical ? {
-      "x": from,
-      "y": -at,
-      "w": across,
-      "h": along
+      "x": (acrossFrom + half) / step,
+      "y": (alongFrom + half) / step,
+      "w": width / step,
+      "h": height / step
     } : {
-      "x": -at,
-      "y": from,
-      "w": along,
-      "h": across
+      "x": (alongFrom + half) / step,
+      "y": (acrossFrom + half) / step,
+      "w": width / step,
+      "h": height / step
     };
   }
 
@@ -140,20 +181,24 @@ QtObject {
   }
 
   // Shifts the modules (in place) so the topmost and leftmost touch 0.
-  // Returns whether anything moved.
+  // Returns the shift taken off, { x, y } (0, 0 when nothing moved).
   function normalize(modules) {
     const placed = (modules ?? []).filter(module => module?.place);
     if (placed.length === 0)
-      return false;
+      return {
+        "x": 0,
+        "y": 0
+      };
     const minX = Math.min(...placed.map(module => module.place.x));
     const minY = Math.min(...placed.map(module => module.place.y));
-    if (minX === 0 && minY === 0)
-      return false;
     placed.forEach(module => {
       module.place.x -= minX;
       module.place.y -= minY;
     });
-    return true;
+    return {
+      "x": minX,
+      "y": minY
+    };
   }
 
   // The size of one grid unit across and down, and of the whole grid, for

@@ -13,8 +13,10 @@ import qs.components.hosts.popout
 // border, bars and windows move inwards while it's open. The zone is set
 // once when it opens (windows retile in one step), then the strip slides
 // in; closing slides it out before the zone goes. With `frame` on, a
-// rounded box runs the strip's whole length (its stroke ending `margin` in
-// from its edges) and the modules sit in it, `padding` in from its stroke.
+// rounded box runs the strip's whole length (its stroke ending the screen
+// margin in from its edges, lining up with the screen border's) and the
+// modules sit in it, `padding` in from its stroke. Along the edge they sit
+// at the menu's anchor (EdgeMenusConfig.alongStartOf).
 //
 // Open/close and hover-loss dismissal are PopoutWrapperBase's, as for the
 // popouts.
@@ -26,15 +28,14 @@ PopoutWrapperBase {
 
   readonly property int edge: EdgeMenusConfig.edgeOf(root.menu)
   readonly property bool vertical: root.edge === Bar.Left || root.edge === Bar.Right
-  readonly property real position: root.menu.position / 100
 
   readonly property bool framed: root.menu.frame
   readonly property int padding: EdgeMenusConfig.paddingOf(root.menu)
   readonly property var colors: EdgeMenusConfig.colorsOf(root.menu)
-  // The frame's inset from the strip's edges (0 without one). `margin`
-  // reaches its stroke's inner edge, as the screen border's does, so at the
-  // screen margin the two strokes line up
-  readonly property int frameInset: root.framed ? Math.max(0, root.menu.margin - Appearance.borderWidth) : 0
+  // The frame's inset from the strip's edges (0 without one): the screen
+  // margin reaches its stroke's inner edge, as the screen border's does, so
+  // the two strokes line up
+  readonly property int frameInset: root.framed ? Math.max(0, Appearance.screenMargin - Appearance.borderWidth) : 0
   // From the strip's edges to the cards: the frame and its stroke, then
   // the padding
   readonly property int pad: root.frameInset + (root.framed ? Appearance.borderWidth : 0) + root.padding
@@ -44,6 +45,28 @@ PopoutWrapperBase {
   readonly property real edgeLength: root.vertical ? root.screen.height : root.screen.width
   readonly property real bodyDepth: root.vertical ? (loader.item?.implicitWidth ?? 0) : (loader.item?.implicitHeight ?? 0)
   readonly property int depth: Math.ceil(root.bodyDepth + root.pad * 2 + root.innerStroke)
+  // Where the modules start along the edge
+  readonly property real alongPos: EdgeMenusConfig.alongStartOf(root.menu, loader.along, root.edgeLength, root.pad, root.pad)
+
+  // Where the modules can sit, for the layouts editor (EdgeMenuManager.frames)
+  readonly property var frame: ({
+      "screen": root.screen?.name ?? "",
+      "startPad": root.pad,
+      "endPad": root.pad,
+      "across": root.pad,
+      "before": 0,
+      "after": root.pad + root.innerStroke,
+      "reserves": true
+    })
+  property string _frameId: ""
+  function _publishFrame() {
+    if (root._frameId !== root.menu.id)
+      EdgeMenuManager.clearFrame(root._frameId, root.frame.screen);
+    root._frameId = root.menu.id;
+    EdgeMenuManager.setFrame(root._frameId, root.frame);
+  }
+  onFrameChanged: root._publishFrame()
+  Component.onCompleted: root._publishFrame()
 
   autoDismiss: sync.autoDismiss
   dismissDelay: root.menu.closeDelay
@@ -57,7 +80,10 @@ PopoutWrapperBase {
     window: panel
     onWarpRequested: HyprlandManager.warpCursorToLayer("axiom-edge-menu", root.screen?.name ?? "", panel.width, panel.height, loader.x + loader.width / 2, loader.y + loader.height / 2)
   }
-  Component.onDestruction: EdgeMenuManager.setZone(root.screen?.name ?? "", root._edgeName, 0)
+  Component.onDestruction: {
+    EdgeMenuManager.setZone(root.screen?.name ?? "", root._edgeName, 0);
+    EdgeMenuManager.clearFrame(root._frameId, root.frame.screen);
+  }
 
   // Report the space taken, for surfaces laid out against this edge
   readonly property string _edgeName: Bar.edgeName(root.edge)
@@ -69,7 +95,7 @@ PopoutWrapperBase {
     screen: root.screen
     visible: root.menu.openOnHover
     edge: root.edge
-    position: root.position
+    position: root.edgeLength > 0 ? (root.alongPos + loader.along / 2) / root.edgeLength : 0.5
     // Not its own zone, and the strip spans the whole edge regardless of
     // the others
     edgeInset: Math.max(0, EdgeMenuManager.zoneOn(root.screen?.name ?? "", root._edgeName) - root.reserved)
@@ -160,11 +186,10 @@ PopoutWrapperBase {
           active: root.occupied
 
           readonly property real along: root.vertical ? height : width
-          readonly property real alongPos: Math.max(root.pad, Math.min(root.edgeLength * root.position - along / 2, root.edgeLength - along - root.pad))
           readonly property real across: root.pad + (root.edge === Bar.Right || root.edge === Bar.Bottom ? root.innerStroke : 0)
 
-          x: root.vertical ? across : alongPos
-          y: root.vertical ? alongPos : across
+          x: root.vertical ? across : root.alongPos
+          y: root.vertical ? root.alongPos : across
 
           sourceComponent: EdgeMenuBody {
             menu: root.menu

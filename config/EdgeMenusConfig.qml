@@ -48,6 +48,16 @@ QtObject {
     return menu.padding >= 0 ? menu.padding : PopoutConfig.padding;
   }
 
+  // Where the menu's modules (`length` px along the edge) start along an
+  // edge `edgeLength` px long, from its anchor (`align`, `offset`) and kept
+  // `startPad` / `endPad` from the ends (GridPlacement.alongStart). A menu
+  // taking its whole edge starts at `startPad`.
+  function alongStartOf(menu, length, edgeLength, startPad, endPad) {
+    if (menu.length === "edge")
+      return startPad;
+    return GridPlacement.alongStart(menu.align, menu.offset, length, edgeLength, EdgeMenuManager.cardUnitOf(menu), startPad, endPad);
+  }
+
   // The menu's length along its edge, from config alone (for the hover
   // strip before the menu has ever been loaded): its modules' grid at
   // card size `unit` (EdgeMenuManager.cardUnitOf), as EdgeMenuBody lays

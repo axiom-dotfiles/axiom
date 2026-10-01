@@ -19,22 +19,37 @@ ColumnLayout {
   Layout.fillWidth: true
   spacing: Widget.spacing
 
-  StyledTextButton {
+  RowLayout {
     Layout.fillWidth: true
-    enabled: EdgeMenuManager.canPreview(root.menu)
-    opacity: enabled ? 1 : 0.5
-    iconText: root.previewingThis ? "visibility_off" : "visibility"
-    text: root.previewingThis ? I18n.tr("Hide from screen") : I18n.tr("Show on screen")
-    textPadding: 6
-    backgroundColor: root.previewingThis ? Theme.accent : Theme.backgroundHighlight
-    textColor: root.previewingThis ? Theme.background : Theme.foreground
-    onClicked: EdgeMenuManager.togglePreviewing()
+    spacing: Widget.spacing
+
+    StyledTextButton {
+      Layout.fillWidth: true
+      enabled: EdgeMenuManager.canPreview(root.menu)
+      opacity: enabled ? 1 : 0.5
+      iconText: root.previewingThis ? "visibility_off" : "visibility"
+      text: root.previewingThis ? I18n.tr("Hide from screen") : I18n.tr("Show on screen")
+      textPadding: 6
+      backgroundColor: root.previewingThis ? Theme.accent : Theme.backgroundHighlight
+      textColor: root.previewingThis ? Theme.background : Theme.foreground
+      onClicked: EdgeMenuManager.togglePreviewing()
+    }
+
+    StyledTextButton {
+      Layout.fillWidth: true
+      iconText: "layers"
+      text: EdgeMenuManager.showingOthers ? I18n.tr("Hide other menus") : I18n.tr("Show other menus")
+      textPadding: 6
+      backgroundColor: EdgeMenuManager.showingOthers ? Theme.accent : Theme.backgroundHighlight
+      textColor: EdgeMenuManager.showingOthers ? Theme.background : Theme.foreground
+      onClicked: EdgeMenuManager.toggleShowingOthers()
+    }
   }
 
   StyledText {
     Layout.fillWidth: true
     wrapMode: Text.WordWrap
-    text: EdgeMenuManager.canPreview(root.menu) ? I18n.tr("Holds the menu open on its screen while you edit it, showing unsaved changes.") : I18n.tr("Enable the menu to show it.")
+    text: (EdgeMenuManager.canPreview(root.menu) ? I18n.tr("Holds the menu open on its screen while you edit it, showing unsaved changes.") : I18n.tr("Enable the menu to show it.")) + " " + I18n.tr("Other menus show dimmed on the grid, where they sit on this screen.")
     textSize: Appearance.fontSize - 2
     opacity: 0.7
   }

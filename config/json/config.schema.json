@@ -8,7 +8,7 @@
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 31,
+      "default": 32,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
@@ -1722,7 +1722,7 @@
       "type": "object",
       "required": ["id"],
       "additionalProperties": false,
-      "x-order": ["name", "enabled", "monitor", "openOnHover", "openDelay", "triggerSize", "triggerLength", "mode", "edge", "position", "length", "moduleScale", "edgeDistance", "frame", "margin", "padding", "moduleBorders", "pinButton", "backgroundColor", "borderColor", "closeOnLeave", "closeDelay", "closeOnOutsideClick", "id"],
+      "x-order": ["name", "enabled", "monitor", "openOnHover", "openDelay", "triggerSize", "triggerLength", "mode", "edge", "align", "offset", "length", "moduleScale", "edgeDistance", "frame", "padding", "moduleBorders", "pinButton", "backgroundColor", "borderColor", "closeOnLeave", "closeDelay", "closeOnOutsideClick", "id"],
       "properties": {
         "id": { "x-group": "Advanced", "type": "string", "title": "Id", "x-control": "readonly", "description": "What bar buttons, keybinds and IPC calls open this menu by. Set when the menu is made." },
         "name": { "x-group": "General", "type": "string", "title": "Name", "default": "" },
@@ -1745,15 +1745,20 @@
           "x-enumLabels": { "floating": "Floating", "integrated": "Integrated" },
           "description": "Floating opens over your windows. Integrated opens outside the screen border and bars, pushing them and your windows inwards."
         },
-        "position": {
-          "x-group": "Placement",
+        "align": {
+          "x-settings": false,
+          "type": "string",
+          "default": "center",
+          "enum": ["start", "center", "end"],
+          "description": "The end of its edge (or its middle) the menu is placed from, set by where its modules sit on the layouts editor's grid: start is left/top."
+        },
+        "offset": {
+          "x-settings": false,
           "type": "integer",
-          "title": "Position along edge",
-          "default": 50,
-          "minimum": 0,
-          "maximum": 100,
-          "x-unit": "%",
-          "description": "Where along the edge the menu sits: 0 is the start (left/top), 100 the end."
+          "default": 0,
+          "minimum": -200,
+          "maximum": 200,
+          "description": "Grid units between the menu and its `align` anchor (towards the middle; from the middle, positive is towards the end). Set by the layouts editor's grid."
         },
         "length": {
           "x-group": "Placement",
@@ -1792,19 +1797,7 @@
           "type": "boolean",
           "title": "Frame",
           "default": true,
-          "description": "Draw a rounded box along the whole edge, with the modules inside it.",
-          "x-showIf": { "mode": "integrated" }
-        },
-        "margin": {
-          "x-group": "Style",
-          "type": "integer",
-          "x-control": "stepper",
-          "title": "Frame margin",
-          "default": 8,
-          "minimum": 0,
-          "maximum": 64,
-          "x-unit": "px",
-          "description": "Gap from the edges of the menu's strip to the inner edge of the frame's stroke, like the screen margin. Matching the screen margin lines the frame up with the screen border.",
+          "description": "Draw a rounded box along the whole edge, with the modules inside it, lined up with the screen border.",
           "x-showIf": { "mode": "integrated" }
         },
         "padding": {
