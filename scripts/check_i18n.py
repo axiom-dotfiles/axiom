@@ -3,8 +3,9 @@
 
 Keys come from:
   - every string literal passed to I18n.tr("...") in the QML, and
-  - the config schema's titles, descriptions and string enum values (the
-    settings UI translates those itself, so they need no code).
+  - the config schema's titles, descriptions, string enum values and
+    `x-categories` names (the settings UI translates those itself, so they
+    need no code).
 
   scripts/check_i18n.py                 missing / unused entries per language
   scripts/check_i18n.py --fill          also add missing keys (empty) to each file
@@ -57,6 +58,8 @@ def schema_strings(node, out):
         for key in ("title", "description", "x-group"):
             if isinstance(node.get(key), str):
                 out.add(node[key])
+        if isinstance(node.get("x-categories"), list):
+            out.update(c["name"] for c in node["x-categories"] if isinstance(c, dict) and isinstance(c.get("name"), str))
         if isinstance(node.get("x-enumLabels"), dict):
             out.update(v for v in node["x-enumLabels"].values() if isinstance(v, str))
         if node.get("type") == "string" and isinstance(node.get("enum"), list):
@@ -115,8 +118,10 @@ def collect_keys():
                     if literal:  # a `?? ""` fallback isn't text
                         keys.setdefault(unescape(literal), f"{rel}:{line_no}")
     schema = set()
-    schema_strings(json.loads(SCHEMA.read_text())["properties"], schema)
-    schema_strings(json.loads(SCHEMA.read_text())["definitions"], schema)
+    root = json.loads(SCHEMA.read_text())
+    schema_strings({"x-categories": root.get("x-categories", [])}, schema)
+    schema_strings(root["properties"], schema)
+    schema_strings(root["definitions"], schema)
     for s in schema:
         keys.setdefault(s, "schema")
     return keys

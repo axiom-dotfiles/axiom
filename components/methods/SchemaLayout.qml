@@ -3,7 +3,8 @@ import QtQuick
 
 /**
  * Turns the config schema into the settings page's layout: categories
- * (`x-category` on each top-level section, in schema order), each made of
+ * (`x-category` on each top-level section, ordered by the root's
+ * `x-categories`), each made of
  * groups (the section's own fields, then one per nested object), each made
  * of form rows for SchemaField. Keys marked `x-settings: false` are
  * skipped (edited elsewhere: the bar editor, the Themes page, ...).
@@ -225,10 +226,20 @@ QtObject {
     return result.concat(cards);
   }
 
-  // [{ name, sections: [key], links: [page type] }], in schema order.
-  // A section without `x-category` is a category of its own.
+  // [{ name, icon, page, sections: [key], links: [page type] }]: the
+  // root's `x-categories` in order (`icon`, and `page`, a hand-built part
+  // shown after the cards), then any other `x-category` in schema order.
+  // A section without `x-category` is a category of its own. A declared
+  // category with no sections and no page is left out.
   function categories(schema) {
-    const result = [];
+    const make = (name, declared) => ({
+          "name": name,
+          "icon": declared?.icon ?? "settings",
+          "page": declared?.page ?? "",
+          "sections": [],
+          "links": []
+        });
+    const result = (schema?.["x-categories"] ?? []).map(declared => make(declared.name, declared));
     for (const key in schema?.properties ?? {}) {
       const section = schema.properties[key];
       if (section.type !== "object" || section["x-settings"] === false || groups(schema, key).length === 0)
@@ -236,11 +247,7 @@ QtObject {
       const name = section["x-category"] ?? section.title ?? key;
       let category = result.find(c => c.name === name);
       if (!category) {
-        category = {
-          "name": name,
-          "sections": [],
-          "links": []
-        };
+        category = make(name, null);
         result.push(category);
       }
       category.sections.push(key);
@@ -248,6 +255,6 @@ QtObject {
         if (!category.links.includes(link))
           category.links.push(link);
     }
-    return result;
+    return result.filter(c => c.sections.length > 0 || c.page !== "");
   }
 }

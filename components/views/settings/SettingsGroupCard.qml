@@ -36,13 +36,28 @@ FoldingCard {
     source: active ? Qt.resolvedUrl(root.group.intro + ".qml") : ""
   }
 
-  Repeater {
-    model: root.group.rows
+  // Rows a field marked `x-beside` shares with the field before it, each
+  // taking half; every other field takes the whole width. The pair should
+  // share an `x-showIf`, or one shown alone keeps half the width
+  GridLayout {
+    Layout.fillWidth: true
+    columns: 2
+    columnSpacing: Widget.spacing * 2
+    rowSpacing: Widget.spacing * 1.5
 
-    delegate: SettingsField {
-      required property var modelData
-      row: modelData
-      form: root.form
+    Repeater {
+      model: root.group.rows
+
+      delegate: SettingsField {
+        required property var modelData
+        required property int index
+        readonly property bool half: modelData.schema?.["x-beside"] === true || root.group.rows[index + 1]?.schema?.["x-beside"] === true
+        row: modelData
+        form: root.form
+        Layout.columnSpan: half ? 1 : 2
+        Layout.preferredWidth: 1
+        Layout.alignment: Qt.AlignTop
+      }
     }
   }
 }

@@ -5,15 +5,33 @@ import qs.services
 import qs.components.views.barEditor
 
 // The bar editor page: the bars and the selected one's settings on the
-// left; its sections (drag widgets within and between them) above the
-// selected widget's options (or the widget library) on the right. Edits go
-// through BarManager's draft and show live on the running bars.
+// left; on the right its sections drawn as a strip along the side of the
+// page its bar is on (drag widgets within and between them), beside the
+// selected widget's options (or the widget library). Edits go through
+// BarManager's draft and show live on the running bars, which outline the
+// selected widget and report how they fit while the page is on screen.
 BaseView {
   id: root
 
-  readonly property real halfHeight: (root.pageHeight - OverlayConfig.cardSpacing) / 2
+  readonly property string location: dragLayer.location
+  readonly property bool vertical: dragLayer.vertical
+  // The strip's depth across the bar: a vertical one is a column of chips
+  readonly property real stripDepth: root.vertical ? root.grid.unit * 0.7 : board.implicitHeight
 
-  Component.onCompleted: BarManager.ensureLoaded()
+  // Only the current page is visible; its neighbours are loaded too
+  onVisibleChanged: root._watch()
+  Component.onCompleted: {
+    BarManager.ensureLoaded();
+    root._watch();
+  }
+  Component.onDestruction: BarManager.unwatch(root)
+
+  function _watch() {
+    if (root.visible)
+      BarManager.watch(root);
+    else
+      BarManager.unwatch(root);
+  }
 
   BarsPanel {
     implicitWidth: root.sideWidth
@@ -22,22 +40,23 @@ BaseView {
 
   BarDragLayer {
     id: dragLayer
-    implicitWidth: root.grid.unit * 1.8
+    implicitWidth: root.editorWidth
     implicitHeight: root.pageHeight
 
     SectionsBoard {
-      x: 0
-      y: 0
-      width: dragLayer.width
-      height: root.halfHeight
+      id: board
+      x: root.location === "Right" ? dragLayer.width - width : 0
+      y: root.location === "Bottom" ? dragLayer.height - height : 0
+      width: root.vertical ? root.stripDepth : dragLayer.width
+      height: root.vertical ? dragLayer.height : root.stripDepth
       dragLayer: dragLayer
     }
 
     WidgetInspector {
-      x: 0
-      y: root.halfHeight + OverlayConfig.cardSpacing
-      width: dragLayer.width
-      height: root.halfHeight
+      x: root.location === "Left" ? root.stripDepth + OverlayConfig.cardSpacing : 0
+      y: root.location === "Top" ? root.stripDepth + OverlayConfig.cardSpacing : 0
+      width: root.vertical ? dragLayer.width - root.stripDepth - OverlayConfig.cardSpacing : dragLayer.width
+      height: root.vertical ? dragLayer.height : dragLayer.height - root.stripDepth - OverlayConfig.cardSpacing
       dragLayer: dragLayer
     }
   }

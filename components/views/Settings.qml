@@ -4,20 +4,14 @@ import qs.services
 import qs.components.methods
 import qs.components.views.settings
 
-// The settings page, generated from the config schema: categories and
-// search on the left, the selected category's groups in two columns on the
-// right. Edits go through SettingsManager's draft.
+// The settings page, generated from the config schema: categories (in
+// `x-categories` order) and search on the left, the selected category's
+// groups in two columns on the right. Edits go through SettingsManager's
+// draft.
 BaseView {
   id: root
 
-  // `x-category` groups from the schema, then saved configurations
-  readonly property var categories: SchemaLayout.categories(ConfigManager.configSchema).concat([
-    {
-      "name": "Backups",
-      "sections": [],
-      "links": []
-    }
-  ])
+  readonly property var categories: SchemaLayout.categories(ConfigManager.configSchema)
   readonly property var category: categories.find(c => c.name === SettingsManager.category) ?? categories[0]
 
   Component.onCompleted: SettingsManager.ensureLoaded()
@@ -27,13 +21,14 @@ BaseView {
     implicitHeight: root.pageHeight
     categories: root.categories
     selected: root.category.name
+    cards: content.shownGroups
   }
 
   SettingsContent {
+    id: content
     implicitWidth: root.grid.unit * 2
     implicitHeight: root.pageHeight
-    // Schema categories only: search never covers Backups
-    categories: root.categories.slice(0, -1)
+    categories: root.categories
     category: root.category
   }
 }

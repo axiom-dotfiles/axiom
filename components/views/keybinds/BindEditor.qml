@@ -4,6 +4,7 @@ import QtQuick.Layouts
 import qs.config
 import qs.services
 import qs.components.forms
+import qs.components.methods
 import qs.components.reusable
 
 // The Keybinds page's editor for axiom's own binds (Hyprland.binds):
@@ -193,6 +194,49 @@ ColumnLayout {
       }
     }
 
+    FilterChips {
+      visible: KeybindManager.binds.length > 0
+      Layout.fillWidth: true
+      groups: [
+        {
+          "id": "editSection",
+          "options": KeybindManager.editSectionOptions.map(option => ({
+                "value": option.key,
+                "label": option.title + "  " + option.count
+              }))
+        },
+        {
+          "id": "editMod",
+          "options": KeybindManager.editModOptions.map(mod => ({
+                "value": mod,
+                "label": KeyNames.modifierLabel(mod)
+              }))
+        },
+        {
+          "id": "editIssues",
+          "options": KeybindManager.issueCount > 0 || KeybindManager.editIssuesOnly ? [
+            {
+              "value": "issues",
+              "label": I18n.tr("With issues") + "  " + KeybindManager.issueCount
+            }
+          ] : []
+        }
+      ]
+      selection: ({
+          "editSection": KeybindManager.editSectionFilter,
+          "editMod": KeybindManager.editModFilter,
+          "editIssues": KeybindManager.editIssuesOnly ? ["issues"] : []
+        })
+      filtering: KeybindManager.editFiltering
+      onToggled: (group, value) => {
+        if (group === "editIssues")
+          KeybindManager.editIssuesOnly = !KeybindManager.editIssuesOnly;
+        else
+          KeybindManager.toggleFilter(group, value);
+      }
+      onCleared: KeybindManager.clearEditFilters()
+    }
+
     StyledText {
       visible: KeybindManager.binds.length === 0
       text: I18n.tr("No binds yet. Add one, or start from a preset.")
@@ -201,8 +245,8 @@ ColumnLayout {
     }
 
     StyledText {
-      visible: KeybindManager.editQuery.trim() !== ""
-      text: KeybindManager.visibleIndices.length > 0 ? I18n.tr("Showing {0} of {1}", KeybindManager.visibleIndices.length, KeybindManager.binds.length) : I18n.tr("No binds match \"{0}\"", KeybindManager.editQuery.trim())
+      visible: KeybindManager.editQuery.trim() !== "" || KeybindManager.editFiltering
+      text: KeybindManager.visibleIndices.length > 0 ? I18n.tr("Showing {0} of {1}", KeybindManager.visibleIndices.length, KeybindManager.binds.length) : KeybindManager.editQuery.trim() !== "" ? I18n.tr("No binds match \"{0}\"", KeybindManager.editQuery.trim()) : I18n.tr("No keybinds match the filters")
       opacity: 0.6
       textSize: Appearance.fontSize - 2
       Layout.fillWidth: true

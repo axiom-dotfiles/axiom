@@ -177,7 +177,7 @@ OnboardingPage {
       implicitWidth: root.grid.span(4)
       implicitHeight: root.grid.span(8)
 
-      ThemeEditor {
+      ThemePicker {
         slotRect: [0, 0, 4, 8]
       }
     }

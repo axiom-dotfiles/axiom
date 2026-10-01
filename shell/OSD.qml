@@ -33,7 +33,7 @@ Scope {
           screen: modelData
           edge: Bar.getLocationFromString(entry.osd.edge)
           position: entry.osd.position / 100
-          triggerEnabled: entry.osd.openOnHover
+          triggerEnabled: entry.osd.openOnHover && !edgeTriggers.outranked
           overNamespace: "axiom-osd"
           // The strip spans the OSD's own length along the edge
           triggerLength: edgeHost.vertical ? (edgeHost.contentItem?.implicitHeight ?? 0) : (edgeHost.contentItem?.implicitWidth ?? 0)

@@ -29,6 +29,21 @@ Card {
   signal save
   signal reset
 
+  // Scrolls the body so `item` (one of its descendants) sits at the top,
+  // or as near as the body's length allows
+  function scrollTo(item) {
+    scrollAnimation.to = Math.max(0, Math.min(item.mapToItem(body, 0, 0).y, scroll.contentHeight - scroll.availableHeight));
+    scrollAnimation.restart();
+  }
+
+  NumberAnimation {
+    id: scrollAnimation
+    target: scroll.contentItem
+    property: "contentY"
+    duration: Appearance.animNormal
+    easing.type: Easing.OutCubic
+  }
+
   // Hidden by Card while its compactContent shows
   ColumnLayout {
     anchors.fill: parent
@@ -50,12 +65,16 @@ Card {
     }
 
     // Not fillHeight (a layout's default): with its children all hidden it
-    // has no maximum, and would take spare height from the body
+    // has no maximum, and would take spare height from the body. Its
+    // margins are every panel's gaps around the extras, the one below the
+    // body's own spacing (the body's top margin when there are none):
+    // extras add none
     ColumnLayout {
       id: extras
       Layout.fillWidth: true
       Layout.fillHeight: false
-      Layout.bottomMargin: Widget.spacing / 2
+      Layout.topMargin: Widget.spacing
+      Layout.bottomMargin: Widget.spacing * 2
       visible: root.showExtras && children.length > 0
       spacing: Widget.spacing
     }
@@ -64,6 +83,7 @@ Card {
       id: scroll
       Layout.fillWidth: true
       Layout.fillHeight: true
+      Layout.topMargin: extras.visible ? 0 : Widget.spacing
       clip: true
       ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
 

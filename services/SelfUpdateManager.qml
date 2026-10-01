@@ -65,7 +65,7 @@ Singleton {
   }
 
   function openSettings() {
-    SettingsManager.openCategory("Updates");
+    SettingsManager.openSection("SelfUpdate");
   }
 
   // I18n.tr("It has changed files. Commit or discard them to update.")

@@ -644,6 +644,78 @@ TestCase {
     compare(errors(loaded.config), []);
   }
 
+  function test_v37_theme_editor_becomes_theme_picker() {
+    const place = {
+      "x": 0,
+      "y": 0,
+      "w": 4,
+      "h": 8
+    };
+    const loaded = load({
+      "version": 36,
+      "Overlay": {
+        "views": [
+          {
+            "type": "Custom",
+            "name": "Look",
+            "modules": [
+              {
+                "type": "ThemeEditor",
+                "place": place
+              },
+              {
+                "type": "WallpaperPicker",
+                "place": place
+              }
+            ]
+          }
+        ]
+      },
+      "EdgeMenus": [
+        {
+          "id": "menu",
+          "modules": [
+            {
+              "type": "ThemeEditor",
+              "place": place
+            }
+          ]
+        }
+      ]
+    });
+    const view = loaded.config.Overlay.views.find(v => v.name === "Look");
+    compare(view.modules[0].type, "ThemePicker");
+    compare(view.modules[1].type, "WallpaperPicker");
+    compare(loaded.config.EdgeMenus[0].modules[0].type, "ThemePicker");
+    compare(loaded.changes.filter(change => change.includes("ThemePicker")).length, 2);
+    compare(errors(loaded.config), []);
+  }
+
+  function test_v36_primary_bar_monitors_become_primary() {
+    const loaded = load({
+      "version": 35,
+      "Launcher": {
+        "monitors": "primaryBar"
+      },
+      "Overlay": {
+        "monitors": "focused"
+      },
+      "OSD": {
+        "osds": [
+          {
+            "id": "a",
+            "monitors": "primaryBar"
+          }
+        ]
+      }
+    });
+    compare(loaded.config.Launcher.monitors, "primary");
+    compare(loaded.config.Overlay.monitors, "focused");
+    compare(loaded.config.OSD.osds[0].monitors, "primary");
+    compare(loaded.changes.filter(change => change.includes("primaryBar")).length, 2);
+    compare(errors(loaded.config), []);
+  }
+
   function test_v33_missing_tool_pages_come_back_hidden() {
     const loaded = load({
       "version": 32,

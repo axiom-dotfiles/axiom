@@ -1,21 +1,34 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Axiom Configuration Schema",
-  "description": "Source of truth for config/user/config.json. Every key's `default` is filled in at load time (SchemaValidation.applyDefaults), so config readers never need their own fallbacks. `title`/`description`/`minimum`/`maximum`/`enum` drive the generated settings UI; `x-settings: false` hides a key from it (edited elsewhere, or UI-owned state); `x-options` names a dynamic option list (\"screens\", \"chatProviders\" and \"chatPresets\", \"colors\" for the 16 base theme colors, \"languages\" from config/i18n, \"cursorThemes\" for installed cursor themes, \"edgeMenus\" for the ids of EdgeMenus); `x-showIf` ({ sibling: value | [values] | { not: value } }) hides a field unless a sibling matches; a key starting with `/` is a dotted path from the config root instead (\"/Workspaces.layout\"). `x-enumLabels` ({ value: label }) shows labels instead of raw enum values in dropdowns. `x-multiline: true` edits a string in a growing text area. `x-order` on an object schema lists the keys its form shows first, in order (a schema reaches QML as a map, whose keys come out sorted). `x-defaultSize` ([w, h] in grid units, four to a card) on an overlay module definition is the size it's added at; `x-icon` on a module or view definition is its Material Symbols icon name in the editor. `x-hosts` on a module definition lists where it may be placed (\"overlay\", \"edgeMenu\", \"lockscreen\"; the first two when left out, so the lock screen only takes modules that list it). `x-required: true` on one makes it part of every grid on its hosts: it can't be removed or duplicated, and the library doesn't offer it. `x-canvasDetail` names a module property the layouts editor shows on its tile (a list joined), and `x-canvasFill` a color property the tile is filled with. Bar widgets are a oneOf discriminated by `type`, and get their `properties` defaults filled like everything else.",
+  "description": "Source of truth for config/user/config.json. Every key's `default` is filled in at load time (SchemaValidation.applyDefaults), so config readers never need their own fallbacks. `title`/`description`/`minimum`/`maximum`/`enum` drive the generated settings UI; `x-settings: false` hides a key from it (edited elsewhere, or UI-owned state); `x-options` names a dynamic option list (\"screens\", \"chatProviders\" and \"chatPresets\", \"colors\" for the 16 base theme colors, \"languages\" from config/i18n, \"cursorThemes\" for installed cursor themes, \"edgeMenus\" for the ids of EdgeMenus); `x-showIf` ({ sibling: value | [values] | { not: value } }) hides a field unless a sibling matches; a key starting with `/` is a dotted path from the config root instead (\"/Workspaces.layout\"). `x-enumLabels` ({ value: label }) shows labels instead of raw enum values in dropdowns. `x-multiline: true` edits a string in a growing text area. `x-categories` at the root lists the settings sidebar's categories in order, each `{ name, icon, page }` (`page`: a hand-built part after its cards, `views/settings/<page>.qml`); sections join one with `x-category`. `x-beside: true` on a field puts it beside the field before it on its settings card, each taking half the width. `x-order` on an object schema lists the keys its form shows first, in order (a schema reaches QML as a map, whose keys come out sorted). `x-defaultSize` ([w, h] in grid units, four to a card) on an overlay module definition is the size it's added at; `x-icon` on a module or view definition is its Material Symbols icon name in the editor. `x-hosts` on a module definition lists where it may be placed (\"overlay\", \"edgeMenu\", \"lockscreen\"; the first two when left out, so the lock screen only takes modules that list it). `x-required: true` on one makes it part of every grid on its hosts: it can't be removed or duplicated, and the library doesn't offer it. `x-canvasDetail` names a module property the layouts editor shows on its tile (a list joined), and `x-canvasFill` a color property the tile is filled with. Bar widgets are a oneOf discriminated by `type`, and get their `properties` defaults filled like everything else.",
   "type": "object",
+  "x-categories": [
+    { "name": "General", "icon": "home" },
+    { "name": "Look & Feel", "icon": "palette" },
+    { "name": "Hyprland", "icon": "desktop_windows" },
+    { "name": "Workspaces", "icon": "grid_view" },
+    { "name": "Overlay & Popouts", "icon": "layers" },
+    { "name": "Dock & OSD", "icon": "dock_to_bottom" },
+    { "name": "Launcher", "icon": "rocket_launch" },
+    { "name": "Notifications", "icon": "notifications" },
+    { "name": "Screen & Power", "icon": "power_settings_new" },
+    { "name": "Modules", "icon": "widgets" },
+    { "name": "Maintenance", "icon": "build", "page": "SavedConfigsSection" }
+  ],
   "additionalProperties": false,
   "properties": {
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 35,
+      "default": 37,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
 
     "Lockscreen": {
       "type": "object",
-      "x-category": "Desktop",
+      "x-category": "Screen & Power",
       "title": "Lockscreen",
       "x-links": ["Layouts"],
       "description": "Which locker locks the session. The Idle settings can lock after some idle time; an idle daemon of your own should lock through `qs -c axiom ipc call lockscreen lock` for the built-in or hyprlock modes.",
@@ -92,7 +105,7 @@
 
     "Idle": {
       "type": "object",
-      "x-category": "Desktop",
+      "x-category": "Screen & Power",
       "x-card": "IdleStatus",
       "title": "Idle",
       "description": "What happens when you step away: dimming, locking, turning the screens off and suspending, run by hypridle.",
@@ -134,7 +147,7 @@
 
     "NightLight": {
       "type": "object",
-      "x-category": "Desktop",
+      "x-category": "Screen & Power",
       "x-intro": "NightLightStatus",
       "title": "Night light",
       "description": "Warmer screen colors in the evening, through hyprsunset (or wlsunset). The Night light quick action, `/nightlight` in the launcher and `qs -c axiom ipc call nightLight toggle` switch it by hand; that lasts until the next scheduled change.",
@@ -151,7 +164,7 @@
 
     "General": {
       "type": "object",
-      "x-category": "Desktop",
+      "x-category": "General",
       "x-card": "Onboarding",
       "title": "General",
       "additionalProperties": false,
@@ -190,7 +203,7 @@
 
     "Launcher": {
       "type": "object",
-      "x-category": "Desktop",
+      "x-category": "Launcher",
       "title": "Launcher",
       "description": "The search launcher: apps, open windows, a calculator, web search, running commands, and / commands that control the shell.",
       "additionalProperties": false,
@@ -198,10 +211,10 @@
         "monitors": {
           "type": "string",
           "title": "Monitors",
-          "enum": ["general", "primaryBar", "focused", "all"],
-          "x-enumLabels": { "general": "As in General", "primaryBar": "Primary bar's monitor", "focused": "Focused monitor", "all": "Every monitor" },
+          "enum": ["general", "primary", "focused", "all"],
+          "x-enumLabels": { "general": "As in General", "primary": "Primary monitor", "focused": "Focused monitor", "all": "Every monitor" },
           "default": "general",
-          "description": "Where the launcher opens. As in General follows General > Monitors; the primary bar's monitor is the first bar's; the focused monitor is the one with your active workspace (and mouse); every monitor shows it on all of them at once."
+          "description": "Where the launcher opens. As in General follows General > Monitors; the primary monitor is the one set in General; the focused monitor is the one with your active workspace (and mouse); every monitor shows it on all of them at once."
         },
         "position": {
           "type": "string",
@@ -237,7 +250,7 @@
 
     "Apps": {
       "type": "object",
-      "x-category": "Desktop",
+      "x-category": "General",
       "title": "Apps",
       "description": "The apps axiom opens: by the Terminal, File manager and Browser keybinds, and the launcher's terminal apps and Shift+Enter commands.",
       "additionalProperties": false,
@@ -251,7 +264,7 @@
 
     "PowerMenu": {
       "type": "object",
-      "x-category": "Desktop",
+      "x-category": "Screen & Power",
       "title": "Power menu",
       "description": "The power menu: lock, suspend, hibernate, log out, reboot and power off, opened by the power button, a keybind or `qs -c axiom ipc call powermenu toggle`.",
       "additionalProperties": false,
@@ -259,10 +272,10 @@
         "monitors": {
           "type": "string",
           "title": "Monitors",
-          "enum": ["general", "primaryBar", "focused", "all"],
-          "x-enumLabels": { "general": "As in General", "primaryBar": "Primary bar's monitor", "focused": "Focused monitor", "all": "Every monitor" },
+          "enum": ["general", "primary", "focused", "all"],
+          "x-enumLabels": { "general": "As in General", "primary": "Primary monitor", "focused": "Focused monitor", "all": "Every monitor" },
           "default": "general",
-          "description": "Where the power menu opens. As in General follows General > Monitors; the primary bar's monitor is the first bar's; the focused monitor is the one with your active workspace (and mouse); every monitor shows it on all of them at once."
+          "description": "Where the power menu opens. As in General follows General > Monitors; the primary monitor is the one set in General; the focused monitor is the one with your active workspace (and mouse); every monitor shows it on all of them at once."
         },
         "actions": { "type": "array", "title": "Actions", "default": ["lock", "suspend", "hibernate", "logout", "reboot", "poweroff"], "items": { "type": "string", "enum": ["lock", "suspend", "hibernate", "logout", "reboot", "poweroff"] }, "description": "Which actions the menu shows, in order." },
         "confirm": { "type": "boolean", "title": "Confirm destructive actions", "default": true, "description": "Log out, reboot and power off ask for a second click (or Enter) first." },
@@ -270,13 +283,13 @@
         "showHeader": { "type": "boolean", "title": "Greeting and uptime", "default": true, "description": "Show a greeting and how long the computer has been up above the actions." },
         "showHint": { "type": "boolean", "title": "Controls hint", "default": true, "description": "Show the keys under the actions." },
         "showBackdrop": { "type": "boolean", "title": "Dim background", "default": true, "description": "Dim the whole screen behind the power menu, under the bars and border." },
-        "backdrop": { "type": "integer", "title": "Backdrop darkness", "x-unit": "%", "default": 35, "minimum": 0, "maximum": 90, "description": "How dark the screen behind the power menu goes.", "x-showIf": { "showBackdrop": true } }
+        "backdrop": { "type": "integer", "title": "Backdrop darkness", "x-unit": "%", "default": 36, "minimum": 0, "maximum": 90, "description": "How dark the screen behind the power menu goes.", "x-showIf": { "showBackdrop": true } }
       }
     },
 
     "Battery": {
       "type": "object",
-      "x-category": "Desktop",
+      "x-category": "General",
       "title": "Battery",
       "description": "Low and critical battery levels, on laptops: the Battery widget takes its low and critical colors at them, and a notification says when the battery drops to one.",
       "additionalProperties": false,
@@ -290,7 +303,7 @@
 
     "Notifications": {
       "type": "object",
-      "x-category": "Desktop",
+      "x-category": "Notifications",
       "title": "Notifications",
       "description": "Where notification toasts appear, how long they stay, and what the history keeps. Toasts sit inside the work area, the space the bars and screen border leave free, so a gap is measured from whatever is at that edge: a bar, the border's stroke, or the bare screen edge.",
       "additionalProperties": false,
@@ -299,10 +312,10 @@
         "monitors": {
           "type": "string",
           "title": "Monitors",
-          "enum": ["general", "primaryBar", "focused", "all"],
-          "x-enumLabels": { "general": "As in General", "primaryBar": "Primary bar's monitor", "focused": "Focused monitor", "all": "Every monitor" },
+          "enum": ["general", "primary", "focused", "all"],
+          "x-enumLabels": { "general": "As in General", "primary": "Primary monitor", "focused": "Focused monitor", "all": "Every monitor" },
           "default": "general",
-          "description": "Where toasts appear. As in General follows General > Monitors; the primary bar's monitor is the first bar's; the focused monitor is the one with your active workspace when the notification arrives; every monitor shows each toast on all of them, and closing one closes the rest."
+          "description": "Where toasts appear. As in General follows General > Monitors; the primary monitor is the one set in General; the focused monitor is the one with your active workspace when the notification arrives; every monitor shows each toast on all of them, and closing one closes the rest."
         },
         "position": {
           "type": "string",
@@ -954,7 +967,7 @@
 
     "Popouts": {
       "type": "object",
-      "x-category": "Bar & Popouts",
+      "x-category": "Overlay & Popouts",
       "x-links": ["BarEditor"],
       "title": "Popouts",
       "description": "Behaviour shared by bar popouts and screen-edge popouts (side panel, OSD).",
@@ -1003,7 +1016,7 @@
 
     "Chat": {
       "type": "object",
-      "x-category": "Chat",
+      "x-category": "Modules",
       "x-card": "ChatProviders",
       "title": "Chat",
       "description": "The Chat overlay module, and the launcher's @ prefix. API keys are never stored here: set them on the card above (they go to your keyring, or $XDG_STATE_HOME/axiom/secrets.json without one), or in each provider's environment variable.",
@@ -1110,7 +1123,7 @@
 
     "Notes": {
       "type": "object",
-      "x-category": "Notes",
+      "x-category": "Modules",
       "title": "Notes",
       "description": "Where the Notes module keeps its notes: plain Markdown files, one per note, in folders of your own. Checklists are Markdown tasks (- [ ] item), so other Markdown editors read them too.",
       "additionalProperties": false,
@@ -1125,7 +1138,7 @@
 
     "Weather": {
       "type": "object",
-      "x-category": "Weather",
+      "x-category": "Modules",
       "title": "Weather",
       "description": "Where and how every weather widget and module gets its weather, from Open-Meteo (no account needed).",
       "additionalProperties": false,
@@ -1141,7 +1154,7 @@
 
     "OSD": {
       "type": "object",
-      "x-category": "OSD",
+      "x-category": "Dock & OSD",
       "x-card": "OSDList",
       "x-cardFolds": true,
       "title": "OSD",
@@ -1184,7 +1197,7 @@
 
     "Dock": {
       "type": "object",
-      "x-category": "Dock",
+      "x-category": "Dock & OSD",
       "x-card": "DockList",
       "x-cardFolds": true,
       "title": "Dock",
@@ -1233,7 +1246,7 @@
 
     "Icons": {
       "type": "object",
-      "x-category": "Bar & Popouts",
+      "x-category": "Look & Feel",
       "title": "Icons",
       "additionalProperties": false,
       "properties": {
@@ -1249,7 +1262,7 @@
 
     "Overlay": {
       "type": "object",
-      "x-category": "Overlay",
+      "x-category": "Overlay & Popouts",
       "x-links": ["Layouts"],
       "title": "Overlay",
       "additionalProperties": false,
@@ -1257,10 +1270,10 @@
         "monitors": {
           "type": "string",
           "title": "Monitors",
-          "enum": ["general", "primaryBar", "focused", "all"],
-          "x-enumLabels": { "general": "As in General", "primaryBar": "Primary bar's monitor", "focused": "Focused monitor", "all": "Every monitor" },
+          "enum": ["general", "primary", "focused", "all"],
+          "x-enumLabels": { "general": "As in General", "primary": "Primary monitor", "focused": "Focused monitor", "all": "Every monitor" },
           "default": "general",
-          "description": "Where the overlay opens. As in General follows General > Monitors; the primary bar's monitor is the first bar's; the focused monitor is the one with your active workspace (and mouse); every monitor shows it on all of them at once."
+          "description": "Where the overlay opens. As in General follows General > Monitors; the primary monitor is the one set in General; the focused monitor is the one with your active workspace (and mouse); every monitor shows it on all of them at once."
         },
         "size": {
           "type": "integer",
@@ -1310,7 +1323,8 @@
 
     "Workspaces": {
       "type": "object",
-      "x-category": "Desktop",
+      "x-category": "Workspaces",
+      "x-order": ["layout", "count", "columns", "rows", "wrap", "animate"],
       "title": "Workspaces",
       "description": "How workspaces are laid out, for the bar's workspace widget, the workspace overview and the Workspaces module. Point your workspace keybinds at `qs -c axiom ipc call workspaces <left|right|up|down|go N|nth N>` (and the move… versions) so they follow it too.",
       "additionalProperties": false,
@@ -1344,6 +1358,7 @@
         "rows": {
           "type": "integer",
           "x-control": "stepper",
+          "x-beside": true,
           "title": "Rows",
           "default": 5,
           "minimum": 1,
@@ -1367,7 +1382,7 @@
 
     "WorkspaceOverlay": {
       "type": "object",
-      "x-category": "Overlay",
+      "x-category": "Workspaces",
       "title": "Workspace overview",
       "description": "The full-screen workspace board (laid out as in Workspaces): drag windows between workspaces, right-drag to resize, middle-click to close.",
       "additionalProperties": false,
@@ -1438,7 +1453,7 @@
 
     "SelfUpdate": {
       "type": "object",
-      "x-category": "Updates",
+      "x-category": "Maintenance",
       "x-card": "SelfUpdateStatus",
       "title": "axiom updates",
       "description": "Updates come from the repository axiom was cloned from: its release tags, or its main branch. An update only fast-forwards: a clone with changed files or commits of its own is never touched.",
@@ -1467,7 +1482,7 @@
 
     "Bars": {
       "type": "array",
-      "description": "Bars, in priority order: the first is the primary bar. Edited in the overlay's bar editor.",
+      "description": "Bars, edited in the overlay's bar editor.",
       "x-settings": false,
       "default": [
         {
@@ -1658,10 +1673,10 @@
         "monitors": {
           "type": "string",
           "title": "Monitors",
-          "enum": ["general", "primaryBar", "focused", "all"],
-          "x-enumLabels": { "general": "As in General", "primaryBar": "Primary bar's monitor", "focused": "Focused monitor", "all": "Every monitor" },
+          "enum": ["general", "primary", "focused", "all"],
+          "x-enumLabels": { "general": "As in General", "primary": "Primary monitor", "focused": "Focused monitor", "all": "Every monitor" },
           "default": "general",
-          "description": "Where the OSD appears. As in General follows General > Monitors; the primary bar's monitor is the first bar's; the focused monitor is the one with your active workspace (and mouse); every monitor shows it on all of them at once."
+          "description": "Where the OSD appears. As in General follows General > Monitors; the primary monitor is the one set in General; the focused monitor is the one with your active workspace (and mouse); every monitor shows it on all of them at once."
         },
         "placement": {
           "type": "string",
@@ -2239,7 +2254,7 @@
       "type": "object",
       "required": ["type"],
       "oneOf": [
-        { "$ref": "#/definitions/ThemeEditorOverlayModule" },
+        { "$ref": "#/definitions/ThemePickerOverlayModule" },
         { "$ref": "#/definitions/NowPlayingOverlayModule" },
         { "$ref": "#/definitions/AudioMixerOverlayModule" },
         { "$ref": "#/definitions/VolumeDialsOverlayModule" },
@@ -2262,11 +2277,12 @@
         { "$ref": "#/definitions/NotesOverlayModule" },
         { "$ref": "#/definitions/WallpaperPickerOverlayModule" },
         { "$ref": "#/definitions/ColorSwatchOverlayModule" },
+        { "$ref": "#/definitions/PaletteOverlayModule" },
         { "$ref": "#/definitions/GreetingOverlayModule" },
         { "$ref": "#/definitions/PasswordOverlayModule" }
       ]
     },
-    "ThemeEditorOverlayModule": {
+    "ThemePickerOverlayModule": {
       "type": "object",
       "x-icon": "palette",
       "x-defaultSize": [4, 8],
@@ -2274,7 +2290,7 @@
       "additionalProperties": false,
       "properties": {
         "place": { "$ref": "#/definitions/GridPlace" },
-        "type": { "const": "ThemeEditor", "description": "Theme editor" }
+        "type": { "const": "ThemePicker", "description": "Themes" }
       }
     },
     "NowPlayingOverlayModule": {
@@ -2643,6 +2659,18 @@
         "type": { "const": "WallpaperPicker", "description": "Wallpapers" }
       }
     },
+    "PaletteOverlayModule": {
+      "type": "object",
+      "x-hosts": ["overlay", "edgeMenu", "lockscreen"],
+      "x-icon": "palette",
+      "x-defaultSize": [8, 4],
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "place": { "$ref": "#/definitions/GridPlace" },
+        "type": { "const": "Palette", "description": "Palette" }
+      }
+    },
     "ColorSwatchOverlayModule": {
       "type": "object",
       "x-hosts": ["overlay", "edgeMenu", "lockscreen"],
@@ -2668,13 +2696,13 @@
 
     "WidgetLayout": {
       "type": "object",
-      "title": "Layout",
+      "title": "Sizing",
       "description": "Overrides for how much room a bar widget takes. Anything left out uses the widget's own sizing.",
       "additionalProperties": false,
       "properties": {
-        "size": { "type": "integer", "title": "Size", "minimum": 0, "maximum": 2000, "x-unit": "px", "description": "Length along the bar (px). Fixed and elastic widgets use it as their size / maximum." },
+        "size": { "type": "integer", "title": "Size", "minimum": 0, "maximum": 2000, "x-unit": "px", "description": "Length along the bar (px): the widget's size, or for one that shrinks when crowded, the most it takes." },
         "minSize": { "type": "integer", "title": "Minimum size", "minimum": 0, "maximum": 2000, "x-unit": "px", "description": "Smallest length the widget may shrink to when the bar is crowded (px)." },
-        "priority": { "type": "integer", "x-control": "stepper", "title": "Priority", "minimum": -100, "maximum": 100, "description": "When a section can't fit its widgets, lower priorities are hidden first." }
+        "priority": { "type": "integer", "x-control": "stepper", "title": "Priority", "minimum": -100, "maximum": 100, "description": "When the bar can't fit its widgets, lower priorities are hidden first: higher ones stay longest." }
       }
     },
 

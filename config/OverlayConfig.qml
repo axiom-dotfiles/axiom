@@ -9,7 +9,7 @@ QtObject {
   readonly property var views: ConfigManager.config.Overlay.views
   // Card size as a percentage of what fits the screen (see OverlayGrid)
   readonly property int size: ConfigManager.config.Overlay.size
-  // "general" | "primaryBar" | "focused" | "all" (see General.screensFor)
+  // "general" | "primary" | "focused" | "all" (see General.screensFor)
   readonly property string monitors: ConfigManager.config.Overlay.monitors
   readonly property bool closeOnEscape: ConfigManager.config.Overlay.closeOnEscape
   readonly property bool closeOnOutsideClick: ConfigManager.config.Overlay.closeOnOutsideClick

@@ -39,6 +39,21 @@ QtObject {
     ShellManager.openOverlayPage("Settings");
   }
 
+  // Opens it on the category holding a config section ("Chat")
+  function openSection(key) {
+    root.openCategory(SchemaLayout.categories(ConfigManager.configSchema).find(c => c.sections.includes(key))?.name ?? "");
+  }
+
+  // The page scrolls to a card (by SchemaLayout group key), unfolding it
+  // first; `unfolded` says it had to, so the page waits for it to open
+  signal jumpRequested(string key, bool unfolded)
+  function jumpTo(key) {
+    const unfolded = root.isCollapsed(key);
+    if (unfolded)
+      root.setCollapsed(key, false);
+    root.jumpRequested(key, unfolded);
+  }
+
   // Settings cards the user folded, by SchemaLayout group key; saved in
   // state/settings.json so they stay folded across restarts
   property var collapsed: ({})

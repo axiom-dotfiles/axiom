@@ -91,6 +91,8 @@ PopoutWrapperBase {
   property string overNamespace: "axiom-edge-popout"
   // The surface's window, its layer namespace, and the box within it
   readonly property var window: surfaceWindow
+  // The hover strip's window (a focus grab's partner, see EdgeMenuSync)
+  readonly property var triggerWindow: trigger
   readonly property string layerNamespace: root.slidesUnder ? "axiom-popout-under" : root.overNamespace
   readonly property rect boxInWindow: Qt.rect(boxArea.x, boxArea.y, boxArea.width, boxArea.height)
 
@@ -170,7 +172,9 @@ PopoutWrapperBase {
   // edges' inner side): flush on a joined end, else centred at `position`
   // and clamped so its fillets stay on the edge. The clamp takes the
   // fillet margin from the edge alone, not the surface, whose margins can
-  // depend on where the box lands (startFoot).
+  // depend on where the box lands (startFoot). On a whole pixel, as its
+  // length is: a fillet ending mid-pixel leaves a pale pixel in the
+  // stroke it joins (a lattice centred at a half pixel put one there).
   readonly property real boxLength: vertical ? surface.boxHeight : surface.boxWidth
   readonly property real boxStart: {
     if (root.joinStart)
@@ -179,10 +183,10 @@ PopoutWrapperBase {
       return root._strokeEnd - root.boxLength;
     const lo = root.filletMargin, hi = root.edgeLength - root.filletMargin - root.boxLength;
     const clamped = Math.max(lo, Math.min(root.edgeLength * root.position + root.positionOffset - root.boxLength / 2, hi));
-    return root.boxSnap ? Math.max(lo, Math.min(clamped + root.boxSnap(clamped), hi)) : clamped;
+    return Math.round(root.boxSnap ? Math.max(lo, Math.min(clamped + root.boxSnap(clamped), hi)) : clamped);
   }
   // Both ends joined, the box runs the whole edge, the content centred
-  readonly property real _boxAlong: joinStart && joinEnd ? maxBoxLength : (vertical ? root.contentItem?.implicitHeight ?? 100 : root.contentItem?.implicitWidth ?? 100) + contentPadding * 2
+  readonly property real _boxAlong: joinStart && joinEnd ? maxBoxLength : Math.ceil((vertical ? root.contentItem?.implicitHeight ?? 100 : root.contentItem?.implicitWidth ?? 100) + contentPadding * 2)
   // The surface (fillets included) along the edge
   readonly property real surfaceStart: boxStart - surface.startMargin
   readonly property real surfaceLength: vertical ? surface.implicitHeight : surface.implicitWidth

@@ -9,8 +9,9 @@ import qs.components.forms
 import qs.components.content.base
 
 // i18n: keys from the schema (titles, descriptions, type labels)
-// Bar editor: the selected widget's options and sizing, or with nothing
-// selected, the library of widget types to drag onto the bar
+// Bar editor: the selected widget's options and sizing (as the running
+// bars report it), or with nothing selected, the library of widget types
+// to drag onto the bar
 Item {
   id: root
 
@@ -20,6 +21,22 @@ Item {
   readonly property var widget: BarManager.selectedWidgetConfig()
   // A new form per widget (KeyedLoader)
   readonly property string selectionKey: root.widget ? [BarManager.selectedBarIndex, root.selection.zone, root.selection.index, root.widget.type].join(":") : ""
+  // The selected bar's running copies, the screens where one hides the
+  // widget for want of room, and how one sizes it (null when none shows it)
+  readonly property var reports: BarManager.liveReports()
+  readonly property var crowdedOn: root.reports.filter(report => (report.hidden[root.selection.zone] ?? []).includes(root.selection.index)).map(report => report.screen)
+  readonly property var measure: root.reports.map(report => report.selected).find(m => m !== null) ?? null
+
+  // How the widget sizes itself, from its policy (BarWidgetHost)
+  function sizingText(measure) {
+    if (!measure)
+      return Bar.widgetLayoutSchema.description ? I18n.tr(Bar.widgetLayoutSchema.description) : "";
+    if (measure.policy === "fixed")
+      return I18n.tr("A fixed {0} px long.", measure.preferred);
+    if (measure.policy === "elastic")
+      return I18n.tr("Up to {0} px long, shrinking to {1} px when the bar is crowded; {2} px now.", measure.preferred, measure.minimum, measure.size);
+    return I18n.tr("As long as its content: {0} px now.", measure.size);
+  }
 
   Card {
     color: Theme.background
@@ -54,6 +71,8 @@ Item {
       readonly property var widget: root.widget ?? ({})
       readonly property bool hidden: editorRoot.widget.visible === false
       readonly property var propertiesSchema: root.dragLayer.typeInfo(editorRoot.widget.type)?.propertiesSchema ?? ({})
+      // A page or edge menu it opens, to edit in the layouts editor
+      readonly property var opens: OverlayManager.openedBy(editorRoot.widget)
 
       anchors.fill: parent
       spacing: Widget.spacing
@@ -61,7 +80,14 @@ Item {
       InspectorHeader {
         icon: root.dragLayer.icon(editorRoot.widget.type)
         title: root.dragLayer.label(editorRoot.widget.type)
-        subtitle: editorRoot.hidden ? I18n.tr("{0} section, position {1} · hidden on the bar", root.dragLayer.zoneLabel(editorRoot.zone), editorRoot.index + 1) : I18n.tr("{0} section, position {1}", root.dragLayer.zoneLabel(editorRoot.zone), editorRoot.index + 1)
+        subtitle: {
+          const parts = [I18n.tr("{0} section, position {1}", root.dragLayer.zoneLabel(editorRoot.zone), editorRoot.index + 1)];
+          if (editorRoot.hidden)
+            parts.push(I18n.tr("hidden on the bar"));
+          else if (root.crowdedOn.length > 0)
+            parts.push(I18n.tr("no room for it on {0}", root.crowdedOn.join(", ")));
+          return parts.join(" · ");
+        }
 
         SquareIconButton {
           iconText: editorRoot.hidden ? "visibility_off" : "visibility"
@@ -102,32 +128,50 @@ Item {
           width: scroll.availableWidth
           spacing: Widget.spacing * 2
 
-          OptionsGroup {
+          ColumnLayout {
             Layout.preferredWidth: 3
-            propertiesSchema: editorRoot.propertiesSchema
-            numberMode: "stepper"
-            values: editorRoot.widget.properties ?? ({})
-            emptyText: I18n.tr("This widget has no options")
-            onEdited: (path, value) => BarManager.updateWidgetProperty(editorRoot.zone, editorRoot.index, path[0], value)
+            Layout.fillWidth: true
+            Layout.alignment: Qt.AlignTop
+            spacing: Widget.spacing
+
+            StyledTextButton {
+              visible: editorRoot.opens !== null
+              iconText: "edit"
+              text: I18n.tr("Edit {0} in Layouts", editorRoot.opens?.label ?? "")
+              textPadding: 6
+              onClicked: OverlayManager.editOpenedBy(editorRoot.widget)
+            }
+
+            OptionsGroup {
+              propertiesSchema: editorRoot.propertiesSchema
+              numberMode: "stepper"
+              values: editorRoot.widget.properties ?? ({})
+              emptyText: I18n.tr("This widget has no options")
+              onEdited: (path, value) => BarManager.updateWidgetProperty(editorRoot.zone, editorRoot.index, path[0], value)
+            }
           }
 
           FieldGroup {
             Layout.preferredWidth: 2
-            title: I18n.tr(Bar.widgetLayoutSchema.title ?? "Layout")
-            description: Bar.widgetLayoutSchema.description ? I18n.tr(Bar.widgetLayoutSchema.description) : ""
+            title: I18n.tr(Bar.widgetLayoutSchema.title)
+            description: root.sizingText(root.measure)
 
             Repeater {
+              // An override starts at what the bar uses now (`measured`)
               model: [
                 {
                   "key": "size",
+                  "measured": "preferred",
                   "initial": 100
                 },
                 {
                   "key": "minSize",
+                  "measured": "minimum",
                   "initial": 0
                 },
                 {
                   "key": "priority",
+                  "measured": "priority",
                   "initial": 0
                 }
               ]
@@ -135,7 +179,7 @@ Item {
               delegate: LayoutOverrideField {
                 required property var modelData
                 key: modelData.key
-                initial: modelData.initial
+                initial: root.measure?.[modelData.measured] ?? modelData.initial
                 fieldSchema: Bar.widgetLayoutSchema.properties?.[modelData.key] ?? ({})
                 value: editorRoot.widget.layout?.[modelData.key]
                 onEdited: value => BarManager.updateWidgetLayout(editorRoot.zone, editorRoot.index, modelData.key, value)
@@ -160,7 +204,7 @@ Item {
 
       StyledText {
         Layout.fillWidth: true
-        text: I18n.tr("Drag a widget onto a section, or click one to add it to the center. Click a widget in a section to edit it.")
+        text: I18n.tr("Drag a widget onto a section, or click one to add it to the {0} section. Click a widget in a section to edit it.", root.dragLayer.zoneLabel(BarManager.lastZone))
         opacity: 0.6
         textSize: Appearance.fontSize - 2
         wrapMode: Text.WordWrap
@@ -192,7 +236,7 @@ Item {
                   "kind": "add",
                   "type": tile.modelData.type
                 })
-              onClicked: BarManager.addWidget("center", tile.modelData.type)
+              onClicked: BarManager.addWidget(BarManager.lastZone, tile.modelData.type)
             }
           }
         }

@@ -24,6 +24,10 @@ Panel {
   // A wide card puts the repositories and the AUR side by side
   readonly property int sectionCount: (root.repoPackages.length > 0 ? 1 : 0) + (root.aurPackages.length > 0 ? 1 : 0)
   readonly property bool sideBySide: root.embedded && root.sectionCount > 1 && root.innerWidth >= Appearance.fontSize * 44
+  // A section's width in a card, from the card rather than the layout (a
+  // section sizing its rows by its own width makes the layout recurse); a
+  // popout sizes to its rows
+  readonly property real sectionWidth: root.sideBySide ? (root.innerWidth - root.pad) / 2 : root.innerWidth
   // One package row, and as many as fit under the header and each
   // section's title and "+n more" line (a popout lists 15)
   readonly property real rowLine: Appearance.fontSize * 1.45
@@ -66,7 +70,7 @@ Panel {
     required property var packages
 
     // Narrow, only the new version
-    readonly property bool narrow: root.embedded && section.width < Appearance.fontSize * 25
+    readonly property bool narrow: root.embedded && root.sectionWidth < Appearance.fontSize * 25
 
     visible: packages.length > 0
     spacing: 2
@@ -96,7 +100,7 @@ Panel {
           elide: Text.ElideRight
         }
         StyledText {
-          Layout.maximumWidth: section.width * 0.45
+          Layout.maximumWidth: root.embedded ? root.sectionWidth * 0.45 : Number.POSITIVE_INFINITY
           elide: Text.ElideLeft
           text: section.narrow ? row.modelData.to : `${row.modelData.from} → ${row.modelData.to}`
           textColor: Theme.foregroundAlt

@@ -7,7 +7,7 @@ import qs.services
 QtObject {
   readonly property var _c: ConfigManager.config.PowerMenu
 
-  // "general" | "primaryBar" | "focused" | "all" (see General.screensFor)
+  // "general" | "primary" | "focused" | "all" (see General.screensFor)
   readonly property string monitors: _c.monitors
   // Session actions shown, in order
   readonly property var actions: _c.actions

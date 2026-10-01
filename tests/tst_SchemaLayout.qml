@@ -174,10 +174,74 @@ TestCase {
     }
   }
 
+  // `x-categories` orders them and names their icon and page; others
+  // follow in schema order; an empty declared one is left out unless it
+  // has a page
+  function test_categories_order_icon_page() {
+    const field = {
+      "type": "string",
+      "default": ""
+    };
+    const categories = SchemaLayout.categories({
+      "x-categories": [
+        {
+          "name": "B",
+          "icon": "star"
+        },
+        {
+          "name": "Empty"
+        },
+        {
+          "name": "Tools",
+          "icon": "build",
+          "page": "ToolsPage"
+        }
+      ],
+      "properties": {
+        "One": {
+          "type": "object",
+          "x-category": "A",
+          "properties": {
+            "f": field
+          }
+        },
+        "Two": {
+          "type": "object",
+          "x-category": "B",
+          "x-links": ["Themes"],
+          "properties": {
+            "f": field
+          }
+        },
+        "Three": {
+          "type": "object",
+          "title": "Three",
+          "properties": {
+            "f": field
+          }
+        }
+      }
+    });
+    compare(categories.map(c => c.name), ["B", "Tools", "A", "Three"]);
+    compare(categories[0].icon, "star");
+    compare(categories[0].sections, ["Two"]);
+    compare(categories[0].links, ["Themes"]);
+    compare(categories[1].page, "ToolsPage");
+    compare(categories[1].sections, []);
+    compare(categories[2].icon, "settings");
+    compare(categories[2].page, "");
+  }
+
   function test_real_schema_categories() {
     const categories = SchemaLayout.categories(schema);
     verify(categories.length > 3);
+    const declared = schema["x-categories"].map(c => c.name);
     for (const category of categories) {
+      verify(declared.includes(category.name), "declared in x-categories: " + category.name);
+      if (category.page !== "") {
+        verify(files.text("components/views/settings/" + category.page + ".qml").length > 0, category.page);
+        continue;
+      }
       verify(category.sections.length > 0, category.name);
       for (const key of category.sections)
         verify(SchemaLayout.groups(schema, key).length > 0, key);

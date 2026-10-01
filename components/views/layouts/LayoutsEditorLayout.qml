@@ -25,8 +25,8 @@ GridDragLayer {
 
   readonly property real pageHeight: root.grid.span(8)
   readonly property real sideWidth: root.grid.unit * 0.8
-  // As wide as the page allows, within reason
-  readonly property real mainWidth: Math.max(root.grid.unit * 1.8, Math.min(root.grid.unit * 2.8, root.grid.availableWidth - root.sideWidth - OverlayConfig.cardSpacing * 3))
+  // The canvas and inspector's width (BaseView.editorWidth)
+  required property real mainWidth
   readonly property real canvasHeight: Math.round((root.pageHeight - OverlayConfig.cardSpacing) * 0.6)
 
   implicitWidth: root.sideWidth + OverlayConfig.cardSpacing + root.mainWidth

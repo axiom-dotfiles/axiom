@@ -1,5 +1,6 @@
 pragma ComponentBehavior: Bound
 import QtQuick
+import qs.config
 // Imported (though modules load by URL) so qs scans the modules directory:
 // without it, types there (e.g. BarIconWidget) aren't visible to each other
 import qs.components.bar.widgets // qmllint disable unused-imports
@@ -32,6 +33,8 @@ Item {
   required property var properties
   required property string componentPath
   property var layoutOverrides: ({})
+  // The bar editor's selected widget: outlined, and its sizing reported
+  property bool highlighted: false
 
   readonly property bool isVertical: barConfig.vertical
 
@@ -52,6 +55,14 @@ Item {
     return min === undefined ? preferredSize : Math.min(min, preferredSize);
   }
   readonly property int priority: layoutOverrides?.priority ?? _item?.priority ?? 0
+  // Its sizing as laid out, for the bar editor's inspector
+  readonly property var measure: ({
+      "policy": root.sizePolicy,
+      "size": Math.round(root.shown ? root.mainSize : 0),
+      "preferred": Math.round(root.preferredSize),
+      "minimum": Math.round(root.minimumSize),
+      "priority": root.priority
+    })
 
   // Assigned by WidgetGroup; standalone hosts just
   // get their preferred size
@@ -97,5 +108,14 @@ Item {
         item.properties = Qt.binding(() => root.properties);
       }
     }
+  }
+
+  Rectangle {
+    anchors.fill: parent
+    visible: root.highlighted
+    radius: root.barConfig.radius
+    color: Qt.alpha(Theme.accent, 0.15)
+    border.color: Theme.accent
+    border.width: 2
   }
 }

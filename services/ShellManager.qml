@@ -23,7 +23,7 @@ QtObject {
   signal showOsd(string id)
 
   // A surface's `monitors` mode with "general" resolved: "primary" |
-  // "primaryBar" | "focused" | "all" (no mode is General's)
+  // "focused" | "all"
   function modeFor(mode) {
     return !mode || mode === "general" ? General.monitors : mode;
   }
@@ -33,11 +33,9 @@ QtObject {
   // everywhere, else the one it's built on
   function targetFor(mode) {
     const resolved = modeFor(mode);
-    if (resolved === "primaryBar")
-      return Bar.primaryMonitor;
     if (resolved === "focused" || resolved === "all")
       return Hyprland.focusedMonitor?.name ?? General.primaryMonitor;
-    return General.screens[0]?.name ?? "";
+    return General.screensFor(resolved)[0]?.name ?? "";
   }
 
   function isTarget(screen, mode) {
@@ -103,6 +101,31 @@ QtObject {
   function surfaceOpenOn(kind, screen) {
     const name = typeof screen === "string" ? screen : screen?.name ?? "";
     return openSurfaces.some(e => e.kind === kind && (e.group.screen?.name ?? "") === name);
+  }
+
+  // Surfaces sharing a screen edge give way by rank, lowest first: a dock
+  // to an OSD, both to a floating edge menu (opened by hand, the pointer
+  // on it). A lower one closes while a higher one shows on its edge.
+  readonly property var edgeRanks: ["dock", "osd", "menu"]
+  // `{ owner, screen, edge, kind }` (a screen name, a Bar.edgeName): the
+  // ranked surfaces showing
+  property var edgeClaims: []
+
+  // `claim` is `{ screen, edge, kind }`, or null to release the owner's
+  function setEdgeClaim(owner, claim) {
+    const others = edgeClaims.filter(c => c.owner !== owner);
+    if (claim)
+      edgeClaims = others.concat([Object.assign({
+          owner
+        }, claim)]);
+    else if (others.length !== edgeClaims.length)
+      edgeClaims = others;
+  }
+
+  // Whether something ranked above `kind` shows on that screen edge
+  function edgeOutranked(screenName, edge, kind) {
+    const rank = edgeRanks.indexOf(kind);
+    return edgeClaims.some(c => c.screen === screenName && c.edge === edge && edgeRanks.indexOf(c.kind) > rank);
   }
 
   // Windows a full-screen surface's focus grab lets input through to on

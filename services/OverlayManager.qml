@@ -264,6 +264,45 @@ QtObject {
     });
   }
 
+  // What a bar Button opens that this editor edits (the other way round
+  // from addBarButton): { kind: "page" | "menu", index, label }, or null
+  function openedBy(widget) {
+    const props = widget?.type === "Button" ? widget.properties ?? {} : {};
+    if (props.action === "edgeMenu") {
+      const menus = EdgeMenuManager.localMenus ?? EdgeMenusConfig.menus;
+      const index = menus.findIndex(menu => menu.id === props.menu);
+      return index < 0 ? null : {
+        "kind": "menu",
+        "index": index,
+        "label": EdgeMenuManager.menuLabel(menus[index], index)
+      };
+    }
+    if (props.action === "overlayPage") {
+      const views = root.localViews ?? OverlayConfig.views;
+      const index = views.findIndex(view => OverlayConfig.pageKey(view) === props.page);
+      return index < 0 ? null : {
+        "kind": "page",
+        "index": index,
+        "label": OverlayConfig.viewLabel(views[index], index)
+      };
+    }
+    return null;
+  }
+
+  // Shows what a bar Button opens in this editor
+  function editOpenedBy(widget) {
+    root.ensureLoaded();
+    EdgeMenuManager.ensureLoaded();
+    const target = root.openedBy(widget);
+    if (!target)
+      return;
+    if (target.kind === "menu")
+      root.editMenu(target.index);
+    else
+      root.editPage(target.index);
+    ShellManager.showOverlayPage("Layouts");
+  }
+
   // --- Save / reset ---
 
   // Merged onto the latest real config; stays dirty if rejected

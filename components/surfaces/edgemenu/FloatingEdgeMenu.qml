@@ -22,6 +22,28 @@ EdgePopout {
 
   readonly property real edgeDistance: root.menu.edgeDistance
 
+  // While the overlay is open on its screen it draws over the overlay
+  // (HyprlandManager.layerRulesLua), so a detached box doesn't slide out
+  // from under its bar, a layer the overlay covers (as BarPopouts.underBar).
+  // Followed only while closed: the namespace changes with it.
+  readonly property bool overlayOpen: ShellManager.surfaceOpenOn("overlay", root.screen)
+  property bool _overOverlay: false
+  function _followOverlay() {
+    if (!root.occupied)
+      root._overOverlay = root.overlayOpen;
+  }
+  onOverlayOpenChanged: root._followOverlay()
+  onOccupiedChanged: root._followOverlay()
+
+  // Gives way to nothing, and puts an OSD or dock on its edge away
+  // (ShellManager.edgeOutranked)
+  readonly property var _claim: root.isOpen ? ({
+      "screen": root.screen?.name ?? "",
+      "edge": Bar.edgeName(root.edge),
+      "kind": "menu"
+    }) : null
+  on_ClaimChanged: ShellManager.setEdgeClaim(root, root._claim)
+
   // What's reserved along a screen edge (a Bar.Location), which this
   // window sits inside: the border, a bar, integrated menus. Docks are
   // left out: the window reaches past them.
@@ -191,7 +213,7 @@ EdgePopout {
   // A detached box slides in from under what's on its edge: from a bar's
   // outer edge (past the border stroke a floating bar's lies on), else
   // from the border's or a solid bar's stroke, or the bare screen edge
-  slideDistance: root.barPanel ? root.barAttachDepth - (root.barConfig.floating ? Appearance.borderWidth : 0) : root.edgeDistance
+  slideDistance: root._overOverlay ? 0 : root.barPanel ? root.barAttachDepth - (root.barConfig.floating ? Appearance.borderWidth : 0) : root.edgeDistance
   underLayer: root.barConfig?.floating ? WlrLayer.Overlay : WlrLayer.Top
   // Without the border, a merged box runs straight off the screen edge
   straight: root.merged ? !Appearance.screenBorder : root.bareEdge
@@ -229,6 +251,9 @@ EdgePopout {
   dismissDelay: root.menu.closeDelay
   keyboardOnDemand: true
   closeOnClickOutside: root.menu.closeOnOutsideClick && !sync.held
+  // Over the overlay its grab (which lets input through to the menu) is
+  // the one: a grab of its own would clear it, closing the overlay
+  grabEnabled: !root.overlayOpen
   autoDismiss: sync.autoDismiss
 
   EdgeMenuSync {
@@ -237,13 +262,17 @@ EdgePopout {
     menu: root.menu
     screen: root.screen
     window: root.window
+    triggerWindow: root.triggerWindow
     frame: root.frame
     onWarpRequested: {
       const box = root.boxInWindow;
       HyprlandManager.warpCursorToLayer(root.layerNamespace, root.screen?.name ?? "", root.window.width, root.window.height, box.x + box.width / 2, box.y + box.height / 2);
     }
   }
-  Component.onDestruction: root._clearStretch()
+  Component.onDestruction: {
+    root._clearStretch();
+    ShellManager.setEdgeClaim(root, null);
+  }
 
   content: Component {
     EdgeMenuBody {
