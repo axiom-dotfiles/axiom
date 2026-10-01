@@ -9,7 +9,7 @@ import qs.components.reusable
 // Fixed page navigator for the overlay's pages: arrows at the ends and a tab
 // per page (icon and name), the current one under a sliding accent pill.
 // Tool pages follow the user's own after a divider, as icons (named in a
-// tooltip) unless current. When every name doesn't fit `maxWidth`, the
+// tooltip), even when current. When every name doesn't fit `maxWidth`, the
 // other tabs drop to their icons too. Scrolling over it steps through the pages.
 // Pages with unsaved edits get a dot, and while another page has some,
 // Save all / Discard all follow the arrows (EditsManager: a reminder, as
@@ -190,7 +190,7 @@ Rectangle {
             required property int index
             required property var modelData
             readonly property bool isCurrent: index === root.currentIndex
-            readonly property bool showLabel: tab.isCurrent || (!root.compact && !tab.modelData.tool)
+            readonly property bool showLabel: !tab.modelData.tool && (tab.isCurrent || !root.compact)
             readonly property color ink: tab.isCurrent ? root.onAccent : Theme.foreground
             readonly property bool firstTool: tab.modelData.tool === true && tab.index > 0 && root.pages[tab.index - 1]?.tool !== true
             readonly property real divider: tab.firstTool ? root.tabSpacing + Appearance.borderWidth : 0
