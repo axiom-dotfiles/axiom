@@ -176,6 +176,11 @@ TestCase {
     compare(anchor(250, "center"), ["center", -1]);
     compare(anchor(620, "end"), ["end", 1]);
     compare(anchor(620), ["end", 1], "with none, the nearest");
+    // Halfway between units, towards the current offset: a centred run
+    // grown by one unit and shrunk back doesn't drift
+    compare(GridPlacement.anchorFor(380, 370, 1000, 500, 10, 10, "center", 0).offset, 0, "grown: keeps its offset");
+    compare(GridPlacement.anchorFor(380 - 65, 240, 1000, 500, 10, 10, "center", 0).offset, 0, "shrunk back: still centred");
+    compare(GridPlacement.anchorFor(380 + 65, 240, 1000, 500, 10, 10, "center", 1).offset, 1, "towards a positive offset");
     // Round trips: moved by whole steps from an anchor, it stays put
     ["start", "end", "center"].forEach(align => {
       for (let units = -3; units <= 3; units++) {

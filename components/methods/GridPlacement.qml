@@ -54,8 +54,10 @@ QtObject {
   // Within half a unit of an anchor they snap to it (flush, or centred);
   // otherwise they keep `current` (an align), so moving them by whole
   // units keeps them exactly where they're put. Without `current`, the
-  // nearest anchor.
-  function anchorFor(start, length, edgeLength, unit, startPad, endPad, current) {
+  // nearest anchor. Halfway between two whole units (a centred run that
+  // grew or shrank by an odd number of units) the offset rounds towards
+  // `currentOffset`, so growing and shrinking back returns it where it was.
+  function anchorFor(start, length, edgeLength, unit, startPad, endPad, current, currentOffset) {
     const step = root.stepOf(unit);
     const units = {
       "start": (start - startPad) / step,
@@ -64,7 +66,10 @@ QtObject {
     };
     const nearest = ["start", "end", "center"].reduce((best, align) => Math.abs(units[align]) < Math.abs(units[best]) ? align : best, "start");
     const align = Math.abs(units[nearest]) < 0.5 || !(current in units) ? nearest : current;
-    const offset = Math.round(units[align]);
+    const raw = units[align];
+    const towards = currentOffset ?? 0;
+    const half = Math.abs(Math.abs(raw % 1) - 0.5) < 0.001;
+    const offset = half ? (Math.abs(Math.floor(raw) - towards) <= Math.abs(Math.ceil(raw) - towards) ? Math.floor(raw) : Math.ceil(raw)) : Math.round(raw);
     return {
       "align": align,
       "offset": align === "center" ? offset : Math.max(0, offset)

@@ -178,7 +178,7 @@ Singleton {
       return;
     const vertical = menu.edge === "Left" || menu.edge === "Right";
     const start = was.along + (vertical ? shift.y : shift.x) * GridPlacement.stepOf(root.cardUnitOf(menu));
-    const anchor = GridPlacement.anchorFor(start, now.length, now.edgeLength, root.cardUnitOf(menu), now.frame.startPad, now.frame.endPad, menu.align);
+    const anchor = GridPlacement.anchorFor(start, now.length, now.edgeLength, root.cardUnitOf(menu), now.frame.startPad, now.frame.endPad, menu.align, menu.offset);
     menu.align = anchor.align;
     menu.offset = anchor.offset;
   }
