@@ -59,6 +59,9 @@ PopoutWrapperBase {
   property int triggerWidth: PopoutConfig.edgeTriggerSize
   property int triggerLength: 200
   property int hoverDelay: PopoutConfig.openDelay
+  // The strip's centre along the edge in screen px (NaN: at the box's
+  // `position`, EdgeTrigger.centre)
+  property real triggerCentre: NaN
 
   property bool wantsKeyboardFocus: false
   // Take the keyboard when clicked, without a focus grab (content that may
@@ -192,6 +195,7 @@ PopoutWrapperBase {
     edge: root.edge
     position: root.position
     positionOffset: root.positionOffset
+    centre: root.triggerCentre
     triggerWidth: root.triggerWidth
     triggerLength: root.triggerLength
     hoverDelay: root.hoverDelay

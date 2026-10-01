@@ -49,7 +49,7 @@ ColumnLayout {
   StyledText {
     Layout.fillWidth: true
     wrapMode: Text.WordWrap
-    text: (EdgeMenuManager.canPreview(root.menu) ? I18n.tr("Holds the menu open on its screen while you edit it, showing unsaved changes.") : I18n.tr("Enable the menu to show it.")) + " " + I18n.tr("Other menus show dimmed on the grid, where they sit on this screen.")
+    text: EdgeMenuManager.canPreview(root.menu) ? I18n.tr("Holds the menu open on its screen while you edit it, showing unsaved changes.") : I18n.tr("Enable the menu to show it.")
     textSize: Appearance.fontSize - 2
     opacity: 0.7
   }

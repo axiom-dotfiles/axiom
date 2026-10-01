@@ -45,8 +45,10 @@ PopoutWrapperBase {
   readonly property real edgeLength: root.vertical ? root.screen.height : root.screen.width
   readonly property real bodyDepth: root.vertical ? (loader.item?.implicitWidth ?? 0) : (loader.item?.implicitHeight ?? 0)
   readonly property int depth: Math.ceil(root.bodyDepth + root.pad * 2 + root.innerStroke)
-  // Where the modules start along the edge
-  readonly property real alongPos: EdgeMenusConfig.alongStartOf(root.menu, loader.along, root.edgeLength, root.pad, root.pad)
+  // Where the modules start along the edge, from config (the body loads
+  // only while open, and the hover strip needs it closed)
+  readonly property real gridLength: EdgeMenusConfig.gridLengthOf(root.menu, root.vertical, EdgeMenuManager.cardUnitOf(root.menu))
+  readonly property real alongPos: EdgeMenusConfig.alongStartOf(root.menu, root.gridLength, root.edgeLength, root.pad, root.pad)
 
   // Where the modules can sit, for the layouts editor (EdgeMenuManager.frames)
   readonly property var frame: ({
@@ -58,15 +60,6 @@ PopoutWrapperBase {
       "after": root.pad + root.innerStroke,
       "reserves": true
     })
-  property string _frameId: ""
-  function _publishFrame() {
-    if (root._frameId !== root.menu.id)
-      EdgeMenuManager.clearFrame(root._frameId, root.frame.screen);
-    root._frameId = root.menu.id;
-    EdgeMenuManager.setFrame(root._frameId, root.frame);
-  }
-  onFrameChanged: root._publishFrame()
-  Component.onCompleted: root._publishFrame()
 
   autoDismiss: sync.autoDismiss
   dismissDelay: root.menu.closeDelay
@@ -78,12 +71,10 @@ PopoutWrapperBase {
     menu: root.menu
     screen: root.screen
     window: panel
+    frame: root.frame
     onWarpRequested: HyprlandManager.warpCursorToLayer("axiom-edge-menu", root.screen?.name ?? "", panel.width, panel.height, loader.x + loader.width / 2, loader.y + loader.height / 2)
   }
-  Component.onDestruction: {
-    EdgeMenuManager.setZone(root.screen?.name ?? "", root._edgeName, 0);
-    EdgeMenuManager.clearFrame(root._frameId, root.frame.screen);
-  }
+  Component.onDestruction: EdgeMenuManager.setZone(root.screen?.name ?? "", root._edgeName, 0)
 
   // Report the space taken, for surfaces laid out against this edge
   readonly property string _edgeName: Bar.edgeName(root.edge)
@@ -95,7 +86,8 @@ PopoutWrapperBase {
     screen: root.screen
     visible: root.menu.openOnHover
     edge: root.edge
-    position: root.edgeLength > 0 ? (root.alongPos + loader.along / 2) / root.edgeLength : 0.5
+    // On the modules (the strip spans the whole edge)
+    centre: root.menu.length === "edge" ? root.edgeLength / 2 : root.alongPos + root.gridLength / 2
     // Not its own zone, and the strip spans the whole edge regardless of
     // the others
     edgeInset: Math.max(0, EdgeMenuManager.zoneOn(root.screen?.name ?? "", root._edgeName) - root.reserved)
@@ -185,7 +177,6 @@ PopoutWrapperBase {
           id: loader
           active: root.occupied
 
-          readonly property real along: root.vertical ? height : width
           readonly property real across: root.pad + (root.edge === Bar.Right || root.edge === Bar.Bottom ? root.innerStroke : 0)
 
           x: root.vertical ? across : root.alongPos

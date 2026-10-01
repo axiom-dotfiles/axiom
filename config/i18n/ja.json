@@ -2190,7 +2190,6 @@
     "Bars and border": "バーと枠",
     "Hide other menus": "他のメニューを隠す",
     "Show other menus": "他のメニューを表示",
-    "Other menus show dimmed on the grid, where they sit on this screen.": "他のメニューは、この画面上の位置にグリッド上で薄く表示されます。",
     "Draw a rounded box along the whole edge, with the modules inside it, lined up with the screen border.": "端全体に沿って角丸の枠を描き、その中にモジュールを配置します。枠は画面の枠と揃います。",
     "start": "開始",
     "end": "終了",

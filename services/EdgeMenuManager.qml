@@ -118,6 +118,51 @@ Singleton {
     };
   }
 
+  // A menu as it sits on its screen, in screen px: { name, rect (its box:
+  // the modules plus the frame's `after` all round), modules: [{ type,
+  // rect }] } (rects { x, y, width, height }), stretched along its edge
+  // when it takes the whole edge. `index`: its place in the draft, for its
+  // label.
+  function screenRectsOf(menu, index) {
+    const place = root.placementOf(menu);
+    if (!place)
+      return null;
+    const vertical = menu.edge === "Left" || menu.edge === "Right";
+    const room = place.edgeLength - place.frame.startPad - place.frame.endPad;
+    const stretch = menu.length !== "edge" ? null : vertical ? {
+      "height": room
+    } : {
+      "width": room
+    };
+    const sizes = GridPlacement.trackSizes(GridPlacement.bounds(menu.modules), root.cardUnitOf(menu), stretch);
+    const depth = vertical ? sizes.width : sizes.height;
+    const acrossAt = menu.edge === "Right" ? place.screen.width - place.across - depth : menu.edge === "Bottom" ? place.screen.height - place.across - depth : place.across;
+    const x = vertical ? acrossAt : place.along;
+    const y = vertical ? place.along : acrossAt;
+    const pad = place.frame.after;
+    return {
+      "name": root.menuLabel(menu, index),
+      "rect": {
+        "x": x - pad,
+        "y": y - pad,
+        "width": sizes.width + pad * 2,
+        "height": sizes.height + pad * 2
+      },
+      "modules": menu.modules.map(module => {
+        const r = GridPlacement.rectPx(module.place, sizes);
+        return {
+          "type": module.type,
+          "rect": {
+            "x": x + r.x,
+            "y": y + r.y,
+            "width": r.width,
+            "height": r.height
+          }
+        };
+      })
+    };
+  }
+
   // After the editor's grid shifted by `shift` grid units ({ x, y }; a
   // module put before the first moves the menu that way), keeps the
   // selected menu's modules where they were on its screen: its anchor

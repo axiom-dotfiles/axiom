@@ -63,7 +63,13 @@ QtObject {
   // card size `unit` (EdgeMenuManager.cardUnitOf), as EdgeMenuBody lays
   // it out, plus its padding
   function lengthOf(menu, vertical, unit) {
+    return root.gridLengthOf(menu, vertical, unit) + root.paddingOf(menu) * 2;
+  }
+
+  // The menu's modules' grid along its edge, unstretched, at card size
+  // `unit`
+  function gridLengthOf(menu, vertical, unit) {
     const sizes = GridPlacement.trackSizes(GridPlacement.bounds(menu.modules), unit);
-    return (vertical ? sizes.height : sizes.width) + root.paddingOf(menu) * 2;
+    return vertical ? sizes.height : sizes.width;
   }
 }

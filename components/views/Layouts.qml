@@ -55,48 +55,7 @@ BaseView {
     if (!root.menu || !root.menuScreen || !EdgeMenuManager.showingOthers)
       return [];
     const screenName = root.menuScreen.name;
-    return (EdgeMenuManager.localMenus ?? []).filter((other, i) => i !== EdgeMenuManager.selectedMenuIndex && other.enabled && EdgeMenusConfig.screenFor(other)?.name === screenName).map(other => root._ghostOf(other));
-  }
-  function _ghostOf(menu) {
-    const place = EdgeMenuManager.placementOf(menu);
-    const unit = EdgeMenuManager.cardUnitOf(menu);
-    const vertical = menu.edge === "Left" || menu.edge === "Right";
-    const screen = place.screen;
-    // Taking the whole edge, it stretches along all of it
-    const room = place.edgeLength - place.frame.startPad - place.frame.endPad;
-    const stretch = menu.length === "edge" ? (vertical ? {
-        "height": room
-      } : {
-        "width": room
-      }) : null;
-    const sizes = GridPlacement.trackSizes(GridPlacement.bounds(menu.modules), unit, stretch);
-    const length = vertical ? sizes.height : sizes.width;
-    const depth = vertical ? sizes.width : sizes.height;
-    const acrossAt = menu.edge === "Right" ? screen.width - place.across - depth : menu.edge === "Bottom" ? screen.height - place.across - depth : place.across;
-    const x = vertical ? acrossAt : place.along;
-    const y = vertical ? place.along : acrossAt;
-    const pad = place.frame.after;
-    return {
-      "name": EdgeMenuManager.menuLabel(menu, (EdgeMenuManager.localMenus ?? []).indexOf(menu)),
-      "rect": {
-        "x": x - pad,
-        "y": y - pad,
-        "width": sizes.width + pad * 2,
-        "height": sizes.height + pad * 2
-      },
-      "modules": menu.modules.map(module => {
-        const r = GridPlacement.rectPx(module.place, sizes);
-        return {
-          "type": module.type,
-          "rect": {
-            "x": x + r.x,
-            "y": y + r.y,
-            "width": r.width,
-            "height": r.height
-          }
-        };
-      })
-    };
+    return (EdgeMenuManager.localMenus ?? []).map((other, i) => i !== EdgeMenuManager.selectedMenuIndex && other.enabled && EdgeMenusConfig.screenFor(other)?.name === screenName ? EdgeMenuManager.screenRectsOf(other, i) : null).filter(ghost => ghost !== null);
   }
   readonly property bool menuTooLong: root.menu?.length !== "edge" && root.edgeLength > 0 && root.menuLength > root.edgeLength
   readonly property string menuFitText: {

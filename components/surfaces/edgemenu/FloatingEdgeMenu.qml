@@ -4,7 +4,6 @@ import Quickshell.Wayland
 
 import qs.config
 import qs.services
-import qs.components.methods
 import qs.components.hosts.popout
 
 // A floating edge menu: an EdgePopout over the windows, growing out of the
@@ -22,40 +21,40 @@ EdgePopout {
 
   readonly property real edgeDistance: root.menu.edgeDistance
 
-  // Along the edge, from the menu's anchor (EdgeMenusConfig.alongStartOf),
-  // in screen px: this window sits between the perpendicular edges'
-  // reserved space, taken as the same at both ends (as barShift)
-  readonly property real screenLength: root.vertical ? root.screen.height : root.screen.width
-  readonly property real alongOrigin: (root.screenLength - root.edgeLength) / 2
-  // The least room from the modules to the screen's ends: the fillets'
-  // and the box's padding
-  readonly property real alongPad: root.alongOrigin + root.filletMargin + root.contentPadding
-  readonly property var _gridSizes: GridPlacement.trackSizes(GridPlacement.bounds(root.menu.modules), EdgeMenuManager.cardUnitOf(root.menu))
-  readonly property real modulesStart: EdgeMenusConfig.alongStartOf(root.menu, root.vertical ? root._gridSizes.height : root._gridSizes.width, root.screenLength, root.alongPad, root.alongPad)
+  // What's reserved along a screen edge (a Bar.Location), which this
+  // window sits inside: the border, a bar, integrated menus. Docks are
+  // left out: the window reaches past them.
+  function reservedOn(location) {
+    const screenName = root.screen?.name ?? "";
+    return (Appearance.screenBorder ? Appearance.screenMargin : 0) + (ShellManager.barOn(screenName, location)?.reservedZone ?? 0) + EdgeMenuManager.zoneOn(screenName, Bar.edgeName(location));
+  }
 
-  // Across the edge, in px from the screen edge: what's reserved there
-  // (the border, a bar, integrated menus), which this window sits inside
-  readonly property real reservedBefore: (Appearance.screenBorder ? Appearance.screenMargin : 0) + (ShellManager.barOn(root.screen?.name ?? "", root.edge)?.reservedZone ?? 0) + EdgeMenuManager.zoneOn(root.screen?.name ?? "", Bar.edgeName(root.edge))
+  // Along the edge, from the menu's anchor (EdgeMenusConfig.alongStartOf),
+  // in screen px: this window's edge coordinates start past what's
+  // reserved on the perpendicular edge at its start
+  readonly property real screenLength: root.vertical ? root.screen.height : root.screen.width
+  readonly property real alongOrigin: root.reservedOn(root.vertical ? Bar.Top : Bar.Left)
+  // The least room from the modules to the screen's ends: what's reserved
+  // there, the fillets and the box's padding
+  readonly property real startPad: root.alongOrigin + root.filletMargin + root.contentPadding
+  readonly property real endPad: root.reservedOn(root.vertical ? Bar.Bottom : Bar.Right) + root.filletMargin + root.contentPadding
+  // From config, so the hover strip lines up before the body has loaded
+  readonly property real gridLength: EdgeMenusConfig.gridLengthOf(root.menu, root.vertical, EdgeMenuManager.cardUnitOf(root.menu))
+  readonly property real modulesStart: EdgeMenusConfig.alongStartOf(root.menu, root.gridLength, root.screenLength, root.startPad, root.endPad)
+
+  // Across the edge, in px from the screen edge
+  readonly property real reservedBefore: root.reservedOn(root.edge)
 
   // Where the modules can sit, for the layouts editor (EdgeMenuManager.frames)
   readonly property var frame: ({
       "screen": root.screen?.name ?? "",
-      "startPad": root.alongPad,
-      "endPad": root.alongPad,
+      "startPad": root.startPad,
+      "endPad": root.endPad,
       "across": root.reservedBefore + (root.straight ? 0 : -Appearance.borderWidth) + root.edgeOffset + root.contentPadding + root.attachClearance,
       "before": Math.max(0, root.reservedBefore - (root.straight ? 0 : Appearance.borderWidth)),
       "after": root.contentPadding,
       "reserves": false
     })
-  property string _frameId: ""
-  function _publishFrame() {
-    if (root._frameId !== root.menuId)
-      EdgeMenuManager.clearFrame(root._frameId, root.frame.screen);
-    root._frameId = root.menuId;
-    EdgeMenuManager.setFrame(root._frameId, root.frame);
-  }
-  onFrameChanged: root._publishFrame()
-  Component.onCompleted: root._publishFrame()
 
   // A transparent or pill bar on this edge (BarPanel), while it shows: a
   // floating bar hides under fullscreen windows
@@ -221,6 +220,9 @@ EdgePopout {
   hoverDelay: root.menu.openDelay
   triggerWidth: root.menu.triggerSize
   triggerLength: sync.triggerLength(root.contentItem, root.vertical, root.contentPadding)
+  // On the modules, in screen px (the box's own position is in this
+  // window's coordinates, which start past the perpendicular edges')
+  triggerCentre: root.menu.length === "edge" ? (root.startPad + root.screenLength - root.endPad) / 2 : root.modulesStart + root.gridLength / 2
   dismissDelay: root.menu.closeDelay
   keyboardOnDemand: true
   closeOnClickOutside: root.menu.closeOnOutsideClick && !sync.held
@@ -232,15 +234,13 @@ EdgePopout {
     menu: root.menu
     screen: root.screen
     window: root.window
+    frame: root.frame
     onWarpRequested: {
       const box = root.boxInWindow;
       HyprlandManager.warpCursorToLayer(root.layerNamespace, root.screen?.name ?? "", root.window.width, root.window.height, box.x + box.width / 2, box.y + box.height / 2);
     }
   }
-  Component.onDestruction: {
-    root._clearStretch();
-    EdgeMenuManager.clearFrame(root._frameId, root.frame.screen);
-  }
+  Component.onDestruction: root._clearStretch()
 
   content: Component {
     EdgeMenuBody {
