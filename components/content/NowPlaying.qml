@@ -304,7 +304,7 @@ Panel {
     readonly property bool wide: root.width >= Appearance.fontSize * 22
 
     Art {
-      readonly property real side: root.height - root.pad * 2
+      readonly property real side: root.innerHeight
       visible: side >= 24
       Layout.preferredWidth: side
       Layout.preferredHeight: side
@@ -321,7 +321,7 @@ Panel {
         font.bold: true
       }
       StyledText {
-        visible: root.height - root.pad * 2 >= Appearance.fontSize * 2.6
+        visible: root.innerHeight >= Appearance.fontSize * 2.6
         Layout.fillWidth: true
         elide: Text.ElideRight
         text: MediaManager.trackArtist
@@ -331,21 +331,21 @@ Panel {
     }
     MediaButton {
       visible: parent.wide
-      size: Math.min(Widget.height, root.height - root.pad * 2)
+      size: Math.min(Widget.height, root.innerHeight)
       icon: "skip_previous"
       enabled: MediaManager.canGoPrevious
       onClicked: MediaManager.previous()
     }
     MediaButton {
       primary: true
-      size: Math.min(Widget.height * 1.2, root.height - root.pad * 2)
+      size: Math.min(Widget.height * 1.2, root.innerHeight)
       icon: MediaManager.isPlaying ? "pause" : "play_arrow"
       enabled: MediaManager.canTogglePlaying
       onClicked: MediaManager.togglePlayPause()
     }
     MediaButton {
       visible: parent.wide
-      size: Math.min(Widget.height, root.height - root.pad * 2)
+      size: Math.min(Widget.height, root.innerHeight)
       icon: "skip_next"
       enabled: MediaManager.canGoNext
       onClicked: MediaManager.next()
@@ -363,12 +363,10 @@ Panel {
 
     Art {
       // From the card's size, not the grid's: that depends on this
-      readonly property real innerWidth: root.width - root.pad * 2
-      readonly property real innerHeight: root.height - root.pad * 2
       // Beside the info, never over 40% of the width, so the text keeps room;
       // stacked, whatever height the info and controls leave (a small card
       // would otherwise push them out of the box)
-      readonly property real side: !root.embedded ? root.artSize : root.sideBySide ? Math.min(innerHeight, innerWidth * 0.4) : Math.max(0, Math.min(innerWidth, innerHeight * 0.5, innerHeight - details.implicitHeight - Widget.spacing))
+      readonly property real side: !root.embedded ? root.artSize : root.sideBySide ? Math.min(root.innerHeight, root.innerWidth * 0.4) : Math.max(0, Math.min(root.innerWidth, root.innerHeight * 0.5, root.innerHeight - details.implicitHeight - Widget.spacing))
       visible: side >= 32
       Layout.preferredWidth: side
       Layout.preferredHeight: side

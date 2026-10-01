@@ -15,7 +15,7 @@ Panel {
   id: root
 
   // A wide card docks the conversation list beside the chat
-  readonly property bool listDocked: root.embedded && root.shape === "horizontal" && root.width - root.pad * 2 >= Appearance.fontSize * 40
+  readonly property bool listDocked: root.embedded && root.shape === "horizontal" && root.innerWidth >= Appearance.fontSize * 40
   property bool listOpen: false
   property bool pickerOpen: false
   // The dropdowns open just under the header

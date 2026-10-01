@@ -106,7 +106,7 @@ Panel {
     const n = Math.max(1, root.shown.length);
     if (!root.embedded)
       return n > 3 ? 2 : 1;
-    const w = root.width - root.pad * 2, h = root.height - root.pad * 2;
+    const w = root.innerWidth, h = root.innerHeight;
     let best = 1, bestErr = Infinity;
     for (let c = 1; c <= n; c++) {
       const r = Math.ceil(n / c);

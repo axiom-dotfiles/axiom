@@ -67,10 +67,7 @@ Card {
   }
 
   // Compact: the connection type, name and download rate
-  CompactFigure {
-    visible: root.compact
-    anchors.fill: parent
-    anchors.margins: root.pad
+  compactContent: CompactFigure {
     icon: root.kindIcon
     value: root.info.kind !== "" ? root.rx[0] : ""
     unit: root.info.kind !== "" ? root.rx[1] : ""
@@ -115,7 +112,7 @@ Card {
   }
 
   ColumnLayout {
-    visible: !root.compact && !root.strip
+    visible: !root.strip
     anchors.fill: parent
     anchors.margins: root.pad
     spacing: Widget.spacing / 2

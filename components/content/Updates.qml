@@ -23,7 +23,7 @@ Panel {
   spacing: Widget.padding
   // A wide card puts the repositories and the AUR side by side
   readonly property int sectionCount: (root.repoPackages.length > 0 ? 1 : 0) + (root.aurPackages.length > 0 ? 1 : 0)
-  readonly property bool sideBySide: root.embedded && root.sectionCount > 1 && root.width - root.pad * 2 >= Appearance.fontSize * 44
+  readonly property bool sideBySide: root.embedded && root.sectionCount > 1 && root.innerWidth >= Appearance.fontSize * 44
   // One package row, and as many as fit under the header and each
   // section's title and "+n more" line (a popout lists 15)
   readonly property real rowLine: Appearance.fontSize * 1.45
@@ -31,7 +31,7 @@ Panel {
     if (!root.embedded)
       return 15;
     const stacked = root.sideBySide ? 1 : Math.max(1, root.sectionCount);
-    const room = root.height - root.pad * 2 - Appearance.fontSize * 2 - root.spacing * (stacked + 1) - stacked * root.rowLine * 2;
+    const room = root.innerHeight - Appearance.fontSize * 2 - root.spacing * (stacked + 1) - stacked * root.rowLine * 2;
     return Math.max(1, Math.floor(room / stacked / root.rowLine));
   }
 

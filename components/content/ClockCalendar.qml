@@ -16,23 +16,21 @@ Card {
 
   // Calendar sizing: day cells close to square, never taller than they
   // are wide, and the whole grid capped so large slots keep a big clock
-  readonly property real bodyWidth: root.width - root.pad * 2
-  readonly property real bodyHeight: root.height - root.pad * 2
   readonly property real headerHeight: Appearance.fontSize * 1.8
   readonly property real weekdayHeight: Appearance.fontSize * 1.6
   // The smallest calendar (six weeks of the smallest cells), and whether
   // it fits under the clock or beside it
   readonly property real calendarMinHeight: root.headerHeight + root.weekdayHeight + Appearance.fontSize * 1.4 * 6
   readonly property real calendarMinWidth: Appearance.fontSize * 12
-  readonly property bool fitsUnder: root.bodyHeight >= root.clockMinHeight + Widget.spacing + root.calendarMinHeight && root.bodyWidth >= root.calendarMinWidth
-  readonly property bool fitsBeside: root.bodyHeight >= root.calendarMinHeight && root.bodyWidth >= root.calendarMinWidth + root.pad + Appearance.fontSize * 8
+  readonly property bool fitsUnder: root.innerHeight >= root.clockMinHeight + Widget.spacing + root.calendarMinHeight && root.innerWidth >= root.calendarMinWidth
+  readonly property bool fitsBeside: root.innerHeight >= root.calendarMinHeight && root.innerWidth >= root.calendarMinWidth + root.pad + Appearance.fontSize * 8
   readonly property bool showCalendar: !root.compact && (root.fitsUnder || root.fitsBeside)
   readonly property bool sideBySide: root.showCalendar && root.fitsBeside && (root.shape === "horizontal" || !root.fitsUnder)
   // A wide strip: the date beside the time
-  readonly property bool clockRow: !root.showCalendar && root.bodyWidth > root.bodyHeight * 2.5
-  readonly property real calendarWidth: Math.min(root.sideBySide ? (root.bodyWidth - root.pad) / 2 : root.bodyWidth, Appearance.fontSize * 32)
+  readonly property bool clockRow: !root.showCalendar && root.innerWidth > root.innerHeight * 2.5
+  readonly property real calendarWidth: Math.min(root.sideBySide ? (root.innerWidth - root.pad) / 2 : root.innerWidth, Appearance.fontSize * 32)
   readonly property real clockMinHeight: Appearance.fontSize * 5
-  readonly property real cellHeight: Math.max(Appearance.fontSize * 1.4, Math.min(root.calendarWidth / 7 * 0.85, ((root.sideBySide ? root.bodyHeight : root.bodyHeight - root.clockMinHeight - Widget.spacing) - root.headerHeight - root.weekdayHeight) / 6))
+  readonly property real cellHeight: Math.max(Appearance.fontSize * 1.4, Math.min(root.calendarWidth / 7 * 0.85, ((root.sideBySide ? root.innerHeight : root.innerHeight - root.clockMinHeight - Widget.spacing) - root.headerHeight - root.weekdayHeight) / 6))
   readonly property real calendarHeight: root.headerHeight + root.weekdayHeight + root.cellHeight * 6
   readonly property date now: clock.date
   property int monthOffset: 0
@@ -65,7 +63,7 @@ Card {
     Item {
       Layout.fillWidth: true
       Layout.fillHeight: true
-      Layout.preferredWidth: root.sideBySide ? root.bodyWidth - root.calendarWidth - root.pad : root.bodyWidth
+      Layout.preferredWidth: root.sideBySide ? root.innerWidth - root.calendarWidth - root.pad : root.innerWidth
 
       GridLayout {
         id: clockBox

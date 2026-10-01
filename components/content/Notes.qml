@@ -32,10 +32,10 @@ Card {
 
   // Compact, a headerless scratchpad; too small for a few lines, the
   // note's name and checklist progress
-  readonly property bool tiny: root.height - root.pad * 2 < Appearance.fontSize * 4 || root.width - root.pad * 2 < Appearance.fontSize * 6
+  readonly property bool tiny: root.innerHeight < Appearance.fontSize * 4 || root.innerWidth < Appearance.fontSize * 6
   readonly property bool showHeader: root.properties.showHeader && !root.compact
   // The toolbar's buttons only where they leave the name some room
-  readonly property bool showToolbar: root.properties.showToolbar && !root.compact && root.width - root.pad * 2 >= Appearance.fontSize * 16
+  readonly property bool showToolbar: root.properties.showToolbar && !root.compact && root.innerWidth >= Appearance.fontSize * 16
 
   function show(path) {
     const rel = NotesManager.clean(path);

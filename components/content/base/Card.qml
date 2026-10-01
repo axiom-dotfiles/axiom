@@ -3,7 +3,7 @@ import QtQuick
 import qs.config
 
 // Base for overlay modules (what BaseWidget is for bar modules): the card
-// box filling its cell slot. Modules set only what differs, e.g. `color`,
+// box filling its slot. Modules set only what differs, e.g. `color`,
 // and pick their internal layout from `shape` / `compact` (see
 // OverlaySlot, which sets `slotRect`).
 Rectangle {
@@ -36,6 +36,8 @@ Rectangle {
   readonly property alias shape: slot.shape
   readonly property alias compact: slot.compact
   readonly property alias pad: slot.pad
+  readonly property alias innerWidth: slot.innerWidth
+  readonly property alias innerHeight: slot.innerHeight
 
   property SlotContext _slot: SlotContext {
     id: slot
@@ -48,10 +50,32 @@ Rectangle {
     fullMinHeight: root.fullMinHeight
   }
 
+  // What a compact card shows instead of its content (e.g. a
+  // CompactFigure), filling the box inside `pad`; without one, a compact
+  // card shows its content as usual (as Panel's)
+  property Component compactContent: null
+  readonly property bool _showCompact: root.compact && root.compactContent !== null
+  // Children go in here, filling the card, hidden while the compact
+  // content shows
+  default property alias content: full.data
+
   anchors.fill: parent
   color: bare ? "transparent" : Theme.background
   border.color: Theme.border
   border.width: bare ? 0 : Appearance.borderWidth
   radius: Widget.radius
   clip: true
+
+  Item {
+    id: full
+    anchors.fill: parent
+    visible: !root._showCompact
+  }
+
+  Loader {
+    anchors.fill: parent
+    anchors.margins: root.pad
+    active: root._showCompact
+    sourceComponent: root.compactContent
+  }
 }

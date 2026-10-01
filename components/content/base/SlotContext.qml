@@ -33,4 +33,7 @@ QtObject {
   // No card box (an edge menu with moduleBorders off)
   readonly property bool bare: embedded && (host?.bare ?? false)
   readonly property real pad: OverlayConfig.cardPad(compact, bare)
+  // The room inside `pad`
+  readonly property real innerWidth: width - pad * 2
+  readonly property real innerHeight: height - pad * 2
 }

@@ -21,18 +21,16 @@ Card {
   readonly property var current: root.source.current
   readonly property var daily: root.source.weather?.daily ?? null
   // What each section needs (px), and what fits in the room inside
-  readonly property real bodyWidth: root.width - root.pad * 2
-  readonly property real bodyHeight: root.height - root.pad * 2
   readonly property real currentHeight: Appearance.fontSize * 6
   readonly property real hourlyHeight: Appearance.fontSize * 4.2
   readonly property real dailyHeight: Appearance.fontSize * 1.5 * 7
   readonly property real sectionGap: Widget.spacing * 3
   // Wide slots put the days beside the current weather
-  readonly property bool sideBySide: !root.compact && root.bodyWidth >= Appearance.fontSize * 36 && root.bodyHeight >= root.dailyHeight
-  readonly property bool showDaily: !root.compact && (root.sideBySide || root.bodyHeight >= root.currentHeight + root.sectionGap + root.dailyHeight)
-  readonly property bool showHourly: !root.compact && root.bodyWidth >= Appearance.fontSize * 12 && root.bodyHeight >= (root.sideBySide ? Math.max(root.currentHeight, root.dailyHeight) : root.currentHeight + (root.showDaily ? root.sectionGap + root.dailyHeight : 0)) + root.sectionGap + root.hourlyHeight
+  readonly property bool sideBySide: !root.compact && root.innerWidth >= Appearance.fontSize * 36 && root.innerHeight >= root.dailyHeight
+  readonly property bool showDaily: !root.compact && (root.sideBySide || root.innerHeight >= root.currentHeight + root.sectionGap + root.dailyHeight)
+  readonly property bool showHourly: !root.compact && root.innerWidth >= Appearance.fontSize * 12 && root.innerHeight >= (root.sideBySide ? Math.max(root.currentHeight, root.dailyHeight) : root.currentHeight + (root.showDaily ? root.sectionGap + root.dailyHeight : 0)) + root.sectionGap + root.hourlyHeight
   // Room to spare: a bigger hero and airier days
-  readonly property bool roomy: root.bodyHeight >= Appearance.fontSize * 30
+  readonly property bool roomy: root.innerHeight >= Appearance.fontSize * 30
   // The current weather stacked and centred (tall, narrow and side by side
   // slots), else icon beside the figures
   readonly property bool stacked: !root.compact && (root.shape === "vertical" || root.sideBySide)
@@ -49,18 +47,16 @@ Card {
   EmptyState {
     anchors.centerIn: parent
     visible: !root.current
-    maxWidth: root.bodyWidth
-    availableHeight: root.bodyHeight
+    maxWidth: root.innerWidth
+    availableHeight: root.innerHeight
     icon: "cloud"
-    text: root.compact ? "" : I18n.tr("Loading weather…")
+    text: I18n.tr("Loading weather…")
   }
 
   // Compact: the condition and temperature
-  CompactFigure {
-    visible: root.compact && root.current !== null
-    anchors.fill: parent
-    anchors.margins: root.pad
-    icon: root.source.condition?.icon ?? ""
+  // (until it's loaded, a cloud)
+  compactContent: CompactFigure {
+    icon: root.current ? (root.source.condition?.icon ?? "") : "cloud"
     value: root.current ? `${Math.round(root.current.temperature_2m)}°` : ""
     label: root.source.condition?.label ?? ""
   }
@@ -193,7 +189,7 @@ Card {
 
   // The sections, centred as one block with gaps of at most maxGap
   ColumnLayout {
-    visible: !root.compact && root.current !== null
+    visible: root.current !== null
     anchors.fill: parent
     anchors.margins: root.pad
     spacing: 0
@@ -235,7 +231,7 @@ Card {
       id: hours
       visible: root.showHourly
       Layout.fillWidth: true
-      readonly property int count: root.showHourly ? Math.max(0, Math.min(12, Math.floor((root.width - root.pad * 2) / (Appearance.fontSize * 3.5)))) : 0
+      readonly property int count: root.showHourly ? Math.max(0, Math.min(12, Math.floor(root.innerWidth / (Appearance.fontSize * 3.5)))) : 0
 
       Repeater {
         model: hours.count

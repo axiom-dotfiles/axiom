@@ -18,8 +18,6 @@ Card {
 
   // One disk's rows (path and sizes, then the bar), and the room inside
   readonly property real diskHeight: Appearance.fontSize * 1.4 + 8 + Widget.spacing / 2
-  readonly property real innerWidth: root.width - root.pad * 2
-  readonly property real innerHeight: root.height - root.pad * 2
   // Stacked unless they don't fit that way, then as many across as fit
   readonly property int columns: {
     const n = root.paths.length;
@@ -47,11 +45,8 @@ Card {
   }
 
   // Compact: the first path's usage
-  CompactFigure {
+  compactContent: CompactFigure {
     readonly property var usage: SystemManager.disks[root.paths[0]] ?? null
-    visible: root.compact
-    anchors.fill: parent
-    anchors.margins: root.pad
     icon: "hard_drive"
     iconColor: root.barColor((usage?.usage ?? 0) / 100)
     value: usage ? String(Math.round(usage.usage)) : "…"
@@ -60,7 +55,6 @@ Card {
   }
 
   ColumnLayout {
-    visible: !root.compact
     anchors.fill: parent
     anchors.margins: root.pad
     spacing: Widget.spacing

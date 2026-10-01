@@ -20,10 +20,7 @@ Card {
   fullMinWidth: Appearance.fontSize * 6
   fullMinHeight: Appearance.fontSize * 6
 
-  CompactFigure {
-    visible: root.compact
-    anchors.fill: parent
-    anchors.margins: root.pad
+  compactContent: CompactFigure {
     icon: BatteryManager.isAvailable ? BatteryManager.getBatteryIcon() : "power"
     iconColor: BatteryManager.isAvailable ? root.levelColor : Theme.foregroundAlt
     value: BatteryManager.isAvailable ? String(Math.round(BatteryManager.percentage)) : ""
@@ -32,16 +29,16 @@ Card {
   }
 
   EmptyState {
-    visible: !root.compact && !BatteryManager.isAvailable
+    visible: !BatteryManager.isAvailable
     anchors.centerIn: parent
-    maxWidth: root.width - root.pad * 2
-    availableHeight: root.height - root.pad * 2
+    maxWidth: root.innerWidth
+    availableHeight: root.innerHeight
     icon: "power"
     text: I18n.tr("On AC power")
   }
 
   GridLayout {
-    visible: !root.compact && BatteryManager.isAvailable
+    visible: BatteryManager.isAvailable
     anchors.fill: parent
     anchors.margins: root.pad
     columns: root.sideBySide ? 2 : 1
@@ -77,7 +74,7 @@ Card {
       }
       StyledText {
         Layout.fillWidth: true
-        Layout.maximumWidth: root.width - root.pad * 2
+        Layout.maximumWidth: root.innerWidth
         horizontalAlignment: root.sideBySide ? Text.AlignLeft : Text.AlignHCenter
         elide: Text.ElideRight
         text: root.stateText

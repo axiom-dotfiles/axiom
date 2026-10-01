@@ -39,6 +39,8 @@ Item {
   readonly property alias shape: slot.shape
   readonly property alias compact: slot.compact
   readonly property alias pad: slot.pad
+  readonly property alias innerWidth: slot.innerWidth
+  readonly property alias innerHeight: slot.innerHeight
 
   property SlotContext _slot: SlotContext {
     id: slot

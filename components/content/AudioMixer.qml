@@ -32,12 +32,12 @@ Panel {
   readonly property string mutedGlyph: isInput ? "mic_off" : "volume_off"
   readonly property string unmutedGlyph: isInput ? "mic" : "volume_up"
   // A wide card puts the default device beside the tabs and list
-  readonly property bool sideBySide: root.embedded && !root.sliderOnly && root.shape === "horizontal" && root.width - root.pad * 2 >= Appearance.fontSize * 40
+  readonly property bool sideBySide: root.embedded && !root.sliderOnly && root.shape === "horizontal" && root.innerWidth >= Appearance.fontSize * 40
   // A short card: the default device's slider alone
   readonly property bool sliderOnly: root.embedded && root.height < Appearance.fontSize * 13
   // Each side's width in a horizontal card (from the card's size, not the
   // grid's, which depends on it)
-  readonly property real sideWidth: (root.width - root.pad * 2 - Appearance.borderWidth - root.pad * 2) / 2
+  readonly property real sideWidth: (root.innerWidth - Appearance.borderWidth - root.pad * 2) / 2
 
   // A popout's list is a fixed four app rows high, so switching tabs or
   // apps coming and going never resizes (and moves) the popout

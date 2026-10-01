@@ -28,8 +28,8 @@ Card {
   EmptyState {
     anchors.centerIn: parent
     visible: root.entries.length === 0
-    maxWidth: root.width - root.pad * 2
-    availableHeight: root.height - root.pad * 2
+    maxWidth: root.innerWidth
+    availableHeight: root.innerHeight
     icon: "star"
     text: I18n.tr("Add apps in this module's settings")
   }

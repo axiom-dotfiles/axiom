@@ -16,9 +16,9 @@ Card {
   readonly property string sortBy: root.properties.sortBy
   readonly property real rowHeight: Widget.height
   // Room for the command beside both figures
-  readonly property bool narrow: root.width - root.pad * 2 < Appearance.fontSize * 18
+  readonly property bool narrow: root.innerWidth < Appearance.fontSize * 18
   // The header only above two rows or more
-  readonly property bool showHeader: root.height - root.pad * 2 >= Appearance.fontSize * 2 + Widget.spacing + root.rowHeight * 2
+  readonly property bool showHeader: root.innerHeight >= Appearance.fontSize * 2 + Widget.spacing + root.rowHeight * 2
 
   fullMinWidth: Appearance.fontSize * 9
   fullMinHeight: Widget.height + Appearance.fontSize * 1.5
@@ -48,11 +48,8 @@ Card {
   }
 
   // Compact: the busiest process
-  CompactFigure {
+  compactContent: CompactFigure {
     readonly property var busiest: root.processes[0] ?? null
-    visible: root.compact
-    anchors.fill: parent
-    anchors.margins: root.pad
     icon: "bug_report"
     value: busiest ? busiest[root.sortBy].toFixed(0) : "…"
     unit: busiest ? "%" : ""
@@ -60,7 +57,6 @@ Card {
   }
 
   ColumnLayout {
-    visible: !root.compact
     anchors.fill: parent
     anchors.margins: root.pad
     spacing: Widget.spacing

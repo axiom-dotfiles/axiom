@@ -82,17 +82,13 @@ Card {
   }
 
   // Compact: this monitor's wallpaper
-  Thumbnail {
-    visible: root.compact
-    anchors.fill: parent
-    anchors.margins: root.pad
-    source: root.compact ? root.wallpaper : ""
+  compactContent: Thumbnail {
+    source: root.wallpaper
     sourceSize: Qt.size(320, 200)
     borderColor: Theme.border
   }
 
   ColumnLayout {
-    visible: !root.compact
     anchors.fill: parent
     anchors.margins: root.pad
     spacing: Widget.spacing
