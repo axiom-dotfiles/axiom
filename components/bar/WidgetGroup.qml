@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 
+import qs.services
 import qs.components.methods
 
 // One bar section: a row (or column, on a vertical bar) of BarWidgetHosts that
@@ -18,6 +19,8 @@ Item {
   property var popouts
   property var panel
   property var screen
+  // The section's key in the bar's `widgets`
+  property string zone: ""
   // The section's widgets (BarContainer.widgetModel entries). Modelled by
   // count, so edits to a widget's options reach it in place instead of
   // rebuilding every widget in the section.
@@ -49,6 +52,11 @@ Item {
 
   readonly property var allocation: BarLayout.allocate(root.measures, root._shown, root.maxExtent, root.spacing)
   readonly property real usedLength: BarLayout.span(root.allocation.sizes, root.spacing)
+  // The widgets with something to show that are hidden for want of room,
+  // by their index in the section's config (for the bar editor)
+  readonly property var crowdedOut: root.widgets.filter((w, i) => (root.measures[i]?.pref ?? 0) > 0 && !root.allocation.visible[i]).map(w => w.configIndex)
+  // How the widget the bar editor has selected is sized here, else null
+  readonly property var selectedMeasure: root._modules.find(m => m.highlighted)?.measure ?? null
 
   // Emitted when modules moved or resized within the group
   signal allocationUpdated
@@ -90,6 +98,7 @@ Item {
       properties: module.modelData.properties || {}
       layoutOverrides: module.modelData.layout || {}
       componentPath: module.modelData.component
+      highlighted: BarManager.isSelectedWidget(root.barConfig.sourceId, root.zone, module.modelData.configIndex ?? -1)
       popouts: root.popouts
       panel: root.panel
       screen: root.screen

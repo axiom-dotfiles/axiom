@@ -8,7 +8,7 @@ import qs.services
 QtObject {
   readonly property var _c: ConfigManager.config.Notifications
 
-  // "general" | "primaryBar" | "focused" | "all" (see General.screensFor)
+  // "general" | "primary" | "focused" | "all" (see General.screensFor)
   readonly property string monitors: _c.monitors
 
   // "topLeft" | "topRight" | "bottomLeft" | "bottomRight"

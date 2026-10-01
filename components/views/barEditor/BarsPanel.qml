@@ -17,6 +17,9 @@ Item {
 
   readonly property bool hasBar: root.bar !== null
   readonly property var bar: BarManager.selectedBar()
+  // A style is copied (BarManager.copyStyle), from the selected bar
+  readonly property bool copied: BarManager.copiedStyle !== null
+  readonly property bool copiedHere: BarManager.copiedStyle?.index === BarManager.selectedBarIndex
 
   // Group titles: I18n.tr("General") I18n.tr("Size") I18n.tr("Style")
   // I18n.tr("Behaviour") I18n.tr("Other")
@@ -35,7 +38,6 @@ Item {
           id: entry
           required property int index
           readonly property var entryBar: BarManager.localConfig[index] ?? ({})
-          readonly property bool primary: index === 0
 
           icon: Utils.edgeArrow(entry.entryBar.location)
           label: BarManager.barLabel(entry.index)
@@ -64,37 +66,11 @@ Item {
             }
           }
 
-          // Copy this bar's look, then paste it onto others
-          RowAction {
-            row: entry
-            lit: BarManager.copiedStyle?.index === entry.index
-            iconText: "format_paint"
-            tooltipText: I18n.tr("Copy style")
-            onClicked: BarManager.copyStyle(entry.index)
-          }
-
-          RowAction {
-            row: entry
-            visible: !!BarManager.copiedStyle && BarManager.copiedStyle.index !== entry.index
-            iconText: "content_paste"
-            tooltipText: I18n.tr("Paste style from {0}", BarManager.barLabel(BarManager.copiedStyle?.index ?? 0))
-            onClicked: BarManager.pasteStyle(entry.index)
-          }
-
           RowAction {
             row: entry
             iconText: "content_copy"
             tooltipText: I18n.tr("Copy this bar")
             onClicked: BarManager.duplicateBar(entry.index)
-          }
-
-          // The primary bar is the first; the star makes another one it
-          RowAction {
-            row: entry
-            lit: entry.primary
-            iconText: entry.primary ? "star" : "star_border"
-            tooltipText: entry.primary ? I18n.tr("Primary bar") : I18n.tr("Make this the primary bar")
-            onClicked: BarManager.setPrimary(entry.index)
           }
 
           RowAction {
@@ -110,16 +86,9 @@ Item {
 
       AddEntryButton {
         Layout.topMargin: Widget.spacing
+        Layout.bottomMargin: Widget.spacing
         text: I18n.tr("New bar")
         onClicked: BarManager.addBar()
-      }
-
-      AddEntryButton {
-        visible: !!BarManager.copiedStyle
-        Layout.bottomMargin: Widget.spacing
-        icon: "format_paint"
-        text: I18n.tr("Paste style to all bars")
-        onClicked: BarManager.pasteStyleToAll()
       }
     }
 
@@ -132,6 +101,31 @@ Item {
         id: group
         required property var modelData
         title: I18n.tr(group.modelData.title)
+
+        // The Style group carries the bar's look (its Size and Style
+        // settings, BarManager.styleKeys) to other bars
+        headerExtras: [
+          SquareIconButton {
+            visible: group.modelData.title === "Style"
+            iconText: "format_paint"
+            iconColor: root.copiedHere ? Theme.background : Theme.foreground
+            backgroundColor: root.copiedHere ? Theme.accent : Theme.backgroundAlt
+            tooltipText: I18n.tr("Copy this bar's size and style")
+            onClicked: BarManager.copyStyle(BarManager.selectedBarIndex)
+          },
+          SquareIconButton {
+            visible: group.modelData.title === "Style" && root.copied && !root.copiedHere
+            iconText: "content_paste"
+            tooltipText: I18n.tr("Paste the size and style of {0}", BarManager.barLabel(BarManager.copiedStyle?.index ?? 0))
+            onClicked: BarManager.pasteStyle(BarManager.selectedBarIndex)
+          },
+          SquareIconButton {
+            visible: group.modelData.title === "Style" && root.copied
+            iconText: "done_all"
+            tooltipText: I18n.tr("Paste the size and style of {0} onto every bar", BarManager.barLabel(BarManager.copiedStyle?.index ?? 0))
+            onClicked: BarManager.pasteStyleToAll()
+          }
+        ]
 
         SchemaPropertiesForm {
           Layout.fillWidth: true

@@ -8,7 +8,7 @@
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 35,
+      "default": 36,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
@@ -198,10 +198,10 @@
         "monitors": {
           "type": "string",
           "title": "Monitors",
-          "enum": ["general", "primaryBar", "focused", "all"],
-          "x-enumLabels": { "general": "As in General", "primaryBar": "Primary bar's monitor", "focused": "Focused monitor", "all": "Every monitor" },
+          "enum": ["general", "primary", "focused", "all"],
+          "x-enumLabels": { "general": "As in General", "primary": "Primary monitor", "focused": "Focused monitor", "all": "Every monitor" },
           "default": "general",
-          "description": "Where the launcher opens. As in General follows General > Monitors; the primary bar's monitor is the first bar's; the focused monitor is the one with your active workspace (and mouse); every monitor shows it on all of them at once."
+          "description": "Where the launcher opens. As in General follows General > Monitors; the primary monitor is the one set in General; the focused monitor is the one with your active workspace (and mouse); every monitor shows it on all of them at once."
         },
         "position": {
           "type": "string",
@@ -259,10 +259,10 @@
         "monitors": {
           "type": "string",
           "title": "Monitors",
-          "enum": ["general", "primaryBar", "focused", "all"],
-          "x-enumLabels": { "general": "As in General", "primaryBar": "Primary bar's monitor", "focused": "Focused monitor", "all": "Every monitor" },
+          "enum": ["general", "primary", "focused", "all"],
+          "x-enumLabels": { "general": "As in General", "primary": "Primary monitor", "focused": "Focused monitor", "all": "Every monitor" },
           "default": "general",
-          "description": "Where the power menu opens. As in General follows General > Monitors; the primary bar's monitor is the first bar's; the focused monitor is the one with your active workspace (and mouse); every monitor shows it on all of them at once."
+          "description": "Where the power menu opens. As in General follows General > Monitors; the primary monitor is the one set in General; the focused monitor is the one with your active workspace (and mouse); every monitor shows it on all of them at once."
         },
         "actions": { "type": "array", "title": "Actions", "default": ["lock", "suspend", "hibernate", "logout", "reboot", "poweroff"], "items": { "type": "string", "enum": ["lock", "suspend", "hibernate", "logout", "reboot", "poweroff"] }, "description": "Which actions the menu shows, in order." },
         "confirm": { "type": "boolean", "title": "Confirm destructive actions", "default": true, "description": "Log out, reboot and power off ask for a second click (or Enter) first." },
@@ -270,7 +270,7 @@
         "showHeader": { "type": "boolean", "title": "Greeting and uptime", "default": true, "description": "Show a greeting and how long the computer has been up above the actions." },
         "showHint": { "type": "boolean", "title": "Controls hint", "default": true, "description": "Show the keys under the actions." },
         "showBackdrop": { "type": "boolean", "title": "Dim background", "default": true, "description": "Dim the whole screen behind the power menu, under the bars and border." },
-        "backdrop": { "type": "integer", "title": "Backdrop darkness", "x-unit": "%", "default": 35, "minimum": 0, "maximum": 90, "description": "How dark the screen behind the power menu goes.", "x-showIf": { "showBackdrop": true } }
+        "backdrop": { "type": "integer", "title": "Backdrop darkness", "x-unit": "%", "default": 36, "minimum": 0, "maximum": 90, "description": "How dark the screen behind the power menu goes.", "x-showIf": { "showBackdrop": true } }
       }
     },
 
@@ -299,10 +299,10 @@
         "monitors": {
           "type": "string",
           "title": "Monitors",
-          "enum": ["general", "primaryBar", "focused", "all"],
-          "x-enumLabels": { "general": "As in General", "primaryBar": "Primary bar's monitor", "focused": "Focused monitor", "all": "Every monitor" },
+          "enum": ["general", "primary", "focused", "all"],
+          "x-enumLabels": { "general": "As in General", "primary": "Primary monitor", "focused": "Focused monitor", "all": "Every monitor" },
           "default": "general",
-          "description": "Where toasts appear. As in General follows General > Monitors; the primary bar's monitor is the first bar's; the focused monitor is the one with your active workspace when the notification arrives; every monitor shows each toast on all of them, and closing one closes the rest."
+          "description": "Where toasts appear. As in General follows General > Monitors; the primary monitor is the one set in General; the focused monitor is the one with your active workspace when the notification arrives; every monitor shows each toast on all of them, and closing one closes the rest."
         },
         "position": {
           "type": "string",
@@ -1257,10 +1257,10 @@
         "monitors": {
           "type": "string",
           "title": "Monitors",
-          "enum": ["general", "primaryBar", "focused", "all"],
-          "x-enumLabels": { "general": "As in General", "primaryBar": "Primary bar's monitor", "focused": "Focused monitor", "all": "Every monitor" },
+          "enum": ["general", "primary", "focused", "all"],
+          "x-enumLabels": { "general": "As in General", "primary": "Primary monitor", "focused": "Focused monitor", "all": "Every monitor" },
           "default": "general",
-          "description": "Where the overlay opens. As in General follows General > Monitors; the primary bar's monitor is the first bar's; the focused monitor is the one with your active workspace (and mouse); every monitor shows it on all of them at once."
+          "description": "Where the overlay opens. As in General follows General > Monitors; the primary monitor is the one set in General; the focused monitor is the one with your active workspace (and mouse); every monitor shows it on all of them at once."
         },
         "size": {
           "type": "integer",
@@ -1467,7 +1467,7 @@
 
     "Bars": {
       "type": "array",
-      "description": "Bars, in priority order: the first is the primary bar. Edited in the overlay's bar editor.",
+      "description": "Bars, edited in the overlay's bar editor.",
       "x-settings": false,
       "default": [
         {
@@ -1658,10 +1658,10 @@
         "monitors": {
           "type": "string",
           "title": "Monitors",
-          "enum": ["general", "primaryBar", "focused", "all"],
-          "x-enumLabels": { "general": "As in General", "primaryBar": "Primary bar's monitor", "focused": "Focused monitor", "all": "Every monitor" },
+          "enum": ["general", "primary", "focused", "all"],
+          "x-enumLabels": { "general": "As in General", "primary": "Primary monitor", "focused": "Focused monitor", "all": "Every monitor" },
           "default": "general",
-          "description": "Where the OSD appears. As in General follows General > Monitors; the primary bar's monitor is the first bar's; the focused monitor is the one with your active workspace (and mouse); every monitor shows it on all of them at once."
+          "description": "Where the OSD appears. As in General follows General > Monitors; the primary monitor is the one set in General; the focused monitor is the one with your active workspace (and mouse); every monitor shows it on all of them at once."
         },
         "placement": {
           "type": "string",
@@ -2668,13 +2668,13 @@
 
     "WidgetLayout": {
       "type": "object",
-      "title": "Layout",
+      "title": "Sizing",
       "description": "Overrides for how much room a bar widget takes. Anything left out uses the widget's own sizing.",
       "additionalProperties": false,
       "properties": {
-        "size": { "type": "integer", "title": "Size", "minimum": 0, "maximum": 2000, "x-unit": "px", "description": "Length along the bar (px). Fixed and elastic widgets use it as their size / maximum." },
+        "size": { "type": "integer", "title": "Size", "minimum": 0, "maximum": 2000, "x-unit": "px", "description": "Length along the bar (px): the widget's size, or for one that shrinks when crowded, the most it takes." },
         "minSize": { "type": "integer", "title": "Minimum size", "minimum": 0, "maximum": 2000, "x-unit": "px", "description": "Smallest length the widget may shrink to when the bar is crowded (px)." },
-        "priority": { "type": "integer", "x-control": "stepper", "title": "Priority", "minimum": -100, "maximum": 100, "description": "When a section can't fit its widgets, lower priorities are hidden first." }
+        "priority": { "type": "integer", "x-control": "stepper", "title": "Priority", "minimum": -100, "maximum": 100, "description": "When the bar can't fit its widgets, lower priorities are hidden first: higher ones stay longest." }
       }
     },
 

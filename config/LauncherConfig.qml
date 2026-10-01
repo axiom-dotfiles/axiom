@@ -7,7 +7,7 @@ import qs.services
 QtObject {
   readonly property var _c: ConfigManager.config.Launcher
 
-  // "general" | "primaryBar" | "focused" | "all" (see General.screensFor)
+  // "general" | "primary" | "focused" | "all" (see General.screensFor)
   readonly property string monitors: _c.monitors
   // "center" | "upper" | "top" | "bottom"
   readonly property string position: _c.position

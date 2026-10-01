@@ -15,6 +15,8 @@ DragLayer {
 
   // The section under the pointer
   readonly property string hoverZone: root.hoverTarget?.zone ?? ""
+  // How long the carried chip is, for the gap a lane opens for it
+  readonly property real ghostLength: root.vertical ? ghost.height : ghost.width
 
   readonly property string location: BarManager.selectedBar()?.location ?? "Top"
   readonly property bool vertical: root.location === "Left" || root.location === "Right"
@@ -57,7 +59,7 @@ DragLayer {
     return info ? I18n.tr(info.label) : (type || I18n.tr("Unknown"));
   }
 
-  // A short name for chips in the narrow section lanes: the type, spaced.
+  // A short name for chips in the section lanes: the type, spaced.
   // Keys: I18n.tr("Window") I18n.tr("Media") I18n.tr("Workspaces")
   // I18n.tr("Time") I18n.tr("Tailscale")
   // I18n.tr("Network") I18n.tr("System Tray") I18n.tr("Notifications")

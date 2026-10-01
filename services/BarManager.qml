@@ -11,7 +11,8 @@ import qs.components.methods
  * saves (a theme, the settings page) don't persist unsaved bar edits.
  *
  * Also keeps the page's own state (selected bar and widget), since the
- * page is unloaded whenever the overlay closes. */
+ * page is unloaded whenever the overlay closes, and, while the page is on
+ * screen, what the running bars report back about the selected bar. */
 QtObject {
   id: root
 
@@ -28,6 +29,8 @@ QtObject {
       "zone": "",
       "index": -1
     })
+  // The section last selected or added to, where the library adds
+  property string lastZone: "center"
 
   // A bar's look: its Size and Style settings (BarsPanel groups them from
   // these), not its identity, placement, behaviour or widgets
@@ -38,6 +41,51 @@ QtObject {
   // index, since ids may be empty or shared: kept pointing at its bar as
   // bars are added, moved and removed. Never saved.
   property var copiedStyle: null
+
+  // The bar editor pages on screen (`watch`/`unwatch`). While there are
+  // any, the running bars outline the selected widget and report to `live`
+  property ConsumerRegistry _watchers: ConsumerRegistry {}
+  readonly property bool editing: root._watchers.active
+  // What each running bar reports while editing, by its id (a bar on every
+  // monitor has one per screen): { source (its config entry's id), screen,
+  // hidden: { zone: [widget indices hidden for want of room] }, selected:
+  // how it sizes the selected widget ({ policy, size, preferred, minimum,
+  // priority }), or null }
+  readonly property var live: root._live
+  property var _live: ({})
+
+  function watch(owner) {
+    root._watchers.acquire(owner, true);
+  }
+
+  function unwatch(owner) {
+    root._watchers.release(owner);
+  }
+
+  function setLive(id, report) {
+    if (id && JSON.stringify(root._live[id]) !== JSON.stringify(report))
+      root._live = Utils.withEntry(root._live, id, report ?? undefined);
+  }
+
+  // Clears a bar's report, unless another bar (on another screen) has
+  // taken its id since
+  function clearLive(id, screenName) {
+    if (root._live[id]?.screen === screenName)
+      root._live = Utils.withEntry(root._live, id, undefined);
+  }
+
+  // The selected bar's reports, one per screen it's on, by screen name
+  function liveReports() {
+    const id = selectedBar()?.id;
+    return Object.values(root.live).filter(report => report.source === id).sort((a, b) => a.screen.localeCompare(b.screen));
+  }
+
+  // Whether a running bar (by its config entry's id) shows the selected
+  // widget, while editing
+  function isSelectedWidget(source, zone, index) {
+    const sel = root.selectedWidget;
+    return root.editing && sel.zone === zone && sel.index === index && selectedBar()?.id === source;
+  }
 
   onSelectedBarIndexChanged: clearSelection()
 
@@ -192,17 +240,6 @@ QtObject {
     applyChanges();
   }
 
-  // The first bar is the primary one: move the chosen bar to the front
-  function setPrimary(index) {
-    if (index <= 0 || index >= root.localConfig.length)
-      return;
-    const [bar] = root.localConfig.splice(index, 1);
-    root.localConfig.unshift(bar);
-    _moveCopied(i => i === index ? 0 : i < index ? i + 1 : i);
-    root.selectedBarIndex = 0;
-    applyChanges();
-  }
-
   function updateBarField(key, value) {
     const bar = selectedBar();
     if (!bar)
@@ -218,6 +255,8 @@ QtObject {
       "zone": zone,
       "index": index
     };
+    if (zone !== "")
+      root.lastZone = zone;
   }
 
   function clearSelection() {

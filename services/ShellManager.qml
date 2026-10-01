@@ -23,7 +23,7 @@ QtObject {
   signal showOsd(string id)
 
   // A surface's `monitors` mode with "general" resolved: "primary" |
-  // "primaryBar" | "focused" | "all" (no mode is General's)
+  // "focused" | "all"
   function modeFor(mode) {
     return !mode || mode === "general" ? General.monitors : mode;
   }
@@ -33,11 +33,9 @@ QtObject {
   // everywhere, else the one it's built on
   function targetFor(mode) {
     const resolved = modeFor(mode);
-    if (resolved === "primaryBar")
-      return Bar.primaryMonitor;
     if (resolved === "focused" || resolved === "all")
       return Hyprland.focusedMonitor?.name ?? General.primaryMonitor;
-    return General.screens[0]?.name ?? "";
+    return General.screensFor(resolved)[0]?.name ?? "";
   }
 
   function isTarget(screen, mode) {

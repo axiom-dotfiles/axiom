@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 
 import qs.config
+import qs.services
 import qs.components.methods
 import qs.components.hosts.popout
 
@@ -108,12 +109,38 @@ Rectangle {
     }
   }
 
+  // A section's shown widgets; `configIndex` is each one's place in the
+  // section's config, which hidden widgets leave out
   function widgetModel(widgetConfigArray) {
-    return (widgetConfigArray || []).filter(widgetConf => widgetConf.visible !== false).map(widgetConf => ({
+    return (widgetConfigArray || []).map((widgetConf, i) => ({
           "component": "widgets/" + widgetConf.type + ".qml",
           "properties": widgetConf.properties || {},
-          "layout": widgetConf.layout || {}
-        }));
+          "layout": widgetConf.layout || {},
+          "configIndex": i,
+          "visible": widgetConf.visible !== false
+        })).filter(widget => widget.visible);
+  }
+
+  // While the bar editor is on screen, what it shows of this bar (see
+  // BarManager.live): the widgets hidden for want of room, by section, and
+  // how the selected widget is sized
+  readonly property var editorReport: BarManager.editing ? {
+    "source": root.barConfig.sourceId,
+    "screen": root.screen?.name ?? "",
+    "hidden": root._groups.reduce((out, g) => Utils.withEntry(out, g.zone, g.crowdedOut), {}),
+    "selected": root._groups.map(g => g.selectedMeasure).find(m => m !== null) ?? null
+  } : null
+  property string _reportedId: ""
+  readonly property string _reportKey: JSON.stringify(root.editorReport)
+  on_ReportKeyChanged: root._report()
+  Component.onDestruction: BarManager.clearLive(root._reportedId, root.screen?.name ?? "")
+
+  function _report() {
+    const id = root.editorReport ? root.barConfig.id : "";
+    if (root._reportedId !== "" && root._reportedId !== id)
+      BarManager.clearLive(root._reportedId, root.screen?.name ?? "");
+    root._reportedId = id;
+    BarManager.setLive(id, root.editorReport);
   }
 
   // A section: the group sits inside its slot at `align` (0 = start,
@@ -209,6 +236,7 @@ Rectangle {
     id: leftGroup
     bar: root
     slotIndex: 0
+    zone: "left"
     align: 0
     widgets: root.widgetModel(root.barConfig.widgets?.left)
   }
@@ -217,6 +245,7 @@ Rectangle {
     id: leftCenterGroup
     bar: root
     slotIndex: 1
+    zone: "leftCenter"
     align: 1
     widgets: root.widgetModel(root.barConfig.widgets?.leftCenter)
   }
@@ -225,6 +254,7 @@ Rectangle {
     id: centerGroup
     bar: root
     slotIndex: 2
+    zone: "center"
     align: 0.5
     widgets: root.widgetModel(root.barConfig.widgets?.center)
   }
@@ -233,6 +263,7 @@ Rectangle {
     id: rightCenterGroup
     bar: root
     slotIndex: 3
+    zone: "rightCenter"
     align: 0
     widgets: root.widgetModel(root.barConfig.widgets?.rightCenter)
   }
@@ -241,6 +272,7 @@ Rectangle {
     id: rightGroup
     bar: root
     slotIndex: 4
+    zone: "right"
     align: 1
     widgets: root.widgetModel(root.barConfig.widgets?.right)
   }

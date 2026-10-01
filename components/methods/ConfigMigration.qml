@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 35
+  readonly property int currentVersion: 36
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -97,6 +97,8 @@ QtObject {
       result = _v33ToV34(result, changes);
     if (version < 35)
       result = _v34ToV35(result, changes);
+    if (version < 36)
+      result = _v35ToV36(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -1290,6 +1292,20 @@ QtObject {
       }
       delete menu.align;
     });
+    return config;
+  }
+
+  // v36 dropped the primary bar: a surface opening on "primaryBar" (the
+  // first bar's monitor) opens on the primary monitor
+  function _v35ToV36(config, changes) {
+    const retarget = (section, where) => {
+      if (section && typeof section === "object" && section.monitors === "primaryBar") {
+        section.monitors = "primary";
+        changes.push(`${where}.monitors: "primaryBar" -> "primary"`);
+      }
+    };
+    ["Launcher", "PowerMenu", "Notifications", "Overlay"].forEach(name => retarget(config[name], name));
+    (Array.isArray(config.OSD?.osds) ? config.OSD.osds : []).forEach((osd, i) => retarget(osd, `OSD.osds[${i}]`));
     return config;
   }
 }

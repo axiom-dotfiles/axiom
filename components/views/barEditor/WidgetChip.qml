@@ -1,5 +1,6 @@
 pragma ComponentBehavior: Bound
 import QtQuick
+import qs.config
 import qs.components.reusable
 
 // One bar widget in the editor: its type's icon and name, as a pill
@@ -11,6 +12,8 @@ DragChip {
   property string type: ""
   // The widget's own `visible: false` (kept in config, not shown on the bar)
   property bool hiddenWidget: false
+  // Hidden by a running bar for want of room
+  property bool crowded: false
   // Left in place, faded, while it's being carried
   property bool faded: false
 
@@ -24,5 +27,12 @@ DragChip {
     text: "visibility_off"
     textColor: root.ink
     opacity: 0.7
+  }
+
+  // No room for it on the bar
+  StyledIcon {
+    visible: root.crowded && !root.hiddenWidget
+    text: "compress"
+    textColor: root.selected ? root.ink : Theme.warning
   }
 }

@@ -99,28 +99,24 @@ QtObject {
     };
   }
 
-  // The first entry in Bars is the primary bar. While the bar editor has
-  // unsaved edits, the running bars show those.
   // The Bars section as saved: no previews, "*" monitors unexpanded, locations as strings
   readonly property var savedBars: ConfigManager.config.Bars
+  // The running bars: while the bar editor has unsaved edits, those
   readonly property var bars: Bar.expandBars(ConfigManager.previews.Bars ?? ConfigManager.config.Bars).map(bar => Bar.enrichBarConfig(bar))
 
   // A bar on every monitor (`monitor: "*"`) becomes one entry per screen,
   // each with its own id (keying its BarPanel) and that screen as its
-  // monitor. The primary monitor's comes first, so a primary bar on every
-  // monitor still makes the primary monitor the primary bar's. Any other
-  // bar's monitor is resolved like a dock's or edge menu's: its named
-  // screen, else (empty or not connected) the primary monitor.
+  // monitor. Any other bar's monitor is resolved like a dock's or edge
+  // menu's: its named screen, else (empty or not connected) the primary
+  // monitor.
   function expandBars(bars) {
     const names = Array.from(Quickshell.screens).map(s => s.name);
-    const primary = names.includes(General.primaryMonitor) ? General.primaryMonitor : names[0];
-    const ordered = names.length > 0 ? [primary].concat(names.filter(n => n !== primary)) : [];
     return [].concat(...bars.map(bar => {
       if (bar.monitor !== "*")
         return [Object.assign({}, bar, {
             "monitor": General.screensNamed(bar.monitor)[0]?.name ?? ""
           })];
-      return ordered.map(name => Object.assign({}, bar, {
+      return names.map(name => Object.assign({}, bar, {
           "id": `${bar.id}@${name}`,
           "sourceId": bar.id,
           "monitor": name
@@ -150,15 +146,6 @@ QtObject {
       };
     }).filter(t => t !== null);
   }
-  // The primary bar's monitor (bars' monitors are resolved in expandBars);
-  // the primary monitor when there are no bars
-  readonly property string primaryMonitor: {
-    const name = Bar.bars[0]?.monitor ?? "";
-    if (Quickshell.screens.some(s => s.name === name))
-      return name;
-    return General.primaryMonitor;
-  }
-
   // The enabled bars on a screen by edge ({ top, bottom, left, right },
   // null where there is none)
   function edgesFor(screen) {

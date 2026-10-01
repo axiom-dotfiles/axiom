@@ -4,12 +4,11 @@ import QtQuick.Layouts
 import qs.config
 
 // An outlined full-width button under a list that adds to it ("New bar",
-// "Paste style to all bars")
+// "New page")
 StyledContainer {
   id: root
 
   property string text
-  property string icon: "add"
 
   signal clicked
 
@@ -25,7 +24,7 @@ StyledContainer {
     opacity: area.containsMouse ? 1 : 0.7
 
     StyledIcon {
-      text: root.icon
+      text: "add"
     }
 
     StyledText {
