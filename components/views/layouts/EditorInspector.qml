@@ -25,6 +25,8 @@ Item {
   readonly property int index: root.editor.selected
   readonly property var module: root.editor.selectedModule()
   readonly property string moduleType: root.module?.type ?? ""
+  // A required module (x-required) stays: no Duplicate or Remove
+  readonly property bool removable: root.module !== null && !OverlayConfig.isRequired(root.moduleType)
   readonly property var place: root.module?.place ?? null
   // A new form per module (KeyedLoader)
   readonly property string selectionKey: root.module ? [root.editor.scopeKey, root.index, root.moduleType].join(":") : ""
@@ -52,14 +54,14 @@ Item {
         subtitle: root.place ? I18n.tr("{0} × {1} cards", root.cards(root.place.w), root.cards(root.place.h)) : root.editable ? I18n.tr("Click a module on the canvas to edit it") : root.notEditableHint
 
         SquareIconButton {
-          visible: root.module !== null
+          visible: root.removable
           iconText: "content_copy"
           tooltipText: I18n.tr("Duplicate")
           onClicked: root.editor.duplicateModule(root.index)
         }
 
         SquareIconButton {
-          visible: root.module !== null
+          visible: root.removable
           iconText: "delete"
           hoverColor: Theme.error
           tooltipText: I18n.tr("Remove")

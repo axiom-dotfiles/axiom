@@ -776,4 +776,45 @@ TestCase {
     compare(result.config.version, ConfigMigration.currentVersion + 1);
     compare(result.migrated, false);
   }
+
+  function test_v34_lockscreen_becomes_modules_data() {
+    return [
+      {
+        "tag": "with media",
+        "showMedia": true,
+        "types": ["Greeting", "NowPlaying", "Password"]
+      },
+      {
+        "tag": "without media",
+        "showMedia": false,
+        "types": ["Greeting", "Password"]
+      }
+    ];
+  }
+
+  function test_v34_lockscreen_becomes_modules(data) {
+    const loaded = load({
+      "version": 33,
+      "Lockscreen": {
+        "mode": "quickshell",
+        "showMedia": data.showMedia
+      }
+    });
+    const lockscreen = loaded.config.Lockscreen;
+    compare(lockscreen.showMedia, undefined);
+    compare(lockscreen.layout.modules.map(module => module.type), data.types);
+    compare(lockscreen.layout.columns, 16);
+    compare(lockscreen.layout.modules[0].properties.text, "");
+    compare(loaded.changes.filter(change => change.startsWith("Lockscreen:")).length, 1);
+    compare(loaded.removed, []);
+    compare(errors(loaded.config), []);
+  }
+
+  function test_lockscreen_default_layout_fits_its_grid() {
+    const layout = SchemaValidation.applyDefaults({}, schema).Lockscreen.layout;
+    const bounds = GridPlacement.bounds(layout.modules);
+    verify(bounds.cols <= layout.columns && bounds.rows <= layout.rows);
+    compare(layout.modules.filter(module => module.type === "Password").length, 1);
+    layout.modules.forEach((module, i) => verify(GridPlacement.canPlace(layout.modules.slice(0, i), module.place, -1)));
+  }
 }

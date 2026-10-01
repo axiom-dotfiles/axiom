@@ -1,14 +1,14 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Axiom Configuration Schema",
-  "description": "Source of truth for config/user/config.json. Every key's `default` is filled in at load time (SchemaValidation.applyDefaults), so config readers never need their own fallbacks. `title`/`description`/`minimum`/`maximum`/`enum` drive the generated settings UI; `x-settings: false` hides a key from it (edited elsewhere, or UI-owned state); `x-options` names a dynamic option list (\"screens\", \"chatProviders\" and \"chatPresets\", \"colors\" for the 16 base theme colors, \"languages\" from config/i18n, \"cursorThemes\" for installed cursor themes, \"edgeMenus\" for the ids of EdgeMenus); `x-showIf` ({ sibling: value | [values] | { not: value } }) hides a field unless a sibling matches; a key starting with `/` is a dotted path from the config root instead (\"/Workspaces.layout\"). `x-enumLabels` ({ value: label }) shows labels instead of raw enum values in dropdowns. `x-multiline: true` edits a string in a growing text area. `x-order` on an object schema lists the keys its form shows first, in order (a schema reaches QML as a map, whose keys come out sorted). `x-defaultSize` ([w, h] in grid units, four to a card) on an overlay module definition is the size it's added at; `x-icon` on a module or view definition is its Material Symbols icon name in the editor. `x-hosts` on a module definition lists where it may be placed (\"overlay\", \"edgeMenu\"; both when left out). `x-canvasDetail` names a module property the layouts editor shows on its tile (a list joined), and `x-canvasFill` a color property the tile is filled with. Bar widgets are a oneOf discriminated by `type`, and get their `properties` defaults filled like everything else.",
+  "description": "Source of truth for config/user/config.json. Every key's `default` is filled in at load time (SchemaValidation.applyDefaults), so config readers never need their own fallbacks. `title`/`description`/`minimum`/`maximum`/`enum` drive the generated settings UI; `x-settings: false` hides a key from it (edited elsewhere, or UI-owned state); `x-options` names a dynamic option list (\"screens\", \"chatProviders\" and \"chatPresets\", \"colors\" for the 16 base theme colors, \"languages\" from config/i18n, \"cursorThemes\" for installed cursor themes, \"edgeMenus\" for the ids of EdgeMenus); `x-showIf` ({ sibling: value | [values] | { not: value } }) hides a field unless a sibling matches; a key starting with `/` is a dotted path from the config root instead (\"/Workspaces.layout\"). `x-enumLabels` ({ value: label }) shows labels instead of raw enum values in dropdowns. `x-multiline: true` edits a string in a growing text area. `x-order` on an object schema lists the keys its form shows first, in order (a schema reaches QML as a map, whose keys come out sorted). `x-defaultSize` ([w, h] in grid units, four to a card) on an overlay module definition is the size it's added at; `x-icon` on a module or view definition is its Material Symbols icon name in the editor. `x-hosts` on a module definition lists where it may be placed (\"overlay\", \"edgeMenu\", \"lockscreen\"; the first two when left out, so the lock screen only takes modules that list it). `x-required: true` on one makes it part of every grid on its hosts: it can't be removed or duplicated, and the library doesn't offer it. `x-canvasDetail` names a module property the layouts editor shows on its tile (a list joined), and `x-canvasFill` a color property the tile is filled with. Bar widgets are a oneOf discriminated by `type`, and get their `properties` defaults filled like everything else.",
   "type": "object",
   "additionalProperties": false,
   "properties": {
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 33,
+      "default": 34,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
@@ -17,6 +17,7 @@
       "type": "object",
       "x-category": "Desktop",
       "title": "Lockscreen",
+      "x-links": ["Layouts"],
       "description": "Which locker locks the session. The Idle settings can lock after some idle time; an idle daemon of your own should lock through `qs -c axiom ipc call lockscreen lock` for the built-in or hyprlock modes.",
       "additionalProperties": false,
       "properties": {
@@ -35,19 +36,56 @@
           "description": "What axiom's lock buttons run when the locker is your own.",
           "x-showIf": { "mode": "none" }
         },
-        "showMedia": {
-          "type": "boolean",
-          "title": "Media controls",
-          "default": true,
-          "description": "Show the playing track and its controls on the lock screen.",
-          "x-showIf": { "mode": "quickshell" }
-        },
         "blurWallpaper": {
           "type": "boolean",
           "title": "Blur wallpaper",
           "default": true,
-          "description": "Blur the wallpaper behind the hyprlock screen.",
-          "x-showIf": { "mode": "hyprlock" }
+          "description": "Blur the wallpaper behind the lock screen.",
+          "x-showIf": { "mode": { "not": "none" } }
+        },
+        "layout": {
+          "type": "object",
+          "x-settings": false,
+          "title": "Built-in lock screen",
+          "description": "What the built-in locker shows, edited on the Layouts page: its modules on a grid of columns × rows units, fitted to each monitor.",
+          "additionalProperties": false,
+          "x-order": ["columns", "rows", "otherScreens", "background", "backgroundColor", "dim", "moduleBorders"],
+          "properties": {
+            "columns": { "x-group": "Grid", "type": "integer", "title": "Columns", "default": 16, "minimum": 4, "maximum": 32, "description": "Grid units across. The grid is stretched to fill each monitor, so match your screen's shape (16 × 9 for 16:9)." },
+            "rows": { "x-group": "Grid", "type": "integer", "title": "Rows", "default": 9, "minimum": 2, "maximum": 32, "description": "Grid units down." },
+            "otherScreens": {
+              "x-group": "Grid",
+              "type": "string",
+              "title": "Other monitors",
+              "enum": ["layout", "background"],
+              "x-enumLabels": { "layout": "The same modules, without the password", "background": "The background only" },
+              "default": "layout",
+              "description": "What monitors other than the one with the password field show."
+            },
+            "background": {
+              "x-group": "Background",
+              "type": "string",
+              "title": "Background",
+              "enum": ["wallpaper", "color"],
+              "x-enumLabels": { "wallpaper": "Wallpaper", "color": "Color" },
+              "default": "wallpaper",
+              "description": "Each monitor's wallpaper (blurred when Blur wallpaper is on), or a plain color."
+            },
+            "backgroundColor": { "x-group": "Background", "type": "string", "title": "Color", "x-options": "colors", "default": "base00", "x-showIf": { "background": "color" } },
+            "dim": { "x-group": "Background", "type": "integer", "title": "Dim", "default": 40, "minimum": 0, "maximum": 100, "x-unit": "%", "x-control": "slider", "description": "Darken the background so the modules stand out." },
+            "moduleBorders": { "x-group": "Style", "type": "boolean", "title": "Module borders", "default": true, "description": "Draw each module's card box. Off shows modules straight on the background. The greeting and the password field never have one." },
+            "modules": {
+              "type": "array",
+              "x-settings": false,
+              "default": [
+                { "type": "ClockCalendar", "place": { "x": 0, "y": 0, "w": 4, "h": 2 } },
+                { "type": "Greeting", "place": { "x": 4, "y": 2, "w": 8, "h": 2 } },
+                { "type": "Password", "place": { "x": 5, "y": 4, "w": 6, "h": 1 } },
+                { "type": "NowPlaying", "place": { "x": 0, "y": 7, "w": 5, "h": 2 } }
+              ],
+              "items": { "$ref": "#/definitions/OverlayModule" }
+            }
+          }
         }
       }
     },
@@ -2221,7 +2259,9 @@
         { "$ref": "#/definitions/ChatOverlayModule" },
         { "$ref": "#/definitions/NotesOverlayModule" },
         { "$ref": "#/definitions/WallpaperPickerOverlayModule" },
-        { "$ref": "#/definitions/ColorSwatchOverlayModule" }
+        { "$ref": "#/definitions/ColorSwatchOverlayModule" },
+        { "$ref": "#/definitions/GreetingOverlayModule" },
+        { "$ref": "#/definitions/PasswordOverlayModule" }
       ]
     },
     "ThemeEditorOverlayModule": {
@@ -2237,6 +2277,7 @@
     },
     "NowPlayingOverlayModule": {
       "type": "object",
+      "x-hosts": ["overlay", "edgeMenu", "lockscreen"],
       "x-icon": "music_note",
       "x-defaultSize": [4, 2],
       "required": ["type"],
@@ -2265,6 +2306,7 @@
     },
     "VolumeDialsOverlayModule": {
       "type": "object",
+      "x-hosts": ["overlay", "edgeMenu", "lockscreen"],
       "x-icon": "volume_up",
       "x-defaultSize": [4, 2],
       "required": ["type"],
@@ -2276,6 +2318,7 @@
     },
     "SystemGraphsOverlayModule": {
       "type": "object",
+      "x-hosts": ["overlay", "edgeMenu", "lockscreen"],
       "x-icon": "show_chart",
       "x-canvasDetail": "metrics",
       "required": ["type"],
@@ -2294,6 +2337,7 @@
     },
     "DisksOverlayModule": {
       "type": "object",
+      "x-hosts": ["overlay", "edgeMenu", "lockscreen"],
       "x-icon": "hard_drive",
       "x-canvasDetail": "paths",
       "x-defaultSize": [4, 2],
@@ -2433,8 +2477,56 @@
         }
       }
     },
+    "GreetingOverlayModule": {
+      "type": "object",
+      "x-icon": "waving_hand",
+      "x-defaultSize": [8, 2],
+      "x-canvasDetail": "text",
+      "x-hosts": ["overlay", "edgeMenu", "lockscreen"],
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "place": { "$ref": "#/definitions/GridPlace" },
+        "type": { "const": "Greeting", "description": "Greeting" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "x-order": ["text", "color", "alignment", "bold"],
+          "properties": {
+            "text": { "type": "string", "title": "Text", "default": "", "description": "What it says. {name} is your display name, {user} your user name and {greeting} good morning, afternoon or evening. Empty says hey to your display name." },
+            "color": { "type": "string", "title": "Color", "x-options": "colors", "default": "base05" },
+            "alignment": { "type": "string", "title": "Alignment", "enum": ["left", "center", "right"], "x-enumLabels": { "left": "Left", "center": "Centre", "right": "Right" }, "default": "center" },
+            "bold": { "type": "boolean", "title": "Bold", "default": false }
+          }
+        }
+      }
+    },
+    "PasswordOverlayModule": {
+      "type": "object",
+      "x-icon": "password",
+      "x-defaultSize": [6, 1],
+      "x-hosts": ["lockscreen"],
+      "x-required": true,
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "place": { "$ref": "#/definitions/GridPlace" },
+        "type": { "const": "Password", "description": "Password" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "x-order": ["placeholder", "centered", "showMessages"],
+          "properties": {
+            "placeholder": { "type": "string", "title": "Placeholder", "default": "", "description": "Shown in the empty field. Empty says Enter password..." },
+            "centered": { "type": "boolean", "title": "Centre the text", "default": true },
+            "showMessages": { "type": "boolean", "title": "Messages", "default": true, "description": "Show what the login checks say under the field: prompts, failures and errors." }
+          }
+        }
+      }
+    },
     "ClockCalendarOverlayModule": {
       "type": "object",
+      "x-hosts": ["overlay", "edgeMenu", "lockscreen"],
       "x-icon": "calendar_clock",
       "required": ["type"],
       "additionalProperties": false,
@@ -2453,6 +2545,7 @@
     },
     "WeatherOverlayModule": {
       "type": "object",
+      "x-hosts": ["overlay", "edgeMenu", "lockscreen"],
       "x-icon": "partly_cloudy_day",
       "required": ["type"],
       "additionalProperties": false,
@@ -2463,6 +2556,7 @@
     },
     "BatteryOverlayModule": {
       "type": "object",
+      "x-hosts": ["overlay", "edgeMenu", "lockscreen"],
       "x-icon": "battery_full",
       "x-defaultSize": [2, 2],
       "required": ["type"],
@@ -2474,6 +2568,7 @@
     },
     "NetworkOverlayModule": {
       "type": "object",
+      "x-hosts": ["overlay", "edgeMenu", "lockscreen"],
       "x-icon": "wifi",
       "x-defaultSize": [4, 2],
       "required": ["type"],
@@ -2548,6 +2643,7 @@
     },
     "ColorSwatchOverlayModule": {
       "type": "object",
+      "x-hosts": ["overlay", "edgeMenu", "lockscreen"],
       "x-icon": "palette",
       "x-defaultSize": [2, 2],
       "x-canvasDetail": "color",

@@ -45,8 +45,12 @@ QtObject {
         "tool": def["x-tool"] === true,
         // Material Symbols name (`x-icon`)
         "icon": def["x-icon"] ?? "extension",
-        // Where a module may be placed (`x-hosts`): "overlay", "edgeMenu"
+        // Where a module may be placed (`x-hosts`): "overlay", "edgeMenu",
+        // "lockscreen" (only modules that list it)
         "hosts": def["x-hosts"] ?? ["overlay", "edgeMenu"],
+        // Part of every grid on its hosts (`x-required`): never removed,
+        // duplicated or offered in the library
+        "required": def["x-required"] === true,
         // The property shown on its layouts editor tile (`x-canvasDetail`),
         // and the color property filling it (`x-canvasFill`), else ""
         "canvasDetail": def["x-canvasDetail"] ?? "",
@@ -58,9 +62,17 @@ QtObject {
   // A Custom page's own fields (name, icon), for the layouts editor
   readonly property var customViewSchema: ConfigManager.configSchema.definitions.CustomOverlayView.properties
   readonly property var availableViewTypes: _oneOfTypes("OverlayView")
-  // The module types a host offers: "overlay" pages or "edgeMenu"s
+  // The module types a host's library offers: "overlay" pages,
+  // "edgeMenu"s or the "lockscreen" (required ones are always there)
   function modulesFor(host) {
-    return availableModuleTypes.filter(t => t.hosts.includes(host));
+    return availableModuleTypes.filter(t => t.hosts.includes(host) && !t.required);
+  }
+  // The required module types on a host
+  function requiredFor(host) {
+    return availableModuleTypes.filter(t => t.hosts.includes(host) && t.required).map(t => t.type);
+  }
+  function isRequired(type) {
+    return moduleInfo(type)?.required ?? false;
   }
   function allowedIn(type, host) {
     const info = moduleInfo(type);

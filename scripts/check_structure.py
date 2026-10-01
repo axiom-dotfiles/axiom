@@ -45,8 +45,6 @@ POPOUT_DIR = "components/content"
 POPOUT_IMPORT = "qs.components.content"
 # Directories retired by restructuring: nothing may live or be imported there
 RETIRED = ["components/widgets", "components/stolen"]
-# Not held to the pragma rule until its rewrite
-PRAGMA_EXEMPT = ("components/surfaces/lockscreen/", "shell/Lockscreen.qml")
 
 errors, warnings = [], []
 
@@ -118,8 +116,6 @@ def main():
     # only their required properties, and ids in nested components resolve)
     # or `pragma Singleton`
     for path, text in sources.items():
-        if path.startswith(PRAGMA_EXEMPT):
-            continue
         # the first line that isn't a comment (a header, qs's //@ pragmas)
         head = next((line.strip() for line in text.split("\n") if line.strip() and not line.strip().startswith("//")), "")
         if head not in ("pragma ComponentBehavior: Bound", "pragma Singleton"):

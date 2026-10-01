@@ -28,7 +28,7 @@ A [Quickshell](https://quickshell.org) desktop shell config (QML) for Hyprland (
 ## Checks
 
 All run in CI (`.github/workflows/checks.yml`); `scripts/check_all.sh` runs every one. None of them run the shell, so still check `scripts/log.sh` after a save.
-- `scripts/check_structure.py`: **run after adding, renaming or moving QML files.** Schema types and `popoutName`s have files, URL-loaded dirs are imported, `qs.*` imports resolve, singleton names aren't typos, no file sees two same-named types, every file has its pragma (the lockscreen is exempt until its rewrite).
+- `scripts/check_structure.py`: **run after adding, renaming or moving QML files.** Schema types and `popoutName`s have files, URL-loaded dirs are imported, `qs.*` imports resolve, singleton names aren't typos, no file sees two same-named types, every file has its pragma.
 - `scripts/run_tests.sh [Name…]`: qmltestrunner tests `tests/tst_<Name>.qml` for `components/methods/`, the schema defaults and `ConfigMigration` (`tests/fixtures/configs/v1.json`). Add a case when changing a methods helper or a migration step. Generated Lua is checked with `luac -p` (`*.run.lua` also run).
 - `scripts/check_qmllint.py`: fails on warnings not in `scripts/qmllint-baseline.json`. Fix new warnings; `--update-baseline` only for Quickshell type-info gaps, or when it reports baselined warnings gone.
 - `scripts/check_qmlformat.sh [--fix]`, `shellcheck -x -S warning`, `tests/scripts/test_scripts.py` (themes, `theme_*.sh`, `self_update.sh`, `generate_theme.py`).
@@ -87,7 +87,7 @@ Dependencies point one way:
 - `config/json/config.schema.json` is the single source of truth: shape, defaults, and the generated settings page. Adding a setting = a schema entry with a `default` + a reader property. Changing the layout of existing config = bump `version` + a `ConfigMigration` step + a test.
 - Load pipeline: parse → `ConfigMigration.migrate` → `SchemaValidation.pruneUnknown` → `applyDefaults` → validate. Every default is filled, so **readers use no `??` fallbacks**.
 - Readers are named for their section, with a `Config` suffix where the name is a type (`OSDConfig`, `OverlayConfig`, `LauncherConfig`, `NotificationsConfig`, `PopoutConfig`, `IconConfig`, `ChatConfig`, `WorkspacesConfig`, `LockscreenConfig`, …). `Paths` holds derived paths. A reader that also exposes the config as saved says so (`Bar.savedBars`, `ChatConfig.savedProviders`).
-- Schema annotations drive the UI; prefer a new annotation to a hand-kept list in QML: `x-settings: false` (hide), `x-category`, `x-group`/`x-order` (settings cards and order; also the bar and edge menu editors' field groups), `x-card`/`x-intro` (hand-built `views/settings/<Name>Card.qml` / `<Name>.qml`; `x-cardFolds` if the card folds), `x-showIf` (sibling value, or `/Dotted.path` from the root), `x-applyOnSave`, `x-options` (`colors`, `screens`, `languages`, …; `x-emptyLabel`, `x-allScreens`, `x-suggestions`), `x-unit`, `x-control`, `x-multiline`, `x-icon` (bar widgets, overlay modules and views), `x-defaultSize`/`x-hosts` on overlay modules, `x-tool` (tool pages), `x-auto` (an integer's automatic value), `x-control: readonly`, `x-hypr*` for Hyprland options. `oneOf`s are discriminated by `type` (bar widgets, overlay views and modules).
+- Schema annotations drive the UI; prefer a new annotation to a hand-kept list in QML: `x-settings: false` (hide), `x-category`, `x-group`/`x-order` (settings cards and order; also the bar and edge menu editors' field groups), `x-card`/`x-intro` (hand-built `views/settings/<Name>Card.qml` / `<Name>.qml`; `x-cardFolds` if the card folds), `x-showIf` (sibling value, or `/Dotted.path` from the root), `x-applyOnSave`, `x-options` (`colors`, `screens`, `languages`, …; `x-emptyLabel`, `x-allScreens`, `x-suggestions`), `x-unit`, `x-control`, `x-multiline`, `x-icon` (bar widgets, overlay modules and views), `x-defaultSize`/`x-hosts`/`x-required` on overlay modules (the lock screen is an opt-in host), `x-tool` (tool pages), `x-auto` (an integer's automatic value), `x-control: readonly`, `x-hypr*` for Hyprland options. `oneOf`s are discriminated by `type` (bar widgets, overlay views and modules).
 - An empty monitor means the primary monitor everywhere (`General.screensNamed`), except in `General.primaryMonitor` itself.
 - **Theme**: `Theme.base00`–`base0F` plus semantic names; `Theme.resolveColor(name)` for names from config. `config/json/theme-defaults.json` fills what a theme omits. Theme integrations (`scripts/theme_<key>.sh`) write only their own `axiom.*` file and never edit a user's config.
 - **Animation**: every `duration:` is `Appearance.animFast` / `animNormal` / `animSlow`, never a literal; looping animations gate `running` on `Appearance.animations`. Only behaviour timings (cursor blink, timeouts, polling) are literals.
@@ -115,7 +115,7 @@ Dependencies point one way:
 - **Layer ordering** (bars, border, popouts, dock, edge menus, backdrop, screenshot) is set by Hyprland layer rules in `HyprlandManager.layerRulesLua`; see docs/architecture.md (Popouts) before changing how surfaces sit on an edge.
 - **Screen targeting**: surfaces are built on `General.screensFor(mode)`; only `ShellManager.isTarget(screen, mode)` answers shortcuts, IPC and OSD events. IPC handlers are `enabled` on the target instance only.
 - **Launcher**: every provider returns rows `{ kind, image, glyph, title, usage, subtitle, hint, complete, run(shift) }`; a new command is an entry in `services/LauncherCommands.qml`. `/config` can never edit `Bars` or `Overlay.views`.
-- **Lockscreen**: `LockManager.lock()` is the only way to lock. In `quickshell` mode only PAM success (`AuthManager`) unlocks: no IPC unlock, and nothing on the lock surface may run commands.
+- **Lockscreen**: `LockManager.lock()` is the only way to lock. In `quickshell` mode only PAM success (`AuthManager`) unlocks: no IPC unlock, and nothing on the lock surface may run commands. Its modules are the ones whose `x-hosts` list `lockscreen`: add it only to a module that launches, dispatches and writes nothing and shows nothing private. The surface keeps a fallback password field for a layout without one.
 
 ## QML pitfalls (each has bitten)
 
@@ -137,6 +137,5 @@ Dependencies point one way:
 
 ## Known housekeeping
 
-- The lockscreen is due a rewrite (exempt from the pragma check).
 - `views/settings/ChatProvidersCard` creates its own `ChatRequest` for Test/Fetch models (documented exception to services owning processes).
 - The key recorder doesn't tell keypad keys apart or map AltGr.

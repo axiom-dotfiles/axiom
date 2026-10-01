@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 33
+  readonly property int currentVersion: 34
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -93,6 +93,8 @@ QtObject {
       result = _v31ToV32(result, changes);
     if (version < 33)
       result = _v32ToV33(result, changes);
+    if (version < 34)
+      result = _v33ToV34(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -1231,6 +1233,45 @@ QtObject {
       if (Object.keys(props).length === 0)
         delete f.item.properties;
     });
+    return config;
+  }
+
+  // v34 put the built-in lock screen on a grid of modules
+  // (Lockscreen.layout): the old one's greeting, playing track (unless
+  // showMedia was off) and password field become modules where they were
+  function _v33ToV34(config, changes) {
+    const lockscreen = config.Lockscreen;
+    if (!lockscreen || typeof lockscreen !== "object" || !("showMedia" in lockscreen))
+      return config;
+    const media = lockscreen.showMedia !== false;
+    delete lockscreen.showMedia;
+    if (lockscreen.layout && typeof lockscreen.layout === "object")
+      return config;
+    const at = (x, y, w, h) => ({
+          "x": x,
+          "y": y,
+          "w": w,
+          "h": h
+        });
+    const modules = [
+      {
+        "type": "Greeting",
+        "place": at(4, 2, 8, 2)
+      }
+    ];
+    if (media)
+      modules.push({
+        "type": "NowPlaying",
+        "place": at(5, 4, 6, 2)
+      });
+    modules.push({
+      "type": "Password",
+      "place": at(5, media ? 6 : 4, 6, 1)
+    });
+    lockscreen.layout = {
+      "modules": modules
+    };
+    changes.push(`Lockscreen: showMedia became the lock screen's modules${media ? " (with NowPlaying)" : ""}`);
     return config;
   }
 }

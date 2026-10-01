@@ -8,21 +8,23 @@ import qs.components.forms
 import qs.components.content.base
 
 // i18n: keys from the schema (titles, descriptions)
-// Layouts editor, left: the overlay pages and the edge menus, then what's
-// selected: a page's name and icon, or a menu's settings in groups
-// (from the schema's EdgeMenu definition, its Opening group led by how to
-// try and open it), and anything that blocks saving
+// Layouts editor, left: the overlay pages, the lock screen and the edge
+// menus, then what's selected: a page's name and icon, a menu's settings in
+// groups (from the schema's EdgeMenu definition, its Opening group led by
+// how to try and open it), or the lock screen's (led by its preview), and
+// anything that blocks saving
 Item {
   id: root
 
   required property var dragLayer
 
-  // What's being edited (Layouts): a page (`view`), or a `menu`
-  required property bool editingMenu
+  // What's being edited (Layouts): a page (`view`), a `menu` or the
+  // `lockscreen` layout; the others are null
   required property var view
   required property var menu
+  required property var lockscreen
   readonly property bool isCustom: root.view?.type === "Custom"
-  readonly property var problems: OverlayManager.problems.concat(EdgeMenuManager.problems)
+  readonly property var problems: OverlayManager.problems.concat(EdgeMenuManager.problems, LockManager.problems)
 
   // StyledTextEntry writes each keystroke back to its `text`, which drops
   // any binding on it, so the name is pushed in rather than bound: on every
@@ -45,6 +47,7 @@ Item {
 
   // Group titles: I18n.tr("General") I18n.tr("Opening") I18n.tr("Placement")
   // I18n.tr("Style") I18n.tr("Closing") I18n.tr("Advanced") I18n.tr("Other")
+  // I18n.tr("Grid") I18n.tr("Background")
   TitledCard {
     title: I18n.tr("Layouts")
     showActions: false
@@ -134,6 +137,40 @@ Item {
           // The whole menu, so x-showIf sees keys from other groups
           values: root.menu ?? ({})
           onEdited: (path, value) => EdgeMenuManager.updateMenuField(path[0], value)
+        }
+      }
+    }
+
+    // The lock screen: its preview, then its fields. As for the menu, the
+    // condition keeps the model the same while it's selected
+    FieldGroup {
+      visible: root.lockscreen !== null
+      Layout.topMargin: Widget.spacing
+      title: I18n.tr("Lock screen")
+      description: I18n.tr("What the built-in locker shows. Modules here can't open apps or run anything.")
+
+      StyledTextButton {
+        iconText: "visibility"
+        text: I18n.tr("Show on screen")
+        onClicked: LockManager.startPreview()
+      }
+    }
+
+    Repeater {
+      model: root.lockscreen !== null ? LockscreenConfig.fieldGroups : []
+
+      delegate: FieldGroup {
+        id: lockGroup
+        required property var modelData
+        Layout.topMargin: Widget.spacing
+        title: I18n.tr(lockGroup.modelData.title)
+
+        SchemaPropertiesForm {
+          Layout.fillWidth: true
+          propertiesSchema: lockGroup.modelData.schema
+          order: lockGroup.modelData.keys
+          values: root.lockscreen ?? ({})
+          onEdited: (path, value) => LockManager.updateLayoutField(path[0], value)
         }
       }
     }

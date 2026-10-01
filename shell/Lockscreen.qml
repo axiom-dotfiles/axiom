@@ -1,3 +1,4 @@
+pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
@@ -10,6 +11,8 @@ import qs.components.surfaces.lockscreen
 // shows only the lock surfaces, one per screen, and routes all input to
 // them; if qs dies, the session stays locked. Locking comes from
 // LockManager.lock(); the only way out is AuthManager's PAM success.
+// Also the layouts editor's preview of the lock screen, which locks
+// nothing.
 Scope {
   id: root
 
@@ -58,6 +61,14 @@ Scope {
       LockSurface {
         screen: surface.screen
       }
+    }
+  }
+
+  LazyLoader {
+    active: LockManager.previewing && !lockState.locked
+
+    LockPreviewWindow {
+      screen: Quickshell.screens.find(screen => screen.name === LockManager.previewScreen) ?? Quickshell.screens[0]
     }
   }
 }

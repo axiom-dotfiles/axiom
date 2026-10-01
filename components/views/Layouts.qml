@@ -1,57 +1,34 @@
 pragma ComponentBehavior: Bound
 import QtQuick
-import qs.config
 import qs.services
-import qs.components.methods
 import qs.components.views.layouts
 
 // The layouts editor: always the last page (pinned by OverlayPages; not
-// part of config). The overlay pages and edge menus on the left; the
-// selected one's modules on a canvas (drag to move, drag a corner to
-// resize) above the selected module's options, or the library to add
-// from. Edits go through OverlayManager's and EdgeMenuManager's drafts
-// until saved; a menu's show live on screen.
-// i18n: keys from the schema (view labels)
+// part of config). The overlay pages, edge menus and the lock screen on
+// the left; the selected one's modules on a canvas (drag to move, drag a
+// corner to resize) above the selected module's options, or the library
+// to add from. Edits go through OverlayManager's, EdgeMenuManager's and
+// LockManager's drafts until saved; a menu's show live on screen.
 BaseView {
   id: root
 
-  readonly property bool editingMenu: OverlayManager.editTarget === "menu"
-  // What's being edited: a page (view), or a menu
-  readonly property var view: root.editingMenu ? null : OverlayManager.selectedView()
-  readonly property bool isCustom: root.view?.type === "Custom"
-  readonly property var menu: root.editingMenu ? EdgeMenuManager.selectedMenu() : null
+  // What's being edited (OverlayManager.editTarget), as the canvas shows it
+  readonly property EditTarget target: OverlayManager.editTarget === "menu" ? menuTarget : OverlayManager.editTarget === "lockscreen" ? lockscreenTarget : pageTarget
 
-  // How the page fits each monitor's overlay, or the menu its edge
-  readonly property var fits: root.isCustom ? OverlayManager.fitOf(root.view.modules) : []
-  readonly property bool shrunk: root.fits.some(fit => fit.scale < 0.999)
-  readonly property string pageFitText: {
-    if (root.fits.length === 0)
-      return "";
-    const shrunk = root.fits.filter(fit => fit.scale < 0.999);
-    if (shrunk.length === 0)
-      return I18n.tr("Fits {0}", root.fits.map(fit => fit.screen).join(", "));
-    return shrunk.map(fit => I18n.tr("Shrunk to {0}% on {1}", Math.round(fit.scale * 100), fit.screen)).join(" · ");
+  PageTarget {
+    id: pageTarget
   }
-  readonly property bool menuVertical: root.menu?.edge === "Left" || root.menu?.edge === "Right"
-  readonly property var menuScreen: root.menu ? EdgeMenusConfig.screenFor(root.menu) : null
-  readonly property real menuLength: root.menu ? EdgeMenusConfig.lengthOf(root.menu, root.menuVertical, EdgeMenuManager.cardUnitOf(root.menu)) : 0
-  readonly property real edgeLength: root.menuScreen ? (root.menuVertical ? root.menuScreen.height : root.menuScreen.width) : 0
-  // Where the menu's modules sit on its screen (EdgeMenuManager.placementOf)
-  readonly property var menuPlace: root.menu ? EdgeMenuManager.placementOf(root.menu) : null
-  readonly property bool menuTooLong: root.menu?.length !== "edge" && root.edgeLength > 0 && root.menuLength > root.edgeLength
-  readonly property string menuFitText: {
-    if (!root.menu)
-      return "";
-    if (root.menu.length === "edge")
-      return I18n.tr("Takes its whole edge");
-    if (root.menuTooLong)
-      return I18n.tr("Longer than its edge: it scrolls");
-    return I18n.tr("{0} px along its edge", Math.round(root.menuLength));
+  MenuTarget {
+    id: menuTarget
+  }
+  LockscreenTarget {
+    id: lockscreenTarget
   }
 
   Component.onCompleted: {
     OverlayManager.ensureLoaded();
     EdgeMenuManager.ensureLoaded();
+    LockManager.ensureLoaded();
   }
   // The page unloads when the overlay closes (or it pages two away)
   Component.onDestruction: EdgeMenuManager.stopPreviewing()
@@ -59,42 +36,41 @@ BaseView {
   LayoutsEditorLayout {
     id: layout
     grid: root.grid
-    editor: root.editingMenu ? EdgeMenuManager.layout : OverlayManager.layout
-    canvas.modules: root.editingMenu ? (root.menu ? root.menu.modules : null) : (root.isCustom ? root.view.modules : null)
-    canvas.icon: root.editingMenu ? (root.menu ? Utils.edgeArrow(root.menu.edge) : "side_navigation") : (root.view ? OverlayConfig.pageIcon(root.view) : "dashboard")
-    canvas.title: root.editingMenu ? (root.menu ? EdgeMenuManager.menuLabel(root.menu, EdgeMenuManager.selectedMenuIndex) : I18n.tr("No edge menus")) : (root.view ? OverlayConfig.viewLabel(root.view, OverlayManager.selectedViewIndex) : I18n.tr("No pages"))
-    canvas.emptyText: root.editingMenu ? I18n.tr("No edge menus yet: add one with New menu.") : I18n.tr(root.view ? "A tool page: it has no layout to edit. Drag it in the list to reorder it." : "No pages yet: add one with New page.")
-    canvas.edge: root.menu ? root.menu.edge : ""
-    canvas.screenBox: root.menu ? EdgeMenuManager.screenBoxOf(root.menu) : null
-    canvas.screenSize: root.menuScreen ? ({
-        "width": root.menuScreen.width,
-        "height": root.menuScreen.height
-      }) : null
-    canvas.reservedDepth: root.menuPlace ? GridPlacement.menuReservedDepth(root.menuPlace) : 0
-    canvas.reservedLabel: root.menuPlace?.frame.reserves ? I18n.tr("Reserved while open") : I18n.tr("Bars and border")
-    // The other enabled menus on its screen, in screen px
-    canvas.ghosts: root.menu && EdgeMenuManager.showingOthers ? EdgeMenuManager.othersOn(EdgeMenuManager.selectedMenuIndex) : []
-    canvas.fitText: root.editingMenu ? root.menuFitText : root.pageFitText
-    canvas.fitWarning: root.editingMenu ? root.menuTooLong : root.shrunk
-    canvas.dirty: OverlayManager.isDirty || EdgeMenuManager.isDirty
-    canvas.canSave: OverlayManager.problems.length === 0 && EdgeMenuManager.problems.length === 0
-    inspector.editable: root.editingMenu ? root.menu !== null : root.isCustom
-    inspector.notEditableHint: root.editingMenu ? I18n.tr("Add a menu to put modules in it") : I18n.tr("Pick one of your pages to add modules to it")
+    editor: root.target.editor
+    canvas.modules: root.target.modules
+    canvas.icon: root.target.icon
+    canvas.title: root.target.title
+    canvas.emptyText: root.target.emptyText
+    canvas.edge: root.target.edge
+    canvas.screenBox: root.target.screenBox
+    canvas.screenSize: root.target.screenSize
+    canvas.reservedDepth: root.target.reservedDepth
+    canvas.reservedLabel: root.target.reservedLabel
+    canvas.ghosts: root.target.ghosts
+    canvas.fitText: root.target.fitText
+    canvas.fitWarning: root.target.fitWarning
+    canvas.dirty: OverlayManager.isDirty || EdgeMenuManager.isDirty || LockManager.isDirty
+    canvas.canSave: OverlayManager.problems.length === 0 && EdgeMenuManager.problems.length === 0 && LockManager.problems.length === 0
+    inspector.editable: root.target.editable
+    inspector.notEditableHint: root.target.notEditableHint
     onSave: {
       if (OverlayManager.isDirty)
         OverlayManager.saveChanges();
       if (EdgeMenuManager.isDirty)
         EdgeMenuManager.saveChanges();
+      if (LockManager.isDirty)
+        LockManager.saveChanges();
     }
     onReset: {
       OverlayManager.resetChanges();
       EdgeMenuManager.resetChanges();
+      LockManager.resetChanges();
     }
 
     LayoutsPanel {
-      editingMenu: root.editingMenu
-      view: root.view
-      menu: root.menu
+      view: OverlayManager.editTarget === "page" ? pageTarget.view : null
+      menu: OverlayManager.editTarget === "menu" ? menuTarget.menu : null
+      lockscreen: OverlayManager.editTarget === "lockscreen" ? lockscreenTarget.layout : null
       width: layout.sideWidth
       height: layout.pageHeight
       dragLayer: layout

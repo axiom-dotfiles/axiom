@@ -9,7 +9,8 @@ import qs.components.reusable
 // Layouts editor, left: the overlay's pages as the navigator shows them,
 // your own pages (duplicate, remove, New page) then the tool pages (only
 // hidden, never removed), each group dragged to reorder within itself
-// (click to edit)
+// (click to edit), then the lock screen, which isn't a page but is laid
+// out the same way
 ColumnLayout {
   id: root
 
@@ -133,5 +134,17 @@ ColumnLayout {
         }
       }
     }
+  }
+
+  // Not dragged: it isn't one of the navigator's pages
+  ListEntryRow {
+    Layout.fillWidth: true
+    Layout.preferredHeight: Widget.height + Widget.padding
+    Layout.topMargin: Widget.spacing / 2
+    icon: "lock"
+    label: I18n.tr("Lock screen")
+    selected: OverlayManager.editTarget === "lockscreen"
+    changed: LockManager.isDirty
+    onClicked: OverlayManager.editLockscreen()
   }
 }

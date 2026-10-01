@@ -3,9 +3,10 @@ import QtQuick
 
 import qs.components.methods
 
-// A Custom page's or an edge menu's modules, each in its own place on a
-// grid of quarter cards (GridPlacement). The grid is as big as its modules
-// reach, at the card size of `grid`; `stretch` grows it into room.
+// A Custom page's, an edge menu's or the lock screen's modules, each in its
+// own place on a grid of quarter cards (GridPlacement). The grid is as big
+// as its modules reach (or its `extent`), at the card size of `grid`;
+// `stretch` grows it into room.
 Item {
   id: root
 
@@ -19,7 +20,17 @@ Item {
       "kind": "overlay"
     })
 
-  readonly property var bounds: GridPlacement.bounds(root.modules)
+  // The least the grid spans ({ cols, rows }) whatever its modules reach
+  // (a lock screen's grid), null for just the modules
+  property var extent: null
+
+  readonly property var bounds: {
+    const reach = GridPlacement.bounds(root.modules);
+    return root.extent ? {
+      "cols": Math.max(reach.cols, root.extent.cols),
+      "rows": Math.max(reach.rows, root.extent.rows)
+    } : reach;
+  }
   readonly property var sizes: root.grid.sizes(root.bounds, root.stretch)
 
   implicitWidth: root.sizes.width

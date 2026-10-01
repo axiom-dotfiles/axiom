@@ -78,12 +78,13 @@ Workspaces don't have to be a line numbered 1 to N. Set **Settings → Desktop �
 One repository and one config for the whole desktop:
 
 - **Bars** with 22 widget types, and popouts that grow out of the bar or the screen border
-- **Overlay** of pages built from 24 modules: media, mixer, system graphs, weather, calendar, notes, AI chat and more
+- **Overlay** of pages built from 25 modules: media, mixer, system graphs, weather, calendar, notes, AI chat and more
 - **Edge menus**, floating over your windows or integrated beside them
 - **Docks** on any edge, with pinning, drag to reorder and magnification
 - **Theming:** base16 themes or ones generated from your wallpaper, applied to 18 other apps (GTK, Qt, kitty, Neovim, VS Code, …)
 - **Launcher** for apps, windows, a calculator, clipboard history, emoji and `/` commands
-- Notifications, OSDs, a lockscreen, power menu, workspace overview with live previews, a monitor layout editor, screenshots and recording, night light, idle, and a first-run setup
+- **Lockscreen** laid out from the same modules, with your wallpaper behind it
+- Notifications, OSDs, power menu, workspace overview with live previews, a monitor layout editor, screenshots and recording, night light, idle, and a first-run setup
 
 See **[all the features](docs/features.md)**, with screenshots of both setups.
 

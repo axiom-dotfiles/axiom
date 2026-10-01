@@ -13,14 +13,21 @@ import qs.components.methods
  * Also holds the selection, since the editor page is unloaded whenever the
  * overlay closes. Every edit keeps the selection on its module and shifts
  * the grid so its top left module sits at 0, 0: a place left of or above
- * the grid (negative x or y) makes room there. */
+ * the grid (negative x or y) makes room there. A grid with an `area` (the
+ * lock screen's) is bounded instead: places are absolute, inside it.
+ * Required module types (`x-required`) are never removed or duplicated. */
 QtObject {
   id: root
 
   // Returns the modules array being edited (mutated in place), or null
   property var modulesOf: () => null
-  // Where the modules are shown: "overlay" or "edgeMenu" (x-hosts)
+  // Where the modules are shown: "overlay", "edgeMenu" or "lockscreen"
+  // (x-hosts)
   property string host: "overlay"
+  // A bounded grid ({ cols, rows }): modules stay inside it where they
+  // are put, and the grid never shifts. null: it grows and shifts back
+  // to 0, 0 after every edit
+  property var area: null
   // What's being edited (a page, a menu): forms are rebuilt when it changes
   property string scopeKey: ""
 
@@ -39,12 +46,24 @@ QtObject {
   // Why these modules can't be saved as is, each prefixed with `name`
   function problemsFor(modules, name) {
     const out = [];
+    // I18n.tr("an overlay page") I18n.tr("an edge menu") I18n.tr("the lock screen")
+    const hostName = I18n.tr(({
+        "overlay": "an overlay page",
+        "edgeMenu": "an edge menu",
+        "lockscreen": "the lock screen"
+      })[root.host] ?? root.host);
     (modules ?? []).forEach((module, i) => {
       const type = module?.type;
       if (type && !OverlayConfig.allowedIn(type, root.host))
-        out.push(root.host === "overlay" ? I18n.tr("{0}: {1} only works in an edge menu", name, type) : I18n.tr("{0}: {1} only works on an overlay page", name, type));
+        out.push(I18n.tr("{0}: {1} can't be placed on {2}", name, type, hostName));
       if (!GridPlacement.canPlace(modules.slice(0, i), module?.place, -1))
         out.push(I18n.tr("{0}: {1} overlaps another module", name, type));
+      else if (root.area && !GridPlacement.within(module.place, root.area.cols, root.area.rows))
+        out.push(I18n.tr("{0}: {1} is outside the grid", name, type));
+    });
+    OverlayConfig.requiredFor(root.host).forEach(type => {
+      if (!(modules ?? []).some(module => module?.type === type))
+        out.push(I18n.tr("{0}: needs its {1} module", name, type));
     });
     return out;
   }
@@ -73,10 +92,26 @@ QtObject {
     return root.modulesOf() ?? null;
   }
 
-  // Whether `place` is clear of every module but the one at `ignore`,
-  // negative x and y allowed (the grid shifts to make room)
+  // Whether `place` is clear of every module but the one at `ignore`:
+  // inside the `area` when there is one, else negative x and y allowed
+  // (the grid shifts to make room)
   function _clear(modules, place, ignore) {
+    if (root.area && !GridPlacement.within(place, root.area.cols, root.area.rows))
+      return false;
     return place.w >= 1 && place.h >= 1 && !(modules ?? []).some((module, i) => i !== ignore && module?.place && GridPlacement.overlaps(module.place, place));
+  }
+
+  // A free w × h spot: in the area, else null; else the grid's first
+  // (GridPlacement.firstFree)
+  function _freeSpot(modules, w, h) {
+    return root.area ? GridPlacement.firstFreeIn(modules, w, h, root.area.cols, root.area.rows) : GridPlacement.firstFree(modules, w, h);
+  }
+
+  // Whether module `index` may be removed or duplicated (not a required
+  // one)
+  function canRemove(index) {
+    const type = root.module(index)?.type;
+    return !!type && !OverlayConfig.isRequired(type);
   }
 
   function _place(x, y, w, h) {
@@ -95,7 +130,7 @@ QtObject {
 
   // Whether a new module of `type` may be added at `place` ({ x, y, w, h })
   function canAdd(type, place) {
-    return OverlayConfig.allowedIn(type, root.host) && root._clear(root._modules(), place, -1);
+    return OverlayConfig.allowedIn(type, root.host) && !OverlayConfig.isRequired(type) && root._clear(root._modules(), place, -1);
   }
 
   // Whether module `index` may move with its top left to x, y: somewhere
@@ -123,7 +158,8 @@ QtObject {
 
   // Runs an edit. `edit` returns the module to select, false for no
   // change, or undefined to keep the selection on its module. Then
-  // shifts the grid so nothing sits at a negative place, or past 0, 0.
+  // shifts the grid so nothing sits at a negative place, or past 0, 0
+  // (unless it's bounded by an `area`).
   function _edit(edit) {
     const modules = root._modules();
     if (!modules)
@@ -133,7 +169,8 @@ QtObject {
     const focus = edit(modules);
     if (focus === false)
       return;
-    root.shifted(GridPlacement.normalize(modules), was);
+    if (!root.area)
+      root.shifted(GridPlacement.normalize(modules), was);
     const target = focus ?? before;
     root._selected = target ? modules.indexOf(target) : -1;
     root.edited();
@@ -149,13 +186,15 @@ QtObject {
 
   // A new module at its schema defaults: at `place` when given (refused if
   // it doesn't fit or isn't clear), else at its default size in the first
-  // free spot
+  // free spot (refused when a bounded grid has none)
   function addModule(type, place) {
     root._edit(modules => {
       let at = place;
       if (!at) {
         const size = OverlayConfig.defaultSize(type);
-        at = GridPlacement.firstFree(modules, size[0], size[1]);
+        at = root._freeSpot(modules, size[0], size[1]);
+        if (!at || !root.canAdd(type, at))
+          return false;
       } else if (!root.canAdd(type, at)) {
         return false;
       }
@@ -193,18 +232,23 @@ QtObject {
 
   // A copy at the same size in the first free spot
   function duplicateModule(index) {
+    if (!root.canRemove(index))
+      return;
     root._edit(modules => {
       const module = modules[index];
-      if (!module)
+      const place = root._freeSpot(modules, module.place.w, module.place.h);
+      if (!place)
         return false;
       const copy = Utils.clone(module);
-      copy.place = GridPlacement.firstFree(modules, module.place.w, module.place.h);
+      copy.place = place;
       modules.push(copy);
       return copy;
     });
   }
 
   function removeModule(index) {
+    if (!root.canRemove(index))
+      return;
     root._edit(modules => {
       if (!modules[index])
         return false;

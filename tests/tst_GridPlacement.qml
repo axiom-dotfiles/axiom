@@ -124,6 +124,41 @@ TestCase {
     }, "a wide grid grows down");
   }
 
+  function test_firstFreeIn() {
+    compare(GridPlacement.firstFreeIn([], 2, 2, 4, 4), at(0, 0, 2, 2).place);
+    compare(GridPlacement.firstFreeIn([at(0, 0, 2, 2)], 2, 2, 4, 4), at(2, 0, 2, 2).place);
+    compare(GridPlacement.firstFreeIn([at(0, 0, 4, 2)], 2, 2, 4, 4), at(0, 2, 2, 2).place);
+    compare(GridPlacement.firstFreeIn([at(0, 0, 4, 4)], 1, 1, 4, 4), null);
+    compare(GridPlacement.firstFreeIn([], 5, 1, 4, 4), null);
+  }
+
+  function test_within() {
+    verify(GridPlacement.within(at(0, 0, 4, 4).place, 4, 4));
+    verify(GridPlacement.within(at(2, 3, 2, 1).place, 4, 4));
+    verify(!GridPlacement.within(at(3, 0, 2, 1).place, 4, 4));
+    verify(!GridPlacement.within(at(0, 4, 1, 1).place, 4, 4));
+    verify(!GridPlacement.within(null, 4, 4));
+  }
+
+  function test_latticeUnit() {
+    // 16 × 9 on 2560 × 1440 with 20 px margins: height decides
+    const card = GridPlacement.latticeUnit(16, 9, 2560, 1440, 20);
+    const unit = GridPlacement.unitOf(card);
+    verify(Math.abs(unit - (1440 - 40 - 8 * 20) / 9) < 0.3);
+    const sizes = GridPlacement.trackSizes({
+      "cols": 16,
+      "rows": 9
+    }, card, {
+      "width": 2520,
+      "height": 1400
+    });
+    compare(Math.round(sizes.width), 2520);
+    compare(Math.round(sizes.height), 1400);
+    // A portrait screen: width decides
+    const portrait = GridPlacement.unitOf(GridPlacement.latticeUnit(16, 9, 1080, 1920, 20));
+    verify(Math.abs(portrait - (1080 - 40 - 15 * 20) / 16) < 0.3);
+  }
+
   function test_normalize() {
     const modules = [at(2, 1, 2, 2), at(4, 3, 1, 1)];
     compare(GridPlacement.normalize(modules), {

@@ -28,7 +28,7 @@ QtObject {
     },
     {
       "type": "Layouts",
-      "dirty": OverlayManager.isDirty || EdgeMenuManager.isDirty
+      "dirty": OverlayManager.isDirty || EdgeMenuManager.isDirty || LockManager.isDirty
     }
   ].filter(page => page.dirty).map(page => page.type)
 
@@ -54,6 +54,8 @@ QtObject {
       EdgeMenuManager.saveChanges();
     if (OverlayManager.isDirty)
       OverlayManager.saveChanges();
+    if (LockManager.isDirty)
+      LockManager.saveChanges();
   }
 
   function discardAll() {
@@ -67,5 +69,7 @@ QtObject {
       EdgeMenuManager.resetChanges();
     if (OverlayManager.isDirty)
       OverlayManager.resetChanges();
+    if (LockManager.isDirty)
+      LockManager.resetChanges();
   }
 }

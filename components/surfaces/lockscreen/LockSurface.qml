@@ -1,72 +1,86 @@
+pragma ComponentBehavior: Bound
 import QtQuick
-import QtQuick.Layouts
+import QtQuick.Effects
 import Quickshell
 
-import qs.components.reusable
 import qs.config
 import qs.services
+import qs.components.methods
+import qs.components.hosts.overlay
+import qs.components.content.parts
 
 // What one screen shows while the built-in lock is up (the content of a
-// WlSessionLockSurface, see shell/Lockscreen.qml). The compositor gives the
-// lock surfaces all input and hides everything else, so this needs no
-// focus grabs or layer tricks. The password field lives on the target
-// screen; the others show the backdrop and greeting only. Nothing here may
-// unlock or run commands: only AuthManager's success unlocks.
+// WlSessionLockSurface, see shell/Lockscreen.qml), or in the layouts
+// editor's preview: the background (wallpaper or a color, dimmed), then
+// the layout's modules on its grid of `columns` × `rows` units, stretched
+// to fill the screen. The compositor gives the lock surfaces all input and
+// hides everything else, so this needs no focus grabs or layer tricks.
+//
+// The password field lives on the target screen (a Password module, else
+// a field of its own, so no layout can lock anyone out); other screens show
+// the modules without it, or the background only (`otherScreens`). Nothing
+// here may unlock or run commands: only AuthManager's success unlocks, and
+// lock screen modules are the ones whose x-hosts list "lockscreen".
 Item {
   id: root
 
   required property ShellScreen screen
-  readonly property bool isTarget: ShellManager.isTarget(root.screen)
+  // The layout shown: the saved one, or the layouts editor's draft in its
+  // preview (see LockscreenConfig.layout)
+  property var layout: LockscreenConfig.layout
+  // The editor's preview: nothing is locked and the field is inert
+  property bool preview: false
 
-  readonly property real aspectRatio: root.screen ? root.screen.width / root.screen.height : 1.6
-  readonly property int containerWidth: root.aspectRatio > 2.0 ? Math.min(width * 0.5, 400) : Math.min(width * 0.6, 400)
+  readonly property bool isTarget: ShellManager.isTarget(root.screen)
+  readonly property var allModules: root.layout?.modules ?? []
+  readonly property var modules: root.isTarget ? root.allModules : root.layout?.otherScreens === "layout" ? root.allModules.filter(module => module?.type !== "Password") : []
+  // Where this surface's Password module reports itself
+  // (LockManager.passwordFields)
+  readonly property string passwordKey: (root.preview ? "preview:" : "lock:") + (root.screen?.name ?? "")
+
+  // The grid: at least columns × rows, fitted inside a margin
+  readonly property real margin: OverlayConfig.cardSpacing
+  readonly property var reach: GridPlacement.bounds(root.allModules)
+  readonly property int cols: Math.max(root.layout?.columns ?? 1, root.reach.cols)
+  readonly property int rows: Math.max(root.layout?.rows ?? 1, root.reach.rows)
 
   anchors.fill: parent
 
-  Component.onCompleted: {
-    AuthManager.clearMessage();
-    if (root.isTarget)
-      passwordInput.input.forceActiveFocus();
+  // The fallback field waits a tick, so a Password module can report first
+  property bool _settled: false
+  Component.onCompleted: Qt.callLater(() => root._settled = true)
+
+  Rectangle {
+    anchors.fill: parent
+    color: root.layout?.background === "color" ? Theme.resolveColor(root.layout.backgroundColor) : Theme.background
   }
 
-  Connections {
-    target: AuthManager
-
-    function onAuthenticationFailed(reason) {
-      if (!root.isTarget)
-        return;
-      passwordInput.input.text = "";
-      passwordInput.input.forceActiveFocus();
-      shakeAnimation.start();
-    }
-
-    function onAuthenticationError(error) {
-      if (!root.isTarget)
-        return;
-      passwordInput.input.text = "";
-      passwordInput.input.forceActiveFocus();
+  Image {
+    anchors.fill: parent
+    visible: root.layout?.background === "wallpaper"
+    source: visible ? Appearance.wallpaperFor(root.screen.name) : ""
+    fillMode: Image.PreserveAspectCrop
+    asynchronous: true
+    cache: false
+    sourceSize: Qt.size(root.screen.width, root.screen.height)
+    layer.enabled: LockscreenConfig.blurWallpaper
+    layer.effect: MultiEffect {
+      blurEnabled: true
+      blur: 1
+      blurMax: 64
+      autoPaddingEnabled: false
     }
   }
 
   Rectangle {
     anchors.fill: parent
-    color: Theme.background
-
-    Rectangle {
-      anchors.fill: parent
-      color: Theme.base00
-      opacity: 0.4
-    }
+    color: "black"
+    opacity: (root.layout?.dim ?? 0) / 100
   }
 
   // Fades in over the backdrop, which is there from the first frame
   Item {
-    id: lockContainer
-    width: root.containerWidth
-    height: mainColumn.height
-    anchors.horizontalCenter: parent.horizontalCenter
-    anchors.verticalCenter: parent.verticalCenter
-    anchors.verticalCenterOffset: -parent.height / 8
+    anchors.fill: parent
     opacity: 0
     Component.onCompleted: opacity = 1
 
@@ -77,144 +91,51 @@ Item {
       }
     }
 
-    SequentialAnimation {
-      id: shakeAnimation
-      loops: 1
-      PropertyAnimation {
-        target: lockContainer
-        property: "anchors.horizontalCenterOffset"
-        from: 0
-        to: 20
-        duration: Appearance.animFast
-      }
-      PropertyAnimation {
-        target: lockContainer
-        property: "anchors.horizontalCenterOffset"
-        from: 20
-        to: -20
-        duration: Appearance.animFast
-      }
-      PropertyAnimation {
-        target: lockContainer
-        property: "anchors.horizontalCenterOffset"
-        from: -20
-        to: 20
-        duration: Appearance.animFast
-      }
-      PropertyAnimation {
-        target: lockContainer
-        property: "anchors.horizontalCenterOffset"
-        from: 20
-        to: 0
-        duration: Appearance.animFast
+    ModuleGrid {
+      x: root.margin
+      y: root.margin
+      modules: root.modules
+      extent: ({
+          "cols": root.cols,
+          "rows": root.rows
+        })
+      stretch: ({
+          "width": root.width - root.margin * 2,
+          "height": root.height - root.margin * 2
+        })
+      host: ({
+          "kind": "lockscreen",
+          "target": root.isTarget,
+          "preview": root.preview,
+          "key": root.passwordKey,
+          "bare": !(root.layout?.moduleBorders ?? false)
+        })
+      grid: OverlayGrid {
+        fixedUnit: GridPlacement.latticeUnit(root.cols, root.rows, root.width, root.height, root.margin)
       }
     }
 
-    ColumnLayout {
-      id: mainColumn
-      width: parent.width
-      spacing: Appearance.screenMargin
-
-      StyledText {
-        text: I18n.tr("Hey {0}", General.displayName)
-        textSize: Appearance.fontSize * 3
-        textColor: Theme.foreground
-        horizontalAlignment: Text.AlignHCenter
-        Layout.fillWidth: true
-      }
-
-      // Playing track (display and transport only)
-      StyledContainer {
-        visible: root.isTarget && LockscreenConfig.showMedia && MediaManager.isPlaying
-        Layout.fillWidth: true
-        Layout.preferredHeight: 100
-        color: Theme.accent
+    // No Password module shows on the target screen: a field of its own,
+    // over whatever else is there, near the bottom
+    Loader {
+      z: 1
+      anchors.horizontalCenter: parent.horizontalCenter
+      anchors.bottom: parent.bottom
+      anchors.bottomMargin: parent.height / 6
+      width: Math.min(parent.width * 0.6, Appearance.fontSize * 28)
+      active: root.isTarget && root._settled && LockManager.passwordFields[root.passwordKey] !== true
+      sourceComponent: Rectangle {
+        implicitHeight: fallback.implicitHeight + Widget.padding * 2
         radius: Widget.radius
+        color: Theme.background
+        border.color: Theme.border
+        border.width: Appearance.borderWidth
 
-        MediaControl {
+        PasswordField {
+          id: fallback
           anchors.fill: parent
-          backgroundColor: parent.color
-          showProgressBar: false
-        }
-      }
-
-      Column {
-        visible: root.isTarget
-        Layout.fillWidth: true
-        spacing: Widget.padding
-
-        StyledTextEntry {
-          id: passwordInput
-          placeholderText: I18n.tr("Enter password...")
-          width: parent.width
-          input.passwordCharacter: "•"
-          input.passwordMaskDelay: 0
-          input.horizontalAlignment: Text.AlignHCenter
-          enabled: !AuthManager.isAuthenticating
-          focus: root.isTarget
-          // Imperatively: the alias'd TextInput ignores a declarative echoMode
-          Component.onCompleted: input.echoMode = TextInput.Password
-
-          Keys.onEscapePressed: {
-            input.text = "";
-            AuthManager.clearMessage();
-          }
-
-          Keys.onPressed: event => {
-            if (event.key === Qt.Key_C && event.modifiers & Qt.ControlModifier) {
-              input.text = "";
-              AuthManager.clearMessage();
-              event.accepted = true;
-            }
-          }
-
-          onAccepted: {
-            if (input.text.length > 0 && !AuthManager.isAuthenticating) {
-              AuthManager.authenticate(input.text);
-              input.text = "";
-            }
-          }
-        }
-
-        // PAM's messages: prompts, failures, errors
-        StyledText {
-          text: AuthManager.message
-          textColor: AuthManager.messageIsError ? Theme.error : Theme.foregroundAlt
-          textSize: Appearance.fontSize - 2
-          horizontalAlignment: Text.AlignHCenter
-          width: parent.width
-          visible: AuthManager.message !== ""
-        }
-
-        // While PAM is checking
-        Item {
-          width: parent.width
-          height: 4
-          visible: AuthManager.isAuthenticating
-
-          StyledContainer {
-            width: parent.width * 0.3
-            height: parent.height
-            backgroundColor: Theme.accent
-
-            SequentialAnimation on x {
-              loops: Animation.Infinite
-              running: AuthManager.isAuthenticating && Appearance.animations
-
-              NumberAnimation {
-                from: 0
-                to: lockContainer.width * 0.7
-                duration: Appearance.animSlow * 3
-                easing.type: Easing.InOutQuad
-              }
-              NumberAnimation {
-                from: lockContainer.width * 0.7
-                to: 0
-                duration: Appearance.animSlow * 3
-                easing.type: Easing.InOutQuad
-              }
-            }
-          }
+          anchors.margins: Widget.padding
+          active: !root.preview
         }
       }
     }

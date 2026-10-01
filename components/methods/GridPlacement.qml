@@ -182,6 +182,39 @@ QtObject {
     };
   }
 
+  // Whether `place` lies wholly inside a `cols` × `rows` grid
+  function within(place, cols, rows) {
+    return !!place && place.x >= 0 && place.y >= 0 && place.x + place.w <= cols && place.y + place.h <= rows;
+  }
+
+  // The first free w × h spot in reading order inside a `cols` × `rows`
+  // grid (a lock screen's), else null
+  function firstFreeIn(modules, w, h, cols, rows) {
+    for (let y = 0; y + h <= rows; y++) {
+      for (let x = 0; x + w <= cols; x++) {
+        const place = {
+          "x": x,
+          "y": y,
+          "w": w,
+          "h": h
+        };
+        if (root.canPlace(modules, place, -1))
+          return place;
+      }
+    }
+    return null;
+  }
+
+  // The card size at which a `cols` × `rows` grid fits `width` × `height`
+  // px with `margin` px all round (a lock screen's grid on its screen):
+  // the axis with less room decides, and stretching (trackSizes) fills
+  // the other
+  function latticeUnit(cols, rows, width, height, margin) {
+    const fit = (count, room) => (room - 2 * margin - (count - 1) * root.cardSpacing) / count;
+    const unitSize = Math.max(1, Math.min(fit(Math.max(1, cols), width), fit(Math.max(1, rows), height)));
+    return Math.floor(unitSize * 4 + 3 * root.cardSpacing);
+  }
+
   // Shifts the modules (in place) so the topmost and leftmost touch 0.
   // Returns the shift taken off, { x, y } (0, 0 when nothing moved).
   function normalize(modules) {

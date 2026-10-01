@@ -10,8 +10,9 @@ import qs.components.methods
  * untouched until saveChanges(). Mirrors BarManager.
  *
  * Also keeps the page's own state, since the page is unloaded whenever the
- * overlay closes: whether it's editing a page or an edge menu
- * (`editTarget`; the menus themselves are EdgeMenuManager's), the selected
+ * overlay closes: whether it's editing a page, an edge menu or the lock
+ * screen (`editTarget`; the menus are EdgeMenuManager's and the lock
+ * screen LockManager's), the selected
  * page, and each overlay's room (for the canvas's "fits" line). The
  * selected page's modules are edited through `layout` (GridEditor, which
  * also holds the selected module). */
@@ -26,8 +27,9 @@ QtObject {
   readonly property alias savedViews: draft.saved
   readonly property alias isDirty: draft.isDirty
   property int selectedViewIndex: 0
-  // What the layouts editor shows: "page" (selectedViewIndex) or "menu"
-  // (EdgeMenuManager.selectedMenuIndex)
+  // What the layouts editor shows: "page" (selectedViewIndex), "menu"
+  // (EdgeMenuManager.selectedMenuIndex) or "lockscreen" (LockManager's
+  // draft)
   readonly property string editTarget: root._editTarget
   property string _editTarget: "page"
 
@@ -82,6 +84,11 @@ QtObject {
   function editMenu(index) {
     root._editTarget = "menu";
     EdgeMenuManager.selectMenu(index);
+  }
+
+  function editLockscreen() {
+    root._editTarget = "lockscreen";
+    LockManager.ensureLoaded();
   }
 
   // The pages, or the menus, keeping what was selected in each
