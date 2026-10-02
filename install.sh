@@ -25,7 +25,7 @@ AXIOM_REPO=${AXIOM_REPO:-https://github.com/axiom-dotfiles/axiom.git}
 QS_DIR=${XDG_CONFIG_HOME:-$HOME/.config}/quickshell/axiom
 AXIOM_DIR=${AXIOM_DIR:-$QS_DIR}
 HYPR_CONFIG=${XDG_CONFIG_HOME:-$HOME/.config}/hypr/hyprland.lua
-AUTOSTART='hl.on("hyprland.start", function() hl.exec_cmd("qs -c axiom") end) -- axiom'
+AUTOSTART='hl.on("hyprland.start", function() hl.exec_cmd("qs -n -c axiom") end) -- axiom'
 
 REQUIRED=(git hyprland quickshell jq python ttf-material-symbols-variable)
 # "feature|packages", offered one at a time
@@ -360,7 +360,7 @@ if [[ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]]; then
     ok "axiom is already running"
     started=1
   elif ((placed)) && ask "Start axiom now?"; then
-    setsid qs -c axiom >/dev/null 2>&1 </dev/null &
+    setsid qs -n -c axiom >/dev/null 2>&1 </dev/null &
     disown
     ok "Started axiom"
     started=1

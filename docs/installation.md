@@ -58,7 +58,7 @@ git clone https://github.com/axiom-dotfiles/axiom.git ~/.config/quickshell/axiom
 Start it from your Hyprland config (`hyprland.lua`):
 
 ```lua
-hl.on("hyprland.start", function() hl.exec_cmd("qs -c axiom") end)
+hl.on("hyprland.start", function() hl.exec_cmd("qs -n -c axiom") end)
 ```
 
 </details>

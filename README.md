@@ -115,10 +115,10 @@ Start it with Quickshell:
 qs -c axiom
 ```
 
-To start it with Hyprland, add this line to your `hyprland.lua`:
+To start it with Hyprland, add this line to your `hyprland.lua` (`-n` keeps a second copy from starting):
 
 ```lua
-hl.on("hyprland.start", function() hl.exec_cmd("qs -c axiom") end)
+hl.on("hyprland.start", function() hl.exec_cmd("qs -n -c axiom") end)
 ```
 
 </details>
