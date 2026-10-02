@@ -386,9 +386,10 @@ TestCase {
     const left = config.Bars[0].widgets.left;
     compare(left[0].properties.lowThreshold, undefined);
     compare(left[0].properties.notify, undefined);
-    compare(left[0].properties.lowColor, "base09");
+    // Renamed, then Auto since v41
+    compare(left[0].properties.lowColor, "");
     compare(left[1].properties.criticalThreshold, undefined);
-    compare([left[2].properties.warnThreshold, left[2].properties.criticalThreshold, left[2].properties.criticalColor], [60, 80, "base0A"]);
+    compare([left[2].properties.warnThreshold, left[2].properties.criticalThreshold, left[2].properties.criticalColor], [60, 80, ""]);
     compare(left[2].properties.critPercent, undefined);
     compare(left[3].properties.ignoreApps, ["cava", "easyeffects"]);
     compare(config.Overlay.views[0].modules[0].properties.use24Hour, false);
@@ -809,6 +810,55 @@ TestCase {
     compare(loaded.config.BarStyle.widgetStyle, "plain");
     compare(loaded.config.Bars[0].widgetStyle, "outline");
     compare(errors(loaded.config), []);
+  }
+
+  function test_v41_widget_colors_become_auto() {
+    const loaded = load({
+      "version": 40,
+      "Bars": [
+        {
+          "id": "main",
+          "widgets": {
+            "left": [
+              {
+                "type": "Workspaces",
+                "properties": {
+                  "activeColor": "base0E",
+                  "occupiedColor": "base04"
+                }
+              },
+              {
+                "type": "Battery",
+                "properties": {
+                  "backgroundColor": "base0D",
+                  "criticalColor": "base08",
+                  "foregroundColor": "base00"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    });
+    const [workspaces, battery] = loaded.config.Bars[0].widgets.left.map(widget => widget.properties);
+    compare(workspaces.activeColor, "");
+    compare(workspaces.occupiedColor, "base04");
+    compare(battery.backgroundColor, "");
+    compare(battery.criticalColor, "");
+    compare(battery.foregroundColor, "base00");
+    compare(loaded.changes.filter(change => change.endsWith("-> Auto")).length, 3);
+    compare(errors(loaded.config), []);
+  }
+
+  // Every Auto color field of the schema goes Auto in the v41 migration
+  function test_v41_covers_every_auto_color() {
+    schema.definitions.BarWidget.oneOf.forEach(ref => {
+      const def = schema.definitions[ref.$ref.replace("#/definitions/", "")];
+      const properties = def.properties.properties?.properties ?? {};
+      const auto = Object.keys(properties).filter(key => properties[key]["x-autoColor"]);
+      compare(JSON.stringify(auto.sort()), JSON.stringify((ConfigMigration._v41AutoColors[def.properties.type.const] ?? []).slice().sort()), def.properties.type.const);
+      auto.forEach(key => compare(properties[key].default, "", key));
+    });
   }
 
   // A bar's look fields copy the BarStyle section's, each shown only while

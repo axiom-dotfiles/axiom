@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 40
+  readonly property int currentVersion: 41
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -107,6 +107,8 @@ QtObject {
       result = _v38ToV39(result, changes);
     if (version < 40)
       result = _v39ToV40(result, changes);
+    if (version < 41)
+      result = _v40ToV41(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -1416,6 +1418,46 @@ QtObject {
           return;
         bar[flag] = true;
         changes.push(`Bars[${i}].${flag}: true`);
+      });
+    });
+    return config;
+  }
+
+  // v41 picks bar widget colors automatically (an empty value): every
+  // widget's colors became Auto, text colors and Workspaces' cells aside
+  readonly property var _v41AutoColors: ({
+      "Window": ["backgroundColor"],
+      "Media": ["playingColor", "pausedColor"],
+      "Workspaces": ["activeColor"],
+      "Time": ["backgroundColor"],
+      "Tailscale": ["connectedColor", "disconnectedColor"],
+      "Network": ["backgroundColor", "disconnectedColor"],
+      "SystemTray": ["backgroundColor"],
+      "Notifications": ["backgroundColor", "dndColor", "badgeColor"],
+      "Button": ["backgroundColor"],
+      "Battery": ["backgroundColor", "chargingColor", "lowColor", "criticalColor"],
+      "SystemStats": ["backgroundColor", "warnColor"],
+      "KeyboardLayout": ["backgroundColor"],
+      "IdleInhibitor": ["activeColor", "inactiveColor"],
+      "Privacy": ["activeColor"],
+      "ScreenRecord": ["activeColor"],
+      "Updates": ["backgroundColor", "manyColor"],
+      "ClaudeUsage": ["backgroundColor", "warnColor", "criticalColor"],
+      "Weather": ["backgroundColor"],
+      "Volume": ["backgroundColor", "mutedColor"],
+      "Microphone": ["activeColor", "backgroundColor", "mutedColor"],
+      "Bluetooth": ["backgroundColor", "connectedColor", "disabledColor"]
+    })
+  function _v40ToV41(config, changes) {
+    _eachWidget(config, (widget, where) => {
+      const properties = widget.properties;
+      if (!properties || typeof properties !== "object")
+        return;
+      (root._v41AutoColors[widget.type] ?? []).forEach(key => {
+        if (!properties[key])
+          return;
+        properties[key] = "";
+        changes.push(`${where}.properties.${key} -> Auto`);
       });
     });
     return config;

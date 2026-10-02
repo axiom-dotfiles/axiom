@@ -145,7 +145,8 @@ QtObject {
       "lockCenter": barConfig.lockCenter,
       "location": loc,
       "reserveSpace": barConfig.reserveSpace,
-      "widgets": barConfig.widgets,
+      // Each Auto color picked for its place on this bar
+      "widgets": Bar.withAutoColors(barConfig.widgets, look.widgetStyle, grouping, look.groupColor),
       "vertical": loc === Bar.Left || loc === Bar.Right,
       "left": loc === Bar.Left,
       "right": loc === Bar.Right,
@@ -166,6 +167,66 @@ QtObject {
     const group = Theme.resolveColor(barConfig.groupColor);
     return BarWidgetStyle.colors(Bar._widgetStyle(barConfig, false), group, BarWidgetStyle.readableOn(group, Theme.foreground));
   }
+
+  // A bar's widgets (by section) with each Auto color field (`x-autoColor`,
+  // left empty) set to the color BarAutoColors picks for it among its shown
+  // neighbours, seen against the bar or, filled and merged, the run
+  function withAutoColors(widgets, widgetStyle, grouping, groupColor) {
+    const shown = [].concat(...Bar.sectionNames.map(section => (widgets?.[section] ?? []).map((widget, index) => ({
+            "section": section,
+            "index": index,
+            "widget": widget
+          })))).filter(entry => entry.widget.visible !== false);
+    const fields = shown.map(entry => {
+      const roles = Bar.autoColorFields[entry.widget.type] ?? {};
+      const properties = entry.widget.properties ?? {};
+      return {
+        "roles": roles,
+        "set": Object.keys(roles).filter(key => properties[key]).reduce((set, key) => {
+          set[key] = Theme.resolveColor(properties[key]);
+          return set;
+        }, {})
+      };
+    });
+    const filledRun = widgetStyle === "filled" && grouping === "merged";
+    const named = name => ({
+          "name": name,
+          "color": Theme.resolveColor(name)
+        });
+    const picks = BarAutoColors.assign(fields, {
+      "accents": Theme.baseColorNames.slice(8).map(named),
+      "neutrals": Theme.baseColorNames.slice(1, 5).map(named),
+      "warning": named("warning"),
+      "critical": named("error"),
+      "backdrop": filledRun ? Theme.resolveColor(groupColor) : Theme.background,
+      // A fill need only show on the bar; otherwise the color is text or a stroke
+      "minContrast": widgetStyle === "filled" && !filledRun ? 1.3 : 3
+    });
+    const result = Object.assign({}, widgets);
+    shown.forEach((entry, n) => {
+      if (Object.keys(picks[n]).length === 0)
+        return;
+      if (result[entry.section] === widgets[entry.section])
+        result[entry.section] = widgets[entry.section].slice();
+      result[entry.section][entry.index] = Object.assign({}, entry.widget, {
+        "properties": Object.assign({}, entry.widget.properties, picks[n])
+      });
+    });
+    return result;
+  }
+
+  // The bar's sections, start to end
+  readonly property var sectionNames: ["left", "leftCenter", "center", "rightCenter", "right"]
+  // Each widget type's Auto color fields: { type: { key: role } }
+  readonly property var autoColorFields: (ConfigManager.configSchema?.definitions?.BarWidget?.oneOf ?? []).reduce((result, refObj) => {
+    const def = ConfigManager.configSchema.definitions[refObj.$ref.replace("#/definitions/", "")];
+    const properties = def?.properties?.properties?.properties ?? {};
+    result[def?.properties?.type?.const] = Object.keys(properties).filter(key => properties[key]["x-autoColor"]).reduce((roles, key) => {
+      roles[key] = properties[key]["x-autoColor"];
+      return roles;
+    }, {});
+    return result;
+  }, {})
 
   // BarWidgetStyle's `style` for a bar, its colors resolved
   function _widgetStyle(barConfig, merged) {

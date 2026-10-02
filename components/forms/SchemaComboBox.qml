@@ -83,6 +83,8 @@ ColumnLayout {
       popup: Popup {
         y: comboContainer.height + Widget.spacing
         width: comboContainer.width
+        // Kept inside the window (above the field when there's no room below)
+        margins: Widget.spacing
         padding: Widget.spacing
 
         background: DropdownSurface {

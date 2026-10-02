@@ -21,7 +21,7 @@
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 40,
+      "default": 41,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
@@ -1850,7 +1850,7 @@
           "lockCenter": true,
           "widgets": {
             "left": [
-              { "type": "Button", "properties": { "action": "overlay", "icon": "menu", "tooltip": "Overlay", "backgroundColor": "base0E" } },
+              { "type": "Button", "properties": { "action": "overlay", "icon": "menu", "tooltip": "Overlay" } },
               { "type": "Workspaces" },
               { "type": "Window" }
             ],
@@ -1864,7 +1864,7 @@
               { "type": "Bluetooth", "properties": { "hideWhenOff": true } },
               { "type": "Battery" },
               { "type": "Notifications" },
-              { "type": "Button", "properties": { "action": "powerMenu", "tooltip": "Power", "backgroundColor": "base08" } }
+              { "type": "Button", "properties": { "action": "powerMenu", "tooltip": "Power" } }
             ]
           }
         }
@@ -3451,7 +3451,7 @@
           "properties": {
             "icon": { "type": "string", "title": "Icon", "default": "", "description": "Icon shown before the title: a Material Symbols name (fonts.google.com/icons), or text. Empty shows none." },
             "emptyText": { "type": "string", "title": "Empty text", "default": "—", "description": "Shown when no window is focused." },
-            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base0D" },
+            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
           }
         }
@@ -3474,8 +3474,8 @@
             "artistLength": { "type": "integer", "x-control": "stepper", "title": "Artist length", "default": 10, "minimum": 0, "maximum": 100, "description": "Longest artist name shown before it is shortened (characters)." },
             "idleText": { "type": "string", "title": "Idle text", "default": "No player", "description": "Shown when nothing is playing." },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Open the media controls when hovered." },
-            "playingColor": { "type": "string", "title": "Playing background", "x-options": "colors", "default": "base0B" },
-            "pausedColor": { "type": "string", "title": "Paused background", "x-options": "colors", "default": "base02" },
+            "playingColor": { "type": "string", "title": "Playing background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
+            "pausedColor": { "type": "string", "title": "Paused background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "off" },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
           }
         }
@@ -3505,7 +3505,7 @@
             "clickToSwitch": { "type": "boolean", "title": "Click to switch", "default": true, "description": "Click a workspace (on the bar or in the grid popout) to go to it." },
             "scrollToSwitch": { "type": "boolean", "title": "Scroll to switch", "default": true, "description": "Scroll over the widget to step through the workspaces (along the shown row or column in a grid)." },
             "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base02", "description": "Behind the workspaces, in the bar's widget style." },
-            "activeColor": { "type": "string", "title": "Active", "x-options": "colors", "default": "base0E" },
+            "activeColor": { "type": "string", "title": "Active", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
             "occupiedColor": { "type": "string", "title": "Occupied", "x-options": "colors", "default": "base04" },
             "emptyColor": { "type": "string", "title": "Empty", "x-options": "colors", "default": "base01" },
             "textColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00", "description": "Numbers, and the grid's active arrow. The colors also apply to the grid popout." }
@@ -3533,7 +3533,7 @@
             "dateFormat": { "type": "string", "title": "Date format", "default": "", "description": "Custom Qt date format (e.g. ddd d MMM). Empty uses the language's format." },
             "verticalDate": { "type": "string", "title": "Vertical date", "default": "day", "enum": ["day", "monthDay", "numeric"], "x-enumLabels": { "day": "Day and weekday", "monthDay": "Month, day and weekday", "numeric": "Day over month number" }, "description": "The date's lines on a vertical bar, when no date format is set.", "x-showIf": { "showDate": true } },
             "showCalendar": { "type": "boolean", "title": "Calendar popout", "default": true, "description": "Open the calendar when hovered." },
-            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base0C" },
+            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
           }
         }
@@ -3555,8 +3555,8 @@
             "showLabel": { "type": "boolean", "title": "Show label", "default": true },
             "label": { "type": "string", "title": "Label", "default": "", "description": "Text shown while connected. Empty shows the tailnet name." },
             "interval": { "type": "integer", "title": "Poll interval", "x-unit": "ms", "default": 2000, "minimum": 250, "maximum": 60000 },
-            "connectedColor": { "type": "string", "title": "Connected background", "x-options": "colors", "default": "base0A" },
-            "disconnectedColor": { "type": "string", "title": "Disconnected background", "x-options": "colors", "default": "base02" },
+            "connectedColor": { "type": "string", "title": "Connected background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
+            "disconnectedColor": { "type": "string", "title": "Disconnected background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "off" },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
           }
         }
@@ -3578,8 +3578,8 @@
             "showName": { "type": "boolean", "title": "Show device", "default": false, "description": "Show the connected device name next to the icon." },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Open the Wi-Fi menu when hovered." },
             "middleCommand": { "type": "string", "title": "Middle-click command", "default": "", "description": "Shell command run on middle click (e.g. nm-connection-editor). Empty does nothing." },
-            "backgroundColor": { "type": "string", "title": "Connected background", "x-options": "colors", "default": "base09" },
-            "disconnectedColor": { "type": "string", "title": "Disconnected background", "x-options": "colors", "default": "base08" },
+            "backgroundColor": { "type": "string", "title": "Connected background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
+            "disconnectedColor": { "type": "string", "title": "Disconnected background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "critical" },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
           }
         }
@@ -3601,7 +3601,7 @@
             "iconSize": { "type": "integer", "x-control": "stepper", "title": "Icon size", "default": 18, "minimum": 8, "maximum": 64, "x-unit": "px", "description": "Size of tray icons (px)." },
             "showPassive": { "type": "boolean", "title": "Show passive", "default": true, "description": "Also show items that report themselves as passive (idle)." },
             "showPopout": { "type": "boolean", "title": "Menus", "default": true, "description": "Open an item's menu when it's hovered." },
-            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "backgroundAlt" }
+            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" }
           }
         }
       }
@@ -3621,10 +3621,10 @@
           "properties": {
             "showCount": { "type": "boolean", "title": "Show count", "default": true, "description": "Badge with the number of notifications." },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Open the notification list when hovered." },
-            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base0D" },
+            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" },
-            "dndColor": { "type": "string", "title": "Do-not-disturb icon", "x-options": "colors", "default": "base04" },
-            "badgeColor": { "type": "string", "title": "Badge", "x-options": "colors", "default": "base08" }
+            "dndColor": { "type": "string", "title": "Do-not-disturb icon", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "off" },
+            "badgeColor": { "type": "string", "title": "Badge", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "critical" }
           }
         }
       }
@@ -3654,7 +3654,7 @@
             "hoverActivate": { "type": "boolean", "title": "Activate on hover", "default": false, "description": "Run the click action after hovering for the popout open delay. Doesn't close a launcher, overlay, power menu or edge menu that is already open.", "x-showIf": { "action": { "not": "none" } } },
             "labelCommand": { "type": "string", "title": "Label command", "default": "", "description": "Shell command whose first line of output is shown as the label, re-run on an interval." },
             "labelInterval": { "type": "integer", "title": "Label interval", "x-unit": "ms", "default": 5000, "minimum": 500, "maximum": 3600000, "description": "How often the label command runs.", "x-showIf": { "labelCommand": { "not": "" } } },
-            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base0C" },
+            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
           }
         }
@@ -3674,10 +3674,10 @@
           "additionalProperties": false,
           "properties": {
             "showPercentage": { "type": "boolean", "title": "Show percentage", "default": true },
-            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base0D" },
-            "chargingColor": { "type": "string", "title": "Charging background", "x-options": "colors", "default": "base0B" },
-            "lowColor": { "type": "string", "title": "Low background", "x-options": "colors", "default": "base0C", "description": "At or below Battery > Low at (in settings)." },
-            "criticalColor": { "type": "string", "title": "Critical background", "x-options": "colors", "default": "base08", "description": "At or below Battery > Critical at (in settings)." },
+            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
+            "chargingColor": { "type": "string", "title": "Charging background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "alt" },
+            "lowColor": { "type": "string", "title": "Low background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "warning", "description": "At or below Battery > Low at (in settings)." },
+            "criticalColor": { "type": "string", "title": "Critical background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "critical", "description": "At or below Battery > Critical at (in settings)." },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
           }
         }
@@ -3706,8 +3706,8 @@
             "interval": { "type": "integer", "title": "Poll interval", "x-unit": "ms", "default": 2000, "minimum": 1000, "maximum": 60000 },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Open live graphs of the shown metrics when hovered." },
             "warnThreshold": { "type": "integer", "title": "Warning at", "default": 90, "minimum": 1, "maximum": 100, "description": "Any usage (%) or temperature (°C) at or above this switches to the warning background." },
-            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base0E" },
-            "warnColor": { "type": "string", "title": "Warning background", "x-options": "colors", "default": "base08" },
+            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
+            "warnColor": { "type": "string", "title": "Warning background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "warning" },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
           }
         }
@@ -3728,7 +3728,7 @@
           "properties": {
             "format": { "type": "string", "title": "Format", "default": "short", "enum": ["short", "full"], "description": "Layout code (US) or full keymap name (English (US))." },
             "hideSingle": { "type": "boolean", "title": "Hide single layout", "default": false, "description": "Hide the widget when only one layout is configured." },
-            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base0D" },
+            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
           }
         }
@@ -3748,8 +3748,8 @@
           "additionalProperties": false,
           "properties": {
             "showLabel": { "type": "boolean", "title": "Show label", "default": false },
-            "activeColor": { "type": "string", "title": "Active background", "x-options": "colors", "default": "base0A" },
-            "inactiveColor": { "type": "string", "title": "Inactive background", "x-options": "colors", "default": "base02" },
+            "activeColor": { "type": "string", "title": "Active background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
+            "inactiveColor": { "type": "string", "title": "Inactive background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "off" },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
           }
         }
@@ -3772,7 +3772,7 @@
             "showScreen": { "type": "boolean", "title": "Screen share", "default": true },
             "showCamera": { "type": "boolean", "title": "Camera", "default": true },
             "ignoreApps": { "type": "array", "items": { "type": "string" }, "title": "Ignored apps", "default": ["cava"], "description": "App names that never trigger an indicator, comma-separated." },
-            "activeColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base08" },
+            "activeColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
           }
         }
@@ -3792,7 +3792,7 @@
           "additionalProperties": false,
           "properties": {
             "showTimer": { "type": "boolean", "title": "Show time recorded", "default": true },
-            "activeColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base08" },
+            "activeColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
           }
         }
@@ -3819,8 +3819,8 @@
             "terminal": { "type": "string", "title": "Terminal", "default": "", "description": "Terminal the upgrade runs in (launched as `<terminal> -e ...`). Empty uses Apps → Terminal." },
             "upgradeCommand": { "type": "string", "title": "Upgrade command", "default": "", "description": "Run on click. Empty uses `sudo pacman -Syu`, or the AUR helper with -Syu." },
             "manyThreshold": { "type": "integer", "title": "Many updates", "default": 50, "minimum": 1, "maximum": 1000, "description": "At or above this count, the widget uses the many-updates background." },
-            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base0B" },
-            "manyColor": { "type": "string", "title": "Many-updates background", "x-options": "colors", "default": "base09" },
+            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
+            "manyColor": { "type": "string", "title": "Many-updates background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "warning" },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
           }
         }
@@ -3863,9 +3863,9 @@
             "criticalThreshold": { "type": "integer", "title": "Critical at", "x-unit": "%", "default": 90, "minimum": 1, "maximum": 100 },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "List every limit per account when hovered." },
             "clickCommand": { "type": "string", "title": "Click command", "default": "", "description": "Run on left click (e.g. `xdg-open https://claude.ai/settings/usage`). Right click checks again now." },
-            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base0E" },
-            "warnColor": { "type": "string", "title": "Warning background", "x-options": "colors", "default": "base09" },
-            "criticalColor": { "type": "string", "title": "Critical background", "x-options": "colors", "default": "base08" },
+            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
+            "warnColor": { "type": "string", "title": "Warning background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "warning" },
+            "criticalColor": { "type": "string", "title": "Critical background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "critical" },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
           }
         }
@@ -3886,7 +3886,7 @@
           "properties": {
             "showCondition": { "type": "boolean", "title": "Show condition", "default": false, "description": "Show the condition (e.g. Rain) next to the temperature." },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Show the forecast when hovered." },
-            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base0C" },
+            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
           }
         }
@@ -3932,8 +3932,8 @@
             "maxVolume": { "type": "integer", "title": "Maximum volume", "x-unit": "%", "default": 100, "minimum": 100, "maximum": 150, "description": "Highest volume scrolling and the mixer sliders allow." },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Open the output mixer when hovered." },
             "middleCommand": { "type": "string", "title": "Middle-click command", "default": "pavucontrol", "description": "Shell command run on middle click. Empty does nothing." },
-            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base0D" },
-            "mutedColor": { "type": "string", "title": "Muted background", "x-options": "colors", "default": "base03" },
+            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
+            "mutedColor": { "type": "string", "title": "Muted background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "off" },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
           }
         }
@@ -3957,10 +3957,10 @@
             "maxVolume": { "type": "integer", "title": "Maximum volume", "x-unit": "%", "default": 100, "minimum": 100, "maximum": 150, "description": "Highest volume scrolling and the mixer sliders allow." },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Open the input mixer when hovered." },
             "middleCommand": { "type": "string", "title": "Middle-click command", "default": "pavucontrol", "description": "Shell command run on middle click. Empty does nothing." },
-            "activeColor": { "type": "string", "title": "In-use background", "x-options": "colors", "default": "base08", "description": "Used while an app is recording from the microphone." },
+            "activeColor": { "type": "string", "title": "In-use background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "alt", "description": "Used while an app is recording from the microphone." },
             "hideWhenIdle": { "type": "boolean", "title": "Hide when idle", "default": false, "description": "Only show the widget while the microphone is in use or muted." },
-            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base0D" },
-            "mutedColor": { "type": "string", "title": "Muted background", "x-options": "colors", "default": "base03" },
+            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
+            "mutedColor": { "type": "string", "title": "Muted background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "off" },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
           }
         }
@@ -3984,9 +3984,9 @@
             "hideWhenOff": { "type": "boolean", "title": "Hide when off", "default": false },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Open the Bluetooth menu when hovered." },
             "middleCommand": { "type": "string", "title": "Middle-click command", "default": "", "description": "Shell command run on middle click (e.g. blueman-manager). Empty does nothing." },
-            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base0D" },
-            "connectedColor": { "type": "string", "title": "Connected background", "x-options": "colors", "default": "base0C" },
-            "disabledColor": { "type": "string", "title": "Off background", "x-options": "colors", "default": "base03" },
+            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
+            "connectedColor": { "type": "string", "title": "Connected background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "alt" },
+            "disabledColor": { "type": "string", "title": "Off background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "off" },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
           }
         }
