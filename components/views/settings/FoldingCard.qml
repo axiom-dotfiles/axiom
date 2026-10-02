@@ -23,7 +23,7 @@ StyledContainer {
   property bool marked: false
   // Beside the header, while unfolded (an Add button)
   property alias headerExtras: extras.data
-  default property alias content: body.data
+  default property alias content: body.content
 
   signal toggled
 
@@ -112,28 +112,11 @@ StyledContainer {
       }
     }
 
-    // The body, clipped while folding. `shown` animates only on a toggle,
-    // not when the page is built
-    Item {
-      property real shown: root.collapsed ? 0 : 1
+    FoldingColumn {
+      id: body
+      open: !root.collapsed
       Layout.fillWidth: true
-      Layout.preferredHeight: body.implicitHeight * shown
-      visible: shown > 0
-      clip: shown < 1
-
-      Behavior on shown {
-        NumberAnimation {
-          duration: Appearance.animNormal
-          easing.type: Easing.OutCubic
-        }
-      }
-
-      ColumnLayout {
-        id: body
-        anchors.left: parent.left
-        anchors.right: parent.right
-        spacing: Widget.spacing * 1.5
-      }
+      spacing: Widget.spacing * 1.5
     }
   }
 }

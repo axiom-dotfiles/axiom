@@ -56,7 +56,7 @@ Item {
         required property var modelData
         readonly property bool current: SettingsManager.query === "" && root.selected === entry.modelData.name
         Layout.fillWidth: true
-        spacing: 2
+        spacing: 0
 
         ListEntryRow {
           icon: entry.modelData.icon
@@ -69,16 +69,28 @@ Item {
           }
         }
 
-        // Its cards, along a rule under the row
-        ColumnLayout {
-          visible: entry.current && root.cardLinks.length > 1
+        // Its cards, along a rule under the row, folding open on selection.
+        // `held` keeps the links it opened with while it folds shut, as
+        // `cardLinks` is already the next category's
+        FoldingColumn {
+          id: links
+          property var held: []
+
+          open: entry.current && root.cardLinks.length > 1
           Layout.fillWidth: true
           Layout.leftMargin: Widget.padding + Appearance.fontSize * 0.75
-          Layout.bottomMargin: Widget.spacing / 2
+          topPadding: 2
+          bottomPadding: Widget.spacing / 2
           spacing: 0
 
+          Binding on held {
+            when: links.open
+            value: root.cardLinks
+            restoreMode: Binding.RestoreNone
+          }
+
           Repeater {
-            model: entry.current ? root.cardLinks : []
+            model: links.shown ? links.held : []
 
             delegate: Item {
               id: link
