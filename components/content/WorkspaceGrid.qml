@@ -42,6 +42,12 @@ Panel {
 
   implicitWidth: grid.implicitWidth + margins * 2
 
+  // The payload and `properties` land just after creation (BarPopouts'
+  // onLoaded), so the cells first bind to fallbacks: animate only once
+  // they've settled, or the opening cells fade in from the wrong color
+  property bool _settled: false
+  Component.onCompleted: Qt.callLater(() => root._settled = true)
+
   function wsById(id) {
     return Hyprland.workspaces.values.find(ws => ws.id === id) ?? null;
   }
@@ -101,12 +107,14 @@ Panel {
         }
 
         Behavior on color {
+          enabled: root._settled
           ColorAnimation {
             duration: Appearance.animNormal
           }
         }
 
         Behavior on opacity {
+          enabled: root._settled
           NumberAnimation {
             duration: Appearance.animNormal
           }
