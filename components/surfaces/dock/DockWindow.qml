@@ -295,13 +295,12 @@ Scope {
 
     screen: root.screen
     color: "transparent"
-    visible: root.count > 0 && !root.fullscreen
+    visible: root.count > 0
 
-    // Overlay, whose zones are arranged after the border's and bars' (its
-    // layer rule orders it after floating bars too): it sits inside them
-    // without shortening the bars on the other edges. Overlay draws over
-    // fullscreen windows, so it hides while there's one.
-    WlrLayershell.layer: WlrLayer.Overlay
+    // Top, with its layer rule ordering it after the border and bars: it
+    // sits inside them without shortening the bars on the other edges. A
+    // fullscreen window covers it.
+    WlrLayershell.layer: WlrLayer.Top
     WlrLayershell.namespace: "axiom-dock"
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
     exclusionMode: ExclusionMode.Normal

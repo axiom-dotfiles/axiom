@@ -397,7 +397,7 @@ PopoutWrapperBase {
     // Normal exclusion with no zone of its own places it where the windows
     // start; the margin takes it back to the bar's outer edge, past the
     // border stroke, and along the bar it spans what the bar does.
-    WlrLayershell.layer: root.barConfig.floating ? WlrLayer.Overlay : WlrLayer.Top
+    WlrLayershell.layer: WlrLayer.Top
     WlrLayershell.namespace: "axiom-popout-under"
     WlrLayershell.keyboardFocus: root.wantsKeyboardFocus ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
     exclusionMode: ExclusionMode.Normal
