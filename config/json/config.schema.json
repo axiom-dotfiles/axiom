@@ -62,10 +62,11 @@
           "title": "Built-in lock screen",
           "description": "What the built-in locker shows, edited on the Layouts page: its modules on a grid of columns × rows units, fitted to each monitor.",
           "additionalProperties": false,
-          "x-order": ["columns", "rows", "otherScreens", "background", "backgroundColor", "dim", "moduleBorders", "passwordBorder", "greetingBorder"],
+          "x-order": ["columns", "rows", "fineGrid", "otherScreens", "background", "backgroundColor", "dim", "moduleBorders", "passwordBorder", "greetingBorder"],
           "properties": {
             "columns": { "x-group": "Grid", "type": "integer", "title": "Columns", "default": 16, "minimum": 4, "maximum": 32, "description": "Grid units across. The grid is stretched to fill each monitor, so match your screen's shape (16 × 9 for 16:9)." },
             "rows": { "x-group": "Grid", "type": "integer", "title": "Rows", "default": 9, "minimum": 2, "maximum": 32, "description": "Grid units down." },
+            "fineGrid": { "x-group": "Grid", "type": "boolean", "title": "Double grid", "default": false, "description": "Split each grid unit in two each way, for finer placement. Modules keep their size and spot." },
             "otherScreens": {
               "x-group": "Grid",
               "type": "string",
@@ -405,6 +406,8 @@
             { "key": "SUPER + Tab", "action": "overlay" },
             { "key": "SUPER + M", "action": "overlay" },
             { "key": "SUPER + SHIFT + space", "action": "workspaceOverview" },
+            { "key": "ALT + Tab", "action": "windowSwitcher" },
+            { "key": "ALT + SHIFT + Tab", "action": "windowSwitcherReverse" },
             { "key": "SUPER + Escape", "action": "powerMenu" },
             { "key": "SUPER + CTRL + L", "action": "lock" },
             { "key": "SUPER + CTRL + R", "action": "restartShell", "release": true },
@@ -481,7 +484,7 @@
               "action": {
                 "type": "string",
                 "title": "Action",
-                "enum": ["launcher", "launcherSearch", "overlay", "overlayPage", "edgeMenu", "dock", "workspaceOverview", "powerMenu", "lock", "toggleDnd", "clearNotifications", "idleInhibit", "nightLight", "nextWallpaper", "workspaceStep", "moveWindowStep", "moveWindowStepSilent", "workspaceNth", "moveWindowNth", "moveWindowNthSilent", "focusDir", "moveWindowDir", "resizeWindow", "closeWindow", "fullscreen", "toggleFloat", "pin", "centerWindow", "toggleGroup", "mouseDrag", "mouseResize", "toggleSpecial", "moveToSpecial", "restartShell", "volumeUp", "volumeDown", "toggleMute", "toggleMicMute", "brightnessUp", "brightnessDown", "mediaPlayPause", "mediaNext", "mediaPrevious", "mediaStop", "terminal", "fileManager", "browser", "screenshot", "screenRecord", "exitHyprland", "exec"],
+                "enum": ["launcher", "launcherSearch", "overlay", "overlayPage", "edgeMenu", "dock", "workspaceOverview", "powerMenu", "lock", "toggleDnd", "clearNotifications", "idleInhibit", "nightLight", "nextWallpaper", "workspaceStep", "moveWindowStep", "moveWindowStepSilent", "workspaceNth", "moveWindowNth", "moveWindowNthSilent", "focusDir", "moveWindowDir", "resizeWindow", "closeWindow", "fullscreen", "toggleFloat", "pin", "centerWindow", "toggleGroup", "windowSwitcher", "windowSwitcherReverse", "mouseDrag", "mouseResize", "toggleSpecial", "moveToSpecial", "restartShell", "volumeUp", "volumeDown", "toggleMute", "toggleMicMute", "brightnessUp", "brightnessDown", "mediaPlayPause", "mediaNext", "mediaPrevious", "mediaStop", "terminal", "fileManager", "browser", "screenshot", "screenRecord", "exitHyprland", "exec"],
                 "x-enumLabels": {
                   "launcher": "App launcher",
                   "launcherSearch": "Launcher with text",
@@ -512,6 +515,8 @@
                   "pin": "Pin window",
                   "centerWindow": "Center window",
                   "toggleGroup": "Toggle window group",
+                  "windowSwitcher": "Switch windows",
+                  "windowSwitcherReverse": "Switch windows backwards",
                   "mouseDrag": "Drag window (mouse button)",
                   "mouseResize": "Resize window (mouse button)",
                   "toggleSpecial": "Toggle special workspace",
@@ -1236,13 +1241,17 @@
         "nvim": { "type": "boolean", "title": "Neovim", "default": false, "description": "Writes the theme for the axiom_theme module, and reloads running instances.", "x-hookupNote": "Neovim has no single line to add. Its colors come from colorscheme plugins your config loads, often lazily through a plugin manager and after init.lua has run, so a file read at startup would be overridden. axiom writes the theme to $XDG_STATE_HOME/axiom/nvim-theme.json; the axiom_theme module reads it, picks a colorscheme you map to it (or builds one from the palette) and reloads when the theme changes. Copy the module into your config, then call its setup() once your plugins are loaded.", "x-hookup": [{"file": "{config}/nvim/lua/axiom_theme.lua", "place": "copy", "from": "templates/nvim/axiom_theme.lua"}, {"text": "require(\"axiom_theme\").setup()", "where": "In init.lua, after your plugin manager's setup (with lazy.nvim, after require(\"lazy\").setup(…))."}] },
         "helix": { "type": "boolean", "title": "Helix", "default": false, "description": "Writes the \"axiom\" theme. Helix 23.10+ reloads it.", "x-hookup": [{"file": "{config}/helix/config.toml", "place": "top", "text": "theme = \"axiom\"", "accept": "^theme\\s*=\\s*\"axiom\""}] },
         "vscode": { "type": "boolean", "title": "VS Code / VSCodium", "default": false, "description": "Installs a local \"Axiom\" color theme extension.", "x-hookup": [{"text": "\"workbench.colorTheme\": \"Axiom\"", "where": "In settings.json (Preferences: Open User Settings (JSON)), or pick Axiom under Preferences: Color Theme."}] },
+        "vesktop": { "type": "boolean", "title": "Vesktop / Vencord", "default": false, "description": "Writes the axiom.theme.css Vencord theme for Vesktop (and Vencord, Equibop, Equicord). Discord re-colors live.", "x-hookup": [{"text": "axiom.theme.css", "where": "In Vesktop: Settings → Vencord → Themes, switch it on."}] },
+        "firefox": { "type": "boolean", "title": "Firefox / LibreWolf / Zen", "default": false, "description": "Writes chrome/axiom.css into every profile of Firefox and its forks (LibreWolf, Zen, Floorp, Waterfox; Flatpak too), recoloring the browser's tabs, toolbars, menus and sidebar. Applies from each browser's next start; websites only follow light/dark.", "x-hookupNote": "Apply sets up every profile it finds: it imports axiom.css at the top of each profile's chrome/userChrome.css, and turns on toolkit.legacyUserProfileCustomizations.stylesheets in its user.js, which Firefox needs before it reads userChrome.css. Restart the browser afterwards.", "x-profiles": ["{home}/.mozilla/firefox/profiles.ini", "{config}/mozilla/firefox/profiles.ini", "{home}/.var/app/org.mozilla.firefox/.mozilla/firefox/profiles.ini", "{home}/.var/app/org.mozilla.firefox/config/mozilla/firefox/profiles.ini", "{home}/.librewolf/profiles.ini", "{config}/librewolf/librewolf/profiles.ini", "{home}/.var/app/io.gitlab.librewolf-community/.librewolf/profiles.ini", "{home}/.zen/profiles.ini", "{config}/zen/profiles.ini", "{home}/.var/app/app.zen_browser.zen/.zen/profiles.ini", "{home}/.floorp/profiles.ini", "{home}/.var/app/one.ablaze.floorp/.floorp/profiles.ini", "{home}/.waterfox/profiles.ini", "{home}/.var/app/net.waterfox.waterfox/.waterfox/profiles.ini"], "x-hookup": [{"perProfile": true, "file": "chrome/userChrome.css", "place": "start", "text": "@import url(\"axiom.css\");", "accept": "^@import url\\([\"']?axiom\\.css"}, {"perProfile": true, "file": "user.js", "place": "end", "comment": "//", "text": "user_pref(\"toolkit.legacyUserProfileCustomizations.stylesheets\", true);", "accept": "^user_pref\\(\"toolkit\\.legacyUserProfileCustomizations\\.stylesheets\",\\s*true\\)"}] },
         "k9s": { "type": "boolean", "title": "k9s", "default": false, "description": "Writes the \"axiom\" skin. k9s reloads it by itself.", "x-hookup": [{"text": "k9s:\n  ui:\n    skin: axiom", "where": "In ~/.config/k9s/config.yaml, merged into its k9s: section."}] },
         "cava": { "type": "boolean", "title": "Cava", "default": false, "description": "Writes cava/colors/axiom.conf (and a Cava config including it, when there is none). Reloads running Cava.", "x-hookup": [{"file": "{config}/cava/config", "place": "top", "replace": "keep", "text": "include = {config}/cava/colors/axiom.conf", "accept": "^include\\s*=\\s*\\S*axiom\\.conf"}] },
         "btop": { "type": "boolean", "title": "btop", "default": false, "description": "Writes the \"axiom\" theme. Applies from btop's next start.", "x-hookup": [{"file": "{config}/btop/btop.conf", "place": "top", "text": "color_theme = \"axiom\"", "accept": "^color_theme\\s*=\\s*\"(axiom|\\S*/axiom\\.theme)\""}] },
+        "ncspot": { "type": "boolean", "title": "ncspot", "default": false, "description": "Writes the colors into the [theme] table of ncspot's config.toml, between axiom's markers. Reloads running ncspot.", "x-hookupNote": "ncspot can't load a separate theme file, so unlike the other integrations this one edits your config.toml: Apply adds two marker lines to its [theme] table, and every theme change rewrites the lines between them. Keep your own edits outside the markers. A key you set in [theme] yourself wins over axiom's.", "x-hookup": [{"file": "{config}/ncspot/config.toml", "place": "section", "section": "theme", "replace": "keep", "text": "# axiom theme: begin (rewritten on every theme change)\n# axiom theme: end"}] },
         "fzf": { "type": "boolean", "title": "fzf", "default": false, "description": "Writes --color options to $XDG_STATE_HOME/axiom/fzf-colors (fzf 0.49+).", "x-hookup": [{"place": "shellrc", "replace": "keep", "text": "export FZF_DEFAULT_OPTS_FILE=\"{state}/axiom/fzf-colors\"", "accept": "FZF_DEFAULT_OPTS_FILE[= ].*axiom/fzf-colors"}] },
         "lazygit": { "type": "boolean", "title": "lazygit", "default": false, "description": "Writes lazygit/axiom.yml. Applies from lazygit's next start.", "x-hookupNote": "This sets LG_CONFIG_FILE, which takes the place of any value you set yourself: add your own files to it.", "x-hookup": [{"place": "shellrc", "replace": "keep", "text": "export LG_CONFIG_FILE=\"{config}/lazygit/config.yml,{config}/lazygit/axiom.yml\"", "accept": "LG_CONFIG_FILE[= ].*axiom\\.yml"}] },
         "bat": { "type": "boolean", "title": "bat / delta", "default": false, "description": "Writes the \"axiom\" syntax theme for bat and delta, and rebuilds bat's cache.", "x-hookup": [{"file": "{config}/bat/config", "place": "end", "text": "--theme=axiom", "accept": "^--theme[= ]\"?axiom\"?\\s*$"}, {"file": ["{home}/.gitconfig", "{config}/git/config"], "place": "section", "section": "delta", "requires": "delta", "text": "syntax-theme = axiom"}] },
-        "yazi": { "type": "boolean", "title": "Yazi", "default": false, "description": "Writes the \"axiom\" flavor (Yazi 25.5+).", "x-hookup": [{"file": "{config}/yazi/theme.toml", "place": "section", "section": "flavor", "text": "dark = \"axiom\"\nlight = \"axiom\""}] }
+        "yazi": { "type": "boolean", "title": "Yazi", "default": false, "description": "Writes the \"axiom\" flavor (Yazi 25.5+).", "x-hookup": [{"file": "{config}/yazi/theme.toml", "place": "section", "section": "flavor", "text": "dark = \"axiom\"\nlight = \"axiom\""}] },
+        "zathura": { "type": "boolean", "title": "zathura", "default": false, "description": "Writes zathura/axiom: the interface, search highlights and recolor mode's page colors. Reloads running zathura.", "x-hookup": [{"file": "{config}/zathura/zathurarc", "place": "end", "text": "include axiom", "accept": "^include\\s+\\S*axiom\\s*$"}] }
       }
     },
 
@@ -1449,6 +1458,50 @@
           "title": "Controls hint",
           "default": true,
           "description": "Show the mouse controls under the grid."
+        }
+      }
+    },
+
+    "WindowSwitcher": {
+      "type": "object",
+      "x-category": "Workspaces",
+      "title": "Window switcher",
+      "description": "Your windows, most recently used first, while the switch windows keys are held (ALT + Tab and ALT + SHIFT + Tab on the Keybinds page). Releasing the modifier focuses the chosen window; Escape keeps the current one.",
+      "additionalProperties": false,
+      "x-order": ["scope", "previews", "tileSize", "showDelay"],
+      "properties": {
+        "scope": {
+          "type": "string",
+          "title": "Windows listed",
+          "default": "all",
+          "enum": ["all", "monitor", "workspace"],
+          "x-enumLabels": { "all": "Every window", "monitor": "Windows on the focused monitor", "workspace": "Windows on the focused workspace" }
+        },
+        "previews": {
+          "type": "boolean",
+          "title": "Window previews",
+          "default": true,
+          "description": "Show each window's live contents; off shows app icons."
+        },
+        "tileSize": {
+          "type": "integer",
+          "x-control": "stepper",
+          "title": "Tile size",
+          "x-unit": "px",
+          "default": 200,
+          "minimum": 64,
+          "maximum": 480,
+          "description": "Width of each window's tile."
+        },
+        "showDelay": {
+          "type": "integer",
+          "x-control": "stepper",
+          "title": "Show after",
+          "x-unit": "ms",
+          "default": 120,
+          "minimum": 0,
+          "maximum": 1000,
+          "description": "How long the keys must be held before the switcher shows. A quicker tap swaps to the last window without showing it."
         }
       }
     },
@@ -2804,7 +2857,6 @@
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "x-showIf": { "/Workspaces.layout": "grid" }, "description": "Open the whole grid when hovered." },
             "clickToSwitch": { "type": "boolean", "title": "Click to switch", "default": true, "description": "Click a workspace (on the bar or in the grid popout) to go to it." },
             "scrollToSwitch": { "type": "boolean", "title": "Scroll to switch", "default": true, "description": "Scroll over the widget to step through the workspaces (along the shown row or column in a grid)." },
-            "spacing": { "type": "integer", "x-control": "stepper", "title": "Box spacing", "default": 2, "minimum": 0, "maximum": 20, "x-unit": "px", "description": "Gap between workspace boxes, on the bar and in the grid popout." },
             "activeColor": { "type": "string", "title": "Active", "x-options": "colors", "default": "base0E" },
             "occupiedColor": { "type": "string", "title": "Occupied", "x-options": "colors", "default": "base04" },
             "emptyColor": { "type": "string", "title": "Empty", "x-options": "colors", "default": "base01" },

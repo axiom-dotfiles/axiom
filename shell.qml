@@ -34,6 +34,10 @@ ShellRoot {
     id: workspaceOverlay
   }
 
+  WindowSwitcher {
+    id: windowSwitcher
+  }
+
   Wallpaper {
     id: wallpaper
   }

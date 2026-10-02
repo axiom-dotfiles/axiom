@@ -32,8 +32,16 @@ StyledContainer {
 
   Layout.fillWidth: true
   Layout.preferredHeight: Widget.height + Widget.padding
-  backgroundColor: root.selected ? Theme.accent : (root.hovered ? Theme.backgroundHighlight : "transparent")
+  // Clear is the hover colour at no alpha, not "transparent" (black), so
+  // fading out doesn't pass through grey
+  backgroundColor: root.selected ? Theme.accent : Qt.alpha(Theme.backgroundHighlight, root.hovered ? 1 : 0)
   borderWidth: 0
+
+  Behavior on color {
+    ColorAnimation {
+      duration: Appearance.animNormal
+    }
+  }
 
   HoverHandler {
     id: hover

@@ -201,7 +201,9 @@ QtObject {
     const workspaceId = monitor?.activeWorkspace?.id;
     if (workspaceId === undefined)
       return false;
-    const windows = HyprlandManager.windowList.filter(w => w.mapped && !w.hidden && w.workspace?.id === workspaceId);
+    // An open special workspace sits over the regular one
+    const specialId = HyprlandManager.specialWorkspaceId(monitor);
+    const windows = HyprlandManager.windowList.filter(w => w.mapped && !w.hidden && (w.workspace?.id === workspaceId || (specialId !== 0 && w.workspace?.id === specialId)));
     return DockLayout.covered({
       "x": rect.x + screen.x,
       "y": rect.y + screen.y,

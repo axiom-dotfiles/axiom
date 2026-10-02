@@ -19,11 +19,11 @@ PanelWindow {
   // A solid bar sits at the screen edge, and the screen border's strip
   // (arranged after it) overlaps its inner part, drawing the bar's inner
   // stroke. A floating bar (transparent or pills, with the border on) sits
-  // inside the border instead: on the Overlay layer, whose exclusive zones
-  // are arranged after the border's, with its outer edge on the border's
-  // stroke so pills can cover it. Overlay draws over fullscreen windows, so
-  // it hides while its workspace has one.
-  WlrLayershell.layer: barConfig.floating ? WlrLayer.Overlay : WlrLayer.Top
+  // inside the border instead: its axiom-bar-floating layer rule orders it
+  // after the border (arranged inside it, drawn over it), with its outer
+  // edge on the border's stroke so pills can cover it. Both are on the Top
+  // layer, so a fullscreen window covers them.
+  WlrLayershell.layer: WlrLayer.Top
   WlrLayershell.exclusiveZone: root.reservedZone
   // On a transparent or pill bar, how far in from its outer edge it
   // reserves (floating edge menus place themselves against that)
@@ -39,7 +39,7 @@ PanelWindow {
       return Math.max(0, barConfig.extent - gap);
     return Math.max(0, (Appearance.screenBorder ? barConfig.extent - Appearance.screenMargin + Appearance.borderWidth : barConfig.extent) - gap);
   }
-  WlrLayershell.namespace: "axiom-bar"
+  WlrLayershell.namespace: barConfig.floating ? "axiom-bar-floating" : "axiom-bar"
   // A popout with a text field up (e.g. a Wi-Fi password) takes the
   // keyboard through the bar, its parent surface
   WlrLayershell.keyboardFocus: popouts.wantsKeyboardFocus ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
@@ -63,12 +63,7 @@ PanelWindow {
     right: root.barConfig.floating ? -Appearance.borderWidth : 0
   }
 
-  // Read from targetScreen, not the window's `screen`: showing a hidden layer
-  // window rebuilds it, which emits screenChanged while `visible` is still
-  // being set from this, a binding loop
-  readonly property bool fullscreenBelow: HyprlandManager.hasFullscreen(root.targetScreen?.name ?? "")
-
-  visible: barConfig.enabled && !(barConfig.floating && fullscreenBelow)
+  visible: barConfig.enabled
 
   // With pills, room past the bar for the fillet where an end pill meets
   // the perpendicular edge; click-through (see mask), and not reserved

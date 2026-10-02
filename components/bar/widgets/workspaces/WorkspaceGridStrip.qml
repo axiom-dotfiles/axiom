@@ -41,7 +41,7 @@ Item {
   readonly property int activeColumn: root.activeIndex % root.columns
 
   readonly property real cell: root.barConfig.widgetSize
-  readonly property real spacing: root.properties.spacing
+  readonly property real spacing: root.barConfig.widgetSpacing
   // Cells the bar shows: a row, or a column on a vertical bar
   readonly property int shown: root.isVertical ? root.rows : root.columns
 
@@ -62,7 +62,7 @@ Item {
   function positionGlyph(position, count) {
     const middle = (count - 1) / 2;
     if (position === middle)
-      return "square";
+      return "circle";
     if (root.isVertical)
       return position === 0 ? "keyboard_double_arrow_left" : position === count - 1 ? "keyboard_double_arrow_right" : position < middle ? "keyboard_arrow_left" : "keyboard_arrow_right";
     return position === 0 ? "keyboard_double_arrow_up" : position === count - 1 ? "keyboard_double_arrow_down" : position < middle ? "keyboard_arrow_up" : "keyboard_arrow_down";
@@ -167,6 +167,7 @@ Item {
         monitor: root.monitor,
         vertical: root.isVertical,
         cellSize: root.cell,
+        cellSpacing: root.spacing,
         radius: root.barConfig.radius,
         fontSize: root.barConfig.fontSize,
         properties: root.properties

@@ -241,4 +241,102 @@ end`);
     lines.push("axiom_apply_monitors()");
     return lines;
   }
+
+  // A chunk resetting Hyprland to its main binds if it's in submap `name`
+  function leaveSubmap(name) {
+    return `if hl.get_current_submap() == ${string(name)} then hl.dispatch(hl.dsp.submap("reset")) end`;
+  }
+
+  // --- The window switcher ---
+  // Hyprland holds every key while it's open: the bind enters the switcher
+  // submap on its press, so a release can't come before it, and the submap
+  // sends what happens as `custom>>axiom-switcher:<verb>` events on
+  // socket2 (WindowSwitcherManager listens). Releasing the held modifier
+  // picks and leaves the submap in Hyprland itself, so it never sticks
+  // without axiom. A release bind can't see that: Hyprland fires one on a
+  // modifier only when no other key came between its press and release
+  // (a tapped SUPER), and Tab always does. So while it's open a key
+  // listener checks, after each release, whether any held modifier is
+  // still down (by keysym name, a moment later, so it doesn't depend on
+  // when Hyprland updates what's down).
+
+  readonly property string switcherSubmap: "axiom_switcher"
+  readonly property string switcherEvent: "axiom-switcher:"
+  // Leaves the switcher from outside its binds (a click on a tile)
+  readonly property string switcherLeaveLua: "if axiom_switcher_leave then axiom_switcher_leave() end"
+  readonly property var _modifierKeys: ({
+      "SUPER": ["Super_L", "Super_R"],
+      "CTRL": ["Control_L", "Control_R"],
+      "ALT": ["Alt_L", "Alt_R"],
+      "SHIFT": ["Shift_L", "Shift_R"]
+    })
+
+  // The modifiers a switcher combo is held by (KeyNames.split's `mods`):
+  // all but SHIFT, which only turns it around, unless SHIFT is all there is
+  function switcherHeld(mods) {
+    const held = (mods ?? []).filter(mod => mod !== "SHIFT" && _modifierKeys[mod]);
+    return held.length > 0 || !(mods ?? []).includes("SHIFT") ? held : ["SHIFT"];
+  }
+
+  function _switcherDispatch(verb) {
+    return `hl.dispatch(hl.dsp.event(${string(switcherEvent + verb)}))`;
+  }
+
+  // The switcher bind's dispatcher: enters the submap, starts watching for
+  // the release (switcherLua defines axiom_switcher_watch), then steps
+  function switcherBindLua(step) {
+    return `function() hl.dispatch(hl.dsp.submap(${string(switcherSubmap)})); if axiom_switcher_watch then axiom_switcher_watch() end; ${_switcherDispatch("step " + step)} end`;
+  }
+
+  /**
+   * Lua lines for the switcher, from `entries` ([{ mods, key, step }], each
+   * a switcher bind split by KeyNames.split): the submap, where each combo
+   * steps again (repeating), Return picks and Escape cancels, and
+   * axiom_switcher_watch()/axiom_switcher_unwatch(), the key listener that
+   * picks once no held modifier (AXIOM_SWITCHER_HELD) is down, and
+   * axiom_switcher_leave(), which stops it and leaves the submap. Redefining
+   * a submap adds to its binds, so the keys the last run bound
+   * (AXIOM_SWITCHER_KEYS) are unbound first; with no entries that is all
+   * it does.
+   */
+  function switcherLua(entries) {
+    const binds = [];
+    const keys = [];
+    const bind = (key, body, options) => {
+      keys.push(key);
+      binds.push(`  hl.bind(${string(key)}, function() ${body} end, { ${options} })`);
+    };
+    const held = [];
+    for (const entry of entries ?? []) {
+      bind(entry.mods.concat([entry.key]).join(" + "), _switcherDispatch("step " + entry.step), "repeating = true");
+      for (const mod of switcherHeld(entry.mods))
+        for (const key of _modifierKeys[mod])
+          if (!held.includes(key))
+            held.push(key);
+    }
+    if (binds.length > 0) {
+      bind("Return", `${_switcherDispatch("commit")}; axiom_switcher_leave()`, "ignore_mods = true");
+      bind("Escape", `${_switcherDispatch("cancel")}; axiom_switcher_leave()`, "ignore_mods = true");
+    }
+    return [`hl.define_submap(${string(switcherSubmap)}, function()`, "  for _, key in ipairs(AXIOM_SWITCHER_KEYS or {}) do hl.unbind(key) end"].concat(binds, ["end)", `AXIOM_SWITCHER_KEYS = { ${keys.map(key => string(key)).join(", ")} }`, `AXIOM_SWITCHER_HELD = { ${held.map(key => string(key)).join(", ")} }`, `function axiom_switcher_unwatch()
+  if AXIOM_SWITCHER_SUB then AXIOM_SWITCHER_SUB:remove() end
+  AXIOM_SWITCHER_SUB = nil
+end`, `function axiom_switcher_leave()
+  axiom_switcher_unwatch()
+  ${leaveSubmap(switcherSubmap)}
+end`, `function axiom_switcher_watch()
+  if AXIOM_SWITCHER_SUB then return end
+  AXIOM_SWITCHER_SUB = hl.on("input.keyboard.key", function(_, _, state)
+    if state ~= 0 then return end
+    AXIOM_SWITCHER_CHECK = hl.timer(function()
+      if hl.get_current_submap() ~= ${string(switcherSubmap)} then return axiom_switcher_unwatch() end
+      for _, key in ipairs(AXIOM_SWITCHER_HELD) do
+        if hl.is_key_down(key) then return end
+      end
+      ${_switcherDispatch("commit")}
+      axiom_switcher_leave()
+    end, { timeout = 10, type = "oneshot" })
+  end)
+end`]);
+  }
 }

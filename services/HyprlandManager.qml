@@ -484,13 +484,19 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
     return ids;
   }
 
-  // Whether the named monitor's active workspace shows a fullscreen window.
-  // Not Hyprland's (or Quickshell's) hasFullscreen: that also counts
-  // maximized windows (fullscreen mode 1), which leave reserved space
-  // alone. Mode is a bitmask, 2 being fullscreen.
+  // Whether the named monitor's active workspace, or the special workspace
+  // open on it, shows a fullscreen window. Not Hyprland's (or Quickshell's)
+  // hasFullscreen: that also counts maximized windows (fullscreen mode 1),
+  // which leave reserved space alone. Mode is a bitmask, 2 being fullscreen.
   function hasFullscreen(monitorName) {
-    const workspace = Hyprland.monitors.values.find(m => m.name === monitorName)?.activeWorkspace?.id;
-    return workspace !== undefined && root.windowList.some(w => w.workspace?.id === workspace && (w.fullscreen & 2));
+    const monitor = Hyprland.monitors.values.find(m => m.name === monitorName);
+    const workspaces = [monitor?.activeWorkspace?.id, specialWorkspaceId(monitor)].filter(id => id !== undefined && id !== 0);
+    return workspaces.length > 0 && root.windowList.some(w => workspaces.includes(w.workspace?.id) && (w.fullscreen & 2));
+  }
+
+  // The id of the special workspace open on a monitor, or 0 with none
+  function specialWorkspaceId(monitor) {
+    return monitor?.lastIpcObject?.specialWorkspace?.id ?? 0;
   }
 
   // The largest window on a workspace (its icon stands for the
@@ -545,7 +551,7 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
   // HyprlandConfigManager also writes them into its Lua files, since a
   // reload Hyprland does by itself (a watched file changing) doesn't always
   // send the configreloaded event that re-adds them here.
-  readonly property var layerRulesLua: [`hl.layer_rule({ name = "axiom-backdrop", match = { namespace = "^axiom-backdrop$" }, order = 10 })`, `hl.layer_rule({ name = "axiom-bar", match = { namespace = "^axiom-bar$" }, order = 5 })`, `hl.layer_rule({ name = "axiom-edge-menu", match = { namespace = "^axiom-edge-menu$" }, order = 7 })`, `hl.layer_rule({ name = "axiom-popout-under", match = { namespace = "^axiom-popout-under$" }, order = 6 })`, `hl.layer_rule({ name = "axiom-dock", match = { namespace = "^axiom-dock$" }, order = -1 })`, `hl.layer_rule({ name = "axiom-edge-popout", match = { namespace = "^axiom-edge-popout$" }, order = -5 })`, `hl.layer_rule({ name = "axiom-overlay", match = { namespace = "^axiom-overlay$" }, order = -3 })`, `hl.layer_rule({ name = "axiom-osd", match = { namespace = "^axiom-osd$" }, order = -4 })`, `hl.layer_rule({ name = "axiom-screenshot", match = { namespace = "^axiom-screenshot$" }, no_anim = true, order = -20 })`]
+  readonly property var layerRulesLua: [`hl.layer_rule({ name = "axiom-backdrop", match = { namespace = "^axiom-backdrop$" }, order = 10 })`, `hl.layer_rule({ name = "axiom-bar", match = { namespace = "^axiom-bar$" }, order = 5 })`, `hl.layer_rule({ name = "axiom-edge-menu", match = { namespace = "^axiom-edge-menu$" }, order = 7 })`, `hl.layer_rule({ name = "axiom-popout-under", match = { namespace = "^axiom-popout-under$" }, order = 6 })`, `hl.layer_rule({ name = "axiom-bar-floating", match = { namespace = "^axiom-bar-floating$" }, order = -1 })`, `hl.layer_rule({ name = "axiom-dock", match = { namespace = "^axiom-dock$" }, order = -2 })`, `hl.layer_rule({ name = "axiom-edge-popout", match = { namespace = "^axiom-edge-popout$" }, order = -5 })`, `hl.layer_rule({ name = "axiom-overlay", match = { namespace = "^axiom-overlay$" }, order = -3 })`, `hl.layer_rule({ name = "axiom-osd", match = { namespace = "^axiom-osd$" }, order = -4 })`, `hl.layer_rule({ name = "axiom-screenshot", match = { namespace = "^axiom-screenshot$" }, no_anim = true, order = -20 })`]
 
   function _addLayerRules() {
     for (const rule of layerRulesLua)
@@ -563,13 +569,18 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
     target: Hyprland
 
     function onRawEvent(event) {
-      // Layer surfaces (including our own popouts) don't affect clients
-      if (event.name === "openlayer" || event.name === "closelayer")
+      // Layer surfaces (including our own popouts) don't affect clients,
+      // and custom events are axiom's own (the window switcher's keys)
+      if (event.name === "openlayer" || event.name === "closelayer" || event.name === "custom")
         return;
       if (event.name === "configreloaded") {
         root.refreshOptions();
         root._addLayerRules();
       }
+      // Quickshell doesn't track special workspaces: refresh the monitors'
+      // lastIpcObject, which carries them (specialWorkspaceId)
+      if (event.name === "activespecial" || event.name === "activespecialv2")
+        Hyprland.refreshMonitors();
       root.updateAll();
     }
   }

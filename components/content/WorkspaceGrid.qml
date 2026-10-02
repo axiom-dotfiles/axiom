@@ -22,6 +22,8 @@ Panel {
   property HyprlandMonitor monitor: null
   property bool vertical: false
   property real cellSize: Widget.height
+  // The bar's inner spacing, so the gaps match its row
+  property real cellSpacing: Widget.spacing
   // The bar's, so the cells match its row
   property real radius: Widget.radius
   property int fontSize: Appearance.fontSize
@@ -42,6 +44,12 @@ Panel {
 
   implicitWidth: grid.implicitWidth + margins * 2
 
+  // The payload and `properties` land just after creation (BarPopouts'
+  // onLoaded), so the cells first bind to fallbacks: animate only once
+  // they've settled, or the opening cells fade in from the wrong color
+  property bool _settled: false
+  Component.onCompleted: Qt.callLater(() => root._settled = true)
+
   function wsById(id) {
     return Hyprland.workspaces.values.find(ws => ws.id === id) ?? null;
   }
@@ -49,7 +57,7 @@ Panel {
   Grid {
     id: grid
     columns: root.gridColumns
-    spacing: root.properties.spacing ?? 0
+    spacing: root.cellSpacing
 
     Repeater {
       model: root.gridColumns * root.gridRows
@@ -101,12 +109,14 @@ Panel {
         }
 
         Behavior on color {
+          enabled: root._settled
           ColorAnimation {
             duration: Appearance.animNormal
           }
         }
 
         Behavior on opacity {
+          enabled: root._settled
           NumberAnimation {
             duration: Appearance.animNormal
           }

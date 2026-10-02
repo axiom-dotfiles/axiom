@@ -132,6 +132,16 @@ TestCase {
     compare(GridPlacement.firstFreeIn([], 5, 1, 4, 4), null);
   }
 
+  function test_scalePlace() {
+    compare(GridPlacement.scalePlace(at(1, 2, 3, 4).place, true), at(2, 4, 6, 8).place);
+    compare(GridPlacement.scalePlace(at(0, 0, 20, 1).place, true), at(0, 0, 32, 2).place);
+    compare(GridPlacement.scalePlace(at(2, 4, 6, 8).place, false), at(1, 2, 3, 4).place);
+    // Odd edges round, so neighbours still meet
+    compare(GridPlacement.scalePlace(at(0, 0, 3, 1).place, false), at(0, 0, 2, 1).place);
+    compare(GridPlacement.scalePlace(at(3, 0, 3, 1).place, false), at(2, 0, 1, 1).place);
+    compare(GridPlacement.scalePlace(at(1, 1, 1, 1).place, false), at(1, 1, 1, 1).place);
+  }
+
   function test_within() {
     verify(GridPlacement.within(at(0, 0, 4, 4).place, 4, 4));
     verify(GridPlacement.within(at(2, 3, 2, 1).place, 4, 4));

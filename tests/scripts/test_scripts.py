@@ -41,6 +41,8 @@ BASES = [f"base0{c}" for c in "0123456789ABCDEF"]
 HEX = re.compile(r"^#[0-9a-fA-F]{6}$")
 # envsubst leaves nothing behind, so a ${VAR} left over is a template typo
 UNFILLED = re.compile(r"\$\{[A-Z0-9_]+\}")
+# The ncspot x-hookup's text: theme_ncspot.sh fills the lines between them
+NCSPOT_MARKERS = "# axiom theme: begin (rewritten on every theme change)\n# axiom theme: end\n"
 # Apps the integrations require or signal; stubs keep them from touching a
 # running session
 STUBS = ["alacritty", "bat", "btop", "foot", "fzf", "ghostty", "hx", "kitty", "lazygit",
@@ -159,7 +161,7 @@ class TerminalPalette(unittest.TestCase):
 FORMATS = {
     "alacritty": "toml", "helix": "toml", "wezterm": "toml", "yazi": "toml",
     "k9s": "yaml", "lazygit": "yaml", "bat": "plist", "nvim": "json",
-    "vscode": "json", "qt": "ini", "foot": "ini", "gtk": "css",
+    "vscode": "json", "qt": "ini", "foot": "ini", "gtk": "css", "vesktop": "css", "ncspot": "toml", "firefox": "css",
 }
 COLOR = re.compile(r"#([0-9a-fA-F]+)\b")
 
@@ -216,7 +218,8 @@ class ThemeIntegrations(unittest.TestCase):
                 yaml.safe_load(text)
             elif fmt == "css" and f.suffix == ".css":
                 self.assertEqual(text.count("{"), text.count("}"), f"{f}: unbalanced braces")
-                self.assert_gtk_css(f)
+                if key == "gtk":
+                    self.assert_gtk_css(f)
 
     def assert_gtk_css(self, path):
         """GTK's own parser, when PyGObject and GTK are installed"""
@@ -249,12 +252,34 @@ class ThemeIntegrations(unittest.TestCase):
                         args = [theme, target, "Sans", "file:///tmp/wall.png", "1", "Hey you", "Password..."]
                     elif key in ("gtk", "vscode"):
                         args = [theme, target]
+                    elif key in ("vesktop", "firefox"):
+                        target = target / "axiom.css"
+                        args = [theme, target]
+                    elif key == "ncspot":
+                        target = target / "config.toml"
+                        target.parent.mkdir(parents=True)
+                        target.write_text("[theme]\n" + NCSPOT_MARKERS)
+                        args = [theme, target]
                     else:
                         target = target / "axiom.out"
                         args = [theme, target]
                     self.run_script(script, args)
                     self.assert_rendered(target)
                     self.assert_parses(key, target)
+
+    def test_ncspot_leaves_your_keys(self):
+        config = self.out / "config.toml"
+        config.parent.mkdir(parents=True)
+        config.write_text('use_nerdfont = true\n\n[theme]\nprimary = "red"\n' + NCSPOT_MARKERS + '\n[keybindings]\n"q" = "quit"\n')
+        theme = THEMES / "ayu-dark.json"
+        self.run_script(SCRIPTS / "theme_ncspot.sh", [theme, config])
+        first = config.read_text()
+        data = tomllib.loads(first)
+        self.assertEqual(data["theme"]["primary"], "red")
+        self.assertIn("background", data["theme"])
+        self.assertEqual(data["keybindings"], {"q": "quit"})
+        self.run_script(SCRIPTS / "theme_ncspot.sh", [theme, config])
+        self.assertEqual(config.read_text(), first)
 
     def test_nvim_module_compiles(self):
         luac = shutil.which("luac")
@@ -263,6 +288,25 @@ class ThemeIntegrations(unittest.TestCase):
         module = SCRIPTS / "templates" / "nvim" / "axiom_theme.lua"
         result = subprocess.run([luac, "-p", str(module)], capture_output=True, text=True)
         self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_nvim_palette_has_readable_accents(self):
+        target = self.out / "nvim-theme.json"
+        for theme in (THEMES / "ayu-light.json", THEMES / "submarine-sonar.json"):
+            with self.subTest(theme=theme.name):
+                self.run_script(SCRIPTS / "theme_nvim.sh", [theme, target])
+                data = json.loads(target.read_text())
+                semantic = data["semantic"]
+                self.assertRegex(semantic["accent"], HEX)
+                for key in ("accent", "accentAlt"):
+                    self.assertGreaterEqual(contrast(data["text"][key], semantic["background"]), 4.5, key)
+
+    def test_nvim_module_maps_shipped_themes(self):
+        text = (SCRIPTS / "templates" / "nvim" / "axiom_theme.lua").read_text()
+        mapped = set(re.findall(r'^\s*\["([\w-]+)"\] = scheme\(', text, re.M))
+        shipped = {p.stem for p in THEMES.glob("*.json")} - {"theme.schema"}
+        self.assertEqual(mapped - shipped, set(), "map entries without a theme")
+        self.assertEqual(shipped - mapped - {"submarine-sonar", "submarine-sonar-light", "nord-light", "alucard"},
+                         set(), "themes without a map entry")
 
     def test_hyprlock_keeps_its_own_variables(self):
         target = self.out / "hyprlock.conf"
@@ -312,6 +356,37 @@ class HookupScript(unittest.TestCase):
                 for target in self.hookup("status", key)["targets"]:
                     if not target["copyOnly"] and not target["skipped"]:
                         self.assertTrue(target["done"], f"{key}: {target}")
+
+    def test_per_profile_targets(self):
+        home = Path(self.env["HOME"])
+        root = home / ".mozilla" / "firefox"
+        for profile in ("a.default-release", "b c.other"):
+            (root / profile).mkdir(parents=True)
+        (root / "profiles.ini").write_text(
+            "[Profile0]\nIsRelative=1\nPath=a.default-release\n\n"
+            "[Profile1]\nIsRelative=1\nPath=b c.other\n\n[General]\nVersion=2\n")
+        (root / "a.default-release" / "user.js").write_text(
+            'user_pref("toolkit.legacyUserProfileCustomizations.stylesheets", false);\n')
+        targets = self.hookup("status", "firefox")["targets"]
+        self.assertEqual(len(targets), 4)
+        self.hookup("apply", "firefox")
+        self.assertTrue(all(t["done"] for t in self.hookup("status", "firefox")["targets"]))
+        for profile in ("a.default-release", "b c.other"):
+            css = (root / profile / "chrome" / "userChrome.css").read_text()
+            self.assertTrue(css.startswith('@import url("axiom.css");'))
+            prefs = (root / profile / "user.js").read_text().splitlines()
+            self.assertEqual(prefs[-1], 'user_pref("toolkit.legacyUserProfileCustomizations.stylesheets", true);')
+        # The theme script themes the same profiles
+        result = subprocess.run([str(SCRIPTS / "theme_firefox.sh"), str(THEMES / "ayu-dark.json")],
+                                env=self.env, capture_output=True, text=True, timeout=60)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        for profile in ("a.default-release", "b c.other"):
+            self.assertTrue((root / profile / "chrome" / "axiom.css").is_file())
+
+    def test_per_profile_without_profiles_is_skipped(self):
+        targets = self.hookup("status", "firefox")["targets"]
+        self.assertTrue(targets)
+        self.assertTrue(all(t["skipped"] == "profiles" for t in targets))
 
     def test_end_keeps_a_symlink_and_backs_up(self):
         real = Path(self.tmp) / "dotfiles" / "kitty.conf"

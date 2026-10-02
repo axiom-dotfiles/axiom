@@ -28,6 +28,9 @@ QtObject {
   // are put, and the grid never shifts. null: it grows and shifts back
   // to 0, 0 after every edit
   property var area: null
+  // How many of this grid's units make one of a card's quarters (2 on a
+  // doubled lock screen grid): new modules' default sizes scale by it
+  property int sizeScale: 1
   // What's being edited (a page, a menu): forms are rebuilt when it changes
   property string scopeKey: ""
 
@@ -67,6 +70,11 @@ QtObject {
         out.push(I18n.tr("{0}: needs its {1} module", name, type));
     });
     return out;
+  }
+
+  // A new `type` module's [w, h] on this grid
+  function defaultSize(type) {
+    return OverlayConfig.defaultSize(type).map(n => Math.min(GridPlacement.maxSpan, n * root.sizeScale));
   }
 
   // --- Selection ---
@@ -192,7 +200,7 @@ QtObject {
     root._edit(modules => {
       let at = place;
       if (!at) {
-        const size = OverlayConfig.defaultSize(type);
+        const size = root.defaultSize(type);
         at = root._freeSpot(modules, size[0], size[1]);
         if (!at || !root.canAdd(type, at))
           return false;

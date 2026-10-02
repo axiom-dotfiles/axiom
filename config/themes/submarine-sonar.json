@@ -1,13 +1,8 @@
 {
   "name": "Submarine Sonar",
-  "author": "Gemini",
+  "author": "travmonkey",
   "variant": "dark",
   "paired": "submarine-sonar-light",
-  "generated": {
-    "source": "Gemini",
-    "wallpaper": "Conceptual",
-    "timestamp": "2024-05-21T10:00:00Z"
-  },
   "colors": {
     "base00": "#0a192f",
     "base01": "#112240",
@@ -17,14 +12,14 @@
     "base05": "#a8b2d1",
     "base06": "#ccd6f6",
     "base07": "#e6f1ff",
-    "base08": "#e36387",
-    "base09": "#fca36e",
-    "base0A": "#f5d382",
+    "base08": "#f06088",
+    "base09": "#fda977",
+    "base0A": "#fad887",
     "base0B": "#64ffda",
-    "base0C": "#71b8d6",
-    "base0D": "#71a6d6",
-    "base0E": "#ab87c7",
-    "base0F": "#a36e8e"
+    "base0C": "#67c3ea",
+    "base0D": "#67acea",
+    "base0E": "#b17dd9",
+    "base0F": "#bd6b9c"
   },
   "semantic": {
     "background": "base00",

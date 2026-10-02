@@ -87,7 +87,7 @@ Item {
     flow: root.isVertical ? Grid.TopToBottom : Grid.LeftToRight
     rows: root.isVertical ? Math.max(1, root.ids.length) : 1
     columns: root.isVertical ? 1 : Math.max(1, root.ids.length)
-    spacing: root.properties.spacing
+    spacing: root.barConfig.widgetSpacing
 
     Repeater {
       model: root.ids.length
