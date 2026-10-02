@@ -71,11 +71,19 @@ QtObject {
   }
 
   // Widget `index` of a run of `count`: { startCap, endCap, back, lead,
-  // trail }. `back` is how far its background reaches back under the one
-  // before; `lead`/`trail` the room its content keeps at each end. In a
-  // merged run only the run's ends have caps (the run is one background).
-  // `opaque`: the fill hides what's under it, so a powerline segment can
-  // start square beneath the one before instead of fitting against it.
+  // trail, seamStart, seamEnd }. `back` is how far its background reaches
+  // back under the one before; `lead`/`trail` the room its content keeps
+  // at each end. In a merged run only the run's ends have caps (the run is
+  // one background). `opaque`: the fill hides what's under it, so a
+  // powerline segment can start square beneath the one before instead of
+  // fitting against it. `seamStart`/`seamEnd`: that end meets a
+  // neighbour's edge to edge, so an outline there is drawn on the seam
+  // (see path).
+  //
+  // A powerline segment shows from the cap before it, which reaches into
+  // its first `join` px, to its own end cap: on average half a join
+  // earlier than its box at each joined end. Its content keeps that much
+  // more room at the end, so it sits centred on what shows.
   function segment(shape, grouping, opaque, index, count, across) {
     const ends = root._ends(shape, grouping);
     const joins = root._joins(shape);
@@ -84,12 +92,15 @@ QtObject {
     const last = alone || index === count - 1;
     const powerline = grouping === "powerline";
     const join = root.depth(joins[0], across);
+    const shift = powerline ? (first ? 0 : join / 2) + (last ? 0 : join / 2) : 0;
     return {
       "startCap": first ? ends[0] : powerline && !opaque ? joins[1] : "flat",
       "endCap": last ? ends[1] : powerline ? joins[0] : "flat",
       "back": !first && powerline ? join : 0,
-      "lead": first ? root._clearOf(ends[0], across) : powerline ? join / 2 : 0,
-      "trail": last ? root._clearOf(ends[1], across) : powerline ? join / 2 : 0
+      "lead": first ? root._clearOf(ends[0], across) : 0,
+      "trail": (last ? root._clearOf(ends[1], across) : 0) + shift,
+      "seamStart": !first && powerline && !opaque,
+      "seamEnd": !last && powerline && !opaque
     };
   }
 
@@ -143,15 +154,17 @@ QtObject {
   // The outline of a background `length` along the bar and `across` it,
   // as an SVG path in its item's coordinates (on a vertical bar the length
   // runs down). `inset` shrinks it all round, so an outline's stroke stays
-  // inside; caps keep their depth for the full thickness, so neighbours'
-  // edges still meet.
-  function path(length, across, radius, startCap, endCap, vertical, inset) {
+  // inside, except at a seam (`seamStart`/`seamEnd`), where it meets a
+  // powerline neighbour and both strokes lie on the shared edge; caps keep
+  // their depth for the full thickness, so neighbours' edges still meet.
+  function path(length, across, radius, startCap, endCap, vertical, inset, seamStart, seamEnd) {
     const h = Math.max(0, across - inset * 2);
     const r = Math.min(radius, h / 2);
     const head = root._cap(startCap, true, h, root.depth(startCap, across), r);
     const tail = root._cap(endCap, false, h, root.depth(endCap, across), r);
-    const atStart = q => [inset + q.x, inset + q.y];
-    const atEnd = q => [length - inset - q.x, inset + q.y];
+    const along0 = seamStart ? 0 : inset, along1 = seamEnd ? 0 : inset;
+    const atStart = q => [along0 + q.x, inset + q.y];
+    const atEnd = q => [length - along1 - q.x, inset + q.y];
     // A vertical bar swaps the axes: a reflection, which flips arcs
     const pt = uv => vertical ? `${uv[1]} ${uv[0]}` : `${uv[0]} ${uv[1]}`;
     const to = (uv, arc) => arc ? `A ${arc.r} ${arc.r} 0 0 ${vertical ? 1 - arc.sweep : arc.sweep} ${pt(uv)} ` : `L ${pt(uv)} `;

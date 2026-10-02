@@ -5,7 +5,7 @@ import QtQuick.Shapes
 import qs.config
 import qs.components.methods
 
-// What a bar widget sits on, in its bar's widget style (Bars[].widgetFill,
+// What a bar widget sits on, in its bar's widget style (widgetStyle,
 // widgetShape): a fill or outline shaped by its caps (BarShapes), or for
 // underline a line along one side. Its hover outline and the bar editor's
 // highlight take the same shape. WidgetGroup draws one under each widget
@@ -18,12 +18,18 @@ Item {
   property var colors: null
   property string startCap: "round"
   property string endCap: "round"
+  // Ends that meet a powerline neighbour edge to edge (BarShapes.segment)
+  property bool seamStart: false
+  property bool seamEnd: false
+  // Corner radius of round caps: the bar's widget radius, unless it
+  // reaches a floating bar's island end and follows its corners
+  property real radius: barConfig.radius
   // A clickable widget under the pointer (its hoverOutline)
   property bool hovered: false
   // The bar editor's selected widget
   property bool highlighted: false
 
-  readonly property string _fill: barConfig.widgetFill
+  readonly property string _fill: barConfig.widgetStyle
   readonly property bool _boxed: ["filled", "tinted", "outline"].includes(_fill)
 
   // The shape in one fill and stroke: a Rectangle when both ends are
@@ -32,8 +38,11 @@ Item {
     id: box
 
     required property var bar
+    required property real radius
     required property string startCap
     required property string endCap
+    property bool seamStart: false
+    property bool seamEnd: false
     property color fillColor: "transparent"
     property color strokeColor: "transparent"
     property real strokeWidth: 0
@@ -42,11 +51,11 @@ Item {
     readonly property real across: vertical ? width : height
     readonly property real length: vertical ? height : width
     readonly property real rectRadius: {
-      if (startCap !== endCap)
+      if (startCap !== endCap || seamStart || seamEnd)
         return -1;
       switch (startCap) {
       case "round":
-        return bar.radius;
+        return box.radius;
       case "capsule":
         return across / 2;
       case "flat":
@@ -81,7 +90,7 @@ Item {
 
           // Inset by half the stroke, which is centred on the path
           PathSvg {
-            path: BarShapes.path(box.length, box.across, box.bar.radius, box.startCap, box.endCap, box.vertical, box.strokeWidth / 2)
+            path: BarShapes.path(box.length, box.across, box.radius, box.startCap, box.endCap, box.vertical, box.strokeWidth / 2, box.seamStart, box.seamEnd)
           }
         }
       }
@@ -91,8 +100,11 @@ Item {
   ShapedBox {
     visible: root._boxed && root.colors !== null
     bar: root.barConfig
+    radius: root.radius
     startCap: root.startCap
     endCap: root.endCap
+    seamStart: root.seamStart
+    seamEnd: root.seamEnd
     fillColor: root.colors?.fill ?? "transparent"
     strokeColor: root.colors?.stroke ?? "transparent"
     strokeWidth: root._fill === "outline" ? root.barConfig.outlineWidth : 0
@@ -100,10 +112,10 @@ Item {
 
   // Along the side toward the windows (inner) or the screen edge (outer)
   Rectangle {
-    readonly property real thickness: root.barConfig.indicatorWidth
+    readonly property real thickness: root.barConfig.lineWidth
     readonly property bool vertical: root.barConfig.vertical
     // The side further from the bar's outer edge, in item coordinates
-    readonly property bool farSide: (root.barConfig.indicatorSide === "inner") !== (root.barConfig.right || root.barConfig.bottom)
+    readonly property bool farSide: (root.barConfig.lineSide === "inner") !== (root.barConfig.right || root.barConfig.bottom)
 
     visible: root._fill === "underline" && root.colors !== null
     color: root.colors?.indicator ?? "transparent"
@@ -117,8 +129,11 @@ Item {
   ShapedBox {
     visible: root.highlighted
     bar: root.barConfig
+    radius: root.radius
     startCap: root.startCap
     endCap: root.endCap
+    seamStart: root.seamStart
+    seamEnd: root.seamEnd
     fillColor: Qt.alpha(Theme.accent, 0.15)
     strokeColor: Theme.accent
     strokeWidth: 2
@@ -128,8 +143,11 @@ Item {
     // Built only while it shows, fading out included
     visible: strokeColor.a > 0
     bar: root.barConfig
+    radius: root.radius
     startCap: root.startCap
     endCap: root.endCap
+    seamStart: root.seamStart
+    seamEnd: root.seamEnd
     strokeColor: root.hovered ? Theme.border : Qt.alpha(Theme.border, 0)
     strokeWidth: Appearance.borderWidth
 

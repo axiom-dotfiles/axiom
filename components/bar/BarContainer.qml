@@ -182,6 +182,14 @@ Rectangle {
     maxExtent: section.slot.extent
     hiddenIndices: section.bar.hidden[section.slotIndex]
 
+    // A powerline run at an end of a floating bar's island fills it to
+    // that end, its corners following the island's
+    readonly property bool _fillsIsland: section.bar.islands && section.barConfig.widgetGrouping === "powerline" && section.usedLength > 0
+    readonly property real _islandFill: section.barConfig.islandGap - Appearance.borderWidth
+    reachStart: section._fillsIsland && section.bar.pillRects.some(r => Math.abs(r.start + section.barConfig.islandGap - section.mainPos) < 1) ? section._islandFill : 0
+    reachEnd: section._fillsIsland && section.bar.pillRects.some(r => Math.abs(r.start + r.length - section.barConfig.islandGap - section.mainPos - section.usedLength) < 1) ? section._islandFill : 0
+    reachRadius: Math.max(section.barConfig.radius, Appearance.borderRadius - Appearance.borderWidth)
+
     // crossStart in from the bar's outer edge (see Bar.enrichBarConfig)
     readonly property real crossPos: {
       const across = section.bar.isVertical ? section.bar.width : section.bar.height;
@@ -210,7 +218,7 @@ Rectangle {
       readonly property real offset: glow ? 0 : root.barConfig.shadowSize / 4
 
       shadowEnabled: true
-      shadowColor: root.barConfig.shadowColor ? Theme.resolveColor(root.barConfig.shadowColor) : glow ? Theme.accent : Qt.alpha("black", 0.6)
+      shadowColor: Bar.shadowColor(root.barConfig)
       shadowBlur: 1
       blurMax: root.barConfig.shadowSize
       // A shadow falls toward the windows

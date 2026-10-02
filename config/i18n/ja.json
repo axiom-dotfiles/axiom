@@ -2406,7 +2406,6 @@
     "Merged": "結合",
     "powerline": "Powerline",
     "Powerline": "Powerline",
-    "Merged: neighbouring widgets share one background. Powerline: each widget's shape runs into the next (filled and tinted styles only).": "結合: 隣り合うウィジェットがひとつの背景を共有します。Powerline: 各ウィジェットの形が次のウィジェットへつながります (塗りつぶしと淡い色のスタイルのみ)。",
     "Merged background": "結合した背景",
     "Widget colors show on their icons instead.": "ウィジェットの色は代わりにアイコンに表示されます。",
     "Accents": "アクセント",
@@ -2431,7 +2430,6 @@
     "shadow": "影",
     "Glow": "グロー",
     "glow": "グロー",
-    "Cast by the bar, or by its pills. A transparent bar has nothing to cast one.": "バーまたはそのピルが落とします。透明なバーには影を落とすものがありません。",
     "Auto: black for a shadow, the accent for a glow.": "自動: 影は黒、グローはアクセントカラー。",
     "Share of the widget height the line, slash or chevron spans.": "ウィジェットの高さに対する線、スラッシュ、山形の長さの割合。",
     "Floating bar": "フローティングバー",
@@ -2440,7 +2438,20 @@
     "A floating pill per group": "グループごとに浮かぶピル",
     "floatingPills": "フローティングピル",
     "Float gap": "浮かせる間隔",
-    "How far a floating bar keeps from the screen border (or the screen edge), across the bar and at its ends.": "フローティングバーが画面の枠 (または画面の端) から離れる距離。バーの横方向と両端に適用されます。",
-    "Every bar but a solid one sits inside the screen border. Pills grow out of it; floating bars and pills are held away from it.": "塗りつぶし以外のバーは画面の枠の内側に置かれます。ピルは枠から伸び、フローティングのバーとピルは枠から離れます。"
+    "Every bar but a solid one sits inside the screen border. Pills grow out of it; floating bars and pills are held away from it.": "塗りつぶし以外のバーは画面の枠の内側に置かれます。ピルは枠から伸び、フローティングのバーとピルは枠から離れます。",
+    "Own shadow": "独自の影",
+    "Own widget style": "独自のウィジェットスタイル",
+    "Own accents": "独自のアクセント",
+    "Merged: neighbouring widgets share one background. Powerline: each widget's shape runs into the next.": "結合: 隣り合うウィジェットがひとつの背景を共有します。Powerline: 各ウィジェットの形が次のウィジェットへつながります。",
+    "How far a floating bar keeps from the screen border (or the screen edge), across the bar and at its ends, and from the windows.": "フローティングバーが画面の枠 (または画面の端) から離れる距離。バーの横方向と両端、そしてウィンドウとの間に適用されます。",
+    "Bar shadow": "バーの影",
+    "Behind the workspaces, in the bar's widget style.": "ワークスペースの背後に、バーのウィジェットスタイルで表示されます。",
+    "Off: the bar follows the Bar style settings in Look & Feel.": "オフ: バーは外観の「バースタイル」設定に従います。",
+    "Bar accents": "バーのアクセント",
+    "Bar style": "バースタイル",
+    "How every bar draws its widgets, accents and shadow. A bar can take its own of any of these in the bar editor.": "すべてのバーがウィジェット、アクセント、影を描く方法。バーエディタで各バーが個別に設定することもできます。",
+    "Bar widgets": "バーのウィジェット",
+    "Cast by every bar (or its pills) and by the screen border, inward all the way round. A transparent bar has nothing to cast one; a solid bar on the border leaves it to the border.": "すべてのバー (またはそのピル) と画面の枠が内側に向かって落とします。透明なバーには落とすものがありません。枠に沿ったソリッドバーは枠に任せます。",
+    "Cast by the bar, or by its pills. A transparent bar has nothing to cast one; a solid bar on the screen border leaves it to the border, which casts the Bar style one.": "バー、またはそのピルが落とします。透明なバーには落とすものがありません。画面の枠に沿ったソリッドバーは枠に任せ、枠はバースタイルの影を落とします。"
   }
 }

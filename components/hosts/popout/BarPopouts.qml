@@ -328,31 +328,30 @@ PopoutWrapperBase {
     // Room past an island popout's box for a fillet: its margin, and the
     // island's rounded corner beyond, which a fillet can't land on
     readonly property real islandNeed: filletMargin + Appearance.borderRadius
-    // An island popout's box, { start, flushStart, flushEnd }: centred on
-    // the anchor within the limits, its fillets on the island it grows
-    // from (or the neighbours a stretch joins, see islandReach). A side
-    // they don't fit on runs flush into the island instead, the island
-    // stretched to the box there or, where the box falls short of its end,
-    // the box moved out onto it (the nearer end, should both be short).
+    // An island popout's box, { start, flushStart, flushEnd }: as near the
+    // anchor as it can sit on the island it grows from (or the neighbours
+    // a stretch joins, see islandReach), never past it while it fits: its
+    // fillets on the island where there's room for both, else flush into
+    // the nearer end with a fillet at the other. A box shorter than the
+    // island but too long for that grows to it (`grow`), flush into both
+    // ends; only a box longer than the island stretches it.
     readonly property var islandPlace: {
       const aligned = Math.max(islandStart, Math.min(alignedBoxStart, islandEnd - boxLength));
       const from = root.islandReach(aligned - islandNeed, true);
       const to = root.islandReach(aligned + boxLength + islandNeed, false);
-      const flushStart = aligned - islandNeed < from, flushEnd = aligned + boxLength + islandNeed > to;
-      const place = (start, atStart, atEnd) => ({
+      const place = (start, atStart, atEnd, grow) => ({
             "start": start,
             "flushStart": atStart,
-            "flushEnd": atEnd
+            "flushEnd": atEnd,
+            "grow": grow ?? 0
           });
-      if (flushStart && flushEnd && boxLength < to - from)
+      if (boxLength + islandNeed * 2 <= to - from)
+        return place(Math.max(from + islandNeed, Math.min(aligned, to - islandNeed - boxLength)), false, false);
+      if (boxLength + islandNeed <= to - from)
         return aligned - from <= to - aligned - boxLength ? place(from, true, false) : place(to - boxLength, false, true);
-      if (flushStart && flushEnd)
-        return place(Math.max(to - boxLength, Math.min(aligned, from)), true, true);
-      if (flushStart)
-        return place(Math.min(aligned, from), true, false);
-      if (flushEnd)
-        return place(Math.max(aligned, to - boxLength), false, true);
-      return place(aligned, false, false);
+      if (boxLength <= to - from)
+        return place(from, true, true, to - from - boxLength);
+      return place(Math.max(to - boxLength, Math.min(aligned, from)), true, true);
     }
     readonly property real alignedBoxStart: {
       if (!root.currentData)
@@ -376,7 +375,9 @@ PopoutWrapperBase {
       const clamped = Math.max(lo, Math.min(alignedBoxStart, hi));
       return Math.max(lo, Math.min(clamped + root.pillSnap(clamped), hi));
     }
-    readonly property real boxEnd: boxStart + boxLength
+    // Room the box takes past its content to fill an island (islandPlace)
+    readonly property real boxGrow: root.island ? islandPlace.grow : 0
+    readonly property real boxEnd: boxStart + boxLength + boxGrow
     // Where the popup (the surface) starts along the bar
     // (the surface's own margin: none on a joined or straight side)
     readonly property real alongPos: boxStart - surface.startMargin
@@ -532,8 +533,8 @@ PopoutWrapperBase {
     edge: mainPopup.surfaceEdge
     active: root.occupied && !root.isClosing && root.contentReady
     connectorGap: root.connectorGap
-    boxWidth: mainPopup.contentWidth + contentInset * 2 + (root.barConfig.vertical ? root.pillClearance : 0)
-    boxHeight: mainPopup.contentHeight + contentInset * 2 + (root.barConfig.vertical ? 0 : root.pillClearance)
+    boxWidth: mainPopup.contentWidth + contentInset * 2 + (root.barConfig.vertical ? root.pillClearance : mainPopup.boxGrow)
+    boxHeight: mainPopup.contentHeight + contentInset * 2 + (root.barConfig.vertical ? mainPopup.boxGrow : root.pillClearance)
 
     // A transparent bar has nothing to join onto (see cornerAttach)
     detached: mainPopup.detached && !mainPopup.cornerAttach

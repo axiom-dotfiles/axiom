@@ -18,6 +18,8 @@ Item {
   property var panel
   property var barConfig
   property var properties
+  // Room kept to the widget's background across the bar
+  property real inset: 0
 
   readonly property bool isVertical: barConfig.vertical
 
@@ -40,7 +42,10 @@ Item {
   readonly property int activeRow: Math.floor(root.activeIndex / root.columns)
   readonly property int activeColumn: root.activeIndex % root.columns
 
-  readonly property real cell: root.barConfig.widgetSize
+  // A cell's size on the bar (inside the background), and its corners
+  // within the background's
+  readonly property real cell: root.barConfig.widgetSize - root.inset * 2
+  readonly property real cellRadius: Math.max(0, root.barConfig.radius - root.inset)
   readonly property real spacing: root.barConfig.widgetSpacing
   // Cells the bar shows: a row, or a column on a vertical bar
   readonly property int shown: root.isVertical ? root.rows : root.columns
@@ -110,7 +115,7 @@ Item {
 
           width: root.cell
           height: root.cell
-          radius: root.barConfig.radius
+          radius: root.cellRadius
           color: isActive ? root.activeColor : cellArea.containsMouse ? Theme.backgroundHighlight : hasWindows ? root.occupiedColor : root.emptyColor
 
           StyledIcon {
@@ -166,7 +171,7 @@ Item {
     extraData: ({
         monitor: root.monitor,
         vertical: root.isVertical,
-        cellSize: root.cell,
+        cellSize: root.barConfig.widgetSize,
         cellSpacing: root.spacing,
         radius: root.barConfig.radius,
         fontSize: root.barConfig.fontSize,

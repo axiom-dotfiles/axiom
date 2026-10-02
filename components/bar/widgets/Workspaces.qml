@@ -6,14 +6,20 @@ import qs.components.bar.widgets.workspaces
 
 // The workspace switcher, laid out as the Workspaces section says: a row of
 // 1..count (WorkspaceStrip), or the active row or column of this monitor's
-// grid with the whole grid as a popout (WorkspaceGridStrip).
+// grid with the whole grid as a popout (WorkspaceGridStrip). It sits on a
+// background in the bar's widget style like any other widget, its cells
+// inset by the inner spacing within a box (filled, tinted or outlined).
 BarWidget {
   id: root
 
   readonly property int priority: 10
+  readonly property real inset: ["filled", "tinted", "outline"].includes(barConfig.widgetStyle) ? barConfig.widgetSpacing : 0
 
-  implicitWidth: loader.implicitWidth
-  implicitHeight: loader.implicitHeight
+  hasBackground: true
+  accentColor: Theme.resolveColor(properties.backgroundColor)
+
+  implicitWidth: loader.implicitWidth + (isVertical ? 0 : inset * 2)
+  implicitHeight: loader.implicitHeight + (isVertical ? inset * 2 : 0)
 
   Loader {
     id: loader
@@ -27,6 +33,7 @@ BarWidget {
       screen: root.screen
       barConfig: root.barConfig
       properties: root.properties
+      inset: root.inset
     }
   }
 
@@ -38,6 +45,7 @@ BarWidget {
       panel: root.panel
       barConfig: root.barConfig
       properties: root.properties
+      inset: root.inset
     }
   }
 }

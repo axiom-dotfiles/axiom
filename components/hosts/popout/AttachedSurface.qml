@@ -260,13 +260,13 @@ Item {
     if (width <= 0 || height <= 0)
       return "";
     const R = filletRadius, b = -_back;
-    let d;
-    if (joinStart)
-      d = _move(0, b) + _line(0, straightJoins ? farV : farV + R) + root._outline((u, v) => _line(u, v));
     // The backfill stops short of a flush end's wall, squarely, where the
     // stroke of what it attaches to carries on behind it
     const u0 = flushStart ? strokeWidth : 0, u1 = flushEnd ? alongLength - strokeWidth : alongLength;
-    if (flushStart)
+    let d;
+    if (joinStart)
+      d = _move(0, b) + _line(0, straightJoins ? farV : farV + R) + root._outline((u, v) => _line(u, v));
+    else if (flushStart)
       d = _move(u0, b) + _line(u0, 0) + root._outline((u, v) => _line(u, v));
     else if (!_filletStart)
       d = root._outline((u, v) => _move(u, v));

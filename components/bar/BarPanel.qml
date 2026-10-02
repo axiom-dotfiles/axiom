@@ -31,10 +31,7 @@ PanelWindow {
   readonly property int reservedZone: {
     if (!barConfig.reserveSpace)
       return 0;
-    // Transparent bars have no inner edge to see: windows start where it
-    // would be, so the gap from the widgets to them (padding + Hyprland's own
-    // gaps_out, taken off here) matches the gap to the screen edge
-    const gap = barConfig.background === "transparent" ? (HyprlandManager.gapsOut[Bar.edgeName(barConfig.location)] ?? 0) : 0;
+    const gap = Bar.reserveTrim(barConfig, HyprlandManager.gapsOut[Bar.edgeName(barConfig.location)] ?? 0);
     // Hyprland counts the -borderWidth margin into the reserved space
     if (barConfig.insideBorder)
       return Math.max(0, barConfig.extent - gap);

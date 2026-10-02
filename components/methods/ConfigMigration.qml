@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 39
+  readonly property int currentVersion: 40
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -105,6 +105,8 @@ QtObject {
       result = _v37ToV38(result, changes);
     if (version < 39)
       result = _v38ToV39(result, changes);
+    if (version < 40)
+      result = _v39ToV40(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -1368,6 +1370,53 @@ QtObject {
         delete bar.widgetTextColor;
         changes.push(`Bars[${i}].widgetBackgrounds removed`);
       }
+    });
+    return config;
+  }
+
+  // v40 moved a bar's look (widget style, accents, shadow) into the
+  // BarStyle section, each group of it overridable per bar
+  // (`override<Group>`), and renamed widgetFill and the underline's
+  // indicator keys. The first bar's look becomes everyone's; a bar whose
+  // look differs from it in a group keeps its own there.
+  readonly property var _v40Renames: ({
+      "widgetFill": "widgetStyle",
+      "indicatorWidth": "lineWidth",
+      "indicatorSide": "lineSide"
+    })
+  readonly property var _v40Groups: ({
+      "overrideWidgetStyle": ["widgetStyle", "tintOpacity", "outlineWidth", "lineWidth", "lineSide", "widgetShape", "widgetGrouping", "groupColor", "widgetTextColor"],
+      "overrideAccents": ["separatorStyle", "separatorColor", "separatorThickness", "accentLine", "accentLineColor", "accentLineFade", "accentLineWidth"],
+      "overrideShadow": ["shadow", "shadowColor", "shadowSize"]
+    })
+  function _v39ToV40(config, changes) {
+    const bars = (Array.isArray(config.Bars) ? config.Bars : []).filter(bar => bar && typeof bar === "object");
+    bars.forEach((bar, i) => {
+      Object.keys(root._v40Renames).forEach(from => {
+        if (!(from in bar))
+          return;
+        bar[root._v40Renames[from]] = bar[from];
+        delete bar[from];
+        changes.push(`Bars[${i}].${from} -> ${root._v40Renames[from]}`);
+      });
+    });
+    if (bars.length === 0 || (config.BarStyle && typeof config.BarStyle === "object"))
+      return config;
+    const style = {};
+    Object.keys(root._v40Groups).forEach(flag => root._v40Groups[flag].forEach(key => {
+        if (key in bars[0])
+          style[key] = bars[0][key];
+      }));
+    config.BarStyle = style;
+    changes.push("BarStyle taken from Bars[0]");
+    bars.forEach((bar, i) => {
+      Object.keys(root._v40Groups).forEach(flag => {
+        const own = root._v40Groups[flag].some(key => (key in bar) !== (key in style) || bar[key] !== style[key]);
+        if (!own)
+          return;
+        bar[flag] = true;
+        changes.push(`Bars[${i}].${flag}: true`);
+      });
     });
     return config;
   }

@@ -5,7 +5,7 @@ import QtQuick
 // indicator, text, icon }. `accent` is the widget's own color for its state
 // (its background while filled), `own` its text color (picked to read on
 // that background). `style` is the bar's, colors resolved by the caller:
-//   fill      Bars[].widgetFill
+//   fill      the bar's widgetStyle
 //   barText   what reads on the bar itself
 //   override  the bar's text color, replacing the automatic one, or null
 //   tint      a tinted fill's opacity (0-1)

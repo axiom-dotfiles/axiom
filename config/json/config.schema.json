@@ -21,7 +21,7 @@
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 39,
+      "default": 40,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
@@ -974,6 +974,283 @@
             "overrideRadius": true
           },
           "description": "Roundness of what sits inside panels, cards and bars: buttons, fields, rows, cells and bar widgets. Outer edges (screen border, bars, popouts, the overlay's outer box) keep the main radius."
+        }
+      }
+    },
+
+    "BarStyle": {
+      "type": "object",
+      "x-category": "Look & Feel",
+      "title": "Bar style",
+      "description": "How every bar draws its widgets, accents and shadow. A bar can take its own of any of these in the bar editor.",
+      "x-order": ["widgetStyle", "tintOpacity", "outlineWidth", "lineWidth", "lineSide", "widgetShape", "widgetGrouping", "groupColor", "widgetTextColor", "separatorStyle", "separatorColor", "separatorThickness", "accentLine", "accentLineColor", "accentLineFade", "accentLineWidth", "shadow", "shadowColor", "shadowSize"],
+      "additionalProperties": false,
+      "properties": {
+        "widgetStyle": {
+          "x-group": "Bar widgets",
+          "type": "string",
+          "title": "Widget style",
+          "default": "filled",
+          "enum": ["filled", "tinted", "outline", "underline", "accentText", "plain"],
+          "x-enumLabels": {
+            "filled": "Filled",
+            "tinted": "Tinted",
+            "outline": "Outline",
+            "underline": "Underline",
+            "accentText": "Colored icons",
+            "plain": "Plain text"
+          },
+          "description": "How each widget shows its color: as its background, a faint tint, an outline, a line beside it, or on its icon. Plain text draws them straight onto the bar."
+        },
+        "tintOpacity": {
+          "x-group": "Bar widgets",
+          "type": "integer",
+          "x-control": "slider",
+          "title": "Tint strength",
+          "default": 20,
+          "minimum": 5,
+          "maximum": 100,
+          "x-unit": "%",
+          "x-showIf": {
+            "widgetStyle": "tinted"
+          }
+        },
+        "outlineWidth": {
+          "x-group": "Bar widgets",
+          "type": "integer",
+          "x-control": "stepper",
+          "title": "Outline width",
+          "default": 2,
+          "minimum": 1,
+          "maximum": 6,
+          "x-unit": "px",
+          "x-showIf": {
+            "widgetStyle": "outline"
+          }
+        },
+        "lineWidth": {
+          "x-group": "Bar widgets",
+          "type": "integer",
+          "x-control": "stepper",
+          "title": "Line width",
+          "default": 2,
+          "minimum": 1,
+          "maximum": 8,
+          "x-unit": "px",
+          "x-showIf": {
+            "widgetStyle": "underline"
+          }
+        },
+        "lineSide": {
+          "x-group": "Bar widgets",
+          "type": "string",
+          "title": "Line side",
+          "default": "inner",
+          "enum": ["inner", "outer"],
+          "x-enumLabels": {
+            "inner": "Toward the windows",
+            "outer": "Toward the screen edge"
+          },
+          "x-beside": true,
+          "x-showIf": {
+            "widgetStyle": "underline"
+          }
+        },
+        "widgetShape": {
+          "x-group": "Bar widgets",
+          "type": "string",
+          "title": "Shape",
+          "default": "rounded",
+          "enum": ["rounded", "capsule", "slant", "arrow"],
+          "x-enumLabels": {
+            "rounded": "Rounded",
+            "capsule": "Capsule",
+            "slant": "Slanted",
+            "arrow": "Arrow"
+          },
+          "x-showIf": {
+            "widgetStyle": ["filled", "tinted", "outline"]
+          },
+          "description": "Rounded follows the widget corner radius. Slanted and arrow widgets take a little more room for their points."
+        },
+        "widgetGrouping": {
+          "x-group": "Bar widgets",
+          "type": "string",
+          "title": "Grouping",
+          "default": "separate",
+          "enum": ["separate", "merged", "powerline"],
+          "x-enumLabels": {
+            "separate": "Separate",
+            "merged": "Merged",
+            "powerline": "Powerline"
+          },
+          "x-beside": true,
+          "x-showIf": {
+            "widgetStyle": ["filled", "tinted", "outline"]
+          },
+          "description": "Merged: neighbouring widgets share one background. Powerline: each widget's shape runs into the next."
+        },
+        "groupColor": {
+          "x-group": "Bar widgets",
+          "type": "string",
+          "title": "Merged background",
+          "x-options": "colors",
+          "default": "backgroundAlt",
+          "x-showIf": {
+            "widgetStyle": ["filled", "tinted", "outline"],
+            "widgetGrouping": "merged"
+          },
+          "description": "Widget colors show on their icons instead."
+        },
+        "widgetTextColor": {
+          "x-group": "Bar widgets",
+          "type": "string",
+          "title": "Text color",
+          "x-options": "colors",
+          "x-emptyLabel": "Auto",
+          "default": "",
+          "description": "One color for every widget's text and icons. Auto: each widget's own on a filled background, its color when tinted or outlined, else one that contrasts with the bar."
+        },
+        "separatorStyle": {
+          "x-group": "Bar accents",
+          "type": "string",
+          "title": "Separators",
+          "default": "none",
+          "enum": ["none", "line", "dot", "slash", "chevron"],
+          "x-enumLabels": {
+            "none": "None",
+            "line": "Line",
+            "dot": "Dot",
+            "slash": "Slash",
+            "chevron": "Chevron"
+          },
+          "description": "Drawn in the gap between neighbouring widgets in a section (not in a powerline). Give them room with Spacing."
+        },
+        "separatorColor": {
+          "x-group": "Bar accents",
+          "type": "string",
+          "title": "Separator color",
+          "x-options": "colors",
+          "default": "base03",
+          "x-showIf": {
+            "separatorStyle": {
+              "not": "none"
+            }
+          }
+        },
+        "separatorThickness": {
+          "x-group": "Bar accents",
+          "type": "integer",
+          "x-control": "stepper",
+          "title": "Separator thickness",
+          "default": 2,
+          "minimum": 1,
+          "maximum": 6,
+          "x-unit": "px",
+          "x-beside": true,
+          "x-showIf": {
+            "separatorStyle": {
+              "not": "none"
+            }
+          }
+        },
+        "accentLine": {
+          "x-group": "Bar accents",
+          "type": "string",
+          "title": "Accent line",
+          "default": "none",
+          "enum": ["none", "inner", "outer"],
+          "x-enumLabels": {
+            "none": "None",
+            "inner": "Inner edge",
+            "outer": "Outer edge"
+          },
+          "description": "A line along the bar's edge toward the windows (inner) or the screen edge (outer); on pills, along each pill."
+        },
+        "accentLineColor": {
+          "x-group": "Bar accents",
+          "type": "string",
+          "title": "Line color",
+          "x-options": "colors",
+          "default": "accent",
+          "x-showIf": {
+            "accentLine": {
+              "not": "none"
+            }
+          }
+        },
+        "accentLineFade": {
+          "x-group": "Bar accents",
+          "type": "string",
+          "title": "Fade to",
+          "x-options": "colors",
+          "x-emptyLabel": "None",
+          "default": "",
+          "x-beside": true,
+          "x-showIf": {
+            "accentLine": {
+              "not": "none"
+            }
+          },
+          "description": "Runs the line from its color into this one along the bar."
+        },
+        "accentLineWidth": {
+          "x-group": "Bar accents",
+          "type": "integer",
+          "x-control": "stepper",
+          "title": "Line width",
+          "default": 2,
+          "minimum": 1,
+          "maximum": 8,
+          "x-unit": "px",
+          "x-showIf": {
+            "accentLine": {
+              "not": "none"
+            }
+          }
+        },
+        "shadow": {
+          "x-group": "Bar shadow",
+          "type": "string",
+          "title": "Shadow",
+          "default": "none",
+          "enum": ["none", "shadow", "glow"],
+          "x-enumLabels": {
+            "none": "None",
+            "shadow": "Shadow",
+            "glow": "Glow"
+          },
+          "description": "Cast by every bar (or its pills) and by the screen border, inward all the way round. A transparent bar has nothing to cast one; a solid bar on the border leaves it to the border."
+        },
+        "shadowColor": {
+          "x-group": "Bar shadow",
+          "type": "string",
+          "title": "Shadow color",
+          "x-options": "colors",
+          "x-emptyLabel": "Auto",
+          "default": "",
+          "x-showIf": {
+            "shadow": {
+              "not": "none"
+            }
+          },
+          "description": "Auto: black for a shadow, the accent for a glow."
+        },
+        "shadowSize": {
+          "x-group": "Bar shadow",
+          "type": "integer",
+          "x-control": "stepper",
+          "title": "Shadow size",
+          "default": 12,
+          "minimum": 2,
+          "maximum": 40,
+          "x-unit": "px",
+          "x-beside": true,
+          "x-showIf": {
+            "shadow": {
+              "not": "none"
+            }
+          }
         }
       }
     },
@@ -2011,7 +2288,7 @@
 
     "Bar": {
       "type": "object",
-      "x-order": ["id", "enabled", "monitor", "location", "widgetSize", "padding", "spacing", "widgetPadding", "widgetSpacing", "background", "floatGap", "pillPadding", "pillMerge", "overrideFontSize", "fontSize", "overrideRadius", "widgetRadius", "widgetFill", "tintOpacity", "outlineWidth", "indicatorWidth", "indicatorSide", "widgetShape", "widgetGrouping", "groupColor", "widgetTextColor", "separatorStyle", "separatorColor", "separatorThickness", "accentLine", "accentLineColor", "accentLineFade", "accentLineWidth", "shadow", "shadowColor", "shadowSize", "lockCenter", "reserveSpace"],
+      "x-order": ["id", "enabled", "monitor", "location", "widgetSize", "padding", "spacing", "widgetPadding", "widgetSpacing", "background", "floatGap", "pillPadding", "pillMerge", "overrideFontSize", "fontSize", "overrideRadius", "widgetRadius", "overrideWidgetStyle", "widgetStyle", "tintOpacity", "outlineWidth", "lineWidth", "lineSide", "widgetShape", "widgetGrouping", "groupColor", "widgetTextColor", "overrideAccents", "separatorStyle", "separatorColor", "separatorThickness", "accentLine", "accentLineColor", "accentLineFade", "accentLineWidth", "overrideShadow", "shadow", "shadowColor", "shadowSize", "lockCenter", "reserveSpace"],
       "required": ["id"],
       "additionalProperties": false,
       "properties": {
@@ -2075,7 +2352,7 @@
           "maximum": 60,
           "x-unit": "px",
           "x-showIf": { "background": ["floating", "floatingPills"] },
-          "description": "How far a floating bar keeps from the screen border (or the screen edge), across the bar and at its ends."
+          "description": "How far a floating bar keeps from the screen border (or the screen edge), across the bar and at its ends, and from the windows."
         },
         "pillPadding": {
           "x-group": "Style",
@@ -2188,7 +2465,14 @@
             "overrideRadius": true
           }
         },
-        "widgetFill": {
+        "overrideWidgetStyle": {
+          "x-group": "Widgets",
+          "type": "boolean",
+          "title": "Own widget style",
+          "default": false,
+          "description": "Off: the bar follows the Bar style settings in Look & Feel."
+        },
+        "widgetStyle": {
           "x-group": "Widgets",
           "type": "string",
           "title": "Widget style",
@@ -2202,7 +2486,10 @@
             "accentText": "Colored icons",
             "plain": "Plain text"
           },
-          "description": "How each widget shows its color: as its background, a faint tint, an outline, a line beside it, or on its icon. Plain text draws them straight onto the bar."
+          "description": "How each widget shows its color: as its background, a faint tint, an outline, a line beside it, or on its icon. Plain text draws them straight onto the bar.",
+          "x-showIf": {
+            "overrideWidgetStyle": true
+          }
         },
         "tintOpacity": {
           "x-group": "Widgets",
@@ -2214,7 +2501,8 @@
           "maximum": 100,
           "x-unit": "%",
           "x-showIf": {
-            "widgetFill": "tinted"
+            "overrideWidgetStyle": true,
+            "widgetStyle": "tinted"
           }
         },
         "outlineWidth": {
@@ -2227,10 +2515,11 @@
           "maximum": 6,
           "x-unit": "px",
           "x-showIf": {
-            "widgetFill": "outline"
+            "overrideWidgetStyle": true,
+            "widgetStyle": "outline"
           }
         },
-        "indicatorWidth": {
+        "lineWidth": {
           "x-group": "Widgets",
           "type": "integer",
           "x-control": "stepper",
@@ -2240,10 +2529,11 @@
           "maximum": 8,
           "x-unit": "px",
           "x-showIf": {
-            "widgetFill": "underline"
+            "overrideWidgetStyle": true,
+            "widgetStyle": "underline"
           }
         },
-        "indicatorSide": {
+        "lineSide": {
           "x-group": "Widgets",
           "type": "string",
           "title": "Line side",
@@ -2255,7 +2545,8 @@
           },
           "x-beside": true,
           "x-showIf": {
-            "widgetFill": "underline"
+            "overrideWidgetStyle": true,
+            "widgetStyle": "underline"
           }
         },
         "widgetShape": {
@@ -2270,10 +2561,11 @@
             "slant": "Slanted",
             "arrow": "Arrow"
           },
+          "description": "Rounded follows the widget corner radius. Slanted and arrow widgets take a little more room for their points.",
           "x-showIf": {
-            "widgetFill": ["filled", "tinted", "outline"]
-          },
-          "description": "Rounded follows the widget corner radius. Slanted and arrow widgets take a little more room for their points."
+            "overrideWidgetStyle": true,
+            "widgetStyle": ["filled", "tinted", "outline"]
+          }
         },
         "widgetGrouping": {
           "x-group": "Widgets",
@@ -2287,10 +2579,11 @@
             "powerline": "Powerline"
           },
           "x-beside": true,
+          "description": "Merged: neighbouring widgets share one background. Powerline: each widget's shape runs into the next.",
           "x-showIf": {
-            "widgetFill": ["filled", "tinted", "outline"]
-          },
-          "description": "Merged: neighbouring widgets share one background. Powerline: each widget's shape runs into the next (filled and tinted styles only)."
+            "overrideWidgetStyle": true,
+            "widgetStyle": ["filled", "tinted", "outline"]
+          }
         },
         "groupColor": {
           "x-group": "Widgets",
@@ -2298,11 +2591,12 @@
           "title": "Merged background",
           "x-options": "colors",
           "default": "backgroundAlt",
+          "description": "Widget colors show on their icons instead.",
           "x-showIf": {
-            "widgetFill": ["filled", "tinted", "outline"],
+            "overrideWidgetStyle": true,
+            "widgetStyle": ["filled", "tinted", "outline"],
             "widgetGrouping": "merged"
-          },
-          "description": "Widget colors show on their icons instead."
+          }
         },
         "widgetTextColor": {
           "x-group": "Widgets",
@@ -2311,7 +2605,17 @@
           "x-options": "colors",
           "x-emptyLabel": "Auto",
           "default": "",
-          "description": "One color for every widget's text and icons. Auto: each widget's own on a filled background, its color when tinted or outlined, else one that contrasts with the bar."
+          "description": "One color for every widget's text and icons. Auto: each widget's own on a filled background, its color when tinted or outlined, else one that contrasts with the bar.",
+          "x-showIf": {
+            "overrideWidgetStyle": true
+          }
+        },
+        "overrideAccents": {
+          "x-group": "Accents",
+          "type": "boolean",
+          "title": "Own accents",
+          "default": false,
+          "description": "Off: the bar follows the Bar style settings in Look & Feel."
         },
         "separatorStyle": {
           "x-group": "Accents",
@@ -2326,7 +2630,10 @@
             "slash": "Slash",
             "chevron": "Chevron"
           },
-          "description": "Drawn in the gap between neighbouring widgets in a section (not in a powerline). Give them room with Spacing."
+          "description": "Drawn in the gap between neighbouring widgets in a section (not in a powerline). Give them room with Spacing.",
+          "x-showIf": {
+            "overrideAccents": true
+          }
         },
         "separatorColor": {
           "x-group": "Accents",
@@ -2335,7 +2642,10 @@
           "x-options": "colors",
           "default": "base03",
           "x-showIf": {
-            "separatorStyle": { "not": "none" }
+            "overrideAccents": true,
+            "separatorStyle": {
+              "not": "none"
+            }
           }
         },
         "separatorThickness": {
@@ -2349,7 +2659,10 @@
           "x-unit": "px",
           "x-beside": true,
           "x-showIf": {
-            "separatorStyle": { "not": "none" }
+            "overrideAccents": true,
+            "separatorStyle": {
+              "not": "none"
+            }
           }
         },
         "accentLine": {
@@ -2363,7 +2676,10 @@
             "inner": "Inner edge",
             "outer": "Outer edge"
           },
-          "description": "A line along the bar's edge toward the windows (inner) or the screen edge (outer); on pills, along each pill."
+          "description": "A line along the bar's edge toward the windows (inner) or the screen edge (outer); on pills, along each pill.",
+          "x-showIf": {
+            "overrideAccents": true
+          }
         },
         "accentLineColor": {
           "x-group": "Accents",
@@ -2372,7 +2688,10 @@
           "x-options": "colors",
           "default": "accent",
           "x-showIf": {
-            "accentLine": { "not": "none" }
+            "overrideAccents": true,
+            "accentLine": {
+              "not": "none"
+            }
           }
         },
         "accentLineFade": {
@@ -2383,10 +2702,13 @@
           "x-emptyLabel": "None",
           "default": "",
           "x-beside": true,
+          "description": "Runs the line from its color into this one along the bar.",
           "x-showIf": {
-            "accentLine": { "not": "none" }
-          },
-          "description": "Runs the line from its color into this one along the bar."
+            "overrideAccents": true,
+            "accentLine": {
+              "not": "none"
+            }
+          }
         },
         "accentLineWidth": {
           "x-group": "Accents",
@@ -2398,11 +2720,21 @@
           "maximum": 8,
           "x-unit": "px",
           "x-showIf": {
-            "accentLine": { "not": "none" }
+            "overrideAccents": true,
+            "accentLine": {
+              "not": "none"
+            }
           }
         },
+        "overrideShadow": {
+          "x-group": "Shadow",
+          "type": "boolean",
+          "title": "Own shadow",
+          "default": false,
+          "description": "Off: the bar follows the Bar style settings in Look & Feel."
+        },
         "shadow": {
-          "x-group": "Accents",
+          "x-group": "Shadow",
           "type": "string",
           "title": "Shadow",
           "default": "none",
@@ -2412,22 +2744,28 @@
             "shadow": "Shadow",
             "glow": "Glow"
           },
-          "description": "Cast by the bar, or by its pills. A transparent bar has nothing to cast one."
+          "description": "Cast by the bar, or by its pills. A transparent bar has nothing to cast one; a solid bar on the screen border leaves it to the border, which casts the Bar style one.",
+          "x-showIf": {
+            "overrideShadow": true
+          }
         },
         "shadowColor": {
-          "x-group": "Accents",
+          "x-group": "Shadow",
           "type": "string",
           "title": "Shadow color",
           "x-options": "colors",
           "x-emptyLabel": "Auto",
           "default": "",
+          "description": "Auto: black for a shadow, the accent for a glow.",
           "x-showIf": {
-            "shadow": { "not": "none" }
-          },
-          "description": "Auto: black for a shadow, the accent for a glow."
+            "overrideShadow": true,
+            "shadow": {
+              "not": "none"
+            }
+          }
         },
         "shadowSize": {
-          "x-group": "Accents",
+          "x-group": "Shadow",
           "type": "integer",
           "x-control": "stepper",
           "title": "Shadow size",
@@ -2437,7 +2775,10 @@
           "x-unit": "px",
           "x-beside": true,
           "x-showIf": {
-            "shadow": { "not": "none" }
+            "overrideShadow": true,
+            "shadow": {
+              "not": "none"
+            }
           }
         },
         "widgets": {
@@ -3128,6 +3469,7 @@
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "x-showIf": { "/Workspaces.layout": "grid" }, "description": "Open the whole grid when hovered." },
             "clickToSwitch": { "type": "boolean", "title": "Click to switch", "default": true, "description": "Click a workspace (on the bar or in the grid popout) to go to it." },
             "scrollToSwitch": { "type": "boolean", "title": "Scroll to switch", "default": true, "description": "Scroll over the widget to step through the workspaces (along the shown row or column in a grid)." },
+            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base02", "description": "Behind the workspaces, in the bar's widget style." },
             "activeColor": { "type": "string", "title": "Active", "x-options": "colors", "default": "base0E" },
             "occupiedColor": { "type": "string", "title": "Occupied", "x-options": "colors", "default": "base04" },
             "emptyColor": { "type": "string", "title": "Empty", "x-options": "colors", "default": "base01" },

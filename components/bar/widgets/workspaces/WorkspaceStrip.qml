@@ -15,8 +15,14 @@ Item {
   property var screen
   property var barConfig
   property var properties
+  // Room kept to the widget's background across the bar
+  property real inset: 0
 
   readonly property bool isVertical: barConfig.vertical
+  // A cell's thickness across the bar, and its corners within the
+  // background's
+  readonly property real cell: barConfig.widgetSize - inset * 2
+  readonly property real cellRadius: Math.max(0, barConfig.radius - inset)
 
   readonly property color activeColor: Theme.resolveColor(properties.activeColor)
   readonly property color occupiedColor: Theme.resolveColor(properties.occupiedColor)
@@ -99,18 +105,18 @@ Item {
         readonly property HyprlandWorkspace ws: root.wsById(wsId)
         readonly property bool isActive: wsId === root.activeId
         readonly property bool occupied: root.hasWindows(ws)
-        readonly property real length: root.barConfig.widgetSize * (isActive && root.properties.wideActive ? 2 : 1)
+        readonly property real length: root.cell * (isActive && root.properties.wideActive ? 2 : 1)
         readonly property var biggestWindow: root.properties.showAppIcons && occupied ? HyprlandManager.biggestWindowForWorkspace(wsId) : null
         readonly property string iconPath: biggestWindow ? IconResolver.resolveWindowIcon(biggestWindow.class, biggestWindow.title) : ""
 
-        width: root.isVertical ? root.barConfig.widgetSize : length
-        height: root.isVertical ? length : root.barConfig.widgetSize
-        radius: root.barConfig.radius
+        width: root.isVertical ? root.cell : length
+        height: root.isVertical ? length : root.cell
+        radius: root.cellRadius
         color: isActive ? root.activeColor : cellArea.containsMouse ? Theme.backgroundHighlight : occupied ? root.occupiedColor : root.emptyColor
 
         Image {
           anchors.centerIn: parent
-          width: root.barConfig.widgetSize * 0.65
+          width: root.cell * 0.65
           height: width
           sourceSize: Qt.size(64, 64)
           source: cell.iconPath

@@ -102,11 +102,37 @@ TestCase {
     const second = BarShapes.segment("arrow", "powerline", true, 1, 2, 30);
     compare([first.startCap, first.endCap, first.back], ["round", "arrowOut", 0]);
     // Opaque: square, beneath the arrow before it
-    compare([second.startCap, second.back, second.lead], ["flat", 15, 7.5]);
+    compare([second.startCap, second.back, second.lead], ["flat", 15, 0]);
     compare(second.endCap, "arrowOut");
     // See-through: fitted against it instead
     compare(BarShapes.segment("arrow", "powerline", false, 1, 2, 30).startCap, "arrowIn");
     compare(BarShapes.segment("rounded", "powerline", false, 1, 2, 30).startCap, "roundIn");
     compare(BarShapes.segment("slant", "powerline", false, 1, 2, 30).startCap, "slant");
+  }
+
+  // Content sits centred on what shows of a segment: from half a join
+  // before its box (the cap before reaching in) to half a join before its
+  // end (its own cap tapering)
+  function test_powerline_content_is_centred_on_what_shows() {
+    const join = 15;
+    const at = index => BarShapes.segment("arrow", "powerline", true, index, 3, 30);
+    const first = at(0), middle = at(1), last = at(2);
+    compare([first.lead, first.trail], [0, join / 2]);
+    compare([middle.lead, middle.trail], [0, join]);
+    compare([last.lead, last.trail], [0, join / 2 + 15]);
+  }
+
+  function test_powerline_seams() {
+    const opaque = BarShapes.segment("rounded", "powerline", true, 1, 3, 30);
+    const clear = BarShapes.segment("rounded", "powerline", false, 1, 3, 30);
+    compare([opaque.seamStart, opaque.seamEnd], [false, false]);
+    compare([clear.seamStart, clear.seamEnd], [true, true]);
+    const alone = BarShapes.segment("rounded", "separate", false, 0, 1, 30);
+    compare([alone.seamStart, alone.seamEnd], [false, false]);
+  }
+
+  function test_seam_keeps_the_inset_off_that_end() {
+    const b = bounds(BarShapes.path(100, 30, 0, "flat", "flat", false, 1, true, false));
+    compare([b.minX, b.maxX, b.minY, b.maxY], [0, 99, 1, 29]);
   }
 }

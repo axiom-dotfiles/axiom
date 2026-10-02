@@ -750,11 +750,86 @@ TestCase {
       ]
     });
     const bars = loaded.config.Bars;
-    compare(bars.map(bar => bar.widgetFill), ["plain", "plain", "filled", "filled"]);
+    compare(bars.map(bar => bar.widgetStyle), ["plain", "plain", "filled", "filled"]);
     compare(bars.map(bar => bar.widgetTextColor), ["base0D", "", "", ""]);
     verify(bars.every(bar => !("widgetBackgrounds" in bar)));
     compare(loaded.changes.filter(change => change.includes("widgetBackgrounds")).length, 3);
     compare(errors(loaded.config), []);
+  }
+
+  function test_v40_bar_look_moves_to_bar_style() {
+    const loaded = load({
+      "version": 39,
+      "Bars": [
+        {
+          "id": "first",
+          "widgetFill": "outline",
+          "indicatorWidth": 3,
+          "shadow": "glow"
+        },
+        {
+          "id": "same",
+          "widgetFill": "outline",
+          "indicatorWidth": 3,
+          "shadow": "glow"
+        },
+        {
+          "id": "ownWidgets",
+          "widgetFill": "tinted",
+          "indicatorWidth": 3,
+          "shadow": "glow"
+        }
+      ]
+    });
+    const config = loaded.config;
+    compare(config.BarStyle.widgetStyle, "outline");
+    compare(config.BarStyle.lineWidth, 3);
+    compare(config.BarStyle.shadow, "glow");
+    compare(config.Bars.map(bar => bar.overrideWidgetStyle), [false, false, true]);
+    compare(config.Bars.map(bar => bar.overrideShadow), [false, false, false]);
+    compare(config.Bars[2].widgetStyle, "tinted");
+    verify(config.Bars.every(bar => !("widgetFill" in bar) && !("indicatorWidth" in bar)));
+    compare(loaded.removed, []);
+    compare(errors(config), []);
+  }
+
+  function test_v40_keeps_an_existing_bar_style() {
+    const loaded = load({
+      "version": 39,
+      "BarStyle": {
+        "widgetStyle": "plain"
+      },
+      "Bars": [
+        {
+          "id": "first",
+          "widgetFill": "outline"
+        }
+      ]
+    });
+    compare(loaded.config.BarStyle.widgetStyle, "plain");
+    compare(loaded.config.Bars[0].widgetStyle, "outline");
+    compare(errors(loaded.config), []);
+  }
+
+  // A bar's look fields copy the BarStyle section's, each shown only while
+  // the bar overrides its group
+  function test_bar_look_fields_match_bar_style() {
+    const shared = schema.properties.BarStyle.properties;
+    const own = schema.definitions.Bar.properties;
+    const flags = ["overrideWidgetStyle", "overrideAccents", "overrideShadow"];
+    for (const key of Object.keys(shared)) {
+      verify(own[key] !== undefined, key);
+      for (const field of ["type", "title", "default", "minimum", "maximum", "enum", "x-options", "x-emptyLabel", "x-unit", "x-control"])
+        compare(JSON.stringify(own[key][field]), JSON.stringify(shared[key][field]), key + "." + field);
+      const condition = Object.assign({}, own[key]["x-showIf"]);
+      const flag = flags.find(f => condition[f] === true);
+      verify(flag !== undefined, key + " has no override condition");
+      compare(own[flag]["x-group"], own[key]["x-group"], key);
+      delete condition[flag];
+      compare(JSON.stringify(condition), JSON.stringify(shared[key]["x-showIf"] ?? {}), key + " x-showIf");
+    }
+    const look = Object.keys(own).filter(key => flags.includes(own[key]["x-showIf"] ? Object.keys(own[key]["x-showIf"])[0] : ""));
+    compare(look.sort(), Object.keys(shared).sort());
   }
 
   function test_v36_primary_bar_monitors_become_primary() {

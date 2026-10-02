@@ -16,6 +16,8 @@ QtObject {
   // (whose keys are always filled in from the schema defaults).
   function enrichBarConfig(barConfig) {
     const loc = Bar.getLocationFromString(barConfig.location);
+    // Its widget style, accents and shadow: BarStyle's, or its own
+    const look = Bar.lookOf(barConfig);
     // The bar is sized by its widgets, never the other way round, so no
     // setting can leave them cut off
     const widgetSize = barConfig.widgetSize;
@@ -60,10 +62,10 @@ QtObject {
     // widgets and their padding inside a stroke
     const islandStart = outerCover + barConfig.floatGap;
     const islandDepth = Appearance.borderWidth + padding + widgetSize + padding + Appearance.borderWidth;
-    // Shapes and grouping are for widgets drawn on a background; a
-    // powerline's overlapping segments need a fill to hide what's beneath
-    const boxed = ["filled", "tinted", "outline"].includes(barConfig.widgetFill);
-    const grouping = !boxed || (barConfig.widgetGrouping === "powerline" && barConfig.widgetFill === "outline") ? "separate" : barConfig.widgetGrouping;
+    const borderShadowed = solid && Appearance.screenBorder && barConfig.reserveSpace;
+    // Shapes and grouping are for widgets drawn on a background
+    const boxed = ["filled", "tinted", "outline"].includes(look.widgetStyle);
+    const grouping = boxed ? look.widgetGrouping : "separate";
 
     return {
       "id": barConfig.id,
@@ -87,6 +89,7 @@ QtObject {
       // Where islands start, in from the bar window's outer edge and both
       // its ends, and the gap from their widgets to their ends
       "islandStart": islandStart,
+      "floatGap": island ? barConfig.floatGap : 0,
       "islandGap": Appearance.borderWidth + padding,
       "insideBorder": insideBorder,
       // An inner stroke surfaces on its edge can join: a solid bar's
@@ -112,30 +115,32 @@ QtObject {
       "radius": barConfig.overrideRadius ? barConfig.widgetRadius : Widget.radius,
       // How widgets show their colors (see widgetColors); the color
       // names stay unresolved
-      "widgetFill": barConfig.widgetFill,
-      "tintOpacity": barConfig.tintOpacity / 100,
-      "outlineWidth": barConfig.outlineWidth,
-      "indicatorWidth": barConfig.indicatorWidth,
-      "indicatorSide": barConfig.indicatorSide,
-      "widgetTextColor": barConfig.widgetTextColor,
-      "widgetShape": boxed ? barConfig.widgetShape : "rounded",
+      "widgetStyle": look.widgetStyle,
+      "tintOpacity": look.tintOpacity / 100,
+      "outlineWidth": look.outlineWidth,
+      "lineWidth": look.lineWidth,
+      "lineSide": look.lineSide,
+      "widgetTextColor": look.widgetTextColor,
+      "widgetShape": boxed ? look.widgetShape : "rounded",
       "widgetGrouping": grouping,
-      "groupColor": barConfig.groupColor,
+      "groupColor": look.groupColor,
       // A powerline's widgets touch, leaving no gap to divide
-      "separatorStyle": grouping === "powerline" ? "none" : barConfig.separatorStyle,
-      "separatorColor": barConfig.separatorColor,
-      "separatorThickness": barConfig.separatorThickness,
-      "accentLine": barConfig.accentLine,
-      "accentLineColor": barConfig.accentLineColor,
-      "accentLineFade": barConfig.accentLineFade,
-      "accentLineWidth": barConfig.accentLineWidth,
-      // Cast by what the bar paints: a transparent one paints nothing
-      "shadow": background === "transparent" ? "none" : barConfig.shadow,
-      "shadowColor": barConfig.shadowColor,
-      "shadowSize": barConfig.shadowSize,
+      "separatorStyle": grouping === "powerline" ? "none" : look.separatorStyle,
+      "separatorColor": look.separatorColor,
+      "separatorThickness": look.separatorThickness,
+      "accentLine": look.accentLine,
+      "accentLineColor": look.accentLineColor,
+      "accentLineFade": look.accentLineFade,
+      "accentLineWidth": look.accentLineWidth,
+      // Cast by what the bar paints: a transparent one paints nothing. A
+      // solid bar reserving its edge under the border leaves it to the
+      // border, whose stroke is its inner edge (RoundedBorders)
+      "shadow": background === "transparent" || borderShadowed ? "none" : look.shadow,
+      "shadowColor": look.shadowColor,
+      "shadowSize": look.shadowSize,
       // How far past the bar a shadow reaches (its blur and offset), which
       // the bar window takes on its inner side
-      "shadowReach": background !== "transparent" && barConfig.shadow !== "none" ? Math.ceil(barConfig.shadowSize * 1.25) : 0,
+      "shadowReach": background !== "transparent" && !borderShadowed && look.shadow !== "none" ? Math.ceil(look.shadowSize * 1.25) : 0,
       "lockCenter": barConfig.lockCenter,
       "location": loc,
       "reserveSpace": barConfig.reserveSpace,
@@ -164,12 +169,52 @@ QtObject {
   // BarWidgetStyle's `style` for a bar, its colors resolved
   function _widgetStyle(barConfig, merged) {
     return {
-      "fill": barConfig.widgetFill,
+      "fill": barConfig.widgetStyle,
       "barText": Theme.foreground,
       "override": barConfig.widgetTextColor ? Theme.resolveColor(barConfig.widgetTextColor) : null,
       "tint": barConfig.tintOpacity,
       "group": merged ? Theme.resolveColor(barConfig.groupColor) : null
     };
+  }
+
+  // What a shadow is drawn in: `shadow`/`shadowColor` as a bar's look or
+  // the BarStyle section has them. Automatic is black for a shadow, the
+  // accent for a glow.
+  function shadowColor(look) {
+    if (look.shadowColor)
+      return Theme.resolveColor(look.shadowColor);
+    return look.shadow === "glow" ? Theme.accent : Qt.alpha("black", 0.6);
+  }
+
+  // How much less than its extent a bar reserves, given Hyprland's
+  // gaps_out on its edge. A transparent bar has no inner edge to see:
+  // windows start where it would be, so the gap from the widgets to them
+  // (padding + gaps_out, taken off here) matches the gap to the screen
+  // edge. A floating bar's islands keep the same gap to the windows as to
+  // the border: its float gap in all, gaps_out included.
+  function reserveTrim(barConfig, gapsOut) {
+    if (barConfig.background === "transparent")
+      return gapsOut;
+    return barConfig.island ? gapsOut - barConfig.floatGap : 0;
+  }
+
+  // A bar's look groups (its override flag and the fields it covers, the
+  // flag's `x-group` in the Bar definition): each is the BarStyle
+  // section's unless the bar overrides it
+  readonly property var lookGroups: ["overrideWidgetStyle", "overrideAccents", "overrideShadow"].map(flag => ({
+        "flag": flag,
+        "keys": Bar.fieldGroups.find(group => group.keys.includes(flag)).keys.filter(key => key !== flag)
+      }))
+
+  // A bar entry with its look filled from BarStyle where it doesn't
+  // override it
+  function lookOf(barConfig) {
+    const look = Object.assign({}, barConfig);
+    Bar.lookGroups.forEach(group => {
+      if (!barConfig[group.flag])
+        group.keys.forEach(key => look[key] = BarStyle.values[key]);
+    });
+    return look;
   }
 
   // The Bars section as saved: no previews, "*" monitors unexpanded, locations as strings
