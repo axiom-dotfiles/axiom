@@ -161,7 +161,7 @@ class TerminalPalette(unittest.TestCase):
 FORMATS = {
     "alacritty": "toml", "helix": "toml", "wezterm": "toml", "yazi": "toml",
     "k9s": "yaml", "lazygit": "yaml", "bat": "plist", "nvim": "json",
-    "vscode": "json", "qt": "ini", "foot": "ini", "gtk": "css", "vesktop": "css", "ncspot": "toml", "firefox": "css",
+    "vscode": "json", "qt": "ini", "foot": "ini", "gtk": "css", "vesktop": "css", "ncspot": "toml", "firefox": "css", "eza": "yaml",
 }
 COLOR = re.compile(r"#([0-9a-fA-F]+)\b")
 
