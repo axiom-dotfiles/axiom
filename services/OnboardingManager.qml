@@ -125,9 +125,11 @@ Singleton {
   // Whether hyprland.lua loads axiom's module (included mode)
   readonly property bool includeDone: (IntegrationHookupManager.status.hyprlandInclude?.targets ?? [])[0]?.done === true
 
-  // The mode the Hyprland page starts on: managed, the recommended one,
-  // unless the config can't be taken over
-  readonly property string recommendedMode: configState === "blocked" ? "included" : "managed"
+  // The mode the Hyprland page starts on: managed only when there's nothing
+  // of the user's to take over (Hyprland's generated example config, none,
+  // or axiom's already); a config of their own (custom, legacy, blocked)
+  // starts detached, which changes none of it
+  readonly property string recommendedMode: ["stock", "none", "ours"].includes(configState) ? "managed" : "detached"
   // The mode picked on the Hyprland page, applied on Finish ("" follows
   // the recommendation)
   readonly property string chosenMode: _run.chosenMode !== "" ? _run.chosenMode : recommendedMode
