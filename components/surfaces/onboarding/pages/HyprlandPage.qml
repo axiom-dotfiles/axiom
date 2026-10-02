@@ -75,6 +75,7 @@ OnboardingPage {
       description: modelData.description
       selected: OnboardingManager.chosenMode === modelData.mode
       tag: modelData.tag
+      tagColor: modelData.mode === "managed" ? Theme.accent : Theme.warning
       available: !(modelData.mode === "managed" && root.configState === "blocked")
       unavailableReason: modelData.mode === "managed" ? OnboardingManager.blockedReason : ""
       onClicked: OnboardingManager.chooseMode(modelData.mode)

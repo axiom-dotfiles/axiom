@@ -18,6 +18,7 @@ Rectangle {
   property bool recommended: false
   // The tag beside the title ("" for none)
   property string tag: root.recommended ? I18n.tr("Recommended") : ""
+  property color tagColor: Theme.accent
   // False greys it out and ignores clicks
   property bool available: true
   // Why it isn't available, shown under the description
@@ -73,7 +74,7 @@ Rectangle {
           implicitWidth: tag.implicitWidth + Widget.spacing * 2
           implicitHeight: tag.implicitHeight + 4
           radius: height / 2
-          color: Theme.accent
+          color: root.tagColor
 
           StyledText {
             id: tag
