@@ -516,7 +516,6 @@
     "transparent": "透明",
     "Pill per group": "グループごとのピル",
     "pills": "ピル",
-    "Transparent and pill bars sit inside the screen border; pills grow out of it.": "透明とピルのバーは画面の枠の内側に配置され、ピルは枠から伸びます。",
     "Pill padding": "ピルの余白",
     "Extra space around a pill's widgets (px). They sit the screen margin plus this from the screen edge, and as far from the pill's other edges.": "ピル内のウィジェット周りの追加の余白（px）。ウィジェットは画面端から画面マージン＋この値の位置にあり、ピルの他の辺からも同じ距離になります。",
     "Merge distance": "結合距離",
@@ -2434,6 +2433,14 @@
     "glow": "グロー",
     "Cast by the bar, or by its pills. A transparent bar has nothing to cast one.": "バーまたはそのピルが落とします。透明なバーには影を落とすものがありません。",
     "Auto: black for a shadow, the accent for a glow.": "自動: 影は黒、グローはアクセントカラー。",
-    "Share of the widget height the line, slash or chevron spans.": "ウィジェットの高さに対する線、スラッシュ、山形の長さの割合。"
+    "Share of the widget height the line, slash or chevron spans.": "ウィジェットの高さに対する線、スラッシュ、山形の長さの割合。",
+    "Floating bar": "フローティングバー",
+    "One bar held off the edge": "端から離れたひとつのバー",
+    "Floating pills": "フローティングピル",
+    "A floating pill per group": "グループごとに浮かぶピル",
+    "floatingPills": "フローティングピル",
+    "Float gap": "浮かせる間隔",
+    "How far a floating bar keeps from the screen border (or the screen edge), across the bar and at its ends.": "フローティングバーが画面の枠 (または画面の端) から離れる距離。バーの横方向と両端に適用されます。",
+    "Every bar but a solid one sits inside the screen border. Pills grow out of it; floating bars and pills are held away from it.": "塗りつぶし以外のバーは画面の枠の内側に置かれます。ピルは枠から伸び、フローティングのバーとピルは枠から離れます。"
   }
 }

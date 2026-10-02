@@ -35,25 +35,31 @@ Rectangle {
   color: "transparent"
 
   readonly property bool pills: barConfig.pills
+  // A floating bar: islands held off the edge, read like pills by the
+  // popouts (pillRects), but drawn on their own (islandRects)
+  readonly property bool islands: barConfig.island
+  // Where islands may reach along the bar, from its start
+  readonly property real islandEnd: root.length - root.barConfig.islandStart
   // Fillet room each side of a pill, as for popouts (AttachedSurface)
   readonly property int pillConnector: Appearance.borderRadius * 2
   // Kept clear at both ends. A pill at an end instead sits flush on the
-  // perpendicular edge's stroke (bar-window 0 along a floating bar) and
-  // joins it, so its widgets only need the pill inset (the stroke and the
-  // padding, or the screen margin too on a bare edge).
-  readonly property real endMargin: pills ? barConfig.pillInset : Appearance.screenMargin
+  // perpendicular edge's stroke (bar-window 0 along a bar inside the
+  // border) and joins it, so its widgets only need the pill inset (the
+  // stroke and the padding, or the screen margin too on a bare edge). An
+  // island's widgets sit inside its stroke and padding.
+  readonly property real endMargin: pills ? barConfig.pillInset : islands ? barConfig.islandStart + barConfig.islandGap : Appearance.screenMargin
 
   // One { start, length, joinStart, joinEnd } per pill along the bar: each
   // non-empty section, merged with its neighbour when they're at most
   // pillMerge apart, grown by the pill gap. Pills reaching an end are
-  // stretched onto it and join it.
+  // stretched onto it and join it. On a floating bar, its islands
+  // (BarLayout.islandRects): one along it, or one per group.
   readonly property var pillRects: {
+    if (islands)
+      return BarLayout.islandRects(root._spans, root.barConfig.islandGap, root.barConfig.pillMerge, root.barConfig.islandStart, root.islandEnd, !root.barConfig.islandPills);
     if (!pills)
       return [];
-    const spans = root._groups.filter(g => g.usedLength > 0).map(g => ({
-          "start": g.mainPos,
-          "end": g.mainPos + g.usedLength
-        })).sort((a, b) => a.start - b.start);
+    const spans = root._spans.slice();
     const merged = [];
     spans.forEach(span => {
       const last = merged[merged.length - 1];
@@ -81,8 +87,20 @@ Rectangle {
     });
   }
 
+  // The sections with widgets showing, as { start, end } along the bar
+  readonly property var _spans: root._groups.filter(g => g.usedLength > 0).map(g => ({
+        "start": g.mainPos,
+        "end": g.mainPos + g.usedLength
+      })).sort((a, b) => a.start - b.start)
+
+  // The islands as drawn: one stretched to carry an open popout, and
+  // joining any it then reaches, while that's open
+  readonly property var islandRects: islands ? BarLayout.stretchIslands(root.pillRects, root.pillStretch, root.barConfig.pillMerge) : []
+
   // One pill stretched past its ends to carry an open popout's fillets,
-  // { index, start, end } (set by BarPopouts; pillRects stays unstretched)
+  // { index, start, end }, and on an island whether the popout runs flush
+  // into either end (squareStart, squareEnd) (set by BarPopouts;
+  // pillRects stays unstretched)
   property var pillStretch: null
   // The same for a floating edge menu standing on a pill
   property var edgeMenuStretch: null
@@ -203,7 +221,7 @@ Rectangle {
 
     Rectangle {
       anchors.fill: parent
-      visible: root.barConfig.background === "solid"
+      visible: root.barConfig.solid
       color: Theme.background
     }
 
@@ -217,12 +235,59 @@ Rectangle {
       y: root.barConfig.top ? root.height - height : 0
     }
 
+    // Islands: rounded boxes in from the edge, an inner corner squared
+    // where a popout runs flush into that end. Modelled by count, as pills.
+    Repeater {
+      model: root.islandRects.length
+
+      Rectangle {
+        id: island
+        required property int index
+        readonly property var rect: root.islandRects[index] ?? {
+          "start": 0,
+          "length": 0,
+          "squareStart": false,
+          "squareEnd": false
+        }
+        readonly property real depth: root.barConfig.extent - root.barConfig.islandStart
+        readonly property real across: root.barConfig.right || root.barConfig.bottom ? (root.isVertical ? root.width : root.height) - root.barConfig.islandStart - depth : root.barConfig.islandStart
+        readonly property real corner: Appearance.borderRadius
+        // The inner side's corners at the bar's start and end
+        property real startInner: rect.squareStart ? 0 : corner
+        property real endInner: rect.squareEnd ? 0 : corner
+
+        x: root.isVertical ? across : rect.start
+        y: root.isVertical ? rect.start : across
+        width: root.isVertical ? depth : rect.length
+        height: root.isVertical ? rect.length : depth
+        color: Theme.background
+        border.color: Theme.foreground
+        border.width: Appearance.borderWidth
+        // Inner side: bottom on a top bar, right on a left one, and so on
+        topLeftRadius: root.barConfig.bottom || root.barConfig.right ? startInner : corner
+        topRightRadius: root.barConfig.bottom ? endInner : root.barConfig.left ? startInner : corner
+        bottomLeftRadius: root.barConfig.top ? startInner : root.barConfig.right ? endInner : corner
+        bottomRightRadius: root.barConfig.top || root.barConfig.left ? endInner : corner
+
+        Behavior on startInner {
+          NumberAnimation {
+            duration: Appearance.animFast
+          }
+        }
+        Behavior on endInner {
+          NumberAnimation {
+            duration: Appearance.animFast
+          }
+        }
+      }
+    }
+
     // Pills: each grows out of the bar's outer edge (the border, or the
     // screen edge with the border off) like a popout does, covering the
     // border's stroke where it joins. Modelled by count, so a clock changing
     // width moves its pill without rebuilding it.
     Repeater {
-      model: root.pillRects.length
+      model: root.pills ? root.pillRects.length : 0
 
       AttachedSurface {
         id: pill
@@ -302,26 +367,29 @@ Rectangle {
   // inner edge, the border's under a floating bar's outer edge)
   readonly property real _accentInset: {
     const width = root.barConfig.accentLineWidth;
-    if (root.barConfig.accentLine === "outer")
-      return root.pills ? root.barConfig.overlap : root.barConfig.floating ? Appearance.borderWidth : 0;
+    if (root.barConfig.accentLine === "outer") {
+      if (root.islands)
+        return root.barConfig.islandStart + Appearance.borderWidth;
+      return root.pills ? root.barConfig.overlap : root.barConfig.insideBorder ? Appearance.borderWidth : 0;
+    }
     if (root.pills)
       return root.barConfig.pillDepth - Appearance.borderWidth - width;
-    return root.barConfig.extent - width - (root.barConfig.background === "solid" ? Appearance.borderWidth : 0);
+    return root.barConfig.extent - width - (root.barConfig.solid || root.islands ? Appearance.borderWidth : 0);
   }
 
   // Along a plain bar: its whole length, or clear of the border's sides
-  // under a floating one
+  // inside the border
   AccentLine {
-    visible: root.barConfig.accentLine !== "none" && !root.pills
+    visible: root.barConfig.accentLine !== "none" && !root.pills && !root.islands
     bar: root
-    start: root.barConfig.floating ? root.endMargin : 0
+    start: root.barConfig.insideBorder ? root.endMargin : 0
     length: root.length - start * 2
     inset: root._accentInset
   }
 
   // Along each pill, clear of its rounded corners on the inner side
   Repeater {
-    model: root.barConfig.accentLine !== "none" && root.pills ? root.pillRects.length : 0
+    model: root.barConfig.accentLine !== "none" && (root.pills || root.islands) ? root.pillRects.length : 0
 
     AccentLine {
       required property int index
@@ -329,7 +397,8 @@ Rectangle {
         "start": 0,
         "length": 0
       }
-      readonly property real corner: root.barConfig.accentLine === "inner" ? Appearance.borderRadius : 0
+      // Pills only round their inner side; islands both
+      readonly property real corner: root.islands || root.barConfig.accentLine === "inner" ? Appearance.borderRadius : 0
 
       bar: root
       start: rect.start + (rect.joinStart ? 0 : corner)

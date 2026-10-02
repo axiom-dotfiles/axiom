@@ -140,4 +140,71 @@ TestCase {
       "count": 2
     });
   }
+
+  function test_islandRects_whole_bar() {
+    compare(BarLayout.islandRects([], 6, 12, 10, 990, true), [
+      {
+        "start": 10,
+        "length": 980,
+        "joinStart": false,
+        "joinEnd": false
+      }
+    ]);
+  }
+
+  function test_islandRects_grow_clamp_and_merge() {
+    // Grown by 6 each side; kept inside 10..990; 100..110 and 115..160
+    // become islands 16 apart, within merge 20, so one
+    const rects = BarLayout.islandRects([
+      {
+        "start": 115,
+        "end": 160
+      },
+      {
+        "start": 8,
+        "end": 50
+      },
+      {
+        "start": 900,
+        "end": 988
+      },
+      {
+        "start": 60,
+        "end": 75
+      }
+    ], 6, 20, 10, 990, false);
+    compare(rects.map(r => [r.start, r.start + r.length]), [[10, 81], [109, 166], [894, 990]]);
+    // 81 to 109 is 28 apart: past merge, so they stay apart
+    verify(rects.every(r => !r.joinStart && !r.joinEnd));
+  }
+
+  function test_stretchIslands_grows_squares_and_merges() {
+    const rects = BarLayout.islandRects([
+      {
+        "start": 100,
+        "end": 200
+      },
+      {
+        "start": 300,
+        "end": 400
+      }
+    ], 0, 10, 0, 1000, false);
+    compare(BarLayout.stretchIslands(rects, null, 10).map(r => [r.start, r.length]), [[100, 100], [300, 100]]);
+    // Stretched to 80..250: still 50 short of the next
+    const apart = BarLayout.stretchIslands(rects, {
+      "index": 0,
+      "start": 80,
+      "end": 250,
+      "squareStart": true
+    }, 10);
+    compare(apart.map(r => [r.start, r.length, r.squareStart, r.squareEnd]), [[80, 170, true, false], [300, 100, false, false]]);
+    // Stretched to 295: within 10 of the next, so they draw as one
+    const joined = BarLayout.stretchIslands(rects, {
+      "index": 0,
+      "start": 100,
+      "end": 295,
+      "squareEnd": true
+    }, 10);
+    compare(joined.map(r => [r.start, r.length, r.squareStart, r.squareEnd]), [[100, 300, false, false]]);
+  }
 }

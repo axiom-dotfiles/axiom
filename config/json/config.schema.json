@@ -2011,7 +2011,7 @@
 
     "Bar": {
       "type": "object",
-      "x-order": ["id", "enabled", "monitor", "location", "widgetSize", "padding", "spacing", "widgetPadding", "widgetSpacing", "background", "pillPadding", "pillMerge", "overrideFontSize", "fontSize", "overrideRadius", "widgetRadius", "widgetFill", "tintOpacity", "outlineWidth", "indicatorWidth", "indicatorSide", "widgetShape", "widgetGrouping", "groupColor", "widgetTextColor", "separatorStyle", "separatorColor", "separatorThickness", "accentLine", "accentLineColor", "accentLineFade", "accentLineWidth", "shadow", "shadowColor", "shadowSize", "lockCenter", "reserveSpace"],
+      "x-order": ["id", "enabled", "monitor", "location", "widgetSize", "padding", "spacing", "widgetPadding", "widgetSpacing", "background", "floatGap", "pillPadding", "pillMerge", "overrideFontSize", "fontSize", "overrideRadius", "widgetRadius", "widgetFill", "tintOpacity", "outlineWidth", "indicatorWidth", "indicatorSide", "widgetShape", "widgetGrouping", "groupColor", "widgetTextColor", "separatorStyle", "separatorColor", "separatorThickness", "accentLine", "accentLineColor", "accentLineFade", "accentLineWidth", "shadow", "shadowColor", "shadowSize", "lockCenter", "reserveSpace"],
       "required": ["id"],
       "additionalProperties": false,
       "properties": {
@@ -2061,9 +2061,21 @@
           "type": "string",
           "title": "Background",
           "default": "solid",
-          "enum": ["solid", "transparent", "pills"],
-          "x-enumLabels": { "solid": "Solid", "transparent": "Transparent", "pills": "Pill per group" },
-          "description": "Transparent and pill bars sit inside the screen border; pills grow out of it."
+          "enum": ["solid", "transparent", "pills", "floating", "floatingPills"],
+          "x-enumLabels": { "solid": "Solid", "transparent": "Transparent", "pills": "Pill per group", "floating": "Floating bar", "floatingPills": "Floating pills" },
+          "description": "Every bar but a solid one sits inside the screen border. Pills grow out of it; floating bars and pills are held away from it."
+        },
+        "floatGap": {
+          "x-group": "Style",
+          "type": "integer",
+          "x-control": "stepper",
+          "title": "Float gap",
+          "default": 8,
+          "minimum": 0,
+          "maximum": 60,
+          "x-unit": "px",
+          "x-showIf": { "background": ["floating", "floatingPills"] },
+          "description": "How far a floating bar keeps from the screen border (or the screen edge), across the bar and at its ends."
         },
         "pillPadding": {
           "x-group": "Style",
@@ -2085,7 +2097,7 @@
           "default": 12,
           "minimum": 0,
           "maximum": 200,
-          "x-showIf": { "background": "pills" },
+          "x-showIf": { "background": ["pills", "floatingPills"] },
           "x-unit": "px",
           "description": "Groups closer than this share one pill (px)."
         },

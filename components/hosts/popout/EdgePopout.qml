@@ -127,8 +127,8 @@ PopoutWrapperBase {
   // that grows to fill whatever room it's given.
   property real reachLength: root.contentItem ? (root.vertical ? root.contentItem.implicitHeight : root.contentItem.implicitWidth) : 0
 
-  // A joining window reaches onto the perpendicular strokes (as a floating
-  // bar's does), so a joined end can sit on the stroke's outer edge.
+  // A joining window reaches onto the perpendicular strokes (as a bar's
+  // inside the border does), so a joined end can sit on the stroke's outer edge.
   // Positions along the edge are measured from their inner edge anyway.
   readonly property real strokeInset: joinEnds && Appearance.screenBorder ? Appearance.borderWidth : 0
   // Length of the edge between the perpendicular borders/bars. The window
@@ -143,10 +143,10 @@ PopoutWrapperBase {
   readonly property real filletMargin: bareEdge ? 0 : connectorGap - Appearance.borderWidth
 
   // Which perpendicular edges have a stroke to join: the border or a solid
-  // bar, not a transparent or pill bar, nor an integrated menu's strip
+  // bar (`joinable`), not any other bar, nor an integrated menu's strip
   function _joinable(name) {
     const bar = Bar.edgesFor(root.screen)[name];
-    return (!bar || bar.background === "solid") && EdgeMenuManager.zoneOn(root.screen?.name ?? "", name) === 0;
+    return (!bar || bar.joinable) && EdgeMenuManager.zoneOn(root.screen?.name ?? "", name) === 0;
   }
   // The natural box centred at `position`: an end joins when the box would
   // leave less than a fillet's width between its own fillet and that edge

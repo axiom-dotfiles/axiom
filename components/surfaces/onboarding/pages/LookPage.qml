@@ -116,6 +116,18 @@ OnboardingPage {
           "icon": "blur_on",
           "title": I18n.tr("Transparent"),
           "description": I18n.tr("Widgets on the wallpaper")
+        },
+        {
+          "value": "floating",
+          "icon": "toolbar",
+          "title": I18n.tr("Floating bar"),
+          "description": I18n.tr("One bar held off the edge")
+        },
+        {
+          "value": "floatingPills",
+          "icon": "more_horiz",
+          "title": I18n.tr("Floating pills"),
+          "description": I18n.tr("A floating pill per group")
         }
       ]
 

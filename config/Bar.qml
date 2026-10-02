@@ -23,12 +23,16 @@ QtObject {
     const background = barConfig.background ?? "solid";
     const pills = background === "pills";
     const solid = background === "solid";
-    const floating = !solid && Appearance.screenBorder;
-    // What covers the bar's own pixels: a floating bar's outer edge lies on
-    // the border's stroke, and a solid bar with the border off draws its own
-    // stroke on its inner edge. A solid bar's border strip only draws its
-    // stroke past the bar (RoundedBorders.frameColorFor).
-    const outerCover = floating ? Appearance.borderWidth : 0;
+    // Floating bars are islands held off the edge: one along the bar, or
+    // one per group of widgets
+    const island = background === "floating" || background === "floatingPills";
+    // Every bar but a solid one sits inside the screen border
+    const insideBorder = !solid && Appearance.screenBorder;
+    // What covers the bar's own pixels: the outer edge of a bar inside the
+    // border lies on the border's stroke, and a solid bar with the border
+    // off draws its own stroke on its inner edge. A solid bar's border strip
+    // only draws its stroke past the bar (RoundedBorders.frameColorFor).
+    const outerCover = insideBorder ? Appearance.borderWidth : 0;
     const innerCover = solid && !Appearance.screenBorder ? Appearance.borderWidth : 0;
     // A solid bar reaches at least as far as the border strip laid over its
     // inner part (BarPanel.reservedZone), so no gap opens under the strip
@@ -51,6 +55,11 @@ QtObject {
     // How far a pill reaches in from the bar's outer edge: the inset, its
     // widgets, and the gap to its far side
     const pillDepth = pillInset + widgetSize + pillGap;
+    // An island sits `floatGap` in from the border's stroke (or the bare
+    // screen edge), across the bar and from both its ends, and holds the
+    // widgets and their padding inside a stroke
+    const islandStart = outerCover + barConfig.floatGap;
+    const islandDepth = Appearance.borderWidth + padding + widgetSize + padding + Appearance.borderWidth;
     // Shapes and grouping are for widgets drawn on a background; a
     // powerline's overlapping segments need a fill to hide what's beneath
     const boxed = ["filled", "tinted", "outline"].includes(barConfig.widgetFill);
@@ -64,16 +73,24 @@ QtObject {
       "monitor": barConfig.monitor,
       // A pill bar is as thick as its pills, so the padding always fits
       // and nothing is left between them and the windows
-      "extent": pills ? pillDepth : plainExtent,
+      "extent": pills ? pillDepth : island ? islandStart + islandDepth : plainExtent,
       "widgetSize": widgetSize,
       "padding": padding,
       // How far the widgets sit in from the bar's outer edge: past the
       // stroke and pill padding, or centred between whatever covers the bar
-      "crossStart": pills ? pillInset : outerCover + (plainExtent - outerCover - innerCover - widgetSize) / 2,
+      "crossStart": pills ? pillInset : island ? islandStart + Appearance.borderWidth + padding : outerCover + (plainExtent - outerCover - innerCover - widgetSize) / 2,
       "background": background,
+      "solid": solid,
       "pills": pills,
-      // Transparent and pill bars sit inside the screen border, not under it
-      "floating": floating,
+      "island": island,
+      "islandPills": background === "floatingPills",
+      // Where islands start, in from the bar window's outer edge and both
+      // its ends, and the gap from their widgets to their ends
+      "islandStart": islandStart,
+      "islandGap": Appearance.borderWidth + padding,
+      "insideBorder": insideBorder,
+      // An inner stroke surfaces on its edge can join: a solid bar's
+      "joinable": solid,
       // A solid bar's inner stroke is the border strip's; with the border
       // off it draws its own, on its innermost pixels
       "innerStroke": solid && !Appearance.screenBorder,

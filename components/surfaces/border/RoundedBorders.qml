@@ -22,14 +22,14 @@ Item {
   // The corner's curve plus its stroke
   readonly property int cornerSize: root.innerBorderRadius + root.strokeWidth
 
-  // Corners sit in the space left once every edge is reserved, so a
-  // floating bar or a dock (inside the border, reserving their own space)
+  // Corners sit in the space left once every edge is reserved, so a bar
+  // or a dock inside the border (reserving their own space)
   // would push them in past it. Pull them back out to the border's corners.
   readonly property var edges: Bar.edgesFor(root.screen)
   function cornerMargin(edge) {
     const docks = DockManager.zoneOn(root.screen?.name ?? "", edge);
     const bar = root.edges[edge];
-    if (!bar?.floating || !bar.reserveSpace)
+    if (!bar?.insideBorder || !bar.reserveSpace)
       return -root.strokeWidth - docks;
     // A transparent bar reserves gaps_out less (see BarPanel)
     const gap = bar.background === "transparent" ? (HyprlandManager.gapsOut[edge] ?? 0) : 0;
@@ -40,7 +40,7 @@ Item {
   // so the bar and its widgets show through
   function frameColorFor(edge) {
     const bar = root.edges[edge];
-    return bar && bar.background === "solid" && bar.reserveSpace ? "transparent" : root.frameColor;
+    return bar && bar.solid && bar.reserveSpace ? "transparent" : root.frameColor;
   }
 
   // An edge strip per side

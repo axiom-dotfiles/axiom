@@ -103,8 +103,12 @@ PopoutWrapperBase {
   onCurrentDataChanged: updateAnchorRect()
 
   // On a pill bar: its pills ({ start, length, joinStart, joinEnd } along
-  // the bar), and the one the anchor sits in, if any
-  readonly property var pills: root.barConfig.pills ? (root.layoutSource?.pillRects ?? []) : []
+  // the bar), and the one the anchor sits in, if any. A floating bar's
+  // islands are read the same way: a popout grows out of its island's
+  // inner stroke, stretching the island to carry its fillets, and runs
+  // flush into the island's end where the island can't stretch further.
+  readonly property bool island: root.barConfig.island
+  readonly property var pills: root.barConfig.pills || root.island ? (root.layoutSource?.pillRects ?? []) : []
   readonly property var anchorPill: {
     const rects = root.pills;
     const center = root.barConfig.vertical ? root.anchorRect.y + root.anchorRect.height / 2 : root.anchorRect.x + root.anchorRect.width / 2;
@@ -125,7 +129,7 @@ PopoutWrapperBase {
   // it, with the pill left showing through a notch. Every other pill it
   // reaches along the bar shows through a notch of its own. Where a pill
   // carries on past the box, that side stands on its far stroke instead.
-  readonly property bool mergeWithPill: anchorPill !== null && (mainPopup.boxStart < anchorPill.start || mainPopup.boxEnd > anchorPill.start + anchorPill.length)
+  readonly property bool mergeWithPill: !root.island && anchorPill !== null && (mainPopup.boxStart < anchorPill.start || mainPopup.boxEnd > anchorPill.start + anchorPill.length)
   // The pills a merged popout's surface overlaps, the anchor's included
   readonly property var mergedPills: {
     if (!mergeWithPill)
@@ -135,7 +139,7 @@ PopoutWrapperBase {
   }
   // Where a side wall's fillet lands: on a pill when one carries on at
   // least a fillet's width past that side, else down on the edge
-  readonly property real pillFoot: root.barConfig.pillDepth - Appearance.borderWidth
+  readonly property real pillFoot: (root.island ? root.barConfig.extent : root.barConfig.pillDepth) - Appearance.borderWidth
   readonly property real startFoot: mergeWithPill && !mainPopup.joinStart && root.pills.some(p => p.start <= mainPopup.boxStart - Appearance.borderRadius && p.start + p.length >= mainPopup.boxStart) ? pillFoot : 0
   readonly property real endFoot: mergeWithPill && !mainPopup.joinEnd && root.pills.some(p => p.start <= mainPopup.boxEnd && p.start + p.length >= mainPopup.boxEnd + Appearance.borderRadius) ? pillFoot : 0
   // A merged box whose side wall falls just short of another pill's stroke
@@ -146,7 +150,7 @@ PopoutWrapperBase {
   function pillSnap(start) {
     const own = root.anchorPill;
     const end = start + mainPopup.boxLength;
-    if (own === null || (start >= own.start && end <= own.start + own.length))
+    if (root.island || own === null || (start >= own.start && end <= own.start + own.length))
       return 0;
     const bw = Appearance.borderWidth, r = Appearance.borderRadius;
     for (const p of root.pills) {
@@ -159,6 +163,25 @@ PopoutWrapperBase {
     }
     return 0;
   }
+  // How far the island a popout grows from reaches toward `target` (a
+  // point along the bar, before it when `before`): its own end, or that of
+  // the neighbours a stretch to there would come within pillMerge of,
+  // which then draw as one with it (BarLayout.stretchIslands). A side
+  // whose fillet would land past that runs flush into the island instead.
+  function islandReach(target, before) {
+    const own = root.anchorPill;
+    if (own === null)
+      return target;
+    let reach = before ? own.start : own.start + own.length;
+    const others = root.pills.filter(p => before ? p.start < own.start : p.start > own.start).sort((a, b) => before ? b.start - a.start : a.start - b.start);
+    for (const p of others) {
+      if ((before ? target - (p.start + p.length) : p.start - target) > root.barConfig.pillMerge)
+        break;
+      reach = before ? p.start : p.start + p.length;
+    }
+    return reach;
+  }
+
   // An unmerged popout stands on its pill's far stroke. When its box sits
   // just inside the pill's end, its fillet would run past the straight
   // part of that stroke, so the pill is stretched (for as long as the
@@ -167,6 +190,21 @@ PopoutWrapperBase {
     const p = root.anchorPill;
     if (!root.occupied || p === null || root.mergeWithPill)
       return null;
+    if (root.island) {
+      // To a flush side's end, squaring the island's corner there, else
+      // far enough for the fillet
+      const start = mainPopup.joinStart ? mainPopup.boxStart : Math.min(p.start, mainPopup.alongPos - Appearance.borderRadius);
+      const end = mainPopup.joinEnd ? mainPopup.boxEnd : Math.max(p.start + p.length, mainPopup.alongPos + surface.implicitLength + Appearance.borderRadius);
+      if (start === p.start && end === p.start + p.length && !mainPopup.joinStart && !mainPopup.joinEnd)
+        return null;
+      return {
+        "index": p.index,
+        "start": start,
+        "end": end,
+        "squareStart": mainPopup.joinStart,
+        "squareEnd": mainPopup.joinEnd
+      };
+    }
     const start = p.joinStart ? p.start : Math.min(p.start, mainPopup.alongPos - Appearance.borderRadius);
     const end = p.joinEnd ? p.start + p.length : Math.max(p.start + p.length, mainPopup.alongPos + surface.implicitLength + Appearance.borderRadius);
     if (start === p.start && end === p.start + p.length)
@@ -190,20 +228,20 @@ PopoutWrapperBase {
   // outer edge itself when merged, a pill's far stroke, the bar's own
   // inner stroke (solid, border off), or the bar's inner edge (where the
   // border strip's stroke starts)
-  readonly property real attachAt: mergeWithPill ? 0 : anchorPill !== null ? pillFoot : root.barConfig.extent - (root.barConfig.innerStroke ? Appearance.borderWidth : 0)
+  readonly property real attachAt: mergeWithPill ? 0 : anchorPill !== null || root.island ? pillFoot : root.barConfig.extent - (root.barConfig.innerStroke ? Appearance.borderWidth : 0)
   // How far inside a pill's ends the notch stops: its stroke, plus a pixel
   // so the stroke's anti-aliased edge stays covered too
   readonly property real notchInset: Appearance.borderWidth + 1
   // The bar window's thickness (more than the bar's extent with pills)
   readonly property real panelThickness: root.panel?.thickness ?? root.barConfig.extent
   // Where the under-bar window starts, from the bar's outer edge: past the
-  // border stroke a floating bar's outer edge lies on
-  readonly property real underStart: root.barConfig.floating ? Appearance.borderWidth : 0
+  // border stroke the outer edge of a bar inside the border lies on
+  readonly property real underStart: root.barConfig.insideBorder ? Appearance.borderWidth : 0
   // Where the windows start, from the bar's outer edge: past its reserved
   // space, or, reserving none, past the border (see FloatingEdgeMenu)
   readonly property real barReach: {
     const zone = root.panel?.reservedZone ?? 0;
-    return zone > 0 || !root.barConfig.floating ? zone : Appearance.borderWidth;
+    return zone > 0 || !root.barConfig.insideBorder ? zone : Appearance.borderWidth;
   }
   // Where the surface starts, from the bar's outer edge: a detached box's
   // reaches back to the under-bar window's edge, to slide in from there
@@ -270,12 +308,16 @@ PopoutWrapperBase {
     // everything else, taking their space off one end only
     readonly property real menuZones: root.barConfig.vertical ? EdgeMenuManager.zoneOn(root.screen?.name, "top") + EdgeMenuManager.zoneOn(root.screen?.name, "bottom") : EdgeMenuManager.zoneOn(root.screen?.name, "left") + EdgeMenuManager.zoneOn(root.screen?.name, "right")
     readonly property real borderInset: frameWidth - ((root.barConfig.vertical ? root.screen.height : root.screen.width) - panelLength - menuZones) / 2
-    readonly property real minAlong: borderInset + Appearance.screenMargin
-    readonly property real maxAlong: panelLength - borderInset - Appearance.screenMargin
+    // On a floating bar, where its islands may reach instead: a popout
+    // pushed to one runs flush into the island's end there
+    readonly property real islandStart: root.barConfig.islandStart
+    readonly property real islandEnd: root.layoutSource?.islandEnd ?? panelLength - islandStart
+    readonly property real minAlong: root.island ? islandStart : borderInset + Appearance.screenMargin
+    readonly property real maxAlong: root.island ? islandEnd : panelLength - borderInset - Appearance.screenMargin
     // Outer edges of the perpendicular border strokes (the screen edges
     // with the border off), where a popout pushed to an end joins
-    readonly property real strokeStart: borderInset - (Appearance.screenBorder ? Appearance.borderWidth : 0)
-    readonly property real strokeEnd: panelLength - strokeStart
+    readonly property real strokeStart: root.island ? islandStart : borderInset - (Appearance.screenBorder ? Appearance.borderWidth : 0)
+    readonly property real strokeEnd: root.island ? islandEnd : panelLength - strokeStart
 
     // Along the bar, in bar-window coordinates: the box centred on the
     // anchor, and the surface around it with a fillet margin each side.
@@ -283,6 +325,35 @@ PopoutWrapperBase {
     // the perpendicular stroke, merging into that edge.
     readonly property real boxLength: (root.barConfig.vertical ? mainPopup.contentHeight : mainPopup.contentWidth) + surface.contentInset * 2
     readonly property real filletMargin: root.connectorGap - Appearance.borderWidth
+    // Room past an island popout's box for a fillet: its margin, and the
+    // island's rounded corner beyond, which a fillet can't land on
+    readonly property real islandNeed: filletMargin + Appearance.borderRadius
+    // An island popout's box, { start, flushStart, flushEnd }: centred on
+    // the anchor within the limits, its fillets on the island it grows
+    // from (or the neighbours a stretch joins, see islandReach). A side
+    // they don't fit on runs flush into the island instead, the island
+    // stretched to the box there or, where the box falls short of its end,
+    // the box moved out onto it (the nearer end, should both be short).
+    readonly property var islandPlace: {
+      const aligned = Math.max(islandStart, Math.min(alignedBoxStart, islandEnd - boxLength));
+      const from = root.islandReach(aligned - islandNeed, true);
+      const to = root.islandReach(aligned + boxLength + islandNeed, false);
+      const flushStart = aligned - islandNeed < from, flushEnd = aligned + boxLength + islandNeed > to;
+      const place = (start, atStart, atEnd) => ({
+            "start": start,
+            "flushStart": atStart,
+            "flushEnd": atEnd
+          });
+      if (flushStart && flushEnd && boxLength < to - from)
+        return aligned - from <= to - aligned - boxLength ? place(from, true, false) : place(to - boxLength, false, true);
+      if (flushStart && flushEnd)
+        return place(Math.max(to - boxLength, Math.min(aligned, from)), true, true);
+      if (flushStart)
+        return place(Math.min(aligned, from), true, false);
+      if (flushEnd)
+        return place(Math.max(aligned, to - boxLength), false, true);
+      return place(aligned, false, false);
+    }
     readonly property real alignedBoxStart: {
       if (!root.currentData)
         return 0;
@@ -290,9 +361,13 @@ PopoutWrapperBase {
       const length = root.barConfig.vertical ? root.anchorRect.height : root.anchorRect.width;
       return start + (length - mainPopup.boxLength) / 2;
     }
-    readonly property bool joinStart: alignedBoxStart - filletMargin < minAlong
-    readonly property bool joinEnd: !joinStart && alignedBoxStart + boxLength + filletMargin > maxAlong
+    // On an island, a side whose fillet doesn't fit on the island runs
+    // flush into it instead (see islandReach); either side, or both
+    readonly property bool joinStart: root.island ? islandPlace.flushStart : alignedBoxStart - filletMargin < minAlong
+    readonly property bool joinEnd: root.island ? islandPlace.flushEnd : !joinStart && alignedBoxStart + boxLength + filletMargin > maxAlong
     readonly property real boxStart: {
+      if (root.island)
+        return islandPlace.start;
       if (joinStart)
         return strokeStart;
       if (joinEnd)
@@ -411,7 +486,7 @@ PopoutWrapperBase {
     }
 
     readonly property real attachMargin: root.underStart - root.barReach
-    readonly property real endMargin: root.barConfig.floating ? -Appearance.borderWidth : 0
+    readonly property real endMargin: root.barConfig.insideBorder ? -Appearance.borderWidth : 0
     margins {
       top: root.barConfig.top ? underWindow.attachMargin : underWindow.endMargin
       bottom: root.barConfig.bottom ? underWindow.attachMargin : underWindow.endMargin
@@ -463,8 +538,11 @@ PopoutWrapperBase {
     // A transparent bar has nothing to join onto (see cornerAttach)
     detached: mainPopup.detached && !mainPopup.cornerAttach
     detachedOffset: root.underBar ? root.attachAt - root.underStart : 0
-    joinStart: !mainPopup.cornerAttach && mainPopup.joinStart
-    joinEnd: !mainPopup.cornerAttach && mainPopup.joinEnd
+    // On an island an end runs flush into the island's instead
+    joinStart: !mainPopup.cornerAttach && !root.island && mainPopup.joinStart
+    joinEnd: !mainPopup.cornerAttach && !root.island && mainPopup.joinEnd
+    flushStart: root.island && mainPopup.joinStart
+    flushEnd: root.island && mainPopup.joinEnd
     // Without the border, a popout merged around a pill runs straight off
     // the screen edge, and one pushed to an end straight off that one
     straight: (root.mergeWithPill || mainPopup.cornerAttach) && !Appearance.screenBorder
