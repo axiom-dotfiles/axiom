@@ -14,7 +14,7 @@ ColumnLayout {
   required property string currentValue
   property string description: ""
   // Options are color names (Theme.resolveColor): paint the box and each
-  // row in the color it names
+  // row in the color it names (an empty one, automatic, shows its label)
   property bool swatches: false
   // value -> label shown for it; values without one are shown translated
   property var optionLabels: ({})
@@ -50,7 +50,7 @@ ColumnLayout {
       spacing: 0
 
       StyledText {
-        text: root.swatches ? root.currentValue : root.optionLabel(root.currentValue)
+        text: root.swatches && root.currentValue ? root.currentValue : root.optionLabel(root.currentValue)
         textColor: root._currentTextColor
         Layout.fillWidth: true
         elide: Text.ElideRight
@@ -105,7 +105,7 @@ ColumnLayout {
         id: optionDelegate
         required property int index
         required property string modelData
-        readonly property color swatchColor: root.swatches ? Theme.resolveColor(modelData) : "transparent"
+        readonly property color swatchColor: !root.swatches ? "transparent" : modelData ? Theme.resolveColor(modelData) : Theme.backgroundAlt
 
         width: ListView.view.width
         height: Widget.height
@@ -118,7 +118,7 @@ ColumnLayout {
           anchors.fill: parent
           anchors.leftMargin: Widget.padding
           anchors.rightMargin: Widget.padding
-          text: root.swatches ? optionDelegate.modelData : root.optionLabel(optionDelegate.modelData)
+          text: root.swatches && optionDelegate.modelData ? optionDelegate.modelData : root.optionLabel(optionDelegate.modelData)
           textColor: root.swatches ? Utils.getContrastColor(optionDelegate.swatchColor) : Theme.foreground
           verticalAlignment: Text.AlignVCenter
           elide: Text.ElideRight

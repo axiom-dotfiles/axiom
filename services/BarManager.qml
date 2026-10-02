@@ -32,11 +32,10 @@ QtObject {
   // The section last selected or added to, where the library adds
   property string lastZone: "center"
 
-  // A bar's look: its Size and Style settings (BarsPanel groups them from
-  // these), not its identity, placement, behaviour or widgets
-  readonly property var sizeKeys: ["widgetSize", "padding", "spacing", "widgetPadding", "widgetSpacing"]
-  readonly property var styleOnlyKeys: ["background", "pillPadding", "pillMerge", "overrideFontSize", "fontSize", "overrideRadius", "widgetRadius", "widgetBackgrounds", "widgetTextColor"]
-  readonly property var styleKeys: sizeKeys.concat(styleOnlyKeys)
+  // A bar's look: the fields in its look groups (`x-group`), not its
+  // identity, placement, behaviour or widgets
+  readonly property var styleGroups: ["Size", "Style", "Widgets", "Accents"]
+  readonly property var styleKeys: [].concat(...Bar.fieldGroups.filter(group => root.styleGroups.includes(group.title)).map(group => group.keys))
   // The style copied with copyStyle(): { index, values }, or null. By
   // index, since ids may be empty or shared: kept pointing at its bar as
   // bars are added, moved and removed. Never saved.

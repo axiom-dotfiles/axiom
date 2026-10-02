@@ -72,6 +72,26 @@ Item {
   implicitWidth: isVertical ? root.barConfig.widgetSize : usedLength
   implicitHeight: isVertical ? usedLength : root.barConfig.widgetSize
 
+  // The widgets' backgrounds, under them, following each host
+  Repeater {
+    model: root.widgets.length
+
+    delegate: WidgetBackground {
+      required property int index
+      readonly property var host: root._modules[index] ?? null
+
+      z: -1
+      barConfig: root.barConfig
+      colors: host?.background ?? null
+      visible: colors !== null && host.shown && host.width > 0 && host.height > 0
+      opacity: host?.contentOpacity ?? 1
+      x: host?.x ?? 0
+      y: host?.y ?? 0
+      width: host?.width ?? 0
+      height: host?.height ?? 0
+    }
+  }
+
   Repeater {
     id: repeater
     model: root.widgets.length

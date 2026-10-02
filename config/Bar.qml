@@ -87,9 +87,13 @@ QtObject {
       // Widget chips only, else the interior radius: pills and fillets keep
       // Appearance's, to meet the border
       "radius": barConfig.overrideRadius ? barConfig.widgetRadius : Widget.radius,
-      // Off: widgets draw straight onto the bar in widgetTextColor (a
-      // color name; see widgetForeground)
-      "widgetBackgrounds": barConfig.widgetBackgrounds,
+      // How widgets show their colors (see widgetColors); the color
+      // names stay unresolved
+      "widgetFill": barConfig.widgetFill,
+      "tintOpacity": barConfig.tintOpacity / 100,
+      "outlineWidth": barConfig.outlineWidth,
+      "indicatorWidth": barConfig.indicatorWidth,
+      "indicatorSide": barConfig.indicatorSide,
       "widgetTextColor": barConfig.widgetTextColor,
       "lockCenter": barConfig.lockCenter,
       "location": loc,
@@ -103,11 +107,12 @@ QtObject {
     };
   }
 
-  // What a bar widget draws its text and icons in: its own color (`name`,
-  // chosen to read on its background), or the bar's with widget
-  // backgrounds off
-  function widgetForeground(barConfig, name) {
-    return Theme.resolveColor(barConfig.widgetBackgrounds ? name : barConfig.widgetTextColor);
+  // What a bar widget draws in on its bar ({ fill, stroke, indicator,
+  // text, icon }, see BarWidgetStyle): `accent` is its color for its state,
+  // `foregroundName` the text color it's configured with
+  function widgetColors(barConfig, accent, foregroundName) {
+    const override = barConfig.widgetTextColor ? Theme.resolveColor(barConfig.widgetTextColor) : null;
+    return BarWidgetStyle.colors(barConfig.widgetFill, accent, Theme.resolveColor(foregroundName), Theme.foreground, override, barConfig.tintOpacity);
   }
 
   // The Bars section as saved: no previews, "*" monitors unexpanded, locations as strings

@@ -57,8 +57,11 @@ Loader {
       return {
         "": I18n.tr("Last opened")
       };
-    // Schema labels are English, translated like titles
-    const labels = fieldSchema["x-enumLabels"] ?? {};
+    // Schema labels are English, translated like titles; `x-emptyLabel`
+    // names an empty value (a color picked automatically: I18n.tr("Auto"))
+    const labels = Object.assign({}, fieldSchema["x-enumLabels"] ?? {});
+    if (fieldSchema["x-emptyLabel"])
+      labels[""] = fieldSchema["x-emptyLabel"];
     return Object.keys(labels).reduce((out, value) => {
       out[value] = I18n.tr(labels[value]);
       return out;

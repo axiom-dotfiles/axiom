@@ -23,7 +23,7 @@ BarIconWidget {
   icon: "download"
   text: String(count)
 
-  backgroundColor: Theme.resolveColor(count >= properties.manyThreshold ? properties.manyColor : properties.backgroundColor)
+  accentColor: Theme.resolveColor(count >= properties.manyThreshold ? properties.manyColor : properties.backgroundColor)
 
   // Re-acquiring replaces the old request
   readonly property var updatesRequest: ({

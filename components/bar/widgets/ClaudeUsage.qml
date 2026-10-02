@@ -46,7 +46,7 @@ BarIconWidget {
     return figure(properties.display === "first" ? rows[0] : fullest);
   }
 
-  backgroundColor: Theme.resolveColor(maxPercent >= properties.criticalThreshold ? properties.criticalColor : maxPercent >= properties.warnThreshold ? properties.warnColor : properties.backgroundColor)
+  accentColor: Theme.resolveColor(maxPercent >= properties.criticalThreshold ? properties.criticalColor : maxPercent >= properties.warnThreshold ? properties.warnColor : properties.backgroundColor)
   dim: stale ? 0.6 : 1
 
   // Re-acquiring replaces the old request

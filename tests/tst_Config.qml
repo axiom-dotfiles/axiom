@@ -726,6 +726,37 @@ TestCase {
     compare(taken.filter(bind => bind.action === "toggleSplit").length, 0);
   }
 
+  function test_v39_widget_backgrounds_become_a_fill() {
+    const loaded = load({
+      "version": 38,
+      "Bars": [
+        {
+          "id": "off",
+          "widgetBackgrounds": false,
+          "widgetTextColor": "base0D"
+        },
+        {
+          "id": "offDefault",
+          "widgetBackgrounds": false
+        },
+        {
+          "id": "on",
+          "widgetBackgrounds": true,
+          "widgetTextColor": "base0D"
+        },
+        {
+          "id": "untouched"
+        }
+      ]
+    });
+    const bars = loaded.config.Bars;
+    compare(bars.map(bar => bar.widgetFill), ["plain", "plain", "filled", "filled"]);
+    compare(bars.map(bar => bar.widgetTextColor), ["base0D", "", "", ""]);
+    verify(bars.every(bar => !("widgetBackgrounds" in bar)));
+    compare(loaded.changes.filter(change => change.includes("widgetBackgrounds")).length, 3);
+    compare(errors(loaded.config), []);
+  }
+
   function test_v36_primary_bar_monitors_become_primary() {
     const loaded = load({
       "version": 35,

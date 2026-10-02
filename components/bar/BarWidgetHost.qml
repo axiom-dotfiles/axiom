@@ -39,6 +39,11 @@ Item {
   readonly property bool isVertical: barConfig.vertical
 
   readonly property var _item: contentLoader.item
+  // What WidgetGroup draws under the module: its colors on this bar
+  // (Bar.widgetColors), or null when it has no background
+  readonly property var background: _item?.hasBackground ? _item.colors : null
+  // The module's own fade (pressed, dimmed), which its background follows
+  readonly property real contentOpacity: _item?.opacity ?? 1
   readonly property real naturalSize: _item ? Math.ceil(isVertical ? _item.implicitHeight : _item.implicitWidth) : 0
   readonly property string sizePolicy: _item?.sizePolicy ?? "content"
 

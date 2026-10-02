@@ -102,8 +102,8 @@ Item {
         required property var modelData
         title: I18n.tr(group.modelData.title)
 
-        // The Style group carries the bar's look (its Size and Style
-        // settings, BarManager.styleKeys) to other bars
+        // The Style group carries the bar's look (BarManager.styleKeys:
+        // its Size, Style, Widgets and Accents settings) to other bars
         headerExtras: [
           SquareIconButton {
             visible: group.modelData.title === "Style"

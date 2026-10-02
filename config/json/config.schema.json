@@ -21,7 +21,7 @@
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 38,
+      "default": 39,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
@@ -2011,7 +2011,7 @@
 
     "Bar": {
       "type": "object",
-      "x-order": ["id", "enabled", "monitor", "location", "widgetSize", "padding", "spacing", "widgetPadding", "widgetSpacing", "background", "pillPadding", "pillMerge", "overrideFontSize", "fontSize", "overrideRadius", "widgetRadius", "widgetBackgrounds", "widgetTextColor", "lockCenter", "reserveSpace"],
+      "x-order": ["id", "enabled", "monitor", "location", "widgetSize", "padding", "spacing", "widgetPadding", "widgetSpacing", "background", "pillPadding", "pillMerge", "overrideFontSize", "fontSize", "overrideRadius", "widgetRadius", "widgetFill", "tintOpacity", "outlineWidth", "indicatorWidth", "indicatorSide", "widgetTextColor", "lockCenter", "reserveSpace"],
       "required": ["id"],
       "additionalProperties": false,
       "properties": {
@@ -2176,23 +2176,84 @@
             "overrideRadius": true
           }
         },
-        "widgetBackgrounds": {
-          "x-group": "Style",
-          "type": "boolean",
-          "title": "Widget backgrounds",
-          "default": true,
-          "description": "Off: widgets draw straight onto the bar, in one text color, instead of each on its own colored background."
+        "widgetFill": {
+          "x-group": "Widgets",
+          "type": "string",
+          "title": "Widget style",
+          "default": "filled",
+          "enum": ["filled", "tinted", "outline", "underline", "accentText", "plain"],
+          "x-enumLabels": {
+            "filled": "Filled",
+            "tinted": "Tinted",
+            "outline": "Outline",
+            "underline": "Underline",
+            "accentText": "Colored icons",
+            "plain": "Plain text"
+          },
+          "description": "How each widget shows its color: as its background, a faint tint, an outline, a line beside it, or on its icon. Plain text draws them straight onto the bar."
+        },
+        "tintOpacity": {
+          "x-group": "Widgets",
+          "type": "integer",
+          "x-control": "slider",
+          "title": "Tint strength",
+          "default": 20,
+          "minimum": 5,
+          "maximum": 100,
+          "x-unit": "%",
+          "x-showIf": {
+            "widgetFill": "tinted"
+          }
+        },
+        "outlineWidth": {
+          "x-group": "Widgets",
+          "type": "integer",
+          "x-control": "stepper",
+          "title": "Outline width",
+          "default": 2,
+          "minimum": 1,
+          "maximum": 6,
+          "x-unit": "px",
+          "x-showIf": {
+            "widgetFill": "outline"
+          }
+        },
+        "indicatorWidth": {
+          "x-group": "Widgets",
+          "type": "integer",
+          "x-control": "stepper",
+          "title": "Line width",
+          "default": 2,
+          "minimum": 1,
+          "maximum": 8,
+          "x-unit": "px",
+          "x-showIf": {
+            "widgetFill": "underline"
+          }
+        },
+        "indicatorSide": {
+          "x-group": "Widgets",
+          "type": "string",
+          "title": "Line side",
+          "default": "inner",
+          "enum": ["inner", "outer"],
+          "x-enumLabels": {
+            "inner": "Toward the windows",
+            "outer": "Toward the screen edge"
+          },
+          "x-beside": true,
+          "x-showIf": {
+            "widgetFill": "underline"
+          }
         },
         "widgetTextColor": {
-          "x-group": "Style",
+          "x-group": "Widgets",
           "type": "string",
-          "title": "Widget text color",
+          "title": "Text color",
           "x-options": "colors",
-          "default": "foreground",
-          "x-showIf": {
-            "widgetBackgrounds": false
-          },
-          "description": "What every widget's text and icons are drawn in without their backgrounds. The default contrasts with the bar."
+          "x-emptyLabel": "Auto",
+          "default": "",
+          "description": "One color for every widget's text and icons. Auto: each widget's own on a filled background, its color when tinted or outlined, else one that contrasts with the bar."
         },
         "widgets": {
           "type": "object",

@@ -12,5 +12,5 @@ AudioLevelWidget {
   mode: "input"
   hidden: properties.hideWhenIdle && !AudioManager.micInUse && !muted
   icon: AudioManager.inputIcon(AudioManager.deviceKind(node), muted)
-  backgroundColor: Theme.resolveColor(muted ? properties.mutedColor : AudioManager.micInUse ? properties.activeColor : properties.backgroundColor)
+  accentColor: Theme.resolveColor(muted ? properties.mutedColor : AudioManager.micInUse ? properties.activeColor : properties.backgroundColor)
 }

@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 38
+  readonly property int currentVersion: 39
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -103,6 +103,8 @@ QtObject {
       result = _v36ToV37(result, changes);
     if (version < 38)
       result = _v37ToV38(result, changes);
+    if (version < 39)
+      result = _v38ToV39(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -1347,5 +1349,26 @@ QtObject {
         "argument": "magic"
       }
     ]);
+  }
+
+  // v39 made a bar's widget backgrounds one of several styles
+  // (`widgetFill`): off became plain text, keeping its text color. With
+  // backgrounds on that color was unused, while it now overrides every
+  // style's, so it goes.
+  function _v38ToV39(config, changes) {
+    (Array.isArray(config.Bars) ? config.Bars : []).forEach((bar, i) => {
+      if (!bar || typeof bar !== "object" || !("widgetBackgrounds" in bar))
+        return;
+      const plain = bar.widgetBackgrounds === false;
+      delete bar.widgetBackgrounds;
+      if (plain) {
+        bar.widgetFill = "plain";
+        changes.push(`Bars[${i}].widgetBackgrounds: false -> widgetFill: "plain"`);
+      } else {
+        delete bar.widgetTextColor;
+        changes.push(`Bars[${i}].widgetBackgrounds removed`);
+      }
+    });
+    return config;
   }
 }
