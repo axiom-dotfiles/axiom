@@ -161,7 +161,7 @@ class TerminalPalette(unittest.TestCase):
 FORMATS = {
     "alacritty": "toml", "helix": "toml", "wezterm": "toml", "yazi": "toml",
     "k9s": "yaml", "lazygit": "yaml", "bat": "plist", "nvim": "json",
-    "vscode": "json", "qt": "ini", "foot": "ini", "gtk": "css", "vesktop": "css", "ncspot": "toml",
+    "vscode": "json", "qt": "ini", "foot": "ini", "gtk": "css", "vesktop": "css", "ncspot": "toml", "firefox": "css",
 }
 COLOR = re.compile(r"#([0-9a-fA-F]+)\b")
 
@@ -252,8 +252,8 @@ class ThemeIntegrations(unittest.TestCase):
                         args = [theme, target, "Sans", "file:///tmp/wall.png", "1", "Hey you", "Password..."]
                     elif key in ("gtk", "vscode"):
                         args = [theme, target]
-                    elif key == "vesktop":
-                        target = target / "axiom.theme.css"
+                    elif key in ("vesktop", "firefox"):
+                        target = target / "axiom.css"
                         args = [theme, target]
                     elif key == "ncspot":
                         target = target / "config.toml"
@@ -356,6 +356,37 @@ class HookupScript(unittest.TestCase):
                 for target in self.hookup("status", key)["targets"]:
                     if not target["copyOnly"] and not target["skipped"]:
                         self.assertTrue(target["done"], f"{key}: {target}")
+
+    def test_per_profile_targets(self):
+        home = Path(self.env["HOME"])
+        root = home / ".mozilla" / "firefox"
+        for profile in ("a.default-release", "b c.other"):
+            (root / profile).mkdir(parents=True)
+        (root / "profiles.ini").write_text(
+            "[Profile0]\nIsRelative=1\nPath=a.default-release\n\n"
+            "[Profile1]\nIsRelative=1\nPath=b c.other\n\n[General]\nVersion=2\n")
+        (root / "a.default-release" / "user.js").write_text(
+            'user_pref("toolkit.legacyUserProfileCustomizations.stylesheets", false);\n')
+        targets = self.hookup("status", "firefox")["targets"]
+        self.assertEqual(len(targets), 4)
+        self.hookup("apply", "firefox")
+        self.assertTrue(all(t["done"] for t in self.hookup("status", "firefox")["targets"]))
+        for profile in ("a.default-release", "b c.other"):
+            css = (root / profile / "chrome" / "userChrome.css").read_text()
+            self.assertTrue(css.startswith('@import url("axiom.css");'))
+            prefs = (root / profile / "user.js").read_text().splitlines()
+            self.assertEqual(prefs[-1], 'user_pref("toolkit.legacyUserProfileCustomizations.stylesheets", true);')
+        # The theme script themes the same profiles
+        result = subprocess.run([str(SCRIPTS / "theme_firefox.sh"), str(THEMES / "ayu-dark.json")],
+                                env=self.env, capture_output=True, text=True, timeout=60)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        for profile in ("a.default-release", "b c.other"):
+            self.assertTrue((root / profile / "chrome" / "axiom.css").is_file())
+
+    def test_per_profile_without_profiles_is_skipped(self):
+        targets = self.hookup("status", "firefox")["targets"]
+        self.assertTrue(targets)
+        self.assertTrue(all(t["skipped"] == "profiles" for t in targets))
 
     def test_end_keeps_a_symlink_and_backs_up(self):
         real = Path(self.tmp) / "dotfiles" / "kitty.conf"

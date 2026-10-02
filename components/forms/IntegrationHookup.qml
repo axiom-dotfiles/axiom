@@ -45,6 +45,8 @@ Rectangle {
       return [I18n.tr("Skipped: {0} isn't installed.", t.requires)];
     if (t.skipped === "shell")
       return [I18n.tr("Your shell isn't zsh, bash or fish: add the line to its startup file yourself.")];
+    if (t.skipped === "profiles")
+      return [I18n.tr("No browser profile found: start the browser once, then check again.")];
     if (t.copyOnly)
       return [];
     if (t.place === "copy")

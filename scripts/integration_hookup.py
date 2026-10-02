@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Hooks a theme integration's axiom file into the app's own config.
 
-Usage: integration_hookup.py status|apply KEY [--schema PATH]
+Usage: integration_hookup.py status|apply|profiles KEY [--schema PATH]
 
 The targets are the `x-hookup` list of ThemeIntegrations.KEY in the config
 schema. Each is one of:
@@ -25,10 +25,17 @@ beside it) or "conflict" (nothing is done: copy only). `requires` names a
 command without which the target is skipped; `comment` is the comment
 prefix (default "#").
 
+`perProfile` makes a target one per browser profile: `file` is then
+relative to each profile directory listed by the profiles.ini files in the
+integration's `x-profiles` (Firefox and its forks), and with none found the
+target is skipped ("profiles"). `profiles KEY` prints those directories,
+one per line (for the theme script).
+
 apply backs up each file it changes beside the real file (a symlink is
 followed and kept) as <name>.axiom-bak-<time>, then writes it atomically.
 Nothing is deleted: replaced lines are commented out. Prints JSON.
 """
+import configparser
 import json
 import os
 import re
@@ -133,6 +140,44 @@ def scope(lines, place, section):
                 return i + 1, end
         return None
     return 0, len(lines)
+
+
+def profile_dirs(inis, d):
+    """Every profile directory the profiles.ini files list, in order, once"""
+    found = []
+    for ini in inis:
+        path = Path(fill(ini, d))
+        if not path.is_file():
+            continue
+        parser = configparser.ConfigParser(interpolation=None, strict=False)
+        try:
+            parser.read(path)
+        except configparser.Error:
+            continue
+        for name in parser.sections():
+            section = parser[name]
+            if not name.startswith("Profile") or "Path" not in section:
+                continue
+            relative = section.get("IsRelative", "1") == "1"
+            profile = path.parent / section["Path"] if relative else Path(section["Path"])
+            if profile.is_dir() and str(profile) not in found:
+                found.append(str(profile))
+    return found
+
+
+def expand(targets, profiles, d):
+    """The targets, each perProfile one repeated for every profile"""
+    out = []
+    for target in targets:
+        if not target.get("perProfile"):
+            out.append(target)
+            continue
+        dirs_ = profile_dirs(profiles, d)
+        if not dirs_:
+            out.append({k: v for k, v in target.items() if k != "file"} | {"skipped": "profiles"})
+        for profile in dirs_:
+            out.append(dict(target, file=os.path.join(profile, target["file"])))
+    return out
 
 
 def plan(t):
@@ -273,7 +318,7 @@ def main(argv):
         i = args.index("--schema")
         schema = Path(args[i + 1])
         del args[i:i + 2]
-    if len(args) != 2 or args[0] not in ("status", "apply"):
+    if len(args) != 2 or args[0] not in ("status", "apply", "profiles"):
         print(__doc__.strip().splitlines()[2], file=sys.stderr)
         return 2
     action, key = args
@@ -281,8 +326,12 @@ def main(argv):
     if key not in props:
         print(f"Error: no integration '{key}'", file=sys.stderr)
         return 2
-    targets = props[key].get("x-hookup", [])
     d = dirs()
+    profiles = props[key].get("x-profiles", [])
+    if action == "profiles":
+        print("\n".join(profile_dirs(profiles, d)))
+        return 0
+    targets = expand(props[key].get("x-hookup", []), profiles, d)
     if action == "status":
         rows = status(targets, d)
         for row in rows:

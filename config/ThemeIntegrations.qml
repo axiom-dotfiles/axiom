@@ -18,6 +18,7 @@ QtObject {
   readonly property bool helix: _c.helix
   readonly property bool vscode: _c.vscode
   readonly property bool vesktop: _c.vesktop
+  readonly property bool firefox: _c.firefox
   readonly property bool k9s: _c.k9s
   readonly property bool cava: _c.cava
   readonly property bool btop: _c.btop
