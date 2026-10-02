@@ -493,6 +493,11 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
     return workspace !== undefined && root.windowList.some(w => w.workspace?.id === workspace && (w.fullscreen & 2));
   }
 
+  // The id of the special workspace open on a monitor, or 0 with none
+  function specialWorkspaceId(monitor) {
+    return monitor?.lastIpcObject?.specialWorkspace?.id ?? 0;
+  }
+
   // The largest window on a workspace (its icon stands for the
   // workspace), or null
   function biggestWindowForWorkspace(workspaceId) {
@@ -570,6 +575,10 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
         root.refreshOptions();
         root._addLayerRules();
       }
+      // Quickshell doesn't track special workspaces: refresh the monitors'
+      // lastIpcObject, which carries them (specialWorkspaceId)
+      if (event.name === "activespecial" || event.name === "activespecialv2")
+        Hyprland.refreshMonitors();
       root.updateAll();
     }
   }
