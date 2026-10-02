@@ -8,7 +8,7 @@ import qs.config
 import qs.components.methods
 import qs.components.reusable
 
-// A window on the overview board: its live capture (the app icon until it
+// A window on the overview board (and the window switcher): its live capture (the app icon until it
 // has one), rounded. Visual only; OverviewInput takes the input.
 Item {
   id: root
@@ -19,6 +19,8 @@ Item {
   property bool capturing: true
   property real radius: 4
   property bool hovered: false
+  // Captures every frame, not one per open (hovering or resizing does too)
+  property bool live: false
   property bool resizing: false
   // The title strip while hovered
   property bool showTitle: true
@@ -59,7 +61,7 @@ Item {
       // Only as sharp as shown; live only while it's being looked at or
       // resized (otherwise one frame per open)
       constraintSize: Qt.size(Math.round(root.width), Math.round(root.height))
-      live: root.hovered || root.resizing
+      live: root.live || root.hovered || root.resizing
       onHasContentChanged: if (capture.hasContent)
         root._hadContent = true
     }

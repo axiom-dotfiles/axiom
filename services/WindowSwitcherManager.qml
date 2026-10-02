@@ -21,7 +21,6 @@ import qs.components.methods
 Singleton {
   id: root
 
-  readonly property bool active: root._active
   // Past the show delay: the strip is drawn
   readonly property bool shown: root._shown
   // hyprctl clients, most recently focused first
@@ -37,16 +36,19 @@ Singleton {
   // The window focused when it opened, which picking leaves alone
   property string _focusedAddress: ""
 
-  // Moves the selection `step` windows on, opening first when closed (the
+  // Moves the selection `n` windows on, opening first when closed (the
   // first step from the current window is the last one used)
-  function step(step) {
+  function step(n) {
     if (!root._active)
       root._open();
-    root._index = WindowOrder.stepIndex(root._index, step, root._windows.length);
+    root._index = WindowOrder.stepIndex(root._index, n, root._windows.length);
   }
 
-  // Focuses the selected window and closes
+  // Focuses the selected window and closes (nothing while closed: a pick
+  // can arrive after a cancel or a click)
   function commit() {
+    if (!root._active)
+      return;
     const win = root._windows[root._index];
     root._close();
     if (win && win.address !== root._focusedAddress)
@@ -57,12 +59,12 @@ Singleton {
     root._close();
   }
 
-  // A tile clicked: focuses its window and leaves the submap (the
-  // modifier is likely still held)
+  // A tile clicked: focuses its window and leaves the submap and its
+  // release listener (the modifier is likely still held)
   function pick(index) {
     root._index = index;
     root.commit();
-    HyprlandManager.runLua(`if hl.get_current_submap() == ${HyprLua.string(HyprLua.switcherSubmap)} then hl.dispatch(hl.dsp.submap("reset")) end`);
+    HyprlandManager.runLua(HyprLua.switcherLeaveLua);
   }
 
   function _open() {
@@ -72,7 +74,7 @@ Singleton {
     root._focusedAddress = active ? "0x" + active.address : "";
     root._windows = WindowOrder.mru(HyprlandManager.windowList, win => DockLayout.inScope(win, scope, monitor?.id, monitor?.activeWorkspace?.id), root._focusedAddress);
     root._index = 0;
-    root._screenName = monitor?.name ?? General.primaryMonitor;
+    root._screenName = ShellManager.targetFor("focused");
     root._active = true;
     showTimer.restart();
   }

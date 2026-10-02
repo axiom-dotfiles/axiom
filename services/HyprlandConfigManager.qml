@@ -168,8 +168,8 @@ Singleton {
       "centerWindow": [() => "hl.dsp.window.center()", "Center", "Window"],
       "toggleGroup": [() => "hl.dsp.group.toggle()", "Toggle group", "Window"],
       // Lua functions entering the switcher's submap (HyprLua.switcherLua)
-      "windowSwitcher": [() => HyprLua.switcherBindLua(1), "Switch windows", "Window"],
-      "windowSwitcherReverse": [() => HyprLua.switcherBindLua(-1), "Switch windows backwards", "Window"],
+      "windowSwitcher": [() => HyprLua.switcherBindLua(switcherSteps.windowSwitcher), "Switch windows", "Window"],
+      "windowSwitcherReverse": [() => HyprLua.switcherBindLua(switcherSteps.windowSwitcherReverse), "Switch windows backwards", "Window"],
       // On a mouse button (SUPER + mouse:272), which Hyprland makes a
       // mouse bind by itself
       "mouseDrag": [() => "hl.dsp.window.drag()", "Drag", "Window"],
@@ -202,6 +202,13 @@ Singleton {
       "mediaStop": ["locked"]
     })
   readonly property var flagNames: ["repeating", "locked", "release"]
+
+  // The window switcher's actions, by the step each takes through the
+  // windows (also how a bind is known to be one)
+  readonly property var switcherSteps: ({
+      "windowSwitcher": 1,
+      "windowSwitcherReverse": -1
+    })
 
   // The section a bind's action files it under on the Keybinds page
   function sectionFor(action) {
@@ -275,8 +282,8 @@ Singleton {
 
   // The window switcher's submap for the switcher binds among `binds`
   function _switcherLua(binds) {
-    const entries = binds.filter(bind => (bind.action === "windowSwitcher" || bind.action === "windowSwitcherReverse") && _bindLua(bind) !== "").map(bind => Object.assign(KeyNames.split(bind.key), {
-        "step": bind.action === "windowSwitcher" ? 1 : -1
+    const entries = binds.filter(bind => switcherSteps[bind.action] !== undefined && _bindLua(bind) !== "").map(bind => Object.assign(KeyNames.split(bind.key), {
+        "step": switcherSteps[bind.action]
       }));
     return HyprLua.switcherLua(entries);
   }
@@ -299,7 +306,7 @@ Singleton {
   }
 
   function _blurLua() {
-    return [`hl.layer_rule({ match = { namespace = "^axiom-(bar|edge-popout|launcher|dock|switcher)$" }, blur = true, ignore_alpha = 0.2 })`];
+    return [`hl.layer_rule({ match = { namespace = "^axiom-(bar|bar-floating|edge-popout|launcher|dock|switcher)$" }, blur = true, ignore_alpha = 0.2 })`];
   }
 
   function _indent(lines, prefix) {

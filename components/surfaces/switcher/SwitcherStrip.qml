@@ -13,10 +13,11 @@ Item {
   property real maxWidth: 0
 
   readonly property int count: WindowSwitcherManager.windows.length
-  readonly property real step: WindowSwitcherConfig.tileSize + Widget.spacing
-  readonly property int columns: Math.max(1, Math.min(root.count, Math.floor((root.maxWidth + Widget.spacing) / root.step)))
+  // A tile and the gap after it
+  readonly property real pitch: WindowSwitcherConfig.tileSize + Widget.spacing
+  readonly property int columns: Math.max(1, Math.min(root.count, Math.floor((root.maxWidth + Widget.spacing) / root.pitch)))
 
-  implicitWidth: root.count > 0 ? root.columns * root.step - Widget.spacing : empty.implicitWidth
+  implicitWidth: root.count > 0 ? root.columns * root.pitch - Widget.spacing : empty.implicitWidth
   implicitHeight: root.count > 0 ? flow.implicitHeight : empty.implicitHeight
 
   TileFlow {

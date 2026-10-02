@@ -310,6 +310,10 @@ assert(removed == 2, "earlier handlers removed")
     const written = files.write("tests/.out/monitors.run.lua", lua);
     tryVerify(() => written.done, 2000);
   }
+  function test_leaveSubmap() {
+    compare(HyprLua.leaveSubmap("axiom_record"), `if hl.get_current_submap() == "axiom_record" then hl.dispatch(hl.dsp.submap("reset")) end`);
+  }
+
   function test_switcherHeld() {
     compare(HyprLua.switcherHeld(["ALT"]), ["ALT"]);
     compare(HyprLua.switcherHeld(["ALT", "SHIFT"]), ["ALT"], "SHIFT only turns it around");
@@ -394,6 +398,10 @@ open()
 submap = "reset"
 key("Alt_L", false)
 assert(#events == 7 and not listener, "left elsewhere")
+-- Picked from outside (a tile clicked): stops watching and leaves
+open()
+${HyprLua.switcherLeaveLua}
+assert(submap == "reset" and not listener, "left from outside")
 assert(#AXIOM_SWITCHER_KEYS == 4, "keys remembered: " .. #AXIOM_SWITCHER_KEYS)
 `;
 

@@ -29,6 +29,7 @@ Scope {
       onWantedChanged: host.wanted ? host.show() : host.hide()
 
       content: Component {
+        // Wraps to more rows past 80% of the screen's width
         SwitcherStrip {
           maxWidth: host.modelData.width * 0.8
         }

@@ -31,7 +31,7 @@ Item {
   Rectangle {
     anchors.fill: parent
     radius: Widget.radius
-    color: root.selected ? Qt.alpha(Theme.accent, 0.2) : mouse.containsMouse ? Theme.backgroundAlt : "transparent"
+    color: root.selected ? Qt.alpha(Theme.accent, 0.14) : mouse.containsMouse ? Theme.backgroundHighlight : Qt.alpha(Theme.backgroundHighlight, 0)
     border.width: Appearance.borderWidth
     border.color: root.selected ? Theme.accent : "transparent"
 
@@ -56,8 +56,7 @@ Item {
       height: root.windowHeight * root.fit
       windowData: root.windowData
       capturing: WindowSwitcherConfig.previews && WindowSwitcherManager.shown
-      // Live while selected
-      hovered: root.selected
+      live: root.selected
       showTitle: false
       radius: Widget.radius
     }
@@ -80,7 +79,7 @@ Item {
     anchors.left: box.left
     anchors.right: box.right
     text: root.windowData?.title || root.windowData?.class || ""
-    textColor: root.selected ? Theme.foreground : Theme.foregroundAlt
+    textColor: root.selected ? Theme.accent : Theme.foregroundAlt
     textSize: Appearance.fontSize - 1
     elide: Text.ElideRight
     horizontalAlignment: Text.AlignHCenter
@@ -90,6 +89,7 @@ Item {
     id: mouse
     anchors.fill: parent
     hoverEnabled: true
+    cursorShape: Qt.PointingHandCursor
     onClicked: WindowSwitcherManager.pick(root.index)
   }
 }

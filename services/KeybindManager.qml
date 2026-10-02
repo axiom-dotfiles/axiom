@@ -469,7 +469,7 @@ QtObject {
           "text": I18n.tr("Needs an argument, so it isn't bound")
         });
       // The switcher picks when its modifier is released
-      if ((bind.action === "windowSwitcher" || bind.action === "windowSwitcherReverse") && key !== "" && HyprLua.switcherHeld(KeyNames.split(key).mods).length === 0)
+      if (HyprlandConfigManager.switcherSteps[bind.action] !== undefined && key !== "" && HyprLua.switcherHeld(KeyNames.split(key).mods).length === 0)
         found.push({
           "level": "warning",
           "text": I18n.tr("Needs a modifier to hold, like ALT + Tab")
@@ -622,7 +622,7 @@ QtObject {
   // unreachable one), so every key reaches the overlay. A Hyprland timer
   // leaves it even if the shell dies meanwhile.
   readonly property string _recordSubmap: "axiom_record"
-  readonly property string _leaveRecordLua: `if hl.get_current_submap() == "${_recordSubmap}" then hl.dispatch(hl.dsp.submap("reset")) end`
+  readonly property string _leaveRecordLua: HyprLua.leaveSubmap(_recordSubmap)
   readonly property string _enterRecordLua: `hl.define_submap("${_recordSubmap}", function() hl.bind("SUPER + CTRL + ALT + SHIFT + F24", hl.dsp.submap("reset")) end)
 hl.timer(function() ${_leaveRecordLua} end, { timeout = 30000, type = "oneshot" })
 hl.dispatch(hl.dsp.submap("${_recordSubmap}"))`
