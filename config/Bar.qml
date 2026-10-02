@@ -122,6 +122,7 @@ QtObject {
       "lineSide": look.lineSide,
       "widgetTextColor": look.widgetTextColor,
       "widgetShape": boxed ? look.widgetShape : "rounded",
+      "widgetEnds": look.widgetEnds,
       "widgetGrouping": grouping,
       "groupColor": look.groupColor,
       // A powerline's widgets touch, leaving no gap to divide

@@ -53,7 +53,10 @@ Item {
   // and end (set by WidgetGroup): added to its sizes, the module inside
   property real leadInset: 0
   property real trailInset: 0
-  readonly property real _insets: naturalSize > 0 ? leadInset + trailInset : 0
+  // Rounded up: half a powerline join is fractional, and the allocation
+  // floors sizes, which would leave the module under its natural size and
+  // elide its label
+  readonly property real _insets: naturalSize > 0 ? Math.ceil(leadInset + trailInset) : 0
   readonly property real naturalSize: _item ? Math.ceil(isVertical ? _item.implicitHeight : _item.implicitWidth) : 0
   readonly property string sizePolicy: _item?.sizePolicy ?? "content"
 

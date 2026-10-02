@@ -1,8 +1,9 @@
 pragma Singleton
 import QtQuick
 
-// The shapes bar widget backgrounds take (Bars[].widgetShape), alone or in
-// runs (Bars[].widgetGrouping): which cap each end of a widget gets, how
+// The shapes bar widget backgrounds take (Bars[].widgetShape, the ends of a
+// widget or run by Bars[].widgetEnds), alone or in runs
+// (Bars[].widgetGrouping): which cap each end of a widget gets, how
 // much room its content keeps clear of them, and the outline as an SVG
 // path. Lengths run along the bar, `across` is the widget's thickness.
 //
@@ -29,16 +30,19 @@ QtObject {
     }
   }
 
-  // A run's own ends by shape, [start, end] (a lone widget's in separate)
-  function _ends(shape, grouping) {
+  // A run's own ends by shape and widgetEnds (shaped, pointed, rounded),
+  // [start, end] (a lone widget's in separate). Pointed is an arrow's: a
+  // slant keeps its slant.
+  function _ends(shape, ends) {
+    if (ends === "rounded" && (shape === "slant" || shape === "arrow"))
+      return ["round", "round"];
     switch (shape) {
     case "capsule":
       return ["capsule", "capsule"];
     case "slant":
       return ["slant", "slant"];
     case "arrow":
-      // A powerline run starts square to the bar, like a prompt's
-      return grouping === "powerline" ? ["round", "arrowOut"] : ["arrowIn", "arrowOut"];
+      return ends === "pointed" ? ["arrowOut", "arrowOut"] : ["arrowIn", "arrowOut"];
     default:
       return ["round", "round"];
     }
@@ -84,8 +88,8 @@ QtObject {
   // its first `join` px, to its own end cap: on average half a join
   // earlier than its box at each joined end. Its content keeps that much
   // more room at the end, so it sits centred on what shows.
-  function segment(shape, grouping, opaque, index, count, across) {
-    const ends = root._ends(shape, grouping);
+  function segment(shape, widgetEnds, grouping, opaque, index, count, across) {
+    const ends = root._ends(shape, widgetEnds);
     const joins = root._joins(shape);
     const alone = grouping === "separate";
     const first = alone || index === 0;

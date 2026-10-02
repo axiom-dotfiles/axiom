@@ -21,9 +21,6 @@ Item {
   // Ends that meet a powerline neighbour edge to edge (BarShapes.segment)
   property bool seamStart: false
   property bool seamEnd: false
-  // Corner radius of round caps: the bar's widget radius, unless it
-  // reaches a floating bar's island end and follows its corners
-  property real radius: barConfig.radius
   // A clickable widget under the pointer (its hoverOutline)
   property bool hovered: false
   // The bar editor's selected widget
@@ -38,7 +35,6 @@ Item {
     id: box
 
     required property var bar
-    required property real radius
     required property string startCap
     required property string endCap
     property bool seamStart: false
@@ -55,7 +51,7 @@ Item {
         return -1;
       switch (startCap) {
       case "round":
-        return box.radius;
+        return box.bar.radius;
       case "capsule":
         return across / 2;
       case "flat":
@@ -90,7 +86,7 @@ Item {
 
           // Inset by half the stroke, which is centred on the path
           PathSvg {
-            path: BarShapes.path(box.length, box.across, box.radius, box.startCap, box.endCap, box.vertical, box.strokeWidth / 2, box.seamStart, box.seamEnd)
+            path: BarShapes.path(box.length, box.across, box.bar.radius, box.startCap, box.endCap, box.vertical, box.strokeWidth / 2, box.seamStart, box.seamEnd)
           }
         }
       }
@@ -100,7 +96,6 @@ Item {
   ShapedBox {
     visible: root._boxed && root.colors !== null
     bar: root.barConfig
-    radius: root.radius
     startCap: root.startCap
     endCap: root.endCap
     seamStart: root.seamStart
@@ -129,7 +124,6 @@ Item {
   ShapedBox {
     visible: root.highlighted
     bar: root.barConfig
-    radius: root.radius
     startCap: root.startCap
     endCap: root.endCap
     seamStart: root.seamStart
@@ -143,7 +137,6 @@ Item {
     // Built only while it shows, fading out included
     visible: strokeColor.a > 0
     bar: root.barConfig
-    radius: root.radius
     startCap: root.startCap
     endCap: root.endCap
     seamStart: root.seamStart

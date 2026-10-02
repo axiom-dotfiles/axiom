@@ -117,13 +117,33 @@ TestCase {
     compare(BarLayout.runs([true, true, false, true]), [
       {
         "start": 0,
-        "count": 2
+        "count": 2,
+        "members": [0, 1]
       },
       {
         "start": 3,
-        "count": 1
+        "count": 1,
+        "members": [3]
       }
     ]);
+  }
+
+  // A widget showing nothing (null) leaves a run whole; one shown without
+  // a background (false) still ends it
+  function test_runs_pass_over_widgets_showing_nothing() {
+    compare(BarLayout.runs([null, true, null, true, false, true, null]), [
+      {
+        "start": 1,
+        "count": 2,
+        "members": [1, 3]
+      },
+      {
+        "start": 5,
+        "count": 1,
+        "members": [5]
+      }
+    ]);
+    compare(BarLayout.runs([null, null]), []);
   }
 
   function test_runPlaces() {
@@ -136,6 +156,16 @@ TestCase {
     });
     compare(places[3], {
       "run": 1,
+      "index": 1,
+      "count": 2
+    });
+  }
+
+  function test_runPlaces_skip_widgets_showing_nothing() {
+    const places = BarLayout.runPlaces([true, null, true]);
+    compare(places[1], null);
+    compare(places[2], {
+      "run": 0,
       "index": 1,
       "count": 2
     });

@@ -82,32 +82,32 @@ TestCase {
   }
 
   function test_separate_widgets_have_both_ends() {
-    const s = BarShapes.segment("arrow", "separate", true, 1, 3, 30);
+    const s = BarShapes.segment("arrow", "shaped", "separate", true, 1, 3, 30);
     compare([s.startCap, s.endCap, s.back, s.lead, s.trail], ["arrowIn", "arrowOut", 0, 15, 15]);
-    const r = BarShapes.segment("rounded", "separate", true, 0, 1, 30);
+    const r = BarShapes.segment("rounded", "shaped", "separate", true, 0, 1, 30);
     compare([r.startCap, r.endCap, r.lead, r.trail], ["round", "round", 0, 0]);
   }
 
   function test_merged_runs_cap_only_their_ends() {
-    const first = BarShapes.segment("slant", "merged", true, 0, 3, 30);
-    const middle = BarShapes.segment("slant", "merged", true, 1, 3, 30);
-    const last = BarShapes.segment("slant", "merged", true, 2, 3, 30);
+    const first = BarShapes.segment("slant", "shaped", "merged", true, 0, 3, 30);
+    const middle = BarShapes.segment("slant", "shaped", "merged", true, 1, 3, 30);
+    const last = BarShapes.segment("slant", "shaped", "merged", true, 2, 3, 30);
     compare([first.startCap, first.lead, first.trail], ["slant", 5, 0]);
     compare([middle.startCap, middle.endCap, middle.lead, middle.trail, middle.back], ["flat", "flat", 0, 0, 0]);
     compare([last.endCap, last.trail], ["slant", 5]);
   }
 
   function test_powerline_segments_overlap() {
-    const first = BarShapes.segment("arrow", "powerline", true, 0, 2, 30);
-    const second = BarShapes.segment("arrow", "powerline", true, 1, 2, 30);
-    compare([first.startCap, first.endCap, first.back], ["round", "arrowOut", 0]);
+    const first = BarShapes.segment("arrow", "shaped", "powerline", true, 0, 2, 30);
+    const second = BarShapes.segment("arrow", "shaped", "powerline", true, 1, 2, 30);
+    compare([first.startCap, first.endCap, first.back, first.lead], ["arrowIn", "arrowOut", 0, 15]);
     // Opaque: square, beneath the arrow before it
     compare([second.startCap, second.back, second.lead], ["flat", 15, 0]);
     compare(second.endCap, "arrowOut");
     // See-through: fitted against it instead
-    compare(BarShapes.segment("arrow", "powerline", false, 1, 2, 30).startCap, "arrowIn");
-    compare(BarShapes.segment("rounded", "powerline", false, 1, 2, 30).startCap, "roundIn");
-    compare(BarShapes.segment("slant", "powerline", false, 1, 2, 30).startCap, "slant");
+    compare(BarShapes.segment("arrow", "shaped", "powerline", false, 1, 2, 30).startCap, "arrowIn");
+    compare(BarShapes.segment("rounded", "shaped", "powerline", false, 1, 2, 30).startCap, "roundIn");
+    compare(BarShapes.segment("slant", "shaped", "powerline", false, 1, 2, 30).startCap, "slant");
   }
 
   // Content sits centred on what shows of a segment: from half a join
@@ -115,19 +115,40 @@ TestCase {
   // end (its own cap tapering)
   function test_powerline_content_is_centred_on_what_shows() {
     const join = 15;
-    const at = index => BarShapes.segment("arrow", "powerline", true, index, 3, 30);
+    const at = index => BarShapes.segment("arrow", "shaped", "powerline", true, index, 3, 30);
     const first = at(0), middle = at(1), last = at(2);
-    compare([first.lead, first.trail], [0, join / 2]);
+    compare([first.lead, first.trail], [15, join / 2]);
     compare([middle.lead, middle.trail], [0, join]);
     compare([last.lead, last.trail], [0, join / 2 + 15]);
   }
 
+  // widgetEnds: a run's own ends notched and pointed (shaped), pointed at
+  // both (an arrow's; a slant keeps its slant), or rounded
+  function test_run_ends() {
+    const caps = (shape, ends, grouping) => {
+      const first = BarShapes.segment(shape, ends, grouping, true, 0, 2, 30);
+      const last = BarShapes.segment(shape, ends, grouping, true, 1, 2, 30);
+      return [first.startCap, last.endCap, first.lead];
+    };
+    ["separate", "merged", "powerline"].forEach(grouping => {
+      compare(caps("arrow", "shaped", grouping), ["arrowIn", "arrowOut", 15]);
+      compare(caps("arrow", "pointed", grouping), ["arrowOut", "arrowOut", 15]);
+      compare(caps("arrow", "rounded", grouping), ["round", "round", 0]);
+      compare(caps("slant", "pointed", grouping), ["slant", "slant", 5]);
+      compare(caps("slant", "rounded", grouping), ["round", "round", 0]);
+      compare(caps("capsule", "rounded", grouping), ["capsule", "capsule", 0]);
+    });
+    // Rounded ends keep a powerline's joins, and its content centred
+    const last = BarShapes.segment("arrow", "rounded", "powerline", true, 1, 2, 30);
+    compare([last.back, last.trail], [15, 7.5]);
+  }
+
   function test_powerline_seams() {
-    const opaque = BarShapes.segment("rounded", "powerline", true, 1, 3, 30);
-    const clear = BarShapes.segment("rounded", "powerline", false, 1, 3, 30);
+    const opaque = BarShapes.segment("rounded", "shaped", "powerline", true, 1, 3, 30);
+    const clear = BarShapes.segment("rounded", "shaped", "powerline", false, 1, 3, 30);
     compare([opaque.seamStart, opaque.seamEnd], [false, false]);
     compare([clear.seamStart, clear.seamEnd], [true, true]);
-    const alone = BarShapes.segment("rounded", "separate", false, 0, 1, 30);
+    const alone = BarShapes.segment("rounded", "shaped", "separate", false, 0, 1, 30);
     compare([alone.seamStart, alone.seamEnd], [false, false]);
   }
 

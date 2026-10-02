@@ -983,7 +983,7 @@
       "x-category": "Look & Feel",
       "title": "Bar style",
       "description": "How every bar draws its widgets, accents and shadow. A bar can take its own of any of these in the bar editor.",
-      "x-order": ["widgetStyle", "tintOpacity", "outlineWidth", "lineWidth", "lineSide", "widgetShape", "widgetGrouping", "groupColor", "widgetTextColor", "separatorStyle", "separatorColor", "separatorThickness", "accentLine", "accentLineColor", "accentLineFade", "accentLineWidth", "shadow", "shadowColor", "shadowSize"],
+      "x-order": ["widgetStyle", "tintOpacity", "outlineWidth", "lineWidth", "lineSide", "widgetShape", "widgetGrouping", "widgetEnds", "groupColor", "widgetTextColor", "separatorStyle", "separatorColor", "separatorThickness", "accentLine", "accentLineColor", "accentLineFade", "accentLineWidth", "shadow", "shadowColor", "shadowSize"],
       "additionalProperties": false,
       "properties": {
         "widgetStyle": {
@@ -1089,6 +1089,23 @@
             "widgetStyle": ["filled", "tinted", "outline"]
           },
           "description": "Merged: neighbouring widgets share one background. Powerline: each widget's shape runs into the next."
+        },
+        "widgetEnds": {
+          "x-group": "Bar widgets",
+          "type": "string",
+          "title": "Ends",
+          "default": "shaped",
+          "enum": ["shaped", "pointed", "rounded"],
+          "x-enumLabels": {
+            "shaped": "Shaped",
+            "pointed": "Pointed",
+            "rounded": "Rounded"
+          },
+          "x-showIf": {
+            "widgetStyle": ["filled", "tinted", "outline"],
+            "widgetShape": ["slant", "arrow"]
+          },
+          "description": "The ends of a widget, or of a run of them. Pointed is for arrows; slanted widgets keep their slant."
         },
         "groupColor": {
           "x-group": "Bar widgets",
@@ -2288,7 +2305,7 @@
 
     "Bar": {
       "type": "object",
-      "x-order": ["id", "enabled", "monitor", "location", "widgetSize", "padding", "spacing", "widgetPadding", "widgetSpacing", "background", "floatGap", "pillPadding", "pillMerge", "overrideFontSize", "fontSize", "overrideRadius", "widgetRadius", "overrideWidgetStyle", "widgetStyle", "tintOpacity", "outlineWidth", "lineWidth", "lineSide", "widgetShape", "widgetGrouping", "groupColor", "widgetTextColor", "overrideAccents", "separatorStyle", "separatorColor", "separatorThickness", "accentLine", "accentLineColor", "accentLineFade", "accentLineWidth", "overrideShadow", "shadow", "shadowColor", "shadowSize", "lockCenter", "reserveSpace"],
+      "x-order": ["id", "enabled", "monitor", "location", "widgetSize", "padding", "spacing", "widgetPadding", "widgetSpacing", "background", "floatGap", "pillPadding", "pillMerge", "overrideFontSize", "fontSize", "overrideRadius", "widgetRadius", "overrideWidgetStyle", "widgetStyle", "tintOpacity", "outlineWidth", "lineWidth", "lineSide", "widgetShape", "widgetGrouping", "widgetEnds", "groupColor", "widgetTextColor", "overrideAccents", "separatorStyle", "separatorColor", "separatorThickness", "accentLine", "accentLineColor", "accentLineFade", "accentLineWidth", "overrideShadow", "shadow", "shadowColor", "shadowSize", "lockCenter", "reserveSpace"],
       "required": ["id"],
       "additionalProperties": false,
       "properties": {
@@ -2584,6 +2601,24 @@
             "overrideWidgetStyle": true,
             "widgetStyle": ["filled", "tinted", "outline"]
           }
+        },
+        "widgetEnds": {
+          "x-group": "Widgets",
+          "type": "string",
+          "title": "Ends",
+          "default": "shaped",
+          "enum": ["shaped", "pointed", "rounded"],
+          "x-enumLabels": {
+            "shaped": "Shaped",
+            "pointed": "Pointed",
+            "rounded": "Rounded"
+          },
+          "x-showIf": {
+            "overrideWidgetStyle": true,
+            "widgetStyle": ["filled", "tinted", "outline"],
+            "widgetShape": ["slant", "arrow"]
+          },
+          "description": "The ends of a widget, or of a run of them. Pointed is for arrows; slanted widgets keep their slant."
         },
         "groupColor": {
           "x-group": "Widgets",

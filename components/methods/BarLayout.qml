@@ -149,21 +149,32 @@ QtObject {
     return hidden;
   }
 
-  // The runs of consecutive true flags, as { start, count }: the widgets
-  // that share a background (merged) or a powerline chain
+  // The runs of true flags, as { start, count, members }: the widgets that
+  // share a background (merged) or a powerline chain. A false flag (a
+  // widget shown without a background) ends a run; a null one (a widget
+  // showing nothing) is passed over, so `members` lists the indices in it.
   function runs(flags) {
     const out = [];
+    let open = false;
     flags.forEach((on, i) => {
-      if (!on)
+      if (on === null || on === undefined)
         return;
-      const last = out[out.length - 1];
-      if (last && last.start + last.count === i)
+      if (!on) {
+        open = false;
+        return;
+      }
+      if (open) {
+        const last = out[out.length - 1];
         last.count++;
-      else
+        last.members.push(i);
+      } else {
         out.push({
           "start": i,
-          "count": 1
+          "count": 1,
+          "members": [i]
         });
+        open = true;
+      }
     });
     return out;
   }
@@ -172,12 +183,13 @@ QtObject {
   function runPlaces(flags) {
     const places = flags.map(() => null);
     root.runs(flags).forEach((run, r) => {
-      for (let k = 0; k < run.count; k++)
-        places[run.start + k] = {
+      run.members.forEach((member, k) => {
+        places[member] = {
           "run": r,
           "index": k,
           "count": run.count
         };
+      });
     });
     return places;
   }

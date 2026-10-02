@@ -36,12 +36,6 @@ Item {
   property real align: 0.5
   // Model indices the bar has hidden to make everything fit
   property var hiddenIndices: []
-  // How far the first and last shown widgets' backgrounds reach past them
-  // (a powerline run filling a floating bar's island to its ends, set by
-  // BarContainer), and their corner radius there
-  property real reachStart: 0
-  property real reachEnd: 0
-  property real reachRadius: 0
 
   readonly property bool isVertical: barConfig.vertical
 
@@ -70,9 +64,10 @@ Item {
   // Neighbouring widgets with backgrounds form runs (merged backgrounds,
   // powerline chains). Insets come from what each widget has to show,
   // never from the room it's given, which they help decide; shapes from
-  // what's actually shown.
-  readonly property var _insetPlaces: BarLayout.runPlaces(root._modules.map(m => m.hasBackground && m.naturalSize > 0))
-  readonly property var _drawn: root._modules.map((m, i) => m.hasBackground && (root.allocation.visible[i] ?? false) && (root.allocation.sizes[i] ?? 0) > 0)
+  // what's actually shown. A widget showing nothing (null) leaves a run
+  // whole; one shown without a background (false) splits it.
+  readonly property var _insetPlaces: BarLayout.runPlaces(root._modules.map(m => m.naturalSize > 0 ? m.hasBackground : null))
+  readonly property var _drawn: root._modules.map((m, i) => (root.allocation.visible[i] ?? false) && (root.allocation.sizes[i] ?? 0) > 0 ? m.hasBackground : null)
   readonly property var _drawPlaces: BarLayout.runPlaces(root._drawn)
   readonly property var _drawRuns: BarLayout.runs(root._drawn)
   // Opaque fills hide what's under them: a powerline segment can then
@@ -81,15 +76,6 @@ Item {
   // A widget with no background in a powerline (a Separator) splits the
   // chain, keeping the bar's spacing each side as between separate widgets
   readonly property real _looseGap: root.grouping === "powerline" ? root.barConfig.spacing : 0
-
-  readonly property int _firstShown: root.allocation.sizes.findIndex(size => size > 0)
-  readonly property int _lastShown: {
-    for (let k = root.allocation.sizes.length - 1; k >= 0; k--) {
-      if (root.allocation.sizes[k] > 0)
-        return k;
-    }
-    return -1;
-  }
 
   // The index of the next widget shown after `index`, or -1
   function _nextShown(index) {
@@ -102,7 +88,7 @@ Item {
 
   // The caps and insets at `place` in a run (BarShapes.segment)
   function segmentAt(place) {
-    return BarShapes.segment(root.barConfig.widgetShape, root.grouping, root._opaque, place?.index ?? 0, place?.count ?? 1, root.barConfig.widgetSize);
+    return BarShapes.segment(root.barConfig.widgetShape, root.barConfig.widgetEnds, root.grouping, root._opaque, place?.index ?? 0, place?.count ?? 1, root.barConfig.widgetSize);
   }
 
   // Emitted when modules moved or resized within the group
@@ -127,10 +113,11 @@ Item {
       required property int index
       readonly property var run: root._drawRuns[index] ?? {
         "start": 0,
-        "count": 1
+        "count": 1,
+        "members": [0]
       }
-      readonly property var first: root._modules[run.start] ?? null
-      readonly property var last: root._modules[run.start + run.count - 1] ?? null
+      readonly property var first: root._modules[run.members[0]] ?? null
+      readonly property var last: root._modules[run.members[run.count - 1]] ?? null
 
       z: -2
       barConfig: root.barConfig
@@ -183,28 +170,22 @@ Item {
       readonly property var host: root._modules[index] ?? null
       readonly property var place: root._drawPlaces[index] ?? null
       readonly property var segment: root.segmentAt(place)
-      // Past its box, at the section's ends (reachStart, reachEnd)
-      readonly property real reachBack: place !== null && index === root._firstShown ? root.reachStart : 0
-      readonly property real reachOn: place !== null && index === root._lastShown ? root.reachEnd : 0
-      readonly property real before: segment.back + reachBack
 
       z: -1 - index / Math.max(1, root.widgets.length)
       barConfig: root.barConfig
-      radius: reachBack + reachOn > 0 ? root.reachRadius : root.barConfig.radius
       colors: host?.background ?? null
-      // Filling an island to its end, it takes the island's rounded shape
-      startCap: reachBack > 0 ? "round" : segment.startCap
-      endCap: reachOn > 0 ? "round" : segment.endCap
+      startCap: segment.startCap
+      endCap: segment.endCap
       seamStart: segment.seamStart
       seamEnd: segment.seamEnd
       hovered: host?.outlined ?? false
       highlighted: host?.highlighted ?? false
       visible: place !== null
       opacity: host?.contentOpacity ?? 1
-      x: (host?.x ?? 0) - (root.isVertical ? 0 : before)
-      y: (host?.y ?? 0) - (root.isVertical ? before : 0)
-      width: (host?.width ?? 0) + (root.isVertical ? 0 : before + reachOn)
-      height: (host?.height ?? 0) + (root.isVertical ? before + reachOn : 0)
+      x: (host?.x ?? 0) - (root.isVertical ? 0 : segment.back)
+      y: (host?.y ?? 0) - (root.isVertical ? segment.back : 0)
+      width: (host?.width ?? 0) + (root.isVertical ? 0 : segment.back)
+      height: (host?.height ?? 0) + (root.isVertical ? segment.back : 0)
     }
   }
 
