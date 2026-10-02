@@ -2348,6 +2348,9 @@
     "lua": "lua",
     "pseudo": "pseudo",
     "toggleSplit": "toggleSplit",
-    "To install what's missing:": "足りないものをインストールするには:"
+    "To install what's missing:": "足りないものをインストールするには:",
+    "Zed": "Zed",
+    "Writes the \"Axiom\" theme, which follows light/dark. Zed reloads it.": "\"Axiom\" テーマを書き込みます（ライト/ダークに追従）。Zed は自動で再読み込みします。",
+    "In Zed's settings.json (zed: open settings), or pick Axiom in the theme selector (ctrl-k ctrl-t). With \"mode\": \"system\", set both \"light\" and \"dark\" to Axiom.": "Zed の settings.json（zed: open settings）に追加するか、テーマセレクター（ctrl-k ctrl-t）で Axiom を選んでください。\"mode\": \"system\" の場合は \"light\" と \"dark\" の両方を Axiom にしてください。"
   }
 }

@@ -369,6 +369,7 @@ QtObject {
       "qt": ["qt6ct", "qt5ct"],
       "helix": ["hx", "helix"],
       "vscode": ["code", "codium"],
+      "zed": ["zed", "zeditor", "zedit", "dev.zed.Zed"],
       "vesktop": ["vesktop", "dev.vencord.Vesktop", "equibop", "discord"],
       "firefox": ["firefox", "librewolf", "zen-browser", "zen", "floorp", "waterfox", "org.mozilla.firefox", "io.gitlab.librewolf-community", "app.zen_browser.zen", "one.ablaze.floorp", "net.waterfox.waterfox"]
     })

@@ -127,20 +127,21 @@ And setup B, which keeps it to one menu on the left, under the solid top bar:
 | **A** | <img src="../assets/screenshots/themes-dark.webp" alt="Themes page, dark variant, setup A"> | <img src="../assets/screenshots/themes-light.webp" alt="Themes page, light variant, setup A"> |
 | **B** | <img src="../assets/screenshots/themes-dark-b.webp" alt="Themes page, dark variant, setup B"> | <img src="../assets/screenshots/themes-light-b.webp" alt="Themes page, light variant, setup B"> |
 
-- Base16 themes, with dark and light pairs switched by one toggle: Catppuccin, Gruvbox, Solarized, Tokyo Night/Day and Submarine Sonar.
+- Base16 themes, with dark and light pairs switched by one toggle: Catppuccin, Gruvbox, Gruvbox Material, Solarized, Tokyo Night, Rosé Pine, Nord, Dracula/Alucard, Everforest, Kanagawa, One, Ayu, Nightfox, GitHub, Oxocarbon and Submarine Sonar.
 - Generate themes from your wallpaper, in five styles (tonal, vibrant, faithful, muted, alternate). The palette is built in OKLCH from the image's main colors, to match the contrast of the hand-made themes.
 - Wallpapers can be set per monitor. Axiom draws them itself (crossfading), or through [awww](https://github.com/LGFae/awww) for its transitions (`Appearance.wallpaperBackend`).
-- The active theme is applied to other apps too. Each app is a switch under **Settings → Theme integrations**, gets its own `axiom` theme file, and its switch's description gives the one line to add to its config. Your own config files are never edited.
+- The active theme is applied to other apps too. Each app is a switch under **Settings → Theme integrations**, gets its own `axiom` theme file, and its switch shows the line that loads that file from the app's config: copy it, or click Apply, which backs your config up first. Nothing else ever edits your config files.
 
 <details>
-<summary><b>Supported apps (18)</b></summary>
+<summary><b>Supported apps (23)</b></summary>
 
 | Kind | Apps |
 | --- | --- |
 | Toolkits | GTK, Qt |
 | Terminals | kitty, Alacritty, foot, WezTerm, Ghostty |
-| Editors | Neovim, Helix, VS Code |
-| CLI tools | k9s, cava, btop, fzf, lazygit, bat/delta, Yazi |
+| Editors | Neovim, Helix, VS Code, Zed |
+| Apps | Firefox (and its forks), Vesktop/Vencord, zathura |
+| CLI tools | k9s, cava, btop, fzf, lazygit, bat/delta, Yazi, ncspot |
 | Lockscreen | hyprlock |
 
 </details>
