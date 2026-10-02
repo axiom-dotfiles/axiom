@@ -44,7 +44,7 @@ Rectangle {
   // and the edit actions while they show
   readonly property real chrome: root.controlHeight * 2 + row.spacing * 2 + root.inset * 2 + (root.showEditActions ? editActions.implicitWidth + row.spacing : 0)
   // Only the current tab keeps its name when all of them don't fit
-  readonly property bool compact: root.maxWidth > 0 && root.chrome + measureRow.implicitWidth > root.maxWidth
+  readonly property bool compact: root.maxWidth > 0 && root.chrome + measureRow.fullWidth > root.maxWidth
   readonly property color onAccent: Theme.background
 
   width: row.implicitWidth + root.inset * 2
@@ -69,12 +69,19 @@ Rectangle {
     }
   }
 
-  // Every tab with its name, never shown: how wide the full row would be
-  Row {
+  // Every tab with its name, never shown: how wide the full row would be.
+  // Summed here: a hidden Row is never laid out, so its width stays 0
+  Item {
     id: measureRow
     visible: false
-    spacing: root.tabSpacing
+    readonly property real fullWidth: {
+      let width = Math.max(0, measures.count - 1) * root.tabSpacing;
+      for (let i = 0; i < measures.count; i++)
+        width += measures.itemAt(i)?.implicitWidth ?? 0;
+      return width;
+    }
     Repeater {
+      id: measures
       model: root.pages
       Item {
         required property var modelData
