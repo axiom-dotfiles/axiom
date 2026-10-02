@@ -628,14 +628,14 @@ class ClaimHyprland(unittest.TestCase):
     def test_new(self):
         self.assertEqual(self.claim("check"), "new")
         self.assertEqual(self.listing(), [])
-        self.assertEqual(self.claim("claim"), "adopted")
+        self.assertEqual(self.claim("claim"), "created")
         self.assertEqual(self.listing(), ["user"])
 
     def test_adopt_moves_the_old_config_to_user(self):
         (self.hypr / "hyprland.lua").write_text("-- mine\n")
         self.assertEqual(self.claim("check"), "adopt")
         self.assertEqual(self.listing(), ["hyprland.lua"])
-        self.assertEqual(self.claim("claim"), "adopted")
+        self.assertEqual(self.claim("claim"), "adopted:00-previous.lua")
         self.assertEqual((self.hypr / "user" / "00-previous.lua").read_text(), "-- mine\n")
         self.assertFalse((self.hypr / "hyprland.lua").exists())
         backups = list(self.hypr.glob("hyprland.lua.axiom-backup-*"))
@@ -690,7 +690,29 @@ class ClaimHyprland(unittest.TestCase):
         self.env["AXIOM_HYPR_EXAMPLE"] = str(example)
         (self.hypr / "hyprland.lua").write_text("-- example\n-- mine\n")
         self.assertEqual(self.claim("check"), "adopt")
-        self.assertEqual(self.claim("claim"), "adopted")
+        self.assertEqual(self.claim("claim"), "adopted:00-previous.lua")
+
+    def test_adopting_again_keeps_the_earlier_one(self):
+        (self.hypr / "user").mkdir()
+        (self.hypr / "user" / "00-previous.lua").write_text("-- earlier\n")
+        (self.hypr / "hyprland.lua").write_text("-- mine\n")
+        name = self.claim("claim").split(":", 1)[1]
+        self.assertRegex(name, r"^00-previous-[0-9-]+\.lua$")
+        self.assertEqual((self.hypr / "user" / "00-previous.lua").read_text(), "-- earlier\n")
+        self.assertEqual((self.hypr / "user" / name).read_text(), "-- mine\n")
+
+    def test_adopted_config_no_longer_starts_or_loads_axiom(self):
+        lines = [
+            'hl.on("hyprland.start", function() hl.exec_cmd("qs -c axiom") end) -- axiom',
+            'local ok, axiom = pcall(dofile, "/home/me/.local/state/axiom/hyprland.lua")',
+            "if ok then axiom.setup() end",
+            'hl.env("A", "b")',
+        ]
+        (self.hypr / "hyprland.lua").write_text("\n".join(lines) + "\n")
+        self.claim("claim")
+        text = (self.hypr / "user" / "00-previous.lua").read_text().splitlines()
+        self.assertTrue(all(line.startswith("-- ") for line in text[:3]), text)
+        self.assertEqual(text[3], 'hl.env("A", "b")')
 
     def test_ours_is_left_alone(self):
         (self.hypr / "hyprland.lua").write_text(self.HEADER + " (Hyprland mode: managed)\n")
@@ -757,14 +779,15 @@ class MergeHyprBinds(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         return json.loads(result.stdout)
 
-    def extract(self):
-        return self.run_merge("extract", str(self.hypr))
+    def extract(self, *args):
+        return self.run_merge("extract", str(self.hypr), *args)
 
     def remove(self, sites):
         return self.run_merge("remove", str(self.hypr), json.dumps(sites))
 
     def test_nothing_to_merge(self):
-        self.assertEqual(self.extract(), {"binds": [], "sites": [], "kept": [], "errors": []})
+        self.assertEqual(self.extract(), {"binds": [], "sites": [], "kept": [], "remapped": [], "tracked": [],
+                                          "errors": []})
 
     @unittest.skipUnless(EXAMPLE.exists(), "Hyprland's example config isn't installed")
     def test_example_config_moves_completely_onto_axiom_actions(self):
@@ -851,7 +874,48 @@ class MergeHyprBinds(unittest.TestCase):
         self.write("binds.lua", 'require("user.lib.keys")()\n')
         found = self.extract()
         self.assertEqual(found["binds"], [])
-        self.assertEqual(found["kept"][0]["reason"], "it's made in a shared module")
+        self.assertEqual(found["kept"][0]["reason"], "shared")
+
+    def test_running_the_files_does_nothing_and_ends(self):
+        marker = self.tmp / "ran"
+        self.write("binds.lua", "\n".join([
+            "for _, m in ipairs(hl.get_monitors()) do end",
+            f'io.popen("touch {marker}")',
+            f'io.open("{marker}", "w")',
+            'print("noise")',
+            'hl.bind("SUPER + Y", hl.dsp.window.close(), { locked = false })',
+            "",
+        ]))
+        found = self.extract()
+        self.assertFalse(marker.exists())
+        self.assertEqual(found["errors"], [])
+        self.assertEqual([b["key"] for b in found["binds"]], ["SUPER + Y"])
+        self.assertFalse(found["binds"][0]["locked"])
+
+    def test_only_reads_the_named_file(self):
+        self.write("00-previous.lua", 'hl.bind("SUPER + J", hl.dsp.layout("togglesplit"))\n')
+        self.write("mine.lua", 'hl.bind("SUPER + J", hl.dsp.layout("togglesplit"))\n')
+        found = self.extract("--only", "00-previous.lua")
+        self.assertEqual([s["file"] for s in found["sites"]], [str((self.hypr / "user" / "00-previous.lua").resolve())])
+        # The adopted example's key moves off axiom's, and says so
+        self.assertEqual(found["remapped"], [{"from": "SUPER + J", "to": "SUPER + X", "action": "toggleSplit"}])
+        # A file of the user's own keeps its key
+        found = self.extract("--only", "mine.lua")
+        self.assertEqual(found["binds"][0]["key"], "SUPER + J")
+        self.assertEqual(found["remapped"], [])
+
+    def test_a_failed_removal_names_its_sites(self):
+        self.write("binds.lua", 'hl.bind("SUPER + Y", hl.dsp.window.close())\nhl.bind("SUPER + U", hl.dsp.window.pin())\n')
+        found = self.extract()
+        self.assertEqual([len(s["binds"]) for s in found["sites"]], [1, 1])
+        path = self.hypr / "user" / "binds.lua"
+        path.chmod(0o640)
+        # The second call is gone by the time remove runs
+        path.write_text('hl.bind("SUPER + Y", hl.dsp.window.close())\n')
+        done = self.remove(found["sites"])
+        self.assertEqual(done["removed"], 1)
+        self.assertEqual([(f["line"], f["reason"]) for f in done["failed"]], [(2, "changed")])
+        self.assertEqual(path.stat().st_mode & 0o777, 0o640)
 
 
 class GenerateTheme(unittest.TestCase):

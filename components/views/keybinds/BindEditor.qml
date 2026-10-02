@@ -18,6 +18,39 @@ ColumnLayout {
 
   spacing: Widget.spacing * 2
 
+  // A merge's reason code (merge_hypr_binds.py) as text, with its detail
+  function reasonText(entry) {
+    switch (entry.reason) {
+    case "key":
+      return I18n.tr("its key isn't plain text");
+    case "function":
+      return I18n.tr("it runs a Lua function");
+    case "options":
+      return I18n.tr("axiom binds don't have its options: {0}", entry.detail);
+    case "shared":
+      return I18n.tr("it's made in a shared module");
+    case "notOnly":
+      return I18n.tr("it isn't the only call on its line");
+    case "statement":
+      return I18n.tr("it's part of a larger statement");
+    case "followed":
+      return I18n.tr("something else follows it on its line");
+    case "used":
+      return I18n.tr("it's kept in {0}, which the file uses", entry.detail);
+    case "unclosed":
+      return I18n.tr("the call isn't closed");
+    case "changed":
+      return I18n.tr("the file changed");
+    case "notUser":
+      return I18n.tr("it isn't one of user/*.lua");
+    case "syntax":
+      return I18n.tr("the file wouldn't parse without it ({0})", entry.detail);
+    case "crashed":
+      return I18n.tr("the merge script failed ({0})", entry.detail);
+    }
+    return entry.detail || String(entry.reason ?? "");
+  }
+
   Component.onDestruction: KeybindManager.stopRecording()
 
   // --- Presets ---
@@ -123,21 +156,37 @@ ColumnLayout {
       issues: {
         if (!merge)
           return [];
-        const found = [
-          {
+        const name = file => file.split("/").pop();
+        const found = [];
+        if (merge.saveFailed)
+          found.push({
+            "level": "error",
+            "text": I18n.tr("axiom's config couldn't be saved, so nothing moved")
+          });
+        else
+          found.push({
             "level": "info",
             "text": merge.removed > 0 ? I18n.tr("Moved {0} binds into axiom and saved; the files they came from are backed up beside them", merge.moved) : I18n.tr("Moved {0} binds into axiom", merge.moved)
-          }
-        ];
+          });
+        for (const moved of merge.remapped ?? [])
+          found.push({
+            "level": "info",
+            "text": I18n.tr("{0} is on {1} now: axiom uses {2}", KeybindManager.actionLabels[moved.action] ?? moved.action, moved.to, moved.from)
+          });
+        for (const file of merge.tracked ?? [])
+          found.push({
+            "level": "info",
+            "text": I18n.tr("{0} is in a git repository: commit or revert the change there", Paths.shortenHome(file))
+          });
         for (const kept of merge.kept)
           found.push({
             "level": "warning",
-            "text": I18n.tr("{0} stays in {1}: {2}", kept.key || "?", `${kept.file.split("/").pop()}:${kept.line}`, kept.reason)
+            "text": I18n.tr("{0} stays in {1}: {2}", kept.key || "?", `${name(kept.file)}:${kept.line}`, root.reasonText(kept))
           });
         for (const failed of merge.failed)
           found.push({
             "level": "error",
-            "text": I18n.tr("Couldn't delete the moved binds from {0}: {1}", failed.file.split("/").pop(), failed.reason)
+            "text": failed.line > 0 ? I18n.tr("Left the bind at {0} where it is, and out of axiom's: {1}", `${name(failed.file)}:${failed.line}`, root.reasonText(failed)) : I18n.tr("Left the binds in {0} where they are, and out of axiom's: {1}", name(failed.file), root.reasonText(failed))
           });
         for (const error of merge.errors)
           found.push({
@@ -168,7 +217,7 @@ ColumnLayout {
       }
 
       StyledTextButton {
-        visible: !KeybindManager.canMerge && KeybindManager.userConflicts.length > 0
+        visible: !(KeybindManager.canMerge && KeybindManager.mergeableCount > 0) && KeybindManager.userConflicts.length > 0
         implicitHeight: Widget.height
         iconText: "delete_sweep"
         text: I18n.tr("Remove {0} binds your Hyprland config also has", KeybindManager.userConflicts.length)
@@ -177,11 +226,11 @@ ColumnLayout {
 
       // Managed mode: the user's binds move in instead
       StyledTextButton {
-        visible: KeybindManager.canMerge && KeybindManager.userBindCount > 0
+        visible: KeybindManager.canMerge && KeybindManager.mergeableCount > 0
         enabled: !HyprlandConfigManager.merging
         implicitHeight: Widget.height
         iconText: "merge"
-        text: I18n.tr("Merge {0} binds from your Hyprland config", KeybindManager.userBindCount)
+        text: I18n.tr("Merge {0} binds from your Hyprland config", KeybindManager.mergeableCount)
         onClicked: KeybindManager.mergeUserBinds()
       }
 

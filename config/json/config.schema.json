@@ -404,7 +404,6 @@
           "default": [
             { "key": "SUPER + space", "action": "launcher" },
             { "key": "SUPER + Tab", "action": "overlay" },
-            { "key": "SUPER + M", "action": "exitHyprland", "release": true },
             { "key": "SUPER + SHIFT + space", "action": "workspaceOverview" },
             { "key": "ALT + Tab", "action": "windowSwitcher" },
             { "key": "ALT + SHIFT + Tab", "action": "windowSwitcherReverse" },

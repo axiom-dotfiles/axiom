@@ -271,7 +271,7 @@ TestCase {
     compare(MonitorLayout.ruleRect(rule, monitor), main);
   }
 
-  function test_unscaledRules() {
+  function test_wholeScaleRules() {
     const laptop = {
       "name": "eDP-1",
       "description": "BOE laptop",
@@ -294,10 +294,15 @@ TestCase {
       "scale": 1.25,
       "transform": 1
     };
-    const rules = MonitorLayout.unscaledRules([laptop, side]);
+    const rules = MonitorLayout.wholeScaleRules([laptop, side]);
     compare(rules.map(rule => rule.label), ["DP-2", "eDP-1"]);
-    compare(rules.map(rule => rule.scale), [1, 1]);
+    // 1.25 rounds down; the laptop's whole 2 stays
+    compare(rules.map(rule => rule.scale), [1, 2]);
     // DP-2 stands sideways: 1440 wide at 100%
     compare(rules.map(rule => [rule.x, rule.y]), [[0, 0], [1440, 0]]);
+    const fractional = Object.assign({}, laptop, {
+      "scale": 2.5
+    });
+    compare(MonitorLayout.wholeScaleRules([fractional])[0].scale, 2);
   }
 }

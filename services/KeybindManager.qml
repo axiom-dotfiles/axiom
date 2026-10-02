@@ -344,6 +344,7 @@ QtObject {
     if (!draft.isDirty)
       draft.load();
     refresh();
+    HyprlandConfigManager.previewMerge();
   }
 
   function save() {
@@ -516,8 +517,10 @@ QtObject {
   // Managed mode moves the user's binds into axiom instead of dropping
   // axiom's (HyprlandConfigManager.mergeUserBinds)
   readonly property bool canMerge: HyprlandConfigManager.mode === "managed"
-  // How many binds the user's Hyprland config makes
-  readonly property int userBindCount: Object.values(root._userKeyCounts).reduce((sum, count) => sum + Math.max(0, count), 0)
+  // How many binds in user/*.lua a Merge would move (0 until looked at,
+  // when the page opens): not every bind there can (a Lua function, a
+  // shared module's, one in a submap), so it's not the conflict count
+  readonly property int mergeableCount: Math.max(0, HyprlandConfigManager.mergeable)
 
   function mergeUserBinds() {
     stopRecording();

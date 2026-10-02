@@ -64,7 +64,7 @@ The screenshots show [two setups](../README.md#built-in-the-shell) of the same s
   - **Settings**, generated from the config schema
   - **Bar editor** and **Layouts** (overlay pages and edge menus, see [Built in the shell](../README.md#built-in-the-shell))
   - **Themes**
-  - **Keybinds**
+  - **Keybinds** (in the managed mode, **Merge** moves the binds from your own `user/*.lua` here)
   - **Monitors** (see [The rest](#the-rest))
   - Tool pages sit after your own pages in the navigator, as icons.
 - Every module can also go in an [edge menu](#edge-menus).

@@ -50,7 +50,7 @@ OnboardingPage {
         "icon": "auto_awesome",
         "tag": I18n.tr("Recommended"),
         "title": I18n.tr("Let axiom manage Hyprland"),
-        "description": root.configState === "stock" ? I18n.tr("Replaces the example hyprland.lua (a dated backup stays beside it) with one axiom writes from its settings, then loads your files in {0}/user/ after it.", root.hypr) : root.configState === "custom" ? I18n.tr("Moves your hyprland.lua to {0}/user/00-previous.lua, where it keeps working, loaded after axiom's (a dated backup stays too). Its own binds win over axiom's.", root.hypr) : I18n.tr("axiom writes hyprland.lua from its settings, and loads your own files in {0}/user/ after it.", root.hypr)
+        "description": root.configState === "stock" ? I18n.tr("Replaces the example hyprland.lua (a dated backup stays beside it) with one axiom writes from its settings, then loads your files in {0}/user/ after it.", root.hypr) : root.configState === "custom" ? I18n.tr("Moves your hyprland.lua to {0}/user/00-previous.lua, where it keeps working, loaded after axiom's (a dated backup stays too). Its binds move into axiom's Keybinds page and out of that file; any that can't move stay there and win over axiom's.", root.hypr) : I18n.tr("axiom writes hyprland.lua from its settings, and loads your own files in {0}/user/ after it.", root.hypr)
       },
       {
         "mode": "included",

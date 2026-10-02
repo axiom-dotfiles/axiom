@@ -848,31 +848,36 @@ if #errors > 0 then error(table.concat(errors, "\\n")) end
   }
 
   // Makes ~/.config/hypr/hyprland.lua axiom's (scripts/claim_hyprland.sh):
-  // "ours" (already), "adopted" (the old one moved to user/00-previous.lua,
-  // a dated backup beside it), "replaced" (Hyprland's example config, only
-  // kept as the backup: its binds and monitor rule would fight axiom's) or
-  // "blocked" (a symlinked or git-tracked config is never taken over)
+  // "ours" (already), "adopted:<name>" (the old one moved to user/<name>,
+  // its lines starting or loading axiom commented out, a dated backup
+  // beside it), "created" (there was none), "replaced" (Hyprland's example
+  // config, only kept as the backup: its binds and monitor rule would fight
+  // axiom's) or "blocked" (a symlinked or git-tracked config is never taken
+  // over)
   Process {
     id: claimManaged
     command: [Paths.scriptsPath + "claim_hyprland.sh", "claim", Paths.hyprlandPath, root._header]
     stdout: StdioCollector {
       id: claimCollector
       onStreamFinished: {
-        const result = claimCollector.text.trim().split(":")[0];
+        const words = claimCollector.text.trim().split(":");
+        const result = words[0];
         if (result === "blocked") {
           root._warnOnce(`Hyprland mode is "managed", but ${Paths.hyprlandPath} is a symlink or in a git repository, so axiom won't take it over; use "included" instead. Applying axiom's layer at runtime meanwhile.`);
           root._applyRuntime();
           return;
         }
         if (result === "adopted")
-          console.log(`[HyprlandConfigManager] Took over ${root.managedPath}; your previous one is ${root.userDir}/00-previous.lua`);
+          console.log(`[HyprlandConfigManager] Took over ${root.managedPath}; your previous one is ${root.userDir}/${words[1]}`);
         else if (result === "replaced")
           console.log(`[HyprlandConfigManager] Replaced Hyprland's example config at ${root.managedPath} (backed up beside it)`);
-        if (result === "ours" || result === "adopted" || result === "replaced")
+        if (["ours", "adopted", "created", "replaced"].includes(result))
           root._writeIfChanged(root.managedPath, root.managedLua());
-        // The adopted config's binds would fight axiom's: they move in
-        if (result === "adopted")
-          root.mergeUserBinds();
+        // The adopted config's binds would fight axiom's: they move in. Only
+        // that file's: the user's other files in user/ are left to the
+        // Keybinds page's Merge
+        if (result === "adopted" && words[1])
+          root.mergeUserBinds(words[1]);
       }
     }
     stderr: StdioCollector {
@@ -889,39 +894,77 @@ if #errors > 0 then error(table.concat(errors, "\\n")) end
   // scripts/merge_hypr_binds.py: every hl.bind in user/*.lua that can move
   // becomes one of axiom's binds (an action where one does the same, else
   // the `lua` action), saved first, then its call is deleted from the file
-  // (a dated backup beside it). A key axiom binds too stays one bind, the
-  // user's replacing axiom's (HyprBinds.mergeBinds). Runs by itself when a takeover
-  // adopts the previous hyprland.lua, so managed mode starts with no
-  // conflicts.
+  // (a dated backup beside it). A call that couldn't be deleted has its
+  // binds taken back out of axiom's, so no key is ever bound twice. A key
+  // axiom binds too stays one bind, the user's replacing axiom's
+  // (HyprBinds.mergeBinds). Runs by itself on the adopted file when a
+  // takeover adopts the previous hyprland.lua, so managed mode starts with
+  // no conflicts; the Keybinds page's Merge runs it on all of user/.
   readonly property bool merging: extractBinds.running || removeBinds.running
-  // The last merge: { moved, removed, kept: [{ file, line, key, reason }],
-  // failed: [{ file, reason }], errors: [text] }, or null
+  // The last merge: { moved, removed, kept: [{ file, line, key, reason,
+  // detail }], failed: [{ file, line, reason, detail }], remapped: [{ from,
+  // to, action }], tracked: [file], errors: [text], saveFailed }, or null.
+  // Reasons are codes (merge_hypr_binds.py, and "crashed"), which the
+  // Keybinds page translates
   property var lastMerge: null
-  // The binds a merge added to the saved config (KeybindManager adds them
-  // to a draft with unsaved edits)
+  // How many binds a Merge of all of user/ would move (previewMerge());
+  // -1 until looked
+  property int mergeable: -1
+  // The binds a merge moved in for good (KeybindManager adds them to a
+  // draft with unsaved edits)
   signal bindsMerged(var binds)
 
-  function mergeUserBinds() {
+  // `only`: one file name in user/ (the adopted one), else all of them
+  function mergeUserBinds(only) {
     if (mode !== "managed" || merging)
       return;
-    extractBinds.running = true;
+    _preview = false;
+    _run(only);
   }
 
+  // Counts what a Merge would move, changing nothing (`mergeable`)
+  function previewMerge() {
+    if (mode !== "managed" || merging)
+      return;
+    _preview = true;
+    _run("");
+  }
+
+  property bool _preview: false
   property var _merged: null
+  // The saved binds before a merge, and its sites, to take back what
+  // couldn't be deleted
+  property var _before: []
+  property var _sites: []
+
+  function _run(only) {
+    extractBinds.command = [Paths.scriptsPath + "merge_hypr_binds.py", "extract", Paths.hyprlandPath].concat(only ? ["--only", only] : []);
+    extractBinds.running = true;
+  }
 
   function _extracted(text) {
     let found;
     try {
       found = JSON.parse(text);
     } catch (e) {
+      if (_preview) {
+        mergeable = 0;
+        return;
+      }
       console.warn("[HyprlandConfigManager] Reading your Hyprland binds failed:", extractErrors.text.trim() || e);
       lastMerge = {
         "moved": 0,
         "removed": 0,
         "kept": [],
         "failed": [],
+        "remapped": [],
+        "tracked": [],
         "errors": [extractErrors.text.trim() || String(e)]
       };
+      return;
+    }
+    if (_preview) {
+      mergeable = found.binds.length;
       return;
     }
     _merged = {
@@ -929,29 +972,53 @@ if #errors > 0 then error(table.concat(errors, "\\n")) end
       "removed": 0,
       "kept": found.kept,
       "failed": [],
+      "remapped": found.remapped,
+      "tracked": found.tracked,
       "errors": found.errors
     };
     if (found.binds.length === 0) {
       lastMerge = _merged;
+      mergeable = 0;
       return;
     }
     // Saved before the calls go, so no bind is ever missing
+    _before = HyprlandConfig.binds;
+    _sites = found.sites;
     if (!SettingsManager.commitValues({
-      "Hyprland.binds": HyprBinds.mergeBinds(HyprlandConfig.binds, found.binds)
+      "Hyprland.binds": HyprBinds.mergeBinds(_before, found.binds)
     })) {
       _merged.moved = 0;
-      _merged.errors = _merged.errors.concat(["axiom's config couldn't be saved, so nothing moved"]);
+      _merged.saveFailed = true;
       lastMerge = _merged;
       return;
     }
-    bindsMerged(found.binds);
     removeBinds.command = [Paths.scriptsPath + "merge_hypr_binds.py", "remove", Paths.hyprlandPath, JSON.stringify(found.sites)];
     removeBinds.running = true;
   }
 
+  // After the removal: the binds whose call is still in its file go back
+  // out of axiom's (the saved binds from before, with only the rest merged)
+  function _removed(done) {
+    const left = site => done.failed.some(f => f.file === site.file && (f.line === 0 || f.line === site.line));
+    const moved = [].concat(..._sites.filter(site => !left(site)).map(site => site.binds));
+    if (done.failed.length > 0 && !SettingsManager.commitValues({
+      "Hyprland.binds": HyprBinds.mergeBinds(_before, moved)
+    }))
+      console.warn("[HyprlandConfigManager] Couldn't take the binds left in your Hyprland config back out of axiom's");
+    _merged.moved = moved.length;
+    _merged.removed = done.removed;
+    _merged.failed = done.failed;
+    for (const failure of done.failed)
+      console.warn("[HyprlandConfigManager] Left the binds in", failure.file, failure.line > 0 ? `(line ${failure.line})` : "", "where they were:", failure.reason, failure.detail);
+    if (moved.length > 0)
+      bindsMerged(moved);
+    lastMerge = _merged;
+    mergeable = -1;
+    console.log(`[HyprlandConfigManager] Moved ${moved.length} binds from ${root.userDir} into axiom; ${_merged.kept.length} stay there`);
+  }
+
   Process {
     id: extractBinds
-    command: [Paths.scriptsPath + "merge_hypr_binds.py", "extract", Paths.hyprlandPath]
     stdout: StdioCollector {
       onStreamFinished: root._extracted(text)
     }
@@ -964,22 +1031,23 @@ if #errors > 0 then error(table.concat(errors, "\\n")) end
     id: removeBinds
     stdout: StdioCollector {
       onStreamFinished: {
+        let done;
         try {
-          const done = JSON.parse(text);
-          root._merged.removed = done.removed;
-          root._merged.failed = done.failed;
-          for (const failure of done.failed)
-            console.warn("[HyprlandConfigManager] Left the binds in", failure.file, "where they were:", failure.reason);
+          done = JSON.parse(text);
         } catch (e) {
-          root._merged.failed = [
-            {
-              "file": root.userDir,
-              "reason": removeErrors.text.trim() || String(e)
-            }
-          ];
+          // Nothing is known to be deleted: every file's binds go back
+          done = {
+            "removed": 0,
+            "files": []
+          };
+          done.failed = root._sites.map(site => ({
+                "file": site.file,
+                "line": 0,
+                "reason": "crashed",
+                "detail": removeErrors.text.trim() || String(e)
+              })).filter((f, i, all) => all.findIndex(other => other.file === f.file) === i);
         }
-        root.lastMerge = root._merged;
-        console.log(`[HyprlandConfigManager] Moved ${root._merged.moved} binds from ${root.userDir} into axiom; ${root._merged.kept.length} stay there`);
+        root._removed(done);
       }
     }
     stderr: StdioCollector {

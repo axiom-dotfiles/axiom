@@ -575,7 +575,9 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
 
   Process {
     id: addLayerRulesFirst
-    command: ["hyprctl", "eval", root.layerRulesLua.join("\n")]
+    // One eval for all of them, each in its own pcall, so one Hyprland
+    // rejects doesn't drop the rest (as _addLayerRules' one eval per rule)
+    command: ["hyprctl", "eval", root.layerRulesLua.map(rule => `pcall(function() ${rule} end)`).join("\n")]
     onExited: _layerRules.ready = true
   }
 

@@ -18,9 +18,16 @@
 #                         it would only be backed up, since its binds and
 #                         monitor rule would fight axiom's
 #                new      (check) there's no hyprland.lua yet
-#                adopted  (claim) done: user/ exists, and an existing
-#                         hyprland.lua is now user/00-previous.lua, with a
-#                         dated copy beside the original path
+#                adopted:<name>  (claim) done: user/ exists, and the
+#                         existing hyprland.lua is now user/<name>
+#                         (00-previous.lua, or 00-previous-<date>.lua when
+#                         that's taken), with a dated copy beside the
+#                         original path. Its lines that start axiom or load
+#                         its included module are commented out: axiom's
+#                         hyprland.lua does both now, and a second start
+#                         without -n would be a second shell
+#                created  (claim) done: user/ exists; there was no
+#                         hyprland.lua
 #                replaced (claim) done: user/ exists, and the example
 #                         config is only kept as the dated copy
 #              Writes nothing on check, ours or blocked.
@@ -63,6 +70,22 @@ is_stock() {
   [[ -f "$example" ]] && diff -qbB <(stock_lines "$file") <(stock_lines "$example") >/dev/null 2>&1
 }
 
+# Comments out the lines that start axiom (install.sh's, the Hyprland
+# page's, any `qs … -c axiom`) or load its included module, unless that
+# leaves the file unparsable (then it stays as it is)
+disable_axiom_lines() {
+  local target=$1 edited
+  edited=$(mktemp) || return 0
+  sed -E \
+    -e '/^[[:space:]]*--/b' \
+    -e '/(qs|quickshell) .*(-c +['"'"'"]?axiom|-p +['"'"'"]?[^[:space:]]*axiom)|dofile.*axiom\/hyprland\.lua|axiom\.setup\(/s/^/-- (axiom starts and loads itself now) /' \
+    "$target" >"$edited"
+  if luac -p "$edited" >/dev/null 2>&1; then
+    cat "$edited" >"$target"
+  fi
+  rm -f "$edited"
+}
+
 if [[ "$action" == "check" ]]; then
   if [[ ! -f "$file" ]]; then
     echo new
@@ -82,6 +105,11 @@ if [[ -f "$file" ]]; then
     echo replaced
     exit 0
   fi
-  cp -p "$file" "$backup" && mv "$file" "$dir/user/00-previous.lua" || exit 1
+  name=00-previous.lua
+  [[ -e "$dir/user/$name" ]] && name=00-previous-$(date +%Y%m%d-%H%M%S).lua
+  cp -p "$file" "$backup" && mv "$file" "$dir/user/$name" || exit 1
+  disable_axiom_lines "$dir/user/$name"
+  echo "adopted:$name"
+  exit 0
 fi
-echo adopted
+echo created

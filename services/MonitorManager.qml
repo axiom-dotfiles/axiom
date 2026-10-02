@@ -76,8 +76,8 @@ QtObject {
   }
 
   onOutputsChanged: {
-    if (_nativeScalePending && outputs.length > 0)
-      useNativeScale();
+    if (_wholeScalePending && outputs.length > 0)
+      useWholeScale();
     if (_detectPending && outputs.length > 0) {
       _detectPending = false;
       _detect();
@@ -368,25 +368,27 @@ QtObject {
 
   // --- First run ---
 
-  // Hyprland's example config scales monitors "auto", often 1.5 or 2 on a
-  // laptop. The onboarding, finding it on a first run, starts at 100%: a
-  // saved layout with every monitor unscaled (MonitorLayout.unscaledRules),
-  // which axiom's layer applies like any other. Nothing happens once a
-  // layout is saved, or when every monitor is at 100% already.
-  function useNativeScale() {
+  // Hyprland's example config scales monitors "auto", often a fractional
+  // 1.25 or 1.5 on a laptop, which blurs and misaligns the shell. The
+  // onboarding, finding it on a first run, rounds those down: a saved
+  // layout with every scale whole (MonitorLayout.wholeScaleRules), which
+  // axiom's layer applies like any other. A whole scale (2 on a HiDPI
+  // panel) is left alone, and nothing happens once a layout is saved, or
+  // when no scale is fractional.
+  function useWholeScale() {
     if (outputs.length === 0) {
-      _nativeScalePending = true;
+      _wholeScalePending = true;
       refresh();
       return;
     }
-    _nativeScalePending = false;
-    if (HyprlandConfig.monitorProfiles.length > 0 || !enabledOutputs.some(monitor => monitor.scale !== 1))
+    _wholeScalePending = false;
+    if (HyprlandConfig.monitorProfiles.length > 0 || !enabledOutputs.some(monitor => !Number.isInteger(monitor.scale)))
       return;
     SettingsManager.commitValues({
       "Hyprland.monitors.profiles": [
         {
           "name": I18n.tr("Layout {0}", 1),
-          "outputs": MonitorLayout.unscaledRules(outputs)
+          "outputs": MonitorLayout.wholeScaleRules(outputs)
         }
       ]
     });
@@ -394,7 +396,7 @@ QtObject {
     _refreshLater.restart();
   }
 
-  property bool _nativeScalePending: false
+  property bool _wholeScalePending: false
 
   property Timer _refreshLater: Timer {
     interval: 2000

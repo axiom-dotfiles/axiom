@@ -229,10 +229,10 @@ Singleton {
     property string chosenMode: ""
   }
 
-  // Hyprland's example config on a first run: start at 100% scale
+  // Hyprland's example config on a first run: no fractional scales
   onConfigStateChanged: {
     if (shown && ConfigManager.firstRun && (configState === "stock" || configState === "none"))
-      MonitorManager.useNativeScale();
+      MonitorManager.useWholeScale();
   }
 
   Connections {

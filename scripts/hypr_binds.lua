@@ -11,7 +11,8 @@
 --              arguments, `lua` the dispatcher as Lua source; all three are
 --              absent when the dispatcher is a Lua function, which can't be
 --              moved. Nothing else the files ask for is done: commands
---              aren't run and os.execute/exit/remove/rename do nothing.
+--              aren't run (io.popen reads empty, os.execute does nothing),
+--              io.open only reads, and os.exit/remove/rename do nothing.
 
 ---@diagnostic disable: duplicate-set-field, lowercase-global
 
@@ -93,10 +94,11 @@ end
 -- --- The stand-in hl ---
 
 -- Anything but bind/unbind/dsp: indexing or calling it gives itself, so
--- hl.config{...}, hl.on(...), x:set_enabled(false) all pass
+-- hl.config{...}, hl.on(...), x:set_enabled(false) all pass. As a list it's
+-- empty (no numeric keys), so ipairs(hl.get_monitors()) ends at once
 local sink
 sink = setmetatable({}, {
-  __index = function() return sink end,
+  __index = function(_, k) if type(k) == "number" then return nil end return sink end,
   __call = function() return sink end,
 })
 
@@ -140,7 +142,11 @@ hl = setmetatable({
     if type(opts) == "table" then
       entry.opts = {}
       for k, v in pairs(opts) do
-        entry.opts[tostring(k)] = plain(v) and v or tostring(v)
+        if plain(v) then
+          entry.opts[tostring(k)] = v
+        else
+          entry.opts[tostring(k)] = tostring(v)
+        end
       end
     end
     binds[#binds + 1] = entry
@@ -153,6 +159,24 @@ hl = setmetatable({
   end,
 }, { __index = function() return sink end })
 
+-- No command runs and no file is written: io.popen reads as empty output,
+-- and io.open only opens for reading
+local empty = { read = function() return nil end, lines = function() return function() return nil end end,
+  close = function() return true end, write = function(self) return self end }
+io.popen = function() return empty end
+local open = io.open
+io.open = function(path, mode)
+  if mode and mode:find("[wa+]") then return nil, "not written while listing binds" end
+  return open(path, mode)
+end
+-- What the files print goes to stderr, keeping stdout for the JSON
+local stdout = io.stdout
+print = function(...)
+  local parts = table.pack(...)
+  for i = 1, parts.n do parts[i] = tostring(parts[i]) end
+  io.stderr:write(table.concat(parts, "\t"), "\n")
+end
+io.write = function(...) io.stderr:write(...) return io end
 os.execute = function() return true, "exit", 0 end
 os.exit = function() error("os.exit", 0) end
 os.remove = function() return true end
@@ -165,4 +189,4 @@ for _, module in ipairs(modules) do
   if not ok then errors[#errors + 1] = module .. ": " .. tostring(err) end
 end
 
-io.write(json({ binds = binds, unbinds = unbinds, errors = errors }), "\n")
+stdout:write(json({ binds = binds, unbinds = unbinds, errors = errors }), "\n")
