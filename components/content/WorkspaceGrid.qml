@@ -22,6 +22,8 @@ Panel {
   property HyprlandMonitor monitor: null
   property bool vertical: false
   property real cellSize: Widget.height
+  // The bar's inner spacing, so the gaps match its row
+  property real cellSpacing: Widget.spacing
   // The bar's, so the cells match its row
   property real radius: Widget.radius
   property int fontSize: Appearance.fontSize
@@ -55,7 +57,7 @@ Panel {
   Grid {
     id: grid
     columns: root.gridColumns
-    spacing: root.properties.spacing ?? 0
+    spacing: root.cellSpacing
 
     Repeater {
       model: root.gridColumns * root.gridRows

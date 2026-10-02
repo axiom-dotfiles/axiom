@@ -41,7 +41,7 @@ Item {
   readonly property int activeColumn: root.activeIndex % root.columns
 
   readonly property real cell: root.barConfig.widgetSize
-  readonly property real spacing: root.properties.spacing
+  readonly property real spacing: root.barConfig.widgetSpacing
   // Cells the bar shows: a row, or a column on a vertical bar
   readonly property int shown: root.isVertical ? root.rows : root.columns
 
@@ -167,6 +167,7 @@ Item {
         monitor: root.monitor,
         vertical: root.isVertical,
         cellSize: root.cell,
+        cellSpacing: root.spacing,
         radius: root.barConfig.radius,
         fontSize: root.barConfig.fontSize,
         properties: root.properties

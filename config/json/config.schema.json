@@ -2811,7 +2811,6 @@
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "x-showIf": { "/Workspaces.layout": "grid" }, "description": "Open the whole grid when hovered." },
             "clickToSwitch": { "type": "boolean", "title": "Click to switch", "default": true, "description": "Click a workspace (on the bar or in the grid popout) to go to it." },
             "scrollToSwitch": { "type": "boolean", "title": "Scroll to switch", "default": true, "description": "Scroll over the widget to step through the workspaces (along the shown row or column in a grid)." },
-            "spacing": { "type": "integer", "x-control": "stepper", "title": "Box spacing", "default": 2, "minimum": 0, "maximum": 20, "x-unit": "px", "description": "Gap between workspace boxes, on the bar and in the grid popout." },
             "activeColor": { "type": "string", "title": "Active", "x-options": "colors", "default": "base0E" },
             "occupiedColor": { "type": "string", "title": "Occupied", "x-options": "colors", "default": "base04" },
             "emptyColor": { "type": "string", "title": "Empty", "x-options": "colors", "default": "base01" },
