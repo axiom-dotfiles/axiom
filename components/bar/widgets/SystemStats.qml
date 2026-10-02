@@ -110,7 +110,7 @@ BarWidget {
     }
   }
   readonly property bool warning: segments.some(key => segmentData(key).level >= properties.warnThreshold)
-  readonly property color foregroundColor: Theme.resolveColor(properties.foregroundColor)
+  readonly property color foregroundColor: Bar.widgetForeground(barConfig, properties.foregroundColor)
 
   implicitWidth: box.implicitWidth
   implicitHeight: box.implicitHeight
@@ -147,6 +147,7 @@ BarWidget {
     crossSize: root.barConfig.widgetSize
     padding: root.segments.length > 0 ? root.barConfig.widgetPadding : 0
     radius: root.barConfig.radius
+    showBackground: root.barConfig.widgetBackgrounds
     backgroundColor: Theme.resolveColor(root.warning ? root.properties.warnColor : root.properties.backgroundColor)
 
     content: Grid {

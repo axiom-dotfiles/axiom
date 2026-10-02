@@ -87,6 +87,10 @@ QtObject {
       // Widget chips only, else the interior radius: pills and fillets keep
       // Appearance's, to meet the border
       "radius": barConfig.overrideRadius ? barConfig.widgetRadius : Widget.radius,
+      // Off: widgets draw straight onto the bar in widgetTextColor (a
+      // color name; see widgetForeground)
+      "widgetBackgrounds": barConfig.widgetBackgrounds,
+      "widgetTextColor": barConfig.widgetTextColor,
       "lockCenter": barConfig.lockCenter,
       "location": loc,
       "reserveSpace": barConfig.reserveSpace,
@@ -97,6 +101,13 @@ QtObject {
       "top": loc === Bar.Top,
       "bottom": loc === Bar.Bottom
     };
+  }
+
+  // What a bar widget draws its text and icons in: its own color (`name`,
+  // chosen to read on its background), or the bar's with widget
+  // backgrounds off
+  function widgetForeground(barConfig, name) {
+    return Theme.resolveColor(barConfig.widgetBackgrounds ? name : barConfig.widgetTextColor);
   }
 
   // The Bars section as saved: no previews, "*" monitors unexpanded, locations as strings

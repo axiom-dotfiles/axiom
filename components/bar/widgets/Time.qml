@@ -17,7 +17,7 @@ BarWidget {
   readonly property bool use24Hour: properties.use24Hour
   readonly property bool showSeconds: properties.showSeconds
   readonly property bool showDate: properties.showDate
-  readonly property color foregroundColor: Theme.resolveColor(properties.foregroundColor)
+  readonly property color foregroundColor: Bar.widgetForeground(barConfig, properties.foregroundColor)
 
   readonly property int priority: 5
 
@@ -102,6 +102,7 @@ BarWidget {
 
   Rectangle {
     anchors.fill: parent
+    visible: root.barConfig.widgetBackgrounds
     color: Theme.resolveColor(root.properties.backgroundColor)
     radius: root.barConfig.radius
   }

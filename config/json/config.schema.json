@@ -2011,7 +2011,7 @@
 
     "Bar": {
       "type": "object",
-      "x-order": ["id", "enabled", "monitor", "location", "widgetSize", "padding", "spacing", "widgetPadding", "widgetSpacing", "background", "pillPadding", "pillMerge", "overrideFontSize", "fontSize", "overrideRadius", "widgetRadius", "lockCenter", "reserveSpace"],
+      "x-order": ["id", "enabled", "monitor", "location", "widgetSize", "padding", "spacing", "widgetPadding", "widgetSpacing", "background", "pillPadding", "pillMerge", "overrideFontSize", "fontSize", "overrideRadius", "widgetRadius", "widgetBackgrounds", "widgetTextColor", "lockCenter", "reserveSpace"],
       "required": ["id"],
       "additionalProperties": false,
       "properties": {
@@ -2175,6 +2175,24 @@
           "x-showIf": {
             "overrideRadius": true
           }
+        },
+        "widgetBackgrounds": {
+          "x-group": "Style",
+          "type": "boolean",
+          "title": "Widget backgrounds",
+          "default": true,
+          "description": "Off: widgets draw straight onto the bar, in one text color, instead of each on its own colored background."
+        },
+        "widgetTextColor": {
+          "x-group": "Style",
+          "type": "string",
+          "title": "Widget text color",
+          "x-options": "colors",
+          "default": "foreground",
+          "x-showIf": {
+            "widgetBackgrounds": false
+          },
+          "description": "What every widget's text and icons are drawn in without their backgrounds. The default contrasts with the bar."
         },
         "widgets": {
           "type": "object",

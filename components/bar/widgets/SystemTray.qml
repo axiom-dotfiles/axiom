@@ -23,7 +23,7 @@ BarWidget {
 
   Rectangle {
     anchors.fill: parent
-    visible: !root.hidden
+    visible: !root.hidden && root.barConfig.widgetBackgrounds
     radius: root.barConfig.radius
     color: Theme.resolveColor(root.properties.backgroundColor)
   }

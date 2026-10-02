@@ -2368,6 +2368,10 @@
     "{0} is on {1} now: axiom uses {2}": "{0} は {1} に移りました（{2} は axiom が使用）",
     "{0} is in a git repository: commit or revert the change there": "{0} は git リポジトリ内にあります。そこで変更をコミットするか元に戻してください",
     "Left the bind at {0} where it is, and out of axiom's: {1}": "{0} のバインドはそのまま残し、axiom には加えていません: {1}",
-    "Left the binds in {0} where they are, and out of axiom's: {1}": "{0} のバインドはそのまま残し、axiom には加えていません: {1}"
+    "Left the binds in {0} where they are, and out of axiom's: {1}": "{0} のバインドはそのまま残し、axiom には加えていません: {1}",
+    "Widget backgrounds": "ウィジェットの背景",
+    "Off: widgets draw straight onto the bar, in one text color, instead of each on its own colored background.": "オフ: ウィジェットはそれぞれの色付きの背景ではなく、バーに直接ひとつの文字色で描かれます。",
+    "Widget text color": "ウィジェットの文字色",
+    "What every widget's text and icons are drawn in without their backgrounds. The default contrasts with the bar.": "背景なしのときに、すべてのウィジェットの文字とアイコンに使う色。既定ではバーと対照的な色になります。"
   }
 }

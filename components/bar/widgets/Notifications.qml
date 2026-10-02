@@ -20,9 +20,9 @@ BarWidget {
     iconSize: root.barConfig.fontSize
 
     iconText: NotificationManager.dnd ? "notifications_off" : "notifications"
-    iconColor: Theme.resolveColor(NotificationManager.dnd ? root.properties.dndColor : root.properties.foregroundColor)
+    iconColor: NotificationManager.dnd ? Theme.resolveColor(root.properties.dndColor) : Bar.widgetForeground(root.barConfig, root.properties.foregroundColor)
     borderHoverColor: Theme.accent
-    backgroundColor: Theme.resolveColor(root.properties.backgroundColor)
+    backgroundColor: root.barConfig.widgetBackgrounds ? Theme.resolveColor(root.properties.backgroundColor) : "transparent"
 
     badgeVisible: root.properties.showCount && NotificationManager.count > 0
     badgeBackgroundColor: Theme.resolveColor(root.properties.badgeColor)

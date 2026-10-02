@@ -6,7 +6,8 @@ import qs.components.reusable
 
 // Base for icon + label bar modules: the inputs every module gets from
 // BarWidgetHost, orientation from the bar, and the configured colors (modules
-// override backgroundColor for their states).
+// override backgroundColor for their states; a bar with widget backgrounds
+// off draws none, and its own text color).
 //
 // Clicks: set `clickable` (and `acceptedButtons` beyond the left one) and
 // handle clicked(button); a clickable widget shows a pointer and dims while
@@ -41,8 +42,9 @@ IconTextWidget {
   fontSize: barConfig.fontSize
   // The icon's gap to its label (6 px at the default inner spacing of 4)
   spacing: barConfig.widgetSpacing * 1.5
+  showBackground: barConfig.widgetBackgrounds
   backgroundColor: Theme.resolveColor(properties.backgroundColor)
-  foregroundColor: Theme.resolveColor(properties.foregroundColor)
+  foregroundColor: Bar.widgetForeground(barConfig, properties.foregroundColor)
   opacity: (root.pressed ? 0.8 : 1) * root.dim
 
   MouseArea {

@@ -35,7 +35,7 @@ QtObject {
   // A bar's look: its Size and Style settings (BarsPanel groups them from
   // these), not its identity, placement, behaviour or widgets
   readonly property var sizeKeys: ["widgetSize", "padding", "spacing", "widgetPadding", "widgetSpacing"]
-  readonly property var styleOnlyKeys: ["background", "pillPadding", "pillMerge", "overrideFontSize", "fontSize", "overrideRadius", "widgetRadius"]
+  readonly property var styleOnlyKeys: ["background", "pillPadding", "pillMerge", "overrideFontSize", "fontSize", "overrideRadius", "widgetRadius", "widgetBackgrounds", "widgetTextColor"]
   readonly property var styleKeys: sizeKeys.concat(styleOnlyKeys)
   // The style copied with copyStyle(): { index, values }, or null. By
   // index, since ids may be empty or shared: kept pointing at its bar as
