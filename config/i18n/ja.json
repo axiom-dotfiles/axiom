@@ -2403,7 +2403,7 @@
     "Shaped": "形どおり",
     "pointed": "両端とがり",
     "Pointed": "両端とがり",
-    "The ends of an arrow widget, or of a run of them: notched and pointed, pointed at both, or rounded.": "矢印ウィジェット（または連なったウィジェット）の両端の形：切り込みとがり、両端とがり、または丸。",
+    "The ends of a slanted or arrow widget, or of a run of them: as shaped, rounded, or (arrows) pointed at both.": "斜めまたは矢印ウィジェット（または連なったウィジェット）の両端の形：形どおり、丸、または（矢印のみ）両端とがり。",
     "Rounded follows the widget corner radius. Slanted and arrow widgets take a little more room for their points.": "角丸はウィジェットの角の丸みに従います。斜めと矢印のウィジェットは、とがった部分のために少し広く場所を取ります。",
     "Grouping": "まとめ方",
     "separate": "個別",

@@ -122,8 +122,8 @@ TestCase {
     compare([last.lead, last.trail], [0, join / 2 + 15]);
   }
 
-  // widgetEnds: an arrow run's own ends notched and pointed (shaped),
-  // pointed at both, or rounded; other shapes ignore it
+  // widgetEnds: a run's own ends notched and pointed (shaped), pointed at
+  // both (an arrow's alone: a slant keeps its slant), or rounded
   function test_run_ends() {
     const caps = (shape, ends, grouping) => {
       const first = BarShapes.segment(shape, ends, grouping, true, 0, 2, 30);
@@ -135,7 +135,7 @@ TestCase {
       compare(caps("arrow", "pointed", grouping), ["arrowOut", "arrowOut", 15]);
       compare(caps("arrow", "rounded", grouping), ["round", "round", 0]);
       compare(caps("slant", "pointed", grouping), ["slant", "slant", 5]);
-      compare(caps("slant", "rounded", grouping), ["slant", "slant", 5]);
+      compare(caps("slant", "rounded", grouping), ["round", "round", 0]);
       compare(caps("capsule", "rounded", grouping), ["capsule", "capsule", 0]);
     });
     // Rounded ends keep a powerline's joins, and its content centred

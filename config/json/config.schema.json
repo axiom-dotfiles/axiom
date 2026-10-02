@@ -1103,9 +1103,12 @@
           },
           "x-showIf": {
             "widgetStyle": ["filled", "tinted", "outline"],
-            "widgetShape": ["arrow"]
+            "widgetShape": ["slant", "arrow"]
           },
-          "description": "The ends of an arrow widget, or of a run of them: notched and pointed, pointed at both, or rounded."
+          "x-enumShowIf": {
+            "pointed": { "widgetShape": "arrow" }
+          },
+          "description": "The ends of a slanted or arrow widget, or of a run of them: as shaped, rounded, or (arrows) pointed at both."
         },
         "groupColor": {
           "x-group": "Bar widgets",
@@ -2616,9 +2619,12 @@
           "x-showIf": {
             "overrideWidgetStyle": true,
             "widgetStyle": ["filled", "tinted", "outline"],
-            "widgetShape": ["arrow"]
+            "widgetShape": ["slant", "arrow"]
           },
-          "description": "The ends of an arrow widget, or of a run of them: notched and pointed, pointed at both, or rounded."
+          "x-enumShowIf": {
+            "pointed": { "widgetShape": "arrow" }
+          },
+          "description": "The ends of a slanted or arrow widget, or of a run of them: as shaped, rounded, or (arrows) pointed at both."
         },
         "groupColor": {
           "x-group": "Widgets",
