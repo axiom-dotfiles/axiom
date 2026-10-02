@@ -54,6 +54,7 @@ Item {
       frameWidth: root.frameWidth
       innerBorderRadius: root.innerBorderRadius
       frameColor: root.frameColorFor(modelData)
+      endFillColor: root.frameColor
       innerStrokeColor: root.innerStrokeColor
       strokeWidth: root.strokeWidth
     }
