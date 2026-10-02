@@ -40,9 +40,10 @@ Item {
   readonly property string _levels: _targetNodes.map(n => n.audio ? `${n.audio.volume}:${n.audio.muted}` : "").join(",")
   property string _nodeKey: ""
 
-  // Every audio stream. AudioManager tracks them all (which binds them,
-  // so their .properties are there to search), but binding is async
-  readonly property var _audioStreams: Pipewire.nodes.values.filter(n => n.isStream && n.audio)
+  // Every playback stream (not recording ones: an app's mic capture shares
+  // its name). AudioManager tracks them all (which binds them, so their
+  // .properties are there to search), but binding is async
+  readonly property var _audioStreams: Pipewire.nodes.values.filter(n => n.type === PwNodeType.AudioOutStream)
 
   // Re-run the search whenever a candidate finishes binding (node.ready
   // flips true): tracking only *requests* a bind
