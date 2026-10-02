@@ -25,14 +25,14 @@ OnboardingPage {
 
   Notice {
     visible: root.mode === "included"
-    tone: "info"
-    text: I18n.tr("Finish writes axiom's Hyprland module. Remember the two lines in your hyprland.lua from the Hyprland step: until they're there, axiom adds its keybinds while it runs.")
+    tone: OnboardingManager.includeDone && OnboardingManager.autostartDone ? "info" : "warning"
+    text: !OnboardingManager.includeDone ? I18n.tr("Finish writes axiom's Hyprland module, but your hyprland.lua doesn't load it yet: Apply the lines on the Hyprland step. Until then, axiom adds its keybinds while it runs.") : !OnboardingManager.autostartDone ? I18n.tr("Finish writes axiom's Hyprland module, which your hyprland.lua loads. It doesn't start axiom yet: Apply the autostart line on the Hyprland step.") : I18n.tr("Finish writes axiom's Hyprland module, which your hyprland.lua loads.")
   }
 
   Notice {
-    visible: root.mode === "detached"
+    visible: root.mode === "detached" && !OnboardingManager.autostartDone
     tone: "warning"
-    text: I18n.tr("Hyprland won't start axiom by itself: add the autostart lines from the Hyprland step to your hyprland.lua.")
+    text: I18n.tr("Hyprland won't start axiom by itself: Apply the autostart line on the Hyprland step, or add it to your hyprland.lua yourself.")
   }
 
   StyledText {

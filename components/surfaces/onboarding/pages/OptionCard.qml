@@ -5,8 +5,9 @@ import QtQuick.Layouts
 import qs.config
 import qs.components.reusable
 
-// A choice as a box: an icon, a title with an optional "Recommended" tag,
-// and a description. The selected one is outlined in the accent color.
+// A choice as a box: an icon, a title with an optional tag ("Recommended"),
+// and a description. The selected one is outlined in the accent color;
+// an unavailable one is greyed out, saying why.
 Rectangle {
   id: root
 
@@ -15,8 +16,12 @@ Rectangle {
   property string description
   property bool selected: false
   property bool recommended: false
+  // The tag beside the title ("" for none)
+  property string tag: root.recommended ? I18n.tr("Recommended") : ""
   // False greys it out and ignores clicks
   property bool available: true
+  // Why it isn't available, shown under the description
+  property string unavailableReason
 
   signal clicked
 
@@ -26,7 +31,6 @@ Rectangle {
   color: root.selected ? Qt.alpha(Theme.accent, 0.12) : area.containsMouse && root.available ? Theme.backgroundHighlight : Theme.backgroundAlt
   border.color: root.selected ? Theme.accent : Theme.border
   border.width: Appearance.borderWidth
-  opacity: root.available ? 1 : 0.5
 
   Behavior on color {
     ColorAnimation {
@@ -42,6 +46,7 @@ Rectangle {
 
     StyledIcon {
       Layout.alignment: Qt.AlignTop
+      opacity: root.available ? 1 : 0.5
       visible: root.icon !== ""
       text: root.icon
       textSize: Appearance.fontSize * 1.6
@@ -55,6 +60,7 @@ Rectangle {
       spacing: Widget.spacing / 2
 
       RowLayout {
+        opacity: root.available ? 1 : 0.5
         spacing: Widget.spacing
 
         StyledText {
@@ -63,7 +69,7 @@ Rectangle {
         }
 
         Rectangle {
-          visible: root.recommended
+          visible: root.tag !== ""
           implicitWidth: tag.implicitWidth + Widget.spacing * 2
           implicitHeight: tag.implicitHeight + 4
           radius: height / 2
@@ -72,7 +78,7 @@ Rectangle {
           StyledText {
             id: tag
             anchors.centerIn: parent
-            text: I18n.tr("Recommended")
+            text: root.tag
             textSize: Appearance.fontSize * 0.8
             textColor: Theme.background
           }
@@ -82,10 +88,32 @@ Rectangle {
       StyledText {
         Layout.fillWidth: true
         visible: root.description !== ""
+        opacity: root.available ? 1 : 0.5
         text: root.description
         wrapMode: Text.WordWrap
         textColor: Theme.foregroundAlt
         textSize: Appearance.fontSize * 0.9
+      }
+
+      RowLayout {
+        Layout.fillWidth: true
+        visible: !root.available && root.unavailableReason !== ""
+        spacing: Widget.spacing / 2
+
+        StyledIcon {
+          Layout.alignment: Qt.AlignTop
+          text: "block"
+          textColor: Theme.warning
+          textSize: Appearance.fontSize
+        }
+
+        StyledText {
+          Layout.fillWidth: true
+          text: root.unavailableReason
+          wrapMode: Text.WordWrap
+          textColor: Theme.warning
+          textSize: Appearance.fontSize * 0.9
+        }
       }
     }
   }

@@ -18,6 +18,10 @@ Rectangle {
   required property string integration
   // Whether the integration is on (Settings passes its unsaved value)
   property bool active: ThemeIntegrations[root.integration] === true
+  // The line beside the status chip, set up and not (the Hyprland page's
+  // own targets say what their lines do)
+  property string doneText: I18n.tr("axiom's file is loaded from your config.")
+  property string todoText: I18n.tr("Load axiom's file from your config: copy the text, or Apply to add it for you.")
 
   readonly property var rows: IntegrationHookupManager.status[root.integration]?.targets ?? []
   readonly property var results: IntegrationHookupManager.results[root.integration] ?? []
@@ -59,7 +63,9 @@ Rectangle {
     if (t.link)
       lines.push(I18n.tr("{0} is a link to {1}: that file is the one changed, and the link stays.", t.path, t.resolved));
     lines.push(t.exists ? I18n.tr("Backs up {0} to {1}.", t.resolved, t.resolved + ".axiom-bak-<date>") : I18n.tr("Creates {0}.", t.path));
-    if (t.place === "end")
+    if (t.note)
+      lines.push(I18n.tr(t.note));
+    else if (t.place === "end")
       lines.push(I18n.tr("Adds the text at the end, so it's read last and wins over earlier settings."));
     else if (t.place === "start")
       lines.push(I18n.tr("Adds the text at the top: CSS imports must come before any rule, so your own rules still win over it."));
@@ -93,7 +99,7 @@ Rectangle {
 
       StyledText {
         Layout.fillWidth: true
-        text: root.allDone ? I18n.tr("axiom's file is loaded from your config.") : root.applicable ? I18n.tr("Load axiom's file from your config: copy the text, or Apply to add it for you.") : I18n.tr("This app's config is code: copy the text into it.")
+        text: root.allDone ? root.doneText : root.applicable ? root.todoText : I18n.tr("This app's config is code: copy the text into it.")
         textColor: Theme.foregroundAlt
         wrapMode: Text.WordWrap
       }
@@ -128,7 +134,7 @@ Rectangle {
         StyledText {
           Layout.fillWidth: true
           visible: text !== ""
-          text: target.t.copyOnly ? I18n.tr(target.t.where ?? "") : target.t.path ?? ""
+          text: target.t.copyOnly ? I18n.tr(target.t.where ?? "") : target.t.title ? I18n.tr("{0}: {1}", I18n.tr(target.t.title), target.t.path ?? "") : target.t.path ?? ""
           font.bold: true
           wrapMode: Text.WordWrap
         }

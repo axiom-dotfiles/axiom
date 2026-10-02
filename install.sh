@@ -3,7 +3,8 @@
 # Description: Installs axiom on Arch Linux: its packages (all from the
 #              official repos), a clone at the latest release, the python
 #              venv, and (if you agree) one line in hyprland.lua that starts
-#              it. Everything after that, keybinds and Hyprland settings
+#              it; from a text console it then offers to start Hyprland.
+#              Everything after that, keybinds and Hyprland settings
 #              included, is axiom's own Settings → Desktop → Hyprland.
 # Usage:       curl -fsSL https://raw.githubusercontent.com/axiom-dotfiles/axiom/main/install.sh | bash
 #              ./install.sh [--yes | --minimal]   (from a clone anywhere; it's
@@ -48,7 +49,7 @@ case "${1:-}" in
 --yes | -y) mode=yes ;;
 --minimal) mode=minimal ;;
 --help | -h)
-  sed -n '3,15p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+  sed -n '3,16p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
   exit 0
   ;;
 "") ;;
@@ -381,6 +382,24 @@ manual) info "Add the line above to $HYPR_CONFIG to start axiom with Hyprland." 
 *) ((started)) || info "axiom starts the next time you log in to Hyprland." ;;
 esac
 info "Keybinds and Hyprland setup are in axiom's Settings → Desktop → Hyprland."
+
+# ─── Into Hyprland ───────────────────────────────────────────────────────────
+
+# Not in Hyprland already: say how to get there, and from a text console
+# (no graphical session at all) offer to start it right here
+if [[ -z "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]]; then
+  if command -v start-hyprland >/dev/null; then
+    launcher=start-hyprland
+  else
+    launcher=Hyprland
+  fi
+  echo
+  info "To get into Hyprland: run \`$launcher\` from a text console (a TTY), or log out and pick Hyprland in your login screen's session menu."
+  if [[ "$mode" == ask && -z "${WAYLAND_DISPLAY:-}" && -z "${DISPLAY:-}" ]] && ((have_tty)) \
+    && [[ "$(tty </dev/tty 2>/dev/null)" == /dev/tty[0-9]* ]] && ask "Start Hyprland now?"; then
+    exec "$launcher" </dev/tty
+  fi
+fi
 }
 
 main "$@"

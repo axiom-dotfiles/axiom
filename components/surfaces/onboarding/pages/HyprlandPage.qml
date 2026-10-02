@@ -8,9 +8,11 @@ import qs.components.reusable
 import qs.components.forms
 
 // How axiom and Hyprland's config fit together: what's in ~/.config/hypr
-// (OnboardingManager.configState), the three modes with one recommended,
-// and, for a managed config, the keyboard and touchpad. The mode is only
-// applied on Finish.
+// (OnboardingManager.configState), the three modes (always all three:
+// managed recommended, included for complex setups, detached for testing)
+// (an unavailable one says why), the lines the included and detached modes
+// need in hyprland.lua (IntegrationHookup: copy or Apply) and, for a managed
+// config, the keyboard and touchpad. The mode is only applied on Finish.
 OnboardingPage {
   id: root
 
@@ -30,7 +32,7 @@ OnboardingPage {
     case "legacy":
       return I18n.tr("You have a hyprland.conf in the older format. axiom works with Hyprland's Lua config: letting it manage Hyprland writes a hyprland.lua, and your hyprland.conf is left as it is.");
     case "ours":
-      return I18n.tr("axiom already manages your Hyprland config. Nothing to set up here.");
+      return I18n.tr("axiom already manages your Hyprland config. Keep it that way, or pick another mode.");
     }
     return I18n.tr("Looking at your Hyprland config…");
   }
@@ -46,66 +48,61 @@ OnboardingPage {
       {
         "mode": "managed",
         "icon": "auto_awesome",
+        "tag": I18n.tr("Recommended"),
         "title": I18n.tr("Let axiom manage Hyprland"),
         "description": root.configState === "stock" ? I18n.tr("Replaces the example hyprland.lua (a dated backup stays beside it) with one axiom writes from its settings, then loads your files in {0}/user/ after it.", root.hypr) : root.configState === "custom" ? I18n.tr("Moves your hyprland.lua to {0}/user/00-previous.lua, where it keeps working, loaded after axiom's (a dated backup stays too). Its own binds win over axiom's.", root.hypr) : I18n.tr("axiom writes hyprland.lua from its settings, and loads your own files in {0}/user/ after it.", root.hypr)
       },
       {
         "mode": "included",
         "icon": "input",
+        "tag": I18n.tr("For complex setups"),
         "title": I18n.tr("Load axiom from my config"),
-        "description": I18n.tr("Your hyprland.lua stays yours: add two lines to it and axiom's keybinds, borders and monitors load from there.")
+        "description": I18n.tr("Your hyprland.lua stays yours: two lines at its top load axiom's keybinds, borders and monitors.")
       },
       {
         "mode": "detached",
         "icon": "link_off",
+        "tag": I18n.tr("For testing"),
         "title": I18n.tr("Keep them apart"),
-        "description": I18n.tr("Nothing is written: axiom adds its keybinds while it runs, skipping keys your config already uses. You start axiom yourself.")
+        "description": I18n.tr("axiom writes no Hyprland files: it adds its keybinds while it runs, skipping keys your config already uses. Your hyprland.lua only starts axiom.")
       }
     ]
 
     delegate: OptionCard {
       required property var modelData
-      visible: root.configState !== "ours"
       icon: modelData.icon
       title: modelData.title
       description: modelData.description
       selected: OnboardingManager.chosenMode === modelData.mode
-      recommended: OnboardingManager.recommendedMode === modelData.mode
+      tag: modelData.tag
       available: !(modelData.mode === "managed" && root.configState === "blocked")
+      unavailableReason: modelData.mode === "managed" ? OnboardingManager.blockedReason : ""
       onClicked: OnboardingManager.chooseMode(modelData.mode)
     }
   }
 
-  // What the chosen mode needs from the user
-  ColumnLayout {
+  // What the chosen mode needs in the user's hyprland.lua: copy the lines,
+  // or Apply them (a backup first), as a theme integration's hookup
+  IntegrationHookup {
     Layout.fillWidth: true
-    visible: OnboardingManager.chosenMode === "included"
-    spacing: Widget.spacing
-
-    StyledText {
-      Layout.fillWidth: true
-      text: I18n.tr("Add these lines near the top of your hyprland.lua (after Finish, axiom writes the file they load):")
-      wrapMode: Text.WordWrap
-    }
-
-    CodeLine {
-      text: HyprlandConfigManager.includeLines
-    }
+    integration: "hyprlandInclude"
+    active: OnboardingManager.chosenMode === "included"
+    doneText: I18n.tr("Your hyprland.lua loads axiom and starts it. After Finish, axiom writes the file it loads.")
+    todoText: I18n.tr("Your hyprland.lua needs to load axiom's file and start axiom: copy the lines, or Apply to add them for you.")
   }
 
-  ColumnLayout {
+  Notice {
+    visible: OnboardingManager.chosenMode === "detached" && !OnboardingManager.autostartDone
+    tone: "warning"
+    text: I18n.tr("Hyprland won't start axiom by itself in this mode until your hyprland.lua does:")
+  }
+
+  IntegrationHookup {
     Layout.fillWidth: true
-    visible: OnboardingManager.chosenMode === "detached"
-    spacing: Widget.spacing
-
-    Notice {
-      tone: "warning"
-      text: I18n.tr("Hyprland won't start axiom by itself in this mode. Add this to your hyprland.lua so it starts with every session:")
-    }
-
-    CodeLine {
-      text: HyprlandConfigManager.autostartLines
-    }
+    integration: "hyprlandAutostart"
+    active: OnboardingManager.chosenMode === "detached"
+    doneText: I18n.tr("Your hyprland.lua starts axiom with every session.")
+    todoText: I18n.tr("Start axiom with every session: copy the line, or Apply to add it for you.")
   }
 
   Notice {
@@ -147,7 +144,7 @@ OnboardingPage {
 
   StyledText {
     Layout.fillWidth: true
-    text: I18n.tr("Nothing changes until you press Finish. You can switch modes later in Settings → Hyprland.")
+    text: I18n.tr("The mode is applied when you press Finish; only Apply above changes hyprland.lua right away. You can switch modes later in Settings → Hyprland.")
     wrapMode: Text.WordWrap
     textColor: Theme.foregroundAlt
   }

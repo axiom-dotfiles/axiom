@@ -330,10 +330,12 @@ class HookupScript(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(self.tmp)
 
-    def hookup(self, action, key, schema=None):
+    def hookup(self, action, key, schema=None, targets=None):
         args = [sys.executable, str(SCRIPTS / "integration_hookup.py"), action, key]
         if schema:
             args += ["--schema", str(schema)]
+        if targets is not None:
+            args += ["--targets", json.dumps(targets)]
         result = subprocess.run(args, env=self.env, capture_output=True, text=True, timeout=30)
         self.assertEqual(result.returncode, 0, result.stderr)
         return json.loads(result.stdout)
@@ -405,6 +407,24 @@ class HookupScript(unittest.TestCase):
         # Done: a second Apply changes nothing
         self.assertFalse(self.hookup("apply", "kitty")["results"][0]["changed"])
         self.assertEqual(len(self.backups(real)), 1)
+
+    def test_given_targets_hook_hyprland_up(self):
+        path = self.write("hypr/hyprland.lua", '-- mine\nhl.bind("SUPER + Q", hl.dsp.exec_cmd("kitty"))\n')
+        include = {"file": str(path), "place": "start", "comment": "--", "accept": r"axiom\.setup\(",
+                   "text": 'local ok, axiom = pcall(dofile, "/x/axiom/hyprland.lua")\nif ok then axiom.setup() end'}
+        autostart = {"file": str(path), "place": "end", "comment": "--", "accept": r"(qs|quickshell) .*axiom",
+                     "text": 'hl.on("hyprland.start", function() hl.exec_cmd("qs -p \'/x/axiom\'") end) -- axiom'}
+        targets = [include, autostart]
+        self.assertFalse(any(t["done"] for t in self.hookup("status", "hyprland", targets=targets)["targets"]))
+        self.hookup("apply", "hyprland", targets=targets)
+        lines = path.read_text().splitlines()
+        self.assertEqual(lines[:2], include["text"].splitlines())
+        self.assertEqual(lines[-1], autostart["text"])
+        self.assertEqual(len(self.backups(path)), 1)
+        self.assertTrue(all(t["done"] for t in self.hookup("status", "hyprland", targets=targets)["targets"]))
+        # install.sh's own autostart line counts as done
+        path.write_text('hl.on("hyprland.start", function() hl.exec_cmd("qs -c axiom") end) -- axiom\n')
+        self.assertTrue(self.hookup("status", "hyprland", targets=[autostart])["targets"][0]["done"])
 
     def test_start_goes_first(self):
         path = self.write("gtk-3.0/gtk.css", "window { color: red; }\n")
@@ -635,6 +655,15 @@ class ClaimHyprland(unittest.TestCase):
         self.assertFalse((self.hypr / "hyprland.lua").exists())
         self.assertEqual(list((self.hypr / "user").iterdir()), [])
 
+    def test_example_with_axiom_autostart_is_stock(self):
+        example = self.tmp / "example.lua"
+        example.write_text("-- example\n")
+        self.env["AXIOM_HYPR_EXAMPLE"] = str(example)
+        (self.hypr / "hyprland.lua").write_text(
+            "-- example\n" + 'hl.on("hyprland.start", function() hl.exec_cmd("qs -c axiom") end) -- axiom\n')
+        self.assertEqual(self.claim("check"), "stock")
+        self.assertEqual(self.claim("claim"), "replaced")
+
     def test_edited_example_is_adopted(self):
         example = self.tmp / "example.lua"
         example.write_text("-- example\n")
@@ -657,7 +686,7 @@ class ClaimHyprland(unittest.TestCase):
         (self.hypr / "hyprland.lua").write_text("-- mine\n")
         subprocess.run(["git", "init", "-q", str(self.hypr)], env=self.env, check=True)
         for action in ("check", "claim"):
-            self.assertEqual(self.claim(action), "blocked")
+            self.assertEqual(self.claim(action), f"blocked:git:{self.hypr.resolve()}")
         self.assertEqual((self.hypr / "hyprland.lua").read_text(), "-- mine\n")
         self.assertFalse((self.hypr / "user").exists())
 
@@ -665,20 +694,20 @@ class ClaimHyprland(unittest.TestCase):
         repo = self.tmp / "dotfiles"
         (repo / "hypr").mkdir(parents=True)
         subprocess.run(["git", "init", "-q", str(repo)], env=self.env, check=True)
-        self.assertEqual(self.claim("claim", repo / "hypr"), "blocked")
+        self.assertEqual(self.claim("claim", repo / "hypr"), f"blocked:git:{repo.resolve()}")
         self.assertEqual(self.listing(repo / "hypr"), [])
 
     def test_symlinked_dir_is_blocked(self):
         link = self.tmp / "linked"
         link.symlink_to(self.hypr)
-        self.assertEqual(self.claim("claim", link), "blocked")
+        self.assertEqual(self.claim("claim", link), "blocked:link")
         self.assertEqual(self.listing(), [])
 
     def test_symlinked_file_is_blocked(self):
         real = self.tmp / "real.lua"
         real.write_text("-- mine\n")
         (self.hypr / "hyprland.lua").symlink_to(real)
-        self.assertEqual(self.claim("claim"), "blocked")
+        self.assertEqual(self.claim("claim"), "blocked:link")
         self.assertTrue((self.hypr / "hyprland.lua").is_symlink())
         self.assertFalse((self.hypr / "user").exists())
 

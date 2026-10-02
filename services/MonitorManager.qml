@@ -76,6 +76,8 @@ QtObject {
   }
 
   onOutputsChanged: {
+    if (_nativeScalePending && outputs.length > 0)
+      useNativeScale();
     if (_detectPending && outputs.length > 0) {
       _detectPending = false;
       _detect();
@@ -361,6 +363,41 @@ QtObject {
   // Mode changes send no event: read again once they've settled
   property Timer _refreshSoon: Timer {
     interval: 600
+    onTriggered: root.refresh()
+  }
+
+  // --- First run ---
+
+  // Hyprland's example config scales monitors "auto", often 1.5 or 2 on a
+  // laptop. The onboarding, finding it on a first run, starts at 100%: a
+  // saved layout with every monitor unscaled (MonitorLayout.unscaledRules),
+  // which axiom's layer applies like any other. Nothing happens once a
+  // layout is saved, or when every monitor is at 100% already.
+  function useNativeScale() {
+    if (outputs.length === 0) {
+      _nativeScalePending = true;
+      refresh();
+      return;
+    }
+    _nativeScalePending = false;
+    if (HyprlandConfig.monitorProfiles.length > 0 || !enabledOutputs.some(monitor => monitor.scale !== 1))
+      return;
+    SettingsManager.commitValues({
+      "Hyprland.monitors.profiles": [
+        {
+          "name": I18n.tr("Layout {0}", 1),
+          "outputs": MonitorLayout.unscaledRules(outputs)
+        }
+      ]
+    });
+    // After axiom's layer has applied it (debounced, then hyprctl eval)
+    _refreshLater.restart();
+  }
+
+  property bool _nativeScalePending: false
+
+  property Timer _refreshLater: Timer {
+    interval: 2000
     onTriggered: root.refresh()
   }
 

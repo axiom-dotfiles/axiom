@@ -53,8 +53,37 @@ Singleton {
   readonly property string includeLines: `local ok, axiom = pcall(dofile, ${_lua(includePath)})\nif ok then axiom.setup() end`
 
   // What a hyprland.lua needs to start axiom with Hyprland, for the
-  // detached mode (the other modes start it themselves)
-  readonly property string autostartLines: `hl.on("hyprland.start", function()\n  hl.exec_cmd(${_lua(shellCommand)})\nend)`
+  // detached and included modes (managed starts it itself). One line, marked
+  // as install.sh's is, so applying it never splits a block.
+  readonly property string autostartLines: `hl.on("hyprland.start", function() hl.exec_cmd(${_lua(shellCommand)}) end) -- axiom`
+
+  // The lines above as integration_hookup.py targets in the user's
+  // hyprland.lua (IntegrationHookupManager's "hyprlandInclude" and
+  // "hyprlandAutostart"): the include goes first, so what follows overrides
+  // it, and the autostart last. Any line starting axiom counts, install.sh's
+  // `qs -c axiom` included.
+  readonly property var includeTarget: ({
+      // I18n.tr("Load axiom's module")
+      "title": "Load axiom's module",
+      "file": managedPath,
+      "text": includeLines,
+      "place": "start",
+      "comment": "--",
+      "accept": "axiom\\.setup\\(",
+      // I18n.tr("Adds the lines at the top, so your own settings after them win over axiom's.")
+      "note": "Adds the lines at the top, so your own settings after them win over axiom's."
+    })
+  readonly property var autostartTarget: ({
+      // I18n.tr("Start axiom")
+      "title": "Start axiom",
+      "file": managedPath,
+      "text": autostartLines,
+      "place": "end",
+      "comment": "--",
+      "accept": "(qs|quickshell) .*(-c +['\"]?axiom|-p +['\"]?\\S*axiom)",
+      // I18n.tr("Adds the line at the end: Hyprland starts axiom with every session.")
+      "note": "Adds the line at the end: Hyprland starts axiom with every session."
+    })
 
   // How Hyprland, binds and hypridle start or call axiom
   readonly property string shellCommand: `qs -p '${Paths.axiomPath.replace(/\/$/, "")}'`
@@ -664,10 +693,13 @@ if #errors > 0 then error(table.concat(errors, "\\n")) end
 
   // What switching to managed would do, from checkManaged(): "ours" (the
   // file is already axiom's), "adopt" (an existing hyprland.lua is moved to
-  // user/), "stock" (it's Hyprland's example config, only backed up), "new"
-  // (there's none) or "blocked" (a symlinked or git-tracked config is never
-  // taken over); "" until checked
-  readonly property string managedCheck: _managedCheck
+  // user/), "stock" (it's Hyprland's example config, maybe with install.sh's
+  // autostart line, only backed up), "new" (there's none) or "blocked" (a
+  // symlinked or git-tracked config is never taken over); "" until checked
+  readonly property string managedCheck: _managedCheck.split(":")[0]
+  // Why it's blocked: "link" or "git" (in the repository `managedBlockedRepo`)
+  readonly property string managedBlockedBy: managedCheck === "blocked" ? _managedCheck.split(":")[1] ?? "" : ""
+  readonly property string managedBlockedRepo: managedBlockedBy === "git" ? _managedCheck.split(":").slice(2).join(":") : ""
   property string _managedCheck: ""
 
   function checkManaged() {
@@ -816,7 +848,7 @@ if #errors > 0 then error(table.concat(errors, "\\n")) end
     stdout: StdioCollector {
       id: claimCollector
       onStreamFinished: {
-        const result = claimCollector.text.trim();
+        const result = claimCollector.text.trim().split(":")[0];
         if (result === "blocked") {
           root._warnOnce(`Hyprland mode is "managed", but ${Paths.hyprlandPath} is a symlink or in a git repository, so axiom won't take it over; use "included" instead. Applying axiom's layer at runtime meanwhile.`);
           root._applyRuntime();
