@@ -17,9 +17,11 @@ QtObject {
   readonly property bool nvim: _c.nvim
   readonly property bool helix: _c.helix
   readonly property bool vscode: _c.vscode
+  readonly property bool vesktop: _c.vesktop
   readonly property bool k9s: _c.k9s
   readonly property bool cava: _c.cava
   readonly property bool btop: _c.btop
+  readonly property bool ncspot: _c.ncspot
   readonly property bool fzf: _c.fzf
   readonly property bool lazygit: _c.lazygit
   readonly property bool bat: _c.bat

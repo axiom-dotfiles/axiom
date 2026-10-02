@@ -12,7 +12,8 @@ import qs.config
  * done, the lines it would comment out, ...); `apply(key)` backs each
  * changed file up beside it and edits it, then checks again, leaving the
  * script's results in `results[key]`. Nothing is polled: the hookup panel
- * checks when it's shown. Only an Apply click edits a user's config.
+ * checks when it's shown. Only an Apply click edits a user's config (and an
+ * Apply that changed something runs the integration again).
  */
 Singleton {
   id: root
@@ -108,6 +109,10 @@ Singleton {
       for (const result of data.results)
         if (result.error)
           console.warn("[IntegrationHookupManager]", item.key, result.path, result.error);
+      // Its axiom file (or ncspot's block, filled between the markers just
+      // added) is written for the current theme now, not at the next change
+      if (data.results.some(result => result.changed))
+        ThemeManager.themeIntegrations(Appearance.theme, [item.key]);
       // What it looks like now
       root._queue = [
         {

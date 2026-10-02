@@ -41,6 +41,8 @@ BASES = [f"base0{c}" for c in "0123456789ABCDEF"]
 HEX = re.compile(r"^#[0-9a-fA-F]{6}$")
 # envsubst leaves nothing behind, so a ${VAR} left over is a template typo
 UNFILLED = re.compile(r"\$\{[A-Z0-9_]+\}")
+# The ncspot x-hookup's text: theme_ncspot.sh fills the lines between them
+NCSPOT_MARKERS = "# axiom theme: begin (rewritten on every theme change)\n# axiom theme: end\n"
 # Apps the integrations require or signal; stubs keep them from touching a
 # running session
 STUBS = ["alacritty", "bat", "btop", "foot", "fzf", "ghostty", "hx", "kitty", "lazygit",
@@ -159,7 +161,7 @@ class TerminalPalette(unittest.TestCase):
 FORMATS = {
     "alacritty": "toml", "helix": "toml", "wezterm": "toml", "yazi": "toml",
     "k9s": "yaml", "lazygit": "yaml", "bat": "plist", "nvim": "json",
-    "vscode": "json", "qt": "ini", "foot": "ini", "gtk": "css",
+    "vscode": "json", "qt": "ini", "foot": "ini", "gtk": "css", "vesktop": "css", "ncspot": "toml",
 }
 COLOR = re.compile(r"#([0-9a-fA-F]+)\b")
 
@@ -216,7 +218,8 @@ class ThemeIntegrations(unittest.TestCase):
                 yaml.safe_load(text)
             elif fmt == "css" and f.suffix == ".css":
                 self.assertEqual(text.count("{"), text.count("}"), f"{f}: unbalanced braces")
-                self.assert_gtk_css(f)
+                if key == "gtk":
+                    self.assert_gtk_css(f)
 
     def assert_gtk_css(self, path):
         """GTK's own parser, when PyGObject and GTK are installed"""
@@ -249,12 +252,34 @@ class ThemeIntegrations(unittest.TestCase):
                         args = [theme, target, "Sans", "file:///tmp/wall.png", "1", "Hey you", "Password..."]
                     elif key in ("gtk", "vscode"):
                         args = [theme, target]
+                    elif key == "vesktop":
+                        target = target / "axiom.theme.css"
+                        args = [theme, target]
+                    elif key == "ncspot":
+                        target = target / "config.toml"
+                        target.parent.mkdir(parents=True)
+                        target.write_text("[theme]\n" + NCSPOT_MARKERS)
+                        args = [theme, target]
                     else:
                         target = target / "axiom.out"
                         args = [theme, target]
                     self.run_script(script, args)
                     self.assert_rendered(target)
                     self.assert_parses(key, target)
+
+    def test_ncspot_leaves_your_keys(self):
+        config = self.out / "config.toml"
+        config.parent.mkdir(parents=True)
+        config.write_text('use_nerdfont = true\n\n[theme]\nprimary = "red"\n' + NCSPOT_MARKERS + '\n[keybindings]\n"q" = "quit"\n')
+        theme = THEMES / "ayu-dark.json"
+        self.run_script(SCRIPTS / "theme_ncspot.sh", [theme, config])
+        first = config.read_text()
+        data = tomllib.loads(first)
+        self.assertEqual(data["theme"]["primary"], "red")
+        self.assertIn("background", data["theme"])
+        self.assertEqual(data["keybindings"], {"q": "quit"})
+        self.run_script(SCRIPTS / "theme_ncspot.sh", [theme, config])
+        self.assertEqual(config.read_text(), first)
 
     def test_nvim_module_compiles(self):
         luac = shutil.which("luac")

@@ -368,7 +368,8 @@ QtObject {
       "gtk": [],
       "qt": ["qt6ct", "qt5ct"],
       "helix": ["hx", "helix"],
-      "vscode": ["code", "codium"]
+      "vscode": ["code", "codium"],
+      "vesktop": ["vesktop", "dev.vencord.Vesktop", "equibop", "discord"]
     })
   function integrationCommands(key) {
     return root._integrationCommands[key] ?? [key];
