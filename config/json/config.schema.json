@@ -1103,9 +1103,9 @@
           },
           "x-showIf": {
             "widgetStyle": ["filled", "tinted", "outline"],
-            "widgetShape": ["slant", "arrow"]
+            "widgetShape": ["arrow"]
           },
-          "description": "The ends of a widget, or of a run of them. Pointed is for arrows; slanted widgets keep their slant."
+          "description": "The ends of an arrow widget, or of a run of them: notched and pointed, pointed at both, or rounded."
         },
         "groupColor": {
           "x-group": "Bar widgets",
@@ -2616,9 +2616,9 @@
           "x-showIf": {
             "overrideWidgetStyle": true,
             "widgetStyle": ["filled", "tinted", "outline"],
-            "widgetShape": ["slant", "arrow"]
+            "widgetShape": ["arrow"]
           },
-          "description": "The ends of a widget, or of a run of them. Pointed is for arrows; slanted widgets keep their slant."
+          "description": "The ends of an arrow widget, or of a run of them: notched and pointed, pointed at both, or rounded."
         },
         "groupColor": {
           "x-group": "Widgets",
@@ -3504,7 +3504,7 @@
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "x-showIf": { "/Workspaces.layout": "grid" }, "description": "Open the whole grid when hovered." },
             "clickToSwitch": { "type": "boolean", "title": "Click to switch", "default": true, "description": "Click a workspace (on the bar or in the grid popout) to go to it." },
             "scrollToSwitch": { "type": "boolean", "title": "Scroll to switch", "default": true, "description": "Scroll over the widget to step through the workspaces (along the shown row or column in a grid)." },
-            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "off", "description": "Behind the workspaces, in the bar's widget style." },
+            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "neutral", "description": "Behind the workspaces, in the bar's widget style." },
             "activeColor": { "type": "string", "title": "Active", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
             "occupiedColor": { "type": "string", "title": "Occupied", "x-options": "colors", "default": "base04" },
             "emptyColor": { "type": "string", "title": "Empty", "x-options": "colors", "default": "base01" },
@@ -3601,7 +3601,7 @@
             "iconSize": { "type": "integer", "x-control": "stepper", "title": "Icon size", "default": 18, "minimum": 8, "maximum": 64, "x-unit": "px", "description": "Size of tray icons (px)." },
             "showPassive": { "type": "boolean", "title": "Show passive", "default": true, "description": "Also show items that report themselves as passive (idle)." },
             "showPopout": { "type": "boolean", "title": "Menus", "default": true, "description": "Open an item's menu when it's hovered." },
-            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" }
+            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "neutral" }
           }
         }
       }
@@ -3772,7 +3772,7 @@
             "showScreen": { "type": "boolean", "title": "Screen share", "default": true },
             "showCamera": { "type": "boolean", "title": "Camera", "default": true },
             "ignoreApps": { "type": "array", "items": { "type": "string" }, "title": "Ignored apps", "default": ["cava"], "description": "App names that never trigger an indicator, comma-separated." },
-            "activeColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
+            "activeColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "critical" },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
           }
         }
@@ -3792,7 +3792,7 @@
           "additionalProperties": false,
           "properties": {
             "showTimer": { "type": "boolean", "title": "Show time recorded", "default": true },
-            "activeColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
+            "activeColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "critical" },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
           }
         }

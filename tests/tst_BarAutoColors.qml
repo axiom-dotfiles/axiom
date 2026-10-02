@@ -153,6 +153,14 @@ TestCase {
     }))[0].mutedColor, "n3");
   }
 
+  // A box for colorful content (the tray) takes a neutral, not an accent
+  function test_neutral_box() {
+    const picks = BarAutoColors.assign([widget({
+        "backgroundColor": "neutral"
+      })], palette());
+    compare(picks[0].backgroundColor, "n2");
+  }
+
   function test_fixed_fields_are_left_alone() {
     const picks = BarAutoColors.assign([widget({
         "backgroundColor": "accent",

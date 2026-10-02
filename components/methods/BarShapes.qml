@@ -1,8 +1,8 @@
 pragma Singleton
 import QtQuick
 
-// The shapes bar widget backgrounds take (Bars[].widgetShape, the ends of a
-// widget or run by Bars[].widgetEnds), alone or in runs
+// The shapes bar widget backgrounds take (Bars[].widgetShape, an arrow
+// widget's or run's ends by Bars[].widgetEnds), alone or in runs
 // (Bars[].widgetGrouping): which cap each end of a widget gets, how
 // much room its content keeps clear of them, and the outline as an SVG
 // path. Lengths run along the bar, `across` is the widget's thickness.
@@ -30,19 +30,16 @@ QtObject {
     }
   }
 
-  // A run's own ends by shape and widgetEnds (shaped, pointed, rounded),
-  // [start, end] (a lone widget's in separate). Pointed is an arrow's: a
-  // slant keeps its slant.
+  // A run's own ends by shape, and an arrow's by widgetEnds (shaped,
+  // pointed, rounded), [start, end] (a lone widget's in separate)
   function _ends(shape, ends) {
-    if (ends === "rounded" && (shape === "slant" || shape === "arrow"))
-      return ["round", "round"];
     switch (shape) {
     case "capsule":
       return ["capsule", "capsule"];
     case "slant":
       return ["slant", "slant"];
     case "arrow":
-      return ends === "pointed" ? ["arrowOut", "arrowOut"] : ["arrowIn", "arrowOut"];
+      return ends === "pointed" ? ["arrowOut", "arrowOut"] : ends === "rounded" ? ["round", "round"] : ["arrowIn", "arrowOut"];
     default:
       return ["round", "round"];
     }
