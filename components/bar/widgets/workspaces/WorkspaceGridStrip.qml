@@ -62,7 +62,7 @@ Item {
   function positionGlyph(position, count) {
     const middle = (count - 1) / 2;
     if (position === middle)
-      return "square";
+      return "circle";
     if (root.isVertical)
       return position === 0 ? "keyboard_double_arrow_left" : position === count - 1 ? "keyboard_double_arrow_right" : position < middle ? "keyboard_arrow_left" : "keyboard_arrow_right";
     return position === 0 ? "keyboard_double_arrow_up" : position === count - 1 ? "keyboard_double_arrow_down" : position < middle ? "keyboard_arrow_up" : "keyboard_arrow_down";
