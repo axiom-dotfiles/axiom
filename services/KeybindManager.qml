@@ -534,10 +534,9 @@ QtObject {
         draft.load();
         return;
       }
-      for (const bind of binds) {
-        draft.local.push(root._completeBind(bind));
-        draft.saved.push(root._completeBind(bind));
-      }
+      const complete = binds.map(bind => root._completeBind(bind));
+      draft.local = HyprBinds.mergeBinds(draft.local, complete);
+      draft.saved = HyprBinds.mergeBinds(draft.saved, complete);
       draft.changed();
     }
 

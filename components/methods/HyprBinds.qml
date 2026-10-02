@@ -96,4 +96,33 @@ QtObject {
     }
     return counts;
   }
+
+  /**
+   * `binds` with `incoming` merged in, one bind per key: an incoming bind on
+   * a key already bound replaces that bind where it stands (the user's
+   * config loads after axiom's layer, so it's the one that was in effect),
+   * the rest are added at the end, a later one on the same key winning.
+   * Binds whose key has no id (none yet, or a bad modifier) are kept as
+   * they are.
+   */
+  function mergeBinds(binds, incoming) {
+    const result = (binds ?? []).slice();
+    const at = {};
+    result.forEach((bind, index) => {
+      const id = keyId(bind.key);
+      if (id !== "" && at[id] === undefined)
+        at[id] = index;
+    });
+    for (const bind of incoming ?? []) {
+      const id = keyId(bind.key);
+      if (id !== "" && at[id] !== undefined) {
+        result[at[id]] = bind;
+      } else {
+        if (id !== "")
+          at[id] = result.length;
+        result.push(bind);
+      }
+    }
+    return result;
+  }
 }

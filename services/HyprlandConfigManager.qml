@@ -889,8 +889,8 @@ if #errors > 0 then error(table.concat(errors, "\\n")) end
   // scripts/merge_hypr_binds.py: every hl.bind in user/*.lua that can move
   // becomes one of axiom's binds (an action where one does the same, else
   // the `lua` action), saved first, then its call is deleted from the file
-  // (a dated backup beside it). A key axiom binds too ends up bound twice
-  // in axiom, which the Keybinds page flags. Runs by itself when a takeover
+  // (a dated backup beside it). A key axiom binds too stays one bind, the
+  // user's replacing axiom's (HyprBinds.mergeBinds). Runs by itself when a takeover
   // adopts the previous hyprland.lua, so managed mode starts with no
   // conflicts.
   readonly property bool merging: extractBinds.running || removeBinds.running
@@ -937,7 +937,7 @@ if #errors > 0 then error(table.concat(errors, "\\n")) end
     }
     // Saved before the calls go, so no bind is ever missing
     if (!SettingsManager.commitValues({
-      "Hyprland.binds": HyprlandConfig.binds.concat(found.binds)
+      "Hyprland.binds": HyprBinds.mergeBinds(HyprlandConfig.binds, found.binds)
     })) {
       _merged.moved = 0;
       _merged.errors = _merged.errors.concat(["axiom's config couldn't be saved, so nothing moved"]);

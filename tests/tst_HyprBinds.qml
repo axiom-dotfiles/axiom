@@ -93,4 +93,49 @@ TestCase {
     compare(counts["64:c"], undefined);
     compare(counts["64:z"], undefined);
   }
+
+  function test_mergeBinds_one_bind_per_key() {
+    const axiom = [
+      {
+        "key": "SUPER + Q",
+        "action": "overlay"
+      },
+      {
+        "key": "",
+        "action": "lock"
+      },
+      {
+        "key": "SUPER + E",
+        "action": "fileManager"
+      }
+    ];
+    const user = [
+      {
+        "key": "super+q",
+        "action": "exec",
+        "argument": "kitty"
+      },
+      {
+        "key": "SUPER + R",
+        "action": "exec",
+        "argument": "a"
+      },
+      {
+        "key": "SUPER + R",
+        "action": "exec",
+        "argument": "b"
+      },
+      {
+        "key": "",
+        "action": "pin"
+      }
+    ];
+    const merged = HyprBinds.mergeBinds(axiom, user);
+    compare(merged.map(bind => bind.action), ["exec", "lock", "fileManager", "exec", "pin"]);
+    compare(merged[0].argument, "kitty");
+    compare(merged[3].argument, "b");
+    // The inputs are left as they were
+    compare(axiom[0].action, "overlay");
+    compare(HyprBinds.mergeBinds(axiom, []), axiom);
+  }
 }
