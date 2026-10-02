@@ -104,6 +104,21 @@ QtObject {
       "widgetShape": boxed ? barConfig.widgetShape : "rounded",
       "widgetGrouping": grouping,
       "groupColor": barConfig.groupColor,
+      // A powerline's widgets touch, leaving no gap to divide
+      "separatorStyle": grouping === "powerline" ? "none" : barConfig.separatorStyle,
+      "separatorColor": barConfig.separatorColor,
+      "separatorThickness": barConfig.separatorThickness,
+      "accentLine": barConfig.accentLine,
+      "accentLineColor": barConfig.accentLineColor,
+      "accentLineFade": barConfig.accentLineFade,
+      "accentLineWidth": barConfig.accentLineWidth,
+      // Cast by what the bar paints: a transparent one paints nothing
+      "shadow": background === "transparent" ? "none" : barConfig.shadow,
+      "shadowColor": barConfig.shadowColor,
+      "shadowSize": barConfig.shadowSize,
+      // How far past the bar a shadow reaches (its blur and offset), which
+      // the bar window takes on its inner side
+      "shadowReach": background !== "transparent" && barConfig.shadow !== "none" ? Math.ceil(barConfig.shadowSize * 1.25) : 0,
       "lockCenter": barConfig.lockCenter,
       "location": loc,
       "reserveSpace": barConfig.reserveSpace,

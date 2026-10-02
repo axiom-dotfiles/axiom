@@ -66,8 +66,9 @@ PanelWindow {
   visible: barConfig.enabled
 
   // With pills, room past the bar for the fillet where an end pill meets
-  // the perpendicular edge; click-through (see mask), and not reserved
-  readonly property int thickness: barConfig.extent + (barConfig.pills ? Appearance.borderRadius : 0)
+  // the perpendicular edge, and for a shadow; click-through (see mask),
+  // and not reserved
+  readonly property int thickness: barConfig.extent + Math.max(barConfig.pills ? Appearance.borderRadius : 0, barConfig.shadowReach)
   implicitHeight: barConfig.vertical ? 0 : thickness
   implicitWidth: barConfig.vertical ? thickness : 0
 

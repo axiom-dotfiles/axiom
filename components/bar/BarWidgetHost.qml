@@ -45,6 +45,8 @@ Item {
   readonly property var background: hasBackground ? _item.colors : null
   // The module's own fade (pressed, dimmed), which its background follows
   readonly property real contentOpacity: _item?.opacity ?? 1
+  // A divider of its own (Separator): the group draws none beside it
+  readonly property bool divides: _item?.divides ?? false
   // Hovered, on a module that shows an outline then (its hoverOutline)
   readonly property bool outlined: (_item?.hoverOutline ?? false) && (_item?.hovered ?? false)
   // Room along the bar kept clear of its background's caps, at its start

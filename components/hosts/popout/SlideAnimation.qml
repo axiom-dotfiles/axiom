@@ -98,6 +98,10 @@ Item {
 
   Component.onCompleted: {
     Qt.callLater(function () {
+      // Gone already: a surface built and dropped in one pass (a bar
+      // switching to or from pills remakes its window)
+      if (!root)
+        return;
       contentWrapper.x = root.active ? contentWrapper.targetX : contentWrapper.hiddenX;
       contentWrapper.y = root.active ? contentWrapper.targetY : contentWrapper.hiddenY;
     });

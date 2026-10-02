@@ -2,13 +2,17 @@ pragma ComponentBehavior: Bound
 import QtQuick
 
 import qs.config
+import qs.components.bar
 
-// Layout helper for the bar: a divider line, a dot, or plain space, taking
-// exactly `size` px along the bar.
+// Layout helper for the bar: a divider (a line, dot, slash or chevron) or
+// plain space, taking exactly `size` px along the bar.
 BarWidget {
   id: root
 
   readonly property color color: Theme.resolveColor(properties.color)
+
+  // Already a divider: its WidgetGroup draws none beside it
+  readonly property bool divides: true
 
   // BarWidgetHost sizing contract
   readonly property string sizePolicy: "fixed"
@@ -18,22 +22,12 @@ BarWidget {
   implicitHeight: isVertical ? properties.size : root.barConfig.widgetSize
 
   // Across the bar, so it divides the modules on either side
-  Rectangle {
-    visible: root.properties.style === "line"
+  SeparatorMark {
     anchors.centerIn: parent
-    readonly property real span: root.barConfig.widgetSize * root.properties.length / 100
-    width: root.isVertical ? span : root.properties.thickness
-    height: root.isVertical ? root.properties.thickness : span
-    radius: root.properties.thickness / 2
+    style: root.properties.style
     color: root.color
-  }
-
-  Rectangle {
-    visible: root.properties.style === "dot"
-    anchors.centerIn: parent
-    width: root.properties.thickness * 2
-    height: width
-    radius: width / 2
-    color: root.color
+    thickness: root.properties.thickness
+    length: root.barConfig.widgetSize * root.properties.length / 100
+    vertical: root.isVertical
   }
 }

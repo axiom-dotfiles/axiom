@@ -2011,7 +2011,7 @@
 
     "Bar": {
       "type": "object",
-      "x-order": ["id", "enabled", "monitor", "location", "widgetSize", "padding", "spacing", "widgetPadding", "widgetSpacing", "background", "pillPadding", "pillMerge", "overrideFontSize", "fontSize", "overrideRadius", "widgetRadius", "widgetFill", "tintOpacity", "outlineWidth", "indicatorWidth", "indicatorSide", "widgetShape", "widgetGrouping", "groupColor", "widgetTextColor", "lockCenter", "reserveSpace"],
+      "x-order": ["id", "enabled", "monitor", "location", "widgetSize", "padding", "spacing", "widgetPadding", "widgetSpacing", "background", "pillPadding", "pillMerge", "overrideFontSize", "fontSize", "overrideRadius", "widgetRadius", "widgetFill", "tintOpacity", "outlineWidth", "indicatorWidth", "indicatorSide", "widgetShape", "widgetGrouping", "groupColor", "widgetTextColor", "separatorStyle", "separatorColor", "separatorThickness", "accentLine", "accentLineColor", "accentLineFade", "accentLineWidth", "shadow", "shadowColor", "shadowSize", "lockCenter", "reserveSpace"],
       "required": ["id"],
       "additionalProperties": false,
       "properties": {
@@ -2300,6 +2300,133 @@
           "x-emptyLabel": "Auto",
           "default": "",
           "description": "One color for every widget's text and icons. Auto: each widget's own on a filled background, its color when tinted or outlined, else one that contrasts with the bar."
+        },
+        "separatorStyle": {
+          "x-group": "Accents",
+          "type": "string",
+          "title": "Separators",
+          "default": "none",
+          "enum": ["none", "line", "dot", "slash", "chevron"],
+          "x-enumLabels": {
+            "none": "None",
+            "line": "Line",
+            "dot": "Dot",
+            "slash": "Slash",
+            "chevron": "Chevron"
+          },
+          "description": "Drawn in the gap between neighbouring widgets in a section (not in a powerline). Give them room with Spacing."
+        },
+        "separatorColor": {
+          "x-group": "Accents",
+          "type": "string",
+          "title": "Separator color",
+          "x-options": "colors",
+          "default": "base03",
+          "x-showIf": {
+            "separatorStyle": { "not": "none" }
+          }
+        },
+        "separatorThickness": {
+          "x-group": "Accents",
+          "type": "integer",
+          "x-control": "stepper",
+          "title": "Separator thickness",
+          "default": 2,
+          "minimum": 1,
+          "maximum": 6,
+          "x-unit": "px",
+          "x-beside": true,
+          "x-showIf": {
+            "separatorStyle": { "not": "none" }
+          }
+        },
+        "accentLine": {
+          "x-group": "Accents",
+          "type": "string",
+          "title": "Accent line",
+          "default": "none",
+          "enum": ["none", "inner", "outer"],
+          "x-enumLabels": {
+            "none": "None",
+            "inner": "Inner edge",
+            "outer": "Outer edge"
+          },
+          "description": "A line along the bar's edge toward the windows (inner) or the screen edge (outer); on pills, along each pill."
+        },
+        "accentLineColor": {
+          "x-group": "Accents",
+          "type": "string",
+          "title": "Line color",
+          "x-options": "colors",
+          "default": "accent",
+          "x-showIf": {
+            "accentLine": { "not": "none" }
+          }
+        },
+        "accentLineFade": {
+          "x-group": "Accents",
+          "type": "string",
+          "title": "Fade to",
+          "x-options": "colors",
+          "x-emptyLabel": "None",
+          "default": "",
+          "x-beside": true,
+          "x-showIf": {
+            "accentLine": { "not": "none" }
+          },
+          "description": "Runs the line from its color into this one along the bar."
+        },
+        "accentLineWidth": {
+          "x-group": "Accents",
+          "type": "integer",
+          "x-control": "stepper",
+          "title": "Line width",
+          "default": 2,
+          "minimum": 1,
+          "maximum": 8,
+          "x-unit": "px",
+          "x-showIf": {
+            "accentLine": { "not": "none" }
+          }
+        },
+        "shadow": {
+          "x-group": "Accents",
+          "type": "string",
+          "title": "Shadow",
+          "default": "none",
+          "enum": ["none", "shadow", "glow"],
+          "x-enumLabels": {
+            "none": "None",
+            "shadow": "Shadow",
+            "glow": "Glow"
+          },
+          "description": "Cast by the bar, or by its pills. A transparent bar has nothing to cast one."
+        },
+        "shadowColor": {
+          "x-group": "Accents",
+          "type": "string",
+          "title": "Shadow color",
+          "x-options": "colors",
+          "x-emptyLabel": "Auto",
+          "default": "",
+          "x-showIf": {
+            "shadow": { "not": "none" }
+          },
+          "description": "Auto: black for a shadow, the accent for a glow."
+        },
+        "shadowSize": {
+          "x-group": "Accents",
+          "type": "integer",
+          "x-control": "stepper",
+          "title": "Shadow size",
+          "default": 12,
+          "minimum": 2,
+          "maximum": 40,
+          "x-unit": "px",
+          "x-beside": true,
+          "x-showIf": {
+            "shadow": { "not": "none" }
+          }
         },
         "widgets": {
           "type": "object",
@@ -3389,10 +3516,10 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "style": { "type": "string", "title": "Style", "default": "line", "enum": ["line", "dot", "space"] },
+            "style": { "type": "string", "title": "Style", "default": "line", "enum": ["line", "dot", "slash", "chevron", "space"] },
             "size": { "type": "integer", "title": "Size", "default": 12, "minimum": 0, "maximum": 500, "x-unit": "px", "description": "Space it takes along the bar (px)." },
             "thickness": { "type": "integer", "x-control": "stepper", "title": "Thickness", "default": 2, "minimum": 1, "maximum": 10, "x-unit": "px", "description": "Line width (px); dots are twice this across.", "x-showIf": { "style": { "not": "space" } } },
-            "length": { "type": "integer", "title": "Line length", "x-unit": "%", "default": 60, "minimum": 10, "maximum": 100, "description": "Share of the widget height the line spans.", "x-showIf": { "style": "line" } },
+            "length": { "type": "integer", "title": "Line length", "x-unit": "%", "default": 60, "minimum": 10, "maximum": 100, "description": "Share of the widget height the line, slash or chevron spans.", "x-showIf": { "style": ["line", "slash", "chevron"] } },
             "color": { "type": "string", "title": "Color", "x-options": "colors", "default": "base03", "x-showIf": { "style": { "not": "space" } } }
           }
         }

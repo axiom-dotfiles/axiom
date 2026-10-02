@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import QtQuick.Effects
 
 import qs.config
 import qs.services
@@ -30,7 +31,8 @@ Rectangle {
   // its anchor
   signal layoutUpdated
 
-  color: barConfig.background === "solid" ? Theme.background : "transparent"
+  // The surface layer paints the bar
+  color: "transparent"
 
   readonly property bool pills: barConfig.pills
   // Fillet room each side of a pill, as for popouts (AttachedSurface)
@@ -177,58 +179,162 @@ Rectangle {
     onAllocationUpdated: section.bar.layoutUpdated()
   }
 
-  // With the border off nothing else draws a solid bar's inner stroke
-  Rectangle {
-    visible: root.barConfig.innerStroke ?? false
-    color: Theme.foreground
-    width: root.isVertical ? Appearance.borderWidth : root.width
-    height: root.isVertical ? root.height : Appearance.borderWidth
-    x: root.barConfig.left ? root.width - width : 0
-    y: root.barConfig.top ? root.height - height : 0
+  // What the bar paints under its widgets: its background, inner stroke
+  // and pills, in one layer so a shadow or glow follows their outline
+  // (and never redraws for the widgets over it)
+  Item {
+    id: surface
+    anchors.fill: parent
+
+    layer.enabled: root.barConfig.shadow !== "none"
+    layer.effect: MultiEffect {
+      readonly property bool glow: root.barConfig.shadow === "glow"
+      readonly property real offset: glow ? 0 : root.barConfig.shadowSize / 4
+
+      shadowEnabled: true
+      shadowColor: root.barConfig.shadowColor ? Theme.resolveColor(root.barConfig.shadowColor) : glow ? Theme.accent : Qt.alpha("black", 0.6)
+      shadowBlur: 1
+      blurMax: root.barConfig.shadowSize
+      // A shadow falls toward the windows
+      shadowHorizontalOffset: root.barConfig.left ? offset : root.barConfig.right ? -offset : 0
+      shadowVerticalOffset: root.barConfig.top ? offset : root.barConfig.bottom ? -offset : 0
+      autoPaddingEnabled: true
+    }
+
+    Rectangle {
+      anchors.fill: parent
+      visible: root.barConfig.background === "solid"
+      color: Theme.background
+    }
+
+    // With the border off nothing else draws a solid bar's inner stroke
+    Rectangle {
+      visible: root.barConfig.innerStroke ?? false
+      color: Theme.foreground
+      width: root.isVertical ? Appearance.borderWidth : root.width
+      height: root.isVertical ? root.height : Appearance.borderWidth
+      x: root.barConfig.left ? root.width - width : 0
+      y: root.barConfig.top ? root.height - height : 0
+    }
+
+    // Pills: each grows out of the bar's outer edge (the border, or the
+    // screen edge with the border off) like a popout does, covering the
+    // border's stroke where it joins. Modelled by count, so a clock changing
+    // width moves its pill without rebuilding it.
+    Repeater {
+      model: root.pillRects.length
+
+      AttachedSurface {
+        id: pill
+        required property int index
+        readonly property var rect: root.pillRects[index] ?? {
+          "start": 0,
+          "length": 0,
+          "joinStart": false,
+          "joinEnd": false
+        }
+        readonly property var stretch: root.stretchFor(index)
+        readonly property var span: stretch ? {
+          "start": stretch.start,
+          "length": stretch.end - stretch.start,
+          "joinStart": rect.joinStart,
+          "joinEnd": rect.joinEnd
+        } : rect
+        readonly property real alongStart: span.start - startMargin
+        // Depth reached from the outer edge; the surface's far half-gap is empty
+        readonly property real depthBox: Math.max(0, root.barConfig.pillDepth - connectorGap / 2)
+
+        edge: root.barConfig.location
+        active: true
+        connectorGap: root.pillConnector
+        boxWidth: root.isVertical ? depthBox : span.length
+        boxHeight: root.isVertical ? span.length : depthBox
+        joinStart: span.joinStart
+        joinEnd: span.joinEnd
+        // Without the border, pills grow straight out of the screen edges
+        straight: !Appearance.screenBorder
+        straightJoins: !Appearance.screenBorder
+
+        width: implicitWidth
+        height: implicitHeight
+        x: root.isVertical ? (root.barConfig.right ? root.width - width : 0) : alongStart
+        y: root.isVertical ? alongStart : (root.barConfig.bottom ? root.height - height : 0)
+      }
+    }
   }
 
-  // Pills: each grows out of the bar's outer edge (the border, or the
-  // screen edge with the border off) like a popout does, covering the
-  // border's stroke where it joins. Modelled by count, so a clock changing
-  // width moves its pill without rebuilding it.
-  Repeater {
-    model: root.pillRects.length
+  // A line along the bar's inner or outer edge, from its color fading
+  // into another along the bar. Inline components can't see this file's
+  // ids, hence `bar`.
+  component AccentLine: Rectangle {
+    id: line
+    required property Item bar
+    // Along the bar, and in from its outer edge
+    required property real start
+    required property real length
+    required property real inset
 
-    AttachedSurface {
-      id: pill
+    readonly property bool vertical: bar.isVertical
+    readonly property real thickness: bar.barConfig.accentLineWidth
+    readonly property bool far: bar.barConfig.right || bar.barConfig.bottom
+    readonly property real across: far ? (vertical ? bar.width : bar.height) - inset - thickness : inset
+    readonly property color from: Theme.resolveColor(bar.barConfig.accentLineColor)
+
+    x: vertical ? across : start
+    y: vertical ? start : across
+    width: vertical ? thickness : length
+    height: vertical ? length : thickness
+    gradient: Gradient {
+      orientation: line.vertical ? Gradient.Vertical : Gradient.Horizontal
+      GradientStop {
+        position: 0
+        color: line.from
+      }
+      GradientStop {
+        position: 1
+        color: line.bar.barConfig.accentLineFade ? Theme.resolveColor(line.bar.barConfig.accentLineFade) : line.from
+      }
+    }
+  }
+
+  // How far in from the outer edge the accent line sits: inside whatever
+  // stroke is there (the border strip's or the bar's own on a solid bar's
+  // inner edge, the border's under a floating bar's outer edge)
+  readonly property real _accentInset: {
+    const width = root.barConfig.accentLineWidth;
+    if (root.barConfig.accentLine === "outer")
+      return root.pills ? root.barConfig.overlap : root.barConfig.floating ? Appearance.borderWidth : 0;
+    if (root.pills)
+      return root.barConfig.pillDepth - Appearance.borderWidth - width;
+    return root.barConfig.extent - width - (root.barConfig.background === "solid" ? Appearance.borderWidth : 0);
+  }
+
+  // Along a plain bar: its whole length, or clear of the border's sides
+  // under a floating one
+  AccentLine {
+    visible: root.barConfig.accentLine !== "none" && !root.pills
+    bar: root
+    start: root.barConfig.floating ? root.endMargin : 0
+    length: root.length - start * 2
+    inset: root._accentInset
+  }
+
+  // Along each pill, clear of its rounded corners on the inner side
+  Repeater {
+    model: root.barConfig.accentLine !== "none" && root.pills ? root.pillRects.length : 0
+
+    AccentLine {
       required property int index
       readonly property var rect: root.pillRects[index] ?? {
         "start": 0,
-        "length": 0,
-        "joinStart": false,
-        "joinEnd": false
+        "length": 0
       }
-      readonly property var stretch: root.stretchFor(index)
-      readonly property var span: stretch ? {
-        "start": stretch.start,
-        "length": stretch.end - stretch.start,
-        "joinStart": rect.joinStart,
-        "joinEnd": rect.joinEnd
-      } : rect
-      readonly property real alongStart: span.start - startMargin
-      // Depth reached from the outer edge; the surface's far half-gap is empty
-      readonly property real depthBox: Math.max(0, root.barConfig.pillDepth - connectorGap / 2)
+      readonly property real corner: root.barConfig.accentLine === "inner" ? Appearance.borderRadius : 0
 
-      edge: root.barConfig.location
-      active: true
-      connectorGap: root.pillConnector
-      boxWidth: root.isVertical ? depthBox : span.length
-      boxHeight: root.isVertical ? span.length : depthBox
-      joinStart: span.joinStart
-      joinEnd: span.joinEnd
-      // Without the border, pills grow straight out of the screen edges
-      straight: !Appearance.screenBorder
-      straightJoins: !Appearance.screenBorder
-
-      width: implicitWidth
-      height: implicitHeight
-      x: root.isVertical ? (root.barConfig.right ? root.width - width : 0) : alongStart
-      y: root.isVertical ? alongStart : (root.barConfig.bottom ? root.height - height : 0)
+      bar: root
+      start: rect.start + (rect.joinStart ? 0 : corner)
+      length: Math.max(0, rect.length - (rect.joinStart ? 0 : corner) - (rect.joinEnd ? 0 : corner))
+      inset: root._accentInset
     }
   }
 

@@ -75,6 +75,15 @@ Item {
   // A widget with no background in a powerline keeps half a gap each side
   readonly property real _looseGap: root.grouping === "powerline" ? root.barConfig.spacing / 2 : 0
 
+  // The index of the next widget shown after `index`, or -1
+  function _nextShown(index) {
+    for (let k = index + 1; k < root.allocation.sizes.length; k++) {
+      if (root.allocation.sizes[k] > 0)
+        return k;
+    }
+    return -1;
+  }
+
   // The caps and insets at `place` in a run (BarShapes.segment)
   function segmentAt(place) {
     return BarShapes.segment(root.barConfig.widgetShape, root.grouping, root._opaque, place?.index ?? 0, place?.count ?? 1, root.barConfig.widgetSize);
@@ -122,6 +131,29 @@ Item {
       y: first?.y ?? 0
       width: root.isVertical ? (first?.width ?? 0) : (last?.x ?? 0) + (last?.width ?? 0) - x
       height: root.isVertical ? (last?.y ?? 0) + (last?.height ?? 0) - y : (first?.height ?? 0)
+    }
+  }
+
+  // A divider in each gap between shown widgets (Bars[].separatorStyle),
+  // except beside a Separator widget
+  Repeater {
+    model: root.barConfig.separatorStyle !== "none" ? root.widgets.length : 0
+
+    delegate: SeparatorMark {
+      id: mark
+      required property int index
+      readonly property int next: root._nextShown(index)
+      readonly property bool between: (root.allocation.sizes[index] ?? 0) > 0 && next >= 0
+      readonly property real center: (root.allocation.offsets[index] ?? 0) + (root.allocation.sizes[index] ?? 0) + root.spacing / 2
+
+      visible: between && !(root._modules[index]?.divides ?? false) && !(root._modules[next]?.divides ?? false)
+      style: root.barConfig.separatorStyle
+      color: Theme.resolveColor(root.barConfig.separatorColor)
+      thickness: root.barConfig.separatorThickness
+      length: root.barConfig.widgetSize * (mark.style === "chevron" ? 0.6 : 0.5)
+      vertical: root.isVertical
+      x: root.isVertical ? Math.round((root.width - width) / 2) : mark.center - width / 2
+      y: root.isVertical ? mark.center - height / 2 : Math.round((root.height - height) / 2)
     }
   }
 
