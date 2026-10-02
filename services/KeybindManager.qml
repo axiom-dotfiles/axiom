@@ -146,6 +146,8 @@ QtObject {
       "pin": "push_pin",
       "centerWindow": "center_focus_weak",
       "toggleGroup": "tab_group",
+      "windowSwitcher": "tab",
+      "windowSwitcherReverse": "tab",
       "mouseDrag": "drag_pan",
       "mouseResize": "drag_handle",
       "toggleSpecial": "star",
@@ -466,6 +468,12 @@ QtObject {
           "level": "warning",
           "text": I18n.tr("Needs an argument, so it isn't bound")
         });
+      // The switcher picks when its modifier is released
+      if ((bind.action === "windowSwitcher" || bind.action === "windowSwitcherReverse") && key !== "" && HyprLua.switcherHeld(KeyNames.split(key).mods).length === 0)
+        found.push({
+          "level": "warning",
+          "text": I18n.tr("Needs a modifier to hold, like ALT + Tab")
+        });
       if (ids[i] !== "" && counts[ids[i]] > 1)
         found.push({
           "level": "error",
@@ -562,6 +570,12 @@ QtObject {
       "title": I18n.tr("Window management"),
       "description": I18n.tr("SUPER + H J K L moves focus, with SHIFT the window, with ALT resizes it; close, fullscreen, floating and mouse drag"),
       "binds": [].concat(...vim.map(d => [root._workspaceBind("SUPER + " + d[0], "focusDir", d[1]), root._workspaceBind("SUPER + SHIFT + " + d[0], "moveWindowDir", d[1]), root._workspaceBind("SUPER + ALT + " + d[0], "resizeWindow", resize[d[0]])])).concat([root._workspaceBind("SUPER + C", "closeWindow", ""), root._workspaceBind("SUPER + F", "fullscreen", ""), root._workspaceBind("SUPER + Z", "toggleFloat", ""), root._workspaceBind("SUPER + mouse:272", "mouseDrag", ""), root._workspaceBind("SUPER + mouse:273", "mouseResize", "")])
+    });
+    list.push({
+      "id": "switcher",
+      "title": I18n.tr("Window switcher"),
+      "description": I18n.tr("ALT + Tab steps through your windows, most recently used first, with SHIFT backwards; releasing ALT picks"),
+      "binds": [root._workspaceBind("ALT + Tab", "windowSwitcher", ""), root._workspaceBind("ALT + SHIFT + Tab", "windowSwitcherReverse", "")]
     });
     list.push({
       "id": "media",
@@ -867,7 +881,7 @@ hl.dispatch(hl.dsp.submap("${_recordSubmap}"))`
 
       onStreamFinished: {
         try {
-          const entries = JSON.parse(bindsCollector.text).filter(entry => entry.submap !== root._recordSubmap);
+          const entries = JSON.parse(bindsCollector.text).filter(entry => entry.submap !== root._recordSubmap && entry.submap !== HyprLua.switcherSubmap);
           root._entries = entries;
           root.count = entries.length;
         } catch (e) {

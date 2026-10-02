@@ -167,6 +167,9 @@ Singleton {
       "pin": [() => "hl.dsp.window.pin()", "Pin", "Window"],
       "centerWindow": [() => "hl.dsp.window.center()", "Center", "Window"],
       "toggleGroup": [() => "hl.dsp.group.toggle()", "Toggle group", "Window"],
+      // Lua functions entering the switcher's submap (HyprLua.switcherLua)
+      "windowSwitcher": [() => HyprLua.switcherBindLua(1), "Switch windows", "Window"],
+      "windowSwitcherReverse": [() => HyprLua.switcherBindLua(-1), "Switch windows backwards", "Window"],
       // On a mouse button (SUPER + mouse:272), which Hyprland makes a
       // mouse bind by itself
       "mouseDrag": [() => "hl.dsp.window.drag()", "Drag", "Window"],
@@ -270,6 +273,14 @@ Singleton {
     return _bindLua(bind) !== "";
   }
 
+  // The window switcher's submap for the switcher binds among `binds`
+  function _switcherLua(binds) {
+    const entries = binds.filter(bind => (bind.action === "windowSwitcher" || bind.action === "windowSwitcherReverse") && _bindLua(bind) !== "").map(bind => Object.assign(KeyNames.split(bind.key), {
+        "step": bind.action === "windowSwitcher" ? 1 : -1
+      }));
+    return HyprLua.switcherLua(entries);
+  }
+
   function _needsArgument(action) {
     return action === "exec" || (_actions[action]?.[0] ?? _dispatchers[action]?.[1] ?? "").includes("{0}");
   }
@@ -288,7 +299,7 @@ Singleton {
   }
 
   function _blurLua() {
-    return [`hl.layer_rule({ match = { namespace = "^axiom-(bar|edge-popout|launcher|dock)$" }, blur = true, ignore_alpha = 0.2 })`];
+    return [`hl.layer_rule({ match = { namespace = "^axiom-(bar|edge-popout|launcher|dock|switcher)$" }, blur = true, ignore_alpha = 0.2 })`];
   }
 
   function _indent(lines, prefix) {
@@ -297,7 +308,7 @@ Singleton {
 
   // The included file: a module whose setup() applies what's enabled
   function moduleLua() {
-    const binds = HyprlandConfig.binds.map(bind => _bindLua(bind)).filter(line => line !== "");
+    const binds = HyprlandConfig.binds.map(bind => _bindLua(bind)).filter(line => line !== "").concat(_switcherLua(HyprlandConfig.binds));
     const setup = [];
     if (HyprlandConfig.requiredSettings)
       setup.push("M.required()");
@@ -558,7 +569,7 @@ if #errors > 0 then error(table.concat(errors, "\\n")) end
         console.log(`[HyprlandConfigManager] ${key} is bound by your Hyprland config; skipping axiom's bind`);
       _reportedTaken[id] = true;
     }
-    const lines = plan.apply.map(bind => _bindLua(bind));
+    const lines = plan.apply.map(bind => _bindLua(bind)).concat(_switcherLua(plan.apply));
     const keys = plan.apply.map(bind => bind.key.trim());
     const skipped = plan.skipped;
     if (HyprlandConfig.requiredSettings) {

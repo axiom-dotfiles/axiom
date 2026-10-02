@@ -406,6 +406,8 @@
             { "key": "SUPER + Tab", "action": "overlay" },
             { "key": "SUPER + M", "action": "overlay" },
             { "key": "SUPER + SHIFT + space", "action": "workspaceOverview" },
+            { "key": "ALT + Tab", "action": "windowSwitcher" },
+            { "key": "ALT + SHIFT + Tab", "action": "windowSwitcherReverse" },
             { "key": "SUPER + Escape", "action": "powerMenu" },
             { "key": "SUPER + CTRL + L", "action": "lock" },
             { "key": "SUPER + CTRL + R", "action": "restartShell", "release": true },
@@ -482,7 +484,7 @@
               "action": {
                 "type": "string",
                 "title": "Action",
-                "enum": ["launcher", "launcherSearch", "overlay", "overlayPage", "edgeMenu", "dock", "workspaceOverview", "powerMenu", "lock", "toggleDnd", "clearNotifications", "idleInhibit", "nightLight", "nextWallpaper", "workspaceStep", "moveWindowStep", "moveWindowStepSilent", "workspaceNth", "moveWindowNth", "moveWindowNthSilent", "focusDir", "moveWindowDir", "resizeWindow", "closeWindow", "fullscreen", "toggleFloat", "pin", "centerWindow", "toggleGroup", "mouseDrag", "mouseResize", "toggleSpecial", "moveToSpecial", "restartShell", "volumeUp", "volumeDown", "toggleMute", "toggleMicMute", "brightnessUp", "brightnessDown", "mediaPlayPause", "mediaNext", "mediaPrevious", "mediaStop", "terminal", "fileManager", "browser", "screenshot", "screenRecord", "exitHyprland", "exec"],
+                "enum": ["launcher", "launcherSearch", "overlay", "overlayPage", "edgeMenu", "dock", "workspaceOverview", "powerMenu", "lock", "toggleDnd", "clearNotifications", "idleInhibit", "nightLight", "nextWallpaper", "workspaceStep", "moveWindowStep", "moveWindowStepSilent", "workspaceNth", "moveWindowNth", "moveWindowNthSilent", "focusDir", "moveWindowDir", "resizeWindow", "closeWindow", "fullscreen", "toggleFloat", "pin", "centerWindow", "toggleGroup", "windowSwitcher", "windowSwitcherReverse", "mouseDrag", "mouseResize", "toggleSpecial", "moveToSpecial", "restartShell", "volumeUp", "volumeDown", "toggleMute", "toggleMicMute", "brightnessUp", "brightnessDown", "mediaPlayPause", "mediaNext", "mediaPrevious", "mediaStop", "terminal", "fileManager", "browser", "screenshot", "screenRecord", "exitHyprland", "exec"],
                 "x-enumLabels": {
                   "launcher": "App launcher",
                   "launcherSearch": "Launcher with text",
@@ -513,6 +515,8 @@
                   "pin": "Pin window",
                   "centerWindow": "Center window",
                   "toggleGroup": "Toggle window group",
+                  "windowSwitcher": "Switch windows",
+                  "windowSwitcherReverse": "Switch windows backwards",
                   "mouseDrag": "Drag window (mouse button)",
                   "mouseResize": "Resize window (mouse button)",
                   "toggleSpecial": "Toggle special workspace",
@@ -1454,6 +1458,50 @@
           "title": "Controls hint",
           "default": true,
           "description": "Show the mouse controls under the grid."
+        }
+      }
+    },
+
+    "WindowSwitcher": {
+      "type": "object",
+      "x-category": "Workspaces",
+      "title": "Window switcher",
+      "description": "Your windows, most recently used first, while the switch windows keys are held (ALT + Tab and ALT + SHIFT + Tab on the Keybinds page). Releasing the modifier focuses the chosen window; Escape keeps the current one.",
+      "additionalProperties": false,
+      "x-order": ["scope", "previews", "tileSize", "showDelay"],
+      "properties": {
+        "scope": {
+          "type": "string",
+          "title": "Windows listed",
+          "default": "all",
+          "enum": ["all", "monitor", "workspace"],
+          "x-enumLabels": { "all": "Every window", "monitor": "Windows on the focused monitor", "workspace": "Windows on the focused workspace" }
+        },
+        "previews": {
+          "type": "boolean",
+          "title": "Window previews",
+          "default": true,
+          "description": "Show each window's live contents; off shows app icons."
+        },
+        "tileSize": {
+          "type": "integer",
+          "x-control": "stepper",
+          "title": "Tile size",
+          "x-unit": "px",
+          "default": 200,
+          "minimum": 64,
+          "maximum": 480,
+          "description": "Width of each window's tile."
+        },
+        "showDelay": {
+          "type": "integer",
+          "x-control": "stepper",
+          "title": "Show after",
+          "x-unit": "ms",
+          "default": 120,
+          "minimum": 0,
+          "maximum": 1000,
+          "description": "How long the keys must be held before the switcher shows. A quicker tap swaps to the last window without showing it."
         }
       }
     },

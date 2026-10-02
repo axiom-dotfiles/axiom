@@ -2304,6 +2304,23 @@
     "Writes the \"axiom\" syntax theme for bat and delta, and rebuilds bat's cache.": "bat と delta 用の \"axiom\" シンタックステーマを書き込み、bat のキャッシュを再構築します。",
     "In wezterm.lua, before the final 'return config'.": "wezterm.lua の最後の 'return config' の前に追加してください。",
     "Re-theme external apps whenever the shell theme changes. Each writes its own axiom file; turned on, it shows the line that loads that file from the app's config, to copy or to apply (which backs your config up first).": "シェルのテーマが変わるたびに外部アプリの配色を変更します。各連携は axiom 専用のファイルを書き込みます。有効にすると、そのファイルをアプリの設定から読み込む行が表示され、コピーするか適用できます（適用時は先に設定をバックアップします）。",
-    "Every app you turned on is set up": "有効にしたアプリはすべて設定済みです"
+    "Every app you turned on is set up": "有効にしたアプリはすべて設定済みです",
+    "No windows": "ウィンドウがありません",
+    "Needs a modifier to hold, like ALT + Tab": "ALT + Tab のように押し続ける修飾キーが必要です",
+    "Window switcher": "ウィンドウスイッチャー",
+    "ALT + Tab steps through your windows, most recently used first, with SHIFT backwards; releasing ALT picks": "ALT + Tab で最近使った順にウィンドウを切り替え、SHIFT で逆順、ALT を離すと決定",
+    "Switch windows": "ウィンドウの切り替え",
+    "Switch windows backwards": "ウィンドウの逆順切り替え",
+    "Window previews": "ウィンドウのプレビュー",
+    "Width of each window's tile.": "各ウィンドウのタイルの幅。",
+    "How long the keys must be held before the switcher shows. A quicker tap swaps to the last window without showing it.": "スイッチャーが表示されるまでキーを押し続ける時間。これより短く押すと、表示せずに直前のウィンドウに切り替えます。",
+    "Windows listed": "表示するウィンドウ",
+    "Windows on the focused monitor": "フォーカス中のモニターのウィンドウ",
+    "Windows on the focused workspace": "フォーカス中のワークスペースのウィンドウ",
+    "Show each window's live contents; off shows app icons.": "各ウィンドウの内容をライブで表示します。オフにするとアプリのアイコンを表示します。",
+    "Your windows, most recently used first, while the switch windows keys are held (ALT + Tab and ALT + SHIFT + Tab on the Keybinds page). Releasing the modifier focuses the chosen window; Escape keeps the current one.": "切り替えキー（キーバインドページの ALT + Tab と ALT + SHIFT + Tab）を押している間、最近使った順にウィンドウを表示します。修飾キーを離すと選んだウィンドウにフォーカスし、Escape で現在のウィンドウのままにします。",
+    "Show after": "表示までの時間",
+    "windowSwitcher": "windowSwitcher",
+    "windowSwitcherReverse": "windowSwitcherReverse"
   }
 }

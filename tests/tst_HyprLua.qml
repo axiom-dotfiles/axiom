@@ -310,4 +310,94 @@ assert(removed == 2, "earlier handlers removed")
     const written = files.write("tests/.out/monitors.run.lua", lua);
     tryVerify(() => written.done, 2000);
   }
+  function test_switcherHeld() {
+    compare(HyprLua.switcherHeld(["ALT"]), ["ALT"]);
+    compare(HyprLua.switcherHeld(["ALT", "SHIFT"]), ["ALT"], "SHIFT only turns it around");
+    compare(HyprLua.switcherHeld(["SHIFT"]), ["SHIFT"], "unless it's all there is");
+    compare(HyprLua.switcherHeld([]), [], "nothing to hold");
+  }
+
+  function test_switcherLua_without_binds_only_unbinds() {
+    const lua = HyprLua.switcherLua([]).join("\n");
+    verify(lua.includes("hl.unbind(key)"));
+    verify(!lua.includes("hl.bind("));
+    verify(lua.includes("AXIOM_SWITCHER_KEYS = {  }"));
+  }
+
+  // Run twice against a stub hl: the second run unbinds the first's keys,
+  // the binds send their events, and letting go of ALT (not SHIFT) picks
+  function test_switcherLua_runs() {
+    const entries = [
+      {
+        "mods": ["ALT"],
+        "key": "Tab",
+        "step": 1
+      },
+      {
+        "mods": ["ALT", "SHIFT"],
+        "key": "Tab",
+        "step": -1
+      }
+    ];
+    const lua = `local binds, events, submap, down, listener, timer = {}, {}, "", {}, nil, nil
+hl = {
+  define_submap = function(name, fn) assert(name == "axiom_switcher"); fn() end,
+  bind = function(key, fn, opts) assert(not binds[key], "bound twice: " .. key); binds[key] = { fn = fn, opts = opts } end,
+  unbind = function(key) binds[key] = nil end,
+  dispatch = function(d) if d.event then events[#events + 1] = d.event else submap = d.submap end end,
+  get_current_submap = function() return submap end,
+  is_key_down = function(key) return down[key] == true end,
+  on = function(name, fn) assert(name == "input.keyboard.key"); listener = fn; return { remove = function() listener = nil end } end,
+  timer = function(fn, opts) assert(opts.type == "oneshot"); timer = fn; return {} end,
+  dsp = {
+    event = function(data) return { event = data } end,
+    submap = function(name) return { submap = name } end,
+  },
+}
+local function run()
+${HyprLua.switcherLua(entries).join("\n")}
+end
+-- A key goes up or down; the check runs once its timer fires
+local function key(name, pressed)
+  down[name] = pressed
+  if listener then listener(0, 0, pressed and 1 or 0) end
+  if timer then local t = timer; timer = nil; t() end
+end
+run()
+run()
+local open = ${HyprLua.switcherBindLua(1)}
+down["Alt_L"] = true
+open()
+assert(submap == "axiom_switcher" and events[1] == "axiom-switcher:step 1", "the bind opens")
+assert(listener, "watching for the release")
+open()
+binds["ALT + SHIFT + Tab"].fn()
+assert(events[3] == "axiom-switcher:step -1" and binds["ALT + SHIFT + Tab"].opts.repeating, "steps back, repeating")
+assert(binds["ALT + Tab"], "steps on")
+key("Tab", false)
+key("Shift_L", true)
+key("Shift_L", false)
+assert(#events == 3 and submap == "axiom_switcher", "releasing Tab or SHIFT doesn't pick")
+key("Alt_L", false)
+assert(events[4] == "axiom-switcher:commit" and submap == "reset", "releasing ALT picks and leaves")
+assert(not listener, "stops watching")
+key("Alt_L", true)
+key("Alt_L", false)
+assert(#events == 4, "nothing once closed")
+-- Escape cancels, and stops watching too
+down["Alt_L"] = true
+open()
+binds["Escape"].fn()
+assert(events[6] == "axiom-switcher:cancel" and submap == "reset" and not listener, "escape cancels")
+-- Left by something else: the next release stops watching, quietly
+open()
+submap = "reset"
+key("Alt_L", false)
+assert(#events == 7 and not listener, "left elsewhere")
+assert(#AXIOM_SWITCHER_KEYS == 4, "keys remembered: " .. #AXIOM_SWITCHER_KEYS)
+`;
+
+    const written = files.write("tests/.out/switcher.run.lua", lua);
+    tryVerify(() => written.done, 2000);
+  }
 }

@@ -569,8 +569,9 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
     target: Hyprland
 
     function onRawEvent(event) {
-      // Layer surfaces (including our own popouts) don't affect clients
-      if (event.name === "openlayer" || event.name === "closelayer")
+      // Layer surfaces (including our own popouts) don't affect clients,
+      // and custom events are axiom's own (the window switcher's keys)
+      if (event.name === "openlayer" || event.name === "closelayer" || event.name === "custom")
         return;
       if (event.name === "configreloaded") {
         root.refreshOptions();
