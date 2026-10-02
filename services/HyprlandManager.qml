@@ -484,13 +484,14 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
     return ids;
   }
 
-  // Whether the named monitor's active workspace shows a fullscreen window.
-  // Not Hyprland's (or Quickshell's) hasFullscreen: that also counts
-  // maximized windows (fullscreen mode 1), which leave reserved space
-  // alone. Mode is a bitmask, 2 being fullscreen.
+  // Whether the named monitor's active workspace, or the special workspace
+  // open on it, shows a fullscreen window. Not Hyprland's (or Quickshell's)
+  // hasFullscreen: that also counts maximized windows (fullscreen mode 1),
+  // which leave reserved space alone. Mode is a bitmask, 2 being fullscreen.
   function hasFullscreen(monitorName) {
-    const workspace = Hyprland.monitors.values.find(m => m.name === monitorName)?.activeWorkspace?.id;
-    return workspace !== undefined && root.windowList.some(w => w.workspace?.id === workspace && (w.fullscreen & 2));
+    const monitor = Hyprland.monitors.values.find(m => m.name === monitorName);
+    const workspaces = [monitor?.activeWorkspace?.id, specialWorkspaceId(monitor)].filter(id => id !== undefined && id !== 0);
+    return workspaces.length > 0 && root.windowList.some(w => workspaces.includes(w.workspace?.id) && (w.fullscreen & 2));
   }
 
   // The id of the special workspace open on a monitor, or 0 with none
