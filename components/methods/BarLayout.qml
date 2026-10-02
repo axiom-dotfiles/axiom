@@ -149,6 +149,39 @@ QtObject {
     return hidden;
   }
 
+  // The runs of consecutive true flags, as { start, count }: the widgets
+  // that share a background (merged) or a powerline chain
+  function runs(flags) {
+    const out = [];
+    flags.forEach((on, i) => {
+      if (!on)
+        return;
+      const last = out[out.length - 1];
+      if (last && last.start + last.count === i)
+        last.count++;
+      else
+        out.push({
+          "start": i,
+          "count": 1
+        });
+    });
+    return out;
+  }
+
+  // Each index's place in its run, { run, index, count }, or null off them
+  function runPlaces(flags) {
+    const places = flags.map(() => null);
+    root.runs(flags).forEach((run, r) => {
+      for (let k = 0; k < run.count; k++)
+        places[run.start + k] = {
+          "run": r,
+          "index": k,
+          "count": run.count
+        };
+    });
+    return places;
+  }
+
   // One section's widgets within `maxExtent`: measures [{pref, min,
   // priority}] and shown [bool] -> { sizes, offsets, visible }. Should even
   // the minimum sizes not fit, the lowest-priority widgets (the last listed

@@ -2011,7 +2011,7 @@
 
     "Bar": {
       "type": "object",
-      "x-order": ["id", "enabled", "monitor", "location", "widgetSize", "padding", "spacing", "widgetPadding", "widgetSpacing", "background", "pillPadding", "pillMerge", "overrideFontSize", "fontSize", "overrideRadius", "widgetRadius", "widgetFill", "tintOpacity", "outlineWidth", "indicatorWidth", "indicatorSide", "widgetTextColor", "lockCenter", "reserveSpace"],
+      "x-order": ["id", "enabled", "monitor", "location", "widgetSize", "padding", "spacing", "widgetPadding", "widgetSpacing", "background", "pillPadding", "pillMerge", "overrideFontSize", "fontSize", "overrideRadius", "widgetRadius", "widgetFill", "tintOpacity", "outlineWidth", "indicatorWidth", "indicatorSide", "widgetShape", "widgetGrouping", "groupColor", "widgetTextColor", "lockCenter", "reserveSpace"],
       "required": ["id"],
       "additionalProperties": false,
       "properties": {
@@ -2245,6 +2245,52 @@
           "x-showIf": {
             "widgetFill": "underline"
           }
+        },
+        "widgetShape": {
+          "x-group": "Widgets",
+          "type": "string",
+          "title": "Shape",
+          "default": "rounded",
+          "enum": ["rounded", "capsule", "slant", "arrow"],
+          "x-enumLabels": {
+            "rounded": "Rounded",
+            "capsule": "Capsule",
+            "slant": "Slanted",
+            "arrow": "Arrow"
+          },
+          "x-showIf": {
+            "widgetFill": ["filled", "tinted", "outline"]
+          },
+          "description": "Rounded follows the widget corner radius. Slanted and arrow widgets take a little more room for their points."
+        },
+        "widgetGrouping": {
+          "x-group": "Widgets",
+          "type": "string",
+          "title": "Grouping",
+          "default": "separate",
+          "enum": ["separate", "merged", "powerline"],
+          "x-enumLabels": {
+            "separate": "Separate",
+            "merged": "Merged",
+            "powerline": "Powerline"
+          },
+          "x-beside": true,
+          "x-showIf": {
+            "widgetFill": ["filled", "tinted", "outline"]
+          },
+          "description": "Merged: neighbouring widgets share one background. Powerline: each widget's shape runs into the next (filled and tinted styles only)."
+        },
+        "groupColor": {
+          "x-group": "Widgets",
+          "type": "string",
+          "title": "Merged background",
+          "x-options": "colors",
+          "default": "backgroundAlt",
+          "x-showIf": {
+            "widgetFill": ["filled", "tinted", "outline"],
+            "widgetGrouping": "merged"
+          },
+          "description": "Widget colors show on their icons instead."
         },
         "widgetTextColor": {
           "x-group": "Widgets",

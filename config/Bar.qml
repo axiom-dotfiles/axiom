@@ -51,6 +51,10 @@ QtObject {
     // How far a pill reaches in from the bar's outer edge: the inset, its
     // widgets, and the gap to its far side
     const pillDepth = pillInset + widgetSize + pillGap;
+    // Shapes and grouping are for widgets drawn on a background; a
+    // powerline's overlapping segments need a fill to hide what's beneath
+    const boxed = ["filled", "tinted", "outline"].includes(barConfig.widgetFill);
+    const grouping = !boxed || (barConfig.widgetGrouping === "powerline" && barConfig.widgetFill === "outline") ? "separate" : barConfig.widgetGrouping;
 
     return {
       "id": barConfig.id,
@@ -79,6 +83,8 @@ QtObject {
       "pillMerge": barConfig.pillMerge ?? 0,
       "pillDepth": pillDepth,
       "spacing": barConfig.spacing,
+      // Between the widgets within a section: a powerline's touch
+      "groupSpacing": grouping === "powerline" ? 0 : barConfig.spacing,
       // What's drawn inside the bar follows the bar, never the Widget
       // section (that's for panels, popouts and controls)
       "widgetPadding": barConfig.widgetPadding,
@@ -95,6 +101,9 @@ QtObject {
       "indicatorWidth": barConfig.indicatorWidth,
       "indicatorSide": barConfig.indicatorSide,
       "widgetTextColor": barConfig.widgetTextColor,
+      "widgetShape": boxed ? barConfig.widgetShape : "rounded",
+      "widgetGrouping": grouping,
+      "groupColor": barConfig.groupColor,
       "lockCenter": barConfig.lockCenter,
       "location": loc,
       "reserveSpace": barConfig.reserveSpace,
@@ -111,8 +120,24 @@ QtObject {
   // text, icon }, see BarWidgetStyle): `accent` is its color for its state,
   // `foregroundName` the text color it's configured with
   function widgetColors(barConfig, accent, foregroundName) {
-    const override = barConfig.widgetTextColor ? Theme.resolveColor(barConfig.widgetTextColor) : null;
-    return BarWidgetStyle.colors(barConfig.widgetFill, accent, Theme.resolveColor(foregroundName), Theme.foreground, override, barConfig.tintOpacity);
+    return BarWidgetStyle.colors(Bar._widgetStyle(barConfig, barConfig.widgetGrouping === "merged"), accent, Theme.resolveColor(foregroundName));
+  }
+
+  // What a merged run of widgets draws its shared background in
+  function groupColors(barConfig) {
+    const group = Theme.resolveColor(barConfig.groupColor);
+    return BarWidgetStyle.colors(Bar._widgetStyle(barConfig, false), group, BarWidgetStyle.readableOn(group, Theme.foreground));
+  }
+
+  // BarWidgetStyle's `style` for a bar, its colors resolved
+  function _widgetStyle(barConfig, merged) {
+    return {
+      "fill": barConfig.widgetFill,
+      "barText": Theme.foreground,
+      "override": barConfig.widgetTextColor ? Theme.resolveColor(barConfig.widgetTextColor) : null,
+      "tint": barConfig.tintOpacity,
+      "group": merged ? Theme.resolveColor(barConfig.groupColor) : null
+    };
   }
 
   // The Bars section as saved: no previews, "*" monitors unexpanded, locations as strings

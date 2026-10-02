@@ -97,7 +97,7 @@ Rectangle {
 
   readonly property var _groups: [leftGroup, leftCenterGroup, centerGroup, rightCenterGroup, rightGroup]
   // Per section, the model indices hidden so the minimum sizes fit
-  readonly property var hidden: BarLayout.overflowHidden(root._groups.map(g => g.measures), root.length, root.endMargin, root.barConfig.spacing, root.barConfig.spacing, root.barConfig.lockCenter)
+  readonly property var hidden: BarLayout.overflowHidden(root._groups.map(g => g.measures), root.length, root.endMargin, root.barConfig.spacing, root.barConfig.groupSpacing, root.barConfig.lockCenter)
   readonly property var slots: BarLayout.layoutSections(root._groups.map(g => g.preferredLength), root._groups.map(g => g.minimumLength), root.length, root.endMargin, root.barConfig.spacing, root.barConfig.lockCenter)
   // Bindings re-run on any module change; only signal real moves
   property string _slotsKey: ""

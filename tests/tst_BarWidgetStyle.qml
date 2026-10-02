@@ -14,8 +14,14 @@ TestCase {
     verify(Qt.colorEqual(actual, expected), `${message}: ${actual} != ${expected}`);
   }
 
-  function styled(fill, override = null) {
-    return BarWidgetStyle.colors(fill, accent, own, barText, override, 0.25);
+  function styled(fill, override = null, group = null) {
+    return BarWidgetStyle.colors({
+      "fill": fill,
+      "barText": barText,
+      "override": override,
+      "tint": 0.25,
+      "group": group
+    }, accent, own);
   }
 
   function test_filled_keeps_the_widgets_own_colors() {
@@ -77,5 +83,23 @@ TestCase {
     const c = styled("accentText", custom);
     same(c.text, custom, "accentText text");
     same(c.icon, accent, "accentText icon");
+  }
+
+  function test_merged_widgets_leave_the_background_to_their_run() {
+    const light = "#eeeeee", dark = "#222222";
+    const c = styled("filled", null, light);
+    same(c.fill, "transparent", "fill");
+    same(c.icon, accent, "the icon keeps the state");
+    // White bar text can't be read on a light run: black instead
+    same(c.text, "#000000", "text on a light run");
+    same(styled("filled", null, dark).text, barText, "bar text where it reads");
+    // A tint or outline shows the bar through
+    same(styled("tinted", null, light).text, barText, "tinted run text");
+    same(styled("filled", custom, light).text, custom, "override");
+  }
+
+  function test_readable_on() {
+    same(BarWidgetStyle.readableOn("#000000", "#ffffff"), "#ffffff", "contrasting");
+    same(BarWidgetStyle.readableOn("#ffffff", "#eeeeee"), "#000000", "too close");
   }
 }

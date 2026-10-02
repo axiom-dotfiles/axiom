@@ -110,4 +110,34 @@ TestCase {
     compare(a.sizes, [40, 0, 20]);
     compare(a.offsets, [0, 44, 44]);
   }
+
+  function test_runs() {
+    compare(BarLayout.runs([]), []);
+    compare(BarLayout.runs([false, false]), []);
+    compare(BarLayout.runs([true, true, false, true]), [
+      {
+        "start": 0,
+        "count": 2
+      },
+      {
+        "start": 3,
+        "count": 1
+      }
+    ]);
+  }
+
+  function test_runPlaces() {
+    const places = BarLayout.runPlaces([true, false, true, true]);
+    compare(places[1], null);
+    compare(places[0], {
+      "run": 0,
+      "index": 0,
+      "count": 1
+    });
+    compare(places[3], {
+      "run": 1,
+      "index": 1,
+      "count": 2
+    });
+  }
 }
