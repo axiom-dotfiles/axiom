@@ -6,7 +6,8 @@
         binds  axiom binds (Hyprland.binds entries) for every bind that can
                move: an axiom action where one does the same (the bind
                actions cover Hyprland's example config), else the `lua`
-               action with the dispatcher as written
+               action with the dispatcher as written; the example's binds
+               on keys axiom's defaults use move (EXAMPLE_KEYS)
         sites  [{ file, line }]: the hl.bind calls those come from, plus
                the hl.unbind calls on their keys (which would otherwise
                unbind the moved binds too, since user/ loads after axiom)
@@ -42,6 +43,16 @@ DIRECTIONS = ("left", "right", "up", "down")
 # Bind options axiom's binds carry; `mouse` comes with a mouse: key by itself
 FLAGS = ("locked", "repeating", "release")
 KNOWN_OPTS = set(FLAGS) | {"mouse", "description"}
+# Hyprland's example config's binds that move to another key, where theirs
+# would take one of axiom's defaults (SUPER + J is focus down, SUPER + S and
+# SUPER + SHIFT + S WASD's workspace and window down): (key_id, action) ->
+# key. Its float leaves SUPER + V for the special workspace, onto axiom's.
+EXAMPLE_KEYS = {
+    ("super + j", "toggleSplit"): "SUPER + X",
+    ("super + s", "toggleSpecial"): "SUPER + V",
+    ("shift + super + s", "moveToSpecial"): "SUPER + SHIFT + V",
+    ("super + v", "toggleFloat"): "SUPER + Z",
+}
 
 
 # --- Mapping ---
@@ -151,7 +162,8 @@ def to_axiom(entry):
         return None, "axiom binds don't have its options: " + ", ".join(unknown)
     mapped = map_dispatcher(entry["dispatcher"], entry.get("args") or [])
     action, argument = mapped if mapped else ("lua", entry["lua"])
-    bind = {"key": entry["key"], "action": action, "argument": argument, "call": "toggle"}
+    key = EXAMPLE_KEYS.get((key_id(entry["key"]), action), entry["key"])
+    bind = {"key": key, "action": action, "argument": argument, "call": "toggle"}
     for flag in FLAGS:
         bind[flag] = opts.get(flag) is True
     description = opts.get("description")
@@ -293,6 +305,8 @@ def extract(hypr):
         sites.setdefault((file, entry["line"]), []).append(entry)
 
     binds, moved_sites, kept = [], [], []
+    # The keys whose binds moved, as written (EXAMPLE_KEYS may move one)
+    moved_keys = set()
     for (file, line), entries in sorted(sites.items(), key=lambda s: (s[0][0], s[0][1])):
         converted = [to_axiom(entry) for entry in entries]
         _, reason = span(file, line, "hl.bind")
@@ -301,9 +315,9 @@ def extract(hypr):
             kept += [{"file": file, "line": line, "key": e.get("key") or "", "reason": reason} for e in entries]
             continue
         binds += [b for b, _ in converted]
+        moved_keys |= {key_id(e["key"]) for e in entries}
         moved_sites.append({"file": file, "line": line})
 
-    moved_keys = {key_id(b["key"]) for b in binds}
     unbind_sites = {}
     for entry in found["unbinds"]:
         file = str(Path(entry["file"]).resolve()) if entry["file"] else ""

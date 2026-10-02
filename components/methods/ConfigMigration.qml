@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 37
+  readonly property int currentVersion: 38
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -101,6 +101,8 @@ QtObject {
       result = _v35ToV36(result, changes);
     if (version < 37)
       result = _v36ToV37(result, changes);
+    if (version < 38)
+      result = _v37ToV38(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -1323,5 +1325,27 @@ QtObject {
     (Array.isArray(config.EdgeMenus) ? config.EdgeMenus : []).forEach((menu, m) => rename(menu?.modules, `EdgeMenus[${m}].modules`));
     rename(config.Lockscreen?.layout?.modules, "Lockscreen.layout.modules");
     return config;
+  }
+
+  // v38 added toggle split and special workspace binds, on SUPER + X and
+  // SUPER (+ SHIFT) + V (Hyprland's example config has them on SUPER + J
+  // and SUPER (+ SHIFT) + S, which axiom's hjkl and WASD use)
+  function _v37ToV38(config, changes) {
+    return root._addBinds(config, changes, [
+      {
+        "key": "SUPER + X",
+        "action": "toggleSplit"
+      },
+      {
+        "key": "SUPER + V",
+        "action": "toggleSpecial",
+        "argument": "magic"
+      },
+      {
+        "key": "SUPER + SHIFT + V",
+        "action": "moveToSpecial",
+        "argument": "magic"
+      }
+    ]);
   }
 }

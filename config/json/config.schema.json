@@ -21,7 +21,7 @@
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 37,
+      "default": 38,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
@@ -464,6 +464,9 @@
             { "key": "SUPER + C", "action": "closeWindow" },
             { "key": "SUPER + F", "action": "fullscreen" },
             { "key": "SUPER + Z", "action": "toggleFloat" },
+            { "key": "SUPER + X", "action": "toggleSplit" },
+            { "key": "SUPER + V", "action": "toggleSpecial", "argument": "magic" },
+            { "key": "SUPER + SHIFT + V", "action": "moveToSpecial", "argument": "magic" },
             { "key": "SUPER + mouse:272", "action": "mouseDrag" },
             { "key": "SUPER + mouse:273", "action": "mouseResize" },
             { "key": "XF86AudioRaiseVolume", "action": "volumeUp", "locked": true, "repeating": true },

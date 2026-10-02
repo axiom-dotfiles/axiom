@@ -775,7 +775,15 @@ class MergeHyprBinds(unittest.TestCase):
         by_key = {b["key"]: b for b in found["binds"]}
         self.assertEqual(by_key["SUPER + 0"]["action"], "workspaceNth")
         self.assertEqual(by_key["SUPER + 0"]["argument"], "10")
-        self.assertEqual(by_key["SUPER + J"]["action"], "toggleSplit")
+        # Its split moves off SUPER + J, which axiom's focus down uses
+        self.assertNotIn("SUPER + J", by_key)
+        self.assertEqual(by_key["SUPER + X"]["action"], "toggleSplit")
+        # Its special workspace leaves WASD's S for V, and its float V for Z
+        self.assertNotIn("SUPER + S", by_key)
+        self.assertNotIn("SUPER + SHIFT + S", by_key)
+        self.assertEqual((by_key["SUPER + V"]["action"], by_key["SUPER + V"]["argument"]), ("toggleSpecial", "magic"))
+        self.assertEqual((by_key["SUPER + SHIFT + V"]["action"], by_key["SUPER + SHIFT + V"]["argument"]), ("moveToSpecial", "magic"))
+        self.assertEqual(by_key["SUPER + Z"]["action"], "toggleFloat")
         self.assertEqual(by_key["SUPER + mouse_down"]["argument"], "right")
         self.assertTrue(by_key["XF86AudioRaiseVolume"]["repeating"])
         done = self.remove(found["sites"])
