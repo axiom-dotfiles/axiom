@@ -1424,11 +1424,12 @@ QtObject {
   }
 
   // v41 picks bar widget colors automatically (an empty value): every
-  // widget's colors became Auto, text colors and Workspaces' cells aside
+  // widget's colors became Auto, text colors and Workspaces' cells (but the
+  // active one) aside
   readonly property var _v41AutoColors: ({
       "Window": ["backgroundColor"],
       "Media": ["playingColor", "pausedColor"],
-      "Workspaces": ["activeColor"],
+      "Workspaces": ["activeColor", "backgroundColor"],
       "Time": ["backgroundColor"],
       "Tailscale": ["connectedColor", "disconnectedColor"],
       "Network": ["backgroundColor", "disconnectedColor"],

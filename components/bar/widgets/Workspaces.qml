@@ -13,7 +13,8 @@ BarWidget {
   id: root
 
   readonly property int priority: 10
-  readonly property real inset: ["filled", "tinted", "outline"].includes(barConfig.widgetStyle) ? barConfig.widgetSpacing : 0
+  // Within a box, or clear of an underline (the line and a gap its width)
+  readonly property real inset: ["filled", "tinted", "outline"].includes(barConfig.widgetStyle) ? barConfig.widgetSpacing : barConfig.widgetStyle === "underline" ? barConfig.lineWidth * 2 : 0
 
   hasBackground: true
   accentColor: Theme.resolveColor(properties.backgroundColor)

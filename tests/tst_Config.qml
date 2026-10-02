@@ -824,6 +824,7 @@ TestCase {
                 "type": "Workspaces",
                 "properties": {
                   "activeColor": "base0E",
+                  "backgroundColor": "base02",
                   "occupiedColor": "base04"
                 }
               },
@@ -842,11 +843,12 @@ TestCase {
     });
     const [workspaces, battery] = loaded.config.Bars[0].widgets.left.map(widget => widget.properties);
     compare(workspaces.activeColor, "");
+    compare(workspaces.backgroundColor, "");
     compare(workspaces.occupiedColor, "base04");
     compare(battery.backgroundColor, "");
     compare(battery.criticalColor, "");
     compare(battery.foregroundColor, "base00");
-    compare(loaded.changes.filter(change => change.endsWith("-> Auto")).length, 3);
+    compare(loaded.changes.filter(change => change.endsWith("-> Auto")).length, 4);
     compare(errors(loaded.config), []);
   }
 
