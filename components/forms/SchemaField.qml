@@ -26,7 +26,15 @@ Loader {
   readonly property string label: row.title
   readonly property string description: fieldSchema.description ?? ""
   readonly property bool isColor: fieldSchema["x-options"] === "colors"
-  readonly property var options: SettingsManager.optionsFor(fieldSchema)
+  // `x-enumShowIf` hides options whose condition doesn't hold (the current
+  // value stays listed)
+  readonly property var options: {
+    const all = SettingsManager.optionsFor(fieldSchema);
+    const conditions = fieldSchema["x-enumShowIf"];
+    if (!all || !conditions)
+      return all;
+    return all.filter(value => value === root.current || SchemaLayout.showIfHolds(conditions[value], root._valueOf));
+  }
   // Labels shown for option values (`x-enumLabels`, or language names)
   readonly property var optionLabels: {
     if (fieldSchema["x-options"] === "languages")
@@ -57,20 +65,25 @@ Loader {
       return {
         "": I18n.tr("Last opened")
       };
-    // Schema labels are English, translated like titles
-    const labels = fieldSchema["x-enumLabels"] ?? {};
+    // Schema labels are English, translated like titles; `x-emptyLabel`
+    // names an empty value (a color picked automatically: I18n.tr("Auto"))
+    const labels = Object.assign({}, fieldSchema["x-enumLabels"] ?? {});
+    if (fieldSchema["x-emptyLabel"])
+      labels[""] = fieldSchema["x-emptyLabel"];
     return Object.keys(labels).reduce((out, value) => {
       out[value] = I18n.tr(labels[value]);
       return out;
     }, {});
   }
 
-  // `x-showIf`, checked against sibling keys of this row's path (or a
-  // `/`-rooted config path), in any form
-  readonly property bool shown: {
-    const parent = row.path.slice(0, -1);
-    return SchemaLayout.showIfHolds(fieldSchema["x-showIf"], key => key.startsWith("/") ? SettingsManager.configValueAt(key.slice(1)) : root.form?.valueAt(parent.concat(key)));
+  // A sibling key of this row's path (or a `/`-rooted config path), for
+  // `x-showIf` and `x-enumShowIf`, in any form
+  function _valueOf(key) {
+    return key.startsWith("/") ? SettingsManager.configValueAt(key.slice(1)) : root.form?.valueAt(root.row.path.slice(0, -1).concat(key));
   }
+
+  // `x-showIf`, checked against _valueOf
+  readonly property bool shown: SchemaLayout.showIfHolds(fieldSchema["x-showIf"], root._valueOf)
 
   visible: shown
 

@@ -21,7 +21,7 @@
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 38,
+      "default": 41,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
@@ -978,6 +978,303 @@
       }
     },
 
+    "BarStyle": {
+      "type": "object",
+      "x-category": "Look & Feel",
+      "title": "Bar style",
+      "description": "How every bar draws its widgets, accents and shadow. A bar can take its own of any of these in the bar editor.",
+      "x-order": ["widgetStyle", "tintOpacity", "outlineWidth", "lineWidth", "lineSide", "widgetShape", "widgetGrouping", "widgetEnds", "groupColor", "widgetTextColor", "separatorStyle", "separatorColor", "separatorThickness", "accentLine", "accentLineColor", "accentLineFade", "accentLineWidth", "shadow", "shadowColor", "shadowSize"],
+      "additionalProperties": false,
+      "properties": {
+        "widgetStyle": {
+          "x-group": "Bar widgets",
+          "type": "string",
+          "title": "Widget style",
+          "default": "filled",
+          "enum": ["filled", "tinted", "outline", "underline", "accentText", "plain"],
+          "x-enumLabels": {
+            "filled": "Filled",
+            "tinted": "Tinted",
+            "outline": "Outline",
+            "underline": "Underline",
+            "accentText": "Colored icons",
+            "plain": "Plain text"
+          },
+          "description": "How each widget shows its color: as its background, a faint tint, an outline, a line beside it, or on its icon. Plain text draws them straight onto the bar."
+        },
+        "tintOpacity": {
+          "x-group": "Bar widgets",
+          "type": "integer",
+          "x-control": "slider",
+          "title": "Tint strength",
+          "default": 20,
+          "minimum": 5,
+          "maximum": 100,
+          "x-unit": "%",
+          "x-showIf": {
+            "widgetStyle": "tinted"
+          }
+        },
+        "outlineWidth": {
+          "x-group": "Bar widgets",
+          "type": "integer",
+          "x-control": "stepper",
+          "title": "Outline width",
+          "default": 2,
+          "minimum": 1,
+          "maximum": 6,
+          "x-unit": "px",
+          "x-showIf": {
+            "widgetStyle": "outline"
+          }
+        },
+        "lineWidth": {
+          "x-group": "Bar widgets",
+          "type": "integer",
+          "x-control": "stepper",
+          "title": "Line width",
+          "default": 2,
+          "minimum": 1,
+          "maximum": 8,
+          "x-unit": "px",
+          "x-showIf": {
+            "widgetStyle": "underline"
+          }
+        },
+        "lineSide": {
+          "x-group": "Bar widgets",
+          "type": "string",
+          "title": "Line side",
+          "default": "inner",
+          "enum": ["inner", "outer"],
+          "x-enumLabels": {
+            "inner": "Toward the windows",
+            "outer": "Toward the screen edge"
+          },
+          "x-beside": true,
+          "x-showIf": {
+            "widgetStyle": "underline"
+          }
+        },
+        "widgetShape": {
+          "x-group": "Bar widgets",
+          "type": "string",
+          "title": "Shape",
+          "default": "rounded",
+          "enum": ["rounded", "capsule", "slant", "arrow"],
+          "x-enumLabels": {
+            "rounded": "Rounded",
+            "capsule": "Capsule",
+            "slant": "Slanted",
+            "arrow": "Arrow"
+          },
+          "x-showIf": {
+            "widgetStyle": ["filled", "tinted", "outline"]
+          },
+          "description": "Rounded follows the widget corner radius. Slanted and arrow widgets take a little more room for their points."
+        },
+        "widgetGrouping": {
+          "x-group": "Bar widgets",
+          "type": "string",
+          "title": "Grouping",
+          "default": "separate",
+          "enum": ["separate", "merged", "powerline"],
+          "x-enumLabels": {
+            "separate": "Separate",
+            "merged": "Merged",
+            "powerline": "Powerline"
+          },
+          "x-beside": true,
+          "x-showIf": {
+            "widgetStyle": ["filled", "tinted", "outline"]
+          },
+          "description": "Merged: neighbouring widgets share one background. Powerline: each widget's shape runs into the next."
+        },
+        "widgetEnds": {
+          "x-group": "Bar widgets",
+          "type": "string",
+          "title": "Ends",
+          "default": "shaped",
+          "enum": ["shaped", "pointed", "rounded"],
+          "x-enumLabels": {
+            "shaped": "Shaped",
+            "pointed": "Pointed",
+            "rounded": "Rounded"
+          },
+          "x-showIf": {
+            "widgetStyle": ["filled", "tinted", "outline"],
+            "widgetShape": ["slant", "arrow"]
+          },
+          "x-enumShowIf": {
+            "pointed": { "widgetShape": "arrow" }
+          },
+          "description": "The ends of a slanted or arrow widget, or of a run of them: as shaped, rounded, or (arrows) pointed at both."
+        },
+        "groupColor": {
+          "x-group": "Bar widgets",
+          "type": "string",
+          "title": "Merged background",
+          "x-options": "colors",
+          "default": "backgroundAlt",
+          "x-showIf": {
+            "widgetStyle": ["filled", "tinted", "outline"],
+            "widgetGrouping": "merged"
+          },
+          "description": "Widget colors show on their icons instead."
+        },
+        "widgetTextColor": {
+          "x-group": "Bar widgets",
+          "type": "string",
+          "title": "Text color",
+          "x-options": "colors",
+          "x-emptyLabel": "Auto",
+          "default": "",
+          "description": "One color for every widget's text and icons. Auto: each widget's own on a filled background, its color when tinted or outlined, else one that contrasts with the bar."
+        },
+        "separatorStyle": {
+          "x-group": "Bar accents",
+          "type": "string",
+          "title": "Separators",
+          "default": "none",
+          "enum": ["none", "line", "dot", "slash", "chevron"],
+          "x-enumLabels": {
+            "none": "None",
+            "line": "Line",
+            "dot": "Dot",
+            "slash": "Slash",
+            "chevron": "Chevron"
+          },
+          "description": "Drawn in the gap between neighbouring widgets in a section (not in a powerline). Give them room with Spacing."
+        },
+        "separatorColor": {
+          "x-group": "Bar accents",
+          "type": "string",
+          "title": "Separator color",
+          "x-options": "colors",
+          "default": "base03",
+          "x-showIf": {
+            "separatorStyle": {
+              "not": "none"
+            }
+          }
+        },
+        "separatorThickness": {
+          "x-group": "Bar accents",
+          "type": "integer",
+          "x-control": "stepper",
+          "title": "Separator thickness",
+          "default": 2,
+          "minimum": 1,
+          "maximum": 6,
+          "x-unit": "px",
+          "x-beside": true,
+          "x-showIf": {
+            "separatorStyle": {
+              "not": "none"
+            }
+          }
+        },
+        "accentLine": {
+          "x-group": "Bar accents",
+          "type": "string",
+          "title": "Accent line",
+          "default": "none",
+          "enum": ["none", "inner", "outer"],
+          "x-enumLabels": {
+            "none": "None",
+            "inner": "Inner edge",
+            "outer": "Outer edge"
+          },
+          "description": "A line along the bar's edge toward the windows (inner) or the screen edge (outer); on pills, along each pill."
+        },
+        "accentLineColor": {
+          "x-group": "Bar accents",
+          "type": "string",
+          "title": "Line color",
+          "x-options": "colors",
+          "default": "accent",
+          "x-showIf": {
+            "accentLine": {
+              "not": "none"
+            }
+          }
+        },
+        "accentLineFade": {
+          "x-group": "Bar accents",
+          "type": "string",
+          "title": "Fade to",
+          "x-options": "colors",
+          "x-emptyLabel": "None",
+          "default": "",
+          "x-beside": true,
+          "x-showIf": {
+            "accentLine": {
+              "not": "none"
+            }
+          },
+          "description": "Runs the line from its color into this one along the bar."
+        },
+        "accentLineWidth": {
+          "x-group": "Bar accents",
+          "type": "integer",
+          "x-control": "stepper",
+          "title": "Line width",
+          "default": 2,
+          "minimum": 1,
+          "maximum": 8,
+          "x-unit": "px",
+          "x-showIf": {
+            "accentLine": {
+              "not": "none"
+            }
+          }
+        },
+        "shadow": {
+          "x-group": "Bar shadow",
+          "type": "string",
+          "title": "Shadow",
+          "default": "none",
+          "enum": ["none", "shadow", "glow"],
+          "x-enumLabels": {
+            "none": "None",
+            "shadow": "Shadow",
+            "glow": "Glow"
+          },
+          "description": "Cast by every bar (or its pills) and by the screen border, inward all the way round. A transparent bar has nothing to cast one; a solid bar on the border leaves it to the border."
+        },
+        "shadowColor": {
+          "x-group": "Bar shadow",
+          "type": "string",
+          "title": "Shadow color",
+          "x-options": "colors",
+          "x-emptyLabel": "Auto",
+          "default": "",
+          "x-showIf": {
+            "shadow": {
+              "not": "none"
+            }
+          },
+          "description": "Auto: black for a shadow, the accent for a glow."
+        },
+        "shadowSize": {
+          "x-group": "Bar shadow",
+          "type": "integer",
+          "x-control": "stepper",
+          "title": "Shadow size",
+          "default": 12,
+          "minimum": 2,
+          "maximum": 40,
+          "x-unit": "px",
+          "x-beside": true,
+          "x-showIf": {
+            "shadow": {
+              "not": "none"
+            }
+          }
+        }
+      }
+    },
+
     "Popouts": {
       "type": "object",
       "x-category": "Overlay & Popouts",
@@ -1556,7 +1853,7 @@
           "lockCenter": true,
           "widgets": {
             "left": [
-              { "type": "Button", "properties": { "action": "overlay", "icon": "menu", "tooltip": "Overlay", "backgroundColor": "base0E" } },
+              { "type": "Button", "properties": { "action": "overlay", "icon": "menu", "tooltip": "Overlay" } },
               { "type": "Workspaces" },
               { "type": "Window" }
             ],
@@ -1570,7 +1867,7 @@
               { "type": "Bluetooth", "properties": { "hideWhenOff": true } },
               { "type": "Battery" },
               { "type": "Notifications" },
-              { "type": "Button", "properties": { "action": "powerMenu", "tooltip": "Power", "backgroundColor": "base08" } }
+              { "type": "Button", "properties": { "action": "powerMenu", "tooltip": "Power" } }
             ]
           }
         }
@@ -2011,7 +2308,7 @@
 
     "Bar": {
       "type": "object",
-      "x-order": ["id", "enabled", "monitor", "location", "widgetSize", "padding", "spacing", "widgetPadding", "widgetSpacing", "background", "pillPadding", "pillMerge", "overrideFontSize", "fontSize", "overrideRadius", "widgetRadius", "lockCenter", "reserveSpace"],
+      "x-order": ["id", "enabled", "monitor", "location", "widgetSize", "padding", "spacing", "widgetPadding", "widgetSpacing", "background", "floatGap", "pillPadding", "pillMerge", "overrideFontSize", "fontSize", "overrideRadius", "widgetRadius", "overrideWidgetStyle", "widgetStyle", "tintOpacity", "outlineWidth", "lineWidth", "lineSide", "widgetShape", "widgetGrouping", "widgetEnds", "groupColor", "widgetTextColor", "overrideAccents", "separatorStyle", "separatorColor", "separatorThickness", "accentLine", "accentLineColor", "accentLineFade", "accentLineWidth", "overrideShadow", "shadow", "shadowColor", "shadowSize", "lockCenter", "reserveSpace"],
       "required": ["id"],
       "additionalProperties": false,
       "properties": {
@@ -2061,9 +2358,21 @@
           "type": "string",
           "title": "Background",
           "default": "solid",
-          "enum": ["solid", "transparent", "pills"],
-          "x-enumLabels": { "solid": "Solid", "transparent": "Transparent", "pills": "Pill per group" },
-          "description": "Transparent and pill bars sit inside the screen border; pills grow out of it."
+          "enum": ["solid", "transparent", "pills", "floating", "floatingPills"],
+          "x-enumLabels": { "solid": "Solid", "transparent": "Transparent", "pills": "Pill per group", "floating": "Floating bar", "floatingPills": "Floating pills" },
+          "description": "Every bar but a solid one sits inside the screen border. Pills grow out of it; floating bars and pills are held away from it."
+        },
+        "floatGap": {
+          "x-group": "Style",
+          "type": "integer",
+          "x-control": "stepper",
+          "title": "Float gap",
+          "default": 8,
+          "minimum": 0,
+          "maximum": 60,
+          "x-unit": "px",
+          "x-showIf": { "background": ["floating", "floatingPills"] },
+          "description": "How far a floating bar keeps from the screen border (or the screen edge), across the bar and at its ends, and from the windows."
         },
         "pillPadding": {
           "x-group": "Style",
@@ -2085,7 +2394,7 @@
           "default": 12,
           "minimum": 0,
           "maximum": 200,
-          "x-showIf": { "background": "pills" },
+          "x-showIf": { "background": ["pills", "floatingPills"] },
           "x-unit": "px",
           "description": "Groups closer than this share one pill (px)."
         },
@@ -2174,6 +2483,343 @@
           "x-unit": "px",
           "x-showIf": {
             "overrideRadius": true
+          }
+        },
+        "overrideWidgetStyle": {
+          "x-group": "Widgets",
+          "type": "boolean",
+          "title": "Own widget style",
+          "default": false,
+          "description": "Off: the bar follows the Bar style settings in Look & Feel."
+        },
+        "widgetStyle": {
+          "x-group": "Widgets",
+          "type": "string",
+          "title": "Widget style",
+          "default": "filled",
+          "enum": ["filled", "tinted", "outline", "underline", "accentText", "plain"],
+          "x-enumLabels": {
+            "filled": "Filled",
+            "tinted": "Tinted",
+            "outline": "Outline",
+            "underline": "Underline",
+            "accentText": "Colored icons",
+            "plain": "Plain text"
+          },
+          "description": "How each widget shows its color: as its background, a faint tint, an outline, a line beside it, or on its icon. Plain text draws them straight onto the bar.",
+          "x-showIf": {
+            "overrideWidgetStyle": true
+          }
+        },
+        "tintOpacity": {
+          "x-group": "Widgets",
+          "type": "integer",
+          "x-control": "slider",
+          "title": "Tint strength",
+          "default": 20,
+          "minimum": 5,
+          "maximum": 100,
+          "x-unit": "%",
+          "x-showIf": {
+            "overrideWidgetStyle": true,
+            "widgetStyle": "tinted"
+          }
+        },
+        "outlineWidth": {
+          "x-group": "Widgets",
+          "type": "integer",
+          "x-control": "stepper",
+          "title": "Outline width",
+          "default": 2,
+          "minimum": 1,
+          "maximum": 6,
+          "x-unit": "px",
+          "x-showIf": {
+            "overrideWidgetStyle": true,
+            "widgetStyle": "outline"
+          }
+        },
+        "lineWidth": {
+          "x-group": "Widgets",
+          "type": "integer",
+          "x-control": "stepper",
+          "title": "Line width",
+          "default": 2,
+          "minimum": 1,
+          "maximum": 8,
+          "x-unit": "px",
+          "x-showIf": {
+            "overrideWidgetStyle": true,
+            "widgetStyle": "underline"
+          }
+        },
+        "lineSide": {
+          "x-group": "Widgets",
+          "type": "string",
+          "title": "Line side",
+          "default": "inner",
+          "enum": ["inner", "outer"],
+          "x-enumLabels": {
+            "inner": "Toward the windows",
+            "outer": "Toward the screen edge"
+          },
+          "x-beside": true,
+          "x-showIf": {
+            "overrideWidgetStyle": true,
+            "widgetStyle": "underline"
+          }
+        },
+        "widgetShape": {
+          "x-group": "Widgets",
+          "type": "string",
+          "title": "Shape",
+          "default": "rounded",
+          "enum": ["rounded", "capsule", "slant", "arrow"],
+          "x-enumLabels": {
+            "rounded": "Rounded",
+            "capsule": "Capsule",
+            "slant": "Slanted",
+            "arrow": "Arrow"
+          },
+          "description": "Rounded follows the widget corner radius. Slanted and arrow widgets take a little more room for their points.",
+          "x-showIf": {
+            "overrideWidgetStyle": true,
+            "widgetStyle": ["filled", "tinted", "outline"]
+          }
+        },
+        "widgetGrouping": {
+          "x-group": "Widgets",
+          "type": "string",
+          "title": "Grouping",
+          "default": "separate",
+          "enum": ["separate", "merged", "powerline"],
+          "x-enumLabels": {
+            "separate": "Separate",
+            "merged": "Merged",
+            "powerline": "Powerline"
+          },
+          "x-beside": true,
+          "description": "Merged: neighbouring widgets share one background. Powerline: each widget's shape runs into the next.",
+          "x-showIf": {
+            "overrideWidgetStyle": true,
+            "widgetStyle": ["filled", "tinted", "outline"]
+          }
+        },
+        "widgetEnds": {
+          "x-group": "Widgets",
+          "type": "string",
+          "title": "Ends",
+          "default": "shaped",
+          "enum": ["shaped", "pointed", "rounded"],
+          "x-enumLabels": {
+            "shaped": "Shaped",
+            "pointed": "Pointed",
+            "rounded": "Rounded"
+          },
+          "x-showIf": {
+            "overrideWidgetStyle": true,
+            "widgetStyle": ["filled", "tinted", "outline"],
+            "widgetShape": ["slant", "arrow"]
+          },
+          "x-enumShowIf": {
+            "pointed": { "widgetShape": "arrow" }
+          },
+          "description": "The ends of a slanted or arrow widget, or of a run of them: as shaped, rounded, or (arrows) pointed at both."
+        },
+        "groupColor": {
+          "x-group": "Widgets",
+          "type": "string",
+          "title": "Merged background",
+          "x-options": "colors",
+          "default": "backgroundAlt",
+          "description": "Widget colors show on their icons instead.",
+          "x-showIf": {
+            "overrideWidgetStyle": true,
+            "widgetStyle": ["filled", "tinted", "outline"],
+            "widgetGrouping": "merged"
+          }
+        },
+        "widgetTextColor": {
+          "x-group": "Widgets",
+          "type": "string",
+          "title": "Text color",
+          "x-options": "colors",
+          "x-emptyLabel": "Auto",
+          "default": "",
+          "description": "One color for every widget's text and icons. Auto: each widget's own on a filled background, its color when tinted or outlined, else one that contrasts with the bar.",
+          "x-showIf": {
+            "overrideWidgetStyle": true
+          }
+        },
+        "overrideAccents": {
+          "x-group": "Accents",
+          "type": "boolean",
+          "title": "Own accents",
+          "default": false,
+          "description": "Off: the bar follows the Bar style settings in Look & Feel."
+        },
+        "separatorStyle": {
+          "x-group": "Accents",
+          "type": "string",
+          "title": "Separators",
+          "default": "none",
+          "enum": ["none", "line", "dot", "slash", "chevron"],
+          "x-enumLabels": {
+            "none": "None",
+            "line": "Line",
+            "dot": "Dot",
+            "slash": "Slash",
+            "chevron": "Chevron"
+          },
+          "description": "Drawn in the gap between neighbouring widgets in a section (not in a powerline). Give them room with Spacing.",
+          "x-showIf": {
+            "overrideAccents": true
+          }
+        },
+        "separatorColor": {
+          "x-group": "Accents",
+          "type": "string",
+          "title": "Separator color",
+          "x-options": "colors",
+          "default": "base03",
+          "x-showIf": {
+            "overrideAccents": true,
+            "separatorStyle": {
+              "not": "none"
+            }
+          }
+        },
+        "separatorThickness": {
+          "x-group": "Accents",
+          "type": "integer",
+          "x-control": "stepper",
+          "title": "Separator thickness",
+          "default": 2,
+          "minimum": 1,
+          "maximum": 6,
+          "x-unit": "px",
+          "x-beside": true,
+          "x-showIf": {
+            "overrideAccents": true,
+            "separatorStyle": {
+              "not": "none"
+            }
+          }
+        },
+        "accentLine": {
+          "x-group": "Accents",
+          "type": "string",
+          "title": "Accent line",
+          "default": "none",
+          "enum": ["none", "inner", "outer"],
+          "x-enumLabels": {
+            "none": "None",
+            "inner": "Inner edge",
+            "outer": "Outer edge"
+          },
+          "description": "A line along the bar's edge toward the windows (inner) or the screen edge (outer); on pills, along each pill.",
+          "x-showIf": {
+            "overrideAccents": true
+          }
+        },
+        "accentLineColor": {
+          "x-group": "Accents",
+          "type": "string",
+          "title": "Line color",
+          "x-options": "colors",
+          "default": "accent",
+          "x-showIf": {
+            "overrideAccents": true,
+            "accentLine": {
+              "not": "none"
+            }
+          }
+        },
+        "accentLineFade": {
+          "x-group": "Accents",
+          "type": "string",
+          "title": "Fade to",
+          "x-options": "colors",
+          "x-emptyLabel": "None",
+          "default": "",
+          "x-beside": true,
+          "description": "Runs the line from its color into this one along the bar.",
+          "x-showIf": {
+            "overrideAccents": true,
+            "accentLine": {
+              "not": "none"
+            }
+          }
+        },
+        "accentLineWidth": {
+          "x-group": "Accents",
+          "type": "integer",
+          "x-control": "stepper",
+          "title": "Line width",
+          "default": 2,
+          "minimum": 1,
+          "maximum": 8,
+          "x-unit": "px",
+          "x-showIf": {
+            "overrideAccents": true,
+            "accentLine": {
+              "not": "none"
+            }
+          }
+        },
+        "overrideShadow": {
+          "x-group": "Shadow",
+          "type": "boolean",
+          "title": "Own shadow",
+          "default": false,
+          "description": "Off: the bar follows the Bar style settings in Look & Feel."
+        },
+        "shadow": {
+          "x-group": "Shadow",
+          "type": "string",
+          "title": "Shadow",
+          "default": "none",
+          "enum": ["none", "shadow", "glow"],
+          "x-enumLabels": {
+            "none": "None",
+            "shadow": "Shadow",
+            "glow": "Glow"
+          },
+          "description": "Cast by the bar, or by its pills. A transparent bar has nothing to cast one; a solid bar on the screen border leaves it to the border, which casts the Bar style one.",
+          "x-showIf": {
+            "overrideShadow": true
+          }
+        },
+        "shadowColor": {
+          "x-group": "Shadow",
+          "type": "string",
+          "title": "Shadow color",
+          "x-options": "colors",
+          "x-emptyLabel": "Auto",
+          "default": "",
+          "description": "Auto: black for a shadow, the accent for a glow.",
+          "x-showIf": {
+            "overrideShadow": true,
+            "shadow": {
+              "not": "none"
+            }
+          }
+        },
+        "shadowSize": {
+          "x-group": "Shadow",
+          "type": "integer",
+          "x-control": "stepper",
+          "title": "Shadow size",
+          "default": 12,
+          "minimum": 2,
+          "maximum": 40,
+          "x-unit": "px",
+          "x-beside": true,
+          "x-showIf": {
+            "overrideShadow": true,
+            "shadow": {
+              "not": "none"
+            }
           }
         },
         "widgets": {
@@ -2811,7 +3457,7 @@
           "properties": {
             "icon": { "type": "string", "title": "Icon", "default": "", "description": "Icon shown before the title: a Material Symbols name (fonts.google.com/icons), or text. Empty shows none." },
             "emptyText": { "type": "string", "title": "Empty text", "default": "—", "description": "Shown when no window is focused." },
-            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base0D" },
+            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
           }
         }
@@ -2834,8 +3480,8 @@
             "artistLength": { "type": "integer", "x-control": "stepper", "title": "Artist length", "default": 10, "minimum": 0, "maximum": 100, "description": "Longest artist name shown before it is shortened (characters)." },
             "idleText": { "type": "string", "title": "Idle text", "default": "No player", "description": "Shown when nothing is playing." },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Open the media controls when hovered." },
-            "playingColor": { "type": "string", "title": "Playing background", "x-options": "colors", "default": "base0B" },
-            "pausedColor": { "type": "string", "title": "Paused background", "x-options": "colors", "default": "base02" },
+            "playingColor": { "type": "string", "title": "Playing background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
+            "pausedColor": { "type": "string", "title": "Paused background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "off" },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
           }
         }
@@ -2864,7 +3510,8 @@
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "x-showIf": { "/Workspaces.layout": "grid" }, "description": "Open the whole grid when hovered." },
             "clickToSwitch": { "type": "boolean", "title": "Click to switch", "default": true, "description": "Click a workspace (on the bar or in the grid popout) to go to it." },
             "scrollToSwitch": { "type": "boolean", "title": "Scroll to switch", "default": true, "description": "Scroll over the widget to step through the workspaces (along the shown row or column in a grid)." },
-            "activeColor": { "type": "string", "title": "Active", "x-options": "colors", "default": "base0E" },
+            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "neutral", "description": "Behind the workspaces, in the bar's widget style." },
+            "activeColor": { "type": "string", "title": "Active", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
             "occupiedColor": { "type": "string", "title": "Occupied", "x-options": "colors", "default": "base04" },
             "emptyColor": { "type": "string", "title": "Empty", "x-options": "colors", "default": "base01" },
             "textColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00", "description": "Numbers, and the grid's active arrow. The colors also apply to the grid popout." }
@@ -2892,7 +3539,7 @@
             "dateFormat": { "type": "string", "title": "Date format", "default": "", "description": "Custom Qt date format (e.g. ddd d MMM). Empty uses the language's format." },
             "verticalDate": { "type": "string", "title": "Vertical date", "default": "day", "enum": ["day", "monthDay", "numeric"], "x-enumLabels": { "day": "Day and weekday", "monthDay": "Month, day and weekday", "numeric": "Day over month number" }, "description": "The date's lines on a vertical bar, when no date format is set.", "x-showIf": { "showDate": true } },
             "showCalendar": { "type": "boolean", "title": "Calendar popout", "default": true, "description": "Open the calendar when hovered." },
-            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base0C" },
+            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
           }
         }
@@ -2914,8 +3561,8 @@
             "showLabel": { "type": "boolean", "title": "Show label", "default": true },
             "label": { "type": "string", "title": "Label", "default": "", "description": "Text shown while connected. Empty shows the tailnet name." },
             "interval": { "type": "integer", "title": "Poll interval", "x-unit": "ms", "default": 2000, "minimum": 250, "maximum": 60000 },
-            "connectedColor": { "type": "string", "title": "Connected background", "x-options": "colors", "default": "base0A" },
-            "disconnectedColor": { "type": "string", "title": "Disconnected background", "x-options": "colors", "default": "base02" },
+            "connectedColor": { "type": "string", "title": "Connected background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
+            "disconnectedColor": { "type": "string", "title": "Disconnected background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "off" },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
           }
         }
@@ -2937,8 +3584,8 @@
             "showName": { "type": "boolean", "title": "Show device", "default": false, "description": "Show the connected device name next to the icon." },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Open the Wi-Fi menu when hovered." },
             "middleCommand": { "type": "string", "title": "Middle-click command", "default": "", "description": "Shell command run on middle click (e.g. nm-connection-editor). Empty does nothing." },
-            "backgroundColor": { "type": "string", "title": "Connected background", "x-options": "colors", "default": "base09" },
-            "disconnectedColor": { "type": "string", "title": "Disconnected background", "x-options": "colors", "default": "base08" },
+            "backgroundColor": { "type": "string", "title": "Connected background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
+            "disconnectedColor": { "type": "string", "title": "Disconnected background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "critical" },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
           }
         }
@@ -2960,7 +3607,7 @@
             "iconSize": { "type": "integer", "x-control": "stepper", "title": "Icon size", "default": 18, "minimum": 8, "maximum": 64, "x-unit": "px", "description": "Size of tray icons (px)." },
             "showPassive": { "type": "boolean", "title": "Show passive", "default": true, "description": "Also show items that report themselves as passive (idle)." },
             "showPopout": { "type": "boolean", "title": "Menus", "default": true, "description": "Open an item's menu when it's hovered." },
-            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "backgroundAlt" }
+            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "neutral" }
           }
         }
       }
@@ -2980,10 +3627,10 @@
           "properties": {
             "showCount": { "type": "boolean", "title": "Show count", "default": true, "description": "Badge with the number of notifications." },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Open the notification list when hovered." },
-            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base0D" },
+            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" },
-            "dndColor": { "type": "string", "title": "Do-not-disturb icon", "x-options": "colors", "default": "base04" },
-            "badgeColor": { "type": "string", "title": "Badge", "x-options": "colors", "default": "base08" }
+            "dndColor": { "type": "string", "title": "Do-not-disturb icon", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "off" },
+            "badgeColor": { "type": "string", "title": "Badge", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "critical" }
           }
         }
       }
@@ -3013,7 +3660,7 @@
             "hoverActivate": { "type": "boolean", "title": "Activate on hover", "default": false, "description": "Run the click action after hovering for the popout open delay. Doesn't close a launcher, overlay, power menu or edge menu that is already open.", "x-showIf": { "action": { "not": "none" } } },
             "labelCommand": { "type": "string", "title": "Label command", "default": "", "description": "Shell command whose first line of output is shown as the label, re-run on an interval." },
             "labelInterval": { "type": "integer", "title": "Label interval", "x-unit": "ms", "default": 5000, "minimum": 500, "maximum": 3600000, "description": "How often the label command runs.", "x-showIf": { "labelCommand": { "not": "" } } },
-            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base0C" },
+            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
           }
         }
@@ -3033,10 +3680,10 @@
           "additionalProperties": false,
           "properties": {
             "showPercentage": { "type": "boolean", "title": "Show percentage", "default": true },
-            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base0D" },
-            "chargingColor": { "type": "string", "title": "Charging background", "x-options": "colors", "default": "base0B" },
-            "lowColor": { "type": "string", "title": "Low background", "x-options": "colors", "default": "base0C", "description": "At or below Battery > Low at (in settings)." },
-            "criticalColor": { "type": "string", "title": "Critical background", "x-options": "colors", "default": "base08", "description": "At or below Battery > Critical at (in settings)." },
+            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
+            "chargingColor": { "type": "string", "title": "Charging background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "alt" },
+            "lowColor": { "type": "string", "title": "Low background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "warning", "description": "At or below Battery > Low at (in settings)." },
+            "criticalColor": { "type": "string", "title": "Critical background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "critical", "description": "At or below Battery > Critical at (in settings)." },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
           }
         }
@@ -3065,8 +3712,8 @@
             "interval": { "type": "integer", "title": "Poll interval", "x-unit": "ms", "default": 2000, "minimum": 1000, "maximum": 60000 },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Open live graphs of the shown metrics when hovered." },
             "warnThreshold": { "type": "integer", "title": "Warning at", "default": 90, "minimum": 1, "maximum": 100, "description": "Any usage (%) or temperature (°C) at or above this switches to the warning background." },
-            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base0E" },
-            "warnColor": { "type": "string", "title": "Warning background", "x-options": "colors", "default": "base08" },
+            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
+            "warnColor": { "type": "string", "title": "Warning background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "warning" },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
           }
         }
@@ -3087,7 +3734,7 @@
           "properties": {
             "format": { "type": "string", "title": "Format", "default": "short", "enum": ["short", "full"], "description": "Layout code (US) or full keymap name (English (US))." },
             "hideSingle": { "type": "boolean", "title": "Hide single layout", "default": false, "description": "Hide the widget when only one layout is configured." },
-            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base0D" },
+            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
           }
         }
@@ -3107,8 +3754,8 @@
           "additionalProperties": false,
           "properties": {
             "showLabel": { "type": "boolean", "title": "Show label", "default": false },
-            "activeColor": { "type": "string", "title": "Active background", "x-options": "colors", "default": "base0A" },
-            "inactiveColor": { "type": "string", "title": "Inactive background", "x-options": "colors", "default": "base02" },
+            "activeColor": { "type": "string", "title": "Active background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
+            "inactiveColor": { "type": "string", "title": "Inactive background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "off" },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
           }
         }
@@ -3131,7 +3778,7 @@
             "showScreen": { "type": "boolean", "title": "Screen share", "default": true },
             "showCamera": { "type": "boolean", "title": "Camera", "default": true },
             "ignoreApps": { "type": "array", "items": { "type": "string" }, "title": "Ignored apps", "default": ["cava"], "description": "App names that never trigger an indicator, comma-separated." },
-            "activeColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base08" },
+            "activeColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "critical" },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
           }
         }
@@ -3151,7 +3798,7 @@
           "additionalProperties": false,
           "properties": {
             "showTimer": { "type": "boolean", "title": "Show time recorded", "default": true },
-            "activeColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base08" },
+            "activeColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "critical" },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
           }
         }
@@ -3178,8 +3825,8 @@
             "terminal": { "type": "string", "title": "Terminal", "default": "", "description": "Terminal the upgrade runs in (launched as `<terminal> -e ...`). Empty uses Apps → Terminal." },
             "upgradeCommand": { "type": "string", "title": "Upgrade command", "default": "", "description": "Run on click. Empty uses `sudo pacman -Syu`, or the AUR helper with -Syu." },
             "manyThreshold": { "type": "integer", "title": "Many updates", "default": 50, "minimum": 1, "maximum": 1000, "description": "At or above this count, the widget uses the many-updates background." },
-            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base0B" },
-            "manyColor": { "type": "string", "title": "Many-updates background", "x-options": "colors", "default": "base09" },
+            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
+            "manyColor": { "type": "string", "title": "Many-updates background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "warning" },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
           }
         }
@@ -3222,9 +3869,9 @@
             "criticalThreshold": { "type": "integer", "title": "Critical at", "x-unit": "%", "default": 90, "minimum": 1, "maximum": 100 },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "List every limit per account when hovered." },
             "clickCommand": { "type": "string", "title": "Click command", "default": "", "description": "Run on left click (e.g. `xdg-open https://claude.ai/settings/usage`). Right click checks again now." },
-            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base0E" },
-            "warnColor": { "type": "string", "title": "Warning background", "x-options": "colors", "default": "base09" },
-            "criticalColor": { "type": "string", "title": "Critical background", "x-options": "colors", "default": "base08" },
+            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
+            "warnColor": { "type": "string", "title": "Warning background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "warning" },
+            "criticalColor": { "type": "string", "title": "Critical background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "critical" },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
           }
         }
@@ -3245,7 +3892,7 @@
           "properties": {
             "showCondition": { "type": "boolean", "title": "Show condition", "default": false, "description": "Show the condition (e.g. Rain) next to the temperature." },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Show the forecast when hovered." },
-            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base0C" },
+            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
           }
         }
@@ -3264,10 +3911,10 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "style": { "type": "string", "title": "Style", "default": "line", "enum": ["line", "dot", "space"] },
+            "style": { "type": "string", "title": "Style", "default": "line", "enum": ["line", "dot", "slash", "chevron", "space"] },
             "size": { "type": "integer", "title": "Size", "default": 12, "minimum": 0, "maximum": 500, "x-unit": "px", "description": "Space it takes along the bar (px)." },
             "thickness": { "type": "integer", "x-control": "stepper", "title": "Thickness", "default": 2, "minimum": 1, "maximum": 10, "x-unit": "px", "description": "Line width (px); dots are twice this across.", "x-showIf": { "style": { "not": "space" } } },
-            "length": { "type": "integer", "title": "Line length", "x-unit": "%", "default": 60, "minimum": 10, "maximum": 100, "description": "Share of the widget height the line spans.", "x-showIf": { "style": "line" } },
+            "length": { "type": "integer", "title": "Line length", "x-unit": "%", "default": 60, "minimum": 10, "maximum": 100, "description": "Share of the widget height the line, slash or chevron spans.", "x-showIf": { "style": ["line", "slash", "chevron"] } },
             "color": { "type": "string", "title": "Color", "x-options": "colors", "default": "base03", "x-showIf": { "style": { "not": "space" } } }
           }
         }
@@ -3291,8 +3938,8 @@
             "maxVolume": { "type": "integer", "title": "Maximum volume", "x-unit": "%", "default": 100, "minimum": 100, "maximum": 150, "description": "Highest volume scrolling and the mixer sliders allow." },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Open the output mixer when hovered." },
             "middleCommand": { "type": "string", "title": "Middle-click command", "default": "pavucontrol", "description": "Shell command run on middle click. Empty does nothing." },
-            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base0D" },
-            "mutedColor": { "type": "string", "title": "Muted background", "x-options": "colors", "default": "base03" },
+            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
+            "mutedColor": { "type": "string", "title": "Muted background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "off" },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
           }
         }
@@ -3316,10 +3963,10 @@
             "maxVolume": { "type": "integer", "title": "Maximum volume", "x-unit": "%", "default": 100, "minimum": 100, "maximum": 150, "description": "Highest volume scrolling and the mixer sliders allow." },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Open the input mixer when hovered." },
             "middleCommand": { "type": "string", "title": "Middle-click command", "default": "pavucontrol", "description": "Shell command run on middle click. Empty does nothing." },
-            "activeColor": { "type": "string", "title": "In-use background", "x-options": "colors", "default": "base08", "description": "Used while an app is recording from the microphone." },
+            "activeColor": { "type": "string", "title": "In-use background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "alt", "description": "Used while an app is recording from the microphone." },
             "hideWhenIdle": { "type": "boolean", "title": "Hide when idle", "default": false, "description": "Only show the widget while the microphone is in use or muted." },
-            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base0D" },
-            "mutedColor": { "type": "string", "title": "Muted background", "x-options": "colors", "default": "base03" },
+            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
+            "mutedColor": { "type": "string", "title": "Muted background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "off" },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
           }
         }
@@ -3343,9 +3990,9 @@
             "hideWhenOff": { "type": "boolean", "title": "Hide when off", "default": false },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Open the Bluetooth menu when hovered." },
             "middleCommand": { "type": "string", "title": "Middle-click command", "default": "", "description": "Shell command run on middle click (e.g. blueman-manager). Empty does nothing." },
-            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base0D" },
-            "connectedColor": { "type": "string", "title": "Connected background", "x-options": "colors", "default": "base0C" },
-            "disabledColor": { "type": "string", "title": "Off background", "x-options": "colors", "default": "base03" },
+            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
+            "connectedColor": { "type": "string", "title": "Connected background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "alt" },
+            "disabledColor": { "type": "string", "title": "Off background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "off" },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
           }
         }

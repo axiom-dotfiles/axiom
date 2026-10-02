@@ -28,7 +28,7 @@ BarIconWidget {
   }
   showText: properties.showDevice && text !== ""
 
-  backgroundColor: Theme.resolveColor(!BluetoothManager.enabled ? properties.disabledColor : connected.length > 0 ? properties.connectedColor : properties.backgroundColor)
+  accentColor: Theme.resolveColor(!BluetoothManager.enabled ? properties.disabledColor : connected.length > 0 ? properties.connectedColor : properties.backgroundColor)
   clickable: true
   acceptedButtons: Qt.LeftButton | Qt.MiddleButton
   onClicked: button => {

@@ -39,10 +39,29 @@ Item {
   readonly property bool isVertical: barConfig.vertical
 
   readonly property var _item: contentLoader.item
+  // What WidgetGroup draws under the module: its colors on this bar
+  // (Bar.widgetColors), or null when it has no background
+  readonly property bool hasBackground: _item?.hasBackground ?? false
+  readonly property var background: hasBackground ? _item.colors : null
+  // The module's own fade (pressed, dimmed), which its background follows
+  readonly property real contentOpacity: _item?.opacity ?? 1
+  // A divider of its own (Separator): the group draws none beside it
+  readonly property bool divides: _item?.divides ?? false
+  // Hovered, on a module that shows an outline then (its hoverOutline)
+  readonly property bool outlined: (_item?.hoverOutline ?? false) && (_item?.hovered ?? false)
+  // Room along the bar kept clear of its background's caps, at its start
+  // and end (set by WidgetGroup): added to its sizes, the module inside
+  property real leadInset: 0
+  property real trailInset: 0
+  // Rounded up: half a powerline join is fractional, and the allocation
+  // floors sizes, which would leave the module under its natural size and
+  // elide its label
+  readonly property real _insets: naturalSize > 0 ? Math.ceil(leadInset + trailInset) : 0
   readonly property real naturalSize: _item ? Math.ceil(isVertical ? _item.implicitHeight : _item.implicitWidth) : 0
   readonly property string sizePolicy: _item?.sizePolicy ?? "content"
 
-  readonly property real preferredSize: {
+  // The module's own sizes, then with the insets
+  readonly property real _preferred: {
     const override = layoutOverrides?.size;
     if (sizePolicy === "fixed")
       return override ?? _item?.preferredSize ?? naturalSize;
@@ -50,9 +69,10 @@ Item {
       return Math.min(naturalSize, override ?? _item?.preferredSize ?? naturalSize);
     return override ?? naturalSize;
   }
+  readonly property real preferredSize: _preferred + _insets
   readonly property real minimumSize: {
     const min = layoutOverrides?.minSize ?? (sizePolicy === "elastic" ? _item?.minimumSize : undefined);
-    return min === undefined ? preferredSize : Math.min(min, preferredSize);
+    return (min === undefined ? _preferred : Math.min(min, _preferred)) + _insets;
   }
   readonly property int priority: layoutOverrides?.priority ?? _item?.priority ?? 0
   // Its sizing as laid out, for the bar editor's inspector
@@ -99,6 +119,10 @@ Item {
   Loader {
     id: contentLoader
     anchors.fill: parent
+    anchors.leftMargin: root.isVertical ? 0 : root.leadInset
+    anchors.rightMargin: root.isVertical ? 0 : root.trailInset
+    anchors.topMargin: root.isVertical ? root.leadInset : 0
+    anchors.bottomMargin: root.isVertical ? root.trailInset : 0
     onLoaded: {
       if (item) {
         item.barConfig = Qt.binding(() => root.barConfig);
@@ -110,9 +134,10 @@ Item {
     }
   }
 
+  // A module with a background shows it in its shape (WidgetBackground)
   Rectangle {
     anchors.fill: parent
-    visible: root.highlighted
+    visible: root.highlighted && !root.hasBackground
     radius: root.barConfig.radius
     color: Qt.alpha(Theme.accent, 0.15)
     border.color: Theme.accent

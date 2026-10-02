@@ -15,7 +15,7 @@ BarIconWidget {
   text: I18n.tr(IdleInhibitManager.enabled ? "Awake" : "Idle")
   showText: properties.showLabel
 
-  backgroundColor: Theme.resolveColor(IdleInhibitManager.enabled ? properties.activeColor : properties.inactiveColor)
+  accentColor: Theme.resolveColor(IdleInhibitManager.enabled ? properties.activeColor : properties.inactiveColor)
   clickable: true
   onClicked: IdleInhibitManager.toggle()
 }

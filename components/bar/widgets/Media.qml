@@ -22,7 +22,7 @@ BarIconWidget {
   // The artist icon goes with the state icon, before the label
   icon: (MediaManager.isPlaying ? "music_note" : "pause") + (root.artist ? (root.isVertical ? "\n" : " ") + "artist" : "")
   text: !MediaManager.activePlayer ? root.properties.idleText : root.artist ? root.artist + " - " + MediaManager.trackTitle : MediaManager.trackTitle
-  backgroundColor: Theme.resolveColor(MediaManager.isPlaying ? root.properties.playingColor : root.properties.pausedColor)
+  accentColor: Theme.resolveColor(MediaManager.isPlaying ? root.properties.playingColor : root.properties.pausedColor)
 
   PopoutAnchor {
     popouts: root.popouts

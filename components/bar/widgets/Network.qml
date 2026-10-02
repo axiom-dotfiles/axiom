@@ -14,7 +14,7 @@ BarIconWidget {
   readonly property string kind: NetworkingManager.primaryKind
   readonly property bool connected: kind !== ""
 
-  backgroundColor: Theme.resolveColor(connected ? properties.backgroundColor : properties.disconnectedColor)
+  accentColor: Theme.resolveColor(connected ? properties.backgroundColor : properties.disconnectedColor)
   icon: getIcon()
   text: iface
   showText: properties.showName && iface !== ""

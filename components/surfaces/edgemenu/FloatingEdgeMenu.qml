@@ -80,11 +80,12 @@ EdgePopout {
       "reserves": false
     })
 
-  // A transparent or pill bar on this edge (BarPanel), while it shows: a
-  // floating bar hides under fullscreen windows
+  // A bar other than a solid one on this edge (BarPanel), while it shows:
+  // a bar inside the border hides under fullscreen windows. Floating bars
+  // are met like transparent ones, the box detached past them.
   readonly property var barPanel: {
     const panel = ShellManager.barOn(root.screen?.name ?? "", root.edge);
-    return panel?.visible && panel.barConfig.background !== "solid" ? panel : null;
+    return panel?.visible && !panel.barConfig.solid ? panel : null;
   }
   readonly property var barConfig: root.barPanel?.barConfig ?? null
   readonly property var container: root.barPanel?.container ?? null
@@ -192,11 +193,11 @@ EdgePopout {
   }
 
   // Where the windows start, from the bar's outer edge: past its reserved
-  // space, or, reserving none, past the border (whose stroke a floating
-  // bar's outer edge lies on)
+  // space, or, reserving none, past the border (whose stroke the outer
+  // edge of a bar inside it lies on)
   readonly property real barReach: {
     const zone = root.barPanel?.reservedZone ?? 0;
-    return zone > 0 || !root.barConfig?.floating ? zone : Appearance.borderWidth;
+    return zone > 0 || !root.barConfig?.insideBorder ? zone : Appearance.borderWidth;
   }
 
   edge: EdgeMenusConfig.edgeOf(root.menu)
@@ -210,9 +211,9 @@ EdgePopout {
   // (none when straight)
   edgeOffset: root.barPanel ? root.barAttachDepth - root.barReach + (root.straight ? 0 : Appearance.borderWidth) : root.edgeDistance
   // A detached box slides in from under what's on its edge: from a bar's
-  // outer edge (past the border stroke a floating bar's lies on), else
+  // outer edge (past the border stroke it lies on inside the border), else
   // from the border's or a solid bar's stroke, or the bare screen edge
-  slideDistance: root._overOverlay ? 0 : root.barPanel ? root.barAttachDepth - (root.barConfig.floating ? Appearance.borderWidth : 0) : root.edgeDistance
+  slideDistance: root._overOverlay ? 0 : root.barPanel ? root.barAttachDepth - (root.barConfig.insideBorder ? Appearance.borderWidth : 0) : root.edgeDistance
   // Without the border, a merged box runs straight off the screen edge
   straight: root.merged ? !Appearance.screenBorder : root.bareEdge
   // At 0px its ends join the perpendicular edges once it reaches them.

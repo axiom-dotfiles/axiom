@@ -110,4 +110,131 @@ TestCase {
     compare(a.sizes, [40, 0, 20]);
     compare(a.offsets, [0, 44, 44]);
   }
+
+  function test_runs() {
+    compare(BarLayout.runs([]), []);
+    compare(BarLayout.runs([false, false]), []);
+    compare(BarLayout.runs([true, true, false, true]), [
+      {
+        "start": 0,
+        "count": 2,
+        "members": [0, 1]
+      },
+      {
+        "start": 3,
+        "count": 1,
+        "members": [3]
+      }
+    ]);
+  }
+
+  // A widget showing nothing (null) leaves a run whole; one shown without
+  // a background (false) still ends it
+  function test_runs_pass_over_widgets_showing_nothing() {
+    compare(BarLayout.runs([null, true, null, true, false, true, null]), [
+      {
+        "start": 1,
+        "count": 2,
+        "members": [1, 3]
+      },
+      {
+        "start": 5,
+        "count": 1,
+        "members": [5]
+      }
+    ]);
+    compare(BarLayout.runs([null, null]), []);
+  }
+
+  function test_runPlaces() {
+    const places = BarLayout.runPlaces([true, false, true, true]);
+    compare(places[1], null);
+    compare(places[0], {
+      "run": 0,
+      "index": 0,
+      "count": 1
+    });
+    compare(places[3], {
+      "run": 1,
+      "index": 1,
+      "count": 2
+    });
+  }
+
+  function test_runPlaces_skip_widgets_showing_nothing() {
+    const places = BarLayout.runPlaces([true, null, true]);
+    compare(places[1], null);
+    compare(places[2], {
+      "run": 0,
+      "index": 1,
+      "count": 2
+    });
+  }
+
+  function test_islandRects_whole_bar() {
+    compare(BarLayout.islandRects([], 6, 12, 10, 990, true), [
+      {
+        "start": 10,
+        "length": 980,
+        "joinStart": false,
+        "joinEnd": false
+      }
+    ]);
+  }
+
+  function test_islandRects_grow_clamp_and_merge() {
+    // Grown by 6 each side; kept inside 10..990; 100..110 and 115..160
+    // become islands 16 apart, within merge 20, so one
+    const rects = BarLayout.islandRects([
+      {
+        "start": 115,
+        "end": 160
+      },
+      {
+        "start": 8,
+        "end": 50
+      },
+      {
+        "start": 900,
+        "end": 988
+      },
+      {
+        "start": 60,
+        "end": 75
+      }
+    ], 6, 20, 10, 990, false);
+    compare(rects.map(r => [r.start, r.start + r.length]), [[10, 81], [109, 166], [894, 990]]);
+    // 81 to 109 is 28 apart: past merge, so they stay apart
+    verify(rects.every(r => !r.joinStart && !r.joinEnd));
+  }
+
+  function test_stretchIslands_grows_squares_and_merges() {
+    const rects = BarLayout.islandRects([
+      {
+        "start": 100,
+        "end": 200
+      },
+      {
+        "start": 300,
+        "end": 400
+      }
+    ], 0, 10, 0, 1000, false);
+    compare(BarLayout.stretchIslands(rects, null, 10).map(r => [r.start, r.length]), [[100, 100], [300, 100]]);
+    // Stretched to 80..250: still 50 short of the next
+    const apart = BarLayout.stretchIslands(rects, {
+      "index": 0,
+      "start": 80,
+      "end": 250,
+      "squareStart": true
+    }, 10);
+    compare(apart.map(r => [r.start, r.length, r.squareStart, r.squareEnd]), [[80, 170, true, false], [300, 100, false, false]]);
+    // Stretched to 295: within 10 of the next, so they draw as one
+    const joined = BarLayout.stretchIslands(rects, {
+      "index": 0,
+      "start": 100,
+      "end": 295,
+      "squareEnd": true
+    }, 10);
+    compare(joined.map(r => [r.start, r.length, r.squareStart, r.squareEnd]), [[100, 300, false, false]]);
+  }
 }

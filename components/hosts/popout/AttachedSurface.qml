@@ -26,6 +26,9 @@ import qs.config
  * - joinStart/joinEnd: that end sits flush on the perpendicular edge's
  *   stroke (u = 0 is its outer edge): no side wall, and the far edge meets
  *   that stroke with a concave fillet instead
+ * - flushStart/flushEnd: that side wall runs straight into the attach
+ *   edge with no fillet, continuing the end of what it attaches to (a
+ *   floating bar's island, whose corner squares to meet it)
  * - startFoot/endFoot: where a side wall's fillet lands (v); above 0 it
  *   stands on something drawn under the surface (a pill's far stroke) and
  *   follows it to that end
@@ -50,6 +53,8 @@ Item {
 
   property bool joinStart: false
   property bool joinEnd: false
+  property bool flushStart: false
+  property bool flushEnd: false
   property real startFoot: 0
   property real endFoot: 0
   property bool detached: false
@@ -114,11 +119,11 @@ Item {
 
   readonly property real boxAlong: vertical ? boxHeight : boxWidth
   readonly property real boxDepth: vertical ? boxWidth : boxHeight
-  // Whether each side wall ends in a fillet: not where the end is joined,
-  // nor where it runs straight off a bare screen edge (unless it stands on
-  // a foot)
-  readonly property bool _filletStart: !joinStart && (!straight || startFoot > 0)
-  readonly property bool _filletEnd: !joinEnd && (!straight || endFoot > 0)
+  // Whether each side wall ends in a fillet: not where the end is joined
+  // or flush, nor where it runs straight off a bare screen edge (unless it
+  // stands on a foot)
+  readonly property bool _filletStart: !joinStart && !flushStart && (!straight || startFoot > 0)
+  readonly property bool _filletEnd: !joinEnd && !flushEnd && (!straight || endFoot > 0)
   readonly property bool _joinFillet: (joinStart || joinEnd) && !straightJoins
   // Room each end for a fillet square, minus the stroke overlap
   readonly property real startMargin: _filletStart ? connectorGap - strokeWidth : 0
@@ -255,9 +260,14 @@ Item {
     if (width <= 0 || height <= 0)
       return "";
     const R = filletRadius, b = -_back;
+    // The backfill stops short of a flush end's wall, squarely, where the
+    // stroke of what it attaches to carries on behind it
+    const u0 = flushStart ? strokeWidth : 0, u1 = flushEnd ? alongLength - strokeWidth : alongLength;
     let d;
     if (joinStart)
       d = _move(0, b) + _line(0, straightJoins ? farV : farV + R) + root._outline((u, v) => _line(u, v));
+    else if (flushStart)
+      d = _move(u0, b) + _line(u0, 0) + root._outline((u, v) => _line(u, v));
     else if (!_filletStart)
       d = root._outline((u, v) => _move(u, v));
     else
@@ -266,7 +276,9 @@ Item {
       d += _line(alongLength, farV + R);
     else if (!joinEnd && _filletEnd)
       d += _line(alongLength, endFoot);
-    return d + _line(alongLength, b) + _line(0, b) + "Z";
+    else if (flushEnd)
+      d += _line(u1, 0);
+    return d + _line(u1, b) + _line(u0, b) + "Z";
   }
 
   // Stroke: the outline alone, open along the attach edge and on joined

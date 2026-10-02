@@ -17,9 +17,12 @@ BarWidget {
   readonly property bool use24Hour: properties.use24Hour
   readonly property bool showSeconds: properties.showSeconds
   readonly property bool showDate: properties.showDate
-  readonly property color foregroundColor: Theme.resolveColor(properties.foregroundColor)
+  readonly property color foregroundColor: colors.text
 
   readonly property int priority: 5
+
+  hasBackground: true
+  accentColor: Theme.resolveColor(properties.backgroundColor)
 
   implicitWidth: isVertical ? root.barConfig.widgetSize : (layoutLoader.item ? layoutLoader.item.implicitWidth + root.barConfig.widgetPadding * 2 : 0)
   implicitHeight: isVertical ? (layoutLoader.item ? layoutLoader.item.implicitHeight + root.barConfig.widgetPadding * 2 : 0) : root.barConfig.widgetSize
@@ -98,12 +101,6 @@ BarWidget {
   // A custom format's output, one word (or colon-separated field) per line
   function _split(text) {
     return text.split(/[\s:]+/).filter(part => part !== "").map(part => _line(part));
-  }
-
-  Rectangle {
-    anchors.fill: parent
-    color: Theme.resolveColor(root.properties.backgroundColor)
-    radius: root.barConfig.radius
   }
 
   component ClockText: Text {

@@ -18,11 +18,12 @@ PanelWindow {
   screen: targetScreen
   // A solid bar sits at the screen edge, and the screen border's strip
   // (arranged after it) overlaps its inner part, drawing the bar's inner
-  // stroke. A floating bar (transparent or pills, with the border on) sits
-  // inside the border instead: its axiom-bar-floating layer rule orders it
-  // after the border (arranged inside it, drawn over it), with its outer
-  // edge on the border's stroke so pills can cover it. Both are on the Top
-  // layer, so a fullscreen window covers them.
+  // stroke. Any other bar (transparent, pills or floating, with the border
+  // on) sits inside the border instead (`insideBorder`): its
+  // axiom-bar-floating layer rule orders it after the border (arranged
+  // inside it, drawn over it), with its outer edge on the border's stroke
+  // so pills can cover it. Both are on the Top layer, so a fullscreen window
+  // covers them.
   WlrLayershell.layer: WlrLayer.Top
   WlrLayershell.exclusiveZone: root.reservedZone
   // On a transparent or pill bar, how far in from its outer edge it
@@ -30,16 +31,13 @@ PanelWindow {
   readonly property int reservedZone: {
     if (!barConfig.reserveSpace)
       return 0;
-    // Transparent bars have no inner edge to see: windows start where it
-    // would be, so the gap from the widgets to them (padding + Hyprland's own
-    // gaps_out, taken off here) matches the gap to the screen edge
-    const gap = barConfig.background === "transparent" ? (HyprlandManager.gapsOut[Bar.edgeName(barConfig.location)] ?? 0) : 0;
+    const gap = Bar.reserveTrim(barConfig, HyprlandManager.gapsOut[Bar.edgeName(barConfig.location)] ?? 0);
     // Hyprland counts the -borderWidth margin into the reserved space
-    if (barConfig.floating)
+    if (barConfig.insideBorder)
       return Math.max(0, barConfig.extent - gap);
     return Math.max(0, (Appearance.screenBorder ? barConfig.extent - Appearance.screenMargin + Appearance.borderWidth : barConfig.extent) - gap);
   }
-  WlrLayershell.namespace: barConfig.floating ? "axiom-bar-floating" : "axiom-bar"
+  WlrLayershell.namespace: barConfig.insideBorder ? "axiom-bar-floating" : "axiom-bar"
   // A popout with a text field up (e.g. a Wi-Fi password) takes the
   // keyboard through the bar, its parent surface
   WlrLayershell.keyboardFocus: popouts.wantsKeyboardFocus ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
@@ -53,21 +51,22 @@ PanelWindow {
     right: (barConfig.right || !barConfig.vertical)
   }
 
-  // A floating bar reaches onto the border's strokes: its own edge (so
+  // A bar inside the border reaches onto its strokes: its own edge (so
   // pills cover it) and both ends (so a pill at an end can join the
   // perpendicular edge). Margins on the unanchored side are ignored.
   margins {
-    top: root.barConfig.floating ? -Appearance.borderWidth : 0
-    bottom: root.barConfig.floating ? -Appearance.borderWidth : 0
-    left: root.barConfig.floating ? -Appearance.borderWidth : 0
-    right: root.barConfig.floating ? -Appearance.borderWidth : 0
+    top: root.barConfig.insideBorder ? -Appearance.borderWidth : 0
+    bottom: root.barConfig.insideBorder ? -Appearance.borderWidth : 0
+    left: root.barConfig.insideBorder ? -Appearance.borderWidth : 0
+    right: root.barConfig.insideBorder ? -Appearance.borderWidth : 0
   }
 
   visible: barConfig.enabled
 
   // With pills, room past the bar for the fillet where an end pill meets
-  // the perpendicular edge; click-through (see mask), and not reserved
-  readonly property int thickness: barConfig.extent + (barConfig.pills ? Appearance.borderRadius : 0)
+  // the perpendicular edge, and for a shadow; click-through (see mask),
+  // and not reserved
+  readonly property int thickness: barConfig.extent + Math.max(barConfig.pills ? Appearance.borderRadius : 0, barConfig.shadowReach)
   implicitHeight: barConfig.vertical ? 0 : thickness
   implicitWidth: barConfig.vertical ? thickness : 0
 

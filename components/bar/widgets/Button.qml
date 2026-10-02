@@ -90,22 +90,8 @@ BarIconWidget {
     onTriggered: CommandManager.refresh(root.properties.labelCommand)
   }
 
-  // Hover outline, like the other clickable bar widgets
-  Rectangle {
-    anchors.fill: parent
-    color: "transparent"
-    radius: root.barConfig.radius
-    border.width: Appearance.borderWidth
-    border.color: root.hovered ? Theme.border : Qt.alpha(Theme.border, 0)
-
-    Behavior on border.color {
-      ColorAnimation {
-        duration: Appearance.animNormal
-      }
-    }
-  }
-
   clickable: true
+  hoverOutline: true
   acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
   onClicked: button => {
     if (button === Qt.RightButton)

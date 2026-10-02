@@ -161,7 +161,7 @@ TestCase {
     compare(groups.map(g => g.title + ":" + g.keys.join(",")), ["Two:b", "One:a", "Other:c"]);
     compare(Object.keys(groups[1].schema), ["a"]);
     const bar = SchemaLayout.objectGroups(schema.definitions.Bar, ["widgets"]);
-    compare(bar.map(g => g.title), ["General", "Size", "Style", "Behaviour"]);
+    compare(bar.map(g => g.title), ["General", "Size", "Style", "Widgets", "Accents", "Shadow", "Behaviour"]);
     const menu = SchemaLayout.objectGroups(schema.definitions.EdgeMenu, ["modules"]);
     compare(menu.map(g => g.title), ["General", "Opening", "Placement", "Style", "Closing", "Advanced"]);
   }

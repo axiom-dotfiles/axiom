@@ -1,9 +1,13 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 
+import qs.config
+
 // Base for bar widgets that draw their own content (icon + label widgets
 // extend BarIconWidget instead): the inputs every widget gets from
-// BarWidgetHost, and its orientation from the bar
+// BarWidgetHost, and its orientation from the bar. One that wants a
+// background (drawn under it by its WidgetGroup, in the bar's widget style)
+// sets hasBackground and its accentColor, and draws in `colors`.
 Item {
   property var barConfig
   property var popouts
@@ -12,4 +16,8 @@ Item {
   property var properties
 
   readonly property bool isVertical: barConfig.vertical
+
+  property bool hasBackground: false
+  property color accentColor: "transparent"
+  readonly property var colors: Bar.widgetColors(barConfig, accentColor, properties.foregroundColor)
 }

@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 
+import qs.config
 import qs.services
 import qs.components.methods
 
@@ -26,7 +27,9 @@ Item {
   // rebuilding every widget in the section.
   property var widgets: []
 
-  readonly property int spacing: root.barConfig.spacing
+  // A powerline's widgets touch (Bar.enrichBarConfig)
+  readonly property int spacing: root.barConfig.groupSpacing
+  readonly property string grouping: root.barConfig.widgetGrouping
   // Room the bar's section layout gives this group along the main axis
   property real maxExtent: Infinity
   // Which way the group grows within its slot (0 start, 1 end, 0.5 center)
@@ -58,6 +61,36 @@ Item {
   // How the widget the bar editor has selected is sized here, else null
   readonly property var selectedMeasure: root._modules.find(m => m.highlighted)?.measure ?? null
 
+  // Neighbouring widgets with backgrounds form runs (merged backgrounds,
+  // powerline chains). Insets come from what each widget has to show,
+  // never from the room it's given, which they help decide; shapes from
+  // what's actually shown. A widget showing nothing (null) leaves a run
+  // whole; one shown without a background (false) splits it.
+  readonly property var _insetPlaces: BarLayout.runPlaces(root._modules.map(m => m.naturalSize > 0 ? m.hasBackground : null))
+  readonly property var _drawn: root._modules.map((m, i) => (root.allocation.visible[i] ?? false) && (root.allocation.sizes[i] ?? 0) > 0 ? m.hasBackground : null)
+  readonly property var _drawPlaces: BarLayout.runPlaces(root._drawn)
+  readonly property var _drawRuns: BarLayout.runs(root._drawn)
+  // Opaque fills hide what's under them: a powerline segment can then
+  // start square beneath the one before
+  readonly property bool _opaque: root.barConfig.widgetStyle === "filled"
+  // A widget with no background in a powerline (a Separator) splits the
+  // chain, keeping the bar's spacing each side as between separate widgets
+  readonly property real _looseGap: root.grouping === "powerline" ? root.barConfig.spacing : 0
+
+  // The index of the next widget shown after `index`, or -1
+  function _nextShown(index) {
+    for (let k = index + 1; k < root.allocation.sizes.length; k++) {
+      if (root.allocation.sizes[k] > 0)
+        return k;
+    }
+    return -1;
+  }
+
+  // The caps and insets at `place` in a run (BarShapes.segment)
+  function segmentAt(place) {
+    return BarShapes.segment(root.barConfig.widgetShape, root.barConfig.widgetEnds, root.grouping, root._opaque, place?.index ?? 0, place?.count ?? 1, root.barConfig.widgetSize);
+  }
+
   // Emitted when modules moved or resized within the group
   signal allocationUpdated
   property string _allocationKey: ""
@@ -71,6 +104,90 @@ Item {
 
   implicitWidth: isVertical ? root.barConfig.widgetSize : usedLength
   implicitHeight: isVertical ? usedLength : root.barConfig.widgetSize
+
+  // Merged runs' shared backgrounds, under everything
+  Repeater {
+    model: root.grouping === "merged" ? root._drawRuns.length : 0
+
+    delegate: WidgetBackground {
+      required property int index
+      readonly property var run: root._drawRuns[index] ?? {
+        "start": 0,
+        "count": 1,
+        "members": [0]
+      }
+      readonly property var first: root._modules[run.members[0]] ?? null
+      readonly property var last: root._modules[run.members[run.count - 1]] ?? null
+
+      z: -2
+      barConfig: root.barConfig
+      colors: Bar.groupColors(root.barConfig)
+      startCap: root.segmentAt({
+        "index": 0,
+        "count": run.count
+      }).startCap
+      endCap: root.segmentAt({
+        "index": run.count - 1,
+        "count": run.count
+      }).endCap
+      x: first?.x ?? 0
+      y: first?.y ?? 0
+      width: root.isVertical ? (first?.width ?? 0) : (last?.x ?? 0) + (last?.width ?? 0) - x
+      height: root.isVertical ? (last?.y ?? 0) + (last?.height ?? 0) - y : (first?.height ?? 0)
+    }
+  }
+
+  // A divider in each gap between shown widgets (Bars[].separatorStyle),
+  // except beside a Separator widget
+  Repeater {
+    model: root.barConfig.separatorStyle !== "none" ? root.widgets.length : 0
+
+    delegate: SeparatorMark {
+      id: mark
+      required property int index
+      readonly property int next: root._nextShown(index)
+      readonly property bool between: (root.allocation.sizes[index] ?? 0) > 0 && next >= 0
+      readonly property real center: (root.allocation.offsets[index] ?? 0) + (root.allocation.sizes[index] ?? 0) + root.spacing / 2
+
+      visible: between && !(root._modules[index]?.divides ?? false) && !(root._modules[next]?.divides ?? false)
+      style: root.barConfig.separatorStyle
+      color: Theme.resolveColor(root.barConfig.separatorColor)
+      thickness: root.barConfig.separatorThickness
+      length: root.barConfig.widgetSize * (mark.style === "chevron" ? 0.6 : 0.5)
+      vertical: root.isVertical
+      x: root.isVertical ? Math.round((root.width - width) / 2) : mark.center - width / 2
+      y: root.isVertical ? mark.center - height / 2 : Math.round((root.height - height) / 2)
+    }
+  }
+
+  // Each widget's background, under it: a powerline segment reaches back
+  // under the one before, so earlier ones are drawn over later ones
+  Repeater {
+    model: root.widgets.length
+
+    delegate: WidgetBackground {
+      required property int index
+      readonly property var host: root._modules[index] ?? null
+      readonly property var place: root._drawPlaces[index] ?? null
+      readonly property var segment: root.segmentAt(place)
+
+      z: -1 - index / Math.max(1, root.widgets.length)
+      barConfig: root.barConfig
+      colors: host?.background ?? null
+      startCap: segment.startCap
+      endCap: segment.endCap
+      seamStart: segment.seamStart
+      seamEnd: segment.seamEnd
+      hovered: host?.outlined ?? false
+      highlighted: host?.highlighted ?? false
+      visible: place !== null
+      opacity: host?.contentOpacity ?? 1
+      x: (host?.x ?? 0) - (root.isVertical ? 0 : segment.back)
+      y: (host?.y ?? 0) - (root.isVertical ? segment.back : 0)
+      width: (host?.width ?? 0) + (root.isVertical ? 0 : segment.back)
+      height: (host?.height ?? 0) + (root.isVertical ? segment.back : 0)
+    }
+  }
 
   Repeater {
     id: repeater
@@ -93,6 +210,12 @@ Item {
         "properties": {},
         "layout": {}
       }
+
+      // Clear of its caps; a widget with no background sits loose
+      readonly property var _place: root._insetPlaces[module.index] ?? null
+      readonly property var _segment: root.segmentAt(_place)
+      leadInset: module.hasBackground ? module._segment.lead : root._looseGap
+      trailInset: module.hasBackground ? module._segment.trail : root._looseGap
 
       barConfig: root.barConfig
       properties: module.modelData.properties || {}

@@ -185,7 +185,8 @@ QtObject {
     case "chatPresets":
       return ChatConfig.presets.map(preset => preset.name);
     case "colors":
-      return Theme.baseColorNames;
+      // `x-emptyLabel`: empty picks a color automatically
+      return (fieldSchema["x-emptyLabel"] ? [""] : []).concat(Theme.baseColorNames);
     case "cursorThemes":
       {
         const current = HyprlandConfig.managed.cursorTheme;

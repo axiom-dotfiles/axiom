@@ -19,6 +19,7 @@ BaseWidget {
   property bool showIcon: true
   property real spacing: 6
   property color foregroundColor: Theme.background
+  property color iconColor: foregroundColor
   property int fontSize: Appearance.fontSize
   // Draws nothing and takes no room, padding included (a widget with
   // nothing to show). Not `visible: false`, which would still be measured.
@@ -64,7 +65,7 @@ BaseWidget {
         StyledIcon {
           required property int index
           x: Math.round((iconLabel.width - width) / 2)
-          textColor: root.foregroundColor
+          textColor: root.iconColor
           text: root._iconLines[index] ?? ""
           textSize: root.fontSize * root.iconScale
         }

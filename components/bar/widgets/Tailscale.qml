@@ -22,7 +22,7 @@ BarIconWidget {
   text: isConnected ? (properties.label || tailnetName) : ""
   showText: properties.showLabel
 
-  backgroundColor: Theme.resolveColor(isConnected ? properties.connectedColor : properties.disconnectedColor)
+  accentColor: Theme.resolveColor(isConnected ? properties.connectedColor : properties.disconnectedColor)
 
   iconScale: 1.1
   textScale: 0.9

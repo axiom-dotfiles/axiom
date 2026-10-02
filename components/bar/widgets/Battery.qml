@@ -19,7 +19,7 @@ BarIconWidget {
   text: `${percentage}%`
   showText: properties.showPercentage
 
-  backgroundColor: getBatteryColor()
+  accentColor: getBatteryColor()
 
   iconScale: 1.1
   textScale: 0.9

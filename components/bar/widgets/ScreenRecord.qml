@@ -16,7 +16,7 @@ BarIconWidget {
   text: `${Math.floor(root.elapsed / 60)}:${String(root.elapsed % 60).padStart(2, "0")}`
   showText: properties.showTimer && ScreenshotManager.recordingSince > 0
 
-  backgroundColor: Theme.resolveColor(properties.activeColor)
+  accentColor: Theme.resolveColor(properties.activeColor)
   clickable: true
   onClicked: ScreenshotManager.stopRecording()
 }

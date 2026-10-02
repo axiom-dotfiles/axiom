@@ -10,5 +10,5 @@ AudioLevelWidget {
   node: AudioManager.defaultSink
   mode: "output"
   icon: AudioManager.outputIcon(AudioManager.deviceKind(node), muted, level)
-  backgroundColor: Theme.resolveColor(muted ? properties.mutedColor : properties.backgroundColor)
+  accentColor: Theme.resolveColor(muted ? properties.mutedColor : properties.backgroundColor)
 }

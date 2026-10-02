@@ -25,14 +25,17 @@ PanelWindow {
 
   // A transparent bar reserves Hyprland's gaps_out less than its extent
   // (see BarPanel) and has no stroke to land on: sit at its invisible
-  // inner edge instead, past the reserved space by that gap
+  // inner edge instead, past the reserved space by that gap. A floating
+  // bar reserves past its island (Bar.reserveTrim): land on the island's
+  // stroke, as on any other bar's.
   readonly property var _edges: Bar.edgesFor(root.screen)
   function _margin(side, location) {
     if (Bar.screenEdgeOpen(root.screen, location))
       return 0;
-    if (root._edges[side]?.background === "transparent")
+    const bar = root._edges[side];
+    if (bar?.background === "transparent")
       return HyprlandManager.gapsOut[side] ?? 0;
-    return -Appearance.borderWidth;
+    return (bar ? Bar.reserveTrim(bar, HyprlandManager.gapsOut[side] ?? 0) : 0) - Appearance.borderWidth;
   }
   margins {
     left: root._margin("left", Bar.Left)

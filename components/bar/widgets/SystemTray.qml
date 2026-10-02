@@ -18,15 +18,11 @@ BarWidget {
   // a zero natural size, which the bar skips, as IconTextWidget's `hidden`
   readonly property bool hidden: items.implicitWidth <= 0
 
+  hasBackground: !hidden
+  accentColor: Theme.resolveColor(properties.backgroundColor)
+
   implicitWidth: isVertical ? barConfig.widgetSize : hidden ? 0 : items.implicitWidth + padding * 2
   implicitHeight: isVertical ? (hidden ? 0 : items.implicitHeight + padding * 2) : barConfig.widgetSize
-
-  Rectangle {
-    anchors.fill: parent
-    visible: !root.hidden
-    radius: root.barConfig.radius
-    color: Theme.resolveColor(root.properties.backgroundColor)
-  }
 
   Grid {
     id: items

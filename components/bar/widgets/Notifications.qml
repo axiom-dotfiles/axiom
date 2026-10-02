@@ -13,6 +13,9 @@ BarWidget {
   implicitWidth: root.barConfig.widgetSize
   implicitHeight: root.barConfig.widgetSize
 
+  hasBackground: true
+  accentColor: Theme.resolveColor(properties.backgroundColor)
+
   StyledRectButton {
     id: button
     anchors.fill: parent
@@ -20,9 +23,10 @@ BarWidget {
     iconSize: root.barConfig.fontSize
 
     iconText: NotificationManager.dnd ? "notifications_off" : "notifications"
-    iconColor: Theme.resolveColor(NotificationManager.dnd ? root.properties.dndColor : root.properties.foregroundColor)
+    iconColor: NotificationManager.dnd ? Theme.resolveColor(root.properties.dndColor) : root.colors.icon
     borderHoverColor: Theme.accent
-    backgroundColor: Theme.resolveColor(root.properties.backgroundColor)
+    // Its WidgetGroup draws the background
+    backgroundColor: "transparent"
 
     badgeVisible: root.properties.showCount && NotificationManager.count > 0
     badgeBackgroundColor: Theme.resolveColor(root.properties.badgeColor)

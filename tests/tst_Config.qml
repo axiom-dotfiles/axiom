@@ -386,9 +386,10 @@ TestCase {
     const left = config.Bars[0].widgets.left;
     compare(left[0].properties.lowThreshold, undefined);
     compare(left[0].properties.notify, undefined);
-    compare(left[0].properties.lowColor, "base09");
+    // Renamed, then Auto since v41
+    compare(left[0].properties.lowColor, "");
     compare(left[1].properties.criticalThreshold, undefined);
-    compare([left[2].properties.warnThreshold, left[2].properties.criticalThreshold, left[2].properties.criticalColor], [60, 80, "base0A"]);
+    compare([left[2].properties.warnThreshold, left[2].properties.criticalThreshold, left[2].properties.criticalColor], [60, 80, ""]);
     compare(left[2].properties.critPercent, undefined);
     compare(left[3].properties.ignoreApps, ["cava", "easyeffects"]);
     compare(config.Overlay.views[0].modules[0].properties.use24Hour, false);
@@ -724,6 +725,163 @@ TestCase {
     compare(taken.length, 3);
     compare(taken[0].action, "exec");
     compare(taken.filter(bind => bind.action === "toggleSplit").length, 0);
+  }
+
+  function test_v39_widget_backgrounds_become_a_fill() {
+    const loaded = load({
+      "version": 38,
+      "Bars": [
+        {
+          "id": "off",
+          "widgetBackgrounds": false,
+          "widgetTextColor": "base0D"
+        },
+        {
+          "id": "offDefault",
+          "widgetBackgrounds": false
+        },
+        {
+          "id": "on",
+          "widgetBackgrounds": true,
+          "widgetTextColor": "base0D"
+        },
+        {
+          "id": "untouched"
+        }
+      ]
+    });
+    const bars = loaded.config.Bars;
+    compare(bars.map(bar => bar.widgetStyle), ["plain", "plain", "filled", "filled"]);
+    compare(bars.map(bar => bar.widgetTextColor), ["base0D", "", "", ""]);
+    verify(bars.every(bar => !("widgetBackgrounds" in bar)));
+    compare(loaded.changes.filter(change => change.includes("widgetBackgrounds")).length, 3);
+    compare(errors(loaded.config), []);
+  }
+
+  function test_v40_bar_look_moves_to_bar_style() {
+    const loaded = load({
+      "version": 39,
+      "Bars": [
+        {
+          "id": "first",
+          "widgetFill": "outline",
+          "indicatorWidth": 3,
+          "shadow": "glow"
+        },
+        {
+          "id": "same",
+          "widgetFill": "outline",
+          "indicatorWidth": 3,
+          "shadow": "glow"
+        },
+        {
+          "id": "ownWidgets",
+          "widgetFill": "tinted",
+          "indicatorWidth": 3,
+          "shadow": "glow"
+        }
+      ]
+    });
+    const config = loaded.config;
+    compare(config.BarStyle.widgetStyle, "outline");
+    compare(config.BarStyle.lineWidth, 3);
+    compare(config.BarStyle.shadow, "glow");
+    compare(config.Bars.map(bar => bar.overrideWidgetStyle), [false, false, true]);
+    compare(config.Bars.map(bar => bar.overrideShadow), [false, false, false]);
+    compare(config.Bars[2].widgetStyle, "tinted");
+    verify(config.Bars.every(bar => !("widgetFill" in bar) && !("indicatorWidth" in bar)));
+    compare(loaded.removed, []);
+    compare(errors(config), []);
+  }
+
+  function test_v40_keeps_an_existing_bar_style() {
+    const loaded = load({
+      "version": 39,
+      "BarStyle": {
+        "widgetStyle": "plain"
+      },
+      "Bars": [
+        {
+          "id": "first",
+          "widgetFill": "outline"
+        }
+      ]
+    });
+    compare(loaded.config.BarStyle.widgetStyle, "plain");
+    compare(loaded.config.Bars[0].widgetStyle, "outline");
+    compare(errors(loaded.config), []);
+  }
+
+  function test_v41_widget_colors_become_auto() {
+    const loaded = load({
+      "version": 40,
+      "Bars": [
+        {
+          "id": "main",
+          "widgets": {
+            "left": [
+              {
+                "type": "Workspaces",
+                "properties": {
+                  "activeColor": "base0E",
+                  "backgroundColor": "base02",
+                  "occupiedColor": "base04"
+                }
+              },
+              {
+                "type": "Battery",
+                "properties": {
+                  "backgroundColor": "base0D",
+                  "criticalColor": "base08",
+                  "foregroundColor": "base00"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    });
+    const [workspaces, battery] = loaded.config.Bars[0].widgets.left.map(widget => widget.properties);
+    compare(workspaces.activeColor, "");
+    compare(workspaces.backgroundColor, "");
+    compare(workspaces.occupiedColor, "base04");
+    compare(battery.backgroundColor, "");
+    compare(battery.criticalColor, "");
+    compare(battery.foregroundColor, "base00");
+    compare(loaded.changes.filter(change => change.endsWith("-> Auto")).length, 4);
+    compare(errors(loaded.config), []);
+  }
+
+  // Every Auto color field of the schema goes Auto in the v41 migration
+  function test_v41_covers_every_auto_color() {
+    schema.definitions.BarWidget.oneOf.forEach(ref => {
+      const def = schema.definitions[ref.$ref.replace("#/definitions/", "")];
+      const properties = def.properties.properties?.properties ?? {};
+      const auto = Object.keys(properties).filter(key => properties[key]["x-autoColor"]);
+      compare(JSON.stringify(auto.sort()), JSON.stringify((ConfigMigration._v41AutoColors[def.properties.type.const] ?? []).slice().sort()), def.properties.type.const);
+      auto.forEach(key => compare(properties[key].default, "", key));
+    });
+  }
+
+  // A bar's look fields copy the BarStyle section's, each shown only while
+  // the bar overrides its group
+  function test_bar_look_fields_match_bar_style() {
+    const shared = schema.properties.BarStyle.properties;
+    const own = schema.definitions.Bar.properties;
+    const flags = ["overrideWidgetStyle", "overrideAccents", "overrideShadow"];
+    for (const key of Object.keys(shared)) {
+      verify(own[key] !== undefined, key);
+      for (const field of ["type", "title", "default", "minimum", "maximum", "enum", "x-options", "x-emptyLabel", "x-unit", "x-control"])
+        compare(JSON.stringify(own[key][field]), JSON.stringify(shared[key][field]), key + "." + field);
+      const condition = Object.assign({}, own[key]["x-showIf"]);
+      const flag = flags.find(f => condition[f] === true);
+      verify(flag !== undefined, key + " has no override condition");
+      compare(own[flag]["x-group"], own[key]["x-group"], key);
+      delete condition[flag];
+      compare(JSON.stringify(condition), JSON.stringify(shared[key]["x-showIf"] ?? {}), key + " x-showIf");
+    }
+    const look = Object.keys(own).filter(key => flags.includes(own[key]["x-showIf"] ? Object.keys(own[key]["x-showIf"])[0] : ""));
+    compare(look.sort(), Object.keys(shared).sort());
   }
 
   function test_v36_primary_bar_monitors_become_primary() {

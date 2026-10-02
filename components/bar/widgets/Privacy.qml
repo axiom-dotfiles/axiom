@@ -53,7 +53,7 @@ BarIconWidget {
   icon: glyphs.join(isVertical ? "\n" : " ")
   showText: false
 
-  backgroundColor: Theme.resolveColor(properties.activeColor)
+  accentColor: Theme.resolveColor(properties.activeColor)
 
   // Binds the link groups (for their state) and the linked nodes (for
   // media.class / application.name)

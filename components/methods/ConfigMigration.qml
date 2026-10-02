@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 38
+  readonly property int currentVersion: 41
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -103,6 +103,12 @@ QtObject {
       result = _v36ToV37(result, changes);
     if (version < 38)
       result = _v37ToV38(result, changes);
+    if (version < 39)
+      result = _v38ToV39(result, changes);
+    if (version < 40)
+      result = _v39ToV40(result, changes);
+    if (version < 41)
+      result = _v40ToV41(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -1347,5 +1353,114 @@ QtObject {
         "argument": "magic"
       }
     ]);
+  }
+
+  // v39 made a bar's widget backgrounds one of several styles
+  // (`widgetFill`): off became plain text, keeping its text color. With
+  // backgrounds on that color was unused, while it now overrides every
+  // style's, so it goes.
+  function _v38ToV39(config, changes) {
+    (Array.isArray(config.Bars) ? config.Bars : []).forEach((bar, i) => {
+      if (!bar || typeof bar !== "object" || !("widgetBackgrounds" in bar))
+        return;
+      const plain = bar.widgetBackgrounds === false;
+      delete bar.widgetBackgrounds;
+      if (plain) {
+        bar.widgetFill = "plain";
+        changes.push(`Bars[${i}].widgetBackgrounds: false -> widgetFill: "plain"`);
+      } else {
+        delete bar.widgetTextColor;
+        changes.push(`Bars[${i}].widgetBackgrounds removed`);
+      }
+    });
+    return config;
+  }
+
+  // v40 moved a bar's look (widget style, accents, shadow) into the
+  // BarStyle section, each group of it overridable per bar
+  // (`override<Group>`), and renamed widgetFill and the underline's
+  // indicator keys. The first bar's look becomes everyone's; a bar whose
+  // look differs from it in a group keeps its own there.
+  readonly property var _v40Renames: ({
+      "widgetFill": "widgetStyle",
+      "indicatorWidth": "lineWidth",
+      "indicatorSide": "lineSide"
+    })
+  readonly property var _v40Groups: ({
+      "overrideWidgetStyle": ["widgetStyle", "tintOpacity", "outlineWidth", "lineWidth", "lineSide", "widgetShape", "widgetGrouping", "groupColor", "widgetTextColor"],
+      "overrideAccents": ["separatorStyle", "separatorColor", "separatorThickness", "accentLine", "accentLineColor", "accentLineFade", "accentLineWidth"],
+      "overrideShadow": ["shadow", "shadowColor", "shadowSize"]
+    })
+  function _v39ToV40(config, changes) {
+    const bars = (Array.isArray(config.Bars) ? config.Bars : []).filter(bar => bar && typeof bar === "object");
+    bars.forEach((bar, i) => {
+      Object.keys(root._v40Renames).forEach(from => {
+        if (!(from in bar))
+          return;
+        bar[root._v40Renames[from]] = bar[from];
+        delete bar[from];
+        changes.push(`Bars[${i}].${from} -> ${root._v40Renames[from]}`);
+      });
+    });
+    if (bars.length === 0 || (config.BarStyle && typeof config.BarStyle === "object"))
+      return config;
+    const style = {};
+    Object.keys(root._v40Groups).forEach(flag => root._v40Groups[flag].forEach(key => {
+        if (key in bars[0])
+          style[key] = bars[0][key];
+      }));
+    config.BarStyle = style;
+    changes.push("BarStyle taken from Bars[0]");
+    bars.forEach((bar, i) => {
+      Object.keys(root._v40Groups).forEach(flag => {
+        const own = root._v40Groups[flag].some(key => (key in bar) !== (key in style) || bar[key] !== style[key]);
+        if (!own)
+          return;
+        bar[flag] = true;
+        changes.push(`Bars[${i}].${flag}: true`);
+      });
+    });
+    return config;
+  }
+
+  // v41 picks bar widget colors automatically (an empty value): every
+  // widget's colors became Auto, text colors and Workspaces' cells (but the
+  // active one) aside
+  readonly property var _v41AutoColors: ({
+      "Window": ["backgroundColor"],
+      "Media": ["playingColor", "pausedColor"],
+      "Workspaces": ["activeColor", "backgroundColor"],
+      "Time": ["backgroundColor"],
+      "Tailscale": ["connectedColor", "disconnectedColor"],
+      "Network": ["backgroundColor", "disconnectedColor"],
+      "SystemTray": ["backgroundColor"],
+      "Notifications": ["backgroundColor", "dndColor", "badgeColor"],
+      "Button": ["backgroundColor"],
+      "Battery": ["backgroundColor", "chargingColor", "lowColor", "criticalColor"],
+      "SystemStats": ["backgroundColor", "warnColor"],
+      "KeyboardLayout": ["backgroundColor"],
+      "IdleInhibitor": ["activeColor", "inactiveColor"],
+      "Privacy": ["activeColor"],
+      "ScreenRecord": ["activeColor"],
+      "Updates": ["backgroundColor", "manyColor"],
+      "ClaudeUsage": ["backgroundColor", "warnColor", "criticalColor"],
+      "Weather": ["backgroundColor"],
+      "Volume": ["backgroundColor", "mutedColor"],
+      "Microphone": ["activeColor", "backgroundColor", "mutedColor"],
+      "Bluetooth": ["backgroundColor", "connectedColor", "disabledColor"]
+    })
+  function _v40ToV41(config, changes) {
+    _eachWidget(config, (widget, where) => {
+      const properties = widget.properties;
+      if (!properties || typeof properties !== "object")
+        return;
+      (root._v41AutoColors[widget.type] ?? []).forEach(key => {
+        if (!properties[key])
+          return;
+        properties[key] = "";
+        changes.push(`${where}.properties.${key} -> Auto`);
+      });
+    });
+    return config;
   }
 }

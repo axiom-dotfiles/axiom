@@ -149,6 +149,112 @@ QtObject {
     return hidden;
   }
 
+  // The runs of true flags, as { start, count, members }: the widgets that
+  // share a background (merged) or a powerline chain. A false flag (a
+  // widget shown without a background) ends a run; a null one (a widget
+  // showing nothing) is passed over, so `members` lists the indices in it.
+  function runs(flags) {
+    const out = [];
+    let open = false;
+    flags.forEach((on, i) => {
+      if (on === null || on === undefined)
+        return;
+      if (!on) {
+        open = false;
+        return;
+      }
+      if (open) {
+        const last = out[out.length - 1];
+        last.count++;
+        last.members.push(i);
+      } else {
+        out.push({
+          "start": i,
+          "count": 1,
+          "members": [i]
+        });
+        open = true;
+      }
+    });
+    return out;
+  }
+
+  // Each index's place in its run, { run, index, count }, or null off them
+  function runPlaces(flags) {
+    const places = flags.map(() => null);
+    root.runs(flags).forEach((run, r) => {
+      run.members.forEach((member, k) => {
+        places[member] = {
+          "run": r,
+          "index": k,
+          "count": run.count
+        };
+      });
+    });
+    return places;
+  }
+
+  // A floating bar's islands along it, from its sections' spans ({ start,
+  // end }, the empty ones left out): each span grown by `gap` (its widgets'
+  // room to the island's ends) within the limits, islands at most `merge`
+  // apart joined. With `whole`, one island from limit to limit. Shaped like
+  // pills ({ start, length, joinStart, joinEnd }; an island joins nothing),
+  // so the pill code reads them.
+  function islandRects(spans, gap, merge, limitStart, limitEnd, whole) {
+    const rect = (start, end) => ({
+          "start": start,
+          "length": end - start,
+          "joinStart": false,
+          "joinEnd": false
+        });
+    if (whole)
+      return [rect(limitStart, limitEnd)];
+    const grown = spans.map(span => ({
+          "start": Math.max(limitStart, span.start - gap),
+          "end": Math.min(limitEnd, span.end + gap)
+        })).sort((a, b) => a.start - b.start);
+    return root._mergeSpans(grown, merge).map(m => rect(m.start, m.end));
+  }
+
+  // The islands as drawn: `stretch` ({ index, start, end, squareStart,
+  // squareEnd }, or null) grows one to carry an open popout, which then
+  // joins any island it comes within `merge` of. { start, length,
+  // squareStart, squareEnd }: a squared end has its inner corner square,
+  // where a popout runs flush into it.
+  function stretchIslands(rects, stretch, merge) {
+    const spans = rects.map((r, i) => {
+      const grows = stretch?.index === i;
+      return {
+        "start": grows ? Math.min(r.start, stretch.start) : r.start,
+        "end": grows ? Math.max(r.start + r.length, stretch.end) : r.start + r.length,
+        "squareStart": grows && (stretch.squareStart ?? false),
+        "squareEnd": grows && (stretch.squareEnd ?? false)
+      };
+    });
+    return root._mergeSpans(spans, merge).map(m => ({
+          "start": m.start,
+          "length": m.end - m.start,
+          "squareStart": m.squareStart ?? false,
+          "squareEnd": m.squareEnd ?? false
+        }));
+  }
+
+  // Sorted { start, end, ... } spans with those at most `merge` apart
+  // joined, each keeping the flags of the span its ends came from
+  function _mergeSpans(spans, merge) {
+    const merged = [];
+    spans.forEach(span => {
+      const last = merged[merged.length - 1];
+      if (!last || span.start - last.end > merge) {
+        merged.push(Object.assign({}, span));
+      } else if (span.end > last.end) {
+        last.end = span.end;
+        last.squareEnd = span.squareEnd;
+      }
+    });
+    return merged;
+  }
+
   // One section's widgets within `maxExtent`: measures [{pref, min,
   // priority}] and shown [bool] -> { sizes, offsets, visible }. Should even
   // the minimum sizes not fit, the lowest-priority widgets (the last listed

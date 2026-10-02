@@ -11,6 +11,8 @@ Item {
   id: root
 
   property color backgroundColor: Theme.background
+  // Off: no box, the content draws straight onto what's behind
+  property bool showBackground: true
   property alias content: contentLoader.sourceComponent
   property alias contentItem: contentLoader.item
   property int padding: Widget.padding
@@ -26,6 +28,7 @@ Item {
 
   Rectangle {
     anchors.fill: parent
+    visible: root.showBackground
     color: root.backgroundColor
     radius: root.radius
   }

@@ -110,7 +110,9 @@ BarWidget {
     }
   }
   readonly property bool warning: segments.some(key => segmentData(key).level >= properties.warnThreshold)
-  readonly property color foregroundColor: Theme.resolveColor(properties.foregroundColor)
+
+  hasBackground: segments.length > 0
+  accentColor: Theme.resolveColor(warning ? properties.warnColor : properties.backgroundColor)
 
   implicitWidth: box.implicitWidth
   implicitHeight: box.implicitHeight
@@ -147,7 +149,7 @@ BarWidget {
     crossSize: root.barConfig.widgetSize
     padding: root.segments.length > 0 ? root.barConfig.widgetPadding : 0
     radius: root.barConfig.radius
-    backgroundColor: Theme.resolveColor(root.warning ? root.properties.warnColor : root.properties.backgroundColor)
+    showBackground: false
 
     content: Grid {
       columns: root.isVertical ? 1 : Math.max(1, root.segments.length)
@@ -170,12 +172,12 @@ BarWidget {
 
           StyledIcon {
             text: segment.stat.icon
-            textColor: root.foregroundColor
+            textColor: root.colors.icon
             textSize: root.barConfig.fontSize
           }
           StyledText {
             text: segment.stat.value
-            textColor: root.foregroundColor
+            textColor: root.colors.text
             textSize: root.barConfig.fontSize * (root.isVertical ? 0.7 : 0.9)
           }
         }
