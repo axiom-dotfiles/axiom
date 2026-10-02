@@ -413,6 +413,7 @@
             { "key": "SUPER + CTRL + R", "action": "restartShell", "release": true },
             { "key": "SUPER + SHIFT + Escape", "action": "exitHyprland", "release": true },
             { "key": "SUPER + Return", "action": "terminal" },
+            { "key": "SUPER + Q", "action": "terminal" },
             { "key": "SUPER + E", "action": "fileManager" },
             { "key": "SUPER + B", "action": "browser" },
             { "key": "Print", "action": "screenshot", "argument": "region" },
