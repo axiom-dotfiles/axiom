@@ -109,6 +109,7 @@ Item {
           Layout.preferredWidth: 2
           clip: true
           ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+          contentWidth: availableWidth
 
           FieldGroup {
             width: sizeScroll.availableWidth
@@ -167,6 +168,7 @@ Item {
       anchors.fill: parent
       clip: true
       ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+      contentWidth: availableWidth
 
       OptionsGroup {
         width: optionsScroll.availableWidth

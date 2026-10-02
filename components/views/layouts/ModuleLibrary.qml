@@ -31,6 +31,7 @@ ColumnLayout {
     Layout.fillHeight: true
     clip: true
     ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+    contentWidth: availableWidth
 
     TileFlow {
       id: flow

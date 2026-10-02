@@ -10,7 +10,9 @@ import qs.config
 QtObject {
   id: root
 
-  readonly property UPowerDevice battery: UPower.displayDevice?.isLaptopBattery ? UPower.displayDevice : null
+  // The display device exists before UPower has been queried for it (0%,
+  // unknown state): until it is ready it would read as a critical battery
+  readonly property UPowerDevice battery: UPower.displayDevice?.ready && UPower.displayDevice.isLaptopBattery ? UPower.displayDevice : null
   readonly property bool isAvailable: battery !== null
   // UPowerDevice.percentage is a 0-1 ratio
   readonly property int percentage: Math.round((battery?.percentage ?? 0) * 100)

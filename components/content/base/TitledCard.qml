@@ -86,6 +86,7 @@ Card {
       Layout.topMargin: extras.visible ? 0 : Widget.spacing
       clip: true
       ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+      contentWidth: availableWidth
 
       ColumnLayout {
         id: body

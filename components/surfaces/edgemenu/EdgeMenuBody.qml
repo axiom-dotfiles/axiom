@@ -66,6 +66,7 @@ Item {
     contentHeight: moduleGrid.implicitHeight
     clip: true
     boundsBehavior: Flickable.StopAtBounds
+    flickableDirection: root.vertical ? Flickable.VerticalFlick : Flickable.HorizontalFlick
     interactive: root.contentLength > root.length
 
     ModuleGrid {

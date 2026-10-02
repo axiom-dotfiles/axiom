@@ -38,6 +38,7 @@ OPTIONAL=(
   "Annotating screenshots|satty"
   "Launcher calculator|libqalculate wl-clipboard"
   "Typing emoji from the launcher (copying needs only wl-clipboard)|wtype wl-clipboard"
+  "Clipboard history with images, shared with other apps|cliphist wl-clipboard"
   "Brightness keys and OSD bar (laptop panels, external monitors over DDC/CI)|brightnessctl ddcutil"
   "hyprlock lock mode and locking on idle|hyprlock hypridle"
 )

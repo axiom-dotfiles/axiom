@@ -130,7 +130,9 @@ BaseView {
 
         StyledScrollView {
           id: inspectorScroll
-          Layout.preferredWidth: root.grid.unit * 0.85
+          // Its rows (rotation, the steppers) are sized by the font, so
+          // on a small card it keeps their width and the canvas gives way
+          Layout.preferredWidth: Math.max(root.grid.unit * 0.85, Appearance.fontSize * 24)
           Layout.fillHeight: true
           contentPadding: 0
 
