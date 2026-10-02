@@ -558,11 +558,43 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
       _eval(rule);
   }
 
+  // Whether the layer rules are in Hyprland. It reads a rule's `order` as a
+  // surface maps, so a bar or border mapped before the rules (a runtime eval
+  // in the detached mode, where hyprland.lua doesn't hold them) keeps its
+  // mapping order: the border's strip, quicker to draw, lands outside the
+  // bar, with its corners on the bar's outer side. The surfaces with an
+  // `order` that start with the shell (bars, border, docks, edge menus)
+  // wait for this. It stays set across QML reloads, as the rules do.
+  readonly property bool layerRulesReady: _layerRules.ready
+
+  PersistentProperties {
+    id: _layerRules
+    reloadableId: "axiomLayerRules"
+    property bool ready: false
+  }
+
+  Process {
+    id: addLayerRulesFirst
+    command: ["hyprctl", "eval", root.layerRulesLua.join("\n")]
+    onExited: _layerRules.ready = true
+  }
+
+  // Shows the shell anyway if hyprctl never answers
+  property Timer _layerRulesTimeout: Timer {
+    interval: 2000
+    onTriggered: _layerRules.ready = true
+  }
+
   Component.onCompleted: {
     _appliedLayout = _currentLayout();
     _fetch();
     refreshOptions();
-    _addLayerRules();
+    if (_layerRules.ready) {
+      _addLayerRules();
+    } else {
+      addLayerRulesFirst.running = true;
+      _layerRulesTimeout.start();
+    }
   }
 
   Connections {

@@ -3,6 +3,7 @@ import QtQuick
 import Quickshell
 
 import qs.config
+import qs.services
 import qs.components.surfaces.edgemenu
 
 // The edge menus (EdgeMenusConfig), one per enabled entry. Keyed on the
@@ -10,7 +11,8 @@ import qs.components.surfaces.edgemenu
 // (an open integrated menu would otherwise drop its zone and come back).
 Scope {
   Variants {
-    model: EdgeMenusConfig.enabledMenus.map(menu => menu.id)
+    // Once the layer rules are in (HyprlandManager.layerRulesReady)
+    model: HyprlandManager.layerRulesReady ? EdgeMenusConfig.enabledMenus.map(menu => menu.id) : []
 
     delegate: EdgeMenu {
       required property string modelData
