@@ -125,7 +125,7 @@ FieldGroup {
 
       StyledText {
         visible: root.blocked
-        text: I18n.tr("{0} is a symlink or in a git repository, so axiom won't take it over. Use Included instead.", Paths.shortenHome(Paths.hyprlandPath))
+        text: HyprlandConfigManager.managedBlockedBy === "git" ? I18n.tr("{0} is inside the git repository at {1}, so axiom won't take it over. Use Included instead.", Paths.shortenHome(Paths.hyprlandPath), Paths.shortenHome(HyprlandConfigManager.managedBlockedRepo)) : I18n.tr("{0} is a symlink or in a git repository, so axiom won't take it over. Use Included instead.", Paths.shortenHome(Paths.hyprlandPath))
         textSize: Appearance.fontSize - 1
         wrapMode: Text.WordWrap
         Layout.fillWidth: true

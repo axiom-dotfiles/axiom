@@ -4,6 +4,7 @@ import Quickshell.Wayland
 
 import qs.config
 import qs.services
+import qs.components.methods
 import qs.components.hosts.overlay
 import qs.components.surfaces.onboarding.pages
 
@@ -16,6 +17,14 @@ ReservedAreaWindow {
   id: root
 
   WlrLayershell.namespace: "axiom-onboarding"
+
+  // How much the overlay shrinks its first page on this screen (OverlayPages'
+  // fitScale): a small screen's cards stop at OverlayConfig.minCardUnit,
+  // and a page wider than the screen then shrinks as a whole
+  readonly property real overlayFit: {
+    const first = OverlayConfig.views.find(view => !OverlayConfig.isTool(view.type));
+    return GridPlacement.fitScale(GridPlacement.bounds(first?.modules), grid.availableWidth, grid.availableHeight, grid.unit);
+  }
 
   // Esc (or Skip setup) asks first
   property bool confirmingQuit: false
@@ -40,8 +49,9 @@ ReservedAreaWindow {
       Loader {
         id: page
         anchors.centerIn: parent
-        // Shrinks a page that still doesn't fit, as OverlayPages does
-        scale: Math.min(1, (pageArea.width - OverlayConfig.cardSpacing * 2) / Math.max(1, implicitWidth), (pageArea.height - OverlayConfig.cardSpacing * 2) / Math.max(1, implicitHeight))
+        // Shrinks a page that doesn't fit, and by as much as the overlay
+        // shrinks its first page, so the cards show at the overlay's size
+        scale: Math.min(root.overlayFit, (pageArea.width - OverlayConfig.cardSpacing * 2) / Math.max(1, implicitWidth), (pageArea.height - OverlayConfig.cardSpacing * 2) / Math.max(1, implicitHeight))
         sourceComponent: {
           switch (OnboardingManager.pageId) {
           case "hyprland":

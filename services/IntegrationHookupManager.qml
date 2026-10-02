@@ -14,6 +14,11 @@ import qs.config
  * script's results in `results[key]`. Nothing is polled: the hookup panel
  * checks when it's shown. Only an Apply click edits a user's config (and an
  * Apply that changed something runs the integration again).
+ *
+ * Two keys aren't theme integrations: "hyprlandInclude" (the lines that load
+ * axiom's module, and the autostart line) and "hyprlandAutostart" (only the
+ * latter), in the user's hyprland.lua, for the onboarding's Hyprland page.
+ * Their targets come from HyprlandConfigManager, passed to the script.
  */
 Singleton {
   id: root
@@ -25,9 +30,14 @@ Singleton {
   // key -> true while a check or apply for it is queued or running
   property var busy: ({})
 
+  readonly property var _given: ({
+      "hyprlandInclude": [HyprlandConfigManager.includeTarget, HyprlandConfigManager.autostartTarget],
+      "hyprlandAutostart": [HyprlandConfigManager.autostartTarget]
+    })
+
   // The x-hookup targets of an integration, as the schema has them
   function targets(key) {
-    return ConfigManager.configSchema.properties.ThemeIntegrations.properties[key]?.["x-hookup"] ?? [];
+    return root._given[key] ?? ConfigManager.configSchema.properties.ThemeIntegrations.properties[key]?.["x-hookup"] ?? [];
   }
 
   // The x-hookupNote of an integration, untranslated ("" if none)
@@ -85,7 +95,7 @@ Singleton {
     const item = root._queue[0];
     root._queue = root._queue.slice(1);
     _process.item = item;
-    _process.command = ["python3", Paths.scriptsPath + "integration_hookup.py", item.action, item.key];
+    _process.command = ["python3", Paths.scriptsPath + "integration_hookup.py", item.action, item.key].concat(root._given[item.key] ? ["--targets", JSON.stringify(root._given[item.key])] : []);
     _process.running = true;
   }
 
@@ -111,7 +121,7 @@ Singleton {
           console.warn("[IntegrationHookupManager]", item.key, result.path, result.error);
       // Its axiom file (or ncspot's block, filled between the markers just
       // added) is written for the current theme now, not at the next change
-      if (data.results.some(result => result.changed))
+      if (!root._given[item.key] && data.results.some(result => result.changed))
         ThemeManager.themeIntegrations(Appearance.theme, [item.key]);
       // What it looks like now
       root._queue = [

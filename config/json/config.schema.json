@@ -21,7 +21,7 @@
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 37,
+      "default": 38,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
@@ -404,7 +404,6 @@
           "default": [
             { "key": "SUPER + space", "action": "launcher" },
             { "key": "SUPER + Tab", "action": "overlay" },
-            { "key": "SUPER + M", "action": "overlay" },
             { "key": "SUPER + SHIFT + space", "action": "workspaceOverview" },
             { "key": "ALT + Tab", "action": "windowSwitcher" },
             { "key": "ALT + SHIFT + Tab", "action": "windowSwitcherReverse" },
@@ -413,6 +412,7 @@
             { "key": "SUPER + CTRL + R", "action": "restartShell", "release": true },
             { "key": "SUPER + SHIFT + Escape", "action": "exitHyprland", "release": true },
             { "key": "SUPER + Return", "action": "terminal" },
+            { "key": "SUPER + Q", "action": "terminal" },
             { "key": "SUPER + E", "action": "fileManager" },
             { "key": "SUPER + B", "action": "browser" },
             { "key": "Print", "action": "screenshot", "argument": "region" },
@@ -463,6 +463,9 @@
             { "key": "SUPER + C", "action": "closeWindow" },
             { "key": "SUPER + F", "action": "fullscreen" },
             { "key": "SUPER + Z", "action": "toggleFloat" },
+            { "key": "SUPER + X", "action": "toggleSplit" },
+            { "key": "SUPER + V", "action": "toggleSpecial", "argument": "magic" },
+            { "key": "SUPER + SHIFT + V", "action": "moveToSpecial", "argument": "magic" },
             { "key": "SUPER + mouse:272", "action": "mouseDrag" },
             { "key": "SUPER + mouse:273", "action": "mouseResize" },
             { "key": "XF86AudioRaiseVolume", "action": "volumeUp", "locked": true, "repeating": true },
@@ -484,7 +487,7 @@
               "action": {
                 "type": "string",
                 "title": "Action",
-                "enum": ["launcher", "launcherSearch", "overlay", "overlayPage", "edgeMenu", "dock", "workspaceOverview", "powerMenu", "lock", "toggleDnd", "clearNotifications", "idleInhibit", "nightLight", "nextWallpaper", "workspaceStep", "moveWindowStep", "moveWindowStepSilent", "workspaceNth", "moveWindowNth", "moveWindowNthSilent", "focusDir", "moveWindowDir", "resizeWindow", "closeWindow", "fullscreen", "toggleFloat", "pin", "centerWindow", "toggleGroup", "windowSwitcher", "windowSwitcherReverse", "mouseDrag", "mouseResize", "toggleSpecial", "moveToSpecial", "restartShell", "volumeUp", "volumeDown", "toggleMute", "toggleMicMute", "brightnessUp", "brightnessDown", "mediaPlayPause", "mediaNext", "mediaPrevious", "mediaStop", "terminal", "fileManager", "browser", "screenshot", "screenRecord", "exitHyprland", "exec"],
+                "enum": ["launcher", "launcherSearch", "overlay", "overlayPage", "edgeMenu", "dock", "workspaceOverview", "powerMenu", "lock", "toggleDnd", "clearNotifications", "idleInhibit", "nightLight", "nextWallpaper", "workspaceStep", "moveWindowStep", "moveWindowStepSilent", "workspaceNth", "moveWindowNth", "moveWindowNthSilent", "focusDir", "moveWindowDir", "resizeWindow", "closeWindow", "fullscreen", "toggleFloat", "pin", "centerWindow", "toggleGroup", "windowSwitcher", "windowSwitcherReverse", "mouseDrag", "mouseResize", "toggleSpecial", "moveToSpecial", "restartShell", "volumeUp", "volumeDown", "toggleMute", "toggleMicMute", "brightnessUp", "brightnessDown", "mediaPlayPause", "mediaNext", "mediaPrevious", "mediaStop", "terminal", "fileManager", "browser", "screenshot", "screenRecord", "exitHyprland", "exec", "pseudo", "toggleSplit", "lua"],
                 "x-enumLabels": {
                   "launcher": "App launcher",
                   "launcherSearch": "Launcher with text",
@@ -538,7 +541,10 @@
                   "screenshot": "Screenshot",
                   "screenRecord": "Screen recording",
                   "exitHyprland": "Exit Hyprland",
-                  "exec": "Run a command"
+                  "exec": "Run a command",
+                  "pseudo": "Pseudotile window",
+                  "toggleSplit": "Toggle split direction",
+                  "lua": "Hyprland dispatcher (Lua)"
                 },
                 "default": "launcher"
               },
@@ -546,8 +552,8 @@
                 "type": "string",
                 "title": "Argument",
                 "default": "",
-                "description": "Search text, page, edge menu or dock id, direction, workspace number, special workspace name, resize step (\"50 0\"), screenshot kind (region, window or screen) or command.",
-                "x-showIf": { "action": ["launcherSearch", "overlayPage", "edgeMenu", "dock", "workspaceStep", "moveWindowStep", "moveWindowStepSilent", "workspaceNth", "moveWindowNth", "moveWindowNthSilent", "focusDir", "moveWindowDir", "resizeWindow", "toggleSpecial", "moveToSpecial", "screenshot", "exec"] }
+                "description": "Search text, page, edge menu or dock id, direction, workspace number, special workspace name, resize step (\"50 0\"), screenshot kind (region, window or screen), command, or a Hyprland dispatcher as Lua (hl.dsp.layout(\"swapsplit\")).",
+                "x-showIf": { "action": ["launcherSearch", "overlayPage", "edgeMenu", "dock", "workspaceStep", "moveWindowStep", "moveWindowStepSilent", "workspaceNth", "moveWindowNth", "moveWindowNthSilent", "focusDir", "moveWindowDir", "resizeWindow", "toggleSpecial", "moveToSpecial", "screenshot", "exec", "lua"] }
               },
               "call": {
                 "type": "string",
@@ -1241,6 +1247,7 @@
         "nvim": { "type": "boolean", "title": "Neovim", "default": false, "description": "Writes the theme for the axiom_theme module, and reloads running instances.", "x-hookupNote": "Neovim has no single line to add. Its colors come from colorscheme plugins your config loads, often lazily through a plugin manager and after init.lua has run, so a file read at startup would be overridden. axiom writes the theme to $XDG_STATE_HOME/axiom/nvim-theme.json; the axiom_theme module reads it, picks a colorscheme you map to it (or builds one from the palette) and reloads when the theme changes. Copy the module into your config, then call its setup() once your plugins are loaded.", "x-hookup": [{"file": "{config}/nvim/lua/axiom_theme.lua", "place": "copy", "from": "templates/nvim/axiom_theme.lua"}, {"text": "require(\"axiom_theme\").setup()", "where": "In init.lua, after your plugin manager's setup (with lazy.nvim, after require(\"lazy\").setup(…))."}] },
         "helix": { "type": "boolean", "title": "Helix", "default": false, "description": "Writes the \"axiom\" theme. Helix 23.10+ reloads it.", "x-hookup": [{"file": "{config}/helix/config.toml", "place": "top", "text": "theme = \"axiom\"", "accept": "^theme\\s*=\\s*\"axiom\""}] },
         "vscode": { "type": "boolean", "title": "VS Code / VSCodium", "default": false, "description": "Installs a local \"Axiom\" color theme extension.", "x-hookup": [{"text": "\"workbench.colorTheme\": \"Axiom\"", "where": "In settings.json (Preferences: Open User Settings (JSON)), or pick Axiom under Preferences: Color Theme."}] },
+        "zed": { "type": "boolean", "title": "Zed", "default": false, "description": "Writes the \"Axiom\" theme, which follows light/dark. Zed reloads it.", "x-hookup": [{"text": "\"theme\": \"Axiom\"", "where": "In Zed's settings.json (zed: open settings), or pick Axiom in the theme selector (ctrl-k ctrl-t). With \"mode\": \"system\", set both \"light\" and \"dark\" to Axiom."}] },
         "vesktop": { "type": "boolean", "title": "Vesktop / Vencord", "default": false, "description": "Writes the axiom.theme.css Vencord theme for Vesktop (and Vencord, Equibop, Equicord). Discord re-colors live.", "x-hookup": [{"text": "axiom.theme.css", "where": "In Vesktop: Settings → Vencord → Themes, switch it on."}] },
         "firefox": { "type": "boolean", "title": "Firefox / LibreWolf / Zen", "default": false, "description": "Writes chrome/axiom.css into every profile of Firefox and its forks (LibreWolf, Zen, Floorp, Waterfox; Flatpak too), recoloring the browser's tabs, toolbars, menus and sidebar. Applies from each browser's next start; websites only follow light/dark.", "x-hookupNote": "Apply sets up every profile it finds: it imports axiom.css at the top of each profile's chrome/userChrome.css, and turns on toolkit.legacyUserProfileCustomizations.stylesheets in its user.js, which Firefox needs before it reads userChrome.css. Restart the browser afterwards.", "x-profiles": ["{home}/.mozilla/firefox/profiles.ini", "{config}/mozilla/firefox/profiles.ini", "{home}/.var/app/org.mozilla.firefox/.mozilla/firefox/profiles.ini", "{home}/.var/app/org.mozilla.firefox/config/mozilla/firefox/profiles.ini", "{home}/.librewolf/profiles.ini", "{config}/librewolf/librewolf/profiles.ini", "{home}/.var/app/io.gitlab.librewolf-community/.librewolf/profiles.ini", "{home}/.zen/profiles.ini", "{config}/zen/profiles.ini", "{home}/.var/app/app.zen_browser.zen/.zen/profiles.ini", "{home}/.floorp/profiles.ini", "{home}/.var/app/one.ablaze.floorp/.floorp/profiles.ini", "{home}/.waterfox/profiles.ini", "{home}/.var/app/net.waterfox.waterfox/.waterfox/profiles.ini"], "x-hookup": [{"perProfile": true, "file": "chrome/userChrome.css", "place": "start", "text": "@import url(\"axiom.css\");", "accept": "^@import url\\([\"']?axiom\\.css"}, {"perProfile": true, "file": "user.js", "place": "end", "comment": "//", "text": "user_pref(\"toolkit.legacyUserProfileCustomizations.stylesheets\", true);", "accept": "^user_pref\\(\"toolkit\\.legacyUserProfileCustomizations\\.stylesheets\",\\s*true\\)"}] },
         "k9s": { "type": "boolean", "title": "k9s", "default": false, "description": "Writes the \"axiom\" skin. k9s reloads it by itself.", "x-hookup": [{"text": "k9s:\n  ui:\n    skin: axiom", "where": "In ~/.config/k9s/config.yaml, merged into its k9s: section."}] },

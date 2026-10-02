@@ -14,12 +14,16 @@ BarWidget {
   // Sized by the bar, as BarIconWidget does
   readonly property real padding: barConfig.widgetPadding
   readonly property real spacing: barConfig.widgetSpacing * 1.5
+  // No item showing (none, or only passive ones while those are hidden):
+  // a zero natural size, which the bar skips, as IconTextWidget's `hidden`
+  readonly property bool hidden: items.implicitWidth <= 0
 
-  implicitWidth: isVertical ? barConfig.widgetSize : items.implicitWidth + padding * 2
-  implicitHeight: isVertical ? items.implicitHeight + padding * 2 : barConfig.widgetSize
+  implicitWidth: isVertical ? barConfig.widgetSize : hidden ? 0 : items.implicitWidth + padding * 2
+  implicitHeight: isVertical ? (hidden ? 0 : items.implicitHeight + padding * 2) : barConfig.widgetSize
 
   Rectangle {
     anchors.fill: parent
+    visible: !root.hidden
     radius: root.barConfig.radius
     color: Theme.resolveColor(root.properties.backgroundColor)
   }

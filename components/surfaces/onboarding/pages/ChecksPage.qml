@@ -70,7 +70,7 @@ OnboardingPage {
     StyledText {
       Layout.topMargin: Widget.spacing
       Layout.fillWidth: true
-      text: I18n.tr("To install what's missing on Arch (a package that isn't in the official repositories, like the icon font, comes from the AUR: use your AUR helper instead of pacman for it):")
+      text: I18n.tr("To install what's missing:")
       wrapMode: Text.WordWrap
     }
 

@@ -223,8 +223,9 @@ TestCase {
       }
     });
     const binds = result.config.Hyprland.binds;
-    // The user's own SUPER + A stays; the other seven are added once
-    compare(binds.length, 8);
+    // The user's own SUPER + A stays; the other seven are added once (and
+    // v38's three)
+    compare(binds.length, 11);
     compare(binds[0].argument, "pavucontrol");
     compare(binds.filter(bind => bind.action === "workspaceStep").map(bind => bind.argument).sort(), ["down", "right", "up"]);
     compare(binds.filter(bind => bind.action === "moveWindowStep").length, 4);
@@ -689,6 +690,40 @@ TestCase {
     compare(loaded.config.EdgeMenus[0].modules[0].type, "ThemePicker");
     compare(loaded.changes.filter(change => change.includes("ThemePicker")).length, 2);
     compare(errors(loaded.config), []);
+  }
+
+  function test_v38_adds_split_and_special_binds_on_free_keys() {
+    const free = ConfigMigration.migrate({
+      "version": 37,
+      "Hyprland": {
+        "binds": [
+          {
+            "key": "SUPER + J",
+            "action": "toggleSplit"
+          }
+        ]
+      }
+    }).config.Hyprland.binds;
+    compare(free.length, 4);
+    compare(free[1].key, "SUPER + X");
+    compare(free[1].action, "toggleSplit");
+    compare([free[2].key, free[2].action, free[2].argument], ["SUPER + V", "toggleSpecial", "magic"]);
+    compare([free[3].key, free[3].action, free[3].argument], ["SUPER + SHIFT + V", "moveToSpecial", "magic"]);
+    const taken = ConfigMigration.migrate({
+      "version": 37,
+      "Hyprland": {
+        "binds": [
+          {
+            "key": "super + x",
+            "action": "exec",
+            "argument": "foot"
+          }
+        ]
+      }
+    }).config.Hyprland.binds;
+    compare(taken.length, 3);
+    compare(taken[0].action, "exec");
+    compare(taken.filter(bind => bind.action === "toggleSplit").length, 0);
   }
 
   function test_v36_primary_bar_monitors_become_primary() {

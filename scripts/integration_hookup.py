@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """Hooks a theme integration's axiom file into the app's own config.
 
-Usage: integration_hookup.py status|apply|profiles KEY [--schema PATH]
+Usage: integration_hookup.py status|apply|profiles KEY [--schema PATH | --targets JSON]
 
 The targets are the `x-hookup` list of ThemeIntegrations.KEY in the config
-schema. Each is one of:
+schema, or the JSON list `--targets` gives (KEY then only names them: the
+Hyprland page's lines that load axiom or start it). Each is one of:
   {file, text, place, ...}  something apply can do
   {text, where}             copy only: the settings page shows it to copy
   {file, from, place: "copy"}  a file to copy into place when missing
@@ -24,6 +25,9 @@ key the text sets: "comment" (the default: commented out), "keep" (left
 beside it) or "conflict" (nothing is done: copy only). `requires` names a
 command without which the target is skipped; `comment` is the comment
 prefix (default "#").
+
+`note` replaces the settings page's line about where the text goes, and
+`title` names the target above its path (two targets in one file).
 
 `perProfile` makes a target one per browser profile: `file` is then
 relative to each profile directory listed by the profiles.ini files in the
@@ -186,7 +190,7 @@ def plan(t):
     comment = t.get("comment", "#")
     path = t.get("file")
     out = {"text": t["text"], "place": place, "skipped": t.get("skipped", ""), "where": t.get("where", ""),
-           "note": t.get("note", ""), "copyOnly": not path and not t.get("skipped"),
+           "note": t.get("note", ""), "title": t.get("title", ""), "copyOnly": not path and not t.get("skipped"),
            "exists": False, "link": False, "done": False, "replaces": [], "alongside": [], "conflicts": [],
            "createsSection": False, "shell": t.get("shell", ""),
            "section": t.get("section", ""), "requires": t.get("requires", "")}
@@ -314,24 +318,34 @@ def apply(targets, d):
 def main(argv):
     args = argv[1:]
     schema = SCHEMA
-    if "--schema" in args:
-        i = args.index("--schema")
-        schema = Path(args[i + 1])
-        del args[i:i + 2]
+    given = None
+    for flag in ("--schema", "--targets"):
+        if flag in args:
+            i = args.index(flag)
+            if flag == "--schema":
+                schema = Path(args[i + 1])
+            else:
+                given = json.loads(args[i + 1])
+            del args[i:i + 2]
     if len(args) != 2 or args[0] not in ("status", "apply", "profiles"):
         print(__doc__.strip().splitlines()[2], file=sys.stderr)
         return 2
     action, key = args
-    props = json.loads(schema.read_text())["properties"]["ThemeIntegrations"]["properties"]
-    if key not in props:
-        print(f"Error: no integration '{key}'", file=sys.stderr)
-        return 2
     d = dirs()
-    profiles = props[key].get("x-profiles", [])
-    if action == "profiles":
-        print("\n".join(profile_dirs(profiles, d)))
-        return 0
-    targets = expand(props[key].get("x-hookup", []), profiles, d)
+    if given is not None:
+        if action == "profiles":
+            return 0
+        targets = given
+    else:
+        props = json.loads(schema.read_text())["properties"]["ThemeIntegrations"]["properties"]
+        if key not in props:
+            print(f"Error: no integration '{key}'", file=sys.stderr)
+            return 2
+        profiles = props[key].get("x-profiles", [])
+        if action == "profiles":
+            print("\n".join(profile_dirs(profiles, d)))
+            return 0
+        targets = expand(props[key].get("x-hookup", []), profiles, d)
     if action == "status":
         rows = status(targets, d)
         for row in rows:

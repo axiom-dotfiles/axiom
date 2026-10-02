@@ -123,6 +123,7 @@ Item {
         Layout.fillHeight: true
         clip: true
         ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+        contentWidth: availableWidth
 
         RowLayout {
           width: scroll.availableWidth
@@ -217,6 +218,7 @@ Item {
         Layout.topMargin: Widget.spacing / 2
         clip: true
         ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+        contentWidth: availableWidth
 
         TileFlow {
           id: flow

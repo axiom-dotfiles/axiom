@@ -270,4 +270,39 @@ TestCase {
     compare(rule.mirror, "");
     compare(MonitorLayout.ruleRect(rule, monitor), main);
   }
+
+  function test_wholeScaleRules() {
+    const laptop = {
+      "name": "eDP-1",
+      "description": "BOE laptop",
+      "width": 2880,
+      "height": 1800,
+      "refreshRate": 120,
+      "x": 1280,
+      "y": 0,
+      "scale": 2,
+      "transform": 0
+    };
+    const side = {
+      "name": "DP-2",
+      "description": "Dell side",
+      "width": 2560,
+      "height": 1440,
+      "refreshRate": 60,
+      "x": 0,
+      "y": 200,
+      "scale": 1.25,
+      "transform": 1
+    };
+    const rules = MonitorLayout.wholeScaleRules([laptop, side]);
+    compare(rules.map(rule => rule.label), ["DP-2", "eDP-1"]);
+    // 1.25 rounds down; the laptop's whole 2 stays
+    compare(rules.map(rule => rule.scale), [1, 2]);
+    // DP-2 stands sideways: 1440 wide at 100%
+    compare(rules.map(rule => [rule.x, rule.y]), [[0, 0], [1440, 0]]);
+    const fractional = Object.assign({}, laptop, {
+      "scale": 2.5
+    });
+    compare(MonitorLayout.wholeScaleRules([fractional])[0].scale, 2);
+  }
 }

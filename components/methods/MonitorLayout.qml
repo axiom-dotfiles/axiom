@@ -253,6 +253,24 @@ QtObject {
   // Color presets hyprctl reports, as the rule's `cm`
   readonly property var _cmPresets: ["srgb", "dcip3", "dp3", "adobe", "wide", "edid", "hdr", "hdredid"]
 
+  // Rules for the monitors as they are, but every fractional scale rounded
+  // down to a whole one (1.5 to 1, 2.5 to 2; 2 stays, so a HiDPI panel
+  // stays readable) and side by side from left to right in their current
+  // order (a mirror keeps its place): the first run's layout on Hyprland's
+  // example config, whose "auto" scale is often 1.25 or 1.5
+  function wholeScaleRules(all) {
+    let x = 0;
+    return [...all].sort((a, b) => a.x - b.x || a.y - b.y).map(monitor => {
+      const rule = ruleFromMonitor(monitor, all);
+      rule.scale = Math.max(1, Math.floor(monitor.scale));
+      rule.y = 0;
+      rule.x = x;
+      if (!rule.disabled && rule.mirror === "")
+        x += logicalSize(monitor.width, monitor.height, rule.scale, rule.transform).width;
+      return rule;
+    });
+  }
+
   // A rule with every field, describing a monitor as it is now
   function ruleFromMonitor(monitor, all) {
     const mirror = monitor.mirrorOf && monitor.mirrorOf !== "none" ? (all ?? []).find(other => other.name === monitor.mirrorOf || String(other.id) === String(monitor.mirrorOf)) : null;

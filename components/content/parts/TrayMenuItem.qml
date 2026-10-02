@@ -90,7 +90,7 @@ Rectangle {
       text: root.openToLeft ? "chevron_left" : "chevron_right"
       textColor: Theme.accent
       Layout.preferredWidth: implicitWidth
-      Layout.maximumWidth: implicitWidth
+      Layout.maximumWidth: Math.ceil(implicitWidth)
       Layout.minimumWidth: implicitWidth
     }
   }

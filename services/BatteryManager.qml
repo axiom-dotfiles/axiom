@@ -10,7 +10,9 @@ import qs.config
 QtObject {
   id: root
 
-  readonly property UPowerDevice battery: UPower.displayDevice?.isLaptopBattery ? UPower.displayDevice : null
+  // The display device exists before UPower has been queried for it (0%,
+  // unknown state): until it is ready it would read as a critical battery
+  readonly property UPowerDevice battery: UPower.displayDevice?.ready && UPower.displayDevice.isLaptopBattery ? UPower.displayDevice : null
   readonly property bool isAvailable: battery !== null
   // UPowerDevice.percentage is a 0-1 ratio
   readonly property int percentage: Math.round((battery?.percentage ?? 0) * 100)
@@ -34,7 +36,31 @@ QtObject {
   // critical notifies once (charging, or a reload, starts over)
   property string _notifiedLevel: "none"
 
-  onLevelChanged: {
+  // UPower's readings arrive over D-Bus after the device does, not all at
+  // once (even once it's `ready` it can read 0% for a moment), so the level
+  // is only judged once they've settled: then once as it stands, and on
+  // every change after
+  property bool _settled: false
+
+  property Timer _settle: Timer {
+    interval: 3000
+    onTriggered: {
+      root._settled = true;
+      root._checkLevel();
+    }
+  }
+
+  onIsAvailableChanged: {
+    root._settled = false;
+    if (root.isAvailable)
+      root._settle.restart();
+  }
+
+  onLevelChanged: _checkLevel()
+
+  function _checkLevel() {
+    if (!root._settled)
+      return;
     if (BatteryConfig.notify) {
       if (level === "critical" && _notifiedLevel !== "critical")
         NotificationManager.sendNotification("axiom", I18n.tr("Critical Battery"), I18n.tr("Battery critically low: {0}%", root.percentage));
@@ -48,7 +74,11 @@ QtObject {
     PowerProfiles.profile = on ? PowerProfile.PowerSaver : PowerProfile.Balanced;
   }
 
-  Component.onCompleted: DependencyManager.check(["powerprofilesctl"])
+  Component.onCompleted: {
+    DependencyManager.check(["powerprofilesctl"]);
+    if (root.isAvailable)
+      root._settle.restart();
+  }
 
   function formatTime(seconds) {
     if (seconds <= 0)

@@ -110,8 +110,26 @@ Singleton {
   }
   property bool _hasLegacyConfig: false
 
-  // The mode the Hyprland page recommends for what it found
-  readonly property string recommendedMode: configState === "custom" || configState === "blocked" ? "included" : "managed"
+  // Why managed can't be picked ("" when it can), for its option card
+  readonly property string blockedReason: {
+    const hypr = Paths.shortenHome(Paths.hyprlandPath).replace(/\/$/, "");
+    if (HyprlandConfigManager.managedBlockedBy === "link")
+      return I18n.tr("{0} or its hyprland.lua is a symlink (dotfiles?), so axiom won't replace it.", hypr);
+    if (HyprlandConfigManager.managedBlockedBy === "git")
+      return I18n.tr("{0} is inside the git repository at {1}, so axiom won't take it over. Move or remove that repository's .git to allow it.", hypr, Paths.shortenHome(HyprlandConfigManager.managedBlockedRepo));
+    return configState === "blocked" ? I18n.tr("Your Hyprland config is a symlink or in a git repository, so axiom won't take it over.") : "";
+  }
+  // Whether hyprland.lua already starts axiom (install.sh's line, or the
+  // Hyprland page's Apply); false until checked
+  readonly property bool autostartDone: IntegrationHookupManager.isDone("hyprlandAutostart")
+  // Whether hyprland.lua loads axiom's module (included mode)
+  readonly property bool includeDone: (IntegrationHookupManager.status.hyprlandInclude?.targets ?? [])[0]?.done === true
+
+  // The mode the Hyprland page starts on: managed only when there's nothing
+  // of the user's to take over (Hyprland's generated example config, none,
+  // or axiom's already); a config of their own (custom, legacy, blocked)
+  // starts detached, which changes none of it
+  readonly property string recommendedMode: ["stock", "none", "ours"].includes(configState) ? "managed" : "detached"
   // The mode picked on the Hyprland page, applied on Finish ("" follows
   // the recommendation)
   readonly property string chosenMode: _run.chosenMode !== "" ? _run.chosenMode : recommendedMode
@@ -123,6 +141,8 @@ Singleton {
 
   function detectHyprland() {
     HyprlandConfigManager.checkManaged();
+    IntegrationHookupManager.check("hyprlandInclude");
+    IntegrationHookupManager.check("hyprlandAutostart");
     if (!_detect.running)
       _detect.running = true;
   }
@@ -209,6 +229,12 @@ Singleton {
     property bool shown: false
     property int step: 0
     property string chosenMode: ""
+  }
+
+  // Hyprland's example config on a first run: no fractional scales
+  onConfigStateChanged: {
+    if (shown && ConfigManager.firstRun && (configState === "stock" || configState === "none"))
+      MonitorManager.useWholeScale();
   }
 
   Connections {

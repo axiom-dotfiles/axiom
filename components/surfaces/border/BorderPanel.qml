@@ -15,6 +15,9 @@ PanelWindow {
   required property int frameWidth
   required property int innerBorderRadius
   required property color frameColor
+  // The frame's own colour, for the ends of a strip whose frameColor is
+  // transparent (see endFills)
+  required property color endFillColor
   required property color innerStrokeColor
   required property int strokeWidth
 
@@ -39,6 +42,24 @@ PanelWindow {
   Rectangle {
     anchors.fill: parent
     color: root.frameColor
+  }
+
+  // On a solid bar's edge the strip is transparent, but a strip that runs
+  // into the corners (the first mapped of two that meet) also owns the
+  // stroke's row past the bar there, outside the corner piece: fill it
+  Repeater {
+    model: root.frameColor.a < 1 ? [true, false] : []
+
+    delegate: Rectangle {
+      required property bool modelData
+      readonly property bool atStart: modelData
+      readonly property int along: root.frameWidth - root.strokeWidth
+      color: root.endFillColor
+      width: root.horizontal ? along : root.strokeWidth
+      height: root.horizontal ? root.strokeWidth : along
+      x: root.horizontal ? (atStart ? 0 : parent.width - width) : (root.edge === "left" ? along : 0)
+      y: root.horizontal ? (root.edge === "top" ? along : 0) : (atStart ? 0 : parent.height - height)
+    }
   }
 
   // The inner stroke, on the strip's screen-facing side

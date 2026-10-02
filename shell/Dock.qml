@@ -3,6 +3,7 @@ import QtQuick
 import Quickshell
 
 import qs.config
+import qs.services
 import qs.components.surfaces.dock
 
 // The docks (DockConfig), one per enabled entry, each on the screens its
@@ -10,7 +11,8 @@ import qs.components.surfaces.dock
 // in place instead of rebuilding it.
 Scope {
   Variants {
-    model: DockConfig.shownIds
+    // Once the layer rules are in (HyprlandManager.layerRulesReady)
+    model: HyprlandManager.layerRulesReady ? DockConfig.shownIds : []
 
     delegate: Scope {
       id: entry
