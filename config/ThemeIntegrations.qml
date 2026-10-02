@@ -28,6 +28,4 @@ QtObject {
   readonly property bool bat: _c.bat
   readonly property bool yazi: _c.yazi
   readonly property bool zathura: _c.zathura
-  readonly property bool fish: _c.fish
-  readonly property bool eza: _c.eza
 }
