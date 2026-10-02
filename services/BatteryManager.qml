@@ -36,7 +36,31 @@ QtObject {
   // critical notifies once (charging, or a reload, starts over)
   property string _notifiedLevel: "none"
 
-  onLevelChanged: {
+  // UPower's readings arrive over D-Bus after the device does, not all at
+  // once (even once it's `ready` it can read 0% for a moment), so the level
+  // is only judged once they've settled: then once as it stands, and on
+  // every change after
+  property bool _settled: false
+
+  property Timer _settle: Timer {
+    interval: 3000
+    onTriggered: {
+      root._settled = true;
+      root._checkLevel();
+    }
+  }
+
+  onIsAvailableChanged: {
+    root._settled = false;
+    if (root.isAvailable)
+      root._settle.restart();
+  }
+
+  onLevelChanged: _checkLevel()
+
+  function _checkLevel() {
+    if (!root._settled)
+      return;
     if (BatteryConfig.notify) {
       if (level === "critical" && _notifiedLevel !== "critical")
         NotificationManager.sendNotification("axiom", I18n.tr("Critical Battery"), I18n.tr("Battery critically low: {0}%", root.percentage));
@@ -50,7 +74,11 @@ QtObject {
     PowerProfiles.profile = on ? PowerProfile.PowerSaver : PowerProfile.Balanced;
   }
 
-  Component.onCompleted: DependencyManager.check(["powerprofilesctl"])
+  Component.onCompleted: {
+    DependencyManager.check(["powerprofilesctl"]);
+    if (root.isAvailable)
+      root._settle.restart();
+  }
 
   function formatTime(seconds) {
     if (seconds <= 0)
