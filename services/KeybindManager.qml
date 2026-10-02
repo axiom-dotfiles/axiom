@@ -112,8 +112,8 @@ QtObject {
   // The action picker's categories, in tab order ("" is All). `exec` is
   // filed under Apps there; everything else by its section on the page.
   // I18n.tr("Axiom") I18n.tr("Apps") I18n.tr("Media") I18n.tr("Window")
-  // I18n.tr("Workspace") I18n.tr("Special")
-  readonly property var actionSections: ["Axiom", "Apps", "Media", "Window", "Workspace", "Special"]
+  // I18n.tr("Workspace") I18n.tr("Special") I18n.tr("Custom")
+  readonly property var actionSections: ["Axiom", "Apps", "Media", "Window", "Workspace", "Special", "Custom"]
 
   // Material Symbols per action (the picker and its button)
   readonly property var _actionIcons: ({
@@ -146,6 +146,8 @@ QtObject {
       "pin": "push_pin",
       "centerWindow": "center_focus_weak",
       "toggleGroup": "tab_group",
+      "pseudo": "picture_in_picture_alt",
+      "toggleSplit": "splitscreen_right",
       "windowSwitcher": "tab",
       "windowSwitcherReverse": "tab",
       "mouseDrag": "drag_pan",
@@ -169,7 +171,8 @@ QtObject {
       "screenshot": "screenshot_region",
       "screenRecord": "videocam",
       "exitHyprland": "logout",
-      "exec": "code"
+      "exec": "code",
+      "lua": "data_object"
     })
 
   // [{ action, label, section, icon }], one per action, in schema order
@@ -188,6 +191,7 @@ QtObject {
   readonly property var _argumentKinds: ({
       "launcherSearch": "text",
       "exec": "text",
+      "lua": "lua",
       "overlayPage": "view",
       "edgeMenu": "edgeMenu",
       "dock": "dock",
@@ -507,6 +511,39 @@ QtObject {
       draft.local.splice(indices[i], 1);
     draft.changed();
     return indices.length;
+  }
+
+  // Managed mode moves the user's binds into axiom instead of dropping
+  // axiom's (HyprlandConfigManager.mergeUserBinds)
+  readonly property bool canMerge: HyprlandConfigManager.mode === "managed"
+  // How many binds the user's Hyprland config makes
+  readonly property int userBindCount: Object.values(root._userKeyCounts).reduce((sum, count) => sum + Math.max(0, count), 0)
+
+  function mergeUserBinds() {
+    stopRecording();
+    HyprlandConfigManager.mergeUserBinds();
+  }
+
+  // Moved binds are saved at once: a draft with unsaved edits takes them
+  // too (so its Save keeps them), else it starts over from the config
+  property Connections _mergeWatch: Connections {
+    target: HyprlandConfigManager
+
+    function onBindsMerged(binds) {
+      if (!draft.isDirty) {
+        draft.load();
+        return;
+      }
+      for (const bind of binds) {
+        draft.local.push(root._completeBind(bind));
+        draft.saved.push(root._completeBind(bind));
+      }
+      draft.changed();
+    }
+
+    function onLastMergeChanged() {
+      root.refreshSoon();
+    }
   }
 
   // --- Presets ---

@@ -737,6 +737,115 @@ class ClaimHyprland(unittest.TestCase):
         self.assertEqual(result.returncode, 2)
 
 
+class MergeHyprBinds(unittest.TestCase):
+    EXAMPLE = Path("/usr/share/hypr/hyprland.lua")
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+        self.hypr = self.tmp / "hypr"
+        (self.hypr / "user").mkdir(parents=True)
+
+    def tearDown(self):
+        shutil.rmtree(self.tmp)
+
+    def write(self, name, text):
+        (self.hypr / "user" / name).write_text(text)
+
+    def run_merge(self, *args):
+        result = subprocess.run([sys.executable, str(SCRIPTS / "merge_hypr_binds.py"), *args],
+                                capture_output=True, text=True, timeout=30)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        return json.loads(result.stdout)
+
+    def extract(self):
+        return self.run_merge("extract", str(self.hypr))
+
+    def remove(self, sites):
+        return self.run_merge("remove", str(self.hypr), json.dumps(sites))
+
+    def test_nothing_to_merge(self):
+        self.assertEqual(self.extract(), {"binds": [], "sites": [], "kept": [], "errors": []})
+
+    @unittest.skipUnless(EXAMPLE.exists(), "Hyprland's example config isn't installed")
+    def test_example_config_moves_completely_onto_axiom_actions(self):
+        shutil.copy(self.EXAMPLE, self.hypr / "user" / "00-previous.lua")
+        found = self.extract()
+        self.assertEqual(found["kept"], [])
+        self.assertNotIn("lua", {b["action"] for b in found["binds"]})
+        by_key = {b["key"]: b for b in found["binds"]}
+        self.assertEqual(by_key["SUPER + 0"]["action"], "workspaceNth")
+        self.assertEqual(by_key["SUPER + 0"]["argument"], "10")
+        self.assertEqual(by_key["SUPER + J"]["action"], "toggleSplit")
+        self.assertEqual(by_key["SUPER + mouse_down"]["argument"], "right")
+        self.assertTrue(by_key["XF86AudioRaiseVolume"]["repeating"])
+        done = self.remove(found["sites"])
+        self.assertEqual(done["failed"], [])
+        text = (self.hypr / "user" / "00-previous.lua").read_text()
+        self.assertNotIn("hl.bind(", text)
+        self.assertIn("hl.window_rule(", text)
+        self.assertEqual(len(list((self.hypr / "user").glob("*.axiom-backup-*"))), 1)
+        self.assertEqual(self.extract()["binds"], [])
+
+    def test_mapping_and_raw_lua(self):
+        self.write("binds.lua", "\n".join([
+            'local mod = "SUPER"',
+            'hl.bind(mod .. " + T", hl.dsp.exec_cmd("foot"), { description = "Apps: Foot" })',
+            'hl.bind(mod .. " + K", hl.dsp.layout("swapsplit"))',
+            'hl.bind(mod .. " + L", hl.dsp.window.move({ workspace = "e+1" }))',
+            'hl.bind(mod .. " + mouse:272", hl.dsp.window.drag(), { mouse = true })',
+            "",
+        ]))
+        binds = {b["key"]: b for b in self.extract()["binds"]}
+        self.assertEqual((binds["SUPER + T"]["action"], binds["SUPER + T"]["argument"]), ("exec", "foot"))
+        self.assertEqual(binds["SUPER + T"]["description"], "Apps: Foot")
+        self.assertEqual((binds["SUPER + K"]["action"], binds["SUPER + K"]["argument"]), ("lua", 'hl.dsp.layout("swapsplit")'))
+        self.assertEqual((binds["SUPER + L"]["action"], binds["SUPER + L"]["argument"]), ("moveWindowStep", "right"))
+        self.assertEqual(binds["SUPER + mouse:272"]["action"], "mouseDrag")
+
+    def test_what_cant_move_stays(self):
+        self.write("binds.lua", "\n".join([
+            'hl.bind("SUPER + A", function() end)',
+            'hl.bind("SUPER + B", hl.dsp.window.close(), { non_consuming = true })',
+            'local used = hl.bind("SUPER + C", hl.dsp.window.close())',
+            "used:set_enabled(false)",
+            'hl.bind("SUPER + D", hl.dsp.window.close()) hl.bind("SUPER + E", hl.dsp.window.pin())',
+            "for _, k in ipairs({ \"F\", \"G\" }) do",
+            '  hl.bind("SUPER + " .. k, k == "F" and hl.dsp.window.close() or function() end)',
+            "end",
+            'hl.bind("SUPER + H", hl.dsp.window.pin())',
+            "",
+        ]))
+        found = self.extract()
+        self.assertEqual([b["key"] for b in found["binds"]], ["SUPER + H"])
+        self.assertEqual(sorted(k["key"] for k in found["kept"]), ["SUPER + A", "SUPER + B", "SUPER + C", "SUPER + D", "SUPER + E", "SUPER + F", "SUPER + G"])
+        self.remove(found["sites"])
+        text = (self.hypr / "user" / "binds.lua").read_text()
+        self.assertNotIn("SUPER + H", text)
+        self.assertIn("SUPER + C", text)
+
+    def test_unbind_of_a_moved_key_goes_too(self):
+        self.write("binds.lua", 'hl.unbind("SUPER + Q")\nhl.bind("SUPER + Q", hl.dsp.exec_cmd("foot"))\nhl.unbind("SUPER + W")\n')
+        found = self.extract()
+        self.assertEqual(len(found["sites"]), 2)
+        self.remove(found["sites"])
+        self.assertEqual((self.hypr / "user" / "binds.lua").read_text(), 'hl.unbind("SUPER + W")\n')
+
+    def test_multiline_call_and_trailing_comment(self):
+        self.write("binds.lua", 'hl.bind(\n  "SUPER + Q",\n  hl.dsp.exec_cmd("a )"), -- (\n  { locked = true }\n) -- done\nhl.env("A", "b")\n')
+        found = self.extract()
+        self.assertTrue(found["binds"][0]["locked"])
+        self.remove(found["sites"])
+        self.assertEqual((self.hypr / "user" / "binds.lua").read_text(), 'hl.env("A", "b")\n')
+
+    def test_shared_modules_are_left_alone(self):
+        (self.hypr / "user" / "lib").mkdir()
+        (self.hypr / "user" / "lib" / "keys.lua").write_text('return function() hl.bind("SUPER + Z", hl.dsp.window.pin()) end\n')
+        self.write("binds.lua", 'require("user.lib.keys")()\n')
+        found = self.extract()
+        self.assertEqual(found["binds"], [])
+        self.assertEqual(found["kept"][0]["reason"], "it's made in a shared module")
+
+
 class GenerateTheme(unittest.TestCase):
     def test_wallpaper_makes_a_valid_pair(self):
         tmp = Path(tempfile.mkdtemp())

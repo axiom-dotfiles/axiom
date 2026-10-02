@@ -200,6 +200,12 @@ Singleton {
       "pin": [() => "hl.dsp.window.pin()", "Pin", "Window"],
       "centerWindow": [() => "hl.dsp.window.center()", "Center", "Window"],
       "toggleGroup": [() => "hl.dsp.group.toggle()", "Toggle group", "Window"],
+      "pseudo": [() => "hl.dsp.window.pseudo()", "Pseudotile", "Window"],
+      "toggleSplit": [() => `hl.dsp.layout("togglesplit")`, "Toggle split", "Window"],
+      // Any dispatcher, as Lua (`hl.dsp.layout("swapsplit")`), compiled
+      // when the bind is made so a mistake only leaves that bind doing
+      // nothing instead of breaking the whole file
+      "lua": [arg => `(function() local ok, d = pcall(load(${_lua("return " + arg)}) or error) if ok and d then return d end return hl.dsp.no_op() end)()`, "{0}", "Custom"],
       // Lua functions entering the switcher's submap (HyprLua.switcherLua)
       "windowSwitcher": [() => HyprLua.switcherBindLua(switcherSteps.windowSwitcher), "Switch windows", "Window"],
       "windowSwitcherReverse": [() => HyprLua.switcherBindLua(switcherSteps.windowSwitcherReverse), "Switch windows backwards", "Window"],
@@ -864,6 +870,9 @@ if #errors > 0 then error(table.concat(errors, "\\n")) end
           console.log(`[HyprlandConfigManager] Replaced Hyprland's example config at ${root.managedPath} (backed up beside it)`);
         if (result === "ours" || result === "adopted" || result === "replaced")
           root._writeIfChanged(root.managedPath, root.managedLua());
+        // The adopted config's binds would fight axiom's: they move in
+        if (result === "adopted")
+          root.mergeUserBinds();
       }
     }
     stderr: StdioCollector {
@@ -872,6 +881,109 @@ if #errors > 0 then error(table.concat(errors, "\\n")) end
         if (claimErrors.text.trim() !== "")
           console.warn("[HyprlandConfigManager] Taking over hyprland.lua:", claimErrors.text.trim());
       }
+    }
+  }
+
+  // --- Moving the user's binds into axiom (managed mode) ---
+
+  // scripts/merge_hypr_binds.py: every hl.bind in user/*.lua that can move
+  // becomes one of axiom's binds (an action where one does the same, else
+  // the `lua` action), saved first, then its call is deleted from the file
+  // (a dated backup beside it). A key axiom binds too ends up bound twice
+  // in axiom, which the Keybinds page flags. Runs by itself when a takeover
+  // adopts the previous hyprland.lua, so managed mode starts with no
+  // conflicts.
+  readonly property bool merging: extractBinds.running || removeBinds.running
+  // The last merge: { moved, removed, kept: [{ file, line, key, reason }],
+  // failed: [{ file, reason }], errors: [text] }, or null
+  property var lastMerge: null
+  // The binds a merge added to the saved config (KeybindManager adds them
+  // to a draft with unsaved edits)
+  signal bindsMerged(var binds)
+
+  function mergeUserBinds() {
+    if (mode !== "managed" || merging)
+      return;
+    extractBinds.running = true;
+  }
+
+  property var _merged: null
+
+  function _extracted(text) {
+    let found;
+    try {
+      found = JSON.parse(text);
+    } catch (e) {
+      console.warn("[HyprlandConfigManager] Reading your Hyprland binds failed:", extractErrors.text.trim() || e);
+      lastMerge = {
+        "moved": 0,
+        "removed": 0,
+        "kept": [],
+        "failed": [],
+        "errors": [extractErrors.text.trim() || String(e)]
+      };
+      return;
+    }
+    _merged = {
+      "moved": found.binds.length,
+      "removed": 0,
+      "kept": found.kept,
+      "failed": [],
+      "errors": found.errors
+    };
+    if (found.binds.length === 0) {
+      lastMerge = _merged;
+      return;
+    }
+    // Saved before the calls go, so no bind is ever missing
+    if (!SettingsManager.commitValues({
+      "Hyprland.binds": HyprlandConfig.binds.concat(found.binds)
+    })) {
+      _merged.moved = 0;
+      _merged.errors = _merged.errors.concat(["axiom's config couldn't be saved, so nothing moved"]);
+      lastMerge = _merged;
+      return;
+    }
+    bindsMerged(found.binds);
+    removeBinds.command = [Paths.scriptsPath + "merge_hypr_binds.py", "remove", Paths.hyprlandPath, JSON.stringify(found.sites)];
+    removeBinds.running = true;
+  }
+
+  Process {
+    id: extractBinds
+    command: [Paths.scriptsPath + "merge_hypr_binds.py", "extract", Paths.hyprlandPath]
+    stdout: StdioCollector {
+      onStreamFinished: root._extracted(text)
+    }
+    stderr: StdioCollector {
+      id: extractErrors
+    }
+  }
+
+  Process {
+    id: removeBinds
+    stdout: StdioCollector {
+      onStreamFinished: {
+        try {
+          const done = JSON.parse(text);
+          root._merged.removed = done.removed;
+          root._merged.failed = done.failed;
+          for (const failure of done.failed)
+            console.warn("[HyprlandConfigManager] Left the binds in", failure.file, "where they were:", failure.reason);
+        } catch (e) {
+          root._merged.failed = [
+            {
+              "file": root.userDir,
+              "reason": removeErrors.text.trim() || String(e)
+            }
+          ];
+        }
+        root.lastMerge = root._merged;
+        console.log(`[HyprlandConfigManager] Moved ${root._merged.moved} binds from ${root.userDir} into axiom; ${root._merged.kept.length} stay there`);
+      }
+    }
+    stderr: StdioCollector {
+      id: removeErrors
     }
   }
 

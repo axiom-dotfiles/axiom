@@ -115,6 +115,39 @@ ColumnLayout {
     Layout.fillWidth: true
     spacing: Widget.spacing
 
+    // What the last merge did, and what it left behind
+    IssueList {
+      readonly property var merge: HyprlandConfigManager.lastMerge
+      visible: merge !== null
+      Layout.fillWidth: true
+      issues: {
+        if (!merge)
+          return [];
+        const found = [
+          {
+            "level": "info",
+            "text": merge.removed > 0 ? I18n.tr("Moved {0} binds into axiom and saved; the files they came from are backed up beside them", merge.moved) : I18n.tr("Moved {0} binds into axiom", merge.moved)
+          }
+        ];
+        for (const kept of merge.kept)
+          found.push({
+            "level": "warning",
+            "text": I18n.tr("{0} stays in {1}: {2}", kept.key || "?", `${kept.file.split("/").pop()}:${kept.line}`, kept.reason)
+          });
+        for (const failed of merge.failed)
+          found.push({
+            "level": "error",
+            "text": I18n.tr("Couldn't delete the moved binds from {0}: {1}", failed.file.split("/").pop(), failed.reason)
+          });
+        for (const error of merge.errors)
+          found.push({
+            "level": "warning",
+            "text": error
+          });
+        return found;
+      }
+    }
+
     RowLayout {
       Layout.fillWidth: true
 
@@ -135,11 +168,21 @@ ColumnLayout {
       }
 
       StyledTextButton {
-        visible: KeybindManager.userConflicts.length > 0
+        visible: !KeybindManager.canMerge && KeybindManager.userConflicts.length > 0
         implicitHeight: Widget.height
         iconText: "delete_sweep"
         text: I18n.tr("Remove {0} binds your Hyprland config also has", KeybindManager.userConflicts.length)
         onClicked: KeybindManager.removeUserConflicts()
+      }
+
+      // Managed mode: the user's binds move in instead
+      StyledTextButton {
+        visible: KeybindManager.canMerge && KeybindManager.userBindCount > 0
+        enabled: !HyprlandConfigManager.merging
+        implicitHeight: Widget.height
+        iconText: "merge"
+        text: I18n.tr("Merge {0} binds from your Hyprland config", KeybindManager.userBindCount)
+        onClicked: KeybindManager.mergeUserBinds()
       }
 
       StyledTextButton {

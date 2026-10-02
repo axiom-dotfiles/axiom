@@ -1791,7 +1791,6 @@
     "Month, day and weekday": "月、日、曜日",
     "wide": "広色域",
     "Light from": "ライトの開始",
-    "Search text, page, edge menu or dock id, direction, workspace number, special workspace name, resize step (\"50 0\"), screenshot kind (region, window or screen) or command.": "検索テキスト、ページ、エッジメニューまたはドックの ID、方向、ワークスペース番号、特殊ワークスペース名、リサイズ量（\"50 0\"）、スクリーンショットの種類（region、window、screen）、またはコマンド。",
     "How many toasts stack up at once. A new one pushes out the oldest.": "同時に重ねて表示するトーストの数。新しいものが来ると最も古いものが押し出されます。",
     "Brightness down": "明るさを下げる",
     "Width of each toast.": "各トーストの幅。",
@@ -2336,6 +2335,19 @@
     "Start axiom": "axiom を起動",
     "axiom already manages your Hyprland config. Keep it that way, or pick another mode.": "axiom はすでに Hyprland の設定を管理しています。このままにするか、別のモードを選んでください。",
     "For complex setups": "複雑な構成向け",
-    "For testing": "お試し向け"
+    "For testing": "お試し向け",
+    "Search text, page, edge menu or dock id, direction, workspace number, special workspace name, resize step (\"50 0\"), screenshot kind (region, window or screen), command, or a Hyprland dispatcher as Lua (hl.dsp.layout(\"swapsplit\")).": "検索テキスト、ページ、エッジメニューまたはドックの ID、方向、ワークスペース番号、特殊ワークスペース名、リサイズ量（\"50 0\"）、スクリーンショットの種類（region、window、screen）、コマンド、または Lua で書いた Hyprland のディスパッチャー（hl.dsp.layout(\"swapsplit\")）。",
+    "Dispatcher, e.g. hl.dsp.layout(\"swapsplit\")": "ディスパッチャー（例: hl.dsp.layout(\"swapsplit\")）",
+    "Moved {0} binds into axiom and saved; the files they came from are backed up beside them": "{0} 件のバインドを axiom に移して保存しました。元のファイルはその横にバックアップしてあります",
+    "Moved {0} binds into axiom": "{0} 件のバインドを axiom に移しました",
+    "{0} stays in {1}: {2}": "{0} は {1} に残ります: {2}",
+    "Couldn't delete the moved binds from {0}: {1}": "移したバインドを {0} から削除できませんでした: {1}",
+    "Merge {0} binds from your Hyprland config": "Hyprland の設定から {0} 件のバインドを統合",
+    "Pseudotile window": "ウィンドウを疑似タイル化",
+    "Toggle split direction": "分割方向を切り替え",
+    "Hyprland dispatcher (Lua)": "Hyprland ディスパッチャー（Lua）",
+    "lua": "lua",
+    "pseudo": "pseudo",
+    "toggleSplit": "toggleSplit"
   }
 }

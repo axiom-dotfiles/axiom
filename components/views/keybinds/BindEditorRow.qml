@@ -95,6 +95,8 @@ StyledContainer {
               return I18n.tr("Step, e.g. 50 0");
             case "special":
               return I18n.tr("Workspace name");
+            case "lua":
+              return I18n.tr("Dispatcher, e.g. hl.dsp.layout(\"swapsplit\")");
             }
             return root.bind.action === "exec" ? I18n.tr("Command") : I18n.tr("Search text");
           }
