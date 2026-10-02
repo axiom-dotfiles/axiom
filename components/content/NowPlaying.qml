@@ -122,7 +122,7 @@ Panel {
         spacing: 4
         StyledText {
           Layout.fillWidth: true
-          Layout.maximumWidth: implicitWidth
+          Layout.maximumWidth: Math.ceil(implicitWidth)
           elide: Text.ElideRight
           text: MediaManager.identity
           textSize: Appearance.fontSize - 2
