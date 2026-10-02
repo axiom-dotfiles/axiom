@@ -328,13 +328,14 @@ PopoutWrapperBase {
     // Room past an island popout's box for a fillet: its margin, and the
     // island's rounded corner beyond, which a fillet can't land on
     readonly property real islandNeed: filletMargin + Appearance.borderRadius
-    // An island popout's box, { start, flushStart, flushEnd }: as near the
-    // anchor as it can sit on the island it grows from (or the neighbours
-    // a stretch joins, see islandReach), never past it while it fits: its
-    // fillets on the island where there's room for both, else flush into
-    // the nearer end with a fillet at the other. A box shorter than the
-    // island but too long for that grows to it (`grow`), flush into both
-    // ends; only a box longer than the island stretches it.
+    // An island popout's box, { start, flushStart, flushEnd }: centred on
+    // its anchor, with its fillets on the island it grows from (or the
+    // neighbours a stretch joins, see islandReach), while both fit there.
+    // A side whose fillet doesn't fit lines up with the island's end
+    // instead, running flush into it, rather than the box being pushed
+    // in to make room; the other keeps its fillet if it fits. A box
+    // shorter than the island but too long for that grows to it (`grow`),
+    // flush into both ends; only a box longer than the island stretches it.
     readonly property var islandPlace: {
       const aligned = Math.max(islandStart, Math.min(alignedBoxStart, islandEnd - boxLength));
       const from = root.islandReach(aligned - islandNeed, true);
@@ -345,10 +346,14 @@ PopoutWrapperBase {
             "flushEnd": atEnd,
             "grow": grow ?? 0
           });
-      if (boxLength + islandNeed * 2 <= to - from)
-        return place(Math.max(from + islandNeed, Math.min(aligned, to - islandNeed - boxLength)), false, false);
-      if (boxLength + islandNeed <= to - from)
-        return aligned - from <= to - aligned - boxLength ? place(from, true, false) : place(to - boxLength, false, true);
+      const startShort = aligned - islandNeed < from, endShort = aligned + boxLength + islandNeed > to;
+      if (!startShort && !endShort)
+        return place(aligned, false, false);
+      if (boxLength + islandNeed <= to - from) {
+        // Flush at the short side (the nearer end, should both be short)
+        const atStart = startShort && (!endShort || aligned - from <= to - aligned - boxLength);
+        return atStart ? place(from, true, false) : place(to - boxLength, false, true);
+      }
       if (boxLength <= to - from)
         return place(from, true, true, to - from - boxLength);
       return place(Math.max(to - boxLength, Math.min(aligned, from)), true, true);
