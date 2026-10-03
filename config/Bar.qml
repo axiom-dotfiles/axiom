@@ -162,6 +162,13 @@ QtObject {
     return BarWidgetStyle.colors(Bar._widgetStyle(barConfig, barConfig.widgetGrouping === "merged"), accent, Theme.resolveColor(foregroundName));
   }
 
+  // What a cell inside a widget (a workspace) draws in on its bar ({ fill,
+  // stroke, indicator, content }, see BarWidgetStyle.cell): `color` is its
+  // state color, `own` what reads on it filled, `state` active/occupied/empty
+  function cellColors(barConfig, color, own, state) {
+    return BarWidgetStyle.cell(Bar._widgetStyle(barConfig, false), color, own, state);
+  }
+
   // What a merged run of widgets draws its shared background in
   function groupColors(barConfig) {
     const group = Theme.resolveColor(barConfig.groupColor);

@@ -5,7 +5,6 @@ import Quickshell.Hyprland
 import qs.services
 import qs.config
 import qs.components.methods
-import qs.components.reusable
 
 // The standard layout's switcher: workspaces 1..count in a row (horizontal
 // bar) or column (vertical bar); click one to go there, scroll to step
@@ -23,6 +22,8 @@ Item {
   // background's
   readonly property real cell: barConfig.widgetSize - inset * 2
   readonly property real cellRadius: Math.max(0, barConfig.radius - inset)
+  // Along the bar: square, or narrower for dots straight on the bar
+  readonly property real cellLength: ["filled", "tinted", "outline"].includes(barConfig.widgetStyle) || properties.labels !== "dots" || properties.showAppIcons ? cell : Math.round(cell * 0.6)
 
   readonly property color activeColor: Theme.resolveColor(properties.activeColor)
   readonly property color occupiedColor: Theme.resolveColor(properties.occupiedColor)
@@ -98,65 +99,26 @@ Item {
     Repeater {
       model: root.ids.length
 
-      Rectangle {
+      WorkspaceCell {
         id: cell
         required property int index
         readonly property int wsId: root.ids[index] ?? 0
         readonly property HyprlandWorkspace ws: root.wsById(wsId)
-        readonly property bool isActive: wsId === root.activeId
         readonly property bool occupied: root.hasWindows(ws)
-        readonly property real length: root.cell * (isActive && root.properties.wideActive ? 2 : 1)
         readonly property var biggestWindow: root.properties.showAppIcons && occupied ? HyprlandManager.biggestWindowForWorkspace(wsId) : null
-        readonly property string iconPath: biggestWindow ? IconResolver.resolveWindowIcon(biggestWindow.class, biggestWindow.title) : ""
 
-        width: root.isVertical ? root.cell : length
-        height: root.isVertical ? length : root.cell
+        barConfig: root.barConfig
+        isActive: wsId === root.activeId
+        look: Bar.cellColors(root.barConfig, isActive ? root.activeColor : occupied ? root.occupiedColor : root.emptyColor, isActive || occupied ? root.textColor : Theme.foreground, isActive ? "active" : occupied ? "occupied" : "empty")
+        thickness: root.cell
+        restLength: root.cellLength
+        length: root.cellLength * (isActive && root.properties.wideActive ? 2 : 1)
         radius: root.cellRadius
-        color: isActive ? root.activeColor : cellArea.containsMouse ? Theme.backgroundHighlight : occupied ? root.occupiedColor : root.emptyColor
-
-        Image {
-          anchors.centerIn: parent
-          width: root.cell * 0.65
-          height: width
-          sourceSize: Qt.size(64, 64)
-          source: cell.iconPath
-          visible: cell.iconPath !== ""
-        }
-
-        StyledText {
-          anchors.centerIn: parent
-          visible: root.properties.labels === "numbers" && cell.iconPath === ""
-          text: root.properties.relativeNumbers ? cell.wsId - root.base + 1 : cell.wsId
-          textColor: cell.isActive || cell.occupied ? root.textColor : Theme.foreground
-          textSize: root.barConfig.fontSize - 1
-        }
-
-        MouseArea {
-          id: cellArea
-          anchors.fill: parent
-          enabled: root.properties.clickToSwitch
-          hoverEnabled: true
-          cursorShape: Qt.PointingHandCursor
-          onClicked: HyprlandManager.goToWorkspace(cell.wsId, "go", root.monitor)
-        }
-
-        Behavior on width {
-          NumberAnimation {
-            duration: Appearance.animFast
-            easing.type: Easing.OutCubic
-          }
-        }
-        Behavior on height {
-          NumberAnimation {
-            duration: Appearance.animFast
-            easing.type: Easing.OutCubic
-          }
-        }
-        Behavior on color {
-          ColorAnimation {
-            duration: Appearance.animFast
-          }
-        }
+        labels: root.properties.labels
+        label: root.properties.relativeNumbers ? wsId - root.base + 1 : wsId
+        iconPath: biggestWindow ? IconResolver.resolveWindowIcon(biggestWindow.class, biggestWindow.title) : ""
+        clickable: root.properties.clickToSwitch
+        onClicked: HyprlandManager.goToWorkspace(wsId, "go", root.monitor)
       }
     }
   }

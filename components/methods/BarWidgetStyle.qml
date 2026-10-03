@@ -38,9 +38,45 @@ QtObject {
     }
   }
 
+  // A cell inside a widget (a workspace) in the same style: { fill, stroke,
+  // indicator, content }. `color` is the cell's color for its state, `own`
+  // what reads on it filled, `state` "active" | "occupied" | "empty". Where
+  // the content sits on the bar rather than on the cell's color, an empty
+  // cell's is the bar's text faded (its own color is meant to barely show),
+  // and plain text tells the states apart by fading alone.
+  function cell(style, color, own, state) {
+    const none = "transparent";
+    const text = c => style.override ?? c;
+    const faded = Qt.alpha(text(style.barText), 0.4);
+    const onBar = c => state === "empty" ? faded : text(c);
+    switch (style.fill) {
+    case "tinted":
+      return root._makeCell(Qt.alpha(color, style.tint), none, none, onBar(color));
+    case "outline":
+      return root._makeCell(none, color, none, onBar(color));
+    case "underline":
+      return root._makeCell(none, none, color, onBar(style.barText));
+    case "accentText":
+      return root._makeCell(none, none, none, onBar(color));
+    case "plain":
+      return root._makeCell(none, none, none, state === "active" ? text(style.barText) : state === "occupied" ? Qt.alpha(text(style.barText), 0.7) : faded);
+    default:
+      return root._makeCell(color, none, none, text(own));
+    }
+  }
+
   // `preferred` if it contrasts with `background`, else black or white
   function readableOn(background, preferred) {
     return Utils.isColorDark(background) !== Utils.isColorDark(preferred) ? preferred : Utils.getContrastColor(background);
+  }
+
+  function _makeCell(fill, stroke, indicator, content) {
+    return {
+      "fill": fill,
+      "stroke": stroke,
+      "indicator": indicator,
+      "content": content
+    };
   }
 
   function _make(fill, stroke, indicator, text, icon) {
