@@ -2108,7 +2108,13 @@
           "type": "boolean",
           "title": "Line up along the edge",
           "default": false,
-          "description": "Place the bars in one line along the screen edge instead of stacking them by orientation. Bars that run along the edge then sit end to end, so the OSD is longer but sticks out less."
+          "x-showIf": {
+            "anyOf": [
+              { "edge": ["Top", "Bottom"], "orientation": "Horizontal" },
+              { "edge": ["Left", "Right"], "orientation": "Vertical" }
+            ]
+          },
+          "description": "Put the bars end to end in one line along the edge, instead of stacked away from it: the OSD is longer but sticks out less. Shown only while the bars run along the edge."
         },
         "openOnHover": {
           "type": "boolean",

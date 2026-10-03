@@ -54,14 +54,18 @@ QtObject {
   }
 
   // `x-showIf: { sibling: value | [values] | { not: value } }`: whether
-  // it holds, with valueOf(key) giving a sibling's value. A key starting
-  // with `/` is a dotted path from the config's root ("/Workspaces.layout"),
-  // which valueOf resolves too (callers use SettingsManager.configValueAt).
+  // it holds (every key), with valueOf(key) giving a sibling's value. A key
+  // starting with `/` is a dotted path from the config's root
+  // ("/Workspaces.layout"), which valueOf resolves too (callers use
+  // SettingsManager.configValueAt). `anyOf: [conditions]` holds when any
+  // of them does.
   function showIfHolds(condition, valueOf) {
     if (!condition)
       return true;
     return Object.keys(condition).every(key => {
       const want = condition[key];
+      if (key === "anyOf")
+        return Array.prototype.some.call(want, any => root.showIfHolds(any, valueOf));
       const value = valueOf(key);
       // Passed in from another file, a schema array arrives as a list
       // object, not a JS Array

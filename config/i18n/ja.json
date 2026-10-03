@@ -607,7 +607,7 @@
     "Can't save yet": "まだ保存できません",
     "Doesn't fit here": "ここには合いません",
     "Line up along the edge": "端に沿って並べる",
-    "Place the bars in one line along the screen edge instead of stacking them by orientation. Bars that run along the edge then sit end to end, so the OSD is longer but sticks out less.": "向きに応じて積み重ねる代わりに、バーを画面の端に沿って一列に並べます。端と平行なバーは一直線につながるため、OSD は長くなりますが、はみ出しは少なくなります。",
+    "Put the bars end to end in one line along the edge, instead of stacked away from it: the OSD is longer but sticks out less. Shown only while the bars run along the edge.": "バーを画面端に沿って一列に並べます（端から積み重ねる代わりに）。OSDは長くなりますが、はみ出しが少なくなります。バーが画面端に沿っているときだけ表示されます。",
     "Open on hover": "ホバーで開く",
     "Also open the OSD when the mouse touches the screen edge where it appears.": "OSD が表示される画面の端にマウスが触れたときにも開きます。",
     "Click to go · Drag to move · Right-drag to resize · Middle-click to close": "クリックで切替 · ドラッグで移動 · 右ドラッグでサイズ変更 · 中クリックで閉じる",
