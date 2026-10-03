@@ -107,12 +107,14 @@ PopoutWrapperBase {
   // For a box merged around a bar's pills (see BarPopouts.mergeWithPill):
   // extra box depth at the attach edge that the content keeps clear of,
   // where the side walls stand (AttachedSurface.startFoot/endFoot), and
-  // the pills left showing through (AttachedSurface.notches)
+  // the pills (or a floating bar's islands) left showing through
+  // (AttachedSurface.notches, notchStart)
   property real attachClearance: 0
   property real startFoot: 0
   property real endFoot: 0
   property var notches: []
   property real notchDepth: 0
+  property real notchStart: 0
   // Nudges the box along the edge from where `position` puts it: null,
   // or a function(start) giving the pixels to shift a box at `start` by
   property var boxSnap: null
@@ -141,6 +143,11 @@ PopoutWrapperBase {
   }
   // Room for a side wall's fillet at an end that isn't joined
   readonly property real filletMargin: bareEdge ? 0 : connectorGap - Appearance.borderWidth
+  // The least room the box keeps from each end that isn't joined, from
+  // the perpendicular edge's inner side: its fillet's, unless set (a box
+  // held off the edge keeps a gap instead, see FloatingEdgeMenu)
+  property real startInset: filletMargin
+  property real endInset: filletMargin
 
   // Which perpendicular edges have a stroke to join: the border or a solid
   // bar (`joinable`), not any other bar, nor an integrated menu's strip
@@ -159,29 +166,29 @@ PopoutWrapperBase {
   readonly property real _strokeEnd: edgeLength + strokeInset
 
   // Largest content box that fits along the edge: from stroke to stroke
-  // when both ends join, else leaving a screen margin between the fillets
-  // and each end that doesn't
+  // when both ends join, else keeping its inset from each end that
+  // doesn't, as the clamp in boxStart does
   readonly property real maxBoxLength: {
-    if (root.joinStart && root.joinEnd)
-      return root._strokeEnd - root._strokeStart;
-    const free = (root.joinStart ? 0 : 1) + (root.joinEnd ? 0 : 1);
-    return root.edgeLength + root.strokeInset * (2 - free) - (root.filletMargin + Appearance.screenMargin) * free;
+    const start = root.joinStart ? root._strokeStart : root.startInset;
+    const end = root.joinEnd ? root._strokeEnd : root.edgeLength - root.endInset;
+    return end - start;
   }
 
   // The box along the edge, in edge coordinates (0 at the perpendicular
   // edges' inner side): flush on a joined end, else centred at `position`
-  // and clamped so its fillets stay on the edge. The clamp takes the
-  // fillet margin from the edge alone, not the surface, whose margins can
-  // depend on where the box lands (startFoot). On a whole pixel, as its
-  // length is: a fillet ending mid-pixel leaves a pale pixel in the
-  // stroke it joins (a lattice centred at a half pixel put one there).
+  // and clamped to its insets (startInset/endInset), so its fillets stay
+  // on the edge. The clamp takes the insets from the edge alone, not the
+  // surface, whose margins can depend on where the box lands (startFoot).
+  // On a whole pixel, as its length is: a fillet ending mid-pixel leaves
+  // a pale pixel in the stroke it joins (a lattice centred at a half
+  // pixel put one there).
   readonly property real boxLength: vertical ? surface.boxHeight : surface.boxWidth
   readonly property real boxStart: {
     if (root.joinStart)
       return root._strokeStart;
     if (root.joinEnd)
       return root._strokeEnd - root.boxLength;
-    const lo = root.filletMargin, hi = root.edgeLength - root.filletMargin - root.boxLength;
+    const lo = root.startInset, hi = root.edgeLength - root.endInset - root.boxLength;
     const clamped = Math.max(lo, Math.min(root.edgeLength * root.position + root.positionOffset - root.boxLength / 2, hi));
     return Math.round(root.boxSnap ? Math.max(lo, Math.min(clamped + root.boxSnap(clamped), hi)) : clamped);
   }
@@ -314,6 +321,7 @@ PopoutWrapperBase {
       endFoot: root.endFoot
       notches: root.notches
       notchDepth: root.notchDepth
+      notchStart: root.notchStart
 
       // In window coordinates
       Variants {

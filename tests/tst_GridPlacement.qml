@@ -435,6 +435,31 @@ TestCase {
       "width": 100
     });
     compare(smaller.width, 500, "never below its natural size");
+    const fitted = GridPlacement.trackSizes({
+      "cols": 8,
+      "rows": 4
+    }, 500, {
+      "height": 380,
+      "fit": true
+    });
+    compare(fitted.unitH, 80, "fit shrinks to the room");
+    compare(fitted.height, 380);
+    compare(fitted.unitW, 110, "only the fitted axis");
+    const floored = GridPlacement.trackSizes({
+      "cols": 8,
+      "rows": 4
+    }, 500, {
+      "height": 100,
+      "fit": true
+    });
+    compare(floored.unitH, 55, "fit stops at half a unit");
+    compare(GridPlacement.trackSizes({
+      "cols": 8,
+      "rows": 4
+    }, 500, {
+      "height": 1020,
+      "fit": true
+    }).unitH, 240, "fit grows as stretch does");
     compare(GridPlacement.trackSizes({
       "cols": 0,
       "rows": 0

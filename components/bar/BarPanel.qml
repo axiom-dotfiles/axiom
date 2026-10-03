@@ -28,15 +28,7 @@ PanelWindow {
   WlrLayershell.exclusiveZone: root.reservedZone
   // On a transparent or pill bar, how far in from its outer edge it
   // reserves (floating edge menus place themselves against that)
-  readonly property int reservedZone: {
-    if (!barConfig.reserveSpace)
-      return 0;
-    const gap = Bar.reserveTrim(barConfig, HyprlandManager.gapsOut[Bar.edgeName(barConfig.location)] ?? 0);
-    // Hyprland counts the -borderWidth margin into the reserved space
-    if (barConfig.insideBorder)
-      return Math.max(0, barConfig.extent - gap);
-    return Math.max(0, (Appearance.screenBorder ? barConfig.extent - Appearance.screenMargin + Appearance.borderWidth : barConfig.extent) - gap);
-  }
+  readonly property int reservedZone: Bar.reservedZone(barConfig, HyprlandManager.gapsOut[Bar.edgeName(barConfig.location)] ?? 0)
   WlrLayershell.namespace: barConfig.insideBorder ? "axiom-bar-floating" : "axiom-bar"
   // A popout with a text field up (e.g. a Wi-Fi password) takes the
   // keyboard through the bar, its parent surface

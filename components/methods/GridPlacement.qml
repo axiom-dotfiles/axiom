@@ -280,13 +280,15 @@ QtObject {
   }
 
   // The size of one grid unit across and down, and of the whole grid, for
-  // `bounds` at card size `unit`. `stretch` ({ width, height }, either
+  // `bounds` at card size `unit`. `stretch` ({ width, height, fit }, each
   // optional) is room to grow into: that axis's units share it evenly. A
-  // grid never shrinks below its natural size.
+  // grid never shrinks below its natural size, unless `fit`: then it takes
+  // exactly the room, shrinking down to half a unit at the least.
   function trackSizes(bounds, unit, stretch) {
     const size = root.unitOf(unit);
     const spacing = root.cardSpacing;
-    const grow = (count, room) => count > 0 && room > 0 ? Math.max(size, (room - (count - 1) * spacing) / count) : size;
+    const least = stretch?.fit ? size / 2 : size;
+    const grow = (count, room) => count > 0 && room > 0 ? Math.max(least, (room - (count - 1) * spacing) / count) : size;
     const unitW = grow(bounds.cols, stretch?.width ?? 0);
     const unitH = grow(bounds.rows, stretch?.height ?? 0);
     return {
@@ -371,14 +373,16 @@ QtObject {
   // A menu as it sits on its screen (`place`, from menuPlacement), in
   // screen px: { rect (its box: the modules plus the frame's `after` all
   // round), modules: [{ type, rect }] } (rects { x, y, width, height }),
-  // stretched along its edge when it takes the whole edge
+  // fitted to its edge when it takes the whole edge (as EdgeMenuBody)
   function menuOnScreen(menu, place, unit) {
     const vertical = menu.edge === "Left" || menu.edge === "Right";
     const room = place.edgeLength - place.frame.startPad - place.frame.endPad;
     const stretch = menu.length !== "edge" ? null : vertical ? {
-      "height": room
+      "height": room,
+      "fit": true
     } : {
-      "width": room
+      "width": room,
+      "fit": true
     };
     const sizes = root.trackSizes(root.bounds(menu.modules), unit, stretch);
     const depth = vertical ? sizes.width : sizes.height;

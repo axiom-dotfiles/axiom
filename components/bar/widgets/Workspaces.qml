@@ -8,16 +8,20 @@ import qs.components.bar.widgets.workspaces
 // 1..count (WorkspaceStrip), or the active row or column of this monitor's
 // grid with the whole grid as a popout (WorkspaceGridStrip). It sits on a
 // background in the bar's widget style like any other widget, its cells
-// inset by the inner spacing within a box (filled, tinted or outlined).
+// (WorkspaceCell, in the same style) inset by the inner spacing within a
+// box (filled, tinted or outlined). Without a box the cells sit straight on
+// the bar, each underlined itself for underline.
 BarWidget {
   id: root
 
   readonly property int priority: 10
-  // Within a box, or clear of an underline (the line and a gap its width)
-  readonly property real inset: ["filled", "tinted", "outline"].includes(barConfig.widgetStyle) ? barConfig.widgetSpacing : barConfig.widgetStyle === "underline" ? barConfig.lineWidth * 2 : 0
+  readonly property bool boxed: ["filled", "tinted", "outline"].includes(barConfig.widgetStyle)
+  // Within a box
+  readonly property real inset: boxed ? barConfig.widgetSpacing : 0
 
   hasBackground: true
-  accentColor: Theme.resolveColor(properties.backgroundColor)
+  // Its box; an underline is each cell's own
+  accentColor: boxed ? Theme.resolveColor(properties.backgroundColor) : "transparent"
 
   implicitWidth: loader.implicitWidth + (isVertical ? 0 : inset * 2)
   implicitHeight: loader.implicitHeight + (isVertical ? inset * 2 : 0)

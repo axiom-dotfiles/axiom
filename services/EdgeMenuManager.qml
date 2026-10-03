@@ -44,6 +44,20 @@ Singleton {
     return root.zones[`${screenName}:${edge}`] ?? 0;
   }
 
+  // Where windows start on a screen edge (a Bar.Location), in px from it,
+  // integrated menus included: what surfaces inside the reserved space
+  // (floating menus, docks) are placed from (Bar.reservedOn)
+  function reservedOn(screen, location) {
+    return Bar.reservedOn(screen, location, HyprlandManager.gapsOut) + root.zoneOn(screen?.name ?? "", Bar.edgeName(location));
+  }
+
+  // The inner side of what's on a screen edge, in px from it, integrated
+  // menus included: what a surface held off an edge keeps its gaps from
+  // (Bar.frameLine, Bar.detachedGaps)
+  function frameLineOn(screen, location) {
+    return Bar.frameLine(screen, location) + root.zoneOn(screen?.name ?? "", Bar.edgeName(location));
+  }
+
   // Where each running menu's modules can sit on its screen, by id, as the
   // menu reports it (IntegratedEdgeMenu, FloatingEdgeMenu), for the
   // layouts editor. In px: { screen (its name), startPad, endPad (the

@@ -5,14 +5,14 @@ import Quickshell.Hyprland
 import qs.services
 import qs.config
 import qs.components.methods
-import qs.components.reusable
 import qs.components.content.base
+import qs.components.bar.widgets.workspaces
 
 // The Workspaces bar widget's popout in the grid layout: the monitor's
 // whole columns × rows grid, with the row (or column, on a vertical bar)
-// the bar shows at full strength. Cells match the bar's (size, colors,
-// labels, app icons, click to switch: the widget's `properties`), so it
-// reads as the bar row expanded.
+// the bar shows at full strength. Cells are the bar's (WorkspaceCell, in its
+// widget style, with the widget's colors, labels, app icons and click to
+// switch), so it reads as the bar row expanded.
 Panel {
   id: root
 
@@ -22,6 +22,10 @@ Panel {
   property HyprlandMonitor monitor: null
   property bool vertical: false
   property real cellSize: Widget.height
+  // Along the bar (narrower than cellSize for dots without a box)
+  property real cellLength: cellSize
+  // The bar's config, so the cells take its widget style
+  property var barConfig: null
   // The bar's inner spacing, so the gaps match its row
   property real cellSpacing: Widget.spacing
   // The bar's, so the cells match its row
@@ -60,60 +64,34 @@ Panel {
     spacing: root.cellSpacing
 
     Repeater {
-      model: root.gridColumns * root.gridRows
+      // None until the payload brings the bar's style
+      model: root.barConfig ? root.gridColumns * root.gridRows : 0
 
-      Rectangle {
+      WorkspaceCell {
         id: wsCell
         required property int index
 
         readonly property int wsId: root.base + index
         readonly property var workspace: root.wsById(wsId)
-        readonly property bool isActive: wsId === root.activeId
         readonly property bool hasWindows: (workspace?.toplevels?.values?.length ?? 0) > 0
         // In the row (or column) the bar shows
         readonly property bool inBar: root.vertical ? index % root.gridColumns === root.activeIndex % root.gridColumns : Math.floor(index / root.gridColumns) === Math.floor(root.activeIndex / root.gridColumns)
         readonly property var windowData: root.properties.showAppIcons && hasWindows ? HyprlandManager.biggestWindowForWorkspace(wsId) : null
-        readonly property string iconPath: windowData ? IconResolver.resolveWindowIcon(windowData.class, windowData.title) : ""
 
-        width: root.cellSize
-        height: root.cellSize
+        barConfig: root.barConfig
+        isActive: wsId === root.activeId
+        look: Bar.cellColors(root.barConfig, isActive ? root.activeColor : hasWindows ? root.occupiedColor : root.emptyColor, isActive || hasWindows ? root.textColor : Theme.foreground, isActive ? "active" : hasWindows ? "occupied" : "empty")
+        thickness: root.cellSize
+        length: root.cellLength
         radius: root.radius
-        color: isActive ? root.activeColor : cellArea.containsMouse ? Theme.backgroundHighlight : hasWindows ? root.occupiedColor : root.emptyColor
-        opacity: inBar ? 1.0 : 0.85
-
-        Image {
-          anchors.centerIn: parent
-          width: parent.width * 0.65
-          height: width
-          sourceSize: Qt.size(64, 64)
-          source: wsCell.iconPath
-          visible: wsCell.iconPath !== ""
-        }
-
+        labels: root.properties.labels
         // The workspace id, or its place in the grid counted from 1, as on the bar
-        StyledText {
-          anchors.centerIn: parent
-          visible: root.properties.labels === "numbers" && wsCell.iconPath === ""
-          text: root.properties.relativeNumbers ? wsCell.index + 1 : wsCell.wsId
-          textColor: wsCell.isActive || wsCell.hasWindows ? root.textColor : Theme.foreground
-          textSize: root.fontSize - 1
-        }
-
-        MouseArea {
-          id: cellArea
-          anchors.fill: parent
-          hoverEnabled: true
-          enabled: root.properties.clickToSwitch ?? false
-          cursorShape: Qt.PointingHandCursor
-          onClicked: HyprlandManager.goToWorkspace(wsCell.wsId, "go", root.monitor)
-        }
-
-        Behavior on color {
-          enabled: root._settled
-          ColorAnimation {
-            duration: Appearance.animNormal
-          }
-        }
+        label: root.properties.relativeNumbers ? index + 1 : wsId
+        iconPath: windowData ? IconResolver.resolveWindowIcon(windowData.class, windowData.title) : ""
+        clickable: root.properties.clickToSwitch ?? false
+        animated: root._settled
+        opacity: inBar ? 1.0 : 0.85
+        onClicked: HyprlandManager.goToWorkspace(wsId, "go", root.monitor)
 
         Behavior on opacity {
           enabled: root._settled

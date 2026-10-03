@@ -6,7 +6,6 @@ import qs.services
 import qs.config
 import qs.components.methods
 import qs.components.hosts.popout
-import qs.components.reusable
 
 // The grid layout's switcher: this monitor's columns × rows workspaces, of
 // which the bar shows the active row (horizontal bar) or column (vertical
@@ -47,11 +46,13 @@ Item {
   readonly property real cell: root.barConfig.widgetSize - root.inset * 2
   readonly property real cellRadius: Math.max(0, root.barConfig.radius - root.inset)
   readonly property real spacing: root.barConfig.widgetSpacing
+  // Along the bar: square, or narrower for dots straight on the bar
+  readonly property real cellLength: ["filled", "tinted", "outline"].includes(root.barConfig.widgetStyle) || root.properties.labels !== "dots" || root.properties.showAppIcons ? root.cell : Math.round(root.cell * 0.6)
   // Cells the bar shows: a row, or a column on a vertical bar
   readonly property int shown: root.isVertical ? root.rows : root.columns
 
-  implicitWidth: root.isVertical ? root.cell : root.shown * root.cell + (root.shown - 1) * root.spacing
-  implicitHeight: root.isVertical ? root.shown * root.cell + (root.shown - 1) * root.spacing : root.cell
+  implicitWidth: root.isVertical ? root.cell : root.shown * root.cellLength + (root.shown - 1) * root.spacing
+  implicitHeight: root.isVertical ? root.shown * root.cellLength + (root.shown - 1) * root.spacing : root.cell
 
   function wsById(id) {
     const arr = Hyprland.workspaces.values;
@@ -101,63 +102,29 @@ Item {
       Repeater {
         model: root.columns * root.rows
 
-        Rectangle {
+        WorkspaceCell {
           id: cellBox
           required property int index
           readonly property int wsId: root.base + index
           readonly property HyprlandWorkspace ws: root.wsById(wsId)
-          readonly property bool isActive: wsId === root.activeId
           readonly property bool hasWindows: (ws?.toplevels.values.length ?? 0) > 0
           // The active arrow takes the active cell's place
           readonly property bool showsArrow: isActive && root.properties.showActiveIcon
           readonly property var biggestWindow: root.properties.showAppIcons && hasWindows && !showsArrow ? HyprlandManager.biggestWindowForWorkspace(wsId) : null
-          readonly property string iconPath: biggestWindow ? IconResolver.resolveWindowIcon(biggestWindow.class, biggestWindow.title) : ""
 
-          width: root.cell
-          height: root.cell
+          barConfig: root.barConfig
+          isActive: wsId === root.activeId
+          look: Bar.cellColors(root.barConfig, isActive ? root.activeColor : hasWindows ? root.occupiedColor : root.emptyColor, isActive || hasWindows ? root.iconColor : Theme.foreground, isActive ? "active" : hasWindows ? "occupied" : "empty")
+          thickness: root.cell
+          length: root.cellLength
           radius: root.cellRadius
-          color: isActive ? root.activeColor : cellArea.containsMouse ? Theme.backgroundHighlight : hasWindows ? root.occupiedColor : root.emptyColor
-
-          StyledIcon {
-            anchors.centerIn: parent
-            text: root.isVertical ? root.positionGlyph(root.activeColumn, root.columns) : root.positionGlyph(root.activeRow, root.rows)
-            font.pixelSize: root.barConfig.fontSize * 1.2
-            visible: cellBox.showsArrow
-            color: root.iconColor
-          }
-
-          Image {
-            anchors.centerIn: parent
-            width: root.cell * 0.65
-            height: width
-            sourceSize: Qt.size(64, 64)
-            source: cellBox.iconPath
-            visible: cellBox.iconPath !== ""
-          }
-
+          labels: root.properties.labels
           // The workspace id, or its place in the grid counted from 1
-          StyledText {
-            anchors.centerIn: parent
-            visible: root.properties.labels === "numbers" && !cellBox.showsArrow && cellBox.iconPath === ""
-            text: root.properties.relativeNumbers ? cellBox.index + 1 : cellBox.wsId
-            textColor: cellBox.isActive || cellBox.hasWindows ? root.iconColor : Theme.foreground
-            textSize: root.barConfig.fontSize - 1
-          }
-
-          MouseArea {
-            id: cellArea
-            anchors.fill: parent
-            hoverEnabled: true
-            enabled: root.properties.clickToSwitch
-            cursorShape: Qt.PointingHandCursor
-            onClicked: HyprlandManager.goToWorkspace(cellBox.wsId, "go", root.monitor)
-          }
-
-          Behavior on color {
-            ColorAnimation {
-              duration: Appearance.animFast
-            }
-          }
+          label: root.properties.relativeNumbers ? index + 1 : wsId
+          glyph: showsArrow ? (root.isVertical ? root.positionGlyph(root.activeColumn, root.columns) : root.positionGlyph(root.activeRow, root.rows)) : ""
+          iconPath: biggestWindow ? IconResolver.resolveWindowIcon(biggestWindow.class, biggestWindow.title) : ""
+          clickable: root.properties.clickToSwitch
+          onClicked: HyprlandManager.goToWorkspace(wsId, "go", root.monitor)
         }
       }
     }
@@ -171,9 +138,12 @@ Item {
     extraData: ({
         monitor: root.monitor,
         vertical: root.isVertical,
-        cellSize: root.barConfig.widgetSize,
+        // The cells' own size and corners, as on the bar
+        cellSize: root.cell,
+        cellLength: root.cellLength,
+        barConfig: root.barConfig,
         cellSpacing: root.spacing,
-        radius: root.barConfig.radius,
+        radius: root.cellRadius,
         fontSize: root.barConfig.fontSize,
         properties: root.properties
       })

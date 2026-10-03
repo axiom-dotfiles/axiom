@@ -98,6 +98,45 @@ TestCase {
     same(styled("filled", custom, light).text, custom, "override");
   }
 
+  function cell(fill, state, override = null) {
+    return BarWidgetStyle.cell({
+      "fill": fill,
+      "barText": barText,
+      "override": override,
+      "tint": 0.25,
+      "group": null
+    }, accent, own, state);
+  }
+
+  function test_filled_cells_are_boxes_in_their_color() {
+    const c = cell("filled", "empty");
+    same(c.fill, accent, "fill");
+    same(c.content, own, "content reads on the fill");
+  }
+
+  function test_boxless_cells_carry_their_color_as_style_says() {
+    same(cell("tinted", "active").fill, Qt.alpha(accent, 0.25), "tinted fill");
+    same(cell("tinted", "active").content, accent, "tinted content");
+    same(cell("outline", "occupied").stroke, accent, "outline stroke");
+    same(cell("outline", "occupied").fill, "transparent", "outline fill");
+    same(cell("underline", "active").indicator, accent, "underline line");
+    same(cell("underline", "active").content, barText, "underline content");
+    same(cell("accentText", "active").content, accent, "colored content");
+    same(cell("accentText", "active").fill, "transparent", "no fill");
+  }
+
+  function test_empty_cells_on_the_bar_fade_the_bar_text() {
+    ["tinted", "outline", "underline", "accentText", "plain"].forEach(fill => {
+      same(cell(fill, "empty").content, Qt.alpha(barText, 0.4), fill);
+    });
+  }
+
+  function test_plain_cells_tell_states_apart_by_fading() {
+    same(cell("plain", "active").content, barText, "active");
+    same(cell("plain", "occupied").content, Qt.alpha(barText, 0.7), "occupied");
+    same(cell("plain", "active", custom).content, custom, "override");
+  }
+
   function test_readable_on() {
     same(BarWidgetStyle.readableOn("#000000", "#ffffff"), "#ffffff", "contrasting");
     same(BarWidgetStyle.readableOn("#ffffff", "#eeeeee"), "#000000", "too close");

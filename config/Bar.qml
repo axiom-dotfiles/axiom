@@ -162,6 +162,13 @@ QtObject {
     return BarWidgetStyle.colors(Bar._widgetStyle(barConfig, barConfig.widgetGrouping === "merged"), accent, Theme.resolveColor(foregroundName));
   }
 
+  // What a cell inside a widget (a workspace) draws in on its bar ({ fill,
+  // stroke, indicator, content }, see BarWidgetStyle.cell): `color` is its
+  // state color, `own` what reads on it filled, `state` active/occupied/empty
+  function cellColors(barConfig, color, own, state) {
+    return BarWidgetStyle.cell(Bar._widgetStyle(barConfig, false), color, own, state);
+  }
+
   // What a merged run of widgets draws its shared background in
   function groupColors(barConfig) {
     const group = Theme.resolveColor(barConfig.groupColor);
@@ -258,6 +265,71 @@ QtObject {
     if (barConfig.background === "transparent")
       return gapsOut;
     return barConfig.island ? gapsOut - barConfig.floatGap : 0;
+  }
+
+  // The exclusive zone a bar sets (BarPanel), given Hyprland's gaps_out on
+  // its edge. On a bar inside the border Hyprland counts its -borderWidth
+  // margin into the reserved space, so that much less is reserved in all.
+  function reservedZone(barConfig, gapsOut) {
+    if (!barConfig.reserveSpace)
+      return 0;
+    const trim = Bar.reserveTrim(barConfig, gapsOut);
+    if (barConfig.insideBorder)
+      return Math.max(0, barConfig.extent - trim);
+    return Math.max(0, (Appearance.screenBorder ? barConfig.extent - Appearance.screenMargin + Appearance.borderWidth : barConfig.extent) - trim);
+  }
+
+  // Where windows start on a screen edge (a Bar.Location), in px from it:
+  // the border's and bar's reserved space, Hyprland's gaps_out
+  // (`gapsOut`, per edge name) not included, nor integrated edge menus'
+  // zones (EdgeMenuManager.reservedOn adds those)
+  function reservedOn(screen, location, gapsOut) {
+    const bar = Bar.edgesFor(screen)[Bar.edgeName(location)];
+    const zone = bar ? Bar.reservedZone(bar, gapsOut[Bar.edgeName(location)] ?? 0) : 0;
+    return (Appearance.screenBorder ? Appearance.screenMargin : 0) + zone - (zone > 0 && bar.insideBorder ? Appearance.borderWidth : 0);
+  }
+
+  // The inner side of what's on a screen edge, in px from it: the
+  // border's stroke, or the bar there (a solid bar's inner stroke, a
+  // floating bar's islands, a pill bar's far side, a transparent bar's
+  // inner edge); 0 on a bare edge. Surfaces held off an edge measure their
+  // gap from it (detachedGaps). Integrated edge menus' zones not included
+  // (EdgeMenuManager.frameLineOn adds those).
+  function frameLine(screen, location) {
+    const bar = Bar.edgesFor(screen)[Bar.edgeName(location)];
+    const margin = Appearance.screenBorder ? Appearance.screenMargin : 0;
+    if (!bar)
+      return margin;
+    // Its outer edge on the border's stroke
+    if (bar.insideBorder)
+      return margin - Appearance.borderWidth + bar.extent;
+    // The border's strip, laid over its inner part, draws its stroke
+    if (bar.solid && Appearance.screenBorder)
+      return bar.reserveSpace ? bar.extent + Appearance.borderWidth : margin;
+    return bar.extent;
+  }
+
+  // The gaps a surface held off a screen edge (a Bar.Location) keeps from
+  // the frame lines (frameLine) across that edge and at its two ends (the
+  // perpendicular edges at its start and end: top and bottom, or left and
+  // right): `gap` on each when it's 0 or more. Automatic (-1), it lines up
+  // with a floating bar on that edge, its float gap on all three, else
+  // with the windows: how far past each frame line they start.
+  function detachedGaps(screen, location, gap, gapsOut) {
+    if (gap >= 0)
+      return {
+        "across": gap,
+        "start": gap,
+        "end": gap
+      };
+    const bar = Bar.edgesFor(screen)[Bar.edgeName(location)];
+    const windowGap = side => bar?.island ? bar.floatGap : Math.max(0, Bar.reservedOn(screen, side, gapsOut) + (gapsOut[Bar.edgeName(side)] ?? 0) - Bar.frameLine(screen, side));
+    const vertical = location === Bar.Left || location === Bar.Right;
+    return {
+      "across": windowGap(location),
+      "start": windowGap(vertical ? Bar.Top : Bar.Left),
+      "end": windowGap(vertical ? Bar.Bottom : Bar.Right)
+    };
   }
 
   // A bar's look groups (its override flag and the fields it covers, the

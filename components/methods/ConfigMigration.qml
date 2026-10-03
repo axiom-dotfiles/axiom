@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 41
+  readonly property int currentVersion: 42
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -109,6 +109,8 @@ QtObject {
       result = _v39ToV40(result, changes);
     if (version < 41)
       result = _v40ToV41(result, changes);
+    if (version < 42)
+      result = _v41ToV42(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -1461,6 +1463,33 @@ QtObject {
         changes.push(`${where}.properties.${key} -> Auto`);
       });
     });
+    return config;
+  }
+
+  // v42 replaced edge menus' and docks' `edgeDistance` with `detached`
+  // (above 0) and a `gap` from the frame line (the border's stroke, or the
+  // bar there) on their edge and at their ends. A menu's box sat its
+  // distance past the stroke's outer edge, plus half a connector gap (a
+  // corner radius): that, less the stroke, is its gap. A dock's distance
+  // was already its gap, but the old default (8) becomes Auto, since
+  // defaults filled it into every saved dock.
+  function _v41ToV42(config, changes) {
+    const shape = config.Appearance?.shape ?? {};
+    const radius = typeof shape.radius === "number" ? shape.radius : 6;
+    const stroke = typeof shape.borderWidth === "number" ? shape.borderWidth : 1;
+    const detach = (entry, where, gapOf) => {
+      if (!entry || typeof entry !== "object" || !("edgeDistance" in entry))
+        return;
+      const distance = typeof entry.edgeDistance === "number" ? entry.edgeDistance : 0;
+      delete entry.edgeDistance;
+      entry.detached = distance > 0;
+      entry.gap = distance > 0 ? gapOf(distance) : -1;
+      changes.push(`${where}.edgeDistance ${distance} -> detached: ${entry.detached}, gap: ${entry.gap < 0 ? "Auto" : entry.gap}`);
+    };
+    if (Array.isArray(config.EdgeMenus))
+      config.EdgeMenus.forEach((menu, i) => detach(menu, `EdgeMenus[${i}]`, distance => Math.max(0, distance + radius - stroke)));
+    if (Array.isArray(config.Dock?.docks))
+      config.Dock.docks.forEach((dock, i) => detach(dock, `Dock.docks[${i}]`, distance => distance === 8 ? -1 : distance));
     return config;
   }
 }

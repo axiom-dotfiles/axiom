@@ -9,11 +9,13 @@ import qs.components.methods
 import qs.components.hosts.popout
 
 // One dock (a DockEntry) on one screen: a strip along its edge, inside the
-// bars and border, holding a box of app icons. At no distance from the edge
-// the box grows out of the border's (or a solid bar's) stroke as popouts
-// do (AttachedSurface), or runs straight off a bare screen edge; otherwise
-// it's a plain rounded box. The window is as deep as the magnified icons,
-// and only the box (and icons grown out of it) take input. Always shown
+// bars and border, holding a box of app icons. Held off the edge
+// (`detached`) it's a plain rounded box `gap` in from the frame lines on
+// its edge and at its ends (Bar.detachedGaps); otherwise the box grows out
+// of the border's (or a solid bar's) stroke as popouts do
+// (AttachedSurface), or runs straight off a bare screen edge. The window
+// is as deep as the magnified icons, and only the box (and icons grown
+// out of it) take input. Always shown
 // docks may reserve their strip; hover and intellihide docks slide in from
 // the edge through an EdgeTrigger. Everything along the dock is laid out
 // here (`starts`, `sizes`), and each DockItem places itself from that.
@@ -37,16 +39,27 @@ Scope {
   // --- Attaching to the edge ---
   readonly property string _edgeName: Bar.edgeName(root.edge)
   readonly property var _edgeBar: Bar.edgesFor(root.screen)[root._edgeName]
-  // At no distance the box joins the edge's stroke: the border's or a
-  // solid bar's. Any other bar has none, so it stays a box.
-  readonly property bool attached: root.dock.edgeDistance === 0 && (!root._edgeBar || root._edgeBar.joinable)
+  // Held off the edge, and its gaps from the frame lines across its edge
+  // and at its ends (what places it, so a change of `held` never reads
+  // them before they follow)
+  readonly property bool held: root.dock.detached
+  readonly property var gaps: root.held ? Bar.detachedGaps(root.screen, root.edge, root.dock.gap, HyprlandManager.gapsOut) : null
+  // How far past where the window starts on a screen edge (what's
+  // reserved there) a frame line plus `gap` lies
+  function _heldOffset(location, gap) {
+    return Math.max(0, EdgeMenuManager.frameLineOn(root.screen, location) + gap - EdgeMenuManager.reservedOn(root.screen, location));
+  }
+  // Not held, the box joins the edge's stroke: the border's or a solid
+  // bar's. Any other bar has none, so it stays a box against the window's
+  // edge.
+  readonly property bool attached: !root.held && (!root._edgeBar || root._edgeBar.joinable)
   // No border and no bar there: it runs straight off the screen edge
   readonly property bool straight: root.attached && Bar.screenEdgeOpen(root.screen, root.edge)
   readonly property int connectorGap: Appearance.borderRadius * 2
   // An attached window reaches onto the stroke it joins, as EdgePopout's
   readonly property real edgeMargin: root.attached && !root.straight ? -Appearance.borderWidth : 0
   // From the window's edge to the box
-  readonly property real boxOffset: root.attached ? root.connectorGap / 2 : root.dock.edgeDistance
+  readonly property real boxOffset: root.attached ? root.connectorGap / 2 : root.gaps ? root._heldOffset(root.edge, root.gaps.across) : 0
   // The window: the gap to the edge, the box, and room for icons to grow
   // (and for an attached surface's far side)
   readonly property real depth: root.boxOffset + root.thickness + Math.max(root.peak - root.base, root.attached ? root.connectorGap / 2 : 0) + 2
@@ -66,14 +79,17 @@ Scope {
   // --- Along the dock ---
   readonly property real length: root.vertical ? window.height : window.width
   readonly property real restLength: root.count * root.base + Math.max(0, root.count - 1) * root.spacing + root.separatorLength + root.pad * 2
-  // The box's centre at rest, kept on the screen
+  // The least room from the box to each end: held, its gaps from the
+  // frame lines there; else a screen margin, and an attached box's fillets
+  readonly property real startMargin: root.gaps ? root._heldOffset(root.vertical ? Bar.Top : Bar.Left, root.gaps.start) : root._freeMargin
+  readonly property real endMargin: root.gaps ? root._heldOffset(root.vertical ? Bar.Bottom : Bar.Right, root.gaps.end) : root._freeMargin
+  readonly property real _freeMargin: Appearance.screenMargin + (root.attached && !root.straight ? root.connectorGap : 0)
+  // The box's centre at rest, kept within those
   readonly property real centre: {
-    // Room for an attached box's fillets too
-    const margin = Appearance.screenMargin + (root.attached && !root.straight ? root.connectorGap : 0);
     const wanted = root.length * root.dock.position / 100;
-    if (root.restLength + margin * 2 >= root.length)
-      return root.length / 2;
-    return Math.max(root.restLength / 2 + margin, Math.min(wanted, root.length - root.restLength / 2 - margin));
+    if (root.restLength + root.startMargin + root.endMargin >= root.length)
+      return (root.startMargin + root.length - root.endMargin) / 2;
+    return Math.max(root.restLength / 2 + root.startMargin, Math.min(wanted, root.length - root.restLength / 2 - root.endMargin));
   }
   readonly property real restStart: root.centre - root.restLength / 2
 
