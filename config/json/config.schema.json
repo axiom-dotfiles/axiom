@@ -21,7 +21,7 @@
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 41,
+      "default": 42,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
@@ -1888,7 +1888,7 @@
     "DockEntry": {
       "type": "object",
       "additionalProperties": false,
-      "x-order": ["name", "enabled", "monitor", "edge", "position", "edgeDistance", "visibility", "reserveSpace", "openDelay", "closeDelay", "triggerSize", "iconSize", "spacing", "padding", "magnify", "magnifiedSize", "magnifyRange", "showRunning", "windowScope", "runningIndicator", "separator", "showLabels", "backgroundColor", "borderColor"],
+      "x-order": ["name", "enabled", "monitor", "edge", "position", "detached", "gap", "visibility", "reserveSpace", "openDelay", "closeDelay", "triggerSize", "iconSize", "spacing", "padding", "magnify", "magnifiedSize", "magnifyRange", "showRunning", "windowScope", "runningIndicator", "separator", "showLabels", "backgroundColor", "borderColor"],
       "properties": {
         "id": { "type": "string", "title": "ID", "default": "main", "x-settings": false },
         "name": { "type": "string", "title": "Name", "default": "", "description": "Shown on its tab here. Empty names it by its edge." },
@@ -1911,15 +1911,24 @@
           "maximum": 100,
           "description": "Where along the edge its centre sits: 0 is the start (left/top), 100 the end. It never runs off the screen."
         },
-        "edgeDistance": {
+        "detached": {
+          "type": "boolean",
+          "title": "Detach from edge",
+          "default": true,
+          "description": "A separate box held off the edge. Off, the dock grows out of the screen border or a solid bar, as popouts do, and runs straight off a bare screen edge."
+        },
+        "gap": {
           "type": "integer",
           "x-control": "stepper",
-          "title": "Distance from edge",
-          "default": 8,
-          "minimum": 0,
+          "x-auto": { "value": -1, "start": 8 },
+          "x-beside": true,
+          "title": "Gap",
+          "default": -1,
+          "minimum": -1,
           "maximum": 200,
           "x-unit": "px",
-          "description": "Gap between the dock and the screen edge (or the bar or border on it). At 0 the dock grows out of the screen border or a solid bar, as popouts do, and runs straight off a bare screen edge."
+          "description": "Space between the dock and the border or bar on its edge, and at the ends. Auto lines it up with a floating bar on its edge, else with your windows.",
+          "x-showIf": { "detached": true }
         },
         "visibility": {
           "type": "string",
@@ -2150,7 +2159,7 @@
       "type": "object",
       "required": ["id"],
       "additionalProperties": false,
-      "x-order": ["name", "enabled", "monitor", "openOnHover", "openDelay", "triggerSize", "triggerLength", "mode", "edge", "offset", "gridOffset", "length", "moduleScale", "edgeDistance", "frame", "padding", "moduleBorders", "pinButton", "backgroundColor", "borderColor", "closeOnLeave", "closeDelay", "closeOnOutsideClick", "id"],
+      "x-order": ["name", "enabled", "monitor", "openOnHover", "openDelay", "triggerSize", "triggerLength", "mode", "edge", "offset", "gridOffset", "length", "moduleScale", "detached", "gap", "frame", "padding", "moduleBorders", "pinButton", "backgroundColor", "borderColor", "closeOnLeave", "closeDelay", "closeOnOutsideClick", "id"],
       "properties": {
         "id": { "x-group": "Advanced", "type": "string", "title": "Id", "x-control": "readonly", "description": "What bar buttons, keybinds and IPC calls open this menu by. Set when the menu is made." },
         "name": { "x-group": "General", "type": "string", "title": "Name", "default": "" },
@@ -2210,17 +2219,27 @@
           "x-unit": "%",
           "description": "Size of the menu's modules, relative to the overlay's cards on its monitor (which follow Overlay size)."
         },
-        "edgeDistance": {
+        "detached": {
+          "x-group": "Placement",
+          "type": "boolean",
+          "title": "Detach from edge",
+          "default": false,
+          "description": "A separate box held off the edge, instead of growing out of it.",
+          "x-showIf": { "mode": "floating" }
+        },
+        "gap": {
           "x-group": "Placement",
           "type": "integer",
           "x-control": "stepper",
-          "title": "Distance from edge",
-          "default": 0,
-          "minimum": 0,
+          "x-auto": { "value": -1, "start": 8 },
+          "x-beside": true,
+          "title": "Gap",
+          "default": -1,
+          "minimum": -1,
           "maximum": 200,
           "x-unit": "px",
-          "description": "Gap between the menu and the screen edge. Above 0 the menu is a separate box instead of growing out of the edge.",
-          "x-showIf": { "mode": "floating" }
+          "description": "Space between the menu and the border or bar on its edge, and at its ends. Auto lines it up with a floating bar on its edge, else with your windows.",
+          "x-showIf": { "mode": "floating", "detached": true }
         },
         "frame": {
           "x-group": "Style",

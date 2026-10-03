@@ -863,6 +863,57 @@ TestCase {
     });
   }
 
+  function test_v42_edge_distance_becomes_detached_and_gap() {
+    const loaded = load({
+      "version": 41,
+      "Appearance": {
+        "shape": {
+          "radius": 6,
+          "borderWidth": 2
+        }
+      },
+      "EdgeMenus": [
+        {
+          "id": "attached",
+          "edgeDistance": 0
+        },
+        {
+          "id": "held",
+          "edgeDistance": 4
+        }
+      ],
+      "Dock": {
+        "docks": [
+          {
+            "id": "default",
+            "edgeDistance": 8
+          },
+          {
+            "id": "far",
+            "edgeDistance": 20
+          },
+          {
+            "id": "flush",
+            "edgeDistance": 0
+          }
+        ]
+      }
+    });
+    const [attached, held] = loaded.config.EdgeMenus;
+    compare(attached.detached, false);
+    compare(attached.gap, -1);
+    compare(held.detached, true);
+    // Past the stroke's outer edge, plus half a connector gap
+    compare(held.gap, 8);
+    verify(!("edgeDistance" in held));
+    const [byDefault, far, flush] = loaded.config.Dock.docks;
+    compare(byDefault.detached, true);
+    compare(byDefault.gap, -1, "the old default becomes Auto");
+    compare(far.gap, 20);
+    compare(flush.detached, false);
+    compare(errors(loaded.config), []);
+  }
+
   // A bar's look fields copy the BarStyle section's, each shown only while
   // the bar overrides its group
   function test_bar_look_fields_match_bar_style() {

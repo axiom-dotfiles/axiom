@@ -1742,7 +1742,7 @@
     "Dark from": "ダークの開始",
     "Show an app's name in a tooltip when the pointer rests on it.": "ポインターを置いたときにアプリ名をツールチップで表示します。",
     "Rotate on a timer": "時間でローテーション",
-    "Gap between the menu and the screen edge. Above 0 the menu is a separate box instead of growing out of the edge.": "メニューと画面端の間隔。0 より大きいと、画面端から伸びる形ではなく独立したボックスになります。",
+    "A separate box held off the edge, instead of growing out of it.": "画面端から伸びる形ではなく、画面端から離れた独立したボックスにします。",
     "Show running apps": "実行中のアプリを表示",
     "hdr": "HDR",
     "Clicking a notification, or one of its actions, removes it from the history.": "通知またはそのアクションをクリックすると、履歴から削除します。",
@@ -1940,7 +1940,7 @@
     "24-hour time, like 07:00. Earlier than the start runs past midnight.": "24 時間表記の時刻（例：07:00）。開始より早い場合は深夜 0 時をまたぎます。",
     "Exit Hyprland": "Hyprland を終了",
     "Manage hypridle": "hypridle を管理",
-    "Gap between the dock and the screen edge (or the bar or border on it). At 0 the dock grows out of the screen border or a solid bar, as popouts do, and runs straight off a bare screen edge.": "ドックと画面端（またはそこにあるバーや枠）の間隔。0 の場合、ドックはポップアウトと同じように画面の枠や塗りつぶしのバーから伸び、何もない画面端ではそのまま端に接します。",
+    "A separate box held off the edge. Off, the dock grows out of the screen border or a solid bar, as popouts do, and runs straight off a bare screen edge.": "画面端から離れた独立したボックスにします。オフの場合、ドックはポップアウトと同じように画面の枠や塗りつぶしのバーから伸び、何もない画面端ではそのまま端に接します。",
     "Number each monitor's workspaces from 1 (11 to 20 on the second monitor show as 1 to 10) instead of by their workspace id, on the bar and in the grid popout.": "ワークスペースを ID ではなく各モニターで 1 から番号付けします（2 台目のモニターの 11〜20 は 1〜10 と表示）。バーとグリッドのポップアウトに適用されます。",
     "by": "現在の明るさに対する割合で",
     "Sleep": "スリープ",
@@ -1989,7 +1989,7 @@
     "workspace": "ワークスペース",
     "Lock before sleep": "スリープ前にロック",
     "24-hour time, like 19:00.": "24 時間表記の時刻（例：19:00）。",
-    "Distance from edge": "画面端からの距離",
+    "Detach from edge": "画面端から離す",
     "Dim": "減光",
     "toggle": "切り替え",
     "variant": "ライト/ダーク別",
@@ -2458,6 +2458,8 @@
     "How every bar draws its widgets, accents and shadow. A bar can take its own of any of these in the bar editor.": "すべてのバーがウィジェット、アクセント、影を描く方法。バーエディタで各バーが個別に設定することもできます。",
     "Bar widgets": "バーのウィジェット",
     "Cast by every bar (or its pills) and by the screen border, inward all the way round. A transparent bar has nothing to cast one; a solid bar on the border leaves it to the border.": "すべてのバー (またはそのピル) と画面の枠が内側に向かって落とします。透明なバーには落とすものがありません。枠に沿ったソリッドバーは枠に任せます。",
-    "Cast by the bar, or by its pills. A transparent bar has nothing to cast one; a solid bar on the screen border leaves it to the border, which casts the Bar style one.": "バー、またはそのピルが落とします。透明なバーには落とすものがありません。画面の枠に沿ったソリッドバーは枠に任せ、枠はバースタイルの影を落とします。"
+    "Cast by the bar, or by its pills. A transparent bar has nothing to cast one; a solid bar on the screen border leaves it to the border, which casts the Bar style one.": "バー、またはそのピルが落とします。透明なバーには落とすものがありません。画面の枠に沿ったソリッドバーは枠に任せ、枠はバースタイルの影を落とします。",
+    "Space between the menu and the border or bar on its edge, and at its ends. Auto lines it up with a floating bar on its edge, else with your windows.": "メニューと、その辺の枠やバーとの間隔（両端も同じ）。自動では、その辺のフローティングバー、なければウィンドウに揃えます。",
+    "Space between the dock and the border or bar on its edge, and at the ends. Auto lines it up with a floating bar on its edge, else with your windows.": "ドックと、その辺の枠やバーとの間隔（両端も同じ）。自動では、その辺のフローティングバー、なければウィンドウに揃えます。"
   }
 }

@@ -9,8 +9,9 @@ import qs.components.hosts.overlay
 
 // An edge menu's modules on a grid of quarter cards, as on a Custom overlay
 // page, with its screen's overlay cards (EdgeMenuManager.cardUnitOf). With `length: "edge"` the
-// grid stretches along the edge to `maxLength`; otherwise it's capped
-// there and scrolls past that.
+// grid fits the edge exactly, its rows (or columns) growing or shrinking
+// evenly to `maxLength` (scrolling only past half a unit); otherwise it's
+// capped there and scrolls past that.
 Item {
   id: root
 
@@ -44,9 +45,11 @@ Item {
   // Along the edge before stretching or the cap
   readonly property real naturalLength: root.vertical ? root._natural.height : root._natural.width
   readonly property var _stretch: root.fillsEdge && root.maxLength > 0 ? (root.vertical ? {
-      "height": root.maxLength
+      "height": root.maxLength,
+      "fit": true
     } : {
-      "width": root.maxLength
+      "width": root.maxLength,
+      "fit": true
     }) : null
 
   readonly property real contentLength: root.vertical ? moduleGrid.implicitHeight : moduleGrid.implicitWidth
