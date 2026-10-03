@@ -30,16 +30,16 @@ QtObject {
 
   // The screen whose instance of a surface answers a shortcut or IPC call
   // and holds the keyboard: the focused monitor when it opens there or
-  // everywhere, else the one it's built on
-  function targetFor(mode) {
+  // everywhere, else the one it's built on (`name` for a "monitor" mode)
+  function targetFor(mode, name) {
     const resolved = modeFor(mode);
     if (resolved === "focused" || resolved === "all")
       return Hyprland.focusedMonitor?.name ?? General.primaryMonitor;
-    return General.screensFor(resolved)[0]?.name ?? "";
+    return General.screensFor(resolved, name)[0]?.name ?? "";
   }
 
-  function isTarget(screen, mode) {
-    return !!screen && screen.name === targetFor(mode);
+  function isTarget(screen, mode, name) {
+    return !!screen && screen.name === targetFor(mode, name);
   }
 
   // Opens on every monitor at once (SurfaceGroup keeps the instances in step)
@@ -48,8 +48,8 @@ QtObject {
   }
 
   // Whether a surface opened for its target also shows on `screen`
-  function showsOn(screen, mode) {
-    return !!screen && (everywhere(mode) || isTarget(screen, mode));
+  function showsOn(screen, mode, name) {
+    return !!screen && (everywhere(mode) || isTarget(screen, mode, name));
   }
 
   // Surfaces on every monitor at once act as one: each SurfaceGroup

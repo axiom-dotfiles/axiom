@@ -23,24 +23,10 @@ EdgePopout {
   required property var menu
   readonly property string menuId: root.menu.id
 
-  // Held off the edge, and its gaps from the frame lines across its edge
-  // and at its ends (what places it, so a change of `held` never reads
-  // them before they follow)
-  readonly property bool held: root.menu.detached
-  readonly property var gaps: root.held ? Bar.detachedGaps(root.screen, root.edge, root.menu.gap, HyprlandManager.gapsOut) : null
-
-  // While the overlay is open on its screen it draws over the overlay
-  // (HyprlandManager.layerRulesLua), so a detached box doesn't slide out
-  // from under its bar, a layer the overlay covers (as BarPopouts.underBar).
-  // Followed only while closed: the namespace changes with it.
-  readonly property bool overlayOpen: ShellManager.surfaceOpenOn("overlay", root.screen)
-  property bool _overOverlay: false
-  function _followOverlay() {
-    if (!root.occupied)
-      root._overOverlay = root.overlayOpen;
-  }
-  onOverlayOpenChanged: root._followOverlay()
-  onOccupiedChanged: root._followOverlay()
+  // Held off the edge, its gaps from the frame lines across its edge and
+  // at its ends (EdgePopout.gaps)
+  held: root.menu.detached
+  gap: root.menu.gap
 
   // Gives way to nothing, and puts an OSD or dock on its edge away
   // (ShellManager.edgeOutranked)
@@ -51,24 +37,11 @@ EdgePopout {
     }) : null
   on_ClaimChanged: ShellManager.setEdgeClaim(root, root._claim)
 
-  // What's reserved along a screen edge (a Bar.Location), which this
-  // window sits inside: the border, a bar, integrated menus. Docks are
-  // left out: the window reaches past them.
-  function reservedOn(location) {
-    return EdgeMenuManager.reservedOn(root.screen, location);
-  }
-
   // Along the edge, on the menu's lattice (GridPlacement.menuAlong),
   // in screen px: this window's edge coordinates start past what's
   // reserved on the perpendicular edge at its start
   readonly property real screenLength: root.vertical ? root.screen.height : root.screen.width
-  readonly property int startSide: root.vertical ? Bar.Top : Bar.Left
-  readonly property int endSide: root.vertical ? Bar.Bottom : Bar.Right
   readonly property real alongOrigin: root.reservedOn(root.startSide)
-  // Held, the box keeps its gaps from the frame lines at its ends (in
-  // this window's edge coordinates); else room for its fillets
-  startInset: root.gaps ? Math.max(0, EdgeMenuManager.frameLineOn(root.screen, root.startSide) + root.gaps.start - root.alongOrigin) : root.filletMargin
-  endInset: root.gaps ? Math.max(0, EdgeMenuManager.frameLineOn(root.screen, root.endSide) + root.gaps.end - root.reservedOn(root.endSide)) : root.filletMargin
   // The least room from the modules to the screen's ends: what's reserved
   // there, the box's inset and its padding
   readonly property real startPad: root.alongOrigin + root.startInset + root.contentPadding
@@ -78,9 +51,6 @@ EdgePopout {
   readonly property int unit: EdgeMenuManager.cardUnitOf(root.menu)
   readonly property real gridLength: EdgeMenusConfig.gridLengthOf(root.menu, root.vertical, root.unit)
   readonly property real modulesStart: GridPlacement.menuAlong(root.menu, root.screenLength, root.unit, root.startPad, root.endPad)
-
-  // Across the edge, in px from the screen edge
-  readonly property real reservedBefore: root.reservedOn(root.edge)
 
   // Where the modules can sit, for the layouts editor (EdgeMenuManager.frames)
   readonly property var frame: ({
@@ -93,13 +63,7 @@ EdgePopout {
       "reserves": false
     })
 
-  // A bar other than a solid one on this edge (BarPanel), while it shows:
-  // a bar inside the border hides under fullscreen windows
-  readonly property var barPanel: {
-    const panel = ShellManager.barOn(root.screen?.name ?? "", root.edge);
-    return panel?.visible && !panel.barConfig.solid ? panel : null;
-  }
-  readonly property var barConfig: root.barPanel?.barConfig ?? null
+  // The bar on its edge (EdgePopout.barPanel)
   readonly property var container: root.barPanel?.container ?? null
   // A floating bar's islands are read as pills (BarContainer.pillRects)
   readonly property bool island: root.barConfig?.island ?? false
@@ -198,20 +162,13 @@ EdgePopout {
   onPillStretchChanged: root._pushStretch()
   onContainerChanged: root._pushStretch()
 
-  // Across the edge, in px from the screen edge. The bar's outer edge: on
-  // the border's stroke inside the border, its frame line less its extent.
-  readonly property real barOuter: root.barConfig ? EdgeMenuManager.frameLineOn(root.screen, root.edge) - root.barConfig.extent : 0
-  // Where the window's attach edge goes by default: on the stroke of what
-  // reserves the edge (none when straight)
-  readonly property real attachBase: root.reservedBefore - (root.straight ? 0 : Appearance.borderWidth)
-  // Where it goes: held, a connector gap short of where the box goes (a
-  // detached box sits that far past its attach edge); else from a bar's
-  // outer edge, the outer edge itself when merged, a pill's far stroke,
-  // or a transparent bar's inner edge (the box a connector gap past it,
-  // as a bar popout's is), or by default
-  readonly property real attachAt: {
+  // Where it goes, across the edge: held, as EdgePopout.heldAttach; else
+  // from a bar's outer edge, the outer edge itself when merged, a pill's
+  // far stroke, or a transparent bar's inner edge (the box a connector gap
+  // past it, as a bar popout's is), or by default
+  attachAt: {
     if (root.gaps)
-      return EdgeMenuManager.frameLineOn(root.screen, root.edge) + root.gaps.across - root.connectorGap / 2;
+      return root.heldAttach;
     if (root.barConfig === null)
       return root.attachBase;
     return root.barOuter + (root.merged ? 0 : root.pillBar ? root.pillFoot : root.barConfig.extent);
@@ -223,12 +180,9 @@ EdgePopout {
   // where it is); one filling its edge joins both and needs none.
   position: 0
   positionOffset: root.modulesStart - root.alongOrigin - root.contentPadding + (isFinite(root._naturalBox) ? root._naturalBox / 2 : 0)
+  // A detached box slides in from under what's on its edge
+  // (EdgePopout.slideDistance)
   detached: root.held || (root.barPanel !== null && !root.pillBar)
-  edgeOffset: root.attachAt - root.attachBase
-  // A detached box slides in from under what's on its edge: from a bar's
-  // outer edge (past the border stroke it lies on inside the border), else
-  // from the border's or a solid bar's stroke, or the bare screen edge
-  slideDistance: root._overOverlay ? 0 : root.attachAt - (root.barConfig ? root.barOuter + (root.barConfig.insideBorder ? Appearance.borderWidth : 0) : root.attachBase)
   // Without the border, a merged box runs straight off the screen edge
   straight: root.merged ? !Appearance.screenBorder : root.bareEdge
   // Not held, its ends join the perpendicular edges once it reaches them.

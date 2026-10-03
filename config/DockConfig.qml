@@ -1,6 +1,5 @@
 pragma Singleton
 import QtQuick
-import Quickshell
 import qs.services
 
 // Reader for the Dock section: any number of docks, each with its own
@@ -24,10 +23,11 @@ QtObject {
     return root.docks.find(dock => dock.id === id) ?? null;
   }
 
-  // The screens a dock is on: every one for "*", its named one, else the
-  // primary monitor
+  // The screens a dock may be on, by its `monitors` (as an OSD's): every
+  // one for "focused" and "all" (shell/Dock shows it only where
+  // ShellManager.showsOn puts it), else the one it's on
   function screensOf(dock) {
-    return dock.monitor === "*" ? Array.from(Quickshell.screens) : General.screensNamed(dock.monitor);
+    return General.screensFor(dock.monitors, dock.monitor);
   }
 
   // The name on its tab: its own, else its edge's

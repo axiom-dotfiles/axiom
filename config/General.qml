@@ -36,13 +36,16 @@ QtObject {
   // The screens a surface with its own `monitors` setting is built on:
   // "general" (the above) | "primary" (the primary monitor) | "focused"
   // (every screen, opening on the focused one) | "all" (every screen,
-  // opening on all of them)
-  function screensFor(mode) {
+  // opening on all of them) | "monitor" (the one named `name`, else the
+  // primary monitor)
+  function screensFor(mode, name) {
     const all = Array.from(Quickshell.screens);
     if (mode === "focused" || mode === "all")
       return all;
     if (mode === "primary")
       return root.screensNamed(root.primaryMonitor);
+    if (mode === "monitor")
+      return root.screensNamed(name ?? "");
     return root.screens;
   }
 }

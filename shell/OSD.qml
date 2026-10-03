@@ -7,11 +7,11 @@ import qs.components.hosts.popout
 import qs.components.surfaces.osd
 
 // Every enabled OSD (OSD.osds), each on the screens its `monitors` puts it
-// on: an EdgePopout for an edge OSD, a FloatingPopout for a floating one. A
-// change opens every OSD holding that bar, on the target screen (the
-// focused one), or on all of them in "all" mode. Hiding is the host's own
-// hover-aware dismiss timer. Keyed by id, so editing an OSD's settings
-// updates it in place instead of rebuilding every OSD.
+// on: an EdgePopout, held off its edge when `detached` (as a dock or edge
+// menu can be). A change opens every OSD holding that bar, on the target
+// screen (the focused one), or on all of them in "all" mode. Hiding is the
+// host's own hover-aware dismiss timer. Keyed by id, so editing an OSD's
+// settings updates it in place instead of rebuilding every OSD.
 Scope {
   Variants {
     model: OSDConfig.enabled ? OSDConfig.shownIds : []
@@ -21,10 +21,10 @@ Scope {
       required property string modelData
       readonly property var osd: OSDConfig.osdById(modelData)
       readonly property bool valid: osd !== null
-      readonly property var screens: valid ? General.screensFor(osd.monitors) : []
+      readonly property var screens: valid ? General.screensFor(osd.monitors, osd.monitor) : []
 
       Variants {
-        model: entry.valid && entry.osd.placement === "edge" ? entry.screens : []
+        model: entry.screens
 
         delegate: EdgePopout {
           id: edgeHost
@@ -33,6 +33,9 @@ Scope {
           screen: modelData
           edge: Bar.getLocationFromString(entry.osd.edge)
           position: entry.osd.position / 100
+          // Held off the edge, `gap` in from the frame lines there
+          held: entry.osd.detached
+          gap: entry.osd.gap
           triggerEnabled: entry.osd.openOnHover && !edgeTriggers.outranked
           overNamespace: "axiom-osd"
           // The strip spans the OSD's own length along the edge
@@ -46,7 +49,6 @@ Scope {
             OSDContent {
               osd: entry.osd
               screenName: edgeHost.screen?.name ?? ""
-              onEdge: true
               edgeVertical: edgeHost.vertical
               onPoked: force => edgeTriggers.poke(force)
             }
@@ -55,39 +57,6 @@ Scope {
           OSDTriggers {
             id: edgeTriggers
             host: edgeHost
-            osd: entry.osd
-          }
-        }
-      }
-
-      Variants {
-        model: entry.valid && entry.osd.placement === "floating" ? entry.screens : []
-
-        delegate: FloatingPopout {
-          id: floatingHost
-          required property ShellScreen modelData
-
-          screen: modelData
-          // Its centre x% across and y% up the free area
-          xFraction: entry.osd.x / 100
-          yFraction: 1 - entry.osd.y / 100
-          layerNamespace: "axiom-osd"
-          dismissDelay: entry.osd.timeout
-          // The bars inside report their own changes, so they must exist
-          // while the OSD is closed
-          keepLoaded: true
-
-          content: Component {
-            OSDContent {
-              osd: entry.osd
-              screenName: floatingHost.screen?.name ?? ""
-              onPoked: force => floatingTriggers.poke(force)
-            }
-          }
-
-          OSDTriggers {
-            id: floatingTriggers
-            host: floatingHost
             osd: entry.osd
           }
         }

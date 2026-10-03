@@ -21,7 +21,7 @@
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 42,
+      "default": 44,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
@@ -1888,18 +1888,26 @@
     "DockEntry": {
       "type": "object",
       "additionalProperties": false,
-      "x-order": ["name", "enabled", "monitor", "edge", "position", "detached", "gap", "visibility", "reserveSpace", "openDelay", "closeDelay", "triggerSize", "iconSize", "spacing", "padding", "magnify", "magnifiedSize", "magnifyRange", "showRunning", "windowScope", "runningIndicator", "separator", "showLabels", "backgroundColor", "borderColor"],
+      "x-order": ["name", "enabled", "monitors", "monitor", "edge", "position", "detached", "gap", "visibility", "reserveSpace", "openDelay", "closeDelay", "triggerSize", "iconSize", "spacing", "padding", "magnify", "magnifiedSize", "magnifyRange", "showRunning", "windowScope", "runningIndicator", "separator", "showLabels", "backgroundColor", "borderColor"],
       "properties": {
         "id": { "type": "string", "title": "ID", "default": "main", "x-settings": false },
         "name": { "type": "string", "title": "Name", "default": "", "description": "Shown on its tab here. Empty names it by its edge." },
         "enabled": { "type": "boolean", "title": "Enabled", "default": true },
+        "monitors": {
+          "type": "string",
+          "title": "Monitors",
+          "enum": ["general", "primary", "focused", "all", "monitor"],
+          "x-enumLabels": { "general": "As in General", "primary": "Primary monitor", "focused": "Focused monitor", "all": "Every monitor", "monitor": "A specific monitor" },
+          "default": "general",
+          "description": "Where the dock appears. As in General follows General > Monitors; the primary monitor is the one set in General; the focused monitor is the one with your active workspace (and mouse), and the dock moves with it; every monitor shows it on all of them at once; a specific monitor is the one picked below."
+        },
         "monitor": {
           "type": "string",
           "title": "Monitor",
           "default": "",
-          "description": "Monitor the dock is shown on. Empty uses the primary monitor; All monitors puts a copy on each.",
+          "description": "Monitor the dock is shown on. Empty uses the primary monitor.",
           "x-options": "screens",
-          "x-allScreens": true
+          "x-showIf": { "monitors": "monitor" }
         },
         "edge": { "type": "string", "title": "Screen edge", "default": "Bottom", "enum": ["Top", "Bottom", "Left", "Right"] },
         "position": {
@@ -2033,7 +2041,7 @@
     "OSDEntry": {
       "type": "object",
       "additionalProperties": false,
-      "x-order": ["name", "enabled", "monitors", "placement", "edge", "position", "x", "y", "orientation", "alongEdge", "openOnHover", "timeout", "showPercent", "bars"],
+      "x-order": ["name", "enabled", "monitors", "monitor", "edge", "position", "detached", "gap", "orientation", "alongEdge", "openOnHover", "timeout", "showPercent", "bars"],
       "properties": {
         "id": { "type": "string", "title": "ID", "default": "main", "x-settings": false },
         "name": { "type": "string", "title": "Name", "default": "", "description": "Shown on its tab here. Empty names it by its bars." },
@@ -2041,24 +2049,24 @@
         "monitors": {
           "type": "string",
           "title": "Monitors",
-          "enum": ["general", "primary", "focused", "all"],
-          "x-enumLabels": { "general": "As in General", "primary": "Primary monitor", "focused": "Focused monitor", "all": "Every monitor" },
+          "enum": ["general", "primary", "focused", "all", "monitor"],
+          "x-enumLabels": { "general": "As in General", "primary": "Primary monitor", "focused": "Focused monitor", "all": "Every monitor", "monitor": "A specific monitor" },
           "default": "general",
-          "description": "Where the OSD appears. As in General follows General > Monitors; the primary monitor is the one set in General; the focused monitor is the one with your active workspace (and mouse); every monitor shows it on all of them at once."
+          "description": "Where the OSD appears. As in General follows General > Monitors; the primary monitor is the one set in General; the focused monitor is the one with your active workspace (and mouse); every monitor shows it on all of them at once; a specific monitor is the one picked below."
         },
-        "placement": {
+        "monitor": {
           "type": "string",
-          "title": "Placement",
-          "enum": ["edge", "floating"],
-          "x-enumLabels": { "edge": "Slides out of a screen edge", "floating": "Floats on the screen" },
-          "default": "edge"
+          "title": "Monitor",
+          "default": "",
+          "description": "Monitor the OSD is shown on. Empty uses the primary monitor.",
+          "x-options": "screens",
+          "x-showIf": { "monitors": "monitor" }
         },
         "edge": {
           "type": "string",
           "title": "Screen edge",
           "default": "Bottom",
           "enum": ["Top", "Bottom", "Left", "Right"],
-          "x-showIf": { "placement": "edge" },
           "description": "Screen edge the OSD slides out of."
         },
         "position": {
@@ -2068,28 +2076,26 @@
           "default": 50,
           "minimum": 0,
           "maximum": 100,
-          "x-showIf": { "placement": "edge" },
           "description": "Where along the edge it opens: 0 is the start (left/top), 100 the end."
         },
-        "x": {
-          "type": "integer",
-          "title": "Across the screen",
-          "x-unit": "%",
-          "default": 50,
-          "minimum": 0,
-          "maximum": 100,
-          "x-showIf": { "placement": "floating" },
-          "description": "Where its centre sits across the free area: 0 is the left, 100 the right."
+        "detached": {
+          "type": "boolean",
+          "title": "Detach from edge",
+          "default": false,
+          "description": "A separate box held off the edge. Off, the OSD grows out of the screen border or a solid bar, as popouts do, and runs straight off a bare screen edge."
         },
-        "y": {
+        "gap": {
           "type": "integer",
-          "title": "Up the screen",
-          "x-unit": "%",
-          "default": 33,
-          "minimum": 0,
-          "maximum": 100,
-          "x-showIf": { "placement": "floating" },
-          "description": "Where its centre sits up the free area: 0 is the bottom, 50 the middle, 100 the top."
+          "x-control": "stepper",
+          "x-auto": { "value": -1, "start": 8 },
+          "x-beside": true,
+          "title": "Gap",
+          "default": -1,
+          "minimum": -1,
+          "maximum": 200,
+          "x-unit": "px",
+          "description": "Space between the OSD and the border or bar on its edge, and at the ends. Auto lines it up with a floating bar on its edge, else with your windows.",
+          "x-showIf": { "detached": true }
         },
         "orientation": {
           "type": "string",
@@ -2102,14 +2108,12 @@
           "type": "boolean",
           "title": "Line up along the edge",
           "default": false,
-          "x-showIf": { "placement": "edge" },
           "description": "Place the bars in one line along the screen edge instead of stacking them by orientation. Bars that run along the edge then sit end to end, so the OSD is longer but sticks out less."
         },
         "openOnHover": {
           "type": "boolean",
           "title": "Open on hover",
           "default": false,
-          "x-showIf": { "placement": "edge" },
           "description": "Also open the OSD when the mouse touches the screen edge where it appears."
         },
         "timeout": {

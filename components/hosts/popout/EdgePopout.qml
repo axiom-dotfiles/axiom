@@ -68,17 +68,21 @@ PopoutWrapperBase {
   // hold a text field, e.g. an edge menu's modules)
   property bool keyboardOnDemand: false
   // A plain rounded box a connector gap in from the edge, not joined to it
-  // (an edge whose bar has no strip to grow out of: pills, transparent)
-  property bool detached: false
+  // (an edge whose bar has no strip to grow out of: pills, transparent),
+  // or held off the edge
+  property bool detached: root.held
   property bool closeOnClickOutside: false
   // Space between the box and its content
   property real contentPadding: Appearance.borderWidth + PopoutConfig.padding
   // Extra distance in from the attach edge (for a detached box)
-  property real edgeOffset: 0
+  property real edgeOffset: root.attachAt - root.attachBase
   // How far back towards the screen edge a detached box slides in from:
   // the window then starts there, drawn under the bar or border it passes
-  // (on underLayer, the layer of what it slides under)
-  property real slideDistance: 0
+  // (on underLayer, the layer of what it slides under). From what's on its
+  // edge: a bar's outer edge (past the border stroke it lies on inside the
+  // border), else the border's or a solid bar's stroke, or the bare screen
+  // edge. Not while the overlay is open on its screen, see _overOverlay.
+  property real slideDistance: root._overOverlay ? 0 : root.attachAt - (root.barConfig ? root.barOuter + (root.barConfig.insideBorder ? Appearance.borderWidth : 0) : root.attachBase)
   property int underLayer: WlrLayer.Top
   readonly property bool slidesUnder: detached && slideDistance > 0
   property color fillColor: Theme.background
@@ -103,6 +107,57 @@ PopoutWrapperBase {
   // Runs straight off the attach edge: a bare screen edge by default (a
   // box merged around a bar's pills sets it itself, see FloatingEdgeMenu)
   property bool straight: bareEdge
+
+  // Held off the edge (an edge menu's or OSD's `detached`): a detached box
+  // `gap` in from the frame lines on its edge and at its ends
+  // (Bar.detachedGaps), so it lines up with a floating bar's islands, or
+  // with the windows. Its gaps are what places it, so a change of `held`
+  // never reads them before they follow.
+  property bool held: false
+  property int gap: -1
+  readonly property var gaps: root.held ? Bar.detachedGaps(root.screen, root.edge, root.gap, HyprlandManager.gapsOut) : null
+
+  // What's reserved along a screen edge (a Bar.Location), which this
+  // window sits inside: the border, a bar, integrated menus. Docks are
+  // left out: the window reaches past them.
+  function reservedOn(location) {
+    return EdgeMenuManager.reservedOn(root.screen, location);
+  }
+  readonly property int startSide: root.vertical ? Bar.Top : Bar.Left
+  readonly property int endSide: root.vertical ? Bar.Bottom : Bar.Right
+
+  // A bar other than a solid one on this edge (BarPanel), while it shows:
+  // a bar inside the border hides under fullscreen windows
+  readonly property var barPanel: {
+    const panel = ShellManager.barOn(root.screen?.name ?? "", root.edge);
+    return panel?.visible && !panel.barConfig.solid ? panel : null;
+  }
+  readonly property var barConfig: root.barPanel?.barConfig ?? null
+  // Across the edge, in px from the screen edge. The bar's outer edge: on
+  // the border's stroke inside the border, its frame line less its extent.
+  readonly property real barOuter: root.barConfig ? EdgeMenuManager.frameLineOn(root.screen, root.edge) - root.barConfig.extent : 0
+  // Where the window's attach edge goes by default: on the stroke of what
+  // reserves the edge (none when straight)
+  readonly property real attachBase: root.reservedOn(root.edge) - (root.straight ? 0 : Appearance.borderWidth)
+  // Where it goes held: a connector gap short of where the box goes (a
+  // detached box sits that far past its attach edge)
+  readonly property real heldAttach: root.gaps ? EdgeMenuManager.frameLineOn(root.screen, root.edge) + root.gaps.across - root.connectorGap / 2 : root.attachBase
+  // Where it goes (FloatingEdgeMenu sets its own for a bar on its edge)
+  property real attachAt: root.heldAttach
+
+  // While the overlay is open on its screen a box that would slide under
+  // a bar draws over the overlay instead (HyprlandManager.layerRulesLua),
+  // since the layer it slides out from under is one the overlay covers
+  // (as BarPopouts.underBar). Followed only while closed: the namespace
+  // changes with it.
+  readonly property bool overlayOpen: ShellManager.surfaceOpenOn("overlay", root.screen)
+  property bool _overOverlay: false
+  function _followOverlay() {
+    if (!root.occupied)
+      root._overOverlay = root.overlayOpen;
+  }
+  onOverlayOpenChanged: root._followOverlay()
+  onOccupiedChanged: root._followOverlay()
 
   // For a box merged around a bar's pills (see BarPopouts.mergeWithPill):
   // extra box depth at the attach edge that the content keeps clear of,
@@ -144,10 +199,11 @@ PopoutWrapperBase {
   // Room for a side wall's fillet at an end that isn't joined
   readonly property real filletMargin: bareEdge ? 0 : connectorGap - Appearance.borderWidth
   // The least room the box keeps from each end that isn't joined, from
-  // the perpendicular edge's inner side: its fillet's, unless set (a box
-  // held off the edge keeps a gap instead, see FloatingEdgeMenu)
-  property real startInset: filletMargin
-  property real endInset: filletMargin
+  // the perpendicular edge's inner side: its fillet's, or held, its gaps
+  // from the frame lines there (in this window's edge coordinates, which
+  // start past what's reserved there)
+  property real startInset: root.gaps ? Math.max(0, EdgeMenuManager.frameLineOn(root.screen, root.startSide) + root.gaps.start - root.reservedOn(root.startSide)) : root.filletMargin
+  property real endInset: root.gaps ? Math.max(0, EdgeMenuManager.frameLineOn(root.screen, root.endSide) + root.gaps.end - root.reservedOn(root.endSide)) : root.filletMargin
 
   // Which perpendicular edges have a stroke to join: the border or a solid
   // bar (`joinable`), not any other bar, nor an integrated menu's strip

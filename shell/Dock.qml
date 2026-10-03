@@ -7,7 +7,8 @@ import qs.services
 import qs.components.surfaces.dock
 
 // The docks (DockConfig), one per enabled entry, each on the screens its
-// monitor puts it on. Keyed by id, so editing a dock's settings updates it
+// `monitors` puts it on: on the focused monitor only, it's rebuilt on the
+// one focus moves to. Keyed by id, so editing a dock's settings updates it
 // in place instead of rebuilding it.
 Scope {
   Variants {
@@ -20,7 +21,7 @@ Scope {
       readonly property var dock: DockConfig.dockById(modelData)
 
       Variants {
-        model: entry.dock ? DockConfig.screensOf(entry.dock) : []
+        model: entry.dock ? DockConfig.screensOf(entry.dock).filter(screen => ShellManager.showsOn(screen, entry.dock.monitors, entry.dock.monitor)) : []
 
         delegate: DockWindow {
           required property ShellScreen modelData
