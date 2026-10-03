@@ -32,7 +32,8 @@ import qs.config
  * - startFoot/endFoot: where a side wall's fillet lands (v); above 0 it
  *   stands on something drawn under the surface (a pill's far stroke) and
  *   follows it to that end
- * - notches: regions at the attach edge left unpainted (merged pills)
+ * - notches: regions at the attach edge left unpainted (merged pills),
+ *   or from notchStart in (a floating bar's islands)
  * - detached: a plain rounded box, not joined to anything; detachedOffset
  *   sets it further in from the edge it slides out of
  * - straight/straightJoins: the attach edge, or the edges a join meets, are
@@ -91,8 +92,12 @@ Item {
   // slides out from behind what shows through instead of over it.
   property var notches: []
   property real notchDepth: 0
+  // Where the notches start (v): above 0 they stop short of the attach
+  // edge, the surface painted between, and round their near corners too,
+  // to follow the inner edge of an island held off the edge
+  property real notchStart: 0
   // The notches in this item's coordinates, for input masks
-  readonly property var notchRects: root._notches.map(n => root._rectFrom(n.u, 0, n.end - n.u, root.notchDepth))
+  readonly property var notchRects: root._notches.map(n => root._rectFrom(n.u, root.notchStart, n.end - n.u, root.notchDepth - root.notchStart))
 
   property color fillColor: Theme.background
   property color strokeColor: Theme.foreground
@@ -150,7 +155,7 @@ Item {
 
   // The notches clamped to the surface, edge-local (none without depth)
   readonly property var _notches: {
-    if (notchDepth <= 0)
+    if (notchDepth <= notchStart)
       return [];
     return notches.map(n => {
       const u = Math.max(0, Math.min(n.start, alongLength));
@@ -158,7 +163,7 @@ Item {
       return {
         "u": u,
         "end": end,
-        "radius": Math.max(0, Math.min(Appearance.borderRadius - strokeWidth, (end - u) / 2, notchDepth)),
+        "radius": Math.max(0, Math.min(Appearance.borderRadius - strokeWidth, (end - u) / 2, notchStart > 0 ? (notchDepth - notchStart) / 2 : notchDepth)),
         "roundStart": n.roundStart,
         "roundEnd": n.roundEnd
       };
@@ -287,6 +292,7 @@ Item {
 
   // The notches as a mask shape: square ends reach past a notch so only
   // the rounded ones curve, and each overhangs the attach edge likewise
+  // (unless it starts past it, rounded there too)
   Item {
     id: notchMask
     anchors.fill: parent
@@ -308,7 +314,8 @@ Item {
         readonly property real r: notch.radius
         readonly property real u0: notch.u - (notch.roundStart ? 0 : r)
         readonly property real u1: notch.end + (notch.roundEnd ? 0 : r)
-        readonly property rect area: root._rectFrom(u0, -r, u1 - u0, root.notchDepth + r)
+        readonly property real v0: root.notchStart > 0 ? root.notchStart : -r
+        readonly property rect area: root._rectFrom(u0, v0, u1 - u0, root.notchDepth - v0)
         x: area.x
         y: area.y
         width: area.width

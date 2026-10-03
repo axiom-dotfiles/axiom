@@ -107,12 +107,14 @@ PopoutWrapperBase {
   // For a box merged around a bar's pills (see BarPopouts.mergeWithPill):
   // extra box depth at the attach edge that the content keeps clear of,
   // where the side walls stand (AttachedSurface.startFoot/endFoot), and
-  // the pills left showing through (AttachedSurface.notches)
+  // the pills (or a floating bar's islands) left showing through
+  // (AttachedSurface.notches, notchStart)
   property real attachClearance: 0
   property real startFoot: 0
   property real endFoot: 0
   property var notches: []
   property real notchDepth: 0
+  property real notchStart: 0
   // Nudges the box along the edge from where `position` puts it: null,
   // or a function(start) giving the pixels to shift a box at `start` by
   property var boxSnap: null
@@ -314,6 +316,7 @@ PopoutWrapperBase {
       endFoot: root.endFoot
       notches: root.notches
       notchDepth: root.notchDepth
+      notchStart: root.notchStart
 
       // In window coordinates
       Variants {

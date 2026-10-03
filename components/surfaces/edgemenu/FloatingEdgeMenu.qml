@@ -10,6 +10,8 @@ import qs.components.hosts.popout
 // border or a solid bar on its edge. On a pill bar it attaches as a bar
 // popout does: standing on a pill's far stroke when it fits within one,
 // else growing from the bar's outer edge with the pills showing through.
+// A floating bar's islands are met as pills held further in: the box
+// always grows from the bar's outer edge, filling around them.
 // On a transparent bar there's nothing to grow out of, so it's a detached
 // box where a bar popout's would be; so is one set a distance off the edge
 // (edgeDistance).
@@ -81,15 +83,16 @@ EdgePopout {
     })
 
   // A bar other than a solid one on this edge (BarPanel), while it shows:
-  // a bar inside the border hides under fullscreen windows. Floating bars
-  // are met like transparent ones, the box detached past them.
+  // a bar inside the border hides under fullscreen windows
   readonly property var barPanel: {
     const panel = ShellManager.barOn(root.screen?.name ?? "", root.edge);
     return panel?.visible && !panel.barConfig.solid ? panel : null;
   }
   readonly property var barConfig: root.barPanel?.barConfig ?? null
   readonly property var container: root.barPanel?.container ?? null
-  readonly property bool pillBar: root.barConfig?.pills ?? false
+  // A floating bar's islands are read as pills (BarContainer.pillRects)
+  readonly property bool island: root.barConfig?.island ?? false
+  readonly property bool pillBar: (root.barConfig?.pills ?? false) || root.island
   readonly property bool attachedToPills: root.pillBar && root.edgeDistance === 0
   // Along the edge, bar-window coordinates are this window's plus the
   // shift. The bar window reaches onto the perpendicular strokes and this
@@ -97,8 +100,8 @@ EdgePopout {
   // does for the perpendicular borders).
   readonly property real barShift: root.container ? (root.container.length - root.edgeLength) / 2 : 0
   readonly property var pills: root.pillBar ? (root.container?.pillRects ?? []) : []
-  // A pill's far stroke, from the bar's outer edge
-  readonly property real pillFoot: root.pillBar ? root.barPanel.barConfig.pillDepth - Appearance.borderWidth : 0
+  // A pill's (or island's) far stroke, from the bar's outer edge
+  readonly property real pillFoot: root.pillBar ? (root.island ? root.barConfig.extent : root.barConfig.pillDepth) - Appearance.borderWidth : 0
   readonly property real barBoxStart: root.boxStart + root.barShift
   readonly property real barBoxEnd: root.barBoxStart + root.boxLength
   readonly property real barSurfaceStart: root.surfaceStart + root.barShift
@@ -110,7 +113,9 @@ EdgePopout {
       "index": index
     }, root.pills[index]);
   }
-  readonly property var ownPill: root.attachedToPills ? root.pillAround(root.barBoxStart, root.barBoxEnd) : null
+  // Never an island: the box grows from the edge past those too, so it
+  // reads the same as on pills, only further out
+  readonly property var ownPill: root.attachedToPills && !root.island ? root.pillAround(root.barBoxStart, root.barBoxEnd) : null
   // Not within a pill: grow from the bar's outer edge, deeper by the pills
   // so the content clears them, with every pill reached showing through a
   // notch (as BarPopouts.mergeWithPill)
@@ -220,11 +225,12 @@ EdgePopout {
   // Fill cells grow to whatever room there is, so reach them always.
   joinEnds: root.edgeDistance === 0
   reachLength: root.contentItem ? (root.contentItem.fillsEdge ? Infinity : root.contentItem.naturalLength) : 0
-  boxSnap: root.attachedToPills ? (start => root.pillSnap(start + root.barShift)) : null
+  boxSnap: root.attachedToPills && !root.island ? (start => root.pillSnap(start + root.barShift)) : null
   attachClearance: root.merged ? root.pillFoot : 0
   startFoot: root.merged && root.pills.some(p => p.start <= root.barBoxStart - Appearance.borderRadius && p.start + p.length >= root.barBoxStart) ? root.pillFoot : 0
   endFoot: root.merged && root.pills.some(p => p.start <= root.barBoxEnd && p.start + p.length >= root.barBoxEnd + Appearance.borderRadius) ? root.pillFoot : 0
   // The pills' interiors, a stroke plus a pixel inside their free ends
+  // (and an island's sides, see notchStart)
   notches: root.mergedPills.map(p => {
     const inset = Appearance.borderWidth + 1;
     const from = p.start + (p.joinStart ? 0 : inset);
@@ -237,6 +243,9 @@ EdgePopout {
     };
   })
   notchDepth: root.pillFoot - 1
+  // An island's outer stroke sits floatGap in from the edge: the box fills
+  // up to it, as it meets a pill's stroke on the edge
+  notchStart: root.merged && root.island ? root.barConfig.islandStart + Appearance.borderWidth + 1 : 0
   contentPadding: Appearance.borderWidth + EdgeMenusConfig.paddingOf(root.menu)
   fillColor: EdgeMenusConfig.colorsOf(root.menu).fill
   strokeColor: EdgeMenusConfig.colorsOf(root.menu).stroke
@@ -267,6 +276,11 @@ EdgePopout {
       const box = root.boxInWindow;
       HyprlandManager.warpCursorToLayer(root.layerNamespace, root.screen?.name ?? "", root.window.width, root.window.height, box.x + box.width / 2, box.y + box.height / 2);
     }
+  }
+  Timer {
+    interval: 1500
+    running: root.isOpen
+    onTriggered: console.log("EMDBG", "panel", ShellManager.barOn(root.screen?.name ?? "", root.edge), ShellManager.barOn(root.screen?.name ?? "", root.edge)?.visible, root.screen?.name, root.edge, JSON.stringify({pills: root.pills, merged: root.merged, mergedPills: root.mergedPills, notches: root.notches, notchDepth: root.notchDepth, notchStart: root.notchStart, surfStart: root.barSurfaceStart, surfLen: root.surfaceLength, barShift: root.barShift, edgeOffset: root.edgeOffset, detached: root.detached, pillFoot: root.pillFoot, straight: root.straight}))
   }
   Component.onDestruction: {
     root._clearStretch();
