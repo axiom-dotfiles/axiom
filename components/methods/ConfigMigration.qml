@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 42
+  readonly property int currentVersion: 44
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -111,6 +111,10 @@ QtObject {
       result = _v40ToV41(result, changes);
     if (version < 42)
       result = _v41ToV42(result, changes);
+    if (version < 43)
+      result = _v42ToV43(result, changes);
+    if (version < 44)
+      result = _v43ToV44(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -1490,6 +1494,80 @@ QtObject {
       config.EdgeMenus.forEach((menu, i) => detach(menu, `EdgeMenus[${i}]`, distance => Math.max(0, distance + radius - stroke)));
     if (Array.isArray(config.Dock?.docks))
       config.Dock.docks.forEach((dock, i) => detach(dock, `Dock.docks[${i}]`, distance => distance === 8 ? -1 : distance));
+    return config;
+  }
+
+  // v43 gave docks the OSDs' `monitors` (with a specific monitor as one
+  // more choice): "*" (all monitors) becomes "all", a named monitor
+  // "monitor" with the name kept, and empty (the primary monitor) "general"
+  // where General's is the primary monitor too, else "primary"
+  function _v42ToV43(config, changes) {
+    const docks = config.Dock?.docks;
+    if (!Array.isArray(docks))
+      return config;
+    const generalPrimary = (config.General?.monitors ?? "primary") === "primary";
+    docks.forEach((dock, i) => {
+      if (!dock || typeof dock !== "object" || "monitors" in dock)
+        return;
+      const monitor = typeof dock.monitor === "string" ? dock.monitor : "";
+      if (monitor === "*") {
+        dock.monitors = "all";
+        dock.monitor = "";
+      } else if (monitor !== "") {
+        dock.monitors = "monitor";
+      } else {
+        dock.monitors = generalPrimary ? "general" : "primary";
+      }
+      changes.push(`Dock.docks[${i}].monitor "${monitor}" -> monitors: "${dock.monitors}"`);
+    });
+    return config;
+  }
+
+  // v44 dropped an OSD's `placement`: every OSD is on an edge, and one
+  // that floated is held off the edge nearest it (`detached`, Auto gap),
+  // at the same spot along it. Its `x` was % across from the left and `y`
+  // % up from the bottom.
+  function _v43ToV44(config, changes) {
+    (Array.isArray(config.OSD?.osds) ? config.OSD.osds : []).forEach((osd, i) => {
+      if (!osd || typeof osd !== "object" || !("placement" in osd || "x" in osd || "y" in osd))
+        return;
+      const floating = osd.placement === "floating";
+      const x = typeof osd.x === "number" ? osd.x : 50;
+      const y = typeof osd.y === "number" ? osd.y : 33;
+      delete osd.placement;
+      delete osd.x;
+      delete osd.y;
+      if (!floating)
+        return;
+      const edges = [
+        {
+          "edge": "Left",
+          "distance": x,
+          "position": 100 - y
+        },
+        {
+          "edge": "Right",
+          "distance": 100 - x,
+          "position": 100 - y
+        },
+        {
+          "edge": "Bottom",
+          "distance": y,
+          "position": x
+        },
+        {
+          "edge": "Top",
+          "distance": 100 - y,
+          "position": x
+        }
+      ];
+      const nearest = edges.reduce((best, e) => e.distance < best.distance ? e : best);
+      osd.edge = nearest.edge;
+      osd.position = nearest.position;
+      osd.detached = true;
+      osd.gap = -1;
+      changes.push(`OSD.osds[${i}]: floating at ${x}%, ${y}% -> detached on the ${nearest.edge} edge at ${nearest.position}%`);
+    });
     return config;
   }
 }

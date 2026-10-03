@@ -27,17 +27,87 @@ FoldingCard {
   // The settings group key it folds under, from SettingsContent
   property string foldKey
   // [{ label, values, x, y }]: a dot at (x, y) on the screen (0-1 from the
-  // top left) that applies `values`
-  property var presets: []
+  // top left) that applies `values`. An entry on a screen edge (`edge`,
+  // `position` along it), as docks and OSDs are: an edge's middle, or the
+  // bottom edge's ends.
+  // I18n.tr("Bottom") I18n.tr("Bottom left") I18n.tr("Bottom right") I18n.tr("Top")
+  // I18n.tr("Left") I18n.tr("Right")
+  property var presets: [
+    {
+      "label": "Bottom",
+      "values": {
+        "edge": "Bottom",
+        "position": 50
+      },
+      "x": 0.5,
+      "y": 1
+    },
+    {
+      "label": "Bottom left",
+      "values": {
+        "edge": "Bottom",
+        "position": 0
+      },
+      "x": 0.08,
+      "y": 1
+    },
+    {
+      "label": "Bottom right",
+      "values": {
+        "edge": "Bottom",
+        "position": 100
+      },
+      "x": 0.92,
+      "y": 1
+    },
+    {
+      "label": "Top",
+      "values": {
+        "edge": "Top",
+        "position": 50
+      },
+      "x": 0.5,
+      "y": 0
+    },
+    {
+      "label": "Left",
+      "values": {
+        "edge": "Left",
+        "position": 50
+      },
+      "x": 0,
+      "y": 0.5
+    },
+    {
+      "label": "Right",
+      "values": {
+        "edge": "Right",
+        "position": 50
+      },
+      "x": 1,
+      "y": 0.5
+    }
+  ]
   // What the picker's hint says
   property string pickerHint
   // A new entry: `idBase` numbered, over `seed`, over the schema defaults
   property string idBase
   property var seed: ({})
   // Functions: an entry's tab name, and where it sits on the screen (0-1
-  // from the top left)
+  // from the top left): by default at `position` % along its `edge`
   required property var labelOf
-  required property var spotOf
+  property var spotOf: entry => {
+    const along = entry.position / 100;
+    switch (entry.edge) {
+    case "Top":
+      return Qt.point(along, 0);
+    case "Left":
+      return Qt.point(0, along);
+    case "Right":
+      return Qt.point(1, along);
+    }
+    return Qt.point(along, 1);
+  }
   // Between the picker and the settings
   property alias entryContent: entrySlot.data
 
@@ -173,7 +243,7 @@ FoldingCard {
             active: preset.hovered
             StyledToolTip {
               target: preset
-              // i18n: keys from the callers' presets
+              // i18n: keys from the presets (above, or the callers')
               text: I18n.tr(preset.modelData.label)
             }
           }

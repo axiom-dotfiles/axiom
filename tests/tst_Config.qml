@@ -158,7 +158,7 @@ TestCase {
     compare(config.OSD.osds.length, 1);
     const osd = config.OSD.osds[0];
     compare(osd.id, "main");
-    compare(osd.placement, "edge");
+    compare(osd.placement, undefined);
     compare(osd.bars.map(bar => bar.type), ["app", "other", "master"]);
     // v29: an App bar's app becomes a list
     compare(osd.bars[0].app, undefined);
@@ -911,6 +911,91 @@ TestCase {
     compare(byDefault.gap, -1, "the old default becomes Auto");
     compare(far.gap, 20);
     compare(flush.detached, false);
+    compare(errors(loaded.config), []);
+  }
+
+  function test_v43_dock_monitor_becomes_monitors() {
+    const docks = [
+      {
+        "id": "everywhere",
+        "monitor": "*"
+      },
+      {
+        "id": "named",
+        "monitor": "DP-1"
+      },
+      {
+        "id": "primary",
+        "monitor": ""
+      }
+    ];
+    const loaded = load({
+      "version": 42,
+      "Dock": {
+        "docks": JSON.parse(JSON.stringify(docks))
+      }
+    });
+    const [everywhere, named, primary] = loaded.config.Dock.docks;
+    compare(everywhere.monitors, "all");
+    compare(everywhere.monitor, "");
+    compare(named.monitors, "monitor");
+    compare(named.monitor, "DP-1");
+    compare(primary.monitors, "general", "General's monitors is the primary monitor too");
+    compare(errors(loaded.config), []);
+    // With General elsewhere, an empty monitor stays on the primary monitor
+    const focused = load({
+      "version": 42,
+      "General": {
+        "monitors": "focused"
+      },
+      "Dock": {
+        "docks": [docks[2]]
+      }
+    });
+    compare(focused.config.Dock.docks[0].monitors, "primary");
+  }
+
+  function test_v44_floating_osd_becomes_detached_on_nearest_edge() {
+    const loaded = load({
+      "version": 43,
+      "OSD": {
+        "osds": [
+          {
+            "id": "edge",
+            "placement": "edge",
+            "edge": "Right",
+            "position": 20,
+            "x": 50,
+            "y": 33
+          },
+          {
+            "id": "low",
+            "placement": "floating",
+            "x": 40,
+            "y": 10
+          },
+          {
+            "id": "side",
+            "placement": "floating",
+            "x": 95,
+            "y": 70
+          }
+        ]
+      }
+    });
+    const [edge, low, side] = loaded.config.OSD.osds;
+    compare(edge.placement, undefined);
+    compare(edge.x, undefined);
+    compare(edge.edge, "Right");
+    compare(edge.position, 20);
+    compare(edge.detached, false);
+    compare(low.edge, "Bottom");
+    compare(low.position, 40);
+    compare(low.detached, true);
+    compare(low.gap, -1);
+    compare(side.edge, "Right");
+    // Along a side edge from the top
+    compare(side.position, 30);
     compare(errors(loaded.config), []);
   }
 

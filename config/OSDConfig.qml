@@ -11,7 +11,7 @@ QtObject {
   readonly property bool enabled: _c.enabled
   // Level change per wheel notch (0-1); 0 when scrolling is off
   readonly property real scrollStep: _c.scrollToChange ? _c.scrollStep / 100 : 0
-  // [OSDEntry] (see the schema): each with its own placement and bars,
+  // [OSDEntry] (see the schema): each with its own place and bars,
   // { type, apps, icon, showOsd }, type being master | other | microphone |
   // brightness | app. Goes through a string so a reload that leaves the
   // list unchanged doesn't rebuild the OSDs.

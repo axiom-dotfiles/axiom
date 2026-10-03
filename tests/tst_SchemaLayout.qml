@@ -84,6 +84,36 @@ TestCase {
       "mode": "grid",
       "on": false
     }, valueOf));
+    // anyOf: one of its conditions holds, alongside the other keys
+    verify(SchemaLayout.showIfHolds({
+      "anyOf": [
+        {
+          "mode": "standard"
+        },
+        {
+          "mode": "grid",
+          "on": true
+        }
+      ]
+    }, valueOf));
+    verify(!SchemaLayout.showIfHolds({
+      "anyOf": [
+        {
+          "mode": "standard"
+        },
+        {
+          "on": false
+        }
+      ]
+    }, valueOf));
+    verify(!SchemaLayout.showIfHolds({
+      "on": false,
+      "anyOf": [
+        {
+          "mode": "grid"
+        }
+      ]
+    }, valueOf));
   }
 
   // The real settings page: every category has cards, and every
@@ -258,7 +288,9 @@ TestCase {
         return;
       for (const key in node.properties ?? {}) {
         const prop = node.properties[key];
-        for (const target in prop["x-showIf"] ?? {}) {
+        const condition = prop["x-showIf"] ?? {};
+        const targets = [].concat(Object.keys(condition).filter(target => target !== "anyOf"), ...(condition.anyOf ?? []).map(any => Object.keys(any)));
+        for (const target of targets) {
           if (target.startsWith("/")) {
             const path = target.slice(1).split(".");
             let s = schema;
