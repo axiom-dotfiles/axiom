@@ -138,11 +138,12 @@ Item {
     extraData: ({
         monitor: root.monitor,
         vertical: root.isVertical,
-        cellSize: root.barConfig.widgetSize,
-        cellLength: root.cellLength + root.inset * 2,
+        // The cells' own size and corners, as on the bar
+        cellSize: root.cell,
+        cellLength: root.cellLength,
         barConfig: root.barConfig,
         cellSpacing: root.spacing,
-        radius: root.barConfig.radius,
+        radius: root.cellRadius,
         fontSize: root.barConfig.fontSize,
         properties: root.properties
       })
