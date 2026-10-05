@@ -1577,21 +1577,23 @@ QtObject {
   // Workspaces.strips (per monitor, in every Hyprland mode): a managed
   // config on `scrolling` becomes a strip on every monitor, its direction
   // folded into horizontal or vertical, over dwindle. The column width and
-  // follow-focus settings move with it.
+  // follow-focus settings move with it. Only in managed mode, where the
+  // layout was in effect: strips apply in every mode.
   function _v44ToV45(config, changes) {
     const managed = config.Hyprland?.managed;
     if (!managed || typeof managed !== "object")
       return config;
     const scrolling = managed.layout === "scrolling";
+    if (scrolling)
+      managed.layout = "dwindle";
     const direction = ["down", "up"].includes(managed.scrollDirection) ? "vertical" : "horizontal";
     const width = managed.columnWidth;
     const follow = managed.scrollFollowFocus;
     delete managed.columnWidth;
     delete managed.scrollDirection;
     delete managed.scrollFollowFocus;
-    if (!scrolling)
+    if (!scrolling || config.Hyprland.mode !== "managed")
       return config;
-    managed.layout = "dwindle";
     const workspaces = config.Workspaces && typeof config.Workspaces === "object" ? config.Workspaces : {};
     workspaces.strips = [
       {

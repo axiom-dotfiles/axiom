@@ -140,7 +140,7 @@ Item {
 
     Loader {
       active: root.stripDirection !== ""
-      visible: active && root.hasWindows(root.wsById(root.activeId))
+      visible: (item as ActiveStrip)?.hasWindows ?? false
 
       sourceComponent: ActiveStrip {
         barConfig: root.barConfig

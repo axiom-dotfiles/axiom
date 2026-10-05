@@ -959,6 +959,7 @@ TestCase {
     const loaded = load({
       "version": 44,
       "Hyprland": {
+        "mode": "managed",
         "managed": {
           "layout": "scrolling",
           "columnWidth": 70,
@@ -992,6 +993,17 @@ TestCase {
     compare(tiled.config.Hyprland.managed.layout, "master");
     compare(tiled.config.Workspaces.strips, []);
     compare(tiled.config.Workspaces.stripColumnWidth, 50);
+    // Outside managed mode the layout was never applied: no strip
+    const detached = load({
+      "version": 44,
+      "Hyprland": {
+        "managed": {
+          "layout": "scrolling"
+        }
+      }
+    });
+    compare(detached.config.Hyprland.managed.layout, "dwindle");
+    compare(detached.config.Workspaces.strips, []);
   }
 
   function test_v44_floating_osd_becomes_detached_on_nearest_edge() {

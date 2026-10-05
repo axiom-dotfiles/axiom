@@ -6,7 +6,8 @@ import qs.components.bar
 
 // What a switcher shows after its workspaces on a strip monitor: a divider
 // in the bar's separator style (a line when that's none), then the active
-// workspace's windows in strip order (StripWindows).
+// workspace's windows in strip order (StripWindows). Nothing, divider
+// included, while the workspace has none (`hasWindows`).
 Grid {
   id: root
 
@@ -21,6 +22,7 @@ Grid {
   property bool clickable: true
 
   readonly property bool isVertical: barConfig.vertical
+  readonly property bool hasWindows: windows.addresses.length > 0
 
   rows: isVertical ? 2 : 1
   columns: isVertical ? 1 : 2
@@ -37,6 +39,7 @@ Grid {
   }
 
   StripWindows {
+    id: windows
     barConfig: root.barConfig
     workspaceId: root.workspaceId
     stripVertical: root.stripVertical
