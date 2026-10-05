@@ -1042,6 +1042,18 @@ class GreeterInstall(unittest.TestCase):
         self.assertEqual((report["installed"], report["configured"], report["bundleWritable"]), (True, True, True))
         self.assertEqual(report["installedHash"], report["currentHash"])
 
+    def test_install_snapshots_a_staged_bundle(self):
+        staged = self.tmp / "staged"
+        staged.mkdir()
+        (staged / "greeter.json").write_text('{"staged": true}')
+        (staged / "theme.json").symlink_to("/etc/hostname")
+        args = [str(SCRIPTS / "greeter" / "greeter_install.sh"), "install", str(self.repo), self.user, str(staged)]
+        result = subprocess.run(args, env=self.env, capture_output=True, text=True, timeout=60)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        fallback = self.root / "usr/share/axiom-greeter/fallback"
+        self.assertEqual((fallback / "greeter.json").read_text(), '{"staged": true}')
+        self.assertFalse((fallback / "theme.json").exists())
+
     def test_update_again_changes_nothing_in_greetd(self):
         self.run_script("install")
         report = self.run_script("update")
@@ -1073,6 +1085,16 @@ class GreeterInstall(unittest.TestCase):
         self.assertEqual(self.config.read_text(), self.original)
         self.assertFalse((self.root / "usr/share/axiom-greeter").exists())
         self.assertFalse((self.root / "var/lib/axiom-greeter").exists())
+        self.assertFalse((self.config.parent / "config.toml.axiom-original").exists())
+
+    def test_reinstall_after_uninstall_restores_the_config_of_then(self):
+        self.run_script("install")
+        self.run_script("uninstall")
+        changed = self.original.replace("vt = 1", "vt = 2")
+        self.config.write_text(changed)
+        self.run_script("install")
+        self.run_script("uninstall")
+        self.assertEqual(self.config.read_text(), changed)
 
     def test_refusals(self):
         self.config.unlink()

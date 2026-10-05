@@ -34,8 +34,6 @@ QtObject {
   // greetd's user from the installed copy (set by greeter-session.sh;
   // ConfigManager reads the same variable, as it reads no reader)
   readonly property bool greeter: Quickshell.env("AXIOM_GREETER") === "1"
-  // Where the installed copy lives (root's, updated through polkit)
-  readonly property string greeterInstallPath: (Quickshell.env("AXIOM_GREETER_INSTALL") || "/usr/share/axiom-greeter") + "/"
   // The greeter's folder: config/ (the bundle the user's axiom exports,
   // theirs) and state/ (the greeter's: last user and sessions)
   readonly property string greeterDir: (Quickshell.env("AXIOM_GREETER_DIR") || "/var/lib/axiom-greeter") + "/"

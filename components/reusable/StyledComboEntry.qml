@@ -41,7 +41,16 @@ Item {
   }
 
   function showValue() {
-    entry.input.text = root.editable ? root.value : root.labelOf(root.value);
+    root._showText(root.editable ? root.value : root.labelOf(root.value));
+  }
+
+  // Sets the field's text without it counting as typing (which would
+  // filter and reopen the list)
+  property bool _quiet: false
+  function _showText(text) {
+    root._quiet = true;
+    entry.input.text = text;
+    root._quiet = false;
   }
 
   function openList() {
@@ -66,6 +75,10 @@ Item {
   function pick(value) {
     dropdown.close();
     root.query = "";
+    // The field shows the pick before the owner hears of it: an owner that
+    // moves focus on `picked` would otherwise have the stale text taken as
+    // typed when the field loses focus, undoing the pick
+    root._showText(root.editable ? value : root.labelOf(value));
     root.picked(value);
     Qt.callLater(root.showValue);
   }
@@ -96,7 +109,7 @@ Item {
     // One line, cut off rather than wrapped in a narrow field
     input.wrapMode: TextInput.NoWrap
     onTextChanged: {
-      if (!root.editable || !entry.input.activeFocus)
+      if (root._quiet || !root.editable || !entry.input.activeFocus)
         return;
       root.query = text;
       root.highlighted = 0;

@@ -135,7 +135,7 @@ ColumnLayout {
     }
 
     StyledTextButton {
-      visible: root.status === "noGreetd" || root.status === "checking"
+      visible: root.status === "noGreetd" || root.status === "checking" || root.status === "checkFailed"
       enabled: root.status !== "checking"
       implicitHeight: Widget.height - 4
       iconText: "refresh"

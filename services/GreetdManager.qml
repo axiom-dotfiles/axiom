@@ -78,8 +78,14 @@ QtObject {
   // An answer to the current question: the password, at first. Starts a
   // greetd session for the selected user if none is going
   function submit(response) {
-    if (!root._selectedUser || !root.selectedSession || root._busy)
+    if (!root._selectedUser || root._busy)
       return;
+    if (!root.selectedSession) {
+      root._message = I18n.tr("No session to start: nothing in /usr/share/wayland-sessions");
+      root._messageIsError = true;
+      root.failed();
+      return;
+    }
     root._message = "";
     if (Greetd.state === GreetdState.Inactive) {
       root._pending = response;

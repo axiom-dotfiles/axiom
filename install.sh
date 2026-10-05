@@ -41,6 +41,7 @@ OPTIONAL=(
   "Clipboard history with images, shared with other apps|cliphist wl-clipboard"
   "Brightness keys and OSD bar (laptop panels, external monitors over DDC/CI)|brightnessctl ddcutil"
   "hyprlock lock mode and locking on idle|hyprlock hypridle"
+  "Axiom as the login screen (set up later from Settings → Login screen)|greetd"
 )
 MIN_QS=0.3.1
 MIN_HYPRLAND=0.55.0

@@ -21,6 +21,7 @@ FieldGroup {
     case "notInstalled":
       return Theme.warning;
     case "noGreetd":
+    case "checkFailed":
       return Theme.error;
     }
     return Theme.foregroundAlt;
@@ -38,6 +39,8 @@ FieldGroup {
       return I18n.tr("No greetd");
     case "checking":
       return I18n.tr("Checking");
+    case "checkFailed":
+      return I18n.tr("Check failed");
     }
     return I18n.tr("Off");
   }

@@ -18,7 +18,7 @@ QtObject {
 
   // A Lua string literal
   function string(text) {
-    return '"' + String(text).replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\n/g, "\\n") + '"';
+    return '"' + String(text).replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\n/g, "\\n").replace(/\r/g, "\\r") + '"';
   }
 
   // A value as Lua: strings quoted, numbers without float noise

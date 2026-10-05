@@ -20,8 +20,15 @@ Item {
   property var layout: null
   // The modules shown here (the surface leaves some out on other screens)
   property var modules: []
-  // Passed to every module (`host`)
+  // Passed to every module (`host`); its `kind` ("lockscreen",
+  // "greeter") is the x-hosts name the modules must list
   property var host: ({})
+  // What's drawn: only modules whose x-hosts list this host. Validation
+  // takes any module in a layout and only the editor's library holds to
+  // x-hosts, but the greeter's layout comes from a folder any of the
+  // user's programs can write, and must never get a module that launches
+  // or runs anything
+  readonly property var shownModules: root.modules.filter(module => OverlayConfig.moduleInfo(module?.type)?.hosts.includes(root.host.kind) === true)
   // Its wallpaper, when the background is "wallpaper"
   property string wallpaper: ""
   property bool blurWallpaper: true
@@ -84,7 +91,7 @@ Item {
     ModuleGrid {
       x: root.margin
       y: root.margin
-      modules: root.modules
+      modules: root.shownModules
       extent: ({
           "cols": root.cols,
           "rows": root.rows

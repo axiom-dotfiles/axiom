@@ -29,6 +29,7 @@ The whole shell runs on five things. Everything else is optional and only needed
 | NVIDIA GPU stats | `nvidia-smi` (AMD is read from sysfs) |
 | hyprlock mode | `hyprlock`, and `hypridle` to lock on idle |
 | Idle (dim, lock, screen off, suspend) | `hypridle` |
+| Login screen | `greetd` (its `agreety` is the fallback login), and `pkexec` (polkit) to install it |
 | Night light | `hyprsunset` or `wlsunset` |
 | Clipboard history | `wl-clipboard`; `cliphist` to share the history with other apps |
 | Notes | `gio` (glib2) to move deleted notes to the trash |
@@ -118,3 +119,15 @@ general {
 ```
 
 In `none` mode axiom doesn't register the `lockscreen` target. Point hypridle at your own locker, and set **Lockscreen → Lock command** so that axiom's lock buttons run it too.
+
+## Login screen (greetd)
+
+Axiom can be your login screen, as a [greetd](https://sr.ht/~kennylevinsen/greetd/) greeter laid out on the Layouts page like the lock screen. It's off unless you install it, from **Settings → Screen & Power → Login screen** or the first-run setup. Install asks for your password once (pkexec), then:
+
+- copies axiom's tracked files to `/usr/share/axiom-greeter`, owned by root. greetd's user runs this copy, since it can't read your home folder. When axiom changes, you get a notification and **Update** copies it again.
+- makes `/var/lib/axiom-greeter`. Its `config/` folder is yours: axiom exports the login screen's layout, look, theme, wallpapers and monitor layouts there whenever they change, so changing them needs no password. Only the parts of your config the login screen shows go there, and greetd's user can read them.
+- backs up `/etc/greetd/config.toml` (`.axiom-original`, plus `.axiom-bak-<date>` for each change), then points only its `default_session` command at axiom's greeter, which runs in a Hyprland of its own.
+
+To make greetd your display manager, disable the current one and enable greetd (the settings card shows the commands). If the login screen fails to start, it tries again with the config saved at install, then falls back to greetd's text login, `agreety`. **Remove** puts greetd's config back and deletes both folders.
+
+The login screen only shows modules made for it (a clock, a greeting, weather, battery, the login box, the session picker, the keyboard layout and power buttons); nothing on it can open apps. Fonts and cursor themes installed only in your home folder don't reach it: install them system-wide.

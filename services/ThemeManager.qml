@@ -15,8 +15,9 @@ import qs.config
  * ConfigManager.setTheme.
  *
  * In the greeter (Paths.greeter) it only reads: the active theme is the
- * bundle's theme.json (what the user's theme was when it was exported),
- * and nothing is generated, linked or run. */
+ * theme.json beside the greeter's config (the bundle's, what the user's
+ * theme was when it was exported, or the install's snapshot when the
+ * config came from there), and nothing is generated, linked or run. */
 QtObject {
   id: root
 
@@ -273,8 +274,10 @@ QtObject {
   }
 
   function _themeUrl(name) {
+    // The greeter's theme comes from where its config did: the bundle,
+    // else the install's snapshot (whose code is this copy's)
     if (Paths.greeter)
-      return "file://" + Paths.greeterBundlePath + "theme.json";
+      return ConfigManager.greeterSource === "bundle" ? "file://" + Paths.greeterBundlePath + "theme.json" : Qt.resolvedUrl("../fallback/theme.json");
     return "file://" + Paths.themePath + name + ".json";
   }
 
@@ -311,7 +314,8 @@ QtObject {
     const parsed = _tryParse(content);
     if (parsed)
       return parsed;
-    console.error("[ThemeManager]", content ? "Failed to parse theme:" : "Theme not found:", name);
+    // The greeter's theme is a file beside its config, whatever the name
+    console.error("[ThemeManager]", content ? "Failed to parse theme:" : "Theme not found:", Paths.greeter ? _themeUrl(name) : name);
     const defaults = root._defaults ?? _readDefaults();
     const variant = /light$/i.test(name ?? "") ? "light" : "dark";
     return {

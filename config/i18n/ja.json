@@ -2532,6 +2532,7 @@
     "list": "一覧",
     "Remember the last user": "前回のユーザーを覚える",
     "The monitor the login box shows on. The others show the layout without it, or only the background.": "ログイン欄を表示するモニターです。ほかのモニターにはログイン欄を除いたレイアウト、または背景だけを表示します。",
-    "the login screen": "ログイン画面"
+    "the login screen": "ログイン画面",
+    "No session to start: nothing in /usr/share/wayland-sessions": "起動できるセッションがありません：/usr/share/wayland-sessions が空です"
   }
 }

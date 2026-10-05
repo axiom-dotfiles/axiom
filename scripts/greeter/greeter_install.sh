@@ -7,7 +7,8 @@
 #              config to (no root needed after this).
 # Usage:       greeter_install.sh check <repo>
 #              greeter_install.sh hash <repo>
-#              greeter_install.sh install|update|uninstall <repo> <user>
+#              greeter_install.sh install|update <repo> <user> [<staged bundle>]
+#              greeter_install.sh uninstall <repo> <user>
 #                check      (no root) what's set up: prints { greetd,
 #                           displayManager, installed, configured,
 #                           installedHash, currentHash, greeterUser,
@@ -16,8 +17,10 @@
 #                install    (root, through pkexec) copies <repo>'s tracked
 #                           files to the install folder, makes the greeter's
 #                           folder (config/ <user>'s, state/ greetd's user's),
-#                           snapshots the current bundle as the copy's
-#                           fallback, and points greetd's default_session at
+#                           snapshots the bundle (<staged bundle>, a folder
+#                           of <user>'s the bundle was just written to, else
+#                           the greeter's config/) as the copy's fallback,
+#                           and points greetd's default_session at
 #                           greeter-session.sh, backing its config up first
 #                update     the copy and the snapshot again (and greetd's
 #                           command, if something changed it)
@@ -34,6 +37,7 @@ command -v jq >/dev/null || { echo '{"error": "jq is not installed"}'; exit 1; }
 action=${1:-}
 repo=${2:-}
 user=${3:-}
+staged=${4:-}
 [[ -d "$repo" ]] && repo=$(cd "$repo" && pwd)
 
 root=${AXIOM_GREETER_ROOT:-/}
@@ -147,6 +151,10 @@ hash)
 install | update)
   [[ -d "$repo" ]] || fail "no repo: $repo"
   [[ -n "$user" ]] && id "$user" >/dev/null 2>&1 || fail "no such user: $user"
+  # Through pkexec, the bundle's folder goes only to whoever authenticated
+  if [[ -n "${PKEXEC_UID:-}" && "$(id -un "$PKEXEC_UID" 2>/dev/null)" != "$user" ]]; then
+    fail "$user isn't the user who ran pkexec"
+  fi
   [[ -f "$greetd_config" ]] || fail "greetd isn't installed ($greetd_config is missing)"
   [[ -n "$(files | head -c 1)" ]] || fail "not a git clone: $repo"
   greeter_user=$(greetd_value user)
@@ -168,18 +176,24 @@ install | update)
   (cd "$repo" && files | tar --null -T - -cf - 2>/dev/null) | tar -xf - -C "$stage" || fail "copying $repo failed"
   hash_of >"$stage/.greeter-hash"
   # What the user's axiom exported, as the copy's fallback config: written
-  # by this same code, so it loads whatever the bundle later becomes. The
-  # folder is the user's: a link there is copied as a link (-P), never
-  # followed by root
+  # by this same code, so it loads whatever the bundle later becomes. On a
+  # first install the bundle isn't there yet, so axiom stages it first.
+  # Either folder is the user's: a link there is copied as a link (-P),
+  # never followed by root
+  source="$var_dir/config"
+  [[ -n "$staged" && -d "$staged" && ! -L "$staged" ]] && source=$staged
   mkdir -p "$stage/fallback"
   for name in greeter.json theme.json; do
-    [[ -f "$var_dir/config/$name" && ! -L "$var_dir/config/$name" ]] && cp -P "$var_dir/config/$name" "$stage/fallback/$name"
+    [[ -f "$source/$name" && ! -L "$source/$name" ]] && cp -P "$source/$name" "$stage/fallback/$name"
   done
   chown -R 0:0 "$stage" 2>/dev/null
   chmod -R u=rwX,go=rX "$stage"
   rm -rf "$install_dir.old"
   [[ -d "$install_dir" ]] && mv "$install_dir" "$install_dir.old"
-  mv "$stage" "$install_dir" || fail "can't replace $install_dir"
+  if ! mv "$stage" "$install_dir"; then
+    [[ -d "$install_dir.old" ]] && mv "$install_dir.old" "$install_dir"
+    fail "can't replace $install_dir"
+  fi
   rm -rf "$install_dir.old"
   changed+=("$install_dir")
 
@@ -202,6 +216,8 @@ uninstall)
     [[ -n "$original" && -f "$original" ]] || fail "no backup of $greetd_config to put back"
     backup="$greetd_config.axiom-bak-$(date +%Y%m%d-%H%M%S)"
     cp -p "$greetd_config" "$backup" && cp -p "$original" "$greetd_config" || fail "can't restore $greetd_config"
+    # Spent: a later install takes greetd's config as it is then
+    rm -f "$greetd_config.axiom-original"
     changed+=("$greetd_config")
   fi
   for dir in "$install_dir" "$var_dir"; do
@@ -214,6 +230,6 @@ uninstall)
   ;;
 
 *)
-  fail "usage: greeter_install.sh check|hash <repo> | install|update|uninstall <repo> <user>"
+  fail "usage: greeter_install.sh check|hash <repo> | install|update <repo> <user> [<staged bundle>] | uninstall <repo> <user>"
   ;;
 esac

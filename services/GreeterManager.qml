@@ -40,14 +40,15 @@ QtObject {
   readonly property var report: _report
   property var _report: null
 
-  // "checking" | "noGreetd" (greetd isn't installed) | "off" |
+  // "checking" | "checkFailed" (lastError says why) | "noGreetd"
+  // (greetd isn't installed) | "off" |
   // "notInstalled" (Greeter.enabled, but no copy: set up by hand, or
   // removed outside axiom) | "outdated" (the copy is behind axiom, or
   // greetd's command was changed) | "installed"
   readonly property string status: {
     const report = root._report;
     if (!report)
-      return "checking";
+      return root._checkFailed ? "checkFailed" : "checking";
     if (!report.greetd)
       return "noGreetd";
     if (!report.installed)
@@ -85,13 +86,19 @@ QtObject {
       const report = root._parse(out);
       if (report.error) {
         console.warn("[GreeterManager] check:", report.error);
+        root._checkFailed = root._report === null;
+        root._lastError = report.error;
         return;
       }
+      root._checkFailed = false;
       root._report = report;
       root._notifyOutdated();
     });
   }
   property bool _checking: false
+  // The first check failed: nothing is known (a later one keeps the last
+  // good report)
+  property bool _checkFailed: false
 
   function install() {
     root._elevate("install");
@@ -126,19 +133,33 @@ QtObject {
 
   // One polkit prompt for the script as root. Another agent's prompt is an
   // ordinary window, under the overlay and the onboarder: they step aside
-  // while it's up (axiom's own draws over everything)
+  // while it's up (axiom's own draws over everything). Install and update
+  // first stage the bundle in the user's runtime folder, which the script
+  // snapshots as the copy's fallback; once they're done the bundle itself
+  // is written at once, so the greeter never starts before it's there
   function _elevate(action) {
     if (root._elevating)
       return;
-    // Install snapshots the bundle as the copy's fallback: brought up to
-    // date first
-    root._export();
     root._elevating = true;
     root._lastError = "";
+    const staging = action === "uninstall" ? "" : Paths.runtimePath + "greeter-bundle";
+    if (!staging) {
+      root._runElevated(action, "");
+      return;
+    }
+    root._writeBundle(staging, false, ok => {
+      if (!ok)
+        console.warn("[GreeterManager] Staging the login screen's config failed; installing without a fallback");
+      root._runElevated(action, ok ? staging : "");
+    });
+  }
+
+  function _runElevated(action, staging) {
     const external = PolkitManager.status !== "running";
     if (external)
       ShellManager.beginStepAside("greeter");
-    CommandManager.run(["pkexec", "/usr/bin/bash", root._script, action, Paths.axiomPath, Quickshell.env("USER")], (exitCode, out, err) => {
+    const args = ["pkexec", "/usr/bin/bash", root._script, action, Paths.axiomPath, Quickshell.env("USER")].concat(staging ? [staging] : []);
+    CommandManager.run(args, (exitCode, out, err) => {
       ShellManager.endStepAside("greeter");
       root._elevating = false;
       const result = root._parse(out);
@@ -150,6 +171,10 @@ QtObject {
         console.warn("[GreeterManager]", action, "failed:", root._lastError);
       } else {
         console.log("[GreeterManager]", action, "changed", (result.changed ?? []).join(", "), result.backup ? "(backup: " + result.backup + ")" : "");
+        if (action !== "uninstall") {
+          root._written = "";
+          root._writeBundle(Paths.greeterBundlePath, true, ok => root._written = ok ? root._bundleKey : "");
+        }
         if (action === "install" && !GreeterConfig.enabled)
           SettingsManager.commitValues({
             "Greeter.enabled": true
@@ -190,14 +215,20 @@ QtObject {
   // Each wallpaper's copy in the bundle, named by its url
   readonly property var _wallpaperCopies: root._wallpaperSources.reduce((copies, url) => {
     const extension = (url.match(/\.[A-Za-z0-9]+$/) ?? [""])[0].toLowerCase();
-    copies[url] = "file://" + Paths.greeterBundlePath + "wallpapers/" + Qt.md5(url) + extension;
+    copies[url] = "wallpapers/" + Qt.md5(url) + extension;
     return copies;
   }, {})
-  readonly property string _bundleText: JSON.stringify(GreeterBundle.exportConfig(ConfigManager.config, ConfigManager.configSchema.properties.Hyprland.properties.managed, root._wallpaperCopies), null, 2)
+  readonly property string _bundleText: JSON.stringify(GreeterBundle.exportConfig(ConfigManager.config, ConfigManager.configSchema.properties.Hyprland.properties.managed, Object.keys(root._wallpaperCopies).reduce((urls, url) => {
+    urls[url] = "file://" + Paths.greeterBundlePath + root._wallpaperCopies[url];
+    return urls;
+  }, {})), null, 2)
   readonly property string _themeText: JSON.stringify(ThemeManager.currentTheme, null, 2)
-  // Written while installed, a moment after any of it changes
-  readonly property string _exportKey: root._exporting ? root._bundleText + root._themeText : ""
-  on_ExportKeyChanged: if (root._exportKey)
+  // [source path, copy relative to the bundle] per wallpaper
+  readonly property var _wallpaperPairs: [].concat(...root._wallpaperSources.map(url => [decodeURIComponent(url.replace("file://", "")), root._wallpaperCopies[url]]))
+  // Everything the bundle holds; written while installed, a moment after it
+  // changes
+  readonly property string _bundleKey: root._exporting ? [root._bundleText, root._themeText].concat(root._wallpaperPairs).join("\n") : ""
+  on_BundleKeyChanged: if (root._bundleKey)
     _exportDelay.restart()
 
   property Timer _exportDelay: Timer {
@@ -205,58 +236,50 @@ QtObject {
     onTriggered: root._export()
   }
 
-  property string _writtenBundle: ""
-  property string _writtenTheme: ""
-  property string _writtenWallpapers: ""
+  // The _bundleKey last written ("" when the last write failed: retried
+  // on the next change)
+  property string _written: ""
 
   function _export() {
-    if (!root._exporting)
+    const key = root._bundleKey;
+    if (!key || key === root._written)
       return;
-    if (root._bundleText !== root._writtenBundle) {
-      _bundleFile.setText(root._bundleText);
-      root._writtenBundle = root._bundleText;
-    }
-    if (root._themeText !== root._writtenTheme) {
-      _themeFile.setText(root._themeText);
-      root._writtenTheme = root._themeText;
-    }
-    // Copied when new or changed (cp + mv, so the greeter never reads half
-    // of one); copies no longer used are removed
-    const pairs = [].concat(...root._wallpaperSources.map(url => [decodeURIComponent(url.replace("file://", "")), root._wallpaperCopies[url].replace("file://", "")]));
-    const key = pairs.join("\n");
-    if (key === root._writtenWallpapers)
-      return;
-    root._writtenWallpapers = key;
-    CommandManager.run(["sh", "-c", `dir=$1; shift; mkdir -p "$dir" || exit 1
-keep=""
-while [ $# -ge 2 ]; do
-  if [ -f "$1" ] && ! [ "$2" -nt "$1" ]; then cp -f -- "$1" "$dir/.part" && mv -f -- "$dir/.part" "$2"; fi
-  keep="$keep
-$2"; shift 2
-done
-for file in "$dir"/*; do
-  [ -e "$file" ] || continue
-  printf '%s\\n' "$keep" | grep -Fqx -- "$file" || rm -f -- "$file"
-done`, "sh", Paths.greeterBundlePath + "wallpapers"].concat(pairs), (exitCode, out, err) => {
-      if (exitCode !== 0)
-        console.warn("[GreeterManager] Copying wallpapers for the login screen failed:", err.trim());
+    root._written = key;
+    root._writeBundle(Paths.greeterBundlePath, true, ok => {
+      if (!ok && root._written === key)
+        root._written = "";
     });
   }
 
-  property FileView _bundleFile: FileView {
-    path: "file://" + Paths.greeterBundlePath + "greeter.json"
-    blockWrites: true
-    atomicWrites: true
-    printErrors: false
-    onSaveFailed: error => console.warn("[GreeterManager] Writing the login screen's config failed:", FileViewError.toString(error))
-  }
-
-  property FileView _themeFile: FileView {
-    path: "file://" + Paths.greeterBundlePath + "theme.json"
-    blockWrites: true
-    atomicWrites: true
-    printErrors: false
-    onSaveFailed: error => console.warn("[GreeterManager] Writing the login screen's theme failed:", FileViewError.toString(error))
+  // Writes the bundle into `dir`: greeter.json and theme.json (each
+  // through a temp file and a rename, so the greeter never reads half of
+  // one) and, `withWallpapers`, the wallpapers' copies (copied when new or
+  // changed; copies no longer used removed). Everything is made readable
+  // to greetd's user whatever the umask. then(ok)
+  function _writeBundle(dir, withWallpapers, then) {
+    CommandManager.run(["sh", "-c", `dir=$1; bundle=$2; theme=$3; shift 3
+mkdir -p "$dir" || exit 1
+printf '%s\\n' "$bundle" >"$dir/.greeter.json.part" && mv -f -- "$dir/.greeter.json.part" "$dir/greeter.json" || exit 1
+printf '%s\\n' "$theme" >"$dir/.theme.json.part" && mv -f -- "$dir/.theme.json.part" "$dir/theme.json" || exit 1
+if [ "$1" = "--wallpapers" ]; then
+  shift
+  mkdir -p "$dir/wallpapers" || exit 1
+  keep=""
+  while [ $# -ge 2 ]; do
+    if [ -f "$1" ] && ! [ "$dir/$2" -nt "$1" ]; then cp -f -- "$1" "$dir/.part" && mv -f -- "$dir/.part" "$dir/$2" || exit 1; fi
+    keep="$keep
+$dir/$2"; shift 2
+  done
+  for file in "$dir"/wallpapers/*; do
+    [ -e "$file" ] || continue
+    printf '%s\\n' "$keep" | grep -Fqx -- "$file" || rm -f -- "$file"
+  done
+fi
+chmod -R go+rX "$dir"`, "sh", dir.replace(/\/$/, ""), root._bundleText, root._themeText].concat(withWallpapers ? ["--wallpapers"].concat(root._wallpaperPairs) : []), (exitCode, out, err) => {
+      if (exitCode !== 0)
+        console.warn("[GreeterManager] Writing the login screen's config to", dir, "failed:", err.trim());
+      then(exitCode === 0);
+    });
   }
 
   // --- Startup ---

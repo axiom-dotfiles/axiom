@@ -71,6 +71,8 @@ TestCase {
 
   function test_string_escapes() {
     compare(HyprLua.string('a "b" \\ c\nd'), '"a \\"b\\" \\\\ c\\nd"');
+    // A bare carriage return would end the string: Lua refuses the chunk
+    compare(HyprLua.string("us\r,de"), '"us\\r,de"');
   }
 
   function test_value() {
