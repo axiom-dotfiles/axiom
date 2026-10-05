@@ -78,8 +78,9 @@ Workspaces don't have to be a line numbered 1 to N. Set **Settings → Desktop �
 
 One repository and one config for the whole desktop:
 
-- **Bars** with 22 widget types, and popouts that grow out of the bar or the screen border
-- **Overlay** of pages built from 25 modules: media, mixer, system graphs, weather, calendar, notes, AI chat and more
+- **Bars** with 23 widget types, and popouts that grow out of the bar or the screen border
+- **Overlay** of pages built from 27 modules: media, mixer, system graphs, weather, calendar, notes, AI chat and more
+- **Calendar** from CalDAV accounts (iCloud, Fastmail, Nextcloud) and .ics feeds: events in the month, an editor, reminders and quick add
 - **Edge menus**, floating over your windows or integrated beside them
 - **Docks** on any edge, with pinning, drag to reorder and magnification
 - **Theming:** base16 themes or ones generated from your wallpaper, applied to 23 other apps (GTK, Qt, kitty, Neovim, VS Code, Zed, Firefox, …)

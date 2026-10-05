@@ -6,13 +6,34 @@ import qs.config
 import qs.components.methods
 import qs.components.reusable
 import qs.components.content.base
+import qs.components.content.parts.calendar
+import qs.services
 
 // A clock with the date, plus a month calendar where it fits (beside the
 // clock in wide slots, or where it only fits that way); a wide strip puts
-// the date beside the time. Arrows page through months.
-// properties: { use24Hour, showSeconds }
+// the date beside the time. Arrows page through months. With `showEvents`
+// (never on the lock screen or the login screen: they're private) days
+// with events get their calendars' dots, and a click shows the day's
+// events in the clock's place (the whole card when the calendar is under
+// the clock), where they open in the editor.
+// properties: { use24Hour, showSeconds, showEvents }
 Card {
   id: root
+
+  readonly property bool showEvents: (root.properties.showEvents ?? true) && root.host?.kind !== "lockscreen" && root.host?.kind !== "greeter" && !Paths.greeter
+  // The day shown in the clock's place, "" for the clock
+  property string openDay: ""
+  onShowEventsChanged: {
+    if (root.showEvents)
+      CalendarManager.acquire(root);
+    else
+      CalendarManager.release(root);
+  }
+  Component.onCompleted: {
+    if (root.showEvents)
+      CalendarManager.acquire(root);
+  }
+  Component.onDestruction: CalendarManager.release(root)
 
   // Calendar sizing: day cells close to square, never taller than they
   // are wide, and the whole grid capped so large slots keep a big clock
@@ -33,19 +54,8 @@ Card {
   readonly property real cellHeight: Math.max(Appearance.fontSize * 1.4, Math.min(root.calendarWidth / 7 * 0.85, ((root.sideBySide ? root.innerHeight : root.innerHeight - root.clockMinHeight - Widget.spacing) - root.headerHeight - root.weekdayHeight) / 6))
   readonly property real calendarHeight: root.headerHeight + root.weekdayHeight + root.cellHeight * 6
   readonly property date now: clock.date
-  property int monthOffset: 0
-  // Plain numbers and a date string: they only notify when the month or
-  // day actually changes, not on every clock tick
-  readonly property int shownYear: new Date(root.now.getFullYear(), root.now.getMonth() + root.monthOffset, 1).getFullYear()
-  readonly property int shownMonthIndex: new Date(root.now.getFullYear(), root.now.getMonth() + root.monthOffset, 1).getMonth()
-  readonly property date shownMonth: new Date(root.shownYear, root.shownMonthIndex, 1)
-  readonly property string today: root.now.toDateString()
-  readonly property int firstDay: I18n.locale.firstDayOfWeek % 7
   // The language's time format (e.g. 午後 3:05 in Japanese), seconds added after the minutes
   readonly property string timeFormat: I18n.dateFormat(root.properties.use24Hour ? "time24" : "time12").replace("mm", root.properties.showSeconds ? "mm:ss" : "mm")
-
-  // 6 weeks of days for the shown month
-  readonly property var days: Utils.monthGrid(root.shownYear, root.shownMonthIndex, root.firstDay, root.today)
 
   SystemClock {
     id: clock
@@ -59,14 +69,25 @@ Card {
     columnSpacing: root.pad
     rowSpacing: Widget.spacing
 
-    // Clock: as big as its area allows
+    // Clock: as big as its area allows (or the day opened from the
+    // calendar beside it)
     Item {
+      visible: root.openDay === "" || root.sideBySide
       Layout.fillWidth: true
       Layout.fillHeight: true
       Layout.preferredWidth: root.sideBySide ? root.innerWidth - root.calendarWidth - root.pad : root.innerWidth
 
+      DayPane {
+        anchors.fill: parent
+        visible: root.openDay !== ""
+        dayKey: root.openDay || CalendarEvents.dayKey(root.now)
+        closable: true
+        onClosed: root.openDay = ""
+      }
+
       GridLayout {
         id: clockBox
+        visible: root.openDay === ""
         anchors.centerIn: parent
         width: parent.width
         columns: root.clockRow ? 2 : 1
@@ -100,94 +121,31 @@ Card {
     }
 
     // Calendar
-    ColumnLayout {
-      visible: root.showCalendar
+    MonthGrid {
+      visible: root.showCalendar && (root.openDay === "" || root.sideBySide)
       Layout.alignment: Qt.AlignCenter
       Layout.preferredWidth: root.calendarWidth
       Layout.maximumWidth: root.calendarWidth
       Layout.preferredHeight: root.calendarHeight
       Layout.maximumHeight: root.calendarHeight
-      spacing: 0
-
-      RowLayout {
-        Layout.fillWidth: true
-        Layout.preferredHeight: root.headerHeight
-        StyledText {
-          Layout.fillWidth: true
-          Layout.leftMargin: Widget.spacing / 2
-          text: I18n.formatDate(root.shownMonth, I18n.dateFormat("monthYear"))
-          font.bold: true
-          MouseArea {
-            anchors.fill: parent
-            cursorShape: Qt.PointingHandCursor
-            onClicked: root.monthOffset = 0
-          }
-        }
-        Repeater {
-          model: [["chevron_left", -1], ["chevron_right", 1]]
-          StyledIcon {
-            required property var modelData
-            Layout.preferredWidth: Appearance.fontSize * 1.6
-            horizontalAlignment: Text.AlignHCenter
-            text: modelData[0]
-            textColor: Theme.accent
-            textSize: Appearance.fontSize + 2
-            MouseArea {
-              anchors.fill: parent
-              anchors.margins: -4
-              cursorShape: Qt.PointingHandCursor
-              onClicked: root.monthOffset += parent.modelData[1]
-            }
-          }
-        }
-      }
-
-      GridLayout {
-        Layout.fillWidth: true
-        Layout.fillHeight: true
-        columns: 7
-        rowSpacing: 0
-        columnSpacing: 0
-        uniformCellWidths: true
-
-        Repeater {
-          model: 7
-          StyledText {
-            required property int index
-            Layout.fillWidth: true
-            Layout.preferredHeight: root.weekdayHeight
-            horizontalAlignment: Text.AlignHCenter
-            verticalAlignment: Text.AlignVCenter
-            text: I18n.locale.dayName((root.firstDay + index) % 7, Locale.NarrowFormat)
-            textSize: Appearance.fontSize - 2
-            opacity: 0.6
-          }
-        }
-        Repeater {
-          model: root.days
-          Item {
-            id: cell
-            required property var modelData
-            Layout.fillWidth: true
-            Layout.preferredHeight: root.cellHeight
-            Rectangle {
-              anchors.centerIn: parent
-              width: Math.min(parent.width, parent.height) * 0.86
-              height: width
-              radius: width / 2
-              color: cell.modelData.isToday ? Theme.accent : "transparent"
-            }
-            StyledText {
-              anchors.centerIn: parent
-              text: cell.modelData.day
-              textColor: cell.modelData.isToday ? Theme.background : Theme.foreground
-              font.bold: cell.modelData.isToday
-              opacity: cell.modelData.inMonth ? 1 : 0.3
-              textSize: Appearance.fontSize - 1
-            }
-          }
-        }
+      headerHeight: root.headerHeight
+      weekdayHeight: root.weekdayHeight
+      showEvents: root.showEvents
+      selectedKey: root.openDay
+      onDaySelected: key => {
+        if (root.showEvents)
+          root.openDay = root.openDay === key ? "" : key;
       }
     }
+  }
+
+  // The opened day over the whole card, when the calendar is under the clock
+  DayPane {
+    anchors.fill: parent
+    anchors.margins: root.pad
+    visible: root.openDay !== "" && !root.sideBySide
+    dayKey: root.openDay || CalendarEvents.dayKey(root.now)
+    closable: true
+    onClosed: root.openDay = ""
   }
 }

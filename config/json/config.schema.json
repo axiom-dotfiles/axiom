@@ -13,6 +13,7 @@
     { "name": "Launcher", "icon": "rocket_launch" },
     { "name": "Notifications", "icon": "notifications" },
     { "name": "Screen & Power", "icon": "power_settings_new" },
+    { "name": "Calendar", "icon": "calendar_month" },
     { "name": "Modules", "icon": "widgets" },
     { "name": "Maintenance", "icon": "build", "page": "SavedConfigsSection" }
   ],
@@ -21,7 +22,7 @@
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 45,
+      "default": 46,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
@@ -1465,6 +1466,35 @@
       }
     },
 
+    "Calendar": {
+      "type": "object",
+      "x-category": "Calendar",
+      "x-card": "CalendarAccounts",
+      "x-cardFolds": true,
+      "title": "Calendar",
+      "description": "Events from CalDAV accounts (iCloud, Fastmail, Nextcloud, …) and .ics subscriptions, for the calendar popout, the Calendar, Clock & calendar and Agenda modules, the Next event bar widget and the Calendar page. Passwords are never stored here: they go to your keyring (or $XDG_STATE_HOME/axiom/secrets.json without one).",
+      "additionalProperties": false,
+      "x-order": ["defaultCalendar", "defaultDuration", "defaultReminder", "reminders", "syncInterval", "pastMonths", "futureMonths", "use24Hour", "maxDots", "accounts"],
+      "properties": {
+        "accounts": {
+          "type": "array",
+          "title": "Accounts",
+          "x-settings": false,
+          "default": [],
+          "items": { "$ref": "#/definitions/CalendarAccount" }
+        },
+        "defaultCalendar": { "type": "string", "title": "New events go to", "x-group": "Events", "default": "", "x-options": "calendars", "x-emptyLabel": "The first calendar", "description": "The calendar picked for a new event (the launcher's /event uses it too)." },
+        "defaultDuration": { "type": "integer", "title": "Event length", "x-unit": "min", "x-group": "Events", "default": 60, "minimum": 5, "maximum": 1440, "description": "How long a new event lasts until you change it." },
+        "defaultReminder": { "type": "integer", "title": "Reminder", "x-unit": "min", "x-group": "Events", "default": 10, "minimum": -1, "maximum": 10080, "description": "How long before a new event's start its reminder fires. -1 adds none." },
+        "reminders": { "type": "boolean", "title": "Notify reminders", "x-group": "Events", "default": true, "description": "Show a notification when an event's reminder is due (while axiom runs)." },
+        "syncInterval": { "type": "integer", "title": "Sync every", "x-unit": "min", "x-group": "Sync", "default": 15, "minimum": 1, "maximum": 1440, "description": "How often calendars are checked for changes, while something shows them or reminders are on." },
+        "pastMonths": { "type": "integer", "title": "Months back", "x-group": "Sync", "default": 2, "minimum": 0, "maximum": 24, "description": "How far back events are kept. Paging past it fetches more." },
+        "futureMonths": { "type": "integer", "title": "Months ahead", "x-group": "Sync", "default": 12, "minimum": 1, "maximum": 60 },
+        "use24Hour": { "type": "boolean", "title": "24-hour times", "x-group": "Display", "default": true, "description": "How event times show everywhere events do." },
+        "maxDots": { "type": "integer", "title": "Dots per day", "x-group": "Display", "default": 3, "minimum": 1, "maximum": 6, "description": "Most calendar-colored dots under a day in the month grids." }
+      }
+    },
+
     "Weather": {
       "type": "object",
       "x-category": "Modules",
@@ -1648,7 +1678,8 @@
             { "type": "Keybinds" },
             { "type": "BarEditor" },
             { "type": "Themes" },
-            { "type": "Monitors" }
+            { "type": "Monitors" },
+            { "type": "CalendarPage" }
           ],
           "items": { "$ref": "#/definitions/OverlayView" }
         }
@@ -2951,7 +2982,8 @@
         { "$ref": "#/definitions/BarEditorOverlayView" },
         { "$ref": "#/definitions/SettingsOverlayView" },
         { "$ref": "#/definitions/ThemesOverlayView" },
-        { "$ref": "#/definitions/MonitorsOverlayView" }
+        { "$ref": "#/definitions/MonitorsOverlayView" },
+        { "$ref": "#/definitions/CalendarOverlayView" }
       ]
     },
     "CustomOverlayView": {
@@ -3022,6 +3054,45 @@
         "visible": { "type": "boolean" }
       }
     },
+    "CalendarOverlayView": {
+      "type": "object",
+      "x-icon": "calendar_month",
+      "x-tool": true,
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "CalendarPage", "description": "Calendar" },
+        "visible": { "type": "boolean" }
+      }
+    },
+
+    "CalendarAccount": {
+      "type": "object",
+      "additionalProperties": false,
+      "x-order": ["name", "kind", "preset", "url", "username"],
+      "properties": {
+        "id": { "type": "string", "default": "", "x-settings": false, "description": "Names the account's password in the keyring and its calendars' events." },
+        "name": { "type": "string", "title": "Name", "default": "" },
+        "kind": { "type": "string", "title": "Type", "enum": ["caldav", "ics"], "x-enumLabels": { "caldav": "CalDAV account", "ics": "Subscription (.ics)" }, "default": "caldav" },
+        "preset": { "type": "string", "title": "Provider", "x-showIf": { "kind": "caldav" }, "enum": ["icloud", "fastmail", "nextcloud", "custom"], "x-enumLabels": { "icloud": "iCloud", "fastmail": "Fastmail", "nextcloud": "Nextcloud", "custom": "Other CalDAV server" }, "default": "custom" },
+        "url": { "type": "string", "title": "Address", "default": "", "description": "The server's address (any page on it: its calendars are found from there), or the feed's URL." },
+        "username": { "type": "string", "title": "Username", "default": "", "x-showIf": { "kind": "caldav" } },
+        "calendars": { "type": "array", "x-settings": false, "default": [], "items": { "$ref": "#/definitions/CalendarEntry" } }
+      }
+    },
+    "CalendarEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "href": { "type": "string", "default": "" },
+        "name": { "type": "string", "default": "" },
+        "serverColor": { "type": "string", "default": "", "description": "The color the server gives it (#rrggbb)." },
+        "color": { "type": "string", "default": "", "description": "A theme color name overriding the server's, or empty." },
+        "enabled": { "type": "boolean", "default": true },
+        "readOnly": { "type": "boolean", "default": false },
+        "components": { "type": "array", "default": ["VEVENT"], "items": { "type": "string" } }
+      }
+    },
 
     "MonitorProfile": {
       "type": "object",
@@ -3083,6 +3154,8 @@
         { "$ref": "#/definitions/WifiNetworksOverlayModule" },
         { "$ref": "#/definitions/ScreenshotOverlayModule" },
         { "$ref": "#/definitions/ClockCalendarOverlayModule" },
+        { "$ref": "#/definitions/CalendarOverlayModule" },
+        { "$ref": "#/definitions/AgendaOverlayModule" },
         { "$ref": "#/definitions/WeatherOverlayModule" },
         { "$ref": "#/definitions/BatteryOverlayModule" },
         { "$ref": "#/definitions/NetworkOverlayModule" },
@@ -3449,7 +3522,38 @@
           "additionalProperties": false,
           "properties": {
             "use24Hour": {"type": "boolean", "title": "24-hour clock", "default": true},
-            "showSeconds": {"type": "boolean", "title": "Show seconds", "default": false}
+            "showSeconds": {"type": "boolean", "title": "Show seconds", "default": false},
+            "showEvents": {"type": "boolean", "title": "Events", "default": true, "description": "Dots on days with events, and a click on a day shows them. Never on the lock screen or the login screen."}
+          }
+        }
+      }
+    },
+    "CalendarOverlayModule": {
+      "type": "object",
+      "x-icon": "calendar_month",
+      "x-defaultSize": [4, 8],
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "place": { "$ref": "#/definitions/GridPlace" },
+        "type": { "const": "Calendar", "description": "Calendar" }
+      }
+    },
+    "AgendaOverlayModule": {
+      "type": "object",
+      "x-icon": "event_note",
+      "x-defaultSize": [4, 4],
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "place": { "$ref": "#/definitions/GridPlace" },
+        "type": { "const": "Agenda", "description": "Agenda" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "days": {"type": "integer", "title": "Days ahead", "default": 7, "minimum": 1, "maximum": 60, "description": "Events from today through this many days."},
+            "maxEvents": {"type": "integer", "title": "Most events", "default": 20, "minimum": 1, "maximum": 100}
           }
         }
       }
@@ -3607,6 +3711,7 @@
         { "$ref": "#/definitions/MediaWidget" },
         { "$ref": "#/definitions/WorkspacesWidget" },
         { "$ref": "#/definitions/TimeWidget" },
+        { "$ref": "#/definitions/NextEventWidget" },
         { "$ref": "#/definitions/TailscaleWidget" },
         { "$ref": "#/definitions/NetworkWidget" },
         { "$ref": "#/definitions/SystemTrayWidget" },
@@ -4077,6 +4182,29 @@
           "properties": {
             "showCondition": { "type": "boolean", "title": "Show condition", "default": false, "description": "Show the condition (e.g. Rain) next to the temperature." },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Show the forecast when hovered." },
+            "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
+            "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
+          }
+        }
+      }
+    },
+    "NextEventWidget": {
+      "type": "object",
+      "x-icon": "event",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "NextEvent", "description": "Next Event" },
+        "visible": { "type": "boolean" },
+        "layout": { "$ref": "#/definitions/WidgetLayout" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "lookahead": { "type": "integer", "title": "Look ahead", "x-unit": "min", "default": 720, "minimum": 15, "maximum": 10080, "description": "Shows the next event starting within this long (or happening now). Hidden when there's none." },
+            "showAllDay": { "type": "boolean", "title": "All-day events", "default": false, "description": "Count all-day events as the next event." },
+            "maxLength": { "type": "integer", "x-control": "stepper", "title": "Title length", "default": 24, "minimum": 4, "maximum": 100, "description": "Longest title shown before it is shortened (characters)." },
+            "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Open the calendar when hovered." },
             "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
           }

@@ -1,0 +1,64 @@
+pragma ComponentBehavior: Bound
+import QtQuick
+import qs.config
+import qs.components.methods
+
+// A day's events (DayAgenda) that turn into the EventEditor for the one
+// clicked, or a new one: what the Calendar popout and module, the Clock &
+// calendar module and the Calendar page show beside their month.
+// `editing` is true while the editor is up (a popout then takes the
+// keyboard).
+Item {
+  id: root
+
+  property string dayKey: CalendarEvents.dayKey(new Date())
+  property bool closable: false
+  property real maxListHeight: Number.POSITIVE_INFINITY
+  readonly property bool editing: root._editing
+  property bool _editing: false
+
+  signal closed
+
+  implicitWidth: Math.max(agenda.implicitWidth, Appearance.fontSize * 16)
+  implicitHeight: root._editing ? editor.implicitHeight : agenda.implicitHeight
+
+  function newEvent() {
+    if (!CalendarConfig.newEventCalendar)
+      return;
+    editor.open(CalendarEvents.newDraft(root.dayKey, Date.now(), CalendarConfig.newEventCalendar, CalendarConfig.defaultDuration, CalendarConfig.defaultReminder));
+    root._editing = true;
+  }
+
+  function edit(event) {
+    editor.open(CalendarEvents.draftOf(event));
+    root._editing = true;
+  }
+
+  // Back to the day (a new day shown drops an edit)
+  function stopEditing() {
+    root._editing = false;
+  }
+  onDayKeyChanged: {
+    if (!editor.busy)
+      root._editing = false;
+  }
+
+  DayAgenda {
+    id: agenda
+    anchors.fill: parent
+    visible: !root._editing
+    dayKey: root.dayKey
+    closable: root.closable
+    maxListHeight: root.maxListHeight
+    onEventClicked: event => root.edit(event)
+    onAddClicked: root.newEvent()
+    onClosed: root.closed()
+  }
+
+  EventEditor {
+    id: editor
+    anchors.fill: parent
+    visible: root._editing
+    onFinished: root._editing = false
+  }
+}

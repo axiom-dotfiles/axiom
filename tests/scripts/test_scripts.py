@@ -17,6 +17,9 @@
     plain config dir and never touches a symlinked or git-tracked one
   - generate_theme.py turns an image into a valid dark/light pair (skipped
     when the venv can't be set up)
+  - calendar_sync.py reads a locally served .ics feed into occurrences, and
+    edits events (new, one occurrence, excluded, the series moved) so they
+    read back right (skipped when the venv can't be set up)
 
   python3 tests/scripts/test_scripts.py [-v] [TestCase[.test_name]]
 """
@@ -964,6 +967,206 @@ class GenerateTheme(unittest.TestCase):
             self.assertEqual(len(set(palettes)), len(styles))
         finally:
             shutil.rmtree(tmp)
+
+
+CALENDAR_FEED = """BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//test//EN
+X-WR-CALNAME:Team
+X-APPLE-CALENDAR-COLOR:#3366CCFF
+BEGIN:VEVENT
+UID:weekly
+DTSTART;TZID=Europe/Berlin:20260707T100000
+DTEND;TZID=Europe/Berlin:20260707T103000
+RRULE:FREQ=WEEKLY;COUNT=4
+EXDATE;TZID=Europe/Berlin:20260714T100000
+SUMMARY:Standup
+BEGIN:VALARM
+ACTION:DISPLAY
+TRIGGER:-PT15M
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:weekly
+RECURRENCE-ID;TZID=Europe/Berlin:20260721T100000
+DTSTART;TZID=Europe/Berlin:20260721T120000
+DTEND;TZID=Europe/Berlin:20260721T123000
+SUMMARY:Standup (moved)
+END:VEVENT
+BEGIN:VEVENT
+UID:trip
+DTSTART;VALUE=DATE:20260710
+DTEND;VALUE=DATE:20260713
+SUMMARY:Trip
+LOCATION:Coast
+END:VEVENT
+END:VCALENDAR
+"""
+
+
+class CalendarSync(unittest.TestCase):
+    """calendar_sync.py: an .ics feed served locally (discover, sync and the
+    occurrences it writes), and the edits it makes to events, without a
+    server. Times in UTC (TZ), so the expected values don't depend on the
+    machine. Skipped when the venv can't be set up."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = Path(tempfile.mkdtemp())
+        cls.env = dict(scratch_env(cls.tmp), TZ="UTC")
+        setup = subprocess.run([str(SCRIPTS / "setup_venv.sh")], env=cls.env, capture_output=True, text=True,
+                               timeout=600)
+        if setup.returncode != 0:
+            shutil.rmtree(cls.tmp)
+            message = f"venv setup failed:\n{setup.stderr[-500:]}"
+            if os.environ.get("CI"):
+                raise AssertionError(message)
+            raise unittest.SkipTest(message)
+        cls.python = str(ROOT / ".venv" / "bin" / "python3")
+
+    @classmethod
+    def tearDownClass(cls):
+        shutil.rmtree(cls.tmp, ignore_errors=True)
+
+    def run_helper(self, command, request):
+        result = subprocess.run([self.python, str(SCRIPTS / "calendar_sync.py"), command], input=json.dumps(request),
+                                env=self.env, capture_output=True, text=True, timeout=60)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        return json.loads(result.stdout)
+
+    def serve(self, directory):
+        import functools
+        import http.server
+        import threading
+        class Quiet(http.server.SimpleHTTPRequestHandler):
+            def log_message(self, *args):
+                pass
+
+        server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), functools.partial(Quiet, directory=str(directory)))
+        threading.Thread(target=server.serve_forever, daemon=True).start()
+        self.addCleanup(server.server_close)
+        self.addCleanup(server.shutdown)
+        return f"http://127.0.0.1:{server.server_address[1]}"
+
+    def test_feed_discover_and_sync(self):
+        site = self.tmp / "site"
+        site.mkdir(exist_ok=True)
+        (site / "team.ics").write_text(CALENDAR_FEED)
+        url = self.serve(site) + "/team.ics"
+
+        found = self.run_helper("discover", {"kind": "ics", "url": url})
+        self.assertEqual(found["calendars"], [{"href": url, "name": "Team", "color": "#3366CC",
+                                               "components": ["VEVENT"], "readOnly": True}])
+
+        state = self.tmp / "state"
+        ms = lambda *args: int(__import__("datetime").datetime(*args, tzinfo=__import__("datetime").timezone.utc)
+                               .timestamp() * 1000)
+        result = self.run_helper("sync", {
+            "stateDir": str(state),
+            "range": {"from": ms(2026, 7, 1), "to": ms(2026, 8, 1)},
+            "accounts": [{"id": "feed", "kind": "ics", "url": url, "calendars": [{"href": url}]}],
+        })
+        self.assertTrue(result["ok"], result)
+        self.assertEqual(result["errors"], [])
+        events = json.loads((state / "events.json").read_text())["events"]
+        self.assertEqual(stat.S_IMODE((state / "events.json").stat().st_mode), 0o600)
+        self.assertEqual([(e["title"], e["start"]) for e in events], [
+            ("Standup", ms(2026, 7, 7, 8)),           # 10:00 in Berlin's summer time
+            ("Trip", ms(2026, 7, 10)),
+            ("Standup (moved)", ms(2026, 7, 21, 10)),  # the override; the 14th is excluded
+            ("Standup", ms(2026, 7, 28, 8)),
+        ])
+        first, trip, moved = events[0], events[1], events[2]
+        self.assertEqual(first["calendar"], "feed|" + url)
+        self.assertTrue(first["recurring"])
+        self.assertEqual(first["repeat"], "custom")  # COUNT makes it more than a plain weekly rule
+        self.assertEqual(first["reminder"], 15)
+        self.assertEqual(first["alarms"], [ms(2026, 7, 7, 7, 45)])
+        self.assertEqual(moved["rid"], f"T:{ms(2026, 7, 21, 8) // 1000}")
+        self.assertEqual(moved["alarms"], [])
+        self.assertTrue(trip["allDay"])
+        self.assertEqual((trip["dayStart"], trip["dayEnd"], trip["location"]), ("2026-07-10", "2026-07-13", "Coast"))
+        self.assertFalse(trip["recurring"])
+        self.assertEqual(trip["rid"], "")
+
+        # A feed that's gone keeps the last copy and reports it
+        (site / "team.ics").unlink()
+        result = self.run_helper("sync", {
+            "stateDir": str(state),
+            "range": {"from": ms(2026, 7, 1), "to": ms(2026, 8, 1)},
+            "accounts": [{"id": "feed", "kind": "ics", "url": url, "calendars": [{"href": url}]}],
+        })
+        self.assertEqual([e["code"] for e in result["errors"]], ["notFound"])
+        self.assertEqual(len(json.loads((state / "events.json").read_text())["events"]), 4)
+
+    def test_edits(self):
+        """New events, a moved occurrence, an excluded one and a shifted
+        series, read back through the same expansion the sync uses."""
+        script = r'''
+import datetime as dt, json, sys
+sys.path.insert(0, sys.argv[1])
+import calendar_sync as c
+import icalendar
+utc = dt.timezone.utc
+tz = c.local_zone()
+ms = lambda *a: int(dt.datetime(*a, tzinfo=utc).timestamp() * 1000)
+def occurrences(cal):
+    obj = {"ics": cal.to_ical().decode(), "etag": ""}
+    return [(o["title"], o["start"], o["rid"], o["repeat"], o["reminder"]) for o in
+            c.expand_object("a|cal", "h", obj, dt.datetime(2026, 7, 1, tzinfo=utc), dt.datetime(2026, 8, 1, tzinfo=utc))]
+out = {}
+cal, uid = c.build_new({"title": "Gym", "allDay": False, "start": ms(2026, 7, 6, 18), "end": ms(2026, 7, 6, 19),
+                        "repeat": "weekly", "reminder": 30, "location": "", "description": ""}, tz)
+out["new"] = occurrences(cal)
+rid = out["new"][1][2]
+c.apply_occurrence(cal, {"title": "Gym (late)", "allDay": False, "start": ms(2026, 7, 13, 20), "end": ms(2026, 7, 13, 21)}, rid, tz)
+c.exclude_occurrence(cal, out["new"][2][2], tz)
+out["occurrence"] = occurrences(cal)
+c.apply_series(cal, {"title": "Gym", "allDay": False, "start": ms(2026, 7, 6, 17), "end": ms(2026, 7, 6, 18),
+                     "origStart": ms(2026, 7, 6, 18), "repeat": "weekly", "repeatChanged": False,
+                     "reminder": 30, "reminderChanged": False}, tz)
+out["shifted"] = occurrences(cal)
+c.apply_series(cal, {"title": "Gym once", "allDay": False, "start": ms(2026, 7, 6, 17), "end": ms(2026, 7, 6, 18),
+                     "origStart": ms(2026, 7, 6, 17), "repeat": "none", "repeatChanged": True,
+                     "reminder": -1, "reminderChanged": True}, tz)
+out["single"] = occurrences(cal)
+day, _ = c.build_new({"title": "Holiday", "allDay": True, "dayStart": "2026-07-20", "dayEnd": "2026-07-22",
+                      "repeat": "none", "reminder": -1}, tz)
+out["allDay"] = [(o["title"], o["dayStart"], o["dayEnd"]) for o in
+                 c.expand_object("a|cal", "h", {"ics": day.to_ical().decode()}, dt.datetime(2026, 7, 1), dt.datetime(2026, 8, 1))]
+print(json.dumps(out))
+'''
+        result = subprocess.run([self.python, "-c", script, str(SCRIPTS)], env=self.env, capture_output=True,
+                                text=True, timeout=60)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        out = json.loads(result.stdout)
+        utc = __import__("datetime").timezone.utc
+        ms = lambda *args: int(__import__("datetime").datetime(*args, tzinfo=utc).timestamp() * 1000)
+        rid = lambda *args: f"T:{ms(*args) // 1000}"
+        self.assertEqual([tuple(o) for o in out["new"]], [
+            ("Gym", ms(2026, 7, d, 18), rid(2026, 7, d, 18), "weekly", 30) for d in (6, 13, 20, 27)])
+        # The 13th moved to 20:00 under its own title, the 20th gone
+        self.assertEqual([tuple(o[:3]) for o in out["occurrence"]], [
+            ("Gym", ms(2026, 7, 6, 18), rid(2026, 7, 6, 18)),
+            ("Gym (late)", ms(2026, 7, 13, 20), rid(2026, 7, 13, 18)),
+            ("Gym", ms(2026, 7, 27, 18), rid(2026, 7, 27, 18))])
+        # An hour earlier: the override and the exclusion move with the series
+        self.assertEqual([tuple(o[:3]) for o in out["shifted"]], [
+            ("Gym", ms(2026, 7, 6, 17), rid(2026, 7, 6, 17)),
+            ("Gym (late)", ms(2026, 7, 13, 20), rid(2026, 7, 13, 17)),
+            ("Gym", ms(2026, 7, 27, 17), rid(2026, 7, 27, 17))])
+        # No longer repeating: one event, no reminder, overrides dropped
+        self.assertEqual([tuple(o) for o in out["single"]], [("Gym once", ms(2026, 7, 6, 17), "", "none", -1)])
+        self.assertEqual([tuple(o) for o in out["allDay"]], [("Holiday", "2026-07-20", "2026-07-22")])
+
+    def test_failures_are_json(self):
+        self.assertEqual(self.run_helper("discover", {"kind": "caldav", "url": "https://example.invalid"})["code"],
+                         "noPassword")
+        unreachable = self.run_helper("discover", {"kind": "ics", "url": "http://127.0.0.1:9/feed.ics"})
+        self.assertEqual(unreachable["code"], "network")
+        self.assertEqual(self.run_helper("save", {"stateDir": str(self.tmp), "range": {"from": 0, "to": 1},
+                                                  "accounts": [], "account": "nope", "calendar": "x",
+                                                  "event": {}})["code"], "notFound")
 
 
 class GreeterInstall(unittest.TestCase):

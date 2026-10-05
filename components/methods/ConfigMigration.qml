@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 45
+  readonly property int currentVersion: 46
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -117,6 +117,8 @@ QtObject {
       result = _v43ToV44(result, changes);
     if (version < 45)
       result = _v44ToV45(result, changes);
+    if (version < 46)
+      result = _v45ToV46(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -1607,6 +1609,19 @@ QtObject {
       workspaces.stripFollowFocus = follow;
     config.Workspaces = workspaces;
     changes.push(`Hyprland.managed.layout "scrolling" -> Workspaces.strips: every monitor, ${direction}`);
+    return config;
+  }
+
+  // v46 added the Calendar page (Calendar section): a page list saved
+  // without it gets it once, as in v18
+  function _v45ToV46(config, changes) {
+    const views = config.Overlay?.views;
+    if (!Array.isArray(views) || views.some(view => view?.type === "CalendarPage"))
+      return config;
+    views.push({
+      "type": "CalendarPage"
+    });
+    changes.push("Overlay.views: added the Calendar page");
     return config;
   }
 }

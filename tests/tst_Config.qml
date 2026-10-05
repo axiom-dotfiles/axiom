@@ -407,7 +407,7 @@ TestCase {
     compare(loaded.removed, []);
     compare(errors(config), []);
     const views = config.Overlay.views;
-    compare(views.map(view => view.type), ["Custom", "Settings", "BarEditor", "Themes", "Keybinds", "Monitors"]);
+    compare(views.map(view => view.type), ["Custom", "Settings", "BarEditor", "Themes", "Keybinds", "Monitors", "CalendarPage"]);
     // Columns side by side, each flowing its cells, slots within them
     const home = views[0];
     compare(home.columns, undefined);
@@ -853,9 +853,13 @@ TestCase {
   }
 
   // Every Auto color field of the schema goes Auto in the v41 migration
+  // (widgets added since start Auto: no saved config can have them older)
   function test_v41_covers_every_auto_color() {
+    const addedSince = ["NextEvent"];
     schema.definitions.BarWidget.oneOf.forEach(ref => {
       const def = schema.definitions[ref.$ref.replace("#/definitions/", "")];
+      if (addedSince.includes(def.properties.type.const))
+        return;
       const properties = def.properties.properties?.properties ?? {};
       const auto = Object.keys(properties).filter(key => properties[key]["x-autoColor"]);
       compare(JSON.stringify(auto.sort()), JSON.stringify((ConfigMigration._v41AutoColors[def.properties.type.const] ?? []).slice().sort()), def.properties.type.const);
@@ -1006,6 +1010,41 @@ TestCase {
     compare(detached.config.Workspaces.strips, []);
   }
 
+  function test_v46_adds_the_calendar_page_once() {
+    const loaded = load({
+      "version": 45,
+      "Overlay": {
+        "views": [
+          {
+            "type": "Custom",
+            "name": "Home"
+          },
+          {
+            "type": "Settings"
+          }
+        ]
+      }
+    });
+    compare(loaded.config.Overlay.views.map(view => view.type), ["Custom", "Settings", "CalendarPage"]);
+    compare(errors(loaded.config), []);
+    // A list that has it (hidden or not) keeps it as it is
+    const hidden = load({
+      "version": 45,
+      "Overlay": {
+        "views": [
+          {
+            "type": "CalendarPage",
+            "visible": false
+          }
+        ]
+      }
+    });
+    compare(hidden.config.Overlay.views.length, 1);
+    compare(hidden.config.Overlay.views[0].visible, false);
+    compare(hidden.config.Calendar.accounts, []);
+    compare(hidden.config.Calendar.syncInterval, 15);
+  }
+
   function test_v44_floating_osd_becomes_detached_on_nearest_edge() {
     const loaded = load({
       "version": 43,
@@ -1116,8 +1155,9 @@ TestCase {
       }
     });
     const views = loaded.config.Overlay.views;
-    compare(views.map(view => view.type), ["Custom", "Themes", "Settings", "Keybinds", "BarEditor", "Monitors"]);
-    compare(views.map(view => view.visible === false), [false, false, false, true, true, true]);
+    // (CalendarPage from v46, shown)
+    compare(views.map(view => view.type), ["Custom", "Themes", "Settings", "Keybinds", "BarEditor", "Monitors", "CalendarPage"]);
+    compare(views.map(view => view.visible === false), [false, false, false, true, true, true, false]);
     compare(loaded.changes.filter(change => change.includes("added back")).length, 3);
     compare(errors(loaded.config), []);
   }

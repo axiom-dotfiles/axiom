@@ -159,7 +159,8 @@ QtObject {
   }
 
   // The 6 weeks (42 days) shown for a month, starting on `firstDay` (0 =
-  // Sunday, as Date.getDay()): [{ day, month, year, inMonth, isToday }].
+  // Sunday, as Date.getDay()): [{ day, month, year, inMonth, isToday, key }]
+  // (key: "YYYY-MM-DD", as CalendarEvents.dayKey).
   // `today` is a date string (Date.toDateString()), so callers can bind
   // it to something that only changes once a day.
   function monthGrid(year, month, firstDay, today) {
@@ -173,7 +174,8 @@ QtObject {
         "month": d.getMonth(),
         "year": d.getFullYear(),
         "inMonth": d.getMonth() === month,
-        "isToday": d.toDateString() === today
+        "isToday": d.toDateString() === today,
+        "key": d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0")
       });
     }
     return days;

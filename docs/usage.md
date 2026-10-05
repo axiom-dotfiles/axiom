@@ -34,6 +34,7 @@ qs -c axiom ipc call <target> <function>
 | `notifications` | `clear`, `toggleDnd` |
 | `selfUpdate` | `check`, `update`, `open` |
 | `chat` | `open`, `newChat`, `ask <text>`, `settings` |
+| `calendar` | `open`, `newEvent`, `sync`, `add <text>` (as `/event`) |
 | `audio` | `volumeUp`, `volumeDown`, `toggleMute`, `toggleMicMute` |
 | `media` | `playPause`, `next`, `previous`, `stop` |
 
@@ -74,7 +75,7 @@ Plain text searches apps and open windows. When the text is math, the result sho
 | **Look** | `/theme <name>` `/dark` `/light` `/mode` `/wallpaper <file\|Random>` `/nextwallpaper` `/generate` `/nightlight` |
 | **Audio and media** | `/volume <n\|+n\|-n>` `/mute` `/mic` `/output <device>` `/input <device>` `/play` `/next` `/prev` |
 | **Connectivity** | `/wifi [on\|off]` `/bluetooth [on\|off]` `/connect <device>` |
-| **Other** | `/dnd [on\|off]` `/clear` `/caffeine [on\|off]` `/ws <n>` `/screenshot <region\|window\|screen>` `/record` `/notes [text]` `/chat [conversation]` `/config <setting> <value>` `/config save <name>` `/config restore <name>` `/update` `/welcome` `/reload` `/emoji` `/clipboard` `/help` |
+| **Other** | `/dnd [on\|off]` `/clear` `/caffeine [on\|off]` `/ws <n>` `/screenshot <region\|window\|screen>` `/record` `/notes [text]` `/calendar` `/event <when> <title>` `/chat [conversation]` `/config <setting> <value>` `/config save <name>` `/config restore <name>` `/update` `/welcome` `/reload` `/emoji` `/clipboard` `/help` |
 
 Every provider can be switched off under **Settings › Desktop › Launcher**. The same page sets:
 - the launcher's size, hidden apps, terminal and search engine

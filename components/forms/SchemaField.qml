@@ -65,6 +65,14 @@ Loader {
       return {
         "": I18n.tr("Last opened")
       };
+    // I18n.tr("The first calendar")
+    if (fieldSchema["x-options"] === "calendars")
+      return CalendarConfig.calendars.reduce((labels, calendar) => {
+        labels[calendar.id] = CalendarConfig.accounts.length > 1 ? I18n.tr("{0} · {1}", calendar.name, calendar.accountName) : calendar.name;
+        return labels;
+      }, {
+        "": I18n.tr(fieldSchema["x-emptyLabel"] ?? "The first calendar")
+      });
     // Schema labels are English, translated like titles; `x-emptyLabel`
     // names an empty value (a color picked automatically: I18n.tr("Auto"))
     const labels = Object.assign({}, fieldSchema["x-enumLabels"] ?? {});

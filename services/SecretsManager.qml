@@ -6,14 +6,16 @@ import Quickshell
 import qs.config
 
 /**
- * Chat API keys, which never go in config.json. A provider's key is the
- * first of:
- *   1. its `keyEnv` environment variable (e.g. ANTHROPIC_API_KEY)
+ * Secrets, which never go in config.json: chat API keys (scope `provider`)
+ * and calendar account passwords (scope `calendar`). A secret is the first
+ * of:
+ *   1. a provider's `keyEnv` environment variable (e.g. ANTHROPIC_API_KEY)
  *   2. the keyring (Secret Service, through `secret-tool`), under
- *      `service axiom provider <id>`
- *   3. $XDG_STATE_HOME/axiom/secrets.json ({ "<id>": "…" }, mode 600)
- * setKey() stores a key in the keyring when one answers, else in the file.
- * Keys go to secret-tool and the file through stdin, never argv.
+ *      `service axiom <scope> <id>`
+ *   3. $XDG_STATE_HOME/axiom/secrets.json ({ "<id>": "…" } for providers,
+ *      "<scope>:<id>" for the other scopes; mode 600)
+ * setSecret() stores one in the keyring when one answers, else in the file.
+ * Secrets go to secret-tool and the file through stdin, never argv.
  */
 QtObject {
   id: root
@@ -24,8 +26,8 @@ QtObject {
   // Whether a Secret Service answered (null until the probe finishes)
   property var keyringAvailable: null
 
-  // { providerId: "env" | "keyring" | "file" | "none" | "unneeded" }, for
-  // the settings card. refresh() fills it in.
+  // { slot: "keyring" | "file" | "none" } (a slot is a provider's id, or
+  // "<scope>:<id>"), for the settings cards. refresh() and lookups fill it.
   property var statuses: ({})
 
   // Where a provider's key would come from; "" while it's being looked up
@@ -36,7 +38,7 @@ QtObject {
       return "unneeded";
     if (provider.keyEnv && Quickshell.env(provider.keyEnv))
       return "env";
-    return root.statuses[provider.id] ?? "";
+    return root.secretStatus("provider", provider.id);
   }
 
   // Calls back with the provider's key, "" when there is none
@@ -46,50 +48,82 @@ QtObject {
     const fromEnv = provider.keyEnv ? Quickshell.env(provider.keyEnv) : "";
     if (fromEnv)
       return callback(fromEnv);
-    if (root._cache[provider.id] !== undefined)
-      return callback(root._cache[provider.id]);
-    root._lookup(provider.id, key => callback(key));
+    root.withSecret("provider", provider.id, callback);
   }
 
   // Looks every provider's key up again (after it changed elsewhere)
   function refresh(providers) {
-    root._cache = {};
+    root._clearCache("provider");
     root._secrets = root._read();
     for (const provider of providers ?? [])
       if (provider.auth !== "none")
-        root._lookup(provider.id, () => {});
+        root._lookup("provider", provider.id, () => {});
   }
 
   function setKey(provider, key) {
-    const trimmed = String(key ?? "").trim();
-    if (trimmed === "")
-      return root.clearKey(provider);
-    root._cache[provider.id] = trimmed;
-    if (root.keyringAvailable) {
-      root._run(["secret-tool", "store", "--label=" + "Axiom: " + (provider.name || provider.id), "service", "axiom", "provider", provider.id], trimmed, ok => {
-        if (!ok) {
-          console.warn("[SecretsManager] The keyring refused the key for", provider.id + "; saving it to", root.secretsPath);
-          root._storeFile(provider.id, trimmed);
-          return;
-        }
-        root._setStatus(provider.id, "keyring");
-        // One place per key: the file's copy would outlive a later clear
-        if (root._secrets[provider.id] !== undefined)
-          root._storeFile(provider.id, undefined);
-      });
-      return;
-    }
-    root._storeFile(provider.id, trimmed);
+    root.setSecret("provider", provider.id, provider.name || provider.id, key);
   }
 
   function clearKey(provider) {
-    delete root._cache[provider.id];
-    if (root._secrets[provider.id] !== undefined)
-      root._storeFile(provider.id, undefined);
+    root.clearSecret("provider", provider.id);
+  }
+
+  // --- Any scope ---
+
+  // "keyring" | "file" | "none", or "" while it's being looked up
+  function secretStatus(scope, id) {
+    return root.statuses[root._slot(scope, id)] ?? "";
+  }
+
+  // Calls back with the secret, "" when there is none
+  function withSecret(scope, id, callback) {
+    const slot = root._slot(scope, id);
+    if (root._cache[slot] !== undefined)
+      return callback(root._cache[slot]);
+    root._lookup(scope, id, callback);
+  }
+
+  // Looks these ids' secrets up again, for a card showing their status
+  function refreshSecrets(scope, ids) {
+    root._clearCache(scope);
+    root._secrets = root._read();
+    for (const id of ids ?? [])
+      root._lookup(scope, id, () => {});
+  }
+
+  // Stores a secret (`label` names it in the keyring); an empty one clears it
+  function setSecret(scope, id, label, value) {
+    const trimmed = String(value ?? "").trim();
+    if (trimmed === "")
+      return root.clearSecret(scope, id);
+    const slot = root._slot(scope, id);
+    root._cache[slot] = trimmed;
+    if (root.keyringAvailable) {
+      root._run(["secret-tool", "store", "--label=" + "Axiom: " + label, "service", "axiom", scope, id], trimmed, ok => {
+        if (!ok) {
+          console.warn("[SecretsManager] The keyring refused the secret for", slot + "; saving it to", root.secretsPath);
+          root._storeFile(slot, trimmed);
+          return;
+        }
+        root._setStatus(slot, "keyring");
+        // One place per secret: the file's copy would outlive a later clear
+        if (root._secrets[slot] !== undefined)
+          root._storeFile(slot, undefined);
+      });
+      return;
+    }
+    root._storeFile(slot, trimmed);
+  }
+
+  function clearSecret(scope, id) {
+    const slot = root._slot(scope, id);
+    delete root._cache[slot];
+    if (root._secrets[slot] !== undefined)
+      root._storeFile(slot, undefined);
     if (root.keyringAvailable)
-      root._run(["secret-tool", "clear", "service", "axiom", "provider", provider.id], null, () => root._lookup(provider.id, () => {}));
+      root._run(["secret-tool", "clear", "service", "axiom", scope, id], null, () => root._lookup(scope, id, () => {}));
     else
-      root._setStatus(provider.id, "none");
+      root._setStatus(slot, "none");
   }
 
   // Keys ConfigMigration pulled out of an old config: into the file, as
@@ -101,8 +135,21 @@ QtObject {
   // -- Private --
 
   property var _secrets: _read()
-  // Keys looked up this session, so each request doesn't run secret-tool
+  // Secrets looked up this session (by slot), so each request doesn't run
+  // secret-tool
   property var _cache: ({})
+
+  // Where a secret is in the file, the statuses and the cache: a provider's
+  // bare id (as before scopes), else "<scope>:<id>"
+  function _slot(scope, id) {
+    return scope === "provider" ? id : scope + ":" + id;
+  }
+
+  function _clearCache(scope) {
+    for (const slot of Object.keys(root._cache))
+      if (scope === "provider" ? !slot.includes(":") : slot.startsWith(scope + ":"))
+        delete root._cache[slot];
+  }
 
   function _setStatus(id, value) {
     const next = Object.assign({}, root.statuses);
@@ -114,25 +161,26 @@ QtObject {
   // then a keyring key would read as missing (and be cached as "")
   property var _waiting: []
 
-  function _lookup(id, callback) {
+  function _lookup(scope, id, callback) {
     if (root.keyringAvailable === null) {
-      root._waiting.push(() => root._lookup(id, callback));
+      root._waiting.push(() => root._lookup(scope, id, callback));
       return;
     }
+    const slot = root._slot(scope, id);
     const fromFile = () => {
-      const key = root._secrets[id] ?? "";
-      root._cache[id] = key;
-      root._setStatus(id, key ? "file" : "none");
+      const key = root._secrets[slot] ?? "";
+      root._cache[slot] = key;
+      root._setStatus(slot, key ? "file" : "none");
       callback(key);
     };
     if (!root.keyringAvailable)
       return fromFile();
-    root._run(["secret-tool", "lookup", "service", "axiom", "provider", id], null, (ok, out) => {
+    root._run(["secret-tool", "lookup", "service", "axiom", scope, id], null, (ok, out) => {
       const key = ok ? out.trim() : "";
       if (!key)
         return fromFile();
-      root._cache[id] = key;
-      root._setStatus(id, "keyring");
+      root._cache[slot] = key;
+      root._setStatus(slot, "keyring");
       callback(key);
     });
   }
