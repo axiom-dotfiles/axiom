@@ -30,6 +30,8 @@ The whole shell runs on five things. Everything else is optional and only needed
 | hyprlock mode | `hyprlock`, and `hypridle` to lock on idle |
 | Idle (dim, lock, screen off, suspend) | `hypridle` |
 | Login screen | `greetd` and its text login `agreety` (`greetd-agreety` on Arch), the fallback; `pkexec` (polkit) to install it |
+| Calendar | `secret-tool` (libsecret) to keep account passwords in your keyring; the Python packages `icalendar` and `recurring-ical-events`, which the installer's venv holds (`scripts/requirements.txt`) |
+| Polkit prompt | Nothing: axiom is the agent itself, and stops another one (hyprpolkitagent, KDE's, GNOME's) while it's on |
 | Night light | `hyprsunset` or `wlsunset` |
 | Clipboard history | `wl-clipboard`; `cliphist` to share the history with other apps |
 | Notes | `gio` (glib2) to move deleted notes to the trash |
@@ -64,7 +66,7 @@ hl.on("hyprland.start", function() hl.exec_cmd("qs -n -c axiom") end)
 
 </details>
 
-That's all Hyprland needs. How axiom sets up the rest is **Settings → Desktop → Hyprland → Mode**:
+That's all Hyprland needs. How axiom sets up the rest is **Settings → Hyprland → Mode**:
 
 | Mode | What it does |
 | --- | --- |
@@ -93,15 +95,15 @@ The same settings page holds switches for:
 - **blur behind axiom's surfaces**
 - **starting `awww-daemon`** (with the awww wallpaper backend)
 
-Keybinds are edited on the **Keybinds** page. A bind can run any IPC action below, a window action (focus, move, resize, close, fullscreen, floating, special workspaces, mouse drag), a Hyprland dispatcher written as Lua (`hl.dsp.layout("swapsplit")`), or a command, and can repeat while held, work while locked or fire on release. Presets add window management on SUPER + H J K L and the media keys. A description like `Workspace: Switch left` puts the bind in its own section on that page.
+Keybinds are edited on the **Keybinds** page, in every mode. Presets add the essentials, workspace keys, window management, Alt+Tab, strips and the media keys in one click (see [Keybinds](usage.md#keybinds)).
 
 ### Updates
 
-axiom updates itself from the repository you cloned it from. It follows release tags (`v*`) by default, or every commit on `main` if you pick that channel under **Settings → Updates**. It checks when the shell starts and once a day, and the same page picks what happens next:
+axiom updates itself from the repository you cloned it from. It follows release tags (`v*`) by default, or every commit on `main` if you pick that channel under **Settings → Maintenance → axiom updates**. It checks when the shell starts and once a day, and the same page picks what happens next:
 
 | Mode | What it does |
 | --- | --- |
-| **Notify me** (default) | Sends a notification. Clicking it opens **Settings → Updates**, which shows what's new and has an **Update** button. |
+| **Notify me** (default) | Sends a notification. Clicking it opens **Settings → Maintenance → axiom updates**, which shows what's new and has an **Update** button. |
 | **Update automatically** | Installs the update, reloads the shell, and notifies you. |
 | **Off** | Never checks. **Check now** still works. |
 

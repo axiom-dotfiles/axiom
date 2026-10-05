@@ -4,15 +4,23 @@
 
 ## The config file
 
-Everything is configured from inside the shell (see [Built in the shell](../README.md#built-in-the-shell)). Open the overlay, and use the **Settings**, **Bar editor**, **Layouts**, **Monitors** and **Themes** pages.
+Everything is configured from inside the shell (see [Built in the shell](../README.md#built-in-the-shell)). Open the overlay, and use the **Settings**, **Bar editor**, **Layouts**, **Keybinds**, **Monitors** and **Themes** pages. Any single setting can also be set from the launcher: `/config Appearance.font.size 14`.
 
 - Settings are saved to `config/user/config.json`. You never need to open it, but the shell watches that file and reloads when it changes, so editing it by hand also works.
 - Configs from older versions are migrated automatically.
 - `config/json/config.schema.json` defines every option and its default. It also generates the Settings page.
-- Chat API keys are entered in **Settings → Chat** and stored in your keyring (or `$XDG_STATE_HOME/axiom/secrets.json`, mode 600, without one). A provider's environment variable (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GEMINI_API_KEY`) wins over a stored key. Conversations are saved in `$XDG_STATE_HOME/axiom/chats/`.
+- Chat API keys are entered in **Settings → Modules → Chat** and stored in your keyring (or `$XDG_STATE_HOME/axiom/secrets.json`, mode 600, without one). A provider's environment variable (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GEMINI_API_KEY`) wins over a stored key. Conversations are saved in `$XDG_STATE_HOME/axiom/chats/`.
 
 > [!IMPORTANT]
 > An invalid `config.json` never replaces the running config. The shell keeps the last good one and refuses to save until the file is fixed.
+
+### Saved configurations
+
+Your whole setup (bars, overlay pages, edge menus, docks, the lock and login screens, every setting) is one file, so it can be kept and swapped as a whole:
+
+- **Settings → Maintenance → Saved configurations** saves the current config under a name, and restores or deletes saved ones. Restoring replaces the current config.
+- The launcher does the same: `/config save <name>` and `/config restore <name>`.
+- Saved configs are plain copies of `config.json` in `config/user/saved/`. Copy one to another machine, or share it, and restore it there.
 
 ### Themes
 
