@@ -10,8 +10,8 @@ import qs.components.forms
 // Theme integrations (other apps in axiom's colors), marked by whether the
 // app is installed, and the switched-on ones' hookups (IntegrationHookup),
 // then the lock screen, self-updates, the launcher's
-// clipboard history and whether axiom runs hypridle (Idle.enabled: off by
-// default, recommended on)
+// clipboard history, whether axiom runs hypridle (Idle.enabled) and whether
+// it's the polkit agent (Polkit.enabled): both off by default, recommended on
 OnboardingPage {
   id: root
 
@@ -203,6 +203,50 @@ OnboardingPage {
 
     CodeLine {
       text: "lock_cmd = qs -c axiom ipc call lockscreen lock\nbefore_sleep_cmd = loginctl lock-session"
+    }
+  }
+
+  StyledText {
+    Layout.topMargin: Widget.spacing
+    text: I18n.tr("Authentication prompts")
+    font.bold: true
+  }
+
+  StyledText {
+    Layout.fillWidth: true
+    text: I18n.tr("When an app needs administrator rights (installing updates, mounting a drive, changing system settings), a polkit agent asks for your password. A session has only one.")
+    wrapMode: Text.WordWrap
+  }
+
+  RowLayout {
+    Layout.fillWidth: true
+    spacing: Widget.spacing
+
+    OptionCard {
+      // Equal halves, as tall as the taller one
+      Layout.preferredWidth: 1
+      Layout.fillHeight: true
+      icon: "admin_panel_settings"
+      title: I18n.tr("Use axiom's prompt")
+      description: I18n.tr("The screen dims and the prompt opens in the middle, in axiom's theme. Stops any other agent, such as hyprpolkitagent.")
+      selected: PolkitConfig.enabled
+      recommended: true
+      onClicked: SettingsManager.commitValues({
+        "Polkit.enabled": true
+      })
+    }
+
+    OptionCard {
+      // Equal halves, as tall as the taller one
+      Layout.preferredWidth: 1
+      Layout.fillHeight: true
+      icon: "tune"
+      title: I18n.tr("Use my own")
+      description: I18n.tr("Leaves the prompt to the agent you start yourself, such as hyprpolkitagent.")
+      selected: !PolkitConfig.enabled
+      onClicked: SettingsManager.commitValues({
+        "Polkit.enabled": false
+      })
     }
   }
 }

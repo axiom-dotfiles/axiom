@@ -424,14 +424,15 @@ return M
 
   // What the managed file runs once Hyprland has started: the cursor,
   // axiom, then the autostart commands. A plain `hypridle` is left out
-  // while axiom runs its own (Idle.enabled).
+  // while axiom runs its own (Idle.enabled), and a polkit agent while axiom
+  // is the agent (PolkitConfig.enabled).
   function _startLua(m) {
     const lines = [];
     if (m.cursorTheme)
       lines.push(`hl.exec_cmd(${_lua(`hyprctl setcursor ${_shellWord(m.cursorTheme)} ${m.cursorSize}`)})`);
     lines.push(`hl.exec_cmd(${_lua(startCommand)})`);
     for (const entry of m.autostart)
-      if (entry.enabled && entry.command.trim() !== "" && !(Idle.enabled && entry.command.trim() === "hypridle"))
+      if (entry.enabled && entry.command.trim() !== "" && !(Idle.enabled && entry.command.trim() === "hypridle") && !(PolkitConfig.enabled && PolkitAgents.isAgentCommand(entry.command)))
         lines.push(`hl.exec_cmd(${_lua(entry.command.trim())})`);
     return lines;
   }
@@ -749,7 +750,7 @@ if #errors > 0 then error(table.concat(errors, "\\n")) end
   }
 
   // Everything the layer is made of; a change re-applies it
-  readonly property string _inputs: [mode, HyprlandConfig._bindsJson, HyprlandConfig._monitorsJson, HyprlandConfig._managedJson, HyprlandConfig.requiredSettings, HyprlandConfig.theme, HyprlandConfig.blur, Theme.borderFocus, Theme.border, Theme.baseColorNames.map(name => Theme.resolveColor(name)).join(","), Appearance.borderRadius, Appearance.borderWidth, Appearance.animFast, Appearance.animations, Apps.terminalCommand, Apps.fileManagerCommand, Apps.browserCommand, Idle.enabled].join("|")
+  readonly property string _inputs: [mode, HyprlandConfig._bindsJson, HyprlandConfig._monitorsJson, HyprlandConfig._managedJson, HyprlandConfig.requiredSettings, HyprlandConfig.theme, HyprlandConfig.blur, Theme.borderFocus, Theme.border, Theme.baseColorNames.map(name => Theme.resolveColor(name)).join(","), Appearance.borderRadius, Appearance.borderWidth, Appearance.animFast, Appearance.animations, Apps.terminalCommand, Apps.fileManagerCommand, Apps.browserCommand, Idle.enabled, PolkitConfig.enabled].join("|")
   on_InputsChanged: _debounce.restart()
 
   property Timer _debounce: Timer {
