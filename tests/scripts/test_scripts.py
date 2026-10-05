@@ -965,5 +965,120 @@ class GenerateTheme(unittest.TestCase):
             shutil.rmtree(tmp)
 
 
+class GreeterInstall(unittest.TestCase):
+    """greeter_install.sh on a scratch root (AXIOM_GREETER_ROOT), as the
+    current user standing in for both the user and greetd's user."""
+    SESSION = "/usr/share/axiom-greeter/scripts/greeter/greeter-session.sh"
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+        self.env = scratch_env(self.tmp)
+        self.env.update({"GIT_AUTHOR_NAME": "t", "GIT_AUTHOR_EMAIL": "t@t", "GIT_COMMITTER_NAME": "t",
+                         "GIT_COMMITTER_EMAIL": "t@t"})
+        self.user = subprocess.run(["id", "-un"], capture_output=True, text=True, check=True).stdout.strip()
+        self.root = self.tmp / "root"
+        self.env["AXIOM_GREETER_ROOT"] = str(self.root)
+        self.config = self.root / "etc/greetd/config.toml"
+        self.config.parent.mkdir(parents=True)
+        self.original = ('[terminal]\nvt = 1\n\n[default_session]\n# the greeter\n'
+                         f'command = "agreety --cmd /bin/sh"\nuser = "{self.user}"\n')
+        self.config.write_text(self.original)
+        greetd = self.root / "usr/bin/greetd"
+        greetd.parent.mkdir(parents=True)
+        greetd.write_text("#!/bin/sh\n")
+        greetd.chmod(0o755)
+        link = self.root / "etc/systemd/system/display-manager.service"
+        link.parent.mkdir(parents=True)
+        link.symlink_to("/usr/lib/systemd/system/sddm.service")
+        self.repo = self.tmp / "repo"
+        for name in ["greeter.qml", "shell.qml", "scripts/greeter/greeter-session.sh", "tests/tst_x.qml",
+                     "docs/notes.md"]:
+            (self.repo / name).parent.mkdir(parents=True, exist_ok=True)
+            (self.repo / name).write_text(name)
+        subprocess.run(["git", "init", "-q", str(self.repo)], env=self.env, check=True)
+        subprocess.run(["git", "add", "."], cwd=self.repo, env=self.env, check=True)
+        subprocess.run(["git", "commit", "-q", "-m", "x"], cwd=self.repo, env=self.env, check=True)
+
+    def tearDown(self):
+        shutil.rmtree(self.tmp)
+
+    def run_script(self, action, ok=True):
+        args = [str(SCRIPTS / "greeter" / "greeter_install.sh"), action, str(self.repo)]
+        if action in ("install", "update", "uninstall"):
+            args.append(self.user)
+        result = subprocess.run(args, env=self.env, capture_output=True, text=True, timeout=60)
+        self.assertEqual(result.returncode == 0, ok, result.stdout + result.stderr)
+        return json.loads(result.stdout) if action != "hash" else result.stdout.strip()
+
+    def command(self):
+        return tomllib.loads(self.config.read_text())["default_session"]["command"]
+
+    def test_check_before_install(self):
+        report = self.run_script("check")
+        self.assertEqual((report["greetd"], report["displayManager"], report["installed"], report["configured"]),
+                         (True, "sddm", False, False))
+        self.assertEqual(report["greeterUser"], self.user)
+        self.assertEqual(report["currentHash"], self.run_script("hash"))
+
+    def test_install_copies_points_greetd_and_backs_up(self):
+        bundle = self.root / "var/lib/axiom-greeter/config"
+        bundle.mkdir(parents=True)
+        (bundle / "greeter.json").write_text("{}")
+        report = self.run_script("install")
+        self.assertTrue(report["ok"], report)
+        copy = self.root / "usr/share/axiom-greeter"
+        self.assertTrue((copy / "greeter.qml").is_file())
+        self.assertFalse((copy / "tests").exists())
+        self.assertFalse((copy / "docs").exists())
+        self.assertEqual((copy / "fallback/greeter.json").read_text(), "{}")
+        self.assertEqual(self.command(), self.SESSION)
+        parsed = tomllib.loads(self.config.read_text())
+        self.assertEqual(parsed["default_session"]["user"], self.user)
+        self.assertEqual(parsed["terminal"]["vt"], 1)
+        self.assertEqual((self.config.parent / "config.toml.axiom-original").read_text(), self.original)
+        self.assertEqual(Path(report["backup"]).read_text(), self.original)
+        self.assertTrue((self.root / "var/lib/axiom-greeter/state").is_dir())
+        report = self.run_script("check")
+        self.assertEqual((report["installed"], report["configured"], report["bundleWritable"]), (True, True, True))
+        self.assertEqual(report["installedHash"], report["currentHash"])
+
+    def test_update_again_changes_nothing_in_greetd(self):
+        self.run_script("install")
+        report = self.run_script("update")
+        self.assertTrue(report["ok"], report)
+        self.assertEqual(report["backup"], "")
+        self.assertEqual(len(list(self.config.parent.glob("config.toml.axiom-bak-*"))), 1)
+
+    def test_a_change_shows_as_a_new_hash(self):
+        self.run_script("install")
+        (self.repo / "greeter.qml").write_text("changed")
+        report = self.run_script("check")
+        self.assertNotEqual(report["installedHash"], report["currentHash"])
+        self.run_script("update")
+        report = self.run_script("check")
+        self.assertEqual(report["installedHash"], report["currentHash"])
+        self.assertEqual((self.root / "usr/share/axiom-greeter/greeter.qml").read_text(), "changed")
+
+    def test_section_without_a_command_gets_one(self):
+        self.config.write_text(f'[default_session]\nuser = "{self.user}"\n\n[terminal]\nvt = 1\n')
+        self.assertTrue(self.run_script("install")["ok"])
+        parsed = tomllib.loads(self.config.read_text())
+        self.assertEqual(parsed["default_session"], {"command": self.SESSION, "user": self.user})
+        self.assertEqual(parsed["terminal"]["vt"], 1)
+
+    def test_uninstall_restores_the_original(self):
+        self.run_script("install")
+        report = self.run_script("uninstall")
+        self.assertTrue(report["ok"], report)
+        self.assertEqual(self.config.read_text(), self.original)
+        self.assertFalse((self.root / "usr/share/axiom-greeter").exists())
+        self.assertFalse((self.root / "var/lib/axiom-greeter").exists())
+
+    def test_refusals(self):
+        self.config.unlink()
+        self.assertIn("greetd isn't installed", self.run_script("install", ok=False)["error"])
+        self.assertIn("usage", self.run_script("bogus", ok=False)["error"])
+
+
 if __name__ == "__main__":
     unittest.main()

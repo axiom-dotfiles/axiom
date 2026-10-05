@@ -115,12 +115,12 @@ ReservedAreaWindow {
     id: grab
     // Only while open: a grab held through the close animation would be
     // cleared by any click then, for nothing
-    active: root.isOpen && group.ownsGrab
+    active: root.isOpen && group.ownsGrab && !root.steppedAside
     // This screen's bars and their popouts stay usable while it's open
     // (every screen's, and the other instances, when it's on all of them)
-    windows: group.windows.concat(ShellManager.grabPartnersFor(group.everywhere ? null : root.screen), ShellManager.captureWindows)
+    windows: group.windows.concat(ShellManager.grabPartnersFor(group.everywhere ? null : root.screen), ShellManager.modalWindows)
     onCleared: {
-      if (root.isOpen && OverlayConfig.closeOnOutsideClick) {
+      if (root.isOpen && !root.steppedAside && OverlayConfig.closeOnOutsideClick) {
         root._outsideCloseTime = Date.now();
         root.close();
       }
@@ -130,6 +130,7 @@ ReservedAreaWindow {
   Item {
     id: slideContainer
     anchors.fill: parent
+    opacity: root.steppedAside ? 0 : 1
     // Keys nothing inside the overlay handled end up here
     focus: true
     Keys.onEscapePressed: event => {

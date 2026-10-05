@@ -12,7 +12,11 @@ import qs.config
  * with defaults for what it leaves out), the theme lists, theme generation
  * from a wallpaper, the wallpaper itself, and re-theming integrated tools.
  * The choice of theme is config (Appearance.theme), persisted through
- * ConfigManager.setTheme. */
+ * ConfigManager.setTheme.
+ *
+ * In the greeter (Paths.greeter) it only reads: the active theme is the
+ * bundle's theme.json (what the user's theme was when it was exported),
+ * and nothing is generated, linked or run. */
 QtObject {
   id: root
 
@@ -20,7 +24,7 @@ QtObject {
   // Public Models & State
   //=========================================================================
   readonly property FolderListModel wallpaperModel: FolderListModel {
-    folder: "file://" + Appearance.wallpaperPath
+    folder: Paths.greeter ? "" : "file://" + Appearance.wallpaperPath
     nameFilters: ["*.jpg", "*.jpeg", "*.png", "*.bmp"]
     showDirs: false
   }
@@ -109,6 +113,8 @@ QtObject {
   // awww needs telling; the built-in backend (shell/Wallpaper) follows the
   // config. Either way the primary's is linked to ~/.current_wallpaper.
   function _showWallpaper(url, monitor, primary) {
+    if (Paths.greeter)
+      return;
     const path = url.replace("file://", "");
     if (Appearance.wallpaperBackend === "awww")
       Quickshell.execDetached([Paths.scriptsPath + "setWallpaper.sh", path, monitor, primary ? "1" : "0"]);
@@ -122,7 +128,7 @@ QtObject {
   // (a snapshot restored over a newer generation), generate it again: the
   // file watch then reloads the colors and runs the integrations.
   function syncGeneratedTheme() {
-    if (!Appearance.theme.startsWith("generated/") || !Appearance.wallpaper)
+    if (Paths.greeter || !Appearance.theme.startsWith("generated/") || !Appearance.wallpaper)
       return;
     // Already on its way
     if (isGenerating && (generationProcess.wallpaper === Appearance.wallpaper || root._pendingGeneration === Appearance.wallpaper))
@@ -172,6 +178,8 @@ QtObject {
   // ThemeIntegrations switch) for a theme; `keys` limits it to those (none:
   // all of them)
   function themeIntegrations(themeName = Appearance.theme, keys = []) {
+    if (Paths.greeter)
+      return;
     const themePath = Paths.themePath + themeName + ".json";
     const all = keys.length === 0;
     if (all && LockscreenConfig.mode === "hyprlock")
@@ -213,6 +221,8 @@ QtObject {
   // colors plus the font, wallpaper and a translated greeting. `then` runs
   // once it's written (LockManager locks with it).
   function generateHyprlockConfig(then) {
+    if (Paths.greeter)
+      return;
     if (then)
       root._hyprlockThen.push(then);
     if (root._hyprlockProcess.running) {
@@ -235,6 +245,8 @@ QtObject {
     // _reloadTheme owns it from here
     const initial = root._theme;
     root._theme = initial;
+    if (Paths.greeter)
+      return;
     _reloadAllThemes();
     if (!root._themeContent)
       syncGeneratedTheme();
@@ -261,6 +273,8 @@ QtObject {
   }
 
   function _themeUrl(name) {
+    if (Paths.greeter)
+      return "file://" + Paths.greeterBundlePath + "theme.json";
     return "file://" + Paths.themePath + name + ".json";
   }
 
@@ -326,6 +340,8 @@ QtObject {
     _loadedName = name;
     _themeContent = content;
     _theme = _parseTheme(content, name);
+    if (Paths.greeter)
+      return;
     // A generated theme that isn't there yet (a migrated name, a cleared
     // folder) is made, and themes the tools once it's read
     if (!content) {

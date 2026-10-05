@@ -57,7 +57,7 @@ PopupWindow {
   }
 
   HyprlandFocusGrab {
-    windows: [root, root.grabWindow].concat(ShellManager.captureWindows)
+    windows: [root, root.grabWindow].concat(ShellManager.modalWindows)
     active: root.visible && root.full
     onCleared: root.close()
   }

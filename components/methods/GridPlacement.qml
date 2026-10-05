@@ -248,6 +248,17 @@ QtObject {
     return null;
   }
 
+  // A screen layout's grid (a ScreenLayout: the lock screen's, the
+  // greeter's) in the units its places use: columns × rows, each split in
+  // two with `fineGrid`. { cols, rows }
+  function screenGrid(layout) {
+    const scale = layout?.fineGrid ? 2 : 1;
+    return {
+      "cols": (layout?.columns ?? 0) * scale,
+      "rows": (layout?.rows ?? 0) * scale
+    };
+  }
+
   // The card size at which a `cols` × `rows` grid fits `width` × `height`
   // px with `margin` px all round (a lock screen's grid on its screen):
   // the axis with less room decides, and stretching (trackSizes) fills

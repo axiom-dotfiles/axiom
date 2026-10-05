@@ -11,9 +11,16 @@ import qs.components.forms
 // app is installed, and the switched-on ones' hookups (IntegrationHookup),
 // then the lock screen, self-updates, the launcher's
 // clipboard history, whether axiom runs hypridle (Idle.enabled) and whether
-// it's the polkit agent (Polkit.enabled): both off by default, recommended on
+// it's the polkit agent (Polkit.enabled): both off by default, recommended on.
+// Last, the login screen (GreeterManager): off by default, and set up only
+// from its Install button (a password prompt), never by picking its card
 OnboardingPage {
   id: root
+
+  // axiom is the login screen (or behind axiom: still set up)
+  readonly property bool greeterSet: GreeterManager.status === "installed" || GreeterManager.status === "outdated"
+  // Its card picked, before Install
+  property bool greeterChosen: false
 
   title: I18n.tr("Integrations")
   intro: I18n.tr("axiom can color other apps to match its theme. Each one writes only its own axiom file; once it's on, below shows the line that loads it from the app's config, to copy or to apply for you. A tick marks the apps you have installed.")
@@ -26,7 +33,10 @@ OnboardingPage {
     return commands.length === 0 || commands.some(command => DependencyManager.found[command] === true);
   }
 
-  Component.onCompleted: DependencyManager.check([].concat(...ThemeManager.integrations.map(key => ThemeManager.integrationCommands(key))).concat(["hypridle"]))
+  Component.onCompleted: {
+    DependencyManager.check([].concat(...ThemeManager.integrations.map(key => ThemeManager.integrationCommands(key))).concat(["hypridle"]));
+    GreeterManager.check();
+  }
 
   StyledTextButton {
     text: I18n.tr("Turn on for installed apps")
@@ -248,5 +258,49 @@ OnboardingPage {
         "Polkit.enabled": false
       })
     }
+  }
+
+  StyledText {
+    Layout.topMargin: Widget.spacing
+    text: I18n.tr("Login screen")
+    font.bold: true
+  }
+
+  StyledText {
+    Layout.fillWidth: true
+    text: I18n.tr("Axiom can be the screen you log in on (through greetd), laid out on the Layouts page like the lock screen.")
+    wrapMode: Text.WordWrap
+  }
+
+  RowLayout {
+    Layout.fillWidth: true
+    spacing: Widget.spacing
+
+    OptionCard {
+      // Equal halves, as tall as the taller one
+      Layout.preferredWidth: 1
+      Layout.fillHeight: true
+      icon: "login"
+      title: I18n.tr("Use axiom's login screen")
+      description: I18n.tr("Your theme, wallpapers and monitor layout from the first screen on. Installing it asks for your password once.")
+      selected: root.greeterSet || root.greeterChosen
+      onClicked: root.greeterChosen = true
+    }
+
+    OptionCard {
+      // Equal halves, as tall as the taller one
+      Layout.preferredWidth: 1
+      Layout.fillHeight: true
+      icon: "tune"
+      title: I18n.tr("Keep my own")
+      description: I18n.tr("Leaves the login screen to your display manager (SDDM, GDM, greetd's own greeters).")
+      selected: !root.greeterSet && !root.greeterChosen
+      onClicked: root.greeterChosen = false
+    }
+  }
+
+  GreeterSetup {
+    visible: root.greeterSet || root.greeterChosen
+    Layout.fillWidth: true
   }
 }

@@ -242,6 +242,28 @@ end`);
     return lines;
   }
 
+  // The greeter's Hyprland, from its bundle (GreeterBundle): the monitor
+  // layouts (monitorsLua, in every mode), and in managed mode one
+  // hl.config of the options marked x-greeter (`managedSchema`:
+  // Hyprland.managed's schema; any other option in `managed` is left out).
+  // resolveHex as for configTable.
+  function greeterLua(profiles, managedSchema, managed, resolveHex) {
+    const lines = monitorsLua(profiles);
+    if (!managed)
+      return lines;
+    const props = managedSchema?.properties ?? {};
+    const greeterSchema = {
+      "properties": {}
+    };
+    for (const key in props)
+      if (props[key]["x-greeter"] === true)
+        greeterSchema.properties[key] = props[key];
+    const table = configTable(greeterSchema, managed, resolveHex, {});
+    if (Object.keys(table).length > 0)
+      lines.push(`hl.config(${serialize(table)})`);
+    return lines;
+  }
+
   // A chunk resetting Hyprland to its main binds if it's in submap `name`
   function leaveSubmap(name) {
     return `if hl.get_current_submap() == ${string(name)} then hl.dispatch(hl.dsp.submap("reset")) end`;

@@ -12,7 +12,7 @@ ShellRoot {
   id: shellRoot
 
   // Services with no UI of their own, which nothing else would create
-  readonly property var _services: [DependencyManager, HyprlandConfigManager, HypridleManager, SelfUpdateManager, ChatManager, AudioManager, MediaManager, EdgeMenuManager, BrightnessManager, NotesManager, MonitorManager, OnboardingManager, ClipboardManager, NightLightManager, WallpaperManager, DockManager, SystemManager, BatteryManager, PolkitManager]
+  readonly property var _services: [DependencyManager, HyprlandConfigManager, HypridleManager, SelfUpdateManager, ChatManager, AudioManager, MediaManager, EdgeMenuManager, BrightnessManager, NotesManager, MonitorManager, OnboardingManager, ClipboardManager, NightLightManager, WallpaperManager, DockManager, SystemManager, BatteryManager, PolkitManager, GreeterManager]
 
   Lockscreen {
     id: lockscreen
@@ -84,5 +84,9 @@ ShellRoot {
 
   PolkitPrompt {
     id: polkitPrompt
+  }
+
+  GreeterPreview {
+    id: greeterPreview
   }
 }

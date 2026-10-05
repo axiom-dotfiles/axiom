@@ -1,6 +1,7 @@
 pragma Singleton
 import QtQuick
 
+import Quickshell
 import Quickshell.Io
 
 import qs.components.methods
@@ -20,6 +21,17 @@ QtObject {
   // defaults at startup) and refuses to save, so the file can't be
   // overwritten before it is fixed. Restoring a saved config clears it.
   readonly property bool savesBlocked: _savesBlocked
+
+  // The greeter (greetd's login screen, greeter.qml) runs read-only on the
+  // bundle the user's axiom exports for it (GreeterBundle), never on
+  // config.json, and writes nothing. Read from the environment here (as
+  // Paths.greeter) since ConfigManager reads no reader.
+  readonly property bool greeter: Quickshell.env("AXIOM_GREETER") === "1"
+  // Where the greeter's config came from: "bundle", "fallback" (the
+  // snapshot taken when the greeter was installed, which its own code
+  // wrote) or "defaults"; "" outside the greeter
+  readonly property string greeterSource: _greeterSource
+  property string _greeterSource: ""
 
   // Unsaved edits an editor shows live, by top-level section ({ Bars: [...] }).
   // Readers of that section prefer them to `config`; they're never merged
@@ -107,6 +119,8 @@ QtObject {
      * @return true if it was written.
      */
   function saveConfig() {
+    if (root.greeter)
+      return false;
     if (_savesBlocked) {
       console.warn("[ConfigManager] config.json is unusable; not saving until it is fixed (or a saved config is restored).");
       return false;
@@ -132,6 +146,8 @@ QtObject {
    * @return true if it was valid and written; on false nothing changed.
    */
   function commit(object) {
+    if (root.greeter)
+      return false;
     if (_savesBlocked) {
       console.warn("[ConfigManager] config.json is unusable; not saving until it is fixed (or a saved config is restored).");
       return false;
@@ -160,6 +176,8 @@ QtObject {
    * @return true if the config was valid and saved.
    */
   function restoreConfig(object) {
+    if (root.greeter)
+      return false;
     const prepared = _prepareConfig(object);
     if (!prepared) {
       console.error("[ConfigManager] Restored config is invalid, keeping the current one.");
@@ -191,7 +209,8 @@ QtObject {
   // --- Private Implementation ---
   Component.onCompleted: {
     console.log("[ConfigManager] ♻ ConfigManager service started.");
-    _checkConfigFile();
+    if (!root.greeter)
+      _checkConfigFile();
   }
 
   // Loaded eagerly (synchronous reads) so the config readers never see a
@@ -220,7 +239,7 @@ QtObject {
   // Change notification for config.json. The slow poll is only a safety
   // net in case the watch is lost (e.g. to an editor's atomic rename).
   property FileView _configWatch: FileView {
-    path: Qt.resolvedUrl(root._configPath)
+    path: root.greeter ? "" : Qt.resolvedUrl(root._configPath)
     watchChanges: true
     printErrors: false
     onFileChanged: {
@@ -233,7 +252,7 @@ QtObject {
 
   property Timer _pollTimer: Timer {
     interval: 5000
-    running: true
+    running: !root.greeter
     repeat: true
     onTriggered: root._checkConfigFile()
   }
@@ -319,6 +338,8 @@ QtObject {
   // gives schema defaults; the first _checkConfigFile() then decides
   // whether that means first run (write defaults) or blocking saves.
   function _initialConfig(schema) {
+    if (root.greeter)
+      return _greeterConfig(schema);
     console.log("[ConfigManager] Loading configuration from", configDir + configFile);
     const result = _readConfig(schema);
     if (result.status !== "ok")
@@ -340,7 +361,7 @@ QtObject {
       console.log("[ConfigManager] Migrated config to version", ConfigMigration.currentVersion + ":");
       migration.changes.forEach(change => console.log("  - " + change));
     }
-    if (Object.keys(migration.secrets).length > 0)
+    if (Object.keys(migration.secrets).length > 0 && !root.greeter)
       SecretsManager.store(migration.secrets);
 
     const config = migration.config;
@@ -358,7 +379,43 @@ QtObject {
 
   // Writes a config object to disk as-is (no reload); used after migration
   function _write(config) {
+    if (root.greeter)
+      return;
     _configFileView.setText(JSON.stringify(config, null, 2));
+  }
+
+  // The greeter's config: the bundle (unless AXIOM_GREETER_SAFE, the
+  // session script's second try after the greeter failed), else the
+  // snapshot its install took (fallback/ in the installed copy, written
+  // by this same code, so it always loads), else the schema's defaults.
+  // A bundle from a newer axiom than this copy is still tried: unknown
+  // keys are dropped, and only what breaks validation falls through.
+  function _greeterConfig(schema) {
+    const bundleDir = (Quickshell.env("AXIOM_GREETER_DIR") || "/var/lib/axiom-greeter") + "/config/";
+    const candidates = [];
+    if (Quickshell.env("AXIOM_GREETER_SAFE") !== "1")
+      candidates.push({
+        "source": "bundle",
+        "text": FileManager.read("file://" + bundleDir + "greeter.json")
+      });
+    candidates.push({
+      "source": "fallback",
+      "text": _getFileContent("../fallback/greeter.json")
+    });
+    const picked = GreeterBundle.pick(candidates, raw => {
+      const prepared = _prepareConfig(raw, schema);
+      return prepared ? {
+        "config": prepared.config,
+        "errors": []
+      } : {
+        "config": null,
+        "errors": ["does not validate against the schema"]
+      };
+    }, () => SchemaValidation.applyDefaults({}, schema));
+    picked.problems.forEach(problem => console.warn("[ConfigManager] Greeter config from the " + problem.source + " not used:", problem.error));
+    console.log("[ConfigManager] Greeter config from the", picked.source);
+    root._greeterSource = picked.source;
+    return picked.config;
   }
 
   function _loadObjectToConfig(object) {

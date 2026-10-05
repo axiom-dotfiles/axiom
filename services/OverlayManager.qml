@@ -28,10 +28,16 @@ QtObject {
   readonly property alias isDirty: draft.isDirty
   property int selectedViewIndex: 0
   // What the layouts editor shows: "page" (selectedViewIndex), "menu"
-  // (EdgeMenuManager.selectedMenuIndex) or "lockscreen" (LockManager's
-  // draft)
-  readonly property string editTarget: root._editTarget
+  // (EdgeMenuManager.selectedMenuIndex), "lockscreen" (LockManager's
+  // draft) or "greeter" (GreeterManager's). The lock screen only while the
+  // built-in locker is in use, the login screen only while it's set up
+  // (their rows hide otherwise): back on the pages when they stop being
+  readonly property string editTarget: (root._editTarget === "lockscreen" && !root.lockscreenEditable) || (root._editTarget === "greeter" && !root.greeterEditable) ? "page" : root._editTarget
   property string _editTarget: "page"
+  // The lock screen's layout shows only with the built-in locker
+  readonly property bool lockscreenEditable: LockscreenConfig.mode === "quickshell"
+  // The login screen's, only once it's set up
+  readonly property bool greeterEditable: GreeterConfig.enabled
 
   property GridEditor layout: GridEditor {
     host: "overlay"
@@ -88,7 +94,12 @@ QtObject {
 
   function editLockscreen() {
     root._editTarget = "lockscreen";
-    LockManager.ensureLoaded();
+    LockManager.editor.ensureLoaded();
+  }
+
+  function editGreeter() {
+    root._editTarget = "greeter";
+    GreeterManager.editor.ensureLoaded();
   }
 
   // The pages, or the menus, keeping what was selected in each

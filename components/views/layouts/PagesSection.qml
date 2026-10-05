@@ -136,8 +136,10 @@ ColumnLayout {
     }
   }
 
-  // Set apart from the tools: it isn't a page
+  // Set apart from the tools: the screens below aren't pages. Only when
+  // one of them shows
   StyledSeparator {
+    visible: OverlayManager.lockscreenEditable || OverlayManager.greeterEditable
     Layout.fillWidth: true
     Layout.topMargin: Widget.spacing / 2
     separatorHeight: 1
@@ -146,13 +148,27 @@ ColumnLayout {
 
   // Not dragged: it isn't one of the navigator's pages
   ListEntryRow {
+    visible: OverlayManager.lockscreenEditable
     Layout.fillWidth: true
     Layout.preferredHeight: Widget.height + Widget.padding
     Layout.topMargin: Widget.spacing / 2
     icon: "lock"
     label: I18n.tr("Lock screen")
     selected: OverlayManager.editTarget === "lockscreen"
-    changed: LockManager.isDirty
+    changed: LockManager.editor.isDirty
     onClicked: OverlayManager.editLockscreen()
+  }
+
+  // Once it's set up (Settings → Login screen)
+  ListEntryRow {
+    visible: OverlayManager.greeterEditable
+    Layout.fillWidth: true
+    Layout.preferredHeight: Widget.height + Widget.padding
+    Layout.topMargin: OverlayManager.lockscreenEditable ? 0 : Widget.spacing / 2
+    icon: "login"
+    label: I18n.tr("Login screen")
+    selected: OverlayManager.editTarget === "greeter"
+    changed: GreeterManager.editor.isDirty
+    onClicked: OverlayManager.editGreeter()
   }
 }

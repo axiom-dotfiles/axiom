@@ -13,8 +13,15 @@ import qs.services
 // margin lines it up with their inner stroke (as EdgePopout). A bare screen
 // edge (no border, no bar) has no stroke to land on: it meets the edge. The
 // window is transparent: a ScreenBackdrop dims the monitor under it.
+//
+// While ShellManager.steppedAside (another polkit agent's prompt, which
+// opens under the Overlay layer) it stays mapped, so nothing in it is
+// rebuilt, but takes no input or keys; its content hides (`content`).
 PanelWindow {
   id: root
+
+  // Stepped aside: subclasses hide their content on it
+  readonly property bool steppedAside: ShellManager.steppedAside
 
   anchors {
     left: true
@@ -45,9 +52,14 @@ PanelWindow {
   }
 
   color: "transparent"
-  focusable: true
-  WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
+  focusable: !root.steppedAside
+  mask: root.steppedAside ? stepAsideMask : null
+  WlrLayershell.keyboardFocus: root.steppedAside ? WlrKeyboardFocus.None : WlrKeyboardFocus.OnDemand
   WlrLayershell.layer: WlrLayer.Overlay
   exclusionMode: ExclusionMode.Normal
   exclusiveZone: 0
+
+  Region {
+    id: stepAsideMask
+  }
 }

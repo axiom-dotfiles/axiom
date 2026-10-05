@@ -65,10 +65,10 @@ Scope {
   }
 
   LazyLoader {
-    active: LockManager.previewing && !lockState.locked
+    active: LockManager.editor.previewing && !lockState.locked
 
     LockPreviewWindow {
-      screen: Quickshell.screens.find(screen => screen.name === LockManager.previewScreen) ?? Quickshell.screens[0]
+      screen: Quickshell.screens.find(screen => screen.name === LockManager.editor.previewScreen) ?? Quickshell.screens[0]
     }
   }
 }

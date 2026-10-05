@@ -46,6 +46,11 @@ PanelWindow {
     Qt.callLater(root.takeFocus);
   }
 
+  // Every focus grab lets input through to it while it shows, so a prompt
+  // over the overlay (the greeter's install, from Settings) closes nothing
+  onVisibleChanged: visible ? ShellManager.registerModal(root) : ShellManager.unregisterModal(root)
+  Component.onDestruction: ShellManager.unregisterModal(root)
+
   Timer {
     id: settle
     interval: 400

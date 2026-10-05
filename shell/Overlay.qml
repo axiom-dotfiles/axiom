@@ -17,7 +17,7 @@ Scope {
 
       ScreenBackdrop {
         screen: overlay.modelData
-        shown: panel.isOpen
+        shown: panel.isOpen && !panel.steppedAside
         slide: true
       }
 

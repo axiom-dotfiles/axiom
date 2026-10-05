@@ -50,11 +50,12 @@ QtObject {
   // Why these modules can't be saved as is, each prefixed with `name`
   function problemsFor(modules, name) {
     const out = [];
-    // I18n.tr("an overlay page") I18n.tr("an edge menu") I18n.tr("the lock screen")
+    // I18n.tr("an overlay page") I18n.tr("an edge menu") I18n.tr("the lock screen") I18n.tr("the login screen")
     const hostName = I18n.tr(({
         "overlay": "an overlay page",
         "edgeMenu": "an edge menu",
-        "lockscreen": "the lock screen"
+        "lockscreen": "the lock screen",
+        "greeter": "the login screen"
       })[root.host] ?? root.host);
     (modules ?? []).forEach((module, i) => {
       const type = module?.type;

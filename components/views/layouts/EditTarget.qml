@@ -2,7 +2,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 
 // What the layouts editor edits (OverlayManager.editTarget), as its canvas
-// and inspector show it: PageTarget, MenuTarget, LockscreenTarget. See
+// and inspector show it: PageTarget, MenuTarget, LockscreenTarget, GreeterTarget. See
 // GridCanvas for what each field draws.
 QtObject {
   // The grid being edited

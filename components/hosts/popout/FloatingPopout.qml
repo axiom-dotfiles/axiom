@@ -94,7 +94,7 @@ PopoutWrapperBase {
 
     HyprlandFocusGrab {
       id: focusGrab
-      windows: [surfaceWindow].concat(root.grabWindows, ShellManager.captureWindows)
+      windows: [surfaceWindow].concat(root.grabWindows, ShellManager.modalWindows)
       active: root.isOpen && root.grabEnabled && (root.wantsKeyboardFocus || root.closeOnClickOutside)
 
       onActiveChanged: {

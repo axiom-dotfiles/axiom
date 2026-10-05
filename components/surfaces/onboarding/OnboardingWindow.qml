@@ -32,6 +32,7 @@ ReservedAreaWindow {
   Item {
     id: content
     anchors.fill: parent
+    opacity: root.steppedAside ? 0 : 1
     focus: true
     Keys.onEscapePressed: root.confirmingQuit = !root.confirmingQuit
 

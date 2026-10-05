@@ -34,13 +34,13 @@ Card {
     const key = root.onLockscreen ? (root.host.key ?? "") : "";
     if (key === root._reportedKey)
       return;
-    LockManager.reportPasswordField(root._reportedKey, false);
-    LockManager.reportPasswordField(key, true);
+    ShellManager.reportRequiredField(root._reportedKey, false);
+    ShellManager.reportRequiredField(key, true);
     root._reportedKey = key;
   }
   Component.onCompleted: root._report()
   onHostChanged: root._report()
-  Component.onDestruction: LockManager.reportPasswordField(root._reportedKey, false)
+  Component.onDestruction: ShellManager.reportRequiredField(root._reportedKey, false)
 
   // Boxed, it's drawn like LockSurface's fallback field: a box as tall as
   // the field plus padding, across the slot

@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Axiom Configuration Schema",
-  "description": "Source of truth for config/user/config.json. Every key's `default` is filled in at load time (SchemaValidation.applyDefaults), so config readers never need their own fallbacks. `title`/`description`/`minimum`/`maximum`/`enum` drive the generated settings UI; `x-settings: false` hides a key from it (edited elsewhere, or UI-owned state); `x-options` names a dynamic option list (\"screens\", \"chatProviders\" and \"chatPresets\", \"colors\" for the 16 base theme colors, \"languages\" from config/i18n, \"cursorThemes\" for installed cursor themes, \"edgeMenus\" for the ids of EdgeMenus); `x-showIf` ({ sibling: value | [values] | { not: value } }) hides a field unless a sibling matches; a key starting with `/` is a dotted path from the config root instead (\"/Workspaces.layout\"). `x-enumLabels` ({ value: label }) shows labels instead of raw enum values in dropdowns. `x-multiline: true` edits a string in a growing text area. `x-categories` at the root lists the settings sidebar's categories in order, each `{ name, icon, page }` (`page`: a hand-built part after its cards, `views/settings/<page>.qml`); sections join one with `x-category`. `x-beside: true` on a field puts it beside the field before it on its settings card, each taking half the width. `x-order` on an object schema lists the keys its form shows first, in order (a schema reaches QML as a map, whose keys come out sorted). `x-defaultSize` ([w, h] in grid units, four to a card) on an overlay module definition is the size it's added at; `x-icon` on a module or view definition is its Material Symbols icon name in the editor. `x-hosts` on a module definition lists where it may be placed (\"overlay\", \"edgeMenu\", \"lockscreen\"; the first two when left out, so the lock screen only takes modules that list it). `x-required: true` on one makes it part of every grid on its hosts: it can't be removed or duplicated, and the library doesn't offer it. `x-canvasDetail` names a module property the layouts editor shows on its tile (a list joined), and `x-canvasFill` a color property the tile is filled with. Bar widgets are a oneOf discriminated by `type`, and get their `properties` defaults filled like everything else.",
+  "description": "Source of truth for config/user/config.json. Every key's `default` is filled in at load time (SchemaValidation.applyDefaults), so config readers never need their own fallbacks. `title`/`description`/`minimum`/`maximum`/`enum` drive the generated settings UI; `x-settings: false` hides a key from it (edited elsewhere, or UI-owned state); `x-options` names a dynamic option list (\"screens\", \"chatProviders\" and \"chatPresets\", \"colors\" for the 16 base theme colors, \"languages\" from config/i18n, \"cursorThemes\" for installed cursor themes, \"edgeMenus\" for the ids of EdgeMenus); `x-showIf` ({ sibling: value | [values] | { not: value } }) hides a field unless a sibling matches; a key starting with `/` is a dotted path from the config root instead (\"/Workspaces.layout\"). `x-enumLabels` ({ value: label }) shows labels instead of raw enum values in dropdowns. `x-multiline: true` edits a string in a growing text area. `x-categories` at the root lists the settings sidebar's categories in order, each `{ name, icon, page }` (`page`: a hand-built part after its cards, `views/settings/<page>.qml`); sections join one with `x-category`. `x-beside: true` on a field puts it beside the field before it on its settings card, each taking half the width. `x-order` on an object schema lists the keys its form shows first, in order (a schema reaches QML as a map, whose keys come out sorted). `x-defaultSize` ([w, h] in grid units, four to a card) on an overlay module definition is the size it's added at; `x-icon` on a module or view definition is its Material Symbols icon name in the editor. `x-hosts` on a module definition lists where it may be placed (\"overlay\", \"edgeMenu\", \"lockscreen\", \"greeter\"; the first two when left out, so the lock screen and the greeter only take modules that list them). `x-greeter: true` on a Hyprland.managed option carries it to the greeter (its Hyprland takes the option in managed mode). A `$ref` may carry keys beside it (`default`, `title`, …), which override the definition's. `x-required: true` on one makes it part of every grid on its hosts: it can't be removed or duplicated, and the library doesn't offer it. `x-canvasDetail` names a module property the layouts editor shows on its tile (a list joined), and `x-canvasFill` a color property the tile is filled with. Bar widgets are a oneOf discriminated by `type`, and get their `properties` defaults filled like everything else.",
   "type": "object",
   "x-categories": [
     { "name": "General", "icon": "home" },
@@ -57,55 +57,53 @@
           "x-showIf": { "mode": { "not": "none" } }
         },
         "layout": {
-          "type": "object",
+          "$ref": "#/definitions/ScreenLayout",
           "x-settings": false,
           "title": "Built-in lock screen",
           "description": "What the built-in locker shows, edited on the Layouts page: its modules on a grid of columns × rows units, fitted to each monitor.",
-          "additionalProperties": false,
-          "x-order": ["columns", "rows", "fineGrid", "otherScreens", "background", "backgroundColor", "dim", "moduleBorders", "passwordBorder", "greetingBorder"],
-          "properties": {
-            "columns": { "x-group": "Grid", "type": "integer", "title": "Columns", "default": 16, "minimum": 4, "maximum": 32, "description": "Grid units across. The grid is stretched to fill each monitor, so match your screen's shape (16 × 9 for 16:9)." },
-            "rows": { "x-group": "Grid", "type": "integer", "title": "Rows", "default": 9, "minimum": 2, "maximum": 32, "description": "Grid units down." },
-            "fineGrid": { "x-group": "Grid", "type": "boolean", "title": "Double grid", "default": false, "description": "Split each grid unit in two each way, for finer placement. Modules keep their size and spot." },
-            "otherScreens": {
-              "x-group": "Grid",
-              "type": "string",
-              "title": "Other monitors",
-              "enum": ["layout", "background"],
-              "x-enumLabels": { "layout": "The same modules, without the password", "background": "The background only" },
-              "default": "layout",
-              "description": "What monitors other than the one with the password field show."
-            },
-            "background": {
-              "x-group": "Background",
-              "type": "string",
-              "title": "Background",
-              "enum": ["wallpaper", "color"],
-              "x-enumLabels": { "wallpaper": "Wallpaper", "color": "Color" },
-              "default": "wallpaper",
-              "description": "Each monitor's wallpaper (blurred when Blur wallpaper is on), or a plain color."
-            },
-            "backgroundColor": { "x-group": "Background", "type": "string", "title": "Color", "x-options": "colors", "default": "base00", "x-showIf": { "background": "color" } },
-            "dim": { "x-group": "Background", "type": "integer", "title": "Dim", "default": 40, "minimum": 0, "maximum": 100, "x-unit": "%", "x-control": "slider", "description": "Darken the background so the modules stand out." },
-            "moduleBorders": { "x-group": "Style", "type": "boolean", "title": "Module borders", "default": true, "description": "Draw each module's card box. Off shows modules straight on the background. The password field and the greeting have their own switches." },
-            "passwordBorder": { "x-group": "Style", "type": "boolean", "title": "Password field border", "default": false, "description": "Draw a card box around the password field." },
-            "greetingBorder": { "x-group": "Style", "type": "boolean", "title": "Greeting border", "default": false, "description": "Draw a card box around the greeting." },
-            "modules": {
-              "type": "array",
-              "x-settings": false,
-              "default": [
-                { "type": "ClockCalendar", "place": { "x": 0, "y": 0, "w": 4, "h": 2 } },
-                { "type": "Greeting", "place": { "x": 4, "y": 2, "w": 8, "h": 2 } },
-                { "type": "Password", "place": { "x": 5, "y": 4, "w": 6, "h": 1 } },
-                { "type": "NowPlaying", "place": { "x": 0, "y": 7, "w": 5, "h": 2 } }
-              ],
-              "items": { "$ref": "#/definitions/OverlayModule" }
-            }
+          "default": {
+            "modules": [
+              { "type": "ClockCalendar", "place": { "x": 0, "y": 0, "w": 4, "h": 2 } },
+              { "type": "Greeting", "place": { "x": 4, "y": 2, "w": 8, "h": 2 } },
+              { "type": "Password", "place": { "x": 5, "y": 4, "w": 6, "h": 1 } },
+              { "type": "NowPlaying", "place": { "x": 0, "y": 7, "w": 5, "h": 2 } }
+            ]
           }
         }
       }
     },
 
+    "Greeter": {
+      "type": "object",
+      "x-category": "Screen & Power",
+      "x-card": "GreeterStatus",
+      "x-links": ["Layouts"],
+      "title": "Login screen",
+      "description": "Axiom as your login screen (a greetd greeter), laid out on the Layouts page like the lock screen. It runs as greetd's own user from a copy of axiom installed for it, and shows what axiom exports for it here: no root is needed to change it once it's set up.",
+      "additionalProperties": false,
+      "x-order": ["monitor", "rememberUser"],
+      "properties": {
+        "enabled": { "type": "boolean", "x-settings": false, "default": false, "description": "Set up as the login screen (set by its card's Install and Remove, never by hand)." },
+        "monitor": { "type": "string", "title": "Login monitor", "x-options": "screens", "default": "", "description": "The monitor the login box shows on. The others show the layout without it, or only the background." },
+        "rememberUser": { "type": "boolean", "title": "Remember the last user", "default": true, "description": "Start on whoever logged in last, and on their last session. Off starts with an empty user field." },
+        "layout": {
+          "$ref": "#/definitions/ScreenLayout",
+          "x-settings": false,
+          "title": "Login screen",
+          "description": "What the login screen shows, edited on the Layouts page: its modules on a grid of columns × rows units, fitted to each monitor.",
+          "default": {
+            "modules": [
+              { "type": "ClockCalendar", "place": { "x": 0, "y": 0, "w": 4, "h": 2 } },
+              { "type": "Greeting", "place": { "x": 4, "y": 1, "w": 8, "h": 2 } },
+              { "type": "Login", "place": { "x": 5, "y": 3, "w": 6, "h": 3 } },
+              { "type": "Session", "place": { "x": 6, "y": 6, "w": 4, "h": 1 } },
+              { "type": "KeyboardLayout", "place": { "x": 0, "y": 8, "w": 2, "h": 1 } },
+              { "type": "Power", "place": { "x": 13, "y": 8, "w": 3, "h": 1 } }
+            ]
+          }
+        }
+      }
+    },
     "Idle": {
       "type": "object",
       "x-category": "Screen & Power",
@@ -681,27 +679,27 @@
                 }
               }
             },
-            "kbLayout": { "type": "string", "title": "Keyboard layout", "x-group": "Keyboard", "default": "us", "description": "XKB layouts, comma-separated (e.g. us,de).", "x-hypr": "input.kb_layout", "x-hyprAlways": true },
-            "kbVariant": { "type": "string", "title": "Layout variant", "x-group": "Keyboard", "default": "", "description": "XKB variants, one per layout (e.g. colemak).", "x-hypr": "input.kb_variant" },
-            "kbOptions": { "type": "string", "title": "XKB options", "x-group": "Keyboard", "default": "", "description": "e.g. caps:escape,grp:alt_shift_toggle.", "x-hypr": "input.kb_options" },
-            "repeatRate": { "type": "integer", "x-control": "stepper", "title": "Key repeat rate", "x-group": "Keyboard", "default": 50, "minimum": 1, "maximum": 100, "x-hypr": "input.repeat_rate", "x-hyprAlways": true },
-            "repeatDelay": { "type": "integer", "title": "Key repeat delay", "x-group": "Keyboard", "default": 300, "minimum": 100, "maximum": 2000, "x-hypr": "input.repeat_delay", "x-hyprAlways": true },
-            "numlockByDefault": { "type": "boolean", "title": "Num Lock on at start", "x-group": "Keyboard", "default": true, "x-hypr": "input.numlock_by_default", "x-hyprAlways": true },
+            "kbLayout": { "x-greeter": true, "type": "string", "title": "Keyboard layout", "x-group": "Keyboard", "default": "us", "description": "XKB layouts, comma-separated (e.g. us,de).", "x-hypr": "input.kb_layout", "x-hyprAlways": true },
+            "kbVariant": { "x-greeter": true, "type": "string", "title": "Layout variant", "x-group": "Keyboard", "default": "", "description": "XKB variants, one per layout (e.g. colemak).", "x-hypr": "input.kb_variant" },
+            "kbOptions": { "x-greeter": true, "type": "string", "title": "XKB options", "x-group": "Keyboard", "default": "", "description": "e.g. caps:escape,grp:alt_shift_toggle.", "x-hypr": "input.kb_options" },
+            "repeatRate": { "x-greeter": true, "type": "integer", "x-control": "stepper", "title": "Key repeat rate", "x-group": "Keyboard", "default": 50, "minimum": 1, "maximum": 100, "x-hypr": "input.repeat_rate", "x-hyprAlways": true },
+            "repeatDelay": { "x-greeter": true, "type": "integer", "title": "Key repeat delay", "x-group": "Keyboard", "default": 300, "minimum": 100, "maximum": 2000, "x-hypr": "input.repeat_delay", "x-hyprAlways": true },
+            "numlockByDefault": { "x-greeter": true, "type": "boolean", "title": "Num Lock on at start", "x-group": "Keyboard", "default": true, "x-hypr": "input.numlock_by_default", "x-hyprAlways": true },
             "followMouse": { "type": "boolean", "title": "Focus follows mouse", "x-group": "Mouse & cursor", "default": true, "x-hypr": "input.follow_mouse", "x-hyprValue": "int", "x-hyprAlways": true },
             "floatSwitchOverrideFocus": { "type": "string", "title": "Crossing tiled/floating", "x-group": "Mouse & cursor", "enum": ["0", "1", "2"], "x-enumLabels": { "0": "Leaves focus alone", "1": "Moves focus", "2": "Moves focus, also floating to floating" }, "default": "1", "description": "What moving the cursor between tiled and floating windows does.", "x-showIf": { "followMouse": true }, "x-hypr": "input.float_switch_override_focus", "x-hyprValue": "number" },
-            "accelProfile": { "type": "string", "title": "Pointer acceleration", "x-group": "Mouse & cursor", "enum": ["default", "flat", "adaptive"], "x-enumLabels": { "default": "Device default", "flat": "Flat (none)", "adaptive": "Adaptive" }, "default": "default", "x-hypr": "input.accel_profile", "x-hyprValue": "emptyIsDefault", "x-hyprAlways": true },
-            "sensitivity": { "type": "integer", "title": "Pointer speed", "x-group": "Mouse & cursor", "default": 0, "minimum": -100, "maximum": 100, "description": "-100 to 100; 0 leaves it as the device reports.", "x-hypr": "input.sensitivity", "x-hyprScale": 0.01 },
-            "leftHanded": { "type": "boolean", "title": "Left-handed buttons", "x-group": "Mouse & cursor", "default": false, "x-hypr": "input.left_handed" },
+            "accelProfile": { "x-greeter": true, "type": "string", "title": "Pointer acceleration", "x-group": "Mouse & cursor", "enum": ["default", "flat", "adaptive"], "x-enumLabels": { "default": "Device default", "flat": "Flat (none)", "adaptive": "Adaptive" }, "default": "default", "x-hypr": "input.accel_profile", "x-hyprValue": "emptyIsDefault", "x-hyprAlways": true },
+            "sensitivity": { "x-greeter": true, "type": "integer", "title": "Pointer speed", "x-group": "Mouse & cursor", "default": 0, "minimum": -100, "maximum": 100, "description": "-100 to 100; 0 leaves it as the device reports.", "x-hypr": "input.sensitivity", "x-hyprScale": 0.01 },
+            "leftHanded": { "x-greeter": true, "type": "boolean", "title": "Left-handed buttons", "x-group": "Mouse & cursor", "default": false, "x-hypr": "input.left_handed" },
             "resizeOnBorder": { "type": "boolean", "title": "Resize by dragging borders", "x-group": "Mouse & cursor", "default": true, "x-hypr": "general.resize_on_border", "x-hyprAlways": true },
-            "cursorTheme": { "type": "string", "title": "Cursor theme", "x-group": "Mouse & cursor", "x-options": "cursorThemes", "x-enumLabels": { "": "None" }, "default": "", "description": "An installed cursor theme. None leaves the cursor alone." },
-            "cursorSize": { "type": "integer", "x-control": "stepper", "title": "Cursor size", "x-group": "Mouse & cursor", "default": 24, "minimum": 8, "maximum": 128 },
+            "cursorTheme": { "x-greeter": true, "type": "string", "title": "Cursor theme", "x-group": "Mouse & cursor", "x-options": "cursorThemes", "x-enumLabels": { "": "None" }, "default": "", "description": "An installed cursor theme. None leaves the cursor alone." },
+            "cursorSize": { "x-greeter": true, "type": "integer", "x-control": "stepper", "title": "Cursor size", "x-group": "Mouse & cursor", "default": 24, "minimum": 8, "maximum": 128 },
             "cursorHideTimeout": { "type": "integer", "title": "Hide the cursor after", "x-unit": "s", "x-group": "Mouse & cursor", "default": 0, "minimum": 0, "maximum": 600, "description": "0 never hides it.", "x-hypr": "cursor.inactive_timeout" },
             "hideCursorOnKeyPress": { "type": "boolean", "title": "Hide the cursor while typing", "x-group": "Mouse & cursor", "default": false, "x-hypr": "cursor.hide_on_key_press" },
             "noWarps": { "type": "boolean", "title": "Never move the cursor", "x-group": "Mouse & cursor", "default": false, "description": "Hyprland won't move the cursor to a window it focuses.", "x-hypr": "cursor.no_warps" },
-            "naturalScroll": { "type": "boolean", "title": "Natural scrolling", "x-group": "Touchpad", "default": false, "x-hypr": "input.touchpad.natural_scroll", "x-hyprAlways": true },
-            "tapToClick": { "type": "boolean", "title": "Tap to click", "x-group": "Touchpad", "default": true, "x-hypr": "input.touchpad.tap_to_click" },
-            "disableWhileTyping": { "type": "boolean", "title": "Off while typing", "x-group": "Touchpad", "default": true, "x-hypr": "input.touchpad.disable_while_typing" },
-            "touchpadScrollFactor": { "type": "integer", "title": "Scroll speed", "x-unit": "%", "x-group": "Touchpad", "default": 100, "minimum": 10, "maximum": 500, "x-hypr": "input.touchpad.scroll_factor", "x-hyprScale": 0.01 },
+            "naturalScroll": { "x-greeter": true, "type": "boolean", "title": "Natural scrolling", "x-group": "Touchpad", "default": false, "x-hypr": "input.touchpad.natural_scroll", "x-hyprAlways": true },
+            "tapToClick": { "x-greeter": true, "type": "boolean", "title": "Tap to click", "x-group": "Touchpad", "default": true, "x-hypr": "input.touchpad.tap_to_click" },
+            "disableWhileTyping": { "x-greeter": true, "type": "boolean", "title": "Off while typing", "x-group": "Touchpad", "default": true, "x-hypr": "input.touchpad.disable_while_typing" },
+            "touchpadScrollFactor": { "x-greeter": true, "type": "integer", "title": "Scroll speed", "x-unit": "%", "x-group": "Touchpad", "default": 100, "minimum": 10, "maximum": 500, "x-hypr": "input.touchpad.scroll_factor", "x-hyprScale": 0.01 },
             "hideLogo": { "type": "boolean", "title": "Hide Hyprland's logo and splash", "x-group": "Behaviour", "default": true, "x-hypr": ["misc.disable_hyprland_logo", "misc.disable_splash_rendering"], "x-hyprAlways": true },
             "backgroundThemed": { "type": "boolean", "title": "Background in a theme color", "x-group": "Behaviour", "default": false, "description": "What shows where there's no wallpaper." },
             "backgroundColor": { "type": "string", "title": "Background color", "x-group": "Behaviour", "x-options": "colors", "default": "base00", "x-showIf": { "backgroundThemed": true }, "x-hypr": "misc.background_color", "x-hyprValue": "color", "x-hyprIf": "backgroundThemed" },
@@ -1897,6 +1895,46 @@
   },
 
   "definitions": {
+    "ScreenLayout": {
+      "description": "A screen of overlay modules on a bounded grid of columns × rows units, fitted to each monitor: the built-in lock screen (Lockscreen.layout) and the greeter (Greeter.layout).",
+      "type": "object",
+      "additionalProperties": false,
+      "x-order": ["columns", "rows", "fineGrid", "otherScreens", "background", "backgroundColor", "dim", "moduleBorders", "passwordBorder", "greetingBorder"],
+      "properties": {
+        "columns": { "x-group": "Grid", "type": "integer", "title": "Columns", "default": 16, "minimum": 4, "maximum": 32, "description": "Grid units across. The grid is stretched to fill each monitor, so match your screen's shape (16 × 9 for 16:9)." },
+        "rows": { "x-group": "Grid", "type": "integer", "title": "Rows", "default": 9, "minimum": 2, "maximum": 32, "description": "Grid units down." },
+        "fineGrid": { "x-group": "Grid", "type": "boolean", "title": "Double grid", "default": false, "description": "Split each grid unit in two each way, for finer placement. Modules keep their size and spot." },
+        "otherScreens": {
+          "x-group": "Grid",
+          "type": "string",
+          "title": "Other monitors",
+          "enum": ["layout", "background"],
+          "x-enumLabels": { "layout": "The same modules, without the password", "background": "The background only" },
+          "default": "layout",
+          "description": "What monitors other than the one with the password field show."
+        },
+        "background": {
+          "x-group": "Background",
+          "type": "string",
+          "title": "Background",
+          "enum": ["wallpaper", "color"],
+          "x-enumLabels": { "wallpaper": "Wallpaper", "color": "Color" },
+          "default": "wallpaper",
+          "description": "Each monitor's wallpaper (blurred when Blur wallpaper is on), or a plain color."
+        },
+        "backgroundColor": { "x-group": "Background", "type": "string", "title": "Color", "x-options": "colors", "default": "base00", "x-showIf": { "background": "color" } },
+        "dim": { "x-group": "Background", "type": "integer", "title": "Dim", "default": 40, "minimum": 0, "maximum": 100, "x-unit": "%", "x-control": "slider", "description": "Darken the background so the modules stand out." },
+        "moduleBorders": { "x-group": "Style", "type": "boolean", "title": "Module borders", "default": true, "description": "Draw each module's card box. Off shows modules straight on the background. The password field and the greeting have their own switches." },
+        "passwordBorder": { "x-group": "Style", "type": "boolean", "title": "Password field border", "default": false, "description": "Draw a card box around the password field." },
+        "greetingBorder": { "x-group": "Style", "type": "boolean", "title": "Greeting border", "default": false, "description": "Draw a card box around the greeting." },
+        "modules": {
+          "type": "array",
+          "x-settings": false,
+          "default": [],
+          "items": { "$ref": "#/definitions/OverlayModule" }
+        }
+      }
+    },
     "DockEntry": {
       "type": "object",
       "additionalProperties": false,
@@ -3028,7 +3066,11 @@
         { "$ref": "#/definitions/ColorSwatchOverlayModule" },
         { "$ref": "#/definitions/PaletteOverlayModule" },
         { "$ref": "#/definitions/GreetingOverlayModule" },
-        { "$ref": "#/definitions/PasswordOverlayModule" }
+        { "$ref": "#/definitions/PasswordOverlayModule" },
+        { "$ref": "#/definitions/LoginOverlayModule" },
+        { "$ref": "#/definitions/SessionOverlayModule" },
+        { "$ref": "#/definitions/PowerOverlayModule" },
+        { "$ref": "#/definitions/KeyboardLayoutOverlayModule" }
       ]
     },
     "ThemePickerOverlayModule": {
@@ -3249,7 +3291,7 @@
       "x-icon": "waving_hand",
       "x-defaultSize": [8, 2],
       "x-canvasDetail": "text",
-      "x-hosts": ["overlay", "edgeMenu", "lockscreen"],
+      "x-hosts": ["overlay", "edgeMenu", "lockscreen", "greeter"],
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -3260,7 +3302,7 @@
           "additionalProperties": false,
           "x-order": ["text", "color", "alignment", "bold"],
           "properties": {
-            "text": { "type": "string", "title": "Text", "default": "", "description": "What it says. {name} is your display name, {user} your user name and {greeting} good morning, afternoon or evening. Empty says hey to your display name." },
+            "text": { "type": "string", "title": "Text", "default": "", "description": "What it says. {name} is your display name, {user} your user name and {greeting} good morning, afternoon or evening. Empty says hey to your display name. On the login screen, the names are those of the user logging in." },
             "color": { "type": "string", "title": "Color", "x-options": "colors", "default": "base05" },
             "alignment": { "type": "string", "title": "Alignment", "enum": ["left", "center", "right"], "x-enumLabels": { "left": "Left", "center": "Centre", "right": "Right" }, "default": "center" },
             "bold": { "type": "boolean", "title": "Bold", "default": false }
@@ -3291,9 +3333,84 @@
         }
       }
     },
+    "LoginOverlayModule": {
+      "type": "object",
+      "x-icon": "login",
+      "x-defaultSize": [6, 3],
+      "x-hosts": ["greeter"],
+      "x-required": true,
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "place": { "$ref": "#/definitions/GridPlace" },
+        "type": { "const": "Login", "description": "Login" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "x-order": ["userField", "showAvatar", "placeholder", "centered", "showMessages"],
+          "properties": {
+            "userField": { "type": "string", "title": "User", "enum": ["list", "typed"], "x-enumLabels": { "list": "Pick from a list, or type", "typed": "Type the name" }, "default": "list", "description": "Typed only shows no one's name before they type it." },
+            "showAvatar": { "type": "boolean", "title": "Picture", "default": true, "description": "The user's picture (AccountsService's), when they have one." },
+            "placeholder": { "type": "string", "title": "Placeholder", "default": "", "description": "Shown in the empty password field. Empty says Enter password..." },
+            "centered": { "type": "boolean", "title": "Centre the text", "default": true },
+            "showMessages": { "type": "boolean", "title": "Messages", "default": true, "description": "Show what the login checks say under the field: prompts, failures and errors." }
+          }
+        }
+      }
+    },
+    "SessionOverlayModule": {
+      "type": "object",
+      "x-icon": "desktop_windows",
+      "x-defaultSize": [4, 1],
+      "x-hosts": ["greeter"],
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "place": { "$ref": "#/definitions/GridPlace" },
+        "type": { "const": "Session", "description": "Session" }
+      }
+    },
+    "PowerOverlayModule": {
+      "type": "object",
+      "x-icon": "power_settings_new",
+      "x-defaultSize": [3, 1],
+      "x-canvasDetail": "actions",
+      "x-hosts": ["greeter"],
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "place": { "$ref": "#/definitions/GridPlace" },
+        "type": { "const": "Power", "description": "Power" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "actions": {
+              "type": "array",
+              "title": "Buttons",
+              "items": { "type": "string", "enum": ["suspend", "reboot", "poweroff"] },
+              "x-enumLabels": { "suspend": "Suspend", "reboot": "Restart", "poweroff": "Shut down" },
+              "default": ["suspend", "reboot", "poweroff"]
+            }
+          }
+        }
+      }
+    },
+    "KeyboardLayoutOverlayModule": {
+      "type": "object",
+      "x-icon": "keyboard",
+      "x-defaultSize": [2, 1],
+      "x-hosts": ["greeter"],
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "place": { "$ref": "#/definitions/GridPlace" },
+        "type": { "const": "KeyboardLayout", "description": "Keyboard layout" }
+      }
+    },
     "ClockCalendarOverlayModule": {
       "type": "object",
-      "x-hosts": ["overlay", "edgeMenu", "lockscreen"],
+      "x-hosts": ["overlay", "edgeMenu", "lockscreen", "greeter"],
       "x-icon": "calendar_clock",
       "required": ["type"],
       "additionalProperties": false,
@@ -3312,7 +3429,7 @@
     },
     "WeatherOverlayModule": {
       "type": "object",
-      "x-hosts": ["overlay", "edgeMenu", "lockscreen"],
+      "x-hosts": ["overlay", "edgeMenu", "lockscreen", "greeter"],
       "x-icon": "partly_cloudy_day",
       "required": ["type"],
       "additionalProperties": false,
@@ -3323,7 +3440,7 @@
     },
     "BatteryOverlayModule": {
       "type": "object",
-      "x-hosts": ["overlay", "edgeMenu", "lockscreen"],
+      "x-hosts": ["overlay", "edgeMenu", "lockscreen", "greeter"],
       "x-icon": "battery_full",
       "x-defaultSize": [2, 2],
       "required": ["type"],
@@ -3335,7 +3452,7 @@
     },
     "NetworkOverlayModule": {
       "type": "object",
-      "x-hosts": ["overlay", "edgeMenu", "lockscreen"],
+      "x-hosts": ["overlay", "edgeMenu", "lockscreen", "greeter"],
       "x-icon": "wifi",
       "x-defaultSize": [4, 2],
       "required": ["type"],
@@ -3410,7 +3527,7 @@
     },
     "PaletteOverlayModule": {
       "type": "object",
-      "x-hosts": ["overlay", "edgeMenu", "lockscreen"],
+      "x-hosts": ["overlay", "edgeMenu", "lockscreen", "greeter"],
       "x-icon": "palette",
       "x-defaultSize": [8, 4],
       "required": ["type"],
@@ -3422,7 +3539,7 @@
     },
     "ColorSwatchOverlayModule": {
       "type": "object",
-      "x-hosts": ["overlay", "edgeMenu", "lockscreen"],
+      "x-hosts": ["overlay", "edgeMenu", "lockscreen", "greeter"],
       "x-icon": "palette",
       "x-defaultSize": [2, 2],
       "x-canvasDetail": "color",
