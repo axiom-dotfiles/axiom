@@ -2,6 +2,7 @@
 //@ pragma Env QS_NO_RELOAD_POPUP=1
 //@ pragma Env QSG_RENDER_LOOP=threaded
 //@ pragma Env QT_QUICK_FLICKABLE_WHEEL_DECELERATION=10000
+//@ pragma Env mesa_glthread=false
 
 pragma ComponentBehavior: Bound
 import Quickshell
@@ -12,7 +13,7 @@ ShellRoot {
   id: shellRoot
 
   // Services with no UI of their own, which nothing else would create
-  readonly property var _services: [DependencyManager, HyprlandConfigManager, HypridleManager, SelfUpdateManager, ChatManager, AudioManager, MediaManager, EdgeMenuManager, BrightnessManager, NotesManager, MonitorManager, OnboardingManager, ClipboardManager, NightLightManager, WallpaperManager, DockManager, SystemManager, BatteryManager, PolkitManager, GreeterManager]
+  readonly property var _services: [DependencyManager, HyprlandConfigManager, HypridleManager, SelfUpdateManager, ChatManager, AudioManager, MediaManager, EdgeMenuManager, BrightnessManager, NotesManager, MonitorManager, OnboardingManager, ClipboardManager, NightLightManager, WallpaperManager, DockManager, SystemManager, BatteryManager, PolkitManager, GreeterManager, CalendarManager]
 
   Lockscreen {
     id: lockscreen

@@ -53,6 +53,12 @@ Item {
     fullMinHeight: root.fullMinHeight
   }
 
+  // Bar popout only: the largest implicit size content that changes size
+  // while open can take (0: undeclared), so the popout's window is made
+  // that big from the start rather than resized (see BarPopouts.spareAcross)
+  property real maxImplicitWidth: 0
+  property real maxImplicitHeight: 0
+
   // Bar popout only: keep the keyboard (and a focus grab) while a text
   // field is up; a click outside the popout calls focusLost()
   property bool wantsKeyboardFocus: false

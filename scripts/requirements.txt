@@ -1,4 +1,7 @@
-# Everything scripts/generate_theme.py needs. setup_venv.sh reinstalls when
-# this file changes.
+# Everything the python scripts need: generate_theme.py (numpy, pillow) and
+# calendar_sync.py (icalendar, recurring-ical-events). setup_venv.sh
+# reinstalls when this file changes.
 numpy
 pillow
+icalendar>=6
+recurring-ical-events>=3

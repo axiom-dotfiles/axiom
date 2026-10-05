@@ -385,6 +385,26 @@ QtObject {
       }
     },
     {
+      name: "calendar",
+      aliases: ["cal", "agenda"],
+      glyph: "calendar_month",
+      description: () => I18n.tr("Open the calendar"),
+      available: () => !Paths.greeter,
+      // After the launcher has closed, so the overlay gets the keyboard
+      run: () => Qt.callLater(() => CalendarManager.openPage())
+    },
+    {
+      name: "event",
+      aliases: ["newevent", "addevent"],
+      glyph: "event",
+      usage: "<when> <title>",
+      needsArg: true,
+      description: () => I18n.tr("Add an event, e.g. tomorrow 3pm Dentist"),
+      available: () => !Paths.greeter && CalendarConfig.writableCalendars.length > 0,
+      options: arg => root._event(arg),
+      run: arg => CalendarManager.quickAdd(arg) ? undefined : false
+    },
+    {
       name: "update",
       aliases: ["upgrade"],
       glyph: "update",
@@ -728,6 +748,33 @@ QtObject {
         title: NotesManager.titleOf(path),
         line: -1
       }));
+  }
+
+  // The event /event would add, as a row to check before Enter
+  function _event(arg) {
+    const parsed = CalendarManager.parseQuickAdd(arg);
+    if (!parsed)
+      return [
+        {
+          title: I18n.tr("When, then what"),
+          subtitle: I18n.tr("today, tomorrow, a weekday or a date; a time or a range (9-10:30); all day"),
+          glyph: "event",
+          matched: true,
+          value: null
+        }
+      ];
+    const day = I18n.formatDate(new Date(parsed.start), I18n.dateFormat("longDate"));
+    const time = I18n.tr("{0} – {1}", I18n.formatDate(new Date(parsed.start), CalendarConfig.timeFormat), I18n.formatDate(new Date(parsed.end), CalendarConfig.timeFormat));
+    const calendar = CalendarConfig.calendar(CalendarConfig.newEventCalendar);
+    return [
+      {
+        title: parsed.title,
+        subtitle: [day, parsed.allDay ? I18n.tr("All day") : time, calendar?.name ?? ""].filter(part => part).join(" · "),
+        glyph: "event",
+        matched: true,
+        value: parsed
+      }
+    ];
   }
 
   function _overlayPages() {

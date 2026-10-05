@@ -11,9 +11,9 @@ The screenshots show [two setups](../README.md#built-in-the-shell) of the same s
 | <img src="../assets/screenshots/desktop.webp" alt="A pill bar on the left and a transparent bar on the right, inside the screen border"> | <img src="../assets/screenshots/desktop-b.webp" alt="One solid bar across the top of the screen"> |
 
 - Bars are defined in config. You can have any number, on any monitor and any edge. Each one can be solid, transparent, or split into floating pills.
-- 22 widget types: Workspaces, Window, Time, Media, Volume, Microphone, Network, Bluetooth, Battery, SystemStats, SystemTray, Notifications, Updates, Weather, Tailscale, KeyboardLayout, IdleInhibitor, Privacy, ScreenRecord (shown while recording; click to stop), Claude usage (your Claude Code plan limits, for one or more logins), Button (runs any command) and Separator.
+- 23 widget types: Workspaces, Window, Time, NextEvent (the next event from your calendars), Media, Volume, Microphone, Network, Bluetooth, Battery, SystemStats, SystemTray, Notifications, Updates, Weather, Tailscale, KeyboardLayout, IdleInhibitor, Privacy, ScreenRecord (shown while recording; click to stop), Claude usage (your Claude Code plan limits, for one or more logins), Button (runs any command) and Separator.
 - Popouts grow out of the bar, or out of the screen border, with filleted corners. Widgets open theirs on hover:
-  - a calendar
+  - a calendar, with your events
   - the audio mixer
   - Bluetooth and Wi-Fi menus
   - live system graphs
@@ -54,10 +54,10 @@ The screenshots show [two setups](../README.md#built-in-the-shell) of the same s
 | <img src="../assets/screenshots/overlay-home.webp" alt="The overlay's Home page, setup A"> | <img src="../assets/screenshots/overlay-home-b.webp" alt="The overlay's Home page, setup B"> |
 
 - A full-screen overlay made of pages of cards. Each page is a grid you place modules on, sized in quarter cards, with gaps wherever you like.
-- 23 modules, including:
+- 25 modules, including:
   - a media player, audio mixer, system graphs and top processes
   - disks, updates, quick actions (toggles, power, pin), Bluetooth, network and Wi-Fi networks
-  - weather, calendar, notes and favorites
+  - weather, a calendar and an agenda of your events, notes and favorites
   - screenshot, session controls, a workspace map and AI chat
 - Modules adapt to their size and shape (square, wide or tall, down to a quarter card).
 - Built-in pages:
@@ -66,6 +66,7 @@ The screenshots show [two setups](../README.md#built-in-the-shell) of the same s
   - **Themes**
   - **Keybinds** (in the managed mode, **Merge** moves the binds from your own `user/*.lua` here)
   - **Monitors** (see [The rest](#the-rest))
+  - **Calendar** (see [Calendar](#calendar))
   - Tool pages sit after your own pages in the navigator, as icons.
 - Every module can also go in an [edge menu](#edge-menus).
 
@@ -78,6 +79,16 @@ The screenshots show [two setups](../README.md#built-in-the-shell) of the same s
 | **Keybinds** | <img src="../assets/screenshots/keybinds.webp" alt="Keybinds page, setup A"> | <img src="../assets/screenshots/keybinds-b.webp" alt="Keybinds page, setup B"> |
 
 </details>
+
+## Calendar
+
+- Your calendars from **CalDAV** accounts (iCloud, Fastmail, Nextcloud or any CalDAV server) and read-only **.ics subscriptions** (holidays, shared feeds, Google's secret iCal address). Add accounts in **Settings → Calendar**, then pick which of an account's calendars show and give any a theme color in place of the server's. Passwords go to your keyring, never into the config.
+- Days with events get a dot per calendar, in the calendar popout, the **Calendar** and **Clock & calendar** modules and the **Calendar** page; click a day to see its events, and an event to edit it. The **Clock & calendar** module lists the day's events under its calendar (under the clock when wide) where they fit, and can show them on the lock screen (read-only) with Calendar › Events on the lock screen. Recurring events ask whether a change is for that one or all of them.
+- The **Calendar** page shows the month large, with the events in it, and switches calendars on and off.
+- An **Agenda** module lists what's coming up, and the **NextEvent** bar widget shows the next event ("in 10 min · Standup").
+- Reminders from your events show as notifications.
+- **Quick add** from the launcher: `/event tomorrow 3pm Dentist`, `/event fri 9-10:30 Planning`, `/event 2026-12-24 all day Holiday`.
+- Synced every few minutes while something shows a calendar (or reminders are on), and kept on disk, so it shows at once and offline. Events never show on the lock screen or the login screen.
 
 ## Edge menus
 

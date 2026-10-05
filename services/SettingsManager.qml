@@ -201,6 +201,9 @@ QtObject {
       return ["", ...OverlayConfig.views.map(view => OverlayConfig.pageKey(view)).filter(key => key !== "")];
     case "notes":
       return ["", ...NotesManager.allNotes];
+    case "calendars":
+      // Those new events can go to
+      return ["", ...CalendarConfig.calendars.filter(calendar => calendar.writable).map(calendar => calendar.id)];
     }
     return null;
   }

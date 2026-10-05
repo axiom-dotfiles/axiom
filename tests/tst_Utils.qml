@@ -134,6 +134,7 @@ TestCase {
     compare([sunday[0].day, sunday[0].month, sunday[0].inMonth], [30, 7, false]);
     compare([sunday[2].day, sunday[2].inMonth], [1, true]);
     compare(sunday.filter(d => d.isToday).map(d => d.day), [26]);
+    compare([sunday[0].key, sunday[2].key, sunday[41].key], ["2026-08-30", "2026-09-01", "2026-10-10"]);
     const monday = Utils.monthGrid(2026, 8, 1, "");
     compare(monday[1].day, 1);
     // A month starting on the first day starts the grid
