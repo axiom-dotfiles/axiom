@@ -59,6 +59,8 @@ Singleton {
   // back at `restore` (global). The target's box is read after the window has
   // left its workspace (`reinsert`: same workspace, moved out first), since
   // that reflows the layout. A floating window goes to `floatAt` instead.
+  // On a strip the window opens as a new column after the focused target,
+  // whatever the side.
   function placeWindow(address, workspaceId, targetAddress, side, restore, reinsert, floatAt) {
     const win = _window(address);
     const lines = [];
@@ -504,6 +506,25 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
   function biggestWindowForWorkspace(workspaceId) {
     const area = w => (w?.size?.[0] ?? 0) * (w?.size?.[1] ?? 0);
     return root.windowList.filter(w => w.workspace?.id === workspaceId).reduce((biggest, w) => area(w) > area(biggest) ? w : biggest, null);
+  }
+
+  // A workspace's windows in strip order (WorkspaceGeometry.stripOrder)
+  function stripWindows(workspaceId, vertical) {
+    return WorkspaceGeometry.stripOrder(root.windowList.filter(w => w.workspace?.id === workspaceId && w.mapped !== false && !w.hidden), vertical);
+  }
+
+  // Of `windows`, the one focused last (focused now, if any is), or null
+  function lastFocused(windows) {
+    return windows.reduce((last, w) => last === null || w.focusHistoryID < last.focusHistoryID ? w : last, null);
+  }
+
+  // Scrolls the strip of a monitor's active workspace a column on (1) or
+  // back (-1). Layout messages act on the focused workspace, so only on the
+  // focused monitor, and only with windows to scroll (Hyprland refuses it
+  // on an empty one).
+  function stepStrip(direction, monitor) {
+    if (monitor && monitor === Hyprland.focusedMonitor && (monitor.activeWorkspace?.toplevels.values.length ?? 0) > 0)
+      Hyprland.dispatch(`hl.dsp.layout("move ${direction > 0 ? "+col" : "-col"}")`);
   }
 
   // Hyprland's general:gaps_out per side, which it adds after every

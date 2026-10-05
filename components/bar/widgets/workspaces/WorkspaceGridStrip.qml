@@ -9,7 +9,10 @@ import qs.components.hosts.popout
 
 // The grid layout's switcher: this monitor's columns × rows workspaces, of
 // which the bar shows the active row (horizontal bar) or column (vertical
-// bar), and the popout the whole grid.
+// bar), and the popout the whole grid. As in the standard layout's
+// switcher, the active cell is twice as long with `wideActive`, and on a
+// strip monitor the active workspace's windows follow in strip order
+// (ActiveStrip), where scrolling scrolls the strip.
 Item {
   id: root
   property var screen
@@ -32,6 +35,8 @@ Item {
   readonly property int columns: WorkspacesConfig.columns
   readonly property int rows: WorkspacesConfig.rows
   readonly property int activeId: root.monitor?.activeWorkspace?.id ?? -1
+  // "horizontal" | "vertical" on a strip monitor, else ""
+  readonly property string stripDirection: WorkspacesConfig.stripDirection(root.screen?.name ?? "")
   // The active workspace's place in the grid (the first cell when the
   // monitor is on a workspace outside it)
   readonly property int activeIndex: {
@@ -51,8 +56,8 @@ Item {
   // Cells the bar shows: a row, or a column on a vertical bar
   readonly property int shown: root.isVertical ? root.rows : root.columns
 
-  implicitWidth: root.isVertical ? root.cell : root.shown * root.cellLength + (root.shown - 1) * root.spacing
-  implicitHeight: root.isVertical ? root.shown * root.cellLength + (root.shown - 1) * root.spacing : root.cell
+  implicitWidth: layout.implicitWidth
+  implicitHeight: layout.implicitHeight
 
   function wsById(id) {
     const arr = Hyprland.workspaces.values;
@@ -83,29 +88,34 @@ Item {
       if (Math.abs(_accumulated) < 120)
         return;
       const forward = _accumulated < 0;
-      HyprlandManager.stepWorkspace(root.isVertical ? (forward ? "down" : "up") : (forward ? "right" : "left"), "go");
+      if (root.stripDirection !== "")
+        HyprlandManager.stepStrip(forward ? 1 : -1, root.monitor);
+      else
+        HyprlandManager.stepWorkspace(root.isVertical ? (forward ? "down" : "up") : (forward ? "right" : "left"), "go");
       _accumulated = 0;
     }
   }
 
-  // The whole grid, shifted so the active row (or column) is in view
-  Item {
-    anchors.fill: parent
-    clip: true
+  Grid {
+    id: layout
+    rows: root.isVertical ? 2 : 1
+    columns: root.isVertical ? 1 : 2
+    spacing: root.spacing
 
+    // The active row (or column) of the grid
     Grid {
-      columns: root.columns
+      rows: root.isVertical ? root.shown : 1
+      columns: root.isVertical ? 1 : root.shown
       spacing: root.spacing
-      x: root.isVertical ? -root.activeColumn * (root.cell + root.spacing) : 0
-      y: root.isVertical ? 0 : -root.activeRow * (root.cell + root.spacing)
 
       Repeater {
-        model: root.columns * root.rows
+        model: root.shown
 
         WorkspaceCell {
-          id: cellBox
           required property int index
-          readonly property int wsId: root.base + index
+          // Its place in the grid
+          readonly property int place: root.isVertical ? index * root.columns + root.activeColumn : root.activeRow * root.columns + index
+          readonly property int wsId: root.base + place
           readonly property HyprlandWorkspace ws: root.wsById(wsId)
           readonly property bool hasWindows: (ws?.toplevels.values.length ?? 0) > 0
           // The active arrow takes the active cell's place
@@ -116,16 +126,34 @@ Item {
           isActive: wsId === root.activeId
           look: Bar.cellColors(root.barConfig, isActive ? root.activeColor : hasWindows ? root.occupiedColor : root.emptyColor, isActive || hasWindows ? root.iconColor : Theme.foreground, isActive ? "active" : hasWindows ? "occupied" : "empty")
           thickness: root.cell
-          length: root.cellLength
+          restLength: root.cellLength
+          length: root.cellLength * (isActive && root.properties.wideActive ? 2 : 1)
           radius: root.cellRadius
           labels: root.properties.labels
           // The workspace id, or its place in the grid counted from 1
-          label: root.properties.relativeNumbers ? index + 1 : wsId
+          label: root.properties.relativeNumbers ? place + 1 : wsId
           glyph: showsArrow ? (root.isVertical ? root.positionGlyph(root.activeColumn, root.columns) : root.positionGlyph(root.activeRow, root.rows)) : ""
           iconPath: biggestWindow ? IconResolver.resolveWindowIcon(biggestWindow.class, biggestWindow.title) : ""
           clickable: root.properties.clickToSwitch
           onClicked: HyprlandManager.goToWorkspace(wsId, "go", root.monitor)
         }
+      }
+    }
+
+    Loader {
+      active: root.stripDirection !== ""
+      visible: (item as ActiveStrip)?.hasWindows ?? false
+
+      sourceComponent: ActiveStrip {
+        barConfig: root.barConfig
+        workspaceId: root.activeId
+        stripVertical: root.stripDirection === "vertical"
+        cell: root.cell
+        cellRadius: root.cellRadius
+        activeColor: root.activeColor
+        occupiedColor: root.occupiedColor
+        textColor: root.iconColor
+        clickable: root.properties.clickToSwitch
       }
     }
   }

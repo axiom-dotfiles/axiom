@@ -148,6 +148,10 @@ QtObject {
       "toggleGroup": "tab_group",
       "pseudo": "picture_in_picture_alt",
       "toggleSplit": "splitscreen_right",
+      "stripSwapColumn": "swap_horiz",
+      "stripWider": "width_wide",
+      "stripNarrower": "width_normal",
+      "stripFit": "fit_screen",
       "windowSwitcher": "tab",
       "windowSwitcherReverse": "tab",
       "mouseDrag": "drag_pan",
@@ -203,6 +207,7 @@ QtObject {
       "moveWindowNthSilent": "workspace",
       "focusDir": "direction",
       "moveWindowDir": "direction",
+      "stripSwapColumn": "direction",
       "resizeWindow": "resize",
       "toggleSpecial": "special",
       "moveToSpecial": "special",
@@ -610,6 +615,13 @@ QtObject {
       "description": I18n.tr("SUPER + H J K L moves focus, with SHIFT the window, with ALT resizes it; close, fullscreen, floating and mouse drag"),
       "binds": [].concat(...vim.map(d => [root._workspaceBind("SUPER + " + d[0], "focusDir", d[1]), root._workspaceBind("SUPER + SHIFT + " + d[0], "moveWindowDir", d[1]), root._workspaceBind("SUPER + ALT + " + d[0], "resizeWindow", resize[d[0]])])).concat([root._workspaceBind("SUPER + C", "closeWindow", ""), root._workspaceBind("SUPER + F", "fullscreen", ""), root._workspaceBind("SUPER + Z", "toggleFloat", ""), root._workspaceBind("SUPER + mouse:272", "mouseDrag", ""), root._workspaceBind("SUPER + mouse:273", "mouseResize", "")])
     });
+    if (WorkspacesConfig.hasStrips)
+      list.push({
+        "id": "strips",
+        "title": I18n.tr("Strips"),
+        "description": I18n.tr("SUPER + [ or ] swaps the column with the one before or after, SUPER + = or - steps its width, SUPER + CTRL + F fits the visible columns, SUPER + scroll moves focus along it"),
+        "binds": [root._workspaceBind("SUPER + bracketleft", "stripSwapColumn", "left"), root._workspaceBind("SUPER + bracketright", "stripSwapColumn", "right"), root._workspaceBind("SUPER + equal", "stripWider", ""), root._workspaceBind("SUPER + minus", "stripNarrower", ""), root._workspaceBind("SUPER + CTRL + F", "stripFit", ""), root._workspaceBind("SUPER + mouse_down", "focusDir", "right"), root._workspaceBind("SUPER + mouse_up", "focusDir", "left")]
+      });
     list.push({
       "id": "switcher",
       "title": I18n.tr("Window switcher"),
@@ -735,6 +747,8 @@ hl.dispatch(hl.dsp.submap("${_recordSubmap}"))`
       "mouse:274": "MMB",
       "mouse_up": "Scroll ↑",
       "mouse_down": "Scroll ↓",
+      "mouse_left": "Scroll ←",
+      "mouse_right": "Scroll →",
       "left": "←",
       "right": "→",
       "up": "↑",

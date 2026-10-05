@@ -8,7 +8,8 @@ import qs.components.reusable
 
 // A bind's key combo as keycaps; click to record a new one. While it
 // records, KeybindManager holds Hyprland in an empty submap, so combos
-// Hyprland binds reach it too. Esc cancels.
+// Hyprland binds reach it too; a wheel turn over it records a scroll
+// (SUPER + mouse_down). Esc cancels.
 StyledContainer {
   id: root
 
@@ -96,6 +97,14 @@ StyledContainer {
         KeybindManager.stopRecording();
       else
         KeybindManager.startRecording(root.bindIndex);
+    }
+    onWheel: wheel => {
+      wheel.accepted = root.recording;
+      if (!root.recording)
+        return;
+      const combo = KeyNames.fromWheel(wheel.angleDelta.x, wheel.angleDelta.y, wheel.modifiers, root.held);
+      if (combo !== "")
+        KeybindManager.finishRecording(combo);
     }
   }
 

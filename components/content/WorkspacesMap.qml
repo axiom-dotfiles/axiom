@@ -84,7 +84,8 @@ Card {
             Row {
               id: iconRow
               required property int index
-              anchors.horizontalCenter: parent.horizontalCenter
+              // Not anchored to `parent`, which a removed row reads as null
+              x: (icons.width - width) / 2
               spacing: icons.spacing
 
               Repeater {

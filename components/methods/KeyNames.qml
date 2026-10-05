@@ -163,6 +163,17 @@ QtObject {
     return name === "" ? "" : join(modifiersOf(qtModifiers), name);
   }
 
+  // A combo from a wheel turn (a WheelEvent's angleDelta and modifiers):
+  // Hyprland's mouse_up/mouse_down (mouse_left/mouse_right sideways), or
+  // "" for no turn. `held` adds modifiers seen as key presses.
+  function fromWheel(dx, dy, qtModifiers, held) {
+    const key = dy > 0 ? "mouse_up" : dy < 0 ? "mouse_down" : dx > 0 ? "mouse_left" : dx < 0 ? "mouse_right" : "";
+    if (key === "")
+      return "";
+    const mods = modifiersOf(qtModifiers);
+    return join(modifiers.filter(mod => mods.includes(mod) || (held ?? []).includes(mod)), key);
+  }
+
   function join(mods, key) {
     return mods.concat([key]).join(" + ");
   }

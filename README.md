@@ -71,6 +71,7 @@ Workspaces don't have to be a line numbered 1 to N. Set **Settings â†’ Desktop â
 - **One setting, everywhere.** The bar widget, its grid popout, the workspace overview, the Workspaces module, the launcher's `/ws` and the `workspaces` IPC target all use the same layout. Nothing else keeps a count or a grid size of its own.
 - **A grid per monitor, in a stable order.** The primary monitor comes first, so plugging one in or restarting Hyprland never reshuffles which workspaces belong to which monitor.
 - **Move windows around it.** Drag a window onto another cell in the workspace overview, or take it along with you from the keyboard.
+- **Or scroll instead of tile.** Make any monitor a strip (Hyprland's scrolling layout, horizontal or vertical). The bar then shows the active workspace's windows in strip order, the wheel scrolls the strip, and the overview shows the whole strip, columns off screen included.
 - **Keybinds included.** The **Keybinds** page has a **Grid with WASD** preset (<kbd>Super</kbd> + <kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> to move, add <kbd>Shift</kbd> to take the window along).
 
 ## What's included

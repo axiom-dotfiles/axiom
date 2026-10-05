@@ -6,7 +6,8 @@ import qs.components.bar.widgets.workspaces
 
 // The workspace switcher, laid out as the Workspaces section says: a row of
 // 1..count (WorkspaceStrip), or the active row or column of this monitor's
-// grid with the whole grid as a popout (WorkspaceGridStrip). It sits on a
+// grid with the whole grid as a popout (WorkspaceGridStrip). On a strip
+// monitor either one shows the active workspace's windows in strip order. It sits on a
 // background in the bar's widget style like any other widget, its cells
 // (WorkspaceCell, in the same style) inset by the inner spacing within a
 // box (filled, tinted or outlined). Without a box the cells sit straight on
@@ -36,6 +37,8 @@ BarWidget {
     id: strip
     WorkspaceStrip {
       screen: root.screen
+      popouts: root.popouts
+      panel: root.panel
       barConfig: root.barConfig
       properties: root.properties
       inset: root.inset

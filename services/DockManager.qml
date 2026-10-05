@@ -154,10 +154,12 @@ QtObject {
   // --- Showing and hiding ---
 
   // The space reserved on each side of a screen, [left, top, right,
-  // bottom]: where its work area starts (Hyprland's monitor `reserved`)
+  // bottom]: where its work area starts (Hyprland's monitor `reserved`).
+  // It arrives as a QVariantList, which isn't a JS Array (Array.isArray is
+  // false), so it's copied by index.
   function reservedOf(screen) {
     const reserved = (screen ? Hyprland.monitorFor(screen) : null)?.lastIpcObject?.reserved;
-    return Array.isArray(reserved) && reserved.length === 4 ? reserved : [0, 0, 0, 0];
+    return reserved?.length === 4 ? [0, 1, 2, 3].map(i => Number(reserved[i]) || 0) : [0, 0, 0, 0];
   }
 
   // Quickshell only re-reads monitors on monitor events, and Hyprland

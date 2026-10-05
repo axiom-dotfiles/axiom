@@ -31,6 +31,24 @@ QtObject {
   readonly property int boardColumns: grid ? columns : _evenColumns(count)
   readonly property int boardRows: Math.ceil(size / boardColumns)
 
+  // Strips (Hyprland's scrolling layout), per monitor: [{ monitor, direction }]
+  // with an empty monitor resolved to the primary one, "*" for every
+  // monitor a named entry doesn't cover, and only a monitor's first entry
+  // kept. direction: "horizontal" | "vertical"
+  readonly property var strips: _c.strips.map(strip => ({
+        "monitor": strip.monitor || General.primaryMonitor,
+        "direction": strip.direction
+      })).filter((strip, i, all) => all.findIndex(other => other.monitor === strip.monitor) === i)
+  readonly property bool hasStrips: strips.length > 0
+  // The strips and their settings as a string, for HyprlandConfigManager's
+  // change check
+  readonly property string _stripsJson: JSON.stringify([strips, stripOptions])
+  // The strip settings Hyprland takes (HyprLua.stripsLua)
+  readonly property var stripOptions: ({
+      "stripColumnWidth": _c.stripColumnWidth,
+      "stripFollowFocus": _c.stripFollowFocus
+    })
+
   // Columns for n workspaces: one row up to 5, else the narrowest column
   // count at least as wide as tall that divides n evenly (10 → 5 × 2), as
   // long as that's at most 3:1; otherwise rows near square, the last short
@@ -42,6 +60,12 @@ QtObject {
         return c;
     }
     return Math.ceil(n / Math.floor(Math.sqrt(n)));
+  }
+
+  // The strip direction of the monitor named `screenName`, "" when it tiles
+  function stripDirection(screenName) {
+    const strip = strips.find(s => s.monitor === screenName) ?? strips.find(s => s.monitor === "*");
+    return strip?.direction ?? "";
   }
 
   // First id of the monitor at `monitorIndex` (a stable order, see

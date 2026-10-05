@@ -87,11 +87,17 @@ Rectangle {
     });
   }
 
-  // The sections with widgets showing, as { start, end } along the bar
-  readonly property var _spans: root._groups.filter(g => g.usedLength > 0).map(g => ({
-        "start": g.mainPos,
-        "end": g.mainPos + g.usedLength
-      })).sort((a, b) => a.start - b.start)
+  // The sections with widgets showing, as { start, end } along the bar.
+  // Dividers at a section's end facing another section stand in the gap
+  // between them, outside its pill (BarLayout.edgeHang); at the first and
+  // last sections showing, they stay in it, as padding.
+  readonly property var _spans: {
+    const shown = root._groups.filter(g => g.usedLength > 0).sort((a, b) => a.mainPos - b.mainPos);
+    return shown.map((g, i) => ({
+          "start": g.mainPos + (i > 0 ? g.drawnHang.lead : 0),
+          "end": g.mainPos + g.usedLength - (i < shown.length - 1 ? g.drawnHang.trail : 0)
+        }));
+  }
 
   // The islands as drawn: one stretched to carry an open popout, and
   // joining any it then reaches, while that's open
@@ -118,7 +124,7 @@ Rectangle {
   readonly property var _groups: [leftGroup, leftCenterGroup, centerGroup, rightCenterGroup, rightGroup]
   // Per section, the model indices hidden so the minimum sizes fit
   readonly property var hidden: BarLayout.overflowHidden(root._groups.map(g => g.measures), root.length, root.endMargin, root.barConfig.spacing, root.barConfig.groupSpacing, root.barConfig.lockCenter)
-  readonly property var slots: BarLayout.layoutSections(root._groups.map(g => g.preferredLength), root._groups.map(g => g.minimumLength), root.length, root.endMargin, root.barConfig.spacing, root.barConfig.lockCenter)
+  readonly property var slots: BarLayout.layoutSections(root._groups.map(g => g.preferredLength), root._groups.map(g => g.minimumLength), root.length, root.endMargin, root.barConfig.spacing, root.barConfig.lockCenter, centerGroup.layoutHang)
   // Bindings re-run on any module change; only signal real moves
   property string _slotsKey: ""
   onSlotsChanged: {

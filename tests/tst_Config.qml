@@ -955,6 +955,57 @@ TestCase {
     compare(focused.config.Dock.docks[0].monitors, "primary");
   }
 
+  function test_v45_scrolling_layout_becomes_strips() {
+    const loaded = load({
+      "version": 44,
+      "Hyprland": {
+        "mode": "managed",
+        "managed": {
+          "layout": "scrolling",
+          "columnWidth": 70,
+          "scrollDirection": "up",
+          "scrollFollowFocus": false
+        }
+      }
+    });
+    const managed = loaded.config.Hyprland.managed;
+    compare(managed.layout, "dwindle");
+    verify(!("columnWidth" in managed) && !("scrollDirection" in managed) && !("scrollFollowFocus" in managed));
+    compare(loaded.config.Workspaces.strips, [
+      {
+        "monitor": "*",
+        "direction": "vertical"
+      }
+    ]);
+    compare(loaded.config.Workspaces.stripColumnWidth, 70);
+    compare(loaded.config.Workspaces.stripFollowFocus, false);
+    compare(errors(loaded.config), []);
+    // Another layout drops the scrolling settings and makes no strip
+    const tiled = load({
+      "version": 44,
+      "Hyprland": {
+        "managed": {
+          "layout": "master",
+          "columnWidth": 70
+        }
+      }
+    });
+    compare(tiled.config.Hyprland.managed.layout, "master");
+    compare(tiled.config.Workspaces.strips, []);
+    compare(tiled.config.Workspaces.stripColumnWidth, 50);
+    // Outside managed mode the layout was never applied: no strip
+    const detached = load({
+      "version": 44,
+      "Hyprland": {
+        "managed": {
+          "layout": "scrolling"
+        }
+      }
+    });
+    compare(detached.config.Hyprland.managed.layout, "dwindle");
+    compare(detached.config.Workspaces.strips, []);
+  }
+
   function test_v44_floating_osd_becomes_detached_on_nearest_edge() {
     const loaded = load({
       "version": 43,

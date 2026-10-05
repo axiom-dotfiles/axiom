@@ -15,6 +15,9 @@ BarWidget {
 
   hasBackground: true
   accentColor: Theme.resolveColor(properties.backgroundColor)
+  // Its WidgetGroup outlines it in the bar's widget shape while hovered
+  readonly property bool hoverOutline: true
+  readonly property bool hovered: anchor.hovered
 
   StyledRectButton {
     id: button
@@ -24,8 +27,7 @@ BarWidget {
 
     iconText: NotificationManager.dnd ? "notifications_off" : "notifications"
     iconColor: NotificationManager.dnd ? Theme.resolveColor(root.properties.dndColor) : root.colors.icon
-    borderHoverColor: Theme.accent
-    // Its WidgetGroup draws the background
+    // Its WidgetGroup draws the background and the hover outline
     backgroundColor: "transparent"
 
     badgeVisible: root.properties.showCount && NotificationManager.count > 0
@@ -34,6 +36,7 @@ BarWidget {
   }
 
   PopoutAnchor {
+    id: anchor
     popouts: root.popouts
     panel: root.panel
     popoutName: "Notifications"
