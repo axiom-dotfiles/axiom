@@ -148,6 +148,18 @@
       }
     },
 
+    "Polkit": {
+      "type": "object",
+      "x-category": "Screen & Power",
+      "x-card": "PolkitStatus",
+      "title": "Authentication prompts",
+      "description": "The password prompt apps show when they need administrator rights (polkit): installing updates, mounting drives, changing system settings.",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": { "type": "boolean", "title": "Use axiom's prompt", "default": false, "description": "axiom becomes the session's polkit agent: the screen dims and the prompt opens in the middle of the focused monitor. A session has one agent, so axiom stops any other (hyprpolkitagent, KDE's, GNOME's) and leaves it out of the autostart; turned off, a stopped systemd agent starts again." }
+      }
+    },
+
     "NightLight": {
       "type": "object",
       "x-category": "Screen & Power",
