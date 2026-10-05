@@ -36,7 +36,7 @@ Singleton {
   // logind session, kept it from registering)
   readonly property string status: !PolkitConfig.enabled ? "off" : registered ? "running" : _blocked ? "blocked" : "starting"
   // Process names of the agents axiom stopped since it started
-  readonly property var replaced: _replaced
+  readonly property var replaced: JSON.parse(_state.replaced)
   // The monitor the open request shows on: the focused one when it came in
   readonly property string screenName: _screenName
   // From pkaction, for the open request: { description, vendor, vendorUrl }
@@ -60,14 +60,20 @@ Singleton {
 
   property string _screenName: ""
   property var _actionInfo: ({})
-  property var _replaced: []
   property bool _blocked: false
   // Took the agent down to register again (Quickshell deletes the old one
   // later, and a new one made before then doesn't register)
   property bool _paused: false
   property bool _retried: false
-  // Units axiom stopped, started again when it's turned off
-  property var _stoppedUnits: []
+  // Units axiom stopped (started again when it's turned off) and the
+  // agents it stopped, as JSON: kept across a reload, as the agent is
+  PersistentProperties {
+    id: _state
+    reloadableId: "axiomPolkit"
+    property string stoppedUnits: "[]"
+    property string replaced: "[]"
+  }
+  readonly property var _stoppedUnits: JSON.parse(_state.stoppedUnits)
 
   property LazyLoader _loader: LazyLoader {
     id: loader
@@ -90,10 +96,20 @@ Singleton {
     const own = flow.identities.find(identity => !identity.isGroup && identity.string === user);
     if (own && flow.selectedIdentity !== own)
       flow.selectedIdentity = own;
-    if (flow.actionId) {
-      pkaction.command = ["pkaction", "--verbose", "--action-id", flow.actionId];
-      pkaction.running = true;
-    }
+    root._describe();
+  }
+
+  // The action pkaction is describing: a request that came in meanwhile
+  // is described once it's done, and never gets another's description
+  property string _describing: ""
+
+  function _describe() {
+    const id = root.flow?.actionId ?? "";
+    if (id === "" || pkaction.running)
+      return;
+    root._describing = id;
+    pkaction.command = ["pkaction", "--verbose", "--action-id", id];
+    pkaction.running = true;
   }
 
   Process {
@@ -106,8 +122,13 @@ Singleton {
           if (match)
             info[match[1] === "vendor_url" ? "vendorUrl" : match[1]] = match[2].trim();
         }
-        root._actionInfo = info;
+        if (root.flow?.actionId === root._describing)
+          root._actionInfo = info;
       }
+    }
+    onExited: {
+      if ((root.flow?.actionId ?? root._describing) !== root._describing)
+        Qt.callLater(root._describe);
     }
   }
 
@@ -165,19 +186,19 @@ Singleton {
       } else if (root._stoppedUnits.length > 0) {
         restartUnits.command = ["systemctl", "--user", "start"].concat(root._stoppedUnits);
         restartUnits.running = true;
-        root._stoppedUnits = [];
+        _state.stoppedUnits = "[]";
       }
     }
   }
 
   // Calls `then` with the known agents running, by process name
   function _probe(then) {
-    root._probeThen = then;
+    root._probeWaiting.push(then);
     if (!probe.running)
       probe.running = true;
   }
 
-  property var _probeThen: null
+  property var _probeWaiting: []
 
   function _agentNames(text) {
     const names = [];
@@ -195,10 +216,11 @@ Singleton {
     command: ["pgrep", "-af", PolkitAgents.processPattern]
     stdout: StdioCollector {
       onStreamFinished: {
-        const then = root._probeThen;
-        root._probeThen = null;
-        if (then)
-          then(root._agentNames(text));
+        const waiting = root._probeWaiting;
+        root._probeWaiting = [];
+        const names = root._agentNames(text);
+        for (const then of waiting)
+          then(names);
       }
     }
   }
@@ -223,12 +245,10 @@ Singleton {
       onStreamFinished: {
         const units = text.split("\n").filter(line => line.startsWith("unit ")).map(line => line.slice(5).trim());
         const names = root._agentNames(text.split("\n").filter(line => !line.startsWith("unit ")).join("\n"));
-        for (const unit of units)
-          if (!root._stoppedUnits.includes(unit))
-            root._stoppedUnits = root._stoppedUnits.concat([unit]);
+        _state.stoppedUnits = JSON.stringify(root._stoppedUnits.concat(units.filter(unit => !root._stoppedUnits.includes(unit))));
         // A unit's agent is gone by the time its process would print
         const stopped = names.concat(units.map(unit => PolkitAgents.agents.find(agent => agent.unit === unit)?.process ?? unit.replace(/\.service$/, "")));
-        root._replaced = root._replaced.concat(stopped.filter((name, i) => stopped.indexOf(name) === i && !root._replaced.includes(name)));
+        _state.replaced = JSON.stringify(root.replaced.concat(stopped.filter((name, i) => stopped.indexOf(name) === i && !root.replaced.includes(name))));
         if (stopped.length > 0)
           console.log("[PolkitManager] Stopped", stopped.join(", "));
         if (root._registerAfterStop) {

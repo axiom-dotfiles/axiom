@@ -61,6 +61,8 @@ TestCase {
     verify(pattern.test("soteria"));
     verify(!pattern.test("/usr/lib/polkit-1/polkitd --no-debug"), "polkitd itself isn't an agent");
     verify(!pattern.test("vim hyprpolkitagent.conf"));
+    verify(!pattern.test("vim /tmp/soteria"), "an argument naming an agent isn't one");
+    verify(!pattern.test("sh -c /usr/bin/lxpolkit"), "nor is a shell running one");
   }
 
   function test_units() {

@@ -19,11 +19,11 @@ Item {
   // PAM's prompts, failures and errors under the field
   property bool showMessages: true
 
-  implicitHeight: body.implicitHeight
+  implicitHeight: field.implicitHeight
 
   function takeFocus() {
     if (root.active)
-      entry.input.forceActiveFocus();
+      field.input.forceActiveFocus();
   }
 
   Component.onCompleted: {
@@ -40,7 +40,7 @@ Item {
     enabled: root.active
 
     function onActiveFocusItemChanged() {
-      if (!entry.input.activeFocus)
+      if (!field.input.activeFocus)
         Qt.callLater(root.takeFocus);
     }
   }
@@ -50,130 +50,52 @@ Item {
     enabled: root.active
 
     function onAuthenticationFailed(reason) {
-      entry.input.text = "";
+      field.input.text = "";
       root.takeFocus();
-      shake.restart();
+      field.shake();
     }
 
     function onAuthenticationError(error) {
-      entry.input.text = "";
+      field.input.text = "";
       root.takeFocus();
     }
   }
 
-  Column {
-    id: body
+  PasswordEntry {
+    id: field
     width: parent.width
     anchors.verticalCenter: parent.verticalCenter
-    spacing: Widget.padding / 2
+    placeholder: root.placeholder || I18n.tr("Enter password...")
+    centered: root.centered
+    readOnly: !root.active
+    enabled: !root.active || !AuthManager.isAuthenticating
+    message: root.active && root.showMessages ? AuthManager.message : ""
+    messageIsError: AuthManager.messageIsError
+    busy: root.active && AuthManager.isAuthenticating
 
-    StyledTextEntry {
-      id: entry
-      width: parent.width
-      height: Widget.height + Widget.padding
-      placeholderText: root.placeholder || I18n.tr("Enter password...")
-      input.passwordCharacter: "•"
-      input.passwordMaskDelay: 0
-      input.horizontalAlignment: root.centered ? Text.AlignHCenter : Text.AlignLeft
-      readOnly: !root.active
-      enabled: !root.active || !AuthManager.isAuthenticating
-      // Imperatively: the alias'd TextInput ignores a declarative echoMode
-      Component.onCompleted: input.echoMode = TextInput.Password
+    // An inert field lets Escape through (the preview closes on it)
+    Keys.onEscapePressed: event => {
+      if (!root.active) {
+        event.accepted = false;
+        return;
+      }
+      input.text = "";
+      AuthManager.clearMessage();
+    }
 
-      // An inert field lets Escape through (the preview closes on it)
-      Keys.onEscapePressed: event => {
-        if (!root.active) {
-          event.accepted = false;
-          return;
-        }
+    Keys.onPressed: event => {
+      if (event.key === Qt.Key_C && event.modifiers & Qt.ControlModifier) {
         input.text = "";
         AuthManager.clearMessage();
-      }
-
-      Keys.onPressed: event => {
-        if (event.key === Qt.Key_C && event.modifiers & Qt.ControlModifier) {
-          input.text = "";
-          AuthManager.clearMessage();
-          event.accepted = true;
-        }
-      }
-
-      onAccepted: {
-        if (root.active && input.text.length > 0 && !AuthManager.isAuthenticating) {
-          AuthManager.authenticate(input.text);
-          input.text = "";
-        }
+        event.accepted = true;
       }
     }
 
-    StyledText {
-      width: parent.width
-      visible: root.active && root.showMessages && AuthManager.message !== ""
-      text: AuthManager.message
-      textColor: AuthManager.messageIsError ? Theme.error : Theme.foregroundAlt
-      textSize: Appearance.fontSize - 2
-      horizontalAlignment: root.centered ? Text.AlignHCenter : Text.AlignLeft
-      elide: Text.ElideRight
-    }
-
-    // While PAM is checking
-    Item {
-      width: parent.width
-      height: 4
-      visible: root.active && AuthManager.isAuthenticating
-
-      StyledContainer {
-        width: parent.width * 0.3
-        height: parent.height
-        backgroundColor: Theme.accent
-
-        SequentialAnimation on x {
-          loops: Animation.Infinite
-          running: root.active && AuthManager.isAuthenticating && Appearance.animations
-
-          NumberAnimation {
-            from: 0
-            to: root.width * 0.7
-            duration: Appearance.animSlow * 3
-            easing.type: Easing.InOutQuad
-          }
-          NumberAnimation {
-            from: root.width * 0.7
-            to: 0
-            duration: Appearance.animSlow * 3
-            easing.type: Easing.InOutQuad
-          }
-        }
+    onAccepted: {
+      if (root.active && input.text.length > 0 && !AuthManager.isAuthenticating) {
+        AuthManager.authenticate(input.text);
+        input.text = "";
       }
-    }
-  }
-
-  SequentialAnimation {
-    id: shake
-
-    NumberAnimation {
-      target: body
-      property: "x"
-      to: 20
-      duration: Appearance.animFast
-    }
-    NumberAnimation {
-      target: body
-      property: "x"
-      to: -20
-      duration: Appearance.animFast
-    }
-    NumberAnimation {
-      target: body
-      property: "x"
-      to: 20
-      duration: Appearance.animFast
-    }
-    NumberAnimation {
-      target: body
-      property: "x"
-      to: 0
-      duration: Appearance.animFast
     }
   }
 }

@@ -19,8 +19,8 @@ PanelWindow {
 
   readonly property var flow: PolkitManager.flow
   readonly property bool shown: flow !== null
-  // The card shows here: the picked screen, else (it's gone) the first
-  readonly property bool hasCard: screen?.name === PolkitManager.screenName || (Quickshell.screens[0] === screen && !Quickshell.screens.some(s => s.name === PolkitManager.screenName))
+  // The card shows here: the picked screen, else (it's gone) the primary
+  readonly property bool hasCard: !!screen && General.screensNamed(PolkitManager.screenName)[0] === screen
   readonly property int pad: 18
 
   // The request's fixed text, kept while the card fades out after it ends
@@ -79,7 +79,7 @@ PanelWindow {
     function onAuthenticationFailed() {
       root.checking = false;
       entry.input.text = "";
-      shake.restart();
+      entry.shake();
       root.takeFocus();
     }
 
@@ -300,68 +300,20 @@ PanelWindow {
       }
 
       // The answer
-      ColumnLayout {
-        id: answer
+      PasswordEntry {
+        id: entry
         Layout.fillWidth: true
-        spacing: Widget.spacing / 2
+        placeholder: (root.flow?.inputPrompt ?? "").trim().replace(/:$/, "") || I18n.tr("Password")
+        centered: false
+        readOnly: !(root.flow?.isResponseRequired ?? false) || root.checking || !root.settled
+        reveal: root.flow?.responseVisible ?? false
+        message: root.flow?.supplementaryMessage ?? ""
+        messageIsError: root.flow?.supplementaryIsError ?? false
+        wrapMessage: true
+        busy: root.checking
 
-        StyledTextEntry {
-          id: entry
-          Layout.fillWidth: true
-          Layout.preferredHeight: Widget.height + Widget.padding
-          placeholderText: (root.flow?.inputPrompt ?? "").trim().replace(/:$/, "") || I18n.tr("Password")
-          readOnly: !(root.flow?.isResponseRequired ?? false) || root.checking || !root.settled
-
-          Keys.onEscapePressed: PolkitManager.cancel()
-          onAccepted: root.submit()
-        }
-
-        // Imperatively: the alias'd TextInput ignores a declarative echoMode
-        Binding {
-          target: entry.input
-          property: "echoMode"
-          value: root.flow?.responseVisible ? TextInput.Normal : TextInput.Password
-        }
-
-        StyledText {
-          Layout.fillWidth: true
-          visible: text !== ""
-          text: root.flow?.supplementaryMessage ?? ""
-          textColor: root.flow?.supplementaryIsError ? Theme.error : Theme.foregroundAlt
-          textSize: Appearance.fontSize - 1
-          wrapMode: Text.WordWrap
-        }
-
-        // While polkit checks
-        Item {
-          Layout.fillWidth: true
-          implicitHeight: 4
-          visible: root.checking
-
-          StyledContainer {
-            width: parent.width * 0.3
-            height: parent.height
-            backgroundColor: Theme.accent
-
-            SequentialAnimation on x {
-              loops: Animation.Infinite
-              running: root.checking && Appearance.animations
-
-              NumberAnimation {
-                from: 0
-                to: answer.width * 0.7
-                duration: Appearance.animSlow * 3
-                easing.type: Easing.InOutQuad
-              }
-              NumberAnimation {
-                from: answer.width * 0.7
-                to: 0
-                duration: Appearance.animSlow * 3
-                easing.type: Easing.InOutQuad
-              }
-            }
-          }
-        }
+        Keys.onEscapePressed: PolkitManager.cancel()
+        onAccepted: root.submit()
       }
 
       RowLayout {
@@ -394,35 +346,6 @@ PanelWindow {
           textColor: Theme.background
           onClicked: root.submit()
         }
-      }
-    }
-
-    SequentialAnimation {
-      id: shake
-
-      NumberAnimation {
-        target: content
-        property: "x"
-        to: root.pad + 20
-        duration: Appearance.animFast
-      }
-      NumberAnimation {
-        target: content
-        property: "x"
-        to: root.pad - 20
-        duration: Appearance.animFast
-      }
-      NumberAnimation {
-        target: content
-        property: "x"
-        to: root.pad + 20
-        duration: Appearance.animFast
-      }
-      NumberAnimation {
-        target: content
-        property: "x"
-        to: root.pad
-        duration: Appearance.animFast
       }
     }
   }
