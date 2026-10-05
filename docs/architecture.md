@@ -1,7 +1,5 @@
 # Architecture notes
 
-Detailed notes on how each service and surface works, moved out of CLAUDE.md so they are read on demand instead of loaded every session. CLAUDE.md holds the rules; this file holds the mechanics. Keep it current when changing a feature, and trust the code over it where they disagree.
-
 ## Services layer (`services/*.qml`)
 
 Every file is `pragma Singleton QtObject` — one global instance per name, imported as `qs.services`. Key ones:
