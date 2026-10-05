@@ -63,6 +63,10 @@ staged=${4:-}
 source=${5:-git}
 channel=${6:-tags}
 if [[ "$action" == check || "$action" == hash ]]; then
+  # No user: these run as whoever calls them (as_user must never take the
+  # source for a user name, which as root would run nothing)
+  user=""
+  staged=""
   source=${3:-git}
   channel=${4:-tags}
 fi

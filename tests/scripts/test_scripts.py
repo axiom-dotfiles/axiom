@@ -1059,6 +1059,22 @@ class GreeterInstall(unittest.TestCase):
         time.sleep(1.1)
         self.assertEqual(self.run_script("hash", source="local"), local)
 
+    def test_check_as_root(self):
+        """As root (pkexec, CI) check runs nothing as another user: its third
+        argument is the source, never a user name."""
+        args = ["unshare", "-r", str(SCRIPTS / "greeter" / "greeter_install.sh"), "check", str(self.repo), "local"]
+        if os.geteuid() == 0:
+            args = args[2:]
+        elif not shutil.which("unshare") or subprocess.run(["unshare", "-r", "true"], capture_output=True).returncode:
+            self.skipTest("no user namespaces to be root in")
+        result = subprocess.run(args, env=self.env, capture_output=True, text=True, timeout=60)
+        report = json.loads(result.stdout)
+        self.assertEqual(report["url"], "")
+        self.assertEqual(report["currentHash"], self.run_script("hash", source="local"))
+        args[args.index("local")] = "git"
+        self.assertEqual(json.loads(subprocess.run(args, env=self.env, capture_output=True, text=True,
+                                                   timeout=60).stdout)["url"], str(self.upstream))
+
     def test_https_for_ssh_remotes(self):
         self.git("remote", "set-url", "origin", "git@github.com:axiom-dotfiles/axiom.git")
         self.assertEqual(self.run_script("check")["url"], "https://github.com/axiom-dotfiles/axiom.git")
