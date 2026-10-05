@@ -35,8 +35,8 @@ Panel {
   // all-day and running events included)
   readonly property var groups: {
     const out = [];
-    let left = root.properties.maxEvents ?? 20;
-    for (let i = 0; i < (root.properties.days ?? 7) && left > 0; i++) {
+    let left = root.properties.maxEvents;
+    for (let i = 0; i < root.properties.days && left > 0; i++) {
       const key = CalendarEvents.addDays(root.todayKey, i);
       const events = CalendarManager.eventsOn(key).filter(event => i > 0 || event.end > root.now).slice(0, left);
       if (events.length > 0)
@@ -48,7 +48,7 @@ Panel {
     }
     return out;
   }
-  readonly property var next: CalendarEvents.nextEvent(CalendarManager.upcoming(root.now, root.now + 7 * 86400000, false), root.now, 7 * 86400000, false)
+  readonly property var next: CalendarEvents.nextEvent(CalendarManager.upcoming(root.now, root.now + root.properties.days * CalendarEvents.dayMs, false), root.now, root.properties.days * CalendarEvents.dayMs, false)
 
   compactContent: CompactFigure {
     icon: "event_note"

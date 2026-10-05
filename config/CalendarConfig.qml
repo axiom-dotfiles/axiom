@@ -13,15 +13,15 @@ QtObject {
   readonly property var savedAccounts: _c.accounts
   // Calendar.accounts, each with an `id` (numbered when left empty) and a
   // `name` (the username or the server's host when left empty)
-  readonly property var accounts: (_c.accounts ?? []).map((account, index) => Object.assign({}, account, {
+  readonly property var accounts: _c.accounts.map((account, index) => Object.assign({}, account, {
       "id": account.id || "account-" + (index + 1),
-      "name": account.name || account.username || root.hostOf(account.url) || "Account " + (index + 1)
+      "name": account.name || account.username || root.hostOf(account.url) || I18n.tr("Account {0}", index + 1)
     }))
   // Every account's calendars, flattened: { id ("<account>|<href>"),
   // account, accountName, kind, href, name, color (the override, else the
   // server's, else the accent), enabled, readOnly, events (it holds
   // events), writable }
-  readonly property var calendars: [].concat(...root.accounts.map(account => (account.calendars ?? []).map(calendar => ({
+  readonly property var calendars: [].concat(...root.accounts.map(account => account.calendars.map(calendar => ({
           "id": account.id + "|" + calendar.href,
           "account": account.id,
           "accountName": account.name,
@@ -31,8 +31,8 @@ QtObject {
           "color": String(calendar.color ? Theme.resolveColor(calendar.color) : (calendar.serverColor || Theme.accent)),
           "enabled": calendar.enabled,
           "readOnly": account.kind !== "caldav" || calendar.readOnly,
-          "events": (calendar.components ?? []).includes("VEVENT"),
-          "writable": account.kind === "caldav" && !calendar.readOnly && (calendar.components ?? []).includes("VEVENT")
+          "events": calendar.components.includes("VEVENT"),
+          "writable": account.kind === "caldav" && !calendar.readOnly && calendar.components.includes("VEVENT")
         }))))
   // The calendars shown, and those of them new events can go to
   readonly property var shownCalendars: root.calendars.filter(calendar => calendar.enabled && calendar.events)

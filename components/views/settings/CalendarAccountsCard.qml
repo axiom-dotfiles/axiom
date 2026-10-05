@@ -43,6 +43,8 @@ FoldingCard {
   onCurrentChanged: {
     root.result = null;
     root.confirmRemove = false;
+    // A password typed for one account is never saved to another
+    passwordField.text = "";
   }
 
   // Passwords may have changed outside the shell (secret-tool, the file)

@@ -400,7 +400,7 @@ QtObject {
       usage: "<when> <title>",
       needsArg: true,
       description: () => I18n.tr("Add an event, e.g. tomorrow 3pm Dentist"),
-      available: () => CalendarConfig.writableCalendars.length > 0,
+      available: () => !Paths.greeter && CalendarConfig.writableCalendars.length > 0,
       options: arg => root._event(arg),
       run: arg => CalendarManager.quickAdd(arg) ? undefined : false
     },
@@ -764,7 +764,7 @@ QtObject {
         }
       ];
     const day = I18n.formatDate(new Date(parsed.start), I18n.dateFormat("longDate"));
-    const time = I18n.formatDate(new Date(parsed.start), CalendarConfig.timeFormat) + " – " + I18n.formatDate(new Date(parsed.end), CalendarConfig.timeFormat);
+    const time = I18n.tr("{0} – {1}", I18n.formatDate(new Date(parsed.start), CalendarConfig.timeFormat), I18n.formatDate(new Date(parsed.end), CalendarConfig.timeFormat));
     const calendar = CalendarConfig.calendar(CalendarConfig.newEventCalendar);
     return [
       {

@@ -24,17 +24,23 @@ BarIconWidget {
   readonly property real lookahead: root.properties.lookahead * 60000
   readonly property var event: CalendarEvents.nextEvent(CalendarManager.upcoming(root.now, root.now + root.lookahead, root.properties.showAllDay), root.now, root.lookahead, root.properties.showAllDay)
   readonly property int minutesAway: root.event ? Math.ceil((root.event.start - root.now) / 60000) : 0
+  // The event's day (today for one under way): "" for today, else
+  // Tomorrow or its date, since the lookahead can reach past today
+  readonly property string todayKey: CalendarEvents.dayKey(root.now)
+  readonly property string eventDay: root.event ? CalendarEvents.dayKey(Math.max(root.event.start, root.now)) : ""
+  readonly property string dayText: root.eventDay === root.todayKey ? "" : root.eventDay === CalendarEvents.addDays(root.todayKey, 1) ? I18n.tr("Tomorrow") : I18n.formatDate(CalendarEvents.dateOf(root.eventDay), I18n.dateFormat("shortDate"))
 
   readonly property string when: {
     if (!root.event)
       return "";
     if (root.event.allDay)
-      return I18n.tr("Today");
+      return root.dayText || I18n.tr("Today");
     if (root.minutesAway <= 0)
       return I18n.tr("now");
     if (root.minutesAway < 60)
       return I18n.tr("in {0} min", root.minutesAway);
-    return I18n.formatDate(new Date(root.event.start), CalendarConfig.timeFormat);
+    const time = I18n.formatDate(new Date(root.event.start), CalendarConfig.timeFormat);
+    return root.dayText ? I18n.tr("{0} · {1}", root.dayText, time) : time;
   }
 
   hidden: root.event === null
