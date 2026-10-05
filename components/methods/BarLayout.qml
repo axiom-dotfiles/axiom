@@ -16,13 +16,53 @@ QtObject {
     return shown.reduce((sum, s) => sum + s, 0) + Math.max(0, shown.length - 1) * spacing;
   }
 
+  // How far a section's dividers at its ends (`edge` flags: Separator
+  // widgets) reach in from them, as { lead, trail }: their sizes and the
+  // spacing on their inner side. Such a divider stands in the gap between
+  // sections rather than in its own, so it neither moves the center
+  // section off center nor widens a pill. Zero sizes are passed over; a
+  // section of nothing but dividers has none (they're its content).
+  function edgeHang(sizes, edge, spacing) {
+    const shown = sizes.map((size, i) => ({
+          "size": size,
+          "edge": edge[i] ?? false
+        })).filter(w => w.size > 0);
+    if (shown.every(w => w.edge))
+      return {
+        "lead": 0,
+        "trail": 0
+      };
+    const reach = list => {
+      let sum = 0;
+      for (const w of list) {
+        if (!w.edge)
+          break;
+        sum += w.size + spacing;
+      }
+      return sum;
+    };
+    return {
+      "lead": reach(shown),
+      "trail": reach(shown.slice().reverse())
+    };
+  }
+
+  // Where the center section starts so that its content, without the
+  // dividers at its ends (`hang`, from edgeHang), sits centered, kept
+  // between `lo` and `hi`
+  function _centerStart(c, length, lo, hi, hang) {
+    const skew = ((hang?.trail ?? 0) - (hang?.lead ?? 0)) / 2;
+    return Math.max(lo, Math.min((length - c) / 2 + skew, hi));
+  }
+
   // Returns [{offset, extent}] for each section along the main axis, from
   // their preferred and minimum lengths. `margin` is kept clear at both ends
   // and `gap` between adjacent non-empty sections. With `lockCenter`, the
   // center section always sits dead center at its full size and each side
   // fits itself into the room left on its own half; otherwise the center
-  // slides towards the roomier side when crowded.
-  function layoutSections(pref, min, length, margin, gap, lockCenter) {
+  // slides towards the roomier side when crowded. `centerHang` (edgeHang)
+  // is left out of what's centered.
+  function layoutSections(pref, min, length, margin, gap, lockCenter, centerHang) {
     const sum = values => values.reduce((a, b) => a + b, 0);
     const gapsFor = sections => gap * sections.filter(i => pref[i] > 0).length;
     // Preferred sizes if they fit, else squeezed towards the minimums,
@@ -43,16 +83,16 @@ QtObject {
     let size, centerStart;
     if (lockCenter) {
       const c = Math.min(pref[2], Math.max(0, length - 2 * margin));
-      centerStart = (length - c) / 2;
+      centerStart = root._centerStart(c, length, margin, length - margin - c, centerHang);
       const [l, lc] = fit([pref[0], pref[1]], [min[0], min[1]], centerStart - margin - gapsFor([0, 1]));
-      const [rc, r] = fit([pref[3], pref[4]], [min[3], min[4]], centerStart - margin - gapsFor([3, 4]));
+      const [rc, r] = fit([pref[3], pref[4]], [min[3], min[4]], length - margin - centerStart - c - gapsFor([3, 4]));
       size = [l, lc, c, rc, r];
     } else {
       size = fit(pref, min, length - 2 * margin - gapsFor([0, 1, 3, 4]));
       const [l, lc, c, rc, r] = size;
       const lo = margin + (l > 0 ? l + gap : 0) + (lc > 0 ? lc + gap : 0);
       const hi = length - margin - (r > 0 ? r + gap : 0) - (rc > 0 ? rc + gap : 0) - c;
-      centerStart = Math.max(lo, Math.min((length - c) / 2, hi));
+      centerStart = root._centerStart(c, length, lo, hi, centerHang);
     }
 
     const [l, lc, c, rc, r] = size;
@@ -82,7 +122,7 @@ QtObject {
     ];
   }
 
-  // measures: per section, [{pref, min, priority}]. Returns, per section,
+  // measures: per section, [{pref, min, priority, divides}]. Returns, per section,
   // the widget indices to hide so that every section's minimum length, plus
   // margins and gaps as in layoutSections, fits the bar; `spacing` is the
   // spacing between widgets within a section. The lowest priority goes
@@ -90,7 +130,8 @@ QtObject {
   // within a section to the widget listed last. With `lockCenter`, each half
   // of the bar must fit beside the full-size center on its own, and only the
   // overflowing half loses widgets; the center is only touched if it can't
-  // fit the bar.
+  // fit the bar. The center's dividers (`divides`) are left out of what's
+  // centered, as in layoutSections.
   function overflowHidden(measures, length, margin, gap, spacing, lockCenter) {
     const hidden = measures.map(() => []);
     const spanOf = (s, key) => root.span(measures[s].filter((m, i) => m.pref > 0 && !hidden[s].includes(i)).map(m => m[key]), spacing);
@@ -110,10 +151,12 @@ QtObject {
       }
       if (minSpan(2) > room)
         return [2];
-      const half = (length - Math.min(spanOf(2, "pref"), length - 2 * margin)) / 2 - margin + 0.5;
-      if (sideNeed([0, 1]) > half)
+      const c = Math.min(spanOf(2, "pref"), length - 2 * margin);
+      const hang = root.edgeHang(measures[2].map((m, i) => hidden[2].includes(i) ? 0 : m.pref), measures[2].map(m => m.divides), spacing);
+      const start = root._centerStart(c, length, margin, length - margin - c, hang);
+      if (sideNeed([0, 1]) > start - margin + 0.5)
         return [0, 1];
-      if (sideNeed([3, 4]) > half)
+      if (sideNeed([3, 4]) > length - margin - start - c + 0.5)
         return [4, 3];
       return null;
     };

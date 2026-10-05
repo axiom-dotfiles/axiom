@@ -44,7 +44,8 @@ Item {
   readonly property var measures: root._modules.map(m => ({
         "pref": m.preferredSize,
         "min": m.minimumSize,
-        "priority": m.priority
+        "priority": m.priority,
+        "divides": m.divides
       }))
   readonly property var _shown: root.measures.map((m, i) => m.pref > 0 && !root.hiddenIndices.includes(i))
 
@@ -55,6 +56,12 @@ Item {
 
   readonly property var allocation: BarLayout.allocate(root.measures, root._shown, root.maxExtent, root.spacing)
   readonly property real usedLength: BarLayout.span(root.allocation.sizes, root.spacing)
+  // The dividers (Separators) at the section's ends, which the bar places
+  // in the gap beside it (BarLayout.edgeHang): as measured, for laying the
+  // sections out, and as allocated, for its pill
+  readonly property var _dividers: root.measures.map(m => m.divides)
+  readonly property var layoutHang: BarLayout.edgeHang(root.measures.map((m, i) => root._shown[i] ? m.pref : 0), root._dividers, root.spacing)
+  readonly property var drawnHang: BarLayout.edgeHang(root.allocation.sizes, root._dividers, root.spacing)
   // The widgets with something to show that are hidden for want of room,
   // by their index in the section's config (for the bar editor)
   readonly property var crowdedOut: root.widgets.filter((w, i) => (root.measures[i]?.pref ?? 0) > 0 && !root.allocation.visible[i]).map(w => w.configIndex)
@@ -74,8 +81,15 @@ Item {
   // start square beneath the one before
   readonly property bool _opaque: root.barConfig.widgetStyle === "filled"
   // A widget with no background in a powerline (a Separator) splits the
-  // chain, keeping the bar's spacing each side as between separate widgets
+  // chain, keeping the bar's spacing to the widgets beside it in the
+  // section as between separate widgets. At the section's end the gap to
+  // the next section stands in, as on any other bar.
   readonly property real _looseGap: root.grouping === "powerline" ? root.barConfig.spacing : 0
+  // The first and last widgets with something to show (from their
+  // content, never the room they're given)
+  readonly property var _hasContent: root._modules.map(m => m.naturalSize > 0)
+  readonly property int _firstContent: root._hasContent.indexOf(true)
+  readonly property int _lastContent: root._hasContent.lastIndexOf(true)
 
   // The index of the next widget shown after `index`, or -1
   function _nextShown(index) {
@@ -214,8 +228,8 @@ Item {
       // Clear of its caps; a widget with no background sits loose
       readonly property var _place: root._insetPlaces[module.index] ?? null
       readonly property var _segment: root.segmentAt(_place)
-      leadInset: module.hasBackground ? module._segment.lead : root._looseGap
-      trailInset: module.hasBackground ? module._segment.trail : root._looseGap
+      leadInset: module.hasBackground ? module._segment.lead : (module.index > root._firstContent ? root._looseGap : 0)
+      trailInset: module.hasBackground ? module._segment.trail : (module.index < root._lastContent ? root._looseGap : 0)
 
       barConfig: root.barConfig
       properties: module.modelData.properties || {}

@@ -46,6 +46,44 @@ TestCase {
     compare(s[0].extent, 390);
   }
 
+  function test_edgeHang() {
+    // Dividers at each end, with the spacing on their inner side
+    compare(BarLayout.edgeHang([10, 50, 8, 12], [true, false, true, true], 4), {
+      "lead": 14,
+      "trail": 28
+    });
+    // Zero sizes are passed over; none at the ends
+    compare(BarLayout.edgeHang([0, 50, 10, 50], [true, false, true, false], 4), {
+      "lead": 0,
+      "trail": 0
+    });
+    // Nothing but dividers: they're the content
+    compare(BarLayout.edgeHang([10, 10], [true, true], 4), {
+      "lead": 0,
+      "trail": 0
+    });
+  }
+
+  function test_layoutSections_center_hang() {
+    // A 20 px divider (and 10 spacing) trailing the center: its 170 px of
+    // content stays centered, the divider sitting in the gap after it
+    const hang = {
+      "lead": 0,
+      "trail": 30
+    };
+    const s = BarLayout.layoutSections([0, 0, 200, 100, 0], [0, 0, 200, 100, 0], 1000, 0, 10, false, hang);
+    compare(s[2].offset, 415);
+    compare(s[3].offset, 625);
+    // The same divider leading the right-center section instead: the same places
+    const t = BarLayout.layoutSections([0, 0, 170, 130, 0], [0, 0, 170, 130, 0], 1000, 0, 10, false);
+    compare(t[2].offset, 415);
+    compare(t[3].offset + 30, 625);
+    // Locked: centered too, the right half losing the divider's room
+    const locked = BarLayout.layoutSections([0, 0, 200, 600, 0], [0, 0, 200, 0, 0], 1000, 0, 10, true, hang);
+    compare(locked[2].offset, 415);
+    compare(locked[3].extent, 375);
+  }
+
   function test_layoutSections_squeeze_and_scale() {
     // 300 of room: 400 preferred squeezed halfway to the 200 minimum
     const squeezed = BarLayout.layoutSections([200, 0, 0, 0, 200], [100, 0, 0, 0, 100], 300, 0, 0, false);
@@ -84,6 +122,16 @@ TestCase {
     // Center 200 in 1000 leaves 400 each side; only the left overflows
     const hidden = BarLayout.overflowHidden([[m(300), m(300)], [], [m(200)], [], [m(300)]], 1000, 0, 0, 0, true);
     compare(hidden, [[1], [], [], [], []]);
+  }
+
+  function test_overflowHidden_lockCenter_center_hang() {
+    // A 30 px divider trailing the 200 px center: centered on its 170 px of
+    // content it starts at 415, leaving 415 on the left and 385 on the right
+    const divider = Object.assign(m(30), {
+      "divides": true
+    });
+    const hidden = BarLayout.overflowHidden([[m(410)], [], [m(170), divider], [], [m(390)]], 1000, 0, 0, 0, true);
+    compare(hidden, [[], [], [], [], [0]]);
   }
 
   function test_allocate_fits() {
