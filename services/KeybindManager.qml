@@ -619,8 +619,8 @@ QtObject {
       list.push({
         "id": "strips",
         "title": I18n.tr("Strips"),
-        "description": I18n.tr("SUPER + [ or ] swaps the column with the one before or after, SUPER + = or - steps its width, SUPER + CTRL + F fits the visible columns"),
-        "binds": [root._workspaceBind("SUPER + bracketleft", "stripSwapColumn", "left"), root._workspaceBind("SUPER + bracketright", "stripSwapColumn", "right"), root._workspaceBind("SUPER + equal", "stripWider", ""), root._workspaceBind("SUPER + minus", "stripNarrower", ""), root._workspaceBind("SUPER + CTRL + F", "stripFit", "")]
+        "description": I18n.tr("SUPER + [ or ] swaps the column with the one before or after, SUPER + = or - steps its width, SUPER + CTRL + F fits the visible columns, SUPER + scroll moves focus along it"),
+        "binds": [root._workspaceBind("SUPER + bracketleft", "stripSwapColumn", "left"), root._workspaceBind("SUPER + bracketright", "stripSwapColumn", "right"), root._workspaceBind("SUPER + equal", "stripWider", ""), root._workspaceBind("SUPER + minus", "stripNarrower", ""), root._workspaceBind("SUPER + CTRL + F", "stripFit", ""), root._workspaceBind("SUPER + mouse_down", "focusDir", "right"), root._workspaceBind("SUPER + mouse_up", "focusDir", "left")]
       });
     list.push({
       "id": "switcher",
@@ -747,6 +747,8 @@ hl.dispatch(hl.dsp.submap("${_recordSubmap}"))`
       "mouse:274": "MMB",
       "mouse_up": "Scroll ↑",
       "mouse_down": "Scroll ↓",
+      "mouse_left": "Scroll ←",
+      "mouse_right": "Scroll →",
       "left": "←",
       "right": "→",
       "up": "↑",

@@ -603,8 +603,6 @@ if #errors > 0 then error(table.concat(errors, "\\n")) end
   readonly property string _unbindLua: "for _, key in ipairs(AXIOM_RUNTIME_KEYS or {}) do hl.unbind(key) end\nAXIOM_RUNTIME_KEYS = nil"
   // The monitor profiles (JSON) the runtime layer last applied
   property var _monitorsApplied: null
-  // The strips (WorkspacesConfig._stripsJson) it last applied
-  property var _stripsApplied: null
   // Keys skipped as taken, so each is only reported once
   property var _reportedTaken: ({})
   property bool _runtimeWanted: false
@@ -618,7 +616,6 @@ if #errors > 0 then error(table.concat(errors, "\\n")) end
   function _clearRuntime() {
     _runtimeWanted = false;
     _monitorsApplied = null;
-    _stripsApplied = null;
     _skippedKeys = [];
     HyprlandManager.runLua(_unbindLua);
     KeybindManager.refreshSoon();
@@ -653,15 +650,8 @@ if #errors > 0 then error(table.concat(errors, "\\n")) end
       lines.push(...HyprLua.monitorsLua(HyprlandConfig.monitorProfiles));
       _monitorsApplied = HyprlandConfig._monitorsJson;
     }
-    // Strips once after each reload. Their rules can't be taken back, so a
-    // change reloads Hyprland, whose configreloaded applies the new ones
-    // over the user's config alone.
-    if (_stripsApplied === null) {
-      lines.push(..._stripsLua());
-      _stripsApplied = WorkspacesConfig._stripsJson;
-    } else if (_stripsApplied !== WorkspacesConfig._stripsJson) {
-      reload.running = true;
-    }
+    // Strips once per Hyprland load (HyprLua.stripsRuntimeLua)
+    lines.push(...HyprLua.stripsRuntimeLua(_stripsLua(), WorkspacesConfig._stripsJson));
     lines.push(`AXIOM_RUNTIME_KEYS = { ${keys.map(key => _lua(key)).join(", ")} }`);
     _skippedKeys = skipped;
     HyprlandManager.runLua(lines.join("\n"));
@@ -801,7 +791,6 @@ if #errors > 0 then error(table.concat(errors, "\\n")) end
         return;
       // A reload drops runtime binds and rules
       root._monitorsApplied = null;
-      root._stripsApplied = null;
       if (root.mode === "detached")
         root._debounce.restart();
       else

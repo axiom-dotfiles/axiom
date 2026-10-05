@@ -46,4 +46,11 @@ TestCase {
     const parts = KeyNames.split(combo);
     compare(KeyNames.join(parts.mods, parts.key), combo);
   }
+
+  function test_fromWheel() {
+    compare(KeyNames.fromWheel(0, -120, Qt.MetaModifier, []), "SUPER + mouse_down");
+    compare(KeyNames.fromWheel(0, 120, Qt.NoModifier, ["SUPER"]), "SUPER + mouse_up");
+    compare(KeyNames.fromWheel(120, 0, Qt.ShiftModifier | Qt.MetaModifier, []), "SUPER + SHIFT + mouse_left");
+    compare(KeyNames.fromWheel(0, 0, Qt.MetaModifier, []), "");
+  }
 }

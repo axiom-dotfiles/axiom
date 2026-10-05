@@ -1716,7 +1716,7 @@
           "x-group": "Strips",
           "title": "Strips",
           "default": [],
-          "description": "Monitors whose windows sit side by side on a strip that scrolls (Hyprland's scrolling layout) instead of tiling. New windows open as a new column after the focused one. Monitors not listed keep tiling.",
+          "description": "Monitors whose windows sit side by side on a strip that scrolls (Hyprland's scrolling layout) instead of tiling. New windows open as a new column after the focused one.",
           "items": {
             "type": "object",
             "additionalProperties": false,
@@ -3692,7 +3692,7 @@
             "showAppIcons": { "type": "boolean", "title": "App icons", "default": false, "description": "Show the largest window's icon on occupied workspaces (in a grid, on the bar and in the popout)." },
             "wideActive": { "type": "boolean", "title": "Wide active", "default": true, "x-showIf": { "/Workspaces.layout": ["standard", "grid"] }, "description": "Make the active workspace twice as long." },
             "showActiveIcon": { "type": "boolean", "title": "Active icon", "default": true, "x-showIf": { "/Workspaces.layout": "grid" }, "description": "Show an arrow on the active workspace, pointing to where the shown row (or column) is in the grid." },
-            "showPopout": { "type": "boolean", "title": "Popout", "default": true, "x-showIf": { "anyOf": [{ "/Workspaces.layout": "grid" }, { "/Workspaces.strips": { "notEmpty": true } }] }, "description": "Open the whole grid when hovered; on a strip monitor, every workspace with its windows in strip order." },
+            "showPopout": { "type": "boolean", "title": "Popout", "default": true, "x-showIf": { "anyOf": [{ "/Workspaces.layout": "grid" }, { "/Workspaces.strips": { "notEmpty": true } }] }, "description": "In a grid, open the whole grid when hovered. Otherwise, on a strip monitor, open every workspace with its windows in strip order." },
             "clickToSwitch": { "type": "boolean", "title": "Click to switch", "default": true, "description": "Click a workspace (on the bar or in the grid popout) to go to it." },
             "scrollToSwitch": { "type": "boolean", "title": "Scroll to switch", "default": true, "description": "Scroll over the widget to step through the workspaces (along the shown row or column in a grid)." },
             "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "neutral", "description": "Behind the workspaces, in the bar's widget style." },

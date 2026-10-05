@@ -223,6 +223,29 @@ assert(rules[1].layout == "scrolling" and rules[1].layout_opts.direction == "rig
     tryVerify(() => written.done, 2000);
   }
 
+  // Applied once per Hyprland load; other strips reload it
+  function test_stripsRuntimeLua_runs() {
+    const lines = HyprLua.stripsRuntimeLua([`hl.workspace_rule({ workspace = "m[DP-1]" })`], "a");
+    const lua = `local rules, reloads = 0, 0
+hl = {
+  workspace_rule = function() rules = rules + 1 end,
+  dispatch = function(d) reloads = reloads + 1 end,
+  dsp = { exec_cmd = function(c) return c end },
+}
+local function apply()
+${lines.join("\n")}
+end
+apply(); apply()
+assert(rules == 1 and reloads == 0, "applied once")
+AXIOM_STRIPS = "b"
+apply()
+assert(rules == 1 and reloads == 1, "other strips reload")
+`;
+
+    const written = files.write("tests/.out/stripsRuntime.run.lua", lua);
+    tryVerify(() => written.done, 2000);
+  }
+
   // --- Monitors ---
 
   readonly property var ruleDefaults: {

@@ -519,9 +519,9 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
   }
 
   // Scrolls the strip of a monitor's active workspace a column on (1) or
-  // back (-1), leaving focus (and so the cursor) where it is. Layout
-  // messages act on the focused workspace, so only on the focused monitor,
-  // and only with windows to scroll (Hyprland refuses it on an empty one).
+  // back (-1). Layout messages act on the focused workspace, so only on the
+  // focused monitor, and only with windows to scroll (Hyprland refuses it
+  // on an empty one).
   function stepStrip(direction, monitor) {
     if (monitor && monitor === Hyprland.focusedMonitor && (monitor.activeWorkspace?.toplevels.values.length ?? 0) > 0)
       Hyprland.dispatch(`hl.dsp.layout("move ${direction > 0 ? "+col" : "-col"}")`);

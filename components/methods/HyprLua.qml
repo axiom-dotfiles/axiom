@@ -129,6 +129,16 @@ QtObject {
     return lines;
   }
 
+  // The runtime (detached) form of stripsLua's `lines`: applied once per
+  // Hyprland config load, since workspace rules add up rather than
+  // replace. `key` names what they are (in AXIOM_STRIPS, Hyprland's Lua
+  // state, which a reload resets and a shell reload keeps); different
+  // strips can't be taken back, so they reload Hyprland, which applies the
+  // new ones over the user's config alone.
+  function stripsRuntimeLua(lines, key) {
+    return [`if AXIOM_STRIPS == nil then`].concat(lines.map(line => "  " + line), [`  AXIOM_STRIPS = ${string(key)}`, `elseif AXIOM_STRIPS ~= ${string(key)} then`, `  hl.dispatch(hl.dsp.exec_cmd("hyprctl reload"))`, `end`]);
+  }
+
   // --- Monitors (Hyprland.monitors, MonitorLayout) ---
 
   // A monitor rule (the MonitorRule schema) as hl.monitor()'s spec: output,
