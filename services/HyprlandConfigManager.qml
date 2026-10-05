@@ -12,7 +12,7 @@ import qs.components.methods
 /*
  * Sets Hyprland up for axiom (the Hyprland section, HyprlandConfig.mode).
  * One Lua "layer" (binds, required settings, themed borders, blur, monitor
- * profiles) reaches
+ * profiles, strips) reaches
  * Hyprland in one of three ways:
  *   detached  evaluated at runtime (hyprctl eval), again after every config
  *             reload, which drops it; binds on keys already taken are skipped
@@ -202,6 +202,13 @@ Singleton {
       "toggleGroup": [() => "hl.dsp.group.toggle()", "Toggle group", "Window"],
       "pseudo": [() => "hl.dsp.window.pseudo()", "Pseudotile", "Window"],
       "toggleSplit": [() => `hl.dsp.layout("togglesplit")`, "Toggle split", "Window"],
+      // Strips (the scrolling layout): the column before (left, up) or
+      // after (right, down) swaps with the focused one; widths step through
+      // scrolling.explicit_column_widths
+      "stripSwapColumn": [arg => `hl.dsp.layout(${_lua("swapcol " + (arg === "left" || arg === "up" ? "l" : "r"))})`, "Swap column {0}", "Window"],
+      "stripWider": [() => `hl.dsp.layout("colresize +conf")`, "Widen column", "Window"],
+      "stripNarrower": [() => `hl.dsp.layout("colresize -conf")`, "Narrow column", "Window"],
+      "stripFit": [() => `hl.dsp.layout("fit visible")`, "Fit visible columns", "Window"],
       // Any dispatcher, as Lua (`hl.dsp.layout("swapsplit")`), compiled
       // when the bind is made so a mistake only leaves that bind doing
       // nothing instead of breaking the whole file
@@ -352,6 +359,10 @@ Singleton {
     return lines.map(line => line === "" ? "" : prefix + line).join("\n");
   }
 
+  function _stripsLua() {
+    return HyprLua.stripsLua(WorkspacesConfig.strips, ConfigManager.configSchema?.properties?.Workspaces, WorkspacesConfig.stripOptions);
+  }
+
   // The included file: a module whose setup() applies what's enabled
   function moduleLua() {
     const binds = HyprlandConfig.binds.map(bind => _bindLua(bind)).filter(line => line !== "").concat(_switcherLua(HyprlandConfig.binds));
@@ -365,6 +376,7 @@ Singleton {
       setup.push("M.blur()");
     setup.push("M.layers()");
     setup.push("M.monitors()");
+    setup.push("M.strips()");
     return `${_header} from its Hyprland settings, and rewritten whenever they
 -- (or the theme) change: edit those, not this file.
 --
@@ -403,6 +415,11 @@ end
 -- again whenever a monitor comes or goes
 function M.monitors()
 ${_indent(HyprLua.monitorsLua(HyprlandConfig.monitorProfiles), "  ")}
+end
+
+-- Strips (the scrolling layout) on the monitors Workspaces lists
+function M.strips()
+${_indent(_stripsLua(), "  ")}
 end
 
 function M.setup()
@@ -586,6 +603,8 @@ if #errors > 0 then error(table.concat(errors, "\\n")) end
   readonly property string _unbindLua: "for _, key in ipairs(AXIOM_RUNTIME_KEYS or {}) do hl.unbind(key) end\nAXIOM_RUNTIME_KEYS = nil"
   // The monitor profiles (JSON) the runtime layer last applied
   property var _monitorsApplied: null
+  // The strips (WorkspacesConfig._stripsJson) it last applied
+  property var _stripsApplied: null
   // Keys skipped as taken, so each is only reported once
   property var _reportedTaken: ({})
   property bool _runtimeWanted: false
@@ -599,6 +618,7 @@ if #errors > 0 then error(table.concat(errors, "\\n")) end
   function _clearRuntime() {
     _runtimeWanted = false;
     _monitorsApplied = null;
+    _stripsApplied = null;
     _skippedKeys = [];
     HyprlandManager.runLua(_unbindLua);
     KeybindManager.refreshSoon();
@@ -632,6 +652,15 @@ if #errors > 0 then error(table.concat(errors, "\\n")) end
     if (_monitorsApplied !== HyprlandConfig._monitorsJson) {
       lines.push(...HyprLua.monitorsLua(HyprlandConfig.monitorProfiles));
       _monitorsApplied = HyprlandConfig._monitorsJson;
+    }
+    // Strips once after each reload. Their rules can't be taken back, so a
+    // change reloads Hyprland, whose configreloaded applies the new ones
+    // over the user's config alone.
+    if (_stripsApplied === null) {
+      lines.push(..._stripsLua());
+      _stripsApplied = WorkspacesConfig._stripsJson;
+    } else if (_stripsApplied !== WorkspacesConfig._stripsJson) {
+      reload.running = true;
     }
     lines.push(`AXIOM_RUNTIME_KEYS = { ${keys.map(key => _lua(key)).join(", ")} }`);
     _skippedKeys = skipped;
@@ -750,7 +779,7 @@ if #errors > 0 then error(table.concat(errors, "\\n")) end
   }
 
   // Everything the layer is made of; a change re-applies it
-  readonly property string _inputs: [mode, HyprlandConfig._bindsJson, HyprlandConfig._monitorsJson, HyprlandConfig._managedJson, HyprlandConfig.requiredSettings, HyprlandConfig.theme, HyprlandConfig.blur, Theme.borderFocus, Theme.border, Theme.baseColorNames.map(name => Theme.resolveColor(name)).join(","), Appearance.borderRadius, Appearance.borderWidth, Appearance.animFast, Appearance.animations, Apps.terminalCommand, Apps.fileManagerCommand, Apps.browserCommand, Idle.enabled, PolkitConfig.enabled].join("|")
+  readonly property string _inputs: [mode, HyprlandConfig._bindsJson, HyprlandConfig._monitorsJson, HyprlandConfig._managedJson, WorkspacesConfig._stripsJson, HyprlandConfig.requiredSettings, HyprlandConfig.theme, HyprlandConfig.blur, Theme.borderFocus, Theme.border, Theme.baseColorNames.map(name => Theme.resolveColor(name)).join(","), Appearance.borderRadius, Appearance.borderWidth, Appearance.animFast, Appearance.animations, Apps.terminalCommand, Apps.fileManagerCommand, Apps.browserCommand, Idle.enabled, PolkitConfig.enabled].join("|")
   on_InputsChanged: _debounce.restart()
 
   property Timer _debounce: Timer {
@@ -772,6 +801,7 @@ if #errors > 0 then error(table.concat(errors, "\\n")) end
         return;
       // A reload drops runtime binds and rules
       root._monitorsApplied = null;
+      root._stripsApplied = null;
       if (root.mode === "detached")
         root._debounce.restart();
       else

@@ -99,6 +99,36 @@ QtObject {
     return `{\n${keys.map(key => `${pad}  ${entry(key)},`).join("\n")}\n${pad}}`;
   }
 
+  // --- Strips (Workspaces.strips, WorkspacesConfig.strips) ---
+
+  readonly property var _stripDirections: ({
+      "horizontal": "right",
+      "vertical": "down"
+    })
+
+  // Lua lines for the strips (Hyprland's scrolling layout): `strips` is
+  // [{ monitor, direction }] with monitors resolved ("*" = every monitor).
+  // Every monitor makes scrolling, in its direction, the layout everywhere;
+  // a named monitor gets a workspace rule (m[name]) that wins over it. The
+  // Workspaces schema's `x-hypr` strip settings come with them (`values`).
+  // Nothing without strips.
+  function stripsLua(strips, workspacesSchema, values) {
+    if (strips.length === 0)
+      return [];
+    const table = configTable(workspacesSchema, values);
+    const every = strips.find(strip => strip.monitor === "*");
+    if (every) {
+      _set(table, "general.layout", "scrolling");
+      _set(table, "scrolling.direction", _stripDirections[every.direction]);
+    }
+    const lines = Object.keys(table).length > 0 ? [`hl.config(${serialize(table)})`] : [];
+    for (const strip of strips) {
+      if (strip.monitor !== "*")
+        lines.push(`hl.workspace_rule({ workspace = ${string(`m[${strip.monitor}]`)}, layout = "scrolling", layout_opts = { direction = ${string(_stripDirections[strip.direction])} } })`);
+    }
+    return lines;
+  }
+
   // --- Monitors (Hyprland.monitors, MonitorLayout) ---
 
   // A monitor rule (the MonitorRule schema) as hl.monitor()'s spec: output,

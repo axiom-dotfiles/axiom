@@ -51,23 +51,38 @@ Rectangle {
     return map;
   }, {})
   // Hit-testing and layout: [{ address, floating, cell, rect (board coords) }]
-  readonly property var items: root.windows.map(w => {
-    const cell = root.ids.indexOf(w.workspace.id);
-    const origin = WorkspaceGeometry.cellRect(cell, root.cellW, root.cellH, root.gap, root.columns);
-    const at = root.originOf(w.monitor);
-    const r = WorkspaceGeometry.windowRect(w, at.x, at.y, root.miniScale, root.cellW, root.cellH);
-    return {
-      address: w.address,
-      floating: w.floating,
-      cell: cell,
-      rect: {
-        x: origin.x + r.x,
-        y: origin.y + r.y,
-        w: r.w,
-        h: r.h
-      }
-    };
-  })
+  readonly property var items: {
+    const rects = {};
+    for (const w of root.windows) {
+      const at = root.originOf(w.monitor);
+      rects[w.address] = WorkspaceGeometry.windowRect(w, at.x, at.y, root.miniScale, root.cellW, root.cellH);
+    }
+    // A strip's tiled windows squeezed to fit, columns off the monitor too
+    for (const id of root.ids) {
+      const direction = root.stripOn(id);
+      const tiled = direction === "" ? [] : root.windows.filter(w => w.workspace.id === id && !w.floating);
+      if (tiled.length === 0)
+        continue;
+      const at = root.originOf(tiled[0].monitor);
+      WorkspaceGeometry.stripRects(tiled, at.x, at.y, root.miniScale, root.cellW, root.cellH, direction === "vertical").forEach((r, i) => rects[tiled[i].address] = r);
+    }
+    return root.windows.map(w => {
+      const cell = root.ids.indexOf(w.workspace.id);
+      const origin = WorkspaceGeometry.cellRect(cell, root.cellW, root.cellH, root.gap, root.columns);
+      const r = rects[w.address];
+      return {
+        address: w.address,
+        floating: w.floating,
+        cell: cell,
+        rect: {
+          x: origin.x + r.x,
+          y: origin.y + r.y,
+          w: r.w,
+          h: r.h
+        }
+      };
+    });
+  }
   // The previews are modelled by this (through a ScriptModel, which diffs
   // it), so a window event rebuilds nothing, and a window coming or going
   // adds or removes only its own preview (and capture)
@@ -90,6 +105,13 @@ Rectangle {
   function workspaceOrigin(workspaceId) {
     const ws = Hyprland.workspaces.values.find(ws => ws.id === workspaceId);
     return root.originOf(ws?.monitor?.id ?? root.monitor?.id);
+  }
+
+  // The strip direction where a workspace is (this monitor if it doesn't
+  // exist yet), "" where it tiles
+  function stripOn(workspaceId) {
+    const ws = Hyprland.workspaces.values.find(ws => ws.id === workspaceId);
+    return WorkspacesConfig.stripDirection(ws?.monitor?.name ?? root.screen?.name ?? "");
   }
 
   function itemFor(address) {
@@ -160,6 +182,9 @@ Rectangle {
   // Where a tiled window dropped at a point lands (see WorkspaceGeometry)
   function dropTargetAt(cell, point, address) {
     const others = root.items.filter(item => item.cell === cell && !item.floating && item.address !== address);
+    const direction = root.stripOn(root.ids[cell]);
+    if (direction !== "")
+      return WorkspaceGeometry.stripDropTarget(others, point.x, point.y, direction === "vertical");
     return WorkspaceGeometry.dropTarget(others, point.x, point.y, HyprlandManager.splitWidthMultiplier);
   }
 

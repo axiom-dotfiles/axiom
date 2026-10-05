@@ -62,7 +62,9 @@ TestCase {
   function test_showIfHolds() {
     const values = {
       "mode": "grid",
-      "on": true
+      "on": true,
+      "list": [1],
+      "none": []
     };
     const valueOf = key => values[key];
     verify(SchemaLayout.showIfHolds(null, valueOf));
@@ -83,6 +85,17 @@ TestCase {
     verify(!SchemaLayout.showIfHolds({
       "mode": "grid",
       "on": false
+    }, valueOf));
+    // notEmpty: a list with something in it
+    verify(SchemaLayout.showIfHolds({
+      "list": {
+        "notEmpty": true
+      }
+    }, valueOf));
+    verify(!SchemaLayout.showIfHolds({
+      "none": {
+        "notEmpty": true
+      }
     }, valueOf));
     // anyOf: one of its conditions holds, alongside the other keys
     verify(SchemaLayout.showIfHolds({

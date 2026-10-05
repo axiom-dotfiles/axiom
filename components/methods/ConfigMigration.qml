@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 44
+  readonly property int currentVersion: 45
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -115,6 +115,8 @@ QtObject {
       result = _v42ToV43(result, changes);
     if (version < 44)
       result = _v43ToV44(result, changes);
+    if (version < 45)
+      result = _v44ToV45(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -1568,6 +1570,41 @@ QtObject {
       osd.gap = -1;
       changes.push(`OSD.osds[${i}]: floating at ${x}%, ${y}% -> detached on the ${nearest.edge} edge at ${nearest.position}%`);
     });
+    return config;
+  }
+
+  // v45 moved Hyprland's scrolling layout out of Hyprland.managed into
+  // Workspaces.strips (per monitor, in every Hyprland mode): a managed
+  // config on `scrolling` becomes a strip on every monitor, its direction
+  // folded into horizontal or vertical, over dwindle. The column width and
+  // follow-focus settings move with it.
+  function _v44ToV45(config, changes) {
+    const managed = config.Hyprland?.managed;
+    if (!managed || typeof managed !== "object")
+      return config;
+    const scrolling = managed.layout === "scrolling";
+    const direction = ["down", "up"].includes(managed.scrollDirection) ? "vertical" : "horizontal";
+    const width = managed.columnWidth;
+    const follow = managed.scrollFollowFocus;
+    delete managed.columnWidth;
+    delete managed.scrollDirection;
+    delete managed.scrollFollowFocus;
+    if (!scrolling)
+      return config;
+    managed.layout = "dwindle";
+    const workspaces = config.Workspaces && typeof config.Workspaces === "object" ? config.Workspaces : {};
+    workspaces.strips = [
+      {
+        "monitor": "*",
+        "direction": direction
+      }
+    ];
+    if (width !== undefined)
+      workspaces.stripColumnWidth = width;
+    if (follow !== undefined)
+      workspaces.stripFollowFocus = follow;
+    config.Workspaces = workspaces;
+    changes.push(`Hyprland.managed.layout "scrolling" -> Workspaces.strips: every monitor, ${direction}`);
     return config;
   }
 }

@@ -53,7 +53,7 @@ QtObject {
     return result;
   }
 
-  // `x-showIf: { sibling: value | [values] | { not: value } }`: whether
+  // `x-showIf: { sibling: value | [values] | { not: value } | { notEmpty: true } }`: whether
   // it holds (every key), with valueOf(key) giving a sibling's value. A key
   // starting with `/` is a dotted path from the config's root
   // ("/Workspaces.layout"), which valueOf resolves too (callers use
@@ -71,6 +71,8 @@ QtObject {
       // object, not a JS Array
       if (want !== null && typeof want === "object" && typeof want.length === "number")
         return Array.prototype.includes.call(want, value);
+      if (want !== null && typeof want === "object" && want.notEmpty)
+        return (value?.length ?? 0) > 0;
       if (want !== null && typeof want === "object")
         return value !== want.not;
       return value === want;

@@ -8,11 +8,16 @@ import qs.components.reusable
 import qs.components.forms
 
 // How workspaces are laid out (the Workspaces section), with a small
-// picture of two monitors in the chosen layout
+// picture of two monitors in the chosen layout, then whether windows tile
+// or sit on strips (Workspaces.strips: every monitor here, one by one in
+// the list below)
 OnboardingPage {
   id: root
 
   readonly property string layout: WorkspacesConfig.layout
+  // "" (tiling), the direction when every monitor is a strip, else
+  // "custom" (strips per monitor, from the list below: no card selected)
+  readonly property string strips: WorkspacesConfig.strips.length === 1 && WorkspacesConfig.strips[0].monitor === "*" ? WorkspacesConfig.strips[0].direction : WorkspacesConfig.hasStrips ? "custom" : ""
 
   title: I18n.tr("Workspaces")
   intro: I18n.tr("Workspaces are the desktops you switch between with Super + a number. The bar, the overview and the keybinds all follow the layout you pick here.")
@@ -107,5 +112,56 @@ OnboardingPage {
   SettingRows {
     Layout.fillWidth: true
     paths: ["Workspaces.count", "Workspaces.columns", "Workspaces.rows", "Workspaces.wrap"]
+  }
+
+  StyledText {
+    Layout.topMargin: Widget.spacing
+    text: I18n.tr("Windows")
+    font.bold: true
+  }
+
+  Repeater {
+    model: [
+      {
+        "direction": "",
+        "icon": "dashboard",
+        "title": I18n.tr("Tiling"),
+        "description": I18n.tr("Windows share the screen, splitting it between them as they open.")
+      },
+      {
+        "direction": "horizontal",
+        "icon": "view_carousel",
+        "title": I18n.tr("Horizontal strips"),
+        "description": I18n.tr("Windows open side by side on a strip wider than the screen, which scrolls sideways to the focused one.")
+      },
+      {
+        "direction": "vertical",
+        "icon": "view_day",
+        "title": I18n.tr("Vertical strips"),
+        "description": I18n.tr("Windows open one under another on a strip taller than the screen, which scrolls up and down to the focused one.")
+      }
+    ]
+
+    delegate: OptionCard {
+      required property var modelData
+      icon: modelData.icon
+      title: modelData.title
+      description: modelData.description
+      selected: root.strips === modelData.direction
+      recommended: modelData.direction === ""
+      onClicked: SettingsManager.commitValues({
+        "Workspaces.strips": modelData.direction === "" ? [] : [
+          {
+            "monitor": "*",
+            "direction": modelData.direction
+          }
+        ]
+      })
+    }
+  }
+
+  SettingRows {
+    Layout.fillWidth: true
+    paths: ["Workspaces.strips"]
   }
 }

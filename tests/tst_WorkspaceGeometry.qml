@@ -38,6 +38,82 @@ TestCase {
     compare(tiny.w, 8);
   }
 
+  function test_stripRects_squeeze_the_strip_into_the_cell() {
+    // Three 1000 px columns on a 2000 px monitor, the first scrolled half
+    // off it: 3000 px of strip from -500 squeezed into a 100 px cell
+    const wins = [-500, 500, 1500].map(x => ({
+          "at": [x, 0],
+          "size": [1000, 1000]
+        }));
+    const rects = WorkspaceGeometry.stripRects(wins, 0, 0, 0.05, 100, 50, false);
+    compare(rects.map(r => Math.round(r.x)), [0, 33, 67]);
+    compare(Math.round(rects[0].w), 33);
+    compare(rects[0].h, 50);
+    // A strip that fits stays as windowRect has it
+    const fits = WorkspaceGeometry.stripRects([wins[1]], 0, 0, 0.05, 100, 50, false);
+    compare(fits[0], WorkspaceGeometry.windowRect(wins[1], 0, 0, 0.05, 100, 50));
+    // Vertical: squeezed down the cell instead
+    const rows = WorkspaceGeometry.stripRects([0, 1000].map(y => ({
+          "at": [0, y],
+          "size": [2000, 1000]
+        })), 0, 0, 0.05, 100, 50, true);
+    compare(rows.map(r => r.y), [0, 25]);
+    compare(rows[0].h, 25);
+  }
+
+  function test_stripOrder() {
+    const wins = [
+      {
+        "address": "float",
+        "floating": true,
+        "at": [0, 0]
+      },
+      {
+        "address": "right",
+        "at": [900, 0]
+      },
+      {
+        "address": "lower",
+        "at": [-400, 500]
+      },
+      {
+        "address": "upper",
+        "at": [-400, 0]
+      }
+    ];
+    compare(WorkspaceGeometry.stripOrder(wins, false).map(w => w.address), ["upper", "lower", "right", "float"]);
+    compare(WorkspaceGeometry.stripOrder(wins, true).map(w => w.address), ["upper", "right", "lower", "float"]);
+  }
+
+  function test_stripDropTarget_goes_after_the_nearest() {
+    const items = [
+      {
+        "address": "a",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "w": 40,
+          "h": 60
+        }
+      },
+      {
+        "address": "b",
+        "rect": {
+          "x": 50,
+          "y": 0,
+          "w": 40,
+          "h": 60
+        }
+      }
+    ];
+    const target = WorkspaceGeometry.stripDropTarget(items, 55, 10, false);
+    compare(target.address, "b");
+    compare(target.side, "right");
+    compare(target.rect.x, 70);
+    compare(WorkspaceGeometry.stripDropTarget(items, 5, 10, true).side, "bottom");
+    compare(WorkspaceGeometry.stripDropTarget([], 5, 10, false), null);
+  }
+
   function test_windowAt_prefers_floating() {
     const items = [
       {

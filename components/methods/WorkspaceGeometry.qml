@@ -42,16 +42,59 @@ QtObject {
   // A hyprctl client's rect inside its cell. `at` is global layout
   // coordinates, so the monitor's origin comes off first.
   function windowRect(win, monitorX, monitorY, scale, cellW, cellH) {
-    const w = Math.max(8, Math.min((win?.size?.[0] ?? 0) * scale, cellW));
-    const h = Math.max(8, Math.min((win?.size?.[1] ?? 0) * scale, cellH));
-    const x = ((win?.at?.[0] ?? 0) - monitorX) * scale;
-    const y = ((win?.at?.[1] ?? 0) - monitorY) * scale;
+    return _inCell(_scaledRect(win, monitorX, monitorY, scale), cellW, cellH);
+  }
+
+  function _scaledRect(win, monitorX, monitorY, scale) {
     return {
-      x: Math.min(Math.max(x, 0), cellW - w),
-      y: Math.min(Math.max(y, 0), cellH - h),
+      x: ((win?.at?.[0] ?? 0) - monitorX) * scale,
+      y: ((win?.at?.[1] ?? 0) - monitorY) * scale,
+      w: (win?.size?.[0] ?? 0) * scale,
+      h: (win?.size?.[1] ?? 0) * scale
+    };
+  }
+
+  // A rect kept inside its cell, at least 8 px each way
+  function _inCell(r, cellW, cellH) {
+    const w = Math.max(8, Math.min(r.w, cellW));
+    const h = Math.max(8, Math.min(r.h, cellH));
+    return {
+      x: Math.min(Math.max(r.x, 0), cellW - w),
+      y: Math.min(Math.max(r.y, 0), cellH - h),
       w: w,
       h: h
     };
+  }
+
+  // A strip workspace's tiled windows (hyprctl clients) inside its cell, as
+  // windowRect but with the whole strip squeezed along its direction to
+  // fit, so columns scrolled off the monitor show too, in order. Rects in
+  // the order of `wins`.
+  function stripRects(wins, monitorX, monitorY, scale, cellW, cellH, vertical) {
+    const rects = wins.map(win => _scaledRect(win, monitorX, monitorY, scale));
+    const pos = vertical ? "y" : "x";
+    const len = vertical ? "h" : "w";
+    const cellLength = vertical ? cellH : cellW;
+    const start = Math.min(0, ...rects.map(r => r[pos]));
+    const end = Math.max(cellLength, ...rects.map(r => r[pos] + r[len]));
+    const k = cellLength / (end - start);
+    return rects.map(r => {
+      const squeezed = Object.assign({}, r);
+      squeezed[pos] = (r[pos] - start) * k;
+      squeezed[len] = r[len] * k;
+      return _inCell(squeezed, cellW, cellH);
+    });
+  }
+
+  // A workspace's windows (hyprctl clients) in strip order: tiled ones by
+  // their place along the strip (a column's windows across it), floating
+  // ones after them
+  function stripOrder(wins, vertical) {
+    const along = vertical ? 1 : 0;
+    const across = 1 - along;
+    const place = (win, axis) => win.at?.[axis] ?? 0;
+    const tiled = wins.filter(win => !win.floating).sort((a, b) => place(a, along) - place(b, along) || place(a, across) - place(b, across));
+    return tiled.concat(wins.filter(win => win.floating));
   }
 
   function contains(r, x, y) {
@@ -120,6 +163,32 @@ QtObject {
         y: first ? r.y : r.y + r.h / 2,
         w: r.w,
         h: r.h / 2
+      }
+    };
+  }
+
+  // Where a tiled window dropped at a point lands on a strip: a new column
+  // after the tiled window nearest the point (the scrolling layout opens a
+  // window after the focused one, which placeWindow focuses). Returns
+  // { address, side, rect: the target's after half } or null.
+  function stripDropTarget(items, x, y, vertical) {
+    const best = items.reduce((nearest, item) => nearest === null || _distance(item.rect, x, y) < _distance(nearest.rect, x, y) ? item : nearest, null);
+    if (best === null)
+      return null;
+    const r = best.rect;
+    return {
+      address: best.address,
+      side: vertical ? "bottom" : "right",
+      rect: vertical ? {
+        x: r.x,
+        y: r.y + r.h / 2,
+        w: r.w,
+        h: r.h / 2
+      } : {
+        x: r.x + r.w / 2,
+        y: r.y,
+        w: r.w / 2,
+        h: r.h
       }
     };
   }

@@ -170,6 +170,59 @@ TestCase {
     tryVerify(() => written.done, 2000);
   }
 
+  // --- Strips ---
+
+  function test_stripsLua_without_strips_writes_nothing() {
+    compare(HyprLua.stripsLua([], {}, {}), []);
+  }
+
+  // Every monitor sets the layout; a named one gets a rule that wins over
+  // it; strip settings only once changed. Run by `lua` with a stubbed hl.
+  function test_stripsLua_runs() {
+    const schema = files.json("config/json/config.schema.json");
+    const workspaces = schema.properties.Workspaces;
+    const options = {
+      "stripColumnWidth": 70,
+      "stripFollowFocus": true
+    };
+    const lines = HyprLua.stripsLua([
+      {
+        "monitor": "*",
+        "direction": "vertical"
+      },
+      {
+        "monitor": "DP-1",
+        "direction": "horizontal"
+      }
+    ], workspaces, options);
+    compare(lines.length, 2);
+    verify(!lines[0].includes("follow_focus"), "a default setting is left to Hyprland");
+    compare(HyprLua.stripsLua([
+      {
+        "monitor": "DP-2",
+        "direction": "vertical"
+      }
+    ], workspaces, {
+      "stripColumnWidth": 50,
+      "stripFollowFocus": true
+    }), [`hl.workspace_rule({ workspace = "m[DP-2]", layout = "scrolling", layout_opts = { direction = "down" } })`]);
+    const lua = `local config, rules = nil, {}
+hl = {
+  config = function(t) config = t end,
+  workspace_rule = function(spec) rules[#rules + 1] = spec end,
+}
+${lines.join("\n")}
+assert(config.general.layout == "scrolling", "every monitor scrolls")
+assert(config.scrolling.direction == "down", "vertical goes down")
+assert(math.abs(config.scrolling.column_width - 0.7) < 1e-6, "column width scaled")
+assert(#rules == 1 and rules[1].workspace == "m[DP-1]", "a rule for the named monitor")
+assert(rules[1].layout == "scrolling" and rules[1].layout_opts.direction == "right", "horizontal goes right")
+`;
+
+    const written = files.write("tests/.out/strips.run.lua", lua);
+    tryVerify(() => written.done, 2000);
+  }
+
   // --- Monitors ---
 
   readonly property var ruleDefaults: {

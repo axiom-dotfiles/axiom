@@ -21,7 +21,7 @@
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 44,
+      "default": 45,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
@@ -505,7 +505,7 @@
               "action": {
                 "type": "string",
                 "title": "Action",
-                "enum": ["launcher", "launcherSearch", "overlay", "overlayPage", "edgeMenu", "dock", "workspaceOverview", "powerMenu", "lock", "toggleDnd", "clearNotifications", "idleInhibit", "nightLight", "nextWallpaper", "workspaceStep", "moveWindowStep", "moveWindowStepSilent", "workspaceNth", "moveWindowNth", "moveWindowNthSilent", "focusDir", "moveWindowDir", "resizeWindow", "closeWindow", "fullscreen", "toggleFloat", "pin", "centerWindow", "toggleGroup", "windowSwitcher", "windowSwitcherReverse", "mouseDrag", "mouseResize", "toggleSpecial", "moveToSpecial", "restartShell", "volumeUp", "volumeDown", "toggleMute", "toggleMicMute", "brightnessUp", "brightnessDown", "mediaPlayPause", "mediaNext", "mediaPrevious", "mediaStop", "terminal", "fileManager", "browser", "screenshot", "screenRecord", "exitHyprland", "exec", "pseudo", "toggleSplit", "lua"],
+                "enum": ["launcher", "launcherSearch", "overlay", "overlayPage", "edgeMenu", "dock", "workspaceOverview", "powerMenu", "lock", "toggleDnd", "clearNotifications", "idleInhibit", "nightLight", "nextWallpaper", "workspaceStep", "moveWindowStep", "moveWindowStepSilent", "workspaceNth", "moveWindowNth", "moveWindowNthSilent", "focusDir", "moveWindowDir", "resizeWindow", "closeWindow", "fullscreen", "toggleFloat", "pin", "centerWindow", "toggleGroup", "windowSwitcher", "windowSwitcherReverse", "mouseDrag", "mouseResize", "toggleSpecial", "moveToSpecial", "restartShell", "volumeUp", "volumeDown", "toggleMute", "toggleMicMute", "brightnessUp", "brightnessDown", "mediaPlayPause", "mediaNext", "mediaPrevious", "mediaStop", "terminal", "fileManager", "browser", "screenshot", "screenRecord", "exitHyprland", "exec", "pseudo", "toggleSplit", "stripSwapColumn", "stripWider", "stripNarrower", "stripFit", "lua"],
                 "x-enumLabels": {
                   "launcher": "App launcher",
                   "launcherSearch": "Launcher with text",
@@ -562,6 +562,10 @@
                   "exec": "Run a command",
                   "pseudo": "Pseudotile window",
                   "toggleSplit": "Toggle split direction",
+                  "stripSwapColumn": "Strip: swap column",
+                  "stripWider": "Strip: widen column",
+                  "stripNarrower": "Strip: narrow column",
+                  "stripFit": "Strip: fit visible columns",
                   "lua": "Hyprland dispatcher (Lua)"
                 },
                 "default": "launcher"
@@ -605,9 +609,9 @@
           "description": "Written into hyprland.lua. Anything else goes in ~/.config/hypr/user/*.lua.",
           "x-showIf": { "mode": "managed" },
           "additionalProperties": false,
-          "x-order": ["layout", "gapsIn", "gapsOut", "preserveSplit", "smartSplit", "smartResizing", "forceSplit", "splitRatio", "masterSize", "masterOrientation", "masterNewStatus", "columnWidth", "scrollDirection", "scrollFollowFocus", "snap", "matchAxiom", "borderSize", "rounding", "activeOpacity", "inactiveOpacity", "fullscreenOpacity", "dimInactive", "dimStrength", "dimSpecial", "windowBlur", "blurSize", "blurPasses", "blurXray", "blurIgnoreOpacity", "blurNewOptimizations", "blurNoise", "blurContrast", "blurVibrancy", "blurPopups", "blurSpecial", "shadow", "shadowRange", "shadowPower", "shadowThemed", "shadowColor", "animations", "animationPreset", "workspaceWraparound", "curves", "customAnimations", "kbLayout", "kbVariant", "kbOptions", "repeatRate", "repeatDelay", "numlockByDefault", "followMouse", "floatSwitchOverrideFocus", "accelProfile", "sensitivity", "leftHanded", "resizeOnBorder", "cursorTheme", "cursorSize", "cursorHideTimeout", "hideCursorOnKeyPress", "noWarps", "naturalScroll", "tapToClick", "disableWhileTyping", "touchpadScrollFactor", "hideLogo", "backgroundThemed", "backgroundColor", "focusOnActivate", "swallow", "swallowRegex", "closeSpecialOnEmpty", "hideSpecialOnWorkspaceChange", "workspaceBackAndForth", "mouseWakesScreen", "keyWakesScreen", "vrr", "scrollEventDelay", "xwaylandZeroScaling", "env", "autostart"],
+          "x-order": ["layout", "gapsIn", "gapsOut", "preserveSplit", "smartSplit", "smartResizing", "forceSplit", "splitRatio", "masterSize", "masterOrientation", "masterNewStatus", "snap", "matchAxiom", "borderSize", "rounding", "activeOpacity", "inactiveOpacity", "fullscreenOpacity", "dimInactive", "dimStrength", "dimSpecial", "windowBlur", "blurSize", "blurPasses", "blurXray", "blurIgnoreOpacity", "blurNewOptimizations", "blurNoise", "blurContrast", "blurVibrancy", "blurPopups", "blurSpecial", "shadow", "shadowRange", "shadowPower", "shadowThemed", "shadowColor", "animations", "animationPreset", "workspaceWraparound", "curves", "customAnimations", "kbLayout", "kbVariant", "kbOptions", "repeatRate", "repeatDelay", "numlockByDefault", "followMouse", "floatSwitchOverrideFocus", "accelProfile", "sensitivity", "leftHanded", "resizeOnBorder", "cursorTheme", "cursorSize", "cursorHideTimeout", "hideCursorOnKeyPress", "noWarps", "naturalScroll", "tapToClick", "disableWhileTyping", "touchpadScrollFactor", "hideLogo", "backgroundThemed", "backgroundColor", "focusOnActivate", "swallow", "swallowRegex", "closeSpecialOnEmpty", "hideSpecialOnWorkspaceChange", "workspaceBackAndForth", "mouseWakesScreen", "keyWakesScreen", "vrr", "scrollEventDelay", "xwaylandZeroScaling", "env", "autostart"],
           "properties": {
-            "layout": { "type": "string", "title": "Layout", "x-group": "Layout", "enum": ["dwindle", "master", "scrolling"], "x-enumLabels": { "dwindle": "Dwindle (binary splits)", "master": "Master and stack", "scrolling": "Scrolling columns" }, "default": "dwindle", "x-hypr": "general.layout", "x-hyprAlways": true },
+            "layout": { "type": "string", "title": "Layout", "x-group": "Layout", "enum": ["dwindle", "master"], "x-enumLabels": { "dwindle": "Dwindle (binary splits)", "master": "Master and stack" }, "default": "dwindle", "description": "How windows tile. For strips (Hyprland's scrolling columns), see Workspaces.", "x-hypr": "general.layout", "x-hyprAlways": true },
             "gapsIn": { "type": "integer", "x-control": "stepper", "title": "Gaps between windows", "x-group": "Layout", "default": 3, "minimum": 0, "maximum": 50, "x-hypr": "general.gaps_in", "x-hyprAlways": true },
             "gapsOut": { "type": "integer", "x-control": "stepper", "title": "Gaps to the edges", "x-group": "Layout", "default": 6, "minimum": 0, "maximum": 100, "x-hypr": "general.gaps_out", "x-hyprAlways": true },
             "preserveSplit": { "type": "boolean", "title": "Keep split direction", "x-group": "Layout", "default": true, "description": "Dwindle keeps a split's direction when the window is resized or moved.", "x-showIf": { "layout": "dwindle" }, "x-hypr": "dwindle.preserve_split", "x-hyprAlways": true },
@@ -618,9 +622,6 @@
             "masterSize": { "type": "integer", "title": "Master size", "x-unit": "%", "x-group": "Layout", "default": 55, "minimum": 5, "maximum": 95, "x-showIf": { "layout": "master" }, "x-hypr": "master.mfact", "x-hyprScale": 0.01 },
             "masterOrientation": { "type": "string", "title": "Master side", "x-group": "Layout", "enum": ["left", "right", "top", "bottom", "center"], "default": "left", "x-showIf": { "layout": "master" }, "x-hypr": "master.orientation" },
             "masterNewStatus": { "type": "string", "title": "New windows become", "x-group": "Layout", "enum": ["slave", "master", "inherit"], "x-enumLabels": { "slave": "Part of the stack", "master": "The master", "inherit": "Like the focused window" }, "default": "slave", "x-showIf": { "layout": "master" }, "x-hypr": "master.new_status" },
-            "columnWidth": { "type": "integer", "title": "Column width", "x-unit": "%", "x-group": "Layout", "default": 50, "minimum": 10, "maximum": 100, "x-showIf": { "layout": "scrolling" }, "x-hypr": "scrolling.column_width", "x-hyprScale": 0.01 },
-            "scrollDirection": { "type": "string", "title": "Columns go", "x-group": "Layout", "enum": ["right", "left", "down", "up"], "default": "right", "x-showIf": { "layout": "scrolling" }, "x-hypr": "scrolling.direction" },
-            "scrollFollowFocus": { "type": "boolean", "title": "Scroll to the focused window", "x-group": "Layout", "default": true, "x-showIf": { "layout": "scrolling" }, "x-hypr": "scrolling.follow_focus" },
             "snap": { "type": "boolean", "title": "Snap floating windows", "x-group": "Layout", "default": false, "description": "Floating windows snap to each other and the screen edges.", "x-hypr": "general.snap.enabled" },
             "matchAxiom": { "type": "boolean", "title": "Match axiom's look", "x-group": "Decoration", "default": true, "description": "Window corners and border width follow Look & Feel → Shape." },
             "borderSize": { "type": "integer", "x-control": "stepper", "title": "Border width", "x-group": "Decoration", "default": 2, "minimum": 0, "maximum": 20, "x-showIf": { "matchAxiom": false } },
@@ -1657,7 +1658,7 @@
     "Workspaces": {
       "type": "object",
       "x-category": "Workspaces",
-      "x-order": ["layout", "count", "columns", "rows", "wrap", "animate"],
+      "x-order": ["layout", "count", "columns", "rows", "wrap", "animate", "strips", "stripColumnWidth", "stripFollowFocus"],
       "title": "Workspaces",
       "description": "How workspaces are laid out, for the bar's workspace widget, the workspace overview and the Workspaces module. Point your workspace keybinds at `qs -c axiom ipc call workspaces <left|right|up|down|go N|nth N>` (and the move… versions) so they follow it too.",
       "additionalProperties": false,
@@ -1709,7 +1710,25 @@
           "title": "Directional slides",
           "default": true,
           "description": "Slide between workspaces whatever Hyprland's own workspace animation style is: sideways in the standard layout; in a grid, sideways between columns and vertically between rows, going by row first, then column."
-        }
+        },
+        "strips": {
+          "type": "array",
+          "x-group": "Strips",
+          "title": "Strips",
+          "default": [],
+          "description": "Monitors whose windows sit side by side on a strip that scrolls (Hyprland's scrolling layout) instead of tiling. New windows open as a new column after the focused one. Monitors not listed keep tiling.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "x-order": ["monitor", "direction"],
+            "properties": {
+              "monitor": { "type": "string", "title": "Monitor", "x-options": "screens", "x-allScreens": true, "default": "", "description": "Empty uses the primary monitor; All monitors makes every monitor a strip, unless another entry names it." },
+              "direction": { "type": "string", "title": "Direction", "enum": ["horizontal", "vertical"], "x-enumLabels": { "horizontal": "Horizontal", "vertical": "Vertical" }, "default": "horizontal", "description": "Horizontal: columns side by side, scrolling sideways. Vertical: rows one under another, scrolling up and down." }
+            }
+          }
+        },
+        "stripColumnWidth": { "type": "integer", "x-group": "Strips", "title": "Column width", "x-unit": "%", "default": 50, "minimum": 10, "maximum": 100, "description": "A new column's share of the monitor.", "x-showIf": { "strips": { "notEmpty": true } }, "x-hypr": "scrolling.column_width", "x-hyprScale": 0.01 },
+        "stripFollowFocus": { "type": "boolean", "x-group": "Strips", "title": "Scroll to the focused window", "default": true, "x-showIf": { "strips": { "notEmpty": true } }, "x-hypr": "scrolling.follow_focus" }
       }
     },
 
@@ -3671,9 +3690,9 @@
             "labels": { "type": "string", "title": "Labels", "enum": ["numbers", "dots"], "x-enumLabels": { "numbers": "Numbers", "dots": "Dots" }, "default": "numbers", "description": "The workspace's number, on the bar and in the grid popout." },
             "relativeNumbers": { "type": "boolean", "title": "Relative numbers", "default": false, "x-showIf": { "/Workspaces.layout": ["perMonitor", "grid"], "labels": "numbers" }, "description": "Number each monitor's workspaces from 1 (11 to 20 on the second monitor show as 1 to 10) instead of by their workspace id, on the bar and in the grid popout." },
             "showAppIcons": { "type": "boolean", "title": "App icons", "default": false, "description": "Show the largest window's icon on occupied workspaces (in a grid, on the bar and in the popout)." },
-            "wideActive": { "type": "boolean", "title": "Wide active", "default": true, "x-showIf": { "/Workspaces.layout": "standard" }, "description": "Make the active workspace twice as long." },
+            "wideActive": { "type": "boolean", "title": "Wide active", "default": true, "x-showIf": { "/Workspaces.layout": ["standard", "grid"] }, "description": "Make the active workspace twice as long." },
             "showActiveIcon": { "type": "boolean", "title": "Active icon", "default": true, "x-showIf": { "/Workspaces.layout": "grid" }, "description": "Show an arrow on the active workspace, pointing to where the shown row (or column) is in the grid." },
-            "showPopout": { "type": "boolean", "title": "Popout", "default": true, "x-showIf": { "/Workspaces.layout": "grid" }, "description": "Open the whole grid when hovered." },
+            "showPopout": { "type": "boolean", "title": "Popout", "default": true, "x-showIf": { "anyOf": [{ "/Workspaces.layout": "grid" }, { "/Workspaces.strips": { "notEmpty": true } }] }, "description": "Open the whole grid when hovered; on a strip monitor, every workspace with its windows in strip order." },
             "clickToSwitch": { "type": "boolean", "title": "Click to switch", "default": true, "description": "Click a workspace (on the bar or in the grid popout) to go to it." },
             "scrollToSwitch": { "type": "boolean", "title": "Scroll to switch", "default": true, "description": "Scroll over the widget to step through the workspaces (along the shown row or column in a grid)." },
             "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "neutral", "description": "Behind the workspaces, in the bar's widget style." },
