@@ -13,13 +13,20 @@ Card {
   id: root
 
   readonly property bool live: root.host?.kind === "greeter" && root.host.preview !== true && Paths.greeter
+  // A slot shorter than the field (one row on a doubled grid): the field
+  // is the whole module, with no card around it
+  readonly property bool tight: root.height - root.pad * 2 < Widget.height
+  readonly property real margin: root.tight ? 0 : root.pad
+
+  color: root.tight || root.bare ? "transparent" : Theme.background
+  border.width: root.tight || root.bare ? 0 : Appearance.borderWidth
 
   StyledComboEntry {
     anchors.left: parent.left
     anchors.right: parent.right
     anchors.verticalCenter: parent.verticalCenter
-    anchors.margins: root.pad
-    height: Math.min(parent.height - root.pad * 2, implicitHeight * 1.4)
+    anchors.margins: root.margin
+    height: Math.min(parent.height - root.margin * 2, implicitHeight * 1.4)
     icon: "desktop_windows"
     readOnly: !root.live
     options: root.live ? GreetdManager.sessions.map(session => ({

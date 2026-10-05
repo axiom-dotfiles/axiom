@@ -33,8 +33,8 @@ QtObject {
   // No card box (an edge menu or the lock screen with moduleBorders off)
   readonly property bool bare: embedded && (host?.bare ?? false)
   // A bare module in an edge menu drops its padding too (the menu pads
-  // it); on the lock screen nothing else would
-  readonly property real pad: OverlayConfig.cardPad(compact, bare && host?.kind !== "lockscreen")
+  // it); on the lock screen and the greeter nothing else would
+  readonly property real pad: OverlayConfig.cardPad(compact, bare && host?.kind !== "lockscreen" && host?.kind !== "greeter")
   // The room inside `pad`
   readonly property real innerWidth: width - pad * 2
   readonly property real innerHeight: height - pad * 2

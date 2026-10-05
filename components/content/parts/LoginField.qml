@@ -35,6 +35,13 @@ Item {
   // greetd asked something besides the password (a one-time code)
   readonly property string prompt: root.active ? GreetdManager.prompt : ""
 
+  // A field's full height; a slot too short for one gets it shrunk to fit
+  readonly property real rowHeight: Widget.height + Widget.padding
+  readonly property real fieldHeight: root.height > 0 ? Math.min(root.rowHeight, root.height) : root.rowHeight
+  // The user above the password when there's room for both, else side by
+  // side (a one-row slot)
+  readonly property bool stacked: root.height <= 0 || root.height >= root.rowHeight * 2 + Widget.spacing
+
   implicitHeight: column.implicitHeight
 
   function takeFocus() {
@@ -79,8 +86,8 @@ Item {
 
     ClippingRectangle {
       visible: root.avatar !== "" && avatarImage.status === Image.Ready
-      Layout.preferredWidth: users.implicitHeight
-      Layout.preferredHeight: users.implicitHeight
+      Layout.preferredWidth: root.stacked ? users.implicitHeight : root.fieldHeight
+      Layout.preferredHeight: Layout.preferredWidth
       Layout.alignment: Qt.AlignVCenter
       radius: width / 2
       color: Theme.backgroundAlt
@@ -95,15 +102,18 @@ Item {
       }
     }
 
-    ColumnLayout {
+    GridLayout {
       id: users
       Layout.fillWidth: true
-      spacing: Widget.spacing
+      columns: root.stacked ? 1 : 2
+      rowSpacing: Widget.spacing
+      columnSpacing: Widget.spacing
 
       StyledComboEntry {
         id: userPicker
         Layout.fillWidth: true
-        Layout.preferredHeight: password.input.implicitHeight + 20
+        Layout.preferredWidth: 1
+        Layout.preferredHeight: root.fieldHeight
         icon: "person"
         editable: true
         readOnly: !root.active
@@ -124,6 +134,8 @@ Item {
       PasswordEntry {
         id: password
         Layout.fillWidth: true
+        Layout.preferredWidth: 1
+        fieldHeight: root.fieldHeight
         placeholder: root.prompt || root.placeholder || I18n.tr("Enter password...")
         centered: root.centered
         reveal: root.active && root.prompt !== "" && GreetdManager.promptEcho

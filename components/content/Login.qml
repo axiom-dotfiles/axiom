@@ -22,6 +22,10 @@ Card {
   // The box draws its own fields, so no card around it: with the layout's
   // passwordBorder a box hugs them instead of filling the slot
   readonly property bool boxed: root.host?.passwordBorder === true
+  // A slot shorter than a field (one row on a doubled grid): the box takes
+  // all of it, without the card's padding
+  readonly property bool tight: root.height - root.pad * 2 < Widget.height + Widget.padding
+  readonly property real margin: root.tight ? 0 : root.pad
 
   color: "transparent"
   border.width: 0
@@ -45,8 +49,8 @@ Card {
     anchors.left: parent.left
     anchors.right: parent.right
     anchors.verticalCenter: parent.verticalCenter
-    anchors.margins: root.pad
-    height: root.boxed ? field.implicitHeight + Widget.padding * 2 : parent.height - root.pad * 2
+    anchors.margins: root.margin
+    height: Math.min(root.boxed ? field.implicitHeight + Widget.padding * 2 : Infinity, parent.height - root.margin * 2)
     radius: Widget.radius
     color: root.boxed ? Theme.background : "transparent"
     border.color: Theme.border

@@ -93,6 +93,8 @@ Item {
     readOnly: root.readOnly || !root.editable
     input.leftPadding: root.icon !== "" ? Appearance.fontSize * 1.6 : 0
     input.rightPadding: Appearance.fontSize * 1.6
+    // One line, cut off rather than wrapped in a narrow field
+    input.wrapMode: TextInput.NoWrap
     onTextChanged: {
       if (!root.editable || !entry.input.activeFocus)
         return;
