@@ -30,6 +30,7 @@ import stat
 import subprocess
 import sys
 import tempfile
+import time
 import tomllib
 import unittest
 from pathlib import Path
@@ -983,10 +984,11 @@ class GreeterInstall(unittest.TestCase):
         self.original = ('[terminal]\nvt = 1\n\n[default_session]\n# the greeter\n'
                          f'command = "agreety --cmd /bin/sh"\nuser = "{self.user}"\n')
         self.config.write_text(self.original)
-        greetd = self.root / "usr/bin/greetd"
-        greetd.parent.mkdir(parents=True)
-        greetd.write_text("#!/bin/sh\n")
-        greetd.chmod(0o755)
+        for name in ["greetd", "agreety"]:
+            program = self.root / "usr/bin" / name
+            program.parent.mkdir(parents=True, exist_ok=True)
+            program.write_text("#!/bin/sh\n")
+            program.chmod(0o755)
         link = self.root / "etc/systemd/system/display-manager.service"
         link.parent.mkdir(parents=True)
         link.symlink_to("/usr/lib/systemd/system/sddm.service")
@@ -995,17 +997,47 @@ class GreeterInstall(unittest.TestCase):
                      "docs/notes.md"]:
             (self.repo / name).parent.mkdir(parents=True, exist_ok=True)
             (self.repo / name).write_text(name)
-        subprocess.run(["git", "init", "-q", str(self.repo)], env=self.env, check=True)
-        subprocess.run(["git", "add", "."], cwd=self.repo, env=self.env, check=True)
-        subprocess.run(["git", "commit", "-q", "-m", "x"], cwd=self.repo, env=self.env, check=True)
+        policy = self.repo / "scripts/greeter/org.axiom.greeter.policy"
+        policy.write_text((SCRIPTS / "greeter" / "org.axiom.greeter.policy").read_text())
+        helper = self.repo / "scripts/greeter/greeter_install.sh"
+        shutil.copy(SCRIPTS / "greeter" / "greeter_install.sh", helper)
+        helper.chmod(0o755)
+        self.policy = self.root / "usr/share/polkit-1/actions/org.axiom.greeter.policy"
+        subprocess.run(["git", "init", "-q", "-b", "main", str(self.repo)], env=self.env, check=True)
+        self.git("add", ".")
+        self.git("commit", "-q", "-m", "x")
+        self.git("tag", "-a", "v1.0", "-m", "v1.0")
+        # The clone's upstream, where git installs fetch from
+        self.upstream = self.tmp / "upstream.git"
+        subprocess.run(["git", "clone", "-q", "--bare", str(self.repo), str(self.upstream)], env=self.env, check=True)
+        self.git("remote", "add", "origin", str(self.upstream))
+
+    def git(self, *args, cwd=None):
+        return subprocess.run(["git", *args], cwd=cwd or self.repo, env=self.env, check=True,
+                              capture_output=True, text=True).stdout.strip()
+
+    def publish(self, name, text, tag=None):
+        """A commit on the upstream's main (and a tag on it)."""
+        (self.repo / name).write_text(text)
+        self.git("commit", "-qam", f"{name}: {text}")
+        if tag:
+            self.git("tag", "-a", tag, "-m", tag)
+        self.git("push", "-q", "origin", "main", "--tags")
+
+    def copied(self, name="greeter.qml"):
+        return (self.root / "usr/share/axiom-greeter" / name).read_text()
 
     def tearDown(self):
         shutil.rmtree(self.tmp)
 
-    def run_script(self, action, ok=True):
+    def run_script(self, action, ok=True, source="git", channel="tags", staged=""):
         args = [str(SCRIPTS / "greeter" / "greeter_install.sh"), action, str(self.repo)]
-        if action in ("install", "update", "uninstall"):
+        if action in ("install", "update"):
+            args += [self.user, staged, source, channel]
+        elif action == "uninstall":
             args.append(self.user)
+        else:
+            args += [source, channel]
         result = subprocess.run(args, env=self.env, capture_output=True, text=True, timeout=60)
         self.assertEqual(result.returncode == 0, ok, result.stdout + result.stderr)
         return json.loads(result.stdout) if action != "hash" else result.stdout.strip()
@@ -1018,7 +1050,20 @@ class GreeterInstall(unittest.TestCase):
         self.assertEqual((report["greetd"], report["displayManager"], report["installed"], report["configured"]),
                          (True, "sddm", False, False))
         self.assertEqual(report["greeterUser"], self.user)
-        self.assertEqual(report["currentHash"], self.run_script("hash"))
+        self.assertEqual(report["url"], str(self.upstream))
+        self.assertEqual(report["currentHash"], self.git("rev-parse", "v1.0^{commit}"))
+        self.assertEqual(self.run_script("hash"), report["currentHash"])
+        local = self.run_script("hash", source="local")
+        self.assertRegex(local, "^[0-9a-f]{64}$")
+        # A content hash: it doesn't move with the clock
+        time.sleep(1.1)
+        self.assertEqual(self.run_script("hash", source="local"), local)
+
+    def test_https_for_ssh_remotes(self):
+        self.git("remote", "set-url", "origin", "git@github.com:axiom-dotfiles/axiom.git")
+        self.assertEqual(self.run_script("check")["url"], "https://github.com/axiom-dotfiles/axiom.git")
+        self.git("remote", "set-url", "origin", "ssh://git@example.org/me/axiom.git")
+        self.assertEqual(self.run_script("check")["url"], "https://example.org/me/axiom.git")
 
     def test_install_copies_points_greetd_and_backs_up(self):
         bundle = self.root / "var/lib/axiom-greeter/config"
@@ -1047,9 +1092,7 @@ class GreeterInstall(unittest.TestCase):
         staged.mkdir()
         (staged / "greeter.json").write_text('{"staged": true}')
         (staged / "theme.json").symlink_to("/etc/hostname")
-        args = [str(SCRIPTS / "greeter" / "greeter_install.sh"), "install", str(self.repo), self.user, str(staged)]
-        result = subprocess.run(args, env=self.env, capture_output=True, text=True, timeout=60)
-        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.run_script("install", staged=str(staged))
         fallback = self.root / "usr/share/axiom-greeter/fallback"
         self.assertEqual((fallback / "greeter.json").read_text(), '{"staged": true}')
         self.assertFalse((fallback / "theme.json").exists())
@@ -1061,15 +1104,91 @@ class GreeterInstall(unittest.TestCase):
         self.assertEqual(report["backup"], "")
         self.assertEqual(len(list(self.config.parent.glob("config.toml.axiom-bak-*"))), 1)
 
-    def test_a_change_shows_as_a_new_hash(self):
+    def test_git_tags_takes_the_newest_release_only(self):
+        self.publish("greeter.qml", "unreleased")
         self.run_script("install")
-        (self.repo / "greeter.qml").write_text("changed")
+        self.assertEqual(self.copied(), "greeter.qml")
         report = self.run_script("check")
+        self.assertEqual(report["installedSource"], "git:tags")
+        self.assertEqual(report["installedHash"], report["currentHash"])
+        self.publish("greeter.qml", "v1.10", tag="v1.10")
+        self.publish("shell.qml", "v1.9", tag="v1.9")
+        report = self.run_script("check")
+        self.assertEqual(report["currentHash"], self.git("rev-parse", "v1.10^{commit}"))
         self.assertNotEqual(report["installedHash"], report["currentHash"])
         self.run_script("update")
+        self.assertEqual(self.copied(), "v1.10")
         report = self.run_script("check")
         self.assertEqual(report["installedHash"], report["currentHash"])
-        self.assertEqual((self.root / "usr/share/axiom-greeter/greeter.qml").read_text(), "changed")
+
+    def test_git_main_follows_the_branch(self):
+        self.publish("greeter.qml", "on main")
+        self.run_script("install", channel="main")
+        self.assertEqual(self.copied(), "on main")
+        self.assertEqual(self.run_script("check", channel="main")["installedSource"], "git:main")
+
+    def test_git_ignores_the_clone(self):
+        """Uncommitted edits, local commits and a changed remote don't reach a git copy."""
+        self.run_script("install")
+        (self.repo / "greeter.qml").write_text("edited")
+        self.git("commit", "-qam", "local only")
+        other = self.tmp / "other.git"
+        subprocess.run(["git", "clone", "-q", "--bare", str(self.repo), str(other)], env=self.env, check=True)
+        self.git("tag", "-a", "v9.0", "-m", "v9.0")
+        self.git("push", "-q", str(other), "v9.0")
+        self.git("remote", "set-url", "origin", str(other))
+        report = self.run_script("check")
+        self.assertEqual(report["url"], str(self.upstream))
+        self.assertEqual(report["installedHash"], report["currentHash"])
+        self.run_script("update")
+        self.assertEqual(self.copied(), "greeter.qml")
+
+    def test_local_copies_the_working_tree(self):
+        self.git("checkout", "-q", "-b", "feature")
+        (self.repo / "greeter.qml").write_text("uncommitted")
+        self.run_script("install", source="local")
+        self.assertEqual(self.copied(), "uncommitted")
+        self.assertFalse((self.root / "usr/share/axiom-greeter/docs").exists())
+        report = self.run_script("check", source="local")
+        self.assertEqual(report["installedSource"], "local")
+        self.assertEqual(report["installedHash"], report["currentHash"])
+        (self.repo / "greeter.qml").write_text("edited again")
+        report = self.run_script("check", source="local")
+        self.assertNotEqual(report["installedHash"], report["currentHash"])
+        # A docs edit isn't code
+        self.run_script("update", source="local")
+        (self.repo / "docs/notes.md").write_text("more")
+        report = self.run_script("check", source="local")
+        self.assertEqual(report["installedHash"], report["currentHash"])
+
+    def test_switching_source(self):
+        self.run_script("install", source="local")
+        self.assertEqual(self.run_script("check")["installedSource"], "local")
+        self.run_script("update")
+        self.assertEqual(self.run_script("check")["installedSource"], "git:tags")
+
+    def test_refuses_a_release_without_a_login_screen(self):
+        self.git("rm", "-q", "greeter.qml")
+        self.git("commit", "-qm", "old")
+        self.git("tag", "-a", "v2.0", "-m", "v2.0")
+        self.git("push", "-q", "origin", "main", "--tags")
+        self.assertIn("v2.0 has no login screen", self.run_script("install", ok=False)["error"])
+        self.assertIn("has no login screen", self.run_script("install", ok=False, source="local")["error"])
+        self.assertFalse((self.root / "usr/share/axiom-greeter").exists())
+
+    def test_git_unreachable(self):
+        self.git("remote", "set-url", "origin", str(self.tmp / "missing.git"))
+        self.assertEqual(self.run_script("check")["currentHash"], "")
+        self.assertIn("offline", self.run_script("install", ok=False)["error"])
+
+    def test_policy_names_the_installed_helper(self):
+        self.assertFalse(self.run_script("check")["helper"])
+        self.run_script("install")
+        self.assertTrue(self.run_script("check")["helper"])
+        self.assertIn("<annotate key=\"org.freedesktop.policykit.exec.path\">/usr/share/axiom-greeter/scripts/greeter/greeter_install.sh<",
+                      self.policy.read_text())
+        self.run_script("uninstall")
+        self.assertFalse(self.policy.exists())
 
     def test_section_without_a_command_gets_one(self):
         self.config.write_text(f'[default_session]\nuser = "{self.user}"\n\n[terminal]\nvt = 1\n')
@@ -1097,9 +1216,16 @@ class GreeterInstall(unittest.TestCase):
         self.assertEqual(self.config.read_text(), changed)
 
     def test_refusals(self):
+        (self.root / "usr/bin/agreety").unlink()
+        self.assertFalse(self.run_script("check")["agreety"])
+        self.assertIn("agreety", self.run_script("install", ok=False)["error"])
         self.config.unlink()
         self.assertIn("greetd isn't installed", self.run_script("install", ok=False)["error"])
         self.assertIn("usage", self.run_script("bogus", ok=False)["error"])
+
+    def test_refuses_unknown_source_and_channel(self):
+        self.assertIn("unknown source", self.run_script("install", ok=False, source="svn")["error"])
+        self.assertIn("unknown channel", self.run_script("install", ok=False, channel="beta")["error"])
 
 
 if __name__ == "__main__":

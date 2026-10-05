@@ -34,26 +34,34 @@ QtObject {
 
   // --- What's set up ---
 
-  // The last `check`: { greetd, displayManager, installed, configured,
-  // installedHash, currentHash, greeterUser, bundleWritable, error }, or
+  // The last `check`: { greetd, agreety, displayManager, installed,
+  // configured, helper, installedSource, url, installedHash, currentHash,
+  // greeterUser, bundleWritable, error }, or
   // null before the first
   readonly property var report: _report
   property var _report: null
 
+  // Where the copy's code should come from, as check reports it:
+  // "git:tags" | "git:main" (Greeter.source git, on axiom's own update
+  // channel) | "local"
+  readonly property string wantedSource: GreeterConfig.source === "git" ? "git:" + SelfUpdate.channel : "local"
+  onWantedSourceChanged: root.check()
+
   // "checking" | "checkFailed" (lastError says why) | "noGreetd"
-  // (greetd isn't installed) | "off" |
+  // (greetd or its text login, agreety, isn't installed) | "off" |
   // "notInstalled" (Greeter.enabled, but no copy: set up by hand, or
-  // removed outside axiom) | "outdated" (the copy is behind axiom, or
-  // greetd's command was changed) | "installed"
+  // removed outside axiom) | "outdated" (the copy is behind its source,
+  // came from another source, or greetd's command was changed; a source
+  // that can't be reached isn't behind) | "installed"
   readonly property string status: {
     const report = root._report;
     if (!report)
       return root._checkFailed ? "checkFailed" : "checking";
-    if (!report.greetd)
+    if (!report.greetd || !report.agreety)
       return "noGreetd";
     if (!report.installed)
       return GreeterConfig.enabled ? "notInstalled" : "off";
-    if (!report.configured || report.installedHash !== report.currentHash)
+    if (!report.configured || report.installedSource !== root.wantedSource || (report.currentHash && report.installedHash !== report.currentHash))
       return "outdated";
     return "installed";
   }
@@ -78,11 +86,19 @@ QtObject {
   }
 
   function check() {
-    if (root._checking)
+    if (root._checking) {
+      root._checkAgain = true;
       return;
+    }
     root._checking = true;
-    CommandManager.run(["bash", root._script, "check", Paths.axiomPath], (exitCode, out) => {
+    CommandManager.run(["bash", root._script, "check", Paths.axiomPath].concat(root._sourceArgs), (exitCode, out) => {
       root._checking = false;
+      // Asked again while running (the source changed): its answer is stale
+      if (root._checkAgain) {
+        root._checkAgain = false;
+        root.check();
+        return;
+      }
       const report = root._parse(out);
       if (report.error) {
         console.warn("[GreeterManager] check:", report.error);
@@ -96,6 +112,7 @@ QtObject {
     });
   }
   property bool _checking: false
+  property bool _checkAgain: false
   // The first check failed: nothing is known (a later one keeps the last
   // good report)
   property bool _checkFailed: false
@@ -119,6 +136,10 @@ QtObject {
   // --- Private ---
 
   readonly property string _script: Paths.scriptsPath + "greeter/greeter_install.sh"
+  // The script's <source> <channel>
+  readonly property var _sourceArgs: [GreeterConfig.source, SelfUpdate.channel]
+  // The installed copy's, which org.axiom.greeter.policy names
+  readonly property string _helper: "/usr/share/axiom-greeter/scripts/greeter/greeter_install.sh"
   readonly property string _desktopEntry: "axiom-greeter-update"
 
   function _parse(text) {
@@ -158,7 +179,10 @@ QtObject {
     const external = PolkitManager.status !== "running";
     if (external)
       ShellManager.beginStepAside("greeter");
-    const args = ["pkexec", "/usr/bin/bash", root._script, action, Paths.axiomPath, Quickshell.env("USER")].concat(staging ? [staging] : []);
+    // Once installed, root's own copy of the script, by its polkit action
+    // (its prompt says what it's for); before, the clone's, through bash
+    const program = root._report?.helper === true ? [root._helper] : ["/usr/bin/bash", root._script];
+    const args = ["pkexec"].concat(program, [action, Paths.axiomPath, Quickshell.env("USER")], action === "uninstall" ? [] : [staging].concat(root._sourceArgs));
     CommandManager.run(args, (exitCode, out, err) => {
       ShellManager.endStepAside("greeter");
       root._elevating = false;

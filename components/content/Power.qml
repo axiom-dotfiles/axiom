@@ -7,14 +7,18 @@ import qs.components.reusable
 import qs.components.content.base
 import qs.components.content.parts
 
-// The greeter's power buttons (x-hosts: greeter only): suspend, restart
-// and shut down. Restart and shut down ask for a second click. Only the
-// real greeter runs them: in the layouts editor's preview they do nothing.
+// Power buttons for the lock screen and the greeter (x-hosts: those two
+// only): suspend, restart and shut down, nothing else (never log out or
+// unlock). Restart and shut down ask for a second click. The lock screen
+// runs them as the session (ShellManager.sessionAction), the greeter as
+// greetd's user (GreetdManager.power); in the layouts editor's preview
+// they do nothing.
 // properties: { actions: ["suspend" | "reboot" | "poweroff"] }
 Card {
   id: root
 
-  readonly property bool live: root.host?.kind === "greeter" && root.host.preview !== true && Paths.greeter
+  readonly property string kind: root.host?.kind ?? ""
+  readonly property bool live: root.host?.preview !== true && (root.kind === "greeter" ? Paths.greeter : root.kind === "lockscreen" && !Paths.greeter)
   readonly property var actions: root.properties.actions ?? []
 
   // i18n: I18n.tr("Suspend") I18n.tr("Restart") I18n.tr("Shut down")
@@ -46,8 +50,12 @@ Card {
       return;
     }
     root.armed = "";
-    if (root.live)
+    if (!root.live || !root._info[action])
+      return;
+    if (root.kind === "greeter")
       GreetdManager.power(action);
+    else
+      ShellManager.sessionAction(action);
   }
 
   Timer {

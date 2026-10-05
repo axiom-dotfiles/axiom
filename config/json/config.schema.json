@@ -81,9 +81,17 @@
       "title": "Login screen",
       "description": "Axiom as your login screen (a greetd greeter), laid out on the Layouts page like the lock screen. It runs as greetd's own user from a copy of axiom installed for it, and shows what axiom exports for it here: no root is needed to change it once it's set up.",
       "additionalProperties": false,
-      "x-order": ["monitor", "rememberUser"],
+      "x-order": ["source", "monitor", "rememberUser"],
       "properties": {
         "enabled": { "type": "boolean", "x-settings": false, "default": false, "description": "Set up as the login screen (set by its card's Install and Remove, never by hand)." },
+        "source": {
+          "type": "string",
+          "title": "Code from",
+          "enum": ["git", "local"],
+          "x-enumLabels": { "git": "Git (axiom's repository)", "local": "Local (your clone)" },
+          "default": "git",
+          "description": "Where Install and Update take the login screen's code. Git fetches it as root from the repository axiom was installed from, following releases or main as axiom's updates do: nothing that can write to your clone can change it. Local copies your clone as it is (the checked-out branch, uncommitted changes included), for working on axiom: any program running as you could change what the login screen runs before you next update it."
+        },
         "monitor": { "type": "string", "title": "Login monitor", "x-options": "screens", "default": "", "description": "The monitor the login box shows on. The others show the layout without it, or only the background." },
         "rememberUser": { "type": "boolean", "title": "Remember the last user", "default": true, "description": "Start on whoever logged in last, and on their last session. Off starts with an empty user field." },
         "layout": {
@@ -3375,7 +3383,7 @@
       "x-icon": "power_settings_new",
       "x-defaultSize": [3, 1],
       "x-canvasDetail": "actions",
-      "x-hosts": ["greeter"],
+      "x-hosts": ["lockscreen", "greeter"],
       "required": ["type"],
       "additionalProperties": false,
       "properties": {

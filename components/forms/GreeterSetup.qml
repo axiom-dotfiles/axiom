@@ -31,13 +31,13 @@ ColumnLayout {
     spacing: Widget.spacing
 
     StyledText {
-      text: I18n.tr("The login screen runs under greetd, which isn't installed:")
+      text: I18n.tr("The login screen runs under greetd, with its text login (agreety) as the fallback. Install them:")
       wrapMode: Text.WordWrap
       Layout.fillWidth: true
     }
 
     CodeLine {
-      text: "sudo pacman -S greetd"
+      text: "sudo pacman -S greetd greetd-agreety"
     }
   }
 
@@ -54,7 +54,7 @@ ColumnLayout {
     }
 
     Repeater {
-      model: [I18n.tr("Copies axiom to /usr/share/axiom-greeter, for greetd's user to run (your home folder is private to you)."), I18n.tr("Makes /var/lib/axiom-greeter, with a folder of yours that axiom keeps the login screen's look and layout in: changing them later needs no password."), I18n.tr("Backs up /etc/greetd/config.toml, then changes only its default_session command, to start axiom's login screen in a Hyprland of its own.")]
+      model: [I18n.tr("Copies axiom's code (from where Code from below says) to /usr/share/axiom-greeter, for greetd's user to run (your home folder is private to you)."), I18n.tr("Makes /var/lib/axiom-greeter, with a folder of yours that axiom keeps the login screen's look and layout in: changing them later needs no password."), I18n.tr("Backs up /etc/greetd/config.toml, then changes only its default_session command, to start axiom's login screen in a Hyprland of its own.")]
 
       delegate: StyledText {
         required property string modelData
@@ -76,8 +76,20 @@ ColumnLayout {
   // Behind axiom: why
   StyledText {
     visible: root.status === "outdated"
-    text: root.report?.configured === false ? I18n.tr("greetd's config no longer starts axiom's login screen. Update points it back (after a backup).") : I18n.tr("Axiom changed since its login screen was set up. Its layout and look follow your settings already; Update brings its code up to date, asking for your password.")
+    text: root.report?.configured === false ? I18n.tr("greetd's config no longer starts axiom's login screen. Update points it back (after a backup).") : root.report?.installedSource !== GreeterManager.wantedSource ? I18n.tr("The login screen's code came from elsewhere than Code from now says. Update takes it from there, asking for your password.") : I18n.tr("Axiom changed since its login screen was set up. Its layout and look follow your settings already; Update brings its code up to date, asking for your password.")
     textColor: Theme.warning
+    wrapMode: Text.WordWrap
+    Layout.fillWidth: true
+  }
+
+  // Where the code comes from (Greeter.source), and what that trusts
+  StyledText {
+    readonly property bool local: GreeterConfig.source === "local"
+    visible: root.report !== null && root.status !== "noGreetd"
+    // i18n: I18n.tr("the newest release") I18n.tr("the main branch")
+    text: local ? I18n.tr("Code from Local: Update copies your clone as it is, uncommitted changes included. Any program running as you can change that code before you next update, and the password prompt is then the only check. Choose Git unless you're working on axiom.") : I18n.tr("Code from Git: root fetches {0} from {1}, as axiom's own updates follow it. Nothing that can write to your clone can change what the login screen runs.", I18n.tr(SelfUpdate.channel === "main" ? "the main branch" : "the newest release"), root.report?.url || I18n.tr("your clone's remote"))
+    textColor: local ? Theme.warning : Theme.foreground
+    opacity: local ? 1 : 0.7
     wrapMode: Text.WordWrap
     Layout.fillWidth: true
   }

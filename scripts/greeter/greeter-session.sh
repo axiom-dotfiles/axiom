@@ -19,8 +19,10 @@
 
 here=$(dirname "$(readlink -f "$0")")
 copy=$(cd "$here/../.." && pwd)
-# Left by `shell` when the greeter failed twice
-failed="${XDG_RUNTIME_DIR:-/tmp}/axiom-greeter-failed"
+# Left by `shell` when the greeter failed twice: in greetd's user's own
+# folders (its runtime dir, else the greeter's state folder), never a
+# shared one another user could plant it in
+failed="${XDG_RUNTIME_DIR:-/var/lib/axiom-greeter/state}/axiom-greeter-failed"
 # greetd's user has / for a home, which it can't write: caches (Hyprland's,
 # Quickshell's QML cache) go to the greeter's own state folder
 export XDG_CACHE_HOME="${XDG_CACHE_HOME:-/var/lib/axiom-greeter/state/cache}"
@@ -41,6 +43,9 @@ shell)
   fi
   rm -f "$failed"
   echo "axiom greeter: didn't start, falling back to agreety" >&2
-  exec agreety --cmd "${SHELL:-/bin/sh}"
+  # greetd runs the command through sh in the new session, where SHELL
+  # is the login shell of whoever logged in (not greetd's user's)
+  # shellcheck disable=SC2016
+  exec agreety --cmd '${SHELL:-/bin/sh}'
   ;;
 esac
