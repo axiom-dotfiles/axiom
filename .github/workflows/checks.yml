@@ -79,7 +79,7 @@ jobs:
         run: scripts/run_tests.sh
 
       - name: shellcheck
-        run: shellcheck -x -S warning install.sh scripts/*.sh scripts/lib/*.sh
+        run: shellcheck -x -S warning install.sh scripts/*.sh scripts/lib/*.sh scripts/greeter/*.sh
 
       # Theme integrations, self-update on scratch clones, theme generation
       - name: Script tests

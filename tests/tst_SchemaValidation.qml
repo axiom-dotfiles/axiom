@@ -212,6 +212,70 @@ TestCase {
     compare(errors(value), []);
   }
 
+  // Keys beside a $ref override the definition's: one definition, two
+  // defaults (Lockscreen.layout and Greeter.layout share ScreenLayout)
+  function test_ref_siblings_override_the_definition() {
+    const shared = {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "a": {
+          "$ref": "#/definitions/Box",
+          "default": {
+            "items": ["a"]
+          }
+        },
+        "b": {
+          "$ref": "#/definitions/Box",
+          "default": {
+            "items": ["b"]
+          }
+        },
+        "plain": {
+          "$ref": "#/definitions/Box"
+        }
+      },
+      "definitions": {
+        "Box": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "size": {
+              "type": "integer",
+              "default": 2
+            },
+            "items": {
+              "type": "array",
+              "default": [],
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    };
+    const filled = SchemaValidation.applyDefaults({}, shared);
+    compare(filled.a.items, ["a"]);
+    compare(filled.b.items, ["b"]);
+    compare(filled.a.size, 2);
+    compare(filled.plain.items, []);
+    // A value that is there keeps its own, and fills only what's missing
+    compare(SchemaValidation.applyDefaults({
+      "a": {
+        "size": 5
+      }
+    }, shared).a.items, []);
+    compare(SchemaValidation.validationErrors(filled, shared), []);
+    const stray = {
+      "a": {
+        "size": 1,
+        "gone": true
+      }
+    };
+    compare(SchemaValidation.pruneUnknown(stray, shared), ["a.gone"]);
+  }
+
   function test_getSchemaProperty() {
     compare(SchemaValidation.getSchemaProperty(schema, "nested.on").type, "boolean");
     compare(SchemaValidation.getSchemaProperty(schema, "nested.missing"), null);

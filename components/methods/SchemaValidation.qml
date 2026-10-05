@@ -64,10 +64,21 @@ QtObject {
     return removed;
   }
 
+  // A $ref's definition, with any keys beside the $ref (a `default`,
+  // `title`, …) over it, so one definition can serve with different
+  // defaults (Lockscreen.layout and Greeter.layout share ScreenLayout)
   function _resolve(schema) {
     if (schema && schema.$ref) {
       const refPath = schema.$ref.replace('#/definitions/', '');
-      return _ctx.root?.definitions?.[refPath] ?? schema;
+      const definition = _ctx.root?.definitions?.[refPath];
+      if (!definition)
+        return schema;
+      const extra = Object.keys(schema).filter(key => key !== '$ref');
+      if (extra.length === 0)
+        return definition;
+      const merged = Object.assign({}, definition);
+      extra.forEach(key => merged[key] = schema[key]);
+      return merged;
     }
     return schema;
   }

@@ -18,7 +18,7 @@ QtObject {
 
   // A Lua string literal
   function string(text) {
-    return '"' + String(text).replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\n/g, "\\n") + '"';
+    return '"' + String(text).replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\n/g, "\\n").replace(/\r/g, "\\r") + '"';
   }
 
   // A value as Lua: strings quoted, numbers without float noise
@@ -239,6 +239,28 @@ QtObject {
 end`);
     lines.push(`AXIOM_MONITOR_SUBS = { hl.on("monitor.added", axiom_apply_monitors), hl.on("monitor.removed", axiom_apply_monitors) }`);
     lines.push("axiom_apply_monitors()");
+    return lines;
+  }
+
+  // The greeter's Hyprland, from its bundle (GreeterBundle): the monitor
+  // layouts (monitorsLua, in every mode), and in managed mode one
+  // hl.config of the options marked x-greeter (`managedSchema`:
+  // Hyprland.managed's schema; any other option in `managed` is left out).
+  // resolveHex as for configTable.
+  function greeterLua(profiles, managedSchema, managed, resolveHex) {
+    const lines = monitorsLua(profiles);
+    if (!managed)
+      return lines;
+    const props = managedSchema?.properties ?? {};
+    const greeterSchema = {
+      "properties": {}
+    };
+    for (const key in props)
+      if (props[key]["x-greeter"] === true)
+        greeterSchema.properties[key] = props[key];
+    const table = configTable(greeterSchema, managed, resolveHex, {});
+    if (Object.keys(table).length > 0)
+      lines.push(`hl.config(${serialize(table)})`);
     return lines;
   }
 

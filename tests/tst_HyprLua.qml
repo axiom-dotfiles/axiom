@@ -71,6 +71,8 @@ TestCase {
 
   function test_string_escapes() {
     compare(HyprLua.string('a "b" \\ c\nd'), '"a \\"b\\" \\\\ c\\nd"');
+    // A bare carriage return would end the string: Lua refuses the chunk
+    compare(HyprLua.string("us\r,de"), '"us\\r,de"');
   }
 
   function test_value() {
@@ -310,6 +312,39 @@ assert(removed == 2, "earlier handlers removed")
     const written = files.write("tests/.out/monitors.run.lua", lua);
     tryVerify(() => written.done, 2000);
   }
+
+  // The greeter's Hyprland: the monitors always, and only the x-greeter
+  // options of managed mode
+  function test_greeterLua() {
+    const schema = files.json("config/json/config.schema.json");
+    const managedSchema = schema.properties.Hyprland.properties.managed;
+    const profiles = [
+      {
+        "name": "desk",
+        "outputs": [rule({
+            "output": "DP-1"
+          })]
+      }
+    ];
+    const detached = HyprLua.greeterLua(profiles, managedSchema, undefined, hex);
+    verify(detached.some(line => line.startsWith("AXIOM_MONITOR_PROFILES")));
+    verify(!detached.some(line => line.startsWith("hl.config")));
+
+    const managed = SchemaValidation.applyDefaults({}, managedSchema, schema);
+    managed.kbLayout = "us,de";
+    managed.sensitivity = -50;
+    managed.gapsIn = 20;
+    const lines = HyprLua.greeterLua(profiles, managedSchema, managed, hex);
+    const config = lines[lines.length - 1];
+    verify(config.startsWith("hl.config("));
+    verify(config.includes('kb_layout = "us,de"'));
+    verify(config.includes("sensitivity = -0.5"));
+    verify(!config.includes("gaps_in"));
+    const lua = "hl = { config = function(t) end, monitor = function(t) end, get_monitors = function() return {} end, on = function() return { remove = function() end } end }\n" + lines.join("\n") + "\n";
+    const written = files.write("tests/.out/greeter.run.lua", lua);
+    tryVerify(() => written.done, 2000);
+  }
+
   function test_leaveSubmap() {
     compare(HyprLua.leaveSubmap("axiom_record"), `if hl.get_current_submap() == "axiom_record" then hl.dispatch(hl.dsp.submap("reset")) end`);
   }

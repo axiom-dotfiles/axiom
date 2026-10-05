@@ -4,16 +4,17 @@ import qs.services
 import qs.components.views.layouts
 
 // The layouts editor: always the last page (pinned by OverlayPages; not
-// part of config). The overlay pages, edge menus and the lock screen on
-// the left; the selected one's modules on a canvas (drag to move, drag a
-// corner to resize) above the selected module's options, or the library
-// to add from. Edits go through OverlayManager's, EdgeMenuManager's and
-// LockManager's drafts until saved; a menu's show live on screen.
+// part of config). The overlay pages, edge menus, the lock screen and the
+// login screen on the left; the selected one's modules on a canvas (drag
+// to move, drag a corner to resize) above the selected module's options,
+// or the library to add from. Edits go through OverlayManager's,
+// EdgeMenuManager's, LockManager's and GreeterManager's drafts until
+// saved; a menu's show live on screen.
 BaseView {
   id: root
 
   // What's being edited (OverlayManager.editTarget), as the canvas shows it
-  readonly property EditTarget target: OverlayManager.editTarget === "menu" ? menuTarget : OverlayManager.editTarget === "lockscreen" ? lockscreenTarget : pageTarget
+  readonly property EditTarget target: OverlayManager.editTarget === "menu" ? menuTarget : OverlayManager.editTarget === "lockscreen" ? lockscreenTarget : OverlayManager.editTarget === "greeter" ? greeterTarget : pageTarget
 
   PageTarget {
     id: pageTarget
@@ -24,11 +25,15 @@ BaseView {
   LockscreenTarget {
     id: lockscreenTarget
   }
+  GreeterTarget {
+    id: greeterTarget
+  }
 
   Component.onCompleted: {
     OverlayManager.ensureLoaded();
     EdgeMenuManager.ensureLoaded();
-    LockManager.ensureLoaded();
+    LockManager.editor.ensureLoaded();
+    GreeterManager.editor.ensureLoaded();
   }
   // The page unloads when the overlay closes (or it pages two away)
   Component.onDestruction: EdgeMenuManager.stopPreviewing()
@@ -61,8 +66,8 @@ BaseView {
     canvas.gridOffsetLimit: root.target.gridOffsetLimit
     canvas.setGridOffset: root.target.setGridOffset
     canvas.latticeSpan: root.target.latticeSpan
-    canvas.dirty: OverlayManager.isDirty || EdgeMenuManager.isDirty || LockManager.isDirty
-    canvas.canSave: OverlayManager.problems.length === 0 && EdgeMenuManager.problems.length === 0 && LockManager.problems.length === 0
+    canvas.dirty: OverlayManager.isDirty || EdgeMenuManager.isDirty || LockManager.editor.isDirty || GreeterManager.editor.isDirty
+    canvas.canSave: OverlayManager.problems.length === 0 && EdgeMenuManager.problems.length === 0 && LockManager.editor.problems.length === 0 && GreeterManager.editor.problems.length === 0
     inspector.editable: root.target.editable
     inspector.notEditableHint: root.target.notEditableHint
     onSave: {
@@ -70,19 +75,22 @@ BaseView {
         OverlayManager.saveChanges();
       if (EdgeMenuManager.isDirty)
         EdgeMenuManager.saveChanges();
-      if (LockManager.isDirty)
-        LockManager.saveChanges();
+      if (LockManager.editor.isDirty)
+        LockManager.editor.saveChanges();
+      if (GreeterManager.editor.isDirty)
+        GreeterManager.editor.saveChanges();
     }
     onReset: {
       OverlayManager.resetChanges();
       EdgeMenuManager.resetChanges();
-      LockManager.resetChanges();
+      LockManager.editor.resetChanges();
+      GreeterManager.editor.resetChanges();
     }
 
     LayoutsPanel {
       view: OverlayManager.editTarget === "page" ? pageTarget.view : null
       menu: OverlayManager.editTarget === "menu" ? menuTarget.menu : null
-      lockscreen: OverlayManager.editTarget === "lockscreen" ? lockscreenTarget.layout : null
+      screenTarget: OverlayManager.editTarget === "lockscreen" ? lockscreenTarget : OverlayManager.editTarget === "greeter" ? greeterTarget : null
       width: layout.sideWidth
       height: layout.pageHeight
       dragLayer: layout

@@ -21,7 +21,7 @@ step "structure" python3 scripts/check_structure.py
 step "qmlformat" scripts/check_qmlformat.sh
 step "qmllint" python3 scripts/check_qmllint.py
 step "unit tests" scripts/run_tests.sh
-step "shellcheck" shellcheck -x -S warning install.sh scripts/*.sh scripts/lib/*.sh
+step "shellcheck" shellcheck -x -S warning install.sh scripts/*.sh scripts/lib/*.sh scripts/greeter/*.sh
 step "script tests" python3 tests/scripts/test_scripts.py
 echo "── translations (warnings only)"
 python3 scripts/check_i18n.py || true

@@ -22,6 +22,9 @@ Item {
   property bool wrapMessage: false
   // Checking: the sliding bar shows
   property bool busy: false
+  // The field's own height (the greeter's login box shrinks it to a short
+  // slot)
+  property real fieldHeight: Widget.height + Widget.padding
 
   signal accepted
 
@@ -40,7 +43,7 @@ Item {
     StyledTextEntry {
       id: entry
       width: parent.width
-      height: Widget.height + Widget.padding
+      height: root.fieldHeight
       placeholderText: root.placeholder
       input.passwordCharacter: "•"
       input.passwordMaskDelay: 0

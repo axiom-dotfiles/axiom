@@ -8,7 +8,7 @@ import qs.services
 import qs.components.reusable
 
 // The layouts editor's "Show on screen": the lock screen draft
-// (LockManager.localLayout) on the target screen, in a plain Overlay-layer
+// (LockManager.editor.localLayout) on the target screen, in a plain Overlay-layer
 // window. Nothing is locked and its password field is inert. Escape or a
 // click on the background closes it, back to the editor.
 PanelWindow {
@@ -29,17 +29,17 @@ PanelWindow {
   FocusScope {
     anchors.fill: parent
     focus: true
-    Keys.onEscapePressed: LockManager.stopPreview()
+    Keys.onEscapePressed: LockManager.editor.stopPreview()
 
     // Under the surface, so modules keep their own clicks
     MouseArea {
       anchors.fill: parent
-      onClicked: LockManager.stopPreview()
+      onClicked: LockManager.editor.stopPreview()
     }
 
     LockSurface {
       screen: root.screen
-      layout: LockManager.localLayout
+      layout: LockManager.editor.localLayout
       preview: true
     }
 

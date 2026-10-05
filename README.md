@@ -84,6 +84,7 @@ One repository and one config for the whole desktop:
 - **Theming:** base16 themes or ones generated from your wallpaper, applied to 23 other apps (GTK, Qt, kitty, Neovim, VS Code, Zed, Firefox, …)
 - **Launcher** for apps, windows, a calculator, clipboard history, emoji and `/` commands
 - **Lockscreen** laid out from the same modules, with your wallpaper behind it
+- **Login screen** (optional, through greetd) laid out the same way, with your theme, wallpapers and monitor layout
 - Notifications, OSDs, power menu, workspace overview with live previews, a monitor layout editor, screenshots and recording, night light, idle, and a first-run setup
 
 See **[all the features](docs/features.md)**, with screenshots of both setups.
@@ -129,7 +130,7 @@ hl.on("hyprland.start", function() hl.exec_cmd("qs -n -c axiom") end)
 ## Documentation
 
 - **[Features](docs/features.md):** every surface in detail
-- **[Installation and setup](docs/installation.md):** requirements, Hyprland modes, updates, locking with hypridle
+- **[Installation and setup](docs/installation.md):** requirements, Hyprland modes, updates, locking with hypridle, the login screen
 - **[Keybinds, IPC and launcher](docs/usage.md):** binding keys to IPC targets, and launcher commands
 - **[Configuration](docs/configuration.md):** the config file, themes, translations, troubleshooting
 - **[Architecture](docs/architecture.md):** how every service and surface works, for contributors

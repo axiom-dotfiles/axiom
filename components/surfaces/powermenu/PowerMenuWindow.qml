@@ -128,7 +128,7 @@ PanelWindow {
 
   HyprlandFocusGrab {
     active: root.shown && group.ownsGrab
-    windows: group.windows.concat(ShellManager.captureWindows)
+    windows: group.windows.concat(ShellManager.modalWindows)
     onCleared: root.shown = false
   }
 

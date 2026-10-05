@@ -169,6 +169,28 @@ TestCase {
     verify(Math.abs(portrait - (1080 - 40 - 15 * 20) / 16) < 0.3);
   }
 
+  function test_screenGrid() {
+    compare(GridPlacement.screenGrid({
+      "columns": 16,
+      "rows": 9
+    }), {
+      "cols": 16,
+      "rows": 9
+    });
+    compare(GridPlacement.screenGrid({
+      "columns": 16,
+      "rows": 9,
+      "fineGrid": true
+    }), {
+      "cols": 32,
+      "rows": 18
+    });
+    compare(GridPlacement.screenGrid(null), {
+      "cols": 0,
+      "rows": 0
+    });
+  }
+
   function test_normalize() {
     const modules = [at(2, 1, 2, 2), at(4, 3, 1, 1)];
     compare(GridPlacement.normalize(modules), {

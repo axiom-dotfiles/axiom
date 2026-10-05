@@ -18,13 +18,15 @@ Item {
 
   required property var dragLayer
 
-  // What's being edited (Layouts): a page (`view`), a `menu` or the
-  // `lockscreen` layout; the others are null
+  // What's being edited (Layouts): a page (`view`), a `menu` or a screen
+  // layout (`screenTarget`: the lock screen's or the login screen's
+  // ScreenLayoutTarget); the others are null
   required property var view
   required property var menu
-  required property var lockscreen
+  required property var screenTarget
+  readonly property var screenLayout: root.screenTarget?.layout ?? null
   readonly property bool isCustom: root.view?.type === "Custom"
-  readonly property var problems: OverlayManager.problems.concat(EdgeMenuManager.problems, LockManager.problems)
+  readonly property var problems: OverlayManager.problems.concat(EdgeMenuManager.problems, LockManager.editor.problems, GreeterManager.editor.problems)
 
   // StyledTextEntry writes each keystroke back to its `text`, which drops
   // any binding on it, so the name is pushed in rather than bound: on every
@@ -156,23 +158,24 @@ Item {
       }
     }
 
-    // The lock screen: its preview, then its fields. As for the menu, the
-    // condition keeps the model the same while it's selected
+    // A screen layout (the lock screen, the login screen): its preview,
+    // then its fields. As for the menu, the condition keeps the model the
+    // same while it's selected
     FieldGroup {
-      visible: root.lockscreen !== null
+      visible: root.screenLayout !== null
       Layout.topMargin: Widget.spacing
-      title: I18n.tr("Lock screen")
-      description: I18n.tr("What the built-in locker shows. Modules here can't open apps or run anything.")
+      title: root.screenTarget?.title ?? ""
+      description: root.screenTarget?.description ?? ""
 
       StyledTextButton {
         iconText: "visibility"
         text: I18n.tr("Show on screen")
-        onClicked: LockManager.startPreview()
+        onClicked: root.screenTarget.screenEditor.startPreview()
       }
     }
 
     Repeater {
-      model: root.lockscreen !== null ? LockscreenConfig.fieldGroups : []
+      model: root.screenLayout !== null ? LockscreenConfig.fieldGroups : []
 
       delegate: FieldGroup {
         id: lockGroup
@@ -184,8 +187,8 @@ Item {
           Layout.fillWidth: true
           propertiesSchema: lockGroup.modelData.schema
           order: lockGroup.modelData.keys
-          values: root.lockscreen ?? ({})
-          onEdited: (path, value) => LockManager.updateLayoutField(path[0], value)
+          values: root.screenLayout ?? ({})
+          onEdited: (path, value) => root.screenTarget.screenEditor.updateLayoutField(path[0], value)
         }
       }
     }

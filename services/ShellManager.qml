@@ -4,6 +4,7 @@ import Quickshell
 import Quickshell.Hyprland
 
 import qs.config
+import qs.components.methods
 
 /* Shell manager manages global options and signals */
 QtObject {
@@ -158,6 +159,63 @@ QtObject {
   // menus, toasts) hide until it closes, since Hyprland draws popups over
   // every layer. The frame already holds them, so nothing seems to change.
   readonly property bool captureFrozen: captureWindows.length > 0 && captureWindows.every(w => w.frozen)
+
+  // --- Screen layouts' required fields ---
+
+  // Which screen layout surfaces (the lock screen's, the greeter's, by the
+  // key their host gives their modules) show their required field: the
+  // Password module, the Login module. A surface without one shows a
+  // fallback field of its own, so a broken layout can never lock anyone
+  // out, or in
+  readonly property var requiredFields: _requiredFields
+  property var _requiredFields: ({})
+
+  // A key for one surface, never reused: a screen that drops out and comes
+  // back (a monitor turned off) gets a new surface while the old one is
+  // still being torn down, and a key shared by screen name let the old
+  // module's goodbye clear the new one's report, flickering in the
+  // fallback field. `kind` names it ("lock", "preview", "greeter")
+  property int _surfaceCount: 0
+  function newSurfaceKey(kind) {
+    _surfaceCount += 1;
+    return kind + ":" + _surfaceCount;
+  }
+
+  function reportRequiredField(key, present) {
+    if (!key || (_requiredFields[key] === true) === present)
+      return;
+    _requiredFields = Utils.withEntry(_requiredFields, key, present ? true : undefined);
+  }
+
+  // Windows every focus grab lets input through to: the screenshot
+  // pickers and modal prompts (the polkit prompt, registerModal), so one
+  // opening over the overlay or a popout closes nothing
+  readonly property var modalWindows: captureWindows.concat(_modals)
+  property var _modals: []
+
+  function registerModal(window) {
+    _modals = _modals.filter(w => w !== window).concat([window]);
+  }
+
+  function unregisterModal(window) {
+    _modals = _modals.filter(w => w !== window);
+  }
+
+  // Set while a prompt axiom doesn't draw needs the screen (another polkit
+  // agent's window, which opens under axiom's Overlay-layer surfaces): the
+  // overlay and the onboarder hide without closing, keeping their page and
+  // state, and come back when every owner has ended it
+  readonly property bool steppedAside: _stepAsideOwners.length > 0
+  property var _stepAsideOwners: []
+
+  function beginStepAside(owner) {
+    if (!_stepAsideOwners.includes(owner))
+      _stepAsideOwners = _stepAsideOwners.concat([owner]);
+  }
+
+  function endStepAside(owner) {
+    _stepAsideOwners = _stepAsideOwners.filter(o => o !== owner);
+  }
 
   // The bar windows (BarPanel), for surfaces that attach to a bar without
   // being its popouts (floating edge menus)
