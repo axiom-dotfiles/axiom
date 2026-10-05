@@ -110,6 +110,36 @@ Rectangle {
   property var pillStretch: null
   // The same for a floating edge menu standing on a pill
   property var edgeMenuStretch: null
+
+  // A stretch changing while its popout is open (the calendar opening its
+  // editor) was drawn but not shown: the bar's next frame was rendered,
+  // yet the compositor kept showing the one before until something else
+  // made the bar commit again (a hover, the clock). So for a few frames
+  // after a stretch changes, the bar draws a frame of its own (an
+  // invisible pixel flipping), and the last one shown is the right one.
+  onPillStretchChanged: _repaint.burst()
+  onEdgeMenuStretchChanged: _repaint.burst()
+  property bool _repaintFlip: false
+  Timer {
+    id: _repaint
+    interval: 32
+    property int left: 0
+    function burst() {
+      left = 6;
+      restart();
+    }
+    onTriggered: {
+      root._repaintFlip = !root._repaintFlip;
+      if (--left > 0)
+        restart();
+    }
+  }
+  Rectangle {
+    width: 1
+    height: 1
+    color: "#02000000"
+    opacity: root._repaintFlip ? 0.5 : 0.4
+  }
   // Both stretches on pill `index`, as one { start, end }, or null
   function stretchFor(index) {
     const stretches = [root.pillStretch, root.edgeMenuStretch].filter(s => s?.index === index);

@@ -134,7 +134,7 @@ PopoutWrapperBase {
   readonly property var mergedPills: {
     if (!mergeWithPill)
       return [];
-    const from = mainPopup.alongPos, to = mainPopup.alongPos + surface.implicitLength;
+    const from = mainPopup.alongPos, to = mainPopup.alongPos + mainPopup.surfaceLength;
     return root.pills.filter(p => p.start < to && p.start + p.length > from);
   }
   // Where a side wall's fillet lands: on a pill when one carries on at
@@ -194,7 +194,7 @@ PopoutWrapperBase {
       // To a flush side's end, squaring the island's corner there, else
       // far enough for the fillet
       const start = mainPopup.joinStart ? mainPopup.boxStart : Math.min(p.start, mainPopup.alongPos - Appearance.borderRadius);
-      const end = mainPopup.joinEnd ? mainPopup.boxEnd : Math.max(p.start + p.length, mainPopup.alongPos + surface.implicitLength + Appearance.borderRadius);
+      const end = mainPopup.joinEnd ? mainPopup.boxEnd : Math.max(p.start + p.length, mainPopup.alongPos + mainPopup.surfaceLength + Appearance.borderRadius);
       if (start === p.start && end === p.start + p.length && !mainPopup.joinStart && !mainPopup.joinEnd)
         return null;
       return {
@@ -206,7 +206,7 @@ PopoutWrapperBase {
       };
     }
     const start = p.joinStart ? p.start : Math.min(p.start, mainPopup.alongPos - Appearance.borderRadius);
-    const end = p.joinEnd ? p.start + p.length : Math.max(p.start + p.length, mainPopup.alongPos + surface.implicitLength + Appearance.borderRadius);
+    const end = p.joinEnd ? p.start + p.length : Math.max(p.start + p.length, mainPopup.alongPos + mainPopup.surfaceLength + Appearance.borderRadius);
     if (start === p.start && end === p.start + p.length)
       return null;
     return {
@@ -246,6 +246,83 @@ PopoutWrapperBase {
   // Where the surface starts, from the bar's outer edge: a detached box's
   // reaches back to the under-bar window's edge, to slide in from there
   readonly property real surfaceFrom: surface.detached && root.underBar ? root.underStart : root.attachAt
+
+  // Resizing a window while it shows is a round trip to the compositor
+  // (a popup's reposition, a layer surface's configure), so the outline
+  // lagged content that changes size (the calendar's editor). So the
+  // windows never follow the content: along the bar the popup spans the
+  // whole bar, and across it both keep the most room the box has needed
+  // since the popout opened, or that its content declares it can take
+  // (Panel.maxImplicitHeight/Width), with the surface on the bar side of
+  // that room. Content resizing changes only the scene, and the box
+  // animates to its new size (and place along the bar) in it.
+  readonly property real targetBoxWidth: mainPopup.contentWidth + surface.contentInset * 2 + (root.barConfig.vertical ? root.pillClearance : mainPopup.boxGrow)
+  readonly property real targetBoxHeight: mainPopup.contentHeight + surface.contentInset * 2 + (root.barConfig.vertical ? mainPopup.boxGrow : root.pillClearance)
+  // What's drawn: the targets, animated once the popout shows
+  property real shownBoxWidth: root.targetBoxWidth
+  property real shownBoxHeight: root.targetBoxHeight
+  property real shownBoxStart: mainPopup.boxStart
+  // Set once the popout has shown at its first size, so opening jumps
+  // straight there rather than animating from wherever it last was
+  property bool _settled: false
+  function _updateSettled() {
+    if (!root.occupied || !root.contentReady)
+      root._settled = false;
+    else
+      Qt.callLater(() => root._settled = root.occupied && root.contentReady);
+  }
+  Behavior on shownBoxWidth {
+    enabled: root._settled
+    NumberAnimation {
+      duration: Appearance.animFast
+      easing.type: Appearance.easing
+    }
+  }
+  Behavior on shownBoxHeight {
+    enabled: root._settled
+    NumberAnimation {
+      duration: Appearance.animFast
+      easing.type: Appearance.easing
+    }
+  }
+  Behavior on shownBoxStart {
+    enabled: root._settled
+    NumberAnimation {
+      duration: Appearance.animFast
+      easing.type: Appearance.easing
+    }
+  }
+
+  readonly property real _boxAcross: root.barConfig.vertical ? root.targetBoxWidth : root.targetBoxHeight
+  readonly property real _shownBoxAcross: root.barConfig.vertical ? root.shownBoxWidth : root.shownBoxHeight
+  // Read through a var: content declares it on Panel, not Item
+  readonly property var _content: root.currentItem
+  readonly property real _declaredAcross: {
+    const item = root._content;
+    const declared = root.barConfig.vertical ? item?.maxImplicitWidth ?? 0 : item?.maxImplicitHeight ?? 0;
+    const content = root.barConfig.vertical ? mainPopup.contentWidth : mainPopup.contentHeight;
+    return root._boxAcross + Math.max(0, declared - content);
+  }
+  property real _peakAcross: 0
+  function _notePeak() {
+    if (root.occupied && root.contentReady)
+      root._peakAcross = Math.max(root._peakAcross, root._boxAcross);
+  }
+  on_BoxAcrossChanged: _notePeak()
+  onContentReadyChanged: {
+    _notePeak();
+    _updateSettled();
+  }
+  onOccupiedChanged: {
+    if (!root.occupied)
+      root._peakAcross = 0;
+    _updateSettled();
+  }
+  // The room past the drawn box, on the side away from the bar: the
+  // window's depth stays put while the box animates within it
+  readonly property real spareAcross: Math.max(0, Math.max(root._peakAcross, root._declaredAcross, root._boxAcross) - root._shownBoxAcross)
+  // On a bottom or right bar the room lies before the surface
+  readonly property bool spareBefore: root.barConfig.vertical ? root.barConfig.right : root.barConfig.bottom
 
   Connections {
     target: root.layoutSource
@@ -386,6 +463,14 @@ PopoutWrapperBase {
     // Where the popup (the surface) starts along the bar
     // (the surface's own margin: none on a joined or straight side)
     readonly property real alongPos: boxStart - surface.startMargin
+    // Its length along the bar, at the target size
+    readonly property real surfaceLength: surface.startMargin + boxLength + boxGrow + surface.endMargin
+    // Where it's drawn, animating to alongPos (see shownBoxStart)
+    readonly property real shownAlongPos: root.shownBoxStart - surface.startMargin
+    // The window along the bar: the whole bar, and wherever a box pushed
+    // to an end can reach past it, so it never moves along the bar
+    readonly property real windowFrom: Math.min(0, strokeStart, minAlong)
+    readonly property real windowTo: Math.max(panelLength, strokeEnd, maxAlong)
 
     // On a transparent bar a popout is a detached box, unless it's pushed
     // to an end: then there's no bar to take its bar side, so it attaches
@@ -413,16 +498,16 @@ PopoutWrapperBase {
       if (!root.currentData)
         return 0;
       if (mainPopup.cornerAttach)
-        return root.barConfig.vertical ? mainPopup.boxAcross - surface.startMargin : (mainPopup.joinStart ? mainPopup.strokeStart : mainPopup.strokeEnd - mainPopup.implicitWidth);
+        return root.barConfig.vertical ? mainPopup.boxAcross - surface.startMargin : (mainPopup.joinStart ? mainPopup.strokeStart : mainPopup.strokeEnd - surface.implicitWidth);
 
       if (root.barConfig.left) {
         return root.surfaceFrom - surface.backfill;
       } else if (root.barConfig.right) {
         // Mirror of the left case: measured from the bar's outer edge,
         // not relative to the anchor (tray icons are narrower than modules)
-        return root.panelThickness - root.surfaceFrom + surface.backfill - mainPopup.implicitWidth;
+        return root.panelThickness - root.surfaceFrom + surface.backfill - surface.implicitWidth;
       } else {
-        return mainPopup.alongPos;
+        return mainPopup.shownAlongPos;
       }
     }
 
@@ -430,14 +515,14 @@ PopoutWrapperBase {
       if (!root.currentData)
         return 0;
       if (mainPopup.cornerAttach)
-        return root.barConfig.vertical ? (mainPopup.joinStart ? mainPopup.strokeStart : mainPopup.strokeEnd - mainPopup.implicitHeight) : mainPopup.boxAcross - surface.startMargin;
+        return root.barConfig.vertical ? (mainPopup.joinStart ? mainPopup.strokeStart : mainPopup.strokeEnd - surface.implicitHeight) : mainPopup.boxAcross - surface.startMargin;
 
       if (root.barConfig.top) {
         return root.surfaceFrom - surface.backfill;
       } else if (root.barConfig.bottom) {
-        return root.panelThickness - root.surfaceFrom + surface.backfill - mainPopup.implicitHeight;
+        return root.panelThickness - root.surfaceFrom + surface.backfill - surface.implicitHeight;
       } else {
-        return mainPopup.alongPos;
+        return mainPopup.shownAlongPos;
       }
     }
 
@@ -448,9 +533,13 @@ PopoutWrapperBase {
     }
 
     // Size comes from the shared attached shape: the content box wraps
-    // the content plus the surface's inset on every side.
-    implicitWidth: surface.implicitWidth
-    implicitHeight: surface.implicitHeight
+    // the content plus the surface's inset on every side. Across the bar,
+    // the room it may grow into stays too (see spareAcross).
+    implicitWidth: root.barConfig.vertical ? surface.implicitWidth + root.spareAcross : windowTo - windowFrom
+    implicitHeight: root.barConfig.vertical ? windowTo - windowFrom : surface.implicitHeight + root.spareAcross
+    // The surface in this window
+    readonly property real surfaceX: root.barConfig.vertical ? (root.spareBefore ? root.spareAcross : 0) : barX - windowFrom
+    readonly property real surfaceY: root.barConfig.vertical ? barY - windowFrom : (root.spareBefore ? root.spareAcross : 0)
 
     anchor {
       window: root.currentAnchor
@@ -460,8 +549,8 @@ PopoutWrapperBase {
       adjustment: PopupAdjustment.None
 
       rect {
-        x: mainPopup.barX
-        y: mainPopup.barY
+        x: root.barConfig.vertical ? mainPopup.barX - mainPopup.surfaceX : mainPopup.windowFrom
+        y: root.barConfig.vertical ? mainPopup.windowFrom : mainPopup.barY - mainPopup.surfaceY
         width: 1
         height: 1
       }
@@ -502,7 +591,7 @@ PopoutWrapperBase {
 
     // Deep enough for the box and its connector gaps either side, whether
     // it's detached or joins a perpendicular edge
-    readonly property real depth: root.attachAt - root.underStart + root.connectorGap * 2 + (root.barConfig.vertical ? surface.boxWidth : surface.boxHeight)
+    readonly property real depth: root.attachAt - root.underStart + root.connectorGap * 2 + (root.barConfig.vertical ? surface.boxWidth : surface.boxHeight) + root.spareAcross
     implicitWidth: root.barConfig.vertical ? depth : 0
     implicitHeight: root.barConfig.vertical ? 0 : depth
 
@@ -530,16 +619,16 @@ PopoutWrapperBase {
     id: surface
     // In whichever window shows the popout
     parent: root.underBar ? underWindow.contentItem : mainPopup.contentItem
-    x: root.underBar ? underWindow.surfaceX : 0
-    y: root.underBar ? underWindow.surfaceY : 0
+    x: root.underBar ? underWindow.surfaceX : mainPopup.surfaceX
+    y: root.underBar ? underWindow.surfaceY : mainPopup.surfaceY
     width: implicitWidth
     height: implicitHeight
 
     edge: mainPopup.surfaceEdge
     active: root.occupied && !root.isClosing && root.contentReady
     connectorGap: root.connectorGap
-    boxWidth: mainPopup.contentWidth + contentInset * 2 + (root.barConfig.vertical ? root.pillClearance : mainPopup.boxGrow)
-    boxHeight: mainPopup.contentHeight + contentInset * 2 + (root.barConfig.vertical ? mainPopup.boxGrow : root.pillClearance)
+    boxWidth: root.shownBoxWidth
+    boxHeight: root.shownBoxHeight
 
     // A transparent bar has nothing to join onto (see cornerAttach)
     detached: mainPopup.detached && !mainPopup.cornerAttach
@@ -564,15 +653,16 @@ PopoutWrapperBase {
       const from = p.start + (p.joinStart ? 0 : root.notchInset);
       const to = p.start + p.length - (p.joinEnd ? 0 : root.notchInset);
       return {
-        "start": from - mainPopup.alongPos,
+        "start": from - mainPopup.shownAlongPos,
         "length": Math.max(0, to - from),
-        "roundStart": !p.joinStart && from > mainPopup.alongPos,
-        "roundEnd": !p.joinEnd && to < mainPopup.alongPos + implicitLength
+        "roundStart": !p.joinStart && from > mainPopup.shownAlongPos,
+        "roundEnd": !p.joinEnd && to < mainPopup.shownAlongPos + implicitLength
       };
     })
     notchDepth: root.pillFoot - 1
     readonly property real implicitLength: root.barConfig.vertical ? implicitHeight : implicitWidth
 
+    // In window coordinates
     Variants {
       id: notchRegions
       model: surface.notchRects
@@ -580,43 +670,51 @@ PopoutWrapperBase {
       Region {
         required property rect modelData
         intersection: Intersection.Subtract
-        x: modelData.x
-        y: modelData.y
+        x: surface.x + modelData.x
+        y: surface.y + modelData.y
         width: modelData.width
         height: modelData.height
       }
     }
 
-    Loader {
-      id: loader
+    // The content keeps its target size while the box animates to it,
+    // hung from the box's start along the bar and from its bar side
+    // across it, and cut to the box (as FloatingPopout does)
+    Item {
+      id: clipBox
       anchors.fill: parent
-      anchors.margins: surface.contentInset
-      // Merged around a pill, the content starts past it
-      anchors.leftMargin: surface.contentInset + (root.barConfig.left ? root.pillClearance : 0)
-      anchors.rightMargin: surface.contentInset + (root.barConfig.right ? root.pillClearance : 0)
-      anchors.topMargin: surface.contentInset + (root.barConfig.top ? root.pillClearance : 0)
-      anchors.bottomMargin: surface.contentInset + (root.barConfig.bottom ? root.pillClearance : 0)
+      clip: true
 
-      active: root.occupied
-      asynchronous: false
+      Loader {
+        id: loader
+        // Merged around a pill, the content starts past it
+        readonly property real barSide: surface.contentInset + root.pillClearance
+        width: mainPopup.contentWidth + (root.barConfig.vertical ? 0 : mainPopup.boxGrow)
+        height: mainPopup.contentHeight + (root.barConfig.vertical ? mainPopup.boxGrow : 0)
+        x: root.barConfig.left ? barSide : root.barConfig.right ? clipBox.width - barSide - width : surface.contentInset
+        y: root.barConfig.top ? barSide : root.barConfig.bottom ? clipBox.height - barSide - height : surface.contentInset
 
-      onActiveChanged: root._loadContent()
+        active: root.occupied
+        asynchronous: false
 
-      onLoaded: {
-        if (item) {
-          if (root.currentData) {
-            for (let key in root.currentData) {
-              if (item.hasOwnProperty(key)) {
-                // Content may derive one itself (a readonly property):
-                // skip it rather than abort
-                try {
-                  item[key] = root.currentData[key];
-                } catch (e) {}
+        onActiveChanged: root._loadContent()
+
+        onLoaded: {
+          if (item) {
+            if (root.currentData) {
+              for (let key in root.currentData) {
+                if (item.hasOwnProperty(key)) {
+                  // Content may derive one itself (a readonly property):
+                  // skip it rather than abort
+                  try {
+                    item[key] = root.currentData[key];
+                  } catch (e) {}
+                }
               }
             }
           }
+          root.updateDismissTimer();
         }
-        root.updateDismissTimer();
       }
     }
   }

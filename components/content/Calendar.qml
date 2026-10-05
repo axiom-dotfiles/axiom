@@ -38,6 +38,8 @@ Panel {
   onFocusLost: pane.stopEditing()
 
   implicitWidth: Appearance.fontSize * 20
+  // In a popout, room for the editor from the start
+  maxImplicitHeight: root.embedded ? 0 : root.implicitHeight + pane.growth
   Component.onCompleted: {
     CalendarManager.acquire(root);
     root._takeRequest();

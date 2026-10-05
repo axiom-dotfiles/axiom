@@ -22,6 +22,10 @@ Item {
 
   implicitWidth: Math.max(agenda.implicitWidth, Appearance.fontSize * 16)
   implicitHeight: root._editing ? editor.implicitHeight : agenda.implicitHeight
+  // How much taller than its laid-out height the editor or agenda can
+  // make it, so a popout can make room before the editor opens
+  // (Panel.maxImplicitHeight)
+  readonly property real growth: root.visible ? Math.max(0, editor.implicitHeight - root.height, agenda.implicitHeight - root.height) : 0
 
   function newEvent() {
     if (root.readOnly || !CalendarConfig.newEventCalendar)
