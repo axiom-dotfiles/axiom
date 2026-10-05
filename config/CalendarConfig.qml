@@ -57,6 +57,8 @@ QtObject {
   readonly property int pastMonths: _c.pastMonths
   readonly property int futureMonths: _c.futureMonths
   readonly property int maxDots: _c.maxDots
+  // The Clock & calendar module's events on the lock screen too
+  readonly property bool showOnLockscreen: _c.showOnLockscreen
   readonly property bool use24Hour: _c.use24Hour
   // The language's time format, for event times
   readonly property string timeFormat: I18n.dateFormat(root.use24Hour ? "time24" : "time12")

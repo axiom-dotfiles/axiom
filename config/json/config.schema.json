@@ -1474,7 +1474,7 @@
       "title": "Calendar",
       "description": "Events from CalDAV accounts (iCloud, Fastmail, Nextcloud, …) and .ics subscriptions, for the calendar popout, the Calendar, Clock & calendar and Agenda modules, the Next event bar widget and the Calendar page. Passwords are never stored here: they go to your keyring (or $XDG_STATE_HOME/axiom/secrets.json without one).",
       "additionalProperties": false,
-      "x-order": ["defaultCalendar", "defaultDuration", "defaultReminder", "reminders", "syncInterval", "pastMonths", "futureMonths", "use24Hour", "maxDots", "accounts"],
+      "x-order": ["defaultCalendar", "defaultDuration", "defaultReminder", "reminders", "syncInterval", "pastMonths", "futureMonths", "use24Hour", "maxDots", "showOnLockscreen", "accounts"],
       "properties": {
         "accounts": {
           "type": "array",
@@ -1491,7 +1491,8 @@
         "pastMonths": { "type": "integer", "title": "Months back", "x-group": "Sync", "default": 2, "minimum": 0, "maximum": 24, "description": "How far back events are kept. Paging past it fetches more." },
         "futureMonths": { "type": "integer", "title": "Months ahead", "x-group": "Sync", "default": 12, "minimum": 1, "maximum": 60 },
         "use24Hour": { "type": "boolean", "title": "24-hour times", "x-group": "Display", "default": true, "description": "How event times show everywhere events do." },
-        "maxDots": { "type": "integer", "title": "Dots per day", "x-group": "Display", "default": 3, "minimum": 1, "maximum": 6, "description": "Most calendar-colored dots under a day in the month grids." }
+        "maxDots": { "type": "integer", "title": "Dots per day", "x-group": "Display", "default": 3, "minimum": 1, "maximum": 6, "description": "Most calendar-colored dots under a day in the month grids." },
+        "showOnLockscreen": { "type": "boolean", "title": "Events on the lock screen", "x-group": "Display", "default": false, "description": "The Clock & calendar module shows the day's events on the lock screen too (read-only). Anyone at the locked screen can read them." }
       }
     },
 
@@ -3523,7 +3524,7 @@
           "properties": {
             "use24Hour": {"type": "boolean", "title": "24-hour clock", "default": true},
             "showSeconds": {"type": "boolean", "title": "Show seconds", "default": false},
-            "showEvents": {"type": "boolean", "title": "Events", "default": true, "description": "Dots on days with events, and a click on a day shows them. Never on the lock screen or the login screen."}
+            "showEvents": {"type": "boolean", "title": "Events", "default": true, "description": "Dots on days with events, and the day's events under the calendar (under the clock when wide) where they fit; a click on a day shows its events. On the lock screen only with Calendar's Events on the lock screen; never on the login screen."}
           }
         }
       }

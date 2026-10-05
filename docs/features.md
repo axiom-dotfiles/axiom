@@ -83,7 +83,7 @@ The screenshots show [two setups](../README.md#built-in-the-shell) of the same s
 ## Calendar
 
 - Your calendars from **CalDAV** accounts (iCloud, Fastmail, Nextcloud or any CalDAV server) and read-only **.ics subscriptions** (holidays, shared feeds, Google's secret iCal address). Add accounts in **Settings → Calendar**, then pick which of an account's calendars show and give any a theme color in place of the server's. Passwords go to your keyring, never into the config.
-- Days with events get a dot per calendar, in the calendar popout, the **Calendar** and **Clock & calendar** modules and the **Calendar** page; click a day to see its events, and an event to edit it. Recurring events ask whether a change is for that one or all of them.
+- Days with events get a dot per calendar, in the calendar popout, the **Calendar** and **Clock & calendar** modules and the **Calendar** page; click a day to see its events, and an event to edit it. The **Clock & calendar** module lists the day's events under its calendar (under the clock when wide) where they fit, and can show them on the lock screen (read-only) with Calendar › Events on the lock screen. Recurring events ask whether a change is for that one or all of them.
 - The **Calendar** page shows the month large, with the events in it, and switches calendars on and off.
 - An **Agenda** module lists what's coming up, and the **NextEvent** bar widget shows the next event ("in 10 min · Standup").
 - Reminders from your events show as notifications.

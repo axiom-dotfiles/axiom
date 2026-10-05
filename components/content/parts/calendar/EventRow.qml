@@ -6,7 +6,7 @@ import qs.services
 import qs.components.reusable
 
 // One event in a list: its calendar's color, the title, and when (on
-// `dayKey`) and where. A click opens it.
+// `dayKey`) and where. A click opens it (unless not `clickable`).
 Rectangle {
   id: root
 
@@ -14,6 +14,7 @@ Rectangle {
   property string dayKey: ""
   // A second line for the time and place; without, the time leads the title
   property bool twoLines: true
+  property bool clickable: true
 
   signal clicked
 
@@ -22,7 +23,7 @@ Rectangle {
   Layout.fillWidth: true
   implicitHeight: content.implicitHeight + Widget.spacing
   radius: Widget.radius
-  color: area.containsMouse ? Qt.alpha(Theme.backgroundHighlight, 0.7) : Qt.alpha(Theme.backgroundHighlight, 0)
+  color: area.containsMouse && root.clickable ? Qt.alpha(Theme.backgroundHighlight, 0.7) : Qt.alpha(Theme.backgroundHighlight, 0)
 
   Behavior on color {
     ColorAnimation {
@@ -90,6 +91,7 @@ Rectangle {
   MouseArea {
     id: area
     anchors.fill: parent
+    enabled: root.clickable
     hoverEnabled: true
     cursorShape: Qt.PointingHandCursor
     onClicked: root.clicked()

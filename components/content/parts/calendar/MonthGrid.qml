@@ -141,7 +141,7 @@ Item {
           readonly property real inset: Math.max(4, Widget.radius / 2 + 2)
           // Titles: as many lines as fit under the day's number
           readonly property real lineHeight: Appearance.fontSize * 1.25
-          readonly property int lines: root.titles ? Math.floor((cell.height - cell.inset - cell.numberSize - 2) / (cell.lineHeight + 1)) : 0
+          readonly property int lines: root.titles ? Math.floor((cell.height - cell.inset * 2 - cell.numberSize - 2) / (cell.lineHeight + 1)) : 0
           readonly property bool showTitles: root.showEvents && cell.lines >= 1
           readonly property var dayEvents: cell.showTitles ? CalendarManager.eventsOn(cell.key) : []
           // All of them when they fit, else one line fewer and "+n more"
@@ -217,9 +217,10 @@ Item {
           // Titles: the events that fit, then "+n more"
           Column {
             visible: cell.showTitles
-            x: 2
+            // Clear of the cell's rounded border, like the number
+            x: cell.inset
             y: number.y + cell.numberSize + 2
-            width: cell.width - 4
+            width: cell.width - cell.inset * 2
             spacing: 1
             opacity: cell.modelData.inMonth ? 1 : 0.5
 
@@ -230,7 +231,7 @@ Item {
                 required property int index
                 readonly property var event: cell.dayEvents[index] ?? null
                 readonly property color calendarColor: CalendarConfig.colors[chip.event?.calendar] ?? Theme.accent
-                width: parent.width
+                width: parent?.width ?? 0
                 height: cell.lineHeight
                 radius: Widget.radius / 2
                 color: chip.event?.allDay ? Qt.alpha(chip.calendarColor, 0.3) : "transparent"

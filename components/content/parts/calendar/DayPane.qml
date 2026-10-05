@@ -7,13 +7,14 @@ import qs.components.methods
 // clicked, or a new one: what the Calendar popout and module, the Clock &
 // calendar module and the Calendar page show beside their month.
 // `editing` is true while the editor is up (a popout then takes the
-// keyboard).
+// keyboard). `readOnly` (the lock screen) never opens the editor.
 Item {
   id: root
 
   property string dayKey: CalendarEvents.dayKey(new Date())
   property bool closable: false
   property real maxListHeight: Number.POSITIVE_INFINITY
+  property bool readOnly: false
   readonly property bool editing: root._editing
   property bool _editing: false
 
@@ -23,13 +24,15 @@ Item {
   implicitHeight: root._editing ? editor.implicitHeight : agenda.implicitHeight
 
   function newEvent() {
-    if (!CalendarConfig.newEventCalendar)
+    if (root.readOnly || !CalendarConfig.newEventCalendar)
       return;
     editor.open(CalendarEvents.newDraft(root.dayKey, Date.now(), CalendarConfig.newEventCalendar, CalendarConfig.defaultDuration, CalendarConfig.defaultReminder));
     root._editing = true;
   }
 
   function edit(event) {
+    if (root.readOnly)
+      return;
     editor.open(CalendarEvents.draftOf(event));
     root._editing = true;
   }
@@ -50,6 +53,7 @@ Item {
     dayKey: root.dayKey
     closable: root.closable
     maxListHeight: root.maxListHeight
+    readOnly: root.readOnly
     onEventClicked: event => root.edit(event)
     onAddClicked: root.newEvent()
     onClosed: root.closed()

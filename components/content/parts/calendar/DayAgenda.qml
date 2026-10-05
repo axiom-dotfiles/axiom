@@ -10,12 +10,14 @@ import qs.components.content.parts
 // A day's events under its date, with + to add one (when a calendar can
 // take it) and, with `closable`, a back arrow. The list scrolls when it
 // doesn't fit; `maxListHeight` caps it where nothing else does (a popout).
+// `readOnly` (the lock screen) only lists: no +, no clicks, no settings.
 ColumnLayout {
   id: root
 
   property string dayKey: CalendarEvents.dayKey(new Date())
   property bool closable: false
   property real maxListHeight: Number.POSITIVE_INFINITY
+  property bool readOnly: false
 
   signal eventClicked(var event)
   signal addClicked
@@ -43,7 +45,7 @@ ColumnLayout {
       elide: Text.ElideRight
     }
     FlatIconButton {
-      visible: CalendarConfig.writableCalendars.length > 0
+      visible: !root.readOnly && CalendarConfig.writableCalendars.length > 0
       size: Math.round(Appearance.fontSize * 1.8)
       iconText: "add"
       iconColor: Theme.accent
@@ -74,6 +76,7 @@ ColumnLayout {
           required property int index
           event: root.dayEvents[index] ?? null
           dayKey: root.dayKey
+          clickable: !root.readOnly
           onClicked: root.eventClicked(event)
         }
       }
@@ -99,7 +102,7 @@ ColumnLayout {
       text: CalendarManager.hasCalendars ? I18n.tr("Nothing on this day") : I18n.tr("No calendars yet: add an account in Settings")
     }
     StyledTextButton {
-      visible: !CalendarManager.hasCalendars
+      visible: !root.readOnly && !CalendarManager.hasCalendars
       Layout.alignment: Qt.AlignHCenter
       text: I18n.tr("Calendar settings")
       iconText: "chevron_right"
