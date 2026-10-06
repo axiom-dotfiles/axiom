@@ -44,8 +44,12 @@ Item {
   // (Bar.widgetColors), or null when it has no background
   readonly property bool hasBackground: _item?.hasBackground ?? false
   readonly property var background: hasBackground ? _item.colors : null
-  // The module's own fade (pressed, dimmed), which its background follows
-  readonly property real contentOpacity: _item?.opacity ?? 1
+  // The module's own fade, which its background follows: its `dim` when
+  // it has one (a press fades only its content; the background shows it
+  // by `pressed`, as a fade would let a powerline neighbour's square start
+  // show through), else its opacity
+  readonly property real contentOpacity: _item ? ("dim" in _item ? _item.dim : _item.opacity) : 1
+  readonly property bool pressed: _item?.pressed ?? false
   // A divider of its own (Separator): the group draws none beside it
   readonly property bool divides: _item?.divides ?? false
   // Hovered, on a module that shows an outline then (its hoverOutline)

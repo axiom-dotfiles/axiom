@@ -194,6 +194,7 @@ Item {
       seamEnd: segment.seamEnd
       shownStart: segment.shownStart
       hovered: host?.outlined ?? false
+      pressed: host?.pressed ?? false
       highlighted: host?.highlighted ?? false
       visible: place !== null
       opacity: host?.contentOpacity ?? 1

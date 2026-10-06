@@ -27,6 +27,8 @@ Item {
   property bool seamEnd: false
   // A clickable widget under the pointer (its hoverOutline)
   property bool hovered: false
+  // A clickable widget being pressed: a tint in its shape
+  property bool pressed: false
   // The bar editor's selected widget
   property bool highlighted: false
 
@@ -123,6 +125,21 @@ Item {
     y: !vertical && farSide ? root.height - thickness : 0
     width: vertical ? thickness : root.width
     height: vertical ? root.height : thickness
+  }
+
+  ShapedBox {
+    // Built only while it shows, fading out included
+    visible: root._boxed && fillColor.a > 0
+    bar: root.barConfig
+    startCap: root.shownStart
+    endCap: root.endCap
+    fillColor: Qt.alpha(root.colors?.text ?? Theme.foreground, root.pressed && root.colors !== null ? 0.2 : 0)
+
+    Behavior on fillColor {
+      ColorAnimation {
+        duration: Appearance.animFast
+      }
+    }
   }
 
   ShapedBox {
