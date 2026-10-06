@@ -16,6 +16,7 @@ components/
 services/     # *Manager singletons owning state and side effects
 config/       # config readers, the config schema, themes, translations
 assets/       # static assets
+examples/     # example setups (partial configs) applied from Settings → Maintenance
 scripts/      # scripts run by the shell (theming, wallpaper, updates) and development tools
 tests/        # unit tests (qmltestrunner) and script tests, run by scripts/check_all.sh and CI
 ```
@@ -27,6 +28,11 @@ tests/        # unit tests (qmltestrunner) and script tests, run by scripts/chec
 - Reuse the shared pieces (docs/architecture.md, "Shared UI pieces") instead of drawing another card, row, chip or drag; a pattern that appears twice becomes one.
 - User-visible text is English, wrapped in `I18n.tr("...")` with placeholders for values; run `scripts/check_i18n.py` (and `--untranslated`) after changing text.
 - Every animation duration is `Appearance.animFast`/`animNormal`/`animSlow`; outer edges use `Appearance.borderRadius`, anything inside `Widget.radius`; icons are Material Symbols names in `StyledIcon`.
+
+## Example setups
+- Build the setup in the shell, then copy only the parts `components/methods/ConfigExamples.qml` lists (`sections`) into `examples/<name>.json`, with a `_example` header: `{ "title": "…", "description": "…" }`.
+- Leave out anything personal or machine-bound: no wallpapers, calendar accounts, chat providers or apps, and every `monitor` empty (the primary).
+- `tests/tst_ConfigExamples.qml` loads every example the way the shell does, so `scripts/run_tests.sh ConfigExamples` tells you whether it's valid.
 
 ## Checks
 - Format changed QML with `/usr/lib/qt6/bin/qmlformat -i` (see `.qmlformat.ini`; the `qmlformat` on PATH is Qt5's).
