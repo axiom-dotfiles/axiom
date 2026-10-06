@@ -129,8 +129,7 @@ Item {
     }
   }
 
-  // Subclasses that need to do something extra on dismiss (e.g. clearing
-  // an anchor widget's popoutOpen flag) should connect via:
+  // Subclasses that need to do something extra on dismiss connect via:
   //   onAboutToDismiss: { ... }
   signal aboutToDismiss
 

@@ -47,7 +47,15 @@ Item {
       openTimer.stop();
     }
   }
-  property bool popoutOpen: false
+  // This widget's popout is up (and not closing) or queued to open next.
+  // Read from the wrapper rather than kept as a flag: a queued open that
+  // another widget's hover replaced never opened, so nothing would clear it
+  readonly property bool popoutOpen: {
+    const popouts = root.popouts;
+    if (!popouts)
+      return false;
+    return (popouts.isOpen && popouts.currentData?.anchorItem === root) || (popouts.hasPendingOpen && popouts.pendingOpenData?.anchorItem === root);
+  }
 
   anchors.fill: parent
 
@@ -56,7 +64,6 @@ Item {
       return;
 
     let parentPosition = root.mapToItem(null, 0, 0);
-    root.popoutOpen = true;
 
     let payload = {
       name: root.popoutName,

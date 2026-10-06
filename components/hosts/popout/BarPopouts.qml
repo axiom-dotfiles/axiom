@@ -281,19 +281,7 @@ PopoutWrapperBase {
     }
   }
 
-  // Clear the anchor widget's popoutOpen flag on dismiss, so hovering it
-  // again is allowed to open a fresh popout. Safety net for however this
-  // popout ends up destroyed lives alongside it.
-  onAboutToDismiss: {
-    if (currentData?.anchorItem) {
-      currentData.anchorItem.popoutOpen = false;
-    }
-  }
-
   Component.onDestruction: {
-    if (currentData?.anchorItem) {
-      currentData.anchorItem.popoutOpen = false;
-    }
     ShellManager.unregisterGrabPartner(mainPopup);
     ShellManager.unregisterGrabPartner(underWindow);
   }
