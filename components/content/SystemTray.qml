@@ -19,6 +19,10 @@ Item {
 
   readonly property bool hovered: hoverHandler.hovered || root.submenuOpen
 
+  // An open submenu's reach past this box's top or bottom, and the
+  // corners it squares (the wrapper, BarPopouts, draws them)
+  readonly property var sideStretch: submenuWrapper.parentStretch
+
   implicitWidth: menuList.implicitWidth
   implicitHeight: menuList.implicitHeight
 
@@ -33,10 +37,16 @@ Item {
     id: submenuWrapper
     screen: root.wrapper.screen
     openToLeft: root.openToLeft
+    host: root.wrapper
 
-    // root.hovered folds this in, and the wrapper (BarPopouts) reacts to it
+    // root.hovered folds this in, and the wrapper (BarPopouts) reacts to it.
+    // A submenu gone with the pointer off this menu and its icon (it left
+    // the submenu, or picked an entry) takes the menu with it at once,
+    // closing in a cascade rather than after the menu's own dismiss delay
     onOccupiedChanged: {
       root.submenuOpen = occupied;
+      if (!occupied && !hoverHandler.hovered && !root.wrapper.anchorHovered)
+        root.wrapper.requestDismiss();
     }
   }
 
@@ -48,16 +58,19 @@ Item {
     maxWidth: (root.wrapper.screen?.width ?? 2000) * 0.3
 
     onSubmenuRequested: function (itemDelegate) {
-      // Everything in the popup window's coordinates: the submenu attaches
-      // to the side of this popout's box, level with the item
+      // The submenu attaches to the side of this popout's box, level with
+      // the item: where it sits from the box's top (the box may move in
+      // its window, see BarPopouts.attachBox)
       const windowPos = itemDelegate.mapToItem(null, 0, 0);
       submenuWrapper.safeOpenPopout(root.wrapper.popupWindow, {
         menuItem: itemDelegate.menuItem,
         anchorItem: itemDelegate,
-        anchorY: windowPos.y,
-        attachRect: root.wrapper.boxRect
+        anchorOffset: windowPos.y - root.wrapper.attachBox.y
       });
     }
+
+    // An entry picked closes the menu, as a submenu's does (TraySubmenu)
+    onItemClicked: root.wrapper.requestDismiss()
 
     // Close any open submenu when hovering an item without one
     onPlainItemHovered: submenuWrapper.closePopout()

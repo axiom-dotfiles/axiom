@@ -25,6 +25,16 @@ Item {
   // The field's own height (the greeter's login box shrinks it to a short
   // slot)
   property real fieldHeight: Widget.height + Widget.padding
+  // The message line's room is kept while it's empty, so the field doesn't
+  // move when one shows
+  property bool reserveMessage: false
+  // A slot with no room under the field: the message shows in the empty
+  // field (it's emptied after a failure) instead, and only the field takes
+  // room
+  property bool inlineMessage: false
+  // What a message line under the field takes, shown or not (for a host
+  // deciding on inlineMessage)
+  readonly property real messageRoom: body.spacing + messageMetrics.height
 
   signal accepted
 
@@ -44,7 +54,7 @@ Item {
       id: entry
       width: parent.width
       height: root.fieldHeight
-      placeholderText: root.placeholder
+      placeholderText: root.inlineMessage && root.message !== "" ? root.message : root.placeholder
       input.passwordCharacter: "•"
       input.passwordMaskDelay: 0
       input.horizontalAlignment: root.centered ? Text.AlignHCenter : Text.AlignLeft
@@ -59,43 +69,66 @@ Item {
       value: root.reveal ? TextInput.Normal : TextInput.Password
     }
 
+    // An inline message in its color
+    Binding {
+      when: root.inlineMessage && root.message !== ""
+      target: entry.input
+      property: "placeholderTextColor"
+      value: root.messageIsError ? Theme.error : Theme.foregroundAlt
+    }
+
     StyledText {
+      id: messageText
       width: parent.width
-      visible: text !== ""
-      text: root.message
+      visible: !root.inlineMessage && (root.message !== "" || root.reserveMessage)
+      // A space keeps a reserved line's height
+      text: root.message || " "
       textColor: root.messageIsError ? Theme.error : Theme.foregroundAlt
       textSize: Appearance.fontSize - 2
       horizontalAlignment: root.centered ? Text.AlignHCenter : Text.AlignLeft
       wrapMode: root.wrapMessage ? Text.WordWrap : Text.NoWrap
       elide: root.wrapMessage ? Text.ElideNone : Text.ElideRight
     }
+  }
 
-    Item {
-      width: parent.width
-      height: 4
-      visible: root.busy
+  FontMetrics {
+    id: messageMetrics
+    font: messageText.font
+  }
 
-      StyledContainer {
-        width: parent.width * 0.3
-        height: parent.height
-        backgroundColor: Theme.accent
+  // Checking: a bar sliding along the field's bottom edge, over it, so
+  // nothing moves when it shows
+  Item {
+    id: busyTrack
+    readonly property real inset: Math.min(entry.radius, entry.height / 2)
+    x: body.x + busyTrack.inset
+    y: body.y + entry.y + entry.height - height - Appearance.borderWidth - 1
+    width: entry.width - busyTrack.inset * 2
+    height: 3
+    visible: root.busy
+    clip: true
 
-        SequentialAnimation on x {
-          loops: Animation.Infinite
-          running: root.busy && Appearance.animations
+    StyledContainer {
+      width: parent.width * 0.3
+      height: parent.height
+      radius: height / 2
+      backgroundColor: Theme.accent
 
-          NumberAnimation {
-            from: 0
-            to: root.width * 0.7
-            duration: Appearance.animSlow * 3
-            easing.type: Easing.InOutQuad
-          }
-          NumberAnimation {
-            from: root.width * 0.7
-            to: 0
-            duration: Appearance.animSlow * 3
-            easing.type: Easing.InOutQuad
-          }
+      SequentialAnimation on x {
+        loops: Animation.Infinite
+        running: root.busy && Appearance.animations
+
+        NumberAnimation {
+          from: 0
+          to: busyTrack.width * 0.7
+          duration: Appearance.animSlow * 3
+          easing.type: Easing.InOutQuad
+        }
+        NumberAnimation {
+          from: busyTrack.width * 0.7
+          to: 0
+          duration: Appearance.animSlow * 3
+          easing.type: Easing.InOutQuad
         }
       }
     }

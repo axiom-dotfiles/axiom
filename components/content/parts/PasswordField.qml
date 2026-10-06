@@ -18,6 +18,11 @@ Item {
   property bool centered: true
   // PAM's prompts, failures and errors under the field
   property bool showMessages: true
+  // A slot with no room under the field: messages show in it (see
+  // PasswordEntry), and a shorter field
+  property bool inlineMessage: false
+  property real fieldHeight: Widget.height + Widget.padding
+  readonly property real messageRoom: field.messageRoom
 
   implicitHeight: field.implicitHeight
 
@@ -35,14 +40,10 @@ Item {
 
   // Typing always lands here: the lock surface takes every key, and no
   // other lock screen module takes text
-  Connections {
-    target: root.Window.window
-    enabled: root.active
-
-    function onActiveFocusItemChanged() {
-      if (!field.input.activeFocus)
-        Qt.callLater(root.takeFocus);
-    }
+  FocusKeeper {
+    active: root.active
+    holder: field.input
+    onReclaim: root.takeFocus()
   }
 
   Connections {
@@ -67,6 +68,9 @@ Item {
     anchors.verticalCenter: parent.verticalCenter
     placeholder: root.placeholder || I18n.tr("Enter password...")
     centered: root.centered
+    fieldHeight: root.fieldHeight
+    inlineMessage: root.inlineMessage
+    reserveMessage: root.showMessages
     readOnly: !root.active
     enabled: !root.active || !AuthManager.isAuthenticating
     message: root.active && root.showMessages ? AuthManager.message : ""

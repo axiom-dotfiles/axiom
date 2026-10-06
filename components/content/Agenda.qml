@@ -18,7 +18,7 @@ import qs.components.content.parts.calendar
 Panel {
   id: root
 
-  spacing: Widget.spacing / 2
+  spacing: Widget.spacing
   fullMinWidth: Appearance.fontSize * 12
   fullMinHeight: Appearance.fontSize * 8
 
@@ -93,7 +93,7 @@ Panel {
     ColumnLayout {
       id: list
       width: parent.width
-      spacing: Widget.spacing / 2
+      spacing: Widget.spacing
 
       Repeater {
         model: root.groups.length
@@ -105,7 +105,7 @@ Panel {
             "events": []
           }
           Layout.fillWidth: true
-          spacing: 1
+          spacing: 2
 
           StyledText {
             Layout.leftMargin: Widget.spacing / 2
@@ -132,13 +132,20 @@ Panel {
     }
   }
 
-  EmptyState {
+  // A plain Item takes the free height (a layout's maximum would cap it,
+  // and the column would spread the rest around the header)
+  Item {
     visible: !editor.visible && root.groups.length === 0
     Layout.fillWidth: true
     Layout.fillHeight: true
-    availableHeight: root.innerHeight - Appearance.fontSize * 2
-    icon: CalendarManager.hasCalendars ? "event_available" : "calendar_month"
-    text: CalendarManager.hasCalendars ? I18n.tr("Nothing coming up") : I18n.tr("No calendars yet: add an account in Settings")
+
+    EmptyState {
+      anchors.centerIn: parent
+      maxWidth: parent.width
+      availableHeight: parent.height
+      icon: CalendarManager.hasCalendars ? "event_available" : "calendar_month"
+      text: CalendarManager.hasCalendars ? I18n.tr("Nothing coming up") : I18n.tr("No calendars yet: add an account in Settings")
+    }
   }
 
   EventEditor {

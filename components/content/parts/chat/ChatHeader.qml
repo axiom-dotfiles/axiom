@@ -51,11 +51,7 @@ RowLayout {
     border.color: root.pickerOpen ? Theme.accent : Theme.border
     border.width: 1
 
-    Behavior on color {
-      ColorAnimation {
-        duration: Appearance.animFast
-      }
-    }
+    ColorGlide on color {}
 
     RowLayout {
       id: chip

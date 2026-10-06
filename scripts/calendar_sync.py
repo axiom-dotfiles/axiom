@@ -112,7 +112,8 @@ class Dav:
                 req.add_header(key, value)
             try:
                 with _opener.open(req, timeout=TIMEOUT) as resp:
-                    return resp.status, resp.headers, resp.read(), url
+                    # A file:// feed has no status
+                    return resp.status or 200, resp.headers, resp.read(), url
             except urllib.error.HTTPError as err:
                 if err.code in (301, 302, 303, 307, 308) and err.headers.get("Location"):
                     url = urllib.parse.urljoin(url, err.headers["Location"])

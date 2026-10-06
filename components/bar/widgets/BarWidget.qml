@@ -14,8 +14,16 @@ Item {
   property var panel
   property var screen
   property var properties
+  // Where its pointer areas go, in its background's shape (set by its
+  // BarWidgetHost; null: its own bounds)
+  property var hitArea: null
 
   readonly property bool isVertical: barConfig.vertical
+
+  // Kept at the start of its drawn size while that catches up with a new
+  // one, rather than centred in it: for a widget that grows and shrinks at
+  // its end, whose start shouldn't drift meanwhile (Workspaces' strip)
+  property bool pinStart: false
 
   property bool hasBackground: false
   property color accentColor: "transparent"

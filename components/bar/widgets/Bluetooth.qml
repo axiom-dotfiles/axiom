@@ -41,6 +41,7 @@ BarIconWidget {
   PopoutAnchor {
     popouts: root.popouts
     panel: root.panel
+    hitArea: root.hitArea
     popoutName: "BluetoothDevices"
     active: root.properties.showPopout && !root.hidden && BluetoothManager.available
   }

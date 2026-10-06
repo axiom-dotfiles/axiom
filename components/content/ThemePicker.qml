@@ -50,18 +50,22 @@ TitledCard {
       Layout.fillWidth: true
       spacing: Widget.spacing / 2
 
-      SegmentButton {
-        text: I18n.tr("Dark")
-        active: Appearance.darkMode
-        available: root.hasDark
-        onClicked: ThemeManager.setLightMode(false)
-      }
+      SegmentRow {
+        Layout.fillWidth: true
 
-      SegmentButton {
-        text: I18n.tr("Light")
-        active: !Appearance.darkMode
-        available: root.hasLight
-        onClicked: ThemeManager.setLightMode(true)
+        SegmentButton {
+          text: I18n.tr("Dark")
+          active: Appearance.darkMode
+          available: root.hasDark
+          onClicked: ThemeManager.setLightMode(false)
+        }
+
+        SegmentButton {
+          text: I18n.tr("Light")
+          active: !Appearance.darkMode
+          available: root.hasLight
+          onClicked: ThemeManager.setLightMode(true)
+        }
       }
 
       // A switch of its own: picking Dark or Light by hand lasts until the
@@ -118,11 +122,7 @@ TitledCard {
     border.width: current ? Appearance.borderWidth * 2 + 1 : Appearance.borderWidth + 1
     border.color: current ? Theme.accent : tileArea.containsMouse ? Qt.alpha(Theme.foreground, 0.5) : Qt.alpha(Theme.border, 0.6)
 
-    Behavior on border.color {
-      ColorAnimation {
-        duration: Appearance.animFast
-      }
-    }
+    ColorGlide on border.color {}
 
     ColumnLayout {
       id: tileColumn

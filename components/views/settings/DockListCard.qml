@@ -20,10 +20,11 @@ EntryListCard {
   savedEntries: DockConfig.docks
   title: I18n.tr("Docks")
   description: (SettingsManager.localConfig?.Dock?.enabled ?? DockConfig.enabled) ? "" : I18n.tr("Docks are off: turn on Enabled below to show them.")
-  pickerHint: I18n.tr("Click a spot to place it; fine-tune below. Show slides a hidden dock in.")
+  pickerHint: I18n.tr("Click a spot to place it; fine-tune below. Show slides it in for a moment.")
   idBase: "dock"
   labelOf: dock => DockConfig.labelOf(dock)
-  onShow: id => DockManager.show(id)
+  // The dock as edited, saved or not
+  onShow: () => DockManager.preview(root.entry)
 
   function pinApp(id) {
     if (!root.pinned.includes(id))

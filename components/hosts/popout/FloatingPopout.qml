@@ -6,12 +6,13 @@ import Quickshell.Hyprland
 
 import qs.config
 import qs.services
+import qs.components.reusable
 
 /**
  * A popout that floats on the screen instead of growing out of an edge
  * (EdgePopout): a plain rounded box in an Overlay-layer window covering the
  * area the bars and border leave free, fading and scaling in. Used by the
- * floating OSD and the floating launcher.
+ * detached launcher and the window switcher.
  *
  * Open/close/queue state and hover-loss dismissal come from
  * PopoutWrapperBase, as for EdgePopout, and the content is a Component in
@@ -19,8 +20,11 @@ import qs.services
  * `autoDismiss` / `dismissDelay` / `hovered`.
  *
  * Placement: the box's anchor point is `xFraction` across and `yFraction`
- * down the free area, with `yAlign` saying which part of the box sits
- * there (0 its top, 0.5 its centre, 1 its bottom), kept `margin` inside.
+ * down the free area inside its margins (`margin`, or one per side), with
+ * `xAlign`/`yAlign` saying which part of the box sits there (0 its
+ * left/top, 0.5 its centre, 1 its right/bottom), and kept inside them. A
+ * fraction equal to its align spreads the room left over: 0 against one
+ * side, 0.5 centred, 1 against the other.
  * Content that changes height while open sets `maxContentHeight`: the box
  * is placed as if it were that tall, so it doesn't move, and grows down
  * from its top (or up from its bottom with `growUp`).
@@ -38,9 +42,17 @@ PopoutWrapperBase {
 
   property real xFraction: 0.5
   property real yFraction: 0.5
+  property real xAlign: 0.5
   property real yAlign: 0.5
   property real margin: Appearance.screenMargin
+  property real leftMargin: root.margin
+  property real topMargin: root.margin
+  property real rightMargin: root.margin
+  property real bottomMargin: root.margin
   property real maxContentHeight: 0
+  // The box glides to the content's height; off for content that animates
+  // its own (the launcher's list), which the box then follows as is
+  property bool animateHeight: true
   property bool growUp: false
 
   // Space between the box and its content
@@ -114,17 +126,37 @@ PopoutWrapperBase {
       onClicked: root.hide()
     }
 
+    // The box's shadow or glow (SurfaceShadow), cast by a copy of its shape
+    // behind it, so the content isn't drawn through a layer
+    Rectangle {
+      visible: BarStyle.shadowed
+      x: box.x
+      y: box.y
+      width: box.width
+      height: box.height
+      radius: box.radius
+      color: box.color
+      opacity: box.opacity
+      scale: box.scale
+      transformOrigin: box.transformOrigin
+      layer.enabled: BarStyle.shadowed
+      layer.effect: SurfaceShadow {}
+    }
+
     Rectangle {
       id: box
 
       readonly property real contentHeight: root.contentItem?.implicitHeight ?? 0
       // The height it's placed by
       readonly property real placedHeight: Math.max(box.height, root.maxContentHeight + root.contentPadding * 2)
-      readonly property real placedY: Math.max(root.margin, Math.min(surfaceWindow.height * root.yFraction - box.placedHeight * root.yAlign, surfaceWindow.height - box.placedHeight - root.margin))
+      // The room inside the margins
+      readonly property real roomWidth: surfaceWindow.width - root.leftMargin - root.rightMargin
+      readonly property real roomHeight: surfaceWindow.height - root.topMargin - root.bottomMargin
+      readonly property real placedY: root.topMargin + Math.max(0, Math.min(box.roomHeight * root.yFraction - box.placedHeight * root.yAlign, box.roomHeight - box.placedHeight))
 
       width: (root.contentItem?.implicitWidth ?? 0) + root.contentPadding * 2
       height: box.contentHeight + root.contentPadding * 2
-      x: Math.max(root.margin, Math.min(surfaceWindow.width * root.xFraction - width / 2, surfaceWindow.width - width - root.margin))
+      x: root.leftMargin + Math.max(0, Math.min(box.roomWidth * root.xFraction - width * root.xAlign, box.roomWidth - width))
       y: root.growUp ? box.placedY + box.placedHeight - box.height : box.placedY
       color: root.fillColor
       border.color: root.strokeColor
@@ -135,23 +167,14 @@ PopoutWrapperBase {
       opacity: root.isOpen ? 1 : 0
       scale: root.isOpen ? 1 : root.closedScale
       transformOrigin: root.growUp ? Item.Bottom : root.maxContentHeight > 0 ? Item.Top : Item.Center
-      Behavior on opacity {
-        NumberAnimation {
-          duration: Appearance.animNormal
-          easing.type: Appearance.easing
-        }
+      Glide on opacity {
+        duration: Appearance.animNormal
       }
-      Behavior on scale {
-        NumberAnimation {
-          duration: Appearance.animNormal
-          easing.type: Appearance.easing
-        }
+      Glide on scale {
+        duration: Appearance.animNormal
       }
-      Behavior on height {
-        NumberAnimation {
-          duration: Appearance.animFast
-          easing.type: Appearance.easing
-        }
+      Glide on height {
+        enabled: root.animateHeight
       }
 
       HoverHandler {

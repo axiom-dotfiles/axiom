@@ -1,7 +1,7 @@
 pragma Singleton
 import QtQuick
 
-// Pure helpers: deep copies, free ids, usage counts, curl config values, text width
+// Pure helpers: deep copies and comparison, free ids, usage counts, curl config values, text width
 // and truncation, colors, calendar grids, byte sizes and rates. No file access, processes or
 // services (those live in services/).
 QtObject {
@@ -11,6 +11,21 @@ QtObject {
   // bindings, or a draft that can be mutated in place
   function clone(value) {
     return JSON.parse(JSON.stringify(value ?? null));
+  }
+
+  // Whether two pieces of plain JSON data are equal, whatever their objects'
+  // key order (JSON.stringify compares order too)
+  function deepEqual(a, b) {
+    if (a === b)
+      return true;
+    if (a === null || b === null || typeof a !== "object" || typeof b !== "object")
+      return false;
+    if (Array.isArray(a) !== Array.isArray(b))
+      return false;
+    if (Array.isArray(a))
+      return a.length === b.length && a.every((item, i) => root.deepEqual(item, b[i]));
+    const keys = Object.keys(a);
+    return keys.length === Object.keys(b).length && keys.every(key => Object.prototype.hasOwnProperty.call(b, key) && root.deepEqual(a[key], b[key]));
   }
 
   // A copy of the object `map` with `key` set to `value`, or left out when

@@ -117,11 +117,8 @@ PanelWindow {
     color: Appearance.darkMode ? Theme.background : Theme.foreground
     opacity: root.shown ? 0.75 : 0
 
-    Behavior on opacity {
-      NumberAnimation {
-        duration: Appearance.animNormal
-        easing.type: Appearance.easing
-      }
+    Glide on opacity {
+      duration: Appearance.animNormal
     }
   }
 
@@ -144,17 +141,11 @@ PanelWindow {
 
     opacity: root.shown ? 1 : 0
     scale: root.shown ? 1 : 0.97
-    Behavior on opacity {
-      NumberAnimation {
-        duration: Appearance.animNormal
-        easing.type: Appearance.easing
-      }
+    Glide on opacity {
+      duration: Appearance.animNormal
     }
-    Behavior on scale {
-      NumberAnimation {
-        duration: Appearance.animNormal
-        easing.type: Appearance.easing
-      }
+    Glide on scale {
+      duration: Appearance.animNormal
     }
 
     ColumnLayout {

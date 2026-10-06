@@ -189,6 +189,18 @@ QtObject {
   }
 
   /**
+   * @brief The config a parsed object would load as (migrated, pruned,
+   * defaults filled), or null if it doesn't validate. Only computes: it
+   * logs nothing, stores no migrated secrets and leaves `object` as it was.
+   */
+  function normalizeConfig(object) {
+    const migrated = ConfigMigration.migrate(Utils.clone(object)).config;
+    SchemaValidation.pruneUnknown(migrated, _configSchema);
+    const config = SchemaValidation.applyDefaults(migrated, _configSchema);
+    return SchemaValidation.validateAgainstSchema(config, _configSchema) ? config : null;
+  }
+
+  /**
      * @brief Manually triggers the file checker, simulating a file-system change.
      */
   function forceReload() {

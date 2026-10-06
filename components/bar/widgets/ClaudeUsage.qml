@@ -70,6 +70,7 @@ BarIconWidget {
   PopoutAnchor {
     popouts: root.popouts
     panel: root.panel
+    hitArea: root.hitArea
     popoutName: "ClaudeUsage"
     active: root.properties.showPopout
     extraData: ({

@@ -135,6 +135,7 @@ BarWidget {
   PopoutAnchor {
     popouts: root.popouts
     panel: root.panel
+    hitArea: root.hitArea
     popoutName: "SystemGraphs"
     active: root.properties.showPopout && root.graphMetrics.length > 0
     extraData: ({

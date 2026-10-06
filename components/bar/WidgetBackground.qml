@@ -4,6 +4,7 @@ import QtQuick.Shapes
 
 import qs.config
 import qs.components.methods
+import qs.components.reusable
 
 // What a bar widget sits on, in its bar's widget style (widgetStyle,
 // widgetShape): a fill or outline shaped by its caps (BarShapes), or for
@@ -18,11 +19,17 @@ Item {
   property var colors: null
   property string startCap: "round"
   property string endCap: "round"
+  // The start as it shows (BarShapes.segment): the hover outline and the
+  // highlight trace what's in view, inside it, not the part a powerline
+  // neighbour covers
+  property string shownStart: startCap
   // Ends that meet a powerline neighbour edge to edge (BarShapes.segment)
   property bool seamStart: false
   property bool seamEnd: false
   // A clickable widget under the pointer (its hoverOutline)
   property bool hovered: false
+  // A clickable widget being pressed: a tint in its shape
+  property bool pressed: false
   // The bar editor's selected widget
   property bool highlighted: false
 
@@ -103,6 +110,10 @@ Item {
     fillColor: root.colors?.fill ?? "transparent"
     strokeColor: root.colors?.stroke ?? "transparent"
     strokeWidth: root._fill === "outline" ? root.barConfig.outlineWidth : 0
+
+    // State changes (mute, a warning level) recolour smoothly
+    ColorGlide on fillColor {}
+    ColorGlide on strokeColor {}
   }
 
   // Along the side toward the windows (inner) or the screen edge (outer)
@@ -119,15 +130,26 @@ Item {
     y: !vertical && farSide ? root.height - thickness : 0
     width: vertical ? thickness : root.width
     height: vertical ? root.height : thickness
+
+    ColorGlide on color {}
+  }
+
+  ShapedBox {
+    // Built only while it shows, fading out included
+    visible: root._boxed && fillColor.a > 0
+    bar: root.barConfig
+    startCap: root.shownStart
+    endCap: root.endCap
+    fillColor: Qt.alpha(root.colors?.text ?? Theme.foreground, root.pressed && root.colors !== null ? 0.2 : 0)
+
+    ColorGlide on fillColor {}
   }
 
   ShapedBox {
     visible: root.highlighted
     bar: root.barConfig
-    startCap: root.startCap
+    startCap: root.shownStart
     endCap: root.endCap
-    seamStart: root.seamStart
-    seamEnd: root.seamEnd
     fillColor: Qt.alpha(Theme.accent, 0.15)
     strokeColor: Theme.accent
     strokeWidth: 2
@@ -137,17 +159,13 @@ Item {
     // Built only while it shows, fading out included
     visible: strokeColor.a > 0
     bar: root.barConfig
-    startCap: root.startCap
+    startCap: root.shownStart
     endCap: root.endCap
-    seamStart: root.seamStart
-    seamEnd: root.seamEnd
     strokeColor: root.hovered ? Theme.border : Qt.alpha(Theme.border, 0)
     strokeWidth: Appearance.borderWidth
 
-    Behavior on strokeColor {
-      ColorAnimation {
-        duration: Appearance.animNormal
-      }
+    ColorGlide on strokeColor {
+      duration: Appearance.animNormal
     }
   }
 }

@@ -37,10 +37,8 @@ StyledContainer {
   backgroundColor: root.selected ? Theme.accent : Qt.alpha(Theme.backgroundHighlight, root.hovered ? 1 : 0)
   borderWidth: 0
 
-  Behavior on color {
-    ColorAnimation {
-      duration: Appearance.animNormal
-    }
+  ColorGlide on color {
+    duration: Appearance.animNormal
   }
 
   HoverHandler {
@@ -81,7 +79,7 @@ StyledContainer {
     }
 
     UnsavedDot {
-      visible: root.changed
+      shown: root.changed
       onAccent: root.selected
     }
 

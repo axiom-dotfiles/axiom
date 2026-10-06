@@ -21,6 +21,7 @@ BarIconWidget {
   PopoutAnchor {
     popouts: root.popouts
     panel: root.panel
+    hitArea: root.hitArea
     popoutName: "WeatherForecast"
     active: root.properties.showPopout && root.source.weather !== null
   }

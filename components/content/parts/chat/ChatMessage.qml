@@ -286,11 +286,7 @@ Item {
       opacity: root.hovered && !root.streaming ? 1 : 0
       enabled: opacity > 0
 
-      Behavior on opacity {
-        NumberAnimation {
-          duration: Appearance.animFast
-        }
-      }
+      Glide on opacity {}
 
       StyledText {
         visible: !root.isUser && (root.message?.model ?? "") !== ""

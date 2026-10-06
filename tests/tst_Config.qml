@@ -1045,6 +1045,82 @@ TestCase {
     compare(hidden.config.Calendar.syncInterval, 15);
   }
 
+  function test_v47_launcher_position_becomes_an_edge_place_data() {
+    return [
+      {
+        "tag": "center",
+        "position": "center",
+        "edge": "Top",
+        "detached": true,
+        "distance": 50
+      },
+      {
+        "tag": "upper",
+        "position": "upper",
+        "edge": "Top",
+        "detached": true,
+        "distance": 30
+      },
+      {
+        "tag": "top",
+        "position": "top",
+        "edge": "Top",
+        "detached": false,
+        "distance": 30
+      },
+      {
+        "tag": "bottom",
+        "position": "bottom",
+        "edge": "Bottom",
+        "detached": false,
+        "distance": 30
+      }
+    ];
+  }
+
+  function test_v47_launcher_position_becomes_an_edge_place(data) {
+    const loaded = load({
+      "version": 46,
+      "Launcher": {
+        "position": data.position,
+        "width": 710
+      }
+    });
+    const launcher = loaded.config.Launcher;
+    compare(launcher.edge, data.edge);
+    compare(launcher.position, 50);
+    compare(launcher.detached, data.detached);
+    compare(launcher.distance, data.distance);
+    compare(launcher.width, 710);
+    compare(errors(loaded.config), []);
+  }
+
+  function test_v48_default_float_gap_becomes_automatic() {
+    const loaded = load({
+      "version": 47,
+      "Bars": [
+        {
+          "id": "a",
+          "background": "floating",
+          "floatGap": 8
+        },
+        {
+          "id": "b",
+          "background": "floating",
+          "floatGap": 14
+        },
+        {
+          "id": "c"
+        }
+      ]
+    });
+    const bars = loaded.config.Bars;
+    compare(bars[0].floatGap, -1);
+    compare(bars[1].floatGap, 14);
+    compare(bars[2].floatGap, -1);
+    compare(errors(loaded.config), []);
+  }
+
   function test_v44_floating_osd_becomes_detached_on_nearest_edge() {
     const loaded = load({
       "version": 43,

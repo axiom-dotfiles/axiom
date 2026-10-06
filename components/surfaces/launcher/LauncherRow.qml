@@ -27,6 +27,27 @@ Item {
   readonly property bool _emoji: modelData.kind === "emoji"
   readonly property color _titleColor: current ? Theme.accent : Theme.foreground
 
+  // Rows are reused as the results change: one showing a different result
+  // than before dips and comes back, icon and text together. Not on its
+  // first, which the list's `add` fades in.
+  readonly property string _resultKey: (modelData.kind ?? "") + "\n" + (modelData.title ?? "")
+  property bool _placed: false
+  Component.onCompleted: Qt.callLater(() => root._placed = true)
+  on_ResultKeyChanged: {
+    if (root._placed && Appearance.animations)
+      refresh.restart();
+  }
+
+  NumberAnimation {
+    id: refresh
+    target: content
+    property: "opacity"
+    from: 0.6
+    to: 1
+    duration: Appearance.animFast
+    easing.type: Appearance.easing
+  }
+
   // Selection pill with an accent bar
   Rectangle {
     anchors.fill: parent
@@ -34,11 +55,7 @@ Item {
     anchors.rightMargin: 6
     radius: Widget.radius
     color: root.current ? Qt.alpha(Theme.accent, 0.14) : area.containsMouse && root.pointerActive ? Theme.backgroundHighlight : Qt.alpha(Theme.backgroundHighlight, 0)
-    Behavior on color {
-      ColorAnimation {
-        duration: Appearance.animFast
-      }
-    }
+    ColorGlide on color {}
 
     Rectangle {
       width: 3
@@ -49,11 +66,7 @@ Item {
       anchors.verticalCenter: parent.verticalCenter
       color: Theme.accent
       opacity: root.current ? 1 : 0
-      Behavior on opacity {
-        NumberAnimation {
-          duration: Appearance.animFast
-        }
-      }
+      Glide on opacity {}
     }
   }
 
@@ -67,6 +80,7 @@ Item {
   }
 
   RowLayout {
+    id: content
     anchors.fill: parent
     anchors.leftMargin: 20
     anchors.rightMargin: 18
@@ -93,11 +107,7 @@ Item {
         visible: !root._image
         radius: Widget.radius
         color: root._emoji ? "transparent" : root.current ? Qt.alpha(Theme.accent, 0.18) : Theme.backgroundAlt
-        Behavior on color {
-          ColorAnimation {
-            duration: Appearance.animFast
-          }
-        }
+        ColorGlide on color {}
 
         StyledIcon {
           anchors.centerIn: parent
@@ -125,11 +135,7 @@ Item {
           textColor: root._titleColor
           font.weight: Font.Medium
           elide: Text.ElideRight
-          Behavior on color {
-            ColorAnimation {
-              duration: Appearance.animFast
-            }
-          }
+          ColorGlide on color {}
         }
 
         StyledText {

@@ -12,8 +12,9 @@ import qs.components.content.base
 // The active media player over a blurred copy of its cover: art, track
 // info, a seek bar and controls. As the Media widget's popout: art beside
 // the track info, the controls beneath, at a fixed size so track changes
-// never resize it. As an overlay card: art beside everything when wide,
-// stacked when square or tall; a short slot drops the player name, album
+// never resize it. As an overlay card: art beside everything when wide
+// (by px: an edge menu's units aren't square), stacked when square or
+// tall; a short slot drops the player name, album
 // and times; a tall wide one has larger text and controls, centred beside
 // the art; a strip is one row (art, title, artist and the buttons); a
 // compact card is just the art and play/pause.
@@ -22,8 +23,11 @@ Panel {
 
   readonly property bool hasPlayer: MediaManager.hasActivePlayer
   readonly property string artSource: MediaManager.artDownloaded && MediaManager.artVersion >= 0 ? "file://" + MediaManager.artFilePath : ""
-  // Card only: the art beside the info and controls
-  readonly property bool sideBySide: root.embedded && root.shape === "horizontal"
+  // Card only: the art beside the info and controls, when the slot is
+  // clearly wider than tall
+  readonly property bool sideBySide: root.embedded && root.innerWidth >= root.innerHeight * 1.25
+  // Card stacked: the art centred, the track centred beneath it
+  readonly property bool stacked: root.embedded && !root.sideBySide
   // A short wide slot: title, artist and a slim transport only
   readonly property bool short: root.sideBySide && root.height < Appearance.fontSize * 13
   // A tall wide slot (a big lock screen or page card): larger text and
@@ -36,6 +40,8 @@ Panel {
   property bool seeking: false
 
   hovered: pointerInside || root.seeking
+  // The blurred cover is a box of its own, so bare it keeps its padding
+  drawsBox: true
 
   fullMinWidth: Appearance.fontSize * 10
   fullMinHeight: Appearance.fontSize * 3.5
@@ -57,16 +63,8 @@ Panel {
     opacity: button.enabled ? 1 : 0.4
     color: button.primary ? (buttonArea.containsMouse ? Qt.lighter(Theme.accent, 1.15) : Theme.accent) : buttonArea.containsMouse ? Theme.backgroundHighlight : Qt.alpha(Theme.backgroundHighlight, 0)
     scale: buttonArea.pressed ? 0.92 : 1
-    Behavior on color {
-      ColorAnimation {
-        duration: Appearance.animFast
-      }
-    }
-    Behavior on scale {
-      NumberAnimation {
-        duration: Appearance.animFast
-      }
-    }
+    ColorGlide on color {}
+    Glide on scale {}
     StyledIcon {
       anchors.centerIn: parent
       text: button.icon
@@ -90,12 +88,18 @@ Panel {
       anchors.fill: parent
       radius: art.radius
       color: Theme.backgroundAlt
-      Image {
+      // A new cover fades in over the old once it has loaded
+      CrossFade {
         anchors.fill: parent
-        source: root.artSource
-        fillMode: Image.PreserveAspectCrop
-        asynchronous: true
-        visible: status === Image.Ready
+        value: root.artSource
+        delegate: Image {
+          required property var value
+          readonly property bool ready: status !== Image.Loading
+          source: value
+          fillMode: Image.PreserveAspectCrop
+          asynchronous: true
+          visible: status === Image.Ready
+        }
       }
       StyledIcon {
         anchors.centerIn: parent
@@ -120,6 +124,10 @@ Panel {
         id: playerRow
         anchors.fill: parent
         spacing: 4
+        Item {
+          visible: root.stacked
+          Layout.fillWidth: true
+        }
         StyledText {
           Layout.fillWidth: true
           Layout.maximumWidth: Math.ceil(implicitWidth)
@@ -149,29 +157,44 @@ Panel {
     Item {
       Layout.fillHeight: true
     }
-    StyledText {
+    CrossFade {
       Layout.fillWidth: true
-      elide: Text.ElideRight
-      text: MediaManager.trackTitle || I18n.tr("Unknown track")
-      textColor: Theme.accent
-      textSize: root.large ? Appearance.fontSize * 2 : root.short ? Appearance.fontSize : Appearance.fontSize + 3
-      font.bold: true
+      value: MediaManager.trackTitle || I18n.tr("Unknown track")
+      delegate: StyledText {
+        required property var value
+        elide: Text.ElideRight
+        horizontalAlignment: root.stacked ? Text.AlignHCenter : Text.AlignLeft
+        text: value
+        textColor: Theme.accent
+        textSize: root.large ? Appearance.fontSize * 2 : root.short ? Appearance.fontSize : Appearance.fontSize + 3
+        font.bold: true
+      }
     }
-    StyledText {
+    CrossFade {
       Layout.fillWidth: true
-      elide: Text.ElideRight
       // Kept as a line when empty, so the popout's height never changes
-      text: MediaManager.trackArtist || " "
-      textSize: root.large ? Appearance.fontSize + 4 : root.short ? Appearance.fontSize - 2 : Appearance.fontSize
+      value: MediaManager.trackArtist || " "
+      delegate: StyledText {
+        required property var value
+        elide: Text.ElideRight
+        horizontalAlignment: root.stacked ? Text.AlignHCenter : Text.AlignLeft
+        text: value
+        textSize: root.large ? Appearance.fontSize + 4 : root.short ? Appearance.fontSize - 2 : Appearance.fontSize
+      }
     }
-    StyledText {
+    CrossFade {
       visible: !root.short
       Layout.fillWidth: true
-      elide: Text.ElideRight
-      // MediaManager doesn't surface the album, but the Mpris player does
-      text: (MediaManager.activePlayer?.trackAlbum ?? "") || " "
-      textSize: root.large ? Appearance.fontSize : Appearance.fontSize - 2
       opacity: 0.6
+      // MediaManager doesn't surface the album, but the Mpris player does
+      value: (MediaManager.activePlayer?.trackAlbum ?? "") || " "
+      delegate: StyledText {
+        required property var value
+        elide: Text.ElideRight
+        horizontalAlignment: root.stacked ? Text.AlignHCenter : Text.AlignLeft
+        text: value
+        textSize: root.large ? Appearance.fontSize : Appearance.fontSize - 2
+      }
     }
   }
 
@@ -246,18 +269,23 @@ Panel {
       radius: Math.max(0, root.boxRadius - (root.embedded ? Appearance.borderWidth : 0))
       color: "transparent"
       // Larger than the box, so the blur doesn't fade out at its edges
-      Image {
+      CrossFade {
         anchors.fill: parent
         anchors.margins: -48
-        source: root.artSource
-        fillMode: Image.PreserveAspectCrop
-        asynchronous: true
-        layer.enabled: true
-        layer.effect: MultiEffect {
-          blurEnabled: true
-          blur: 1
-          blurMax: 48
-          saturation: 0.2
+        value: root.artSource
+        delegate: Image {
+          required property var value
+          readonly property bool ready: status !== Image.Loading
+          source: value
+          fillMode: Image.PreserveAspectCrop
+          asynchronous: true
+          layer.enabled: true
+          layer.effect: MultiEffect {
+            blurEnabled: true
+            blur: 1
+            blurMax: 48
+            saturation: 0.2
+          }
         }
       }
       Rectangle {
@@ -317,20 +345,28 @@ Panel {
       Layout.fillWidth: true
       Layout.minimumWidth: 0
       spacing: 0
-      StyledText {
+      CrossFade {
         Layout.fillWidth: true
-        elide: Text.ElideRight
-        text: MediaManager.trackTitle || I18n.tr("Unknown track")
-        textColor: Theme.accent
-        font.bold: true
+        value: MediaManager.trackTitle || I18n.tr("Unknown track")
+        delegate: StyledText {
+          required property var value
+          elide: Text.ElideRight
+          text: value
+          textColor: Theme.accent
+          font.bold: true
+        }
       }
-      StyledText {
+      CrossFade {
         visible: root.innerHeight >= Appearance.fontSize * 2.6
         Layout.fillWidth: true
-        elide: Text.ElideRight
-        text: MediaManager.trackArtist
-        textSize: Appearance.fontSize - 2
         opacity: 0.8
+        value: MediaManager.trackArtist
+        delegate: StyledText {
+          required property var value
+          elide: Text.ElideRight
+          text: value
+          textSize: Appearance.fontSize - 2
+        }
       }
     }
     MediaButton {
@@ -361,7 +397,7 @@ Panel {
     visible: root.hasPlayer && !root.mini
     Layout.fillWidth: true
     Layout.fillHeight: root.embedded
-    columns: root.embedded && !root.sideBySide ? 1 : 2
+    columns: root.stacked ? 1 : 2
     columnSpacing: root.embedded ? root.pad : Widget.spacing * 1.5
     rowSpacing: Widget.spacing
 
@@ -374,7 +410,7 @@ Panel {
       visible: side >= 32
       Layout.preferredWidth: side
       Layout.preferredHeight: side
-      Layout.alignment: root.embedded && !root.sideBySide ? Qt.AlignHCenter : root.sideBySide ? Qt.AlignVCenter : Qt.AlignTop
+      Layout.alignment: root.stacked ? Qt.AlignHCenter : root.sideBySide ? Qt.AlignVCenter : Qt.AlignTop
     }
 
     ColumnLayout {

@@ -150,8 +150,13 @@ Item {
       anchors.right: parent.right
       anchors.rightMargin: 8
       anchors.verticalCenter: parent.verticalCenter
-      text: dropdown.opened ? "expand_less" : "expand_more"
+      text: "expand_more"
       opacity: 0.7
+      // Turns over as the list opens
+      rotation: dropdown.opened ? 180 : 0
+      Glide on rotation {
+        duration: Appearance.animNormal
+      }
     }
   }
 
@@ -176,6 +181,33 @@ Item {
     // The field keeps the keys: the list is driven from it
     focus: false
     closePolicy: Popup.CloseOnPressOutsideParent
+    transformOrigin: Item.Top
+
+    // Grows down out of the field, as FloatingPopout does
+    enter: Transition {
+      NumberAnimation {
+        property: "opacity"
+        from: 0
+        to: 1
+        duration: Appearance.animNormal
+        easing.type: Appearance.easing
+      }
+      NumberAnimation {
+        property: "scale"
+        from: 0.95
+        to: 1
+        duration: Appearance.animNormal
+        easing.type: Appearance.easing
+      }
+    }
+    exit: Transition {
+      NumberAnimation {
+        property: "opacity"
+        to: 0
+        duration: Appearance.animFast
+        easing.type: Appearance.easing
+      }
+    }
 
     background: DropdownSurface {
       color: Theme.backgroundAlt
@@ -199,7 +231,9 @@ Item {
         width: ListView.view.width
         height: Widget.height
         radius: Widget.radius
-        color: index === root.highlighted ? Theme.backgroundHighlight : "transparent"
+        color: index === root.highlighted ? Theme.backgroundHighlight : Qt.alpha(Theme.backgroundHighlight, 0)
+
+        ColorGlide on color {}
 
         RowLayout {
           anchors.fill: parent

@@ -4,7 +4,7 @@ import qs.config
 
 // A small filled pill with a bold word: a status (On, Running, Not
 // installed) in its colour, on the settings page's status cards
-Rectangle {
+PopInRectangle {
   id: root
 
   property string text: ""
@@ -13,6 +13,10 @@ Rectangle {
   implicitHeight: label.implicitHeight + 4
   radius: height / 2
   color: Theme.foregroundAlt
+
+  ColorGlide on color {
+    duration: Appearance.animNormal
+  }
 
   StyledText {
     id: label

@@ -7,9 +7,10 @@ import qs.components.reusable
 
 /**
  * Settings page, Maintenance (the category's `page`): save the whole config
- * under a name, and overwrite (with the current config), restore or delete
- * saved ones. Overwrite, restore, delete and reverting to the defaults ask
- * for a second click to confirm.
+ * under a name, and restore or delete saved ones. Only the active one (last
+ * saved or restored) can be overwritten from its row; it's marked Current,
+ * with an unsaved dot once the running config differs. Overwrite, restore,
+ * delete and reverting to the defaults ask for a second click to confirm.
  */
 FieldGroup {
   id: root
@@ -62,6 +63,7 @@ FieldGroup {
       id: row
       required property string fileBaseName
       required property date fileModified
+      readonly property bool active: SavedConfigsManager.active === fileBaseName
       readonly property string pendingAction: root.pending?.name === fileBaseName ? root.pending.action : ""
 
       Layout.fillWidth: true
@@ -77,11 +79,41 @@ FieldGroup {
           Layout.fillWidth: true
           spacing: 0
 
-          StyledText {
-            text: row.fileBaseName
-            font.bold: true
-            elide: Text.ElideRight
+          // The name at its full width while it fits, then elided, with
+          // the badges right after it
+          Item {
+            id: nameLine
             Layout.fillWidth: true
+            implicitWidth: nameText.implicitWidth + (badges.visible ? Widget.spacing + badges.implicitWidth : 0)
+            implicitHeight: Math.max(nameText.implicitHeight, badges.implicitHeight)
+
+            StyledText {
+              id: nameText
+              anchors.verticalCenter: parent.verticalCenter
+              width: Math.min(implicitWidth, nameLine.width - (badges.visible ? Widget.spacing + badges.implicitWidth : 0))
+              text: row.fileBaseName
+              font.bold: true
+              elide: Text.ElideRight
+            }
+
+            Row {
+              id: badges
+              visible: row.active
+              x: nameText.width + Widget.spacing
+              anchors.verticalCenter: parent.verticalCenter
+              spacing: Widget.spacing
+
+              StatusChip {
+                anchors.verticalCenter: parent.verticalCenter
+                color: Theme.accent
+                text: I18n.tr("Current")
+              }
+
+              UnsavedDot {
+                anchors.verticalCenter: parent.verticalCenter
+                shown: SavedConfigsManager.modified
+              }
+            }
           }
 
           StyledText {
@@ -93,6 +125,7 @@ FieldGroup {
         }
 
         StyledTextButton {
+          visible: row.active
           Layout.preferredHeight: Widget.height
           text: I18n.tr(row.pendingAction === "overwrite" ? "Confirm" : "Overwrite")
           onClicked: root.confirm(row.fileBaseName, "overwrite")

@@ -90,11 +90,15 @@ QtObject {
       }
     }
 
+    // A prompt ("Password: ") is answered, not shown: it would replace
+    // "Authenticating..." while the password is checked
     onPamMessage: {
+      if (responseRequired) {
+        root._pam.respond(root._password);
+        return;
+      }
       if (message !== "")
         root._show(message, messageIsError);
-      if (responseRequired)
-        root._pam.respond(root._password);
     }
 
     onError: error => {

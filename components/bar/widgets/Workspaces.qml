@@ -16,10 +16,12 @@ BarWidget {
   id: root
 
   readonly property int priority: 10
-  readonly property bool boxed: ["filled", "tinted", "outline"].includes(barConfig.widgetStyle)
+  readonly property bool boxed: barConfig.widgetBoxed
   // Within a box
   readonly property real inset: boxed ? barConfig.widgetSpacing : 0
 
+  // Its cells stay put while the strip after them comes and goes
+  pinStart: true
   hasBackground: true
   // Its box; an underline is each cell's own
   accentColor: boxed ? Theme.resolveColor(properties.backgroundColor) : "transparent"
@@ -39,6 +41,7 @@ BarWidget {
       screen: root.screen
       popouts: root.popouts
       panel: root.panel
+      hitArea: root.hitArea
       barConfig: root.barConfig
       properties: root.properties
       inset: root.inset
@@ -51,6 +54,7 @@ BarWidget {
       screen: root.screen
       popouts: root.popouts
       panel: root.panel
+      hitArea: root.hitArea
       barConfig: root.barConfig
       properties: root.properties
       inset: root.inset

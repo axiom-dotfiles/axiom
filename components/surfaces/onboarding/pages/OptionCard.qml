@@ -33,11 +33,7 @@ Rectangle {
   border.color: root.selected ? Theme.accent : Theme.border
   border.width: Appearance.borderWidth
 
-  Behavior on color {
-    ColorAnimation {
-      duration: Appearance.animFast
-    }
-  }
+  ColorGlide on color {}
 
   RowLayout {
     id: row

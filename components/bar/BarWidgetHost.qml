@@ -1,9 +1,11 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import qs.config
+import qs.components.methods
 // Imported (though modules load by URL) so qs scans the modules directory:
 // without it, types there (e.g. BarIconWidget) aren't visible to each other
 import qs.components.bar.widgets // qmllint disable unused-imports
+import qs.components.reusable
 
 // Hosts one bar module and turns its sizing contract into the numbers the
 // bar layout works with. A module may declare any of these on its root item:
@@ -43,8 +45,12 @@ Item {
   // (Bar.widgetColors), or null when it has no background
   readonly property bool hasBackground: _item?.hasBackground ?? false
   readonly property var background: hasBackground ? _item.colors : null
-  // The module's own fade (pressed, dimmed), which its background follows
-  readonly property real contentOpacity: _item?.opacity ?? 1
+  // The module's own fade, which its background follows: its `dim` when
+  // it has one (a press fades only its content; the background shows it
+  // by `pressed`, as a fade would let a powerline neighbour's square start
+  // show through), else its opacity
+  readonly property real contentOpacity: _item ? ("dim" in _item ? _item.dim : _item.opacity) : 1
+  readonly property bool pressed: _item?.pressed ?? false
   // A divider of its own (Separator): the group draws none beside it
   readonly property bool divides: _item?.divides ?? false
   // Hovered, on a module that shows an outline then (its hoverOutline)
@@ -53,6 +59,11 @@ Item {
   // and end (set by WidgetGroup): added to its sizes, the module inside
   property real leadInset: 0
   property real trailInset: 0
+  // Its background's shape as drawn (BarShapes.segment, set by WidgetGroup),
+  // which it's hovered and clicked in: past its caps' insets, back under a
+  // powerline neighbour, and not in a slant's or arrow's cut-off corners.
+  // Null (no background) leaves the module's own bounds.
+  property var hitShape: null
   // Rounded up: half a powerline join is fractional, and the allocation
   // floors sizes, which would leave the module under its natural size and
   // elide its label
@@ -101,6 +112,33 @@ Item {
   width: isVertical ? root.barConfig.widgetSize : mainSize
   height: isVertical ? mainSize : root.barConfig.widgetSize
 
+  // Its place and size as drawn glide to the layout's (x, y and the size
+  // above, which its background and the bar's pills follow); the layout
+  // itself is measured from the module, never from these, so it can't
+  // chase its own animation. Off until first placed, so a new bar (or an
+  // editor rebuild) doesn't fly its widgets in from the start.
+  property bool _settled: false
+  Component.onCompleted: {
+    _load();
+    Qt.callLater(() => root._settled = true);
+  }
+  readonly property real _drawnMain: isVertical ? height : width
+  readonly property bool _resizing: Math.abs(_drawnMain - mainSize) > 0.5
+
+  Glide on opacity {}
+  Glide on x {
+    enabled: root._settled
+  }
+  Glide on y {
+    enabled: root._settled
+  }
+  Glide on width {
+    enabled: root._settled
+  }
+  Glide on height {
+    enabled: root._settled
+  }
+
   // Created with its inputs already set, so the module's own bindings
   // never see them undefined; bound afterwards so later changes (e.g. edits
   // live in the bar editor) reach it
@@ -113,23 +151,70 @@ Item {
       "properties": root.properties
     });
   }
-  onComponentPathChanged: _load()
-  Component.onCompleted: _load()
 
-  Loader {
-    id: contentLoader
+  // Where the module's pointer areas go (BarWidget.hitArea), over the
+  // module so nothing in it takes the hover first. It tracks hover itself
+  // (a PopoutAnchor given it reads `hovered`): a HoverHandler moved into
+  // it after it's made isn't reliably hovered. Nothing under it is hovered,
+  // so a module with several anchors (the tray's icons) asks `hovers(item)`.
+  Item {
+    id: hitArea
+
+    readonly property real back: root.hitShape?.back ?? 0
+    readonly property bool hovered: hoverHandler.hovered
+    // Whether the pointer over it is over `item`, an item of the module
+    function hovers(item: Item): bool {
+      return hoverHandler.hovered && item.contains(item.mapFromItem(hitArea, hoverHandler.point.position));
+    }
+    readonly property QtObject mask: QtObject {
+      function contains(point: point): bool {
+        const shape = root.hitShape;
+        if (!shape)
+          return true;
+        const v = root.isVertical;
+        return BarShapes.contains(v ? point.y : point.x, v ? point.x : point.y, v ? hitArea.height : hitArea.width, v ? hitArea.width : hitArea.height, shape.shownStart, shape.endCap);
+      }
+    }
+
+    z: 1
+    x: root.isVertical ? 0 : -back
+    y: root.isVertical ? -back : 0
+    width: root.width + (root.isVertical ? 0 : back)
+    height: root.height + (root.isVertical ? back : 0)
+    containmentMask: mask
+
+    HoverHandler {
+      id: hoverHandler
+    }
+  }
+  onComponentPathChanged: _load()
+
+  // The module at its laid-out size, centred in the size drawn (or at its
+  // start, with `pinStart`): it never re-fits (eliding its label)
+  // mid-animation, and shows through the drawn size, clipped, while that
+  // catches up
+  Item {
     anchors.fill: parent
-    anchors.leftMargin: root.isVertical ? 0 : root.leadInset
-    anchors.rightMargin: root.isVertical ? 0 : root.trailInset
-    anchors.topMargin: root.isVertical ? root.leadInset : 0
-    anchors.bottomMargin: root.isVertical ? root.trailInset : 0
-    onLoaded: {
-      if (item) {
-        item.barConfig = Qt.binding(() => root.barConfig);
-        item.popouts = Qt.binding(() => root.popouts);
-        item.panel = Qt.binding(() => root.panel);
-        item.screen = Qt.binding(() => root.screen);
-        item.properties = Qt.binding(() => root.properties);
+    clip: root._resizing
+
+    Loader {
+      id: contentLoader
+      readonly property real length: Math.max(0, root.mainSize - root.leadInset - root.trailInset)
+      readonly property real start: (root._item?.pinStart ? 0 : Math.round((root._drawnMain - root.mainSize) / 2)) + root.leadInset
+      x: root.isVertical ? 0 : start
+      y: root.isVertical ? start : 0
+      width: root.isVertical ? root.width : length
+      height: root.isVertical ? length : root.height
+      onLoaded: {
+        if (item) {
+          item.barConfig = Qt.binding(() => root.barConfig);
+          item.popouts = Qt.binding(() => root.popouts);
+          item.panel = Qt.binding(() => root.panel);
+          item.screen = Qt.binding(() => root.screen);
+          item.properties = Qt.binding(() => root.properties);
+          if ("hitArea" in item)
+            item.hitArea = Qt.binding(() => root.hitShape ? hitArea : null);
+        }
       }
     }
   }

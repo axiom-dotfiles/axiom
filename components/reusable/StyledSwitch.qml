@@ -34,10 +34,8 @@ Switch {
     border.color: Theme.border
     border.width: Appearance.borderWidth
 
-    Behavior on color {
-      ColorAnimation {
-        duration: Appearance.animNormal
-      }
+    ColorGlide on color {
+      duration: Appearance.animNormal
     }
   }
 }

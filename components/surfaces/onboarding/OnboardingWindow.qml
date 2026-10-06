@@ -7,6 +7,7 @@ import qs.services
 import qs.components.methods
 import qs.components.hosts.overlay
 import qs.components.surfaces.onboarding.pages
+import qs.components.reusable
 
 // The onboarder (OnboardingManager): one page at a time over the dimmed
 // screen, with the step bar where the overlay has its page navigator. It
@@ -75,10 +76,8 @@ ReservedAreaWindow {
           return welcomePage;
         }
         opacity: status === Loader.Ready ? 1 : 0
-        Behavior on opacity {
-          NumberAnimation {
-            duration: Appearance.animNormal
-          }
+        Glide on opacity {
+          duration: Appearance.animNormal
         }
       }
     }

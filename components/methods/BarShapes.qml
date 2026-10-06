@@ -74,15 +74,16 @@ QtObject {
     }
   }
 
-  // Widget `index` of a run of `count`: { startCap, endCap, back, lead,
-  // trail, seamStart, seamEnd }. `back` is how far its background reaches
+  // Widget `index` of a run of `count`: { startCap, endCap, shownStart,
+  // back, lead, trail, seamStart, seamEnd }. `back` is how far its background reaches
   // back under the one before; `lead`/`trail` the room its content keeps
   // at each end. In a merged run only the run's ends have caps (the run is
   // one background). `opaque`: the fill hides what's under it, so a
   // powerline segment can start square beneath the one before instead of
   // fitting against it. `seamStart`/`seamEnd`: that end meets a
   // neighbour's edge to edge, so an outline there is drawn on the seam
-  // (see path).
+  // (see path). `shownStart`: the start as it shows, where the cap before
+  // covers a square start: the shape it's outlined and hit-tested in.
   //
   // A powerline segment shows from the cap before it, which reaches into
   // its first `join` px, to its own end cap: on average half a join
@@ -99,6 +100,7 @@ QtObject {
     const shift = powerline ? (first ? 0 : join / 2) + (last ? 0 : join / 2) : 0;
     return {
       "startCap": first ? ends[0] : powerline && !opaque ? joins[1] : "flat",
+      "shownStart": first ? ends[0] : powerline ? joins[1] : "flat",
       "endCap": last ? ends[1] : powerline ? joins[0] : "flat",
       "back": !first && powerline ? join : 0,
       "lead": first ? root._clearOf(ends[0], across) : 0,
@@ -183,5 +185,36 @@ QtObject {
     for (let k = head.length - 2; k > 0 || (k === 0 && head[1].arc); k--)
       d += to(atStart(head[k]), head[k + 1].arc);
     return d + "Z";
+  }
+
+  // How far in from its end a cap's edge lies at `v` across (0 to h)
+  function _reach(cap, atStart, v, h) {
+    const d = root.depth(cap, h);
+    const r = h / 2;
+    const off = Math.abs(v - r);
+    const chord = Math.sqrt(Math.max(0, r * r - off * off));
+    switch (cap) {
+    case "slant":
+      return atStart ? d * (1 - v / h) : d * v / h;
+    case "arrowOut":
+      return d * off / r;
+    case "arrowIn":
+      return d * (1 - off / r);
+    case "roundOut":
+    case "capsule":
+      return r - chord;
+    case "roundIn":
+      return chord;
+    default:
+      return 0;
+    }
+  }
+
+  // Whether a point `u` along and `v` across a background `length` by
+  // `across` lies inside its caps (corners of round caps count as inside)
+  function contains(u, v, length, across, startCap, endCap) {
+    if (v < 0 || v > across || u < 0 || u > length)
+      return false;
+    return u >= root._reach(startCap, true, v, across) && u <= length - root._reach(endCap, false, v, across);
   }
 }

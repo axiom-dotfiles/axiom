@@ -70,11 +70,7 @@ Rectangle {
   border.color: root.hovering ? Theme.accent : Theme.border
   border.width: 1
 
-  Behavior on color {
-    ColorAnimation {
-      duration: Appearance.animFast
-    }
-  }
+  ColorGlide on color {}
 
   Component.onCompleted: root.dragLayer.registerTarget(root)
   Component.onDestruction: root.dragLayer.unregisterTarget(root)

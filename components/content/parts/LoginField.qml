@@ -25,6 +25,13 @@ Item {
   property string placeholder: ""
   property bool centered: true
   property bool showMessages: true
+  // A slot with no room under the password: messages show in it (see
+  // PasswordEntry)
+  property bool inlineMessage: false
+  readonly property real messageRoom: password.messageRoom
+  // The message line kept under the password, which the fields and the
+  // avatar line up above
+  readonly property real _below: root.showMessages && !root.inlineMessage ? password.messageRoom : 0
 
   readonly property var user: root.active ? GreetdManager.selectedUser : ({
       "name": Quickshell.env("USER") ?? "",
@@ -58,14 +65,11 @@ Item {
 
   // Typing always lands in the box: the greeter's window takes every key,
   // and no other greeter module takes text
-  Connections {
-    target: root.Window.window
-    enabled: root.active
-
-    function onActiveFocusItemChanged() {
-      if (!password.input.activeFocus && !userPicker.input.activeFocus)
-        Qt.callLater(root.takeFocus);
-    }
+  FocusKeeper {
+    active: root.active
+    holder: password.input
+    keeps: item => item === userPicker.input
+    onReclaim: root.takeFocus()
   }
 
   Connections {
@@ -86,9 +90,9 @@ Item {
 
     ClippingRectangle {
       visible: root.avatar !== "" && avatarImage.status === Image.Ready
-      Layout.preferredWidth: root.stacked ? users.implicitHeight : root.fieldHeight
+      Layout.preferredWidth: root.stacked ? users.implicitHeight - root._below : root.fieldHeight
       Layout.preferredHeight: Layout.preferredWidth
-      Layout.alignment: Qt.AlignVCenter
+      Layout.alignment: Qt.AlignTop
       radius: width / 2
       color: Theme.backgroundAlt
 
@@ -114,6 +118,7 @@ Item {
         Layout.fillWidth: true
         Layout.preferredWidth: 1
         Layout.preferredHeight: root.fieldHeight
+        Layout.alignment: Qt.AlignTop
         icon: "person"
         editable: true
         readOnly: !root.active
@@ -136,6 +141,8 @@ Item {
         Layout.fillWidth: true
         Layout.preferredWidth: 1
         fieldHeight: root.fieldHeight
+        inlineMessage: root.inlineMessage
+        reserveMessage: root.showMessages
         placeholder: root.prompt || root.placeholder || I18n.tr("Enter password...")
         centered: root.centered
         reveal: root.active && root.prompt !== "" && GreetdManager.promptEcho

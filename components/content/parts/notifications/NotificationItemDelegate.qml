@@ -178,11 +178,7 @@ Item {
             textColor: Theme.foregroundAlt
             textSize: Appearance.fontSize - 3
 
-            Behavior on opacity {
-              NumberAnimation {
-                duration: Appearance.animFast
-              }
-            }
+            Glide on opacity {}
           }
 
           StyledIconButton {
@@ -200,11 +196,7 @@ Item {
             tooltipText: I18n.tr("Dismiss")
             onClicked: root.dismiss()
 
-            Behavior on opacity {
-              NumberAnimation {
-                duration: Appearance.animFast
-              }
-            }
+            Glide on opacity {}
           }
         }
       }

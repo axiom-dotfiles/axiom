@@ -564,7 +564,7 @@ QtObject {
       const rows = [
         {
           title: "save",
-          subtitle: I18n.tr("Save the current config under a name"),
+          subtitle: SavedConfigsManager.modified ? I18n.tr("Save changes to \"{0}\"", SavedConfigsManager.active) : I18n.tr("Save the current config under a name"),
           glyph: "save",
           value: {
             next: "save "
@@ -591,9 +591,12 @@ QtObject {
     const head = arg.slice(0, space);
     const rest = arg.slice(space + 1);
     const names = root._savedConfigNames();
+    // Only the active saved config is offered to overwrite; another is
+    // replaced only when its name is typed in full, as on the settings page
+    const active = SavedConfigsManager.active;
     if (head === "save") {
       const name = SavedConfigsManager.sanitize(rest);
-      const rows = name === "" ? [] : [
+      const rows = name === "" || name === active ? [] : [
         {
           title: "save " + rest.trim(),
           subtitle: names.includes(name) ? I18n.tr("Replace \"{0}\"", name) : I18n.tr("Save as \"{0}\"", name),
@@ -602,17 +605,20 @@ QtObject {
           }
         }
       ];
-      return rows.concat(names.filter(saved => saved !== name).map(saved => ({
-            title: "save " + saved,
-            subtitle: I18n.tr("Replace \"{0}\"", saved),
-            value: {
-              save: saved
-            }
-          })));
+      return active === "" ? rows : rows.concat([
+        {
+          title: "save " + active,
+          subtitle: SavedConfigsManager.modified ? I18n.tr("Save changes to the current config") : I18n.tr("No changes since saved"),
+          value: {
+            save: active
+          }
+        }
+      ]);
     }
     if (head === "restore")
-      return names.map(saved => ({
+      return names.filter(saved => saved === active).concat(names.filter(saved => saved !== active)).map(saved => ({
             title: "restore " + saved,
+            subtitle: saved !== active ? "" : SavedConfigsManager.modified ? I18n.tr("Current · discards unsaved changes") : I18n.tr("Current"),
             value: {
               restore: saved
             }

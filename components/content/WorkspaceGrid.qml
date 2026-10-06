@@ -7,6 +7,7 @@ import qs.config
 import qs.components.methods
 import qs.components.content.base
 import qs.components.bar.widgets.workspaces
+import qs.components.reusable
 
 // The Workspaces bar widget's popout in the grid layout: the monitor's
 // whole columns × rows grid, with the row (or column, on a vertical bar)
@@ -93,11 +94,9 @@ Panel {
         opacity: inBar ? 1.0 : 0.85
         onClicked: HyprlandManager.goToWorkspace(wsId, "go", root.monitor)
 
-        Behavior on opacity {
+        Glide on opacity {
           enabled: root._settled
-          NumberAnimation {
-            duration: Appearance.animNormal
-          }
+          duration: Appearance.animNormal
         }
       }
     }

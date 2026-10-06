@@ -259,24 +259,48 @@ QtObject {
     return root._mergeSpans(grown, merge).map(m => rect(m.start, m.end));
   }
 
-  // The islands as drawn: `stretch` ({ index, start, end, squareStart,
-  // squareEnd }, or null) grows one to carry an open popout, which then
-  // joins any island it comes within `merge` of. { start, length,
+  // The stretches on pill `index` (each { index, start, end, squareStart,
+  // squareEnd }: one per surface standing on it) as one, or null. An end
+  // is squared when a stretch reaching furthest that way squares it (any
+  // of them, on a tie).
+  function stretchOf(stretches, index) {
+    const on = (stretches ?? []).filter(s => s?.index === index);
+    if (on.length === 0)
+      return null;
+    const start = Math.min(...on.map(s => s.start));
+    const end = Math.max(...on.map(s => s.end));
+    return {
+      "index": index,
+      "start": start,
+      "end": end,
+      "squareStart": on.some(s => s.start === start && (s.squareStart ?? false)),
+      "squareEnd": on.some(s => s.end === end && (s.squareEnd ?? false))
+    };
+  }
+
+  // The islands (or pills) as drawn: `stretches` (see stretchOf) grow
+  // them to carry the surfaces open on them, each then joining any it
+  // comes within `merge` of. { start, length, joinStart, joinEnd,
   // squareStart, squareEnd }: a squared end has its inner corner square,
-  // where a popout runs flush into it.
-  function stretchIslands(rects, stretch, merge) {
+  // where a popout runs flush into it; a joined one (a pill's) meets the
+  // perpendicular edge.
+  function stretchIslands(rects, stretches, merge) {
     const spans = rects.map((r, i) => {
-      const grows = stretch?.index === i;
+      const stretch = root.stretchOf(stretches, i);
       return {
-        "start": grows ? Math.min(r.start, stretch.start) : r.start,
-        "end": grows ? Math.max(r.start + r.length, stretch.end) : r.start + r.length,
-        "squareStart": grows && (stretch.squareStart ?? false),
-        "squareEnd": grows && (stretch.squareEnd ?? false)
+        "start": stretch ? Math.min(r.start, stretch.start) : r.start,
+        "end": stretch ? Math.max(r.start + r.length, stretch.end) : r.start + r.length,
+        "joinStart": r.joinStart ?? false,
+        "joinEnd": r.joinEnd ?? false,
+        "squareStart": stretch?.squareStart ?? false,
+        "squareEnd": stretch?.squareEnd ?? false
       };
     });
     return root._mergeSpans(spans, merge).map(m => ({
           "start": m.start,
           "length": m.end - m.start,
+          "joinStart": m.joinStart ?? false,
+          "joinEnd": m.joinEnd ?? false,
           "squareStart": m.squareStart ?? false,
           "squareEnd": m.squareEnd ?? false
         }));
@@ -293,6 +317,7 @@ QtObject {
       } else if (span.end > last.end) {
         last.end = span.end;
         last.squareEnd = span.squareEnd;
+        last.joinEnd = span.joinEnd;
       }
     });
     return merged;

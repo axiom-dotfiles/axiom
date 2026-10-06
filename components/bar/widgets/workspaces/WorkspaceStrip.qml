@@ -4,7 +4,6 @@ import Quickshell.Hyprland
 
 import qs.services
 import qs.config
-import qs.components.methods
 import qs.components.hosts.popout
 
 // The standard layout's switcher: workspaces 1..count in a row (horizontal
@@ -17,6 +16,8 @@ Item {
   property var screen
   property var popouts
   property var panel
+  // The widget's (BarWidget.hitArea), which its popout reads hover from
+  property var hitArea: null
   property var barConfig
   property var properties
   // Room kept to the widget's background across the bar
@@ -28,7 +29,7 @@ Item {
   readonly property real cell: barConfig.widgetSize - inset * 2
   readonly property real cellRadius: Math.max(0, barConfig.radius - inset)
   // Along the bar: square, or narrower for dots straight on the bar
-  readonly property real cellLength: ["filled", "tinted", "outline"].includes(barConfig.widgetStyle) || properties.labels !== "dots" || properties.showAppIcons ? cell : Math.round(cell * 0.6)
+  readonly property real cellLength: barConfig.widgetBoxed || properties.labels !== "dots" || properties.showAppIcons ? cell : Math.round(cell * 0.6)
 
   readonly property color activeColor: Theme.resolveColor(properties.activeColor)
   readonly property color occupiedColor: Theme.resolveColor(properties.occupiedColor)
@@ -79,7 +80,17 @@ Item {
       return;
     const current = root.ids.indexOf(root.activeId);
     const next = current < 0 ? (direction > 0 ? 0 : root.ids.length - 1) : (current + direction + root.ids.length) % root.ids.length;
+    if (current >= 0 && next !== current + direction)
+      cellRow.expectWrap(direction > 0);
     HyprlandManager.goToWorkspace(root.ids[next], "go", root.monitor);
+  }
+
+  Connections {
+    target: HyprlandManager
+    function onWorkspaceWrapped(monitor, alongRow, forward) {
+      if (monitor === (root.monitor?.name ?? ""))
+        cellRow.expectWrap(forward);
+    }
   }
 
   WheelHandler {
@@ -105,37 +116,21 @@ Item {
     columns: root.isVertical ? 1 : 2
     spacing: root.barConfig.widgetSpacing
 
-    Grid {
-      flow: root.isVertical ? Grid.TopToBottom : Grid.LeftToRight
-      rows: root.isVertical ? Math.max(1, root.ids.length) : 1
-      columns: root.isVertical ? 1 : Math.max(1, root.ids.length)
-      spacing: root.barConfig.widgetSpacing
-
-      Repeater {
-        model: root.ids.length
-
-        WorkspaceCell {
-          id: cell
-          required property int index
-          readonly property int wsId: root.ids[index] ?? 0
-          readonly property HyprlandWorkspace ws: root.wsById(wsId)
-          readonly property bool occupied: root.hasWindows(ws)
-          readonly property var biggestWindow: root.properties.showAppIcons && occupied ? HyprlandManager.biggestWindowForWorkspace(wsId) : null
-
-          barConfig: root.barConfig
-          isActive: wsId === root.activeId
-          look: Bar.cellColors(root.barConfig, isActive ? root.activeColor : occupied ? root.occupiedColor : root.emptyColor, isActive || occupied ? root.textColor : Theme.foreground, isActive ? "active" : occupied ? "occupied" : "empty")
-          thickness: root.cell
-          restLength: root.cellLength
-          length: root.cellLength * (isActive && root.properties.wideActive ? 2 : 1)
-          radius: root.cellRadius
-          labels: root.properties.labels
-          label: root.properties.relativeNumbers ? wsId - root.base + 1 : wsId
-          iconPath: biggestWindow ? IconResolver.resolveWindowIcon(biggestWindow.class, biggestWindow.title) : ""
-          clickable: root.properties.clickToSwitch
-          onClicked: HyprlandManager.goToWorkspace(wsId, "go", root.monitor)
-        }
-      }
+    WorkspaceCellRow {
+      id: cellRow
+      barConfig: root.barConfig
+      properties: root.properties
+      monitor: root.monitor
+      base: root.base
+      ids: root.ids
+      activeId: root.activeId
+      cell: root.cell
+      cellLength: root.cellLength
+      cellRadius: root.cellRadius
+      activeColor: root.activeColor
+      occupiedColor: root.occupiedColor
+      emptyColor: root.emptyColor
+      textColor: root.textColor
     }
 
     Loader {
@@ -159,6 +154,7 @@ Item {
   PopoutAnchor {
     popouts: root.popouts
     panel: root.panel
+    hitArea: root.hitArea
     popoutName: "WorkspaceStrips"
     active: root.stripDirection !== "" && root.properties.showPopout
     extraData: ({

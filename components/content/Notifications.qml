@@ -90,36 +90,23 @@ Panel {
     precision: SystemClock.Minutes
   }
 
-  // Everything slides out together, then goes
+  // The groups slide out one after another, top first (later ones
+  // together, so a long list doesn't keep the user waiting), then all go
+  readonly property int _staggerSteps: 8
+  readonly property int _stagger: Appearance.animFast / 2
   SequentialAnimation {
     id: clearOut
-    ParallelAnimation {
-      NumberAnimation {
-        target: listShift
-        property: "x"
-        to: scroll.width
-        duration: Appearance.animNormal
-        easing.type: Easing.InCubic
+    ScriptAction {
+      script: {
+        for (let i = 0; i < groupRepeater.count; i++)
+          groupRepeater.itemAt(i)?.leave(Math.min(i, root._staggerSteps) * root._stagger);
       }
-      NumberAnimation {
-        target: scroll
-        property: "opacity"
-        to: 0
-        duration: Appearance.animNormal
-      }
+    }
+    PauseAnimation {
+      duration: Math.min(Math.max(0, groupRepeater.count - 1), root._staggerSteps) * root._stagger + Appearance.animNormal
     }
     ScriptAction {
       script: NotificationManager.clearAll()
-    }
-    PropertyAction {
-      target: listShift
-      property: "x"
-      value: 0
-    }
-    PropertyAction {
-      target: scroll
-      property: "opacity"
-      value: 1
     }
   }
 
@@ -148,11 +135,8 @@ Panel {
       width: scroll.availableWidth
       spacing: Widget.spacing
 
-      transform: Translate {
-        id: listShift
-      }
-
       Repeater {
+        id: groupRepeater
         model: ScriptModel {
           values: root.groupKeys
         }

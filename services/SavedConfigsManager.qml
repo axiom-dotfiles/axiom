@@ -11,6 +11,8 @@ import qs.components.methods
  * config/user/saved/. A saved file is a plain config.json, so it can also
  * be copied into place by hand. Restoring runs it through ConfigManager's
  * load pipeline, so snapshots from older config versions are migrated.
+ * The one last saved or restored is `active`, and `modified` says whether
+ * the running config has changed since.
  */
 QtObject {
   id: root
@@ -20,6 +22,25 @@ QtObject {
   readonly property FolderListModel model: _model
   // Last save/restore/delete outcome, for the settings UI
   property string status: ""
+  // The saved config the running one was last saved as or restored from,
+  // "" for none (or once its file is gone): the one the settings UI offers
+  // to overwrite. Kept in state/savedconfigs.json.
+  readonly property string active: _model.count > 0 && exists(_active) ? _active : ""
+  // Whether the running config differs from the active saved one
+  readonly property bool modified: active !== "" && _baseline !== null && !Utils.deepEqual(ConfigManager.config, _baseline)
+
+  property string _active: ""
+  // The active saved config as it loads (migrated, defaults filled)
+  property var _baseline: null
+  // The config being written by save(), the new baseline once it's saved
+  // (dropped once it's written or fails)
+  property var _saving: null
+  readonly property var _state: StateManager.createStateHandler("savedconfigs")
+
+  Component.onCompleted: {
+    root._active = root._state.load({}).active ?? "";
+    root._loadBaseline();
+  }
 
   function sanitize(name) {
     return name.trim().replace(/[^A-Za-z0-9 _.-]/g, "_").replace(/^\.+/, "");
@@ -45,8 +66,9 @@ QtObject {
     // Written by a FileView, not through argv, which caps one argument at
     // 128 KiB (the folder was made at startup)
     _writer.name = fileName;
+    root._saving = Utils.clone(ConfigManager.config);
     _writer.path = savedDir + fileName + ".json";
-    _writer.setText(JSON.stringify(ConfigManager.config, null, 2) + "\n");
+    _writer.setText(JSON.stringify(root._saving, null, 2) + "\n");
   }
 
   function restore(name) {
@@ -70,6 +92,7 @@ QtObject {
       root.status = I18n.tr("\"{0}\" is not a valid config", name);
       return;
     }
+    root._setActive(name, ConfigManager.config);
     SettingsManager.loadConfig();
     ThemeManager.applyWallpapers();
     root.status = I18n.tr("Restored \"{0}\"", name);
@@ -86,6 +109,7 @@ QtObject {
       root.status = I18n.tr("The default configuration is not valid");
       return;
     }
+    root._setActive("", null);
     SettingsManager.loadConfig();
     ThemeManager.applyWallpapers();
     root.status = I18n.tr("Restored the default configuration");
@@ -93,16 +117,44 @@ QtObject {
   }
 
   function remove(name) {
-    _run(["rm", "-f", "--", savedDir + name + ".json"], I18n.tr("Deleted \"{0}\"", name), I18n.tr("Failed to delete \"{0}\"", name));
+    _run(["rm", "-f", "--", savedDir + name + ".json"], I18n.tr("Deleted \"{0}\"", name), I18n.tr("Failed to delete \"{0}\"", name), name);
   }
 
-  function _run(command, okText, failText) {
+  // `baseline`: the config as saved, or undefined to read it from the file
+  function _setActive(name, baseline) {
+    root._active = name;
+    root._state.save({
+      "active": name
+    });
+    if (baseline === undefined)
+      root._loadBaseline();
+    else
+      root._baseline = baseline === null ? null : Utils.clone(baseline);
+  }
+
+  function _loadBaseline() {
+    root._baseline = null;
+    if (root._active === "")
+      return;
+    const content = FileManager.read("file://" + savedDir + root._active + ".json");
+    if (!content)
+      return;
+    try {
+      root._baseline = ConfigManager.normalizeConfig(JSON.parse(content));
+    } catch (e) {
+      console.warn("[SavedConfigsManager] Could not parse the active saved config", root._active + ":", e);
+    }
+  }
+
+  // `removed`: the saved config the command deletes, if any
+  function _run(command, okText, failText, removed = "") {
     if (_process.running) {
       root.status = I18n.tr("Busy, try again");
       return;
     }
     _process.okText = okText;
     _process.failText = failText;
+    _process.removed = removed;
     _process.command = command;
     _process.running = true;
   }
@@ -110,6 +162,7 @@ QtObject {
   property Process _process: Process {
     property string okText
     property string failText
+    property string removed
     stderr: StdioCollector {
       onStreamFinished: {
         if (text.trim() !== "")
@@ -117,6 +170,8 @@ QtObject {
       }
     }
     onExited: code => {
+      if (code === 0 && removed !== "" && removed === root._active)
+        root._setActive("", null);
       root.status = code === 0 ? okText : failText;
       console.log("[SavedConfigsManager]", root.status);
     }
@@ -128,10 +183,13 @@ QtObject {
     atomicWrites: true
     printErrors: false
     onSaved: {
+      root._setActive(name, root._saving);
+      root._saving = null;
       root.status = I18n.tr("Saved \"{0}\"", name);
       console.log("[SavedConfigsManager]", root.status);
     }
     onSaveFailed: error => {
+      root._saving = null;
       root.status = I18n.tr("Failed to save \"{0}\"", name);
       console.warn("[SavedConfigsManager] Could not write", path + ":", FileViewError.toString(error));
     }

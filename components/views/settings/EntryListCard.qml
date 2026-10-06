@@ -1,7 +1,6 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
-import Quickshell
 import qs.config
 import qs.services
 import qs.components.forms
@@ -96,18 +95,7 @@ FoldingCard {
   // Functions: an entry's tab name, and where it sits on the screen (0-1
   // from the top left): by default at `position` % along its `edge`
   required property var labelOf
-  property var spotOf: entry => {
-    const along = entry.position / 100;
-    switch (entry.edge) {
-    case "Top":
-      return Qt.point(along, 0);
-    case "Left":
-      return Qt.point(0, along);
-    case "Right":
-      return Qt.point(1, along);
-    }
-    return Qt.point(along, 1);
-  }
+  property var spotOf: entry => picker.edgeSpot(entry.edge, entry.position / 100, 0)
   // Between the picker and the settings
   property alias entryContent: entrySlot.data
 
@@ -201,64 +189,12 @@ FoldingCard {
     spacing: Widget.spacing * 2
 
     // The screen, with the shown entry's spot and the presets to click
-    Rectangle {
-      id: screen
-      readonly property real dot: 14
-
-      Layout.preferredWidth: 192
-      Layout.preferredHeight: 108
+    ScreenSpotPicker {
+      id: picker
       Layout.alignment: Qt.AlignTop
-      color: Theme.background
-      border.color: Theme.border
-      border.width: Appearance.borderWidth
-      radius: Widget.radius / 2
-
-      Repeater {
-        model: root.presets
-
-        delegate: Rectangle {
-          id: preset
-          required property var modelData
-          readonly property bool hovered: presetArea.containsMouse
-
-          width: screen.dot
-          height: screen.dot
-          radius: width / 2
-          x: modelData.x * (screen.width - width)
-          y: modelData.y * (screen.height - height)
-          color: hovered ? Theme.accentAlt : Theme.backgroundHighlight
-          border.color: Theme.border
-          border.width: 1
-
-          MouseArea {
-            id: presetArea
-            anchors.fill: parent
-            anchors.margins: -4
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            onClicked: root.edit(preset.modelData.values)
-          }
-
-          LazyLoader {
-            active: preset.hovered
-            StyledToolTip {
-              target: preset
-              // i18n: keys from the presets (above, or the callers')
-              text: I18n.tr(preset.modelData.label)
-            }
-          }
-        }
-      }
-
-      // Where it is now
-      Rectangle {
-        width: screen.dot - 4
-        height: screen.dot - 4
-        radius: width / 2
-        x: root.spot.x * (screen.width - screen.dot) + 2
-        y: root.spot.y * (screen.height - screen.dot) + 2
-        color: Theme.accent
-      }
+      presets: root.presets
+      spot: root.spot
+      onPicked: values => root.edit(values)
     }
 
     ColumnLayout {

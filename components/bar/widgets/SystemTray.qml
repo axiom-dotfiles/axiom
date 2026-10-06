@@ -32,6 +32,32 @@ BarWidget {
     columns: root.isVertical ? 1 : Math.max(1, trayItems.count)
     spacing: root.spacing
 
+    // An app's icon arriving (or a passive one showing) grows in; the
+    // others make room for it
+    add: Transition {
+      NumberAnimation {
+        property: "opacity"
+        from: 0
+        to: 1
+        duration: Appearance.animNormal
+        easing.type: Appearance.easing
+      }
+      NumberAnimation {
+        property: "scale"
+        from: 0.6
+        to: 1
+        duration: Appearance.animNormal
+        easing.type: Appearance.easing
+      }
+    }
+    move: Transition {
+      NumberAnimation {
+        properties: "x,y"
+        duration: Appearance.animFast
+        easing.type: Appearance.easing
+      }
+    }
+
     Repeater {
       id: trayItems
       model: SystemTray.items
@@ -55,9 +81,17 @@ BarWidget {
           smooth: true
         }
 
+        // Hovered through the bar's hit area, which lies over the icons
+        // (BarWidgetHost.hitArea)
+        QtObject {
+          id: iconHover
+          readonly property bool hovered: root.hitArea?.hovers(trayItem) ?? false
+        }
+
         PopoutAnchor {
           popouts: root.popouts
           panel: root.panel
+          hitArea: root.hitArea ? iconHover : null
           popoutName: "SystemTray"
           openDelay: 150
           active: root.properties.showPopout && trayItem.modelData.hasMenu

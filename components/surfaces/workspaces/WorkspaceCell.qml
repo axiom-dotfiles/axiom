@@ -3,6 +3,7 @@ import QtQuick
 import Quickshell.Widgets
 
 import qs.config
+import qs.components.reusable
 
 // One workspace on the overview board: a miniature desktop (the monitor's
 // wallpaper, or a plain color). Its number is a WorkspaceNumber, drawn above
@@ -47,11 +48,7 @@ Item {
       color: Theme.base00
       opacity: root.current || root.dropTarget ? 0 : root.hovered ? root.dim * 0.4 : root.dim
 
-      Behavior on opacity {
-        NumberAnimation {
-          duration: Appearance.animFast
-        }
-      }
+      Glide on opacity {}
     }
   }
 
@@ -62,10 +59,6 @@ Item {
     border.width: root.current || root.dropTarget ? Appearance.borderWidth * 2 : Appearance.borderWidth
     border.color: root.dropTarget ? Theme.accent : root.current ? Theme.accent : root.hovered ? Theme.borderFocus : Theme.border
 
-    Behavior on border.color {
-      ColorAnimation {
-        duration: Appearance.animFast
-      }
-    }
+    ColorGlide on border.color {}
   }
 }

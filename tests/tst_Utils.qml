@@ -29,6 +29,40 @@ TestCase {
     compare(Utils.freeId("bar-1", ["bar-1"], "-"), "bar-2");
   }
 
+  function test_deepEqual() {
+    verify(Utils.deepEqual({
+      "a": 1,
+      "b": [1,
+        {
+          "c": null
+        }
+      ]
+    }, {
+      "b": [1,
+        {
+          "c": null
+        }
+      ],
+      "a": 1
+    }), "key order doesn't matter");
+    verify(!Utils.deepEqual({
+      "a": 1
+    }, {
+      "a": 1,
+      "b": 2
+    }));
+    verify(!Utils.deepEqual({
+      "a": undefined
+    }, {
+      "b": undefined
+    }));
+    verify(!Utils.deepEqual([1, 2], [2, 1]), "array order matters");
+    verify(!Utils.deepEqual([], {}));
+    verify(!Utils.deepEqual(null, {}));
+    verify(!Utils.deepEqual("1", 1));
+    verify(Utils.deepEqual("x", "x"));
+  }
+
   function test_withEntry() {
     const map = {
       "a": 1,

@@ -1,7 +1,6 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Shapes
-import QtQuick.Effects
 
 import qs.config
 
@@ -20,7 +19,8 @@ import qs.config
  *
  * `edge` is the side the surface attaches to, as a Bar.Location value.
  * `boxWidth`/`boxHeight` are the size of the content box; the implicit
- * size adds the connector and fillet margins around it.
+ * size adds the connector and fillet margins around it. Attached, the box
+ * starts on the attach edge (boxStart), the fillets beside it.
  *
  * Variations, all off by default:
  * - joinStart/joinEnd: that end sits flush on the perpendicular edge's
@@ -29,11 +29,6 @@ import qs.config
  * - flushStart/flushEnd: that side wall runs straight into the attach
  *   edge with no fillet, continuing the end of what it attaches to (a
  *   floating bar's island, whose corner squares to meet it)
- * - startFoot/endFoot: where a side wall's fillet lands (v); above 0 it
- *   stands on something drawn under the surface (a pill's far stroke) and
- *   follows it to that end
- * - notches: regions at the attach edge left unpainted (merged pills),
- *   or from notchStart in (a floating bar's islands)
  * - detached: a plain rounded box, not joined to anything; detachedOffset
  *   sets it further in from the edge it slides out of
  * - straight/straightJoins: the attach edge, or the edges a join meets, are
@@ -56,8 +51,14 @@ Item {
   property bool joinEnd: false
   property bool flushStart: false
   property bool flushEnd: false
-  property real startFoot: 0
-  property real endFoot: 0
+  // A flush wall runs on through the backfill, over the end of the stroke
+  // it continues (see _outline). Off where that stroke now carries on past
+  // it (a tray submenu joined beside it, the pill or island stretched
+  // under it): the wall stops at the attach edge, the backfill running on.
+  property bool flushStartThrough: true
+  property bool flushEndThrough: true
+  readonly property bool _throughStart: flushStart && flushStartThrough
+  readonly property bool _throughEnd: flushEnd && flushEndThrough
   property bool detached: false
   // A detached box's distance from the attach edge past the connector gap.
   // The surface starts at the attach edge, so the box slides in from
@@ -71,6 +72,11 @@ Item {
   // popout covers the stroke itself.
   property real backfill: 0
   readonly property real _back: detached ? 0 : backfill
+  // Fill drawn this far past a joined end, over what it joins, with no
+  // stroke or shadow of its own: a tray submenu joined beside a popout on
+  // a pill covers the popout's backfill row there, where the popout's glow
+  // would show as a dash
+  property real joinBackfill: 0
   // The attach edge / the perpendicular edges a join meets are bare screen
   // edges (screen border off): the surface runs straight off them, with no
   // fillet onto them
@@ -83,24 +89,11 @@ Item {
   // their content add this on each side (see bar Popouts, tray submenus).
   readonly property int contentInset: Appearance.borderWidth + PopoutConfig.padding
 
-  // Rectangles at the attach edge left unpainted, so what's under them
-  // shows through: the pills a bar popout merges around. Each is
-  // { start, length, roundStart, roundEnd } (edge-local: from u = start
-  // for length, v = 0 to notchDepth); roundStart/End round its far corners
-  // at that end, to follow a pill's inner edge. They're a mask fixed to
-  // this item rather than part of the sliding outline, so the surface
-  // slides out from behind what shows through instead of over it.
-  property var notches: []
-  property real notchDepth: 0
-  // Where the notches start (v): above 0 they stop short of the attach
-  // edge, the surface painted between, and round their near corners too,
-  // to follow the inner edge of an island held off the edge
-  property real notchStart: 0
-  // The notches in this item's coordinates, for input masks
-  readonly property var notchRects: root._notches.map(n => root._rectFrom(n.u, root.notchStart, n.end - n.u, root.notchDepth - root.notchStart))
-
   property color fillColor: Theme.background
   property color strokeColor: Theme.foreground
+  // Casts the shell's shadow or glow (SurfaceShadow), for a surface whose
+  // border shows: off for a bar's own pills, which their bar's casts
+  property bool castShadow: false
 
   default property alias content: contentContainer.data
 
@@ -121,21 +114,50 @@ Item {
   // radius at the far side, matching a Rectangle's radius
   readonly property real filletRadius: Appearance.borderRadius
   readonly property real cornerRadius: Math.max(0, Appearance.borderRadius - half)
+  // The far corners at each end of the attach edge: 0 squares one, where a
+  // box runs flush into this surface (a pill stretched to carry it)
+  property real startCornerRadius: cornerRadius
+  property real endCornerRadius: cornerRadius
+  // A detached box's near corners (at the attach edge), at each end: 0
+  // squares one, where a tray submenu runs flush to it
+  property real startNearRadius: Appearance.borderRadius
+  property real endNearRadius: Appearance.borderRadius
 
   readonly property real boxAlong: vertical ? boxHeight : boxWidth
   readonly property real boxDepth: vertical ? boxWidth : boxHeight
+  // A radius under half the stroke (0 included) is too tight for a
+  // fillet: its stroke's inner edge would need a negative radius, and its
+  // margin (below) would go negative, pushing the walls out of the surface.
+  // The walls run straight into what they attach to instead.
+  readonly property bool _sharp: filletRadius < half
   // Whether each side wall ends in a fillet: not where the end is joined
-  // or flush, nor where it runs straight off a bare screen edge (unless it
-  // stands on a foot)
-  readonly property bool _filletStart: !joinStart && !flushStart && (!straight || startFoot > 0)
-  readonly property bool _filletEnd: !joinEnd && !flushEnd && (!straight || endFoot > 0)
-  readonly property bool _joinFillet: (joinStart || joinEnd) && !straightJoins
+  // or flush, nor where it runs straight off a bare screen edge
+  readonly property bool _filletStart: !_sharp && !joinStart && !flushStart && !straight
+  readonly property bool _filletEnd: !_sharp && !joinEnd && !flushEnd && !straight
+  readonly property bool _straightJoins: straightJoins || _sharp
+  readonly property bool _joinFillet: (joinStart || joinEnd) && !_straightJoins
   // Room each end for a fillet square, minus the stroke overlap
   readonly property real startMargin: _filletStart ? connectorGap - strokeWidth : 0
   readonly property real endMargin: _filletEnd ? connectorGap - strokeWidth : 0
   readonly property real alongLength: startMargin + boxAlong + endMargin
   // Box + connector gap, plus room for a join's fillet past the far edge
-  readonly property real depth: _back + _lead + boxDepth + connectorGap + (_joinFillet ? filletRadius : 0)
+  // Where the box starts away from the attach edge. Detached, a connector
+  // gap's half past its lead. Attached, on the attach edge: the fillets
+  // curve outside the side walls, so the band they span is the box's own
+  // rather than empty padding above the content. Pushed back only as far
+  // as a shallow box needs for a side wall to clear its fillet and far
+  // corner.
+  readonly property real naturalBoxStart: {
+    if (detached)
+      return _lead + connectorGap / 2;
+    const fillet = _filletStart || _filletEnd ? filletRadius + half : 0;
+    return Math.max(0, Math.min(connectorGap / 2, fillet + Math.max(startCornerRadius, endCornerRadius) + half - boxDepth));
+  }
+  // Overridable: a bar's pills keep a half connector gap (sized by it)
+  property real boxStart: naturalBoxStart
+  // The box and the half connector gap past it (and a joined end's fillet
+  // along the perpendicular stroke)
+  readonly property real depth: _back + boxStart + boxDepth + connectorGap / 2 + (_joinFillet ? filletRadius : 0)
 
   // Along the edge: box + fillet squares. Away from the edge: box +
   // connector gap.
@@ -145,30 +167,13 @@ Item {
   // Box sides and far edge (stroke centre line)
   readonly property real sideU: startMargin + half
   readonly property real farSideU: startMargin + boxAlong - half
-  readonly property real farV: connectorGap / 2 + boxDepth - half
+  readonly property real farV: boxStart + boxDepth - half
 
   // The content box in this item's coordinates, at rest (not slid). On
   // every side but the attach edge it coincides with the outer edge of
   // the stroke, so things attaching to this surface (tray submenus) can
   // line their own stroke up with it.
-  readonly property rect boxRect: root._rectFrom(startMargin, _lead + connectorGap / 2, boxAlong, boxDepth)
-
-  // The notches clamped to the surface, edge-local (none without depth)
-  readonly property var _notches: {
-    if (notchDepth <= notchStart)
-      return [];
-    return notches.map(n => {
-      const u = Math.max(0, Math.min(n.start, alongLength));
-      const end = Math.max(u, Math.min(n.start + n.length, alongLength));
-      return {
-        "u": u,
-        "end": end,
-        "radius": Math.max(0, Math.min(Appearance.borderRadius - strokeWidth, (end - u) / 2, notchStart > 0 ? (notchDepth - notchStart) / 2 : notchDepth)),
-        "roundStart": n.roundStart,
-        "roundEnd": n.roundEnd
-      };
-    }).filter(n => n.end > n.u);
-  }
+  readonly property rect boxRect: root._rectFrom(startMargin, boxStart, boxAlong, boxDepth)
 
   // Reflections flip the sweep direction of arcs; rotations don't
   readonly property bool mirrored: edge === Bar.Bottom || edge === Bar.Left
@@ -221,40 +226,43 @@ Item {
   // The outline from the start end to the end end: side walls (or joins)
   // and the far edge. Shared by the fill and the stroke.
   function _outline(startWith) {
-    const R = filletRadius, cr = cornerRadius, h = half;
-    const fs = startFoot, fe = endFoot;
+    const R = filletRadius, cs = startCornerRadius, ce = endCornerRadius, h = half;
+    // A flush wall runs on through the backfill, its stroke covering the
+    // end of the stroke it continues there, which the backfill leaves
+    // open: left empty, the shadow or glow showed through as a seam
+    const fv0 = _throughStart ? -_back : 0, fv1 = _throughEnd ? -_back : 0;
     let d = "";
-    if (joinStart && straightJoins) {
+    if (joinStart && _straightJoins) {
       d += startWith(0, farV);
     } else if (joinStart) {
       d += startWith(h, farV + R);
       d += _arc(R, true, h + R, farV);
     } else if (!_filletStart) {
-      d += startWith(sideU, 0);
-      d += _line(sideU, farV - cr);
-      d += _arc(cr, false, sideU + cr, farV);
+      d += startWith(sideU, fv0);
+      d += _line(sideU, farV - cs);
+      d += _arc(cs, false, sideU + cs, farV);
     } else {
-      d += startWith(0, fs + h);
-      d += _line(sideU - R, fs + h);
-      d += _arc(R, true, sideU, fs + h + R);
-      d += _line(sideU, farV - cr);
-      d += _arc(cr, false, sideU + cr, farV);
+      d += startWith(0, h);
+      d += _line(sideU - R, h);
+      d += _arc(R, true, sideU, h + R);
+      d += _line(sideU, farV - cs);
+      d += _arc(cs, false, sideU + cs, farV);
     }
-    if (joinEnd && straightJoins) {
+    if (joinEnd && _straightJoins) {
       d += _line(alongLength, farV);
     } else if (joinEnd) {
       d += _line(alongLength - h - R, farV);
       d += _arc(R, true, alongLength - h, farV + R);
     } else if (!_filletEnd) {
-      d += _line(farSideU - cr, farV);
-      d += _arc(cr, false, farSideU, farV - cr);
-      d += _line(farSideU, 0);
+      d += _line(farSideU - ce, farV);
+      d += _arc(ce, false, farSideU, farV - ce);
+      d += _line(farSideU, fv1);
     } else {
-      d += _line(farSideU - cr, farV);
-      d += _arc(cr, false, farSideU, farV - cr);
-      d += _line(farSideU, fe + h + R);
-      d += _arc(R, true, farSideU + R, fe + h);
-      d += _line(alongLength, fe + h);
+      d += _line(farSideU - ce, farV);
+      d += _arc(ce, false, farSideU, farV - ce);
+      d += _line(farSideU, h + R);
+      d += _arc(R, true, farSideU + R, h);
+      d += _line(alongLength, h);
     }
     return d;
   }
@@ -267,22 +275,20 @@ Item {
     const R = filletRadius, b = -_back;
     // The backfill stops short of a flush end's wall, squarely, where the
     // stroke of what it attaches to carries on behind it
-    const u0 = flushStart ? strokeWidth : 0, u1 = flushEnd ? alongLength - strokeWidth : alongLength;
+    const u0 = _throughStart ? strokeWidth : 0, u1 = _throughEnd ? alongLength - strokeWidth : alongLength;
     let d;
     if (joinStart)
-      d = _move(0, b) + _line(0, straightJoins ? farV : farV + R) + root._outline((u, v) => _line(u, v));
+      d = _move(0, b) + _line(0, _straightJoins ? farV : farV + R) + root._outline((u, v) => _line(u, v));
     else if (flushStart)
-      d = _move(u0, b) + _line(u0, 0) + root._outline((u, v) => _line(u, v));
+      d = _move(u0, b) + (_throughStart ? "" : _line(0, 0)) + root._outline((u, v) => _line(u, v));
     else if (!_filletStart)
       d = root._outline((u, v) => _move(u, v));
     else
-      d = root._outline((u, v) => _move(0, startFoot) + _line(u, v));
-    if (joinEnd && !straightJoins)
+      d = root._outline((u, v) => _move(0, 0) + _line(u, v));
+    if (joinEnd && !_straightJoins)
       d += _line(alongLength, farV + R);
-    else if (!joinEnd && _filletEnd)
-      d += _line(alongLength, endFoot);
-    else if (flushEnd)
-      d += _line(u1, 0);
+    else if ((!joinEnd && _filletEnd) || (flushEnd && !_throughEnd))
+      d += _line(alongLength, 0);
     return d + _line(u1, b) + _line(u0, b) + "Z";
   }
 
@@ -290,52 +296,9 @@ Item {
   // ends, whose ends sit exactly on the strokes they continue
   readonly property string strokePath: width > 0 && height > 0 ? root._outline((u, v) => _move(u, v)) : ""
 
-  // The notches as a mask shape: square ends reach past a notch so only
-  // the rounded ones curve, and each overhangs the attach edge likewise
-  // (unless it starts past it, rounded there too)
-  Item {
-    id: notchMask
-    anchors.fill: parent
-    visible: false
-    layer.enabled: root._notches.length > 0
-
-    Repeater {
-      model: root._notches.length
-
-      Rectangle {
-        required property int index
-        readonly property var notch: root._notches[index] ?? {
-          "u": 0,
-          "end": 0,
-          "radius": 0,
-          "roundStart": false,
-          "roundEnd": false
-        }
-        readonly property real r: notch.radius
-        readonly property real u0: notch.u - (notch.roundStart ? 0 : r)
-        readonly property real u1: notch.end + (notch.roundEnd ? 0 : r)
-        readonly property real v0: root.notchStart > 0 ? root.notchStart : -r
-        readonly property rect area: root._rectFrom(u0, v0, u1 - u0, root.notchDepth - v0)
-        x: area.x
-        y: area.y
-        width: area.width
-        height: area.height
-        radius: r
-        color: "black"
-      }
-    }
-  }
-
   SlideAnimation {
     id: slideContainer
     anchors.fill: parent
-
-    layer.enabled: root._notches.length > 0
-    layer.effect: MultiEffect {
-      maskEnabled: true
-      maskInverted: true
-      maskSource: notchMask
-    }
 
     active: root.active
     slideFromRight: root.attachRight
@@ -347,47 +310,79 @@ Item {
     containerHeight: root.height
     containerWidth: root.width
     enableFade: false
+    overflow: root.castShadow ? BarStyle.shadowReach : 0
 
-    Shape {
-      id: outline
+    // The outline (or detached box), casting the shadow or glow: the
+    // content inside it doesn't need its own
+    Item {
       anchors.fill: parent
-      visible: !root.detached
-      preferredRendererType: Shape.CurveRenderer
+      layer.enabled: root.castShadow && BarStyle.shadowed
+      layer.effect: SurfaceShadow {
+        edge: root.edge
+        falls: root.detached
+      }
 
-      ShapePath {
-        fillColor: root.fillColor
-        strokeColor: "transparent"
-        strokeWidth: 0
+      Shape {
+        id: outline
+        anchors.fill: parent
+        visible: !root.detached
+        preferredRendererType: Shape.CurveRenderer
 
-        PathSvg {
-          path: root.fillPath
+        ShapePath {
+          fillColor: root.fillColor
+          strokeColor: "transparent"
+          strokeWidth: 0
+
+          PathSvg {
+            path: root.fillPath
+          }
+        }
+
+        ShapePath {
+          fillColor: "transparent"
+          strokeColor: root.strokeColor
+          strokeWidth: root.strokeWidth
+          capStyle: ShapePath.FlatCap
+          joinStyle: ShapePath.MiterJoin
+
+          PathSvg {
+            path: root.strokePath
+          }
         }
       }
 
-      ShapePath {
-        fillColor: "transparent"
-        strokeColor: root.strokeColor
-        strokeWidth: root.strokeWidth
-        capStyle: ShapePath.FlatCap
-        joinStyle: ShapePath.MiterJoin
-
-        PathSvg {
-          path: root.strokePath
-        }
+      // Detached: a box of its own, not joined to anything. Its far
+      // corners square as the outline's do (start/endCornerRadius, the
+      // stroke's centre line: the outer edge is half a stroke out).
+      Rectangle {
+        id: detachedBox
+        readonly property real startRadius: root.startCornerRadius > 0 ? root.startCornerRadius + root.half : 0
+        readonly property real endRadius: root.endCornerRadius > 0 ? root.endCornerRadius + root.half : 0
+        // Far corners from start/endRadius, near ones from start/endNearRadius
+        topLeftRadius: root.attachBottom || root.attachRight ? detachedBox.startRadius : root.startNearRadius
+        topRightRadius: root.attachLeft ? detachedBox.startRadius : root.attachBottom ? detachedBox.endRadius : root.attachTop ? root.endNearRadius : root.startNearRadius
+        bottomLeftRadius: root.attachTop ? detachedBox.startRadius : root.attachRight ? detachedBox.endRadius : root.attachBottom ? root.startNearRadius : root.endNearRadius
+        bottomRightRadius: root.attachTop || root.attachLeft ? detachedBox.endRadius : root.endNearRadius
+        visible: root.detached
+        x: root.boxRect.x
+        y: root.boxRect.y
+        width: root.boxRect.width
+        height: root.boxRect.height
+        color: root.fillColor
+        border.color: root.strokeColor
+        border.width: root.strokeWidth
       }
     }
 
-    // Detached: a box of its own, not joined to anything
+    // Past a joined end (joinBackfill), outside the shadowed outline
     Rectangle {
-      visible: root.detached
-      x: root.boxRect.x
-      y: root.boxRect.y
-      width: root.boxRect.width
-      height: root.boxRect.height
-      radius: Appearance.borderRadius
+      readonly property rect area: root.joinStart ? root._rectFrom(-root.joinBackfill, -root._back, root.joinBackfill, root._back + root.boxStart + root.boxDepth) : root._rectFrom(root.alongLength, -root._back, root.joinBackfill, root._back + root.boxStart + root.boxDepth)
+      visible: !root.detached && root.joinBackfill > 0 && (root.joinStart || root.joinEnd)
+      x: area.x
+      y: area.y
+      width: area.width
+      height: area.height
       color: root.fillColor
-      border.color: root.strokeColor
-      border.width: root.strokeWidth
     }
 
     // Content box: same placement the old bordered Rectangle had, so

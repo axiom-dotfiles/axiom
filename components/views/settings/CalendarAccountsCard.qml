@@ -318,7 +318,7 @@ FoldingCard {
         elide: Text.ElideRight
       }
       StatusChip {
-        visible: calendarRow.calendar.readOnly ?? false
+        shown: calendarRow.calendar.readOnly ?? false
         color: Theme.foregroundAlt
         text: I18n.tr("Read-only")
       }

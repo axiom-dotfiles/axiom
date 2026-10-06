@@ -7,6 +7,7 @@ import qs.config
 import qs.services
 import qs.components.methods
 import qs.components.hosts.popout
+import qs.components.reusable
 
 // Lays out a bar's five widget sections along its main axis in one pass,
 // so they can never overlap: `left`/`right` hug the ends, `center` stays
@@ -36,7 +37,7 @@ Rectangle {
 
   readonly property bool pills: barConfig.pills
   // A floating bar: islands held off the edge, read like pills by the
-  // popouts (pillRects), but drawn on their own (islandRects)
+  // popouts (pillRects), but drawn on their own (as boxes, from pillShapes)
   readonly property bool islands: barConfig.island
   // Where islands may reach along the bar, from its start
   readonly property real islandEnd: root.length - root.barConfig.islandStart
@@ -92,24 +93,34 @@ Rectangle {
   // between them, outside its pill (BarLayout.edgeHang); at the first and
   // last sections showing, they stay in it, as padding.
   readonly property var _spans: {
-    const shown = root._groups.filter(g => g.usedLength > 0).sort((a, b) => a.mainPos - b.mainPos);
+    const shown = root._groups.filter(g => g.drawnLength > 0.5).sort((a, b) => a.drawnPos - b.drawnPos);
     return shown.map((g, i) => ({
-          "start": g.mainPos + (i > 0 ? g.drawnHang.lead : 0),
-          "end": g.mainPos + g.usedLength - (i < shown.length - 1 ? g.drawnHang.trail : 0)
+          "start": g.drawnPos + (i > 0 ? g.drawnHang.lead : 0),
+          "end": g.drawnPos + g.drawnLength - (i < shown.length - 1 ? g.drawnHang.trail : 0)
         }));
   }
 
-  // The islands as drawn: one stretched to carry an open popout, and
-  // joining any it then reaches, while that's open
-  readonly property var islandRects: islands ? BarLayout.stretchIslands(root.pillRects, root.pillStretch, root.barConfig.pillMerge) : []
+  // The pills (or islands) as drawn: stretched to carry the surfaces open
+  // on them, and joining any they then reach, while those are open
+  readonly property var pillShapes: BarLayout.stretchIslands(root.pillRects, root._shownStretches, root.barConfig.pillMerge)
 
-  // One pill stretched past its ends to carry an open popout's fillets,
-  // { index, start, end }, and on an island whether the popout runs flush
-  // into either end (squareStart, squareEnd) (set by BarPopouts;
-  // pillRects stays unstretched)
-  property var pillStretch: null
-  // The same for a floating edge menu standing on a pill
-  property var edgeMenuStretch: null
+  // Pills stretched past their ends to carry the fillets of surfaces
+  // standing on them, by owner (a bar popout, an edge popout): each
+  // { index, start, end, squareStart, squareEnd } (EdgeAttach.place's
+  // stretch). pillRects stays unstretched.
+  property var stretches: ({})
+  readonly property var _stretchList: Object.keys(root.stretches).map(k => root.stretches[k])
+  // Sets (or with null clears) `owner`'s stretch
+  function setStretch(owner, stretch) {
+    if (Utils.deepEqual(root.stretches[owner] ?? null, stretch ?? null))
+      return;
+    const next = Object.assign({}, root.stretches);
+    if (stretch)
+      next[owner] = stretch;
+    else
+      delete next[owner];
+    root.stretches = next;
+  }
 
   // A stretch changing while its popout is open (the calendar opening its
   // editor) was drawn but not shown: the bar's next frame was rendered,
@@ -117,8 +128,47 @@ Rectangle {
   // made the bar commit again (a hover, the clock). So for a few frames
   // after a stretch changes, the bar draws a frame of its own (an
   // invisible pixel flipping), and the last one shown is the right one.
-  onPillStretchChanged: _repaint.burst()
-  onEdgeMenuStretchChanged: _repaint.burst()
+  on_ShownStretchesChanged: _repaint.burst()
+
+  // How far each pill reaches past its own ends for the stretches on it,
+  // animated, so it grows out to carry a surface and draws back after it.
+  // The pill itself follows its sections as drawn (Section.drawnPos).
+  Instantiator {
+    id: reaches
+    model: root.pillRects.length
+
+    delegate: QtObject {
+      required property int index
+      readonly property var rect: root.pillRects[index] ?? null
+      readonly property var target: BarLayout.stretchOf(root._stretchList, index)
+      readonly property bool squareStart: target?.squareStart ?? false
+      readonly property bool squareEnd: target?.squareEnd ?? false
+      property real before: target && rect ? Math.max(0, rect.start - target.start) : 0
+      property real after: target && rect ? Math.max(0, target.end - rect.start - rect.length) : 0
+
+      Glide on before {}
+      Glide on after {}
+    }
+  }
+  // The stretches as drawn (see stretchOf), one per pill reaching past
+  // its ends or squared
+  readonly property var _shownStretches: {
+    const shown = [];
+    for (let i = 0; i < reaches.count; i++) {
+      const reach = reaches.objectAt(i);
+      const rect = reach?.rect;
+      if (!rect || (reach.before <= 0 && reach.after <= 0 && !reach.squareStart && !reach.squareEnd))
+        continue;
+      shown.push({
+        "index": i,
+        "start": rect.start - reach.before,
+        "end": rect.start + rect.length + reach.after,
+        "squareStart": reach.squareStart,
+        "squareEnd": reach.squareEnd
+      });
+    }
+    return shown;
+  }
   property bool _repaintFlip: false
   Timer {
     id: _repaint
@@ -140,16 +190,6 @@ Rectangle {
     color: "#02000000"
     opacity: root._repaintFlip ? 0.5 : 0.4
   }
-  // Both stretches on pill `index`, as one { start, end }, or null
-  function stretchFor(index) {
-    const stretches = [root.pillStretch, root.edgeMenuStretch].filter(s => s?.index === index);
-    if (stretches.length === 0)
-      return null;
-    return {
-      "start": Math.min(...stretches.map(s => s.start)),
-      "end": Math.max(...stretches.map(s => s.end))
-    };
-  }
 
   readonly property var _groups: [leftGroup, leftCenterGroup, centerGroup, rightCenterGroup, rightGroup]
   // Per section, the model indices hidden so the minimum sizes fit
@@ -161,8 +201,20 @@ Rectangle {
     const key = JSON.stringify(slots);
     if (key !== _slotsKey) {
       _slotsKey = key;
-      layoutUpdated();
+      root.layoutMoved();
     }
+  }
+  // Widgets and sections glide to a new layout (BarWidgetHost, Section),
+  // so what's anchored to them (an open popout) is told again once
+  // they've arrived
+  function layoutMoved() {
+    layoutUpdated();
+    _settle.restart();
+  }
+  Timer {
+    id: _settle
+    interval: Appearance.animNormal
+    onTriggered: root.layoutUpdated()
   }
 
   // A section's shown widgets; `configIndex` is each one's place in the
@@ -227,10 +279,24 @@ Rectangle {
       return farSide ? across - start - size : start;
     }
 
-    x: section.bar.isVertical ? section.crossPos : section.mainPos
-    y: section.bar.isVertical ? section.mainPos : section.crossPos
+    // Where it's drawn along the bar, and how long: gliding to the layout's
+    // (as its widgets do, BarWidgetHost), which pills follow. Off until
+    // first placed, so a new bar doesn't slide its sections in.
+    property real drawnPos: section.mainPos
+    property real drawnLength: section.usedLength
+    property bool _settled: false
+    Component.onCompleted: Qt.callLater(() => section._settled = true)
+    Glide on drawnPos {
+      enabled: section._settled
+    }
+    Glide on drawnLength {
+      enabled: section._settled
+    }
 
-    onAllocationUpdated: section.bar.layoutUpdated()
+    x: section.bar.isVertical ? section.crossPos : section.drawnPos
+    y: section.bar.isVertical ? section.drawnPos : section.crossPos
+
+    onAllocationUpdated: section.bar.layoutMoved()
   }
 
   // What the bar paints under its widgets: its background, inner stroke
@@ -242,14 +308,17 @@ Rectangle {
 
     layer.enabled: root.barConfig.shadow !== "none"
     layer.effect: MultiEffect {
-      readonly property bool glow: root.barConfig.shadow === "glow"
-      readonly property real offset: glow ? 0 : root.barConfig.shadowSize / 4
+      // Pills join the border (or screen edge) they grow from: their
+      // shadow is cast evenly, as the border's, so it can't slide onto a
+      // stroke they join (see SurfaceShadow)
+      readonly property bool even: root.barConfig.shadow === "glow" || root.barConfig.pills
+      readonly property real offset: even ? 0 : root.barConfig.shadowSize / 4
 
       shadowEnabled: true
       shadowColor: Bar.shadowColor(root.barConfig)
       shadowBlur: 1
       blurMax: root.barConfig.shadowSize
-      // A shadow falls toward the windows
+      // Otherwise a shadow falls toward the windows
       shadowHorizontalOffset: root.barConfig.left ? offset : root.barConfig.right ? -offset : 0
       shadowVerticalOffset: root.barConfig.top ? offset : root.barConfig.bottom ? -offset : 0
       autoPaddingEnabled: true
@@ -274,12 +343,12 @@ Rectangle {
     // Islands: rounded boxes in from the edge, an inner corner squared
     // where a popout runs flush into that end. Modelled by count, as pills.
     Repeater {
-      model: root.islandRects.length
+      model: root.islands ? root.pillShapes.length : 0
 
       Rectangle {
         id: island
         required property int index
-        readonly property var rect: root.islandRects[index] ?? {
+        readonly property var rect: root.pillShapes[index] ?? {
           "start": 0,
           "length": 0,
           "squareStart": false,
@@ -305,16 +374,8 @@ Rectangle {
         bottomLeftRadius: root.barConfig.top ? startInner : root.barConfig.right ? endInner : corner
         bottomRightRadius: root.barConfig.top || root.barConfig.left ? endInner : corner
 
-        Behavior on startInner {
-          NumberAnimation {
-            duration: Appearance.animFast
-          }
-        }
-        Behavior on endInner {
-          NumberAnimation {
-            duration: Appearance.animFast
-          }
-        }
+        Glide on startInner {}
+        Glide on endInner {}
       }
     }
 
@@ -323,27 +384,24 @@ Rectangle {
     // border's stroke where it joins. Modelled by count, so a clock changing
     // width moves its pill without rebuilding it.
     Repeater {
-      model: root.pills ? root.pillRects.length : 0
+      model: root.pills ? root.pillShapes.length : 0
 
       AttachedSurface {
         id: pill
         required property int index
-        readonly property var rect: root.pillRects[index] ?? {
+        // Stretched to carry the surfaces open on it, as islands are
+        readonly property var span: root.pillShapes[index] ?? {
           "start": 0,
           "length": 0,
           "joinStart": false,
-          "joinEnd": false
+          "joinEnd": false,
+          "squareStart": false,
+          "squareEnd": false
         }
-        readonly property var stretch: root.stretchFor(index)
-        readonly property var span: stretch ? {
-          "start": stretch.start,
-          "length": stretch.end - stretch.start,
-          "joinStart": rect.joinStart,
-          "joinEnd": rect.joinEnd
-        } : rect
         readonly property real alongStart: span.start - startMargin
         // Depth reached from the outer edge; the surface's far half-gap is empty
         readonly property real depthBox: Math.max(0, root.barConfig.pillDepth - connectorGap / 2)
+        boxStart: connectorGap / 2
 
         edge: root.barConfig.location
         active: true
@@ -355,6 +413,12 @@ Rectangle {
         // Without the border, pills grow straight out of the screen edges
         straight: !Appearance.screenBorder
         straightJoins: !Appearance.screenBorder
+        // Square where a popout runs flush into it
+        startCornerRadius: span.squareStart ? 0 : cornerRadius
+        endCornerRadius: span.squareEnd ? 0 : cornerRadius
+
+        Glide on startCornerRadius {}
+        Glide on endCornerRadius {}
 
         width: implicitWidth
         height: implicitHeight

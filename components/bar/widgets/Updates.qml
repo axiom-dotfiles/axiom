@@ -46,6 +46,7 @@ BarIconWidget {
   PopoutAnchor {
     popouts: root.popouts
     panel: root.panel
+    hitArea: root.hitArea
     popoutName: "Updates"
     active: root.properties.showPopout && !root.hidden
     extraData: ({

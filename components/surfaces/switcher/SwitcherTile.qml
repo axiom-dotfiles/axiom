@@ -35,11 +35,7 @@ Item {
     border.width: Appearance.borderWidth
     border.color: root.selected ? Theme.accent : "transparent"
 
-    Behavior on color {
-      ColorAnimation {
-        duration: Appearance.animFast
-      }
-    }
+    ColorGlide on color {}
   }
 
   Item {

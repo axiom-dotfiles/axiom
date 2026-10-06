@@ -4,6 +4,8 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import qs.config
 
+// One tab of a StyledTabBar: only its label, the bar drawing the current
+// tab's highlight, which slides between its tabs
 TabButton {
   id: root
 
@@ -22,20 +24,11 @@ TabButton {
     horizontalAlignment: Text.AlignHCenter
     verticalAlignment: Text.AlignVCenter
     elide: Text.ElideRight
-  }
 
-  background: Rectangle {
-    color: root.checked ? Theme.backgroundHighlight : "transparent"
-    radius: Widget.radius
-
-    Rectangle {
-      anchors.bottom: parent.bottom
-      anchors.horizontalCenter: parent.horizontalCenter
-      width: parent.width * 0.8
-      height: 2
-      color: root.activeColor
-      visible: root.checked
-      radius: 1
+    ColorGlide on color {
+      duration: Appearance.animNormal
     }
   }
+
+  background: Item {}
 }

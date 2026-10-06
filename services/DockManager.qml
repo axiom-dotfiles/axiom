@@ -253,6 +253,59 @@ QtObject {
     });
   }
 
+  // --- Preview (the settings card's Show) ---
+
+  // A dock as its card edits it (a DockEntry, saved or not), which
+  // shell/Dock slides in over the overlay for a moment on `previewScreen`
+  // (where the dock would show), in a window of its own: the dock itself
+  // is put away under the overlay. Kept once it's over, so the window
+  // dropped then never reads null.
+  property var previewDock: null
+  property bool previewActive: false
+  property string previewScreen: ""
+  // Whether it's in; out, it slides away before it's dropped
+  property bool previewShown: false
+
+  function preview(dock) {
+    if (!dock)
+      return;
+    root._previewEnd.stop();
+    root.previewDock = Utils.clone(dock);
+    root.previewScreen = ShellManager.targetFor(dock.monitors, dock.monitor);
+    root.previewShown = true;
+    root.previewActive = true;
+    root._previewHold.restart();
+  }
+
+  // Whether the dock's own copy on the preview's screen hides behind it
+  function previewing(id, screen) {
+    return root.previewActive && root.previewDock?.id === id && root.previewScreen === (screen?.name ?? "");
+  }
+
+  // An always-shown dock reserving its strip shows beside the overlay, so
+  // the preview lands on it and is dropped at once, the dock showing again
+  function _landsInPlace(dock) {
+    return dock.visibility === "always" && dock.reserveSpace && !root.hidden[dock.id] && DockConfig.shownIds.includes(dock.id);
+  }
+
+  property Timer _previewHold: Timer {
+    interval: 2000
+    onTriggered: {
+      if (root._landsInPlace(root.previewDock)) {
+        root.previewShown = false;
+        root.previewActive = false;
+        return;
+      }
+      root.previewShown = false;
+      root._previewEnd.restart();
+    }
+  }
+
+  property Timer _previewEnd: Timer {
+    interval: Appearance.animNormal + 50
+    onTriggered: root.previewActive = false
+  }
+
   Component.onCompleted: {
     if (root._active)
       Hyprland.refreshMonitors();

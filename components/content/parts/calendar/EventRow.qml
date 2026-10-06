@@ -25,10 +25,14 @@ Rectangle {
   radius: Widget.radius
   color: area.containsMouse && root.clickable ? Qt.alpha(Theme.backgroundHighlight, 0.7) : Qt.alpha(Theme.backgroundHighlight, 0)
 
-  Behavior on color {
-    ColorAnimation {
-      duration: Appearance.animFast
-    }
+  ColorGlide on color {}
+
+  // Fades in as its list (a day, the agenda) is shown or changes
+  NumberAnimation on opacity {
+    from: 0
+    to: 1
+    duration: Appearance.animNormal
+    easing.type: Appearance.easing
   }
 
   RowLayout {
@@ -57,8 +61,11 @@ Rectangle {
         Layout.fillWidth: true
         spacing: Widget.spacing / 2
 
+        // As wide as the widest time range, so a list's titles line up
         StyledText {
           visible: !root.twoLines
+          Layout.minimumWidth: widest.implicitWidth
+          Layout.rightMargin: Widget.spacing / 2
           text: root.when
           textColor: Theme.foregroundAlt
           textSize: Appearance.fontSize - 1
@@ -86,6 +93,14 @@ Rectangle {
         elide: Text.ElideRight
       }
     }
+  }
+
+  StyledText {
+    id: widest
+    visible: false
+    readonly property string sample: I18n.formatDate(new Date(2000, 0, 1, 22, 58), CalendarConfig.timeFormat)
+    text: I18n.tr("{0} – {1}", sample, sample)
+    textSize: Appearance.fontSize - 1
   }
 
   MouseArea {

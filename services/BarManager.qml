@@ -12,7 +12,12 @@ import qs.components.methods
  *
  * Also keeps the page's own state (selected bar and widget), since the
  * page is unloaded whenever the overlay closes, and, while the page is on
- * screen, what the running bars report back about the selected bar. */
+ * screen, what the running bars report back about the selected bar.
+ *
+ * And the running bars themselves (`bars`), laid out with Hyprland's gaps
+ * (Bar.enrichBarConfig), with what they leave on each screen edge: which
+ * bar is there, where windows start, where surfaces held off it measure
+ * from. */
 QtObject {
   id: root
 
@@ -409,5 +414,88 @@ QtObject {
   // Discard edits: reload from the current config, and the bars with it
   function resetChanges() {
     loadConfig();
+  }
+
+  // The running bars: while the bar editor has unsaved edits, those
+  readonly property var bars: Bar.expandBars(ConfigManager.previews.Bars ?? ConfigManager.config.Bars).map(bar => Bar.enrichBarConfig(bar, HyprlandManager.gapsOut, HyprlandManager.windowSpacing))
+
+  // The enabled bars on a screen by edge ({ top, bottom, left, right },
+  // null where there is none)
+  function edgesFor(screen) {
+    const edges = {
+      "top": null,
+      "bottom": null,
+      "left": null,
+      "right": null
+    };
+    root.bars.forEach(bar => {
+      if (!bar.enabled || bar.monitor !== screen?.name)
+        return;
+      const edge = bar.top ? "top" : bar.bottom ? "bottom" : bar.left ? "left" : "right";
+      if (!edges[edge])
+        edges[edge] = bar;
+    });
+    return edges;
+  }
+
+  // Whether a screen edge (a Bar.Location) is bare: no screen border and no
+  // bar on it, so surfaces there run straight off the screen
+  function screenEdgeOpen(screen, location) {
+    if (Appearance.screenBorder)
+      return false;
+    return !root.edgesFor(screen)[Bar.edgeName(location)];
+  }
+
+  // Where windows start on a screen edge (a Bar.Location), in px from it:
+  // the border's and bar's reserved space, Hyprland's gaps_out not
+  // included, nor integrated edge menus' zones (EdgeMenuManager.reservedOn
+  // adds those)
+  function reservedOn(screen, location) {
+    const bar = root.edgesFor(screen)[Bar.edgeName(location)];
+    const zone = bar ? Bar.reservedZone(bar, HyprlandManager.gapsOut[Bar.edgeName(location)]) : 0;
+    return (Appearance.screenBorder ? Appearance.screenMargin : 0) + zone - (zone > 0 && bar.insideBorder ? Appearance.borderWidth : 0);
+  }
+
+  // The inner side of what's on a screen edge, in px from it: the
+  // border's stroke, or the bar there (a solid bar's inner stroke, a
+  // floating bar's islands, a pill bar's far side, a transparent bar's
+  // inner edge); 0 on a bare edge. Surfaces held off an edge measure their
+  // gap from it (detachedGaps). Integrated edge menus' zones not included
+  // (EdgeMenuManager.frameLineOn adds those).
+  function frameLine(screen, location) {
+    const bar = root.edgesFor(screen)[Bar.edgeName(location)];
+    const margin = Appearance.screenBorder ? Appearance.screenMargin : 0;
+    if (!bar)
+      return margin;
+    // Its outer edge on the border's stroke
+    if (bar.insideBorder)
+      return margin - Appearance.borderWidth + bar.extent;
+    // The border's strip, laid over its inner part, draws its stroke
+    if (bar.solid && Appearance.screenBorder)
+      return bar.reserveSpace ? bar.extent + Appearance.borderWidth : margin;
+    return bar.extent;
+  }
+
+  // The gaps a surface held off a screen edge (a Bar.Location) keeps from
+  // the frame lines (frameLine) across that edge and at its two ends (the
+  // perpendicular edges at its start and end: top and bottom, or left and
+  // right): `gap` on each when it's 0 or more. Automatic (-1), it lines up
+  // with a floating bar on that edge, its float gap on all three, else
+  // with the windows: how far past each frame line they start.
+  function detachedGaps(screen, location, gap) {
+    if (gap >= 0)
+      return {
+        "across": gap,
+        "start": gap,
+        "end": gap
+      };
+    const bar = root.edgesFor(screen)[Bar.edgeName(location)];
+    const windowGap = side => bar?.island ? bar.floatGap : Math.max(0, root.reservedOn(screen, side) + HyprlandManager.gapsOut[Bar.edgeName(side)] - root.frameLine(screen, side));
+    const vertical = location === Bar.Left || location === Bar.Right;
+    return {
+      "across": windowGap(location),
+      "start": windowGap(vertical ? Bar.Top : Bar.Left),
+      "end": windowGap(vertical ? Bar.Bottom : Bar.Right)
+    };
   }
 }

@@ -71,6 +71,8 @@ Panel {
 
     // Narrow, only the new version
     readonly property bool narrow: root.embedded && root.sectionWidth < Appearance.fontSize * 25
+    // A sliver, just the names (an elided version says nothing)
+    readonly property bool namesOnly: root.embedded && root.sectionWidth < Appearance.fontSize * 12
 
     visible: packages.length > 0
     spacing: 2
@@ -100,6 +102,7 @@ Panel {
           elide: Text.ElideRight
         }
         StyledText {
+          visible: !section.namesOnly
           Layout.maximumWidth: root.embedded ? root.sectionWidth * 0.45 : Number.POSITIVE_INFINITY
           elide: Text.ElideLeft
           text: section.narrow ? row.modelData.to : `${row.modelData.from} → ${row.modelData.to}`

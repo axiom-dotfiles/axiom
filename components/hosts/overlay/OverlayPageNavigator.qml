@@ -134,11 +134,7 @@ Rectangle {
       }
     }
 
-    Behavior on color {
-      ColorAnimation {
-        duration: Appearance.animFast
-      }
-    }
+    ColorGlide on color {}
   }
 
   RowLayout {
@@ -246,7 +242,7 @@ Rectangle {
 
                 UnsavedDot {
                   anchors.verticalCenter: parent.verticalCenter
-                  visible: EditsManager.isUnsaved(tab.modelData.type)
+                  shown: EditsManager.isUnsaved(tab.modelData.type)
                   onAccent: tab.isCurrent
                 }
               }
@@ -268,11 +264,7 @@ Rectangle {
                 }
               }
 
-              Behavior on color {
-                ColorAnimation {
-                  duration: Appearance.animFast
-                }
-              }
+              ColorGlide on color {}
             }
           }
         }

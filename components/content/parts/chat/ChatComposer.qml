@@ -36,10 +36,8 @@ ColumnLayout {
     borderWidth: 1
     borderRadius: Widget.radius + 2
 
-    Behavior on borderColor {
-      ColorAnimation {
-        duration: Appearance.animNormal
-      }
+    ColorGlide on borderColor {
+      duration: Appearance.animNormal
     }
 
     ColumnLayout {
@@ -146,10 +144,8 @@ ColumnLayout {
           color: ChatManager.busy ? Theme.backgroundHighlight : canSend ? Theme.accent : Theme.backgroundHighlight
           opacity: canSend ? 1 : 0.5
 
-          Behavior on color {
-            ColorAnimation {
-              duration: Appearance.animNormal
-            }
+          ColorGlide on color {
+            duration: Appearance.animNormal
           }
 
           StyledIcon {

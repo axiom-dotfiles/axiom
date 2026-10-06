@@ -13,8 +13,11 @@ QtObject {
     Right
   }
   // Adds derived orientation flags to a bar entry from the Bars section
-  // (whose keys are always filled in from the schema defaults).
-  function enrichBarConfig(barConfig) {
+  // (whose keys are always filled in from the schema defaults). Laid out
+  // with Hyprland's gaps_out and space between windows (`gapsOut`,
+  // `windowSpacing`: per edge name, HyprlandManager's), which a floating
+  // bar's islands keep as a window does (BarManager.bars).
+  function enrichBarConfig(barConfig, gapsOut, windowSpacing) {
     const loc = Bar.getLocationFromString(barConfig.location);
     // Its widget style, accents and shadow: BarStyle's, or its own
     const look = Bar.lookOf(barConfig);
@@ -57,10 +60,16 @@ QtObject {
     // How far a pill reaches in from the bar's outer edge: the inset, its
     // widgets, and the gap to its far side
     const pillDepth = pillInset + widgetSize + pillGap;
-    // An island sits `floatGap` in from the border's stroke (or the bare
-    // screen edge), across the bar and from both its ends, and holds the
-    // widgets and their padding inside a stroke
-    const islandStart = outerCover + barConfig.floatGap;
+    // Laid out like a tiled window: an island sits its float gap in from
+    // the border's stroke (or the bare screen edge), across the bar and
+    // from both its ends (Automatic, -1: Hyprland's gaps_out on its edge,
+    // as windows keep; the ends take the same, so a gaps_out differing per
+    // side leaves them off the windows' edges), and holds the widgets and
+    // their padding inside a stroke. Windows keep the space between two
+    // windows from it (windowGap, reserveTrim).
+    const edge = Bar.edgeName(loc);
+    const floatGap = barConfig.floatGap >= 0 ? barConfig.floatGap : gapsOut[edge] ?? 0;
+    const islandStart = outerCover + floatGap;
     const islandDepth = Appearance.borderWidth + padding + widgetSize + padding + Appearance.borderWidth;
     const borderShadowed = solid && Appearance.screenBorder && barConfig.reserveSpace;
     // Shapes and grouping are for widgets drawn on a background
@@ -89,7 +98,9 @@ QtObject {
       // Where islands start, in from the bar window's outer edge and both
       // its ends, and the gap from their widgets to their ends
       "islandStart": islandStart,
-      "floatGap": island ? barConfig.floatGap : 0,
+      "floatGap": island ? floatGap : 0,
+      // What windows keep from an island: the space between two windows
+      "windowGap": island ? windowSpacing[edge] ?? 0 : 0,
       "islandGap": Appearance.borderWidth + padding,
       "insideBorder": insideBorder,
       // An inner stroke surfaces on its edge can join: a solid bar's
@@ -116,6 +127,8 @@ QtObject {
       // How widgets show their colors (see widgetColors); the color
       // names stay unresolved
       "widgetStyle": look.widgetStyle,
+      // Its widgets are boxes (filled, tinted, outline), not bare on the bar
+      "widgetBoxed": boxed,
       "tintOpacity": look.tintOpacity / 100,
       "outlineWidth": look.outlineWidth,
       "lineWidth": look.lineWidth,
@@ -259,12 +272,25 @@ QtObject {
   // gaps_out on its edge. A transparent bar has no inner edge to see:
   // windows start where it would be, so the gap from the widgets to them
   // (padding + gaps_out, taken off here) matches the gap to the screen
-  // edge. A floating bar's islands keep the same gap to the windows as to
-  // the border: its float gap in all, gaps_out included.
+  // edge. An inner accent line gives it one, on its innermost pixels:
+  // windows keep gaps_out from it, as from a solid bar's stroke. A floating
+  // bar's islands are laid out like a window: the windows keep the space
+  // between two windows from them (`windowGap`, gaps_out included), so
+  // this is negative when that's more than gaps_out.
   function reserveTrim(barConfig, gapsOut) {
-    if (barConfig.background === "transparent")
+    if (barConfig.background === "transparent" && barConfig.accentLine !== "inner")
       return gapsOut;
-    return barConfig.island ? gapsOut - barConfig.floatGap : 0;
+    return barConfig.island ? gapsOut - barConfig.windowGap : 0;
+  }
+
+  // How much further than half a connector gap past a transparent bar's
+  // inner edge a box detached from it (a bar popout, a floating edge menu)
+  // sits, so it starts no nearer than the windows: past an inner accent
+  // line, they start gaps_out out (reserveTrim)
+  function detachedPush(barConfig, gapsOut, connectorGap) {
+    if (barConfig.background !== "transparent")
+      return 0;
+    return Math.max(0, gapsOut - Bar.reserveTrim(barConfig, gapsOut) - connectorGap / 2);
   }
 
   // The exclusive zone a bar sets (BarPanel), given Hyprland's gaps_out on
@@ -277,59 +303,6 @@ QtObject {
     if (barConfig.insideBorder)
       return Math.max(0, barConfig.extent - trim);
     return Math.max(0, (Appearance.screenBorder ? barConfig.extent - Appearance.screenMargin + Appearance.borderWidth : barConfig.extent) - trim);
-  }
-
-  // Where windows start on a screen edge (a Bar.Location), in px from it:
-  // the border's and bar's reserved space, Hyprland's gaps_out
-  // (`gapsOut`, per edge name) not included, nor integrated edge menus'
-  // zones (EdgeMenuManager.reservedOn adds those)
-  function reservedOn(screen, location, gapsOut) {
-    const bar = Bar.edgesFor(screen)[Bar.edgeName(location)];
-    const zone = bar ? Bar.reservedZone(bar, gapsOut[Bar.edgeName(location)] ?? 0) : 0;
-    return (Appearance.screenBorder ? Appearance.screenMargin : 0) + zone - (zone > 0 && bar.insideBorder ? Appearance.borderWidth : 0);
-  }
-
-  // The inner side of what's on a screen edge, in px from it: the
-  // border's stroke, or the bar there (a solid bar's inner stroke, a
-  // floating bar's islands, a pill bar's far side, a transparent bar's
-  // inner edge); 0 on a bare edge. Surfaces held off an edge measure their
-  // gap from it (detachedGaps). Integrated edge menus' zones not included
-  // (EdgeMenuManager.frameLineOn adds those).
-  function frameLine(screen, location) {
-    const bar = Bar.edgesFor(screen)[Bar.edgeName(location)];
-    const margin = Appearance.screenBorder ? Appearance.screenMargin : 0;
-    if (!bar)
-      return margin;
-    // Its outer edge on the border's stroke
-    if (bar.insideBorder)
-      return margin - Appearance.borderWidth + bar.extent;
-    // The border's strip, laid over its inner part, draws its stroke
-    if (bar.solid && Appearance.screenBorder)
-      return bar.reserveSpace ? bar.extent + Appearance.borderWidth : margin;
-    return bar.extent;
-  }
-
-  // The gaps a surface held off a screen edge (a Bar.Location) keeps from
-  // the frame lines (frameLine) across that edge and at its two ends (the
-  // perpendicular edges at its start and end: top and bottom, or left and
-  // right): `gap` on each when it's 0 or more. Automatic (-1), it lines up
-  // with a floating bar on that edge, its float gap on all three, else
-  // with the windows: how far past each frame line they start.
-  function detachedGaps(screen, location, gap, gapsOut) {
-    if (gap >= 0)
-      return {
-        "across": gap,
-        "start": gap,
-        "end": gap
-      };
-    const bar = Bar.edgesFor(screen)[Bar.edgeName(location)];
-    const windowGap = side => bar?.island ? bar.floatGap : Math.max(0, Bar.reservedOn(screen, side, gapsOut) + (gapsOut[Bar.edgeName(side)] ?? 0) - Bar.frameLine(screen, side));
-    const vertical = location === Bar.Left || location === Bar.Right;
-    return {
-      "across": windowGap(location),
-      "start": windowGap(vertical ? Bar.Top : Bar.Left),
-      "end": windowGap(vertical ? Bar.Bottom : Bar.Right)
-    };
   }
 
   // A bar's look groups (its override flag and the fields it covers, the
@@ -353,8 +326,6 @@ QtObject {
 
   // The Bars section as saved: no previews, "*" monitors unexpanded, locations as strings
   readonly property var savedBars: ConfigManager.config.Bars
-  // The running bars: while the bar editor has unsaved edits, those
-  readonly property var bars: Bar.expandBars(ConfigManager.previews.Bars ?? ConfigManager.config.Bars).map(bar => Bar.enrichBarConfig(bar))
 
   // A bar on every monitor (`monitor: "*"`) becomes one entry per screen,
   // each with its own id (keying its BarPanel) and that screen as its
@@ -398,37 +369,15 @@ QtObject {
       };
     }).filter(t => t !== null);
   }
-  // The enabled bars on a screen by edge ({ top, bottom, left, right },
-  // null where there is none)
-  function edgesFor(screen) {
-    const edges = {
-      "top": null,
-      "bottom": null,
-      "left": null,
-      "right": null
-    };
-    Bar.bars.forEach(bar => {
-      if (!bar.enabled || bar.monitor !== screen?.name)
-        return;
-      const edge = bar.top ? "top" : bar.bottom ? "bottom" : bar.left ? "left" : "right";
-      if (!edges[edge])
-        edges[edge] = bar;
-    });
-    return edges;
-  }
-
-  // Whether a screen edge (a Bar.Location) is bare: no screen border and no
-  // bar on it, so surfaces there run straight off the screen
-  function screenEdgeOpen(screen, location) {
-    if (Appearance.screenBorder)
-      return false;
-    return !Bar.edgesFor(screen)[Bar.edgeName(location)];
-  }
-
   // A Bar.Location as the edge names zones and Hyprland use: "top" |
   // "bottom" | "left" | "right"
   function edgeName(location) {
     return ["top", "bottom", "left", "right"][location];
+  }
+
+  // The edge across the screen from a Bar.Location
+  function oppositeOf(location) {
+    return [Bar.Bottom, Bar.Top, Bar.Right, Bar.Left][location];
   }
 
   function getLocationFromString(locStr) {

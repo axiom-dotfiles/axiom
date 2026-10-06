@@ -112,10 +112,9 @@ Card {
       }
     }
 
-    RowLayout {
+    SegmentRow {
       visible: root.tall
       Layout.fillWidth: true
-      spacing: Widget.spacing / 2
 
       Repeater {
         // I18n.tr("Fixed") I18n.tr("Rotate") I18n.tr("Light/Dark")

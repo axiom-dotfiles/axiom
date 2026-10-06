@@ -5,7 +5,8 @@ import qs.services
 
 /**
  * Shared state machine for any "popout wrapper": open/close/reopen
- * queueing, and centralized dismiss-on-hover-loss timing.
+ * queueing, switching in place, and centralized dismiss-on-hover-loss
+ * timing.
  *
  * Concrete wrappers (BarPopouts, TraySubmenuWrapper, EdgePopout,
  * FloatingPopout, IntegratedEdgeMenu) use this as their root type and add
@@ -32,6 +33,13 @@ Item {
   property var pendingOpenData: null
   property var pendingOpenAnchor: null
   property bool hasPendingOpen: false
+
+  // Hooks for a wrapper that can move an open popout to another payload in
+  // place rather than closing it first (BarPopouts, to a neighbouring
+  // widget): whether it will for (anchor, data), and what it does first,
+  // calling `done` when ready (the payload waits as the pending open)
+  property var canSwitchTo: (anchor, data) => false
+  property var prepareSwitch: done => done()
 
   // Open and not on its way out
   readonly property bool isOpen: occupied && !isClosing
@@ -69,17 +77,24 @@ Item {
 
   onContentHoveredChanged: updateDismissTimer()
 
-  // A popup that maps over its anchor (one merged around a pill covers the
-  // bar, with the pill showing through a notch in its input mask) takes the
-  // pointer before its mask applies. Once it does, the pointer is back over
+  // A popup that maps over its anchor takes the pointer before its input
+  // mask applies. Once it does, the pointer is back over
   // the bar, but Hyprland sends the bar no enter until it moves, so nothing
   // reads as hovered and the popout would close under a still pointer. So
-  // a popout with an anchor notes the cursor when hover is lost, and before
+  // a popout notes the cursor when its anchor loses hover, and before
   // dismissing checks it: if it hasn't moved, hover was lost under it, not
   // by leaving, and the popout stays until the next hover change (or the
-  // cursor moving, checked every parkCheckInterval).
+  // cursor moving, checked every parkCheckInterval). Only the anchor's: any
+  // other hover lost (the content's, a submenu closing, `keepAlive`) is
+  // nothing mapping under the pointer, and a pointer still since leaving
+  // would otherwise hold the popout open. Hovering anything again forgets it.
   property var _lostCursor: null
   readonly property int parkCheckInterval: 1000
+
+  onAnchorHoveredChanged: {
+    if (!anchorHovered && occupied && !isClosing)
+      _noteLostCursor();
+  }
 
   function _noteLostCursor() {
     _lostCursor = null;
@@ -123,14 +138,13 @@ Item {
     parkTimer.stop();
     if (contentHovered) {
       dismissTimer.stop();
+      _lostCursor = null;
     } else {
       dismissTimer.restart();
-      _noteLostCursor();
     }
   }
 
-  // Subclasses that need to do something extra on dismiss (e.g. clearing
-  // an anchor widget's popoutOpen flag) should connect via:
+  // Subclasses that need to do something extra on dismiss connect via:
   //   onAboutToDismiss: { ... }
   signal aboutToDismiss
 
@@ -165,7 +179,15 @@ Item {
   }
 
   function safeOpenPopout(anchor, data) {
-    if (occupied && !isClosing) {
+    if (occupied && canSwitchTo(anchor, data)) {
+      pendingOpenData = data;
+      pendingOpenAnchor = anchor;
+      hasPendingOpen = true;
+      // Leaving is called off: it stays to take the new payload
+      closeDelayTimer.stop();
+      isClosing = false;
+      prepareSwitch(() => root._openPending());
+    } else if (occupied && !isClosing) {
       pendingOpenData = data;
       pendingOpenAnchor = anchor;
       hasPendingOpen = true;
@@ -203,15 +225,20 @@ Item {
       root.currentAnchor = null;
       root.currentData = null;
       root._lostCursor = null;
-
-      if (root.hasPendingOpen) {
-        root.hasPendingOpen = false;
-        const data = root.pendingOpenData;
-        const anchor = root.pendingOpenAnchor;
-        root.pendingOpenData = null;
-        root.pendingOpenAnchor = null;
-        root.openPopout(anchor, data);
-      }
+      root._openPending();
     }
+  }
+
+  // Opens the pending payload, unless it's closing (which opens it once
+  // closed)
+  function _openPending() {
+    if (!root.hasPendingOpen || root.isClosing)
+      return;
+    root.hasPendingOpen = false;
+    const data = root.pendingOpenData;
+    const anchor = root.pendingOpenAnchor;
+    root.pendingOpenData = null;
+    root.pendingOpenAnchor = null;
+    root.openPopout(anchor, data);
   }
 }

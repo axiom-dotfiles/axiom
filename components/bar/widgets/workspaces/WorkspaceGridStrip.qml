@@ -4,7 +4,7 @@ import Quickshell.Hyprland
 
 import qs.services
 import qs.config
-import qs.components.methods
+import qs.components.reusable
 import qs.components.hosts.popout
 
 // The grid layout's switcher: this monitor's columns × rows workspaces, of
@@ -12,12 +12,15 @@ import qs.components.hosts.popout
 // bar), and the popout the whole grid. As in the standard layout's
 // switcher, the active cell is twice as long with `wideActive`, and on a
 // strip monitor the active workspace's windows follow in strip order
-// (ActiveStrip), where scrolling scrolls the strip.
+// (ActiveStrip), where scrolling scrolls the strip. Moving to another row
+// (column) cross-fades the bar's to it.
 Item {
   id: root
   property var screen
   property var popouts
   property var panel
+  // The widget's (BarWidget.hitArea), which its popout reads hover from
+  property var hitArea: null
   property var barConfig
   property var properties
   // Room kept to the widget's background across the bar
@@ -45,6 +48,8 @@ Item {
   }
   readonly property int activeRow: Math.floor(root.activeIndex / root.columns)
   readonly property int activeColumn: root.activeIndex % root.columns
+  // The row (column on a vertical bar) the bar shows
+  readonly property int activeLine: root.isVertical ? root.activeColumn : root.activeRow
 
   // A cell's size on the bar (inside the background), and its corners
   // within the background's
@@ -52,20 +57,17 @@ Item {
   readonly property real cellRadius: Math.max(0, root.barConfig.radius - root.inset)
   readonly property real spacing: root.barConfig.widgetSpacing
   // Along the bar: square, or narrower for dots straight on the bar
-  readonly property real cellLength: ["filled", "tinted", "outline"].includes(root.barConfig.widgetStyle) || root.properties.labels !== "dots" || root.properties.showAppIcons ? root.cell : Math.round(root.cell * 0.6)
+  readonly property real cellLength: root.barConfig.widgetBoxed || root.properties.labels !== "dots" || root.properties.showAppIcons ? root.cell : Math.round(root.cell * 0.6)
   // Cells the bar shows: a row, or a column on a vertical bar
   readonly property int shown: root.isVertical ? root.rows : root.columns
 
   implicitWidth: layout.implicitWidth
   implicitHeight: layout.implicitHeight
 
-  function wsById(id) {
-    const arr = Hyprland.workspaces.values;
-    for (let i = 0; i < arr.length; i++) {
-      if (arr[i].id === id)
-        return arr[i];
-    }
-    return null;
+  // A workspace's place in the grid, or -1 outside it
+  function placeOf(id) {
+    const place = id - root.base;
+    return place >= 0 && place < root.columns * root.rows ? place : -1;
   }
 
   // Where the shown row (or column) sits among `count`: double arrows at the
@@ -103,41 +105,9 @@ Item {
     spacing: root.spacing
 
     // The active row (or column) of the grid
-    Grid {
-      rows: root.isVertical ? root.shown : 1
-      columns: root.isVertical ? 1 : root.shown
-      spacing: root.spacing
-
-      Repeater {
-        model: root.shown
-
-        WorkspaceCell {
-          required property int index
-          // Its place in the grid
-          readonly property int place: root.isVertical ? index * root.columns + root.activeColumn : root.activeRow * root.columns + index
-          readonly property int wsId: root.base + place
-          readonly property HyprlandWorkspace ws: root.wsById(wsId)
-          readonly property bool hasWindows: (ws?.toplevels.values.length ?? 0) > 0
-          // The active arrow takes the active cell's place
-          readonly property bool showsArrow: isActive && root.properties.showActiveIcon
-          readonly property var biggestWindow: root.properties.showAppIcons && hasWindows && !showsArrow ? HyprlandManager.biggestWindowForWorkspace(wsId) : null
-
-          barConfig: root.barConfig
-          isActive: wsId === root.activeId
-          look: Bar.cellColors(root.barConfig, isActive ? root.activeColor : hasWindows ? root.occupiedColor : root.emptyColor, isActive || hasWindows ? root.iconColor : Theme.foreground, isActive ? "active" : hasWindows ? "occupied" : "empty")
-          thickness: root.cell
-          restLength: root.cellLength
-          length: root.cellLength * (isActive && root.properties.wideActive ? 2 : 1)
-          radius: root.cellRadius
-          labels: root.properties.labels
-          // The workspace id, or its place in the grid counted from 1
-          label: root.properties.relativeNumbers ? place + 1 : wsId
-          glyph: showsArrow ? (root.isVertical ? root.positionGlyph(root.activeColumn, root.columns) : root.positionGlyph(root.activeRow, root.rows)) : ""
-          iconPath: biggestWindow ? IconResolver.resolveWindowIcon(biggestWindow.class, biggestWindow.title) : ""
-          clickable: root.properties.clickToSwitch
-          onClicked: HyprlandManager.goToWorkspace(wsId, "go", root.monitor)
-        }
-      }
+    CrossFade {
+      value: root.activeLine
+      delegate: shownLine
     }
 
     Loader {
@@ -158,9 +128,57 @@ Item {
     }
   }
 
+  // A row (column) of the grid
+  Component {
+    id: shownLine
+
+    WorkspaceCellRow {
+      id: line
+      // The row (column)
+      required property var value
+      // The active workspace while it's in this line or outside the grid:
+      // a line fading out keeps showing the one it had (`_kept`)
+      readonly property bool _holds: {
+        const place = root.placeOf(root.activeId);
+        return place < 0 || (root.isVertical ? place % root.columns : Math.floor(place / root.columns)) === line.value;
+      }
+      property int _kept: -1
+      readonly property int _activeHere: _holds ? root.activeId : _kept
+      on_ActiveHereChanged: _kept = _activeHere
+      Component.onCompleted: _kept = _activeHere
+
+      barConfig: root.barConfig
+      properties: root.properties
+      monitor: root.monitor
+      base: root.base
+      ids: Array.from({
+        "length": root.shown
+      }, (_, i) => root.base + (root.isVertical ? i * root.columns + line.value : line.value * root.columns + i))
+      activeId: _activeHere
+      cell: root.cell
+      cellLength: root.cellLength
+      cellRadius: root.cellRadius
+      activeColor: root.activeColor
+      occupiedColor: root.occupiedColor
+      emptyColor: root.emptyColor
+      textColor: root.iconColor
+      // The active arrow takes the active cell's place
+      glyphOf: (id, active) => active && root.properties.showActiveIcon ? root.positionGlyph(line.value, root.isVertical ? root.columns : root.rows) : ""
+
+      Connections {
+        target: HyprlandManager
+        function onWorkspaceWrapped(monitor, alongRow, forward) {
+          if (monitor === (root.monitor?.name ?? "") && alongRow !== root.isVertical)
+            line.expectWrap(forward);
+        }
+      }
+    }
+  }
+
   PopoutAnchor {
     popouts: root.popouts
     panel: root.panel
+    hitArea: root.hitArea
     popoutName: "WorkspaceGrid"
     active: root.properties.showPopout
     extraData: ({

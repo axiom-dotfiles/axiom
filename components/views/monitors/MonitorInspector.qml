@@ -156,18 +156,20 @@ ColumnLayout {
       RowLayout {
         spacing: Widget.spacing
 
-        Repeater {
-          model: [0, 90, 180, 270]
+        SegmentRow {
+          Repeater {
+            model: [0, 90, 180, 270]
 
-          delegate: SegmentButton {
-            required property int modelData
-            required property int index
-            readonly property bool selected: (root.rule?.transform ?? 0) % 4 === index
-            implicitHeight: Widget.height
-            text: `${modelData}°`
-            active: selected
-            Layout.fillWidth: false
-            onClicked: root.set("transform", index + ((root.rule?.transform ?? 0) >= 4 ? 4 : 0))
+            delegate: SegmentButton {
+              required property int modelData
+              required property int index
+              readonly property bool selected: (root.rule?.transform ?? 0) % 4 === index
+              implicitHeight: Widget.height
+              text: `${modelData}°`
+              active: selected
+              Layout.fillWidth: false
+              onClicked: root.set("transform", index + ((root.rule?.transform ?? 0) >= 4 ? 4 : 0))
+            }
           }
         }
 

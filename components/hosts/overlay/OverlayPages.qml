@@ -3,6 +3,7 @@ import QtQuick
 import qs.config
 import qs.services
 import qs.components.views
+import qs.components.reusable
 
 Item {
   id: root
@@ -131,29 +132,22 @@ Item {
     return shown.filter(view => !OverlayConfig.isTool(view.viewConfig.type)).concat(shown.filter(view => OverlayConfig.isTool(view.viewConfig.type)));
   }
 
+  // The box grows and shrinks about its centre to the page's size as the
+  // pages change. Centred, not anchored to the sides, which would override
+  // the animated width (and snap the box's edges to the new page's).
   Item {
     id: contentContainer
-    anchors {
-      top: parent.top
-      left: parent.left
-      right: parent.right
-    }
+    anchors.centerIn: parent
     height: root.implicitHeight
     width: root.implicitWidth
     clip: true
 
-    Behavior on height {
-      NumberAnimation {
-        duration: Appearance.animNormal
-        easing.type: Easing.InOutQuad
-      }
+    Glide on height {
+      duration: Appearance.animNormal
     }
 
-    Behavior on width {
-      NumberAnimation {
-        duration: Appearance.animNormal
-        easing.type: Easing.InOutQuad
-      }
+    Glide on width {
+      duration: Appearance.animNormal
     }
 
     Rectangle {

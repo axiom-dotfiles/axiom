@@ -125,11 +125,8 @@ Scope {
         opacity: overlayWindow.shown ? 1 : 0
         focus: overlayWindow.shown
 
-        Behavior on opacity {
-          NumberAnimation {
-            duration: Appearance.animNormal
-            easing.type: Appearance.easing
-          }
+        Glide on opacity {
+          duration: Appearance.animNormal
         }
 
         Keys.onEscapePressed: {

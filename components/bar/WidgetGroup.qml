@@ -161,7 +161,9 @@ Item {
       required property int index
       readonly property int next: root._nextShown(index)
       readonly property bool between: (root.allocation.sizes[index] ?? 0) > 0 && next >= 0
-      readonly property real center: (root.allocation.offsets[index] ?? 0) + (root.allocation.sizes[index] ?? 0) + root.spacing / 2
+      // From its widget as drawn, so it moves with it
+      readonly property var host: root._modules[index] ?? null
+      readonly property real center: (host ? (root.isVertical ? host.y + host.height : host.x + host.width) : 0) + root.spacing / 2
 
       visible: between && !(root._modules[index]?.divides ?? false) && !(root._modules[next]?.divides ?? false)
       style: root.barConfig.separatorStyle
@@ -182,20 +184,35 @@ Item {
     delegate: WidgetBackground {
       required property int index
       readonly property var host: root._modules[index] ?? null
-      readonly property var place: root._drawPlaces[index] ?? null
+      // A widget going (hidden, or out of room) keeps its last place and
+      // colors while its host is still drawn, so it shrinks and fades
+      // with it rather than vanishing
+      readonly property var _place: root._drawPlaces[index] ?? null
+      readonly property var _colors: host?.background ?? null
+      property var _last: null
+      readonly property bool _drawn: (host?._drawnMain ?? 0) > 0.5 && (host?.opacity ?? 0) > 0
+      readonly property var _shown: _place !== null && _colors !== null ? {
+        "place": _place,
+        "colors": _colors
+      } : _drawn ? _last : null
+      on_ShownChanged: if (_place !== null && _colors !== null)
+        _last = _shown
+      readonly property var place: _shown?.place ?? null
       readonly property var segment: root.segmentAt(place)
 
       z: -1 - index / Math.max(1, root.widgets.length)
       barConfig: root.barConfig
-      colors: host?.background ?? null
+      colors: _shown?.colors ?? null
       startCap: segment.startCap
       endCap: segment.endCap
       seamStart: segment.seamStart
       seamEnd: segment.seamEnd
+      shownStart: segment.shownStart
       hovered: host?.outlined ?? false
+      pressed: host?.pressed ?? false
       highlighted: host?.highlighted ?? false
       visible: place !== null
-      opacity: host?.contentOpacity ?? 1
+      opacity: (host?.contentOpacity ?? 1) * (host?.opacity ?? 1)
       x: (host?.x ?? 0) - (root.isVertical ? 0 : segment.back)
       y: (host?.y ?? 0) - (root.isVertical ? segment.back : 0)
       width: (host?.width ?? 0) + (root.isVertical ? 0 : segment.back)
@@ -229,6 +246,9 @@ Item {
       readonly property var _place: root._insetPlaces[module.index] ?? null
       readonly property var _segment: root.segmentAt(_place)
       leadInset: module.hasBackground ? module._segment.lead : (module.index > root._firstContent ? root._looseGap : 0)
+      // Hovered and clicked in its background's shape as drawn
+      readonly property var _drawnPlace: root._drawPlaces[module.index] ?? null
+      hitShape: module._drawnPlace !== null ? root.segmentAt(module._drawnPlace) : null
       trailInset: module.hasBackground ? module._segment.trail : (module.index < root._lastContent ? root._looseGap : 0)
 
       barConfig: root.barConfig

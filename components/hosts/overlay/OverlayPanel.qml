@@ -131,6 +131,9 @@ ReservedAreaWindow {
     id: slideContainer
     anchors.fill: parent
     opacity: root.steppedAside ? 0 : 1
+    Glide on opacity {
+      duration: Appearance.animNormal
+    }
     // Keys nothing inside the overlay handled end up here
     focus: true
     Keys.onEscapePressed: event => {

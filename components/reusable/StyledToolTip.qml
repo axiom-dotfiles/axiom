@@ -45,6 +45,10 @@ PopupWindow {
     implicitHeight: label.implicitHeight + Widget.spacing * 2
     backgroundColor: Theme.background
     borderColor: Theme.border
+    // Fades in as the window appears
+    opacity: root.visible ? 1 : 0
+
+    Glide on opacity {}
 
     StyledText {
       id: label

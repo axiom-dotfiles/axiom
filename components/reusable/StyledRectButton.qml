@@ -47,16 +47,12 @@ Rectangle {
   border.width: root.borderWidth
   radius: root.borderRadius
 
-  Behavior on color {
-    ColorAnimation {
-      duration: Appearance.animNormal
-    }
+  ColorGlide on color {
+    duration: Appearance.animNormal
   }
 
-  Behavior on border.color {
-    ColorAnimation {
-      duration: Appearance.animNormal
-    }
+  ColorGlide on border.color {
+    duration: Appearance.animNormal
   }
 
   StyledIcon {
@@ -83,24 +79,14 @@ Rectangle {
     }
   }
 
-  Rectangle {
-    id: badge
-    visible: root.badgeVisible
+  CountBadge {
+    shown: root.badgeVisible
     anchors.top: parent.top
     anchors.right: parent.right
     anchors.topMargin: -2
     anchors.rightMargin: -2
-    implicitWidth: Math.max(14, badgeLabel.implicitWidth + 6)
-    implicitHeight: 14
-    radius: height / 2
     color: root.badgeBackgroundColor
-
-    StyledText {
-      id: badgeLabel
-      anchors.centerIn: parent
-      text: root.badgeText
-      textSize: Appearance.fontSize - 4
-      textColor: root.badgeTextColor
-    }
+    text: root.badgeText
+    textColor: root.badgeTextColor
   }
 }

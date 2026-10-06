@@ -151,6 +151,7 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
   // animation), after something changed them at runtime
   function refreshOptions() {
     getGaps.running = true;
+    getGapsIn.running = true;
     getSplitMultiplier.running = true;
     getAnimations.running = true;
   }
@@ -252,6 +253,12 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
     _nextSlide();
   }
 
+  // A step about to wrap round the grid's ends on `monitor` (its name):
+  // along a row (`alongRow`, the standard layout's only kind) or a column,
+  // `forward` past the last. The bar switchers' active box leaves one end
+  // and comes in at the other instead of sliding back across.
+  signal workspaceWrapped(string monitor, bool alongRow, bool forward)
+
   // One step left/right/up/down from the current workspace: within the
   // monitor's grid, or through 1..count in the standard layout (where up is
   // previous and down next). Stops at the edges unless WorkspacesConfig.wrap.
@@ -272,6 +279,7 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
     if (col < 0 || col >= cols || row < 0 || row >= rows) {
       if (!WorkspacesConfig.wrap)
         return;
+      root.workspaceWrapped(Hyprland.focusedMonitor?.name ?? "", col < 0 || col >= cols, direction === "right" || direction === "down");
       col = (col + cols) % cols;
       row = (row + rows) % rows;
     }
@@ -535,6 +543,24 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
       "bottom": 0,
       "left": 0
     })
+  // general:gaps_in per side: each tiled window keeps it all round, so two
+  // neighbours sit twice it apart (windowSpacing)
+  property var gapsIn: ({
+      "top": 0,
+      "right": 0,
+      "bottom": 0,
+      "left": 0
+    })
+
+  // The space between two tiled windows per side (edge name): what a
+  // surface laid out like a window (a floating bar, a held dock) keeps
+  // from the windows
+  readonly property var windowSpacing: ({
+      "top": 2 * root.gapsIn.top,
+      "right": 2 * root.gapsIn.right,
+      "bottom": 2 * root.gapsIn.bottom,
+      "left": 2 * root.gapsIn.left
+    })
 
   // dwindle:split_width_multiplier: a box wider than tall times this splits
   // side by side (placeWindow, and the overview's drop preview)
@@ -562,11 +588,15 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
   //   dock's zone and draws over a hover or intellihide dock.
   // - The OSD, on an edge or floating, comes after the overlay, so a volume
   //   or brightness change shows over it.
+  // - A dock's preview (the settings card's Show) comes after the overlay
+  //   too, so it shows over the settings page.
   // - Edge popouts (floating edge menus) come after the OSD, so a menu
   //   opened over the overlay draws over both.
   // - The screenshot picker's frozen frame appears and goes at once, with no
   //   fade over the live screen, and draws over everything else, the
   //   overlay included (popups can't be ordered: see captureFrozen).
+  // - The monitor layout prompt (Keep / Revert) comes after the picker, so
+  //   it draws over the overlay the Monitors page opened it from.
   // - The polkit prompt comes after all of it, the picker included, so
   //   nothing of axiom's (a toast, the power menu) draws over a password
   //   prompt.
@@ -575,7 +605,7 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
   // HyprlandConfigManager also writes them into its Lua files, since a
   // reload Hyprland does by itself (a watched file changing) doesn't always
   // send the configreloaded event that re-adds them here.
-  readonly property var layerRulesLua: [`hl.layer_rule({ name = "axiom-backdrop", match = { namespace = "^axiom-backdrop$" }, order = 10 })`, `hl.layer_rule({ name = "axiom-border-shadow", match = { namespace = "^axiom-border-shadow$" }, order = 11 })`, `hl.layer_rule({ name = "axiom-bar", match = { namespace = "^axiom-bar$" }, order = 5 })`, `hl.layer_rule({ name = "axiom-edge-menu", match = { namespace = "^axiom-edge-menu$" }, order = 7 })`, `hl.layer_rule({ name = "axiom-popout-under", match = { namespace = "^axiom-popout-under$" }, order = 6 })`, `hl.layer_rule({ name = "axiom-bar-floating", match = { namespace = "^axiom-bar-floating$" }, order = -1 })`, `hl.layer_rule({ name = "axiom-dock", match = { namespace = "^axiom-dock$" }, order = -2 })`, `hl.layer_rule({ name = "axiom-edge-popout", match = { namespace = "^axiom-edge-popout$" }, order = -5 })`, `hl.layer_rule({ name = "axiom-overlay", match = { namespace = "^axiom-overlay$" }, order = -3 })`, `hl.layer_rule({ name = "axiom-osd", match = { namespace = "^axiom-osd$" }, order = -4 })`, `hl.layer_rule({ name = "axiom-screenshot", match = { namespace = "^axiom-screenshot$" }, no_anim = true, order = -20 })`, `hl.layer_rule({ name = "axiom-polkit", match = { namespace = "^axiom-polkit$" }, order = -30 })`]
+  readonly property var layerRulesLua: [`hl.layer_rule({ name = "axiom-backdrop", match = { namespace = "^axiom-backdrop$" }, order = 10 })`, `hl.layer_rule({ name = "axiom-border-shadow", match = { namespace = "^axiom-border-shadow$" }, order = 11 })`, `hl.layer_rule({ name = "axiom-bar", match = { namespace = "^axiom-bar$" }, order = 5 })`, `hl.layer_rule({ name = "axiom-edge-menu", match = { namespace = "^axiom-edge-menu$" }, order = 7 })`, `hl.layer_rule({ name = "axiom-popout-under", match = { namespace = "^axiom-popout-under$" }, order = 6 })`, `hl.layer_rule({ name = "axiom-bar-floating", match = { namespace = "^axiom-bar-floating$" }, order = -1 })`, `hl.layer_rule({ name = "axiom-dock", match = { namespace = "^axiom-dock$" }, order = -2 })`, `hl.layer_rule({ name = "axiom-edge-popout", match = { namespace = "^axiom-edge-popout$" }, order = -5 })`, `hl.layer_rule({ name = "axiom-overlay", match = { namespace = "^axiom-overlay$" }, order = -3 })`, `hl.layer_rule({ name = "axiom-osd", match = { namespace = "^axiom-osd$" }, order = -4 })`, `hl.layer_rule({ name = "axiom-dock-preview", match = { namespace = "^axiom-dock-preview$" }, order = -4 })`, `hl.layer_rule({ name = "axiom-screenshot", match = { namespace = "^axiom-screenshot$" }, no_anim = true, order = -20 })`, `hl.layer_rule({ name = "axiom-monitor-prompt", match = { namespace = "^axiom-monitor-prompt$" }, order = -25 })`, `hl.layer_rule({ name = "axiom-polkit", match = { namespace = "^axiom-polkit$" }, order = -30 })`]
 
   function _addLayerRules() {
     for (const rule of layerRulesLua)
@@ -747,25 +777,38 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
     }
   }
 
+  // A gaps option's sides from `hyprctl getoption -j` ({ top, right,
+  // bottom, left }), or null: its css is "top right bottom left" (CSS
+  // shorthand)
+  function _gapSides(text) {
+    const option = root._parse(text, "getoption");
+    const css = String(option?.css ?? "").trim().split(/\s+/).map(Number);
+    if (css.length === 0 || css.some(isNaN))
+      return null;
+    const [top, right = top, bottom = top, left = right] = css;
+    return {
+      "top": top,
+      "right": right,
+      "bottom": bottom,
+      "left": left
+    };
+  }
+
   Process {
     id: getGaps
     command: ["hyprctl", "getoption", "general:gaps_out", "-j"]
     stdout: StdioCollector {
       id: gapsCollector
-      onStreamFinished: {
-        // css is "top right bottom left" (CSS shorthand, like gaps_out)
-        const option = root._parse(gapsCollector.text, "getoption");
-        const css = String(option?.css ?? "").trim().split(/\s+/).map(Number);
-        if (css.length === 0 || css.some(isNaN))
-          return;
-        const [top, right = top, bottom = top, left = right] = css;
-        root.gapsOut = {
-          "top": top,
-          "right": right,
-          "bottom": bottom,
-          "left": left
-        };
-      }
+      onStreamFinished: root.gapsOut = root._gapSides(gapsCollector.text) ?? root.gapsOut
+    }
+  }
+
+  Process {
+    id: getGapsIn
+    command: ["hyprctl", "getoption", "general:gaps_in", "-j"]
+    stdout: StdioCollector {
+      id: gapsInCollector
+      onStreamFinished: root.gapsIn = root._gapSides(gapsInCollector.text) ?? root.gapsIn
     }
   }
 

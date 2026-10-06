@@ -27,15 +27,40 @@ Item {
   readonly property int stackStep: 5
 
   function dismissAll() {
-    if (!slideOut.running)
-      slideOut.start();
+    root._slideOut(0, true);
+  }
+
+  // Slides out after `delay` without dismissing anything: the list's
+  // clear-all staggers its groups out this way, then clears them at once
+  function leave(delay) {
+    root._slideOut(delay, false);
+  }
+
+  // Whether the slide out dismisses the group's entries once it's out
+  property bool _dismissing: false
+  function _slideOut(delay, dismiss) {
+    root._dismissing = root._dismissing || dismiss;
+    if (slideOut.running)
+      return;
+    slideDelay.duration = delay;
+    slideOut.start();
   }
 
   Layout.fillWidth: true
   implicitHeight: card.height + root.stackDepth * root.stackStep
   opacity: 0
 
-  Component.onCompleted: appear.start()
+  // Glides into place when a group above it comes or goes; not on its
+  // own arrival, which `appear` animates
+  property bool _placed: false
+  Component.onCompleted: {
+    appear.start();
+    Qt.callLater(() => root._placed = true);
+  }
+  Glide on y {
+    enabled: root._placed
+    duration: Appearance.animNormal
+  }
   onCountChanged: {
     if (root.count <= 1)
       root.expanded = false;
@@ -67,6 +92,9 @@ Item {
 
   SequentialAnimation {
     id: slideOut
+    PauseAnimation {
+      id: slideDelay
+    }
     ParallelAnimation {
       NumberAnimation {
         target: shift
@@ -84,7 +112,10 @@ Item {
     }
     ScriptAction {
       // Snapshot: each dismiss shrinks the live list
-      script: root.entries.slice().forEach(e => NotificationManager.dismiss(e.uid))
+      script: {
+        if (root._dismissing)
+          root.entries.slice().forEach(e => NotificationManager.dismiss(e.uid));
+      }
     }
   }
 
@@ -121,11 +152,7 @@ Item {
         easing.type: Easing.OutCubic
       }
     }
-    Behavior on color {
-      ColorAnimation {
-        duration: Appearance.animFast
-      }
-    }
+    ColorGlide on color {}
 
     HoverHandler {
       id: hover
@@ -200,11 +227,7 @@ Item {
               textColor: Theme.foregroundAlt
               textSize: Appearance.fontSize - 3
 
-              Behavior on opacity {
-                NumberAnimation {
-                  duration: Appearance.animFast
-                }
-              }
+              Glide on opacity {}
             }
 
             StyledIconButton {
@@ -222,11 +245,7 @@ Item {
               tooltipText: I18n.tr(root.count > 1 ? "Dismiss all" : "Dismiss")
               onClicked: root.dismissAll()
 
-              Behavior on opacity {
-                NumberAnimation {
-                  duration: Appearance.animFast
-                }
-              }
+              Glide on opacity {}
             }
           }
 
@@ -258,6 +277,14 @@ Item {
           required property int index
           Layout.fillWidth: true
           spacing: Widget.spacing
+
+          // Glides up into the room an entry dismissed above it leaves
+          property bool placed: false
+          Component.onCompleted: Qt.callLater(() => row.placed = true)
+          Glide on y {
+            enabled: row.placed
+            duration: Appearance.animNormal
+          }
 
           StyledSeparator {
             visible: row.index > 0

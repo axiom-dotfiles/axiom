@@ -6,6 +6,7 @@ import Quickshell.Hyprland
 import qs.services
 import qs.config
 import qs.components.methods
+import qs.components.reusable
 
 // One monitor's workspace board (laid out by WorkspacesConfig): wallpaper
 // cells with their windows as live previews. Input is all OverviewInput's; this lays out, and turns its
@@ -268,33 +269,17 @@ Rectangle {
         resizing: input.mode === "resize" && input.activeAddress === modelData
         opacity: input.mode === "drag" && input.activeAddress === modelData ? 0.3 : 1
 
-        Behavior on x {
+        Glide on x {
           enabled: !preview.resizing
-          NumberAnimation {
-            duration: Appearance.animFast
-            easing.type: Appearance.easing
-          }
         }
-        Behavior on y {
+        Glide on y {
           enabled: !preview.resizing
-          NumberAnimation {
-            duration: Appearance.animFast
-            easing.type: Appearance.easing
-          }
         }
-        Behavior on width {
+        Glide on width {
           enabled: !preview.resizing
-          NumberAnimation {
-            duration: Appearance.animFast
-            easing.type: Appearance.easing
-          }
         }
-        Behavior on height {
+        Glide on height {
           enabled: !preview.resizing
-          NumberAnimation {
-            duration: Appearance.animFast
-            easing.type: Appearance.easing
-          }
         }
       }
     }
@@ -340,33 +325,17 @@ Rectangle {
       border.color: Theme.accent
       border.width: Appearance.borderWidth * 2
 
-      Behavior on x {
+      Glide on x {
         enabled: dropBox.animate
-        NumberAnimation {
-          duration: Appearance.animFast
-          easing.type: Appearance.easing
-        }
       }
-      Behavior on y {
+      Glide on y {
         enabled: dropBox.animate
-        NumberAnimation {
-          duration: Appearance.animFast
-          easing.type: Appearance.easing
-        }
       }
-      Behavior on width {
+      Glide on width {
         enabled: dropBox.animate
-        NumberAnimation {
-          duration: Appearance.animFast
-          easing.type: Appearance.easing
-        }
       }
-      Behavior on height {
+      Glide on height {
         enabled: dropBox.animate
-        NumberAnimation {
-          duration: Appearance.animFast
-          easing.type: Appearance.easing
-        }
       }
     }
 

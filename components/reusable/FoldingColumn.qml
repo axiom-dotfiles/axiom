@@ -4,7 +4,8 @@ import QtQuick.Layouts
 import qs.config
 
 // A column that folds open and shut: its height runs between its
-// content's and nothing, clipped on the way, and it hides once shut. It
+// content's and nothing, clipped on the way, its content fading with it,
+// and it hides once shut. It
 // animates only when `open` changes, not when built. The paddings fold
 // with it (FoldingCard's body, the settings sidebar's card links).
 Item {
@@ -38,5 +39,6 @@ Item {
     anchors.left: parent.left
     anchors.right: parent.right
     anchors.topMargin: root.topPadding
+    opacity: root._reveal
   }
 }

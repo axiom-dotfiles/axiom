@@ -8,7 +8,9 @@ import qs.components.reusable
 // filled, tinted or outlined box inside the widget's own; on a bar whose
 // widgets have no boxes, its number (or a dot) straight on the bar, under a
 // line of its color for underline. Shows an app icon or a glyph instead of
-// the label when given one.
+// the label when given one. A row with a sliding ActiveCellIndicator draws
+// its cells twice, the boxes (`part: "background"`) under the indicator and
+// the labels (`"content"`) over it.
 Item {
   id: root
 
@@ -30,11 +32,25 @@ Item {
   // Off until its inputs have settled (a popout's payload lands after
   // creation), so it doesn't animate from fallbacks
   property bool animated: true
+  // Its box and underline while active are drawn by the row's sliding
+  // ActiveCellIndicator instead (a "background" part's)
+  property bool indicated: false
+  // "all", or only its box and underline ("background") or its label, dot
+  // or icon and pointer area ("content")
+  property string part: "all"
+  // Its box in the hover color: when hovered, or for a background layer,
+  // when its content layer is
+  property bool lit: hovered
+  readonly property bool _drawsBox: part !== "content"
+  readonly property bool _drawsContent: part !== "background"
+  // Its box while the indicator stands for it stays at rest under the
+  // indicator, unless its tint would show through
+  readonly property bool _clearActive: root.isActive && root.indicated && root.barConfig.widgetStyle === "tinted"
 
   signal clicked
 
   readonly property bool isVertical: barConfig.vertical
-  readonly property bool boxed: ["filled", "tinted", "outline"].includes(barConfig.widgetStyle)
+  readonly property bool boxed: barConfig.widgetBoxed
   readonly property bool hovered: cellArea.containsMouse
 
   width: isVertical ? thickness : length
@@ -42,45 +58,28 @@ Item {
 
   Rectangle {
     anchors.fill: parent
+    visible: root._drawsBox
     radius: root.radius
-    color: root.hovered && !root.isActive ? Theme.backgroundHighlight : root.look.fill
-    border.color: root.look.stroke
+    color: root.lit && !root.isActive ? Theme.backgroundHighlight : root._clearActive ? Qt.alpha(root.look.fill, 0) : root.look.fill
+    border.color: root._clearActive ? Qt.alpha(root.look.stroke, 0) : root.look.stroke
     border.width: root.barConfig.widgetStyle === "outline" ? root.barConfig.outlineWidth : 0
 
-    Behavior on color {
-
+    ColorGlide on color {
       enabled: root.animated
-      ColorAnimation {
-        duration: Appearance.animFast
-      }
     }
-    Behavior on border.color {
+    ColorGlide on border.color {
       enabled: root.animated
-      ColorAnimation {
-        duration: Appearance.animFast
-      }
     }
   }
 
   // Underline: along the side the bar's widget lines take
-  Rectangle {
-    readonly property real lineWidth: root.barConfig.lineWidth
-    readonly property bool farSide: (root.barConfig.lineSide === "inner") !== (root.barConfig.right || root.barConfig.bottom)
+  CellUnderline {
+    barConfig: root.barConfig
+    visible: root._drawsBox && root.barConfig.widgetStyle === "underline"
+    color: root._clearActive ? Qt.alpha(root.look.indicator, 0) : root.look.indicator
 
-    visible: root.barConfig.widgetStyle === "underline"
-    color: root.look.indicator
-    radius: lineWidth / 2
-    x: root.isVertical && farSide ? root.width - lineWidth : 0
-    y: !root.isVertical && farSide ? root.height - lineWidth : 0
-    width: root.isVertical ? lineWidth : root.width
-    height: root.isVertical ? root.height : lineWidth
-
-    Behavior on color {
-
+    ColorGlide on color {
       enabled: root.animated
-      ColorAnimation {
-        duration: Appearance.animFast
-      }
     }
   }
 
@@ -90,24 +89,20 @@ Item {
     readonly property real along: size + root.length - root.restLength
 
     anchors.centerIn: parent
-    visible: !root.boxed && root.labels === "dots" && root.iconPath === "" && root.glyph === ""
+    visible: root._drawsContent && !root.boxed && root.labels === "dots" && root.iconPath === "" && root.glyph === ""
     width: root.isVertical ? size : along
     height: root.isVertical ? along : size
     radius: size / 2
     color: root.look.content
 
-    Behavior on color {
-
+    ColorGlide on color {
       enabled: root.animated
-      ColorAnimation {
-        duration: Appearance.animFast
-      }
     }
   }
 
   StyledIcon {
     anchors.centerIn: parent
-    visible: root.glyph !== ""
+    visible: root._drawsContent && root.glyph !== ""
     text: root.glyph
     font.pixelSize: root.barConfig.fontSize * 1.2
     color: root.look.content
@@ -119,49 +114,40 @@ Item {
     height: width
     sourceSize: Qt.size(64, 64)
     source: root.glyph === "" ? root.iconPath : ""
-    visible: root.glyph === "" && root.iconPath !== ""
+    visible: root._drawsContent && root.glyph === "" && root.iconPath !== ""
     opacity: root.boxed || root.isActive ? 1 : 0.7
   }
 
   StyledText {
     anchors.centerIn: parent
-    visible: root.labels === "numbers" && root.glyph === "" && root.iconPath === ""
+    visible: root._drawsContent && root.labels === "numbers" && root.glyph === "" && root.iconPath === ""
     text: root.label
     textColor: root.look.content
     textSize: root.barConfig.fontSize - 1
     font.bold: root.isActive && !root.boxed
 
-    Behavior on color {
-
+    ColorGlide on color {
       enabled: root.animated
-      ColorAnimation {
-        duration: Appearance.animFast
-      }
     }
   }
 
   MouseArea {
     id: cellArea
     anchors.fill: parent
-    enabled: root.clickable
+    enabled: root.clickable && root._drawsContent
     hoverEnabled: true
     cursorShape: Qt.PointingHandCursor
     onClicked: root.clicked()
   }
 
-  Behavior on width {
-
+  // As the row's ActiveCellIndicator slides, so a widened active cell
+  // grows and shrinks under it
+  Glide on width {
     enabled: root.animated
-    NumberAnimation {
-      duration: Appearance.animFast
-      easing.type: Easing.OutCubic
-    }
+    duration: Appearance.animNormal
   }
-  Behavior on height {
+  Glide on height {
     enabled: root.animated
-    NumberAnimation {
-      duration: Appearance.animFast
-      easing.type: Easing.OutCubic
-    }
+    duration: Appearance.animNormal
   }
 }

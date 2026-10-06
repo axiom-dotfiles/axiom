@@ -86,10 +86,15 @@ Card {
       columns: root.stacked ? 1 : 2
       columnSpacing: Widget.padding * 1.5
       rowSpacing: Widget.spacing
-      StyledIcon {
+      // The current condition, cross-fading as it changes
+      CrossFade {
         Layout.alignment: root.stacked ? Qt.AlignHCenter : Qt.AlignVCenter
-        text: root.source.condition?.icon ?? ""
-        textSize: Appearance.fontSize * (root.stacked ? 4 * root.heroScale : 3)
+        value: root.source.condition?.icon ?? ""
+        delegate: StyledIcon {
+          required property var value
+          text: value
+          textSize: Appearance.fontSize * (root.stacked ? 4 * root.heroScale : 3)
+        }
       }
       ColumnLayout {
         Layout.fillWidth: true

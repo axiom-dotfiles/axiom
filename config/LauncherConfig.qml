@@ -9,10 +9,14 @@ QtObject {
 
   // "general" | "primary" | "focused" | "all" (see General.screensFor)
   readonly property string monitors: _c.monitors
-  // "center" | "upper" | "top" | "bottom"
-  readonly property string position: _c.position
-  // On the top or bottom edge, as an edge popout
-  readonly property bool attached: position === "top" || position === "bottom"
+  // Placed as docks and OSDs are: a Bar.Location, its centre's position
+  // along it (0-1), and whether it floats off the edge (a FloatingPopout,
+  // `distance` 0-0.5 across the free screen: 0.5 centres it) or grows out
+  // of it (an EdgePopout)
+  readonly property int edge: Bar.getLocationFromString(_c.edge)
+  readonly property real position: _c.position / 100
+  readonly property bool detached: _c.detached
+  readonly property real distance: _c.distance / 100
   // Search field under the results
   readonly property bool reverse: _c.reverse
   readonly property int width: _c.width
