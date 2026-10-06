@@ -26,6 +26,11 @@ Card {
   // all of it, without the card's padding
   readonly property bool tight: root.height - root.pad * 2 < Widget.height + Widget.padding
   readonly property real margin: root.tight ? 0 : root.pad
+  // No room for greetd's messages under the password (beside the user, or
+  // under it): they show in it
+  readonly property real room: root.height - root.margin * 2 - (root.boxed ? Widget.padding * 2 : 0)
+  readonly property real rowHeight: Widget.height + Widget.padding
+  readonly property bool inlineMessage: root.room < (root.room >= root.rowHeight * 2 + Widget.spacing ? root.rowHeight * 2 + Widget.spacing : root.rowHeight) + field.messageRoom
 
   color: "transparent"
   border.width: 0
@@ -66,6 +71,7 @@ Card {
       placeholder: root.properties.placeholder
       centered: root.properties.centered
       showMessages: root.properties.showMessages
+      inlineMessage: root.inlineMessage
     }
   }
 }

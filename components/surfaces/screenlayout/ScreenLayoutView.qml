@@ -57,7 +57,7 @@ Item {
     fillMode: Image.PreserveAspectCrop
     asynchronous: true
     cache: false
-    sourceSize: Qt.size(root.screen.width, root.screen.height)
+    sourceSize: Qt.size(root.screen?.width ?? 0, root.screen?.height ?? 0)
     layer.enabled: root.blurWallpaper
     layer.effect: MultiEffect {
       blurEnabled: true

@@ -160,12 +160,15 @@ Item {
         }
       }
 
+      // By count: paging a month updates the same 42 cells instead of
+      // rebuilding them
       Repeater {
-        model: root.days
+        model: 42
 
         Item {
           id: cell
-          required property var modelData
+          required property int index
+          readonly property var modelData: root.days[cell.index]
           readonly property string key: cell.modelData.key
           readonly property bool selected: cell.key === root.selectedKey
           readonly property real numberSize: Appearance.fontSize * 1.5
