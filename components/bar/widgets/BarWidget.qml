@@ -20,6 +20,11 @@ Item {
 
   readonly property bool isVertical: barConfig.vertical
 
+  // Kept at the start of its drawn size while that catches up with a new
+  // one, rather than centred in it: for a widget that grows and shrinks at
+  // its end, whose start shouldn't drift meanwhile (Workspaces' strip)
+  property bool pinStart: false
+
   property bool hasBackground: false
   property color accentColor: "transparent"
   readonly property var colors: Bar.widgetColors(barConfig, accentColor, properties.foregroundColor)

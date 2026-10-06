@@ -1,13 +1,16 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 
+import qs.services
 import qs.config
 import qs.components.bar
+import qs.components.reusable
 
 // What a switcher shows after its workspaces on a strip monitor: a divider
 // in the bar's separator style (a line when that's none), then the active
-// workspace's windows in strip order (StripWindows). Nothing, divider
-// included, while the workspace has none (`hasWindows`).
+// workspace's windows in strip order (StripWindows), cross-fading to the
+// next workspace's when it changes. Nothing, divider included, while the
+// workspace has none (`hasWindows`).
 Grid {
   id: root
 
@@ -22,7 +25,7 @@ Grid {
   property bool clickable: true
 
   readonly property bool isVertical: barConfig.vertical
-  readonly property bool hasWindows: windows.addresses.length > 0
+  readonly property bool hasWindows: HyprlandManager.stripWindows(root.workspaceId, root.stripVertical).length > 0
 
   rows: isVertical ? 2 : 1
   columns: isVertical ? 1 : 2
@@ -38,18 +41,23 @@ Grid {
     height: root.isVertical ? implicitHeight : root.cell
   }
 
-  StripWindows {
-    id: windows
-    barConfig: root.barConfig
-    workspaceId: root.workspaceId
-    stripVertical: root.stripVertical
-    isVertical: root.isVertical
-    thickness: root.cell
-    cellLength: root.cell
-    radius: root.cellRadius
-    activeColor: root.activeColor
-    occupiedColor: root.occupiedColor
-    textColor: root.textColor
-    clickable: root.clickable
+  // Clipped: a longer strip fading out is held to the new one's length
+  CrossFade {
+    clip: true
+    value: root.workspaceId
+    delegate: StripWindows {
+      required property var value
+      barConfig: root.barConfig
+      workspaceId: value
+      stripVertical: root.stripVertical
+      isVertical: root.isVertical
+      thickness: root.cell
+      cellLength: root.cell
+      radius: root.cellRadius
+      activeColor: root.activeColor
+      occupiedColor: root.occupiedColor
+      textColor: root.textColor
+      clickable: root.clickable
+    }
   }
 }

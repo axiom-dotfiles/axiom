@@ -253,6 +253,12 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
     _nextSlide();
   }
 
+  // A step about to wrap round the grid's ends on `monitor` (its name):
+  // along a row (`alongRow`, the standard layout's only kind) or a column,
+  // `forward` past the last. The bar switchers' active box leaves one end
+  // and comes in at the other instead of sliding back across.
+  signal workspaceWrapped(string monitor, bool alongRow, bool forward)
+
   // One step left/right/up/down from the current workspace: within the
   // monitor's grid, or through 1..count in the standard layout (where up is
   // previous and down next). Stops at the edges unless WorkspacesConfig.wrap.
@@ -273,6 +279,7 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
     if (col < 0 || col >= cols || row < 0 || row >= rows) {
       if (!WorkspacesConfig.wrap)
         return;
+      root.workspaceWrapped(Hyprland.focusedMonitor?.name ?? "", col < 0 || col >= cols, direction === "right" || direction === "down");
       col = (col + cols) % cols;
       row = (row + rows) % rows;
     }

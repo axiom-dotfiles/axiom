@@ -204,9 +204,10 @@ Item {
   }
   onComponentPathChanged: _load()
 
-  // The module at its laid-out size, centred in the size drawn: it never
-  // re-fits (eliding its label) mid-animation, and shows through the
-  // drawn size, clipped, while that catches up
+  // The module at its laid-out size, centred in the size drawn (or at its
+  // start, with `pinStart`): it never re-fits (eliding its label)
+  // mid-animation, and shows through the drawn size, clipped, while that
+  // catches up
   Item {
     anchors.fill: parent
     clip: root._resizing
@@ -214,7 +215,7 @@ Item {
     Loader {
       id: contentLoader
       readonly property real length: Math.max(0, root.mainSize - root.leadInset - root.trailInset)
-      readonly property real start: Math.round((root._drawnMain - root.mainSize) / 2) + root.leadInset
+      readonly property real start: (root._item?.pinStart ? 0 : Math.round((root._drawnMain - root.mainSize) / 2)) + root.leadInset
       x: root.isVertical ? 0 : start
       y: root.isVertical ? start : 0
       width: root.isVertical ? root.width : length

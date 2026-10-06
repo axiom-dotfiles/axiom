@@ -4,11 +4,13 @@ import QtQuick
 import qs.config
 
 // The active workspace's box (or underline) in a bar switcher's row of
-// cells, drawn once under them and sliding from cell to cell as the
-// active workspace changes, where the cells would each recolour. The
-// cells it stands in for leave theirs out (WorkspaceCell's `indicated`).
-// Placed by the active cell's index, as every cell before it is at its
-// rest length.
+// cells, drawn once over their boxes and under their labels (the row draws
+// its WorkspaceCells in two layers around it), sliding from cell to cell as
+// the active workspace changes, where the cells would each recolour. Placed
+// by the active cell's index, as every cell before it is at its rest
+// length. It fills the row, which it's clipped to while it wraps: a step
+// past one end (`expectWrap`) leaves that end and comes in at the other
+// rather than sliding back across.
 Item {
   id: root
 
@@ -28,59 +30,140 @@ Item {
   readonly property bool boxed: ["filled", "tinted", "outline"].includes(barConfig.widgetStyle)
   // Whether there's anything to slide: a box, or an underline
   readonly property bool slides: boxed || barConfig.widgetStyle === "underline"
-  readonly property real _along: Math.max(0, index) * (restLength + spacing)
+  readonly property real _along: _alongAt(index)
+  readonly property real _rowLength: isVertical ? height : width
 
   // Slides only between cells, never in from the start when it first shows
   property bool _placed: false
+  // The index shown before the latest change (set, not bound: a binding on
+  // `index` may not have caught up yet when onIndexChanged reads it)
+  property int _lastIndex: -1
+  // A wrap announced (forward: past the last cell), until the index changes
+  // or it's given up on; meanwhile the box jumps instead of sliding, and
+  // `_shift` carries it out and back in
+  property bool _wrapPending: false
+  property bool _wrapForward: true
+  property real _shift: 0
+
+  function _alongAt(i) {
+    return Math.max(0, i) * (root.restLength + root.spacing);
+  }
+
+  function expectWrap(forward) {
+    if (!root._placed || !Appearance.animations)
+      return;
+    root._wrapForward = forward;
+    root._wrapPending = true;
+    wrapTimeout.restart();
+  }
+
   onIndexChanged: {
-    if (index < 0)
+    const from = root._lastIndex;
+    root._lastIndex = root.index;
+    if (root._wrapPending) {
+      root._wrapPending = false;
+      wrapTimeout.stop();
+      if (root.index >= 0 && from >= 0 && (root._wrapForward ? root.index < from : root.index > from))
+        root._wrap(root._alongAt(from), root._alongAt(root.index));
+    }
+    if (root.index < 0)
       _placed = false;
     else
       Qt.callLater(() => root._placed = root.index >= 0);
   }
-  Component.onCompleted: Qt.callLater(() => root._placed = root.index >= 0)
+  Component.onCompleted: {
+    _lastIndex = index;
+    Qt.callLater(() => root._placed = root.index >= 0);
+  }
 
+  // From `fromAlong` out past the end it's leaving, then in from the other
+  // to `toAlong`, where the box now rests (`_shift` offsetting it)
+  function _wrap(fromAlong, toAlong) {
+    const forward = root._wrapForward;
+    const pastEnd = root._rowLength + root.spacing;
+    const beforeStart = -root.activeLength - root.spacing;
+    wrapAnimation.stop();
+    wrapOut.from = fromAlong - toAlong;
+    wrapOut.to = (forward ? pastEnd : beforeStart) - toAlong;
+    wrapIn.from = (forward ? beforeStart : pastEnd) - toAlong;
+    root._shift = wrapOut.from;
+    wrapAnimation.start();
+  }
+
+  // An announced wrap that never came (the switch failed or went elsewhere)
+  Timer {
+    id: wrapTimeout
+    interval: 1000
+    onTriggered: root._wrapPending = false
+  }
+
+  // Speeding up on the way out, so the two halves read as one move
+  SequentialAnimation {
+    id: wrapAnimation
+    NumberAnimation {
+      id: wrapOut
+      target: root
+      property: "_shift"
+      duration: Appearance.animFast
+      easing.type: Easing.InCubic
+    }
+    NumberAnimation {
+      id: wrapIn
+      target: root
+      property: "_shift"
+      to: 0
+      duration: Appearance.animFast
+      easing.type: Appearance.easing
+    }
+  }
+
+  anchors.fill: parent
+  clip: wrapAnimation.running
   visible: slides && index >= 0
-  x: isVertical ? 0 : _along
-  y: isVertical ? _along : 0
-  width: isVertical ? thickness : activeLength
-  height: isVertical ? activeLength : thickness
 
-  Behavior on x {
-    enabled: root._placed
-    NumberAnimation {
-      duration: Appearance.animNormal
-      easing.type: Appearance.easing
+  Item {
+    id: box
+    x: (root.isVertical ? 0 : root._along) + (root.isVertical ? 0 : root._shift)
+    y: (root.isVertical ? root._along : 0) + (root.isVertical ? root._shift : 0)
+    width: root.isVertical ? root.thickness : root.activeLength
+    height: root.isVertical ? root.activeLength : root.thickness
+
+    Behavior on x {
+      enabled: root._placed && !root._wrapPending && !wrapAnimation.running
+      NumberAnimation {
+        duration: Appearance.animNormal
+        easing.type: Appearance.easing
+      }
     }
-  }
-  Behavior on y {
-    enabled: root._placed
-    NumberAnimation {
-      duration: Appearance.animNormal
-      easing.type: Appearance.easing
+    Behavior on y {
+      enabled: root._placed && !root._wrapPending && !wrapAnimation.running
+      NumberAnimation {
+        duration: Appearance.animNormal
+        easing.type: Appearance.easing
+      }
     }
-  }
 
-  Rectangle {
-    anchors.fill: parent
-    visible: root.boxed
-    radius: root.radius
-    color: root.look.fill
-    border.color: root.look.stroke
-    border.width: root.barConfig.widgetStyle === "outline" ? root.barConfig.outlineWidth : 0
-  }
+    Rectangle {
+      anchors.fill: parent
+      visible: root.boxed
+      radius: root.radius
+      color: root.look.fill
+      border.color: root.look.stroke
+      border.width: root.barConfig.widgetStyle === "outline" ? root.barConfig.outlineWidth : 0
+    }
 
-  // As WorkspaceCell's underline
-  Rectangle {
-    readonly property real lineWidth: root.barConfig.lineWidth
-    readonly property bool farSide: (root.barConfig.lineSide === "inner") !== (root.barConfig.right || root.barConfig.bottom)
+    // As WorkspaceCell's underline
+    Rectangle {
+      readonly property real lineWidth: root.barConfig.lineWidth
+      readonly property bool farSide: (root.barConfig.lineSide === "inner") !== (root.barConfig.right || root.barConfig.bottom)
 
-    visible: root.barConfig.widgetStyle === "underline"
-    color: root.look.indicator
-    radius: lineWidth / 2
-    x: root.isVertical && farSide ? root.width - lineWidth : 0
-    y: !root.isVertical && farSide ? root.height - lineWidth : 0
-    width: root.isVertical ? lineWidth : root.width
-    height: root.isVertical ? root.height : lineWidth
+      visible: root.barConfig.widgetStyle === "underline"
+      color: root.look.indicator
+      radius: lineWidth / 2
+      x: root.isVertical && farSide ? box.width - lineWidth : 0
+      y: !root.isVertical && farSide ? box.height - lineWidth : 0
+      width: root.isVertical ? lineWidth : box.width
+      height: root.isVertical ? box.height : lineWidth
+    }
   }
 }

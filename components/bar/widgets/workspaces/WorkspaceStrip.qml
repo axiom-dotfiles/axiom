@@ -56,6 +56,9 @@ Item {
     return ids.join(",");
   }
   readonly property var ids: root._idsKey === "" ? [] : root._idsKey.split(",").map(Number)
+  // The workspace whose cell is hovered, which its box (drawn apart from
+  // it) shows
+  property int hoveredId: -1
 
   implicitWidth: layout.implicitWidth
   implicitHeight: layout.implicitHeight
@@ -73,13 +76,29 @@ Item {
     return (ws?.toplevels?.values?.length ?? 0) > 0;
   }
 
+  // Bar.cellColors for a workspace's cell, active or at rest
+  function cellLook(id, active) {
+    const occupied = root.hasWindows(root.wsById(id));
+    return Bar.cellColors(root.barConfig, active ? root.activeColor : occupied ? root.occupiedColor : root.emptyColor, active || occupied ? root.textColor : Theme.foreground, active ? "active" : occupied ? "occupied" : "empty");
+  }
+
   // Next/previous shown workspace, wrapping at the ends
   function step(direction) {
     if (root.ids.length === 0)
       return;
     const current = root.ids.indexOf(root.activeId);
     const next = current < 0 ? (direction > 0 ? 0 : root.ids.length - 1) : (current + direction + root.ids.length) % root.ids.length;
+    if (current >= 0 && next !== current + direction)
+      indicator.expectWrap(direction > 0);
     HyprlandManager.goToWorkspace(root.ids[next], "go", root.monitor);
+  }
+
+  Connections {
+    target: HyprlandManager
+    function onWorkspaceWrapped(monitor, alongRow, forward) {
+      if (monitor === (root.monitor?.name ?? ""))
+        indicator.expectWrap(forward);
+    }
   }
 
   WheelHandler {
@@ -109,7 +128,35 @@ Item {
       implicitWidth: cells.implicitWidth
       implicitHeight: cells.implicitHeight
 
-      // The active cell's box, sliding between cells
+      // The cells' boxes at rest, the active one's sliding over them, then
+      // their labels and icons over both
+      Grid {
+        flow: cells.flow
+        rows: cells.rows
+        columns: cells.columns
+        spacing: cells.spacing
+
+        Repeater {
+          model: root.ids.length
+
+          WorkspaceCell {
+            required property int index
+            readonly property int wsId: root.ids[index] ?? 0
+
+            part: "background"
+            barConfig: root.barConfig
+            isActive: wsId === root.activeId
+            indicated: indicator.slides
+            lit: wsId === root.hoveredId
+            look: root.cellLook(wsId, isActive && !indicator.slides)
+            thickness: root.cell
+            restLength: root.cellLength
+            length: root.cellLength * (isActive && root.properties.wideActive ? 2 : 1)
+            radius: root.cellRadius
+          }
+        }
+      }
+
       ActiveCellIndicator {
         id: indicator
         barConfig: root.barConfig
@@ -136,14 +183,13 @@ Item {
             id: cell
             required property int index
             readonly property int wsId: root.ids[index] ?? 0
-            readonly property HyprlandWorkspace ws: root.wsById(wsId)
-            readonly property bool occupied: root.hasWindows(ws)
+            readonly property bool occupied: root.hasWindows(root.wsById(wsId))
             readonly property var biggestWindow: root.properties.showAppIcons && occupied ? HyprlandManager.biggestWindowForWorkspace(wsId) : null
 
+            part: "content"
             barConfig: root.barConfig
             isActive: wsId === root.activeId
-            indicated: indicator.slides
-            look: Bar.cellColors(root.barConfig, isActive ? root.activeColor : occupied ? root.occupiedColor : root.emptyColor, isActive || occupied ? root.textColor : Theme.foreground, isActive ? "active" : occupied ? "occupied" : "empty")
+            look: root.cellLook(wsId, isActive)
             thickness: root.cell
             restLength: root.cellLength
             length: root.cellLength * (isActive && root.properties.wideActive ? 2 : 1)
@@ -153,6 +199,12 @@ Item {
             iconPath: biggestWindow ? IconResolver.resolveWindowIcon(biggestWindow.class, biggestWindow.title) : ""
             clickable: root.properties.clickToSwitch
             onClicked: HyprlandManager.goToWorkspace(wsId, "go", root.monitor)
+            onHoveredChanged: {
+              if (hovered)
+                root.hoveredId = wsId;
+              else if (root.hoveredId === wsId)
+                root.hoveredId = -1;
+            }
           }
         }
       }

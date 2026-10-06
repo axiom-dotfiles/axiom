@@ -5,6 +5,7 @@ import Quickshell.Hyprland
 import qs.services
 import qs.config
 import qs.components.methods
+import qs.components.reusable
 import qs.components.hosts.popout
 
 // The grid layout's switcher: this monitor's columns × rows workspaces, of
@@ -12,7 +13,8 @@ import qs.components.hosts.popout
 // bar), and the popout the whole grid. As in the standard layout's
 // switcher, the active cell is twice as long with `wideActive`, and on a
 // strip monitor the active workspace's windows follow in strip order
-// (ActiveStrip), where scrolling scrolls the strip.
+// (ActiveStrip), where scrolling scrolls the strip. Moving to another row
+// (column) cross-fades the bar's to it.
 Item {
   id: root
   property var screen
@@ -45,6 +47,11 @@ Item {
   }
   readonly property int activeRow: Math.floor(root.activeIndex / root.columns)
   readonly property int activeColumn: root.activeIndex % root.columns
+  // The row (column on a vertical bar) the bar shows
+  readonly property int activeLine: root.isVertical ? root.activeColumn : root.activeRow
+  // The workspace whose cell is hovered, which its box (drawn apart from
+  // it) shows
+  property int hoveredId: -1
 
   // A cell's size on the bar (inside the background), and its corners
   // within the background's
@@ -58,6 +65,19 @@ Item {
 
   implicitWidth: layout.implicitWidth
   implicitHeight: layout.implicitHeight
+
+  // A workspace's place in the grid, or -1 outside it
+  function placeOf(id) {
+    const place = id - root.base;
+    return place >= 0 && place < root.columns * root.rows ? place : -1;
+  }
+
+  // Bar.cellColors for a workspace's cell, active or at rest
+  function cellLook(id, active) {
+    const ws = root.wsById(id);
+    const occupied = (ws?.toplevels.values.length ?? 0) > 0;
+    return Bar.cellColors(root.barConfig, active ? root.activeColor : occupied ? root.occupiedColor : root.emptyColor, active || occupied ? root.iconColor : Theme.foreground, active ? "active" : occupied ? "occupied" : "empty");
+  }
 
   function wsById(id) {
     const arr = Hyprland.workspaces.values;
@@ -103,63 +123,9 @@ Item {
     spacing: root.spacing
 
     // The active row (or column) of the grid
-    Item {
-      implicitWidth: cells.implicitWidth
-      implicitHeight: cells.implicitHeight
-
-      // The active cell's box, sliding between cells
-      ActiveCellIndicator {
-        id: indicator
-        barConfig: root.barConfig
-        look: Bar.cellColors(root.barConfig, root.activeColor, root.iconColor, "active")
-        // None while the monitor is on a workspace outside the grid
-        readonly property int _place: root.activeId - root.base
-        index: _place >= 0 && _place < root.columns * root.rows ? (root.isVertical ? root.activeRow : root.activeColumn) : -1
-        thickness: root.cell
-        restLength: root.cellLength
-        activeLength: root.cellLength * (root.properties.wideActive ? 2 : 1)
-        spacing: root.spacing
-        radius: root.cellRadius
-      }
-
-      Grid {
-        id: cells
-        rows: root.isVertical ? root.shown : 1
-        columns: root.isVertical ? 1 : root.shown
-        spacing: root.spacing
-
-        Repeater {
-          model: root.shown
-
-          WorkspaceCell {
-            required property int index
-            // Its place in the grid
-            readonly property int place: root.isVertical ? index * root.columns + root.activeColumn : root.activeRow * root.columns + index
-            readonly property int wsId: root.base + place
-            readonly property HyprlandWorkspace ws: root.wsById(wsId)
-            readonly property bool hasWindows: (ws?.toplevels.values.length ?? 0) > 0
-            // The active arrow takes the active cell's place
-            readonly property bool showsArrow: isActive && root.properties.showActiveIcon
-            readonly property var biggestWindow: root.properties.showAppIcons && hasWindows && !showsArrow ? HyprlandManager.biggestWindowForWorkspace(wsId) : null
-
-            barConfig: root.barConfig
-            isActive: wsId === root.activeId
-            indicated: indicator.slides
-            look: Bar.cellColors(root.barConfig, isActive ? root.activeColor : hasWindows ? root.occupiedColor : root.emptyColor, isActive || hasWindows ? root.iconColor : Theme.foreground, isActive ? "active" : hasWindows ? "occupied" : "empty")
-            thickness: root.cell
-            restLength: root.cellLength
-            length: root.cellLength * (isActive && root.properties.wideActive ? 2 : 1)
-            radius: root.cellRadius
-            labels: root.properties.labels
-            // The workspace id, or its place in the grid counted from 1
-            label: root.properties.relativeNumbers ? place + 1 : wsId
-            glyph: showsArrow ? (root.isVertical ? root.positionGlyph(root.activeColumn, root.columns) : root.positionGlyph(root.activeRow, root.rows)) : ""
-            iconPath: biggestWindow ? IconResolver.resolveWindowIcon(biggestWindow.class, biggestWindow.title) : ""
-            clickable: root.properties.clickToSwitch
-            onClicked: HyprlandManager.goToWorkspace(wsId, "go", root.monitor)
-          }
-        }
-      }
+    CrossFade {
+      value: root.activeLine
+      delegate: shownLine
     }
 
     Loader {
@@ -176,6 +142,129 @@ Item {
         occupiedColor: root.occupiedColor
         textColor: root.iconColor
         clickable: root.properties.clickToSwitch
+      }
+    }
+  }
+
+  // A row (column) of the grid: the cells' boxes at rest, the active one's
+  // sliding over them, then their labels and icons over both
+  Component {
+    id: shownLine
+
+    Item {
+      id: line
+      // The row (column)
+      required property var value
+      // The active workspace while it's in this line or outside the grid:
+      // a line fading out keeps showing the one it had (`_kept`)
+      readonly property bool _holds: {
+        const place = root.placeOf(root.activeId);
+        return place < 0 || (root.isVertical ? place % root.columns : Math.floor(place / root.columns)) === line.value;
+      }
+      property int _kept: -1
+      readonly property int activeHere: _holds ? root.activeId : _kept
+      onActiveHereChanged: _kept = activeHere
+      Component.onCompleted: _kept = activeHere
+      readonly property bool wide: root.properties.wideActive
+
+      implicitWidth: cells.implicitWidth
+      implicitHeight: cells.implicitHeight
+
+      function placeAt(index) {
+        return root.isVertical ? index * root.columns + line.value : line.value * root.columns + index;
+      }
+
+      Connections {
+        target: HyprlandManager
+        function onWorkspaceWrapped(monitor, alongRow, forward) {
+          if (monitor === (root.monitor?.name ?? "") && alongRow !== root.isVertical)
+            indicator.expectWrap(forward);
+        }
+      }
+
+      Grid {
+        rows: cells.rows
+        columns: cells.columns
+        spacing: cells.spacing
+
+        Repeater {
+          model: root.shown
+
+          WorkspaceCell {
+            required property int index
+            readonly property int wsId: root.base + line.placeAt(index)
+
+            part: "background"
+            barConfig: root.barConfig
+            isActive: wsId === line.activeHere
+            indicated: indicator.slides
+            lit: wsId === root.hoveredId
+            look: root.cellLook(wsId, isActive && !indicator.slides)
+            thickness: root.cell
+            restLength: root.cellLength
+            length: root.cellLength * (isActive && line.wide ? 2 : 1)
+            radius: root.cellRadius
+          }
+        }
+      }
+
+      ActiveCellIndicator {
+        id: indicator
+        barConfig: root.barConfig
+        look: Bar.cellColors(root.barConfig, root.activeColor, root.iconColor, "active")
+        // None while the monitor is on a workspace outside the grid
+        readonly property int _place: root.placeOf(line.activeHere)
+        index: _place < 0 ? -1 : root.isVertical ? Math.floor(_place / root.columns) : _place % root.columns
+        thickness: root.cell
+        restLength: root.cellLength
+        activeLength: root.cellLength * (line.wide ? 2 : 1)
+        spacing: root.spacing
+        radius: root.cellRadius
+      }
+
+      Grid {
+        id: cells
+        rows: root.isVertical ? root.shown : 1
+        columns: root.isVertical ? 1 : root.shown
+        spacing: root.spacing
+
+        Repeater {
+          model: root.shown
+
+          WorkspaceCell {
+            required property int index
+            // Its place in the grid
+            readonly property int place: line.placeAt(index)
+            readonly property int wsId: root.base + place
+            readonly property HyprlandWorkspace ws: root.wsById(wsId)
+            readonly property bool hasWindows: (ws?.toplevels.values.length ?? 0) > 0
+            // The active arrow takes the active cell's place
+            readonly property bool showsArrow: isActive && root.properties.showActiveIcon
+            readonly property var biggestWindow: root.properties.showAppIcons && hasWindows && !showsArrow ? HyprlandManager.biggestWindowForWorkspace(wsId) : null
+
+            part: "content"
+            barConfig: root.barConfig
+            isActive: wsId === line.activeHere
+            look: root.cellLook(wsId, isActive)
+            thickness: root.cell
+            restLength: root.cellLength
+            length: root.cellLength * (isActive && line.wide ? 2 : 1)
+            radius: root.cellRadius
+            labels: root.properties.labels
+            // The workspace id, or its place in the grid counted from 1
+            label: root.properties.relativeNumbers ? place + 1 : wsId
+            glyph: showsArrow ? root.positionGlyph(line.value, root.isVertical ? root.columns : root.rows) : ""
+            iconPath: biggestWindow ? IconResolver.resolveWindowIcon(biggestWindow.class, biggestWindow.title) : ""
+            clickable: root.properties.clickToSwitch
+            onClicked: HyprlandManager.goToWorkspace(wsId, "go", root.monitor)
+            onHoveredChanged: {
+              if (hovered)
+                root.hoveredId = wsId;
+              else if (root.hoveredId === wsId)
+                root.hoveredId = -1;
+            }
+          }
+        }
       }
     }
   }

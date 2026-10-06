@@ -20,6 +20,8 @@ BarWidget {
   // Within a box
   readonly property real inset: boxed ? barConfig.widgetSpacing : 0
 
+  // Its cells stay put while the strip after them comes and goes
+  pinStart: true
   hasBackground: true
   // Its box; an underline is each cell's own
   accentColor: boxed ? Theme.resolveColor(properties.backgroundColor) : "transparent"
