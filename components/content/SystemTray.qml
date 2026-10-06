@@ -69,6 +69,9 @@ Item {
       });
     }
 
+    // An entry picked closes the menu, as a submenu's does (TraySubmenu)
+    onItemClicked: root.wrapper.requestDismiss()
+
     // Close any open submenu when hovering an item without one
     onPlainItemHovered: submenuWrapper.closePopout()
   }

@@ -337,7 +337,7 @@ PopoutWrapperBase {
     if (!root.occupied || !(root.contentReady || still.switching))
       root._settled = false;
     else
-      Qt.callLater(() => root._settled = root.occupied && root.contentReady);
+      Qt.callLater(() => root._settled = root.occupied && (root.contentReady || still.switching));
   }
   Behavior on shownBoxWidth {
     enabled: root._settled

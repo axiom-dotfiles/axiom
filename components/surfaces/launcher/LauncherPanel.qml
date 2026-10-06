@@ -366,6 +366,7 @@ FocusScope {
             property: "opacity"
             to: 1
             duration: Appearance.animFast
+            easing.type: Appearance.easing
           }
         }
 

@@ -33,7 +33,6 @@ Item {
   // or join at its bar side (sideJoinTop/Bottom, at sideJoinLine)
   required property var host
 
-  property alias popupWindow: submenuPopup
   // What the parent draws for us while we show: how far its box reaches
   // past its top and bottom, whether it squares its corner there, and,
   // joined to its bar side without room for our outer fillet, where along
@@ -340,19 +339,19 @@ Item {
   onScreenChanged: ShellManager.registerGrabPartner(submenuPopup, outer.screen?.name)
   Component.onDestruction: ShellManager.unregisterGrabPartner(submenuPopup)
 
-  // Thin forwarding so external callers (SystemTray, TraySubmenu)
-  // keep using `submenuWrapper.safeOpenPopout(...)` / `closePopout()` /
-  // `requestDismiss()` / `occupied` / `popupWindow` exactly as before,
-  // without needing to reach into the inner PopoutWrapperBase directly.
+  // What the tray menu (content/SystemTray) uses of the inner
+  // PopoutWrapperBase; TraySubmenu is handed that one itself
   property alias occupied: root.occupied
-  property alias currentItem: root.currentItem
+  // The submenu already open (the pointer back on its item) stays as it
+  // is rather than being rebuilt
   function safeOpenPopout(anchor, data) {
+    if (root.isOpen && anchor === root.currentAnchor && data?.menuItem === root.currentData?.menuItem) {
+      root.updateDismissTimer();
+      return;
+    }
     root.safeOpenPopout(anchor, data);
   }
   function closePopout() {
     root.closePopout();
-  }
-  function requestDismiss() {
-    root.requestDismiss();
   }
 }

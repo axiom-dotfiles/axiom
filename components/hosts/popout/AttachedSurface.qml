@@ -359,16 +359,15 @@ Item {
         readonly property real startRadius: root.startCornerRadius > 0 ? root.startCornerRadius + root.half : 0
         readonly property real endRadius: root.endCornerRadius > 0 ? root.endCornerRadius + root.half : 0
         // Far corners from start/endRadius, near ones from start/endNearRadius
-        topLeftRadius: root.attachBottom || root.attachRight ? startRadius : root.startNearRadius
-        topRightRadius: root.attachLeft ? startRadius : root.attachBottom ? endRadius : root.attachTop ? root.endNearRadius : root.startNearRadius
-        bottomLeftRadius: root.attachTop ? startRadius : root.attachRight ? endRadius : root.attachBottom ? root.startNearRadius : root.endNearRadius
-        bottomRightRadius: root.attachTop || root.attachLeft ? endRadius : root.endNearRadius
+        topLeftRadius: root.attachBottom || root.attachRight ? detachedBox.startRadius : root.startNearRadius
+        topRightRadius: root.attachLeft ? detachedBox.startRadius : root.attachBottom ? detachedBox.endRadius : root.attachTop ? root.endNearRadius : root.startNearRadius
+        bottomLeftRadius: root.attachTop ? detachedBox.startRadius : root.attachRight ? detachedBox.endRadius : root.attachBottom ? root.startNearRadius : root.endNearRadius
+        bottomRightRadius: root.attachTop || root.attachLeft ? detachedBox.endRadius : root.endNearRadius
         visible: root.detached
         x: root.boxRect.x
         y: root.boxRect.y
         width: root.boxRect.width
         height: root.boxRect.height
-        radius: Appearance.borderRadius
         color: root.fillColor
         border.color: root.strokeColor
         border.width: root.strokeWidth

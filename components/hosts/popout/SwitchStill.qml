@@ -24,6 +24,9 @@ Image {
   readonly property real contentOpacity: _contentOpacity
 
   property bool _grabbing: false
+  // Bumped by end(), so a grab still in flight when the host closed (or
+  // one whose window hid before it rendered) is dropped, not applied
+  property int _generation: 0
   property bool _switching: false
   property var _held: null
   property real _contentOpacity: 1
@@ -40,7 +43,10 @@ Image {
       return;
     }
     const dpr = Screen.devicePixelRatio;
+    const generation = root._generation;
     root._grabbing = item.grabToImage(result => {
+      if (generation !== root._generation)
+        return;
       root._grabbing = false;
       // A switch still fading gives way to this one
       fade.stop();
@@ -57,6 +63,8 @@ Image {
 
   // The host closed: nothing left to switch
   function end() {
+    root._generation++;
+    root._grabbing = false;
     fade.stop();
     root._switching = false;
     root._contentOpacity = 1;
