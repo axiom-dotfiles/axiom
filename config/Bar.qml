@@ -57,10 +57,16 @@ QtObject {
     // How far a pill reaches in from the bar's outer edge: the inset, its
     // widgets, and the gap to its far side
     const pillDepth = pillInset + widgetSize + pillGap;
-    // An island sits `floatGap` in from the border's stroke (or the bare
-    // screen edge), across the bar and from both its ends, and holds the
-    // widgets and their padding inside a stroke
-    const islandStart = outerCover + barConfig.floatGap;
+    // Laid out like a tiled window: an island sits its float gap in from
+    // the border's stroke (or the bare screen edge), across the bar and
+    // from both its ends (Automatic, -1: Hyprland's gaps_out on its edge,
+    // as windows keep; the ends take the same, so a gaps_out differing per
+    // side leaves them off the windows' edges), and holds the widgets and
+    // their padding inside a stroke. Windows keep the space between two
+    // windows from it (windowGap, reserveTrim).
+    const edge = Bar.edgeName(loc);
+    const floatGap = barConfig.floatGap >= 0 ? barConfig.floatGap : HyprlandManager.gapsOut[edge] ?? 0;
+    const islandStart = outerCover + floatGap;
     const islandDepth = Appearance.borderWidth + padding + widgetSize + padding + Appearance.borderWidth;
     const borderShadowed = solid && Appearance.screenBorder && barConfig.reserveSpace;
     // Shapes and grouping are for widgets drawn on a background
@@ -89,7 +95,9 @@ QtObject {
       // Where islands start, in from the bar window's outer edge and both
       // its ends, and the gap from their widgets to their ends
       "islandStart": islandStart,
-      "floatGap": island ? barConfig.floatGap : 0,
+      "floatGap": island ? floatGap : 0,
+      // What windows keep from an island: the space between two windows
+      "windowGap": island ? HyprlandManager.windowSpacing(edge) : 0,
       "islandGap": Appearance.borderWidth + padding,
       "insideBorder": insideBorder,
       // An inner stroke surfaces on its edge can join: a solid bar's
@@ -261,12 +269,13 @@ QtObject {
   // (padding + gaps_out, taken off here) matches the gap to the screen
   // edge. An inner accent line gives it one, on its innermost pixels:
   // windows keep gaps_out from it, as from a solid bar's stroke. A floating
-  // bar's islands keep the same gap to the windows as to the border: its
-  // float gap in all, gaps_out included.
+  // bar's islands are laid out like a window: the windows keep the space
+  // between two windows from them (`windowGap`, gaps_out included), so
+  // this is negative when that's more than gaps_out.
   function reserveTrim(barConfig, gapsOut) {
     if (barConfig.background === "transparent" && barConfig.accentLine !== "inner")
       return gapsOut;
-    return barConfig.island ? gapsOut - barConfig.floatGap : 0;
+    return barConfig.island ? gapsOut - barConfig.windowGap : 0;
   }
 
   // How much further than half a connector gap past a transparent bar's

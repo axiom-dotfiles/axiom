@@ -22,7 +22,7 @@
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 47,
+      "default": 48,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
@@ -2070,7 +2070,7 @@
           "minimum": -1,
           "maximum": 200,
           "x-unit": "px",
-          "description": "Space between the dock and the border or bar on its edge, and at the ends. Auto lines it up with a floating bar on its edge, else with your windows.",
+          "description": "Space between the dock and the border or bar on its edge, and at the ends. Auto lines it up with a floating bar on its edge, else with your windows. Reserving its space, it keeps Hyprland's gap between windows from them.",
           "x-showIf": { "detached": true }
         },
         "visibility": {
@@ -2530,13 +2530,14 @@
           "x-group": "Style",
           "type": "integer",
           "x-control": "stepper",
+          "x-auto": { "value": -1, "start": 8 },
           "title": "Float gap",
-          "default": 8,
-          "minimum": 0,
+          "default": -1,
+          "minimum": -1,
           "maximum": 60,
           "x-unit": "px",
           "x-showIf": { "background": ["floating", "floatingPills"] },
-          "description": "How far a floating bar keeps from the screen border (or the screen edge), across the bar and at its ends, and from the windows."
+          "description": "How far a floating bar keeps from the screen border (or the screen edge), across the bar and at its ends. Auto keeps Hyprland's gap to the screen edges, as your windows do. Windows always keep Hyprland's gap between windows from the bar."
         },
         "pillPadding": {
           "x-group": "Style",

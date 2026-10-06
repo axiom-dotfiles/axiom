@@ -151,6 +151,7 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
   // animation), after something changed them at runtime
   function refreshOptions() {
     getGaps.running = true;
+    getGapsIn.running = true;
     getSplitMultiplier.running = true;
     getAnimations.running = true;
   }
@@ -535,6 +536,21 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
       "bottom": 0,
       "left": 0
     })
+  // general:gaps_in per side: each tiled window keeps it all round, so two
+  // neighbours sit twice it apart (windowSpacing)
+  property var gapsIn: ({
+      "top": 0,
+      "right": 0,
+      "bottom": 0,
+      "left": 0
+    })
+
+  // The space between two tiled windows on a side (an edge name): what a
+  // surface laid out like a window (a floating bar, a held dock) keeps
+  // from the windows
+  function windowSpacing(side) {
+    return 2 * (root.gapsIn[side] ?? 0);
+  }
 
   // dwindle:split_width_multiplier: a box wider than tall times this splits
   // side by side (placeWindow, and the overview's drop preview)
@@ -751,25 +767,38 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
     }
   }
 
+  // A gaps option's sides from `hyprctl getoption -j` ({ top, right,
+  // bottom, left }), or null: its css is "top right bottom left" (CSS
+  // shorthand)
+  function _gapSides(text) {
+    const option = root._parse(text, "getoption");
+    const css = String(option?.css ?? "").trim().split(/\s+/).map(Number);
+    if (css.length === 0 || css.some(isNaN))
+      return null;
+    const [top, right = top, bottom = top, left = right] = css;
+    return {
+      "top": top,
+      "right": right,
+      "bottom": bottom,
+      "left": left
+    };
+  }
+
   Process {
     id: getGaps
     command: ["hyprctl", "getoption", "general:gaps_out", "-j"]
     stdout: StdioCollector {
       id: gapsCollector
-      onStreamFinished: {
-        // css is "top right bottom left" (CSS shorthand, like gaps_out)
-        const option = root._parse(gapsCollector.text, "getoption");
-        const css = String(option?.css ?? "").trim().split(/\s+/).map(Number);
-        if (css.length === 0 || css.some(isNaN))
-          return;
-        const [top, right = top, bottom = top, left = right] = css;
-        root.gapsOut = {
-          "top": top,
-          "right": right,
-          "bottom": bottom,
-          "left": left
-        };
-      }
+      onStreamFinished: root.gapsOut = root._gapSides(gapsCollector.text) ?? root.gapsOut
+    }
+  }
+
+  Process {
+    id: getGapsIn
+    command: ["hyprctl", "getoption", "general:gaps_in", "-j"]
+    stdout: StdioCollector {
+      id: gapsInCollector
+      onStreamFinished: root.gapsIn = root._gapSides(gapsInCollector.text) ?? root.gapsIn
     }
   }
 

@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 47
+  readonly property int currentVersion: 48
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -121,6 +121,8 @@ QtObject {
       result = _v45ToV46(result, changes);
     if (version < 47)
       result = _v46ToV47(result, changes);
+    if (version < 48)
+      result = _v47ToV48(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -1658,6 +1660,19 @@ QtObject {
     delete launcher.position;
     Object.assign(launcher, place);
     changes.push(`Launcher.position "${old}" -> ${JSON.stringify(place)}`);
+    return config;
+  }
+
+  // v48 laid floating bars out like windows, their float gap Automatic
+  // (Hyprland's gaps_out) by default: a bar left at the old default, 8,
+  // takes Automatic
+  function _v47ToV48(config, changes) {
+    (Array.isArray(config.Bars) ? config.Bars : []).forEach(bar => {
+      if (bar?.floatGap !== 8)
+        return;
+      bar.floatGap = -1;
+      changes.push(`Bars[${bar.id}].floatGap 8 -> -1 (Automatic)`);
+    });
     return config;
   }
 }
