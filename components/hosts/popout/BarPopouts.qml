@@ -42,6 +42,83 @@ PopoutWrapperBase {
   // Which side the tray's submenus open to
   readonly property bool openToLeft: root.barConfig.right || mainPopup.isOnRightHalfOfScreen
 
+  // ---- Tray submenus (TraySubmenuWrapper) ----
+  // An open submenu, beside the box, asks it (the content's sideStretch:
+  // { top, bottom, squareTop, squareBottom }) to reach past its top or
+  // bottom to carry one longer than its side, and to square its corner
+  // where one runs flush to its end, as a pill or island does for a popout
+  // (EdgeAttach.place). Along y in both orientations: submenus open to the
+  // left or right.
+  readonly property var _sideStretch: root.occupied ? (root._content?.sideStretch ?? null) : null
+  property real shownStretchTop: root._sideStretch?.top ?? 0
+  property real shownStretchBottom: root._sideStretch?.bottom ?? 0
+  Behavior on shownStretchTop {
+    enabled: root._settled
+    NumberAnimation {
+      duration: Appearance.animFast
+      easing.type: Appearance.easing
+    }
+  }
+  Behavior on shownStretchBottom {
+    enabled: root._settled
+    NumberAnimation {
+      duration: Appearance.animFast
+      easing.type: Appearance.easing
+    }
+  }
+  readonly property real _stretchAcross: root.barConfig.vertical ? 0 : (root._sideStretch?.top ?? 0) + (root._sideStretch?.bottom ?? 0)
+  readonly property real _shownStretchAcross: root.barConfig.vertical ? 0 : root.shownStretchTop + root.shownStretchBottom
+  // The box at rest, without a submenu's stretch: what submenus attach to,
+  // in popupWindow coordinates
+  readonly property rect attachBox: Qt.rect(root.boxRect.x, root.boxRect.y + root.shownStretchTop, root.boxRect.width, root.boxRect.height - root.shownStretchTop - root.shownStretchBottom)
+  // At the bar side of a horizontal bar's box, a submenu with no room for
+  // its fillet joins the stroke the box grows from, as a popout joins the
+  // perpendicular border: a solid bar's, a pill's or island's far stroke
+  // (stretched to carry it, see pillStretch), or the border at the outer
+  // edge (merged). A detached box's ends there instead, flush to the box.
+  readonly property bool _sideJoins: !root.barConfig.vertical && !mainPopup.detached
+  readonly property bool sideJoinTop: root._sideJoins && root.barConfig.top
+  readonly property bool sideJoinBottom: root._sideJoins && root.barConfig.bottom
+  // The stroke it joins, its outer edge (the surface's attach edge), as y
+  // in popupWindow coordinates; a bare screen edge is joined straight
+  readonly property real sideJoinLine: root.barConfig.bottom ? surface.y + surface.height - surface.backfill : surface.y + surface.backfill
+  readonly property bool sideStraightJoin: root.mergeWithPill && !Appearance.screenBorder
+  // The backfill row the box takes past its attach edge (on a pill or
+  // island), which a joined submenu covers beside it
+  readonly property real sideJoinBackfill: surface.backfill
+  // How far along it (x in popupWindow coordinates) that stroke reaches
+  // without a submenu: the pill or island as the box stretches it, else
+  // the bar's ends. A joined submenu whose fillet (and the corner past it)
+  // lands within keeps it; any other runs straight up into the pill or
+  // island's end, stretched to its wall and squared (pillStretch), as a
+  // bar popout runs flush into one.
+  readonly property real sideJoinFrom: (root.anchorPill !== null && !root.mergeWithPill ? (root.place.stretch?.start ?? root.anchorPill.start) : mainPopup.strokeStart) - mainPopup.windowFrom
+  readonly property real sideJoinTo: (root.anchorPill !== null && !root.mergeWithPill ? (root.place.stretch?.end ?? root.anchorPill.start + root.anchorPill.length) : mainPopup.strokeEnd) - mainPopup.windowFrom
+  // The ends of the side submenus open on that one may run flush to: the
+  // far edge's, not a joined end, and on a horizontal bar its bar side's
+  // where nothing's joined there
+  readonly property bool sideFreeTop: root.barConfig.vertical ? !root.place.joinStart : root.barConfig.bottom || !root._sideJoins
+  readonly property bool sideFreeBottom: root.barConfig.vertical ? !root.place.joinEnd : root.barConfig.top || !root._sideJoins
+  // A submenu longer than the side hangs past its far end: up on a bottom
+  // bar
+  readonly property bool sideGrowsUp: root.barConfig.bottom
+  // The box's corners a submenu squares: on a vertical bar its far edge's
+  // top and bottom (AttachedSurface's start/end), on a horizontal one
+  // those of the side it opens on, the far one, or a detached box's near
+  // one at its bar side
+  readonly property bool _squareTop: root._sideStretch?.squareTop ?? false
+  readonly property bool _squareBottom: root._sideStretch?.squareBottom ?? false
+  readonly property bool _squareFar: root.barConfig.top ? root._squareBottom : root._squareTop
+  readonly property bool _squareNear: !root.barConfig.vertical && (root.barConfig.top ? root._squareTop : root._squareBottom)
+  readonly property bool squareStartCorner: root.barConfig.vertical ? root._squareTop : root.openToLeft && root._squareFar
+  readonly property bool squareEndCorner: root.barConfig.vertical ? root._squareBottom : !root.openToLeft && root._squareFar
+  // Joined at the bar side, the stroke the box's wall there ran flush into
+  // carries on past it, under the submenu
+  readonly property bool _sideJoined: !root.barConfig.vertical && (root._sideStretch?.joined ?? false)
+  readonly property bool squareStartNear: root.openToLeft && root._squareNear
+  readonly property bool squareEndNear: !root.openToLeft && root._squareNear
+  // ---- end tray submenus ----
+
   // content/<name>.qml, loaded by URL like bar widgets and overlay modules:
   // a new popout is just a file there plus a PopoutAnchor naming it. The
   // name travels inside the payload (`name`, see PopoutAnchor.qml) rather
@@ -186,10 +263,30 @@ PopoutWrapperBase {
   // A pill's (or island's) far stroke, from the bar's outer edge
   readonly property real pillFoot: (root.island ? root.barConfig.extent : root.barConfig.pillDepth) - Appearance.borderWidth
   // The pill (or island) stretched to carry the box's fillets while it shows
+  // and to a joined tray submenu's outer wall where its fillet doesn't
+  // land on it (sideStretch.joinReach, x in the popup; kept within the ends
+  // it may reach), squared there for the wall to run straight up into
+  readonly property var pillStretch: {
+    const own = root.place.stretch;
+    const pill = root.anchorPill;
+    const reach = root._sideStretch?.joinReach ?? null;
+    if (pill === null || root.mergeWithPill || reach === null)
+      return own;
+    const at = Math.max(mainPopup.strokeStart, Math.min(reach + mainPopup.windowFrom, mainPopup.strokeEnd));
+    const start = own ? own.start : pill.start;
+    const end = own ? own.end : pill.start + pill.length;
+    return {
+      "index": pill.index,
+      "start": Math.min(start, at),
+      "end": Math.max(end, at),
+      "squareStart": at < start || ((own?.squareStart ?? false) && at === start),
+      "squareEnd": at > end || ((own?.squareEnd ?? false) && at === end)
+    };
+  }
   PillStretch {
     container: root.layoutSource
     owner: "barPopout"
-    stretch: root.occupied ? root.place.stretch : null
+    stretch: root.occupied ? root.pillStretch : null
   }
   // How far past the bar's outer edge a merged popout's content starts:
   // where a pill's far stroke would be, with the border on or off
@@ -230,6 +327,9 @@ PopoutWrapperBase {
   property real shownBoxWidth: still.holding ? still.held.width : root.targetBoxWidth
   property real shownBoxHeight: still.holding ? still.held.height : root.targetBoxHeight
   property real shownBoxStart: still.holding ? still.held.start : mainPopup.boxStart
+  // Where the box is drawn along the bar: on a vertical bar, reaching up
+  // past its start for a submenu (shownStretchTop)
+  readonly property real drawnBoxStart: root.shownBoxStart - (root.barConfig.vertical ? root.shownStretchTop : 0)
   // Set once the popout has shown at its first size, so opening jumps
   // straight there rather than animating from wherever it last was
   property bool _settled: false
@@ -261,8 +361,9 @@ PopoutWrapperBase {
     }
   }
 
-  readonly property real _boxAcross: root.barConfig.vertical ? root.targetBoxWidth : root.targetBoxHeight
-  readonly property real _shownBoxAcross: root.barConfig.vertical ? root.shownBoxWidth : root.shownBoxHeight
+  // (a submenu's stretch included, so the window keeps room for it too)
+  readonly property real _boxAcross: root.barConfig.vertical ? root.targetBoxWidth : root.targetBoxHeight + root._stretchAcross
+  readonly property real _shownBoxAcross: root.barConfig.vertical ? root.shownBoxWidth : root.shownBoxHeight + root._shownStretchAcross
   // Read through a var: content declares it on Panel, not Item
   readonly property var _content: root.currentItem
   readonly property real _declaredAcross: {
@@ -386,7 +487,7 @@ PopoutWrapperBase {
     // Its length along the bar, at the target size
     readonly property real surfaceLength: root.place.surfaceLength
     // Where it's drawn, animating to alongPos (see shownBoxStart)
-    readonly property real shownAlongPos: root.shownBoxStart - surface.startMargin
+    readonly property real shownAlongPos: root.drawnBoxStart - surface.startMargin
     // The window along the bar: the whole bar, and wherever a box pushed
     // to an end can reach past it, so it never moves along the bar
     readonly property real windowFrom: Math.min(0, strokeStart, minAlong)
@@ -523,7 +624,43 @@ PopoutWrapperBase {
     active: root.occupied && !root.isClosing && (root.contentReady || still.switching)
     connectorGap: root.connectorGap
     boxWidth: root.shownBoxWidth
-    boxHeight: root.shownBoxHeight
+    // A submenu's stretch: along the bar on a vertical one, away from it
+    // on a horizontal one
+    boxHeight: root.shownBoxHeight + root.shownStretchTop + root.shownStretchBottom
+    // Square where a submenu runs flush to the box's end
+    startCornerRadius: root.squareStartCorner ? 0 : surface.cornerRadius
+    endCornerRadius: root.squareEndCorner ? 0 : surface.cornerRadius
+    Behavior on startCornerRadius {
+      enabled: root._settled
+      NumberAnimation {
+        duration: Appearance.animFast
+        easing.type: Appearance.easing
+      }
+    }
+    // A detached box's near corner too, where one runs flush to its bar side
+    startNearRadius: root.squareStartNear ? 0 : Appearance.borderRadius
+    endNearRadius: root.squareEndNear ? 0 : Appearance.borderRadius
+    Behavior on startNearRadius {
+      enabled: root._settled
+      NumberAnimation {
+        duration: Appearance.animFast
+        easing.type: Appearance.easing
+      }
+    }
+    Behavior on endNearRadius {
+      enabled: root._settled
+      NumberAnimation {
+        duration: Appearance.animFast
+        easing.type: Appearance.easing
+      }
+    }
+    Behavior on endCornerRadius {
+      enabled: root._settled
+      NumberAnimation {
+        duration: Appearance.animFast
+        easing.type: Appearance.easing
+      }
+    }
 
     // A transparent bar has nothing to join onto
     detached: mainPopup.detached
@@ -533,6 +670,8 @@ PopoutWrapperBase {
     joinEnd: mainPopup.joinEnd
     flushStart: root.place.flushStart
     flushEnd: root.place.flushEnd
+    flushStartThrough: !(root._sideJoined && root.openToLeft)
+    flushEndThrough: !(root._sideJoined && !root.openToLeft)
     // Without the border, a merged popout runs straight off the screen edge
     straight: root.mergeWithPill && !Appearance.screenBorder
     straightJoins: !Appearance.screenBorder
@@ -554,7 +693,7 @@ PopoutWrapperBase {
         readonly property real barSide: surface.contentInset + root.pillClearance
         // Along the bar, where it wants to be (EdgeAttach.place's
         // contentStart), however far the box grows past it either side
-        readonly property real along: surface.contentInset + root.place.contentStart - root.shownBoxStart
+        readonly property real along: surface.contentInset + root.place.contentStart - root.drawnBoxStart
         width: mainPopup.contentWidth
         height: mainPopup.contentHeight
         x: root.barConfig.left ? barSide : root.barConfig.right ? clipBox.width - barSide - width : along
@@ -597,7 +736,7 @@ PopoutWrapperBase {
               "height": root.shownBoxHeight,
               "along": surface.contentInset + root.place.contentStart
             })
-        readonly property real along: (held?.along ?? 0) - root.shownBoxStart
+        readonly property real along: (held?.along ?? 0) - root.drawnBoxStart
         x: root.barConfig.left ? loader.barSide : root.barConfig.right ? clipBox.width - loader.barSide - width : along
         y: root.barConfig.top ? loader.barSide : root.barConfig.bottom ? clipBox.height - loader.barSide - height : along
       }
