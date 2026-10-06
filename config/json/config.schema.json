@@ -22,7 +22,7 @@
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 46,
+      "default": 47,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
@@ -228,7 +228,9 @@
       "x-category": "Launcher",
       "title": "Launcher",
       "description": "The search launcher: apps, open windows, a calculator, web search, running commands, and / commands that control the shell.",
+      "x-intro": "LauncherPlace",
       "additionalProperties": false,
+      "x-order": ["monitors", "edge", "position", "detached", "distance", "reverse", "width", "maxResults", "iconSize", "showBackdrop", "backdrop", "showDescriptions", "showRecent", "showHint", "hiddenApps", "windows", "calculator", "commands", "runCommands", "webSearch", "searchEngine", "chat", "clipboard", "clipboardSource", "clipboardMaxEntries", "emoji"],
       "properties": {
         "monitors": {
           "type": "string",
@@ -238,13 +240,37 @@
           "default": "general",
           "description": "Where the launcher opens. As in General follows General > Monitors; the primary monitor is the one set in General; the focused monitor is the one with your active workspace (and mouse); every monitor shows it on all of them at once."
         },
-        "position": {
+        "edge": {
           "type": "string",
-          "title": "Position",
-          "enum": ["center", "upper", "top", "bottom"],
-          "x-enumLabels": { "center": "Center", "upper": "Upper third", "top": "Top edge", "bottom": "Bottom edge" },
-          "default": "upper",
-          "description": "Where on the screen the launcher opens. On the top or bottom edge it grows out of the border or bar there, like the other edge popouts."
+          "title": "Screen edge",
+          "default": "Top",
+          "enum": ["Top", "Bottom", "Left", "Right"],
+          "description": "Screen edge the launcher opens from, or is held off when detached."
+        },
+        "position": {
+          "type": "integer",
+          "title": "Position along edge",
+          "x-unit": "%",
+          "default": 50,
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Where along the edge its centre sits: 0 is the start (left/top), 100 the end. It never runs off the screen."
+        },
+        "detached": {
+          "type": "boolean",
+          "title": "Detach from edge",
+          "default": true,
+          "description": "A separate box floating off the edge. Off, the launcher grows out of the screen border or a solid bar, as popouts do, and runs straight off a bare screen edge."
+        },
+        "distance": {
+          "type": "integer",
+          "title": "Distance from edge",
+          "x-unit": "%",
+          "default": 30,
+          "minimum": 0,
+          "maximum": 50,
+          "description": "How far across the free screen it sits: 0 lines it up with a detached dock or OSD on that edge, 50 centres it.",
+          "x-showIf": { "detached": true }
         },
         "reverse": { "type": "boolean", "title": "Search bar at the bottom", "default": false, "description": "Put the search field under the results, with the best match nearest to it. Suits the bottom edge." },
         "width": { "type": "integer", "title": "Width", "x-unit": "px", "default": 680, "minimum": 400, "maximum": 1200, "description": "Width of the launcher." },

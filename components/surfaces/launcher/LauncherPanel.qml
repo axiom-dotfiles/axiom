@@ -37,8 +37,13 @@ FocusScope {
   // on the bottom edge moves it a frame late
   readonly property int maxHeight: searchRow.height + searchLine.height + frequentLabel.implicitHeight + frequentLabel.Layout.topMargin + rowHeight * LauncherConfig.maxResults + listMargin * 2 + (LauncherConfig.showHint ? hintLine.height + hint.height : 0)
 
+  // Holds its tallest (maxHeight), the blocks against the field's end: for
+  // a host that lays its height along a screen edge (the left or right
+  // one), where a box resized around its centre would move the field
+  property bool holdHeight: false
+
   implicitWidth: LauncherConfig.width
-  implicitHeight: _offset(_order.length)
+  implicitHeight: holdHeight ? maxHeight : _blocksHeight()
 
   // Starts over with `text` searched (the search itself is skipped when the
   // launcher already ran it on opening)
@@ -127,12 +132,16 @@ FocusScope {
   }
 
   // The blocks top to bottom; each sits under the visible ones before it
+  // (holding its height reversed, all of them down against the field)
   readonly property var _order: reversed ? [hint, hintLine, body, searchLine, searchRow] : [searchRow, searchLine, body, hintLine, hint]
   function _offset(index) {
-    let y = 0;
+    let y = root.holdHeight && root.reversed ? Math.max(0, root.height - root._blocksHeight()) : 0;
     for (let i = 0; i < index; i++)
       y += root._order[i].visible ? root._order[i].height : 0;
     return y;
+  }
+  function _blocksHeight() {
+    return root._order.reduce((sum, block) => sum + (block.visible ? block.height : 0), 0);
   }
 
   // --- Search field ---

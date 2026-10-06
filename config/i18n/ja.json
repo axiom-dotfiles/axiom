@@ -714,12 +714,9 @@
     "Enter runs it, Shift+Enter runs it in {0}": "Enterで実行、Shift+Enterで {0} で実行",
     "Search the web for \"{0}\"": "「{0}」をウェブで検索",
     "Type something to search for": "検索語を入力",
-    "Position": "位置",
     "center": "中央",
     "Hidden apps": "非表示のアプリ",
-    "upper": "上寄り",
     "Also match open windows by title and class; picking one focuses it.": "開いているウィンドウもタイトルとクラスで検索し、選ぶとフォーカスします。",
-    "Upper third": "上から1/3",
     "Size of the result icons.": "結果のアイコンの大きさ。",
     "Run commands (>)": "コマンド実行 (>)",
     "How dark the screen behind the launcher goes.": "ランチャーの背後の画面をどれだけ暗くするか。",
@@ -744,9 +741,6 @@
     "Results shown": "表示する結果数",
     "The search launcher: apps, open windows, a calculator, web search, running commands, and / commands that control the shell.": "検索ランチャー: アプリ、開いているウィンドウ、電卓、ウェブ検索、コマンドの実行、そしてシェルを操作する / コマンド。",
     "Put the search field under the results, with the best match nearest to it. Suits the bottom edge.": "検索欄を結果の下に置き、最も一致する結果をそのすぐ上に表示します。下端に向いています。",
-    "Top edge": "上端",
-    "Bottom edge": "下端",
-    "Where on the screen the launcher opens. On the top or bottom edge it grows out of the border or bar there, like the other edge popouts.": "ランチャーを開く画面上の位置。上端・下端では、他の端のポップアウトと同じく、そこの枠やバーから伸びて表示されます。",
     "Search bar at the bottom": "検索欄を下に",
     "lazygit": "lazygit",
     "Foot": "Foot",
@@ -2691,6 +2685,12 @@
     "Names the account's password in the keyring and its calendars' events.": "キーリング内のパスワードと、カレンダーの予定を識別する名前。",
     "Subscription (.ics)": "購読（.ics）",
     "Type": "種類",
-    "Most events": "最大件数"
+    "Most events": "最大件数",
+    "Upper": "上寄り",
+    "Click a spot to place it; fine-tune below. Detached, it floats a distance across the free screen; attached, it grows out of the edge.": "クリックで配置し、下で微調整します。離すと空いた画面の中で端から指定の距離に浮かび、離さないと端から伸びます。",
+    "A separate box floating off the edge. Off, the launcher grows out of the screen border or a solid bar, as popouts do, and runs straight off a bare screen edge.": "画面端から離れて浮かぶ独立したボックスにします。オフの場合、ランチャーはポップアウトと同じように画面の枠や塗りつぶしのバーから伸び、何もない画面端ではそのまま端に接します。",
+    "Distance from edge": "端からの距離",
+    "Screen edge the launcher opens from, or is held off when detached.": "ランチャーが開く画面の端(離す場合は離れる側の端)。",
+    "How far across the free screen it sits: 0 lines it up with a detached dock or OSD on that edge, 50 centres it.": "空いた画面のどこに置くか:0 はその端の離したドックや OSD に揃え、50 で中央になります。"
   }
 }

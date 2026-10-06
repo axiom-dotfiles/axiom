@@ -123,8 +123,10 @@ TestCase {
     }));
     compare(p.mode, "pill");
     compare(p.pill.index, 0);
-    // Its fillet runs past the pill's start: the pill stretches to carry it
-    compare([p.stretch.index, p.stretch.start, p.stretch.end], [0, 68, 500]);
+    // Its fillet won't fit before the pill's start: it runs flush into it,
+    // the content staying put
+    compare([p.start, p.end, p.contentStart, p.flushStart, p.flushEnd], [100, 250, 150, true, false]);
+    compare([p.stretch.start, p.stretch.end, p.stretch.squareStart], [100, 500, true]);
     // Well inside, no stretch
     compare(EdgeAttach.place(spec({
       "pills": [pill(0, 1000)],
@@ -133,38 +135,35 @@ TestCase {
     })).stretch, null);
   }
 
-  function test_merges_around_pills() {
-    const pills = [pill(100, 200), pill(600, 300)];
+  function test_extends_its_pill_like_an_island() {
     const p = EdgeAttach.place(spec({
-      "pills": pills,
+      "pills": [pill(100, 200), pill(600, 300)],
       "pillBar": true,
       "centre": 250,
       "aligned": 200,
       "length": 200
     }));
-    compare(p.mode, "merged");
-    compare(p.stretch, null);
-    // The first pill carries on past its start: that wall stands on it
-    compare([p.footStart, p.footEnd], [true, false]);
-    compare(p.mergedPills.length, 1);
-    // A pill bar showing none still merges
+    compare(p.mode, "pill");
+    compare([p.start, p.end, p.flushStart, p.flushEnd], [200, 400, false, true]);
+    // Stretched out to the box's end, squared there
+    compare([p.stretch.index, p.stretch.start, p.stretch.end, p.stretch.squareEnd], [0, 100, 400, true]);
+    // A pill bar showing none grows from its outer edge
     compare(EdgeAttach.place(spec({
       "pillBar": true,
       "aligned": 300
     })).mode, "merged");
   }
 
-  function test_snap_reaches_onto_a_pill_without_moving_the_content() {
-    // Its end falls 20 short of the second pill's stroke
+  function test_joins_where_its_pill_joins_the_edge() {
     const p = EdgeAttach.place(spec({
-      "pills": [pill(100, 200), pill(522, 300)],
+      "pills": [pill(-2, 300, true, false)],
       "pillBar": true,
-      "centre": 250,
-      "aligned": 200,
-      "length": 304
+      "centre": 100,
+      "aligned": 50,
+      "length": 200
     }));
-    compare([p.start, p.end, p.contentStart, p.contentOffset], [200, 524, 200, 0]);
-    compare(p.footEnd, true);
+    compare([p.start, p.joinStart, p.flushStart, p.startMargin, p.contentStart], [-2, true, false, 0, 50]);
+    compare([p.end, p.flushEnd], [298, true]);
   }
 
   function test_island_fits() {

@@ -278,17 +278,20 @@ QtObject {
     };
   }
 
-  // The islands as drawn: `stretches` (see stretchOf) grow them to carry
-  // the surfaces open on them, each then joining any island it comes
-  // within `merge` of. { start, length, squareStart, squareEnd }: a
-  // squared end has its inner corner square, where a popout runs flush
-  // into it.
+  // The islands (or pills) as drawn: `stretches` (see stretchOf) grow
+  // them to carry the surfaces open on them, each then joining any it
+  // comes within `merge` of. { start, length, joinStart, joinEnd,
+  // squareStart, squareEnd }: a squared end has its inner corner square,
+  // where a popout runs flush into it; a joined one (a pill's) meets the
+  // perpendicular edge.
   function stretchIslands(rects, stretches, merge) {
     const spans = rects.map((r, i) => {
       const stretch = root.stretchOf(stretches, i);
       return {
         "start": stretch ? Math.min(r.start, stretch.start) : r.start,
         "end": stretch ? Math.max(r.start + r.length, stretch.end) : r.start + r.length,
+        "joinStart": r.joinStart ?? false,
+        "joinEnd": r.joinEnd ?? false,
         "squareStart": stretch?.squareStart ?? false,
         "squareEnd": stretch?.squareEnd ?? false
       };
@@ -296,6 +299,8 @@ QtObject {
     return root._mergeSpans(spans, merge).map(m => ({
           "start": m.start,
           "length": m.end - m.start,
+          "joinStart": m.joinStart ?? false,
+          "joinEnd": m.joinEnd ?? false,
           "squareStart": m.squareStart ?? false,
           "squareEnd": m.squareEnd ?? false
         }));
@@ -312,6 +317,7 @@ QtObject {
       } else if (span.end > last.end) {
         last.end = span.end;
         last.squareEnd = span.squareEnd;
+        last.joinEnd = span.joinEnd;
       }
     });
     return merged;

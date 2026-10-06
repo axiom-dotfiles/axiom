@@ -10,16 +10,17 @@ import qs.services
 
 // The search launcher on one screen. LauncherManager builds the rows from
 // the text and runs them, LauncherPanel shows them, and this picks the
-// host from Launcher.position: a FloatingPopout, or on the top or bottom
-// edge an EdgePopout that grows out of the border or bar there. Both have
-// the same API (show/hide/isOpen/contentItem/window), and only the one in
-// use is created.
+// host, placed as a dock or OSD is (an edge, a position along it,
+// detached or not): detached, a FloatingPopout `distance` across the free
+// screen from its edge; else an EdgePopout that grows out of the border or
+// bar there. Both have the same API (show/hide/isOpen/contentItem/window),
+// and only the one in use is created.
 Scope {
   id: root
 
   required property ShellScreen screen
 
-  readonly property var host: LauncherConfig.attached ? edgeLoader.item : floatingLoader.item
+  readonly property var host: LauncherConfig.detached ? floatingLoader.item : edgeLoader.item
   readonly property bool shown: root.host?.isOpen ?? false
   // What the panel searches for when it's created (it only exists while
   // the host is open)
@@ -105,18 +106,46 @@ Scope {
     fillOpacity: LauncherConfig.backdrop
   }
 
+  // Detached, its distance 0 is where a detached dock or OSD on its edge
+  // sits with an automatic gap (Bar.detachedGaps): the free area's margin
+  // on each side, in from the window, which starts past what's reserved
+  // there
+  readonly property var _edgeGaps: Bar.detachedGaps(root.screen, LauncherConfig.edge, -1, HyprlandManager.gapsOut)
+  readonly property var _oppositeGaps: Bar.detachedGaps(root.screen, Bar.oppositeOf(LauncherConfig.edge), -1, HyprlandManager.gapsOut)
+  function _marginOn(side) {
+    const vertical = LauncherConfig.edge === Bar.Left || LauncherConfig.edge === Bar.Right;
+    let gap = root._edgeGaps.end;
+    if (side === LauncherConfig.edge)
+      gap = root._edgeGaps.across;
+    else if (side === Bar.oppositeOf(LauncherConfig.edge))
+      gap = root._oppositeGaps.across;
+    else if (side === (vertical ? Bar.Top : Bar.Left))
+      gap = root._edgeGaps.start;
+    return Math.max(0, EdgeMenuManager.frameLineOn(root.screen, side) + gap - EdgeMenuManager.reservedOn(root.screen, side));
+  }
+
   LazyLoader {
     id: floatingLoader
-    active: !LauncherConfig.attached
+    active: LauncherConfig.detached
 
     FloatingPopout {
       id: floating
+
+      readonly property bool vertical: LauncherConfig.edge === Bar.Left || LauncherConfig.edge === Bar.Right
+      // How far across from its edge: the fraction with the same align
+      // spreads the room left over, 0 against the edge, 0.5 centred
+      readonly property real across: LauncherConfig.edge === Bar.Bottom || LauncherConfig.edge === Bar.Right ? 1 - LauncherConfig.distance : LauncherConfig.distance
+
       screen: root.screen
-      xFraction: 0.5
-      // Centred, or its top in the upper third
-      yFraction: LauncherConfig.position === "center" ? 0.5 : 0.18
-      yAlign: LauncherConfig.position === "center" ? 0.5 : 0
-      margin: 16
+      // Its centre at `position` along the edge
+      xFraction: floating.vertical ? floating.across : LauncherConfig.position
+      xAlign: floating.vertical ? floating.across : 0.5
+      yFraction: floating.vertical ? LauncherConfig.position : floating.across
+      yAlign: floating.vertical ? 0.5 : floating.across
+      leftMargin: root._marginOn(Bar.Left)
+      topMargin: root._marginOn(Bar.Top)
+      rightMargin: root._marginOn(Bar.Right)
+      bottomMargin: root._marginOn(Bar.Bottom)
       // Resized as results come and go, the box would move
       maxContentHeight: (floating.contentItem as LauncherPanel)?.maxHeight ?? 0
       // Reversed, the search field stays put at the bottom
@@ -145,26 +174,28 @@ Scope {
 
   LazyLoader {
     id: edgeLoader
-    active: LauncherConfig.attached
+    active: !LauncherConfig.detached
 
     EdgePopout {
       id: popout
       screen: root.screen
-      edge: LauncherConfig.position === "bottom" ? Bar.Bottom : Bar.Top
-      position: 0.5
+      edge: LauncherConfig.edge
+      position: LauncherConfig.position
       triggerEnabled: false
       wantsKeyboardFocus: true
       closeOnClickOutside: true
       grabEnabled: group.ownsGrab
       grabWindows: group.windows.filter(w => w !== popout.window)
-      // Resized as results come and go, the window would jump
-      maxContentDepth: (popout.contentItem as LauncherPanel)?.maxHeight ?? 0
+      // Resized as results come and go, the window would jump (on a side
+      // edge the panel holds its height instead, which runs along it)
+      maxContentDepth: popout.vertical ? 0 : (popout.contentItem as LauncherPanel)?.maxHeight ?? 0
 
       content: Component {
         LauncherPanel {
           // Stays open until Esc, a pick or a click elsewhere
           readonly property bool autoDismiss: false
           implicitWidth: Math.min(LauncherConfig.width, root.screen.width - 64)
+          holdHeight: popout.vertical
           shown: popout.isOpen
           onCloseRequested: popout.hide()
           Component.onCompleted: reset(root._openText)

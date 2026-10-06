@@ -102,6 +102,8 @@ Rectangle {
   // The islands as drawn: stretched to carry the surfaces open on them,
   // and joining any they then reach, while those are open
   readonly property var islandRects: islands ? BarLayout.stretchIslands(root.pillRects, root._shownStretches, root.barConfig.pillMerge) : []
+  // The pills as drawn, the same way
+  readonly property var pillShapes: pills ? BarLayout.stretchIslands(root.pillRects, root._shownStretches, root.barConfig.pillMerge) : []
 
   // Pills stretched past their ends to carry the fillets of surfaces
   // standing on them, by owner (a bar popout, an edge popout): each
@@ -198,10 +200,6 @@ Rectangle {
     height: 1
     color: "#02000000"
     opacity: root._repaintFlip ? 0.5 : 0.4
-  }
-  // The stretch on pill `index` as drawn, { start, end }, or null
-  function stretchFor(index) {
-    return BarLayout.stretchOf(root._shownStretches, index);
   }
 
   readonly property var _groups: [leftGroup, leftCenterGroup, centerGroup, rightCenterGroup, rightGroup]
@@ -376,24 +374,20 @@ Rectangle {
     // border's stroke where it joins. Modelled by count, so a clock changing
     // width moves its pill without rebuilding it.
     Repeater {
-      model: root.pills ? root.pillRects.length : 0
+      model: root.pillShapes.length
 
       AttachedSurface {
         id: pill
         required property int index
-        readonly property var rect: root.pillRects[index] ?? {
+        // Stretched to carry the surfaces open on it, as islands are
+        readonly property var span: root.pillShapes[index] ?? {
           "start": 0,
           "length": 0,
           "joinStart": false,
-          "joinEnd": false
+          "joinEnd": false,
+          "squareStart": false,
+          "squareEnd": false
         }
-        readonly property var stretch: root.stretchFor(index)
-        readonly property var span: stretch ? {
-          "start": stretch.start,
-          "length": stretch.end - stretch.start,
-          "joinStart": rect.joinStart,
-          "joinEnd": rect.joinEnd
-        } : rect
         readonly property real alongStart: span.start - startMargin
         // Depth reached from the outer edge; the surface's far half-gap is empty
         readonly property real depthBox: Math.max(0, root.barConfig.pillDepth - connectorGap / 2)
@@ -408,6 +402,20 @@ Rectangle {
         // Without the border, pills grow straight out of the screen edges
         straight: !Appearance.screenBorder
         straightJoins: !Appearance.screenBorder
+        // Square where a popout runs flush into it
+        startCornerRadius: span.squareStart ? 0 : cornerRadius
+        endCornerRadius: span.squareEnd ? 0 : cornerRadius
+
+        Behavior on startCornerRadius {
+          NumberAnimation {
+            duration: Appearance.animFast
+          }
+        }
+        Behavior on endCornerRadius {
+          NumberAnimation {
+            duration: Appearance.animFast
+          }
+        }
 
         width: implicitWidth
         height: implicitHeight

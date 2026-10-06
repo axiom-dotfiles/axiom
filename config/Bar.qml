@@ -443,6 +443,11 @@ QtObject {
     return ["top", "bottom", "left", "right"][location];
   }
 
+  // The edge across the screen from a Bar.Location
+  function oppositeOf(location) {
+    return [Bar.Bottom, Bar.Top, Bar.Right, Bar.Left][location];
+  }
+
   function getLocationFromString(locStr) {
     switch (locStr) {
     case "Top":

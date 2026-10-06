@@ -119,6 +119,10 @@ Item {
   // radius at the far side, matching a Rectangle's radius
   readonly property real filletRadius: Appearance.borderRadius
   readonly property real cornerRadius: Math.max(0, Appearance.borderRadius - half)
+  // The far corners at each end of the attach edge: 0 squares one, where a
+  // box runs flush into this surface (a pill stretched to carry it)
+  property real startCornerRadius: cornerRadius
+  property real endCornerRadius: cornerRadius
 
   readonly property real boxAlong: vertical ? boxHeight : boxWidth
   readonly property real boxDepth: vertical ? boxWidth : boxHeight
@@ -225,8 +229,12 @@ Item {
   // The outline from the start end to the end end: side walls (or joins)
   // and the far edge. Shared by the fill and the stroke.
   function _outline(startWith) {
-    const R = filletRadius, cr = cornerRadius, h = half;
+    const R = filletRadius, cs = startCornerRadius, ce = endCornerRadius, h = half;
     const fs = startFoot, fe = endFoot;
+    // A flush wall runs on through the backfill, its stroke covering the
+    // end of the stroke it continues there, which the backfill leaves
+    // open: left empty, the shadow or glow showed through as a seam
+    const fv0 = flushStart ? -_back : 0, fv1 = flushEnd ? -_back : 0;
     let d = "";
     if (joinStart && _straightJoins) {
       d += startWith(0, farV);
@@ -234,15 +242,15 @@ Item {
       d += startWith(h, farV + R);
       d += _arc(R, true, h + R, farV);
     } else if (!_filletStart) {
-      d += startWith(sideU, 0);
-      d += _line(sideU, farV - cr);
-      d += _arc(cr, false, sideU + cr, farV);
+      d += startWith(sideU, fv0);
+      d += _line(sideU, farV - cs);
+      d += _arc(cs, false, sideU + cs, farV);
     } else {
       d += startWith(0, fs + h);
       d += _line(sideU - R, fs + h);
       d += _arc(R, true, sideU, fs + h + R);
-      d += _line(sideU, farV - cr);
-      d += _arc(cr, false, sideU + cr, farV);
+      d += _line(sideU, farV - cs);
+      d += _arc(cs, false, sideU + cs, farV);
     }
     if (joinEnd && _straightJoins) {
       d += _line(alongLength, farV);
@@ -250,12 +258,12 @@ Item {
       d += _line(alongLength - h - R, farV);
       d += _arc(R, true, alongLength - h, farV + R);
     } else if (!_filletEnd) {
-      d += _line(farSideU - cr, farV);
-      d += _arc(cr, false, farSideU, farV - cr);
-      d += _line(farSideU, 0);
+      d += _line(farSideU - ce, farV);
+      d += _arc(ce, false, farSideU, farV - ce);
+      d += _line(farSideU, fv1);
     } else {
-      d += _line(farSideU - cr, farV);
-      d += _arc(cr, false, farSideU, farV - cr);
+      d += _line(farSideU - ce, farV);
+      d += _arc(ce, false, farSideU, farV - ce);
       d += _line(farSideU, fe + h + R);
       d += _arc(R, true, farSideU + R, fe + h);
       d += _line(alongLength, fe + h);
@@ -276,7 +284,7 @@ Item {
     if (joinStart)
       d = _move(0, b) + _line(0, _straightJoins ? farV : farV + R) + root._outline((u, v) => _line(u, v));
     else if (flushStart)
-      d = _move(u0, b) + _line(u0, 0) + root._outline((u, v) => _line(u, v));
+      d = _move(u0, b) + root._outline((u, v) => _line(u, v));
     else if (!_filletStart)
       d = root._outline((u, v) => _move(u, v));
     else
@@ -285,8 +293,6 @@ Item {
       d += _line(alongLength, farV + R);
     else if (!joinEnd && _filletEnd)
       d += _line(alongLength, endFoot);
-    else if (flushEnd)
-      d += _line(u1, 0);
     return d + _line(u1, b) + _line(u0, b) + "Z";
   }
 

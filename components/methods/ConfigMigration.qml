@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 46
+  readonly property int currentVersion: 47
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -119,6 +119,8 @@ QtObject {
       result = _v44ToV45(result, changes);
     if (version < 46)
       result = _v45ToV46(result, changes);
+    if (version < 47)
+      result = _v46ToV47(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -1622,6 +1624,40 @@ QtObject {
       "type": "CalendarPage"
     });
     changes.push("Overlay.views: added the Calendar page");
+    return config;
+  }
+
+  // v47 placed the launcher as docks and OSDs are: on a screen edge, at a
+  // position along it, attached or detached (then a distance across the
+  // free screen, 50% centring it), instead of four fixed places
+  function _v46ToV47(config, changes) {
+    const launcher = config.Launcher;
+    if (!launcher || typeof launcher.position !== "string")
+      return config;
+    const old = launcher.position;
+    const place = {
+      "center": {
+        "edge": "Top",
+        "detached": true,
+        "distance": 50
+      },
+      "upper": {
+        "edge": "Top",
+        "detached": true,
+        "distance": 30
+      },
+      "top": {
+        "edge": "Top",
+        "detached": false
+      },
+      "bottom": {
+        "edge": "Bottom",
+        "detached": false
+      }
+    }[old] ?? {};
+    delete launcher.position;
+    Object.assign(launcher, place);
+    changes.push(`Launcher.position "${old}" -> ${JSON.stringify(place)}`);
     return config;
   }
 }

@@ -11,7 +11,7 @@ import qs.services
  * A popout that floats on the screen instead of growing out of an edge
  * (EdgePopout): a plain rounded box in an Overlay-layer window covering the
  * area the bars and border leave free, fading and scaling in. Used by the
- * floating OSD and the floating launcher.
+ * detached launcher and the window switcher.
  *
  * Open/close/queue state and hover-loss dismissal come from
  * PopoutWrapperBase, as for EdgePopout, and the content is a Component in
@@ -19,8 +19,11 @@ import qs.services
  * `autoDismiss` / `dismissDelay` / `hovered`.
  *
  * Placement: the box's anchor point is `xFraction` across and `yFraction`
- * down the free area, with `yAlign` saying which part of the box sits
- * there (0 its top, 0.5 its centre, 1 its bottom), kept `margin` inside.
+ * down the free area inside its margins (`margin`, or one per side), with
+ * `xAlign`/`yAlign` saying which part of the box sits there (0 its
+ * left/top, 0.5 its centre, 1 its right/bottom), and kept inside them. A
+ * fraction equal to its align spreads the room left over: 0 against one
+ * side, 0.5 centred, 1 against the other.
  * Content that changes height while open sets `maxContentHeight`: the box
  * is placed as if it were that tall, so it doesn't move, and grows down
  * from its top (or up from its bottom with `growUp`).
@@ -38,8 +41,13 @@ PopoutWrapperBase {
 
   property real xFraction: 0.5
   property real yFraction: 0.5
+  property real xAlign: 0.5
   property real yAlign: 0.5
   property real margin: Appearance.screenMargin
+  property real leftMargin: root.margin
+  property real topMargin: root.margin
+  property real rightMargin: root.margin
+  property real bottomMargin: root.margin
   property real maxContentHeight: 0
   property bool growUp: false
 
@@ -137,11 +145,14 @@ PopoutWrapperBase {
       readonly property real contentHeight: root.contentItem?.implicitHeight ?? 0
       // The height it's placed by
       readonly property real placedHeight: Math.max(box.height, root.maxContentHeight + root.contentPadding * 2)
-      readonly property real placedY: Math.max(root.margin, Math.min(surfaceWindow.height * root.yFraction - box.placedHeight * root.yAlign, surfaceWindow.height - box.placedHeight - root.margin))
+      // The room inside the margins
+      readonly property real roomWidth: surfaceWindow.width - root.leftMargin - root.rightMargin
+      readonly property real roomHeight: surfaceWindow.height - root.topMargin - root.bottomMargin
+      readonly property real placedY: root.topMargin + Math.max(0, Math.min(box.roomHeight * root.yFraction - box.placedHeight * root.yAlign, box.roomHeight - box.placedHeight))
 
       width: (root.contentItem?.implicitWidth ?? 0) + root.contentPadding * 2
       height: box.contentHeight + root.contentPadding * 2
-      x: Math.max(root.margin, Math.min(surfaceWindow.width * root.xFraction - width / 2, surfaceWindow.width - width - root.margin))
+      x: root.leftMargin + Math.max(0, Math.min(box.roomWidth * root.xFraction - width * root.xAlign, box.roomWidth - width))
       y: root.growUp ? box.placedY + box.placedHeight - box.height : box.placedY
       color: root.fillColor
       border.color: root.strokeColor
