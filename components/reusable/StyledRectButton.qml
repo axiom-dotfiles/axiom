@@ -47,16 +47,12 @@ Rectangle {
   border.width: root.borderWidth
   radius: root.borderRadius
 
-  Behavior on color {
-    ColorAnimation {
-      duration: Appearance.animNormal
-    }
+  ColorGlide on color {
+    duration: Appearance.animNormal
   }
 
-  Behavior on border.color {
-    ColorAnimation {
-      duration: Appearance.animNormal
-    }
+  ColorGlide on border.color {
+    duration: Appearance.animNormal
   }
 
   StyledIcon {

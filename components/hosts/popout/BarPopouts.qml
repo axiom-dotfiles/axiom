@@ -9,6 +9,7 @@ import qs.config
 import qs.components.methods
 // Imported (though loaded by URL) so qs scans the content types
 import qs.components.content // qmllint disable unused-imports
+import qs.components.reusable
 
 /**
  * Popout wrapper for bar widgets
@@ -52,19 +53,11 @@ PopoutWrapperBase {
   readonly property var _sideStretch: root.occupied ? (root._content?.sideStretch ?? null) : null
   property real shownStretchTop: root._sideStretch?.top ?? 0
   property real shownStretchBottom: root._sideStretch?.bottom ?? 0
-  Behavior on shownStretchTop {
-    enabled: root._settled
-    NumberAnimation {
-      duration: Appearance.animFast
-      easing.type: Appearance.easing
-    }
+  Glide on shownStretchTop {
+    enabled: still.settled
   }
-  Behavior on shownStretchBottom {
-    enabled: root._settled
-    NumberAnimation {
-      duration: Appearance.animFast
-      easing.type: Appearance.easing
-    }
+  Glide on shownStretchBottom {
+    enabled: still.settled
   }
   readonly property real _stretchAcross: root.barConfig.vertical ? 0 : (root._sideStretch?.top ?? 0) + (root._sideStretch?.bottom ?? 0)
   readonly property real _shownStretchAcross: root.barConfig.vertical ? 0 : root.shownStretchTop + root.shownStretchBottom
@@ -213,7 +206,7 @@ PopoutWrapperBase {
   // A widget under the box, or within a connector gap of it, along the bar
   canSwitchTo: (anchor, data) => {
     const item = data?.anchorItem;
-    if (anchor !== root.currentAnchor || !(root.contentReady || still.switching) || !item)
+    if (anchor !== root.currentAnchor || !still.showing || !item)
       return false;
     const pos = item.mapToItem(null, 0, 0);
     const from = root.barConfig.vertical ? pos.y : pos.x;
@@ -330,35 +323,14 @@ PopoutWrapperBase {
   // Where the box is drawn along the bar: on a vertical bar, reaching up
   // past its start for a submenu (shownStretchTop)
   readonly property real drawnBoxStart: root.shownBoxStart - (root.barConfig.vertical ? root.shownStretchTop : 0)
-  // Set once the popout has shown at its first size, so opening jumps
-  // straight there rather than animating from wherever it last was
-  property bool _settled: false
-  function _updateSettled() {
-    if (!root.occupied || !(root.contentReady || still.switching))
-      root._settled = false;
-    else
-      Qt.callLater(() => root._settled = root.occupied && (root.contentReady || still.switching));
+  Glide on shownBoxWidth {
+    enabled: still.settled
   }
-  Behavior on shownBoxWidth {
-    enabled: root._settled
-    NumberAnimation {
-      duration: Appearance.animFast
-      easing.type: Appearance.easing
-    }
+  Glide on shownBoxHeight {
+    enabled: still.settled
   }
-  Behavior on shownBoxHeight {
-    enabled: root._settled
-    NumberAnimation {
-      duration: Appearance.animFast
-      easing.type: Appearance.easing
-    }
-  }
-  Behavior on shownBoxStart {
-    enabled: root._settled
-    NumberAnimation {
-      duration: Appearance.animFast
-      easing.type: Appearance.easing
-    }
+  Glide on shownBoxStart {
+    enabled: still.settled
   }
 
   // (a submenu's stretch included, so the window keeps room for it too)
@@ -378,16 +350,10 @@ PopoutWrapperBase {
       root._peakAcross = Math.max(root._peakAcross, root._boxAcross);
   }
   on_BoxAcrossChanged: _notePeak()
-  onContentReadyChanged: {
-    _notePeak();
-    _updateSettled();
-  }
+  onContentReadyChanged: _notePeak()
   onOccupiedChanged: {
-    if (!root.occupied) {
+    if (!root.occupied)
       root._peakAcross = 0;
-      still.end();
-    }
-    _updateSettled();
   }
   // The room past the drawn box, on the side away from the bar: the
   // window's depth stays put while the box animates within it
@@ -422,7 +388,7 @@ PopoutWrapperBase {
 
   PopupWindow {
     id: mainPopup
-    visible: !root.underBar && root.occupied && (root.contentReady || still.switching) && !ShellManager.captureFrozen
+    visible: !root.underBar && still.showing && !ShellManager.captureFrozen
     color: "transparent"
 
     // Content dimensions
@@ -555,7 +521,7 @@ PopoutWrapperBase {
   PanelWindow {
     id: underWindow
     screen: root.screen
-    visible: root.underBar && root.occupied && (root.contentReady || still.switching)
+    visible: root.underBar && still.showing
     color: "transparent"
 
     // On the bar's layer, ordered under it (HyprlandManager's layer rules).
@@ -621,7 +587,7 @@ PopoutWrapperBase {
 
     edge: root.barConfig.location
     castShadow: true
-    active: root.occupied && !root.isClosing && (root.contentReady || still.switching)
+    active: still.showing && !root.isClosing
     connectorGap: root.connectorGap
     boxWidth: root.shownBoxWidth
     // A submenu's stretch: along the bar on a vertical one, away from it
@@ -630,36 +596,20 @@ PopoutWrapperBase {
     // Square where a submenu runs flush to the box's end
     startCornerRadius: root.squareStartCorner ? 0 : surface.cornerRadius
     endCornerRadius: root.squareEndCorner ? 0 : surface.cornerRadius
-    Behavior on startCornerRadius {
-      enabled: root._settled
-      NumberAnimation {
-        duration: Appearance.animFast
-        easing.type: Appearance.easing
-      }
+    Glide on startCornerRadius {
+      enabled: still.settled
     }
     // A detached box's near corner too, where one runs flush to its bar side
     startNearRadius: root.squareStartNear ? 0 : Appearance.borderRadius
     endNearRadius: root.squareEndNear ? 0 : Appearance.borderRadius
-    Behavior on startNearRadius {
-      enabled: root._settled
-      NumberAnimation {
-        duration: Appearance.animFast
-        easing.type: Appearance.easing
-      }
+    Glide on startNearRadius {
+      enabled: still.settled
     }
-    Behavior on endNearRadius {
-      enabled: root._settled
-      NumberAnimation {
-        duration: Appearance.animFast
-        easing.type: Appearance.easing
-      }
+    Glide on endNearRadius {
+      enabled: still.settled
     }
-    Behavior on endCornerRadius {
-      enabled: root._settled
-      NumberAnimation {
-        duration: Appearance.animFast
-        easing.type: Appearance.easing
-      }
+    Glide on endCornerRadius {
+      enabled: still.settled
     }
 
     // A transparent bar has nothing to join onto
@@ -730,6 +680,7 @@ PopoutWrapperBase {
       SwitchStill {
         id: still
         contentReady: root.contentReady
+        occupied: root.occupied
         snapshot: () => ({
               "start": root.shownBoxStart,
               "width": root.shownBoxWidth,

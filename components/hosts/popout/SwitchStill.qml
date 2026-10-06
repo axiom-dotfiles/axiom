@@ -10,6 +10,10 @@ import qs.config
 // it was (`held`: what `snapshot` returned as the switch began), and hides
 // the new content, which then fades in by `contentOpacity`. Asked again
 // mid-switch, the latest payload wins.
+// A host that also gives it `occupied` (BarPopouts) gets `showing` (open
+// with something to show: ready content, or a switch held) and `settled`
+// (set a tick after it first shows, so the box opens at its size and only
+// animates after), and the still ends itself as the host closes.
 Image {
   id: root
 
@@ -22,6 +26,25 @@ Image {
   readonly property bool holding: _switching && !contentReady
   readonly property var held: _held
   readonly property real contentOpacity: _contentOpacity
+
+  // The host is open
+  property bool occupied: false
+  readonly property bool showing: occupied && (contentReady || _switching)
+  readonly property bool settled: _settled
+  property bool _settled: false
+  function _settle() {
+    root._settled = root.showing;
+  }
+  onShowingChanged: {
+    if (!root.showing)
+      root._settled = false;
+    else
+      Qt.callLater(root._settle);
+  }
+  onOccupiedChanged: {
+    if (!root.occupied)
+      root.end();
+  }
 
   property bool _grabbing: false
   // Bumped by end(), so a grab still in flight when the host closed (or

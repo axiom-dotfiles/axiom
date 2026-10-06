@@ -41,10 +41,8 @@ Item {
     radius: Widget.radius
     color: root.isMuted ? Theme.backgroundHighlight : Qt.alpha(Theme.backgroundHighlight, 0)
 
-    Behavior on color {
-      ColorAnimation {
-        duration: Appearance.animNormal
-      }
+    ColorGlide on color {
+      duration: Appearance.animNormal
     }
   }
 

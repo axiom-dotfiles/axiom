@@ -25,10 +25,8 @@ TabButton {
     verticalAlignment: Text.AlignVCenter
     elide: Text.ElideRight
 
-    Behavior on color {
-      ColorAnimation {
-        duration: Appearance.animNormal
-      }
+    ColorGlide on color {
+      duration: Appearance.animNormal
     }
   }
 

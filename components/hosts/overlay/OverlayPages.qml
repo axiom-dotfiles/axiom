@@ -3,6 +3,7 @@ import QtQuick
 import qs.config
 import qs.services
 import qs.components.views
+import qs.components.reusable
 
 Item {
   id: root
@@ -141,18 +142,12 @@ Item {
     width: root.implicitWidth
     clip: true
 
-    Behavior on height {
-      NumberAnimation {
-        duration: Appearance.animNormal
-        easing.type: Appearance.easing
-      }
+    Glide on height {
+      duration: Appearance.animNormal
     }
 
-    Behavior on width {
-      NumberAnimation {
-        duration: Appearance.animNormal
-        easing.type: Appearance.easing
-      }
+    Glide on width {
+      duration: Appearance.animNormal
     }
 
     Rectangle {

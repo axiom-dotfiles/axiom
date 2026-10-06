@@ -12,12 +12,7 @@ Rectangle {
   property bool shown: true
 
   property real _reveal: shown ? 1 : 0
-  Behavior on _reveal {
-    NumberAnimation {
-      duration: Appearance.animFast
-      easing.type: Appearance.easing
-    }
-  }
+  Glide on _reveal {}
   property real _bump: 1
 
   visible: _reveal > 0

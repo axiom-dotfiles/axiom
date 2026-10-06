@@ -25,9 +25,5 @@ StyledTextButton {
   hoverColor: inRow ? Qt.alpha(Theme.backgroundAlt, active ? 0 : 0.6) : active ? Theme.accent : Theme.backgroundAlt
   textHoverColor: active ? Theme.background : Theme.foreground
 
-  Behavior on opacity {
-    NumberAnimation {
-      duration: Appearance.animFast
-    }
-  }
+  Glide on opacity {}
 }

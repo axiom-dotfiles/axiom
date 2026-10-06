@@ -48,12 +48,7 @@ PopupWindow {
     // Fades in as the window appears
     opacity: root.visible ? 1 : 0
 
-    Behavior on opacity {
-      NumberAnimation {
-        duration: Appearance.animFast
-        easing.type: Appearance.easing
-      }
-    }
+    Glide on opacity {}
 
     StyledText {
       id: label

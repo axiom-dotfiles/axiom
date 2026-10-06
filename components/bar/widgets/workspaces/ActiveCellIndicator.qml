@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 
 import qs.config
+import qs.components.reusable
 
 // The active workspace's box (or underline) in a bar switcher's row of
 // cells, drawn once over their boxes and under their labels (the row draws
@@ -128,19 +129,13 @@ Item {
     width: root.isVertical ? root.thickness : root.activeLength
     height: root.isVertical ? root.activeLength : root.thickness
 
-    Behavior on x {
+    Glide on x {
       enabled: root._placed && !root._wrapPending && !wrapAnimation.running
-      NumberAnimation {
-        duration: Appearance.animNormal
-        easing.type: Appearance.easing
-      }
+      duration: Appearance.animNormal
     }
-    Behavior on y {
+    Glide on y {
       enabled: root._placed && !root._wrapPending && !wrapAnimation.running
-      NumberAnimation {
-        duration: Appearance.animNormal
-        easing.type: Appearance.easing
-      }
+      duration: Appearance.animNormal
     }
 
     Rectangle {

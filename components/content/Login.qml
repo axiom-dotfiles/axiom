@@ -22,15 +22,18 @@ Card {
   // The box draws its own fields, so no card around it: with the layout's
   // passwordBorder a box hugs them instead of filling the slot
   readonly property bool boxed: root.host?.passwordBorder === true
+  readonly property real rowHeight: Widget.height + Widget.padding
   // A slot shorter than a field (one row on a doubled grid): the box takes
   // all of it, without the card's padding
-  readonly property bool tight: root.height - root.pad * 2 < Widget.height + Widget.padding
+  readonly property bool tight: root.height - root.pad * 2 < root.rowHeight
   readonly property real margin: root.tight ? 0 : root.pad
-  // No room for greetd's messages under the password (beside the user, or
-  // under it): they show in it
   readonly property real room: root.height - root.margin * 2 - (root.boxed ? Widget.padding * 2 : 0)
-  readonly property real rowHeight: Widget.height + Widget.padding
-  readonly property bool inlineMessage: root.room < (root.room >= root.rowHeight * 2 + Widget.spacing ? root.rowHeight * 2 + Widget.spacing : root.rowHeight) + field.messageRoom
+  // The fields' height: the user above the password where both fit (as
+  // LoginField stacks them), else one row beside each other
+  readonly property real stackedHeight: root.rowHeight * 2 + Widget.spacing
+  readonly property real fieldsHeight: root.room >= root.stackedHeight ? root.stackedHeight : root.rowHeight
+  // No room for greetd's messages under the password: they show in it
+  readonly property bool inlineMessage: root.room < root.fieldsHeight + field.messageRoom
 
   color: "transparent"
   border.width: 0

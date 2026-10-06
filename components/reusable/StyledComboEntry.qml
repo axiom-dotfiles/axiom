@@ -154,11 +154,8 @@ Item {
       opacity: 0.7
       // Turns over as the list opens
       rotation: dropdown.opened ? 180 : 0
-      Behavior on rotation {
-        NumberAnimation {
-          duration: Appearance.animNormal
-          easing.type: Appearance.easing
-        }
+      Glide on rotation {
+        duration: Appearance.animNormal
       }
     }
   }
@@ -236,11 +233,7 @@ Item {
         radius: Widget.radius
         color: index === root.highlighted ? Theme.backgroundHighlight : Qt.alpha(Theme.backgroundHighlight, 0)
 
-        Behavior on color {
-          ColorAnimation {
-            duration: Appearance.animFast
-          }
-        }
+        ColorGlide on color {}
 
         RowLayout {
           anchors.fill: parent

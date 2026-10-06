@@ -56,11 +56,7 @@ Rectangle {
   border.width: root.selected ? Math.max(Appearance.borderWidth, 2) : Appearance.borderWidth
   opacity: root.carried ? 0.3 : 1
 
-  Behavior on opacity {
-    NumberAnimation {
-      duration: Appearance.animFast
-    }
-  }
+  Glide on opacity {}
 
   Column {
     anchors.centerIn: parent

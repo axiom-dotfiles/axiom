@@ -131,11 +131,8 @@ ReservedAreaWindow {
     id: slideContainer
     anchors.fill: parent
     opacity: root.steppedAside ? 0 : 1
-    Behavior on opacity {
-      NumberAnimation {
-        duration: Appearance.animNormal
-        easing.type: Appearance.easing
-      }
+    Glide on opacity {
+      duration: Appearance.animNormal
     }
     // Keys nothing inside the overlay handled end up here
     focus: true

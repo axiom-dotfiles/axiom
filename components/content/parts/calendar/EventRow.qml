@@ -25,11 +25,7 @@ Rectangle {
   radius: Widget.radius
   color: area.containsMouse && root.clickable ? Qt.alpha(Theme.backgroundHighlight, 0.7) : Qt.alpha(Theme.backgroundHighlight, 0)
 
-  Behavior on color {
-    ColorAnimation {
-      duration: Appearance.animFast
-    }
-  }
+  ColorGlide on color {}
 
   // Fades in as its list (a day, the agenda) is shown or changes
   NumberAnimation on opacity {

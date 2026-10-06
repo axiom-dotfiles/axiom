@@ -6,6 +6,7 @@ import Quickshell.Hyprland
 
 import qs.config
 import qs.services
+import qs.components.reusable
 
 /**
  * A popout that floats on the screen instead of growing out of an edge
@@ -166,24 +167,14 @@ PopoutWrapperBase {
       opacity: root.isOpen ? 1 : 0
       scale: root.isOpen ? 1 : root.closedScale
       transformOrigin: root.growUp ? Item.Bottom : root.maxContentHeight > 0 ? Item.Top : Item.Center
-      Behavior on opacity {
-        NumberAnimation {
-          duration: Appearance.animNormal
-          easing.type: Appearance.easing
-        }
+      Glide on opacity {
+        duration: Appearance.animNormal
       }
-      Behavior on scale {
-        NumberAnimation {
-          duration: Appearance.animNormal
-          easing.type: Appearance.easing
-        }
+      Glide on scale {
+        duration: Appearance.animNormal
       }
-      Behavior on height {
+      Glide on height {
         enabled: root.animateHeight
-        NumberAnimation {
-          duration: Appearance.animFast
-          easing.type: Appearance.easing
-        }
       }
 
       HoverHandler {

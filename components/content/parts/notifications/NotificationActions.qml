@@ -41,16 +41,8 @@ Flickable {
         color: area.containsMouse ? Theme.accent : Theme.backgroundHighlight
         scale: area.pressed ? 0.95 : 1
 
-        Behavior on color {
-          ColorAnimation {
-            duration: Appearance.animFast
-          }
-        }
-        Behavior on scale {
-          NumberAnimation {
-            duration: Appearance.animFast
-          }
-        }
+        ColorGlide on color {}
+        Glide on scale {}
 
         StyledText {
           id: label

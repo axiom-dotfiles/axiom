@@ -57,12 +57,9 @@ Item {
     appear.start();
     Qt.callLater(() => root._placed = true);
   }
-  Behavior on y {
+  Glide on y {
     enabled: root._placed
-    NumberAnimation {
-      duration: Appearance.animNormal
-      easing.type: Appearance.easing
-    }
+    duration: Appearance.animNormal
   }
   onCountChanged: {
     if (root.count <= 1)
@@ -155,11 +152,7 @@ Item {
         easing.type: Easing.OutCubic
       }
     }
-    Behavior on color {
-      ColorAnimation {
-        duration: Appearance.animFast
-      }
-    }
+    ColorGlide on color {}
 
     HoverHandler {
       id: hover
@@ -234,11 +227,7 @@ Item {
               textColor: Theme.foregroundAlt
               textSize: Appearance.fontSize - 3
 
-              Behavior on opacity {
-                NumberAnimation {
-                  duration: Appearance.animFast
-                }
-              }
+              Glide on opacity {}
             }
 
             StyledIconButton {
@@ -256,11 +245,7 @@ Item {
               tooltipText: I18n.tr(root.count > 1 ? "Dismiss all" : "Dismiss")
               onClicked: root.dismissAll()
 
-              Behavior on opacity {
-                NumberAnimation {
-                  duration: Appearance.animFast
-                }
-              }
+              Glide on opacity {}
             }
           }
 
@@ -296,12 +281,9 @@ Item {
           // Glides up into the room an entry dismissed above it leaves
           property bool placed: false
           Component.onCompleted: Qt.callLater(() => row.placed = true)
-          Behavior on y {
+          Glide on y {
             enabled: row.placed
-            NumberAnimation {
-              duration: Appearance.animNormal
-              easing.type: Appearance.easing
-            }
+            duration: Appearance.animNormal
           }
 
           StyledSeparator {

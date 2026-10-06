@@ -107,11 +107,7 @@ Item {
     border.width: root.hovered || root.resizing ? Appearance.borderWidth * 2 : Appearance.borderWidth
     border.color: root.resizing || root.hovered ? Theme.accent : root.focused ? Theme.borderFocus : Theme.border
 
-    Behavior on border.color {
-      ColorAnimation {
-        duration: Appearance.animFast
-      }
-    }
+    ColorGlide on border.color {}
   }
 
   // App icon badge, once there's a capture to put it on

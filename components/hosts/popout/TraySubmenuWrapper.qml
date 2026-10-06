@@ -5,6 +5,7 @@ import qs.config
 import qs.services
 import qs.components.methods
 import qs.components.content.parts
+import qs.components.reusable
 
 /**
  * Popout wrapper for tray submenus.
@@ -150,26 +151,14 @@ Item {
       else
         Qt.callLater(() => root._settled = root.occupied && (root.contentReady || still.switching));
     }
-    Behavior on shownBoxWidth {
+    Glide on shownBoxWidth {
       enabled: root._settled
-      NumberAnimation {
-        duration: Appearance.animFast
-        easing.type: Appearance.easing
-      }
     }
-    Behavior on shownBoxHeight {
+    Glide on shownBoxHeight {
       enabled: root._settled
-      NumberAnimation {
-        duration: Appearance.animFast
-        easing.type: Appearance.easing
-      }
     }
-    Behavior on shownBoxStart {
+    Glide on shownBoxStart {
       enabled: root._settled
-      NumberAnimation {
-        duration: Appearance.animFast
-        easing.type: Appearance.easing
-      }
     }
 
     // The widest surface since it opened, and the furthest it reached past

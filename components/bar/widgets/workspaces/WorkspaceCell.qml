@@ -64,19 +64,11 @@ Item {
     border.color: root._clearActive ? Qt.alpha(root.look.stroke, 0) : root.look.stroke
     border.width: root.barConfig.widgetStyle === "outline" ? root.barConfig.outlineWidth : 0
 
-    Behavior on color {
+    ColorGlide on color {
       enabled: root.animated
-      ColorAnimation {
-        duration: Appearance.animFast
-        easing.type: Appearance.easing
-      }
     }
-    Behavior on border.color {
+    ColorGlide on border.color {
       enabled: root.animated
-      ColorAnimation {
-        duration: Appearance.animFast
-        easing.type: Appearance.easing
-      }
     }
   }
 
@@ -86,12 +78,8 @@ Item {
     visible: root._drawsBox && root.barConfig.widgetStyle === "underline"
     color: root._clearActive ? Qt.alpha(root.look.indicator, 0) : root.look.indicator
 
-    Behavior on color {
+    ColorGlide on color {
       enabled: root.animated
-      ColorAnimation {
-        duration: Appearance.animFast
-        easing.type: Appearance.easing
-      }
     }
   }
 
@@ -107,12 +95,8 @@ Item {
     radius: size / 2
     color: root.look.content
 
-    Behavior on color {
+    ColorGlide on color {
       enabled: root.animated
-      ColorAnimation {
-        duration: Appearance.animFast
-        easing.type: Appearance.easing
-      }
     }
   }
 
@@ -142,12 +126,8 @@ Item {
     textSize: root.barConfig.fontSize - 1
     font.bold: root.isActive && !root.boxed
 
-    Behavior on color {
+    ColorGlide on color {
       enabled: root.animated
-      ColorAnimation {
-        duration: Appearance.animFast
-        easing.type: Appearance.easing
-      }
     }
   }
 
@@ -162,18 +142,12 @@ Item {
 
   // As the row's ActiveCellIndicator slides, so a widened active cell
   // grows and shrinks under it
-  Behavior on width {
+  Glide on width {
     enabled: root.animated
-    NumberAnimation {
-      duration: Appearance.animNormal
-      easing.type: Appearance.easing
-    }
+    duration: Appearance.animNormal
   }
-  Behavior on height {
+  Glide on height {
     enabled: root.animated
-    NumberAnimation {
-      duration: Appearance.animNormal
-      easing.type: Appearance.easing
-    }
+    duration: Appearance.animNormal
   }
 }

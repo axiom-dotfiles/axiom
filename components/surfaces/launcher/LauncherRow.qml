@@ -55,11 +55,7 @@ Item {
     anchors.rightMargin: 6
     radius: Widget.radius
     color: root.current ? Qt.alpha(Theme.accent, 0.14) : area.containsMouse && root.pointerActive ? Theme.backgroundHighlight : Qt.alpha(Theme.backgroundHighlight, 0)
-    Behavior on color {
-      ColorAnimation {
-        duration: Appearance.animFast
-      }
-    }
+    ColorGlide on color {}
 
     Rectangle {
       width: 3
@@ -70,11 +66,7 @@ Item {
       anchors.verticalCenter: parent.verticalCenter
       color: Theme.accent
       opacity: root.current ? 1 : 0
-      Behavior on opacity {
-        NumberAnimation {
-          duration: Appearance.animFast
-        }
-      }
+      Glide on opacity {}
     }
   }
 
@@ -115,11 +107,7 @@ Item {
         visible: !root._image
         radius: Widget.radius
         color: root._emoji ? "transparent" : root.current ? Qt.alpha(Theme.accent, 0.18) : Theme.backgroundAlt
-        Behavior on color {
-          ColorAnimation {
-            duration: Appearance.animFast
-          }
-        }
+        ColorGlide on color {}
 
         StyledIcon {
           anchors.centerIn: parent
@@ -147,11 +135,7 @@ Item {
           textColor: root._titleColor
           font.weight: Font.Medium
           elide: Text.ElideRight
-          Behavior on color {
-            ColorAnimation {
-              duration: Appearance.animFast
-            }
-          }
+          ColorGlide on color {}
         }
 
         StyledText {

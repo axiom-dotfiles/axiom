@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import qs.config
+import qs.components.reusable
 
 // One page of the overlay: shown when it's the current page, sliding in
 // from the side the navigation came from (`direction`), while the page it
@@ -51,11 +52,8 @@ Item {
     id: slideTransform
   }
 
-  Behavior on opacity {
-    NumberAnimation {
-      duration: Appearance.animNormal
-      easing.type: Appearance.easing
-    }
+  Glide on opacity {
+    duration: Appearance.animNormal
   }
 
   NumberAnimation {

@@ -47,16 +47,8 @@ Rectangle {
   border.width: Appearance.borderWidth
   clip: true
 
-  Behavior on color {
-    ColorAnimation {
-      duration: Appearance.animFast
-    }
-  }
-  Behavior on border.color {
-    ColorAnimation {
-      duration: Appearance.animFast
-    }
-  }
+  ColorGlide on color {}
+  ColorGlide on border.color {}
 
   TextMetrics {
     id: labelMetrics
@@ -85,17 +77,8 @@ Rectangle {
         radius: Math.min(Widget.radius * 1.5, width / 2)
         color: root.active ? Qt.rgba(0, 0, 0, 0.12) : root.hot ? Qt.alpha(root.tone, 0.16) : Theme.background
 
-        Behavior on color {
-          ColorAnimation {
-            duration: Appearance.animFast
-          }
-        }
-        Behavior on width {
-          NumberAnimation {
-            duration: Appearance.animFast
-            easing.type: Appearance.easing
-          }
-        }
+        ColorGlide on color {}
+        Glide on width {}
 
         StyledIcon {
           anchors.centerIn: parent

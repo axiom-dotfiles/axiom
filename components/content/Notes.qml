@@ -150,11 +150,7 @@ Card {
         radius: Widget.radius / 2
         color: !root.locked && (root.browserOpen || chipHover.hovered) ? Theme.backgroundHighlight : Qt.alpha(Theme.backgroundHighlight, 0)
 
-        Behavior on color {
-          ColorAnimation {
-            duration: Appearance.animFast
-          }
-        }
+        ColorGlide on color {}
 
         RowLayout {
           anchors.fill: parent

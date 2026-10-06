@@ -42,11 +42,7 @@ RowLayout {
       duration: Appearance.animSlow * 4
     }
 
-    Behavior on opacity {
-      NumberAnimation {
-        duration: Appearance.animFast
-      }
-    }
+    Glide on opacity {}
   }
 
   StyledSwitch {

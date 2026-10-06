@@ -49,16 +49,8 @@ Rectangle {
   color: root.connected || root.selected ? Theme.backgroundHighlight : rowHover.hovered ? Qt.alpha(Theme.backgroundHighlight, 0.5) : Qt.alpha(Theme.backgroundHighlight, 0)
   clip: true
 
-  Behavior on color {
-    ColorAnimation {
-      duration: Appearance.animFast
-    }
-  }
-  Behavior on implicitHeight {
-    NumberAnimation {
-      duration: Appearance.animFast
-    }
-  }
+  ColorGlide on color {}
+  Glide on implicitHeight {}
 
   HoverHandler {
     id: rowHover
@@ -145,11 +137,7 @@ Rectangle {
         root._confirmForget = !root._confirmForget;
       }
 
-      Behavior on opacity {
-        NumberAnimation {
-          duration: Appearance.animFast
-        }
-      }
+      Glide on opacity {}
     }
 
     StyledRectButton {

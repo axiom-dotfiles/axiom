@@ -4,6 +4,7 @@ import QtQuick.Shapes
 
 import qs.config
 import qs.components.methods
+import qs.components.reusable
 
 // What a bar widget sits on, in its bar's widget style (widgetStyle,
 // widgetShape): a fill or outline shaped by its caps (BarShapes), or for
@@ -111,16 +112,8 @@ Item {
     strokeWidth: root._fill === "outline" ? root.barConfig.outlineWidth : 0
 
     // State changes (mute, a warning level) recolour smoothly
-    Behavior on fillColor {
-      ColorAnimation {
-        duration: Appearance.animFast
-      }
-    }
-    Behavior on strokeColor {
-      ColorAnimation {
-        duration: Appearance.animFast
-      }
-    }
+    ColorGlide on fillColor {}
+    ColorGlide on strokeColor {}
   }
 
   // Along the side toward the windows (inner) or the screen edge (outer)
@@ -138,11 +131,7 @@ Item {
     width: vertical ? thickness : root.width
     height: vertical ? root.height : thickness
 
-    Behavior on color {
-      ColorAnimation {
-        duration: Appearance.animFast
-      }
-    }
+    ColorGlide on color {}
   }
 
   ShapedBox {
@@ -153,11 +142,7 @@ Item {
     endCap: root.endCap
     fillColor: Qt.alpha(root.colors?.text ?? Theme.foreground, root.pressed && root.colors !== null ? 0.2 : 0)
 
-    Behavior on fillColor {
-      ColorAnimation {
-        duration: Appearance.animFast
-      }
-    }
+    ColorGlide on fillColor {}
   }
 
   ShapedBox {
@@ -179,10 +164,8 @@ Item {
     strokeColor: root.hovered ? Theme.border : Qt.alpha(Theme.border, 0)
     strokeWidth: Appearance.borderWidth
 
-    Behavior on strokeColor {
-      ColorAnimation {
-        duration: Appearance.animNormal
-      }
+    ColorGlide on strokeColor {
+      duration: Appearance.animNormal
     }
   }
 }

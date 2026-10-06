@@ -69,11 +69,7 @@ BaseWidget {
           text: root._iconLines[index] ?? ""
           textSize: root.fontSize * root.iconScale
 
-          Behavior on color {
-            ColorAnimation {
-              duration: Appearance.animFast
-            }
-          }
+          ColorGlide on color {}
         }
       }
     }
@@ -99,11 +95,7 @@ BaseWidget {
         font.family: Appearance.fontFamily
         font.pixelSize: root.fontSize * root.textScale
 
-        Behavior on color {
-          ColorAnimation {
-            duration: Appearance.animFast
-          }
-        }
+        ColorGlide on color {}
       }
     }
   }

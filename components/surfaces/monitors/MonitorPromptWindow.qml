@@ -43,11 +43,7 @@ PanelWindow {
     radius: Appearance.borderRadius
     opacity: root.shown ? 1 : 0
 
-    Behavior on opacity {
-      NumberAnimation {
-        duration: Appearance.animFast
-      }
-    }
+    Glide on opacity {}
 
     ColumnLayout {
       id: content

@@ -320,12 +320,8 @@ FocusScope {
       Layout.preferredHeight: drawnHeight
       clip: drawnHeight !== targetHeight
       property real drawnHeight: targetHeight
-      Behavior on drawnHeight {
+      Glide on drawnHeight {
         enabled: root._settled
-        NumberAnimation {
-          duration: Appearance.animFast
-          easing.type: Appearance.easing
-        }
       }
 
       ListView {

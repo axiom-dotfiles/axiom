@@ -7,6 +7,7 @@ import qs.config
 import qs.services
 import qs.components.methods
 import qs.components.hosts.popout
+import qs.components.reusable
 
 // One dock (a DockEntry) on one screen: a strip along its edge, inside the
 // bars and border, holding a box of app icons. Its box meets the edge as an
@@ -145,12 +146,7 @@ Scope {
   // far the icons have grown towards it (animated in and out)
   property real pointer: -1
   property real magnifyAmount: root.dock.magnify && hover.hovered && root.dragIndex < 0 ? 1 : 0
-  Behavior on magnifyAmount {
-    NumberAnimation {
-      duration: Appearance.animFast
-      easing.type: Appearance.easing
-    }
-  }
+  Glide on magnifyAmount {}
   readonly property real _step: root.base + root.spacing
   readonly property var sizes: {
     let p = root.pointer - root.strokeInset - root.restStart - root.pad;
@@ -183,11 +179,8 @@ Scope {
   // --- Across the dock ---
   // How far it has slid in (0 hidden, 1 shown)
   property real shown: root.wantShown ? 1 : 0
-  Behavior on shown {
-    NumberAnimation {
-      duration: Appearance.animNormal
-      easing.type: Appearance.easing
-    }
+  Glide on shown {
+    duration: Appearance.animNormal
   }
   readonly property real slide: (1 - root.shown) * root.depth
 

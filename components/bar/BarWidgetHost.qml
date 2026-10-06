@@ -5,6 +5,7 @@ import qs.components.methods
 // Imported (though modules load by URL) so qs scans the modules directory:
 // without it, types there (e.g. BarIconWidget) aren't visible to each other
 import qs.components.bar.widgets // qmllint disable unused-imports
+import qs.components.reusable
 
 // Hosts one bar module and turns its sizing contract into the numbers the
 // bar layout works with. A module may declare any of these on its root item:
@@ -124,39 +125,18 @@ Item {
   readonly property real _drawnMain: isVertical ? height : width
   readonly property bool _resizing: Math.abs(_drawnMain - mainSize) > 0.5
 
-  Behavior on opacity {
-    NumberAnimation {
-      duration: Appearance.animFast
-      easing.type: Appearance.easing
-    }
-  }
-  Behavior on x {
+  Glide on opacity {}
+  Glide on x {
     enabled: root._settled
-    NumberAnimation {
-      duration: Appearance.animFast
-      easing.type: Appearance.easing
-    }
   }
-  Behavior on y {
+  Glide on y {
     enabled: root._settled
-    NumberAnimation {
-      duration: Appearance.animFast
-      easing.type: Appearance.easing
-    }
   }
-  Behavior on width {
+  Glide on width {
     enabled: root._settled
-    NumberAnimation {
-      duration: Appearance.animFast
-      easing.type: Appearance.easing
-    }
   }
-  Behavior on height {
+  Glide on height {
     enabled: root._settled
-    NumberAnimation {
-      duration: Appearance.animFast
-      easing.type: Appearance.easing
-    }
   }
 
   // Created with its inputs already set, so the module's own bindings

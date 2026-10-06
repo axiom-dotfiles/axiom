@@ -49,19 +49,13 @@ Item {
       color: Theme.accent
     }
 
-    Behavior on x {
+    Glide on x {
       enabled: root._settled
-      NumberAnimation {
-        duration: Appearance.animNormal
-        easing.type: Appearance.easing
-      }
+      duration: Appearance.animNormal
     }
-    Behavior on width {
+    Glide on width {
       enabled: root._settled
-      NumberAnimation {
-        duration: Appearance.animNormal
-        easing.type: Appearance.easing
-      }
+      duration: Appearance.animNormal
     }
   }
 

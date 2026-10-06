@@ -134,11 +134,7 @@ Rectangle {
       }
     }
 
-    Behavior on color {
-      ColorAnimation {
-        duration: Appearance.animFast
-      }
-    }
+    ColorGlide on color {}
   }
 
   RowLayout {
@@ -268,11 +264,7 @@ Rectangle {
                 }
               }
 
-              Behavior on color {
-                ColorAnimation {
-                  duration: Appearance.animFast
-                }
-              }
+              ColorGlide on color {}
             }
           }
         }

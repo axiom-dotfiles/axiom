@@ -14,10 +14,8 @@ PopInRectangle {
   radius: height / 2
   color: Theme.foregroundAlt
 
-  Behavior on color {
-    ColorAnimation {
-      duration: Appearance.animNormal
-    }
+  ColorGlide on color {
+    duration: Appearance.animNormal
   }
 
   StyledText {

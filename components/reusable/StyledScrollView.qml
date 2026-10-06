@@ -22,10 +22,8 @@ ScrollView {
   ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
 
   ScrollBar.vertical {
-    Behavior on opacity {
-      NumberAnimation {
-        duration: Appearance.animNormal
-      }
+    Glide on opacity {
+      duration: Appearance.animNormal
     }
 
     contentItem: Rectangle {
@@ -35,10 +33,8 @@ ScrollView {
       opacity: parent.pressed ? 0.8 : 0.4
       visible: root.showScrollBar
 
-      Behavior on opacity {
-        NumberAnimation {
-          duration: Appearance.animNormal
-        }
+      Glide on opacity {
+        duration: Appearance.animNormal
       }
     }
 

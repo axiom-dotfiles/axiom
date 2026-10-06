@@ -7,6 +7,7 @@ import qs.config
 import qs.services
 import qs.components.methods
 import qs.components.hosts.popout
+import qs.components.reusable
 
 // Lays out a bar's five widget sections along its main axis in one pass,
 // so they can never overlap: `left`/`right` hug the ends, `center` stays
@@ -145,18 +146,8 @@ Rectangle {
       property real before: target && rect ? Math.max(0, rect.start - target.start) : 0
       property real after: target && rect ? Math.max(0, target.end - rect.start - rect.length) : 0
 
-      Behavior on before {
-        NumberAnimation {
-          duration: Appearance.animFast
-          easing.type: Appearance.easing
-        }
-      }
-      Behavior on after {
-        NumberAnimation {
-          duration: Appearance.animFast
-          easing.type: Appearance.easing
-        }
-      }
+      Glide on before {}
+      Glide on after {}
     }
   }
   // The stretches as drawn (see stretchOf), one per pill reaching past
@@ -295,19 +286,11 @@ Rectangle {
     property real drawnLength: section.usedLength
     property bool _settled: false
     Component.onCompleted: Qt.callLater(() => section._settled = true)
-    Behavior on drawnPos {
+    Glide on drawnPos {
       enabled: section._settled
-      NumberAnimation {
-        duration: Appearance.animFast
-        easing.type: Appearance.easing
-      }
     }
-    Behavior on drawnLength {
+    Glide on drawnLength {
       enabled: section._settled
-      NumberAnimation {
-        duration: Appearance.animFast
-        easing.type: Appearance.easing
-      }
     }
 
     x: section.bar.isVertical ? section.crossPos : section.drawnPos
@@ -391,16 +374,8 @@ Rectangle {
         bottomLeftRadius: root.barConfig.top ? startInner : root.barConfig.right ? endInner : corner
         bottomRightRadius: root.barConfig.top || root.barConfig.left ? endInner : corner
 
-        Behavior on startInner {
-          NumberAnimation {
-            duration: Appearance.animFast
-          }
-        }
-        Behavior on endInner {
-          NumberAnimation {
-            duration: Appearance.animFast
-          }
-        }
+        Glide on startInner {}
+        Glide on endInner {}
       }
     }
 
@@ -442,16 +417,8 @@ Rectangle {
         startCornerRadius: span.squareStart ? 0 : cornerRadius
         endCornerRadius: span.squareEnd ? 0 : cornerRadius
 
-        Behavior on startCornerRadius {
-          NumberAnimation {
-            duration: Appearance.animFast
-          }
-        }
-        Behavior on endCornerRadius {
-          NumberAnimation {
-            duration: Appearance.animFast
-          }
-        }
+        Glide on startCornerRadius {}
+        Glide on endCornerRadius {}
 
         width: implicitWidth
         height: implicitHeight

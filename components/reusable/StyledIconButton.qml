@@ -32,11 +32,7 @@ ToolButton {
   opacity: enabled ? 1.0 : 0.4
   scale: root.pressed ? 0.92 : 1.0
 
-  Behavior on scale {
-    NumberAnimation {
-      duration: Appearance.animFast
-    }
-  }
+  Glide on scale {}
 
   HoverHandler {
     cursorShape: Qt.PointingHandCursor
@@ -64,10 +60,8 @@ ToolButton {
     border.width: root.borderWidth
     radius: root.borderRadius
 
-    Behavior on color {
-      ColorAnimation {
-        duration: Appearance.animNormal
-      }
+    ColorGlide on color {
+      duration: Appearance.animNormal
     }
   }
 }
