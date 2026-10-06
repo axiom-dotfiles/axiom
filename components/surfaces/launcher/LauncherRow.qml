@@ -27,6 +27,27 @@ Item {
   readonly property bool _emoji: modelData.kind === "emoji"
   readonly property color _titleColor: current ? Theme.accent : Theme.foreground
 
+  // Rows are reused as the results change: one showing a different result
+  // than before dips and comes back, icon and text together. Not on its
+  // first, which the list's `add` fades in.
+  readonly property string _resultKey: (modelData.kind ?? "") + "\n" + (modelData.title ?? "")
+  property bool _placed: false
+  Component.onCompleted: Qt.callLater(() => root._placed = true)
+  on_ResultKeyChanged: {
+    if (root._placed && Appearance.animations)
+      refresh.restart();
+  }
+
+  NumberAnimation {
+    id: refresh
+    target: content
+    property: "opacity"
+    from: 0.6
+    to: 1
+    duration: Appearance.animFast
+    easing.type: Appearance.easing
+  }
+
   // Selection pill with an accent bar
   Rectangle {
     anchors.fill: parent
@@ -67,6 +88,7 @@ Item {
   }
 
   RowLayout {
+    id: content
     anchors.fill: parent
     anchors.leftMargin: 20
     anchors.rightMargin: 18
@@ -117,22 +139,17 @@ Item {
         Layout.fillWidth: true
         spacing: 8
 
-        // Rows are reused as the results change: their text cross-fades
-        CrossFade {
+        StyledText {
           Layout.fillWidth: usage.text === ""
-          value: root.modelData.title ?? ""
-          delegate: StyledText {
-            required property var value
-            text: value
-            // Titles are clipboard text, window titles, file names: never markup
-            textFormat: Text.PlainText
-            textColor: root._titleColor
-            font.weight: Font.Medium
-            elide: Text.ElideRight
-            Behavior on color {
-              ColorAnimation {
-                duration: Appearance.animFast
-              }
+          text: root.modelData.title ?? ""
+          // Titles are clipboard text, window titles, file names: never markup
+          textFormat: Text.PlainText
+          textColor: root._titleColor
+          font.weight: Font.Medium
+          elide: Text.ElideRight
+          Behavior on color {
+            ColorAnimation {
+              duration: Appearance.animFast
             }
           }
         }
@@ -149,18 +166,14 @@ Item {
         }
       }
 
-      CrossFade {
+      StyledText {
         Layout.fillWidth: true
-        visible: LauncherConfig.showDescriptions && value !== ""
-        value: root.modelData.subtitle ?? ""
-        delegate: StyledText {
-          required property var value
-          text: value
-          textFormat: Text.PlainText
-          textColor: Theme.foregroundAlt
-          textSize: Appearance.fontSize - 2
-          elide: Text.ElideRight
-        }
+        visible: LauncherConfig.showDescriptions && text !== ""
+        text: root.modelData.subtitle ?? ""
+        textFormat: Text.PlainText
+        textColor: Theme.foregroundAlt
+        textSize: Appearance.fontSize - 2
+        elide: Text.ElideRight
       }
     }
 
