@@ -16,6 +16,9 @@ import qs.components.hosts.popout
 // magnified icons, and only the box (and icons grown out of it) take
 // input. Always shown docks may reserve their strip; hover and
 // intellihide docks slide in from the edge through an EdgeTrigger.
+// As a `preview` (the settings card's Show, DockManager.preview) it's a
+// copy over the overlay that only slides in and out: no trigger, zone,
+// input or IPC.
 // Everything along the dock is laid out here (`starts`, `sizes`), and each
 // DockItem places itself from that.
 Scope {
@@ -23,6 +26,8 @@ Scope {
 
   required property ShellScreen screen
   required property var dock
+  // The settings card's Show (see the top)
+  property bool preview: false
 
   readonly property int edge: Bar.getLocationFromString(root.dock.edge)
   readonly property bool vertical: root.edge === Bar.Left || root.edge === Bar.Right
@@ -96,7 +101,9 @@ Scope {
   readonly property real attachClearance: root.merged ? root.pillFoot : 0
   // An attached window's edge sits on its attach edge (reaching back onto
   // the stroke it joins, as EdgePopout's)
-  readonly property real edgeMargin: root.attached ? root.attachAt - root.reservedHere - root.backfill : 0
+  // A preview reserves nothing, so the docks' zones on its edge push it in:
+  // it reaches back past them to where a dock sits
+  readonly property real edgeMargin: (root.attached ? root.attachAt - root.reservedHere - root.backfill : 0) - (root.preview ? DockManager.zoneOn(root.screen?.name ?? "", root._edgeName) : 0)
   // From the window's edge to the box of icons
   readonly property real boxOffset: {
     if (root.attached)
@@ -179,7 +186,7 @@ Scope {
   // The island (or pill) stretched to carry it while it shows
   PillStretch {
     container: root.container
-    owner: "dock:" + root.dock.id + ":" + (root.screen?.name ?? "")
+    owner: "dock:" + root.dock.id + ":" + (root.screen?.name ?? "") + (root.preview ? ":preview" : "")
     stretch: root.shown > 0 && root.count > 0 && root.place.stretch ? Object.assign({}, root.place.stretch, {
       "start": root.place.stretch.start + root.barShift,
       "end": root.place.stretch.end + root.barShift
@@ -285,19 +292,30 @@ Scope {
   // An edge OSD or floating edge menu on its edge puts it away too, a
   // reserving one included: that keeps its zone, so nothing retiles
   readonly property bool outranked: ShellManager.edgeOutranked(root.screen?.name ?? "", root._edgeName, "dock")
-  readonly property bool away: root.underOverlay || root.outranked
+  readonly property bool away: !root.preview && (root.underOverlay || root.outranked)
+  // Its preview shows in its place, so it hides at once (keeping its zone)
+  readonly property bool previewed: !root.preview && DockManager.previewing(root.dock.id, root.screen)
+  // A preview slides in once it's built (a Behavior doesn't animate the
+  // value it's created with)
+  property bool _entered: false
+  Component.onCompleted: {
+    if (root.preview)
+      Qt.callLater(() => root._entered = true);
+  }
   onAwayChanged: {
     if (root.away)
       root.conceal();
   }
   readonly property bool wantShown: {
+    if (root.preview)
+      return root._entered && DockManager.previewShown;
     if (root.away)
       return false;
     if (root.mode === "always")
       return !root.hiddenByHand;
     return root.latched || root.engaged || (root.mode === "intellihide" && !root.obscured);
   }
-  readonly property bool reserving: root.mode === "always" && root.dock.reserveSpace && !root.hiddenByHand && root.count > 0
+  readonly property bool reserving: !root.preview && root.mode === "always" && root.dock.reserveSpace && !root.hiddenByHand && root.count > 0
 
   // The shown box on the monitor (its work area's origin being the
   // reserved zones' corner), for intellihide
@@ -344,6 +362,7 @@ Scope {
 
   Connections {
     target: DockManager
+    enabled: !root.preview
 
     function onRevealRequested(id) {
       if (id === root.dock.id)
@@ -391,7 +410,7 @@ Scope {
   EdgeTrigger {
     id: trigger
     screen: root.screen
-    visible: root.mode !== "always" && !root.fullscreen && !root.away && root.count > 0
+    visible: !root.preview && root.mode !== "always" && !root.fullscreen && !root.away && root.count > 0
     edge: root.edge
     // Placed along the work area (inside the reserved zones), as the dock is
     position: 0
@@ -413,9 +432,10 @@ Scope {
 
     // Top, with its layer rule ordering it after the border and bars: it
     // sits inside them without shortening the bars on the other edges. A
-    // fullscreen window covers it.
-    WlrLayershell.layer: WlrLayer.Top
-    WlrLayershell.namespace: "axiom-dock"
+    // fullscreen window covers it. A preview is on Overlay, its rule
+    // ordering it after the overlay's panel.
+    WlrLayershell.layer: root.preview ? WlrLayer.Overlay : WlrLayer.Top
+    WlrLayershell.namespace: root.preview ? "axiom-dock-preview" : "axiom-dock"
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
     exclusionMode: ExclusionMode.Normal
     // Hyprland counts the edge margin into it, so windows start at the box
@@ -429,7 +449,7 @@ Scope {
     // Where it's reported. The zone set last is kept, so moving the dock to
     // another edge (or renaming it) moves its zone instead of leaving the
     // old one behind, and destruction clears it even once `dock` is gone.
-    readonly property var zoneKey: root.dock ? [root.screen?.name ?? "", root._edgeName, root.dock.id] : null
+    readonly property var zoneKey: root.dock && !root.preview ? [root.screen?.name ?? "", root._edgeName, root.dock.id] : null
     property var _zoneSet: null
     function _publishZone() {
       const key = window.zoneKey;
@@ -470,7 +490,8 @@ Scope {
 
     // The box and the icons grown out of it, and the gap to the edge (so
     // the pointer doesn't leave the dock on its way from the edge); nothing
-    // while it's hidden. Pills it merges around stay hoverable through its
+    // while it's hidden, or for a preview (the overlay under it keeps the
+    // pointer). Pills it merges around stay hoverable through its
     // notches.
     mask: Region {
       item: inputArea
@@ -479,7 +500,7 @@ Scope {
 
     Variants {
       id: notchRegions
-      model: root.attached ? surface.notchRects : []
+      model: root.attached && !root.preview ? surface.notchRects : []
 
       Region {
         required property rect modelData
@@ -494,8 +515,9 @@ Scope {
     Item {
       id: inputArea
       readonly property real alongStart: root.surfaceBoxStart
-      readonly property real alongLength: root.shown > 0 ? root.surfaceBoxLength : 0
-      readonly property real crossDepth: root.shown > 0 ? root.boxOffset + root.thickness + root.grown : 0
+      readonly property bool open: root.shown > 0 && !root.preview
+      readonly property real alongLength: open ? root.surfaceBoxLength : 0
+      readonly property real crossDepth: open ? root.boxOffset + root.thickness + root.grown : 0
 
       x: root.vertical ? root.crossAt(0, crossDepth) : alongStart
       y: root.vertical ? alongStart : root.crossAt(0, crossDepth)
@@ -506,6 +528,7 @@ Scope {
     Item {
       id: content
       anchors.fill: parent
+      visible: !root.previewed
 
       HoverHandler {
         id: hover

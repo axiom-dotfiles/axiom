@@ -1650,7 +1650,7 @@
     "Docks": "ドック",
     "Add": "追加",
     "Docks are off: turn on Enabled below to show them.": "ドックはオフです。表示するには下の「有効」をオンにしてください。",
-    "Click a spot to place it; fine-tune below. Show slides a hidden dock in.": "クリックで配置し、下で微調整します。「表示」で隠れたドックをスライドインします。",
+    "Click a spot to place it; fine-tune below. Show slides it in for a moment.": "クリックで配置し、下で微調整します。「表示」で少しの間スライドインします。",
     "Show": "表示",
     "Pinned apps": "固定したアプリ",
     "None yet: search below, or right-click a running app on the dock and pick Keep in dock.": "まだありません。下で検索するか、ドック上の実行中のアプリを右クリックして「ドックに固定」を選んでください。",
