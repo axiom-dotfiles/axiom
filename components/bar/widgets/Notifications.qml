@@ -7,36 +7,45 @@ import qs.services
 import qs.components.reusable
 import qs.components.hosts.popout
 
-BarWidget {
+// The notification bell: a badge with the count, the do-not-disturb icon
+// while it's on. Click toggles do-not-disturb, middle click clears every
+// notification; hovering opens the notification list.
+BarIconWidget {
   id: root
 
-  implicitWidth: root.barConfig.widgetSize
-  implicitHeight: root.barConfig.widgetSize
+  icon: NotificationManager.dnd ? "notifications_off" : "notifications"
+  showText: false
+  iconColor: NotificationManager.dnd ? Theme.resolveColor(properties.dndColor) : colors.icon
 
-  hasBackground: true
-  accentColor: Theme.resolveColor(properties.backgroundColor)
-  // Its WidgetGroup outlines it in the bar's widget shape while hovered
-  readonly property bool hoverOutline: true
-  readonly property bool hovered: anchor.hovered
+  clickable: true
+  acceptedButtons: Qt.LeftButton | Qt.MiddleButton
+  onClicked: button => {
+    if (button === Qt.MiddleButton)
+      NotificationManager.clearAll();
+    else
+      NotificationManager.toggleDnd();
+  }
 
-  StyledRectButton {
-    id: button
-    anchors.fill: parent
-    borderRadius: root.barConfig.radius
-    iconSize: root.barConfig.fontSize
+  // On the icon's top-right corner
+  Rectangle {
+    visible: root.properties.showCount && NotificationManager.count > 0
+    x: Math.round((root.width + root.iconLength) / 2 - width / 2)
+    y: 1
+    implicitWidth: Math.max(14, badgeLabel.implicitWidth + 6)
+    implicitHeight: 14
+    radius: height / 2
+    color: Theme.resolveColor(root.properties.badgeColor)
 
-    iconText: NotificationManager.dnd ? "notifications_off" : "notifications"
-    iconColor: NotificationManager.dnd ? Theme.resolveColor(root.properties.dndColor) : root.colors.icon
-    // Its WidgetGroup draws the background and the hover outline
-    backgroundColor: "transparent"
-
-    badgeVisible: root.properties.showCount && NotificationManager.count > 0
-    badgeBackgroundColor: Theme.resolveColor(root.properties.badgeColor)
-    badgeText: NotificationManager.countLabel
+    StyledText {
+      id: badgeLabel
+      anchors.centerIn: parent
+      text: NotificationManager.countLabel
+      textSize: Appearance.fontSize - 4
+      textColor: Theme.background
+    }
   }
 
   PopoutAnchor {
-    id: anchor
     popouts: root.popouts
     panel: root.panel
     hitArea: root.hitArea
