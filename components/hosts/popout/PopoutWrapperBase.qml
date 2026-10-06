@@ -5,7 +5,8 @@ import qs.services
 
 /**
  * Shared state machine for any "popout wrapper": open/close/reopen
- * queueing, and centralized dismiss-on-hover-loss timing.
+ * queueing, switching in place, and centralized dismiss-on-hover-loss
+ * timing.
  *
  * Concrete wrappers (BarPopouts, TraySubmenuWrapper, EdgePopout,
  * FloatingPopout, IntegratedEdgeMenu) use this as their root type and add
@@ -32,6 +33,13 @@ Item {
   property var pendingOpenData: null
   property var pendingOpenAnchor: null
   property bool hasPendingOpen: false
+
+  // Hooks for a wrapper that can move an open popout to another payload in
+  // place rather than closing it first (BarPopouts, to a neighbouring
+  // widget): whether it will for (anchor, data), and what it does first,
+  // calling `done` when ready (the payload waits as the pending open)
+  property var canSwitchTo: (anchor, data) => false
+  property var prepareSwitch: done => done()
 
   // Open and not on its way out
   readonly property bool isOpen: occupied && !isClosing
@@ -163,7 +171,15 @@ Item {
   }
 
   function safeOpenPopout(anchor, data) {
-    if (occupied && !isClosing) {
+    if (occupied && canSwitchTo(anchor, data)) {
+      pendingOpenData = data;
+      pendingOpenAnchor = anchor;
+      hasPendingOpen = true;
+      // Leaving is called off: it stays to take the new payload
+      closeDelayTimer.stop();
+      isClosing = false;
+      prepareSwitch(() => root._openPending());
+    } else if (occupied && !isClosing) {
       pendingOpenData = data;
       pendingOpenAnchor = anchor;
       hasPendingOpen = true;
@@ -201,15 +217,20 @@ Item {
       root.currentAnchor = null;
       root.currentData = null;
       root._lostCursor = null;
-
-      if (root.hasPendingOpen) {
-        root.hasPendingOpen = false;
-        const data = root.pendingOpenData;
-        const anchor = root.pendingOpenAnchor;
-        root.pendingOpenData = null;
-        root.pendingOpenAnchor = null;
-        root.openPopout(anchor, data);
-      }
+      root._openPending();
     }
+  }
+
+  // Opens the pending payload, unless it's closing (which opens it once
+  // closed)
+  function _openPending() {
+    if (!root.hasPendingOpen || root.isClosing)
+      return;
+    root.hasPendingOpen = false;
+    const data = root.pendingOpenData;
+    const anchor = root.pendingOpenAnchor;
+    root.pendingOpenData = null;
+    root.pendingOpenAnchor = null;
+    root.openPopout(anchor, data);
   }
 }
