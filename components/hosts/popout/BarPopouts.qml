@@ -495,12 +495,21 @@ PopoutWrapperBase {
 
     // Size comes from the shared attached shape: the content box wraps
     // the content plus the surface's inset on every side. Across the bar,
-    // the room it may grow into stays too (see spareAcross).
-    implicitWidth: root.barConfig.vertical ? surface.implicitWidth + root.spareAcross : windowTo - windowFrom
-    implicitHeight: root.barConfig.vertical ? windowTo - windowFrom : surface.implicitHeight + root.spareAcross
-    // The surface in this window
-    readonly property real surfaceX: root.barConfig.vertical ? (root.spareBefore ? root.spareAcross : 0) : barX - windowFrom
-    readonly property real surfaceY: root.barConfig.vertical ? barY - windowFrom : (root.spareBefore ? root.spareAcross : 0)
+    // the room it may grow into stays too (see spareAcross). On a bottom
+    // or right bar the window instead takes the screen's whole depth: one
+    // growing there must also move, and the compositor shows the resize a
+    // frame or more before the move, flashing the new size in the old place
+    // (switching in place to taller content). At a fixed size it never does.
+    readonly property real depth: root.spareBefore ? (root.barConfig.vertical ? root.screen.width : root.screen.height) : (root.barConfig.vertical ? surface.implicitWidth : surface.implicitHeight) + root.spareAcross
+    implicitWidth: root.barConfig.vertical ? depth : windowTo - windowFrom
+    implicitHeight: root.barConfig.vertical ? windowTo - windowFrom : depth
+    // The surface in this window: at the bar side of its depth
+    readonly property real surfaceX: root.barConfig.vertical ? (root.spareBefore ? depth - surface.implicitWidth : 0) : barX - windowFrom
+    readonly property real surfaceY: root.barConfig.vertical ? barY - windowFrom : (root.spareBefore ? depth - surface.implicitHeight : 0)
+
+    // The window's bar-side edge across the bar, in bar-window coordinates:
+    // where the surface's attach edge is, whatever its size
+    readonly property real nearEdge: root.spareBefore ? root.panelThickness - root.surfaceFrom + surface.backfill : root.surfaceFrom - surface.backfill
 
     anchor {
       window: root.currentAnchor
@@ -509,13 +518,25 @@ PopoutWrapperBase {
       // edge it would nudge the popup inwards
       adjustment: PopupAdjustment.None
 
+      // Hung from its bar-side edge, growing away from the bar, so a resize
+      // keeps that edge without a move (see depth)
+      gravity: root.barConfig.vertical ? (root.barConfig.right ? Edges.Bottom | Edges.Left : Edges.Bottom | Edges.Right) : (root.barConfig.bottom ? Edges.Top | Edges.Right : Edges.Bottom | Edges.Right)
+
       rect {
-        x: root.barConfig.vertical ? mainPopup.barX - mainPopup.surfaceX : mainPopup.windowFrom
-        y: root.barConfig.vertical ? mainPopup.windowFrom : mainPopup.barY - mainPopup.surfaceY
+        x: root.barConfig.vertical ? mainPopup.nearEdge : mainPopup.windowFrom
+        y: root.barConfig.vertical ? mainPopup.windowFrom : mainPopup.nearEdge
         width: 1
         height: 1
       }
     }
+    // Quickshell repositions a mapped popup when its anchor changes, not
+    // when it resizes, which left a resized one off its edge
+    function _reanchor() {
+      if (mainPopup.visible)
+        Qt.callLater(mainPopup.anchor.updateAnchor);
+    }
+    onWidthChanged: _reanchor()
+    onHeightChanged: _reanchor()
   }
 
   PanelWindow {
