@@ -33,6 +33,7 @@ QtObject {
   // The active saved config as it loads (migrated, defaults filled)
   property var _baseline: null
   // The config being written by save(), the new baseline once it's saved
+  // (dropped once it's written or fails)
   property var _saving: null
   readonly property var _state: StateManager.createStateHandler("savedconfigs")
 
@@ -183,10 +184,12 @@ QtObject {
     printErrors: false
     onSaved: {
       root._setActive(name, root._saving);
+      root._saving = null;
       root.status = I18n.tr("Saved \"{0}\"", name);
       console.log("[SavedConfigsManager]", root.status);
     }
     onSaveFailed: error => {
+      root._saving = null;
       root.status = I18n.tr("Failed to save \"{0}\"", name);
       console.warn("[SavedConfigsManager] Could not write", path + ":", FileViewError.toString(error));
     }

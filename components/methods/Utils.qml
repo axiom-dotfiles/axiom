@@ -23,9 +23,9 @@ QtObject {
     if (Array.isArray(a) !== Array.isArray(b))
       return false;
     if (Array.isArray(a))
-      return a.length === b.length && a.every((item, i) => deepEqual(item, b[i]));
+      return a.length === b.length && a.every((item, i) => root.deepEqual(item, b[i]));
     const keys = Object.keys(a);
-    return keys.length === Object.keys(b).length && keys.every(key => Object.prototype.hasOwnProperty.call(b, key) && deepEqual(a[key], b[key]));
+    return keys.length === Object.keys(b).length && keys.every(key => Object.prototype.hasOwnProperty.call(b, key) && root.deepEqual(a[key], b[key]));
   }
 
   // A copy of the object `map` with `key` set to `value`, or left out when

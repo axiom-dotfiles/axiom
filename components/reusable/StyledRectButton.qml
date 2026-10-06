@@ -83,24 +83,14 @@ Rectangle {
     }
   }
 
-  Rectangle {
-    id: badge
+  CountBadge {
     visible: root.badgeVisible
     anchors.top: parent.top
     anchors.right: parent.right
     anchors.topMargin: -2
     anchors.rightMargin: -2
-    implicitWidth: Math.max(14, badgeLabel.implicitWidth + 6)
-    implicitHeight: 14
-    radius: height / 2
     color: root.badgeBackgroundColor
-
-    StyledText {
-      id: badgeLabel
-      anchors.centerIn: parent
-      text: root.badgeText
-      textSize: Appearance.fontSize - 4
-      textColor: root.badgeTextColor
-    }
+    text: root.badgeText
+    textColor: root.badgeTextColor
   }
 }

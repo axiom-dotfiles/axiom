@@ -69,9 +69,8 @@ Item {
 
   onContentHoveredChanged: updateDismissTimer()
 
-  // A popup that maps over its anchor (one merged around a pill covers the
-  // bar, with the pill showing through a notch in its input mask) takes the
-  // pointer before its mask applies. Once it does, the pointer is back over
+  // A popup that maps over its anchor takes the pointer before its input
+  // mask applies. Once it does, the pointer is back over
   // the bar, but Hyprland sends the bar no enter until it moves, so nothing
   // reads as hovered and the popout would close under a still pointer. So
   // a popout with an anchor notes the cursor when hover is lost, and before

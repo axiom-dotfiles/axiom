@@ -36,7 +36,7 @@ Rectangle {
 
   readonly property bool pills: barConfig.pills
   // A floating bar: islands held off the edge, read like pills by the
-  // popouts (pillRects), but drawn on their own (islandRects)
+  // popouts (pillRects), but drawn on their own (as boxes, from pillShapes)
   readonly property bool islands: barConfig.island
   // Where islands may reach along the bar, from its start
   readonly property real islandEnd: root.length - root.barConfig.islandStart
@@ -99,11 +99,9 @@ Rectangle {
         }));
   }
 
-  // The islands as drawn: stretched to carry the surfaces open on them,
-  // and joining any they then reach, while those are open
-  readonly property var islandRects: islands ? BarLayout.stretchIslands(root.pillRects, root._shownStretches, root.barConfig.pillMerge) : []
-  // The pills as drawn, the same way
-  readonly property var pillShapes: pills ? BarLayout.stretchIslands(root.pillRects, root._shownStretches, root.barConfig.pillMerge) : []
+  // The pills (or islands) as drawn: stretched to carry the surfaces open
+  // on them, and joining any they then reach, while those are open
+  readonly property var pillShapes: BarLayout.stretchIslands(root.pillRects, root._shownStretches, root.barConfig.pillMerge)
 
   // Pills stretched past their ends to carry the fillets of surfaces
   // standing on them, by owner (a bar popout, an edge popout): each
@@ -113,7 +111,7 @@ Rectangle {
   readonly property var _stretchList: Object.keys(root.stretches).map(k => root.stretches[k])
   // Sets (or with null clears) `owner`'s stretch
   function setStretch(owner, stretch) {
-    if (JSON.stringify(root.stretches[owner] ?? null) === JSON.stringify(stretch ?? null))
+    if (Utils.deepEqual(root.stretches[owner] ?? null, stretch ?? null))
       return;
     const next = Object.assign({}, root.stretches);
     if (stretch)
@@ -328,12 +326,12 @@ Rectangle {
     // Islands: rounded boxes in from the edge, an inner corner squared
     // where a popout runs flush into that end. Modelled by count, as pills.
     Repeater {
-      model: root.islandRects.length
+      model: root.islands ? root.pillShapes.length : 0
 
       Rectangle {
         id: island
         required property int index
-        readonly property var rect: root.islandRects[index] ?? {
+        readonly property var rect: root.pillShapes[index] ?? {
           "start": 0,
           "length": 0,
           "squareStart": false,
@@ -377,7 +375,7 @@ Rectangle {
     // border's stroke where it joins. Modelled by count, so a clock changing
     // width moves its pill without rebuilding it.
     Repeater {
-      model: root.pillShapes.length
+      model: root.pills ? root.pillShapes.length : 0
 
       AttachedSurface {
         id: pill

@@ -124,10 +124,10 @@ PopoutWrapperBase {
   // On a pill bar: its pills ({ start, length, joinStart, joinEnd } along
   // the bar). A floating bar's islands are read the same way. Where the
   // box goes along the bar, and how it meets them, is EdgeAttach.place's
-  // (shared with edge popouts): standing on the anchor's pill, merged
-  // around the pills it reaches (growing from the bar's outer edge, its
-  // box deeper by the pills so the content clears them, which show through
-  // notches), or growing out of the anchor's island, stretching it.
+  // (shared with edge popouts and docks): growing out of the anchor's
+  // pill or island, stretching it to carry the box. Only a pill bar
+  // showing no pills leaves it to grow from the bar's outer edge (merged),
+  // its box as deep as the pills would be.
   readonly property bool island: root.barConfig.island
   readonly property var pills: root.barConfig.pills || root.island ? (root.layoutSource?.pillRects ?? []) : []
   readonly property real anchorCentre: root.barConfig.vertical ? root.anchorRect.y + root.anchorRect.height / 2 : root.anchorRect.x + root.anchorRect.width / 2
@@ -155,19 +155,16 @@ PopoutWrapperBase {
   })
   readonly property var anchorPill: root.place.pill
   readonly property bool mergeWithPill: root.place.mode === "merged"
-  // Where a side wall's fillet lands: on a pill when one carries on at
-  // least a fillet's width past that side, else down on the edge
+  // A pill's (or island's) far stroke, from the bar's outer edge
   readonly property real pillFoot: (root.island ? root.barConfig.extent : root.barConfig.pillDepth) - Appearance.borderWidth
-  readonly property real startFoot: root.place.footStart ? pillFoot : 0
-  readonly property real endFoot: root.place.footEnd ? pillFoot : 0
   // The pill (or island) stretched to carry the box's fillets while it shows
   PillStretch {
     container: root.layoutSource
     owner: "barPopout"
     stretch: root.occupied ? root.place.stretch : null
   }
-  // How far past the pill the merged popout's content starts: its far
-  // stroke, where an unmerged popout attaches, with the border on or off
+  // How far past the bar's outer edge a merged popout's content starts:
+  // where a pill's far stroke would be, with the border on or off
   readonly property real pillClearance: mergeWithPill ? root.pillFoot : 0
   // Where the popout attaches, measured from the bar's outer edge: the
   // outer edge itself when merged, a pill's far stroke, the bar's own
@@ -175,9 +172,6 @@ PopoutWrapperBase {
   // border strip's stroke starts; a transparent bar's detached box no
   // nearer than the windows, see Bar.detachedPush)
   readonly property real attachAt: mergeWithPill ? 0 : anchorPill !== null || root.island ? pillFoot : root.barConfig.extent - (root.barConfig.innerStroke ? Appearance.borderWidth : 0) + Bar.detachedPush(root.barConfig, HyprlandManager.gapsOut[Bar.edgeName(root.barConfig.location)] ?? 0, root.connectorGap)
-  // How far inside a pill's ends the notch stops: its stroke, plus a pixel
-  // so the stroke's anti-aliased edge stays covered too
-  readonly property real notchInset: Appearance.borderWidth + 1
   // The bar window's thickness (more than the bar's extent with pills)
   readonly property real panelThickness: root.panel?.thickness ?? root.barConfig.extent
   // Where the under-bar window starts, from the bar's outer edge: past the
@@ -398,10 +392,8 @@ PopoutWrapperBase {
       }
     }
 
-    // The merged pills stay hoverable and clickable through the notches
     mask: Region {
       item: surface
-      regions: notchRegions.instances
     }
 
     // Size comes from the shared attached shape: the content box wraps
@@ -511,35 +503,11 @@ PopoutWrapperBase {
     joinEnd: mainPopup.joinEnd
     flushStart: root.place.flushStart
     flushEnd: root.place.flushEnd
-    // Without the border, a popout merged around a pill runs straight off
-    // the screen edge
+    // Without the border, a merged popout runs straight off the screen edge
     straight: root.mergeWithPill && !Appearance.screenBorder
     straightJoins: !Appearance.screenBorder
-    startFoot: root.startFoot
-    endFoot: root.endFoot
     // On a pill's far stroke, cover that stroke's inner fringe too
     backfill: root.anchorPill !== null && !root.mergeWithPill ? 1 : 0
-
-    // The pills' interiors, left showing; the popout covers their
-    // strokes where they overlap, so they read as one shape
-    notches: EdgeAttach.notches(root.place.mergedPills, mainPopup.shownAlongPos, implicitLength, root.notchInset)
-    notchDepth: root.pillFoot - 1
-    readonly property real implicitLength: root.barConfig.vertical ? implicitHeight : implicitWidth
-
-    // In window coordinates
-    Variants {
-      id: notchRegions
-      model: surface.notchRects
-
-      Region {
-        required property rect modelData
-        intersection: Intersection.Subtract
-        x: surface.x + modelData.x
-        y: surface.y + modelData.y
-        width: modelData.width
-        height: modelData.height
-      }
-    }
 
     // The content keeps its target size while the box animates to it,
     // hung from the box's start along the bar and from its bar side
@@ -551,7 +519,8 @@ PopoutWrapperBase {
 
       Loader {
         id: loader
-        // Merged around a pill, the content starts past it
+        // Merged (a pill bar showing no pills), the content starts past
+        // where the pills would be
         readonly property real barSide: surface.contentInset + root.pillClearance
         // Along the bar, where it wants to be (EdgeAttach.place's
         // contentStart), however far the box grows past it either side

@@ -81,11 +81,9 @@ QtObject {
   // Returns { mode: "plain" | "pill" | "island" | "merged", pill, start,
   //   end (the box), grow (the box past `length`), contentStart (where
   //   the content's `length` starts) and contentOffset (from the box's
-  //   start), joinStart, joinEnd, flushStart, flushEnd, footStart, footEnd
-  //   (a side wall stands on a pill; none now pills stretch instead),
-  //   startMargin, endMargin (the surface's fillet room), surfaceStart,
-  //   surfaceLength, mergedPills (none, likewise), stretch ({ index,
-  //   start, end, squareStart, squareEnd } or null) }
+  //   start), joinStart, joinEnd, flushStart, flushEnd, startMargin,
+  //   endMargin (the surface's fillet room), surfaceStart, surfaceLength,
+  //   stretch ({ index, start, end, squareStart, squareEnd } or null) }
   function place(s) {
     const pills = s.pills ?? [];
     // A pill bar showing no pills still grows from its outer edge
@@ -117,32 +115,12 @@ QtObject {
       "joinEnd": !!s.joinEnd,
       "flushStart": false,
       "flushEnd": false,
-      "footStart": false,
-      "footEnd": false,
       "startMargin": startMargin,
       "endMargin": endMargin,
       "surfaceStart": start - startMargin,
       "surfaceLength": startMargin + (end - start) + endMargin,
-      "mergedPills": [],
       "stretch": null
     };
-  }
-
-  // The notches a merged box leaves for `pills` to show through, from the
-  // surface's start (`from`, `length` along): each pill's interior, `inset`
-  // (its stroke and a pixel) inside its free ends, rounded where those fall
-  // within the surface
-  function notches(pills, from, length, inset) {
-    return pills.map(p => {
-      const start = p.start + (p.joinStart ? 0 : inset);
-      const end = p.start + p.length - (p.joinEnd ? 0 : inset);
-      return {
-        "start": start - from,
-        "length": Math.max(0, end - start),
-        "roundStart": !p.joinStart && start > from,
-        "roundEnd": !p.joinEnd && end < from + length
-      };
-    });
   }
 
   // How far the pill (or island) `own` reaches toward `target` (before it
@@ -202,13 +180,10 @@ QtObject {
       "joinEnd": joinEnd,
       "flushStart": flushStart,
       "flushEnd": flushEnd,
-      "footStart": false,
-      "footEnd": false,
       "startMargin": startMargin,
       "endMargin": endMargin,
       "surfaceStart": surfaceStart,
       "surfaceLength": surfaceLength,
-      "mergedPills": [],
       "stretch": stretched ? {
         "index": own.index,
         "start": stretchFrom,

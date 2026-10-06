@@ -1,7 +1,6 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Shapes
-import QtQuick.Effects
 
 import qs.config
 
@@ -29,10 +28,6 @@ import qs.config
  * - flushStart/flushEnd: that side wall runs straight into the attach
  *   edge with no fillet, continuing the end of what it attaches to (a
  *   floating bar's island, whose corner squares to meet it)
- * - startFoot/endFoot: where a side wall's fillet lands (v); above 0 it
- *   stands on something drawn under the surface (a pill's far stroke) and
- *   follows it to that end
- * - notches: regions at the attach edge left unpainted (merged pills)
  * - detached: a plain rounded box, not joined to anything; detachedOffset
  *   sets it further in from the edge it slides out of
  * - straight/straightJoins: the attach edge, or the edges a join meets, are
@@ -55,8 +50,6 @@ Item {
   property bool joinEnd: false
   property bool flushStart: false
   property bool flushEnd: false
-  property real startFoot: 0
-  property real endFoot: 0
   property bool detached: false
   // A detached box's distance from the attach edge past the connector gap.
   // The surface starts at the attach edge, so the box slides in from
@@ -81,18 +74,6 @@ Item {
   // as EdgePopout and edge menus use). Callers that size the box from
   // their content add this on each side (see bar Popouts, tray submenus).
   readonly property int contentInset: Appearance.borderWidth + PopoutConfig.padding
-
-  // Rectangles at the attach edge left unpainted, so what's under them
-  // shows through: the pills a bar popout merges around. Each is
-  // { start, length, roundStart, roundEnd } (edge-local: from u = start
-  // for length, v = 0 to notchDepth); roundStart/End round its far corners
-  // at that end, to follow a pill's inner edge. They're a mask fixed to
-  // this item rather than part of the sliding outline, so the surface
-  // slides out from behind what shows through instead of over it.
-  property var notches: []
-  property real notchDepth: 0
-  // The notches in this item's coordinates, for input masks
-  readonly property var notchRects: root._notches.map(n => root._rectFrom(n.u, 0, n.end - n.u, root.notchDepth))
 
   property color fillColor: Theme.background
   property color strokeColor: Theme.foreground
@@ -132,10 +113,9 @@ Item {
   // The walls run straight into what they attach to instead.
   readonly property bool _sharp: filletRadius < half
   // Whether each side wall ends in a fillet: not where the end is joined
-  // or flush, nor where it runs straight off a bare screen edge (unless it
-  // stands on a foot)
-  readonly property bool _filletStart: !_sharp && !joinStart && !flushStart && (!straight || startFoot > 0)
-  readonly property bool _filletEnd: !_sharp && !joinEnd && !flushEnd && (!straight || endFoot > 0)
+  // or flush, nor where it runs straight off a bare screen edge
+  readonly property bool _filletStart: !_sharp && !joinStart && !flushStart && !straight
+  readonly property bool _filletEnd: !_sharp && !joinEnd && !flushEnd && !straight
   readonly property bool _straightJoins: straightJoins || _sharp
   readonly property bool _joinFillet: (joinStart || joinEnd) && !_straightJoins
   // Room each end for a fillet square, minus the stroke overlap
@@ -160,23 +140,6 @@ Item {
   // the stroke, so things attaching to this surface (tray submenus) can
   // line their own stroke up with it.
   readonly property rect boxRect: root._rectFrom(startMargin, _lead + connectorGap / 2, boxAlong, boxDepth)
-
-  // The notches clamped to the surface, edge-local (none without depth)
-  readonly property var _notches: {
-    if (notchDepth <= 0)
-      return [];
-    return notches.map(n => {
-      const u = Math.max(0, Math.min(n.start, alongLength));
-      const end = Math.max(u, Math.min(n.start + n.length, alongLength));
-      return {
-        "u": u,
-        "end": end,
-        "radius": Math.max(0, Math.min(Appearance.borderRadius - strokeWidth, (end - u) / 2, notchDepth)),
-        "roundStart": n.roundStart,
-        "roundEnd": n.roundEnd
-      };
-    }).filter(n => n.end > n.u);
-  }
 
   // Reflections flip the sweep direction of arcs; rotations don't
   readonly property bool mirrored: edge === Bar.Bottom || edge === Bar.Left
@@ -230,7 +193,6 @@ Item {
   // and the far edge. Shared by the fill and the stroke.
   function _outline(startWith) {
     const R = filletRadius, cs = startCornerRadius, ce = endCornerRadius, h = half;
-    const fs = startFoot, fe = endFoot;
     // A flush wall runs on through the backfill, its stroke covering the
     // end of the stroke it continues there, which the backfill leaves
     // open: left empty, the shadow or glow showed through as a seam
@@ -246,9 +208,9 @@ Item {
       d += _line(sideU, farV - cs);
       d += _arc(cs, false, sideU + cs, farV);
     } else {
-      d += startWith(0, fs + h);
-      d += _line(sideU - R, fs + h);
-      d += _arc(R, true, sideU, fs + h + R);
+      d += startWith(0, h);
+      d += _line(sideU - R, h);
+      d += _arc(R, true, sideU, h + R);
       d += _line(sideU, farV - cs);
       d += _arc(cs, false, sideU + cs, farV);
     }
@@ -264,9 +226,9 @@ Item {
     } else {
       d += _line(farSideU - ce, farV);
       d += _arc(ce, false, farSideU, farV - ce);
-      d += _line(farSideU, fe + h + R);
-      d += _arc(R, true, farSideU + R, fe + h);
-      d += _line(alongLength, fe + h);
+      d += _line(farSideU, h + R);
+      d += _arc(R, true, farSideU + R, h);
+      d += _line(alongLength, h);
     }
     return d;
   }
@@ -288,11 +250,11 @@ Item {
     else if (!_filletStart)
       d = root._outline((u, v) => _move(u, v));
     else
-      d = root._outline((u, v) => _move(0, startFoot) + _line(u, v));
+      d = root._outline((u, v) => _move(0, 0) + _line(u, v));
     if (joinEnd && !_straightJoins)
       d += _line(alongLength, farV + R);
     else if (!joinEnd && _filletEnd)
-      d += _line(alongLength, endFoot);
+      d += _line(alongLength, 0);
     return d + _line(u1, b) + _line(u0, b) + "Z";
   }
 
@@ -300,51 +262,9 @@ Item {
   // ends, whose ends sit exactly on the strokes they continue
   readonly property string strokePath: width > 0 && height > 0 ? root._outline((u, v) => _move(u, v)) : ""
 
-  // The notches as a mask shape: square ends reach past a notch so only
-  // the rounded ones curve, and each overhangs the attach edge likewise
-  Item {
-    id: notchMask
-    anchors.fill: parent
-    visible: false
-    layer.enabled: root._notches.length > 0
-
-    Repeater {
-      model: root._notches.length
-
-      Rectangle {
-        required property int index
-        readonly property var notch: root._notches[index] ?? {
-          "u": 0,
-          "end": 0,
-          "radius": 0,
-          "roundStart": false,
-          "roundEnd": false
-        }
-        readonly property real r: notch.radius
-        readonly property real u0: notch.u - (notch.roundStart ? 0 : r)
-        readonly property real u1: notch.end + (notch.roundEnd ? 0 : r)
-        readonly property real v0: -r
-        readonly property rect area: root._rectFrom(u0, v0, u1 - u0, root.notchDepth - v0)
-        x: area.x
-        y: area.y
-        width: area.width
-        height: area.height
-        radius: r
-        color: "black"
-      }
-    }
-  }
-
   SlideAnimation {
     id: slideContainer
     anchors.fill: parent
-
-    layer.enabled: root._notches.length > 0
-    layer.effect: MultiEffect {
-      maskEnabled: true
-      maskInverted: true
-      maskSource: notchMask
-    }
 
     active: root.active
     slideFromRight: root.attachRight

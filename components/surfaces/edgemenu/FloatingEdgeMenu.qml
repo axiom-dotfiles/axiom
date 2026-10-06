@@ -8,9 +8,9 @@ import qs.components.hosts.popout
 
 // A floating edge menu: an EdgePopout over the windows, growing out of the
 // border or a solid bar on its edge, and meeting any other bar there as a
-// bar popout does (EdgePopout.followsBar): on a pill, merged around the
-// pills, out of a floating bar's island, or a detached box past a
-// transparent bar. One held off the edge (`detached`) is an island: `gap`
+// bar popout does (EdgePlacement): out of a pill or a floating bar's
+// island, or a detached box past a transparent bar. One held off the edge
+// (`detached`) is an island: `gap`
 // in from the frame lines on its edge and at both ends
 // (Bar.detachedGaps), so it lines up with a floating bar's islands, or
 // with the windows.

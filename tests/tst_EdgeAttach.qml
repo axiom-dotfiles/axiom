@@ -234,15 +234,4 @@ TestCase {
     compare([p.start, p.end, p.contentStart, p.flushStart, p.flushEnd], [400, 600, 400, true, false]);
     compare([p.stretch.start, p.stretch.end], [400, 800]);
   }
-
-  function test_notches() {
-    const n = EdgeAttach.notches([pill(100, 200), pill(0, 50, true, false)], 80, 300, 3);
-    compare(n[0], {
-      "start": 23,
-      "length": 194,
-      "roundStart": true,
-      "roundEnd": true
-    });
-    compare([n[1].start, n[1].roundStart, n[1].roundEnd], [-80, false, true]);
-  }
 }
