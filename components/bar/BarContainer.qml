@@ -293,14 +293,17 @@ Rectangle {
 
     layer.enabled: root.barConfig.shadow !== "none"
     layer.effect: MultiEffect {
-      readonly property bool glow: root.barConfig.shadow === "glow"
-      readonly property real offset: glow ? 0 : root.barConfig.shadowSize / 4
+      // Pills join the border (or screen edge) they grow from: their
+      // shadow is cast evenly, as the border's, so it can't slide onto a
+      // stroke they join (see SurfaceShadow)
+      readonly property bool even: root.barConfig.shadow === "glow" || root.barConfig.pills
+      readonly property real offset: even ? 0 : root.barConfig.shadowSize / 4
 
       shadowEnabled: true
       shadowColor: Bar.shadowColor(root.barConfig)
       shadowBlur: 1
       blurMax: root.barConfig.shadowSize
-      // A shadow falls toward the windows
+      // Otherwise a shadow falls toward the windows
       shadowHorizontalOffset: root.barConfig.left ? offset : root.barConfig.right ? -offset : 0
       shadowVerticalOffset: root.barConfig.top ? offset : root.barConfig.bottom ? -offset : 0
       autoPaddingEnabled: true

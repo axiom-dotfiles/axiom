@@ -365,6 +365,7 @@ Item {
       layer.enabled: root.castShadow && BarStyle.shadowed
       layer.effect: SurfaceShadow {
         edge: root.edge
+        falls: root.detached
       }
 
       Shape {
