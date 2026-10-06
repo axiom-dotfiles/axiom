@@ -27,6 +27,11 @@ PanelWindow {
   WlrLayershell.namespace: "axiom-monitor-prompt"
   WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
 
+  // Every focus grab lets input through to it while it shows, so Keep /
+  // Revert work over the overlay the Monitors page applied from
+  onVisibleChanged: visible ? ShellManager.registerModal(root) : ShellManager.unregisterModal(root)
+  Component.onDestruction: ShellManager.unregisterModal(root)
+
   Rectangle {
     id: card
 
