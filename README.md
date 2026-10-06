@@ -15,7 +15,7 @@ Bars, overlay pages, edge menus, the lock screen and the login screen, all laid 
 
 [Highlights](#highlights) · [Example setups](#example-setups) · [What's included](#whats-included) · [Install](#installation) · [Docs](#documentation)
 
-<img src="assets/screenshots/hero-setups.webp" alt="Nine desktops in turn, all axiom with different themes, bars and docks: a solid Rosé Pine bar, large floating pills, a Dracula powerline bar on the bottom edge, an Everforest sidebar, a transparent Catppuccin bar, pills down the right edge, outlined arrows in Ayu, two plain bars in a light theme, and bars down both sides">
+<img src="assets/screenshots/hero-setups.webp" alt="Nine desktops sliding past one after another, all axiom with different themes, bars and docks: a solid Rosé Pine bar, large floating pills, a Dracula powerline bar on the bottom edge, an Everforest sidebar pinned open, a transparent Catppuccin bar, pills down the right edge, outlined arrows in Ayu, two plain bars in a light theme, and bars down both sides">
 
 <sub>Nine desktops, one shell. Each is an <a href="#example-setups">example setup</a> you can apply in one click.</sub>
 
