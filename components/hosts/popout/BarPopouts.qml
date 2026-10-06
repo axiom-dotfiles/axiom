@@ -357,8 +357,10 @@ PopoutWrapperBase {
       const length = root.barConfig.vertical ? root.anchorRect.height : root.anchorRect.width;
       return start + (length - mainPopup.boxLength) / 2;
     }
-    // An island's ends never join (a side runs flush into the island instead)
-    readonly property var joins: EdgeAttach.joins(alignedBoxStart, boxLength, minAlong + filletMargin, maxAlong - filletMargin, root.connectorGap, !root.island, !root.island)
+    // An island's ends never join (a side runs flush into the island
+    // instead), nor a detached box's (it's clamped clear of them)
+    readonly property bool canJoin: !root.island && !detached
+    readonly property var joins: EdgeAttach.joins(alignedBoxStart, boxLength, minAlong + filletMargin, maxAlong - filletMargin, root.connectorGap, canJoin, canJoin)
     readonly property bool joinStart: root.place.joinStart
     readonly property bool joinEnd: root.place.joinEnd
     readonly property real boxStart: root.place.start
@@ -378,34 +380,13 @@ PopoutWrapperBase {
     readonly property real windowFrom: Math.min(0, strokeStart, minAlong)
     readonly property real windowTo: Math.max(panelLength, strokeEnd, maxAlong)
 
-    // On a transparent bar a popout is a detached box, unless it's pushed
-    // to an end: then there's no bar to take its bar side, so it attaches
-    // to that perpendicular edge instead, joining it on both sides
+    // On a transparent bar a popout is a detached box
     readonly property bool detached: root.barConfig.background === "transparent"
-    readonly property bool cornerAttach: detached && (joinStart || joinEnd)
-    readonly property int surfaceEdge: {
-      if (!cornerAttach)
-        return root.barConfig.location;
-      if (root.barConfig.vertical)
-        return joinStart ? Bar.Top : Bar.Bottom;
-      return joinStart ? Bar.Left : Bar.Right;
-    }
-    // Where a detached box sits across the bar (its top-left, in
-    // bar-window coordinates): the connector gap past the bar's inner edge
-    readonly property real boxAcross: {
-      const near = root.attachAt + root.connectorGap / 2;
-      if (root.barConfig.left || root.barConfig.top)
-        return near;
-      return root.panelThickness - near - (root.barConfig.vertical ? surface.boxWidth : surface.boxHeight);
-    }
 
     // Where the surface sits, in bar-window coordinates
     readonly property real barX: {
       if (!root.currentData)
         return 0;
-      if (mainPopup.cornerAttach)
-        return root.barConfig.vertical ? mainPopup.boxAcross - surface.startMargin : (mainPopup.joinStart ? mainPopup.strokeStart : mainPopup.strokeEnd - surface.implicitWidth);
-
       if (root.barConfig.left) {
         return root.surfaceFrom - surface.backfill;
       } else if (root.barConfig.right) {
@@ -420,9 +401,6 @@ PopoutWrapperBase {
     readonly property real barY: {
       if (!root.currentData)
         return 0;
-      if (mainPopup.cornerAttach)
-        return root.barConfig.vertical ? (mainPopup.joinStart ? mainPopup.strokeStart : mainPopup.strokeEnd - surface.implicitHeight) : mainPopup.boxAcross - surface.startMargin;
-
       if (root.barConfig.top) {
         return root.surfaceFrom - surface.backfill;
       } else if (root.barConfig.bottom) {
@@ -496,7 +474,7 @@ PopoutWrapperBase {
     }
 
     // Deep enough for the box and its connector gaps either side, whether
-    // it's detached or joins a perpendicular edge
+    // it's detached
     readonly property real depth: root.attachAt - root.underStart + root.connectorGap * 2 + (root.barConfig.vertical ? surface.boxWidth : surface.boxHeight) + root.spareAcross
     implicitWidth: root.barConfig.vertical ? depth : 0
     implicitHeight: root.barConfig.vertical ? 0 : depth
@@ -530,24 +508,24 @@ PopoutWrapperBase {
     width: implicitWidth
     height: implicitHeight
 
-    edge: mainPopup.surfaceEdge
+    edge: root.barConfig.location
     castShadow: true
     active: root.occupied && !root.isClosing && root.contentReady
     connectorGap: root.connectorGap
     boxWidth: root.shownBoxWidth
     boxHeight: root.shownBoxHeight
 
-    // A transparent bar has nothing to join onto (see cornerAttach)
-    detached: mainPopup.detached && !mainPopup.cornerAttach
+    // A transparent bar has nothing to join onto
+    detached: mainPopup.detached
     detachedOffset: root.underBar ? root.attachAt - root.underStart : 0
     // On an island an end runs flush into the island's instead
-    joinStart: !mainPopup.cornerAttach && mainPopup.joinStart
-    joinEnd: !mainPopup.cornerAttach && mainPopup.joinEnd
+    joinStart: mainPopup.joinStart
+    joinEnd: mainPopup.joinEnd
     flushStart: root.place.flushStart
     flushEnd: root.place.flushEnd
     // Without the border, a popout merged around a pill runs straight off
-    // the screen edge, and one pushed to an end straight off that one
-    straight: (root.mergeWithPill || mainPopup.cornerAttach) && !Appearance.screenBorder
+    // the screen edge
+    straight: root.mergeWithPill && !Appearance.screenBorder
     straightJoins: !Appearance.screenBorder
     startFoot: root.startFoot
     endFoot: root.endFoot
