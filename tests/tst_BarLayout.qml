@@ -267,22 +267,54 @@ TestCase {
         "end": 400
       }
     ], 0, 10, 0, 1000, false);
-    compare(BarLayout.stretchIslands(rects, null, 10).map(r => [r.start, r.length]), [[100, 100], [300, 100]]);
+    compare(BarLayout.stretchIslands(rects, [], 10).map(r => [r.start, r.length]), [[100, 100], [300, 100]]);
     // Stretched to 80..250: still 50 short of the next
-    const apart = BarLayout.stretchIslands(rects, {
-      "index": 0,
-      "start": 80,
-      "end": 250,
-      "squareStart": true
-    }, 10);
+    const apart = BarLayout.stretchIslands(rects, [
+      {
+        "index": 0,
+        "start": 80,
+        "end": 250,
+        "squareStart": true
+      }
+    ], 10);
     compare(apart.map(r => [r.start, r.length, r.squareStart, r.squareEnd]), [[80, 170, true, false], [300, 100, false, false]]);
     // Stretched to 295: within 10 of the next, so they draw as one
-    const joined = BarLayout.stretchIslands(rects, {
-      "index": 0,
-      "start": 100,
-      "end": 295,
-      "squareEnd": true
-    }, 10);
+    const joined = BarLayout.stretchIslands(rects, [
+      {
+        "index": 0,
+        "start": 100,
+        "end": 295,
+        "squareEnd": true
+      }
+    ], 10);
     compare(joined.map(r => [r.start, r.length, r.squareStart, r.squareEnd]), [[100, 300, false, false]]);
+  }
+
+  function test_stretchOf_combines_owners() {
+    compare(BarLayout.stretchOf([], 0), null);
+    compare(BarLayout.stretchOf([null], 0), null);
+    // A popout flush into the start and a menu reaching past the end
+    const both = BarLayout.stretchOf([
+      {
+        "index": 0,
+        "start": 90,
+        "end": 200,
+        "squareStart": true,
+        "squareEnd": false
+      },
+      {
+        "index": 1,
+        "start": 0,
+        "end": 999
+      },
+      {
+        "index": 0,
+        "start": 120,
+        "end": 260,
+        "squareStart": false,
+        "squareEnd": true
+      }
+    ], 0);
+    compare([both.start, both.end, both.squareStart, both.squareEnd], [90, 260, true, true]);
   }
 }

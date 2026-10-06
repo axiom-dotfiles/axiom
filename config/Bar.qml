@@ -259,12 +259,24 @@ QtObject {
   // gaps_out on its edge. A transparent bar has no inner edge to see:
   // windows start where it would be, so the gap from the widgets to them
   // (padding + gaps_out, taken off here) matches the gap to the screen
-  // edge. A floating bar's islands keep the same gap to the windows as to
-  // the border: its float gap in all, gaps_out included.
+  // edge. An inner accent line gives it one, on its innermost pixels:
+  // windows keep gaps_out from it, as from a solid bar's stroke. A floating
+  // bar's islands keep the same gap to the windows as to the border: its
+  // float gap in all, gaps_out included.
   function reserveTrim(barConfig, gapsOut) {
-    if (barConfig.background === "transparent")
+    if (barConfig.background === "transparent" && barConfig.accentLine !== "inner")
       return gapsOut;
     return barConfig.island ? gapsOut - barConfig.floatGap : 0;
+  }
+
+  // How much further than half a connector gap past a transparent bar's
+  // inner edge a box detached from it (a bar popout, a floating edge menu)
+  // sits, so it starts no nearer than the windows: past an inner accent
+  // line, they start gaps_out out (reserveTrim)
+  function detachedPush(barConfig, gapsOut, connectorGap) {
+    if (barConfig.background !== "transparent")
+      return 0;
+    return Math.max(0, gapsOut - Bar.reserveTrim(barConfig, gapsOut) - connectorGap / 2);
   }
 
   // The exclusive zone a bar sets (BarPanel), given Hyprland's gaps_out on

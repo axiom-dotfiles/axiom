@@ -32,8 +32,7 @@ import qs.config
  * - startFoot/endFoot: where a side wall's fillet lands (v); above 0 it
  *   stands on something drawn under the surface (a pill's far stroke) and
  *   follows it to that end
- * - notches: regions at the attach edge left unpainted (merged pills),
- *   or from notchStart in (a floating bar's islands)
+ * - notches: regions at the attach edge left unpainted (merged pills)
  * - detached: a plain rounded box, not joined to anything; detachedOffset
  *   sets it further in from the edge it slides out of
  * - straight/straightJoins: the attach edge, or the edges a join meets, are
@@ -92,15 +91,14 @@ Item {
   // slides out from behind what shows through instead of over it.
   property var notches: []
   property real notchDepth: 0
-  // Where the notches start (v): above 0 they stop short of the attach
-  // edge, the surface painted between, and round their near corners too,
-  // to follow the inner edge of an island held off the edge
-  property real notchStart: 0
   // The notches in this item's coordinates, for input masks
-  readonly property var notchRects: root._notches.map(n => root._rectFrom(n.u, root.notchStart, n.end - n.u, root.notchDepth - root.notchStart))
+  readonly property var notchRects: root._notches.map(n => root._rectFrom(n.u, 0, n.end - n.u, root.notchDepth))
 
   property color fillColor: Theme.background
   property color strokeColor: Theme.foreground
+  // Casts the shell's shadow or glow (SurfaceShadow), for a surface whose
+  // border shows: off for a bar's own pills, which their bar's casts
+  property bool castShadow: false
 
   default property alias content: contentContainer.data
 
@@ -124,12 +122,18 @@ Item {
 
   readonly property real boxAlong: vertical ? boxHeight : boxWidth
   readonly property real boxDepth: vertical ? boxWidth : boxHeight
+  // A radius under half the stroke (0 included) is too tight for a
+  // fillet: its stroke's inner edge would need a negative radius, and its
+  // margin (below) would go negative, pushing the walls out of the surface.
+  // The walls run straight into what they attach to instead.
+  readonly property bool _sharp: filletRadius < half
   // Whether each side wall ends in a fillet: not where the end is joined
   // or flush, nor where it runs straight off a bare screen edge (unless it
   // stands on a foot)
-  readonly property bool _filletStart: !joinStart && !flushStart && (!straight || startFoot > 0)
-  readonly property bool _filletEnd: !joinEnd && !flushEnd && (!straight || endFoot > 0)
-  readonly property bool _joinFillet: (joinStart || joinEnd) && !straightJoins
+  readonly property bool _filletStart: !_sharp && !joinStart && !flushStart && (!straight || startFoot > 0)
+  readonly property bool _filletEnd: !_sharp && !joinEnd && !flushEnd && (!straight || endFoot > 0)
+  readonly property bool _straightJoins: straightJoins || _sharp
+  readonly property bool _joinFillet: (joinStart || joinEnd) && !_straightJoins
   // Room each end for a fillet square, minus the stroke overlap
   readonly property real startMargin: _filletStart ? connectorGap - strokeWidth : 0
   readonly property real endMargin: _filletEnd ? connectorGap - strokeWidth : 0
@@ -155,7 +159,7 @@ Item {
 
   // The notches clamped to the surface, edge-local (none without depth)
   readonly property var _notches: {
-    if (notchDepth <= notchStart)
+    if (notchDepth <= 0)
       return [];
     return notches.map(n => {
       const u = Math.max(0, Math.min(n.start, alongLength));
@@ -163,7 +167,7 @@ Item {
       return {
         "u": u,
         "end": end,
-        "radius": Math.max(0, Math.min(Appearance.borderRadius - strokeWidth, (end - u) / 2, notchStart > 0 ? (notchDepth - notchStart) / 2 : notchDepth)),
+        "radius": Math.max(0, Math.min(Appearance.borderRadius - strokeWidth, (end - u) / 2, notchDepth)),
         "roundStart": n.roundStart,
         "roundEnd": n.roundEnd
       };
@@ -224,7 +228,7 @@ Item {
     const R = filletRadius, cr = cornerRadius, h = half;
     const fs = startFoot, fe = endFoot;
     let d = "";
-    if (joinStart && straightJoins) {
+    if (joinStart && _straightJoins) {
       d += startWith(0, farV);
     } else if (joinStart) {
       d += startWith(h, farV + R);
@@ -240,7 +244,7 @@ Item {
       d += _line(sideU, farV - cr);
       d += _arc(cr, false, sideU + cr, farV);
     }
-    if (joinEnd && straightJoins) {
+    if (joinEnd && _straightJoins) {
       d += _line(alongLength, farV);
     } else if (joinEnd) {
       d += _line(alongLength - h - R, farV);
@@ -270,14 +274,14 @@ Item {
     const u0 = flushStart ? strokeWidth : 0, u1 = flushEnd ? alongLength - strokeWidth : alongLength;
     let d;
     if (joinStart)
-      d = _move(0, b) + _line(0, straightJoins ? farV : farV + R) + root._outline((u, v) => _line(u, v));
+      d = _move(0, b) + _line(0, _straightJoins ? farV : farV + R) + root._outline((u, v) => _line(u, v));
     else if (flushStart)
       d = _move(u0, b) + _line(u0, 0) + root._outline((u, v) => _line(u, v));
     else if (!_filletStart)
       d = root._outline((u, v) => _move(u, v));
     else
       d = root._outline((u, v) => _move(0, startFoot) + _line(u, v));
-    if (joinEnd && !straightJoins)
+    if (joinEnd && !_straightJoins)
       d += _line(alongLength, farV + R);
     else if (!joinEnd && _filletEnd)
       d += _line(alongLength, endFoot);
@@ -292,7 +296,6 @@ Item {
 
   // The notches as a mask shape: square ends reach past a notch so only
   // the rounded ones curve, and each overhangs the attach edge likewise
-  // (unless it starts past it, rounded there too)
   Item {
     id: notchMask
     anchors.fill: parent
@@ -314,7 +317,7 @@ Item {
         readonly property real r: notch.radius
         readonly property real u0: notch.u - (notch.roundStart ? 0 : r)
         readonly property real u1: notch.end + (notch.roundEnd ? 0 : r)
-        readonly property real v0: root.notchStart > 0 ? root.notchStart : -r
+        readonly property real v0: -r
         readonly property rect area: root._rectFrom(u0, v0, u1 - u0, root.notchDepth - v0)
         x: area.x
         y: area.y
@@ -347,47 +350,58 @@ Item {
     containerHeight: root.height
     containerWidth: root.width
     enableFade: false
+    overflow: root.castShadow ? BarStyle.shadowReach : 0
 
-    Shape {
-      id: outline
+    // The outline (or detached box), casting the shadow or glow: the
+    // content inside it doesn't need its own
+    Item {
       anchors.fill: parent
-      visible: !root.detached
-      preferredRendererType: Shape.CurveRenderer
+      layer.enabled: root.castShadow && BarStyle.shadowed
+      layer.effect: SurfaceShadow {
+        edge: root.edge
+      }
 
-      ShapePath {
-        fillColor: root.fillColor
-        strokeColor: "transparent"
-        strokeWidth: 0
+      Shape {
+        id: outline
+        anchors.fill: parent
+        visible: !root.detached
+        preferredRendererType: Shape.CurveRenderer
 
-        PathSvg {
-          path: root.fillPath
+        ShapePath {
+          fillColor: root.fillColor
+          strokeColor: "transparent"
+          strokeWidth: 0
+
+          PathSvg {
+            path: root.fillPath
+          }
+        }
+
+        ShapePath {
+          fillColor: "transparent"
+          strokeColor: root.strokeColor
+          strokeWidth: root.strokeWidth
+          capStyle: ShapePath.FlatCap
+          joinStyle: ShapePath.MiterJoin
+
+          PathSvg {
+            path: root.strokePath
+          }
         }
       }
 
-      ShapePath {
-        fillColor: "transparent"
-        strokeColor: root.strokeColor
-        strokeWidth: root.strokeWidth
-        capStyle: ShapePath.FlatCap
-        joinStyle: ShapePath.MiterJoin
-
-        PathSvg {
-          path: root.strokePath
-        }
+      // Detached: a box of its own, not joined to anything
+      Rectangle {
+        visible: root.detached
+        x: root.boxRect.x
+        y: root.boxRect.y
+        width: root.boxRect.width
+        height: root.boxRect.height
+        radius: Appearance.borderRadius
+        color: root.fillColor
+        border.color: root.strokeColor
+        border.width: root.strokeWidth
       }
-    }
-
-    // Detached: a box of its own, not joined to anything
-    Rectangle {
-      visible: root.detached
-      x: root.boxRect.x
-      y: root.boxRect.y
-      width: root.boxRect.width
-      height: root.boxRect.height
-      radius: Appearance.borderRadius
-      color: root.fillColor
-      border.color: root.strokeColor
-      border.width: root.strokeWidth
     }
 
     // Content box: same placement the old bordered Rectangle had, so

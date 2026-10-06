@@ -39,8 +39,11 @@ Item {
       readonly property int contentWidth: root.currentItem?.implicitWidth ?? 0
       readonly property int contentHeight: root.currentItem?.implicitHeight ?? 0
 
-      implicitWidth: surface.implicitWidth
-      implicitHeight: surface.implicitHeight
+      // Room for the shadow or glow the surface casts (SurfaceShadow) on
+      // its free sides: away from the parent, above and below
+      readonly property real shadowRoom: BarStyle.shadowReach
+      implicitWidth: surface.implicitWidth + shadowRoom
+      implicitHeight: surface.implicitHeight + shadowRoom * 2
 
       // The parent popout's content box, in the anchor window's
       // coordinates. Its free sides are the outer edge of the parent's
@@ -54,18 +57,18 @@ Item {
 
       // Line our first menu item up with the hovered one: the fillet
       // margin, then the loader inset
-      readonly property real firstItemOffset: (root.connectorGap - Appearance.borderWidth) + surface.contentInset
+      readonly property real firstItemOffset: surface.startMargin + surface.contentInset
       // Keep both fillets on the straight part of the parent's side, clear
       // of its rounded corners (or its fillets into the bar)
       readonly property real minY: attachRect.y + Appearance.borderRadius
-      readonly property real maxY: attachRect.y + attachRect.height - Appearance.borderRadius - implicitHeight
+      readonly property real maxY: attachRect.y + attachRect.height - Appearance.borderRadius - surface.implicitHeight
       readonly property real attachY: Math.max(minY, Math.min((root.currentData?.anchorY ?? 0) - firstItemOffset, maxY))
 
       anchor {
         window: root.currentAnchor
         rect {
           x: submenuPopup.attachX
-          y: submenuPopup.attachY
+          y: submenuPopup.attachY - submenuPopup.shadowRoom
           width: 1
           height: 1
         }
@@ -73,9 +76,13 @@ Item {
 
       AttachedSurface {
         id: surface
-        anchors.fill: parent
+        x: outer.openToLeft ? submenuPopup.shadowRoom : 0
+        y: submenuPopup.shadowRoom
+        width: implicitWidth
+        height: implicitHeight
 
         edge: outer.openToLeft ? Bar.Right : Bar.Left
+        castShadow: true
         active: root.occupied && !root.isClosing && (root.currentItem?.contentReady ?? true)
         connectorGap: root.connectorGap
         boxWidth: submenuPopup.contentWidth + contentInset * 2

@@ -6,6 +6,7 @@ import Quickshell.Hyprland
 
 import qs.config
 import qs.services
+import qs.components.methods
 
 /**
  * A popout that slides out of a screen edge and joins the screen border
@@ -67,10 +68,10 @@ PopoutWrapperBase {
   // Take the keyboard when clicked, without a focus grab (content that may
   // hold a text field, e.g. an edge menu's modules)
   property bool keyboardOnDemand: false
-  // A plain rounded box a connector gap in from the edge, not joined to it
-  // (an edge whose bar has no strip to grow out of: pills, transparent),
-  // or held off the edge
-  property bool detached: root.held
+  // A plain rounded box a connector gap in from the edge, not joined to it:
+  // held off the edge, or on a bar with nothing to grow out of (a
+  // transparent one, a floating one showing no islands)
+  property bool detached: root.held || (root.followsBar && !root.pillBar) || (root.island && root.place.mode === "plain")
   property bool closeOnClickOutside: false
   // Space between the box and its content
   property real contentPadding: Appearance.borderWidth + PopoutConfig.padding
@@ -104,9 +105,9 @@ PopoutWrapperBase {
 
   readonly property bool vertical: edge === Bar.Left || edge === Bar.Right
   readonly property bool bareEdge: Bar.screenEdgeOpen(root.screen, root.edge)
-  // Runs straight off the attach edge: a bare screen edge by default (a
-  // box merged around a bar's pills sets it itself, see FloatingEdgeMenu)
-  property bool straight: bareEdge
+  // Runs straight off the attach edge: a bare screen edge, or without the
+  // border, the outer edge a box merged around pills grows from
+  readonly property bool straight: root.place.mode === "merged" ? !Appearance.screenBorder : root.place.mode === "plain" && root.bareEdge
 
   // Held off the edge (an edge menu's or OSD's `detached`): a detached box
   // `gap` in from the frame lines on its edge and at its ends
@@ -137,13 +138,27 @@ PopoutWrapperBase {
   // the border's stroke inside the border, its frame line less its extent.
   readonly property real barOuter: root.barConfig ? EdgeMenuManager.frameLineOn(root.screen, root.edge) - root.barConfig.extent : 0
   // Where the window's attach edge goes by default: on the stroke of what
-  // reserves the edge (none when straight)
-  readonly property real attachBase: root.reservedOn(root.edge) - (root.straight ? 0 : Appearance.borderWidth)
+  // reserves the edge (none on a bare edge)
+  readonly property real attachBase: root.reservedOn(root.edge) - (root.bareEdge ? 0 : Appearance.borderWidth)
   // Where it goes held: a connector gap short of where the box goes (a
   // detached box sits that far past its attach edge)
   readonly property real heldAttach: root.gaps ? EdgeMenuManager.frameLineOn(root.screen, root.edge) + root.gaps.across - root.connectorGap / 2 : root.attachBase
-  // Where it goes (FloatingEdgeMenu sets its own for a bar on its edge)
-  property real attachAt: root.heldAttach
+  // Where it goes: held, as heldAttach; following a bar, from its outer
+  // edge: the outer edge itself when merged around its pills, a pill's or
+  // island's far stroke, or a transparent bar's inner edge (the box a
+  // connector gap past it, as a bar popout's is, and no nearer than the
+  // windows: see Bar.detachedPush); else on what reserves the edge
+  property real attachAt: {
+    if (root.gaps)
+      return root.heldAttach;
+    if (!root.followsBar)
+      return root.attachBase;
+    if (root.place.mode === "merged")
+      return root.barOuter;
+    if (root.place.mode === "pill" || root.place.mode === "island")
+      return root.barOuter + root.pillFoot;
+    return root.barOuter + (root.barConfig?.extent ?? 0) + Bar.detachedPush(root.barConfig, HyprlandManager.gapsOut[Bar.edgeName(root.edge)] ?? 0, root.connectorGap);
+  }
 
   // While the overlay is open on its screen a box that would slide under
   // a bar draws over the overlay instead (HyprlandManager.layerRulesLua),
@@ -159,20 +174,42 @@ PopoutWrapperBase {
   onOverlayOpenChanged: root._followOverlay()
   onOccupiedChanged: root._followOverlay()
 
-  // For a box merged around a bar's pills (see BarPopouts.mergeWithPill):
-  // extra box depth at the attach edge that the content keeps clear of,
-  // where the side walls stand (AttachedSurface.startFoot/endFoot), and
-  // the pills (or a floating bar's islands) left showing through
-  // (AttachedSurface.notches, notchStart)
-  property real attachClearance: 0
-  property real startFoot: 0
-  property real endFoot: 0
-  property var notches: []
-  property real notchDepth: 0
-  property real notchStart: 0
-  // Nudges the box along the edge from where `position` puts it: null,
-  // or a function(start) giving the pixels to shift a box at `start` by
-  property var boxSnap: null
+  // Following the bar on its edge (not held), the box meets its pills or
+  // islands as a bar popout does (EdgeAttach.place): standing on a pill
+  // it fits within, else merged around the pills it reaches (growing from
+  // the bar's outer edge, deeper by them so the content clears them, which
+  // show through notches); out of a floating bar's island, stretching it.
+  readonly property bool followsBar: !root.held && root.barConfig !== null
+  // The bar's BarContainer
+  readonly property var container: root.barPanel?.container ?? null
+  readonly property bool island: root.followsBar && (root.barConfig?.island ?? false)
+  readonly property bool pillBar: root.followsBar && ((root.barConfig?.pills ?? false) || root.island)
+  // Along the edge, bar-window coordinates are this window's plus the
+  // shift. The bar window reaches onto the perpendicular strokes and this
+  // one sits inside them, taken as the same at both ends (as BarPopouts
+  // does for the perpendicular borders).
+  readonly property real barShift: root.container ? (root.container.length - root.edgeLength) / 2 : 0
+  // Its pills (or islands), in this window's edge coordinates
+  readonly property var pills: root.pillBar ? (root.container?.pillRects ?? []).map(p => Object.assign({}, p, {
+      "start": p.start - root.barShift
+    })) : []
+  // A pill's (or island's) far stroke, from the bar's outer edge
+  readonly property real pillFoot: root.pillBar ? (root.island ? root.barConfig?.extent ?? 0 : root.barConfig?.pillDepth ?? 0) - Appearance.borderWidth : 0
+  readonly property bool merged: root.place.mode === "merged"
+  // Extra box depth at the attach edge that a merged box's content keeps
+  // clear of the pills by
+  readonly property real attachClearance: root.merged ? root.pillFoot : 0
+  // The pill (or island) stretched to carry the box's fillets while it
+  // shows (not while the content loads or unloads: the box is a
+  // placeholder then), in bar coordinates
+  PillStretch {
+    container: root.container
+    owner: "edgePopout:" + root
+    stretch: root.occupied && root.contentItem !== null && root.place.stretch ? Object.assign({}, root.place.stretch, {
+      "start": root.place.stretch.start + root.barShift,
+      "end": root.place.stretch.end + root.barShift
+    }) : null
+  }
 
   // Join the perpendicular edges when the box reaches them, as a bar
   // popout pushed to an end does: flush on that edge's stroke, merging
@@ -197,7 +234,7 @@ PopoutWrapperBase {
     return (vertical ? screen.height : screen.width) - Appearance.screenMargin * 2;
   }
   // Room for a side wall's fillet at an end that isn't joined
-  readonly property real filletMargin: bareEdge ? 0 : connectorGap - Appearance.borderWidth
+  readonly property real filletMargin: bareEdge ? 0 : EdgeAttach.filletMargin(connectorGap, Appearance.borderWidth, Appearance.borderRadius)
   // The least room the box keeps from each end that isn't joined, from
   // the perpendicular edge's inner side: its fillet's, or held, its gaps
   // from the frame lines there (in this window's edge coordinates, which
@@ -212,18 +249,20 @@ PopoutWrapperBase {
     return (!bar || bar.joinable) && EdgeMenuManager.zoneOn(root.screen?.name ?? "", name) === 0;
   }
   // The natural box centred at `position`: an end joins when the box would
-  // leave less than a fillet's width between its own fillet and that edge
+  // be pushed back from that edge, or leave less than a connector gap
+  // between its fillet and it (EdgeAttach.joins)
   readonly property real _naturalBox: reachLength + contentPadding * 2
   readonly property real _naturalStart: edgeLength * position + positionOffset - _naturalBox / 2
-  readonly property bool joinStart: joinEnds && _joinable(vertical ? "top" : "left") && (!isFinite(_naturalBox) || _naturalStart - filletMargin < connectorGap)
-  readonly property bool joinEnd: joinEnds && _joinable(vertical ? "bottom" : "right") && (!isFinite(_naturalBox) || _naturalStart + _naturalBox + filletMargin > edgeLength - connectorGap)
+  readonly property var _joins: EdgeAttach.joins(_naturalStart, _naturalBox, startInset, edgeLength - endInset, connectorGap, joinEnds && _joinable(vertical ? "top" : "left"), joinEnds && _joinable(vertical ? "bottom" : "right"))
+  readonly property bool joinStart: _joins.joinStart
+  readonly property bool joinEnd: _joins.joinEnd
   // Without the border, joined ends run straight off the screen edge
   readonly property real _strokeStart: -strokeInset
   readonly property real _strokeEnd: edgeLength + strokeInset
 
   // Largest content box that fits along the edge: from stroke to stroke
   // when both ends join, else keeping its inset from each end that
-  // doesn't, as the clamp in boxStart does
+  // doesn't, as the clamp in place does
   readonly property real maxBoxLength: {
     const start = root.joinStart ? root._strokeStart : root.startInset;
     const end = root.joinEnd ? root._strokeEnd : root.edgeLength - root.endInset;
@@ -233,25 +272,37 @@ PopoutWrapperBase {
   // The box along the edge, in edge coordinates (0 at the perpendicular
   // edges' inner side): flush on a joined end, else centred at `position`
   // and clamped to its insets (startInset/endInset), so its fillets stay
-  // on the edge. The clamp takes the insets from the edge alone, not the
-  // surface, whose margins can depend on where the box lands (startFoot).
-  // On a whole pixel, as its length is: a fillet ending mid-pixel leaves
-  // a pale pixel in the stroke it joins (a lattice centred at a half
-  // pixel put one there).
-  readonly property real boxLength: vertical ? surface.boxHeight : surface.boxWidth
-  readonly property real boxStart: {
-    if (root.joinStart)
-      return root._strokeStart;
-    if (root.joinEnd)
-      return root._strokeEnd - root.boxLength;
-    const lo = root.startInset, hi = root.edgeLength - root.endInset - root.boxLength;
-    const clamped = Math.max(lo, Math.min(root.edgeLength * root.position + root.positionOffset - root.boxLength / 2, hi));
-    return Math.round(root.boxSnap ? Math.max(lo, Math.min(clamped + root.boxSnap(clamped), hi)) : clamped);
-  }
-  // Both ends joined, the box runs the whole edge, the content centred
-  readonly property real _boxAlong: joinStart && joinEnd ? maxBoxLength : Math.ceil((vertical ? root.contentItem?.implicitHeight ?? 100 : root.contentItem?.implicitWidth ?? 100) + contentPadding * 2)
+  // on the edge; on a bar's pills or islands, as a bar popout's
+  // (EdgeAttach.place). Both ends joined, it runs the whole edge, the
+  // content centred.
+  readonly property real _contentAlong: Math.ceil((vertical ? root.contentItem?.implicitHeight ?? 100 : root.contentItem?.implicitWidth ?? 100) + contentPadding * 2)
+  readonly property var place: EdgeAttach.place({
+    "pills": root.pills,
+    "pillBar": root.pillBar && !root.island,
+    "island": root.island,
+    "merge": root.barConfig?.pillMerge ?? 0,
+    "centre": root.edgeLength * root.position + root.positionOffset,
+    "aligned": root.edgeLength * root.position + root.positionOffset - root._contentAlong / 2,
+    "length": root._contentAlong,
+    "joinStart": root.joinStart,
+    "joinEnd": root.joinEnd,
+    "joinFrom": root._strokeStart,
+    "joinTo": root._strokeEnd,
+    "lo": root.startInset,
+    "hi": root.edgeLength - root.endInset,
+    "islandFrom": (root.barConfig?.islandStart ?? 0) - root.barShift,
+    "islandTo": (root.container?.islandEnd ?? root.edgeLength) - root.barShift,
+    "straight": root.bareEdge,
+    "straightMerged": !Appearance.screenBorder,
+    "gap": root.connectorGap,
+    "stroke": Appearance.borderWidth,
+    "radius": Appearance.borderRadius
+  })
+  readonly property real boxStart: root.place.start
+  readonly property real boxLength: root.place.end - root.place.start
+  readonly property real _boxAlong: root.boxLength
   // The surface (fillets included) along the edge
-  readonly property real surfaceStart: boxStart - surface.startMargin
+  readonly property real surfaceStart: root.place.surfaceStart
   readonly property real surfaceLength: vertical ? surface.implicitHeight : surface.implicitWidth
 
   currentItem: root.contentItem
@@ -303,7 +354,7 @@ PopoutWrapperBase {
     // Docks reserving space inside the border don't push it in: it reaches
     // past them, on its own edge and at both ends
     readonly property string screenName: root.screen?.name ?? ""
-    readonly property real attachMargin: (root.straight ? 0 : -Appearance.borderWidth) + root.edgeOffset - (root.slidesUnder ? root.slideDistance : 0) - DockManager.zoneOn(screenName, Bar.edgeName(root.edge))
+    readonly property real attachMargin: (root.bareEdge ? 0 : -Appearance.borderWidth) - surface.backfill + root.edgeOffset - (root.slidesUnder ? root.slideDistance : 0) - DockManager.zoneOn(screenName, Bar.edgeName(root.edge))
     margins {
       top: root.edge === Bar.Top ? surfaceWindow.attachMargin : root.vertical ? -root.strokeInset - DockManager.zoneOn(surfaceWindow.screenName, "top") : 0
       bottom: root.edge === Bar.Bottom ? surfaceWindow.attachMargin : root.vertical ? -root.strokeInset - DockManager.zoneOn(surfaceWindow.screenName, "bottom") : 0
@@ -315,7 +366,8 @@ PopoutWrapperBase {
     readonly property real depth: {
       const content = root.vertical ? (root.contentItem?.implicitWidth ?? 0) : (root.contentItem?.implicitHeight ?? 0);
       const surfaceDepth = root.vertical ? surface.implicitWidth : surface.implicitHeight;
-      return surfaceDepth + Math.max(0, root.maxContentDepth - content);
+      // and room for the shadow or glow it casts (SurfaceShadow)
+      return surfaceDepth + Math.max(0, root.maxContentDepth - content) + BarStyle.shadowReach;
     }
     implicitWidth: root.vertical ? surfaceWindow.depth : 0
     implicitHeight: root.vertical ? 0 : surfaceWindow.depth
@@ -361,6 +413,7 @@ PopoutWrapperBase {
       height: implicitHeight
 
       edge: root.edge
+      castShadow: true
       straight: root.straight
       detached: root.detached
       detachedOffset: root.slidesUnder ? root.slideDistance : 0
@@ -368,16 +421,20 @@ PopoutWrapperBase {
       connectorGap: root.connectorGap
       boxWidth: root.vertical ? (root.contentItem?.implicitWidth ?? 100) + root.contentPadding * 2 + root.attachClearance : root._boxAlong
       boxHeight: root.vertical ? root._boxAlong : (root.contentItem?.implicitHeight ?? 100) + root.contentPadding * 2 + root.attachClearance
-      joinStart: root.joinStart
-      joinEnd: root.joinEnd
+      joinStart: root.place.joinStart
+      joinEnd: root.place.joinEnd
+      flushStart: root.place.flushStart
+      flushEnd: root.place.flushEnd
       straightJoins: !Appearance.screenBorder
       fillColor: root.fillColor
       strokeColor: root.strokeColor
-      startFoot: root.startFoot
-      endFoot: root.endFoot
-      notches: root.notches
-      notchDepth: root.notchDepth
-      notchStart: root.notchStart
+      startFoot: root.place.footStart ? root.pillFoot : 0
+      endFoot: root.place.footEnd ? root.pillFoot : 0
+      // On a pill's far stroke, cover that stroke's inner fringe too
+      backfill: !root.detached && (root.place.mode === "pill" || root.place.mode === "island") ? 1 : 0
+      // The pills' interiors, a stroke plus a pixel inside their free ends
+      notches: EdgeAttach.notches(root.place.mergedPills, root.surfaceStart, root.surfaceLength, Appearance.borderWidth + 1)
+      notchDepth: root.pillFoot - 1
 
       // In window coordinates
       Variants {
@@ -401,7 +458,9 @@ PopoutWrapperBase {
       Loader {
         id: loader
         // Across the edge it fills the box; along it, it keeps its own
-        // length, centred (a box joined at both ends can be longer). Plain
+        // length, where it wants to be (EdgeAttach.place's contentOffset:
+        // the box can grow past it, to a joined stroke or an island's
+        // end). Plain
         // geometry, not anchors switched by `vertical`: those re-evaluate
         // one at a time when the edge changes, and QML drops the anchor
         // that briefly conflicts (top + bottom + verticalCenter) for good.
@@ -409,8 +468,8 @@ PopoutWrapperBase {
         readonly property real rightMargin: root.contentPadding + (root.edge === Bar.Right ? root.attachClearance : 0)
         readonly property real topMargin: root.contentPadding + (root.edge === Bar.Top ? root.attachClearance : 0)
         readonly property real bottomMargin: root.contentPadding + (root.edge === Bar.Bottom ? root.attachClearance : 0)
-        x: root.vertical ? leftMargin : (parent.width - width) / 2
-        y: root.vertical ? (parent.height - height) / 2 : topMargin
+        x: root.vertical ? leftMargin : root.contentPadding + root.place.contentOffset
+        y: root.vertical ? root.contentPadding + root.place.contentOffset : topMargin
         width: root.vertical ? parent.width - leftMargin - rightMargin : (root.contentItem?.implicitWidth ?? 0)
         height: root.vertical ? (root.contentItem?.implicitHeight ?? 0) : parent.height - topMargin - bottomMargin
 

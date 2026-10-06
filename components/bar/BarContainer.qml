@@ -99,17 +99,27 @@ Rectangle {
         }));
   }
 
-  // The islands as drawn: one stretched to carry an open popout, and
-  // joining any it then reaches, while that's open
-  readonly property var islandRects: islands ? BarLayout.stretchIslands(root.pillRects, root.pillStretch, root.barConfig.pillMerge) : []
+  // The islands as drawn: stretched to carry the surfaces open on them,
+  // and joining any they then reach, while those are open
+  readonly property var islandRects: islands ? BarLayout.stretchIslands(root.pillRects, root._shownStretches, root.barConfig.pillMerge) : []
 
-  // One pill stretched past its ends to carry an open popout's fillets,
-  // { index, start, end }, and on an island whether the popout runs flush
-  // into either end (squareStart, squareEnd) (set by BarPopouts;
-  // pillRects stays unstretched)
-  property var pillStretch: null
-  // The same for a floating edge menu standing on a pill
-  property var edgeMenuStretch: null
+  // Pills stretched past their ends to carry the fillets of surfaces
+  // standing on them, by owner (a bar popout, an edge popout): each
+  // { index, start, end, squareStart, squareEnd } (EdgeAttach.place's
+  // stretch). pillRects stays unstretched.
+  property var stretches: ({})
+  readonly property var _stretchList: Object.keys(root.stretches).map(k => root.stretches[k])
+  // Sets (or with null clears) `owner`'s stretch
+  function setStretch(owner, stretch) {
+    if (JSON.stringify(root.stretches[owner] ?? null) === JSON.stringify(stretch ?? null))
+      return;
+    const next = Object.assign({}, root.stretches);
+    if (stretch)
+      next[owner] = stretch;
+    else
+      delete next[owner];
+    root.stretches = next;
+  }
 
   // A stretch changing while its popout is open (the calendar opening its
   // editor) was drawn but not shown: the bar's next frame was rendered,
@@ -117,8 +127,57 @@ Rectangle {
   // made the bar commit again (a hover, the clock). So for a few frames
   // after a stretch changes, the bar draws a frame of its own (an
   // invisible pixel flipping), and the last one shown is the right one.
-  onPillStretchChanged: _repaint.burst()
-  onEdgeMenuStretchChanged: _repaint.burst()
+  on_ShownStretchesChanged: _repaint.burst()
+
+  // How far each pill reaches past its own ends for the stretches on it,
+  // animated, so it grows out to carry a surface and draws back after it.
+  // Only the reach animates: the pill itself follows the layout at once.
+  Instantiator {
+    id: reaches
+    model: root.pillRects.length
+
+    delegate: QtObject {
+      required property int index
+      readonly property var rect: root.pillRects[index] ?? null
+      readonly property var target: BarLayout.stretchOf(root._stretchList, index)
+      readonly property bool squareStart: target?.squareStart ?? false
+      readonly property bool squareEnd: target?.squareEnd ?? false
+      property real before: target && rect ? Math.max(0, rect.start - target.start) : 0
+      property real after: target && rect ? Math.max(0, target.end - rect.start - rect.length) : 0
+
+      Behavior on before {
+        NumberAnimation {
+          duration: Appearance.animFast
+          easing.type: Appearance.easing
+        }
+      }
+      Behavior on after {
+        NumberAnimation {
+          duration: Appearance.animFast
+          easing.type: Appearance.easing
+        }
+      }
+    }
+  }
+  // The stretches as drawn (see stretchOf), one per pill reaching past
+  // its ends or squared
+  readonly property var _shownStretches: {
+    const shown = [];
+    for (let i = 0; i < reaches.count; i++) {
+      const reach = reaches.objectAt(i);
+      const rect = reach?.rect;
+      if (!rect || (reach.before <= 0 && reach.after <= 0 && !reach.squareStart && !reach.squareEnd))
+        continue;
+      shown.push({
+        "index": i,
+        "start": rect.start - reach.before,
+        "end": rect.start + rect.length + reach.after,
+        "squareStart": reach.squareStart,
+        "squareEnd": reach.squareEnd
+      });
+    }
+    return shown;
+  }
   property bool _repaintFlip: false
   Timer {
     id: _repaint
@@ -140,15 +199,9 @@ Rectangle {
     color: "#02000000"
     opacity: root._repaintFlip ? 0.5 : 0.4
   }
-  // Both stretches on pill `index`, as one { start, end }, or null
+  // The stretch on pill `index` as drawn, { start, end }, or null
   function stretchFor(index) {
-    const stretches = [root.pillStretch, root.edgeMenuStretch].filter(s => s?.index === index);
-    if (stretches.length === 0)
-      return null;
-    return {
-      "start": Math.min(...stretches.map(s => s.start)),
-      "end": Math.max(...stretches.map(s => s.end))
-    };
+    return BarLayout.stretchOf(root._shownStretches, index);
   }
 
   readonly property var _groups: [leftGroup, leftCenterGroup, centerGroup, rightCenterGroup, rightGroup]

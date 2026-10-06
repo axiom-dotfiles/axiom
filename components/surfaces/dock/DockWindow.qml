@@ -9,16 +9,15 @@ import qs.components.methods
 import qs.components.hosts.popout
 
 // One dock (a DockEntry) on one screen: a strip along its edge, inside the
-// bars and border, holding a box of app icons. Held off the edge
-// (`detached`) it's a plain rounded box `gap` in from the frame lines on
-// its edge and at its ends (Bar.detachedGaps); otherwise the box grows out
-// of the border's (or a solid bar's) stroke as popouts do
-// (AttachedSurface), or runs straight off a bare screen edge. The window
-// is as deep as the magnified icons, and only the box (and icons grown
-// out of it) take input. Always shown
-// docks may reserve their strip; hover and intellihide docks slide in from
-// the edge through an EdgeTrigger. Everything along the dock is laid out
-// here (`starts`, `sizes`), and each DockItem places itself from that.
+// bars and border, holding a box of app icons. Its box meets the edge as an
+// edge popout's does (EdgeAttach, see "Attaching to the edge"): held off
+// it, growing out of the border's or a solid bar's stroke, or following
+// another bar there as a bar popout would. The window is as deep as the
+// magnified icons, and only the box (and icons grown out of it) take
+// input. Always shown docks may reserve their strip; hover and
+// intellihide docks slide in from the edge through an EdgeTrigger.
+// Everything along the dock is laid out here (`starts`, `sizes`), and each
+// DockItem places itself from that.
 Scope {
   id: root
 
@@ -37,8 +36,15 @@ Scope {
   readonly property real thickness: root.base + root.pad * 2
 
   // --- Attaching to the edge ---
+  // As an edge popout does (EdgePopout, EdgeAttach): held off the edge, a
+  // plain box `gap` in from the frame lines on its edge and at its ends;
+  // else growing out of the border's (or a solid bar's) stroke, or running
+  // straight off a bare screen edge; with another bar on its edge,
+  // meeting it as a bar popout would: on a pill, merged around the pills,
+  // out of a floating bar's island (stretching it while it shows), or a
+  // detached box past a transparent bar.
   readonly property string _edgeName: Bar.edgeName(root.edge)
-  readonly property var _edgeBar: Bar.edgesFor(root.screen)[root._edgeName]
+  readonly property int connectorGap: Appearance.borderRadius * 2
   // Held off the edge, and its gaps from the frame lines across its edge
   // and at its ends (what places it, so a change of `held` never reads
   // them before they follow)
@@ -49,20 +55,60 @@ Scope {
   function _heldOffset(location, gap) {
     return Math.max(0, EdgeMenuManager.frameLineOn(root.screen, location) + gap - EdgeMenuManager.reservedOn(root.screen, location));
   }
-  // Not held, the box joins the edge's stroke: the border's or a solid
-  // bar's. Any other bar has none, so it stays a box against the window's
-  // edge.
-  readonly property bool attached: !root.held && (!root._edgeBar || root._edgeBar.joinable)
-  // No border and no bar there: it runs straight off the screen edge
-  readonly property bool straight: root.attached && Bar.screenEdgeOpen(root.screen, root.edge)
-  readonly property int connectorGap: Appearance.borderRadius * 2
-  // An attached window reaches onto the stroke it joins, as EdgePopout's
-  readonly property real edgeMargin: root.attached && !root.straight ? -Appearance.borderWidth : 0
-  // From the window's edge to the box
-  readonly property real boxOffset: root.attached ? root.connectorGap / 2 : root.gaps ? root._heldOffset(root.edge, root.gaps.across) : 0
+  readonly property bool bareEdge: Bar.screenEdgeOpen(root.screen, root.edge)
+  // A bar other than a solid one on its edge, while it shows
+  readonly property var barPanel: {
+    const panel = ShellManager.barOn(root.screen?.name ?? "", root.edge);
+    return panel?.visible && !panel.barConfig.solid ? panel : null;
+  }
+  readonly property var barConfig: root.barPanel?.barConfig ?? null
+  readonly property bool followsBar: !root.held && root.barConfig !== null
+  readonly property var container: root.barPanel?.container ?? null
+  readonly property bool island: root.followsBar && (root.barConfig?.island ?? false)
+  readonly property bool pillBar: root.followsBar && ((root.barConfig?.pills ?? false) || root.island)
+  // Across the edge, in px from the screen edge: the bar's outer edge, and
+  // a pill's (or island's) far stroke from it
+  readonly property real barOuter: root.barConfig ? EdgeMenuManager.frameLineOn(root.screen, root.edge) - root.barConfig.extent : 0
+  readonly property real pillFoot: root.pillBar ? (root.island ? root.barConfig?.extent ?? 0 : root.barConfig?.pillDepth ?? 0) - Appearance.borderWidth : 0
+  // Where the window starts across the edge (what's reserved there; not
+  // docks, its own included)
+  readonly property real reservedHere: EdgeMenuManager.reservedOn(root.screen, root.edge)
+  // A box of its own: held, or on a bar with nothing to grow out of
+  readonly property bool detached: root.held || (root.followsBar && !root.pillBar) || (root.island && root.place.mode === "plain")
+  readonly property bool attached: !root.detached
+  readonly property bool merged: root.place.mode === "merged"
+  // Where its attach edge goes, from the screen edge: the stroke of what
+  // reserves the edge (the screen edge when bare); following a bar, its
+  // outer edge when merged, a pill's or island's far stroke, or a
+  // transparent bar's inner edge (Bar.detachedPush, as EdgePopout)
+  readonly property real attachAt: {
+    if (!root.followsBar)
+      return root.reservedHere - (root.bareEdge ? 0 : Appearance.borderWidth);
+    if (root.merged)
+      return root.barOuter;
+    if (root.place.mode === "pill" || root.place.mode === "island")
+      return root.barOuter + root.pillFoot;
+    return root.barOuter + (root.barConfig?.extent ?? 0) + Bar.detachedPush(root.barConfig, HyprlandManager.gapsOut[root._edgeName] ?? 0, root.connectorGap);
+  }
+  // On a pill's far stroke the surface covers that stroke's inner fringe
+  readonly property real backfill: root.attached && (root.place.mode === "pill" || root.place.mode === "island") ? 1 : 0
+  // Merged around pills, the icons keep clear of them
+  readonly property real attachClearance: root.merged ? root.pillFoot : 0
+  // An attached window's edge sits on its attach edge (reaching back onto
+  // the stroke it joins, as EdgePopout's)
+  readonly property real edgeMargin: root.attached ? root.attachAt - root.reservedHere - root.backfill : 0
+  // From the window's edge to the box of icons
+  readonly property real boxOffset: {
+    if (root.attached)
+      return root.backfill + root.connectorGap / 2 + root.attachClearance;
+    if (root.gaps)
+      return root._heldOffset(root.edge, root.gaps.across);
+    return Math.max(0, root.attachAt + root.connectorGap / 2 - root.reservedHere);
+  }
   // The window: the gap to the edge, the box, and room for icons to grow
   // (and for an attached surface's far side)
-  readonly property real depth: root.boxOffset + root.thickness + Math.max(root.peak - root.base, root.attached ? root.connectorGap / 2 : 0) + 2
+  // (and for the shadow or glow it casts, SurfaceShadow)
+  readonly property real depth: root.boxOffset + root.thickness + Math.max(root.peak - root.base, (root.attached ? root.connectorGap / 2 : 0) + BarStyle.shadowReach) + 2
 
   // --- Items ---
   // Re-read on every window change; delegates are keyed by the joined
@@ -77,21 +123,68 @@ Scope {
   readonly property real separatorLength: root.separator ? root.spacing + root.lineWidth : 0
 
   // --- Along the dock ---
-  readonly property real length: root.vertical ? window.height : window.width
+  // In edge coordinates, as EdgePopout's: 0 at the perpendicular edges'
+  // inner side. Not held, the window reaches onto their strokes, so an end
+  // can join one.
+  readonly property real strokeInset: !root.held && Appearance.screenBorder ? Appearance.borderWidth : 0
+  readonly property real length: (root.vertical ? window.height : window.width) - root.strokeInset * 2
   readonly property real restLength: root.count * root.base + Math.max(0, root.count - 1) * root.spacing + root.separatorLength + root.pad * 2
-  // The least room from the box to each end: held, its gaps from the
-  // frame lines there; else a screen margin, and an attached box's fillets
-  readonly property real startMargin: root.gaps ? root._heldOffset(root.vertical ? Bar.Top : Bar.Left, root.gaps.start) : root._freeMargin
-  readonly property real endMargin: root.gaps ? root._heldOffset(root.vertical ? Bar.Bottom : Bar.Right, root.gaps.end) : root._freeMargin
-  readonly property real _freeMargin: Appearance.screenMargin + (root.attached && !root.straight ? root.connectorGap : 0)
+  // Room for a side wall's fillet at an end that isn't joined
+  readonly property real filletMargin: root.bareEdge ? 0 : EdgeAttach.filletMargin(root.connectorGap, Appearance.borderWidth, Appearance.borderRadius)
+  // The least room from the box to each end that isn't joined: held, its
+  // gaps from the frame lines there; else its fillet's
+  readonly property real startInset: root.gaps ? root._heldOffset(root.vertical ? Bar.Top : Bar.Left, root.gaps.start) : root.filletMargin
+  readonly property real endInset: root.gaps ? root._heldOffset(root.vertical ? Bar.Bottom : Bar.Right, root.gaps.end) : root.filletMargin
+  readonly property real _wanted: root.length * root.dock.position / 100
   // The box's centre at rest, kept within those
   readonly property real centre: {
-    const wanted = root.length * root.dock.position / 100;
-    if (root.restLength + root.startMargin + root.endMargin >= root.length)
-      return (root.startMargin + root.length - root.endMargin) / 2;
-    return Math.max(root.restLength / 2 + root.startMargin, Math.min(wanted, root.length - root.restLength / 2 - root.endMargin));
+    if (root.restLength + root.startInset + root.endInset >= root.length)
+      return (root.startInset + root.length - root.endInset) / 2;
+    return Math.max(root.restLength / 2 + root.startInset, Math.min(root._wanted, root.length - root.restLength / 2 - root.endInset));
   }
   readonly property real restStart: root.centre - root.restLength / 2
+  // Which perpendicular edges have a stroke to join (as EdgePopout's)
+  function _joinable(name) {
+    const bar = Bar.edgesFor(root.screen)[name];
+    return (!bar || bar.joinable) && EdgeMenuManager.zoneOn(root.screen?.name ?? "", name) === 0;
+  }
+  // From where it would rest, so magnifying never joins or parts an end
+  readonly property var joins: EdgeAttach.joins(root._wanted - root.restLength / 2, root.restLength, root.startInset, root.length - root.endInset, root.connectorGap, !root.held && root._joinable(root.vertical ? "top" : "left"), !root.held && root._joinable(root.vertical ? "bottom" : "right"))
+  // Along the edge, bar-window coordinates are these plus the shift
+  readonly property real barShift: root.container ? (root.container.length - root.length) / 2 : 0
+  readonly property var place: EdgeAttach.place({
+    "pills": root.pillBar ? (root.container?.pillRects ?? []).map(p => Object.assign({}, p, {
+        "start": p.start - root.barShift
+      })) : [],
+    "pillBar": root.pillBar && !root.island,
+    "island": root.island,
+    "merge": root.barConfig?.pillMerge ?? 0,
+    "centre": root.centre,
+    "aligned": root.centre - root.currentLength / 2,
+    "length": root.currentLength,
+    "joinStart": root.joins.joinStart,
+    "joinEnd": root.joins.joinEnd,
+    "joinFrom": -root.strokeInset,
+    "joinTo": root.length + root.strokeInset,
+    "lo": root.startInset,
+    "hi": root.length - root.endInset,
+    "islandFrom": (root.barConfig?.islandStart ?? 0) - root.barShift,
+    "islandTo": (root.container?.islandEnd ?? root.length) - root.barShift,
+    "straight": root.bareEdge,
+    "straightMerged": !Appearance.screenBorder,
+    "gap": root.connectorGap,
+    "stroke": Appearance.borderWidth,
+    "radius": Appearance.borderRadius
+  })
+  // The island (or pill) stretched to carry it while it shows
+  PillStretch {
+    container: root.container
+    owner: "dock:" + root.dock.id + ":" + (root.screen?.name ?? "")
+    stretch: root.shown > 0 && root.count > 0 && root.place.stretch ? Object.assign({}, root.place.stretch, {
+      "start": root.place.stretch.start + root.barShift,
+      "end": root.place.stretch.end + root.barShift
+    }) : null
+  }
 
   // Magnification: the pointer along the row as laid out at rest, and how
   // far the icons have grown towards it (animated in and out)
@@ -105,14 +198,19 @@ Scope {
   }
   readonly property real _step: root.base + root.spacing
   readonly property var sizes: {
-    let p = root.pointer - root.restStart - root.pad;
+    let p = root.pointer - root.strokeInset - root.restStart - root.pad;
     if (root.separator && p > root.pinnedCount * root._step)
       p = Math.max(root.pinnedCount * root._step, p - root.separatorLength);
     const full = DockLayout.magnifiedSizes(root.count, root.pointer < 0 ? null : p, root.base, root.peak, root.dock.magnifyRange, root.spacing);
     return full.map(size => root.base + (size - root.base) * root.magnifyAmount);
   }
   readonly property real currentLength: root.sizes.reduce((sum, size) => sum + size, 0) + Math.max(0, root.count - 1) * root.spacing + root.separatorLength + root.pad * 2
-  readonly property real boxStart: root.centre - root.currentLength / 2
+  // Where the icons' box starts along the window: where it wants to be,
+  // the surface reaching past it to whatever it meets (place)
+  readonly property real boxStart: root.strokeInset + root.place.contentStart
+  // The surface's box along the window
+  readonly property real surfaceBoxStart: root.strokeInset + root.place.start
+  readonly property real surfaceBoxLength: root.place.end - root.place.start
   // Where each icon starts along the window
   readonly property var starts: {
     const starts = [];
@@ -362,24 +460,41 @@ Scope {
     implicitWidth: root.vertical ? root.depth : 0
     implicitHeight: root.vertical ? 0 : root.depth
 
+    // Along the edge it reaches onto the perpendicular strokes (strokeInset)
     margins {
-      top: root.edge === Bar.Top ? root.edgeMargin : 0
-      bottom: root.edge === Bar.Bottom ? root.edgeMargin : 0
-      left: root.edge === Bar.Left ? root.edgeMargin : 0
-      right: root.edge === Bar.Right ? root.edgeMargin : 0
+      top: root.edge === Bar.Top ? root.edgeMargin : root.vertical ? -root.strokeInset : 0
+      bottom: root.edge === Bar.Bottom ? root.edgeMargin : root.vertical ? -root.strokeInset : 0
+      left: root.edge === Bar.Left ? root.edgeMargin : root.vertical ? 0 : -root.strokeInset
+      right: root.edge === Bar.Right ? root.edgeMargin : root.vertical ? 0 : -root.strokeInset
     }
 
     // The box and the icons grown out of it, and the gap to the edge (so
     // the pointer doesn't leave the dock on its way from the edge); nothing
-    // while it's hidden
+    // while it's hidden. Pills it merges around stay hoverable through its
+    // notches.
     mask: Region {
       item: inputArea
+      regions: notchRegions.instances
+    }
+
+    Variants {
+      id: notchRegions
+      model: root.attached ? surface.notchRects : []
+
+      Region {
+        required property rect modelData
+        intersection: Intersection.Subtract
+        x: surface.x + modelData.x
+        y: surface.y + modelData.y
+        width: modelData.width
+        height: modelData.height
+      }
     }
 
     Item {
       id: inputArea
-      readonly property real alongStart: root.boxStart
-      readonly property real alongLength: root.shown > 0 ? root.currentLength : 0
+      readonly property real alongStart: root.surfaceBoxStart
+      readonly property real alongLength: root.shown > 0 ? root.surfaceBoxLength : 0
       readonly property real crossDepth: root.shown > 0 ? root.boxOffset + root.thickness + root.grown : 0
 
       x: root.vertical ? root.crossAt(0, crossDepth) : alongStart
@@ -400,17 +515,28 @@ Scope {
       AttachedSurface {
         id: surface
         visible: root.attached
-        x: root.vertical ? root.crossAt(0, width) : root.boxStart - startMargin
-        y: root.vertical ? root.boxStart - startMargin : root.crossAt(0, height)
+        x: root.vertical ? root.crossAt(0, width) : root.strokeInset + root.place.surfaceStart
+        y: root.vertical ? root.strokeInset + root.place.surfaceStart : root.crossAt(0, height)
         width: implicitWidth
         height: implicitHeight
 
         edge: root.edge
+        castShadow: true
         active: true
-        straight: root.straight
+        straight: root.merged ? !Appearance.screenBorder : root.place.mode === "plain" && root.bareEdge
+        straightJoins: !Appearance.screenBorder
         connectorGap: root.connectorGap
-        boxWidth: root.vertical ? root.thickness : root.currentLength
-        boxHeight: root.vertical ? root.currentLength : root.thickness
+        boxWidth: root.vertical ? root.thickness + root.attachClearance : root.surfaceBoxLength
+        boxHeight: root.vertical ? root.surfaceBoxLength : root.thickness + root.attachClearance
+        joinStart: root.place.joinStart
+        joinEnd: root.place.joinEnd
+        flushStart: root.place.flushStart
+        flushEnd: root.place.flushEnd
+        startFoot: root.place.footStart ? root.pillFoot : 0
+        endFoot: root.place.footEnd ? root.pillFoot : 0
+        backfill: root.backfill
+        notches: EdgeAttach.notches(root.place.mergedPills, root.place.surfaceStart, root.vertical ? implicitHeight : implicitWidth, Appearance.borderWidth + 1)
+        notchDepth: root.pillFoot - 1
         fillColor: Theme.resolveColor(root.dock.backgroundColor)
         strokeColor: Theme.resolveColor(root.dock.borderColor)
       }
@@ -418,14 +544,18 @@ Scope {
       // Or a box of its own
       Rectangle {
         visible: !root.attached
-        x: root.vertical ? root.crossAt(root.boxOffset, root.thickness) : root.boxStart
-        y: root.vertical ? root.boxStart : root.crossAt(root.boxOffset, root.thickness)
-        width: root.vertical ? root.thickness : root.currentLength
-        height: root.vertical ? root.currentLength : root.thickness
+        x: root.vertical ? root.crossAt(root.boxOffset, root.thickness) : root.surfaceBoxStart
+        y: root.vertical ? root.surfaceBoxStart : root.crossAt(root.boxOffset, root.thickness)
+        width: root.vertical ? root.thickness : root.surfaceBoxLength
+        height: root.vertical ? root.surfaceBoxLength : root.thickness
         radius: Math.min(Appearance.borderRadius, root.thickness / 2)
         color: Theme.resolveColor(root.dock.backgroundColor)
         border.color: Theme.resolveColor(root.dock.borderColor)
         border.width: Appearance.borderWidth
+        layer.enabled: BarStyle.shadowed
+        layer.effect: SurfaceShadow {
+          edge: root.edge
+        }
       }
 
       // Between the pinned apps and the others

@@ -53,7 +53,9 @@ QtObject {
   readonly property int borderRadius: _c.shape.radius
   readonly property int borderWidth: _c.shape.borderWidth
   readonly property bool screenBorder: _c.shape.screenBorder
-  readonly property int screenMargin: _c.shape.screenMargin
+  // The frame can't be thinner than its own outline (a narrower one would
+  // draw the stroke over the screen edge); without a frame it's just a gap
+  readonly property int screenMargin: screenBorder ? Math.max(borderWidth, _c.shape.screenMargin) : _c.shape.screenMargin
 
   // --- Motion ---
   // Every animation in the shell uses one of these durations, so the

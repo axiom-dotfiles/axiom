@@ -114,6 +114,23 @@ PopoutWrapperBase {
       onClicked: root.hide()
     }
 
+    // The box's shadow or glow (SurfaceShadow), cast by a copy of its shape
+    // behind it, so the content isn't drawn through a layer
+    Rectangle {
+      visible: BarStyle.shadowed
+      x: box.x
+      y: box.y
+      width: box.width
+      height: box.height
+      radius: box.radius
+      color: box.color
+      opacity: box.opacity
+      scale: box.scale
+      transformOrigin: box.transformOrigin
+      layer.enabled: BarStyle.shadowed
+      layer.effect: SurfaceShadow {}
+    }
+
     Rectangle {
       id: box
 
