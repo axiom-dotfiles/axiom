@@ -11,6 +11,8 @@ import qs.components.reusable
  * saved or restored) can be overwritten from its row; it's marked Current,
  * with an unsaved dot once the running config differs. Overwrite, restore,
  * delete and reverting to the defaults ask for a second click to confirm.
+ * Below them, the example setups (SavedConfigsManager.examples), applied
+ * the same way.
  */
 FieldGroup {
   id: root
@@ -187,6 +189,60 @@ FieldGroup {
     }
   }
 
+  SectionHeading {
+    visible: SavedConfigsManager.examples.length > 0
+    Layout.topMargin: Widget.spacing
+    title: I18n.tr("Example setups")
+    description: I18n.tr("Apply an example's look and layout: bars, pages, menus, docks and the theme. Wallpapers, monitors, apps and accounts stay as they are, and the current configuration is saved first.")
+  }
+
+  Repeater {
+    model: SavedConfigsManager.examples
+
+    delegate: StyledContainer {
+      id: exampleRow
+      required property var modelData
+      readonly property bool armed: root.pending?.name === "example:" + modelData.name
+
+      Layout.fillWidth: true
+      Layout.preferredHeight: Widget.height + Widget.padding * 2
+
+      RowLayout {
+        anchors.fill: parent
+        anchors.leftMargin: Widget.padding
+        anchors.rightMargin: Widget.padding
+        spacing: Widget.spacing
+
+        ColumnLayout {
+          Layout.fillWidth: true
+          spacing: 0
+
+          StyledText {
+            text: exampleRow.modelData.title
+            font.bold: true
+            elide: Text.ElideRight
+            Layout.fillWidth: true
+          }
+
+          StyledText {
+            visible: text !== ""
+            text: exampleRow.modelData.description
+            opacity: 0.6
+            textSize: Appearance.fontSize - 2
+            elide: Text.ElideRight
+            Layout.fillWidth: true
+          }
+        }
+
+        StyledTextButton {
+          Layout.preferredHeight: Widget.height
+          text: I18n.tr(exampleRow.armed ? "Confirm" : "Apply")
+          onClicked: root.confirm("example:" + exampleRow.modelData.name, "apply")
+        }
+      }
+    }
+  }
+
   function save() {
     SavedConfigsManager.save(nameEntry.text);
     nameEntry.text = "";
@@ -203,7 +259,9 @@ FieldGroup {
       return;
     }
     root.pending = null;
-    if (action === "restore" && name === "")
+    if (action === "apply")
+      SavedConfigsManager.applyExample(name.slice("example:".length));
+    else if (action === "restore" && name === "")
       SavedConfigsManager.restoreDefaults();
     else if (action === "restore")
       SavedConfigsManager.restore(name);

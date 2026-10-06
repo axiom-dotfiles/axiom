@@ -14,6 +14,8 @@ import qs.components.reusable
 Loader {
   id: root
 
+  // Undefined for a moment while the OSD list is replaced (a restored or
+  // applied config), so it's read with ?.
   required property var entry
   required property string screenName
   // The OSD's own settings: bars run vertically, levels shown as numbers
@@ -41,13 +43,13 @@ Loader {
       orientation: root.orientation
       showPercent: root.showPercent
       scrollStep: OSDConfig.scrollStep
-      targetApps: root.type === "app" ? root.entry.apps : []
+      targetApps: root.type === "app" ? root.entry?.apps ?? [] : []
       otherApps: root.type === "other"
       excludedApps: root.type === "other" ? OSDConfig.excludedApps : []
       useSystemVolume: isMaster
       iconSource: {
-        if (!isMaster || root.entry.icon)
-          return root.entry.icon;
+        if (!isMaster || root.entry?.icon)
+          return root.entry?.icon ?? "";
         if (AudioManager.muted || AudioManager.volume === 0)
           return "volume_mute";
         return AudioManager.volume > 0.4 ? "volume_up" : "volume_down";
@@ -78,7 +80,7 @@ Loader {
       volumeLevel: AudioManager.sourceVolume
       isMuted: AudioManager.sourceMuted
       enabled: AudioManager.defaultSource !== null
-      iconSource: root.entry.icon || AudioManager.inputIcon(AudioManager.deviceKind(AudioManager.defaultSource), AudioManager.sourceMuted)
+      iconSource: root.entry?.icon || AudioManager.inputIcon(AudioManager.deviceKind(AudioManager.defaultSource), AudioManager.sourceMuted)
       onVolumeChanged: newVolume => AudioManager.setSourceVolume(newVolume)
       Component.onCompleted: _source = AudioManager.defaultSource
 
@@ -106,7 +108,7 @@ Loader {
       showPercent: root.showPercent
       scrollStep: OSDConfig.scrollStep
       volumeLevel: level
-      iconSource: root.entry.icon || (level < 0.34 ? "brightness_low" : (level < 0.67 ? "brightness_medium" : "brightness_high"))
+      iconSource: root.entry?.icon || (level < 0.34 ? "brightness_low" : (level < 0.67 ? "brightness_medium" : "brightness_high"))
       onVolumeChanged: newVolume => BrightnessManager.set(root.screenName, newVolume)
 
       Connections {

@@ -13,11 +13,30 @@ import qs.components.methods
  * load pipeline, so snapshots from older config versions are migrated.
  * The one last saved or restored is `active`, and `modified` says whether
  * the running config has changed since.
+ *
+ * Also applies the example setups shipped in examples/ (ConfigExamples):
+ * the running config is first saved as "before-<example>", then the
+ * example's look and layout replace the running ones.
  */
 QtObject {
   id: root
 
   readonly property string savedDir: Paths.configPath + "user/saved/"
+  readonly property string examplesDir: Paths.axiomPath + "examples/"
+  // [{ name, title, description }] by name, from examples/*.json
+  readonly property var examples: {
+    const list = [];
+    for (let i = 0; i < _examplesModel.count; i++) {
+      const name = _examplesModel.get(i, "fileBaseName");
+      const example = _readExample(name);
+      list.push({
+        name: name,
+        title: example?._example?.title ?? name,
+        description: example?._example?.description ?? ""
+      });
+    }
+    return list;
+  }
   // Newest first; roles: fileBaseName, filePath, fileModified
   readonly property FolderListModel model: _model
   // Last save/restore/delete outcome, for the settings UI
@@ -35,6 +54,8 @@ QtObject {
   // The config being written by save(), the new baseline once it's saved
   // (dropped once it's written or fails)
   property var _saving: null
+  // The example to apply once the running config is saved as its backup
+  property string _pendingExample: ""
   readonly property var _state: StateManager.createStateHandler("savedconfigs")
 
   Component.onCompleted: {
@@ -116,6 +137,44 @@ QtObject {
     console.log("[SavedConfigsManager] Restored defaults");
   }
 
+  // Saves the running config as "before-<name>", then applies the example
+  // (in _writer's onSaved, so a failed backup applies nothing)
+  function applyExample(name) {
+    const example = _readExample(name);
+    if (!example) {
+      root.status = I18n.tr("\"{0}\" could not be read", name);
+      return;
+    }
+    root._pendingExample = name;
+    save("before-" + name);
+  }
+
+  function _applyExample(name) {
+    const example = _readExample(name);
+    const loaded = example ? ConfigManager.normalizeConfig(example) : null;
+    if (!loaded || !ConfigManager.restoreConfig(ConfigExamples.apply(ConfigManager.config, loaded))) {
+      root.status = I18n.tr("\"{0}\" is not a valid config", name);
+      return;
+    }
+    root._setActive("", null);
+    SettingsManager.loadConfig();
+    root.status = I18n.tr("Applied \"{0}\". The previous configuration is saved as \"{1}\".", name, "before-" + name);
+    console.log("[SavedConfigsManager] Applied example", name);
+  }
+
+  // The parsed example (with its _example header), or null
+  function _readExample(name) {
+    const content = FileManager.read("file://" + examplesDir + name + ".json");
+    if (!content)
+      return null;
+    try {
+      return JSON.parse(content);
+    } catch (e) {
+      console.error("[SavedConfigsManager] Could not parse example", name + ":", e);
+      return null;
+    }
+  }
+
   function remove(name) {
     _run(["rm", "-f", "--", savedDir + name + ".json"], I18n.tr("Deleted \"{0}\"", name), I18n.tr("Failed to delete \"{0}\"", name), name);
   }
@@ -187,9 +246,14 @@ QtObject {
       root._saving = null;
       root.status = I18n.tr("Saved \"{0}\"", name);
       console.log("[SavedConfigsManager]", root.status);
+      const example = root._pendingExample;
+      root._pendingExample = "";
+      if (example !== "")
+        root._applyExample(example);
     }
     onSaveFailed: error => {
       root._saving = null;
+      root._pendingExample = "";
       root.status = I18n.tr("Failed to save \"{0}\"", name);
       console.warn("[SavedConfigsManager] Could not write", path + ":", FileViewError.toString(error));
     }
@@ -207,5 +271,12 @@ QtObject {
     nameFilters: ["*.json"]
     showDirs: false
     sortField: FolderListModel.Time
+  }
+
+  property FolderListModel _examplesModel: FolderListModel {
+    folder: "file://" + root.examplesDir
+    nameFilters: ["*.json"]
+    showDirs: false
+    sortField: FolderListModel.Name
   }
 }

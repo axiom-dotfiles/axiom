@@ -321,9 +321,9 @@ QtObject {
       name: "config",
       aliases: ["set", "cfg"],
       glyph: "settings",
-      usage: "<setting> <value> | save <name> | restore <name>",
+      usage: "<setting> <value> | save <name> | restore <name> | example <name>",
       needsArg: true,
-      description: () => I18n.tr("Change a setting, or save and restore the config"),
+      description: () => I18n.tr("Change a setting, save and restore the config, or apply an example setup"),
       options: arg => root._configOptions(arg),
       run: (arg, value) => root._configRun(value)
     },
@@ -577,6 +577,14 @@ QtObject {
           value: {
             next: "restore "
           }
+        },
+        {
+          title: "example",
+          subtitle: I18n.tr("Apply an example setup (the current config is saved first)"),
+          glyph: "auto_awesome_mosaic",
+          value: {
+            next: "example "
+          }
         }
       ];
       return rows.concat(SettingsManager.settingPaths.map(entry => ({
@@ -621,6 +629,15 @@ QtObject {
             subtitle: saved !== active ? "" : SavedConfigsManager.modified ? I18n.tr("Current · discards unsaved changes") : I18n.tr("Current"),
             value: {
               restore: saved
+            }
+          }));
+
+    if (head === "example")
+      return SavedConfigsManager.examples.map(example => ({
+            title: "example " + example.name,
+            subtitle: example.description,
+            value: {
+              example: example.name
             }
           }));
 
@@ -679,6 +696,10 @@ QtObject {
     }
     if (value?.restore) {
       SavedConfigsManager.restore(value.restore);
+      return;
+    }
+    if (value?.example) {
+      SavedConfigsManager.applyExample(value.example);
       return;
     }
     if (value?.key !== undefined && !SettingsManager.commitValue(value.key, value.set))
