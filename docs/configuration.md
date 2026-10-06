@@ -22,6 +22,15 @@ Your whole setup (bars, overlay pages, edge menus, docks, the lock and login scr
 - The launcher does the same: `/config save <name>` and `/config restore <name>`.
 - Saved configs are plain copies of `config.json` in `config/user/saved/`. Copy one to another machine, or share it, and restore it there.
 
+### Example setups
+
+axiom ships the setups from the README in `examples/`. Apply one from **Settings → Maintenance → Example setups**, or with `/config example <name>` in the launcher.
+
+- An example holds only the look and the layout: the theme, font and shape, the bars and their style, overlay pages, edge menus, docks, OSDs, popouts, the lock screen layout, workspaces, notifications' placement, the power menu and the window switcher.
+- Everything else stays as it is: wallpapers, monitors, apps, keybinds, calendars, chat providers, Hyprland, idle and the login screen.
+- Your current config is saved first, as `before-<name>`, so going back is one **Restore** away.
+- An example is a partial `config.json` with a `_example` header (`title`, `description`). `components/methods/ConfigExamples.qml` lists what it may hold. If it uses a font you don't have, the text falls back to another.
+
 ### Themes
 
 - Hand-made themes live in `config/themes/`, and generated ones in `config/themes/generated/`.

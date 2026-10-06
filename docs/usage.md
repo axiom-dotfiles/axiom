@@ -83,7 +83,7 @@ Plain text searches apps and open windows. When the text is math, the result sho
 | Prefix | Does |
 | --- | --- |
 | `/` | Shell commands (list below) |
-| `=` | Calculator (qalc: math, units, currencies). Enter copies the result |
+| `=` | Calculator (qalc: math, units, currencies; convert with `to`, as in `=12 usd to eur`). Enter copies the result |
 | `>` | Runs a shell command. Shift+Enter runs it in your terminal |
 | `?` | Web search, with the engine set in Settings |
 | `@` | Asks the overlay's chat, in a new conversation |
@@ -92,7 +92,7 @@ Plain text searches apps and open windows. When the text is math, the result sho
 
 | Apps | Commands | Calculator | Emoji |
 | :---: | :---: | :---: | :---: |
-| <img src="../assets/screenshots/launcher-apps.webp" alt="Launcher searching apps"> | <img src="../assets/screenshots/launcher-commands.webp" alt="Launcher command list"> | <img src="../assets/screenshots/launcher-calc.webp" alt="Launcher converting currency"> | <img src="../assets/screenshots/launcher-emoji.webp" alt="Launcher searching emoji"> |
+| <img src="../assets/screenshots/launcher-apps.webp" alt="Launcher searching apps"> | <img src="../assets/screenshots/launcher-commands.webp" alt="Launcher command list"> | <img src="../assets/screenshots/launcher-calc.webp" alt="Launcher converting 12 USD to euros"> | <img src="../assets/screenshots/launcher-emoji.webp" alt="Launcher searching emoji"> |
 
 <kbd>Tab</kbd> completes a command or its argument. Commands that change something you can see, like the theme, volume or wallpaper, keep the launcher open, so you can try several. `logout`, `reboot` and `poweroff` ask for a second <kbd>Enter</kbd>. Most commands have aliases (`/overview`, `/cal`, `/set`, …), which `/help` lists.
 
@@ -105,7 +105,7 @@ Plain text searches apps and open windows. When the text is math, the result sho
 | **Connectivity** | `/wifi [on\|off]` `/bluetooth [on\|off]` `/connect <device>` |
 | **Calendar and notes** | `/event <when> <title>` `/notes [text]` |
 | **Searches** | `/calc` `/run` `/web` `/clipboard` `/emoji` `/chat [conversation]` |
-| **Shell** | `/config <setting> <value>` `/config save <name>` `/config restore <name>` `/update` `/welcome` `/reload` `/help` |
+| **Shell** | `/config <setting> <value>` `/config save <name>` `/config restore <name>` `/config example <name>` `/update` `/welcome` `/reload` `/help` |
 | **Other** | `/dnd [on\|off]` `/clear` `/caffeine [on\|off]` `/ws <n>` `/screenshot <region\|window\|screen>` `/record` |
 
 Every provider can be switched off under **Settings → Launcher**. The same page sets:

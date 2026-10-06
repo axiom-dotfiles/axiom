@@ -2,9 +2,7 @@
 
 [README](../README.md) · [Features](features.md) · [Installation](installation.md) · [Keybinds, IPC and launcher](usage.md) · [Configuration](configuration.md)
 
-Everything below is one shell and one config, and everything is set from inside the shell. The screenshots are one setup, built entirely with axiom's editors.
-
-<!-- TODO(B/C): the second and third setups slot in as extra columns (same filenames with -b / -c). -->
+Everything below is one shell and one config, and everything is set from inside the shell. The screenshots come from the [example setups](configuration.md#example-setups), each built entirely with axiom's editors, so the look changes from one to the next.
 
 **On this page:** [Bar](#bar) · [Bar styles](#bar-styles) · [Overlay](#overlay) · [Layouts editor](#the-layouts-editor) · [Edge menus](#edge-menus) · [Workspaces](#workspaces) · [Window switcher](#window-switcher-alttab) · [Calendar](#calendar) · [Launcher](#launcher) · [Dock and OSD](#dock-and-osd) · [Lock screen, login screen and polkit](#lock-screen-login-screen-and-polkit) · [Theming](#theming) · [The rest](#the-rest)
 
@@ -26,7 +24,7 @@ Everything below is one shell and one config, and everything is set from inside 
   - It tells you, per screen, which widgets don't fit.
   - **Copy style** puts one bar's look onto others.
 
-<p align="center"><img src="../assets/screenshots/bar-editor.webp" alt="The bar editor: the primary bar's sections as a strip on the left, its settings, and the widget library" width="900"></p>
+<p align="center"><img src="../assets/screenshots/bar-editor.webp" alt="The bar editor on a bottom powerline bar: its sections as a strip along the bottom, its settings, and the widget library" width="900"></p>
 
 <details>
 <summary><b>Popouts</b></summary>
@@ -43,7 +41,7 @@ Everything below is one shell and one config, and everything is set from inside 
 
 ### Bar styles
 
-<p align="center"><img src="../assets/screenshots/bar-styles.webp" alt="One bar in five styles: floating pills with powerline arrows, solid filled, a floating bar with outlined capsules and glow, underlined slants with chevron separators, and transparent with coloured icons and an accent line" width="900"></p>
+<p align="center"><img src="../assets/screenshots/bar-styles.webp" alt="Seven bars in seven styles, each in its own theme: solid filled, floating capsules with glow, powerline pills, outlined arrows, filled slants, transparent accent text with dots, and transparent underlines" width="900"></p>
 
 Set a style once under **Settings → Look & Feel → Bar widgets**, and give any bar its own:
 
@@ -64,9 +62,7 @@ Set a style once under **Settings → Look & Feel → Bar widgets**, and give an
 
 ## Overlay
 
-| Home | Tiny: every card a quarter of the size |
-| :---: | :---: |
-| <img src="../assets/screenshots/overlay-home.webp" alt="The overlay's Home page"> | <img src="../assets/screenshots/overlay-tiny.webp" alt="A page of small modules: each shows a compact figure"> |
+<p align="center"><img src="../assets/screenshots/overlay-home.webp" alt="The overlay's Home page: Wi-Fi, quick actions, media, notifications, a clock and calendar, the mixer, network, weather and disks" width="900"></p>
 
 - A full-screen overlay made of pages. Each page is a grid you place modules on, with gaps wherever you like. Pages have their own name and icon in the navigator.
 - **27 modules**, and every one adapts to its size and shape (square, wide or tall, down to a compact figure):
@@ -104,9 +100,11 @@ Set a style once under **Settings → Look & Feel → Bar widgets**, and give an
 
 One editor, one grid, for everything made of modules: your **overlay pages**, your **edge menus**, the **lock screen** and the **login screen**.
 
-| A page | An edge menu | The login screen |
-| :---: | :---: | :---: |
-| <img src="../assets/screenshots/overlay-editor.webp" alt="The Layouts editor on the Home page"> | <img src="../assets/screenshots/edge-menu-editor.webp" alt="The Layouts editor on the left edge menu, drawn against its screen edge"> | <img src="../assets/screenshots/layouts-greeter.webp" alt="The Layouts editor on the login screen"> |
+| A page | An edge menu |
+| :---: | :---: |
+| <img src="../assets/screenshots/overlay-editor.webp" alt="The Layouts editor on the Home page"> | <img src="../assets/screenshots/edge-menu-editor.webp" alt="The Layouts editor on the left edge menu, drawn against its screen edge"> |
+| **The lock screen** | **The login screen** |
+| <img src="../assets/screenshots/layouts-lockscreen.webp" alt="The Layouts editor on the lock screen, a screen-sized grid"> | <img src="../assets/screenshots/layouts-greeter.webp" alt="The Layouts editor on the login screen"> |
 
 - Drag a module from the library onto the grid (or click it to drop it in the first free spot), drag it anywhere, and drag a corner to resize it.
 - Click a module to edit its options in the inspector, which also has steppers for its exact size.
@@ -132,9 +130,13 @@ Edge menus are the overlay's other half. Every overlay module fits in them, plac
 
   An integrated menu can also draw a framed box along the whole edge.
 
-| Left: controls at hand (floating) | Right: chat beside the bar (integrated) | Top: wallpaper and theme | Top: a notepad |
-| :---: | :---: | :---: | :---: |
-| <img src="../assets/screenshots/menu-left.webp" alt="A floating menu on the left edge with quick actions, now playing and a clock and calendar"> | <img src="../assets/screenshots/menu-right.webp" alt="An integrated menu on the right edge with quick actions, AI chat, now playing and weather"> | <img src="../assets/screenshots/menu-theme.webp" alt="A floating menu on the top edge with the wallpaper picker and theme list"> | <img src="../assets/screenshots/menu-notes.webp" alt="A floating menu on the top edge holding a note with task checkboxes"> |
+| Left: media at hand (floating) | Right: chat beside the bar (integrated) | Right: the week ahead (integrated) |
+| :---: | :---: | :---: |
+| <img src="../assets/screenshots/menu-left.webp" alt="A floating menu on the left edge with quick actions, now playing and the audio mixer"> | <img src="../assets/screenshots/menu-right.webp" alt="An integrated menu on the right edge with quick actions, AI chat, now playing and weather"> | <img src="../assets/screenshots/menu-calendar.webp" alt="An integrated menu on the right edge with a clock, the month and the week's agenda"> |
+| **Top: wallpaper and theme, dropping from a pill** | **Right: a notepad** | |
+| <img src="../assets/screenshots/menu-theme.webp" alt="A floating menu under a pill bar with the wallpaper picker and theme list"> | <img src="../assets/screenshots/menu-notes.webp" alt="A floating menu on the right edge holding a note with task checkboxes"> | |
+
+<p align="center"><img src="../assets/screenshots/menu-sidebar.webp" alt="An integrated menu pinned open on the left, with the terminals retiled beside it" width="900"></p>
 
 ## Workspaces
 
@@ -160,7 +162,7 @@ Then:
 
 ## Window switcher (Alt+Tab)
 
-<p align="center"><img src="../assets/screenshots/window-switcher.webp" alt="The window switcher: a row of window previews with the selected one highlighted" width="900"></p>
+<p align="center"><img src="../assets/screenshots/window-switcher.webp" alt="The window switcher stepping through a row of live window previews" width="900"></p>
 
 - <kbd>Alt</kbd>+<kbd>Tab</kbd> and <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>Tab</kbd> step through your windows, most recently used first, on the focused monitor. Let go of <kbd>Alt</kbd> to switch, press <kbd>Esc</kbd> to stay, or click a tile.
 - It only appears once you've held the keys for a moment, so a quick tap just swaps to your last window without anything drawn.
@@ -191,7 +193,7 @@ Then:
 
 | Apps | Commands | Calculator | Emoji |
 | :---: | :---: | :---: | :---: |
-| <img src="../assets/screenshots/launcher-apps.webp" alt="Launcher searching apps"> | <img src="../assets/screenshots/launcher-commands.webp" alt="Launcher command list"> | <img src="../assets/screenshots/launcher-calc.webp" alt="Launcher converting currency"> | <img src="../assets/screenshots/launcher-emoji.webp" alt="Launcher emoji search"> |
+| <img src="../assets/screenshots/launcher-apps.webp" alt="Launcher searching apps"> | <img src="../assets/screenshots/launcher-commands.webp" alt="Launcher command list"> | <img src="../assets/screenshots/launcher-calc.webp" alt="Launcher converting 12 USD to euros"> | <img src="../assets/screenshots/launcher-emoji.webp" alt="Launcher emoji search"> |
 
 - **Search:** apps (ranked by how often and how recently you use them), open windows, a calculator (math, units, currencies), the web, your clipboard history and emoji.
 - **Commands:** it runs shell commands, asks your AI chat, and controls the whole shell with `/` commands. Commands that change something you can see (the theme, the volume, the wallpaper) keep the launcher open, so you can try several.
@@ -203,7 +205,7 @@ Every prefix and command is listed in [Keybinds, IPC and launcher](usage.md#laun
 
 | Dock | OSD (a column of bars) | OSD (a row of bars) |
 | :---: | :---: | :---: |
-| <img src="../assets/screenshots/dock.webp" alt="The dock growing out of the screen border at the top"> | <img src="../assets/screenshots/osd.webp" alt="An OSD of vertical volume bars at the bottom edge"> | <img src="../assets/screenshots/osd-bars.webp" alt="An OSD with brightness and microphone bars side by side"> |
+| <img src="../assets/screenshots/dock.webp" alt="The dock growing out of the screen border at the top"> | <img src="../assets/screenshots/osd.webp" alt="An OSD of vertical volume bars on the right edge"> | <img src="../assets/screenshots/osd-bars.webp" alt="An OSD with brightness and microphone bars side by side"> |
 
 **Dock:**
 - **Contents:** your pinned apps, then the apps with open windows, grouped by app. A dot or line shows what's running, and a separator splits the two.
@@ -249,9 +251,11 @@ Every prefix and command is listed in [Keybinds, IPC and launcher](usage.md#laun
 
 | Dark | Light |
 | :---: | :---: |
-| <img src="../assets/screenshots/themes-dark.webp" alt="Themes page in Submarine Sonar"> | <img src="../assets/screenshots/themes-light.webp" alt="Themes page in Submarine Sonar Light"> |
+| <img src="../assets/screenshots/themes-dark.webp" alt="Themes page in Everforest"> | <img src="../assets/screenshots/themes-light.webp" alt="Themes page in Kanagawa Lotus"> |
 
 <p align="center"><img src="../assets/screenshots/demo-themes.webp" alt="The overlay recoloring through six themes" width="900"></p>
+
+<p align="center"><img src="../assets/screenshots/desktop-rice.webp" alt="Rosé Pine Moon across the desktop: the bar, the dock, and kitty running fastfetch, cava and Neovim in the same palette" width="900"></p>
 
 - **42 base16 themes**, with dark and light pairs switched by one toggle: Catppuccin, Gruvbox, Gruvbox Material, Solarized, Tokyo Night, Rosé Pine, Nord, Dracula/Alucard, Everforest, Kanagawa, One, Ayu, Nightfox (with Carbonfox, Dayfox, Nordfox and Terafox), GitHub, Oxocarbon and Submarine Sonar.
 - **Generated themes** from your wallpaper, in five styles (tonal, vibrant, faithful, muted, alternate). The palette is built in OKLCH from the image's main colors, to match the contrast of the hand-made themes.
@@ -282,7 +286,7 @@ Every prefix and command is listed in [Keybinds, IPC and launcher](usage.md#laun
 
 | Notification | Power menu | First-run setup |
 | :---: | :---: | :---: |
-| <img src="../assets/screenshots/notification.webp" alt="A notification toast next to the bar"> | <img src="../assets/screenshots/powermenu.webp" alt="The power menu: lock, suspend, hibernate, log out, reboot, power off"> | <img src="../assets/screenshots/onboarding.webp" alt="The first-run setup on its Look step"> |
+| <img src="../assets/screenshots/notification.webp" alt="A calendar reminder toast under the bar"> | <img src="../assets/screenshots/powermenu.webp" alt="The power menu: lock, suspend, hibernate, log out, reboot, power off"> | <img src="../assets/screenshots/onboarding.webp" alt="The first-run setup on its Look step"> |
 
 - **Notifications:** toasts and a notification center.
   - Toasts stack from any corner of one monitor or all of them, with gaps measured from the bar or border at each edge.
@@ -318,6 +322,6 @@ Every prefix and command is listed in [Keybinds, IPC and launcher](usage.md#laun
 <details>
 <summary><b>AI chat</b></summary>
 
-<p align="center"><img src="../assets/screenshots/chat.webp" alt="The AI chat in an edge menu, answering with a code block and a list" width="420"></p>
+<p align="center"><img src="../assets/screenshots/chat.webp" alt="The AI chat in an integrated edge menu, answering with a numbered list and a code block" width="420"></p>
 
 </details>
