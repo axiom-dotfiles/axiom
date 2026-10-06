@@ -192,6 +192,7 @@ Item {
       endCap: segment.endCap
       seamStart: segment.seamStart
       seamEnd: segment.seamEnd
+      shownStart: segment.shownStart
       hovered: host?.outlined ?? false
       highlighted: host?.highlighted ?? false
       visible: place !== null
@@ -229,6 +230,9 @@ Item {
       readonly property var _place: root._insetPlaces[module.index] ?? null
       readonly property var _segment: root.segmentAt(_place)
       leadInset: module.hasBackground ? module._segment.lead : (module.index > root._firstContent ? root._looseGap : 0)
+      // Hovered and clicked in its background's shape as drawn
+      readonly property var _drawnPlace: root._drawPlaces[module.index] ?? null
+      hitShape: module._drawnPlace !== null ? root.segmentAt(module._drawnPlace) : null
       trailInset: module.hasBackground ? module._segment.trail : (module.index < root._lastContent ? root._looseGap : 0)
 
       barConfig: root.barConfig

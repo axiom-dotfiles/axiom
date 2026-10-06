@@ -14,6 +14,9 @@ Item {
   property var panel
   property var screen
   property var properties
+  // Where its pointer areas go, in its background's shape (set by its
+  // BarWidgetHost; null: its own bounds)
+  property var hitArea: null
 
   readonly property bool isVertical: barConfig.vertical
 

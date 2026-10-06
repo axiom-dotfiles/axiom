@@ -23,6 +23,9 @@ IconTextWidget {
   property var panel
   property var screen
   property var properties
+  // Where its pointer areas go, in its background's shape (set by its
+  // BarWidgetHost; null: its own bounds)
+  property var hitArea: null
 
   property bool clickable: false
   property int acceptedButtons: Qt.LeftButton
@@ -58,7 +61,9 @@ IconTextWidget {
 
   MouseArea {
     id: clickArea
+    parent: root.hitArea ?? root
     anchors.fill: parent
+    containmentMask: root.hitArea?.mask ?? null
     enabled: (root.clickable || root.scrollable) && !root.hidden
     hoverEnabled: true
     cursorShape: root.clickable ? Qt.PointingHandCursor : Qt.ArrowCursor

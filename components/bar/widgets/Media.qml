@@ -27,6 +27,7 @@ BarIconWidget {
   PopoutAnchor {
     popouts: root.popouts
     panel: root.panel
+    hitArea: root.hitArea
     popoutName: "NowPlaying"
     active: root.properties.showPopout
     openDelay: 150

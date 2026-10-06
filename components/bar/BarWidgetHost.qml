@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import qs.config
+import qs.components.methods
 // Imported (though modules load by URL) so qs scans the modules directory:
 // without it, types there (e.g. BarIconWidget) aren't visible to each other
 import qs.components.bar.widgets // qmllint disable unused-imports
@@ -53,6 +54,11 @@ Item {
   // and end (set by WidgetGroup): added to its sizes, the module inside
   property real leadInset: 0
   property real trailInset: 0
+  // Its background's shape as drawn (BarShapes.segment, set by WidgetGroup),
+  // which it's hovered and clicked in: past its caps' insets, back under a
+  // powerline neighbour, and not in a slant's or arrow's cut-off corners.
+  // Null (no background) leaves the module's own bounds.
+  property var hitShape: null
   // Rounded up: half a powerline join is fractional, and the allocation
   // floors sizes, which would leave the module under its natural size and
   // elide its label
@@ -113,6 +119,37 @@ Item {
       "properties": root.properties
     });
   }
+
+  // Where the module's pointer areas go (BarWidget.hitArea), over the
+  // module so nothing in it takes the hover first. It tracks hover itself
+  // (a PopoutAnchor given it reads `hovered`): a HoverHandler moved into
+  // it after it's made isn't reliably hovered.
+  Item {
+    id: hitArea
+
+    readonly property real back: root.hitShape?.back ?? 0
+    readonly property bool hovered: hoverHandler.hovered
+    readonly property QtObject mask: QtObject {
+      function contains(point: point): bool {
+        const shape = root.hitShape;
+        if (!shape)
+          return true;
+        const v = root.isVertical;
+        return BarShapes.contains(v ? point.y : point.x, v ? point.x : point.y, v ? hitArea.height : hitArea.width, v ? hitArea.width : hitArea.height, shape.shownStart, shape.endCap);
+      }
+    }
+
+    z: 1
+    x: root.isVertical ? 0 : -back
+    y: root.isVertical ? -back : 0
+    width: root.width + (root.isVertical ? 0 : back)
+    height: root.height + (root.isVertical ? back : 0)
+    containmentMask: mask
+
+    HoverHandler {
+      id: hoverHandler
+    }
+  }
   onComponentPathChanged: _load()
   Component.onCompleted: _load()
 
@@ -130,6 +167,8 @@ Item {
         item.panel = Qt.binding(() => root.panel);
         item.screen = Qt.binding(() => root.screen);
         item.properties = Qt.binding(() => root.properties);
+        if ("hitArea" in item)
+          item.hitArea = Qt.binding(() => root.hitShape ? hitArea : null);
       }
     }
   }

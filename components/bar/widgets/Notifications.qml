@@ -39,6 +39,7 @@ BarWidget {
     id: anchor
     popouts: root.popouts
     panel: root.panel
+    hitArea: root.hitArea
     popoutName: "Notifications"
     active: root.properties.showPopout
     openDelay: 150

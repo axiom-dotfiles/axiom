@@ -18,6 +18,10 @@ Item {
   property var colors: null
   property string startCap: "round"
   property string endCap: "round"
+  // The start as it shows (BarShapes.segment): the hover outline and the
+  // highlight trace what's in view, inside it, not the part a powerline
+  // neighbour covers
+  property string shownStart: startCap
   // Ends that meet a powerline neighbour edge to edge (BarShapes.segment)
   property bool seamStart: false
   property bool seamEnd: false
@@ -124,10 +128,8 @@ Item {
   ShapedBox {
     visible: root.highlighted
     bar: root.barConfig
-    startCap: root.startCap
+    startCap: root.shownStart
     endCap: root.endCap
-    seamStart: root.seamStart
-    seamEnd: root.seamEnd
     fillColor: Qt.alpha(Theme.accent, 0.15)
     strokeColor: Theme.accent
     strokeWidth: 2
@@ -137,10 +139,8 @@ Item {
     // Built only while it shows, fading out included
     visible: strokeColor.a > 0
     bar: root.barConfig
-    startCap: root.startCap
+    startCap: root.shownStart
     endCap: root.endCap
-    seamStart: root.seamStart
-    seamEnd: root.seamEnd
     strokeColor: root.hovered ? Theme.border : Qt.alpha(Theme.border, 0)
     strokeWidth: Appearance.borderWidth
 

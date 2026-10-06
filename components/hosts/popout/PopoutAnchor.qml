@@ -34,8 +34,19 @@ Item {
   // Centre the popout on the widget as it is when opened, then keep it
   // there while open: a widget that resizes doesn't drag its popout along
   property bool pinWhileOpen: false
+  // A bar widget's hitArea: hovered in its background's shape (its
+  // `hovered`) rather than in this item's bounds
+  property var hitArea: null
 
-  property alias hovered: hoverHandler.hovered
+  readonly property bool hovered: hitArea ? hitArea.hovered : hoverHandler.hovered
+  onHoveredChanged: {
+    if (root.hovered && root.active) {
+      if (root.popouts)
+        openTimer.restart();
+    } else {
+      openTimer.stop();
+    }
+  }
   property bool popoutOpen: false
 
   anchors.fill: parent
@@ -66,14 +77,7 @@ Item {
 
   HoverHandler {
     id: hoverHandler
-    onHoveredChanged: {
-      if (hovered && root.active) {
-        if (root.popouts)
-          openTimer.restart();
-      } else {
-        openTimer.stop();
-      }
-    }
+    enabled: !root.hitArea
   }
 
   Timer {
@@ -81,7 +85,7 @@ Item {
     interval: root.openDelay
     repeat: false
     onTriggered: {
-      if (hoverHandler.hovered && root.active)
+      if (root.hovered && root.active)
         root.open();
     }
   }

@@ -156,4 +156,27 @@ TestCase {
     const b = bounds(BarShapes.path(100, 30, 0, "flat", "flat", false, 1, true, false));
     compare([b.minX, b.maxX, b.minY, b.maxY], [0, 99, 1, 29]);
   }
+
+  function test_shown_start_follows_the_cap_before() {
+    compare(BarShapes.segment("slant", "shaped", "powerline", true, 1, 2, 30).shownStart, "slant");
+    compare(BarShapes.segment("arrow", "shaped", "powerline", true, 1, 2, 30).shownStart, "arrowIn");
+    compare(BarShapes.segment("slant", "shaped", "merged", true, 1, 3, 30).shownStart, "flat");
+    compare(BarShapes.segment("slant", "shaped", "separate", true, 0, 1, 30).shownStart, "slant");
+  }
+
+  function test_contains_follows_the_caps() {
+    // A parallelogram 100 by 30, its sides 10 deep: the top runs 10 to 100,
+    // the bottom 0 to 90
+    verify(!BarShapes.contains(2, 1, 100, 30, "slant", "slant"));
+    verify(BarShapes.contains(2, 29, 100, 30, "slant", "slant"));
+    verify(BarShapes.contains(98, 1, 100, 30, "slant", "slant"));
+    verify(!BarShapes.contains(98, 29, 100, 30, "slant", "slant"));
+    // An arrow's point and notch
+    verify(BarShapes.contains(1, 15, 100, 30, "arrowOut", "arrowOut"));
+    verify(!BarShapes.contains(1, 1, 100, 30, "arrowOut", "arrowOut"));
+    verify(!BarShapes.contains(1, 15, 100, 30, "arrowIn", "arrowOut"));
+    verify(BarShapes.contains(1, 1, 100, 30, "arrowIn", "arrowOut"));
+    verify(BarShapes.contains(50, 15, 100, 30, "flat", "flat"));
+    verify(!BarShapes.contains(50, 31, 100, 30, "flat", "flat"));
+  }
 }
