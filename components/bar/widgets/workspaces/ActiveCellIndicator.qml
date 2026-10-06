@@ -27,7 +27,7 @@ Item {
   property real radius: 0
 
   readonly property bool isVertical: barConfig.vertical
-  readonly property bool boxed: ["filled", "tinted", "outline"].includes(barConfig.widgetStyle)
+  readonly property bool boxed: barConfig.widgetBoxed
   // Whether there's anything to slide: a box, or an underline
   readonly property bool slides: boxed || barConfig.widgetStyle === "underline"
   readonly property real _along: _alongAt(index)
@@ -67,7 +67,7 @@ Item {
         root._wrap(root._alongAt(from), root._alongAt(root.index));
     }
     if (root.index < 0)
-      _placed = false;
+      root._placed = false;
     else
       Qt.callLater(() => root._placed = root.index >= 0);
   }
@@ -123,8 +123,8 @@ Item {
 
   Item {
     id: box
-    x: (root.isVertical ? 0 : root._along) + (root.isVertical ? 0 : root._shift)
-    y: (root.isVertical ? root._along : 0) + (root.isVertical ? root._shift : 0)
+    x: root.isVertical ? 0 : root._along + root._shift
+    y: root.isVertical ? root._along + root._shift : 0
     width: root.isVertical ? root.thickness : root.activeLength
     height: root.isVertical ? root.activeLength : root.thickness
 
@@ -152,18 +152,9 @@ Item {
       border.width: root.barConfig.widgetStyle === "outline" ? root.barConfig.outlineWidth : 0
     }
 
-    // As WorkspaceCell's underline
-    Rectangle {
-      readonly property real lineWidth: root.barConfig.lineWidth
-      readonly property bool farSide: (root.barConfig.lineSide === "inner") !== (root.barConfig.right || root.barConfig.bottom)
-
-      visible: root.barConfig.widgetStyle === "underline"
+    CellUnderline {
+      barConfig: root.barConfig
       color: root.look.indicator
-      radius: lineWidth / 2
-      x: root.isVertical && farSide ? box.width - lineWidth : 0
-      y: !root.isVertical && farSide ? box.height - lineWidth : 0
-      width: root.isVertical ? lineWidth : box.width
-      height: root.isVertical ? box.height : lineWidth
     }
   }
 }

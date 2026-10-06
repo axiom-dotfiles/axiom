@@ -54,7 +54,7 @@ QtObject {
 
   readonly property bool vertical: root.edge === Bar.Left || root.edge === Bar.Right
   readonly property string edgeName: Bar.edgeName(root.edge)
-  readonly property bool bareEdge: Bar.screenEdgeOpen(root.screen, root.edge)
+  readonly property bool bareEdge: BarManager.screenEdgeOpen(root.screen, root.edge)
   // Room for a side wall's fillet at an end that isn't joined (none on a
   // bare edge, which it runs straight off)
   readonly property real filletMargin: root.bareEdge ? 0 : EdgeAttach.filletMargin(root.connectorGap, Appearance.borderWidth, Appearance.borderRadius)
@@ -139,7 +139,7 @@ QtObject {
   // border or a solid bar (`joinable`), not any other bar, nor an
   // integrated menu's strip
   function joinable(name) {
-    const bar = Bar.edgesFor(root.screen)[name];
+    const bar = BarManager.edgesFor(root.screen)[name];
     return (!bar || bar.joinable) && EdgeMenuManager.zoneOn(root.screen?.name ?? "", name) === 0;
   }
 

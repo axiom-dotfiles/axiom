@@ -40,7 +40,7 @@ Scope {
       // from whatever is at each edge. A transparent bar reserves Hyprland's
       // gaps_out less than it draws (see BarPanel) and shows only its widgets,
       // `inset` inside its window: the gap starts at their inner edge instead.
-      readonly property var _edges: Bar.edgesFor(stack.modelData)
+      readonly property var _edges: BarManager.edgesFor(stack.modelData)
       function _edgeGap(side, gap) {
         const bar = stack._edges[side];
         if (bar?.background !== "transparent")

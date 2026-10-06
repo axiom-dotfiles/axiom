@@ -16,7 +16,7 @@ BarWidget {
   id: root
 
   readonly property int priority: 10
-  readonly property bool boxed: ["filled", "tinted", "outline"].includes(barConfig.widgetStyle)
+  readonly property bool boxed: barConfig.widgetBoxed
   // Within a box
   readonly property real inset: boxed ? barConfig.widgetSpacing : 0
 

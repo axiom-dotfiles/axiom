@@ -182,7 +182,6 @@ Item {
     model: root.widgets.length
 
     delegate: WidgetBackground {
-      id: background
       required property int index
       readonly property var host: root._modules[index] ?? null
       // A widget going (hidden, or out of room) keeps its last place and
@@ -203,7 +202,7 @@ Item {
 
       z: -1 - index / Math.max(1, root.widgets.length)
       barConfig: root.barConfig
-      colors: background._shown?.colors ?? null
+      colors: _shown?.colors ?? null
       startCap: segment.startCap
       endCap: segment.endCap
       seamStart: segment.seamStart

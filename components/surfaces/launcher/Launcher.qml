@@ -107,11 +107,11 @@ Scope {
   }
 
   // Detached, its distance 0 is where a detached dock or OSD on its edge
-  // sits with an automatic gap (Bar.detachedGaps): the free area's margin
+  // sits with an automatic gap (BarManager.detachedGaps): the free area's margin
   // on each side, in from the window, which starts past what's reserved
   // there
-  readonly property var _edgeGaps: Bar.detachedGaps(root.screen, LauncherConfig.edge, -1, HyprlandManager.gapsOut)
-  readonly property var _oppositeGaps: Bar.detachedGaps(root.screen, Bar.oppositeOf(LauncherConfig.edge), -1, HyprlandManager.gapsOut)
+  readonly property var _edgeGaps: BarManager.detachedGaps(root.screen, LauncherConfig.edge, -1)
+  readonly property var _oppositeGaps: BarManager.detachedGaps(root.screen, Bar.oppositeOf(LauncherConfig.edge), -1)
   function _marginOn(side) {
     const vertical = LauncherConfig.edge === Bar.Left || LauncherConfig.edge === Bar.Right;
     let gap = root._edgeGaps.end;

@@ -108,12 +108,12 @@ PopoutWrapperBase {
 
   // Held off the edge (an edge menu's or OSD's `detached`): a detached box
   // `gap` in from the frame lines on its edge and at its ends
-  // (Bar.detachedGaps), so it lines up with a floating bar's islands, or
+  // (BarManager.detachedGaps), so it lines up with a floating bar's islands, or
   // with the windows. Its gaps are what places it, so a change of `held`
   // never reads them before they follow.
   property bool held: false
   property int gap: -1
-  readonly property var gaps: root.held ? Bar.detachedGaps(root.screen, root.edge, root.gap, HyprlandManager.gapsOut) : null
+  readonly property var gaps: root.held ? BarManager.detachedGaps(root.screen, root.edge, root.gap) : null
 
   // What's reserved along a screen edge (a Bar.Location), which this
   // window sits inside: the border, a bar, integrated menus. Docks are

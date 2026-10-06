@@ -27,16 +27,23 @@ Item {
   readonly property int stackStep: 5
 
   function dismissAll() {
-    if (!slideOut.running)
-      slideOut.start();
+    root._slideOut(0, true);
   }
 
   // Slides out after `delay` without dismissing anything: the list's
   // clear-all staggers its groups out this way, then clears them at once
   function leave(delay) {
-    leaveDelay.duration = delay;
-    if (!slideOut.running)
-      leaveOut.restart();
+    root._slideOut(delay, false);
+  }
+
+  // Whether the slide out dismisses the group's entries once it's out
+  property bool _dismissing: false
+  function _slideOut(delay, dismiss) {
+    root._dismissing = root._dismissing || dismiss;
+    if (slideOut.running)
+      return;
+    slideDelay.duration = delay;
+    slideOut.start();
   }
 
   Layout.fillWidth: true
@@ -88,6 +95,9 @@ Item {
 
   SequentialAnimation {
     id: slideOut
+    PauseAnimation {
+      id: slideDelay
+    }
     ParallelAnimation {
       NumberAnimation {
         target: shift
@@ -105,28 +115,9 @@ Item {
     }
     ScriptAction {
       // Snapshot: each dismiss shrinks the live list
-      script: root.entries.slice().forEach(e => NotificationManager.dismiss(e.uid))
-    }
-  }
-
-  SequentialAnimation {
-    id: leaveOut
-    PauseAnimation {
-      id: leaveDelay
-    }
-    ParallelAnimation {
-      NumberAnimation {
-        target: shift
-        property: "x"
-        to: root.width
-        duration: Appearance.animNormal
-        easing.type: Easing.InCubic
-      }
-      NumberAnimation {
-        target: root
-        property: "opacity"
-        to: 0
-        duration: Appearance.animNormal
+      script: {
+        if (root._dismissing)
+          root.entries.slice().forEach(e => NotificationManager.dismiss(e.uid));
       }
     }
   }

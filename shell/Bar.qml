@@ -2,7 +2,6 @@ pragma ComponentBehavior: Bound
 
 import Quickshell
 import QtQuick
-import qs.config
 import qs.services
 import qs.components.bar
 
@@ -19,11 +18,11 @@ Scope {
     // correctly: its rule has Hyprland arrange it first, or after the border
     // when inside it (HyprlandManager._addLayerRules), once the rules are in
     // (layerRulesReady).
-    model: HyprlandManager.layerRulesReady ? Bar.bars.map(b => b.id + (b.insideBorder ? ":floating" : "")) : []
+    model: HyprlandManager.layerRulesReady ? BarManager.bars.map(b => b.id + (b.insideBorder ? ":floating" : "")) : []
     delegate: BarPanel {
       required property string modelData
       readonly property string barId: modelData.replace(/:floating$/, "")
-      barConfig: Bar.bars.find(b => b.id === barId) ?? barConfig
+      barConfig: BarManager.bars.find(b => b.id === barId) ?? barConfig
     }
   }
 }

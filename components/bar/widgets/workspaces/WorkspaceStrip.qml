@@ -4,7 +4,6 @@ import Quickshell.Hyprland
 
 import qs.services
 import qs.config
-import qs.components.methods
 import qs.components.hosts.popout
 
 // The standard layout's switcher: workspaces 1..count in a row (horizontal
@@ -28,7 +27,7 @@ Item {
   readonly property real cell: barConfig.widgetSize - inset * 2
   readonly property real cellRadius: Math.max(0, barConfig.radius - inset)
   // Along the bar: square, or narrower for dots straight on the bar
-  readonly property real cellLength: ["filled", "tinted", "outline"].includes(barConfig.widgetStyle) || properties.labels !== "dots" || properties.showAppIcons ? cell : Math.round(cell * 0.6)
+  readonly property real cellLength: barConfig.widgetBoxed || properties.labels !== "dots" || properties.showAppIcons ? cell : Math.round(cell * 0.6)
 
   readonly property color activeColor: Theme.resolveColor(properties.activeColor)
   readonly property color occupiedColor: Theme.resolveColor(properties.occupiedColor)
@@ -56,9 +55,6 @@ Item {
     return ids.join(",");
   }
   readonly property var ids: root._idsKey === "" ? [] : root._idsKey.split(",").map(Number)
-  // The workspace whose cell is hovered, which its box (drawn apart from
-  // it) shows
-  property int hoveredId: -1
 
   implicitWidth: layout.implicitWidth
   implicitHeight: layout.implicitHeight
@@ -76,12 +72,6 @@ Item {
     return (ws?.toplevels?.values?.length ?? 0) > 0;
   }
 
-  // Bar.cellColors for a workspace's cell, active or at rest
-  function cellLook(id, active) {
-    const occupied = root.hasWindows(root.wsById(id));
-    return Bar.cellColors(root.barConfig, active ? root.activeColor : occupied ? root.occupiedColor : root.emptyColor, active || occupied ? root.textColor : Theme.foreground, active ? "active" : occupied ? "occupied" : "empty");
-  }
-
   // Next/previous shown workspace, wrapping at the ends
   function step(direction) {
     if (root.ids.length === 0)
@@ -89,7 +79,7 @@ Item {
     const current = root.ids.indexOf(root.activeId);
     const next = current < 0 ? (direction > 0 ? 0 : root.ids.length - 1) : (current + direction + root.ids.length) % root.ids.length;
     if (current >= 0 && next !== current + direction)
-      indicator.expectWrap(direction > 0);
+      cellRow.expectWrap(direction > 0);
     HyprlandManager.goToWorkspace(root.ids[next], "go", root.monitor);
   }
 
@@ -97,7 +87,7 @@ Item {
     target: HyprlandManager
     function onWorkspaceWrapped(monitor, alongRow, forward) {
       if (monitor === (root.monitor?.name ?? ""))
-        indicator.expectWrap(forward);
+        cellRow.expectWrap(forward);
     }
   }
 
@@ -124,90 +114,21 @@ Item {
     columns: root.isVertical ? 1 : 2
     spacing: root.barConfig.widgetSpacing
 
-    Item {
-      implicitWidth: cells.implicitWidth
-      implicitHeight: cells.implicitHeight
-
-      // The cells' boxes at rest, the active one's sliding over them, then
-      // their labels and icons over both
-      Grid {
-        flow: cells.flow
-        rows: cells.rows
-        columns: cells.columns
-        spacing: cells.spacing
-
-        Repeater {
-          model: root.ids.length
-
-          WorkspaceCell {
-            required property int index
-            readonly property int wsId: root.ids[index] ?? 0
-
-            part: "background"
-            barConfig: root.barConfig
-            isActive: wsId === root.activeId
-            indicated: indicator.slides
-            lit: wsId === root.hoveredId
-            look: root.cellLook(wsId, isActive && !indicator.slides)
-            thickness: root.cell
-            restLength: root.cellLength
-            length: root.cellLength * (isActive && root.properties.wideActive ? 2 : 1)
-            radius: root.cellRadius
-          }
-        }
-      }
-
-      ActiveCellIndicator {
-        id: indicator
-        barConfig: root.barConfig
-        look: Bar.cellColors(root.barConfig, root.activeColor, root.textColor, "active")
-        index: root.ids.indexOf(root.activeId)
-        thickness: root.cell
-        restLength: root.cellLength
-        activeLength: root.cellLength * (root.properties.wideActive ? 2 : 1)
-        spacing: root.barConfig.widgetSpacing
-        radius: root.cellRadius
-      }
-
-      Grid {
-        id: cells
-        flow: root.isVertical ? Grid.TopToBottom : Grid.LeftToRight
-        rows: root.isVertical ? Math.max(1, root.ids.length) : 1
-        columns: root.isVertical ? 1 : Math.max(1, root.ids.length)
-        spacing: root.barConfig.widgetSpacing
-
-        Repeater {
-          model: root.ids.length
-
-          WorkspaceCell {
-            id: cell
-            required property int index
-            readonly property int wsId: root.ids[index] ?? 0
-            readonly property bool occupied: root.hasWindows(root.wsById(wsId))
-            readonly property var biggestWindow: root.properties.showAppIcons && occupied ? HyprlandManager.biggestWindowForWorkspace(wsId) : null
-
-            part: "content"
-            barConfig: root.barConfig
-            isActive: wsId === root.activeId
-            look: root.cellLook(wsId, isActive)
-            thickness: root.cell
-            restLength: root.cellLength
-            length: root.cellLength * (isActive && root.properties.wideActive ? 2 : 1)
-            radius: root.cellRadius
-            labels: root.properties.labels
-            label: root.properties.relativeNumbers ? wsId - root.base + 1 : wsId
-            iconPath: biggestWindow ? IconResolver.resolveWindowIcon(biggestWindow.class, biggestWindow.title) : ""
-            clickable: root.properties.clickToSwitch
-            onClicked: HyprlandManager.goToWorkspace(wsId, "go", root.monitor)
-            onHoveredChanged: {
-              if (hovered)
-                root.hoveredId = wsId;
-              else if (root.hoveredId === wsId)
-                root.hoveredId = -1;
-            }
-          }
-        }
-      }
+    WorkspaceCellRow {
+      id: cellRow
+      barConfig: root.barConfig
+      properties: root.properties
+      monitor: root.monitor
+      base: root.base
+      ids: root.ids
+      activeId: root.activeId
+      cell: root.cell
+      cellLength: root.cellLength
+      cellRadius: root.cellRadius
+      activeColor: root.activeColor
+      occupiedColor: root.occupiedColor
+      emptyColor: root.emptyColor
+      textColor: root.textColor
     }
 
     Loader {

@@ -127,9 +127,9 @@ Item {
   // Where the box starts away from the attach edge. Detached, a connector
   // gap's half past its lead. Attached, on the attach edge: the fillets
   // curve outside the side walls, so the band they span is the box's own
-  // (it was left empty, a fillet radius of padding above the content).
-  // Pushed back only as far as a shallow box needs for a side wall to
-  // clear its fillet and far corner.
+  // rather than empty padding above the content. Pushed back only as far
+  // as a shallow box needs for a side wall to clear its fillet and far
+  // corner.
   readonly property real naturalBoxStart: {
     if (detached)
       return _lead + connectorGap / 2;

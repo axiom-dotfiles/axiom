@@ -52,7 +52,7 @@ Scope {
   // and at its ends (what places it, so a change of `held` never reads
   // them before they follow)
   readonly property bool held: root.dock.detached
-  readonly property var gaps: root.held ? Bar.detachedGaps(root.screen, root.edge, root.dock.gap, HyprlandManager.gapsOut) : null
+  readonly property var gaps: root.held ? BarManager.detachedGaps(root.screen, root.edge, root.dock.gap) : null
   // How far past where the window starts on a screen edge (what's
   // reserved there) a frame line plus `gap` lies
   function _heldOffset(location, gap) {
@@ -390,7 +390,7 @@ Scope {
     // windows start gaps_out past the box; held off the edge, it's laid
     // out like a window, the windows keeping the space between two
     // windows from it instead
-    exclusiveZone: root.reserving ? Math.max(0, root.boxOffset + root.thickness + (root.held ? HyprlandManager.windowSpacing(root._edgeName) - (HyprlandManager.gapsOut[root._edgeName] ?? 0) : 0)) : 0
+    exclusiveZone: root.reserving ? Math.max(0, root.boxOffset + root.thickness + (root.held ? HyprlandManager.windowSpacing[root._edgeName] - HyprlandManager.gapsOut[root._edgeName] : 0)) : 0
     // Windows retile around it without an event saying so
     onExclusiveZoneChanged: DockManager.refreshSoon()
 

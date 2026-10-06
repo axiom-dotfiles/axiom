@@ -27,7 +27,7 @@ Item {
   // Corners sit in the space left once every edge is reserved, so a bar
   // or a dock inside the border (reserving their own space)
   // would push them in past it. Pull them back out to the border's corners.
-  readonly property var edges: Bar.edgesFor(root.screen)
+  readonly property var edges: BarManager.edgesFor(root.screen)
   function cornerMargin(edge) {
     const docks = DockManager.zoneOn(root.screen?.name ?? "", edge);
     const bar = root.edges[edge];

@@ -12,7 +12,7 @@ import qs.components.hosts.popout
 // island, or a detached box past a transparent bar. One held off the edge
 // (`detached`) is an island: `gap`
 // in from the frame lines on its edge and at both ends
-// (Bar.detachedGaps), so it lines up with a floating bar's islands, or
+// (BarManager.detachedGaps), so it lines up with a floating bar's islands, or
 // with the windows.
 EdgePopout {
   id: root

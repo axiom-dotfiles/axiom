@@ -79,7 +79,6 @@ Item {
         required property string modelData
         text: modelData
         checked: root.currentIndex === index
-        showIndicator: false
         onClicked: root.tabClicked(index)
       }
     }

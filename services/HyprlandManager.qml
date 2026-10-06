@@ -552,12 +552,15 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
       "left": 0
     })
 
-  // The space between two tiled windows on a side (an edge name): what a
+  // The space between two tiled windows per side (edge name): what a
   // surface laid out like a window (a floating bar, a held dock) keeps
   // from the windows
-  function windowSpacing(side) {
-    return 2 * (root.gapsIn[side] ?? 0);
-  }
+  readonly property var windowSpacing: ({
+      "top": 2 * root.gapsIn.top,
+      "right": 2 * root.gapsIn.right,
+      "bottom": 2 * root.gapsIn.bottom,
+      "left": 2 * root.gapsIn.left
+    })
 
   // dwindle:split_width_multiplier: a box wider than tall times this splits
   // side by side (placeWindow, and the overview's drop preview)

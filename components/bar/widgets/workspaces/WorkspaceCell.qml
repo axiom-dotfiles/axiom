@@ -33,7 +33,7 @@ Item {
   // creation), so it doesn't animate from fallbacks
   property bool animated: true
   // Its box and underline while active are drawn by the row's sliding
-  // ActiveCellIndicator instead
+  // ActiveCellIndicator instead (a "background" part's)
   property bool indicated: false
   // "all", or only its box and underline ("background") or its label, dot
   // or icon and pointer area ("content")
@@ -43,15 +43,14 @@ Item {
   property bool lit: hovered
   readonly property bool _drawsBox: part !== "content"
   readonly property bool _drawsContent: part !== "background"
-  // Its box while the indicator stands for it: left out when the cell is
-  // drawn whole (the indicator slides under it); a background layer's stays
-  // at rest under the indicator, unless its tint would show through
-  readonly property bool _clearActive: root.isActive && root.indicated && (root.part === "all" || root.barConfig.widgetStyle === "tinted")
+  // Its box while the indicator stands for it stays at rest under the
+  // indicator, unless its tint would show through
+  readonly property bool _clearActive: root.isActive && root.indicated && root.barConfig.widgetStyle === "tinted"
 
   signal clicked
 
   readonly property bool isVertical: barConfig.vertical
-  readonly property bool boxed: ["filled", "tinted", "outline"].includes(barConfig.widgetStyle)
+  readonly property bool boxed: barConfig.widgetBoxed
   readonly property bool hovered: cellArea.containsMouse
 
   width: isVertical ? thickness : length
@@ -82,17 +81,10 @@ Item {
   }
 
   // Underline: along the side the bar's widget lines take
-  Rectangle {
-    readonly property real lineWidth: root.barConfig.lineWidth
-    readonly property bool farSide: (root.barConfig.lineSide === "inner") !== (root.barConfig.right || root.barConfig.bottom)
-
+  CellUnderline {
+    barConfig: root.barConfig
     visible: root._drawsBox && root.barConfig.widgetStyle === "underline"
     color: root._clearActive ? Qt.alpha(root.look.indicator, 0) : root.look.indicator
-    radius: lineWidth / 2
-    x: root.isVertical && farSide ? root.width - lineWidth : 0
-    y: !root.isVertical && farSide ? root.height - lineWidth : 0
-    width: root.isVertical ? lineWidth : root.width
-    height: root.isVertical ? root.height : lineWidth
 
     Behavior on color {
       enabled: root.animated
