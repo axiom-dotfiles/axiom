@@ -2691,6 +2691,10 @@
     "A separate box floating off the edge. Off, the launcher grows out of the screen border or a solid bar, as popouts do, and runs straight off a bare screen edge.": "画面端から離れて浮かぶ独立したボックスにします。オフの場合、ランチャーはポップアウトと同じように画面の枠や塗りつぶしのバーから伸び、何もない画面端ではそのまま端に接します。",
     "Distance from edge": "端からの距離",
     "Screen edge the launcher opens from, or is held off when detached.": "ランチャーが開く画面の端(離す場合は離れる側の端)。",
-    "How far across the free screen it sits: 0 lines it up with a detached dock or OSD on that edge, 50 centres it.": "空いた画面のどこに置くか:0 はその端の離したドックや OSD に揃え、50 で中央になります。"
+    "How far across the free screen it sits: 0 lines it up with a detached dock or OSD on that edge, 50 centres it.": "空いた画面のどこに置くか:0 はその端の離したドックや OSD に揃え、50 で中央になります。",
+    "Save changes to \"{0}\"": "「{0}」に変更を保存",
+    "Save changes to the current config": "現在の設定に変更を保存",
+    "No changes since saved": "保存後の変更なし",
+    "Current · discards unsaved changes": "現在 · 未保存の変更は破棄されます"
   }
 }
