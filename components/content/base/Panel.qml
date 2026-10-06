@@ -31,6 +31,9 @@ Item {
   // smaller slot is compact (see SlotContext)
   property real fullMinWidth: 0
   property real fullMinHeight: 0
+  // Card only: the content draws its own box (a `background`) even when
+  // bare, so it keeps its padding (see SlotContext)
+  property bool drawsBox: false
   // Derived from the slot, as on Card (see SlotContext); a popout is never
   // bare or compact
   readonly property alias bare: slot.bare
@@ -51,6 +54,7 @@ Item {
     height: root.height
     fullMinWidth: root.fullMinWidth
     fullMinHeight: root.fullMinHeight
+    drawsBox: root.drawsBox
   }
 
   // Bar popout only: the largest implicit size content that changes size

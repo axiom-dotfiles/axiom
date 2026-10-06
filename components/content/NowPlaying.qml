@@ -12,8 +12,9 @@ import qs.components.content.base
 // The active media player over a blurred copy of its cover: art, track
 // info, a seek bar and controls. As the Media widget's popout: art beside
 // the track info, the controls beneath, at a fixed size so track changes
-// never resize it. As an overlay card: art beside everything when wide,
-// stacked when square or tall; a short slot drops the player name, album
+// never resize it. As an overlay card: art beside everything when wide
+// (by px: an edge menu's units aren't square), stacked when square or
+// tall; a short slot drops the player name, album
 // and times; a tall wide one has larger text and controls, centred beside
 // the art; a strip is one row (art, title, artist and the buttons); a
 // compact card is just the art and play/pause.
@@ -22,8 +23,11 @@ Panel {
 
   readonly property bool hasPlayer: MediaManager.hasActivePlayer
   readonly property string artSource: MediaManager.artDownloaded && MediaManager.artVersion >= 0 ? "file://" + MediaManager.artFilePath : ""
-  // Card only: the art beside the info and controls
-  readonly property bool sideBySide: root.embedded && root.shape === "horizontal"
+  // Card only: the art beside the info and controls, when the slot is
+  // clearly wider than tall
+  readonly property bool sideBySide: root.embedded && root.innerWidth >= root.innerHeight * 1.25
+  // Card stacked: the art centred, the track centred beneath it
+  readonly property bool stacked: root.embedded && !root.sideBySide
   // A short wide slot: title, artist and a slim transport only
   readonly property bool short: root.sideBySide && root.height < Appearance.fontSize * 13
   // A tall wide slot (a big lock screen or page card): larger text and
@@ -36,6 +40,8 @@ Panel {
   property bool seeking: false
 
   hovered: pointerInside || root.seeking
+  // The blurred cover is a box of its own, so bare it keeps its padding
+  drawsBox: true
 
   fullMinWidth: Appearance.fontSize * 10
   fullMinHeight: Appearance.fontSize * 3.5
@@ -118,6 +124,10 @@ Panel {
         id: playerRow
         anchors.fill: parent
         spacing: 4
+        Item {
+          visible: root.stacked
+          Layout.fillWidth: true
+        }
         StyledText {
           Layout.fillWidth: true
           Layout.maximumWidth: Math.ceil(implicitWidth)
@@ -153,6 +163,7 @@ Panel {
       delegate: StyledText {
         required property var value
         elide: Text.ElideRight
+        horizontalAlignment: root.stacked ? Text.AlignHCenter : Text.AlignLeft
         text: value
         textColor: Theme.accent
         textSize: root.large ? Appearance.fontSize * 2 : root.short ? Appearance.fontSize : Appearance.fontSize + 3
@@ -166,6 +177,7 @@ Panel {
       delegate: StyledText {
         required property var value
         elide: Text.ElideRight
+        horizontalAlignment: root.stacked ? Text.AlignHCenter : Text.AlignLeft
         text: value
         textSize: root.large ? Appearance.fontSize + 4 : root.short ? Appearance.fontSize - 2 : Appearance.fontSize
       }
@@ -179,6 +191,7 @@ Panel {
       delegate: StyledText {
         required property var value
         elide: Text.ElideRight
+        horizontalAlignment: root.stacked ? Text.AlignHCenter : Text.AlignLeft
         text: value
         textSize: root.large ? Appearance.fontSize : Appearance.fontSize - 2
       }
@@ -384,7 +397,7 @@ Panel {
     visible: root.hasPlayer && !root.mini
     Layout.fillWidth: true
     Layout.fillHeight: root.embedded
-    columns: root.embedded && !root.sideBySide ? 1 : 2
+    columns: root.stacked ? 1 : 2
     columnSpacing: root.embedded ? root.pad : Widget.spacing * 1.5
     rowSpacing: Widget.spacing
 
@@ -397,7 +410,7 @@ Panel {
       visible: side >= 32
       Layout.preferredWidth: side
       Layout.preferredHeight: side
-      Layout.alignment: root.embedded && !root.sideBySide ? Qt.AlignHCenter : root.sideBySide ? Qt.AlignVCenter : Qt.AlignTop
+      Layout.alignment: root.stacked ? Qt.AlignHCenter : root.sideBySide ? Qt.AlignVCenter : Qt.AlignTop
     }
 
     ColumnLayout {

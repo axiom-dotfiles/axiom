@@ -577,12 +577,20 @@ PopoutWrapperBase {
     implicitWidth: root.barConfig.vertical ? depth : 0
     implicitHeight: root.barConfig.vertical ? 0 : depth
 
-    // Bar-window coordinates to this window's: along the bar, the two are
-    // taken as centred on each other (as BarPopouts.borderInset does);
-    // across it, measured from the bar's outer edge
+    // Bar-window coordinates to this window's: along the bar, the bar is
+    // taken as centred on the screen (as BarPopouts.borderInset does), and
+    // this window as centred between what's reserved on the perpendicular
+    // edges, which differ with a bar or dock on only one of them; across
+    // it, measured from the bar's outer edge
     readonly property real shift: {
       const length = root.barConfig.vertical ? height : width;
-      return length > 0 ? (mainPopup.panelLength - length) / 2 : 0;
+      if (length <= 0)
+        return 0;
+      const name = root.screen?.name ?? "";
+      const startLoc = root.barConfig.vertical ? Bar.Top : Bar.Left;
+      const endLoc = root.barConfig.vertical ? Bar.Bottom : Bar.Right;
+      const reservedAt = loc => EdgeMenuManager.reservedOn(root.screen, loc) + DockManager.zoneOn(name, Bar.edgeName(loc));
+      return (mainPopup.panelLength - length + reservedAt(startLoc) - reservedAt(endLoc)) / 2;
     }
     readonly property real acrossShift: root.barConfig.left || root.barConfig.top ? -root.underStart : depth - root.panelThickness + root.underStart
     readonly property real surfaceX: mainPopup.barX - (root.barConfig.vertical ? -acrossShift : shift)
