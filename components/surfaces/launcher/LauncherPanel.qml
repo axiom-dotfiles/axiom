@@ -103,7 +103,13 @@ FocusScope {
     }
   }
 
-  Component.onCompleted: _syncRows()
+  // Off until the first rows are in, so it opens at their height rather
+  // than growing to it
+  property bool _settled: false
+  Component.onCompleted: {
+    _syncRows();
+    Qt.callLater(() => root._settled = true);
+  }
 
   function select(index) {
     root.pointerActive = false;
@@ -303,57 +309,77 @@ FocusScope {
       textColor: Theme.foregroundInactive
     }
 
-    ListView {
-      id: list
+    // The list at its rows' height (and a margin each side), in a frame
+    // whose height glides to it as matches come and go, the blocks after
+    // it and the box with it: the list itself is never resized
+    // mid-animation, only clipped while the frame catches up
+    Item {
+      id: listFrame
+      readonly property real targetHeight: list.count > 0 ? list.height + root.listMargin * 2 : 0
       Layout.fillWidth: true
-      Layout.topMargin: count > 0 ? root.listMargin : 0
-      Layout.bottomMargin: count > 0 ? root.listMargin : 0
-      Layout.preferredHeight: Math.min(count, LauncherConfig.maxResults) * root.rowHeight
-      clip: true
-      interactive: count > LauncherConfig.maxResults
-      boundsBehavior: Flickable.StopAtBounds
-      // The best match next to the search field
-      verticalLayoutDirection: root.reversed ? ListView.BottomToTop : ListView.TopToBottom
-      highlightMoveDuration: Appearance.animFast
-      highlightFollowsCurrentItem: true
-      currentIndex: 0
-      // One entry per row, grown and shrunk at the end, so the rows survive
-      // each keystroke and only their contents change (a new model would
-      // rebuild every row and fade the selection back in)
-      model: ListModel {
-        id: rowModel
-      }
-
-      // Rows added at the end (more matches) fade in. Displaced rows are
-      // brought back to full opacity: an add interrupted by the next
-      // keystroke would otherwise leave its row half faded.
-      add: Transition {
+      Layout.preferredHeight: drawnHeight
+      clip: drawnHeight !== targetHeight
+      property real drawnHeight: targetHeight
+      Behavior on drawnHeight {
+        enabled: root._settled
         NumberAnimation {
-          property: "opacity"
-          from: 0
-          to: 1
-          duration: Appearance.animNormal
+          duration: Appearance.animFast
           easing.type: Appearance.easing
         }
       }
-      displaced: Transition {
-        NumberAnimation {
-          property: "opacity"
-          to: 1
-          duration: Appearance.animFast
-        }
-      }
 
-      delegate: LauncherRow {
-        modelData: LauncherManager.results[index] ?? ({})
-        width: ListView.view.width
-        height: root.rowHeight
-        current: ListView.isCurrentItem
-        pointerActive: root.pointerActive
-        onHovered: pos => root.pointerAt(index, pos)
-        onClicked: {
-          list.currentIndex = index;
-          root.activate(false);
+      ListView {
+        id: list
+        // Reversed, the best match stays against the field
+        y: root.reversed ? listFrame.height - root.listMargin - height : root.listMargin
+        width: listFrame.width
+        height: Math.min(count, LauncherConfig.maxResults) * root.rowHeight
+        clip: true
+        interactive: count > LauncherConfig.maxResults
+        boundsBehavior: Flickable.StopAtBounds
+        // The best match next to the search field
+        verticalLayoutDirection: root.reversed ? ListView.BottomToTop : ListView.TopToBottom
+        highlightMoveDuration: Appearance.animFast
+        highlightFollowsCurrentItem: true
+        currentIndex: 0
+        // One entry per row, grown and shrunk at the end, so the rows survive
+        // each keystroke and only their contents change (a new model would
+        // rebuild every row and fade the selection back in)
+        model: ListModel {
+          id: rowModel
+        }
+
+        // Rows added at the end (more matches) fade in. Displaced rows are
+        // brought back to full opacity: an add interrupted by the next
+        // keystroke would otherwise leave its row half faded.
+        add: Transition {
+          NumberAnimation {
+            property: "opacity"
+            from: 0
+            to: 1
+            duration: Appearance.animNormal
+            easing.type: Appearance.easing
+          }
+        }
+        displaced: Transition {
+          NumberAnimation {
+            property: "opacity"
+            to: 1
+            duration: Appearance.animFast
+          }
+        }
+
+        delegate: LauncherRow {
+          modelData: LauncherManager.results[index] ?? ({})
+          width: ListView.view.width
+          height: root.rowHeight
+          current: ListView.isCurrentItem
+          pointerActive: root.pointerActive
+          onHovered: pos => root.pointerAt(index, pos)
+          onClicked: {
+            list.currentIndex = index;
+            root.activate(false);
+          }
         }
       }
     }

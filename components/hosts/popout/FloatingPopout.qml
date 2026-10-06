@@ -49,6 +49,9 @@ PopoutWrapperBase {
   property real rightMargin: root.margin
   property real bottomMargin: root.margin
   property real maxContentHeight: 0
+  // The box glides to the content's height; off for content that animates
+  // its own (the launcher's list), which the box then follows as is
+  property bool animateHeight: true
   property bool growUp: false
 
   // Space between the box and its content
@@ -176,6 +179,7 @@ PopoutWrapperBase {
         }
       }
       Behavior on height {
+        enabled: root.animateHeight
         NumberAnimation {
           duration: Appearance.animFast
           easing.type: Appearance.easing

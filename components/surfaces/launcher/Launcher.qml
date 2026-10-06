@@ -148,6 +148,8 @@ Scope {
       bottomMargin: root._marginOn(Bar.Bottom)
       // Resized as results come and go, the box would move
       maxContentHeight: (floating.contentItem as LauncherPanel)?.maxHeight ?? 0
+      // The panel's list glides to its rows' height itself
+      animateHeight: false
       // Reversed, the search field stays put at the bottom
       growUp: LauncherConfig.reverse
       contentPadding: Appearance.borderWidth
