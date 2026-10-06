@@ -41,6 +41,7 @@ BarWidget {
       screen: root.screen
       popouts: root.popouts
       panel: root.panel
+      hitArea: root.hitArea
       barConfig: root.barConfig
       properties: root.properties
       inset: root.inset
@@ -53,6 +54,7 @@ BarWidget {
       screen: root.screen
       popouts: root.popouts
       panel: root.panel
+      hitArea: root.hitArea
       barConfig: root.barConfig
       properties: root.properties
       inset: root.inset

@@ -136,77 +136,16 @@ PopoutWrapperBase {
   // A widget under the box, or within a connector gap of it, along the bar
   canSwitchTo: (anchor, data) => {
     const item = data?.anchorItem;
-    if (anchor !== root.currentAnchor || !(root.contentReady || root._switching) || !item)
+    if (anchor !== root.currentAnchor || !(root.contentReady || still.switching) || !item)
       return false;
     const pos = item.mapToItem(null, 0, 0);
     const from = root.barConfig.vertical ? pos.y : pos.x;
     const to = from + (root.barConfig.vertical ? item.height : item.width);
     return from <= mainPopup.boxEnd + root.connectorGap && to >= mainPopup.boxStart - root.connectorGap;
   }
-  // The old content held as a still (`ghost`) where it is along the bar
-  // (without animations, no still), then the new payload opened under it.
-  // Asked again meanwhile, the latest payload wins.
-  prepareSwitch: done => {
-    if (root._grabbing)
-      return;
-    const item = root.currentItem;
-    if (root._switching || !item || !Appearance.animations) {
-      root._swap(done);
-      return;
-    }
-    const dpr = root.screen?.devicePixelRatio ?? 1;
-    const along = surface.contentInset + root.place.contentStart;
-    root._grabbing = item.grabToImage(result => {
-      root._grabbing = false;
-      // A switch still fading gives way to this one
-      switchFade.stop();
-      ghost.hold(result, item.width, item.height, along);
-      root._swap(done);
-    }, Qt.size(Math.ceil(item.width * dpr), Math.ceil(item.height * dpr)));
-    if (!root._grabbing)
-      root._swap(done);
-  }
-  property bool _grabbing: false
-  // From the new payload until its content is ready, the window stays up
-  // and the box keeps its size and place (`_held`), the content hidden
-  property bool _switching: false
-  property rect _held
-  readonly property bool _holding: root._switching && !root.contentReady
-  property real _contentOpacity: 1
-  function _swap(done) {
-    switchFade.stop();
-    if (!root._switching)
-      root._held = Qt.rect(root.shownBoxStart, 0, root.shownBoxWidth, root.shownBoxHeight);
-    root._switching = true;
-    root._contentOpacity = 0;
-    done();
-  }
-
-  ParallelAnimation {
-    id: switchFade
-    onFinished: ghost.release()
-    NumberAnimation {
-      target: ghost
-      property: "opacity"
-      to: 0
-      duration: Appearance.animFast
-      easing.type: Appearance.easing
-    }
-    NumberAnimation {
-      target: root
-      property: "_contentOpacity"
-      to: 1
-      duration: Appearance.animFast
-      easing.type: Appearance.easing
-    }
-  }
-
-  function _endSwitch() {
-    switchFade.stop();
-    root._switching = false;
-    root._contentOpacity = 1;
-    ghost.release();
-  }
+  // The old content held as a still where it is along the bar
+  // (SwitchStill), then the new payload opened under it
+  prepareSwitch: done => still.prepare(root.currentItem, done)
   // ---- end switching in place ----
 
   // On a pill bar: its pills ({ start, length, joinStart, joinEnd } along
@@ -288,14 +227,14 @@ PopoutWrapperBase {
   readonly property real targetBoxWidth: mainPopup.contentWidth + surface.contentInset * 2 + (root.barConfig.vertical ? root.pillClearance : mainPopup.boxGrow)
   readonly property real targetBoxHeight: mainPopup.contentHeight + surface.contentInset * 2 + (root.barConfig.vertical ? mainPopup.boxGrow : root.pillClearance)
   // What's drawn: the targets, animated once the popout shows
-  property real shownBoxWidth: root._holding ? root._held.width : root.targetBoxWidth
-  property real shownBoxHeight: root._holding ? root._held.height : root.targetBoxHeight
-  property real shownBoxStart: root._holding ? root._held.x : mainPopup.boxStart
+  property real shownBoxWidth: still.holding ? still.held.width : root.targetBoxWidth
+  property real shownBoxHeight: still.holding ? still.held.height : root.targetBoxHeight
+  property real shownBoxStart: still.holding ? still.held.start : mainPopup.boxStart
   // Set once the popout has shown at its first size, so opening jumps
   // straight there rather than animating from wherever it last was
   property bool _settled: false
   function _updateSettled() {
-    if (!root.occupied || !(root.contentReady || root._switching))
+    if (!root.occupied || !(root.contentReady || still.switching))
       root._settled = false;
     else
       Qt.callLater(() => root._settled = root.occupied && root.contentReady);
@@ -341,16 +280,11 @@ PopoutWrapperBase {
   onContentReadyChanged: {
     _notePeak();
     _updateSettled();
-    // The new content is in: it fades in as the still fades out
-    if (root.contentReady && root._switching) {
-      root._switching = false;
-      switchFade.restart();
-    }
   }
   onOccupiedChanged: {
     if (!root.occupied) {
       root._peakAcross = 0;
-      root._endSwitch();
+      still.end();
     }
     _updateSettled();
   }
@@ -387,7 +321,7 @@ PopoutWrapperBase {
 
   PopupWindow {
     id: mainPopup
-    visible: !root.underBar && root.occupied && (root.contentReady || root._switching) && !ShellManager.captureFrozen
+    visible: !root.underBar && root.occupied && (root.contentReady || still.switching) && !ShellManager.captureFrozen
     color: "transparent"
 
     // Content dimensions
@@ -520,7 +454,7 @@ PopoutWrapperBase {
   PanelWindow {
     id: underWindow
     screen: root.screen
-    visible: root.underBar && root.occupied && (root.contentReady || root._switching)
+    visible: root.underBar && root.occupied && (root.contentReady || still.switching)
     color: "transparent"
 
     // On the bar's layer, ordered under it (HyprlandManager's layer rules).
@@ -586,7 +520,7 @@ PopoutWrapperBase {
 
     edge: root.barConfig.location
     castShadow: true
-    active: root.occupied && !root.isClosing && (root.contentReady || root._switching)
+    active: root.occupied && !root.isClosing && (root.contentReady || still.switching)
     connectorGap: root.connectorGap
     boxWidth: root.shownBoxWidth
     boxHeight: root.shownBoxHeight
@@ -625,7 +559,7 @@ PopoutWrapperBase {
         height: mainPopup.contentHeight
         x: root.barConfig.left ? barSide : root.barConfig.right ? clipBox.width - barSide - width : along
         y: root.barConfig.top ? barSide : root.barConfig.bottom ? clipBox.height - barSide - height : along
-        opacity: root._contentOpacity
+        opacity: still.contentOpacity
 
         active: root.occupied
         asynchronous: false
@@ -652,34 +586,20 @@ PopoutWrapperBase {
         }
       }
 
-      // The content switched away from, as it last was: held where it was
-      // along the bar while the box glides on, fading out over the new
-      Image {
-        id: ghost
-        // Its start along the bar, in bar-window coordinates
-        property real along: 0
-        // Keeps the grab's image alive while shown
-        property var _grab: null
-
-        function hold(grab, width, height, along) {
-          ghost._grab = grab;
-          ghost.source = grab.url;
-          ghost.width = width;
-          ghost.height = height;
-          ghost.along = along;
-          ghost.opacity = 1;
-        }
-        function release() {
-          ghost.opacity = 0;
-          ghost.source = "";
-          ghost._grab = null;
-        }
-
-        x: root.barConfig.left ? loader.barSide : root.barConfig.right ? clipBox.width - loader.barSide - width : along - root.shownBoxStart
-        y: root.barConfig.top ? loader.barSide : root.barConfig.bottom ? clipBox.height - loader.barSide - height : along - root.shownBoxStart
-        visible: opacity > 0
-        opacity: 0
-        cache: false
+      // The content switched away from, held where it was along the bar
+      // while the box glides on
+      SwitchStill {
+        id: still
+        contentReady: root.contentReady
+        snapshot: () => ({
+              "start": root.shownBoxStart,
+              "width": root.shownBoxWidth,
+              "height": root.shownBoxHeight,
+              "along": surface.contentInset + root.place.contentStart
+            })
+        readonly property real along: (held?.along ?? 0) - root.shownBoxStart
+        x: root.barConfig.left ? loader.barSide : root.barConfig.right ? clipBox.width - loader.barSide - width : along
+        y: root.barConfig.top ? loader.barSide : root.barConfig.bottom ? clipBox.height - loader.barSide - height : along
       }
     }
   }

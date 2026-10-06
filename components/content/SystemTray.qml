@@ -34,9 +34,14 @@ Item {
     screen: root.wrapper.screen
     openToLeft: root.openToLeft
 
-    // root.hovered folds this in, and the wrapper (BarPopouts) reacts to it
+    // root.hovered folds this in, and the wrapper (BarPopouts) reacts to it.
+    // A submenu gone with the pointer off this menu and its icon (it left
+    // the submenu, or picked an entry) takes the menu with it at once,
+    // closing in a cascade rather than after the menu's own dismiss delay
     onOccupiedChanged: {
       root.submenuOpen = occupied;
+      if (!occupied && !hoverHandler.hovered && !root.wrapper.anchorHovered)
+        root.wrapper.requestDismiss();
     }
   }
 

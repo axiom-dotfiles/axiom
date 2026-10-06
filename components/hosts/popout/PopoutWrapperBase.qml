@@ -81,12 +81,20 @@ Item {
   // mask applies. Once it does, the pointer is back over
   // the bar, but Hyprland sends the bar no enter until it moves, so nothing
   // reads as hovered and the popout would close under a still pointer. So
-  // a popout with an anchor notes the cursor when hover is lost, and before
+  // a popout notes the cursor when its anchor loses hover, and before
   // dismissing checks it: if it hasn't moved, hover was lost under it, not
   // by leaving, and the popout stays until the next hover change (or the
-  // cursor moving, checked every parkCheckInterval).
+  // cursor moving, checked every parkCheckInterval). Only the anchor's: any
+  // other hover lost (the content's, a submenu closing, `keepAlive`) is
+  // nothing mapping under the pointer, and a pointer still since leaving
+  // would otherwise hold the popout open. Hovering anything again forgets it.
   property var _lostCursor: null
   readonly property int parkCheckInterval: 1000
+
+  onAnchorHoveredChanged: {
+    if (!anchorHovered && occupied && !isClosing)
+      _noteLostCursor();
+  }
 
   function _noteLostCursor() {
     _lostCursor = null;
@@ -130,9 +138,9 @@ Item {
     parkTimer.stop();
     if (contentHovered) {
       dismissTimer.stop();
+      _lostCursor = null;
     } else {
       dismissTimer.restart();
-      _noteLostCursor();
     }
   }
 

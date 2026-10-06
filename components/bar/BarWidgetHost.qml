@@ -175,12 +175,17 @@ Item {
   // Where the module's pointer areas go (BarWidget.hitArea), over the
   // module so nothing in it takes the hover first. It tracks hover itself
   // (a PopoutAnchor given it reads `hovered`): a HoverHandler moved into
-  // it after it's made isn't reliably hovered.
+  // it after it's made isn't reliably hovered. Nothing under it is hovered,
+  // so a module with several anchors (the tray's icons) asks `hovers(item)`.
   Item {
     id: hitArea
 
     readonly property real back: root.hitShape?.back ?? 0
     readonly property bool hovered: hoverHandler.hovered
+    // Whether the pointer over it is over `item`, an item of the module
+    function hovers(item: Item): bool {
+      return hoverHandler.hovered && item.contains(item.mapFromItem(hitArea, hoverHandler.point.position));
+    }
     readonly property QtObject mask: QtObject {
       function contains(point: point): bool {
         const shape = root.hitShape;

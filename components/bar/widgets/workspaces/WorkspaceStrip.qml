@@ -16,6 +16,8 @@ Item {
   property var screen
   property var popouts
   property var panel
+  // The widget's (BarWidget.hitArea), which its popout reads hover from
+  property var hitArea: null
   property var barConfig
   property var properties
   // Room kept to the widget's background across the bar
@@ -152,6 +154,7 @@ Item {
   PopoutAnchor {
     popouts: root.popouts
     panel: root.panel
+    hitArea: root.hitArea
     popoutName: "WorkspaceStrips"
     active: root.stripDirection !== "" && root.properties.showPopout
     extraData: ({

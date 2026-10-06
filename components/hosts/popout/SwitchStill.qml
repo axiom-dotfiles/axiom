@@ -1,0 +1,111 @@
+pragma ComponentBehavior: Bound
+import QtQuick
+import qs.config
+
+// A popout switching to another payload in place (PopoutWrapperBase's
+// canSwitchTo/prepareSwitch: BarPopouts, TraySubmenuWrapper): the content
+// switched away from, as a still the host places where that content was
+// (from `held`), fading out over the new. From the switch until the new
+// content is ready (`holding`), the host keeps its window up and its box as
+// it was (`held`: what `snapshot` returned as the switch began), and hides
+// the new content, which then fades in by `contentOpacity`. Asked again
+// mid-switch, the latest payload wins.
+Image {
+  id: root
+
+  // The host's content is ready to show
+  required property bool contentReady
+  // A hook: what the host keeps of its box as a switch begins
+  property var snapshot: () => null
+
+  readonly property bool switching: _switching
+  readonly property bool holding: _switching && !contentReady
+  readonly property var held: _held
+  readonly property real contentOpacity: _contentOpacity
+
+  property bool _grabbing: false
+  property bool _switching: false
+  property var _held: null
+  property real _contentOpacity: 1
+  // Keeps the grab's image alive while shown
+  property var _grab: null
+
+  // The host's prepareSwitch: `item` is the content shown. Without
+  // animations, or mid-switch, there's no still to take.
+  function prepare(item, done) {
+    if (root._grabbing)
+      return;
+    if (root._switching || !item || !Appearance.animations) {
+      root._swap(done);
+      return;
+    }
+    const dpr = Screen.devicePixelRatio;
+    root._grabbing = item.grabToImage(result => {
+      root._grabbing = false;
+      // A switch still fading gives way to this one
+      fade.stop();
+      root._grab = result;
+      root.source = result.url;
+      root.width = item.width;
+      root.height = item.height;
+      root.opacity = 1;
+      root._swap(done);
+    }, Qt.size(Math.ceil(item.width * dpr), Math.ceil(item.height * dpr)));
+    if (!root._grabbing)
+      root._swap(done);
+  }
+
+  // The host closed: nothing left to switch
+  function end() {
+    fade.stop();
+    root._switching = false;
+    root._contentOpacity = 1;
+    root._release();
+  }
+
+  function _swap(done) {
+    fade.stop();
+    if (!root._switching)
+      root._held = root.snapshot();
+    root._switching = true;
+    root._contentOpacity = 0;
+    done();
+  }
+
+  function _release() {
+    root.opacity = 0;
+    root.source = "";
+    root._grab = null;
+  }
+
+  // The new content is in: it fades in as the still fades out
+  onContentReadyChanged: {
+    if (root.contentReady && root._switching) {
+      root._switching = false;
+      fade.restart();
+    }
+  }
+
+  visible: opacity > 0
+  opacity: 0
+  cache: false
+
+  ParallelAnimation {
+    id: fade
+    onFinished: root._release()
+    NumberAnimation {
+      target: root
+      property: "opacity"
+      to: 0
+      duration: Appearance.animFast
+      easing.type: Appearance.easing
+    }
+    NumberAnimation {
+      target: root
+      property: "_contentOpacity"
+      to: 1
+      duration: Appearance.animFast
+      easing.type: Appearance.easing
+    }
+  }
+}

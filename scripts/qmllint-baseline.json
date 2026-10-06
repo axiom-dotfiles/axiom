@@ -59,7 +59,7 @@
   },
   "components/hosts/popout/TraySubmenuWrapper.qml": {
     "incompatible-type: Cannot assign binding of type QObject to QQuickItem": 1,
-    "missing-property: Member \"contentReady\" not found on type \"QQuickItem\"": 2
+    "missing-property: Member \"contentReady\" not found on type \"QQuickItem\"": 1
   },
   "components/reusable/BaseWidget.qml": {
     "missing-property: Member \"implicitHeight\" not found on type \"QObject\"": 1,

@@ -81,9 +81,17 @@ BarWidget {
           smooth: true
         }
 
+        // Hovered through the bar's hit area, which lies over the icons
+        // (BarWidgetHost.hitArea)
+        QtObject {
+          id: iconHover
+          readonly property bool hovered: root.hitArea?.hovers(trayItem) ?? false
+        }
+
         PopoutAnchor {
           popouts: root.popouts
           panel: root.panel
+          hitArea: root.hitArea ? iconHover : null
           popoutName: "SystemTray"
           openDelay: 150
           active: root.properties.showPopout && trayItem.modelData.hasMenu
