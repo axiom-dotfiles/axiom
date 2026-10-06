@@ -426,6 +426,7 @@ Rectangle {
         readonly property real alongStart: span.start - startMargin
         // Depth reached from the outer edge; the surface's far half-gap is empty
         readonly property real depthBox: Math.max(0, root.barConfig.pillDepth - connectorGap / 2)
+        boxStart: connectorGap / 2
 
         edge: root.barConfig.location
         active: true

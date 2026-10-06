@@ -19,7 +19,8 @@ import qs.config
  *
  * `edge` is the side the surface attaches to, as a Bar.Location value.
  * `boxWidth`/`boxHeight` are the size of the content box; the implicit
- * size adds the connector and fillet margins around it.
+ * size adds the connector and fillet margins around it. Attached, the box
+ * starts on the attach edge (boxStart), the fillets beside it.
  *
  * Variations, all off by default:
  * - joinStart/joinEnd: that end sits flush on the perpendicular edge's
@@ -123,7 +124,23 @@ Item {
   readonly property real endMargin: _filletEnd ? connectorGap - strokeWidth : 0
   readonly property real alongLength: startMargin + boxAlong + endMargin
   // Box + connector gap, plus room for a join's fillet past the far edge
-  readonly property real depth: _back + _lead + boxDepth + connectorGap + (_joinFillet ? filletRadius : 0)
+  // Where the box starts away from the attach edge. Detached, a connector
+  // gap's half past its lead. Attached, on the attach edge: the fillets
+  // curve outside the side walls, so the band they span is the box's own
+  // (it was left empty, a fillet radius of padding above the content).
+  // Pushed back only as far as a shallow box needs for a side wall to
+  // clear its fillet and far corner.
+  readonly property real naturalBoxStart: {
+    if (detached)
+      return _lead + connectorGap / 2;
+    const fillet = _filletStart || _filletEnd ? filletRadius + half : 0;
+    return Math.max(0, Math.min(connectorGap / 2, fillet + Math.max(startCornerRadius, endCornerRadius) + half - boxDepth));
+  }
+  // Overridable: a bar's pills keep a half connector gap (sized by it)
+  property real boxStart: naturalBoxStart
+  // The box and the half connector gap past it (and a joined end's fillet
+  // along the perpendicular stroke)
+  readonly property real depth: _back + boxStart + boxDepth + connectorGap / 2 + (_joinFillet ? filletRadius : 0)
 
   // Along the edge: box + fillet squares. Away from the edge: box +
   // connector gap.
@@ -133,13 +150,13 @@ Item {
   // Box sides and far edge (stroke centre line)
   readonly property real sideU: startMargin + half
   readonly property real farSideU: startMargin + boxAlong - half
-  readonly property real farV: connectorGap / 2 + boxDepth - half
+  readonly property real farV: boxStart + boxDepth - half
 
   // The content box in this item's coordinates, at rest (not slid). On
   // every side but the attach edge it coincides with the outer edge of
   // the stroke, so things attaching to this surface (tray submenus) can
   // line their own stroke up with it.
-  readonly property rect boxRect: root._rectFrom(startMargin, _lead + connectorGap / 2, boxAlong, boxDepth)
+  readonly property rect boxRect: root._rectFrom(startMargin, boxStart, boxAlong, boxDepth)
 
   // Reflections flip the sweep direction of arcs; rotations don't
   readonly property bool mirrored: edge === Bar.Bottom || edge === Bar.Left

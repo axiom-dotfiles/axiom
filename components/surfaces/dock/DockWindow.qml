@@ -76,7 +76,7 @@ Scope {
   // From the window's edge to the box of icons
   readonly property real boxOffset: {
     if (root.attached)
-      return root.backfill + root.connectorGap / 2 + placement.attachClearance;
+      return root.backfill + surface.boxStart + placement.attachClearance;
     if (root.gaps)
       return root._heldOffset(root.edge, root.gaps.across);
     return Math.max(0, root.attachAt + root.connectorGap / 2 - root.reservedHere);
