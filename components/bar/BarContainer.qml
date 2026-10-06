@@ -92,10 +92,10 @@ Rectangle {
   // between them, outside its pill (BarLayout.edgeHang); at the first and
   // last sections showing, they stay in it, as padding.
   readonly property var _spans: {
-    const shown = root._groups.filter(g => g.usedLength > 0).sort((a, b) => a.mainPos - b.mainPos);
+    const shown = root._groups.filter(g => g.drawnLength > 0.5).sort((a, b) => a.drawnPos - b.drawnPos);
     return shown.map((g, i) => ({
-          "start": g.mainPos + (i > 0 ? g.drawnHang.lead : 0),
-          "end": g.mainPos + g.usedLength - (i < shown.length - 1 ? g.drawnHang.trail : 0)
+          "start": g.drawnPos + (i > 0 ? g.drawnHang.lead : 0),
+          "end": g.drawnPos + g.drawnLength - (i < shown.length - 1 ? g.drawnHang.trail : 0)
         }));
   }
 
@@ -131,7 +131,7 @@ Rectangle {
 
   // How far each pill reaches past its own ends for the stretches on it,
   // animated, so it grows out to carry a surface and draws back after it.
-  // Only the reach animates: the pill itself follows the layout at once.
+  // The pill itself follows its sections as drawn (Section.drawnPos).
   Instantiator {
     id: reaches
     model: root.pillRects.length
@@ -210,8 +210,20 @@ Rectangle {
     const key = JSON.stringify(slots);
     if (key !== _slotsKey) {
       _slotsKey = key;
-      layoutUpdated();
+      root.layoutMoved();
     }
+  }
+  // Widgets and sections glide to a new layout (BarWidgetHost, Section),
+  // so what's anchored to them (an open popout) is told again once
+  // they've arrived
+  function layoutMoved() {
+    layoutUpdated();
+    _settle.restart();
+  }
+  Timer {
+    id: _settle
+    interval: Appearance.animNormal
+    onTriggered: root.layoutUpdated()
   }
 
   // A section's shown widgets; `configIndex` is each one's place in the
@@ -276,10 +288,32 @@ Rectangle {
       return farSide ? across - start - size : start;
     }
 
-    x: section.bar.isVertical ? section.crossPos : section.mainPos
-    y: section.bar.isVertical ? section.mainPos : section.crossPos
+    // Where it's drawn along the bar, and how long: gliding to the layout's
+    // (as its widgets do, BarWidgetHost), which pills follow. Off until
+    // first placed, so a new bar doesn't slide its sections in.
+    property real drawnPos: section.mainPos
+    property real drawnLength: section.usedLength
+    property bool _settled: false
+    Component.onCompleted: Qt.callLater(() => section._settled = true)
+    Behavior on drawnPos {
+      enabled: section._settled
+      NumberAnimation {
+        duration: Appearance.animFast
+        easing.type: Appearance.easing
+      }
+    }
+    Behavior on drawnLength {
+      enabled: section._settled
+      NumberAnimation {
+        duration: Appearance.animFast
+        easing.type: Appearance.easing
+      }
+    }
 
-    onAllocationUpdated: section.bar.layoutUpdated()
+    x: section.bar.isVertical ? section.crossPos : section.drawnPos
+    y: section.bar.isVertical ? section.drawnPos : section.crossPos
+
+    onAllocationUpdated: section.bar.layoutMoved()
   }
 
   // What the bar paints under its widgets: its background, inner stroke

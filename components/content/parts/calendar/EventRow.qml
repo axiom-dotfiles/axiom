@@ -31,6 +31,14 @@ Rectangle {
     }
   }
 
+  // Fades in as its list (a day, the agenda) is shown or changes
+  NumberAnimation on opacity {
+    from: 0
+    to: 1
+    duration: Appearance.animNormal
+    easing.type: Appearance.easing
+  }
+
   RowLayout {
     id: content
     anchors.fill: parent

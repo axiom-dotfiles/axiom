@@ -31,11 +31,32 @@ Item {
       slideOut.start();
   }
 
+  // Slides out after `delay` without dismissing anything: the list's
+  // clear-all staggers its groups out this way, then clears them at once
+  function leave(delay) {
+    leaveDelay.duration = delay;
+    if (!slideOut.running)
+      leaveOut.restart();
+  }
+
   Layout.fillWidth: true
   implicitHeight: card.height + root.stackDepth * root.stackStep
   opacity: 0
 
-  Component.onCompleted: appear.start()
+  // Glides into place when a group above it comes or goes; not on its
+  // own arrival, which `appear` animates
+  property bool _placed: false
+  Component.onCompleted: {
+    appear.start();
+    Qt.callLater(() => root._placed = true);
+  }
+  Behavior on y {
+    enabled: root._placed
+    NumberAnimation {
+      duration: Appearance.animNormal
+      easing.type: Appearance.easing
+    }
+  }
   onCountChanged: {
     if (root.count <= 1)
       root.expanded = false;
@@ -85,6 +106,28 @@ Item {
     ScriptAction {
       // Snapshot: each dismiss shrinks the live list
       script: root.entries.slice().forEach(e => NotificationManager.dismiss(e.uid))
+    }
+  }
+
+  SequentialAnimation {
+    id: leaveOut
+    PauseAnimation {
+      id: leaveDelay
+    }
+    ParallelAnimation {
+      NumberAnimation {
+        target: shift
+        property: "x"
+        to: root.width
+        duration: Appearance.animNormal
+        easing.type: Easing.InCubic
+      }
+      NumberAnimation {
+        target: root
+        property: "opacity"
+        to: 0
+        duration: Appearance.animNormal
+      }
     }
   }
 
@@ -258,6 +301,17 @@ Item {
           required property int index
           Layout.fillWidth: true
           spacing: Widget.spacing
+
+          // Glides up into the room an entry dismissed above it leaves
+          property bool placed: false
+          Component.onCompleted: Qt.callLater(() => row.placed = true)
+          Behavior on y {
+            enabled: row.placed
+            NumberAnimation {
+              duration: Appearance.animNormal
+              easing.type: Appearance.easing
+            }
+          }
 
           StyledSeparator {
             visible: row.index > 0

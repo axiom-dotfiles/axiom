@@ -28,7 +28,7 @@ BarIconWidget {
 
   // On the icon's top-right corner
   CountBadge {
-    visible: root.properties.showCount && NotificationManager.count > 0
+    shown: root.properties.showCount && NotificationManager.count > 0
     x: Math.round((root.width + root.iconLength) / 2 - width / 2)
     y: 1
     color: Theme.resolveColor(root.properties.badgeColor)

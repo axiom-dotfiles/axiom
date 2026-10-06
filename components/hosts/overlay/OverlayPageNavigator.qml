@@ -246,7 +246,7 @@ Rectangle {
 
                 UnsavedDot {
                   anchors.verticalCenter: parent.verticalCenter
-                  visible: EditsManager.isUnsaved(tab.modelData.type)
+                  shown: EditsManager.isUnsaved(tab.modelData.type)
                   onAccent: tab.isCurrent
                 }
               }

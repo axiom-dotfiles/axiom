@@ -90,12 +90,18 @@ Panel {
       anchors.fill: parent
       radius: art.radius
       color: Theme.backgroundAlt
-      Image {
+      // A new cover fades in over the old once it has loaded
+      CrossFade {
         anchors.fill: parent
-        source: root.artSource
-        fillMode: Image.PreserveAspectCrop
-        asynchronous: true
-        visible: status === Image.Ready
+        value: root.artSource
+        delegate: Image {
+          required property var value
+          readonly property bool ready: status !== Image.Loading
+          source: value
+          fillMode: Image.PreserveAspectCrop
+          asynchronous: true
+          visible: status === Image.Ready
+        }
       }
       StyledIcon {
         anchors.centerIn: parent
@@ -149,29 +155,41 @@ Panel {
     Item {
       Layout.fillHeight: true
     }
-    StyledText {
+    CrossFade {
       Layout.fillWidth: true
-      elide: Text.ElideRight
-      text: MediaManager.trackTitle || I18n.tr("Unknown track")
-      textColor: Theme.accent
-      textSize: root.large ? Appearance.fontSize * 2 : root.short ? Appearance.fontSize : Appearance.fontSize + 3
-      font.bold: true
+      value: MediaManager.trackTitle || I18n.tr("Unknown track")
+      delegate: StyledText {
+        required property var value
+        elide: Text.ElideRight
+        text: value
+        textColor: Theme.accent
+        textSize: root.large ? Appearance.fontSize * 2 : root.short ? Appearance.fontSize : Appearance.fontSize + 3
+        font.bold: true
+      }
     }
-    StyledText {
+    CrossFade {
       Layout.fillWidth: true
-      elide: Text.ElideRight
       // Kept as a line when empty, so the popout's height never changes
-      text: MediaManager.trackArtist || " "
-      textSize: root.large ? Appearance.fontSize + 4 : root.short ? Appearance.fontSize - 2 : Appearance.fontSize
+      value: MediaManager.trackArtist || " "
+      delegate: StyledText {
+        required property var value
+        elide: Text.ElideRight
+        text: value
+        textSize: root.large ? Appearance.fontSize + 4 : root.short ? Appearance.fontSize - 2 : Appearance.fontSize
+      }
     }
-    StyledText {
+    CrossFade {
       visible: !root.short
       Layout.fillWidth: true
-      elide: Text.ElideRight
-      // MediaManager doesn't surface the album, but the Mpris player does
-      text: (MediaManager.activePlayer?.trackAlbum ?? "") || " "
-      textSize: root.large ? Appearance.fontSize : Appearance.fontSize - 2
       opacity: 0.6
+      // MediaManager doesn't surface the album, but the Mpris player does
+      value: (MediaManager.activePlayer?.trackAlbum ?? "") || " "
+      delegate: StyledText {
+        required property var value
+        elide: Text.ElideRight
+        text: value
+        textSize: root.large ? Appearance.fontSize : Appearance.fontSize - 2
+      }
     }
   }
 
@@ -246,18 +264,23 @@ Panel {
       radius: Math.max(0, root.boxRadius - (root.embedded ? Appearance.borderWidth : 0))
       color: "transparent"
       // Larger than the box, so the blur doesn't fade out at its edges
-      Image {
+      CrossFade {
         anchors.fill: parent
         anchors.margins: -48
-        source: root.artSource
-        fillMode: Image.PreserveAspectCrop
-        asynchronous: true
-        layer.enabled: true
-        layer.effect: MultiEffect {
-          blurEnabled: true
-          blur: 1
-          blurMax: 48
-          saturation: 0.2
+        value: root.artSource
+        delegate: Image {
+          required property var value
+          readonly property bool ready: status !== Image.Loading
+          source: value
+          fillMode: Image.PreserveAspectCrop
+          asynchronous: true
+          layer.enabled: true
+          layer.effect: MultiEffect {
+            blurEnabled: true
+            blur: 1
+            blurMax: 48
+            saturation: 0.2
+          }
         }
       }
       Rectangle {
@@ -317,20 +340,28 @@ Panel {
       Layout.fillWidth: true
       Layout.minimumWidth: 0
       spacing: 0
-      StyledText {
+      CrossFade {
         Layout.fillWidth: true
-        elide: Text.ElideRight
-        text: MediaManager.trackTitle || I18n.tr("Unknown track")
-        textColor: Theme.accent
-        font.bold: true
+        value: MediaManager.trackTitle || I18n.tr("Unknown track")
+        delegate: StyledText {
+          required property var value
+          elide: Text.ElideRight
+          text: value
+          textColor: Theme.accent
+          font.bold: true
+        }
       }
-      StyledText {
+      CrossFade {
         visible: root.innerHeight >= Appearance.fontSize * 2.6
         Layout.fillWidth: true
-        elide: Text.ElideRight
-        text: MediaManager.trackArtist
-        textSize: Appearance.fontSize - 2
         opacity: 0.8
+        value: MediaManager.trackArtist
+        delegate: StyledText {
+          required property var value
+          elide: Text.ElideRight
+          text: value
+          textSize: Appearance.fontSize - 2
+        }
       }
     }
     MediaButton {

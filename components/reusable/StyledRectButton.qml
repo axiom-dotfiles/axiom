@@ -84,7 +84,7 @@ Rectangle {
   }
 
   CountBadge {
-    visible: root.badgeVisible
+    shown: root.badgeVisible
     anchors.top: parent.top
     anchors.right: parent.right
     anchors.topMargin: -2

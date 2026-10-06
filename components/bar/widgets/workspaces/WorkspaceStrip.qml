@@ -105,35 +105,55 @@ Item {
     columns: root.isVertical ? 1 : 2
     spacing: root.barConfig.widgetSpacing
 
-    Grid {
-      flow: root.isVertical ? Grid.TopToBottom : Grid.LeftToRight
-      rows: root.isVertical ? Math.max(1, root.ids.length) : 1
-      columns: root.isVertical ? 1 : Math.max(1, root.ids.length)
-      spacing: root.barConfig.widgetSpacing
+    Item {
+      implicitWidth: cells.implicitWidth
+      implicitHeight: cells.implicitHeight
 
-      Repeater {
-        model: root.ids.length
+      // The active cell's box, sliding between cells
+      ActiveCellIndicator {
+        id: indicator
+        barConfig: root.barConfig
+        look: Bar.cellColors(root.barConfig, root.activeColor, root.textColor, "active")
+        index: root.ids.indexOf(root.activeId)
+        thickness: root.cell
+        restLength: root.cellLength
+        activeLength: root.cellLength * (root.properties.wideActive ? 2 : 1)
+        spacing: root.barConfig.widgetSpacing
+        radius: root.cellRadius
+      }
 
-        WorkspaceCell {
-          id: cell
-          required property int index
-          readonly property int wsId: root.ids[index] ?? 0
-          readonly property HyprlandWorkspace ws: root.wsById(wsId)
-          readonly property bool occupied: root.hasWindows(ws)
-          readonly property var biggestWindow: root.properties.showAppIcons && occupied ? HyprlandManager.biggestWindowForWorkspace(wsId) : null
+      Grid {
+        id: cells
+        flow: root.isVertical ? Grid.TopToBottom : Grid.LeftToRight
+        rows: root.isVertical ? Math.max(1, root.ids.length) : 1
+        columns: root.isVertical ? 1 : Math.max(1, root.ids.length)
+        spacing: root.barConfig.widgetSpacing
 
-          barConfig: root.barConfig
-          isActive: wsId === root.activeId
-          look: Bar.cellColors(root.barConfig, isActive ? root.activeColor : occupied ? root.occupiedColor : root.emptyColor, isActive || occupied ? root.textColor : Theme.foreground, isActive ? "active" : occupied ? "occupied" : "empty")
-          thickness: root.cell
-          restLength: root.cellLength
-          length: root.cellLength * (isActive && root.properties.wideActive ? 2 : 1)
-          radius: root.cellRadius
-          labels: root.properties.labels
-          label: root.properties.relativeNumbers ? wsId - root.base + 1 : wsId
-          iconPath: biggestWindow ? IconResolver.resolveWindowIcon(biggestWindow.class, biggestWindow.title) : ""
-          clickable: root.properties.clickToSwitch
-          onClicked: HyprlandManager.goToWorkspace(wsId, "go", root.monitor)
+        Repeater {
+          model: root.ids.length
+
+          WorkspaceCell {
+            id: cell
+            required property int index
+            readonly property int wsId: root.ids[index] ?? 0
+            readonly property HyprlandWorkspace ws: root.wsById(wsId)
+            readonly property bool occupied: root.hasWindows(ws)
+            readonly property var biggestWindow: root.properties.showAppIcons && occupied ? HyprlandManager.biggestWindowForWorkspace(wsId) : null
+
+            barConfig: root.barConfig
+            isActive: wsId === root.activeId
+            indicated: indicator.slides
+            look: Bar.cellColors(root.barConfig, isActive ? root.activeColor : occupied ? root.occupiedColor : root.emptyColor, isActive || occupied ? root.textColor : Theme.foreground, isActive ? "active" : occupied ? "occupied" : "empty")
+            thickness: root.cell
+            restLength: root.cellLength
+            length: root.cellLength * (isActive && root.properties.wideActive ? 2 : 1)
+            radius: root.cellRadius
+            labels: root.properties.labels
+            label: root.properties.relativeNumbers ? wsId - root.base + 1 : wsId
+            iconPath: biggestWindow ? IconResolver.resolveWindowIcon(biggestWindow.class, biggestWindow.title) : ""
+            clickable: root.properties.clickToSwitch
+            onClicked: HyprlandManager.goToWorkspace(wsId, "go", root.monitor)
+          }
         }
       }
     }

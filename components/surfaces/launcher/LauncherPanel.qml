@@ -324,6 +324,26 @@ FocusScope {
         id: rowModel
       }
 
+      // Rows added at the end (more matches) fade in. Displaced rows are
+      // brought back to full opacity: an add interrupted by the next
+      // keystroke would otherwise leave its row half faded.
+      add: Transition {
+        NumberAnimation {
+          property: "opacity"
+          from: 0
+          to: 1
+          duration: Appearance.animNormal
+          easing.type: Appearance.easing
+        }
+      }
+      displaced: Transition {
+        NumberAnimation {
+          property: "opacity"
+          to: 1
+          duration: Appearance.animFast
+        }
+      }
+
       delegate: LauncherRow {
         modelData: LauncherManager.results[index] ?? ({})
         width: ListView.view.width

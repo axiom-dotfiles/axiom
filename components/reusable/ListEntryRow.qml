@@ -81,7 +81,7 @@ StyledContainer {
     }
 
     UnsavedDot {
-      visible: root.changed
+      shown: root.changed
       onAccent: root.selected
     }
 

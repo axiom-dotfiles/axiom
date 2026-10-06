@@ -111,7 +111,7 @@ FieldGroup {
 
               UnsavedDot {
                 anchors.verticalCenter: parent.verticalCenter
-                visible: SavedConfigsManager.modified
+                shown: SavedConfigsManager.modified
               }
             }
           }

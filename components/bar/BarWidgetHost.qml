@@ -111,6 +111,54 @@ Item {
   width: isVertical ? root.barConfig.widgetSize : mainSize
   height: isVertical ? mainSize : root.barConfig.widgetSize
 
+  // Its place and size as drawn glide to the layout's (x, y and the size
+  // above, which its background and the bar's pills follow); the layout
+  // itself is measured from the module, never from these, so it can't
+  // chase its own animation. Off until first placed, so a new bar (or an
+  // editor rebuild) doesn't fly its widgets in from the start.
+  property bool _settled: false
+  Component.onCompleted: {
+    _load();
+    Qt.callLater(() => root._settled = true);
+  }
+  readonly property real _drawnMain: isVertical ? height : width
+  readonly property bool _resizing: Math.abs(_drawnMain - mainSize) > 0.5
+
+  Behavior on opacity {
+    NumberAnimation {
+      duration: Appearance.animFast
+      easing.type: Appearance.easing
+    }
+  }
+  Behavior on x {
+    enabled: root._settled
+    NumberAnimation {
+      duration: Appearance.animFast
+      easing.type: Appearance.easing
+    }
+  }
+  Behavior on y {
+    enabled: root._settled
+    NumberAnimation {
+      duration: Appearance.animFast
+      easing.type: Appearance.easing
+    }
+  }
+  Behavior on width {
+    enabled: root._settled
+    NumberAnimation {
+      duration: Appearance.animFast
+      easing.type: Appearance.easing
+    }
+  }
+  Behavior on height {
+    enabled: root._settled
+    NumberAnimation {
+      duration: Appearance.animFast
+      easing.type: Appearance.easing
+    }
+  }
+
   // Created with its inputs already set, so the module's own bindings
   // never see them undefined; bound afterwards so later changes (e.g. edits
   // live in the bar editor) reach it
@@ -155,24 +203,32 @@ Item {
     }
   }
   onComponentPathChanged: _load()
-  Component.onCompleted: _load()
 
-  Loader {
-    id: contentLoader
+  // The module at its laid-out size, centred in the size drawn: it never
+  // re-fits (eliding its label) mid-animation, and shows through the
+  // drawn size, clipped, while that catches up
+  Item {
     anchors.fill: parent
-    anchors.leftMargin: root.isVertical ? 0 : root.leadInset
-    anchors.rightMargin: root.isVertical ? 0 : root.trailInset
-    anchors.topMargin: root.isVertical ? root.leadInset : 0
-    anchors.bottomMargin: root.isVertical ? root.trailInset : 0
-    onLoaded: {
-      if (item) {
-        item.barConfig = Qt.binding(() => root.barConfig);
-        item.popouts = Qt.binding(() => root.popouts);
-        item.panel = Qt.binding(() => root.panel);
-        item.screen = Qt.binding(() => root.screen);
-        item.properties = Qt.binding(() => root.properties);
-        if ("hitArea" in item)
-          item.hitArea = Qt.binding(() => root.hitShape ? hitArea : null);
+    clip: root._resizing
+
+    Loader {
+      id: contentLoader
+      readonly property real length: Math.max(0, root.mainSize - root.leadInset - root.trailInset)
+      readonly property real start: Math.round((root._drawnMain - root.mainSize) / 2) + root.leadInset
+      x: root.isVertical ? 0 : start
+      y: root.isVertical ? start : 0
+      width: root.isVertical ? root.width : length
+      height: root.isVertical ? length : root.height
+      onLoaded: {
+        if (item) {
+          item.barConfig = Qt.binding(() => root.barConfig);
+          item.popouts = Qt.binding(() => root.popouts);
+          item.panel = Qt.binding(() => root.panel);
+          item.screen = Qt.binding(() => root.screen);
+          item.properties = Qt.binding(() => root.properties);
+          if ("hitArea" in item)
+            item.hitArea = Qt.binding(() => root.hitShape ? hitArea : null);
+        }
       }
     }
   }

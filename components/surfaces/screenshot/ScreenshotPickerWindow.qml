@@ -300,9 +300,8 @@ PanelWindow {
           visible: root.canSwitch || root.picture
           spacing: Widget.spacing * 3
 
-          RowLayout {
+          SegmentRow {
             visible: root.canSwitch
-            spacing: Widget.spacing / 2
 
             SegmentButton {
               Layout.fillWidth: false
@@ -321,9 +320,8 @@ PanelWindow {
             }
           }
 
-          RowLayout {
+          SegmentRow {
             visible: root.picture
-            spacing: Widget.spacing / 2
 
             SegmentButton {
               Layout.fillWidth: false

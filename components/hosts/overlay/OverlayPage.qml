@@ -3,8 +3,9 @@ import QtQuick
 import qs.config
 
 // One page of the overlay: shown when it's the current page, sliding in
-// from the side the navigation came from (`direction`). The content is
-// only instantiated while `loaded`.
+// from the side the navigation came from (`direction`), while the page it
+// replaces slides out the other way and fades. The content is only
+// instantiated while `loaded` (or still leaving).
 Item {
   id: root
 
@@ -15,22 +16,34 @@ Item {
   default property Component content
 
   readonly property bool current: root.currentIndex === root.pageIndex
+  // Still on screen, sliding out after another page took its place
+  property bool _leaving: false
+  readonly property real _shift: Math.max(Widget.spacing * 3, Math.round(root.width * 0.06))
 
   anchors.centerIn: parent
   implicitWidth: contentLoader.item ? contentLoader.item.implicitWidth : 0
   implicitHeight: contentLoader.item ? contentLoader.item.implicitHeight : 0
-  visible: root.current
+  visible: root.current || root._leaving
   opacity: root.current ? 1 : 0
 
   onCurrentChanged: {
-    if (root.current)
+    if (root.current) {
+      slideOut.stop();
+      root._leaving = false;
+      slideIn.from = root._shift * root.direction;
       slideIn.restart();
+    } else if (root.visible) {
+      slideIn.stop();
+      root._leaving = true;
+      slideAway.to = -root._shift * root.direction;
+      slideOut.restart();
+    }
   }
 
   Loader {
     id: contentLoader
     anchors.centerIn: parent
-    active: root.loaded
+    active: root.loaded || root._leaving
     sourceComponent: root.content
   }
 
@@ -40,8 +53,8 @@ Item {
 
   Behavior on opacity {
     NumberAnimation {
-      duration: Appearance.animFast
-      easing.type: Easing.InOutQuad
+      duration: Appearance.animNormal
+      easing.type: Appearance.easing
     }
   }
 
@@ -49,9 +62,25 @@ Item {
     id: slideIn
     target: slideTransform
     property: "x"
-    from: 100 * root.direction
     to: 0
-    duration: Appearance.animFast
-    easing.type: Easing.InOutQuad
+    duration: Appearance.animNormal
+    easing.type: Appearance.easing
+  }
+
+  SequentialAnimation {
+    id: slideOut
+    NumberAnimation {
+      id: slideAway
+      target: slideTransform
+      property: "x"
+      duration: Appearance.animNormal
+      easing.type: Appearance.easing
+    }
+    ScriptAction {
+      script: {
+        root._leaving = false;
+        slideTransform.x = 0;
+      }
+    }
   }
 }

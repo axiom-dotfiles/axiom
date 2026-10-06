@@ -68,6 +68,12 @@ BaseWidget {
           textColor: root.iconColor
           text: root._iconLines[index] ?? ""
           textSize: root.fontSize * root.iconScale
+
+          Behavior on color {
+            ColorAnimation {
+              duration: Appearance.animFast
+            }
+          }
         }
       }
     }
@@ -92,6 +98,12 @@ BaseWidget {
         elide: Text.ElideRight
         font.family: Appearance.fontFamily
         font.pixelSize: root.fontSize * root.textScale
+
+        Behavior on color {
+          ColorAnimation {
+            duration: Appearance.animFast
+          }
+        }
       }
     }
   }

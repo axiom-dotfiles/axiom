@@ -66,22 +66,24 @@ BaseView {
           Layout.fillWidth: true
           spacing: Widget.spacing * 2
 
-          Repeater {
-            // I18n.tr("All binds") I18n.tr("Edit axiom binds")
-            model: ["All binds", "Edit axiom binds"]
+          SegmentRow {
+            Repeater {
+              // I18n.tr("All binds") I18n.tr("Edit axiom binds")
+              model: ["All binds", "Edit axiom binds"]
 
-            delegate: SegmentButton {
-              required property string modelData
-              required property int index
-              readonly property bool selected: root.editing === (index === 1)
-              implicitHeight: Widget.height
-              text: I18n.tr(modelData) + (index === 1 && KeybindManager.isDirty ? "  •" : "")
-              active: selected
-              Layout.fillWidth: false
-              onClicked: {
-                if (index === 0)
-                  KeybindManager.stopRecording();
-                KeybindManager.editing = index === 1;
+              delegate: SegmentButton {
+                required property string modelData
+                required property int index
+                readonly property bool selected: root.editing === (index === 1)
+                implicitHeight: Widget.height
+                text: I18n.tr(modelData) + (index === 1 && KeybindManager.isDirty ? "  •" : "")
+                active: selected
+                Layout.fillWidth: false
+                onClicked: {
+                  if (index === 0)
+                    KeybindManager.stopRecording();
+                  KeybindManager.editing = index === 1;
+                }
               }
             }
           }

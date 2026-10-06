@@ -35,15 +35,47 @@ Item {
 
   function step(delta) {
     const d = new Date(root.year, root.month + delta, 1);
-    root.year = d.getFullYear();
-    root.month = d.getMonth();
+    root._show(d.getFullYear(), d.getMonth());
   }
 
   // Shows the month holding `key` ("YYYY-MM-DD")
   function showDay(key) {
     const d = CalendarEvents.dateOf(key);
-    root.year = d.getFullYear();
-    root.month = d.getMonth();
+    root._show(d.getFullYear(), d.getMonth());
+  }
+
+  // A new month's days slide in from the side it lies on
+  function _show(year, month) {
+    const delta = (year - root.year) * 12 + month - root.month;
+    root.year = year;
+    root.month = month;
+    if (delta === 0)
+      return;
+    daySlide.from = (delta > 0 ? 1 : -1) * Widget.spacing * 4;
+    monthIn.restart();
+  }
+
+  // The day cells' slide and fade as a month comes in
+  property real _dayShift: 0
+  property real _dayOpacity: 1
+  ParallelAnimation {
+    id: monthIn
+    NumberAnimation {
+      id: daySlide
+      target: root
+      property: "_dayShift"
+      to: 0
+      duration: Appearance.animNormal
+      easing.type: Appearance.easing
+    }
+    NumberAnimation {
+      target: root
+      property: "_dayOpacity"
+      from: 0
+      to: 1
+      duration: Appearance.animNormal
+      easing.type: Appearance.easing
+    }
   }
 
   function showToday() {
@@ -151,6 +183,10 @@ Item {
 
           Layout.fillWidth: true
           Layout.preferredHeight: root.cellHeight
+          opacity: root._dayOpacity
+          transform: Translate {
+            x: root._dayShift
+          }
 
           // Hover and selection
           Rectangle {

@@ -31,9 +31,14 @@ Panel {
   RowLayout {
     spacing: Widget.padding * 1.5
 
-    StyledIcon {
-      text: root.condition?.icon ?? ""
-      textSize: Appearance.fontSize * 3
+    // The current condition, cross-fading as it changes
+    CrossFade {
+      value: root.condition?.icon ?? ""
+      delegate: StyledIcon {
+        required property var value
+        text: value
+        textSize: Appearance.fontSize * 3
+      }
     }
 
     ColumnLayout {

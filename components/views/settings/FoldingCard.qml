@@ -81,7 +81,7 @@ StyledContainer {
           }
 
           UnsavedDot {
-            visible: root.collapsed && root.marked
+            shown: root.collapsed && root.marked
             Layout.alignment: Qt.AlignTop
             Layout.topMargin: Appearance.fontSize / 2
           }

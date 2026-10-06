@@ -117,17 +117,22 @@ Item {
         Layout.fillWidth: true
         spacing: 8
 
-        StyledText {
+        // Rows are reused as the results change: their text cross-fades
+        CrossFade {
           Layout.fillWidth: usage.text === ""
-          text: root.modelData.title ?? ""
-          // Titles are clipboard text, window titles, file names: never markup
-          textFormat: Text.PlainText
-          textColor: root._titleColor
-          font.weight: Font.Medium
-          elide: Text.ElideRight
-          Behavior on color {
-            ColorAnimation {
-              duration: Appearance.animFast
+          value: root.modelData.title ?? ""
+          delegate: StyledText {
+            required property var value
+            text: value
+            // Titles are clipboard text, window titles, file names: never markup
+            textFormat: Text.PlainText
+            textColor: root._titleColor
+            font.weight: Font.Medium
+            elide: Text.ElideRight
+            Behavior on color {
+              ColorAnimation {
+                duration: Appearance.animFast
+              }
             }
           }
         }
@@ -144,14 +149,18 @@ Item {
         }
       }
 
-      StyledText {
+      CrossFade {
         Layout.fillWidth: true
-        visible: LauncherConfig.showDescriptions && text !== ""
-        text: root.modelData.subtitle ?? ""
-        textFormat: Text.PlainText
-        textColor: Theme.foregroundAlt
-        textSize: Appearance.fontSize - 2
-        elide: Text.ElideRight
+        visible: LauncherConfig.showDescriptions && value !== ""
+        value: root.modelData.subtitle ?? ""
+        delegate: StyledText {
+          required property var value
+          text: value
+          textFormat: Text.PlainText
+          textColor: Theme.foregroundAlt
+          textSize: Appearance.fontSize - 2
+          elide: Text.ElideRight
+        }
       }
     }
 

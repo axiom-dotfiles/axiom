@@ -103,39 +103,61 @@ Item {
     spacing: root.spacing
 
     // The active row (or column) of the grid
-    Grid {
-      rows: root.isVertical ? root.shown : 1
-      columns: root.isVertical ? 1 : root.shown
-      spacing: root.spacing
+    Item {
+      implicitWidth: cells.implicitWidth
+      implicitHeight: cells.implicitHeight
 
-      Repeater {
-        model: root.shown
+      // The active cell's box, sliding between cells
+      ActiveCellIndicator {
+        id: indicator
+        barConfig: root.barConfig
+        look: Bar.cellColors(root.barConfig, root.activeColor, root.iconColor, "active")
+        // None while the monitor is on a workspace outside the grid
+        readonly property int _place: root.activeId - root.base
+        index: _place >= 0 && _place < root.columns * root.rows ? (root.isVertical ? root.activeRow : root.activeColumn) : -1
+        thickness: root.cell
+        restLength: root.cellLength
+        activeLength: root.cellLength * (root.properties.wideActive ? 2 : 1)
+        spacing: root.spacing
+        radius: root.cellRadius
+      }
 
-        WorkspaceCell {
-          required property int index
-          // Its place in the grid
-          readonly property int place: root.isVertical ? index * root.columns + root.activeColumn : root.activeRow * root.columns + index
-          readonly property int wsId: root.base + place
-          readonly property HyprlandWorkspace ws: root.wsById(wsId)
-          readonly property bool hasWindows: (ws?.toplevels.values.length ?? 0) > 0
-          // The active arrow takes the active cell's place
-          readonly property bool showsArrow: isActive && root.properties.showActiveIcon
-          readonly property var biggestWindow: root.properties.showAppIcons && hasWindows && !showsArrow ? HyprlandManager.biggestWindowForWorkspace(wsId) : null
+      Grid {
+        id: cells
+        rows: root.isVertical ? root.shown : 1
+        columns: root.isVertical ? 1 : root.shown
+        spacing: root.spacing
 
-          barConfig: root.barConfig
-          isActive: wsId === root.activeId
-          look: Bar.cellColors(root.barConfig, isActive ? root.activeColor : hasWindows ? root.occupiedColor : root.emptyColor, isActive || hasWindows ? root.iconColor : Theme.foreground, isActive ? "active" : hasWindows ? "occupied" : "empty")
-          thickness: root.cell
-          restLength: root.cellLength
-          length: root.cellLength * (isActive && root.properties.wideActive ? 2 : 1)
-          radius: root.cellRadius
-          labels: root.properties.labels
-          // The workspace id, or its place in the grid counted from 1
-          label: root.properties.relativeNumbers ? place + 1 : wsId
-          glyph: showsArrow ? (root.isVertical ? root.positionGlyph(root.activeColumn, root.columns) : root.positionGlyph(root.activeRow, root.rows)) : ""
-          iconPath: biggestWindow ? IconResolver.resolveWindowIcon(biggestWindow.class, biggestWindow.title) : ""
-          clickable: root.properties.clickToSwitch
-          onClicked: HyprlandManager.goToWorkspace(wsId, "go", root.monitor)
+        Repeater {
+          model: root.shown
+
+          WorkspaceCell {
+            required property int index
+            // Its place in the grid
+            readonly property int place: root.isVertical ? index * root.columns + root.activeColumn : root.activeRow * root.columns + index
+            readonly property int wsId: root.base + place
+            readonly property HyprlandWorkspace ws: root.wsById(wsId)
+            readonly property bool hasWindows: (ws?.toplevels.values.length ?? 0) > 0
+            // The active arrow takes the active cell's place
+            readonly property bool showsArrow: isActive && root.properties.showActiveIcon
+            readonly property var biggestWindow: root.properties.showAppIcons && hasWindows && !showsArrow ? HyprlandManager.biggestWindowForWorkspace(wsId) : null
+
+            barConfig: root.barConfig
+            isActive: wsId === root.activeId
+            indicated: indicator.slides
+            look: Bar.cellColors(root.barConfig, isActive ? root.activeColor : hasWindows ? root.occupiedColor : root.emptyColor, isActive || hasWindows ? root.iconColor : Theme.foreground, isActive ? "active" : hasWindows ? "occupied" : "empty")
+            thickness: root.cell
+            restLength: root.cellLength
+            length: root.cellLength * (isActive && root.properties.wideActive ? 2 : 1)
+            radius: root.cellRadius
+            labels: root.properties.labels
+            // The workspace id, or its place in the grid counted from 1
+            label: root.properties.relativeNumbers ? place + 1 : wsId
+            glyph: showsArrow ? (root.isVertical ? root.positionGlyph(root.activeColumn, root.columns) : root.positionGlyph(root.activeRow, root.rows)) : ""
+            iconPath: biggestWindow ? IconResolver.resolveWindowIcon(biggestWindow.class, biggestWindow.title) : ""
+            clickable: root.properties.clickToSwitch
+            onClicked: HyprlandManager.goToWorkspace(wsId, "go", root.monitor)
+          }
         }
       }
     }

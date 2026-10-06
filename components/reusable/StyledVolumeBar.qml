@@ -132,14 +132,21 @@ Item {
       Layout.row: content.isVertical ? 1 : 0
       Layout.column: 0
       Layout.alignment: Qt.AlignCenter
-      implicitWidth: iconText.width
-      implicitHeight: iconText.height
+      implicitWidth: iconText.implicitWidth
+      implicitHeight: iconText.implicitHeight
 
-      StyledIcon {
+      // Cross-fades as the level crosses a step (volume to muted)
+      CrossFade {
         id: iconText
-        text: root.iconSource
-        textSize: 24
         anchors.centerIn: parent
+        width: implicitWidth
+        height: implicitHeight
+        value: root.iconSource
+        delegate: StyledIcon {
+          required property var value
+          text: value
+          textSize: 24
+        }
       }
 
       Rectangle {

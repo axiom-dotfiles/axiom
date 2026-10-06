@@ -3,8 +3,9 @@ import QtQuick
 import qs.config
 
 // A small pill holding a count (or any short label), for a button's or
-// an icon's corner: StyledRectButton's badge, the notification bell's
-Rectangle {
+// an icon's corner: StyledRectButton's badge, the notification bell's.
+// Pops in and out by `shown`, and bumps when its count changes.
+PopInRectangle {
   id: root
 
   property string text: ""
@@ -14,6 +15,7 @@ Rectangle {
   implicitHeight: 14
   radius: height / 2
   color: Theme.error
+  onTextChanged: pulse()
 
   StyledText {
     id: label

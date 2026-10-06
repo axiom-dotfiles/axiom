@@ -4,8 +4,9 @@ import qs.config
 
 // The dot beside something with unsaved edits (a settings category, card
 // or field; a bar, page or edge menu in its editor). `onAccent` for a
-// selected row, which is filled with the accent itself.
-Rectangle {
+// selected row, which is filled with the accent itself. Pops in and out
+// by `shown`.
+PopInRectangle {
   property bool onAccent: false
 
   implicitWidth: 8

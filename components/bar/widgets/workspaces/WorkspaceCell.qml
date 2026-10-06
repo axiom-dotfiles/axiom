@@ -30,6 +30,10 @@ Item {
   // Off until its inputs have settled (a popout's payload lands after
   // creation), so it doesn't animate from fallbacks
   property bool animated: true
+  // Its box and underline while active are drawn by the row's sliding
+  // ActiveCellIndicator instead
+  property bool indicated: false
+  readonly property bool _ownActive: root.isActive && !root.indicated
 
   signal clicked
 
@@ -43,8 +47,8 @@ Item {
   Rectangle {
     anchors.fill: parent
     radius: root.radius
-    color: root.hovered && !root.isActive ? Theme.backgroundHighlight : root.look.fill
-    border.color: root.look.stroke
+    color: root.hovered && !root.isActive ? Theme.backgroundHighlight : root.isActive && !root._ownActive ? Qt.alpha(root.look.fill, 0) : root.look.fill
+    border.color: root.isActive && !root._ownActive ? Qt.alpha(root.look.stroke, 0) : root.look.stroke
     border.width: root.barConfig.widgetStyle === "outline" ? root.barConfig.outlineWidth : 0
 
     Behavior on color {
@@ -68,7 +72,7 @@ Item {
     readonly property bool farSide: (root.barConfig.lineSide === "inner") !== (root.barConfig.right || root.barConfig.bottom)
 
     visible: root.barConfig.widgetStyle === "underline"
-    color: root.look.indicator
+    color: root.isActive && !root._ownActive ? Qt.alpha(root.look.indicator, 0) : root.look.indicator
     radius: lineWidth / 2
     x: root.isVertical && farSide ? root.width - lineWidth : 0
     y: !root.isVertical && farSide ? root.height - lineWidth : 0

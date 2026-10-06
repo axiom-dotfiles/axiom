@@ -50,18 +50,22 @@ TitledCard {
       Layout.fillWidth: true
       spacing: Widget.spacing / 2
 
-      SegmentButton {
-        text: I18n.tr("Dark")
-        active: Appearance.darkMode
-        available: root.hasDark
-        onClicked: ThemeManager.setLightMode(false)
-      }
+      SegmentRow {
+        Layout.fillWidth: true
 
-      SegmentButton {
-        text: I18n.tr("Light")
-        active: !Appearance.darkMode
-        available: root.hasLight
-        onClicked: ThemeManager.setLightMode(true)
+        SegmentButton {
+          text: I18n.tr("Dark")
+          active: Appearance.darkMode
+          available: root.hasDark
+          onClicked: ThemeManager.setLightMode(false)
+        }
+
+        SegmentButton {
+          text: I18n.tr("Light")
+          active: !Appearance.darkMode
+          available: root.hasLight
+          onClicked: ThemeManager.setLightMode(true)
+        }
       }
 
       // A switch of its own: picking Dark or Light by hand lasts until the

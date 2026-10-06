@@ -59,7 +59,7 @@ Item {
 
     UnsavedDot {
       anchors.verticalCenter: parent.verticalCenter
-      visible: root.changed
+      shown: root.changed
     }
 
     SquareIconButton {

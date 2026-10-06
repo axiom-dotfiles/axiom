@@ -109,6 +109,18 @@ Item {
     fillColor: root.colors?.fill ?? "transparent"
     strokeColor: root.colors?.stroke ?? "transparent"
     strokeWidth: root._fill === "outline" ? root.barConfig.outlineWidth : 0
+
+    // State changes (mute, a warning level) recolour smoothly
+    Behavior on fillColor {
+      ColorAnimation {
+        duration: Appearance.animFast
+      }
+    }
+    Behavior on strokeColor {
+      ColorAnimation {
+        duration: Appearance.animFast
+      }
+    }
   }
 
   // Along the side toward the windows (inner) or the screen edge (outer)
@@ -125,6 +137,12 @@ Item {
     y: !vertical && farSide ? root.height - thickness : 0
     width: vertical ? thickness : root.width
     height: vertical ? root.height : thickness
+
+    Behavior on color {
+      ColorAnimation {
+        duration: Appearance.animFast
+      }
+    }
   }
 
   ShapedBox {
