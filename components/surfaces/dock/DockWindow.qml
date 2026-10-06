@@ -132,6 +132,8 @@ Scope {
     contentLength: root.currentLength
     joinStart: root.joins.joinStart
     joinEnd: root.joins.joinEnd
+    // Its length changes as it magnifies: a nudge would jump with it
+    nudge: false
     lo: root.startInset
     hi: root.length - root.endInset
     owner: "dock:" + root.dock.id + ":" + (root.screen?.name ?? "") + (root.preview ? ":preview" : "")

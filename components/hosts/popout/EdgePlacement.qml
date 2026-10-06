@@ -42,6 +42,10 @@ QtObject {
   property bool joinEnd: false
   property real lo: 0
   property real hi: 0
+  // Out of a pill or island, the content may move a little rather than
+  // the box growing empty to the pill's end (EdgeAttach.place's `nudge`):
+  // off for a box whose length keeps changing (a magnifying dock)
+  property bool nudge: true
 
   // Its pill stretch: a key unique per surface on a bar, and whether it
   // shows (not while the content loads or unloads, the box a placeholder)
@@ -100,6 +104,7 @@ QtObject {
     "islandTo": (root.container?.islandEnd ?? root.length) - root.barShift,
     "straight": root.bareEdge,
     "straightMerged": !Appearance.screenBorder,
+    "nudge": root.nudge,
     "gap": root.connectorGap,
     "stroke": Appearance.borderWidth,
     "radius": Appearance.borderRadius

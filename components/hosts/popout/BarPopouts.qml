@@ -149,6 +149,7 @@ PopoutWrapperBase {
     "islandTo": mainPopup.islandEnd,
     "straight": false,
     "straightMerged": !Appearance.screenBorder,
+    "nudge": true,
     "gap": root.connectorGap,
     "stroke": Appearance.borderWidth,
     "radius": Appearance.borderRadius

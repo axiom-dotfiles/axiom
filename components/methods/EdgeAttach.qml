@@ -13,6 +13,11 @@ import QtQuick
 // The content always sits where it wants (the caller's `aligned` start),
 // moved only to stay within reach: the box grows around it to meet what
 // it attaches to, rather than the content moving to make the box fit.
+// The one exception is `nudge`: out of a pill or island, a box whose side
+// ends just short of the pill's end (too close for a fillet, so it would
+// grow flush to it, empty) moves its content the least way that leaves no
+// empty growth: up to that end, or back far enough for the fillet. Either
+// is less than a fillet's room, so it stays over its anchor.
 //
 // - A box whose fillet would come within a connector gap of a
 //   perpendicular edge it can join (the border, a solid bar) joins it
@@ -77,6 +82,8 @@ QtObject {
   //   islandFrom, islandTo (where islands may reach)
   //   straight (a plain box's attach edge is a bare screen edge),
   //   straightMerged (likewise for one grown from a pill bar's outer edge)
+  //   nudge (out of a pill or island, the content may move a little
+  //     rather than the box growing empty to the pill's end; see above)
   //   gap (connector gap), stroke, radius
   // Returns { mode: "plain" | "pill" | "island" | "merged", pill, start,
   //   end (the box), grow (the box past `length`), contentStart (where
@@ -141,14 +148,38 @@ QtObject {
   // Growing out of pill (or island) `own`; a pill bar's (`isPill`) pills
   // may join the perpendicular edges at the bar's ends
   function _onPill(s, pills, own, isPill) {
+    // Within reach: a pill bar's frame, or where islands may go
+    const lo = isPill ? s.joinFrom : s.islandFrom, hi = isPill ? s.joinTo : s.islandTo;
+    const content = Math.round(Math.max(lo, Math.min(s.aligned, hi - s.length)));
+    const placed = root._onPillAt(s, pills, own, isPill, content);
+    // One side runs flush to the pill's end with empty box before it: try
+    // the content up to that end, or back far enough for its fillet, and
+    // take the nearer that grows nothing (the other side unchanged)
+    if (!s.nudge || placed.grow <= 0 || placed.joinStart || placed.joinEnd || placed.flushStart === placed.flushEnd)
+      return placed;
+    const need = root.filletMargin(s.gap, s.stroke, s.radius) + s.radius;
+    const empty = placed.flushStart ? content - placed.start : placed.end - (content + s.length);
+    const toward = placed.flushStart ? -empty : empty;
+    const away = placed.flushStart ? need - empty : empty - need;
+    const tries = Math.abs(toward) <= Math.abs(away) ? [toward, away] : [away, toward];
+    for (const shift of tries) {
+      const moved = content + Math.round(shift);
+      if (moved < lo || moved > hi - s.length)
+        continue;
+      const nudged = root._onPillAt(s, pills, own, isPill, moved);
+      if (nudged.grow === 0 && !nudged.joinStart && !nudged.joinEnd)
+        return nudged;
+    }
+    return placed;
+  }
+
+  // The box out of pill (or island) `own` with its content at `content`
+  function _onPillAt(s, pills, own, isPill, content) {
     const fm = root.filletMargin(s.gap, s.stroke, s.radius);
     const length = s.length, r = s.radius;
     // Room past the box for a fillet: its margin, and the pill's rounded
     // corner beyond, which a fillet can't land on
     const need = fm + r;
-    // Within reach: a pill bar's frame, or where islands may go
-    const lo = isPill ? s.joinFrom : s.islandFrom, hi = isPill ? s.joinTo : s.islandTo;
-    const content = Math.round(Math.max(lo, Math.min(s.aligned, hi - length)));
     const from = root._islandReach(pills, own, content - need, true, s.merge);
     const to = root._islandReach(pills, own, content + length + need, false, s.merge);
     // A side whose fillet doesn't fit reaches to the pill's end, or past it

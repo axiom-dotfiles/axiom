@@ -234,4 +234,49 @@ TestCase {
     compare([p.start, p.end, p.contentStart, p.flushStart, p.flushEnd], [400, 600, 400, true, false]);
     compare([p.stretch.start, p.stretch.end], [400, 800]);
   }
+
+  function test_nudge_up_to_the_pill_end() {
+    // 20 short of room for its fillet before the pill's start: up to it,
+    // flush and no empty box, rather than 62 back
+    const p = EdgeAttach.place(spec({
+      "pills": [pill(100, 400)],
+      "centre": 170,
+      "aligned": 120,
+      "nudge": true
+    }));
+    compare([p.start, p.end, p.contentStart, p.grow, p.flushStart, p.flushEnd], [100, 200, 100, 0, true, false]);
+    // The same at the end
+    const q = EdgeAttach.place(spec({
+      "pills": [pill(100, 400)],
+      "centre": 430,
+      "aligned": 380,
+      "nudge": true
+    }));
+    compare([q.start, q.end, q.contentStart, q.grow, q.flushStart, q.flushEnd], [400, 500, 400, 0, false, true]);
+  }
+
+  function test_nudge_back_for_the_fillet() {
+    // 50 in from the pill's start: 32 back gives it its fillet instead
+    const p = EdgeAttach.place(spec({
+      "pills": [pill(100, 400)],
+      "centre": 200,
+      "aligned": 150,
+      "nudge": true
+    }));
+    compare([p.start, p.end, p.contentStart, p.grow, p.flushStart, p.startMargin], [182, 282, 182, 0, false, 54]);
+    compare(p.stretch, null);
+  }
+
+  function test_nudge_leaves_both_short_sides() {
+    // Too narrow a pill for either fillet: nothing to gain by moving
+    const p = EdgeAttach.place(spec({
+      "island": true,
+      "pills": [pill(400, 200)],
+      "centre": 500,
+      "aligned": 300,
+      "length": 400,
+      "nudge": true
+    }));
+    compare([p.start, p.end, p.contentStart, p.flushStart, p.flushEnd], [300, 700, 300, true, true]);
+  }
 }
