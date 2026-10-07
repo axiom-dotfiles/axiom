@@ -33,23 +33,26 @@ def portal(title, folder):
         result["uris"] = results.get("uris", [])
         loop.quit()
 
+    def subscribe(path):
+        bus.signal_subscribe(
+            "org.freedesktop.portal.Desktop",
+            "org.freedesktop.portal.Request",
+            "Response",
+            path,
+            None,
+            Gio.DBusSignalFlags.NONE,
+            on_response,
+        )
+
     # Subscribed before the call, so a quick answer isn't missed
-    bus.signal_subscribe(
-        "org.freedesktop.portal.Desktop",
-        "org.freedesktop.portal.Request",
-        "Response",
-        request,
-        None,
-        Gio.DBusSignalFlags.NONE,
-        on_response,
-    )
+    subscribe(request)
     options = {
         "handle_token": GLib.Variant("s", token),
         "modal": GLib.Variant("b", True),
         "filters": GLib.Variant("a(sa(us))", [("JSON", [(0, "*.json")])]),
         "current_folder": GLib.Variant("ay", folder.encode() + b"\0"),
     }
-    bus.call_sync(
+    reply = bus.call_sync(
         "org.freedesktop.portal.Desktop",
         "/org/freedesktop/portal/desktop",
         "org.freedesktop.portal.FileChooser",
@@ -60,6 +63,11 @@ def portal(title, folder):
         -1,
         None,
     )
+    # A portal older than handle_token answers on a path of its own; without
+    # this the picker would wait forever (and the overlay stay hidden)
+    (handle,) = reply.unpack()
+    if handle != request:
+        subscribe(handle)
     loop.run()
     if result["code"] != 0 or not result["uris"]:
         return None

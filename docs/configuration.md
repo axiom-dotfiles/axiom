@@ -29,7 +29,13 @@ axiom ships the setups from the README in `examples/`. Apply one from **Settings
 - An example holds only the look and the layout: the theme, font and shape, the bars and their style, overlay pages, edge menus, docks, OSDs, popouts, the lock screen layout, workspaces, notifications' placement, the power menu and the window switcher.
 - Everything else stays as it is: wallpapers, monitors, apps, keybinds, calendars, chat providers, Hyprland, idle and the login screen.
 - Your current config is saved first, as `before-<name>`, so going back is one **Restore** away.
-- An example is a partial `config.json` with a `_example` header (`title`, `description`). `components/methods/ConfigExamples.qml` lists what it may hold. If it uses a font you don't have, the text falls back to another.
+- An example is a partial `config.json` with a `_example` header (`title`, `description`). What it may hold is each setting's `x-scope` in `config/json/config.schema.json`. If it uses a font you don't have, the text falls back to another; a theme you don't have falls back to the default palette.
+
+### Sharing a setup
+
+- **Settings → Maintenance → Share → Export** writes the current look and layout to `~/axiom-<name>-<date>-<time>.json`, holding only what differs from the defaults. Monitors, wallpapers, accounts and paths are never in it. Keybinds, apps and commands are left out unless you switch them on.
+- **Import…** opens a file (an export, an example or a whole `config.json`) and applies it the way an example applies, after saving the current config as `before-<name>`. A file without a `version`, or from a newer axiom, is refused.
+- If the file holds keybinds, apps and commands, you can take those too, but the switch is off by default: a command runs as you, so read every command in a file someone else made before turning it on.
 
 ### Themes
 

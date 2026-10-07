@@ -24,6 +24,19 @@ FieldGroup {
   // Row awaiting a confirming click: { name, action }. The defaults row uses
   // an empty name, which no saved file can have.
   property var pending: null
+  // Where SavedConfigsManager.status shows: under the Share row after an
+  // export, import or example, else under the name field
+  property bool shareStatus: false
+
+  // The last outcome, shown beside the controls that caused it
+  component StatusLine: StyledText {
+    required property bool shown
+    visible: shown && SavedConfigsManager.status !== ""
+    text: SavedConfigsManager.status
+    opacity: 0.7
+    textSize: Appearance.fontSize - 1
+    Layout.fillWidth: true
+  }
 
   RowLayout {
     Layout.fillWidth: true
@@ -44,12 +57,8 @@ FieldGroup {
     }
   }
 
-  StyledText {
-    visible: SavedConfigsManager.status !== ""
-    text: SavedConfigsManager.status
-    opacity: 0.7
-    textSize: Appearance.fontSize - 1
-    Layout.fillWidth: true
+  StatusLine {
+    shown: !root.shareStatus
   }
 
   StyledText {
@@ -200,9 +209,10 @@ FieldGroup {
     Layout.fillWidth: true
     spacing: Widget.spacing
 
+    // Off by default: keybinds and commands can hold what isn't meant to
+    // be shared, and a shared command runs on whoever takes it
     StyledSwitch {
       id: includePersonal
-      checked: true
     }
 
     StyledText {
@@ -214,15 +224,33 @@ FieldGroup {
     StyledTextButton {
       Layout.preferredHeight: Widget.height
       text: I18n.tr("Export")
-      onClicked: SavedConfigsManager.exportConfig(includePersonal.checked)
+      onClicked: {
+        root.shareStatus = true;
+        SavedConfigsManager.exportConfig(includePersonal.checked);
+      }
     }
 
     StyledTextButton {
       Layout.preferredHeight: Widget.height
       enabled: !SavedConfigsManager.picking
       text: I18n.tr("Import…")
-      onClicked: SavedConfigsManager.browseImport()
+      onClicked: {
+        root.shareStatus = true;
+        SavedConfigsManager.browseImport();
+      }
     }
+  }
+
+  StatusLine {
+    shown: root.shareStatus
+  }
+
+  StyledText {
+    text: I18n.tr("Only import files from people you trust. An import can also carry keybinds, apps and commands, which you're asked about separately (off unless you turn it on): commands run as you, so read every one in the file first.")
+    textColor: Theme.warning
+    textSize: Appearance.fontSize - 1
+    wrapMode: Text.WordWrap
+    Layout.fillWidth: true
   }
 
   // The imported file, until it's applied or cancelled
@@ -264,12 +292,23 @@ FieldGroup {
             elide: Text.ElideRight
             Layout.fillWidth: true
           }
+
+          StyledText {
+            text: Paths.shortenHome(importRow.importing?.path ?? "")
+            opacity: 0.6
+            textSize: Appearance.fontSize - 2
+            elide: Text.ElideMiddle
+            Layout.fillWidth: true
+          }
         }
 
         StyledTextButton {
           Layout.preferredHeight: Widget.height
           text: I18n.tr("Apply")
-          onClicked: SavedConfigsManager.confirmImport(takePersonal.checked)
+          onClicked: {
+            root.shareStatus = true;
+            SavedConfigsManager.confirmImport(takePersonal.checked);
+          }
         }
 
         StyledTextButton {
@@ -279,7 +318,10 @@ FieldGroup {
         }
       }
 
+      // Only for a file that holds them: one without would put the
+      // defaults in place of the user's own
       RowLayout {
+        visible: importRow.importing?.hasPersonal ?? false
         Layout.fillWidth: true
         spacing: Widget.spacing
 
@@ -292,6 +334,15 @@ FieldGroup {
           text: I18n.tr("Also take its keybinds, apps and commands")
           wrapMode: Text.Wrap
         }
+      }
+
+      StyledText {
+        visible: importRow.importing?.hasPersonal ?? false
+        text: I18n.tr("This file holds keybinds, apps and commands. Commands run as you, with your files and accounts, so a file from someone else can do anything you can. Before turning this on, open the file in a text editor and read every command in it, and only take them from a source you trust.")
+        textColor: takePersonal.checked ? Theme.error : Theme.warning
+        textSize: Appearance.fontSize - 1
+        wrapMode: Text.WordWrap
+        Layout.fillWidth: true
       }
     }
   }
@@ -351,6 +402,7 @@ FieldGroup {
   }
 
   function save() {
+    root.shareStatus = false;
     SavedConfigsManager.save(nameEntry.text);
     nameEntry.text = "";
     root.pending = null;
@@ -366,6 +418,7 @@ FieldGroup {
       return;
     }
     root.pending = null;
+    root.shareStatus = action === "apply";
     if (action === "apply")
       SavedConfigsManager.applyExample(name.slice("example:".length));
     else if (action === "restore" && name === "")

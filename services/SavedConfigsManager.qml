@@ -57,7 +57,8 @@ QtObject {
   // (dropped once it's written or fails)
   property var _saving: null
   // An imported file awaiting confirmation: { name, title, description,
-  // config } (config loaded: migrated, defaults filled), or null
+  // path, config, hasPersonal } (config loaded: migrated, defaults filled;
+  // hasPersonal: the file holds keybinds, apps or commands), or null
   property var importing: null
   // The file picker is open
   readonly property bool picking: _picker.running
@@ -185,17 +186,38 @@ QtObject {
       root.status = I18n.tr("\"{0}\" is not valid JSON", fileName);
       return;
     }
-    const config = typeof parsed === "object" && parsed !== null && !Array.isArray(parsed) ? ConfigManager.normalizeConfig(parsed) : null;
+    if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+      root.status = I18n.tr("\"{0}\" is not a valid config", fileName);
+      return;
+    }
+    // Without one it would be migrated as a version 1 config, which can
+    // quietly rewrite a newer layout; a newer one would lose what this
+    // version doesn't know
+    const version = parsed.version;
+    if (!Number.isInteger(version) || version < 1) {
+      root.status = I18n.tr("\"{0}\" has no config version, so it can't be imported", fileName);
+      return;
+    }
+    if (version > ConfigMigration.currentVersion) {
+      root.status = I18n.tr("\"{0}\" is from a newer axiom. Update axiom to import it.", fileName);
+      return;
+    }
+    const config = ConfigManager.normalizeConfig(parsed);
     if (!config) {
       root.status = I18n.tr("\"{0}\" is not a valid config", fileName);
       return;
     }
     const title = String(parsed._example?.title ?? "") || fileName.replace(/\.json$/, "");
+    // A file with no personal parts loads with their defaults, which taking
+    // them would put in place of the user's own keybinds and apps
+    const schema = ConfigManager.configSchema;
     root.importing = {
       name: sanitize(title) || "import",
       title: title,
       description: String(parsed._example?.description ?? ""),
-      config: config
+      path: path,
+      config: config,
+      hasPersonal: !Utils.deepEqual(ConfigExamples.pick(parsed, schema, true), ConfigExamples.pick(parsed, schema, false))
     };
     root.status = "";
   }
@@ -206,7 +228,7 @@ QtObject {
     const pending = root.importing;
     root.importing = null;
     if (pending)
-      _backupThenApply(pending.name, pending.config, personal);
+      _backupThenApply(pending.name, pending.config, personal && pending.hasPersonal);
   }
 
   function cancelImport() {
@@ -214,7 +236,7 @@ QtObject {
   }
 
   // Writes the running config's look (and personal parts, when `personal`)
-  // to ~/axiom-<name>-<date>.json, holding only what differs from the
+  // to ~/axiom-<name>-<date>-<time>.json, holding only what differs from the
   // defaults: a file to share, in the format examples and imports use
   function exportConfig(personal) {
     const schema = ConfigManager.configSchema;
@@ -236,14 +258,21 @@ QtObject {
       shared = Object.assign({}, header, picked);
     }
     const now = new Date();
-    const date = [now.getFullYear(), now.getMonth() + 1, now.getDate()].map(n => String(n).padStart(2, "0")).join("-");
-    _exporter.path = Paths.homeDirectory + "axiom-" + sanitize(title).replace(/ /g, "-") + "-" + date + ".json";
+    // To the second, so a later export never replaces an earlier one
+    const pad = n => String(n).padStart(2, "0");
+    const stamp = [now.getFullYear(), now.getMonth() + 1, now.getDate()].map(pad).join("-") + "-" + [now.getHours(), now.getMinutes(), now.getSeconds()].map(pad).join("");
+    _exporter.path = Paths.homeDirectory + "axiom-" + sanitize(title).replace(/ /g, "-") + "-" + stamp + ".json";
     _exporter.setText(JSON.stringify(shared, null, 2) + "\n");
   }
 
   function _backupThenApply(name, config, personal) {
     if (!config) {
       root.status = I18n.tr("\"{0}\" is not a valid config", name);
+      return;
+    }
+    // One at a time: a second would replace the first's backup mid-write
+    if (root._pendingApply) {
+      root.status = I18n.tr("Busy, try again");
       return;
     }
     root._pendingApply = {
