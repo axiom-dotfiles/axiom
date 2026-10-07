@@ -51,11 +51,14 @@ QtObject {
     const layout = root.localLayout;
     if (!layout || JSON.stringify(layout[key]) === JSON.stringify(value))
       return;
-    if (key === "fineGrid")
+    if (key === "fineGrid") {
       (layout.modules ?? []).forEach(module => {
         if (module?.place)
           module.place = GridPlacement.scalePlace(module.place, value);
       });
+      // Older snapshots are on the other grid
+      root.layout.clearHistory();
+    }
     layout[key] = value;
     draft.changed();
   }
@@ -70,6 +73,7 @@ QtObject {
   function resetChanges() {
     draft.load();
     root.layout.clearSelection();
+    root.layout.clearHistory();
   }
 
   // --- Preview ---

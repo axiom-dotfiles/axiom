@@ -19,7 +19,7 @@ Everything below is one shell and one config, and everything is set from inside 
   - Button (runs any command, opens a page or toggles an edge menu) and Separator
 - **Popouts** grow out of the bar, or out of the screen border, with filleted corners. Widgets open theirs on hover, and Buttons can run their action on hover too.
 - **The bar editor** draws each bar's sections the way the bar lays them out, on the side of the page matching the bar's edge:
-  - Drag widgets in from the library, and click one to edit it.
+  - Drag widgets in from the library, click one to edit it, and drop one on the trash can to remove it.
   - A full section scrolls.
   - It tells you, per screen, which widgets don't fit.
   - **Copy style** puts one bar's look onto others.
@@ -106,7 +106,9 @@ One editor, one grid, for everything made of modules: your **overlay pages**, yo
 | **The lock screen** | **The login screen** |
 | <img src="../assets/screenshots/layouts-lockscreen.webp" alt="The Layouts editor on the lock screen, a screen-sized grid"> | <img src="../assets/screenshots/layouts-greeter.webp" alt="The Layouts editor on the login screen"> |
 
-- Drag a module from the library onto the grid (or click it to drop it in the first free spot), drag it anywhere, and drag a corner to resize it.
+- Drag a module from the library onto the grid (or click it to drop it in the first free spot): dropped into a gap it shrinks to fit, dropped onto other modules it pushes them aside (down a page, along an edge menu's edge), and you see where everything will go before you let go. Drag a module anywhere, and drag any edge or corner to resize it.
+- Drag a box (or Shift/Ctrl+click) to select several modules and move them together, or drop them on the trash can to remove them.
+- Undo and redo every edit (buttons, or Ctrl+Z / Ctrl+Shift+Z), and move or resize the selected module with the arrow keys (Shift to resize).
 - Click a module to edit its options in the inspector, which also has steppers for its exact size.
 - Edge menus are drawn against their screen edge. The lock and login screens are a screen-sized grid, with an optional double grid for finer placement.
 - Every change shows live on your desktop (or on screen, for the lock and login screens, with **Show on screen**). **Save** keeps it, **Reset** throws it away.

@@ -11,8 +11,8 @@ import qs.components.content.base
 
 // i18n: keys from the schema (titles, descriptions, module labels)
 // Layouts editor, below the canvas: the selected module's options, with
-// its size beside them; with nothing selected, the library of modules to
-// add.
+// its size beside them; a group selected together, its count and Remove;
+// with nothing selected, the library of modules to add.
 Item {
   id: root
 
@@ -28,15 +28,10 @@ Item {
   // A required module (x-required) stays: no Duplicate or Remove
   readonly property bool removable: root.module !== null && !OverlayConfig.isRequired(root.moduleType)
   readonly property var place: root.module?.place ?? null
+  // Modules selected together (GridEditor.group)
+  readonly property int groupCount: root.editor.group.length
   // A new form per module (KeyedLoader)
   readonly property string selectionKey: root.module ? [root.editor.scopeKey, root.index, root.moduleType].join(":") : ""
-
-  // A size in grid units as cards: 4 → "1", 2 → "½", 5 → "1¼"
-  function cards(units) {
-    const whole = Math.floor(units / 4);
-    const part = ["", "¼", "½", "¾"][units % 4];
-    return part === "" ? String(whole) : (whole > 0 ? whole : "") + part;
-  }
 
   Card {
     color: Theme.background
@@ -48,10 +43,10 @@ Item {
       spacing: Widget.spacing
 
       InspectorHeader {
-        icon: root.module ? root.dragLayer.moduleIcon(root.moduleType) : "extension"
-        filled: root.module !== null
-        title: root.module ? root.dragLayer.moduleLabel(root.moduleType) : I18n.tr("Library")
-        subtitle: root.place ? I18n.tr("{0} × {1} cards", root.cards(root.place.w), root.cards(root.place.h)) : root.editable ? I18n.tr("Click a module on the canvas to edit it") : root.notEditableHint
+        icon: root.groupCount > 0 ? "select_all" : root.module ? root.dragLayer.moduleIcon(root.moduleType) : "extension"
+        filled: root.module !== null || root.groupCount > 0
+        title: root.groupCount > 0 ? I18n.tr("{0} modules", root.groupCount) : root.module ? root.dragLayer.moduleLabel(root.moduleType) : I18n.tr("Library")
+        subtitle: root.groupCount > 0 ? I18n.tr("Drag one to move them all, or use the arrow keys") : root.place ? I18n.tr("{0} × {1} cards", GridPlacement.cards(root.place.w), GridPlacement.cards(root.place.h)) : root.editable ? I18n.tr("Click a module on the canvas to edit it, or drag a box to select several") : root.notEditableHint
 
         SquareIconButton {
           visible: root.removable
@@ -69,7 +64,15 @@ Item {
         }
 
         SquareIconButton {
-          visible: root.module !== null
+          visible: root.groupCount > 0
+          iconText: "delete"
+          hoverColor: Theme.error
+          tooltipText: I18n.tr("Remove")
+          onClicked: root.editor.removeSelection()
+        }
+
+        SquareIconButton {
+          visible: root.module !== null || root.groupCount > 0
           iconText: "close"
           tooltipText: I18n.tr("Close")
           onClicked: root.editor.clearSelection()
@@ -95,7 +98,7 @@ Item {
 
           ModuleLibrary {
             anchors.fill: parent
-            visible: root.selectionKey === "" && root.editable
+            visible: root.selectionKey === "" && root.editable && root.groupCount === 0
             dragLayer: root.dragLayer
           }
         }
@@ -114,7 +117,7 @@ Item {
           FieldGroup {
             width: sizeScroll.availableWidth
             title: I18n.tr("Size")
-            description: I18n.tr("In quarter cards. Drag its corner on the canvas, or step it here.")
+            description: I18n.tr("In quarter cards. Drag an edge or corner on the canvas, or step it here.")
 
             Repeater {
               // I18n.tr("Width") I18n.tr("Height")
@@ -133,8 +136,9 @@ Item {
                 id: sizeField
                 required property var modelData
                 readonly property bool across: sizeField.modelData.axis === 0
-                // The size it can grow to before it would overlap a module
-                // (or reach the grid's limit), keeping the other side
+                // The size it can grow to before what it pushes would leave
+                // the grid (or it reaches the most a module takes), keeping
+                // the other side
                 readonly property int grows: {
                   if (!root.place)
                     return 1;
@@ -151,7 +155,7 @@ Item {
                 showCoarse: false
                 // The field stays as the selection changes
                 debounced: false
-                onCommitted: value => root.editor.resizeModule(root.index, sizeField.across ? value : root.place.w, sizeField.across ? root.place.h : value)
+                onCommitted: value => root.editor.resizeModule(root.index, GridPlacement.resizeFrom(root.place, "se", sizeField.across ? value - root.place.w : 0, sizeField.across ? 0 : value - root.place.h))
               }
             }
           }

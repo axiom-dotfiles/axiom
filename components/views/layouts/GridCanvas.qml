@@ -10,9 +10,16 @@ import qs.components.content.base
 // The edited page (or edge menu) as it will look: its modules on their
 // grid of quarter cards, drawn at the scale that fits, with room around them
 // to drop into (left of or above the grid shifts it to make room). Drag a
-// module to move it, its corner to resize it; the library's modules drop
-// anywhere free. Geometry is scaled by hand (not Item.scale) so text and
-// controls stay crisp.
+// module to move it, an edge or corner to resize it; a library module
+// dropped into a gap shrinks to fit it, and one dropped onto modules
+// pushes them aside (GridEditor's plans, shown live while dragging).
+// Drag a box on the background (Shift: adding) or Shift/Ctrl+click
+// modules to select several, then drag one to move them all.
+// Undo / redo at the top left, and keys while it has focus: Ctrl+Z,
+// Ctrl+Shift+Z (Ctrl+Y); with a selection, arrows move it, Shift+arrows
+// resize a single module, Delete removes it, Escape deselects it.
+// Geometry is scaled by hand (not Item.scale) so text and controls stay
+// crisp.
 Card {
   id: root
 
@@ -121,6 +128,26 @@ Card {
       Layout.minimumHeight: Widget.height + Widget.padding
       spacing: Widget.spacing
 
+      RowLayout {
+        visible: root.editable
+        spacing: 0
+
+        FlatIconButton {
+          size: 24
+          iconText: "undo"
+          tooltipText: I18n.tr("Undo")
+          enabled: root.dragLayer.editor.canUndo
+          onClicked: root.dragLayer.editor.undo()
+        }
+        FlatIconButton {
+          size: 24
+          iconText: "redo"
+          tooltipText: I18n.tr("Redo")
+          enabled: root.dragLayer.editor.canRedo
+          onClicked: root.dragLayer.editor.redo()
+        }
+      }
+
       StyledIcon {
         text: root.icon
         textColor: Theme.accent
@@ -217,7 +244,7 @@ Card {
         Layout.maximumWidth: root.width / 3
         horizontalAlignment: Text.AlignRight
         elide: Text.ElideRight
-        text: I18n.tr("Drag to move · drag a corner to resize · click to edit")
+        text: I18n.tr("Drag to move · drag an edge to resize · click to edit")
         opacity: 0.5
         textSize: Appearance.fontSize - 2
       }
@@ -236,10 +263,108 @@ Card {
       Layout.fillHeight: true
       clip: true
 
-      // Clicking the background drops the selection
+      // Keys while the canvas has focus (taken on a click or a selection)
+      focus: true
+      Keys.onPressed: event => {
+        const editor = root.dragLayer.editor;
+        const ctrl = (event.modifiers & Qt.ControlModifier) !== 0;
+        const shift = (event.modifiers & Qt.ShiftModifier) !== 0;
+        if (!root.editable)
+          return;
+        if (ctrl && event.key === Qt.Key_Z) {
+          if (shift)
+            editor.redo();
+          else
+            editor.undo();
+          event.accepted = true;
+          return;
+        }
+        if (ctrl && event.key === Qt.Key_Y) {
+          editor.redo();
+          event.accepted = true;
+          return;
+        }
+        if (editor.selection().length === 0 || ctrl)
+          return;
+        const arrows = {
+          [Qt.Key_Left]: [-1, 0],
+          [Qt.Key_Right]: [1, 0],
+          [Qt.Key_Up]: [0, -1],
+          [Qt.Key_Down]: [0, 1]
+        };
+        const step = arrows[event.key];
+        if (step) {
+          if (!shift)
+            editor.nudge(step[0], step[1]);
+          else if (editor.selected >= 0)
+            editor.grow(step[0], step[1]);
+        } else if (event.key === Qt.Key_Delete || event.key === Qt.Key_Backspace) {
+          editor.removeSelection();
+        } else if (event.key === Qt.Key_Escape) {
+          editor.clearSelection();
+        } else {
+          return;
+        }
+        event.accepted = true;
+      }
+
+      Connections {
+        target: root.dragLayer.editor
+        function onSelectedChanged() {
+          if (root.dragLayer.editor.selected >= 0)
+            area.forceActiveFocus();
+        }
+        function onGroupChanged() {
+          if (root.dragLayer.editor.group.length > 0)
+            area.forceActiveFocus();
+        }
+      }
+
+      // Clicking the background drops the selection; dragging on it draws
+      // a box selecting every module it touches (with Shift, added to
+      // what's selected)
       MouseArea {
+        id: marquee
         anchors.fill: parent
-        onClicked: root.dragLayer.editor.clearSelection()
+        enabled: root.editable
+        preventStealing: true
+        // The box being dragged (area px), else null
+        property var box: null
+        property point from: Qt.point(0, 0)
+        property var base: []
+
+        function touched(box) {
+          const out = [];
+          root.list.forEach((module, i) => {
+            if (!module?.place)
+              return;
+            const r = root.rectFor(module.place);
+            if (r.x < box.x + box.width && box.x < r.x + r.width && r.y < box.y + box.height && box.y < r.y + r.height)
+              out.push(i);
+          });
+          return out;
+        }
+
+        onPressed: mouse => {
+          area.forceActiveFocus();
+          marquee.from = Qt.point(mouse.x, mouse.y);
+          marquee.base = (mouse.modifiers & Qt.ShiftModifier) ? root.dragLayer.editor.selection() : [];
+          marquee.box = null;
+        }
+        onPositionChanged: mouse => {
+          if (!marquee.pressed)
+            return;
+          if (!marquee.box && Math.hypot(mouse.x - marquee.from.x, mouse.y - marquee.from.y) < 6)
+            return;
+          marquee.box = Qt.rect(Math.min(mouse.x, marquee.from.x), Math.min(mouse.y, marquee.from.y), Math.abs(mouse.x - marquee.from.x), Math.abs(mouse.y - marquee.from.y));
+          root.dragLayer.editor.selectGroup(marquee.base.concat(marquee.touched(marquee.box)));
+        }
+        onReleased: {
+          if (!marquee.box && marquee.base.length === 0)
+            root.dragLayer.editor.clearSelection();
+          marquee.box = null;
+        }
+        onCanceled: marquee.box = null
       }
 
       // Nothing to edit: a tool page, or none at all
@@ -484,7 +609,9 @@ Card {
 
         CanvasModule {
           id: tile
-          readonly property rect r: root.rectFor(tile.module?.place ?? {
+          // Where a drop or resize being dragged would put it, else its
+          // place
+          readonly property rect r: root.rectFor(root.dragLayer.previewPlaces?.[tile.index] ?? tile.module?.place ?? {
             "x": 0,
             "y": 0,
             "w": 1,
@@ -499,22 +626,50 @@ Card {
           y: tile.r.y
           width: tile.r.width
           height: tile.r.height
+
+          Glide on x {}
+          Glide on y {}
+          Glide on width {}
+          Glide on height {}
         }
       }
 
-      // Where the carried module would land
+      // Drop a module here to remove it
+      TrashTarget {
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: Widget.padding
+        dragLayer: root.dragLayer
+        active: root.dragLayer.carryingRemovable
+      }
+
+      // The box being dragged to select modules
       Rectangle {
-        readonly property var place: root.dragLayer.hoverPlace
+        visible: marquee.box !== null
+        z: 6
+        x: marquee.box?.x ?? 0
+        y: marquee.box?.y ?? 0
+        width: marquee.box?.width ?? 0
+        height: marquee.box?.height ?? 0
+        color: Qt.alpha(Theme.accent, 0.12)
+        border.color: Theme.accent
+        border.width: 1
+      }
+
+      // Where the carried (or resized) module would land
+      Rectangle {
+        readonly property var place: root.dragLayer.landingPlace
         readonly property rect r: place ? root.rectFor(place) : Qt.rect(0, 0, 0, 0)
-        visible: place !== null
+        // A resize shows on the tile itself, unless it can't be made
+        visible: place !== null && (root.dragLayer.dragging !== null || !root.dragLayer.landingValid)
         z: 5
         x: r.x
         y: r.y
         width: r.width
         height: r.height
         radius: root.cellRadius
-        color: Qt.alpha(root.dragLayer.hoverValid ? Theme.accent : Theme.error, 0.18)
-        border.color: root.dragLayer.hoverValid ? Theme.accent : Theme.error
+        color: Qt.alpha(root.dragLayer.landingValid ? Theme.accent : Theme.error, 0.18)
+        border.color: root.dragLayer.landingValid ? Theme.accent : Theme.error
         border.width: 2
       }
     }

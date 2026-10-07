@@ -12,13 +12,16 @@ import qs.components.reusable
 //
 // Payloads: { kind, icon, label, ... }, kind one of
 //   "module-add" { type, w, h }   from the library
-//   "module-move" { index }       a module on the canvas
+//   "module-move" { index, group } a module on the canvas, with the
+//                                 group selected with it (indices), if any
 //   "page-move" { index }         a page row
 //   "tool-move" { index }         a tool page row
 //   "menu-move" { index }         an edge menu row
 // Targets: items with `targetKind` "grid" (placeAt(point, drag, grab)
-// → { x, y, w, h }) or "list" (EntryListTarget: takes(drag), indexAt,
-// dropRequested(drag, index)). Module edits go to `editor` (a GridEditor); a
+// → { x, y, w, h }), "list" (EntryListTarget: takes(drag), indexAt,
+// dropRequested(drag, index)) or "trash" (TrashTarget: a module, or the
+// group carried with it, dropped there is removed). Module edits go to `editor` (a GridEditor),
+// planned while carried (hoverPlan) so the canvas shows them first; a
 // list handles its own drops.
 DragLayer {
   id: root
@@ -27,6 +30,9 @@ DragLayer {
 
   readonly property string draggingKind: root.dragging?.kind ?? ""
   readonly property bool carryingModule: root.draggingKind === "module-add" || root.draggingKind === "module-move"
+  // Whether what's carried can go in the trash: a module on the canvas
+  // (and the group carried with it) with a removable one among them
+  readonly property bool carryingRemovable: root.draggingKind === "module-move" && root._removable(root.dragging)
 
   // Where in the carried item it was picked up (in its own pixels), so a
   // moved module keeps its place under the pointer
@@ -35,8 +41,45 @@ DragLayer {
   property point pointer: Qt.point(0, 0)
   // Where a module dropped now would go ({ x, y, w, h }), else null
   readonly property var hoverPlace: root.carryingModule && root.hoverTarget?.targetKind === "grid" ? root.hoverTarget.placeAt(root.pointer, root.dragging, root.grab) : null
+  // What dropping it there would do (a GridEditor plan), else null
+  readonly property var hoverPlan: root._planFor(root.dragging, root.hoverPlace)
   // Whether dropping on the target under the pointer would do anything
-  readonly property bool hoverValid: root.hoverTarget !== null && root.dragging !== null && root.canDrop(root.dragging, root.hoverPlace)
+  readonly property bool hoverValid: root.hoverTarget !== null && root.dragging !== null && (root.hoverTarget.targetKind !== "grid" || (root.hoverPlan?.valid ?? false))
+  // A module's resize being dragged (CanvasModule sets it), else null
+  property var resizePlan: null
+  // Every module's place while a drop or resize is shown before it's made
+  // (others pushed out of the way), else null
+  readonly property var previewPlaces: {
+    const plan = root.dragging !== null ? root.hoverPlan : root.resizePlan;
+    return plan?.valid && !plan.noop ? plan.places : null;
+  }
+  // Where the module carried or resized would land, else null
+  readonly property var landingPlace: root.dragging !== null ? (root.hoverPlan?.place ?? null) : (root.resizePlan?.place ?? null)
+  readonly property bool landingValid: (root.dragging !== null ? root.hoverPlan : root.resizePlan)?.valid ?? false
+
+  // The last plan made: the pointer moves within a unit far more often
+  // than it crosses into another. Mutated, not notified
+  readonly property var _memo: ({
+      "key": "",
+      "plan": null
+    })
+
+  function _planFor(drag, place) {
+    if (!drag || !place)
+      return null;
+    const key = JSON.stringify([root.editor.scopeKey, drag.kind, drag.index ?? -1, drag.type ?? "", drag.group ?? [], place]);
+    if (root._memo.key !== key) {
+      root._memo.key = key;
+      const held = root.editor.module(drag.index)?.place;
+      if (drag.kind === "module-add")
+        root._memo.plan = root.editor.planAdd(drag.type, place);
+      else if ((drag.group?.length ?? 0) > 0 && held)
+        root._memo.plan = root.editor.planMoveGroup(drag.group, place.x - held.x, place.y - held.y);
+      else
+        root._memo.plan = root.editor.planMove(drag.index, place.x, place.y);
+    }
+    return root._memo.plan;
+  }
 
   function moduleIcon(type) {
     return OverlayConfig.moduleInfo(type)?.icon ?? "extension";
@@ -53,20 +96,24 @@ DragLayer {
       return drag.kind === "module-add" || drag.kind === "module-move";
     case "list":
       return target.takes(drag);
+    case "trash":
+      return drag.kind === "module-move" && root._removable(drag);
     }
     return false;
   }
 
-  // Whether `drag` would land at `place` (a module where it fits)
-  function canDrop(drag, place) {
-    if (drag.kind === "module-add")
-      return place !== null && root.editor.canAdd(drag.type, place);
-    if (drag.kind === "module-move")
-      return place !== null && root.editor.canMove(drag.index, place.x, place.y);
-    return true;
+  function _members(drag) {
+    return (drag.group?.length ?? 0) > 0 ? drag.group : [drag.index];
   }
 
-  onStarted: (payload, item, x, y) => root.grab = Qt.point(x, y)
+  function _removable(drag) {
+    return root._members(drag).some(i => root.editor.canRemove(i));
+  }
+
+  onStarted: (payload, item, x, y) => {
+    root.grab = Qt.point(x, y);
+    root._memo.key = "";
+  }
 
   onMoved: point => {
     root.pointer = point;
@@ -80,13 +127,13 @@ DragLayer {
       target.dropRequested(drag, index);
       return;
     }
-    const place = target.placeAt(root.pointer, drag, root.grab);
-    if (!root.canDrop(drag, place))
+    if (target.targetKind === "trash") {
+      root.editor.selectGroup(root._members(drag));
+      root.editor.removeSelection();
       return;
-    if (drag.kind === "module-add")
-      root.editor.addModule(drag.type, place);
-    else
-      root.editor.moveModule(drag.index, place.x, place.y);
+    }
+    root.editor.applyPlan(root._planFor(drag, target.placeAt(root.pointer, drag, root.grab)));
+    root._memo.key = "";
   }
 
   // What's being carried, as a pill under the pointer (the canvas draws
@@ -98,7 +145,7 @@ DragLayer {
     width: ghostRow.implicitWidth + Widget.padding * 2
     height: Widget.height + Widget.padding / 2
     radius: Widget.radius
-    color: root.hoverTarget && !root.hoverValid ? Theme.error : Theme.accent
+    color: root.hoverTarget && (!root.hoverValid || root.hoverTarget.targetKind === "trash") ? Theme.error : Theme.accent
     opacity: 0.92
 
     RowLayout {
@@ -112,7 +159,7 @@ DragLayer {
         textSize: Appearance.fontSize + 2
       }
       StyledText {
-        text: root.hoverTarget && !root.hoverValid ? I18n.tr("Doesn't fit here") : (root.dragging?.label ?? "")
+        text: root.hoverTarget?.targetKind === "trash" ? I18n.tr("Remove") : root.hoverTarget && !root.hoverValid ? I18n.tr("Doesn't fit here") : (root.dragging?.label ?? "")
         textColor: Theme.background
         font.bold: true
       }

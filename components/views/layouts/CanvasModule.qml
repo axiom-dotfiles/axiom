@@ -7,8 +7,9 @@ import qs.components.reusable
 
 // One module on the layouts canvas: its icon and name (plus a hint for
 // modules whose look depends on their properties). Click to edit it, drag
-// it to move it (onto a module of its size: they swap), drag its corner
-// to resize it. Positioned and sized by GridCanvas.
+// it to move it (onto a module of its size: they swap; onto others: they
+// make way), drag any edge or corner to resize it from that side.
+// Positioned and sized by GridCanvas.
 Rectangle {
   id: root
 
@@ -28,9 +29,13 @@ Rectangle {
     "w": 1,
     "h": 1
   }
-  readonly property bool selected: root.editor.selected === root.index
-  readonly property bool carried: root.dragLayer.draggingKind === "module-move" && root.dragLayer.dragging.index === root.index
-  readonly property bool small: root.width < Appearance.fontSize * 7 || root.height < Appearance.fontSize * 4
+  readonly property bool selected: root.editor.isSelected(root.index)
+  // Part of a group selected together: dragging it moves them all
+  readonly property bool grouped: root.editor.group.includes(root.index)
+  readonly property bool carried: root.dragLayer.draggingKind === "module-move" && (root.dragLayer.dragging.index === root.index || (root.dragLayer.dragging.group ?? []).includes(root.index))
+  // Whether the press was with Shift or Ctrl (a tap then toggles it in
+  // the selection)
+  property bool _toggling: false
 
   // From the schema: a color property that fills the tile, and one shown
   // on it (OverlayConfig.moduleInfo)
@@ -44,11 +49,11 @@ Rectangle {
     return Array.isArray(value) ? value.join(", ") : String(value ?? "");
   }
 
-  // The size being dragged to with the corner handle ([w, h]), else null
-  property var resizing: null
-  readonly property bool resizeValid: root.resizing !== null && root.editor.canResize(root.index, root.resizing[0], root.resizing[1])
+  // The side being dragged to resize it ("n", "ne", … "nw"), else ""
+  property string resizing: ""
+  readonly property bool small: root.width < Appearance.fontSize * 7 || root.height < Appearance.fontSize * 4
 
-  z: root.selected || root.resizing ? 2 : 1
+  z: root.selected || root.resizing !== "" ? 2 : 1
   // Set by GridCanvas, matching its lattice
   radius: Widget.radius
   color: root.fill
@@ -102,79 +107,109 @@ Rectangle {
     payload: ({
         "kind": "module-move",
         "index": root.index,
+        "group": root.grouped ? root.editor.group : [],
         "type": root.type,
-        "icon": root.dragLayer.moduleIcon(root.type),
-        "label": root.dragLayer.moduleLabel(root.type)
+        "icon": root.grouped ? "select_all" : root.dragLayer.moduleIcon(root.type),
+        "label": root.grouped ? I18n.tr("{0} modules", root.editor.group.length) : root.dragLayer.moduleLabel(root.type)
       })
-    onTapped: root.editor.select(root.index)
-  }
-
-  // The size the corner is being dragged to
-  Rectangle {
-    visible: root.resizing !== null
-    x: 0
-    y: 0
-    width: root.resizing ? root.resizing[0] * root.step - root.gap : 0
-    height: root.resizing ? root.resizing[1] * root.step - root.gap : 0
-    radius: root.radius
-    color: Qt.alpha(root.resizeValid ? Theme.accent : Theme.error, 0.18)
-    border.color: root.resizeValid ? Theme.accent : Theme.error
-    border.width: 2
-  }
-
-  // The resize handle, in the bottom right corner. On a module so small
-  // the full handle would leave nothing of it to grab for moving, it
-  // shrinks into the corner
-  Rectangle {
-    id: handle
-    readonly property real fullSize: Appearance.fontSize + 6
-    // Room left of and above the full handle's grab area
-    readonly property bool cramped: root.width - handle.fullSize - 10 < 10 && root.height - handle.fullSize - 10 < 10
-    readonly property real size: handle.cramped ? Math.max(8, Math.min(root.width, root.height) * 0.35) : handle.fullSize
-    visible: root.dragLayer.dragging === null && (area.containsMouse || handleArea.containsMouse || root.selected || root.resizing !== null)
-    anchors.right: parent.right
-    anchors.bottom: parent.bottom
-    anchors.margins: handle.cramped ? 2 : 6
-    width: handle.size
-    height: handle.size
-    radius: Widget.radius / 2
-    color: handleArea.containsMouse || root.resizing ? Theme.accent : Theme.backgroundHighlight
-    border.color: Theme.accent
-    border.width: 1
-
-    StyledIcon {
-      anchors.centerIn: parent
-      text: "open_in_full"
-      rotation: 90
-      textSize: handle.cramped ? handle.size - 2 : Appearance.fontSize - 1
-      textColor: handleArea.containsMouse || root.resizing ? Theme.background : Theme.accent
+    onPressed: mouse => root._toggling = (mouse.modifiers & (Qt.ShiftModifier | Qt.ControlModifier)) !== 0
+    onTapped: {
+      if (root._toggling)
+        root.editor.toggleSelected(root.index);
+      else
+        root.editor.select(root.index);
     }
+  }
+
+  // Its size while it's resized: inside it at the bottom, or under a
+  // small one
+  Rectangle {
+    visible: root.resizing !== ""
+    z: 4
+    x: (root.width - width) / 2
+    y: root.small ? root.height + 4 : root.height - height - 6
+    width: sizeText.implicitWidth + Widget.padding
+    height: sizeText.implicitHeight + 4
+    radius: height / 2
+    color: Theme.accent
+
+    StyledText {
+      id: sizeText
+      anchors.centerIn: parent
+      readonly property var place: root.dragLayer.landingPlace ?? root.place
+      text: I18n.tr("{0} × {1} cards", GridPlacement.cards(sizeText.place.w), GridPlacement.cards(sizeText.place.h))
+      textColor: Theme.background
+      textSize: Appearance.fontSize - 2
+      font.bold: true
+    }
+  }
+
+  // Resize zones along each edge and in each corner, thinner on a small
+  // tile so its middle is still there to move it by. Dragging one moves
+  // that side (or both, at a corner) by whole units; the others stay
+  Repeater {
+    model: root.dragLayer.dragging === null ? ["n", "ne", "e", "se", "s", "sw", "w", "nw"] : []
 
     MouseArea {
-      id: handleArea
-      anchors.fill: parent
-      anchors.margins: handle.cramped ? 0 : -4
+      id: zone
+      required property string modelData
+      readonly property bool north: zone.modelData.includes("n")
+      readonly property bool south: zone.modelData.includes("s")
+      readonly property bool east: zone.modelData.includes("e")
+      readonly property bool west: zone.modelData.includes("w")
+      readonly property bool corner: zone.modelData.length === 2
+      readonly property real edge: Math.max(3, Math.min(8, root.width / 5, root.height / 5))
+      readonly property real cornerSize: Math.max(5, Math.min(16, root.width / 4, root.height / 4))
+      // Where the drag started, in the canvas, and the place then
+      property point start: Qt.point(0, 0)
+      property var startPlace: null
+
+      x: zone.west ? 0 : zone.east ? root.width - zone.width : zone.cornerSize
+      y: zone.north ? 0 : zone.south ? root.height - zone.height : zone.cornerSize
+      width: zone.corner ? zone.cornerSize : zone.north || zone.south ? root.width - 2 * zone.cornerSize : zone.edge
+      height: zone.corner ? zone.cornerSize : zone.east || zone.west ? root.height - 2 * zone.cornerSize : zone.edge
+      z: 3
       hoverEnabled: true
       preventStealing: true
-      cursorShape: Qt.SizeFDiagCursor
+      cursorShape: zone.corner ? (zone.modelData === "nw" || zone.modelData === "se" ? Qt.SizeFDiagCursor : Qt.SizeBDiagCursor) : zone.north || zone.south ? Qt.SizeVerCursor : Qt.SizeHorCursor
 
-      onPressed: {
+      onPressed: mouse => {
         root.editor.select(root.index);
-        root.resizing = [root.place.w, root.place.h];
+        zone.start = zone.mapToItem(root.parent, mouse.x, mouse.y);
+        zone.startPlace = Object.assign({}, root.place);
+        root.resizing = zone.modelData;
       }
       onPositionChanged: mouse => {
-        if (!pressed)
+        if (!zone.pressed || !zone.startPlace)
           return;
-        const p = handleArea.mapToItem(root, mouse.x, mouse.y);
-        root.resizing = [Math.max(1, Math.round((p.x + root.gap) / root.step)), Math.max(1, Math.round((p.y + root.gap) / root.step))];
+        const p = zone.mapToItem(root.parent, mouse.x, mouse.y);
+        const place = GridPlacement.resizeFrom(zone.startPlace, zone.modelData, Math.round((p.x - zone.start.x) / root.step), Math.round((p.y - zone.start.y) / root.step));
+        const current = root.dragLayer.resizePlan?.place ?? zone.startPlace;
+        if (place.x !== current.x || place.y !== current.y || place.w !== current.w || place.h !== current.h || !root.dragLayer.resizePlan)
+          root.dragLayer.resizePlan = root.editor.planResize(root.index, place);
       }
       onReleased: {
-        const size = root.resizing;
-        root.resizing = null;
-        if (size)
-          root.editor.resizeModule(root.index, size[0], size[1]);
+        const plan = root.dragLayer.resizePlan;
+        zone.finish();
+        root.editor.applyPlan(plan);
       }
-      onCanceled: root.resizing = null
+      onCanceled: zone.finish()
+
+      function finish() {
+        root.dragLayer.resizePlan = null;
+        root.resizing = "";
+        zone.startPlace = null;
+      }
+
+      // The side it moves, shown under the pointer
+      Rectangle {
+        visible: zone.containsMouse || root.resizing === zone.modelData
+        anchors.centerIn: parent
+        width: zone.corner ? Math.min(parent.width, 8) : zone.north || zone.south ? Math.min(parent.width, Appearance.fontSize * 2) : 3
+        height: zone.corner ? Math.min(parent.height, 8) : zone.east || zone.west ? Math.min(parent.height, Appearance.fontSize * 2) : 3
+        radius: Math.min(width, height) / 2
+        color: Theme.accent
+      }
     }
   }
 }
