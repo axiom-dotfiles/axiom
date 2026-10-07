@@ -2,9 +2,9 @@
 
 # axiom
 
-**A complete [Hyprland](https://hypr.land) desktop shell you build on screen, not in config files.**
+**A lite desktop environment for [Hyprland](https://hypr.land): bring your own apps, build the rest on screen.**
 
-Bars, overlay pages, edge menus, the lock screen and the login screen, all laid out with drag and drop and set from the UI. Written in QML on [Quickshell](https://quickshell.org).
+Bars, menus, a launcher, notifications, settings, theming, the lock screen and the login screen: one application, laid out with drag and drop and set from the UI.
 
 <a href="https://github.com/axiom-dotfiles/axiom/stargazers"><picture><source media="(prefers-color-scheme: light)" srcset="https://img.shields.io/github/stars/axiom-dotfiles/axiom?style=for-the-badge&color=8c6c3e&labelColor=e1e2e7"><img alt="Stars" src="https://img.shields.io/github/stars/axiom-dotfiles/axiom?style=for-the-badge&color=e0af68&labelColor=1a1b26"></picture></a>
 <a href="https://github.com/axiom-dotfiles/axiom/tags"><picture><source media="(prefers-color-scheme: light)" srcset="https://img.shields.io/github/v/tag/axiom-dotfiles/axiom?sort=semver&label=version&style=for-the-badge&color=b15c00&labelColor=e1e2e7"><img alt="Version" src="https://img.shields.io/github/v/tag/axiom-dotfiles/axiom?sort=semver&label=version&style=for-the-badge&color=ff9e64&labelColor=1a1b26"></picture></a>
@@ -23,10 +23,11 @@ Bars, overlay pages, edge menus, the lock screen and the login screen, all laid 
 
 ## Why axiom
 
-A rice is someone else's desktop. axiom is the whole desktop, from the login screen to the lock screen, in one shell you shape yourself.
+Most desktops come finished, with options to adjust. axiom comes in pieces, with the editors to make it yours.
 
-- **Shaped on screen.** Bars, pages, menus, the lock and login screens: drag them where you want and set them from the UI. No config file to edit, and nothing breaks when you change your mind.
-- **The whole desktop, one shell.** Login, lock, notifications, polkit, idle, OSDs, a launcher and theming for 23 apps, from one config. No stack of separate tools to glue together.
+- **Built, not configured.** One set of modules builds pages, sidebars, the lock screen and the login screen. Bars are widgets you line up and style one by one. Every surface is laid out by dragging, with changes live until you save.
+- **The whole desktop, one application.** Login, lock, notifications, polkit, idle, OSDs, a launcher, and settings for Wi-Fi, Bluetooth, audio and monitors, from one config. No stack of separate tools to glue together.
+- **Bring your own apps.** axiom is the part of a desktop you live in, not the apps inside it. It ships no file manager, terminal or browser: use the ones you like, and axiom themes 23 of them to match.
 - **Updates don't fight you.** Your config is validated and migrated from version to version, so a new release never means merging your changes into someone else's dotfiles.
 - **Share a look, not a script.** An exported setup is data: monitors, paths and accounts stay behind, and commands come along only if you ask.
 - **Trying it costs nothing.** axiom never touches your Hyprland config unless you ask it to. It applies its keybinds at runtime, skips any key you already use, and goes away when you remove its one start-up line.
@@ -39,7 +40,7 @@ A rice is someone else's desktop. axiom is the whole desktop, from the login scr
 <tr>
 <td width="50%" valign="top">
 
-### 🧩 Drag and drop everything
+### 🧩 Build every surface
 
 One grid editor lays out overlay pages, edge menus, the lock screen and the login screen. Changes show live: **Save** keeps them, **Reset** throws them away.
 
@@ -203,7 +204,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the layout and conventions, and [docs
 
 axiom is built on:
 - [Hyprland](https://hypr.land), the compositor it's made for
-- [Quickshell](https://quickshell.org), the QML toolkit every surface is written in
+- [Quickshell](https://quickshell.org), the QML toolkit every surface is written in, and without which axiom couldn't exist
 - [Material Symbols](https://fonts.google.com/icons), the icons
 
 The static themes are ports of [Catppuccin](https://catppuccin.com), [Gruvbox](https://github.com/morhetz/gruvbox), [Gruvbox Material](https://github.com/sainnhe/gruvbox-material), [Solarized](https://ethanschoonover.com/solarized/), [Tokyo Night](https://github.com/tokyo-night/tokyo-night-vscode-theme), [Rosé Pine](https://rosepinetheme.com), [Nord](https://www.nordtheme.com) (Nord Light after [threddast's](https://github.com/tinted-theming/schemes/blob/spec-0.11/base16/nord-light.yaml)), [Dracula and Alucard](https://draculatheme.com), [Everforest](https://github.com/sainnhe/everforest), [Kanagawa](https://github.com/rebelot/kanagawa.nvim), [One Dark/Light](https://github.com/atom/atom/tree/master/packages), [Ayu](https://github.com/ayu-theme/ayu-colors), [Nightfox](https://github.com/EdenEast/nightfox.nvim), [GitHub](https://github.com/primer/github-vscode-theme) and [Oxocarbon](https://github.com/nyoom-engineering/oxocarbon.nvim), most by way of [tinted-theming](https://github.com/tinted-theming/schemes)'s base16 palettes. Submarine Sonar is axiom's own.
