@@ -29,7 +29,8 @@ PanelWindow {
   // On a transparent or pill bar, how far in from its outer edge it
   // reserves (floating edge menus place themselves against that)
   readonly property int reservedZone: Bar.reservedZone(barConfig, HyprlandManager.gapsOut[Bar.edgeName(barConfig.location)] ?? 0)
-  WlrLayershell.namespace: barConfig.insideBorder ? "axiom-bar-floating" : "axiom-bar"
+  WlrLayershell.namespace: root.layerNamespace
+  readonly property string layerNamespace: barConfig.insideBorder ? "axiom-bar-floating" : "axiom-bar"
   // A popout with a text field up (e.g. a Wi-Fi password) takes the
   // keyboard through the bar, its parent surface
   WlrLayershell.keyboardFocus: popouts.wantsKeyboardFocus ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
@@ -76,6 +77,16 @@ PanelWindow {
   Component.onDestruction: {
     ShellManager.unregisterGrabPartner(root);
     ShellManager.unregisterBar(root);
+  }
+
+  // Where the window is on its screen, as Hyprland reports it (null until
+  // it has): the blur window draws the bar's shapes and popouts from it
+  readonly property var screenOrigin: placeOnScreen.origin
+  LayerOrigin {
+    id: placeOnScreen
+    window: root
+    namespace: root.layerNamespace
+    edge: root.barConfig.location
   }
 
   // The widget area, where the pills are

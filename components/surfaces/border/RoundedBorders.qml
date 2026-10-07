@@ -7,6 +7,7 @@ import Quickshell.Wayland
 import qs.config
 import qs.services
 import qs.components.reusable
+import qs.components.hosts.popout
 
 // One screen's border (Appearance.screenBorder): an edge strip per side
 // (BorderPanel), reserving `frameWidth`, and a concave corner piece
@@ -51,7 +52,35 @@ Item {
   // so the bar and its widgets show through
   function frameColorFor(edge) {
     const bar = root.edges[edge];
-    return bar && bar.solid && bar.reserveSpace ? "transparent" : root.frameColor;
+    return root.backed || (bar && bar.solid && bar.reserveSpace) ? "transparent" : root.frameColor;
+  }
+
+  // The blur window draws the frame's fill and shadow (BlurManager): the
+  // strips and corners draw their strokes only, and the shadow window
+  // isn't needed
+  readonly property bool backed: BlurManager.backing
+  // The frame, for it: from past the integrated edge menus on each edge
+  // (arranged outside the border) to the stroke's inner side, round the
+  // corner pieces' arcs, in screen coordinates
+  function _menuZone(edge) {
+    return EdgeMenuManager.zoneOn(root.screen?.name ?? "", edge);
+  }
+  readonly property real outerLeft: root._menuZone("left")
+  readonly property real outerTop: root._menuZone("top")
+  readonly property real outerRight: root._menuZone("right")
+  readonly property real outerBottom: root._menuZone("bottom")
+  readonly property real innerLeft: root.outerLeft + root.innerInset("left")
+  readonly property real innerTop: root.outerTop + root.innerInset("top")
+  readonly property real innerRight: root.outerRight + root.innerInset("right")
+  readonly property real innerBottom: root.outerBottom + root.innerInset("bottom")
+  readonly property real innerRadius: Math.max(0, root.innerBorderRadius - root.strokeWidth)
+
+  BlurShape {
+    source: root
+    kind: "frame"
+    screen: root.screen?.name ?? ""
+    shown: root.backed
+    shadowed: BarStyle.values.shadow !== "none"
   }
 
   // An edge strip per side
@@ -65,7 +94,7 @@ Item {
       frameWidth: root.frameWidth
       innerBorderRadius: root.innerBorderRadius
       frameColor: root.frameColorFor(modelData)
-      endFillColor: root.frameColor
+      endFillColor: root.backed ? "transparent" : root.frameColor
       innerStrokeColor: root.innerStrokeColor
       strokeWidth: root.strokeWidth
     }
@@ -88,7 +117,7 @@ Item {
     // The stroke's inner side, round the corner pieces' arcs
     readonly property real radius: Math.max(0, root.innerBorderRadius - root.strokeWidth)
 
-    visible: look.shadow !== "none"
+    visible: look.shadow !== "none" && !root.backed
     screen: root.screen
     anchors {
       left: true
@@ -243,7 +272,7 @@ Item {
 
       CornerPiece {
         borderRadius: root.innerBorderRadius
-        fillColor: root.frameColor
+        fillColor: root.backed ? "transparent" : root.frameColor
         strokeColor: root.innerStrokeColor
         strokeWidth: root.strokeWidth
         isLeft: corner.isLeft

@@ -483,7 +483,7 @@ assert(removed == 2, "earlier handlers removed")
     const rules = on.filter(line => line.startsWith("hl.layer_rule"));
     compare(rules.length, 3);
     verify(rules[0].includes('name = "axiom-blur"'));
-    verify(rules[0].includes('"^axiom-(border|bar|bar-floating|popout-under'), "the border blurs as the rest do");
+    verify(rules[0].includes('"^axiom-(blur-backing|dock-preview|overlay|'), "the blur window, and surfaces it doesn't draw");
     verify(rules[0].includes("blur_popups = true, ignore_alpha = 0.5, xray = true, enabled = true"), "the wallpaper alone by default");
     verify(rules[1].includes('"^axiom-(border)$"') && rules[1].endsWith("enabled = false })"), "the old border rule stays off");
     verify(rules[2].includes('"^axiom-(backdrop|polkit)$"'));

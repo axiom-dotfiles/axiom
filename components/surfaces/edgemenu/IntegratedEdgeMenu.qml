@@ -126,7 +126,18 @@ PopoutWrapperBase {
     implicitWidth: root.vertical ? root.depth : 0
     implicitHeight: root.vertical ? 0 : root.depth
 
+    // Where the window is on screen: the blur window draws the strip's
+    // fill (BlurManager) from there, as it slides
+    LayerOrigin {
+      id: placeOnScreen
+      window: panel
+      namespace: "axiom-edge-menu"
+      edge: root.edge
+    }
+    readonly property bool backed: BlurManager.backing && placeOnScreen.origin !== null
+
     SlideAnimation {
+      id: slide
       anchors.fill: parent
       active: root.isOpen
       slideFromLeft: root.edge === Bar.Left
@@ -148,8 +159,21 @@ PopoutWrapperBase {
         // The strip, in the border's colours: the screen frame grown by the
         // menu (without a frame, the menu's own background)
         Rectangle {
+          id: strip
           anchors.fill: parent
-          color: Appearance.fill(root.framed ? Theme.background : root.colors.fill)
+          color: panel.backed ? "transparent" : Appearance.fill(root.framed ? Theme.background : root.colors.fill)
+
+          BlurShape {
+            source: strip
+            kind: "rect"
+            color: root.framed ? Theme.background : root.colors.fill
+            screen: root.screen?.name ?? ""
+            x: (placeOnScreen.origin?.x ?? 0) + slide.slideX
+            y: (placeOnScreen.origin?.y ?? 0) + slide.slideY
+            shown: panel.backed && panel.visible
+            // The border's shadow falls past it, as past the frame it grows
+            shadowed: BarStyle.values.shadow !== "none"
+          }
         }
 
         // The frame: a rounded box along the whole strip

@@ -121,6 +121,23 @@ Rectangle {
     root.stretches = next;
   }
 
+  // Where surfaces standing on a pill or island cover its inner stroke,
+  // by owner: { start, end } along the bar. While surfaces are translucent
+  // the stroke is left open there (their fill no longer hides it).
+  property var openings: ({})
+  readonly property var _openingList: Object.keys(root.openings).map(k => root.openings[k])
+  // Sets (or with null clears) `owner`'s opening
+  function setOpening(owner, opening) {
+    if (Utils.deepEqual(root.openings[owner] ?? null, opening ?? null))
+      return;
+    const next = Object.assign({}, root.openings);
+    if (opening)
+      next[owner] = opening;
+    else
+      delete next[owner];
+    root.openings = next;
+  }
+
   // A stretch changing while its popout is open (the calendar opening its
   // editor) was drawn but not shown: the bar's next frame was rendered,
   // yet the compositor kept showing the one before until something else
@@ -305,6 +322,7 @@ Rectangle {
   // windows.
   OutsideShadow {
     target: surface
+    active: !root.backed
     look: root.barConfig
     edge: root.barConfig.left ? Bar.Left : root.barConfig.right ? Bar.Right : root.barConfig.bottom ? Bar.Bottom : Bar.Top
     falls: !root.barConfig.pills
@@ -320,6 +338,13 @@ Rectangle {
     })
   }
 
+  // The blur window draws the bar's fill and shadow (BlurManager), once
+  // its window is placed on screen: where its shapes are, the container's
+  // top-left on screen (the bar editor's preview has none, and fills itself)
+  readonly property var blurOrigin: root.panel?.screenOrigin ? Qt.point(root.panel.screenOrigin.x + (root.parent?.x ?? 0), root.panel.screenOrigin.y + (root.parent?.y ?? 0)) : null
+  readonly property bool backed: BlurManager.backing && root.blurOrigin !== null
+  readonly property string blurScreen: root.panel?.screen?.name ?? ""
+
   // What the bar paints under its widgets: its background, inner stroke
   // and pills, which the shadow or glow follows
   Item {
@@ -327,9 +352,20 @@ Rectangle {
     anchors.fill: parent
 
     Rectangle {
+      id: solidFill
       anchors.fill: parent
       visible: root.barConfig.solid
-      color: Appearance.fill(Theme.background)
+      color: root.backed ? "transparent" : Appearance.fill(Theme.background)
+
+      BlurShape {
+        source: solidFill
+        kind: "rect"
+        screen: root.blurScreen
+        shadowed: root.barConfig.shadow !== "none"
+        x: root.blurOrigin?.x ?? 0
+        y: root.blurOrigin?.y ?? 0
+        shown: root.backed && solidFill.visible
+      }
     }
 
     // With the border off nothing else draws a solid bar's inner stroke
@@ -367,9 +403,45 @@ Rectangle {
         y: root.isVertical ? rect.start : across
         width: root.isVertical ? depth : rect.length
         height: root.isVertical ? rect.length : depth
-        color: Appearance.fill(Theme.background)
-        border.color: Theme.foreground
-        border.width: Appearance.borderWidth
+        color: root.backed ? "transparent" : Appearance.fill(Theme.background)
+        // The stroke drawn by the one below, left open where a popout joins
+        border.width: 0
+
+        HoledItem {
+          anchors.fill: parent
+          // On the inner side, the stroke and its fringe under each opening
+          holes: root._openingList.map(o => {
+            const along = root.isVertical ? island.y : island.x;
+            const start = Math.max(0, o.start - along);
+            const end = Math.min(root.isVertical ? island.height : island.width, o.end - along);
+            if (end <= start)
+              return null;
+            const row = Appearance.borderWidth + 1;
+            const across = root.barConfig.left || root.barConfig.top ? (root.isVertical ? island.width : island.height) - row : 0;
+            return root.isVertical ? Qt.rect(across, start, row, end - start) : Qt.rect(start, across, end - start, row);
+          }).filter(hole => hole !== null)
+
+          Rectangle {
+            anchors.fill: parent
+            color: "transparent"
+            border.color: Theme.foreground
+            border.width: Appearance.borderWidth
+            topLeftRadius: island.topLeftRadius
+            topRightRadius: island.topRightRadius
+            bottomLeftRadius: island.bottomLeftRadius
+            bottomRightRadius: island.bottomRightRadius
+          }
+        }
+
+        BlurShape {
+          source: island
+          kind: "rect"
+          screen: root.blurScreen
+          shadowed: root.barConfig.shadow !== "none"
+          x: (root.blurOrigin?.x ?? 0) + island.x
+          y: (root.blurOrigin?.y ?? 0) + island.y
+          shown: root.backed
+        }
         // Inner side: bottom on a top bar, right on a left one, and so on
         topLeftRadius: root.barConfig.bottom || root.barConfig.right ? startInner : corner
         topRightRadius: root.barConfig.bottom ? endInner : root.barConfig.left ? startInner : corner
@@ -426,6 +498,30 @@ Rectangle {
         height: implicitHeight
         x: root.isVertical ? (root.barConfig.right ? root.width - width : 0) : alongStart
         y: root.isVertical ? alongStart : (root.barConfig.bottom ? root.height - height : 0)
+        backed: root.backed
+        // The far stroke and its fringe under each opening (in the pill's
+        // coordinates)
+        strokeHoles: root._openingList.map(o => {
+          const start = Math.max(o.start, root.isVertical ? pill.y : pill.x);
+          const end = Math.min(o.end, (root.isVertical ? pill.y + pill.height : pill.x + pill.width));
+          if (end <= start)
+            return null;
+          const row = Appearance.borderWidth + 1;
+          const foot = root.barConfig.pillDepth;
+          const far = root.isVertical ? root.width : root.height;
+          const across = root.barConfig.left || root.barConfig.top ? foot - row : far - foot;
+          const r = root.isVertical ? Qt.rect(across, start, row, end - start) : Qt.rect(start, across, end - start, row);
+          return Qt.rect(r.x - pill.x, r.y - pill.y, r.width, r.height);
+        }).filter(hole => hole !== null)
+
+        BlurShape {
+          source: pill
+          screen: root.blurScreen
+          shadowed: root.barConfig.shadow !== "none"
+          x: (root.blurOrigin?.x ?? 0) + pill.x
+          y: (root.blurOrigin?.y ?? 0) + pill.y
+          shown: root.backed
+        }
       }
     }
   }

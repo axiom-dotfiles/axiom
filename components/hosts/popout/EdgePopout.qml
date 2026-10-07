@@ -348,8 +348,27 @@ PopoutWrapperBase {
       }
     }
 
+    // Where the window is on screen: the blur window draws the surface's
+    // fill and shadow (BlurManager) from there
+    LayerOrigin {
+      id: placeOnScreen
+      window: surfaceWindow
+      namespace: root.layerNamespace
+      edge: root.edge
+    }
+
     AttachedSurface {
       id: surface
+
+      backed: BlurManager.backing && placeOnScreen.origin !== null
+
+      BlurShape {
+        source: surface
+        screen: surfaceWindow.screenName
+        x: (placeOnScreen.origin?.x ?? 0) + surface.x
+        y: (placeOnScreen.origin?.y ?? 0) + surface.y
+        shown: surface.backed && surfaceWindow.visible
+      }
 
       // At the attach edge of a window that may be deeper than it
       x: root.vertical ? (root.edge === Bar.Right ? surfaceWindow.width - width : 0) : root.strokeInset + root.surfaceStart

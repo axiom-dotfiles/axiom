@@ -19,6 +19,10 @@ Item {
   // surfaces joined to the target sit over it, whose translucent fill the
   // shadow would show (and blur) through
   property var holes: []
+  // Or an item laid over the target (same place and size) whose shape it
+  // isn't cast on either: the blur window's every shape, so the shadow of
+  // those casting one never falls on those that don't
+  property Item cutBy: null
   readonly property real reach: Math.ceil(shadow.look.shadowSize * 1.25)
 
   x: target.x - reach
@@ -63,11 +67,19 @@ Item {
     }
   }
 
+  ShaderEffectSource {
+    id: cutCapture
+    anchors.fill: parent
+    visible: false
+    sourceItem: root.visible ? root.cutBy : null
+    sourceRect: capture.sourceRect
+  }
+
   SurfaceShadow {
     id: shadow
     anchors.fill: parent
     source: capture
-    cutSource: root.holes.length > 0 ? cutMask : capture
+    cutSource: root.cutBy ? cutCapture : root.holes.length > 0 ? cutMask : capture
     autoPaddingEnabled: false
     cut: true
   }

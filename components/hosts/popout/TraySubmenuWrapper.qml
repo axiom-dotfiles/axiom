@@ -254,6 +254,32 @@ Item {
 
         edge: outer.openToLeft ? Bar.Right : Bar.Left
         castShadow: true
+        // The blur window draws its fill and shadow (BlurManager), from
+        // where the parent's window is on screen
+        readonly property var parentOrigin: outer.host?.popupScreenOrigin ?? null
+        // Where it sits in the parent's window
+        readonly property real inParentX: submenuPopup.attachX + surface.x
+        readonly property real inParentY: root.attachRect.y + submenuPopup.windowFrom - submenuPopup.roomTop + surface.y
+        backed: BlurManager.backing && surface.parentOrigin !== null
+
+        BlurShape {
+          source: surface
+          screen: outer.screen?.name ?? ""
+          x: (surface.parentOrigin?.x ?? 0) + surface.inParentX
+          y: (surface.parentOrigin?.y ?? 0) + surface.inParentY
+          shown: surface.backed && submenuPopup.visible
+        }
+
+        // The parent's side stroke it covers, left open
+        readonly property var parentHole: surface.backed && submenuPopup.visible ? Qt.rect(outer.openToLeft ? root.attachRect.x : root.attachRect.x + root.attachRect.width - Appearance.borderWidth - 1, surface.inParentY, Appearance.borderWidth + 1, surface.height) : null
+        onParentHoleChanged: {
+          if (outer.host)
+            outer.host.submenuHole = surface.parentHole;
+        }
+        Component.onDestruction: {
+          if (outer.host?.submenuHole === surface.parentHole)
+            outer.host.submenuHole = null;
+        }
         active: root.occupied && !root.isClosing && (root.contentReady || still.switching)
         connectorGap: root.connectorGap
         boxWidth: root.shownBoxWidth

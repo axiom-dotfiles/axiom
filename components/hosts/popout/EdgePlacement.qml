@@ -152,5 +152,10 @@ QtObject {
       "start": root.place.stretch.start + root.barShift,
       "end": root.place.stretch.end + root.barShift
     }) : null
+    // The pill's or island's far stroke left open under a translucent box
+    opening: root.showing && root.onPill && Appearance.translucent ? {
+      "start": root.place.surfaceStart + root.barShift,
+      "end": root.place.surfaceStart + root.place.surfaceLength + root.barShift
+    } : null
   }
 }

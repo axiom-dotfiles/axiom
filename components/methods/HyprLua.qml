@@ -148,7 +148,10 @@ QtObject {
   // cheaper, but leaves menus blurring something else.
   // Backdrops (and the polkit prompt, whose window holds its own dim) blur
   // only when asked: the whole screen, at every alpha.
-  readonly property var blurSurfaces: ["border", "bar", "bar-floating", "popout-under", "edge-popout", "edge-menu", "osd", "dock", "dock-preview", "overlay", "launcher", "switcher", "floating-popout", "notifications", "powermenu", "workspaces", "monitor-prompt"]
+  // The border, bars, their popouts, edge popouts and menus and docks are
+  // drawn by the blur window (BlurManager, shell/BlurBacking), blurred in
+  // their place; the rest blur themselves.
+  readonly property var blurSurfaces: ["blur-backing", "dock-preview", "overlay", "launcher", "switcher", "floating-popout", "notifications", "powermenu", "workspaces", "monitor-prompt"]
   readonly property var blurBackdrops: ["backdrop", "polkit"]
 
   function _blurRule(name, namespaces, effects, enabled) {

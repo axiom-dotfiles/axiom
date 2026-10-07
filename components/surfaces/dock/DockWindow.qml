@@ -452,6 +452,17 @@ Scope {
       height: root.vertical ? alongLength : crossDepth
     }
 
+    // Where the window is on screen: the blur window draws the dock's fill
+    // and shadow (BlurManager) from there; not a preview's, drawn over the
+    // overlay
+    LayerOrigin {
+      id: placeOnScreen
+      window: window
+      namespace: root.preview ? "axiom-dock-preview" : "axiom-dock"
+      edge: root.edge
+    }
+    readonly property bool backed: !root.preview && BlurManager.backing && placeOnScreen.origin !== null
+
     Item {
       id: content
       anchors.fill: parent
@@ -485,11 +496,21 @@ Scope {
         backfill: root.backfill
         fillColor: Theme.resolveColor(root.dock.backgroundColor)
         strokeColor: Theme.resolveColor(root.dock.borderColor)
+        backed: window.backed
+
+        BlurShape {
+          source: surface
+          screen: root.screen?.name ?? ""
+          x: (placeOnScreen.origin?.x ?? 0) + surface.x
+          y: (placeOnScreen.origin?.y ?? 0) + surface.y
+          shown: window.backed && window.visible && content.visible && surface.visible
+        }
       }
 
       // Or a box of its own, its shadow only outside it
       OutsideShadow {
         target: detachedBox
+        active: !window.backed
         edge: root.edge
       }
 
@@ -501,9 +522,19 @@ Scope {
         width: root.vertical ? root.thickness : root.surfaceBoxLength
         height: root.vertical ? root.surfaceBoxLength : root.thickness
         radius: Math.min(Appearance.borderRadius, root.thickness / 2)
-        color: Appearance.fill(Theme.resolveColor(root.dock.backgroundColor))
+        color: window.backed ? "transparent" : Appearance.fill(Theme.resolveColor(root.dock.backgroundColor))
         border.color: Theme.resolveColor(root.dock.borderColor)
         border.width: Appearance.borderWidth
+
+        BlurShape {
+          source: detachedBox
+          kind: "rect"
+          color: Theme.resolveColor(root.dock.backgroundColor)
+          screen: root.screen?.name ?? ""
+          x: (placeOnScreen.origin?.x ?? 0) + detachedBox.x
+          y: (placeOnScreen.origin?.y ?? 0) + detachedBox.y
+          shown: window.backed && window.visible && content.visible && detachedBox.visible
+        }
       }
 
       // Between the pinned apps and the others

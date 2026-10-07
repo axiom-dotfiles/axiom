@@ -110,6 +110,12 @@ PopoutWrapperBase {
   readonly property bool _sideJoined: !root.barConfig.vertical && (root._sideStretch?.joined ?? false)
   readonly property bool squareStartNear: root.openToLeft && root._squareNear
   readonly property bool squareEndNear: !root.openToLeft && root._squareNear
+  // Where the popout's window is on screen, for a submenu's (its popup)
+  // blur: null until the bar's is known
+  readonly property var popupScreenOrigin: surface.barOrigin ? Qt.point(surface.barOrigin.x + mainPopup.barX - surface.x, surface.barOrigin.y + mainPopup.barY - surface.y) : null
+  // The stroke a submenu covers on the box's side, left open (in
+  // popupWindow coordinates), as its fill no longer hides it
+  property var submenuHole: null
   // ---- end tray submenus ----
 
   // content/<name>.qml, loaded by URL like bar widgets and overlay modules:
@@ -280,7 +286,16 @@ PopoutWrapperBase {
     container: root.layoutSource
     owner: "barPopout"
     stretch: root.occupied ? root.pillStretch : null
+    opening: root._opening
   }
+  // Over a pill's or island's far stroke, the stroke is left open under
+  // a translucent box (BarContainer.openings): the box's surface along the
+  // bar, fillets included
+  readonly property var _opening: root.occupied && root.popupWindow.visible && Appearance.translucent && root.anchorPill !== null && !root.mergeWithPill ? {
+    "start": mainPopup.shownAlongPos,
+    "end": mainPopup.shownAlongPos + surface.alongLength
+  } : null
+
   // How far past the bar's outer edge a merged popout's content starts:
   // where a pill's far stroke would be, with the border on or off
   readonly property real pillClearance: mergeWithPill ? root.pillFoot : 0
@@ -290,6 +305,8 @@ PopoutWrapperBase {
   // border strip's stroke starts; a transparent bar's detached box no
   // nearer than the windows, see Bar.detachedPush)
   readonly property real attachAt: mergeWithPill ? 0 : anchorPill !== null || root.island ? pillFoot : root.barConfig.extent - (root.barConfig.innerStroke ? Appearance.borderWidth : 0) + Bar.detachedPush(root.barConfig, HyprlandManager.gapsOut[Bar.edgeName(root.barConfig.location)] ?? 0, root.connectorGap)
+  // Read through a var: screenOrigin is BarPanel's, not QtObject's
+  readonly property var _panel: root.panel
   // The bar window's thickness (more than the bar's extent with pills)
   readonly property real panelThickness: root.panel?.thickness ?? root.barConfig.extent
   // Where the under-bar window starts, from the bar's outer edge: past the
@@ -617,6 +634,21 @@ PopoutWrapperBase {
     edge: root.barConfig.location
     castShadow: true
     active: still.showing && !root.isClosing
+    // The blur window draws its fill and shadow (BlurManager), from where
+    // the bar window is on screen: the surface is at (barX, barY) in bar
+    // window coordinates in either window
+    readonly property var barOrigin: root._panel?.screenOrigin ?? null
+    backed: BlurManager.backing && surface.barOrigin !== null
+    // A tray submenu's opening in the box's side stroke (TraySubmenuWrapper)
+    strokeHoles: root.submenuHole ? [Qt.rect(root.submenuHole.x - surface.x, root.submenuHole.y - surface.y, root.submenuHole.width, root.submenuHole.height)] : []
+
+    BlurShape {
+      source: surface
+      screen: root.screen?.name ?? ""
+      x: (surface.barOrigin?.x ?? 0) + mainPopup.barX
+      y: (surface.barOrigin?.y ?? 0) + mainPopup.barY
+      shown: surface.backed && root.popupWindow.visible
+    }
     connectorGap: root.connectorGap
     boxWidth: root.shownBoxWidth
     // A submenu's stretch: along the bar on a vertical one, away from it
