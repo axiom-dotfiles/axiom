@@ -2,9 +2,9 @@
 
 # axiom
 
-**A complete desktop shell for [Hyprland](https://hypr.land) that you build by dragging things around on your own screen.**
+**A complete [Hyprland](https://hypr.land) desktop shell you build on screen, not in config files.**
 
-Bars, overlay pages, edge menus, the lock screen and the login screen, all laid out with drag and drop and set from the UI. No config files to write. Written in QML on [Quickshell](https://quickshell.org).
+Bars, overlay pages, edge menus, the lock screen and the login screen, all laid out with drag and drop and set from the UI. Written in QML on [Quickshell](https://quickshell.org).
 
 <a href="https://github.com/axiom-dotfiles/axiom/stargazers"><picture><source media="(prefers-color-scheme: light)" srcset="https://img.shields.io/github/stars/axiom-dotfiles/axiom?style=for-the-badge&color=8c6c3e&labelColor=e1e2e7"><img alt="Stars" src="https://img.shields.io/github/stars/axiom-dotfiles/axiom?style=for-the-badge&color=e0af68&labelColor=1a1b26"></picture></a>
 <a href="https://github.com/axiom-dotfiles/axiom/tags"><picture><source media="(prefers-color-scheme: light)" srcset="https://img.shields.io/github/v/tag/axiom-dotfiles/axiom?sort=semver&label=version&style=for-the-badge&color=b15c00&labelColor=e1e2e7"><img alt="Version" src="https://img.shields.io/github/v/tag/axiom-dotfiles/axiom?sort=semver&label=version&style=for-the-badge&color=ff9e64&labelColor=1a1b26"></picture></a>
@@ -13,16 +13,25 @@ Bars, overlay pages, edge menus, the lock screen and the login screen, all laid 
 <a href="https://quickshell.org"><picture><source media="(prefers-color-scheme: light)" srcset="https://img.shields.io/badge/Quickshell-0.3.1%2B-9854f1?style=for-the-badge&labelColor=e1e2e7"><img alt="Quickshell" src="https://img.shields.io/badge/Quickshell-0.3.1%2B-bb9af7?style=for-the-badge&labelColor=1a1b26"></picture></a>
 <a href="LICENSE"><picture><source media="(prefers-color-scheme: light)" srcset="https://img.shields.io/badge/License-MIT-118c74?style=for-the-badge&labelColor=e1e2e7"><img alt="License" src="https://img.shields.io/badge/License-MIT-73daca?style=for-the-badge&labelColor=1a1b26"></picture></a>
 
-[Highlights](#highlights) · [Example setups](#example-setups) · [What's included](#whats-included) · [Install](#installation) · [Docs](#documentation)
+[Why axiom](#why-axiom) · [Highlights](#highlights) · [Example setups](#example-setups) · [What's included](#whats-included) · [Install](#installation) · [Docs](#documentation)
 
 <img src="assets/screenshots/hero-setups.webp" alt="Nine desktops sliding past one after another, all axiom with different themes, bars and docks: a solid Rosé Pine bar, large floating pills, a Dracula powerline bar on the bottom edge, an Everforest sidebar pinned open, a transparent Catppuccin bar, pills down the right edge, outlined arrows in Ayu, two plain bars in a light theme, and bars down both sides">
 
-<sub>Nine desktops, one shell. Each is an <a href="#example-setups">example setup</a> you can apply in one click.</sub>
+<sub>One shell, infinite desktops, zero edited files. Each is an <a href="#example-setups">example setup</a> you can apply in one click.</sub>
 
 </div>
 
-> [!TIP]
-> **Trying it costs nothing.** axiom never touches your Hyprland config unless you ask it to. It applies its keybinds at runtime, skips any key you already use, and goes away when you remove its one start-up line.
+## Why axiom
+
+A rice is someone else's desktop. axiom is the whole desktop, from the login screen to the lock screen, in one shell you shape yourself.
+
+- **Shaped on screen.** Bars, pages, menus, the lock and login screens: drag them where you want and set them from the UI. No config file to edit, and nothing breaks when you change your mind.
+- **The whole desktop, one shell.** Login, lock, notifications, polkit, idle, OSDs, a launcher and theming for 23 apps, from one config. No stack of separate tools to glue together.
+- **Updates don't fight you.** Your config is validated and migrated from version to version, so a new release never means merging your changes into someone else's dotfiles.
+- **Share a look, not a script.** An exported setup is data: monitors, paths and accounts stay behind, and commands come along only if you ask.
+- **Trying it costs nothing.** axiom never touches your Hyprland config unless you ask it to. It applies its keybinds at runtime, skips any key you already use, and goes away when you remove its one start-up line.
+
+**Who it's for:** anyone who wants a desktop that's stable, complete and one application rather than a pile of tools and scripts, and that you can still rice as far as you like.
 
 ## Highlights
 
@@ -183,19 +192,12 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the layout and conventions, and [docs
 
 ## Roadmap
 
-- [x] Installer, onboarding and a setup wizard
-- [x] v1.0, the first stable release
-- [x] Clipboard manager, dock and edge menus
-- [x] One grid editor for pages, menus, the lock screen and the login screen
-- [x] Bar styles
-- [x] Alt+Tab, scrolling strips
-- [x] Calendar (CalDAV and .ics)
-- [x] Login screen (greetd) and polkit prompt
-- [x] Example setups and config sharing, applied in one click
-- [ ] AUR package, if there is interest
-- [ ] Other Wayland compositors
-- [ ] More translations
-- [ ] More widgets!
+- **Other Wayland compositors**, beyond Hyprland
+- **More widgets** for bars and overlay pages
+- **More styles** for bars, widgets and menus
+- **More translations**
+- **Performance Improvements**
+- **An AUR package**, if there is interest
 
 ## Acknowledgments
 
