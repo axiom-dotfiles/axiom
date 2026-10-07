@@ -412,6 +412,7 @@ Scope {
       const old = window._zoneSet;
       if (old)
         DockManager.setZone(old[0], old[1], old[2], 0);
+      ShellManager.setBorderOpening(window, null);
     }
 
     anchors {
@@ -462,6 +463,25 @@ Scope {
       edge: root.edge
     }
     readonly property bool backed: !root.preview && BlurManager.backing && placeOnScreen.origin !== null
+    // The window on screen: a hiding box goes past its edge
+    readonly property rect screenRect: Qt.rect(placeOnScreen.origin?.x ?? 0, placeOnScreen.origin?.y ?? 0, window.width, window.height)
+
+    // Joined to the border's stroke, the stretch of it the box covers (in
+    // screen px along the edge), which the border leaves open under its
+    // translucent fill (ShellManager.borderOpenings), as for edge popouts
+    readonly property var borderOpening: {
+      const origin = placeOnScreen.origin;
+      if (!origin || root.preview || !window.visible || !root.attached || !Appearance.translucent || !Appearance.screenBorder || placement.bareEdge || placement.barPanel)
+        return null;
+      const start = (root.vertical ? origin.y + surface.y : origin.x + surface.x) + surface.coverStart;
+      return surface.coverLength <= 0 ? null : {
+        "screen": root.screen?.name ?? "",
+        "edge": root._edgeName,
+        "start": start,
+        "end": start + surface.coverLength
+      };
+    }
+    onBorderOpeningChanged: ShellManager.setBorderOpening(window, window.borderOpening)
 
     Item {
       id: content
@@ -497,6 +517,8 @@ Scope {
         fillColor: Theme.resolveColor(root.dock.backgroundColor)
         strokeColor: Theme.resolveColor(root.dock.borderColor)
         backed: window.backed
+        // Hiding, it moves past its window's edge
+        hiddenBehind: Math.max(0, root.slide)
 
         BlurShape {
           source: surface
@@ -504,6 +526,7 @@ Scope {
           x: (placeOnScreen.origin?.x ?? 0) + surface.x
           y: (placeOnScreen.origin?.y ?? 0) + surface.y
           shown: window.backed && window.visible && content.visible && surface.visible
+          clipRect: window.screenRect
         }
       }
 
@@ -534,6 +557,7 @@ Scope {
           x: (placeOnScreen.origin?.x ?? 0) + detachedBox.x
           y: (placeOnScreen.origin?.y ?? 0) + detachedBox.y
           shown: window.backed && window.visible && content.visible && detachedBox.visible
+          clipRect: window.screenRect
         }
       }
 

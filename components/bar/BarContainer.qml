@@ -506,10 +506,11 @@ Rectangle {
           const end = Math.min(o.end, (root.isVertical ? pill.y + pill.height : pill.x + pill.width));
           if (end <= start)
             return null;
-          const row = Appearance.borderWidth + 1;
+          // The stroke, with its anti-aliased fringe a pixel either side
+          const row = Appearance.borderWidth + 2;
           const foot = root.barConfig.pillDepth;
           const far = root.isVertical ? root.width : root.height;
-          const across = root.barConfig.left || root.barConfig.top ? foot - row : far - foot;
+          const across = root.barConfig.left || root.barConfig.top ? foot - row + 1 : far - foot - 1;
           const r = root.isVertical ? Qt.rect(across, start, row, end - start) : Qt.rect(start, across, end - start, row);
           return Qt.rect(r.x - pill.x, r.y - pill.y, r.width, r.height);
         }).filter(hole => hole !== null)

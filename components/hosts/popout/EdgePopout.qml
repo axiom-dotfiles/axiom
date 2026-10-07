@@ -229,6 +229,8 @@ PopoutWrapperBase {
     contentLength: root._contentAlong
     joinStart: root.joinStart
     joinEnd: root.joinEnd
+    coverStart: surface.coverStart
+    coverLength: surface.coverLength
     lo: root.startInset
     hi: root.edgeLength - root.endInset
     owner: "edgePopout:" + root
@@ -246,8 +248,8 @@ PopoutWrapperBase {
   readonly property var _borderOpening: surfaceWindow.visible && Appearance.translucent && Appearance.screenBorder && !root.detached && !root.bareEdge && !root.barPanel ? ({
       "screen": surfaceWindow.screenName,
       "edge": Bar.edgeName(root.edge),
-      "start": root.reservedOn(root.startSide) + root.surfaceStart,
-      "end": root.reservedOn(root.startSide) + root.surfaceStart + (root.vertical ? surface.height : surface.width)
+      "start": root.reservedOn(root.startSide) + root.surfaceStart + surface.coverStart,
+      "end": root.reservedOn(root.startSide) + root.surfaceStart + surface.coverStart + surface.coverLength
     }) : null
   on_BorderOpeningChanged: ShellManager.setBorderOpening(root, root._borderOpening)
   Component.onDestruction: ShellManager.setBorderOpening(root, null)

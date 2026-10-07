@@ -232,6 +232,10 @@ Item {
 
       anchor {
         window: root.currentAnchor
+        // Placed here, so the compositor mustn't move it: its window
+        // reaches past the parent's for room, and pushed back onto the
+        // screen it would leave its blur and the parent's opening behind
+        adjustment: PopupAdjustment.None
         rect {
           x: submenuPopup.attachX
           y: root.attachRect.y + submenuPopup.windowFrom - submenuPopup.roomTop
@@ -270,8 +274,9 @@ Item {
           shown: surface.backed && submenuPopup.visible
         }
 
-        // The parent's side stroke it covers, left open
-        readonly property var parentHole: surface.backed && submenuPopup.visible ? Qt.rect(outer.openToLeft ? root.attachRect.x : root.attachRect.x + root.attachRect.width - Appearance.borderWidth - 1, surface.inParentY, Appearance.borderWidth + 1, surface.height) : null
+        // The parent's side stroke it covers, left open, with its
+        // anti-aliased fringe a pixel either side
+        readonly property var parentHole: surface.backed && submenuPopup.visible ? Qt.rect(outer.openToLeft ? root.attachRect.x - 1 : root.attachRect.x + root.attachRect.width - Appearance.borderWidth - 1, surface.inParentY + surface.coverStart, Appearance.borderWidth + 2, surface.coverLength) : null
         onParentHoleChanged: {
           if (outer.host)
             outer.host.submenuHole = surface.parentHole;

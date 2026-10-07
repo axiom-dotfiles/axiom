@@ -292,8 +292,8 @@ PopoutWrapperBase {
   // a translucent box (BarContainer.openings): the box's surface along the
   // bar, fillets included
   readonly property var _opening: root.occupied && root.popupWindow.visible && Appearance.translucent && root.anchorPill !== null && !root.mergeWithPill ? {
-    "start": mainPopup.shownAlongPos,
-    "end": mainPopup.shownAlongPos + surface.alongLength
+    "start": mainPopup.shownAlongPos + surface.coverStart,
+    "end": mainPopup.shownAlongPos + surface.coverStart + surface.coverLength
   } : null
 
   // How far past the bar's outer edge a merged popout's content starts:

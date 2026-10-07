@@ -24,6 +24,9 @@ QtObject {
   // Casts the shell's shadow or glow (BarStyle's), round all such shapes
   // as one
   property bool shadowed: true
+  // What of it shows, on screen: its window's rect, for a shape that moves
+  // past its window's edges (a hiding dock); null for the whole screen
+  property var clipRect: null
 
   Component.onCompleted: BlurManager.register(root)
   Component.onDestruction: BlurManager.unregister(root)

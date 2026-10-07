@@ -76,23 +76,45 @@ Scope {
     required property string screenName
     anchors.fill: parent
 
+    // What a copy reads while its source is going (destroyed before its
+    // BlurShape leaves the list)
+    AttachedSurface {
+      id: blankSurface
+      visible: false
+      edge: Bar.Top
+    }
+    Rectangle {
+      id: blankRect
+      visible: false
+    }
+
     Repeater {
       // Changes only as a shape registers or goes
       model: BlurManager.shapes.filter(shape => shape.screen === group.screenName && shape.shadowed === group.shadowed)
 
-      delegate: Loader {
+      // Cut to the shape's clipRect (its window), if it has one
+      delegate: Item {
         id: slot
         required property var modelData
-        x: modelData.x
-        y: modelData.y
-        visible: modelData.shown
-        sourceComponent: modelData.kind === "rect" ? rectMirror : modelData.kind === "frame" ? frameMirror : attachedMirror
+        readonly property var area: modelData.clipRect
+        x: area ? area.x : 0
+        y: area ? area.y : 0
+        width: area ? area.width : group.width
+        height: area ? area.height : group.height
+        clip: !!area
+        visible: modelData.shown && !!modelData.source
+
+        Loader {
+          x: slot.modelData.x - slot.x
+          y: slot.modelData.y - slot.y
+          sourceComponent: slot.modelData.kind === "rect" ? rectMirror : slot.modelData.kind === "frame" ? frameMirror : attachedMirror
+        }
 
         Component {
           id: attachedMirror
 
           AttachedSurface {
-            readonly property var src: slot.modelData.source
+            readonly property var src: slot.modelData.source ?? blankSurface
             mirror: true
             width: src.width
             height: src.height
@@ -127,7 +149,7 @@ Scope {
           id: rectMirror
 
           Rectangle {
-            readonly property var src: slot.modelData.source
+            readonly property var src: slot.modelData.source ?? blankRect
             width: src.width
             height: src.height
             topLeftRadius: src.topLeftRadius

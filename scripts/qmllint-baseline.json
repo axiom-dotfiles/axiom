@@ -61,7 +61,8 @@
   },
   "components/hosts/popout/TraySubmenuWrapper.qml": {
     "incompatible-type: Cannot assign binding of type QObject to QQuickItem": 1,
-    "missing-property: Member \"contentReady\" not found on type \"QQuickItem\"": 1
+    "missing-property: Member \"contentReady\" not found on type \"QQuickItem\"": 1,
+    "missing-type: No type found for property \"adjustment\". This may be due to a missing import statement or incomplete qmltypes files.": 1
   },
   "components/reusable/BaseWidget.qml": {
     "missing-property: Member \"implicitHeight\" not found on type \"QObject\"": 1,

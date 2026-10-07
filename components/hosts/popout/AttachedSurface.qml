@@ -111,6 +111,35 @@ Item {
 
   default property alias content: contentContainer.data
 
+  // Along the attach edge, the part of what it attaches to that it covers,
+  // from its start: what of it shows at that edge as it slides, the box
+  // and as much of each fillet as has come out past the edge (the fillet
+  // runs along the edge, then curves up into the wall). A stroke left open
+  // under it (the border's, a pill's) opens only there, or a gap shows
+  // past the fillets, or the stroke cuts across them.
+  // How far it's behind that edge: slid, or moved by its host (a hiding
+  // dock, `hiddenBehind`)
+  property real hiddenBehind: 0
+  readonly property real _hidden: Math.abs(slideContainer.slideX) + Math.abs(slideContainer.slideY) + root.hiddenBehind
+  // How far in from the surface's end the fillet shows at the edge, with
+  // `hidden` of the surface still behind it (see _outline: a line along
+  // the edge at v = half to sideU - R, an arc of radius R up to the wall)
+  function _filletIn(margin, hidden) {
+    if (margin <= 0)
+      return 0;
+    const R = filletRadius, h = half;
+    // The stroke along the edge is a full stroke wide
+    if (hidden <= strokeWidth)
+      return 0;
+    if (hidden >= h + R)
+      return margin;
+    const dv = h + R - hidden;
+    return Math.min(margin, Math.max(0, margin + h - R + Math.sqrt(R * R - dv * dv)));
+  }
+  readonly property real coverStart: root._filletIn(root.startMargin, root._hidden)
+  // (nothing once it's all behind the edge)
+  readonly property real coverLength: root._hidden >= root.depth ? 0 : root.alongLength - root.coverStart - root._filletIn(root.endMargin, root._hidden)
+
   readonly property bool vertical: edge === Bar.Left || edge === Bar.Right
   readonly property bool attachLeft: edge === Bar.Left
   readonly property bool attachRight: edge === Bar.Right
