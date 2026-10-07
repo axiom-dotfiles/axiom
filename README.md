@@ -2,7 +2,7 @@
 
 # axiom
 
-**A lite desktop environment for [Hyprland](https://hypr.land): bring your own apps, build the rest on screen.**
+**A lightweight desktop environment for [Hyprland](https://hypr.land): bring your own apps, build the rest on screen.**
 
 Bars, menus, a launcher, notifications, settings, theming, the lock screen and the login screen: one application, laid out with drag and drop and set from the UI.
 
