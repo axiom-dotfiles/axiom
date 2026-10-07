@@ -70,7 +70,11 @@ TestCase {
       },
       "Hyprland": {
         "binds": [],
-        "blur": true
+        "blur": true,
+        "look": {
+          "gaps": true,
+          "gapsOut": 12
+        }
       }
     }, schema);
     compare(picked, {
@@ -84,7 +88,13 @@ TestCase {
             "left": []
           }
         }
-      ]
+      ],
+      "Hyprland": {
+        "look": {
+          "gaps": true,
+          "gapsOut": 12
+        }
+      }
     });
   }
 

@@ -3,7 +3,7 @@
     "title": "Sidebar",
     "description": "A floating bar with a sidebar that pins open beside your windows"
   },
-  "version": 48,
+  "version": 49,
   "Appearance": {
     "font": {
       "family": "Hack Nerd Font",
@@ -528,6 +528,13 @@
       "gap": -1
     }
   ],
+  "Hyprland": {
+    "look": {
+      "gaps": true,
+      "gapsIn": 3,
+      "gapsOut": 6
+    }
+  },
   "Icons": {
     "overrides": {}
   },

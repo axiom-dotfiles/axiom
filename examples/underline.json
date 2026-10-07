@@ -3,7 +3,7 @@
     "title": "Underline",
     "description": "Pills down the right edge with underlined slants, and a calendar sidebar"
   },
-  "version": 48,
+  "version": 49,
   "Appearance": {
     "font": {
       "family": "FiraCode Nerd Font",
@@ -411,6 +411,13 @@
       "gap": -1
     }
   ],
+  "Hyprland": {
+    "look": {
+      "gaps": true,
+      "gapsIn": 3,
+      "gapsOut": 6
+    }
+  },
   "Icons": {
     "overrides": {}
   },

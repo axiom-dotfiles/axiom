@@ -86,7 +86,7 @@ if ok then axiom.setup() end
 ```
 
 > [!TIP]
-> `setup()` applies everything switched on in the settings. To pick parts yourself, call `axiom.required()`, `axiom.binds()`, `axiom.theme()`, `axiom.blur()`, `axiom.layers()` (the stacking order of axiom's surfaces) and `axiom.monitors()` (the Monitors page's profiles) instead. `hl.unbind("KEY")` after it frees one of axiom's keys.
+> `setup()` applies everything switched on in the settings. To pick parts yourself, call `axiom.required()`, `axiom.binds()`, `axiom.look()` (the settings' Window look: themed borders, axiom's shape, gaps), `axiom.blur()`, `axiom.layers()` (the stacking order of axiom's surfaces) and `axiom.monitors()` (the Monitors page's profiles) instead. `hl.unbind("KEY")` after it frees one of axiom's keys.
 
 Whichever mode is set, axiom falls back to the runtime layer when its file isn't loaded, and logs why.
 

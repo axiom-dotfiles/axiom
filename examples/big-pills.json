@@ -3,7 +3,7 @@
     "title": "Big pills",
     "description": "Large floating pills with glow, and menus that drop from them"
   },
-  "version": 48,
+  "version": 49,
   "Appearance": {
     "font": {
       "family": "Inter",
@@ -404,6 +404,13 @@
       "gap": -1
     }
   ],
+  "Hyprland": {
+    "look": {
+      "gaps": true,
+      "gapsIn": 3,
+      "gapsOut": 6
+    }
+  },
   "Icons": {
     "overrides": {}
   },

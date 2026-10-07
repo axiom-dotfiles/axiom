@@ -3,7 +3,7 @@
     "title": "Clean",
     "description": "A solid bar on top and the dock below: the defaults, tidied"
   },
-  "version": 48,
+  "version": 49,
   "Appearance": {
     "font": {
       "family": "Inter",
@@ -356,6 +356,13 @@
       "gap": -1
     }
   ],
+  "Hyprland": {
+    "look": {
+      "gaps": true,
+      "gapsIn": 3,
+      "gapsOut": 6
+    }
+  },
   "Icons": {
     "overrides": {}
   },

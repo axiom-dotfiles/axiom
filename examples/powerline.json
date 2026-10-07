@@ -3,7 +3,7 @@
     "title": "Powerline",
     "description": "Powerline arrows on a bottom bar, with the dock on top"
   },
-  "version": 48,
+  "version": 49,
   "Appearance": {
     "font": {
       "family": "CaskaydiaCove Nerd Font",
@@ -354,6 +354,13 @@
       "gap": -1
     }
   ],
+  "Hyprland": {
+    "look": {
+      "gaps": true,
+      "gapsIn": 3,
+      "gapsOut": 6
+    }
+  },
   "Icons": {
     "overrides": {}
   },

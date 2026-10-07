@@ -3,7 +3,7 @@
     "title": "Transparent",
     "description": "A see-through bar with dot separators, square corners and no screen border"
   },
-  "version": 48,
+  "version": 49,
   "Appearance": {
     "font": {
       "family": "GeistMono Nerd Font",
@@ -317,6 +317,13 @@
       "gap": -1
     }
   ],
+  "Hyprland": {
+    "look": {
+      "gaps": true,
+      "gapsIn": 3,
+      "gapsOut": 6
+    }
+  },
   "Icons": {
     "overrides": {}
   },

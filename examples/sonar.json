@@ -3,7 +3,7 @@
     "title": "Sonar",
     "description": "Floating pills on the left, a transparent bar on the right, and an AI chat sidebar"
   },
-  "version": 48,
+  "version": 49,
   "Appearance": {
     "font": {
       "family": "Inter",
@@ -662,6 +662,13 @@
       "gap": -1
     }
   ],
+  "Hyprland": {
+    "look": {
+      "gaps": true,
+      "gapsIn": 3,
+      "gapsOut": 6
+    }
+  },
   "Icons": {
     "overrides": {}
   },

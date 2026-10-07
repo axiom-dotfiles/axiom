@@ -821,7 +821,6 @@
     "workspaceStep": "ワークスペースを左右上下へ",
     "Key": "キー",
     "Corner rounding": "角の丸み",
-    "Match axiom's look": "axiom の見た目に合わせる",
     "Window corners and border width follow Look & Feel → Shape.": "ウィンドウの角と枠線の太さを「外観と操作感 → 形」に合わせます。",
     "included": "hyprland.lua からインクルード",
     "Managed config": "管理設定",
@@ -2715,6 +2714,11 @@
     "Import a configuration": "設定をインポート",
     "Exported to {0}": "{0} にエクスポートしました",
     "Failed to export to {0}": "{0} へのエクスポートに失敗しました",
-    "No file picker could be opened": "ファイル選択ダイアログを開けませんでした"
+    "No file picker could be opened": "ファイル選択ダイアログを開けませんでした",
+    "Window look": "ウィンドウの見た目",
+    "Hyprland settings that make windows match axiom, in every mode. While on, they win over your own Hyprland config, and they come along when you share or import a config.": "ウィンドウを axiom に合わせる Hyprland の設定です（どのモードでも有効）。オンの間はご自身の Hyprland の設定より優先され、設定の共有やインポートにも含まれます。",
+    "Match axiom's shape": "axiom の形に合わせる",
+    "Set window gaps": "ウィンドウの間隔を設定",
+    "Floating bars and detached surfaces set to Automatic keep these gaps too.": "「自動」に設定したフローティングバーや離れた表示もこの間隔に合わせます。"
   }
 }

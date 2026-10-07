@@ -22,7 +22,7 @@ TestCase {
     };
     config.Hyprland.mode = mode;
     config.Hyprland.managed.kbLayout = "us,de";
-    config.Hyprland.managed.gapsIn = 9;
+    config.Hyprland.managed.blurSize = 9;
     config.Hyprland.monitors.profiles = [
       {
         "name": "desk",
@@ -63,7 +63,7 @@ TestCase {
   function test_export_managed_takes_only_greeter_options() {
     const bundle = GreeterBundle.exportConfig(config("managed"), managedSchema, copies);
     compare(bundle.Hyprland.managed.kbLayout, "us,de");
-    compare(bundle.Hyprland.managed.gapsIn, undefined);
+    compare(bundle.Hyprland.managed.blurSize, undefined);
     compare(bundle.Hyprland.managed.binds, undefined);
     verify(bundle.Hyprland.managed.sensitivity !== undefined);
   }

@@ -3,7 +3,7 @@
     "title": "Outline",
     "description": "A tall bar of outlined powerline segments"
   },
-  "version": 48,
+  "version": 49,
   "Appearance": {
     "font": {
       "family": "Inter",
@@ -392,6 +392,13 @@
       "gap": -1
     }
   ],
+  "Hyprland": {
+    "look": {
+      "gaps": true,
+      "gapsIn": 3,
+      "gapsOut": 6
+    }
+  },
   "Icons": {
     "overrides": {}
   },

@@ -22,7 +22,7 @@
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 48,
+      "default": 49,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
@@ -433,13 +433,6 @@
           "description": "Start awww-daemon for the wallpaper picker.",
           "x-showIf": { "/Appearance.wallpaperBackend": "awww" }
         },
-        "theme": {
-          "type": "boolean",
-          "title": "Themed borders",
-          "x-group": "Integration",
-          "default": false,
-          "description": "Window borders in theme colors."
-        },
         "blur": {
           "type": "boolean",
           "title": "Blur behind axiom",
@@ -637,17 +630,30 @@
             "profiles": { "type": "array", "default": [], "items": { "$ref": "#/definitions/MonitorProfile" } }
           }
         },
+        "look": {
+          "x-scope": "look",
+          "type": "object",
+          "title": "Window look",
+          "description": "Hyprland settings that make windows match axiom, in every mode. While on, they win over your own Hyprland config, and they come along when you share or import a config.",
+          "additionalProperties": false,
+          "x-order": ["borders", "shape", "gaps", "gapsIn", "gapsOut"],
+          "properties": {
+            "borders": { "type": "boolean", "title": "Themed borders", "default": false, "description": "Window borders in theme colors." },
+            "shape": { "type": "boolean", "title": "Match axiom's shape", "default": false, "description": "Window corners and border width follow Look & Feel → Shape." },
+            "gaps": { "type": "boolean", "title": "Set window gaps", "default": false, "description": "Floating bars and detached surfaces set to Automatic keep these gaps too." },
+            "gapsIn": { "type": "integer", "x-control": "stepper", "title": "Gaps between windows", "x-unit": "px", "default": 3, "minimum": 0, "maximum": 50, "x-showIf": { "gaps": true } },
+            "gapsOut": { "type": "integer", "x-control": "stepper", "title": "Gaps to the edges", "x-unit": "px", "default": 6, "minimum": 0, "maximum": 100, "x-showIf": { "gaps": true } }
+          }
+        },
         "managed": {
           "type": "object",
           "title": "Managed config",
           "description": "Written into hyprland.lua. Anything else goes in ~/.config/hypr/user/*.lua.",
           "x-showIf": { "mode": "managed" },
           "additionalProperties": false,
-          "x-order": ["layout", "gapsIn", "gapsOut", "preserveSplit", "smartSplit", "smartResizing", "forceSplit", "splitRatio", "masterSize", "masterOrientation", "masterNewStatus", "snap", "matchAxiom", "borderSize", "rounding", "activeOpacity", "inactiveOpacity", "fullscreenOpacity", "dimInactive", "dimStrength", "dimSpecial", "windowBlur", "blurSize", "blurPasses", "blurXray", "blurIgnoreOpacity", "blurNewOptimizations", "blurNoise", "blurContrast", "blurVibrancy", "blurPopups", "blurSpecial", "shadow", "shadowRange", "shadowPower", "shadowThemed", "shadowColor", "animations", "animationPreset", "workspaceWraparound", "curves", "customAnimations", "kbLayout", "kbVariant", "kbOptions", "repeatRate", "repeatDelay", "numlockByDefault", "followMouse", "floatSwitchOverrideFocus", "accelProfile", "sensitivity", "leftHanded", "resizeOnBorder", "cursorTheme", "cursorSize", "cursorHideTimeout", "hideCursorOnKeyPress", "noWarps", "naturalScroll", "tapToClick", "disableWhileTyping", "touchpadScrollFactor", "hideLogo", "backgroundThemed", "backgroundColor", "focusOnActivate", "swallow", "swallowRegex", "closeSpecialOnEmpty", "hideSpecialOnWorkspaceChange", "workspaceBackAndForth", "mouseWakesScreen", "keyWakesScreen", "vrr", "scrollEventDelay", "xwaylandZeroScaling", "env", "autostart"],
+          "x-order": ["layout", "preserveSplit", "smartSplit", "smartResizing", "forceSplit", "splitRatio", "masterSize", "masterOrientation", "masterNewStatus", "snap", "borderSize", "rounding", "activeOpacity", "inactiveOpacity", "fullscreenOpacity", "dimInactive", "dimStrength", "dimSpecial", "windowBlur", "blurSize", "blurPasses", "blurXray", "blurIgnoreOpacity", "blurNewOptimizations", "blurNoise", "blurContrast", "blurVibrancy", "blurPopups", "blurSpecial", "shadow", "shadowRange", "shadowPower", "shadowThemed", "shadowColor", "animations", "animationPreset", "workspaceWraparound", "curves", "customAnimations", "kbLayout", "kbVariant", "kbOptions", "repeatRate", "repeatDelay", "numlockByDefault", "followMouse", "floatSwitchOverrideFocus", "accelProfile", "sensitivity", "leftHanded", "resizeOnBorder", "cursorTheme", "cursorSize", "cursorHideTimeout", "hideCursorOnKeyPress", "noWarps", "naturalScroll", "tapToClick", "disableWhileTyping", "touchpadScrollFactor", "hideLogo", "backgroundThemed", "backgroundColor", "focusOnActivate", "swallow", "swallowRegex", "closeSpecialOnEmpty", "hideSpecialOnWorkspaceChange", "workspaceBackAndForth", "mouseWakesScreen", "keyWakesScreen", "vrr", "scrollEventDelay", "xwaylandZeroScaling", "env", "autostart"],
           "properties": {
             "layout": { "type": "string", "title": "Layout", "x-group": "Layout", "enum": ["dwindle", "master"], "x-enumLabels": { "dwindle": "Dwindle (binary splits)", "master": "Master and stack" }, "default": "dwindle", "description": "How windows tile. For strips (Hyprland's scrolling columns), see Workspaces.", "x-hypr": "general.layout", "x-hyprAlways": true },
-            "gapsIn": { "type": "integer", "x-control": "stepper", "title": "Gaps between windows", "x-group": "Layout", "default": 3, "minimum": 0, "maximum": 50, "x-hypr": "general.gaps_in", "x-hyprAlways": true },
-            "gapsOut": { "type": "integer", "x-control": "stepper", "title": "Gaps to the edges", "x-group": "Layout", "default": 6, "minimum": 0, "maximum": 100, "x-hypr": "general.gaps_out", "x-hyprAlways": true },
             "preserveSplit": { "type": "boolean", "title": "Keep split direction", "x-group": "Layout", "default": true, "description": "Dwindle keeps a split's direction when the window is resized or moved.", "x-showIf": { "layout": "dwindle" }, "x-hypr": "dwindle.preserve_split", "x-hyprAlways": true },
             "smartSplit": { "type": "boolean", "title": "Split by cursor position", "x-group": "Layout", "default": false, "description": "Dwindle splits towards the side of the window the cursor is on.", "x-showIf": { "layout": "dwindle" }, "x-hypr": "dwindle.smart_split" },
             "smartResizing": { "type": "boolean", "title": "Resize by cursor position", "x-group": "Layout", "default": true, "description": "Resizing moves the edge nearest the cursor.", "x-showIf": { "layout": "dwindle" }, "x-hypr": "dwindle.smart_resizing" },
@@ -657,9 +663,8 @@
             "masterOrientation": { "type": "string", "title": "Master side", "x-group": "Layout", "enum": ["left", "right", "top", "bottom", "center"], "default": "left", "x-showIf": { "layout": "master" }, "x-hypr": "master.orientation" },
             "masterNewStatus": { "type": "string", "title": "New windows become", "x-group": "Layout", "enum": ["slave", "master", "inherit"], "x-enumLabels": { "slave": "Part of the stack", "master": "The master", "inherit": "Like the focused window" }, "default": "slave", "x-showIf": { "layout": "master" }, "x-hypr": "master.new_status" },
             "snap": { "type": "boolean", "title": "Snap floating windows", "x-group": "Layout", "default": false, "description": "Floating windows snap to each other and the screen edges.", "x-hypr": "general.snap.enabled" },
-            "matchAxiom": { "type": "boolean", "title": "Match axiom's look", "x-group": "Decoration", "default": true, "description": "Window corners and border width follow Look & Feel → Shape." },
-            "borderSize": { "type": "integer", "x-control": "stepper", "title": "Border width", "x-group": "Decoration", "default": 2, "minimum": 0, "maximum": 20, "x-showIf": { "matchAxiom": false } },
-            "rounding": { "type": "integer", "x-control": "stepper", "title": "Corner rounding", "x-group": "Decoration", "default": 8, "minimum": 0, "maximum": 50, "x-showIf": { "matchAxiom": false } },
+            "borderSize": { "type": "integer", "x-control": "stepper", "title": "Border width", "x-group": "Decoration", "default": 2, "minimum": 0, "maximum": 20, "x-showIf": { "/Hyprland.look.shape": false } },
+            "rounding": { "type": "integer", "x-control": "stepper", "title": "Corner rounding", "x-group": "Decoration", "default": 8, "minimum": 0, "maximum": 50, "x-showIf": { "/Hyprland.look.shape": false } },
             "activeOpacity": { "type": "integer", "title": "Focused window opacity", "x-unit": "%", "x-group": "Decoration", "default": 100, "minimum": 10, "maximum": 100, "x-hypr": "decoration.active_opacity", "x-hyprScale": 0.01 },
             "inactiveOpacity": { "type": "integer", "title": "Unfocused window opacity", "x-unit": "%", "x-group": "Decoration", "default": 100, "minimum": 10, "maximum": 100, "x-hypr": "decoration.inactive_opacity", "x-hyprScale": 0.01 },
             "fullscreenOpacity": { "type": "integer", "title": "Fullscreen opacity", "x-unit": "%", "x-group": "Decoration", "default": 100, "minimum": 10, "maximum": 100, "x-hypr": "decoration.fullscreen_opacity", "x-hyprScale": 0.01 },

@@ -3,7 +3,7 @@
     "title": "Basic",
     "description": "Two plain bars, top and bottom, and a light theme"
   },
-  "version": 48,
+  "version": 49,
   "Appearance": {
     "font": {
       "family": "IBM Plex Sans",
@@ -429,6 +429,13 @@
       "gap": -1
     }
   ],
+  "Hyprland": {
+    "look": {
+      "gaps": true,
+      "gapsIn": 3,
+      "gapsOut": 6
+    }
+  },
   "Icons": {
     "overrides": {}
   },
