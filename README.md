@@ -142,7 +142,7 @@ One repository and one config for the whole desktop:
 
 ## Installation
 
-On Arch Linux, run the installer:
+On Arch Linux, or a distribution based on it (CachyOS, EndeavourOS, Manjaro, …), run the installer:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/axiom-dotfiles/axiom/main/install.sh | bash

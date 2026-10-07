@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 49
+  readonly property int currentVersion: 50
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -125,6 +125,8 @@ QtObject {
       result = _v47ToV48(result, changes);
     if (version < 49)
       result = _v48ToV49(result, changes);
+    if (version < 50)
+      result = _v49ToV50(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -1710,6 +1712,25 @@ QtObject {
       return config;
     hypr.look = look;
     changes.push(`Hyprland.theme and managed gaps/matchAxiom -> Hyprland.look ${JSON.stringify(look)}`);
+    return config;
+  }
+
+  // v50 made translucency and blur one Look & Feel setting
+  // (Appearance.surface): "Blur behind axiom" (Hyprland.blur) becomes its
+  // blur switch, which stays off-screen until the surfaces are translucent
+  function _v49ToV50(config, changes) {
+    const hypr = config.Hyprland;
+    if (!hypr || typeof hypr !== "object" || hypr.blur === undefined)
+      return config;
+    const blur = hypr.blur === true;
+    delete hypr.blur;
+    if (!config.Appearance || typeof config.Appearance !== "object")
+      config.Appearance = {};
+    const appearance = config.Appearance;
+    if (!appearance.surface || typeof appearance.surface !== "object")
+      appearance.surface = {};
+    appearance.surface.blur = blur;
+    changes.push(`Hyprland.blur -> Appearance.surface.blur ${blur}`);
     return config;
   }
 }

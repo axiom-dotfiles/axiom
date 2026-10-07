@@ -50,7 +50,7 @@ Rectangle {
   width: row.implicitWidth + root.inset * 2
   height: Math.round(Widget.height * 1.5)
   radius: Appearance.borderRadius
-  color: Theme.backgroundAlt
+  color: Appearance.fill(Theme.backgroundAlt)
   border.color: Theme.foreground
   border.width: Appearance.borderWidth
 

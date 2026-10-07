@@ -22,7 +22,7 @@
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 49,
+      "default": 50,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
@@ -433,13 +433,6 @@
           "description": "Start awww-daemon for the wallpaper picker.",
           "x-showIf": { "/Appearance.wallpaperBackend": "awww" }
         },
-        "blur": {
-          "type": "boolean",
-          "title": "Blur behind axiom",
-          "x-group": "Integration",
-          "default": false,
-          "description": "Blur behind bars, popouts and the launcher."
-        },
         "binds": {
           "x-scope": "personal",
           "type": "array",
@@ -671,9 +664,9 @@
             "dimInactive": { "type": "boolean", "title": "Dim unfocused windows", "x-group": "Decoration", "default": true, "x-hypr": "decoration.dim_inactive", "x-hyprAlways": true },
             "dimStrength": { "type": "integer", "title": "Dim strength", "x-unit": "%", "x-group": "Decoration", "default": 8, "minimum": 0, "maximum": 100, "x-showIf": { "dimInactive": true }, "x-hypr": "decoration.dim_strength", "x-hyprScale": 0.01, "x-hyprAlways": true },
             "dimSpecial": { "type": "integer", "title": "Dim behind special workspaces", "x-unit": "%", "x-group": "Decoration", "default": 20, "minimum": 0, "maximum": 100, "x-hypr": "decoration.dim_special", "x-hyprScale": 0.01 },
-            "windowBlur": { "type": "boolean", "title": "Blur transparent windows", "x-group": "Blur", "default": true, "x-hypr": "decoration.blur.enabled", "x-hyprAlways": true },
-            "blurSize": { "type": "integer", "x-control": "stepper", "title": "Blur size", "x-group": "Blur", "default": 4, "minimum": 1, "maximum": 20, "x-showIf": { "windowBlur": true }, "x-hypr": "decoration.blur.size", "x-hyprAlways": true },
-            "blurPasses": { "type": "integer", "title": "Blur passes", "x-group": "Blur", "default": 3, "minimum": 1, "maximum": 6, "x-showIf": { "windowBlur": true }, "x-hypr": "decoration.blur.passes", "x-hyprAlways": true },
+            "windowBlur": { "type": "boolean", "title": "Blur transparent windows", "x-group": "Blur", "default": true, "description": "Look & Feel → Translucency can blur them anyway, and sets the strength while axiom's surfaces blur.", "x-hypr": "decoration.blur.enabled", "x-hyprAlways": true },
+            "blurSize": { "type": "integer", "x-control": "stepper", "title": "Blur size", "x-group": "Blur", "default": 4, "minimum": 1, "maximum": 20, "x-showIf": { "windowBlur": true, "anyOf": [{ "/Appearance.surface.opacity": 100 }, { "/Appearance.surface.blur": false }] }, "x-hypr": "decoration.blur.size", "x-hyprAlways": true },
+            "blurPasses": { "type": "integer", "title": "Blur passes", "x-group": "Blur", "default": 3, "minimum": 1, "maximum": 6, "x-showIf": { "windowBlur": true, "anyOf": [{ "/Appearance.surface.opacity": 100 }, { "/Appearance.surface.blur": false }] }, "x-hypr": "decoration.blur.passes", "x-hyprAlways": true },
             "blurXray": { "type": "boolean", "title": "See-through blur", "x-group": "Blur", "default": true, "description": "Floating windows blur only the wallpaper, not the windows under them. Cheaper.", "x-showIf": { "windowBlur": true }, "x-hypr": "decoration.blur.xray", "x-hyprAlways": true },
             "blurIgnoreOpacity": { "type": "boolean", "title": "Full blur behind any transparency", "x-group": "Blur", "default": true, "x-showIf": { "windowBlur": true }, "x-hypr": "decoration.blur.ignore_opacity" },
             "blurNewOptimizations": { "type": "boolean", "title": "Blur optimizations", "x-group": "Blur", "default": true, "x-showIf": { "windowBlur": true }, "x-hypr": "decoration.blur.new_optimizations" },
@@ -952,6 +945,62 @@
               "maximum": 100,
               "x-unit": "px",
               "description": "Width of the screen frame, and the gap kept from the screen edges (px)."
+            }
+          }
+        },
+        "surface": {
+          "x-scope": "look",
+          "type": "object",
+          "title": "Translucency",
+          "additionalProperties": false,
+          "x-order": ["opacity", "blur", "strength", "throughWindows", "windows", "blurBackdrops"],
+          "properties": {
+            "opacity": {
+              "type": "integer",
+              "title": "Surface opacity",
+              "x-unit": "%",
+              "default": 100,
+              "minimum": 60,
+              "maximum": 100,
+              "description": "How solid the shell's surfaces are: bars, the screen border, popouts, menus and panels. 100 is fully solid."
+            },
+            "blur": {
+              "type": "boolean",
+              "title": "Blur behind surfaces",
+              "default": true,
+              "description": "Hyprland blurs what shows through a translucent surface.",
+              "x-showIf": { "opacity": { "not": 100 } }
+            },
+            "strength": {
+              "type": "integer",
+              "x-control": "stepper",
+              "title": "Blur strength",
+              "default": 5,
+              "minimum": 1,
+              "maximum": 10,
+              "description": "Hyprland has one blur strength for everything, so transparent windows that blur use it too. Turning the blur off gives your own back.",
+              "x-showIf": { "opacity": { "not": 100 }, "blur": true }
+            },
+            "throughWindows": {
+              "type": "boolean",
+              "title": "Blur windows behind surfaces",
+              "default": true,
+              "description": "Off, bars, the border and popouts blur the wallpaper alone, which is cheaper. Menus (the tray's, a bar widget's) always blur what's behind them, so beside a bar they can then look different.",
+              "x-showIf": { "opacity": { "not": 100 }, "blur": true }
+            },
+            "windows": {
+              "type": "boolean",
+              "title": "Blur transparent windows too",
+              "default": false,
+              "description": "Off, windows blur as your Hyprland config says (with this strength, if they do).",
+              "x-showIf": { "opacity": { "not": 100 }, "blur": true }
+            },
+            "blurBackdrops": {
+              "type": "boolean",
+              "title": "Blur backdrops",
+              "default": false,
+              "description": "Also blur the whole screen behind the overlay, launcher, power menu and workspace overview. Costs more while they open.",
+              "x-showIf": { "opacity": { "not": 100 }, "blur": true }
             }
           }
         },

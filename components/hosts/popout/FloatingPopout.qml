@@ -127,7 +127,8 @@ PopoutWrapperBase {
     }
 
     // The box's shadow or glow (SurfaceShadow), cast by a copy of its shape
-    // behind it, so the content isn't drawn through a layer
+    // behind it, so the content isn't drawn through a layer. Only what
+    // falls outside the box is kept, so none shows through a translucent one.
     Rectangle {
       visible: BarStyle.shadowed
       x: box.x
@@ -135,12 +136,14 @@ PopoutWrapperBase {
       width: box.width
       height: box.height
       radius: box.radius
-      color: box.color
+      color: "black"
       opacity: box.opacity
       scale: box.scale
       transformOrigin: box.transformOrigin
       layer.enabled: BarStyle.shadowed
-      layer.effect: SurfaceShadow {}
+      layer.effect: SurfaceShadow {
+        cut: true
+      }
     }
 
     Rectangle {
@@ -158,7 +161,7 @@ PopoutWrapperBase {
       height: box.contentHeight + root.contentPadding * 2
       x: root.leftMargin + Math.max(0, Math.min(box.roomWidth * root.xFraction - width * root.xAlign, box.roomWidth - width))
       y: root.growUp ? box.placedY + box.placedHeight - box.height : box.placedY
-      color: root.fillColor
+      color: Appearance.fill(root.fillColor)
       border.color: root.strokeColor
       border.width: Appearance.borderWidth
       radius: Appearance.borderRadius

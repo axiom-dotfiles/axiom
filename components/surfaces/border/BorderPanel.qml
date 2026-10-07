@@ -3,6 +3,10 @@ import QtQuick
 import Quickshell
 import Quickshell.Wayland
 
+import qs.config
+import qs.services
+import qs.components.methods
+
 // One edge of the screen border (RoundedBorders): a strip that reserves
 // `frameWidth` and draws the frame with its inner stroke, which stops short
 // of the corners by `innerBorderRadius` where the corner pieces take over.
@@ -22,6 +26,22 @@ PanelWindow {
   required property int strokeWidth
 
   readonly property bool horizontal: edge === "top" || edge === "bottom"
+  readonly property real length: horizontal ? width : height
+  // Where the strip starts along its edge on screen: between what reserves
+  // the edges across it (the strips there, when they mapped first)
+  readonly property real screenOffset: ((horizontal ? screen?.width : screen?.height) ?? length) / 2 - length / 2
+  // Surfaces joined to the stroke leave it open under them, in strip
+  // coordinates: the stroke and the fill beside it (the stroke's row),
+  // which would show through their translucent fill
+  readonly property var openings: ShellManager.borderOpenings.filter(o => o.screen === (root.screen?.name ?? "") && o.edge === root.edge).map(o => ({
+        "start": o.start - root.screenOffset,
+        "end": o.end - root.screenOffset
+      }))
+  // The stroke runs between the corner pieces: a horizontal strip spans
+  // the screen, a vertical one the room between them
+  readonly property real strokeStart: horizontal ? frameWidth + innerBorderRadius : innerBorderRadius
+  readonly property var strokePieces: Utils.subtractSpans(root.strokeStart, root.length - root.strokeStart, root.openings)
+  readonly property var rowPieces: Utils.subtractSpans(0, root.length, root.openings)
 
   anchors {
     left: root.edge !== "right"
@@ -39,9 +59,32 @@ PanelWindow {
   color: "transparent"
   mask: Region {}
 
+  // The frame, but for the stroke's row
   Rectangle {
-    anchors.fill: parent
-    color: root.frameColor
+    readonly property int depth: root.frameWidth - root.strokeWidth
+    x: root.edge === "right" ? root.strokeWidth : 0
+    y: root.edge === "bottom" ? root.strokeWidth : 0
+    width: root.horizontal ? parent.width : depth
+    height: root.horizontal ? depth : parent.height
+    color: Appearance.fill(root.frameColor)
+  }
+
+  // The stroke's row: the fill under the stroke and past its ends
+  Repeater {
+    model: root.rowPieces.length
+
+    delegate: Rectangle {
+      required property int index
+      readonly property var piece: root.rowPieces[index] ?? {
+        "start": 0,
+        "end": 0
+      }
+      x: root.horizontal ? piece.start : root.edge === "left" ? root.frameWidth - root.strokeWidth : 0
+      y: root.horizontal ? (root.edge === "top" ? root.frameWidth - root.strokeWidth : 0) : piece.start
+      width: root.horizontal ? piece.end - piece.start : root.strokeWidth
+      height: root.horizontal ? root.strokeWidth : piece.end - piece.start
+      color: Appearance.fill(root.frameColor)
+    }
   }
 
   // On a solid bar's edge the strip is transparent, but a strip that runs
@@ -54,7 +97,7 @@ PanelWindow {
       required property bool modelData
       readonly property bool atStart: modelData
       readonly property int along: root.frameWidth - root.strokeWidth
-      color: root.endFillColor
+      color: Appearance.fill(root.endFillColor)
       width: root.horizontal ? along : root.strokeWidth
       height: root.horizontal ? root.strokeWidth : along
       x: root.horizontal ? (atStart ? 0 : parent.width - width) : (root.edge === "left" ? along : 0)
@@ -62,26 +105,22 @@ PanelWindow {
     }
   }
 
-  // The inner stroke, on the strip's screen-facing side
-  Rectangle {
-    color: root.innerStrokeColor
+  // The inner stroke, on the strip's screen-facing side, between the
+  // corner pieces and around the openings
+  Repeater {
+    model: root.strokePieces.length
 
-    anchors {
-      left: root.horizontal ? parent.left : undefined
-      right: root.horizontal ? parent.right : undefined
-      leftMargin: root.frameWidth + root.innerBorderRadius
-      rightMargin: root.frameWidth + root.innerBorderRadius
-
-      top: root.horizontal ? undefined : parent.top
-      bottom: root.horizontal ? undefined : parent.bottom
-      topMargin: root.innerBorderRadius
-      bottomMargin: root.innerBorderRadius
+    delegate: Rectangle {
+      required property int index
+      readonly property var piece: root.strokePieces[index] ?? {
+        "start": 0,
+        "end": 0
+      }
+      color: root.innerStrokeColor
+      x: root.horizontal ? piece.start : root.edge === "left" ? root.frameWidth - root.strokeWidth : 0
+      y: root.horizontal ? (root.edge === "top" ? root.frameWidth - root.strokeWidth : 0) : piece.start
+      width: root.horizontal ? piece.end - piece.start : root.strokeWidth
+      height: root.horizontal ? root.strokeWidth : piece.end - piece.start
     }
-
-    x: root.edge === "left" ? root.frameWidth - root.strokeWidth : 0
-    y: root.edge === "top" ? root.frameWidth - root.strokeWidth : 0
-    // Across the strip; the anchors stretch it along
-    implicitWidth: root.strokeWidth
-    implicitHeight: root.strokeWidth
   }
 }

@@ -312,15 +312,19 @@ Item {
     enableFade: false
     overflow: root.castShadow ? BarStyle.shadowReach : 0
 
-    // The outline (or detached box), casting the shadow or glow: the
-    // content inside it doesn't need its own
+    // The shadow or glow the outline casts, only outside it (none shows
+    // through a translucent fill): the content doesn't need its own
+    OutsideShadow {
+      target: outlineLayer
+      active: root.castShadow
+      edge: root.edge
+      falls: root.detached
+    }
+
+    // The outline (or detached box)
     Item {
+      id: outlineLayer
       anchors.fill: parent
-      layer.enabled: root.castShadow && BarStyle.shadowed
-      layer.effect: SurfaceShadow {
-        edge: root.edge
-        falls: root.detached
-      }
 
       Shape {
         id: outline
@@ -329,7 +333,7 @@ Item {
         preferredRendererType: Shape.CurveRenderer
 
         ShapePath {
-          fillColor: root.fillColor
+          fillColor: Appearance.fill(root.fillColor)
           strokeColor: "transparent"
           strokeWidth: 0
 
@@ -368,7 +372,7 @@ Item {
         y: root.boxRect.y
         width: root.boxRect.width
         height: root.boxRect.height
-        color: root.fillColor
+        color: Appearance.fill(root.fillColor)
         border.color: root.strokeColor
         border.width: root.strokeWidth
       }
@@ -382,7 +386,7 @@ Item {
       y: area.y
       width: area.width
       height: area.height
-      color: root.fillColor
+      color: Appearance.fill(root.fillColor)
     }
 
     // Content box: same placement the old bordered Rectangle had, so

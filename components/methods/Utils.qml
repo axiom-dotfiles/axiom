@@ -195,4 +195,26 @@ QtObject {
     }
     return days;
   }
+
+  // [start, end] with `spans` ([{ start, end }], any order, may overlap or
+  // reach past it) taken out: the pieces left, in order, as { start, end }
+  function subtractSpans(start, end, spans) {
+    const cuts = spans.filter(span => span.end > start && span.start < end).sort((a, b) => a.start - b.start);
+    const pieces = [];
+    let at = start;
+    for (const cut of cuts) {
+      if (cut.start > at)
+        pieces.push({
+          "start": at,
+          "end": cut.start
+        });
+      at = Math.max(at, cut.end);
+    }
+    if (at < end)
+      pieces.push({
+        "start": at,
+        "end": end
+      });
+    return pieces;
+  }
 }

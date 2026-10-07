@@ -199,7 +199,7 @@ Rectangle {
   implicitWidth: board.width + root.pad * 2
   implicitHeight: board.height + root.pad * 2
   radius: Appearance.borderRadius
-  color: Theme.background
+  color: Appearance.fill(Theme.background)
   border.color: Theme.foreground
   border.width: Appearance.borderWidth
 

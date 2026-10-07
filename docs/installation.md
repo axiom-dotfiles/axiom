@@ -42,7 +42,7 @@ The whole shell runs on five things. Everything else is optional and only needed
 
 ## Installation
 
-On Arch Linux, run the installer:
+On Arch Linux, or a distribution based on it (CachyOS, EndeavourOS, Manjaro, …), run the installer:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/axiom-dotfiles/axiom/main/install.sh | bash

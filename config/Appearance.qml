@@ -57,6 +57,33 @@ QtObject {
   // draw the stroke over the screen edge); without a frame it's just a gap
   readonly property int screenMargin: screenBorder ? Math.max(borderWidth, _c.shape.screenMargin) : _c.shape.screenMargin
 
+  // --- Translucency ---
+  // How solid the shell's surfaces are (0.6–1). Every surface fill goes
+  // through fill(), outer and nested alike, so nested fills stack: a card
+  // on a 60% panel reads about 84%.
+  readonly property real surfaceAlpha: _c.surface.opacity / 100
+  readonly property bool translucent: surfaceAlpha < 1
+  // Hyprland blurs behind them (HyprlandConfigManager's blur rules, which
+  // leave out pixels under blurThreshold: shadows, dims, fades)
+  readonly property bool blur: translucent && _c.surface.blur
+  readonly property bool blurBackdrops: blur && _c.surface.blurBackdrops
+  // Hyprland's one blur strength, windows' too while it's on
+  readonly property int blurStrength: _c.surface.strength
+  // Blurring what's under each surface, windows included, rather than the
+  // wallpaper alone (xray), which every surface shares
+  readonly property bool blurThroughWindows: _c.surface.throughWindows
+  // Transparent windows blur too, whatever the user's Hyprland config says
+  readonly property bool blurWindows: _c.surface.windows
+  readonly property real blurThreshold: 0.5
+  // A shadow's darkest alpha while blurring: under the threshold, so its
+  // halo isn't blurred
+  readonly property real shadowAlphaMax: blur ? 0.45 : 1
+
+  // A surface fill (a theme color) at the surface opacity
+  function fill(color) {
+    return translucent ? Qt.alpha(color, color.a * surfaceAlpha) : color;
+  }
+
   // --- Motion ---
   // Every animation in the shell uses one of these durations, so the
   // single speed setting (and the on/off switch) applies uniformly.

@@ -123,6 +123,26 @@ QtObject {
       edgeClaims = others;
   }
 
+  // `{ owner, screen, edge, start, end }` (a screen name, a Bar.edgeName,
+  // screen px along the edge): surfaces joined to the border's inner
+  // stroke, which leaves it open under them while surfaces are translucent,
+  // where it would show through their fill (BorderPanel)
+  property var borderOpenings: []
+
+  // `opening` is `{ screen, edge, start, end }`, or null to drop the owner's
+  function setBorderOpening(owner, opening) {
+    const mine = borderOpenings.find(o => o.owner === owner);
+    if (mine && opening && mine.screen === opening.screen && mine.edge === opening.edge && mine.start === opening.start && mine.end === opening.end)
+      return;
+    const others = borderOpenings.filter(o => o.owner !== owner);
+    if (opening)
+      borderOpenings = others.concat([Object.assign({
+          owner
+        }, opening)]);
+    else if (mine)
+      borderOpenings = others;
+  }
+
   // Whether something ranked above `kind` shows on that screen edge
   function edgeOutranked(screenName, edge, kind) {
     const rank = edgeRanks.indexOf(kind);

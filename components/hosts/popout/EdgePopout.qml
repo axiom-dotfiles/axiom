@@ -239,6 +239,19 @@ PopoutWrapperBase {
   // The surface (fillets included) along the edge
   readonly property real surfaceStart: root.place.surfaceStart
 
+  // Joined to the border's stroke, the stretch of it the surface covers,
+  // in screen px along the edge (its edge coordinates start past what's
+  // reserved at the start), which the border leaves open under a
+  // translucent fill (ShellManager.borderOpenings)
+  readonly property var _borderOpening: surfaceWindow.visible && Appearance.translucent && Appearance.screenBorder && !root.detached && !root.bareEdge && !root.barPanel ? ({
+      "screen": surfaceWindow.screenName,
+      "edge": Bar.edgeName(root.edge),
+      "start": root.reservedOn(root.startSide) + root.surfaceStart,
+      "end": root.reservedOn(root.startSide) + root.surfaceStart + (root.vertical ? surface.height : surface.width)
+    }) : null
+  on_BorderOpeningChanged: ShellManager.setBorderOpening(root, root._borderOpening)
+  Component.onDestruction: ShellManager.setBorderOpening(root, null)
+
   currentItem: root.contentItem
   keepAlive: surfaceHover.hovered || trigger.containsMouse || (focusGrab.active && wantsKeyboardFocus)
 

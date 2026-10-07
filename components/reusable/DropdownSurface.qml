@@ -12,7 +12,7 @@ Rectangle {
   // Over other content: casts a shadow
   property bool floating: true
 
-  color: Theme.background
+  color: Appearance.fill(Theme.background)
   radius: Widget.radius
   border.color: Theme.border
   border.width: 1

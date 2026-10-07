@@ -194,7 +194,7 @@ PanelWindow {
       anchors.centerIn: parent
       width: Math.min(tiles.implicitWidth + root.pad * 2, root.width - 32)
       height: content.implicitHeight + root.pad * 2
-      color: Theme.background
+      color: Appearance.fill(Theme.background)
       border.color: Theme.border
       border.width: Appearance.borderWidth
       radius: Appearance.borderRadius

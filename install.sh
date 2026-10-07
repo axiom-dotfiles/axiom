@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 #
-# Description: Installs axiom on Arch Linux: its packages (all from the
+# Description: Installs axiom on Arch Linux or a distribution based on it
+#              (CachyOS, EndeavourOS, Manjaro, …): its packages (all from the
 #              official repos), a clone at the latest release, the python
 #              venv, and (if you agree) one line in hyprland.lua that starts
 #              it; from a text console it then offers to start Hyprland.
@@ -51,7 +52,7 @@ case "${1:-}" in
 --yes | -y) mode=yes ;;
 --minimal) mode=minimal ;;
 --help | -h)
-  sed -n '3,16p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+  sed -n '3,17p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
   exit 0
   ;;
 "") ;;
@@ -138,12 +139,32 @@ version_at_least() {
 
 first_version() { grep -oE '[0-9]+\.[0-9]+(\.[0-9]+)?' | head -1; }
 
+# Arch or a distribution based on it (CachyOS, EndeavourOS, Manjaro, …): its
+# os-release names arch as its ID or in ID_LIKE, or it ships /etc/arch-release.
+# AXIOM_OS_RELEASE is for tests
+OS_RELEASE=${AXIOM_OS_RELEASE:-/etc/os-release}
+[[ -f "$OS_RELEASE" || -n "${AXIOM_OS_RELEASE:-}" ]] || OS_RELEASE=/usr/lib/os-release
+arch_family() {
+  [[ -f /etc/arch-release && -z "${AXIOM_OS_RELEASE:-}" ]] && return
+  # shellcheck disable=SC1090 # os-release is KEY=value shell, by its spec
+  (
+    . "$OS_RELEASE" 2>/dev/null || exit 1
+    [[ " ${ID:-} ${ID_LIKE:-} " == *" arch "* ]]
+  )
+}
+
+# The distribution's name, for messages
+os_name() {
+  # shellcheck disable=SC1090
+  ( . "$OS_RELEASE" && echo "${PRETTY_NAME:-${NAME:-${ID:?}}}") 2>/dev/null || echo "an unknown distribution"
+}
+
 axiom_running() { pgrep -f '(^|/)(qs|quickshell) (.* )?-c axiom( |$)' >/dev/null; }
 
 # ─── Preflight ───────────────────────────────────────────────────────────────
 
-if [[ ! -f /etc/arch-release ]] || ! command -v pacman >/dev/null; then
-  die "This installer supports Arch Linux only. See the README for installing by hand."
+if ! arch_family || ! command -v pacman >/dev/null; then
+  die "This installer supports Arch Linux and distributions based on it (this is $(os_name)). See the README for installing by hand."
 fi
 ((EUID != 0)) || die "Run this as your own user, not root: it uses sudo for pacman only."
 command -v sudo >/dev/null || die "sudo is needed to install packages."

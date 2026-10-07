@@ -130,6 +130,7 @@ Dependencies point one way:
 - `visible: visibleChildren.length > 0` locks itself hidden (children read invisible with their parent); use `children.length` or a flag.
 - Signal parameters or properties typed `Item` that callers read custom members of trip qmllint (`missing-property`): type them `var`.
 - A function-valued property (`labelOf: x => …`) works as a hook.
+- A `MultiEffect` handed a visible item's own layer (`layer.enabled` source) pads that layer and redraws the item shrunk and offset; handed a `ShaderEffectSource` with `autoPaddingEnabled`, it stretches it. Shadows of visible surfaces go through `OutsideShadow` (explicit padding).
 
 ## Naming
 

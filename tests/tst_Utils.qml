@@ -174,4 +174,66 @@ TestCase {
     // A month starting on the first day starts the grid
     compare(Utils.monthGrid(2026, 1, 0, "")[0].day, 1);
   }
+
+  function test_subtractSpans() {
+    compare(Utils.subtractSpans(0, 100, []), [
+      {
+        "start": 0,
+        "end": 100
+      }
+    ]);
+    compare(Utils.subtractSpans(0, 100, [
+      {
+        "start": 60,
+        "end": 70
+      },
+      {
+        "start": 20,
+        "end": 40
+      },
+      {
+        "start": 30,
+        "end": 50
+      }
+    ]), [
+      {
+        "start": 0,
+        "end": 20
+      },
+      {
+        "start": 50,
+        "end": 60
+      },
+      {
+        "start": 70,
+        "end": 100
+      }
+    ]);
+    // Cuts past the ends, or outside it
+    compare(Utils.subtractSpans(10, 90, [
+      {
+        "start": 0,
+        "end": 20
+      },
+      {
+        "start": 80,
+        "end": 120
+      },
+      {
+        "start": 200,
+        "end": 300
+      }
+    ]), [
+      {
+        "start": 20,
+        "end": 80
+      }
+    ]);
+    compare(Utils.subtractSpans(10, 90, [
+      {
+        "start": 0,
+        "end": 100
+      }
+    ]), []);
+  }
 }

@@ -149,7 +149,7 @@ PopoutWrapperBase {
         // menu (without a frame, the menu's own background)
         Rectangle {
           anchors.fill: parent
-          color: root.framed ? Theme.background : root.colors.fill
+          color: Appearance.fill(root.framed ? Theme.background : root.colors.fill)
         }
 
         // The frame: a rounded box along the whole strip
@@ -162,7 +162,7 @@ PopoutWrapperBase {
           width: parent.width - root.frameInset * 2 - (root.vertical ? root.innerStroke : 0)
           height: parent.height - root.frameInset * 2 - (root.vertical ? 0 : root.innerStroke)
           radius: Appearance.borderRadius
-          color: root.colors.fill
+          color: Appearance.fill(root.colors.fill)
           border.color: root.colors.stroke
           border.width: Appearance.borderWidth
         }

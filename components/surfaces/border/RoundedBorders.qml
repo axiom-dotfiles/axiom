@@ -102,20 +102,52 @@ Item {
     aboveWindows: true
     WlrLayershell.namespace: "axiom-border-shadow"
 
-    // The inside of the frame
+    // Surfaces joined to the frame's stroke (ShellManager.borderOpenings)
+    // as rects it casts nothing on, from the frame line in: their
+    // translucent fill would show (and blur) it
+    readonly property var holes: ShellManager.borderOpenings.filter(o => o.screen === (root.screen?.name ?? "")).map(o => {
+      const reach = look.shadowSize * 2;
+      const along = o.end - o.start;
+      switch (o.edge) {
+      case "top":
+        return Qt.rect(o.start, top, along, reach);
+      case "bottom":
+        return Qt.rect(o.start, height - bottom - reach, along, reach);
+      case "left":
+        return Qt.rect(left, o.start, reach, along);
+      default:
+        return Qt.rect(width - right - reach, o.start, reach, along);
+      }
+    })
+
+    // The inside of the frame, but for the holes (each its own subpath,
+    // left empty by the odd-even fill)
     Item {
       id: interior
       anchors.fill: parent
       visible: false
       layer.enabled: true
 
-      Rectangle {
-        x: shadowWindow.left
-        y: shadowWindow.top
-        width: Math.max(0, parent.width - shadowWindow.left - shadowWindow.right)
-        height: Math.max(0, parent.height - shadowWindow.top - shadowWindow.bottom)
-        radius: shadowWindow.radius
-        color: "black"
+      Shape {
+        anchors.fill: parent
+        preferredRendererType: Shape.CurveRenderer
+
+        ShapePath {
+          fillColor: "black"
+          fillRule: ShapePath.OddEvenFill
+          strokeColor: "transparent"
+          strokeWidth: 0
+
+          PathSvg {
+            readonly property real x0: shadowWindow.left
+            readonly property real y0: shadowWindow.top
+            readonly property real x1: shadowWindow.width - shadowWindow.right
+            readonly property real y1: shadowWindow.height - shadowWindow.bottom
+            readonly property real r: Math.max(0, Math.min(shadowWindow.radius, (x1 - x0) / 2, (y1 - y0) / 2))
+
+            path: `M ${x0 + r} ${y0} L ${x1 - r} ${y0} A ${r} ${r} 0 0 1 ${x1} ${y0 + r} L ${x1} ${y1 - r} A ${r} ${r} 0 0 1 ${x1 - r} ${y1} L ${x0 + r} ${y1} A ${r} ${r} 0 0 1 ${x0} ${y1 - r} L ${x0} ${y0 + r} A ${r} ${r} 0 0 1 ${x0 + r} ${y0} Z` + shadowWindow.holes.map(h => ` M ${h.x} ${h.y} L ${h.x + h.width} ${h.y} L ${h.x + h.width} ${h.y + h.height} L ${h.x} ${h.y + h.height} Z`).join("")
+          }
+        }
       }
     }
 

@@ -487,21 +487,23 @@ Scope {
         strokeColor: Theme.resolveColor(root.dock.borderColor)
       }
 
-      // Or a box of its own
+      // Or a box of its own, its shadow only outside it
+      OutsideShadow {
+        target: detachedBox
+        edge: root.edge
+      }
+
       Rectangle {
+        id: detachedBox
         visible: !root.attached
         x: root.vertical ? root.crossAt(root.boxOffset, root.thickness) : root.surfaceBoxStart
         y: root.vertical ? root.surfaceBoxStart : root.crossAt(root.boxOffset, root.thickness)
         width: root.vertical ? root.thickness : root.surfaceBoxLength
         height: root.vertical ? root.surfaceBoxLength : root.thickness
         radius: Math.min(Appearance.borderRadius, root.thickness / 2)
-        color: Theme.resolveColor(root.dock.backgroundColor)
+        color: Appearance.fill(Theme.resolveColor(root.dock.backgroundColor))
         border.color: Theme.resolveColor(root.dock.borderColor)
         border.width: Appearance.borderWidth
-        layer.enabled: BarStyle.shadowed
-        layer.effect: SurfaceShadow {
-          edge: root.edge
-        }
       }
 
       // Between the pinned apps and the others

@@ -1121,6 +1121,25 @@ TestCase {
     compare(errors(loaded.config), []);
   }
 
+  function test_v50_hyprland_blur_becomes_surface_blur() {
+    const loaded = load({
+      "version": 49,
+      "Hyprland": {
+        "blur": true
+      }
+    }).config;
+    compare(loaded.Hyprland.blur, undefined);
+    compare(loaded.Appearance.surface.blur, true);
+    compare(loaded.Appearance.surface.opacity, 100);
+    compare(errors(loaded), []);
+    compare(load({
+      "version": 49,
+      "Hyprland": {
+        "blur": false
+      }
+    }).config.Appearance.surface.blur, false);
+  }
+
   function test_v49_window_look_moves_to_hyprland_look() {
     const managed = load({
       "version": 48,

@@ -1,7 +1,6 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
-import QtQuick.Effects
 
 import qs.config
 import qs.services
@@ -299,35 +298,38 @@ Rectangle {
     onAllocationUpdated: section.bar.layoutMoved()
   }
 
+  // The shadow or glow the bar's surface casts, only outside it, so none
+  // shows through a translucent one. Pills join the border (or screen
+  // edge) they grow from: their shadow is cast evenly, as the border's, so
+  // it can't slide onto a stroke they join; otherwise it falls toward the
+  // windows.
+  OutsideShadow {
+    target: surface
+    look: root.barConfig
+    edge: root.barConfig.left ? Bar.Left : root.barConfig.right ? Bar.Right : root.barConfig.bottom ? Bar.Bottom : Bar.Top
+    falls: !root.barConfig.pills
+    // Not under the surfaces open on its pills or islands (their stretches),
+    // from the outer edge they stand on out
+    holes: root._shownStretches.map(stretch => {
+      const reach = root.barConfig.shadowSize * 2;
+      const extent = root.barConfig.extent;
+      const along = stretch.end - stretch.start;
+      if (root.isVertical)
+        return root.barConfig.left ? Qt.rect(extent, stretch.start, root.width - extent + reach, along) : Qt.rect(-reach, stretch.start, root.width - extent + reach, along);
+      return root.barConfig.top ? Qt.rect(stretch.start, extent, along, root.height - extent + reach) : Qt.rect(stretch.start, -reach, along, root.height - extent + reach);
+    })
+  }
+
   // What the bar paints under its widgets: its background, inner stroke
-  // and pills, in one layer so a shadow or glow follows their outline
-  // (and never redraws for the widgets over it)
+  // and pills, which the shadow or glow follows
   Item {
     id: surface
     anchors.fill: parent
 
-    layer.enabled: root.barConfig.shadow !== "none"
-    layer.effect: MultiEffect {
-      // Pills join the border (or screen edge) they grow from: their
-      // shadow is cast evenly, as the border's, so it can't slide onto a
-      // stroke they join (see SurfaceShadow)
-      readonly property bool even: root.barConfig.shadow === "glow" || root.barConfig.pills
-      readonly property real offset: even ? 0 : root.barConfig.shadowSize / 4
-
-      shadowEnabled: true
-      shadowColor: Bar.shadowColor(root.barConfig)
-      shadowBlur: 1
-      blurMax: root.barConfig.shadowSize
-      // Otherwise a shadow falls toward the windows
-      shadowHorizontalOffset: root.barConfig.left ? offset : root.barConfig.right ? -offset : 0
-      shadowVerticalOffset: root.barConfig.top ? offset : root.barConfig.bottom ? -offset : 0
-      autoPaddingEnabled: true
-    }
-
     Rectangle {
       anchors.fill: parent
       visible: root.barConfig.solid
-      color: Theme.background
+      color: Appearance.fill(Theme.background)
     }
 
     // With the border off nothing else draws a solid bar's inner stroke
@@ -365,7 +367,7 @@ Rectangle {
         y: root.isVertical ? rect.start : across
         width: root.isVertical ? depth : rect.length
         height: root.isVertical ? rect.length : depth
-        color: Theme.background
+        color: Appearance.fill(Theme.background)
         border.color: Theme.foreground
         border.width: Appearance.borderWidth
         // Inner side: bottom on a top bar, right on a left one, and so on

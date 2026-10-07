@@ -77,7 +77,7 @@ Popup {
   onOpened: search.input.forceActiveFocus()
 
   background: DropdownSurface {
-    color: Theme.backgroundAlt
+    color: Appearance.fill(Theme.backgroundAlt)
     border.width: Appearance.borderWidth
   }
 

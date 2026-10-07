@@ -127,6 +127,63 @@ QtObject {
     return ["borders", "shape", "gaps"].filter(part => look[part]);
   }
 
+  // Hyprland's blur size and passes for a strength of 1–10
+  function blurStrength(strength) {
+    const n = Math.max(1, Math.min(10, Math.round(strength)));
+    return {
+      "size": 2 + n,
+      "passes": 1 + Math.floor((n - 1) / 3)
+    };
+  }
+
+  // --- Blur behind axiom's surfaces (Appearance.blur) ---
+
+  // Layer rules can't set the blur's strength (Hyprland's global
+  // decoration.blur does, for windows too), only whether a layer blurs and
+  // which of its pixels count: ignore_alpha leaves out those under the
+  // threshold (shadows, dims, mid-fade), which the large transparent
+  // windows (the overlay, full-edge popouts) need. They blur what's under
+  // them, as Hyprland always blurs a layer's popups (menus), so a menu
+  // matches the bar it opens from; blurring the wallpaper alone (xray) is
+  // cheaper, but leaves menus blurring something else.
+  // Backdrops (and the polkit prompt, whose window holds its own dim) blur
+  // only when asked: the whole screen, at every alpha.
+  readonly property var blurSurfaces: ["border", "bar", "bar-floating", "popout-under", "edge-popout", "edge-menu", "osd", "dock", "dock-preview", "overlay", "launcher", "switcher", "floating-popout", "notifications", "powermenu", "workspaces", "monitor-prompt"]
+  readonly property var blurBackdrops: ["backdrop", "polkit"]
+
+  function _blurRule(name, namespaces, effects, enabled) {
+    return `hl.layer_rule({ name = ${string(name)}, match = { namespace = ${string(`^axiom-(${namespaces.join("|")})$`)} }, ${effects}, enabled = ${enabled} })`;
+  }
+
+  /**
+   * Lua lines for the blur behind axiom's surfaces: named layer rules,
+   * always written, `enabled` or not, since a rule is taken back by
+   * redefining it (no reload). `opts`: { on, strength, threshold,
+   * throughWindows (no xray), windows (transparent windows blur too),
+   * backdrops }.
+   * While on it sets Hyprland's blur (on, and the strength), first keeping
+   * the user's in AXIOM_USER_BLUR (Hyprland's Lua state, which a reload
+   * resets along with the blur), and gives it back when turned off.
+   * Windows keep their own say (a rule unblurs them where the user's blur
+   * was off) unless `windows`.
+   */
+  function blurLua(opts) {
+    const on = opts.on === true;
+    const threshold = value(opts.threshold);
+    const xray = opts.throughWindows ? "" : ", xray = true";
+    // axiom-blur-border (the border's own rule, once) stays defined off,
+    // which takes it back from a Hyprland still holding it
+    const lines = [_blurRule("axiom-blur", blurSurfaces, `blur = true, blur_popups = true, ignore_alpha = ${threshold}${xray}`, on), _blurRule("axiom-blur-border", ["border"], "blur = true", false), _blurRule("axiom-blur-backdrops", blurBackdrops, `blur = true, ignore_alpha = 0.01${xray}`, on && opts.backdrops === true)];
+    if (on) {
+      const strength = blurStrength(opts.strength);
+      lines.push("if AXIOM_USER_BLUR == nil then", `  AXIOM_USER_BLUR = { enabled = hl.get_config("decoration.blur.enabled"), size = hl.get_config("decoration.blur.size"), passes = hl.get_config("decoration.blur.passes") }`, "end", `hl.config({ decoration = { blur = { enabled = true, size = ${strength.size}, passes = ${strength.passes} } } })`);
+    } else {
+      lines.push("if AXIOM_USER_BLUR ~= nil then", "  hl.config({ decoration = { blur = AXIOM_USER_BLUR } })", "  AXIOM_USER_BLUR = nil", "end");
+    }
+    lines.push(`hl.window_rule({ name = "axiom-no-window-blur", match = { class = ".*" }, no_blur = true, enabled = ${on && !opts.windows ? "AXIOM_USER_BLUR ~= nil and not AXIOM_USER_BLUR.enabled" : "false"} })`);
+    return lines;
+  }
+
   // --- Strips (Workspaces.strips, WorkspacesConfig.strips) ---
 
   readonly property var _stripDirections: ({

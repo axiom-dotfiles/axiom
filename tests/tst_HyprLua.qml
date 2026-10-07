@@ -455,7 +455,96 @@ assert(removed == 2, "earlier handlers removed")
     verify(lua.includes("border_size = 2"));
     verify(lua.includes("rounding = 8"));
     compare(HyprLua.lookParts(all), ["borders", "shape", "gaps"]);
+    verify(!lua.includes("blur"));
     const written = files.write("tests/.out/look.lua", lua + "\n");
+    tryVerify(() => written.done, 2000);
+  }
+
+  function test_blurStrength() {
+    compare(HyprLua.blurStrength(1), {
+      "size": 3,
+      "passes": 1
+    });
+    compare(HyprLua.blurStrength(10), {
+      "size": 12,
+      "passes": 4
+    });
+    compare(HyprLua.blurStrength(99).size, 12);
+  }
+
+  function test_blurLua() {
+    const lines = opts => HyprLua.blurLua(Object.assign({
+        "threshold": 0.5,
+        "strength": 5
+      }, opts));
+    const on = lines({
+      "on": true
+    });
+    const rules = on.filter(line => line.startsWith("hl.layer_rule"));
+    compare(rules.length, 3);
+    verify(rules[0].includes('name = "axiom-blur"'));
+    verify(rules[0].includes('"^axiom-(border|bar|bar-floating|popout-under'), "the border blurs as the rest do");
+    verify(rules[0].includes("blur_popups = true, ignore_alpha = 0.5, xray = true, enabled = true"), "the wallpaper alone by default");
+    verify(rules[1].includes('"^axiom-(border)$"') && rules[1].endsWith("enabled = false })"), "the old border rule stays off");
+    verify(rules[2].includes('"^axiom-(backdrop|polkit)$"'));
+    verify(rules[2].includes("enabled = false"), "backdrops only when asked");
+    verify(lines({
+      "on": true,
+      "backdrops": true
+    })[2].includes("enabled = true"));
+    verify(!lines({
+      "on": true,
+      "throughWindows": true
+    })[0].includes("xray"), "through windows: no xray");
+    // Taken back by redefining the rules, never dropped
+    const offRules = lines({
+      "on": false,
+      "backdrops": true
+    }).filter(line => line.startsWith("hl.layer_rule"));
+    compare(offRules.length, 3);
+    verify(offRules.every(line => line.endsWith("enabled = false })")));
+
+    // The user's blur kept and given back; windows keep their own say
+    // unless they blur too
+    const run = (opts, check) => `${lines(opts).join("\n")}\n${check}\n`;
+    const lua = `local options, windowRules = { ["decoration.blur.enabled"] = false, ["decoration.blur.size"] = 4, ["decoration.blur.passes"] = 1 }, {}
+hl = {
+  layer_rule = function() end,
+  window_rule = function(spec) windowRules[spec.name] = spec end,
+  get_config = function(key) return options[key] end,
+  config = function(t)
+    for key, v in pairs(t.decoration.blur) do options["decoration.blur." .. key] = v end
+  end,
+}
+${run({
+      "on": true
+    }, `assert(options["decoration.blur.enabled"] == true, "blur on")
+assert(options["decoration.blur.size"] == 7 and options["decoration.blur.passes"] == 2, "axiom's strength")
+assert(windowRules["axiom-no-window-blur"].enabled == true, "windows with blur off kept unblurred")`)}
+${run({
+      "on": true,
+      "strength": 8
+    }, `assert(options["decoration.blur.size"] == 10, "a new strength")
+assert(AXIOM_USER_BLUR.size == 4, "the user's kept, not axiom's")`)}
+${run({
+      "on": true,
+      "windows": true
+    }, `assert(windowRules["axiom-no-window-blur"].enabled == false, "windows blur too")`)}
+${run({
+      "on": false
+    }, `assert(options["decoration.blur.enabled"] == false, "given back")
+assert(options["decoration.blur.size"] == 4 and options["decoration.blur.passes"] == 1, "the user's strength back")
+assert(windowRules["axiom-no-window-blur"].enabled == false, "windows rule off")`)}
+options["decoration.blur.enabled"] = true
+${run({
+      "on": true
+    }, `assert(windowRules["axiom-no-window-blur"].enabled == false, "a config with blur on blurs its windows")`)}
+${run({
+      "on": false
+    }, `assert(options["decoration.blur.enabled"] == true, "and stays on")`)}
+`;
+
+    const written = files.write("tests/.out/blur.run.lua", lua);
     tryVerify(() => written.done, 2000);
   }
 
