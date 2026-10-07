@@ -64,6 +64,18 @@ QtObject {
     return removed;
   }
 
+  // `schema` with its $ref resolved, for walking a value along its schema
+  function resolveRef(schema, root) {
+    _ctx.root = root;
+    return _resolve(schema);
+  }
+
+  // The option of a `type`-discriminated oneOf that `value` matches, or null
+  function oneOfOption(value, schema, root) {
+    _ctx.root = root;
+    return _discriminate(value, schema);
+  }
+
   // A $ref's definition, with any keys beside the $ref (a `default`,
   // `title`, …) over it, so one definition can serve with different
   // defaults (Lockscreen.layout and Greeter.layout share ScreenLayout)

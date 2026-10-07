@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 48
+  readonly property int currentVersion: 49
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -123,6 +123,8 @@ QtObject {
       result = _v46ToV47(result, changes);
     if (version < 48)
       result = _v47ToV48(result, changes);
+    if (version < 49)
+      result = _v48ToV49(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -1673,6 +1675,41 @@ QtObject {
       bar.floatGap = -1;
       changes.push(`Bars[${bar.id}].floatGap 8 -> -1 (Automatic)`);
     });
+    return config;
+  }
+
+  // v49 gathered the Hyprland settings that make windows match axiom into
+  // Hyprland.look, for every mode and shared with a config: themed borders,
+  // the managed config's matchAxiom (now `shape`) and its gaps, which a
+  // managed config keeps writing (`gaps` on)
+  function _v48ToV49(config, changes) {
+    const hypr = config.Hyprland;
+    if (!hypr || typeof hypr !== "object")
+      return config;
+    const managed = hypr.managed && typeof hypr.managed === "object" ? hypr.managed : {};
+    const isManaged = hypr.mode === "managed";
+    const look = hypr.look && typeof hypr.look === "object" ? hypr.look : {};
+    if (hypr.theme !== undefined)
+      look.borders = hypr.theme === true;
+    if (isManaged) {
+      look.shape = managed.matchAxiom ?? true;
+      look.gaps = true;
+      look.gapsIn = managed.gapsIn ?? 3;
+      look.gapsOut = managed.gapsOut ?? 6;
+    } else {
+      if (managed.gapsIn !== undefined)
+        look.gapsIn = managed.gapsIn;
+      if (managed.gapsOut !== undefined)
+        look.gapsOut = managed.gapsOut;
+    }
+    delete hypr.theme;
+    delete managed.matchAxiom;
+    delete managed.gapsIn;
+    delete managed.gapsOut;
+    if (Object.keys(look).length === 0)
+      return config;
+    hypr.look = look;
+    changes.push(`Hyprland.theme and managed gaps/matchAxiom -> Hyprland.look ${JSON.stringify(look)}`);
     return config;
   }
 }

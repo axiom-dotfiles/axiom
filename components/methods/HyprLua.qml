@@ -99,6 +99,34 @@ QtObject {
     return `{\n${keys.map(key => `${pad}  ${entry(key)},`).join("\n")}\n${pad}}`;
   }
 
+  // --- The window look (Hyprland.look) ---
+
+  // Its parts that are on, as the lines of one hl.config(), or []: themed borders
+  // (hex colors without #), axiom's shape (border width, corner radius)
+  // and gaps
+  function lookLua(look, activeHex, inactiveHex, borderWidth, radius) {
+    const table = {};
+    if (look.borders)
+      _set(table, "general.col", {
+        "active_border": `rgb(${activeHex})`,
+        "inactive_border": `rgb(${inactiveHex})`
+      });
+    if (look.shape) {
+      _set(table, "general.border_size", borderWidth);
+      _set(table, "decoration.rounding", radius);
+    }
+    if (look.gaps) {
+      _set(table, "general.gaps_in", look.gapsIn);
+      _set(table, "general.gaps_out", look.gapsOut);
+    }
+    return Object.keys(table).length > 0 ? `hl.config(${serialize(table)})`.split("\n") : [];
+  }
+
+  // Which of its parts are on, e.g. ["borders", "gaps"]
+  function lookParts(look) {
+    return ["borders", "shape", "gaps"].filter(part => look[part]);
+  }
+
   // --- Strips (Workspaces.strips, WorkspacesConfig.strips) ---
 
   readonly property var _stripDirections: ({

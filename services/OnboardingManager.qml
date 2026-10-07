@@ -101,6 +101,9 @@ Singleton {
       return _hasLegacyConfig ? "legacy" : "none";
     case "adopt":
       return "custom";
+    // The file leaving managed wrote: nothing of the user's
+    case "released":
+      return "ours";
     case "stock":
     case "ours":
     case "blocked":

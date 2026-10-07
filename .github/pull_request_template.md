@@ -14,4 +14,4 @@
 - [ ] New user-visible text is wrapped in `I18n.tr()` and `scripts/check_i18n.py` is clean
 - [ ] New settings are in `config/json/config.schema.json` with a default, and a reader property
 - [ ] A config layout change bumps `version` and extends `ConfigMigration`
-- [ ] README.md is updated for new features or dependencies
+- [ ] docs are updated accordingly

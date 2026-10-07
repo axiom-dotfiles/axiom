@@ -2,9 +2,9 @@
 
 # axiom
 
-**A complete desktop shell for [Hyprland](https://hypr.land) that you build by dragging things around on your own screen.**
+**A lightweight desktop environment for [Hyprland](https://hypr.land): bring your own apps, build the rest on screen.**
 
-Bars, overlay pages, edge menus, the lock screen and even the login screen are all laid out with drag and drop. Every setting is in the UI, and you never have to write a config file. Written in QML on [Quickshell](https://quickshell.org).
+Bars, menus, a launcher, notifications, settings, theming, the lock screen and the login screen: one application, laid out with drag and drop and set from the UI.
 
 <a href="https://github.com/axiom-dotfiles/axiom/stargazers"><picture><source media="(prefers-color-scheme: light)" srcset="https://img.shields.io/github/stars/axiom-dotfiles/axiom?style=for-the-badge&color=8c6c3e&labelColor=e1e2e7"><img alt="Stars" src="https://img.shields.io/github/stars/axiom-dotfiles/axiom?style=for-the-badge&color=e0af68&labelColor=1a1b26"></picture></a>
 <a href="https://github.com/axiom-dotfiles/axiom/tags"><picture><source media="(prefers-color-scheme: light)" srcset="https://img.shields.io/github/v/tag/axiom-dotfiles/axiom?sort=semver&label=version&style=for-the-badge&color=b15c00&labelColor=e1e2e7"><img alt="Version" src="https://img.shields.io/github/v/tag/axiom-dotfiles/axiom?sort=semver&label=version&style=for-the-badge&color=ff9e64&labelColor=1a1b26"></picture></a>
@@ -13,16 +13,26 @@ Bars, overlay pages, edge menus, the lock screen and even the login screen are a
 <a href="https://quickshell.org"><picture><source media="(prefers-color-scheme: light)" srcset="https://img.shields.io/badge/Quickshell-0.3.1%2B-9854f1?style=for-the-badge&labelColor=e1e2e7"><img alt="Quickshell" src="https://img.shields.io/badge/Quickshell-0.3.1%2B-bb9af7?style=for-the-badge&labelColor=1a1b26"></picture></a>
 <a href="LICENSE"><picture><source media="(prefers-color-scheme: light)" srcset="https://img.shields.io/badge/License-MIT-118c74?style=for-the-badge&labelColor=e1e2e7"><img alt="License" src="https://img.shields.io/badge/License-MIT-73daca?style=for-the-badge&labelColor=1a1b26"></picture></a>
 
-[Highlights](#highlights) · [Built in the shell](#built-in-the-shell) · [What's included](#whats-included) · [Install](#installation) · [Docs](#documentation)
+[Why axiom](#why-axiom) · [Highlights](#highlights) · [Example setups](#example-setups) · [What's included](#whats-included) · [Install](#installation) · [Docs](#documentation)
 
-<!-- TODO: hero clip of the editors in action (drag a widget onto a bar, drag a module onto a page,
-     resize it, Save), recorded by hand: it needs a real pointer. Until then, the theme clip below. -->
-<img src="assets/screenshots/demo-themes.webp" alt="The overlay's Home page switching between six themes, every card recoloring at once">
+<img src="assets/screenshots/hero-setups.webp" alt="Nine desktops sliding past one after another, all axiom with different themes, bars and docks: a solid Rosé Pine bar, large floating pills, a Dracula powerline bar on the bottom edge, an Everforest sidebar pinned open, a transparent Catppuccin bar, pills down the right edge, outlined arrows in Ayu, two plain bars in a light theme, and bars down both sides">
+
+<sub>One shell, infinite desktops, zero edited files. Each is an <a href="#example-setups">example setup</a> you can apply in one click.</sub>
 
 </div>
 
-> [!TIP]
-> **Trying it costs nothing.** axiom never touches your Hyprland config unless you ask it to. It applies its keybinds at runtime, skips any key you already use, and goes away when you remove its one start-up line.
+## Why axiom
+
+Most desktops come finished, with options to adjust. axiom comes in pieces, with the editors to make it yours.
+
+- **Built, not configured.** One set of modules builds pages, sidebars, the lock screen and the login screen. Bars are widgets you line up and style one by one. Every surface is laid out by dragging, with changes live until you save.
+- **The whole desktop, one application.** Login, lock, notifications, polkit, idle, OSDs, a launcher, and settings for Wi-Fi, Bluetooth, audio and monitors, from one config. No stack of separate tools to glue together.
+- **Bring your own apps.** axiom is the part of a desktop you live in. It ships no file manager, terminal or browser: use the ones you like, and axiom themes 23 of them to match.
+- **Updates don't fight you.** Your config is validated and migrated from version to version, so a new release never means merging your changes into someone else's dotfiles.
+- **Share your setup.** An export is only data: monitors, paths and accounts stay behind, and commands come along only if you ask.
+- **Trying it costs nothing.** axiom never touches your Hyprland config unless you ask it to. It applies its keybinds at runtime, skips any key you already use, and goes away when you remove its one start-up line.
+
+**Who it's for:** anyone who wants a desktop that's stable, complete and one application rather than a pile of tools and scripts, and that you can still rice as far as you like.
 
 ## Highlights
 
@@ -30,80 +40,60 @@ Bars, overlay pages, edge menus, the lock screen and even the login screen are a
 <tr>
 <td width="50%" valign="top">
 
-### 🧩 Drag and drop everything
+### Build every surface
 
-One grid editor lays out your **overlay pages**, your **edge menus**, the **lock screen** and the **login screen**. Drag modules in from the library, move them, and pull a corner to resize them. The bar editor works the same way for widgets. Every change shows live on your desktop: **Save** keeps it, **Reset** throws it away.
+One grid editor lays out overlay pages, edge menus, the lock screen and the login screen. Changes show live: **Save** keeps them, **Reset** throws them away.
 
 <img src="assets/screenshots/overlay-editor.webp" alt="The Layouts editor: the Home page's modules on a grid, with the module library below">
 
 </td>
 <td width="50%" valign="top">
 
-### 🎨 A bar that looks like yours
+### Bars in any style
 
-Pick solid, transparent, pills, one floating bar, or floating pills. Then choose the widget style (filled, tinted, outline, underline, coloured icons), shape (rounded, capsule, slant, arrow) and grouping (separate, merged, powerline). Add separators, an accent line, shadows or glow. Widget colors pick themselves so neighbours never clash. Any number of bars, on any edge of any monitor.
+Solid, transparent, pills or floating, on any edge of any monitor. Filled, tinted, outlined or underlined widgets, in slants, arrows or powerline. Colors pick themselves.
 
-<img src="assets/screenshots/bar-styles.webp" alt="One bar in five styles: floating powerline pills, solid filled, floating outline with glow, underlined slants with chevrons, transparent with coloured icons">
-
-</td>
-</tr>
-<tr>
-<td valign="top">
-
-### ↔️ Menus that make room
-
-Edge menus slide out of any screen edge when you rest the pointer there, or from a button or a key. A floating menu opens over your windows. An *integrated* one pushes your bars and windows aside like a sidebar, and gives the space back when it closes.
-
-<img src="assets/screenshots/demo-menus.webp" alt="The right menu opening beside the bar while the windows retile to make room, then a floating menu on the left">
-
-</td>
-<td valign="top">
-
-### 🧭 Workspaces in two dimensions
-
-Make each monitor a **grid** of workspaces and move by row and column: the slide follows the direction. You can also make a monitor a scrolling **strip**. The bar, its popout, the overview and your keybinds all follow the same layout. **Alt+Tab** shows your windows most recently used first, with live previews; a quick tap just swaps the last two.
-
-<img src="assets/screenshots/demo-workspaces.webp" alt="Sliding right, down, left and up around a grid of workspaces">
+<img src="assets/screenshots/bar-styles.webp" alt="Seven bars in seven styles, from solid filled pills to transparent underlined text, each in its own theme">
 
 </td>
 </tr>
 <tr>
 <td valign="top">
 
-### 📅 Your calendar, built in
+### Menus that make room
 
-Connect iCloud, Fastmail, Nextcloud or any CalDAV account, plus `.ics` feeds. Events appear in the bar's calendar, in modules, on a full Calendar page, and as reminders. You can edit events in place, and `/event fri 3pm Dentist` adds one from the launcher.
+Edge menus slide out of any edge. A floating one opens over your windows; an *integrated* one pushes them aside like a sidebar, or pins open for good.
 
-<img src="assets/screenshots/calendar-page.webp" alt="The Calendar page: a month of events from two calendars, and the day's agenda">
+<img src="assets/screenshots/menu-sidebar.webp" alt="An Everforest desktop with a sidebar pinned open on the left and two terminals retiled beside it">
 
 </td>
 <td valign="top">
 
-### 🌈 One theme, every app
+### Workspaces in two dimensions
 
-Choose from 42 base16 themes in dark and light pairs, or generate one from your wallpaper. A theme recolors the shell and 23 other apps: GTK, Qt, kitty, Neovim, VS Code, Zed, Firefox, btop and more. Light and dark can also switch on a schedule.
+A grid of workspaces per monitor, or scrolling strips. The bar, the overview and your keybinds follow the layout, and **Alt+Tab** shows live previews.
 
-<img src="assets/screenshots/themes-light.webp" alt="The Themes page in a light theme: wallpapers, theme list and palette">
+<img src="assets/screenshots/workspace-overlay.webp" alt="The workspace overview: a 5×5 grid of workspaces with live window previews">
 
 </td>
 </tr>
 <tr>
 <td valign="top">
 
-### ⚡ A launcher that does everything
+### A launcher that does everything
 
-The launcher covers apps, windows, a calculator with units and currencies, clipboard history, emoji, web search and shell commands. It also asks your AI chat a question, and runs `/` commands that control the shell itself (`/theme`, `/volume 40`, `/config Appearance.font.size 14`).
+Apps, windows, math with units and currencies, emoji, the clipboard, AI chat, and `/` commands that drive the whole shell.
 
-<img src="assets/screenshots/launcher-commands.webp" alt="The launcher listing slash commands">
+<img src="assets/screenshots/launcher.webp" alt="The launcher finding Firefox, listing /theme commands, converting 12 USD to euros and searching emoji">
 
 </td>
 <td valign="top">
 
-### 🔒 The whole desktop, not just a bar
+### One theme, every app
 
-Lock screen and greetd login screen, laid out on the same grid. A polkit password prompt. Notifications, OSDs, docks, a power menu, a workspace overview with live previews, a monitor layout editor, AI chat, notes, screenshots and recording. All of it is one config, and all of it can be edited from the shell.
+42 base16 themes in dark and light pairs, or one generated from your wallpaper. It recolors the shell and 23 apps: GTK, Qt, kitty, Neovim, VS Code, Firefox and more.
 
-<img src="assets/screenshots/lockscreen.webp" alt="The lock screen: a greeting, password field, media, weather and a clock and calendar over the blurred wallpaper">
+<img src="assets/screenshots/demo-themes.webp" alt="The overlay's Home page switching between six themes, every card recoloring at once">
 
 </td>
 </tr>
@@ -111,27 +101,28 @@ Lock screen and greetd login screen, laid out on the same grid. A polkit passwor
 
 See **[all the features](docs/features.md)**, with screenshots of every surface.
 
-## Built in the shell
+## Example setups
 
 > [!NOTE]
-> **Everything on this page was built with axiom's own editors and its Settings page. No file was edited by hand.** A whole setup is one config: save it under **Settings → Maintenance → Saved configurations**, share it, and switch between setups in one click (or `/config restore <name>` in the launcher).
+> **No file was edited by hand.** Each setup was built with axiom's own editors and Settings page, and ships in [`examples/`](examples). Apply one from **Settings → Maintenance** or with `/config example <name>` in the launcher. It changes the look and layout only (wallpapers, monitors, apps and accounts stay yours), and your current setup is saved first.
+>
+> Your own setup travels the same way: **Settings → Maintenance → Share** exports its look and layout to a file, leaving out monitors, wallpapers, accounts and paths. **Import…** applies anyone's file just as an example applies. Keybinds, apps and commands come along only if you ask, since a shared command runs as you.
 
-<!-- TODO(B/C): when the second and third setups are built, turn this into an A | B | C table
-     (desktop-b/-c, overlay-home-b/-c), as in docs/features.md. -->
+<details>
+<summary><b>See all nine</b></summary>
 
-| The desktop | The overlay |
-| :---: | :---: |
-| <img src="assets/screenshots/desktop.webp" alt="The desktop: a floating pill bar on the left, a transparent bar on the right and the dock at the top, inside the screen border"> | <img src="assets/screenshots/overlay-home.webp" alt="The overlay's Home page: Wi-Fi, quick actions, media, notifications, calendar, mixer, network, weather and more"> |
-
-The editors that built it:
-
-| Bar editor | Layouts: a page | Layouts: the lock screen |
+| `clean` | `big-pills` | `powerline` |
 | :---: | :---: | :---: |
-| <img src="assets/screenshots/bar-editor.webp" alt="The bar editor: the bar's sections as a strip on the left, the widget library on the right"> | <img src="assets/screenshots/overlay-editor.webp" alt="The Layouts editor on the Home page"> | <img src="assets/screenshots/layouts-lockscreen.webp" alt="The Layouts editor on the lock screen, a screen-sized grid"> |
+| <img src="assets/screenshots/setup-clean.webp" alt="clean: a solid bar on top and the dock below, Rosé Pine Moon"> | <img src="assets/screenshots/setup-big-pills.webp" alt="big-pills: large floating pills with glow, Rosé Pine Moon"> | <img src="assets/screenshots/setup-powerline.webp" alt="powerline: powerline arrows on a bottom bar with the dock on top, Dracula"> |
+| Rosé Pine Moon · solid · filled | Rosé Pine Moon · floating pills · glow | Dracula · bottom pills · powerline |
+| **`sidebar`** | **`transparent`** | **`underline`** |
+| <img src="assets/screenshots/setup-sidebar.webp" alt="sidebar: a floating bar on the left and a transparent bar on top, Everforest"> | <img src="assets/screenshots/setup-transparent.webp" alt="transparent: a see-through bar with dot separators, Catppuccin Mocha"> | <img src="assets/screenshots/setup-underline.webp" alt="underline: pills down the right edge with underlined slants, Everforest"> |
+| Everforest · floating bar · pinned sidebar | Catppuccin Mocha · transparent · dots | Everforest · right-edge pills · slants |
+| **`outline`** | **`basic`** | **`sonar`** |
+| <img src="assets/screenshots/setup-outline.webp" alt="outline: a bar of outlined powerline arrows, Ayu Dark"> | <img src="assets/screenshots/setup-basic.webp" alt="basic: two plain bars, top and bottom, Kanagawa Lotus"> | <img src="assets/screenshots/setup-sonar.webp" alt="sonar: floating pills on the left and a transparent bar on the right, Submarine Sonar"> |
+| Ayu Dark · outlined arrows · glow | Kanagawa Lotus · two bars · light | Submarine Sonar · both sides · AI chat sidebar |
 
-- **Bar editor:** each bar's sections are drawn the way the bar draws them, on the side of the page matching the bar's edge. Drag widgets in from the library, click one to edit it, copy one bar's style onto another, and see which widgets don't fit on which screen.
-- **Layouts:** overlay pages, edge menus, the lock screen and the login screen, all on one grid. Each page or menu lists what opens it and adds a bar button or a keybind for it in one click.
-- **Settings:** generated from the schema that defines the config, so every option is on it. Every option can also be set from the launcher.
+</details>
 
 ## What's included
 
@@ -141,12 +132,13 @@ One repository and one config for the whole desktop:
 - **Overlay** pages built from 27 modules: media, mixer, system graphs, weather, calendar and agenda, notes, AI chat, quick actions and more.
 - **Edge menus**, floating over your windows or integrated beside them.
 - **Workspaces** as a line, a grid per monitor or scrolling strips, plus a live overview and **Alt+Tab**.
-- **Calendar** from CalDAV accounts and `.ics` feeds, with an editor, reminders and quick add.
-- **Theming:** 42 base16 themes or ones generated from your wallpaper, applied to 23 other apps.
+- **Calendar** from CalDAV accounts and `.ics` feeds, with an editor, reminders and quick add (`/event fri 3pm Dentist`).
+- **Theming:** 42 base16 themes or ones generated from your wallpaper, applied to 23 other apps, with a light/dark schedule.
 - **Launcher** for apps, windows, math, the clipboard, emoji and `/` commands for the whole shell.
 - **Lock screen** and **login screen** (greetd), laid out from the same modules, plus a **polkit** prompt.
 - **Docks** on any edge with pinning and magnification, **OSDs**, notifications and a power menu.
-- A **monitor** layout editor, AI chat, notes, screenshots and recording, night light, idle, translations, and a first-run setup.
+- **AI chat** (Claude, OpenAI, Gemini or Ollama) in a page, a menu or the launcher.
+- A **monitor** layout editor, notes, screenshots and recording, night light, idle, translations, a first-run setup, and **saved configs** you can export, share and import.
 
 ## Installation
 
@@ -201,29 +193,27 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the layout and conventions, and [docs
 
 ## Roadmap
 
-- [x] Installer, onboarding and a setup wizard
-- [x] v1.0, the first stable release
-- [x] Clipboard manager, dock and edge menus
-- [x] One grid editor for pages, menus, the lock screen and the login screen
-- [x] Bar styles
-- [x] Alt+Tab, scrolling strips
-- [x] Calendar (CalDAV and .ics)
-- [x] Login screen (greetd) and polkit prompt
-- [ ] AUR package, if there is interest
-- [ ] Other Wayland compositors
-- [ ] More translations
-- [ ] More widgets!
+- **Other Wayland compositors**, beyond Hyprland
+- **More widgets** for bars and overlay pages
+- **More styles** for bars, widgets and menus
+- **More translations**
+- **Performance Improvements**
+- **An AUR package**, if there is interest
 
 ## Acknowledgments
 
 axiom is built on:
 - [Hyprland](https://hypr.land), the compositor it's made for
-- [Quickshell](https://quickshell.org), the QML toolkit every surface is written in
+- [Quickshell](https://quickshell.org), the QML toolkit every surface is written in, and without which axiom couldn't exist
 - [Material Symbols](https://fonts.google.com/icons), the icons
 
 The static themes are ports of [Catppuccin](https://catppuccin.com), [Gruvbox](https://github.com/morhetz/gruvbox), [Gruvbox Material](https://github.com/sainnhe/gruvbox-material), [Solarized](https://ethanschoonover.com/solarized/), [Tokyo Night](https://github.com/tokyo-night/tokyo-night-vscode-theme), [Rosé Pine](https://rosepinetheme.com), [Nord](https://www.nordtheme.com) (Nord Light after [threddast's](https://github.com/tinted-theming/schemes/blob/spec-0.11/base16/nord-light.yaml)), [Dracula and Alucard](https://draculatheme.com), [Everforest](https://github.com/sainnhe/everforest), [Kanagawa](https://github.com/rebelot/kanagawa.nvim), [One Dark/Light](https://github.com/atom/atom/tree/master/packages), [Ayu](https://github.com/ayu-theme/ayu-colors), [Nightfox](https://github.com/EdenEast/nightfox.nvim), [GitHub](https://github.com/primer/github-vscode-theme) and [Oxocarbon](https://github.com/nyoom-engineering/oxocarbon.nvim), most by way of [tinted-theming](https://github.com/tinted-theming/schemes)'s base16 palettes. Submarine Sonar is axiom's own.
 
 And thanks to the Hyprland desktops that inspired it: [illogical-impulse](https://github.com/end-4/dots-hyprland), [caelestia-dots](https://github.com/caelestia-dots) and [JaKooLit's Hyprland-Dots](https://github.com/JaKooLit/Hyprland-Dots).
+
+## Use of AI
+
+axiom is developed with AI assistance. I design the architecture and every system, and AI-written code is reviewed before it lands, held to the conventions in [CONTRIBUTING.md](CONTRIBUTING.md), and checked in CI by the same lint, structure and unit tests as everything else.
 
 ## License
 

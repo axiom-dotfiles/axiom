@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Axiom Configuration Schema",
-  "description": "Source of truth for config/user/config.json. Every key's `default` is filled in at load time (SchemaValidation.applyDefaults), so config readers never need their own fallbacks. `title`/`description`/`minimum`/`maximum`/`enum` drive the generated settings UI; `x-settings: false` hides a key from it (edited elsewhere, or UI-owned state); `x-options` names a dynamic option list (\"screens\", \"chatProviders\" and \"chatPresets\", \"colors\" for the 16 base theme colors, \"languages\" from config/i18n, \"cursorThemes\" for installed cursor themes, \"edgeMenus\" for the ids of EdgeMenus); `x-showIf` ({ sibling: value | [values] | { not: value } }) hides a field unless a sibling matches; a key starting with `/` is a dotted path from the config root instead (\"/Workspaces.layout\"). `x-enumLabels` ({ value: label }) shows labels instead of raw enum values in dropdowns. `x-multiline: true` edits a string in a growing text area. `x-categories` at the root lists the settings sidebar's categories in order, each `{ name, icon, page }` (`page`: a hand-built part after its cards, `views/settings/<page>.qml`); sections join one with `x-category`. `x-beside: true` on a field puts it beside the field before it on its settings card, each taking half the width. `x-order` on an object schema lists the keys its form shows first, in order (a schema reaches QML as a map, whose keys come out sorted). `x-defaultSize` ([w, h] in grid units, four to a card) on an overlay module definition is the size it's added at; `x-icon` on a module or view definition is its Material Symbols icon name in the editor. `x-hosts` on a module definition lists where it may be placed (\"overlay\", \"edgeMenu\", \"lockscreen\", \"greeter\"; the first two when left out, so the lock screen and the greeter only take modules that list them). `x-greeter: true` on a Hyprland.managed option carries it to the greeter (its Hyprland takes the option in managed mode). A `$ref` may carry keys beside it (`default`, `title`, …), which override the definition's. `x-required: true` on one makes it part of every grid on its hosts: it can't be removed or duplicated, and the library doesn't offer it. `x-canvasDetail` names a module property the layouts editor shows on its tile (a list joined), and `x-canvasFill` a color property the tile is filled with. Bar widgets are a oneOf discriminated by `type`, and get their `properties` defaults filled like everything else.",
+  "description": "Source of truth for config/user/config.json. Every key's `default` is filled in at load time (SchemaValidation.applyDefaults), so config readers never need their own fallbacks. `title`/`description`/`minimum`/`maximum`/`enum` drive the generated settings UI; `x-settings: false` hides a key from it (edited elsewhere, or UI-owned state); `x-options` names a dynamic option list (\"screens\", \"chatProviders\" and \"chatPresets\", \"colors\" for the 16 base theme colors, \"languages\" from config/i18n, \"cursorThemes\" for installed cursor themes, \"edgeMenus\" for the ids of EdgeMenus); `x-showIf` ({ sibling: value | [values] | { not: value } }) hides a field unless a sibling matches; a key starting with `/` is a dotted path from the config root instead (\"/Workspaces.layout\"). `x-enumLabels` ({ value: label }) shows labels instead of raw enum values in dropdowns. `x-multiline: true` edits a string in a growing text area. `x-categories` at the root lists the settings sidebar's categories in order, each `{ name, icon, page }` (`page`: a hand-built part after its cards, `views/settings/<page>.qml`); sections join one with `x-category`. `x-beside: true` on a field puts it beside the field before it on its settings card, each taking half the width. `x-order` on an object schema lists the keys its form shows first, in order (a schema reaches QML as a map, whose keys come out sorted). `x-defaultSize` ([w, h] in grid units, four to a card) on an overlay module definition is the size it's added at; `x-icon` on a module or view definition is its Material Symbols icon name in the editor. `x-hosts` on a module definition lists where it may be placed (\"overlay\", \"edgeMenu\", \"lockscreen\", \"greeter\"; the first two when left out, so the lock screen and the greeter only take modules that list them). `x-greeter: true` on a Hyprland.managed option carries it to the greeter (its Hyprland takes the option in managed mode). A `$ref` may carry keys beside it (`default`, `title`, …), which override the definition's. `x-required: true` on one makes it part of every grid on its hosts: it can't be removed or duplicated, and the library doesn't offer it. `x-canvasDetail` names a module property the layouts editor shows on its tile (a list joined), and `x-canvasFill` a color property the tile is filled with. `x-takeover: true` marks a setting that takes something over on this PC (the Hyprland mode, the lock screen, idle, polkit, the greeter): loading a saved config, the defaults, an example or an import keeps its current value (ConfigExamples.keepTakeovers). Bar widgets are a oneOf discriminated by `type`, and get their `properties` defaults filled like everything else.",
   "type": "object",
   "x-categories": [
     { "name": "General", "icon": "home" },
@@ -22,7 +22,7 @@
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 48,
+      "default": 49,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
@@ -36,6 +36,7 @@
       "additionalProperties": false,
       "properties": {
         "mode": {
+          "x-takeover": true,
           "type": "string",
           "title": "Locker",
           "enum": ["quickshell", "hyprlock", "none"],
@@ -51,6 +52,7 @@
           "x-showIf": { "mode": "none" }
         },
         "blurWallpaper": {
+          "x-scope": "look",
           "type": "boolean",
           "title": "Blur wallpaper",
           "default": true,
@@ -58,6 +60,7 @@
           "x-showIf": { "mode": { "not": "none" } }
         },
         "layout": {
+          "x-scope": "look",
           "$ref": "#/definitions/ScreenLayout",
           "x-settings": false,
           "title": "Built-in lock screen",
@@ -84,7 +87,7 @@
       "additionalProperties": false,
       "x-order": ["source", "monitor", "rememberUser"],
       "properties": {
-        "enabled": { "type": "boolean", "x-settings": false, "default": false, "description": "Set up as the login screen (set by its card's Install and Remove, never by hand)." },
+        "enabled": { "type": "boolean", "x-takeover": true, "x-settings": false, "default": false, "description": "Set up as the login screen (set by its card's Install and Remove, never by hand)." },
         "source": {
           "type": "string",
           "title": "Code from",
@@ -122,7 +125,7 @@
       "additionalProperties": false,
       "x-order": ["enabled", "dimTimeout", "dimMode", "dimLevel", "dimBy", "lockTimeout", "screenOffTimeout", "suspendTimeout", "lockBeforeSleep", "screenOnAfterSleep", "respectInhibitors", "listeners"],
       "properties": {
-        "enabled": { "type": "boolean", "title": "Manage hypridle", "default": false, "description": "axiom runs hypridle with a config of its own (~/.local/state/axiom/hypridle.conf) and stops any other hypridle while this is on. Your own hypridle.conf is never touched; remove your own hypridle autostart line." },
+        "enabled": { "type": "boolean", "x-takeover": true, "title": "Manage hypridle", "default": false, "description": "axiom runs hypridle with a config of its own (~/.local/state/axiom/hypridle.conf) and stops any other hypridle while this is on. Your own hypridle.conf is never touched; remove your own hypridle autostart line." },
         "dimTimeout": { "type": "integer", "title": "Dim the screens after", "x-unit": "s", "default": 150, "minimum": 0, "maximum": 7200, "description": "0 never dims. Brightness comes back when you return.", "x-showIf": { "enabled": true } },
         "dimMode": { "type": "string", "title": "Dim", "default": "to", "enum": ["to", "by"], "x-enumLabels": { "to": "To a set brightness", "by": "By a share of the current brightness" }, "description": "A set brightness leaves screens already darker as they are. A share always dims, unless a screen is already at 0.", "x-showIf": { "enabled": true } },
         "dimLevel": { "type": "integer", "title": "Dim to", "x-unit": "%", "default": 30, "minimum": 5, "maximum": 100, "description": "Screens already darker stay as they are.", "x-showIf": { "enabled": true, "dimMode": "to" } },
@@ -163,7 +166,7 @@
       "description": "The password prompt apps show when they need administrator rights (polkit): installing updates, mounting drives, changing system settings.",
       "additionalProperties": false,
       "properties": {
-        "enabled": { "type": "boolean", "title": "Use axiom's prompt", "default": false, "description": "axiom becomes the session's polkit agent: the screen dims and the prompt opens in the middle of the focused monitor. A session has one agent, so axiom stops any other (hyprpolkitagent, KDE's, GNOME's) and leaves it out of the autostart; turned off, a stopped systemd agent starts again." }
+        "enabled": { "type": "boolean", "x-takeover": true, "title": "Use axiom's prompt", "default": false, "description": "axiom becomes the session's polkit agent: the screen dims and the prompt opens in the middle of the focused monitor. A session has one agent, so axiom stops any other (hyprpolkitagent, KDE's, GNOME's) and leaves it out of the autostart; turned off, a stopped systemd agent starts again." }
       }
     },
 
@@ -297,6 +300,7 @@
     },
 
     "Apps": {
+      "x-scope": "personal",
       "type": "object",
       "x-category": "General",
       "title": "Apps",
@@ -325,13 +329,13 @@
           "default": "general",
           "description": "Where the power menu opens. As in General follows General > Monitors; the primary monitor is the one set in General; the focused monitor is the one with your active workspace (and mouse); every monitor shows it on all of them at once."
         },
-        "actions": { "type": "array", "title": "Actions", "default": ["lock", "suspend", "hibernate", "logout", "reboot", "poweroff"], "items": { "type": "string", "enum": ["lock", "suspend", "hibernate", "logout", "reboot", "poweroff"] }, "description": "Which actions the menu shows, in order." },
-        "confirm": { "type": "boolean", "title": "Confirm destructive actions", "default": true, "description": "Log out, reboot and power off ask for a second click (or Enter) first." },
-        "tileSize": { "type": "integer", "title": "Tile size", "x-unit": "px", "default": 120, "minimum": 80, "maximum": 200, "description": "Width and height of each action's tile." },
-        "showHeader": { "type": "boolean", "title": "Greeting and uptime", "default": true, "description": "Show a greeting and how long the computer has been up above the actions." },
-        "showHint": { "type": "boolean", "title": "Controls hint", "default": true, "description": "Show the keys under the actions." },
-        "showBackdrop": { "type": "boolean", "title": "Dim background", "default": true, "description": "Dim the whole screen behind the power menu, under the bars and border." },
-        "backdrop": { "type": "integer", "title": "Backdrop darkness", "x-unit": "%", "default": 36, "minimum": 0, "maximum": 90, "description": "How dark the screen behind the power menu goes.", "x-showIf": { "showBackdrop": true } }
+        "actions": { "x-scope": "look", "type": "array", "title": "Actions", "default": ["lock", "suspend", "hibernate", "logout", "reboot", "poweroff"], "items": { "type": "string", "enum": ["lock", "suspend", "hibernate", "logout", "reboot", "poweroff"] }, "description": "Which actions the menu shows, in order." },
+        "confirm": { "x-scope": "look", "type": "boolean", "title": "Confirm destructive actions", "default": true, "description": "Log out, reboot and power off ask for a second click (or Enter) first." },
+        "tileSize": { "x-scope": "look", "type": "integer", "title": "Tile size", "x-unit": "px", "default": 120, "minimum": 80, "maximum": 200, "description": "Width and height of each action's tile." },
+        "showHeader": { "x-scope": "look", "type": "boolean", "title": "Greeting and uptime", "default": true, "description": "Show a greeting and how long the computer has been up above the actions." },
+        "showHint": { "x-scope": "look", "type": "boolean", "title": "Controls hint", "default": true, "description": "Show the keys under the actions." },
+        "showBackdrop": { "x-scope": "look", "type": "boolean", "title": "Dim background", "default": true, "description": "Dim the whole screen behind the power menu, under the bars and border." },
+        "backdrop": { "x-scope": "look", "type": "integer", "title": "Backdrop darkness", "x-unit": "%", "default": 36, "minimum": 0, "maximum": 90, "description": "How dark the screen behind the power menu goes.", "x-showIf": { "showBackdrop": true } }
       }
     },
 
@@ -366,6 +370,7 @@
           "description": "Where toasts appear. As in General follows General > Monitors; the primary monitor is the one set in General; the focused monitor is the one with your active workspace when the notification arrives; every monitor shows each toast on all of them, and closing one closes the rest."
         },
         "position": {
+          "x-scope": "look",
           "type": "string",
           "title": "Corner",
           "enum": ["topLeft", "topRight", "bottomLeft", "bottomRight"],
@@ -373,17 +378,17 @@
           "default": "topLeft",
           "description": "Corner of the work area the toasts stack from. Bottom corners stack upwards."
         },
-        "evenGaps": { "type": "boolean", "title": "Even gaps", "default": true, "description": "Use one gap for both sides of the corner. Turn off to set each side on its own." },
-        "gap": { "type": "integer", "x-control": "stepper", "title": "Gap", "x-unit": "px", "default": 12, "minimum": 0, "maximum": 200, "description": "Space between the toasts and the edges of the work area.", "x-showIf": { "evenGaps": true } },
-        "gapTop": { "type": "integer", "x-control": "stepper", "title": "Top gap", "x-unit": "px", "default": 12, "minimum": 0, "maximum": 200, "description": "Space between the toasts and the top of the work area.", "x-showIf": { "evenGaps": false, "position": ["topLeft", "topRight"] } },
-        "gapBottom": { "type": "integer", "x-control": "stepper", "title": "Bottom gap", "x-unit": "px", "default": 12, "minimum": 0, "maximum": 200, "description": "Space between the toasts and the bottom of the work area.", "x-showIf": { "evenGaps": false, "position": ["bottomLeft", "bottomRight"] } },
-        "gapLeft": { "type": "integer", "x-control": "stepper", "title": "Left gap", "x-unit": "px", "default": 12, "minimum": 0, "maximum": 200, "description": "Space between the toasts and the left of the work area.", "x-showIf": { "evenGaps": false, "position": ["topLeft", "bottomLeft"] } },
-        "gapRight": { "type": "integer", "x-control": "stepper", "title": "Right gap", "x-unit": "px", "default": 12, "minimum": 0, "maximum": 200, "description": "Space between the toasts and the right of the work area.", "x-showIf": { "evenGaps": false, "position": ["topRight", "bottomRight"] } },
+        "evenGaps": { "x-scope": "look", "type": "boolean", "title": "Even gaps", "default": true, "description": "Use one gap for both sides of the corner. Turn off to set each side on its own." },
+        "gap": { "x-scope": "look", "type": "integer", "x-control": "stepper", "title": "Gap", "x-unit": "px", "default": 12, "minimum": 0, "maximum": 200, "description": "Space between the toasts and the edges of the work area.", "x-showIf": { "evenGaps": true } },
+        "gapTop": { "x-scope": "look", "type": "integer", "x-control": "stepper", "title": "Top gap", "x-unit": "px", "default": 12, "minimum": 0, "maximum": 200, "description": "Space between the toasts and the top of the work area.", "x-showIf": { "evenGaps": false, "position": ["topLeft", "topRight"] } },
+        "gapBottom": { "x-scope": "look", "type": "integer", "x-control": "stepper", "title": "Bottom gap", "x-unit": "px", "default": 12, "minimum": 0, "maximum": 200, "description": "Space between the toasts and the bottom of the work area.", "x-showIf": { "evenGaps": false, "position": ["bottomLeft", "bottomRight"] } },
+        "gapLeft": { "x-scope": "look", "type": "integer", "x-control": "stepper", "title": "Left gap", "x-unit": "px", "default": 12, "minimum": 0, "maximum": 200, "description": "Space between the toasts and the left of the work area.", "x-showIf": { "evenGaps": false, "position": ["topLeft", "bottomLeft"] } },
+        "gapRight": { "x-scope": "look", "type": "integer", "x-control": "stepper", "title": "Right gap", "x-unit": "px", "default": 12, "minimum": 0, "maximum": 200, "description": "Space between the toasts and the right of the work area.", "x-showIf": { "evenGaps": false, "position": ["topRight", "bottomRight"] } },
         "timeout": { "type": "integer", "x-control": "stepper", "title": "Toast duration", "x-unit": "s", "x-group": "Toasts", "default": 5, "minimum": 1, "maximum": 60, "description": "How long a toast stays up. Hovering it pauses the countdown." },
         "appTimeouts": { "type": "boolean", "title": "Use app timeouts", "x-group": "Toasts", "default": true, "description": "When an app asks for its own duration, or for its notification to stay until dismissed, use that instead of the duration above." },
         "criticalStays": { "type": "boolean", "title": "Critical toasts stay", "x-group": "Toasts", "default": true, "description": "Critical notifications stay up until you dismiss them." },
-        "maxToasts": { "type": "integer", "x-control": "stepper", "title": "Visible toasts", "x-group": "Toasts", "default": 5, "minimum": 1, "maximum": 10, "description": "How many toasts stack up at once. A new one pushes out the oldest." },
-        "width": { "type": "integer", "title": "Toast width", "x-unit": "px", "x-group": "Toasts", "default": 360, "minimum": 240, "maximum": 600, "description": "Width of each toast." },
+        "maxToasts": { "x-scope": "look", "type": "integer", "x-control": "stepper", "title": "Visible toasts", "x-group": "Toasts", "default": 5, "minimum": 1, "maximum": 10, "description": "How many toasts stack up at once. A new one pushes out the oldest." },
+        "width": { "x-scope": "look", "type": "integer", "title": "Toast width", "x-unit": "px", "x-group": "Toasts", "default": 360, "minimum": 240, "maximum": 600, "description": "Width of each toast." },
         "quietFullscreen": { "type": "boolean", "title": "Quiet over fullscreen", "x-group": "Toasts", "default": true, "description": "Show no toasts on a monitor whose workspace has a fullscreen window. Critical ones still show, and everything still goes to the history." },
         "clearOnFocus": { "type": "boolean", "title": "Clear when the app is focused", "x-group": "Notification history", "default": false, "description": "Focusing an app's window removes its notifications from the history." },
         "removeOnClick": { "type": "boolean", "title": "Remove when clicked", "x-group": "Notification history", "default": false, "description": "Clicking a notification, or one of its actions, removes it from the history." },
@@ -403,6 +408,7 @@
       "additionalProperties": false,
       "properties": {
         "mode": {
+          "x-takeover": true,
           "type": "string",
           "title": "Mode",
           "x-group": "Setup",
@@ -427,13 +433,6 @@
           "description": "Start awww-daemon for the wallpaper picker.",
           "x-showIf": { "/Appearance.wallpaperBackend": "awww" }
         },
-        "theme": {
-          "type": "boolean",
-          "title": "Themed borders",
-          "x-group": "Integration",
-          "default": false,
-          "description": "Window borders in theme colors."
-        },
         "blur": {
           "type": "boolean",
           "title": "Blur behind axiom",
@@ -442,6 +441,7 @@
           "description": "Blur behind bars, popouts and the launcher."
         },
         "binds": {
+          "x-scope": "personal",
           "type": "array",
           "title": "Keybinds",
           "x-settings": false,
@@ -630,17 +630,30 @@
             "profiles": { "type": "array", "default": [], "items": { "$ref": "#/definitions/MonitorProfile" } }
           }
         },
+        "look": {
+          "x-scope": "look",
+          "type": "object",
+          "title": "Window look",
+          "description": "Hyprland settings that make windows match axiom, in every mode. While on, they win over your own Hyprland config, and they come along when you share or import a config.",
+          "additionalProperties": false,
+          "x-order": ["borders", "shape", "gaps", "gapsIn", "gapsOut"],
+          "properties": {
+            "borders": { "type": "boolean", "title": "Themed borders", "default": false, "description": "Window borders in theme colors." },
+            "shape": { "type": "boolean", "title": "Match axiom's shape", "default": false, "description": "Window corners and border width follow Look & Feel → Shape." },
+            "gaps": { "type": "boolean", "title": "Set window gaps", "default": false, "description": "Floating bars and detached surfaces set to Automatic keep these gaps too." },
+            "gapsIn": { "type": "integer", "x-control": "stepper", "title": "Gaps between windows", "x-unit": "px", "default": 3, "minimum": 0, "maximum": 50, "x-showIf": { "gaps": true } },
+            "gapsOut": { "type": "integer", "x-control": "stepper", "title": "Gaps to the edges", "x-unit": "px", "default": 6, "minimum": 0, "maximum": 100, "x-showIf": { "gaps": true } }
+          }
+        },
         "managed": {
           "type": "object",
           "title": "Managed config",
           "description": "Written into hyprland.lua. Anything else goes in ~/.config/hypr/user/*.lua.",
           "x-showIf": { "mode": "managed" },
           "additionalProperties": false,
-          "x-order": ["layout", "gapsIn", "gapsOut", "preserveSplit", "smartSplit", "smartResizing", "forceSplit", "splitRatio", "masterSize", "masterOrientation", "masterNewStatus", "snap", "matchAxiom", "borderSize", "rounding", "activeOpacity", "inactiveOpacity", "fullscreenOpacity", "dimInactive", "dimStrength", "dimSpecial", "windowBlur", "blurSize", "blurPasses", "blurXray", "blurIgnoreOpacity", "blurNewOptimizations", "blurNoise", "blurContrast", "blurVibrancy", "blurPopups", "blurSpecial", "shadow", "shadowRange", "shadowPower", "shadowThemed", "shadowColor", "animations", "animationPreset", "workspaceWraparound", "curves", "customAnimations", "kbLayout", "kbVariant", "kbOptions", "repeatRate", "repeatDelay", "numlockByDefault", "followMouse", "floatSwitchOverrideFocus", "accelProfile", "sensitivity", "leftHanded", "resizeOnBorder", "cursorTheme", "cursorSize", "cursorHideTimeout", "hideCursorOnKeyPress", "noWarps", "naturalScroll", "tapToClick", "disableWhileTyping", "touchpadScrollFactor", "hideLogo", "backgroundThemed", "backgroundColor", "focusOnActivate", "swallow", "swallowRegex", "closeSpecialOnEmpty", "hideSpecialOnWorkspaceChange", "workspaceBackAndForth", "mouseWakesScreen", "keyWakesScreen", "vrr", "scrollEventDelay", "xwaylandZeroScaling", "env", "autostart"],
+          "x-order": ["layout", "preserveSplit", "smartSplit", "smartResizing", "forceSplit", "splitRatio", "masterSize", "masterOrientation", "masterNewStatus", "snap", "borderSize", "rounding", "activeOpacity", "inactiveOpacity", "fullscreenOpacity", "dimInactive", "dimStrength", "dimSpecial", "windowBlur", "blurSize", "blurPasses", "blurXray", "blurIgnoreOpacity", "blurNewOptimizations", "blurNoise", "blurContrast", "blurVibrancy", "blurPopups", "blurSpecial", "shadow", "shadowRange", "shadowPower", "shadowThemed", "shadowColor", "animations", "animationPreset", "workspaceWraparound", "curves", "customAnimations", "kbLayout", "kbVariant", "kbOptions", "repeatRate", "repeatDelay", "numlockByDefault", "followMouse", "floatSwitchOverrideFocus", "accelProfile", "sensitivity", "leftHanded", "resizeOnBorder", "cursorTheme", "cursorSize", "cursorHideTimeout", "hideCursorOnKeyPress", "noWarps", "naturalScroll", "tapToClick", "disableWhileTyping", "touchpadScrollFactor", "hideLogo", "backgroundThemed", "backgroundColor", "focusOnActivate", "swallow", "swallowRegex", "closeSpecialOnEmpty", "hideSpecialOnWorkspaceChange", "workspaceBackAndForth", "mouseWakesScreen", "keyWakesScreen", "vrr", "scrollEventDelay", "xwaylandZeroScaling", "env", "autostart"],
           "properties": {
             "layout": { "type": "string", "title": "Layout", "x-group": "Layout", "enum": ["dwindle", "master"], "x-enumLabels": { "dwindle": "Dwindle (binary splits)", "master": "Master and stack" }, "default": "dwindle", "description": "How windows tile. For strips (Hyprland's scrolling columns), see Workspaces.", "x-hypr": "general.layout", "x-hyprAlways": true },
-            "gapsIn": { "type": "integer", "x-control": "stepper", "title": "Gaps between windows", "x-group": "Layout", "default": 3, "minimum": 0, "maximum": 50, "x-hypr": "general.gaps_in", "x-hyprAlways": true },
-            "gapsOut": { "type": "integer", "x-control": "stepper", "title": "Gaps to the edges", "x-group": "Layout", "default": 6, "minimum": 0, "maximum": 100, "x-hypr": "general.gaps_out", "x-hyprAlways": true },
             "preserveSplit": { "type": "boolean", "title": "Keep split direction", "x-group": "Layout", "default": true, "description": "Dwindle keeps a split's direction when the window is resized or moved.", "x-showIf": { "layout": "dwindle" }, "x-hypr": "dwindle.preserve_split", "x-hyprAlways": true },
             "smartSplit": { "type": "boolean", "title": "Split by cursor position", "x-group": "Layout", "default": false, "description": "Dwindle splits towards the side of the window the cursor is on.", "x-showIf": { "layout": "dwindle" }, "x-hypr": "dwindle.smart_split" },
             "smartResizing": { "type": "boolean", "title": "Resize by cursor position", "x-group": "Layout", "default": true, "description": "Resizing moves the edge nearest the cursor.", "x-showIf": { "layout": "dwindle" }, "x-hypr": "dwindle.smart_resizing" },
@@ -650,9 +663,8 @@
             "masterOrientation": { "type": "string", "title": "Master side", "x-group": "Layout", "enum": ["left", "right", "top", "bottom", "center"], "default": "left", "x-showIf": { "layout": "master" }, "x-hypr": "master.orientation" },
             "masterNewStatus": { "type": "string", "title": "New windows become", "x-group": "Layout", "enum": ["slave", "master", "inherit"], "x-enumLabels": { "slave": "Part of the stack", "master": "The master", "inherit": "Like the focused window" }, "default": "slave", "x-showIf": { "layout": "master" }, "x-hypr": "master.new_status" },
             "snap": { "type": "boolean", "title": "Snap floating windows", "x-group": "Layout", "default": false, "description": "Floating windows snap to each other and the screen edges.", "x-hypr": "general.snap.enabled" },
-            "matchAxiom": { "type": "boolean", "title": "Match axiom's look", "x-group": "Decoration", "default": true, "description": "Window corners and border width follow Look & Feel → Shape." },
-            "borderSize": { "type": "integer", "x-control": "stepper", "title": "Border width", "x-group": "Decoration", "default": 2, "minimum": 0, "maximum": 20, "x-showIf": { "matchAxiom": false } },
-            "rounding": { "type": "integer", "x-control": "stepper", "title": "Corner rounding", "x-group": "Decoration", "default": 8, "minimum": 0, "maximum": 50, "x-showIf": { "matchAxiom": false } },
+            "borderSize": { "type": "integer", "x-control": "stepper", "title": "Border width", "x-group": "Decoration", "default": 2, "minimum": 0, "maximum": 20, "x-showIf": { "/Hyprland.look.shape": false } },
+            "rounding": { "type": "integer", "x-control": "stepper", "title": "Corner rounding", "x-group": "Decoration", "default": 8, "minimum": 0, "maximum": 50, "x-showIf": { "/Hyprland.look.shape": false } },
             "activeOpacity": { "type": "integer", "title": "Focused window opacity", "x-unit": "%", "x-group": "Decoration", "default": 100, "minimum": 10, "maximum": 100, "x-hypr": "decoration.active_opacity", "x-hyprScale": 0.01 },
             "inactiveOpacity": { "type": "integer", "title": "Unfocused window opacity", "x-unit": "%", "x-group": "Decoration", "default": 100, "minimum": 10, "maximum": 100, "x-hypr": "decoration.inactive_opacity", "x-hyprScale": 0.01 },
             "fullscreenOpacity": { "type": "integer", "title": "Fullscreen opacity", "x-unit": "%", "x-group": "Decoration", "default": 100, "minimum": 10, "maximum": 100, "x-hypr": "decoration.fullscreen_opacity", "x-hyprScale": 0.01 },
@@ -799,6 +811,7 @@
       "additionalProperties": false,
       "properties": {
         "theme": {
+          "x-scope": "look",
           "type": "string",
           "default": "gruvbox-dark",
           "description": "Active theme (set on the overlay's Themes page).",
@@ -875,6 +888,7 @@
           }
         },
         "font": {
+          "x-scope": "look",
           "type": "object",
           "title": "Font",
           "additionalProperties": false,
@@ -898,6 +912,7 @@
           }
         },
         "shape": {
+          "x-scope": "look",
           "type": "object",
           "title": "Shape",
           "additionalProperties": false,
@@ -941,6 +956,7 @@
           }
         },
         "motion": {
+          "x-scope": "look",
           "type": "object",
           "title": "Motion",
           "additionalProperties": false,
@@ -966,6 +982,7 @@
     },
 
     "Widget": {
+      "x-scope": "look",
       "type": "object",
       "x-category": "Look & Feel",
       "title": "Panels & controls",
@@ -1025,6 +1042,7 @@
     },
 
     "BarStyle": {
+      "x-scope": "look",
       "type": "object",
       "x-category": "Look & Feel",
       "title": "Bar style",
@@ -1322,6 +1340,7 @@
     },
 
     "Popouts": {
+      "x-scope": "look",
       "type": "object",
       "x-category": "Overlay & Popouts",
       "x-links": ["BarEditor"],
@@ -1539,6 +1558,7 @@
     },
 
     "OSD": {
+      "x-scope": "look",
       "type": "object",
       "x-category": "Dock & OSD",
       "x-card": "OSDList",
@@ -1582,6 +1602,7 @@
     },
 
     "Dock": {
+      "x-scope": "look",
       "type": "object",
       "x-category": "Dock & OSD",
       "x-card": "DockList",
@@ -1636,6 +1657,7 @@
     },
 
     "Icons": {
+      "x-scope": "look",
       "type": "object",
       "x-category": "Look & Feel",
       "title": "Icons",
@@ -1667,6 +1689,7 @@
           "description": "Where the overlay opens. As in General follows General > Monitors; the primary monitor is the one set in General; the focused monitor is the one with your active workspace (and mouse); every monitor shows it on all of them at once."
         },
         "size": {
+          "x-scope": "look",
           "type": "integer",
           "title": "Overlay size",
           "x-unit": "%",
@@ -1688,6 +1711,7 @@
           "description": "Close the overlay when you click outside it: on a bar, the screen border or another monitor."
         },
         "views": {
+          "x-scope": "look",
           "type": "array",
           "x-settings": false,
           "description": "Pages shown in the overlay, in order: your Custom pages, each a grid of modules, and the tool pages (shown as icons after them).",
@@ -1714,6 +1738,7 @@
     },
 
     "Workspaces": {
+      "x-scope": "look",
       "type": "object",
       "x-category": "Workspaces",
       "x-order": ["layout", "count", "columns", "rows", "wrap", "animate", "strips", "stripColumnWidth", "stripFollowFocus"],
@@ -1780,7 +1805,7 @@
             "additionalProperties": false,
             "x-order": ["monitor", "direction"],
             "properties": {
-              "monitor": { "type": "string", "title": "Monitor", "x-options": "screens", "x-allScreens": true, "default": "", "description": "Empty uses the primary monitor; All monitors makes every monitor a strip, unless another entry names it." },
+              "monitor": { "x-scope": "machine", "type": "string", "title": "Monitor", "x-options": "screens", "x-allScreens": true, "default": "", "description": "Empty uses the primary monitor; All monitors makes every monitor a strip, unless another entry names it." },
               "direction": { "type": "string", "title": "Direction", "enum": ["horizontal", "vertical"], "x-enumLabels": { "horizontal": "Horizontal", "vertical": "Vertical" }, "default": "horizontal", "description": "Horizontal: columns side by side, scrolling sideways. Vertical: rows one under another, scrolling up and down." }
             }
           }
@@ -1791,6 +1816,7 @@
     },
 
     "WorkspaceOverlay": {
+      "x-scope": "look",
       "type": "object",
       "x-category": "Workspaces",
       "title": "Workspace overview",
@@ -1877,12 +1903,14 @@
           "x-enumLabels": { "all": "Every window", "monitor": "Windows on the focused monitor", "workspace": "Windows on the focused workspace" }
         },
         "previews": {
+          "x-scope": "look",
           "type": "boolean",
           "title": "Window previews",
           "default": true,
           "description": "Show each window's live contents; off shows app icons."
         },
         "tileSize": {
+          "x-scope": "look",
           "type": "integer",
           "x-control": "stepper",
           "title": "Tile size",
@@ -1935,6 +1963,7 @@
     },
 
     "Bars": {
+      "x-scope": "look",
       "type": "array",
       "description": "Bars, edited in the overlay's bar editor.",
       "x-settings": false,
@@ -1971,6 +2000,7 @@
     },
 
     "EdgeMenus": {
+      "x-scope": "look",
       "type": "array",
       "description": "Menus that pop out of a screen edge, filled with overlay modules, edited on the overlay's Layouts page. Opened by a bar Button (Edge menu action), their edge trigger, or `qs -c axiom ipc call edgeMenu toggle <id>`.",
       "x-settings": false,
@@ -2037,6 +2067,7 @@
           "description": "Where the dock appears. As in General follows General > Monitors; the primary monitor is the one set in General; the focused monitor is the one with your active workspace (and mouse), and the dock moves with it; every monitor shows it on all of them at once; a specific monitor is the one picked below."
         },
         "monitor": {
+          "x-scope": "machine",
           "type": "string",
           "title": "Monitor",
           "default": "",
@@ -2164,6 +2195,7 @@
         "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "base00" },
         "borderColor": { "type": "string", "title": "Border", "x-options": "colors", "default": "base05" },
         "pinned": {
+          "x-scope": "personal",
           "type": "array",
           "title": "Pinned apps",
           "x-settings": false,
@@ -2190,6 +2222,7 @@
           "description": "Where the OSD appears. As in General follows General > Monitors; the primary monitor is the one set in General; the focused monitor is the one with your active workspace (and mouse); every monitor shows it on all of them at once; a specific monitor is the one picked below."
         },
         "monitor": {
+          "x-scope": "machine",
           "type": "string",
           "title": "Monitor",
           "default": "",
@@ -2292,7 +2325,7 @@
                 "x-enumLabels": { "master": "System volume", "other": "Other apps", "microphone": "Microphone", "brightness": "Brightness", "app": "An app" },
                 "default": "app"
               },
-              "apps": { "type": "array", "items": { "type": "string" }, "title": "Apps", "default": [], "x-showIf": { "type": "app" }, "x-suggestions": "audioApps", "description": "Comma-separated; each matched as a substring of a stream's binary or name. The bar shows the first listed app with a stream open, and a change sets every matching stream." },
+              "apps": { "x-scope": "personal", "type": "array", "items": { "type": "string" }, "title": "Apps", "default": [], "x-showIf": { "type": "app" }, "x-suggestions": "audioApps", "description": "Comma-separated; each matched as a substring of a stream's binary or name. The bar shows the first listed app with a stream open, and a change sets every matching stream." },
               "icon": { "type": "string", "title": "Icon", "default": "", "description": "Icon shown on the bar: a Material Symbols name (fonts.google.com/icons), or text. Empty follows the level for system volume, microphone and brightness." },
               "showOsd": { "type": "boolean", "title": "Opens the OSD", "default": true, "description": "A change on this bar opens the OSD (it always keeps an open one open)." }
             }
@@ -2310,6 +2343,7 @@
         "name": { "x-group": "General", "type": "string", "title": "Name", "default": "" },
         "enabled": { "x-group": "General", "type": "boolean", "title": "Enabled", "default": true },
         "monitor": {
+          "x-scope": "machine",
           "x-group": "General",
           "type": "string",
           "title": "Monitor",
@@ -2479,6 +2513,7 @@
         "id": { "x-group": "General", "type": "string", "title": "Id" },
         "enabled": { "x-group": "General", "type": "boolean", "title": "Enabled", "default": true },
         "monitor": {
+          "x-scope": "machine",
           "x-group": "General",
           "type": "string",
           "title": "Monitor",
@@ -3287,7 +3322,7 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "paths": {"type": "array", "title": "Mount points", "default": ["/"], "items": {"type": "string"}, "description": "Comma-separated, e.g. /, /home"}
+            "paths": { "x-scope": "machine", "type": "array", "title": "Mount points", "default": ["/"], "items": {"type": "string"}, "description": "Comma-separated, e.g. /, /home"}
           }
         }
       }
@@ -3323,8 +3358,8 @@
           "additionalProperties": false,
           "properties": {
             "intervalMinutes": {"type": "integer", "title": "Check interval", "x-unit": "min", "default": 60, "minimum": 5, "maximum": 1440},
-            "includeAur": {"type": "boolean", "title": "Include AUR", "default": false},
-            "aurHelper": {"type": "string", "title": "AUR helper", "default": "paru", "enum": ["paru", "yay"], "x-showIf": {"includeAur": true}}
+            "includeAur": { "x-scope": "machine", "type": "boolean", "title": "Include AUR", "default": false},
+            "aurHelper": { "x-scope": "machine", "type": "string", "title": "AUR helper", "default": "paru", "enum": ["paru", "yay"], "x-showIf": {"includeAur": true}}
           }
         }
       }
@@ -3409,7 +3444,7 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "directory": {"type": "string", "title": "Save to", "default": "~/Pictures/Screenshots"}
+            "directory": { "x-scope": "machine", "type": "string", "title": "Save to", "default": "~/Pictures/Screenshots"}
           }
         }
       }
@@ -3634,7 +3669,7 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "apps": {"type": "array", "title": "Apps", "default": [], "items": {"type": "string"}, "description": "Desktop entry ids, comma-separated (e.g. firefox, kitty). Empty shows recently launched apps."},
+            "apps": { "x-scope": "personal", "type": "array", "title": "Apps", "default": [], "items": {"type": "string"}, "description": "Desktop entry ids, comma-separated (e.g. firefox, kitty). Empty shows recently launched apps."},
             "showLabels": {"type": "boolean", "title": "Show names", "default": true}
           }
         }
@@ -3664,7 +3699,7 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "note": { "type": "string", "title": "Note", "default": "", "x-options": "notes", "description": "The note to open, as a path in the notes folder (e.g. todo.md or work/ideas.md). Empty opens the last note this module showed." },
+            "note": { "x-scope": "machine", "type": "string", "title": "Note", "default": "", "x-options": "notes", "description": "The note to open, as a path in the notes folder (e.g. todo.md or work/ideas.md). Empty opens the last note this module showed." },
             "lockNote": { "type": "boolean", "title": "Only this note", "default": false, "description": "Always show this note, with no note list: a clean scratchpad for an edge menu.", "x-showIf": { "note": { "not": "" } } },
             "showHeader": { "type": "boolean", "title": "Header", "default": true, "description": "The note's name, the note list and the new note button." },
             "showToolbar": { "type": "boolean", "title": "Toolbar", "default": true, "description": "The checklist and bullet buttons." },
@@ -3901,7 +3936,7 @@
           "properties": {
             "showName": { "type": "boolean", "title": "Show device", "default": false, "description": "Show the connected device name next to the icon." },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Open the Wi-Fi menu when hovered." },
-            "middleCommand": { "type": "string", "title": "Middle-click command", "default": "", "description": "Shell command run on middle click (e.g. nm-connection-editor). Empty does nothing." },
+            "middleCommand": { "x-scope": "personal", "type": "string", "title": "Middle-click command", "default": "", "description": "Shell command run on middle click (e.g. nm-connection-editor). Empty does nothing." },
             "backgroundColor": { "type": "string", "title": "Connected background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
             "disconnectedColor": { "type": "string", "title": "Disconnected background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "critical" },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
@@ -3972,11 +4007,11 @@
             "action": { "type": "string", "title": "Click action", "default": "powerMenu", "description": "What a left click does.", "enum": ["powerMenu", "appLauncher", "overlay", "overlayPage", "workspaceOverlay", "edgeMenu", "lock", "command", "none"] },
             "page": { "type": "string", "title": "Overlay page", "default": "", "description": "The page the button opens the overlay on.", "x-options": "overlayPages", "x-showIf": { "action": "overlayPage" } },
             "menu": { "type": "string", "title": "Edge menu", "default": "", "description": "The edge menu the button opens and closes.", "x-options": "edgeMenus", "x-showIf": { "action": "edgeMenu" } },
-            "command": { "type": "string", "title": "Command", "default": "", "description": "Shell command run on left click.", "x-showIf": { "action": "command" } },
-            "rightCommand": { "type": "string", "title": "Right-click command", "default": "", "description": "Shell command run on right click. Empty does nothing." },
-            "middleCommand": { "type": "string", "title": "Middle-click command", "default": "", "description": "Shell command run on middle click. Empty does nothing." },
+            "command": { "x-scope": "personal", "type": "string", "title": "Command", "default": "", "description": "Shell command run on left click.", "x-showIf": { "action": "command" } },
+            "rightCommand": { "x-scope": "personal", "type": "string", "title": "Right-click command", "default": "", "description": "Shell command run on right click. Empty does nothing." },
+            "middleCommand": { "x-scope": "personal", "type": "string", "title": "Middle-click command", "default": "", "description": "Shell command run on middle click. Empty does nothing." },
             "hoverActivate": { "type": "boolean", "title": "Activate on hover", "default": false, "description": "Run the click action after hovering for the popout open delay. Doesn't close a launcher, overlay, power menu or edge menu that is already open.", "x-showIf": { "action": { "not": "none" } } },
-            "labelCommand": { "type": "string", "title": "Label command", "default": "", "description": "Shell command whose first line of output is shown as the label, re-run on an interval." },
+            "labelCommand": { "x-scope": "personal", "type": "string", "title": "Label command", "default": "", "description": "Shell command whose first line of output is shown as the label, re-run on an interval." },
             "labelInterval": { "type": "integer", "title": "Label interval", "x-unit": "ms", "default": 5000, "minimum": 500, "maximum": 3600000, "description": "How often the label command runs.", "x-showIf": { "labelCommand": { "not": "" } } },
             "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
@@ -4026,7 +4061,7 @@
             "showTemp": { "type": "boolean", "title": "CPU temperature", "default": true, "description": "Hidden on machines without a k10temp / coretemp / zenpower sensor." },
             "showGpu": { "type": "boolean", "title": "GPU usage", "default": false, "description": "AMD (sysfs) or NVIDIA (nvidia-smi). Hidden when no GPU is found." },
             "showDisk": { "type": "boolean", "title": "Disk usage", "default": false },
-            "diskPath": { "type": "string", "title": "Disk path", "default": "/", "description": "Any path on the filesystem to report.", "x-showIf": { "showDisk": true } },
+            "diskPath": { "x-scope": "machine", "type": "string", "title": "Disk path", "default": "/", "description": "Any path on the filesystem to report.", "x-showIf": { "showDisk": true } },
             "interval": { "type": "integer", "title": "Poll interval", "x-unit": "ms", "default": 2000, "minimum": 1000, "maximum": 60000 },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Open live graphs of the shown metrics when hovered." },
             "warnThreshold": { "type": "integer", "title": "Warning at", "default": 90, "minimum": 1, "maximum": 100, "description": "Any usage (%) or temperature (°C) at or above this switches to the warning background." },
@@ -4095,7 +4130,7 @@
             "showMic": { "type": "boolean", "title": "Microphone", "default": true },
             "showScreen": { "type": "boolean", "title": "Screen share", "default": true },
             "showCamera": { "type": "boolean", "title": "Camera", "default": true },
-            "ignoreApps": { "type": "array", "items": { "type": "string" }, "title": "Ignored apps", "default": ["cava"], "description": "App names that never trigger an indicator, comma-separated." },
+            "ignoreApps": { "x-scope": "personal", "type": "array", "items": { "type": "string" }, "title": "Ignored apps", "default": ["cava"], "description": "App names that never trigger an indicator, comma-separated." },
             "activeColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "critical" },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
           }
@@ -4135,13 +4170,13 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "includeAur": { "type": "boolean", "title": "Include AUR", "default": false, "description": "Also count outdated AUR packages." },
-            "aurHelper": { "type": "string", "title": "AUR helper", "default": "paru", "enum": ["paru", "yay"], "x-showIf": { "includeAur": true } },
+            "includeAur": { "x-scope": "machine", "type": "boolean", "title": "Include AUR", "default": false, "description": "Also count outdated AUR packages." },
+            "aurHelper": { "x-scope": "machine", "type": "string", "title": "AUR helper", "default": "paru", "enum": ["paru", "yay"], "x-showIf": { "includeAur": true } },
             "intervalMinutes": { "type": "integer", "title": "Check interval", "x-unit": "min", "default": 30, "minimum": 5, "maximum": 1440 },
             "hideWhenEmpty": { "type": "boolean", "title": "Hide when up to date", "default": true },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "List pending packages when hovered." },
-            "terminal": { "type": "string", "title": "Terminal", "default": "", "description": "Terminal the upgrade runs in (launched as `<terminal> -e ...`). Empty uses Apps → Terminal." },
-            "upgradeCommand": { "type": "string", "title": "Upgrade command", "default": "", "description": "Run on click. Empty uses `sudo pacman -Syu`, or the AUR helper with -Syu." },
+            "terminal": { "x-scope": "personal", "type": "string", "title": "Terminal", "default": "", "description": "Terminal the upgrade runs in (launched as `<terminal> -e ...`). Empty uses Apps → Terminal." },
+            "upgradeCommand": { "x-scope": "personal", "type": "string", "title": "Upgrade command", "default": "", "description": "Run on click. Empty uses `sudo pacman -Syu`, or the AUR helper with -Syu." },
             "manyThreshold": { "type": "integer", "title": "Many updates", "default": 50, "minimum": 1, "maximum": 1000, "description": "At or above this count, the widget uses the many-updates background." },
             "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
             "manyColor": { "type": "string", "title": "Many-updates background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "warning" },
@@ -4165,6 +4200,7 @@
           "x-order": ["accounts", "metric", "display", "intervalMinutes"],
           "properties": {
             "accounts": {
+              "x-scope": "machine",
               "type": "array",
               "title": "Accounts",
               "default": [{ "label": "Personal", "configDir": "~/.claude" }],
@@ -4186,7 +4222,7 @@
             "warnThreshold": { "type": "integer", "title": "Warning at", "x-unit": "%", "default": 75, "minimum": 1, "maximum": 100 },
             "criticalThreshold": { "type": "integer", "title": "Critical at", "x-unit": "%", "default": 90, "minimum": 1, "maximum": 100 },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "List every limit per account when hovered." },
-            "clickCommand": { "type": "string", "title": "Click command", "default": "", "description": "Run on left click (e.g. `xdg-open https://claude.ai/settings/usage`). Right click checks again now." },
+            "clickCommand": { "x-scope": "personal", "type": "string", "title": "Click command", "default": "", "description": "Run on left click (e.g. `xdg-open https://claude.ai/settings/usage`). Right click checks again now." },
             "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
             "warnColor": { "type": "string", "title": "Warning background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "warning" },
             "criticalColor": { "type": "string", "title": "Critical background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "critical" },
@@ -4278,7 +4314,7 @@
             "scrollStep": { "type": "integer", "title": "Scroll step", "x-unit": "%", "default": 5, "minimum": 1, "maximum": 25, "description": "Volume change per scroll notch." },
             "maxVolume": { "type": "integer", "title": "Maximum volume", "x-unit": "%", "default": 100, "minimum": 100, "maximum": 150, "description": "Highest volume scrolling and the mixer sliders allow." },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Open the output mixer when hovered." },
-            "middleCommand": { "type": "string", "title": "Middle-click command", "default": "pavucontrol", "description": "Shell command run on middle click. Empty does nothing." },
+            "middleCommand": { "x-scope": "personal", "type": "string", "title": "Middle-click command", "default": "pavucontrol", "description": "Shell command run on middle click. Empty does nothing." },
             "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
             "mutedColor": { "type": "string", "title": "Muted background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "off" },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
@@ -4303,7 +4339,7 @@
             "scrollStep": { "type": "integer", "title": "Scroll step", "x-unit": "%", "default": 5, "minimum": 1, "maximum": 25, "description": "Volume change per scroll notch." },
             "maxVolume": { "type": "integer", "title": "Maximum volume", "x-unit": "%", "default": 100, "minimum": 100, "maximum": 150, "description": "Highest volume scrolling and the mixer sliders allow." },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Open the input mixer when hovered." },
-            "middleCommand": { "type": "string", "title": "Middle-click command", "default": "pavucontrol", "description": "Shell command run on middle click. Empty does nothing." },
+            "middleCommand": { "x-scope": "personal", "type": "string", "title": "Middle-click command", "default": "pavucontrol", "description": "Shell command run on middle click. Empty does nothing." },
             "activeColor": { "type": "string", "title": "In-use background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "alt", "description": "Used while an app is recording from the microphone." },
             "hideWhenIdle": { "type": "boolean", "title": "Hide when idle", "default": false, "description": "Only show the widget while the microphone is in use or muted." },
             "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
@@ -4330,7 +4366,7 @@
             "showBattery": { "type": "boolean", "title": "Show battery", "default": true, "description": "Append the connected device's battery level, when it reports one.", "x-showIf": { "showDevice": true } },
             "hideWhenOff": { "type": "boolean", "title": "Hide when off", "default": false },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Open the Bluetooth menu when hovered." },
-            "middleCommand": { "type": "string", "title": "Middle-click command", "default": "", "description": "Shell command run on middle click (e.g. blueman-manager). Empty does nothing." },
+            "middleCommand": { "x-scope": "personal", "type": "string", "title": "Middle-click command", "default": "", "description": "Shell command run on middle click (e.g. blueman-manager). Empty does nothing." },
             "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
             "connectedColor": { "type": "string", "title": "Connected background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "alt" },
             "disabledColor": { "type": "string", "title": "Off background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "off" },

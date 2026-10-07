@@ -1121,6 +1121,60 @@ TestCase {
     compare(errors(loaded.config), []);
   }
 
+  function test_v49_window_look_moves_to_hyprland_look() {
+    const managed = load({
+      "version": 48,
+      "Hyprland": {
+        "mode": "managed",
+        "theme": true,
+        "managed": {
+          "gapsIn": 5,
+          "gapsOut": 10,
+          "matchAxiom": false,
+          "rounding": 3
+        }
+      }
+    }).config.Hyprland;
+    compare(managed.look, {
+      "borders": true,
+      "shape": false,
+      "gaps": true,
+      "gapsIn": 5,
+      "gapsOut": 10
+    });
+    compare(managed.theme, undefined);
+    compare(managed.managed.gapsIn, undefined);
+    compare(managed.managed.matchAxiom, undefined);
+    compare(managed.managed.rounding, 3);
+
+    // A managed config left at the defaults keeps matching axiom's shape
+    compare(load({
+      "version": 48,
+      "Hyprland": {
+        "mode": "managed"
+      }
+    }).config.Hyprland.look.shape, true);
+
+    // Detached and included configs never wrote gaps or the shape: they
+    // stay off, themed borders come along
+    const loaded = load({
+      "version": 48,
+      "Hyprland": {
+        "mode": "detached",
+        "theme": true,
+        "managed": {
+          "gapsOut": 10
+        }
+      }
+    });
+    const detached = loaded.config.Hyprland.look;
+    compare(detached.borders, true);
+    compare(detached.shape, false);
+    compare(detached.gaps, false);
+    compare(detached.gapsOut, 10);
+    compare(errors(loaded.config), []);
+  }
+
   function test_v44_floating_osd_becomes_detached_on_nearest_edge() {
     const loaded = load({
       "version": 43,

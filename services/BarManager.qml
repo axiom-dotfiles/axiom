@@ -417,7 +417,7 @@ QtObject {
   }
 
   // The running bars: while the bar editor has unsaved edits, those
-  readonly property var bars: Bar.expandBars(ConfigManager.previews.Bars ?? ConfigManager.config.Bars).map(bar => Bar.enrichBarConfig(bar, HyprlandManager.gapsOut, HyprlandManager.windowSpacing))
+  readonly property var bars: Bar.expandBars(ConfigManager.previews.Bars ?? ConfigManager.config.Bars).map(bar => Bar.enrichBarConfig(bar, HyprlandManager.gapsOut))
 
   // The enabled bars on a screen by edge ({ top, bottom, left, right },
   // null where there is none)

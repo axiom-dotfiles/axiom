@@ -409,15 +409,53 @@ assert(removed == 2, "earlier handlers removed")
     const managed = SchemaValidation.applyDefaults({}, managedSchema, schema);
     managed.kbLayout = "us,de";
     managed.sensitivity = -50;
-    managed.gapsIn = 20;
+    managed.shadowRange = 33;
     const lines = HyprLua.greeterLua(profiles, managedSchema, managed, hex);
     const config = lines[lines.length - 1];
     verify(config.startsWith("hl.config("));
     verify(config.includes('kb_layout = "us,de"'));
     verify(config.includes("sensitivity = -0.5"));
-    verify(!config.includes("gaps_in"));
+    verify(!config.includes("range"));
     const lua = "hl = { config = function(t) end, monitor = function(t) end, get_monitors = function() return {} end, on = function() return { remove = function() end } end }\n" + lines.join("\n") + "\n";
     const written = files.write("tests/.out/greeter.run.lua", lua);
+    tryVerify(() => written.done, 2000);
+  }
+
+  function test_look_writes_only_its_parts_that_are_on() {
+    const off = {
+      "borders": false,
+      "shape": false,
+      "gaps": false,
+      "gapsIn": 3,
+      "gapsOut": 6
+    };
+    compare(HyprLua.lookLua(off, "ffffff", "000000", 2, 8), []);
+    compare(HyprLua.lookParts(off), []);
+
+    const gaps = Object.assign({}, off, {
+      "gaps": true,
+      "gapsIn": 4,
+      "gapsOut": 12
+    });
+    const gapsLua = HyprLua.lookLua(gaps, "ffffff", "000000", 2, 8).join("\n");
+    verify(gapsLua.includes("gaps_in = 4"));
+    verify(gapsLua.includes("gaps_out = 12"));
+    verify(!gapsLua.includes("rounding"));
+    verify(!gapsLua.includes("active_border"));
+
+    const all = Object.assign({}, gaps, {
+      "borders": true,
+      "shape": true
+    });
+    const lines = HyprLua.lookLua(all, "aabbcc", "112233", 2, 8);
+    const lua = lines.join("\n");
+    verify(lua.startsWith("hl.config("));
+    verify(lua.includes('active_border = "rgb(aabbcc)"'));
+    verify(lua.includes('inactive_border = "rgb(112233)"'));
+    verify(lua.includes("border_size = 2"));
+    verify(lua.includes("rounding = 8"));
+    compare(HyprLua.lookParts(all), ["borders", "shape", "gaps"]);
+    const written = files.write("tests/.out/look.lua", lua + "\n");
     tryVerify(() => written.done, 2000);
   }
 

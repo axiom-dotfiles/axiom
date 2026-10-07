@@ -380,10 +380,9 @@ Scope {
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
     exclusionMode: ExclusionMode.Normal
     // Hyprland counts the edge margin into it and adds gaps_out past it, so
-    // windows start gaps_out past the box; held off the edge, it's laid
-    // out like a window, the windows keeping the space between two
-    // windows from it instead
-    exclusiveZone: root.reserving ? Math.max(0, root.boxOffset + root.thickness + (root.held ? HyprlandManager.windowSpacing[root._edgeName] - HyprlandManager.gapsOut[root._edgeName] : 0)) : 0
+    // windows start gaps_out past the box, held off the edge or not, as
+    // from a screen edge
+    exclusiveZone: root.reserving ? Math.max(0, root.boxOffset + root.thickness) : 0
     // Windows retile around it without an event saying so
     onExclusiveZoneChanged: DockManager.refreshSoon()
 

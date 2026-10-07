@@ -11,7 +11,6 @@ QtObject {
   // "detached" | "included" | "managed"
   readonly property string mode: _c.mode
   readonly property bool requiredSettings: _c.requiredSettings
-  readonly property bool theme: _c.theme
   readonly property bool blur: _c.blur
   readonly property bool wallpaperDaemon: _c.wallpaperDaemon
   // [{ key, action, argument, description }]. Goes through a string so a
@@ -22,7 +21,11 @@ QtObject {
   // Monitors page (MonitorManager)
   readonly property string _monitorsJson: JSON.stringify(_c.monitors.profiles)
   readonly property var monitorProfiles: JSON.parse(_monitorsJson)
-  // The managed hyprland.lua's own settings (layout, gaps, input, ...)
+  // Settings that make windows match axiom, in every mode ({ borders,
+  // shape, gaps, gapsIn, gapsOut }): HyprlandConfigManager's look layer
+  readonly property string _lookJson: JSON.stringify(_c.look)
+  readonly property var look: JSON.parse(_lookJson)
+  // The managed hyprland.lua's own settings (layout, input, ...)
   readonly property string _managedJson: JSON.stringify(_c.managed)
   readonly property var managed: JSON.parse(_managedJson)
 }

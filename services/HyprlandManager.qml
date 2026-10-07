@@ -148,10 +148,14 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
   }
 
   // Re-reads the options axiom follows (gaps, split ratio, the workspaces
-  // animation), after something changed them at runtime
+  // animation), after something changed them at runtime: once the queued
+  // Lua has run, which may be what changes them
   function refreshOptions() {
+    if (evalProcess.running || _evalQueue.length > 0) {
+      _refreshAfterEval = true;
+      return;
+    }
     getGaps.running = true;
-    getGapsIn.running = true;
     getSplitMultiplier.running = true;
     getAnimations.running = true;
   }
@@ -162,8 +166,14 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
       _nextEval();
   }
 
+  property bool _refreshAfterEval: false
+
   function _nextEval() {
     if (_evalQueue.length === 0) {
+      if (_refreshAfterEval) {
+        _refreshAfterEval = false;
+        refreshOptions();
+      }
       root.updateAll();
       return;
     }
@@ -543,25 +553,6 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
       "bottom": 0,
       "left": 0
     })
-  // general:gaps_in per side: each tiled window keeps it all round, so two
-  // neighbours sit twice it apart (windowSpacing)
-  property var gapsIn: ({
-      "top": 0,
-      "right": 0,
-      "bottom": 0,
-      "left": 0
-    })
-
-  // The space between two tiled windows per side (edge name): what a
-  // surface laid out like a window (a floating bar, a held dock) keeps
-  // from the windows
-  readonly property var windowSpacing: ({
-      "top": 2 * root.gapsIn.top,
-      "right": 2 * root.gapsIn.right,
-      "bottom": 2 * root.gapsIn.bottom,
-      "left": 2 * root.gapsIn.left
-    })
-
   // dwindle:split_width_multiplier: a box wider than tall times this splits
   // side by side (placeWindow, and the overview's drop preview)
   property real splitWidthMultiplier: 1
@@ -800,15 +791,6 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
     stdout: StdioCollector {
       id: gapsCollector
       onStreamFinished: root.gapsOut = root._gapSides(gapsCollector.text) ?? root.gapsOut
-    }
-  }
-
-  Process {
-    id: getGapsIn
-    command: ["hyprctl", "getoption", "general:gaps_in", "-j"]
-    stdout: StdioCollector {
-      id: gapsInCollector
-      onStreamFinished: root.gapsIn = root._gapSides(gapsInCollector.text) ?? root.gapsIn
     }
   }
 

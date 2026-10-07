@@ -11,8 +11,8 @@ import qs.components.methods
 
 /*
  * Sets Hyprland up for axiom (the Hyprland section, HyprlandConfig.mode).
- * One Lua "layer" (binds, required settings, themed borders, blur, monitor
- * profiles, strips) reaches
+ * One Lua "layer" (binds, required settings, the window look, blur,
+ * monitor profiles, strips) reaches
  * Hyprland in one of three ways:
  *   detached  evaluated at runtime (hyprctl eval), again after every config
  *             reload, which drops it; binds on keys already taken are skipped
@@ -23,6 +23,9 @@ import qs.components.methods
  * Whenever the file isn't loaded (included but the lines are missing, or a
  * managed takeover refused), the runtime layer is applied instead, so axiom
  * still works, and `problem` says why.
+ * The window look (HyprlandConfig.look: themed borders, axiom's shape,
+ * gaps) is also evaluated after every config reload in each mode, so it
+ * wins over the user's own config while it's on (_applyLook).
  */
 Singleton {
   id: root
@@ -347,8 +350,8 @@ Singleton {
     return lines;
   }
 
-  function _themeLua() {
-    return [`hl.config({ general = { col = { active_border = "rgb(${_hex(Theme.borderFocus)})", inactive_border = "rgb(${_hex(Theme.border)})" } } })`];
+  function _lookLua() {
+    return HyprLua.lookLua(HyprlandConfig.look, _hex(Theme.borderFocus), _hex(Theme.border), Appearance.borderWidth, Appearance.borderRadius);
   }
 
   function _blurLua() {
@@ -370,8 +373,7 @@ Singleton {
     if (HyprlandConfig.requiredSettings)
       setup.push("M.required()");
     setup.push("M.binds()");
-    if (HyprlandConfig.theme)
-      setup.push("M.theme()");
+    setup.push("M.look()");
     if (HyprlandConfig.blur)
       setup.push("M.blur()");
     setup.push("M.layers()");
@@ -396,10 +398,14 @@ function M.binds()
 ${_indent(binds, "  ")}
 end
 
--- Window borders from the axiom theme
-function M.theme()
-${_indent(_themeLua(), "  ")}
+-- Window borders in the axiom theme, its shape and gaps, as enabled.
+-- axiom applies them again after every reload, so they win over what
+-- follows while they're on.
+function M.look()
+${_indent(_lookLua(), "  ")}
 end
+-- Its old name
+M.theme = M.look
 
 -- Blur behind the bars, edge popouts and launcher
 function M.blur()
@@ -531,27 +537,16 @@ return M
 
   // The managed settings as one hl.config() table
   function _configLua(m) {
-    const look = _look(m);
-    const overrides = {
-      "decoration.rounding": look.rounding,
-      "general.border_size": look.borderSize
+    // The window look sets them when it matches axiom's shape (M.look())
+    const overrides = HyprlandConfig.look.shape ? {} : {
+      "decoration.rounding": m.rounding,
+      "general.border_size": m.borderSize
     };
     // Following axiom's motion includes turning animations off with it
     if (m.animationPreset === "axiom" && !Appearance.animations)
       overrides["animations.enabled"] = false;
     const schema = ConfigManager.configSchema?.properties?.Hyprland?.properties?.managed;
     return `hl.config(${HyprLua.serialize(HyprLua.configTable(schema, m, name => _hex(Theme.resolveColor(name)), overrides))})`;
-  }
-
-  // Window rounding and border width: axiom's shape, or the managed values
-  function _look(m) {
-    return m.matchAxiom ? {
-      "rounding": Appearance.borderRadius,
-      "borderSize": Appearance.borderWidth
-    } : {
-      "rounding": m.rounding,
-      "borderSize": m.borderSize
-    };
   }
 
   // The managed hyprland.lua
@@ -577,7 +572,14 @@ hl.on("hyprland.start", function()
 ${_indent(_startLua(m), "  ")}
 end)
 
--- Your files, through require (as user.<name>) so Hyprland reloads when
+${_userFilesLua()}
+`;
+  }
+
+  // Loads user/*.lua in name order: the end of managedLua() and of
+  // releasedLua()
+  function _userFilesLua() {
+    return `-- Your files, through require (as user.<name>) so Hyprland reloads when
 -- one changes. Shared modules go in user/lib/ (require("user.lib.x")),
 -- which isn't loaded here. A failing file doesn't stop the rest; the
 -- errors are raised together at the end (hyprctl configerrors).
@@ -590,8 +592,24 @@ if files then
   end
   files:close()
 end
-if #errors > 0 then error(table.concat(errors, "\\n")) end
-`;
+if #errors > 0 then error(table.concat(errors, "\\n")) end`;
+  }
+
+  // The hyprland.lua leaving managed gives back when the takeover set
+  // nothing aside (claim_hyprland.sh release): the user's from then on,
+  // starting axiom (and loading its module in included mode) and loading
+  // user/*.lua as the managed one did
+  function releasedLua() {
+    return `-- Given back by axiom when it stopped managing Hyprland: this file is yours
+-- now, and axiom won't write it again. It starts axiom and loads
+-- ${userDir}/*.lua, as axiom's managed one did.
+${mode === "included" ? includeLines + "\n" : ""}${autostartLines}
+
+-- Not when it's required as one of those files itself (a managed takeover
+-- adopts it into user/): the file requiring it loads them
+if select("#", ...) == 0 then
+${_indent(_userFilesLua().split("\n"), "  ")}
+end`;
   }
 
   // --- Runtime (detached, and the fallback) ---
@@ -609,9 +627,20 @@ if #errors > 0 then error(table.concat(errors, "\\n")) end
 
   function _applyRuntime() {
     _runtimeWanted = true;
-    if (!unbindRuntime.running && !getBinds.running)
+    if (!unbindRuntime.running && !getBinds.running && !getAnimations.running) {
+      _runtimeReloads = _reloads;
       unbindRuntime.running = true;
+    }
   }
+
+  // Hyprland config reloads seen, and how many there were when the runtime
+  // layer last started reading Hyprland's binds: one in between makes what
+  // it read stale (taken keys from another config, or none at all while
+  // hyprland.lua was being replaced), and binding from it would leave
+  // AXIOM_RUNTIME_KEYS naming the loaded config's own keys, which
+  // _clearRuntime would then unbind
+  property int _reloads: 0
+  property int _runtimeReloads: 0
 
   function _clearRuntime() {
     _runtimeWanted = false;
@@ -624,6 +653,11 @@ if #errors > 0 then error(table.concat(errors, "\\n")) end
   function _finishRuntime(bindList, animations) {
     if (!_runtimeWanted)
       return;
+    if (_runtimeReloads !== _reloads) {
+      _runtimeReloads = _reloads;
+      unbindRuntime.running = true;
+      return;
+    }
     const plan = HyprBinds.runtimeBinds(HyprlandConfig.binds.filter(bind => _bindLua(bind) !== ""), bindList);
     for (const key of plan.unreadable)
       console.warn(`[HyprlandConfigManager] Can't read the key "${key}"; bind it as MODS + KEY`);
@@ -640,8 +674,8 @@ if #errors > 0 then error(table.concat(errors, "\\n")) end
       const anim = (Array.isArray(animations?.[0]) ? animations[0] : []).find(a => a.name === "workspaces");
       lines.push(..._requiredLua(!anim?.overridden));
     }
-    if (HyprlandConfig.theme)
-      lines.push(..._themeLua());
+    lines.push(..._lookLua());
+    _lookState.applied = HyprLua.lookParts(HyprlandConfig.look).join(",");
     if (HyprlandConfig.blur)
       lines.push(..._blurLua());
     // Monitors only when their profiles changed, or a reload dropped them:
@@ -687,8 +721,7 @@ if #errors > 0 then error(table.concat(errors, "\\n")) end
         console.warn("[HyprlandConfigManager] Could not create the folder for", write?.path);
         return;
       }
-      writer.path = write.path;
-      writer.setText(write.text);
+      root._writeFile(writer, write.path, write.text);
     }
   }
 
@@ -724,8 +757,10 @@ if #errors > 0 then error(table.concat(errors, "\\n")) end
   // What switching to managed would do, from checkManaged(): "ours" (the
   // file is already axiom's), "adopt" (an existing hyprland.lua is moved to
   // user/), "stock" (it's Hyprland's example config, maybe with install.sh's
-  // autostart line, only backed up), "new" (there's none) or "blocked" (a
-  // symlinked or git-tracked config is never taken over); "" until checked
+  // autostart line, only backed up), "released" (the one leaving managed
+  // wrote, unedited: replaced, not kept), "new" (there's none) or
+  // "blocked" (a symlinked or git-tracked config is never taken over); ""
+  // until checked
   readonly property string managedCheck: _managedCheck.split(":")[0]
   // Why it's blocked: "link" or "git" (in the repository `managedBlockedRepo`)
   readonly property string managedBlockedBy: managedCheck === "blocked" ? _managedCheck.split(":")[1] ?? "" : ""
@@ -739,7 +774,7 @@ if #errors > 0 then error(table.concat(errors, "\\n")) end
 
   Process {
     id: checkManagedProcess
-    command: [Paths.scriptsPath + "claim_hyprland.sh", "check", Paths.hyprlandPath, root._header]
+    command: [Paths.scriptsPath + "claim_hyprland.sh", "check", Paths.hyprlandPath, root._header, root.releasedLua()]
     stdout: StdioCollector {
       onStreamFinished: root._managedCheck = text.trim()
     }
@@ -756,6 +791,14 @@ if #errors > 0 then error(table.concat(errors, "\\n")) end
   // --- Driving it ---
 
   function apply() {
+    // Detached, the reload's configreloaded applies the layer again. The
+    // file modes go on: their configreloaded doesn't call apply(), so
+    // returning would drop a mode switch or a rewrite made with it.
+    if (_undoLook() && mode === "detached")
+      return;
+    if (_appliedMode !== "" && _appliedMode !== mode)
+      _leave(_appliedMode);
+    _appliedMode = mode;
     if (mode === "included") {
       _writeIfChanged(includePath, moduleLua());
     } else if (mode === "managed") {
@@ -764,12 +807,89 @@ if #errors > 0 then error(table.concat(errors, "\\n")) end
       findMonitorConflicts.running = true;
     } else {
       _problem = "";
-      _applyRuntime();
+      // Not over the managed layer a release is about to take out: its
+      // binds would read as the user's
+      if (!_releasing)
+        _applyRuntime();
     }
   }
 
+  // --- The window look, over the user's config in every mode ---
+
+  // The look's parts last evaluated at runtime ("borders,gaps"), until a
+  // config reload drops them. Kept across QML reloads, as Hyprland keeps
+  // them.
+  PersistentProperties {
+    id: _lookState
+    reloadableId: "axiomHyprlandLook"
+    property string applied: ""
+  }
+
+  // After a config reload in the file modes: the module set the look before
+  // the user's own lines, so it's evaluated again to win over them
+  function _applyLook() {
+    const lines = _lookLua();
+    _lookState.applied = HyprLua.lookParts(HyprlandConfig.look).join(",");
+    if (lines.length === 0)
+      return;
+    HyprlandManager.runLua(lines.join("\n"));
+    HyprlandManager.refreshOptions();
+  }
+
+  // A runtime eval can't take a setting back: a part turned off since it
+  // was evaluated reloads Hyprland's config, whose configreloaded applies
+  // the rest again. True when it reloaded.
+  function _undoLook() {
+    const now = HyprLua.lookParts(HyprlandConfig.look);
+    const dropped = _lookState.applied.split(",").filter(part => part !== "" && !now.includes(part));
+    if (dropped.length === 0)
+      return false;
+    _lookState.applied = "";
+    // The file modes rewrite their file, which reloads anyway
+    if (mode !== "detached" && _appliedMode === mode && status === "loaded")
+      return false;
+    console.log(`[HyprlandConfigManager] Window look turned off (${dropped.join(", ")}); reloading Hyprland's config to take it back`);
+    _reload();
+    return true;
+  }
+
+  // The mode apply() last set up, "" before the first: only a switch made
+  // while axiom runs gives anything back, never a load
+  property string _appliedMode: ""
+  // While claim_hyprland.sh release runs (detached waits for it)
+  property bool _releasing: false
+
+  // Gives back what `previous` took (as the takeover settings do, its own
+  // card switching it): leaving managed, the hyprland.lua it claimed
+  // (claim_hyprland.sh release); leaving included (or managed, whose
+  // restored config may load it), the module, which then does nothing.
+  // Otherwise the old layer stays in Hyprland's config, and the runtime
+  // layer, which only adds, can't undo it (a strip it set stays a strip).
+  function _leave(previous) {
+    if (mode !== "included")
+      _emptyModule();
+    if (previous === "managed") {
+      _releasing = true;
+      releaseManaged.running = true;
+    }
+  }
+
+  // The included module once axiom isn't in that mode: every part a no-op,
+  // so a hyprland.lua still loading it (setup() or any part) gets nothing
+  readonly property string _emptyModuleLua: `${_header}: Hyprland mode isn't "included", so this module does
+-- nothing. Switching back to included writes it again.
+return setmetatable({}, { __index = function() return function() end end })
+`
+
+  function _emptyModule() {
+    const current = FileManager.read(includePath);
+    if (!current || current === _emptyModuleLua)
+      return;
+    _writeFile(moduleWriter, includePath, _emptyModuleLua);
+  }
+
   // Everything the layer is made of; a change re-applies it
-  readonly property string _inputs: [mode, HyprlandConfig._bindsJson, HyprlandConfig._monitorsJson, HyprlandConfig._managedJson, WorkspacesConfig._stripsJson, HyprlandConfig.requiredSettings, HyprlandConfig.theme, HyprlandConfig.blur, Theme.borderFocus, Theme.border, Theme.baseColorNames.map(name => Theme.resolveColor(name)).join(","), Appearance.borderRadius, Appearance.borderWidth, Appearance.animFast, Appearance.animations, Apps.terminalCommand, Apps.fileManagerCommand, Apps.browserCommand, Idle.enabled, PolkitConfig.enabled].join("|")
+  readonly property string _inputs: [mode, HyprlandConfig._bindsJson, HyprlandConfig._monitorsJson, HyprlandConfig._managedJson, WorkspacesConfig._stripsJson, HyprlandConfig.requiredSettings, HyprlandConfig._lookJson, HyprlandConfig.blur, Theme.borderFocus, Theme.border, Theme.baseColorNames.map(name => Theme.resolveColor(name)).join(","), Appearance.borderRadius, Appearance.borderWidth, Appearance.animFast, Appearance.animations, Apps.terminalCommand, Apps.fileManagerCommand, Apps.browserCommand, Idle.enabled, PolkitConfig.enabled].join("|")
   on_InputsChanged: _debounce.restart()
 
   property Timer _debounce: Timer {
@@ -789,12 +909,16 @@ if #errors > 0 then error(table.concat(errors, "\\n")) end
     function onRawEvent(event) {
       if (event.name !== "configreloaded")
         return;
-      // A reload drops runtime binds and rules
+      root._reloads++;
+      // A reload drops runtime binds, rules and the look
       root._monitorsApplied = null;
-      if (root.mode === "detached")
+      _lookState.applied = "";
+      if (root.mode === "detached") {
         root._debounce.restart();
-      else
+      } else {
         root._checkLoaded();
+        root._applyLook();
+      }
       // Hyprland reloads when a user/*.lua file changes
       if (root.mode === "managed")
         findMonitorConflicts.running = true;
@@ -876,7 +1000,7 @@ if #errors > 0 then error(table.concat(errors, "\\n")) end
   // over)
   Process {
     id: claimManaged
-    command: [Paths.scriptsPath + "claim_hyprland.sh", "claim", Paths.hyprlandPath, root._header]
+    command: [Paths.scriptsPath + "claim_hyprland.sh", "claim", Paths.hyprlandPath, root._header, root.releasedLua()]
     stdout: StdioCollector {
       id: claimCollector
       onStreamFinished: {
@@ -890,7 +1014,7 @@ if #errors > 0 then error(table.concat(errors, "\\n")) end
         if (result === "adopted")
           console.log(`[HyprlandConfigManager] Took over ${root.managedPath}; your previous one is ${root.userDir}/${words[1]}`);
         else if (result === "replaced")
-          console.log(`[HyprlandConfigManager] Replaced Hyprland's example config at ${root.managedPath} (backed up beside it)`);
+          console.log(`[HyprlandConfigManager] Replaced ${root.managedPath} (Hyprland's example config is kept as a dated backup beside it; the one axiom gave back isn't kept)`);
         if (["ours", "adopted", "created", "replaced"].includes(result))
           root._writeIfChanged(root.managedPath, root.managedLua());
         // The adopted config's binds would fight axiom's: they move in. Only
@@ -905,6 +1029,48 @@ if #errors > 0 then error(table.concat(errors, "\\n")) end
       onStreamFinished: {
         if (claimErrors.text.trim() !== "")
           console.warn("[HyprlandConfigManager] Taking over hyprland.lua:", claimErrors.text.trim());
+      }
+    }
+  }
+
+  // Gives ~/.config/hypr/hyprland.lua back on leaving managed
+  // (scripts/claim_hyprland.sh release): "restored:<from>:<n>" (what the
+  // takeover set aside: the adopted user/00-previous*.lua, its lines that
+  // start or load axiom enabled again, or the example config's backup;
+  // <n> files left in user/ that it doesn't load), "written" (nothing was
+  // set aside: releasedLua()), "notours" (already the user's) or
+  // "blocked" (a symlinked or git-tracked one, never written)
+  Process {
+    id: releaseManaged
+    command: [Paths.scriptsPath + "claim_hyprland.sh", "release", Paths.hyprlandPath, root._header, root.releasedLua()]
+    stdout: StdioCollector {
+      id: releaseCollector
+      onStreamFinished: {
+        const words = releaseCollector.text.trim().split(":");
+        const result = words[0];
+        root._releasing = false;
+        if (result === "restored") {
+          console.log(`[HyprlandConfigManager] Gave back ${root.managedPath}: it's ${words[1]} again`);
+          if (Number(words[2]) > 0)
+            console.warn(`[HyprlandConfigManager] ${root.managedPath} is your previous config again, which doesn't load ${root.userDir}/*.lua (${words[2]} files): load them from it if you still want them`);
+        } else if (result === "written") {
+          console.log(`[HyprlandConfigManager] Gave back ${root.managedPath}: it now starts axiom and loads ${root.userDir}/*.lua, and is yours to edit`);
+        } else if (result === "blocked") {
+          console.warn(`[HyprlandConfigManager] ${root.managedPath} is a symlink or in a git repository, so axiom didn't give it back: it still loads axiom's managed layer`);
+        }
+        // A reload brings the given-back config in, and with it the runtime
+        // layer (configreloaded); without one, the runtime layer goes on now
+        if (result === "restored" || result === "written")
+          root._reload();
+        else if (root.mode === "detached")
+          root._applyRuntime();
+      }
+    }
+    stderr: StdioCollector {
+      id: releaseErrors
+      onStreamFinished: {
+        if (releaseErrors.text.trim() !== "")
+          console.warn("[HyprlandConfigManager] Giving back hyprland.lua:", releaseErrors.text.trim());
       }
     }
   }
@@ -1075,17 +1241,55 @@ if #errors > 0 then error(table.concat(errors, "\\n")) end
     }
   }
 
+  // Writes `text` to `path` through `view`, reading the file first: a
+  // FileView skips setText of the text it last read or wrote, which the
+  // file may no longer hold (release replaced it, or the user edited it)
+  function _writeFile(view, path, text) {
+    view.path = "";
+    view.path = path;
+    view.setText(text);
+  }
+
   FileView {
     id: writer
     atomicWrites: true
+    blockLoading: true
     printErrors: false
-    onSaved: reload.running = true
+    onSaved: root._reload()
     onSaveFailed: error => console.warn("[HyprlandConfigManager] Could not write", writer.path, error)
   }
+
+  // The included module emptied (_emptyModule), apart from `writer`, which
+  // a takeover may be using at the same time
+  FileView {
+    id: moduleWriter
+    atomicWrites: true
+    blockLoading: true
+    printErrors: false
+    onSaved: root._reload()
+    onSaveFailed: error => console.warn("[HyprlandConfigManager] Could not write", moduleWriter.path, error)
+  }
+
+  // Reloads Hyprland, again once the running reload ends if one is asked
+  // for meanwhile (a file written then would otherwise be missed)
+  function _reload() {
+    if (reload.running)
+      _reloadAgain = true;
+    else
+      reload.running = true;
+  }
+
+  property bool _reloadAgain: false
 
   Process {
     id: reload
     command: ["hyprctl", "reload"]
+    onExited: {
+      if (root._reloadAgain) {
+        root._reloadAgain = false;
+        reload.running = true;
+      }
+    }
   }
 
   // Installed cursor themes (XCursor or hyprcursor), for the settings page
