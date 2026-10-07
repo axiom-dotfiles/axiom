@@ -57,6 +57,12 @@ FieldGroup {
     const steps = [];
     const hypr = Paths.shortenHome(HyprlandConfigManager.managedPath);
     const user = Paths.shortenHome(HyprlandConfigManager.userDir);
+    const module = Paths.shortenHome(HyprlandConfigManager.includePath);
+    // Leaving a mode gives back what it took (HyprlandConfigManager._leave)
+    if (root.mode === "managed")
+      steps.push(I18n.tr("Gives {0} back: your previous one returns ({1}/00-previous.lua, or the example config's backup), else a new one that starts axiom and loads {1}/*.lua", hypr, user));
+    if (root.mode === "included")
+      steps.push(I18n.tr("Empties {0}, so a hyprland.lua that still loads it gets nothing", module));
     if (root.pendingMode === "managed") {
       switch (HyprlandConfigManager.managedCheck) {
       case "adopt":
@@ -64,6 +70,9 @@ FieldGroup {
         break;
       case "stock":
         steps.push(I18n.tr("Replaces Hyprland's example {0}, keeping a dated backup beside it: its binds and monitor rule would fight axiom's", hypr));
+        break;
+      case "released":
+        steps.push(I18n.tr("Replaces {0}, which axiom wrote when it last left managed mode", hypr));
         break;
       case "ours":
         steps.push(I18n.tr("Takes back {0}, which axiom already wrote", hypr));
@@ -75,13 +84,13 @@ FieldGroup {
       steps.push(I18n.tr("Writes {0} from the cards below, loading {1}/*.lua after it", hypr, user));
       steps.push(I18n.tr("Reloads Hyprland"));
     } else if (root.pendingMode === "included") {
-      steps.push(I18n.tr("Writes {0}", Paths.shortenHome(HyprlandConfigManager.includePath)));
+      steps.push(I18n.tr("Writes {0}", module));
       steps.push(I18n.tr("Shows the lines to add to your hyprland.lua. Until you do, axiom applies its layer at runtime"));
     } else {
-      steps.push(I18n.tr("Writes no files: axiom applies its layer with hyprctl"));
+      steps.push(I18n.tr("Applies axiom's layer with hyprctl"));
     }
     if (root.mode === "managed")
-      steps.push(I18n.tr("Leaves {0} as it is. Restore {1}/00-previous.lua yourself to go back", hypr, user));
+      steps.push(I18n.tr("Reloads Hyprland"));
     return steps;
   }
 

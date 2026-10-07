@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Axiom Configuration Schema",
-  "description": "Source of truth for config/user/config.json. Every key's `default` is filled in at load time (SchemaValidation.applyDefaults), so config readers never need their own fallbacks. `title`/`description`/`minimum`/`maximum`/`enum` drive the generated settings UI; `x-settings: false` hides a key from it (edited elsewhere, or UI-owned state); `x-options` names a dynamic option list (\"screens\", \"chatProviders\" and \"chatPresets\", \"colors\" for the 16 base theme colors, \"languages\" from config/i18n, \"cursorThemes\" for installed cursor themes, \"edgeMenus\" for the ids of EdgeMenus); `x-showIf` ({ sibling: value | [values] | { not: value } }) hides a field unless a sibling matches; a key starting with `/` is a dotted path from the config root instead (\"/Workspaces.layout\"). `x-enumLabels` ({ value: label }) shows labels instead of raw enum values in dropdowns. `x-multiline: true` edits a string in a growing text area. `x-categories` at the root lists the settings sidebar's categories in order, each `{ name, icon, page }` (`page`: a hand-built part after its cards, `views/settings/<page>.qml`); sections join one with `x-category`. `x-beside: true` on a field puts it beside the field before it on its settings card, each taking half the width. `x-order` on an object schema lists the keys its form shows first, in order (a schema reaches QML as a map, whose keys come out sorted). `x-defaultSize` ([w, h] in grid units, four to a card) on an overlay module definition is the size it's added at; `x-icon` on a module or view definition is its Material Symbols icon name in the editor. `x-hosts` on a module definition lists where it may be placed (\"overlay\", \"edgeMenu\", \"lockscreen\", \"greeter\"; the first two when left out, so the lock screen and the greeter only take modules that list them). `x-greeter: true` on a Hyprland.managed option carries it to the greeter (its Hyprland takes the option in managed mode). A `$ref` may carry keys beside it (`default`, `title`, …), which override the definition's. `x-required: true` on one makes it part of every grid on its hosts: it can't be removed or duplicated, and the library doesn't offer it. `x-canvasDetail` names a module property the layouts editor shows on its tile (a list joined), and `x-canvasFill` a color property the tile is filled with. Bar widgets are a oneOf discriminated by `type`, and get their `properties` defaults filled like everything else.",
+  "description": "Source of truth for config/user/config.json. Every key's `default` is filled in at load time (SchemaValidation.applyDefaults), so config readers never need their own fallbacks. `title`/`description`/`minimum`/`maximum`/`enum` drive the generated settings UI; `x-settings: false` hides a key from it (edited elsewhere, or UI-owned state); `x-options` names a dynamic option list (\"screens\", \"chatProviders\" and \"chatPresets\", \"colors\" for the 16 base theme colors, \"languages\" from config/i18n, \"cursorThemes\" for installed cursor themes, \"edgeMenus\" for the ids of EdgeMenus); `x-showIf` ({ sibling: value | [values] | { not: value } }) hides a field unless a sibling matches; a key starting with `/` is a dotted path from the config root instead (\"/Workspaces.layout\"). `x-enumLabels` ({ value: label }) shows labels instead of raw enum values in dropdowns. `x-multiline: true` edits a string in a growing text area. `x-categories` at the root lists the settings sidebar's categories in order, each `{ name, icon, page }` (`page`: a hand-built part after its cards, `views/settings/<page>.qml`); sections join one with `x-category`. `x-beside: true` on a field puts it beside the field before it on its settings card, each taking half the width. `x-order` on an object schema lists the keys its form shows first, in order (a schema reaches QML as a map, whose keys come out sorted). `x-defaultSize` ([w, h] in grid units, four to a card) on an overlay module definition is the size it's added at; `x-icon` on a module or view definition is its Material Symbols icon name in the editor. `x-hosts` on a module definition lists where it may be placed (\"overlay\", \"edgeMenu\", \"lockscreen\", \"greeter\"; the first two when left out, so the lock screen and the greeter only take modules that list them). `x-greeter: true` on a Hyprland.managed option carries it to the greeter (its Hyprland takes the option in managed mode). A `$ref` may carry keys beside it (`default`, `title`, …), which override the definition's. `x-required: true` on one makes it part of every grid on its hosts: it can't be removed or duplicated, and the library doesn't offer it. `x-canvasDetail` names a module property the layouts editor shows on its tile (a list joined), and `x-canvasFill` a color property the tile is filled with. `x-takeover: true` marks a setting that takes something over on this PC (the Hyprland mode, the lock screen, idle, polkit, the greeter): loading a saved config, the defaults, an example or an import keeps its current value (ConfigExamples.keepTakeovers). Bar widgets are a oneOf discriminated by `type`, and get their `properties` defaults filled like everything else.",
   "type": "object",
   "x-categories": [
     { "name": "General", "icon": "home" },
@@ -36,6 +36,7 @@
       "additionalProperties": false,
       "properties": {
         "mode": {
+          "x-takeover": true,
           "type": "string",
           "title": "Locker",
           "enum": ["quickshell", "hyprlock", "none"],
@@ -86,7 +87,7 @@
       "additionalProperties": false,
       "x-order": ["source", "monitor", "rememberUser"],
       "properties": {
-        "enabled": { "type": "boolean", "x-settings": false, "default": false, "description": "Set up as the login screen (set by its card's Install and Remove, never by hand)." },
+        "enabled": { "type": "boolean", "x-takeover": true, "x-settings": false, "default": false, "description": "Set up as the login screen (set by its card's Install and Remove, never by hand)." },
         "source": {
           "type": "string",
           "title": "Code from",
@@ -124,7 +125,7 @@
       "additionalProperties": false,
       "x-order": ["enabled", "dimTimeout", "dimMode", "dimLevel", "dimBy", "lockTimeout", "screenOffTimeout", "suspendTimeout", "lockBeforeSleep", "screenOnAfterSleep", "respectInhibitors", "listeners"],
       "properties": {
-        "enabled": { "type": "boolean", "title": "Manage hypridle", "default": false, "description": "axiom runs hypridle with a config of its own (~/.local/state/axiom/hypridle.conf) and stops any other hypridle while this is on. Your own hypridle.conf is never touched; remove your own hypridle autostart line." },
+        "enabled": { "type": "boolean", "x-takeover": true, "title": "Manage hypridle", "default": false, "description": "axiom runs hypridle with a config of its own (~/.local/state/axiom/hypridle.conf) and stops any other hypridle while this is on. Your own hypridle.conf is never touched; remove your own hypridle autostart line." },
         "dimTimeout": { "type": "integer", "title": "Dim the screens after", "x-unit": "s", "default": 150, "minimum": 0, "maximum": 7200, "description": "0 never dims. Brightness comes back when you return.", "x-showIf": { "enabled": true } },
         "dimMode": { "type": "string", "title": "Dim", "default": "to", "enum": ["to", "by"], "x-enumLabels": { "to": "To a set brightness", "by": "By a share of the current brightness" }, "description": "A set brightness leaves screens already darker as they are. A share always dims, unless a screen is already at 0.", "x-showIf": { "enabled": true } },
         "dimLevel": { "type": "integer", "title": "Dim to", "x-unit": "%", "default": 30, "minimum": 5, "maximum": 100, "description": "Screens already darker stay as they are.", "x-showIf": { "enabled": true, "dimMode": "to" } },
@@ -165,7 +166,7 @@
       "description": "The password prompt apps show when they need administrator rights (polkit): installing updates, mounting drives, changing system settings.",
       "additionalProperties": false,
       "properties": {
-        "enabled": { "type": "boolean", "title": "Use axiom's prompt", "default": false, "description": "axiom becomes the session's polkit agent: the screen dims and the prompt opens in the middle of the focused monitor. A session has one agent, so axiom stops any other (hyprpolkitagent, KDE's, GNOME's) and leaves it out of the autostart; turned off, a stopped systemd agent starts again." }
+        "enabled": { "type": "boolean", "x-takeover": true, "title": "Use axiom's prompt", "default": false, "description": "axiom becomes the session's polkit agent: the screen dims and the prompt opens in the middle of the focused monitor. A session has one agent, so axiom stops any other (hyprpolkitagent, KDE's, GNOME's) and leaves it out of the autostart; turned off, a stopped systemd agent starts again." }
       }
     },
 
@@ -407,6 +408,7 @@
       "additionalProperties": false,
       "properties": {
         "mode": {
+          "x-takeover": true,
           "type": "string",
           "title": "Mode",
           "x-group": "Setup",

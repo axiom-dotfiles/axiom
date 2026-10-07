@@ -18,7 +18,9 @@ import qs.components.methods
  * the example setups shipped in examples/ and imported files (the running
  * config is first saved as "before-<name>", then the file's look and layout
  * replace the running ones), and exports the running config's look to the
- * home folder in the same format.
+ * home folder in the same format. Nothing loaded changes a takeover setting
+ * (the schema's x-takeover: the Hyprland mode, lock screen, idle, polkit,
+ * greeter; ConfigManager.restoreConfig keeps them).
  */
 QtObject {
   id: root
@@ -47,8 +49,9 @@ QtObject {
   // "" for none (or once its file is gone): the one the settings UI offers
   // to overwrite. Kept in state/savedconfigs.json.
   readonly property string active: _model.count > 0 && exists(_active) ? _active : ""
-  // Whether the running config differs from the active saved one
-  readonly property bool modified: active !== "" && _baseline !== null && !Utils.deepEqual(ConfigManager.config, _baseline)
+  // Whether the running config differs from the active saved one, leaving
+  // out the takeover settings, which restoring doesn't change
+  readonly property bool modified: active !== "" && _baseline !== null && !Utils.deepEqual(ConfigManager.config, ConfigExamples.keepTakeovers(_baseline, ConfigManager.config, ConfigManager.configSchema))
 
   property string _active: ""
   // The active saved config as it loads (migrated, defaults filled)

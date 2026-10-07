@@ -182,6 +182,64 @@ TestCase {
     compare(current.Appearance.theme, "nord");
   }
 
+  function test_takeover_paths() {
+    const paths = ConfigExamples.takeoverPaths(schema).map(path => path.join("."));
+    for (const path of ["Hyprland.mode", "Lockscreen.mode", "Greeter.enabled", "Idle.enabled", "Polkit.enabled"])
+      verify(paths.includes(path), path);
+  }
+
+  function test_keep_takeovers() {
+    const current = defaults();
+    current.Hyprland.mode = "managed";
+    current.Idle.enabled = true;
+    current.Lockscreen.mode = "hyprlock";
+    const loaded = defaults();
+    loaded.Polkit.enabled = true;
+    loaded.Workspaces.count = 4;
+    const result = ConfigExamples.keepTakeovers(loaded, current, schema);
+    compare(result.Hyprland.mode, "managed");
+    compare(result.Idle.enabled, true);
+    compare(result.Lockscreen.mode, "hyprlock");
+    compare(result.Polkit.enabled, false);
+    // Everything else is the loaded config's, and the input is left as it was
+    compare(result.Workspaces.count, 4);
+    compare(loaded.Hyprland.mode, "detached");
+  }
+
+  function test_pick_leaves_out_takeovers() {
+    const lookSchema = {
+      "type": "object",
+      "properties": {
+        "Section": {
+          "type": "object",
+          "x-scope": "look",
+          "properties": {
+            "mode": {
+              "type": "string",
+              "x-takeover": true
+            },
+            "size": {
+              "type": "integer"
+            }
+          }
+        }
+      }
+    };
+    compare(ConfigExamples.pick({
+      "Section": {
+        "mode": "managed",
+        "size": 2
+      }
+    }, lookSchema), {
+      "Section": {
+        "size": 2
+      }
+    });
+    compare(ConfigExamples.takeoverPaths(lookSchema), [["Section", "mode"]]);
+    // A second schema replaces the cached paths
+    verify(ConfigExamples.takeoverPaths(schema).length >= 5);
+  }
+
   function test_apply_keeps_monitors_by_id_then_position() {
     const current = {
       "Bars": [bar("main", "DP-1"), bar("side", "HDMI-A-1")]

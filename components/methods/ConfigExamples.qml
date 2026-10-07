@@ -15,8 +15,11 @@ import QtQuick
 QtObject {
   id: root
 
+  // takeoverPaths' { schema, paths }
+  readonly property var _takeoverCache: ({})
+
   // The parts of `config` a shared file holds: the look, and the personal
-  // parts too when `personal` is set
+  // parts too when `personal` is set, never a takeover setting
   function pick(config, schema, personal = false) {
     return _pick(config, schema, "machine", _kept(personal), schema) ?? {};
   }
@@ -36,6 +39,51 @@ QtObject {
   // the one it would get if it were missing
   function sparse(config, schema) {
     return _sparse(config, schema, schema);
+  }
+
+  // A copy of `config` with every `x-takeover` setting (one that takes
+  // something over on this PC: the Hyprland mode, the lock screen, idle,
+  // polkit, the greeter) as it is in `current`. Loading a saved config or
+  // the defaults never changes them: each is switched by its own card,
+  // which does the takeover or gives it back.
+  function keepTakeovers(config, current, schema) {
+    const result = Utils.clone(config);
+    for (const path of takeoverPaths(schema)) {
+      let from = current;
+      let to = result;
+      for (let i = 0; i < path.length - 1 && _isObject(from) && _isObject(to); i++) {
+        from = from[path[i]];
+        to = to[path[i]];
+      }
+      const key = path[path.length - 1];
+      if (_isObject(from) && _isObject(to) && from[key] !== undefined)
+        to[key] = Utils.clone(from[key]);
+    }
+    return result;
+  }
+
+  // The paths ([key, …]) of the `x-takeover` settings, through objects
+  // only. Kept for the last schema asked about (one is loaded at a time),
+  // in an object changed in place, so no binding sees it change.
+  function takeoverPaths(schema) {
+    if (_takeoverCache.schema !== schema) {
+      const paths = [];
+      const walk = (node, path, depth) => {
+        node = SchemaValidation.resolveRef(node, schema);
+        if (!node || depth > 20)
+          return;
+        if (node["x-takeover"] === true && path.length > 0) {
+          paths.push(path);
+          return;
+        }
+        for (const key in node.properties ?? {})
+          walk(node.properties[key], path.concat([key]), depth + 1);
+      };
+      walk(schema, [], 0);
+      _takeoverCache.schema = schema;
+      _takeoverCache.paths = paths;
+    }
+    return _takeoverCache.paths;
   }
 
   function _kept(personal) {
@@ -77,9 +125,12 @@ QtObject {
     return children.some(child => _carries(child, scope, kept, rootSchema, depth + 1));
   }
 
-  // `value` with only its kept parts, or undefined for none
+  // `value` with only its kept parts, or undefined for none (a takeover
+  // setting is never kept: loading one keeps the running value)
   function _pick(value, schema, scope, kept, rootSchema) {
     const node = _node(value, schema, scope, rootSchema);
+    if (node.schema?.["x-takeover"] === true)
+      return undefined;
     const keep = kept.includes(node.scope);
     if (Array.isArray(value)) {
       if (!keep)
