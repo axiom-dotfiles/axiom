@@ -3322,7 +3322,7 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "paths": { "x-scope": "machine","type": "array", "title": "Mount points", "default": ["/"], "items": {"type": "string"}, "description": "Comma-separated, e.g. /, /home"}
+            "paths": { "x-scope": "machine", "type": "array", "title": "Mount points", "default": ["/"], "items": {"type": "string"}, "description": "Comma-separated, e.g. /, /home"}
           }
         }
       }
@@ -3358,8 +3358,8 @@
           "additionalProperties": false,
           "properties": {
             "intervalMinutes": {"type": "integer", "title": "Check interval", "x-unit": "min", "default": 60, "minimum": 5, "maximum": 1440},
-            "includeAur": { "x-scope": "machine","type": "boolean", "title": "Include AUR", "default": false},
-            "aurHelper": { "x-scope": "machine","type": "string", "title": "AUR helper", "default": "paru", "enum": ["paru", "yay"], "x-showIf": {"includeAur": true}}
+            "includeAur": { "x-scope": "machine", "type": "boolean", "title": "Include AUR", "default": false},
+            "aurHelper": { "x-scope": "machine", "type": "string", "title": "AUR helper", "default": "paru", "enum": ["paru", "yay"], "x-showIf": {"includeAur": true}}
           }
         }
       }
@@ -3444,7 +3444,7 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "directory": { "x-scope": "machine","type": "string", "title": "Save to", "default": "~/Pictures/Screenshots"}
+            "directory": { "x-scope": "machine", "type": "string", "title": "Save to", "default": "~/Pictures/Screenshots"}
           }
         }
       }
@@ -3669,7 +3669,7 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "apps": { "x-scope": "personal","type": "array", "title": "Apps", "default": [], "items": {"type": "string"}, "description": "Desktop entry ids, comma-separated (e.g. firefox, kitty). Empty shows recently launched apps."},
+            "apps": { "x-scope": "personal", "type": "array", "title": "Apps", "default": [], "items": {"type": "string"}, "description": "Desktop entry ids, comma-separated (e.g. firefox, kitty). Empty shows recently launched apps."},
             "showLabels": {"type": "boolean", "title": "Show names", "default": true}
           }
         }

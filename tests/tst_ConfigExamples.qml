@@ -206,7 +206,7 @@ TestCase {
     const loaded = defaults();
     loaded.Polkit.enabled = true;
     loaded.Workspaces.count = 4;
-    const result = ConfigExamples.keepTakeovers(loaded, current, schema);
+    const result = ConfigExamples.keepTakeovers(loaded, current, ConfigExamples.takeoverPaths(schema));
     compare(result.Hyprland.mode, "managed");
     compare(result.Idle.enabled, true);
     compare(result.Lockscreen.mode, "hyprlock");
@@ -246,8 +246,25 @@ TestCase {
       }
     });
     compare(ConfigExamples.takeoverPaths(lookSchema), [["Section", "mode"]]);
-    // A second schema replaces the cached paths
-    verify(ConfigExamples.takeoverPaths(schema).length >= 5);
+  }
+
+  function test_equal_apart_from_takeovers() {
+    const paths = ConfigExamples.takeoverPaths(schema);
+    const saved = defaults();
+    const running = defaults();
+    verify(ConfigExamples.equalApartFrom(running, saved, paths));
+    running.Hyprland.mode = "managed";
+    running.Idle.enabled = true;
+    verify(ConfigExamples.equalApartFrom(running, saved, paths), "takeovers differ");
+    verify(!ConfigExamples.equalApartFrom(running, saved, []), "no paths left out");
+    running.Hyprland.blur = !saved.Hyprland.blur;
+    verify(!ConfigExamples.equalApartFrom(running, saved, paths), "a sibling of a takeover differs");
+    const other = defaults();
+    other.Workspaces.count = saved.Workspaces.count + 1;
+    verify(!ConfigExamples.equalApartFrom(other, saved, paths));
+    // Agrees with comparing against keepTakeovers' copy
+    for (const config of [running, other])
+      compare(ConfigExamples.equalApartFrom(config, saved, paths), Utils.deepEqual(config, ConfigExamples.keepTakeovers(saved, config, paths)));
   }
 
   function test_apply_keeps_monitors_by_id_then_position() {
@@ -377,14 +394,28 @@ TestCase {
   }
 
   // Export (pick → sparse) and import (load → apply) give back what applying
-  // the whole config would
+  // the whole config would: look only and with personal parts, onto the
+  // defaults and onto a user's own config (whose machine and personal values
+  // aren't the defaults). SavedConfigsManager.exportConfig relies on it.
   function test_export_round_trips() {
-    for (const name of exampleNames()) {
-      const full = ConfigExamples.apply(defaults(), load(files.json("examples/" + name)), schema, true);
-      const exported = ConfigExamples.sparse(ConfigExamples.pick(full, schema, true), schema);
-      exported.version = ConfigMigration.currentVersion;
-      verify(Utils.deepEqual(load(exported), load(ConfigExamples.apply(defaults(), full, schema, true))), name + " exported");
-      verify(Utils.deepEqual(ConfigExamples.apply(defaults(), load(exported), schema, true), ConfigExamples.apply(defaults(), full, schema, true)), name + " imported");
+    const user = load(files.json("tests/fixtures/configs/v1.json"));
+    const sources = exampleNames().map(name => ({
+          "name": name,
+          "config": ConfigExamples.apply(user, load(files.json("examples/" + name)), schema, true)
+        })).concat([
+      {
+        "name": "v1.json",
+        "config": user
+      }
+    ]);
+    for (const source of sources) {
+      for (const personal of [false, true]) {
+        const label = `${source.name}${personal ? " with personal parts" : ""}`;
+        const exported = ConfigExamples.sparse(ConfigExamples.pick(source.config, schema, personal), schema);
+        exported.version = ConfigMigration.currentVersion;
+        for (const current of [defaults(), user])
+          verify(Utils.deepEqual(ConfigExamples.apply(current, load(exported), schema, personal), ConfigExamples.apply(current, source.config, schema, personal)), label + " imported");
+      }
     }
   }
 

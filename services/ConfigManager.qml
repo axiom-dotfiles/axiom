@@ -13,6 +13,9 @@ QtObject {
   // --- Public ---
   readonly property var config: _config
   readonly property var configSchema: _configSchema
+  // The `x-takeover` settings' paths ([key, …]), which loading a config
+  // never changes (ConfigExamples.keepTakeovers)
+  readonly property var takeoverPaths: ConfigExamples.takeoverPaths(_configSchema)
   readonly property string configDir: "../config/user/"
   readonly property string configFile: "config.json"
 
@@ -187,7 +190,7 @@ QtObject {
       return false;
     }
     root._savesBlocked = false;
-    root._config = ConfigExamples.keepTakeovers(prepared.config, root._config, _configSchema);
+    root._config = ConfigExamples.keepTakeovers(prepared.config, root._config, root.takeoverPaths);
     return saveConfig();
   }
 

@@ -22,6 +22,15 @@ Item {
   readonly property int barLength: 190
   readonly property int barSpacing: 20
   readonly property bool vertical: osd.orientation === "Vertical"
+  // What a delegate past the end reads when the bar count drops (a restored
+  // or applied config), until the Repeater removes it: no bar, rather than
+  // undefined for every binding in OSDBar to guard against
+  readonly property var noBar: ({
+      "type": "",
+      "apps": [],
+      "icon": "",
+      "showOsd": false
+    })
 
   implicitWidth: grid.implicitWidth
   implicitHeight: grid.implicitHeight
@@ -41,7 +50,7 @@ Item {
       delegate: OSDBar {
         required property int index
 
-        entry: root.osd.bars[index]
+        entry: root.osd.bars[index] ?? root.noBar
         screenName: root.screenName
         vertical: root.vertical
         showPercent: root.osd.showPercent

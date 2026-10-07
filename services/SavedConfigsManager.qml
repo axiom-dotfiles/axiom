@@ -51,7 +51,7 @@ QtObject {
   readonly property string active: _model.count > 0 && exists(_active) ? _active : ""
   // Whether the running config differs from the active saved one, leaving
   // out the takeover settings, which restoring doesn't change
-  readonly property bool modified: active !== "" && _baseline !== null && !Utils.deepEqual(ConfigManager.config, ConfigExamples.keepTakeovers(_baseline, ConfigManager.config, ConfigManager.configSchema))
+  readonly property bool modified: active !== "" && _baseline !== null && !ConfigExamples.equalApartFrom(ConfigManager.config, _baseline, ConfigManager.takeoverPaths)
 
   property string _active: ""
   // The active saved config as it loads (migrated, defaults filled)
@@ -101,6 +101,10 @@ QtObject {
     // 128 KiB (the folder was made at startup)
     _writer.name = fileName;
     root._saving = Utils.clone(ConfigManager.config);
+    // Through an empty path first: a FileView skips setText of the text it
+    // last read or wrote (no `saved`), which would leave an apply waiting
+    // on this backup forever
+    _writer.path = "";
     _writer.path = savedDir + fileName + ".json";
     _writer.setText(JSON.stringify(root._saving, null, 2) + "\n");
   }
@@ -212,15 +216,17 @@ QtObject {
     }
     const title = String(parsed._example?.title ?? "") || fileName.replace(/\.json$/, "");
     // A file with no personal parts loads with their defaults, which taking
-    // them would put in place of the user's own keybinds and apps
+    // them would put in place of the user's own keybinds and apps. Read
+    // migrated (not filled), so an older file's are found where they are now
     const schema = ConfigManager.configSchema;
+    const migrated = ConfigMigration.migrate(parsed).config;
     root.importing = {
       name: sanitize(title) || "import",
       title: title,
       description: String(parsed._example?.description ?? ""),
       path: path,
       config: config,
-      hasPersonal: !Utils.deepEqual(ConfigExamples.pick(parsed, schema, true), ConfigExamples.pick(parsed, schema, false))
+      hasPersonal: !Utils.deepEqual(ConfigExamples.pick(migrated, schema, true), ConfigExamples.pick(migrated, schema, false))
     };
     root.status = "";
   }
@@ -243,28 +249,21 @@ QtObject {
   // defaults: a file to share, in the format examples and imports use
   function exportConfig(personal) {
     const schema = ConfigManager.configSchema;
-    const config = ConfigManager.config;
-    const picked = ConfigExamples.pick(config, schema, personal);
-    const title = root.active || "axiom";
     const header = {
       "_example": {
-        "title": title,
+        "title": root.active || "axiom",
         "description": ""
       },
       "version": ConfigMigration.currentVersion
     };
-    let shared = Object.assign({}, header, ConfigExamples.sparse(picked, schema));
-    // Leaving the defaults out must not change what applying it does
-    const loaded = ConfigManager.normalizeConfig(shared);
-    if (!loaded || !Utils.deepEqual(ConfigExamples.apply(config, loaded, schema, personal), ConfigExamples.apply(config, config, schema, personal))) {
-      console.warn("[SavedConfigsManager] The sparse export doesn't load back the same; exporting it whole");
-      shared = Object.assign({}, header, picked);
-    }
+    // Applies as the whole pick would (tst_ConfigExamples' round trips)
+    const shared = Object.assign({}, header, ConfigExamples.sparse(ConfigExamples.pick(ConfigManager.config, schema, personal), schema));
     const now = new Date();
     // To the second, so a later export never replaces an earlier one
     const pad = n => String(n).padStart(2, "0");
     const stamp = [now.getFullYear(), now.getMonth() + 1, now.getDate()].map(pad).join("-") + "-" + [now.getHours(), now.getMinutes(), now.getSeconds()].map(pad).join("");
-    _exporter.path = Paths.homeDirectory + "axiom-" + sanitize(title).replace(/ /g, "-") + "-" + stamp + ".json";
+    const named = root.active ? sanitize(root.active).replace(/ /g, "-") + "-" : "";
+    _exporter.path = Paths.homeDirectory + "axiom-" + named + stamp + ".json";
     _exporter.setText(JSON.stringify(shared, null, 2) + "\n");
   }
 
@@ -418,8 +417,13 @@ QtObject {
           console.warn("[SavedConfigsManager] File picker:", text.trim());
       }
     }
+    // Not in onExited: a picker that fails to start never exits, and the
+    // overlay would stay hidden
+    onRunningChanged: {
+      if (!running)
+        ShellManager.endStepAside("filePicker");
+    }
     onExited: code => {
-      ShellManager.endStepAside("filePicker");
       if (code === 0 && pickedPath.text.trim() !== "")
         root.openImport(pickedPath.text.trim());
       else if (code !== 1)

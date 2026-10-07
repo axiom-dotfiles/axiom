@@ -791,7 +791,10 @@ end`;
   // --- Driving it ---
 
   function apply() {
-    if (_undoLook())
+    // Detached, the reload's configreloaded applies the layer again. The
+    // file modes go on: their configreloaded doesn't call apply(), so
+    // returning would drop a mode switch or a rewrite made with it.
+    if (_undoLook() && mode === "detached")
       return;
     if (_appliedMode !== "" && _appliedMode !== mode)
       _leave(_appliedMode);

@@ -15,9 +15,6 @@ import QtQuick
 QtObject {
   id: root
 
-  // takeoverPaths' { schema, paths }
-  readonly property var _takeoverCache: ({})
-
   // The parts of `config` a shared file holds: the look, and the personal
   // parts too when `personal` is set, never a takeover setting
   function pick(config, schema, personal = false) {
@@ -45,10 +42,11 @@ QtObject {
   // something over on this PC: the Hyprland mode, the lock screen, idle,
   // polkit, the greeter) as it is in `current`. Loading a saved config or
   // the defaults never changes them: each is switched by its own card,
-  // which does the takeover or gives it back.
-  function keepTakeovers(config, current, schema) {
+  // which does the takeover or gives it back. `paths`: takeoverPaths(schema)
+  // (ConfigManager.takeoverPaths).
+  function keepTakeovers(config, current, paths) {
     const result = Utils.clone(config);
-    for (const path of takeoverPaths(schema)) {
+    for (const path of paths) {
       let from = current;
       let to = result;
       for (let i = 0; i < path.length - 1 && _isObject(from) && _isObject(to); i++) {
@@ -62,28 +60,38 @@ QtObject {
     return result;
   }
 
-  // The paths ([key, …]) of the `x-takeover` settings, through objects
-  // only. Kept for the last schema asked about (one is loaded at a time),
-  // in an object changed in place, so no binding sees it change.
+  // Whether `a` and `b` are equal apart from the values at `paths` (as
+  // keepTakeovers takes them), without copying either: a running config
+  // against a snapshot, on every config change
+  function equalApartFrom(a, b, paths) {
+    if (paths.length === 0)
+      return Utils.deepEqual(a, b);
+    if (paths.some(path => path.length === 0))
+      return true;
+    if (!_isObject(a) || !_isObject(b))
+      return Utils.deepEqual(a, b);
+    const keys = Object.keys(a);
+    if (keys.length !== Object.keys(b).length)
+      return false;
+    return keys.every(key => Object.prototype.hasOwnProperty.call(b, key) && equalApartFrom(a[key], b[key], paths.filter(path => path[0] === key).map(path => path.slice(1))));
+  }
+
+  // The paths ([key, …]) of the `x-takeover` settings, through objects only
   function takeoverPaths(schema) {
-    if (_takeoverCache.schema !== schema) {
-      const paths = [];
-      const walk = (node, path, depth) => {
-        node = SchemaValidation.resolveRef(node, schema);
-        if (!node || depth > 20)
-          return;
-        if (node["x-takeover"] === true && path.length > 0) {
-          paths.push(path);
-          return;
-        }
-        for (const key in node.properties ?? {})
-          walk(node.properties[key], path.concat([key]), depth + 1);
-      };
-      walk(schema, [], 0);
-      _takeoverCache.schema = schema;
-      _takeoverCache.paths = paths;
-    }
-    return _takeoverCache.paths;
+    const paths = [];
+    const walk = (node, path, depth) => {
+      node = SchemaValidation.resolveRef(node, schema);
+      if (!node || depth > 20)
+        return;
+      if (node["x-takeover"] === true && path.length > 0) {
+        paths.push(path);
+        return;
+      }
+      for (const key in node.properties ?? {})
+        walk(node.properties[key], path.concat([key]), depth + 1);
+    };
+    walk(schema, [], 0);
+    return paths;
   }
 
   function _kept(personal) {
