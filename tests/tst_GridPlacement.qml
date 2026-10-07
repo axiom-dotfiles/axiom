@@ -27,6 +27,13 @@ TestCase {
     compare(GridPlacement.span(4, 300), 300, "at another card size");
   }
 
+  function test_cards() {
+    compare(GridPlacement.cards(4), "1");
+    compare(GridPlacement.cards(2), "½");
+    compare(GridPlacement.cards(5), "1¼");
+    compare(GridPlacement.cards(11), "2¾");
+  }
+
   function test_shapes() {
     compare(GridPlacement.slotShape([0, 0, 2, 2]), "square");
     compare(GridPlacement.slotShape([0, 0, 2, 1]), "horizontal");
@@ -122,6 +129,143 @@ TestCase {
       "w": 2,
       "h": 2
     }, "a wide grid grows down");
+  }
+
+  function p(x, y, w, h) {
+    return at(x, y, w, h).place;
+  }
+
+  function test_normalize_hold() {
+    const modules = [at(2, 3, 1, 1), at(4, 5, 1, 1)];
+    compare(GridPlacement.normalize(modules, {
+      "y": true
+    }), {
+      "x": 2,
+      "y": 0
+    }, "a gap before them stays on a held axis");
+    compare(modules[0].place, p(0, 3, 1, 1));
+    const negative = [at(0, -2, 1, 1)];
+    compare(GridPlacement.normalize(negative, {
+      "y": true
+    }), {
+      "x": 0,
+      "y": -2
+    }, "but nothing stays negative");
+  }
+
+  function test_clearOf() {
+    verify(GridPlacement.clearOf([p(0, 0, 2, 2)], p(2, 0, 1, 1), -1, null));
+    verify(!GridPlacement.clearOf([p(0, 0, 2, 2)], p(1, 1, 1, 1), -1, null));
+    verify(GridPlacement.clearOf([p(0, 0, 2, 2)], p(1, 1, 1, 1), 0, null), "its own place ignored");
+    verify(GridPlacement.clearOf([null], p(-2, -1, 1, 1), -1, null), "negative without an area");
+    verify(!GridPlacement.clearOf([], p(-1, 0, 1, 1), -1, {
+      "cols": 4,
+      "rows": 4
+    }), "outside the area");
+  }
+
+  function test_push() {
+    const down = {
+      "x": 0,
+      "y": 1
+    };
+    // A column of three: a new module on top pushes all of them down
+    const column = [p(0, 0, 2, 2), p(0, 2, 2, 2), p(0, 4, 2, 2)];
+    compare(GridPlacement.push(column, -1, p(0, 0, 2, 1), down, null), [p(0, 1, 2, 2), p(0, 3, 2, 2), p(0, 5, 2, 2), p(0, 0, 2, 1)]);
+    compare(column[0], p(0, 0, 2, 2), "the input isn't changed");
+    // Only what's hit moves
+    compare(GridPlacement.push([p(0, 0, 2, 2), p(4, 0, 2, 2)], -1, p(0, 1, 1, 1), down, null), [p(0, 2, 2, 2), p(4, 0, 2, 2), p(0, 1, 1, 1)]);
+    // A move: its old place is free
+    compare(GridPlacement.push([p(0, 0, 2, 2), p(0, 2, 2, 2)], 1, p(0, 0, 2, 2), down, null), [p(0, 2, 2, 2), p(0, 0, 2, 2)]);
+    // The other directions
+    compare(GridPlacement.push([p(0, 0, 2, 2)], -1, p(0, 1, 2, 2), {
+      "x": 0,
+      "y": -1
+    }, null), [p(0, -1, 2, 2), p(0, 1, 2, 2)]);
+    compare(GridPlacement.push([p(0, 0, 2, 2)], -1, p(1, 0, 1, 1), {
+      "x": 1,
+      "y": 0
+    }, null), [p(2, 0, 2, 2), p(1, 0, 1, 1)]);
+    compare(GridPlacement.push([p(0, 0, 2, 2)], -1, p(1, 0, 1, 1), {
+      "x": -1,
+      "y": 0
+    }, null), [p(-1, 0, 2, 2), p(1, 0, 1, 1)]);
+    // Pushed into the module put (wider than what hit it): past it too
+    compare(GridPlacement.push([p(0, 0, 1, 1), p(0, 1, 1, 1)], 0, p(0, 1, 1, 3), down, null), [p(0, 1, 1, 3), p(0, 4, 1, 1)]);
+    // Out of a bounded area: refused
+    compare(GridPlacement.push([p(0, 0, 4, 2), p(0, 2, 4, 2)], -1, p(0, 0, 4, 1), down, {
+      "cols": 4,
+      "rows": 4
+    }), null);
+    verify(GridPlacement.push([p(0, 0, 4, 2)], -1, p(0, 0, 4, 1), down, {
+      "cols": 4,
+      "rows": 4
+    }) !== null);
+  }
+
+  function test_pushGroup() {
+    const down = {
+      "x": 0,
+      "y": 1
+    };
+    // Two side by side moved onto a wide one: it goes under both
+    compare(GridPlacement.pushGroup([p(0, 0, 4, 1), p(0, 2, 2, 1), p(2, 2, 2, 1)], [[1, p(0, 0, 2, 1)], [2, p(2, 0, 2, 1)]], down, null), [p(0, 1, 4, 1), p(0, 0, 2, 1), p(2, 0, 2, 1)]);
+    // Pushed into the lower of a group: past it too
+    compare(GridPlacement.pushGroup([p(0, 0, 1, 1), p(5, 5, 1, 1), p(5, 6, 1, 1)], [[1, p(0, 0, 1, 1)], [2, p(0, 1, 1, 1)]], down, null), [p(0, 2, 1, 1), p(0, 0, 1, 1), p(0, 1, 1, 1)]);
+  }
+
+  function test_cover() {
+    compare(GridPlacement.cover([p(1, 1, 1, 1), null, p(3, 0, 2, 4)]), p(1, 0, 4, 4));
+    compare(GridPlacement.cover([]), null);
+  }
+
+  function test_fitPlace() {
+    // A 2 × 2 hole at (2, 0) between two columns
+    const places = [p(0, 0, 2, 4), p(4, 0, 2, 4)];
+    const area = {
+      "cols": 6,
+      "rows": 2
+    };
+    compare(GridPlacement.fitPlace(places, {
+      "x": 3,
+      "y": 1
+    }, [4, 4], [1, 1], area), p(2, 0, 2, 2), "shrinks into the hole");
+    compare(GridPlacement.fitPlace(places, {
+      "x": 0,
+      "y": 0
+    }, [4, 4], [1, 1], area), null, "the cell is taken");
+    compare(GridPlacement.fitPlace(places, {
+      "x": 3,
+      "y": 1
+    }, [4, 4], [3, 3], area), null, "smaller than the least size");
+    // Room enough: its full size, centred on the cell
+    compare(GridPlacement.fitPlace([], {
+      "x": 5,
+      "y": 5
+    }, [4, 2], [1, 1], null), p(4, 5, 4, 2));
+    // Of equal areas, the one shaped like what's wanted: a 4 × 1 strip
+    // row free above a module 2 wide, wanting 4 × 2
+    compare(GridPlacement.fitPlace([p(0, 1, 2, 1), p(2, 1, 2, 1)], {
+      "x": 1,
+      "y": 0
+    }, [4, 2], [1, 1], {
+      "cols": 4,
+      "rows": 2
+    }), p(0, 0, 4, 1));
+  }
+
+  function test_resizeFrom() {
+    const place = p(2, 2, 2, 2);
+    compare(GridPlacement.resizeFrom(place, "se", 1, 2), p(2, 2, 3, 4));
+    compare(GridPlacement.resizeFrom(place, "e", 1, 5), p(2, 2, 3, 2), "an edge moves one side");
+    compare(GridPlacement.resizeFrom(place, "s", 5, 1), p(2, 2, 2, 3));
+    compare(GridPlacement.resizeFrom(place, "nw", -1, -2), p(1, 0, 3, 4), "the bottom right stays");
+    compare(GridPlacement.resizeFrom(place, "n", 0, 1), p(2, 3, 2, 1));
+    compare(GridPlacement.resizeFrom(place, "w", -2, 0), p(0, 2, 4, 2));
+    compare(GridPlacement.resizeFrom(place, "ne", 1, -1), p(2, 1, 3, 3));
+    compare(GridPlacement.resizeFrom(place, "sw", 1, 1), p(3, 2, 1, 3));
+    compare(GridPlacement.resizeFrom(place, "nw", 5, 5), p(3, 3, 1, 1), "never below one unit, never flipped");
+    compare(GridPlacement.resizeFrom(place, "se", 50, 0), p(2, 2, 32, 2), "at most maxSpan");
   }
 
   function test_firstFreeIn() {

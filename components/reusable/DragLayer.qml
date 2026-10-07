@@ -20,9 +20,10 @@ Item {
   property var hoverTarget: null
   property int hoverIndex: -1
   // Hooks: whether `target` takes `drag`, and which of two overlapping
-  // targets wins
+  // targets wins (by default its `dropPriority`, if it has one: a
+  // TrashTarget's is above the rest)
   property var accepts: (target, drag) => true
-  property var priority: target => 0
+  property var priority: target => target.dropPriority ?? 0
 
   property var _targets: []
 

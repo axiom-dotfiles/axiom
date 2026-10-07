@@ -41,6 +41,9 @@ QtObject {
         // The size a module is added at ([w, h] in grid units, four to a
         // card; `x-defaultSize`), null when not declared
         "defaultSize": def["x-defaultSize"] ?? null,
+        // The least a drop into a gap shrinks it to (`x-minSize`), null
+        // when not declared
+        "minSize": def["x-minSize"] ?? null,
         // A tool page (`x-tool`), shown apart from the user's own pages
         "tool": def["x-tool"] === true,
         // Material Symbols name (`x-icon`)
@@ -167,5 +170,12 @@ QtObject {
   // only a starting point
   function defaultSize(type) {
     return moduleInfo(type)?.defaultSize ?? [4, 4];
+  }
+
+  // The least [w, h] a module dropped into a gap is shrunk to fit it: its
+  // declared one, else half its default size. Like the default, only a
+  // starting point: it can still be resized smaller
+  function minSize(type) {
+    return moduleInfo(type)?.minSize ?? defaultSize(type).map(n => Math.max(1, Math.ceil(n / 2)));
   }
 }

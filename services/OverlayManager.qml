@@ -61,6 +61,7 @@ QtObject {
     draft.load();
     root.selectedViewIndex = Math.max(0, Math.min(root.selectedViewIndex, (root.localViews?.length ?? 1) - 1));
     root.layout.clearSelection();
+    root.layout.clearHistory();
   }
 
   // Loads the draft unless it holds unsaved edits (the page is rebuilt

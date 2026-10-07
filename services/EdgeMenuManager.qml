@@ -328,6 +328,35 @@ Singleton {
     host: "edgeMenu"
     modulesOf: () => root.selectedMenu()?.modules ?? null
     shifted: (shift, boundsBefore) => root._keepPlace(root.selectedMenu(), shift, boundsBefore)
+    // Along the menu's edge: down a side menu, right along a top or
+    // bottom one, so a drop at its start makes room in its run
+    pushDir: {
+      const edge = root.localMenus?.[root.selectedMenuIndex]?.edge;
+      const side = edge === "Left" || edge === "Right";
+      return {
+        "x": side ? 0 : 1,
+        "y": side ? 1 : 0
+      };
+    }
+    // A whole-edge menu starts at its edge's start whatever its modules
+    // reach, so a gap before them along the edge is kept (a content-length
+    // menu keeps its modules in place through its offset instead:
+    // _keepPlace)
+    hold: {
+      const menu = root.localMenus?.[root.selectedMenuIndex];
+      const side = menu?.edge === "Left" || menu?.edge === "Right";
+      return menu?.length === "edge" ? {
+        "x": !side,
+        "y": side
+      } : {};
+    }
+    // Its offset moves with edits (_keepPlace), so undo puts it back too
+    snapshotExtra: () => root.selectedMenu()?.offset ?? null
+    restoreExtra: offset => {
+      const menu = root.selectedMenu();
+      if (menu && offset !== null && offset !== undefined)
+        menu.offset = offset;
+    }
     scopeKey: String(root.selectedMenuIndex)
     onEdited: root.applyChanges()
   }
@@ -361,6 +390,7 @@ Singleton {
     ConfigManager.clearPreview("EdgeMenus");
     root.selectedMenuIndex = Math.max(0, Math.min(root.selectedMenuIndex, (root.localMenus?.length ?? 1) - 1));
     root.layout.clearSelection();
+    root.layout.clearHistory();
     root._followPreview();
   }
 

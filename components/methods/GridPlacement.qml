@@ -29,6 +29,13 @@ QtObject {
     return n * root.unitOf(unit) + (n - 1) * root.cardSpacing;
   }
 
+  // A size in grid units as cards: 4 → "1", 2 → "½", 5 → "1¼"
+  function cards(units) {
+    const whole = Math.floor(units / 4);
+    const part = ["", "¼", "½", "¾"][units % 4];
+    return part === "" ? String(whole) : (whole > 0 ? whole : "") + part;
+  }
+
   // One grid unit plus the gap after it, in px, at card size `unit`
   function stepOf(unit) {
     return root.unitOf(unit) + root.cardSpacing;
@@ -203,6 +210,174 @@ QtObject {
     };
   }
 
+  function _copy(place) {
+    return place ? {
+      "x": place.x,
+      "y": place.y,
+      "w": place.w,
+      "h": place.h
+    } : null;
+  }
+
+  // Whether `place` is clear of every one of `places` (null entries are
+  // skipped) but the one at `ignore`, and inside `area` ({ cols, rows })
+  // when there is one. Negative x and y are fine without an area.
+  function clearOf(places, place, ignore, area) {
+    if (!place || place.w < 1 || place.h < 1)
+      return false;
+    if (area && !root.within(place, area.cols, area.rows))
+      return false;
+    return !(places ?? []).some((p, i) => i !== ignore && p && root.overlaps(p, place));
+  }
+
+  // `places` (an array of { x, y, w, h }, null entries skipped) with the
+  // one at `index` put at `place` (-1: a new one, appended), and every
+  // other it lands on pushed along `dir` ({ x, y }, one of them 1 or -1)
+  // just past it, cascading. The one put never moves: anything pushed
+  // into it goes past it too. Returns a new array, or null when something
+  // ends up outside `area` ({ cols, rows }, when given). Negative places
+  // are fine without an area.
+  function push(places, index, place, dir, area) {
+    return root.pushGroup(places, [[index, place]], dir, area);
+  }
+
+  // push() for several put at once: `puts` is [[index, place], …] (index
+  // -1: a new one, appended in order), none of them overlapping another.
+  // None of them move; everything they land on is pushed past them.
+  function pushGroup(places, puts, dir, area) {
+    const out = (places ?? []).map(p => root._copy(p));
+    const fixed = [];
+    puts.forEach(([index, place]) => {
+      const at = index < 0 ? out.length : index;
+      out[at] = root._copy(place);
+      fixed.push(at);
+    });
+    // Moves out[i] along dir until it's past out[j]
+    const past = (i, j) => {
+      const a = out[i];
+      const b = out[j];
+      if (dir.y > 0)
+        a.y = b.y + b.h;
+      else if (dir.y < 0)
+        a.y = b.y - a.h;
+      else if (dir.x > 0)
+        a.x = b.x + b.w;
+      else
+        a.x = b.x - a.w;
+    };
+    const queue = fixed.slice();
+    let guard = 0;
+    while (queue.length > 0) {
+      if (++guard > 10000)
+        return null;
+      const p = queue.shift();
+      const pFixed = fixed.includes(p);
+      for (let i = 0; i < out.length; i++) {
+        if (i === p || !out[i] || !root.overlaps(out[i], out[p]))
+          continue;
+        if (fixed.includes(i)) {
+          if (pFixed)
+            continue;
+          // Pushed into one put: it goes past that instead
+          past(p, i);
+          queue.push(p);
+          break;
+        }
+        past(i, p);
+        queue.push(i);
+      }
+    }
+    if (area && out.some(p => p && !root.within(p, area.cols, area.rows)))
+      return null;
+    return out;
+  }
+
+  // The smallest place covering every one of `places` (nulls skipped),
+  // else null
+  function cover(places) {
+    const list = (places ?? []).filter(p => p);
+    if (list.length === 0)
+      return null;
+    const x = Math.min(...list.map(p => p.x));
+    const y = Math.min(...list.map(p => p.y));
+    return {
+      "x": x,
+      "y": y,
+      "w": Math.max(...list.map(p => p.x + p.w)) - x,
+      "h": Math.max(...list.map(p => p.y + p.h)) - y
+    };
+  }
+
+  // The best free spot for a module of size `want` ([w, h]) dropped with
+  // the pointer on `cell` ({ x, y }): the largest down to `min` ([w, h])
+  // that covers the cell, clear of `places` (and inside `area`, when
+  // given). Among equal sizes, the one closest to `want`'s shape, then the
+  // one most nearly centred on the cell. Null when the cell is taken or
+  // nothing fits.
+  function fitPlace(places, cell, want, min, area) {
+    const one = {
+      "x": cell.x,
+      "y": cell.y,
+      "w": 1,
+      "h": 1
+    };
+    if (!root.clearOf(places, one, -1, area))
+      return null;
+    const shape = Math.log(want[0] / want[1]);
+    const sizes = [];
+    for (let w = want[0]; w >= Math.max(1, min[0]); w--)
+      for (let h = want[1]; h >= Math.max(1, min[1]); h--)
+        sizes.push([w, h]);
+    sizes.sort((a, b) => (b[0] * b[1] - a[0] * a[1]) || (Math.abs(Math.log(a[0] / a[1]) - shape) - Math.abs(Math.log(b[0] / b[1]) - shape)));
+    for (const [w, h] of sizes) {
+      const midX = Math.floor((w - 1) / 2);
+      const midY = Math.floor((h - 1) / 2);
+      let best = null;
+      let bestDist = Infinity;
+      for (let ox = 0; ox < w; ox++) {
+        for (let oy = 0; oy < h; oy++) {
+          const dist = (ox - midX) * (ox - midX) + (oy - midY) * (oy - midY);
+          if (dist >= bestDist)
+            continue;
+          const place = {
+            "x": cell.x - ox,
+            "y": cell.y - oy,
+            "w": w,
+            "h": h
+          };
+          if (root.clearOf(places, place, -1, area)) {
+            best = place;
+            bestDist = dist;
+          }
+        }
+      }
+      if (best)
+        return best;
+    }
+    return null;
+  }
+
+  // `place` resized by dragging its `handle` (the sides it moves: "n",
+  // "ne", "e", "se", "s", "sw", "w", "nw") `dx`, `dy` units: the opposite
+  // sides stay put, and each span stays between 1 and maxSpan
+  function resizeFrom(place, handle, dx, dy) {
+    const out = root._copy(place);
+    const clamp = n => Math.max(1, Math.min(root.maxSpan, n));
+    if (handle.includes("e"))
+      out.w = clamp(place.w + dx);
+    else if (handle.includes("w")) {
+      out.w = clamp(place.w - dx);
+      out.x = place.x + place.w - out.w;
+    }
+    if (handle.includes("s"))
+      out.h = clamp(place.h + dy);
+    else if (handle.includes("n")) {
+      out.h = clamp(place.h - dy);
+      out.y = place.y + place.h - out.h;
+    }
+    return out;
+  }
+
   // `place` on a grid with units split in two each way (`finer`), or
   // merged back in pairs: it keeps its spot and size. Merging rounds each
   // edge, so modules that met still meet; a span stays at least 1 and at
@@ -271,15 +446,21 @@ QtObject {
 
   // Shifts the modules (in place) so the topmost and leftmost touch 0.
   // Returns the shift taken off, { x, y } (0, 0 when nothing moved).
-  function normalize(modules) {
+  // `hold` ({ x, y }, each optional): on a held axis a gap before the
+  // modules stays, and they're only shifted back off negative places.
+  function normalize(modules, hold) {
     const placed = (modules ?? []).filter(module => module?.place);
     if (placed.length === 0)
       return {
         "x": 0,
         "y": 0
       };
-    const minX = Math.min(...placed.map(module => module.place.x));
-    const minY = Math.min(...placed.map(module => module.place.y));
+    let minX = Math.min(...placed.map(module => module.place.x));
+    let minY = Math.min(...placed.map(module => module.place.y));
+    if (hold?.x)
+      minX = Math.min(minX, 0);
+    if (hold?.y)
+      minY = Math.min(minY, 0);
     placed.forEach(module => {
       module.place.x -= minX;
       module.place.y -= minY;
