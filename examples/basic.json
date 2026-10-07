@@ -47,7 +47,6 @@
     {
       "id": "top",
       "enabled": true,
-      "monitor": "",
       "location": "Top",
       "background": "solid",
       "widgetSize": 28,
@@ -230,7 +229,6 @@
     {
       "id": "bottom",
       "enabled": true,
-      "monitor": "",
       "location": "Bottom",
       "background": "transparent",
       "widgetSize": 22,
@@ -284,7 +282,6 @@
               "showGpu": true,
               "showDisk": true,
               "memoryFormat": "percent",
-              "diskPath": "/",
               "interval": 2000,
               "showPopout": true,
               "warnThreshold": 90,
@@ -298,8 +295,6 @@
             "type": "Updates",
             "properties": {
               "hideWhenEmpty": false,
-              "includeAur": false,
-              "aurHelper": "paru",
               "intervalMinutes": 30,
               "showPopout": true,
               "terminal": "",
@@ -364,7 +359,6 @@
         "visibility": "hover",
         "name": "",
         "enabled": true,
-        "monitor": "",
         "edge": "Left",
         "position": 50,
         "reserveSpace": true,
@@ -395,7 +389,6 @@
       "id": "menu-3",
       "name": "notes",
       "enabled": true,
-      "monitor": "",
       "edge": "Right",
       "mode": "floating",
       "frame": true,
@@ -414,7 +407,6 @@
         {
           "type": "Notes",
           "properties": {
-            "note": "",
             "lockNote": false,
             "showHeader": true,
             "showToolbar": true,
@@ -608,7 +600,6 @@
         "name": "Deej",
         "enabled": true,
         "showPercent": false,
-        "monitor": "",
         "detached": false,
         "gap": -1
       },
@@ -638,7 +629,6 @@
         "openOnHover": true,
         "timeout": 1000,
         "showPercent": false,
-        "monitor": "",
         "detached": false,
         "gap": -1
       }
@@ -719,9 +709,7 @@
           },
           {
             "type": "Screenshot",
-            "properties": {
-              "directory": ""
-            },
+            "properties": {},
             "place": {
               "x": 14,
               "y": 6,
@@ -749,9 +737,7 @@
           },
           {
             "type": "Disks",
-            "properties": {
-              "paths": []
-            },
+            "properties": {},
             "place": {
               "x": 16,
               "y": 6,

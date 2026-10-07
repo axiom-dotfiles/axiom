@@ -47,7 +47,6 @@
     {
       "id": "top",
       "enabled": true,
-      "monitor": "",
       "location": "Top",
       "background": "solid",
       "widgetSize": 30,
@@ -261,7 +260,6 @@
         "visibility": "intellihide",
         "name": "",
         "enabled": true,
-        "monitor": "",
         "edge": "Bottom",
         "position": 50,
         "reserveSpace": true,
@@ -291,7 +289,6 @@
     {
       "id": "left-menu",
       "name": "Left menu",
-      "monitor": "",
       "edge": "Left",
       "mode": "floating",
       "enabled": true,
@@ -530,7 +527,6 @@
         "name": "Deej",
         "enabled": true,
         "showPercent": false,
-        "monitor": "",
         "detached": false,
         "gap": -1
       },
@@ -560,7 +556,6 @@
         "openOnHover": true,
         "timeout": 1000,
         "showPercent": false,
-        "monitor": "",
         "detached": false,
         "gap": -1
       }
@@ -641,9 +636,7 @@
           },
           {
             "type": "Screenshot",
-            "properties": {
-              "directory": ""
-            },
+            "properties": {},
             "place": {
               "x": 14,
               "y": 6,
@@ -671,9 +664,7 @@
           },
           {
             "type": "Disks",
-            "properties": {
-              "paths": []
-            },
+            "properties": {},
             "place": {
               "x": 16,
               "y": 6,

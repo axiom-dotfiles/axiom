@@ -134,7 +134,6 @@
               "showTemp": true,
               "showGpu": true,
               "showDisk": false,
-              "diskPath": "/",
               "interval": 2000,
               "showPopout": true,
               "warnThreshold": 90,
@@ -226,7 +225,6 @@
           }
         ]
       },
-      "monitor": "",
       "reserveSpace": true,
       "lockCenter": true,
       "background": "solid",
@@ -279,7 +277,6 @@
         "visibility": "hover",
         "name": "",
         "enabled": true,
-        "monitor": "",
         "edge": "Bottom",
         "position": 50,
         "reserveSpace": true,
@@ -309,7 +306,6 @@
     {
       "id": "left-menu",
       "name": "Left menu",
-      "monitor": "",
       "edge": "Left",
       "mode": "floating",
       "enabled": true,
@@ -548,7 +544,6 @@
         "openOnHover": true,
         "timeout": 1000,
         "showPercent": true,
-        "monitor": "",
         "detached": true,
         "gap": 10
       }
@@ -629,9 +624,7 @@
           },
           {
             "type": "Screenshot",
-            "properties": {
-              "directory": ""
-            },
+            "properties": {},
             "place": {
               "x": 14,
               "y": 6,
@@ -659,9 +652,7 @@
           },
           {
             "type": "Disks",
-            "properties": {
-              "paths": []
-            },
+            "properties": {},
             "place": {
               "x": 16,
               "y": 6,

@@ -11,8 +11,9 @@ import qs.components.reusable
  * saved or restored) can be overwritten from its row; it's marked Current,
  * with an unsaved dot once the running config differs. Overwrite, restore,
  * delete and reverting to the defaults ask for a second click to confirm.
- * Below them, the example setups (SavedConfigsManager.examples), applied
- * the same way.
+ * Below them, exporting the look to share and importing a shared file
+ * (confirmed on its own row), then the example setups
+ * (SavedConfigsManager.examples), applied the same way.
  */
 FieldGroup {
   id: root
@@ -185,6 +186,112 @@ FieldGroup {
         text: I18n.tr(armed ? "Confirm" : "Restore")
         hoverColor: Theme.error
         onClicked: root.confirm("", "restore")
+      }
+    }
+  }
+
+  SectionHeading {
+    Layout.topMargin: Widget.spacing
+    title: I18n.tr("Share")
+    description: I18n.tr("Export writes the look and layout to a file in your home folder, leaving out monitors, wallpapers, accounts and paths. Import applies such a file (or an example, or a whole config) the way an example applies.")
+  }
+
+  RowLayout {
+    Layout.fillWidth: true
+    spacing: Widget.spacing
+
+    StyledSwitch {
+      id: includePersonal
+      checked: true
+    }
+
+    StyledText {
+      Layout.fillWidth: true
+      text: I18n.tr("Include keybinds, apps and commands")
+      elide: Text.ElideRight
+    }
+
+    StyledTextButton {
+      Layout.preferredHeight: Widget.height
+      text: I18n.tr("Export")
+      onClicked: SavedConfigsManager.exportConfig(includePersonal.checked)
+    }
+
+    StyledTextButton {
+      Layout.preferredHeight: Widget.height
+      enabled: !SavedConfigsManager.picking
+      text: I18n.tr("Import…")
+      onClicked: SavedConfigsManager.browseImport()
+    }
+  }
+
+  // The imported file, until it's applied or cancelled
+  StyledContainer {
+    id: importRow
+    readonly property var importing: SavedConfigsManager.importing
+    visible: importing !== null
+    Layout.fillWidth: true
+    implicitHeight: importColumn.implicitHeight + Widget.padding * 2
+    // Off for each new file: its keybinds and commands come only when asked
+    onImportingChanged: takePersonal.checked = false
+
+    ColumnLayout {
+      id: importColumn
+      anchors.fill: parent
+      anchors.margins: Widget.padding
+      spacing: Widget.spacing
+
+      RowLayout {
+        Layout.fillWidth: true
+        spacing: Widget.spacing
+
+        ColumnLayout {
+          Layout.fillWidth: true
+          spacing: 0
+
+          StyledText {
+            text: importRow.importing?.title ?? ""
+            font.bold: true
+            elide: Text.ElideRight
+            Layout.fillWidth: true
+          }
+
+          StyledText {
+            visible: text !== ""
+            text: importRow.importing?.description ?? ""
+            opacity: 0.6
+            textSize: Appearance.fontSize - 2
+            elide: Text.ElideRight
+            Layout.fillWidth: true
+          }
+        }
+
+        StyledTextButton {
+          Layout.preferredHeight: Widget.height
+          text: I18n.tr("Apply")
+          onClicked: SavedConfigsManager.confirmImport(takePersonal.checked)
+        }
+
+        StyledTextButton {
+          Layout.preferredHeight: Widget.height
+          text: I18n.tr("Cancel")
+          onClicked: SavedConfigsManager.cancelImport()
+        }
+      }
+
+      RowLayout {
+        Layout.fillWidth: true
+        spacing: Widget.spacing
+
+        StyledSwitch {
+          id: takePersonal
+        }
+
+        StyledText {
+          Layout.fillWidth: true
+          text: I18n.tr("Also take its keybinds, apps and commands")
+          wrapMode: Text.Wrap
+        }
       }
     }
   }

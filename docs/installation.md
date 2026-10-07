@@ -31,6 +31,7 @@ The whole shell runs on five things. Everything else is optional and only needed
 | Idle (dim, lock, screen off, suspend) | `hypridle` |
 | Login screen | `greetd` and its text login `agreety` (`greetd-agreety` on Arch), the fallback; `pkexec` (polkit) to install it |
 | Calendar | `secret-tool` (libsecret) to keep account passwords in your keyring; the Python packages `icalendar` and `recurring-ical-events`, which the installer's venv holds (`scripts/requirements.txt`) |
+| Importing a shared config | xdg-desktop-portal with a file chooser backend (GTK or KDE) and `python-gobject`; or `zenity` or `kdialog` |
 | Polkit prompt | Nothing: axiom is the agent itself, and stops another one (hyprpolkitagent, KDE's, GNOME's) while it's on |
 | Night light | `hyprsunset` or `wlsunset` |
 | Clipboard history | `wl-clipboard`; `cliphist` to share the history with other apps |

@@ -47,7 +47,6 @@
     {
       "id": "right",
       "enabled": true,
-      "monitor": "",
       "location": "Right",
       "background": "pills",
       "pillPadding": 4,
@@ -146,7 +145,6 @@
               "showDisk": true,
               "memoryFormat": "percent",
               "showGpu": false,
-              "diskPath": "/",
               "interval": 2000,
               "showPopout": true,
               "warnThreshold": 90,
@@ -248,7 +246,6 @@
         "visibility": "intellihide",
         "name": "",
         "enabled": true,
-        "monitor": "",
         "edge": "Left",
         "position": 50,
         "reserveSpace": true,
@@ -278,7 +275,6 @@
     {
       "id": "right-menu",
       "name": "Right menu",
-      "monitor": "",
       "edge": "Right",
       "mode": "integrated",
       "enabled": true,
@@ -372,7 +368,6 @@
       "id": "menu-1",
       "name": "Theme Menu",
       "enabled": true,
-      "monitor": "",
       "edge": "Top",
       "mode": "floating",
       "frame": true,
@@ -587,7 +582,6 @@
         "name": "Deej",
         "enabled": true,
         "showPercent": false,
-        "monitor": "",
         "detached": false,
         "gap": -1
       },
@@ -617,7 +611,6 @@
         "openOnHover": true,
         "timeout": 1000,
         "showPercent": false,
-        "monitor": "",
         "detached": false,
         "gap": -1
       }
@@ -698,9 +691,7 @@
           },
           {
             "type": "Screenshot",
-            "properties": {
-              "directory": ""
-            },
+            "properties": {},
             "place": {
               "x": 14,
               "y": 6,
@@ -728,9 +719,7 @@
           },
           {
             "type": "Disks",
-            "properties": {
-              "paths": []
-            },
+            "properties": {},
             "place": {
               "x": 16,
               "y": 6,
@@ -864,7 +853,6 @@
     "animate": true,
     "strips": [
       {
-        "monitor": "",
         "direction": "horizontal"
       }
     ],

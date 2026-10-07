@@ -47,7 +47,6 @@
     {
       "id": "bottom",
       "enabled": true,
-      "monitor": "",
       "location": "Bottom",
       "background": "pills",
       "pillPadding": 3,
@@ -133,7 +132,6 @@
               "memoryFormat": "percent",
               "showGpu": false,
               "showDisk": false,
-              "diskPath": "/",
               "interval": 2000,
               "showPopout": true,
               "warnThreshold": 90,
@@ -260,7 +258,6 @@
         "visibility": "hover",
         "name": "",
         "enabled": true,
-        "monitor": "",
         "edge": "Top",
         "position": 50,
         "reserveSpace": true,
@@ -290,7 +287,6 @@
     {
       "id": "left-menu",
       "name": "Left menu",
-      "monitor": "",
       "edge": "Left",
       "mode": "floating",
       "enabled": true,
@@ -529,7 +525,6 @@
         "name": "Deej",
         "enabled": true,
         "showPercent": false,
-        "monitor": "",
         "detached": false,
         "gap": -1
       },
@@ -559,7 +554,6 @@
         "openOnHover": true,
         "timeout": 1000,
         "showPercent": false,
-        "monitor": "",
         "detached": false,
         "gap": -1
       }
@@ -640,9 +634,7 @@
           },
           {
             "type": "Screenshot",
-            "properties": {
-              "directory": ""
-            },
+            "properties": {},
             "place": {
               "x": 14,
               "y": 6,
@@ -670,9 +662,7 @@
           },
           {
             "type": "Disks",
-            "properties": {
-              "paths": []
-            },
+            "properties": {},
             "place": {
               "x": 16,
               "y": 6,

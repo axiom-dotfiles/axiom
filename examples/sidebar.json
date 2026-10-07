@@ -47,7 +47,6 @@
     {
       "id": "left",
       "enabled": true,
-      "monitor": "",
       "location": "Left",
       "background": "floating",
       "floatGap": -1,
@@ -227,7 +226,6 @@
     {
       "id": "top",
       "enabled": true,
-      "monitor": "",
       "location": "Top",
       "background": "transparent",
       "widgetSize": 26,
@@ -310,7 +308,6 @@
               "showTemp": true,
               "showGpu": false,
               "showDisk": false,
-              "diskPath": "/",
               "interval": 2000,
               "showPopout": true,
               "warnThreshold": 90,
@@ -370,7 +367,6 @@
         "visibility": "intellihide",
         "name": "",
         "enabled": true,
-        "monitor": "",
         "edge": "Bottom",
         "position": 50,
         "reserveSpace": true,
@@ -400,7 +396,6 @@
     {
       "id": "left-menu",
       "name": "Left menu",
-      "monitor": "",
       "edge": "Left",
       "mode": "integrated",
       "enabled": true,
@@ -490,7 +485,6 @@
       "id": "menu-1",
       "name": "Theme Menu",
       "enabled": true,
-      "monitor": "",
       "edge": "Top",
       "mode": "floating",
       "frame": true,
@@ -705,7 +699,6 @@
         "name": "Deej",
         "enabled": true,
         "showPercent": false,
-        "monitor": "",
         "detached": false,
         "gap": -1
       },
@@ -735,7 +728,6 @@
         "openOnHover": true,
         "timeout": 1000,
         "showPercent": false,
-        "monitor": "",
         "detached": false,
         "gap": -1
       }
@@ -816,9 +808,7 @@
           },
           {
             "type": "Screenshot",
-            "properties": {
-              "directory": ""
-            },
+            "properties": {},
             "place": {
               "x": 14,
               "y": 6,
@@ -846,9 +836,7 @@
           },
           {
             "type": "Disks",
-            "properties": {
-              "paths": []
-            },
+            "properties": {},
             "place": {
               "x": 16,
               "y": 6,
@@ -982,7 +970,6 @@
     "animate": true,
     "strips": [
       {
-        "monitor": "",
         "direction": "horizontal"
       }
     ],

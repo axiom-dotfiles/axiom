@@ -30,8 +30,8 @@ tests/        # unit tests (qmltestrunner) and script tests, run by scripts/chec
 - Every animation duration is `Appearance.animFast`/`animNormal`/`animSlow`; outer edges use `Appearance.borderRadius`, anything inside `Widget.radius`; icons are Material Symbols names in `StyledIcon`.
 
 ## Example setups
-- Build the setup in the shell, then copy only the parts `components/methods/ConfigExamples.qml` lists (`sections`) into `examples/<name>.json`, with a `_example` header: `{ "title": "…", "description": "…" }`.
-- Leave out anything personal or machine-bound: no wallpapers, calendar accounts, chat providers or apps, and every `monitor` empty (the primary).
+- Build the setup in the shell, then Settings → Maintenance → Share → Export (keybinds, apps and commands switched off unless the example needs a command). It writes `~/axiom-<name>-<date>.json` holding only the look (the schema's `x-scope`), minus defaults; move it to `examples/<name>.json` and fill in its `_example` header: `{ "title": "…", "description": "…" }`.
+- Monitors, wallpapers, accounts and paths are `machine` scope, so they're never in an export; don't add them by hand.
 - `tests/tst_ConfigExamples.qml` loads every example the way the shell does, so `scripts/run_tests.sh ConfigExamples` tells you whether it's valid.
 
 ## Checks

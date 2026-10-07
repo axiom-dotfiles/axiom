@@ -202,7 +202,8 @@ QtObject {
   }
 
   // Set while a prompt axiom doesn't draw needs the screen (another polkit
-  // agent's window, which opens under axiom's Overlay-layer surfaces): the
+  // agent's window, the file picker: windows open under axiom's
+  // Overlay-layer surfaces): the
   // overlay and the onboarder hide without closing, keeping their page and
   // state, and come back when every owner has ended it
   readonly property bool steppedAside: _stepAsideOwners.length > 0

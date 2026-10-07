@@ -14,9 +14,11 @@ import qs.components.methods
  * The one last saved or restored is `active`, and `modified` says whether
  * the running config has changed since.
  *
- * Also applies the example setups shipped in examples/ (ConfigExamples):
- * the running config is first saved as "before-<example>", then the
- * example's look and layout replace the running ones.
+ * Also shares configs (ConfigExamples, by the schema's x-scope): applies
+ * the example setups shipped in examples/ and imported files (the running
+ * config is first saved as "before-<name>", then the file's look and layout
+ * replace the running ones), and exports the running config's look to the
+ * home folder in the same format.
  */
 QtObject {
   id: root
@@ -54,8 +56,15 @@ QtObject {
   // The config being written by save(), the new baseline once it's saved
   // (dropped once it's written or fails)
   property var _saving: null
-  // The example to apply once the running config is saved as its backup
-  property string _pendingExample: ""
+  // An imported file awaiting confirmation: { name, title, description,
+  // config } (config loaded: migrated, defaults filled), or null
+  property var importing: null
+  // The file picker is open
+  readonly property bool picking: _picker.running
+
+  // What to apply once the running config is saved as its backup:
+  // { name, config, personal }, or null
+  property var _pendingApply: null
   readonly property var _state: StateManager.createStateHandler("savedconfigs")
 
   Component.onCompleted: {
@@ -145,21 +154,115 @@ QtObject {
       root.status = I18n.tr("\"{0}\" could not be read", name);
       return;
     }
-    root._pendingExample = name;
+    _backupThenApply(name, ConfigManager.normalizeConfig(example), false);
+  }
+
+  // Opens the desktop's file picker; the chosen file goes to openImport
+  function browseImport() {
+    if (_picker.running)
+      return;
+    _picker.command = ["python3", Paths.scriptsPath + "pick_file.py", I18n.tr("Import a configuration"), Paths.homeDirectory];
+    // The picker is an ordinary window, under the overlay's layer
+    ShellManager.beginStepAside("filePicker");
+    _picker.running = true;
+  }
+
+  // Loads a shared file (an export, an example, or a whole config.json of
+  // any version) as `importing`, for the settings page to confirm
+  function openImport(path) {
+    root.importing = null;
+    const content = FileManager.read("file://" + path);
+    const fileName = path.split("/").pop();
+    if (!content) {
+      root.status = I18n.tr("\"{0}\" could not be read", fileName);
+      return;
+    }
+    let parsed;
+    try {
+      parsed = JSON.parse(content);
+    } catch (e) {
+      console.warn("[SavedConfigsManager] Could not parse", path + ":", e);
+      root.status = I18n.tr("\"{0}\" is not valid JSON", fileName);
+      return;
+    }
+    const config = typeof parsed === "object" && parsed !== null && !Array.isArray(parsed) ? ConfigManager.normalizeConfig(parsed) : null;
+    if (!config) {
+      root.status = I18n.tr("\"{0}\" is not a valid config", fileName);
+      return;
+    }
+    const title = String(parsed._example?.title ?? "") || fileName.replace(/\.json$/, "");
+    root.importing = {
+      name: sanitize(title) || "import",
+      title: title,
+      description: String(parsed._example?.description ?? ""),
+      config: config
+    };
+    root.status = "";
+  }
+
+  // Applies `importing` (its personal parts too when `personal`: keybinds,
+  // apps, commands), after saving the running config as "before-<name>"
+  function confirmImport(personal) {
+    const pending = root.importing;
+    root.importing = null;
+    if (pending)
+      _backupThenApply(pending.name, pending.config, personal);
+  }
+
+  function cancelImport() {
+    root.importing = null;
+  }
+
+  // Writes the running config's look (and personal parts, when `personal`)
+  // to ~/axiom-<name>-<date>.json, holding only what differs from the
+  // defaults: a file to share, in the format examples and imports use
+  function exportConfig(personal) {
+    const schema = ConfigManager.configSchema;
+    const config = ConfigManager.config;
+    const picked = ConfigExamples.pick(config, schema, personal);
+    const title = root.active || "axiom";
+    const header = {
+      "_example": {
+        "title": title,
+        "description": ""
+      },
+      "version": ConfigMigration.currentVersion
+    };
+    let shared = Object.assign({}, header, ConfigExamples.sparse(picked, schema));
+    // Leaving the defaults out must not change what applying it does
+    const loaded = ConfigManager.normalizeConfig(shared);
+    if (!loaded || !Utils.deepEqual(ConfigExamples.apply(config, loaded, schema, personal), ConfigExamples.apply(config, config, schema, personal))) {
+      console.warn("[SavedConfigsManager] The sparse export doesn't load back the same; exporting it whole");
+      shared = Object.assign({}, header, picked);
+    }
+    const now = new Date();
+    const date = [now.getFullYear(), now.getMonth() + 1, now.getDate()].map(n => String(n).padStart(2, "0")).join("-");
+    _exporter.path = Paths.homeDirectory + "axiom-" + sanitize(title).replace(/ /g, "-") + "-" + date + ".json";
+    _exporter.setText(JSON.stringify(shared, null, 2) + "\n");
+  }
+
+  function _backupThenApply(name, config, personal) {
+    if (!config) {
+      root.status = I18n.tr("\"{0}\" is not a valid config", name);
+      return;
+    }
+    root._pendingApply = {
+      name: name,
+      config: config,
+      personal: personal
+    };
     save("before-" + name);
   }
 
-  function _applyExample(name) {
-    const example = _readExample(name);
-    const loaded = example ? ConfigManager.normalizeConfig(example) : null;
-    if (!loaded || !ConfigManager.restoreConfig(ConfigExamples.apply(ConfigManager.config, loaded))) {
-      root.status = I18n.tr("\"{0}\" is not a valid config", name);
+  function _apply(pending) {
+    if (!ConfigManager.restoreConfig(ConfigExamples.apply(ConfigManager.config, pending.config, ConfigManager.configSchema, pending.personal))) {
+      root.status = I18n.tr("\"{0}\" is not a valid config", pending.name);
       return;
     }
     root._setActive("", null);
     SettingsManager.loadConfig();
-    root.status = I18n.tr("Applied \"{0}\". The previous configuration is saved as \"{1}\".", name, "before-" + name);
-    console.log("[SavedConfigsManager] Applied example", name);
+    root.status = I18n.tr("Applied \"{0}\". The previous configuration is saved as \"{1}\".", pending.name, "before-" + pending.name);
+    console.log("[SavedConfigsManager] Applied", pending.name, pending.personal ? "with personal parts" : "");
   }
 
   // The parsed example (with its _example header), or null
@@ -246,16 +349,49 @@ QtObject {
       root._saving = null;
       root.status = I18n.tr("Saved \"{0}\"", name);
       console.log("[SavedConfigsManager]", root.status);
-      const example = root._pendingExample;
-      root._pendingExample = "";
-      if (example !== "")
-        root._applyExample(example);
+      const pending = root._pendingApply;
+      root._pendingApply = null;
+      if (pending)
+        root._apply(pending);
     }
     onSaveFailed: error => {
       root._saving = null;
-      root._pendingExample = "";
+      root._pendingApply = null;
       root.status = I18n.tr("Failed to save \"{0}\"", name);
       console.warn("[SavedConfigsManager] Could not write", path + ":", FileViewError.toString(error));
+    }
+  }
+
+  property FileView _exporter: FileView {
+    blockWrites: true
+    atomicWrites: true
+    printErrors: false
+    onSaved: {
+      root.status = I18n.tr("Exported to {0}", Paths.shortenHome(path));
+      console.log("[SavedConfigsManager] Exported", path);
+    }
+    onSaveFailed: error => {
+      root.status = I18n.tr("Failed to export to {0}", Paths.shortenHome(path));
+      console.warn("[SavedConfigsManager] Could not write", path + ":", FileViewError.toString(error));
+    }
+  }
+
+  property Process _picker: Process {
+    stdout: StdioCollector {
+      id: pickedPath
+    }
+    stderr: StdioCollector {
+      onStreamFinished: {
+        if (text.trim() !== "")
+          console.warn("[SavedConfigsManager] File picker:", text.trim());
+      }
+    }
+    onExited: code => {
+      ShellManager.endStepAside("filePicker");
+      if (code === 0 && pickedPath.text.trim() !== "")
+        root.openImport(pickedPath.text.trim());
+      else if (code !== 1)
+        root.status = I18n.tr("No file picker could be opened");
     }
   }
 

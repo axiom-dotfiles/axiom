@@ -47,7 +47,6 @@
     {
       "id": "top",
       "enabled": true,
-      "monitor": "",
       "location": "Top",
       "background": "floatingPills",
       "floatGap": -1,
@@ -289,7 +288,6 @@
         "visibility": "always",
         "name": "",
         "enabled": true,
-        "monitor": "",
         "edge": "Bottom",
         "position": 50,
         "reserveSpace": true,
@@ -320,7 +318,6 @@
       "id": "menu-1",
       "name": "Theme Menu",
       "enabled": true,
-      "monitor": "",
       "edge": "Top",
       "mode": "floating",
       "frame": true,
@@ -367,7 +364,6 @@
       "id": "menu-3",
       "name": "notes",
       "enabled": true,
-      "monitor": "",
       "edge": "Top",
       "mode": "floating",
       "frame": true,
@@ -386,7 +382,6 @@
         {
           "type": "Notes",
           "properties": {
-            "note": "",
             "lockNote": false,
             "showHeader": true,
             "showToolbar": true,
@@ -580,7 +575,6 @@
         "name": "Deej",
         "enabled": true,
         "showPercent": false,
-        "monitor": "",
         "detached": false,
         "gap": -1
       },
@@ -610,7 +604,6 @@
         "openOnHover": true,
         "timeout": 1000,
         "showPercent": false,
-        "monitor": "",
         "detached": false,
         "gap": -1
       }
@@ -691,9 +684,7 @@
           },
           {
             "type": "Screenshot",
-            "properties": {
-              "directory": ""
-            },
+            "properties": {},
             "place": {
               "x": 14,
               "y": 6,
@@ -721,9 +712,7 @@
           },
           {
             "type": "Disks",
-            "properties": {
-              "paths": []
-            },
+            "properties": {},
             "place": {
               "x": 16,
               "y": 6,
@@ -857,8 +846,7 @@
     "animate": true,
     "strips": [
       {
-        "direction": "horizontal",
-        "monitor": ""
+        "direction": "horizontal"
       }
     ],
     "stripColumnWidth": 50,
