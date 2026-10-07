@@ -95,6 +95,8 @@ See **[all the features](docs/features.md)**, with screenshots of every surface.
 
 > [!NOTE]
 > **No file was edited by hand.** Each setup was built with axiom's own editors and Settings page, and ships in [`examples/`](examples). Apply one from **Settings → Maintenance** or with `/config example <name>` in the launcher. It changes the look and layout only (wallpapers, monitors, apps and accounts stay yours), and your current setup is saved first.
+>
+> Your own setup travels the same way: **Settings → Maintenance → Share** exports its look and layout to a file, leaving out monitors, wallpapers, accounts and paths. **Import…** applies anyone's file just as an example applies. Keybinds, apps and commands come along only if you ask, since a shared command runs as you.
 
 <details>
 <summary><b>See all nine</b></summary>
@@ -126,7 +128,7 @@ One repository and one config for the whole desktop:
 - **Lock screen** and **login screen** (greetd), laid out from the same modules, plus a **polkit** prompt.
 - **Docks** on any edge with pinning and magnification, **OSDs**, notifications and a power menu.
 - **AI chat** (Claude, OpenAI, Gemini or Ollama) in a page, a menu or the launcher.
-- A **monitor** layout editor, notes, screenshots and recording, night light, idle, translations, and a first-run setup.
+- A **monitor** layout editor, notes, screenshots and recording, night light, idle, translations, a first-run setup, and **saved configs** you can export, share and import.
 
 ## Installation
 
@@ -189,7 +191,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the layout and conventions, and [docs
 - [x] Alt+Tab, scrolling strips
 - [x] Calendar (CalDAV and .ics)
 - [x] Login screen (greetd) and polkit prompt
-- [x] Example setups, applied in one click
+- [x] Example setups and config sharing, applied in one click
 - [ ] AUR package, if there is interest
 - [ ] Other Wayland compositors
 - [ ] More translations
