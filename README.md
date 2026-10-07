@@ -27,9 +27,9 @@ Most desktops come finished, with options to adjust. axiom comes in pieces, with
 
 - **Built, not configured.** One set of modules builds pages, sidebars, the lock screen and the login screen. Bars are widgets you line up and style one by one. Every surface is laid out by dragging, with changes live until you save.
 - **The whole desktop, one application.** Login, lock, notifications, polkit, idle, OSDs, a launcher, and settings for Wi-Fi, Bluetooth, audio and monitors, from one config. No stack of separate tools to glue together.
-- **Bring your own apps.** axiom is the part of a desktop you live in, not the apps inside it. It ships no file manager, terminal or browser: use the ones you like, and axiom themes 23 of them to match.
+- **Bring your own apps.** axiom is the part of a desktop you live in. It ships no file manager, terminal or browser: use the ones you like, and axiom themes 23 of them to match.
 - **Updates don't fight you.** Your config is validated and migrated from version to version, so a new release never means merging your changes into someone else's dotfiles.
-- **Share a look, not a script.** An exported setup is data: monitors, paths and accounts stay behind, and commands come along only if you ask.
+- **Share your setup.** An export is only data: monitors, paths and accounts stay behind, and commands come along only if you ask.
 - **Trying it costs nothing.** axiom never touches your Hyprland config unless you ask it to. It applies its keybinds at runtime, skips any key you already use, and goes away when you remove its one start-up line.
 
 **Who it's for:** anyone who wants a desktop that's stable, complete and one application rather than a pile of tools and scripts, and that you can still rice as far as you like.
@@ -40,7 +40,7 @@ Most desktops come finished, with options to adjust. axiom comes in pieces, with
 <tr>
 <td width="50%" valign="top">
 
-### 🧩 Build every surface
+### Build every surface
 
 One grid editor lays out overlay pages, edge menus, the lock screen and the login screen. Changes show live: **Save** keeps them, **Reset** throws them away.
 
@@ -49,7 +49,7 @@ One grid editor lays out overlay pages, edge menus, the lock screen and the logi
 </td>
 <td width="50%" valign="top">
 
-### 🎨 Bars in any style
+### Bars in any style
 
 Solid, transparent, pills or floating, on any edge of any monitor. Filled, tinted, outlined or underlined widgets, in slants, arrows or powerline. Colors pick themselves.
 
@@ -60,7 +60,7 @@ Solid, transparent, pills or floating, on any edge of any monitor. Filled, tinte
 <tr>
 <td valign="top">
 
-### ↔️ Menus that make room
+### Menus that make room
 
 Edge menus slide out of any edge. A floating one opens over your windows; an *integrated* one pushes them aside like a sidebar, or pins open for good.
 
@@ -69,7 +69,7 @@ Edge menus slide out of any edge. A floating one opens over your windows; an *in
 </td>
 <td valign="top">
 
-### 🧭 Workspaces in two dimensions
+### Workspaces in two dimensions
 
 A grid of workspaces per monitor, or scrolling strips. The bar, the overview and your keybinds follow the layout, and **Alt+Tab** shows live previews.
 
@@ -80,7 +80,7 @@ A grid of workspaces per monitor, or scrolling strips. The bar, the overview and
 <tr>
 <td valign="top">
 
-### ⚡ A launcher that does everything
+### A launcher that does everything
 
 Apps, windows, math with units and currencies, emoji, the clipboard, AI chat, and `/` commands that drive the whole shell.
 
@@ -89,7 +89,7 @@ Apps, windows, math with units and currencies, emoji, the clipboard, AI chat, an
 </td>
 <td valign="top">
 
-### 🌈 One theme, every app
+### One theme, every app
 
 42 base16 themes in dark and light pairs, or one generated from your wallpaper. It recolors the shell and 23 apps: GTK, Qt, kitty, Neovim, VS Code, Firefox and more.
 
@@ -210,6 +210,10 @@ axiom is built on:
 The static themes are ports of [Catppuccin](https://catppuccin.com), [Gruvbox](https://github.com/morhetz/gruvbox), [Gruvbox Material](https://github.com/sainnhe/gruvbox-material), [Solarized](https://ethanschoonover.com/solarized/), [Tokyo Night](https://github.com/tokyo-night/tokyo-night-vscode-theme), [Rosé Pine](https://rosepinetheme.com), [Nord](https://www.nordtheme.com) (Nord Light after [threddast's](https://github.com/tinted-theming/schemes/blob/spec-0.11/base16/nord-light.yaml)), [Dracula and Alucard](https://draculatheme.com), [Everforest](https://github.com/sainnhe/everforest), [Kanagawa](https://github.com/rebelot/kanagawa.nvim), [One Dark/Light](https://github.com/atom/atom/tree/master/packages), [Ayu](https://github.com/ayu-theme/ayu-colors), [Nightfox](https://github.com/EdenEast/nightfox.nvim), [GitHub](https://github.com/primer/github-vscode-theme) and [Oxocarbon](https://github.com/nyoom-engineering/oxocarbon.nvim), most by way of [tinted-theming](https://github.com/tinted-theming/schemes)'s base16 palettes. Submarine Sonar is axiom's own.
 
 And thanks to the Hyprland desktops that inspired it: [illogical-impulse](https://github.com/end-4/dots-hyprland), [caelestia-dots](https://github.com/caelestia-dots) and [JaKooLit's Hyprland-Dots](https://github.com/JaKooLit/Hyprland-Dots).
+
+## Use of AI
+
+axiom is developed with AI assistance. I design the architecture and every system, and AI-written code is reviewed before it lands, held to the conventions in [CONTRIBUTING.md](CONTRIBUTING.md), and checked in CI by the same lint, structure and unit tests as everything else.
 
 ## License
 
