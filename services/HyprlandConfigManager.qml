@@ -356,10 +356,12 @@ Singleton {
   }
 
   // The blur behind axiom's surfaces, its rules written on or off
-  // (HyprLua.blurLua); `rulesOnly` for the included module
+  // (HyprLua.blurLua); `rulesOnly` for the included module, which holds
+  // the setting as saved (a pause over a fullscreen window is evaluated
+  // over it: BlurManager.active)
   function _blurLua(rulesOnly) {
     return HyprLua.blurLua({
-      "on": Appearance.blur,
+      "on": rulesOnly === true ? Appearance.blur : BlurManager.active,
       "strength": Appearance.blurStrength,
       "threshold": Appearance.blurThreshold,
       "throughWindows": Appearance.blurThroughWindows,
@@ -837,7 +839,8 @@ end`;
   }
 
   // After a config reload in the file modes: the module set the look before
-  // the user's own lines, so it's evaluated again to win over them
+  // the user's own lines, so it's evaluated again to win over them. And in
+  // every mode as the look or the blur changes (_liveDebounce).
   function _applyLook() {
     // The blur too: it turns Hyprland's on if the user's lines turned it off
     const lines = _lookLua().concat(_blurLua());
@@ -904,20 +907,21 @@ return setmetatable({}, { __index = function() return function() end end })
   readonly property string _inputs: [mode, HyprlandConfig._bindsJson, HyprlandConfig._monitorsJson, HyprlandConfig._managedJson, WorkspacesConfig._stripsJson, HyprlandConfig.requiredSettings, Theme.baseColorNames.map(name => Theme.resolveColor(name)).join(","), Appearance.animFast, Appearance.animations, Apps.terminalCommand, Apps.fileManagerCommand, Apps.browserCommand, Idle.enabled, PolkitConfig.enabled].join("|")
   on_InputsChanged: _debounce.restart()
 
-  // The window look and the blur behind axiom. In the file modes a change
-  // is only evaluated at runtime: a Hyprland reload on every step of a
-  // setting stalls the desktop. The file holds them as of its last write,
-  // and _applyLook evaluates the current ones over it after every reload.
-  // Turning a look part off rewrites it, since an eval can't take a
-  // setting back.
-  readonly property string _liveInputs: [HyprlandConfig._lookJson, Appearance.blur, Appearance.blurBackdrops, Appearance.blurStrength, Appearance.blurThroughWindows, Appearance.blurWindows, Theme.borderFocus, Theme.border, Appearance.borderRadius, Appearance.borderWidth].join("|")
+  // The window look and the blur behind axiom (paused over a fullscreen
+  // window too). A change is only evaluated at runtime, in every mode: a
+  // Hyprland reload on every step of a setting stalls the desktop, and
+  // detached, re-applying the whole layer redoes every bind. The file
+  // holds them as of its last write, and _applyLook evaluates the current
+  // ones over it after every reload. Turning a look part off goes through
+  // apply(), since an eval can't take a setting back.
+  readonly property string _liveInputs: [HyprlandConfig._lookJson, Appearance.blur, BlurManager.active, Appearance.blurBackdrops, Appearance.blurStrength, Appearance.blurThroughWindows, Appearance.blurWindows, Theme.borderFocus, Theme.border, Appearance.borderRadius, Appearance.borderWidth].join("|")
   on_LiveInputsChanged: _liveDebounce.restart()
 
   property Timer _liveDebounce: Timer {
     interval: 300
     onTriggered: {
       const dropped = _lookState.applied.split(",").some(part => part !== "" && !HyprLua.lookParts(HyprlandConfig.look).includes(part));
-      if (root.mode === "detached" || root._appliedMode !== root.mode || dropped)
+      if (root._appliedMode !== root.mode || dropped)
         root.apply();
       else
         root._applyLook();

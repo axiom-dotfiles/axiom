@@ -953,7 +953,7 @@
           "type": "object",
           "title": "Translucency",
           "additionalProperties": false,
-          "x-order": ["opacity", "blur", "strength", "throughWindows", "windows", "blurBackdrops"],
+          "x-order": ["opacity", "blur", "strength", "throughWindows", "windows", "blurBackdrops", "pauseFullscreen"],
           "properties": {
             "opacity": {
               "type": "integer",
@@ -968,7 +968,7 @@
               "type": "boolean",
               "title": "Blur behind surfaces",
               "default": true,
-              "description": "Hyprland blurs what shows through a translucent surface.",
+              "description": "Hyprland blurs what shows through a translucent surface. It costs GPU time whenever what's behind or on a surface changes, more at a higher strength and with windows blurred behind.",
               "x-showIf": { "opacity": { "not": 100 } }
             },
             "strength": {
@@ -1000,6 +1000,13 @@
               "title": "Blur backdrops",
               "default": false,
               "description": "Also blur the whole screen behind the overlay, launcher, power menu and workspace overview. Costs more while they open.",
+              "x-showIf": { "opacity": { "not": 100 }, "blur": true }
+            },
+            "pauseFullscreen": {
+              "type": "boolean",
+              "title": "Pause blur over fullscreen apps",
+              "default": true,
+              "description": "While a fullscreen window (a game, a video) is open, nothing blurs, so a volume popup or notification over it costs nothing extra. Surfaces stay translucent.",
               "x-showIf": { "opacity": { "not": 100 }, "blur": true }
             }
           }

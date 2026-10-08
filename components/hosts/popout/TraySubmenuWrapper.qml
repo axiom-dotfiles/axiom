@@ -258,7 +258,7 @@ Item {
 
         edge: outer.openToLeft ? Bar.Right : Bar.Left
         castShadow: true
-        // The blur window draws its fill and shadow (BlurManager), from
+        // The blur window draws its fill (BlurManager), from
         // where the parent's window is on screen
         readonly property var parentOrigin: outer.host?.popupScreenOrigin ?? null
         // Where it sits in the parent's window

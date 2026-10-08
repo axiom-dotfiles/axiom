@@ -351,7 +351,7 @@ PopoutWrapperBase {
     }
 
     // Where the window is on screen: the blur window draws the surface's
-    // fill and shadow (BlurManager) from there
+    // fill (BlurManager) from there
     LayerOrigin {
       id: placeOnScreen
       window: surfaceWindow

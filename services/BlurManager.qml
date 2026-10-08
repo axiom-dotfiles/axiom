@@ -1,5 +1,6 @@
 pragma Singleton
 import QtQuick
+import Quickshell
 import Quickshell.Io
 import Quickshell.Hyprland
 
@@ -22,20 +23,38 @@ import qs.config
 QtObject {
   id: root
 
+  // Whether anything blurs now: Appearance.blur, paused while a fullscreen
+  // window is open on any screen (Appearance.blurPauseFullscreen; the
+  // layer rules are Hyprland-wide). The chrome then fills itself.
+  readonly property bool paused: Appearance.blur && Appearance.blurPauseFullscreen && Quickshell.screens.some(screen => HyprlandManager.hasFullscreen(screen.name))
+  readonly property bool active: Appearance.blur && !root.paused
   // The surfaces leave their fill to the backing
-  readonly property bool backing: Appearance.blur
+  readonly property bool backing: root.active
 
-  // The registered BlurShapes; changes only as one comes or goes
+  // The registered BlurShapes; changes only as one comes or goes. Each
+  // gets a `uid`, which the blur window keys its copies by (shapeOf).
   property var shapes: []
+  property int _lastUid: 0
+  property var _byUid: ({})
 
   function register(shape) {
-    if (!root.shapes.includes(shape))
-      root.shapes = root.shapes.concat([shape]);
+    if (root.shapes.includes(shape))
+      return;
+    shape.uid = ++root._lastUid;
+    root._byUid[shape.uid] = shape;
+    root.shapes = root.shapes.concat([shape]);
   }
 
   function unregister(shape) {
-    if (root.shapes.includes(shape))
-      root.shapes = root.shapes.filter(s => s !== shape);
+    if (!root.shapes.includes(shape))
+      return;
+    delete root._byUid[shape.uid];
+    root.shapes = root.shapes.filter(s => s !== shape);
+  }
+
+  // The registered shape with that uid, or null once it's gone
+  function shapeOf(uid) {
+    return root._byUid[uid] ?? null;
   }
 
   // { monitorName: { w, h, layers: [{ namespace, x, y, w, h }] } },

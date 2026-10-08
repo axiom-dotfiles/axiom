@@ -21,12 +21,8 @@ QtObject {
   property real y: 0
   // Placed (its window found on screen) and showing
   property bool shown: true
-  // The shadow or glow it casts (BarStyle.values, or a bar's own config:
-  // shadow, shadowColor, shadowSize), cast round every shape with the same
-  // one as one; null for none
-  property var look: BarStyle.values
-  // Shapes casting the same shadow share it ("" for none)
-  readonly property string shadowKey: root.look && root.look.shadow !== "none" ? [root.look.shadow, root.look.shadowColor, root.look.shadowSize].join("|") : ""
+  // Its key in BlurManager, set as it registers
+  property int uid: -1
   // What of it shows, on screen: its window's rect, for a shape that moves
   // past its window's edges (a hiding dock); null for the whole screen
   property var clipRect: null

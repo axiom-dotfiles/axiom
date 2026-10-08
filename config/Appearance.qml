@@ -74,6 +74,8 @@ QtObject {
   readonly property bool blurThroughWindows: _c.surface.throughWindows
   // Transparent windows blur too, whatever the user's Hyprland config says
   readonly property bool blurWindows: _c.surface.windows
+  // Nothing blurs while a fullscreen window is open (BlurManager.active)
+  readonly property bool blurPauseFullscreen: _c.surface.pauseFullscreen
   readonly property real blurThreshold: 0.5
   // A shadow's darkest alpha while blurring: under the threshold, so its
   // halo isn't blurred

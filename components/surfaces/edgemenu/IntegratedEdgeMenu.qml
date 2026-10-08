@@ -163,7 +163,6 @@ PopoutWrapperBase {
           anchors.fill: parent
           color: panel.backed ? "transparent" : Appearance.fill(root.framed ? Theme.background : root.colors.fill)
 
-          // Casting the border's shadow past it, as past the frame it grows
           BlurShape {
             source: strip
             kind: "rect"

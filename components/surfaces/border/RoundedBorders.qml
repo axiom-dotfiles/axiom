@@ -55,9 +55,8 @@ Item {
     return root.backed || (bar && bar.solid && bar.reserveSpace) ? "transparent" : root.frameColor;
   }
 
-  // The blur window draws the frame's fill and shadow (BlurManager): the
-  // strips and corners draw their strokes only, and the shadow window
-  // isn't needed
+  // The blur window draws the frame's fill (BlurManager): the strips and
+  // corners draw their strokes only
   readonly property bool backed: BlurManager.backing
   // The frame, for it: from past the integrated edge menus on each edge
   // (arranged outside the border) to the stroke's inner side, round the
@@ -116,7 +115,7 @@ Item {
     // The stroke's inner side, round the corner pieces' arcs
     readonly property real radius: Math.max(0, root.innerBorderRadius - root.strokeWidth)
 
-    visible: look.shadow !== "none" && !root.backed
+    visible: look.shadow !== "none"
     screen: root.screen
     anchors {
       left: true

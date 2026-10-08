@@ -634,7 +634,7 @@ PopoutWrapperBase {
     edge: root.barConfig.location
     castShadow: true
     active: still.showing && !root.isClosing
-    // The blur window draws its fill and shadow (BlurManager), from where
+    // The blur window draws its fill (BlurManager), from where
     // the bar window is on screen: the surface is at (barX, barY) in bar
     // window coordinates in either window
     readonly property var barOrigin: root._panel?.screenOrigin ?? null

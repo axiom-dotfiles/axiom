@@ -454,8 +454,7 @@ Scope {
     }
 
     // Where the window is on screen: the blur window draws the dock's fill
-    // and shadow (BlurManager) from there; not a preview's, drawn over the
-    // overlay
+    // (BlurManager) from there; not a preview's, drawn over the overlay
     LayerOrigin {
       id: placeOnScreen
       window: window
@@ -530,11 +529,23 @@ Scope {
         }
       }
 
-      // Or a box of its own, its shadow only outside it
+      // Or a box of its own, its shadow only outside it, cast from a black
+      // copy (its own fill may be the blur window's)
       OutsideShadow {
-        target: detachedBox
-        active: !window.backed
+        target: detachedShape
+        hideTarget: true
         edge: root.edge
+      }
+
+      Rectangle {
+        id: detachedShape
+        visible: detachedBox.visible
+        x: detachedBox.x
+        y: detachedBox.y
+        width: detachedBox.width
+        height: detachedBox.height
+        radius: detachedBox.radius
+        color: "black"
       }
 
       Rectangle {

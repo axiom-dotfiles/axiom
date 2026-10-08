@@ -96,14 +96,16 @@ Item {
   // border shows: off for a bar's own pills, which their bar's casts
   property bool castShadow: false
   // The blur window (BlurManager) draws this surface's fill: it draws its
-  // stroke and content only, and casts no shadow (the blur window casts it)
+  // stroke, content and shadow only
   property bool backed: false
-  // The blur window's copy of a surface: its fill alone
+  // A copy of a surface (AttachedSurfaceCopy): its fill alone, its stroke
+  // in `mirrorStroke`
   property bool mirror: false
+  property color mirrorStroke: "transparent"
   // (a copy is drawn opaque: the blur window applies the opacity to all
   // of them at once, so where they overlap they don't stack)
   readonly property color _fill: root.mirror ? root.fillColor : root.backed ? "transparent" : Appearance.fill(root.fillColor)
-  readonly property color _stroke: root.mirror ? "transparent" : root.strokeColor
+  readonly property color _stroke: root.mirror ? root.mirrorStroke : root.strokeColor
   // Rects (in this item's coordinates) where its outline is left open:
   // what's joined to it over them (a tray submenu on its side, a popout on
   // a pill's far stroke) carries on there, its fill no longer hiding it
@@ -120,7 +122,9 @@ Item {
   // How far it's behind that edge: slid, or moved by its host (a hiding
   // dock, `hiddenBehind`)
   property real hiddenBehind: 0
-  readonly property real _hidden: Math.abs(slideContainer.slideX) + Math.abs(slideContainer.slideY) + root.hiddenBehind
+  // How far it has slid behind that edge (none once out)
+  readonly property real slid: Math.abs(slideContainer.slideX) + Math.abs(slideContainer.slideY)
+  readonly property real _hidden: root.slid + root.hiddenBehind
   // How far in from the surface's end the fillet shows at the edge, with
   // `hidden` of the surface still behind it (see _outline: a line along
   // the edge at v = half to sideU - R, an arc of radius R up to the wall)
@@ -356,12 +360,61 @@ Item {
     overflow: root.castShadow ? BarStyle.shadowReach : 0
 
     // The shadow or glow the outline casts, only outside it (none shows
-    // through a translucent fill): the content doesn't need its own
+    // through a translucent fill), from a copy of it filled (its own fill
+    // may be the blur window's): the content doesn't need its own
     OutsideShadow {
-      target: outlineLayer
-      active: root.castShadow && !root.backed
+      target: shadowShape
+      hideTarget: true
+      active: root.castShadow
       edge: root.edge
       falls: root.detached
+    }
+
+    Item {
+      id: shadowShape
+      anchors.fill: parent
+      visible: root.castShadow
+
+      Shape {
+        anchors.fill: parent
+        visible: !root.detached
+        preferredRendererType: Shape.CurveRenderer
+
+        ShapePath {
+          fillColor: "black"
+          strokeColor: "transparent"
+          strokeWidth: 0
+
+          PathSvg {
+            path: root.fillPath
+          }
+        }
+
+        ShapePath {
+          fillColor: "transparent"
+          strokeColor: "black"
+          strokeWidth: root.strokeWidth
+          capStyle: ShapePath.FlatCap
+          joinStyle: ShapePath.MiterJoin
+
+          PathSvg {
+            path: root.strokePath
+          }
+        }
+      }
+
+      Rectangle {
+        visible: root.detached
+        x: detachedBox.x
+        y: detachedBox.y
+        width: detachedBox.width
+        height: detachedBox.height
+        topLeftRadius: detachedBox.topLeftRadius
+        topRightRadius: detachedBox.topRightRadius
+        bottomLeftRadius: detachedBox.bottomLeftRadius
+        bottomRightRadius: detachedBox.bottomRightRadius
+        color: "black"
+      }
     }
 
     // The outline (or detached box)

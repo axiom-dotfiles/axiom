@@ -144,7 +144,7 @@ Rectangle {
   // made the bar commit again (a hover, the clock). So for a few frames
   // after a stretch changes, the bar draws a frame of its own (an
   // invisible pixel flipping), and the last one shown is the right one.
-  on_ShownStretchesChanged: _repaint.burst()
+  on_ShownStretchesChanged: repaint.burst()
 
   // How far each pill reaches past its own ends for the stretches on it,
   // animated, so it grows out to carry a surface and draws back after it.
@@ -185,26 +185,8 @@ Rectangle {
     }
     return shown;
   }
-  property bool _repaintFlip: false
-  Timer {
-    id: _repaint
-    interval: 32
-    property int left: 0
-    function burst() {
-      left = 6;
-      restart();
-    }
-    onTriggered: {
-      root._repaintFlip = !root._repaintFlip;
-      if (--left > 0)
-        restart();
-    }
-  }
-  Rectangle {
-    width: 1
-    height: 1
-    color: "#02000000"
-    opacity: root._repaintFlip ? 0.5 : 0.4
+  FrameNudge {
+    id: repaint
   }
 
   readonly property var _groups: [leftGroup, leftCenterGroup, centerGroup, rightCenterGroup, rightGroup]
@@ -319,10 +301,11 @@ Rectangle {
   // shows through a translucent one. Pills join the border (or screen
   // edge) they grow from: their shadow is cast evenly, as the border's, so
   // it can't slide onto a stroke they join; otherwise it falls toward the
-  // windows.
+  // windows. Cast from a black copy of the surface (its pieces each put
+  // one here), as its own fill may be the blur window's.
   OutsideShadow {
-    target: surface
-    active: !root.backed
+    target: shadowShape
+    hideTarget: true
     look: root.barConfig
     edge: root.barConfig.left ? Bar.Left : root.barConfig.right ? Bar.Right : root.barConfig.bottom ? Bar.Bottom : Bar.Top
     falls: !root.barConfig.pills
@@ -338,7 +321,12 @@ Rectangle {
     })
   }
 
-  // The blur window draws the bar's fill and shadow (BlurManager), once
+  Item {
+    id: shadowShape
+    anchors.fill: parent
+  }
+
+  // The blur window draws the bar's fill (BlurManager), once
   // its window is placed on screen: where its shapes are, the container's
   // top-left on screen (the bar editor's preview has none, and fills itself)
   readonly property var blurOrigin: root.panel?.screenOrigin ? Qt.point(root.panel.screenOrigin.x + (root.parent?.x ?? 0), root.panel.screenOrigin.y + (root.parent?.y ?? 0)) : null
@@ -357,11 +345,17 @@ Rectangle {
       visible: root.barConfig.solid
       color: root.backed ? "transparent" : Appearance.fill(Theme.background)
 
+      Rectangle {
+        parent: shadowShape
+        anchors.fill: parent
+        visible: solidFill.visible
+        color: "black"
+      }
+
       BlurShape {
         source: solidFill
         kind: "rect"
         screen: root.blurScreen
-        look: root.barConfig
         x: root.blurOrigin?.x ?? 0
         y: root.blurOrigin?.y ?? 0
         shown: root.backed && solidFill.visible
@@ -433,11 +427,24 @@ Rectangle {
           }
         }
 
+        // Its shape, for the bar's shadow
+        Rectangle {
+          parent: shadowShape
+          x: island.x
+          y: island.y
+          width: island.width
+          height: island.height
+          topLeftRadius: island.topLeftRadius
+          topRightRadius: island.topRightRadius
+          bottomLeftRadius: island.bottomLeftRadius
+          bottomRightRadius: island.bottomRightRadius
+          color: "black"
+        }
+
         BlurShape {
           source: island
           kind: "rect"
           screen: root.blurScreen
-          look: root.barConfig
           x: (root.blurOrigin?.x ?? 0) + island.x
           y: (root.blurOrigin?.y ?? 0) + island.y
           shown: root.backed
@@ -515,10 +522,19 @@ Rectangle {
           return Qt.rect(r.x - pill.x, r.y - pill.y, r.width, r.height);
         }).filter(hole => hole !== null)
 
+        // Its shape, for the bar's shadow
+        AttachedSurfaceCopy {
+          parent: shadowShape
+          source: pill
+          x: pill.x
+          y: pill.y
+          fillColor: "black"
+          mirrorStroke: "black"
+        }
+
         BlurShape {
           source: pill
           screen: root.blurScreen
-          look: root.barConfig
           x: (root.blurOrigin?.x ?? 0) + pill.x
           y: (root.blurOrigin?.y ?? 0) + pill.y
           shown: root.backed

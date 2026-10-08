@@ -7,6 +7,9 @@ import QtQuick
 // room for the shadow on every side, and the effect draws exactly that
 // area: an effect padding its source itself (autoPaddingEnabled) stretches
 // a texture it's handed, or redraws a layer it's handed, outline and all.
+// A surface whose fill the blur window draws (BlurManager) has none of its
+// own to cast from: its target is then a copy of its shape, filled, kept
+// off screen (`hideTarget`).
 Item {
   id: root
 
@@ -19,23 +22,23 @@ Item {
   // surfaces joined to the target sit over it, whose translucent fill the
   // shadow would show (and blur) through
   property var holes: []
-  // Or an item laid over the target (same place and size) whose shape it
-  // isn't cast on either: the blur window's every shape, so the shadow of
-  // those casting one never falls on those that don't
-  property Item cutBy: null
+  // The target is drawn for the shadow alone: captured (and kept off
+  // screen) whether or not the shadow shows
+  property bool hideTarget: false
   readonly property real reach: Math.ceil(shadow.look.shadowSize * 1.25)
 
   x: target.x - reach
   y: target.y - reach
   width: target.width + reach * 2
   height: target.height + reach * 2
-  visible: active && target.visible && shadow.shadowEnabled
+  visible: active && (target.visible || hideTarget) && shadow.shadowEnabled
 
   ShaderEffectSource {
     id: capture
     anchors.fill: parent
     visible: false
-    sourceItem: root.visible ? root.target : null
+    sourceItem: root.visible || root.hideTarget ? root.target : null
+    hideSource: root.hideTarget
     sourceRect: Qt.rect(-root.reach, -root.reach, root.width, root.height)
   }
 
@@ -67,19 +70,11 @@ Item {
     }
   }
 
-  ShaderEffectSource {
-    id: cutCapture
-    anchors.fill: parent
-    visible: false
-    sourceItem: root.visible ? root.cutBy : null
-    sourceRect: capture.sourceRect
-  }
-
   SurfaceShadow {
     id: shadow
     anchors.fill: parent
     source: capture
-    cutSource: root.cutBy ? cutCapture : root.holes.length > 0 ? cutMask : capture
+    cutSource: root.holes.length > 0 ? cutMask : capture
     autoPaddingEnabled: false
     cut: true
   }
