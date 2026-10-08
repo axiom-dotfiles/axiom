@@ -45,7 +45,9 @@ def lint():
     for entry in data["files"]:
         name = entry["filename"].removeprefix(prefix)
         for w in entry["warnings"]:
-            key = f"{w.get('id', 'unknown')}: {w['message']}"
+            # Messages may name a file by its path in the temporary tree
+            message = w["message"].replace(prefix, "")
+            key = f"{w.get('id', 'unknown')}: {message}"
             found.setdefault(name, collections.Counter())[key] += 1
             lines[(name, key)].append(w.get("line"))
     return found, lines

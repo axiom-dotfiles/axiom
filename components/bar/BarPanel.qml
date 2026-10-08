@@ -33,7 +33,7 @@ PanelWindow {
   readonly property string layerNamespace: barConfig.insideBorder ? "axiom-bar-floating" : "axiom-bar"
   // A popout with a text field up (e.g. a Wi-Fi password) takes the
   // keyboard through the bar, its parent surface
-  WlrLayershell.keyboardFocus: popouts.wantsKeyboardFocus ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
+  WlrLayershell.keyboardFocus: barPopouts.wantsKeyboardFocus ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
   // The bar container paints the background (or not, when transparent)
   color: "transparent"
 
@@ -93,7 +93,7 @@ PanelWindow {
   readonly property var container: bar.barContainer
 
   BarPopouts {
-    id: popouts
+    id: barPopouts
     barConfig: root.barConfig
     panel: root
     screen: root.screen
@@ -112,7 +112,7 @@ PanelWindow {
     width: root.barConfig.vertical ? root.barConfig.extent : parent.width
     height: root.barConfig.vertical ? parent.height : root.barConfig.extent
     barConfig: root.barConfig
-    popouts: popouts
+    popouts: barPopouts
     panel: root
     screen: root.screen
   }

@@ -18,25 +18,25 @@ Item {
   property string kind: "text"
   property bool checked: false
   property int depth: 0
-  readonly property alias field: field
+  readonly property alias field: textEdit
   readonly property bool isTask: root.kind === "task"
   readonly property bool shown: !(root.isTask && root.checked && !root.editor.showCompleted)
   // The editor's find match, when it's in this block
   readonly property var _match: root.editor.findMatch?.block === root.index ? root.editor.findMatch : null
   // Edited (or showing a find match) as raw Markdown; otherwise rendered
-  readonly property bool editing: field.activeFocus || root._match !== null
+  readonly property bool editing: textEdit.activeFocus || root._match !== null
 
   // The rendered layer's text: a paragraph as Markdown, a task's text with
   // its inline formatting only (a leading "#" or "1." stays literal)
-  readonly property string _markdown: root.isTask ? field.text.replace(/^(\s*)(#|>|[-*+]\s|\d+[.)]\s)/, "$1\\$2") : field.text
+  readonly property string _markdown: root.isTask ? textEdit.text.replace(/^(\s*)(#|>|[-*+]\s|\d+[.)]\s)/, "$1\\$2") : textEdit.text
   // Blank lines before and after a paragraph, which Markdown drops: a gap
-  readonly property var _lines: field.text.split("\n")
-  readonly property bool _blankBefore: root._lines.length > 1 && root._lines[0].trim() === "" && field.text.trim() !== ""
-  readonly property bool _blankAfter: root._lines.length > 1 && root._lines[root._lines.length - 1].trim() === "" && field.text.trim() !== ""
+  readonly property var _lines: textEdit.text.split("\n")
+  readonly property bool _blankBefore: root._lines.length > 1 && root._lines[0].trim() === "" && textEdit.text.trim() !== ""
+  readonly property bool _blankAfter: root._lines.length > 1 && root._lines[root._lines.length - 1].trim() === "" && textEdit.text.trim() !== ""
 
   visible: root.shown
   width: parent?.width ?? 0
-  implicitHeight: !root.shown ? 0 : root.editing ? field.implicitHeight : field.text.trim() === "" ? field.lineHeight : rendered.implicitHeight
+  implicitHeight: !root.shown ? 0 : root.editing ? textEdit.implicitHeight : textEdit.text.trim() === "" ? textEdit.lineHeight : rendered.implicitHeight
 
   function load() {
     const block = root.editor.doc.blocks[root.index];
@@ -45,13 +45,13 @@ Item {
     root.kind = block.kind;
     root.checked = NoteMarkdown.isChecked(block);
     root.depth = block.kind === "task" ? Math.floor(block.indent.replace(/\t/g, "  ").length / 2) : 0;
-    if (field.text !== block.text)
-      field.text = block.text;
+    if (textEdit.text !== block.text)
+      textEdit.text = block.text;
   }
 
   function focusAt(pos) {
-    field.forceActiveFocus();
-    field.cursorPosition = Math.max(0, Math.min(pos, field.length));
+    textEdit.forceActiveFocus();
+    textEdit.cursorPosition = Math.max(0, Math.min(pos, textEdit.length));
   }
 
   Component.onCompleted: root.load()
@@ -68,7 +68,7 @@ Item {
     visible: root.isTask
     x: root.depth * Appearance.fontSize * 1.5
     // Centred on the first line
-    y: Math.max(0, (field.lineHeight - height) / 2)
+    y: Math.max(0, (textEdit.lineHeight - height) / 2)
     text: root.checked ? "check_box" : "check_box_outline_blank"
     fill: root.checked ? 1 : 0
     textColor: root.checked ? Theme.accent : Theme.foregroundAlt
@@ -87,19 +87,19 @@ Item {
 
   // The find match, under the text (to the line's end when it wraps)
   Rectangle {
-    readonly property rect start: root._match ? field.positionToRectangle(root._match.pos) : Qt.rect(0, 0, 0, 0)
-    readonly property rect end: root._match ? field.positionToRectangle(root._match.pos + root._match.len) : Qt.rect(0, 0, 0, 0)
+    readonly property rect start: root._match ? textEdit.positionToRectangle(root._match.pos) : Qt.rect(0, 0, 0, 0)
+    readonly property rect end: root._match ? textEdit.positionToRectangle(root._match.pos + root._match.len) : Qt.rect(0, 0, 0, 0)
     visible: root._match !== null
-    x: field.x + start.x
+    x: textEdit.x + start.x
     y: start.y
-    width: end.y === start.y ? end.x - start.x : field.width - start.x
+    width: end.y === start.y ? end.x - start.x : textEdit.width - start.x
     height: start.height
     radius: 2
     color: Qt.alpha(Theme.accent, 0.35)
   }
 
   TextEdit {
-    id: field
+    id: textEdit
 
     // One line's height, for the checkbox
     readonly property real lineHeight: fontMetrics.height
@@ -122,12 +122,12 @@ Item {
 
     FontMetrics {
       id: fontMetrics
-      font: field.font
+      font: textEdit.font
     }
 
     // A click on the rendered text edits the block at about that spot
     function editAt(x, y) {
-      root.focusAt(field.positionAt(x, y));
+      root.focusAt(textEdit.positionAt(x, y));
     }
 
     onTextChanged: root.editor.blockEdited(root.index, text)
@@ -148,7 +148,7 @@ Item {
 
     Keys.onPressed: event => {
       const plain = !(event.modifiers & (Qt.ControlModifier | Qt.AltModifier | Qt.ShiftModifier));
-      const noSelection = field.selectedText === "";
+      const noSelection = textEdit.selectedText === "";
       switch (event.key) {
       case Qt.Key_Return:
       case Qt.Key_Enter:
@@ -159,20 +159,20 @@ Item {
             event.accepted = true;
           }
         } else if (root.isTask) {
-          root.editor.splitTask(root.index, field.cursorPosition);
+          root.editor.splitTask(root.index, textEdit.cursorPosition);
           event.accepted = true;
         } else if (!(event.modifiers & Qt.ShiftModifier)) {
-          event.accepted = root.editor.continueList(field);
+          event.accepted = root.editor.continueList(textEdit);
         }
         break;
       case Qt.Key_Backspace:
-        if (plain && noSelection && field.cursorPosition === 0 && (root.isTask || root.index > 0)) {
+        if (plain && noSelection && textEdit.cursorPosition === 0 && (root.isTask || root.index > 0)) {
           root.editor.mergeBack(root.index);
           event.accepted = true;
         }
         break;
       case Qt.Key_Delete:
-        if (plain && noSelection && field.cursorPosition === field.length && root.index < root.editor.blockCount - 1) {
+        if (plain && noSelection && textEdit.cursorPosition === textEdit.length && root.index < root.editor.blockCount - 1) {
           root.editor.joinNext(root.index);
           event.accepted = true;
         }
@@ -186,16 +186,16 @@ Item {
         break;
       case Qt.Key_F:
         if (event.modifiers & Qt.ControlModifier) {
-          root.editor.findRequested(field.selectedText);
+          root.editor.findRequested(textEdit.selectedText);
           event.accepted = true;
         }
         break;
       case Qt.Key_Up:
-        if (plain && field.cursorRectangle.y < field.lineHeight / 2)
+        if (plain && textEdit.cursorRectangle.y < textEdit.lineHeight / 2)
           event.accepted = root.editor.focusNeighbour(root.index, -1);
         break;
       case Qt.Key_Down:
-        if (plain && field.cursorRectangle.y + field.cursorRectangle.height > field.contentHeight - field.lineHeight / 2)
+        if (plain && textEdit.cursorRectangle.y + textEdit.cursorRectangle.height > textEdit.contentHeight - textEdit.lineHeight / 2)
           event.accepted = root.editor.focusNeighbour(root.index, 1);
         break;
       }
@@ -205,14 +205,14 @@ Item {
   Text {
     id: rendered
     visible: !root.editing
-    x: field.x
-    width: field.width
-    topPadding: root._blankBefore ? field.lineHeight / 2 : 0
-    bottomPadding: root._blankAfter ? field.lineHeight / 2 : 0
+    x: textEdit.x
+    width: textEdit.width
+    topPadding: root._blankBefore ? textEdit.lineHeight / 2 : 0
+    bottomPadding: root._blankAfter ? textEdit.lineHeight / 2 : 0
     text: root._markdown
     textFormat: Text.MarkdownText
     wrapMode: Text.Wrap
-    color: field.color
+    color: textEdit.color
     linkColor: Theme.accent
     font.family: Appearance.fontFamily
     font.pixelSize: Appearance.fontSize
@@ -230,7 +230,7 @@ Item {
         if (link !== "")
           Qt.openUrlExternally(link);
         else
-          field.editAt(mouse.x, mouse.y - rendered.topPadding);
+          textEdit.editAt(mouse.x, mouse.y - rendered.topPadding);
       }
     }
   }

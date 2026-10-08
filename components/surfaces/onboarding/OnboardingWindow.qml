@@ -24,7 +24,7 @@ ReservedAreaWindow {
   // and a page wider than the screen then shrinks as a whole
   readonly property real overlayFit: {
     const first = OverlayConfig.views.find(view => !OverlayConfig.isTool(view.type));
-    return GridPlacement.fitScale(GridPlacement.bounds(first?.modules), grid.availableWidth, grid.availableHeight, grid.unit);
+    return GridPlacement.fitScale(GridPlacement.bounds(first?.modules), overlayGrid.availableWidth, overlayGrid.availableHeight, overlayGrid.unit);
   }
 
   // Esc (or Skip setup) asks first
@@ -84,7 +84,7 @@ ReservedAreaWindow {
 
     // This screen's card size, worked out as the overlay's is
     OverlayGrid {
-      id: grid
+      id: overlayGrid
       availableWidth: pageArea.width - OverlayConfig.cardSpacing * 4
       availableHeight: pageArea.height - OverlayConfig.cardSpacing * 4
     }
@@ -107,57 +107,57 @@ ReservedAreaWindow {
   Component {
     id: welcomePage
     WelcomePage {
-      grid: grid
+      grid: overlayGrid
     }
   }
   Component {
     id: hyprlandPage
     HyprlandPage {
-      grid: grid
+      grid: overlayGrid
     }
   }
   Component {
     id: monitorsPage
     MonitorsPage {
-      grid: grid
+      grid: overlayGrid
       screen: root.screen
     }
   }
   Component {
     id: appsPage
     AppsPage {
-      grid: grid
+      grid: overlayGrid
     }
   }
   Component {
     id: workspacesPage
     WorkspacesPage {
-      grid: grid
+      grid: overlayGrid
     }
   }
   Component {
     id: lookPage
     LookPage {
-      grid: grid
+      grid: overlayGrid
       screen: root.screen
     }
   }
   Component {
     id: integrationsPage
     IntegrationsPage {
-      grid: grid
+      grid: overlayGrid
     }
   }
   Component {
     id: checksPage
     ChecksPage {
-      grid: grid
+      grid: overlayGrid
     }
   }
   Component {
     id: finishPage
     FinishPage {
-      grid: grid
+      grid: overlayGrid
     }
   }
 }

@@ -13,8 +13,8 @@ import qs.components.views.barEditor
 BaseView {
   id: root
 
-  readonly property string location: dragLayer.location
-  readonly property bool vertical: dragLayer.vertical
+  readonly property string location: barDragLayer.location
+  readonly property bool vertical: barDragLayer.vertical
   // The strip's depth across the bar: a vertical one is a column of chips
   readonly property real stripDepth: root.vertical ? root.grid.unit * 0.7 : board.implicitHeight
 
@@ -39,25 +39,25 @@ BaseView {
   }
 
   BarDragLayer {
-    id: dragLayer
+    id: barDragLayer
     implicitWidth: root.editorWidth
     implicitHeight: root.pageHeight
 
     SectionsBoard {
       id: board
-      x: root.location === "Right" ? dragLayer.width - width : 0
-      y: root.location === "Bottom" ? dragLayer.height - height : 0
-      width: root.vertical ? root.stripDepth : dragLayer.width
-      height: root.vertical ? dragLayer.height : root.stripDepth
-      dragLayer: dragLayer
+      x: root.location === "Right" ? barDragLayer.width - width : 0
+      y: root.location === "Bottom" ? barDragLayer.height - height : 0
+      width: root.vertical ? root.stripDepth : barDragLayer.width
+      height: root.vertical ? barDragLayer.height : root.stripDepth
+      dragLayer: barDragLayer
     }
 
     WidgetInspector {
       x: root.location === "Left" ? root.stripDepth + OverlayConfig.cardSpacing : 0
       y: root.location === "Top" ? root.stripDepth + OverlayConfig.cardSpacing : 0
-      width: root.vertical ? dragLayer.width - root.stripDepth - OverlayConfig.cardSpacing : dragLayer.width
-      height: root.vertical ? dragLayer.height : dragLayer.height - root.stripDepth - OverlayConfig.cardSpacing
-      dragLayer: dragLayer
+      width: root.vertical ? barDragLayer.width - root.stripDepth - OverlayConfig.cardSpacing : barDragLayer.width
+      height: root.vertical ? barDragLayer.height : barDragLayer.height - root.stripDepth - OverlayConfig.cardSpacing
+      dragLayer: barDragLayer
     }
   }
 }

@@ -20,7 +20,7 @@ Panel {
 
   // Re-read on every update, so the relative times stay current
   readonly property real now: {
-    ClaudeUsageManager.states;
+    void ClaudeUsageManager.states;
     return Date.now();
   }
   readonly property var accountRows: accounts.map(a => Object.assign({}, ClaudeUsageManager.stateFor(a.configDir) ?? {

@@ -35,13 +35,13 @@ Item {
     })
 
   OverlayGrid {
-    id: grid
+    id: overlayGrid
     fixedUnit: EdgeMenuManager.cardUnitOf(root.menu)
   }
 
   // Whether the menu takes its whole edge
   readonly property bool fillsEdge: root.menu.length === "edge"
-  readonly property var _natural: grid.sizes(GridPlacement.bounds(root.modules), null)
+  readonly property var _natural: overlayGrid.sizes(GridPlacement.bounds(root.modules), null)
   // Along the edge before stretching or the cap
   readonly property real naturalLength: root.vertical ? root._natural.height : root._natural.width
   readonly property var _stretch: root.fillsEdge && root.maxLength > 0 ? (root.vertical ? {
@@ -75,7 +75,7 @@ Item {
     ModuleGrid {
       id: moduleGrid
       modules: root.modules
-      grid: grid
+      grid: overlayGrid
       stretch: root._stretch
       host: root.host
     }

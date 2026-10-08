@@ -3,6 +3,14 @@
     "unqualified: unknown grouped property scope margins.": 1,
     "unresolved-type: Type margins is used but it is not resolved": 1
   },
+  "components/bar/BarWidgetHost.qml": {
+    "missing-property: Member \"barConfig\" not found on type (component in components/bar/BarWidgetHost.qml)::item with type QObject": 1,
+    "missing-property: Member \"hitArea\" not found on type (component in components/bar/BarWidgetHost.qml)::item with type QObject": 1,
+    "missing-property: Member \"panel\" not found on type (component in components/bar/BarWidgetHost.qml)::item with type QObject": 1,
+    "missing-property: Member \"popouts\" not found on type (component in components/bar/BarWidgetHost.qml)::item with type QObject": 1,
+    "missing-property: Member \"properties\" not found on type (component in components/bar/BarWidgetHost.qml)::item with type QObject": 1,
+    "missing-property: Member \"screen\" not found on type (component in components/bar/BarWidgetHost.qml)::item with type QObject": 1
+  },
   "components/bar/widgets/Time.qml": {
     "missing-property: Member \"implicitHeight\" not found on type \"QObject\"": 1,
     "missing-property: Member \"implicitWidth\" not found on type \"QObject\"": 1
@@ -19,13 +27,24 @@
   "components/content/parts/chat/ChatMessageList.qml": {
     "missing-property: Member \"pressed\" not found on type \"QQuickItem\"": 1
   },
+  "components/forms/SchemaObjectArray.qml": {
+    "missing-property: Member \"itemData\" not found on type (component in components/forms/SchemaObjectArray.qml)::item with type QObject": 1,
+    "missing-property: Member \"itemIndex\" not found on type (component in components/forms/SchemaObjectArray.qml)::item with type QObject": 1
+  },
   "components/hosts/overlay/OverlayPage.qml": {
     "missing-property: Member \"implicitHeight\" not found on type \"QObject\"": 1,
     "missing-property: Member \"implicitWidth\" not found on type \"QObject\"": 1
   },
+  "components/hosts/overlay/OverlaySlot.qml": {
+    "missing-property: Member \"host\" not found on type (component in components/hosts/overlay/OverlaySlot.qml)::item with type QObject": 1,
+    "missing-property: Member \"properties\" not found on type (component in components/hosts/overlay/OverlaySlot.qml)::item with type QObject": 1,
+    "missing-property: Member \"slotRect\" not found on type (component in components/hosts/overlay/OverlaySlot.qml)::item with type QObject": 1
+  },
   "components/hosts/overlay/OverlayView.qml": {
+    "missing-property: Member \"grid\" not found on type (component in components/hosts/overlay/OverlayView.qml)::item with type QObject": 1,
     "missing-property: Member \"implicitHeight\" not found on type \"QObject\"": 1,
-    "missing-property: Member \"implicitWidth\" not found on type \"QObject\"": 1
+    "missing-property: Member \"implicitWidth\" not found on type \"QObject\"": 1,
+    "missing-property: Member \"viewConfig\" not found on type (component in components/hosts/overlay/OverlayView.qml)::item with type QObject": 1
   },
   "components/hosts/overlay/ReservedAreaWindow.qml": {
     "unqualified: unknown grouped property scope margins.": 1,
@@ -102,11 +121,27 @@
     "missing-property: Member \"loaded\" not found on type \"QObject\"": 1,
     "missing-property: Member \"text\" not found on type \"QObject\"": 1
   },
+  "services/LauncherManager.qml": {
+    "missing-property: Member \"expr\" not found on type LauncherManager::_calcProcess with type Process": 1,
+    "missing-property: Member \"pending\" not found on type LauncherManager::_calcProcess with type Process": 1
+  },
   "services/MediaManager.qml": {
     "unqualified: Unqualified access": 1
   },
+  "services/SavedConfigsManager.qml": {
+    "missing-property: Member \"failText\" not found on type SavedConfigsManager::_process with type Process": 1,
+    "missing-property: Member \"name\" not found on type SavedConfigsManager::_writer with type FileView": 1,
+    "missing-property: Member \"okText\" not found on type SavedConfigsManager::_process with type Process": 1,
+    "missing-property: Member \"removed\" not found on type SavedConfigsManager::_process with type Process": 1
+  },
+  "services/ScreenshotManager.qml": {
+    "missing-property: Member \"kind\" not found on type ScreenshotManager::_delay with type QQmlTimer": 1
+  },
   "services/ThemeManager.qml": {
-    "missing-property: Member \"running\" not found on type \"QObject\"": 1
+    "missing-property: Member \"command\" not found on type call to method objectAt, returning QObject": 1,
+    "missing-property: Member \"queued\" not found on type call to method objectAt, returning QObject": 1,
+    "missing-property: Member \"running\" not found on type \"QObject\"": 1,
+    "missing-property: Member \"running\" not found on type call to method objectAt, returning QObject": 1
   },
   "shell/Notifications.qml": {
     "unqualified: unknown grouped property scope margins.": 1,
