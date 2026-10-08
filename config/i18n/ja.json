@@ -1856,7 +1856,6 @@
     "Widget size": "ウィジェットのサイズ",
     "0 keeps them on.": "0 でオフにしません。",
     "How thick the widgets are across the bar. The bar grows to fit them, their padding, and any border it shares an edge with.": "バーを横切る方向のウィジェットの太さ。バーはウィジェット、その余白、端を共有する枠線に合わせて大きくなります。",
-    "Toggles, session actions and pin, in any mix. Night light and power saver only show when hyprsunset/wlsunset or powerprofilesctl is installed, and pin only in an edge menu. Log out, reboot and power off ask for a second click.": "トグル、セッション操作、ピンを自由に組み合わせられます。夜間モードと省電力は hyprsunset/wlsunset または powerprofilesctl がインストールされている場合のみ、ピンはエッジメニュー内でのみ表示されます。ログアウト、再起動、電源オフは 2 回目のクリックで実行します。",
     "Call": "動作",
     "Sizing for the overlay, popouts, launcher and settings. Each bar has its own, in the bar editor.": "オーバーレイ、ポップアウト、ランチャー、設定のサイズ。各バーはバーエディターで個別に設定します。",
     "Each OSD has its own place and bars. A change opens every OSD holding that bar.": "OSD ごとに位置とバーを設定できます。バーが変化すると、そのバーを含むすべての OSD が開きます。",
@@ -2756,6 +2755,8 @@
     "No control": "操作不可",
     "No monitor here has a brightness control (brightnessctl or ddcutil)": "明るさを調整できるモニターがありません（brightnessctl または ddcutil）",
     "Empty uses the primary monitor. All monitors sets every monitor at once, with a slider for each below where there's room.": "空欄ではメインモニターを使います。「すべてのモニター」ではすべてのモニターを一度に設定し、余裕があれば下にモニターごとのスライダーを表示します。",
-    "The bar sets every monitor with a brightness control at once, instead of only the one the OSD is on.": "OSD が表示されているモニターだけでなく、明るさを調整できるすべてのモニターを一度に設定します。"
+    "The bar sets every monitor with a brightness control at once, instead of only the one the OSD is on.": "OSD が表示されているモニターだけでなく、明るさを調整できるすべてのモニターを一度に設定します。",
+    "Toggles, session actions and pin, in any mix. Night light and power saver only show when hyprsunset/wlsunset or powerprofilesctl is installed, brightness only with a monitor brightnessctl or ddcutil can set (a tap opens every monitor's sliders), and pin only in an edge menu. Log out, reboot and power off ask for a second click.": "トグル、セッション操作、ピンを自由に組み合わせられます。夜間モードと省電力は hyprsunset/wlsunset または powerprofilesctl がインストールされている場合のみ、明るさは brightnessctl か ddcutil で調整できるモニターがある場合のみ（タップで全モニターのスライダーを開きます）、ピンはエッジメニュー内でのみ表示されます。ログアウト、再起動、電源オフは 2 回目のクリックで実行します。",
+    "Out of sync: click to sync": "ずれています：クリックで揃える"
   }
 }

@@ -24,6 +24,10 @@ Item {
     })
   // The whole grid in units, the content's slot (so it isn't compact)
   property var slotRect: [0, 0, 4, 4]
+  // The modules here draw no card box (an edge menu with moduleBorders off)
+  readonly property bool bare: root.host?.bare ?? false
+  // The content's padding, which the back button lines up with
+  readonly property real pad: OverlayConfig.cardPad(false, false)
 
   signal closed
 
@@ -91,11 +95,17 @@ Item {
     width: root.shown ? root.width : root._from[2]
     height: root.shown ? root.height : root._from[3]
     opacity: root.shown ? 1 : 0
-    color: Appearance.fill(Theme.background)
+    // In a menu without module borders it draws no outline, and once grown
+    // no fill either (the menu's own shows), as its modules don't
+    color: root.bare && root.shown ? "transparent" : Appearance.fill(Theme.background)
     border.color: Theme.border
-    border.width: Appearance.borderWidth
+    border.width: root.bare ? 0 : Appearance.borderWidth
     radius: Widget.radius
     clip: true
+
+    ColorGlide on color {
+      enabled: root._animate
+    }
 
     Glide on x {
       enabled: root._animate
@@ -134,7 +144,8 @@ Item {
         anchors.top: parent.top
         anchors.left: parent.left
         anchors.right: parent.right
-        anchors.margins: Widget.spacing
+        // The button's icon in line with the content's edge
+        anchors.margins: Math.max(0, root.pad - Widget.spacing)
         spacing: Widget.spacing
 
         FlatIconButton {
@@ -152,8 +163,7 @@ Item {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.bottom: parent.bottom
-        anchors.margins: OverlayConfig.cardPad(false, false)
-        anchors.topMargin: 0
+        anchors.topMargin: -root.pad / 2
 
         Loader {
           id: loader
@@ -168,13 +178,14 @@ Item {
           onComponentPathChanged: {
             if (!loader.componentPath)
               return;
-            // Bare: the box above is its card, and pads it
+            // Bare (the box above is its card) but padded as a card is
             loader.setSource(loader.componentPath, {
               "properties": root._shownRequest.properties ?? {},
               "slotRect": root.slotRect,
               "embedded": true,
               "host": Object.assign({}, root.host, {
-                "bare": true
+                "bare": true,
+                "padded": true
               })
             });
           }

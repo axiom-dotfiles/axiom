@@ -14,10 +14,11 @@ import qs.components.content.base
 // always ("show", elided) or never ("hide").
 // "pills" draws wide tiles with a status line, as Android's quick settings
 // do. Wi-Fi, Bluetooth and Do not disturb have a detail (their networks,
-// devices, notifications) that grows over the grid: a pill opens it from
+// devices, notifications) that grows over the grid, as does Brightness
+// (every monitor's sliders), which has nothing to switch: a tap opens it: a pill opens it from
 // beside its icon, a tile on a right click or long press.
 // properties: { actions: ["wifi", "bluetooth", "caffeine", "dnd", "darkMode", "nightLight", "powerSaver",
-//                         "lock", "suspend", "hibernate", "logout", "reboot", "poweroff", "pin"],
+//                         "brightness", "lock", "suspend", "hibernate", "logout", "reboot", "poweroff", "pin"],
 //               labels: "auto" | "show" | "hide", style: "tiles" | "pills" }
 Card {
   id: root
@@ -75,6 +76,18 @@ Card {
         "active": BatteryManager.powerSaver,
         "status": root.onOff(BatteryManager.powerSaver)
       },
+      "brightness": {
+        "icon": root.brightnessLevel < 0.34 ? "brightness_low" : root.brightnessLevel < 0.67 ? "brightness_medium" : "brightness_high",
+        "label": I18n.tr("Brightness"),
+        "active": false,
+        "status": I18n.tr("{0}%", Math.round(root.brightnessLevel * 100)),
+        "detail": "Brightness",
+        "detailProperties": {
+          "monitor": "*"
+        },
+        // Nothing to switch: a tap opens the sliders
+        "opensOnly": true
+      },
       "pin": {
         "icon": "push_pin",
         "label": root.pinned ? I18n.tr("Pinned") : I18n.tr("Pin open"),
@@ -96,6 +109,16 @@ Card {
     return connected.length > 1 ? I18n.tr("{0} connected", connected.length) : I18n.tr("On");
   }
   // The detail an action opens here ("" for none)
+  // Every monitor's, for the brightness tile
+  readonly property real brightnessLevel: BrightnessManager.average(BrightnessManager.names)
+  // Opens the action's detail from `from`, or runs it (a toggle)
+  function tap(name, from) {
+    const d = root.def(name);
+    if (d.opensOnly && root.detailOf(d) !== "")
+      root.expand(d.detail, d.detailProperties ?? {}, from);
+    else
+      root.run(name);
+  }
   function detailOf(def) {
     return def.detail && root.canExpand(def.detail) ? def.detail : "";
   }
@@ -117,7 +140,7 @@ Card {
   // Config, tool availability and host only (never toggle state), so the
   // tiles aren't rebuilt whenever something is switched: a literal list,
   // not defs' keys (defs follows the toggles)
-  readonly property var known: ["wifi", "bluetooth", "caffeine", "dnd", "darkMode", "nightLight", "powerSaver", "pin"].concat(root.sessionActions)
+  readonly property var known: ["wifi", "bluetooth", "caffeine", "dnd", "darkMode", "nightLight", "powerSaver", "brightness", "pin"].concat(root.sessionActions)
   readonly property var actions: root.properties.actions.filter(a => root.known.includes(a))
   readonly property var shown: root.actions.filter(a => {
     switch (a) {
@@ -129,6 +152,8 @@ Card {
       return NightLightManager.available;
     case "powerSaver":
       return BatteryManager.hasPowerProfiles;
+    case "brightness":
+      return BrightnessManager.names.length > 0;
     case "pin":
       return root.inMenu;
     default:
@@ -226,8 +251,8 @@ Card {
         tone: def.tone ?? activeColor
         countdown: def.destructive ? disarm.interval : 0
         opens: detail !== ""
-        onClicked: root.run(action)
-        onOpened: root.expand(tile.detail, {}, tile)
+        onClicked: root.tap(action, tile)
+        onOpened: root.expand(tile.detail, tile.def.detailProperties ?? {}, tile)
       }
     }
 
@@ -252,8 +277,8 @@ Card {
         tone: def.tone ?? activeColor
         countdown: def.destructive ? disarm.interval : 0
         opens: detail !== ""
-        onClicked: root.run(action)
-        onOpened: root.expand(pill.detail, {}, pill)
+        onClicked: root.tap(action, pill)
+        onOpened: root.expand(pill.detail, pill.def.detailProperties ?? {}, pill)
       }
     }
   }
