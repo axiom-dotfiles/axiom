@@ -9,7 +9,7 @@ import qs.components.content // qmllint disable unused-imports
 
 // A module's detail grown over its grid (ModuleGrid.expand): a card box
 // opening out of the tile or strip that asked for it to the whole grid,
-// with a back button and the module's name over content/<type>.qml. The
+// with a back button over content/<type>.qml (which names itself). The
 // content sits at its full size from the first frame, revealed by the
 // growing box (as a popout's is), so it lays out once. Back, Escape or
 // collapse() shrink it into where it came from; `closed` then drops it.
@@ -38,7 +38,6 @@ Item {
   property var _focusBefore: null
 
   readonly property var _from: root._shownRequest?.from ?? [0, 0, root.width, root.height]
-  readonly property var _info: OverlayConfig.moduleInfo(root._shownRequest?.type ?? "")
 
   visible: root._shownRequest !== null
 
@@ -143,15 +142,8 @@ Item {
           tooltipText: I18n.tr("Back")
           onClicked: root.collapse()
         }
-        StyledIcon {
-          text: root._info?.icon ?? ""
-          textColor: Theme.accent
-        }
-        StyledText {
+        Item {
           Layout.fillWidth: true
-          text: I18n.tr(root._info?.label ?? "")
-          elide: Text.ElideRight
-          font.bold: true
         }
       }
 

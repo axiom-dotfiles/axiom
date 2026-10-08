@@ -7,7 +7,7 @@ import qs.config
 import qs.components.reusable
 
 // One mixer line: icon, title (+ dim subtitle), volume slider, percentage
-// and a mute button.
+// and a mute button (`showMute`).
 Item {
   id: root
 
@@ -24,6 +24,8 @@ Item {
   property real maxVolume: 1.0
   property string mutedGlyph: "volume_off"
   property string unmutedGlyph: "volume_up"
+  // The mute button (off for a level that can't be muted, e.g. brightness)
+  property bool showMute: true
 
   implicitHeight: layout.implicitHeight + Widget.spacing * 2
   Layout.fillWidth: true
@@ -119,6 +121,7 @@ Item {
     }
 
     StyledRectButton {
+      visible: root.showMute
       size: 28
       iconText: root.muted ? root.mutedGlyph : root.unmutedGlyph
       iconColor: root.muted ? Theme.error : Theme.foreground

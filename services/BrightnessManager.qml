@@ -23,6 +23,24 @@ QtObject {
 
   readonly property real step: 0.05
 
+  // The monitors with a controller, by name; a string, so it only
+  // notifies when one comes or goes (not on every value)
+  readonly property string namesKey: Object.keys(displays).sort().join(",")
+  readonly property var names: namesKey === "" ? [] : namesKey.split(",")
+
+  // The mean brightness of these monitors (those with a controller), 0
+  // with none
+  function average(names) {
+    const known = names.filter(name => available(name));
+    return known.length > 0 ? known.reduce((sum, name) => sum + valueFor(name), 0) / known.length : 0;
+  }
+
+  // Every one of these monitors to `value`
+  function setMany(names, value, silent) {
+    for (const name of names)
+      set(name, value, silent);
+  }
+
   function available(name) {
     return displays[name] !== undefined;
   }

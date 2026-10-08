@@ -326,6 +326,7 @@ Singleton {
   // The selected menu's modules (see GridEditor)
   property GridEditor layout: GridEditor {
     host: "edgeMenu"
+    sizeScale: root.localMenus?.[root.selectedMenuIndex]?.fineGrid ? 2 : 1
     modulesOf: () => root.selectedMenu()?.modules ?? null
     shifted: (shift, boundsBefore) => root._keepPlace(root.selectedMenu(), shift, boundsBefore)
     // Along the menu's edge: down a side menu, right along a top or
@@ -425,7 +426,8 @@ Singleton {
     const screen = EdgeMenusConfig.screenFor(menu);
     const area = OverlayManager.areas[screen?.name ?? ""];
     const unit = area ? area.unit : screen ? OverlayConfig.cardUnitFor(screen.width, screen.height) : OverlayConfig.cardUnit;
-    return Math.round(unit * menu.moduleScale / 100);
+    // A double grid (fineGrid) splits each unit in two each way
+    return Math.round(unit * menu.moduleScale / 100 * (menu.fineGrid ? 0.5 : 1));
   }
 
   function selectedMenu() {
@@ -514,7 +516,23 @@ Singleton {
     const wasPreviewing = root.previewing !== "" && root.previewing === menu.id;
     if (wasPreviewing && key === "id")
       root._showPreview("");
+    // Doubling the grid rescales the modules' places and the offset (in
+    // cells), so they stay put; the grid offset (px) keeps within half a
+    // cell
+    if (key === "fineGrid") {
+      (menu.modules ?? []).forEach(module => {
+        if (module?.place)
+          module.place = GridPlacement.scalePlace(module.place, value);
+      });
+      menu.offset = value ? menu.offset * 2 : Math.round(menu.offset / 2);
+      // Older snapshots are on the other grid
+      root.layout.clearHistory();
+    }
     menu[key] = value;
+    if (key === "fineGrid") {
+      const limit = root.gridOffsetLimit(menu);
+      menu.gridOffset = Math.max(-limit, Math.min(menu.gridOffset, limit));
+    }
     root.applyChanges();
     // A renamed (or re-enabled) menu is a new window: open that one
     if (wasPreviewing || (root._wantPreview && key === "enabled"))

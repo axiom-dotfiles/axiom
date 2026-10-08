@@ -2752,6 +2752,10 @@
     "Back": "戻る",
     "Tiles": "タイル",
     "tiles": "タイル",
-    "Pills are wide, with a status line beside the icon. Wi-Fi, Bluetooth and Do not disturb open their networks, devices or notifications over the menu or page: from beside a pill's icon, or a tile's right click or long press.": "ピルは横長で、アイコンの横に状態を表示します。Wi-Fi、Bluetooth、おやすみモードは、ネットワーク・デバイス・通知をメニューやページの上に開きます。ピルではアイコンの横を、タイルでは右クリックか長押しで開きます。"
+    "Pills are wide, with a status line beside the icon. Wi-Fi, Bluetooth and Do not disturb open their networks, devices or notifications over the menu or page: from beside a pill's icon, or a tile's right click or long press.": "ピルは横長で、アイコンの横に状態を表示します。Wi-Fi、Bluetooth、おやすみモードは、ネットワーク・デバイス・通知をメニューやページの上に開きます。ピルではアイコンの横を、タイルでは右クリックか長押しで開きます。",
+    "No control": "操作不可",
+    "No monitor here has a brightness control (brightnessctl or ddcutil)": "明るさを調整できるモニターがありません（brightnessctl または ddcutil）",
+    "Empty uses the primary monitor. All monitors sets every monitor at once, with a slider for each below where there's room.": "空欄ではメインモニターを使います。「すべてのモニター」ではすべてのモニターを一度に設定し、余裕があれば下にモニターごとのスライダーを表示します。",
+    "The bar sets every monitor with a brightness control at once, instead of only the one the OSD is on.": "OSD が表示されているモニターだけでなく、明るさを調整できるすべてのモニターを一度に設定します。"
   }
 }

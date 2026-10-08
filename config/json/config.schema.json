@@ -2360,7 +2360,7 @@
           "items": {
             "type": "object",
             "additionalProperties": false,
-            "x-order": ["type", "apps", "icon", "showOsd"],
+            "x-order": ["type", "apps", "allMonitors", "icon", "showOsd"],
             "properties": {
               "type": {
                 "type": "string",
@@ -2371,6 +2371,7 @@
               },
               "apps": { "x-scope": "personal", "type": "array", "items": { "type": "string" }, "title": "Apps", "default": [], "x-showIf": { "type": "app" }, "x-suggestions": "audioApps", "description": "Comma-separated; each matched as a substring of a stream's binary or name. The bar shows the first listed app with a stream open, and a change sets every matching stream." },
               "icon": { "type": "string", "title": "Icon", "default": "", "description": "Icon shown on the bar: a Material Symbols name (fonts.google.com/icons), or text. Empty follows the level for system volume, microphone and brightness." },
+              "allMonitors": { "type": "boolean", "title": "All monitors", "default": false, "x-showIf": { "type": "brightness" }, "description": "The bar sets every monitor with a brightness control at once, instead of only the one the OSD is on." },
               "showOsd": { "type": "boolean", "title": "Opens the OSD", "default": true, "description": "A change on this bar opens the OSD (it always keeps an open one open)." }
             }
           }
@@ -2381,7 +2382,7 @@
       "type": "object",
       "required": ["id"],
       "additionalProperties": false,
-      "x-order": ["name", "enabled", "monitor", "openOnHover", "openDelay", "triggerSize", "triggerLength", "mode", "edge", "offset", "gridOffset", "length", "moduleScale", "detached", "gap", "frame", "padding", "moduleBorders", "pinButton", "backgroundColor", "borderColor", "closeOnLeave", "closeDelay", "closeOnOutsideClick", "id"],
+      "x-order": ["name", "enabled", "monitor", "openOnHover", "openDelay", "triggerSize", "triggerLength", "mode", "edge", "offset", "gridOffset", "length", "moduleScale", "fineGrid", "detached", "gap", "frame", "padding", "moduleBorders", "pinButton", "backgroundColor", "borderColor", "closeOnLeave", "closeDelay", "closeOnOutsideClick", "id"],
       "properties": {
         "id": { "x-group": "Advanced", "type": "string", "title": "Id", "x-control": "readonly", "description": "What bar buttons, keybinds and IPC calls open this menu by. Set when the menu is made." },
         "name": { "x-group": "General", "type": "string", "title": "Name", "default": "" },
@@ -2442,6 +2443,7 @@
           "x-unit": "%",
           "description": "Size of the menu's modules, relative to the overlay's cards on its monitor (which follow Overlay size)."
         },
+        "fineGrid": { "x-group": "Placement", "x-beside": true, "type": "boolean", "title": "Double grid", "default": false, "description": "Split each grid unit in two each way, for finer placement. Modules keep their size and spot." },
         "detached": {
           "x-group": "Placement",
           "type": "boolean",
@@ -3249,6 +3251,7 @@
         { "$ref": "#/definitions/ThemePickerOverlayModule" },
         { "$ref": "#/definitions/NowPlayingOverlayModule" },
         { "$ref": "#/definitions/AudioMixerOverlayModule" },
+        { "$ref": "#/definitions/BrightnessOverlayModule" },
         { "$ref": "#/definitions/VolumeDialsOverlayModule" },
         { "$ref": "#/definitions/SystemGraphsOverlayModule" },
         { "$ref": "#/definitions/DisksOverlayModule" },
@@ -3316,6 +3319,24 @@
           "additionalProperties": false,
           "properties": {
             "mode": {"type": "string", "title": "Start on", "default": "output", "enum": ["output", "input"]}
+          }
+        }
+      }
+    },
+    "BrightnessOverlayModule": {
+      "type": "object",
+      "x-icon": "brightness_medium",
+      "x-defaultSize": [4, 1],
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "place": { "$ref": "#/definitions/GridPlace" },
+        "type": { "const": "Brightness", "description": "Brightness" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "monitor": {"x-scope": "machine", "type": "string", "title": "Monitor", "default": "*", "x-options": "screens", "x-allScreens": true, "description": "Empty uses the primary monitor. All monitors sets every monitor at once, with a slider for each below where there's room."}
           }
         }
       }
