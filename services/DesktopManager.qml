@@ -134,7 +134,8 @@ QtObject {
   }
 
   // The selected monitor's own layout goes: it shows the primary
-  // monitor's or all monitors' again
+  // monitor's or all monitors' again. A monitor that isn't plugged in
+  // leaves the picker with it, so the primary monitor is selected instead
   function removeTarget() {
     const name = root.selectedTarget;
     if (name === "all" || name === "primary")
@@ -144,6 +145,8 @@ QtObject {
       desktop.monitors = desktop.monitors.filter(layout => layout.monitor !== name);
     });
     root.editor.layout.clearHistory();
+    if (!Array.from(Quickshell.screens).some(screen => screen.name === name))
+      root.selectTarget("primary");
   }
 
   function setEnabled(enabled) {

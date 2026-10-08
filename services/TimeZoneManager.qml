@@ -53,8 +53,6 @@ QtObject {
   on_WantedChanged: root._read()
   // Asked again while reading: read once more after
   property bool _again: false
-  // The zones being read, in the order `date` answers
-  property var _reading: []
 
   function _read() {
     if (root._wanted === "") {
@@ -65,21 +63,21 @@ QtObject {
       root._again = true;
       return;
     }
-    const zones = root._wanted.split("\n");
-    root._reading = zones;
-    root._reader.command = ["sh", "-c", 'for zone do TZ="$zone" date +%z; done', "sh"].concat(zones);
+    // Each line names its zone, so a read started before this one ends
+    // can't be taken for it
+    root._reader.command = ["sh", "-c", 'for zone do printf "%s %s\\n" "$zone" "$(TZ="$zone" date +%z)"; done', "sh"].concat(root._wanted.split("\n"));
     root._reader.running = true;
   }
 
   property Process _reader: Process {
     stdout: StdioCollector {
       onStreamFinished: {
-        const lines = text.split("\n");
         const offsets = Object.assign({}, root._offsets);
-        root._reading.forEach((zone, i) => {
-          const offset = TimeZones.parseOffset(lines[i]);
-          if (offset !== null)
-            offsets[zone] = offset;
+        text.split("\n").forEach(line => {
+          const space = line.lastIndexOf(" ");
+          const offset = TimeZones.parseOffset(line.slice(space + 1));
+          if (space > 0 && offset !== null)
+            offsets[line.slice(0, space)] = offset;
         });
         if (JSON.stringify(offsets) !== JSON.stringify(root._offsets))
           root._offsets = offsets;

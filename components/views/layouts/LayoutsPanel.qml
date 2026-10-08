@@ -26,7 +26,7 @@ Item {
   required property var menu
   required property var screenTarget
   readonly property var screenLayout: root.screenTarget?.layout ?? null
-  readonly property bool isDesktop: root.screenTarget !== null && root.screenTarget.screenEditor === DesktopManager.editor
+  readonly property bool isDesktop: OverlayManager.editTarget === "desktop"
   // A monitor of the desktop's (not all monitors or the primary one)
   readonly property bool isDesktopMonitor: root.isDesktop && DesktopManager.selectedTarget !== "all" && DesktopManager.selectedTarget !== "primary"
   readonly property bool isCustom: root.view?.type === "Custom"

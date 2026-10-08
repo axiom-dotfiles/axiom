@@ -20,11 +20,15 @@ QtObject {
   }
 
   // `date` as the wall clock of a zone `offset` minutes east of UTC; `date`
-  // itself without an offset (null: the system's zone)
+  // itself without an offset (null: the system's zone). Built from the
+  // zone's fields rather than by adding the local offset, which differs on
+  // the far side of a local daylight saving change (only a wall time the
+  // system's zone skips can't be had: it reads an hour on)
   function shift(date, offset) {
     if (offset === null || offset === undefined)
       return date;
-    return new Date(date.getTime() + (offset + date.getTimezoneOffset()) * 60000);
+    const zone = new Date(date.getTime() + offset * 60000);
+    return new Date(zone.getUTCFullYear(), zone.getUTCMonth(), zone.getUTCDate(), zone.getUTCHours(), zone.getUTCMinutes(), zone.getUTCSeconds(), zone.getUTCMilliseconds());
   }
 
   // The ms from `date` until a moment past the next half hour (UTC): when

@@ -14,8 +14,9 @@ import qs.services
 // the date beside the time. Arrows page through months. With `showEvents`
 // (on the lock screen only with Calendar.showOnLockscreen, and read-only
 // there, as on the desktop; never on the login screen) days with events
-// get their calendars' dots, and where there's room the day's events list under the calendar
-// (under the clock when it sits beside it): today's, or the day clicked
+// get their calendars' dots, and where there's room the day's events list
+// under the calendar (under the clock when it sits beside it): today's, or
+// the day clicked
 // until it's clicked again. Without room a clicked day covers the card.
 // Events open in the editor, over the whole card.
 // properties: { use24Hour, showSeconds, showEvents }
