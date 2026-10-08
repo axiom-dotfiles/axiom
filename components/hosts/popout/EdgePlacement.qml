@@ -46,6 +46,11 @@ QtObject {
   // the box growing empty to the pill's end (EdgeAttach.place's `nudge`):
   // off for a box whose length keeps changing (a magnifying dock)
   property bool nudge: true
+  // The part of the surface (from its start) over the pill's or island's
+  // stroke, left open there (AttachedSurface.coverStart/coverLength);
+  // a negative length is the whole surface
+  property real coverStart: 0
+  property real coverLength: -1
 
   // Its pill stretch: a key unique per surface on a bar, and whether it
   // shows (not while the content loads or unloads, the box a placeholder)
@@ -152,5 +157,10 @@ QtObject {
       "start": root.place.stretch.start + root.barShift,
       "end": root.place.stretch.end + root.barShift
     }) : null
+    // The pill's or island's far stroke left open under a translucent box
+    opening: root.showing && root.onPill && Appearance.translucent ? {
+      "start": root.place.surfaceStart + root.coverStart + root.barShift,
+      "end": root.place.surfaceStart + root.coverStart + (root.coverLength < 0 ? root.place.surfaceLength : root.coverLength) + root.barShift
+    } : null
   }
 }

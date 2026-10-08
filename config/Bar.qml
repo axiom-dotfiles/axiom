@@ -260,10 +260,11 @@ QtObject {
   // What a shadow is drawn in: `shadow`/`shadowColor` as a bar's look or
   // the BarStyle section has them. Automatic is black for a shadow, the
   // accent for a glow.
+  // While surfaces blur, it stays under Hyprland's blur threshold
+  // (Appearance.shadowAlphaMax), so the blur doesn't spread into it.
   function shadowColor(look) {
-    if (look.shadowColor)
-      return Theme.resolveColor(look.shadowColor);
-    return look.shadow === "glow" ? Theme.accent : Qt.alpha("black", 0.6);
+    const color = Qt.color(look.shadowColor ? Theme.resolveColor(look.shadowColor) : look.shadow === "glow" ? Theme.accent : Qt.alpha("black", 0.6));
+    return color.a > Appearance.shadowAlphaMax ? Qt.alpha(color, Appearance.shadowAlphaMax) : color;
   }
 
   // How much less than its extent a bar reserves, given Hyprland's

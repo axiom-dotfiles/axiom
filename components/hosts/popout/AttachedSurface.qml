@@ -3,6 +3,7 @@ import QtQuick
 import QtQuick.Shapes
 
 import qs.config
+import qs.components.reusable
 
 /**
  * The shared "grows out of an edge" shape used by bar popouts, screen-edge
@@ -94,8 +95,56 @@ Item {
   // Casts the shell's shadow or glow (SurfaceShadow), for a surface whose
   // border shows: off for a bar's own pills, which their bar's casts
   property bool castShadow: false
+  // The blur window (BlurManager) draws this surface's fill and casts its
+  // shadow (BlurShape.shadow): it draws its stroke and content only
+  property bool backed: false
+  // Casting its own shadow, in its own window
+  readonly property bool _ownShadow: root.castShadow && !root.backed
+  // A copy of a surface (AttachedSurfaceCopy): its fill alone, its stroke
+  // in `mirrorStroke`
+  property bool mirror: false
+  property color mirrorStroke: "transparent"
+  // (a copy is drawn opaque: the blur window applies the opacity to all
+  // of them at once, so where they overlap they don't stack)
+  readonly property color _fill: root.mirror ? root.fillColor : root.backed ? "transparent" : Appearance.fill(root.fillColor)
+  readonly property color _stroke: root.mirror ? root.mirrorStroke : root.strokeColor
+  // Rects (in this item's coordinates) where its outline is left open:
+  // what's joined to it over them (a tray submenu on its side, a popout on
+  // a pill's far stroke) carries on there, its fill no longer hiding it
+  property var strokeHoles: []
 
   default property alias content: contentContainer.data
+
+  // Along the attach edge, the part of what it attaches to that it covers,
+  // from its start: what of it shows at that edge as it slides, the box
+  // and as much of each fillet as has come out past the edge (the fillet
+  // runs along the edge, then curves up into the wall). A stroke left open
+  // under it (the border's, a pill's) opens only there, or a gap shows
+  // past the fillets, or the stroke cuts across them.
+  // How far it's behind that edge: slid, or moved by its host (a hiding
+  // dock, `hiddenBehind`)
+  property real hiddenBehind: 0
+  // How far it has slid behind that edge (none once out)
+  readonly property real slid: Math.abs(slideContainer.slideX) + Math.abs(slideContainer.slideY)
+  readonly property real _hidden: root.slid + root.hiddenBehind
+  // How far in from the surface's end the fillet shows at the edge, with
+  // `hidden` of the surface still behind it (see _outline: a line along
+  // the edge at v = half to sideU - R, an arc of radius R up to the wall)
+  function _filletIn(margin, hidden) {
+    if (margin <= 0)
+      return 0;
+    const R = filletRadius, h = half;
+    // The stroke along the edge is a full stroke wide
+    if (hidden <= strokeWidth)
+      return 0;
+    if (hidden >= h + R)
+      return margin;
+    const dv = h + R - hidden;
+    return Math.min(margin, Math.max(0, margin + h - R + Math.sqrt(R * R - dv * dv)));
+  }
+  readonly property real coverStart: root._filletIn(root.startMargin, root._hidden)
+  // (nothing once it's all behind the edge)
+  readonly property real coverLength: root._hidden >= root.depth ? 0 : root.alongLength - root.coverStart - root._filletIn(root.endMargin, root._hidden)
 
   readonly property bool vertical: edge === Bar.Left || edge === Bar.Right
   readonly property bool attachLeft: edge === Bar.Left
@@ -312,24 +361,29 @@ Item {
     enableFade: false
     overflow: root.castShadow ? BarStyle.shadowReach : 0
 
-    // The outline (or detached box), casting the shadow or glow: the
-    // content inside it doesn't need its own
+    // The shadow or glow the outline casts, only outside it (none shows
+    // through a translucent fill), from a copy of it filled (its own fill
+    // may be the blur window's): the content doesn't need its own
+    OutsideShadow {
+      target: shadowShape
+      hideTarget: true
+      active: root._ownShadow
+      edge: root.edge
+      falls: root.detached
+    }
+
     Item {
+      id: shadowShape
       anchors.fill: parent
-      layer.enabled: root.castShadow && BarStyle.shadowed
-      layer.effect: SurfaceShadow {
-        edge: root.edge
-        falls: root.detached
-      }
+      visible: root._ownShadow
 
       Shape {
-        id: outline
         anchors.fill: parent
         visible: !root.detached
         preferredRendererType: Shape.CurveRenderer
 
         ShapePath {
-          fillColor: root.fillColor
+          fillColor: "black"
           strokeColor: "transparent"
           strokeWidth: 0
 
@@ -340,7 +394,7 @@ Item {
 
         ShapePath {
           fillColor: "transparent"
-          strokeColor: root.strokeColor
+          strokeColor: "black"
           strokeWidth: root.strokeWidth
           capStyle: ShapePath.FlatCap
           joinStyle: ShapePath.MiterJoin
@@ -351,26 +405,84 @@ Item {
         }
       }
 
+      Rectangle {
+        visible: root.detached
+        x: detachedBox.x
+        y: detachedBox.y
+        width: detachedBox.width
+        height: detachedBox.height
+        topLeftRadius: detachedBox.topLeftRadius
+        topRightRadius: detachedBox.topRightRadius
+        bottomLeftRadius: detachedBox.bottomLeftRadius
+        bottomRightRadius: detachedBox.bottomRightRadius
+        color: "black"
+      }
+    }
+
+    // The outline (or detached box)
+    Item {
+      id: outlineLayer
+      anchors.fill: parent
+
+      HoledItem {
+        anchors.fill: parent
+        visible: !root.detached
+        holes: root.strokeHoles
+
+        Shape {
+          id: outline
+          anchors.fill: parent
+          preferredRendererType: Shape.CurveRenderer
+
+          ShapePath {
+            fillColor: root._fill
+            strokeColor: "transparent"
+            strokeWidth: 0
+
+            PathSvg {
+              path: root.fillPath
+            }
+          }
+
+          ShapePath {
+            fillColor: "transparent"
+            strokeColor: root._stroke
+            strokeWidth: root.strokeWidth
+            capStyle: ShapePath.FlatCap
+            joinStyle: ShapePath.MiterJoin
+
+            PathSvg {
+              path: root.strokePath
+            }
+          }
+        }
+      }
+
       // Detached: a box of its own, not joined to anything. Its far
       // corners square as the outline's do (start/endCornerRadius, the
       // stroke's centre line: the outer edge is half a stroke out).
-      Rectangle {
-        id: detachedBox
-        readonly property real startRadius: root.startCornerRadius > 0 ? root.startCornerRadius + root.half : 0
-        readonly property real endRadius: root.endCornerRadius > 0 ? root.endCornerRadius + root.half : 0
-        // Far corners from start/endRadius, near ones from start/endNearRadius
-        topLeftRadius: root.attachBottom || root.attachRight ? detachedBox.startRadius : root.startNearRadius
-        topRightRadius: root.attachLeft ? detachedBox.startRadius : root.attachBottom ? detachedBox.endRadius : root.attachTop ? root.endNearRadius : root.startNearRadius
-        bottomLeftRadius: root.attachTop ? detachedBox.startRadius : root.attachRight ? detachedBox.endRadius : root.attachBottom ? root.startNearRadius : root.endNearRadius
-        bottomRightRadius: root.attachTop || root.attachLeft ? detachedBox.endRadius : root.endNearRadius
+      HoledItem {
+        anchors.fill: parent
         visible: root.detached
-        x: root.boxRect.x
-        y: root.boxRect.y
-        width: root.boxRect.width
-        height: root.boxRect.height
-        color: root.fillColor
-        border.color: root.strokeColor
-        border.width: root.strokeWidth
+        holes: root.strokeHoles
+
+        Rectangle {
+          id: detachedBox
+          readonly property real startRadius: root.startCornerRadius > 0 ? root.startCornerRadius + root.half : 0
+          readonly property real endRadius: root.endCornerRadius > 0 ? root.endCornerRadius + root.half : 0
+          // Far corners from start/endRadius, near ones from start/endNearRadius
+          topLeftRadius: root.attachBottom || root.attachRight ? detachedBox.startRadius : root.startNearRadius
+          topRightRadius: root.attachLeft ? detachedBox.startRadius : root.attachBottom ? detachedBox.endRadius : root.attachTop ? root.endNearRadius : root.startNearRadius
+          bottomLeftRadius: root.attachTop ? detachedBox.startRadius : root.attachRight ? detachedBox.endRadius : root.attachBottom ? root.startNearRadius : root.endNearRadius
+          bottomRightRadius: root.attachTop || root.attachLeft ? detachedBox.endRadius : root.endNearRadius
+          x: root.boxRect.x
+          y: root.boxRect.y
+          width: root.boxRect.width
+          height: root.boxRect.height
+          color: root._fill
+          border.color: root._stroke
+          border.width: root.strokeWidth
+        }
       }
     }
 
@@ -382,7 +494,7 @@ Item {
       y: area.y
       width: area.width
       height: area.height
-      color: root.fillColor
+      color: root._fill
     }
 
     // Content box: same placement the old bordered Rectangle had, so

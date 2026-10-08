@@ -51,6 +51,10 @@ ShellRoot {
     id: screenBorder
   }
 
+  BlurBacking {
+    id: blurBacking
+  }
+
   OSD {
     id: osd
   }

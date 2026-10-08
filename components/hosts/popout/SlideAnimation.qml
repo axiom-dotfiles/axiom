@@ -30,6 +30,10 @@ Item {
   // glow), on every side but the one it slides in from: only that side
   // is cut, hiding the content until it has slid out
   property real overflow: 0
+  // Where the content is, from its place, as it slides (the blur window
+  // draws a copy there, see BlurShape)
+  readonly property real slideX: contentWrapper.slideX
+  readonly property real slideY: contentWrapper.slideY
   readonly property real _left: root.slideFromLeft ? 0 : root.overflow
   readonly property real _top: root.slideFromTop ? 0 : root.overflow
 

@@ -192,6 +192,16 @@ Scope {
       // edge the panel holds its height instead, which runs along it)
       maxContentDepth: popout.vertical ? 0 : (popout.contentItem as LauncherPanel)?.maxHeight ?? 0
 
+      // Puts a dock or OSD on its edge away while it's open, rather than
+      // standing over it (ShellManager.edgeOutranked)
+      readonly property var _claim: popout.isOpen ? ({
+          "screen": root.screen?.name ?? "",
+          "edge": Bar.edgeName(popout.edge),
+          "kind": "launcher"
+        }) : null
+      on_ClaimChanged: ShellManager.setEdgeClaim(popout, popout._claim)
+      Component.onDestruction: ShellManager.setEdgeClaim(popout, null)
+
       content: Component {
         LauncherPanel {
           // Stays open until Esc, a pick or a click elsewhere

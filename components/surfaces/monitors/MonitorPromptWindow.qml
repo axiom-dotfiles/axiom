@@ -37,7 +37,7 @@ PanelWindow {
 
     width: content.implicitWidth + root.pad * 2
     height: content.implicitHeight + root.pad * 2
-    color: Theme.background
+    color: Appearance.fill(Theme.background)
     border.color: root.asking ? Theme.accent : Theme.border
     border.width: Appearance.borderWidth
     radius: Appearance.borderRadius

@@ -11,7 +11,6 @@ QtObject {
   // "detached" | "included" | "managed"
   readonly property string mode: _c.mode
   readonly property bool requiredSettings: _c.requiredSettings
-  readonly property bool blur: _c.blur
   readonly property bool wallpaperDaemon: _c.wallpaperDaemon
   // [{ key, action, argument, description }]. Goes through a string so a
   // reload that leaves the list unchanged doesn't re-apply the binds.

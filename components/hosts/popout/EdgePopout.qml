@@ -229,6 +229,8 @@ PopoutWrapperBase {
     contentLength: root._contentAlong
     joinStart: root.joinStart
     joinEnd: root.joinEnd
+    coverStart: surface.coverStart
+    coverLength: surface.coverLength
     lo: root.startInset
     hi: root.edgeLength - root.endInset
     owner: "edgePopout:" + root
@@ -238,6 +240,19 @@ PopoutWrapperBase {
   readonly property real boxLength: root.place.end - root.place.start
   // The surface (fillets included) along the edge
   readonly property real surfaceStart: root.place.surfaceStart
+
+  // Joined to the border's stroke, the stretch of it the surface covers,
+  // in screen px along the edge (its edge coordinates start past what's
+  // reserved at the start), which the border leaves open under a
+  // translucent fill (ShellManager.borderOpenings)
+  readonly property var _borderOpening: surfaceWindow.visible && Appearance.translucent && Appearance.screenBorder && !root.detached && !root.bareEdge && !root.barPanel ? ({
+      "screen": surfaceWindow.screenName,
+      "edge": Bar.edgeName(root.edge),
+      "start": root.reservedOn(root.startSide) + root.surfaceStart + surface.coverStart,
+      "end": root.reservedOn(root.startSide) + root.surfaceStart + surface.coverStart + surface.coverLength
+    }) : null
+  on_BorderOpeningChanged: ShellManager.setBorderOpening(root, root._borderOpening)
+  Component.onDestruction: ShellManager.setBorderOpening(root, null)
 
   currentItem: root.contentItem
   keepAlive: surfaceHover.hovered || trigger.containsMouse || (focusGrab.active && wantsKeyboardFocus)
@@ -335,8 +350,27 @@ PopoutWrapperBase {
       }
     }
 
+    // Where the window is on screen: the blur window draws the surface's
+    // fill (BlurManager) from there
+    LayerOrigin {
+      id: placeOnScreen
+      window: surfaceWindow
+      namespace: root.layerNamespace
+      edge: root.edge
+    }
+
     AttachedSurface {
       id: surface
+
+      backed: BlurManager.backing && placeOnScreen.origin !== null
+
+      BlurShape {
+        source: surface
+        screen: surfaceWindow.screenName
+        x: (placeOnScreen.origin?.x ?? 0) + surface.x
+        y: (placeOnScreen.origin?.y ?? 0) + surface.y
+        shown: surface.backed && surfaceWindow.visible
+      }
 
       // At the attach edge of a window that may be deeper than it
       x: root.vertical ? (root.edge === Bar.Right ? surfaceWindow.width - width : 0) : root.strokeInset + root.surfaceStart

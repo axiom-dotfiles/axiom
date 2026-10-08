@@ -28,10 +28,11 @@ FoldingCard {
   onToggled: SettingsManager.setCollapsed(root.group.key, !root.collapsed)
 
   // The section's `x-intro` (settings/<name>.qml): status and actions
-  // above the fields
+  // above the fields, gone while its `shown` (if it has one) is false
   Loader {
+    readonly property var intro: item
     active: !!root.group.intro
-    visible: active
+    visible: active && intro?.shown !== false
     Layout.fillWidth: true
     source: active ? Qt.resolvedUrl(root.group.intro + ".qml") : ""
   }

@@ -104,7 +104,7 @@ Scope {
   // inner side. Not held, the window reaches onto their strokes, so an end
   // can join one.
   readonly property real strokeInset: !root.held && Appearance.screenBorder ? Appearance.borderWidth : 0
-  readonly property real length: (root.vertical ? window.height : window.width) - root.strokeInset * 2
+  readonly property real length: (root.vertical ? panelWindow.height : panelWindow.width) - root.strokeInset * 2
   readonly property real restLength: root.count * root.base + Math.max(0, root.count - 1) * root.spacing + root.separatorLength + root.pad * 2
   // The least room from the box to each end that isn't joined: held, its
   // gaps from the frame lines there; else its fillet's
@@ -189,9 +189,9 @@ Scope {
   function crossAt(fromEdge, size) {
     switch (root.edge) {
     case Bar.Bottom:
-      return window.height - fromEdge - size + root.slide;
+      return panelWindow.height - fromEdge - size + root.slide;
     case Bar.Right:
-      return window.width - fromEdge - size + root.slide;
+      return panelWindow.width - fromEdge - size + root.slide;
     }
     return fromEdge - root.slide;
   }
@@ -365,7 +365,7 @@ Scope {
   }
 
   PanelWindow {
-    id: window
+    id: panelWindow
 
     screen: root.screen
     color: "transparent"
@@ -388,30 +388,31 @@ Scope {
 
     // What it takes off the work area (Hyprland counts the edge margin
     // in), for the EdgePopouts and border corners that reach past it
-    readonly property real reserved: window.visible && exclusiveZone > 0 ? exclusiveZone + root.edgeMargin : 0
+    readonly property real reserved: panelWindow.visible && exclusiveZone > 0 ? exclusiveZone + root.edgeMargin : 0
     // Where it's reported. The zone set last is kept, so moving the dock to
     // another edge (or renaming it) moves its zone instead of leaving the
     // old one behind, and destruction clears it even once `dock` is gone.
     readonly property var zoneKey: root.dock && !root.preview ? [root.screen?.name ?? "", root._edgeName, root.dock.id] : null
     property var _zoneSet: null
     function _publishZone() {
-      const key = window.zoneKey;
-      const old = window._zoneSet;
+      const key = panelWindow.zoneKey;
+      const old = panelWindow._zoneSet;
       if (old && (!key || old.join(":") !== key.join(":"))) {
         DockManager.setZone(old[0], old[1], old[2], 0);
         DockManager.refreshSoon();
       }
       if (key)
-        DockManager.setZone(key[0], key[1], key[2], window.reserved);
-      window._zoneSet = key;
+        DockManager.setZone(key[0], key[1], key[2], panelWindow.reserved);
+      panelWindow._zoneSet = key;
     }
-    onReservedChanged: window._publishZone()
-    onZoneKeyChanged: window._publishZone()
-    Component.onCompleted: window._publishZone()
+    onReservedChanged: panelWindow._publishZone()
+    onZoneKeyChanged: panelWindow._publishZone()
+    Component.onCompleted: panelWindow._publishZone()
     Component.onDestruction: {
-      const old = window._zoneSet;
+      const old = panelWindow._zoneSet;
       if (old)
         DockManager.setZone(old[0], old[1], old[2], 0);
+      ShellManager.setBorderOpening(panelWindow, null);
     }
 
     anchors {
@@ -452,6 +453,35 @@ Scope {
       height: root.vertical ? alongLength : crossDepth
     }
 
+    // Where the window is on screen: the blur window draws the dock's fill
+    // (BlurManager) from there; not a preview's, drawn over the overlay
+    LayerOrigin {
+      id: placeOnScreen
+      window: panelWindow
+      namespace: root.preview ? "axiom-dock-preview" : "axiom-dock"
+      edge: root.edge
+    }
+    readonly property bool backed: !root.preview && BlurManager.backing && placeOnScreen.origin !== null
+    // The window on screen: a hiding box goes past its edge
+    readonly property rect screenRect: Qt.rect(placeOnScreen.origin?.x ?? 0, placeOnScreen.origin?.y ?? 0, panelWindow.width, panelWindow.height)
+
+    // Joined to the border's stroke, the stretch of it the box covers (in
+    // screen px along the edge), which the border leaves open under its
+    // translucent fill (ShellManager.borderOpenings), as for edge popouts
+    readonly property var borderOpening: {
+      const origin = placeOnScreen.origin;
+      if (!origin || root.preview || !panelWindow.visible || !root.attached || !Appearance.translucent || !Appearance.screenBorder || placement.bareEdge || placement.barPanel)
+        return null;
+      const start = (root.vertical ? origin.y + surface.y : origin.x + surface.x) + surface.coverStart;
+      return surface.coverLength <= 0 ? null : {
+        "screen": root.screen?.name ?? "",
+        "edge": root._edgeName,
+        "start": start,
+        "end": start + surface.coverLength
+      };
+    }
+    onBorderOpeningChanged: ShellManager.setBorderOpening(panelWindow, panelWindow.borderOpening)
+
     Item {
       id: content
       anchors.fill: parent
@@ -485,22 +515,64 @@ Scope {
         backfill: root.backfill
         fillColor: Theme.resolveColor(root.dock.backgroundColor)
         strokeColor: Theme.resolveColor(root.dock.borderColor)
+        backed: panelWindow.backed
+        // Hiding, it moves past its window's edge
+        hiddenBehind: Math.max(0, root.slide)
+
+        BlurShape {
+          source: surface
+          screen: root.screen?.name ?? ""
+          x: (placeOnScreen.origin?.x ?? 0) + surface.x
+          y: (placeOnScreen.origin?.y ?? 0) + surface.y
+          shown: panelWindow.backed && panelWindow.visible && content.visible && surface.visible
+          clipRect: panelWindow.screenRect
+        }
       }
 
-      // Or a box of its own
+      // Or a box of its own, its shadow only outside it, cast from a black
+      // copy (its own fill may be the blur window's); backed, the blur
+      // window casts it (BlurShape.shadow)
+      OutsideShadow {
+        target: detachedShape
+        hideTarget: true
+        active: detachedShape.visible
+        edge: root.edge
+      }
+
       Rectangle {
+        id: detachedShape
+        visible: detachedBox.visible && !panelWindow.backed
+        x: detachedBox.x
+        y: detachedBox.y
+        width: detachedBox.width
+        height: detachedBox.height
+        radius: detachedBox.radius
+        color: "black"
+      }
+
+      Rectangle {
+        id: detachedBox
         visible: !root.attached
         x: root.vertical ? root.crossAt(root.boxOffset, root.thickness) : root.surfaceBoxStart
         y: root.vertical ? root.surfaceBoxStart : root.crossAt(root.boxOffset, root.thickness)
         width: root.vertical ? root.thickness : root.surfaceBoxLength
         height: root.vertical ? root.surfaceBoxLength : root.thickness
         radius: Math.min(Appearance.borderRadius, root.thickness / 2)
-        color: Theme.resolveColor(root.dock.backgroundColor)
+        color: panelWindow.backed ? "transparent" : Appearance.fill(Theme.resolveColor(root.dock.backgroundColor))
         border.color: Theme.resolveColor(root.dock.borderColor)
         border.width: Appearance.borderWidth
-        layer.enabled: BarStyle.shadowed
-        layer.effect: SurfaceShadow {
-          edge: root.edge
+
+        BlurShape {
+          source: detachedBox
+          kind: "rect"
+          color: Theme.resolveColor(root.dock.backgroundColor)
+          screen: root.screen?.name ?? ""
+          x: (placeOnScreen.origin?.x ?? 0) + detachedBox.x
+          y: (placeOnScreen.origin?.y ?? 0) + detachedBox.y
+          shown: panelWindow.backed && panelWindow.visible && content.visible && detachedBox.visible
+          clipRect: panelWindow.screenRect
+          shadow: BarStyle.values
+          shadowEdge: root.edge
         }
       }
 
@@ -533,6 +605,6 @@ Scope {
     id: menu
     dockWindow: root
     anchorItem: root.menuIndex >= 0 ? repeater.itemAt(root.menuIndex) as DockItem : null
-    grabWindow: window
+    grabWindow: panelWindow
   }
 }

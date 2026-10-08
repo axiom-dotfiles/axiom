@@ -221,7 +221,7 @@ Item {
               anchors.verticalCenter: parent.verticalCenter
               opacity: hover.hovered ? 0 : 0.7
               text: {
-                root.now;
+                void root.now;
                 return I18n.formatRelative(root.group?.newestTime ?? Date.now());
               }
               textColor: Theme.foregroundAlt

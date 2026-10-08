@@ -101,11 +101,22 @@ QtObject {
 
   // --- The window look (Hyprland.look) ---
 
-  // Its parts that are on, as the lines of one hl.config(), or []: themed borders
-  // (hex colors without #), axiom's shape (border width, corner radius)
-  // and gaps
-  function lookLua(look, activeHex, inactiveHex, borderWidth, radius) {
-    const table = {};
+  /**
+   * Its parts that are on, as the lines of one hl.config(), or []: themed
+   * borders (hex colors without #), axiom's shape (border width, corner
+   * radius), gaps, and the blur and window opacity (`lookSchema`'s fields
+   * with `x-hyprIf` on those parts). Hyprland's blur stays on while
+   * `surfacesBlur` (axiom's translucent surfaces blur, which they can't
+   * with it off); with windowBlur off a rule then keeps windows unblurred.
+   */
+  function lookLua(look, lookSchema, activeHex, inactiveHex, borderWidth, radius, surfacesBlur) {
+    const overrides = {};
+    if (look.blur) {
+      overrides["decoration.blur.enabled"] = look.windowBlur || surfacesBlur === true;
+      if (!look.windowBlur)
+        overrides["decoration.blur.popups"] = false;
+    }
+    const table = configTable(lookSchema, look, null, overrides);
     if (look.borders)
       _set(table, "general.col", {
         "active_border": `rgb(${activeHex})`,
@@ -119,12 +130,69 @@ QtObject {
       _set(table, "general.gaps_in", look.gapsIn);
       _set(table, "general.gaps_out", look.gapsOut);
     }
-    return Object.keys(table).length > 0 ? `hl.config(${serialize(table)})`.split("\n") : [];
+    const lines = Object.keys(table).length > 0 ? `hl.config(${serialize(table)})`.split("\n") : [];
+    // Redefined (on or off) while the blur part is on; turning the part off
+    // reloads Hyprland, which drops it
+    if (look.blur)
+      lines.push(`hl.window_rule({ name = "axiom-no-window-blur", match = { class = ".*" }, no_blur = true, enabled = ${!look.windowBlur && surfacesBlur === true} })`);
+    return lines;
   }
 
   // Which of its parts are on, e.g. ["borders", "gaps"]
   function lookParts(look) {
-    return ["borders", "shape", "gaps"].filter(part => look[part]);
+    return ["borders", "shape", "gaps", "blur", "opacity"].filter(part => look[part]);
+  }
+
+  // --- The environment (Hyprland.managed recommendedEnv) ---
+
+  // The variables Hyprland's wiki recommends, [name, value]: toolkits on
+  // Wayland first (falling back to X11 where they can), Qt scaled by pixel
+  // density and without decorations of its own. Not SDL_VIDEODRIVER, which
+  // breaks games bundling an older SDL.
+  readonly property var recommendedEnv: [["GDK_BACKEND", "wayland,x11,*"], ["QT_QPA_PLATFORM", "wayland;xcb"], ["CLUTTER_BACKEND", "wayland"], ["ELECTRON_OZONE_PLATFORM_HINT", "auto"], ["QT_AUTO_SCREEN_SCALE_FACTOR", "1"], ["QT_WAYLAND_DISABLE_WINDOWDECORATION", "1"]]
+
+  // --- Blur behind axiom's surfaces (Appearance.blur) ---
+
+  // Layer rules can't set the blur's strength (Hyprland's one blur does, for
+  // windows too: the window look's blur part, or the user's own), only
+  // whether a layer blurs and which of its pixels count: ignore_alpha
+  // leaves out those under the threshold (shadows, dims, mid-fade), which
+  // the big transparent windows (the blur window, the overlay) need.
+  // The chrome (the border, bars and their popouts, edge popouts and
+  // menus, docks) doesn't blur itself: the blur window (BlurManager,
+  // shell/BlurBacking) draws its fills and is blurred in their place. The
+  // rest blur themselves, their popups too.
+  readonly property var blurSurfaces: ["blur-backing", "dock-preview", "overlay", "launcher", "switcher", "floating-popout", "notifications", "powermenu", "workspaces", "monitor-prompt"]
+  // The chrome's own windows, for their popups alone (tooltips, the dock's
+  // menu): Hyprland blurs a layer's popups whether or not the layer blurs.
+  // A bar popout (a popup too) is drawn transparent over the blur window,
+  // so ignore_alpha leaves all but its content out.
+  readonly property var blurChrome: ["bar", "bar-floating", "popout-under", "edge-popout", "edge-menu", "dock"]
+  // Backdrops (and the polkit prompt, whose window holds its own dim) blur
+  // only when asked: the whole screen, at every alpha.
+  readonly property var blurBackdrops: ["backdrop", "polkit"]
+  // The windows whose fill, blur and shadow the blur window draws: not
+  // animated by Hyprland while it does (they slide themselves), or their
+  // stroke and content fade or pop in and out while what the blur window
+  // draws for them doesn't
+  readonly property var blurBacked: ["bar", "bar-floating", "border", "popout-under", "edge-popout", "osd", "edge-menu", "dock"]
+
+  function _blurRule(name, namespaces, effects, enabled) {
+    return `hl.layer_rule({ name = ${string(name)}, match = { namespace = ${string(`^axiom-(${namespaces.join("|")})$`)} }, ${effects}, enabled = ${enabled} })`;
+  }
+
+  /**
+   * Lua lines for the blur behind axiom's surfaces: named layer rules,
+   * always written, `enabled` or not, since a rule is taken back by
+   * redefining it (no reload). `opts`: { on, threshold, throughWindows
+   * (no xray), backdrops }. Nothing blurs while Hyprland's blur is off.
+   * A rule read as a surface maps (no_anim) applies from the next one.
+   */
+  function blurLua(opts) {
+    const on = opts.on === true;
+    const threshold = value(opts.threshold);
+    const xray = opts.throughWindows ? "" : ", xray = true";
+    return [_blurRule("axiom-blur", blurSurfaces, `blur = true, blur_popups = true, ignore_alpha = ${threshold}${xray}`, on), _blurRule("axiom-blur-popups", blurChrome, `blur_popups = true, ignore_alpha = ${threshold}`, on), _blurRule("axiom-blur-backdrops", blurBackdrops, `blur = true, ignore_alpha = 0.01${xray}`, on && opts.backdrops === true), _blurRule("axiom-blur-no-anim", blurBacked, "no_anim = true", on)];
   }
 
   // --- Strips (Workspaces.strips, WorkspacesConfig.strips) ---

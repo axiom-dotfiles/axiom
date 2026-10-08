@@ -124,7 +124,7 @@ QtObject {
   // (settings/<name>Card.qml) that goes first (`x-cardFolds`: it folds like
   // the generated cards, given its `foldKey`); its `x-intro` names a
   // hand-built piece (settings/<name>.qml) at the top of the section's own
-  // card, above its fields (`intro`).
+  // card, above its fields (`intro`), as a nested object's does on its own.
   function groups(schema, sectionKey) {
     const section = schema.properties[sectionKey];
     const sectionTitle = section.title ?? sectionKey;
@@ -229,6 +229,12 @@ QtObject {
     const own = cards.find(card => card.path.length === 1 && card.title === sectionTitle);
     if (own && section["x-intro"])
       own.intro = section["x-intro"];
+    for (const key of nested) {
+      const prop = section.properties[key];
+      const card = prop["x-intro"] ? cards.find(card => card.path.join(".") === sectionKey + "." + key && card.title === (prop.title ?? key)) : null;
+      if (card)
+        card.intro = prop["x-intro"];
+    }
     return result.concat(cards);
   }
 

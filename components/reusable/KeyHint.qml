@@ -17,7 +17,7 @@ Row {
     width: Math.max(height, keyText.implicitWidth + 8)
     height: keyText.implicitHeight + 4
     radius: Widget.radius / 2
-    color: Theme.backgroundAlt
+    color: Appearance.fill(Theme.backgroundAlt)
     border.color: Theme.border
     border.width: 1
 

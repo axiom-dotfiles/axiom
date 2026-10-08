@@ -24,8 +24,9 @@ import qs.components.methods
  * managed takeover refused), the runtime layer is applied instead, so axiom
  * still works, and `problem` says why.
  * The window look (HyprlandConfig.look: themed borders, axiom's shape,
- * gaps) is also evaluated after every config reload in each mode, so it
- * wins over the user's own config while it's on (_applyLook).
+ * gaps, Hyprland's blur, window opacity) and the blur behind axiom's
+ * surfaces are also evaluated after every config reload in each mode, so
+ * they win over the user's own config while they're on (_applyLook).
  */
 Singleton {
   id: root
@@ -350,12 +351,26 @@ Singleton {
     return lines;
   }
 
-  function _lookLua() {
-    return HyprLua.lookLua(HyprlandConfig.look, _hex(Theme.borderFocus), _hex(Theme.border), Appearance.borderWidth, Appearance.borderRadius);
+  // Whether axiom's surfaces blur: as saved for a file, and at runtime as
+  // now (BlurManager.active, paused over a fullscreen window), evaluated
+  // over the file after every reload
+  function _surfacesBlur(forFile) {
+    return forFile === true ? Appearance.blur : BlurManager.active;
   }
 
-  function _blurLua() {
-    return [`hl.layer_rule({ match = { namespace = "^axiom-(bar|bar-floating|edge-popout|launcher|dock|switcher)$" }, blur = true, ignore_alpha = 0.2 })`];
+  function _lookLua(forFile) {
+    return HyprLua.lookLua(HyprlandConfig.look, ConfigManager.configSchema?.properties?.Hyprland?.properties?.look, _hex(Theme.borderFocus), _hex(Theme.border), Appearance.borderWidth, Appearance.borderRadius, _surfacesBlur(forFile));
+  }
+
+  // The blur behind axiom's surfaces, its rules written on or off
+  // (HyprLua.blurLua)
+  function _blurLua(forFile) {
+    return HyprLua.blurLua({
+      "on": _surfacesBlur(forFile),
+      "threshold": Appearance.blurThreshold,
+      "throughWindows": Appearance.blurThroughWindows,
+      "backdrops": Appearance.blurBackdrops
+    });
   }
 
   function _indent(lines, prefix) {
@@ -374,8 +389,7 @@ Singleton {
       setup.push("M.required()");
     setup.push("M.binds()");
     setup.push("M.look()");
-    if (HyprlandConfig.blur)
-      setup.push("M.blur()");
+    setup.push("M.blur()");
     setup.push("M.layers()");
     setup.push("M.monitors()");
     setup.push("M.strips()");
@@ -398,18 +412,19 @@ function M.binds()
 ${_indent(binds, "  ")}
 end
 
--- Window borders in the axiom theme, its shape and gaps, as enabled.
--- axiom applies them again after every reload, so they win over what
--- follows while they're on.
+-- Window borders in the axiom theme, its shape, gaps, Hyprland's blur and
+-- window opacity, as enabled. axiom applies them again after every reload,
+-- so they win over what follows while they're on.
 function M.look()
-${_indent(_lookLua(), "  ")}
+${_indent(_lookLua(true), "  ")}
 end
 -- Its old name
 M.theme = M.look
 
--- Blur behind the bars, edge popouts and launcher
+-- Blur behind axiom's surfaces while they're translucent (on or off, so
+-- turning it off takes it back), at Hyprland's blur
 function M.blur()
-${_indent(_blurLua(), "  ")}
+${_indent(_blurLua(true), "  ")}
 end
 
 -- Stacking order of axiom's surfaces (bars, border, edge menus, backdrops)
@@ -460,8 +475,14 @@ return M
     return lines;
   }
 
+  // The recommended environment (HyprLua.recommendedEnv), then the user's,
+  // which wins over it
   function _envLua(m) {
-    return m.env.filter(entry => /^[A-Za-z_][A-Za-z0-9_]*$/.test(entry.name.trim())).map(entry => `hl.env(${_lua(entry.name.trim())}, ${_lua(entry.value)})\n`).join("");
+    const recommended = m.recommendedEnv ? HyprLua.recommendedEnv.map(([name, value]) => ({
+          "name": name,
+          "value": value
+        })) : [];
+    return recommended.concat(m.env).filter(entry => /^[A-Za-z_][A-Za-z0-9_]*$/.test(entry.name.trim())).map(entry => `hl.env(${_lua(entry.name.trim())}, ${_lua(entry.value)})\n`).join("");
   }
 
   // Animation presets: curves { name: [x1, y1, x2, y2] } and leaves
@@ -479,6 +500,18 @@ return M
           "axiomOvershoot": [0.34, 1.56, 0.64, 1]
         },
         "leaves": [["windows", 4, "axiomOvershoot", "popin 60%"], ["windowsOut", 3, "axiomSnappy", "popin 80%"], ["layers", 3, "axiomOvershoot", "fade"], ["fade", 3, "axiomSnappy", ""], ["border", 2, "axiomSnappy", ""], ["workspaces", 4, "axiomOvershoot", "slide"], ["specialWorkspace", 4, "axiomOvershoot", "slidevert"]]
+      },
+      // Windows in and out almost at once, bouncing in, workspaces fading
+      "lightning": {
+        "curves": {
+          "lightningSlow": [0, 0.85, 0.3, 1],
+          "lightningOut": [0.3, -0.3, 0, 1],
+          "lightningWind": [0.05, 0.9, 0.1, 1],
+          "lightningOvershot": [0.7, 0.6, 0.1, 1.1],
+          "lightningBounce": [1.1, 1.6, 0.1, 0.85],
+          "lightningDecel": [0.05, 0.7, 0.1, 1]
+        },
+        "leaves": [["windowsIn", 0.5, "lightningSlow", "popin"], ["windowsOut", 0.5, "lightningOut", "popin"], ["windowsMove", 0.7, "lightningWind", "slide"], ["fade", 2, "lightningOvershot", ""], ["workspaces", 2.5, "lightningWind", "fade"], ["windows", 2, "lightningBounce", "popin"], ["specialWorkspace", 0.8, "lightningDecel", "slidevert"]]
       }
     })
 
@@ -674,10 +707,9 @@ end`;
       const anim = (Array.isArray(animations?.[0]) ? animations[0] : []).find(a => a.name === "workspaces");
       lines.push(..._requiredLua(!anim?.overridden));
     }
-    lines.push(..._lookLua());
+    lines.push(..._lookLua(false));
     _lookState.applied = HyprLua.lookParts(HyprlandConfig.look).join(",");
-    if (HyprlandConfig.blur)
-      lines.push(..._blurLua());
+    lines.push(..._blurLua(false));
     // Monitors only when their profiles changed, or a reload dropped them:
     // re-applying them unchanged could still flicker a mode set
     if (_monitorsApplied !== HyprlandConfig._monitorsJson) {
@@ -826,12 +858,11 @@ end`;
   }
 
   // After a config reload in the file modes: the module set the look before
-  // the user's own lines, so it's evaluated again to win over them
+  // the user's own lines, so it's evaluated again to win over them. And in
+  // every mode as the look or the blur changes (_liveDebounce).
   function _applyLook() {
-    const lines = _lookLua();
+    const lines = _lookLua(false).concat(_blurLua(false));
     _lookState.applied = HyprLua.lookParts(HyprlandConfig.look).join(",");
-    if (lines.length === 0)
-      return;
     HyprlandManager.runLua(lines.join("\n"));
     HyprlandManager.refreshOptions();
   }
@@ -845,8 +876,9 @@ end`;
     if (dropped.length === 0)
       return false;
     _lookState.applied = "";
-    // The file modes rewrite their file, which reloads anyway
-    if (mode !== "detached" && _appliedMode === mode && status === "loaded")
+    // The file modes rewrite their file, which reloads anyway, unless it
+    // never held the part (only evaluated at runtime since its last write)
+    if (mode !== "detached" && _appliedMode === mode && status === "loaded" && FileManager.read(mode === "managed" ? managedPath : includePath) !== (mode === "managed" ? managedLua() : moduleLua()))
       return false;
     console.log(`[HyprlandConfigManager] Window look turned off (${dropped.join(", ")}); reloading Hyprland's config to take it back`);
     _reload();
@@ -888,9 +920,32 @@ return setmetatable({}, { __index = function() return function() end end })
     _writeFile(moduleWriter, includePath, _emptyModuleLua);
   }
 
-  // Everything the layer is made of; a change re-applies it
-  readonly property string _inputs: [mode, HyprlandConfig._bindsJson, HyprlandConfig._monitorsJson, HyprlandConfig._managedJson, WorkspacesConfig._stripsJson, HyprlandConfig.requiredSettings, HyprlandConfig._lookJson, HyprlandConfig.blur, Theme.borderFocus, Theme.border, Theme.baseColorNames.map(name => Theme.resolveColor(name)).join(","), Appearance.borderRadius, Appearance.borderWidth, Appearance.animFast, Appearance.animations, Apps.terminalCommand, Apps.fileManagerCommand, Apps.browserCommand, Idle.enabled, PolkitConfig.enabled].join("|")
+  // Everything the layer is made of but the look and the blur; a change
+  // re-applies it (in the file modes, rewriting the file, which reloads
+  // Hyprland)
+  readonly property string _inputs: [mode, HyprlandConfig._bindsJson, HyprlandConfig._monitorsJson, HyprlandConfig._managedJson, WorkspacesConfig._stripsJson, HyprlandConfig.requiredSettings, Theme.baseColorNames.map(name => Theme.resolveColor(name)).join(","), Appearance.animFast, Appearance.animations, Apps.terminalCommand, Apps.fileManagerCommand, Apps.browserCommand, Idle.enabled, PolkitConfig.enabled].join("|")
   on_InputsChanged: _debounce.restart()
+
+  // The window look and the blur behind axiom (paused over a fullscreen
+  // window too). A change is only evaluated at runtime, in every mode: a
+  // Hyprland reload on every step of a setting stalls the desktop, and
+  // detached, re-applying the whole layer redoes every bind. The file
+  // holds them as of its last write, and _applyLook evaluates the current
+  // ones over it after every reload. Turning a look part off goes through
+  // apply(), since an eval can't take a setting back.
+  readonly property string _liveInputs: [HyprlandConfig._lookJson, Appearance.blur, BlurManager.active, Appearance.blurBackdrops, Appearance.blurThroughWindows, Theme.borderFocus, Theme.border, Appearance.borderRadius, Appearance.borderWidth].join("|")
+  on_LiveInputsChanged: _liveDebounce.restart()
+
+  property Timer _liveDebounce: Timer {
+    interval: 300
+    onTriggered: {
+      const dropped = _lookState.applied.split(",").some(part => part !== "" && !HyprLua.lookParts(HyprlandConfig.look).includes(part));
+      if (root._appliedMode !== root.mode || dropped)
+        root.apply();
+      else
+        root._applyLook();
+    }
+  }
 
   property Timer _debounce: Timer {
     interval: 300

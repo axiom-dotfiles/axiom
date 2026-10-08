@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 49
+  readonly property int currentVersion: 51
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -125,6 +125,10 @@ QtObject {
       result = _v47ToV48(result, changes);
     if (version < 49)
       result = _v48ToV49(result, changes);
+    if (version < 50)
+      result = _v49ToV50(result, changes);
+    if (version < 51)
+      result = _v50ToV51(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -1710,6 +1714,69 @@ QtObject {
       return config;
     hypr.look = look;
     changes.push(`Hyprland.theme and managed gaps/matchAxiom -> Hyprland.look ${JSON.stringify(look)}`);
+    return config;
+  }
+
+  // v50 made translucency and blur one Look & Feel setting
+  // (Appearance.surface): "Blur behind axiom" (Hyprland.blur) becomes its
+  // blur switch, which stays off-screen until the surfaces are translucent
+  function _v49ToV50(config, changes) {
+    const hypr = config.Hyprland;
+    if (!hypr || typeof hypr !== "object" || hypr.blur === undefined)
+      return config;
+    const blur = hypr.blur === true;
+    delete hypr.blur;
+    if (!config.Appearance || typeof config.Appearance !== "object")
+      config.Appearance = {};
+    const appearance = config.Appearance;
+    if (!appearance.surface || typeof appearance.surface !== "object")
+      appearance.surface = {};
+    appearance.surface.blur = blur;
+    changes.push(`Hyprland.blur -> Appearance.surface.blur ${blur}`);
+    return config;
+  }
+
+  // v51 made Hyprland's blur and window opacity parts of the window look
+  // (Hyprland.look `blur` and `opacity`: every mode, shared with a config),
+  // out of the managed config, which keeps writing them (the parts on), and
+  // out of Look & Feel → Translucency, whose blur now uses Hyprland's
+  // (its own strength and "blur transparent windows too" go). The
+  // recommended environment became a switch (Hyprland.managed
+  // recommendedEnv), so the old default env entry goes.
+  readonly property var _v51LookFields: ["windowBlur", "blurSize", "blurPasses", "blurXray", "blurIgnoreOpacity", "blurNewOptimizations", "blurNoise", "blurContrast", "blurVibrancy", "blurPopups", "blurSpecial", "activeOpacity", "inactiveOpacity", "fullscreenOpacity"]
+
+  function _v50ToV51(config, changes) {
+    const hypr = config.Hyprland;
+    if (hypr && typeof hypr === "object") {
+      const managed = hypr.managed && typeof hypr.managed === "object" ? hypr.managed : null;
+      const look = hypr.look && typeof hypr.look === "object" ? hypr.look : {};
+      const moved = managed ? root._v51LookFields.filter(key => managed[key] !== undefined) : [];
+      for (const key of moved) {
+        look[key] = managed[key];
+        delete managed[key];
+      }
+      if (hypr.mode === "managed") {
+        look.blur = true;
+        look.opacity = true;
+      }
+      if (moved.length > 0 || hypr.mode === "managed") {
+        hypr.look = look;
+        changes.push(`Hyprland.managed blur and opacity -> Hyprland.look (${moved.length > 0 ? moved.join(", ") : "parts on"})`);
+      }
+      if (Array.isArray(managed?.env)) {
+        const kept = managed.env.filter(entry => !(entry?.name === "QT_QPA_PLATFORM" && entry?.value === "wayland;xcb"));
+        if (kept.length !== managed.env.length) {
+          managed.env = kept;
+          changes.push("Hyprland.managed.env: QT_QPA_PLATFORM is in the recommended environment now");
+        }
+      }
+    }
+    const surface = config.Appearance?.surface;
+    if (surface && typeof surface === "object" && (surface.strength !== undefined || surface.windows !== undefined)) {
+      delete surface.strength;
+      delete surface.windows;
+      changes.push("Appearance.surface strength and windows dropped: the blur is Hyprland's (Hyprland.look.blur)");
+    }
     return config;
   }
 }

@@ -13,17 +13,34 @@ import qs.config
 // the border does, since a shadow shifted along a stroke it joins would
 // cover that stroke. A glow always spreads evenly. Windows keep
 // BarStyle.shadowReach of room past the surface for it.
+// `cut` keeps only the shadow outside the source's shape, dropping the
+// source too: for a translucent surface, whose own shadow would otherwise
+// show through it. Its source then is a copy of the shape (a layer of its
+// own, as FloatingPopout's copy, or a capture of it: OutsideShadow). Only
+// what the shape covers fully is cut: under its anti-aliased edge the
+// shadow stays, as the stroke drawn over it hides it there, or a pixel's
+// gap shows between the surface and its shadow.
 MultiEffect {
   property int edge: -1
   property bool falls: true
+  property bool cut: false
+  // What it's cut by: the source, or a copy of it with more cut out
+  // (OutsideShadow's holes)
+  property var cutSource: source
 
-  readonly property var look: BarStyle.values
+  // BarStyle's, or a bar's own (Bar.barConfig: shadow, shadowColor, shadowSize)
+  property var look: BarStyle.values
   readonly property real offset: look.shadow === "glow" || !falls ? 0 : look.shadowSize / 4
 
   shadowEnabled: look.shadow !== "none"
   shadowColor: Bar.shadowColor(look)
   shadowBlur: 1
   blurMax: look.shadowSize
+  maskEnabled: cut
+  maskSource: cut ? cutSource : null
+  maskInverted: true
+  maskThresholdMin: 0.99
+  maskSpreadAtMin: 0
   shadowHorizontalOffset: edge === Bar.Left ? offset : edge === Bar.Right ? -offset : 0
   shadowVerticalOffset: edge === Bar.Bottom ? -offset : edge === Bar.Left || edge === Bar.Right ? 0 : offset
 }

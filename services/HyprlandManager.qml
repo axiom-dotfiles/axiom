@@ -157,6 +157,7 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
     }
     getGaps.running = true;
     getSplitMultiplier.running = true;
+    getBlur.running = true;
     getAnimations.running = true;
   }
 
@@ -556,6 +557,13 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
   // dwindle:split_width_multiplier: a box wider than tall times this splits
   // side by side (placeWindow, and the overview's drop preview)
   property real splitWidthMultiplier: 1
+  // Hyprland's blur as in effect, { enabled, size, passes } (its defaults
+  // until read): the one axiom's translucent surfaces blur with
+  property var blur: ({
+      "enabled": true,
+      "size": 8,
+      "passes": 1
+    })
 
   // Hyprland arranges and stacks each layer's surfaces in the order they
   // were mapped, unless a layer rule's `order` says otherwise (higher is
@@ -596,7 +604,7 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
   // HyprlandConfigManager also writes them into its Lua files, since a
   // reload Hyprland does by itself (a watched file changing) doesn't always
   // send the configreloaded event that re-adds them here.
-  readonly property var layerRulesLua: [`hl.layer_rule({ name = "axiom-backdrop", match = { namespace = "^axiom-backdrop$" }, order = 10 })`, `hl.layer_rule({ name = "axiom-border-shadow", match = { namespace = "^axiom-border-shadow$" }, order = 11 })`, `hl.layer_rule({ name = "axiom-bar", match = { namespace = "^axiom-bar$" }, order = 5 })`, `hl.layer_rule({ name = "axiom-edge-menu", match = { namespace = "^axiom-edge-menu$" }, order = 7 })`, `hl.layer_rule({ name = "axiom-popout-under", match = { namespace = "^axiom-popout-under$" }, order = 6 })`, `hl.layer_rule({ name = "axiom-bar-floating", match = { namespace = "^axiom-bar-floating$" }, order = -1 })`, `hl.layer_rule({ name = "axiom-dock", match = { namespace = "^axiom-dock$" }, order = -2 })`, `hl.layer_rule({ name = "axiom-edge-popout", match = { namespace = "^axiom-edge-popout$" }, order = -5 })`, `hl.layer_rule({ name = "axiom-overlay", match = { namespace = "^axiom-overlay$" }, order = -3 })`, `hl.layer_rule({ name = "axiom-osd", match = { namespace = "^axiom-osd$" }, order = -4 })`, `hl.layer_rule({ name = "axiom-dock-preview", match = { namespace = "^axiom-dock-preview$" }, order = -4 })`, `hl.layer_rule({ name = "axiom-screenshot", match = { namespace = "^axiom-screenshot$" }, no_anim = true, order = -20 })`, `hl.layer_rule({ name = "axiom-monitor-prompt", match = { namespace = "^axiom-monitor-prompt$" }, order = -25 })`, `hl.layer_rule({ name = "axiom-polkit", match = { namespace = "^axiom-polkit$" }, order = -30 })`]
+  readonly property var layerRulesLua: [`hl.layer_rule({ name = "axiom-backdrop", match = { namespace = "^axiom-backdrop$" }, order = 10 })`, `hl.layer_rule({ name = "axiom-border-shadow", match = { namespace = "^axiom-border-shadow$" }, order = 11 })`, `hl.layer_rule({ name = "axiom-blur-backing", match = { namespace = "^axiom-blur-backing$" }, order = 9 })`, `hl.layer_rule({ name = "axiom-bar", match = { namespace = "^axiom-bar$" }, order = 5 })`, `hl.layer_rule({ name = "axiom-edge-menu", match = { namespace = "^axiom-edge-menu$" }, order = 7 })`, `hl.layer_rule({ name = "axiom-popout-under", match = { namespace = "^axiom-popout-under$" }, order = 6 })`, `hl.layer_rule({ name = "axiom-bar-floating", match = { namespace = "^axiom-bar-floating$" }, order = -1 })`, `hl.layer_rule({ name = "axiom-dock", match = { namespace = "^axiom-dock$" }, order = -2 })`, `hl.layer_rule({ name = "axiom-edge-popout", match = { namespace = "^axiom-edge-popout$" }, order = -5 })`, `hl.layer_rule({ name = "axiom-overlay", match = { namespace = "^axiom-overlay$" }, order = -3 })`, `hl.layer_rule({ name = "axiom-osd", match = { namespace = "^axiom-osd$" }, order = -4 })`, `hl.layer_rule({ name = "axiom-dock-preview", match = { namespace = "^axiom-dock-preview$" }, order = -4 })`, `hl.layer_rule({ name = "axiom-screenshot", match = { namespace = "^axiom-screenshot$" }, no_anim = true, order = -20 })`, `hl.layer_rule({ name = "axiom-monitor-prompt", match = { namespace = "^axiom-monitor-prompt$" }, order = -25 })`, `hl.layer_rule({ name = "axiom-polkit", match = { namespace = "^axiom-polkit$" }, order = -30 })`]
 
   function _addLayerRules() {
     for (const rule of layerRulesLua)
@@ -693,6 +701,26 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
         const value = Number(root._parse(splitCollector.text, "getoption")?.float);
         if (value > 0)
           root.splitWidthMultiplier = value;
+      }
+    }
+  }
+
+  Process {
+    id: getBlur
+    command: ["sh", "-c", "printf '[%s,%s,%s]' \"$(hyprctl getoption decoration:blur:enabled -j)\" \"$(hyprctl getoption decoration:blur:size -j)\" \"$(hyprctl getoption decoration:blur:passes -j)\""]
+    stdout: StdioCollector {
+      id: blurCollector
+      onStreamFinished: {
+        const options = root._parse(blurCollector.text, "getoption blur");
+        if (!Array.isArray(options) || options.length !== 3)
+          return;
+        const next = {
+          "enabled": options[0]?.int === 1 || options[0]?.bool === true,
+          "size": Number(options[1]?.int),
+          "passes": Number(options[2]?.int)
+        };
+        if (next.size > 0 && next.passes > 0 && JSON.stringify(next) !== JSON.stringify(root.blur))
+          root.blur = next;
       }
     }
   }

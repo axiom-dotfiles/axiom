@@ -60,7 +60,7 @@ Rectangle {
   default property alias content: full.data
 
   anchors.fill: parent
-  color: bare ? "transparent" : Theme.background
+  color: bare ? "transparent" : Appearance.fill(Theme.background)
   border.color: Theme.border
   border.width: bare ? 0 : Appearance.borderWidth
   radius: Widget.radius

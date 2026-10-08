@@ -156,7 +156,7 @@ Item {
       width: contentContainer.width
       height: contentContainer.height
       radius: Appearance.borderRadius
-      color: Theme.backgroundAlt
+      color: Appearance.fill(Theme.backgroundAlt)
       border.color: Theme.foreground
       border.width: Appearance.borderWidth
 

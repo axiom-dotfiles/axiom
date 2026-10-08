@@ -32,7 +32,7 @@ Rectangle {
   implicitHeight: content.implicitHeight + (textPadding * 2)
   Layout.alignment: Qt.AlignVCenter
 
-  color: mouseArea.pressed ? pressColor : (mouseArea.containsMouse ? hoverColor : backgroundColor)
+  color: Appearance.fill(mouseArea.pressed ? pressColor : (mouseArea.containsMouse ? hoverColor : backgroundColor))
   border.color: borderColor
   border.width: borderWidth
   radius: borderRadius

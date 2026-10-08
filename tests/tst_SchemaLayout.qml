@@ -158,6 +158,41 @@ TestCase {
     compare(groups[1].intro, "");
   }
 
+  function test_intro_on_a_nested_objects_own_card() {
+    const groups = SchemaLayout.groups({
+      "properties": {
+        "S": {
+          "type": "object",
+          "title": "Sec",
+          "properties": {
+            "a": {
+              "type": "boolean",
+              "title": "A"
+            },
+            "n": {
+              "type": "object",
+              "title": "Nested",
+              "x-intro": "Status",
+              "properties": {
+                "b": {
+                  "type": "boolean",
+                  "title": "B"
+                },
+                "c": {
+                  "type": "boolean",
+                  "title": "C",
+                  "x-group": "Other"
+                }
+              }
+            }
+          }
+        }
+      }
+    }, "S");
+    compare(groups.map(group => group.title), ["Sec", "Nested", "Other"]);
+    compare(groups.map(group => group.intro), ["", "Status", ""]);
+  }
+
   // A hand-built card goes first; with `x-cardFolds` it folds, and the
   // real cards that fold take their key as `foldKey` (EntryListCards do)
   function test_card_folds() {

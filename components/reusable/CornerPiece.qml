@@ -44,7 +44,7 @@ Item {
 
     // --- FILL ---
     ShapePath {
-      fillColor: root.fillColor
+      fillColor: Appearance.fill(root.fillColor)
       strokeColor: "transparent"
       strokeWidth: 0
 

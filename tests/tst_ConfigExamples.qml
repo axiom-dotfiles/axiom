@@ -257,7 +257,7 @@ TestCase {
     running.Idle.enabled = true;
     verify(ConfigExamples.equalApartFrom(running, saved, paths), "takeovers differ");
     verify(!ConfigExamples.equalApartFrom(running, saved, []), "no paths left out");
-    running.Hyprland.blur = !saved.Hyprland.blur;
+    running.Hyprland.requiredSettings = !saved.Hyprland.requiredSettings;
     verify(!ConfigExamples.equalApartFrom(running, saved, paths), "a sibling of a takeover differs");
     const other = defaults();
     other.Workspaces.count = saved.Workspaces.count + 1;

@@ -7,6 +7,7 @@ import Quickshell.Wayland
 import qs.config
 import qs.services
 import qs.components.reusable
+import qs.components.hosts.popout
 
 // One screen's border (Appearance.screenBorder): an edge strip per side
 // (BorderPanel), reserving `frameWidth`, and a concave corner piece
@@ -51,7 +52,37 @@ Item {
   // so the bar and its widgets show through
   function frameColorFor(edge) {
     const bar = root.edges[edge];
-    return bar && bar.solid && bar.reserveSpace ? "transparent" : root.frameColor;
+    return root.backed || (bar && bar.solid && bar.reserveSpace) ? "transparent" : root.frameColor;
+  }
+
+  // The blur window draws the frame's fill (BlurManager): the strips and
+  // corners draw their strokes only
+  readonly property bool backed: BlurManager.backing
+  // The frame, for it: from past the integrated edge menus on each edge
+  // (arranged outside the border) to the stroke's inner side, round the
+  // corner pieces' arcs, in screen coordinates
+  function _menuZone(edge) {
+    return EdgeMenuManager.zoneOn(root.screen?.name ?? "", edge);
+  }
+  readonly property real outerLeft: root._menuZone("left")
+  readonly property real outerTop: root._menuZone("top")
+  readonly property real outerRight: root._menuZone("right")
+  readonly property real outerBottom: root._menuZone("bottom")
+  readonly property real innerLeft: root.outerLeft + root.innerInset("left")
+  readonly property real innerTop: root.outerTop + root.innerInset("top")
+  readonly property real innerRight: root.outerRight + root.innerInset("right")
+  readonly property real innerBottom: root.outerBottom + root.innerInset("bottom")
+  readonly property real innerRadius: Math.max(0, root.innerBorderRadius - root.strokeWidth)
+
+  BlurShape {
+    source: root
+    kind: "frame"
+    color: root.frameColor
+    screen: root.screen?.name ?? ""
+    shown: root.backed
+    // Cast evenly, inward, by the blur window in place of shadowWindow's
+    shadow: BarStyle.values
+    shadowFalls: false
   }
 
   // An edge strip per side
@@ -65,7 +96,7 @@ Item {
       frameWidth: root.frameWidth
       innerBorderRadius: root.innerBorderRadius
       frameColor: root.frameColorFor(modelData)
-      endFillColor: root.frameColor
+      endFillColor: root.backed ? "transparent" : root.frameColor
       innerStrokeColor: root.innerStrokeColor
       strokeWidth: root.strokeWidth
     }
@@ -88,7 +119,9 @@ Item {
     // The stroke's inner side, round the corner pieces' arcs
     readonly property real radius: Math.max(0, root.innerBorderRadius - root.strokeWidth)
 
-    visible: look.shadow !== "none"
+    // Backed, the blur window casts it, with the surfaces joined to the
+    // frame (BlurShape.shadow)
+    visible: look.shadow !== "none" && !root.backed
     screen: root.screen
     anchors {
       left: true
@@ -102,20 +135,52 @@ Item {
     aboveWindows: true
     WlrLayershell.namespace: "axiom-border-shadow"
 
-    // The inside of the frame
+    // Surfaces joined to the frame's stroke (ShellManager.borderOpenings)
+    // as rects it casts nothing on, from the frame line in: their
+    // translucent fill would show (and blur) it
+    readonly property var holes: ShellManager.borderOpenings.filter(o => o.screen === (root.screen?.name ?? "")).map(o => {
+      const reach = look.shadowSize * 2;
+      const along = o.end - o.start;
+      switch (o.edge) {
+      case "top":
+        return Qt.rect(o.start, top, along, reach);
+      case "bottom":
+        return Qt.rect(o.start, height - bottom - reach, along, reach);
+      case "left":
+        return Qt.rect(left, o.start, reach, along);
+      default:
+        return Qt.rect(width - right - reach, o.start, reach, along);
+      }
+    })
+
+    // The inside of the frame, but for the holes (each its own subpath,
+    // left empty by the odd-even fill)
     Item {
       id: interior
       anchors.fill: parent
       visible: false
       layer.enabled: true
 
-      Rectangle {
-        x: shadowWindow.left
-        y: shadowWindow.top
-        width: Math.max(0, parent.width - shadowWindow.left - shadowWindow.right)
-        height: Math.max(0, parent.height - shadowWindow.top - shadowWindow.bottom)
-        radius: shadowWindow.radius
-        color: "black"
+      Shape {
+        anchors.fill: parent
+        preferredRendererType: Shape.CurveRenderer
+
+        ShapePath {
+          fillColor: "black"
+          fillRule: ShapePath.OddEvenFill
+          strokeColor: "transparent"
+          strokeWidth: 0
+
+          PathSvg {
+            readonly property real x0: shadowWindow.left
+            readonly property real y0: shadowWindow.top
+            readonly property real x1: shadowWindow.width - shadowWindow.right
+            readonly property real y1: shadowWindow.height - shadowWindow.bottom
+            readonly property real r: Math.max(0, Math.min(shadowWindow.radius, (x1 - x0) / 2, (y1 - y0) / 2))
+
+            path: `M ${x0 + r} ${y0} L ${x1 - r} ${y0} A ${r} ${r} 0 0 1 ${x1} ${y0 + r} L ${x1} ${y1 - r} A ${r} ${r} 0 0 1 ${x1 - r} ${y1} L ${x0 + r} ${y1} A ${r} ${r} 0 0 1 ${x0} ${y1 - r} L ${x0} ${y0 + r} A ${r} ${r} 0 0 1 ${x0 + r} ${y0} Z` + shadowWindow.holes.map(h => ` M ${h.x} ${h.y} L ${h.x + h.width} ${h.y} L ${h.x + h.width} ${h.y + h.height} L ${h.x} ${h.y + h.height} Z`).join("")
+          }
+        }
       }
     }
 
@@ -211,7 +276,7 @@ Item {
 
       CornerPiece {
         borderRadius: root.innerBorderRadius
-        fillColor: root.frameColor
+        fillColor: root.backed ? "transparent" : root.frameColor
         strokeColor: root.innerStrokeColor
         strokeWidth: root.strokeWidth
         isLeft: corner.isLeft

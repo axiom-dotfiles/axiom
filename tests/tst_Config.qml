@@ -1121,6 +1121,84 @@ TestCase {
     compare(errors(loaded.config), []);
   }
 
+  function test_v51_blur_and_opacity_join_the_window_look() {
+    const managed = load({
+      "version": 50,
+      "Hyprland": {
+        "mode": "managed",
+        "managed": {
+          "blurSize": 6,
+          "blurPasses": 2,
+          "inactiveOpacity": 90,
+          "env": [
+            {
+              "name": "QT_QPA_PLATFORM",
+              "value": "wayland;xcb"
+            },
+            {
+              "name": "QT_QPA_PLATFORMTHEME",
+              "value": "qt6ct"
+            }
+          ]
+        }
+      },
+      "Appearance": {
+        "surface": {
+          "opacity": 80,
+          "strength": 7,
+          "windows": true
+        }
+      }
+    }).config;
+    compare(managed.Hyprland.look.blur, true, "a managed config keeps writing its blur");
+    compare(managed.Hyprland.look.opacity, true);
+    compare(managed.Hyprland.look.blurSize, 6);
+    compare(managed.Hyprland.look.blurPasses, 2);
+    compare(managed.Hyprland.look.inactiveOpacity, 90);
+    compare(managed.Hyprland.look.windowBlur, true, "defaults fill the rest");
+    compare(managed.Hyprland.managed.blurSize, undefined);
+    compare(managed.Hyprland.managed.recommendedEnv, true);
+    compare(managed.Hyprland.managed.env, [
+      {
+        "name": "QT_QPA_PLATFORMTHEME",
+        "value": "qt6ct"
+      }
+    ], "the old default is recommended now");
+    compare(managed.Appearance.surface.strength, undefined);
+    compare(managed.Appearance.surface.windows, undefined);
+    compare(managed.Appearance.surface.opacity, 80);
+    compare(errors(managed), []);
+
+    const detached = load({
+      "version": 50,
+      "Hyprland": {
+        "mode": "detached"
+      }
+    }).config;
+    compare(detached.Hyprland.look.blur, false, "Hyprland's own blur unless asked");
+    compare(detached.Hyprland.look.opacity, false);
+    compare(errors(detached), []);
+  }
+
+  function test_v50_hyprland_blur_becomes_surface_blur() {
+    const loaded = load({
+      "version": 49,
+      "Hyprland": {
+        "blur": true
+      }
+    }).config;
+    compare(loaded.Hyprland.blur, undefined);
+    compare(loaded.Appearance.surface.blur, true);
+    compare(loaded.Appearance.surface.opacity, 100);
+    compare(errors(loaded), []);
+    compare(load({
+      "version": 49,
+      "Hyprland": {
+        "blur": false
+      }
+    }).config.Appearance.surface.blur, false);
+  }
+
   function test_v49_window_look_moves_to_hyprland_look() {
     const managed = load({
       "version": 48,
@@ -1135,7 +1213,10 @@ TestCase {
         }
       }
     }).config.Hyprland;
-    compare(managed.look, {
+    const v49 = ["borders", "shape", "gaps", "gapsIn", "gapsOut"];
+    compare(v49.reduce((picked, key) => Object.assign(picked, {
+        [key]: managed.look[key]
+      }), {}), {
       "borders": true,
       "shape": false,
       "gaps": true,

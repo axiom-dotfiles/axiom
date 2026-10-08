@@ -36,6 +36,7 @@ ScreenLayoutView {
   modules: root.isTarget ? root.allModules : root.layout?.otherScreens === "layout" ? root.allModules.filter(module => module?.type !== "Password") : []
   wallpaper: root.screen ? Appearance.wallpaperFor(root.screen.name) : ""
   blurWallpaper: LockscreenConfig.blurWallpaper
+  hyprBlur: HyprlandManager.blur
   host: ({
       "kind": "lockscreen",
       "target": root.isTarget,

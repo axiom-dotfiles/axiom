@@ -105,9 +105,10 @@ QtObject {
   }
 
   // Surfaces sharing a screen edge give way by rank, lowest first: a dock
-  // to an OSD, both to a floating edge menu (opened by hand, the pointer
-  // on it). A lower one closes while a higher one shows on its edge.
-  readonly property var edgeRanks: ["dock", "osd", "menu"]
+  // to an OSD, both to the attached launcher, all three to a floating edge
+  // menu (opened by hand, the pointer on it). A lower one closes while a
+  // higher one shows on its edge.
+  readonly property var edgeRanks: ["dock", "osd", "launcher", "menu"]
   // `{ owner, screen, edge, kind }` (a screen name, a Bar.edgeName): the
   // ranked surfaces showing
   property var edgeClaims: []
@@ -121,6 +122,26 @@ QtObject {
         }, claim)]);
     else if (others.length !== edgeClaims.length)
       edgeClaims = others;
+  }
+
+  // `{ owner, screen, edge, start, end }` (a screen name, a Bar.edgeName,
+  // screen px along the edge): surfaces joined to the border's inner
+  // stroke, which leaves it open under them while surfaces are translucent,
+  // where it would show through their fill (BorderPanel)
+  property var borderOpenings: []
+
+  // `opening` is `{ screen, edge, start, end }`, or null to drop the owner's
+  function setBorderOpening(owner, opening) {
+    const mine = borderOpenings.find(o => o.owner === owner);
+    if (mine && opening && mine.screen === opening.screen && mine.edge === opening.edge && mine.start === opening.start && mine.end === opening.end)
+      return;
+    const others = borderOpenings.filter(o => o.owner !== owner);
+    if (opening)
+      borderOpenings = others.concat([Object.assign({
+          owner
+        }, opening)]);
+    else if (mine)
+      borderOpenings = others;
   }
 
   // Whether something ranked above `kind` shows on that screen edge
