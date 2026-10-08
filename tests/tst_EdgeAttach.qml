@@ -279,4 +279,83 @@ TestCase {
     }));
     compare([p.start, p.end, p.contentStart, p.flushStart, p.flushEnd], [300, 700, 300, true, true]);
   }
+
+  function test_pill_grows_for_a_fillet_short_of_its_start() {
+    // 50 in from the pill's start, 32 short of a fillet's room: the pill
+    // grows back under it, the box keeping to its content
+    const p = EdgeAttach.place(spec({
+      "pills": [pill(100, 400)],
+      "pillBar": true,
+      "centre": 200,
+      "aligned": 150,
+      "pillGrows": true
+    }));
+    compare([p.start, p.end, p.contentStart, p.grow, p.flushStart, p.startMargin], [150, 250, 150, 0, false, 54]);
+    compare([p.stretch.start, p.stretch.end, p.stretch.squareStart], [68, 500, false]);
+  }
+
+  function test_pill_grows_for_a_fillet_short_of_its_end() {
+    const p = EdgeAttach.place(spec({
+      "pills": [pill(100, 400)],
+      "pillBar": true,
+      "centre": 430,
+      "aligned": 380,
+      "pillGrows": true
+    }));
+    compare([p.start, p.end, p.grow, p.flushEnd, p.endMargin], [380, 480, 0, false, 54]);
+    compare([p.stretch.start, p.stretch.end, p.stretch.squareEnd], [100, 562, false]);
+  }
+
+  function test_island_grows_towards_a_neighbour_within_merge() {
+    // Its fillet room reaches within merge of the next island: the two
+    // draw as one, and the box keeps to its content at both ends
+    const p = EdgeAttach.place(spec({
+      "island": true,
+      "merge": 30,
+      "pills": [pill(100, 200), pill(320, 180)],
+      "centre": 200,
+      "aligned": 150,
+      "length": 200,
+      "pillGrows": true
+    }));
+    compare([p.start, p.end, p.grow, p.flushStart, p.flushEnd], [150, 350, 0, false, false]);
+    compare([p.stretch.index, p.stretch.start, p.stretch.end], [0, 68, 432]);
+  }
+
+  function test_pill_grows_not_past_where_islands_reach() {
+    // No room past the island's start for the fillet: flush, as without
+    const p = EdgeAttach.place(spec({
+      "island": true,
+      "pills": [pill(20, 800)],
+      "centre": 100,
+      "aligned": 50,
+      "pillGrows": true
+    }));
+    compare([p.start, p.contentStart, p.flushStart, p.startMargin], [20, 50, true, 0]);
+  }
+
+  function test_pill_grows_still_joins_the_edge() {
+    const p = EdgeAttach.place(spec({
+      "pills": [pill(-2, 300, true, false)],
+      "pillBar": true,
+      "centre": 100,
+      "aligned": 50,
+      "length": 200,
+      "pillGrows": true
+    }));
+    compare([p.start, p.joinStart, p.flushStart, p.contentStart], [-2, true, false, 50]);
+  }
+
+  function test_pill_grows_runs_flush_past_its_end() {
+    // Content past the island's ends: flush, the island stretched to it
+    const p = EdgeAttach.place(spec({
+      "island": true,
+      "pills": [pill(400, 200)],
+      "centre": 500,
+      "aligned": 300,
+      "length": 400,
+      "pillGrows": true
+    }));
+    compare([p.start, p.end, p.grow, p.flushStart, p.flushEnd], [300, 700, 0, true, true]);
+  }
 }

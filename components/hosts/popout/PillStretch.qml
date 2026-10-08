@@ -18,6 +18,45 @@ QtObject {
   // of edge popouts on its edge)
   required property string owner
 
+  // Whether its surface is to show (open, not closing): set by the host
+  property bool open: false
+  // Whether the pill has grown out to the stretch, so the surface may slide
+  // out onto it: it grows first, as it draws back only after the surface
+  // has gone. Once ready it holds while the surface stays open, so a
+  // stretch changing meanwhile (a switch in place, a resize) never pulls
+  // the surface back.
+  readonly property bool ready: root._latched || (root._armed && root._readyNow)
+  readonly property bool _readyNow: !root.stretch || !root.container || root.container.carries(root.stretch)
+  // Open for a turn of the event loop: a host's stretch comes in with its
+  // content, in the same pass that opens it, so it's judged only after
+  property bool _armed: false
+  property bool _latched: false
+  function _relatch() {
+    // Gone meanwhile
+    if (!root)
+      return;
+    if (!root.open) {
+      root._armed = false;
+      root._latched = false;
+    } else if (root._armed && root._readyNow) {
+      root._latched = true;
+    }
+  }
+  onOpenChanged: {
+    if (!root.open) {
+      root._relatch();
+      return;
+    }
+    Qt.callLater(() => {
+      if (!root || !root.open)
+        return;
+      root._armed = true;
+      root._relatch();
+    });
+  }
+  // Later: it changes while `ready` is being evaluated
+  on_ReadyNowChanged: Qt.callLater(root._relatch)
+
   property var _target: null
   function _clear() {
     try {

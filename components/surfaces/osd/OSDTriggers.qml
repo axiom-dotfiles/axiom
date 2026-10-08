@@ -38,9 +38,13 @@ QtObject {
   readonly property string edgeName: Bar.edgeName(Bar.getLocationFromString(root.osd.edge))
   readonly property string _screenName: root.host.screen?.name ?? ""
   readonly property bool outranked: ShellManager.edgeOutranked(root._screenName, root.edgeName, "osd")
+  // Later: hiding drops its own edge claim, which `outranked` reads
   onOutrankedChanged: {
     if (root.outranked)
-      root.host.hide();
+      Qt.callLater(() => {
+        if (root && root.outranked)
+          root.host.hide();
+      });
   }
   readonly property var _claim: root._open ? ({
       "screen": root._screenName,

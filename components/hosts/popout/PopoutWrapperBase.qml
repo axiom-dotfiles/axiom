@@ -44,6 +44,22 @@ Item {
   // Open and not on its way out
   readonly property bool isOpen: occupied && !isClosing
 
+  // Something outranks it where it shows (ShellManager.edgeOutranked): it
+  // closes, and won't open until that's gone
+  property bool blocked: false
+  onBlockedChanged: {
+    if (!blocked)
+      return;
+    hasPendingOpen = false;
+    pendingOpenData = null;
+    pendingOpenAnchor = null;
+    // Later: closing drops its own edge claim, which `blocked` reads
+    Qt.callLater(() => {
+      if (root && root.blocked && root.occupied && !root.isClosing)
+        root.requestDismiss();
+    });
+  }
+
   // Opens with `data` as the payload ({ anchorItem } keeps it open while
   // that item is hovered), or restarts the countdown when already open
   function show(data) {
@@ -179,6 +195,8 @@ Item {
   }
 
   function safeOpenPopout(anchor, data) {
+    if (blocked)
+      return;
     if (occupied && canSwitchTo(anchor, data)) {
       pendingOpenData = data;
       pendingOpenAnchor = anchor;
