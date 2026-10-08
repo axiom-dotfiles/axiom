@@ -4,9 +4,10 @@ import qs.config
 import qs.components.methods
 
 // The layouts editor on a screen layout (a ScreenLayoutEditor's draft:
-// the lock screen's, the greeter's): its modules on a bounded grid of
-// columns × rows units inside the screen's outline, which every monitor
-// stretches to fill. LockscreenTarget and GreeterTarget name it.
+// the desktop's, the lock screen's, the greeter's): its modules on a
+// bounded grid of columns × rows units inside the screen's outline, which
+// every monitor stretches to fill. DesktopTarget, LockscreenTarget and
+// GreeterTarget name it.
 EditTarget {
   id: root
 
@@ -14,6 +15,10 @@ EditTarget {
   required property var screenEditor
   // What it is, over its fields in the side panel
   property string description: ""
+  // Its fields in groups, for the side panel (a ScreenLayout's)
+  property var fieldGroups: LockscreenConfig.fieldGroups
+  // Whether it can be shown on screen from the editor (startPreview)
+  property bool canPreview: true
   readonly property var layout: root.screenEditor.localLayout
   readonly property var grid: GridPlacement.screenGrid(root.layout)
 

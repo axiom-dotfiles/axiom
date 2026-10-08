@@ -66,14 +66,14 @@ Set a style once under **Settings → Look & Feel → Bar widgets**, and give an
 <p align="center"><img src="../assets/screenshots/overlay-home.webp" alt="The overlay's Home page: Wi-Fi, quick actions, media, notifications, a clock and calendar, the mixer, network, weather and disks" width="900"></p>
 
 - A full-screen overlay made of pages. Each page is a grid you place modules on, with gaps wherever you like. Pages have their own name and icon in the navigator.
-- **27 modules**, and every one adapts to its size and shape (square, wide or tall, down to a compact figure):
+- **28 modules**, and every one adapts to its size and shape (square, wide or tall, down to a compact figure):
 
   | Group | Modules |
   | --- | --- |
   | Media and sound | Now playing, Audio mixer, Volume dials |
   | System | System graphs, Top processes, Disks, Battery, Updates, Network |
   | Controls | Quick actions (toggles, power, pin), Screenshot, Bluetooth devices, Wi-Fi networks, Favourite apps |
-  | Time and plans | Clock & calendar, Calendar, Agenda, Weather |
+  | Time and plans | Clock (digital, stacked or analog, in any time zone), Clock & calendar, Calendar, Agenda, Weather |
   | Workspace | Workspaces map, Notifications |
   | Writing | Notes, AI chat |
   | Look | Theme picker, Wallpapers, Palette, Theme color swatch, Greeting |
@@ -99,7 +99,7 @@ Set a style once under **Settings → Look & Feel → Bar widgets**, and give an
 
 ## The Layouts editor
 
-One editor, one grid, for everything made of modules: your **overlay pages**, your **edge menus**, the **lock screen** and the **login screen**.
+One editor, one grid, for everything made of modules: your **overlay pages**, your **edge menus**, the **desktop**, the **lock screen** and the **login screen**.
 
 | A page | An edge menu |
 | :---: | :---: |
@@ -111,7 +111,8 @@ One editor, one grid, for everything made of modules: your **overlay pages**, yo
 - Drag a box (or Shift/Ctrl+click) to select several modules and move them together, or drop them on the trash can to remove them.
 - Undo and redo every edit (buttons, or Ctrl+Z / Ctrl+Shift+Z), and move or resize the selected module with the arrow keys (Shift to resize).
 - Click a module to edit its options in the inspector, which also has steppers for its exact size.
-- Edge menus are drawn against their screen edge. The lock and login screens are a screen-sized grid, with an optional double grid for finer placement.
+- Edge menus are drawn against their screen edge. The desktop and the lock and login screens are a screen-sized grid, with an optional double grid for finer placement.
+- **Desktop widgets:** modules on your desktop, under your windows, fitted inside the bars and border so they line up with your tiled windows. They sit straight on the wallpaper (or in frosted cards) and take clicks, while the empty desktop is clicked through. One layout can cover all monitors, the primary monitor, or a monitor of its own (by name, so a laptop's screen keeps its layout when you dock and undock).
 - Every change shows live on your desktop (or on screen, for the lock and login screens, with **Show on screen**). **Save** keeps it, **Reset** throws it away.
 - Each page and menu lists what opens it, and adds a bar button or a keybind for it.
 

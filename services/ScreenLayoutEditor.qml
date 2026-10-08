@@ -8,6 +8,10 @@ import qs.components.methods
 // GreeterManager.editor): its modules on a bounded grid, edited through
 // `layout`, its own fields, and its preview on screen. What really shows
 // (a lock, the greeter) only ever reads the saved layout.
+// A draft can hold several layouts (the desktop's, DesktopManager.editor:
+// the Desktop section): `layoutOf` picks the one edited, `layoutsOf` lists
+// them all for `problems`, and with a `previewSection` the draft shows
+// live while it differs from the config.
 // Not a singleton: each owner holds one.
 QtObject {
   id: root
@@ -18,13 +22,33 @@ QtObject {
   required property string host
   // What it's called in problems ("Lock screen")
   required property string name
+  // The layout edited in the draft (`path`'s value), or null for none: the
+  // draft itself unless it holds several
+  property var layoutOf: local => local
+  // Every layout in the draft, [{ layout, name }] (named in problems)
+  property var layoutsOf: local => [
+      {
+        "layout": local,
+        "name": root.name
+      }
+    ]
+  // What's being edited in the draft (a key the grid's history and forms
+  // start over on)
+  property string scope: ""
+  // The config section the draft is shown live as (ConfigManager.setPreview)
+  // while it differs from the config, "" for none
+  property string previewSection: ""
 
   property ConfigDraft _draft: ConfigDraft {
     id: draft
     path: root.path
+    onLocalChanged: root._syncPreview()
+    onIsDirtyChanged: root._syncPreview()
   }
-  readonly property alias localLayout: draft.local
-  readonly property alias savedLayout: draft.saved
+  // The whole draft, and the layout edited in it
+  readonly property alias local: draft.local
+  readonly property var localLayout: root.layoutOf(draft.local)
+  readonly property var savedLayout: root.layoutOf(draft.saved)
   readonly property alias isDirty: draft.isDirty
 
   property GridEditor layout: GridEditor {
@@ -32,12 +56,29 @@ QtObject {
     area: GridPlacement.screenGrid(root.localLayout)
     sizeScale: root.localLayout?.fineGrid ? 2 : 1
     modulesOf: () => root.localLayout?.modules ?? null
-    scopeKey: root.host
+    scopeKey: root.host + ":" + root.scope
     onEdited: draft.changed()
   }
 
   // Why the draft can't be saved as is (empty = savable)
-  readonly property var problems: root.layout.problemsFor(root.localLayout?.modules, root.name)
+  readonly property var problems: draft.local ? [].concat(...root.layoutsOf(draft.local).map(entry => root.layout.problemsFor(entry.layout?.modules, entry.name, GridPlacement.screenGrid(entry.layout)))) : []
+
+  function _syncPreview() {
+    if (root.previewSection === "")
+      return;
+    if (draft.isDirty)
+      ConfigManager.setPreview(root.previewSection, draft.local);
+    else
+      ConfigManager.clearPreview(root.previewSection);
+  }
+
+  // Changes the draft in place (`change(local)`), as an edit
+  function edit(change) {
+    if (!draft.local)
+      return;
+    change(draft.local);
+    draft.changed();
+  }
 
   // Loads the draft unless it holds unsaved edits
   function ensureLoaded() {

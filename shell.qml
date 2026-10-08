@@ -43,6 +43,10 @@ ShellRoot {
     id: wallpaper
   }
 
+  Desktop {
+    id: desktop
+  }
+
   Screenshot {
     id: screenshot
   }

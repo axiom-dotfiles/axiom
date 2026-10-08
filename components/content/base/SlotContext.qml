@@ -36,9 +36,9 @@ QtObject {
   // so it keeps its padding inside that box
   property bool drawsBox: false
   // A bare module in an edge menu drops its padding too (the menu pads
-  // it); on the lock screen and the greeter nothing else would, nor in an
-  // expanded detail (`padded`: ExpandedModule)
-  readonly property real pad: OverlayConfig.cardPad(compact, bare && !drawsBox && host?.padded !== true && host?.kind !== "lockscreen" && host?.kind !== "greeter")
+  // it); on the lock screen, the greeter and the desktop nothing else
+  // would, nor in an expanded detail (`padded`: ExpandedModule)
+  readonly property real pad: OverlayConfig.cardPad(compact, bare && !drawsBox && host?.padded !== true && host?.kind !== "lockscreen" && host?.kind !== "greeter" && host?.kind !== "desktop")
   // The room inside `pad`
   readonly property real innerWidth: width - pad * 2
   readonly property real innerHeight: height - pad * 2

@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 51
+  readonly property int currentVersion: 52
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -129,6 +129,8 @@ QtObject {
       result = _v49ToV50(result, changes);
     if (version < 51)
       result = _v50ToV51(result, changes);
+    if (version < 52)
+      result = _v51ToV52(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -1777,6 +1779,32 @@ QtObject {
       delete surface.windows;
       changes.push("Appearance.surface strength and windows dropped: the blur is Hyprland's (Hyprland.look.blur)");
     }
+    return config;
+  }
+
+  // v52 added desktop modules (Desktop), whose default puts a clock on the
+  // primary monitor: a config from before gets the clock turned off, so
+  // its desktop stays empty until it's turned on in the layouts editor
+  function _v51ToV52(config, changes) {
+    if (config.Desktop !== undefined)
+      return config;
+    config.Desktop = {
+      "primary": {
+        "enabled": false,
+        "modules": [
+          {
+            "type": "Clock",
+            "place": {
+              "x": 1,
+              "y": 1,
+              "w": 3,
+              "h": 3
+            }
+          }
+        ]
+      }
+    };
+    changes.push("Desktop.primary.enabled = false (desktop modules start off)");
     return config;
   }
 }

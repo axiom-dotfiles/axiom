@@ -4,12 +4,15 @@ import Quickshell
 import QtQuick
 
 import qs.config
+import qs.services
+import qs.components.methods
 import qs.components.hosts.popout
 
 // Clock with a date, formatted for the shell's language (General.language:
 // Japanese uses 午前/午後 and 時分秒 / 年月日); a custom `timeFormat` /
 // `dateFormat` (Qt format strings) overrides that. On a vertical bar each
-// is stacked into short lines.
+// is stacked into short lines. A `timezone` shows another zone's time
+// (TimeZoneManager), the system's until its offset is read.
 BarWidget {
   id: root
 
@@ -32,6 +35,13 @@ BarWidget {
     precision: root.showSeconds || root.properties.timeFormat.includes("s") ? SystemClock.Seconds : SystemClock.Minutes
   }
 
+  readonly property string timezone: properties.timezone
+  onTimezoneChanged: TimeZoneManager.acquire(root, root.timezone)
+  Component.onCompleted: TimeZoneManager.acquire(root, root.timezone)
+  Component.onDestruction: TimeZoneManager.release(root)
+  // The time shown, in the widget's zone
+  readonly property date now: TimeZones.shift(clock.date, TimeZoneManager.offsetOf(root.timezone))
+
   // AM/PM in the shell's language (午前/午後 in Japanese)
   function _meridiem(date) {
     return date.getHours() < 12 ? I18n.locale.amText : I18n.locale.pmText;
@@ -39,16 +49,16 @@ BarWidget {
 
   // One-line time and date, for a horizontal bar
   readonly property string timeText: {
-    const date = clock.date;
+    const date = root.now;
     if (properties.timeFormat)
       return I18n.formatDate(date, properties.timeFormat);
     return I18n.formatDate(date, I18n.dateFormat((use24Hour ? "clock24" : "clock12") + (showSeconds ? "s" : "")));
   }
-  readonly property string dateText: I18n.formatDate(clock.date, properties.dateFormat || I18n.dateFormat("mediumDate"))
+  readonly property string dateText: I18n.formatDate(root.now, properties.dateFormat || I18n.dateFormat("mediumDate"))
 
   // Stacked lines for a vertical bar: [{ text, scale, bold, opacity }]
   readonly property var timeLines: {
-    const date = clock.date;
+    const date = root.now;
     if (properties.timeFormat)
       return _split(timeText);
     if (japanese) {
@@ -71,7 +81,7 @@ BarWidget {
     return lines;
   }
   readonly property var dateLines: {
-    const date = clock.date;
+    const date = root.now;
     if (properties.dateFormat)
       return _split(dateText);
     if (japanese)

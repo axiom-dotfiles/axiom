@@ -28,7 +28,7 @@ QtObject {
     },
     {
       "type": "Layouts",
-      "dirty": OverlayManager.isDirty || EdgeMenuManager.isDirty || LockManager.editor.isDirty || GreeterManager.editor.isDirty
+      "dirty": OverlayManager.isDirty || EdgeMenuManager.isDirty || DesktopManager.editor.isDirty || LockManager.editor.isDirty || GreeterManager.editor.isDirty
     }
   ].filter(page => page.dirty).map(page => page.type)
 
@@ -54,6 +54,8 @@ QtObject {
       EdgeMenuManager.saveChanges();
     if (OverlayManager.isDirty)
       OverlayManager.saveChanges();
+    if (DesktopManager.editor.isDirty)
+      DesktopManager.editor.saveChanges();
     if (LockManager.editor.isDirty)
       LockManager.editor.saveChanges();
     if (GreeterManager.editor.isDirty)
@@ -71,6 +73,8 @@ QtObject {
       EdgeMenuManager.resetChanges();
     if (OverlayManager.isDirty)
       OverlayManager.resetChanges();
+    if (DesktopManager.editor.isDirty)
+      DesktopManager.editor.resetChanges();
     if (LockManager.editor.isDirty)
       LockManager.editor.resetChanges();
     if (GreeterManager.editor.isDirty)

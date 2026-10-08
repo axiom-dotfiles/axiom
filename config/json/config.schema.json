@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Axiom Configuration Schema",
-  "description": "Source of truth for config/user/config.json. Every key's `default` is filled in at load time (SchemaValidation.applyDefaults), so config readers never need their own fallbacks. `title`/`description`/`minimum`/`maximum`/`enum` drive the generated settings UI; `x-settings: false` hides a key from it (edited elsewhere, or UI-owned state); `x-options` names a dynamic option list (\"screens\", \"chatProviders\" and \"chatPresets\", \"colors\" for the 16 base theme colors, \"languages\" from config/i18n, \"cursorThemes\" for installed cursor themes, \"edgeMenus\" for the ids of EdgeMenus); `x-showIf` ({ sibling: value | [values] | { not: value } }) hides a field unless a sibling matches; a key starting with `/` is a dotted path from the config root instead (\"/Workspaces.layout\"). `x-enumLabels` ({ value: label }) shows labels instead of raw enum values in dropdowns. `x-multiline: true` edits a string in a growing text area. `x-categories` at the root lists the settings sidebar's categories in order, each `{ name, icon, page }` (`page`: a hand-built part after its cards, `views/settings/<page>.qml`); sections join one with `x-category`. `x-beside: true` on a field puts it beside the field before it on its settings card, each taking half the width. `x-order` on an object schema lists the keys its form shows first, in order (a schema reaches QML as a map, whose keys come out sorted). `x-defaultSize` ([w, h] in grid units, four to a card) on an overlay module definition is the size it's added at, and `x-minSize` the least a drop into a gap shrinks it to (half the default when left out); `x-icon` on a module or view definition is its Material Symbols icon name in the editor. `x-hosts` on a module definition lists where it may be placed (\"overlay\", \"edgeMenu\", \"lockscreen\", \"greeter\"; the first two when left out, so the lock screen and the greeter only take modules that list them). `x-greeter: true` on a Hyprland.managed option carries it to the greeter (its Hyprland takes the option in managed mode). A `$ref` may carry keys beside it (`default`, `title`, …), which override the definition's. `x-required: true` on one makes it part of every grid on its hosts: it can't be removed or duplicated, and the library doesn't offer it. `x-canvasDetail` names a module property the layouts editor shows on its tile (a list joined), and `x-canvasFill` a color property the tile is filled with. `x-takeover: true` marks a setting that takes something over on this PC (the Hyprland mode, the lock screen, idle, polkit, the greeter): loading a saved config, the defaults, an example or an import keeps its current value (ConfigExamples.keepTakeovers). Bar widgets are a oneOf discriminated by `type`, and get their `properties` defaults filled like everything else.",
+  "description": "Source of truth for config/user/config.json. Every key's `default` is filled in at load time (SchemaValidation.applyDefaults), so config readers never need their own fallbacks. `title`/`description`/`minimum`/`maximum`/`enum` drive the generated settings UI; `x-settings: false` hides a key from it (edited elsewhere, or UI-owned state); `x-options` names a dynamic option list (\"screens\", \"chatProviders\" and \"chatPresets\", \"colors\" for the 16 base theme colors, \"languages\" from config/i18n, \"cursorThemes\" for installed cursor themes, \"timezones\" for the system's time zones, \"edgeMenus\" for the ids of EdgeMenus); `x-showIf` ({ sibling: value | [values] | { not: value } }) hides a field unless a sibling matches; a key starting with `/` is a dotted path from the config root instead (\"/Workspaces.layout\"). `x-enumLabels` ({ value: label }) shows labels instead of raw enum values in dropdowns. `x-multiline: true` edits a string in a growing text area. `x-categories` at the root lists the settings sidebar's categories in order, each `{ name, icon, page }` (`page`: a hand-built part after its cards, `views/settings/<page>.qml`); sections join one with `x-category`. `x-beside: true` on a field puts it beside the field before it on its settings card, each taking half the width. `x-order` on an object schema lists the keys its form shows first, in order (a schema reaches QML as a map, whose keys come out sorted). `x-defaultSize` ([w, h] in grid units, four to a card) on an overlay module definition is the size it's added at, and `x-minSize` the least a drop into a gap shrinks it to (half the default when left out); `x-icon` on a module or view definition is its Material Symbols icon name in the editor. `x-hosts` on a module definition lists where it may be placed (\"overlay\", \"edgeMenu\", \"lockscreen\", \"greeter\", \"desktop\"; the first two when left out, so the lock screen, the greeter and the desktop only take modules that list them). `x-greeter: true` on a Hyprland.managed option carries it to the greeter (its Hyprland takes the option in managed mode). A `$ref` may carry keys beside it (`default`, `title`, …), which override the definition's. `x-required: true` on one makes it part of every grid on its hosts: it can't be removed or duplicated, and the library doesn't offer it. `x-canvasDetail` names a module property the layouts editor shows on its tile (a list joined), and `x-canvasFill` a color property the tile is filled with. `x-takeover: true` marks a setting that takes something over on this PC (the Hyprland mode, the lock screen, idle, polkit, the greeter): loading a saved config, the defaults, an example or an import keeps its current value (ConfigExamples.keepTakeovers). Bar widgets are a oneOf discriminated by `type`, and get their `properties` defaults filled like everything else.",
   "type": "object",
   "x-categories": [
     { "name": "General", "icon": "home" },
@@ -22,7 +22,7 @@
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 51,
+      "default": 52,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
@@ -2050,10 +2050,62 @@
       "x-settings": false,
       "default": [],
       "items": { "$ref": "#/definitions/EdgeMenu" }
+    },
+
+    "Desktop": {
+      "x-scope": "look",
+      "type": "object",
+      "x-settings": false,
+      "description": "Overlay modules on the desktop, under the windows, edited on the overlay's Layouts page. Each monitor shows its own layout if it has one, else the primary monitor's (on the primary monitor), else the one for all monitors; each is fitted inside the bars and the border.",
+      "additionalProperties": false,
+      "properties": {
+        "all": {
+          "$ref": "#/definitions/DesktopLayout",
+          "title": "All monitors",
+          "default": { "enabled": false }
+        },
+        "primary": {
+          "$ref": "#/definitions/DesktopLayout",
+          "title": "Primary monitor",
+          "default": {
+            "modules": [
+              { "type": "Clock", "place": { "x": 1, "y": 1, "w": 3, "h": 3 } }
+            ]
+          }
+        },
+        "monitors": {
+          "x-scope": "machine",
+          "type": "array",
+          "title": "Monitors",
+          "description": "Layouts of monitors by name (their connector), ahead of the primary monitor's and the one for all.",
+          "default": [],
+          "items": { "$ref": "#/definitions/DesktopLayout" }
+        }
+      }
     }
   },
 
   "definitions": {
+    "DesktopLayout": {
+      "description": "A desktop's overlay modules on a bounded grid of columns × rows units, fitted to each monitor inside its bars and border (Desktop).",
+      "type": "object",
+      "additionalProperties": false,
+      "x-order": ["columns", "rows", "fineGrid", "moduleBorders"],
+      "properties": {
+        "enabled": { "type": "boolean", "x-settings": false, "default": true, "description": "Shown. Off on a monitor's own layout leaves that monitor's desktop empty." },
+        "monitor": { "type": "string", "x-settings": false, "default": "", "description": "The monitor (connector name) a layout in Desktop.monitors is for." },
+        "columns": { "x-group": "Grid", "type": "integer", "title": "Columns", "default": 16, "minimum": 4, "maximum": 32, "description": "Grid units across. The grid is stretched to fill the room inside the bars and border, so match its shape." },
+        "rows": { "x-group": "Grid", "type": "integer", "title": "Rows", "default": 9, "minimum": 2, "maximum": 32, "description": "Grid units down." },
+        "fineGrid": { "x-group": "Grid", "type": "boolean", "title": "Double grid", "default": false, "description": "Split each grid unit in two each way, for finer placement. Modules keep their size and spot." },
+        "moduleBorders": { "x-group": "Style", "type": "boolean", "title": "Module borders", "default": false, "description": "Draw each module's card box, frosted over the wallpaper while the shell blurs. Off shows modules straight on the wallpaper." },
+        "modules": {
+          "type": "array",
+          "x-settings": false,
+          "default": [],
+          "items": { "$ref": "#/definitions/OverlayModule" }
+        }
+      }
+    },
     "ScreenLayout": {
       "description": "A screen of overlay modules on a bounded grid of columns × rows units, fitted to each monitor: the built-in lock screen (Lockscreen.layout) and the greeter (Greeter.layout).",
       "type": "object",
@@ -3264,6 +3316,7 @@
         { "$ref": "#/definitions/WifiNetworksOverlayModule" },
         { "$ref": "#/definitions/ScreenshotOverlayModule" },
         { "$ref": "#/definitions/ClockCalendarOverlayModule" },
+        { "$ref": "#/definitions/ClockOverlayModule" },
         { "$ref": "#/definitions/CalendarOverlayModule" },
         { "$ref": "#/definitions/AgendaOverlayModule" },
         { "$ref": "#/definitions/WeatherOverlayModule" },
@@ -3296,7 +3349,7 @@
     },
     "NowPlayingOverlayModule": {
       "type": "object",
-      "x-hosts": ["overlay", "edgeMenu", "lockscreen"],
+      "x-hosts": ["overlay", "edgeMenu", "lockscreen", "desktop"],
       "x-icon": "music_note",
       "x-defaultSize": [4, 2],
       "required": ["type"],
@@ -3344,7 +3397,7 @@
     },
     "VolumeDialsOverlayModule": {
       "type": "object",
-      "x-hosts": ["overlay", "edgeMenu", "lockscreen"],
+      "x-hosts": ["overlay", "edgeMenu", "lockscreen", "desktop"],
       "x-icon": "volume_up",
       "x-defaultSize": [4, 2],
       "required": ["type"],
@@ -3356,7 +3409,7 @@
     },
     "SystemGraphsOverlayModule": {
       "type": "object",
-      "x-hosts": ["overlay", "edgeMenu", "lockscreen"],
+      "x-hosts": ["overlay", "edgeMenu", "lockscreen", "desktop"],
       "x-icon": "show_chart",
       "x-canvasDetail": "metrics",
       "required": ["type"],
@@ -3375,7 +3428,7 @@
     },
     "DisksOverlayModule": {
       "type": "object",
-      "x-hosts": ["overlay", "edgeMenu", "lockscreen"],
+      "x-hosts": ["overlay", "edgeMenu", "lockscreen", "desktop"],
       "x-icon": "hard_drive",
       "x-canvasDetail": "paths",
       "x-defaultSize": [4, 2],
@@ -3395,6 +3448,7 @@
     },
     "TopProcessesOverlayModule": {
       "type": "object",
+      "x-hosts": ["overlay", "edgeMenu", "desktop"],
       "x-icon": "format_list_bulleted",
       "required": ["type"],
       "additionalProperties": false,
@@ -3413,6 +3467,7 @@
     },
     "UpdatesOverlayModule": {
       "type": "object",
+      "x-hosts": ["overlay", "edgeMenu", "desktop"],
       "x-icon": "upload",
       "required": ["type"],
       "additionalProperties": false,
@@ -3432,6 +3487,7 @@
     },
     "QuickActionsOverlayModule": {
       "type": "object",
+      "x-hosts": ["overlay", "edgeMenu", "desktop"],
       "x-icon": "toggle_on",
       "x-defaultSize": [4, 2],
       "required": ["type"],
@@ -3542,7 +3598,7 @@
       "x-icon": "waving_hand",
       "x-defaultSize": [8, 2],
       "x-canvasDetail": "text",
-      "x-hosts": ["overlay", "edgeMenu", "lockscreen", "greeter"],
+      "x-hosts": ["overlay", "edgeMenu", "lockscreen", "greeter", "desktop"],
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -3661,7 +3717,7 @@
     },
     "ClockCalendarOverlayModule": {
       "type": "object",
-      "x-hosts": ["overlay", "edgeMenu", "lockscreen", "greeter"],
+      "x-hosts": ["overlay", "edgeMenu", "lockscreen", "greeter", "desktop"],
       "x-icon": "calendar_clock",
       "required": ["type"],
       "additionalProperties": false,
@@ -3675,6 +3731,41 @@
             "use24Hour": {"type": "boolean", "title": "24-hour clock", "default": true},
             "showSeconds": {"type": "boolean", "title": "Show seconds", "default": false},
             "showEvents": {"type": "boolean", "title": "Events", "default": true, "description": "Dots on days with events, and the day's events under the calendar (under the clock when wide) where they fit; a click on a day shows its events. On the lock screen only with Calendar's Events on the lock screen; never on the login screen."}
+          }
+        }
+      }
+    },
+    "ClockOverlayModule": {
+      "type": "object",
+      "x-hosts": ["overlay", "edgeMenu", "lockscreen", "greeter", "desktop"],
+      "x-icon": "schedule",
+      "x-defaultSize": [4, 3],
+      "x-canvasDetail": "style",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "place": { "$ref": "#/definitions/GridPlace" },
+        "type": { "const": "Clock", "description": "Clock" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "x-order": ["style", "use24Hour", "showSeconds", "showDate", "timezone", "label", "color", "accentColor"],
+          "properties": {
+            "style": {
+              "type": "string",
+              "title": "Style",
+              "enum": ["digital", "stacked", "analog"],
+              "x-enumLabels": { "digital": "Digital", "stacked": "Stacked", "analog": "Analog" },
+              "default": "stacked",
+              "description": "Digital: the time in one large line. Stacked: the hours over the minutes. Analog: a clock face with hands."
+            },
+            "use24Hour": { "type": "boolean", "title": "24-hour clock", "default": true, "x-showIf": { "style": { "not": "analog" } } },
+            "showSeconds": { "type": "boolean", "title": "Show seconds", "default": false },
+            "showDate": { "type": "boolean", "title": "Show the date", "default": true },
+            "timezone": { "type": "string", "title": "Time zone", "x-options": "timezones", "x-control": "search", "x-emptyLabel": "System", "default": "", "description": "Show the time in another time zone (e.g. Asia/Tokyo). Empty follows the system's." },
+            "label": { "type": "string", "title": "Label", "default": "", "description": "A caption under the clock, e.g. the city of its time zone." },
+            "color": { "type": "string", "title": "Color", "x-options": "colors", "x-emptyLabel": "Text", "default": "" },
+            "accentColor": { "type": "string", "title": "Accent color", "x-options": "colors", "x-emptyLabel": "Accent", "default": "", "description": "The stacked clock's minutes and the analog clock's second hand." }
           }
         }
       }
@@ -3712,7 +3803,7 @@
     },
     "WeatherOverlayModule": {
       "type": "object",
-      "x-hosts": ["overlay", "edgeMenu", "lockscreen", "greeter"],
+      "x-hosts": ["overlay", "edgeMenu", "lockscreen", "greeter", "desktop"],
       "x-icon": "partly_cloudy_day",
       "required": ["type"],
       "additionalProperties": false,
@@ -3723,7 +3814,7 @@
     },
     "BatteryOverlayModule": {
       "type": "object",
-      "x-hosts": ["overlay", "edgeMenu", "lockscreen", "greeter"],
+      "x-hosts": ["overlay", "edgeMenu", "lockscreen", "greeter", "desktop"],
       "x-icon": "battery_full",
       "x-defaultSize": [2, 2],
       "required": ["type"],
@@ -3735,7 +3826,7 @@
     },
     "NetworkOverlayModule": {
       "type": "object",
-      "x-hosts": ["overlay", "edgeMenu", "lockscreen", "greeter"],
+      "x-hosts": ["overlay", "edgeMenu", "lockscreen", "greeter", "desktop"],
       "x-icon": "wifi",
       "x-defaultSize": [4, 2],
       "required": ["type"],
@@ -3747,6 +3838,7 @@
     },
     "FavouritesOverlayModule": {
       "type": "object",
+      "x-hosts": ["overlay", "edgeMenu", "desktop"],
       "x-icon": "star",
       "x-defaultSize": [4, 2],
       "required": ["type"],
@@ -3810,7 +3902,7 @@
     },
     "PaletteOverlayModule": {
       "type": "object",
-      "x-hosts": ["overlay", "edgeMenu", "lockscreen", "greeter"],
+      "x-hosts": ["overlay", "edgeMenu", "lockscreen", "greeter", "desktop"],
       "x-icon": "palette",
       "x-defaultSize": [8, 4],
       "required": ["type"],
@@ -3822,7 +3914,7 @@
     },
     "ColorSwatchOverlayModule": {
       "type": "object",
-      "x-hosts": ["overlay", "edgeMenu", "lockscreen", "greeter"],
+      "x-hosts": ["overlay", "edgeMenu", "lockscreen", "greeter", "desktop"],
       "x-icon": "palette",
       "x-defaultSize": [2, 2],
       "x-canvasDetail": "color",
@@ -3977,6 +4069,7 @@
             "use24Hour": { "type": "boolean", "title": "24-hour", "default": false },
             "showSeconds": { "type": "boolean", "title": "Seconds", "default": true },
             "showDate": { "type": "boolean", "title": "Date", "default": true },
+            "timezone": { "type": "string", "title": "Time zone", "x-options": "timezones", "x-control": "search", "x-emptyLabel": "System", "default": "", "description": "Show the time in another time zone (e.g. Asia/Tokyo). Empty follows the system's." },
             "timeFormat": { "type": "string", "title": "Time format", "default": "", "description": "Custom Qt time format (e.g. HH:mm). Empty uses the language's format." },
             "dateFormat": { "type": "string", "title": "Date format", "default": "", "description": "Custom Qt date format (e.g. ddd d MMM). Empty uses the language's format." },
             "verticalDate": { "type": "string", "title": "Vertical date", "default": "day", "enum": ["day", "monthDay", "numeric"], "x-enumLabels": { "day": "Day and weekday", "monthDay": "Month, day and weekday", "numeric": "Day over month number" }, "description": "The date's lines on a vertical bar, when no date format is set.", "x-showIf": { "showDate": true } },

@@ -195,6 +195,9 @@ QtObject {
       }
     case "languages":
       return I18n.languages.map(l => l.code);
+    case "timezones":
+      // Empty: the system's
+      return ["", ...TimeZoneManager.zones];
     case "edgeMenus":
       return ["", ...EdgeMenusConfig.menus.map(menu => menu.id)];
     case "overlayPages":

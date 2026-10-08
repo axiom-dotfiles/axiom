@@ -38,6 +38,8 @@ QtObject {
         "type": type.const,
         "label": type.description || type.const,
         "propertiesSchema": def.properties?.properties?.properties ?? null,
+        // Its options shown first, in order (their `x-order`)
+        "propertiesOrder": def.properties?.properties?.["x-order"] ?? [],
         // The size a module is added at ([w, h] in grid units, four to a
         // card; `x-defaultSize`), null when not declared
         "defaultSize": def["x-defaultSize"] ?? null,

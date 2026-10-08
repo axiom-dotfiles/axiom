@@ -8,25 +8,29 @@ import qs.components.forms
 import qs.components.content.base
 
 // i18n: keys from the schema (titles, descriptions)
-// Layouts editor, left: the overlay pages, the lock screen and the edge
-// menus, then what's selected: a page's name and icon and what opens it, a
-// menu's settings in groups (from the schema's EdgeMenu definition, its
-// Opening group led by how to try and open it), or the lock screen's (led
-// by its preview), and anything that blocks saving
+// Layouts editor, left: the overlay pages, the desktop, the lock screen
+// and the edge menus, then what's selected: a page's name and icon and
+// what opens it, a menu's settings in groups (from the schema's EdgeMenu
+// definition, its Opening group led by how to try and open it), the
+// desktop's (led by which monitor's layout is edited), or the lock
+// screen's (led by its preview), and anything that blocks saving
 Item {
   id: root
 
   required property var dragLayer
 
   // What's being edited (Layouts): a page (`view`), a `menu` or a screen
-  // layout (`screenTarget`: the lock screen's or the login screen's
-  // ScreenLayoutTarget); the others are null
+  // layout (`screenTarget`: the desktop's, the lock screen's or the login
+  // screen's ScreenLayoutTarget); the others are null
   required property var view
   required property var menu
   required property var screenTarget
   readonly property var screenLayout: root.screenTarget?.layout ?? null
+  readonly property bool isDesktop: root.screenTarget !== null && root.screenTarget.screenEditor === DesktopManager.editor
+  // A monitor of the desktop's (not all monitors or the primary one)
+  readonly property bool isDesktopMonitor: root.isDesktop && DesktopManager.selectedTarget !== "all" && DesktopManager.selectedTarget !== "primary"
   readonly property bool isCustom: root.view?.type === "Custom"
-  readonly property var problems: OverlayManager.problems.concat(EdgeMenuManager.problems, LockManager.editor.problems, GreeterManager.editor.problems)
+  readonly property var problems: OverlayManager.problems.concat(EdgeMenuManager.problems, DesktopManager.editor.problems, LockManager.editor.problems, GreeterManager.editor.problems)
 
   // StyledTextEntry writes each keystroke back to its `text`, which drops
   // any binding on it, so the name is pushed in rather than bound: on every
@@ -158,11 +162,54 @@ Item {
       }
     }
 
+    // The desktop: which layout is edited (all monitors, the primary one,
+    // a monitor), whether it shows, and a monitor's own layout added or
+    // taken away
+    FieldGroup {
+      visible: root.isDesktop
+      Layout.topMargin: Widget.spacing
+      title: I18n.tr("Desktop")
+      description: root.screenTarget?.description ?? ""
+
+      StyledComboEntry {
+        Layout.fillWidth: true
+        icon: "monitor"
+        options: DesktopManager.targets.map(target => ({
+              "value": target.key,
+              "label": I18n.tr("{0} — {1}", target.label, target.status)
+            }))
+        value: DesktopManager.selectedTarget
+        onPicked: value => DesktopManager.selectTarget(value)
+      }
+
+      SchemaSwitch {
+        visible: root.screenLayout !== null
+        label: root.isDesktopMonitor ? I18n.tr("Show on this monitor") : I18n.tr("Show on the desktop")
+        description: root.isDesktopMonitor ? I18n.tr("Off leaves this monitor's desktop empty.") : ""
+        checked: root.screenLayout?.enabled ?? false
+        onToggled: newValue => DesktopManager.setEnabled(newValue)
+      }
+
+      StyledTextButton {
+        visible: root.isDesktopMonitor && root.screenLayout === null
+        iconText: "add"
+        text: I18n.tr("Give it its own layout")
+        onClicked: DesktopManager.createForTarget()
+      }
+
+      StyledTextButton {
+        visible: root.isDesktopMonitor && root.screenLayout !== null
+        iconText: "delete"
+        text: I18n.tr("Remove its own layout")
+        onClicked: DesktopManager.removeTarget()
+      }
+    }
+
     // A screen layout (the lock screen, the login screen): its preview,
     // then its fields. As for the menu, the condition keeps the model the
     // same while it's selected
     FieldGroup {
-      visible: root.screenLayout !== null
+      visible: root.screenLayout !== null && root.screenTarget.canPreview
       Layout.topMargin: Widget.spacing
       title: root.screenTarget?.title ?? ""
       description: root.screenTarget?.description ?? ""
@@ -175,7 +222,7 @@ Item {
     }
 
     Repeater {
-      model: root.screenLayout !== null ? LockscreenConfig.fieldGroups : []
+      model: root.screenLayout !== null ? root.screenTarget.fieldGroups : []
 
       delegate: FieldGroup {
         id: lockGroup

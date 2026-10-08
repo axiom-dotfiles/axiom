@@ -28,8 +28,8 @@ QtObject {
   readonly property alias isDirty: draft.isDirty
   property int selectedViewIndex: 0
   // What the layouts editor shows: "page" (selectedViewIndex), "menu"
-  // (EdgeMenuManager.selectedMenuIndex), "lockscreen" (LockManager's
-  // draft) or "greeter" (GreeterManager's). The lock screen only while the
+  // (EdgeMenuManager.selectedMenuIndex), "desktop" (DesktopManager's
+  // draft), "lockscreen" (LockManager's) or "greeter" (GreeterManager's). The lock screen only while the
   // built-in locker is in use, the login screen only while it's set up
   // (their rows hide otherwise): back on the pages when they stop being
   readonly property string editTarget: (root._editTarget === "lockscreen" && !root.lockscreenEditable) || (root._editTarget === "greeter" && !root.greeterEditable) ? "page" : root._editTarget
@@ -91,6 +91,11 @@ QtObject {
   function editMenu(index) {
     root._editTarget = "menu";
     EdgeMenuManager.selectMenu(index);
+  }
+
+  function editDesktop() {
+    root._editTarget = "desktop";
+    DesktopManager.editor.ensureLoaded();
   }
 
   function editLockscreen() {

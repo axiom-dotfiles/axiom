@@ -13,8 +13,8 @@ import qs.services
 // clock in wide slots, or where it only fits that way); a wide strip puts
 // the date beside the time. Arrows page through months. With `showEvents`
 // (on the lock screen only with Calendar.showOnLockscreen, and read-only
-// there; never on the login screen) days with events get their calendars'
-// dots, and where there's room the day's events list under the calendar
+// there, as on the desktop; never on the login screen) days with events
+// get their calendars' dots, and where there's room the day's events list under the calendar
 // (under the clock when it sits beside it): today's, or the day clicked
 // until it's clicked again. Without room a clicked day covers the card.
 // Events open in the editor, over the whole card.
@@ -23,6 +23,9 @@ Card {
   id: root
 
   readonly property bool onLockscreen: root.host?.kind === "lockscreen"
+  // Events can't be edited where nothing can be typed (the desktop) or
+  // nothing may be written (the lock screen)
+  readonly property bool eventsReadOnly: root.onLockscreen || root.host?.kind === "desktop"
   readonly property bool showEvents: (root.properties.showEvents ?? true) && (!root.onLockscreen || CalendarConfig.showOnLockscreen) && root.host?.kind !== "greeter" && !Paths.greeter
   // The day clicked in the calendar, "" for today
   property string openDay: ""
@@ -77,7 +80,7 @@ Card {
   component InlineAgenda: DayAgenda {
     dayKey: root.shownDay
     closable: root.openDay !== ""
-    readOnly: root.onLockscreen
+    readOnly: root.eventsReadOnly
     Layout.fillWidth: true
     Layout.fillHeight: true
     Layout.minimumHeight: root.agendaMinHeight
@@ -185,7 +188,7 @@ Card {
     visible: pane.editing || (root.openDay !== "" && !root.inlineAgenda)
     dayKey: root.shownDay
     closable: true
-    readOnly: root.onLockscreen
+    readOnly: root.eventsReadOnly
     onClosed: root.openDay = ""
   }
 }
