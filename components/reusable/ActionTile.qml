@@ -10,7 +10,8 @@ import qs.config
 // `activeColor`, and with a `countdown` a bar along the bottom runs down
 // over that many ms. The label shows only where it fits whole (or always,
 // with `forceLabel`); otherwise the tile is icon-only with the label as a
-// tooltip.
+// tooltip. With `opens`, a right click or a long press is `opened` (a
+// detail to show).
 Rectangle {
   id: root
 
@@ -28,9 +29,12 @@ Rectangle {
   property bool forceLabel: false
   // While active, run a bar down over this many ms (0: none)
   property int countdown: 0
+  // There's a detail to open: a right click or a long press opens it
+  property bool opens: false
 
   signal clicked
   signal hovered
+  signal opened
 
   // The label fits whole (QuickActions mirrors this for its "auto" names)
   readonly property bool labelFits: labelMetrics.advanceWidth <= root.width - Widget.spacing * 2 && root.height >= Appearance.fontSize * 4.5
@@ -135,8 +139,25 @@ Rectangle {
     anchors.fill: parent
     hoverEnabled: true
     cursorShape: Qt.PointingHandCursor
+    acceptedButtons: root.opens ? Qt.LeftButton | Qt.RightButton : Qt.LeftButton
+    // A long press opened it, so its release isn't a click too
+    property bool held: false
     onEntered: root.hovered()
-    onClicked: root.clicked()
+    onPressed: area.held = false
+    onPressAndHold: {
+      if (!root.opens)
+        return;
+      area.held = true;
+      root.opened();
+    }
+    onClicked: mouse => {
+      if (area.held)
+        return;
+      if (mouse.button === Qt.RightButton)
+        root.opened();
+      else
+        root.clicked();
+    }
   }
 
   LazyLoader {

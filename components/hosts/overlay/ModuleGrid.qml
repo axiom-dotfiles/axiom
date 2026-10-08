@@ -1,7 +1,9 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 
+import qs.config
 import qs.components.methods
+import qs.components.reusable
 
 // A Custom page's, an edge menu's or the lock screen's modules, each in its
 // own place on a grid of quarter cards (GridPlacement). The grid is as big
@@ -33,6 +35,30 @@ Item {
   }
   readonly property var sizes: root.grid.sizes(root.bounds, root.stretch)
 
+  // A module's detail grown over the others (ExpandedModule): { type,
+  // properties, from: [x, y, w, h] px in the grid }, null for none. Only on
+  // overlay pages and edge menus, and only types allowed on the host
+  // (`x-hosts`)
+  property var expanded: null
+  readonly property bool expandable: root.host?.kind === "overlay" || root.host?.kind === "edgeMenu"
+  function canExpand(type) {
+    return root.expandable && OverlayConfig.moduleInfo(type) !== null && OverlayConfig.allowedIn(type, root.host.kind);
+  }
+  function expand(type, properties, from) {
+    if (!root.canExpand(type))
+      return;
+    const at = from ? from.mapToItem(root, 0, 0) : Qt.point(0, 0);
+    root.expanded = {
+      "type": type,
+      "properties": properties ?? {},
+      "from": [at.x, at.y, from?.width ?? root.width, from?.height ?? root.height]
+    };
+  }
+  // Shrinks the detail back into where it came from, then drops it
+  function collapse() {
+    expandedLayer.collapse();
+  }
+
   implicitWidth: root.sizes.width
   implicitHeight: root.sizes.height
 
@@ -48,33 +74,54 @@ Item {
     });
   }
 
-  // Keyed by count: edits update the modules in place
-  Repeater {
-    model: root.modules?.length ?? 0
+  // The modules, faded out (a translucent box would show them) and out of
+  // reach under an expanded detail
+  Item {
+    anchors.fill: parent
+    enabled: root.expanded === null
+    opacity: expandedLayer.shown ? 0 : 1
+    Glide on opacity {
+      duration: Appearance.animNormal
+    }
 
-    Item {
-      id: slot
-      required property int index
-      readonly property var module: root.modules[slot.index]
-      readonly property var place: slot.module?.place ?? {
-        "x": 0,
-        "y": 0,
-        "w": 4,
-        "h": 4
-      }
-      readonly property var r: GridPlacement.rectPx(slot.place, root.sizes)
+    // Keyed by count: edits update the modules in place
+    Repeater {
+      model: root.modules?.length ?? 0
 
-      x: slot.r.x
-      y: slot.r.y
-      width: slot.r.width
-      height: slot.r.height
-      clip: true
+      Item {
+        id: slot
+        required property int index
+        readonly property var module: root.modules[slot.index]
+        readonly property var place: slot.module?.place ?? {
+          "x": 0,
+          "y": 0,
+          "w": 4,
+          "h": 4
+        }
+        readonly property var r: GridPlacement.rectPx(slot.place, root.sizes)
 
-      OverlaySlot {
-        config: slot.module
-        rect: GridPlacement.rectOf(slot.place)
-        host: root.host
+        x: slot.r.x
+        y: slot.r.y
+        width: slot.r.width
+        height: slot.r.height
+        clip: true
+
+        OverlaySlot {
+          config: slot.module
+          rect: GridPlacement.rectOf(slot.place)
+          host: root.host
+          expander: root.expandable ? root : null
+        }
       }
     }
+  }
+
+  ExpandedModule {
+    id: expandedLayer
+    anchors.fill: parent
+    request: root.expanded
+    host: root.host
+    slotRect: [0, 0, root.bounds.cols, root.bounds.rows]
+    onClosed: root.expanded = null
   }
 }

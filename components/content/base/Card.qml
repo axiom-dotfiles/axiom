@@ -25,6 +25,17 @@ Rectangle {
   // smaller slot is compact (see SlotContext)
   property real fullMinWidth: 0
   property real fullMinHeight: 0
+  // The grid showing this module (a ModuleGrid), which can grow a module's
+  // detail over it (see ExpandedModule); null where nothing can
+  property var expander: null
+  // Whether `type` can be shown over the grid here, and showing it, grown
+  // from `from` (an item in this module; the whole module when left out)
+  function canExpand(type) {
+    return root.expander?.canExpand(type) ?? false;
+  }
+  function expand(type, properties, from) {
+    root.expander?.expand(type, properties ?? {}, from ?? root);
+  }
   // Derived from the slot (see SlotContext): no card box (an edge menu
   // with moduleBorders off), the span in grid units, "square" |
   // "horizontal" | "vertical", compact (a quarter card or less, or under

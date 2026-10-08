@@ -2746,6 +2746,12 @@
     "lightning": "lightning",
     "Off, your own Hyprland config's applies.": "オフの場合は Hyprland の設定のものが使われます。",
     "Recommended environment": "推奨される環境変数",
-    "Lightning": "稲妻"
+    "Lightning": "稲妻",
+    "{0} connected": "{0} 台接続中",
+    "More": "詳細",
+    "Back": "戻る",
+    "Tiles": "タイル",
+    "tiles": "タイル",
+    "Pills are wide, with a status line beside the icon. Wi-Fi, Bluetooth and Do not disturb open their networks, devices or notifications over the menu or page: from beside a pill's icon, or a tile's right click or long press.": "ピルは横長で、アイコンの横に状態を表示します。Wi-Fi、Bluetooth、おやすみモードは、ネットワーク・デバイス・通知をメニューやページの上に開きます。ピルではアイコンの横を、タイルでは右クリックか長押しで開きます。"
   }
 }

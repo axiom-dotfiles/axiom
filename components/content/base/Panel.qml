@@ -34,6 +34,15 @@ Item {
   // Card only: the content draws its own box (a `background`) even when
   // bare, so it keeps its padding (see SlotContext)
   property bool drawsBox: false
+  // Card only: the grid showing it, and growing a detail over it, as on
+  // Card
+  property var expander: null
+  function canExpand(type) {
+    return root.expander?.canExpand(type) ?? false;
+  }
+  function expand(type, properties, from) {
+    root.expander?.expand(type, properties ?? {}, from ?? root);
+  }
   // Derived from the slot, as on Card (see SlotContext); a popout is never
   // bare or compact
   readonly property alias bare: slot.bare
