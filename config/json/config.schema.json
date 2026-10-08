@@ -3334,6 +3334,14 @@
         { "$ref": "#/definitions/LoginOverlayModule" },
         { "$ref": "#/definitions/SessionOverlayModule" },
         { "$ref": "#/definitions/PowerOverlayModule" },
+        { "$ref": "#/definitions/CalculatorOverlayModule" },
+        { "$ref": "#/definitions/EmojiPickerOverlayModule" },
+        { "$ref": "#/definitions/ClipboardHistoryOverlayModule" },
+        { "$ref": "#/definitions/WorldClocksOverlayModule" },
+        { "$ref": "#/definitions/NightLightControlsOverlayModule" },
+        { "$ref": "#/definitions/CommandOutputOverlayModule" },
+        { "$ref": "#/definitions/ScreenRecordOverlayModule" },
+        { "$ref": "#/definitions/CheatsheetOverlayModule" },
         { "$ref": "#/definitions/KeyboardLayoutOverlayModule" }
       ]
     },
@@ -3700,6 +3708,176 @@
               "x-enumLabels": { "suspend": "Suspend", "reboot": "Restart", "poweroff": "Shut down" },
               "default": ["suspend", "reboot", "poweroff"]
             }
+          }
+        }
+      }
+    },
+    "CalculatorOverlayModule": {
+      "type": "object",
+      "x-icon": "calculate",
+      "x-defaultSize": [4, 4],
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "place": { "$ref": "#/definitions/GridPlace" },
+        "type": { "const": "Calculator", "description": "Calculator" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "showKeypad": {"type": "boolean", "title": "Show the keypad", "default": true, "description": "Calculator keys under the field, when the card is tall enough."},
+            "showHistory": {"type": "boolean", "title": "Show the history", "default": true, "description": "Answers you copied or finished with =: below the field, or beside it in a wide card (beside the keypad there, else in its place), when there's room."}
+          }
+        }
+      }
+    },
+    "EmojiPickerOverlayModule": {
+      "type": "object",
+      "x-icon": "add_reaction",
+      "x-defaultSize": [4, 6],
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "place": { "$ref": "#/definitions/GridPlace" },
+        "type": { "const": "EmojiPicker", "description": "Emoji" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "showGroups": {"type": "boolean", "title": "Show the groups", "default": true, "description": "Tabs for Unicode's groups (smileys, animals, food, …) over the grid, when there's room."}
+          }
+        }
+      }
+    },
+    "ClipboardHistoryOverlayModule": {
+      "type": "object",
+      "x-icon": "content_paste",
+      "x-defaultSize": [4, 6],
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "place": { "$ref": "#/definitions/GridPlace" },
+        "type": { "const": "ClipboardHistory", "description": "Clipboard history" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "grow": {"type": "integer", "title": "Grow by up to", "default": 0, "minimum": 0, "maximum": 16, "x-unit": "rows", "description": "Rows it may take while its list needs them: free rows towards the edge first (above it, or below it in a bottom menu), then away from it, pushing the modules there along (not on the lock or login screen). 0 keeps it at its size."}
+          }
+        }
+      }
+    },
+    "WorldClocksOverlayModule": {
+      "type": "object",
+      "x-hosts": ["overlay", "edgeMenu", "desktop"],
+      "x-icon": "travel_explore",
+      "x-defaultSize": [4, 4],
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "place": { "$ref": "#/definitions/GridPlace" },
+        "type": { "const": "WorldClocks", "description": "World clocks" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "x-order": ["clocks", "showLocal", "use24Hour", "showTimeline"],
+          "properties": {
+            "clocks": {
+              "x-scope": "personal",
+              "type": "array",
+              "title": "Places",
+              "default": [
+                { "timezone": "Europe/London", "label": "" },
+                { "timezone": "America/New_York", "label": "" },
+                { "timezone": "Asia/Tokyo", "label": "" }
+              ],
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "x-order": ["timezone", "label"],
+                "properties": {
+                  "timezone": { "type": "string", "title": "Time zone", "x-options": "timezones", "x-control": "search", "default": "UTC", "description": "e.g. Asia/Tokyo" },
+                  "label": { "type": "string", "title": "Label", "default": "", "description": "The place's name. Empty uses the time zone's city." }
+                }
+              }
+            },
+            "showLocal": { "type": "boolean", "title": "Show the time here", "default": true, "description": "The system's time first, for comparison." },
+            "use24Hour": { "type": "boolean", "title": "24-hour clock", "default": true },
+            "showTimeline": { "type": "boolean", "title": "Show the day", "default": true, "description": "A band under each place showing its day and night, with a mark at now, when there's room." }
+          }
+        }
+      }
+    },
+    "NightLightControlsOverlayModule": {
+      "type": "object",
+      "x-icon": "bedtime",
+      "x-defaultSize": [4, 2],
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "place": { "$ref": "#/definitions/GridPlace" },
+        "type": { "const": "NightLightControls", "description": "Night light" }
+      }
+    },
+    "CommandOutputOverlayModule": {
+      "type": "object",
+      "x-hosts": ["overlay", "edgeMenu", "desktop"],
+      "x-icon": "terminal",
+      "x-defaultSize": [4, 2],
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "place": { "$ref": "#/definitions/GridPlace" },
+        "type": { "const": "CommandOutput", "description": "Command output" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "x-order": ["title", "icon", "command", "interval", "monospace", "clickCommand"],
+          "properties": {
+            "title": { "type": "string", "title": "Title", "default": "", "description": "Shown over the output. Empty shows the command when there's room." },
+            "icon": { "type": "string", "title": "Icon", "default": "terminal", "description": "A Material Symbols name." },
+            "command": { "x-scope": "machine", "type": "string", "title": "Command", "x-multiline": true, "default": "uptime -p", "description": "Run with sh while the card is shown; its output is the card. One short line shows as a big figure." },
+            "interval": { "type": "integer", "title": "Run every", "x-unit": "s", "default": 10, "minimum": 1, "maximum": 86400 },
+            "monospace": { "type": "boolean", "title": "Monospace", "default": false, "description": "For tables and aligned output (lines aren't wrapped)." },
+            "clickCommand": { "x-scope": "machine", "type": "string", "title": "On click", "default": "", "description": "A command a click on the card runs (the command runs again after). Empty does nothing." }
+          }
+        }
+      }
+    },
+    "ScreenRecordOverlayModule": {
+      "type": "object",
+      "x-icon": "screen_record",
+      "x-defaultSize": [4, 4],
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "place": { "$ref": "#/definitions/GridPlace" },
+        "type": { "const": "ScreenRecord", "description": "Screen recording" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "directory": { "x-scope": "machine", "type": "string", "title": "Folder", "default": "", "description": "Where recordings are saved and listed from (~ is your home). Empty uses Pictures/Screenshots, as screenshots do." },
+            "grow": {"type": "integer", "title": "Grow by up to", "default": 0, "minimum": 0, "maximum": 16, "x-unit": "rows", "description": "Rows it may take while its list needs them: free rows towards the edge first (above it, or below it in a bottom menu), then away from it, pushing the modules there along (not on the lock or login screen). 0 keeps it at its size."}
+          }
+        }
+      }
+    },
+    "CheatsheetOverlayModule": {
+      "type": "object",
+      "x-icon": "keyboard",
+      "x-defaultSize": [8, 6],
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "place": { "$ref": "#/definitions/GridPlace" },
+        "type": { "const": "Cheatsheet", "description": "Keybind cheat sheet" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "sections": { "type": "array", "title": "Sections", "default": [], "items": { "type": "string" }, "description": "Section titles to show, comma-separated (as on the Keybinds page). Empty shows them all." },
+            "showUndescribed": { "type": "boolean", "title": "Show undescribed binds", "default": false, "description": "Binds without a description, listed by their dispatcher." }
           }
         }
       }

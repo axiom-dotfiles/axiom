@@ -19,8 +19,11 @@ import qs.config
 // annotator (satty or swappy; its notification also has an "Edit in …"
 // button). Recording (IPC `screenRecord`, the
 // `screenRecord` bind, launcher `/record`, or R / the Record switch in an
-// open picker) picks its area in the same picker (kind `record`) and runs
-// wf-recorder on it until stopped.
+// open picker) picks its area in the same picker (kind `record`), or takes
+// the focused screen at once (`mode: "screen"`, the ScreenRecord card), and
+// runs wf-recorder on it until stopped, with the system's sound or the
+// microphone if asked (`audio`). `recordings` lists the newest recordings
+// in a folder (refreshRecordings), for the ScreenRecord card.
 QtObject {
   id: root
 
@@ -35,6 +38,9 @@ QtObject {
   property var request: null
   // Keep nothing on disk, only copy (saved in config/state/screenshot.json)
   property bool copyOnly: false
+  // The sound the ScreenRecord card records with: "none" | "system" |
+  // "mic" (saved with copyOnly)
+  property string recordAudio: "none"
   // Open the next capture in the annotator (set in the picker)
   property bool annotate: false
   // "satty" | "swappy" | "": what annotating opens
@@ -49,6 +55,13 @@ QtObject {
   // Seconds recorded so far, ticking only while recording
   property int recordingElapsed: 0
   property string _recordPath: ""
+  // "none" | "system" (the default output's monitor) | "mic" (the default
+  // input), for the recording being started
+  property string _recordAudio: "none"
+  // The newest recordings in `recordingsFolder` ([{ path, name, time,
+  // size }], newest first), once refreshRecordings has listed it
+  property var recordings: []
+  property string recordingsFolder: ""
 
   property string _picturesDir: Quickshell.env("HOME") + "/Pictures"
   property string _directory: ""
@@ -84,18 +97,26 @@ QtObject {
   property var _target: null
   readonly property bool forCaller: root._target !== null
 
+  // Where recordings and screenshots go: `directory` (a leading ~ is home),
+  // else <Pictures>/Screenshots
+  function folderFor(directory) {
+    return Paths.expandHome(directory) || root._picturesDir + "/Screenshots";
+  }
+
   function _start(kind, directory) {
-    if (!["region", "window", "screen", "record"].includes(kind)) {
+    if (!["region", "window", "screen", "record", "recordScreen"].includes(kind)) {
       console.warn(`[ScreenshotManager] Unknown screenshot kind "${kind}" (region, window, screen or record)`);
       return;
     }
-    root._directory = Paths.expandHome(directory) || root._picturesDir + "/Screenshots";
+    root._directory = root.folderFor(directory);
     Quickshell.execDetached(["mkdir", "-p", root._directory, root._scratchDir]);
     root.annotate = false;
     // The screen is taken as it is (an open overlay included), but the
     // launcher closes itself after running a command: let it go first
     root._delay.kind = kind;
-    root._delay.interval = ShellManager.surfaceOpen("launcher") ? Appearance.animSlow + 150 : 1;
+    // A whole-screen recording waits for the overlay too (the card that
+    // started it closes it), so it isn't in the first frames
+    root._delay.interval = ShellManager.surfaceOpen("launcher") || (kind === "recordScreen" && ShellManager.surfaceOpen("overlay")) ? Appearance.animSlow + 150 : 1;
     root._delay.restart();
   }
 
@@ -115,8 +136,18 @@ QtObject {
 
   function setCopyOnly(value) {
     root.copyOnly = value;
+    root._saveState();
+  }
+
+  function setRecordAudio(value) {
+    root.recordAudio = ["system", "mic"].includes(value) ? value : "none";
+    root._saveState();
+  }
+
+  function _saveState() {
     root._state.save({
-      "copyOnly": value
+      "copyOnly": root.copyOnly,
+      "recordAudio": root.recordAudio
     });
   }
 
@@ -209,11 +240,14 @@ QtObject {
   // Recording: an area picked in the picker (kind `record`), recorded by
   // wf-recorder until stopRecording(). Kept here, since the card that
   // starts it is gone once the overlay closes.
-  function startRecording(directory) {
+  // options: { mode: "pick" (the picker, the default) | "screen" (the
+  // focused screen, at once), audio: "none" | "system" | "mic" }
+  function startRecording(directory, options) {
     if (root.recording || root.busy || !root.hasRecorder)
       return;
     root._target = null;
-    root._start("record", directory);
+    root._recordAudio = ["system", "mic"].includes(options?.audio) ? options.audio : "none";
+    root._start(options?.mode === "screen" ? "recordScreen" : "record", directory);
   }
 
   // Ours gets SIGINT (wf-recorder finishes the file on it). One started
@@ -246,7 +280,14 @@ QtObject {
     const path = root._directory + "/Recording_" + Qt.formatDateTime(new Date(), "yyyy-MM-dd_HH-mm-ss") + ".mp4";
     const target = screenName ? ["-o", screenName] : ["-g", `${Math.round(area.x)},${Math.round(area.y)} ${Math.round(area.width)}x${Math.round(area.height)}`];
     root._recordPath = path;
-    root._recorder.command = ["wf-recorder"].concat(target, ["-f", path]);
+    const args = target.concat(["-f", path]);
+    // The system's sound is the default output's monitor, looked up as it
+    // starts (exec, so stopping signals wf-recorder itself)
+    if (root._recordAudio === "system")
+      root._recorder.command = ["sh", "-c", 'exec wf-recorder --audio="$(pactl get-default-sink).monitor" "$@"', "sh"].concat(args);
+    else
+      root._recorder.command = ["wf-recorder"].concat(root._recordAudio === "mic" ? ["--audio"] : [], args);
+    root._recordAudio = "none";
     root._recorder.running = true;
     root.recording = true;
     root.recordingSince = Date.now();
@@ -256,6 +297,10 @@ QtObject {
   property Timer _delay: Timer {
     property string kind: ""
     onTriggered: {
+      if (kind === "recordScreen") {
+        root.record(null, Hyprland.focusedMonitor?.name ?? "");
+        return;
+      }
       root.request = {
         "kind": kind,
         "screen": Hyprland.focusedMonitor?.name ?? ""
@@ -314,9 +359,63 @@ QtObject {
         return;
       }
       root._lastPath = path;
+      if (root.recordingsFolder !== "")
+        root.refreshRecordings(root.recordingsFolder);
       NotificationManager.sendNotification("axiom", I18n.tr("Recording saved"), I18n.tr("Saved in {0}. Click to open it.", path.replace(/\/[^/]*$/, "")), {
         "desktopEntry": root._desktopEntry
       });
+    }
+  }
+
+  // Lists the newest recordings in a folder (`directory` as for
+  // startRecording) into `recordings`
+  function refreshRecordings(directory) {
+    root.recordingsFolder = root.folderFor(directory);
+    if (root._lister.running)
+      root._listAgain = true;
+    else
+      root._listRecordings();
+  }
+
+  function _listRecordings() {
+    root._listedFolder = root.recordingsFolder;
+    root._lister.command = ["sh", "-c", 'find "$1" -maxdepth 1 -type f -name "Recording_*.mp4" -printf "%T@\t%s\t%p\n" 2>/dev/null | sort -rn | head -n 12', "sh", root.recordingsFolder];
+    root._lister.running = true;
+  }
+
+  // Moves a recording to the trash, then lists the folder again
+  function deleteRecording(path) {
+    if (!root.recordings.some(r => r.path === path))
+      return;
+    root.recordings = root.recordings.filter(r => r.path !== path);
+    CommandManager.run(["gio", "trash", "--", path], () => root.refreshRecordings(root.recordingsFolder));
+  }
+
+  // The folder being listed, and whether to list again after
+  property string _listedFolder: ""
+  property bool _listAgain: false
+
+  property Process _lister: Process {
+    stdout: StdioCollector {
+      onStreamFinished: {
+        if (root._listedFolder !== root.recordingsFolder)
+          return;
+        root.recordings = text.split("\n").filter(line => line !== "").map(line => {
+          const [time, size, path] = line.split("\t");
+          return {
+            "path": path,
+            "name": path.replace(/^.*\//, ""),
+            "time": Math.round(Number(time) * 1000),
+            "size": Number(size)
+          };
+        });
+      }
+    }
+    onExited: {
+      if (root._listAgain) {
+        root._listAgain = false;
+        root._listRecordings();
+      }
     }
   }
 
@@ -349,7 +448,9 @@ QtObject {
   }
 
   Component.onCompleted: {
-    root.copyOnly = root._state.load({}).copyOnly === true;
+    const saved = root._state.load({});
+    root.copyOnly = saved.copyOnly === true;
+    root.recordAudio = ["system", "mic"].includes(saved.recordAudio) ? saved.recordAudio : "none";
     DependencyManager.check(["satty", "swappy", "wf-recorder"]);
     root._probe.running = true;
     NotificationManager.registerHandler(_desktopEntry, () => {

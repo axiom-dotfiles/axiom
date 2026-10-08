@@ -59,4 +59,22 @@ QtObject {
     }
     return result;
   }
+
+  // Sections split into `count` columns for a masonry layout: each goes to
+  // the shortest column so far, by rows (a heading counts 1.5, the
+  // undescribed section's note 2 more)
+  function columns(sections, count) {
+    const result = [];
+    const heights = [];
+    for (let i = 0; i < Math.max(1, count); i++) {
+      result.push([]);
+      heights.push(0);
+    }
+    for (const section of sections ?? []) {
+      const target = heights.indexOf(Math.min(...heights));
+      result[target].push(section);
+      heights[target] += 1.5 + section.binds.length + (section.undescribed ? 2 : 0);
+    }
+    return result;
+  }
 }

@@ -2,7 +2,6 @@ pragma Singleton
 
 import QtQuick
 import Quickshell
-import Quickshell.Io
 
 import qs.config
 import qs.components.methods
@@ -77,7 +76,7 @@ QtObject {
       root.frequent = LauncherConfig.showRecent;
       return _set("apps", root.frequent ? _frequentRows() : []);
     }
-    const math = LauncherConfig.calculator && _looksLikeMath(q);
+    const math = LauncherConfig.calculator && Search.looksLikeMath(q);
     _requestCalc(math ? q : "");
     let rows = [];
     if (math && _calcReady(q))
@@ -123,35 +122,6 @@ QtObject {
     }
   }
 
-  // 0-100: how well `text` matches the lowercased query `q`. Exact, prefix,
-  // word start and substring matches rank above a fuzzy subsequence.
-  function score(text, q) {
-    if (!text || !q)
-      return 0;
-    const t = text.toLowerCase();
-    if (t === q)
-      return 100;
-    if (t.startsWith(q))
-      return 80;
-    const at = t.indexOf(q);
-    if (at > 0)
-      return /[\s\-_./]/.test(t.charAt(at - 1)) ? 65 : 50;
-    if (q.length < 2)
-      return 0;
-    let matched = 0, first = -1, last = 0;
-    for (let i = 0; i < t.length && matched < q.length; i++) {
-      if (t[i] === q[matched]) {
-        if (first < 0)
-          first = i;
-        last = i;
-        matched++;
-      }
-    }
-    if (matched < q.length)
-      return 0;
-    return Math.max(5, 30 - 2 * (last - first + 1 - q.length));
-  }
-
   // --- Apps & windows ---
 
   readonly property int _searchLimit: 50
@@ -179,8 +149,8 @@ QtObject {
   // How well an app matches the lowercased query (name, generic name, then
   // keywords), plus a frecency bonus; 0 when it doesn't
   function _appScore(app, q) {
-    const keyword = Math.max(0, ...app.keywords.map(k => root.score(k, q)).filter(s => s >= 50));
-    const s = Math.max(root.score(app.name, q), 0.75 * root.score(app.genericName, q), 0.6 * keyword);
+    const keyword = Math.max(0, ...app.keywords.map(k => Search.score(k, q)).filter(s => s >= 50));
+    const s = Math.max(Search.score(app.name, q), 0.75 * Search.score(app.genericName, q), 0.6 * keyword);
     return s > 0 ? s + Math.min(25, 8 * Math.log2(1 + _frecency(app.id))) : 0;
   }
 
@@ -195,10 +165,7 @@ QtObject {
   }
 
   function _entryFrecency(entry) {
-    if (!entry)
-      return 0;
-    const days = (Date.now() - entry.last) / 86400000;
-    return entry.count * (days < 1 ? 1 : days < 7 ? 0.7 : days < 30 ? 0.5 : 0.25);
+    return Search.frecency(entry, Date.now());
   }
 
   function _appRow(app) {
@@ -243,7 +210,7 @@ QtObject {
         if (!win.mapped || win.hidden)
           continue;
         // No fuzzy matches: titles are long enough to match most anything
-        const s = Math.max(0.9 * root.score(win.title, q), 0.8 * root.score(win.class, q));
+        const s = Math.max(0.9 * Search.score(win.title, q), 0.8 * Search.score(win.class, q));
         if (s >= 40)
           scored.push({
             s: s - 5,
@@ -315,7 +282,7 @@ QtObject {
             c: c,
             i: i,
             f: _entryFrecency(commandUsage[c.name]),
-            s: q === "" ? 1 : Math.max(root.score(c.name, q), ...c.aliases.map(a => 0.9 * root.score(a, q)))
+            s: q === "" ? 1 : Math.max(Search.score(c.name, q), ...c.aliases.map(a => 0.9 * Search.score(a, q)))
           })).filter(m => m.s > 0).map(m => Object.assign(m, {
           s: m.s + Math.min(25, 8 * Math.log2(1 + m.f))
         }));
@@ -335,7 +302,7 @@ QtObject {
     const options = command.options(arg).map((o, i) => ({
           o: o,
           i: i,
-          s: q === "" || o.matched ? 1 : root.score(o.title, q)
+          s: q === "" || o.matched ? 1 : Search.score(o.title, q)
         })).filter(m => m.s > 0);
     options.sort((a, b) => b.s - a.s || a.i - b.i);
     let rows = [];
@@ -398,30 +365,22 @@ QtObject {
 
   // --- Calculator ---
 
-  readonly property bool _qalc: DependencyManager.found.qalc === true
-  // The expression wanted, and the last one qalc answered
+  readonly property bool _qalc: CalculatorManager.qalc === true
+  // The expression the search wants answered
   property string _calcExpr: ""
-  property string _calcDoneExpr: ""
-  property string _calcResult: ""
-
-  function _looksLikeMath(q) {
-    return /^[\d\s.,+\-*/^%()!×÷]+$/.test(q) && /\d/.test(q) && /[+\-*/^%!×÷]/.test(q);
-  }
 
   function _calcReady(expr) {
-    return root._calcDoneExpr === expr && root._calcResult !== "";
+    return CalculatorManager.resultFor("launcher", expr) !== "";
   }
 
   function _requestCalc(expr) {
-    if (expr === root._calcExpr)
-      return;
     root._calcExpr = expr;
-    if (expr !== "" && root._qalc)
-      _calcDebounce.restart();
+    if (root._qalc || expr === "")
+      CalculatorManager.evaluate("launcher", expr);
   }
 
   function _calcRow(expr) {
-    const result = root._calcResult;
+    const result = CalculatorManager.resultFor("launcher", expr);
     return {
       kind: "calc",
       glyph: "calculate",
@@ -431,6 +390,7 @@ QtObject {
       complete: "=" + result,
       run: () => {
         ClipboardManager.copyText(result);
+        CalculatorManager.keep(expr, result);
         return true;
       }
     };
@@ -444,44 +404,14 @@ QtObject {
       return [_infoRow(I18n.tr("Type an expression"), I18n.tr("Math, units and currencies, e.g. 5 km to mi"))];
     if (_calcReady(expr))
       return [_calcRow(expr)];
-    return [_infoRow(expr, root._calcProcess.running || _calcDebounce.running ? I18n.tr("Calculating…") : I18n.tr("No result"))];
+    return [_infoRow(expr, CalculatorManager.busyFor("launcher") ? I18n.tr("Calculating…") : I18n.tr("No result"))];
   }
 
-  property Timer _calcDebounce: Timer {
-    interval: 120
-    onTriggered: root._startCalc()
-  }
-
-  function _startCalc() {
-    if (root._calcExpr === "")
-      return;
-    if (_calcProcess.running) {
-      _calcProcess.pending = true;
-      return;
-    }
-    _calcProcess.expr = root._calcExpr;
-    _calcProcess.command = ["qalc", "-t", "--", root._calcExpr];
-    _calcProcess.running = true;
-  }
-
-  property Process _calcProcess: Process {
-    property string expr: ""
-    property bool pending: false
-    stdout: StdioCollector {
-      id: calcOut
-    }
-    onExited: {
-      // qalc echoes what it can't evaluate
-      const out = calcOut.text.trim().split("\n").pop().trim();
-      const plain = s => s.replace(/\s/g, "").replace(/−/g, "-");
-      root._calcResult = out !== "" && plain(out) !== plain(expr) ? out : "";
-      root._calcDoneExpr = expr;
-      if (pending || expr !== root._calcExpr) {
-        pending = false;
-        root._startCalc();
-      } else {
+  property Connections _calcUpdates: Connections {
+    target: CalculatorManager
+    function onEvaluated(key) {
+      if (key === "launcher" && root._calcExpr !== "")
         root._refresh();
-      }
     }
   }
 
@@ -545,14 +475,15 @@ QtObject {
   function _clipboardRows(query) {
     if (ClipboardManager.cliphist && ClipboardManager.cliphistInstalled === false)
       return [_infoRow(I18n.tr("cliphist isn't installed"), I18n.tr("Install cliphist, or set the clipboard history source to axiom"))];
-    const entries = ClipboardManager.entries;
+    // Pins first, then the history without them
+    const entries = ClipboardManager.pins.concat(ClipboardManager.entries.filter(e => !ClipboardManager.isPinned(e)));
     if (entries.length === 0)
       return [_infoRow(I18n.tr("The clipboard history is empty"), ClipboardManager.cliphist ? I18n.tr("Record it with wl-paste --watch cliphist store") : I18n.tr("Copy something and it shows up here"))];
     const q = query.toLowerCase();
     let matches = entries.map((e, i) => ({
           e: e,
           i: i,
-          s: q === "" ? 1 : Math.max(root.score(e.format ? I18n.tr("Image {0}", e.dimensions) : e.text.trim().split("\n")[0], q), e.text.toLowerCase().includes(q) ? 40 : 0)
+          s: q === "" ? 1 : Math.max(Search.score(e.format ? I18n.tr("Image {0}", e.dimensions) : e.text.trim().split("\n")[0], q), e.text.toLowerCase().includes(q) ? 40 : 0)
         })).filter(m => m.s > 0);
     matches.sort((a, b) => b.s - a.s || a.i - b.i);
     const rows = matches.slice(0, _searchLimit).map(m => _clipboardRow(m.e));
@@ -582,13 +513,16 @@ QtObject {
       details.push(I18n.formatDate(new Date(entry.time), I18n.dateFormat("time24")));
     return {
       kind: "clipboard",
-      glyph: /^\[\[ binary data/.test(first) ? "image" : "content_paste",
+      glyph: entry.pinned ? "keep" : /^\[\[ binary data/.test(first) ? "image" : "content_paste",
       title: first.length > 120 ? first.slice(0, 120) + "…" : first,
       subtitle: details.join(" · "),
-      hint: I18n.tr("Shift+Enter removes"),
+      hint: entry.pinned ? I18n.tr("Shift+Enter unpins") : I18n.tr("Shift+Enter removes"),
       run: shift => {
         if (shift) {
-          ClipboardManager.remove(entry);
+          if (entry.pinned)
+            ClipboardManager.unpin(entry);
+          else
+            ClipboardManager.remove(entry);
           return false;
         }
         ClipboardManager.copy(entry);
@@ -623,6 +557,10 @@ QtObject {
       if (root.mode === "clipboard")
         root._refresh();
     }
+    function onPinsChanged() {
+      if (root.mode === "clipboard")
+        root._refresh();
+    }
     function onCliphistInstalledChanged() {
       if (root.mode === "clipboard")
         root._refresh();
@@ -631,40 +569,11 @@ QtObject {
 
   // --- Emoji ---
 
-  // Recently used first with no text, else by name, then keyword, then
-  // group (keywords and groups only on a real match: a fuzzy one would
-  // match most of them)
+  // EmojiManager.search: most used first with no text, else by name
   function _emojiRows(query) {
-    const entries = EmojiManager.entries();
-    if (entries.length === 0)
+    if (EmojiManager.entries().length === 0)
       return [_infoRow(I18n.tr("No emoji list"), I18n.tr("Run scripts/generate_emoji.py"))];
-    const usage = EmojiManager.usage;
-    const q = query.toLowerCase();
-    let matches;
-    if (q === "") {
-      const recent = Object.keys(usage).sort((a, b) => _entryFrecency(usage[b]) - _entryFrecency(usage[a]));
-      const byEmoji = entries.reduce((all, e) => {
-        all[e.e] = e;
-        return all;
-      }, {});
-      matches = recent.map(e => byEmoji[e]).filter(e => e).concat(entries.filter(e => !usage[e.e])).slice(0, _searchLimit);
-    } else {
-      const scored = [];
-      for (let i = 0; i < entries.length; i++) {
-        const e = entries[i];
-        const keyword = Math.max(0, ...e.k.map(k => root.score(k, q)).filter(s => s >= 50));
-        const group = root.score(e.g, q);
-        const s = Math.max(root.score(e.n, q), 0.85 * keyword, group >= 50 ? 0.5 * group : 0);
-        if (s > 0)
-          scored.push({
-            e: e,
-            i: i,
-            s: s + Math.min(25, 8 * Math.log2(1 + _entryFrecency(usage[e.e])))
-          });
-      }
-      scored.sort((a, b) => b.s - a.s || a.i - b.i);
-      matches = scored.slice(0, _searchLimit).map(m => m.e);
-    }
+    const matches = EmojiManager.search(query, _searchLimit);
     return matches.length > 0 ? matches.map(e => _emojiRow(e)) : [_infoRow(I18n.tr("No matches"), I18n.tr("Search emoji by name or keyword"))];
   }
 

@@ -11,6 +11,7 @@ import qs.components.methods
 // daylight saving changes), and not at all with none asked for. The zone
 // travels as an argument, never inside the shell text.
 //   TimeZoneManager.acquire(owner, "Asia/Tokyo")   // "" releases
+//   TimeZoneManager.acquire(owner, ["Asia/Tokyo", "Europe/Paris"])
 //   TimeZoneManager.offsetOf("Asia/Tokyo")          // 540, null until read
 // Also lists the system's zones (`zones`), for the time zone fields.
 QtObject {
@@ -23,13 +24,15 @@ QtObject {
   readonly property var zones: root._zones
   property var _zones: []
 
+  // One zone, or a list (World clocks); none releases
   function acquire(owner, zone) {
-    if (!zone) {
+    const zones = (Array.isArray(zone) ? zone : [zone]).filter(z => !!z).filter((z, i, all) => all.indexOf(z) === i).sort();
+    if (zones.length === 0) {
       root.release(owner);
       return;
     }
     root._registry.acquire(owner, {
-      "zone": zone
+      "zones": zones
     });
   }
 
@@ -49,7 +52,7 @@ QtObject {
   // -- Private --
   property ConsumerRegistry _registry: ConsumerRegistry {}
   // The zones asked for, as a key: identical requests don't re-read
-  readonly property string _wanted: root._registry.requests.map(request => request.zone).filter((zone, i, all) => all.indexOf(zone) === i).sort().join("\n")
+  readonly property string _wanted: [].concat(...root._registry.requests.map(request => request.zones)).filter((zone, i, all) => all.indexOf(zone) === i).sort().join("\n")
   on_WantedChanged: root._read()
   // Asked again while reading: read once more after
   property bool _again: false

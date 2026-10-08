@@ -24,6 +24,12 @@ import qs.config
  * ("1920x1080"), `size` ("1.2 MiB") and `image`, its thumbnail's url once
  * decoded. HTML that is just an image (a browser's copy, stored beside the
  * image itself) has `html` set and `image` from its src once decoded. Copying back pipes the text to wl-copy's stdin, never through argv.
+ *
+ * `pins` are text clips the user pinned ([{ id, text, time, pinned: true }],
+ * newest first): the one part written to disk (config/state/clipboardPins.json),
+ * kept through clear() and restarts, whichever source is on. A cliphist
+ * clip is decoded first, as its listing is only a preview. Images can't be
+ * pinned.
  */
 Singleton {
   id: root
@@ -36,6 +42,7 @@ Singleton {
   readonly property var cliphistInstalled: DependencyManager.found.cliphist
 
   property var entries: []
+  property var pins: []
 
   // Longer clips aren't recorded
   readonly property int _maxLength: 100000
@@ -56,7 +63,9 @@ Singleton {
   function copy(entry) {
     if (!entry)
       return;
-    if (cliphist && entry.html)
+    if (entry.pinned)
+      copyText(entry.text);
+    else if (cliphist && entry.html)
       _run(["sh", "-c", 'cliphist decode "$1" | wl-copy --type text/html', "sh", entry.id], null);
     else if (cliphist && entry.format)
       _run(["sh", "-c", 'cliphist decode "$1" | wl-copy --type "$2"', "sh", entry.id, "image/" + entry.format], null);
@@ -86,6 +95,42 @@ Singleton {
         root.refresh();
       });
     }
+  }
+
+  // Whether a clip can be pinned (text, not an image), and whether it is
+  function canPin(entry) {
+    return !!entry && !entry.format && !entry.html && !/^\[\[ binary data/.test(entry.text);
+  }
+
+  function isPinned(entry) {
+    return !!entry && (entry.pinned === true || root.pins.some(p => p.text === entry.text));
+  }
+
+  function pin(entry) {
+    if (!canPin(entry) || isPinned(entry))
+      return;
+    if (!cliphist || entry.pinned)
+      return root._addPin(entry.text);
+    CommandManager.run(["cliphist", "decode"], (exitCode, stdout) => {
+      if (exitCode === 0 && stdout !== "")
+        root._addPin(stdout);
+    }, entry.id + "\t" + entry.text + "\n");
+  }
+
+  // By the clip's text, so unpinning a history row unpins its pin too
+  function unpin(entry) {
+    if (!entry)
+      return;
+    const text = entry.pinned ? entry.text : root.pins.find(p => p.text === entry.text)?.text;
+    root.pins = root.pins.filter(p => p.text !== text);
+    _pinState.save(root.pins);
+  }
+
+  function togglePin(entry) {
+    if (isPinned(entry))
+      unpin(entry);
+    else
+      pin(entry);
   }
 
   function clear() {
@@ -287,11 +332,30 @@ Singleton {
 
   // --- Processes ---
 
+  // --- Pins ---
+
+  property var _pinState: StateManager.createStateHandler("clipboardPins")
+
+  function _addPin(text) {
+    if (text.trim() === "" || root.pins.some(p => p.text === text))
+      return;
+    root.pins = [
+      {
+        "id": "pin" + Date.now(),
+        "text": text,
+        "time": Date.now(),
+        "pinned": true
+      }
+    ].concat(root.pins);
+    _pinState.save(root.pins);
+  }
+
   function _run(command, input, done) {
     CommandManager.run(command, () => done?.(), input);
   }
 
   Component.onCompleted: {
+    root.pins = _pinState.load([]);
     if (cliphist)
       DependencyManager.check(["cliphist"]);
   }

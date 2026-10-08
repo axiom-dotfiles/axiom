@@ -149,6 +149,15 @@ TestCase {
     compare(Utils.formatRate(undefined), "0 B/s");
   }
 
+  function test_formatBytes() {
+    compare(Utils.formatBytes(820), "820 B");
+    compare(Utils.formatBytes(4.2 * 1024 * 1024), "4.2 MiB");
+    compare(Utils.formatBytes(37 * 1024 * 1024 + 5000), "37 MiB");
+    compare(Utils.formatBytes(1.25 * 1024 * 1024 * 1024), "1.3 GiB");
+    compare(Utils.formatBytes(0), "0 B");
+    compare(Utils.formatBytes(undefined), "0 B");
+  }
+
   function test_formatSize() {
     compare(Utils.formatSize(512 * Utils.bytesPerGiB), "512G");
     compare(Utils.formatSize(1843 * Utils.bytesPerGiB), "1.8T");

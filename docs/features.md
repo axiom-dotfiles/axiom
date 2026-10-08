@@ -66,16 +66,17 @@ Set a style once under **Settings → Look & Feel → Bar widgets**, and give an
 <p align="center"><img src="../assets/screenshots/overlay-home.webp" alt="The overlay's Home page: Wi-Fi, quick actions, media, notifications, a clock and calendar, the mixer, network, weather and disks" width="900"></p>
 
 - A full-screen overlay made of pages. Each page is a grid you place modules on, with gaps wherever you like. Pages have their own name and icon in the navigator.
-- **28 modules**, and every one adapts to its size and shape (square, wide or tall, down to a compact figure):
+- **36 modules**, and every one adapts to its size and shape (square, wide or tall, down to a compact figure):
 
   | Group | Modules |
   | --- | --- |
   | Media and sound | Now playing, Audio mixer, Volume dials |
   | System | System graphs, Top processes, Disks, Battery, Updates, Network |
-  | Controls | Quick actions (toggles, power, pin), Screenshot, Bluetooth devices, Wi-Fi networks, Favourite apps |
-  | Time and plans | Clock (digital, stacked or analog, in any time zone), Clock & calendar, Calendar, Agenda, Weather |
+  | Controls | Quick actions (toggles, power, pin), Screenshot, Screen recording (region or screen, with sound, recent recordings), Night light, Bluetooth devices, Wi-Fi networks, Favourite apps |
+  | Time and plans | Clock (digital, stacked or analog, in any time zone), World clocks, Clock & calendar, Calendar, Agenda, Weather |
   | Workspace | Workspaces map, Notifications |
   | Writing | Notes, AI chat |
+  | Utilities | Calculator (with a keypad; math, units and currencies), Clipboard history (with pins), Emoji picker, Command output (any command's output as a card), Keybind cheat sheet |
   | Look | Theme picker, Wallpapers, Palette, Theme color swatch, Greeting |
 
 - **Built-in pages:**
