@@ -36,7 +36,7 @@ Scope {
   }
 
   Variants {
-    model: HyprlandManager.layerRulesReady && BlurManager.backing ? Quickshell.screens : []
+    model: BlurManager.backing ? Quickshell.screens : []
 
     delegate: PanelWindow {
       id: backing

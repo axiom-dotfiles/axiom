@@ -28,8 +28,9 @@ QtObject {
   // layer rules are Hyprland-wide). The chrome then fills itself.
   readonly property bool paused: Appearance.blur && Appearance.blurPauseFullscreen && Quickshell.screens.some(screen => HyprlandManager.hasFullscreen(screen.name))
   readonly property bool active: Appearance.blur && !root.paused
-  // The surfaces leave their fill to the backing
-  readonly property bool backing: root.active
+  // The surfaces leave their fill to the blur window: blurring, and its
+  // windows built (BlurBacking waits for the layer rules, as the chrome does)
+  readonly property bool backing: root.active && HyprlandManager.layerRulesReady
 
   // The registered BlurShapes; changes only as one comes or goes. Each
   // gets a `uid`, which the blur window keys its copies by (shapeOf).
@@ -99,6 +100,8 @@ QtObject {
     // From the side it's anchored to
     return Qt.point(edge === Bar.Right ? best.x + best.w - width : best.x, edge === Bar.Bottom ? best.y + best.h - height : best.y);
   }
+  // Last seen per window size: grows by one small entry per length a
+  // window has had, and starts over on a reload
   property var _seen: ({})
 
   // Nothing reads an origin while surfaces are solid

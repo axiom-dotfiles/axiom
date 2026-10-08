@@ -79,9 +79,13 @@ QtObject {
   // blurs the chrome's popups)
   readonly property real shadowAlphaMax: blur ? 0.45 : 1
 
-  // A surface fill (a theme color) at the surface opacity
+  // A surface fill (a theme color, or a name or "#hex" as
+  // Theme.resolveColor gives one) at the surface opacity
   function fill(color) {
-    return translucent ? Qt.alpha(color, color.a * surfaceAlpha) : color;
+    if (!translucent)
+      return color;
+    const c = Qt.color(color);
+    return Qt.alpha(c, c.a * surfaceAlpha);
   }
 
   // --- Motion ---

@@ -77,6 +77,7 @@ Item {
   BlurShape {
     source: root
     kind: "frame"
+    color: root.frameColor
     screen: root.screen?.name ?? ""
     shown: root.backed
     // Cast evenly, inward, by the blur window in place of shadowWindow's

@@ -876,8 +876,9 @@ end`;
     if (dropped.length === 0)
       return false;
     _lookState.applied = "";
-    // The file modes rewrite their file, which reloads anyway
-    if (mode !== "detached" && _appliedMode === mode && status === "loaded")
+    // The file modes rewrite their file, which reloads anyway, unless it
+    // never held the part (only evaluated at runtime since its last write)
+    if (mode !== "detached" && _appliedMode === mode && status === "loaded" && FileManager.read(mode === "managed" ? managedPath : includePath) !== (mode === "managed" ? managedLua() : moduleLua()))
       return false;
     console.log(`[HyprlandConfigManager] Window look turned off (${dropped.join(", ")}); reloading Hyprland's config to take it back`);
     _reload();

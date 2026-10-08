@@ -263,7 +263,7 @@ QtObject {
   // While surfaces blur, it stays under Hyprland's blur threshold
   // (Appearance.shadowAlphaMax), so the blur doesn't spread into it.
   function shadowColor(look) {
-    const color = look.shadowColor ? Theme.resolveColor(look.shadowColor) : look.shadow === "glow" ? Theme.accent : Qt.alpha("black", 0.6);
+    const color = Qt.color(look.shadowColor ? Theme.resolveColor(look.shadowColor) : look.shadow === "glow" ? Theme.accent : Qt.alpha("black", 0.6));
     return color.a > Appearance.shadowAlphaMax ? Qt.alpha(color, Appearance.shadowAlphaMax) : color;
   }
 

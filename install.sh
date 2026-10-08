@@ -141,11 +141,10 @@ first_version() { grep -oE '[0-9]+\.[0-9]+(\.[0-9]+)?' | head -1; }
 
 # Arch or a distribution based on it (CachyOS, EndeavourOS, Manjaro, …): its
 # os-release names arch as its ID or in ID_LIKE, or it ships /etc/arch-release.
-# AXIOM_OS_RELEASE is for tests
-OS_RELEASE=${AXIOM_OS_RELEASE:-/etc/os-release}
-[[ -f "$OS_RELEASE" || -n "${AXIOM_OS_RELEASE:-}" ]] || OS_RELEASE=/usr/lib/os-release
+OS_RELEASE=/etc/os-release
+[[ -f "$OS_RELEASE" ]] || OS_RELEASE=/usr/lib/os-release
 arch_family() {
-  [[ -f /etc/arch-release && -z "${AXIOM_OS_RELEASE:-}" ]] && return
+  [[ -f /etc/arch-release ]] && return
   # shellcheck disable=SC1090 # os-release is KEY=value shell, by its spec
   (
     . "$OS_RELEASE" 2>/dev/null || exit 1

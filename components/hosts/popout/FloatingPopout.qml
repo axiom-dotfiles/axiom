@@ -129,6 +129,8 @@ PopoutWrapperBase {
     // The box's shadow or glow (SurfaceShadow), cast by a copy of its shape
     // behind it, so the content isn't drawn through a layer. Only what
     // falls outside the box is kept, so none shows through a translucent one.
+    // Not OutsideShadow: its capture drops the target's own transform, and
+    // this copy scales with the box as it opens.
     Rectangle {
       visible: BarStyle.shadowed
       x: box.x

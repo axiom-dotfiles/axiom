@@ -1761,7 +1761,7 @@ QtObject {
       }
       if (moved.length > 0 || hypr.mode === "managed") {
         hypr.look = look;
-        changes.push(`Hyprland.managed blur and opacity -> Hyprland.look (${moved.join(", ")})`);
+        changes.push(`Hyprland.managed blur and opacity -> Hyprland.look (${moved.length > 0 ? moved.join(", ") : "parts on"})`);
       }
       if (Array.isArray(managed?.env)) {
         const kept = managed.env.filter(entry => !(entry?.name === "QT_QPA_PLATFORM" && entry?.value === "wayland;xcb"));
