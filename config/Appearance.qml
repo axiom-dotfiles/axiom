@@ -64,21 +64,19 @@ QtObject {
   readonly property real surfaceAlpha: _c.surface.opacity / 100
   readonly property bool translucent: surfaceAlpha < 1
   // Hyprland blurs behind them (HyprlandConfigManager's blur rules, which
-  // leave out pixels under blurThreshold: shadows, dims, fades)
+  // leave out pixels under blurThreshold: shadows, dims, fades), with its
+  // own blur (the window look's blur part, or the user's config)
   readonly property bool blur: translucent && _c.surface.blur
   readonly property bool blurBackdrops: blur && _c.surface.blurBackdrops
-  // Hyprland's one blur strength, windows' too while it's on
-  readonly property int blurStrength: _c.surface.strength
   // Blurring what's under each surface, windows included, rather than the
   // wallpaper alone (xray), which every surface shares
   readonly property bool blurThroughWindows: _c.surface.throughWindows
-  // Transparent windows blur too, whatever the user's Hyprland config says
-  readonly property bool blurWindows: _c.surface.windows
   // Nothing blurs while a fullscreen window is open (BlurManager.active)
   readonly property bool blurPauseFullscreen: _c.surface.pauseFullscreen
   readonly property real blurThreshold: 0.5
   // A shadow's darkest alpha while blurring: under the threshold, so its
-  // halo isn't blurred
+  // halo isn't blurred (the blur window casts the chrome's, and Hyprland
+  // blurs the chrome's popups)
   readonly property real shadowAlphaMax: blur ? 0.45 : 1
 
   // A surface fill (a theme color) at the surface opacity

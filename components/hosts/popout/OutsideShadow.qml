@@ -23,7 +23,8 @@ Item {
   // shadow would show (and blur) through
   property var holes: []
   // The target is drawn for the shadow alone: captured (and kept off
-  // screen) whether or not the shadow shows
+  // screen) whether or not the shadow shows, while `active` (a target
+  // hides itself while it isn't)
   property bool hideTarget: false
   readonly property real reach: Math.ceil(shadow.look.shadowSize * 1.25)
 
@@ -37,7 +38,7 @@ Item {
     id: capture
     anchors.fill: parent
     visible: false
-    sourceItem: root.visible || root.hideTarget ? root.target : null
+    sourceItem: root.active && (root.visible || root.hideTarget) ? root.target : null
     hideSource: root.hideTarget
     sourceRect: Qt.rect(-root.reach, -root.reach, root.width, root.height)
   }

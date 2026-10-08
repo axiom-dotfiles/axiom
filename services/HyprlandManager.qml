@@ -157,6 +157,7 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
     }
     getGaps.running = true;
     getSplitMultiplier.running = true;
+    getBlur.running = true;
     getAnimations.running = true;
   }
 
@@ -556,6 +557,13 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
   // dwindle:split_width_multiplier: a box wider than tall times this splits
   // side by side (placeWindow, and the overview's drop preview)
   property real splitWidthMultiplier: 1
+  // Hyprland's blur as in effect, { enabled, size, passes } (its defaults
+  // until read): the one axiom's translucent surfaces blur with
+  property var blur: ({
+      "enabled": true,
+      "size": 8,
+      "passes": 1
+    })
 
   // Hyprland arranges and stacks each layer's surfaces in the order they
   // were mapped, unless a layer rule's `order` says otherwise (higher is
@@ -693,6 +701,26 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
         const value = Number(root._parse(splitCollector.text, "getoption")?.float);
         if (value > 0)
           root.splitWidthMultiplier = value;
+      }
+    }
+  }
+
+  Process {
+    id: getBlur
+    command: ["sh", "-c", "printf '[%s,%s,%s]' \"$(hyprctl getoption decoration:blur:enabled -j)\" \"$(hyprctl getoption decoration:blur:size -j)\" \"$(hyprctl getoption decoration:blur:passes -j)\""]
+    stdout: StdioCollector {
+      id: blurCollector
+      onStreamFinished: {
+        const options = root._parse(blurCollector.text, "getoption blur");
+        if (!Array.isArray(options) || options.length !== 3)
+          return;
+        const next = {
+          "enabled": options[0]?.int === 1 || options[0]?.bool === true,
+          "size": Number(options[1]?.int),
+          "passes": Number(options[2]?.int)
+        };
+        if (next.size > 0 && next.passes > 0 && JSON.stringify(next) !== JSON.stringify(root.blur))
+          root.blur = next;
       }
     }
   }

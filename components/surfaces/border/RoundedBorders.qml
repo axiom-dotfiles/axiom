@@ -79,6 +79,9 @@ Item {
     kind: "frame"
     screen: root.screen?.name ?? ""
     shown: root.backed
+    // Cast evenly, inward, by the blur window in place of shadowWindow's
+    shadow: BarStyle.values
+    shadowFalls: false
   }
 
   // An edge strip per side
@@ -115,7 +118,9 @@ Item {
     // The stroke's inner side, round the corner pieces' arcs
     readonly property real radius: Math.max(0, root.innerBorderRadius - root.strokeWidth)
 
-    visible: look.shadow !== "none"
+    // Backed, the blur window casts it, with the surfaces joined to the
+    // frame (BlurShape.shadow)
+    visible: look.shadow !== "none" && !root.backed
     screen: root.screen
     anchors {
       left: true

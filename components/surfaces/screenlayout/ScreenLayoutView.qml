@@ -85,7 +85,12 @@ Item {
   // the modules draw at least the blur threshold (as Hyprland's
   // ignore_alpha). Not over a wallpaper blurred already.
   readonly property bool frosted: Appearance.blur && !(root.layout?.background === "wallpaper" && root.blurWallpaper)
-  readonly property var _strength: HyprLua.blurStrength(Appearance.blurStrength)
+  // Hyprland's blur, { size, passes }: the lock surface hands in the one in
+  // effect (HyprlandManager.blur); the greeter's Hyprland keeps its defaults
+  property var hyprBlur: ({
+      "size": 8,
+      "passes": 1
+    })
 
   ShaderEffectSource {
     id: backdropCapture
@@ -124,7 +129,7 @@ Item {
       autoPaddingEnabled: false
       blurEnabled: true
       blur: 1
-      blurMax: Math.min(64, root._strength.size * Math.pow(2, root._strength.passes))
+      blurMax: Math.min(64, root.hyprBlur.size * Math.pow(2, root.hyprBlur.passes))
       maskEnabled: true
       maskSource: modulesCapture
       maskThresholdMin: Appearance.blurThreshold

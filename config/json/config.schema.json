@@ -22,7 +22,7 @@
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 50,
+      "default": 51,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
@@ -629,13 +629,29 @@
           "title": "Window look",
           "description": "Hyprland settings that make windows match axiom, in every mode. While on, they win over your own Hyprland config, and they come along when you share or import a config.",
           "additionalProperties": false,
-          "x-order": ["borders", "shape", "gaps", "gapsIn", "gapsOut"],
+          "x-order": ["borders", "shape", "gaps", "gapsIn", "gapsOut", "blur", "windowBlur", "blurSize", "blurPasses", "blurXray", "blurIgnoreOpacity", "blurNewOptimizations", "blurNoise", "blurContrast", "blurVibrancy", "blurPopups", "blurSpecial", "opacity", "activeOpacity", "inactiveOpacity", "fullscreenOpacity"],
           "properties": {
             "borders": { "type": "boolean", "title": "Themed borders", "default": false, "description": "Window borders in theme colors." },
             "shape": { "type": "boolean", "title": "Match axiom's shape", "default": false, "description": "Window corners and border width follow Look & Feel → Shape." },
             "gaps": { "type": "boolean", "title": "Set window gaps", "default": false, "description": "Floating bars and detached surfaces set to Automatic keep these gaps too." },
             "gapsIn": { "type": "integer", "x-control": "stepper", "title": "Gaps between windows", "x-unit": "px", "default": 3, "minimum": 0, "maximum": 50, "x-showIf": { "gaps": true } },
-            "gapsOut": { "type": "integer", "x-control": "stepper", "title": "Gaps to the edges", "x-unit": "px", "default": 6, "minimum": 0, "maximum": 100, "x-showIf": { "gaps": true } }
+            "gapsOut": { "type": "integer", "x-control": "stepper", "title": "Gaps to the edges", "x-unit": "px", "default": 6, "minimum": 0, "maximum": 100, "x-showIf": { "gaps": true } },
+            "blur": { "type": "boolean", "title": "Set Hyprland's blur", "x-group": "Blur", "default": false, "description": "Hyprland has one blur, for windows and axiom's translucent surfaces alike. Off, your own Hyprland config's applies." },
+            "windowBlur": { "type": "boolean", "title": "Blur transparent windows", "x-group": "Blur", "default": true, "description": "Off, only axiom's surfaces blur (Look & Feel → Translucency).", "x-showIf": { "blur": true }, "x-hypr": "decoration.blur.enabled", "x-hyprIf": "blur" },
+            "blurSize": { "type": "integer", "x-control": "stepper", "title": "Blur size", "x-group": "Blur", "default": 4, "minimum": 1, "maximum": 20, "x-showIf": { "blur": true }, "x-hypr": "decoration.blur.size", "x-hyprIf": "blur" },
+            "blurPasses": { "type": "integer", "title": "Blur passes", "x-group": "Blur", "default": 3, "minimum": 1, "maximum": 6, "x-showIf": { "blur": true }, "x-hypr": "decoration.blur.passes", "x-hyprIf": "blur" },
+            "blurXray": { "type": "boolean", "title": "See-through blur", "x-group": "Blur", "default": true, "description": "Floating windows blur only the wallpaper, not the windows under them. Cheaper.", "x-showIf": { "blur": true, "windowBlur": true }, "x-hypr": "decoration.blur.xray", "x-hyprIf": "blur" },
+            "blurIgnoreOpacity": { "type": "boolean", "title": "Full blur behind any transparency", "x-group": "Blur", "default": true, "x-showIf": { "blur": true, "windowBlur": true }, "x-hypr": "decoration.blur.ignore_opacity", "x-hyprIf": "blur" },
+            "blurNewOptimizations": { "type": "boolean", "title": "Blur optimizations", "x-group": "Blur", "default": true, "x-showIf": { "blur": true }, "x-hypr": "decoration.blur.new_optimizations", "x-hyprIf": "blur" },
+            "blurNoise": { "type": "integer", "title": "Noise", "x-unit": "‰", "x-group": "Blur", "default": 12, "minimum": 0, "maximum": 1000, "x-showIf": { "blur": true }, "x-hypr": "decoration.blur.noise", "x-hyprScale": 0.001, "x-hyprIf": "blur" },
+            "blurContrast": { "type": "integer", "title": "Contrast", "x-unit": "%", "x-group": "Blur", "default": 89, "minimum": 0, "maximum": 200, "x-showIf": { "blur": true }, "x-hypr": "decoration.blur.contrast", "x-hyprScale": 0.01, "x-hyprIf": "blur" },
+            "blurVibrancy": { "type": "integer", "title": "Vibrancy", "x-unit": "%", "x-group": "Blur", "default": 17, "minimum": 0, "maximum": 100, "x-showIf": { "blur": true }, "x-hypr": "decoration.blur.vibrancy", "x-hyprScale": 0.01, "x-hyprIf": "blur" },
+            "blurPopups": { "type": "boolean", "title": "Blur menus and popups", "x-group": "Blur", "default": false, "x-showIf": { "blur": true, "windowBlur": true }, "x-hypr": "decoration.blur.popups", "x-hyprIf": "blur" },
+            "blurSpecial": { "type": "boolean", "title": "Blur behind special workspaces", "x-group": "Blur", "default": false, "description": "Expensive: redraws the blur on every frame.", "x-showIf": { "blur": true }, "x-hypr": "decoration.blur.special", "x-hyprIf": "blur" },
+            "opacity": { "type": "boolean", "title": "Set window opacity", "x-group": "Window opacity", "default": false, "description": "Off, your own Hyprland config's applies." },
+            "activeOpacity": { "type": "integer", "title": "Focused window opacity", "x-unit": "%", "x-group": "Window opacity", "default": 100, "minimum": 10, "maximum": 100, "x-showIf": { "opacity": true }, "x-hypr": "decoration.active_opacity", "x-hyprScale": 0.01, "x-hyprIf": "opacity" },
+            "inactiveOpacity": { "type": "integer", "title": "Unfocused window opacity", "x-unit": "%", "x-group": "Window opacity", "default": 100, "minimum": 10, "maximum": 100, "x-showIf": { "opacity": true }, "x-hypr": "decoration.inactive_opacity", "x-hyprScale": 0.01, "x-hyprIf": "opacity" },
+            "fullscreenOpacity": { "type": "integer", "title": "Fullscreen opacity", "x-unit": "%", "x-group": "Window opacity", "default": 100, "minimum": 10, "maximum": 100, "x-showIf": { "opacity": true }, "x-hypr": "decoration.fullscreen_opacity", "x-hyprScale": 0.01, "x-hyprIf": "opacity" }
           }
         },
         "managed": {
@@ -644,7 +660,7 @@
           "description": "Written into hyprland.lua. Anything else goes in ~/.config/hypr/user/*.lua.",
           "x-showIf": { "mode": "managed" },
           "additionalProperties": false,
-          "x-order": ["layout", "preserveSplit", "smartSplit", "smartResizing", "forceSplit", "splitRatio", "masterSize", "masterOrientation", "masterNewStatus", "snap", "borderSize", "rounding", "activeOpacity", "inactiveOpacity", "fullscreenOpacity", "dimInactive", "dimStrength", "dimSpecial", "windowBlur", "blurSize", "blurPasses", "blurXray", "blurIgnoreOpacity", "blurNewOptimizations", "blurNoise", "blurContrast", "blurVibrancy", "blurPopups", "blurSpecial", "shadow", "shadowRange", "shadowPower", "shadowThemed", "shadowColor", "animations", "animationPreset", "workspaceWraparound", "curves", "customAnimations", "kbLayout", "kbVariant", "kbOptions", "repeatRate", "repeatDelay", "numlockByDefault", "followMouse", "floatSwitchOverrideFocus", "accelProfile", "sensitivity", "leftHanded", "resizeOnBorder", "cursorTheme", "cursorSize", "cursorHideTimeout", "hideCursorOnKeyPress", "noWarps", "naturalScroll", "tapToClick", "disableWhileTyping", "touchpadScrollFactor", "hideLogo", "backgroundThemed", "backgroundColor", "focusOnActivate", "swallow", "swallowRegex", "closeSpecialOnEmpty", "hideSpecialOnWorkspaceChange", "workspaceBackAndForth", "mouseWakesScreen", "keyWakesScreen", "vrr", "scrollEventDelay", "xwaylandZeroScaling", "env", "autostart"],
+          "x-order": ["layout", "preserveSplit", "smartSplit", "smartResizing", "forceSplit", "splitRatio", "masterSize", "masterOrientation", "masterNewStatus", "snap", "borderSize", "rounding", "dimInactive", "dimStrength", "dimSpecial", "shadow", "shadowRange", "shadowPower", "shadowThemed", "shadowColor", "animations", "animationPreset", "workspaceWraparound", "curves", "customAnimations", "kbLayout", "kbVariant", "kbOptions", "repeatRate", "repeatDelay", "numlockByDefault", "followMouse", "floatSwitchOverrideFocus", "accelProfile", "sensitivity", "leftHanded", "resizeOnBorder", "cursorTheme", "cursorSize", "cursorHideTimeout", "hideCursorOnKeyPress", "noWarps", "naturalScroll", "tapToClick", "disableWhileTyping", "touchpadScrollFactor", "hideLogo", "backgroundThemed", "backgroundColor", "focusOnActivate", "swallow", "swallowRegex", "closeSpecialOnEmpty", "hideSpecialOnWorkspaceChange", "workspaceBackAndForth", "mouseWakesScreen", "keyWakesScreen", "vrr", "scrollEventDelay", "xwaylandZeroScaling", "recommendedEnv", "env", "autostart"],
           "properties": {
             "layout": { "type": "string", "title": "Layout", "x-group": "Layout", "enum": ["dwindle", "master"], "x-enumLabels": { "dwindle": "Dwindle (binary splits)", "master": "Master and stack" }, "default": "dwindle", "description": "How windows tile. For strips (Hyprland's scrolling columns), see Workspaces.", "x-hypr": "general.layout", "x-hyprAlways": true },
             "preserveSplit": { "type": "boolean", "title": "Keep split direction", "x-group": "Layout", "default": true, "description": "Dwindle keeps a split's direction when the window is resized or moved.", "x-showIf": { "layout": "dwindle" }, "x-hypr": "dwindle.preserve_split", "x-hyprAlways": true },
@@ -658,30 +674,16 @@
             "snap": { "type": "boolean", "title": "Snap floating windows", "x-group": "Layout", "default": false, "description": "Floating windows snap to each other and the screen edges.", "x-hypr": "general.snap.enabled" },
             "borderSize": { "type": "integer", "x-control": "stepper", "title": "Border width", "x-group": "Decoration", "default": 2, "minimum": 0, "maximum": 20, "x-showIf": { "/Hyprland.look.shape": false } },
             "rounding": { "type": "integer", "x-control": "stepper", "title": "Corner rounding", "x-group": "Decoration", "default": 8, "minimum": 0, "maximum": 50, "x-showIf": { "/Hyprland.look.shape": false } },
-            "activeOpacity": { "type": "integer", "title": "Focused window opacity", "x-unit": "%", "x-group": "Decoration", "default": 100, "minimum": 10, "maximum": 100, "x-hypr": "decoration.active_opacity", "x-hyprScale": 0.01 },
-            "inactiveOpacity": { "type": "integer", "title": "Unfocused window opacity", "x-unit": "%", "x-group": "Decoration", "default": 100, "minimum": 10, "maximum": 100, "x-hypr": "decoration.inactive_opacity", "x-hyprScale": 0.01 },
-            "fullscreenOpacity": { "type": "integer", "title": "Fullscreen opacity", "x-unit": "%", "x-group": "Decoration", "default": 100, "minimum": 10, "maximum": 100, "x-hypr": "decoration.fullscreen_opacity", "x-hyprScale": 0.01 },
             "dimInactive": { "type": "boolean", "title": "Dim unfocused windows", "x-group": "Decoration", "default": true, "x-hypr": "decoration.dim_inactive", "x-hyprAlways": true },
             "dimStrength": { "type": "integer", "title": "Dim strength", "x-unit": "%", "x-group": "Decoration", "default": 8, "minimum": 0, "maximum": 100, "x-showIf": { "dimInactive": true }, "x-hypr": "decoration.dim_strength", "x-hyprScale": 0.01, "x-hyprAlways": true },
             "dimSpecial": { "type": "integer", "title": "Dim behind special workspaces", "x-unit": "%", "x-group": "Decoration", "default": 20, "minimum": 0, "maximum": 100, "x-hypr": "decoration.dim_special", "x-hyprScale": 0.01 },
-            "windowBlur": { "type": "boolean", "title": "Blur transparent windows", "x-group": "Blur", "default": true, "description": "Look & Feel → Translucency can blur them anyway, and sets the strength while axiom's surfaces blur.", "x-hypr": "decoration.blur.enabled", "x-hyprAlways": true },
-            "blurSize": { "type": "integer", "x-control": "stepper", "title": "Blur size", "x-group": "Blur", "default": 4, "minimum": 1, "maximum": 20, "x-showIf": { "windowBlur": true, "anyOf": [{ "/Appearance.surface.opacity": 100 }, { "/Appearance.surface.blur": false }] }, "x-hypr": "decoration.blur.size", "x-hyprAlways": true },
-            "blurPasses": { "type": "integer", "title": "Blur passes", "x-group": "Blur", "default": 3, "minimum": 1, "maximum": 6, "x-showIf": { "windowBlur": true, "anyOf": [{ "/Appearance.surface.opacity": 100 }, { "/Appearance.surface.blur": false }] }, "x-hypr": "decoration.blur.passes", "x-hyprAlways": true },
-            "blurXray": { "type": "boolean", "title": "See-through blur", "x-group": "Blur", "default": true, "description": "Floating windows blur only the wallpaper, not the windows under them. Cheaper.", "x-showIf": { "windowBlur": true }, "x-hypr": "decoration.blur.xray", "x-hyprAlways": true },
-            "blurIgnoreOpacity": { "type": "boolean", "title": "Full blur behind any transparency", "x-group": "Blur", "default": true, "x-showIf": { "windowBlur": true }, "x-hypr": "decoration.blur.ignore_opacity" },
-            "blurNewOptimizations": { "type": "boolean", "title": "Blur optimizations", "x-group": "Blur", "default": true, "x-showIf": { "windowBlur": true }, "x-hypr": "decoration.blur.new_optimizations" },
-            "blurNoise": { "type": "integer", "title": "Noise", "x-unit": "‰", "x-group": "Blur", "default": 12, "minimum": 0, "maximum": 1000, "x-showIf": { "windowBlur": true }, "x-hypr": "decoration.blur.noise", "x-hyprScale": 0.001 },
-            "blurContrast": { "type": "integer", "title": "Contrast", "x-unit": "%", "x-group": "Blur", "default": 89, "minimum": 0, "maximum": 200, "x-showIf": { "windowBlur": true }, "x-hypr": "decoration.blur.contrast", "x-hyprScale": 0.01 },
-            "blurVibrancy": { "type": "integer", "title": "Vibrancy", "x-unit": "%", "x-group": "Blur", "default": 17, "minimum": 0, "maximum": 100, "x-showIf": { "windowBlur": true }, "x-hypr": "decoration.blur.vibrancy", "x-hyprScale": 0.01 },
-            "blurPopups": { "type": "boolean", "title": "Blur menus and popups", "x-group": "Blur", "default": false, "x-showIf": { "windowBlur": true }, "x-hypr": "decoration.blur.popups" },
-            "blurSpecial": { "type": "boolean", "title": "Blur behind special workspaces", "x-group": "Blur", "default": false, "description": "Expensive: redraws the blur on every frame.", "x-showIf": { "windowBlur": true }, "x-hypr": "decoration.blur.special" },
             "shadow": { "type": "boolean", "title": "Window shadows", "x-group": "Shadows", "default": true, "x-hypr": "decoration.shadow.enabled" },
             "shadowRange": { "type": "integer", "x-control": "stepper", "title": "Shadow size", "x-group": "Shadows", "default": 4, "minimum": 0, "maximum": 100, "x-showIf": { "shadow": true }, "x-hypr": "decoration.shadow.range" },
             "shadowPower": { "type": "integer", "title": "Shadow falloff", "x-group": "Shadows", "default": 3, "minimum": 1, "maximum": 4, "description": "1 fades slowly, 4 ends sharply.", "x-showIf": { "shadow": true }, "x-hypr": "decoration.shadow.render_power" },
             "shadowThemed": { "type": "boolean", "title": "Shadow in a theme color", "x-group": "Shadows", "default": false, "x-showIf": { "shadow": true } },
             "shadowColor": { "type": "string", "title": "Shadow color", "x-group": "Shadows", "x-options": "colors", "default": "base00", "x-showIf": { "shadowThemed": true }, "x-hypr": "decoration.shadow.color", "x-hyprValue": "color", "x-hyprAlpha": "ee", "x-hyprIf": "shadowThemed" },
             "animations": { "type": "boolean", "title": "Animations", "x-group": "Animations", "default": true, "x-hypr": "animations.enabled", "x-hyprAlways": true },
-            "animationPreset": { "type": "string", "title": "Style", "x-group": "Animations", "enum": ["hyprland", "axiom", "snappy", "bouncy", "custom"], "x-enumLabels": { "hyprland": "Hyprland's defaults", "axiom": "Follow axiom's motion", "snappy": "Snappy", "bouncy": "Bouncy", "custom": "Custom" }, "default": "axiom", "description": "Follow axiom's motion uses Look & Feel → Motion's speed, and turns Hyprland's animations off with axiom's.", "x-showIf": { "animations": true } },
+            "animationPreset": { "type": "string", "title": "Style", "x-group": "Animations", "enum": ["hyprland", "axiom", "snappy", "bouncy", "lightning", "custom"], "x-enumLabels": { "hyprland": "Hyprland's defaults", "axiom": "Follow axiom's motion", "snappy": "Snappy", "bouncy": "Bouncy", "lightning": "Lightning", "custom": "Custom" }, "default": "axiom", "description": "Follow axiom's motion uses Look & Feel → Motion's speed, and turns Hyprland's animations off with axiom's.", "x-showIf": { "animations": true } },
             "workspaceWraparound": { "type": "boolean", "title": "Wrap workspace animations", "x-group": "Animations", "default": false, "description": "Going from the last workspace to the first slides forward, not back.", "x-showIf": { "animations": true }, "x-hypr": "animations.workspace_wraparound" },
             "curves": {
               "type": "array",
@@ -755,11 +757,12 @@
             "vrr": { "type": "string", "title": "Variable refresh rate", "x-group": "Behaviour", "enum": ["0", "1", "2"], "x-enumLabels": { "0": "Off", "1": "On", "2": "Fullscreen only" }, "default": "0", "x-hypr": "misc.vrr", "x-hyprValue": "number" },
             "scrollEventDelay": { "type": "integer", "title": "Scroll bind delay", "x-unit": "ms", "x-group": "Behaviour", "default": 300, "minimum": 0, "maximum": 2000, "description": "How long a bound scroll ignores further scrolling.", "x-hypr": "binds.scroll_event_delay" },
             "xwaylandZeroScaling": { "type": "boolean", "title": "Unscaled X11 apps", "x-group": "Behaviour", "default": true, "description": "X11 apps draw at native resolution on scaled monitors, instead of blurry.", "x-hypr": "xwayland.force_zero_scaling", "x-hyprAlways": true },
+            "recommendedEnv": { "type": "boolean", "title": "Recommended environment", "x-group": "Startup", "default": true, "description": "The variables Hyprland's wiki recommends: GTK, Qt, Clutter and Electron apps run on Wayland (falling back to X11 where they can), Qt scales by pixel density and leaves window decorations to Hyprland. Your own below win over them." },
             "env": {
               "type": "array",
               "title": "Environment",
               "x-group": "Startup",
-              "default": [{ "name": "QT_QPA_PLATFORM", "value": "wayland;xcb" }],
+              "default": [],
               "description": "Variables set before anything starts. Changes apply to apps started afterwards.",
               "items": {
                 "type": "object",
@@ -952,8 +955,9 @@
           "x-scope": "look",
           "type": "object",
           "title": "Translucency",
+          "x-intro": "TranslucencyStatus",
           "additionalProperties": false,
-          "x-order": ["opacity", "blur", "strength", "throughWindows", "windows", "blurBackdrops", "pauseFullscreen"],
+          "x-order": ["opacity", "blur", "throughWindows", "blurBackdrops", "pauseFullscreen"],
           "properties": {
             "opacity": {
               "type": "integer",
@@ -968,31 +972,14 @@
               "type": "boolean",
               "title": "Blur behind surfaces",
               "default": true,
-              "description": "Hyprland blurs what shows through a translucent surface. It costs GPU time whenever what's behind or on a surface changes, more at a higher strength and with windows blurred behind.",
+              "description": "Hyprland blurs what shows through a translucent surface, with its own blur (Hyprland → Window look → Blur). It costs GPU time whenever what's behind or on a surface changes, more with a stronger blur and with windows blurred behind.",
               "x-showIf": { "opacity": { "not": 100 } }
-            },
-            "strength": {
-              "type": "integer",
-              "x-control": "stepper",
-              "title": "Blur strength",
-              "default": 5,
-              "minimum": 1,
-              "maximum": 10,
-              "description": "Hyprland has one blur strength for everything, so transparent windows that blur use it too. Turning the blur off gives your own back.",
-              "x-showIf": { "opacity": { "not": 100 }, "blur": true }
             },
             "throughWindows": {
               "type": "boolean",
               "title": "Blur windows behind surfaces",
               "default": true,
               "description": "Off, bars, the border and popouts blur the wallpaper alone, which is cheaper. Tooltips and menus always blur what's behind them.",
-              "x-showIf": { "opacity": { "not": 100 }, "blur": true }
-            },
-            "windows": {
-              "type": "boolean",
-              "title": "Blur transparent windows too",
-              "default": false,
-              "description": "Off, windows blur as your Hyprland config says (with this strength, if they do).",
               "x-showIf": { "opacity": { "not": 100 }, "blur": true }
             },
             "blurBackdrops": {
@@ -1003,6 +990,7 @@
               "x-showIf": { "opacity": { "not": 100 }, "blur": true }
             },
             "pauseFullscreen": {
+              "x-scope": "machine",
               "type": "boolean",
               "title": "Pause blur over fullscreen apps",
               "default": true,

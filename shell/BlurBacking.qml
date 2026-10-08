@@ -14,12 +14,26 @@ import qs.components.reusable
 // window under every chrome surface drawing each registered shape (the
 // border's frame, bars, popouts, edge menus, docks) filled. It's the only
 // one of them Hyprland blurs (HyprLua.blurSurfaces), in one pass, so where
-// surfaces join their blur matches exactly. Shadows stay with the surfaces
-// casting them, in their own windows, so they move with them.
+// surfaces join their blur matches exactly. Their shadows are cast here
+// too, from the same copies: one per look (BlurShape.shadow), kept only
+// outside every shape, so a shadow runs unbroken round joined surfaces as
+// round one (surfaces each casting their own, cut where the others sit,
+// never met at a join). They stay under Hyprland's blur threshold
+// (Appearance.shadowAlphaMax), so they aren't blurred.
 // The copies are keyed (KeyedModel): one coming or going adds or removes
 // only its own, so the others aren't remade (and don't restart).
 Scope {
   id: root
+
+  // Which shadow a shape casts with: shapes of one look, falling the same
+  // way, cast theirs together; "none" for no shadow
+  function shadowKey(shape) {
+    const look = shape?.shadow ?? null;
+    if (!look || look.shadow === "none")
+      return "none";
+    const even = look.shadow === "glow" || !shape.shadowFalls;
+    return [look.shadow, look.shadowColor, look.shadowSize, even ? "even" : shape.shadowEdge].join("|");
+  }
 
   Variants {
     model: HyprlandManager.layerRulesReady && BlurManager.backing ? Quickshell.screens : []
@@ -51,17 +65,99 @@ Scope {
         id: nudge
       }
 
-      // Every shape drawn opaque, then the surface opacity applied to them
-      // all at once, so where they overlap they don't stack
+      // The shadows, under the fills
+      Item {
+        id: shadows
+        anchors.fill: parent
+      }
+
+      // Every shape drawn opaque (by shadow, in `groups`), then the surface
+      // opacity applied to them all at once, so where they overlap they
+      // don't stack (a layer of its own only once there are several)
       Item {
         id: fills
         anchors.fill: parent
-        layer.enabled: true
+        layer.enabled: groups.count > 1
         opacity: Appearance.surfaceAlpha
+      }
 
-        Copies {
-          shapes: backing.shapes
-          onChanged: nudge.burst()
+      // Every shape, as the shadows' cut: each is kept outside them all,
+      // so none falls on a surface joined to the one casting it. Captured
+      // (and kept off screen) only once there are several groups.
+      Item {
+        id: unionShapes
+        anchors.fill: parent
+      }
+      ShaderEffectSource {
+        id: union
+        anchors.fill: parent
+        visible: false
+        sourceItem: groups.count > 1 ? unionShapes : null
+        hideSource: true
+      }
+
+      KeyedModel {
+        id: groupModel
+        keys: backing.shapes.map(shape => root.shadowKey(shape)).filter((key, i, all) => all.indexOf(key) === i)
+      }
+
+      // The shapes casting one shadow: copied once, captured (a hidden
+      // layer isn't drawn, a capture with hideSource is), drawn into
+      // `fills` and `union` from the capture, and casting from it
+      Repeater {
+        id: groups
+        model: groupModel.model
+
+        delegate: Item {
+          id: group
+          required property string key
+          readonly property var members: backing.shapes.filter(shape => root.shadowKey(shape) === group.key)
+          readonly property var lead: group.members[0] ?? null
+          anchors.fill: parent
+
+          Item {
+            id: shapes
+            anchors.fill: parent
+
+            Copies {
+              shapes: group.members
+              onChanged: nudge.burst()
+            }
+          }
+
+          ShaderEffectSource {
+            id: copied
+            anchors.fill: parent
+            visible: false
+            sourceItem: shapes
+            hideSource: true
+          }
+
+          ShaderEffect {
+            property var source: copied
+            parent: fills
+            anchors.fill: parent
+          }
+
+          ShaderEffect {
+            property var source: copied
+            parent: unionShapes
+            anchors.fill: parent
+            visible: groups.count > 1
+          }
+
+          SurfaceShadow {
+            parent: shadows
+            anchors.fill: parent
+            visible: group.key !== "none" && group.lead !== null
+            source: copied
+            cut: true
+            cutSource: groups.count > 1 ? union : copied
+            autoPaddingEnabled: false
+            look: group.lead?.shadow ?? BarStyle.values
+            edge: group.lead?.shadowEdge ?? -1
+            falls: group.lead?.shadowFalls ?? true
+          }
         }
       }
     }
@@ -135,11 +231,13 @@ Scope {
         width: area ? area.width : copies.width
         height: area ? area.height : copies.height
         clip: !!area
-        visible: (slot.shape?.shown ?? false) && !!slot.shape?.source
+        // (read rather than `visible`, which is false inside a hidden layer)
+        readonly property bool showing: (slot.shape?.shown ?? false) && !!slot.shape?.source
+        visible: slot.showing
 
         // Where and how big its copy is, as drawn: on any change the
         // window is nudged to show its last frame
-        readonly property string drawn: [mirror.x, mirror.y, mirror.width, mirror.height, slot.visible, (mirror.item as AttachedSurface)?.slid ?? 0].join(",")
+        readonly property string drawn: [mirror.x, mirror.y, mirror.width, mirror.height, slot.showing, (mirror.item as AttachedSurface)?.slid ?? 0].join(",")
         onDrawnChanged: copies.changed()
 
         Loader {

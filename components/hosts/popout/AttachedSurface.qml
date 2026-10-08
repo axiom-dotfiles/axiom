@@ -95,9 +95,11 @@ Item {
   // Casts the shell's shadow or glow (SurfaceShadow), for a surface whose
   // border shows: off for a bar's own pills, which their bar's casts
   property bool castShadow: false
-  // The blur window (BlurManager) draws this surface's fill: it draws its
-  // stroke, content and shadow only
+  // The blur window (BlurManager) draws this surface's fill and casts its
+  // shadow (BlurShape.shadow): it draws its stroke and content only
   property bool backed: false
+  // Casting its own shadow, in its own window
+  readonly property bool _ownShadow: root.castShadow && !root.backed
   // A copy of a surface (AttachedSurfaceCopy): its fill alone, its stroke
   // in `mirrorStroke`
   property bool mirror: false
@@ -365,7 +367,7 @@ Item {
     OutsideShadow {
       target: shadowShape
       hideTarget: true
-      active: root.castShadow
+      active: root._ownShadow
       edge: root.edge
       falls: root.detached
     }
@@ -373,7 +375,7 @@ Item {
     Item {
       id: shadowShape
       anchors.fill: parent
-      visible: root.castShadow
+      visible: root._ownShadow
 
       Shape {
         anchors.fill: parent

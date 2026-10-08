@@ -422,14 +422,10 @@ assert(removed == 2, "earlier handlers removed")
   }
 
   function test_look_writes_only_its_parts_that_are_on() {
-    const off = {
-      "borders": false,
-      "shape": false,
-      "gaps": false,
-      "gapsIn": 3,
-      "gapsOut": 6
-    };
-    compare(HyprLua.lookLua(off, "ffffff", "000000", 2, 8), []);
+    const schema = files.json("config/json/config.schema.json");
+    const lookSchema = schema.properties.Hyprland.properties.look;
+    const off = SchemaValidation.applyDefaults({}, lookSchema, schema);
+    compare(HyprLua.lookLua(off, lookSchema, "ffffff", "000000", 2, 8, true), []);
     compare(HyprLua.lookParts(off), []);
 
     const gaps = Object.assign({}, off, {
@@ -437,59 +433,85 @@ assert(removed == 2, "earlier handlers removed")
       "gapsIn": 4,
       "gapsOut": 12
     });
-    const gapsLua = HyprLua.lookLua(gaps, "ffffff", "000000", 2, 8).join("\n");
+    const gapsLua = HyprLua.lookLua(gaps, lookSchema, "ffffff", "000000", 2, 8, true).join("\n");
     verify(gapsLua.includes("gaps_in = 4"));
     verify(gapsLua.includes("gaps_out = 12"));
     verify(!gapsLua.includes("rounding"));
     verify(!gapsLua.includes("active_border"));
+    verify(!gapsLua.includes("blur"), "the blur only with its part on");
+    verify(!gapsLua.includes("opacity"), "nor the opacity");
 
     const all = Object.assign({}, gaps, {
       "borders": true,
-      "shape": true
+      "shape": true,
+      "blur": true,
+      "blurSize": 6,
+      "blurPasses": 2,
+      "opacity": true,
+      "inactiveOpacity": 90
     });
-    const lines = HyprLua.lookLua(all, "aabbcc", "112233", 2, 8);
+    const lines = HyprLua.lookLua(all, lookSchema, "aabbcc", "112233", 2, 8, false);
     const lua = lines.join("\n");
     verify(lua.startsWith("hl.config("));
     verify(lua.includes('active_border = "rgb(aabbcc)"'));
     verify(lua.includes('inactive_border = "rgb(112233)"'));
     verify(lua.includes("border_size = 2"));
     verify(lua.includes("rounding = 8"));
-    compare(HyprLua.lookParts(all), ["borders", "shape", "gaps"]);
-    verify(!lua.includes("blur"));
+    verify(lua.includes("size = 6") && lua.includes("passes = 2"), "the blur's strength");
+    verify(lua.includes("noise = 0.012"), "every blur field, scaled, default or not");
+    verify(lua.includes("inactive_opacity = 0.9") && lua.includes("active_opacity = 1"));
+    compare(HyprLua.lookParts(all), ["borders", "shape", "gaps", "blur", "opacity"]);
+    verify(lua.includes('name = "axiom-no-window-blur"') && lua.includes("enabled = false })"), "windows blur: the rule redefined off");
     const written = files.write("tests/.out/look.lua", lua + "\n");
     tryVerify(() => written.done, 2000);
+
+    // Windows not blurring while axiom's surfaces do: Hyprland's blur stays
+    // on for them, and a rule keeps the windows (and their popups) clear
+    const surfacesOnly = Object.assign({}, all, {
+      "windowBlur": false,
+      "blurPopups": true
+    });
+    const run = (surfacesBlur, check) => `${HyprLua.lookLua(surfacesOnly, lookSchema, "aabbcc", "112233", 2, 8, surfacesBlur).join("\n")}\n${check}\n`;
+    const runLua = `local options, rules = {}, {}
+hl = {
+  config = function(t) options = t end,
+  window_rule = function(spec) rules[spec.name] = spec end,
+}
+${run(true, `assert(options.decoration.blur.enabled == true, "on for the surfaces")
+assert(options.decoration.blur.popups == false, "windows' popups don't blur")
+assert(rules["axiom-no-window-blur"].enabled == true, "windows kept unblurred")`)}
+${run(false, `assert(options.decoration.blur.enabled == false, "off with nothing to blur")
+assert(rules["axiom-no-window-blur"].enabled == false, "the rule off")`)}
+`;
+
+    const ran = files.write("tests/.out/look_blur.run.lua", runLua);
+    tryVerify(() => ran.done, 2000);
   }
 
-  function test_blurStrength() {
-    compare(HyprLua.blurStrength(1), {
-      "size": 3,
-      "passes": 1
-    });
-    compare(HyprLua.blurStrength(10), {
-      "size": 12,
-      "passes": 4
-    });
-    compare(HyprLua.blurStrength(99).size, 12);
+  function test_recommendedEnv() {
+    const names = HyprLua.recommendedEnv.map(entry => entry[0]);
+    verify(names.includes("QT_QPA_PLATFORM") && names.includes("GDK_BACKEND"));
+    verify(!names.includes("SDL_VIDEODRIVER"), "breaks games with an older SDL");
+    verify(HyprLua.recommendedEnv.every(entry => entry.length === 2 && /^[A-Z_]+$/.test(entry[0])));
   }
 
   function test_blurLua() {
     const lines = opts => HyprLua.blurLua(Object.assign({
-        "threshold": 0.5,
-        "strength": 5
+        "threshold": 0.5
       }, opts));
     const on = lines({
       "on": true
     });
-    const rules = on.filter(line => line.startsWith("hl.layer_rule"));
-    compare(rules.length, 3);
-    verify(rules[0].includes('name = "axiom-blur"'));
-    verify(rules[0].includes('"^axiom-(blur-backing|dock-preview|overlay|'), "the blur window, and surfaces it doesn't draw");
-    verify(rules[0].includes("blur_popups = true, ignore_alpha = 0.5, xray = true, enabled = true"), "the wallpaper alone by default");
-    verify(!/[(|](bar|border)[|)]/.test(rules[0]), "the chrome is drawn by the blur window");
-    verify(rules[1].includes('name = "axiom-blur-popups"') && rules[1].includes("(bar|"), "the chrome's popups (tooltips, menus)");
-    verify(rules[1].includes("blur_popups = true, ignore_alpha = 0.5, enabled = true") && !rules[1].includes("blur = true"), "its popups alone");
-    verify(rules[2].includes('"^axiom-(backdrop|polkit)$"'));
-    verify(rules[2].includes("enabled = false"), "backdrops only when asked");
+    compare(on.length, 3, "the layer rules alone: the strength is Hyprland's");
+    verify(on.every(line => line.startsWith("hl.layer_rule")));
+    verify(on[0].includes('name = "axiom-blur"'));
+    verify(on[0].includes('"^axiom-(blur-backing|dock-preview|overlay|'), "the blur window, and surfaces it doesn't draw");
+    verify(on[0].includes("blur_popups = true, ignore_alpha = 0.5, xray = true, enabled = true"), "the wallpaper alone by default");
+    verify(!/[(|](bar|border)[|)]/.test(on[0]), "the chrome is drawn by the blur window");
+    verify(on[1].includes('name = "axiom-blur-popups"') && on[1].includes("(bar|"), "the chrome's popups (tooltips, menus)");
+    verify(on[1].includes("blur_popups = true, ignore_alpha = 0.5, enabled = true") && !on[1].includes("blur = true"), "its popups alone");
+    verify(on[2].includes('"^axiom-(backdrop|polkit)$"'));
+    verify(on[2].includes("enabled = false"), "backdrops only when asked");
     verify(lines({
       "on": true,
       "backdrops": true
@@ -499,59 +521,13 @@ assert(removed == 2, "earlier handlers removed")
       "throughWindows": true
     })[0].includes("xray"), "through windows: no xray");
     // Taken back by redefining the rules, never dropped
-    const offRules = lines({
+    const off = lines({
       "on": false,
       "backdrops": true
-    }).filter(line => line.startsWith("hl.layer_rule"));
-    compare(offRules.length, 3);
-    verify(offRules.every(line => line.endsWith("enabled = false })")));
-    // The included module: rules only, Hyprland's blur left to the runtime
-    compare(lines({
-      "on": true,
-      "rulesOnly": true
-    }), on.slice(0, 3));
-
-    // The user's blur kept and given back; windows keep their own say
-    // unless they blur too
-    const run = (opts, check) => `${lines(opts).join("\n")}\n${check}\n`;
-    const lua = `local options, windowRules = { ["decoration.blur.enabled"] = false, ["decoration.blur.size"] = 4, ["decoration.blur.passes"] = 1 }, {}
-hl = {
-  layer_rule = function() end,
-  window_rule = function(spec) windowRules[spec.name] = spec end,
-  get_config = function(key) return options[key] end,
-  config = function(t)
-    for key, v in pairs(t.decoration.blur) do options["decoration.blur." .. key] = v end
-  end,
-}
-${run({
-      "on": true
-    }, `assert(options["decoration.blur.enabled"] == true, "blur on")
-assert(options["decoration.blur.size"] == 7 and options["decoration.blur.passes"] == 2, "axiom's strength")
-assert(windowRules["axiom-no-window-blur"].enabled == true, "windows with blur off kept unblurred")`)}
-${run({
-      "on": true,
-      "strength": 8
-    }, `assert(options["decoration.blur.size"] == 10, "a new strength")
-assert(AXIOM_USER_BLUR.size == 4, "the user's kept, not axiom's")`)}
-${run({
-      "on": true,
-      "windows": true
-    }, `assert(windowRules["axiom-no-window-blur"].enabled == false, "windows blur too")`)}
-${run({
-      "on": false
-    }, `assert(options["decoration.blur.enabled"] == false, "given back")
-assert(options["decoration.blur.size"] == 4 and options["decoration.blur.passes"] == 1, "the user's strength back")
-assert(windowRules["axiom-no-window-blur"].enabled == false, "windows rule off")`)}
-options["decoration.blur.enabled"] = true
-${run({
-      "on": true
-    }, `assert(windowRules["axiom-no-window-blur"].enabled == false, "a config with blur on blurs its windows")`)}
-${run({
-      "on": false
-    }, `assert(options["decoration.blur.enabled"] == true, "and stays on")`)}
-`;
-
-    const written = files.write("tests/.out/blur.run.lua", lua);
+    });
+    compare(off.length, 3);
+    verify(off.every(line => line.endsWith("enabled = false })")));
+    const written = files.write("tests/.out/blur.lua", on.join("\n") + "\n");
     tryVerify(() => written.done, 2000);
   }
 

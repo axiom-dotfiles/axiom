@@ -16,7 +16,10 @@ import qs.config
 // `cut` keeps only the shadow outside the source's shape, dropping the
 // source too: for a translucent surface, whose own shadow would otherwise
 // show through it. Its source then is a copy of the shape (a layer of its
-// own, as FloatingPopout's copy, or a capture of it: OutsideShadow).
+// own, as FloatingPopout's copy, or a capture of it: OutsideShadow). Only
+// what the shape covers fully is cut: under its anti-aliased edge the
+// shadow stays, as the stroke drawn over it hides it there, or a pixel's
+// gap shows between the surface and its shadow.
 MultiEffect {
   property int edge: -1
   property bool falls: true
@@ -36,7 +39,7 @@ MultiEffect {
   maskEnabled: cut
   maskSource: cut ? cutSource : null
   maskInverted: true
-  maskThresholdMin: 0.01
+  maskThresholdMin: 0.99
   maskSpreadAtMin: 0
   shadowHorizontalOffset: edge === Bar.Left ? offset : edge === Bar.Right ? -offset : 0
   shadowVerticalOffset: edge === Bar.Bottom ? -offset : edge === Bar.Left || edge === Bar.Right ? 0 : offset

@@ -530,16 +530,18 @@ Scope {
       }
 
       // Or a box of its own, its shadow only outside it, cast from a black
-      // copy (its own fill may be the blur window's)
+      // copy (its own fill may be the blur window's); backed, the blur
+      // window casts it (BlurShape.shadow)
       OutsideShadow {
         target: detachedShape
         hideTarget: true
+        active: detachedShape.visible
         edge: root.edge
       }
 
       Rectangle {
         id: detachedShape
-        visible: detachedBox.visible
+        visible: detachedBox.visible && !window.backed
         x: detachedBox.x
         y: detachedBox.y
         width: detachedBox.width
@@ -569,6 +571,8 @@ Scope {
           y: (placeOnScreen.origin?.y ?? 0) + detachedBox.y
           shown: window.backed && window.visible && content.visible && detachedBox.visible
           clipRect: window.screenRect
+          shadow: BarStyle.values
+          shadowEdge: root.edge
         }
       }
 

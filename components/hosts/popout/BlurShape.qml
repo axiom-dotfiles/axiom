@@ -27,6 +27,16 @@ QtObject {
   // past its window's edges (a hiding dock); null for the whole screen
   property var clipRect: null
 
+  // The shadow or glow it casts there (a SurfaceShadow look: BarStyle's or
+  // a bar's), null for none, falling away from `shadowEdge` unless
+  // `shadowFalls` is false. The blur window casts one per look from all
+  // the shapes together, so where they join it runs unbroken. An
+  // AttachedSurface's follow its castShadow, edge and detached.
+  readonly property AttachedSurface _surface: root.kind === "attached" ? root.source as AttachedSurface : null
+  property var shadow: root._surface?.castShadow ? BarStyle.values : null
+  property int shadowEdge: root._surface?.edge ?? -1
+  property bool shadowFalls: root._surface?.detached ?? true
+
   Component.onCompleted: BlurManager.register(root)
   Component.onDestruction: BlurManager.unregister(root)
 }

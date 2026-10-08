@@ -303,27 +303,33 @@ Rectangle {
   // it can't slide onto a stroke they join; otherwise it falls toward the
   // windows. Cast from a black copy of the surface (its pieces each put
   // one here), as its own fill may be the blur window's.
+  // Backed, the blur window casts it instead, from the same shapes
+  // (BlurShape.shadow), with everything joined to them
+  readonly property int shadowEdge: root.barConfig.left ? Bar.Left : root.barConfig.right ? Bar.Right : root.barConfig.bottom ? Bar.Bottom : Bar.Top
   OutsideShadow {
     target: shadowShape
     hideTarget: true
+    active: !root.backed
     look: root.barConfig
-    edge: root.barConfig.left ? Bar.Left : root.barConfig.right ? Bar.Right : root.barConfig.bottom ? Bar.Bottom : Bar.Top
+    edge: root.shadowEdge
     falls: !root.barConfig.pills
-    // Not under the surfaces open on its pills or islands (their stretches),
+    // Not under the surfaces open on its pills or islands (where they
+    // cover the far stroke, whether or not the pill stretches for them),
     // from the outer edge they stand on out
-    holes: root._shownStretches.map(stretch => {
+    holes: root._openingList.map(o => {
       const reach = root.barConfig.shadowSize * 2;
       const extent = root.barConfig.extent;
-      const along = stretch.end - stretch.start;
+      const along = o.end - o.start;
       if (root.isVertical)
-        return root.barConfig.left ? Qt.rect(extent, stretch.start, root.width - extent + reach, along) : Qt.rect(-reach, stretch.start, root.width - extent + reach, along);
-      return root.barConfig.top ? Qt.rect(stretch.start, extent, along, root.height - extent + reach) : Qt.rect(stretch.start, -reach, along, root.height - extent + reach);
+        return root.barConfig.left ? Qt.rect(extent, o.start, root.width - extent + reach, along) : Qt.rect(-reach, o.start, root.width - extent + reach, along);
+      return root.barConfig.top ? Qt.rect(o.start, extent, along, root.height - extent + reach) : Qt.rect(o.start, -reach, along, root.height - extent + reach);
     })
   }
 
   Item {
     id: shadowShape
     anchors.fill: parent
+    visible: !root.backed
   }
 
   // The blur window draws the bar's fill (BlurManager), once
@@ -359,6 +365,9 @@ Rectangle {
         x: root.blurOrigin?.x ?? 0
         y: root.blurOrigin?.y ?? 0
         shown: root.backed && solidFill.visible
+        shadow: root.barConfig
+        shadowEdge: root.shadowEdge
+        shadowFalls: !root.barConfig.pills
       }
     }
 
@@ -448,6 +457,9 @@ Rectangle {
           x: (root.blurOrigin?.x ?? 0) + island.x
           y: (root.blurOrigin?.y ?? 0) + island.y
           shown: root.backed
+          shadow: root.barConfig
+          shadowEdge: root.shadowEdge
+          shadowFalls: !root.barConfig.pills
         }
         // Inner side: bottom on a top bar, right on a left one, and so on
         topLeftRadius: root.barConfig.bottom || root.barConfig.right ? startInner : corner
@@ -538,6 +550,9 @@ Rectangle {
           x: (root.blurOrigin?.x ?? 0) + pill.x
           y: (root.blurOrigin?.y ?? 0) + pill.y
           shown: root.backed
+          shadow: root.barConfig
+          shadowEdge: root.shadowEdge
+          shadowFalls: !root.barConfig.pills
         }
       }
     }
