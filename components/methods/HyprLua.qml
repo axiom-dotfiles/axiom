@@ -171,6 +171,11 @@ QtObject {
   // Backdrops (and the polkit prompt, whose window holds its own dim) blur
   // only when asked: the whole screen, at every alpha.
   readonly property var blurBackdrops: ["backdrop", "polkit"]
+  // The windows whose fill, blur and shadow the blur window draws: not
+  // animated by Hyprland while it does (they slide themselves), or their
+  // stroke and content fade or pop in and out while what the blur window
+  // draws for them doesn't
+  readonly property var blurBacked: ["bar", "bar-floating", "border", "popout-under", "edge-popout", "osd", "edge-menu", "dock"]
 
   function _blurRule(name, namespaces, effects, enabled) {
     return `hl.layer_rule({ name = ${string(name)}, match = { namespace = ${string(`^axiom-(${namespaces.join("|")})$`)} }, ${effects}, enabled = ${enabled} })`;
@@ -181,12 +186,13 @@ QtObject {
    * always written, `enabled` or not, since a rule is taken back by
    * redefining it (no reload). `opts`: { on, threshold, throughWindows
    * (no xray), backdrops }. Nothing blurs while Hyprland's blur is off.
+   * A rule read as a surface maps (no_anim) applies from the next one.
    */
   function blurLua(opts) {
     const on = opts.on === true;
     const threshold = value(opts.threshold);
     const xray = opts.throughWindows ? "" : ", xray = true";
-    return [_blurRule("axiom-blur", blurSurfaces, `blur = true, blur_popups = true, ignore_alpha = ${threshold}${xray}`, on), _blurRule("axiom-blur-popups", blurChrome, `blur_popups = true, ignore_alpha = ${threshold}`, on), _blurRule("axiom-blur-backdrops", blurBackdrops, `blur = true, ignore_alpha = 0.01${xray}`, on && opts.backdrops === true)];
+    return [_blurRule("axiom-blur", blurSurfaces, `blur = true, blur_popups = true, ignore_alpha = ${threshold}${xray}`, on), _blurRule("axiom-blur-popups", blurChrome, `blur_popups = true, ignore_alpha = ${threshold}`, on), _blurRule("axiom-blur-backdrops", blurBackdrops, `blur = true, ignore_alpha = 0.01${xray}`, on && opts.backdrops === true), _blurRule("axiom-blur-no-anim", blurBacked, "no_anim = true", on)];
   }
 
   // --- Strips (Workspaces.strips, WorkspacesConfig.strips) ---

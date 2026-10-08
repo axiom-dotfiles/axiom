@@ -502,7 +502,7 @@ assert(rules["axiom-no-window-blur"].enabled == false, "the rule off")`)}
     const on = lines({
       "on": true
     });
-    compare(on.length, 3, "the layer rules alone: the strength is Hyprland's");
+    compare(on.length, 4, "the layer rules alone: the strength is Hyprland's");
     verify(on.every(line => line.startsWith("hl.layer_rule")));
     verify(on[0].includes('name = "axiom-blur"'));
     verify(on[0].includes('"^axiom-(blur-backing|dock-preview|overlay|'), "the blur window, and surfaces it doesn't draw");
@@ -512,6 +512,8 @@ assert(rules["axiom-no-window-blur"].enabled == false, "the rule off")`)}
     verify(on[1].includes("blur_popups = true, ignore_alpha = 0.5, enabled = true") && !on[1].includes("blur = true"), "its popups alone");
     verify(on[2].includes('"^axiom-(backdrop|polkit)$"'));
     verify(on[2].includes("enabled = false"), "backdrops only when asked");
+    verify(on[3].includes('name = "axiom-blur-no-anim"') && on[3].includes("(bar|") && on[3].includes("|edge-popout|") && on[3].includes("no_anim = true, enabled = true"), "the backed chrome isn't animated by Hyprland");
+    verify(!/[(|](launcher|overlay|backdrop)[|)]/.test(on[3]), "surfaces blurring themselves keep their animations");
     verify(lines({
       "on": true,
       "backdrops": true
@@ -525,7 +527,7 @@ assert(rules["axiom-no-window-blur"].enabled == false, "the rule off")`)}
       "on": false,
       "backdrops": true
     });
-    compare(off.length, 3);
+    compare(off.length, 4);
     verify(off.every(line => line.endsWith("enabled = false })")));
     const written = files.write("tests/.out/blur.lua", on.join("\n") + "\n");
     tryVerify(() => written.done, 2000);
