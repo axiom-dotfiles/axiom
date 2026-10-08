@@ -23,6 +23,8 @@ Item {
 
   // The ModuleGrid hosting it, passed on as the module's `expander`
   property var expander: null
+  // The height the module grows to (its growHeight; 0: as placed)
+  readonly property real growHeight: loader.item?.growHeight ?? 0
 
   anchors.fill: parent
 

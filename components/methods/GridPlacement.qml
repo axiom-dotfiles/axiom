@@ -292,6 +292,81 @@ QtObject {
     return out;
   }
 
+  // The free rows between the one at `index` and the grid's edge
+  // (`toward` -1: row 0; 1: `lastRow`), or the next module that way in its
+  // columns
+  function _freeTowards(places, index, toward, lastRow) {
+    const cur = places[index];
+    const inColumns = places.filter((p, j) => j !== index && p && p.x < cur.x + cur.w && cur.x < p.x + p.w);
+    const free = toward < 0 ? cur.y - Math.max(0, ...inColumns.filter(p => p.y + p.h <= cur.y).map(p => p.y + p.h)) : Math.min(lastRow, ...inColumns.filter(p => p.y >= cur.y + cur.h).map(p => p.y)) - (cur.y + cur.h);
+    return Math.max(0, free);
+  }
+
+  // How the one at `index` grows by `rows` alone (grown()): { up, down },
+  // the rows it takes above and below its place
+  function growthAround(places, index, rows, towards) {
+    const toward = towards === 1 ? 1 : -1;
+    const lastRow = root.bounds((places ?? []).map(p => ({
+          "place": p
+        }))).rows;
+    if (!places?.[index] || rows <= 0)
+      return {
+        "up": 0,
+        "down": 0
+      };
+    const take = Math.min(rows, root._freeTowards(places, index, toward, lastRow));
+    return toward < 0 ? {
+      "up": take,
+      "down": rows - take
+    } : {
+      "up": rows - take,
+      "down": take
+    };
+  }
+
+  // `places` (nulls skipped) with some grown taller: `growth[i]` more rows
+  // for the one at i (0 or missing: as placed). Each first takes the free
+  // rows in its columns towards the grid's edge (`towards`: -1, up to row
+  // 0, the default; 1, down to the grid's last row), then grows the rest
+  // away from it, pushing what it then overlaps on away just past it,
+  // cascading: modules beyond it in its columns move, others stay. Grown
+  // nearest the edge first, so one pushed by another grows from where it
+  // lands. Shifted back so no place is above row 0. Returns a new array.
+  function grown(places, growth, towards) {
+    const toward = towards === 1 ? 1 : -1;
+    let out = (places ?? []).map(p => root._copy(p));
+    const lastRow = root.bounds(out.map(p => ({
+          "place": p
+        }))).rows;
+    const order = out.map((p, i) => i).filter(i => out[i] && (growth?.[i] ?? 0) > 0).sort((a, b) => toward < 0 ? out[a].y - out[b].y || out[a].x - out[b].x : (out[b].y + out[b].h) - (out[a].y + out[a].h) || out[a].x - out[b].x);
+    for (const i of order) {
+      const cur = out[i];
+      const take = Math.min(growth[i], root._freeTowards(out, i, toward, lastRow));
+      const rest = growth[i] - take;
+      const put = root._copy(cur);
+      put.h += growth[i];
+      // Up by what it takes towards a top edge, or by what it grows away
+      // from a bottom one
+      put.y -= toward < 0 ? take : rest;
+      if (put.h > root.maxSpan) {
+        if (toward > 0)
+          put.y += put.h - root.maxSpan;
+        put.h = root.maxSpan;
+      }
+      out = root.pushGroup(out, [[i, put]], {
+        "x": 0,
+        "y": -toward
+      }) ?? out;
+    }
+    const top = Math.min(0, ...out.filter(p => p).map(p => p.y));
+    if (top < 0)
+      out.forEach(p => {
+        if (p)
+          p.y -= top;
+      });
+    return out;
+  }
+
   // The smallest place covering every one of `places` (nulls skipped),
   // else null
   function cover(places) {

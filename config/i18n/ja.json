@@ -2757,6 +2757,8 @@
     "Empty uses the primary monitor. All monitors sets every monitor at once, with a slider for each below where there's room.": "空欄ではメインモニターを使います。「すべてのモニター」ではすべてのモニターを一度に設定し、余裕があれば下にモニターごとのスライダーを表示します。",
     "The bar sets every monitor with a brightness control at once, instead of only the one the OSD is on.": "OSD が表示されているモニターだけでなく、明るさを調整できるすべてのモニターを一度に設定します。",
     "Toggles, session actions and pin, in any mix. Night light and power saver only show when hyprsunset/wlsunset or powerprofilesctl is installed, brightness only with a monitor brightnessctl or ddcutil can set (a tap opens every monitor's sliders), and pin only in an edge menu. Log out, reboot and power off ask for a second click.": "トグル、セッション操作、ピンを自由に組み合わせられます。夜間モードと省電力は hyprsunset/wlsunset または powerprofilesctl がインストールされている場合のみ、明るさは brightnessctl か ddcutil で調整できるモニターがある場合のみ（タップで全モニターのスライダーを開きます）、ピンはエッジメニュー内でのみ表示されます。ログアウト、再起動、電源オフは 2 回目のクリックで実行します。",
-    "Out of sync: click to sync": "ずれています：クリックで揃える"
+    "Out of sync: click to sync": "ずれています：クリックで揃える",
+    "Grow by up to": "最大の伸長",
+    "Rows it may take while its list needs them: free rows towards the edge first (above it, or below it in a bottom menu), then away from it, pushing the modules there along (not on the lock or login screen). 0 keeps it at its size.": "リストが必要とする間に使える行数です。まず端の側の空き行（上、下端のメニューでは下）を使い、次に反対側へ伸びて、そこにあるモジュールを押しずらします（ロック画面とログイン画面では無効）。0 では大きさを変えません。"
   }
 }

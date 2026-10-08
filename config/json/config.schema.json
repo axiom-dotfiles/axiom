@@ -3318,6 +3318,7 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
+            "grow": {"type": "integer", "title": "Grow by up to", "default": 0, "minimum": 0, "maximum": 16, "x-unit": "rows", "description": "Rows it may take while its list needs them: free rows towards the edge first (above it, or below it in a bottom menu), then away from it, pushing the modules there along (not on the lock or login screen). 0 keeps it at its size."},
             "mode": {"type": "string", "title": "Start on", "default": "output", "enum": ["output", "input"]}
           }
         }
@@ -3474,7 +3475,14 @@
       "additionalProperties": false,
       "properties": {
         "place": { "$ref": "#/definitions/GridPlace" },
-        "type": { "const": "Notifications", "description": "Notifications" }
+        "type": { "const": "Notifications", "description": "Notifications" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "grow": {"type": "integer", "title": "Grow by up to", "default": 0, "minimum": 0, "maximum": 16, "x-unit": "rows", "description": "Rows it may take while its list needs them: free rows towards the edge first (above it, or below it in a bottom menu), then away from it, pushing the modules there along (not on the lock or login screen). 0 keeps it at its size."}
+          }
+        }
       }
     },
     "WifiNetworksOverlayModule": {
@@ -3484,7 +3492,14 @@
       "additionalProperties": false,
       "properties": {
         "place": { "$ref": "#/definitions/GridPlace" },
-        "type": { "const": "WifiNetworks", "description": "Wi-Fi networks" }
+        "type": { "const": "WifiNetworks", "description": "Wi-Fi networks" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "grow": {"type": "integer", "title": "Grow by up to", "default": 0, "minimum": 0, "maximum": 16, "x-unit": "rows", "description": "Rows it may take while its list needs them: free rows towards the edge first (above it, or below it in a bottom menu), then away from it, pushing the modules there along (not on the lock or login screen). 0 keeps it at its size."}
+          }
+        }
       }
     },
     "BluetoothDevicesOverlayModule": {
@@ -3494,7 +3509,14 @@
       "additionalProperties": false,
       "properties": {
         "place": { "$ref": "#/definitions/GridPlace" },
-        "type": { "const": "BluetoothDevices", "description": "Bluetooth devices" }
+        "type": { "const": "BluetoothDevices", "description": "Bluetooth devices" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "grow": {"type": "integer", "title": "Grow by up to", "default": 0, "minimum": 0, "maximum": 16, "x-unit": "rows", "description": "Rows it may take while its list needs them: free rows towards the edge first (above it, or below it in a bottom menu), then away from it, pushing the modules there along (not on the lock or login screen). 0 keeps it at its size."}
+          }
+        }
       }
     },
     "ScreenshotOverlayModule": {
@@ -3681,6 +3703,7 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
+            "grow": {"type": "integer", "title": "Grow by up to", "default": 0, "minimum": 0, "maximum": 16, "x-unit": "rows", "description": "Rows it may take while its list needs them: free rows towards the edge first (above it, or below it in a bottom menu), then away from it, pushing the modules there along (not on the lock or login screen). 0 keeps it at its size."},
             "days": {"type": "integer", "title": "Days ahead", "default": 7, "minimum": 1, "maximum": 60, "description": "Events from today through this many days."},
             "maxEvents": {"type": "integer", "title": "Most events", "default": 20, "minimum": 1, "maximum": 100}
           }

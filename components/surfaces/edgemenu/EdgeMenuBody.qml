@@ -41,7 +41,17 @@ Item {
 
   // Whether the menu takes its whole edge
   readonly property bool fillsEdge: root.menu.length === "edge"
-  readonly property var _natural: overlayGrid.sizes(GridPlacement.bounds(root.modules), null)
+  // As its modules are shown: grown ones included (ModuleGrid.places)
+  readonly property var _natural: overlayGrid.sizes(moduleGrid.bounds, null)
+  // Its height with every growing module at its most, so a floating top
+  // or bottom menu's window has room for it from the start
+  readonly property real maxGrownHeight: {
+    const places = root.modules.map(module => module?.place ?? null);
+    const most = GridPlacement.grown(places, root.modules.map(module => module?.properties?.grow ?? 0), moduleGrid.growTowards);
+    return overlayGrid.sizes(GridPlacement.bounds(most.map(place => ({
+          "place": place
+        }))), null).height;
+  }
   // Along the edge before stretching or the cap
   readonly property real naturalLength: root.vertical ? root._natural.height : root._natural.width
   readonly property var _stretch: root.fillsEdge && root.maxLength > 0 ? (root.vertical ? {
@@ -78,6 +88,8 @@ Item {
       grid: overlayGrid
       stretch: root._stretch
       host: root.host
+      // A bottom menu's edge is under its modules
+      growTowards: root.menu.edge === "Bottom" ? 1 : -1
     }
   }
 

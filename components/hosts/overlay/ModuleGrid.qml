@@ -8,7 +8,8 @@ import qs.components.reusable
 // A Custom page's, an edge menu's or the lock screen's modules, each in its
 // own place on a grid of quarter cards (GridPlacement). The grid is as big
 // as its modules reach (or its `extent`), at the card size of `grid`;
-// `stretch` grows it into room.
+// `stretch` grows it into room. Modules with `properties.grow` take more
+// rows while their content wants them, pushing those under them down.
 Item {
   id: root
 
@@ -26,14 +27,61 @@ Item {
   // (a lock screen's grid), null for just the modules
   property var extent: null
 
-  readonly property var bounds: {
-    const reach = GridPlacement.bounds(root.modules);
+  // Growing: a module with `properties.grow` takes up to that many rows
+  // more under its place while its content wants them (its
+  // `wantedHeight`), pushing what's under it down (GridPlacement.grown).
+  // Not on a bounded grid (the lock screen's, the greeter's). `growth` is
+  // the rows each has now, set a tick after what they want changes, so a
+  // module's size never feeds back into itself in one pass
+  readonly property bool growable: root.extent === null && (root.host?.kind === "overlay" || root.host?.kind === "edgeMenu")
+  property var growth: []
+  // Where the grid's edge is (GridPlacement.grown): -1 at its top (a page,
+  // a top or side menu), 1 at its bottom (a bottom menu). Growing takes the
+  // free rows that way first, then grows away from it
+  property int growTowards: -1
+  // Where each module is shown: its place, grown
+  readonly property var places: {
+    const placed = (root.modules ?? []).map(module => module?.place ?? null);
+    return root.growth.some(n => n > 0) ? GridPlacement.grown(placed, root.growth, root.growTowards) : placed;
+  }
+
+  function _boundsOf(places) {
+    const reach = GridPlacement.bounds(places.map(place => ({
+          "place": place
+        })));
     return root.extent ? {
       "cols": Math.max(reach.cols, root.extent.cols),
       "rows": Math.max(reach.rows, root.extent.rows)
     } : reach;
   }
+  readonly property var bounds: root._boundsOf(root.places)
   readonly property var sizes: root.grid.sizes(root.bounds, root.stretch)
+  // As placed, ungrown: its unit is what growth counts rows in
+  readonly property var _placedSizes: root.grid.sizes(GridPlacement.bounds(root.modules), root.stretch)
+
+  // The rows `px` takes, at least one
+  function rowsFor(px) {
+    const unit = root._placedSizes.unitH;
+    return Math.max(1, Math.ceil((px + GridPlacement.cardSpacing) / (unit + GridPlacement.cardSpacing)));
+  }
+
+  property var _pendingGrowth: ({})
+  function _setGrowth(index, rows) {
+    root._pendingGrowth[index] = rows;
+    Qt.callLater(root._applyGrowth);
+  }
+  function _applyGrowth() {
+    const count = root.modules?.length ?? 0;
+    const next = [];
+    for (let i = 0; i < count; i++)
+      next.push(root._pendingGrowth[i] ?? root.growth[i] ?? 0);
+    root._pendingGrowth = {};
+    if (JSON.stringify(next) !== JSON.stringify(root.growth))
+      root.growth = next;
+  }
+
+  // Slots glide to new places once first laid out
+  property bool _settled: false
 
   // A module's detail grown over the others (ExpandedModule): { type,
   // properties, from: [x, y, w, h] px in the grid }, null for none. Only on
@@ -65,7 +113,10 @@ Item {
   // Logs modules that overlap another
   readonly property string _checkKey: JSON.stringify((root.modules ?? []).map(module => [module?.type, module?.place]))
   on_CheckKeyChanged: root._check()
-  Component.onCompleted: root._check()
+  Component.onCompleted: {
+    root._check();
+    Qt.callLater(() => root._settled = true);
+  }
   function _check() {
     const modules = root.modules ?? [];
     modules.forEach((module, i) => {
@@ -92,7 +143,8 @@ Item {
         id: slot
         required property int index
         readonly property var module: root.modules[slot.index]
-        readonly property var place: slot.module?.place ?? {
+        // As shown: grown, or pushed down by one that is
+        readonly property var place: root.places[slot.index] ?? slot.module?.place ?? {
           "x": 0,
           "y": 0,
           "w": 4,
@@ -100,13 +152,42 @@ Item {
         }
         readonly property var r: GridPlacement.rectPx(slot.place, root.sizes)
 
+        // The rows more its content wants, up to its `grow`
+        readonly property int wantRows: {
+          const grow = root.growable ? (slot.module?.properties?.grow ?? 0) : 0;
+          const wanted = moduleSlot.growHeight;
+          const placed = slot.module?.place;
+          if (grow <= 0 || !(wanted > 0) || !placed)
+            return 0;
+          // Two units wide or less, two rows or less is compact
+          // (SlotContext): three at the least
+          const rows = Math.max(root.rowsFor(wanted), placed.w <= 2 ? 3 : 1);
+          return Math.max(0, Math.min(grow, rows - placed.h));
+        }
+        onWantRowsChanged: root._setGrowth(slot.index, slot.wantRows)
+        Component.onCompleted: root._setGrowth(slot.index, slot.wantRows)
+
         x: slot.r.x
         y: slot.r.y
         width: slot.r.width
         height: slot.r.height
         clip: true
 
+        Glide on y {
+          enabled: root._settled
+          duration: Appearance.animNormal
+        }
+        Glide on height {
+          enabled: root._settled
+          duration: Appearance.animNormal
+        }
+
+        // At its place's size from the start, revealed as the slot grows
         OverlaySlot {
+          id: moduleSlot
+          anchors.fill: undefined
+          width: slot.r.width
+          height: slot.r.height
           config: slot.module
           rect: GridPlacement.rectOf(slot.place)
           host: root.host

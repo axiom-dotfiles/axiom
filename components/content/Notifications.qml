@@ -30,6 +30,9 @@ Panel {
   fullMinHeight: Appearance.fontSize * 11
 
   implicitWidth: 400
+  // Grows to show every group (from compact, to the full layout); empty,
+  // back to its place
+  wantedHeight: root.groupKeys.length === 0 ? 0 : scroll.height > 0 ? root.height + list.implicitHeight - scroll.height : 1
 
   // Groups by key, and their keys newest first. The Repeater is keyed by
   // the key strings, so a group's card (and whether it's expanded) survives

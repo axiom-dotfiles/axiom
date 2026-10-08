@@ -77,6 +77,14 @@ Card {
   readonly property var list: root.editable ? root.modules : []
   readonly property var bounds: GridPlacement.bounds(root.list)
 
+  // How a growing module (`properties.grow`) grows alone: { up, down } rows
+  // (GridPlacement.growthAround; a bottom menu grows towards its bottom
+  // first), for its dashed outline
+  function growthOf(index) {
+    const grow = root.list[index]?.properties?.grow ?? 0;
+    return GridPlacement.growthAround(root.list.map(module => module?.place ?? null), index, grow, root.edge === "Bottom" ? 1 : -1);
+  }
+
   // The axis the menu's edge runs along (a side menu's rows, else columns)
   readonly property bool alongRows: root.edge === "Left" || root.edge === "Right"
   readonly property bool hasScreen: root.screenBox !== null && root.screenBox !== undefined
@@ -622,6 +630,7 @@ Card {
           module: root.list[tile.index] ?? null
           step: root.step
           gap: root.gap
+          growth: root.growthOf(tile.index)
           x: tile.r.x
           y: tile.r.y
           width: tile.r.width

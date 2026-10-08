@@ -103,6 +103,10 @@ Panel {
     onTabClicked: index => root.currentTab = index
   }
 
+  // Grows to list every row (from compact, to the full layout); off, back
+  // to its place
+  wantedHeight: !BluetoothManager.enabled ? 0 : root.compact ? 1 : root.height > 0 ? root.height + list.overflow : 0
+
   DeviceList {
     id: list
     embedded: root.embedded

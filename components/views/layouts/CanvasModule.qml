@@ -8,7 +8,8 @@ import qs.components.reusable
 // One module on the layouts canvas: its icon and name (plus a hint for
 // modules whose look depends on their properties). Click to edit it, drag
 // it to move it (onto a module of its size: they swap; onto others: they
-// make way), drag any edge or corner to resize it from that side.
+// make way), drag any edge or corner to resize it from that side. One
+// that grows (`properties.grow`) shows how far, dashed, round it.
 // Positioned and sized by GridCanvas.
 Rectangle {
   id: root
@@ -62,6 +63,37 @@ Rectangle {
   opacity: root.carried ? 0.3 : 1
 
   Glide on opacity {}
+
+  // How far it may grow (`properties.grow`, see ModuleGrid): { up, down }
+  // rows (GridCanvas.growthOf), drawn as a dashed outline round its tallest,
+  // under it
+  property var growth: ({
+      "up": 0,
+      "down": 0
+    })
+  Canvas {
+    id: growOutline
+    visible: root.growth.up + root.growth.down > 0 && !root.carried
+    z: -1
+    y: -root.growth.up * root.step
+    width: root.width
+    height: root.height + (root.growth.up + root.growth.down) * root.step
+    readonly property color ink: Theme.accent
+    onWidthChanged: requestPaint()
+    onHeightChanged: requestPaint()
+    onInkChanged: requestPaint()
+    onPaint: {
+      const ctx = getContext("2d");
+      ctx.reset();
+      ctx.globalAlpha = 0.7;
+      ctx.strokeStyle = growOutline.ink;
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([5, 4]);
+      ctx.beginPath();
+      ctx.roundedRect(1, 1, width - 2, height - 2, root.radius, root.radius);
+      ctx.stroke();
+    }
+  }
 
   Column {
     anchors.centerIn: parent

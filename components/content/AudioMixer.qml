@@ -45,6 +45,8 @@ Panel {
 
   implicitWidth: 380
   fullMinWidth: Appearance.fontSize * 12
+  // Grows to list every app or device (a short card stays the slider)
+  wantedHeight: root.sliderOnly || scroll.height <= 0 ? 0 : root.height + list.implicitHeight - scroll.height
   fullMinHeight: Appearance.fontSize * 3.5
 
   function deviceName(node) {
