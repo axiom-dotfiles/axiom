@@ -36,6 +36,8 @@
     "missing-property: Member \"implicitWidth\" not found on type \"QObject\"": 1
   },
   "components/hosts/overlay/OverlaySlot.qml": {
+    "missing-property: Member \"expander\" not found on type (component in components/hosts/overlay/OverlaySlot.qml)::item with type QObject": 1,
+    "missing-property: Member \"growHeight\" not found on type \"QObject\"": 1,
     "missing-property: Member \"host\" not found on type (component in components/hosts/overlay/OverlaySlot.qml)::item with type QObject": 1,
     "missing-property: Member \"properties\" not found on type (component in components/hosts/overlay/OverlaySlot.qml)::item with type QObject": 1,
     "missing-property: Member \"slotRect\" not found on type (component in components/hosts/overlay/OverlaySlot.qml)::item with type QObject": 1

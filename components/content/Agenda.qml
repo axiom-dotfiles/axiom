@@ -82,7 +82,12 @@ Panel {
     }
   }
 
+  // Grows to list every day (from compact, to the full layout); empty,
+  // back to its place; editing, as it is
+  wantedHeight: editor.visible ? root.height : root.groups.length === 0 ? 0 : days.height > 0 ? root.height + list.implicitHeight - days.height : 1
+
   Flickable {
+    id: days
     visible: !editor.visible && root.groups.length > 0
     Layout.fillWidth: true
     Layout.fillHeight: true

@@ -10,7 +10,8 @@ import qs.components.reusable
 //   other:      the first playing stream no App bar matches
 //   app:        the streams its apps match by name
 //   microphone: the default input's volume
-//   brightness: this screen's brightness (left out without a controller)
+//   brightness: this screen's brightness (left out without a controller),
+//               or with allMonitors every monitor's at once (their mean)
 Loader {
   id: root
 
@@ -28,8 +29,11 @@ Loader {
   readonly property int orientation: root.vertical ? Qt.Vertical : Qt.Horizontal
   readonly property string type: entry.type
   readonly property bool isVolume: type === "master" || type === "other" || type === "app"
+  // A brightness bar's monitors: every one with a controller, or this one
+  readonly property bool allMonitors: type === "brightness" && entry.allMonitors === true
+  readonly property var brightnessTargets: root.allMonitors ? BrightnessManager.names : [root.screenName]
 
-  active: type !== "" && (type !== "brightness" || BrightnessManager.available(screenName))
+  active: type !== "" && (type !== "brightness" || (root.allMonitors ? BrightnessManager.names.length > 0 : BrightnessManager.available(screenName)))
   visible: active
   sourceComponent: isVolume ? volumeBar : (type === "microphone" ? micBar : brightnessBar)
 
@@ -101,20 +105,20 @@ Loader {
     id: brightnessBar
 
     StyledVolumeBar {
-      readonly property real level: BrightnessManager.valueFor(root.screenName)
+      readonly property real level: root.allMonitors ? BrightnessManager.average(root.brightnessTargets) : BrightnessManager.valueFor(root.screenName)
 
       orientation: root.orientation
       showPercent: root.showPercent
       scrollStep: OSDConfig.scrollStep
       volumeLevel: level
       iconSource: root.entry.icon || (level < 0.34 ? "brightness_low" : (level < 0.67 ? "brightness_medium" : "brightness_high"))
-      onVolumeChanged: newVolume => BrightnessManager.set(root.screenName, newVolume)
+      onVolumeChanged: newVolume => BrightnessManager.setMany(root.brightnessTargets, newVolume)
 
       Connections {
         target: BrightnessManager
 
         function onBrightnessChanged(name) {
-          if (name === root.screenName)
+          if (root.brightnessTargets.includes(name))
             root.poked();
         }
       }

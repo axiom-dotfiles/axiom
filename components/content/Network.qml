@@ -10,7 +10,8 @@ import qs.components.content.base
 
 // The primary connection (name, IP, wifi signal), live throughput with a
 // graph, and Tailscale's state when it's installed. A strip is one row over
-// the graphs; compact, the connection and its download rate.
+// the graphs (opening the Wi-Fi networks over the grid); compact, the
+// connection and its download rate.
 Card {
   id: root
 
@@ -108,6 +109,10 @@ Card {
       direction: "up"
       rate: SystemManager.netTx
       textColor: Theme.accent
+    }
+    ExpandButton {
+      module: root
+      type: NetworkingManager.available ? "WifiNetworks" : ""
     }
   }
 

@@ -341,10 +341,19 @@ Panel {
       Layout.preferredWidth: side
       Layout.preferredHeight: side
     }
+    // The track opens the whole player over the grid
     ColumnLayout {
       Layout.fillWidth: true
       Layout.minimumWidth: 0
       spacing: 0
+      TapHandler {
+        enabled: root.canExpand("NowPlaying")
+        onTapped: root.expand("NowPlaying", root.properties)
+      }
+      HoverHandler {
+        enabled: root.canExpand("NowPlaying")
+        cursorShape: Qt.PointingHandCursor
+      }
       CrossFade {
         Layout.fillWidth: true
         value: MediaManager.trackTitle || I18n.tr("Unknown track")

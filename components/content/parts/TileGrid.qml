@@ -15,6 +15,8 @@ Item {
   property real spacing: Widget.spacing
   // Widest a tile may be for its height (and tallest for its width)
   property real maxAspect: 1.6
+  // Least a tile is wide for its height (0: any; pills are wide)
+  property real minAspect: 0
 
   readonly property var _fit: {
     const n = Math.max(1, root.count);
@@ -33,6 +35,8 @@ Item {
         continue;
       w = Math.min(w, h * root.maxAspect);
       h = Math.min(h, w * root.maxAspect);
+      if (root.minAspect > 0)
+        h = Math.min(h, w / root.minAspect);
       // Bigger tiles first, then fewer empty cells
       const score = Math.min(w, h) - (rows * cols - n) * 0.5;
       if (score > best.score)

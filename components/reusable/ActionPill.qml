@@ -1,0 +1,155 @@
+pragma ComponentBehavior: Bound
+import QtQuick
+import QtQuick.Layouts
+import Quickshell
+
+import qs.config
+
+// A wide action or toggle tile, as in Android's quick settings: an icon
+// well beside a name and a status line. Coloured as ActionTile is
+// (`active` fills it with `activeColor`, hover takes `tone`, `countdown`
+// runs a bar down). With `opens`, the well toggles (`clicked`) and the
+// rest opens the detail (`opened`), marked by a chevron; without, the whole
+// pill is `clicked`.
+Rectangle {
+  id: root
+
+  property string icon: ""
+  property string label: ""
+  property string status: ""
+  property bool active: false
+  property color activeColor: Theme.accent
+  property color tone: root.activeColor
+  property int countdown: 0
+  // There's a detail to open
+  property bool opens: false
+
+  signal clicked
+  signal opened
+
+  readonly property bool hot: area.containsMouse || wellArea.containsMouse
+  readonly property color contentColor: root.active ? Theme.background : root.hot ? root.tone : Theme.foreground
+  readonly property real _wellSize: Math.max(0, Math.min(root.height - Widget.spacing * 2, Appearance.fontSize * 2.6))
+  // Room for the name beside the well
+  readonly property bool _textShown: root.width - root._wellSize - Widget.spacing * 3 >= Appearance.fontSize * 3
+
+  radius: Widget.radius
+  color: Appearance.fill(root.active ? root.activeColor : root.hot ? Theme.backgroundHighlight : Theme.backgroundAlt)
+  border.color: root.active ? root.activeColor : root.hot ? root.tone : Theme.border
+  border.width: Appearance.borderWidth
+  clip: true
+
+  ColorGlide on color {}
+  ColorGlide on border.color {}
+
+  // The rest of the pill: opens, or toggles without a detail
+  MouseArea {
+    id: area
+    anchors.fill: parent
+    hoverEnabled: true
+    cursorShape: Qt.PointingHandCursor
+    onClicked: root.opens ? root.opened() : root.clicked()
+  }
+
+  RowLayout {
+    anchors.fill: parent
+    anchors.margins: Widget.spacing
+    spacing: Widget.spacing
+
+    Rectangle {
+      id: well
+      Layout.preferredWidth: root._wellSize
+      Layout.preferredHeight: root._wellSize
+      Layout.alignment: Qt.AlignVCenter
+      Layout.fillWidth: !root._textShown
+      radius: Math.min(Widget.radius * 1.5, width / 2)
+      color: root.active ? Qt.rgba(0, 0, 0, 0.12) : wellArea.containsMouse ? Qt.alpha(root.tone, 0.16) : Appearance.fill(Theme.background)
+
+      ColorGlide on color {}
+
+      StyledIcon {
+        anchors.centerIn: parent
+        text: root.icon
+        textColor: root.contentColor
+        textSize: Math.min(well.width, well.height) * 0.5
+        fill: root.hot || root.active ? 1 : 0
+      }
+
+      // The well toggles
+      MouseArea {
+        id: wellArea
+        anchors.fill: parent
+        hoverEnabled: true
+        cursorShape: Qt.PointingHandCursor
+        onClicked: root.clicked()
+      }
+    }
+
+    ColumnLayout {
+      visible: root._textShown
+      Layout.fillWidth: true
+      Layout.alignment: Qt.AlignVCenter
+      spacing: 0
+
+      StyledText {
+        Layout.fillWidth: true
+        text: root.label
+        elide: Text.ElideRight
+        font.bold: true
+        textColor: root.contentColor
+        textSize: Appearance.fontSize - 1
+      }
+      StyledText {
+        Layout.fillWidth: true
+        visible: root.status !== "" && root.height >= Appearance.fontSize * 3
+        text: root.status
+        elide: Text.ElideRight
+        textColor: root.contentColor
+        opacity: 0.75
+        textSize: Appearance.fontSize - 2
+      }
+    }
+
+    StyledIcon {
+      visible: root.opens && root._textShown
+      text: "chevron_right"
+      textColor: root.contentColor
+      opacity: 0.75
+    }
+  }
+
+  // Time left while active
+  Rectangle {
+    id: countdownBar
+    anchors.bottom: parent.bottom
+    anchors.left: parent.left
+    height: 3
+    color: Theme.background
+    opacity: 0.6
+    visible: root.active && root.countdown > 0
+    width: 0
+
+    NumberAnimation {
+      id: drain
+      target: countdownBar
+      property: "width"
+      from: root.width
+      to: 0
+      duration: root.countdown
+    }
+  }
+
+  onActiveChanged: {
+    drain.stop();
+    if (root.active && root.countdown > 0)
+      drain.start();
+  }
+
+  LazyLoader {
+    active: root.hot && !root._textShown && root.label !== ""
+    StyledToolTip {
+      target: root
+      text: root.label
+    }
+  }
+}

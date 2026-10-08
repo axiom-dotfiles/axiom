@@ -70,6 +70,8 @@ EdgePopout {
   // Fill cells grow to whatever room there is, so reach them always.
   joinEnds: !root.held
   reachLength: root._body ? (root._body.fillsEdge ? Infinity : root._body.naturalLength) : 0
+  // Growing modules make a top or bottom menu deeper: room for the most
+  maxContentDepth: !root.vertical && root._body ? root._body.maxGrownHeight : 0
   // Read through a var: EdgeMenuBody's members, on EdgePopout's Item
   readonly property var _body: root.contentItem
   contentPadding: Appearance.borderWidth + EdgeMenusConfig.paddingOf(root.menu)

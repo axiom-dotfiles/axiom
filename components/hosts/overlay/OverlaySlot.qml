@@ -21,6 +21,11 @@ Item {
       "kind": "overlay"
     })
 
+  // The ModuleGrid hosting it, passed on as the module's `expander`
+  property var expander: null
+  // The height the module grows to (its growHeight; 0: as placed)
+  readonly property real growHeight: loader.item?.growHeight ?? 0
+
   anchors.fill: parent
 
   readonly property string componentPath: root.config?.type ? Qt.resolvedUrl("../../content/" + root.config.type + ".qml") : ""
@@ -36,7 +41,8 @@ Item {
       "properties": root.config.properties || {},
       "slotRect": root.rect,
       "embedded": true,
-      "host": root.host
+      "host": root.host,
+      "expander": root.expander
     });
   }
   onComponentPathChanged: _load()
@@ -49,6 +55,7 @@ Item {
       item.properties = Qt.binding(() => root.config?.properties || {});
       item.slotRect = Qt.binding(() => root.rect);
       item.host = Qt.binding(() => root.host);
+      item.expander = Qt.binding(() => root.expander);
     }
   }
 }

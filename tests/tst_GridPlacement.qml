@@ -203,6 +203,46 @@ TestCase {
     }) !== null);
   }
 
+  function test_grown() {
+    // A notifications column over two cards, beside a third that stays
+    const places = [p(0, 0, 4, 2), p(0, 2, 4, 2), p(0, 4, 4, 2), p(4, 0, 4, 2)];
+    compare(GridPlacement.grown(places, [2, 0, 0, 0]), [p(0, 0, 4, 4), p(0, 4, 4, 2), p(0, 6, 4, 2), p(4, 0, 4, 2)], "pushes its column down, not the one beside it");
+    compare(places[0], p(0, 0, 4, 2), "the input isn't changed");
+    compare(GridPlacement.grown(places, []), places, "no growth: as placed");
+    // A gap under it is taken first
+    compare(GridPlacement.grown([p(0, 0, 4, 2), p(0, 4, 4, 2)], [3]), [p(0, 0, 4, 5), p(0, 5, 4, 2)]);
+    // Only what it reaches: a module half under it moves, one past its
+    // columns doesn't
+    compare(GridPlacement.grown([p(0, 0, 2, 2), p(1, 2, 2, 2), p(2, 0, 2, 2)], [1]), [p(0, 0, 2, 3), p(1, 3, 2, 2), p(2, 0, 2, 2)]);
+    // Two growing: the lower grows from where it's pushed to
+    compare(GridPlacement.grown([p(0, 0, 2, 2), p(0, 2, 2, 2), p(0, 4, 2, 2)], [1, 1, 0]), [p(0, 0, 2, 3), p(0, 3, 2, 3), p(0, 6, 2, 2)]);
+    // Nulls are skipped
+    compare(GridPlacement.grown([null, p(0, 0, 2, 2)], [5, 1]), [null, p(0, 0, 2, 3)]);
+    // Free rows towards the edge (above) go first, then it grows away
+    compare(GridPlacement.grown([p(0, 2, 2, 2), p(0, 4, 2, 2)], [1]), [p(0, 1, 2, 3), p(0, 4, 2, 2)], "up into the gap");
+    compare(GridPlacement.grown([p(0, 2, 2, 2), p(0, 4, 2, 2)], [3]), [p(0, 0, 2, 5), p(0, 5, 2, 2)], "the gap, then down");
+    // Only up to a module above it in its columns
+    compare(GridPlacement.grown([p(0, 0, 2, 1), p(0, 2, 2, 2), p(4, 0, 2, 4)], [0, 2]), [p(0, 0, 2, 1), p(0, 1, 2, 4), p(4, 0, 2, 4)]);
+    // Towards a bottom edge: down into the free rows (not past the grid's
+    // last), then up, pushing what's above it up; shifted back to row 0
+    compare(GridPlacement.grown([p(0, 0, 2, 2), p(0, 3, 2, 1)], [1], 1), [p(0, 0, 2, 3), p(0, 3, 2, 1)], "down into the gap");
+    compare(GridPlacement.grown([p(0, 0, 2, 2), p(0, 2, 2, 1), p(2, 0, 2, 4)], [2], 1), [p(0, 0, 2, 4), p(0, 4, 2, 1), p(2, 2, 2, 4)], "no gap: up, the grid growing at the top");
+    compare(GridPlacement.grown([p(0, 0, 2, 2), p(0, 2, 2, 2)], [0, 2], 1), [p(0, 0, 2, 2), p(0, 2, 2, 4)], "pushes what's above it up");
+    // Alone, which way it goes
+    compare(GridPlacement.growthAround([p(0, 2, 2, 2), p(0, 4, 2, 2)], 0, 3), {
+      "up": 2,
+      "down": 1
+    });
+    compare(GridPlacement.growthAround([p(0, 0, 2, 2), p(0, 3, 2, 1)], 0, 2, 1), {
+      "up": 1,
+      "down": 1
+    });
+    compare(GridPlacement.growthAround([p(0, 0, 2, 2)], 0, 0), {
+      "up": 0,
+      "down": 0
+    });
+  }
+
   function test_pushGroup() {
     const down = {
       "x": 0,

@@ -45,6 +45,8 @@ Panel {
 
   implicitWidth: 380
   fullMinWidth: Appearance.fontSize * 12
+  // Grows to list every app or device (a short card stays the slider)
+  wantedHeight: root.sliderOnly || scroll.height <= 0 ? 0 : root.height + list.implicitHeight - scroll.height
   fullMinHeight: Appearance.fontSize * 3.5
 
   function deviceName(node) {
@@ -116,19 +118,33 @@ Panel {
         }
       }
 
-      // Default device, visible on both tabs
-      AudioRow {
-        id: defaultRow
-        readonly property var node: root.defaultDevice
-        icon: root.deviceIcon(node, muted, volume)
-        title: root.deviceName(node)
-        volume: node?.audio?.volume ?? 0
-        muted: node?.audio?.muted ?? false
-        maxVolume: root.maxVolume
-        mutedGlyph: root.mutedGlyph
-        unmutedGlyph: root.unmutedGlyph
-        onVolumeMoved: value => AudioManager.setNodeVolume(node, value, root.maxVolume)
-        onMuteToggled: AudioManager.toggleNodeMute(node)
+      // Default device, visible on both tabs; a short card's opens the
+      // whole mixer
+      RowLayout {
+        Layout.fillWidth: true
+        spacing: 0
+
+        AudioRow {
+          id: defaultRow
+          readonly property var node: root.defaultDevice
+          icon: root.deviceIcon(node, muted, volume)
+          title: root.deviceName(node)
+          volume: node?.audio?.volume ?? 0
+          muted: node?.audio?.muted ?? false
+          maxVolume: root.maxVolume
+          mutedGlyph: root.mutedGlyph
+          unmutedGlyph: root.unmutedGlyph
+          onVolumeMoved: value => AudioManager.setNodeVolume(node, value, root.maxVolume)
+          onMuteToggled: AudioManager.toggleNodeMute(node)
+        }
+
+        ExpandButton {
+          module: root
+          type: root.sliderOnly ? "AudioMixer" : ""
+          properties: ({
+              "mode": root.mode
+            })
+        }
       }
     }
 

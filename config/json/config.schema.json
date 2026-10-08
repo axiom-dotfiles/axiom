@@ -2360,7 +2360,7 @@
           "items": {
             "type": "object",
             "additionalProperties": false,
-            "x-order": ["type", "apps", "icon", "showOsd"],
+            "x-order": ["type", "apps", "allMonitors", "icon", "showOsd"],
             "properties": {
               "type": {
                 "type": "string",
@@ -2371,6 +2371,7 @@
               },
               "apps": { "x-scope": "personal", "type": "array", "items": { "type": "string" }, "title": "Apps", "default": [], "x-showIf": { "type": "app" }, "x-suggestions": "audioApps", "description": "Comma-separated; each matched as a substring of a stream's binary or name. The bar shows the first listed app with a stream open, and a change sets every matching stream." },
               "icon": { "type": "string", "title": "Icon", "default": "", "description": "Icon shown on the bar: a Material Symbols name (fonts.google.com/icons), or text. Empty follows the level for system volume, microphone and brightness." },
+              "allMonitors": { "type": "boolean", "title": "All monitors", "default": false, "x-showIf": { "type": "brightness" }, "description": "The bar sets every monitor with a brightness control at once, instead of only the one the OSD is on." },
               "showOsd": { "type": "boolean", "title": "Opens the OSD", "default": true, "description": "A change on this bar opens the OSD (it always keeps an open one open)." }
             }
           }
@@ -2381,7 +2382,7 @@
       "type": "object",
       "required": ["id"],
       "additionalProperties": false,
-      "x-order": ["name", "enabled", "monitor", "openOnHover", "openDelay", "triggerSize", "triggerLength", "mode", "edge", "offset", "gridOffset", "length", "moduleScale", "detached", "gap", "frame", "padding", "moduleBorders", "pinButton", "backgroundColor", "borderColor", "closeOnLeave", "closeDelay", "closeOnOutsideClick", "id"],
+      "x-order": ["name", "enabled", "monitor", "openOnHover", "openDelay", "triggerSize", "triggerLength", "mode", "edge", "offset", "gridOffset", "length", "moduleScale", "fineGrid", "detached", "gap", "frame", "padding", "moduleBorders", "pinButton", "backgroundColor", "borderColor", "closeOnLeave", "closeDelay", "closeOnOutsideClick", "id"],
       "properties": {
         "id": { "x-group": "Advanced", "type": "string", "title": "Id", "x-control": "readonly", "description": "What bar buttons, keybinds and IPC calls open this menu by. Set when the menu is made." },
         "name": { "x-group": "General", "type": "string", "title": "Name", "default": "" },
@@ -2442,6 +2443,7 @@
           "x-unit": "%",
           "description": "Size of the menu's modules, relative to the overlay's cards on its monitor (which follow Overlay size)."
         },
+        "fineGrid": { "x-group": "Placement", "x-beside": true, "type": "boolean", "title": "Double grid", "default": false, "description": "Split each grid unit in two each way, for finer placement. Modules keep their size and spot." },
         "detached": {
           "x-group": "Placement",
           "type": "boolean",
@@ -3249,6 +3251,7 @@
         { "$ref": "#/definitions/ThemePickerOverlayModule" },
         { "$ref": "#/definitions/NowPlayingOverlayModule" },
         { "$ref": "#/definitions/AudioMixerOverlayModule" },
+        { "$ref": "#/definitions/BrightnessOverlayModule" },
         { "$ref": "#/definitions/VolumeDialsOverlayModule" },
         { "$ref": "#/definitions/SystemGraphsOverlayModule" },
         { "$ref": "#/definitions/DisksOverlayModule" },
@@ -3315,7 +3318,26 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
+            "grow": {"type": "integer", "title": "Grow by up to", "default": 0, "minimum": 0, "maximum": 16, "x-unit": "rows", "description": "Rows it may take while its list needs them: free rows towards the edge first (above it, or below it in a bottom menu), then away from it, pushing the modules there along (not on the lock or login screen). 0 keeps it at its size."},
             "mode": {"type": "string", "title": "Start on", "default": "output", "enum": ["output", "input"]}
+          }
+        }
+      }
+    },
+    "BrightnessOverlayModule": {
+      "type": "object",
+      "x-icon": "brightness_medium",
+      "x-defaultSize": [4, 1],
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "place": { "$ref": "#/definitions/GridPlace" },
+        "type": { "const": "Brightness", "description": "Brightness" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "monitor": {"x-scope": "machine", "type": "string", "title": "Monitor", "default": "*", "x-options": "screens", "x-allScreens": true, "description": "Empty uses the primary monitor. All monitors sets every monitor at once, with a slider for each below where there's room."}
           }
         }
       }
@@ -3421,8 +3443,9 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "actions": {"type": "array", "title": "Actions", "default": ["wifi", "bluetooth", "caffeine", "dnd", "darkMode"], "description": "Toggles, session actions and pin, in any mix. Night light and power saver only show when hyprsunset/wlsunset or powerprofilesctl is installed, and pin only in an edge menu. Log out, reboot and power off ask for a second click.", "items": {"type": "string", "enum": ["wifi", "bluetooth", "caffeine", "dnd", "darkMode", "nightLight", "powerSaver", "lock", "suspend", "hibernate", "logout", "reboot", "poweroff", "pin"]}},
-            "labels": {"type": "string", "title": "Names", "default": "auto", "enum": ["auto", "show", "hide"], "x-enumLabels": {"auto": "Auto", "show": "Show", "hide": "Hide"}, "description": "Auto shows the names only when every tile has room for its whole name."}
+            "actions": {"type": "array", "title": "Actions", "default": ["wifi", "bluetooth", "caffeine", "dnd", "darkMode"], "description": "Toggles, session actions and pin, in any mix. Night light and power saver only show when hyprsunset/wlsunset or powerprofilesctl is installed, brightness only with a monitor brightnessctl or ddcutil can set (a tap opens every monitor's sliders), and pin only in an edge menu. Log out, reboot and power off ask for a second click.", "items": {"type": "string", "enum": ["wifi", "bluetooth", "caffeine", "dnd", "darkMode", "nightLight", "powerSaver", "brightness", "lock", "suspend", "hibernate", "logout", "reboot", "poweroff", "pin"]}},
+            "labels": {"type": "string", "title": "Names", "default": "auto", "enum": ["auto", "show", "hide"], "x-enumLabels": {"auto": "Auto", "show": "Show", "hide": "Hide"}, "description": "Auto shows the names only when every tile has room for its whole name."},
+            "style": {"type": "string", "title": "Style", "default": "tiles", "enum": ["tiles", "pills"], "x-enumLabels": {"tiles": "Tiles", "pills": "Pills"}, "description": "Pills are wide, with a status line beside the icon. Wi-Fi, Bluetooth and Do not disturb open their networks, devices or notifications over the menu or page: from beside a pill's icon, or a tile's right click or long press."}
           }
         }
       }
@@ -3452,7 +3475,14 @@
       "additionalProperties": false,
       "properties": {
         "place": { "$ref": "#/definitions/GridPlace" },
-        "type": { "const": "Notifications", "description": "Notifications" }
+        "type": { "const": "Notifications", "description": "Notifications" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "grow": {"type": "integer", "title": "Grow by up to", "default": 0, "minimum": 0, "maximum": 16, "x-unit": "rows", "description": "Rows it may take while its list needs them: free rows towards the edge first (above it, or below it in a bottom menu), then away from it, pushing the modules there along (not on the lock or login screen). 0 keeps it at its size."}
+          }
+        }
       }
     },
     "WifiNetworksOverlayModule": {
@@ -3462,7 +3492,14 @@
       "additionalProperties": false,
       "properties": {
         "place": { "$ref": "#/definitions/GridPlace" },
-        "type": { "const": "WifiNetworks", "description": "Wi-Fi networks" }
+        "type": { "const": "WifiNetworks", "description": "Wi-Fi networks" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "grow": {"type": "integer", "title": "Grow by up to", "default": 0, "minimum": 0, "maximum": 16, "x-unit": "rows", "description": "Rows it may take while its list needs them: free rows towards the edge first (above it, or below it in a bottom menu), then away from it, pushing the modules there along (not on the lock or login screen). 0 keeps it at its size."}
+          }
+        }
       }
     },
     "BluetoothDevicesOverlayModule": {
@@ -3472,7 +3509,14 @@
       "additionalProperties": false,
       "properties": {
         "place": { "$ref": "#/definitions/GridPlace" },
-        "type": { "const": "BluetoothDevices", "description": "Bluetooth devices" }
+        "type": { "const": "BluetoothDevices", "description": "Bluetooth devices" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "grow": {"type": "integer", "title": "Grow by up to", "default": 0, "minimum": 0, "maximum": 16, "x-unit": "rows", "description": "Rows it may take while its list needs them: free rows towards the edge first (above it, or below it in a bottom menu), then away from it, pushing the modules there along (not on the lock or login screen). 0 keeps it at its size."}
+          }
+        }
       }
     },
     "ScreenshotOverlayModule": {
@@ -3659,6 +3703,7 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
+            "grow": {"type": "integer", "title": "Grow by up to", "default": 0, "minimum": 0, "maximum": 16, "x-unit": "rows", "description": "Rows it may take while its list needs them: free rows towards the edge first (above it, or below it in a bottom menu), then away from it, pushing the modules there along (not on the lock or login screen). 0 keeps it at its size."},
             "days": {"type": "integer", "title": "Days ahead", "default": 7, "minimum": 1, "maximum": 60, "description": "Events from today through this many days."},
             "maxEvents": {"type": "integer", "title": "Most events", "default": 20, "minimum": 1, "maximum": 100}
           }

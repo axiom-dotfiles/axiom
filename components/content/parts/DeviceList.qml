@@ -22,6 +22,9 @@ Item {
   property int count: 0
   property Component delegate
   property int visibleRows: 5
+  // What the list is short of (or, negative, has to spare) to show every
+  // row; off, all of it is spare. For a card that grows (wantedHeight)
+  readonly property real overflow: scroll.height <= 0 ? 0 : root.on ? list.implicitHeight - scroll.height : -scroll.height
 
   // One row's height (DeviceRow.rowHeight): its two lines, or a button
   readonly property real rowHeight: Math.max(titleMetrics.height + statusMetrics.height, 28) + Widget.spacing * 2

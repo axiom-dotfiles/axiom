@@ -12,9 +12,14 @@ import qs.components.content.base
 // edge menu. Log out, reboot and power off ask for a second click.
 // Names show on every tile or none ("auto": only when all fit whole),
 // always ("show", elided) or never ("hide").
+// "pills" draws wide tiles with a status line, as Android's quick settings
+// do. Wi-Fi, Bluetooth and Do not disturb have a detail (their networks,
+// devices, notifications) that grows over the grid, as does Brightness
+// (every monitor's sliders), which has nothing to switch: a tap opens it: a pill opens it from
+// beside its icon, a tile on a right click or long press.
 // properties: { actions: ["wifi", "bluetooth", "caffeine", "dnd", "darkMode", "nightLight", "powerSaver",
-//                         "lock", "suspend", "hibernate", "logout", "reboot", "poweroff", "pin"],
-//               labels: "auto" | "show" | "hide" }
+//                         "brightness", "lock", "suspend", "hibernate", "logout", "reboot", "poweroff", "pin"],
+//               labels: "auto" | "show" | "hide", style: "tiles" | "pills" }
 Card {
   id: root
 
@@ -29,37 +34,59 @@ Card {
       "wifi": {
         "icon": NetworkingManager.wifiEnabled ? "wifi" : "wifi_off",
         "label": I18n.tr("Wi-Fi"),
-        "active": NetworkingManager.wifiEnabled
+        "active": NetworkingManager.wifiEnabled,
+        "status": !NetworkingManager.wifiEnabled ? I18n.tr("Off") : NetworkingManager.netInfo.kind === "wifi" ? NetworkingManager.netInfo.name : I18n.tr("Not connected"),
+        "detail": "WifiNetworks"
       },
       "bluetooth": {
         "icon": BluetoothManager.enabled ? "bluetooth" : "bluetooth_disabled",
         "label": I18n.tr("Bluetooth"),
-        "active": BluetoothManager.enabled
+        "active": BluetoothManager.enabled,
+        "status": root.bluetoothStatus,
+        "detail": "BluetoothDevices"
       },
       "caffeine": {
         "icon": "coffee",
         "label": I18n.tr("Caffeine"),
-        "active": IdleInhibitManager.enabled
+        "active": IdleInhibitManager.enabled,
+        "status": root.onOff(IdleInhibitManager.enabled)
       },
       "dnd": {
         "icon": NotificationManager.dnd ? "notifications_off" : "notifications",
         "label": I18n.tr("Do not disturb"),
-        "active": NotificationManager.dnd
+        "active": NotificationManager.dnd,
+        "status": root.onOff(NotificationManager.dnd),
+        "detail": "Notifications"
       },
       "darkMode": {
         "icon": "clear_night",
         "label": I18n.tr("Dark mode"),
-        "active": Appearance.darkMode
+        "active": Appearance.darkMode,
+        "status": root.onOff(Appearance.darkMode)
       },
       "nightLight": {
         "icon": "nightlight",
         "label": I18n.tr("Night light"),
-        "active": NightLightManager.active
+        "active": NightLightManager.active,
+        "status": root.onOff(NightLightManager.active)
       },
       "powerSaver": {
         "icon": "eco",
         "label": I18n.tr("Power saver"),
-        "active": BatteryManager.powerSaver
+        "active": BatteryManager.powerSaver,
+        "status": root.onOff(BatteryManager.powerSaver)
+      },
+      "brightness": {
+        "icon": root.brightnessLevel < 0.34 ? "brightness_low" : root.brightnessLevel < 0.67 ? "brightness_medium" : "brightness_high",
+        "label": I18n.tr("Brightness"),
+        "active": false,
+        "status": I18n.tr("{0}%", Math.round(root.brightnessLevel * 100)),
+        "detail": "Brightness",
+        "detailProperties": {
+          "monitor": "*"
+        },
+        // Nothing to switch: a tap opens the sliders
+        "opensOnly": true
       },
       "pin": {
         "icon": "push_pin",
@@ -67,6 +94,34 @@ Card {
         "active": root.pinned
       }
     })
+
+  readonly property bool pills: root.properties.style === "pills"
+
+  function onOff(on) {
+    return on ? I18n.tr("On") : I18n.tr("Off");
+  }
+  readonly property string bluetoothStatus: {
+    if (!BluetoothManager.enabled)
+      return I18n.tr("Off");
+    const connected = BluetoothManager.connectedDevices;
+    if (connected.length === 1)
+      return BluetoothManager.deviceLabel(connected[0]);
+    return connected.length > 1 ? I18n.tr("{0} connected", connected.length) : I18n.tr("On");
+  }
+  // The detail an action opens here ("" for none)
+  // Every monitor's, for the brightness tile
+  readonly property real brightnessLevel: BrightnessManager.average(BrightnessManager.names)
+  // Opens the action's detail from `from`, or runs it (a toggle)
+  function tap(name, from) {
+    const d = root.def(name);
+    if (d.opensOnly && root.detailOf(d) !== "")
+      root.expand(d.detail, d.detailProperties ?? {}, from);
+    else
+      root.run(name);
+  }
+  function detailOf(def) {
+    return def.detail && root.canExpand(def.detail) ? def.detail : "";
+  }
 
   function def(name) {
     if (!root.sessionActions.includes(name))
@@ -85,7 +140,7 @@ Card {
   // Config, tool availability and host only (never toggle state), so the
   // tiles aren't rebuilt whenever something is switched: a literal list,
   // not defs' keys (defs follows the toggles)
-  readonly property var known: ["wifi", "bluetooth", "caffeine", "dnd", "darkMode", "nightLight", "powerSaver", "pin"].concat(root.sessionActions)
+  readonly property var known: ["wifi", "bluetooth", "caffeine", "dnd", "darkMode", "nightLight", "powerSaver", "brightness", "pin"].concat(root.sessionActions)
   readonly property var actions: root.properties.actions.filter(a => root.known.includes(a))
   readonly property var shown: root.actions.filter(a => {
     switch (a) {
@@ -97,6 +152,8 @@ Card {
       return NightLightManager.available;
     case "powerSaver":
       return BatteryManager.hasPowerProfiles;
+    case "brightness":
+      return BrightnessManager.names.length > 0;
     case "pin":
       return root.inMenu;
     default:
@@ -169,14 +226,18 @@ Card {
     anchors.fill: parent
     anchors.margins: root.pad
     count: root.shown.length
+    maxAspect: root.pills ? 4 : 1.6
+    minAspect: root.pills ? 2.2 : 0
 
     Repeater {
-      model: root.shown
+      model: root.pills ? 0 : root.shown.length
 
       ActionTile {
-        required property string modelData
+        id: tile
         required property int index
-        readonly property var def: root.def(modelData)
+        readonly property string action: root.shown[index] ?? ""
+        readonly property var def: root.def(action)
+        readonly property string detail: root.detailOf(def)
         x: grid.tileX(index)
         y: grid.tileY(index)
         width: grid.tileWidth
@@ -189,7 +250,35 @@ Card {
         activeColor: def.destructive ? Theme.error : Theme.accent
         tone: def.tone ?? activeColor
         countdown: def.destructive ? disarm.interval : 0
-        onClicked: root.run(modelData)
+        opens: detail !== ""
+        onClicked: root.tap(action, tile)
+        onOpened: root.expand(tile.detail, tile.def.detailProperties ?? {}, tile)
+      }
+    }
+
+    Repeater {
+      model: root.pills ? root.shown.length : 0
+
+      ActionPill {
+        id: pill
+        required property int index
+        readonly property string action: root.shown[index] ?? ""
+        readonly property var def: root.def(action)
+        readonly property string detail: root.detailOf(def)
+        x: grid.tileX(index)
+        y: grid.tileY(index)
+        width: grid.tileWidth
+        height: grid.tileHeight
+        icon: def.icon
+        label: def.label
+        status: def.status ?? ""
+        active: def.active
+        activeColor: def.destructive ? Theme.error : Theme.accent
+        tone: def.tone ?? activeColor
+        countdown: def.destructive ? disarm.interval : 0
+        opens: detail !== ""
+        onClicked: root.tap(action, pill)
+        onOpened: root.expand(pill.detail, pill.def.detailProperties ?? {}, pill)
       }
     }
   }
