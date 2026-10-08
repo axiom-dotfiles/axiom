@@ -12,9 +12,10 @@ ScreenLayoutTarget {
   readonly property bool outdated: GreeterManager.status === "outdated"
 
   screenEditor: GreeterManager.editor
+  fieldGroups: GreeterConfig.fieldGroups
   icon: "login"
   title: I18n.tr("Login screen")
   description: I18n.tr("What greetd shows before anyone logs in. Modules here can't open apps or run anything; Power can suspend, restart and shut down.")
-  fitText: root.outdated ? I18n.tr("The login screen needs an update to show new modules: Settings → Login screen") : root.layout ? I18n.tr("{0} × {1} units, stretched to fill each monitor", root.grid.cols, root.grid.rows) : ""
+  fitText: root.outdated ? I18n.tr("The login screen needs an update to show new modules: Settings → Login screen") : root.stretchText
   fitWarning: root.outdated
 }

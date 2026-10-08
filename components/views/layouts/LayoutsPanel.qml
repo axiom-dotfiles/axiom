@@ -205,7 +205,7 @@ Item {
       }
     }
 
-    // A screen layout (the lock screen, the login screen): its preview,
+    // A screen layout (`screenTarget`): Show on screen where it has one,
     // then its fields. As for the menu, the condition keeps the model the
     // same while it's selected
     FieldGroup {
@@ -225,15 +225,15 @@ Item {
       model: root.screenLayout !== null ? root.screenTarget.fieldGroups : []
 
       delegate: FieldGroup {
-        id: lockGroup
+        id: screenGroup
         required property var modelData
         Layout.topMargin: Widget.spacing
-        title: I18n.tr(lockGroup.modelData.title)
+        title: I18n.tr(screenGroup.modelData.title)
 
         SchemaPropertiesForm {
           Layout.fillWidth: true
-          propertiesSchema: lockGroup.modelData.schema
-          order: lockGroup.modelData.keys
+          propertiesSchema: screenGroup.modelData.schema
+          order: screenGroup.modelData.keys
           values: root.screenLayout ?? ({})
           onEdited: (path, value) => root.screenTarget.screenEditor.updateLayoutField(path[0], value)
         }

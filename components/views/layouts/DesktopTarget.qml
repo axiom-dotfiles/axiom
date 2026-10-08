@@ -20,7 +20,6 @@ ScreenLayoutTarget {
 
   screenEditor: DesktopManager.editor
   fieldGroups: DesktopConfig.fieldGroups
-  canPreview: false
   icon: "desktop_windows"
   title: root.target ? I18n.tr("Desktop: {0}", root.target.label) : I18n.tr("Desktop")
   description: I18n.tr("Modules on the desktop, under your windows. They take clicks but not typing. A monitor shows its own layout if it has one, else the primary monitor's, else the one for all monitors.")
