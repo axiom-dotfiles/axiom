@@ -42,6 +42,7 @@ QtObject {
 
   property GridEditor layout: GridEditor {
     host: "overlay"
+    sizeScale: root.localViews?.[root.selectedViewIndex]?.fineGrid ? 2 : 1
     modulesOf: () => root.selectedView()?.type === "Custom" ? root.selectedView().modules : null
     scopeKey: String(root.selectedViewIndex)
     onEdited: root.applyChanges()
@@ -142,15 +143,15 @@ QtObject {
       root._areas = Utils.withEntry(root._areas, screenName, undefined);
   }
 
-  // How much each screen's overlay shrinks a page of these modules:
-  // [{ screen, scale }], 1 where it fits
-  function fitOf(modules) {
-    const bounds = GridPlacement.bounds(modules);
+  // How much each screen's overlay shrinks a Custom page: [{ screen,
+  // scale }], 1 where it fits
+  function fitOf(view) {
+    const bounds = GridPlacement.bounds(view.modules);
     return Object.keys(root.areas).sort().map(screenName => {
       const area = root.areas[screenName];
       return {
         "screen": screenName,
-        "scale": GridPlacement.fitScale(bounds, area.width, area.height, area.unit)
+        "scale": GridPlacement.fitScale(bounds, area.width, area.height, OverlayConfig.pageUnit(view, area.unit))
       };
     });
   }
@@ -217,11 +218,21 @@ QtObject {
     applyChanges();
   }
 
-  // One of a page's own fields (name, icon, visible)
+  // One of a page's own fields (name, icon, visible, fineGrid). Doubling
+  // the grid (fineGrid) rescales the modules' places so they stay put
   function updateViewField(index, key, value) {
     const view = root.localViews?.[index];
     if (!view || JSON.stringify(view[key]) === JSON.stringify(value))
       return;
+    if (key === "fineGrid") {
+      (view.modules ?? []).forEach(module => {
+        if (module?.place)
+          module.place = GridPlacement.scalePlace(module.place, value);
+      });
+      // Older snapshots are on the other grid
+      if (index === root.selectedViewIndex)
+        root.layout.clearHistory();
+    }
     view[key] = value;
     applyChanges();
   }

@@ -3157,6 +3157,7 @@
         "visible": { "type": "boolean" },
         "name": { "type": "string", "title": "Name", "default": "" },
         "icon": { "type": "string", "title": "Icon", "default": "", "description": "Shown in the page navigator: a Material Symbols name (fonts.google.com/icons). Empty shows the default." },
+        "fineGrid": { "type": "boolean", "title": "Double grid", "default": false, "description": "Split each grid unit in two each way, for finer placement. Modules keep their size and spot." },
         "modules": { "type": "array", "default": [], "items": { "$ref": "#/definitions/OverlayModule" } }
       }
     },

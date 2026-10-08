@@ -94,8 +94,10 @@ Item {
       SchemaPropertiesForm {
         Layout.fillWidth: true
         propertiesSchema: ({
-            "icon": OverlayConfig.customViewSchema.icon
+            "icon": OverlayConfig.customViewSchema.icon,
+            "fineGrid": OverlayConfig.customViewSchema.fineGrid
           })
+        order: ["icon", "fineGrid"]
         values: root.view ?? ({})
         onEdited: (path, value) => OverlayManager.updateViewField(OverlayManager.selectedViewIndex, path[0], value)
       }

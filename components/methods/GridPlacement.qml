@@ -29,6 +29,14 @@ QtObject {
     return n * root.unitOf(unit) + (n - 1) * root.cardSpacing;
   }
 
+  // The card size of a double grid (`fineGrid`) at card size `unit`: two
+  // of its units and the gap between them span one of `unit`'s, so places
+  // scaled by scalePlace keep their size and spot exactly (half the card
+  // would leave every span a little larger, the gaps staying the same)
+  function fineUnit(unit) {
+    return Math.round(((unit ?? root.cardUnit) - root.cardSpacing) / 2);
+  }
+
   // A size in grid units as cards: 4 → "1", 2 → "½", 5 → "1¼"
   function cards(units) {
     const whole = Math.floor(units / 4);

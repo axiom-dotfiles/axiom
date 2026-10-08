@@ -24,7 +24,7 @@ ReservedAreaWindow {
   // and a page wider than the screen then shrinks as a whole
   readonly property real overlayFit: {
     const first = OverlayConfig.views.find(view => !OverlayConfig.isTool(view.type));
-    return GridPlacement.fitScale(GridPlacement.bounds(first?.modules), overlayGrid.availableWidth, overlayGrid.availableHeight, overlayGrid.unit);
+    return GridPlacement.fitScale(GridPlacement.bounds(first?.modules), overlayGrid.availableWidth, overlayGrid.availableHeight, OverlayConfig.pageUnit(first, overlayGrid.unit));
   }
 
   // Esc (or Skip setup) asks first

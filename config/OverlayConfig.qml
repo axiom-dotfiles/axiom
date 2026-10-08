@@ -64,7 +64,8 @@ QtObject {
     }).filter(t => t !== null);
   }
   readonly property var availableModuleTypes: _oneOfTypes("OverlayModule")
-  // A Custom page's own fields (name, icon), for the layouts editor
+  // A Custom page's own fields (name, icon, fineGrid), for the layouts
+  // editor
   readonly property var customViewSchema: ConfigManager.configSchema.definitions.CustomOverlayView.properties
   readonly property var availableViewTypes: _oneOfTypes("OverlayView")
   // The module types a host's library offers: "overlay" pages,
@@ -156,6 +157,13 @@ QtObject {
   function cardUnitFor(width, height) {
     const fit = Math.min(height / fitCardsHigh, width / fitCardsWide);
     return Math.round(Math.max(minCardUnit, Math.min(cardUnit, fit) * size / 100));
+  }
+
+  // The card size a Custom page's modules are laid out at on an overlay
+  // whose cards are `unit` px: a double grid's (fineGrid) has twice the
+  // units across (GridPlacement.fineUnit)
+  function pageUnit(view, unit) {
+    return view?.fineGrid ? GridPlacement.fineUnit(unit) : unit;
   }
 
   // One grid unit (a quarter card) at the reference card size

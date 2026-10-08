@@ -353,6 +353,15 @@ TestCase {
     verify(Math.abs(portrait - (1080 - 40 - 15 * 20) / 16) < 0.3);
   }
 
+  // Two units of a double grid and the gap between them are one unit, so
+  // any span doubled is as long (within rounding)
+  function test_fineUnit() {
+    [280, 360, 431].forEach(unit => {
+      const fine = GridPlacement.fineUnit(unit);
+      [1, 2, 3, 4, 8, 16].forEach(n => verify(Math.abs(GridPlacement.span(n * 2, fine) - GridPlacement.span(n, unit)) <= n, `${n} units at ${unit}`));
+    });
+  }
+
   function test_screenGrid() {
     compare(GridPlacement.screenGrid({
       "columns": 16,

@@ -426,8 +426,9 @@ Singleton {
     const screen = EdgeMenusConfig.screenFor(menu);
     const area = OverlayManager.areas[screen?.name ?? ""];
     const unit = area ? area.unit : screen ? OverlayConfig.cardUnitFor(screen.width, screen.height) : OverlayConfig.cardUnit;
+    const card = unit * menu.moduleScale / 100;
     // A double grid (fineGrid) splits each unit in two each way
-    return Math.round(unit * menu.moduleScale / 100 * (menu.fineGrid ? 0.5 : 1));
+    return menu.fineGrid ? GridPlacement.fineUnit(card) : Math.round(card);
   }
 
   function selectedMenu() {

@@ -14,7 +14,7 @@ EditTarget {
   readonly property bool isCustom: root.view?.type === "Custom"
 
   // How the page fits each monitor's overlay
-  readonly property var fits: root.isCustom ? OverlayManager.fitOf(root.view.modules) : []
+  readonly property var fits: root.isCustom ? OverlayManager.fitOf(root.view) : []
   readonly property var shrunk: root.fits.filter(fit => fit.scale < 0.999)
 
   editor: OverlayManager.layout
