@@ -125,12 +125,11 @@ Item {
     });
   }
 
-  // The modules, faded out (a translucent box would show them) and out of
-  // reach under an expanded detail
+  // The modules, dimmed and out of reach under an expanded detail
   Item {
     anchors.fill: parent
     enabled: root.expanded === null
-    opacity: expandedLayer.shown ? 0 : 1
+    opacity: expandedLayer.shown ? 0.35 : 1
     Glide on opacity {
       duration: Appearance.animNormal
     }
@@ -203,6 +202,7 @@ Item {
     request: root.expanded
     host: root.host
     slotRect: [0, 0, root.bounds.cols, root.bounds.rows]
+    inset: OverlayConfig.cardSpacing
     onClosed: root.expanded = null
   }
 }
