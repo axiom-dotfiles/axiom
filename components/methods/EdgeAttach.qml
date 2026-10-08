@@ -13,9 +13,12 @@ import QtQuick
 // The content always sits where it wants (the caller's `aligned` start),
 // moved only to stay within reach: the box grows around it to meet what
 // it attaches to, rather than the content moving to make the box fit.
-// The one exception is `nudge`: out of a pill or island, a box whose side
-// ends just short of the pill's end (too close for a fillet, so it would
-// grow flush to it, empty) moves its content the least way that leaves no
+// Out of a pill or island, a box whose side ends just short of the pill's
+// end (too close for a fillet) would grow flush to it, empty. With
+// `pillGrows` (bar popouts, edge popouts, docks) the pill grows instead,
+// past its end far enough to carry the fillet, and the box keeps to its
+// content. Where a pill can't grow (tray submenus, whose "pill" is their
+// parent's box) `nudge` moves the content the least way that leaves no
 // empty growth: up to that end, or back far enough for the fillet. Either
 // is less than a fillet's room, so it stays over its anchor.
 //
@@ -82,8 +85,11 @@ QtObject {
   //   islandFrom, islandTo (where islands may reach)
   //   straight (a plain box's attach edge is a bare screen edge),
   //   straightMerged (likewise for one grown from a pill bar's outer edge)
-  //   nudge (out of a pill or island, the content may move a little
-  //     rather than the box growing empty to the pill's end; see above)
+  //   pillGrows (a pill or island grows past its end to carry a fillet
+  //     its side lands just short of, rather than the box growing empty to
+  //     that end; see above)
+  //   nudge (without pillGrows: out of a pill or island, the content may
+  //     move a little rather than the box growing empty to the pill's end)
   //   gap (connector gap), stroke, radius
   // Returns { mode: "plain" | "pill" | "island" | "merged", pill, start,
   //   end (the box), grow (the box past `length`), contentStart (where
@@ -155,7 +161,7 @@ QtObject {
     // One side runs flush to the pill's end with empty box before it: try
     // the content up to that end, or back far enough for its fillet, and
     // take the nearer that grows nothing (the other side unchanged)
-    if (!s.nudge || placed.grow <= 0 || placed.joinStart || placed.joinEnd || placed.flushStart === placed.flushEnd)
+    if (!s.nudge || s.pillGrows || placed.grow <= 0 || placed.joinStart || placed.joinEnd || placed.flushStart === placed.flushEnd)
       return placed;
     const need = root.filletMargin(s.gap, s.stroke, s.radius) + s.radius;
     const empty = placed.flushStart ? content - placed.start : placed.end - (content + s.length);
@@ -184,10 +190,18 @@ QtObject {
     const to = root._islandReach(pills, own, content + length + need, false, s.merge);
     // A side whose fillet doesn't fit reaches to the pill's end, or past it
     // the pill stretching to it, running flush into it; or where that's a
-    // pill joining the perpendicular edge, joining that edge too
-    const short0 = content - need < from, short1 = content + length + need > to;
-    const joinStart = isPill && short0 && pills.some(p => p.joinStart && p.start === from);
-    const joinEnd = isPill && short1 && pills.some(p => p.joinEnd && p.start + p.length === to);
+    // pill joining the perpendicular edge, joining that edge too. With
+    // `pillGrows`, a side short of that end keeps its fillet instead, the
+    // pill growing past its end to carry it, unless it can't grow there
+    // (it joins the edge, or the fillet would pass where pills may reach)
+    const lo = isPill ? s.joinFrom : s.islandFrom, hi = isPill ? s.joinTo : s.islandTo;
+    const edgeStart = isPill && pills.some(p => p.joinStart && p.start === from);
+    const edgeEnd = isPill && pills.some(p => p.joinEnd && p.start + p.length === to);
+    const grows0 = !!s.pillGrows && content >= from && content - need >= lo && !edgeStart;
+    const grows1 = !!s.pillGrows && content + length <= to && content + length + need <= hi && !edgeEnd;
+    const short0 = content - need < from && !grows0, short1 = content + length + need > to && !grows1;
+    const joinStart = short0 && edgeStart;
+    const joinEnd = short1 && edgeEnd;
     const flushStart = short0 && !joinStart, flushEnd = short1 && !joinEnd;
     const start = joinStart ? s.joinFrom : flushStart ? Math.min(content, from) : content;
     const end = joinEnd ? s.joinTo : flushEnd ? Math.max(content + length, to) : content + length;

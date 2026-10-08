@@ -42,10 +42,6 @@ QtObject {
   property bool joinEnd: false
   property real lo: 0
   property real hi: 0
-  // Out of a pill or island, the content may move a little rather than
-  // the box growing empty to the pill's end (EdgeAttach.place's `nudge`):
-  // off for a box whose length keeps changing (a magnifying dock)
-  property bool nudge: true
   // The part of the surface (from its start) over the pill's or island's
   // stroke, left open there (AttachedSurface.coverStart/coverLength);
   // a negative length is the whole surface
@@ -56,6 +52,11 @@ QtObject {
   // shows (not while the content loads or unloads, the box a placeholder)
   required property string owner
   property bool showing: false
+  // Whether the surface is to show (open, not closing), and whether the
+  // pill has grown out to carry it: the surface slides out once it has
+  // (PillStretch.ready)
+  property bool open: false
+  readonly property bool stretchReady: root._stretch.ready
 
   readonly property bool vertical: root.edge === Bar.Left || root.edge === Bar.Right
   readonly property string edgeName: Bar.edgeName(root.edge)
@@ -109,7 +110,7 @@ QtObject {
     "islandTo": (root.container?.islandEnd ?? root.length) - root.barShift,
     "straight": root.bareEdge,
     "straightMerged": !Appearance.screenBorder,
-    "nudge": root.nudge,
+    "pillGrows": true,
     "gap": root.connectorGap,
     "stroke": Appearance.borderWidth,
     "radius": Appearance.borderRadius
@@ -153,6 +154,7 @@ QtObject {
   property PillStretch _stretch: PillStretch {
     container: root.container
     owner: root.owner
+    open: root.open
     stretch: root.showing && root.place.stretch ? Object.assign({}, root.place.stretch, {
       "start": root.place.stretch.start + root.barShift,
       "end": root.place.stretch.end + root.barShift

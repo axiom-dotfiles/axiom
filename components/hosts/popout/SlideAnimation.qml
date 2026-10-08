@@ -19,7 +19,7 @@ Item {
 
   property int animationDuration: Appearance.animNormal
   property bool enableFade: true
-  property var easingType: Easing.OutCubic
+  property int easingType: Appearance.easing
 
   property alias containerHeight: contentWrapper.height
   property alias containerWidth: contentWrapper.width
@@ -115,7 +115,7 @@ Item {
     enabled: root.enableFade
     NumberAnimation {
       duration: root.animationDuration
-      easing.type: Easing.InOutQuad
+      easing.type: root.easingType
     }
   }
 

@@ -133,12 +133,12 @@ Scope {
     contentLength: root.currentLength
     joinStart: root.joins.joinStart
     joinEnd: root.joins.joinEnd
-    // Its length changes as it magnifies: a nudge would jump with it
-    nudge: false
     lo: root.startInset
     hi: root.length - root.endInset
     owner: "dock:" + root.dock.id + ":" + (root.screen?.name ?? "") + (root.preview ? ":preview" : "")
-    showing: root.shown > 0 && root.count > 0
+    // Its pill stretches as it's wanted, and draws back once it's gone
+    showing: (root.wantShown || root._out) && root.count > 0
+    open: root.wantShown
   }
   readonly property var place: placement.place
 
@@ -177,11 +177,16 @@ Scope {
   readonly property real grown: Math.max(0, ...root.sizes) - root.base
 
   // --- Across the dock ---
-  // How far it has slid in (0 hidden, 1 shown)
-  property real shown: root.wantShown ? 1 : 0
+  // How far it has slid in (0 hidden, 1 shown): once its pill has grown
+  // out to carry it
+  property real shown: root.wantShown && placement.stretchReady ? 1 : 0
   Glide on shown {
     duration: Appearance.animNormal
   }
+  // Whether any of it is out: set by hand, as `shown` waits on the pill
+  // stretch that this keeps up
+  property bool _out: false
+  onShownChanged: root._out = root.shown > 0
   readonly property real slide: (1 - root.shown) * root.depth
 
   // The cross-axis position (window coordinates) of something `fromEdge`

@@ -40,6 +40,18 @@ PopoutWrapperBase {
   // Content box in popupWindow coordinates (see AttachedSurface.boxRect)
   readonly property rect boxRect: Qt.rect(surface.x + surface.boxRect.x, surface.y + surface.boxRect.y, surface.boxRect.width, surface.boxRect.height)
 
+  // Puts a dock or OSD on its bar's edge away while it's open, and gives
+  // way to the attached launcher or a floating edge menu there
+  // (ShellManager.edgeOutranked)
+  readonly property string _edgeName: Bar.edgeName(root.barConfig.location)
+  readonly property var _claim: root.isOpen ? ({
+      "screen": root.screen?.name ?? "",
+      "edge": root._edgeName,
+      "kind": "popout"
+    }) : null
+  on_ClaimChanged: ShellManager.setEdgeClaim(root, root._claim)
+  blocked: ShellManager.edgeOutranked(root.screen?.name ?? "", root._edgeName, "popout")
+
   // Which side the tray's submenus open to
   readonly property bool openToLeft: root.barConfig.right || mainPopup.isOnRightHalfOfScreen
 
@@ -252,7 +264,7 @@ PopoutWrapperBase {
     "islandTo": mainPopup.islandEnd,
     "straight": false,
     "straightMerged": !Appearance.screenBorder,
-    "nudge": true,
+    "pillGrows": true,
     "gap": root.connectorGap,
     "stroke": Appearance.borderWidth,
     "radius": Appearance.borderRadius
@@ -283,8 +295,10 @@ PopoutWrapperBase {
     };
   }
   PillStretch {
+    id: pillStretchItem
     container: root.layoutSource
     owner: "barPopout"
+    open: still.showing && !root.isClosing
     stretch: root.occupied ? root.pillStretch : null
     opening: root._opening
   }
@@ -390,6 +404,7 @@ PopoutWrapperBase {
   }
 
   Component.onDestruction: {
+    ShellManager.setEdgeClaim(root, null);
     ShellManager.unregisterGrabPartner(mainPopup);
     ShellManager.unregisterGrabPartner(underWindow);
   }
@@ -633,7 +648,8 @@ PopoutWrapperBase {
 
     edge: root.barConfig.location
     castShadow: true
-    active: still.showing && !root.isClosing
+    // Once its pill has grown out to carry it
+    active: still.showing && !root.isClosing && pillStretchItem.ready
     // The blur window draws its fill (BlurManager), from where
     // the bar window is on screen: the surface is at (barX, barY) in bar
     // window coordinates in either window

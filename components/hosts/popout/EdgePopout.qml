@@ -235,6 +235,7 @@ PopoutWrapperBase {
     hi: root.edgeLength - root.endInset
     owner: "edgePopout:" + root
     showing: root.occupied && root.contentItem !== null
+    open: root.isOpen
   }
   readonly property var place: placement.place
   readonly property real boxLength: root.place.end - root.place.start
@@ -383,7 +384,8 @@ PopoutWrapperBase {
       straight: placement.straight
       detached: root.detached
       detachedOffset: root.slidesUnder ? root.slideDistance : 0
-      active: root.isOpen
+      // Once its pill has grown out to carry it
+      active: root.isOpen && placement.stretchReady
       connectorGap: root.connectorGap
       boxWidth: root.vertical ? (root.contentItem?.implicitWidth ?? 100) + root.contentPadding * 2 + root.attachClearance : root.boxLength
       boxHeight: root.vertical ? root.boxLength : (root.contentItem?.implicitHeight ?? 100) + root.contentPadding * 2 + root.attachClearance

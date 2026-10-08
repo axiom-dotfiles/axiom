@@ -105,10 +105,11 @@ QtObject {
   }
 
   // Surfaces sharing a screen edge give way by rank, lowest first: a dock
-  // to an OSD, both to the attached launcher, all three to a floating edge
-  // menu (opened by hand, the pointer on it). A lower one closes while a
-  // higher one shows on its edge.
-  readonly property var edgeRanks: ["dock", "osd", "launcher", "menu"]
+  // to an OSD, both to a bar popout, all three to the attached launcher,
+  // and all four to a floating edge menu (opened by hand, the pointer on
+  // it). A lower one closes while a higher one shows on its edge, and a
+  // bar popout won't open meanwhile.
+  readonly property var edgeRanks: ["dock", "osd", "popout", "launcher", "menu"]
   // `{ owner, screen, edge, kind }` (a screen name, a Bar.edgeName): the
   // ranked surfaces showing
   property var edgeClaims: []

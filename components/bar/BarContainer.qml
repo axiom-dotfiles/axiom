@@ -166,6 +166,15 @@ Rectangle {
       Glide on after {}
     }
   }
+  // Whether the pill `stretch` stands on reaches, as drawn, as far past its
+  // ends as it asks (a surface waits for it before sliding out onto it)
+  function carries(stretch) {
+    const reach = reaches.objectAt(stretch.index);
+    const rect = reach?.rect;
+    if (!rect)
+      return true;
+    return reach.before >= rect.start - stretch.start - 0.5 && reach.after >= stretch.end - rect.start - rect.length - 0.5;
+  }
   // The stretches as drawn (see stretchOf), one per pill reaching past
   // its ends or squared
   readonly property var _shownStretches: {
