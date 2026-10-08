@@ -141,17 +141,20 @@ QtObject {
   // Layer rules can't set the blur's strength (Hyprland's global
   // decoration.blur does, for windows too), only whether a layer blurs and
   // which of its pixels count: ignore_alpha leaves out those under the
-  // threshold (shadows, dims, mid-fade), which the large transparent
-  // windows (the overlay, full-edge popouts) need. They blur what's under
-  // them, as Hyprland always blurs a layer's popups (menus), so a menu
-  // matches the bar it opens from; blurring the wallpaper alone (xray) is
-  // cheaper, but leaves menus blurring something else.
+  // threshold (shadows, dims, mid-fade), which the big transparent windows
+  // (the blur window, the overlay) need.
+  // The chrome (the border, bars and their popouts, edge popouts and
+  // menus, docks) doesn't blur itself: the blur window (BlurManager,
+  // shell/BlurBacking) draws its fills and is blurred in their place. The
+  // rest blur themselves, their popups too.
+  readonly property var blurSurfaces: ["blur-backing", "dock-preview", "overlay", "launcher", "switcher", "floating-popout", "notifications", "powermenu", "workspaces", "monitor-prompt"]
+  // The chrome's own windows, for their popups alone (tooltips, the dock's
+  // menu): Hyprland blurs a layer's popups whether or not the layer blurs.
+  // A bar popout (a popup too) is drawn transparent over the blur window,
+  // so ignore_alpha leaves all but its content out.
+  readonly property var blurChrome: ["bar", "bar-floating", "popout-under", "edge-popout", "edge-menu", "dock"]
   // Backdrops (and the polkit prompt, whose window holds its own dim) blur
   // only when asked: the whole screen, at every alpha.
-  // The border, bars, their popouts, edge popouts and menus and docks are
-  // drawn by the blur window (BlurManager, shell/BlurBacking), blurred in
-  // their place; the rest blur themselves.
-  readonly property var blurSurfaces: ["blur-backing", "dock-preview", "overlay", "launcher", "switcher", "floating-popout", "notifications", "powermenu", "workspaces", "monitor-prompt"]
   readonly property var blurBackdrops: ["backdrop", "polkit"]
 
   function _blurRule(name, namespaces, effects, enabled) {
@@ -163,20 +166,23 @@ QtObject {
    * always written, `enabled` or not, since a rule is taken back by
    * redefining it (no reload). `opts`: { on, strength, threshold,
    * throughWindows (no xray), windows (transparent windows blur too),
-   * backdrops }.
+   * backdrops, rulesOnly }.
    * While on it sets Hyprland's blur (on, and the strength), first keeping
    * the user's in AXIOM_USER_BLUR (Hyprland's Lua state, which a reload
    * resets along with the blur), and gives it back when turned off.
    * Windows keep their own say (a rule unblurs them where the user's blur
    * was off) unless `windows`.
+   * `rulesOnly` leaves Hyprland's blur alone: for the included module,
+   * which runs before the user's own lines, so what it kept wouldn't be
+   * theirs (the rest is evaluated after every reload, over them).
    */
   function blurLua(opts) {
     const on = opts.on === true;
     const threshold = value(opts.threshold);
     const xray = opts.throughWindows ? "" : ", xray = true";
-    // axiom-blur-border (the border's own rule, once) stays defined off,
-    // which takes it back from a Hyprland still holding it
-    const lines = [_blurRule("axiom-blur", blurSurfaces, `blur = true, blur_popups = true, ignore_alpha = ${threshold}${xray}`, on), _blurRule("axiom-blur-border", ["border"], "blur = true", false), _blurRule("axiom-blur-backdrops", blurBackdrops, `blur = true, ignore_alpha = 0.01${xray}`, on && opts.backdrops === true)];
+    const lines = [_blurRule("axiom-blur", blurSurfaces, `blur = true, blur_popups = true, ignore_alpha = ${threshold}${xray}`, on), _blurRule("axiom-blur-popups", blurChrome, `blur_popups = true, ignore_alpha = ${threshold}`, on), _blurRule("axiom-blur-backdrops", blurBackdrops, `blur = true, ignore_alpha = 0.01${xray}`, on && opts.backdrops === true)];
+    if (opts.rulesOnly)
+      return lines;
     if (on) {
       const strength = blurStrength(opts.strength);
       lines.push("if AXIOM_USER_BLUR == nil then", `  AXIOM_USER_BLUR = { enabled = hl.get_config("decoration.blur.enabled"), size = hl.get_config("decoration.blur.size"), passes = hl.get_config("decoration.blur.passes") }`, "end", `hl.config({ decoration = { blur = { enabled = true, size = ${strength.size}, passes = ${strength.passes} } } })`);

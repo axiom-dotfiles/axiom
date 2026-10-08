@@ -80,7 +80,6 @@ Item {
     kind: "frame"
     screen: root.screen?.name ?? ""
     shown: root.backed
-    shadowed: BarStyle.values.shadow !== "none"
   }
 
   // An edge strip per side

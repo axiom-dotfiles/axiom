@@ -2729,7 +2729,7 @@
     "Blur strength": "ぼかしの強さ",
     "Hyprland has one blur strength for everything, so transparent windows that blur use it too. Turning the blur off gives your own back.": "Hyprland のぼかしの強さはすべてに共通なので、ぼかされる透明なウィンドウにもこの強さが使われます。ぼかしをオフにすると元の設定に戻ります。",
     "Blur windows behind surfaces": "サーフェスの背後のウィンドウをぼかす",
-    "Off, bars, the border and popouts blur the wallpaper alone, which is cheaper. Menus (the tray's, a bar widget's) always blur what's behind them, so beside a bar they can then look different.": "オフにすると、バー・枠・ポップアウトは壁紙だけをぼかし、負荷が軽くなります。メニュー（トレイやバーのウィジェットのもの）は常に背後をぼかすため、バーの横では見え方が異なることがあります。",
+    "Off, bars, the border and popouts blur the wallpaper alone, which is cheaper. Tooltips and menus always blur what's behind them.": "オフにすると、バー・枠・ポップアウトは壁紙だけをぼかし、負荷が軽くなります。ツールチップとメニューは常に背後をぼかします。",
     "Blur transparent windows too": "透明なウィンドウもぼかす",
     "Off, windows blur as your Hyprland config says (with this strength, if they do).": "オフにすると、ウィンドウは Hyprland の設定どおりにぼかされます（ぼかされる場合はこの強さで）。",
     "Blur backdrops": "背景をぼかす",

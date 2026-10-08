@@ -163,6 +163,7 @@ PopoutWrapperBase {
           anchors.fill: parent
           color: panel.backed ? "transparent" : Appearance.fill(root.framed ? Theme.background : root.colors.fill)
 
+          // Casting the border's shadow past it, as past the frame it grows
           BlurShape {
             source: strip
             kind: "rect"
@@ -171,8 +172,6 @@ PopoutWrapperBase {
             x: (placeOnScreen.origin?.x ?? 0) + slide.slideX
             y: (placeOnScreen.origin?.y ?? 0) + slide.slideY
             shown: panel.backed && panel.visible
-            // The border's shadow falls past it, as past the frame it grows
-            shadowed: BarStyle.values.shadow !== "none"
           }
         }
 

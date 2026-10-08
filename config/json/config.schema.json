@@ -985,7 +985,7 @@
               "type": "boolean",
               "title": "Blur windows behind surfaces",
               "default": true,
-              "description": "Off, bars, the border and popouts blur the wallpaper alone, which is cheaper. Menus (the tray's, a bar widget's) always blur what's behind them, so beside a bar they can then look different.",
+              "description": "Off, bars, the border and popouts blur the wallpaper alone, which is cheaper. Tooltips and menus always blur what's behind them.",
               "x-showIf": { "opacity": { "not": 100 }, "blur": true }
             },
             "windows": {

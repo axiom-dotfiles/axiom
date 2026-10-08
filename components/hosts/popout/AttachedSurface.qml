@@ -372,7 +372,7 @@ Item {
       HoledItem {
         anchors.fill: parent
         visible: !root.detached
-        holes: root.backed ? root.strokeHoles : []
+        holes: root.strokeHoles
 
         Shape {
           id: outline
@@ -409,7 +409,7 @@ Item {
       HoledItem {
         anchors.fill: parent
         visible: root.detached
-        holes: root.backed ? root.strokeHoles : []
+        holes: root.strokeHoles
 
         Rectangle {
           id: detachedBox

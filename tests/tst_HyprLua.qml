@@ -485,7 +485,9 @@ assert(removed == 2, "earlier handlers removed")
     verify(rules[0].includes('name = "axiom-blur"'));
     verify(rules[0].includes('"^axiom-(blur-backing|dock-preview|overlay|'), "the blur window, and surfaces it doesn't draw");
     verify(rules[0].includes("blur_popups = true, ignore_alpha = 0.5, xray = true, enabled = true"), "the wallpaper alone by default");
-    verify(rules[1].includes('"^axiom-(border)$"') && rules[1].endsWith("enabled = false })"), "the old border rule stays off");
+    verify(!/[(|](bar|border)[|)]/.test(rules[0]), "the chrome is drawn by the blur window");
+    verify(rules[1].includes('name = "axiom-blur-popups"') && rules[1].includes("(bar|"), "the chrome's popups (tooltips, menus)");
+    verify(rules[1].includes("blur_popups = true, ignore_alpha = 0.5, enabled = true") && !rules[1].includes("blur = true"), "its popups alone");
     verify(rules[2].includes('"^axiom-(backdrop|polkit)$"'));
     verify(rules[2].includes("enabled = false"), "backdrops only when asked");
     verify(lines({
@@ -503,6 +505,11 @@ assert(removed == 2, "earlier handlers removed")
     }).filter(line => line.startsWith("hl.layer_rule"));
     compare(offRules.length, 3);
     verify(offRules.every(line => line.endsWith("enabled = false })")));
+    // The included module: rules only, Hyprland's blur left to the runtime
+    compare(lines({
+      "on": true,
+      "rulesOnly": true
+    }), on.slice(0, 3));
 
     // The user's blur kept and given back; windows keep their own say
     // unless they blur too

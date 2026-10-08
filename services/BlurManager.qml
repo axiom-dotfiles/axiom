@@ -6,15 +6,18 @@ import Quickshell.Hyprland
 import qs.config
 
 /**
- * The blur behind the shell's chrome (prototype: bars and their popouts).
- * Each surface registers its shape (BlurShape); one click-through window
- * per screen (shell/BlurBacking) draws them all, filled, and is the only
- * one of them Hyprland blurs. Blurred in one pass, before any chrome is
- * drawn, the blur behind joined surfaces matches exactly; the surfaces
- * themselves draw their outer fill transparent (`backing`).
+ * The blur behind the shell's chrome: the border's frame, bars and their
+ * popouts, edge popouts, integrated edge menus and docks. Each surface
+ * registers its shape (BlurShape); one click-through window per screen
+ * (shell/BlurBacking) draws them all, filled, and is the only one of them
+ * Hyprland blurs. Blurred in one pass, before any chrome is drawn, the
+ * blur behind joined surfaces matches exactly; the surfaces themselves
+ * draw their outer fill transparent (`backing`).
  * Layer-shell windows don't know where they are on screen, so their
  * origins are read from Hyprland (`hyprctl layers`), again whenever a
- * layer maps or unmaps, or a window asks (it resized, reservations moved).
+ * layer maps or unmaps, or a window asks (it resized, reservations moved),
+ * while surfaces are translucent (the joins in the border's stroke use
+ * them too).
  */
 QtObject {
   id: root
@@ -35,32 +38,60 @@ QtObject {
       root.shapes = root.shapes.filter(s => s !== shape);
   }
 
-  // { monitorName: [{ namespace, x, y, w, h }] }, monitor-relative
+  // { monitorName: { w, h, layers: [{ namespace, x, y, w, h }] } },
+  // monitor-relative
   property var layers: ({})
 
-  // Where a layer window is on its monitor: the mapped one in `namespace`
-  // that is `width` × `height`, the one nearest `edge` (a Bar.Location)
-  // where several match; null until Hyprland has reported it
-  // where several match; null until Hyprland has reported it. A window
-  // mapped only while open (an edge popout) gets where the same window was
-  // last seen, so it's backed from its first frame; it's read again as it
-  // maps.
+  /**
+   * Where a layer window is on its monitor, null until Hyprland has
+   * reported it. Every window asking spans its `edge` (a Bar.Location),
+   * anchored there: the mapped one in `namespace` that runs as far along
+   * it, on that side of the screen, nearest the edge where several do.
+   * Grown or shrunk across it (an edge popout's content), it's placed from
+   * the side it's anchored to until Hyprland reports it again, rather than
+   * lost for those frames. A window mapped only while open gets where it
+   * was last seen, so it's backed from its first frame.
+   */
   function layerOrigin(namespace, monitor, width, height, edge) {
-    const cacheKey = [namespace, monitor, Math.round(width), Math.round(height), edge].join("|");
-    const matches = (root.layers[monitor] ?? []).filter(l => l.namespace === namespace && Math.abs(l.w - width) <= 1 && Math.abs(l.h - height) <= 1);
-    if (matches.length === 0)
-      return root._seen[cacheKey] ?? null;
-    const key = l => edge === Bar.Left ? l.x : edge === Bar.Right ? -(l.x + l.w) : edge === Bar.Top ? l.y : -(l.y + l.h);
-    const best = matches.reduce((a, b) => key(b) < key(a) ? b : a);
-    const origin = Qt.point(best.x, best.y);
-    // Kept without notifying: read only when nothing current matches
-    root._seen[cacheKey] = origin;
-    return origin;
+    const vertical = edge === Bar.Left || edge === Bar.Right;
+    const along = vertical ? height : width;
+    const cacheKey = [namespace, monitor, Math.round(along), edge].join("|");
+    const screen = root.layers[monitor];
+    const onSide = l => {
+      if (!screen)
+        return false;
+      const centre = vertical ? l.x + l.w / 2 : l.y + l.h / 2;
+      const half = (vertical ? screen.w : screen.h) / 2;
+      return edge === Bar.Left || edge === Bar.Top ? centre <= half : centre >= half;
+    };
+    const matches = (screen?.layers ?? []).filter(l => l.namespace === namespace && Math.abs((vertical ? l.h : l.w) - along) <= 1 && onSide(l));
+    let best = root._seen[cacheKey] ?? null;
+    if (matches.length > 0) {
+      // Its own size first, then nearest the edge
+      const depth = vertical ? width : height;
+      const miss = l => Math.abs((vertical ? l.w : l.h) - depth) > 1 ? 1 : 0;
+      const key = l => edge === Bar.Left ? l.x : edge === Bar.Right ? -(l.x + l.w) : edge === Bar.Top ? l.y : -(l.y + l.h);
+      best = matches.reduce((a, b) => miss(b) < miss(a) || (miss(b) === miss(a) && key(b) < key(a)) ? b : a);
+      // Kept without notifying: read only when nothing current matches
+      root._seen[cacheKey] = best;
+    }
+    if (!best)
+      return null;
+    // From the side it's anchored to
+    return Qt.point(edge === Bar.Right ? best.x + best.w - width : best.x, edge === Bar.Bottom ? best.y + best.h - height : best.y);
   }
   property var _seen: ({})
 
+  // Nothing reads an origin while surfaces are solid
+  readonly property bool _needed: Appearance.translucent
+  on_NeededChanged: {
+    if (root._needed)
+      root.refreshLayers();
+  }
+
   function refreshLayers() {
-    root._refresh.restart();
+    if (root._needed)
+      root._refresh.restart();
   }
 
   property Timer _refresh: Timer {
@@ -83,13 +114,20 @@ QtObject {
           const result = {};
           for (const monitor of monitors) {
             const levels = layers[monitor.name]?.levels ?? {};
-            result[monitor.name] = [].concat(...Object.keys(levels).map(level => levels[level])).map(l => ({
-                  "namespace": l.namespace,
-                  "x": l.x - monitor.x,
-                  "y": l.y - monitor.y,
-                  "w": l.w,
-                  "h": l.h
-                }));
+            // Layer geometry is in logical px, as the monitor's size isn't
+            const scale = monitor.scale || 1;
+            const turned = monitor.transform % 2 === 1;
+            result[monitor.name] = {
+              "w": (turned ? monitor.height : monitor.width) / scale,
+              "h": (turned ? monitor.width : monitor.height) / scale,
+              "layers": [].concat(...Object.keys(levels).map(level => levels[level])).map(l => ({
+                    "namespace": l.namespace,
+                    "x": l.x - monitor.x,
+                    "y": l.y - monitor.y,
+                    "w": l.w,
+                    "h": l.h
+                  }))
+            };
           }
           root.layers = result;
         } catch (e) {

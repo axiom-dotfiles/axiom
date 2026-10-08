@@ -276,13 +276,15 @@ Item {
 
         // The parent's side stroke it covers, left open, with its
         // anti-aliased fringe a pixel either side
-        readonly property var parentHole: surface.backed && submenuPopup.visible ? Qt.rect(outer.openToLeft ? root.attachRect.x - 1 : root.attachRect.x + root.attachRect.width - Appearance.borderWidth - 1, surface.inParentY + surface.coverStart, Appearance.borderWidth + 2, surface.coverLength) : null
+        readonly property var parentHole: Appearance.translucent && submenuPopup.visible ? Qt.rect(outer.openToLeft ? root.attachRect.x - 1 : root.attachRect.x + root.attachRect.width - Appearance.borderWidth - 1, surface.inParentY + surface.coverStart, Appearance.borderWidth + 2, surface.coverLength) : null
         onParentHoleChanged: {
           if (outer.host)
             outer.host.submenuHole = surface.parentHole;
         }
+        // Its own hole, if still shown (rects compare by value, not ===)
         Component.onDestruction: {
-          if (outer.host?.submenuHole === surface.parentHole)
+          const hole = outer.host?.submenuHole;
+          if (hole && surface.parentHole && hole.x === surface.parentHole.x && hole.y === surface.parentHole.y)
             outer.host.submenuHole = null;
         }
         active: root.occupied && !root.isClosing && (root.contentReady || still.switching)

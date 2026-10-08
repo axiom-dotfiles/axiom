@@ -12,9 +12,9 @@ import qs.components.hosts.popout
 // The blur behind the chrome (BlurManager): per screen, one click-through
 // window under every chrome surface drawing each registered shape (the
 // border's frame, bars, popouts, edge menus, docks) filled, with one shadow
-// round those that cast one. It's the only one of them Hyprland blurs
-// (HyprLua.blurSurfaces), in one pass, so where surfaces join their blur
-// matches exactly.
+// round those casting the same one (a bar may have its own). It's the only
+// one of them Hyprland blurs (HyprLua.blurSurfaces), in one pass, so where
+// surfaces join their blur matches exactly.
 Scope {
   id: root
 
@@ -25,6 +25,12 @@ Scope {
       id: backing
       required property ShellScreen modelData
       screen: modelData
+
+      readonly property string screenName: backing.screen?.name ?? ""
+      readonly property var shapes: BlurManager.shapes.filter(shape => shape.screen === backing.screenName)
+      // The shadows cast here, by BlurShape.shadowKey ("" first: none), as
+      // a joined string, so the groups are remade only as one comes or goes
+      readonly property string shadowKeys: [""].concat(backing.shapes.map(shape => shape.shadowKey).filter((key, i, keys) => key !== "" && keys.indexOf(key) === i)).join("\n")
 
       WlrLayershell.layer: WlrLayer.Top
       WlrLayershell.namespace: "axiom-blur-backing"
@@ -40,12 +46,21 @@ Scope {
         right: true
       }
 
-      // The shadow round the shapes that cast one, as one, kept off every
+      // Each shadow round the shapes casting it, as one, kept off every
       // shape
-      OutsideShadow {
-        target: shadowed
-        cutBy: fills
-        falls: false
+      Repeater {
+        model: groups.count
+
+        OutsideShadow {
+          required property int index
+          // Again as the groups are remade (their count may not change)
+          readonly property var group: fills.revision >= 0 ? groups.itemAt(index) : null
+          target: group ?? fills
+          active: index > 0 && group !== null
+          look: group?.look ?? BarStyle.values
+          cutBy: fills
+          falls: false
+        }
       }
 
       // Every shape drawn opaque, then the surface opacity applied to them
@@ -55,16 +70,19 @@ Scope {
         anchors.fill: parent
         layer.enabled: true
         opacity: Appearance.surfaceAlpha
+        property int revision: 0
 
-        ShapeGroup {
-          id: shadowed
-          shadowed: true
-          screenName: backing.screen?.name ?? ""
-        }
+        Repeater {
+          id: groups
+          model: backing.shadowKeys.split("\n")
+          onItemAdded: fills.revision++
+          onItemRemoved: fills.revision++
 
-        ShapeGroup {
-          shadowed: false
-          screenName: backing.screen?.name ?? ""
+          ShapeGroup {
+            required property string modelData
+            shadowKey: modelData
+            shapes: backing.shapes
+          }
         }
       }
     }
@@ -72,8 +90,11 @@ Scope {
 
   component ShapeGroup: Item {
     id: group
-    required property bool shadowed
-    required property string screenName
+    required property string shadowKey
+    // This screen's shapes
+    required property var shapes
+    // The look its shapes cast (any of them: they cast the same)
+    readonly property var look: group.shapes.find(shape => shape.shadowKey === group.shadowKey)?.look ?? null
     anchors.fill: parent
 
     // What a copy reads while its source is going (destroyed before its
@@ -90,7 +111,7 @@ Scope {
 
     Repeater {
       // Changes only as a shape registers or goes
-      model: BlurManager.shapes.filter(shape => shape.screen === group.screenName && shape.shadowed === group.shadowed)
+      model: group.shapes.filter(shape => shape.shadowKey === group.shadowKey)
 
       // Cut to the shape's clipRect (its window), if it has one
       delegate: Item {

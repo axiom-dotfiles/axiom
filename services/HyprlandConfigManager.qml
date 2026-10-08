@@ -356,15 +356,16 @@ Singleton {
   }
 
   // The blur behind axiom's surfaces, its rules written on or off
-  // (HyprLua.blurLua)
-  function _blurLua() {
+  // (HyprLua.blurLua); `rulesOnly` for the included module
+  function _blurLua(rulesOnly) {
     return HyprLua.blurLua({
       "on": Appearance.blur,
       "strength": Appearance.blurStrength,
       "threshold": Appearance.blurThreshold,
       "throughWindows": Appearance.blurThroughWindows,
       "windows": Appearance.blurWindows,
-      "backdrops": Appearance.blurBackdrops
+      "backdrops": Appearance.blurBackdrops,
+      "rulesOnly": rulesOnly === true
     });
   }
 
@@ -417,9 +418,10 @@ end
 M.theme = M.look
 
 -- Blur behind axiom's surfaces while they're translucent (on or off, so
--- turning it off takes it back)
+-- turning it off takes it back). Its strength is set after every reload,
+-- over your own lines.
 function M.blur()
-${_indent(_blurLua(), "  ")}
+${_indent(_blurLua(true), "  ")}
 end
 
 -- Stacking order of axiom's surfaces (bars, border, edge menus, backdrops)

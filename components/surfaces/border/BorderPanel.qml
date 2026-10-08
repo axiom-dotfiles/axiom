@@ -6,6 +6,7 @@ import Quickshell.Wayland
 import qs.config
 import qs.services
 import qs.components.methods
+import qs.components.hosts.popout
 
 // One edge of the screen border (RoundedBorders): a strip that reserves
 // `frameWidth` and draws the frame with its inner stroke, which stops short
@@ -27,9 +28,16 @@ PanelWindow {
 
   readonly property bool horizontal: edge === "top" || edge === "bottom"
   readonly property real length: horizontal ? width : height
-  // Where the strip starts along its edge on screen: between what reserves
-  // the edges across it (the strips there, when they mapped first)
-  readonly property real screenOffset: ((horizontal ? screen?.width : screen?.height) ?? length) / 2 - length / 2
+  // Where the strip starts along its edge on screen, as Hyprland reports
+  // it; until then, as if what reserves the edges across it (the strips
+  // there, when they mapped first) reserved as much at either end
+  readonly property real screenOffset: placeOnScreen.origin ? (horizontal ? placeOnScreen.origin.x : placeOnScreen.origin.y) : ((horizontal ? screen?.width : screen?.height) ?? length) / 2 - length / 2
+  LayerOrigin {
+    id: placeOnScreen
+    window: root
+    namespace: "axiom-border"
+    edge: root.edge === "left" ? Bar.Left : root.edge === "right" ? Bar.Right : root.edge === "bottom" ? Bar.Bottom : Bar.Top
+  }
   // Surfaces joined to the stroke leave it open under them, in strip
   // coordinates: the stroke and the fill beside it (the stroke's row),
   // which would show through their translucent fill

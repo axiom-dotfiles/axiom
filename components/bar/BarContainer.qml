@@ -361,7 +361,7 @@ Rectangle {
         source: solidFill
         kind: "rect"
         screen: root.blurScreen
-        shadowed: root.barConfig.shadow !== "none"
+        look: root.barConfig
         x: root.blurOrigin?.x ?? 0
         y: root.blurOrigin?.y ?? 0
         shown: root.backed && solidFill.visible
@@ -437,7 +437,7 @@ Rectangle {
           source: island
           kind: "rect"
           screen: root.blurScreen
-          shadowed: root.barConfig.shadow !== "none"
+          look: root.barConfig
           x: (root.blurOrigin?.x ?? 0) + island.x
           y: (root.blurOrigin?.y ?? 0) + island.y
           shown: root.backed
@@ -518,7 +518,7 @@ Rectangle {
         BlurShape {
           source: pill
           screen: root.blurScreen
-          shadowed: root.barConfig.shadow !== "none"
+          look: root.barConfig
           x: (root.blurOrigin?.x ?? 0) + pill.x
           y: (root.blurOrigin?.y ?? 0) + pill.y
           shown: root.backed
