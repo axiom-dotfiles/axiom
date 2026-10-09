@@ -41,6 +41,6 @@ BarIconWidget {
   PopoutAnchor {
     hitArea: root.hitArea
     popoutName: "BluetoothDevices"
-    active: root.properties.showPopout && !root.hidden && BluetoothManager.available
+    active: EdgeMenusConfig.opensOwnPopout(root.properties) && !root.hidden && BluetoothManager.available
   }
 }

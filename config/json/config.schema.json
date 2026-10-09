@@ -32,7 +32,7 @@
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 52,
+      "default": 53,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
@@ -4223,6 +4223,8 @@
           "properties": {
             "icon": { "type": "string", "title": "Icon", "default": "", "description": "Icon shown before the title: a Material Symbols name (fonts.google.com/icons), or text. Empty shows none." },
             "emptyText": { "type": "string", "title": "Empty text", "default": "—", "description": "Shown when no window is focused." },
+            "showPopout": { "type": "boolean", "title": "Menu popout", "default": false, "description": "Open an edge menu when hovered." },
+            "popoutMenu": { "type": "string", "title": "Menu", "default": "", "x-options": "edgeMenus", "x-emptyLabel": "None", "description": "The edge menu to open.", "x-showIf": { "showPopout": true } },
             "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
           }
@@ -4247,6 +4249,7 @@
             "artistLength": { "type": "integer", "x-control": "stepper", "title": "Artist length", "default": 10, "minimum": 0, "maximum": 100, "description": "Longest artist name shown before it is shortened (characters)." },
             "idleText": { "type": "string", "title": "Idle text", "default": "No player", "description": "Shown when nothing is playing." },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Open the media controls when hovered." },
+            "popoutMenu": { "type": "string", "title": "Open instead", "default": "", "x-options": "edgeMenus", "x-emptyLabel": "Its own popout", "description": "An edge menu to open in place of the popout.", "x-showIf": { "showPopout": true } },
             "playingColor": { "type": "string", "title": "Playing background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
             "pausedColor": { "type": "string", "title": "Paused background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "off" },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
@@ -4276,6 +4279,7 @@
             "wideActive": { "type": "boolean", "title": "Wide active", "default": true, "x-showIf": { "/Workspaces.layout": ["standard", "grid"] }, "description": "Make the active workspace twice as long." },
             "showActiveIcon": { "type": "boolean", "title": "Active icon", "default": true, "x-showIf": { "/Workspaces.layout": "grid" }, "description": "Show an arrow on the active workspace, pointing to where the shown row (or column) is in the grid." },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "x-showIf": { "anyOf": [{ "/Workspaces.layout": "grid" }, { "/Workspaces.strips": { "notEmpty": true } }] }, "description": "In a grid, open the whole grid when hovered. Otherwise, on a strip monitor, open every workspace with its windows in strip order." },
+            "popoutMenu": { "type": "string", "title": "Open instead", "default": "", "x-options": "edgeMenus", "x-emptyLabel": "Its own popout", "description": "An edge menu to open in place of the popout.", "x-showIf": { "showPopout": true, "anyOf": [{ "/Workspaces.layout": "grid" }, { "/Workspaces.strips": { "notEmpty": true } }] } },
             "clickToSwitch": { "type": "boolean", "title": "Click to switch", "default": true, "description": "Click a workspace (on the bar or in the grid popout) to go to it." },
             "scrollToSwitch": { "type": "boolean", "title": "Scroll to switch", "default": true, "description": "Scroll over the widget to step through the workspaces (along the shown row or column in a grid)." },
             "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "neutral", "description": "Behind the workspaces, in the bar's widget style." },
@@ -4308,7 +4312,8 @@
             "timeFormat": { "type": "string", "title": "Time format", "default": "", "description": "Custom Qt time format (e.g. HH:mm). Empty uses the language's format." },
             "dateFormat": { "type": "string", "title": "Date format", "default": "", "description": "Custom Qt date format (e.g. ddd d MMM). Empty uses the language's format." },
             "verticalDate": { "type": "string", "title": "Vertical date", "default": "day", "enum": ["day", "monthDay", "numeric"], "x-enumLabels": { "day": "Day and weekday", "monthDay": "Month, day and weekday", "numeric": "Day over month number" }, "description": "The date's lines on a vertical bar, when no date format is set.", "x-showIf": { "showDate": true } },
-            "showCalendar": { "type": "boolean", "title": "Calendar popout", "default": true, "description": "Open the calendar when hovered." },
+            "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Open the calendar when hovered." },
+            "popoutMenu": { "type": "string", "title": "Open instead", "default": "", "x-options": "edgeMenus", "x-emptyLabel": "Its own popout", "description": "An edge menu to open in place of the popout.", "x-showIf": { "showPopout": true } },
             "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
           }
@@ -4332,6 +4337,8 @@
             "showLabel": { "type": "boolean", "title": "Show label", "default": true },
             "label": { "type": "string", "title": "Label", "default": "", "description": "Text shown while connected. Empty shows the tailnet name." },
             "interval": { "type": "integer", "title": "Poll interval", "x-unit": "ms", "default": 2000, "minimum": 250, "maximum": 60000 },
+            "showPopout": { "type": "boolean", "title": "Menu popout", "default": false, "description": "Open an edge menu when hovered." },
+            "popoutMenu": { "type": "string", "title": "Menu", "default": "", "x-options": "edgeMenus", "x-emptyLabel": "None", "description": "The edge menu to open.", "x-showIf": { "showPopout": true } },
             "connectedColor": { "type": "string", "title": "Connected background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
             "disconnectedColor": { "type": "string", "title": "Disconnected background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "off" },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
@@ -4355,6 +4362,7 @@
           "properties": {
             "showName": { "type": "boolean", "title": "Show device", "default": false, "description": "Show the connected device name next to the icon." },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Open the Wi-Fi menu when hovered." },
+            "popoutMenu": { "type": "string", "title": "Open instead", "default": "", "x-options": "edgeMenus", "x-emptyLabel": "Its own popout", "description": "An edge menu to open in place of the popout.", "x-showIf": { "showPopout": true } },
             "middleCommand": { "x-scope": "personal", "type": "string", "title": "Middle-click command", "default": "", "description": "Shell command run on middle click (e.g. nm-connection-editor). Empty does nothing." },
             "backgroundColor": { "type": "string", "title": "Connected background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
             "disconnectedColor": { "type": "string", "title": "Disconnected background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "critical" },
@@ -4401,6 +4409,7 @@
           "properties": {
             "showCount": { "type": "boolean", "title": "Show count", "default": true, "description": "Badge with the number of notifications." },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Open the notification list when hovered." },
+            "popoutMenu": { "type": "string", "title": "Open instead", "default": "", "x-options": "edgeMenus", "x-emptyLabel": "Its own popout", "description": "An edge menu to open in place of the popout.", "x-showIf": { "showPopout": true } },
             "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" },
             "dndColor": { "type": "string", "title": "Do-not-disturb icon", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "off" },
@@ -4456,6 +4465,8 @@
           "additionalProperties": false,
           "properties": {
             "showPercentage": { "type": "boolean", "title": "Show percentage", "default": true },
+            "showPopout": { "type": "boolean", "title": "Menu popout", "default": false, "description": "Open an edge menu when hovered." },
+            "popoutMenu": { "type": "string", "title": "Menu", "default": "", "x-options": "edgeMenus", "x-emptyLabel": "None", "description": "The edge menu to open.", "x-showIf": { "showPopout": true } },
             "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
             "chargingColor": { "type": "string", "title": "Charging background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "alt" },
             "lowColor": { "type": "string", "title": "Low background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "warning", "description": "At or below Battery > Low at (in settings)." },
@@ -4488,6 +4499,7 @@
             "diskPath": { "x-scope": "machine", "type": "string", "title": "Disk path", "default": "/", "description": "Any path on the filesystem to report.", "x-showIf": { "showDisk": true } },
             "interval": { "type": "integer", "title": "Poll interval", "x-unit": "ms", "default": 2000, "minimum": 1000, "maximum": 60000 },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Open live graphs of the shown metrics when hovered." },
+            "popoutMenu": { "type": "string", "title": "Open instead", "default": "", "x-options": "edgeMenus", "x-emptyLabel": "Its own popout", "description": "An edge menu to open in place of the popout.", "x-showIf": { "showPopout": true } },
             "warnThreshold": { "type": "integer", "title": "Warning at", "default": 90, "minimum": 1, "maximum": 100, "description": "Any usage (%) or temperature (°C) at or above this switches to the warning background." },
             "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
             "warnColor": { "type": "string", "title": "Warning background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "warning" },
@@ -4512,6 +4524,8 @@
           "properties": {
             "format": { "type": "string", "title": "Format", "default": "short", "enum": ["short", "full"], "description": "Layout code (US) or full keymap name (English (US))." },
             "hideSingle": { "type": "boolean", "title": "Hide single layout", "default": false, "description": "Hide the widget when only one layout is configured." },
+            "showPopout": { "type": "boolean", "title": "Menu popout", "default": false, "description": "Open an edge menu when hovered." },
+            "popoutMenu": { "type": "string", "title": "Menu", "default": "", "x-options": "edgeMenus", "x-emptyLabel": "None", "description": "The edge menu to open.", "x-showIf": { "showPopout": true } },
             "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
           }
@@ -4533,6 +4547,8 @@
           "additionalProperties": false,
           "properties": {
             "showLabel": { "type": "boolean", "title": "Show label", "default": false },
+            "showPopout": { "type": "boolean", "title": "Menu popout", "default": false, "description": "Open an edge menu when hovered." },
+            "popoutMenu": { "type": "string", "title": "Menu", "default": "", "x-options": "edgeMenus", "x-emptyLabel": "None", "description": "The edge menu to open.", "x-showIf": { "showPopout": true } },
             "activeColor": { "type": "string", "title": "Active background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
             "inactiveColor": { "type": "string", "title": "Inactive background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "off" },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
@@ -4558,6 +4574,8 @@
             "showScreen": { "type": "boolean", "title": "Screen share", "default": true },
             "showCamera": { "type": "boolean", "title": "Camera", "default": true },
             "ignoreApps": { "x-scope": "personal", "type": "array", "items": { "type": "string" }, "title": "Ignored apps", "default": ["cava"], "description": "App names that never trigger an indicator, comma-separated." },
+            "showPopout": { "type": "boolean", "title": "Menu popout", "default": false, "description": "Open an edge menu when hovered." },
+            "popoutMenu": { "type": "string", "title": "Menu", "default": "", "x-options": "edgeMenus", "x-emptyLabel": "None", "description": "The edge menu to open.", "x-showIf": { "showPopout": true } },
             "activeColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "critical" },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
           }
@@ -4579,6 +4597,8 @@
           "additionalProperties": false,
           "properties": {
             "showTimer": { "type": "boolean", "title": "Show time recorded", "default": true },
+            "showPopout": { "type": "boolean", "title": "Menu popout", "default": false, "description": "Open an edge menu when hovered." },
+            "popoutMenu": { "type": "string", "title": "Menu", "default": "", "x-options": "edgeMenus", "x-emptyLabel": "None", "description": "The edge menu to open.", "x-showIf": { "showPopout": true } },
             "activeColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "critical" },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
           }
@@ -4604,6 +4624,7 @@
             "intervalMinutes": { "type": "integer", "title": "Check interval", "x-unit": "min", "default": 30, "minimum": 5, "maximum": 1440 },
             "hideWhenEmpty": { "type": "boolean", "title": "Hide when up to date", "default": true },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "List pending packages when hovered." },
+            "popoutMenu": { "type": "string", "title": "Open instead", "default": "", "x-options": "edgeMenus", "x-emptyLabel": "Its own popout", "description": "An edge menu to open in place of the popout.", "x-showIf": { "showPopout": true } },
             "terminal": { "x-scope": "personal", "type": "string", "title": "Terminal", "default": "", "description": "Terminal the upgrade runs in (launched as `<terminal> -e ...`). Empty uses Apps → Terminal." },
             "upgradeCommand": { "x-scope": "personal", "type": "string", "title": "Upgrade command", "default": "", "description": "Run on click. Empty uses `sudo pacman -Syu`, or the AUR helper with -Syu." },
             "manyThreshold": { "type": "integer", "title": "Many updates", "default": 50, "minimum": 1, "maximum": 1000, "description": "At or above this count, the widget uses the many-updates background." },
@@ -4652,6 +4673,7 @@
             "warnThreshold": { "type": "integer", "title": "Warning at", "x-unit": "%", "default": 75, "minimum": 1, "maximum": 100 },
             "criticalThreshold": { "type": "integer", "title": "Critical at", "x-unit": "%", "default": 90, "minimum": 1, "maximum": 100 },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "List every limit per account when hovered." },
+            "popoutMenu": { "type": "string", "title": "Open instead", "default": "", "x-options": "edgeMenus", "x-emptyLabel": "Its own popout", "description": "An edge menu to open in place of the popout.", "x-showIf": { "showPopout": true } },
             "clickCommand": { "x-scope": "personal", "type": "string", "title": "Click command", "default": "", "description": "Run on left click (e.g. `xdg-open https://claude.ai/settings/usage`). Right click checks again now." },
             "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
             "warnColor": { "type": "string", "title": "Warning background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "warning" },
@@ -4677,6 +4699,7 @@
           "properties": {
             "showCondition": { "type": "boolean", "title": "Show condition", "default": false, "description": "Show the condition (e.g. Rain) next to the temperature." },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Show the forecast when hovered." },
+            "popoutMenu": { "type": "string", "title": "Open instead", "default": "", "x-options": "edgeMenus", "x-emptyLabel": "Its own popout", "description": "An edge menu to open in place of the popout.", "x-showIf": { "showPopout": true } },
             "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
           }
@@ -4701,6 +4724,7 @@
             "showAllDay": { "type": "boolean", "title": "All-day events", "default": false, "description": "Count all-day events as the next event." },
             "maxLength": { "type": "integer", "x-control": "stepper", "title": "Title length", "default": 24, "minimum": 4, "maximum": 100, "description": "Longest title shown before it is shortened (characters)." },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Open the calendar when hovered." },
+            "popoutMenu": { "type": "string", "title": "Open instead", "default": "", "x-options": "edgeMenus", "x-emptyLabel": "Its own popout", "description": "An edge menu to open in place of the popout.", "x-showIf": { "showPopout": true } },
             "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
             "foregroundColor": { "type": "string", "title": "Text color", "x-options": "colors", "default": "base00" }
           }
@@ -4748,6 +4772,7 @@
             "scrollStep": { "type": "integer", "title": "Scroll step", "x-unit": "%", "default": 5, "minimum": 1, "maximum": 25, "description": "Volume change per scroll notch." },
             "maxVolume": { "type": "integer", "title": "Maximum volume", "x-unit": "%", "default": 100, "minimum": 100, "maximum": 150, "description": "Highest volume scrolling and the mixer sliders allow." },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Open the output mixer when hovered." },
+            "popoutMenu": { "type": "string", "title": "Open instead", "default": "", "x-options": "edgeMenus", "x-emptyLabel": "Its own popout", "description": "An edge menu to open in place of the popout.", "x-showIf": { "showPopout": true } },
             "middleCommand": { "x-scope": "personal", "type": "string", "title": "Middle-click command", "default": "pavucontrol", "description": "Shell command run on middle click. Empty does nothing." },
             "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
             "mutedColor": { "type": "string", "title": "Muted background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "off" },
@@ -4774,6 +4799,7 @@
             "scrollStep": { "type": "integer", "title": "Scroll step", "x-unit": "%", "default": 5, "minimum": 1, "maximum": 25, "description": "Volume change per scroll notch." },
             "maxVolume": { "type": "integer", "title": "Maximum volume", "x-unit": "%", "default": 100, "minimum": 100, "maximum": 150, "description": "Highest volume scrolling and the mixer sliders allow." },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Open the input mixer when hovered." },
+            "popoutMenu": { "type": "string", "title": "Open instead", "default": "", "x-options": "edgeMenus", "x-emptyLabel": "Its own popout", "description": "An edge menu to open in place of the popout.", "x-showIf": { "showPopout": true } },
             "middleCommand": { "x-scope": "personal", "type": "string", "title": "Middle-click command", "default": "pavucontrol", "description": "Shell command run on middle click. Empty does nothing." },
             "activeColor": { "type": "string", "title": "In-use background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "alt", "description": "Used while an app is recording from the microphone." },
             "hideWhenIdle": { "type": "boolean", "title": "Hide when idle", "default": false, "description": "Only show the widget while the microphone is in use or muted." },
@@ -4802,6 +4828,7 @@
             "showBattery": { "type": "boolean", "title": "Show battery", "default": true, "description": "Append the connected device's battery level, when it reports one.", "x-showIf": { "showDevice": true } },
             "hideWhenOff": { "type": "boolean", "title": "Hide when off", "default": false },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Open the Bluetooth menu when hovered." },
+            "popoutMenu": { "type": "string", "title": "Open instead", "default": "", "x-options": "edgeMenus", "x-emptyLabel": "Its own popout", "description": "An edge menu to open in place of the popout.", "x-showIf": { "showPopout": true } },
             "middleCommand": { "x-scope": "personal", "type": "string", "title": "Middle-click command", "default": "", "description": "Shell command run on middle click (e.g. blueman-manager). Empty does nothing." },
             "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
             "connectedColor": { "type": "string", "title": "Connected background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "alt" },

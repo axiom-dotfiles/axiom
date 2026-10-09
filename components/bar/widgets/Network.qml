@@ -37,6 +37,6 @@ BarIconWidget {
   PopoutAnchor {
     hitArea: root.hitArea
     popoutName: "WifiNetworks"
-    active: root.properties.showPopout
+    active: EdgeMenusConfig.opensOwnPopout(root.properties)
   }
 }

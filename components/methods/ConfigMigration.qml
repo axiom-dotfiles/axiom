@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 52
+  readonly property int currentVersion: 53
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -131,6 +131,8 @@ QtObject {
       result = _v50ToV51(result, changes);
     if (version < 52)
       result = _v51ToV52(result, changes);
+    if (version < 53)
+      result = _v52ToV53(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -1805,6 +1807,17 @@ QtObject {
       }
     };
     changes.push("Desktop.primary.enabled = false (desktop modules start off)");
+    return config;
+  }
+
+  // v53 gave every bar widget a popout switch (showPopout), which may open
+  // an edge menu instead (popoutMenu): the Time widget's showCalendar is
+  // its showPopout
+  function _v52ToV53(config, changes) {
+    root._eachWidget(config, (widget, where) => {
+      if (widget.type === "Time" && widget.properties && typeof widget.properties === "object")
+        root._renameKey(widget.properties, "showCalendar", "showPopout", `${where}.properties`, changes);
+    });
     return config;
   }
 }

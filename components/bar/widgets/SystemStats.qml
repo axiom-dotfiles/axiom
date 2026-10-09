@@ -135,7 +135,7 @@ BarWidget {
   PopoutAnchor {
     hitArea: root.hitArea
     popoutName: "SystemGraphs"
-    active: root.properties.showPopout && root.graphMetrics.length > 0
+    active: EdgeMenusConfig.opensOwnPopout(root.properties) && root.graphMetrics.length > 0
     extraData: ({
         "popoutMetrics": root.graphMetrics
       })

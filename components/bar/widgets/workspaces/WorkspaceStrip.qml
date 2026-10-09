@@ -153,7 +153,7 @@ Item {
   PopoutAnchor {
     hitArea: root.hitArea
     popoutName: "WorkspaceStrips"
-    active: root.stripDirection !== "" && root.properties.showPopout
+    active: root.stripDirection !== "" && EdgeMenusConfig.opensOwnPopout(root.properties)
     extraData: ({
         monitor: root.monitor,
         vertical: root.isVertical,

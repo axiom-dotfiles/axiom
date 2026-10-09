@@ -3,9 +3,11 @@ import QtQuick
 import Quickshell
 
 import qs.config
+import qs.services
 
 /**
- * Drop this into any bar widget that wants to open a bar popout on hover.
+ * Drop this into any bar widget that wants to open a bar popout on hover
+ * (or, given a `menu`, an edge menu).
  * Handles hover detection, open-delay timing, position/size computation,
  * and the popoutOpen guard flag.
  *
@@ -23,7 +25,11 @@ import qs.config
 Item {
   id: root
 
-  required property string popoutName
+  property string popoutName: ""
+  // An edge menu's id to open instead of a popout (a widget's menu popout,
+  // EdgeMenusConfig.popoutMenuOf): opened with this as its anchor, so a
+  // floating one stays open while this is hovered
+  property string menu: ""
   // The window it's in, and the popouts host showing what it opens there
   // (BarPanel.popoutHost): found by itself, so anything in a bar can open
   // a popout without being handed either
@@ -40,7 +46,7 @@ Item {
   readonly property bool hovered: hitArea ? hitArea.hovered : hoverHandler.hovered
   onHoveredChanged: {
     if (root.hovered && root.active) {
-      if (root.popouts)
+      if (root.popouts || root.menu !== "")
         openTimer.restart();
     } else {
       openTimer.stop();
@@ -50,6 +56,9 @@ Item {
   // Read from the wrapper rather than kept as a flag: a queued open that
   // another widget's hover replaced never opened, so nothing would clear it
   readonly property bool popoutOpen: {
+    // Covered by a popout over it, it's brought forward
+    if (root.menu !== "")
+      return EdgeMenuManager.isOpen(root.menu) && !EdgeMenuManager.covered(root.menu);
     const popouts = root.popouts;
     if (!popouts)
       return false;
@@ -59,7 +68,13 @@ Item {
   anchors.fill: parent
 
   function open() {
-    if (!root.active || !root.popouts || !root.panel || root.popoutOpen)
+    if (!root.active || root.popoutOpen)
+      return;
+    if (root.menu !== "") {
+      EdgeMenuManager.open(root.menu, root);
+      return;
+    }
+    if (!root.popouts || !root.panel)
       return;
 
     let parentPosition = root.mapToItem(null, 0, 0);

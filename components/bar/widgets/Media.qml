@@ -27,7 +27,7 @@ BarIconWidget {
   PopoutAnchor {
     hitArea: root.hitArea
     popoutName: "NowPlaying"
-    active: root.properties.showPopout
+    active: EdgeMenusConfig.opensOwnPopout(root.properties)
     openDelay: 150
   }
 }

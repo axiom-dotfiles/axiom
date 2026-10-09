@@ -19,6 +19,30 @@ QtObject {
     return root.menus.find(menu => menu.id === id) ?? null;
   }
 
+  // The menu a bar widget opens as its popout (its `popoutMenu`, with
+  // `showPopout` on), else "": it opens its own popout, if any. A menu
+  // that's gone or disabled leaves it its own. Widgets without the fields
+  // (Button, Separator, the tray) have none.
+  function popoutMenuOf(properties) {
+    const id = properties?.showPopout ? (properties.popoutMenu ?? "") : "";
+    return id !== "" && root.enabledMenus.some(menu => menu.id === id) ? id : "";
+  }
+
+  // The id of the menu a bar widget entry opens, as configured (a Button
+  // toggling one, or a menu popout; gone or disabled alike), else ""
+  function menuOpenedBy(widget) {
+    const props = widget?.properties;
+    if (widget?.type === "Button")
+      return props?.action === "edgeMenu" ? (props.menu ?? "") : "";
+    return props?.showPopout ? (props.popoutMenu ?? "") : "";
+  }
+
+  // A bar widget with a popout of its own opens it: on, and no menu
+  // opened in its place
+  function opensOwnPopout(properties) {
+    return !!properties?.showPopout && root.popoutMenuOf(properties) === "";
+  }
+
   // The first enabled menu holding a module of `type`, else null
   function menuWithModule(type) {
     return root.enabledMenus.find(menu => menu.modules.some(module => module.type === type)) ?? null;

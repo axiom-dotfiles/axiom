@@ -46,7 +46,7 @@ BarIconWidget {
   PopoutAnchor {
     hitArea: root.hitArea
     popoutName: "Updates"
-    active: root.properties.showPopout && !root.hidden
+    active: EdgeMenusConfig.opensOwnPopout(root.properties) && !root.hidden
     extraData: ({
         "repoPackages": root.repoPackages,
         "aurPackages": root.aurPackages

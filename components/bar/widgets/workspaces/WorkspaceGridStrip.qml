@@ -177,7 +177,7 @@ Item {
   PopoutAnchor {
     hitArea: root.hitArea
     popoutName: "WorkspaceGrid"
-    active: root.properties.showPopout
+    active: EdgeMenusConfig.opensOwnPopout(root.properties)
     extraData: ({
         monitor: root.monitor,
         vertical: root.isVertical,

@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 
+import qs.config
 import qs.services
 import qs.components.hosts.popout
 
@@ -21,6 +22,6 @@ BarIconWidget {
   PopoutAnchor {
     hitArea: root.hitArea
     popoutName: "WeatherForecast"
-    active: root.properties.showPopout && root.source.weather !== null
+    active: EdgeMenusConfig.opensOwnPopout(root.properties) && root.source.weather !== null
   }
 }

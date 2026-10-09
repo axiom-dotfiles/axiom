@@ -3,7 +3,7 @@
 
 Keys come from:
   - every string literal passed to I18n.tr("...") in the QML, and
-  - the config schema's titles, descriptions, string enum values and
+  - the config schema's titles, descriptions, empty labels, string enum values and
     `x-categories` and `x-libraryGroups` names (the settings UI and the
     editors' libraries translate those themselves, so they need no code).
 
@@ -55,7 +55,7 @@ def unescape(s):
 
 def schema_strings(node, out):
     if isinstance(node, dict):
-        for key in ("title", "description", "x-group", "x-hookupNote"):
+        for key in ("title", "description", "x-group", "x-hookupNote", "x-emptyLabel"):
             if isinstance(node.get(key), str):
                 out.add(node[key])
         if isinstance(node.get("x-categories"), list):

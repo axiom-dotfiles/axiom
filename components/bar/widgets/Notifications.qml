@@ -38,7 +38,7 @@ BarIconWidget {
   PopoutAnchor {
     hitArea: root.hitArea
     popoutName: "Notifications"
-    active: root.properties.showPopout
+    active: EdgeMenusConfig.opensOwnPopout(root.properties)
     openDelay: 150
   }
 }

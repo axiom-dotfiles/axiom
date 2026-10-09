@@ -1121,6 +1121,34 @@ TestCase {
     compare(errors(loaded.config), []);
   }
 
+  function test_v53_time_calendar_switch_is_its_popout() {
+    const time = showCalendar => ({
+          "type": "Time",
+          "properties": {
+            "showCalendar": showCalendar
+          }
+        });
+    const migrated = load({
+      "version": 52,
+      "Bars": [
+        {
+          "id": "main",
+          "widgets": {
+            "left": [time(false)],
+            "right": [time(true)]
+          }
+        }
+      ]
+    });
+    const widgets = migrated.config.Bars[0].widgets;
+    compare(widgets.left[0].properties.showPopout, false, "a calendar turned off keeps its popout off");
+    compare(widgets.right[0].properties.showPopout, true);
+    compare(widgets.left[0].properties.showCalendar, undefined);
+    compare(widgets.left[0].properties.popoutMenu, "", "it opens its own popout");
+    compare(migrated.removed, []);
+    compare(errors(migrated.config), []);
+  }
+
   function test_v52_desktop_modules_start_off() {
     const old = load({
       "version": 51

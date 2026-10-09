@@ -293,13 +293,15 @@ QtObject {
     });
   }
 
-  // What a bar Button opens that this editor edits (the other way round
-  // from addBarButton): { kind: "page" | "menu", index, label }, or null
+  // What a bar widget opens that this editor edits (the other way round
+  // from addBarButton: a Button's page or menu, or a widget's menu popout):
+  // { kind: "page" | "menu", index, label }, or null
   function openedBy(widget) {
     const props = widget?.type === "Button" ? widget.properties ?? {} : {};
-    if (props.action === "edgeMenu") {
+    const menuId = EdgeMenusConfig.menuOpenedBy(widget);
+    if (menuId !== "") {
       const menus = EdgeMenuManager.localMenus ?? EdgeMenusConfig.menus;
-      const index = menus.findIndex(menu => menu.id === props.menu);
+      const index = menus.findIndex(menu => menu.id === menuId);
       return index < 0 ? null : {
         "kind": "menu",
         "index": index,
@@ -318,7 +320,7 @@ QtObject {
     return null;
   }
 
-  // Shows what a bar Button opens in this editor
+  // Shows what a bar widget opens in this editor
   function editOpenedBy(widget) {
     root.ensureLoaded();
     EdgeMenuManager.ensureLoaded();

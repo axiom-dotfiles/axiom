@@ -65,7 +65,6 @@
     "CPU temperature": "CPU 温度",
     "CPU usage": "CPU 使用率",
     "Caffeine": "スリープ防止",
-    "Calendar popout": "カレンダーのポップアウト",
     "Camera": "カメラ",
     "Camera: {0}": "カメラ：{0}",
     "Cava": "Cava",
@@ -2898,6 +2897,15 @@
     "Media & audio": "メディアとオーディオ",
     "Network & devices": "ネットワークとデバイス",
     "Time & weather": "時刻と天気",
-    "Look & layout": "外観とレイアウト"
+    "Look & layout": "外観とレイアウト",
+    "An edge menu to open in place of the popout.": "ポップアウトの代わりに開くエッジメニュー。",
+    "Open an edge menu when hovered.": "ホバーするとエッジメニューを開きます。",
+    "Menu popout": "メニューのポップアウト",
+    "Open instead": "代わりに開く",
+    "The edge menu to open.": "開くエッジメニュー。",
+    "Menu": "メニュー",
+    "Its own popout": "独自のポップアウト",
+    "Accent": "アクセント",
+    "{0} popout on {1}": "{1} の{0}ポップアウト"
   }
 }
