@@ -580,12 +580,23 @@ Rectangle {
           ShellManager.setBorderOpening(pill._owner + ":end", null);
         }
         // The far stroke and its fringe under each opening (in the pill's
-        // coordinates)
-        strokeHoles: root._openingList.map(o => {
-          const start = Math.max(o.start, root.isVertical ? pill.y : pill.x);
-          const end = Math.min(o.end, (root.isVertical ? pill.y + pill.height : pill.x + pill.width));
+        // coordinates), and a joined end's fillet where one reaches it: a
+        // surface joined to the same edge runs on down it, over the fillet
+        strokeHoles: [].concat(...root._openingList.map(o => {
+          const along = root.isVertical ? pill.y : pill.x;
+          const start = Math.max(o.start, along);
+          const end = Math.min(o.end, along + pill.alongLength);
           if (end <= start)
-            return null;
+            return [];
+          const R = pill.filletRadius, h = pill.half, L = pill.alongLength;
+          const joins = [];
+          if (pill.joinStart && start <= along + 1)
+            joins.push(pill._rectFrom(0, pill.farV - h - 1, h + R + 1, R + h + 2));
+          if (pill.joinEnd && end >= along + L - 1)
+            joins.push(pill._rectFrom(L - h - R - 1, pill.farV - h - 1, h + R + 1, R + h + 2));
+          return [pill._farHole(start, end)].concat(joins);
+        }))
+        function _farHole(start, end) {
           // The stroke, with its anti-aliased fringe a pixel either side
           const row = Appearance.borderWidth + 2;
           const foot = root.barConfig.pillDepth;
@@ -593,7 +604,7 @@ Rectangle {
           const across = root.barConfig.left || root.barConfig.top ? foot - row + 1 : far - foot - 1;
           const r = root.isVertical ? Qt.rect(across, start, row, end - start) : Qt.rect(start, across, end - start, row);
           return Qt.rect(r.x - pill.x, r.y - pill.y, r.width, r.height);
-        }).filter(hole => hole !== null)
+        }
 
         // Its shape, for the bar's shadow
         AttachedSurfaceCopy {
