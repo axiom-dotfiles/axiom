@@ -235,10 +235,19 @@ Scope {
   // it reserves its strip (hiding that would retile the windows under it)
   readonly property bool overlayOpen: ShellManager.surfaceOpenOn("overlay", root.screen)
   readonly property bool underOverlay: root.overlayOpen && !root.reserving
-  // An edge OSD or floating edge menu on its edge puts it away too, a
-  // reserving one included: that keeps its zone, so nothing retiles
-  readonly property bool outranked: ShellManager.edgeOutranked(root.screen?.name ?? "", root._edgeName, "dock")
-  readonly property bool away: !root.preview && (root.underOverlay || root.outranked)
+  // Any popout over it puts it away too (PopoutManager: it ranks lowest
+  // but for pinned menus), a reserving one included: that keeps its zone,
+  // so nothing retiles. It comes back once that's gone.
+  property PopoutClaim claim: PopoutClaim {
+    key: "dock:" + root.dock.id + ":" + (root.screen?.name ?? "")
+    kind: "dock"
+    resident: true
+    screen: root.screen?.name ?? ""
+    edge: root._edgeName
+    wanted: !root.preview && !root.underOverlay && root._wouldShow
+    footprint: root._footprint()
+  }
+  readonly property bool away: !root.preview && (root.underOverlay || root.claim.yielded)
   // Its preview shows in its place, so it hides at once (keeping its zone)
   readonly property bool previewed: !root.preview && DockManager.previewing(root.dock.id, root.screen)
   // A preview slides in once it's built (a Behavior doesn't animate the
@@ -255,8 +264,10 @@ Scope {
   readonly property bool wantShown: {
     if (root.preview)
       return root._entered && DockManager.previewShown;
-    if (root.away)
-      return false;
+    return !root.away && root._wouldShow;
+  }
+  // Whether it would show, were nothing over it
+  readonly property bool _wouldShow: {
     if (root.mode === "always")
       return !root.hiddenByHand;
     return root.latched || root.engaged || (root.mode === "intellihide" && !root.obscured);
@@ -280,6 +291,16 @@ Scope {
       return Qt.rect(w - reserved[2] - across - root.thickness, reserved[1] + along, root.thickness, root.restLength);
     }
     return Qt.rect(reserved[0] + along, h - reserved[3] - across - root.thickness, root.restLength, root.thickness);
+  }
+
+  // What it covers shown, in screen px: its box, and the fillets beside it
+  // when it grows out of the edge
+  function _footprint() {
+    const r = root._restRect();
+    if (!root.attached)
+      return [r];
+    const m = Math.max(0, root.connectorGap - Appearance.borderWidth);
+    return [root.vertical ? Qt.rect(r.x, r.y - m, r.width, r.height + m * 2) : Qt.rect(r.x - m, r.y, r.width + m * 2, r.height)];
   }
 
   function reveal(byPointer) {

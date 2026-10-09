@@ -17,7 +17,6 @@ Item {
   id: root
 
   required property var barConfig
-  property var popouts
   property var panel
   property var screen
   // The section's key in the bar's `widgets`
@@ -256,7 +255,6 @@ Item {
       layoutOverrides: module.modelData.layout || {}
       componentPath: module.modelData.component
       highlighted: BarManager.isSelectedWidget(root.barConfig.sourceId, root.zone, module.modelData.configIndex ?? -1)
-      popouts: root.popouts
       panel: root.panel
       screen: root.screen
 

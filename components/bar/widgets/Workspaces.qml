@@ -39,7 +39,6 @@ BarWidget {
     id: strip
     WorkspaceStrip {
       screen: root.screen
-      popouts: root.popouts
       panel: root.panel
       hitArea: root.hitArea
       barConfig: root.barConfig
@@ -52,7 +51,6 @@ BarWidget {
     id: gridStrip
     WorkspaceGridStrip {
       screen: root.screen
-      popouts: root.popouts
       panel: root.panel
       hitArea: root.hitArea
       barConfig: root.barConfig

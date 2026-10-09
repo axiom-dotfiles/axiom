@@ -1,5 +1,6 @@
 pragma ComponentBehavior: Bound
 import QtQuick
+import Quickshell
 
 import qs.config
 
@@ -11,8 +12,6 @@ import qs.config
  * Usage:
  *   PopoutAnchor {
  *     id: anchor
- *     popouts: root.popouts
- *     panel: root.panel
  *     popoutName: "WorkspaceGrid"
  *     extraData: ({ monitor: root.monitor, workspaceBase: root.workspaceBase })
  *   }
@@ -24,16 +23,16 @@ import qs.config
 Item {
   id: root
 
-  required property var popouts
-  required property var panel
   required property string popoutName
+  // The window it's in, and the popouts host showing what it opens there
+  // (BarPanel.popoutHost): found by itself, so anything in a bar can open
+  // a popout without being handed either
+  readonly property var panel: root.QsWindow.window
+  readonly property var popouts: root.panel?.popoutHost ?? null
 
   property var extraData: ({})
   property int openDelay: PopoutConfig.openDelay
   property bool active: true
-  // Centre the popout on the widget as it is when opened, then keep it
-  // there while open: a widget that resizes doesn't drag its popout along
-  property bool pinWhileOpen: false
   // A bar widget's hitArea: hovered in its background's shape (its
   // `hovered`) rather than in this item's bounds
   property var hitArea: null
@@ -67,7 +66,6 @@ Item {
 
     let payload = {
       name: root.popoutName,
-      pinned: root.pinWhileOpen,
       anchorX: parentPosition.x,
       anchorY: parentPosition.y,
       anchorWidth: root.width,

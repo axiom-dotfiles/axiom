@@ -25,12 +25,9 @@ BarIconWidget {
   accentColor: Theme.resolveColor(MediaManager.isPlaying ? root.properties.playingColor : root.properties.pausedColor)
 
   PopoutAnchor {
-    popouts: root.popouts
-    panel: root.panel
     hitArea: root.hitArea
     popoutName: "NowPlaying"
     active: root.properties.showPopout
     openDelay: 150
-    pinWhileOpen: true
   }
 }

@@ -19,8 +19,6 @@ BarIconWidget {
   text: current ? `${Math.round(current.temperature_2m)}°` + (properties.showCondition ? ` ${condition.label}` : "") : "…"
 
   PopoutAnchor {
-    popouts: root.popouts
-    panel: root.panel
     hitArea: root.hitArea
     popoutName: "WeatherForecast"
     active: root.properties.showPopout && root.source.weather !== null

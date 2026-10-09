@@ -44,22 +44,6 @@ Item {
   // Open and not on its way out
   readonly property bool isOpen: occupied && !isClosing
 
-  // Something outranks it where it shows (ShellManager.edgeOutranked): it
-  // closes, and won't open until that's gone
-  property bool blocked: false
-  onBlockedChanged: {
-    if (!blocked)
-      return;
-    hasPendingOpen = false;
-    pendingOpenData = null;
-    pendingOpenAnchor = null;
-    // Later: closing drops its own edge claim, which `blocked` reads
-    Qt.callLater(() => {
-      if (root && root.blocked && root.occupied && !root.isClosing)
-        root.requestDismiss();
-    });
-  }
-
   // Opens with `data` as the payload ({ anchorItem } keeps it open while
   // that item is hovered), or restarts the countdown when already open
   function show(data) {
@@ -87,7 +71,11 @@ Item {
   // too, so the popout stays up while the pointer is still on it.
   property bool keepAlive: false
   readonly property bool anchorHovered: currentData?.anchorItem?.hovered ?? false
-  readonly property bool contentHovered: (currentItem?.hovered ?? false) || anchorHovered || keepAlive
+  // Hovered itself (its content or anchor), or kept alive by its wrapper
+  readonly property bool ownHovered: (currentItem?.hovered ?? false) || anchorHovered || keepAlive
+  // Its submenu open (SubPopout) keeps it up too
+  property bool childOpen: false
+  readonly property bool contentHovered: ownHovered || childOpen
   property int dismissDelay: currentItem?.dismissDelay ?? PopoutConfig.dismissDelay
   property bool autoDismiss: currentItem?.autoDismiss ?? true
 
@@ -195,8 +183,6 @@ Item {
   }
 
   function safeOpenPopout(anchor, data) {
-    if (blocked)
-      return;
     if (occupied && canSwitchTo(anchor, data)) {
       pendingOpenData = data;
       pendingOpenAnchor = anchor;

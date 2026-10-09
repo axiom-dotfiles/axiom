@@ -103,6 +103,32 @@ PopoutWrapperBase {
 
   property int connectorGap: Appearance.borderRadius * 2
 
+  // Its place among the popouts (PopoutManager), under `claimKey` (none:
+  // it takes no part): it shows once granted, closes when a higher popout
+  // covers it, and a `resident` one hides while covered and comes back
+  property string claimKey: ""
+  property string claimKind: "osd"
+  property bool pinned: false
+  property bool resident: false
+  // Granted (or closing after it was, PopoutClaim.held)
+  readonly property bool claimed: root.claimKey === "" || root.claim.held
+  readonly property bool yielded: root.claim.yielded
+  property PopoutClaim claim: PopoutClaim {
+    key: root.claimKey
+    kind: root.claimKind
+    screen: root.screen?.name ?? ""
+    edge: Bar.edgeName(root.edge)
+    pinned: root.pinned
+    resident: root.resident
+    occupied: root.occupied
+    closing: root.isClosing
+    wanted: root.claimKey !== "" && root.isOpen && root.contentItem !== null
+    // Where its window is, else where it most likely is (LayerOrigin.placed)
+    footprint: PopoutGeometry.offset(surface.footprint, Qt.point(placeOnScreen.placed.x + surface.x, placeOnScreen.placed.y + surface.y))
+    onEvicted: root.hide()
+    onRefused: root.hide()
+  }
+
   readonly property bool vertical: edge === Bar.Left || edge === Bar.Right
   readonly property bool bareEdge: placement.bareEdge
 
@@ -234,8 +260,8 @@ PopoutWrapperBase {
     lo: root.startInset
     hi: root.edgeLength - root.endInset
     owner: "edgePopout:" + root
-    showing: root.occupied && root.contentItem !== null
-    open: root.isOpen
+    showing: root.occupied && root.contentItem !== null && root.claimed
+    open: root.isOpen && root.claimed
   }
   readonly property var place: placement.place
   readonly property real boxLength: root.place.end - root.place.start
@@ -246,7 +272,7 @@ PopoutWrapperBase {
   // in screen px along the edge (its edge coordinates start past what's
   // reserved at the start), which the border leaves open under a
   // translucent fill (ShellManager.borderOpenings)
-  readonly property var _borderOpening: surfaceWindow.visible && Appearance.translucent && Appearance.screenBorder && !root.detached && !root.bareEdge && !root.barPanel ? ({
+  readonly property var _borderOpening: surfaceWindow.visible && root.claimed && Appearance.translucent && Appearance.screenBorder && !root.detached && !root.bareEdge && !root.barPanel ? ({
       "screen": surfaceWindow.screenName,
       "edge": Bar.edgeName(root.edge),
       "start": root.reservedOn(root.startSide) + root.surfaceStart + surface.coverStart,
@@ -256,6 +282,39 @@ PopoutWrapperBase {
   Component.onDestruction: ShellManager.setBorderOpening(root, null)
 
   currentItem: root.contentItem
+
+  // ---- Its submenu (SubPopout) ----
+  // Opened by a PopoutAnchor in its content (an edge menu's modules), on
+  // the side of its box: away from a side edge, else towards the screen's
+  // nearer half. What SubPopout reads of its parent is below; it doesn't
+  // join the edge the box grows from (the ends of that side keep the
+  // submenu's fillet clear), nor stretch the box for a longer submenu.
+  readonly property SubPopout submenu: sub
+  SubPopout {
+    id: sub
+    screen: root.screen
+    openToLeft: root.vertical ? root.edge === Bar.Right : boxArea.x + boxArea.width / 2 > surfaceWindow.width / 2
+    host: root
+  }
+  childOpen: sub.occupied
+  readonly property var popupWindow: surfaceWindow
+  readonly property rect attachBox: root.boxInWindow
+  readonly property bool sideJoinTop: false
+  readonly property bool sideJoinBottom: false
+  readonly property real sideJoinLine: 0
+  readonly property bool sideStraightJoin: false
+  readonly property real sideJoinBackfill: 0
+  readonly property real sideJoinFrom: 0
+  readonly property real sideJoinTo: 0
+  readonly property bool sideFreeTop: root.vertical ? !root.place.joinStart && !root.detached : root.edge === Bar.Bottom || root.detached
+  readonly property bool sideFreeBottom: root.vertical ? !root.place.joinEnd && !root.detached : root.edge === Bar.Top || root.detached
+  readonly property bool sideGrowsUp: root.edge === Bar.Bottom
+  readonly property var popupScreenOrigin: placeOnScreen.origin
+  readonly property point popupScreenPlaced: placeOnScreen.placed
+  // The stroke a submenu covers on the box's side, left open (in its
+  // window's coordinates)
+  property var submenuHole: null
+  // ---- end submenu ----
   keepAlive: surfaceHover.hovered || trigger.containsMouse || (focusGrab.active && wantsKeyboardFocus)
 
   EdgeTrigger {
@@ -291,6 +350,9 @@ PopoutWrapperBase {
     exclusionMode: ExclusionMode.Normal
     exclusiveZone: 0
 
+    // What PopoutAnchors in its content open in
+    readonly property var popoutHost: sub
+
     // Spans the whole edge; the input mask limits it to the surface.
     anchors {
       top: root.edge === Bar.Top || root.vertical
@@ -322,9 +384,10 @@ PopoutWrapperBase {
     implicitWidth: root.vertical ? surfaceWindow.depth : 0
     implicitHeight: root.vertical ? 0 : surfaceWindow.depth
 
-    // One sliding under a bar takes input on its box alone
+    // One sliding under a bar takes input on its box alone; none until
+    // it's granted its place, or while it's given it up
     mask: Region {
-      item: root.slidesUnder ? boxArea : surface
+      item: !root.claimed ? null : root.slidesUnder ? boxArea : surface
     }
 
     Item {
@@ -364,6 +427,8 @@ PopoutWrapperBase {
       id: surface
 
       backed: BlurManager.backing && placeOnScreen.origin !== null
+      // A submenu's opening in the box's side stroke
+      strokeHoles: root.submenuHole ? [Qt.rect(root.submenuHole.x - surface.x, root.submenuHole.y - surface.y, root.submenuHole.width, root.submenuHole.height)] : []
 
       BlurShape {
         source: surface
@@ -385,7 +450,9 @@ PopoutWrapperBase {
       detached: root.detached
       detachedOffset: root.slidesUnder ? root.slideDistance : 0
       // Once its pill has grown out to carry it
-      active: root.isOpen && placement.stretchReady
+      // While the blur window backs surfaces, once it knows where this one
+      // is (LayerOrigin.settled), so it never shows unbacked beside them
+      active: root.isOpen && root.claimed && placement.stretchReady && (!BlurManager.backing || placeOnScreen.settled)
       connectorGap: root.connectorGap
       boxWidth: root.vertical ? (root.contentItem?.implicitWidth ?? 100) + root.contentPadding * 2 + root.attachClearance : root.boxLength
       boxHeight: root.vertical ? root.boxLength : (root.contentItem?.implicitHeight ?? 100) + root.contentPadding * 2 + root.attachClearance

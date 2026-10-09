@@ -56,8 +56,6 @@ BarIconWidget {
   })
 
   PopoutAnchor {
-    popouts: root.popouts
-    panel: root.panel
     hitArea: root.hitArea
     popoutName: "Calendar"
     openDelay: 150

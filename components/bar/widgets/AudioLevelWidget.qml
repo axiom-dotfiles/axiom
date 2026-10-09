@@ -38,8 +38,6 @@ BarIconWidget {
   }
 
   PopoutAnchor {
-    popouts: root.popouts
-    panel: root.panel
     hitArea: root.hitArea
     popoutName: "AudioMixer"
     active: root.properties.showPopout && !root.hidden

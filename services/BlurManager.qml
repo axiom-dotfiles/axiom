@@ -16,9 +16,9 @@ import qs.config
  * draw their outer fill transparent (`backing`).
  * Layer-shell windows don't know where they are on screen, so their
  * origins are read from Hyprland (`hyprctl layers`), again whenever a
- * layer maps or unmaps, or a window asks (it resized, reservations moved),
- * while surfaces are translucent (the joins in the border's stroke use
- * them too).
+ * layer maps or unmaps, or a window asks (it resized, reservations moved).
+ * The joins in the border's stroke and popouts' footprints (PopoutManager)
+ * use them too, so they're kept whatever the surfaces look like.
  */
 QtObject {
   id: root
@@ -104,16 +104,30 @@ QtObject {
   // window has had, and starts over on a reload
   property var _seen: ({})
 
-  // Nothing reads an origin while surfaces are solid
-  readonly property bool _needed: Appearance.translucent
-  on_NeededChanged: {
-    if (root._needed)
-      root.refreshLayers();
+  function refreshLayers() {
+    root._refresh.restart();
   }
 
-  function refreshLayers() {
-    if (root._needed)
-      root._refresh.restart();
+  // Windows mapped whose origin is still unknown (LayerOrigin): a window
+  // resized in place sends no layer event, and the ask may have come
+  // before Hyprland had its new size, so the layers are read again a few
+  // times while any waits, then not until one starts waiting anew
+  property var _awaiting: []
+  property int _awaitTries: 0
+  function awaitOrigin(owner, waiting) {
+    const others = root._awaiting.filter(o => o !== owner);
+    root._awaiting = waiting ? others.concat([owner]) : others;
+    if (waiting)
+      root._awaitTries = 0;
+  }
+  property Timer _awaitRetry: Timer {
+    interval: 250
+    repeat: true
+    running: root._awaiting.length > 0 && root._awaitTries < 8
+    onTriggered: {
+      root._awaitTries += 1;
+      root.refreshLayers();
+    }
   }
 
   property Timer _refresh: Timer {

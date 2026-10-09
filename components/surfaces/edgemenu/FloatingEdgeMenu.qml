@@ -25,14 +25,12 @@ EdgePopout {
   held: root.menu.detached
   gap: root.menu.gap
 
-  // Gives way to nothing, and puts an OSD or dock on its edge away
-  // (ShellManager.edgeOutranked)
-  readonly property var _claim: root.isOpen ? ({
-      "screen": root.screen?.name ?? "",
-      "edge": Bar.edgeName(root.edge),
-      "kind": "menu"
-    }) : null
-  on_ClaimChanged: ShellManager.setEdgeClaim(root, root._claim)
+  // Closes what it covers below it (PopoutManager); pinned, it ranks
+  // lowest, and pinned or previewing it gives way and comes back
+  claimKey: "menu:" + root.menuId
+  claimKind: "menu"
+  pinned: EdgeMenuManager.pinnedMenus[root.menuId] === true
+  resident: sync.held
 
   // Along the edge, on the menu's lattice (GridPlacement.menuAlong),
   // in screen px: this window's edge coordinates start past what's
@@ -105,7 +103,6 @@ EdgePopout {
       HyprlandManager.warpCursorToLayer(root.layerNamespace, root.screen?.name ?? "", root.window.width, root.window.height, box.x + box.width / 2, box.y + box.height / 2);
     }
   }
-  Component.onDestruction: ShellManager.setEdgeClaim(root, null)
 
   content: Component {
     EdgeMenuBody {

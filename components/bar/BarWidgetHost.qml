@@ -28,7 +28,6 @@ Item {
   id: root
 
   required property var barConfig
-  property var popouts
   property var panel
   property var screen
 
@@ -145,7 +144,6 @@ Item {
   function _load() {
     contentLoader.setSource(root.componentPath, {
       "barConfig": root.barConfig,
-      "popouts": root.popouts,
       "panel": root.panel,
       "screen": root.screen,
       "properties": root.properties
@@ -208,7 +206,6 @@ Item {
       onLoaded: {
         if (item) {
           item.barConfig = Qt.binding(() => root.barConfig);
-          item.popouts = Qt.binding(() => root.popouts);
           item.panel = Qt.binding(() => root.panel);
           item.screen = Qt.binding(() => root.screen);
           item.properties = Qt.binding(() => root.properties);

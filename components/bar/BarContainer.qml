@@ -21,7 +21,6 @@ Rectangle {
 
   required property var barConfig
   property var screen
-  property var popouts
   property var panel
 
   readonly property bool isVertical: barConfig.vertical
@@ -271,7 +270,6 @@ Rectangle {
     readonly property real mainPos: Math.round(section.slot.offset + (section.slot.extent - section.usedLength) * section.align)
 
     barConfig: section.bar.barConfig
-    popouts: section.bar.popouts
     panel: section.bar.panel
     screen: section.bar.screen
     maxExtent: section.slot.extent

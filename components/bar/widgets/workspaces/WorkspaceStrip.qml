@@ -14,7 +14,6 @@ import qs.components.hosts.popout
 Item {
   id: root
   property var screen
-  property var popouts
   property var panel
   // The widget's (BarWidget.hitArea), which its popout reads hover from
   property var hitArea: null
@@ -152,8 +151,6 @@ Item {
   }
 
   PopoutAnchor {
-    popouts: root.popouts
-    panel: root.panel
     hitArea: root.hitArea
     popoutName: "WorkspaceStrips"
     active: root.stripDirection !== "" && root.properties.showPopout

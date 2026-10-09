@@ -7,7 +7,6 @@
     "missing-property: Member \"barConfig\" not found on type (component in components/bar/BarWidgetHost.qml)::item with type QObject": 1,
     "missing-property: Member \"hitArea\" not found on type (component in components/bar/BarWidgetHost.qml)::item with type QObject": 1,
     "missing-property: Member \"panel\" not found on type (component in components/bar/BarWidgetHost.qml)::item with type QObject": 1,
-    "missing-property: Member \"popouts\" not found on type (component in components/bar/BarWidgetHost.qml)::item with type QObject": 1,
     "missing-property: Member \"properties\" not found on type (component in components/bar/BarWidgetHost.qml)::item with type QObject": 1,
     "missing-property: Member \"screen\" not found on type (component in components/bar/BarWidgetHost.qml)::item with type QObject": 1
   },
@@ -22,7 +21,8 @@
     "missing-property: Member \"screen\" not found on type \"QObject\"": 1
   },
   "components/content/parts/TraySubmenu.qml": {
-    "missing-property: Member \"menuItem\" not found on type \"QQuickItem\"": 1
+    "missing-property: Member \"menuItem\" not found on type \"QQuickItem\"": 1,
+    "missing-property: Member \"screen\" not found on type \"QObject\"": 1
   },
   "components/content/parts/chat/ChatMessageList.qml": {
     "missing-property: Member \"pressed\" not found on type \"QQuickItem\"": 1
@@ -60,12 +60,7 @@
     "missing-property: Member \"reservedZone\" not found on type \"QObject\"": 1,
     "missing-property: Member \"thickness\" not found on type \"QObject\"": 1,
     "missing-property: Member \"wantsKeyboardFocus\" not found on type \"QQuickItem\"": 1,
-    "missing-property: Member \"width\" not found on type \"QObject\"": 1,
-    "missing-type: No type found for property \"adjustment\". This may be due to a missing import statement or incomplete qmltypes files.": 1,
-    "missing-type: No type found for property \"gravity\". This may be due to a missing import statement or incomplete qmltypes files.": 1,
-    "unqualified: unknown grouped property scope margins.": 1,
-    "unresolved-type: Type \"PopupAnchor\" of property \"anchor\" not found. This is likely due to a missing dependency entry or a type not being exposed declaratively.": 1,
-    "unresolved-type: Type margins is used but it is not resolved": 1
+    "missing-property: Member \"width\" not found on type \"QObject\"": 1
   },
   "components/hosts/popout/EdgePopout.qml": {
     "unqualified: unknown grouped property scope margins.": 1,
@@ -80,7 +75,7 @@
     "missing-property: Member \"dismissDelay\" not found on type \"QQuickItem\"": 1,
     "missing-property: Member \"hovered\" not found on type \"QQuickItem\"": 1
   },
-  "components/hosts/popout/TraySubmenuWrapper.qml": {
+  "components/hosts/popout/SubPopout.qml": {
     "incompatible-type: Cannot assign binding of type QObject to QQuickItem": 1,
     "missing-property: Member \"contentReady\" not found on type \"QQuickItem\"": 1,
     "missing-type: No type found for property \"adjustment\". This may be due to a missing import statement or incomplete qmltypes files.": 1

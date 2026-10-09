@@ -4,6 +4,7 @@ import QtQuick.Shapes
 
 import qs.config
 import qs.components.reusable
+import qs.components.methods
 
 /**
  * The shared "grows out of an edge" shape used by bar popouts, screen-edge
@@ -53,13 +54,11 @@ Item {
   property bool flushStart: false
   property bool flushEnd: false
   // A flush wall runs on through the backfill, over the end of the stroke
-  // it continues (see _outline). Off where that stroke now carries on past
+  // it continues (see SurfaceOutline._outline). Off where that stroke now carries on past
   // it (a tray submenu joined beside it, the pill or island stretched
   // under it): the wall stops at the attach edge, the backfill running on.
   property bool flushStartThrough: true
   property bool flushEndThrough: true
-  readonly property bool _throughStart: flushStart && flushStartThrough
-  readonly property bool _throughEnd: flushEnd && flushEndThrough
   property bool detached: false
   // A detached box's distance from the attach edge past the connector gap.
   // The surface starts at the attach edge, so the box slides in from
@@ -128,7 +127,7 @@ Item {
   readonly property real slid: Math.abs(slideContainer.slideX) + Math.abs(slideContainer.slideY)
   readonly property real _hidden: root.slid + root.hiddenBehind
   // How far in from the surface's end the fillet shows at the edge, with
-  // `hidden` of the surface still behind it (see _outline: a line along
+  // `hidden` of the surface still behind it (see SurfaceOutline._outline: a line along
   // the edge at v = half to sideU - R, an arc of radius R up to the wall)
   function _filletIn(margin, hidden) {
     if (margin <= 0)
@@ -155,7 +154,7 @@ Item {
   // ---- Geometry, in edge-local coordinates ----
   // u runs along the attach edge, v away from it (v = 0 is the attach
   // edge). Everything below is laid out as if attached to the Top edge,
-  // then mapped onto the real edge by px()/py().
+  // then mapped onto the real edge (SurfaceOutline.toItem).
   readonly property real strokeWidth: Appearance.borderWidth
   // Stroke centre line offset, so the full stroke lies inside the shape
   readonly property real half: strokeWidth / 2
@@ -174,39 +173,64 @@ Item {
 
   readonly property real boxAlong: vertical ? boxHeight : boxWidth
   readonly property real boxDepth: vertical ? boxWidth : boxHeight
+  // The shape's metrics and paths (SurfaceOutline), so its footprint and
+  // its copies agree with what's drawn. Its margins and natural start come
+  // from what shapes its walls alone (`_baseSpec`): hosts place things by
+  // them (a submenu, by the box's start) that decide how its joins look
+  // (straightJoins) or whether a flush wall runs through, which mustn't
+  // loop back into them.
+  readonly property var _baseSpec: ({
+      "edge": root.edge,
+      "boxAlong": root.boxAlong,
+      "boxDepth": root.boxDepth,
+      "strokeWidth": root.strokeWidth,
+      "filletRadius": root.filletRadius,
+      "startCornerRadius": root.startCornerRadius,
+      "endCornerRadius": root.endCornerRadius,
+      "connectorGap": root.connectorGap,
+      "joinStart": root.joinStart,
+      "joinEnd": root.joinEnd,
+      "flushStart": root.flushStart,
+      "flushEnd": root.flushEnd,
+      "detached": root.detached,
+      "detachedOffset": root.detachedOffset,
+      "backfill": root.backfill,
+      "straight": root.straight
+    })
+  readonly property var _spec: Object.assign({}, root._baseSpec, {
+    "flushStartThrough": root.flushStartThrough,
+    "flushEndThrough": root.flushEndThrough,
+    "straightJoins": root.straightJoins
+  })
+  readonly property var _natural: SurfaceOutline.metrics(root._baseSpec)
+  readonly property var _m: SurfaceOutline.withBoxStart(root._spec, SurfaceOutline.metrics(root._spec), root.boxStart)
   // A radius under half the stroke (0 included) is too tight for a
   // fillet: its stroke's inner edge would need a negative radius, and its
   // margin (below) would go negative, pushing the walls out of the surface.
   // The walls run straight into what they attach to instead.
-  readonly property bool _sharp: filletRadius < half
+  readonly property bool _sharp: _natural.sharp
   // Whether each side wall ends in a fillet: not where the end is joined
   // or flush, nor where it runs straight off a bare screen edge
-  readonly property bool _filletStart: !_sharp && !joinStart && !flushStart && !straight
-  readonly property bool _filletEnd: !_sharp && !joinEnd && !flushEnd && !straight
-  readonly property bool _straightJoins: straightJoins || _sharp
-  readonly property bool _joinFillet: (joinStart || joinEnd) && !_straightJoins
+  readonly property bool _filletStart: _natural.filletStart
+  readonly property bool _filletEnd: _natural.filletEnd
+  readonly property bool _straightJoins: _m.straightJoins
+  readonly property bool _joinFillet: _m.joinFillet
   // Room each end for a fillet square, minus the stroke overlap
-  readonly property real startMargin: _filletStart ? connectorGap - strokeWidth : 0
-  readonly property real endMargin: _filletEnd ? connectorGap - strokeWidth : 0
-  readonly property real alongLength: startMargin + boxAlong + endMargin
-  // Box + connector gap, plus room for a join's fillet past the far edge
+  readonly property real startMargin: _natural.startMargin
+  readonly property real endMargin: _natural.endMargin
+  readonly property real alongLength: _natural.alongLength
   // Where the box starts away from the attach edge. Detached, a connector
   // gap's half past its lead. Attached, on the attach edge: the fillets
   // curve outside the side walls, so the band they span is the box's own
   // rather than empty padding above the content. Pushed back only as far
   // as a shallow box needs for a side wall to clear its fillet and far
   // corner.
-  readonly property real naturalBoxStart: {
-    if (detached)
-      return _lead + connectorGap / 2;
-    const fillet = _filletStart || _filletEnd ? filletRadius + half : 0;
-    return Math.max(0, Math.min(connectorGap / 2, fillet + Math.max(startCornerRadius, endCornerRadius) + half - boxDepth));
-  }
+  readonly property real naturalBoxStart: _natural.naturalBoxStart
   // Overridable: a bar's pills keep a half connector gap (sized by it)
   property real boxStart: naturalBoxStart
   // The box and the half connector gap past it (and a joined end's fillet
   // along the perpendicular stroke)
-  readonly property real depth: _back + boxStart + boxDepth + connectorGap / 2 + (_joinFillet ? filletRadius : 0)
+  readonly property real depth: _m.depth
 
   // Along the edge: box + fillet squares. Away from the edge: box +
   // connector gap.
@@ -214,9 +238,9 @@ Item {
   implicitHeight: vertical ? alongLength : depth
 
   // Box sides and far edge (stroke centre line)
-  readonly property real sideU: startMargin + half
-  readonly property real farSideU: startMargin + boxAlong - half
-  readonly property real farV: boxStart + boxDepth - half
+  readonly property real sideU: _natural.sideU
+  readonly property real farSideU: _natural.farSideU
+  readonly property real farV: _m.farV
 
   // The content box in this item's coordinates, at rest (not slid). On
   // every side but the attach edge it coincides with the outer edge of
@@ -224,126 +248,23 @@ Item {
   // line their own stroke up with it.
   readonly property rect boxRect: root._rectFrom(startMargin, boxStart, boxAlong, boxDepth)
 
-  // Reflections flip the sweep direction of arcs; rotations don't
-  readonly property bool mirrored: edge === Bar.Bottom || edge === Bar.Left
-
-  function px(u, v) {
-    switch (edge) {
-    case Bar.Left:
-      return v + _back;
-    case Bar.Right:
-      return width - v - _back;
-    default:
-      return u;
-    }
-  }
-
-  function py(u, v) {
-    switch (edge) {
-    case Bar.Left:
-    case Bar.Right:
-      return u;
-    case Bar.Bottom:
-      return height - v - _back;
-    default:
-      return v + _back;
-    }
-  }
+  // What it covers, in this item's coordinates at rest
+  // (SurfaceOutline.footprint): the box, its fillets and backfill
+  readonly property var footprint: SurfaceOutline.footprint(root._spec, root._m, root.width, root.height)
 
   // An edge-local rectangle (u, v, along, deep) in item coordinates
   function _rectFrom(u, v, along, deep) {
-    const xs = [px(u, v), px(u + along, v + deep)];
-    const ys = [py(u, v), py(u + along, v + deep)];
-    return Qt.rect(Math.min(xs[0], xs[1]), Math.min(ys[0], ys[1]), Math.abs(xs[1] - xs[0]), Math.abs(ys[1] - ys[0]));
-  }
-
-  // SVG path pieces from edge-local points. The sweep flag is for the arc
-  // as drawn attached to the Top edge (y down); reflections flip it.
-  function _pt(u, v) {
-    return px(u, v) + " " + py(u, v);
-  }
-  function _move(u, v) {
-    return "M " + _pt(u, v) + " ";
-  }
-  function _line(u, v) {
-    return "L " + _pt(u, v) + " ";
-  }
-  function _arc(r, clockwise, u, v) {
-    return "A " + r + " " + r + " 0 0 " + ((clockwise !== mirrored) ? 1 : 0) + " " + _pt(u, v) + " ";
-  }
-
-  // The outline from the start end to the end end: side walls (or joins)
-  // and the far edge. Shared by the fill and the stroke.
-  function _outline(startWith) {
-    const R = filletRadius, cs = startCornerRadius, ce = endCornerRadius, h = half;
-    // A flush wall runs on through the backfill, its stroke covering the
-    // end of the stroke it continues there, which the backfill leaves
-    // open: left empty, the shadow or glow showed through as a seam
-    const fv0 = _throughStart ? -_back : 0, fv1 = _throughEnd ? -_back : 0;
-    let d = "";
-    if (joinStart && _straightJoins) {
-      d += startWith(0, farV);
-    } else if (joinStart) {
-      d += startWith(h, farV + R);
-      d += _arc(R, true, h + R, farV);
-    } else if (!_filletStart) {
-      d += startWith(sideU, fv0);
-      d += _line(sideU, farV - cs);
-      d += _arc(cs, false, sideU + cs, farV);
-    } else {
-      d += startWith(0, h);
-      d += _line(sideU - R, h);
-      d += _arc(R, true, sideU, h + R);
-      d += _line(sideU, farV - cs);
-      d += _arc(cs, false, sideU + cs, farV);
-    }
-    if (joinEnd && _straightJoins) {
-      d += _line(alongLength, farV);
-    } else if (joinEnd) {
-      d += _line(alongLength - h - R, farV);
-      d += _arc(R, true, alongLength - h, farV + R);
-    } else if (!_filletEnd) {
-      d += _line(farSideU - ce, farV);
-      d += _arc(ce, false, farSideU, farV - ce);
-      d += _line(farSideU, fv1);
-    } else {
-      d += _line(farSideU - ce, farV);
-      d += _arc(ce, false, farSideU, farV - ce);
-      d += _line(farSideU, h + R);
-      d += _arc(R, true, farSideU + R, h);
-      d += _line(alongLength, h);
-    }
-    return d;
+    const r = SurfaceOutline.rectFrom(edge, width, height, _back, u, v, along, deep);
+    return Qt.rect(r.x, r.y, r.width, r.height);
   }
 
   // Fill: the outline, closed back along the attach edge.
   // Joined ends also cover the perpendicular stroke up to the fillet.
-  readonly property string fillPath: {
-    if (width <= 0 || height <= 0)
-      return "";
-    const R = filletRadius, b = -_back;
-    // The backfill stops short of a flush end's wall, squarely, where the
-    // stroke of what it attaches to carries on behind it
-    const u0 = _throughStart ? strokeWidth : 0, u1 = _throughEnd ? alongLength - strokeWidth : alongLength;
-    let d;
-    if (joinStart)
-      d = _move(0, b) + _line(0, _straightJoins ? farV : farV + R) + root._outline((u, v) => _line(u, v));
-    else if (flushStart)
-      d = _move(u0, b) + (_throughStart ? "" : _line(0, 0)) + root._outline((u, v) => _line(u, v));
-    else if (!_filletStart)
-      d = root._outline((u, v) => _move(u, v));
-    else
-      d = root._outline((u, v) => _move(0, 0) + _line(u, v));
-    if (joinEnd && !_straightJoins)
-      d += _line(alongLength, farV + R);
-    else if ((!joinEnd && _filletEnd) || (flushEnd && !_throughEnd))
-      d += _line(alongLength, 0);
-    return d + _line(u1, b) + _line(u0, b) + "Z";
-  }
+  readonly property string fillPath: SurfaceOutline.fillPath(root._spec, root._m, root.width, root.height)
 
   // Stroke: the outline alone, open along the attach edge and on joined
   // ends, whose ends sit exactly on the strokes they continue
-  readonly property string strokePath: width > 0 && height > 0 ? root._outline((u, v) => _move(u, v)) : ""
+  readonly property string strokePath: SurfaceOutline.strokePath(root._spec, root._m, root.width, root.height)
 
   SlideAnimation {
     id: slideContainer

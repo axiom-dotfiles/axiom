@@ -35,8 +35,6 @@ BarIconWidget {
   onClicked: CommandManager.runDetached(root.properties.middleCommand)
 
   PopoutAnchor {
-    popouts: root.popouts
-    panel: root.panel
     hitArea: root.hitArea
     popoutName: "WifiNetworks"
     active: root.properties.showPopout

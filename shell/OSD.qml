@@ -36,8 +36,11 @@ Scope {
           // Held off the edge, `gap` in from the frame lines there
           held: entry.osd.detached
           gap: entry.osd.gap
-          triggerEnabled: entry.osd.openOnHover && !edgeTriggers.outranked
+          triggerEnabled: entry.osd.openOnHover
           overNamespace: "axiom-osd"
+          // Closes under a higher popout, and won't open under one
+          claimKey: "osd:" + entry.osd.id + ":" + (modelData?.name ?? "")
+          claimKind: "osd"
           // The strip spans the OSD's own length along the edge
           triggerLength: edgeHost.vertical ? (edgeHost.contentItem?.implicitHeight ?? 0) : (edgeHost.contentItem?.implicitWidth ?? 0)
           dismissDelay: entry.osd.timeout
