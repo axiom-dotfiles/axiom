@@ -61,7 +61,7 @@ PopoutWrapperBase {
     wanted: still.showing && !root.isClosing
     // The surface is at (barX, barY) in bar window coordinates, in either
     // window
-    footprint: PopoutGeometry.offset(surface.footprint, Qt.point(root._panel.screenPlaced.x + mainPopup.barX, root._panel.screenPlaced.y + mainPopup.barY))
+    footprint: PopoutGeometry.offset(surface.footprint, Qt.point(mainPopup.barOrigin.x + mainPopup.barX, mainPopup.barOrigin.y + mainPopup.barY))
     onEvicted: root.requestDismiss()
     onRefused: root.requestDismiss()
   }
@@ -309,7 +309,7 @@ PopoutWrapperBase {
   // A pill's (or island's) far stroke, from the bar's outer edge
   readonly property real pillFoot: (root.island ? root.barConfig.extent : root.barConfig.pillDepth) - Appearance.borderWidth
   // The pill (or island) stretched to carry the box's fillets while it shows
-  // and to a joined tray submenu's outer wall where its fillet doesn't
+  // and to a joined submenu's outer wall where its fillet doesn't
   // land on it (sideStretch.joinReach, x in the popup; kept within the ends
   // it may reach), squared there for the wall to run straight up into
   readonly property var pillStretch: {

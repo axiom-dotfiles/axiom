@@ -12,7 +12,9 @@ import QtQuick
 // - pinned: held open by the user; ranks lowest whatever its kind
 // - resident: gives way and comes back (the dock, pinned popouts, a menu
 //   previewing from its editor) rather than closing for good
-// - phase: "opening" | "open" | "closing" | "yielded"
+// - phase: "open" | "yielded", as PopoutManager registers them; "opening"
+//   (one `resumable` brings back) collides as "open" does, "closing" as
+//   "yielded" doesn't
 QtObject {
   id: root
 

@@ -105,7 +105,7 @@ Item {
         "wrapper": root
       };
       for (const key in data)
-        if (key !== "name" && key !== "anchorItem" && key !== "anchorOffset" && !key.startsWith("anchor"))
+        if (key !== "name" && !key.startsWith("anchor"))
           props[key] = data[key];
       loader.source = "";
       loader.setSource(Qt.resolvedUrl("../../content/" + name + ".qml"), props);
@@ -413,8 +413,10 @@ Item {
       onRefused: root.closePopout()
     }
 
-    // Closes with its parent, or when the parent switches to other content
-    readonly property bool _parentOpen: outer.host?.isOpen ?? false
+    // Closes with its parent, when the parent gives way to a popout over
+    // it (a resident's yield hides its box, not this), or when the parent
+    // switches to other content
+    readonly property bool _parentOpen: (outer.host?.isOpen ?? false) && (outer.host?.claimed ?? true)
     on_ParentOpenChanged: {
       if (!root._parentOpen && root.occupied)
         root.closePopout();

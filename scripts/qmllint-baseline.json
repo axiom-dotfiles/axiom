@@ -21,8 +21,7 @@
     "missing-property: Member \"screen\" not found on type \"QObject\"": 1
   },
   "components/content/parts/TraySubmenu.qml": {
-    "missing-property: Member \"menuItem\" not found on type \"QQuickItem\"": 1,
-    "missing-property: Member \"screen\" not found on type \"QObject\"": 1
+    "missing-property: Member \"menuItem\" not found on type \"QQuickItem\"": 1
   },
   "components/content/parts/chat/ChatMessageList.qml": {
     "missing-property: Member \"pressed\" not found on type \"QQuickItem\"": 1

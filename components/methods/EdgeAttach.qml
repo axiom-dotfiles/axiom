@@ -17,7 +17,7 @@ import QtQuick
 // end (too close for a fillet) would grow flush to it, empty. With
 // `pillGrows` (bar popouts, edge popouts, docks) the pill grows instead,
 // past its end far enough to carry the fillet, and the box keeps to its
-// content. Where a pill can't grow (tray submenus, whose "pill" is their
+// content. Where a pill can't grow (submenus, whose "pill" is their
 // parent's box) `nudge` moves the content the least way that leaves no
 // empty growth: up to that end, or back far enough for the fillet. Either
 // is less than a fillet's room, so it stays over its anchor.

@@ -165,8 +165,9 @@ QtObject {
   readonly property var blurSurfaces: ["blur-backing", "dock-preview", "overlay", "launcher", "switcher", "floating-popout", "notifications", "powermenu", "workspaces", "monitor-prompt"]
   // The chrome's own windows, for their popups alone (tooltips, the dock's
   // menu): Hyprland blurs a layer's popups whether or not the layer blurs.
-  // A tray submenu (a popup of a bar popout) is drawn transparent over the
-  // blur window, so ignore_alpha leaves all but its content out.
+  // A submenu (SubPopout, a popup of its popout's window) is drawn
+  // transparent over the blur window, so ignore_alpha leaves all but its
+  // content out.
   readonly property var blurChrome: ["bar", "bar-floating", "popout", "popout-under", "edge-popout", "edge-menu", "dock"]
   // Backdrops (and the polkit prompt, whose window holds its own dim) blur
   // only when asked: the whole screen, at every alpha.

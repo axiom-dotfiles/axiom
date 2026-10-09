@@ -8,7 +8,7 @@ import qs.components.methods
  * Every popout showing, where it is, and which gives way to which.
  *
  * Each popout host (bar popouts, edge popouts: OSDs, floating edge menus,
- * the attached launcher; docks, the floating launcher) holds a
+ * the attached launcher; their submenus; docks) holds a
  * `PopoutClaim`, which registers here once its content is placed and it
  * wants to show, with its footprint: the rects it covers in screen px,
  * fillets included (SurfaceOutline.footprint). One that claims closes only
@@ -147,14 +147,14 @@ QtObject {
     root._resume();
   }
 
-  // Yielded residents with nothing over them any more come back
+  // Yielded residents with nothing over them any more come back. Claimed
+  // again in place (resolve skips a claim's own entry): dropped first, its
+  // `yielded` would flicker off and on, and its host with it.
   function _resume() {
     for (const id of PopoutGeometry.resumable(root.entries)) {
       const c = root._claims[id];
-      if (!c)
-        continue;
-      root._drop(id);
-      root.claim(c, true);
+      if (c)
+        root.claim(c, true);
     }
   }
 

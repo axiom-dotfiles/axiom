@@ -55,7 +55,7 @@ Item {
   property bool flushEnd: false
   // A flush wall runs on through the backfill, over the end of the stroke
   // it continues (see SurfaceOutline._outline). Off where that stroke now carries on past
-  // it (a tray submenu joined beside it, the pill or island stretched
+  // it (a submenu joined beside it, the pill or island stretched
   // under it): the wall stops at the attach edge, the backfill running on.
   property bool flushStartThrough: true
   property bool flushEndThrough: true
@@ -73,7 +73,7 @@ Item {
   property real backfill: 0
   readonly property real _back: detached ? 0 : backfill
   // Fill drawn this far past a joined end, over what it joins, with no
-  // stroke or shadow of its own: a tray submenu joined beside a popout on
+  // stroke or shadow of its own: a submenu joined beside a popout on
   // a pill covers the popout's backfill row there, where the popout's glow
   // would show as a dash
   property real joinBackfill: 0
@@ -86,7 +86,7 @@ Item {
   // Breathing room between the box edge and its content: clears the
   // stroke, plus the popout padding every popout shares (Popouts.padding,
   // as EdgePopout and edge menus use). Callers that size the box from
-  // their content add this on each side (see bar Popouts, tray submenus).
+  // their content add this on each side (see bar Popouts, submenus).
   readonly property int contentInset: Appearance.borderWidth + PopoutConfig.padding
 
   property color fillColor: Theme.background
@@ -108,7 +108,7 @@ Item {
   readonly property color _fill: root.mirror ? root.fillColor : root.backed ? "transparent" : Appearance.fill(root.fillColor)
   readonly property color _stroke: root.mirror ? root.mirrorStroke : root.strokeColor
   // Rects (in this item's coordinates) where its outline is left open:
-  // what's joined to it over them (a tray submenu on its side, a popout on
+  // what's joined to it over them (a submenu on its side, a popout on
   // a pill's far stroke) carries on there, its fill no longer hiding it
   property var strokeHoles: []
 
@@ -170,7 +170,7 @@ Item {
   property real startCornerRadius: cornerRadius
   property real endCornerRadius: cornerRadius
   // A detached box's near corners (at the attach edge), at each end: 0
-  // squares one, where a tray submenu runs flush to it
+  // squares one, where a submenu runs flush to it
   property real startNearRadius: Appearance.borderRadius
   property real endNearRadius: Appearance.borderRadius
 
@@ -247,7 +247,7 @@ Item {
 
   // The content box in this item's coordinates, at rest (not slid). On
   // every side but the attach edge it coincides with the outer edge of
-  // the stroke, so things attaching to this surface (tray submenus) can
+  // the stroke, so things attaching to this surface (submenus) can
   // line their own stroke up with it.
   readonly property rect boxRect: root._rectFrom(startMargin, boxStart, boxAlong, boxDepth)
 
