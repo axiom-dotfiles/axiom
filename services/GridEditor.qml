@@ -68,15 +68,18 @@ QtObject {
   readonly property var group: root._group
   property var _group: []
 
-  // Why these modules can't be saved as is, each prefixed with `name`
-  function problemsFor(modules, name) {
+  // Why these modules can't be saved as is, each prefixed with `name`, on
+  // a bounded grid of `area` ({ cols, rows }; this one's when left out)
+  function problemsFor(modules, name, area) {
     const out = [];
-    // I18n.tr("an overlay page") I18n.tr("an edge menu") I18n.tr("the lock screen") I18n.tr("the login screen")
+    const bounds = area ?? root.area;
+    // I18n.tr("an overlay page") I18n.tr("an edge menu") I18n.tr("the lock screen") I18n.tr("the login screen") I18n.tr("the desktop")
     const hostName = I18n.tr(({
         "overlay": "an overlay page",
         "edgeMenu": "an edge menu",
         "lockscreen": "the lock screen",
-        "greeter": "the login screen"
+        "greeter": "the login screen",
+        "desktop": "the desktop"
       })[root.host] ?? root.host);
     (modules ?? []).forEach((module, i) => {
       const type = module?.type;
@@ -84,7 +87,7 @@ QtObject {
         out.push(I18n.tr("{0}: {1} can't be placed on {2}", name, type, hostName));
       if (!GridPlacement.canPlace(modules.slice(0, i), module?.place, -1))
         out.push(I18n.tr("{0}: {1} overlaps another module", name, type));
-      else if (root.area && !GridPlacement.within(module.place, root.area.cols, root.area.rows))
+      else if (bounds && !GridPlacement.within(module.place, bounds.cols, bounds.rows))
         out.push(I18n.tr("{0}: {1} is outside the grid", name, type));
     });
     OverlayConfig.requiredFor(root.host).forEach(type => {

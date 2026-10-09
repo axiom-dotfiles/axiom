@@ -8,11 +8,12 @@ import qs.components.reusable
 import qs.components.content // qmllint disable unused-imports
 
 // A module's detail grown over its grid (ModuleGrid.expand): a card box
-// opening out of the tile or strip that asked for it to the whole grid,
-// with a back button over content/<type>.qml (which names itself). The
-// content sits at its full size from the first frame, revealed by the
-// growing box (as a popout's is), so it lays out once. Back, Escape or
-// collapse() shrink it into where it came from; `closed` then drops it.
+// opening out of the tile or strip that asked for it to the grid less
+// `inset` on every side (the modules stay dimmed beneath it), with a back
+// button over content/<type>.qml (which names itself). The content sits
+// at its full size from the first frame, revealed by the growing box (as a
+// popout's is), so it lays out once. Back, Escape or collapse() shrink it
+// into where it came from; `closed` then drops it.
 Item {
   id: root
 
@@ -24,10 +25,10 @@ Item {
     })
   // The whole grid in units, the content's slot (so it isn't compact)
   property var slotRect: [0, 0, 4, 4]
-  // The modules here draw no card box (an edge menu with moduleBorders off)
-  readonly property bool bare: root.host?.bare ?? false
   // The content's padding, which the back button lines up with
   readonly property real pad: OverlayConfig.cardPad(false, false)
+  // The room left around the grown box, where the modules show
+  property real inset: Widget.spacing
 
   signal closed
 
@@ -90,22 +91,18 @@ Item {
 
   Rectangle {
     id: box
-    x: root.shown ? 0 : root._from[0]
-    y: root.shown ? 0 : root._from[1]
-    width: root.shown ? root.width : root._from[2]
-    height: root.shown ? root.height : root._from[3]
+    x: root.shown ? root.inset : root._from[0]
+    y: root.shown ? root.inset : root._from[1]
+    width: root.shown ? root.width - root.inset * 2 : root._from[2]
+    height: root.shown ? root.height - root.inset * 2 : root._from[3]
     opacity: root.shown ? 1 : 0
-    // In a menu without module borders it draws no outline, and once grown
-    // no fill either (the menu's own shows), as its modules don't
-    color: root.bare && root.shown ? "transparent" : Appearance.fill(Theme.background)
+    // Opaque over the dimmed modules, and outlined even in a menu without
+    // module borders, as it floats over them
+    color: Theme.background
     border.color: Theme.border
-    border.width: root.bare ? 0 : Appearance.borderWidth
+    border.width: Appearance.borderWidth
     radius: Widget.radius
     clip: true
-
-    ColorGlide on color {
-      enabled: root._animate
-    }
 
     Glide on x {
       enabled: root._animate
@@ -132,12 +129,12 @@ Item {
       anchors.fill: parent
     }
 
-    // At the grid's place whatever the box's, so it never moves
+    // At the grown box's place whatever the box's, so it never moves
     Item {
-      x: -box.x
-      y: -box.y
-      width: root.width
-      height: root.height
+      x: root.inset - box.x
+      y: root.inset - box.y
+      width: root.width - root.inset * 2
+      height: root.height - root.inset * 2
 
       RowLayout {
         id: header
@@ -163,7 +160,9 @@ Item {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.bottom: parent.bottom
-        anchors.topMargin: -root.pad / 2
+        // Tucked up under the button's row, unless the content draws a
+        // box of its own (a blurred cover) the button would sit over
+        anchors.topMargin: loader.drawsBox ? 0 : -root.pad / 2
 
         Loader {
           id: loader
@@ -174,6 +173,9 @@ Item {
             duration: Appearance.animNormal
           }
 
+          // The content draws a box of its own (SlotContext.drawsBox)
+          readonly property var content: loader.item
+          readonly property bool drawsBox: loader.content?.drawsBox ?? false
           readonly property string componentPath: root._shownRequest?.type ? Qt.resolvedUrl("../../content/" + root._shownRequest.type + ".qml") : ""
           onComponentPathChanged: {
             if (!loader.componentPath)

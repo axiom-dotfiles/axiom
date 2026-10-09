@@ -25,7 +25,6 @@ QtObject {
   // modules }. LockSurface takes it whole, so the layouts editor's preview
   // can hand it the draft instead
   readonly property var layout: _c.layout
-  // A ScreenLayout's own fields in groups (`x-group`), for the layouts
-  // editor: the lock screen's and the login screen's (one definition)
+  // The layout's own fields in groups (`x-group`), for the layouts editor
   readonly property var fieldGroups: SchemaLayout.objectGroups(ConfigManager.configSchema.definitions.ScreenLayout, ["modules"])
 }

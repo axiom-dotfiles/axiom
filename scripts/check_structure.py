@@ -89,6 +89,19 @@ def main():
             if f.stem not in types and not used_as_type(f.stem, rel(f)):
                 warnings.append(f"{rel(f)}: not a {definition} type and not used anywhere")
 
+    # Every library type joins one of the root's `x-libraryGroups` (the
+    # editors' libraries group by them); required modules aren't offered
+    library_groups = schema.get("x-libraryGroups", [])
+    for definition in ("BarWidget", "OverlayModule"):
+        for option in schema["definitions"][definition]["oneOf"]:
+            name = option.get("$ref", "").split("/")[-1]
+            target = schema["definitions"].get(name, option)
+            if target.get("x-required"):
+                continue
+            group = target.get("x-libraryGroup")
+            if group not in library_groups:
+                errors.append(f"{definition} {name}: x-libraryGroup {group!r} isn't one of the schema's x-libraryGroups")
+
     # Popout names -> content files
     names = {}
     for path, text in sources.items():

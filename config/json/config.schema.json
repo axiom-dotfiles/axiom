@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Axiom Configuration Schema",
-  "description": "Source of truth for config/user/config.json. Every key's `default` is filled in at load time (SchemaValidation.applyDefaults), so config readers never need their own fallbacks. `title`/`description`/`minimum`/`maximum`/`enum` drive the generated settings UI; `x-settings: false` hides a key from it (edited elsewhere, or UI-owned state); `x-options` names a dynamic option list (\"screens\", \"chatProviders\" and \"chatPresets\", \"colors\" for the 16 base theme colors, \"languages\" from config/i18n, \"cursorThemes\" for installed cursor themes, \"edgeMenus\" for the ids of EdgeMenus); `x-showIf` ({ sibling: value | [values] | { not: value } }) hides a field unless a sibling matches; a key starting with `/` is a dotted path from the config root instead (\"/Workspaces.layout\"). `x-enumLabels` ({ value: label }) shows labels instead of raw enum values in dropdowns. `x-multiline: true` edits a string in a growing text area. `x-categories` at the root lists the settings sidebar's categories in order, each `{ name, icon, page }` (`page`: a hand-built part after its cards, `views/settings/<page>.qml`); sections join one with `x-category`. `x-beside: true` on a field puts it beside the field before it on its settings card, each taking half the width. `x-order` on an object schema lists the keys its form shows first, in order (a schema reaches QML as a map, whose keys come out sorted). `x-defaultSize` ([w, h] in grid units, four to a card) on an overlay module definition is the size it's added at, and `x-minSize` the least a drop into a gap shrinks it to (half the default when left out); `x-icon` on a module or view definition is its Material Symbols icon name in the editor. `x-hosts` on a module definition lists where it may be placed (\"overlay\", \"edgeMenu\", \"lockscreen\", \"greeter\"; the first two when left out, so the lock screen and the greeter only take modules that list them). `x-greeter: true` on a Hyprland.managed option carries it to the greeter (its Hyprland takes the option in managed mode). A `$ref` may carry keys beside it (`default`, `title`, …), which override the definition's. `x-required: true` on one makes it part of every grid on its hosts: it can't be removed or duplicated, and the library doesn't offer it. `x-canvasDetail` names a module property the layouts editor shows on its tile (a list joined), and `x-canvasFill` a color property the tile is filled with. `x-takeover: true` marks a setting that takes something over on this PC (the Hyprland mode, the lock screen, idle, polkit, the greeter): loading a saved config, the defaults, an example or an import keeps its current value (ConfigExamples.keepTakeovers). Bar widgets are a oneOf discriminated by `type`, and get their `properties` defaults filled like everything else.",
+  "description": "Source of truth for config/user/config.json. Every key's `default` is filled in at load time (SchemaValidation.applyDefaults), so config readers never need their own fallbacks. `title`/`description`/`minimum`/`maximum`/`enum` drive the generated settings UI; `x-settings: false` hides a key from it (edited elsewhere, or UI-owned state); `x-options` names a dynamic option list (\"screens\", \"chatProviders\" and \"chatPresets\", \"colors\" for the 16 base theme colors, \"languages\" from config/i18n, \"cursorThemes\" for installed cursor themes, \"timezones\" for the system's time zones, \"edgeMenus\" for the ids of EdgeMenus); `x-showIf` ({ sibling: value | [values] | { not: value } }) hides a field unless a sibling matches; a key starting with `/` is a dotted path from the config root instead (\"/Workspaces.layout\"). `x-enumLabels` ({ value: label }) shows labels instead of raw enum values in dropdowns. `x-multiline: true` edits a string in a growing text area. `x-categories` at the root lists the settings sidebar's categories in order, each `{ name, icon, page }` (`page`: a hand-built part after its cards, `views/settings/<page>.qml`); sections join one with `x-category`. `x-libraryGroups` at the root lists, in order, the groups the bar editor's and layouts editor's libraries sort their types into (by category); each bar widget and overlay module definition joins one with `x-libraryGroup`. `x-beside: true` on a field puts it beside the field before it on its settings card, each taking half the width. `x-order` on an object schema lists the keys its form shows first, in order (a schema reaches QML as a map, whose keys come out sorted). `x-defaultSize` ([w, h] in grid units, four to a card) on an overlay module definition is the size it's added at, and `x-minSize` the least a drop into a gap shrinks it to (half the default when left out); `x-icon` on a module or view definition is its Material Symbols icon name in the editor. `x-hosts` on a module definition lists where it may be placed (\"overlay\", \"edgeMenu\", \"lockscreen\", \"greeter\", \"desktop\"; the first two when left out, so the lock screen, the greeter and the desktop only take modules that list them). `x-greeter: true` on a Hyprland.managed option carries it to the greeter (its Hyprland takes the option in managed mode). A `$ref` may carry keys beside it (`default`, `title`, …), which override the definition's. `x-required: true` on one makes it part of every grid on its hosts: it can't be removed or duplicated, and the library doesn't offer it. `x-canvasDetail` names a module property the layouts editor shows on its tile (a list joined), and `x-canvasFill` a color property the tile is filled with. `x-takeover: true` marks a setting that takes something over on this PC (the Hyprland mode, the lock screen, idle, polkit, the greeter): loading a saved config, the defaults, an example or an import keeps its current value (ConfigExamples.keepTakeovers). Bar widgets are a oneOf discriminated by `type`, and get their `properties` defaults filled like everything else.",
   "type": "object",
   "x-categories": [
     { "name": "General", "icon": "home" },
@@ -17,12 +17,22 @@
     { "name": "Modules", "icon": "widgets" },
     { "name": "Maintenance", "icon": "build", "page": "SavedConfigsSection" }
   ],
+  "x-libraryGroups": [
+    "Desktop",
+    "Time & weather",
+    "Media & audio",
+    "Network & devices",
+    "System",
+    "Tools",
+    "Look & layout",
+    "Session"
+  ],
   "additionalProperties": false,
   "properties": {
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 51,
+      "default": 52,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
@@ -2050,10 +2060,62 @@
       "x-settings": false,
       "default": [],
       "items": { "$ref": "#/definitions/EdgeMenu" }
+    },
+
+    "Desktop": {
+      "x-scope": "look",
+      "type": "object",
+      "x-settings": false,
+      "description": "Overlay modules on the desktop, under the windows, edited on the overlay's Layouts page. Each monitor shows its own layout if it has one, else the primary monitor's (on the primary monitor), else the one for all monitors; each is fitted inside the bars and the border.",
+      "additionalProperties": false,
+      "properties": {
+        "all": {
+          "$ref": "#/definitions/DesktopLayout",
+          "title": "All monitors",
+          "default": { "enabled": false }
+        },
+        "primary": {
+          "$ref": "#/definitions/DesktopLayout",
+          "title": "Primary monitor",
+          "default": {
+            "modules": [
+              { "type": "Clock", "place": { "x": 1, "y": 1, "w": 3, "h": 3 } }
+            ]
+          }
+        },
+        "monitors": {
+          "x-scope": "machine",
+          "type": "array",
+          "title": "Monitors",
+          "description": "Layouts of monitors by name (their connector), ahead of the primary monitor's and the one for all.",
+          "default": [],
+          "items": { "$ref": "#/definitions/DesktopLayout" }
+        }
+      }
     }
   },
 
   "definitions": {
+    "DesktopLayout": {
+      "description": "A desktop's overlay modules on a bounded grid of columns × rows units, fitted to each monitor inside its bars and border (Desktop).",
+      "type": "object",
+      "additionalProperties": false,
+      "x-order": ["columns", "rows", "fineGrid", "moduleBorders"],
+      "properties": {
+        "enabled": { "type": "boolean", "x-settings": false, "default": true, "description": "Shown. Off on a monitor's own layout leaves that monitor's desktop empty." },
+        "monitor": { "type": "string", "x-settings": false, "default": "", "description": "The monitor (connector name) a layout in Desktop.monitors is for." },
+        "columns": { "x-group": "Grid", "type": "integer", "title": "Columns", "default": 16, "minimum": 4, "maximum": 32, "description": "Grid units across. The grid is stretched to fill the room inside the bars and border, so match its shape." },
+        "rows": { "x-group": "Grid", "type": "integer", "title": "Rows", "default": 9, "minimum": 2, "maximum": 32, "description": "Grid units down." },
+        "fineGrid": { "x-group": "Grid", "type": "boolean", "title": "Double grid", "default": false, "description": "Split each grid unit in two each way, for finer placement. Modules keep their size and spot." },
+        "moduleBorders": { "x-group": "Style", "type": "boolean", "title": "Module borders", "default": false, "description": "Draw each module's card box, frosted over the wallpaper while the shell blurs. Off shows modules straight on the wallpaper." },
+        "modules": {
+          "type": "array",
+          "x-settings": false,
+          "default": [],
+          "items": { "$ref": "#/definitions/OverlayModule" }
+        }
+      }
+    },
     "ScreenLayout": {
       "description": "A screen of overlay modules on a bounded grid of columns × rows units, fitted to each monitor: the built-in lock screen (Lockscreen.layout) and the greeter (Greeter.layout).",
       "type": "object",
@@ -3105,6 +3167,7 @@
         "visible": { "type": "boolean" },
         "name": { "type": "string", "title": "Name", "default": "" },
         "icon": { "type": "string", "title": "Icon", "default": "", "description": "Shown in the page navigator: a Material Symbols name (fonts.google.com/icons). Empty shows the default." },
+        "fineGrid": { "type": "boolean", "title": "Double grid", "default": false, "description": "Split each grid unit in two each way, for finer placement. Modules keep their size and spot." },
         "modules": { "type": "array", "default": [], "items": { "$ref": "#/definitions/OverlayModule" } }
       }
     },
@@ -3264,6 +3327,7 @@
         { "$ref": "#/definitions/WifiNetworksOverlayModule" },
         { "$ref": "#/definitions/ScreenshotOverlayModule" },
         { "$ref": "#/definitions/ClockCalendarOverlayModule" },
+        { "$ref": "#/definitions/ClockOverlayModule" },
         { "$ref": "#/definitions/CalendarOverlayModule" },
         { "$ref": "#/definitions/AgendaOverlayModule" },
         { "$ref": "#/definitions/WeatherOverlayModule" },
@@ -3280,12 +3344,21 @@
         { "$ref": "#/definitions/LoginOverlayModule" },
         { "$ref": "#/definitions/SessionOverlayModule" },
         { "$ref": "#/definitions/PowerOverlayModule" },
+        { "$ref": "#/definitions/CalculatorOverlayModule" },
+        { "$ref": "#/definitions/EmojiPickerOverlayModule" },
+        { "$ref": "#/definitions/ClipboardHistoryOverlayModule" },
+        { "$ref": "#/definitions/WorldClocksOverlayModule" },
+        { "$ref": "#/definitions/NightLightControlsOverlayModule" },
+        { "$ref": "#/definitions/CommandOutputOverlayModule" },
+        { "$ref": "#/definitions/ScreenRecordOverlayModule" },
+        { "$ref": "#/definitions/CheatsheetOverlayModule" },
         { "$ref": "#/definitions/KeyboardLayoutOverlayModule" }
       ]
     },
     "ThemePickerOverlayModule": {
       "type": "object",
       "x-icon": "palette",
+      "x-libraryGroup": "Look & layout",
       "x-defaultSize": [4, 8],
       "required": ["type"],
       "additionalProperties": false,
@@ -3296,8 +3369,9 @@
     },
     "NowPlayingOverlayModule": {
       "type": "object",
-      "x-hosts": ["overlay", "edgeMenu", "lockscreen"],
+      "x-hosts": ["overlay", "edgeMenu", "lockscreen", "desktop"],
       "x-icon": "music_note",
+      "x-libraryGroup": "Media & audio",
       "x-defaultSize": [4, 2],
       "required": ["type"],
       "additionalProperties": false,
@@ -3309,6 +3383,7 @@
     "AudioMixerOverlayModule": {
       "type": "object",
       "x-icon": "tune",
+      "x-libraryGroup": "Media & audio",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -3327,6 +3402,7 @@
     "BrightnessOverlayModule": {
       "type": "object",
       "x-icon": "brightness_medium",
+      "x-libraryGroup": "System",
       "x-defaultSize": [4, 1],
       "required": ["type"],
       "additionalProperties": false,
@@ -3344,8 +3420,9 @@
     },
     "VolumeDialsOverlayModule": {
       "type": "object",
-      "x-hosts": ["overlay", "edgeMenu", "lockscreen"],
+      "x-hosts": ["overlay", "edgeMenu", "lockscreen", "desktop"],
       "x-icon": "volume_up",
+      "x-libraryGroup": "Media & audio",
       "x-defaultSize": [4, 2],
       "required": ["type"],
       "additionalProperties": false,
@@ -3356,8 +3433,9 @@
     },
     "SystemGraphsOverlayModule": {
       "type": "object",
-      "x-hosts": ["overlay", "edgeMenu", "lockscreen"],
+      "x-hosts": ["overlay", "edgeMenu", "lockscreen", "desktop"],
       "x-icon": "show_chart",
+      "x-libraryGroup": "System",
       "x-canvasDetail": "metrics",
       "required": ["type"],
       "additionalProperties": false,
@@ -3375,8 +3453,9 @@
     },
     "DisksOverlayModule": {
       "type": "object",
-      "x-hosts": ["overlay", "edgeMenu", "lockscreen"],
+      "x-hosts": ["overlay", "edgeMenu", "lockscreen", "desktop"],
       "x-icon": "hard_drive",
+      "x-libraryGroup": "System",
       "x-canvasDetail": "paths",
       "x-defaultSize": [4, 2],
       "required": ["type"],
@@ -3395,7 +3474,9 @@
     },
     "TopProcessesOverlayModule": {
       "type": "object",
+      "x-hosts": ["overlay", "edgeMenu", "desktop"],
       "x-icon": "format_list_bulleted",
+      "x-libraryGroup": "System",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -3413,7 +3494,9 @@
     },
     "UpdatesOverlayModule": {
       "type": "object",
+      "x-hosts": ["overlay", "edgeMenu", "desktop"],
       "x-icon": "upload",
+      "x-libraryGroup": "System",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -3432,7 +3515,9 @@
     },
     "QuickActionsOverlayModule": {
       "type": "object",
+      "x-hosts": ["overlay", "edgeMenu", "desktop"],
       "x-icon": "toggle_on",
+      "x-libraryGroup": "Tools",
       "x-defaultSize": [4, 2],
       "required": ["type"],
       "additionalProperties": false,
@@ -3453,6 +3538,7 @@
     "WorkspacesMapOverlayModule": {
       "type": "object",
       "x-icon": "grid_view",
+      "x-libraryGroup": "Desktop",
       "x-defaultSize": [4, 2],
       "required": ["type"],
       "additionalProperties": false,
@@ -3471,6 +3557,7 @@
     "NotificationsOverlayModule": {
       "type": "object",
       "x-icon": "notifications",
+      "x-libraryGroup": "Desktop",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -3488,6 +3575,7 @@
     "WifiNetworksOverlayModule": {
       "type": "object",
       "x-icon": "wifi",
+      "x-libraryGroup": "Network & devices",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -3505,6 +3593,7 @@
     "BluetoothDevicesOverlayModule": {
       "type": "object",
       "x-icon": "bluetooth",
+      "x-libraryGroup": "Network & devices",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -3522,6 +3611,7 @@
     "ScreenshotOverlayModule": {
       "type": "object",
       "x-icon": "camera",
+      "x-libraryGroup": "Tools",
       "x-defaultSize": [4, 2],
       "required": ["type"],
       "additionalProperties": false,
@@ -3540,9 +3630,10 @@
     "GreetingOverlayModule": {
       "type": "object",
       "x-icon": "waving_hand",
+      "x-libraryGroup": "Time & weather",
       "x-defaultSize": [8, 2],
       "x-canvasDetail": "text",
-      "x-hosts": ["overlay", "edgeMenu", "lockscreen", "greeter"],
+      "x-hosts": ["overlay", "edgeMenu", "lockscreen", "greeter", "desktop"],
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -3564,6 +3655,7 @@
     "PasswordOverlayModule": {
       "type": "object",
       "x-icon": "password",
+      "x-libraryGroup": "Session",
       "x-defaultSize": [6, 1],
       "x-hosts": ["lockscreen"],
       "x-required": true,
@@ -3587,6 +3679,7 @@
     "LoginOverlayModule": {
       "type": "object",
       "x-icon": "login",
+      "x-libraryGroup": "Session",
       "x-defaultSize": [6, 3],
       "x-hosts": ["greeter"],
       "x-required": true,
@@ -3612,6 +3705,7 @@
     "SessionOverlayModule": {
       "type": "object",
       "x-icon": "desktop_windows",
+      "x-libraryGroup": "Session",
       "x-defaultSize": [4, 1],
       "x-hosts": ["greeter"],
       "required": ["type"],
@@ -3624,6 +3718,7 @@
     "PowerOverlayModule": {
       "type": "object",
       "x-icon": "power_settings_new",
+      "x-libraryGroup": "Session",
       "x-defaultSize": [3, 1],
       "x-canvasDetail": "actions",
       "x-hosts": ["lockscreen", "greeter"],
@@ -3647,9 +3742,188 @@
         }
       }
     },
+    "CalculatorOverlayModule": {
+      "type": "object",
+      "x-icon": "calculate",
+      "x-libraryGroup": "Tools",
+      "x-defaultSize": [4, 4],
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "place": { "$ref": "#/definitions/GridPlace" },
+        "type": { "const": "Calculator", "description": "Calculator" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "showKeypad": {"type": "boolean", "title": "Show the keypad", "default": true, "description": "Calculator keys under the field, when the card is tall enough."},
+            "showHistory": {"type": "boolean", "title": "Show the history", "default": true, "description": "Answers you copied or finished with =: below the field, or beside it in a wide card (beside the keypad there, else in its place), when there's room."}
+          }
+        }
+      }
+    },
+    "EmojiPickerOverlayModule": {
+      "type": "object",
+      "x-icon": "add_reaction",
+      "x-libraryGroup": "Tools",
+      "x-defaultSize": [4, 6],
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "place": { "$ref": "#/definitions/GridPlace" },
+        "type": { "const": "EmojiPicker", "description": "Emoji" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "showGroups": {"type": "boolean", "title": "Show the groups", "default": true, "description": "Tabs for Unicode's groups (smileys, animals, food, …) over the grid, when there's room."}
+          }
+        }
+      }
+    },
+    "ClipboardHistoryOverlayModule": {
+      "type": "object",
+      "x-icon": "content_paste",
+      "x-libraryGroup": "Tools",
+      "x-defaultSize": [4, 6],
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "place": { "$ref": "#/definitions/GridPlace" },
+        "type": { "const": "ClipboardHistory", "description": "Clipboard history" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "grow": {"type": "integer", "title": "Grow by up to", "default": 0, "minimum": 0, "maximum": 16, "x-unit": "rows", "description": "Rows it may take while its list needs them: free rows towards the edge first (above it, or below it in a bottom menu), then away from it, pushing the modules there along (not on the lock or login screen). 0 keeps it at its size."}
+          }
+        }
+      }
+    },
+    "WorldClocksOverlayModule": {
+      "type": "object",
+      "x-hosts": ["overlay", "edgeMenu", "desktop"],
+      "x-icon": "travel_explore",
+      "x-libraryGroup": "Time & weather",
+      "x-defaultSize": [4, 4],
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "place": { "$ref": "#/definitions/GridPlace" },
+        "type": { "const": "WorldClocks", "description": "World clocks" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "x-order": ["clocks", "showLocal", "use24Hour", "showTimeline"],
+          "properties": {
+            "clocks": {
+              "x-scope": "personal",
+              "type": "array",
+              "title": "Places",
+              "default": [
+                { "timezone": "Europe/London", "label": "" },
+                { "timezone": "America/New_York", "label": "" },
+                { "timezone": "Asia/Tokyo", "label": "" }
+              ],
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "x-order": ["timezone", "label"],
+                "properties": {
+                  "timezone": { "type": "string", "title": "Time zone", "x-options": "timezones", "x-control": "search", "default": "UTC", "description": "e.g. Asia/Tokyo" },
+                  "label": { "type": "string", "title": "Label", "default": "", "description": "The place's name. Empty uses the time zone's city." }
+                }
+              }
+            },
+            "showLocal": { "type": "boolean", "title": "Show the time here", "default": true, "description": "The system's time first, for comparison." },
+            "use24Hour": { "type": "boolean", "title": "24-hour clock", "default": true },
+            "showTimeline": { "type": "boolean", "title": "Show the day", "default": true, "description": "A band under each place showing its day and night, with a mark at now, when there's room." }
+          }
+        }
+      }
+    },
+    "NightLightControlsOverlayModule": {
+      "type": "object",
+      "x-icon": "bedtime",
+      "x-libraryGroup": "System",
+      "x-defaultSize": [4, 2],
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "place": { "$ref": "#/definitions/GridPlace" },
+        "type": { "const": "NightLightControls", "description": "Night light" }
+      }
+    },
+    "CommandOutputOverlayModule": {
+      "type": "object",
+      "x-hosts": ["overlay", "edgeMenu", "desktop"],
+      "x-icon": "terminal",
+      "x-libraryGroup": "Tools",
+      "x-defaultSize": [4, 2],
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "place": { "$ref": "#/definitions/GridPlace" },
+        "type": { "const": "CommandOutput", "description": "Command output" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "x-order": ["title", "icon", "command", "interval", "monospace", "clickCommand"],
+          "properties": {
+            "title": { "type": "string", "title": "Title", "default": "", "description": "Shown over the output. Empty shows the command when there's room." },
+            "icon": { "type": "string", "title": "Icon", "default": "terminal", "description": "A Material Symbols name." },
+            "command": { "x-scope": "machine", "type": "string", "title": "Command", "x-multiline": true, "default": "uptime -p", "description": "Run with sh while the card is shown; its output is the card. One short line shows as a big figure." },
+            "interval": { "type": "integer", "title": "Run every", "x-unit": "s", "default": 10, "minimum": 1, "maximum": 86400 },
+            "monospace": { "type": "boolean", "title": "Monospace", "default": false, "description": "For tables and aligned output (lines aren't wrapped)." },
+            "clickCommand": { "x-scope": "machine", "type": "string", "title": "On click", "default": "", "description": "A command a click on the card runs (the command runs again after). Empty does nothing." }
+          }
+        }
+      }
+    },
+    "ScreenRecordOverlayModule": {
+      "type": "object",
+      "x-icon": "screen_record",
+      "x-libraryGroup": "Tools",
+      "x-defaultSize": [4, 4],
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "place": { "$ref": "#/definitions/GridPlace" },
+        "type": { "const": "ScreenRecord", "description": "Screen recording" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "directory": { "x-scope": "machine", "type": "string", "title": "Folder", "default": "", "description": "Where recordings are saved and listed from (~ is your home). Empty uses Pictures/Screenshots, as screenshots do." },
+            "grow": {"type": "integer", "title": "Grow by up to", "default": 0, "minimum": 0, "maximum": 16, "x-unit": "rows", "description": "Rows it may take while its list needs them: free rows towards the edge first (above it, or below it in a bottom menu), then away from it, pushing the modules there along (not on the lock or login screen). 0 keeps it at its size."}
+          }
+        }
+      }
+    },
+    "CheatsheetOverlayModule": {
+      "type": "object",
+      "x-icon": "keyboard",
+      "x-libraryGroup": "Tools",
+      "x-defaultSize": [8, 6],
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "place": { "$ref": "#/definitions/GridPlace" },
+        "type": { "const": "Cheatsheet", "description": "Keybind cheat sheet" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "sections": { "type": "array", "title": "Sections", "default": [], "items": { "type": "string" }, "description": "Section titles to show, comma-separated (as on the Keybinds page). Empty shows them all." },
+            "showUndescribed": { "type": "boolean", "title": "Show undescribed binds", "default": false, "description": "Binds without a description, listed by their dispatcher." }
+          }
+        }
+      }
+    },
     "KeyboardLayoutOverlayModule": {
       "type": "object",
       "x-icon": "keyboard",
+      "x-libraryGroup": "Session",
       "x-defaultSize": [2, 1],
       "x-hosts": ["greeter"],
       "required": ["type"],
@@ -3661,8 +3935,9 @@
     },
     "ClockCalendarOverlayModule": {
       "type": "object",
-      "x-hosts": ["overlay", "edgeMenu", "lockscreen", "greeter"],
+      "x-hosts": ["overlay", "edgeMenu", "lockscreen", "greeter", "desktop"],
       "x-icon": "calendar_clock",
+      "x-libraryGroup": "Time & weather",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -3679,9 +3954,46 @@
         }
       }
     },
+    "ClockOverlayModule": {
+      "type": "object",
+      "x-hosts": ["overlay", "edgeMenu", "lockscreen", "greeter", "desktop"],
+      "x-icon": "schedule",
+      "x-libraryGroup": "Time & weather",
+      "x-defaultSize": [4, 3],
+      "x-canvasDetail": "style",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "place": { "$ref": "#/definitions/GridPlace" },
+        "type": { "const": "Clock", "description": "Clock" },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "x-order": ["style", "use24Hour", "showSeconds", "showDate", "timezone", "label", "color", "accentColor"],
+          "properties": {
+            "style": {
+              "type": "string",
+              "title": "Style",
+              "enum": ["digital", "stacked", "analog"],
+              "x-enumLabels": { "digital": "Digital", "stacked": "Stacked", "analog": "Analog" },
+              "default": "stacked",
+              "description": "Digital: the time in one large line. Stacked: the hours over the minutes. Analog: a clock face with hands."
+            },
+            "use24Hour": { "type": "boolean", "title": "24-hour clock", "default": true, "x-showIf": { "style": { "not": "analog" } } },
+            "showSeconds": { "type": "boolean", "title": "Show seconds", "default": false },
+            "showDate": { "type": "boolean", "title": "Show the date", "default": true },
+            "timezone": { "x-scope": "personal", "type": "string", "title": "Time zone", "x-options": "timezones", "x-control": "search", "x-emptyLabel": "System", "default": "", "description": "Show the time in another time zone (e.g. Asia/Tokyo). Empty follows the system's." },
+            "label": { "type": "string", "title": "Label", "default": "", "description": "A caption under the clock, e.g. the city of its time zone." },
+            "color": { "type": "string", "title": "Color", "x-options": "colors", "x-emptyLabel": "Text", "default": "" },
+            "accentColor": { "type": "string", "title": "Accent color", "x-options": "colors", "x-emptyLabel": "Accent", "default": "", "description": "The stacked clock's minutes and the analog clock's second hand." }
+          }
+        }
+      }
+    },
     "CalendarOverlayModule": {
       "type": "object",
       "x-icon": "calendar_month",
+      "x-libraryGroup": "Time & weather",
       "x-defaultSize": [4, 8],
       "required": ["type"],
       "additionalProperties": false,
@@ -3693,6 +4005,7 @@
     "AgendaOverlayModule": {
       "type": "object",
       "x-icon": "event_note",
+      "x-libraryGroup": "Time & weather",
       "x-defaultSize": [4, 4],
       "required": ["type"],
       "additionalProperties": false,
@@ -3712,8 +4025,9 @@
     },
     "WeatherOverlayModule": {
       "type": "object",
-      "x-hosts": ["overlay", "edgeMenu", "lockscreen", "greeter"],
+      "x-hosts": ["overlay", "edgeMenu", "lockscreen", "greeter", "desktop"],
       "x-icon": "partly_cloudy_day",
+      "x-libraryGroup": "Time & weather",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -3723,8 +4037,9 @@
     },
     "BatteryOverlayModule": {
       "type": "object",
-      "x-hosts": ["overlay", "edgeMenu", "lockscreen", "greeter"],
+      "x-hosts": ["overlay", "edgeMenu", "lockscreen", "greeter", "desktop"],
       "x-icon": "battery_full",
+      "x-libraryGroup": "System",
       "x-defaultSize": [2, 2],
       "required": ["type"],
       "additionalProperties": false,
@@ -3735,8 +4050,9 @@
     },
     "NetworkOverlayModule": {
       "type": "object",
-      "x-hosts": ["overlay", "edgeMenu", "lockscreen", "greeter"],
+      "x-hosts": ["overlay", "edgeMenu", "lockscreen", "greeter", "desktop"],
       "x-icon": "wifi",
+      "x-libraryGroup": "Network & devices",
       "x-defaultSize": [4, 2],
       "required": ["type"],
       "additionalProperties": false,
@@ -3747,7 +4063,9 @@
     },
     "FavouritesOverlayModule": {
       "type": "object",
+      "x-hosts": ["overlay", "edgeMenu", "desktop"],
       "x-icon": "star",
+      "x-libraryGroup": "Tools",
       "x-defaultSize": [4, 2],
       "required": ["type"],
       "additionalProperties": false,
@@ -3767,6 +4085,7 @@
     "ChatOverlayModule": {
       "type": "object",
       "x-icon": "smart_toy",
+      "x-libraryGroup": "Tools",
       "x-defaultSize": [4, 8],
       "required": ["type"],
       "additionalProperties": false,
@@ -3778,6 +4097,7 @@
     "NotesOverlayModule": {
       "type": "object",
       "x-icon": "sticky_note_2",
+      "x-libraryGroup": "Tools",
       "x-defaultSize": [4, 8],
       "required": ["type"],
       "additionalProperties": false,
@@ -3800,6 +4120,7 @@
     "WallpaperPickerOverlayModule": {
       "type": "object",
       "x-icon": "photo_library",
+      "x-libraryGroup": "Look & layout",
       "x-defaultSize": [4, 8],
       "required": ["type"],
       "additionalProperties": false,
@@ -3810,8 +4131,9 @@
     },
     "PaletteOverlayModule": {
       "type": "object",
-      "x-hosts": ["overlay", "edgeMenu", "lockscreen", "greeter"],
+      "x-hosts": ["overlay", "edgeMenu", "lockscreen", "greeter", "desktop"],
       "x-icon": "palette",
+      "x-libraryGroup": "Look & layout",
       "x-defaultSize": [8, 4],
       "required": ["type"],
       "additionalProperties": false,
@@ -3822,8 +4144,9 @@
     },
     "ColorSwatchOverlayModule": {
       "type": "object",
-      "x-hosts": ["overlay", "edgeMenu", "lockscreen", "greeter"],
+      "x-hosts": ["overlay", "edgeMenu", "lockscreen", "greeter", "desktop"],
       "x-icon": "palette",
+      "x-libraryGroup": "Look & layout",
       "x-defaultSize": [2, 2],
       "x-canvasDetail": "color",
       "x-canvasFill": "color",
@@ -3887,6 +4210,7 @@
     "WindowWidget": {
       "type": "object",
       "x-icon": "wrap_text",
+      "x-libraryGroup": "Desktop",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -3908,6 +4232,7 @@
     "MediaWidget": {
       "type": "object",
       "x-icon": "music_note",
+      "x-libraryGroup": "Media & audio",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -3932,6 +4257,7 @@
     "WorkspacesWidget": {
       "type": "object",
       "x-icon": "grid_view",
+      "x-libraryGroup": "Desktop",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -3964,6 +4290,7 @@
     "TimeWidget": {
       "type": "object",
       "x-icon": "schedule",
+      "x-libraryGroup": "Time & weather",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -3977,6 +4304,7 @@
             "use24Hour": { "type": "boolean", "title": "24-hour", "default": false },
             "showSeconds": { "type": "boolean", "title": "Seconds", "default": true },
             "showDate": { "type": "boolean", "title": "Date", "default": true },
+            "timezone": { "x-scope": "personal", "type": "string", "title": "Time zone", "x-options": "timezones", "x-control": "search", "x-emptyLabel": "System", "default": "", "description": "Show the time in another time zone (e.g. Asia/Tokyo). Empty follows the system's." },
             "timeFormat": { "type": "string", "title": "Time format", "default": "", "description": "Custom Qt time format (e.g. HH:mm). Empty uses the language's format." },
             "dateFormat": { "type": "string", "title": "Date format", "default": "", "description": "Custom Qt date format (e.g. ddd d MMM). Empty uses the language's format." },
             "verticalDate": { "type": "string", "title": "Vertical date", "default": "day", "enum": ["day", "monthDay", "numeric"], "x-enumLabels": { "day": "Day and weekday", "monthDay": "Month, day and weekday", "numeric": "Day over month number" }, "description": "The date's lines on a vertical bar, when no date format is set.", "x-showIf": { "showDate": true } },
@@ -3990,6 +4318,7 @@
     "TailscaleWidget": {
       "type": "object",
       "x-icon": "vpn_lock",
+      "x-libraryGroup": "Network & devices",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -4013,6 +4342,7 @@
     "NetworkWidget": {
       "type": "object",
       "x-icon": "wifi",
+      "x-libraryGroup": "Network & devices",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -4036,6 +4366,7 @@
     "SystemTrayWidget": {
       "type": "object",
       "x-icon": "apps",
+      "x-libraryGroup": "Desktop",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -4057,6 +4388,7 @@
     "NotificationsWidget": {
       "type": "object",
       "x-icon": "notifications",
+      "x-libraryGroup": "Desktop",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -4080,6 +4412,7 @@
     "ButtonWidget": {
       "type": "object",
       "x-icon": "terminal",
+      "x-libraryGroup": "Tools",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -4111,6 +4444,7 @@
     "BatteryWidget": {
       "type": "object",
       "x-icon": "battery_full",
+      "x-libraryGroup": "System",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -4134,6 +4468,7 @@
     "SystemStatsWidget": {
       "type": "object",
       "x-icon": "memory_alt",
+      "x-libraryGroup": "System",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -4164,6 +4499,7 @@
     "KeyboardLayoutWidget": {
       "type": "object",
       "x-icon": "keyboard",
+      "x-libraryGroup": "System",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -4185,6 +4521,7 @@
     "IdleInhibitorWidget": {
       "type": "object",
       "x-icon": "coffee",
+      "x-libraryGroup": "System",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -4206,6 +4543,7 @@
     "PrivacyWidget": {
       "type": "object",
       "x-icon": "visibility",
+      "x-libraryGroup": "System",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -4229,6 +4567,7 @@
     "ScreenRecordWidget": {
       "type": "object",
       "x-icon": "radio_button_checked",
+      "x-libraryGroup": "Tools",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -4249,6 +4588,7 @@
     "UpdatesWidget": {
       "type": "object",
       "x-icon": "package_2",
+      "x-libraryGroup": "System",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -4277,6 +4617,7 @@
     "ClaudeUsageWidget": {
       "type": "object",
       "x-icon": "data_usage",
+      "x-libraryGroup": "System",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -4323,6 +4664,7 @@
     "WeatherWidget": {
       "type": "object",
       "x-icon": "partly_cloudy_day",
+      "x-libraryGroup": "Time & weather",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -4344,6 +4686,7 @@
     "NextEventWidget": {
       "type": "object",
       "x-icon": "event",
+      "x-libraryGroup": "Time & weather",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -4367,6 +4710,7 @@
     "SeparatorWidget": {
       "type": "object",
       "x-icon": "more_vert",
+      "x-libraryGroup": "Look & layout",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -4389,6 +4733,7 @@
     "VolumeWidget": {
       "type": "object",
       "x-icon": "volume_up",
+      "x-libraryGroup": "Media & audio",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -4414,6 +4759,7 @@
     "MicrophoneWidget": {
       "type": "object",
       "x-icon": "mic",
+      "x-libraryGroup": "Media & audio",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -4441,6 +4787,7 @@
     "BluetoothWidget": {
       "type": "object",
       "x-icon": "bluetooth",
+      "x-libraryGroup": "Network & devices",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {

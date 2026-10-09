@@ -43,6 +43,12 @@ QtObject {
     return date.toLocaleString(root.locale, format);
   }
 
+  // AM or PM for `date`'s hour, in the shell's language (午前/午後 in
+  // Japanese), for clocks that set it apart from the time
+  function meridiem(date) {
+    return date.getHours() < 12 ? root.locale.amText : root.locale.pmText;
+  }
+
   // An epoch-ms timestamp as a short time ago: "now", "5m", "3h", "2d"
   // Keys, for scripts/check_i18n.py: I18n.tr("now") I18n.tr("{0}m") I18n.tr("{0}h") I18n.tr("{0}d")
   function formatRelative(epochMs) {

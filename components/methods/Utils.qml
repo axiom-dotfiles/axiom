@@ -151,6 +151,20 @@ QtObject {
     return gib >= 1000 ? `${(gib / 1024).toFixed(1)}T` : `${Math.round(gib)}G`;
   }
 
+  // A file size in binary units, one decimal under 10 ("820 B", "4.2 MiB",
+  // "37 MiB", "1.3 GiB")
+  function formatBytes(bytes) {
+    const units = ["B", "KiB", "MiB", "GiB", "TiB"];
+    let value = Math.max(0, Number(bytes) || 0);
+    let unit = 0;
+    while (value >= 1024 && unit < units.length - 1) {
+      value /= 1024;
+      unit++;
+    }
+    const shown = unit === 0 || value >= 10 ? String(Math.round(value)) : value.toFixed(1);
+    return shown + " " + units[unit];
+  }
+
   // A colour to animate to or from: a fully transparent `c` becomes the
   // first visible one of `fallbacks` at alpha 0, since fading through
   // "transparent" (transparent black) flashes dark mid-animation

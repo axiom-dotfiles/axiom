@@ -6,6 +6,7 @@ import qs.services
 import qs.components.methods
 import qs.components.reusable
 import qs.components.content.base
+import qs.components.content.parts
 import qs.components.views.keybinds
 
 // The keybinds page: Hyprland's binds by section, as cards in columns,
@@ -35,20 +36,7 @@ BaseView {
   readonly property int totalCount: KeybindManager.sectionOptions.reduce((sum, option) => sum + option.count, 0)
 
   // Masonry: each section goes to the shortest column, by row count
-  readonly property var columns: {
-    const result = [];
-    const heights = [];
-    for (let i = 0; i < root.columnCount; i++) {
-      result.push([]);
-      heights.push(0);
-    }
-    for (const section of root.sections) {
-      const target = heights.indexOf(Math.min(...heights));
-      result[target].push(section);
-      heights[target] += 1.5 + section.binds.length + (section.undescribed ? 2 : 0);
-    }
-    return result;
-  }
+  readonly property var columns: KeybindFilter.columns(root.sections, root.columnCount)
 
   Item {
     implicitWidth: root.cardPageWidth

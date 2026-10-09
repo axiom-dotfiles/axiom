@@ -5,8 +5,9 @@ import qs.components.reusable
 import qs.config
 
 // Title row of a TitledCard, with Save (shown while `dirty`) and Reset
-// buttons for whichever service owns the panel's pending edits. The title
-// elides and the buttons drop to icons when the row is too narrow.
+// buttons for whichever service owns the panel's pending edits. Items
+// placed inside sit just after the title. The title elides and the buttons
+// drop to icons when the row is too narrow.
 Rectangle {
   id: root
   property string title
@@ -16,6 +17,8 @@ Rectangle {
   // Save stays visible while dirty but is disabled when false
   property bool canSave: true
   property string saveLabel: I18n.tr("Save")
+  // Controls beside the title
+  default property alias extras: extrasRow.data
 
   signal save
   signal reset
@@ -32,10 +35,25 @@ Rectangle {
     StyledText {
       id: titleText
       Layout.fillWidth: true
+      // Shrinks to elide, but doesn't push the extras away from it. In
+      // whole pixels: the layout rounds a width it grows down, and a title
+      // a fraction short elides its last letters
+      Layout.preferredWidth: Math.ceil(implicitWidth)
+      Layout.maximumWidth: Math.ceil(implicitWidth)
       text: root.title
       textSize: Appearance.fontSize + 4
       font.bold: true
       elide: Text.ElideRight
+    }
+
+    RowLayout {
+      id: extrasRow
+      visible: children.length > 0
+      spacing: Widget.spacing / 2
+    }
+
+    Item {
+      Layout.fillWidth: true
     }
 
     SaveResetActions {
@@ -43,7 +61,7 @@ Rectangle {
       dirty: root.dirty
       canSave: root.canSave
       saveLabel: root.saveLabel
-      compact: root.width < titleText.implicitWidth + headerRow.spacing + fullWidth
+      compact: root.width < titleText.implicitWidth + (extrasRow.visible ? extrasRow.implicitWidth + headerRow.spacing : 0) + headerRow.spacing + fullWidth
       onSave: root.save()
       onReset: root.reset()
     }

@@ -38,6 +38,8 @@ QtObject {
         "type": type.const,
         "label": type.description || type.const,
         "propertiesSchema": def.properties?.properties?.properties ?? null,
+        // Its options shown first, in order (their `x-order`)
+        "propertiesOrder": def.properties?.properties?.["x-order"] ?? [],
         // The size a module is added at ([w, h] in grid units, four to a
         // card; `x-defaultSize`), null when not declared
         "defaultSize": def["x-defaultSize"] ?? null,
@@ -48,6 +50,8 @@ QtObject {
         "tool": def["x-tool"] === true,
         // Material Symbols name (`x-icon`)
         "icon": def["x-icon"] ?? "extension",
+        // Its group in the module library (`x-libraryGroup`)
+        "group": def["x-libraryGroup"] ?? "",
         // Where a module may be placed (`x-hosts`): "overlay", "edgeMenu",
         // "lockscreen" (only modules that list it)
         "hosts": def["x-hosts"] ?? ["overlay", "edgeMenu"],
@@ -62,7 +66,11 @@ QtObject {
     }).filter(t => t !== null);
   }
   readonly property var availableModuleTypes: _oneOfTypes("OverlayModule")
-  // A Custom page's own fields (name, icon), for the layouts editor
+  // The groups the editors' libraries sort bar widgets and modules into
+  // (the schema's `x-libraryGroups`), in order
+  readonly property var libraryGroups: ConfigManager.configSchema?.["x-libraryGroups"] ?? []
+  // A Custom page's own fields (name, icon, fineGrid), for the layouts
+  // editor
   readonly property var customViewSchema: ConfigManager.configSchema.definitions.CustomOverlayView.properties
   readonly property var availableViewTypes: _oneOfTypes("OverlayView")
   // The module types a host's library offers: "overlay" pages,
@@ -154,6 +162,13 @@ QtObject {
   function cardUnitFor(width, height) {
     const fit = Math.min(height / fitCardsHigh, width / fitCardsWide);
     return Math.round(Math.max(minCardUnit, Math.min(cardUnit, fit) * size / 100));
+  }
+
+  // The card size a Custom page's modules are laid out at on an overlay
+  // whose cards are `unit` px: a double grid's (fineGrid) has twice the
+  // units across (GridPlacement.fineUnit)
+  function pageUnit(view, unit) {
+    return view?.fineGrid ? GridPlacement.fineUnit(unit) : unit;
   }
 
   // One grid unit (a quarter card) at the reference card size

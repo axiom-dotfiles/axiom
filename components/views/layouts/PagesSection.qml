@@ -136,22 +136,30 @@ ColumnLayout {
     }
   }
 
-  // Set apart from the tools: the screens below aren't pages. Only when
-  // one of them shows
+  // Set apart from the tools: the screens below aren't pages
   StyledSeparator {
-    visible: OverlayManager.lockscreenEditable || OverlayManager.greeterEditable
     Layout.fillWidth: true
     Layout.topMargin: Widget.spacing / 2
     separatorHeight: 1
     opacity: 0.3
   }
 
-  // Not dragged: it isn't one of the navigator's pages
+  // Not dragged: these aren't the navigator's pages
+  ListEntryRow {
+    Layout.fillWidth: true
+    Layout.preferredHeight: Widget.height + Widget.padding
+    Layout.topMargin: Widget.spacing / 2
+    icon: "desktop_windows"
+    label: I18n.tr("Desktop")
+    selected: OverlayManager.editTarget === "desktop"
+    changed: DesktopManager.editor.isDirty
+    onClicked: OverlayManager.editDesktop()
+  }
+
   ListEntryRow {
     visible: OverlayManager.lockscreenEditable
     Layout.fillWidth: true
     Layout.preferredHeight: Widget.height + Widget.padding
-    Layout.topMargin: Widget.spacing / 2
     icon: "lock"
     label: I18n.tr("Lock screen")
     selected: OverlayManager.editTarget === "lockscreen"
@@ -164,7 +172,6 @@ ColumnLayout {
     visible: OverlayManager.greeterEditable
     Layout.fillWidth: true
     Layout.preferredHeight: Widget.height + Widget.padding
-    Layout.topMargin: OverlayManager.lockscreenEditable ? 0 : Widget.spacing / 2
     icon: "login"
     label: I18n.tr("Login screen")
     selected: OverlayManager.editTarget === "greeter"

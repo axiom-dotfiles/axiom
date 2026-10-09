@@ -1121,6 +1121,26 @@ TestCase {
     compare(errors(loaded.config), []);
   }
 
+  function test_v52_desktop_modules_start_off() {
+    const old = load({
+      "version": 51
+    }).config;
+    compare(old.Desktop.primary.enabled, false, "an existing config's desktop stays empty");
+    compare(old.Desktop.primary.modules.map(module => module.type), ["Clock"], "the clock is there to turn on");
+    compare(old.Desktop.all.enabled, false);
+    compare(errors(old), []);
+
+    const kept = load({
+      "version": 51,
+      "Desktop": {
+        "primary": {
+          "enabled": true
+        }
+      }
+    }).config;
+    compare(kept.Desktop.primary.enabled, true, "a Desktop section is left alone");
+  }
+
   function test_v51_blur_and_opacity_join_the_window_look() {
     const managed = load({
       "version": 50,

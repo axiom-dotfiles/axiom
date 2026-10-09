@@ -123,10 +123,6 @@
     "missing-property: Member \"loaded\" not found on type \"QObject\"": 1,
     "missing-property: Member \"text\" not found on type \"QObject\"": 1
   },
-  "services/LauncherManager.qml": {
-    "missing-property: Member \"expr\" not found on type LauncherManager::_calcProcess with type Process": 1,
-    "missing-property: Member \"pending\" not found on type LauncherManager::_calcProcess with type Process": 1
-  },
   "services/MediaManager.qml": {
     "unqualified: Unqualified access": 1
   },

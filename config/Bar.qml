@@ -362,6 +362,8 @@ QtObject {
         "label": def.properties?.type?.description || def.properties?.type?.const,
         // Material Symbols name (`x-icon`)
         "icon": def["x-icon"] ?? "widgets",
+        // Its group in the widget library (`x-libraryGroup`)
+        "group": def["x-libraryGroup"] ?? "",
         "propertiesSchema": def.properties?.properties?.properties || null
       };
     }).filter(t => t !== null);

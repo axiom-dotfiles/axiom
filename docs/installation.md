@@ -21,7 +21,7 @@ The whole shell runs on five things. Everything else is optional and only needed
 | Network widget / module, Wi-Fi menu | NetworkManager, Quickshell built with its Networking module, and `ip` (iproute2) |
 | Updates | `pacman-contrib` (`checkupdates`), plus `paru` or `yay` for AUR updates |
 | Tailscale | `tailscale` |
-| Screenshots | `wl-copy`; `satty` or `swappy` to annotate; `wf-recorder` to record |
+| Screenshots | `wl-copy`; `satty` or `swappy` to annotate; `wf-recorder` to record, and `pactl` (libpulse; works with pipewire-pulse) to record the system's sound |
 | AI chat | `curl`; `secret-tool` (libsecret) to keep keys in your keyring; `wl-clipboard` to paste images |
 | Launcher calculator | `qalc` (libqalculate), `wl-copy` |
 | Launcher emoji picker | `wl-copy` to copy; `wtype` to type an emoji into the focused window (Shift+Enter) |

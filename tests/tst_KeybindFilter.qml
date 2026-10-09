@@ -99,4 +99,20 @@ TestCase {
       "mods": ["ALT"]
     })), [":"]);
   }
+
+  function test_columns() {
+    const section = (title, rows) => ({
+          "title": title,
+          "binds": new Array(rows).fill({
+            "label": "x",
+            "combos": []
+          })
+        });
+    const cols = KeybindFilter.columns([section("A", 6), section("B", 2), section("C", 2), section("D", 1)], 2);
+    compare(cols.length, 2);
+    compare(cols[0].map(s => s.title), ["A"]);
+    compare(cols[1].map(s => s.title), ["B", "C", "D"], "the shorter column takes each next section");
+    compare(KeybindFilter.columns([], 3).length, 3);
+    compare(KeybindFilter.columns([section("A", 1)], 0).length, 1, "at least one column");
+  }
 }

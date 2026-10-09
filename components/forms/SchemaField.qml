@@ -100,7 +100,9 @@ Loader {
   function commit(value) {
     // Arrays (a string list) are new each time: compare their contents
     const same = Array.isArray(value) ? JSON.stringify(value) === JSON.stringify(root.current) : value === root.current;
-    if (!same)
+    // A typed field commits as it loses focus, which can be as its form
+    // is torn down
+    if (!same && root.form)
       root.form.edited(root.row.path, value);
   }
 
@@ -150,6 +152,9 @@ Loader {
     case "integer":
       return fieldSchema["x-auto"] ? autoSpinField : spinField;
     default:
+      // A long list (`x-control: "search"`) is typed into to filter it
+      if (root.options && fieldSchema["x-control"] === "search")
+        return searchField;
       return root.options ? comboField : textField;
     }
   }
@@ -271,6 +276,40 @@ Loader {
       swatches: root.isColor
       currentValue: root.current ?? ""
       onSelectionChanged: value => root.commit(value)
+    }
+  }
+
+  Component {
+    id: searchField
+    ColumnLayout {
+      spacing: 4
+      StyledText {
+        text: I18n.tr(root.label)
+        Layout.fillWidth: true
+      }
+      StyledComboEntry {
+        Layout.fillWidth: true
+        editable: true
+        placeholderText: root.optionLabels[""] ?? ""
+        options: root.options.map(value => ({
+              "value": value,
+              "label": root.optionLabels[value] ?? value
+            }))
+        value: root.current ?? ""
+        // Only what's listed: anything else typed shows the value again
+        onPicked: value => {
+          if (root.options.includes(value))
+            root.commit(value);
+        }
+      }
+      StyledText {
+        visible: root.description !== ""
+        Layout.fillWidth: true
+        wrapMode: Text.WordWrap
+        text: I18n.tr(root.description)
+        textSize: Appearance.fontSize - 2
+        opacity: 0.7
+      }
     }
   }
 

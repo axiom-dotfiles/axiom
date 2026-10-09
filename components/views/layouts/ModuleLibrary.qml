@@ -1,13 +1,13 @@
 pragma ComponentBehavior: Bound
 import QtQuick
-import QtQuick.Controls
 import QtQuick.Layouts
 import qs.config
+import qs.services
 import qs.components.reusable
 
 // The modules that can be added to the page or menu being edited: drag one
 // onto the canvas, or click it to add it at its default size in the first
-// free spot
+// free spot. By name, or by group.
 ColumnLayout {
   id: root
 
@@ -25,30 +25,26 @@ ColumnLayout {
     textSize: Appearance.fontSize - 2
   }
 
-  ScrollView {
-    id: scroll
+  TypeLibrary {
+    id: library
     Layout.fillWidth: true
     Layout.fillHeight: true
-    clip: true
-    ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
-    contentWidth: availableWidth
+    types: root.modules
+    groups: OverlayConfig.libraryGroups
+    grouped: EditsManager.libraryGrouped
+    // Schema keys (labels, group names)
+    labelOf: type => I18n.tr(type.label)
+    headingOf: name => name ? I18n.tr(name) : I18n.tr("Other")
+    minTileWidth: Appearance.fontSize * 16
+    onGroupingChosen: grouped => EditsManager.setLibraryGrouped(grouped)
 
-    TileFlow {
-      id: flow
-      minTileWidth: Appearance.fontSize * 16
-      width: scroll.availableWidth
-
-      Repeater {
-        model: root.modules
-
-        ModuleChip {
-          required property var modelData
-          width: flow.tileWidth
-          dragLayer: root.dragLayer
-          typeInfo: modelData
-          onClicked: root.dragLayer.editor.addModule(modelData.type)
-        }
-      }
+    delegate: ModuleChip {
+      id: chip
+      required property var modelData
+      implicitWidth: library.tileWidth
+      dragLayer: root.dragLayer
+      typeInfo: chip.modelData
+      onClicked: root.dragLayer.editor.addModule(chip.modelData.type)
     }
   }
 }

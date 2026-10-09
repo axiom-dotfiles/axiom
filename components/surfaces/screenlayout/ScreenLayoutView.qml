@@ -8,10 +8,12 @@ import qs.components.methods
 import qs.components.hosts.overlay
 
 // One screen of a screen layout (a ScreenLayout: the lock screen's, the
-// greeter's): the background (wallpaper or a color, dimmed), then the
-// modules on the layout's grid of `columns` × `rows` units, stretched to
-// fill the screen, fading in. Children go over the modules (LockSurface's
-// and GreeterSurface's fallback fields).
+// greeter's; or a DesktopLayout): the background (wallpaper or a color,
+// dimmed), then the modules on the layout's grid of `columns` × `rows`
+// units, stretched to fill the screen inside `insets`, fading in. Children
+// go over the modules (LockSurface's and GreeterSurface's fallback
+// fields). The desktop draws no background (`showBackdrop`): its modules
+// sit on the wallpaper, and only frost a copy of it.
 Item {
   id: root
 
@@ -32,6 +34,22 @@ Item {
   // Its wallpaper, when the background is "wallpaper"
   property string wallpaper: ""
   property bool blurWallpaper: true
+  // "wallpaper" | "color" (the layout's, else the wallpaper)
+  readonly property string background: root.layout?.background ?? "wallpaper"
+  // Whether the background is drawn (else it's only what modules frost)
+  property bool showBackdrop: true
+  // Whether modules may frost the background (see `frosted`)
+  property bool frost: true
+  // Room kept clear on each side ({ left, top, right, bottom } px): the
+  // grid fits inside it, the background still fills the screen
+  property var insets: ({
+      "left": 0,
+      "top": 0,
+      "right": 0,
+      "bottom": 0
+    })
+  readonly property real roomWidth: Math.max(0, root.width - root.insets.left - root.insets.right)
+  readonly property real roomHeight: Math.max(0, root.height - root.insets.top - root.insets.bottom)
 
   default property alias content: fade.data
 
@@ -43,21 +61,34 @@ Item {
   readonly property int cols: Math.max(root.gridSize.cols, root.reach.cols, 1)
   readonly property int rows: Math.max(root.gridSize.rows, root.reach.rows, 1)
 
+  // Where each module shown is, [{ x, y, width, height }] in px from the
+  // view's top left (the desktop's input mask)
+  readonly property var moduleRects: grid.places.filter(place => place !== null).map(place => {
+    const r = GridPlacement.rectPx(place, grid.sizes);
+    return {
+      "x": r.x + grid.x,
+      "y": r.y + grid.y,
+      "width": r.width,
+      "height": r.height
+    };
+  })
+
   anchors.fill: parent
 
   // The background, which translucent modules frost (`frosted`)
   Item {
     id: backdrop
     anchors.fill: parent
+    visible: root.showBackdrop || root.frosted
 
     Rectangle {
       anchors.fill: parent
-      color: root.layout?.background === "color" ? Theme.resolveColor(root.layout.backgroundColor) : Theme.background
+      color: root.background === "color" ? Theme.resolveColor(root.layout.backgroundColor) : Theme.background
     }
 
     Image {
       anchors.fill: parent
-      visible: root.layout?.background === "wallpaper"
+      visible: root.background === "wallpaper"
       source: visible ? root.wallpaper : ""
       fillMode: Image.PreserveAspectCrop
       asynchronous: true
@@ -84,7 +115,7 @@ Item {
   // themselves, at about Hyprland's strength: the backdrop blurred, where
   // the modules draw at least the blur threshold (as Hyprland's
   // ignore_alpha). Not over a wallpaper blurred already.
-  readonly property bool frosted: Appearance.blur && !(root.layout?.background === "wallpaper" && root.blurWallpaper)
+  readonly property bool frosted: root.frost && Appearance.blur && !(root.background === "wallpaper" && root.blurWallpaper)
   // Hyprland's blur, { size, passes }: the lock surface hands in the one in
   // effect (HyprlandManager.blur); the greeter's Hyprland keeps its defaults
   property var hyprBlur: ({
@@ -97,6 +128,8 @@ Item {
     anchors.fill: parent
     visible: false
     sourceItem: root.frosted ? backdrop : null
+    // Drawn only into the frosting where the background isn't shown
+    hideSource: !root.showBackdrop
   }
 
   ShaderEffectSource {
@@ -138,20 +171,20 @@ Item {
 
     ModuleGrid {
       id: grid
-      x: root.margin
-      y: root.margin
+      x: root.insets.left + root.margin
+      y: root.insets.top + root.margin
       modules: root.shownModules
       extent: ({
           "cols": root.cols,
           "rows": root.rows
         })
       stretch: ({
-          "width": root.width - root.margin * 2,
-          "height": root.height - root.margin * 2
+          "width": root.roomWidth - root.margin * 2,
+          "height": root.roomHeight - root.margin * 2
         })
       host: root.host
       grid: OverlayGrid {
-        fixedUnit: GridPlacement.latticeUnit(root.cols, root.rows, root.width, root.height, root.margin)
+        fixedUnit: GridPlacement.latticeUnit(root.cols, root.rows, root.roomWidth, root.roomHeight, root.margin)
       }
     }
   }

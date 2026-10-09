@@ -211,36 +211,31 @@ Item {
         wrapMode: Text.WordWrap
       }
 
-      ScrollView {
-        id: libraryScroll
+      TypeLibrary {
+        id: widgetLibrary
         Layout.fillWidth: true
         Layout.fillHeight: true
         Layout.topMargin: Widget.spacing / 2
-        clip: true
-        ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
-        contentWidth: availableWidth
+        types: Bar.availableWidgetTypes
+        groups: OverlayConfig.libraryGroups
+        grouped: EditsManager.libraryGrouped
+        // Schema keys (labels, group names)
+        labelOf: type => I18n.tr(type.label)
+        headingOf: name => name ? I18n.tr(name) : I18n.tr("Other")
+        minColumns: 2
+        onGroupingChosen: grouped => EditsManager.setLibraryGrouped(grouped)
 
-        TileFlow {
-          id: flow
-          minColumns: 2
-          width: libraryScroll.availableWidth
-
-          Repeater {
-            model: Bar.availableWidgetTypes
-
-            delegate: WidgetChip {
-              id: tile
-              required property var modelData
-              dragLayer: root.dragLayer
-              width: flow.tileWidth
-              type: tile.modelData.type
-              payload: ({
-                  "kind": "add",
-                  "type": tile.modelData.type
-                })
-              onClicked: BarManager.addWidget(BarManager.lastZone, tile.modelData.type)
-            }
-          }
+        delegate: WidgetChip {
+          id: tile
+          required property var modelData
+          dragLayer: root.dragLayer
+          implicitWidth: widgetLibrary.tileWidth
+          type: tile.modelData.type
+          payload: ({
+              "kind": "add",
+              "type": tile.modelData.type
+            })
+          onClicked: BarManager.addWidget(BarManager.lastZone, tile.modelData.type)
         }
       }
     }

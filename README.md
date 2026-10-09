@@ -4,7 +4,7 @@
 
 **A lightweight desktop environment for [Hyprland](https://hypr.land): bring your own apps, build the rest on screen.**
 
-Bars, menus, a launcher, notifications, settings, theming, the lock screen and the login screen: one application, laid out with drag and drop and set from the UI.
+Bars, menus, a launcher, notifications, settings, theming, desktop widgets, the lock screen and the login screen: one application, laid out with drag and drop and set from the UI.
 
 <a href="https://github.com/axiom-dotfiles/axiom/stargazers"><picture><source media="(prefers-color-scheme: light)" srcset="https://img.shields.io/github/stars/axiom-dotfiles/axiom?style=for-the-badge&color=8c6c3e&labelColor=e1e2e7"><img alt="Stars" src="https://img.shields.io/github/stars/axiom-dotfiles/axiom?style=for-the-badge&color=e0af68&labelColor=1a1b26"></picture></a>
 <a href="https://github.com/axiom-dotfiles/axiom/tags"><picture><source media="(prefers-color-scheme: light)" srcset="https://img.shields.io/github/v/tag/axiom-dotfiles/axiom?sort=semver&label=version&style=for-the-badge&color=b15c00&labelColor=e1e2e7"><img alt="Version" src="https://img.shields.io/github/v/tag/axiom-dotfiles/axiom?sort=semver&label=version&style=for-the-badge&color=ff9e64&labelColor=1a1b26"></picture></a>
@@ -25,9 +25,9 @@ Bars, menus, a launcher, notifications, settings, theming, the lock screen and t
 
 Most desktops come finished, with options to adjust. axiom comes in pieces, with the editors to make it yours.
 
-- **Built, not configured.** One set of modules builds pages, sidebars, the lock screen and the login screen. Bars are widgets you line up and style one by one. Every surface is laid out by dragging, with changes live until you save.
+- **Built, not configured.** One set of modules builds pages, sidebars, desktop widgets, the lock screen and the login screen. Bars are widgets you line up and style one by one. Every surface is laid out by dragging, with changes live until you save.
 - **The whole desktop, one application.** Login, lock, notifications, polkit, idle, OSDs, a launcher, and settings for Wi-Fi, Bluetooth, audio and monitors, from one config. No stack of separate tools to glue together.
-- **Bring your own apps.** axiom is the part of a desktop you live in. It ships no file manager, terminal or browser: use the ones you like, and axiom themes 23 of them to match.
+- **Bring your own apps.** axiom is the part of a desktop you live in. It ships no file manager, terminal or browser: use the ones you like, and axiom themes 23 of them to match (and many more to come).
 - **Updates don't fight you.** Your config is validated and migrated from version to version, so a new release never means merging your changes into someone else's dotfiles.
 - **Share your setup.** An export is only data: monitors, paths and accounts stay behind, and commands come along only if you ask.
 - **Trying it costs nothing.** axiom never touches your Hyprland config unless you ask it to. It applies its keybinds at runtime, skips any key you already use, and goes away when you remove its one start-up line.
@@ -42,7 +42,7 @@ Most desktops come finished, with options to adjust. axiom comes in pieces, with
 
 ### Build every surface
 
-One grid editor lays out overlay pages, edge menus, the lock screen and the login screen. Changes show live: **Save** keeps them, **Reset** throws them away.
+One grid editor lays out overlay pages, edge menus, the desktop, the lock screen and the login screen. Changes show live: **Save** keeps them, **Reset** throws them away.
 
 <img src="assets/screenshots/overlay-editor.webp" alt="The Layouts editor: the Home page's modules on a grid, with the module library below">
 
@@ -129,7 +129,8 @@ See **[all the features](docs/features.md)**, with screenshots of every surface.
 One repository and one config for the whole desktop:
 
 - **Bars** with 23 widget types, in any style. Their popouts grow out of the bar or the screen border.
-- **Overlay** pages built from 27 modules: media, mixer, system graphs, weather, calendar and agenda, notes, AI chat, quick actions and more.
+- **Overlay** pages built from 36 modules: media, mixer, system graphs, weather, world clocks, calendar and agenda, notes, AI chat, a calculator, clipboard history, emoji, quick actions and more.
+- **Desktop widgets** from the same modules, under your windows, per monitor.
 - **Edge menus**, floating over your windows or integrated beside them.
 - **Workspaces** as a line, a grid per monitor or scrolling strips, plus a live overview and **Alt+Tab**.
 - **Calendar** from CalDAV accounts and `.ics` feeds, with an editor, reminders and quick add (`/event fri 3pm Dentist`).

@@ -177,6 +177,7 @@ Item {
       OptionsGroup {
         width: optionsScroll.availableWidth
         propertiesSchema: OverlayConfig.moduleInfo(root.moduleType)?.propertiesSchema ?? ({})
+        order: OverlayConfig.moduleInfo(root.moduleType)?.propertiesOrder ?? []
         values: root.module?.properties ?? ({})
         emptyText: I18n.tr("This module has no options")
         onEdited: (path, value) => root.editor.updateModuleProperty(root.index, path[0], value)

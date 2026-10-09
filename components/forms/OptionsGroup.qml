@@ -11,6 +11,8 @@ FieldGroup {
   id: root
 
   property var propertiesSchema: ({})
+  // Keys shown first, in this order (the schema's `x-order`)
+  property var order: []
   property var values: ({})
   property string numberMode: ""
   property string problem
@@ -32,6 +34,7 @@ FieldGroup {
     id: form
     Layout.fillWidth: true
     propertiesSchema: root.propertiesSchema
+    order: root.order
     values: root.values
     numberMode: root.numberMode
     onEdited: (path, value) => root.edited(path, value)
