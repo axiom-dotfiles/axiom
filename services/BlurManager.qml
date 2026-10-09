@@ -117,8 +117,13 @@ QtObject {
     const onSide = l => {
       if (!screen)
         return false;
-      const centre = vertical ? l.x + l.w / 2 : l.y + l.h / 2;
       const half = (vertical ? screen.w : screen.h) / 2;
+      // A window reaching past the middle (an edge popout deep enough for
+      // its content, filling the room between the edges' reservations)
+      // is where it is whichever edge it's anchored to
+      if ((vertical ? l.w : l.h) >= half)
+        return true;
+      const centre = vertical ? l.x + l.w / 2 : l.y + l.h / 2;
       return edge === Bar.Left || edge === Bar.Top ? centre <= half : centre >= half;
     };
     const matches = (screen?.layers ?? []).filter(l => l.namespace === namespace && Math.abs((vertical ? l.h : l.w) - along) <= 1 && onSide(l));
