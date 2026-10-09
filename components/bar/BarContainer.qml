@@ -171,16 +171,11 @@ Rectangle {
   function joinOpening(surface, atStart) {
     if (!Appearance.translucent || !Appearance.screenBorder || !root.blurOrigin)
       return null;
-    const c = root.barConfig;
-    const far = c.bottom || c.right;
-    const near = (root.isVertical ? root.blurOrigin.x + surface.x : root.blurOrigin.y + surface.y) + (far ? (root.isVertical ? surface.width : surface.height) - surface.joinCover : surface.joinCover);
-    const screenAcross = (root.isVertical ? root.panel?.screen?.width : root.panel?.screen?.height) ?? 0;
-    return {
-      "screen": root.blurScreen,
-      "edge": root.isVertical ? (atStart ? "top" : "bottom") : (atStart ? "left" : "right"),
-      "start": far ? near : 0,
-      "end": far ? screenAcross : near
-    };
+    const from = root.isVertical ? root.blurOrigin.x + surface.x : root.blurOrigin.y + surface.y;
+    const span = (root.isVertical ? root.panel?.screen?.width : root.panel?.screen?.height) ?? 0;
+    return Object.assign({
+      "screen": root.blurScreen
+    }, EdgeAttach.joinOpening(Bar.edgeName(root.barConfig.location), atStart, from, root.isVertical ? surface.width : surface.height, surface.joinShown, span));
   }
 
   // How far each pill reaches past its own ends for the stretches on it,

@@ -322,9 +322,26 @@ PopoutWrapperBase {
       "end": root.reservedOn(root.startSide) + root._submenuSpan.end
     }) : null
   on_SubmenuBorderOpeningChanged: ShellManager.setBorderOpening("edgePopoutSubmenu:" + root, root._submenuBorderOpening)
+  // ...and joined to a perpendicular edge at an end, that edge's stroke
+  // its end covers, from where its window is on screen
+  function _joinOpening(atStart) {
+    const origin = placeOnScreen.origin;
+    if (!root._borderOpening || !origin)
+      return null;
+    const from = root.vertical ? origin.x + surface.x : origin.y + surface.y;
+    return Object.assign({
+      "screen": surfaceWindow.screenName
+    }, EdgeAttach.joinOpening(Bar.edgeName(root.edge), atStart, from, root.vertical ? surface.width : surface.height, surface.joinShown, (root.vertical ? root.screen?.width : root.screen?.height) ?? 0));
+  }
+  readonly property var _startJoinOpening: surface.joinStart ? root._joinOpening(true) : null
+  readonly property var _endJoinOpening: surface.joinEnd ? root._joinOpening(false) : null
+  on_StartJoinOpeningChanged: ShellManager.setBorderOpening("edgePopoutStart:" + root, root._startJoinOpening)
+  on_EndJoinOpeningChanged: ShellManager.setBorderOpening("edgePopoutEnd:" + root, root._endJoinOpening)
   Component.onDestruction: {
     ShellManager.setBorderOpening(root, null);
     ShellManager.setBorderOpening("edgePopoutSubmenu:" + root, null);
+    ShellManager.setBorderOpening("edgePopoutStart:" + root, null);
+    ShellManager.setBorderOpening("edgePopoutEnd:" + root, null);
   }
 
   currentItem: root.contentItem
@@ -346,7 +363,10 @@ PopoutWrapperBase {
     openToLeft: root.openToLeft
     host: root
   }
-  readonly property bool openToLeft: root.vertical ? root.edge === Bar.Right : boxArea.x + boxArea.width / 2 > surfaceWindow.width / 2
+  // Towards the nearer half; a box about the middle opens right (judged
+  // by its exact centre, it flipped with a few px of where its window was
+  // found to be)
+  readonly property bool openToLeft: root.vertical ? root.edge === Bar.Right : boxArea.x + boxArea.width / 2 > surfaceWindow.width * 0.55
   childOpen: sub.occupied
   // What an open submenu asks of the box (SubPopout.parentStretch: { top,
   // bottom, squareTop, squareBottom, joined, joinReach }), along y

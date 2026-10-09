@@ -260,6 +260,8 @@ Item {
   // covers the perpendicular stroke: its fill runs along it to the join's
   // fillet (SurfaceOutline.fillPath)
   readonly property real joinCover: _m.back + (root._straightJoins ? root.farV : root.farV + root.filletRadius)
+  // ...as much of it as is out past its edge now (none while it's behind)
+  readonly property real joinShown: Math.max(0, root.joinCover - root._hidden)
 
   // The content box in this item's coordinates, at rest (not slid). On
   // every side but the attach edge it coincides with the outer edge of

@@ -355,6 +355,22 @@ PopoutWrapperBase {
   readonly property var _submenuBorderOpening: root._onBorder && root._submenuSpan ? root.layoutSource?.borderOpening(root._submenuSpan.start, root._submenuSpan.end) ?? null : null
   on_BorderOpeningChanged: ShellManager.setBorderOpening("barPopout:" + root, root._borderOpening)
   on_SubmenuBorderOpeningChanged: ShellManager.setBorderOpening("barPopoutSubmenu:" + root, root._submenuBorderOpening)
+  // Joined to a perpendicular edge at an end (the border), that edge's
+  // stroke its end covers, from where the bar is on screen
+  function _joinOpening(atStart) {
+    const origin = surface.barOrigin;
+    if (!root.occupied || !root.claimed || !root.popupWindow.visible || !Appearance.translucent || !Appearance.screenBorder || mainPopup.detached || !origin)
+      return null;
+    const vertical = root.barConfig.vertical;
+    const from = vertical ? origin.x + mainPopup.barX : origin.y + mainPopup.barY;
+    return Object.assign({
+      "screen": root.screen?.name ?? ""
+    }, EdgeAttach.joinOpening(Bar.edgeName(root.barConfig.location), atStart, from, vertical ? surface.width : surface.height, surface.joinShown, (vertical ? root.screen?.width : root.screen?.height) ?? 0));
+  }
+  readonly property var _startJoinOpening: surface.joinStart ? root._joinOpening(true) : null
+  readonly property var _endJoinOpening: surface.joinEnd ? root._joinOpening(false) : null
+  on_StartJoinOpeningChanged: ShellManager.setBorderOpening("barPopoutStart:" + root, root._startJoinOpening)
+  on_EndJoinOpeningChanged: ShellManager.setBorderOpening("barPopoutEnd:" + root, root._endJoinOpening)
 
   // How far past the bar's outer edge a merged popout's content starts:
   // where a pill's far stroke would be, with the border on or off
@@ -444,6 +460,8 @@ PopoutWrapperBase {
     ShellManager.unregisterGrabPartner(mainPopup);
     ShellManager.setBorderOpening("barPopout:" + root, null);
     ShellManager.setBorderOpening("barPopoutSubmenu:" + root, null);
+    ShellManager.setBorderOpening("barPopoutStart:" + root, null);
+    ShellManager.setBorderOpening("barPopoutEnd:" + root, null);
   }
 
   // The overlay's focus grab lets input through to the popout (see
