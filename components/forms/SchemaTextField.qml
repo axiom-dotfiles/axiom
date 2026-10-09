@@ -19,10 +19,14 @@ ColumnLayout {
   property var suggestions: []
   property bool commaList: false
 
+  // The value is pushed in unless it's being typed, and only typing (or a
+  // suggestion picked) commits: a value pushed in, or cleared as the form
+  // is torn down (an editor closing, its selection going), would otherwise
+  // be committed back, onto whatever the form edits by then
   onCurrentConfigValueChanged: {
-    if (textEntry.text !== root.currentConfigValue)
+    if (!textEntry.input.activeFocus && textEntry.text !== root.currentConfigValue)
       textEntry.text = root.currentConfigValue;
-    if (textArea.text !== root.currentConfigValue)
+    if (!textArea.input.activeFocus && textArea.text !== root.currentConfigValue)
       textArea.text = root.currentConfigValue;
   }
 
@@ -46,7 +50,10 @@ ColumnLayout {
     Layout.preferredHeight: Widget.height
     text: root.currentConfigValue
 
-    input.onTextChanged: root._accept(input.text)
+    input.onTextChanged: {
+      if (textEntry.input.activeFocus)
+        root._accept(textEntry.input.text);
+    }
   }
 
   StyledTextArea {
@@ -59,8 +66,8 @@ ColumnLayout {
     text: root.currentConfigValue
 
     input.onTextChanged: {
-      if (root.multiline)
-        root._accept(input.text);
+      if (root.multiline && textArea.input.activeFocus)
+        root._accept(textArea.input.text);
     }
   }
 
@@ -79,11 +86,14 @@ ColumnLayout {
         onClicked: {
           if (!root.commaList) {
             textEntry.text = modelData;
+            root._accept(modelData);
             return;
           }
           const items = textEntry.text.split(",").map(v => v.trim()).filter(v => v !== "");
-          if (!items.includes(modelData))
+          if (!items.includes(modelData)) {
             textEntry.text = items.concat([modelData]).join(", ");
+            root._accept(textEntry.text);
+          }
         }
       }
     }
