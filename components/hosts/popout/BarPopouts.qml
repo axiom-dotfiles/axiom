@@ -658,8 +658,15 @@ PopoutWrapperBase {
     // On the Overlay layer unless under the bar
     backed: BlurManager.backsOn(root.screen, !root.underBar) && surface.barOrigin !== null
     opaque: BlurManager.opaqueOn(root.screen)
-    // A submenu's opening in the box's side stroke (SubPopout)
-    strokeHoles: root.submenuHole ? [Qt.rect(root.submenuHole.x - surface.x, root.submenuHole.y - surface.y, root.submenuHole.width, root.submenuHole.height)] : []
+    // A submenu's opening in the box's side stroke (SubPopout), and
+    // joined to the bar side beside the box, the fillet there: the
+    // submenu's top runs on along the stroke the box grows from, over it
+    strokeHoles: (root.submenuHole ? [Qt.rect(root.submenuHole.x - surface.x, root.submenuHole.y - surface.y, root.submenuHole.width, root.submenuHole.height)] : []).concat(root._sideJoined ? [surface._sideFilletHole] : [])
+    // The fillet on the submenu's side, with its anti-aliased fringe
+    readonly property rect _sideFilletHole: {
+      const along = (root.openToLeft ? surface.startMargin : surface.endMargin) + surface.strokeWidth + 1;
+      return surface._rectFrom(root.openToLeft ? 0 : surface.alongLength - along, -1, along, surface.filletRadius + surface.strokeWidth + 2);
+    }
 
     BlurShape {
       source: surface
