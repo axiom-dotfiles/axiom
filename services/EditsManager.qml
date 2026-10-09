@@ -5,6 +5,10 @@ import QtQuick
 // draft (the navigator's dots and the unsaved-changes strip), and saving
 // or discarding them all at once. Drafts survive leaving a page or closing
 // the overlay, so this reminds rather than blocks.
+//
+// Also how the editors are laid out, which outlives their pages (saved in
+// state/editors.json): whether the libraries group their types, and
+// whether the bar editor stacks a horizontal bar's sections.
 QtObject {
   id: root
 
@@ -36,6 +40,37 @@ QtObject {
   // keep/revert step, so it's saved on its page
   readonly property var separate: ["Monitors"]
   readonly property bool canActOnAll: root.unsaved.some(type => !root.separate.includes(type))
+
+  // The widget and module libraries show their types by group (the
+  // schema's `x-libraryGroups`), else by name
+  property bool libraryGrouped: false
+  // The bar editor draws a top or bottom bar's sections stacked down the
+  // side of the page, as a side bar's, rather than across it
+  property bool barStacked: false
+  readonly property var _state: StateManager.createStateHandler("editors")
+
+  function setLibraryGrouped(value) {
+    root.libraryGrouped = value;
+    root._saveState();
+  }
+
+  function setBarStacked(value) {
+    root.barStacked = value;
+    root._saveState();
+  }
+
+  function _saveState() {
+    root._state.save({
+      "libraryGrouped": root.libraryGrouped,
+      "barStacked": root.barStacked
+    });
+  }
+
+  Component.onCompleted: {
+    const saved = root._state.load({});
+    root.libraryGrouped = saved.libraryGrouped === true;
+    root.barStacked = saved.barStacked === true;
+  }
 
   function isUnsaved(type) {
     return root.unsaved.includes(type);

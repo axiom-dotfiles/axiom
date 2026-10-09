@@ -20,17 +20,25 @@ DragLayer {
   readonly property real ghostLength: root.vertical ? ghost.height : ghost.width
 
   readonly property string location: BarManager.selectedBar()?.location ?? "Top"
-  readonly property bool vertical: root.location === "Left" || root.location === "Right"
+  // The bar runs down a side of the screen
+  readonly property bool barVertical: root.location === "Left" || root.location === "Right"
+  // A top or bottom bar's sections drawn stacked down the left of the
+  // page, as a side bar's (EditsManager.barStacked)
+  readonly property bool stacked: !root.barVertical && EditsManager.barStacked
+  // The sections are drawn top to bottom
+  readonly property bool vertical: root.barVertical || root.stacked
+  // The side of the page the sections are drawn along
+  readonly property string side: root.stacked ? "Left" : root.location
   // The bar's sections in order. On a vertical bar they run top to
   // bottom; the keys stay the same.
   readonly property var zones: [
     {
       "key": "left",
-      "label": root.vertical ? I18n.tr("Top") : I18n.tr("Left")
+      "label": root.barVertical ? I18n.tr("Top") : I18n.tr("Left")
     },
     {
       "key": "leftCenter",
-      "label": root.vertical ? I18n.tr("Top Center") : I18n.tr("Left Center")
+      "label": root.barVertical ? I18n.tr("Top Center") : I18n.tr("Left Center")
     },
     {
       "key": "center",
@@ -38,11 +46,11 @@ DragLayer {
     },
     {
       "key": "rightCenter",
-      "label": root.vertical ? I18n.tr("Bottom Center") : I18n.tr("Right Center")
+      "label": root.barVertical ? I18n.tr("Bottom Center") : I18n.tr("Right Center")
     },
     {
       "key": "right",
-      "label": root.vertical ? I18n.tr("Bottom") : I18n.tr("Right")
+      "label": root.barVertical ? I18n.tr("Bottom") : I18n.tr("Right")
     }
   ]
 
@@ -107,7 +115,7 @@ DragLayer {
   // Away from the bar's edge, in the middle of the inspector side
   TrashTarget {
     x: (root.width - width) / 2
-    y: root.location === "Bottom" ? Widget.padding : root.height - height - Widget.padding
+    y: root.side === "Bottom" ? Widget.padding : root.height - height - Widget.padding
     dragLayer: root
     active: root.dragging?.kind === "move"
   }

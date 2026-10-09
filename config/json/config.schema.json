@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Axiom Configuration Schema",
-  "description": "Source of truth for config/user/config.json. Every key's `default` is filled in at load time (SchemaValidation.applyDefaults), so config readers never need their own fallbacks. `title`/`description`/`minimum`/`maximum`/`enum` drive the generated settings UI; `x-settings: false` hides a key from it (edited elsewhere, or UI-owned state); `x-options` names a dynamic option list (\"screens\", \"chatProviders\" and \"chatPresets\", \"colors\" for the 16 base theme colors, \"languages\" from config/i18n, \"cursorThemes\" for installed cursor themes, \"timezones\" for the system's time zones, \"edgeMenus\" for the ids of EdgeMenus); `x-showIf` ({ sibling: value | [values] | { not: value } }) hides a field unless a sibling matches; a key starting with `/` is a dotted path from the config root instead (\"/Workspaces.layout\"). `x-enumLabels` ({ value: label }) shows labels instead of raw enum values in dropdowns. `x-multiline: true` edits a string in a growing text area. `x-categories` at the root lists the settings sidebar's categories in order, each `{ name, icon, page }` (`page`: a hand-built part after its cards, `views/settings/<page>.qml`); sections join one with `x-category`. `x-beside: true` on a field puts it beside the field before it on its settings card, each taking half the width. `x-order` on an object schema lists the keys its form shows first, in order (a schema reaches QML as a map, whose keys come out sorted). `x-defaultSize` ([w, h] in grid units, four to a card) on an overlay module definition is the size it's added at, and `x-minSize` the least a drop into a gap shrinks it to (half the default when left out); `x-icon` on a module or view definition is its Material Symbols icon name in the editor. `x-hosts` on a module definition lists where it may be placed (\"overlay\", \"edgeMenu\", \"lockscreen\", \"greeter\", \"desktop\"; the first two when left out, so the lock screen, the greeter and the desktop only take modules that list them). `x-greeter: true` on a Hyprland.managed option carries it to the greeter (its Hyprland takes the option in managed mode). A `$ref` may carry keys beside it (`default`, `title`, …), which override the definition's. `x-required: true` on one makes it part of every grid on its hosts: it can't be removed or duplicated, and the library doesn't offer it. `x-canvasDetail` names a module property the layouts editor shows on its tile (a list joined), and `x-canvasFill` a color property the tile is filled with. `x-takeover: true` marks a setting that takes something over on this PC (the Hyprland mode, the lock screen, idle, polkit, the greeter): loading a saved config, the defaults, an example or an import keeps its current value (ConfigExamples.keepTakeovers). Bar widgets are a oneOf discriminated by `type`, and get their `properties` defaults filled like everything else.",
+  "description": "Source of truth for config/user/config.json. Every key's `default` is filled in at load time (SchemaValidation.applyDefaults), so config readers never need their own fallbacks. `title`/`description`/`minimum`/`maximum`/`enum` drive the generated settings UI; `x-settings: false` hides a key from it (edited elsewhere, or UI-owned state); `x-options` names a dynamic option list (\"screens\", \"chatProviders\" and \"chatPresets\", \"colors\" for the 16 base theme colors, \"languages\" from config/i18n, \"cursorThemes\" for installed cursor themes, \"timezones\" for the system's time zones, \"edgeMenus\" for the ids of EdgeMenus); `x-showIf` ({ sibling: value | [values] | { not: value } }) hides a field unless a sibling matches; a key starting with `/` is a dotted path from the config root instead (\"/Workspaces.layout\"). `x-enumLabels` ({ value: label }) shows labels instead of raw enum values in dropdowns. `x-multiline: true` edits a string in a growing text area. `x-categories` at the root lists the settings sidebar's categories in order, each `{ name, icon, page }` (`page`: a hand-built part after its cards, `views/settings/<page>.qml`); sections join one with `x-category`. `x-libraryGroups` at the root lists, in order, the groups the bar editor's and layouts editor's libraries sort their types into (by category); each bar widget and overlay module definition joins one with `x-libraryGroup`. `x-beside: true` on a field puts it beside the field before it on its settings card, each taking half the width. `x-order` on an object schema lists the keys its form shows first, in order (a schema reaches QML as a map, whose keys come out sorted). `x-defaultSize` ([w, h] in grid units, four to a card) on an overlay module definition is the size it's added at, and `x-minSize` the least a drop into a gap shrinks it to (half the default when left out); `x-icon` on a module or view definition is its Material Symbols icon name in the editor. `x-hosts` on a module definition lists where it may be placed (\"overlay\", \"edgeMenu\", \"lockscreen\", \"greeter\", \"desktop\"; the first two when left out, so the lock screen, the greeter and the desktop only take modules that list them). `x-greeter: true` on a Hyprland.managed option carries it to the greeter (its Hyprland takes the option in managed mode). A `$ref` may carry keys beside it (`default`, `title`, …), which override the definition's. `x-required: true` on one makes it part of every grid on its hosts: it can't be removed or duplicated, and the library doesn't offer it. `x-canvasDetail` names a module property the layouts editor shows on its tile (a list joined), and `x-canvasFill` a color property the tile is filled with. `x-takeover: true` marks a setting that takes something over on this PC (the Hyprland mode, the lock screen, idle, polkit, the greeter): loading a saved config, the defaults, an example or an import keeps its current value (ConfigExamples.keepTakeovers). Bar widgets are a oneOf discriminated by `type`, and get their `properties` defaults filled like everything else.",
   "type": "object",
   "x-categories": [
     { "name": "General", "icon": "home" },
@@ -16,6 +16,16 @@
     { "name": "Calendar", "icon": "calendar_month" },
     { "name": "Modules", "icon": "widgets" },
     { "name": "Maintenance", "icon": "build", "page": "SavedConfigsSection" }
+  ],
+  "x-libraryGroups": [
+    "Desktop",
+    "Time & weather",
+    "Media & audio",
+    "Network & devices",
+    "System",
+    "Tools",
+    "Look & layout",
+    "Session"
   ],
   "additionalProperties": false,
   "properties": {
@@ -3348,6 +3358,7 @@
     "ThemePickerOverlayModule": {
       "type": "object",
       "x-icon": "palette",
+      "x-libraryGroup": "Look & layout",
       "x-defaultSize": [4, 8],
       "required": ["type"],
       "additionalProperties": false,
@@ -3360,6 +3371,7 @@
       "type": "object",
       "x-hosts": ["overlay", "edgeMenu", "lockscreen", "desktop"],
       "x-icon": "music_note",
+      "x-libraryGroup": "Media & audio",
       "x-defaultSize": [4, 2],
       "required": ["type"],
       "additionalProperties": false,
@@ -3371,6 +3383,7 @@
     "AudioMixerOverlayModule": {
       "type": "object",
       "x-icon": "tune",
+      "x-libraryGroup": "Media & audio",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -3389,6 +3402,7 @@
     "BrightnessOverlayModule": {
       "type": "object",
       "x-icon": "brightness_medium",
+      "x-libraryGroup": "System",
       "x-defaultSize": [4, 1],
       "required": ["type"],
       "additionalProperties": false,
@@ -3408,6 +3422,7 @@
       "type": "object",
       "x-hosts": ["overlay", "edgeMenu", "lockscreen", "desktop"],
       "x-icon": "volume_up",
+      "x-libraryGroup": "Media & audio",
       "x-defaultSize": [4, 2],
       "required": ["type"],
       "additionalProperties": false,
@@ -3420,6 +3435,7 @@
       "type": "object",
       "x-hosts": ["overlay", "edgeMenu", "lockscreen", "desktop"],
       "x-icon": "show_chart",
+      "x-libraryGroup": "System",
       "x-canvasDetail": "metrics",
       "required": ["type"],
       "additionalProperties": false,
@@ -3439,6 +3455,7 @@
       "type": "object",
       "x-hosts": ["overlay", "edgeMenu", "lockscreen", "desktop"],
       "x-icon": "hard_drive",
+      "x-libraryGroup": "System",
       "x-canvasDetail": "paths",
       "x-defaultSize": [4, 2],
       "required": ["type"],
@@ -3459,6 +3476,7 @@
       "type": "object",
       "x-hosts": ["overlay", "edgeMenu", "desktop"],
       "x-icon": "format_list_bulleted",
+      "x-libraryGroup": "System",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -3478,6 +3496,7 @@
       "type": "object",
       "x-hosts": ["overlay", "edgeMenu", "desktop"],
       "x-icon": "upload",
+      "x-libraryGroup": "System",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -3498,6 +3517,7 @@
       "type": "object",
       "x-hosts": ["overlay", "edgeMenu", "desktop"],
       "x-icon": "toggle_on",
+      "x-libraryGroup": "Tools",
       "x-defaultSize": [4, 2],
       "required": ["type"],
       "additionalProperties": false,
@@ -3518,6 +3538,7 @@
     "WorkspacesMapOverlayModule": {
       "type": "object",
       "x-icon": "grid_view",
+      "x-libraryGroup": "Desktop",
       "x-defaultSize": [4, 2],
       "required": ["type"],
       "additionalProperties": false,
@@ -3536,6 +3557,7 @@
     "NotificationsOverlayModule": {
       "type": "object",
       "x-icon": "notifications",
+      "x-libraryGroup": "Desktop",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -3553,6 +3575,7 @@
     "WifiNetworksOverlayModule": {
       "type": "object",
       "x-icon": "wifi",
+      "x-libraryGroup": "Network & devices",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -3570,6 +3593,7 @@
     "BluetoothDevicesOverlayModule": {
       "type": "object",
       "x-icon": "bluetooth",
+      "x-libraryGroup": "Network & devices",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -3587,6 +3611,7 @@
     "ScreenshotOverlayModule": {
       "type": "object",
       "x-icon": "camera",
+      "x-libraryGroup": "Tools",
       "x-defaultSize": [4, 2],
       "required": ["type"],
       "additionalProperties": false,
@@ -3605,6 +3630,7 @@
     "GreetingOverlayModule": {
       "type": "object",
       "x-icon": "waving_hand",
+      "x-libraryGroup": "Time & weather",
       "x-defaultSize": [8, 2],
       "x-canvasDetail": "text",
       "x-hosts": ["overlay", "edgeMenu", "lockscreen", "greeter", "desktop"],
@@ -3629,6 +3655,7 @@
     "PasswordOverlayModule": {
       "type": "object",
       "x-icon": "password",
+      "x-libraryGroup": "Session",
       "x-defaultSize": [6, 1],
       "x-hosts": ["lockscreen"],
       "x-required": true,
@@ -3652,6 +3679,7 @@
     "LoginOverlayModule": {
       "type": "object",
       "x-icon": "login",
+      "x-libraryGroup": "Session",
       "x-defaultSize": [6, 3],
       "x-hosts": ["greeter"],
       "x-required": true,
@@ -3677,6 +3705,7 @@
     "SessionOverlayModule": {
       "type": "object",
       "x-icon": "desktop_windows",
+      "x-libraryGroup": "Session",
       "x-defaultSize": [4, 1],
       "x-hosts": ["greeter"],
       "required": ["type"],
@@ -3689,6 +3718,7 @@
     "PowerOverlayModule": {
       "type": "object",
       "x-icon": "power_settings_new",
+      "x-libraryGroup": "Session",
       "x-defaultSize": [3, 1],
       "x-canvasDetail": "actions",
       "x-hosts": ["lockscreen", "greeter"],
@@ -3715,6 +3745,7 @@
     "CalculatorOverlayModule": {
       "type": "object",
       "x-icon": "calculate",
+      "x-libraryGroup": "Tools",
       "x-defaultSize": [4, 4],
       "required": ["type"],
       "additionalProperties": false,
@@ -3734,6 +3765,7 @@
     "EmojiPickerOverlayModule": {
       "type": "object",
       "x-icon": "add_reaction",
+      "x-libraryGroup": "Tools",
       "x-defaultSize": [4, 6],
       "required": ["type"],
       "additionalProperties": false,
@@ -3752,6 +3784,7 @@
     "ClipboardHistoryOverlayModule": {
       "type": "object",
       "x-icon": "content_paste",
+      "x-libraryGroup": "Tools",
       "x-defaultSize": [4, 6],
       "required": ["type"],
       "additionalProperties": false,
@@ -3771,6 +3804,7 @@
       "type": "object",
       "x-hosts": ["overlay", "edgeMenu", "desktop"],
       "x-icon": "travel_explore",
+      "x-libraryGroup": "Time & weather",
       "x-defaultSize": [4, 4],
       "required": ["type"],
       "additionalProperties": false,
@@ -3811,6 +3845,7 @@
     "NightLightControlsOverlayModule": {
       "type": "object",
       "x-icon": "bedtime",
+      "x-libraryGroup": "System",
       "x-defaultSize": [4, 2],
       "required": ["type"],
       "additionalProperties": false,
@@ -3823,6 +3858,7 @@
       "type": "object",
       "x-hosts": ["overlay", "edgeMenu", "desktop"],
       "x-icon": "terminal",
+      "x-libraryGroup": "Tools",
       "x-defaultSize": [4, 2],
       "required": ["type"],
       "additionalProperties": false,
@@ -3847,6 +3883,7 @@
     "ScreenRecordOverlayModule": {
       "type": "object",
       "x-icon": "screen_record",
+      "x-libraryGroup": "Tools",
       "x-defaultSize": [4, 4],
       "required": ["type"],
       "additionalProperties": false,
@@ -3866,6 +3903,7 @@
     "CheatsheetOverlayModule": {
       "type": "object",
       "x-icon": "keyboard",
+      "x-libraryGroup": "Tools",
       "x-defaultSize": [8, 6],
       "required": ["type"],
       "additionalProperties": false,
@@ -3885,6 +3923,7 @@
     "KeyboardLayoutOverlayModule": {
       "type": "object",
       "x-icon": "keyboard",
+      "x-libraryGroup": "Session",
       "x-defaultSize": [2, 1],
       "x-hosts": ["greeter"],
       "required": ["type"],
@@ -3898,6 +3937,7 @@
       "type": "object",
       "x-hosts": ["overlay", "edgeMenu", "lockscreen", "greeter", "desktop"],
       "x-icon": "calendar_clock",
+      "x-libraryGroup": "Time & weather",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -3918,6 +3958,7 @@
       "type": "object",
       "x-hosts": ["overlay", "edgeMenu", "lockscreen", "greeter", "desktop"],
       "x-icon": "schedule",
+      "x-libraryGroup": "Time & weather",
       "x-defaultSize": [4, 3],
       "x-canvasDetail": "style",
       "required": ["type"],
@@ -3952,6 +3993,7 @@
     "CalendarOverlayModule": {
       "type": "object",
       "x-icon": "calendar_month",
+      "x-libraryGroup": "Time & weather",
       "x-defaultSize": [4, 8],
       "required": ["type"],
       "additionalProperties": false,
@@ -3963,6 +4005,7 @@
     "AgendaOverlayModule": {
       "type": "object",
       "x-icon": "event_note",
+      "x-libraryGroup": "Time & weather",
       "x-defaultSize": [4, 4],
       "required": ["type"],
       "additionalProperties": false,
@@ -3984,6 +4027,7 @@
       "type": "object",
       "x-hosts": ["overlay", "edgeMenu", "lockscreen", "greeter", "desktop"],
       "x-icon": "partly_cloudy_day",
+      "x-libraryGroup": "Time & weather",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -3995,6 +4039,7 @@
       "type": "object",
       "x-hosts": ["overlay", "edgeMenu", "lockscreen", "greeter", "desktop"],
       "x-icon": "battery_full",
+      "x-libraryGroup": "System",
       "x-defaultSize": [2, 2],
       "required": ["type"],
       "additionalProperties": false,
@@ -4007,6 +4052,7 @@
       "type": "object",
       "x-hosts": ["overlay", "edgeMenu", "lockscreen", "greeter", "desktop"],
       "x-icon": "wifi",
+      "x-libraryGroup": "Network & devices",
       "x-defaultSize": [4, 2],
       "required": ["type"],
       "additionalProperties": false,
@@ -4019,6 +4065,7 @@
       "type": "object",
       "x-hosts": ["overlay", "edgeMenu", "desktop"],
       "x-icon": "star",
+      "x-libraryGroup": "Tools",
       "x-defaultSize": [4, 2],
       "required": ["type"],
       "additionalProperties": false,
@@ -4038,6 +4085,7 @@
     "ChatOverlayModule": {
       "type": "object",
       "x-icon": "smart_toy",
+      "x-libraryGroup": "Tools",
       "x-defaultSize": [4, 8],
       "required": ["type"],
       "additionalProperties": false,
@@ -4049,6 +4097,7 @@
     "NotesOverlayModule": {
       "type": "object",
       "x-icon": "sticky_note_2",
+      "x-libraryGroup": "Tools",
       "x-defaultSize": [4, 8],
       "required": ["type"],
       "additionalProperties": false,
@@ -4071,6 +4120,7 @@
     "WallpaperPickerOverlayModule": {
       "type": "object",
       "x-icon": "photo_library",
+      "x-libraryGroup": "Look & layout",
       "x-defaultSize": [4, 8],
       "required": ["type"],
       "additionalProperties": false,
@@ -4083,6 +4133,7 @@
       "type": "object",
       "x-hosts": ["overlay", "edgeMenu", "lockscreen", "greeter", "desktop"],
       "x-icon": "palette",
+      "x-libraryGroup": "Look & layout",
       "x-defaultSize": [8, 4],
       "required": ["type"],
       "additionalProperties": false,
@@ -4095,6 +4146,7 @@
       "type": "object",
       "x-hosts": ["overlay", "edgeMenu", "lockscreen", "greeter", "desktop"],
       "x-icon": "palette",
+      "x-libraryGroup": "Look & layout",
       "x-defaultSize": [2, 2],
       "x-canvasDetail": "color",
       "x-canvasFill": "color",
@@ -4158,6 +4210,7 @@
     "WindowWidget": {
       "type": "object",
       "x-icon": "wrap_text",
+      "x-libraryGroup": "Desktop",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -4179,6 +4232,7 @@
     "MediaWidget": {
       "type": "object",
       "x-icon": "music_note",
+      "x-libraryGroup": "Media & audio",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -4203,6 +4257,7 @@
     "WorkspacesWidget": {
       "type": "object",
       "x-icon": "grid_view",
+      "x-libraryGroup": "Desktop",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -4235,6 +4290,7 @@
     "TimeWidget": {
       "type": "object",
       "x-icon": "schedule",
+      "x-libraryGroup": "Time & weather",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -4262,6 +4318,7 @@
     "TailscaleWidget": {
       "type": "object",
       "x-icon": "vpn_lock",
+      "x-libraryGroup": "Network & devices",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -4285,6 +4342,7 @@
     "NetworkWidget": {
       "type": "object",
       "x-icon": "wifi",
+      "x-libraryGroup": "Network & devices",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -4308,6 +4366,7 @@
     "SystemTrayWidget": {
       "type": "object",
       "x-icon": "apps",
+      "x-libraryGroup": "Desktop",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -4329,6 +4388,7 @@
     "NotificationsWidget": {
       "type": "object",
       "x-icon": "notifications",
+      "x-libraryGroup": "Desktop",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -4352,6 +4412,7 @@
     "ButtonWidget": {
       "type": "object",
       "x-icon": "terminal",
+      "x-libraryGroup": "Tools",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -4383,6 +4444,7 @@
     "BatteryWidget": {
       "type": "object",
       "x-icon": "battery_full",
+      "x-libraryGroup": "System",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -4406,6 +4468,7 @@
     "SystemStatsWidget": {
       "type": "object",
       "x-icon": "memory_alt",
+      "x-libraryGroup": "System",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -4436,6 +4499,7 @@
     "KeyboardLayoutWidget": {
       "type": "object",
       "x-icon": "keyboard",
+      "x-libraryGroup": "System",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -4457,6 +4521,7 @@
     "IdleInhibitorWidget": {
       "type": "object",
       "x-icon": "coffee",
+      "x-libraryGroup": "System",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -4478,6 +4543,7 @@
     "PrivacyWidget": {
       "type": "object",
       "x-icon": "visibility",
+      "x-libraryGroup": "System",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -4501,6 +4567,7 @@
     "ScreenRecordWidget": {
       "type": "object",
       "x-icon": "radio_button_checked",
+      "x-libraryGroup": "Tools",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -4521,6 +4588,7 @@
     "UpdatesWidget": {
       "type": "object",
       "x-icon": "package_2",
+      "x-libraryGroup": "System",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -4549,6 +4617,7 @@
     "ClaudeUsageWidget": {
       "type": "object",
       "x-icon": "data_usage",
+      "x-libraryGroup": "System",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -4595,6 +4664,7 @@
     "WeatherWidget": {
       "type": "object",
       "x-icon": "partly_cloudy_day",
+      "x-libraryGroup": "Time & weather",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -4616,6 +4686,7 @@
     "NextEventWidget": {
       "type": "object",
       "x-icon": "event",
+      "x-libraryGroup": "Time & weather",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -4639,6 +4710,7 @@
     "SeparatorWidget": {
       "type": "object",
       "x-icon": "more_vert",
+      "x-libraryGroup": "Look & layout",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -4661,6 +4733,7 @@
     "VolumeWidget": {
       "type": "object",
       "x-icon": "volume_up",
+      "x-libraryGroup": "Media & audio",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -4686,6 +4759,7 @@
     "MicrophoneWidget": {
       "type": "object",
       "x-icon": "mic",
+      "x-libraryGroup": "Media & audio",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {
@@ -4713,6 +4787,7 @@
     "BluetoothWidget": {
       "type": "object",
       "x-icon": "bluetooth",
+      "x-libraryGroup": "Network & devices",
       "required": ["type"],
       "additionalProperties": false,
       "properties": {

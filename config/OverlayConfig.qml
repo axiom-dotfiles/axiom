@@ -50,6 +50,8 @@ QtObject {
         "tool": def["x-tool"] === true,
         // Material Symbols name (`x-icon`)
         "icon": def["x-icon"] ?? "extension",
+        // Its group in the module library (`x-libraryGroup`)
+        "group": def["x-libraryGroup"] ?? "",
         // Where a module may be placed (`x-hosts`): "overlay", "edgeMenu",
         // "lockscreen" (only modules that list it)
         "hosts": def["x-hosts"] ?? ["overlay", "edgeMenu"],
@@ -64,6 +66,9 @@ QtObject {
     }).filter(t => t !== null);
   }
   readonly property var availableModuleTypes: _oneOfTypes("OverlayModule")
+  // The groups the editors' libraries sort bar widgets and modules into
+  // (the schema's `x-libraryGroups`), in order
+  readonly property var libraryGroups: ConfigManager.configSchema?.["x-libraryGroups"] ?? []
   // A Custom page's own fields (name, icon, fineGrid), for the layouts
   // editor
   readonly property var customViewSchema: ConfigManager.configSchema.definitions.CustomOverlayView.properties
