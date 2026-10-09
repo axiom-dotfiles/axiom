@@ -12,12 +12,12 @@ import qs.services
 // it, whatever bars or widgets are configured.
 Scope {
   LazyLoader {
-    active: IdleInhibitManager.enabled
+    active: IdleInhibitManager.enabled && General.outputs.length > 0
 
     PanelWindow {
       id: holder
 
-      screen: Quickshell.screens.find(s => s.name === General.primaryMonitor) ?? Quickshell.screens[0] ?? null
+      screen: General.screensNamed(General.primaryMonitor)[0]
       WlrLayershell.layer: WlrLayer.Background
       WlrLayershell.namespace: "axiom-idle-inhibit"
       exclusionMode: ExclusionMode.Ignore

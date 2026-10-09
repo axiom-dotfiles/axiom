@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import Quickshell
 import QtQuick
 import qs.services
+import qs.config
 import qs.components.bar
 
 Scope {
@@ -18,7 +19,7 @@ Scope {
     // correctly: its rule has Hyprland arrange it first, or after the border
     // when inside it (HyprlandManager._addLayerRules), once the rules are in
     // (layerRulesReady).
-    model: HyprlandManager.layerRulesReady ? BarManager.bars.map(b => b.id + (b.insideBorder ? ":floating" : "")) : []
+    model: HyprlandManager.layerRulesReady && General.outputs.length > 0 ? BarManager.bars.map(b => b.id + (b.insideBorder ? ":floating" : "")) : []
     delegate: BarPanel {
       required property string modelData
       readonly property string barId: modelData.replace(/:floating$/, "")

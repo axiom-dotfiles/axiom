@@ -64,7 +64,7 @@ Scope {
   // On every monitor, whatever General > Monitors says: it opens on the
   // hovered one
   Variants {
-    model: Quickshell.screens
+    model: General.outputs
 
     delegate: PanelWindow {
       id: overlayWindow

@@ -36,7 +36,7 @@ Scope {
 
   LazyLoader {
     id: previewLoader
-    readonly property var screen: Quickshell.screens.find(screen => screen.name === DockManager.previewScreen) ?? null
+    readonly property var screen: General.outputs.find(screen => screen.name === DockManager.previewScreen) ?? null
     active: HyprlandManager.layerRulesReady && DockManager.previewActive && previewLoader.screen !== null
 
     DockWindow {

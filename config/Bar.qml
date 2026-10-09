@@ -1,6 +1,5 @@
 pragma Singleton
 import QtQuick
-import Quickshell
 
 import qs.services
 import qs.components.methods
@@ -330,7 +329,7 @@ QtObject {
   // menu's: its named screen, else (empty or not connected) the primary
   // monitor.
   function expandBars(bars) {
-    const names = Array.from(Quickshell.screens).map(s => s.name);
+    const names = General.outputs.map(s => s.name);
     return [].concat(...bars.map(bar => {
       if (bar.monitor !== "*")
         return [Object.assign({}, bar, {

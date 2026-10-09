@@ -14,7 +14,7 @@ PanelWindow {
   required property var barConfig
 
   // BarManager.bars has resolved the monitor (an empty one is the primary)
-  readonly property ShellScreen targetScreen: Quickshell.screens.find(s => s.name === barConfig.monitor) ?? Quickshell.screens[0] ?? null
+  readonly property ShellScreen targetScreen: General.outputs.find(s => s.name === barConfig.monitor) ?? General.outputs[0] ?? null
   screen: targetScreen
   // A solid bar sits at the screen edge, and the screen border's strip
   // (arranged after it) overlaps its inner part, drawing the bar's inner

@@ -15,7 +15,7 @@ Scope {
     model: {
       if (!OnboardingManager.shown)
         return [];
-      const screens = Array.from(Quickshell.screens);
+      const screens = General.outputs;
       return [screens.find(screen => screen.name === General.primaryMonitor) ?? screens[0]].filter(screen => !!screen);
     }
 

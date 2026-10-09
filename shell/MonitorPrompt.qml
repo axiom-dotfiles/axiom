@@ -1,5 +1,6 @@
 pragma ComponentBehavior: Bound
 import Quickshell
+import qs.config
 
 import qs.components.surfaces.monitors
 
@@ -8,7 +9,7 @@ import qs.components.surfaces.monitors
 // each screen's name while identifying
 Scope {
   Variants {
-    model: Quickshell.screens
+    model: General.outputs
     delegate: MonitorPromptWindow {
       required property ShellScreen modelData
       screen: modelData
