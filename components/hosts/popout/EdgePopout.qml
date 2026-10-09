@@ -239,11 +239,12 @@ PopoutWrapperBase {
   // Room for a side wall's fillet at an end that isn't joined
   readonly property real filletMargin: placement.filletMargin
   // The least room the box keeps from each end that isn't joined, from
-  // the perpendicular edge's inner side: its fillet's, or held, its gaps
-  // from the frame lines there (in this window's edge coordinates, which
-  // start past what's reserved there)
-  property real startInset: root.gaps ? Math.max(0, EdgeMenuManager.frameLineOn(root.screen, root.startSide) + root.gaps.start - root.reservedOn(root.startSide)) : root.filletMargin
-  property real endInset: root.gaps ? Math.max(0, EdgeMenuManager.frameLineOn(root.screen, root.endSide) + root.gaps.end - root.reservedOn(root.endSide)) : root.filletMargin
+  // the perpendicular edge's inner side: its fillet's past the corner
+  // (EdgePlacement.endRoom), or held, its gaps from the frame lines there
+  // (in this window's edge coordinates, which start past what's reserved
+  // there)
+  property real startInset: root.gaps ? Math.max(0, EdgeMenuManager.frameLineOn(root.screen, root.startSide) + root.gaps.start - root.reservedOn(root.startSide)) : placement.endRoom
+  property real endInset: root.gaps ? Math.max(0, EdgeMenuManager.frameLineOn(root.screen, root.endSide) + root.gaps.end - root.reservedOn(root.endSide)) : placement.endRoom
 
   // The natural box centred at `position`: an end joins when the box would
   // be pushed back from that edge, or leave less than a connector gap

@@ -107,9 +107,10 @@ Scope {
   readonly property real length: (root.vertical ? panelWindow.height : panelWindow.width) - root.strokeInset * 2
   readonly property real restLength: root.count * root.base + Math.max(0, root.count - 1) * root.spacing + root.separatorLength + root.pad * 2
   // The least room from the box to each end that isn't joined: held, its
-  // gaps from the frame lines there; else its fillet's
-  readonly property real startInset: root.gaps ? root._heldOffset(root.vertical ? Bar.Top : Bar.Left, root.gaps.start) : placement.filletMargin
-  readonly property real endInset: root.gaps ? root._heldOffset(root.vertical ? Bar.Bottom : Bar.Right, root.gaps.end) : placement.filletMargin
+  // gaps from the frame lines there; else its fillet's past the corner
+  // (EdgePlacement.endRoom)
+  readonly property real startInset: root.gaps ? root._heldOffset(root.vertical ? Bar.Top : Bar.Left, root.gaps.start) : placement.endRoom
+  readonly property real endInset: root.gaps ? root._heldOffset(root.vertical ? Bar.Bottom : Bar.Right, root.gaps.end) : placement.endRoom
   readonly property real _wanted: root.length * root.dock.position / 100
   // The box's centre at rest, kept within those
   readonly property real centre: {

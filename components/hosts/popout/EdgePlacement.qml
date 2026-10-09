@@ -72,6 +72,11 @@ QtObject {
   // Room for a side wall's fillet at an end that isn't joined (none on a
   // bare edge, which it runs straight off)
   readonly property real filletMargin: root.bareEdge ? 0 : EdgeAttach.filletMargin(root.connectorGap, Appearance.borderWidth, Appearance.borderRadius)
+  // The least room a box keeps from an end it doesn't join: its fillet's,
+  // past the corner into the perpendicular edge (the frame's inner corner,
+  // or a pill joined to this edge), whose arc a fillet's run along the
+  // stroke would draw a straight stub beside
+  readonly property real endRoom: root.filletMargin + (Appearance.screenBorder && !root.bareEdge ? Appearance.borderRadius : 0)
 
   // A bar other than a solid one on the edge (BarPanel), while it shows:
   // a bar inside the border hides under fullscreen windows
