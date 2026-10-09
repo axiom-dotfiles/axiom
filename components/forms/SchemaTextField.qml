@@ -85,6 +85,10 @@ ColumnLayout {
       if (root.multiline)
         root._accept(textArea.text);
     }
+    input.onActiveFocusChanged: {
+      if (!textArea.input.activeFocus)
+        root._show();
+    }
   }
 
   Flow {

@@ -65,6 +65,10 @@ PopoutWrapperBase {
     })
 
   autoDismiss: sync.autoDismiss
+  // Asked to come forward (EdgeMenuManager.engageRequested): it holds no
+  // popout claim, so there's no rank to raise (EdgePopout.engage)
+  function engage() {
+  }
   dismissDelay: root.menu.closeDelay
   keepAlive: panelHover.hovered || trigger.containsMouse
 

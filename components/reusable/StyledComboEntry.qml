@@ -44,15 +44,10 @@ Item {
     root._showText(root.editable ? root.value : root.labelOf(root.value));
   }
 
-  // Typed in since it last showed a value: only then is the text taken as
-  // a pick when the field loses focus. Text it was left showing (the value
-  // changed while it had focus: what it edits switched under it) would be
-  // picked onto what it edits now.
-  property bool _typed: false
   // Sets the field's text without it counting as typing (which would
-  // filter and reopen the list)
+  // filter and reopen the list, and be taken as a pick on focus loss)
   function _showText(text) {
-    root._typed = false;
+    entry.typed = false;
     entry.input.text = text;
   }
 
@@ -98,9 +93,9 @@ Item {
   implicitWidth: 200
 
   // Followed unless it's being typed over
-  onValueChanged: if (!root._typed || !entry.input.activeFocus)
+  onValueChanged: if (!entry.typed || !entry.input.activeFocus)
     root.showValue()
-  onOptionsChanged: if (!root._typed || !entry.input.activeFocus)
+  onOptionsChanged: if (!entry.typed || !entry.input.activeFocus)
     root.showValue()
   Component.onCompleted: root.showValue()
 
@@ -115,7 +110,6 @@ Item {
     onTextEdited: {
       if (!root.editable)
         return;
-      root._typed = true;
       root.query = entry.text;
       root.highlighted = 0;
       if (!dropdown.opened && root.matches.length > 0)
@@ -139,7 +133,7 @@ Item {
       function onActiveFocusChanged() {
         if (entry.input.activeFocus || !root.editable)
           return;
-        if (root._typed && entry.input.text.trim() !== root.value)
+        if (entry.typed && entry.input.text.trim() !== root.value)
           root.pick(entry.input.text.trim());
         else
           root.showValue();

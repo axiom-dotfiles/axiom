@@ -60,14 +60,14 @@ QtObject {
   }
   onWantedChanged: root._sync()
 
-  // Read through a var: engage() is EdgePopout's (a floating menu's host),
-  // which an integrated menu's has none of
+  // Read through a var: engage() is the hosts' own (FloatingEdgeMenu's
+  // EdgePopout, IntegratedEdgeMenu), not PopoutWrapperBase's
   readonly property var _edgeHost: root.host
   property Connections _engage: Connections {
     target: EdgeMenuManager
 
     function onEngageRequested(id) {
-      if (id === root.menuId && typeof root._edgeHost.engage === "function")
+      if (id === root.menuId)
         root._edgeHost.engage();
     }
   }

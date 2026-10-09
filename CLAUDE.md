@@ -123,7 +123,7 @@ Dependencies point one way:
 
 ## QML pitfalls (each has bitten)
 
-- `StyledTextEntry` writes every keystroke back to `text`, dropping any binding: push the value in (on selection/draft changes, unless focused) and act on `onTextChanged` while focused.
+- `StyledTextEntry` writes every keystroke back to `text`, dropping any binding: push the value in (on selection/draft changes, unless focused) and act on its `textEdited` (typing only, never a value pushed in). A field that commits on focus loss commits only if `typed`, or text it was left showing lands on whatever it edits by then.
 - An object literal as a property value needs parentheses: `payload: ({ … })`; `payload: { … }` is a code block.
 - Assigning a bound property (`currentIndex = i`) breaks its binding: change the source it's bound to instead.
 - A derived type must not redeclare a property its base declares (it shadows the base's, e.g. an alias).

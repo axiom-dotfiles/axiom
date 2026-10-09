@@ -103,8 +103,6 @@ StyledContainer {
             }
             return root.bind.action === "exec" ? I18n.tr("Command") : I18n.tr("Search text");
           }
-          property bool typed: false
-          onTextEdited: typed = true
           Component.onCompleted: input.text = root.bind.argument ?? ""
           input.onEditingFinished: {
             if (argumentText.typed)
@@ -152,8 +150,6 @@ StyledContainer {
           Layout.fillWidth: true
           Layout.preferredHeight: Widget.height
           placeholderText: HyprlandConfigManager.defaultLabel(root.bind) || I18n.tr("Label")
-          property bool typed: false
-          onTextEdited: typed = true
           Component.onCompleted: input.text = root.bind.description ?? ""
           input.onEditingFinished: {
             if (label.typed)
