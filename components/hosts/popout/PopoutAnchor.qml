@@ -39,13 +39,15 @@ Item {
   property var extraData: ({})
   property int openDelay: PopoutConfig.openDelay
   property bool active: true
+  // Off, hovering doesn't open it: its owner calls open() (on a click)
+  property bool openOnHover: true
   // A bar widget's hitArea: hovered in its background's shape (its
   // `hovered`) rather than in this item's bounds
   property var hitArea: null
 
   readonly property bool hovered: hitArea ? hitArea.hovered : hoverHandler.hovered
   onHoveredChanged: {
-    if (root.hovered && root.active) {
+    if (root.hovered && root.active && root.openOnHover) {
       if (root.popouts || root.menu !== "")
         openTimer.restart();
     } else {

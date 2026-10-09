@@ -14,6 +14,8 @@ ColumnLayout {
   required property var menu
   readonly property bool previewingThis: !!root.menu && EdgeMenuManager.previewing !== "" && EdgeMenuManager.previewing === root.menu.id
   readonly property var references: EdgeMenuManager.references(root.menu?.id ?? "")
+  // A submenu menu opens only from Submenu modules
+  readonly property bool submenu: EdgeMenusConfig.isSubmenu(root.menu)
 
   Layout.fillWidth: true
   spacing: Widget.spacing
@@ -48,7 +50,11 @@ ColumnLayout {
   StyledText {
     Layout.fillWidth: true
     wrapMode: Text.WordWrap
-    text: EdgeMenuManager.canPreview(root.menu) ? I18n.tr("Holds the menu open on its screen while you edit it, showing unsaved changes.") : I18n.tr("Enable the menu to show it.")
+    text: {
+      if (root.submenu)
+        return EdgeMenuManager.canPreview(root.menu) ? I18n.tr("Holds it open beside the menu it opens from while you edit it, showing unsaved changes.") : I18n.tr("Add a Submenu module opening it to an enabled floating menu to show it.");
+      return EdgeMenuManager.canPreview(root.menu) ? I18n.tr("Holds the menu open on its screen while you edit it, showing unsaved changes.") : I18n.tr("Enable the menu to show it.");
+    }
     textSize: Appearance.fontSize - 2
     opacity: 0.7
   }
@@ -69,7 +75,7 @@ ColumnLayout {
       spacing: Widget.spacing
 
       StyledIcon {
-        text: reference.ref.kind === "bind" ? "keyboard" : "toolbar"
+        text: reference.ref.kind === "bind" ? "keyboard" : reference.ref.kind === "submenu" ? "menu_open" : "toolbar"
         textColor: Theme.accent
       }
       StyledText {
@@ -81,16 +87,19 @@ ColumnLayout {
   }
 
   StyledText {
+    id: nothingYet
     visible: root.references.length === 0
     Layout.fillWidth: true
     wrapMode: Text.WordWrap
-    text: root.menu?.openOnHover ? I18n.tr("Nothing else yet: it opens when the pointer rests on its edge.") : I18n.tr("Nothing yet: turn on Open on hover, or add a bar button or keybind.")
+    readonly property bool opensAnyway: !root.submenu && (root.menu?.openOnHover ?? false)
+    text: root.submenu ? I18n.tr("Nothing yet: add a Submenu module to a floating menu and pick this one.") : nothingYet.opensAnyway ? I18n.tr("Nothing else yet: it opens when the pointer rests on its edge.") : I18n.tr("Nothing yet: turn on Open on hover, or add a bar button or keybind.")
     textSize: Appearance.fontSize - 2
-    textColor: root.menu?.openOnHover ? Theme.foreground : Theme.warning
-    opacity: root.menu?.openOnHover ? 0.7 : 1
+    textColor: nothingYet.opensAnyway ? Theme.foreground : Theme.warning
+    opacity: nothingYet.opensAnyway ? 0.7 : 1
   }
 
   OpenerButtons {
+    visible: !root.submenu
     saved: EdgeMenuManager.isSaved(root.menu)
     unsavedHint: I18n.tr("Save the menu to add a bar button or keybind for it.")
     onBarButtonRequested: barIndex => EdgeMenuManager.addBarButton(barIndex, "right")

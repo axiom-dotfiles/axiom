@@ -15,6 +15,12 @@ QtObject {
   // A menu's own fields in groups (`x-group`), for the edge menu editor
   readonly property var fieldGroups: SchemaLayout.objectGroups(ConfigManager.configSchema.definitions.EdgeMenu, ["modules"])
 
+  // A menu with no edge of its own: it opens only beside another, from a
+  // Submenu module there (content/parts/MenuSubmenu)
+  function isSubmenu(menu) {
+    return menu?.mode === "submenu";
+  }
+
   function menuById(id) {
     return root.menus.find(menu => menu.id === id) ?? null;
   }
@@ -25,7 +31,7 @@ QtObject {
   // (Button, Separator, the tray) have none.
   function popoutMenuOf(properties) {
     const id = properties?.showPopout ? (properties.popoutMenu ?? "") : "";
-    return id !== "" && root.enabledMenus.some(menu => menu.id === id) ? id : "";
+    return id !== "" && root.enabledMenus.some(menu => menu.id === id && !root.isSubmenu(menu)) ? id : "";
   }
 
   // The id of the menu a bar widget entry opens, as configured (a Button

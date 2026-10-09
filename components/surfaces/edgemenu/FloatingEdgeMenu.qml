@@ -70,6 +70,9 @@ EdgePopout {
   reachLength: root._body ? (root._body.fillsEdge ? Infinity : root._body.naturalLength) : 0
   // Growing modules make a top or bottom menu deeper: room for the most
   maxContentDepth: !root.vertical && root._body ? root._body.maxGrownHeight : 0
+  // Room for its submenus' stretch from the start (EdgePopout.roomForSubmenus):
+  // from config, as the body loads with the window
+  roomForSubmenus: root.menu.modules.some(module => module?.type === "Submenu")
   // Read through a var: EdgeMenuBody's members, on EdgePopout's Item
   readonly property var _body: root.contentItem
   contentPadding: Appearance.borderWidth + EdgeMenusConfig.paddingOf(root.menu)

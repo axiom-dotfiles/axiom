@@ -91,12 +91,13 @@ Item {
         return;
       }
       // Where its anchor is from the parent's box top, level with which
-      // its content starts (unless the payload says)
+      // its content starts (unless the payload says): within the box, so
+      // one opened while the parent still slides out lands where it rests
       const item = data.anchorItem;
       let offset = data.anchorOffset;
       if (offset === undefined && item) {
         try {
-          offset = item.mapToItem(null, 0, 0).y - root.attachRect.y;
+          offset = outer.host?.anchorOffsetOf ? outer.host.anchorOffsetOf(item) : item.mapToItem(null, 0, 0).y - root.attachRect.y;
         } catch (e) {}
       }
       root._anchorOffset = offset ?? 0;
@@ -137,7 +138,23 @@ Item {
     // Longer than the side, it hangs past its far end (up, on a bottom
     // bar), stretching the parent
     readonly property real reachFrom: outer.host?.sideGrowsUp ? Math.min(root.reachTop, root.reachBottom - root.boxLength) : root.reachTop
-    readonly property real alignedBoxStart: root.attachRect.y + root._anchorOffset - surface.contentInset
+    // The screen's room up and down (y in the parent's window): inside
+    // what's reserved at its top and bottom. A box longer than the side
+    // stays within it, and content (MenuSubmenu) scrolls past
+    // maxContentHeight
+    readonly property real _placedY: outer.host?.popupScreenPlaced?.y ?? 0
+    readonly property real screenFrom: EdgeMenuManager.reservedOn(outer.screen, Bar.Top) - root._placedY
+    readonly property real screenTo: (outer.screen?.height ?? 0) - EdgeMenuManager.reservedOn(outer.screen, Bar.Bottom) - root._placedY
+    readonly property real maxContentHeight: Math.max(Widget.height, root.screenTo - root.screenFrom - surface.contentInset * 2)
+    readonly property real _wantedBoxStart: root.attachRect.y + root._anchorOffset - surface.contentInset
+    readonly property real alignedBoxStart: {
+      let start = root._wantedBoxStart;
+      if (!root._joinBottom)
+        start = Math.min(start, root.screenTo - root.boxLength);
+      if (!root._joinTop)
+        start = Math.max(start, root.screenFrom);
+      return start;
+    }
     readonly property var place: EdgeAttach.place({
       "pills": [
         {

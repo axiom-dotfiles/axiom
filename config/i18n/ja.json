@@ -1860,7 +1860,6 @@
     "Sizing for the overlay, popouts, launcher and settings. Each bar has its own, in the bar editor.": "オーバーレイ、ポップアウト、ランチャー、設定のサイズ。各バーはバーエディターで個別に設定します。",
     "Each OSD has its own place and bars. A change opens every OSD holding that bar.": "OSD ごとに位置とバーを設定できます。バーが変化すると、そのバーを含むすべての OSD が開きます。",
     "Space between the widgets and the bar's visible edges, on both sides.": "ウィジェットとバーの見える端との間隔（両側）。",
-    "Floating opens over your windows. Integrated opens outside the screen border and bars, pushing them and your windows inwards.": "フローティングはウィンドウの上に開きます。統合は画面の枠とバーの外側に開き、それらとウィンドウを内側に押し込みます。",
     "Notification history": "通知履歴",
     "Suspend after": "スリープするまで",
     "On-screen displays of volume, microphone and brightness bars, shown when one of their bars changes.": "音量、マイク、明るさのバーを表示するオンスクリーンディスプレイ。バーのいずれかが変化すると表示されます。",
@@ -2906,6 +2905,22 @@
     "Menu": "メニュー",
     "Its own popout": "独自のポップアウト",
     "Accent": "アクセント",
-    "{0} popout on {1}": "{1} の{0}ポップアウト"
+    "{0} popout on {1}": "{1} の{0}ポップアウト",
+    "No menu": "メニューなし",
+    "No modules in this menu yet": "このメニューにはまだモジュールがありません",
+    "This menu is gone": "このメニューは削除されました",
+    "Holds it open beside the menu it opens from while you edit it, showing unsaved changes.": "編集中は開き元のメニューの横に開いたままにし、未保存の変更を表示します。",
+    "Add a Submenu module opening it to an enabled floating menu to show it.": "表示するには、有効なフローティングメニューにこれを開くサブメニューモジュールを追加してください。",
+    "Nothing yet: add a Submenu module to a floating menu and pick this one.": "まだありません: フローティングメニューにサブメニューモジュールを追加し、このメニューを選んでください。",
+    "Opens beside a floating menu, from its Submenu module": "フローティングメニューの横に、そのサブメニューモジュールから開きます",
+    "{0}: a Submenu module opens the menu it's in": "{0}: サブメニューモジュールが自身のあるメニューを開いています",
+    "Submenu module in {0}": "{0} のサブメニューモジュール",
+    "The menu that opens beside this one. Make one with its mode set to Submenu to keep it off the screen edges, or pick any other.": "このメニューの横に開くメニュー。画面の端に出さないにはモードをサブメニューにしたメニューを作るか、ほかのメニューを選んでください。",
+    "A Material Symbols icon name. Empty shows none.": "Material Symbols のアイコン名。空にするとアイコンなし。",
+    "Empty uses the menu's name.": "空にするとメニューの名前を使います。",
+    "Floating opens over your windows. Integrated opens outside the screen border and bars, pushing them and your windows inwards. Submenu has no edge of its own: it opens beside a floating menu, from a Submenu module there.": "フローティングはウィンドウの上に開きます。統合は画面の枠とバーの外側に開き、それらとウィンドウを内側に押し込みます。サブメニューは自身の端を持たず、フローティングメニューの横に、そのサブメニューモジュールから開きます。",
+    "submenu": "サブメニュー",
+    "Submenu": "サブメニュー",
+    "Open when the pointer rests on it. Off, it opens when clicked.": "ポインターを置くと開きます。オフにするとクリックで開きます。"
   }
 }

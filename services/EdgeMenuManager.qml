@@ -103,7 +103,7 @@ Singleton {
   // before it).
   function placementOf(menu, bounds) {
     const screen = EdgeMenusConfig.screenFor(menu);
-    if (!menu || !screen)
+    if (!menu || !screen || EdgeMenusConfig.isSubmenu(menu))
       return null;
     const place = GridPlacement.menuPlacement(menu, bounds ?? GridPlacement.bounds(menu.modules), root.cardUnitOf(menu), root.frameOf(menu), screen.width, screen.height);
     place.screen = screen;
@@ -234,9 +234,10 @@ Singleton {
   }
 
   // True for a menu held open by the editor: it ignores closeOnLeave and
-  // outside clicks, as a pinned one does
+  // outside clicks, as a pinned one does (previewing a submenu menu holds
+  // the menu it opens from, previewParent)
   function isHeld(id) {
-    return root.isPinned(id) || (id !== "" && root.previewing === id);
+    return root.isPinned(id) || (id !== "" && (root.previewing === id || root.previewParent === id));
   }
 
   function isOpen(id) {
@@ -248,7 +249,7 @@ Singleton {
 
   // A module's host (Card/Panel.host) is an edge menu it can pin
   function canPin(host) {
-    return host?.kind === "edgeMenu" && !!host.id;
+    return host?.kind === "edgeMenu" && !!host.id && !host.submenu;
   }
 
   function _exists(id) {
@@ -376,9 +377,20 @@ Singleton {
     onEdited: root.applyChanges()
   }
 
-  // The menu the editor holds open to try edits on ("" for none)
+  // The menu the editor holds open to try edits on ("" for none). A
+  // submenu menu (EdgeMenusConfig.isSubmenu) shows beside the first
+  // floating menu with a Submenu module opening it (`previewParent`, held
+  // open too), whose module opens it and holds it (content/Submenu)
   readonly property string previewing: root._previewing
   property string _previewing: ""
+  readonly property string previewParent: root._previewParent
+  property string _previewParent: ""
+
+  // The first enabled floating menu (in the draft, else saved) with a
+  // Submenu module opening menu `id`, else null
+  function submenuParentOf(id) {
+    return (root.localMenus ?? EdgeMenusConfig.menus).find(menu => menu.id !== id && menu.enabled && menu.mode === "floating" && (menu.modules ?? []).some(module => module?.type === "Submenu" && module.properties?.menu === id)) ?? null;
+  }
 
   // Why the draft can't be saved as is (empty = savable)
   readonly property var problems: {
@@ -391,6 +403,8 @@ Singleton {
       else if (menus.findIndex(other => other.id === menu.id) !== m)
         out.push(I18n.tr("{0}: another menu has the id {1}", name, menu.id));
       out.push(...root.layout.problemsFor(menu.modules, name));
+      if ((menu.modules ?? []).some(module => module?.type === "Submenu" && module.properties?.menu === menu.id))
+        out.push(I18n.tr("{0}: a Submenu module opens the menu it's in", name));
     });
     return out;
   }
@@ -435,9 +449,10 @@ Singleton {
 
   // A menu's card size: its screen's overlay's (OverlayManager.areas, or
   // what the overlay would take on that screen before it reports one),
-  // scaled by the menu's moduleScale
-  function cardUnitOf(menu) {
-    const screen = EdgeMenusConfig.screenFor(menu);
+  // scaled by the menu's moduleScale. A submenu's is on the screen of the
+  // menu it opens from (`screen`)
+  function cardUnitOf(menu, screen) {
+    screen = screen ?? EdgeMenusConfig.screenFor(menu);
     const area = OverlayManager.areas[screen?.name ?? ""];
     const unit = area ? area.unit : screen ? OverlayConfig.cardUnitFor(screen.width, screen.height) : OverlayConfig.cardUnit;
     const card = unit * menu.moduleScale / 100;
@@ -574,6 +589,13 @@ Singleton {
             "label": widget.type === "Button" ? I18n.tr("Button on {0}", barLabel) : I18n.tr("{0} popout on {1}", I18n.tr(type?.label ?? widget.type), barLabel)
           });
         })));
+    (root.localMenus ?? EdgeMenusConfig.menus).forEach((menu, m) => {
+      if (menu.id !== id && (menu.modules ?? []).some(module => module?.type === "Submenu" && module.properties?.menu === id))
+        out.push({
+          "kind": "submenu",
+          "label": I18n.tr("Submenu module in {0}", root.menuLabel(menu, m))
+        });
+    });
     (KeybindManager.isDirty ? KeybindManager.binds : HyprlandConfig.binds).forEach(bind => {
       if (bind?.action === "edgeMenu" && bind.argument === id)
         out.push({
@@ -629,7 +651,9 @@ Singleton {
   property bool _wantPreview: false
 
   function canPreview(menu) {
-    return !!menu?.id && menu.enabled !== false;
+    if (!menu?.id || menu.enabled === false)
+      return false;
+    return !EdgeMenusConfig.isSubmenu(menu) || root.submenuParentOf(menu.id) !== null;
   }
 
   function startPreviewing() {
@@ -657,16 +681,21 @@ Singleton {
   }
 
   function _showPreview(id) {
-    if (root.previewing === id)
+    const menu = id !== "" ? EdgeMenusConfig.menuById(id) ?? root.localMenus?.find(m => m.id === id) : null;
+    const parentId = menu && EdgeMenusConfig.isSubmenu(menu) ? (root.submenuParentOf(id)?.id ?? "") : "";
+    if (root.previewing === id && root.previewParent === parentId)
       return;
-    if (root.previewing !== "")
-      root.close(root.previewing);
+    // What was shown closes: a submenu with the menu it opened from
+    const shown = root.previewParent !== "" ? root.previewParent : root.previewing;
+    if (shown !== "" && shown !== (parentId || id))
+      root.close(shown);
     root._previewing = id;
+    root._previewParent = parentId;
     // After the preview reaches EdgeMenusConfig, so a new menu exists
     if (id !== "")
       Qt.callLater(() => {
         if (root.previewing === id)
-          root.open(id, null);
+          root.open(root.previewParent || id, null);
       });
   }
 

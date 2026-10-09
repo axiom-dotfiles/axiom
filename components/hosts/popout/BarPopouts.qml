@@ -153,6 +153,11 @@ PopoutWrapperBase {
   readonly property var popupScreenOrigin: surface.barOrigin ? mainPopup.windowOrigin : null
   // ...or where it most likely is, for the submenu's footprint
   readonly property point popupScreenPlaced: mainPopup.windowOrigin
+  // How far down from attachBox's top `item` (in the content) is, the
+  // box at rest
+  function anchorOffsetOf(item) {
+    return item.mapToItem(surface.contentBox, 0, 0).y - root.shownStretchTop;
+  }
   // The stroke a submenu covers on the box's side, left open (in
   // popupWindow coordinates), as its fill no longer hides it
   property var submenuHole: null
@@ -308,21 +313,8 @@ PopoutWrapperBase {
   // land on it (sideStretch.joinReach, x in the popup; kept within the ends
   // it may reach), squared there for the wall to run straight up into
   readonly property var pillStretch: {
-    const own = root.place.stretch;
-    const pill = root.anchorPill;
     const reach = root._sideStretch?.joinReach ?? null;
-    if (pill === null || root.mergeWithPill || reach === null)
-      return own;
-    const at = Math.max(mainPopup.strokeStart, Math.min(reach - mainPopup.alongShift, mainPopup.strokeEnd));
-    const start = own ? own.start : pill.start;
-    const end = own ? own.end : pill.start + pill.length;
-    return {
-      "index": pill.index,
-      "start": Math.min(start, at),
-      "end": Math.max(end, at),
-      "squareStart": at < start || ((own?.squareStart ?? false) && at === start),
-      "squareEnd": at > end || ((own?.squareEnd ?? false) && at === end)
-    };
+    return EdgeAttach.reachStretch(root.place.stretch, root.mergeWithPill ? null : root.anchorPill, reach === null ? null : Math.max(mainPopup.strokeStart, Math.min(reach - mainPopup.alongShift, mainPopup.strokeEnd)));
   }
   PillStretch {
     id: pillStretchItem
@@ -580,8 +572,12 @@ PopoutWrapperBase {
     // would also have to move, and the compositor shows a resize a frame
     // or more before the move, flashing the new size in the old place
     // (switching in place to taller content). At a fixed size it never does.
+    // So does a top bar's: a submenu longer than the box stretches it away
+    // from the bar, and a window growing while it shows is drawn for a
+    // frame with its old contents squeezed into the new size
+    readonly property bool wholeDepth: root.spareBefore || !root.barConfig.vertical
     readonly property real _barNear: root.barConfig.vertical ? (root.barConfig.right ? root.screen.width - barOrigin.x - root.panelThickness : barOrigin.x) : (root.barConfig.bottom ? root.screen.height - barOrigin.y - root.panelThickness : barOrigin.y)
-    readonly property real depth: root.spareBefore ? (root.barConfig.vertical ? root.screen.width : root.screen.height) : _barNear + root.surfaceFrom - surface.backfill + (root.barConfig.vertical ? surface.implicitWidth : surface.implicitHeight) + root.spareAcross
+    readonly property real depth: wholeDepth ? (root.barConfig.vertical ? root.screen.width : root.screen.height) : _barNear + root.surfaceFrom - surface.backfill + (root.barConfig.vertical ? surface.implicitWidth : surface.implicitHeight) + root.spareAcross
     implicitWidth: root.barConfig.vertical ? depth : 0
     implicitHeight: root.barConfig.vertical ? 0 : depth
     // The surface in this window: where it is in the bar's, moved by where

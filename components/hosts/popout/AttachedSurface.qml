@@ -113,6 +113,9 @@ Item {
   property var strokeHoles: []
 
   default property alias content: contentContainer.data
+  // The content box, sliding with the surface: where things in the
+  // content are within the box whether or not it's out yet
+  readonly property Item contentBox: contentContainer
 
   // Along the attach edge, the part of what it attaches to that it covers,
   // from its start: what of it shows at that edge as it slides, the box

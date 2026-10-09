@@ -136,6 +136,26 @@ QtObject {
     };
   }
 
+  // A surface's pill (or island) stretch `own` (place's `stretch`, null for
+  // none) reaching on to `at` along the bar too, for a submenu joined to
+  // the stroke the surface grows from whose outer wall runs straight up
+  // into it (null `at`: `own`, unchanged): stretched there and squared,
+  // for the wall to run into, any end `own` squared kept square. `pill` is
+  // the one it stands on.
+  function reachStretch(own, pill, at) {
+    if (!pill || at === null || at === undefined)
+      return own;
+    const start = own ? own.start : pill.start;
+    const end = own ? own.end : pill.start + pill.length;
+    return {
+      "index": pill.index,
+      "start": Math.min(start, at),
+      "end": Math.max(end, at),
+      "squareStart": at < start || (own?.squareStart ?? false),
+      "squareEnd": at > end || (own?.squareEnd ?? false)
+    };
+  }
+
   // How far the pill (or island) `own` reaches toward `target` (before it
   // when `before`): its own end, or that of the neighbours a stretch to
   // there would come within `merge` of, which then draw as one with it
