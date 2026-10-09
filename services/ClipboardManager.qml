@@ -25,11 +25,13 @@ import qs.config
  * decoded. HTML that is just an image (a browser's copy, stored beside the
  * image itself) has `html` set and `image` from its src once decoded. Copying back pipes the text to wl-copy's stdin, never through argv.
  *
- * `pins` are text clips the user pinned ([{ id, text, time, pinned: true }],
- * newest first): the one part written to disk (config/state/clipboardPins.json),
- * kept through clear() and restarts, whichever source is on. A cliphist
- * clip is decoded first, as its listing is only a preview. Images can't be
- * pinned.
+ * `pins` are text clips the user pinned ([{ id, text, preview, time,
+ * pinned: true }], newest first): the one part written to disk
+ * (config/state/clipboardPins.json), kept through clear() and restarts,
+ * whichever source is on. A cliphist clip is decoded first, as its listing
+ * is only a preview (its lines run together, cut short); the pin keeps that
+ * preview as `preview`, which is how its row in the listing is matched.
+ * Images can't be pinned.
  */
 Singleton {
   id: root
@@ -103,26 +105,25 @@ Singleton {
   }
 
   function isPinned(entry) {
-    return !!entry && (entry.pinned === true || root.pins.some(p => p.text === entry.text));
+    return !!entry && (entry.pinned === true || root.pins.some(p => root._pinMatches(p, entry)));
   }
 
   function pin(entry) {
     if (!canPin(entry) || isPinned(entry))
       return;
     if (!cliphist || entry.pinned)
-      return root._addPin(entry.text);
+      return root._addPin(entry.text, "");
     CommandManager.run(["cliphist", "decode"], (exitCode, stdout) => {
       if (exitCode === 0 && stdout !== "")
-        root._addPin(stdout);
+        root._addPin(stdout, entry.text);
     }, entry.id + "\t" + entry.text + "\n");
   }
 
-  // By the clip's text, so unpinning a history row unpins its pin too
+  // A pin, or a history row's pin (matched as isPinned does)
   function unpin(entry) {
     if (!entry)
       return;
-    const text = entry.pinned ? entry.text : root.pins.find(p => p.text === entry.text)?.text;
-    root.pins = root.pins.filter(p => p.text !== text);
+    root.pins = root.pins.filter(p => entry.pinned ? p.id !== entry.id : !root._pinMatches(p, entry));
     _pinState.save(root.pins);
   }
 
@@ -330,25 +331,33 @@ Singleton {
     }
   }
 
-  // --- Processes ---
-
   // --- Pins ---
 
   property var _pinState: StateManager.createStateHandler("clipboardPins")
 
-  function _addPin(text) {
+  // Whether `pin` is the history row `entry`: by its text, or for a
+  // cliphist row (a preview) by the preview it was pinned from
+  function _pinMatches(pin, entry) {
+    return pin.text === entry.text || (!!pin.preview && pin.preview === entry.text);
+  }
+
+  // `preview`: the cliphist listing's line it was decoded from, else ""
+  function _addPin(text, preview) {
     if (text.trim() === "" || root.pins.some(p => p.text === text))
       return;
     root.pins = [
       {
         "id": "pin" + Date.now(),
         "text": text,
+        "preview": preview,
         "time": Date.now(),
         "pinned": true
       }
     ].concat(root.pins);
     _pinState.save(root.pins);
   }
+
+  // --- Processes ---
 
   function _run(command, input, done) {
     CommandManager.run(command, () => done?.(), input);

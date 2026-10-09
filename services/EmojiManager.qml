@@ -13,7 +13,7 @@ import qs.components.methods
  * Unicode's order. `copy` puts one on the clipboard (wl-copy) and counts it
  * in `usage` ({ emoji: { count, last } }), for LauncherManager's frecency;
  * `type` also types it into the focused window (wtype, optional: `canType`).
- * `search(query, limit)` ranks them for the launcher and the EmojiPicker
+ * `search(query, limit, group)` ranks them for the launcher and the EmojiPicker
  * module (most used first with no query), `groups()` lists Unicode's groups
  * in order.
  */

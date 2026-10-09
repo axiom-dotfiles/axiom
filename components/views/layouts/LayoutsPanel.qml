@@ -28,7 +28,7 @@ Item {
   readonly property var screenLayout: root.screenTarget?.layout ?? null
   readonly property bool isDesktop: OverlayManager.editTarget === "desktop"
   // A monitor of the desktop's (not all monitors or the primary one)
-  readonly property bool isDesktopMonitor: root.isDesktop && DesktopManager.selectedTarget !== "all" && DesktopManager.selectedTarget !== "primary"
+  readonly property bool isDesktopMonitor: root.isDesktop && DesktopManager.isMonitorTarget(DesktopManager.selectedTarget)
   readonly property bool isCustom: root.view?.type === "Custom"
   readonly property var problems: OverlayManager.problems.concat(EdgeMenuManager.problems, DesktopManager.editor.problems, LockManager.editor.problems, GreeterManager.editor.problems)
 

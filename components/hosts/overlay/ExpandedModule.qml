@@ -9,10 +9,11 @@ import qs.components.content // qmllint disable unused-imports
 
 // A module's detail grown over its grid (ModuleGrid.expand): a card box
 // opening out of the tile or strip that asked for it to the grid less
-// `inset` on every side (the modules stay dimmed beneath it), with a back button over content/<type>.qml (which names itself). The
-// content sits at its full size from the first frame, revealed by the
-// growing box (as a popout's is), so it lays out once. Back, Escape or
-// collapse() shrink it into where it came from; `closed` then drops it.
+// `inset` on every side (the modules stay dimmed beneath it), with a back
+// button over content/<type>.qml (which names itself). The content sits
+// at its full size from the first frame, revealed by the growing box (as a
+// popout's is), so it lays out once. Back, Escape or collapse() shrink it
+// into where it came from; `closed` then drops it.
 Item {
   id: root
 

@@ -43,7 +43,6 @@ Card {
       "interval": Math.max(1, root.properties.interval ?? 10) * 1000
     });
   }
-  onCommandChanged: register()
   onPropertiesChanged: register()
   Component.onCompleted: register()
   Component.onDestruction: CommandManager.release(root)

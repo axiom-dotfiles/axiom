@@ -58,16 +58,14 @@ Card {
   }
 
   function timeText(date) {
-    if (root.properties.use24Hour)
-      return I18n.formatDate(date, "HH:mm");
-    return I18n.formatDate(date, "h:mm") + " " + (date.getHours() < 12 ? I18n.locale.amText : I18n.locale.pmText);
+    return I18n.formatDate(date, I18n.dateFormat(root.properties.use24Hour ? "clock24" : "clock12"));
   }
 
   // "+9 h", "−5:30 h" from here, and "Tomorrow"/"Yesterday" when its date
-  // isn't today's
+  // isn't today's (nothing for here itself)
   function detailOf(place) {
     if (!place.timezone)
-      return root.dayText(place.date, place.date);
+      return "";
     const zoned = TimeZoneManager.offsetOf(place.timezone);
     const parts = [];
     if (zoned !== null) {

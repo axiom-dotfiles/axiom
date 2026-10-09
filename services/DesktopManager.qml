@@ -59,6 +59,11 @@ QtObject {
     return desktop.monitors.find(layout => layout.monitor === key) ?? null;
   }
 
+  // Whether `key` names one monitor (not all monitors or the primary one)
+  function isMonitorTarget(key) {
+    return key !== "all" && key !== "primary";
+  }
+
   function selectTarget(key) {
     if (key === root._selectedTarget)
       return;
@@ -120,7 +125,7 @@ QtObject {
   // shows, else an empty one
   function createForTarget() {
     const name = root.selectedTarget;
-    if (name === "all" || name === "primary" || root.selectedLayout)
+    if (!root.isMonitorTarget(name) || root.selectedLayout)
       return;
     root.editor.edit(desktop => {
       const source = DesktopConfig.sourceFor(name, desktop);
@@ -138,7 +143,7 @@ QtObject {
   // leaves the picker with it, so the primary monitor is selected instead
   function removeTarget() {
     const name = root.selectedTarget;
-    if (name === "all" || name === "primary")
+    if (!root.isMonitorTarget(name))
       return;
     root.editor.layout.clearSelection();
     root.editor.edit(desktop => {

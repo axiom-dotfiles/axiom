@@ -43,33 +43,35 @@ QtObject {
 
   // The widget and module libraries show their types by group (the
   // schema's `x-libraryGroups`), else by name
-  property bool libraryGrouped: false
+  readonly property bool libraryGrouped: root._libraryGrouped
   // The bar editor draws a top or bottom bar's sections stacked down the
   // side of the page, as a side bar's, rather than across it
-  property bool barStacked: false
+  readonly property bool barStacked: root._barStacked
+  property bool _libraryGrouped: false
+  property bool _barStacked: false
   readonly property var _state: StateManager.createStateHandler("editors")
 
   function setLibraryGrouped(value) {
-    root.libraryGrouped = value;
+    root._libraryGrouped = value;
     root._saveState();
   }
 
   function setBarStacked(value) {
-    root.barStacked = value;
+    root._barStacked = value;
     root._saveState();
   }
 
   function _saveState() {
     root._state.save({
-      "libraryGrouped": root.libraryGrouped,
-      "barStacked": root.barStacked
+      "libraryGrouped": root._libraryGrouped,
+      "barStacked": root._barStacked
     });
   }
 
   Component.onCompleted: {
     const saved = root._state.load({});
-    root.libraryGrouped = saved.libraryGrouped === true;
-    root.barStacked = saved.barStacked === true;
+    root._libraryGrouped = saved.libraryGrouped === true;
+    root._barStacked = saved.barStacked === true;
   }
 
   function isUnsaved(type) {

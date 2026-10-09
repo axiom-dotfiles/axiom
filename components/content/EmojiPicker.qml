@@ -92,7 +92,7 @@ Panel {
 
   function refresh() {
     root.noList = EmojiManager.entries().length === 0;
-    root.results = EmojiManager.search(root.query, 2000, root.query === "" ? root.group : "");
+    root.results = EmojiManager.search(root.query, Infinity, root.query === "" ? root.group : "");
     grid.positionViewAtBeginning();
   }
 
