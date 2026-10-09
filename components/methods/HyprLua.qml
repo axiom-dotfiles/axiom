@@ -186,13 +186,14 @@ QtObject {
    * Lua lines for the blur behind axiom's surfaces: named layer rules,
    * always written, `enabled` or not, since a rule is taken back by
    * redefining it (no reload). `opts`: { on, threshold, throughWindows
-   * (no xray), backdrops }. Nothing blurs while Hyprland's blur is off.
+   * (xray off), backdrops }. xray is always written: left out, a layer
+   * takes decoration.blur.xray, which the window look turns on. Nothing blurs while Hyprland's blur is off.
    * A rule read as a surface maps (no_anim) applies from the next one.
    */
   function blurLua(opts) {
     const on = opts.on === true;
     const threshold = value(opts.threshold);
-    const xray = opts.throughWindows ? "" : ", xray = true";
+    const xray = `, xray = ${opts.throughWindows !== true}`;
     return [_blurRule("axiom-blur", blurSurfaces, `blur = true, blur_popups = true, ignore_alpha = ${threshold}${xray}`, on), _blurRule("axiom-blur-popups", blurChrome, `blur_popups = true, ignore_alpha = ${threshold}`, on), _blurRule("axiom-blur-backdrops", blurBackdrops, `blur = true, ignore_alpha = 0.01${xray}`, on && opts.backdrops === true), _blurRule("axiom-blur-no-anim", blurBacked, "no_anim = true", on)];
   }
 
