@@ -3536,7 +3536,7 @@
           "x-order": ["menu", "label", "icon", "openOnHover"],
           "properties": {
             "menu": { "type": "string", "title": "Menu", "default": "", "x-options": "edgeMenus", "x-emptyLabel": "None", "description": "The menu that opens beside this one. Make one with its mode set to Submenu to keep it off the screen edges, or pick any other." },
-            "label": { "type": "string", "title": "Label", "default": "", "description": "Empty uses the menu's name." },
+            "label": { "type": "string", "title": "Label", "default": "", "description": "Empty shows none." },
             "icon": { "type": "string", "title": "Icon", "default": "menu_open", "description": "A Material Symbols icon name. Empty shows none." },
             "openOnHover": { "type": "boolean", "title": "Open on hover", "default": true, "description": "Open when the pointer rests on it. Off, it opens when clicked." }
           }
