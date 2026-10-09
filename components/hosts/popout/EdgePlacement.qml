@@ -51,6 +51,10 @@ QtObject {
   // runs straight up into the pill or island it stands on, which reaches
   // on to it (EdgeAttach.reachStretch), else null
   property var reach: null
+  // Where along the edge (edge coordinates) a submenu joined to the box's
+  // side covers the stroke it stands on beside the box ({ start, end }),
+  // left open there too, else null
+  property var submenuSpan: null
 
   // Its pill stretch: a key unique per surface on a bar, and whether it
   // shows (not while the content loads or unloads, the box a placeholder)
@@ -169,6 +173,14 @@ QtObject {
     opening: root.showing && root.onPill && Appearance.translucent ? {
       "start": root.place.surfaceStart + root.coverStart + root.barShift,
       "end": root.place.surfaceStart + root.coverStart + (root.coverLength < 0 ? root.place.surfaceLength : root.coverLength) + root.barShift
+    } : null
+  }
+  property PillStretch _submenuStretch: PillStretch {
+    container: root.container
+    owner: root.owner + ":submenu"
+    opening: root.showing && root.onPill && Appearance.translucent && root.submenuSpan ? {
+      "start": root.submenuSpan.start + root.barShift,
+      "end": root.submenuSpan.end + root.barShift
     } : null
   }
 }

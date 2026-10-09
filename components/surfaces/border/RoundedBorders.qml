@@ -274,7 +274,31 @@ Item {
       aboveWindows: true
       WlrLayershell.namespace: "axiom-border"
 
+      // Where it is on screen, from the edges' insets
+      readonly property real _x: corner.isLeft ? root.innerInset("left") - root.strokeWidth : (root.screen?.width ?? 0) - root.innerInset("right") + root.strokeWidth - root.cornerSize
+      readonly property real _y: corner.isTop ? root.innerInset("top") - root.strokeWidth : (root.screen?.height ?? 0) - root.innerInset("bottom") + root.strokeWidth - root.cornerSize
+      // A surface joined to the stroke runs into the perpendicular edge over
+      // it (a pill joined to it, ShellManager.borderOpenings): the corner
+      // is left open there as the strips are, its fill no longer hiding it
+      readonly property bool covered: {
+        const name = root.screen?.name ?? "";
+        return ShellManager.borderOpenings.some(o => {
+          if (o.screen !== name)
+            return false;
+          if (o.edge === (corner.isTop ? "top" : "bottom"))
+            return corner.isLeft ? o.start <= corner._x + root.strokeWidth + 1 && o.end >= corner._x + root.cornerSize : o.end >= corner._x + root.cornerSize - root.strokeWidth - 1 && o.start <= corner._x;
+          if (o.edge === (corner.isLeft ? "left" : "right"))
+            return corner.isTop ? o.start <= corner._y + root.strokeWidth + 1 && o.end >= corner._y + root.cornerSize : o.end >= corner._y + root.cornerSize - root.strokeWidth - 1 && o.start <= corner._y;
+          return false;
+        });
+      }
+      onCoveredChanged: cornerNudge.burst()
+      FrameNudge {
+        id: cornerNudge
+      }
+
       CornerPiece {
+        visible: !corner.covered
         borderRadius: root.innerBorderRadius
         fillColor: root.backed ? "transparent" : root.frameColor
         strokeColor: root.innerStrokeColor

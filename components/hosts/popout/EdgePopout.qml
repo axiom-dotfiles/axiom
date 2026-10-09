@@ -287,6 +287,7 @@ PopoutWrapperBase {
     aligned: placement.centre - root._contentAlong / 2 - root._stretchAlongTop
     contentLength: root._contentAlong + root._stretchAlongTop + root._stretchAlongBottom
     reach: root._sideStretch?.joinReach != null ? root._sideStretch.joinReach - root.strokeInset : null
+    submenuSpan: root._submenuSpan
     joinStart: root.joinStart
     joinEnd: root.joinEnd
     coverStart: surface.coverStart
@@ -313,7 +314,18 @@ PopoutWrapperBase {
       "end": root.reservedOn(root.startSide) + root.surfaceStart + surface.coverStart + surface.coverLength
     }) : null
   on_BorderOpeningChanged: ShellManager.setBorderOpening(root, root._borderOpening)
-  Component.onDestruction: ShellManager.setBorderOpening(root, null)
+  // ...and a submenu joined beside the box, the stretch of it its end covers
+  readonly property var _submenuBorderOpening: root._borderOpening && root._submenuSpan ? ({
+      "screen": surfaceWindow.screenName,
+      "edge": Bar.edgeName(root.edge),
+      "start": root.reservedOn(root.startSide) + root._submenuSpan.start,
+      "end": root.reservedOn(root.startSide) + root._submenuSpan.end
+    }) : null
+  on_SubmenuBorderOpeningChanged: ShellManager.setBorderOpening("edgePopoutSubmenu:" + root, root._submenuBorderOpening)
+  Component.onDestruction: {
+    ShellManager.setBorderOpening(root, null);
+    ShellManager.setBorderOpening("edgePopoutSubmenu:" + root, null);
+  }
 
   currentItem: root.contentItem
 
@@ -393,6 +405,15 @@ PopoutWrapperBase {
   // The stroke a submenu covers on the box's side, left open (in its
   // window's coordinates)
   property var submenuHole: null
+  onSubmenuHoleChanged: popupNudge.burst()
+  // Joined to the box's bar side, the stretch of the stroke it joins that
+  // a submenu covers beside the box ({ start, end }, x in its window),
+  // left open as under the box: in edge coordinates
+  property var submenuJoinSpan: null
+  readonly property var _submenuSpan: root.submenuJoinSpan && surfaceWindow.visible && root.claimed ? {
+    "start": root.submenuJoinSpan.start - root.strokeInset,
+    "end": root.submenuJoinSpan.end - root.strokeInset
+  } : null
   // ---- end submenu ----
   keepAlive: surfaceHover.hovered || trigger.containsMouse || (focusGrab.active && wantsKeyboardFocus)
 
@@ -434,6 +455,12 @@ PopoutWrapperBase {
 
     // What PopoutAnchors in its content open in
     readonly property var popoutHost: sub
+
+    // The hole a submenu leaves in the box's side follows it sliding, in
+    // its own window: shown here once this one commits again
+    FrameNudge {
+      id: popupNudge
+    }
 
     // Spans the whole edge; the input mask limits it to the surface.
     anchors {

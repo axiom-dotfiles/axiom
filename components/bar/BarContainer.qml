@@ -141,9 +141,47 @@ Rectangle {
   // editor) was drawn but not shown: the bar's next frame was rendered,
   // yet the compositor kept showing the one before until something else
   // made the bar commit again (a hover, the clock). So for a few frames
-  // after a stretch changes, the bar draws a frame of its own (an
-  // invisible pixel flipping), and the last one shown is the right one.
+  // after a stretch or an opening changes, the bar draws a frame of its
+  // own (an invisible pixel flipping), and the last one shown is the right
+  // one: an opening follows a surface sliding in another window.
   on_ShownStretchesChanged: repaint.burst()
+  onOpeningsChanged: repaint.burst()
+
+  // A stretch along the bar (from..to, in this item's coordinates) that a
+  // surface joined to the border's inner stroke covers there, as
+  // ShellManager.setBorderOpening takes it (screen px along the edge), so
+  // the border leaves its stroke open under a translucent fill: a pill, a
+  // popout merged into the bar or on a solid bar's inner edge. Null while
+  // surfaces are solid, with the border off, or until the bar's place on
+  // screen is known (the bar editor's preview has none).
+  function borderOpening(from, to) {
+    if (!Appearance.translucent || !Appearance.screenBorder || !root.blurOrigin || to <= from)
+      return null;
+    const at = root.isVertical ? root.blurOrigin.y : root.blurOrigin.x;
+    return {
+      "screen": root.blurScreen,
+      "edge": Bar.edgeName(root.barConfig.location),
+      "start": at + from,
+      "end": at + to
+    };
+  }
+  // The same for a surface's joined end (`surface`, an AttachedSurface in
+  // this item, joined at its start or end): it covers the perpendicular
+  // edge's stroke, from the bar's outer edge to its join's fillet
+  function joinOpening(surface, atStart) {
+    if (!Appearance.translucent || !Appearance.screenBorder || !root.blurOrigin)
+      return null;
+    const c = root.barConfig;
+    const far = c.bottom || c.right;
+    const near = (root.isVertical ? root.blurOrigin.x + surface.x : root.blurOrigin.y + surface.y) + (far ? (root.isVertical ? surface.width : surface.height) - surface.joinCover : surface.joinCover);
+    const screenAcross = (root.isVertical ? root.panel?.screen?.width : root.panel?.screen?.height) ?? 0;
+    return {
+      "screen": root.blurScreen,
+      "edge": root.isVertical ? (atStart ? "top" : "bottom") : (atStart ? "left" : "right"),
+      "start": far ? near : 0,
+      "end": far ? screenAcross : near
+    };
+  }
 
   // How far each pill reaches past its own ends for the stretches on it,
   // animated, so it grows out to carry a surface and draws back after it.
@@ -419,6 +457,7 @@ Rectangle {
 
         HoledItem {
           anchors.fill: parent
+          keepLayer: Appearance.translucent
           // On the inner side, the stroke and its fringe under each opening
           holes: root._openingList.map(o => {
             const along = root.isVertical ? island.y : island.x;
@@ -525,6 +564,26 @@ Rectangle {
         x: root.isVertical ? (root.barConfig.right ? root.width - width : 0) : alongStart
         y: root.isVertical ? alongStart : (root.barConfig.bottom ? root.height - height : 0)
         backed: root.backed
+        // Grown out of the border's stroke, which it covers
+        readonly property real _along: root.isVertical ? pill.y : pill.x
+        readonly property var borderOpening: root.borderOpening(pill._along + pill.coverStart, pill._along + pill.coverStart + pill.coverLength)
+        // ...and, joined to a perpendicular edge, that edge's
+        readonly property var startJoinOpening: pill.joinStart ? root.joinOpening(pill, true) : null
+        readonly property var endJoinOpening: pill.joinEnd ? root.joinOpening(pill, false) : null
+        readonly property string _owner: "pill:" + pill
+        onBorderOpeningChanged: ShellManager.setBorderOpening(pill._owner, pill.borderOpening)
+        onStartJoinOpeningChanged: ShellManager.setBorderOpening(pill._owner + ":start", pill.startJoinOpening)
+        onEndJoinOpeningChanged: ShellManager.setBorderOpening(pill._owner + ":end", pill.endJoinOpening)
+        Component.onCompleted: {
+          ShellManager.setBorderOpening(pill._owner, pill.borderOpening);
+          ShellManager.setBorderOpening(pill._owner + ":start", pill.startJoinOpening);
+          ShellManager.setBorderOpening(pill._owner + ":end", pill.endJoinOpening);
+        }
+        Component.onDestruction: {
+          ShellManager.setBorderOpening(pill._owner, null);
+          ShellManager.setBorderOpening(pill._owner + ":start", null);
+          ShellManager.setBorderOpening(pill._owner + ":end", null);
+        }
         // The far stroke and its fringe under each opening (in the pill's
         // coordinates)
         strokeHoles: root._openingList.map(o => {

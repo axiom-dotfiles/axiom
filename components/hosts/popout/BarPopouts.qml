@@ -161,6 +161,11 @@ PopoutWrapperBase {
   // The stroke a submenu covers on the box's side, left open (in
   // popupWindow coordinates), as its fill no longer hides it
   property var submenuHole: null
+  onSubmenuHoleChanged: popupNudge.burst()
+  // Joined to the box's bar side, the stretch of the stroke it joins that
+  // a submenu covers beside the box ({ start, end }, x in popupWindow),
+  // left open as under the box
+  property var submenuJoinSpan: null
   // ---- end submenu ----
 
   // content/<name>.qml, loaded by URL like bar widgets and overlay modules:
@@ -331,6 +336,25 @@ PopoutWrapperBase {
     "start": mainPopup.shownAlongPos + surface.coverStart,
     "end": mainPopup.shownAlongPos + surface.coverStart + surface.coverLength
   } : null
+  // A submenu joined to the box's bar side covers that stroke beside the
+  // box: along the bar, in bar-window coordinates
+  readonly property var _submenuSpan: root.occupied && root.claimed && root.popupWindow.visible && root.submenuJoinSpan ? {
+    "start": root.submenuJoinSpan.start - mainPopup.alongShift,
+    "end": root.submenuJoinSpan.end - mainPopup.alongShift
+  } : null
+  PillStretch {
+    container: root.layoutSource
+    owner: "barPopoutSubmenu"
+    opening: root.anchorPill !== null && !root.mergeWithPill ? root._submenuSpan : null
+  }
+  // Merged into the bar, or on a solid bar's inner edge, the box (and a
+  // submenu joined beside it) stands on the border's stroke instead, which
+  // leaves it open under them (BarContainer.borderOpening)
+  readonly property bool _onBorder: root.occupied && root.claimed && root.popupWindow.visible && (root.mergeWithPill || root.barConfig.solid)
+  readonly property var _borderOpening: root._onBorder ? root.layoutSource?.borderOpening(mainPopup.shownAlongPos + surface.coverStart, mainPopup.shownAlongPos + surface.coverStart + surface.coverLength) ?? null : null
+  readonly property var _submenuBorderOpening: root._onBorder && root._submenuSpan ? root.layoutSource?.borderOpening(root._submenuSpan.start, root._submenuSpan.end) ?? null : null
+  on_BorderOpeningChanged: ShellManager.setBorderOpening("barPopout:" + root, root._borderOpening)
+  on_SubmenuBorderOpeningChanged: ShellManager.setBorderOpening("barPopoutSubmenu:" + root, root._submenuBorderOpening)
 
   // How far past the bar's outer edge a merged popout's content starts:
   // where a pill's far stroke would be, with the border on or off
@@ -416,7 +440,11 @@ PopoutWrapperBase {
   // On a bottom or right bar the room lies before the surface
   readonly property bool spareBefore: root.barConfig.vertical ? root.barConfig.right : root.barConfig.bottom
 
-  Component.onDestruction: ShellManager.unregisterGrabPartner(mainPopup)
+  Component.onDestruction: {
+    ShellManager.unregisterGrabPartner(mainPopup);
+    ShellManager.setBorderOpening("barPopout:" + root, null);
+    ShellManager.setBorderOpening("barPopoutSubmenu:" + root, null);
+  }
 
   // The overlay's focus grab lets input through to the popout (see
   // ShellManager.grabPartners)
@@ -451,6 +479,12 @@ PopoutWrapperBase {
 
     // What PopoutAnchors in its content open in
     readonly property var popoutHost: sub
+
+    // The hole a submenu leaves in the box's side follows it sliding, in
+    // its own window: shown here once this one commits again
+    FrameNudge {
+      id: popupNudge
+    }
 
     // Where the bar window is on the screen, else where it most likely is
     readonly property point barOrigin: root._panel?.screenPlaced ?? Qt.point(0, 0)

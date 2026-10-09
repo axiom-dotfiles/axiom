@@ -7,6 +7,7 @@ import qs.config
 import qs.services
 import qs.components.methods
 import qs.components.hosts.popout
+import qs.components.reusable
 
 // One edge of the screen border (RoundedBorders): a strip that reserves
 // `frameWidth` and draws the frame with its inner stroke, which stops short
@@ -50,6 +51,10 @@ PanelWindow {
   readonly property real strokeStart: horizontal ? frameWidth + innerBorderRadius : innerBorderRadius
   readonly property var strokePieces: Utils.subtractSpans(root.strokeStart, root.length - root.strokeStart, root.openings)
   readonly property var rowPieces: Utils.subtractSpans(0, root.length, root.openings)
+  // An opening follows a surface in another window (sliding, a pill
+  // growing): drawn here, but shown only once this window commits again
+  // (FrameNudge)
+  onOpeningsChanged: nudge.burst()
 
   anchors {
     left: root.edge !== "right"
@@ -66,6 +71,10 @@ PanelWindow {
   WlrLayershell.namespace: "axiom-border"
   color: "transparent"
   mask: Region {}
+
+  FrameNudge {
+    id: nudge
+  }
 
   // The frame, but for the stroke's row
   Rectangle {

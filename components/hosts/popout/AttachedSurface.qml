@@ -114,6 +114,9 @@ Item {
   // what's joined to it over them (a submenu on its side, a popout on
   // a pill's far stroke) carries on there, its fill no longer hiding it
   property var strokeHoles: []
+  // Ready to cut them from the first frame they come (HoledItem.keepLayer):
+  // while surfaces are translucent, when they can
+  readonly property bool _holesReady: Appearance.translucent && !root.mirror
 
   default property alias content: contentContainer.data
   // The content box, sliding with the surface: where things in the
@@ -147,9 +150,15 @@ Item {
     const dv = h + R - hidden;
     return Math.min(margin, Math.max(0, margin + h - R + Math.sqrt(R * R - dv * dv)));
   }
-  readonly property real coverStart: root._filletIn(root.startMargin, root._hidden)
+  // The fillets are taken a stroke's width ahead of the slide: the opening
+  // is drawn in another window (the bar's, the border's), which commits a
+  // frame or so after this one, so a stub of stroke showed under each
+  // fillet as it landed. Within a stroke of the edge the fillet's own
+  // stroke lies over the one it opens, so opening it early shows nothing.
+  readonly property real _filletHidden: Math.max(0, root._hidden - root.strokeWidth)
+  readonly property real coverStart: root._filletIn(root.startMargin, root._filletHidden)
   // (nothing once it's all behind the edge)
-  readonly property real coverLength: root._hidden >= root.depth ? 0 : root.alongLength - root.coverStart - root._filletIn(root.endMargin, root._hidden)
+  readonly property real coverLength: root._hidden >= root.depth ? 0 : root.alongLength - root.coverStart - root._filletIn(root.endMargin, root._filletHidden)
 
   readonly property bool vertical: edge === Bar.Left || edge === Bar.Right
   readonly property bool attachLeft: edge === Bar.Left
@@ -247,6 +256,10 @@ Item {
   readonly property real sideU: _natural.sideU
   readonly property real farSideU: _natural.farSideU
   readonly property real farV: _m.farV
+  // How far in from its attach side (the backfill included) a joined end
+  // covers the perpendicular stroke: its fill runs along it to the join's
+  // fillet (SurfaceOutline.fillPath)
+  readonly property real joinCover: _m.back + (root._straightJoins ? root.farV : root.farV + root.filletRadius)
 
   // The content box in this item's coordinates, at rest (not slid). On
   // every side but the attach edge it coincides with the outer edge of
@@ -355,6 +368,7 @@ Item {
         anchors.fill: parent
         visible: !root.detached
         holes: root.strokeHoles
+        keepLayer: root._holesReady && !root.detached
 
         Shape {
           id: outline
@@ -392,6 +406,7 @@ Item {
         anchors.fill: parent
         visible: root.detached
         holes: root.strokeHoles
+        keepLayer: root._holesReady && root.detached
 
         Rectangle {
           id: detachedBox
