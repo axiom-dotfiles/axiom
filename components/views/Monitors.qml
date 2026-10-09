@@ -67,10 +67,8 @@ BaseView {
           Layout.preferredWidth: root.grid.unit * 0.6
           Layout.preferredHeight: Widget.height
           placeholderText: I18n.tr("Layout name")
-          onTextChanged: {
-            if (nameField.input.activeFocus)
-              MonitorManager.renameProfile(MonitorManager.selectedProfile, text);
-          }
+          // Only typing renames, never a name pushed in (below)
+          onTextEdited: MonitorManager.renameProfile(MonitorManager.selectedProfile, nameField.text)
 
           // StyledTextEntry writes each keystroke back to its `text`, which
           // drops any binding on it, so the name is pushed in instead: on

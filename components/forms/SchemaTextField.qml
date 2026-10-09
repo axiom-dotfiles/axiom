@@ -9,7 +9,6 @@ ColumnLayout {
   id: root
   required property string label
   required property string currentConfigValue
-  property string value: root.currentConfigValue
   property string description: ""
   property var pattern: null
   // A growing text area (`x-multiline`), e.g. for a system prompt
@@ -19,20 +18,35 @@ ColumnLayout {
   property var suggestions: []
   property bool commaList: false
 
-  // The value is pushed in unless it's being typed, and only typing (or a
-  // suggestion picked) commits: a value pushed in, or cleared as the form
-  // is torn down (an editor closing, its selection going), would otherwise
-  // be committed back, onto whatever the form edits by then
-  onCurrentConfigValueChanged: {
-    if (!textEntry.input.activeFocus && textEntry.text !== root.currentConfigValue)
-      textEntry.text = root.currentConfigValue;
-    if (!textArea.input.activeFocus && textArea.text !== root.currentConfigValue)
-      textArea.text = root.currentConfigValue;
+  // What was typed (or a suggestion picked), once it matches `pattern`.
+  // Only an edit in the field emits it: never a value pushed in (a
+  // selection switched, an editor reopened, a form torn down), which
+  // would be written back onto whatever the form edits by then.
+  signal valueEdited(string value)
+
+  readonly property string _text: root.multiline ? textArea.text : textEntry.text
+  // The text as it reads back once committed: a list's typed "a, b," is
+  // ["a", "b"], shown as "a, b"
+  function _normalized(text) {
+    return root.commaList ? text.split(",").map(v => v.trim()).filter(v => v !== "").join(", ") : text;
   }
+
+  // The field shows the value that comes in, even while it has focus (what
+  // it edits switched under it: kept, the old text would be typed onto the
+  // new one), except the echo of what's being typed, which mustn't move
+  // the cursor or eat a list's trailing ", "
+  function _show() {
+    const focused = textEntry.input.activeFocus || textArea.input.activeFocus;
+    if (root._text === root.currentConfigValue || (focused && root._normalized(root._text) === root.currentConfigValue))
+      return;
+    textEntry.text = root.currentConfigValue;
+    textArea.text = root.currentConfigValue;
+  }
+  onCurrentConfigValueChanged: root._show()
 
   function _accept(text) {
     if (root.pattern === null || new RegExp(root.pattern).test(text))
-      root.value = text;
+      root.valueEdited(text);
   }
 
   Layout.fillWidth: true
@@ -50,9 +64,11 @@ ColumnLayout {
     Layout.preferredHeight: Widget.height
     text: root.currentConfigValue
 
-    input.onTextChanged: {
-      if (textEntry.input.activeFocus)
-        root._accept(textEntry.input.text);
+    onTextEdited: root._accept(textEntry.text)
+    // Half-typed text that never matched shows the value again
+    input.onActiveFocusChanged: {
+      if (!textEntry.input.activeFocus)
+        root._show();
     }
   }
 
@@ -65,9 +81,9 @@ ColumnLayout {
     newlineOnEnter: true
     text: root.currentConfigValue
 
-    input.onTextChanged: {
-      if (root.multiline && textArea.input.activeFocus)
-        root._accept(textArea.input.text);
+    onTextEdited: {
+      if (root.multiline)
+        root._accept(textArea.text);
     }
   }
 

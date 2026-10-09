@@ -21,6 +21,9 @@ StyledContainer {
   property int minHeight: 40
 
   signal accepted
+  // Typed (or put in by the input method): never a value pushed in through
+  // `text` (as StyledTextEntry's)
+  signal textEdited
 
   implicitHeight: {
     if (!expandable)
@@ -68,7 +71,14 @@ StyledContainer {
       // own padding would push it off-centre
       padding: 0
       text: root.text
-      onTextChanged: root.text = text
+      // A change that isn't `text` arriving was made in the field itself
+      // (TextEdit has no textEdited of its own)
+      onTextChanged: {
+        if (text === root.text)
+          return;
+        root.text = text;
+        root.textEdited();
+      }
 
       // --- Core Properties ---
       color: Theme.foreground

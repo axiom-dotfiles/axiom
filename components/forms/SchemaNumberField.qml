@@ -245,22 +245,40 @@ ColumnLayout {
         when: !input.activeFocus
       }
 
+      // Typed since it took focus: only then does it commit. Text it was
+      // left showing (the value changed while it had focus: what it edits
+      // switched under it) would land on what it edits now.
+      property bool typed: false
+      onTextEdited: input.typed = true
+      // Untyped, it follows the value while it has focus too
+      Connections {
+        target: root
+        function onValueChanged() {
+          if (input.activeFocus && !input.typed)
+            input.text = String(root.value);
+        }
+      }
+
       function apply() {
         const parsed = parseInt(input.text, 10);
-        if (!isNaN(parsed))
+        if (input.typed && !isNaN(parsed))
           root.setValue(parsed, true);
+        input.typed = false;
         input.text = String(root.value);
       }
 
       onActiveFocusChanged: {
-        if (activeFocus)
+        if (activeFocus) {
+          input.typed = false;
           selectAll();
-        else
+        } else {
           apply();
+        }
       }
       Keys.onReturnPressed: focus = false
       Keys.onEnterPressed: focus = false
       Keys.onEscapePressed: {
+        input.typed = false;
         text = String(root.value);
         focus = false;
       }

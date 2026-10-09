@@ -27,11 +27,14 @@ StyledContainer {
   implicitHeight: column.implicitHeight + Widget.padding
   borderColor: root.hasError ? Theme.error : (root.issues.length > 0 ? Theme.warning : "transparent")
 
-  // Text fields keep what's being typed; otherwise they follow the bind
+  // Text fields keep what's being typed; otherwise they follow the bind,
+  // focused or not (a row shows another bind once one above it goes). They
+  // commit as editing finishes, focus loss included, only once typed in:
+  // left showing an old value, they'd write it onto the bind they show now
   onBindChanged: {
-    if (!argumentText.input.activeFocus)
+    if (!argumentText.typed)
       argumentText.input.text = root.bind.argument ?? "";
-    if (!label.input.activeFocus)
+    if (!label.typed)
       label.input.text = root.bind.description ?? "";
   }
 
@@ -100,8 +103,14 @@ StyledContainer {
             }
             return root.bind.action === "exec" ? I18n.tr("Command") : I18n.tr("Search text");
           }
+          property bool typed: false
+          onTextEdited: typed = true
           Component.onCompleted: input.text = root.bind.argument ?? ""
-          input.onEditingFinished: KeybindManager.setField(root.bindIndex, "argument", input.text)
+          input.onEditingFinished: {
+            if (argumentText.typed)
+              KeybindManager.setField(root.bindIndex, "argument", input.text);
+            argumentText.typed = false;
+          }
           Layout.fillWidth: true
           Layout.preferredHeight: Widget.height
         }
@@ -143,8 +152,14 @@ StyledContainer {
           Layout.fillWidth: true
           Layout.preferredHeight: Widget.height
           placeholderText: HyprlandConfigManager.defaultLabel(root.bind) || I18n.tr("Label")
+          property bool typed: false
+          onTextEdited: typed = true
           Component.onCompleted: input.text = root.bind.description ?? ""
-          input.onEditingFinished: KeybindManager.setField(root.bindIndex, "description", input.text)
+          input.onEditingFinished: {
+            if (label.typed)
+              KeybindManager.setField(root.bindIndex, "description", input.text);
+            label.typed = false;
+          }
         }
       }
 
