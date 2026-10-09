@@ -35,8 +35,11 @@ Rectangle {
     StyledText {
       id: titleText
       Layout.fillWidth: true
-      // Shrinks to elide, but doesn't push the extras away from it
-      Layout.maximumWidth: implicitWidth
+      // Shrinks to elide, but doesn't push the extras away from it. In
+      // whole pixels: the layout rounds a width it grows down, and a title
+      // a fraction short elides its last letters
+      Layout.preferredWidth: Math.ceil(implicitWidth)
+      Layout.maximumWidth: Math.ceil(implicitWidth)
       text: root.title
       textSize: Appearance.fontSize + 4
       font.bold: true
