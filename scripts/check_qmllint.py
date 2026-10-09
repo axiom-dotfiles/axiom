@@ -13,6 +13,8 @@ warning, or one more of a known kind in the same file, fails the check.
 """
 import collections
 import json
+import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -29,13 +31,46 @@ BASELINE = ROOT / "scripts" / "qmllint-baseline.json"
 DISABLED = ["uncreatable-type", "signal-handler-parameters"]
 
 
+def qt_imports(out):
+    """QT_QML with Quickshell's type info minus its opaque stubs; returns `out`.
+
+    Since 0.3.2, a Quickshell module's qmltypes declares a member-less
+    `isTypeOpaque` stub for each type it uses from another module
+    (QuickshellScreenInfo, PopupAnchor, Margins, UntypedObjectModel, …), and
+    qmllint resolves the stub instead of the real type. Every other module is
+    linked in as is."""
+    out.mkdir()
+    for entry in Path(QT_QML).iterdir():
+        if entry.name != "Quickshell":
+            os.symlink(entry, out / entry.name)
+    shutil.copytree(Path(QT_QML) / "Quickshell", out / "Quickshell")
+    for types in (out / "Quickshell").rglob("*.qmltypes"):
+        kept, block = [], None
+        for line in types.read_text().splitlines(keepends=True):
+            if block is None and line.startswith("    Component {"):
+                block, depth = [], 0
+            if block is None:
+                kept.append(line)
+                continue
+            block.append(line)
+            depth += line.count("{") - line.count("}")
+            if depth == 0:
+                if not any("isTypeOpaque: true" in b for b in block):
+                    kept.extend(block)
+                block = None
+        types.write_text("".join(kept))
+    return out
+
+
 def lint():
     """{repo-relative file: Counter("category: message")}, and the raw lines."""
     with tempfile.TemporaryDirectory() as tmp:
         tree = build_tree(Path(tmp) / "tree")
         files = sorted(str(p) for p in (tree / "qs").rglob("*.qml"))
         report = Path(tmp) / "report.json"
-        args = [QMLLINT, "--json", str(report), "-I", str(tree), "-I", QT_QML]
+        imports = qt_imports(Path(tmp) / "qml")
+        # --bare: no default import path, which would find the stubbed Quickshell
+        args = [QMLLINT, "--bare", "--json", str(report), "-I", str(tree), "-I", str(imports)]
         for category in DISABLED:
             args += [f"--{category}", "disable"]
         subprocess.run(args + files, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
