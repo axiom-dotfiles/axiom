@@ -135,8 +135,8 @@ QtObject {
     root._put(c, "open");
     if (r.allowed)
       root._apply(r);
-    else
-      root._resume();
+    // Ranked lower now (a pinned one let go), what it held off may be back
+    root._resume();
   }
 
   // A claim no longer shows: anything it held off may come back

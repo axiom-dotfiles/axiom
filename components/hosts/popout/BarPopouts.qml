@@ -608,7 +608,7 @@ PopoutWrapperBase {
     // window coordinates in either window
     readonly property var barOrigin: root._panel?.screenOrigin ?? null
     backed: BlurManager.backing && surface.barOrigin !== null
-    // A tray submenu's opening in the box's side stroke (TraySubmenuWrapper)
+    // A submenu's opening in the box's side stroke (SubPopout)
     strokeHoles: root.submenuHole ? [Qt.rect(root.submenuHole.x - surface.x, root.submenuHole.y - surface.y, root.submenuHole.width, root.submenuHole.height)] : []
 
     BlurShape {

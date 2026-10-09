@@ -112,13 +112,37 @@ PopoutWrapperBase {
   property bool resident: false
   // Granted (or closing after it was, PopoutClaim.held)
   readonly property bool claimed: root.claimKey === "" || root.claim.held
+  // In use: the pointer on it, its hover strip or what opened it, or just
+  // opened or asked for again (engage()) and not let go since. A pinned
+  // one ranks as its kind meanwhile, so it opens (or comes forward) over
+  // what it would give way to as pinned, and drops to pinned once let go
+  readonly property bool engaged: surfaceHover.hovered || trigger.containsMouse || root.anchorHovered || root._grace
+  property bool _grace: false
+  function engage() {
+    root._grace = true;
+    graceTimer.restart();
+  }
+  // Long enough for the pointer to reach it; leaving it ends it at once
+  property Timer graceTimer: Timer {
+    interval: Math.max(root.dismissDelay, 2500)
+    onTriggered: root._grace = false
+  }
+  readonly property bool _pointerIn: surfaceHover.hovered
+  on_PointerInChanged: {
+    if (!root._pointerIn)
+      root._grace = false;
+  }
+  onIsOpenChanged: {
+    if (root.isOpen)
+      root.engage();
+  }
   readonly property bool yielded: root.claim.yielded
   property PopoutClaim claim: PopoutClaim {
     key: root.claimKey
     kind: root.claimKind
     screen: root.screen?.name ?? ""
     edge: Bar.edgeName(root.edge)
-    pinned: root.pinned
+    pinned: root.pinned && !root.engaged
     resident: root.resident
     occupied: root.occupied
     closing: root.isClosing
@@ -328,7 +352,10 @@ PopoutWrapperBase {
     triggerWidth: root.triggerWidth
     triggerLength: root.triggerLength
     hoverDelay: root.hoverDelay
-    onTriggered: root.show()
+    onTriggered: {
+      root.engage();
+      root.show();
+    }
   }
 
   PanelWindow {

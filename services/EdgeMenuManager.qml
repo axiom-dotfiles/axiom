@@ -264,7 +264,18 @@ Singleton {
     const anchors = Object.assign({}, root.anchors);
     anchors[id] = anchor ?? null;
     root.anchors = anchors;
+    if (root.isOpen(id))
+      root.engageRequested(id);
     _run.open = root._set(root.openMenus, id, true);
+  }
+
+  // Asked for while already open (a keybind, a bar Button, IPC): its host
+  // takes it as engaged (EdgePopout.engage), so a pinned one ranks as a
+  // menu again and comes forward over what covered it (PopoutManager)
+  signal engageRequested(string id)
+  // Open, but given way to a popout over it (pinned or previewing)
+  function covered(id) {
+    return PopoutManager.entry("menu:" + id)?.phase === "yielded";
   }
 
   // Menus opened for something outside them (the launcher, IPC) that take
@@ -295,7 +306,10 @@ Singleton {
   }
 
   function toggle(id, anchor) {
-    if (root.isOpen(id))
+    // Covered, it's brought forward rather than closed
+    if (root.covered(id))
+      root.open(id, anchor);
+    else if (root.isOpen(id))
       root.close(id);
     else
       root.open(id, anchor);

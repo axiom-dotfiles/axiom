@@ -3,7 +3,7 @@ import QtQuick
 import qs.config
 
 // A popout switching to another payload in place (PopoutWrapperBase's
-// canSwitchTo/prepareSwitch: BarPopouts, TraySubmenuWrapper): the content
+// canSwitchTo/prepareSwitch: BarPopouts, SubPopout): the content
 // switched away from, as a still the host places where that content was
 // (from `held`), fading out over the new. From the switch until the new
 // content is ready (`holding`), the host keeps its window up and its box as

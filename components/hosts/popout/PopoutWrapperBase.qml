@@ -8,7 +8,7 @@ import qs.services
  * queueing, switching in place, and centralized dismiss-on-hover-loss
  * timing.
  *
- * Concrete wrappers (BarPopouts, TraySubmenuWrapper, EdgePopout,
+ * Concrete wrappers (BarPopouts, SubPopout, EdgePopout,
  * FloatingPopout, IntegratedEdgeMenu) use this as their root type and add
  * their own window, positioning, and content Loader as children, binding
  * `currentItem` to their Loader's item.
