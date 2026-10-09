@@ -120,8 +120,10 @@ Item {
     readonly property real radius: Math.max(0, root.innerBorderRadius - root.strokeWidth)
 
     // Backed, the blur window casts it, with the surfaces joined to the
-    // frame (BlurShape.shadow)
-    visible: look.shadow !== "none" && !root.backed
+    // frame (BlurShape.shadow): the window stays mapped and draws nothing.
+    // Hyprland puts a layer mapped while a fullscreen window is shown over
+    // it (CLayerSurface::onMap), and a fullscreen window is what unbacks it.
+    visible: look.shadow !== "none"
     screen: root.screen
     anchors {
       left: true
@@ -186,6 +188,7 @@ Item {
 
     Item {
       anchors.fill: parent
+      visible: !root.backed
       layer.enabled: true
       layer.effect: MultiEffect {
         maskEnabled: true
