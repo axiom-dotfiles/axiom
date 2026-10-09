@@ -38,7 +38,7 @@ Card {
   readonly property string hours: I18n.formatDate(root.now, root.use24Hour ? "HH" : "h")
   readonly property string minutes: I18n.formatDate(root.now, "mm")
   readonly property string seconds: root.showSeconds ? I18n.formatDate(root.now, "ss") : ""
-  readonly property string meridiem: root.use24Hour ? "" : root.now.getHours() < 12 ? I18n.locale.amText : I18n.locale.pmText
+  readonly property string meridiem: root.use24Hour ? "" : I18n.meridiem(root.now)
 
   // The lines under the clock: the date (shorter where it's narrow) and
   // the label

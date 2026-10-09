@@ -27,7 +27,7 @@ Most desktops come finished, with options to adjust. axiom comes in pieces, with
 
 - **Built, not configured.** One set of modules builds pages, sidebars, desktop widgets, the lock screen and the login screen. Bars are widgets you line up and style one by one. Every surface is laid out by dragging, with changes live until you save.
 - **The whole desktop, one application.** Login, lock, notifications, polkit, idle, OSDs, a launcher, and settings for Wi-Fi, Bluetooth, audio and monitors, from one config. No stack of separate tools to glue together.
-- **Bring your own apps.** axiom is the part of a desktop you live in. It ships no file manager, terminal or browser: use the ones you like, and axiom themes 23 of them to match (any many more to come).
+- **Bring your own apps.** axiom is the part of a desktop you live in. It ships no file manager, terminal or browser: use the ones you like, and axiom themes 23 of them to match (and many more to come).
 - **Updates don't fight you.** Your config is validated and migrated from version to version, so a new release never means merging your changes into someone else's dotfiles.
 - **Share your setup.** An export is only data: monitors, paths and accounts stay behind, and commands come along only if you ask.
 - **Trying it costs nothing.** axiom never touches your Hyprland config unless you ask it to. It applies its keybinds at runtime, skips any key you already use, and goes away when you remove its one start-up line.

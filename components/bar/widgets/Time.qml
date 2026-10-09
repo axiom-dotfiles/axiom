@@ -42,11 +42,6 @@ BarWidget {
   // The time shown, in the widget's zone
   readonly property date now: TimeZones.shift(clock.date, TimeZoneManager.offsetOf(root.timezone))
 
-  // AM/PM in the shell's language (午前/午後 in Japanese)
-  function _meridiem(date) {
-    return date.getHours() < 12 ? I18n.locale.amText : I18n.locale.pmText;
-  }
-
   // One-line time and date, for a horizontal bar
   readonly property string timeText: {
     const date = root.now;
@@ -64,7 +59,7 @@ BarWidget {
     if (japanese) {
       const lines = [];
       if (!use24Hour)
-        lines.push(_line(_meridiem(date), 0.7, false, 0.9));
+        lines.push(_line(I18n.meridiem(date), 0.7, false, 0.9));
       // Number over its unit; the units are dictionary entries
       lines.push(_line(I18n.formatDate(date, use24Hour ? "H" : "h") + "\n" + I18n.tr("hour")));
       lines.push(_line(I18n.formatDate(date, "mm") + "\n" + I18n.tr("minute")));

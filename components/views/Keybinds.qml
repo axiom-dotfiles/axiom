@@ -6,6 +6,7 @@ import qs.services
 import qs.components.methods
 import qs.components.reusable
 import qs.components.content.base
+import qs.components.content.parts
 import qs.components.views.keybinds
 
 // The keybinds page: Hyprland's binds by section, as cards in columns,

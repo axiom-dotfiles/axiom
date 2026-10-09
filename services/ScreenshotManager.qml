@@ -6,6 +6,7 @@ import Quickshell.Hyprland
 import Quickshell.Io
 
 import qs.config
+import qs.components.methods
 
 // Screenshots (the `screenshot` keybind action, IPC `screenshot take <kind>`,
 // launcher `/screenshot`, the Screenshot card), taken natively: while
@@ -21,9 +22,10 @@ import qs.config
 // `screenRecord` bind, launcher `/record`, or R / the Record switch in an
 // open picker) picks its area in the same picker (kind `record`), or takes
 // the focused screen at once (`mode: "screen"`, the ScreenRecord card), and
-// runs wf-recorder on it until stopped, with the system's sound or the
-// microphone if asked (`audio`). `recordings` lists the newest recordings
-// in a folder (refreshRecordings), for the ScreenRecord card.
+// runs wf-recorder on it until stopped, with the system's sound (through
+// pactl: `hasSystemAudio`) or the microphone if asked (`audio`).
+// `recordingsIn(directory)` lists the newest recordings in each folder
+// asked for (refreshRecordings), for the ScreenRecord cards.
 QtObject {
   id: root
 
@@ -48,6 +50,9 @@ QtObject {
   // Its name as shown ("Satty")
   readonly property string annotatorName: root.annotator === "" ? "" : root.annotator[0].toUpperCase() + root.annotator.slice(1)
   readonly property bool hasRecorder: DependencyManager.found["wf-recorder"] === true
+  // Whether the system's sound can be recorded: pactl finds the default
+  // output's monitor. Undefined until checked (by a ScreenRecord card)
+  readonly property var hasSystemAudio: DependencyManager.found.pactl
   property bool recording: false
   // When the running recording started (ms), 0 when unknown (started
   // before a reload)
@@ -58,10 +63,10 @@ QtObject {
   // "none" | "system" (the default output's monitor) | "mic" (the default
   // input), for the recording being started
   property string _recordAudio: "none"
-  // The newest recordings in `recordingsFolder` ([{ path, name, time,
-  // size }], newest first), once refreshRecordings has listed it
-  property var recordings: []
-  property string recordingsFolder: ""
+  // The newest recordings in each folder listed ({ folder: [{ path, name,
+  // time, size }] }, newest first), once refreshRecordings has listed it
+  readonly property var recordings: root._recordings
+  property var _recordings: ({})
 
   property string _picturesDir: Quickshell.env("HOME") + "/Pictures"
   property string _directory: ""
@@ -246,8 +251,16 @@ QtObject {
     if (root.recording || root.busy || !root.hasRecorder)
       return;
     root._target = null;
-    root._recordAudio = ["system", "mic"].includes(options?.audio) ? options.audio : "none";
+    root._recordAudio = root._audioFor(options?.audio);
     root._start(options?.mode === "screen" ? "recordScreen" : "record", directory);
+  }
+
+  // A sound choice that can be recorded: anything else, or the system's
+  // without pactl, is none
+  function _audioFor(audio) {
+    if (audio === "system")
+      return root.hasSystemAudio === true ? "system" : "none";
+    return audio === "mic" ? "mic" : "none";
   }
 
   // Ours gets SIGINT (wf-recorder finishes the file on it). One started
@@ -359,48 +372,62 @@ QtObject {
         return;
       }
       root._lastPath = path;
-      if (root.recordingsFolder !== "")
-        root.refreshRecordings(root.recordingsFolder);
+      // Its folder, if a card lists it
+      const folder = path.replace(/\/[^/]*$/, "");
+      if (root._recordings[folder] !== undefined)
+        root._queueListing(folder);
       NotificationManager.sendNotification("axiom", I18n.tr("Recording saved"), I18n.tr("Saved in {0}. Click to open it.", path.replace(/\/[^/]*$/, "")), {
         "desktopEntry": root._desktopEntry
       });
     }
   }
 
-  // Lists the newest recordings in a folder (`directory` as for
-  // startRecording) into `recordings`
-  function refreshRecordings(directory) {
-    root.recordingsFolder = root.folderFor(directory);
-    if (root._lister.running)
-      root._listAgain = true;
-    else
-      root._listRecordings();
+  // The newest recordings in a folder (`directory` as for
+  // startRecording), [] until refreshRecordings has listed it
+  function recordingsIn(directory) {
+    return root._recordings[root.folderFor(directory)] ?? [];
   }
 
-  function _listRecordings() {
-    root._listedFolder = root.recordingsFolder;
-    root._lister.command = ["sh", "-c", 'find "$1" -maxdepth 1 -type f -name "Recording_*.mp4" -printf "%T@\t%s\t%p\n" 2>/dev/null | sort -rn | head -n 12', "sh", root.recordingsFolder];
+  // Lists the newest recordings in a folder into `recordings`
+  function refreshRecordings(directory) {
+    root._queueListing(root.folderFor(directory));
+  }
+
+  // Moves a recording to the trash, then lists its folder again
+  function deleteRecording(path) {
+    const folder = Object.keys(root._recordings).find(f => root._recordings[f].some(r => r.path === path));
+    if (folder === undefined)
+      return;
+    root._recordings = Utils.withEntry(root._recordings, folder, root._recordings[folder].filter(r => r.path !== path));
+    CommandManager.run(["gio", "trash", "--", path], () => root._queueListing(folder));
+  }
+
+  // Folders waiting to be listed, oldest first: one find at a time, of
+  // `_listingFolder`
+  property var _listQueue: []
+  property string _listingFolder: ""
+
+  function _queueListing(folder) {
+    if (!root._listQueue.includes(folder))
+      root._listQueue = root._listQueue.concat([folder]);
+    if (!root._lister.running)
+      root._listNext();
+  }
+
+  function _listNext() {
+    if (root._listQueue.length === 0)
+      return;
+    const folder = root._listQueue[0];
+    root._listQueue = root._listQueue.slice(1);
+    root._listingFolder = folder;
+    root._lister.command = ["sh", "-c", 'find "$1" -maxdepth 1 -type f -name "Recording_*.mp4" -printf "%T@\t%s\t%p\n" 2>/dev/null | sort -rn | head -n 12', "sh", folder];
     root._lister.running = true;
   }
-
-  // Moves a recording to the trash, then lists the folder again
-  function deleteRecording(path) {
-    if (!root.recordings.some(r => r.path === path))
-      return;
-    root.recordings = root.recordings.filter(r => r.path !== path);
-    CommandManager.run(["gio", "trash", "--", path], () => root.refreshRecordings(root.recordingsFolder));
-  }
-
-  // The folder being listed, and whether to list again after
-  property string _listedFolder: ""
-  property bool _listAgain: false
 
   property Process _lister: Process {
     stdout: StdioCollector {
       onStreamFinished: {
-        if (root._listedFolder !== root.recordingsFolder)
-          return;
-        root.recordings = text.split("\n").filter(line => line !== "").map(line => {
+        root._recordings = Utils.withEntry(root._recordings, root._listingFolder, text.split("\n").filter(line => line !== "").map(line => {
           const [time, size, path] = line.split("\t");
           return {
             "path": path,
@@ -408,15 +435,10 @@ QtObject {
             "time": Math.round(Number(time) * 1000),
             "size": Number(size)
           };
-        });
+        }));
       }
     }
-    onExited: {
-      if (root._listAgain) {
-        root._listAgain = false;
-        root._listRecordings();
-      }
-    }
+    onExited: Qt.callLater(root._listNext)
   }
 
   // The picture the live "Edit in …" button opens

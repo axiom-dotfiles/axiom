@@ -23,7 +23,13 @@ Panel {
   // Its own slot in the manager, so it never takes the launcher's answer
   readonly property string key: "module:" + String(root)
   readonly property string expr: field.text.trim()
-  readonly property string result: CalculatorManager.resultFor(root.key, root.expr)
+  // The answer = put in the field: qalc only echoes it back (which reads
+  // as no answer), so while the field still holds it, it is its own
+  property string carried: ""
+  readonly property string result: {
+    const answer = CalculatorManager.resultFor(root.key, root.expr);
+    return answer !== "" ? answer : root.expr !== "" && root.expr === root.carried ? root.carried : "";
+  }
   readonly property bool missing: CalculatorManager.qalc === false
   readonly property var history: CalculatorManager.history
   // The last answer copied, for a moment, as feedback
@@ -63,9 +69,10 @@ Panel {
   function press(key) {
     const input = field.input;
     if (key === "=") {
-      if (root.result === "")
+      if (root.result === "" || root.expr === root.carried)
         return;
       CalculatorManager.keep(root.expr, root.result);
+      root.carried = root.result;
       field.text = root.result;
       input.cursorPosition = field.text.length;
     } else if (key === "C") {

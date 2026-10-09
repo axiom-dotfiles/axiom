@@ -42,6 +42,7 @@ Singleton {
   // I18n.tr("Generating themes from a wallpaper") I18n.tr("Idle locking and screen blanking")
   // I18n.tr("Clipboard history shared with other apps")
   // I18n.tr("Typing emoji from the launcher")
+  // I18n.tr("The system's sound in screen recordings")
   readonly property var tools: [
     {
       "command": "qalc",
@@ -102,6 +103,11 @@ Singleton {
       "command": "wtype",
       "package": "wtype",
       "purpose": "Typing emoji from the launcher"
+    },
+    {
+      "command": "pactl",
+      "package": "libpulse",
+      "purpose": "The system's sound in screen recordings"
     }
   ]
 

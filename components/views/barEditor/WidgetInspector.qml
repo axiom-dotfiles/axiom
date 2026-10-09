@@ -219,6 +219,9 @@ Item {
         types: Bar.availableWidgetTypes
         groups: OverlayConfig.libraryGroups
         grouped: EditsManager.libraryGrouped
+        // Schema keys (labels, group names)
+        labelOf: type => I18n.tr(type.label)
+        headingOf: name => name ? I18n.tr(name) : I18n.tr("Other")
         minColumns: 2
         onGroupingChosen: grouped => EditsManager.setLibraryGrouped(grouped)
 

@@ -20,8 +20,10 @@ Card {
   readonly property bool active: NightLightManager.active
   // Not installed (undefined while it's being looked for)
   readonly property bool missing: NightLightManager.tool === ""
-  readonly property int minKelvin: 1000
-  readonly property int maxKelvin: 6500
+  readonly property int minKelvin: NightLight.minTemperature
+  readonly property int maxKelvin: NightLight.maxTemperature
+  readonly property int minGamma: NightLight.minGamma
+  readonly property int maxGamma: NightLight.maxGamma
   // While a slider is held, what it would save
   property int draggedKelvin: -1
   property int draggedGamma: -1
@@ -40,6 +42,8 @@ Card {
   readonly property bool showHero: !root.missing && (root.sideBySide || (!root.strip && root.innerHeight >= Appearance.fontSize * 15 && root.innerWidth >= Appearance.fontSize * 9))
   readonly property real heroSize: root.sideBySide ? Math.min(root.innerHeight, root.innerWidth * 0.35, Appearance.fontSize * 12) : Math.min(root.innerWidth * 0.6, root.innerHeight - controls.implicitHeight - Widget.spacing * 4, Appearance.fontSize * 14)
   readonly property color lightColor: ColorTemperature.color(root.kelvin)
+  // What reads on the light's color: a deep shade of it (it's always light)
+  readonly property color onLightColor: Qt.darker(root.lightColor, 5)
 
   fullMinWidth: Appearance.fontSize * 9
   fullMinHeight: Appearance.fontSize * 2.4
@@ -48,7 +52,7 @@ Card {
     return Math.round((root.maxKelvin - ratio * (root.maxKelvin - root.minKelvin)) / 100) * 100;
   }
   function gammaAt(ratio) {
-    return Math.round(20 + ratio * 80);
+    return Math.round(root.minGamma + ratio * (root.maxGamma - root.minGamma));
   }
 
   function saveKelvin(ratio) {
@@ -159,13 +163,13 @@ Card {
           Layout.alignment: Qt.AlignHCenter
           text: root.active ? "bedtime" : "bedtime_off"
           textSize: hero.width * 0.32
-          textColor: root.active ? "#2a1a10" : Theme.foregroundAlt
+          textColor: root.active ? root.onLightColor : Theme.foregroundAlt
         }
         StyledText {
           Layout.alignment: Qt.AlignHCenter
           text: root.active ? I18n.tr("{0} K", root.kelvin) : I18n.tr("Off")
           textSize: Math.max(Appearance.fontSize - 2, hero.width * 0.11)
-          textColor: root.active ? "#2a1a10" : Theme.foregroundAlt
+          textColor: root.active ? root.onLightColor : Theme.foregroundAlt
           font.bold: true
         }
       }
@@ -247,7 +251,7 @@ Card {
         visible: root.showGamma
         icon: "brightness_6"
         valueText: root.gamma + "%"
-        ratio: (root.gamma - 20) / 80
+        ratio: (root.gamma - root.minGamma) / (root.maxGamma - root.minGamma)
         onMoved: ratio => root.draggedGamma = root.gammaAt(ratio)
         onReleased: ratio => root.saveGamma(ratio)
       }

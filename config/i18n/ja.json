@@ -1707,6 +1707,7 @@
     "Idle locking and screen blanking": "アイドル時のロックと画面オフ",
     "Clipboard history shared with other apps": "他のアプリと共有するクリップボード履歴",
     "Typing emoji from the launcher": "ランチャーからの絵文字入力",
+    "The system's sound in screen recordings": "画面録画でのシステム音声",
     "Font not found": "フォントが見つかりません",
     "No installed font is named \"{0}\", so text uses a fallback. Check the name in Settings → Look & Feel → Font.": "「{0}」という名前のフォントがインストールされていないため、代替フォントで表示しています。設定 → 外観と操作感 → フォント で名前を確認してください。",
     "Axiom": "Axiom",

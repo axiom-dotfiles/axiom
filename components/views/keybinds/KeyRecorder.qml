@@ -5,6 +5,7 @@ import qs.config
 import qs.services
 import qs.components.methods
 import qs.components.reusable
+import qs.components.content.parts
 
 // A bind's key combo as keycaps; click to record a new one. While it
 // records, KeybindManager holds Hyprland in an empty submap, so combos

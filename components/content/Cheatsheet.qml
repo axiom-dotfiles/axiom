@@ -6,7 +6,6 @@ import qs.config
 import qs.services
 import qs.components.methods
 import qs.components.reusable
-import qs.components.views.keybinds
 import qs.components.content.base
 import qs.components.content.parts
 

@@ -11,10 +11,10 @@ import qs.components.content.parts
 
 // Screen recording (ScreenshotManager, with wf-recorder): record a region
 // (picked as for a screenshot) or the whole focused screen (the overlay
-// closes first), with the system's sound, the microphone or none; while
-// recording, a stop button and the time so far. The newest recordings in
-// the folder are listed under it when there's room: click to open, copy
-// the path or move one to the trash. Also the ScreenRecord widget's popout.
+// closes first), with the system's sound (with pactl), the microphone or
+// none; while recording, a stop button and the time so far. The newest
+// recordings in the folder are listed under it when there's room: click
+// to open, copy the path or move one to the trash. Also the ScreenRecord widget's popout.
 // A short card is one row; compact, a figure that starts or stops it.
 // properties (card): { directory }
 Panel {
@@ -25,7 +25,10 @@ Panel {
   readonly property bool recording: ScreenshotManager.recording
   readonly property bool missing: DependencyManager.found["wf-recorder"] === false
   readonly property string elapsed: root.durationText(ScreenshotManager.recordingElapsed)
-  readonly property var recordings: ScreenshotManager.recordings
+  readonly property var recordings: ScreenshotManager.recordingsIn(root.directory)
+  // The sound recorded with: the system's only with pactl
+  readonly property bool systemAudio: ScreenshotManager.hasSystemAudio !== false
+  readonly property string audio: ScreenshotManager.recordAudio === "system" && !root.systemAudio ? "none" : ScreenshotManager.recordAudio
 
   // One row: the state and its buttons
   readonly property bool strip: root.embedded && root.innerHeight < Appearance.fontSize * 7
@@ -54,7 +57,7 @@ Panel {
       ShellManager.closeOverlay();
     ScreenshotManager.startRecording(root.directory, {
       "mode": mode,
-      "audio": ScreenshotManager.recordAudio
+      "audio": root.audio
     });
   }
 
@@ -66,7 +69,7 @@ Panel {
   }
 
   Component.onCompleted: {
-    DependencyManager.check(["wf-recorder"]);
+    DependencyManager.check(["wf-recorder", "pactl"]);
     ScreenshotManager.refreshRecordings(root.directory);
   }
   onDirectoryChanged: ScreenshotManager.refreshRecordings(root.directory)
@@ -274,9 +277,11 @@ Panel {
 
           SegmentButton {
             required property var modelData
+            // The system's sound needs pactl
+            available: modelData.audio !== "system" || root.systemAudio
             Layout.fillWidth: true
             text: I18n.tr((root.sideBySide ? root.innerWidth / 2 : root.innerWidth) < Appearance.fontSize * 18 ? modelData.short : modelData.label)
-            active: ScreenshotManager.recordAudio === modelData.audio
+            active: root.audio === modelData.audio
             onClicked: ScreenshotManager.setRecordAudio(modelData.audio)
           }
         }

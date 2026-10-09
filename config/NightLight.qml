@@ -17,4 +17,11 @@ QtObject {
   readonly property int temperature: _c.temperature
   // Percent; 100 leaves it alone
   readonly property int gamma: _c.gamma
+
+  // The ranges they may be set in (the schema's), for controls
+  readonly property var _schema: ConfigManager.configSchema.properties.NightLight.properties
+  readonly property int minTemperature: _schema.temperature.minimum
+  readonly property int maxTemperature: _schema.temperature.maximum
+  readonly property int minGamma: _schema.gamma.minimum
+  readonly property int maxGamma: _schema.gamma.maximum
 }

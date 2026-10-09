@@ -72,9 +72,10 @@ Singleton {
     root._slotsChanged();
   }
 
-  // Puts an answer at the top of the history (once; an older copy goes)
+  // Puts an answer at the top of the history (once; an older copy goes).
+  // A value that is its own answer (one = carried on with) isn't kept
   function keep(expr, result) {
-    if (!expr || !result)
+    if (!expr || !result || expr === result)
       return;
     const kept = root.history.filter(h => h.expr !== expr);
     kept.unshift({

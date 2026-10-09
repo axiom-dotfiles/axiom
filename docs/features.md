@@ -317,7 +317,7 @@ Every prefix and command is listed in [Keybinds, IPC and launcher](usage.md#laun
   - Hyprland's mode, and the optional integrations (login screen, polkit, idle)
 
   `/welcome` runs it again.
-- **Screenshots:** a region, a window or a whole screen, picked on a frozen frame. Saved and copied, or opened in satty or swappy to annotate. Also screen recording with `wf-recorder`.
+- **Screenshots:** a region, a window or a whole screen, picked on a frozen frame. Saved and copied, or opened in satty or swappy to annotate. Also screen recording with `wf-recorder`, with the microphone or (with `pactl`) the system's sound.
 - **Brightness:** keys and an OSD bar for a laptop screen and for external monitors over DDC/CI.
 - **Night light:** warmer colors on a schedule, through `hyprsunset` or `wlsunset`.
 - **Idle:** axiom can run hypridle from its own settings: dim, lock, screen off and suspend timeouts.
