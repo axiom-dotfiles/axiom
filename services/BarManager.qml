@@ -1,6 +1,5 @@
 pragma Singleton
 import QtQuick
-import Quickshell
 import qs.config
 import qs.components.methods
 
@@ -175,7 +174,7 @@ QtObject {
     copy.id = _uniqueId(`${bar.id}-copy`);
     if (bar.monitor !== "*") {
       const onEdge = root.localConfig.filter(b => b.location === bar.location).map(b => b.monitor === "*" ? "*" : General.screensNamed(b.monitor)[0]?.name ?? "");
-      const free = Quickshell.screens.find(s => !onEdge.includes(s.name) && !onEdge.includes("*"));
+      const free = General.outputs.find(s => !onEdge.includes(s.name) && !onEdge.includes("*"));
       if (free)
         copy.monitor = free.name;
     }

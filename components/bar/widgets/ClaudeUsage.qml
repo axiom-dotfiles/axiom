@@ -68,11 +68,9 @@ BarIconWidget {
   }
 
   PopoutAnchor {
-    popouts: root.popouts
-    panel: root.panel
     hitArea: root.hitArea
     popoutName: "ClaudeUsage"
-    active: root.properties.showPopout
+    active: EdgeMenusConfig.opensOwnPopout(root.properties)
     extraData: ({
         "accounts": root.properties.accounts,
         "warnThreshold": root.properties.warnThreshold,

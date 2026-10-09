@@ -51,7 +51,7 @@ components/
   reusable/     generic Styled* widgets, no feature logic
   forms/        schema-driven form widgets (SchemaField, SchemaPropertiesForm, …)
   content/      loadable panels, by name: overlay module types and bar popouts (base/: Card, Panel, TitledCard; parts/: helpers)
-  hosts/        where content appears: popout/ (bar + edge popouts) and overlay/ (pages, the module grid, slots)
+  hosts/        where content appears: popout/ (bar + edge popouts, submenus) and overlay/ (pages, the module grid, slots)
   views/        overlay pages by view type, with their pieces in subfolders
   bar/          the bar; widgets/ = bar widget types
   surfaces/     standalone windows (launcher, lockscreen, toasts, dock, onboarding, screenshot, …)
@@ -105,7 +105,7 @@ Dependencies point one way:
 
 - **Reuse before building.** Check the shared pieces (docs/architecture.md, "Shared UI pieces") before drawing a card, heading, chip, list row, dot, divider, drag or inspector; a second copy of a pattern becomes a shared piece.
 - **Data-driven surfaces.** `Bars`, `Overlay.views`, `EdgeMenus`, `Dock.docks` and `OSD.osds` are arrays in config; surfaces are `Variants`/Repeaters over them, keyed by stable ids.
-- **Loaded by name.** A bar widget is `bar/widgets/<type>.qml`; a popout or overlay module is `content/<Name>.qml`; a view is `views/<type>.qml`. A new one = the file + its schema `oneOf` entry (modules with a `place` property and, if a card is the wrong size to start at, `x-defaultSize`; sizes are in grid units, four to a card). Modules take any size: each sets `fullMinWidth`/`fullMinHeight` (px) and shows its compact figure below them. A widget opens a popout with a `PopoutAnchor { popoutName }`.
+- **Loaded by name.** A bar widget is `bar/widgets/<type>.qml`; a popout or overlay module is `content/<Name>.qml`; a view is `views/<type>.qml`. A new one = the file + its schema `oneOf` entry (modules with a `place` property and, if a card is the wrong size to start at, `x-defaultSize`; sizes are in grid units, four to a card). Modules take any size: each sets `fullMinWidth`/`fullMinHeight` (px) and shows its compact figure below them. A widget opens a popout with a `PopoutAnchor { popoutName }` (it finds its window's host itself); one inside popout or edge menu content opens that popout's submenu (`SubPopout`, one level deep).
 - **Content roots.** `Card` (free-form card) or `Panel` (a column, usable both as a bar popout and as a card: `embedded` is true in a card). Both expose `properties`, `slotRect`, `cols`/`rows`, `shape`, `compact`, `pad`, `host`; modules adapt their layout to `shape`/`compact`.
 - **Overlay lifetime.** Only the current page and its neighbours exist, and only while the overlay is open. Acquire in `Component.onCompleted`, release in `onDestruction`, keep lasting state in a service.
 - **Repeater models and `acquire()` requests come from config and tool availability only, never live values.** For derived item sets, model by a count or a joined string key. A model re-evaluated on every sample once pushed qs past 25 GB.
@@ -115,15 +115,15 @@ Dependencies point one way:
 - **Rounded clipping** (images, captures, anything cut to rounded corners) is Quickshell.Widgets' `ClippingRectangle` (set its `color`: it defaults to white), not a MultiEffect mask.
 - **Icons** are Material Symbols names drawn by `reusable/StyledIcon`; an icon never shares a Text with a label.
 - **Layer ordering** (bars, border, popouts, dock, edge menus, backdrop, screenshot) is set by Hyprland layer rules in `HyprlandManager.layerRulesLua`; see docs/architecture.md (Popouts) before changing how surfaces sit on an edge.
-- **Edge collisions**: surfaces on one screen edge give way by rank (dock < OSD < bar popout < attached launcher < floating edge menu) through `ShellManager.setEdgeClaim` / `edgeOutranked`; a new surface on an edge takes a rank there instead of checking the others itself.
-- **Screen targeting**: surfaces are built on `General.screensFor(mode)`; only `ShellManager.isTarget(screen, mode)` answers shortcuts, IPC and OSD events. IPC handlers are `enabled` on the target instance only.
+- **Popout collisions**: every popout holds a `PopoutClaim` in `PopoutManager` with its footprint (screen rects, fillets included, `SurfaceOutline.footprint`); one opening closes only what it overlaps, by rank (pinned < dock < OSD < bar popout < menu < launcher; a pinned one ranks as its kind while engaged: just opened or asked for, or under the pointer; a submenu ranks as its parent): lower and equal ones go, a higher one refuses it, residents (docks, pinned or previewing menus) give way and come back. A new popout takes a claim instead of checking the others itself; an open popout never moves (it opens where it belongs next time).
+- **Screen targeting**: surfaces are built on `General.screensFor(mode)` (or `General.outputs`, never `Quickshell.screens`: it holds stand-ins while no monitor is connected); only `ShellManager.isTarget(screen, mode)` answers shortcuts, IPC and OSD events. IPC handlers are `enabled` on the target instance only.
 - **Launcher**: every provider returns rows `{ kind, image, glyph, title, usage, subtitle, hint, complete, run(shift) }`; a new command is an entry in `services/LauncherCommands.qml`. `/config` can never edit `Bars` or `Overlay.views`.
 - **Greeter**: greetd's login screen runs `greeter.qml` as greetd's user from a root-owned copy (`GreeterManager` installs and updates it through pkexec), reading only the bundle the user's axiom exports (data, never code: the bundle's folder is the user's). In greeter mode (`Paths.greeter`) nothing writes config, generates or runs integrations; a new side effect reachable from the greeter checks it. Greeter modules list `greeter` in `x-hosts`, are inert unless `host.kind === "greeter" && !host.preview && Paths.greeter`, and only `GreetdManager` talks to greetd.
 - **Lockscreen**: `LockManager.lock()` is the only way to lock. In `quickshell` mode only PAM success (`AuthManager`) unlocks: no IPC unlock, and nothing on the lock surface may run commands but Power's. Its modules are the ones whose `x-hosts` list `lockscreen`: add it only to a module that launches, dispatches and writes nothing and shows nothing private. The one exception is `Power` (suspend, restart, shut down: `ShellManager.sessionAction`, never logout). The surface keeps a fallback password field for a layout without one.
 
 ## QML pitfalls (each has bitten)
 
-- `StyledTextEntry` writes every keystroke back to `text`, dropping any binding: push the value in (on selection/draft changes, unless focused) and act on `onTextChanged` while focused.
+- `StyledTextEntry` writes every keystroke back to `text`, dropping any binding: push the value in (on selection/draft changes, unless focused) and act on its `textEdited` (typing only, never a value pushed in). A field that commits on focus loss commits only if `typed`, or text it was left showing lands on whatever it edits by then.
 - An object literal as a property value needs parentheses: `payload: ({ … })`; `payload: { … }` is a code block.
 - Assigning a bound property (`currentIndex = i`) breaks its binding: change the source it's bound to instead.
 - A derived type must not redeclare a property its base declares (it shadows the base's, e.g. an alias).

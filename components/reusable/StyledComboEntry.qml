@@ -45,12 +45,10 @@ Item {
   }
 
   // Sets the field's text without it counting as typing (which would
-  // filter and reopen the list)
-  property bool _quiet: false
+  // filter and reopen the list, and be taken as a pick on focus loss)
   function _showText(text) {
-    root._quiet = true;
+    entry.typed = false;
     entry.input.text = text;
-    root._quiet = false;
   }
 
   function openList() {
@@ -94,9 +92,10 @@ Item {
   implicitHeight: Widget.height
   implicitWidth: 200
 
-  onValueChanged: if (!entry.input.activeFocus || !root.editable)
+  // Followed unless it's being typed over
+  onValueChanged: if (!entry.typed || !entry.input.activeFocus)
     root.showValue()
-  onOptionsChanged: if (!entry.input.activeFocus || !root.editable)
+  onOptionsChanged: if (!entry.typed || !entry.input.activeFocus)
     root.showValue()
   Component.onCompleted: root.showValue()
 
@@ -108,10 +107,10 @@ Item {
     input.rightPadding: Appearance.fontSize * 1.6
     // One line, cut off rather than wrapped in a narrow field
     input.wrapMode: TextInput.NoWrap
-    onTextChanged: {
-      if (root._quiet || !root.editable || !entry.input.activeFocus)
+    onTextEdited: {
+      if (!root.editable)
         return;
-      root.query = text;
+      root.query = entry.text;
       root.highlighted = 0;
       if (!dropdown.opened && root.matches.length > 0)
         root.openList();
@@ -127,12 +126,17 @@ Item {
         event.accepted = false;
     }
 
-    // Leaving a typed field takes what's in it
+    // Leaving a field typed in takes what's in it; one only looked at
+    // shows the value again
     Connections {
       target: entry.input
       function onActiveFocusChanged() {
-        if (!entry.input.activeFocus && root.editable && entry.input.text.trim() !== root.value)
+        if (entry.input.activeFocus || !root.editable)
+          return;
+        if (entry.typed && entry.input.text.trim() !== root.value)
           root.pick(entry.input.text.trim());
+        else
+          root.showValue();
       }
     }
 

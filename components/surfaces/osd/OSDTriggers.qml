@@ -1,13 +1,12 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 
-import qs.config
 import qs.services
 
 // What opens one OSD host (an EdgePopout) on its screen:
 // its bars' own changes (poke, system volume and mute included) and the
-// settings page's Show button. An OSD gives way to an edge menu on
-// its edge (ShellManager.edgeOutranked) and puts a dock there away.
+// settings page's Show button. Where it gives way to other popouts is its
+// host's (EdgePopout.claimKey, PopoutManager).
 QtObject {
   id: root
 
@@ -19,8 +18,6 @@ QtObject {
   // Open (or keep open) on the target screen, or on every screen in "all"
   // mode; restarts the countdown
   function poke(force) {
-    if (root.outranked)
-      return;
     if (root.host.isOpen)
       root.host.updateDismissTimer();
     else if (force && ShellManager.showsOn(root.host.screen, root.osd.monitors, root.osd.monitor))
@@ -33,26 +30,6 @@ QtObject {
     if (root._open)
       BrightnessManager.refresh(root.host.screen.name);
   }
-
-  // Its screen edge (a Bar.edgeName)
-  readonly property string edgeName: Bar.edgeName(Bar.getLocationFromString(root.osd.edge))
-  readonly property string _screenName: root.host.screen?.name ?? ""
-  readonly property bool outranked: ShellManager.edgeOutranked(root._screenName, root.edgeName, "osd")
-  // Later: hiding drops its own edge claim, which `outranked` reads
-  onOutrankedChanged: {
-    if (root.outranked)
-      Qt.callLater(() => {
-        if (root && root.outranked)
-          root.host.hide();
-      });
-  }
-  readonly property var _claim: root._open ? ({
-      "screen": root._screenName,
-      "edge": root.edgeName,
-      "kind": "osd"
-    }) : null
-  on_ClaimChanged: ShellManager.setEdgeClaim(root, root._claim)
-  Component.onDestruction: ShellManager.setEdgeClaim(root, null)
 
   readonly property Connections _shell: Connections {
     target: ShellManager

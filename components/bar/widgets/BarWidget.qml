@@ -10,7 +10,6 @@ import qs.config
 // sets hasBackground and its accentColor, and draws in `colors`.
 Item {
   property var barConfig
-  property var popouts
   property var panel
   property var screen
   property var properties

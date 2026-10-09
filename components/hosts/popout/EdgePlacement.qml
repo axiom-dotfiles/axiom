@@ -47,6 +47,10 @@ QtObject {
   // a negative length is the whole surface
   property real coverStart: 0
   property real coverLength: -1
+  // Where along the edge (edge coordinates) a joined submenu's outer wall
+  // runs straight up into the pill or island it stands on, which reaches
+  // on to it (EdgeAttach.reachStretch), else null
+  property var reach: null
 
   // Its pill stretch: a key unique per surface on a bar, and whether it
   // shows (not while the content loads or unloads, the box a placeholder)
@@ -116,6 +120,8 @@ QtObject {
     "radius": Appearance.borderRadius
   })
   readonly property bool merged: root.place.mode === "merged"
+  // Its pill stretch, reaching on to a joined submenu's wall
+  readonly property var stretch: EdgeAttach.reachStretch(root.place.stretch, root.onPill ? root.place.pill : null, root.reach === null ? null : Math.max(-root.strokeInset, Math.min(root.reach, root.length + root.strokeInset)))
   // Standing on a pill's or island's far stroke
   readonly property bool onPill: root.place.mode === "pill" || root.place.mode === "island"
   // A box of its own: held, or on a bar with nothing to grow out of (a
@@ -155,9 +161,9 @@ QtObject {
     container: root.container
     owner: root.owner
     open: root.open
-    stretch: root.showing && root.place.stretch ? Object.assign({}, root.place.stretch, {
-      "start": root.place.stretch.start + root.barShift,
-      "end": root.place.stretch.end + root.barShift
+    stretch: root.showing && root.stretch ? Object.assign({}, root.stretch, {
+      "start": root.stretch.start + root.barShift,
+      "end": root.stretch.end + root.barShift
     }) : null
     // The pill's or island's far stroke left open under a translucent box
     opening: root.showing && root.onPill && Appearance.translucent ? {

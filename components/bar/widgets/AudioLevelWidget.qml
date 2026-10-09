@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 
+import qs.config
 import qs.services
 import qs.components.hosts.popout
 
@@ -38,11 +39,9 @@ BarIconWidget {
   }
 
   PopoutAnchor {
-    popouts: root.popouts
-    panel: root.panel
     hitArea: root.hitArea
     popoutName: "AudioMixer"
-    active: root.properties.showPopout && !root.hidden
+    active: EdgeMenusConfig.opensOwnPopout(root.properties) && !root.hidden
     extraData: ({
         "mode": root.mode,
         "maxVolume": root.maxVolume

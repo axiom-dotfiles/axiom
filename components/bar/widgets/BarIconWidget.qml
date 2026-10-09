@@ -19,7 +19,6 @@ IconTextWidget {
   id: root
 
   property var barConfig
-  property var popouts
   property var panel
   property var screen
   property var properties

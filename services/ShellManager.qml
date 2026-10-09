@@ -104,27 +104,6 @@ QtObject {
     return openSurfaces.some(e => e.kind === kind && (e.group.screen?.name ?? "") === name);
   }
 
-  // Surfaces sharing a screen edge give way by rank, lowest first: a dock
-  // to an OSD, both to a bar popout, all three to the attached launcher,
-  // and all four to a floating edge menu (opened by hand, the pointer on
-  // it). A lower one closes while a higher one shows on its edge, and a
-  // bar popout won't open meanwhile.
-  readonly property var edgeRanks: ["dock", "osd", "popout", "launcher", "menu"]
-  // `{ owner, screen, edge, kind }` (a screen name, a Bar.edgeName): the
-  // ranked surfaces showing
-  property var edgeClaims: []
-
-  // `claim` is `{ screen, edge, kind }`, or null to release the owner's
-  function setEdgeClaim(owner, claim) {
-    const others = edgeClaims.filter(c => c.owner !== owner);
-    if (claim)
-      edgeClaims = others.concat([Object.assign({
-          owner
-        }, claim)]);
-    else if (others.length !== edgeClaims.length)
-      edgeClaims = others;
-  }
-
   // `{ owner, screen, edge, start, end }` (a screen name, a Bar.edgeName,
   // screen px along the edge): surfaces joined to the border's inner
   // stroke, which leaves it open under them while surfaces are translucent,
@@ -143,12 +122,6 @@ QtObject {
         }, opening)]);
     else if (mine)
       borderOpenings = others;
-  }
-
-  // Whether something ranked above `kind` shows on that screen edge
-  function edgeOutranked(screenName, edge, kind) {
-    const rank = edgeRanks.indexOf(kind);
-    return edgeClaims.some(c => c.screen === screenName && c.edge === edge && edgeRanks.indexOf(c.kind) > rank);
   }
 
   // Windows a full-screen surface's focus grab lets input through to on

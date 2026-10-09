@@ -17,7 +17,7 @@ import QtQuick
 // end (too close for a fillet) would grow flush to it, empty. With
 // `pillGrows` (bar popouts, edge popouts, docks) the pill grows instead,
 // past its end far enough to carry the fillet, and the box keeps to its
-// content. Where a pill can't grow (tray submenus, whose "pill" is their
+// content. Where a pill can't grow (submenus, whose "pill" is their
 // parent's box) `nudge` moves the content the least way that leaves no
 // empty growth: up to that end, or back far enough for the fillet. Either
 // is less than a fillet's room, so it stays over its anchor.
@@ -133,6 +133,26 @@ QtObject {
       "surfaceStart": start - startMargin,
       "surfaceLength": startMargin + (end - start) + endMargin,
       "stretch": null
+    };
+  }
+
+  // A surface's pill (or island) stretch `own` (place's `stretch`, null for
+  // none) reaching on to `at` along the bar too, for a submenu joined to
+  // the stroke the surface grows from whose outer wall runs straight up
+  // into it (null `at`: `own`, unchanged): stretched there and squared,
+  // for the wall to run into, any end `own` squared kept square. `pill` is
+  // the one it stands on.
+  function reachStretch(own, pill, at) {
+    if (!pill || at === null || at === undefined)
+      return own;
+    const start = own ? own.start : pill.start;
+    const end = own ? own.end : pill.start + pill.length;
+    return {
+      "index": pill.index,
+      "start": Math.min(start, at),
+      "end": Math.max(end, at),
+      "squareStart": at < start || (own?.squareStart ?? false),
+      "squareEnd": at > end || (own?.squareEnd ?? false)
     };
   }
 

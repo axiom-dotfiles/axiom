@@ -28,41 +28,67 @@ PopoutWrapperBase {
   required property var barConfig
   required property QtObject panel
 
-  // The window showing the popout: on a transparent bar, a layer surface
-  // of its own under the bar (a popup always draws over its parent), so a
+  // The window showing the popout, a layer surface along the bar's edge.
+  // On a transparent bar it's on the bar's layer, ordered under it, so a
   // detached box slides out from beneath the bar rather than out of thin
-  // air at its invisible inner edge. Else a popup of the bar, which also
-  // draws over the overlay: while that's open here, the box shows from
-  // the popup instead, without sliding (the under-bar layer is ordered
-  // under the overlay, see HyprlandManager's layer rules).
-  readonly property bool underBar: root.barConfig.background === "transparent" && !ShellManager.surfaceOpenOn("overlay", root.screen)
-  readonly property var popupWindow: root.underBar ? underWindow : mainPopup
+  // air at its invisible inner edge; else on the Overlay layer, over the
+  // bar. That under-bar layer is also under the overlay: while that's open
+  // here, the box shows over it instead, without sliding (see
+  // HyprlandManager's layer rules). Followed only while closed, since it
+  // changes the window's layer.
+  readonly property bool _wantsUnder: root.barConfig.background === "transparent" && !ShellManager.surfaceOpenOn("overlay", root.screen)
+  property bool underBar: root._wantsUnder
+  function _followUnder() {
+    if (!root.occupied)
+      root.underBar = root._wantsUnder;
+  }
+  on_WantsUnderChanged: root._followUnder()
+  readonly property var popupWindow: mainPopup
   // Content box in popupWindow coordinates (see AttachedSurface.boxRect)
   readonly property rect boxRect: Qt.rect(surface.x + surface.boxRect.x, surface.y + surface.boxRect.y, surface.boxRect.width, surface.boxRect.height)
 
-  // Puts a dock or OSD on its bar's edge away while it's open, and gives
-  // way to the attached launcher or a floating edge menu there
-  // (ShellManager.edgeOutranked)
-  readonly property string _edgeName: Bar.edgeName(root.barConfig.location)
-  readonly property var _claim: root.isOpen ? ({
-      "screen": root.screen?.name ?? "",
-      "edge": root._edgeName,
-      "kind": "popout"
-    }) : null
-  on_ClaimChanged: ShellManager.setEdgeClaim(root, root._claim)
-  blocked: ShellManager.edgeOutranked(root.screen?.name ?? "", root._edgeName, "popout")
+  // Its place among the popouts (PopoutManager), one per bar: it shows
+  // once granted, closing what it covers below it, and closes when a
+  // higher popout covers it (or won't open under one)
+  property PopoutClaim claim: PopoutClaim {
+    key: "bar:" + root.barConfig.id
+    kind: "bar"
+    screen: root.screen?.name ?? ""
+    edge: Bar.edgeName(root.barConfig.location)
+    barId: root.barConfig.id
+    occupied: root.occupied
+    closing: root.isClosing
+    wanted: still.showing && !root.isClosing
+    // The surface is at (barX, barY) in bar window coordinates, in either
+    // window
+    footprint: PopoutGeometry.offset(surface.footprint, Qt.point(mainPopup.barOrigin.x + mainPopup.barX, mainPopup.barOrigin.y + mainPopup.barY))
+    onEvicted: root.requestDismiss()
+    onRefused: root.requestDismiss()
+  }
+  // Granted (or closing after it was, PopoutClaim.held)
+  readonly property bool claimed: root.claim.held
 
-  // Which side the tray's submenus open to
+  // Which side its submenus open to
   readonly property bool openToLeft: root.barConfig.right || mainPopup.isOnRightHalfOfScreen
 
-  // ---- Tray submenus (TraySubmenuWrapper) ----
-  // An open submenu, beside the box, asks it (the content's sideStretch:
+  // ---- Its submenu (SubPopout) ----
+  // Opened by a PopoutAnchor in its content (mainPopup.popoutHost): the
+  // tray's submenus, any other content's
+  readonly property SubPopout submenu: sub
+  SubPopout {
+    id: sub
+    screen: root.screen
+    openToLeft: root.openToLeft
+    host: root
+  }
+  childOpen: sub.occupied
+  // An open submenu, beside the box, asks it (SubPopout.parentStretch:
   // { top, bottom, squareTop, squareBottom }) to reach past its top or
   // bottom to carry one longer than its side, and to square its corner
   // where one runs flush to its end, as a pill or island does for a popout
   // (EdgeAttach.place). Along y in both orientations: submenus open to the
   // left or right.
-  readonly property var _sideStretch: root.occupied ? (root._content?.sideStretch ?? null) : null
+  readonly property var _sideStretch: root.occupied ? sub.parentStretch : null
   property real shownStretchTop: root._sideStretch?.top ?? 0
   property real shownStretchBottom: root._sideStretch?.bottom ?? 0
   Glide on shownStretchTop {
@@ -97,8 +123,8 @@ PopoutWrapperBase {
   // lands within keeps it; any other runs straight up into the pill or
   // island's end, stretched to its wall and squared (pillStretch), as a
   // bar popout runs flush into one.
-  readonly property real sideJoinFrom: (root.anchorPill !== null && !root.mergeWithPill ? (root.place.stretch?.start ?? root.anchorPill.start) : mainPopup.strokeStart) - mainPopup.windowFrom
-  readonly property real sideJoinTo: (root.anchorPill !== null && !root.mergeWithPill ? (root.place.stretch?.end ?? root.anchorPill.start + root.anchorPill.length) : mainPopup.strokeEnd) - mainPopup.windowFrom
+  readonly property real sideJoinFrom: (root.anchorPill !== null && !root.mergeWithPill ? (root.place.stretch?.start ?? root.anchorPill.start) : mainPopup.strokeStart) + mainPopup.alongShift
+  readonly property real sideJoinTo: (root.anchorPill !== null && !root.mergeWithPill ? (root.place.stretch?.end ?? root.anchorPill.start + root.anchorPill.length) : mainPopup.strokeEnd) + mainPopup.alongShift
   // The ends of the side submenus open on that one may run flush to: the
   // far edge's, not a joined end, and on a horizontal bar its bar side's
   // where nothing's joined there
@@ -124,11 +150,18 @@ PopoutWrapperBase {
   readonly property bool squareEndNear: !root.openToLeft && root._squareNear
   // Where the popout's window is on screen, for a submenu's (its popup)
   // blur: null until the bar's is known
-  readonly property var popupScreenOrigin: surface.barOrigin ? Qt.point(surface.barOrigin.x + mainPopup.barX - surface.x, surface.barOrigin.y + mainPopup.barY - surface.y) : null
+  readonly property var popupScreenOrigin: surface.barOrigin ? mainPopup.windowOrigin : null
+  // ...or where it most likely is, for the submenu's footprint
+  readonly property point popupScreenPlaced: mainPopup.windowOrigin
+  // How far down from attachBox's top `item` (in the content) is, the
+  // box at rest
+  function anchorOffsetOf(item) {
+    return item.mapToItem(surface.contentBox, 0, 0).y - root.shownStretchTop;
+  }
   // The stroke a submenu covers on the box's side, left open (in
   // popupWindow coordinates), as its fill no longer hides it
   property var submenuHole: null
-  // ---- end tray submenus ----
+  // ---- end submenu ----
 
   // content/<name>.qml, loaded by URL like bar widgets and overlay modules:
   // a new popout is just a file there plus a PopoutAnchor naming it. The
@@ -187,13 +220,15 @@ PopoutWrapperBase {
   // Gap between bar and main content (connector thickness)
   property int connectorGap: Appearance.borderRadius * 2
 
-  // The bar's BarContainer. Its layoutUpdated signal re-anchors an open
-  // popout, so it stays attached to a widget that moves or resizes.
+  // The bar's BarContainer: its pills, islands and stretches
   property var layoutSource: null
 
-  // Where the anchor widget currently is, in bar-window coordinates. Read
-  // live from currentData.anchorItem; the anchorX/anchorY snapshot in the
-  // payload is only the fallback for callers that don't pass an item.
+  // Where the anchor widget was when it opened, in bar-window coordinates
+  // (from currentData.anchorItem; the anchorX/anchorY snapshot in the
+  // payload is the fallback for callers that don't pass an item). An open
+  // popout stays put: a widget moving or resizing meanwhile (modules
+  // growing) doesn't drag it along, and it opens where it belongs next
+  // time.
   property rect anchorRect: Qt.rect(0, 0, 0, 0)
 
   function updateAnchorRect() {
@@ -274,38 +309,25 @@ PopoutWrapperBase {
   // A pill's (or island's) far stroke, from the bar's outer edge
   readonly property real pillFoot: (root.island ? root.barConfig.extent : root.barConfig.pillDepth) - Appearance.borderWidth
   // The pill (or island) stretched to carry the box's fillets while it shows
-  // and to a joined tray submenu's outer wall where its fillet doesn't
+  // and to a joined submenu's outer wall where its fillet doesn't
   // land on it (sideStretch.joinReach, x in the popup; kept within the ends
   // it may reach), squared there for the wall to run straight up into
   readonly property var pillStretch: {
-    const own = root.place.stretch;
-    const pill = root.anchorPill;
     const reach = root._sideStretch?.joinReach ?? null;
-    if (pill === null || root.mergeWithPill || reach === null)
-      return own;
-    const at = Math.max(mainPopup.strokeStart, Math.min(reach + mainPopup.windowFrom, mainPopup.strokeEnd));
-    const start = own ? own.start : pill.start;
-    const end = own ? own.end : pill.start + pill.length;
-    return {
-      "index": pill.index,
-      "start": Math.min(start, at),
-      "end": Math.max(end, at),
-      "squareStart": at < start || ((own?.squareStart ?? false) && at === start),
-      "squareEnd": at > end || ((own?.squareEnd ?? false) && at === end)
-    };
+    return EdgeAttach.reachStretch(root.place.stretch, root.mergeWithPill ? null : root.anchorPill, reach === null ? null : Math.max(mainPopup.strokeStart, Math.min(reach - mainPopup.alongShift, mainPopup.strokeEnd)));
   }
   PillStretch {
     id: pillStretchItem
     container: root.layoutSource
     owner: "barPopout"
-    open: still.showing && !root.isClosing
-    stretch: root.occupied ? root.pillStretch : null
+    open: still.showing && !root.isClosing && root.claimed
+    stretch: root.occupied && root.claimed ? root.pillStretch : null
     opening: root._opening
   }
   // Over a pill's or island's far stroke, the stroke is left open under
   // a translucent box (BarContainer.openings): the box's surface along the
   // bar, fillets included
-  readonly property var _opening: root.occupied && root.popupWindow.visible && Appearance.translucent && root.anchorPill !== null && !root.mergeWithPill ? {
+  readonly property var _opening: root.occupied && root.claimed && root.popupWindow.visible && Appearance.translucent && root.anchorPill !== null && !root.mergeWithPill ? {
     "start": mainPopup.shownAlongPos + surface.coverStart,
     "end": mainPopup.shownAlongPos + surface.coverStart + surface.coverLength
   } : null
@@ -383,6 +405,7 @@ PopoutWrapperBase {
   on_BoxAcrossChanged: _notePeak()
   onContentReadyChanged: _notePeak()
   onOccupiedChanged: {
+    root._followUnder();
     if (!root.occupied)
       root._peakAcross = 0;
   }
@@ -393,35 +416,48 @@ PopoutWrapperBase {
   // On a bottom or right bar the room lies before the surface
   readonly property bool spareBefore: root.barConfig.vertical ? root.barConfig.right : root.barConfig.bottom
 
-  Connections {
-    target: root.layoutSource
-    // Positions settle through bindings after the signal, so read them once
-    // they have. A pinned popout stays where it opened.
-    function onLayoutUpdated() {
-      if (root.occupied && !root.currentData?.pinned)
-        Qt.callLater(root.updateAnchorRect);
-    }
-  }
-
-  Component.onDestruction: {
-    ShellManager.setEdgeClaim(root, null);
-    ShellManager.unregisterGrabPartner(mainPopup);
-    ShellManager.unregisterGrabPartner(underWindow);
-  }
+  Component.onDestruction: ShellManager.unregisterGrabPartner(mainPopup)
 
   // The overlay's focus grab lets input through to the popout (see
   // ShellManager.grabPartners)
   function _registerGrabPartners() {
     ShellManager.registerGrabPartner(mainPopup, root.screen?.name);
-    ShellManager.registerGrabPartner(underWindow, root.screen?.name);
   }
   Component.onCompleted: _registerGrabPartners()
   onScreenChanged: _registerGrabPartners()
 
-  PopupWindow {
+  // Ignoring what others reserve, it starts at the screen's edge, so where
+  // things are in it follows from where the bar is (BarPanel.screenPlaced)
+  // alone: along the bar it spans the whole screen, and across it reaches
+  // from the screen's edge past the box.
+  PanelWindow {
     id: mainPopup
-    visible: !root.underBar && still.showing && !ShellManager.captureFrozen
+    screen: root.screen
+    visible: still.showing
     color: "transparent"
+
+    WlrLayershell.layer: root.underBar ? WlrLayer.Top : WlrLayer.Overlay
+    WlrLayershell.namespace: root.underBar ? "axiom-popout-under" : "axiom-popout"
+    WlrLayershell.keyboardFocus: root.wantsKeyboardFocus ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
+    exclusionMode: ExclusionMode.Ignore
+    exclusiveZone: 0
+
+    anchors {
+      top: root.barConfig.top || root.barConfig.vertical
+      bottom: root.barConfig.bottom || root.barConfig.vertical
+      left: root.barConfig.left || !root.barConfig.vertical
+      right: root.barConfig.right || !root.barConfig.vertical
+    }
+
+    // What PopoutAnchors in its content open in
+    readonly property var popoutHost: sub
+
+    // Where the bar window is on the screen, else where it most likely is
+    readonly property point barOrigin: root._panel?.screenPlaced ?? Qt.point(0, 0)
+    // Where this window is on the screen: at its edge
+    readonly property point windowOrigin: Qt.point(root.barConfig.right ? root.screen.width - width : 0, root.barConfig.bottom ? root.screen.height - height : 0)
+    // Along the bar, bar-window coordinates to this window's
+    readonly property real alongShift: (root.barConfig.vertical ? barOrigin.y - windowOrigin.y : barOrigin.x - windowOrigin.x)
 
     // Content dimensions
     readonly property int contentWidth: root.currentItem?.implicitWidth ?? 200
@@ -486,10 +522,6 @@ PopoutWrapperBase {
     readonly property real surfaceLength: root.place.surfaceLength
     // Where it's drawn, animating to alongPos (see shownBoxStart)
     readonly property real shownAlongPos: root.drawnBoxStart - surface.startMargin
-    // The window along the bar: the whole bar, and wherever a box pushed
-    // to an end can reach past it, so it never moves along the bar
-    readonly property real windowFrom: Math.min(0, strokeStart, minAlong)
-    readonly property real windowTo: Math.max(panelLength, strokeEnd, maxAlong)
 
     // On a transparent bar a popout is a detached box
     readonly property bool detached: root.barConfig.background === "transparent"
@@ -521,141 +553,58 @@ PopoutWrapperBase {
       }
     }
 
+    // Only the surface takes input (under the bar, only its box: the bar
+    // over it keeps its own)
     mask: Region {
-      item: surface
+      item: root.underBar ? boxArea : surface
     }
-
-    // Size comes from the shared attached shape: the content box wraps
-    // the content plus the surface's inset on every side. Across the bar,
-    // the room it may grow into stays too (see spareAcross). On a bottom
-    // or right bar the window instead takes the screen's whole depth: one
-    // growing there must also move, and the compositor shows the resize a
-    // frame or more before the move, flashing the new size in the old place
-    // (switching in place to taller content). At a fixed size it never does.
-    readonly property real depth: root.spareBefore ? (root.barConfig.vertical ? root.screen.width : root.screen.height) : (root.barConfig.vertical ? surface.implicitWidth : surface.implicitHeight) + root.spareAcross
-    implicitWidth: root.barConfig.vertical ? depth : windowTo - windowFrom
-    implicitHeight: root.barConfig.vertical ? windowTo - windowFrom : depth
-    // The surface in this window: at the bar side of its depth
-    readonly property real surfaceX: root.barConfig.vertical ? (root.spareBefore ? depth - surface.implicitWidth : 0) : barX - windowFrom
-    readonly property real surfaceY: root.barConfig.vertical ? barY - windowFrom : (root.spareBefore ? depth - surface.implicitHeight : 0)
-
-    // The window's bar-side edge across the bar, in bar-window coordinates:
-    // where the surface's attach edge is, whatever its size
-    readonly property real nearEdge: root.spareBefore ? root.panelThickness - root.surfaceFrom + surface.backfill : root.surfaceFrom - surface.backfill
-
-    anchor {
-      window: root.currentAnchor
-      // Placement is worked out here (clamped along the bar, flush on its
-      // edge), so the compositor mustn't slide it: flush against the screen
-      // edge it would nudge the popup inwards
-      adjustment: PopupAdjustment.None
-
-      // Hung from its bar-side edge, growing away from the bar, so a resize
-      // keeps that edge without a move (see depth)
-      gravity: root.barConfig.vertical ? (root.barConfig.right ? Edges.Bottom | Edges.Left : Edges.Bottom | Edges.Right) : (root.barConfig.bottom ? Edges.Top | Edges.Right : Edges.Bottom | Edges.Right)
-
-      rect {
-        x: root.barConfig.vertical ? mainPopup.nearEdge : mainPopup.windowFrom
-        y: root.barConfig.vertical ? mainPopup.windowFrom : mainPopup.nearEdge
-        width: 1
-        height: 1
-      }
-    }
-    // Quickshell repositions a mapped popup when its anchor changes, not
-    // when it resizes, which left a resized one off its edge
-    function _reanchor() {
-      if (mainPopup.visible)
-        Qt.callLater(mainPopup.anchor.updateAnchor);
-    }
-    onWidthChanged: _reanchor()
-    onHeightChanged: _reanchor()
-  }
-
-  PanelWindow {
-    id: underWindow
-    screen: root.screen
-    visible: root.underBar && still.showing
-    color: "transparent"
-
-    // On the bar's layer, ordered under it (HyprlandManager's layer rules).
-    // Normal exclusion with no zone of its own places it where the windows
-    // start; the margin takes it back to the bar's outer edge, past the
-    // border stroke, and along the bar it spans what the bar does.
-    WlrLayershell.layer: WlrLayer.Top
-    WlrLayershell.namespace: "axiom-popout-under"
-    WlrLayershell.keyboardFocus: root.wantsKeyboardFocus ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
-    exclusionMode: ExclusionMode.Normal
-    exclusiveZone: 0
-
-    anchors {
-      top: root.barConfig.top || root.barConfig.vertical
-      bottom: root.barConfig.bottom || root.barConfig.vertical
-      left: root.barConfig.left || !root.barConfig.vertical
-      right: root.barConfig.right || !root.barConfig.vertical
-    }
-
-    readonly property real attachMargin: root.underStart - root.barReach
-    readonly property real endMargin: root.barConfig.insideBorder ? -Appearance.borderWidth : 0
-    margins {
-      top: root.barConfig.top ? underWindow.attachMargin : underWindow.endMargin
-      bottom: root.barConfig.bottom ? underWindow.attachMargin : underWindow.endMargin
-      left: root.barConfig.left ? underWindow.attachMargin : underWindow.endMargin
-      right: root.barConfig.right ? underWindow.attachMargin : underWindow.endMargin
-    }
-
-    // Deep enough for the box and its connector gaps either side, whether
-    // it's detached
-    readonly property real depth: root.attachAt - root.underStart + root.connectorGap * 2 + (root.barConfig.vertical ? surface.boxWidth : surface.boxHeight) + root.spareAcross
-    implicitWidth: root.barConfig.vertical ? depth : 0
-    implicitHeight: root.barConfig.vertical ? 0 : depth
-
-    // Bar-window coordinates to this window's: along the bar, the bar is
-    // taken as centred on the screen (as BarPopouts.borderInset does), and
-    // this window as centred between what's reserved on the perpendicular
-    // edges, which differ with a bar or dock on only one of them; across
-    // it, measured from the bar's outer edge
-    readonly property real shift: {
-      const length = root.barConfig.vertical ? height : width;
-      if (length <= 0)
-        return 0;
-      const name = root.screen?.name ?? "";
-      const startLoc = root.barConfig.vertical ? Bar.Top : Bar.Left;
-      const endLoc = root.barConfig.vertical ? Bar.Bottom : Bar.Right;
-      const reservedAt = loc => EdgeMenuManager.reservedOn(root.screen, loc) + DockManager.zoneOn(name, Bar.edgeName(loc));
-      return (mainPopup.panelLength - length + reservedAt(startLoc) - reservedAt(endLoc)) / 2;
-    }
-    readonly property real acrossShift: root.barConfig.left || root.barConfig.top ? -root.underStart : depth - root.panelThickness + root.underStart
-    readonly property real surfaceX: mainPopup.barX - (root.barConfig.vertical ? -acrossShift : shift)
-    readonly property real surfaceY: mainPopup.barY - (root.barConfig.vertical ? shift : -acrossShift)
-
-    // Only the box takes input: the bar above it keeps its own
-    mask: Region {
+    Item {
+      id: boxArea
       x: root.boxRect.x
       y: root.boxRect.y
       width: root.boxRect.width
       height: root.boxRect.height
     }
+
+    // Across the bar, from the screen's edge to past the box and the room
+    // it may grow into (see spareAcross). On a bottom or right bar the
+    // window instead takes the screen's whole depth: one growing there
+    // would also have to move, and the compositor shows a resize a frame
+    // or more before the move, flashing the new size in the old place
+    // (switching in place to taller content). At a fixed size it never does.
+    // So does a top bar's: a submenu longer than the box stretches it away
+    // from the bar, and a window growing while it shows is drawn for a
+    // frame with its old contents squeezed into the new size
+    readonly property bool wholeDepth: root.spareBefore || !root.barConfig.vertical
+    readonly property real _barNear: root.barConfig.vertical ? (root.barConfig.right ? root.screen.width - barOrigin.x - root.panelThickness : barOrigin.x) : (root.barConfig.bottom ? root.screen.height - barOrigin.y - root.panelThickness : barOrigin.y)
+    readonly property real depth: wholeDepth ? (root.barConfig.vertical ? root.screen.width : root.screen.height) : _barNear + root.surfaceFrom - surface.backfill + (root.barConfig.vertical ? surface.implicitWidth : surface.implicitHeight) + root.spareAcross
+    implicitWidth: root.barConfig.vertical ? depth : 0
+    implicitHeight: root.barConfig.vertical ? 0 : depth
+    // The surface in this window: where it is in the bar's, moved by where
+    // the bar is on the screen
+    readonly property real surfaceX: barOrigin.x - windowOrigin.x + barX
+    readonly property real surfaceY: barOrigin.y - windowOrigin.y + barY
   }
 
   AttachedSurface {
     id: surface
     // In whichever window shows the popout
-    parent: root.underBar ? underWindow.contentItem : mainPopup.contentItem
-    x: root.underBar ? underWindow.surfaceX : mainPopup.surfaceX
-    y: root.underBar ? underWindow.surfaceY : mainPopup.surfaceY
+    parent: mainPopup.contentItem
+    x: mainPopup.surfaceX
+    y: mainPopup.surfaceY
     width: implicitWidth
     height: implicitHeight
 
     edge: root.barConfig.location
     castShadow: true
     // Once its pill has grown out to carry it
-    active: still.showing && !root.isClosing && pillStretchItem.ready
+    active: still.showing && !root.isClosing && root.claimed && pillStretchItem.ready
     // The blur window draws its fill (BlurManager), from where
     // the bar window is on screen: the surface is at (barX, barY) in bar
     // window coordinates in either window
     readonly property var barOrigin: root._panel?.screenOrigin ?? null
     backed: BlurManager.backing && surface.barOrigin !== null
-    // A tray submenu's opening in the box's side stroke (TraySubmenuWrapper)
+    // A submenu's opening in the box's side stroke (SubPopout)
     strokeHoles: root.submenuHole ? [Qt.rect(root.submenuHole.x - surface.x, root.submenuHole.y - surface.y, root.submenuHole.width, root.submenuHole.height)] : []
 
     BlurShape {

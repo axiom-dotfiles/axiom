@@ -7,6 +7,7 @@ import Quickshell.Hyprland
 import qs.config
 import qs.services
 import qs.components.methods
+import qs.components.reusable
 
 /**
  * A popout that slides out of a screen edge and joins the screen border
@@ -51,6 +52,12 @@ PopoutWrapperBase {
   // open: the window keeps room for it, so it isn't resized (and, on the
   // bottom or right edge, moved by the compositor a frame late) each time
   property real maxContentDepth: 0
+  // On a top or bottom edge, content that can open submenus (an edge
+  // menu's Submenu modules): the window takes the whole depth the screen
+  // has across its edge, as a submenu longer than the box stretches it
+  // away from its edge, and a window growing while it shows is drawn for a
+  // frame with its old contents squeezed into the new size
+  property bool roomForSubmenus: false
   // Keep content alive while closed (e.g. content that itself decides
   // when the popout should open)
   property bool keepLoaded: false
@@ -102,6 +109,56 @@ PopoutWrapperBase {
   readonly property rect boxInWindow: Qt.rect(boxArea.x, boxArea.y, boxArea.width, boxArea.height)
 
   property int connectorGap: Appearance.borderRadius * 2
+
+  // Its place among the popouts (PopoutManager), under `claimKey` (none:
+  // it takes no part): it shows once granted, closes when a higher popout
+  // covers it, and a `resident` one hides while covered and comes back
+  property string claimKey: ""
+  property string claimKind: "osd"
+  property bool pinned: false
+  property bool resident: false
+  // Granted (or closing after it was, PopoutClaim.held)
+  readonly property bool claimed: root.claimKey === "" || root.claim.held
+  // In use: the pointer on it, its hover strip or what opened it, or just
+  // opened or asked for again (engage()) and not let go since. A pinned
+  // one ranks as its kind meanwhile, so it opens (or comes forward) over
+  // what it would give way to as pinned, and drops to pinned once let go
+  readonly property bool engaged: surfaceHover.hovered || trigger.containsMouse || root.anchorHovered || root._grace
+  property bool _grace: false
+  function engage() {
+    root._grace = true;
+    graceTimer.restart();
+  }
+  // Long enough for the pointer to reach it; leaving it ends it at once
+  property Timer graceTimer: Timer {
+    interval: Math.max(root.dismissDelay, 2500)
+    onTriggered: root._grace = false
+  }
+  readonly property bool _pointerIn: surfaceHover.hovered
+  on_PointerInChanged: {
+    if (!root._pointerIn)
+      root._grace = false;
+  }
+  onIsOpenChanged: {
+    if (root.isOpen)
+      root.engage();
+  }
+  readonly property bool yielded: root.claim.yielded
+  property PopoutClaim claim: PopoutClaim {
+    key: root.claimKey
+    kind: root.claimKind
+    screen: root.screen?.name ?? ""
+    edge: Bar.edgeName(root.edge)
+    pinned: root.pinned && !root.engaged
+    resident: root.resident
+    occupied: root.occupied
+    closing: root.isClosing
+    wanted: root.claimKey !== "" && root.isOpen && root.contentItem !== null
+    // Where its window is, else where it most likely is (LayerOrigin.placed)
+    footprint: PopoutGeometry.offset(surface.footprint, Qt.point(placeOnScreen.placed.x + surface.x, placeOnScreen.placed.y + surface.y))
+    onEvicted: root.hide()
+    onRefused: root.hide()
+  }
 
   readonly property bool vertical: edge === Bar.Left || edge === Bar.Right
   readonly property bool bareEdge: placement.bareEdge
@@ -225,8 +282,11 @@ PopoutWrapperBase {
     length: root.edgeLength
     strokeInset: root.strokeInset
     centre: root.edgeLength * root.position + root.positionOffset
-    aligned: placement.centre - root._contentAlong / 2
-    contentLength: root._contentAlong
+    // Along a side edge the box reaches past its content's ends for a
+    // submenu (shownStretchTop/Bottom)
+    aligned: placement.centre - root._contentAlong / 2 - root._stretchAlongTop
+    contentLength: root._contentAlong + root._stretchAlongTop + root._stretchAlongBottom
+    reach: root._sideStretch?.joinReach != null ? root._sideStretch.joinReach - root.strokeInset : null
     joinStart: root.joinStart
     joinEnd: root.joinEnd
     coverStart: surface.coverStart
@@ -234,8 +294,8 @@ PopoutWrapperBase {
     lo: root.startInset
     hi: root.edgeLength - root.endInset
     owner: "edgePopout:" + root
-    showing: root.occupied && root.contentItem !== null
-    open: root.isOpen
+    showing: root.occupied && root.contentItem !== null && root.claimed
+    open: root.isOpen && root.claimed
   }
   readonly property var place: placement.place
   readonly property real boxLength: root.place.end - root.place.start
@@ -246,7 +306,7 @@ PopoutWrapperBase {
   // in screen px along the edge (its edge coordinates start past what's
   // reserved at the start), which the border leaves open under a
   // translucent fill (ShellManager.borderOpenings)
-  readonly property var _borderOpening: surfaceWindow.visible && Appearance.translucent && Appearance.screenBorder && !root.detached && !root.bareEdge && !root.barPanel ? ({
+  readonly property var _borderOpening: surfaceWindow.visible && root.claimed && Appearance.translucent && Appearance.screenBorder && !root.detached && !root.bareEdge && !root.barPanel ? ({
       "screen": surfaceWindow.screenName,
       "edge": Bar.edgeName(root.edge),
       "start": root.reservedOn(root.startSide) + root.surfaceStart + surface.coverStart,
@@ -256,6 +316,84 @@ PopoutWrapperBase {
   Component.onDestruction: ShellManager.setBorderOpening(root, null)
 
   currentItem: root.contentItem
+
+  // ---- Its submenu (SubPopout) ----
+  // Opened by a PopoutAnchor in its content (an edge menu's modules), on
+  // the side of its box: away from a side edge, else towards the screen's
+  // nearer half. What SubPopout reads of its parent is below, as
+  // BarPopouts has it: on a top or bottom edge one with no room for its
+  // fillet at the box's edge side joins the stroke the box grows from
+  // (the border's, a solid bar's, a pill's or island's, stretched to its
+  // wall where its fillet won't land on it), and one longer than the side
+  // stretches the box (parentStretch): away from its edge, or along a
+  // side edge past the box's ends.
+  readonly property SubPopout submenu: sub
+  SubPopout {
+    id: sub
+    screen: root.screen
+    openToLeft: root.openToLeft
+    host: root
+  }
+  readonly property bool openToLeft: root.vertical ? root.edge === Bar.Right : boxArea.x + boxArea.width / 2 > surfaceWindow.width / 2
+  childOpen: sub.occupied
+  // What an open submenu asks of the box (SubPopout.parentStretch: { top,
+  // bottom, squareTop, squareBottom, joined, joinReach }), along y
+  readonly property var _sideStretch: root.occupied ? sub.parentStretch : null
+  property real shownStretchTop: root._sideStretch?.top ?? 0
+  property real shownStretchBottom: root._sideStretch?.bottom ?? 0
+  Glide on shownStretchTop {
+    enabled: root.isOpen
+  }
+  Glide on shownStretchBottom {
+    enabled: root.isOpen
+  }
+  // Across a top or bottom edge, along a side one
+  readonly property real _stretchAlongTop: root.vertical ? root.shownStretchTop : 0
+  readonly property real _stretchAlongBottom: root.vertical ? root.shownStretchBottom : 0
+  readonly property real _stretchAcross: root.vertical ? 0 : root.shownStretchTop + root.shownStretchBottom
+  // ...and as it will be once there, which the window keeps room for
+  readonly property real _targetStretchAcross: root.vertical ? 0 : (root._sideStretch?.top ?? 0) + (root._sideStretch?.bottom ?? 0)
+  readonly property var popupWindow: surfaceWindow
+  // The box at rest without a submenu's stretch: what submenus attach to
+  readonly property rect attachBox: Qt.rect(boxArea.x, boxArea.y + root.shownStretchTop, boxArea.width, boxArea.height - root.shownStretchTop - root.shownStretchBottom)
+  // At the edge side of a box on a top or bottom edge, the stroke it grows
+  // from (its outer edge: the surface's attach edge, y in its window); a
+  // detached box's ends there are flush instead
+  readonly property bool _sideJoins: !root.vertical && !root.detached
+  readonly property bool sideJoinTop: root._sideJoins && root.edge === Bar.Top
+  readonly property bool sideJoinBottom: root._sideJoins && root.edge === Bar.Bottom
+  readonly property real sideJoinLine: root.edge === Bar.Bottom ? surface.y + surface.height - surface.backfill : surface.y + surface.backfill
+  readonly property bool sideStraightJoin: placement.straight
+  readonly property real sideJoinBackfill: surface.backfill
+  // How far along it (x in its window) that stroke reaches: the pill or
+  // island as the box stretches it, else the whole edge
+  readonly property bool _onPill: placement.onPill && root.place.pill !== null
+  readonly property real sideJoinFrom: (root._onPill ? (root.place.stretch?.start ?? root.place.pill.start) : root._strokeStart) + root.strokeInset
+  readonly property real sideJoinTo: (root._onPill ? (root.place.stretch?.end ?? root.place.pill.start + root.place.pill.length) : root._strokeEnd) + root.strokeInset
+  readonly property bool sideFreeTop: root.vertical ? !root.place.joinStart : root.edge === Bar.Bottom || !root._sideJoins
+  readonly property bool sideFreeBottom: root.vertical ? !root.place.joinEnd : root.edge === Bar.Top || !root._sideJoins
+  // Longer than the side, it hangs past its far end: up on a bottom edge,
+  // and on a side edge towards the screen's middle
+  readonly property bool sideGrowsUp: root.vertical ? boxArea.y + boxArea.height / 2 > surfaceWindow.height / 2 : root.edge === Bar.Bottom
+  // The box's corners a submenu squares (as BarPopouts'): on a side edge
+  // its far edge's top and bottom, on a top or bottom one those of the
+  // side it opens on, the far one, or a detached box's near one
+  readonly property bool _squareTop: root._sideStretch?.squareTop ?? false
+  readonly property bool _squareBottom: root._sideStretch?.squareBottom ?? false
+  readonly property bool _squareFar: root.edge === Bar.Top ? root._squareBottom : root._squareTop
+  readonly property bool _squareNear: !root.vertical && (root.edge === Bar.Top ? root._squareTop : root._squareBottom)
+  readonly property bool _sideJoined: !root.vertical && (root._sideStretch?.joined ?? false)
+  // How far down from attachBox's top `item` (in the content) is, the
+  // box at rest
+  function anchorOffsetOf(item) {
+    return item.mapToItem(surface.contentBox, 0, 0).y - root.shownStretchTop;
+  }
+  readonly property var popupScreenOrigin: placeOnScreen.origin
+  readonly property point popupScreenPlaced: placeOnScreen.placed
+  // The stroke a submenu covers on the box's side, left open (in its
+  // window's coordinates)
+  property var submenuHole: null
+  // ---- end submenu ----
   keepAlive: surfaceHover.hovered || trigger.containsMouse || (focusGrab.active && wantsKeyboardFocus)
 
   EdgeTrigger {
@@ -269,7 +407,10 @@ PopoutWrapperBase {
     triggerWidth: root.triggerWidth
     triggerLength: root.triggerLength
     hoverDelay: root.hoverDelay
-    onTriggered: root.show()
+    onTriggered: {
+      root.engage();
+      root.show();
+    }
   }
 
   PanelWindow {
@@ -290,6 +431,9 @@ PopoutWrapperBase {
     WlrLayershell.keyboardFocus: root.wantsKeyboardFocus || root.keyboardOnDemand ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
     exclusionMode: ExclusionMode.Normal
     exclusiveZone: 0
+
+    // What PopoutAnchors in its content open in
+    readonly property var popoutHost: sub
 
     // Spans the whole edge; the input mask limits it to the surface.
     anchors {
@@ -315,16 +459,24 @@ PopoutWrapperBase {
     // The surface, or room for it at the content's largest
     readonly property real depth: {
       const content = root.vertical ? (root.contentItem?.implicitWidth ?? 0) : (root.contentItem?.implicitHeight ?? 0);
-      const surfaceDepth = root.vertical ? surface.implicitWidth : surface.implicitHeight;
+      // (a submenu's stretch as it will be, not as it animates there)
+      const surfaceDepth = (root.vertical ? surface.implicitWidth : surface.implicitHeight) - root._stretchAcross + root._targetStretchAcross;
       // and room for the shadow or glow it casts (SurfaceShadow)
-      return surfaceDepth + Math.max(0, root.maxContentDepth - content) + BarStyle.shadowReach;
+      const own = surfaceDepth + Math.max(0, root.maxContentDepth - content) + BarStyle.shadowReach;
+      if (!root.roomForSubmenus || root.vertical)
+        return own;
+      // From this window's edge (its attach edge, less its backfill and
+      // the way it slides in from) to the far edge's reserved space
+      const far = root.reservedOn(root.edge === Bar.Top ? Bar.Bottom : Bar.Top);
+      return Math.max(own, root.screen.height - far - root.attachAt + surface.backfill + (root.slidesUnder ? root.slideDistance : 0));
     }
     implicitWidth: root.vertical ? surfaceWindow.depth : 0
     implicitHeight: root.vertical ? 0 : surfaceWindow.depth
 
-    // One sliding under a bar takes input on its box alone
+    // One sliding under a bar takes input on its box alone; none until
+    // it's granted its place, or while it's given it up
     mask: Region {
-      item: root.slidesUnder ? boxArea : surface
+      item: !root.claimed ? null : root.slidesUnder ? boxArea : surface
     }
 
     Item {
@@ -364,6 +516,8 @@ PopoutWrapperBase {
       id: surface
 
       backed: BlurManager.backing && placeOnScreen.origin !== null
+      // A submenu's opening in the box's side stroke
+      strokeHoles: root.submenuHole ? [Qt.rect(root.submenuHole.x - surface.x, root.submenuHole.y - surface.y, root.submenuHole.width, root.submenuHole.height)] : []
 
       BlurShape {
         source: surface
@@ -385,14 +539,37 @@ PopoutWrapperBase {
       detached: root.detached
       detachedOffset: root.slidesUnder ? root.slideDistance : 0
       // Once its pill has grown out to carry it
-      active: root.isOpen && placement.stretchReady
+      // While the blur window backs surfaces, once it knows where this one
+      // is (LayerOrigin.settled), so it never shows unbacked beside them
+      active: root.isOpen && root.claimed && placement.stretchReady && (!BlurManager.backing || placeOnScreen.settled)
       connectorGap: root.connectorGap
       boxWidth: root.vertical ? (root.contentItem?.implicitWidth ?? 100) + root.contentPadding * 2 + root.attachClearance : root.boxLength
-      boxHeight: root.vertical ? root.boxLength : (root.contentItem?.implicitHeight ?? 100) + root.contentPadding * 2 + root.attachClearance
+      boxHeight: root.vertical ? root.boxLength : (root.contentItem?.implicitHeight ?? 100) + root.contentPadding * 2 + root.attachClearance + root._stretchAcross
       joinStart: root.place.joinStart
       joinEnd: root.place.joinEnd
       flushStart: root.place.flushStart
       flushEnd: root.place.flushEnd
+      // Square where a submenu runs flush to the box's end
+      startCornerRadius: (root.vertical ? root._squareTop : root.openToLeft && root._squareFar) ? 0 : surface.cornerRadius
+      endCornerRadius: (root.vertical ? root._squareBottom : !root.openToLeft && root._squareFar) ? 0 : surface.cornerRadius
+      startNearRadius: root.openToLeft && root._squareNear ? 0 : Appearance.borderRadius
+      endNearRadius: !root.openToLeft && root._squareNear ? 0 : Appearance.borderRadius
+      Glide on startCornerRadius {
+        enabled: root.isOpen
+      }
+      Glide on endCornerRadius {
+        enabled: root.isOpen
+      }
+      Glide on startNearRadius {
+        enabled: root.isOpen
+      }
+      Glide on endNearRadius {
+        enabled: root.isOpen
+      }
+      // Joined at the edge side, the stroke the box's wall there ran flush
+      // into carries on past it, under the submenu
+      flushStartThrough: !(root._sideJoined && root.openToLeft)
+      flushEndThrough: !(root._sideJoined && !root.openToLeft)
       straightJoins: !Appearance.screenBorder
       fillColor: root.fillColor
       strokeColor: root.strokeColor
@@ -416,10 +593,11 @@ PopoutWrapperBase {
         readonly property real rightMargin: root.contentPadding + (root.edge === Bar.Right ? root.attachClearance : 0)
         readonly property real topMargin: root.contentPadding + (root.edge === Bar.Top ? root.attachClearance : 0)
         readonly property real bottomMargin: root.contentPadding + (root.edge === Bar.Bottom ? root.attachClearance : 0)
+        // (below a submenu's stretch above it, clear of one below)
         x: root.vertical ? leftMargin : root.contentPadding + root.place.contentOffset
-        y: root.vertical ? root.contentPadding + root.place.contentOffset : topMargin
+        y: root.vertical ? root.contentPadding + root.place.contentOffset + root.shownStretchTop : topMargin + root.shownStretchTop
         width: root.vertical ? parent.width - leftMargin - rightMargin : (root.contentItem?.implicitWidth ?? 0)
-        height: root.vertical ? (root.contentItem?.implicitHeight ?? 0) : parent.height - topMargin - bottomMargin
+        height: root.vertical ? (root.contentItem?.implicitHeight ?? 0) : parent.height - topMargin - bottomMargin - root._stretchAcross
 
         active: root.occupied || root.keepLoaded
         asynchronous: false

@@ -195,11 +195,9 @@ BarWidget {
   }
 
   PopoutAnchor {
-    popouts: root.popouts
-    panel: root.panel
     hitArea: root.hitArea
     popoutName: "Calendar"
     openDelay: 150
-    active: root.properties.showCalendar
+    active: EdgeMenusConfig.opensOwnPopout(root.properties)
   }
 }

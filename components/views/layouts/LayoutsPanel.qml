@@ -35,7 +35,7 @@ Item {
   // StyledTextEntry writes each keystroke back to its `text`, which drops
   // any binding on it, so the name is pushed in rather than bound: on every
   // draft change unless it's being typed, always when another page is
-  // selected
+  // selected. Only typing renames (textEdited), never a name pushed in.
   function syncName(force) {
     if (force || !nameEntry.input.activeFocus)
       nameEntry.text = OverlayManager.selectedView()?.name ?? "";
@@ -85,10 +85,7 @@ Item {
         id: nameEntry
         Layout.fillWidth: true
         placeholderText: I18n.tr("Page name")
-        onTextChanged: {
-          if (nameEntry.input.activeFocus)
-            OverlayManager.renameView(OverlayManager.selectedViewIndex, nameEntry.text);
-        }
+        onTextEdited: OverlayManager.renameView(OverlayManager.selectedViewIndex, nameEntry.text)
       }
 
       SchemaPropertiesForm {

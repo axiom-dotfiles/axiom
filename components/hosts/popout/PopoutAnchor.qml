@@ -1,18 +1,19 @@
 pragma ComponentBehavior: Bound
 import QtQuick
+import Quickshell
 
 import qs.config
+import qs.services
 
 /**
- * Drop this into any bar widget that wants to open a bar popout on hover.
+ * Drop this into any bar widget that wants to open a bar popout on hover
+ * (or, given a `menu`, an edge menu).
  * Handles hover detection, open-delay timing, position/size computation,
  * and the popoutOpen guard flag.
  *
  * Usage:
  *   PopoutAnchor {
  *     id: anchor
- *     popouts: root.popouts
- *     panel: root.panel
  *     popoutName: "WorkspaceGrid"
  *     extraData: ({ monitor: root.monitor, workspaceBase: root.workspaceBase })
  *   }
@@ -24,24 +25,30 @@ import qs.config
 Item {
   id: root
 
-  required property var popouts
-  required property var panel
-  required property string popoutName
+  property string popoutName: ""
+  // An edge menu's id to open instead of a popout (a widget's menu popout,
+  // EdgeMenusConfig.popoutMenuOf): opened with this as its anchor, so a
+  // floating one stays open while this is hovered
+  property string menu: ""
+  // The window it's in, and the popouts host showing what it opens there
+  // (BarPanel.popoutHost): found by itself, so anything in a bar can open
+  // a popout without being handed either
+  readonly property var panel: root.QsWindow.window
+  readonly property var popouts: root.panel?.popoutHost ?? null
 
   property var extraData: ({})
   property int openDelay: PopoutConfig.openDelay
   property bool active: true
-  // Centre the popout on the widget as it is when opened, then keep it
-  // there while open: a widget that resizes doesn't drag its popout along
-  property bool pinWhileOpen: false
+  // Off, hovering doesn't open it: its owner calls open() (on a click)
+  property bool openOnHover: true
   // A bar widget's hitArea: hovered in its background's shape (its
   // `hovered`) rather than in this item's bounds
   property var hitArea: null
 
   readonly property bool hovered: hitArea ? hitArea.hovered : hoverHandler.hovered
   onHoveredChanged: {
-    if (root.hovered && root.active) {
-      if (root.popouts)
+    if (root.hovered && root.active && root.openOnHover) {
+      if (root.popouts || root.menu !== "")
         openTimer.restart();
     } else {
       openTimer.stop();
@@ -51,6 +58,9 @@ Item {
   // Read from the wrapper rather than kept as a flag: a queued open that
   // another widget's hover replaced never opened, so nothing would clear it
   readonly property bool popoutOpen: {
+    // Covered by a popout over it, it's brought forward
+    if (root.menu !== "")
+      return EdgeMenuManager.isOpen(root.menu) && !EdgeMenuManager.covered(root.menu);
     const popouts = root.popouts;
     if (!popouts)
       return false;
@@ -60,14 +70,19 @@ Item {
   anchors.fill: parent
 
   function open() {
-    if (!root.active || !root.popouts || !root.panel || root.popoutOpen)
+    if (!root.active || root.popoutOpen)
+      return;
+    if (root.menu !== "") {
+      EdgeMenuManager.open(root.menu, root);
+      return;
+    }
+    if (!root.popouts || !root.panel)
       return;
 
     let parentPosition = root.mapToItem(null, 0, 0);
 
     let payload = {
       name: root.popoutName,
-      pinned: root.pinWhileOpen,
       anchorX: parentPosition.x,
       anchorY: parentPosition.y,
       anchorWidth: root.width,

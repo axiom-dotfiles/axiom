@@ -133,11 +133,9 @@ BarWidget {
   readonly property var graphMetrics: root._enabled.filter(m => m.graphed && root._reportable(m.key)).map(m => m.metric)
 
   PopoutAnchor {
-    popouts: root.popouts
-    panel: root.panel
     hitArea: root.hitArea
     popoutName: "SystemGraphs"
-    active: root.properties.showPopout && root.graphMetrics.length > 0
+    active: EdgeMenusConfig.opensOwnPopout(root.properties) && root.graphMetrics.length > 0
     extraData: ({
         "popoutMetrics": root.graphMetrics
       })

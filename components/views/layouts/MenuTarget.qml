@@ -11,6 +11,8 @@ EditTarget {
   id: root
 
   readonly property var menu: EdgeMenuManager.selectedMenu()
+  // A submenu menu has no edge: just its grid
+  readonly property bool submenu: EdgeMenusConfig.isSubmenu(root.menu)
   readonly property bool vertical: root.menu?.edge === "Left" || root.menu?.edge === "Right"
   readonly property var screen: root.menu ? EdgeMenusConfig.screenFor(root.menu) : null
   readonly property real length: root.menu ? EdgeMenusConfig.lengthOf(root.menu, root.vertical, EdgeMenuManager.cardUnitOf(root.menu)) : 0
@@ -27,12 +29,12 @@ EditTarget {
 
   editor: EdgeMenuManager.layout
   modules: root.menu ? root.menu.modules : null
-  icon: root.menu ? Utils.edgeArrow(root.menu.edge) : "side_navigation"
+  icon: root.submenu ? "menu_open" : root.menu ? Utils.edgeArrow(root.menu.edge) : "side_navigation"
   title: root.menu ? EdgeMenuManager.menuLabel(root.menu, EdgeMenuManager.selectedMenuIndex) : I18n.tr("No edge menus")
   emptyText: I18n.tr("No edge menus yet: add one with New menu.")
-  edge: root.menu ? root.menu.edge : ""
-  screenBox: root.menu ? EdgeMenuManager.screenBoxOf(root.menu) : null
-  screenSize: root.screen ? ({
+  edge: root.menu && !root.submenu ? root.menu.edge : ""
+  screenBox: root.menu && !root.submenu ? EdgeMenuManager.screenBoxOf(root.menu) : null
+  screenSize: root.screen && !root.submenu ? ({
       "width": root.screen.width,
       "height": root.screen.height
     }) : null
@@ -43,13 +45,15 @@ EditTarget {
   fitText: {
     if (!root.menu)
       return "";
+    if (root.submenu)
+      return I18n.tr("Opens beside a floating menu, from its Submenu module");
     if (root.menu.length === "edge")
       return I18n.tr("Takes its whole edge");
     if (root.tooLong)
       return I18n.tr("Longer than its edge: it scrolls");
     return I18n.tr("{0} px along its edge", Math.round(root.length));
   }
-  fitWarning: root.tooLong
+  fitWarning: root.tooLong && !root.submenu
   nudgeText: {
     const range = root.offsetRange;
     if (!range)

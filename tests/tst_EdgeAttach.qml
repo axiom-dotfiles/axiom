@@ -346,6 +346,37 @@ TestCase {
     compare([p.start, p.joinStart, p.flushStart, p.contentStart], [-2, true, false, 50]);
   }
 
+  function test_reachStretch() {
+    const p = Object.assign(pill(400, 200), {
+      "index": 2
+    });
+    // Nothing to reach: its own stretch as it was
+    compare(EdgeAttach.reachStretch(null, p, null), null);
+    compare(EdgeAttach.reachStretch(null, null, 100), null);
+    // Past the pill's start: stretched there and squared
+    compare(EdgeAttach.reachStretch(null, p, 300), {
+      "index": 2,
+      "start": 300,
+      "end": 600,
+      "squareStart": true,
+      "squareEnd": false
+    });
+    // Within its own stretch: as it was, an end it squared kept square
+    const own = {
+      "index": 2,
+      "start": 350,
+      "end": 650,
+      "squareStart": false,
+      "squareEnd": true
+    };
+    compare(EdgeAttach.reachStretch(own, p, 500), own);
+    compare(EdgeAttach.reachStretch(own, p, 650).squareEnd, true);
+    compare(EdgeAttach.reachStretch(own, p, 700), Object.assign({}, own, {
+      "end": 700,
+      "squareEnd": true
+    }));
+  }
+
   function test_pill_grows_runs_flush_past_its_end() {
     // Content past the island's ends: flush, the island stretched to it
     const p = EdgeAttach.place(spec({

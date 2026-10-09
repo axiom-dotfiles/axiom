@@ -4,15 +4,19 @@ import Quickshell
 import qs.config
 import qs.services
 import qs.components.methods
-import qs.components.content.parts
 import qs.components.reusable
 
 /**
- * Popout wrapper for tray submenus.
+ * A popout's submenu, one level deep: each popout host has one
+ * (BarPopouts.submenu, EdgePopout.submenu), which a PopoutAnchor in its
+ * content opens by itself (its window's `popoutHost`), loading
+ * content/<name>.qml as a bar popout does (the tray's submenus:
+ * "parts/TraySubmenu"). A PopoutAnchor inside a submenu opens its content
+ * in this same one, in place: there's no second level.
  * Attaches to the side of the parent popout's box (right, or left when
  * openToLeft) with the same AttachedSurface shape as bar/edge popouts,
- * level with the hovered item and slid out of the parent. Another
- * submenu of the same menu switches in place (SwitchStill).
+ * level with the item that opened it and slid out of the parent. Another
+ * submenu of the same popout switches in place (SwitchStill).
  * Along the parent's side it's placed as a bar popout is along a pill
  * (EdgeAttach.place): a side whose fillet has no room before an end of
  * the parent's side runs flush to it where that end is free (the parent
@@ -21,6 +25,9 @@ import qs.components.reusable
  * joins the perpendicular border; a submenu longer than the side
  * stretches the parent (parentStretch, which the parent's BarPopouts
  * draws, a joined submenu's outer fillet on its pill included).
+ * It's the parent's in PopoutManager (kind "submenu", ranked as its
+ * parent), closes with it, and closing with the pointer off the parent
+ * (it left, or an entry was picked) takes the parent with it at once.
  * Open/close/queue state and dismiss timing come from PopoutWrapperBase —
  * this file only adds submenu-specific positioning and animation.
  */
@@ -29,9 +36,12 @@ Item {
 
   required property ShellScreen screen
   required property bool openToLeft
-  // The parent popout (BarPopouts): its box at rest (attachBox), which
-  // ends of the side we open on we may run flush to (sideFreeTop/Bottom)
-  // or join at its bar side (sideJoinTop/Bottom, at sideJoinLine)
+  // The parent popout (BarPopouts, EdgePopout): its window
+  // (popupWindow), its box at rest there (attachBox), which ends of the
+  // side we open on we may run flush to (sideFreeTop/Bottom) or join at
+  // its bar side (sideJoinTop/Bottom, at sideJoinLine), where its window
+  // is on screen (popupScreenOrigin), its claim; it draws parentStretch
+  // and the hole we leave in its side (submenuHole)
   required property var host
 
   // What the parent draws for us while we show: how far its box reaches
@@ -70,13 +80,37 @@ Item {
     canSwitchTo: (anchor, data) => anchor === root.currentAnchor && (root.contentReady || still.switching)
     prepareSwitch: done => still.prepare(root.currentItem, done)
 
-    // Every payload builds afresh, so a switch waits for its own entries
-    onCurrentDataChanged: {
-      if (root.occupied) {
-        loader.sourceComponent = null;
-        loader.sourceComponent = submenu;
+    // Every payload builds afresh (content/<name>.qml, given the wrapper
+    // and the payload's fields), so a switch waits for its own entries
+    onCurrentDataChanged: root._load()
+    function _load() {
+      const data = root.currentData;
+      const name = data?.name ?? "";
+      if (!loader.active || name === "") {
+        loader.source = "";
+        return;
       }
+      // Where its anchor is from the parent's box top, level with which
+      // its content starts (unless the payload says): within the box, so
+      // one opened while the parent still slides out lands where it rests
+      const item = data.anchorItem;
+      let offset = data.anchorOffset;
+      if (offset === undefined && item) {
+        try {
+          offset = outer.host?.anchorOffsetOf ? outer.host.anchorOffsetOf(item) : item.mapToItem(null, 0, 0).y - root.attachRect.y;
+        } catch (e) {}
+      }
+      root._anchorOffset = offset ?? 0;
+      const props = {
+        "wrapper": root
+      };
+      for (const key in data)
+        if (key !== "name" && !key.startsWith("anchor"))
+          props[key] = data[key];
+      loader.source = "";
+      loader.setSource(Qt.resolvedUrl("../../content/" + name + ".qml"), props);
     }
+    property real _anchorOffset: 0
 
     // The parent popout's content box at rest, in the anchor window's
     // coordinates, read live (the parent's window may move as it grows).
@@ -104,7 +138,23 @@ Item {
     // Longer than the side, it hangs past its far end (up, on a bottom
     // bar), stretching the parent
     readonly property real reachFrom: outer.host?.sideGrowsUp ? Math.min(root.reachTop, root.reachBottom - root.boxLength) : root.reachTop
-    readonly property real alignedBoxStart: root.attachRect.y + (root.currentData?.anchorOffset ?? 0) - surface.contentInset
+    // The screen's room up and down (y in the parent's window): inside
+    // what's reserved at its top and bottom. A box longer than the side
+    // stays within it, and content (MenuSubmenu) scrolls past
+    // maxContentHeight
+    readonly property real _placedY: outer.host?.popupScreenPlaced?.y ?? 0
+    readonly property real screenFrom: EdgeMenuManager.reservedOn(outer.screen, Bar.Top) - root._placedY
+    readonly property real screenTo: (outer.screen?.height ?? 0) - EdgeMenuManager.reservedOn(outer.screen, Bar.Bottom) - root._placedY
+    readonly property real maxContentHeight: Math.max(Widget.height, root.screenTo - root.screenFrom - surface.contentInset * 2)
+    readonly property real _wantedBoxStart: root.attachRect.y + root._anchorOffset - surface.contentInset
+    readonly property real alignedBoxStart: {
+      let start = root._wantedBoxStart;
+      if (!root._joinBottom)
+        start = Math.min(start, root.screenTo - root.boxLength);
+      if (!root._joinTop)
+        start = Math.max(start, root.screenFrom);
+      return start;
+    }
     readonly property var place: EdgeAttach.place({
       "pills": [
         {
@@ -179,6 +229,7 @@ Item {
     }
     onOccupiedChanged: {
       if (!root.occupied) {
+        root._cascade();
         root._peakWidth = 0;
         root._peakFrom = 0;
         root._peakTo = 0;
@@ -189,6 +240,8 @@ Item {
 
     PopupWindow {
       id: submenuPopup
+      // What PopoutAnchors in its content open in: this one again
+      readonly property var popoutHost: outer
 
       visible: root.occupied && (root.contentReady || still.switching) && !ShellManager.captureFrozen
       color: "transparent"
@@ -322,8 +375,8 @@ Item {
             opacity: still.contentOpacity
             active: root.occupied
             asynchronous: false
-            sourceComponent: submenu
 
+            onActiveChanged: root._load()
             onLoaded: root.updateDismissTimer()
           }
 
@@ -345,13 +398,40 @@ Item {
       }
     }
 
-    Component {
-      id: submenu
-      TraySubmenu {
-        wrapper: root
-        menuItem: root.currentData?.menuItem
-        maxWidth: (outer.screen?.width ?? 2000) * 0.3
-      }
+    // Its place among the popouts (PopoutManager): its parent's, ranked
+    // as it is, never colliding with it
+    property PopoutClaim claim: PopoutClaim {
+      key: (outer.host?.claim?.key ?? "") + "/submenu"
+      kind: "submenu"
+      parentKey: outer.host?.claim?.key ?? ""
+      screen: outer.screen?.name ?? ""
+      occupied: root.occupied
+      closing: root.isClosing
+      wanted: root.isOpen && submenuPopup.visible
+      footprint: PopoutGeometry.offset(surface.footprint, Qt.point((outer.host?.popupScreenPlaced?.x ?? 0) + surface.inParentX, (outer.host?.popupScreenPlaced?.y ?? 0) + surface.inParentY))
+      onEvicted: root.closePopout()
+      onRefused: root.closePopout()
+    }
+
+    // Closes with its parent, when the parent gives way to a popout over
+    // it (a resident's yield hides its box, not this), or when the parent
+    // switches to other content
+    readonly property bool _parentOpen: (outer.host?.isOpen ?? false) && (outer.host?.claimed ?? true)
+    on_ParentOpenChanged: {
+      if (!root._parentOpen && root.occupied)
+        root.closePopout();
+    }
+    readonly property var _parentData: outer.host?.currentData ?? null
+    on_ParentDataChanged: {
+      if (root.occupied)
+        root.closePopout();
+    }
+    // Gone with the pointer off the parent and what opened it, it takes the
+    // parent with it at once, a cascade rather than the parent's own
+    // dismiss delay after it
+    function _cascade() {
+      if (outer.host?.isOpen && (outer.host?.autoDismiss ?? true) && !(outer.host?.ownHovered ?? true))
+        outer.host.requestDismiss();
     }
   }
 
@@ -361,14 +441,26 @@ Item {
   onScreenChanged: ShellManager.registerGrabPartner(submenuPopup, outer.screen?.name)
   Component.onDestruction: ShellManager.unregisterGrabPartner(submenuPopup)
 
-  // What the tray menu (content/SystemTray) uses of the inner
-  // PopoutWrapperBase; TraySubmenu is handed that one itself
-  property alias occupied: root.occupied
-  // The submenu already open (the pointer back on its item) stays as it
-  // is rather than being rebuilt
+  // What PopoutAnchor and the parent use of the inner PopoutWrapperBase;
+  // the content is handed that one itself (`wrapper`)
+  readonly property alias occupied: root.occupied
+  readonly property alias isOpen: root.isOpen
+  readonly property alias currentData: root.currentData
+  readonly property alias hasPendingOpen: root.hasPendingOpen
+  readonly property alias pendingOpenData: root.pendingOpenData
+  // The submenu already open for the same item (the pointer back on it)
+  // stays as it is rather than being rebuilt
   function safeOpenPopout(anchor, data) {
-    if (root.isOpen && anchor === root.currentAnchor && data?.menuItem === root.currentData?.menuItem) {
+    if (root.isOpen && anchor === root.currentAnchor && data?.anchorItem === root.currentData?.anchorItem && data?.name === root.currentData?.name && data?.menuItem === root.currentData?.menuItem) {
       root.updateDismissTimer();
+      return;
+    }
+    // From inside the submenu (a PopoutAnchor in its content): its content
+    // replaced in place, where it is, as there's no second level
+    if (anchor === submenuPopup) {
+      root.safeOpenPopout(root.currentAnchor, Object.assign({}, data, {
+        "anchorOffset": root._anchorOffset
+      }));
       return;
     }
     root.safeOpenPopout(anchor, data);

@@ -6,6 +6,7 @@ import qs.components.methods
 // without it, types there (e.g. BarIconWidget) aren't visible to each other
 import qs.components.bar.widgets // qmllint disable unused-imports
 import qs.components.reusable
+import qs.components.hosts.popout
 
 // Hosts one bar module and turns its sizing contract into the numbers the
 // bar layout works with. A module may declare any of these on its root item:
@@ -28,7 +29,6 @@ Item {
   id: root
 
   required property var barConfig
-  property var popouts
   property var panel
   property var screen
 
@@ -145,7 +145,6 @@ Item {
   function _load() {
     contentLoader.setSource(root.componentPath, {
       "barConfig": root.barConfig,
-      "popouts": root.popouts,
       "panel": root.panel,
       "screen": root.screen,
       "properties": root.properties
@@ -186,6 +185,14 @@ Item {
     HoverHandler {
       id: hoverHandler
     }
+
+    // Its menu popout: the edge menu it opens when hovered, as its popout
+    // or in place of its own (whose anchor stands down meanwhile)
+    PopoutAnchor {
+      hitArea: parent
+      menu: EdgeMenusConfig.popoutMenuOf(root.properties)
+      active: menu !== ""
+    }
   }
   onComponentPathChanged: _load()
 
@@ -208,7 +215,6 @@ Item {
       onLoaded: {
         if (item) {
           item.barConfig = Qt.binding(() => root.barConfig);
-          item.popouts = Qt.binding(() => root.popouts);
           item.panel = Qt.binding(() => root.panel);
           item.screen = Qt.binding(() => root.screen);
           item.properties = Qt.binding(() => root.properties);

@@ -13,6 +13,15 @@ StyledContainer {
   property alias readOnly: textField.readOnly
 
   signal accepted
+  // Typed (or put in by the input method): never a value pushed in through
+  // `text`. What a field that writes config acts on, rather than its text
+  // changing while it has focus, which a value pushed in does too
+  signal textEdited
+  // Typed in since it took focus. An owner that commits on focus loss
+  // checks it, so text it was left showing (what it edits switched under
+  // it) isn't written onto what it edits now, and clears it once it has
+  // committed or pushed a value in
+  property bool typed: false
 
   implicitHeight: textField.implicitHeight + 20
   borderColor: textField.activeFocus ? Theme.accent : Theme.border
@@ -33,6 +42,14 @@ StyledContainer {
     verticalAlignment: TextInput.AlignVCenter
     text: root.text
     onTextChanged: root.text = text
+    onTextEdited: {
+      root.typed = true;
+      root.textEdited();
+    }
+    onActiveFocusChanged: {
+      if (activeFocus)
+        root.typed = false;
+    }
 
     // --- Core Properties ---
     color: Theme.foreground

@@ -9,7 +9,7 @@ import qs.components.surfaces.desktop
 // (DesktopConfig.layoutFor), once the layer rules are in
 Scope {
   Variants {
-    model: HyprlandManager.layerRulesReady ? Array.from(Quickshell.screens).filter(screen => (DesktopConfig.layoutFor(screen.name)?.modules.length ?? 0) > 0) : []
+    model: HyprlandManager.layerRulesReady ? General.outputs.filter(screen => (DesktopConfig.layoutFor(screen.name)?.modules.length ?? 0) > 0) : []
     delegate: DesktopWindow {
       id: desktop
       required property ShellScreen modelData

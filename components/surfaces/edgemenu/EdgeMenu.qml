@@ -21,9 +21,11 @@ Scope {
   Component.onCompleted: root._follow()
   readonly property ShellScreen screen: root.menu ? EdgeMenusConfig.screenFor(root.menu) : null
   readonly property bool integrated: root.menu?.mode === "integrated"
+  // A submenu menu has no host of its own (EdgeMenusConfig.isSubmenu)
+  readonly property bool floating: root.menu?.mode === "floating"
 
   LazyLoader {
-    active: !!root._live && !!root.screen && !root.integrated
+    active: !!root._live && !!root.screen && root.floating
 
     FloatingEdgeMenu {
       menu: root.menu

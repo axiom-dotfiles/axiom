@@ -7,7 +7,6 @@ Item {
 
   required property var barConfig
 
-  property var popouts: null
   property var panel: null
   property var screen: null
 
@@ -20,7 +19,6 @@ Item {
     id: container
     anchors.fill: parent
     barConfig: root.barConfig
-    popouts: root.popouts
     panel: root.panel
     screen: root.screen
   }

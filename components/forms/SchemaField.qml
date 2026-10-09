@@ -100,7 +100,7 @@ Loader {
   function commit(value) {
     // Arrays (a string list) are new each time: compare their contents
     const same = Array.isArray(value) ? JSON.stringify(value) === JSON.stringify(root.current) : value === root.current;
-    // A typed field commits as it loses focus, which can be as its form
+    // A typed number commits as it loses focus, which can be as its form
     // is torn down
     if (!same && root.form)
       root.form.edited(root.row.path, value);
@@ -343,7 +343,7 @@ Loader {
       pattern: root.fieldSchema.pattern ?? null
       suggestions: SettingsManager.suggestionsFor(root.fieldSchema)
       currentConfigValue: root.current ?? ""
-      onValueChanged: root.commit(value)
+      onValueEdited: value => root.commit(value)
     }
   }
 
@@ -396,7 +396,7 @@ Loader {
       suggestions: SettingsManager.suggestionsFor(root.fieldSchema)
       commaList: true
       currentConfigValue: (root.current ?? []).join(", ")
-      onValueChanged: root.commit(value.split(",").map(v => v.trim()).filter(v => v !== ""))
+      onValueEdited: value => root.commit(value.split(",").map(v => v.trim()).filter(v => v !== ""))
     }
   }
 }

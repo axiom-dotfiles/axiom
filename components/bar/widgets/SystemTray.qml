@@ -89,8 +89,6 @@ BarWidget {
         }
 
         PopoutAnchor {
-          popouts: root.popouts
-          panel: root.panel
           hitArea: root.hitArea ? iconHover : null
           popoutName: "SystemTray"
           openDelay: 150

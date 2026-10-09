@@ -36,7 +36,7 @@ Scope {
   }
 
   Variants {
-    model: BlurManager.backing ? Quickshell.screens : []
+    model: BlurManager.backing ? General.outputs : []
 
     delegate: PanelWindow {
       id: backing

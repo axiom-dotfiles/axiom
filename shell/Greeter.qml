@@ -19,7 +19,7 @@ Scope {
   readonly property var _services: [GreetdManager]
 
   Variants {
-    model: root.windowed ? [] : Quickshell.screens
+    model: root.windowed ? [] : General.outputs
 
     delegate: GreeterWindow {
       required property ShellScreen modelData

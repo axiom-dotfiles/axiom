@@ -14,7 +14,7 @@ PanelWindow {
   required property var barConfig
 
   // BarManager.bars has resolved the monitor (an empty one is the primary)
-  readonly property ShellScreen targetScreen: Quickshell.screens.find(s => s.name === barConfig.monitor) ?? Quickshell.screens[0] ?? null
+  readonly property ShellScreen targetScreen: General.outputs.find(s => s.name === barConfig.monitor) ?? General.outputs[0] ?? null
   screen: targetScreen
   // A solid bar sits at the screen edge, and the screen border's strip
   // (arranged after it) overlaps its inner part, drawing the bar's inner
@@ -31,9 +31,6 @@ PanelWindow {
   readonly property int reservedZone: Bar.reservedZone(barConfig, HyprlandManager.gapsOut[Bar.edgeName(barConfig.location)] ?? 0)
   WlrLayershell.namespace: root.layerNamespace
   readonly property string layerNamespace: barConfig.insideBorder ? "axiom-bar-floating" : "axiom-bar"
-  // A popout with a text field up (e.g. a Wi-Fi password) takes the
-  // keyboard through the bar, its parent surface
-  WlrLayershell.keyboardFocus: barPopouts.wantsKeyboardFocus ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
   // The bar container paints the background (or not, when transparent)
   color: "transparent"
 
@@ -82,12 +79,18 @@ PanelWindow {
   // Where the window is on its screen, as Hyprland reports it (null until
   // it has): the blur window draws the bar's shapes and popouts from it
   readonly property var screenOrigin: placeOnScreen.origin
+  // ...else where it most likely is, for its popouts' footprints
+  // (PopoutManager)
+  readonly property point screenPlaced: placeOnScreen.placed
   LayerOrigin {
     id: placeOnScreen
     window: root
     namespace: root.layerNamespace
     edge: root.barConfig.location
   }
+
+  // What PopoutAnchors in it open their popouts in
+  readonly property var popoutHost: barPopouts
 
   // The widget area, where the pills are
   readonly property var container: bar.barContainer
@@ -112,7 +115,6 @@ PanelWindow {
     width: root.barConfig.vertical ? root.barConfig.extent : parent.width
     height: root.barConfig.vertical ? parent.height : root.barConfig.extent
     barConfig: root.barConfig
-    popouts: barPopouts
     panel: root
     screen: root.screen
   }
