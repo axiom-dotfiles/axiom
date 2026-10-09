@@ -163,7 +163,7 @@ PopoutWrapperBase {
       height: box.contentHeight + root.contentPadding * 2
       x: root.leftMargin + Math.max(0, Math.min(box.roomWidth * root.xFraction - width * root.xAlign, box.roomWidth - width))
       y: root.growUp ? box.placedY + box.placedHeight - box.height : box.placedY
-      color: Appearance.fill(root.fillColor)
+      color: BlurManager.fillOn(root.fillColor, root.screen)
       border.color: root.strokeColor
       border.width: Appearance.borderWidth
       radius: Appearance.borderRadius

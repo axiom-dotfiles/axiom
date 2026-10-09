@@ -97,6 +97,9 @@ Item {
   // The blur window (BlurManager) draws this surface's fill and casts its
   // shadow (BlurShape.shadow): it draws its stroke and content only
   property bool backed: false
+  // Filled solid while unbacked (BlurManager.opaqueOn: blur paused for a
+  // fullscreen window on its screen)
+  property bool opaque: false
   // Casting its own shadow, in its own window
   readonly property bool _ownShadow: root.castShadow && !root.backed
   // A copy of a surface (AttachedSurfaceCopy): its fill alone, its stroke
@@ -105,7 +108,7 @@ Item {
   property color mirrorStroke: "transparent"
   // (a copy is drawn opaque: the blur window applies the opacity to all
   // of them at once, so where they overlap they don't stack)
-  readonly property color _fill: root.mirror ? root.fillColor : root.backed ? "transparent" : Appearance.fill(root.fillColor)
+  readonly property color _fill: root.mirror ? root.fillColor : root.backed ? "transparent" : root.opaque ? root.fillColor : Appearance.fill(root.fillColor)
   readonly property color _stroke: root.mirror ? root.mirrorStroke : root.strokeColor
   // Rects (in this item's coordinates) where its outline is left open:
   // what's joined to it over them (a submenu on its side, a popout on

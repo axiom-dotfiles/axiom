@@ -487,7 +487,7 @@ Scope {
       namespace: root.preview ? "axiom-dock-preview" : "axiom-dock"
       edge: root.edge
     }
-    readonly property bool backed: !root.preview && BlurManager.backing && placeOnScreen.origin !== null
+    readonly property bool backed: !root.preview && BlurManager.backsOn(root.screen, false) && placeOnScreen.origin !== null
     // The window on screen: a hiding box goes past its edge
     readonly property rect screenRect: Qt.rect(placeOnScreen.origin?.x ?? 0, placeOnScreen.origin?.y ?? 0, panelWindow.width, panelWindow.height)
 

@@ -343,8 +343,8 @@ Rectangle {
   // its window is placed on screen: where its shapes are, the container's
   // top-left on screen (the bar editor's preview has none, and fills itself)
   readonly property var blurOrigin: root.panel?.screenOrigin ? Qt.point(root.panel.screenOrigin.x + (root.parent?.x ?? 0), root.panel.screenOrigin.y + (root.parent?.y ?? 0)) : null
-  readonly property bool backed: BlurManager.backing && root.blurOrigin !== null
   readonly property string blurScreen: root.panel?.screen?.name ?? ""
+  readonly property bool backed: BlurManager.backsOn(root.blurScreen, false) && root.blurOrigin !== null
 
   // What the bar paints under its widgets: its background, inner stroke
   // and pills, which the shadow or glow follows

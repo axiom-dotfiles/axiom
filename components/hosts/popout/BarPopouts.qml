@@ -603,7 +603,9 @@ PopoutWrapperBase {
     // the bar window is on screen: the surface is at (barX, barY) in bar
     // window coordinates in either window
     readonly property var barOrigin: root._panel?.screenOrigin ?? null
-    backed: BlurManager.backing && surface.barOrigin !== null
+    // On the Overlay layer unless under the bar
+    backed: BlurManager.backsOn(root.screen, !root.underBar) && surface.barOrigin !== null
+    opaque: BlurManager.opaqueOn(root.screen)
     // A submenu's opening in the box's side stroke (SubPopout)
     strokeHoles: root.submenuHole ? [Qt.rect(root.submenuHole.x - surface.x, root.submenuHole.y - surface.y, root.submenuHole.width, root.submenuHole.height)] : []
 

@@ -57,7 +57,7 @@ Item {
 
   // The blur window draws the frame's fill (BlurManager): the strips and
   // corners draw their strokes only
-  readonly property bool backed: BlurManager.backing
+  readonly property bool backed: BlurManager.backsOn(root.screen, false)
   // The frame, for it: from past the integrated edge menus on each edge
   // (arranged outside the border) to the stroke's inner side, round the
   // corner pieces' arcs, in screen coordinates

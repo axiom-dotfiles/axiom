@@ -317,7 +317,9 @@ Item {
         // Where it sits in the parent's window
         readonly property real inParentX: submenuPopup.attachX + surface.x
         readonly property real inParentY: root.attachRect.y + submenuPopup.windowFrom - submenuPopup.roomTop + surface.y
-        backed: BlurManager.backing && surface.parentOrigin !== null
+        // In its parent's window, over the overlay
+        backed: BlurManager.backsOn(outer.screen, true) && surface.parentOrigin !== null
+        opaque: BlurManager.opaqueOn(outer.screen)
 
         BlurShape {
           source: surface

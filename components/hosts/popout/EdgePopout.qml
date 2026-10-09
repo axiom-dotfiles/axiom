@@ -515,7 +515,9 @@ PopoutWrapperBase {
     AttachedSurface {
       id: surface
 
-      backed: BlurManager.backing && placeOnScreen.origin !== null
+      // On the Overlay layer unless it slides under something
+      backed: BlurManager.backsOn(root.screen, !root.slidesUnder) && placeOnScreen.origin !== null
+      opaque: BlurManager.opaqueOn(root.screen)
       // A submenu's opening in the box's side stroke
       strokeHoles: root.submenuHole ? [Qt.rect(root.submenuHole.x - surface.x, root.submenuHole.y - surface.y, root.submenuHole.width, root.submenuHole.height)] : []
 

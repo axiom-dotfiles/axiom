@@ -46,7 +46,10 @@ Scope {
       readonly property string screenName: backing.screen?.name ?? ""
       readonly property var shapes: BlurManager.shapes.filter(shape => shape.screen === backing.screenName)
 
-      WlrLayershell.layer: WlrLayer.Top
+      // On Top, under the chrome; on Overlay (under every surface there,
+      // by its order) while a fullscreen window hides the Top layer, for
+      // the surfaces shown over it (BlurManager.overFullscreen)
+      WlrLayershell.layer: BlurManager.overFullscreen(backing.screenName) ? WlrLayer.Overlay : WlrLayer.Top
       WlrLayershell.namespace: "axiom-blur-backing"
       WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
       exclusionMode: ExclusionMode.Ignore
