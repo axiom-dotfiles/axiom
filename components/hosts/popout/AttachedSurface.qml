@@ -278,6 +278,13 @@ Item {
     const r = SurfaceOutline.rectFrom(edge, width, height, _back, u, v, along, deep);
     return Qt.rect(r.x, r.y, r.width, r.height);
   }
+  // Its attach side's fillet at its start or end, with its anti-aliased
+  // fringe, as a stroke hole: a surface joined beside it (a submenu on the
+  // stroke it grows from) runs on along that stroke, over the fillet
+  function attachFilletHole(atStart) {
+    const along = (atStart ? root.startMargin : root.endMargin) + root.strokeWidth + 1;
+    return root._rectFrom(atStart ? 0 : root.alongLength - along, -1, along, root.filletRadius + root.strokeWidth + 2);
+  }
 
   // Fill: the outline, closed back along the attach edge.
   // Joined ends also cover the perpendicular stroke up to the fillet.

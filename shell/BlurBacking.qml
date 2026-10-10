@@ -263,13 +263,16 @@ Scope {
           id: rectMirror
 
           Rectangle {
+            // (null for a moment while the window is torn down, as on a
+            // reload: it draws nothing then, as AttachedSurfaceCopy)
             readonly property var src: slot.shape?.source ?? blankRect
-            width: src.width
-            height: src.height
-            topLeftRadius: src.topLeftRadius
-            topRightRadius: src.topRightRadius
-            bottomLeftRadius: src.bottomLeftRadius
-            bottomRightRadius: src.bottomRightRadius
+            visible: src !== null
+            width: src?.width ?? 0
+            height: src?.height ?? 0
+            topLeftRadius: src?.topLeftRadius ?? 0
+            topRightRadius: src?.topRightRadius ?? 0
+            bottomLeftRadius: src?.bottomLeftRadius ?? 0
+            bottomRightRadius: src?.bottomRightRadius ?? 0
             color: slot.shape?.color ?? "transparent"
           }
         }

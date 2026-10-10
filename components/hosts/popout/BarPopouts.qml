@@ -43,6 +43,9 @@ PopoutWrapperBase {
       root.underBar = root._wantsUnder;
   }
   on_WantsUnderChanged: root._followUnder()
+  // Over the overlay and fullscreen windows (BlurManager.backsOn), the box
+  // and a submenu in its window: on the Overlay layer unless under the bar
+  readonly property bool onOverlayLayer: !root.underBar
   readonly property var popupWindow: mainPopup
   // Content box in popupWindow coordinates (see AttachedSurface.boxRect)
   readonly property rect boxRect: Qt.rect(surface.x + surface.boxRect.x, surface.y + surface.boxRect.y, surface.boxRect.width, surface.boxRect.height)
@@ -482,7 +485,7 @@ PopoutWrapperBase {
     visible: still.showing
     color: "transparent"
 
-    WlrLayershell.layer: root.underBar ? WlrLayer.Top : WlrLayer.Overlay
+    WlrLayershell.layer: root.onOverlayLayer ? WlrLayer.Overlay : WlrLayer.Top
     WlrLayershell.namespace: root.underBar ? "axiom-popout-under" : "axiom-popout"
     WlrLayershell.keyboardFocus: root.wantsKeyboardFocus ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
     exclusionMode: ExclusionMode.Ignore
@@ -655,18 +658,12 @@ PopoutWrapperBase {
     // the bar window is on screen: the surface is at (barX, barY) in bar
     // window coordinates in either window
     readonly property var barOrigin: root._panel?.screenOrigin ?? null
-    // On the Overlay layer unless under the bar
-    backed: BlurManager.backsOn(root.screen, !root.underBar) && surface.barOrigin !== null
+    backed: BlurManager.backsOn(root.screen, root.onOverlayLayer) && surface.barOrigin !== null
     opaque: BlurManager.opaqueOn(root.screen)
     // A submenu's opening in the box's side stroke (SubPopout), and
     // joined to the bar side beside the box, the fillet there: the
     // submenu's top runs on along the stroke the box grows from, over it
-    strokeHoles: (root.submenuHole ? [Qt.rect(root.submenuHole.x - surface.x, root.submenuHole.y - surface.y, root.submenuHole.width, root.submenuHole.height)] : []).concat(root._sideJoined ? [surface._sideFilletHole] : [])
-    // The fillet on the submenu's side, with its anti-aliased fringe
-    readonly property rect _sideFilletHole: {
-      const along = (root.openToLeft ? surface.startMargin : surface.endMargin) + surface.strokeWidth + 1;
-      return surface._rectFrom(root.openToLeft ? 0 : surface.alongLength - along, -1, along, surface.filletRadius + surface.strokeWidth + 2);
-    }
+    strokeHoles: (root.submenuHole ? [Qt.rect(root.submenuHole.x - surface.x, root.submenuHole.y - surface.y, root.submenuHole.width, root.submenuHole.height)] : []).concat(root._sideJoined ? [surface.attachFilletHole(root.openToLeft)] : [])
 
     BlurShape {
       source: surface

@@ -17,21 +17,13 @@ ColumnLayout {
 
   spacing: Widget.spacing
 
-  RowLayout {
-    Layout.fillWidth: true
-    spacing: Widget.spacing
-
-    StyledIcon {
-      text: "science"
-      textColor: Theme.warning
-    }
-
-    StyledText {
-      Layout.fillWidth: true
-      wrapMode: Text.WordWrap
-      textColor: Theme.warning
-      text: I18n.tr("Transparency and blur are highly experimental: expect visual glitches and a performance cost.")
-    }
+  IssueList {
+    issues: [
+      {
+        "level": "warning",
+        "text": I18n.tr("Transparency and blur are highly experimental: expect visual glitches and a performance cost.")
+      }
+    ]
   }
 
   RowLayout {

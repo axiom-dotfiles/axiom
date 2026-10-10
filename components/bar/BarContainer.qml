@@ -561,10 +561,14 @@ Rectangle {
         backed: root.backed
         // Grown out of the border's stroke, which it covers
         readonly property real _along: root.isVertical ? pill.y : pill.x
-        readonly property var borderOpening: root.borderOpening(pill._along + pill.coverStart, pill._along + pill.coverStart + pill.coverLength)
+        // (none once it's going: a pill being torn down, as on a switch to
+        // floating pills, still updates its bindings after its destruction
+        // cleared them, and would leave the stroke open)
+        property bool _gone: false
+        readonly property var borderOpening: pill._gone ? null : root.borderOpening(pill._along + pill.coverStart, pill._along + pill.coverStart + pill.coverLength)
         // ...and, joined to a perpendicular edge, that edge's
-        readonly property var startJoinOpening: pill.joinStart ? root.joinOpening(pill, true) : null
-        readonly property var endJoinOpening: pill.joinEnd ? root.joinOpening(pill, false) : null
+        readonly property var startJoinOpening: pill.joinStart && !pill._gone ? root.joinOpening(pill, true) : null
+        readonly property var endJoinOpening: pill.joinEnd && !pill._gone ? root.joinOpening(pill, false) : null
         readonly property string _owner: "pill:" + pill
         onBorderOpeningChanged: ShellManager.setBorderOpening(pill._owner, pill.borderOpening)
         onStartJoinOpeningChanged: ShellManager.setBorderOpening(pill._owner + ":start", pill.startJoinOpening)
@@ -575,6 +579,7 @@ Rectangle {
           ShellManager.setBorderOpening(pill._owner + ":end", pill.endJoinOpening);
         }
         Component.onDestruction: {
+          pill._gone = true;
           ShellManager.setBorderOpening(pill._owner, null);
           ShellManager.setBorderOpening(pill._owner + ":start", null);
           ShellManager.setBorderOpening(pill._owner + ":end", null);

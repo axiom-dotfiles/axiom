@@ -187,7 +187,8 @@ QtObject {
    * always written, `enabled` or not, since a rule is taken back by
    * redefining it (no reload). `opts`: { on, threshold, throughWindows
    * (xray off), backdrops }. xray is always written: left out, a layer
-   * takes decoration.blur.xray, which the window look turns on. Nothing blurs while Hyprland's blur is off.
+   * takes decoration.blur.xray, which the window look turns on. Nothing
+   * blurs while Hyprland's blur is off.
    * A rule read as a surface maps (no_anim) applies from the next one.
    */
   function blurLua(opts) {

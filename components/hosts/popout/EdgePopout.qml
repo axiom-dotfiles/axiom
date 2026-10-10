@@ -93,6 +93,11 @@ PopoutWrapperBase {
   property real slideDistance: root._overOverlay ? 0 : root.attachAt - (root.barConfig ? root.barOuter + (root.barConfig.insideBorder ? Appearance.borderWidth : 0) : root.attachBase)
   property int underLayer: WlrLayer.Top
   readonly property bool slidesUnder: detached && slideDistance > 0
+  // Its window's layer: Overlay unless it slides under something
+  readonly property int windowLayer: root.slidesUnder ? root.underLayer : WlrLayer.Overlay
+  // Over the overlay and fullscreen windows (BlurManager.backsOn), it and
+  // a submenu in its window
+  readonly property bool onOverlayLayer: root.windowLayer === WlrLayer.Overlay
   property color fillColor: Theme.background
   property color strokeColor: Theme.foreground
   // Off leaves the focus grab to another window (see SurfaceGroup)
@@ -468,7 +473,7 @@ PopoutWrapperBase {
     // plain border.
     // Sliding under something, on its layer, ordered under it (see
     // HyprlandManager's layer rules)
-    WlrLayershell.layer: root.slidesUnder ? root.underLayer : WlrLayer.Overlay
+    WlrLayershell.layer: root.windowLayer
     WlrLayershell.namespace: root.layerNamespace
     WlrLayershell.keyboardFocus: root.wantsKeyboardFocus || root.keyboardOnDemand ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
     exclusionMode: ExclusionMode.Normal
@@ -563,11 +568,12 @@ PopoutWrapperBase {
     AttachedSurface {
       id: surface
 
-      // On the Overlay layer unless it slides under something
-      backed: BlurManager.backsOn(root.screen, !root.slidesUnder) && placeOnScreen.origin !== null
+      backed: BlurManager.backsOn(root.screen, root.onOverlayLayer) && placeOnScreen.origin !== null
       opaque: BlurManager.opaqueOn(root.screen)
-      // A submenu's opening in the box's side stroke
-      strokeHoles: root.submenuHole ? [Qt.rect(root.submenuHole.x - surface.x, root.submenuHole.y - surface.y, root.submenuHole.width, root.submenuHole.height)] : []
+      // A submenu's opening in the box's side stroke, and joined to the
+      // stroke the box grows from beside it, the fillet there (as a bar
+      // popout's)
+      strokeHoles: (root.submenuHole ? [Qt.rect(root.submenuHole.x - surface.x, root.submenuHole.y - surface.y, root.submenuHole.width, root.submenuHole.height)] : []).concat(root._sideJoined ? [surface.attachFilletHole(root.openToLeft)] : [])
 
       BlurShape {
         source: surface

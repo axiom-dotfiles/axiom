@@ -317,8 +317,8 @@ Item {
         // Where it sits in the parent's window
         readonly property real inParentX: submenuPopup.attachX + surface.x
         readonly property real inParentY: root.attachRect.y + submenuPopup.windowFrom - submenuPopup.roomTop + surface.y
-        // In its parent's window, over the overlay
-        backed: BlurManager.backsOn(outer.screen, true) && surface.parentOrigin !== null
+        // In its parent's window, on its layer
+        backed: BlurManager.backsOn(outer.screen, outer.host?.onOverlayLayer ?? true) && surface.parentOrigin !== null
         opaque: BlurManager.opaqueOn(outer.screen)
 
         BlurShape {
@@ -347,9 +347,8 @@ Item {
             "start": surface.inParentX,
             "end": surface.inParentX + surface.joinCover
           }) : null
-        // (a bar popout's only: BarPopouts.submenuJoinSpan)
         onJoinSpanChanged: {
-          if (outer.host && outer.host.submenuJoinSpan !== undefined)
+          if (outer.host)
             outer.host.submenuJoinSpan = surface.joinSpan;
         }
         // Its own hole, if still shown (rects compare by value, not ===)

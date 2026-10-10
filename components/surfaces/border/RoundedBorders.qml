@@ -277,9 +277,11 @@ Item {
       aboveWindows: true
       WlrLayershell.namespace: "axiom-border"
 
-      // Where it is on screen, from the edges' insets
-      readonly property real _x: corner.isLeft ? root.innerInset("left") - root.strokeWidth : (root.screen?.width ?? 0) - root.innerInset("right") + root.strokeWidth - root.cornerSize
-      readonly property real _y: corner.isTop ? root.innerInset("top") - root.strokeWidth : (root.screen?.height ?? 0) - root.innerInset("bottom") + root.strokeWidth - root.cornerSize
+      // Where it is on screen: a stroke out from the frame's inner side,
+      // past the integrated edge menus (cornerMargin is taken from what
+      // they reserve)
+      readonly property real _x: corner.isLeft ? root.innerLeft - root.strokeWidth : (root.screen?.width ?? 0) - root.innerRight + root.strokeWidth - root.cornerSize
+      readonly property real _y: corner.isTop ? root.innerTop - root.strokeWidth : (root.screen?.height ?? 0) - root.innerBottom + root.strokeWidth - root.cornerSize
       // A surface joined to the stroke runs into the perpendicular edge over
       // it (a pill joined to it, ShellManager.borderOpenings): the corner
       // is left open there as the strips are, its fill no longer hiding it
