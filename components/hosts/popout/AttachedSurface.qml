@@ -314,11 +314,22 @@ Item {
     // through a translucent fill), from a copy of it filled (its own fill
     // may be the blur window's): the content doesn't need its own
     OutsideShadow {
+      id: ownShadow
       target: shadowShape
       hideTarget: true
       active: root._ownShadow
       edge: root.edge
       falls: root.detached
+      // Nothing past a joined end: what it joins (the border's frame, a
+      // pill) runs on there, under this window, as the blur window's cut
+      // to every shape leaves it
+      holes: {
+        if (root.detached)
+          return [];
+        const reach = ownShadow.reach;
+        const v = -root._back - reach, deep = root._back + root.depth + reach * 2;
+        return (root.joinStart ? [root._rectFrom(-reach, v, reach, deep)] : []).concat(root.joinEnd ? [root._rectFrom(root.alongLength, v, reach, deep)] : []);
+      }
     }
 
     Item {
