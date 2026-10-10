@@ -43,6 +43,9 @@ PopoutWrapperBase {
       root.underBar = root._wantsUnder;
   }
   on_WantsUnderChanged: root._followUnder()
+  // Over the overlay and fullscreen windows (BlurManager.backsOn), the box
+  // and a submenu in its window: on the Overlay layer unless under the bar
+  readonly property bool onOverlayLayer: !root.underBar
   readonly property var popupWindow: mainPopup
   // Content box in popupWindow coordinates (see AttachedSurface.boxRect)
   readonly property rect boxRect: Qt.rect(surface.x + surface.boxRect.x, surface.y + surface.boxRect.y, surface.boxRect.width, surface.boxRect.height)
@@ -161,6 +164,11 @@ PopoutWrapperBase {
   // The stroke a submenu covers on the box's side, left open (in
   // popupWindow coordinates), as its fill no longer hides it
   property var submenuHole: null
+  onSubmenuHoleChanged: popupNudge.burst()
+  // Joined to the box's bar side, the stretch of the stroke it joins that
+  // a submenu covers beside the box ({ start, end }, x in popupWindow),
+  // left open as under the box
+  property var submenuJoinSpan: null
   // ---- end submenu ----
 
   // content/<name>.qml, loaded by URL like bar widgets and overlay modules:
@@ -331,6 +339,45 @@ PopoutWrapperBase {
     "start": mainPopup.shownAlongPos + surface.coverStart,
     "end": mainPopup.shownAlongPos + surface.coverStart + surface.coverLength
   } : null
+  // A submenu joined to the box's bar side covers that stroke beside the
+  // box: along the bar, in bar-window coordinates
+  readonly property var _submenuSpan: root.occupied && root.claimed && root.popupWindow.visible && root.submenuJoinSpan ? {
+    "start": root.submenuJoinSpan.start - mainPopup.alongShift,
+    "end": root.submenuJoinSpan.end - mainPopup.alongShift
+  } : null
+  PillStretch {
+    container: root.layoutSource
+    owner: "barPopoutSubmenu"
+    opening: root.anchorPill !== null && !root.mergeWithPill ? root._submenuSpan : null
+  }
+  // Merged into the bar, or on a solid bar's inner edge, the box (and a
+  // submenu joined beside it) stands on the border's stroke instead, which
+  // leaves it open under them (BarContainer.borderOpening)
+  readonly property bool _onBorder: root.occupied && root.claimed && root.popupWindow.visible && (root.mergeWithPill || root.barConfig.solid)
+  BorderOpening {
+    opening: root._onBorder ? root.layoutSource?.borderOpening(mainPopup.shownAlongPos + surface.coverStart, mainPopup.shownAlongPos + surface.coverStart + surface.coverLength) ?? null : null
+  }
+  BorderOpening {
+    opening: root._onBorder && root._submenuSpan ? root.layoutSource?.borderOpening(root._submenuSpan.start, root._submenuSpan.end) ?? null : null
+  }
+  // Joined to a perpendicular edge at an end (the border), that edge's
+  // stroke its end covers, from where the bar is on screen
+  function _joinOpening(atStart) {
+    const origin = surface.barOrigin;
+    if (!root.occupied || !root.claimed || !root.popupWindow.visible || !Appearance.translucent || !Appearance.screenBorder || mainPopup.detached || !origin)
+      return null;
+    const vertical = root.barConfig.vertical;
+    const from = vertical ? origin.x + mainPopup.barX : origin.y + mainPopup.barY;
+    return Object.assign({
+      "screen": root.screen?.name ?? ""
+    }, EdgeAttach.joinOpening(Bar.edgeName(root.barConfig.location), atStart, from, vertical ? surface.width : surface.height, surface.joinShown, (vertical ? root.screen?.width : root.screen?.height) ?? 0));
+  }
+  BorderOpening {
+    opening: surface.joinStart ? root._joinOpening(true) : null
+  }
+  BorderOpening {
+    opening: surface.joinEnd ? root._joinOpening(false) : null
+  }
 
   // How far past the bar's outer edge a merged popout's content starts:
   // where a pill's far stroke would be, with the border on or off
@@ -436,7 +483,7 @@ PopoutWrapperBase {
     visible: still.showing
     color: "transparent"
 
-    WlrLayershell.layer: root.underBar ? WlrLayer.Top : WlrLayer.Overlay
+    WlrLayershell.layer: root.onOverlayLayer ? WlrLayer.Overlay : WlrLayer.Top
     WlrLayershell.namespace: root.underBar ? "axiom-popout-under" : "axiom-popout"
     WlrLayershell.keyboardFocus: root.wantsKeyboardFocus ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
     exclusionMode: ExclusionMode.Ignore
@@ -451,6 +498,12 @@ PopoutWrapperBase {
 
     // What PopoutAnchors in its content open in
     readonly property var popoutHost: sub
+
+    // The hole a submenu leaves in the box's side follows it sliding, in
+    // its own window: shown here once this one commits again
+    FrameNudge {
+      id: popupNudge
+    }
 
     // Where the bar window is on the screen, else where it most likely is
     readonly property point barOrigin: root._panel?.screenPlaced ?? Qt.point(0, 0)
@@ -603,9 +656,12 @@ PopoutWrapperBase {
     // the bar window is on screen: the surface is at (barX, barY) in bar
     // window coordinates in either window
     readonly property var barOrigin: root._panel?.screenOrigin ?? null
-    backed: BlurManager.backing && surface.barOrigin !== null
-    // A submenu's opening in the box's side stroke (SubPopout)
-    strokeHoles: root.submenuHole ? [Qt.rect(root.submenuHole.x - surface.x, root.submenuHole.y - surface.y, root.submenuHole.width, root.submenuHole.height)] : []
+    backed: BlurManager.backsOn(root.screen, root.onOverlayLayer) && surface.barOrigin !== null
+    opaque: BlurManager.opaqueOn(root.screen)
+    // A submenu's opening in the box's side stroke (SubPopout), and
+    // joined to the bar side beside the box, the fillet there: the
+    // submenu's top runs on along the stroke the box grows from, over it
+    strokeHoles: surface.submenuHoles(root.submenuHole, root._sideJoined, root.openToLeft)
 
     BlurShape {
       source: surface

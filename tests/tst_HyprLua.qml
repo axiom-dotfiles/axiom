@@ -518,10 +518,13 @@ assert(rules["axiom-no-window-blur"].enabled == false, "the rule off")`)}
       "on": true,
       "backdrops": true
     })[2].includes("enabled = true"));
-    verify(!lines({
+    const through = lines({
       "on": true,
-      "throughWindows": true
-    })[0].includes("xray"), "through windows: no xray");
+      "throughWindows": true,
+      "backdrops": true
+    });
+    verify(through[0].includes("xray = false"), "through windows: xray off, never left to decoration.blur.xray");
+    verify(through[2].includes("xray = false"));
     // Taken back by redefining the rules, never dropped
     const off = lines({
       "on": false,

@@ -97,6 +97,9 @@ Item {
   // The blur window (BlurManager) draws this surface's fill and casts its
   // shadow (BlurShape.shadow): it draws its stroke and content only
   property bool backed: false
+  // Filled solid while unbacked (BlurManager.opaqueOn: blur paused for a
+  // fullscreen window on its screen)
+  property bool opaque: false
   // Casting its own shadow, in its own window
   readonly property bool _ownShadow: root.castShadow && !root.backed
   // A copy of a surface (AttachedSurfaceCopy): its fill alone, its stroke
@@ -105,12 +108,15 @@ Item {
   property color mirrorStroke: "transparent"
   // (a copy is drawn opaque: the blur window applies the opacity to all
   // of them at once, so where they overlap they don't stack)
-  readonly property color _fill: root.mirror ? root.fillColor : root.backed ? "transparent" : Appearance.fill(root.fillColor)
+  readonly property color _fill: root.mirror ? root.fillColor : root.backed ? "transparent" : root.opaque ? root.fillColor : Appearance.fill(root.fillColor)
   readonly property color _stroke: root.mirror ? root.mirrorStroke : root.strokeColor
   // Rects (in this item's coordinates) where its outline is left open:
   // what's joined to it over them (a submenu on its side, a popout on
   // a pill's far stroke) carries on there, its fill no longer hiding it
   property var strokeHoles: []
+  // Ready to cut them from the first frame they come (HoledItem.keepLayer):
+  // while surfaces are translucent, when they can
+  readonly property bool _holesReady: Appearance.translucent && !root.mirror
 
   default property alias content: contentContainer.data
   // The content box, sliding with the surface: where things in the
@@ -144,9 +150,15 @@ Item {
     const dv = h + R - hidden;
     return Math.min(margin, Math.max(0, margin + h - R + Math.sqrt(R * R - dv * dv)));
   }
-  readonly property real coverStart: root._filletIn(root.startMargin, root._hidden)
+  // The fillets are taken a stroke's width ahead of the slide: the opening
+  // is drawn in another window (the bar's, the border's), which commits a
+  // frame or so after this one, so a stub of stroke showed under each
+  // fillet as it landed. Within a stroke of the edge the fillet's own
+  // stroke lies over the one it opens, so opening it early shows nothing.
+  readonly property real _filletHidden: Math.max(0, root._hidden - root.strokeWidth)
+  readonly property real coverStart: root._filletIn(root.startMargin, root._filletHidden)
   // (nothing once it's all behind the edge)
-  readonly property real coverLength: root._hidden >= root.depth ? 0 : root.alongLength - root.coverStart - root._filletIn(root.endMargin, root._hidden)
+  readonly property real coverLength: root._hidden >= root.depth ? 0 : root.alongLength - root.coverStart - root._filletIn(root.endMargin, root._filletHidden)
 
   readonly property bool vertical: edge === Bar.Left || edge === Bar.Right
   readonly property bool attachLeft: edge === Bar.Left
@@ -244,6 +256,12 @@ Item {
   readonly property real sideU: _natural.sideU
   readonly property real farSideU: _natural.farSideU
   readonly property real farV: _m.farV
+  // How far in from its attach side (the backfill included) a joined end
+  // covers the perpendicular stroke: its fill runs along it to the join's
+  // fillet (SurfaceOutline.fillPath)
+  readonly property real joinCover: _m.back + (root._straightJoins ? root.farV : root.farV + root.filletRadius)
+  // ...as much of it as is out past its edge now (none while it's behind)
+  readonly property real joinShown: Math.max(0, root.joinCover - root._hidden)
 
   // The content box in this item's coordinates, at rest (not slid). On
   // every side but the attach edge it coincides with the outer edge of
@@ -259,6 +277,21 @@ Item {
   function _rectFrom(u, v, along, deep) {
     const r = SurfaceOutline.rectFrom(edge, width, height, _back, u, v, along, deep);
     return Qt.rect(r.x, r.y, r.width, r.height);
+  }
+  // Its attach side's fillet at its start or end, with its anti-aliased
+  // fringe, as a stroke hole: a surface joined beside it (a submenu on the
+  // stroke it grows from) runs on along that stroke, over the fillet
+  function attachFilletHole(atStart) {
+    const along = (atStart ? root.startMargin : root.endMargin) + root.strokeWidth + 1;
+    return root._rectFrom(atStart ? 0 : root.alongLength - along, -1, along, root.filletRadius + root.strokeWidth + 2);
+  }
+  // Its stroke holes under a submenu (SubPopout): `hole`, the stroke the
+  // submenu covers on the box's side (in the window's coordinates, or
+  // null), and joined to the stroke the box grows from (`sideJoined`, on
+  // its start side with `atStart`), the fillet there
+  function submenuHoles(hole, sideJoined, atStart) {
+    const holes = hole ? [Qt.rect(hole.x - root.x, hole.y - root.y, hole.width, hole.height)] : [];
+    return sideJoined ? holes.concat([root.attachFilletHole(atStart)]) : holes;
   }
 
   // Fill: the outline, closed back along the attach edge.
@@ -289,11 +322,22 @@ Item {
     // through a translucent fill), from a copy of it filled (its own fill
     // may be the blur window's): the content doesn't need its own
     OutsideShadow {
+      id: ownShadow
       target: shadowShape
       hideTarget: true
       active: root._ownShadow
       edge: root.edge
       falls: root.detached
+      // Nothing past a joined end: what it joins (the border's frame, a
+      // pill) runs on there, under this window, as the blur window's cut
+      // to every shape leaves it
+      holes: {
+        if (root.detached)
+          return [];
+        const reach = ownShadow.reach;
+        const v = -root._back - reach, deep = root._back + root.depth + reach * 2;
+        return (root.joinStart ? [root._rectFrom(-reach, v, reach, deep)] : []).concat(root.joinEnd ? [root._rectFrom(root.alongLength, v, reach, deep)] : []);
+      }
     }
 
     Item {
@@ -352,6 +396,7 @@ Item {
         anchors.fill: parent
         visible: !root.detached
         holes: root.strokeHoles
+        keepLayer: root._holesReady && !root.detached
 
         Shape {
           id: outline
@@ -389,6 +434,7 @@ Item {
         anchors.fill: parent
         visible: root.detached
         holes: root.strokeHoles
+        keepLayer: root._holesReady && root.detached
 
         Rectangle {
           id: detachedBox

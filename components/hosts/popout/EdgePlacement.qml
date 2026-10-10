@@ -51,6 +51,10 @@ QtObject {
   // runs straight up into the pill or island it stands on, which reaches
   // on to it (EdgeAttach.reachStretch), else null
   property var reach: null
+  // Where along the edge (edge coordinates) a submenu joined to the box's
+  // side covers the stroke it stands on beside the box ({ start, end }),
+  // left open there too, else null
+  property var submenuSpan: null
 
   // Its pill stretch: a key unique per surface on a bar, and whether it
   // shows (not while the content loads or unloads, the box a placeholder)
@@ -60,7 +64,7 @@ QtObject {
   // pill has grown out to carry it: the surface slides out once it has
   // (PillStretch.ready)
   property bool open: false
-  readonly property bool stretchReady: root._stretch.ready
+  readonly property bool stretchReady: root._stretch.ready && root._startPillStretch.ready && root._endPillStretch.ready
 
   readonly property bool vertical: root.edge === Bar.Left || root.edge === Bar.Right
   readonly property string edgeName: Bar.edgeName(root.edge)
@@ -68,6 +72,11 @@ QtObject {
   // Room for a side wall's fillet at an end that isn't joined (none on a
   // bare edge, which it runs straight off)
   readonly property real filletMargin: root.bareEdge ? 0 : EdgeAttach.filletMargin(root.connectorGap, Appearance.borderWidth, Appearance.borderRadius)
+  // The least room a box keeps from an end it doesn't join: its fillet's,
+  // past the corner into the perpendicular edge (the frame's inner corner,
+  // or a pill joined to this edge), whose arc a fillet's run along the
+  // stroke would draw a straight stub beside
+  readonly property real endRoom: root.filletMargin + (Appearance.screenBorder && !root.bareEdge ? Appearance.borderRadius : 0)
 
   // A bar other than a solid one on the edge (BarPanel), while it shows:
   // a bar inside the border hides under fullscreen windows
@@ -152,7 +161,92 @@ QtObject {
   // integrated menu's strip
   function joinable(name) {
     const bar = BarManager.edgesFor(root.screen)[name];
-    return (!bar || bar.joinable) && EdgeMenuManager.zoneOn(root.screen?.name ?? "", name) === 0;
+    return (!bar || bar.joinable || root.endPill(Bar.locationOf(name)) !== null) && EdgeMenuManager.zoneOn(root.screen?.name ?? "", name) === 0;
+  }
+
+  // With `joinsPills`, a pill bar on a perpendicular edge (a Bar.Location) is
+  // joinable too where its pill at this edge's end joins this edge: the
+  // box's end joins that pill's far stroke as a solid bar's, the pill
+  // stretched across to carry the join's fillet (endStretch). Inside the
+  // border only: without it the join would run straight off the screen
+  // edge, past the pill's stroke.
+  property bool joinsPills: false
+  // That pill ({ container, index, start, length }, bar coordinates), or null
+  function endPill(location) {
+    if (!root.joinsPills || root.held || !Appearance.screenBorder)
+      return null;
+    const panel = ShellManager.barOn(root.screen?.name ?? "", location);
+    if (!panel?.visible || !panel.barConfig.pills || panel.barConfig.island)
+      return null;
+    const pills = panel.container?.pillRects ?? [];
+    // Along that bar, this edge is its start (left, top) or its end
+    const atStart = root.edge === Bar.Left || root.edge === Bar.Top;
+    const index = atStart ? 0 : pills.length - 1;
+    const pill = pills[index];
+    if (!pill || !(atStart ? pill.joinStart : pill.joinEnd))
+      return null;
+    return {
+      "container": panel.container,
+      "index": index,
+      "start": pill.start,
+      "length": pill.length
+    };
+  }
+  // How far in from this edge (screen px) a joined end covers the stroke
+  // it joins, its fillet included (the host's AttachedSurface.joinCover
+  // from its window's attach edge), for the pill stretch
+  property real joinReach: 0
+  readonly property var _startPill: root.joinStart ? root.endPill(root.vertical ? Bar.Top : Bar.Left) : null
+  readonly property var _endPill: root.joinEnd ? root.endPill(root.vertical ? Bar.Bottom : Bar.Right) : null
+  // Where a joined end reaches along its pill's bar (in its coordinates),
+  // past the join's fillet; null while the box doesn't show
+  function _reachOn(pill) {
+    const origin = pill?.container?.blurOrigin;
+    if (!origin || !root.showing)
+      return null;
+    const span = (root.vertical ? root.screen?.width : root.screen?.height) ?? 0;
+    return (root._far ? span - root.joinReach : root.joinReach) - (root.vertical ? origin.x : origin.y);
+  }
+  readonly property bool _far: root.edge === Bar.Right || root.edge === Bar.Bottom
+  // A joined end's pill stretched from this edge to past the join's
+  // fillet, with room for the pill's corner beyond
+  function _endStretch(pill) {
+    const reach = root._reachOn(pill);
+    if (reach === null)
+      return null;
+    const end = pill.start + pill.length;
+    return {
+      "index": pill.index,
+      "start": root._far ? Math.min(pill.start, reach - Appearance.borderRadius) : pill.start,
+      "end": root._far ? end : Math.max(end, reach + Appearance.borderRadius),
+      "squareStart": false,
+      "squareEnd": false
+    };
+  }
+  // ...and its far stroke left open under a translucent box, as far as
+  // the join covers it
+  function _endOpening(pill) {
+    const reach = root._reachOn(pill);
+    if (reach === null || !Appearance.translucent)
+      return null;
+    return {
+      "start": root._far ? reach : pill.start,
+      "end": root._far ? pill.start + pill.length : reach
+    };
+  }
+  property PillStretch _startPillStretch: PillStretch {
+    container: root._startPill?.container ?? null
+    owner: root.owner + ":joinStart"
+    open: root.open
+    stretch: root._endStretch(root._startPill)
+    opening: root._endOpening(root._startPill)
+  }
+  property PillStretch _endPillStretch: PillStretch {
+    container: root._endPill?.container ?? null
+    owner: root.owner + ":joinEnd"
+    open: root.open
+    stretch: root._endStretch(root._endPill)
+    opening: root._endOpening(root._endPill)
   }
 
   // The pill (or island) stretched to carry the box's fillets while it
@@ -169,6 +263,14 @@ QtObject {
     opening: root.showing && root.onPill && Appearance.translucent ? {
       "start": root.place.surfaceStart + root.coverStart + root.barShift,
       "end": root.place.surfaceStart + root.coverStart + (root.coverLength < 0 ? root.place.surfaceLength : root.coverLength) + root.barShift
+    } : null
+  }
+  property PillStretch _submenuStretch: PillStretch {
+    container: root.container
+    owner: root.owner + ":submenu"
+    opening: root.showing && root.onPill && Appearance.translucent && root.submenuSpan ? {
+      "start": root.submenuSpan.start + root.barShift,
+      "end": root.submenuSpan.end + root.barShift
     } : null
   }
 }

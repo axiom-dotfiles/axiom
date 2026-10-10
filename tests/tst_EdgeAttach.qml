@@ -377,6 +377,28 @@ TestCase {
     }));
   }
 
+  function test_joinOpening() {
+    // A top bar's surface joined at its start covers the left edge's
+    // stroke from the screen's top down to its join
+    compare(EdgeAttach.joinOpening("top", true, 10, 100, 60, 1440), {
+      "edge": "left",
+      "start": 0,
+      "end": 70
+    });
+    // A left edge's joined at its end: the bottom edge's, from the left
+    compare(EdgeAttach.joinOpening("left", false, 12, 500, 40, 3440), {
+      "edge": "bottom",
+      "start": 0,
+      "end": 52
+    });
+    // From the far side: a right edge's, up to the screen's width
+    compare(EdgeAttach.joinOpening("right", true, 3000, 400, 50, 3440), {
+      "edge": "top",
+      "start": 3350,
+      "end": 3440
+    });
+  }
+
   function test_pill_grows_runs_flush_past_its_end() {
     // Content past the island's ends: flush, the island stretched to it
     const p = EdgeAttach.place(spec({

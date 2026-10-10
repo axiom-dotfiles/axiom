@@ -46,7 +46,10 @@ Scope {
       readonly property string screenName: backing.screen?.name ?? ""
       readonly property var shapes: BlurManager.shapes.filter(shape => shape.screen === backing.screenName)
 
-      WlrLayershell.layer: WlrLayer.Top
+      // On Top, under the chrome; on Overlay (under every surface there,
+      // by its order) while a fullscreen window hides the Top layer, for
+      // the surfaces shown over it (BlurManager.overFullscreen)
+      WlrLayershell.layer: BlurManager.overFullscreen(backing.screenName) ? WlrLayer.Overlay : WlrLayer.Top
       WlrLayershell.namespace: "axiom-blur-backing"
       WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
       exclusionMode: ExclusionMode.Ignore
@@ -260,13 +263,16 @@ Scope {
           id: rectMirror
 
           Rectangle {
+            // (null for a moment while the window is torn down, as on a
+            // reload: it draws nothing then, as AttachedSurfaceCopy)
             readonly property var src: slot.shape?.source ?? blankRect
-            width: src.width
-            height: src.height
-            topLeftRadius: src.topLeftRadius
-            topRightRadius: src.topRightRadius
-            bottomLeftRadius: src.bottomLeftRadius
-            bottomRightRadius: src.bottomRightRadius
+            visible: src !== null
+            width: src?.width ?? 0
+            height: src?.height ?? 0
+            topLeftRadius: src?.topLeftRadius ?? 0
+            topRightRadius: src?.topRightRadius ?? 0
+            bottomLeftRadius: src?.bottomLeftRadius ?? 0
+            bottomRightRadius: src?.bottomRightRadius ?? 0
             color: slot.shape?.color ?? "transparent"
           }
         }

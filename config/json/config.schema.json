@@ -1004,7 +1004,7 @@
               "type": "boolean",
               "title": "Pause blur over fullscreen apps",
               "default": true,
-              "description": "While a fullscreen window (a game, a video) is open, nothing blurs, so a volume popup or notification over it costs nothing extra. Surfaces stay translucent.",
+              "description": "While a fullscreen window (a game, a video) is open, nothing blurs, so a volume popup or notification over it costs nothing extra. Surfaces on that monitor turn opaque; elsewhere they stay translucent, unblurred.",
               "x-showIf": { "opacity": { "not": 100 }, "blur": true }
             }
           }

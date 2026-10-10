@@ -317,7 +317,9 @@ Item {
         // Where it sits in the parent's window
         readonly property real inParentX: submenuPopup.attachX + surface.x
         readonly property real inParentY: root.attachRect.y + submenuPopup.windowFrom - submenuPopup.roomTop + surface.y
-        backed: BlurManager.backing && surface.parentOrigin !== null
+        // In its parent's window, on its layer
+        backed: BlurManager.backsOn(outer.screen, outer.host?.onOverlayLayer ?? true) && surface.parentOrigin !== null
+        opaque: BlurManager.opaqueOn(outer.screen)
 
         BlurShape {
           source: surface
@@ -334,11 +336,29 @@ Item {
           if (outer.host)
             outer.host.submenuHole = surface.parentHole;
         }
+        // Joined to the parent's bar side, the stretch of the stroke it
+        // joins that its end covers there (x in the parent's window): its
+        // fill runs along it to the join's fillet (joinCover), from the
+        // parent's side stroke
+        readonly property var joinSpan: Appearance.translucent && submenuPopup.visible && (surface.joinStart || surface.joinEnd) ? (outer.openToLeft ? {
+            "start": surface.inParentX + surface.width - surface.joinCover,
+            "end": surface.inParentX + surface.width
+          } : {
+            "start": surface.inParentX,
+            "end": surface.inParentX + surface.joinCover
+          }) : null
+        onJoinSpanChanged: {
+          if (outer.host)
+            outer.host.submenuJoinSpan = surface.joinSpan;
+        }
         // Its own hole, if still shown (rects compare by value, not ===)
         Component.onDestruction: {
           const hole = outer.host?.submenuHole;
           if (hole && surface.parentHole && hole.x === surface.parentHole.x && hole.y === surface.parentHole.y)
             outer.host.submenuHole = null;
+          const span = outer.host?.submenuJoinSpan;
+          if (span && surface.joinSpan && span.start === surface.joinSpan.start)
+            outer.host.submenuJoinSpan = null;
         }
         active: root.occupied && !root.isClosing && (root.contentReady || still.switching)
         connectorGap: root.connectorGap

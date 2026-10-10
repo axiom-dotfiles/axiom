@@ -156,6 +156,27 @@ QtObject {
     };
   }
 
+  /**
+   * The stretch of a perpendicular edge's stroke that a surface joined to
+   * it at an end covers, as the border takes it ({ edge, start, end }, px
+   * along that edge): its fill runs along it from the surface's own edge
+   * to its join's fillet. `edge` is the surface's edge ("top", "bottom",
+   * "left" or "right"), `atStart` the end joined (top or left), `from` and
+   * `depth` where the surface's item starts across its edge and how deep
+   * it is (on screen), `cover` how far in from its attach side the join
+   * covers (AttachedSurface.joinCover), `span` the screen's size across.
+   */
+  function joinOpening(edge, atStart, from, depth, cover, span) {
+    const vertical = edge === "left" || edge === "right";
+    const far = edge === "right" || edge === "bottom";
+    const reach = far ? from + depth - cover : from + cover;
+    return {
+      "edge": vertical ? (atStart ? "top" : "bottom") : (atStart ? "left" : "right"),
+      "start": far ? reach : 0,
+      "end": far ? span : reach
+    };
+  }
+
   // How far the pill (or island) `own` reaches toward `target` (before it
   // when `before`): its own end, or that of the neighbours a stretch to
   // there would come within `merge` of, which then draw as one with it

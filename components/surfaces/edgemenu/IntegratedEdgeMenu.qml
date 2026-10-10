@@ -138,7 +138,7 @@ PopoutWrapperBase {
       namespace: "axiom-edge-menu"
       edge: root.edge
     }
-    readonly property bool backed: BlurManager.backing && placeOnScreen.origin !== null
+    readonly property bool backed: BlurManager.backsOn(root.screen, false) && placeOnScreen.origin !== null
 
     SlideAnimation {
       id: slide

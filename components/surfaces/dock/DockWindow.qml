@@ -107,9 +107,10 @@ Scope {
   readonly property real length: (root.vertical ? panelWindow.height : panelWindow.width) - root.strokeInset * 2
   readonly property real restLength: root.count * root.base + Math.max(0, root.count - 1) * root.spacing + root.separatorLength + root.pad * 2
   // The least room from the box to each end that isn't joined: held, its
-  // gaps from the frame lines there; else its fillet's
-  readonly property real startInset: root.gaps ? root._heldOffset(root.vertical ? Bar.Top : Bar.Left, root.gaps.start) : placement.filletMargin
-  readonly property real endInset: root.gaps ? root._heldOffset(root.vertical ? Bar.Bottom : Bar.Right, root.gaps.end) : placement.filletMargin
+  // gaps from the frame lines there; else its fillet's past the corner
+  // (EdgePlacement.endRoom)
+  readonly property real startInset: root.gaps ? root._heldOffset(root.vertical ? Bar.Top : Bar.Left, root.gaps.start) : placement.endRoom
+  readonly property real endInset: root.gaps ? root._heldOffset(root.vertical ? Bar.Bottom : Bar.Right, root.gaps.end) : placement.endRoom
   readonly property real _wanted: root.length * root.dock.position / 100
   // The box's centre at rest, kept within those
   readonly property real centre: {
@@ -438,7 +439,6 @@ Scope {
       const old = panelWindow._zoneSet;
       if (old)
         DockManager.setZone(old[0], old[1], old[2], 0);
-      ShellManager.setBorderOpening(panelWindow, null);
     }
 
     anchors {
@@ -487,7 +487,7 @@ Scope {
       namespace: root.preview ? "axiom-dock-preview" : "axiom-dock"
       edge: root.edge
     }
-    readonly property bool backed: !root.preview && BlurManager.backing && placeOnScreen.origin !== null
+    readonly property bool backed: !root.preview && BlurManager.backsOn(root.screen, false) && placeOnScreen.origin !== null
     // The window on screen: a hiding box goes past its edge
     readonly property rect screenRect: Qt.rect(placeOnScreen.origin?.x ?? 0, placeOnScreen.origin?.y ?? 0, panelWindow.width, panelWindow.height)
 
@@ -506,7 +506,9 @@ Scope {
         "end": start + surface.coverLength
       };
     }
-    onBorderOpeningChanged: ShellManager.setBorderOpening(panelWindow, panelWindow.borderOpening)
+    BorderOpening {
+      opening: panelWindow.borderOpening
+    }
 
     Item {
       id: content

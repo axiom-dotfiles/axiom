@@ -57,7 +57,7 @@ Item {
 
   // The blur window draws the frame's fill (BlurManager): the strips and
   // corners draw their strokes only
-  readonly property bool backed: BlurManager.backing
+  readonly property bool backed: BlurManager.backsOn(root.screen, false)
   // The frame, for it: from past the integrated edge menus on each edge
   // (arranged outside the border) to the stroke's inner side, round the
   // corner pieces' arcs, in screen coordinates
@@ -120,8 +120,10 @@ Item {
     readonly property real radius: Math.max(0, root.innerBorderRadius - root.strokeWidth)
 
     // Backed, the blur window casts it, with the surfaces joined to the
-    // frame (BlurShape.shadow)
-    visible: look.shadow !== "none" && !root.backed
+    // frame (BlurShape.shadow): the window stays mapped and draws nothing.
+    // Hyprland puts a layer mapped while a fullscreen window is shown over
+    // it (CLayerSurface::onMap), and a fullscreen window is what unbacks it.
+    visible: look.shadow !== "none"
     screen: root.screen
     anchors {
       left: true
@@ -186,6 +188,7 @@ Item {
 
     Item {
       anchors.fill: parent
+      visible: !root.backed
       layer.enabled: true
       layer.effect: MultiEffect {
         maskEnabled: true
@@ -274,7 +277,30 @@ Item {
       aboveWindows: true
       WlrLayershell.namespace: "axiom-border"
 
+      // Where it is on screen: a stroke out from the frame's inner side,
+      // past the integrated edge menus (cornerMargin is taken from what
+      // they reserve)
+      readonly property real _x: corner.isLeft ? root.innerLeft - root.strokeWidth : (root.screen?.width ?? 0) - root.innerRight + root.strokeWidth - root.cornerSize
+      readonly property real _y: corner.isTop ? root.innerTop - root.strokeWidth : (root.screen?.height ?? 0) - root.innerBottom + root.strokeWidth - root.cornerSize
+      // A surface joined to the stroke runs into the perpendicular edge over
+      // it (a pill joined to it, ShellManager.borderOpenings): the corner
+      // is left open there as the strips are, its fill no longer hiding it
+      readonly property bool covered: {
+        const name = root.screen?.name ?? "";
+        return ShellManager.borderOpenings.some(o => o.screen === name && (o.edge === (corner.isTop ? "top" : "bottom") && corner._spans(o, corner._x, corner.isLeft) || o.edge === (corner.isLeft ? "left" : "right") && corner._spans(o, corner._y, corner.isTop)));
+      }
+      // Whether opening `o` runs across the piece (at `at` along its edge)
+      // from its stroke on, the piece being at the edge's start or not
+      function _spans(o, at, atStart) {
+        return atStart ? o.start <= at + root.strokeWidth + 1 && o.end >= at + root.cornerSize : o.end >= at + root.cornerSize - root.strokeWidth - 1 && o.start <= at;
+      }
+      onCoveredChanged: cornerNudge.burst()
+      FrameNudge {
+        id: cornerNudge
+      }
+
       CornerPiece {
+        visible: !corner.covered
         borderRadius: root.innerBorderRadius
         fillColor: root.backed ? "transparent" : root.frameColor
         strokeColor: root.innerStrokeColor

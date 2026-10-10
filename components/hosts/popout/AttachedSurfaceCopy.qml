@@ -1,6 +1,8 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 
+import qs.config
+
 // A copy of an AttachedSurface's shape, its geometry bound live to the
 // source's (sliding with it: its own slide runs with the source's
 // `active`): its fill alone, or with `mirrorStroke`. The blur window draws
@@ -9,33 +11,36 @@ import QtQuick
 AttachedSurface {
   id: root
 
+  // (null for a moment while its owner is torn down, as on a reload: it
+  // draws nothing then)
   required property AttachedSurface source
 
   mirror: true
-  width: root.source.width
-  height: root.source.height
-  edge: root.source.edge
-  active: root.source.active
-  animationDuration: root.source.animationDuration
-  boxWidth: root.source.boxWidth
-  boxHeight: root.source.boxHeight
-  boxStart: root.source.boxStart
-  connectorGap: root.source.connectorGap
-  joinStart: root.source.joinStart
-  joinEnd: root.source.joinEnd
-  flushStart: root.source.flushStart
-  flushEnd: root.source.flushEnd
-  flushStartThrough: root.source.flushStartThrough
-  flushEndThrough: root.source.flushEndThrough
-  detached: root.source.detached
-  detachedOffset: root.source.detachedOffset
-  backfill: root.source.backfill
-  joinBackfill: root.source.joinBackfill
-  straight: root.source.straight
-  straightJoins: root.source.straightJoins
-  startCornerRadius: root.source.startCornerRadius
-  endCornerRadius: root.source.endCornerRadius
-  startNearRadius: root.source.startNearRadius
-  endNearRadius: root.source.endNearRadius
-  fillColor: root.source.fillColor
+  visible: root.source !== null
+  width: root.source?.width ?? 0
+  height: root.source?.height ?? 0
+  edge: root.source?.edge ?? Bar.Top
+  active: root.source?.active ?? false
+  animationDuration: root.source?.animationDuration ?? Appearance.animNormal
+  boxWidth: root.source?.boxWidth ?? 0
+  boxHeight: root.source?.boxHeight ?? 0
+  boxStart: root.source?.boxStart ?? 0
+  connectorGap: root.source?.connectorGap ?? 0
+  joinStart: root.source?.joinStart ?? false
+  joinEnd: root.source?.joinEnd ?? false
+  flushStart: root.source?.flushStart ?? false
+  flushEnd: root.source?.flushEnd ?? false
+  flushStartThrough: root.source?.flushStartThrough ?? true
+  flushEndThrough: root.source?.flushEndThrough ?? true
+  detached: root.source?.detached ?? false
+  detachedOffset: root.source?.detachedOffset ?? 0
+  backfill: root.source?.backfill ?? 0
+  joinBackfill: root.source?.joinBackfill ?? 0
+  straight: root.source?.straight ?? false
+  straightJoins: root.source?.straightJoins ?? false
+  startCornerRadius: root.source?.startCornerRadius ?? 0
+  endCornerRadius: root.source?.endCornerRadius ?? 0
+  startNearRadius: root.source?.startNearRadius ?? 0
+  endNearRadius: root.source?.endNearRadius ?? 0
+  fillColor: root.source?.fillColor ?? "transparent"
 }

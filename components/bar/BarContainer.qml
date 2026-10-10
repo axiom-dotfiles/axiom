@@ -141,9 +141,42 @@ Rectangle {
   // editor) was drawn but not shown: the bar's next frame was rendered,
   // yet the compositor kept showing the one before until something else
   // made the bar commit again (a hover, the clock). So for a few frames
-  // after a stretch changes, the bar draws a frame of its own (an
-  // invisible pixel flipping), and the last one shown is the right one.
+  // after a stretch or an opening changes, the bar draws a frame of its
+  // own (an invisible pixel flipping), and the last one shown is the right
+  // one: an opening follows a surface sliding in another window.
   on_ShownStretchesChanged: repaint.burst()
+  onOpeningsChanged: repaint.burst()
+
+  // A stretch along the bar (from..to, in this item's coordinates) that a
+  // surface joined to the border's inner stroke covers there, as
+  // ShellManager.setBorderOpening takes it (screen px along the edge), so
+  // the border leaves its stroke open under a translucent fill: a pill, a
+  // popout merged into the bar or on a solid bar's inner edge. Null while
+  // surfaces are solid, with the border off, or until the bar's place on
+  // screen is known (the bar editor's preview has none).
+  function borderOpening(from, to) {
+    if (!Appearance.translucent || !Appearance.screenBorder || !root.blurOrigin || to <= from)
+      return null;
+    const at = root.isVertical ? root.blurOrigin.y : root.blurOrigin.x;
+    return {
+      "screen": root.blurScreen,
+      "edge": Bar.edgeName(root.barConfig.location),
+      "start": at + from,
+      "end": at + to
+    };
+  }
+  // The same for a surface's joined end (`surface`, an AttachedSurface in
+  // this item, joined at its start or end): it covers the perpendicular
+  // edge's stroke, from the bar's outer edge to its join's fillet
+  function joinOpening(surface, atStart) {
+    if (!Appearance.translucent || !Appearance.screenBorder || !root.blurOrigin)
+      return null;
+    const from = root.isVertical ? root.blurOrigin.x + surface.x : root.blurOrigin.y + surface.y;
+    const span = (root.isVertical ? root.panel?.screen?.width : root.panel?.screen?.height) ?? 0;
+    return Object.assign({
+      "screen": root.blurScreen
+    }, EdgeAttach.joinOpening(Bar.edgeName(root.barConfig.location), atStart, from, root.isVertical ? surface.width : surface.height, surface.joinShown, span));
+  }
 
   // How far each pill reaches past its own ends for the stretches on it,
   // animated, so it grows out to carry a surface and draws back after it.
@@ -343,8 +376,8 @@ Rectangle {
   // its window is placed on screen: where its shapes are, the container's
   // top-left on screen (the bar editor's preview has none, and fills itself)
   readonly property var blurOrigin: root.panel?.screenOrigin ? Qt.point(root.panel.screenOrigin.x + (root.parent?.x ?? 0), root.panel.screenOrigin.y + (root.parent?.y ?? 0)) : null
-  readonly property bool backed: BlurManager.backing && root.blurOrigin !== null
   readonly property string blurScreen: root.panel?.screen?.name ?? ""
+  readonly property bool backed: BlurManager.backsOn(root.blurScreen, false) && root.blurOrigin !== null
 
   // What the bar paints under its widgets: its background, inner stroke
   // and pills, which the shadow or glow follows
@@ -419,6 +452,7 @@ Rectangle {
 
         HoledItem {
           anchors.fill: parent
+          keepLayer: Appearance.translucent
           // On the inner side, the stroke and its fringe under each opening
           holes: root._openingList.map(o => {
             const along = root.isVertical ? island.y : island.x;
@@ -525,13 +559,36 @@ Rectangle {
         x: root.isVertical ? (root.barConfig.right ? root.width - width : 0) : alongStart
         y: root.isVertical ? alongStart : (root.barConfig.bottom ? root.height - height : 0)
         backed: root.backed
+        // Grown out of the border's stroke, which it covers there...
+        readonly property real _along: root.isVertical ? pill.y : pill.x
+        BorderOpening {
+          opening: root.borderOpening(pill._along + pill.coverStart, pill._along + pill.coverStart + pill.coverLength)
+        }
+        // ...and, joined to a perpendicular edge, that edge's
+        BorderOpening {
+          opening: pill.joinStart ? root.joinOpening(pill, true) : null
+        }
+        BorderOpening {
+          opening: pill.joinEnd ? root.joinOpening(pill, false) : null
+        }
         // The far stroke and its fringe under each opening (in the pill's
-        // coordinates)
-        strokeHoles: root._openingList.map(o => {
-          const start = Math.max(o.start, root.isVertical ? pill.y : pill.x);
-          const end = Math.min(o.end, (root.isVertical ? pill.y + pill.height : pill.x + pill.width));
+        // coordinates), and a joined end's fillet where one reaches it: a
+        // surface joined to the same edge runs on down it, over the fillet
+        strokeHoles: [].concat(...root._openingList.map(o => {
+          const along = root.isVertical ? pill.y : pill.x;
+          const start = Math.max(o.start, along);
+          const end = Math.min(o.end, along + pill.alongLength);
           if (end <= start)
-            return null;
+            return [];
+          const R = pill.filletRadius, h = pill.half, L = pill.alongLength;
+          const joins = [];
+          if (pill.joinStart && start <= along + 1)
+            joins.push(pill._rectFrom(0, pill.farV - h - 1, h + R + 1, R + h + 2));
+          if (pill.joinEnd && end >= along + L - 1)
+            joins.push(pill._rectFrom(L - h - R - 1, pill.farV - h - 1, h + R + 1, R + h + 2));
+          return [pill._farHole(start, end)].concat(joins);
+        }))
+        function _farHole(start, end) {
           // The stroke, with its anti-aliased fringe a pixel either side
           const row = Appearance.borderWidth + 2;
           const foot = root.barConfig.pillDepth;
@@ -539,7 +596,7 @@ Rectangle {
           const across = root.barConfig.left || root.barConfig.top ? foot - row + 1 : far - foot - 1;
           const r = root.isVertical ? Qt.rect(across, start, row, end - start) : Qt.rect(start, across, end - start, row);
           return Qt.rect(r.x - pill.x, r.y - pill.y, r.width, r.height);
-        }).filter(hole => hole !== null)
+        }
 
         // Its shape, for the bar's shadow
         AttachedSurfaceCopy {

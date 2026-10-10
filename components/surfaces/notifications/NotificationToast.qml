@@ -153,6 +153,8 @@ PopupWindow {
       id: content
       anchors.fill: parent
       backgroundColor: Theme.background
+      // Solid over a fullscreen window while blur is paused for it
+      solid: BlurManager.opaqueOn(root.anchorWindow?.screen ?? null)
       borderColor: root.critical ? Theme.error : Theme.backgroundAlt
       borderWidth: Appearance.borderWidth
       borderRadius: Appearance.borderRadius + 2
