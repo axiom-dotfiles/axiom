@@ -439,7 +439,6 @@ Scope {
       const old = panelWindow._zoneSet;
       if (old)
         DockManager.setZone(old[0], old[1], old[2], 0);
-      ShellManager.setBorderOpening(panelWindow, null);
     }
 
     anchors {
@@ -507,7 +506,9 @@ Scope {
         "end": start + surface.coverLength
       };
     }
-    onBorderOpeningChanged: ShellManager.setBorderOpening(panelWindow, panelWindow.borderOpening)
+    BorderOpening {
+      opening: panelWindow.borderOpening
+    }
 
     Item {
       id: content

@@ -372,6 +372,10 @@ QtObject {
   function edgeName(location) {
     return ["top", "bottom", "left", "right"][location];
   }
+  // The Bar.Location an edge name stands for (edgeName's inverse)
+  function locationOf(name) {
+    return ["top", "bottom", "left", "right"].indexOf(name);
+  }
 
   // The edge across the screen from a Bar.Location
   function oppositeOf(location) {

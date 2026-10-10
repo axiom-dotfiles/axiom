@@ -360,41 +360,38 @@ PopoutWrapperBase {
   // in screen px along the edge (its edge coordinates start past what's
   // reserved at the start), which the border leaves open under a
   // translucent fill (ShellManager.borderOpenings)
-  readonly property var _borderOpening: surfaceWindow.visible && root.claimed && Appearance.translucent && Appearance.screenBorder && !root.detached && !root.bareEdge && !root.barPanel ? ({
+  readonly property bool _onBorder: surfaceWindow.visible && root.claimed && Appearance.translucent && Appearance.screenBorder && !root.detached && !root.bareEdge && !root.barPanel
+  function _edgeOpening(start, end) {
+    return {
       "screen": surfaceWindow.screenName,
       "edge": Bar.edgeName(root.edge),
-      "start": root.reservedOn(root.startSide) + root.surfaceStart + surface.coverStart,
-      "end": root.reservedOn(root.startSide) + root.surfaceStart + surface.coverStart + surface.coverLength
-    }) : null
-  on_BorderOpeningChanged: ShellManager.setBorderOpening(root, root._borderOpening)
+      "start": root.reservedOn(root.startSide) + start,
+      "end": root.reservedOn(root.startSide) + end
+    };
+  }
+  BorderOpening {
+    opening: root._onBorder ? root._edgeOpening(root.surfaceStart + surface.coverStart, root.surfaceStart + surface.coverStart + surface.coverLength) : null
+  }
   // ...and a submenu joined beside the box, the stretch of it its end covers
-  readonly property var _submenuBorderOpening: root._borderOpening && root._submenuSpan ? ({
-      "screen": surfaceWindow.screenName,
-      "edge": Bar.edgeName(root.edge),
-      "start": root.reservedOn(root.startSide) + root._submenuSpan.start,
-      "end": root.reservedOn(root.startSide) + root._submenuSpan.end
-    }) : null
-  on_SubmenuBorderOpeningChanged: ShellManager.setBorderOpening("edgePopoutSubmenu:" + root, root._submenuBorderOpening)
+  BorderOpening {
+    opening: root._onBorder && root._submenuSpan ? root._edgeOpening(root._submenuSpan.start, root._submenuSpan.end) : null
+  }
   // ...and joined to a perpendicular edge at an end, that edge's stroke
   // its end covers, from where its window is on screen
   function _joinOpening(atStart) {
     const origin = placeOnScreen.origin;
-    if (!root._borderOpening || !origin)
+    if (!root._onBorder || !origin)
       return null;
     const from = root.vertical ? origin.x + surface.x : origin.y + surface.y;
     return Object.assign({
       "screen": surfaceWindow.screenName
     }, EdgeAttach.joinOpening(Bar.edgeName(root.edge), atStart, from, root.vertical ? surface.width : surface.height, surface.joinShown, (root.vertical ? root.screen?.width : root.screen?.height) ?? 0));
   }
-  readonly property var _startJoinOpening: surface.joinStart ? root._joinOpening(true) : null
-  readonly property var _endJoinOpening: surface.joinEnd ? root._joinOpening(false) : null
-  on_StartJoinOpeningChanged: ShellManager.setBorderOpening("edgePopoutStart:" + root, root._startJoinOpening)
-  on_EndJoinOpeningChanged: ShellManager.setBorderOpening("edgePopoutEnd:" + root, root._endJoinOpening)
-  Component.onDestruction: {
-    ShellManager.setBorderOpening(root, null);
-    ShellManager.setBorderOpening("edgePopoutSubmenu:" + root, null);
-    ShellManager.setBorderOpening("edgePopoutStart:" + root, null);
-    ShellManager.setBorderOpening("edgePopoutEnd:" + root, null);
+  BorderOpening {
+    opening: surface.joinStart ? root._joinOpening(true) : null
+  }
+  BorderOpening {
+    opening: surface.joinEnd ? root._joinOpening(false) : null
   }
 
   currentItem: root.contentItem
@@ -620,7 +617,7 @@ PopoutWrapperBase {
       // A submenu's opening in the box's side stroke, and joined to the
       // stroke the box grows from beside it, the fillet there (as a bar
       // popout's)
-      strokeHoles: (root.submenuHole ? [Qt.rect(root.submenuHole.x - surface.x, root.submenuHole.y - surface.y, root.submenuHole.width, root.submenuHole.height)] : []).concat(root._sideJoined ? [surface.attachFilletHole(root.openToLeft)] : [])
+      strokeHoles: surface.submenuHoles(root.submenuHole, root._sideJoined, root.openToLeft)
 
       BlurShape {
         source: surface

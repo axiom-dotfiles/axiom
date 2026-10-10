@@ -559,30 +559,17 @@ Rectangle {
         x: root.isVertical ? (root.barConfig.right ? root.width - width : 0) : alongStart
         y: root.isVertical ? alongStart : (root.barConfig.bottom ? root.height - height : 0)
         backed: root.backed
-        // Grown out of the border's stroke, which it covers
+        // Grown out of the border's stroke, which it covers there...
         readonly property real _along: root.isVertical ? pill.y : pill.x
-        // (none once it's going: a pill being torn down, as on a switch to
-        // floating pills, still updates its bindings after its destruction
-        // cleared them, and would leave the stroke open)
-        property bool _gone: false
-        readonly property var borderOpening: pill._gone ? null : root.borderOpening(pill._along + pill.coverStart, pill._along + pill.coverStart + pill.coverLength)
-        // ...and, joined to a perpendicular edge, that edge's
-        readonly property var startJoinOpening: pill.joinStart && !pill._gone ? root.joinOpening(pill, true) : null
-        readonly property var endJoinOpening: pill.joinEnd && !pill._gone ? root.joinOpening(pill, false) : null
-        readonly property string _owner: "pill:" + pill
-        onBorderOpeningChanged: ShellManager.setBorderOpening(pill._owner, pill.borderOpening)
-        onStartJoinOpeningChanged: ShellManager.setBorderOpening(pill._owner + ":start", pill.startJoinOpening)
-        onEndJoinOpeningChanged: ShellManager.setBorderOpening(pill._owner + ":end", pill.endJoinOpening)
-        Component.onCompleted: {
-          ShellManager.setBorderOpening(pill._owner, pill.borderOpening);
-          ShellManager.setBorderOpening(pill._owner + ":start", pill.startJoinOpening);
-          ShellManager.setBorderOpening(pill._owner + ":end", pill.endJoinOpening);
+        BorderOpening {
+          opening: root.borderOpening(pill._along + pill.coverStart, pill._along + pill.coverStart + pill.coverLength)
         }
-        Component.onDestruction: {
-          pill._gone = true;
-          ShellManager.setBorderOpening(pill._owner, null);
-          ShellManager.setBorderOpening(pill._owner + ":start", null);
-          ShellManager.setBorderOpening(pill._owner + ":end", null);
+        // ...and, joined to a perpendicular edge, that edge's
+        BorderOpening {
+          opening: pill.joinStart ? root.joinOpening(pill, true) : null
+        }
+        BorderOpening {
+          opening: pill.joinEnd ? root.joinOpening(pill, false) : null
         }
         // The far stroke and its fringe under each opening (in the pill's
         // coordinates), and a joined end's fillet where one reaches it: a

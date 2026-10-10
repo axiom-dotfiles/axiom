@@ -354,10 +354,12 @@ PopoutWrapperBase {
   // submenu joined beside it) stands on the border's stroke instead, which
   // leaves it open under them (BarContainer.borderOpening)
   readonly property bool _onBorder: root.occupied && root.claimed && root.popupWindow.visible && (root.mergeWithPill || root.barConfig.solid)
-  readonly property var _borderOpening: root._onBorder ? root.layoutSource?.borderOpening(mainPopup.shownAlongPos + surface.coverStart, mainPopup.shownAlongPos + surface.coverStart + surface.coverLength) ?? null : null
-  readonly property var _submenuBorderOpening: root._onBorder && root._submenuSpan ? root.layoutSource?.borderOpening(root._submenuSpan.start, root._submenuSpan.end) ?? null : null
-  on_BorderOpeningChanged: ShellManager.setBorderOpening("barPopout:" + root, root._borderOpening)
-  on_SubmenuBorderOpeningChanged: ShellManager.setBorderOpening("barPopoutSubmenu:" + root, root._submenuBorderOpening)
+  BorderOpening {
+    opening: root._onBorder ? root.layoutSource?.borderOpening(mainPopup.shownAlongPos + surface.coverStart, mainPopup.shownAlongPos + surface.coverStart + surface.coverLength) ?? null : null
+  }
+  BorderOpening {
+    opening: root._onBorder && root._submenuSpan ? root.layoutSource?.borderOpening(root._submenuSpan.start, root._submenuSpan.end) ?? null : null
+  }
   // Joined to a perpendicular edge at an end (the border), that edge's
   // stroke its end covers, from where the bar is on screen
   function _joinOpening(atStart) {
@@ -370,10 +372,12 @@ PopoutWrapperBase {
       "screen": root.screen?.name ?? ""
     }, EdgeAttach.joinOpening(Bar.edgeName(root.barConfig.location), atStart, from, vertical ? surface.width : surface.height, surface.joinShown, (vertical ? root.screen?.width : root.screen?.height) ?? 0));
   }
-  readonly property var _startJoinOpening: surface.joinStart ? root._joinOpening(true) : null
-  readonly property var _endJoinOpening: surface.joinEnd ? root._joinOpening(false) : null
-  on_StartJoinOpeningChanged: ShellManager.setBorderOpening("barPopoutStart:" + root, root._startJoinOpening)
-  on_EndJoinOpeningChanged: ShellManager.setBorderOpening("barPopoutEnd:" + root, root._endJoinOpening)
+  BorderOpening {
+    opening: surface.joinStart ? root._joinOpening(true) : null
+  }
+  BorderOpening {
+    opening: surface.joinEnd ? root._joinOpening(false) : null
+  }
 
   // How far past the bar's outer edge a merged popout's content starts:
   // where a pill's far stroke would be, with the border on or off
@@ -459,13 +463,7 @@ PopoutWrapperBase {
   // On a bottom or right bar the room lies before the surface
   readonly property bool spareBefore: root.barConfig.vertical ? root.barConfig.right : root.barConfig.bottom
 
-  Component.onDestruction: {
-    ShellManager.unregisterGrabPartner(mainPopup);
-    ShellManager.setBorderOpening("barPopout:" + root, null);
-    ShellManager.setBorderOpening("barPopoutSubmenu:" + root, null);
-    ShellManager.setBorderOpening("barPopoutStart:" + root, null);
-    ShellManager.setBorderOpening("barPopoutEnd:" + root, null);
-  }
+  Component.onDestruction: ShellManager.unregisterGrabPartner(mainPopup)
 
   // The overlay's focus grab lets input through to the popout (see
   // ShellManager.grabPartners)
@@ -663,7 +661,7 @@ PopoutWrapperBase {
     // A submenu's opening in the box's side stroke (SubPopout), and
     // joined to the bar side beside the box, the fillet there: the
     // submenu's top runs on along the stroke the box grows from, over it
-    strokeHoles: (root.submenuHole ? [Qt.rect(root.submenuHole.x - surface.x, root.submenuHole.y - surface.y, root.submenuHole.width, root.submenuHole.height)] : []).concat(root._sideJoined ? [surface.attachFilletHole(root.openToLeft)] : [])
+    strokeHoles: surface.submenuHoles(root.submenuHole, root._sideJoined, root.openToLeft)
 
     BlurShape {
       source: surface

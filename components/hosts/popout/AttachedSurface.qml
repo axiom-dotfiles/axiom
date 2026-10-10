@@ -285,6 +285,14 @@ Item {
     const along = (atStart ? root.startMargin : root.endMargin) + root.strokeWidth + 1;
     return root._rectFrom(atStart ? 0 : root.alongLength - along, -1, along, root.filletRadius + root.strokeWidth + 2);
   }
+  // Its stroke holes under a submenu (SubPopout): `hole`, the stroke the
+  // submenu covers on the box's side (in the window's coordinates, or
+  // null), and joined to the stroke the box grows from (`sideJoined`, on
+  // its start side with `atStart`), the fillet there
+  function submenuHoles(hole, sideJoined, atStart) {
+    const holes = hole ? [Qt.rect(hole.x - root.x, hole.y - root.y, hole.width, hole.height)] : [];
+    return sideJoined ? holes.concat([root.attachFilletHole(atStart)]) : holes;
+  }
 
   // Fill: the outline, closed back along the attach edge.
   // Joined ends also cover the perpendicular stroke up to the fillet.

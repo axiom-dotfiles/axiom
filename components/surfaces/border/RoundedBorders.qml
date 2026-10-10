@@ -287,15 +287,12 @@ Item {
       // is left open there as the strips are, its fill no longer hiding it
       readonly property bool covered: {
         const name = root.screen?.name ?? "";
-        return ShellManager.borderOpenings.some(o => {
-          if (o.screen !== name)
-            return false;
-          if (o.edge === (corner.isTop ? "top" : "bottom"))
-            return corner.isLeft ? o.start <= corner._x + root.strokeWidth + 1 && o.end >= corner._x + root.cornerSize : o.end >= corner._x + root.cornerSize - root.strokeWidth - 1 && o.start <= corner._x;
-          if (o.edge === (corner.isLeft ? "left" : "right"))
-            return corner.isTop ? o.start <= corner._y + root.strokeWidth + 1 && o.end >= corner._y + root.cornerSize : o.end >= corner._y + root.cornerSize - root.strokeWidth - 1 && o.start <= corner._y;
-          return false;
-        });
+        return ShellManager.borderOpenings.some(o => o.screen === name && (o.edge === (corner.isTop ? "top" : "bottom") && corner._spans(o, corner._x, corner.isLeft) || o.edge === (corner.isLeft ? "left" : "right") && corner._spans(o, corner._y, corner.isTop)));
+      }
+      // Whether opening `o` runs across the piece (at `at` along its edge)
+      // from its stroke on, the piece being at the edge's start or not
+      function _spans(o, at, atStart) {
+        return atStart ? o.start <= at + root.strokeWidth + 1 && o.end >= at + root.cornerSize : o.end >= at + root.cornerSize - root.strokeWidth - 1 && o.start <= at;
       }
       onCoveredChanged: cornerNudge.burst()
       FrameNudge {
