@@ -94,7 +94,7 @@ QtObject {
   // frame line less its extent
   readonly property real barOuter: root.barConfig ? EdgeMenuManager.frameLineOn(root.screen, root.edge) - root.barConfig.extent : 0
   // A pill's (or island's) far stroke, from the bar's outer edge
-  readonly property real pillFoot: root.pillBar ? (root.island ? root.barConfig.extent : root.barConfig.pillDepth) - Appearance.borderWidth : 0
+  readonly property real pillFoot: root.pillBar ? (root.island ? root.barConfig?.extent ?? 0 : root.barConfig?.pillDepth ?? 0) - Appearance.borderWidth : 0
   // Along the edge, bar-window coordinates are the host's plus the shift.
   // The bar window reaches onto the perpendicular strokes and the host's
   // sits inside them, taken as the same at both ends (as BarPopouts does

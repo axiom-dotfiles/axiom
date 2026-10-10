@@ -238,7 +238,7 @@ PopoutWrapperBase {
   readonly property real edgeLength: {
     const mapped = vertical ? surfaceWindow.height : surfaceWindow.width;
     if (mapped > 0)
-      return mapped - root.strokeInset * 2;
+      return mapped - root.strokeInset * 2 - root.startReach - root.endReach;
     return (vertical ? screen.height : screen.width) - Appearance.screenMargin * 2;
   }
   // Room for a side wall's fillet at an end that isn't joined
@@ -248,8 +248,32 @@ PopoutWrapperBase {
   // (EdgePlacement.endRoom), or held, its gaps from the frame lines there
   // (in this window's edge coordinates, which start past what's reserved
   // there)
-  property real startInset: root.gaps ? Math.max(0, EdgeMenuManager.frameLineOn(root.screen, root.startSide) + root.gaps.start - root.reservedOn(root.startSide)) : placement.endRoom
-  property real endInset: root.gaps ? Math.max(0, EdgeMenuManager.frameLineOn(root.screen, root.endSide) + root.gaps.end - root.reservedOn(root.endSide)) : placement.endRoom
+  // Past a floating bar's islands, an attached box keeps only a held one's
+  // gap (BarManager.detachedGaps): its fillet curves into the stroke beside
+  // an island's rounded corner, diagonal to it, so needs no room of its own
+  // (startReach/endReach)
+  readonly property var _islandGaps: !root.held && (root.islandOn(root.startSide) || root.islandOn(root.endSide)) ? BarManager.detachedGaps(root.screen, root.edge, -1) : null
+  readonly property var _endGaps: root.gaps ?? root._islandGaps
+  property real startInset: root.gaps || root.islandOn(root.startSide) ? Math.max(0, EdgeMenuManager.frameLineOn(root.screen, root.startSide) + root._endGaps.start - root.reservedOn(root.startSide)) : placement.endRoom
+  property real endInset: root.gaps || root.islandOn(root.endSide) ? Math.max(0, EdgeMenuManager.frameLineOn(root.screen, root.endSide) + root._endGaps.end - root.reservedOn(root.endSide)) : placement.endRoom
+  // Whether a perpendicular edge (a Bar.Location) has a floating bar
+  function islandOn(location) {
+    return BarManager.edgesFor(root.screen)[Bar.edgeName(location)]?.island ?? false;
+  }
+  // How far the window reaches past each end into what's reserved there,
+  // for a fillet that comes nearer than its room (past a floating bar):
+  // no further than the frame's inner corner, so the fillet's run along
+  // the stroke is cut short of where the stroke curves away
+  function _reachPast(location, inset) {
+    if (root.held || !root.islandOn(location))
+      return 0;
+    const corner = Appearance.screenBorder ? Appearance.screenMargin + Appearance.borderRadius : 0;
+    return Math.max(0, Math.min(root.filletMargin - inset, root.reservedOn(location) - corner));
+  }
+  readonly property real startReach: root._reachPast(root.startSide, root.startInset)
+  readonly property real endReach: root._reachPast(root.endSide, root.endInset)
+  // Where edge coordinates start in the window
+  readonly property real _windowStart: root.strokeInset + root.startReach
 
   // The natural box centred at `position`: an end joins when the box would
   // be pushed back from that edge, or leave less than a connector gap
@@ -292,7 +316,7 @@ PopoutWrapperBase {
     // submenu (shownStretchTop/Bottom)
     aligned: placement.centre - root._contentAlong / 2 - root._stretchAlongTop
     contentLength: root._contentAlong + root._stretchAlongTop + root._stretchAlongBottom
-    reach: root._sideStretch?.joinReach != null ? root._sideStretch.joinReach - root.strokeInset : null
+    reach: root._sideStretch?.joinReach != null ? root._sideStretch.joinReach - root._windowStart : null
     submenuSpan: root._submenuSpan
     joinStart: root.joinStart
     joinEnd: root.joinEnd
@@ -411,8 +435,8 @@ PopoutWrapperBase {
   // How far along it (x in its window) that stroke reaches: the pill or
   // island as the box stretches it, else the whole edge
   readonly property bool _onPill: placement.onPill && root.place.pill !== null
-  readonly property real sideJoinFrom: (root._onPill ? (root.place.stretch?.start ?? root.place.pill.start) : root._strokeStart) + root.strokeInset
-  readonly property real sideJoinTo: (root._onPill ? (root.place.stretch?.end ?? root.place.pill.start + root.place.pill.length) : root._strokeEnd) + root.strokeInset
+  readonly property real sideJoinFrom: (root._onPill ? (root.place.stretch?.start ?? root.place.pill.start) : root._strokeStart) + root._windowStart
+  readonly property real sideJoinTo: (root._onPill ? (root.place.stretch?.end ?? root.place.pill.start + root.place.pill.length) : root._strokeEnd) + root._windowStart
   readonly property bool sideFreeTop: root.vertical ? !root.place.joinStart : root.edge === Bar.Bottom || !root._sideJoins
   readonly property bool sideFreeBottom: root.vertical ? !root.place.joinEnd : root.edge === Bar.Top || !root._sideJoins
   // Longer than the side, it hangs past its far end: up on a bottom edge,
@@ -442,8 +466,8 @@ PopoutWrapperBase {
   // left open as under the box: in edge coordinates
   property var submenuJoinSpan: null
   readonly property var _submenuSpan: root.submenuJoinSpan && surfaceWindow.visible && root.claimed ? {
-    "start": root.submenuJoinSpan.start - root.strokeInset,
-    "end": root.submenuJoinSpan.end - root.strokeInset
+    "start": root.submenuJoinSpan.start - root._windowStart,
+    "end": root.submenuJoinSpan.end - root._windowStart
   } : null
   // ---- end submenu ----
   keepAlive: surfaceHover.hovered || trigger.containsMouse || (focusGrab.active && wantsKeyboardFocus)
@@ -508,10 +532,10 @@ PopoutWrapperBase {
     readonly property string screenName: root.screen?.name ?? ""
     readonly property real attachMargin: (root.bareEdge ? 0 : -Appearance.borderWidth) - surface.backfill + root.edgeOffset - (root.slidesUnder ? root.slideDistance : 0) - DockManager.zoneOn(screenName, Bar.edgeName(root.edge))
     margins {
-      top: root.edge === Bar.Top ? surfaceWindow.attachMargin : root.vertical ? -root.strokeInset - DockManager.zoneOn(surfaceWindow.screenName, "top") : 0
-      bottom: root.edge === Bar.Bottom ? surfaceWindow.attachMargin : root.vertical ? -root.strokeInset - DockManager.zoneOn(surfaceWindow.screenName, "bottom") : 0
-      left: root.edge === Bar.Left ? surfaceWindow.attachMargin : root.vertical ? 0 : -root.strokeInset - DockManager.zoneOn(surfaceWindow.screenName, "left")
-      right: root.edge === Bar.Right ? surfaceWindow.attachMargin : root.vertical ? 0 : -root.strokeInset - DockManager.zoneOn(surfaceWindow.screenName, "right")
+      top: root.edge === Bar.Top ? surfaceWindow.attachMargin : root.vertical ? -root.strokeInset - root.startReach - DockManager.zoneOn(surfaceWindow.screenName, "top") : 0
+      bottom: root.edge === Bar.Bottom ? surfaceWindow.attachMargin : root.vertical ? -root.strokeInset - root.endReach - DockManager.zoneOn(surfaceWindow.screenName, "bottom") : 0
+      left: root.edge === Bar.Left ? surfaceWindow.attachMargin : root.vertical ? 0 : -root.strokeInset - root.startReach - DockManager.zoneOn(surfaceWindow.screenName, "left")
+      right: root.edge === Bar.Right ? surfaceWindow.attachMargin : root.vertical ? 0 : -root.strokeInset - root.endReach - DockManager.zoneOn(surfaceWindow.screenName, "right")
     }
 
     // The surface, or room for it at the content's largest
@@ -589,8 +613,8 @@ PopoutWrapperBase {
       }
 
       // At the attach edge of a window that may be deeper than it
-      x: root.vertical ? (root.edge === Bar.Right ? surfaceWindow.width - width : 0) : root.strokeInset + root.surfaceStart
-      y: root.vertical ? root.strokeInset + root.surfaceStart : (root.edge === Bar.Bottom ? surfaceWindow.height - height : 0)
+      x: root.vertical ? (root.edge === Bar.Right ? surfaceWindow.width - width : 0) : root._windowStart + root.surfaceStart
+      y: root.vertical ? root._windowStart + root.surfaceStart : (root.edge === Bar.Bottom ? surfaceWindow.height - height : 0)
       width: implicitWidth
       height: implicitHeight
 
