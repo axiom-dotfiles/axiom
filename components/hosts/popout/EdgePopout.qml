@@ -296,6 +296,11 @@ PopoutWrapperBase {
     submenuSpan: root._submenuSpan
     joinStart: root.joinStart
     joinEnd: root.joinEnd
+    // An end may join a perpendicular pill bar's end pill, which stretches
+    // past the join's fillet (its window's attach edge is the backfill
+    // short of attachAt)
+    joinsPills: true
+    joinReach: root.attachAt - surface.backfill + surface.joinCover
     coverStart: surface.coverStart
     coverLength: surface.coverLength
     lo: root.startInset
