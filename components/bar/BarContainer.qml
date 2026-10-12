@@ -183,9 +183,9 @@ Rectangle {
   }
 
   // Where surfaces standing on a pill or island cover its inner stroke,
-  // by owner: { start, end } along the bar (`keepFill`: only the stroke
-  // and its outer edge, for a surface joining it end-on, which covers the
-  // stroke but nothing inside it). While surfaces are translucent
+  // by owner: { start, end } along the bar (`keepFill`: while opaque, only
+  // the stroke and its outer edge, for a surface joining it end-on, which
+  // covers the stroke but nothing inside it). While surfaces are translucent
   // the stroke is left open there (their fill no longer hides it).
   property var openings: ({})
   readonly property var _openingList: Object.keys(root.openings).map(k => root.openings[k])
@@ -676,7 +676,7 @@ Rectangle {
             joins.push(pill._rectFrom(0, pill.farV - h - 1, h + R + 1, R + h + 2));
           if (pill.joinEnd && end >= along + L - 1)
             joins.push(pill._rectFrom(L - h - R - 1, pill.farV - h - 1, h + R + 1, R + h + 2));
-          return [pill._farHole(start, end, o.keepFill ? "outer" : "both")].concat(joins);
+          return [pill._farHole(start, end, o.keepFill && !Appearance.translucent ? "outer" : "both")].concat(joins);
         }))
         // The stroke, with its anti-aliased fringe a pixel either side
         // (`fringe` "both"), outside it alone ("outer": the fill inside
