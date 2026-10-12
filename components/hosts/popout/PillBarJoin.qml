@@ -53,10 +53,12 @@ PillStretch {
     "to": root._atStart ? root._reach + Appearance.borderWidth / 2 : root._reach - Appearance.borderWidth / 2,
     "square": true
   }
-  // Its far stroke left open under a translucent surface, inside the wall
-  // (whose stroke carries on into the pill's there)
-  opening: root._reach === null || !Appearance.translucent ? null : {
+  // Its far stroke left open under the surface, inside the wall (whose
+  // stroke carries on into the pill's there): opaque or not, as the two
+  // are separate windows whose stacking isn't the bar's to choose
+  opening: root._reach === null ? null : {
     "start": root._atStart ? 0 : root._reach + Appearance.borderWidth / 2,
-    "end": root._atStart ? root._reach - Appearance.borderWidth / 2 : root.container.length
+    "end": root._atStart ? root._reach - Appearance.borderWidth / 2 : root.container.length,
+    "keepFill": true
   }
 }

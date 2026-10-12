@@ -183,7 +183,9 @@ Rectangle {
   }
 
   // Where surfaces standing on a pill or island cover its inner stroke,
-  // by owner: { start, end } along the bar. While surfaces are translucent
+  // by owner: { start, end } along the bar (`keepFill`: only the stroke
+  // and its outer edge, for a surface joining it end-on, which covers the
+  // stroke but nothing inside it). While surfaces are translucent
   // the stroke is left open there (their fill no longer hides it).
   property var openings: ({})
   readonly property var _openingList: Object.keys(root.openings).map(k => root.openings[k])
@@ -674,16 +676,42 @@ Rectangle {
             joins.push(pill._rectFrom(0, pill.farV - h - 1, h + R + 1, R + h + 2));
           if (pill.joinEnd && end >= along + L - 1)
             joins.push(pill._rectFrom(L - h - R - 1, pill.farV - h - 1, h + R + 1, R + h + 2));
-          return [pill._farHole(start, end)].concat(joins);
+          return [pill._farHole(start, end, o.keepFill ? "outer" : "both")].concat(joins);
         }))
-        function _farHole(start, end) {
-          // The stroke, with its anti-aliased fringe a pixel either side
+        // The stroke, with its anti-aliased fringe a pixel either side
+        // (`fringe` "both"), outside it alone ("outer": the fill inside
+        // stays), or that fringe's row inside the pill alone ("inner")
+        function _farHole(start, end, fringe) {
           const row = Appearance.borderWidth + 2;
           const foot = root.barConfig.pillDepth;
           const far = root.isVertical ? root.width : root.height;
-          const across = root.barConfig.left || root.barConfig.top ? foot - row + 1 : far - foot - 1;
-          const r = root.isVertical ? Qt.rect(across, start, row, end - start) : Qt.rect(start, across, end - start, row);
+          const near = root.barConfig.left || root.barConfig.top;
+          const from = near ? foot - row + 1 : far - foot - 1;
+          const across = fringe === "inner" ? (near ? from : from + row - 1) : fringe === "outer" && near ? from + 1 : from;
+          const depth = fringe === "inner" ? 1 : fringe === "outer" ? row - 1 : row;
+          const r = root.isVertical ? Qt.rect(across, start, depth, end - start) : Qt.rect(start, across, end - start, depth);
           return Qt.rect(r.x - pill.x, r.y - pill.y, r.width, r.height);
+        }
+        // Under a `keepFill` opening the stroke's soft edge inside the pill
+        // is painted over while surfaces are opaque (the surface joining
+        // end-on covers only the stroke); translucent, a second coat would
+        // show as a line
+        Repeater {
+          model: Appearance.translucent ? [] : root._openingList.filter(o => o.keepFill ?? false)
+          Rectangle {
+            required property var modelData
+            readonly property real _along: root.isVertical ? pill.y : pill.x
+            readonly property real _start: Math.max(modelData.start, _along)
+            readonly property real _end: Math.min(modelData.end, _along + pill.alongLength)
+            readonly property rect area: pill._farHole(_start, _end, "inner")
+            visible: _end > _start
+            // (in the content box, where a surface's children go)
+            x: area.x - pill.boxRect.x
+            y: area.y - pill.boxRect.y
+            width: area.width
+            height: area.height
+            color: Appearance.fill(Theme.background)
+          }
         }
 
         // Its shape, for the bar's shadow

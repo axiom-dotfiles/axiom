@@ -44,6 +44,7 @@ PillStretch {
   // Its far stroke, from where the join's fillet meets it on to its end
   opening: root._placed ? {
     "start": root._right ? root._far - root._radius + 1 - root._otherOrigin.x : 0,
-    "end": root._right ? root.container.length : root._far + root._radius - 1 - root._otherOrigin.x
+    "end": root._right ? root.container.length : root._far + root._radius - 1 - root._otherOrigin.x,
+    "keepFill": true
   } : null
 }
