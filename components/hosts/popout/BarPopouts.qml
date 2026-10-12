@@ -341,8 +341,12 @@ PopoutWrapperBase {
   }
   // Over a pill's or island's far stroke, the stroke is left open under
   // a translucent box (BarContainer.openings): the box's surface along the
-  // bar, fillets included
-  readonly property var _opening: root.occupied && root.claimed && root.popupWindow.visible && Appearance.translucent && root.anchorPill !== null && !root.mergeWithPill ? {
+  // bar, fillets included. A solid bar's own inner stroke (border off) is
+  // left open under it opaque or not (the bar and the box are separate
+  // windows, so the stroke may be drawn over the box), the bar's fill
+  // showing there as the box's.
+  readonly property bool _onBarStroke: (root.anchorPill !== null || root.barConfig.innerStroke) && !root.mergeWithPill
+  readonly property var _opening: root.occupied && root.claimed && root.popupWindow.visible && (Appearance.translucent || root.barConfig.innerStroke) && root._onBarStroke ? {
     "start": mainPopup.shownAlongPos + surface.coverStart,
     "end": mainPopup.shownAlongPos + surface.coverStart + surface.coverLength
   } : null
@@ -355,7 +359,7 @@ PopoutWrapperBase {
   PillStretch {
     container: root.layoutSource
     owner: "barPopoutSubmenu"
-    opening: root.anchorPill !== null && !root.mergeWithPill ? root._submenuSpan : null
+    opening: root._onBarStroke ? root._submenuSpan : null
   }
   // Merged into the bar, or on a solid bar's inner edge, the box (and a
   // submenu joined beside it) stands on the border's stroke instead, which
@@ -427,6 +431,24 @@ PopoutWrapperBase {
   }
   BorderOpening {
     opening: surface.joinEnd && !endPillJoin.joined ? root._joinOpening(false) : null
+  }
+  // With the border off, a solid bar's own stroke there (BarEnds "solidBar")
+  function _solidJoinOpening(atStart, other) {
+    const origin = surface.barOrigin;
+    if (!root.occupied || !root.claimed || !root.popupWindow.visible || mainPopup.detached || !origin || !other)
+      return null;
+    const vertical = root.barConfig.vertical;
+    return root.layoutSource.solidJoinOpening(atStart, other, vertical ? origin.x + mainPopup.barX : origin.y + mainPopup.barY, vertical ? surface.width : surface.height, atStart ? surface.joinShown : surface.joinShownEnd);
+  }
+  PillStretch {
+    owner: "barPopout:" + root.barConfig.id + ":solidStart"
+    container: surface.joinStart ? root.layoutSource?.solidStart ?? null : null
+    opening: root._solidJoinOpening(true, container)
+  }
+  PillStretch {
+    owner: "barPopout:" + root.barConfig.id + ":solidEnd"
+    container: surface.joinEnd ? root.layoutSource?.solidEnd ?? null : null
+    opening: root._solidJoinOpening(false, container)
   }
 
   // How far past the bar's outer edge a merged popout's content starts:

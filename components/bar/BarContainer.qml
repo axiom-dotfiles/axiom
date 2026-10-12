@@ -189,6 +189,8 @@ Rectangle {
   // the stroke is left open there (their fill no longer hides it).
   property var openings: ({})
   readonly property var _openingList: Object.keys(root.openings).map(k => root.openings[k])
+  // A solid bar's own inner stroke (border off) around them
+  readonly property var _strokePieces: Utils.subtractSpans(0, root.length, root._openingList)
   // Sets (or with null clears) `owner`'s opening
   function setOpening(owner, opening) {
     if (Utils.deepEqual(root.openings[owner] ?? null, opening ?? null))
@@ -240,6 +242,39 @@ Rectangle {
     return Object.assign({
       "screen": root.blurScreen
     }, EdgeAttach.joinOpening(Bar.edgeName(root.barConfig.location), atStart, from, root.isVertical ? surface.width : surface.height, (atStart ? surface.joinShown : surface.joinShownEnd), span));
+  }
+
+  // The solid bar an end makes way for with the border off (BarEnds
+  // "solidBar"), whose inner stroke a pill joined there curves into
+  function _solidBarAt(atStart) {
+    if ((atStart ? root._ends.start : root._ends.end).kind !== "solidBar")
+      return null;
+    const panel = ShellManager.barOn(root.blurScreen, root.isVertical ? (atStart ? Bar.Top : Bar.Bottom) : (atStart ? Bar.Left : Bar.Right));
+    return panel?.visible ? panel.container : null;
+  }
+  readonly property var solidStart: root._solidBarAt(true)
+  readonly property var solidEnd: root._solidBarAt(false)
+  // Where a surface's joined end covers that bar's stroke (`other`), along
+  // it (its coordinates), as EdgeAttach.joinOpening for the border's:
+  // `from` where the surface starts across this bar's edge on screen,
+  // `depth` its size that way, `cover` how far in its join covers
+  function solidJoinOpening(atStart, other, from, depth, cover) {
+    const origin = other?.blurOrigin ?? null;
+    if (!origin)
+      return null;
+    const span = (root.isVertical ? root.panel?.screen?.width : root.panel?.screen?.height) ?? 0;
+    const opening = EdgeAttach.joinOpening(Bar.edgeName(root.barConfig.location), atStart, from, depth, cover, span);
+    const at = root.isVertical ? origin.x : origin.y;
+    return {
+      "start": opening.start - at,
+      "end": opening.end - at
+    };
+  }
+  // The same for a surface in this item
+  function _solidJoinOf(surface, atStart, other) {
+    if (!root.blurOrigin)
+      return null;
+    return root.solidJoinOpening(atStart, other, root.isVertical ? root.blurOrigin.x + surface.x : root.blurOrigin.y + surface.y, root.isVertical ? surface.width : surface.height, atStart ? surface.joinShown : surface.joinShownEnd);
   }
 
   // Each end merging into a pill bar it makes way for (CornerMerge)
@@ -495,14 +530,25 @@ Rectangle {
       }
     }
 
-    // With the border off nothing else draws a solid bar's inner stroke
-    Rectangle {
-      visible: root.barConfig.innerStroke ?? false
-      color: Theme.foreground
-      width: root.isVertical ? Appearance.borderWidth : root.width
-      height: root.isVertical ? root.height : Appearance.borderWidth
-      x: root.barConfig.left ? root.width - width : 0
-      y: root.barConfig.top ? root.height - height : 0
+    // With the border off nothing else draws a solid bar's inner stroke,
+    // left open under the surfaces joined to it (a popout, a pill bar's
+    // end pill): opaque or not, as they're separate windows whose stacking
+    // isn't the bar's to choose, and the bar's fill shows there as theirs
+    Repeater {
+      model: root.barConfig.innerStroke ? root._strokePieces.length : 0
+
+      Rectangle {
+        required property int index
+        readonly property var piece: root._strokePieces[index] ?? {
+          "start": 0,
+          "end": 0
+        }
+        color: Theme.foreground
+        width: root.isVertical ? Appearance.borderWidth : piece.end - piece.start
+        height: root.isVertical ? piece.end - piece.start : Appearance.borderWidth
+        x: root.isVertical ? (root.barConfig.left ? root.width - width : 0) : piece.start
+        y: root.isVertical ? piece.start : (root.barConfig.top ? root.height - height : 0)
+      }
     }
 
     // Islands: rounded boxes in from the edge, an inner corner squared
@@ -660,6 +706,17 @@ Rectangle {
         }
         BorderOpening {
           opening: pill.joinEnd && root._ends.end.kind !== "pillBar" ? root.joinOpening(pill, false) : null
+        }
+        // ...or, with the border off, a solid bar's own stroke there
+        PillStretch {
+          owner: "solidJoin:" + root.barConfig.id + ":" + pill.index + ":start"
+          container: pill.joinStart ? root.solidStart : null
+          opening: root._solidJoinOf(pill, true, container)
+        }
+        PillStretch {
+          owner: "solidJoin:" + root.barConfig.id + ":" + pill.index + ":end"
+          container: pill.joinEnd ? root.solidEnd : null
+          opening: root._solidJoinOf(pill, false, container)
         }
         // The far stroke and its fringe under each opening (in the pill's
         // coordinates), and a joined end's fillet where one reaches it: a
