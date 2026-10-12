@@ -187,7 +187,8 @@ QtObject {
   // it joins, its fillet included (the host's AttachedSurface.joinCover
   // from its window's attach edge), for the pill stretch
   property real joinReach: 0
-  // Whether each end joins a pill bar, which it runs straight into
+  // Whether each end joins a pill bar, which it runs straight into: only
+  // where there's no border or solid bar to join instead (as BarPopouts')
   readonly property bool pillJoinStart: root._startPill.joined
   readonly property bool pillJoinEnd: root._endPill.joined
   // ...straight, squared into a stub, where its pill doesn't already run
@@ -200,7 +201,7 @@ QtObject {
     side: root.vertical ? Bar.Top : Bar.Left
     owner: root.owner + ":joinStart"
     open: root.open
-    joined: root._pillsJoinable && root.joinStart
+    joined: root._pillsJoinable && root.joinStart && !BarManager.joinableOn(root.screen, root.vertical ? Bar.Top : Bar.Left)
     showing: root.showing
     joinReach: root.joinReach
   }
@@ -210,7 +211,7 @@ QtObject {
     side: root.vertical ? Bar.Bottom : Bar.Right
     owner: root.owner + ":joinEnd"
     open: root.open
-    joined: root._pillsJoinable && root.joinEnd
+    joined: root._pillsJoinable && root.joinEnd && !BarManager.joinableOn(root.screen, root.vertical ? Bar.Bottom : Bar.Right)
     showing: root.showing
     joinReach: root.joinReach
   }
