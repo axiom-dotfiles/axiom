@@ -41,10 +41,14 @@ PillStretch {
     "to": (root._right ? root._far - 2 * root._radius : root._far + 2 * root._radius) - root._otherOrigin.x,
     "straight": true
   } : null
-  // Its far stroke, from where the join's fillet meets it on to its end
+  // Its far stroke, from where the join's fillet meets it on to its end,
+  // the other bar's shadow following round that fillet
+  // (BarContainer._shadowHoles)
   opening: root._placed ? {
     "start": root._right ? root._far - root._radius + 1 - root._otherOrigin.x : 0,
     "end": root._right ? root.container.length : root._far + root._radius - 1 - root._otherOrigin.x,
-    "keepFill": true
+    "keepFill": true,
+    "fillet": root._radius - 1,
+    "filletAtEnd": !root._right
   } : null
 }

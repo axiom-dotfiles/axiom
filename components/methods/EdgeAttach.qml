@@ -182,16 +182,25 @@ QtObject {
    * `depth` where the surface's item starts across its edge and how deep
    * it is (on screen), `cover` how far in from its attach side the join
    * covers (AttachedSurface.joinCover), `span` the screen's size across.
+   * With `fillet` (AttachedSurface.joinFillet, > 0), also the radius it
+   * curves into the stroke with at the far end of its cover (`fillet`,
+   * `filletAtEnd`: which end of the stretch that is), which the border's
+   * shadow follows round rather than leaving out the square it sits in.
    */
-  function joinOpening(edge, atStart, from, depth, cover, span) {
+  function joinOpening(edge, atStart, from, depth, cover, span, fillet) {
     const vertical = edge === "left" || edge === "right";
     const far = edge === "right" || edge === "bottom";
     const reach = far ? from + depth - cover : from + cover;
-    return {
+    const opening = {
       "edge": vertical ? (atStart ? "top" : "bottom") : (atStart ? "left" : "right"),
       "start": far ? reach : 0,
       "end": far ? span : reach
     };
+    if ((fillet ?? 0) > 0) {
+      opening.fillet = Math.max(0, Math.min(fillet, opening.end - opening.start));
+      opening.filletAtEnd = !far;
+    }
+    return opening;
   }
 
   // How far the pill (or island) `own` reaches toward `target` (before it

@@ -372,13 +372,14 @@ PopoutWrapperBase {
     opening: root._onBorder && root._submenuSpan ? root.layoutSource?.borderOpening(root._submenuSpan.start, root._submenuSpan.end) ?? null : null
   }
   // Joined at an end to a pill bar on the perpendicular edge, its pill there
-  // runs out along the box past the join's fillet: from the screen edge
-  // this bar is on, how far in the joined end covers that bar's far side
+  // runs out along the box: from the screen edge this bar is on, how far in
+  // the joined end's far wall meets that bar's far side (PillBarJoin adds
+  // the fillet where it curves in)
   function _joinReach(atStart) {
     const origin = surface.barOrigin;
     if (!origin)
       return 0;
-    const cover = atStart ? surface.joinCover : surface.joinCoverEnd;
+    const cover = surface.joinWall;
     switch (root.barConfig.location) {
     case Bar.Top:
       return origin.y + mainPopup.barY + cover;
@@ -424,7 +425,7 @@ PopoutWrapperBase {
     const from = vertical ? origin.x + mainPopup.barX : origin.y + mainPopup.barY;
     return Object.assign({
       "screen": root.screen?.name ?? ""
-    }, EdgeAttach.joinOpening(Bar.edgeName(root.barConfig.location), atStart, from, vertical ? surface.width : surface.height, (atStart ? surface.joinShown : surface.joinShownEnd), (vertical ? root.screen?.width : root.screen?.height) ?? 0));
+    }, EdgeAttach.joinOpening(Bar.edgeName(root.barConfig.location), atStart, from, vertical ? surface.width : surface.height, (atStart ? surface.joinShown : surface.joinShownEnd), (vertical ? root.screen?.width : root.screen?.height) ?? 0, atStart ? surface.joinFillet : surface.joinFilletEnd));
   }
   BorderOpening {
     opening: surface.joinStart && !startPillJoin.joined ? root._joinOpening(true) : null
@@ -807,12 +808,13 @@ PopoutWrapperBase {
     flushEndThrough: !(root._sideJoined && !root.openToLeft)
     // Without the border, a merged popout runs straight off the screen edge
     straight: root.mergeWithPill && !Appearance.screenBorder
-    // ...and a joined end runs straight off a bare one, or into a pill bar's
-    // pill, squared to meet it (PillBarJoin), or curves into a solid bar's
-    // stroke there
+    // ...and a joined end runs straight off a bare one, or into a pill
+    // bar's stub, squared to meet it, or curves into the stroke there: the
+    // border's, a solid bar's, a pill bar's pill running on past it
+    // (PillBarJoin.filleted)
     straightJoins: !Appearance.screenBorder
-    straightJoinStart: mainPopup._bareStart || startPillJoin.joined
-    straightJoinEnd: mainPopup._bareEnd || endPillJoin.joined
+    straightJoinStart: mainPopup._bareStart || startPillJoin.joined && !startPillJoin.filleted
+    straightJoinEnd: mainPopup._bareEnd || endPillJoin.joined && !endPillJoin.filleted
     // On a pill's far stroke, cover that stroke's inner fringe too
     backfill: root.anchorPill !== null && !root.mergeWithPill ? 1 : 0
 

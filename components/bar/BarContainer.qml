@@ -241,7 +241,7 @@ Rectangle {
     const span = (root.isVertical ? root.panel?.screen?.width : root.panel?.screen?.height) ?? 0;
     return Object.assign({
       "screen": root.blurScreen
-    }, EdgeAttach.joinOpening(Bar.edgeName(root.barConfig.location), atStart, from, root.isVertical ? surface.width : surface.height, (atStart ? surface.joinShown : surface.joinShownEnd), span));
+    }, EdgeAttach.joinOpening(Bar.edgeName(root.barConfig.location), atStart, from, root.isVertical ? surface.width : surface.height, (atStart ? surface.joinShown : surface.joinShownEnd), span, atStart ? surface.joinFillet : surface.joinFilletEnd));
   }
 
   // The solid bar an end makes way for with the border off (BarEnds

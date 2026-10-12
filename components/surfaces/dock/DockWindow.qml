@@ -103,8 +103,15 @@ Scope {
   // In edge coordinates, as EdgePopout's: 0 at the perpendicular edges'
   // inner side. Not held, the window reaches onto their strokes, so an end
   // can join one.
-  readonly property real strokeInset: !root.held && Appearance.screenBorder ? Appearance.borderWidth : 0
-  readonly property real length: (root.vertical ? panelWindow.height : panelWindow.width) - root.strokeInset * 2
+  // Not at a bare screen edge, which a joined end runs straight off
+  function _strokeInsetOn(location) {
+    return !root.held && !BarManager.screenEdgeOpen(root.screen, location) ? Appearance.borderWidth : 0;
+  }
+  readonly property int startSide: root.vertical ? Bar.Top : Bar.Left
+  readonly property int endSide: root.vertical ? Bar.Bottom : Bar.Right
+  readonly property real strokeInset: root._strokeInsetOn(root.startSide)
+  readonly property real endStrokeInset: root._strokeInsetOn(root.endSide)
+  readonly property real length: (root.vertical ? panelWindow.height : panelWindow.width) - root.strokeInset - root.endStrokeInset
   readonly property real restLength: root.count * root.base + Math.max(0, root.count - 1) * root.spacing + root.separatorLength + root.pad * 2
   // The least room from the box to each end that isn't joined: held, its
   // gaps from the frame lines there; else its fillet's past the corner
@@ -128,12 +135,17 @@ Scope {
     held: root.held
     connectorGap: root.connectorGap
     length: root.length
-    strokeInset: root.strokeInset
+    strokeInsetStart: root.strokeInset
+    strokeInsetEnd: root.endStrokeInset
     centre: root.centre
     aligned: root.centre - root.currentLength / 2
     contentLength: root.currentLength
     joinStart: root.joins.joinStart
     joinEnd: root.joins.joinEnd
+    // An end may join a perpendicular pill bar's end pill, which stretches
+    // past the join's fillet (as EdgePopout's)
+    joinsPills: true
+    joinReach: root.attachAt - root.backfill + surface.joinWall
     lo: root.startInset
     hi: root.length - root.endInset
     owner: "dock:" + root.dock.id + ":" + (root.screen?.name ?? "") + (root.preview ? ":preview" : "")
@@ -453,9 +465,9 @@ Scope {
     // Along the edge it reaches onto the perpendicular strokes (strokeInset)
     margins {
       top: root.edge === Bar.Top ? root.edgeMargin : root.vertical ? -root.strokeInset : 0
-      bottom: root.edge === Bar.Bottom ? root.edgeMargin : root.vertical ? -root.strokeInset : 0
+      bottom: root.edge === Bar.Bottom ? root.edgeMargin : root.vertical ? -root.endStrokeInset : 0
       left: root.edge === Bar.Left ? root.edgeMargin : root.vertical ? 0 : -root.strokeInset
-      right: root.edge === Bar.Right ? root.edgeMargin : root.vertical ? 0 : -root.strokeInset
+      right: root.edge === Bar.Right ? root.edgeMargin : root.vertical ? 0 : -root.endStrokeInset
     }
 
     // The box and the icons grown out of it, and the gap to the edge (so
@@ -493,10 +505,15 @@ Scope {
 
     // Joined to the border's stroke, the stretch of it the box covers (in
     // screen px along the edge), which the border leaves open under its
-    // translucent fill (ShellManager.borderOpenings), as for edge popouts
-    readonly property var borderOpening: {
+    // translucent fill (ShellManager.borderOpenings), as for edge popouts;
+    // with the border off, a solid bar's own inner stroke, left open
+    // opaque or not (SolidBarOpening)
+    readonly property bool _onStroke: placeOnScreen.origin !== null && !root.preview && panelWindow.visible && root.attached && !placement.bareEdge
+    readonly property bool _joinsBorder: panelWindow._onStroke && Appearance.translucent && Appearance.screenBorder
+    readonly property var borderOpening: panelWindow._joinsBorder ? panelWindow.strokeSpan : null
+    readonly property var strokeSpan: {
       const origin = placeOnScreen.origin;
-      if (!origin || root.preview || !panelWindow.visible || !root.attached || !Appearance.translucent || !Appearance.screenBorder || placement.bareEdge || placement.barPanel)
+      if (!panelWindow._onStroke || placement.barPanel)
         return null;
       const start = (root.vertical ? origin.y + surface.y : origin.x + surface.x) + surface.coverStart;
       return surface.coverLength <= 0 ? null : {
@@ -509,23 +526,46 @@ Scope {
     BorderOpening {
       opening: panelWindow.borderOpening
     }
+    SolidBarOpening {
+      screen: root.screen
+      owner: placement.owner + ":solid"
+      span: panelWindow.strokeSpan
+    }
     // ...and joined to a perpendicular edge at an end, that edge's stroke
     // its end covers (on a pill bar's edge too: the pill it grows from
     // joins that edge with it), as for edge popouts
     function _joinOpening(atStart) {
+      return panelWindow._joinsBorder ? panelWindow._joinSpan(atStart) : null;
+    }
+    function _joinSpan(atStart) {
       const origin = placeOnScreen.origin;
-      if (!origin || root.preview || !panelWindow.visible || !root.attached || !Appearance.translucent || !Appearance.screenBorder || placement.bareEdge)
+      if (!panelWindow._onStroke)
         return null;
       const from = root.vertical ? origin.x + surface.x : origin.y + surface.y;
       return Object.assign({
         "screen": root.screen?.name ?? ""
-      }, EdgeAttach.joinOpening(root._edgeName, atStart, from, root.vertical ? surface.width : surface.height, (atStart ? surface.joinShown : surface.joinShownEnd), (root.vertical ? root.screen?.width : root.screen?.height) ?? 0));
+      }, EdgeAttach.joinOpening(root._edgeName, atStart, from, root.vertical ? surface.width : surface.height, (atStart ? surface.joinShown : surface.joinShownEnd), (root.vertical ? root.screen?.width : root.screen?.height) ?? 0, atStart ? surface.joinFillet : surface.joinFilletEnd));
     }
     BorderOpening {
       opening: surface.joinStart ? panelWindow._joinOpening(true) : null
     }
     BorderOpening {
       opening: surface.joinEnd ? panelWindow._joinOpening(false) : null
+    }
+    // ...or that edge's solid bar's own stroke, with the border off
+    SolidBarOpening {
+      screen: root.screen
+      owner: placement.owner + ":solidStart"
+      edge: root._edgeName
+      span: surface.joinStart ? panelWindow._joinSpan(true) : null
+      fillet: surface.joinFillet
+    }
+    SolidBarOpening {
+      screen: root.screen
+      owner: placement.owner + ":solidEnd"
+      edge: root._edgeName
+      span: surface.joinEnd ? panelWindow._joinSpan(false) : null
+      fillet: surface.joinFilletEnd
     }
 
     Item {
@@ -551,6 +591,10 @@ Scope {
         active: true
         straight: placement.straight
         straightJoins: !Appearance.screenBorder
+        // ...per end: straight off a bare screen edge, else curving into
+        // the stroke it joins (as EdgePopout's)
+        straightJoinStart: BarManager.screenEdgeOpen(root.screen, root.startSide) || placement.pillStraightStart
+        straightJoinEnd: BarManager.screenEdgeOpen(root.screen, root.endSide) || placement.pillStraightEnd
         connectorGap: root.connectorGap
         boxWidth: root.vertical ? root.thickness + placement.attachClearance : root.surfaceBoxLength
         boxHeight: root.vertical ? root.surfaceBoxLength : root.thickness + placement.attachClearance

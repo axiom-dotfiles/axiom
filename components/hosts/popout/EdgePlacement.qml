@@ -30,7 +30,8 @@ QtObject {
   // The edge's length, and how far the host's window reaches onto the
   // perpendicular strokes past each end (where joined ends sit)
   property real length: 0
-  property real strokeInset: 0
+  property real strokeInsetStart: 0
+  property real strokeInsetEnd: 0
 
   // The box: its centre (picks the pill), where its content would start
   // and its length, its joined ends (EdgeAttach.joins), and the range an
@@ -122,8 +123,8 @@ QtObject {
     "length": root.contentLength,
     "joinStart": root.joinStart,
     "joinEnd": root.joinEnd,
-    "joinFrom": -root.strokeInset,
-    "joinTo": root.length + root.strokeInset,
+    "joinFrom": -root.strokeInsetStart,
+    "joinTo": root.length + root.strokeInsetEnd,
     "lo": root.lo,
     "hi": root.hi,
     "islandFrom": root.islandFrom,
@@ -142,7 +143,7 @@ QtObject {
   })
   readonly property bool merged: root.place.mode === "merged"
   // Its pill stretch, reaching on to a joined submenu's wall
-  readonly property var stretch: EdgeAttach.reachStretch(root.place.stretch, root.onPill ? root.place.pill : null, root.reach === null ? null : Math.max(-root.strokeInset, Math.min(root.reach, root.length + root.strokeInset)))
+  readonly property var stretch: EdgeAttach.reachStretch(root.place.stretch, root.onPill ? root.place.pill : null, root.reach === null ? null : Math.max(-root.strokeInsetStart, Math.min(root.reach, root.length + root.strokeInsetEnd)))
   // Standing on a pill's or island's far stroke
   readonly property bool onPill: root.place.mode === "pill" || root.place.mode === "island"
   // A box of its own: held, or on a bar with nothing to grow out of (a
@@ -189,6 +190,10 @@ QtObject {
   // Whether each end joins a pill bar, which it runs straight into
   readonly property bool pillJoinStart: root._startPill.joined
   readonly property bool pillJoinEnd: root._endPill.joined
+  // ...straight, squared into a stub, where its pill doesn't already run
+  // on past the wall (PillBarJoin.filleted)
+  readonly property bool pillStraightStart: root._startPill.joined && !root._startPill.filleted
+  readonly property bool pillStraightEnd: root._endPill.joined && !root._endPill.filleted
   property PillBarJoin _startPill: PillBarJoin {
     screen: root.screen
     edge: root.edge

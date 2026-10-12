@@ -259,27 +259,33 @@ PopoutWrapperBase {
   // clear of the pills by
   readonly property real attachClearance: placement.attachClearance
 
-  // Join the perpendicular edges when the box reaches them, as a bar
-  // popout pushed to an end does: flush on that edge's stroke, merging
-  // into it. Both ends joined stretch the box along the whole edge.
-  property bool joinEnds: false
-  readonly property bool _joinsEnds: root.joinEnds && !root.holds
+  // Unless held, it joins the perpendicular edges when the box reaches
+  // them, as a bar popout pushed to an end does: flush on that edge's
+  // stroke (or a pill bar's far side, PillBarJoin), merging into it. Both
+  // ends joined stretch the box along the whole edge.
+  readonly property bool _joinsEnds: !root.holds
   // The content's length along the edge, ignoring the cap (maxBoxLength),
   // which the joins are decided from: they raise the cap, so deciding from
   // the capped length would feed back into itself. Infinity for content
   // that grows to fill whatever room it's given.
   property real reachLength: root.contentItem ? (root.vertical ? root.contentItem.implicitHeight : root.contentItem.implicitWidth) : 0
 
-  // A joining window reaches onto the perpendicular strokes (as a bar's
-  // inside the border does), so a joined end can sit on the stroke's outer edge.
-  // Positions along the edge are measured from their inner edge anyway.
-  readonly property real strokeInset: root._joinsEnds && Appearance.screenBorder ? Appearance.borderWidth : 0
+  // A joining window reaches onto the perpendicular strokes (the border's,
+  // a solid bar's, a pill bar's far side; as a bar's inside the border
+  // does), so a joined end can sit on the stroke's outer edge; not at a
+  // bare screen edge, which it runs straight off. Positions along the edge
+  // are measured from their inner edge anyway.
+  function _strokeInsetOn(location) {
+    return root._joinsEnds && !BarManager.screenEdgeOpen(root.screen, location) ? Appearance.borderWidth : 0;
+  }
+  readonly property real startStrokeInset: root._strokeInsetOn(root.startSide)
+  readonly property real endStrokeInset: root._strokeInsetOn(root.endSide)
   // Length of the edge between the perpendicular borders/bars. The window
   // has no size until it's first mapped, so fall back to an estimate.
   readonly property real edgeLength: {
     const mapped = vertical ? surfaceWindow.height : surfaceWindow.width;
     if (mapped > 0)
-      return mapped - root.strokeInset * 2 - root.startReach - root.endReach;
+      return mapped - root.startStrokeInset - root.endStrokeInset - root.startReach - root.endReach;
     return (vertical ? screen.height : screen.width) - Appearance.screenMargin * 2;
   }
   // Room for a side wall's fillet at an end that isn't joined
@@ -314,7 +320,7 @@ PopoutWrapperBase {
   readonly property real startReach: root._reachPast(root.startSide, root.startInset)
   readonly property real endReach: root._reachPast(root.endSide, root.endInset)
   // Where edge coordinates start in the window
-  readonly property real _windowStart: root.strokeInset + root.startReach
+  readonly property real _windowStart: root.startStrokeInset + root.startReach
 
   // The natural box centred at `position`: an end joins when the box would
   // be pushed back from that edge, or leave less than a connector gap
@@ -324,9 +330,9 @@ PopoutWrapperBase {
   readonly property var _joins: EdgeAttach.joins(_naturalStart, _naturalBox, startInset, edgeLength - endInset, connectorGap, _joinsEnds && placement.joinable(vertical ? "top" : "left"), _joinsEnds && placement.joinable(vertical ? "bottom" : "right"))
   readonly property bool joinStart: _joins.joinStart
   readonly property bool joinEnd: _joins.joinEnd
-  // Without the border, joined ends run straight off the screen edge
-  readonly property real _strokeStart: -strokeInset
-  readonly property real _strokeEnd: edgeLength + strokeInset
+  // At a bare screen edge, joined ends run straight off it
+  readonly property real _strokeStart: -startStrokeInset
+  readonly property real _strokeEnd: edgeLength + endStrokeInset
 
   // Largest content box that fits along the edge: from stroke to stroke
   // when both ends join, else keeping its inset from each end that
@@ -354,7 +360,8 @@ PopoutWrapperBase {
     held: root.holds
     connectorGap: root.connectorGap
     length: root.edgeLength
-    strokeInset: root.strokeInset
+    strokeInsetStart: root.startStrokeInset
+    strokeInsetEnd: root.endStrokeInset
     centre: root.edgeLength * root.position + root.positionOffset
     // Along a side edge the box reaches past its content's ends for a
     // submenu (shownStretchTop/Bottom)
@@ -368,7 +375,7 @@ PopoutWrapperBase {
     // past the join's fillet (its window's attach edge is the backfill
     // short of attachAt)
     joinsPills: true
-    joinReach: root.attachAt - surface.backfill + surface.joinCover
+    joinReach: root.attachAt - surface.backfill + surface.joinWall
     coverStart: surface.coverStart
     coverLength: surface.coverLength
     lo: root.startInset
@@ -385,8 +392,11 @@ PopoutWrapperBase {
   // Joined to the border's stroke, the stretch of it the surface covers,
   // in screen px along the edge (its edge coordinates start past what's
   // reserved at the start), which the border leaves open under a
-  // translucent fill (ShellManager.borderOpenings)
-  readonly property bool _joinsBorder: surfaceWindow.visible && root.claimed && Appearance.translucent && Appearance.screenBorder && !root.detached && !root.bareEdge
+  // translucent fill (ShellManager.borderOpenings); with the border off,
+  // a solid bar's own inner stroke, left open opaque or not
+  // (SolidBarOpening)
+  readonly property bool _onStroke: surfaceWindow.visible && root.claimed && !root.detached && !root.bareEdge
+  readonly property bool _joinsBorder: root._onStroke && Appearance.translucent && Appearance.screenBorder
   readonly property bool _onBorder: root._joinsBorder && !root.barPanel
   function _edgeOpening(start, end) {
     return {
@@ -403,23 +413,51 @@ PopoutWrapperBase {
   BorderOpening {
     opening: root._onBorder && root._submenuSpan ? root._edgeOpening(root._submenuSpan.start, root._submenuSpan.end) : null
   }
+  SolidBarOpening {
+    screen: root.screen
+    owner: "edgePopout:" + root + ":solid"
+    span: root._onStroke && !root.barPanel ? root._edgeOpening(root.surfaceStart + surface.coverStart, root.surfaceStart + surface.coverStart + surface.coverLength) : null
+  }
+  SolidBarOpening {
+    screen: root.screen
+    owner: "edgePopout:" + root + ":solidSubmenu"
+    span: root._onStroke && !root.barPanel && root._submenuSpan ? root._edgeOpening(root._submenuSpan.start, root._submenuSpan.end) : null
+  }
   // ...and joined to a perpendicular edge at an end, that edge's stroke
   // its end covers, from where its window is on screen (on a pill bar's
   // edge too: the pill it grows from joins that edge with it)
   function _joinOpening(atStart) {
+    return root._joinsBorder ? root._joinSpan(atStart) : null;
+  }
+  function _joinSpan(atStart) {
     const origin = placeOnScreen.origin;
-    if (!root._joinsBorder || !origin)
+    if (!root._onStroke || !origin)
       return null;
     const from = root.vertical ? origin.x + surface.x : origin.y + surface.y;
     return Object.assign({
       "screen": surfaceWindow.screenName
-    }, EdgeAttach.joinOpening(Bar.edgeName(root.edge), atStart, from, root.vertical ? surface.width : surface.height, (atStart ? surface.joinShown : surface.joinShownEnd), (root.vertical ? root.screen?.width : root.screen?.height) ?? 0));
+    }, EdgeAttach.joinOpening(Bar.edgeName(root.edge), atStart, from, root.vertical ? surface.width : surface.height, (atStart ? surface.joinShown : surface.joinShownEnd), (root.vertical ? root.screen?.width : root.screen?.height) ?? 0, atStart ? surface.joinFillet : surface.joinFilletEnd));
   }
   BorderOpening {
     opening: surface.joinStart ? root._joinOpening(true) : null
   }
   BorderOpening {
     opening: surface.joinEnd ? root._joinOpening(false) : null
+  }
+  // ...or that edge's solid bar's own stroke, with the border off
+  SolidBarOpening {
+    screen: root.screen
+    owner: "edgePopout:" + root + ":solidStart"
+    edge: Bar.edgeName(root.edge)
+    span: surface.joinStart ? root._joinSpan(true) : null
+    fillet: surface.joinFillet
+  }
+  SolidBarOpening {
+    screen: root.screen
+    owner: "edgePopout:" + root + ":solidEnd"
+    edge: Bar.edgeName(root.edge)
+    span: surface.joinEnd ? root._joinSpan(false) : null
+    fillet: surface.joinFilletEnd
   }
 
   currentItem: root.contentItem
@@ -575,10 +613,10 @@ PopoutWrapperBase {
     readonly property string screenName: root.screen?.name ?? ""
     readonly property real attachMargin: (root.bareEdge ? 0 : -Appearance.borderWidth) - surface.backfill + root.edgeOffset - (root.slidesUnder ? root.slideDistance : 0) - DockManager.zoneOn(screenName, Bar.edgeName(root.edge))
     margins {
-      top: root.edge === Bar.Top ? surfaceWindow.attachMargin : root.vertical ? -root.strokeInset - root.startReach - DockManager.zoneOn(surfaceWindow.screenName, "top") : 0
-      bottom: root.edge === Bar.Bottom ? surfaceWindow.attachMargin : root.vertical ? -root.strokeInset - root.endReach - DockManager.zoneOn(surfaceWindow.screenName, "bottom") : 0
-      left: root.edge === Bar.Left ? surfaceWindow.attachMargin : root.vertical ? 0 : -root.strokeInset - root.startReach - DockManager.zoneOn(surfaceWindow.screenName, "left")
-      right: root.edge === Bar.Right ? surfaceWindow.attachMargin : root.vertical ? 0 : -root.strokeInset - root.endReach - DockManager.zoneOn(surfaceWindow.screenName, "right")
+      top: root.edge === Bar.Top ? surfaceWindow.attachMargin : root.vertical ? -root.startStrokeInset - root.startReach - DockManager.zoneOn(surfaceWindow.screenName, "top") : 0
+      bottom: root.edge === Bar.Bottom ? surfaceWindow.attachMargin : root.vertical ? -root.endStrokeInset - root.endReach - DockManager.zoneOn(surfaceWindow.screenName, "bottom") : 0
+      left: root.edge === Bar.Left ? surfaceWindow.attachMargin : root.vertical ? 0 : -root.startStrokeInset - root.startReach - DockManager.zoneOn(surfaceWindow.screenName, "left")
+      right: root.edge === Bar.Right ? surfaceWindow.attachMargin : root.vertical ? 0 : -root.endStrokeInset - root.endReach - DockManager.zoneOn(surfaceWindow.screenName, "right")
     }
 
     // The surface, or room for it at the content's largest
@@ -722,9 +760,11 @@ PopoutWrapperBase {
           flushStartThrough: !(root._sideJoined && root.openToLeft)
           flushEndThrough: !(root._sideJoined && !root.openToLeft)
           straightJoins: !Appearance.screenBorder
-          // ...and straight into a pill bar's pill (PillBarJoin)
-          straightJoinStart: !Appearance.screenBorder || placement.pillJoinStart
-          straightJoinEnd: !Appearance.screenBorder || placement.pillJoinEnd
+          // ...per end: straight off a bare screen edge or into a pill bar's
+          // stub (PillBarJoin), else curving into the stroke it joins (the
+          // border's, a solid bar's, a pill bar's pill running on past it)
+          straightJoinStart: BarManager.screenEdgeOpen(root.screen, root.startSide) || placement.pillStraightStart
+          straightJoinEnd: BarManager.screenEdgeOpen(root.screen, root.endSide) || placement.pillStraightEnd
           fillColor: root.fillColor
           strokeColor: root.strokeColor
           // On a pill's far stroke, cover that stroke's inner fringe too

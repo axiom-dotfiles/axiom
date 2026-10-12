@@ -64,9 +64,8 @@ EdgePopout {
   // where it is); one filling its edge joins both and needs none.
   position: 0
   positionOffset: root.modulesStart - root.alongOrigin - root.contentPadding + (isFinite(root._naturalBox) ? root._naturalBox / 2 : 0)
-  // Not held, its ends join the perpendicular edges once it reaches them.
-  // Fill cells grow to whatever room there is, so reach them always.
-  joinEnds: !root.held
+  // Fill cells grow to whatever room there is, so its ends always reach
+  // (and, not held, join) the perpendicular edges
   reachLength: root._body ? (root._body.fillsEdge ? Infinity : root._body.naturalLength) : 0
   // Growing modules make a top or bottom menu deeper: room for the most
   maxContentDepth: !root.vertical && root._body ? root._body.maxGrownHeight : 0

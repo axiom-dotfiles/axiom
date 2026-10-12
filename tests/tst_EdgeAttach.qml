@@ -576,6 +576,28 @@ TestCase {
       "start": 3350,
       "end": 3440
     });
+    // With its fillet: at the far end of its cover, which is the
+    // stretch's end from the near side and its start from the far one
+    compare(EdgeAttach.joinOpening("top", true, 10, 100, 60, 1440, 24), {
+      "edge": "left",
+      "start": 0,
+      "end": 70,
+      "fillet": 24,
+      "filletAtEnd": true
+    });
+    compare(EdgeAttach.joinOpening("right", true, 3000, 400, 50, 3440, 24), {
+      "edge": "top",
+      "start": 3350,
+      "end": 3440,
+      "fillet": 24,
+      "filletAtEnd": false
+    });
+    // None, or a straight join's 0, adds nothing
+    compare(EdgeAttach.joinOpening("top", true, 10, 100, 60, 1440, 0), {
+      "edge": "left",
+      "start": 0,
+      "end": 70
+    });
   }
 
   function test_pill_grows_runs_flush_past_its_end() {

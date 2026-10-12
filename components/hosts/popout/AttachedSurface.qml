@@ -276,6 +276,14 @@ Item {
   // fillet (SurfaceOutline.fillPath)
   readonly property real joinCover: _m.back + (root._straightJoinStart ? root.farV : root.farV + root.filletRadius)
   readonly property real joinCoverEnd: _m.back + (root._straightJoinEnd ? root.farV : root.farV + root.filletRadius)
+  // Whether its shadow falls away from its edge rather than spreading
+  // evenly: detached, or with the border off, as the bars' do
+  // (BarContainer.shadowFalls); joined to the border it spreads evenly,
+  // as the border's, since one shifted along that stroke would cover it
+  readonly property bool shadowFalls: root.detached || !Appearance.screenBorder
+  // ...to the far wall alone, fillet or not (where a host decides whether
+  // it curves in from)
+  readonly property real joinWall: _m.back + root.farV
   // The fillet each joined end curves into that stroke with, at the far
   // end of its cover (0 for one running straight into it)
   readonly property real joinFillet: root._straightJoinStart ? 0 : root.filletRadius
@@ -348,7 +356,7 @@ Item {
       hideTarget: true
       active: root._ownShadow
       edge: root.edge
-      falls: root.detached
+      falls: root.shadowFalls
       // Nothing past a joined end: what it joins (the border's frame, a
       // pill) runs on there, under this window, as the blur window's cut
       // to every shape leaves it
