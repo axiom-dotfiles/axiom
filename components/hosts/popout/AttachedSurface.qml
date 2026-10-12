@@ -276,6 +276,10 @@ Item {
   // fillet (SurfaceOutline.fillPath)
   readonly property real joinCover: _m.back + (root._straightJoinStart ? root.farV : root.farV + root.filletRadius)
   readonly property real joinCoverEnd: _m.back + (root._straightJoinEnd ? root.farV : root.farV + root.filletRadius)
+  // The fillet each joined end curves into that stroke with, at the far
+  // end of its cover (0 for one running straight into it)
+  readonly property real joinFillet: root._straightJoinStart ? 0 : root.filletRadius
+  readonly property real joinFilletEnd: root._straightJoinEnd ? 0 : root.filletRadius
   // ...as much of it as is out past its edge now (none while it's behind)
   readonly property real joinShown: Math.max(0, root.joinCover - root._hidden)
   readonly property real joinShownEnd: Math.max(0, root.joinCoverEnd - root._hidden)

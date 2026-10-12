@@ -257,24 +257,34 @@ Rectangle {
   // Where a surface's joined end covers that bar's stroke (`other`), along
   // it (its coordinates), as EdgeAttach.joinOpening for the border's:
   // `from` where the surface starts across this bar's edge on screen,
-  // `depth` its size that way, `cover` how far in its join covers
-  function solidJoinOpening(atStart, other, from, depth, cover) {
+  // `depth` its size that way, `cover` how far in its join covers,
+  // `fillet` the radius it curves into the stroke with there
+  // (AttachedSurface.joinFillet). Whole pixels, the stroke kept on any
+  // part one: the fillet's tail and the stroke would each cover half of
+  // it, leaving a dark notch. `fillet`/`filletAtEnd` say where the fillet
+  // lies in it (at the end for a surface on this bar's near side), which
+  // that bar's shadow then follows round
+  function solidJoinOpening(atStart, other, from, depth, cover, fillet) {
     const origin = other?.blurOrigin ?? null;
     if (!origin)
       return null;
     const span = (root.isVertical ? root.panel?.screen?.width : root.panel?.screen?.height) ?? 0;
     const opening = EdgeAttach.joinOpening(Bar.edgeName(root.barConfig.location), atStart, from, depth, cover, span);
     const at = root.isVertical ? origin.x : origin.y;
+    const start = Math.ceil(opening.start - at);
+    const end = Math.floor(opening.end - at);
     return {
-      "start": opening.start - at,
-      "end": opening.end - at
+      "start": start,
+      "end": end,
+      "fillet": Math.max(0, Math.min(fillet, end - start)),
+      "filletAtEnd": !root.barConfig.right && !root.barConfig.bottom
     };
   }
   // The same for a surface in this item
   function _solidJoinOf(surface, atStart, other) {
     if (!root.blurOrigin)
       return null;
-    return root.solidJoinOpening(atStart, other, root.isVertical ? root.blurOrigin.x + surface.x : root.blurOrigin.y + surface.y, root.isVertical ? surface.width : surface.height, atStart ? surface.joinShown : surface.joinShownEnd);
+    return root.solidJoinOpening(atStart, other, root.isVertical ? root.blurOrigin.x + surface.x : root.blurOrigin.y + surface.y, root.isVertical ? surface.width : surface.height, atStart ? surface.joinShown : surface.joinShownEnd, atStart ? surface.joinFillet : surface.joinFilletEnd);
   }
 
   // Each end merging into a pill bar it makes way for (CornerMerge)
@@ -457,32 +467,81 @@ Rectangle {
   }
 
   // The shadow or glow the bar's surface casts, only outside it, so none
-  // shows through a translucent one. Pills join the border (or screen
-  // edge) they grow from: their shadow is cast evenly, as the border's, so
-  // it can't slide onto a stroke they join; otherwise it falls toward the
-  // windows. Cast from a black copy of the surface (its pieces each put
-  // one here), as its own fill may be the blur window's.
+  // shows through a translucent one. Pills on the border join its stroke:
+  // their shadow is cast evenly, as the border's, so it can't slide onto
+  // it; otherwise (on a bare screen edge too) it falls toward the windows.
+  // Cast from a black copy of the surface (its pieces each put one here),
+  // as its own fill may be the blur window's.
   // Backed, the blur window casts it instead, from the same shapes
   // (BlurShape.shadow), with everything joined to them
   readonly property int shadowEdge: root.barConfig.left ? Bar.Left : root.barConfig.right ? Bar.Right : root.barConfig.bottom ? Bar.Bottom : Bar.Top
+  readonly property bool shadowFalls: !root.barConfig.pills || !Appearance.screenBorder
   OutsideShadow {
     target: shadowShape
     hideTarget: true
     active: !root.backed
     look: root.barConfig
     edge: root.shadowEdge
-    falls: !root.barConfig.pills
+    falls: root.shadowFalls
     // Not under the surfaces open on its pills or islands (where they
     // cover the far stroke, whether or not the pill stretches for them),
-    // from the outer edge they stand on out
-    holes: root._openingList.map(o => {
-      const reach = root.barConfig.shadowSize * 2;
-      const extent = root.barConfig.extent;
-      const along = o.end - o.start;
-      if (root.isVertical)
-        return root.barConfig.left ? Qt.rect(extent, o.start, root.width - extent + reach, along) : Qt.rect(-reach, o.start, root.width - extent + reach, along);
-      return root.barConfig.top ? Qt.rect(o.start, extent, along, root.height - extent + reach) : Qt.rect(o.start, -reach, along, root.height - extent + reach);
-    })
+    // from the outer edge they stand on out, nor on the solid bars its
+    // ends make way for (whose stroke a pill's fillet curves into)
+    holes: [].concat(...root._openingList.map(o => root._shadowHoles(o).rects)).concat(root._endBarHole(true, root.solidStart), root._endBarHole(false, root.solidEnd)).filter(hole => hole !== null)
+    // ...and a joined surface's fillet (a pill's or popout's curving into
+    // a solid bar's stroke) only as far as its curve, not the square it
+    // sits in: past the curve the shadow runs on round it
+    fillets: root._openingList.map(o => root._shadowHoles(o).fillet).filter(fillet => fillet !== null)
+  }
+  // Where an opening keeps the shadow off: `rects`, and its fillet's
+  // corner (OutsideShadow.fillets) or null
+  function _shadowHoles(o) {
+    const reach = root.barConfig.shadowSize * 2;
+    const extent = root.barConfig.extent;
+    const f = o.fillet ?? 0;
+    const start = f > 0 && !o.filletAtEnd ? o.start + f : o.start;
+    const end = f > 0 && o.filletAtEnd ? o.end - f : o.end;
+    const along = end - start;
+    const deep = (root.isVertical ? root.width : root.height) - extent + reach;
+    // The inner edge across the bar
+    const inner = root.barConfig.left || root.barConfig.top ? extent : (root.isVertical ? root.width : root.height) - extent;
+    const near = root.barConfig.left || root.barConfig.top;
+    const rect = root.isVertical ? Qt.rect(near ? extent : -reach, start, deep, along) : Qt.rect(start, near ? extent : -reach, along, deep);
+    const filletFrom = o.filletAtEnd ? o.end - f : o.start;
+    const fillet = f <= 0 ? null : root.isVertical ? {
+      "x": near ? inner : inner - f,
+      "y": filletFrom,
+      "radius": f,
+      "left": near,
+      "top": o.filletAtEnd
+    } : {
+      "x": filletFrom,
+      "y": near ? inner : inner - f,
+      "radius": f,
+      "left": o.filletAtEnd,
+      "top": near
+    };
+    return {
+      "rects": along > 0 ? [rect] : [],
+      "fillet": fillet
+    };
+  }
+  // The solid bar an end makes way for (`other`, its container), from its
+  // inner edge on: a shadow falling along this bar, or spread round a
+  // pill's fillet, would land on its stroke where this bar's window
+  // overlaps it
+  function _endBarHole(atStart, other) {
+    const origin = other?.blurOrigin ?? null;
+    if (!origin || !root.blurOrigin)
+      return null;
+    const reach = root.barConfig.shadowSize * 2;
+    const at = root.isVertical ? origin.y - root.blurOrigin.y : origin.x - root.blurOrigin.x;
+    const size = root.isVertical ? other.height : other.width;
+    const extent = other.barConfig.extent;
+    const from = atStart ? -reach : at + size - extent;
+    const to = atStart ? at + extent : root.length + reach;
+    const across = (root.isVertical ? root.width : root.height) + reach * 2;
+    return root.isVertical ? Qt.rect(-reach, from, across, to - from) : Qt.rect(from, -reach, to - from, across);
   }
 
   Item {
@@ -526,7 +585,7 @@ Rectangle {
         shown: root.backed && solidFill.visible
         shadow: root.barConfig
         shadowEdge: root.shadowEdge
-        shadowFalls: !root.barConfig.pills
+        shadowFalls: root.shadowFalls
       }
     }
 
@@ -630,7 +689,7 @@ Rectangle {
           shown: root.backed
           shadow: root.barConfig
           shadowEdge: root.shadowEdge
-          shadowFalls: !root.barConfig.pills
+          shadowFalls: root.shadowFalls
         }
         // Inner side: bottom on a top bar, right on a left one, and so on
         topLeftRadius: root.barConfig.bottom || root.barConfig.right ? startInner : corner
@@ -789,7 +848,7 @@ Rectangle {
           shown: root.backed
           shadow: root.barConfig
           shadowEdge: root.shadowEdge
-          shadowFalls: !root.barConfig.pills
+          shadowFalls: root.shadowFalls
         }
       }
     }

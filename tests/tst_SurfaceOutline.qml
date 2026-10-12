@@ -216,4 +216,20 @@ TestCase {
     });
     verify(SurfaceOutline.strokePath(b, SurfaceOutline.metrics(b), 308, 128).indexOf("A 28 28 0 0 0 55 99") >= 0);
   }
+
+  function test_join_fill_stops_short_of_stroke_end() {
+    // A joined end's fill covers the stroke it meets a pixel short of the
+    // fillet's flat cap, so it can't show through the cap's soft edge
+    const s = spec({
+      "joinStart": true,
+      "joinEnd": true
+    });
+    const m = SurfaceOutline.metrics(s);
+    const w = m.alongLength, h = m.depth, v = m.farV + 28;
+    const fill = SurfaceOutline.fillPath(s, m, w, h);
+    verify(fill.startsWith("M 0 0 L 0 " + (v - 1) + " L 1 " + (v - 1) + " L 1 " + v + " "), fill);
+    verify(fill.indexOf((w - 1) + " " + v + " L " + (w - 1) + " " + (v - 1) + " L " + w + " " + (v - 1) + " ") >= 0, fill);
+    // The stroke still runs to the stroke it meets
+    verify(SurfaceOutline.strokePath(s, m, w, h).trim().endsWith((w - 1) + " " + v));
+  }
 }

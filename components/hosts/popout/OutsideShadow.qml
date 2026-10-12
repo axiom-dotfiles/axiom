@@ -1,5 +1,6 @@
 pragma ComponentBehavior: Bound
 import QtQuick
+import QtQuick.Shapes
 
 // The shadow or glow (SurfaceShadow) a sibling `target` casts, kept only
 // outside its shape, so none shows through a translucent fill. Declared
@@ -22,11 +23,17 @@ Item {
   // surfaces joined to the target sit over it, whose translucent fill the
   // shadow would show (and blur) through
   property var holes: []
+  // Fillets it isn't cast on either, each { x, y, radius, left, top }: the
+  // square at x, y (the target's coordinates) filled from its `left`/`top`
+  // corner to the quarter circle round the opposite one, as a surface's
+  // fillet joined to the target fills it
+  property var fillets: []
   // The target is drawn for the shadow alone: captured (and kept off
   // screen) whether or not the shadow shows, while `active` (a target
   // hides itself while it isn't)
   property bool hideTarget: false
   readonly property real reach: Math.ceil(shadow.look.shadowSize * 1.25)
+  readonly property bool _holed: root.holes.length > 0 || root.fillets.length > 0
 
   x: target.x - reach
   y: target.y - reach
@@ -48,11 +55,11 @@ Item {
     id: cutMask
     anchors.fill: parent
     visible: false
-    layer.enabled: root.holes.length > 0
+    layer.enabled: root._holed
 
     ShaderEffectSource {
       anchors.fill: parent
-      sourceItem: root.holes.length > 0 ? capture.sourceItem : null
+      sourceItem: root._holed ? capture.sourceItem : null
       sourceRect: capture.sourceRect
     }
 
@@ -69,13 +76,67 @@ Item {
         color: "black"
       }
     }
+
+    Repeater {
+      model: root.fillets.length
+
+      Shape {
+        id: fillet
+        required property int index
+        readonly property var spec: root.fillets[index] ?? {
+          "x": 0,
+          "y": 0,
+          "radius": 0,
+          "left": true,
+          "top": true
+        }
+        readonly property real r: spec.radius
+        x: root.reach + spec.x
+        y: root.reach + spec.y
+        width: r
+        height: r
+        preferredRendererType: Shape.CurveRenderer
+
+        function px(u) {
+          return fillet.spec.left ? u : fillet.r - u;
+        }
+        function py(v) {
+          return fillet.spec.top ? v : fillet.r - v;
+        }
+
+        ShapePath {
+          fillColor: "black"
+          strokeColor: "transparent"
+          strokeWidth: 0
+          startX: fillet.px(0)
+          startY: fillet.py(0)
+
+          PathLine {
+            x: fillet.px(fillet.r)
+            y: fillet.py(0)
+          }
+          // Mirroring once flips the arc's sweep (as CornerPiece's)
+          PathArc {
+            x: fillet.px(0)
+            y: fillet.py(fillet.r)
+            radiusX: fillet.r
+            radiusY: fillet.r
+            direction: fillet.spec.left === fillet.spec.top ? PathArc.Counterclockwise : PathArc.Clockwise
+          }
+          PathLine {
+            x: fillet.px(0)
+            y: fillet.py(0)
+          }
+        }
+      }
+    }
   }
 
   SurfaceShadow {
     id: shadow
     anchors.fill: parent
     source: capture
-    cutSource: root.holes.length > 0 ? cutMask : capture
+    cutSource: root._holed ? cutMask : capture
     autoPaddingEnabled: false
     cut: true
   }

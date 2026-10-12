@@ -210,18 +210,21 @@ QtObject {
 
   // Fill: the outline, closed back along the attach edge (and behind it by
   // the backfill). Joined ends also cover the perpendicular stroke up to
-  // the fillet.
+  // the fillet: a pixel short of where it meets that stroke, which the
+  // fillet's stroke covers there, as the fill reaching its flat cap
+  // showed through the cap's anti-aliased edge as a dark notch.
   function fillPath(s, m, w, h) {
     if (w <= 0 || h <= 0)
       return "";
     const p = _pen(s, m, w, h);
     const R = s.filletRadius, b = -m.back, L = m.alongLength;
+    const joinV = m.farV + R - 1;
     // The backfill stops short of a flush end's wall, squarely, where the
     // stroke of what it attaches to carries on behind it
     const u0 = m.throughStart ? s.strokeWidth : 0, u1 = m.throughEnd ? L - s.strokeWidth : L;
     let d;
     if (s.joinStart)
-      d = p.move(0, b) + p.line(0, m.straightJoinStart ? m.farV : m.farV + R) + _outline(s, m, p, p.line);
+      d = p.move(0, b) + p.line(0, m.straightJoinStart ? m.farV : joinV) + (m.straightJoinStart ? "" : p.line(m.half, joinV)) + _outline(s, m, p, p.line);
     else if (s.flushStart)
       d = p.move(u0, b) + (m.throughStart ? "" : p.line(0, 0)) + _outline(s, m, p, p.line);
     else if (!m.filletStart)
@@ -229,7 +232,7 @@ QtObject {
     else
       d = _outline(s, m, p, (u, v) => p.move(0, 0) + p.line(u, v));
     if (s.joinEnd && !m.straightJoinEnd)
-      d += p.line(L, m.farV + R);
+      d += p.line(L - m.half, joinV) + p.line(L, joinV);
     else if ((!s.joinEnd && m.filletEnd) || (s.flushEnd && !m.throughEnd))
       d += p.line(L, 0);
     return d + p.line(u1, b) + p.line(u0, b) + "Z";

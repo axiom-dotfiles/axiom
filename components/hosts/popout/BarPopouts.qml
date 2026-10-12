@@ -438,7 +438,7 @@ PopoutWrapperBase {
     if (!root.occupied || !root.claimed || !root.popupWindow.visible || mainPopup.detached || !origin || !other)
       return null;
     const vertical = root.barConfig.vertical;
-    return root.layoutSource.solidJoinOpening(atStart, other, vertical ? origin.x + mainPopup.barX : origin.y + mainPopup.barY, vertical ? surface.width : surface.height, atStart ? surface.joinShown : surface.joinShownEnd);
+    return root.layoutSource.solidJoinOpening(atStart, other, vertical ? origin.x + mainPopup.barX : origin.y + mainPopup.barY, vertical ? surface.width : surface.height, atStart ? surface.joinShown : surface.joinShownEnd, atStart ? surface.joinFillet : surface.joinFilletEnd);
   }
   PillStretch {
     owner: "barPopout:" + root.barConfig.id + ":solidStart"
