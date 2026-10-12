@@ -260,9 +260,9 @@ QtObject {
   }
 
   // The stretches on pill `index` (each { index, start, end, squareStart,
-  // squareEnd }: one per surface standing on it) as one, or null. An end
-  // is squared when a stretch reaching furthest that way squares it (any
-  // of them, on a tie).
+  // squareEnd, joinStart, joinEnd }: one per surface standing on it) as
+  // one, or null. An end is squared (or joins the perpendicular edge) when
+  // a stretch reaching furthest that way does (any of them, on a tie).
   function stretchOf(stretches, index) {
     const on = (stretches ?? []).filter(s => s?.index === index);
     if (on.length === 0)
@@ -274,7 +274,9 @@ QtObject {
       "start": start,
       "end": end,
       "squareStart": on.some(s => s.start === start && (s.squareStart ?? false)),
-      "squareEnd": on.some(s => s.end === end && (s.squareEnd ?? false))
+      "squareEnd": on.some(s => s.end === end && (s.squareEnd ?? false)),
+      "joinStart": on.some(s => s.start === start && (s.joinStart ?? false)),
+      "joinEnd": on.some(s => s.end === end && (s.joinEnd ?? false))
     };
   }
 
@@ -283,19 +285,21 @@ QtObject {
   // comes within `merge` of. { start, length, joinStart, joinEnd,
   // squareStart, squareEnd }: a squared end has its inner corner square,
   // where a popout runs flush into it; a joined one (a pill's) meets the
-  // perpendicular edge.
+  // perpendicular edge, as does a pill stretched on to it to join it
+  // (the stretch's joinStart/joinEnd). A stretch may reach past the pills
+  // before or after its own, so they're merged in order of where they start.
   function stretchIslands(rects, stretches, merge) {
     const spans = rects.map((r, i) => {
       const stretch = root.stretchOf(stretches, i);
       return {
         "start": stretch ? Math.min(r.start, stretch.start) : r.start,
         "end": stretch ? Math.max(r.start + r.length, stretch.end) : r.start + r.length,
-        "joinStart": r.joinStart ?? false,
-        "joinEnd": r.joinEnd ?? false,
+        "joinStart": (r.joinStart ?? false) || (stretch?.joinStart ?? false),
+        "joinEnd": (r.joinEnd ?? false) || (stretch?.joinEnd ?? false),
         "squareStart": stretch?.squareStart ?? false,
         "squareEnd": stretch?.squareEnd ?? false
       };
-    });
+    }).sort((a, b) => a.start - b.start);
     return root._mergeSpans(spans, merge).map(m => ({
           "start": m.start,
           "length": m.end - m.start,

@@ -166,6 +166,37 @@ TestCase {
     compare([p.end, p.flushEnd], [298, true]);
   }
 
+  function test_pill_joins_the_edges_with_the_box() {
+    // A box filling the edge on a pill bar joins both ends from the pill
+    // under its centre, which stretches to the bar's ends and joins them
+    const p = EdgeAttach.place(spec({
+      "pills": [pill(20, 100), pill(450, 100), pill(880, 100)],
+      "pillBar": true,
+      "centre": 500,
+      "aligned": -2,
+      "length": 1004,
+      "joinStart": true,
+      "joinEnd": true,
+      "pillJoins": true,
+      "pillFrom": -3,
+      "pillTo": 1003,
+      "pillGrows": true
+    }));
+    compare([p.mode, p.start, p.end, p.joinStart, p.joinEnd, p.flushStart, p.flushEnd], ["pill", -2, 1002, true, true, false, false]);
+    compare([p.stretch.index, p.stretch.start, p.stretch.end, p.stretch.joinStart, p.stretch.joinEnd, p.stretch.squareStart, p.stretch.squareEnd], [1, -3, 1003, true, true, false, false]);
+    // Not joining the edges, it runs flush into its pill's stretch
+    const q = EdgeAttach.place(spec({
+      "pills": [pill(20, 100), pill(450, 100), pill(880, 100)],
+      "pillBar": true,
+      "centre": 500,
+      "aligned": -2,
+      "length": 1004,
+      "pillJoins": true,
+      "pillGrows": true
+    }));
+    compare([q.joinStart, q.flushStart, q.stretch.joinStart], [false, true, false]);
+  }
+
   function test_island_fits() {
     const p = EdgeAttach.place(spec({
       "island": true,
@@ -359,7 +390,9 @@ TestCase {
       "start": 300,
       "end": 600,
       "squareStart": true,
-      "squareEnd": false
+      "squareEnd": false,
+      "joinStart": false,
+      "joinEnd": false
     });
     // Within its own stretch: as it was, an end it squared kept square
     const own = {
@@ -367,7 +400,9 @@ TestCase {
       "start": 350,
       "end": 650,
       "squareStart": false,
-      "squareEnd": true
+      "squareEnd": true,
+      "joinStart": false,
+      "joinEnd": false
     };
     compare(EdgeAttach.reachStretch(own, p, 500), own);
     compare(EdgeAttach.reachStretch(own, p, 650).squareEnd, true);

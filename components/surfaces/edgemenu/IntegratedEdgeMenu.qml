@@ -165,7 +165,7 @@ PopoutWrapperBase {
         Rectangle {
           id: strip
           anchors.fill: parent
-          color: panel.backed ? "transparent" : Appearance.fill(root.framed ? Theme.background : root.colors.fill)
+          color: panel.backed ? "transparent" : BlurManager.fillOn(root.framed ? Theme.background : root.colors.fill, root.screen)
 
           BlurShape {
             source: strip
@@ -188,7 +188,7 @@ PopoutWrapperBase {
           width: parent.width - root.frameInset * 2 - (root.vertical ? root.innerStroke : 0)
           height: parent.height - root.frameInset * 2 - (root.vertical ? 0 : root.innerStroke)
           radius: Appearance.borderRadius
-          color: Appearance.fill(root.colors.fill)
+          color: BlurManager.fillOn(root.colors.fill, root.screen)
           border.color: root.colors.stroke
           border.width: Appearance.borderWidth
         }

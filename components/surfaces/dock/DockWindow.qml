@@ -509,6 +509,24 @@ Scope {
     BorderOpening {
       opening: panelWindow.borderOpening
     }
+    // ...and joined to a perpendicular edge at an end, that edge's stroke
+    // its end covers (on a pill bar's edge too: the pill it grows from
+    // joins that edge with it), as for edge popouts
+    function _joinOpening(atStart) {
+      const origin = placeOnScreen.origin;
+      if (!origin || root.preview || !panelWindow.visible || !root.attached || !Appearance.translucent || !Appearance.screenBorder || placement.bareEdge)
+        return null;
+      const from = root.vertical ? origin.x + surface.x : origin.y + surface.y;
+      return Object.assign({
+        "screen": root.screen?.name ?? ""
+      }, EdgeAttach.joinOpening(root._edgeName, atStart, from, root.vertical ? surface.width : surface.height, surface.joinShown, (root.vertical ? root.screen?.width : root.screen?.height) ?? 0));
+    }
+    BorderOpening {
+      opening: surface.joinStart ? panelWindow._joinOpening(true) : null
+    }
+    BorderOpening {
+      opening: surface.joinEnd ? panelWindow._joinOpening(false) : null
+    }
 
     Item {
       id: content

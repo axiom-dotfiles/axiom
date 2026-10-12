@@ -191,6 +191,8 @@ Rectangle {
       readonly property var target: BarLayout.stretchOf(root._stretchList, index)
       readonly property bool squareStart: target?.squareStart ?? false
       readonly property bool squareEnd: target?.squareEnd ?? false
+      readonly property bool joinStart: target?.joinStart ?? false
+      readonly property bool joinEnd: target?.joinEnd ?? false
       property real before: target && rect ? Math.max(0, rect.start - target.start) : 0
       property real after: target && rect ? Math.max(0, target.end - rect.start - rect.length) : 0
 
@@ -208,7 +210,8 @@ Rectangle {
     return reach.before >= rect.start - stretch.start - 0.5 && reach.after >= stretch.end - rect.start - rect.length - 0.5;
   }
   // The stretches as drawn (see stretchOf), one per pill reaching past
-  // its ends or squared
+  // its ends or squared. One stretched on to an end to join the edge
+  // there joins it once it's reached it.
   readonly property var _shownStretches: {
     const shown = [];
     for (let i = 0; i < reaches.count; i++) {
@@ -216,12 +219,15 @@ Rectangle {
       const rect = reach?.rect;
       if (!rect || (reach.before <= 0 && reach.after <= 0 && !reach.squareStart && !reach.squareEnd))
         continue;
+      const start = rect.start - reach.before, end = rect.start + rect.length + reach.after;
       shown.push({
         "index": i,
-        "start": rect.start - reach.before,
-        "end": rect.start + rect.length + reach.after,
+        "start": start,
+        "end": end,
         "squareStart": reach.squareStart,
-        "squareEnd": reach.squareEnd
+        "squareEnd": reach.squareEnd,
+        "joinStart": reach.joinStart && start <= 0.5,
+        "joinEnd": reach.joinEnd && end >= root.length - 0.5
       });
     }
     return shown;

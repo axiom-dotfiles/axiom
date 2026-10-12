@@ -93,6 +93,29 @@ PopoutWrapperBase {
   property real slideDistance: root._overOverlay || root._overFullscreen ? 0 : root.attachAt - (root.barConfig ? root.barOuter + (root.barConfig.insideBorder ? Appearance.borderWidth : 0) : root.attachBase)
   property int underLayer: WlrLayer.Top
   readonly property bool slidesUnder: detached && slideDistance > 0
+  // Sliding under something drawn (the border, a bar with a fill), it's cut
+  // off at that frame's inner side (frameLineOn), across its edge from the
+  // window's attach edge: where the window starts, past what's reserved
+  readonly property bool _clipsUnder: root.slidesUnder && root.barConfig?.background !== "transparent"
+  readonly property real _clipDepth: {
+    const windowEdge = root.reservedOn(root.edge) + DockManager.zoneOn(surfaceWindow.screenName, Bar.edgeName(root.edge)) + surfaceWindow.attachMargin;
+    return Math.max(0, EdgeMenuManager.frameLineOn(root.screen, root.edge) - windowEdge);
+  }
+  // What of its window shows, in its coordinates
+  readonly property rect _shownArea: {
+    const w = surfaceWindow.width, h = surfaceWindow.height;
+    const d = root._clipsUnder ? Math.min(root._clipDepth, root.vertical ? w : h) : 0;
+    switch (root.edge) {
+    case Bar.Left:
+      return Qt.rect(d, 0, w - d, h);
+    case Bar.Right:
+      return Qt.rect(0, 0, w - d, h);
+    case Bar.Top:
+      return Qt.rect(0, d, w, h - d);
+    default:
+      return Qt.rect(0, 0, w, h - d);
+    }
+  }
   // Its window's layer: Overlay unless it slides under something
   readonly property int windowLayer: root.slidesUnder ? root.underLayer : WlrLayer.Overlay
   // Over the overlay and fullscreen windows (BlurManager.backsOn), it and
@@ -307,10 +330,13 @@ PopoutWrapperBase {
 
   // Largest content box that fits along the edge: from stroke to stroke
   // when both ends join, else keeping its inset from each end that
-  // doesn't, as the clamp in place does
+  // doesn't, as the clamp in place does; on a floating bar's island, no
+  // further than islands reach (the box starts where they do)
   readonly property real maxBoxLength: {
     const start = root.joinStart ? root._strokeStart : root.startInset;
     const end = root.joinEnd ? root._strokeEnd : root.edgeLength - root.endInset;
+    if (placement.atIsland)
+      return Math.min(end, placement.islandTo) - Math.max(start, placement.islandFrom);
     return end - start;
   }
 
@@ -360,7 +386,8 @@ PopoutWrapperBase {
   // in screen px along the edge (its edge coordinates start past what's
   // reserved at the start), which the border leaves open under a
   // translucent fill (ShellManager.borderOpenings)
-  readonly property bool _onBorder: surfaceWindow.visible && root.claimed && Appearance.translucent && Appearance.screenBorder && !root.detached && !root.bareEdge && !root.barPanel
+  readonly property bool _joinsBorder: surfaceWindow.visible && root.claimed && Appearance.translucent && Appearance.screenBorder && !root.detached && !root.bareEdge
+  readonly property bool _onBorder: root._joinsBorder && !root.barPanel
   function _edgeOpening(start, end) {
     return {
       "screen": surfaceWindow.screenName,
@@ -377,10 +404,11 @@ PopoutWrapperBase {
     opening: root._onBorder && root._submenuSpan ? root._edgeOpening(root._submenuSpan.start, root._submenuSpan.end) : null
   }
   // ...and joined to a perpendicular edge at an end, that edge's stroke
-  // its end covers, from where its window is on screen
+  // its end covers, from where its window is on screen (on a pill bar's
+  // edge too: the pill it grows from joins that edge with it)
   function _joinOpening(atStart) {
     const origin = placeOnScreen.origin;
-    if (!root._onBorder || !origin)
+    if (!root._joinsBorder || !origin)
       return null;
     const from = root.vertical ? origin.x + surface.x : origin.y + surface.y;
     return Object.assign({
@@ -609,101 +637,126 @@ PopoutWrapperBase {
       edge: root.edge
     }
 
-    AttachedSurface {
-      id: surface
+    // Sliding out from under the border or a bar (slidesUnder), it shows
+    // only past that frame's inner side: what it slides under no longer
+    // hides it while surfaces are translucent (their fill is the blur
+    // window's, under every surface). Not under a transparent bar, which
+    // has nothing to hide it under but its widgets.
+    Item {
+      id: underClip
+      readonly property rect area: root._shownArea
+      x: area.x
+      y: area.y
+      width: area.width
+      height: area.height
+      clip: root._clipsUnder
 
-      backed: BlurManager.backsOn(root.screen, root.onOverlayLayer) && placeOnScreen.origin !== null
-      opaque: BlurManager.opaqueOn(root.screen)
-      // A submenu's opening in the box's side stroke, and joined to the
-      // stroke the box grows from beside it, the fillet there (as a bar
-      // popout's)
-      strokeHoles: surface.submenuHoles(root.submenuHole, root._sideJoined, root.openToLeft)
+      // Back at the window's origin, so the surface is placed in its
+      // coordinates
+      Item {
+        x: -underClip.x
+        y: -underClip.y
+        width: surfaceWindow.width
+        height: surfaceWindow.height
 
-      BlurShape {
-        source: surface
-        screen: surfaceWindow.screenName
-        x: (placeOnScreen.origin?.x ?? 0) + surface.x
-        y: (placeOnScreen.origin?.y ?? 0) + surface.y
-        shown: surface.backed && surfaceWindow.visible
-      }
+        AttachedSurface {
+          id: surface
 
-      // At the attach edge of a window that may be deeper than it
-      x: root.vertical ? (root.edge === Bar.Right ? surfaceWindow.width - width : 0) : root._windowStart + root.surfaceStart
-      y: root.vertical ? root._windowStart + root.surfaceStart : (root.edge === Bar.Bottom ? surfaceWindow.height - height : 0)
-      width: implicitWidth
-      height: implicitHeight
+          backed: BlurManager.backsOn(root.screen, root.onOverlayLayer) && placeOnScreen.origin !== null
+          opaque: BlurManager.opaqueOn(root.screen)
+          // A submenu's opening in the box's side stroke, and joined to the
+          // stroke the box grows from beside it, the fillet there (as a bar
+          // popout's)
+          strokeHoles: surface.submenuHoles(root.submenuHole, root._sideJoined, root.openToLeft)
 
-      edge: root.edge
-      castShadow: true
-      straight: placement.straight
-      detached: root.detached
-      detachedOffset: root.slidesUnder ? root.slideDistance : 0
-      // Once its pill has grown out to carry it
-      // While the blur window backs surfaces, once it knows where this one
-      // is (LayerOrigin.settled), so it never shows unbacked beside them
-      active: root.isOpen && root.claimed && placement.stretchReady && (!BlurManager.backing || placeOnScreen.settled)
-      connectorGap: root.connectorGap
-      boxWidth: root.vertical ? (root.contentItem?.implicitWidth ?? 100) + root.contentPadding * 2 + root.attachClearance : root.boxLength
-      boxHeight: root.vertical ? root.boxLength : (root.contentItem?.implicitHeight ?? 100) + root.contentPadding * 2 + root.attachClearance + root._stretchAcross
-      joinStart: root.place.joinStart
-      joinEnd: root.place.joinEnd
-      flushStart: root.place.flushStart
-      flushEnd: root.place.flushEnd
-      // Square where a submenu runs flush to the box's end
-      startCornerRadius: (root.vertical ? root._squareTop : root.openToLeft && root._squareFar) ? 0 : surface.cornerRadius
-      endCornerRadius: (root.vertical ? root._squareBottom : !root.openToLeft && root._squareFar) ? 0 : surface.cornerRadius
-      startNearRadius: root.openToLeft && root._squareNear ? 0 : Appearance.borderRadius
-      endNearRadius: !root.openToLeft && root._squareNear ? 0 : Appearance.borderRadius
-      Glide on startCornerRadius {
-        enabled: root.isOpen
-      }
-      Glide on endCornerRadius {
-        enabled: root.isOpen
-      }
-      Glide on startNearRadius {
-        enabled: root.isOpen
-      }
-      Glide on endNearRadius {
-        enabled: root.isOpen
-      }
-      // Joined at the edge side, the stroke the box's wall there ran flush
-      // into carries on past it, under the submenu
-      flushStartThrough: !(root._sideJoined && root.openToLeft)
-      flushEndThrough: !(root._sideJoined && !root.openToLeft)
-      straightJoins: !Appearance.screenBorder
-      fillColor: root.fillColor
-      strokeColor: root.strokeColor
-      // On a pill's far stroke, cover that stroke's inner fringe too
-      backfill: !root.detached && placement.onPill ? 1 : 0
+          BlurShape {
+            source: surface
+            screen: surfaceWindow.screenName
+            x: (placeOnScreen.origin?.x ?? 0) + surface.x
+            y: (placeOnScreen.origin?.y ?? 0) + surface.y
+            shown: surface.backed && surfaceWindow.visible
+            clipRect: root._clipsUnder ? Qt.rect((placeOnScreen.origin?.x ?? 0) + underClip.x, (placeOnScreen.origin?.y ?? 0) + underClip.y, underClip.width, underClip.height) : null
+          }
 
-      HoverHandler {
-        id: surfaceHover
-      }
+          // At the attach edge of a window that may be deeper than it
+          x: root.vertical ? (root.edge === Bar.Right ? surfaceWindow.width - width : 0) : root._windowStart + root.surfaceStart
+          y: root.vertical ? root._windowStart + root.surfaceStart : (root.edge === Bar.Bottom ? surfaceWindow.height - height : 0)
+          width: implicitWidth
+          height: implicitHeight
 
-      Loader {
-        id: loader
-        // Across the edge it fills the box; along it, it keeps its own
-        // length, where it wants to be (EdgeAttach.place's contentOffset:
-        // the box can grow past it, to a joined stroke or an island's end).
-        // Plain geometry, not anchors switched by `vertical`: those
-        // re-evaluate one at a time when the edge changes, and QML drops
-        // the anchor that briefly conflicts (top + bottom + verticalCenter)
-        // for good.
-        readonly property real leftMargin: root.contentPadding + (root.edge === Bar.Left ? root.attachClearance : 0)
-        readonly property real rightMargin: root.contentPadding + (root.edge === Bar.Right ? root.attachClearance : 0)
-        readonly property real topMargin: root.contentPadding + (root.edge === Bar.Top ? root.attachClearance : 0)
-        readonly property real bottomMargin: root.contentPadding + (root.edge === Bar.Bottom ? root.attachClearance : 0)
-        // (below a submenu's stretch above it, clear of one below)
-        x: root.vertical ? leftMargin : root.contentPadding + root.place.contentOffset
-        y: root.vertical ? root.contentPadding + root.place.contentOffset + root.shownStretchTop : topMargin + root.shownStretchTop
-        width: root.vertical ? parent.width - leftMargin - rightMargin : (root.contentItem?.implicitWidth ?? 0)
-        height: root.vertical ? (root.contentItem?.implicitHeight ?? 0) : parent.height - topMargin - bottomMargin - root._stretchAcross
+          edge: root.edge
+          castShadow: true
+          straight: placement.straight
+          detached: root.detached
+          detachedOffset: root.slidesUnder ? root.slideDistance : 0
+          // Once its pill has grown out to carry it
+          // While the blur window backs surfaces, once it knows where this one
+          // is (LayerOrigin.settled), so it never shows unbacked beside them
+          active: root.isOpen && root.claimed && placement.stretchReady && (!BlurManager.backing || placeOnScreen.settled)
+          connectorGap: root.connectorGap
+          boxWidth: root.vertical ? (root.contentItem?.implicitWidth ?? 100) + root.contentPadding * 2 + root.attachClearance : root.boxLength
+          boxHeight: root.vertical ? root.boxLength : (root.contentItem?.implicitHeight ?? 100) + root.contentPadding * 2 + root.attachClearance + root._stretchAcross
+          joinStart: root.place.joinStart
+          joinEnd: root.place.joinEnd
+          flushStart: root.place.flushStart
+          flushEnd: root.place.flushEnd
+          // Square where a submenu runs flush to the box's end
+          startCornerRadius: (root.vertical ? root._squareTop : root.openToLeft && root._squareFar) ? 0 : surface.cornerRadius
+          endCornerRadius: (root.vertical ? root._squareBottom : !root.openToLeft && root._squareFar) ? 0 : surface.cornerRadius
+          startNearRadius: root.openToLeft && root._squareNear ? 0 : Appearance.borderRadius
+          endNearRadius: !root.openToLeft && root._squareNear ? 0 : Appearance.borderRadius
+          Glide on startCornerRadius {
+            enabled: root.isOpen
+          }
+          Glide on endCornerRadius {
+            enabled: root.isOpen
+          }
+          Glide on startNearRadius {
+            enabled: root.isOpen
+          }
+          Glide on endNearRadius {
+            enabled: root.isOpen
+          }
+          // Joined at the edge side, the stroke the box's wall there ran flush
+          // into carries on past it, under the submenu
+          flushStartThrough: !(root._sideJoined && root.openToLeft)
+          flushEndThrough: !(root._sideJoined && !root.openToLeft)
+          straightJoins: !Appearance.screenBorder
+          fillColor: root.fillColor
+          strokeColor: root.strokeColor
+          // On a pill's far stroke, cover that stroke's inner fringe too
+          backfill: !root.detached && placement.onPill ? 1 : 0
 
-        active: root.occupied || root.keepLoaded
-        asynchronous: false
-        sourceComponent: root.content
+          HoverHandler {
+            id: surfaceHover
+          }
 
-        onLoaded: root.updateDismissTimer()
+          Loader {
+            id: loader
+            // Across the edge it fills the box; along it, it keeps its own
+            // length, where it wants to be (EdgeAttach.place's contentOffset:
+            // the box can grow past it, to a joined stroke or an island's end).
+            // Plain geometry, not anchors switched by `vertical`: those
+            // re-evaluate one at a time when the edge changes, and QML drops
+            // the anchor that briefly conflicts (top + bottom + verticalCenter)
+            // for good.
+            readonly property real leftMargin: root.contentPadding + (root.edge === Bar.Left ? root.attachClearance : 0)
+            readonly property real rightMargin: root.contentPadding + (root.edge === Bar.Right ? root.attachClearance : 0)
+            readonly property real topMargin: root.contentPadding + (root.edge === Bar.Top ? root.attachClearance : 0)
+            readonly property real bottomMargin: root.contentPadding + (root.edge === Bar.Bottom ? root.attachClearance : 0)
+            // (below a submenu's stretch above it, clear of one below)
+            x: root.vertical ? leftMargin : root.contentPadding + root.place.contentOffset
+            y: root.vertical ? root.contentPadding + root.place.contentOffset + root.shownStretchTop : topMargin + root.shownStretchTop
+            width: root.vertical ? parent.width - leftMargin - rightMargin : (root.contentItem?.implicitWidth ?? 0)
+            height: root.vertical ? (root.contentItem?.implicitHeight ?? 0) : parent.height - topMargin - bottomMargin - root._stretchAcross
+
+            active: root.occupied || root.keepLoaded
+            asynchronous: false
+            sourceComponent: root.content
+
+            onLoaded: root.updateDismissTimer()
+          }
+        }
       }
     }
   }

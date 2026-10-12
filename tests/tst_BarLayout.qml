@@ -256,6 +256,35 @@ TestCase {
     verify(rects.every(r => !r.joinStart && !r.joinEnd));
   }
 
+  function test_stretchIslands_stretched_back_over_others_joins_the_edge() {
+    const rects = [
+      {
+        "start": 10,
+        "length": 100
+      },
+      {
+        "start": 400,
+        "length": 100
+      },
+      {
+        "start": 800,
+        "length": 100
+      }
+    ];
+    // The middle pill stretched over both others to the bar's ends, joining
+    // the edges there: one pill, joined at both ends
+    const shapes = BarLayout.stretchIslands(rects, [
+      {
+        "index": 1,
+        "start": 0,
+        "end": 1000,
+        "joinStart": true,
+        "joinEnd": true
+      }
+    ], 10);
+    compare(shapes.map(r => [r.start, r.length, r.joinStart, r.joinEnd, r.squareStart, r.squareEnd]), [[0, 1000, true, true, false, false]]);
+  }
+
   function test_stretchIslands_grows_squares_and_merges() {
     const rects = BarLayout.islandRects([
       {

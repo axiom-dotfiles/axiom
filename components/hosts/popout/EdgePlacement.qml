@@ -104,6 +104,12 @@ QtObject {
   readonly property var pills: root.pillBar ? (root.container?.pillRects ?? []).map(p => Object.assign({}, p, {
       "start": p.start - root.barShift
     })) : []
+  // Where a floating bar's islands may reach, in edge coordinates
+  readonly property real islandFrom: (root.barConfig?.islandStart ?? 0) - root.barShift
+  readonly property real islandTo: (root.container?.islandEnd ?? root.length) - root.barShift
+  // Standing on an island (place's mode is "island"), decided without the
+  // box's length, which may be capped by what it decides
+  readonly property bool atIsland: root.island && root.pills.length > 0
 
   readonly property var place: EdgeAttach.place({
     "pills": root.pills,
@@ -119,11 +125,16 @@ QtObject {
     "joinTo": root.length + root.strokeInset,
     "lo": root.lo,
     "hi": root.hi,
-    "islandFrom": (root.barConfig?.islandStart ?? 0) - root.barShift,
-    "islandTo": (root.container?.islandEnd ?? root.length) - root.barShift,
+    "islandFrom": root.islandFrom,
+    "islandTo": root.islandTo,
     "straight": root.bareEdge,
     "straightMerged": !Appearance.screenBorder,
     "pillGrows": true,
+    // Joining the perpendicular edges, it joins them from its pill, which
+    // stretches to the bar's ends and joins them too
+    "pillJoins": true,
+    "pillFrom": -root.barShift,
+    "pillTo": (root.container?.length ?? root.length) - root.barShift,
     "gap": root.connectorGap,
     "stroke": Appearance.borderWidth,
     "radius": Appearance.borderRadius
