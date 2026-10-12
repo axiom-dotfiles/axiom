@@ -562,8 +562,10 @@ PopoutWrapperBase {
       const line = Math.max(EdgeMenuManager.frameLineOn(root.screen, side), EdgeMenuManager.reservedOn(root.screen, side) + (HyprlandManager.gapsOut[Bar.edgeName(side)] ?? 0));
       return line - BarManager.barStartOn(root.screen, root.barConfig.location, atStart);
     }
-    readonly property var wallStart: strokeAtStart ? undefined : _windowInset(startSide, true)
-    readonly property var wallEnd: strokeAtEnd ? undefined : panelLength - _windowInset(endSide, false)
+    // A floating bar held clear of that bar has none: its islands, and so
+    // its popouts, already keep to the windows there
+    readonly property var wallStart: strokeAtStart || (root.island && root.barConfig.ends.start.held) ? undefined : _windowInset(startSide, true)
+    readonly property var wallEnd: strokeAtEnd || (root.island && root.barConfig.ends.end.held) ? undefined : panelLength - _windowInset(endSide, false)
     readonly property real pillReachStart: strokeAtStart ? strokeStart : 0
     readonly property real pillReachEnd: strokeAtEnd ? strokeEnd : panelLength
 

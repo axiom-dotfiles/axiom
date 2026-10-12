@@ -134,15 +134,41 @@ TestCase {
       "aligned": 900,
       "pillGrows": true
     })).joinEnd, true);
-    // A wall too near what pills reach keeps a fillet's room inside it
-    compare(EdgeAttach.place(spec({
+    // A wall too near what pills reach keeps a fillet's room inside it,
+    // the pill's corner squared under the fillet
+    const q = EdgeAttach.place(spec({
       "pills": pills,
       "pillBar": true,
       "centre": 900,
       "aligned": 900,
       "pillGrows": true,
-      "wallTo": 960
-    })).end, 920);
+      "wallTo": 990
+    }));
+    compare([q.end, q.flushEnd, q.endMargin, q.stretch.end, q.stretch.squareEnd], [948, false, 54, 1002, true]);
+  }
+
+  function test_island_squares_its_corner_at_a_wall() {
+    // A floating bar owning the corner: its island reaches past the wall
+    // over the bar it pushes aside, too little for fillet and corner both
+    const p = EdgeAttach.place(spec({
+      "island": true,
+      "pills": [pill(10, 980)],
+      "islandFrom": 10,
+      "centre": 50,
+      "aligned": 0,
+      "wallFrom": 70
+    }));
+    compare([p.start, p.flushStart, p.startMargin], [70, false, 54]);
+    compare([p.stretch.start, p.stretch.squareStart, p.stretch.squareEnd], [10, true, false]);
+    // With room for both, no squaring
+    compare(EdgeAttach.place(spec({
+      "island": true,
+      "pills": [pill(10, 980)],
+      "islandFrom": 10,
+      "centre": 150,
+      "aligned": 0,
+      "wallFrom": 100
+    })).stretch, null);
   }
 
   function test_pill_grows_past_a_wall_for_the_fillet() {
