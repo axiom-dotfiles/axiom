@@ -413,7 +413,7 @@ PopoutWrapperBase {
     const from = root.vertical ? origin.x + surface.x : origin.y + surface.y;
     return Object.assign({
       "screen": surfaceWindow.screenName
-    }, EdgeAttach.joinOpening(Bar.edgeName(root.edge), atStart, from, root.vertical ? surface.width : surface.height, surface.joinShown, (root.vertical ? root.screen?.width : root.screen?.height) ?? 0));
+    }, EdgeAttach.joinOpening(Bar.edgeName(root.edge), atStart, from, root.vertical ? surface.width : surface.height, (atStart ? surface.joinShown : surface.joinShownEnd), (root.vertical ? root.screen?.width : root.screen?.height) ?? 0));
   }
   BorderOpening {
     opening: surface.joinStart ? root._joinOpening(true) : null

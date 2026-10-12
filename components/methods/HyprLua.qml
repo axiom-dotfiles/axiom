@@ -168,7 +168,7 @@ QtObject {
   // A submenu (SubPopout, a popup of its popout's window) is drawn
   // transparent over the blur window, so ignore_alpha leaves all but its
   // content out.
-  readonly property var blurChrome: ["bar", "bar-floating", "popout", "popout-under", "edge-popout", "edge-menu", "dock"]
+  readonly property var blurChrome: ["bar", "bar-side", "bar-floating", "bar-floating-side", "bar-transparent", "bar-transparent-side", "popout", "popout-under", "edge-popout", "edge-menu", "dock"]
   // Backdrops (and the polkit prompt, whose window holds its own dim) blur
   // only when asked: the whole screen, at every alpha.
   readonly property var blurBackdrops: ["backdrop", "polkit"]
@@ -176,7 +176,7 @@ QtObject {
   // animated by Hyprland while it does (they slide themselves), or their
   // stroke and content fade or pop in and out while what the blur window
   // draws for them doesn't
-  readonly property var blurBacked: ["bar", "bar-floating", "border", "popout", "popout-under", "edge-popout", "osd", "edge-menu", "dock"]
+  readonly property var blurBacked: ["bar", "bar-side", "bar-floating", "bar-floating-side", "bar-transparent", "bar-transparent-side", "border", "popout", "popout-under", "edge-popout", "osd", "edge-menu", "dock"]
 
   function _blurRule(name, namespaces, effects, enabled) {
     return `hl.layer_rule({ name = ${string(name)}, match = { namespace = ${string(`^axiom-(${namespaces.join("|")})$`)} }, ${effects}, enabled = ${enabled} })`;

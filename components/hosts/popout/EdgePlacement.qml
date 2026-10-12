@@ -95,17 +95,18 @@ QtObject {
   readonly property real barOuter: root.barConfig ? EdgeMenuManager.frameLineOn(root.screen, root.edge) - root.barConfig.extent : 0
   // A pill's (or island's) far stroke, from the bar's outer edge
   readonly property real pillFoot: root.pillBar ? (root.island ? root.barConfig.extent : root.barConfig.pillDepth) - Appearance.borderWidth : 0
-  // Along the edge, bar-window coordinates are the host's plus the shift.
-  // The bar window reaches onto the perpendicular strokes and the host's
-  // sits inside them, taken as the same at both ends (as BarPopouts does
-  // for the perpendicular borders).
-  readonly property real barShift: root.container ? (root.container.length - root.length) / 2 : 0
+  // Along the edge, bar-window coordinates are the host's plus the shift:
+  // the host's window starts where windows do at its start
+  // (EdgeMenuManager.reservedOn), the bar's past the bar it makes way for
+  // there, or before the bars that make way for it and onto the stroke
+  // (BarManager.barStartOn)
+  readonly property real barShift: root.container ? EdgeMenuManager.reservedOn(root.screen, root.vertical ? Bar.Top : Bar.Left) - BarManager.barStartOn(root.screen, root.edge, true) : 0
   // Its pills (or islands), in edge coordinates
   readonly property var pills: root.pillBar ? (root.container?.pillRects ?? []).map(p => Object.assign({}, p, {
       "start": p.start - root.barShift
     })) : []
   // Where a floating bar's islands may reach, in edge coordinates
-  readonly property real islandFrom: (root.barConfig?.islandStart ?? 0) - root.barShift
+  readonly property real islandFrom: (root.container?.islandFrom ?? 0) - root.barShift
   readonly property real islandTo: (root.container?.islandEnd ?? root.length) - root.barShift
   // Standing on an island (place's mode is "island"), decided without the
   // box's length, which may be capped by what it decides
@@ -171,8 +172,8 @@ QtObject {
   // border or a solid bar (`joinable`), not any other bar, nor an
   // integrated menu's strip
   function joinable(name) {
-    const bar = BarManager.edgesFor(root.screen)[name];
-    return (!bar || bar.joinable || root.endPill(Bar.locationOf(name)) !== null) && EdgeMenuManager.zoneOn(root.screen?.name ?? "", name) === 0;
+    const location = Bar.locationOf(name);
+    return BarManager.joinableOn(root.screen, location) || (root.endPill(location) !== null && EdgeMenuManager.zoneOn(root.screen?.name ?? "", name) === 0);
   }
 
   // With `joinsPills`, a pill bar on a perpendicular edge (a Bar.Location) is

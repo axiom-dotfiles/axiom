@@ -415,26 +415,54 @@ QtObject {
     loadConfig();
   }
 
-  // The running bars: while the bar editor has unsaved edits, those
-  readonly property var bars: Bar.expandBars(ConfigManager.previews.Bars ?? ConfigManager.config.Bars).map(bar => Bar.enrichBarConfig(bar, HyprlandManager.gapsOut))
+  // The running bars (while the bar editor has unsaved edits, those),
+  // each with what its ends meet among the bars on its screen (BarEnds:
+  // which bar a shared corner goes to)
+  readonly property var bars: BarEnds.withEnds(Bar.expandBars(ConfigManager.previews.Bars ?? ConfigManager.config.Bars).map(bar => Bar.enrichBarConfig(bar, HyprlandManager.gapsOut)), Bar.endsOptions(HyprlandManager.gapsOut))
 
   // The enabled bars on a screen by edge ({ top, bottom, left, right },
   // null where there is none)
   function edgesFor(screen) {
-    const edges = {
-      "top": null,
-      "bottom": null,
-      "left": null,
-      "right": null
-    };
-    root.bars.forEach(bar => {
-      if (!bar.enabled || bar.monitor !== screen?.name)
-        return;
-      const edge = bar.top ? "top" : bar.bottom ? "bottom" : bar.left ? "left" : "right";
-      if (!edges[edge])
-        edges[edge] = bar;
-    });
-    return edges;
+    return BarEnds.edgesOn(root.bars, screen?.name);
+  }
+
+  // What the start or end (`atStart`) of the bar on a screen edge (a
+  // Bar.Location) meets (BarEnds), or null with no bar there
+  function endOf(screen, location, atStart) {
+    const bar = root.edgesFor(screen)[Bar.edgeName(location)];
+    return bar ? (atStart ? bar.ends.start : bar.ends.end) : null;
+  }
+
+  // Where the window of the bar on a screen edge (a Bar.Location) starts
+  // along it at its start or end (`atStart`), in px from that end's
+  // screen edge, as Hyprland arranges it (BarEnds): past the bar there it
+  // makes way for, else from the frame's outer side (the screen edge for a
+  // solid bar, arranged before the border), each less the bar's reach onto
+  // the stroke there. Integrated menus on that edge, arranged before
+  // everything, included.
+  function barStartOn(screen, location, atStart) {
+    const edges = root.edgesFor(screen);
+    const bar = edges[Bar.edgeName(location)];
+    if (!bar)
+      return 0;
+    const side = BarEnds.endEdges(bar)[atStart ? 0 : 1];
+    const end = atStart ? bar.ends.start : bar.ends.end;
+    const menus = EdgeMenuManager.zoneOn(screen?.name ?? "", side);
+    const reserved = root.reservedOn(screen, Bar.locationOf(side));
+    // A solid bar is arranged before the border, which then reserves its
+    // margin inside both: past the other solid bar alone
+    if (BarEnds.yieldsTo(bar, edges[side]))
+      return menus + reserved - (bar.solid && Appearance.screenBorder ? Appearance.screenMargin : 0) - end.reach;
+    return menus + (bar.solid || !Appearance.screenBorder ? 0 : Appearance.screenMargin) - end.reach;
+  }
+
+  // Whether a surface reaching a screen edge (a Bar.Location) along a
+  // perpendicular one can join what's on it: the border's stroke, a solid
+  // bar's inner stroke or a bare screen edge, not any other bar's edge (it
+  // has none to join), nor an integrated menu's strip
+  function joinableOn(screen, location) {
+    const bar = root.edgesFor(screen)[Bar.edgeName(location)];
+    return (!bar || bar.joinable) && EdgeMenuManager.zoneOn(screen?.name ?? "", Bar.edgeName(location)) === 0;
   }
 
   // Whether a screen edge (a Bar.Location) is bare: no screen border and no

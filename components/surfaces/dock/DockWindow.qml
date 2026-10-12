@@ -519,7 +519,7 @@ Scope {
       const from = root.vertical ? origin.x + surface.x : origin.y + surface.y;
       return Object.assign({
         "screen": root.screen?.name ?? ""
-      }, EdgeAttach.joinOpening(root._edgeName, atStart, from, root.vertical ? surface.width : surface.height, surface.joinShown, (root.vertical ? root.screen?.width : root.screen?.height) ?? 0));
+      }, EdgeAttach.joinOpening(root._edgeName, atStart, from, root.vertical ? surface.width : surface.height, (atStart ? surface.joinShown : surface.joinShownEnd), (root.vertical ? root.screen?.width : root.screen?.height) ?? 0));
     }
     BorderOpening {
       opening: surface.joinStart ? panelWindow._joinOpening(true) : null

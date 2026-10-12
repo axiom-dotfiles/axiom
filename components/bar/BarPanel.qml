@@ -20,17 +20,20 @@ PanelWindow {
   // (arranged after it) overlaps its inner part, drawing the bar's inner
   // stroke. Any other bar (transparent, pills or floating, with the border
   // on) sits inside the border instead (`insideBorder`): its
-  // axiom-bar-floating layer rule orders it after the border (arranged
-  // inside it, drawn over it), with its outer edge on the border's stroke
-  // so pills can cover it. Both are on the Top layer, so a fullscreen window
-  // covers them.
+  // axiom-bar-floating or axiom-bar-transparent layer rule orders it after
+  // the border (arranged inside it, drawn over it), with its outer edge on
+  // the border's stroke so pills can cover it. Side bars have rules of their
+  // own (-side), arranged after the top and bottom bars of their kind, so
+  // which bar takes a shared corner never depends on which mapped first
+  // (BarEnds). All are on the Top layer, so a fullscreen window covers
+  // them.
   WlrLayershell.layer: WlrLayer.Top
   WlrLayershell.exclusiveZone: root.reservedZone
   // On a transparent or pill bar, how far in from its outer edge it
   // reserves (floating edge menus place themselves against that)
   readonly property int reservedZone: Bar.reservedZone(barConfig, HyprlandManager.gapsOut[Bar.edgeName(barConfig.location)] ?? 0)
   WlrLayershell.namespace: root.layerNamespace
-  readonly property string layerNamespace: barConfig.insideBorder ? "axiom-bar-floating" : "axiom-bar"
+  readonly property string layerNamespace: Bar.layerNamespace(barConfig)
   // The bar container paints the background (or not, when transparent)
   color: "transparent"
 
@@ -42,13 +45,15 @@ PanelWindow {
   }
 
   // A bar inside the border reaches onto its strokes: its own edge (so
-  // pills cover it) and both ends (so a pill at an end can join the
-  // perpendicular edge). Margins on the unanchored side are ignored.
+  // pills cover it) and the stroke at either end (so a pill at an end can
+  // join the perpendicular edge), but not onto a bar it makes way for at a
+  // corner (BarEnds' `reach`). Margins on the unanchored side are ignored.
+  readonly property int _outerReach: barConfig.insideBorder ? Appearance.borderWidth : 0
   margins {
-    top: root.barConfig.insideBorder ? -Appearance.borderWidth : 0
-    bottom: root.barConfig.insideBorder ? -Appearance.borderWidth : 0
-    left: root.barConfig.insideBorder ? -Appearance.borderWidth : 0
-    right: root.barConfig.insideBorder ? -Appearance.borderWidth : 0
+    top: -(root.barConfig.vertical ? root.barConfig.ends.start.reach : root._outerReach)
+    bottom: -(root.barConfig.vertical ? root.barConfig.ends.end.reach : root._outerReach)
+    left: -(root.barConfig.vertical ? root._outerReach : root.barConfig.ends.start.reach)
+    right: -(root.barConfig.vertical ? root._outerReach : root.barConfig.ends.end.reach)
   }
 
   visible: barConfig.enabled
@@ -87,6 +92,7 @@ PanelWindow {
     window: root
     namespace: root.layerNamespace
     edge: root.barConfig.location
+    estimatedStart: BarManager.barStartOn(root.screen, root.barConfig.location, true)
   }
 
   // What PopoutAnchors in it open their popouts in

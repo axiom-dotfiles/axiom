@@ -13,6 +13,21 @@ TestCase {
     };
   }
 
+  function test_layoutSections_uneven_margins() {
+    // A bar whose end makes way for another keeps more clear there
+    const s = BarLayout.layoutSections([100, 0, 200, 0, 100], [50, 0, 200, 0, 50], 1000, [10, 60], 5, false);
+    compare(s[0].offset, 10);
+    compare(s[4].offset, 1000 - 60 - 100);
+    compare(s[2].offset, 400, "the center stays centered on the bar");
+    // Squeezed into what both margins leave
+    const t = BarLayout.layoutSections([300, 0, 0, 0, 300], [100, 0, 0, 0, 100], 600, [10, 70], 0, false);
+    compare(t[0].extent + t[4].extent, 520);
+    compare(t[4].offset + t[4].extent, 530);
+    // Overflow measures the same room
+    compare(BarLayout.overflowHidden([[m(300)], [], [], [], [m(220)]], 600, [10, 70], 0, 0, false)[4].length, 1);
+    compare(BarLayout.overflowHidden([[m(300)], [], [], [], [m(220)]], 600, 10, 0, 0, false)[4].length, 0);
+  }
+
   function test_span() {
     compare(BarLayout.span([], 4), 0);
     compare(BarLayout.span([10], 4), 10);

@@ -75,7 +75,7 @@ QtObject {
     const boxed = ["filled", "tinted", "outline"].includes(look.widgetStyle);
     const grouping = boxed ? look.widgetGrouping : "separate";
 
-    return {
+    const bar = {
       "id": barConfig.id,
       // The config entry's id: a bar on every monitor has one per screen
       "sourceId": barConfig.sourceId ?? barConfig.id,
@@ -98,6 +98,8 @@ QtObject {
       // its ends, and the gap from their widgets to their ends
       "islandStart": islandStart,
       "floatGap": island ? floatGap : 0,
+      // Its float gap is Automatic (Hyprland's gaps_out)
+      "floatGapAuto": barConfig.floatGap < 0,
       "islandGap": Appearance.borderWidth + padding,
       "insideBorder": insideBorder,
       // An inner stroke surfaces on its edge can join: a solid bar's
@@ -162,6 +164,31 @@ QtObject {
       "right": loc === Bar.Right,
       "top": loc === Bar.Top,
       "bottom": loc === Bar.Bottom
+    };
+    // How much less than its extent it reserves (reserveTrim)
+    bar.trim = Bar.reserveTrim(bar, gapsOut[edge] ?? 0);
+    // What its ends meet (BarEnds): on its own, the frame at both;
+    // BarManager.bars works them out among the bars on its screen
+    bar.ends = BarEnds.endsOf(bar, {}, Bar.endsOptions(gapsOut));
+    return bar;
+  }
+
+  // A bar window's layer namespace, whose rule's `order` decides where
+  // Hyprland arranges it (HyprlandManager.layerRulesLua): by its kind
+  // (solid, outside the border; shaped: pills or floating; transparent)
+  // and, for side bars, a -side one arranged after the top and bottom
+  // bars of that kind (BarEnds)
+  function layerNamespace(barConfig) {
+    const kind = barConfig.solid ? "axiom-bar" : barConfig.background === "transparent" ? "axiom-bar-transparent" : "axiom-bar-floating";
+    return barConfig.vertical ? kind + "-side" : kind;
+  }
+
+  // BarEnds' options, from Appearance and Hyprland's gaps_out
+  function endsOptions(gapsOut) {
+    return {
+      "border": Appearance.screenBorder,
+      "borderWidth": Appearance.borderWidth,
+      "gapsOut": gapsOut
     };
   }
 

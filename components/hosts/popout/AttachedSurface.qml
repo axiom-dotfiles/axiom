@@ -82,6 +82,10 @@ Item {
   // fillet onto them
   property bool straight: false
   property bool straightJoins: false
+  // ...for each joined end on its own, where the two differ (a pill on a
+  // bare edge joining a solid bar's stroke at one end)
+  property bool straightJoinStart: straightJoins
+  property bool straightJoinEnd: straightJoins
 
   // Breathing room between the box edge and its content: clears the
   // stroke, plus the popout padding every popout shares (Popouts.padding,
@@ -215,7 +219,9 @@ Item {
   readonly property var _spec: Object.assign({}, root._baseSpec, {
     "flushStartThrough": root.flushStartThrough,
     "flushEndThrough": root.flushEndThrough,
-    "straightJoins": root.straightJoins
+    "straightJoins": root.straightJoins,
+    "straightJoinStart": root.straightJoinStart,
+    "straightJoinEnd": root.straightJoinEnd
   })
   readonly property var _natural: SurfaceOutline.metrics(root._baseSpec)
   readonly property var _m: SurfaceOutline.withBoxStart(root._spec, SurfaceOutline.metrics(root._spec), root.boxStart)
@@ -228,7 +234,8 @@ Item {
   // or flush, nor where it runs straight off a bare screen edge
   readonly property bool _filletStart: _natural.filletStart
   readonly property bool _filletEnd: _natural.filletEnd
-  readonly property bool _straightJoins: _m.straightJoins
+  readonly property bool _straightJoinStart: _m.straightJoinStart
+  readonly property bool _straightJoinEnd: _m.straightJoinEnd
   readonly property bool _joinFillet: _m.joinFillet
   // Room each end for a fillet square, minus the stroke overlap
   readonly property real startMargin: _natural.startMargin
@@ -259,9 +266,11 @@ Item {
   // How far in from its attach side (the backfill included) a joined end
   // covers the perpendicular stroke: its fill runs along it to the join's
   // fillet (SurfaceOutline.fillPath)
-  readonly property real joinCover: _m.back + (root._straightJoins ? root.farV : root.farV + root.filletRadius)
+  readonly property real joinCover: _m.back + (root._straightJoinStart ? root.farV : root.farV + root.filletRadius)
+  readonly property real joinCoverEnd: _m.back + (root._straightJoinEnd ? root.farV : root.farV + root.filletRadius)
   // ...as much of it as is out past its edge now (none while it's behind)
   readonly property real joinShown: Math.max(0, root.joinCover - root._hidden)
+  readonly property real joinShownEnd: Math.max(0, root.joinCoverEnd - root._hidden)
 
   // The content box in this item's coordinates, at rest (not slid). On
   // every side but the attach edge it coincides with the outer edge of

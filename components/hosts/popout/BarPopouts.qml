@@ -370,7 +370,7 @@ PopoutWrapperBase {
     const from = vertical ? origin.x + mainPopup.barX : origin.y + mainPopup.barY;
     return Object.assign({
       "screen": root.screen?.name ?? ""
-    }, EdgeAttach.joinOpening(Bar.edgeName(root.barConfig.location), atStart, from, vertical ? surface.width : surface.height, surface.joinShown, (vertical ? root.screen?.width : root.screen?.height) ?? 0));
+    }, EdgeAttach.joinOpening(Bar.edgeName(root.barConfig.location), atStart, from, vertical ? surface.width : surface.height, (atStart ? surface.joinShown : surface.joinShownEnd), (vertical ? root.screen?.width : root.screen?.height) ?? 0));
   }
   BorderOpening {
     opening: surface.joinStart ? root._joinOpening(true) : null
@@ -517,31 +517,40 @@ PopoutWrapperBase {
     readonly property int contentHeight: root.currentItem?.implicitHeight ?? 100
     readonly property bool isOnRightHalfOfScreen: root.anchorRect.x > (root.screen.width / 2)
 
-    // Along-bar clamp range, in bar-window coordinates. The perpendicular
-    // screen borders may sit inside the bar window (bar mapped first) or
-    // outside it, so derive where their inner edge falls from how much of
-    // the screen the window spans. The surface (fillets included) keeps a
-    // screen margin clear of that edge, so the fillets never run into the
-    // border's inner corner — the same gap EdgePopout leaves.
+    // Along-bar clamp range, in bar-window coordinates. What's on the
+    // perpendicular edges (the border, a bar) may lie inside the bar window
+    // or past its ends, as the bars share their corners (BarEnds), so
+    // their inner side is placed from where the window starts at each end
+    // (BarManager.barStartOn). The surface (fillets included) keeps a
+    // screen margin clear of it, so the fillets never run into the frame's
+    // inner corner — the same gap EdgePopout leaves.
     readonly property real panelLength: {
       const mapped = root.barConfig.vertical ? root.panel.height : root.panel.width;
       return mapped > 0 ? mapped : (root.barConfig.vertical ? root.screen.height : root.screen.width);
     }
-    readonly property real frameWidth: Appearance.screenBorder ? Appearance.screenMargin : 0
-    // Integrated edge menus on the perpendicular edges sit outside
-    // everything else, taking their space off one end only
-    readonly property real menuZones: root.barConfig.vertical ? EdgeMenuManager.zoneOn(root.screen?.name, "top") + EdgeMenuManager.zoneOn(root.screen?.name, "bottom") : EdgeMenuManager.zoneOn(root.screen?.name, "left") + EdgeMenuManager.zoneOn(root.screen?.name, "right")
-    readonly property real borderInset: frameWidth - ((root.barConfig.vertical ? root.screen.height : root.screen.width) - panelLength - menuZones) / 2
+    readonly property int startSide: root.barConfig.vertical ? Bar.Top : Bar.Left
+    readonly property int endSide: root.barConfig.vertical ? Bar.Bottom : Bar.Right
+    // The perpendicular edges' inner sides, in from each end of the window
+    readonly property real insetStart: EdgeMenuManager.frameLineOn(root.screen, startSide) - BarManager.barStartOn(root.screen, root.barConfig.location, true)
+    readonly property real insetEnd: EdgeMenuManager.frameLineOn(root.screen, endSide) - BarManager.barStartOn(root.screen, root.barConfig.location, false)
+    // ...each a stroke a popout pushed to that end joins (the border's, a
+    // solid bar's), unless it's another bar's edge, with nothing to join
+    readonly property bool strokeAtStart: BarManager.joinableOn(root.screen, startSide)
+    readonly property bool strokeAtEnd: BarManager.joinableOn(root.screen, endSide)
+    readonly property real _strokeWidth: Appearance.borderWidth
     // On a floating bar, where its islands may reach instead: a popout
     // pushed to one runs flush into the island's end there
-    readonly property real islandStart: root.barConfig.islandStart
+    readonly property real islandStart: root.layoutSource?.islandFrom ?? root.barConfig.islandStart
     readonly property real islandEnd: root.layoutSource?.islandEnd ?? panelLength - islandStart
-    readonly property real minAlong: root.island ? islandStart : borderInset + Appearance.screenMargin
-    readonly property real maxAlong: root.island ? islandEnd : panelLength - borderInset - Appearance.screenMargin
-    // Outer edges of the perpendicular border strokes (the screen edges
-    // with the border off), where a popout pushed to an end joins
-    readonly property real strokeStart: root.island ? islandStart : borderInset - (Appearance.screenBorder ? Appearance.borderWidth : 0)
-    readonly property real strokeEnd: root.island ? islandEnd : panelLength - strokeStart
+    readonly property real minAlong: root.island ? islandStart : insetStart + Appearance.screenMargin
+    readonly property real maxAlong: root.island ? islandEnd : panelLength - insetEnd - Appearance.screenMargin
+    // Outer edges of the perpendicular strokes (the screen edges with the
+    // border off and no solid bar there), where a popout pushed to an end
+    // joins
+    readonly property bool _bareStart: BarManager.screenEdgeOpen(root.screen, startSide)
+    readonly property bool _bareEnd: BarManager.screenEdgeOpen(root.screen, endSide)
+    readonly property real strokeStart: root.island ? islandStart : insetStart - (_bareStart ? 0 : _strokeWidth)
+    readonly property real strokeEnd: root.island ? islandEnd : panelLength - insetEnd + (_bareEnd ? 0 : _strokeWidth)
 
     // Along the bar, in bar-window coordinates: the box centred on the
     // anchor, and the surface around it with a fillet margin each side,
@@ -560,7 +569,7 @@ PopoutWrapperBase {
     // An island's ends never join (a side runs flush into the island
     // instead), nor a detached box's (it's clamped clear of them)
     readonly property bool canJoin: !root.island && !detached
-    readonly property var joins: EdgeAttach.joins(alignedBoxStart, boxLength, minAlong + filletMargin, maxAlong - filletMargin, root.connectorGap, canJoin, canJoin)
+    readonly property var joins: EdgeAttach.joins(alignedBoxStart, boxLength, minAlong + filletMargin, maxAlong - filletMargin, root.connectorGap, canJoin && strokeAtStart, canJoin && strokeAtEnd)
     readonly property bool joinStart: root.place.joinStart
     readonly property bool joinEnd: root.place.joinEnd
     readonly property real boxStart: root.place.start
@@ -706,7 +715,11 @@ PopoutWrapperBase {
     flushEndThrough: !(root._sideJoined && !root.openToLeft)
     // Without the border, a merged popout runs straight off the screen edge
     straight: root.mergeWithPill && !Appearance.screenBorder
+    // ...and a joined end runs straight off a bare one, or curves into a
+    // solid bar's stroke there
     straightJoins: !Appearance.screenBorder
+    straightJoinStart: mainPopup._bareStart
+    straightJoinEnd: mainPopup._bareEnd
     // On a pill's far stroke, cover that stroke's inner fringe too
     backfill: root.anchorPill !== null && !root.mergeWithPill ? 1 : 0
 

@@ -15,7 +15,11 @@ import QtQuick
 //   { edge, boxAlong, boxDepth, strokeWidth, filletRadius, cornerRadius,
 //     startCornerRadius, endCornerRadius, connectorGap, joinStart,
 //     joinEnd, flushStart, flushEnd, flushStartThrough, flushEndThrough,
-//     detached, detachedOffset, backfill, straight, straightJoins }
+//     detached, detachedOffset, backfill, straight, straightJoins,
+//     straightJoinStart, straightJoinEnd }
+// (straightJoinStart/End: one joined end's, where the edges it meets
+// differ, a bare screen edge at one and a solid bar's stroke at the
+// other; each defaults to straightJoins)
 QtObject {
   id: root
 
@@ -36,8 +40,9 @@ QtObject {
     const sharp = R < half;
     const filletStart = !sharp && !s.joinStart && !s.flushStart && !s.straight;
     const filletEnd = !sharp && !s.joinEnd && !s.flushEnd && !s.straight;
-    const straightJoins = !!s.straightJoins || sharp;
-    const joinFillet = (!!s.joinStart || !!s.joinEnd) && !straightJoins;
+    const straightJoinStart = !!(s.straightJoinStart ?? s.straightJoins) || sharp;
+    const straightJoinEnd = !!(s.straightJoinEnd ?? s.straightJoins) || sharp;
+    const joinFillet = (!!s.joinStart && !straightJoinStart) || (!!s.joinEnd && !straightJoinEnd);
     const startMargin = filletStart ? s.connectorGap - s.strokeWidth : 0;
     const endMargin = filletEnd ? s.connectorGap - s.strokeWidth : 0;
     const alongLength = startMargin + s.boxAlong + endMargin;
@@ -56,7 +61,9 @@ QtObject {
       "sharp": sharp,
       "filletStart": filletStart,
       "filletEnd": filletEnd,
-      "straightJoins": straightJoins,
+      "straightJoins": straightJoinStart && straightJoinEnd,
+      "straightJoinStart": straightJoinStart,
+      "straightJoinEnd": straightJoinEnd,
       "joinFillet": joinFillet,
       "throughStart": !!s.flushStart && (s.flushStartThrough ?? true),
       "throughEnd": !!s.flushEnd && (s.flushEndThrough ?? true),
@@ -160,7 +167,7 @@ QtObject {
     // end of the stroke it continues there, which the backfill leaves open
     const fv0 = m.throughStart ? -m.back : 0, fv1 = m.throughEnd ? -m.back : 0;
     let d = "";
-    if (s.joinStart && m.straightJoins) {
+    if (s.joinStart && m.straightJoinStart) {
       d += startWith(0, farV);
     } else if (s.joinStart) {
       d += startWith(h, farV + R);
@@ -176,7 +183,7 @@ QtObject {
       d += p.line(sideU, farV - cs);
       d += p.arc(cs, false, sideU + cs, farV);
     }
-    if (s.joinEnd && m.straightJoins) {
+    if (s.joinEnd && m.straightJoinEnd) {
       d += p.line(L, farV);
     } else if (s.joinEnd) {
       d += p.line(L - h - R, farV);
@@ -208,14 +215,14 @@ QtObject {
     const u0 = m.throughStart ? s.strokeWidth : 0, u1 = m.throughEnd ? L - s.strokeWidth : L;
     let d;
     if (s.joinStart)
-      d = p.move(0, b) + p.line(0, m.straightJoins ? m.farV : m.farV + R) + _outline(s, m, p, p.line);
+      d = p.move(0, b) + p.line(0, m.straightJoinStart ? m.farV : m.farV + R) + _outline(s, m, p, p.line);
     else if (s.flushStart)
       d = p.move(u0, b) + (m.throughStart ? "" : p.line(0, 0)) + _outline(s, m, p, p.line);
     else if (!m.filletStart)
       d = _outline(s, m, p, p.move);
     else
       d = _outline(s, m, p, (u, v) => p.move(0, 0) + p.line(u, v));
-    if (s.joinEnd && !m.straightJoins)
+    if (s.joinEnd && !m.straightJoinEnd)
       d += p.line(L, m.farV + R);
     else if ((!s.joinEnd && m.filletEnd) || (s.flushEnd && !m.throughEnd))
       d += p.line(L, 0);
@@ -249,9 +256,9 @@ QtObject {
       out.push(rect(0, 0, m.startMargin, filletDeep));
     if (m.filletEnd && m.endMargin > 0)
       out.push(rect(m.startMargin + s.boxAlong, 0, m.endMargin, filletDeep));
-    if (s.joinStart && m.joinFillet)
+    if (s.joinStart && !m.straightJoinStart)
       out.push(rect(0, m.farV, m.half + R, R + m.half));
-    if (s.joinEnd && m.joinFillet)
+    if (s.joinEnd && !m.straightJoinEnd)
       out.push(rect(m.alongLength - m.half - R, m.farV, m.half + R, R + m.half));
     if (back > 0)
       out.push(rect(0, -back, m.alongLength, back));

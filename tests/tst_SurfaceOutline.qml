@@ -61,6 +61,33 @@ TestCase {
     verify(sharp.straightJoins);
   }
 
+  function test_straight_join_per_end() {
+    // A pill on a bare edge: straight off the screen edge at its start,
+    // a fillet into a solid bar's stroke at its end
+    const s = spec({
+      "joinStart": true,
+      "joinEnd": true,
+      "straight": true,
+      "straightJoins": true,
+      "straightJoinEnd": false
+    });
+    const m = SurfaceOutline.metrics(s);
+    verify(m.straightJoinStart);
+    verify(!m.straightJoinEnd);
+    verify(!m.straightJoins);
+    verify(m.joinFillet, "the end's fillet deepens the surface");
+    const fp = SurfaceOutline.footprint(s, m, m.depth, m.alongLength);
+    // The box and the end's fillet square only
+    compare(fp.length, 2);
+    // Both ends straight: no fillet anywhere
+    const both = SurfaceOutline.metrics(spec({
+      "joinStart": true,
+      "joinEnd": true,
+      "straightJoins": true
+    }));
+    verify(!both.joinFillet);
+  }
+
   function test_withBoxStart() {
     const s = spec({});
     const m = SurfaceOutline.withBoxStart(s, SurfaceOutline.metrics(s), 28);

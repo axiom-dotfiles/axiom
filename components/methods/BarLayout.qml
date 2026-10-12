@@ -55,14 +55,21 @@ QtObject {
     return Math.max(lo, Math.min((length - c) / 2 + skew, hi));
   }
 
+  // A margin as [start, end]: one number for both ends, or a pair
+  function _margins(margin) {
+    return Array.isArray(margin) ? margin : [margin, margin];
+  }
+
   // Returns [{offset, extent}] for each section along the main axis, from
-  // their preferred and minimum lengths. `margin` is kept clear at both ends
-  // and `gap` between adjacent non-empty sections. With `lockCenter`, the
+  // their preferred and minimum lengths. `margin` is kept clear at the ends
+  // (one number for both, or [start, end]: a bar's ends may meet
+  // different things, BarEnds) and `gap` between adjacent non-empty sections. With `lockCenter`, the
   // center section always sits dead center at its full size and each side
   // fits itself into the room left on its own half; otherwise the center
   // slides towards the roomier side when crowded. `centerHang` (edgeHang)
   // is left out of what's centered.
   function layoutSections(pref, min, length, margin, gap, lockCenter, centerHang) {
+    const [m0, m1] = root._margins(margin);
     const sum = values => values.reduce((a, b) => a + b, 0);
     const gapsFor = sections => gap * sections.filter(i => pref[i] > 0).length;
     // Preferred sizes if they fit, else squeezed towards the minimums,
@@ -82,16 +89,16 @@ QtObject {
 
     let size, centerStart;
     if (lockCenter) {
-      const c = Math.min(pref[2], Math.max(0, length - 2 * margin));
-      centerStart = root._centerStart(c, length, margin, length - margin - c, centerHang);
-      const [l, lc] = fit([pref[0], pref[1]], [min[0], min[1]], centerStart - margin - gapsFor([0, 1]));
-      const [rc, r] = fit([pref[3], pref[4]], [min[3], min[4]], length - margin - centerStart - c - gapsFor([3, 4]));
+      const c = Math.min(pref[2], Math.max(0, length - m0 - m1));
+      centerStart = root._centerStart(c, length, m0, length - m1 - c, centerHang);
+      const [l, lc] = fit([pref[0], pref[1]], [min[0], min[1]], centerStart - m0 - gapsFor([0, 1]));
+      const [rc, r] = fit([pref[3], pref[4]], [min[3], min[4]], length - m1 - centerStart - c - gapsFor([3, 4]));
       size = [l, lc, c, rc, r];
     } else {
-      size = fit(pref, min, length - 2 * margin - gapsFor([0, 1, 3, 4]));
+      size = fit(pref, min, length - m0 - m1 - gapsFor([0, 1, 3, 4]));
       const [l, lc, c, rc, r] = size;
-      const lo = margin + (l > 0 ? l + gap : 0) + (lc > 0 ? lc + gap : 0);
-      const hi = length - margin - (r > 0 ? r + gap : 0) - (rc > 0 ? rc + gap : 0) - c;
+      const lo = m0 + (l > 0 ? l + gap : 0) + (lc > 0 ? lc + gap : 0);
+      const hi = length - m1 - (r > 0 ? r + gap : 0) - (rc > 0 ? rc + gap : 0) - c;
       centerStart = root._centerStart(c, length, lo, hi, centerHang);
     }
 
@@ -100,7 +107,7 @@ QtObject {
 
     return [
       {
-        "offset": margin,
+        "offset": m0,
         "extent": l
       },
       {
@@ -116,7 +123,7 @@ QtObject {
         "extent": rc
       },
       {
-        "offset": length - margin - r,
+        "offset": length - m1 - r,
         "extent": r
       }
     ];
@@ -133,6 +140,7 @@ QtObject {
   // fit the bar. The center's dividers (`divides`) are left out of what's
   // centered, as in layoutSections.
   function overflowHidden(measures, length, margin, gap, spacing, lockCenter) {
+    const [m0, m1] = root._margins(margin);
     const hidden = measures.map(() => []);
     const spanOf = (s, key) => root.span(measures[s].filter((m, i) => m.pref > 0 && !hidden[s].includes(i)).map(m => m[key]), spacing);
     const minSpan = s => spanOf(s, "min");
@@ -140,7 +148,7 @@ QtObject {
         const len = minSpan(s);
         return sum + (len > 0 ? len + gap : 0);
       }, 0);
-    const room = length - 2 * margin + 0.5;
+    const room = length - m0 - m1 + 0.5;
 
     // The sections to drop from (in tie order), or null when it all fits
     const overflowing = () => {
@@ -151,12 +159,12 @@ QtObject {
       }
       if (minSpan(2) > room)
         return [2];
-      const c = Math.min(spanOf(2, "pref"), length - 2 * margin);
+      const c = Math.min(spanOf(2, "pref"), length - m0 - m1);
       const hang = root.edgeHang(measures[2].map((m, i) => hidden[2].includes(i) ? 0 : m.pref), measures[2].map(m => m.divides), spacing);
-      const start = root._centerStart(c, length, margin, length - margin - c, hang);
-      if (sideNeed([0, 1]) > start - margin + 0.5)
+      const start = root._centerStart(c, length, m0, length - m1 - c, hang);
+      if (sideNeed([0, 1]) > start - m0 + 0.5)
         return [0, 1];
-      if (sideNeed([3, 4]) > length - margin - start - c + 0.5)
+      if (sideNeed([3, 4]) > length - m1 - start - c + 0.5)
         return [4, 3];
       return null;
     };

@@ -37,16 +37,48 @@ Rectangle {
   // A floating bar: islands held off the edge, read like pills by the
   // popouts (pillRects), but drawn on their own (as boxes, from pillShapes)
   readonly property bool islands: barConfig.island
+  // What each end meets (BarEnds): the frame, or a bar it makes way for
+  readonly property var _ends: barConfig.ends
+  // How far in from an end islands may reach: their float gap from the
+  // stroke there (bar-window 0 past its reach onto it), or held clear of
+  // a bar it makes way for, as a surface held off an edge
+  function _islandInset(end) {
+    return end.held ? end.over + end.gap : end.reach + root.barConfig.floatGap;
+  }
   // Where islands may reach along the bar, from its start
-  readonly property real islandEnd: root.length - root.barConfig.islandStart
+  readonly property real islandFrom: root._islandInset(root._ends.start)
+  readonly property real islandEnd: root.length - root._islandInset(root._ends.end)
   // Fillet room each side of a pill, as for popouts (AttachedSurface)
   readonly property int pillConnector: Appearance.borderRadius * 2
-  // Kept clear at both ends. A pill at an end instead sits flush on the
+  // Kept clear at each end. A pill at an end instead sits flush on the
   // perpendicular edge's stroke (bar-window 0 along a bar inside the
   // border) and joins it, so its widgets only need the pill inset (the
   // stroke and the padding, or the screen margin too on a bare edge). An
-  // island's widgets sit inside its stroke and padding.
-  readonly property real endMargin: pills ? barConfig.pillInset : islands ? barConfig.islandStart + barConfig.islandGap : Appearance.screenMargin
+  // island's widgets sit inside its stroke and padding. A transparent
+  // bar's keep the gap they keep across it, past the stroke there; a solid
+  // one's the screen margin, or on a bare edge at least that gap. At an
+  // end held clear of another bar,
+  // a pill's free end and its fillet stay past the held gap, and a plain
+  // bar's widgets at least its padding past that bar.
+  function _endMargin(end) {
+    if (root.pills) {
+      if (!end.held)
+        return root.barConfig.pillInset;
+      const fillet = Appearance.screenBorder ? root.pillConnector - Appearance.borderWidth : 0;
+      return end.over + end.gap + fillet + root.barConfig.pillGap;
+    }
+    if (root.islands)
+      return root._islandInset(end) + root.barConfig.islandGap;
+    if (end.held)
+      return end.over + Math.max(end.gap, root.barConfig.padding);
+    // The gap its widgets keep across the bar, from what covers its outer
+    // edge, kept past the stroke at the end too (or the bare screen edge)
+    const across = root.barConfig.crossStart - (root.barConfig.insideBorder ? Appearance.borderWidth : 0);
+    if (!root.barConfig.solid)
+      return end.reach + across;
+    return Appearance.screenBorder ? Appearance.screenMargin : Math.max(Appearance.screenMargin, across);
+  }
+  readonly property var endMargins: [root._endMargin(root._ends.start), root._endMargin(root._ends.end)]
 
   // One { start, length, joinStart, joinEnd } per pill along the bar: each
   // non-empty section, merged with its neighbour when they're at most
@@ -55,7 +87,7 @@ Rectangle {
   // (BarLayout.islandRects): one along it, or one per group.
   readonly property var pillRects: {
     if (islands)
-      return BarLayout.islandRects(root._spans, root.barConfig.islandGap, root.barConfig.pillMerge, root.barConfig.islandStart, root.islandEnd, !root.barConfig.islandPills);
+      return BarLayout.islandRects(root._spans, root.barConfig.islandGap, root.barConfig.pillMerge, root.islandFrom, root.islandEnd, !root.barConfig.islandPills);
     if (!pills)
       return [];
     const spans = root._spans.slice();
@@ -69,12 +101,13 @@ Rectangle {
     });
     // A free end sits the pill gap out from its widgets. An end that would
     // reach the frame (the end sections, which sit endMargin in) joins it,
-    // the frame standing in for the gap.
+    // the frame standing in for the gap; not a bar it makes way for, which
+    // has no stroke to join (BarEnds).
     const gap = root.barConfig.pillGap;
     const reach = root.barConfig.overlap + 0.5;
     return merged.map(m => {
-      const joinStart = m.start - gap <= reach;
-      const joinEnd = m.end + gap >= root.length - reach;
+      const joinStart = root._ends.start.joinable && m.start - gap <= reach;
+      const joinEnd = root._ends.end.joinable && m.end + gap >= root.length - reach;
       const start = joinStart ? 0 : m.start - gap;
       const end = joinEnd ? root.length : m.end + gap;
       return {
@@ -175,7 +208,7 @@ Rectangle {
     const span = (root.isVertical ? root.panel?.screen?.width : root.panel?.screen?.height) ?? 0;
     return Object.assign({
       "screen": root.blurScreen
-    }, EdgeAttach.joinOpening(Bar.edgeName(root.barConfig.location), atStart, from, root.isVertical ? surface.width : surface.height, surface.joinShown, span));
+    }, EdgeAttach.joinOpening(Bar.edgeName(root.barConfig.location), atStart, from, root.isVertical ? surface.width : surface.height, (atStart ? surface.joinShown : surface.joinShownEnd), span));
   }
 
   // How far each pill reaches past its own ends for the stretches on it,
@@ -238,8 +271,8 @@ Rectangle {
 
   readonly property var _groups: [leftGroup, leftCenterGroup, centerGroup, rightCenterGroup, rightGroup]
   // Per section, the model indices hidden so the minimum sizes fit
-  readonly property var hidden: BarLayout.overflowHidden(root._groups.map(g => g.measures), root.length, root.endMargin, root.barConfig.spacing, root.barConfig.groupSpacing, root.barConfig.lockCenter)
-  readonly property var slots: BarLayout.layoutSections(root._groups.map(g => g.preferredLength), root._groups.map(g => g.minimumLength), root.length, root.endMargin, root.barConfig.spacing, root.barConfig.lockCenter, centerGroup.layoutHang)
+  readonly property var hidden: BarLayout.overflowHidden(root._groups.map(g => g.measures), root.length, root.endMargins, root.barConfig.spacing, root.barConfig.groupSpacing, root.barConfig.lockCenter)
+  readonly property var slots: BarLayout.layoutSections(root._groups.map(g => g.preferredLength), root._groups.map(g => g.minimumLength), root.length, root.endMargins, root.barConfig.spacing, root.barConfig.lockCenter, centerGroup.layoutHang)
   // Bindings re-run on any module change; only signal real moves
   property string _slotsKey: ""
   onSlotsChanged: {
@@ -550,9 +583,13 @@ Rectangle {
         boxHeight: root.isVertical ? span.length : depthBox
         joinStart: span.joinStart
         joinEnd: span.joinEnd
-        // Without the border, pills grow straight out of the screen edges
+        // Without the border, pills grow straight out of the screen edges,
+        // and an end pill runs straight off a bare one, or curves into a
+        // solid bar's stroke there as into the border's (BarEnds)
         straight: !Appearance.screenBorder
         straightJoins: !Appearance.screenBorder
+        straightJoinStart: root._ends.start.straight
+        straightJoinEnd: root._ends.end.straight
         // Square where a popout runs flush into it
         startCornerRadius: span.squareStart ? 0 : cornerRadius
         endCornerRadius: span.squareEnd ? 0 : cornerRadius
@@ -678,12 +715,12 @@ Rectangle {
   }
 
   // Along a plain bar: its whole length, or clear of the border's sides
-  // inside the border
+  // inside the border and of a bar it makes way for
   AccentLine {
     visible: root.barConfig.accentLine !== "none" && !root.pills && !root.islands
     bar: root
-    start: root.barConfig.insideBorder ? root.endMargin : 0
-    length: root.length - start * 2
+    start: root.barConfig.insideBorder || root._ends.start.held ? root.endMargins[0] : 0
+    length: root.length - start - (root.barConfig.insideBorder || root._ends.end.held ? root.endMargins[1] : 0)
     inset: root._accentInset
   }
 
