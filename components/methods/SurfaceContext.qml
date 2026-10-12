@@ -94,7 +94,7 @@ QtObject {
   //   joined end to sit on its outer edge), straight (a joined end runs
   //   straight off it rather than curving in with a fillet; a pill bar's
   //   end decides that itself, PillBarJoin.filleted), wall (its walls stop
-  //   where windows start there, its fillet past them), sink (where the
+  //   where windows start there, its fillet inside them too), sink (where the
   //   stroke a joined end covers is left open: "border", "solidBar" or
   //   "pillBar"; null for none) }
   function end(e, s) {

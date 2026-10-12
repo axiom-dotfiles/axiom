@@ -94,12 +94,12 @@ Scope {
   // --- Along the dock ---
   // In edge coordinates, as EdgePopout's: 0 at the perpendicular edges'
   // inner side. The window reaches onto their strokes where an end may
-  // join one, and past a wall far enough for a fillet curving on past it
-  // (EdgePlacement): where edge coordinates start in it, at each end.
+  // join one (EdgePlacement): where edge coordinates start in it, at each
+  // end.
   readonly property int startSide: placement.startSide
   readonly property int endSide: placement.endSide
-  readonly property real strokeInset: placement.strokeInsetStart + placement.reachStart
-  readonly property real endStrokeInset: placement.strokeInsetEnd + placement.reachEnd
+  readonly property real strokeInset: placement.strokeInsetStart
+  readonly property real endStrokeInset: placement.strokeInsetEnd
   readonly property real length: (root.vertical ? panelWindow.height : panelWindow.width) - root.strokeInset - root.endStrokeInset
   readonly property real restLength: root.count * root.base + Math.max(0, root.count - 1) * root.spacing + root.separatorLength + root.pad * 2
   // The least room from the box to each end that isn't joined: held, its
@@ -522,8 +522,6 @@ Scope {
         detachedOffset: Math.max(0, root._detachedBox - root.connectorGap / 2)
         // Joined ends straight off a bare screen edge or into a pill bar's
         // stub, else curving into the stroke they join (as EdgePopout's)
-        startFilletMargin: placement.startFilletMargin
-        endFilletMargin: placement.endFilletMargin
         straightJoinStart: placement.straightJoinStart
         straightJoinEnd: placement.straightJoinEnd
         connectorGap: root.connectorGap

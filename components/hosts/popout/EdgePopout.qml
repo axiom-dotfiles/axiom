@@ -280,7 +280,7 @@ PopoutWrapperBase {
   readonly property real edgeLength: {
     const mapped = vertical ? surfaceWindow.height : surfaceWindow.width;
     if (mapped > 0)
-      return mapped - root.startStrokeInset - root.endStrokeInset - root.startReach - root.endReach;
+      return mapped - root.startStrokeInset - root.endStrokeInset;
     return (vertical ? screen.height : screen.width) - Appearance.screenMargin * 2;
   }
   // Room for a side wall's fillet at an end that isn't joined
@@ -291,12 +291,8 @@ PopoutWrapperBase {
   // (EdgePlacement.insetStart/insetEnd, in this window's edge coordinates)
   readonly property real startInset: placement.insetStart
   readonly property real endInset: placement.insetEnd
-  // How far the window reaches past each end into what's reserved there,
-  // for a fillet curving on past a wall (EdgePlacement.reachStart/End)
-  readonly property real startReach: placement.reachStart
-  readonly property real endReach: placement.reachEnd
   // Where edge coordinates start in the window
-  readonly property real _windowStart: root.startStrokeInset + root.startReach
+  readonly property real _windowStart: root.startStrokeInset
 
   // The natural box centred at `position`: an end joins when the box would
   // be pushed back from that edge, or leave less than a connector gap
@@ -515,10 +511,10 @@ PopoutWrapperBase {
     readonly property string screenName: root.screen?.name ?? ""
     readonly property real attachMargin: (root.bareEdge ? 0 : -Appearance.borderWidth) - surface.backfill + root.edgeOffset - (root.slidesUnder ? root.slideDistance : 0) - DockManager.zoneOn(screenName, Bar.edgeName(root.edge))
     margins {
-      top: root.edge === Bar.Top ? surfaceWindow.attachMargin : root.vertical ? -root.startStrokeInset - root.startReach - DockManager.zoneOn(surfaceWindow.screenName, "top") : 0
-      bottom: root.edge === Bar.Bottom ? surfaceWindow.attachMargin : root.vertical ? -root.endStrokeInset - root.endReach - DockManager.zoneOn(surfaceWindow.screenName, "bottom") : 0
-      left: root.edge === Bar.Left ? surfaceWindow.attachMargin : root.vertical ? 0 : -root.startStrokeInset - root.startReach - DockManager.zoneOn(surfaceWindow.screenName, "left")
-      right: root.edge === Bar.Right ? surfaceWindow.attachMargin : root.vertical ? 0 : -root.endStrokeInset - root.endReach - DockManager.zoneOn(surfaceWindow.screenName, "right")
+      top: root.edge === Bar.Top ? surfaceWindow.attachMargin : root.vertical ? -root.startStrokeInset - DockManager.zoneOn(surfaceWindow.screenName, "top") : 0
+      bottom: root.edge === Bar.Bottom ? surfaceWindow.attachMargin : root.vertical ? -root.endStrokeInset - DockManager.zoneOn(surfaceWindow.screenName, "bottom") : 0
+      left: root.edge === Bar.Left ? surfaceWindow.attachMargin : root.vertical ? 0 : -root.startStrokeInset - DockManager.zoneOn(surfaceWindow.screenName, "left")
+      right: root.edge === Bar.Right ? surfaceWindow.attachMargin : root.vertical ? 0 : -root.endStrokeInset - DockManager.zoneOn(surfaceWindow.screenName, "right")
     }
 
     // The surface, or room for it at the content's largest
@@ -668,18 +664,6 @@ PopoutWrapperBase {
           // Joined ends straight off a bare screen edge or into a pill bar's
           // stub (PillBarJoin), else curving into the stroke they join (the
           // border's, a solid bar's, a pill bar's pill running on past it)
-          // A fillet sharing a wall's room with its island's corner takes
-          // less of it (EdgePlacement). Delayed: on a side edge the box's
-          // length takes a submenu's stretch, which is placed from the box
-          // these margins shape, so a direct binding loops (it settles)
-          Binding on startFilletMargin {
-            value: placement.startFilletMargin
-            delayed: true
-          }
-          Binding on endFilletMargin {
-            value: placement.endFilletMargin
-            delayed: true
-          }
           straightJoinStart: placement.straightJoinStart
           straightJoinEnd: placement.straightJoinEnd
           fillColor: root.fillColor

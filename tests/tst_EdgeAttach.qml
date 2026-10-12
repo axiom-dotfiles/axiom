@@ -99,18 +99,19 @@ TestCase {
   }
 
   function test_plain_stops_at_a_wall() {
-    // Nothing to join at the end: its wall goes up to where windows start,
-    // its fillet past it
+    // Nothing to join at the end: the surface, its fillet included, goes
+    // up to where windows start, keeping their gap from what's past it
     const p = EdgeAttach.place(spec({
       "aligned": 900,
       "wallTo": 800
     }));
-    compare([p.start, p.end, p.endMargin, p.joinEnd], [700, 800, 54, false]);
+    compare([p.start, p.end, p.endMargin, p.joinEnd], [646, 746, 54, false]);
+    compare(p.surfaceStart + p.surfaceLength, 800);
     const q = EdgeAttach.place(spec({
       "aligned": 0,
       "wallFrom": 200
     }));
-    compare([q.start, q.startMargin, q.joinStart], [200, 54, false]);
+    compare([q.start, q.startMargin, q.joinStart, q.surfaceStart], [254, 54, false, 200]);
   }
 
   function test_pill_stops_at_a_wall() {
@@ -124,7 +125,7 @@ TestCase {
       "pillGrows": true,
       "wallTo": 800
     }));
-    compare([p.start, p.end, p.joinEnd, p.flushEnd, p.endMargin], [700, 800, false, false, 54]);
+    compare([p.start, p.end, p.joinEnd, p.flushEnd, p.endMargin], [646, 746, false, false, 54]);
     compare(p.stretch, null);
     // Without one it joins the edge
     compare(EdgeAttach.place(spec({
@@ -134,33 +135,28 @@ TestCase {
       "aligned": 900,
       "pillGrows": true
     })).joinEnd, true);
-    // A wall too near what pills reach: fillet and pill corner share the
-    // room left, the fillet's straight run cut back first, then the corner
-    const q = EdgeAttach.place(spec({
-      "pills": pills,
-      "pillBar": true,
-      "centre": 900,
-      "aligned": 900,
-      "pillGrows": true,
-      "wallTo": 950
-    }));
-    compare([q.end, q.flushEnd, q.endMargin, q.stretch.end, q.stretch.squareEnd, q.stretch.cornerEnd], [950, false, 28, 1002, false, 24]);
-    // Never nearer the reach than the fillet's curve: the corner square
-    const r = EdgeAttach.place(spec({
-      "pills": pills,
-      "pillBar": true,
-      "centre": 900,
-      "aligned": 900,
-      "pillGrows": true,
-      "wallTo": 990
-    }));
-    compare([r.end, r.endMargin, r.stretch.cornerEnd], [974, 28, 0]);
+    // A wall near what pills reach: the full fillet and the pill's full
+    // corner still fit inside both, the content moving in for them
+    for (const wall of [950, 990]) {
+      const q = EdgeAttach.place(spec({
+        "pills": pills,
+        "pillBar": true,
+        "centre": 900,
+        "aligned": 900,
+        "pillGrows": true,
+        "wallTo": wall
+      }));
+      compare(q.endMargin, 54, `wall ${wall}`);
+      verify(q.surfaceStart + q.surfaceLength <= wall, `wall ${wall}: surface past it`);
+      compare(q.stretch?.cornerEnd, undefined);
+    }
   }
 
-  function test_island_corner_shares_a_wall_with_the_fillet() {
+  function test_island_wall_pushes_the_box() {
     // A floating bar owning the corner: its island reaches past the wall
-    // over the bar it pushes aside, too little for a full fillet margin
-    // and corner both
+    // over the bar it pushes aside. Short of room for a full fillet inside
+    // the wall and the island's corner, the box moves in; nothing rounds
+    // less
     const at = wall => EdgeAttach.place(spec({
         "island": true,
         "pills": [pill(10, 980)],
@@ -169,18 +165,15 @@ TestCase {
         "aligned": 0,
         "wallFrom": wall
       }));
-    // The fillet's straight run cut back: the corner stays whole
-    const p = at(70);
-    compare([p.start, p.flushStart, p.startMargin, p.stretch], [70, false, 32, null]);
-    // Less room: the corner rounds less
-    const q = at(50);
-    compare([q.start, q.startMargin, q.stretch.start, q.stretch.squareStart, q.stretch.cornerStart, q.stretch.cornerEnd], [50, 28, 10, false, 12, undefined]);
-    // No nearer the island's end than the fillet's curve
-    const r = at(30);
-    compare([r.start, r.startMargin, r.stretch.cornerStart], [38, 28, 0]);
-    // With room for both, nothing changes
-    const full = at(100);
-    compare([full.startMargin, full.stretch], [54, null]);
+    for (const wall of [30, 50, 70, 100]) {
+      const p = at(wall);
+      compare(p.startMargin, 54, `wall ${wall}`);
+      verify(p.surfaceStart >= wall, `wall ${wall}: fillet past it`);
+      verify(p.start - 10 >= 54 + 28, `wall ${wall}: no room for the island's corner`);
+      compare(p.stretch?.cornerStart, undefined);
+    }
+    compare(at(70).start, 124);
+    compare(at(30).start, 92);
   }
 
   function test_pill_grows_past_a_wall_for_the_fillet() {
@@ -192,8 +185,8 @@ TestCase {
       "pillGrows": true,
       "wallTo": 800
     }));
-    compare([p.end, p.flushEnd, p.endMargin], [800, false, 54]);
-    compare([p.stretch.end, p.stretch.squareEnd], [882, false]);
+    compare([p.end, p.flushEnd, p.endMargin], [746, false, 54]);
+    compare([p.stretch.end, p.stretch.squareEnd], [828, false]);
   }
 
   function test_island_stops_at_a_wall() {
@@ -204,7 +197,7 @@ TestCase {
       "aligned": 900,
       "wallTo": 800
     }));
-    compare([p.mode, p.end, p.flushEnd, p.endMargin], ["island", 800, false, 54]);
+    compare([p.mode, p.end, p.flushEnd, p.endMargin], ["island", 746, false, 54]);
   }
 
   function test_joined_box_reaches_the_stroke() {

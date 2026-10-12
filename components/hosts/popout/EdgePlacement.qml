@@ -150,21 +150,10 @@ QtObject {
   }
   // The least room the box keeps from each end it doesn't join: held, its
   // gaps from the frame lines there; at a wall, up to where windows start
-  // (its fillet curving on past); else its fillet's past the corner
+  // (EdgeAttach keeps the fillet inside it too); else its fillet's past
+  // the corner
   readonly property real insetStart: root.gaps ? root.heldInset(root.startSide, root.gaps.start) : root.startEnd.wall ? root._wallInset(root.startSide) : root.endRoom
   readonly property real insetEnd: root.gaps ? root.heldInset(root.endSide, root.gaps.end) : root.endEnd.wall ? root._wallInset(root.endSide) : root.endRoom
-  // How far the window reaches past each end into what's reserved there,
-  // for a fillet curving on past a wall: no further than the frame's
-  // inner corner, so the fillet's run along the stroke is cut short of
-  // where the stroke curves away
-  function _reachPast(side, end, inset) {
-    if (!end.wall)
-      return 0;
-    const corner = Appearance.screenBorder ? Appearance.screenMargin + Appearance.borderRadius : 0;
-    return Math.max(0, Math.min(root.filletMargin - inset, EdgeMenuManager.reservedOn(root.screen, side) - corner));
-  }
-  readonly property real reachStart: root._reachPast(root.startSide, root.startEnd, root.insetStart)
-  readonly property real reachEnd: root._reachPast(root.endSide, root.endEnd, root.insetEnd)
   // Joined ends run straight off a bare screen edge, or into a pill bar's
   // stub where its pill doesn't already run on past the wall
   // (PillBarJoin.filleted)
@@ -229,11 +218,6 @@ QtObject {
       return root.barOuter + root.pillFoot;
     return root.barOuter + root.barConfig.extent + Bar.detachedPush(root.barConfig, HyprlandManager.gapsOut[root.edgeName] ?? 0, root.connectorGap);
   }
-  // A fillet sharing a wall's room with its island's (or pill's) corner
-  // takes less of it (EdgeAttach), else the full room (-1):
-  // AttachedSurface.startFilletMargin/endFilletMargin
-  readonly property real startFilletMargin: root.place.startMargin > 0 && root.place.startMargin < root.filletMargin ? root.place.startMargin : -1
-  readonly property real endFilletMargin: root.place.endMargin > 0 && root.place.endMargin < root.filletMargin ? root.place.endMargin : -1
   // On a pill's far stroke the surface covers that stroke's inner fringe
   readonly property int backfill: !root.detached && root.onPill ? 1 : 0
 

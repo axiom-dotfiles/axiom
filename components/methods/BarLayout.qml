@@ -268,11 +268,9 @@ QtObject {
   }
 
   // The stretches on pill `index` (each { index, start, end, squareStart,
-  // squareEnd, joinStart, joinEnd, cornerStart, cornerEnd }: one per
-  // surface standing on it) as one, or null. An end is squared (or joins
-  // the perpendicular edge) when a stretch reaching furthest that way does
-  // (any of them, on a tie); its corner rounds as little as the least of
-  // theirs (undefined: a full corner).
+  // squareEnd, joinStart, joinEnd }: one per surface standing on it) as
+  // one, or null. An end is squared (or joins the perpendicular edge) when
+  // a stretch reaching furthest that way does (any of them, on a tie).
   function stretchOf(stretches, index) {
     const on = (stretches ?? []).filter(s => s?.index === index);
     if (on.length === 0)
@@ -286,25 +284,15 @@ QtObject {
       "squareStart": on.some(s => s.start === start && (s.squareStart ?? false)),
       "squareEnd": on.some(s => s.end === end && (s.squareEnd ?? false)),
       "joinStart": on.some(s => s.start === start && (s.joinStart ?? false)),
-      "joinEnd": on.some(s => s.end === end && (s.joinEnd ?? false)),
-      "cornerStart": root._leastCorner(on.filter(s => s.start === start).map(s => s.cornerStart)),
-      "cornerEnd": root._leastCorner(on.filter(s => s.end === end).map(s => s.cornerEnd))
+      "joinEnd": on.some(s => s.end === end && (s.joinEnd ?? false))
     };
-  }
-
-  // The smallest of some corner radii, undefined ones full (undefined if
-  // all are)
-  function _leastCorner(corners) {
-    const set = corners.filter(c => c !== undefined && c !== null);
-    return set.length > 0 ? Math.min(...set) : undefined;
   }
 
   // The islands (or pills) as drawn: `stretches` (see stretchOf) grow
   // them to carry the surfaces open on them, each then joining any it
   // comes within `merge` of. { start, length, joinStart, joinEnd,
-  // squareStart, squareEnd, cornerStart, cornerEnd }: a squared end has
-  // its inner corner square, where a popout runs flush into it, and a
-  // cornered one that corner no rounder than that radius; a joined one (a pill's) meets the
+  // squareStart, squareEnd }: a squared end has its inner corner square,
+  // where a popout runs flush into it; a joined one (a pill's) meets the
   // perpendicular edge, as does a pill stretched on to it to join it
   // (the stretch's joinStart/joinEnd). A stretch may reach past the pills
   // before or after its own, so they're merged in order of where they start.
@@ -317,9 +305,7 @@ QtObject {
         "joinStart": (r.joinStart ?? false) || (stretch?.joinStart ?? false),
         "joinEnd": (r.joinEnd ?? false) || (stretch?.joinEnd ?? false),
         "squareStart": stretch?.squareStart ?? false,
-        "squareEnd": stretch?.squareEnd ?? false,
-        "cornerStart": stretch?.cornerStart,
-        "cornerEnd": stretch?.cornerEnd
+        "squareEnd": stretch?.squareEnd ?? false
       };
     }).sort((a, b) => a.start - b.start);
     return root._mergeSpans(spans, merge).map(m => ({
@@ -328,9 +314,7 @@ QtObject {
           "joinStart": m.joinStart ?? false,
           "joinEnd": m.joinEnd ?? false,
           "squareStart": m.squareStart ?? false,
-          "squareEnd": m.squareEnd ?? false,
-          "cornerStart": m.cornerStart,
-          "cornerEnd": m.cornerEnd
+          "squareEnd": m.squareEnd ?? false
         }));
   }
 
@@ -414,7 +398,6 @@ QtObject {
       } else if (span.end > last.end) {
         last.end = span.end;
         last.squareEnd = span.squareEnd;
-        last.cornerEnd = span.cornerEnd;
         last.joinEnd = span.joinEnd;
       }
     });
