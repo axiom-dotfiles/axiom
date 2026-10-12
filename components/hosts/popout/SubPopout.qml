@@ -68,7 +68,7 @@ Item {
     id: root
     anchors.fill: parent
 
-    property int connectorGap: Appearance.borderRadius * 2
+    property int connectorGap: Appearance.connectorGap
 
     currentItem: loader.item ?? null
     // Loaded, with its entries in (they arrive over DBus, TrayMenuList)
@@ -130,14 +130,14 @@ Item {
     // parent's own.
     readonly property real boxLength: submenuPopup.contentHeight + surface.contentInset * 2
     readonly property real _need: EdgeAttach.filletMargin(root.connectorGap, Appearance.borderWidth, Appearance.borderRadius) + Appearance.borderRadius
-    readonly property real _joinLine: outer.host?.sideJoinLine ?? 0
-    readonly property bool _joinTop: outer.host?.sideJoinTop ?? false
-    readonly property bool _joinBottom: outer.host?.sideJoinBottom ?? false
-    readonly property real reachTop: root._joinTop ? root._joinLine : root.attachRect.y + (outer.host?.sideFreeTop ? 0 : root._need)
-    readonly property real reachBottom: root._joinBottom ? root._joinLine : root.attachEnd - (outer.host?.sideFreeBottom ? 0 : root._need)
+    readonly property real _joinLine: outer.host?.side?.joinLine ?? 0
+    readonly property bool _joinTop: outer.host?.side?.joinTop ?? false
+    readonly property bool _joinBottom: outer.host?.side?.joinBottom ?? false
+    readonly property real reachTop: root._joinTop ? root._joinLine : root.attachRect.y + (outer.host?.side?.freeTop ? 0 : root._need)
+    readonly property real reachBottom: root._joinBottom ? root._joinLine : root.attachEnd - (outer.host?.side?.freeBottom ? 0 : root._need)
     // Longer than the side, it hangs past its far end (up, on a bottom
     // bar), stretching the parent
-    readonly property real reachFrom: outer.host?.sideGrowsUp ? Math.min(root.reachTop, root.reachBottom - root.boxLength) : root.reachTop
+    readonly property real reachFrom: outer.host?.side?.growsUp ? Math.min(root.reachTop, root.reachBottom - root.boxLength) : root.reachTop
     // The screen's room up and down (y in the parent's window): inside
     // what's reserved at its top and bottom. A box longer than the side
     // stays within it, and content (MenuSubmenu) scrolls past
@@ -189,7 +189,7 @@ Item {
     // corner beyond it (sideJoinFrom/To); else our wall runs straight up
     // into it, stretched to meet it
     readonly property real _joinRoom: Appearance.borderRadius * 2
-    readonly property bool joinFillets: outer.openToLeft ? root.outerWall - root._joinRoom >= (outer.host?.sideJoinFrom ?? 0) : root.outerWall + root._joinRoom <= (outer.host?.sideJoinTo ?? 0)
+    readonly property bool joinFillets: outer.openToLeft ? root.outerWall - root._joinRoom >= (outer.host?.side?.joinFrom ?? 0) : root.outerWall + root._joinRoom <= (outer.host?.side?.joinTo ?? 0)
     readonly property real targetBoxHeight: root.place.end - root.place.start
     property real shownBoxWidth: still.holding ? still.held.width : root.targetBoxWidth
     property real shownBoxHeight: still.holding ? still.held.height : root.targetBoxHeight
@@ -260,13 +260,13 @@ Item {
 
       // Room for the shadow or glow the surface casts (SurfaceShadow) on
       // its free sides: away from the parent, above and below
-      readonly property real shadowRoom: BarStyle.shadowReach
+      readonly property real shadowRoom: surface.shadowReach
       // None past the bar side we may join, so it doesn't fall over the
       // bar (as the parent's slide clips its own there)
       // (but the parent's backfill row, which a joined surface covers)
-      readonly property real joinBackfill: outer.host?.sideJoinBackfill ?? 0
-      readonly property real roomTop: outer.host?.sideJoinTop ? joinBackfill : shadowRoom
-      readonly property real roomBottom: outer.host?.sideJoinBottom ? joinBackfill : shadowRoom
+      readonly property real joinBackfill: outer.host?.side?.joinBackfill ?? 0
+      readonly property real roomTop: outer.host?.side?.joinTop ? joinBackfill : shadowRoom
+      readonly property real roomBottom: outer.host?.side?.joinBottom ? joinBackfill : shadowRoom
 
       // Resizing or moving a popup while it shows is a round trip to the
       // compositor, so the window doesn't follow the surface: it spans
@@ -320,6 +320,12 @@ Item {
         // In its parent's window, on its layer
         backed: BlurManager.backsOn(outer.screen, outer.host?.onOverlayLayer ?? true) && surface.parentOrigin !== null
         opaque: BlurManager.opaqueOn(outer.screen)
+        // Cast as its parent casts its own (SurfaceContext.shadow): one
+        // shadow round the two, falling away from the parent's edge
+        readonly property var _parentSurface: outer.host?.popupSurface ?? null
+        shadowLook: surface._parentSurface?.shadowLook ?? BarStyle.values
+        shadowEdge: surface._parentSurface?.shadowEdge ?? surface.edge
+        shadowFalls: surface._parentSurface?.shadowFalls ?? !Appearance.screenBorder
 
         BlurShape {
           source: surface
@@ -351,8 +357,18 @@ Item {
           if (outer.host)
             outer.host.submenuJoinSpan = surface.joinSpan;
         }
+        // Its box in the parent's window, which the parent's own shadow
+        // leaves out (AttachedSurface.shadowHoles)
+        readonly property var parentBox: submenuPopup.visible ? Qt.rect(surface.inParentX + surface.boxRect.x, surface.inParentY + surface.boxRect.y, surface.boxRect.width, surface.boxRect.height) : null
+        onParentBoxChanged: {
+          if (outer.host)
+            outer.host.submenuBox = surface.parentBox;
+        }
         // Its own hole, if still shown (rects compare by value, not ===)
         Component.onDestruction: {
+          const box = outer.host?.submenuBox;
+          if (box && surface.parentBox && box.x === surface.parentBox.x && box.y === surface.parentBox.y)
+            outer.host.submenuBox = null;
           const hole = outer.host?.submenuHole;
           if (hole && surface.parentHole && hole.x === surface.parentHole.x && hole.y === surface.parentHole.y)
             outer.host.submenuHole = null;
@@ -371,7 +387,7 @@ Item {
         // At the parent's bar side, on the stroke it grows from
         joinStart: root.place.joinStart
         joinEnd: root.place.joinEnd
-        straightJoins: (outer.host?.sideStraightJoin ?? false) || !root.joinFillets
+        straightJoins: (outer.host?.side?.straightJoin ?? false) || !root.joinFillets
         // The parent's side stroke leaves an anti-aliased fringe on its
         // inner side: cover it (see AttachedSurface.backfill)
         backfill: 1

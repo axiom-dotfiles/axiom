@@ -461,8 +461,21 @@ QtObject {
   // bar's inner stroke or a bare screen edge, not any other bar's edge (it
   // has none to join), nor an integrated menu's strip
   function joinableOn(screen, location) {
-    const bar = root.edgesFor(screen)[Bar.edgeName(location)];
-    return (!bar || bar.joinable) && EdgeMenuManager.zoneOn(screen?.name ?? "", Bar.edgeName(location)) === 0;
+    return SurfaceContext.strokeJoinable(root.surfaceEnd(screen, location).kind);
+  }
+
+  // What a surface's end reaching a screen edge (a Bar.Location) along a
+  // perpendicular one meets there (SurfaceContext.endKind): the one answer
+  // every popout, dock and pill takes its joins, walls and openings from
+  function surfaceEnd(screen, location) {
+    const name = Bar.edgeName(location);
+    const bar = root.edgesFor(screen)[name] ?? null;
+    return SurfaceContext.endKind({
+      "border": Appearance.screenBorder,
+      "bar": bar,
+      "barShowing": !bar || (ShellManager.barOn(screen?.name ?? "", location)?.visible ?? false),
+      "menuZone": EdgeMenuManager.zoneOn(screen?.name ?? "", name)
+    });
   }
 
   // Whether a screen edge (a Bar.Location) is bare: no screen border and no

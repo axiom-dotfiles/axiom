@@ -51,6 +51,9 @@ QtObject {
 
   // --- Shape ---
   readonly property int borderRadius: _c.shape.radius
+  // The gap a surface growing out of an edge keeps between its box and
+  // that edge, which its fillets curve across (AttachedSurface, EdgeAttach)
+  readonly property int connectorGap: borderRadius * 2
   readonly property int borderWidth: _c.shape.borderWidth
   readonly property bool screenBorder: _c.shape.screenBorder
   // The frame can't be thinner than its own outline (a narrower one would

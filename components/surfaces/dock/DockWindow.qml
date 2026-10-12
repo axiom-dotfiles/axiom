@@ -48,17 +48,12 @@ Scope {
   // a bare screen edge; with another bar on its edge, meeting it as a bar
   // popout would.
   readonly property string _edgeName: Bar.edgeName(root.edge)
-  readonly property int connectorGap: Appearance.borderRadius * 2
+  readonly property int connectorGap: Appearance.connectorGap
   // Held off the edge, and its gaps from the frame lines across its edge
   // and at its ends (what places it, so a change of `held` never reads
   // them before they follow)
   readonly property bool held: root.dock.detached
-  readonly property var gaps: root.held ? BarManager.detachedGaps(root.screen, root.edge, root.dock.gap) : null
-  // How far past where the window starts on a screen edge (what's
-  // reserved there) a frame line plus `gap` lies
-  function _heldOffset(location, gap) {
-    return Math.max(0, EdgeMenuManager.frameLineOn(root.screen, location) + gap - EdgeMenuManager.reservedOn(root.screen, location));
-  }
+  readonly property var gaps: placement.gaps
   // Where the window starts across the edge (what's reserved there; not
   // docks, its own included)
   readonly property real reservedHere: EdgeMenuManager.reservedOn(root.screen, root.edge)
@@ -68,24 +63,21 @@ Scope {
   // reserves the edge (the screen edge when bare)
   readonly property real attachAt: placement.followsBar ? placement.barAttach : root.reservedHere - (placement.bareEdge ? 0 : Appearance.borderWidth)
   // On a pill's far stroke the surface covers that stroke's inner fringe
-  readonly property real backfill: root.attached && placement.onPill ? 1 : 0
+  readonly property real backfill: placement.backfill
   // An attached window's edge sits on its attach edge (reaching back onto
   // the stroke it joins, as EdgePopout's)
   // A preview reserves nothing, so the docks' zones on its edge push it in:
   // it reaches back past them to where a dock sits
   readonly property real edgeMargin: (root.attached ? root.attachAt - root.reservedHere - root.backfill : 0) - (root.preview ? DockManager.zoneOn(root.screen?.name ?? "", root._edgeName) : 0)
+  // Detached, where its box goes from the window's edge: held, its gap
+  // past the frame line; else a connector gap past where it attaches
+  readonly property real _detachedBox: root.gaps ? placement.heldInset(root.edge, root.gaps.across) : Math.max(0, root.attachAt + root.connectorGap / 2 - root.reservedHere)
   // From the window's edge to the box of icons
-  readonly property real boxOffset: {
-    if (root.attached)
-      return root.backfill + surface.boxStart + placement.attachClearance;
-    if (root.gaps)
-      return root._heldOffset(root.edge, root.gaps.across);
-    return Math.max(0, root.attachAt + root.connectorGap / 2 - root.reservedHere);
-  }
+  readonly property real boxOffset: root.backfill + surface.boxStart + (root.attached ? placement.attachClearance : 0)
   // The window: the gap to the edge, the box, and room for icons to grow
   // (and for an attached surface's far side, and the shadow or glow it
   // casts, SurfaceShadow)
-  readonly property real depth: root.boxOffset + root.thickness + Math.max(root.peak - root.base, (root.attached ? root.connectorGap / 2 : 0) + BarStyle.shadowReach) + 2
+  readonly property real depth: root.boxOffset + root.thickness + Math.max(root.peak - root.base, (root.attached ? root.connectorGap / 2 : 0) + surface.shadowReach) + 2
 
   // --- Items ---
   // Re-read on every window change; delegates are keyed by the joined
@@ -101,23 +93,20 @@ Scope {
 
   // --- Along the dock ---
   // In edge coordinates, as EdgePopout's: 0 at the perpendicular edges'
-  // inner side. Not held, the window reaches onto their strokes, so an end
-  // can join one.
-  // Not at a bare screen edge, which a joined end runs straight off
-  function _strokeInsetOn(location) {
-    return !root.held && !BarManager.screenEdgeOpen(root.screen, location) ? Appearance.borderWidth : 0;
-  }
-  readonly property int startSide: root.vertical ? Bar.Top : Bar.Left
-  readonly property int endSide: root.vertical ? Bar.Bottom : Bar.Right
-  readonly property real strokeInset: root._strokeInsetOn(root.startSide)
-  readonly property real endStrokeInset: root._strokeInsetOn(root.endSide)
+  // inner side. The window reaches onto their strokes where an end may
+  // join one, and past a wall far enough for a fillet curving on past it
+  // (EdgePlacement): where edge coordinates start in it, at each end.
+  readonly property int startSide: placement.startSide
+  readonly property int endSide: placement.endSide
+  readonly property real strokeInset: placement.strokeInsetStart + placement.reachStart
+  readonly property real endStrokeInset: placement.strokeInsetEnd + placement.reachEnd
   readonly property real length: (root.vertical ? panelWindow.height : panelWindow.width) - root.strokeInset - root.endStrokeInset
   readonly property real restLength: root.count * root.base + Math.max(0, root.count - 1) * root.spacing + root.separatorLength + root.pad * 2
   // The least room from the box to each end that isn't joined: held, its
-  // gaps from the frame lines there; else its fillet's past the corner
-  // (EdgePlacement.endRoom)
-  readonly property real startInset: root.gaps ? root._heldOffset(root.vertical ? Bar.Top : Bar.Left, root.gaps.start) : placement.endRoom
-  readonly property real endInset: root.gaps ? root._heldOffset(root.vertical ? Bar.Bottom : Bar.Right, root.gaps.end) : placement.endRoom
+  // gaps from the frame lines there; at a wall, up to where windows
+  // start; else its fillet's past the corner (EdgePlacement)
+  readonly property real startInset: placement.insetStart
+  readonly property real endInset: placement.insetEnd
   readonly property real _wanted: root.length * root.dock.position / 100
   // The box's centre at rest, kept within those
   readonly property real centre: {
@@ -127,32 +116,36 @@ Scope {
   }
   readonly property real restStart: root.centre - root.restLength / 2
   // From where it would rest, so magnifying never joins or parts an end
-  readonly property var joins: EdgeAttach.joins(root._wanted - root.restLength / 2, root.restLength, root.startInset, root.length - root.endInset, root.connectorGap, !root.held && placement.joinable(root.vertical ? "top" : "left"), !root.held && placement.joinable(root.vertical ? "bottom" : "right"))
+  readonly property var joins: EdgeAttach.joins(root._wanted - root.restLength / 2, root.restLength, root.startInset, root.length - root.endInset, root.connectorGap, placement.joinableStart, placement.joinableEnd)
   EdgePlacement {
     id: placement
     screen: root.screen
     edge: root.edge
     held: root.held
+    gap: root.dock.gap
     connectorGap: root.connectorGap
     length: root.length
-    strokeInsetStart: root.strokeInset
-    strokeInsetEnd: root.endStrokeInset
     centre: root.centre
     aligned: root.centre - root.currentLength / 2
     contentLength: root.currentLength
     joinStart: root.joins.joinStart
     joinEnd: root.joins.joinEnd
-    // An end may join a perpendicular pill bar's end pill, which stretches
-    // past the join's fillet (as EdgePopout's)
-    joinsPills: true
+    // An end joining a perpendicular pill bar's end pill stretches it past
+    // the join's fillet (as EdgePopout's)
     joinReach: root.attachAt - root.backfill + surface.joinWall
-    lo: root.startInset
-    hi: root.length - root.endInset
+    coverStart: surface.coverStart
+    coverLength: surface.coverLength
     owner: "dock:" + root.dock.id + ":" + (root.screen?.name ?? "") + (root.preview ? ":preview" : "")
     // Its pill stretches as it's wanted, and draws back once it's gone
     showing: (root.wantShown || root._out) && root.count > 0
     open: root.wantShown
+    // Not a preview's: drawn over the overlay, it fills itself
+    onOverlayLayer: root.preview
+    origin: root.preview ? null : root._origin
+    attachedSurface: surface
+    opens: root._origin !== null && !root.preview && panelWindow.visible && root.attached
   }
+  readonly property var _origin: placeOnScreen.origin
   readonly property var place: placement.place
 
   // Magnification: the pointer along the row as laid out at rest, and how
@@ -499,74 +492,9 @@ Scope {
       namespace: root.preview ? "axiom-dock-preview" : "axiom-dock"
       edge: root.edge
     }
-    readonly property bool backed: !root.preview && BlurManager.backsOn(root.screen, false) && placeOnScreen.origin !== null
+    readonly property bool backed: placement.backed
     // The window on screen: a hiding box goes past its edge
     readonly property rect screenRect: Qt.rect(placeOnScreen.origin?.x ?? 0, placeOnScreen.origin?.y ?? 0, panelWindow.width, panelWindow.height)
-
-    // Joined to the border's stroke, the stretch of it the box covers (in
-    // screen px along the edge), which the border leaves open under its
-    // translucent fill (ShellManager.borderOpenings), as for edge popouts;
-    // with the border off, a solid bar's own inner stroke, left open
-    // opaque or not (SolidBarOpening)
-    readonly property bool _onStroke: placeOnScreen.origin !== null && !root.preview && panelWindow.visible && root.attached && !placement.bareEdge
-    readonly property bool _joinsBorder: panelWindow._onStroke && Appearance.translucent && Appearance.screenBorder
-    readonly property var borderOpening: panelWindow._joinsBorder ? panelWindow.strokeSpan : null
-    readonly property var strokeSpan: {
-      const origin = placeOnScreen.origin;
-      if (!panelWindow._onStroke || placement.barPanel)
-        return null;
-      const start = (root.vertical ? origin.y + surface.y : origin.x + surface.x) + surface.coverStart;
-      return surface.coverLength <= 0 ? null : {
-        "screen": root.screen?.name ?? "",
-        "edge": root._edgeName,
-        "start": start,
-        "end": start + surface.coverLength
-      };
-    }
-    BorderOpening {
-      opening: panelWindow.borderOpening
-    }
-    SolidBarOpening {
-      screen: root.screen
-      owner: placement.owner + ":solid"
-      span: panelWindow.strokeSpan
-    }
-    // ...and joined to a perpendicular edge at an end, that edge's stroke
-    // its end covers (on a pill bar's edge too: the pill it grows from
-    // joins that edge with it), as for edge popouts
-    function _joinOpening(atStart) {
-      return panelWindow._joinsBorder ? panelWindow._joinSpan(atStart) : null;
-    }
-    function _joinSpan(atStart) {
-      const origin = placeOnScreen.origin;
-      if (!panelWindow._onStroke)
-        return null;
-      const from = root.vertical ? origin.x + surface.x : origin.y + surface.y;
-      return Object.assign({
-        "screen": root.screen?.name ?? ""
-      }, EdgeAttach.joinOpening(root._edgeName, atStart, from, root.vertical ? surface.width : surface.height, (atStart ? surface.joinShown : surface.joinShownEnd), (root.vertical ? root.screen?.width : root.screen?.height) ?? 0, atStart ? surface.joinFillet : surface.joinFilletEnd));
-    }
-    BorderOpening {
-      opening: surface.joinStart ? panelWindow._joinOpening(true) : null
-    }
-    BorderOpening {
-      opening: surface.joinEnd ? panelWindow._joinOpening(false) : null
-    }
-    // ...or that edge's solid bar's own stroke, with the border off
-    SolidBarOpening {
-      screen: root.screen
-      owner: placement.owner + ":solidStart"
-      edge: root._edgeName
-      span: surface.joinStart ? panelWindow._joinSpan(true) : null
-      fillet: surface.joinFillet
-    }
-    SolidBarOpening {
-      screen: root.screen
-      owner: placement.owner + ":solidEnd"
-      edge: root._edgeName
-      span: surface.joinEnd ? panelWindow._joinSpan(false) : null
-      fillet: surface.joinFilletEnd
-    }
 
     Item {
       id: content
@@ -577,10 +505,10 @@ Scope {
         id: hover
       }
 
-      // The box, joined to the edge
+      // The box, joined to the edge or held off it (detached), as every
+      // edge popout's
       AttachedSurface {
         id: surface
-        visible: root.attached
         x: root.vertical ? root.crossAt(0, width) : root.strokeInset + root.place.surfaceStart
         y: root.vertical ? root.strokeInset + root.place.surfaceStart : root.crossAt(0, height)
         width: implicitWidth
@@ -590,14 +518,17 @@ Scope {
         castShadow: true
         active: true
         straight: placement.straight
-        straightJoins: !Appearance.screenBorder
-        // ...per end: straight off a bare screen edge, else curving into
-        // the stroke it joins (as EdgePopout's)
-        straightJoinStart: BarManager.screenEdgeOpen(root.screen, root.startSide) || placement.pillStraightStart
-        straightJoinEnd: BarManager.screenEdgeOpen(root.screen, root.endSide) || placement.pillStraightEnd
+        detached: !root.attached
+        detachedOffset: Math.max(0, root._detachedBox - root.connectorGap / 2)
+        // Joined ends straight off a bare screen edge or into a pill bar's
+        // stub, else curving into the stroke they join (as EdgePopout's)
+        startFilletMargin: placement.startFilletMargin
+        endFilletMargin: placement.endFilletMargin
+        straightJoinStart: placement.straightJoinStart
+        straightJoinEnd: placement.straightJoinEnd
         connectorGap: root.connectorGap
-        boxWidth: root.vertical ? root.thickness + placement.attachClearance : root.surfaceBoxLength
-        boxHeight: root.vertical ? root.surfaceBoxLength : root.thickness + placement.attachClearance
+        boxWidth: root.vertical ? root.thickness + (root.attached ? placement.attachClearance : 0) : root.surfaceBoxLength
+        boxHeight: root.vertical ? root.surfaceBoxLength : root.thickness + (root.attached ? placement.attachClearance : 0)
         joinStart: root.place.joinStart
         joinEnd: root.place.joinEnd
         flushStart: root.place.flushStart
@@ -605,7 +536,11 @@ Scope {
         backfill: root.backfill
         fillColor: Theme.resolveColor(root.dock.backgroundColor)
         strokeColor: Theme.resolveColor(root.dock.borderColor)
-        backed: panelWindow.backed
+        backed: placement.backed
+        opaque: placement.opaque
+        shadowLook: placement.shadowLook
+        shadowEdge: placement.shadow.edge
+        shadowFalls: placement.shadow.falls
         // Hiding, it moves past its window's edge
         hiddenBehind: Math.max(0, root.slide)
 
@@ -614,55 +549,8 @@ Scope {
           screen: root.screen?.name ?? ""
           x: (placeOnScreen.origin?.x ?? 0) + surface.x
           y: (placeOnScreen.origin?.y ?? 0) + surface.y
-          shown: panelWindow.backed && panelWindow.visible && content.visible && surface.visible
+          shown: placement.backed && panelWindow.visible && content.visible
           clipRect: panelWindow.screenRect
-        }
-      }
-
-      // Or a box of its own, its shadow only outside it, cast from a black
-      // copy (its own fill may be the blur window's); backed, the blur
-      // window casts it (BlurShape.shadow)
-      OutsideShadow {
-        target: detachedShape
-        hideTarget: true
-        active: detachedShape.visible
-        edge: root.edge
-      }
-
-      Rectangle {
-        id: detachedShape
-        visible: detachedBox.visible && !panelWindow.backed
-        x: detachedBox.x
-        y: detachedBox.y
-        width: detachedBox.width
-        height: detachedBox.height
-        radius: detachedBox.radius
-        color: "black"
-      }
-
-      Rectangle {
-        id: detachedBox
-        visible: !root.attached
-        x: root.vertical ? root.crossAt(root.boxOffset, root.thickness) : root.surfaceBoxStart
-        y: root.vertical ? root.surfaceBoxStart : root.crossAt(root.boxOffset, root.thickness)
-        width: root.vertical ? root.thickness : root.surfaceBoxLength
-        height: root.vertical ? root.surfaceBoxLength : root.thickness
-        radius: Math.min(Appearance.borderRadius, root.thickness / 2)
-        color: panelWindow.backed ? "transparent" : Appearance.fill(Theme.resolveColor(root.dock.backgroundColor))
-        border.color: Theme.resolveColor(root.dock.borderColor)
-        border.width: Appearance.borderWidth
-
-        BlurShape {
-          source: detachedBox
-          kind: "rect"
-          color: Theme.resolveColor(root.dock.backgroundColor)
-          screen: root.screen?.name ?? ""
-          x: (placeOnScreen.origin?.x ?? 0) + detachedBox.x
-          y: (placeOnScreen.origin?.y ?? 0) + detachedBox.y
-          shown: panelWindow.backed && panelWindow.visible && content.visible && detachedBox.visible
-          clipRect: panelWindow.screenRect
-          shadow: BarStyle.values
-          shadowEdge: root.edge
         }
       }
 

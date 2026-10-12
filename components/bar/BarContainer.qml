@@ -49,7 +49,7 @@ Rectangle {
   readonly property real islandFrom: root._islandInset(root._ends.start)
   readonly property real islandEnd: root.length - root._islandInset(root._ends.end)
   // Fillet room each side of a pill, as for popouts (AttachedSurface)
-  readonly property int pillConnector: Appearance.borderRadius * 2
+  readonly property int pillConnector: Appearance.connectorGap
   // Kept clear at each end. A pill at an end instead sits flush on the
   // perpendicular edge's stroke (bar-window 0 along a bar inside the
   // border) and joins it, so its widgets only need the pill inset (the
@@ -254,6 +254,14 @@ Rectangle {
   }
   readonly property var solidStart: root._solidBarAt(true)
   readonly property var solidEnd: root._solidBarAt(false)
+  // The pill bar an end makes way for (BarEnds "pillBar"), whose end pill
+  // this bar's end pill merges into (CornerMerge)
+  function _pillBarAt(atStart) {
+    if ((atStart ? root._ends.start : root._ends.end).kind !== "pillBar")
+      return null;
+    const panel = ShellManager.barOn(root.blurScreen, root.isVertical ? (atStart ? Bar.Top : Bar.Bottom) : (atStart ? Bar.Left : Bar.Right));
+    return panel?.visible ? panel.container : null;
+  }
   // Where a surface's joined end covers that bar's stroke (`other`), along
   // it (its coordinates), as EdgeAttach.joinOpening for the border's:
   // `from` where the surface starts across this bar's edge on screen,
@@ -475,7 +483,7 @@ Rectangle {
   // Backed, the blur window casts it instead, from the same shapes
   // (BlurShape.shadow), with everything joined to them
   readonly property int shadowEdge: root.barConfig.left ? Bar.Left : root.barConfig.right ? Bar.Right : root.barConfig.bottom ? Bar.Bottom : Bar.Top
-  readonly property bool shadowFalls: !root.barConfig.pills || !Appearance.screenBorder
+  readonly property bool shadowFalls: SurfaceContext.barShadowFalls(root.barConfig, Appearance.screenBorder)
   OutsideShadow {
     target: shadowShape
     hideTarget: true
@@ -487,7 +495,7 @@ Rectangle {
     // cover the far stroke, whether or not the pill stretches for them),
     // from the outer edge they stand on out, nor on the solid bars its
     // ends make way for (whose stroke a pill's fillet curves into)
-    holes: [].concat(...root._openingList.map(o => root._shadowHoles(o).rects)).concat(root._endBarHole(true, root.solidStart), root._endBarHole(false, root.solidEnd)).filter(hole => hole !== null)
+    holes: [].concat(...root._openingList.map(o => root._shadowHoles(o).rects)).concat(root._endBarHole(true, root.solidStart ?? root._pillBarAt(true)), root._endBarHole(false, root.solidEnd ?? root._pillBarAt(false))).filter(hole => hole !== null)
     // ...and a joined surface's fillet (a pill's or popout's curving into
     // a solid bar's stroke) only as far as its curve, not the square it
     // sits in: past the curve the shadow runs on round it
@@ -526,10 +534,10 @@ Rectangle {
       "fillet": fillet
     };
   }
-  // The solid bar an end makes way for (`other`, its container), from its
-  // inner edge on: a shadow falling along this bar, or spread round a
-  // pill's fillet, would land on its stroke where this bar's window
-  // overlaps it
+  // The bar an end makes way for (`other`, its container: a solid bar, or
+  // a pill bar its end pill merges into), from its inner edge on: a shadow
+  // falling along this bar, or spread round a pill's fillet, would land on
+  // its stroke where this bar's window overlaps it
   function _endBarHole(atStart, other) {
     const origin = other?.blurOrigin ?? null;
     if (!origin || !root.blurOrigin)
@@ -567,7 +575,7 @@ Rectangle {
       id: solidFill
       anchors.fill: parent
       visible: root.barConfig.solid
-      color: root.backed ? "transparent" : Appearance.fill(Theme.background)
+      color: root.backed ? "transparent" : BlurManager.fillOn(Theme.background, root.blurScreen)
 
       Rectangle {
         parent: shadowShape
@@ -635,7 +643,7 @@ Rectangle {
         y: root.isVertical ? rect.start : across
         width: root.isVertical ? depth : rect.length
         height: root.isVertical ? rect.length : depth
-        color: root.backed ? "transparent" : Appearance.fill(Theme.background)
+        color: root.backed ? "transparent" : BlurManager.fillOn(Theme.background, root.blurScreen)
         // The stroke drawn by the one below, left open where a popout joins
         border.width: 0
 
@@ -753,6 +761,7 @@ Rectangle {
         x: root.isVertical ? (root.barConfig.right ? root.width - width : 0) : alongStart
         y: root.isVertical ? alongStart : (root.barConfig.bottom ? root.height - height : 0)
         backed: root.backed
+        opaque: BlurManager.opaqueOn(root.blurScreen)
         // Grown out of the border's stroke, which it covers there...
         readonly property real _along: root.isVertical ? pill.y : pill.x
         BorderOpening {
@@ -826,7 +835,7 @@ Rectangle {
             y: area.y - pill.boxRect.y
             width: area.width
             height: area.height
-            color: Appearance.fill(Theme.background)
+            color: BlurManager.fillOn(Theme.background, root.blurScreen)
           }
         }
 

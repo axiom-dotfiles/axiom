@@ -46,7 +46,7 @@ Item {
   property bool active: false
   property real boxWidth: 100
   property real boxHeight: 100
-  property int connectorGap: Appearance.borderRadius * 2
+  property int connectorGap: Appearance.connectorGap
   property int animationDuration: Appearance.animNormal
 
   property bool joinStart: false
@@ -98,6 +98,21 @@ Item {
   // Casts the shell's shadow or glow (SurfaceShadow), for a surface whose
   // border shows: off for a bar's own pills, which their bar's casts
   property bool castShadow: false
+  // How it casts it: the look (BarStyle's, or the bar it grows out of),
+  // the edge it falls away from and whether it falls rather than spreading
+  // evenly. Hosts take all three from what the surface grows out of
+  // (SurfaceContext.shadow), so joined shapes cast one shadow; by default
+  // it falls when detached or with the border off, as the bars' do, and
+  // joined to the border spreads evenly, as the border's
+  property var shadowLook: BarStyle.values
+  property int shadowEdge: root.edge
+  property bool shadowFalls: root.detached || !Appearance.screenBorder
+  // Rects (in this item's coordinates) its own shadow isn't cast on
+  // either: a submenu's box beside it, whose translucent fill it would
+  // show through (the blur window's shadow, cut by every shape, needs none)
+  property var shadowHoles: []
+  // How far past it the shadow reaches, which its window keeps room for
+  readonly property int shadowReach: root.castShadow && root.shadowLook.shadow !== "none" ? Math.ceil(root.shadowLook.shadowSize * 1.25) : 0
   // The blur window (BlurManager) draws this surface's fill and casts its
   // shadow (BlurShape.shadow): it draws its stroke and content only
   property bool backed: false
@@ -276,14 +291,11 @@ Item {
   // fillet (SurfaceOutline.fillPath)
   readonly property real joinCover: _m.back + (root._straightJoinStart ? root.farV : root.farV + root.filletRadius)
   readonly property real joinCoverEnd: _m.back + (root._straightJoinEnd ? root.farV : root.farV + root.filletRadius)
-  // Whether its shadow falls away from its edge rather than spreading
-  // evenly: detached, or with the border off, as the bars' do
-  // (BarContainer.shadowFalls); joined to the border it spreads evenly,
-  // as the border's, since one shifted along that stroke would cover it
-  readonly property bool shadowFalls: root.detached || !Appearance.screenBorder
   // ...to the far wall alone, fillet or not (where a host decides whether
   // it curves in from)
-  readonly property real joinWall: _m.back + root.farV
+  // (from the metrics without the joins' straightness, which a pill bar's
+  // join decides from where this wall is: PillBarJoin.filleted)
+  readonly property real joinWall: root._back + root.boxStart + root.boxDepth - root._natural.half
   // The fillet each joined end curves into that stroke with, at the far
   // end of its cover (0 for one running straight into it)
   readonly property real joinFillet: root._straightJoinStart ? 0 : root.filletRadius
@@ -345,7 +357,7 @@ Item {
     containerHeight: root.height
     containerWidth: root.width
     enableFade: false
-    overflow: root.castShadow ? BarStyle.shadowReach : 0
+    overflow: root.shadowReach
 
     // The shadow or glow the outline casts, only outside it (none shows
     // through a translucent fill), from a copy of it filled (its own fill
@@ -355,8 +367,9 @@ Item {
       target: shadowShape
       hideTarget: true
       active: root._ownShadow
-      edge: root.edge
+      edge: root.shadowEdge
       falls: root.shadowFalls
+      look: root.shadowLook
       // Nothing past a joined end: what it joins (the border's frame, a
       // pill) runs on there, under this window, as the blur window's cut
       // to every shape leaves it
@@ -365,7 +378,7 @@ Item {
           return [];
         const reach = ownShadow.reach;
         const v = -root._back - reach, deep = root._back + root.depth + reach * 2;
-        return (root.joinStart ? [root._rectFrom(-reach, v, reach, deep)] : []).concat(root.joinEnd ? [root._rectFrom(root.alongLength, v, reach, deep)] : []);
+        return (root.joinStart ? [root._rectFrom(-reach, v, reach, deep)] : []).concat(root.joinEnd ? [root._rectFrom(root.alongLength, v, reach, deep)] : [], root.shadowHoles);
       }
     }
 

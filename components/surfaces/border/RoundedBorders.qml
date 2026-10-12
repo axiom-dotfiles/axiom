@@ -112,10 +112,11 @@ Item {
     id: shadowWindow
 
     readonly property var look: BarStyle.values
-    readonly property real left: root.innerInset("left")
-    readonly property real right: root.innerInset("right")
-    readonly property real top: root.innerInset("top")
-    readonly property real bottom: root.innerInset("bottom")
+    // (the frame line, past integrated menus' strips as the frame is)
+    readonly property real left: root.innerLeft
+    readonly property real right: root.innerRight
+    readonly property real top: root.innerTop
+    readonly property real bottom: root.innerBottom
     // The stroke's inner side, round the corner pieces' arcs
     readonly property real radius: Math.max(0, root.innerBorderRadius - root.strokeWidth)
 

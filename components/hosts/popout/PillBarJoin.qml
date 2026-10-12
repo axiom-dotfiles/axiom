@@ -87,11 +87,11 @@ PillStretch {
     if (!root.filleted)
       return {
         "start": root._atStart ? 0 : root._reach + Appearance.borderWidth / 2,
-        "end": root._atStart ? root._reach - Appearance.borderWidth / 2 : root.container.length,
+        "end": root._atStart ? root._reach - Appearance.borderWidth / 2 : root._panel.container.length,
         "keepFill": true
       };
     const start = root._atStart ? 0 : Math.ceil(root._reach);
-    const end = root._atStart ? Math.floor(root._reach) : root.container.length;
+    const end = root._atStart ? Math.floor(root._reach) : root._panel.container.length;
     return {
       "start": start,
       "end": end,

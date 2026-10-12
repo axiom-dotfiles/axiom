@@ -63,7 +63,7 @@ EdgePopout {
   // padding. From its natural length (the joins at the ends depend on
   // where it is); one filling its edge joins both and needs none.
   position: 0
-  positionOffset: root.modulesStart - root.alongOrigin - root.contentPadding + (isFinite(root._naturalBox) ? root._naturalBox / 2 : 0)
+  positionOffset: root.modulesStart - root.alongOrigin - root.contentPadding + (isFinite(root.naturalBox) ? root.naturalBox / 2 : 0)
   // Fill cells grow to whatever room there is, so its ends always reach
   // (and, not held, join) the perpendicular edges
   reachLength: root._body ? (root._body.fillsEdge ? Infinity : root._body.naturalLength) : 0
