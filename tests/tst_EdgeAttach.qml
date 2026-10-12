@@ -98,6 +98,77 @@ TestCase {
     compare([bare.startMargin, bare.endMargin], [0, 0]);
   }
 
+  function test_plain_stops_at_a_wall() {
+    // Nothing to join at the end: its wall goes up to where windows start,
+    // its fillet past it
+    const p = EdgeAttach.place(spec({
+      "aligned": 900,
+      "wallTo": 800
+    }));
+    compare([p.start, p.end, p.endMargin, p.joinEnd], [700, 800, 54, false]);
+    const q = EdgeAttach.place(spec({
+      "aligned": 0,
+      "wallFrom": 200
+    }));
+    compare([q.start, q.startMargin, q.joinStart], [200, 54, false]);
+  }
+
+  function test_pill_stops_at_a_wall() {
+    // The end pill joins the edge past the wall: the box doesn't follow it
+    const pills = [pill(300, 702, false, true)];
+    const p = EdgeAttach.place(spec({
+      "pills": pills,
+      "pillBar": true,
+      "centre": 900,
+      "aligned": 900,
+      "pillGrows": true,
+      "wallTo": 800
+    }));
+    compare([p.start, p.end, p.joinEnd, p.flushEnd, p.endMargin], [700, 800, false, false, 54]);
+    compare(p.stretch, null);
+    // Without one it joins the edge
+    compare(EdgeAttach.place(spec({
+      "pills": pills,
+      "pillBar": true,
+      "centre": 900,
+      "aligned": 900,
+      "pillGrows": true
+    })).joinEnd, true);
+    // A wall too near what pills reach keeps a fillet's room inside it
+    compare(EdgeAttach.place(spec({
+      "pills": pills,
+      "pillBar": true,
+      "centre": 900,
+      "aligned": 900,
+      "pillGrows": true,
+      "wallTo": 960
+    })).end, 920);
+  }
+
+  function test_pill_grows_past_a_wall_for_the_fillet() {
+    const p = EdgeAttach.place(spec({
+      "pills": [pill(300, 520)],
+      "pillBar": true,
+      "centre": 600,
+      "aligned": 900,
+      "pillGrows": true,
+      "wallTo": 800
+    }));
+    compare([p.end, p.flushEnd, p.endMargin], [800, false, 54]);
+    compare([p.stretch.end, p.stretch.squareEnd], [882, false]);
+  }
+
+  function test_island_stops_at_a_wall() {
+    const p = EdgeAttach.place(spec({
+      "island": true,
+      "pills": [pill(100, 890)],
+      "centre": 900,
+      "aligned": 900,
+      "wallTo": 800
+    }));
+    compare([p.mode, p.end, p.flushEnd, p.endMargin], ["island", 800, false, 54]);
+  }
+
   function test_joined_box_reaches_the_stroke() {
     const p = EdgeAttach.place(spec({
       "aligned": 60,

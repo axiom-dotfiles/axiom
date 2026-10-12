@@ -33,6 +33,10 @@ import QtQuick
 //   the perpendicular edge, the box joins that edge too. A pill bar
 //   showing no pills has nothing to grow out of: the box grows from its
 //   outer edge (`merged`).
+// - At an end with nothing to join (another bar on the perpendicular
+//   edge, an integrated menu's strip) the caller may set a wall: where
+//   windows start. The box's walls go no further, only its fillet (and the
+//   pill or island it lands on) past it, and it never joins that edge.
 QtObject {
   id: root
 
@@ -94,6 +98,10 @@ QtObject {
   //   nudge (without pillGrows: out of a pill or island, the content may
   //     move a little rather than the box growing empty to the pill's end)
   //   gap (connector gap), stroke, radius
+  //   wallFrom, wallTo (optional: at an end with nothing to join, where
+  //     the box's walls stop, its fillet past them; replaces lo/hi there,
+  //     and out of a pill or island keeps a fillet's room inside what it
+  //     may reach, joinFrom/joinTo or islandFrom/islandTo)
   // Returns { mode: "plain" | "pill" | "island" | "merged", pill, start,
   //   end (the box), grow (the box past `length`), contentStart (where
   //   the content's `length` starts) and contentOffset (from the box's
@@ -112,7 +120,8 @@ QtObject {
     const length = s.length;
     // On whole pixels: a fillet ending mid-pixel leaves a pale pixel in
     // the stroke it joins
-    const lo = s.joinStart ? s.joinFrom : s.lo, hi = s.joinEnd ? s.joinTo : s.hi;
+    const lo = s.joinStart ? s.joinFrom : isFinite(s.wallFrom ?? NaN) ? s.wallFrom : s.lo;
+    const hi = s.joinEnd ? s.joinTo : isFinite(s.wallTo ?? NaN) ? s.wallTo : s.hi;
     const content = Math.round(Math.max(lo, Math.min(s.aligned, hi - length)));
     const start = s.joinStart ? s.joinFrom : content;
     const end = s.joinEnd ? s.joinTo : content + length;
@@ -202,7 +211,12 @@ QtObject {
   // may join the perpendicular edges at the bar's ends
   function _onPill(s, pills, own, isPill) {
     // Within reach: a pill bar's frame, or where islands may go
-    const lo = isPill ? s.joinFrom : s.islandFrom, hi = isPill ? s.joinTo : s.islandTo;
+    const reachFrom = isPill ? s.joinFrom : s.islandFrom, reachTo = isPill ? s.joinTo : s.islandTo;
+    const need = root.filletMargin(s.gap, s.stroke, s.radius) + s.radius;
+    // At a wall, no further than it, and a fillet's room inside the reach,
+    // so the side never runs flush past the wall
+    const lo = isFinite(s.wallFrom ?? NaN) ? Math.max(s.wallFrom, reachFrom + need) : reachFrom;
+    const hi = isFinite(s.wallTo ?? NaN) ? Math.min(s.wallTo, reachTo - need) : reachTo;
     const content = Math.round(Math.max(lo, Math.min(s.aligned, hi - s.length)));
     const placed = root._onPillAt(s, pills, own, isPill, content);
     // One side runs flush to the pill's end with empty box before it: try
@@ -210,7 +224,6 @@ QtObject {
     // take the nearer that grows nothing (the other side unchanged)
     if (!s.nudge || s.pillGrows || placed.grow <= 0 || placed.joinStart || placed.joinEnd || placed.flushStart === placed.flushEnd)
       return placed;
-    const need = root.filletMargin(s.gap, s.stroke, s.radius) + s.radius;
     const empty = placed.flushStart ? content - placed.start : placed.end - (content + s.length);
     const toward = placed.flushStart ? -empty : empty;
     const away = placed.flushStart ? need - empty : empty - need;
@@ -242,8 +255,9 @@ QtObject {
     // pill growing past its end to carry it, unless it can't grow there
     // (it joins the edge, or the fillet would pass where pills may reach)
     const lo = isPill ? s.joinFrom : s.islandFrom, hi = isPill ? s.joinTo : s.islandTo;
-    const edgeStart = isPill && (pills.some(p => p.joinStart && p.start === from) || !!s.pillJoins && !!s.joinStart);
-    const edgeEnd = isPill && (pills.some(p => p.joinEnd && p.start + p.length === to) || !!s.pillJoins && !!s.joinEnd);
+    // (never past a wall)
+    const edgeStart = isPill && !isFinite(s.wallFrom ?? NaN) && (pills.some(p => p.joinStart && p.start === from) || !!s.pillJoins && !!s.joinStart);
+    const edgeEnd = isPill && !isFinite(s.wallTo ?? NaN) && (pills.some(p => p.joinEnd && p.start + p.length === to) || !!s.pillJoins && !!s.joinEnd);
     const grows0 = !!s.pillGrows && content >= from && content - need >= lo && !edgeStart;
     const grows1 = !!s.pillGrows && content + length <= to && content + length + need <= hi && !edgeEnd;
     const short0 = content - need < from && !grows0, short1 = content + length + need > to && !grows1;

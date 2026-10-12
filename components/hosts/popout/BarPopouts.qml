@@ -299,10 +299,12 @@ PopoutWrapperBase {
     "length": mainPopup.boxLength,
     "joinStart": mainPopup.joins.joinStart,
     "joinEnd": mainPopup.joins.joinEnd,
-    "joinFrom": mainPopup.strokeStart,
-    "joinTo": mainPopup.strokeEnd,
+    "joinFrom": mainPopup.pillReachStart,
+    "joinTo": mainPopup.pillReachEnd,
     "lo": mainPopup.minAlong + mainPopup.filletMargin,
     "hi": mainPopup.maxAlong - mainPopup.filletMargin,
+    "wallFrom": mainPopup.wallStart,
+    "wallTo": mainPopup.wallEnd,
     "islandFrom": mainPopup.islandStart,
     "islandTo": mainPopup.islandEnd,
     "straight": false,
@@ -551,6 +553,19 @@ PopoutWrapperBase {
     readonly property bool _bareEnd: BarManager.screenEdgeOpen(root.screen, endSide)
     readonly property real strokeStart: root.island ? islandStart : insetStart - (_bareStart ? 0 : _strokeWidth)
     readonly property real strokeEnd: root.island ? islandEnd : panelLength - insetEnd + (_bareEnd ? 0 : _strokeWidth)
+    // Where windows start past each perpendicular edge, in from each end of
+    // the window (no nearer than its frame line: a bar reserving nothing).
+    // Where there's nothing to join (another bar, an integrated menu), the
+    // box's walls stop there, its fillets curving on past (EdgeAttach's
+    // wallFrom/wallTo), and a pill bar's pills reach on to its own ends.
+    function _windowInset(side, atStart) {
+      const line = Math.max(EdgeMenuManager.frameLineOn(root.screen, side), EdgeMenuManager.reservedOn(root.screen, side) + (HyprlandManager.gapsOut[Bar.edgeName(side)] ?? 0));
+      return line - BarManager.barStartOn(root.screen, root.barConfig.location, atStart);
+    }
+    readonly property var wallStart: strokeAtStart ? undefined : _windowInset(startSide, true)
+    readonly property var wallEnd: strokeAtEnd ? undefined : panelLength - _windowInset(endSide, false)
+    readonly property real pillReachStart: strokeAtStart ? strokeStart : 0
+    readonly property real pillReachEnd: strokeAtEnd ? strokeEnd : panelLength
 
     // Along the bar, in bar-window coordinates: the box centred on the
     // anchor, and the surface around it with a fillet margin each side,
