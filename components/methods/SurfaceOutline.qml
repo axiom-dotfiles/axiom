@@ -16,10 +16,14 @@ import QtQuick
 //     startCornerRadius, endCornerRadius, connectorGap, joinStart,
 //     joinEnd, flushStart, flushEnd, flushStartThrough, flushEndThrough,
 //     detached, detachedOffset, backfill, straight, straightJoins,
-//     straightJoinStart, straightJoinEnd }
+//     straightJoinStart, straightJoinEnd, startFilletMargin,
+//     endFilletMargin }
 // (straightJoinStart/End: one joined end's, where the edges it meets
 // differ, a bare screen edge at one and a solid bar's stroke at the
-// other; each defaults to straightJoins)
+// other; each defaults to straightJoins. start/endFilletMargin: a
+// fillet's room along the edge shorter than the connector gap's, its
+// straight run past the curve cut back, never below the fillet's radius;
+// negative or absent for the full room)
 QtObject {
   id: root
 
@@ -43,8 +47,10 @@ QtObject {
     const straightJoinStart = !!(s.straightJoinStart ?? s.straightJoins) || sharp;
     const straightJoinEnd = !!(s.straightJoinEnd ?? s.straightJoins) || sharp;
     const joinFillet = (!!s.joinStart && !straightJoinStart) || (!!s.joinEnd && !straightJoinEnd);
-    const startMargin = filletStart ? s.connectorGap - s.strokeWidth : 0;
-    const endMargin = filletEnd ? s.connectorGap - s.strokeWidth : 0;
+    const full = s.connectorGap - s.strokeWidth;
+    const room = given => (given ?? -1) < 0 ? full : Math.max(Math.min(full, R), Math.min(full, given));
+    const startMargin = filletStart ? room(s.startFilletMargin) : 0;
+    const endMargin = filletEnd ? room(s.endFilletMargin) : 0;
     const alongLength = startMargin + s.boxAlong + endMargin;
     const cs = s.startCornerRadius ?? s.cornerRadius;
     const ce = s.endCornerRadius ?? s.cornerRadius;

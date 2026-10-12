@@ -134,9 +134,19 @@ TestCase {
       "aligned": 900,
       "pillGrows": true
     })).joinEnd, true);
-    // A wall too near what pills reach keeps a fillet's room inside it,
-    // the pill's corner squared under the fillet
+    // A wall too near what pills reach: fillet and pill corner share the
+    // room left, the fillet's straight run cut back first, then the corner
     const q = EdgeAttach.place(spec({
+      "pills": pills,
+      "pillBar": true,
+      "centre": 900,
+      "aligned": 900,
+      "pillGrows": true,
+      "wallTo": 950
+    }));
+    compare([q.end, q.flushEnd, q.endMargin, q.stretch.end, q.stretch.squareEnd, q.stretch.cornerEnd], [950, false, 28, 1002, false, 24]);
+    // Never nearer the reach than the fillet's curve: the corner square
+    const r = EdgeAttach.place(spec({
       "pills": pills,
       "pillBar": true,
       "centre": 900,
@@ -144,31 +154,33 @@ TestCase {
       "pillGrows": true,
       "wallTo": 990
     }));
-    compare([q.end, q.flushEnd, q.endMargin, q.stretch.end, q.stretch.squareEnd], [948, false, 54, 1002, true]);
+    compare([r.end, r.endMargin, r.stretch.cornerEnd], [974, 28, 0]);
   }
 
-  function test_island_squares_its_corner_at_a_wall() {
+  function test_island_corner_shares_a_wall_with_the_fillet() {
     // A floating bar owning the corner: its island reaches past the wall
-    // over the bar it pushes aside, too little for fillet and corner both
-    const p = EdgeAttach.place(spec({
-      "island": true,
-      "pills": [pill(10, 980)],
-      "islandFrom": 10,
-      "centre": 50,
-      "aligned": 0,
-      "wallFrom": 70
-    }));
-    compare([p.start, p.flushStart, p.startMargin], [70, false, 54]);
-    compare([p.stretch.start, p.stretch.squareStart, p.stretch.squareEnd], [10, true, false]);
-    // With room for both, no squaring
-    compare(EdgeAttach.place(spec({
-      "island": true,
-      "pills": [pill(10, 980)],
-      "islandFrom": 10,
-      "centre": 150,
-      "aligned": 0,
-      "wallFrom": 100
-    })).stretch, null);
+    // over the bar it pushes aside, too little for a full fillet margin
+    // and corner both
+    const at = wall => EdgeAttach.place(spec({
+        "island": true,
+        "pills": [pill(10, 980)],
+        "islandFrom": 10,
+        "centre": 50,
+        "aligned": 0,
+        "wallFrom": wall
+      }));
+    // The fillet's straight run cut back: the corner stays whole
+    const p = at(70);
+    compare([p.start, p.flushStart, p.startMargin, p.stretch], [70, false, 32, null]);
+    // Less room: the corner rounds less
+    const q = at(50);
+    compare([q.start, q.startMargin, q.stretch.start, q.stretch.squareStart, q.stretch.cornerStart, q.stretch.cornerEnd], [50, 28, 10, false, 12, undefined]);
+    // No nearer the island's end than the fillet's curve
+    const r = at(30);
+    compare([r.start, r.startMargin, r.stretch.cornerStart], [38, 28, 0]);
+    // With room for both, nothing changes
+    const full = at(100);
+    compare([full.startMargin, full.stretch], [54, null]);
   }
 
   function test_pill_grows_past_a_wall_for_the_fillet() {

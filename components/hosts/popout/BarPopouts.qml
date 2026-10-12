@@ -697,6 +697,10 @@ PopoutWrapperBase {
       shown: surface.backed && root.popupWindow.visible
     }
     connectorGap: root.connectorGap
+    // A fillet sharing a wall's room with its island's (or pill's) corner
+    // takes less of it (EdgeAttach), else the full room
+    startFilletMargin: root.place.startMargin > 0 && root.place.startMargin < mainPopup.filletMargin ? root.place.startMargin : -1
+    endFilletMargin: root.place.endMargin > 0 && root.place.endMargin < mainPopup.filletMargin ? root.place.endMargin : -1
     boxWidth: root.shownBoxWidth
     // A submenu's stretch: along the bar on a vertical one, away from it
     // on a horizontal one

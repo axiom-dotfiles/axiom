@@ -106,9 +106,11 @@ QtObject {
   //   end (the box), grow (the box past `length`), contentStart (where
   //   the content's `length` starts) and contentOffset (from the box's
   //   start), joinStart, joinEnd, flushStart, flushEnd, startMargin,
-  //   endMargin (the surface's fillet room), surfaceStart, surfaceLength,
+  //   endMargin (the surface's fillet room: less than a full fillet's at a
+  //   wall it shares with the pill's corner), surfaceStart, surfaceLength,
   //   stretch ({ index, start, end, squareStart, squareEnd, joinStart,
-  //   joinEnd } or null) }
+  //   joinEnd, cornerStart, cornerEnd (the pill's inner corner radius
+  //   there, where less than a full one fits; else undefined) } or null) }
   function place(s) {
     const pills = s.pills ?? [];
     // A pill bar showing no pills still grows from its outer edge
@@ -214,11 +216,13 @@ QtObject {
     const reachFrom = isPill ? s.joinFrom : s.islandFrom, reachTo = isPill ? s.joinTo : s.islandTo;
     const fm = root.filletMargin(s.gap, s.stroke, s.radius);
     const need = fm + s.radius;
-    // At a wall, no further than it, and a fillet's room inside the reach,
-    // so the side never runs flush past the wall (the pill's corner there
-    // squared if the fillet lands on it, see _onPillAt)
-    const lo = isFinite(s.wallFrom ?? NaN) ? Math.max(s.wallFrom, reachFrom + fm) : reachFrom;
-    const hi = isFinite(s.wallTo ?? NaN) ? Math.min(s.wallTo, reachTo - fm) : reachTo;
+    // At a wall, no further than it, and room inside the reach for at
+    // least a fillet's curve, so the side never runs flush past the wall
+    // (its fillet and the pill's corner there sharing what room is left,
+    // see _onPillAt)
+    const curve = Math.min(fm, s.radius);
+    const lo = isFinite(s.wallFrom ?? NaN) ? Math.max(s.wallFrom, reachFrom + curve) : reachFrom;
+    const hi = isFinite(s.wallTo ?? NaN) ? Math.min(s.wallTo, reachTo - curve) : reachTo;
     const content = Math.round(Math.max(lo, Math.min(s.aligned, hi - s.length)));
     const placed = root._onPillAt(s, pills, own, isPill, content);
     // One side runs flush to the pill's end with empty box before it: try
@@ -262,17 +266,27 @@ QtObject {
     const edgeEnd = isPill && !isFinite(s.wallTo ?? NaN) && (pills.some(p => p.joinEnd && p.start + p.length === to) || !!s.pillJoins && !!s.joinEnd);
     const grows0 = !!s.pillGrows && content >= from && content - need >= lo && !edgeStart;
     const grows1 = !!s.pillGrows && content + length <= to && content + length + need <= hi && !edgeEnd;
-    // At a wall, a fillet that fits on the pill but runs into its rounded
-    // corner squares that corner instead of running flush past the wall
-    const tight0 = isFinite(s.wallFrom ?? NaN) && !grows0 && content - need < from && content - fm >= from;
-    const tight1 = isFinite(s.wallTo ?? NaN) && !grows1 && content + length + need > to && content + length + fm <= to;
+    // At a wall, with too little room before the pill's end for a fillet
+    // and the pill's corner both but enough for the fillet's curve, they
+    // share it rather than the side running flush past the wall: the
+    // fillet's straight run along the pill (its margin past the curve)
+    // shortens first, then the pill's corner rounds less (`cornerStart`/
+    // `cornerEnd` on the stretch), down to square
+    const curve = Math.min(fm, r);
+    const room0 = content - from, room1 = to - content - length;
+    const tight0 = isFinite(s.wallFrom ?? NaN) && !grows0 && room0 < need && room0 >= curve;
+    const tight1 = isFinite(s.wallTo ?? NaN) && !grows1 && room1 < need && room1 >= curve;
     const short0 = content - need < from && !grows0 && !tight0, short1 = content + length + need > to && !grows1 && !tight1;
+    const tightMargin = room => Math.max(curve, Math.min(fm, room - r));
+    const corner0 = tight0 ? Math.max(0, Math.min(r, room0 - tightMargin(room0))) : r;
+    const corner1 = tight1 ? Math.max(0, Math.min(r, room1 - tightMargin(room1))) : r;
     const joinStart = short0 && edgeStart;
     const joinEnd = short1 && edgeEnd;
     const flushStart = short0 && !joinStart, flushEnd = short1 && !joinEnd;
     const start = joinStart ? s.joinFrom : flushStart ? Math.min(content, from) : content;
     const end = joinEnd ? s.joinTo : flushEnd ? Math.max(content + length, to) : content + length;
-    const startMargin = short0 ? 0 : fm, endMargin = short1 ? 0 : fm;
+    const startMargin = short0 ? 0 : tight0 ? tightMargin(room0) : fm;
+    const endMargin = short1 ? 0 : tight1 ? tightMargin(room1) : fm;
     const surfaceStart = start - startMargin;
     const surfaceLength = startMargin + (end - start) + endMargin;
     // To a flush side's end, squaring the pill's corner there, else far
@@ -280,7 +294,7 @@ QtObject {
     // already reaches), joining the edge there
     const stretchFrom = joinStart ? Math.min(from, s.pillFrom ?? s.joinFrom) : flushStart ? start : tight0 ? from : Math.min(own.start, surfaceStart - r);
     const stretchTo = joinEnd ? Math.max(to, s.pillTo ?? s.joinTo) : flushEnd ? end : tight1 ? to : Math.max(own.start + own.length, surfaceStart + surfaceLength + r);
-    const stretched = stretchFrom !== own.start || stretchTo !== own.start + own.length || flushStart || flushEnd || tight0 || tight1;
+    const stretched = stretchFrom !== own.start || stretchTo !== own.start + own.length || flushStart || flushEnd || corner0 < r || corner1 < r;
     return {
       "mode": isPill ? "pill" : "island",
       "pill": own,
@@ -301,8 +315,10 @@ QtObject {
         "index": own.index,
         "start": stretchFrom,
         "end": stretchTo,
-        "squareStart": flushStart || tight0,
-        "squareEnd": flushEnd || tight1,
+        "squareStart": flushStart,
+        "squareEnd": flushEnd,
+        "cornerStart": corner0 < r ? corner0 : undefined,
+        "cornerEnd": corner1 < r ? corner1 : undefined,
         "joinStart": joinStart,
         "joinEnd": joinEnd
       } : null

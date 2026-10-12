@@ -334,6 +334,40 @@ TestCase {
     compare(joined.map(r => [r.start, r.length, r.squareStart, r.squareEnd]), [[100, 300, false, false]]);
   }
 
+  function test_stretchOf_least_corner() {
+    // The least rounding asked at the furthest start; a full one elsewhere
+    const s = BarLayout.stretchOf([
+      {
+        "index": 0,
+        "start": 10,
+        "end": 200,
+        "cornerStart": 12
+      },
+      {
+        "index": 0,
+        "start": 10,
+        "end": 300,
+        "cornerStart": 5
+      }
+    ], 0);
+    compare([s.cornerStart, s.cornerEnd], [5, undefined]);
+    // Carried onto the island as drawn
+    const shapes = BarLayout.stretchIslands([
+      {
+        "start": 10,
+        "length": 100
+      }
+    ], [
+      {
+        "index": 0,
+        "start": 10,
+        "end": 110,
+        "cornerStart": 12
+      }
+    ], 0);
+    compare([shapes[0].cornerStart, shapes[0].squareStart], [12, false]);
+  }
+
   function test_stretchOf_combines_owners() {
     compare(BarLayout.stretchOf([], 0), null);
     compare(BarLayout.stretchOf([null], 0), null);

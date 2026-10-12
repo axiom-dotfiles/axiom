@@ -189,6 +189,12 @@ Item {
   // squares one, where a submenu runs flush to it
   property real startNearRadius: Appearance.borderRadius
   property real endNearRadius: Appearance.borderRadius
+  // A fillet's room along the edge at each end, where less than the
+  // connector gap's fits (its straight run cut back, sharing the room with
+  // the corner of the pill or island it lands on: EdgeAttach); -1 for the
+  // full room
+  property real startFilletMargin: -1
+  property real endFilletMargin: -1
 
   readonly property real boxAlong: vertical ? boxHeight : boxWidth
   readonly property real boxDepth: vertical ? boxWidth : boxHeight
@@ -207,6 +213,8 @@ Item {
       "startCornerRadius": root.startCornerRadius,
       "endCornerRadius": root.endCornerRadius,
       "connectorGap": root.connectorGap,
+      "startFilletMargin": root.startFilletMargin,
+      "endFilletMargin": root.endFilletMargin,
       "joinStart": root.joinStart,
       "joinEnd": root.joinEnd,
       "flushStart": root.flushStart,

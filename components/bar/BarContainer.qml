@@ -224,6 +224,8 @@ Rectangle {
       readonly property var target: BarLayout.stretchOf(root._stretchList, index)
       readonly property bool squareStart: target?.squareStart ?? false
       readonly property bool squareEnd: target?.squareEnd ?? false
+      readonly property var cornerStart: target?.cornerStart
+      readonly property var cornerEnd: target?.cornerEnd
       readonly property bool joinStart: target?.joinStart ?? false
       readonly property bool joinEnd: target?.joinEnd ?? false
       property real before: target && rect ? Math.max(0, rect.start - target.start) : 0
@@ -250,7 +252,7 @@ Rectangle {
     for (let i = 0; i < reaches.count; i++) {
       const reach = reaches.objectAt(i);
       const rect = reach?.rect;
-      if (!rect || (reach.before <= 0 && reach.after <= 0 && !reach.squareStart && !reach.squareEnd))
+      if (!rect || (reach.before <= 0 && reach.after <= 0 && !reach.squareStart && !reach.squareEnd && reach.cornerStart === undefined && reach.cornerEnd === undefined))
         continue;
       const start = rect.start - reach.before, end = rect.start + rect.length + reach.after;
       shown.push({
@@ -259,6 +261,8 @@ Rectangle {
         "end": end,
         "squareStart": reach.squareStart,
         "squareEnd": reach.squareEnd,
+        "cornerStart": reach.cornerStart,
+        "cornerEnd": reach.cornerEnd,
         "joinStart": reach.joinStart && start <= 0.5,
         "joinEnd": reach.joinEnd && end >= root.length - 0.5
       });
@@ -478,8 +482,8 @@ Rectangle {
         readonly property real across: root.barConfig.right || root.barConfig.bottom ? (root.isVertical ? root.width : root.height) - root.barConfig.islandStart - depth : root.barConfig.islandStart
         readonly property real corner: Appearance.borderRadius
         // The inner side's corners at the bar's start and end
-        property real startInner: rect.squareStart ? 0 : corner
-        property real endInner: rect.squareEnd ? 0 : corner
+        property real startInner: rect.squareStart ? 0 : Math.min(corner, rect.cornerStart ?? corner)
+        property real endInner: rect.squareEnd ? 0 : Math.min(corner, rect.cornerEnd ?? corner)
 
         x: root.isVertical ? across : rect.start
         y: root.isVertical ? rect.start : across
@@ -590,9 +594,10 @@ Rectangle {
         straightJoins: !Appearance.screenBorder
         straightJoinStart: root._ends.start.straight
         straightJoinEnd: root._ends.end.straight
-        // Square where a popout runs flush into it
-        startCornerRadius: span.squareStart ? 0 : cornerRadius
-        endCornerRadius: span.squareEnd ? 0 : cornerRadius
+        // Square where a popout runs flush into it, rounded less where a
+        // popout's fillet shares the room with it (cornerStart/cornerEnd)
+        startCornerRadius: span.squareStart ? 0 : Math.min(cornerRadius, span.cornerStart ?? cornerRadius)
+        endCornerRadius: span.squareEnd ? 0 : Math.min(cornerRadius, span.cornerEnd ?? cornerRadius)
 
         Glide on startCornerRadius {}
         Glide on endCornerRadius {}

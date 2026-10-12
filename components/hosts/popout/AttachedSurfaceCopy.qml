@@ -26,6 +26,8 @@ AttachedSurface {
   boxHeight: root.source?.boxHeight ?? 0
   boxStart: root.source?.boxStart ?? 0
   connectorGap: root.source?.connectorGap ?? 0
+  startFilletMargin: root.source?.startFilletMargin ?? -1
+  endFilletMargin: root.source?.endFilletMargin ?? -1
   joinStart: root.source?.joinStart ?? false
   joinEnd: root.source?.joinEnd ?? false
   flushStart: root.source?.flushStart ?? false
