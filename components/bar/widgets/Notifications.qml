@@ -26,8 +26,11 @@ BarIconWidget {
       NotificationManager.toggleDnd();
   }
 
-  // On the icon's top-right corner
+  // On the icon's top-right corner, which on a narrow bar reaches past
+  // the widget's box: drawn in its host (where the widget sits at 0, 0),
+  // as the widget clips to its box (BaseWidget)
   CountBadge {
+    parent: root.parent
     shown: root.properties.showCount && NotificationManager.count > 0
     x: Math.round((root.width + root.iconLength) / 2 - width / 2)
     y: 1
