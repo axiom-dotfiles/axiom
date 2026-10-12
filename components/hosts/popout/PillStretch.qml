@@ -14,6 +14,10 @@ QtObject {
   // Where the surface covers the pill's (or island's) far stroke, along
   // the bar ({ start, end }), left open there (BarContainer.setOpening)
   property var opening: null
+  // A pill asked to run from an end of the bar (BarContainer.setEndReach:
+  // { atStart, to, straight }), grown there if there's none: a surface
+  // joining this bar from the perpendicular edge
+  property var endReach: null
   // Unique per surface on a bar (a bar has one popout host, and any number
   // of edge popouts on its edge)
   required property string owner
@@ -26,7 +30,7 @@ QtObject {
   // stretch changing meanwhile (a switch in place, a resize) never pulls
   // the surface back.
   readonly property bool ready: root._latched || (root._armed && root._readyNow)
-  readonly property bool _readyNow: !root.stretch || !root.container || root.container.carries(root.stretch)
+  readonly property bool _readyNow: !root.container || (!root.stretch || root.container.carries(root.stretch)) && (!root.endReach || root.container.carriesEnd(root.endReach))
   // Open for a turn of the event loop: a host's stretch comes in with its
   // content, in the same pass that opens it, so it's judged only after
   property bool _armed: false
@@ -62,13 +66,14 @@ QtObject {
     try {
       root._target?.setStretch(root.owner, null);
       root._target?.setOpening(root.owner, null);
+      root._target?.setEndReach(root.owner, null);
     } catch (e) {
       // The bar went first (a reload)
     }
     root._target = null;
   }
   function _push() {
-    const target = root.stretch || root.opening ? root.container : null;
+    const target = root.stretch || root.opening || root.endReach ? root.container : null;
     if (root._target !== target)
       root._clear();
     if (!target)
@@ -76,9 +81,11 @@ QtObject {
     root._target = target;
     target.setStretch(root.owner, root.stretch);
     target.setOpening(root.owner, root.opening);
+    target.setEndReach(root.owner, root.endReach);
   }
   onStretchChanged: root._push()
   onOpeningChanged: root._push()
+  onEndReachChanged: root._push()
   onContainerChanged: root._push()
   Component.onDestruction: root._clear()
 }

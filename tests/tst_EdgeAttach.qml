@@ -275,6 +275,41 @@ TestCase {
     compare([p.end, p.flushEnd], [298, true]);
   }
 
+  function test_pill_joins_the_edge_it_comes_within_a_gap_of() {
+    // Its fillet fits before the pill's end, but the box is within a
+    // connector gap of the edge (joins): it joins, from its pill
+    const p = EdgeAttach.place(spec({
+      "pills": [pill(-2, 300, true, false)],
+      "pillBar": true,
+      "centre": 100,
+      "aligned": 80,
+      "length": 100,
+      "joinStart": true,
+      "pillJoins": true,
+      "pillFrom": -2,
+      "pillTo": 1002,
+      "pillGrows": true
+    }));
+    compare([p.mode, p.start, p.joinStart, p.startMargin, p.contentStart], ["pill", -2, true, 0, 80]);
+  }
+
+  function test_pill_joins_the_stroke_it_runs_on_past() {
+    // A pill joining the edge runs on past its stroke (under a bar making
+    // way for this one at that corner): a side whose fillet would pass the
+    // stroke joins it there
+    const p = EdgeAttach.place(spec({
+      "pills": [pill(700, 360, false, true)],
+      "pillBar": true,
+      "centre": 850,
+      "aligned": 900,
+      "length": 100,
+      "joinTo": 1002,
+      "pillGrows": true
+    }));
+    compare([p.mode, p.end, p.joinEnd, p.flushEnd, p.endMargin], ["pill", 1002, true, false, 0]);
+    compare(p.stretch, null, "the pill already reaches past it");
+  }
+
   function test_pill_joins_the_edges_with_the_box() {
     // A box filling the edge on a pill bar joins both ends from the pill
     // under its centre, which stretches to the bar's ends and joins them

@@ -395,4 +395,159 @@ TestCase {
     ], 0);
     compare([both.start, both.end, both.squareStart, both.squareEnd], [90, 260, true, true]);
   }
+  function test_endReaches_nothing_asked() {
+    const rects = [
+      {
+        "start": 0,
+        "length": 50,
+        "joinStart": true,
+        "joinEnd": false
+      }
+    ];
+    const r = BarLayout.endReaches(rects, [], 1000, 12, 20);
+    compare(r.rects, rects);
+    compare(r.stretches, []);
+    verify(!r.straightStart && !r.straightEnd);
+  }
+
+  function test_endReaches_stretches_the_end_pill() {
+    const rects = [
+      {
+        "start": 0,
+        "length": 50,
+        "joinStart": true,
+        "joinEnd": false
+      },
+      {
+        "start": 900,
+        "length": 100,
+        "joinStart": false,
+        "joinEnd": true
+      }
+    ];
+    const r = BarLayout.endReaches(rects, [
+      {
+        "atStart": true,
+        "to": 80,
+        "straight": true
+      },
+      {
+        "atStart": false,
+        "to": 950
+      }
+    ], 1000, 12, 20);
+    compare(r.rects.length, 2, "no stub where an end pill joins");
+    compare(r.stretches[0].index, 0);
+    compare(r.stretches[0].start, 0);
+    compare(r.stretches[0].end, 80, "on to where it's asked");
+    verify(r.stretches[0].joinStart);
+    compare(r.stretches[1].index, 1);
+    compare(r.stretches[1].start, 900, "already past it");
+    compare(r.stretches[1].end, 1000);
+    verify(r.stretches[1].joinEnd);
+    verify(r.straightStart && !r.straightEnd);
+  }
+
+  function test_endReaches_pulls_a_near_pill_back() {
+    const rects = [
+      {
+        "start": 90,
+        "length": 50,
+        "joinStart": false,
+        "joinEnd": false
+      }
+    ];
+    const r = BarLayout.endReaches(rects, [
+      {
+        "atStart": true,
+        "to": 80
+      }
+    ], 1000, 12, 20);
+    compare(r.rects.length, 1, "within merge of the reach: no stub");
+    compare(r.stretches[0].start, 0);
+    compare(r.stretches[0].end, 140, "keeping its own end");
+    verify(r.stretches[0].joinStart);
+  }
+
+  function test_endReaches_adds_stubs() {
+    const rects = [
+      {
+        "start": 400,
+        "length": 200,
+        "joinStart": false,
+        "joinEnd": false
+      }
+    ];
+    const r = BarLayout.endReaches(rects, [
+      {
+        "atStart": true,
+        "to": 80
+      },
+      {
+        "atStart": false,
+        "to": 900
+      },
+      {
+        "atStart": false,
+        "to": 850
+      }
+    ], 1000, 12, 20);
+    compare(r.rects.length, 3);
+    compare(r.rects[0].start, 0);
+    compare(r.rects[0].length, 20);
+    verify(r.rects[0].joinStart);
+    compare(r.rects[1].start, 400, "the pill between keeps its place");
+    compare(r.rects[2].start, 980);
+    verify(r.rects[2].joinEnd);
+    compare(r.stretches[0].end, 80);
+    compare(r.stretches[1].index, 2);
+    compare(r.stretches[1].start, 850, "as far as the furthest asks");
+    compare(r.stretches[1].end, 1000);
+    // Drawn: stretched, joined, and the pill between left alone
+    const drawn = BarLayout.stretchIslands(r.rects, r.stretches, 12);
+    compare(drawn.length, 3);
+    compare(drawn[0].length, 80);
+    verify(drawn[0].joinStart);
+    compare(drawn[2].start, 850);
+    verify(drawn[2].joinEnd);
+  }
+
+  function test_endReaches_on_a_bar_with_no_pills() {
+    const r = BarLayout.endReaches([], [
+      {
+        "atStart": false,
+        "to": 900
+      }
+    ], 1000, 12, 20);
+    compare(r.rects.length, 1);
+    compare(r.stretches[0].index, 0);
+    compare(r.stretches[0].start, 900);
+  }
+
+  function test_endReaches_squares_where_asked() {
+    const rects = [
+      {
+        "start": 900,
+        "length": 100,
+        "joinStart": false,
+        "joinEnd": true
+      }
+    ];
+    const r = BarLayout.endReaches(rects, [
+      {
+        "atStart": false,
+        "to": 700,
+        "square": true
+      }
+    ], 1000, 12, 20);
+    verify(r.stretches[0].squareStart, "a wall runs straight into it");
+    const past = BarLayout.endReaches(rects, [
+      {
+        "atStart": false,
+        "to": 950,
+        "square": true
+      }
+    ], 1000, 12, 20);
+    verify(!past.stretches[0].squareStart, "not where the pill already reaches past it");
+  }
 }

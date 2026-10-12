@@ -19,8 +19,11 @@ import QtQuick
 //
 // An end is { kind, joinable, straight, held, reach, over, gap }:
 // - kind: "border" (the border's stroke), "bare" (a bare screen edge),
-//   "solidBar" (a solid bar's inner stroke, with the border off) or "bar"
-//   (a bar it yields to that has no stroke to join: a held end)
+//   "solidBar" (a solid bar's inner stroke, with the border off),
+//   "pillBar" (a pill bar it yields to, as a pill bar itself: its end pill
+//   merges into that bar's end pill, joining its far stroke as a solid
+//   bar's; BarContainer has that bar grow one there if it has none) or
+//   "bar" (a bar it yields to that has no stroke to join: a held end)
 // - joinable: a pill at that end may join what's there; straight: the
 //   join runs straight off it (a bare screen edge) rather than curving
 //   into a stroke with a fillet
@@ -90,6 +93,19 @@ QtObject {
         "gap": 0
       };
     }
+    // Two pill bars: the yielding one's window ends at the other's
+    // reserved line, the far side of its pills, so it reaches back onto
+    // their far stroke
+    if (bar.background === "pills" && other.background === "pills")
+      return {
+        "kind": "pillBar",
+        "joinable": true,
+        "straight": false,
+        "held": false,
+        "reach": opts.borderWidth,
+        "over": 0,
+        "gap": 0
+      };
     // Nothing to join: held clear of it. Its window ends at that bar's
     // reserved line, `trim` short of its inner edge (a transparent bar's
     // gaps_out). Its own float gap past that edge, or (Automatic, and for

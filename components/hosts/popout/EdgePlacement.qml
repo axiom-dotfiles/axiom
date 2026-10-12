@@ -64,7 +64,7 @@ QtObject {
   // pill has grown out to carry it: the surface slides out once it has
   // (PillStretch.ready)
   property bool open: false
-  readonly property bool stretchReady: root._stretch.ready && root._startPillStretch.ready && root._endPillStretch.ready
+  readonly property bool stretchReady: root._stretch.ready && root._startPill.ready && root._endPill.ready
 
   readonly property bool vertical: root.edge === Bar.Left || root.edge === Bar.Right
   readonly property string edgeName: Bar.edgeName(root.edge)
@@ -169,96 +169,45 @@ QtObject {
   }
 
   // Whether a perpendicular edge ("top", …) has a stroke to join: the
-  // border or a solid bar (`joinable`), not any other bar, nor an
-  // integrated menu's strip
+  // border or a solid bar (`joinable`), or with `joinsPills` a pill bar
+  // (PillBarJoin), not any other bar, nor an integrated menu's strip
   function joinable(name) {
     const location = Bar.locationOf(name);
-    return BarManager.joinableOn(root.screen, location) || (root.endPill(location) !== null && EdgeMenuManager.zoneOn(root.screen?.name ?? "", name) === 0);
+    return BarManager.joinableOn(root.screen, location) || root._pillsJoinable && (location === Bar.Top || location === Bar.Left ? root._startPill : root._endPill).available;
   }
 
-  // With `joinsPills`, a pill bar on a perpendicular edge (a Bar.Location) is
-  // joinable too where its pill at this edge's end joins this edge: the
-  // box's end joins that pill's far stroke as a solid bar's, the pill
-  // stretched across to carry the join's fillet (endStretch). Inside the
-  // border only: without it the join would run straight off the screen
-  // edge, past the pill's stroke.
+  // With `joinsPills`, a pill bar on a perpendicular edge is joinable too:
+  // the box's end joins its far side as a solid bar's stroke, its pill at
+  // this edge's end running out along the box to carry the join's fillet
+  // (PillBarJoin)
   property bool joinsPills: false
-  // That pill ({ container, index, start, length }, bar coordinates), or null
-  function endPill(location) {
-    if (!root.joinsPills || root.held || !Appearance.screenBorder)
-      return null;
-    const panel = ShellManager.barOn(root.screen?.name ?? "", location);
-    if (!panel?.visible || !panel.barConfig.pills || panel.barConfig.island)
-      return null;
-    const pills = panel.container?.pillRects ?? [];
-    // Along that bar, this edge is its start (left, top) or its end
-    const atStart = root.edge === Bar.Left || root.edge === Bar.Top;
-    const index = atStart ? 0 : pills.length - 1;
-    const pill = pills[index];
-    if (!pill || !(atStart ? pill.joinStart : pill.joinEnd))
-      return null;
-    return {
-      "container": panel.container,
-      "index": index,
-      "start": pill.start,
-      "length": pill.length
-    };
-  }
+  readonly property bool _pillsJoinable: root.joinsPills && !root.held
   // How far in from this edge (screen px) a joined end covers the stroke
   // it joins, its fillet included (the host's AttachedSurface.joinCover
   // from its window's attach edge), for the pill stretch
   property real joinReach: 0
-  readonly property var _startPill: root.joinStart ? root.endPill(root.vertical ? Bar.Top : Bar.Left) : null
-  readonly property var _endPill: root.joinEnd ? root.endPill(root.vertical ? Bar.Bottom : Bar.Right) : null
-  // Where a joined end reaches along its pill's bar (in its coordinates),
-  // past the join's fillet; null while the box doesn't show
-  function _reachOn(pill) {
-    const origin = pill?.container?.blurOrigin;
-    if (!origin || !root.showing)
-      return null;
-    const span = (root.vertical ? root.screen?.width : root.screen?.height) ?? 0;
-    return (root._far ? span - root.joinReach : root.joinReach) - (root.vertical ? origin.x : origin.y);
-  }
-  readonly property bool _far: root.edge === Bar.Right || root.edge === Bar.Bottom
-  // A joined end's pill stretched from this edge to past the join's
-  // fillet, with room for the pill's corner beyond
-  function _endStretch(pill) {
-    const reach = root._reachOn(pill);
-    if (reach === null)
-      return null;
-    const end = pill.start + pill.length;
-    return {
-      "index": pill.index,
-      "start": root._far ? Math.min(pill.start, reach - Appearance.borderRadius) : pill.start,
-      "end": root._far ? end : Math.max(end, reach + Appearance.borderRadius),
-      "squareStart": false,
-      "squareEnd": false
-    };
-  }
-  // ...and its far stroke left open under a translucent box, as far as
-  // the join covers it
-  function _endOpening(pill) {
-    const reach = root._reachOn(pill);
-    if (reach === null || !Appearance.translucent)
-      return null;
-    return {
-      "start": root._far ? reach : pill.start,
-      "end": root._far ? pill.start + pill.length : reach
-    };
-  }
-  property PillStretch _startPillStretch: PillStretch {
-    container: root._startPill?.container ?? null
+  // Whether each end joins a pill bar, which it runs straight into
+  readonly property bool pillJoinStart: root._startPill.joined
+  readonly property bool pillJoinEnd: root._endPill.joined
+  property PillBarJoin _startPill: PillBarJoin {
+    screen: root.screen
+    edge: root.edge
+    side: root.vertical ? Bar.Top : Bar.Left
     owner: root.owner + ":joinStart"
     open: root.open
-    stretch: root._endStretch(root._startPill)
-    opening: root._endOpening(root._startPill)
+    joined: root._pillsJoinable && root.joinStart
+    showing: root.showing
+    joinReach: root.joinReach
   }
-  property PillStretch _endPillStretch: PillStretch {
-    container: root._endPill?.container ?? null
+  property PillBarJoin _endPill: PillBarJoin {
+    screen: root.screen
+    edge: root.edge
+    side: root.vertical ? Bar.Bottom : Bar.Right
     owner: root.owner + ":joinEnd"
     open: root.open
-    stretch: root._endStretch(root._endPill)
-    opening: root._endOpening(root._endPill)
+    joined: root._pillsJoinable && root.joinEnd
+    showing: root.showing
+    joinReach: root.joinReach
   }
 
   // The pill (or island) stretched to carry the box's fillets while it

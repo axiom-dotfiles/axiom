@@ -276,7 +276,13 @@ QtObject {
     const room0 = content - from, room1 = to - content - length;
     const tight0 = isFinite(s.wallFrom ?? NaN) && !grows0 && room0 < need && room0 >= curve;
     const tight1 = isFinite(s.wallTo ?? NaN) && !grows1 && room1 < need && room1 >= curve;
-    const short0 = content - need < from && !grows0 && !tight0, short1 = content + length + need > to && !grows1 && !tight1;
+    // A side that joins the edge (`joinStart`/`joinEnd`: within a connector
+    // gap of it, see joins) does where its pill can reach it, as does one
+    // whose fillet would pass the stroke there (a pill joining the edge may
+    // run on past it, under a bar that makes way for this one at that
+    // corner)
+    const past0 = edgeStart && (content - need < lo || !!s.joinStart), past1 = edgeEnd && (content + length + need > hi || !!s.joinEnd);
+    const short0 = (content - need < from || past0) && !grows0 && !tight0, short1 = (content + length + need > to || past1) && !grows1 && !tight1;
     const tightMargin = room => Math.max(curve, Math.min(fm, room - r));
     const corner0 = tight0 ? Math.max(0, Math.min(r, room0 - tightMargin(room0))) : r;
     const corner1 = tight1 ? Math.max(0, Math.min(r, room1 - tightMargin(room1))) : r;

@@ -85,9 +85,15 @@ Rectangle {
   // pillMerge apart, grown by the pill gap. Pills reaching an end are
   // stretched onto it and join it. On a floating bar, its islands
   // (BarLayout.islandRects): one along it, or one per group.
+  // Pills asked to reach an end run there, or a stub grows there for them
+  // (BarLayout.endReaches, setEndReach).
   readonly property var pillRects: {
     if (islands)
       return BarLayout.islandRects(root._spans, root.barConfig.islandGap, root.barConfig.pillMerge, root.islandFrom, root.islandEnd, !root.barConfig.islandPills);
+    return root.pills ? root._endReach.rects : [];
+  }
+  readonly property var _endReach: BarLayout.endReaches(root._sectionPills, root._endReachList, root.length, root.barConfig.pillMerge, root.pillConnector)
+  readonly property var _sectionPills: {
     if (!pills)
       return [];
     const spans = root._spans.slice();
@@ -140,7 +146,7 @@ Rectangle {
   // { index, start, end, squareStart, squareEnd } (EdgeAttach.place's
   // stretch). pillRects stays unstretched.
   property var stretches: ({})
-  readonly property var _stretchList: Object.keys(root.stretches).map(k => root.stretches[k])
+  readonly property var _stretchList: Object.keys(root.stretches).map(k => root.stretches[k]).concat(root.pills ? root._endReach.stretches : [])
   // Sets (or with null clears) `owner`'s stretch
   function setStretch(owner, stretch) {
     if (Utils.deepEqual(root.stretches[owner] ?? null, stretch ?? null))
@@ -151,6 +157,29 @@ Rectangle {
     else
       delete next[owner];
     root.stretches = next;
+  }
+
+  // Pills asked to run from an end of the bar, by owner: { atStart, to,
+  // straight } (BarLayout.endReaches), from a surface joining this bar from
+  // the perpendicular edge: a pill bar merging into this one's corner
+  // (CornerMerge), a popout whose side joins it (PillBarJoin)
+  property var endReachRequests: ({})
+  readonly property var _endReachList: Object.keys(root.endReachRequests).map(k => root.endReachRequests[k])
+  // Sets (or with null clears) `owner`'s request
+  function setEndReach(owner, request) {
+    if (Utils.deepEqual(root.endReachRequests[owner] ?? null, request ?? null))
+      return;
+    const next = Object.assign({}, root.endReachRequests);
+    if (request)
+      next[owner] = request;
+    else
+      delete next[owner];
+    root.endReachRequests = next;
+  }
+  // Whether the pill asked to reach an end does so, as drawn
+  function carriesEnd(request) {
+    const stretch = (root._endReach?.stretches ?? []).find(s => request.atStart ? s.joinStart : s.joinEnd);
+    return !stretch || root.carries(stretch);
   }
 
   // Where surfaces standing on a pill or island cover its inner stroke,
@@ -209,6 +238,16 @@ Rectangle {
     return Object.assign({
       "screen": root.blurScreen
     }, EdgeAttach.joinOpening(Bar.edgeName(root.barConfig.location), atStart, from, root.isVertical ? surface.width : surface.height, (atStart ? surface.joinShown : surface.joinShownEnd), span));
+  }
+
+  // Each end merging into a pill bar it makes way for (CornerMerge)
+  CornerMerge {
+    bar: root
+    atStart: true
+  }
+  CornerMerge {
+    bar: root
+    atStart: false
   }
 
   // How far each pill reaches past its own ends for the stretches on it,
@@ -592,8 +631,8 @@ Rectangle {
         // solid bar's stroke there as into the border's (BarEnds)
         straight: !Appearance.screenBorder
         straightJoins: !Appearance.screenBorder
-        straightJoinStart: root._ends.start.straight
-        straightJoinEnd: root._ends.end.straight
+        straightJoinStart: root._ends.start.straight || index === 0 && root._endReach.straightStart
+        straightJoinEnd: root._ends.end.straight || index === root.pillShapes.length - 1 && root._endReach.straightEnd
         // Square where a popout runs flush into it, rounded less where a
         // popout's fillet shares the room with it (cornerStart/cornerEnd)
         startCornerRadius: span.squareStart ? 0 : Math.min(cornerRadius, span.cornerStart ?? cornerRadius)
@@ -613,11 +652,12 @@ Rectangle {
           opening: root.borderOpening(pill._along + pill.coverStart, pill._along + pill.coverStart + pill.coverLength)
         }
         // ...and, joined to a perpendicular edge, that edge's
+        // (not a pill bar's it merges into: its pill covers that, CornerMerge)
         BorderOpening {
-          opening: pill.joinStart ? root.joinOpening(pill, true) : null
+          opening: pill.joinStart && root._ends.start.kind !== "pillBar" ? root.joinOpening(pill, true) : null
         }
         BorderOpening {
-          opening: pill.joinEnd ? root.joinOpening(pill, false) : null
+          opening: pill.joinEnd && root._ends.end.kind !== "pillBar" ? root.joinOpening(pill, false) : null
         }
         // The far stroke and its fringe under each opening (in the pill's
         // coordinates), and a joined end's fillet where one reaches it: a

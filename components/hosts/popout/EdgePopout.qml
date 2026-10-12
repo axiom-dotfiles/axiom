@@ -722,6 +722,9 @@ PopoutWrapperBase {
           flushStartThrough: !(root._sideJoined && root.openToLeft)
           flushEndThrough: !(root._sideJoined && !root.openToLeft)
           straightJoins: !Appearance.screenBorder
+          // ...and straight into a pill bar's pill (PillBarJoin)
+          straightJoinStart: !Appearance.screenBorder || placement.pillJoinStart
+          straightJoinEnd: !Appearance.screenBorder || placement.pillJoinEnd
           fillColor: root.fillColor
           strokeColor: root.strokeColor
           // On a pill's far stroke, cover that stroke's inner fringe too

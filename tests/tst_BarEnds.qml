@@ -61,12 +61,24 @@ TestCase {
   }
 
   function test_same_kind_horizontal_wins() {
-    const [side, bottom] = ends([bar("right", "pills"), bar("bottom", "pills")], withBorder);
+    const [side, bottom] = ends([bar("right", "floatingPills"), bar("bottom", "floatingPills")], withBorder);
     compare(side.end.kind, "bar", "the side bar yields at its end");
     verify(side.end.held && !side.end.joinable);
     compare(side.end.reach, 0);
     compare(side.start.kind, "border", "its other end is untouched");
     compare(bottom.end.kind, "border", "the bottom bar keeps the corner");
+  }
+
+  function test_pill_bars_merge_at_their_corner() {
+    for (const opts of [withBorder, borderless]) {
+      const [side, bottom] = ends([bar("right", "pills"), bar("bottom", "pills")], opts);
+      compare(side.end.kind, "pillBar", "the side bar joins the bottom bar's pills");
+      verify(side.end.joinable && !side.end.held && !side.end.straight);
+      compare(side.end.reach, 2, "onto their far stroke");
+      compare(bottom.end.kind, opts.border ? "border" : "bare", "the bottom bar keeps the corner");
+    }
+    const [held] = ends([bar("right", "floatingPills"), bar("bottom", "pills")], withBorder);
+    compare(held.end.kind, "bar", "a floating side bar stays held");
   }
 
   function test_transparent_always_yields() {

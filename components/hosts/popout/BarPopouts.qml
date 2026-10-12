@@ -310,6 +310,11 @@ PopoutWrapperBase {
     "straight": false,
     "straightMerged": !Appearance.screenBorder,
     "pillGrows": true,
+    // Joining a perpendicular edge, it joins it from its pill, which
+    // stretches to the bar's end and joins it too
+    "pillJoins": true,
+    "pillFrom": 0,
+    "pillTo": mainPopup.panelLength,
     "gap": root.connectorGap,
     "stroke": Appearance.borderWidth,
     "radius": Appearance.borderRadius
@@ -362,8 +367,51 @@ PopoutWrapperBase {
   BorderOpening {
     opening: root._onBorder && root._submenuSpan ? root.layoutSource?.borderOpening(root._submenuSpan.start, root._submenuSpan.end) ?? null : null
   }
+  // Joined at an end to a pill bar on the perpendicular edge, its pill there
+  // runs out along the box past the join's fillet: from the screen edge
+  // this bar is on, how far in the joined end covers that bar's far side
+  function _joinReach(atStart) {
+    const origin = surface.barOrigin;
+    if (!origin)
+      return 0;
+    const cover = atStart ? surface.joinCover : surface.joinCoverEnd;
+    switch (root.barConfig.location) {
+    case Bar.Top:
+      return origin.y + mainPopup.barY + cover;
+    case Bar.Bottom:
+      return (root.screen?.height ?? 0) - origin.y - mainPopup.barY - surface.height + cover;
+    case Bar.Left:
+      return origin.x + mainPopup.barX + cover;
+    default:
+      return (root.screen?.width ?? 0) - origin.x - mainPopup.barX - surface.width + cover;
+    }
+  }
+  readonly property bool _pillJoinShowing: root.occupied && root.claimed && root.popupWindow.visible
+  PillBarJoin {
+    id: startPillJoin
+    screen: root.screen
+    edge: root.barConfig.location
+    side: mainPopup.startSide
+    owner: "barPopout:" + root.barConfig.id + ":joinStart"
+    open: pillStretchItem.open
+    joined: surface.joinStart && !BarManager.joinableOn(root.screen, mainPopup.startSide)
+    showing: root._pillJoinShowing
+    joinReach: root._joinReach(true)
+  }
+  PillBarJoin {
+    id: endPillJoin
+    screen: root.screen
+    edge: root.barConfig.location
+    side: mainPopup.endSide
+    owner: "barPopout:" + root.barConfig.id + ":joinEnd"
+    open: pillStretchItem.open
+    joined: surface.joinEnd && !BarManager.joinableOn(root.screen, mainPopup.endSide)
+    showing: root._pillJoinShowing
+    joinReach: root._joinReach(false)
+  }
   // Joined to a perpendicular edge at an end (the border), that edge's
-  // stroke its end covers, from where the bar is on screen
+  // stroke its end covers, from where the bar is on screen (not a pill
+  // bar's: its pill covers that, PillBarJoin)
   function _joinOpening(atStart) {
     const origin = surface.barOrigin;
     if (!root.occupied || !root.claimed || !root.popupWindow.visible || !Appearance.translucent || !Appearance.screenBorder || mainPopup.detached || !origin)
@@ -375,10 +423,10 @@ PopoutWrapperBase {
     }, EdgeAttach.joinOpening(Bar.edgeName(root.barConfig.location), atStart, from, vertical ? surface.width : surface.height, (atStart ? surface.joinShown : surface.joinShownEnd), (vertical ? root.screen?.width : root.screen?.height) ?? 0));
   }
   BorderOpening {
-    opening: surface.joinStart ? root._joinOpening(true) : null
+    opening: surface.joinStart && !startPillJoin.joined ? root._joinOpening(true) : null
   }
   BorderOpening {
-    opening: surface.joinEnd ? root._joinOpening(false) : null
+    opening: surface.joinEnd && !endPillJoin.joined ? root._joinOpening(false) : null
   }
 
   // How far past the bar's outer edge a merged popout's content starts:
@@ -536,9 +584,10 @@ PopoutWrapperBase {
     readonly property real insetStart: EdgeMenuManager.frameLineOn(root.screen, startSide) - BarManager.barStartOn(root.screen, root.barConfig.location, true)
     readonly property real insetEnd: EdgeMenuManager.frameLineOn(root.screen, endSide) - BarManager.barStartOn(root.screen, root.barConfig.location, false)
     // ...each a stroke a popout pushed to that end joins (the border's, a
-    // solid bar's), unless it's another bar's edge, with nothing to join
-    readonly property bool strokeAtStart: BarManager.joinableOn(root.screen, startSide)
-    readonly property bool strokeAtEnd: BarManager.joinableOn(root.screen, endSide)
+    // solid bar's, a pill bar's far side: PillBarJoin), unless it's
+    // another bar's edge, with nothing to join
+    readonly property bool strokeAtStart: BarManager.joinableOn(root.screen, startSide) || startPillJoin.available
+    readonly property bool strokeAtEnd: BarManager.joinableOn(root.screen, endSide) || endPillJoin.available
     readonly property real _strokeWidth: Appearance.borderWidth
     // On a floating bar, where its islands may reach instead: a popout
     // pushed to one runs flush into the island's end there
@@ -677,7 +726,7 @@ PopoutWrapperBase {
     edge: root.barConfig.location
     castShadow: true
     // Once its pill has grown out to carry it
-    active: still.showing && !root.isClosing && root.claimed && pillStretchItem.ready
+    active: still.showing && !root.isClosing && root.claimed && pillStretchItem.ready && startPillJoin.ready && endPillJoin.ready
     // The blur window draws its fill (BlurManager), from where
     // the bar window is on screen: the surface is at (barX, barY) in bar
     // window coordinates in either window
@@ -736,11 +785,12 @@ PopoutWrapperBase {
     flushEndThrough: !(root._sideJoined && !root.openToLeft)
     // Without the border, a merged popout runs straight off the screen edge
     straight: root.mergeWithPill && !Appearance.screenBorder
-    // ...and a joined end runs straight off a bare one, or curves into a
-    // solid bar's stroke there
+    // ...and a joined end runs straight off a bare one, or into a pill bar's
+    // pill, squared to meet it (PillBarJoin), or curves into a solid bar's
+    // stroke there
     straightJoins: !Appearance.screenBorder
-    straightJoinStart: mainPopup._bareStart
-    straightJoinEnd: mainPopup._bareEnd
+    straightJoinStart: mainPopup._bareStart || startPillJoin.joined
+    straightJoinEnd: mainPopup._bareEnd || endPillJoin.joined
     // On a pill's far stroke, cover that stroke's inner fringe too
     backfill: root.anchorPill !== null && !root.mergeWithPill ? 1 : 0
 

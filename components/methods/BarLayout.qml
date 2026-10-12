@@ -334,6 +334,75 @@ QtObject {
         }));
   }
 
+  // Pills asked to reach an end of the bar, by surfaces joining them there
+  // from the perpendicular edge (a pill bar meeting this one at a corner, a
+  // popout whose side runs along this bar): `requests` [{ atStart, to,
+  // straight }] each want a pill running from that end to `to`, joined to
+  // the edge there (straight: flush off it, with no fillet into it, the
+  // surface joining it drawing the corner instead). The end pill is
+  // stretched there when it joins that end or comes within `merge` of
+  // `to`; otherwise a `stub` long pill is added at the end and stretched.
+  // `square`: the pill's corner at `to` is square, where a surface's wall
+  // runs straight into it (when that request reaches furthest).
+  // -> { rects (pills with any stubs, in order), stretches (as stretchOf
+  // takes them, indices into rects), straightStart, straightEnd }.
+  function endReaches(rects, requests, length, merge, stub) {
+    const out = rects.slice();
+    const stretches = [];
+    const at = atStart => (requests ?? []).filter(r => r && r.atStart === atStart);
+    const starts = at(true), ends = at(false);
+    if (starts.length > 0) {
+      const to = Math.max(...starts.map(r => r.to));
+      const first = out[0];
+      if (!first || !first.joinStart && first.start > to + merge)
+        out.unshift({
+          "start": 0,
+          "length": Math.min(stub, length),
+          "joinStart": true,
+          "joinEnd": false
+        });
+    }
+    if (ends.length > 0) {
+      const to = Math.min(...ends.map(r => r.to));
+      const last = out[out.length - 1];
+      if (!last || !last.joinEnd && last.start + last.length < to - merge)
+        out.push({
+          "start": Math.max(0, length - stub),
+          "length": Math.min(stub, length),
+          "joinStart": false,
+          "joinEnd": true
+        });
+    }
+    if (starts.length > 0) {
+      const first = out[0];
+      const end = Math.max(first.start + first.length, Math.max(...starts.map(r => r.to)));
+      stretches.push({
+        "index": 0,
+        "start": 0,
+        "end": end,
+        "joinStart": true,
+        "squareEnd": starts.some(r => (r.square ?? false) && r.to >= end - 0.5)
+      });
+    }
+    if (ends.length > 0) {
+      const last = out[out.length - 1];
+      const start = Math.min(last.start, Math.min(...ends.map(r => r.to)));
+      stretches.push({
+        "index": out.length - 1,
+        "start": start,
+        "end": length,
+        "joinEnd": true,
+        "squareStart": ends.some(r => (r.square ?? false) && r.to <= start + 0.5)
+      });
+    }
+    return {
+      "rects": out,
+      "stretches": stretches,
+      "straightStart": starts.some(r => r.straight ?? false),
+      "straightEnd": ends.some(r => r.straight ?? false)
+    };
+  }
+
   // Sorted { start, end, ... } spans with those at most `merge` apart
   // joined, each keeping the flags of the span its ends came from
   function _mergeSpans(spans, merge) {
