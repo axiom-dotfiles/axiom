@@ -2,7 +2,7 @@
 
 How every service and surface of axiom works. The rules are in [AGENTS.md](../../AGENTS.md); these docs hold the mechanics. Each doc opens with the files it covers, the config it reads and related docs, so you can jump to the code or stop reading early. `grep -n '^###' <doc>` gives its outline.
 
-Local rules for a directory are in its own `AGENTS.md` (`components/bar/widgets/`, `components/content/`, `components/views/`, `components/methods/`, `components/hosts/popout/`, `services/`, `config/`, `scripts/`).
+Local rules for a directory are in its own `AGENTS.md` (`components/bar/`, `components/bar/widgets/`, `components/content/`, `components/views/`, `components/methods/`, `components/hosts/popout/`, `services/`, `config/`, `scripts/`).
 
 Read the doc for a feature before changing it, and update it when you change how the feature works. One fact has one home: link to it rather than restating it.
 
@@ -18,8 +18,9 @@ Dependencies point one way, methods → data owners → readers → services →
 ### Generated references (`scripts/gen_docs.py`; never edit by hand)
 - [config/](config/README.md): every setting per section: type, default, annotations, description, reader member, files that use it. Plus one page per bar widget, overlay module and view type.
 - [generated/api.md](generated/api.md): public members of every service and config reader, one page each.
-- [generated/files.md](generated/files.md): every QML file with its purpose comment.
+- [generated/files.md](generated/files.md): every QML file with its purpose comment. Long: grep it.
 - [generated/ipc.md](generated/ipc.md): every IPC target and its functions.
+- [generated/layers.md](generated/layers.md): every layer namespace's Hyprland `order` and why, from `HyprLua.layers`.
 
 ### Known issues
 - [issues.md](issues.md): problems found but not fixed yet. Add one when you find something out of scope; remove it with the fix.

@@ -33,6 +33,7 @@ step "qmllint" python3 scripts/check_qmllint.py
 step "unit tests" scripts/run_tests.sh
 step "shellcheck" shellcheck -x -S warning install.sh scripts/*.sh scripts/lib/*.sh scripts/greeter/*.sh scripts/dev/*.sh .githooks/pre-commit
 step "script tests" python3 tests/scripts/test_scripts.py
+step "guard tests" python3 tests/scripts/test_guard.py
 echo "── translations (warnings only)"
 python3 scripts/check_i18n.py || true
 

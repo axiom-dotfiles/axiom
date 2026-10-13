@@ -90,3 +90,7 @@ jobs:
       # Theme integrations, self-update on scratch clones, theme generation
       - name: Script tests
         run: python3 tests/scripts/test_scripts.py -v
+
+      # The agent guard (.claude/hooks/guard.py) enforcing AGENTS.md's "Never" rules
+      - name: Guard tests
+        run: python3 tests/scripts/test_guard.py -v

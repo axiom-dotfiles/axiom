@@ -11,7 +11,7 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 ```
 ### <Short title>
 - **Where:** `path/File.qml` (symbol, or several paths)
-- **What:** what's wrong and the evidence (log line, grep count, failing case)
+- **What:** what's wrong and the evidence (log line, grep count, failing case); quote a log warning's message in backticks so verify.sh marks it known
 - **Size:** trivial | small | needs a plan
 - **Found:** YYYY-MM-DD, while <task>
 ```
@@ -35,6 +35,12 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **What:** Every config reload logs `Unable to assign [undefined] to bool` at the `paused` declaration. The binding itself evaluates to a boolean (a temporary probe logged `boolean false`), and a constant `paused: false` still warned, so it isn't the expression: something in Quickshell's reload of this singleton assigns it. Harmless (the value is right afterwards), but it's noise in every `scripts/log.sh`. Next step: check whether Quickshell carries readonly properties across a reload, or whether making `paused` a plain function helps.
 - **Size:** small
 - **Found:** 2026-10-13, while checking reload logs during the docs makeover
+
+### Binding loops in bar popout placement
+- **Where:** `components/hosts/popout/EdgePlacement.qml`, `components/hosts/popout/PillBarJoin.qml`, `components/hosts/popout/BarPopouts.qml`, `components/hosts/popout/AttachedSurface.qml`, `components/hosts/popout/SubPopout.qml`
+- **What:** Opening bar popouts on a floating-pills bar logs binding loops, dozens per session: `property "_wall"` (PillBarJoin, created at EdgePlacement.qml:345), `property "_surfaceFromEdge"` and `property "joinReach"` (EdgePlacement), `property "surfaceX"` / `property "surfaceY"` (BarPopouts' window), `property "_spec"` (AttachedSurface) and `property "place"` / `property "alignedBoxStart"` (SubPopout). They're in every qs instance's log back to 2026-10-13, before the corner-priority change. The values settle (no visible glitch reported), but a loop can leave a stale value for a frame and buries real warnings. Likely one cycle: the placement reads the pill's join reach, which reads the placement's wall.
+- **Size:** needs a plan
+- **Found:** 2026-10-14, while reviewing verify.sh output for the agent-setup changes
 
 ### Schema root `description` duplicates the annotation docs
 - **Where:** `config/json/config.schema.json` (root `description`)

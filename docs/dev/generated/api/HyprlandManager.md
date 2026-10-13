@@ -12,7 +12,7 @@ Provides access to some Hyprland data not available in Quickshell.Hyprland.
 - `gapsOut` (var): Hyprland's general:gaps_out per side, which it adds after every reserved zone (transparent bars subtract it, see BarPanel)
 - `splitWidthMultiplier` (real): dwindle:split_width_multiplier: a box wider than tall times this splits side by side (placeWindow, and the overview's drop preview)
 - `blur` (var): Hyprland's blur as in effect, { enabled, size, passes } (its defaults until read): the one axiom's translucent surfaces blur with
-- `layerRulesLua` (readonly var): Hyprland arranges and stacks each layer's surfaces in the order they were mapped, unless a layer rule's `order` says otherwise (higher is "closer to the edge of the monitor": arranged, and drawn, fir…
+- `layerRulesLua` (readonly var): The layer rules stacking axiom's surfaces (HyprLua.layers, which says why each sits where it does; docs/dev/generated/layers.md).
 - `layerRulesReady` (readonly bool): Whether the layer rules are in Hyprland.
 
 ### Signals

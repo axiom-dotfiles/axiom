@@ -6,7 +6,7 @@
 
 How bars and the screen border share an edge through layer-shell ordering. Covers solid bars, bars inside the border, which bar gets a shared corner, transparent bars, the border being off, and the border's inward shadow window. Bar ends and pills are in [Bar ends and pills](bar-ends-pills.md).
 
-(Rule: AGENTS.md › UI conventions, Layer ordering. The rules live in `HyprlandManager.layerRulesLua`.)
+(Rule: AGENTS.md › UI conventions, Layer ordering. The rules live in `HyprLua.layers`, listed in [layer stacking](../generated/layers.md).)
 
 ### The border
 - `Appearance.screenBorder` turns the border off.
@@ -24,7 +24,7 @@ How bars and the screen border share an edge through layer-shell ordering. Cover
 ### Bar inside the border (`barConfig.insideBorder`)
 - This applies to any background except solid, with the border on.
 - The bar is on the Top layer like the border, in the `axiom-bar-pill`, `axiom-bar-transparent` or `axiom-bar-floating` (floating bars and floating pills) namespace.
-  - Their layer rules (`order = -1` / `-3` / `-5`, below the border's 0) make Hyprland arrange the bar after the border and draw it over the border.
+  - Their layer rules (below the border's) make Hyprland arrange the bar after the border and draw it over the border.
 - It sits just inside the border with a `-borderWidth` margin, so its outer edge lies on the border's stroke.
 - A fullscreen window covers it, as it does everything on the Top layer, so it never hides.
 - Hyprland counts that margin into the reserved space, so the bar reserves `extent`.
@@ -32,20 +32,12 @@ How bars and the screen border share an edge through layer-shell ordering. Cover
 
 ### Bars sharing a corner (`methods/BarEnds`, `tests/tst_BarEnds.qml`)
 - Hyprland gives a corner to the bar it arranges first. The other bar's window ends at its reserved line.
-- Which bar that is depends on the layer rule, never on which mapped first. Orders, first to last:
-
-  | Kind | Namespace | Order |
-  |---|---|---|
-  | solid bars | `axiom-bar` / `axiom-bar-long` | 5 / 4 |
-  | the border | `axiom-border` | 0 |
-  | pill bars | `axiom-bar-pill` / `-long` | -1 / -2 |
-  | transparent bars | `axiom-bar-transparent` / `-long` | -3 / -4 |
-  | floating bars and floating pills | `axiom-bar-floating` / `-long` | -5 / -6 |
+- Which bar that is depends on the layer rule, never on which mapped first. First to last: solid bars, the border, pill bars, transparent bars, floating bars and floating pills (orders: [layer stacking](../generated/layers.md), from `HyprLua.layers`; `tst_HyprLua` holds them to this order).
 
   - A floating bar always makes way.
   - Between bars of one kind, the bar on the screen's longer edge makes way (the `-long` namespace), so the shorter bar gets the corner: side bars on a landscape monitor, top and bottom ones on a portrait one (`shortEdge`, `BarEnds.onShortEdge`).
   - Solid bars can't tie with pill bars: a solid bar is arranged before the border, a pill bar after it.
-  - Docks, the overlay, the OSD and popouts are ordered below every bar (`-7` and lower).
+  - Docks, the overlay, the OSD and popouts are ordered after every bar.
   - The namespace comes from `Bar.layerNamespace`. `shell/Bar` keys each window on it, since `order` is read only as a surface maps: a bar changing kind, or a monitor rotating, remakes the window.
 - A bar reserving nothing takes no corner.
 
@@ -67,6 +59,6 @@ Each bar end's `kind`, joining rules, pill bars merging at a corner, and pills t
   - one click-through, exclusion-ignoring window over the screen
   - the frame's shape, blurred and masked to its inside
   - `innerInset`: inset past a solid bar reserving its edge
-  - in the `axiom-border-shadow` namespace. Its layer rule (`order = 11`) stacks it under every other axiom surface, the overlay backdrop included.
+  - in the `axiom-border-shadow` namespace. Its layer rule stacks it under every other axiom surface, the overlay backdrop included.
 - A solid bar reserving its edge under the border casts no shadow of its own (`Bar.enrichBarConfig`'s `borderShadowed`).
 - `Bar.shadowColor` resolves the color for both the border and the bar shadows (see [Widget shapes](widget-shapes-runs.md#bar-shadow)).

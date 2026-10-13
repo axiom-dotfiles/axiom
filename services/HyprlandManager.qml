@@ -565,52 +565,14 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
       "passes": 1
     })
 
-  // Hyprland arranges and stacks each layer's surfaces in the order they
-  // were mapped, unless a layer rule's `order` says otherwise (higher is
-  // "closer to the edge of the monitor": arranged, and drawn, first).
-  // - Full-screen surfaces' backdrops (ScreenBackdrop) are Top-layer
-  //   surfaces that must sit under the bars and border, which are mapped
-  //   before them.
-  // - Bars meeting at a corner: the one arranged first takes it, the other
-  //   ending at its reserved line (BarEnds). Solid bars come first, outside
-  //   the border, then the border, then pill bars, then transparent ones,
-  //   then floating ones (bars and pills held off the edge); of a kind, the
-  //   bar on the screen's shorter edge before the longer one's (the -long
-  //   namespaces). So a floating bar always makes way.
-  // - A solid bar must be arranged before the border's strip on its edge,
-  //   which then lands on the bar's inner part (see BarPanel). Mapping
-  //   order alone breaks whenever the bar's surface is remade or changes
-  //   layer (a new monitor, a new bar id on restore, solid <-> floating):
-  //   Hyprland appends it after the border.
-  // - An integrated edge menu is arranged before both, so it sits at the
-  //   screen edge and pushes the bars, border and windows inwards.
-  // - Detached popouts and floating edge menus are drawn under the bars and
-  //   border, so they slide out from beneath them.
-  // - A dock is arranged after everything else on its edge, so it sits
-  //   inside the bars and border. Edge popouts (floating edge menus) come
-  //   after it, so they draw over it where they reach past its zone.
-  // - The overlay's panel comes after docks: it sits inside an always-shown
-  //   dock's zone and draws over a hover or intellihide dock.
-  // - The OSD, on an edge or floating, comes after the overlay, so a volume
-  //   or brightness change shows over it.
-  // - A dock's preview (the settings card's Show) comes after the overlay
-  //   too, so it shows over the settings page.
-  // - Edge popouts (floating edge menus) come after the OSD, so a menu
-  //   opened over the overlay draws over both.
-  // - The screenshot picker's frozen frame appears and goes at once, with no
-  //   fade over the live screen, and draws over everything else, the
-  //   overlay included (popups can't be ordered: see captureFrozen).
-  // - The monitor layout prompt (Keep / Revert) comes after the picker, so
-  //   it draws over the overlay the Monitors page opened it from.
-  // - The polkit prompt comes after all of it, the picker included, so
-  //   nothing of axiom's (a toast, the power menu) draws over a password
-  //   prompt.
-  // Named, so re-adding one replaces it instead of piling up copies. Rules
-  // added at runtime are lost when Hyprland reloads its config.
+  // The layer rules stacking axiom's surfaces (HyprLua.layers, which says
+  // why each sits where it does; docs/dev/generated/layers.md). Named, so
+  // re-adding one replaces it instead of piling up copies. Rules added at
+  // runtime are lost when Hyprland reloads its config.
   // HyprlandConfigManager also writes them into its Lua files, since a
   // reload Hyprland does by itself (a watched file changing) doesn't always
   // send the configreloaded event that re-adds them here.
-  readonly property var layerRulesLua: [`hl.layer_rule({ name = "axiom-backdrop", match = { namespace = "^axiom-backdrop$" }, order = 10 })`, `hl.layer_rule({ name = "axiom-border-shadow", match = { namespace = "^axiom-border-shadow$" }, order = 11 })`, `hl.layer_rule({ name = "axiom-blur-backing", match = { namespace = "^axiom-blur-backing$" }, order = 9 })`, `hl.layer_rule({ name = "axiom-bar", match = { namespace = "^axiom-bar$" }, order = 5 })`, `hl.layer_rule({ name = "axiom-bar-long", match = { namespace = "^axiom-bar-long$" }, order = 4 })`, `hl.layer_rule({ name = "axiom-edge-menu", match = { namespace = "^axiom-edge-menu$" }, order = 7 })`, `hl.layer_rule({ name = "axiom-popout-under", match = { namespace = "^axiom-popout-under$" }, order = 6 })`, `hl.layer_rule({ name = "axiom-bar-pill", match = { namespace = "^axiom-bar-pill$" }, order = -1 })`, `hl.layer_rule({ name = "axiom-bar-pill-long", match = { namespace = "^axiom-bar-pill-long$" }, order = -2 })`, `hl.layer_rule({ name = "axiom-bar-transparent", match = { namespace = "^axiom-bar-transparent$" }, order = -3 })`, `hl.layer_rule({ name = "axiom-bar-transparent-long", match = { namespace = "^axiom-bar-transparent-long$" }, order = -4 })`, `hl.layer_rule({ name = "axiom-bar-floating", match = { namespace = "^axiom-bar-floating$" }, order = -5 })`, `hl.layer_rule({ name = "axiom-bar-floating-long", match = { namespace = "^axiom-bar-floating-long$" }, order = -6 })`, `hl.layer_rule({ name = "axiom-dock", match = { namespace = "^axiom-dock$" }, order = -7 })`, `hl.layer_rule({ name = "axiom-edge-popout", match = { namespace = "^axiom-edge-popout$" }, order = -10 })`, `hl.layer_rule({ name = "axiom-popout", match = { namespace = "^axiom-popout$" }, order = -10 })`, `hl.layer_rule({ name = "axiom-overlay", match = { namespace = "^axiom-overlay$" }, order = -8 })`, `hl.layer_rule({ name = "axiom-osd", match = { namespace = "^axiom-osd$" }, order = -9 })`, `hl.layer_rule({ name = "axiom-dock-preview", match = { namespace = "^axiom-dock-preview$" }, order = -9 })`, `hl.layer_rule({ name = "axiom-screenshot", match = { namespace = "^axiom-screenshot$" }, no_anim = true, order = -20 })`, `hl.layer_rule({ name = "axiom-monitor-prompt", match = { namespace = "^axiom-monitor-prompt$" }, order = -25 })`, `hl.layer_rule({ name = "axiom-polkit", match = { namespace = "^axiom-polkit$" }, order = -30 })`, `hl.layer_rule({ name = "axiom-desktop", match = { namespace = "^axiom-desktop$" }, no_anim = true })`]
+  readonly property var layerRulesLua: HyprLua.layerRulesLua()
 
   function _addLayerRules() {
     for (const rule of layerRulesLua)

@@ -6,8 +6,9 @@
                          member that exposes it and the files that use it;
                          plus BarWidgets / OverlayModules / OverlayViews
   docs/dev/generated/    files.md (every QML file's purpose comment),
-                         ipc.md (every IpcHandler), api/<Name>.md (the public
-                         members of each service and config reader)
+                         ipc.md (every IpcHandler), layers.md (layer-rule
+                         stacking, from HyprLua.layers), api/<Name>.md (the
+                         public members of each service and config reader)
 
   scripts/gen_docs.py            write them (stale files removed)
   scripts/gen_docs.py --check    exit 1 if any is out of date (CI)
@@ -671,6 +672,38 @@ def ipc_page():
     return "\n".join(out).rstrip() + "\n"
 
 
+LAYERS_PATH = ROOT / "components/methods/HyprLua.qml"
+
+
+def json_property(path, name):
+    """A QML property whose value is a plain-JSON array literal."""
+    text = path.read_text()
+    match = re.search(rf"property var {name}:\s*\[", text)
+    if not match:
+        sys.exit(f"{rel(path)}: no `property var {name}: [...]`")
+    depth, i = 0, match.end() - 1
+    while i < len(text):
+        depth += {"[": 1, "]": -1}.get(text[i], 0)
+        if depth == 0:
+            break
+        i += 1
+    return json.loads(text[match.end() - 1: i + 1])
+
+
+def layers_page():
+    out = [NOTICE, "# Layer stacking", "",
+           "Every axiom layer namespace with a Hyprland layer rule, from `HyprLua.layers` "
+           "(applied by `HyprlandManager.layerRulesLua`). Higher `order` is arranged (and drawn) first: "
+           "closer to the screen edge, and it takes a shared corner. Hyprland reads `order` only as a surface maps. "
+           "Cite this page rather than repeating the numbers in a doc.", "",
+           "| Namespace | Order | Why |", "|---|---|---|"]
+    for layer in json_property(LAYERS_PATH, "layers"):
+        order = layer.get("order")
+        flags = " (no animation)" if layer.get("noAnim") else ""
+        out.append(f"| `axiom-{layer['namespace']}` | {'' if order is None else order} | {layer['why']}{flags} |")
+    return "\n".join(out).rstrip() + "\n"
+
+
 def api_pages(readers):
     pages = {}
     index = [NOTICE, "# Service and reader APIs", "",
@@ -723,6 +756,7 @@ def generate():
     files, missing = files_page()
     pages[f"{GEN_OUT}/files.md"] = files
     pages[f"{GEN_OUT}/ipc.md"] = ipc_page()
+    pages[f"{GEN_OUT}/layers.md"] = layers_page()
     pages.update(api_pages(readers))
     unused = sorted(f"{r}.{n}" for (r, n), users in ref.member_users.items()
                     if not users and (r, n) not in ref.inside and readers[r]["members"][n]["kind"] != "signal")

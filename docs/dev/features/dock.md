@@ -34,7 +34,7 @@ App docks on screen edges: pinned and running apps, magnification, hover and int
 
 ### The window
 - `DockWindow` is a Top-layer `axiom-dock` strip, as deep as the magnified icons, masked to the box.
-- **Layer order:** its layer rule's `order = -7` arranges it after the border and bars, floating and transparent ones included.
+- **Layer order:** its layer rule arranges it after the border and every bar ([layer stacking](../generated/layers.md)).
   - It sits inside them, and never shortens the bars on other edges.
   - It is blurred.
 - **Fullscreen:** a fullscreen window covers it, and its hover trigger is off then.
@@ -75,8 +75,8 @@ Along the edge:
   - **`EdgePopout`s:** the OSD and floating edge menus, on the dock's own edge and at both ends.
   - **The border's corner pieces** (`RoundedBorders.cornerMargin`).
 - **Layer orders that put them over the dock:**
-  - The `axiom-edge-popout` layer rule is `order = -10`. It draws floating edge menus over the dock, and over the overlay and the OSD.
-  - The OSD's `axiom-osd` (`overNamespace`) is `order = -9`. It draws the OSD over the dock and over the overlay.
+  - The `axiom-edge-popout` layer rule ([layer stacking](../generated/layers.md)) draws floating edge menus over the dock, and over the overlay and the OSD.
+  - The OSD's `axiom-osd` (`overNamespace`) layer rule draws the OSD over the dock and over the overlay.
 - **Retiling:** Hyprland sends no event when windows retile around a changed zone. So `refreshSoon()` re-reads monitors and windows after layer and zone changes. Layer events are only listened to while a dock is built.
 
 ### Entry points
@@ -89,7 +89,7 @@ Along the edge:
 - The settings card's Show button is a preview: `DockManager.preview(entry)`, with the entry as edited, saved or not.
 - **Why a second window:** the dock is put away under the overlay that the card sits in. So `shell/Dock` builds a second `DockWindow` with `preview: true`:
   - on the screen the dock would show on (`previewScreen`, `ShellManager.targetFor`);
-  - an Overlay-layer `axiom-dock-preview`, whose layer rule is `order = -9`, after the overlay's panel;
+  - an Overlay-layer `axiom-dock-preview`, whose layer rule orders it after the overlay's panel;
   - with no trigger, zone, input or IPC;
   - reaching back past the docks' zones on its edge, to where a dock sits.
 - It slides in, holds for 2 s and slides out.
