@@ -56,17 +56,11 @@ QtObject {
     return wall;
   }
 
-  // Whether an end of that kind is joined by a stroke of its own (the
-  // border's, a solid bar's or a bare edge), not through a pill bar
-  function strokeJoinable(kind) {
-    return kind === "border" || kind === "bare" || kind === "solidStroke";
-  }
-
   // Room a side wall's fillet takes along the edge: none on a bare screen
-  // edge, which the surface runs straight off, nor with a radius too tight
-  // for one (see SurfaceOutline's `sharp`)
+  // edge, which the surface runs straight off, else EdgeAttach's (none
+  // with a radius too tight for one)
   function filletMargin(ownBare, gap, stroke, radius) {
-    return ownBare || radius < stroke / 2 ? 0 : Math.max(0, gap - stroke);
+    return ownBare ? 0 : EdgeAttach.filletMargin(gap, stroke, radius);
   }
 
   // The least room a box keeps from an end it doesn't join: its fillet's,

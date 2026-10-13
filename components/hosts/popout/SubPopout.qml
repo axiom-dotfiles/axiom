@@ -37,9 +37,9 @@ Item {
   required property ShellScreen screen
   required property bool openToLeft
   // The parent popout (BarPopouts, EdgePopout): its window
-  // (popupWindow), its box at rest there (attachBox), which ends of the
-  // side we open on we may run flush to (sideFreeTop/Bottom) or join at
-  // its bar side (sideJoinTop/Bottom, at sideJoinLine), where its window
+  // (popupWindow), its box at rest there (attachBox), what we meet on its
+  // side (`side`, a SubmenuSide: the ends we may run flush to or join at
+  // its bar side, and where that stroke lies), where its window
   // is on screen (popupScreenOrigin), its claim; it draws parentStretch
   // and the hole we leave in its side (submenuHole)
   required property var host
@@ -130,7 +130,7 @@ Item {
     // parent's own.
     readonly property real boxLength: submenuPopup.contentHeight + surface.contentInset * 2
     readonly property real _need: EdgeAttach.filletMargin(root.connectorGap, Appearance.borderWidth, Appearance.borderRadius) + Appearance.borderRadius
-    readonly property real _joinLine: outer.host?.side?.joinLine ?? 0
+    readonly property real _joinLine: outer.host?.side?.attachLine ?? 0
     readonly property bool _joinTop: outer.host?.side?.joinTop ?? false
     readonly property bool _joinBottom: outer.host?.side?.joinBottom ?? false
     readonly property real reachTop: root._joinTop ? root._joinLine : root.attachRect.y + (outer.host?.side?.freeTop ? 0 : root._need)
@@ -186,10 +186,10 @@ Item {
     // window: our attach edge lies a stroke inside the parent's side
     readonly property real outerWall: outer.openToLeft ? root.attachRect.x + Appearance.borderWidth - surface.boxStart - root.targetBoxWidth : root.attachRect.x + root.attachRect.width - Appearance.borderWidth + surface.boxStart + root.targetBoxWidth
     // Joined, whether what we join reaches past our outer fillet and the
-    // corner beyond it (sideJoinFrom/To); else our wall runs straight up
+    // corner beyond it (side.strokeFrom/To); else our wall runs straight up
     // into it, stretched to meet it
     readonly property real _joinRoom: Appearance.borderRadius * 2
-    readonly property bool joinFillets: outer.openToLeft ? root.outerWall - root._joinRoom >= (outer.host?.side?.joinFrom ?? 0) : root.outerWall + root._joinRoom <= (outer.host?.side?.joinTo ?? 0)
+    readonly property bool joinFillets: outer.openToLeft ? root.outerWall - root._joinRoom >= (outer.host?.side?.strokeFrom ?? 0) : root.outerWall + root._joinRoom <= (outer.host?.side?.strokeTo ?? 0)
     readonly property real targetBoxHeight: root.place.end - root.place.start
     property real shownBoxWidth: still.holding ? still.held.width : root.targetBoxWidth
     property real shownBoxHeight: still.holding ? still.held.height : root.targetBoxHeight
@@ -264,7 +264,7 @@ Item {
       // None past the bar side we may join, so it doesn't fall over the
       // bar (as the parent's slide clips its own there)
       // (but the parent's backfill row, which a joined surface covers)
-      readonly property real joinBackfill: outer.host?.side?.joinBackfill ?? 0
+      readonly property real joinBackfill: outer.host?.side?.backfill ?? 0
       readonly property real roomTop: outer.host?.side?.joinTop ? joinBackfill : shadowRoom
       readonly property real roomBottom: outer.host?.side?.joinBottom ? joinBackfill : shadowRoom
 
@@ -387,7 +387,7 @@ Item {
         // At the parent's bar side, on the stroke it grows from
         joinStart: root.place.joinStart
         joinEnd: root.place.joinEnd
-        straightJoins: (outer.host?.side?.straightJoin ?? false) || !root.joinFillets
+        straightJoins: (outer.host?.side?.straight ?? false) || !root.joinFillets
         // The parent's side stroke leaves an anti-aliased fringe on its
         // inner side: cover it (see AttachedSurface.backfill)
         backfill: 1

@@ -426,13 +426,6 @@ QtObject {
     return BarEnds.edgesOn(root.bars, screen?.name);
   }
 
-  // What the start or end (`atStart`) of the bar on a screen edge (a
-  // Bar.Location) meets (BarEnds), or null with no bar there
-  function endOf(screen, location, atStart) {
-    const bar = root.edgesFor(screen)[Bar.edgeName(location)];
-    return bar ? (atStart ? bar.ends.start : bar.ends.end) : null;
-  }
-
   // Where the window of the bar on a screen edge (a Bar.Location) starts
   // along it at its start or end (`atStart`), in px from that end's
   // screen edge, as Hyprland arranges it (BarEnds): past the bar there it
@@ -456,20 +449,12 @@ QtObject {
     return menus + (bar.solid || !Appearance.screenBorder ? 0 : Appearance.screenMargin) - end.reach;
   }
 
-  // Whether a surface reaching a screen edge (a Bar.Location) along a
-  // perpendicular one can join what's on it: the border's stroke, a solid
-  // bar's inner stroke or a bare screen edge, not any other bar's edge (it
-  // has none to join), nor an integrated menu's strip
-  function joinableOn(screen, location) {
-    return SurfaceContext.strokeJoinable(root.surfaceEnd(screen, location).kind);
-  }
-
   // What a surface's end reaching a screen edge (a Bar.Location) along a
   // perpendicular one meets there (SurfaceContext.endKind): the one answer
   // every popout, dock and pill takes its joins, walls and openings from
   function surfaceEnd(screen, location) {
     const name = Bar.edgeName(location);
-    const bar = root.edgesFor(screen)[name] ?? null;
+    const bar = root.edgesFor(screen)[name];
     return SurfaceContext.endKind({
       "border": Appearance.screenBorder,
       "bar": bar,

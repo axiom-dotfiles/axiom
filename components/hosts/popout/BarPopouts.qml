@@ -327,13 +327,15 @@ PopoutWrapperBase {
   // windows, so the stroke may be drawn over the box), the bar's fill
   // showing there as the box's.
   readonly property bool _onBarStroke: (root.anchorPill !== null || root.barConfig.innerStroke) && !root.mergeWithPill
-  readonly property var _opening: root.occupied && root.claimed && root.popupWindow.visible && (Appearance.translucent || root.barConfig.innerStroke) && root._onBarStroke ? {
+  // Out and granted: what the openings and the joined pill bars follow
+  readonly property bool _out: root.occupied && root.claimed && root.popupWindow.visible
+  readonly property var _opening: root._out && (Appearance.translucent || root.barConfig.innerStroke) && root._onBarStroke ? {
     "start": mainPopup.shownAlongPos + surface.coverStart,
     "end": mainPopup.shownAlongPos + surface.coverStart + surface.coverLength
   } : null
   // A submenu joined to the box's bar side covers that stroke beside the
   // box: along the bar, in bar-window coordinates
-  readonly property var _submenuSpan: root.occupied && root.claimed && root.popupWindow.visible && root.submenuJoinSpan ? {
+  readonly property var _submenuSpan: root._out && root.submenuJoinSpan ? {
     "start": root.submenuJoinSpan.start - mainPopup.alongShift,
     "end": root.submenuJoinSpan.end - mainPopup.alongShift
   } : null
@@ -345,7 +347,7 @@ PopoutWrapperBase {
   // Merged into the bar, or on a solid bar's inner edge, the box (and a
   // submenu joined beside it) stands on the border's stroke instead, which
   // leaves it open under them (BarContainer.borderOpening)
-  readonly property bool _onBorder: root.occupied && root.claimed && root.popupWindow.visible && (root.mergeWithPill || root.barConfig.solid)
+  readonly property bool _onBorder: root._out && (root.mergeWithPill || root.barConfig.solid)
   BorderOpening {
     opening: root._onBorder ? root.layoutSource?.borderOpening(mainPopup.shownAlongPos + surface.coverStart, mainPopup.shownAlongPos + surface.coverStart + surface.coverLength) ?? null : null
   }
@@ -372,7 +374,6 @@ PopoutWrapperBase {
       return (root.screen?.width ?? 0) - origin.x - mainPopup.barX - surface.width + cover;
     }
   }
-  readonly property bool _pillJoinShowing: root.occupied && root.claimed && root.popupWindow.visible
   PillBarJoin {
     id: startPillJoin
     screen: root.screen
@@ -381,7 +382,7 @@ PopoutWrapperBase {
     owner: "barPopout:" + root.barConfig.id + ":joinStart"
     open: pillStretchItem.open
     joined: surface.joinStart && mainPopup.startEnd.sink === "pillBar"
-    showing: root._pillJoinShowing
+    showing: root._out
     joinReach: root._joinReach(true)
   }
   PillBarJoin {
@@ -392,7 +393,7 @@ PopoutWrapperBase {
     owner: "barPopout:" + root.barConfig.id + ":joinEnd"
     open: pillStretchItem.open
     joined: surface.joinEnd && mainPopup.endEnd.sink === "pillBar"
-    showing: root._pillJoinShowing
+    showing: root._out
     joinReach: root._joinReach(false)
   }
   // Joined to a perpendicular edge at an end, that edge's stroke its end
@@ -402,7 +403,7 @@ PopoutWrapperBase {
   // PillBarJoin)
   function _joinSpan(atStart) {
     const origin = surface.barOrigin;
-    if (!root.occupied || !root.claimed || !root.popupWindow.visible || mainPopup.detached || !origin)
+    if (!root._out || mainPopup.detached || !origin)
       return null;
     const vertical = root.barConfig.vertical;
     const from = vertical ? origin.x + mainPopup.barX : origin.y + mainPopup.barY;
@@ -596,7 +597,6 @@ PopoutWrapperBase {
     readonly property var endEnd: _endAt(endSide, root.barConfig.ends.end.held)
     readonly property bool strokeAtStart: startEnd.joins
     readonly property bool strokeAtEnd: endEnd.joins
-    readonly property real _strokeWidth: Appearance.borderWidth
     // On a floating bar, where its islands may reach instead: a popout
     // pushed to one runs flush into the island's end there
     readonly property real islandStart: root.layoutSource?.islandFrom ?? root.barConfig.islandStart
@@ -612,15 +612,15 @@ PopoutWrapperBase {
     // joins
     readonly property bool _bareStart: BarManager.screenEdgeOpen(root.screen, startSide)
     readonly property bool _bareEnd: BarManager.screenEdgeOpen(root.screen, endSide)
-    readonly property real strokeStart: root.island ? islandStart : insetStart - (_bareStart ? 0 : _strokeWidth)
-    readonly property real strokeEnd: root.island ? islandEnd : panelLength - insetEnd + (_bareEnd ? 0 : _strokeWidth)
+    readonly property real strokeStart: root.island ? islandStart : insetStart - (_bareStart ? 0 : Appearance.borderWidth)
+    readonly property real strokeEnd: root.island ? islandEnd : panelLength - insetEnd + (_bareEnd ? 0 : Appearance.borderWidth)
     // Where windows start past each perpendicular edge, in from each end of
     // the window (no nearer than its frame line: a bar reserving nothing).
     // Where there's nothing to join (another bar, an integrated menu), the
     // box's walls stop there, its fillets curving on past (EdgeAttach's
     // wallFrom/wallTo), and a pill bar's pills reach on to its own ends.
     function _windowInset(side, atStart) {
-      const line = Math.max(EdgeMenuManager.frameLineOn(root.screen, side), EdgeMenuManager.reservedOn(root.screen, side) + (HyprlandManager.gapsOut[Bar.edgeName(side)] ?? 0));
+      const line = SurfaceContext.wallLine(EdgeMenuManager.frameLineOn(root.screen, side), EdgeMenuManager.reservedOn(root.screen, side), HyprlandManager.gapsOut[Bar.edgeName(side)] ?? 0);
       return line - BarManager.barStartOn(root.screen, root.barConfig.location, atStart);
     }
     // A floating bar held clear of that bar has none: its islands, and so

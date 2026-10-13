@@ -165,11 +165,10 @@ QtObject {
       "top": loc === Bar.Top,
       "bottom": loc === Bar.Bottom
     };
-    // How much less than its extent it reserves (reserveTrim)
+    // How much less than its extent it reserves (reserveTrim). What its
+    // ends meet depends on the other bars on its screen: BarManager.bars
+    // adds them (BarEnds.withEnds).
     bar.trim = Bar.reserveTrim(bar, gapsOut[edge] ?? 0);
-    // What its ends meet (BarEnds): on its own, the frame at both;
-    // BarManager.bars works them out among the bars on its screen
-    bar.ends = BarEnds.endsOf(bar, {}, Bar.endsOptions(gapsOut));
     return bar;
   }
 

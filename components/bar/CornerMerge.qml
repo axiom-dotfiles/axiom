@@ -2,7 +2,6 @@ pragma ComponentBehavior: Bound
 import QtQuick
 
 import qs.config
-import qs.services
 import qs.components.hosts.popout
 
 // One end of a side pill bar that makes way for a pill bar at its corner
@@ -17,12 +16,11 @@ PillStretch {
   required property var bar
   required property bool atStart
 
-  readonly property var _end: root.atStart ? root.bar._ends.start : root.bar._ends.end
   readonly property var _rects: root.bar.pillRects
   readonly property var _pill: root.atStart ? root._rects[0] : root._rects[root._rects.length - 1]
-  // Only a side bar makes way for one of its kind
-  readonly property bool _joins: root.bar.isVertical && root._end.kind === "pillBar" && !!root._pill && (root.atStart ? root._pill.joinStart : root._pill.joinEnd)
-  readonly property var _panel: root._joins ? ShellManager.barOn(root.bar.blurScreen, root.atStart ? Bar.Top : Bar.Bottom) : null
+  // Only a side bar makes way for one of its kind (the pill bar there is
+  // BarContainer.barAt's)
+  readonly property bool _joins: root.bar.isVertical && !!root._pill && (root.atStart ? root._pill.joinStart : root._pill.joinEnd)
   readonly property var _origin: root.bar.blurOrigin
   readonly property var _otherOrigin: root.container?.blurOrigin ?? null
   readonly property bool _placed: root.container !== null && root._origin !== null && root._otherOrigin !== null
@@ -34,7 +32,7 @@ PillStretch {
 
   owner: "corner:" + root.bar.barConfig.id + (root.atStart ? ":start" : ":end")
   open: true
-  container: root._panel?.visible ? root._panel.container : null
+  container: root._joins ? (root.atStart ? root.bar.pillBarStart : root.bar.pillBarEnd) : null
   // Past the join's fillet, with room for the other pill's own corner
   endReach: root._placed ? {
     "atStart": !root._right,

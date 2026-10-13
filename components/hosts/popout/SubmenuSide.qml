@@ -19,12 +19,15 @@ QtObject {
   property int edge: Bar.Top
   property bool detached: false
   property bool straight: false
-  // The parent's attach edge (y of the stroke's outer edge) and the
-  // backfill row it takes past it (on a pill or island)
+  // The parent's attach edge (y of the stroke's outer edge), where a
+  // joined submenu's end sits, and the backfill row it takes past it (on a
+  // pill or island), which a joined submenu covers beside it
   property real attachLine: 0
   property real backfill: 0
   // How far along (x) the stroke it grows from reaches without a submenu:
-  // its pill or island as the box stretches it, else what it may reach
+  // its pill or island as the box stretches it, else what it may reach. A
+  // joined submenu whose fillet (and the corner past it) lands within
+  // keeps it; any other runs straight up into it.
   property real strokeFrom: 0
   property real strokeTo: 0
   // The parent's joined ends (along its edge)
@@ -51,11 +54,6 @@ QtObject {
   readonly property bool _joins: !root.vertical && !root.detached
   readonly property bool joinTop: root._joins && root.edge === Bar.Top
   readonly property bool joinBottom: root._joins && root.edge === Bar.Bottom
-  readonly property real joinLine: root.attachLine
-  readonly property bool straightJoin: root.straight
-  readonly property real joinBackfill: root.backfill
-  readonly property real joinFrom: root.strokeFrom
-  readonly property real joinTo: root.strokeTo
   // The ends of the side it may run flush to: the far edge's, not a
   // joined end, and on a top or bottom edge its bar side's where nothing's
   // joined there

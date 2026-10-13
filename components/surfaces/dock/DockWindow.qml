@@ -96,11 +96,9 @@ Scope {
   // inner side. The window reaches onto their strokes where an end may
   // join one (EdgePlacement): where edge coordinates start in it, at each
   // end.
-  readonly property int startSide: placement.startSide
-  readonly property int endSide: placement.endSide
-  readonly property real strokeInset: placement.strokeInsetStart
+  readonly property real startStrokeInset: placement.strokeInsetStart
   readonly property real endStrokeInset: placement.strokeInsetEnd
-  readonly property real length: (root.vertical ? panelWindow.height : panelWindow.width) - root.strokeInset - root.endStrokeInset
+  readonly property real length: (root.vertical ? panelWindow.height : panelWindow.width) - root.startStrokeInset - root.endStrokeInset
   readonly property real restLength: root.count * root.base + Math.max(0, root.count - 1) * root.spacing + root.separatorLength + root.pad * 2
   // The least room from the box to each end that isn't joined: held, its
   // gaps from the frame lines there; at a wall, up to where windows
@@ -155,7 +153,7 @@ Scope {
   Glide on magnifyAmount {}
   readonly property real _step: root.base + root.spacing
   readonly property var sizes: {
-    let p = root.pointer - root.strokeInset - root.restStart - root.pad;
+    let p = root.pointer - root.startStrokeInset - root.restStart - root.pad;
     if (root.separator && p > root.pinnedCount * root._step)
       p = Math.max(root.pinnedCount * root._step, p - root.separatorLength);
     const full = DockLayout.magnifiedSizes(root.count, root.pointer < 0 ? null : p, root.base, root.peak, root.dock.magnifyRange, root.spacing);
@@ -164,9 +162,9 @@ Scope {
   readonly property real currentLength: root.sizes.reduce((sum, size) => sum + size, 0) + Math.max(0, root.count - 1) * root.spacing + root.separatorLength + root.pad * 2
   // Where the icons' box starts along the window: where it wants to be,
   // the surface reaching past it to whatever it meets (place)
-  readonly property real boxStart: root.strokeInset + root.place.contentStart
+  readonly property real boxStart: root.startStrokeInset + root.place.contentStart
   // The surface's box along the window
-  readonly property real surfaceBoxStart: root.strokeInset + root.place.start
+  readonly property real surfaceBoxStart: root.startStrokeInset + root.place.start
   readonly property real surfaceBoxLength: root.place.end - root.place.start
   // Where each icon starts along the window
   readonly property var starts: {
@@ -455,11 +453,11 @@ Scope {
     implicitWidth: root.vertical ? root.depth : 0
     implicitHeight: root.vertical ? 0 : root.depth
 
-    // Along the edge it reaches onto the perpendicular strokes (strokeInset)
+    // Along the edge it reaches onto the perpendicular strokes (startStrokeInset, endStrokeInset)
     margins {
-      top: root.edge === Bar.Top ? root.edgeMargin : root.vertical ? -root.strokeInset : 0
+      top: root.edge === Bar.Top ? root.edgeMargin : root.vertical ? -root.startStrokeInset : 0
       bottom: root.edge === Bar.Bottom ? root.edgeMargin : root.vertical ? -root.endStrokeInset : 0
-      left: root.edge === Bar.Left ? root.edgeMargin : root.vertical ? 0 : -root.strokeInset
+      left: root.edge === Bar.Left ? root.edgeMargin : root.vertical ? 0 : -root.startStrokeInset
       right: root.edge === Bar.Right ? root.edgeMargin : root.vertical ? 0 : -root.endStrokeInset
     }
 
@@ -509,8 +507,8 @@ Scope {
       // edge popout's
       AttachedSurface {
         id: surface
-        x: root.vertical ? root.crossAt(0, width) : root.strokeInset + root.place.surfaceStart
-        y: root.vertical ? root.strokeInset + root.place.surfaceStart : root.crossAt(0, height)
+        x: root.vertical ? root.crossAt(0, width) : root.startStrokeInset + root.place.surfaceStart
+        y: root.vertical ? root.startStrokeInset + root.place.surfaceStart : root.crossAt(0, height)
         width: implicitWidth
         height: implicitHeight
 

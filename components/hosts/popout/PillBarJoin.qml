@@ -4,6 +4,7 @@ import Quickshell
 
 import qs.config
 import qs.services
+import qs.components.methods
 
 // A surface's end joining a pill bar on a perpendicular screen edge: its
 // end sits on that bar's far stroke, and the bar's pill at this edge's end
@@ -32,9 +33,8 @@ PillStretch {
 
   readonly property var _panel: ShellManager.barOn(root.screen?.name ?? "", root.side)
   // A pill bar showing there, with no integrated menu's strip on that edge
-  // between: what a surface reaching that edge joins (BarPopouts' and
-  // EdgePlacement's `joinable`)
-  readonly property bool available: !!root._panel?.visible && (root._panel.barConfig?.pills ?? false) && EdgeMenuManager.zoneOn(root.screen?.name ?? "", Bar.edgeName(root.side)) === 0
+  // between (SurfaceContext.endKind "pillBar", as its hosts decide joins)
+  readonly property bool available: BarManager.surfaceEnd(root.screen, root.side).kind === "pillBar"
 
   // Along that bar, this edge is its start (left, top) or its end
   readonly property bool _atStart: root.edge === Bar.Left || root.edge === Bar.Top
@@ -59,7 +59,7 @@ PillStretch {
       return false;
     const merge = root._panel.barConfig.pillMerge ?? 0;
     const need = root._radius * 2;
-    return (root._panel.container._sectionPills ?? []).some(p => root._atStart ? p.start + p.length >= root._wall + need && p.start <= root._wall + need + merge : p.start <= root._wall - need && p.start + p.length >= root._wall - need - merge);
+    return (root._panel.container.sectionPills ?? []).some(p => root._atStart ? p.start + p.length >= root._wall + need && p.start <= root._wall + need + merge : p.start <= root._wall - need && p.start + p.length >= root._wall - need - merge);
   }
   // Where the joined end covers that bar's far stroke to: the fillet's
   // tip, or the wall
@@ -80,7 +80,7 @@ PillStretch {
   // bar's shadow then follows round, BarContainer._shadowHoles; or inside
   // the wall, whose stroke carries on into the pill's there): opaque or
   // not, as the two are separate windows whose stacking isn't the bar's to
-  // choose. Whole pixels where filleted (BarContainer.solidJoinOpening).
+  // choose. Whole pixels where filleted (SurfaceContext.opening).
   opening: {
     if (root._reach === null)
       return null;
@@ -90,14 +90,8 @@ PillStretch {
         "end": root._atStart ? root._reach - Appearance.borderWidth / 2 : root._panel.container.length,
         "keepFill": true
       };
-    const start = root._atStart ? 0 : Math.ceil(root._reach);
-    const end = root._atStart ? Math.floor(root._reach) : root._panel.container.length;
-    return {
-      "start": start,
-      "end": end,
-      "keepFill": true,
-      "fillet": Math.max(0, Math.min(root._radius, end - start)),
-      "filletAtEnd": root._atStart
-    };
+    return Object.assign(SurfaceContext.opening(root._atStart ? 0 : root._reach, root._atStart ? root._reach : root._panel.container.length, root._radius, root._atStart), {
+      "keepFill": true
+    });
   }
 }

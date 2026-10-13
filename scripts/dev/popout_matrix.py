@@ -20,7 +20,6 @@ import copy
 import json
 import os
 import re
-import shutil
 import subprocess
 import sys
 import tempfile
@@ -308,10 +307,11 @@ def main():
 
     with open(SHELL) as f:
         shell_original = f.read()
-    hooked = install_hook(shell_original)
     before = json.loads(subprocess.run(["hyprctl", "-j", "activeworkspace"], capture_output=True, text=True).stdout)["id"]
-    qs("workspaces", "go", args.workspace)
+    hooked = False
     try:
+        hooked = install_hook(shell_original)
+        qs("workspaces", "go", args.workspace)
         for lname, layout in LAYOUTS.items():
             for vname, border, opacity in VARIANTS:
                 scenario = f"{lname}__{vname}"
@@ -320,17 +320,18 @@ def main():
                 n = run_scenario(base, scenario, layout, border, opacity, args.monitor, args.outdir)
                 print(f"{scenario}: {n} shots", flush=True)
     finally:
-        qs("devPopouts", "close")
+        # (qs never raises: only the writes can, the shell's hook first)
+        if hooked:
+            qs("devPopouts", "close")
+            write_in_place(SHELL, shell_original)
         qs("workspaces", "go", str(before))
         write_atomic(CONFIG, original.decode())
         time.sleep(2)
         with open(CONFIG, "rb") as f:
             ok = f.read() == original
-        print("config restored" if ok else f"CONFIG NOT RESTORED: backup at {backup}", file=sys.stderr)
-        if hooked:
-            write_in_place(SHELL, shell_original)
         if not ok:
-            shutil.copy(backup, CONFIG)
+            write_atomic(CONFIG, original.decode())
+        print("config restored" if ok else f"config rewritten after the shell changed it; backup at {backup}", file=sys.stderr)
 
 
 if __name__ == "__main__":

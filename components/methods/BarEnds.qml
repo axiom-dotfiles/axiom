@@ -71,6 +71,20 @@ QtObject {
     };
   }
 
+  // An end joining the far stroke of the bar it yields to (`kind`
+  // "solidBar" or "pillBar"), its window reaching back onto that stroke
+  function _barStroke(kind, opts) {
+    return {
+      "kind": kind,
+      "joinable": true,
+      "straight": false,
+      "held": false,
+      "reach": opts.borderWidth,
+      "over": 0,
+      "gap": 0
+    };
+  }
+
   // What one end of `bar` meets, `other` the bar on the perpendicular
   // edge there (or null), `edge` that edge's name
   function endOf(bar, other, edge, opts) {
@@ -83,29 +97,13 @@ QtObject {
     if (other.solid) {
       if (opts.border || bar.solid)
         return root._frame(bar, opts);
-      return {
-        "kind": "solidBar",
-        "joinable": true,
-        "straight": false,
-        "held": false,
-        "reach": opts.borderWidth,
-        "over": 0,
-        "gap": 0
-      };
+      return root._barStroke("solidBar", opts);
     }
     // Two pill bars: the yielding one's window ends at the other's
     // reserved line, the far side of its pills, so it reaches back onto
     // their far stroke
     if (bar.background === "pills" && other.background === "pills")
-      return {
-        "kind": "pillBar",
-        "joinable": true,
-        "straight": false,
-        "held": false,
-        "reach": opts.borderWidth,
-        "over": 0,
-        "gap": 0
-      };
+      return root._barStroke("pillBar", opts);
     // Nothing to join: held clear of it. Its window ends at that bar's
     // reserved line, `trim` short of its inner edge (a transparent bar's
     // gaps_out). Its own float gap past that edge, or (Automatic, and for
