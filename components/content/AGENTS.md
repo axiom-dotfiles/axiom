@@ -1,0 +1,15 @@
+# Content (`components/content/`)
+
+Every loadable panel, by name: overlay modules (`<Type>.qml`, also used by edge menus, the desktop, the lock screen and the greeter) and bar popouts (`popoutName`). `base/` holds the roots, `parts/` shared parts. Docs: `docs/dev/overlay/content-roots.md`, `writing-modules.md`, `grow-expand.md`.
+
+**Recipe:** `docs/recipes/overlay-module.md` / `docs/recipes/bar-popout.md`; verify with `scripts/dev/verify.sh`.
+
+- **Root is `Card` (free-form) or `Panel` (a column; usable as a bar popout and a card, `embedded` is true in a card).** Both expose `properties`, `slotRect`, `cols`/`rows`, `shape`, `compact`, `pad`, `host`.
+- **A new module = this file + a `<Type>OverlayModule` definition in the schema + its `$ref` in `definitions.OverlayModule.oneOf`**, with `place: { $ref GridPlace }`, `x-icon`, `x-libraryGroup` and, if a card is the wrong size to start at, `x-defaultSize: [w, h]` (grid units, four to a card). Copy `Battery.qml` (+ `BatteryOverlayModule`) or `ColorSwatch.qml`.
+- **Modules take any size**: set `fullMinWidth`/`fullMinHeight` (px; text-dependent ones from `Appearance.fontSize`) and show `compactContent` (e.g. `CompactFigure`) below them; adapt the layout to `shape`/`compact`.
+- **A popout-only panel** needs no schema entry: a `Panel` with `implicitWidth`, opened by a widget's `PopoutAnchor { popoutName: "<Name>" }`. Keys of the anchor's `extraData` are copied onto declared properties, so declare them. Set `wantsKeyboardFocus` for text fields, `maxImplicitHeight` if it grows. Copy `WeatherForecast.qml`.
+- Inside popout or edge menu content, a `PopoutAnchor` opens that popout's submenu (`SubPopout`, one level deep).
+- Modules exist only while their page is shown: acquire in `Component.onCompleted`, release in `onDestruction`, keep lasting state in a service. Repeater models come from config or counts, never live values.
+- **`x-hosts`**: `lockscreen` only for a module that launches, dispatches and writes nothing and shows nothing private; `greeter` modules are inert unless `host.kind === "greeter" && !host.preview && Paths.greeter`. Rules: root `AGENTS.md` › UI conventions.
+- No inline `component` that uses another inline component of this file (URL-loaded: "is not a type").
+- Adding one to the live config: confirm the schema reloaded, add one at a time, watch qs's RSS.

@@ -90,7 +90,7 @@ Item {
   // stroke, plus the popout padding every popout shares (Popouts.padding,
   // as EdgePopout and edge menus use). Callers that size the box from
   // their content add this on each side (see bar Popouts, submenus).
-  readonly property int contentInset: Appearance.borderWidth + PopoutConfig.padding
+  readonly property int contentInset: Appearance.borderWidth + PopoutsConfig.padding
 
   property color fillColor: Theme.background
   property color strokeColor: Theme.foreground

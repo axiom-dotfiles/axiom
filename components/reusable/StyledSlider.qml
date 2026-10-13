@@ -3,6 +3,8 @@ import QtQuick
 
 import qs.config
 
+// A themed slider (trough, fill, handle) that emits moved while dragged
+// and released at the end; a value pushed in animates to it.
 Item {
   id: root
 

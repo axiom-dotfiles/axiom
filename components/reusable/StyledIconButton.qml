@@ -6,6 +6,8 @@ import Quickshell
 import qs.config
 import qs.components.methods
 
+// A ToolButton showing a Material Symbols icon, with hover and press colors
+// and an optional tooltip.
 ToolButton {
   id: root
 

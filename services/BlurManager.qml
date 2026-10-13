@@ -1,6 +1,5 @@
 pragma Singleton
 import QtQuick
-import Quickshell
 import Quickshell.Io
 import Quickshell.Hyprland
 
@@ -27,7 +26,7 @@ QtObject {
   // window is open on any screen (Appearance.blurPauseFullscreen; the
   // layer rules are Hyprland-wide). The chrome then fills itself, solid on
   // the screens showing one (opaqueOn).
-  readonly property bool paused: Appearance.blur && Appearance.blurPauseFullscreen && Quickshell.screens.some(screen => HyprlandManager.hasFullscreen(screen.name))
+  readonly property bool paused: Appearance.blur && Appearance.blurPauseFullscreen && General.outputs.some(screen => HyprlandManager.hasFullscreen(screen.name))
   readonly property bool active: Appearance.blur && !root.paused
   // The surfaces leave their fill to the blur window: blurring, and its
   // windows built (BlurBacking waits for the layer rules, as the chrome does)

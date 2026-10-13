@@ -4,6 +4,8 @@ import QtQuick
 
 import qs.services
 
+// The active theme's colors: base16 (base00-base0F) and semantic names,
+// filled from theme-defaults.json; resolveColor(name) for names from config.
 QtObject {
   id: root
 

@@ -105,7 +105,7 @@ BarIconWidget {
   // "Activate on hover": the click action once per hover, after the
   // popout open delay
   Timer {
-    interval: PopoutConfig.openDelay
+    interval: PopoutsConfig.openDelay
     running: root.hovered && root.properties.hoverActivate && root.properties.action !== "none"
     onTriggered: root.hoverAction()
   }

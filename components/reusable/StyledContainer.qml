@@ -3,6 +3,8 @@ import QtQuick
 
 import qs.config
 
+// A themed box: background through the surface opacity (or solid),
+// optional border and radius. The base of the text fields and form rows.
 Rectangle {
   id: root
 

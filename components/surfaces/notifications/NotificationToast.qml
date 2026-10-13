@@ -9,6 +9,8 @@ import qs.services
 import qs.components.reusable
 import qs.components.content.parts.notifications
 
+// One notification's toast, anchored to a screen corner by shell/Notifications:
+// times out, swipes away, and runs the notification's actions.
 PopupWindow {
   id: root
 

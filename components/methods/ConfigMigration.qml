@@ -847,19 +847,6 @@ QtObject {
     });
   }
 
-  // Every module on an overlay page or in an edge menu: fn(module, where)
-  function _eachModule(config, fn) {
-    const walk = (columns, where) => (columns ?? []).forEach((column, c) => (column?.cells ?? []).forEach((cell, k) => {
-          const slots = cell?.slots ?? {};
-          Object.keys(slots).forEach(key => {
-            if (slots[key])
-              fn(slots[key], `${where}.columns[${c}].cells[${k}].slots.${key}`);
-          });
-        }));
-    (config.Overlay?.views ?? []).forEach((view, index) => walk(view?.columns, `Overlay.views[${index}]`));
-    (config.EdgeMenus ?? []).forEach((menu, index) => walk(menu?.columns, `EdgeMenus[${index}]`));
-  }
-
   // Renames a key of `object` (keeping a value already under the new name)
   function _renameKey(object, from, to, where, changes) {
     if (!object || !(from in object))
@@ -911,10 +898,16 @@ QtObject {
         break;
       }
     });
-    root._eachModule(config, (module, where) => {
-      if (module.type === "ClockCalendar")
-        root._renameKey(module.properties, "use24h", "use24Hour", where, changes);
-    });
+    // Modules were in the pre-grid layout then: columns -> cells -> slots
+    const walk = (columns, where) => (columns ?? []).forEach((column, c) => (column?.cells ?? []).forEach((cell, k) => {
+          const slots = cell?.slots ?? {};
+          Object.keys(slots).forEach(key => {
+            if (slots[key]?.type === "ClockCalendar")
+              root._renameKey(slots[key].properties, "use24h", "use24Hour", `${where}.columns[${c}].cells[${k}].slots.${key}`, changes);
+          });
+        }));
+    (config.Overlay?.views ?? []).forEach((view, index) => walk(view?.columns, `Overlay.views[${index}]`));
+    (config.EdgeMenus ?? []).forEach((menu, index) => walk(menu?.columns, `EdgeMenus[${index}]`));
     return config;
   }
 

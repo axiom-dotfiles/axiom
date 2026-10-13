@@ -184,13 +184,13 @@ By default axiom runs in *detached* mode: it applies what it needs at runtime an
 - **[Installation and setup](docs/installation.md):** requirements, Hyprland modes, updates, locking, the login screen
 - **[Keybinds, IPC and launcher](docs/usage.md):** keybind presets, IPC targets and every launcher command
 - **[Configuration](docs/configuration.md):** the config file, backups, themes, translations, troubleshooting
-- **[Architecture](docs/architecture.md):** how every service and surface works, for contributors
+- **[Developer docs](docs/dev/README.md):** how every service and surface works, for contributors
 
 ## Contributing
 
 Contributions are welcome. [Open an issue](https://github.com/axiom-dotfiles/axiom/issues/new/choose) for a bug or an idea, or fork the repository and open a pull request against `main`. CI runs the same checks as `scripts/check_all.sh`.
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for the layout and conventions, and [docs/architecture.md](docs/architecture.md) for how it all fits together. There's no build step: `qs` interprets the QML and hot-reloads on save.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the layout and conventions, and [docs/dev/](docs/dev/README.md) for how it all fits together. There's no build step: `qs` interprets the QML and hot-reloads on save.
 
 ## Roadmap
 
@@ -214,7 +214,7 @@ And thanks to the Hyprland desktops that inspired it: [illogical-impulse](https:
 
 ## Use of AI
 
-axiom is developed with AI assistance. I design the architecture and every system, and AI-written code is reviewed before it lands, held to the conventions in [CONTRIBUTING.md](CONTRIBUTING.md), and checked in CI by the same lint, structure and unit tests as everything else.
+axiom is developed with AI assistance. I design the architecture and every system, and AI-written code is reviewed before it lands, held to the same rules as every other contribution, and checked in CI by the same lint, structure and unit tests as everything else. Those rules are kept in the open in [AGENTS.md](AGENTS.md).
 
 ## License
 

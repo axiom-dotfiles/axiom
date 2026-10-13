@@ -29,6 +29,12 @@ jobs:
       - name: Structure (naming conventions, imports, singleton references)
         run: python3 scripts/check_structure.py
 
+      - name: Generated docs are up to date (scripts/gen_docs.py)
+        run: python3 scripts/gen_docs.py --check
+
+      - name: Docs match the code (links, paths, members)
+        run: python3 scripts/check_docs.py
+
       - name: JSON is valid
         run: git ls-files -z '*.json' | xargs -0 -n1 python3 -m json.tool --no-ensure-ascii > /dev/null
 
@@ -79,7 +85,7 @@ jobs:
         run: scripts/run_tests.sh
 
       - name: shellcheck
-        run: shellcheck -x -S warning install.sh scripts/*.sh scripts/lib/*.sh scripts/greeter/*.sh
+        run: shellcheck -x -S warning install.sh scripts/*.sh scripts/lib/*.sh scripts/greeter/*.sh scripts/dev/*.sh .githooks/pre-commit
 
       # Theme integrations, self-update on scratch clones, theme generation
       - name: Script tests

@@ -21,9 +21,9 @@ PanelWindow {
   property real positionOffset: 0
 
   // Depth across the edge, and length along it
-  property int triggerWidth: PopoutConfig.edgeTriggerSize
+  property int triggerWidth: PopoutsConfig.edgeTriggerSize
   property int triggerLength: 200
-  property int hoverDelay: PopoutConfig.openDelay
+  property int hoverDelay: PopoutsConfig.openDelay
 
   // Integrated edge menus' zones (EdgeMenuManager) move the surfaces this
   // triggers inwards, so the trigger follows: past a zone on its own edge,

@@ -2,6 +2,8 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 
+// A bar's BarContainer outside a window of its own, sized from its config
+// (BarPanel draws its bar through it).
 Item {
   id: root
 

@@ -1,0 +1,71 @@
+# Monitors (profiles and the Monitors page)
+
+> **Files:** `services/MonitorManager.qml`, `components/views/Monitors.qml`, `components/views/monitors/` (`MonitorCanvas`, `MonitorInspector`), `components/methods/MonitorLayout.qml`, `components/methods/HyprLua.qml`, `shell/MonitorPrompt.qml`, `components/surfaces/monitors/MonitorPromptWindow.qml`
+> **Config:** `Hyprland.monitors.profiles`, `General.primaryMonitor`
+> **Related:** [Config modes](config-modes.md), [Onboarding](../features/onboarding.md) (`useWholeScale`), [Shell targeting](../core/shell-manager-targeting.md)
+
+Monitor layouts saved per set of connected monitors, edited on the Monitors page and applied by Hyprland itself on hotplug.
+
+### Live outputs
+- `outputs` is `hyprctl monitors all -j`.
+- It is read at startup and on `monitoradded`/`monitorremoved`/`configreloaded`. It is never polled.
+
+### Profiles
+- `Hyprland.monitors.profiles` (`x-settings: false`) is a list of `{ name, outputs: [MonitorRule] }`: one layout per set of monitors.
+- Each rule's `output` is `desc:<description>`, so the rule follows the monitor across ports. When two monitors share a description it is the connector name instead (`MonitorLayout.outputId`).
+- Each rule also holds:
+  - mode, position, scale
+  - transform: 0–7, quarter turns, +4 for flipped
+  - `disabled`
+  - `mirror` (another rule's `output`)
+  - `vrr`, `bitdepth`, `cm`
+  - `sdrBrightness`/`sdrSaturation`.
+
+### Editing
+- The page edits a `ConfigDraft`.
+- **Detection.** Opening the page detects the current setup (`_detect`):
+  - when no profile matches, a new profile is made from the live state
+  - otherwise the matching profile gains any output it doesn't list.
+- While the page is open, a hotplug re-detects unless the draft has been edited.
+- **Snapping.** Tiles snap (`MonitorLayout.snap`): edge to edge, or aligned starts/ends/centres, within 14 screen px. Outside that range they drop anywhere, so offsets stay possible.
+- The view holds still during a drag.
+- `General.primaryMonitor` is set from the inspector at once, without waiting for Save.
+- For `useWholeScale`, see [Onboarding](../features/onboarding.md).
+
+### Issues
+- Apply is blocked by:
+  - overlapping monitors
+  - every monitor being off.
+- Warnings:
+  - islands (monitors not touching the rest)
+  - scales Hyprland will round
+  - in managed mode, `user/*.lua` files that call `hl.monitor` (`HyprlandConfigManager.monitorConflicts`). Those rules load later and win.
+
+### Apply, Keep, Revert
+1. **Apply** evals the selected profile's `hl.monitor` calls (`HyprLua.monitorCalls`), after taking a snapshot of the old state.
+2. It shows `shell/MonitorPrompt` (`surfaces/monitors/MonitorPromptWindow`).
+   - It appears on every screen, outside the overlay, because the overlay's screen may change.
+   - It sits on the Overlay layer as `axiom-monitor-prompt`; its layer rule stacks it over the overlay.
+   - It is registered in `ShellManager.modalWindows` while shown, so the overlay's focus grab lets clicks through to it.
+3. `keep()` saves the draft. `revert()`, or 15 s without an answer, evals the snapshot back.
+- A profile for monitors that aren't connected only saves.
+
+### How profiles reach Hyprland
+- `HyprLua.monitorsLua` produces the same Lua in every mode: `AXIOM_MONITOR_PROFILES` plus `axiom_apply_monitors()`.
+- `axiom_apply_monitors()` picks a profile the way `MonitorLayout.matchProfile` does:
+  - an exact set of monitors, where a disabled rule's output may be missing (`hl.get_monitors()` doesn't list it)
+  - else the profile that turns the most monitors on
+  - before any monitor is reported, the first profile.
+- It resets outputs that only other profiles mention to Hyprland's defaults, and resolves `mirror` to a connector.
+- It runs again on `monitor.added`/`removed`. The handlers are kept in `AXIOM_MONITOR_SUBS` and removed before re-subscribing.
+- **Detached:** it is part of the runtime eval, but only when the profiles changed or a reload dropped them (`_monitorsApplied`), since re-applying can flicker a modeset.
+- **Included / managed:** `M.monitors()` runs from `setup()`, so profiles follow hotplugs without qs.
+
+### IPC and launcher
+- IPC `monitors`: `open`, `keep`, `revert`, `identify`.
+- Launcher: `/monitors`.
+
+### Testing
+- Never Keep a layout while testing. (Rule: AGENTS.md › Never, while testing.)
+- Test the profile picker through `tests/tst_HyprLua` (`monitors.run.lua`).
+- Use only harmless evals: re-applying the current settings, or moving a lone monitor's origin and back.

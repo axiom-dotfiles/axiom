@@ -15,8 +15,6 @@ QtObject {
   id: root
 
   readonly property var desktop: ConfigManager.previews.Desktop ?? ConfigManager.config.Desktop
-  // As saved
-  readonly property var savedDesktop: ConfigManager.config.Desktop
   // A DesktopLayout's own fields in groups (`x-group`), for the layouts
   // editor
   readonly property var fieldGroups: SchemaLayout.objectGroups(ConfigManager.configSchema.definitions.DesktopLayout, ["modules"])

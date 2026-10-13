@@ -6,6 +6,7 @@ import qs.services
 import qs.config
 import qs.components.bar
 
+// The bars: one BarPanel per BarManager.bars entry.
 Scope {
   id: root
 

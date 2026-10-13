@@ -12,7 +12,7 @@ import qs.config
 // surface joined to the border or a bar (`falls` false) casts it evenly, as
 // the border does, since a shadow shifted along a stroke it joins would
 // cover that stroke. A glow always spreads evenly. Windows keep
-// BarStyle.shadowReach of room past the surface for it.
+// AttachedSurface.shadowReach of room past the surface for it.
 // `cut` keeps only the shadow outside the source's shape, dropping the
 // source too: for a translucent surface, whose own shadow would otherwise
 // show through it. Its source then is a copy of the shape (a layer of its

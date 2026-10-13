@@ -3,6 +3,7 @@ import QtQuick
 import QtQuick.Controls
 import qs.config
 
+// A themed on/off switch.
 Switch {
   id: root
 

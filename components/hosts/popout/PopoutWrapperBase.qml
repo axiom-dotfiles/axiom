@@ -84,7 +84,7 @@ Item {
   // Its submenu open keeps it up too
   property bool childOpen: root.submenuHost?.open ?? false
   readonly property bool contentHovered: ownHovered || childOpen
-  property int dismissDelay: currentItem?.dismissDelay ?? PopoutConfig.dismissDelay
+  property int dismissDelay: currentItem?.dismissDelay ?? PopoutsConfig.dismissDelay
   property bool autoDismiss: currentItem?.autoDismiss ?? true
 
   onContentHoveredChanged: updateDismissTimer()

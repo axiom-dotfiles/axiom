@@ -3,6 +3,8 @@ import QtQuick
 import qs.services
 import Quickshell.Services.Pipewire
 
+// A StyledVolumeBar bound to a Pipewire stream (by app name) or the system
+// volume: shows and sets its level and mute; the OSD's audio bars.
 Item {
   id: root
 

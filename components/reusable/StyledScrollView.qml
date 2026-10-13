@@ -5,6 +5,8 @@ import QtQuick.Controls
 
 import qs.config
 
+// A ScrollView with the shell's padding and a thin accent scroll bar that
+// shows only when asked.
 ScrollView {
   id: root
 

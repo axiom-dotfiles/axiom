@@ -8,6 +8,8 @@ import qs.config
 import qs.services
 import qs.components.hosts.popout
 
+// One bar's layer-shell window (shell/Bar makes one per BarManager.bars
+// entry): its screen, layer and exclusive zone, holding the bar's BarContainer.
 PanelWindow {
   id: root
 

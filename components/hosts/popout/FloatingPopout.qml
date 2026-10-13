@@ -56,7 +56,7 @@ PopoutWrapperBase {
   property bool growUp: false
 
   // Space between the box and its content
-  property real contentPadding: Appearance.borderWidth + PopoutConfig.padding
+  property real contentPadding: Appearance.borderWidth + PopoutsConfig.padding
   property color fillColor: Theme.background
   property color strokeColor: Theme.foreground
   // Scale it grows in from

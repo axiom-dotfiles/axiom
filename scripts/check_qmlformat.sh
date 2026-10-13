@@ -4,7 +4,8 @@
 # `pragma ComponentBehavior`, so this uses Qt 6's by path.
 #
 #   scripts/check_qmlformat.sh         list unformatted files (exit 1)
-#   scripts/check_qmlformat.sh --fix   format them in place
+#   scripts/check_qmlformat.sh --fix   format them in place (keeping the
+#                                      inode, so the running shell reloads)
 set -uo pipefail
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -18,7 +19,7 @@ while IFS= read -r -d '' file; do
     bad=1
   elif [[ "$formatted" != "$(<"$file")" ]]; then
     if [[ "${1:-}" == "--fix" ]]; then
-      "$qmlformat" -i "$file" && echo "formatted $file"
+      printf '%s\n' "$formatted" >"$file" && echo "formatted $file"
     else
       echo "error: $file is not formatted"
       diff -u "$file" <(printf '%s\n' "$formatted") | head -n 20

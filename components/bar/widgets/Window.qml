@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 
 import Quickshell.Wayland
 
+// The Window bar widget: the focused window's title, elastic in width.
 BarIconWidget {
   id: root
 

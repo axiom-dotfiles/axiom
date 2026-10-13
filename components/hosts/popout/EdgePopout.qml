@@ -63,9 +63,9 @@ PopoutWrapperBase {
 
   // Hover strip at the very edge of the screen that opens the popout
   property bool triggerEnabled: true
-  property int triggerWidth: PopoutConfig.edgeTriggerSize
+  property int triggerWidth: PopoutsConfig.edgeTriggerSize
   property int triggerLength: 200
-  property int hoverDelay: PopoutConfig.openDelay
+  property int hoverDelay: PopoutsConfig.openDelay
   // The strip's centre along the edge in screen px (NaN: at the box's
   // `position`, EdgeTrigger.centre)
   property real triggerCentre: NaN
@@ -80,7 +80,7 @@ PopoutWrapperBase {
   readonly property bool detached: placement.detached
   property bool closeOnClickOutside: false
   // Space between the box and its content
-  property real contentPadding: Appearance.borderWidth + PopoutConfig.padding
+  property real contentPadding: Appearance.borderWidth + PopoutsConfig.padding
   // Extra distance in from the attach edge (for a detached box)
   property real edgeOffset: root.attachAt - root.attachBase
   // How far back towards the screen edge a detached box slides in from,

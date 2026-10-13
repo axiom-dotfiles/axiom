@@ -1,6 +1,8 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 
+// Loads one overlay page (views/<type>.qml) for OverlayPages, keeping its
+// grid and viewConfig bound so config edits reach it.
 Item {
   id: root
   required property OverlayGrid grid

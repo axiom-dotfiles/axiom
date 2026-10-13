@@ -4,6 +4,8 @@ import QtQuick
 import qs.services
 import qs.config
 
+// The Battery bar widget: charge level and icon from BatteryManager,
+// colored by charging, low and critical; hidden on machines with no battery.
 BarIconWidget {
   id: root
 

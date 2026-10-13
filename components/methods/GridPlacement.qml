@@ -509,6 +509,7 @@ QtObject {
   // A screen layout's grid (a ScreenLayout: the lock screen's, the
   // greeter's) in the units its places use: columns × rows, each split in
   // two with `fineGrid`. { cols, rows }
+  // reads: Desktop.*.columns, Desktop.*.rows, Desktop.*.fineGrid, Lockscreen.layout.columns, Lockscreen.layout.rows, Lockscreen.layout.fineGrid, Greeter.layout.columns, Greeter.layout.rows, Greeter.layout.fineGrid
   function screenGrid(layout) {
     const scale = layout?.fineGrid ? 2 : 1;
     return {

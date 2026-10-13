@@ -2,6 +2,8 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import qs.config
 
+// Text in the shell's font, size and foreground color; optionally turned
+// for a vertical bar.
 Text {
   id: root
 

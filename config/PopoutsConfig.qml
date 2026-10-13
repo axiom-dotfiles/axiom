@@ -1,0 +1,16 @@
+pragma Singleton
+import QtQuick
+import qs.services
+
+// Reader for the Popouts section: behaviour shared by bar popouts and
+// screen-edge popouts. (Named PopoutsConfig because `Popouts` is the bar
+// popout wrapper type.)
+QtObject {
+  readonly property var _c: ConfigManager.config.Popouts
+
+  readonly property int openDelay: _c.openDelay
+  readonly property int dismissDelay: _c.dismissDelay
+  readonly property int edgeTriggerSize: _c.edgeTriggerSize
+  // Space between a popout's box (inside its stroke) and its content
+  readonly property int padding: _c.padding
+}

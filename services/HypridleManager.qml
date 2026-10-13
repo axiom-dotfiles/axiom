@@ -46,6 +46,7 @@ Singleton {
     return command === "loginctl lock-session" ? "" : command;
   }
 
+  // reads: Idle.* (the whole reader, handed to HypridleConf.render)
   readonly property string configText: HypridleConf.render(Idle, {
     "lockCmd": root.lockCmd,
     "shellCommand": HyprlandConfigManager.shellCommand,

@@ -104,7 +104,7 @@ Item {
   // In a popout the box reaches out over the host's padding
   // (Popouts.padding) to the surface's stroke, so a `background` fills the
   // whole popout while the column keeps the padding
-  readonly property real bleed: root.embedded ? 0 : PopoutConfig.padding
+  readonly property real bleed: root.embedded ? 0 : PopoutsConfig.padding
   // The box's corner radius, for backgrounds that follow its shape (in a
   // popout, the inside of the surface's stroke)
   readonly property real boxRadius: root.embedded ? Widget.radius : Math.max(0, Appearance.borderRadius - Appearance.borderWidth)

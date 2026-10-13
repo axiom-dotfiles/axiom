@@ -251,6 +251,7 @@ Singleton {
       "mediaPrevious": ["locked"],
       "mediaStop": ["locked"]
     })
+  // reads: Hyprland.binds[].repeating, Hyprland.binds[].locked, Hyprland.binds[].release (by flag name)
   readonly property var flagNames: ["repeating", "locked", "release"]
 
   // The window switcher's actions, by the step each takes through the

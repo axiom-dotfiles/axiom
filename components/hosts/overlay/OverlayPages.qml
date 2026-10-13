@@ -5,6 +5,8 @@ import qs.services
 import qs.components.views
 import qs.components.reusable
 
+// The overlay's pages on one screen: a view per Overlay.views entry, the
+// current one and its neighbours loaded, sliding between them.
 Item {
   id: root
   // This screen's card grid (OverlayGrid), handed to every view
