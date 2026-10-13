@@ -2,6 +2,8 @@
 
 How every service and surface of axiom works. The rules are in [CLAUDE.md](../../CLAUDE.md); these docs hold the mechanics. Each doc opens with the files it covers, the config it reads and related docs, so you can jump to the code or stop reading early. `grep -n '^###' <doc>` gives its outline.
 
+Local rules for a directory are in its own `CLAUDE.md` (`components/bar/widgets/`, `components/content/`, `components/views/`, `components/methods/`, `components/hosts/popout/`, `services/`, `config/`, `scripts/`).
+
 Read the doc for a feature before changing it, and update it when you change how the feature works. One fact has one home: link to it rather than restating it.
 
 ## Layering

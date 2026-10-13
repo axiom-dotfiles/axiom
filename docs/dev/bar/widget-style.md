@@ -20,7 +20,7 @@ The base classes bar widgets extend, where their sizes come from, and how their 
 - **`reusable/BaseWidget`** is the sizing and background wrapper under both.
 
 ### Sizes come from the bar
-- (Rule: CLAUDE.md › UI conventions, Bar widgets are sized by their bar.)
+- (Rule: `components/bar/widgets/CLAUDE.md`, "Sized by the bar".)
 - `Bar.enrichBarConfig` derives `extent` from `widgetSize`, plus padding and whatever covers the bar.
 - It resolves `fontSize` and `radius` from the bar's `overrideFontSize`/`overrideRadius`, else from Appearance's values and `Widget.radius`.
 
