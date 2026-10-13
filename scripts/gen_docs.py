@@ -216,7 +216,12 @@ class Usage:
         return sorted(f for f, text in self.files.items() if f not in exclude and regex.search(text))
 
     def member(self, reader, name, own):
-        return self.of(r"(?<![\w.])" + reader + r"\." + name + r"\b", exclude=(own,))
+        """Files reading `Reader.name` (not `x.Reader.name`), but `own`."""
+        if not hasattr(self, "_refs"):
+            # One pass over every file instead of a search per member
+            ref = re.compile(r"(?<![\w.])([A-Z]\w*)\.(\w+)")
+            self._refs = {f: set(ref.findall(text)) for f, text in self.files.items()}
+        return sorted(f for f, refs in self._refs.items() if f != own and (reader, name) in refs)
 
 
 # ------------------------------------------------------------- schema walking

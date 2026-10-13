@@ -8,16 +8,29 @@
 #      qmllint, the unit tests the change touches, shellcheck, i18n
 #   3. the shell's log since its last reload
 #
-#   scripts/dev/verify.sh          what changed since HEAD
-#   scripts/dev/verify.sh --all    every check on everything (check_all.sh)
+#   scripts/dev/verify.sh             what changed since HEAD
+#   scripts/dev/verify.sh --all       every check on everything (check_all.sh)
+#   --no-docs (with either)           skip rebuilding the generated docs (the
+#                                     pre-commit hook rebuilds them anyway)
 set -uo pipefail
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$root" || exit 1
 qt_bin="${QT_BIN:-/usr/lib/qt6/bin}"
 
-if [[ "${1:-}" == "--all" ]]; then
-  exec scripts/check_all.sh
+all=0 docs=1
+for arg in "$@"; do
+  case "$arg" in
+  --all) all=1 ;;
+  --no-docs) docs=0 ;;
+  *)
+    sed -n '2,16p' "$0" >&2
+    exit 2
+    ;;
+  esac
+done
+if [[ $all -eq 1 ]]; then
+  if [[ $docs -eq 1 ]]; then exec scripts/check_all.sh; else exec scripts/check_all.sh --no-docs; fi
 fi
 
 mapfile -t changed < <({
@@ -82,7 +95,7 @@ fi
 
 # 2. Checks
 step "structure" python3 scripts/check_structure.py
-step "generated docs" python3 scripts/gen_docs.py
+[[ $docs -eq 1 ]] && step "generated docs" python3 scripts/gen_docs.py
 if [[ ${#qml[@]} -gt 0 ]]; then
   step "qmllint" python3 scripts/check_qmllint.py
 fi

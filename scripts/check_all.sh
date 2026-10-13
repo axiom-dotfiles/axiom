@@ -4,8 +4,13 @@
 # Needs Qt 6's tools, shellcheck, luac and jq; the script smoke tests set up
 # the python venv on their first run.
 #
-#   scripts/check_all.sh
+#   scripts/check_all.sh             everything
+#   scripts/check_all.sh --no-docs   skip rebuilding the generated docs (the
+#                                    pre-commit hook rebuilds them anyway)
 set -uo pipefail
+
+docs=1
+[[ "${1:-}" == "--no-docs" ]] && docs=0
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$root" || exit 1
@@ -21,7 +26,7 @@ step() {
 step "structure" python3 scripts/check_structure.py
 # Rebuilt rather than checked: locally they follow your edits (the pre-commit
 # hook commits them); CI runs `gen_docs.py --check` to catch a skipped hook
-step "generated docs" python3 scripts/gen_docs.py
+[[ $docs -eq 1 ]] && step "generated docs" python3 scripts/gen_docs.py
 step "docs" python3 scripts/check_docs.py
 step "qmlformat" scripts/check_qmlformat.sh
 step "qmllint" python3 scripts/check_qmllint.py

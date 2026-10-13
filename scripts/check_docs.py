@@ -19,6 +19,7 @@ code blocks are skipped.
 """
 import json
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -26,8 +27,6 @@ from gen_docs import parse_qml
 from qml_modules import ROOT
 
 GENERATED = ("docs/dev/config/", "docs/dev/generated/")
-# Runtime files, gitignored: named in docs but never in the repo
-RUNTIME = ("config/state/", "config/user/")
 PATH_ROOTS = ("components/", "services/", "config/", "scripts/", "shell/", "tests/", "docs/",
               "examples/", ".github/", ".claude/", "shell.qml", "greeter.qml", "install.sh")
 # Names a rename retired: a doc still citing one is stale (old -> new)
@@ -83,6 +82,14 @@ def config_names():
     return names
 
 
+def ignored(path):
+    """A gitignored path (runtime state, build output) is named in docs but
+    never in a checkout, so it may not exist."""
+    # Also as a directory: a `dir/` rule can't match a path that isn't there
+    return any(subprocess.run(["git", "-C", str(ROOT), "check-ignore", "-q", "--no-index", p]).returncode == 0
+               for p in (path, path.rstrip("/") + "/"))
+
+
 def strip_fences(text):
     return re.sub(r"(?ms)^```.*?^```", "", text)
 
@@ -135,10 +142,10 @@ def main():
                 if old and old.group(1) in RETIRED:
                     errors.append(f"{where}: `{span}`: {old.group(1)} was renamed to {RETIRED[old.group(1)]}")
                     continue
-                if span.startswith(PATH_ROOTS) and not span.startswith(RUNTIME) and not re.search(r"[<>*{}|$ ]|\.\.\.|…", span):
+                if span.startswith(PATH_ROOTS) and not re.search(r"[<>*{}|$ ]|\.\.\.|…", span):
                     path = span.split(":")[0].rstrip("/").rstrip(".,")
                     candidates = [ROOT / path, ROOT / "components" / path, doc.parent / path]
-                    if not any(c.exists() or c.with_suffix(".qml").exists() for c in candidates):
+                    if not any(c.exists() or c.with_suffix(".qml").exists() for c in candidates) and not ignored(path):
                         errors.append(f"{where}: `{span}` doesn't exist")
                     continue
                 m = re.fullmatch(r"([A-Z]\w*)\.(_?[a-z]\w*)(?:\(.*\))?", span)

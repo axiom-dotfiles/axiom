@@ -66,7 +66,7 @@ All run in CI (`.github/workflows/checks.yml`); `scripts/check_all.sh` runs ever
 - `scripts/check_qmlformat.sh [--fix]`, `shellcheck -x -S warning`, `tests/scripts/test_scripts.py` (themes, `theme_*.sh`, `self_update.sh`, `greeter_install.sh`, `generate_theme.py`).
 - `scripts/check_i18n.py` after changing any user-visible text or schema title/description.
 - `scripts/check_docs.py`: links, backticked repo paths and `Singleton.member` names in the hand-written docs exist. A doc citing something renamed fails CI: fix the doc with the code.
-- `scripts/gen_docs.py` regenerates `docs/dev/config/` and `docs/dev/generated/` (`check_all.sh` and `verify.sh` rebuild them; CI runs `--check`, which fails when they're stale). **Run it before committing any change to QML files or the schema** (usages are indexed, so most QML edits change it); the pre-commit hook (`.githooks/`, enabled with `git config core.hooksPath .githooks`) does this from what's staged. Never edit those files by hand.
+- `scripts/gen_docs.py` regenerates `docs/dev/config/` and `docs/dev/generated/` (`check_all.sh` and `verify.sh` rebuild them, about 2 s; pass `--no-docs` to either to skip that, since the pre-commit hook rebuilds them at commit anyway; CI runs `--check`, which fails when they're stale). **Run it before committing any change to QML files or the schema** (usages are indexed, so most QML edits change it); the pre-commit hook (`.githooks/`, enabled with `git config core.hooksPath .githooks`) does this from what's staged. Never edit those files by hand.
 
 ## Formatting
 
