@@ -13,7 +13,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `BarContainer.qml`: Lays out a bar's five widget sections along its main axis in one pass, so they can never overlap: `left`/`right` hug the ends, `center` stays centered on the bar with `leftCenter`/`rightCenter` beside it.
 - `BarPanel.qml`: One bar's layer-shell window (shell/Bar makes one per BarManager.bars entry): its screen, layer and exclusive zone, holding the bar's BarContainer.
 - `BarWidgetHost.qml`: Hosts one bar module and turns its sizing contract into the numbers the bar layout works with.
-- `CornerMerge.qml`: One end of a side pill bar that makes way for a pill bar at its corner (BarEnds "pillBar"), with its end pill joined there: that bar's end pill (grown if the bar has none there, BarContainer.setEndReach) runs on past th…
+- `CornerMerge.qml`: One end of a pill bar that makes way for a pill bar at its corner (BarEnds "pillBar"), with its end pill joined there: that bar's end pill (grown if the bar has none there, BarContainer.setEndReach) runs on past this pi…
 - `SeparatorMark.qml`: A divider between bar widgets, centred where it's placed: a line across the bar, a dot, a slash or a chevron pointing along it.
 - `StandaloneBar.qml`: A bar's BarContainer outside a window of its own, sized from its config (BarPanel draws its bar through it).
 - `WidgetBackground.qml`: What a bar widget sits on, in its bar's widget style (widgetStyle, widgetShape): a fill or outline shaped by its caps (BarShapes), or for underline a line along one side.

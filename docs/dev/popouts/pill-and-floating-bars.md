@@ -48,7 +48,7 @@ How surfaces meet the three non-solid bar backgrounds. Solid bars, the border, c
 - **The pill still curves out** to the border as ever, and the surface waits for it as it waits for its own stretch ([The pill grows first](edge-attach.md#the-pill-grows-first)).
 - **A bar popout joining one** stretches its own pill to its bar's end (`pillJoins`).
   - On a pill, the box joins an end that `joins` asks for wherever its pill can reach that edge, or where its fillet would pass the stroke there.
-  - The pill of a bar that owns the corner runs on past it, under the side bar's column.
+  - The pill of a bar that owns the corner runs on past it, under the other bar's end.
 - **Floating or transparent bar on a perpendicular edge:** past one, an attached edge popout's or dock's free end is a wall, as a bar popout's is.
   - Its box stops where windows start there, lining up with a detached box.
   - Its fillet is inside the wall too, keeping the windows' gap from the bar.

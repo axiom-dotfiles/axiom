@@ -23,8 +23,8 @@ How bars and the screen border share an edge through layer-shell ordering. Cover
 
 ### Bar inside the border (`barConfig.insideBorder`)
 - This applies to any background except solid, with the border on.
-- The bar is on the Top layer like the border, in the `axiom-bar-floating` namespace (pills, floating) or `axiom-bar-transparent`.
-  - Their layer rules (`order = -1` / `-3`, below the border's 0) make Hyprland arrange the bar after the border and draw it over the border.
+- The bar is on the Top layer like the border, in the `axiom-bar-pill`, `axiom-bar-transparent` or `axiom-bar-floating` (floating bars and floating pills) namespace.
+  - Their layer rules (`order = -1` / `-3` / `-5`, below the border's 0) make Hyprland arrange the bar after the border and draw it over the border.
 - It sits just inside the border with a `-borderWidth` margin, so its outer edge lies on the border's stroke.
 - A fullscreen window covers it, as it does everything on the Top layer, so it never hides.
 - Hyprland counts that margin into the reserved space, so the bar reserves `extent`.
@@ -36,14 +36,17 @@ How bars and the screen border share an edge through layer-shell ordering. Cover
 
   | Kind | Namespace | Order |
   |---|---|---|
-  | solid bars | `axiom-bar` / side bars `axiom-bar-side` | 5 / 4 |
+  | solid bars | `axiom-bar` / `axiom-bar-long` | 5 / 4 |
   | the border | `axiom-border` | 0 |
-  | shaped bars | `axiom-bar-floating` / `-side` | -1 / -2 |
-  | transparent bars | `axiom-bar-transparent` / `-side` | -3 / -4 |
+  | pill bars | `axiom-bar-pill` / `-long` | -1 / -2 |
+  | transparent bars | `axiom-bar-transparent` / `-long` | -3 / -4 |
+  | floating bars and floating pills | `axiom-bar-floating` / `-long` | -5 / -6 |
 
-  - A transparent bar always makes way.
-  - Between bars of one kind, a side bar makes way for a top or bottom one.
-  - The namespace comes from `Bar.layerNamespace`. `shell/Bar` keys each window on it, since `order` is read only as a surface maps.
+  - A floating bar always makes way.
+  - Between bars of one kind, the bar on the screen's longer edge makes way (the `-long` namespace), so the shorter bar gets the corner: side bars on a landscape monitor, top and bottom ones on a portrait one (`shortEdge`, `BarEnds.onShortEdge`).
+  - Solid bars can't tie with pill bars: a solid bar is arranged before the border, a pill bar after it.
+  - Docks, the overlay, the OSD and popouts are ordered below every bar (`-7` and lower).
+  - The namespace comes from `Bar.layerNamespace`. `shell/Bar` keys each window on it, since `order` is read only as a surface maps: a bar changing kind, or a monitor rotating, remakes the window.
 - A bar reserving nothing takes no corner.
 
 ### Ends and pills

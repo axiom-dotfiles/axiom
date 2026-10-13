@@ -22,12 +22,12 @@ PanelWindow {
   // (arranged after it) overlaps its inner part, drawing the bar's inner
   // stroke. Any other bar (transparent, pills or floating, with the border
   // on) sits inside the border instead (`insideBorder`): its
-  // axiom-bar-floating or axiom-bar-transparent layer rule orders it after
+  // axiom-bar-pill, -transparent or -floating layer rule orders it after
   // the border (arranged inside it, drawn over it), with its outer edge on
-  // the border's stroke so pills can cover it. Side bars have rules of their
-  // own (-side), arranged after the top and bottom bars of their kind, so
-  // which bar takes a shared corner never depends on which mapped first
-  // (BarEnds). All are on the Top layer, so a fullscreen window covers
+  // the border's stroke so pills can cover it. Bars along the screen's
+  // longer edge have rules of their own (-long), arranged after the shorter
+  // edge's bars of their kind, so which bar takes a shared corner never
+  // depends on which mapped first (BarEnds). All are on the Top layer, so a fullscreen window covers
   // them.
   WlrLayershell.layer: WlrLayer.Top
   WlrLayershell.exclusiveZone: root.reservedZone
