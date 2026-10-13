@@ -13,7 +13,7 @@ The owner of the runtime config: how it is loaded, written, drafted and previewe
 
 ### Load pipeline
 1. Parse.
-2. `ConfigMigration.migrate`: upgrades old layouts by `version`, writes the result back once, and moves API keys to `SecretsManager`.
+2. `ConfigMigration.migrate`: upgrades old layouts by `version` and writes the result back once. It returns `secrets` (keys a step pulls out of the config, which ConfigManager hands to `SecretsManager`); no current step fills it.
 3. `SchemaValidation.pruneUnknown`: drops unknown keys with a warning.
 4. `SchemaValidation.applyDefaults`: fills every schema `default`.
 5. Validate.

@@ -73,7 +73,7 @@ BarWidget {
           anchors.centerIn: parent
           source: {
             const appName = trayItem.modelData.id || trayItem.modelData.title || "";
-            return (appName && IconConfig.overrides[appName]) || trayItem.modelData.icon || "";
+            return (appName && IconsConfig.overrides[appName]) || trayItem.modelData.icon || "";
           }
           sourceSize.width: root.iconSize
           sourceSize.height: root.iconSize

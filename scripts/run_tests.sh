@@ -20,16 +20,20 @@ python3 "$root/scripts/qml_modules.py" --pure "$tree"
 rm -rf "$root/tests/.out"
 mkdir -p "$root/tests/.out"
 
+# qmltestrunner takes one -input (a later one replaces it), so named tests
+# run one at a time
 inputs=()
 if [ $# -eq 0 ]; then
-  inputs=(-input "$root/tests")
+  inputs=("$root/tests")
 else
-  for name in "$@"; do inputs+=(-input "$root/tests/tst_$name.qml"); done
+  for name in "$@"; do inputs+=("$root/tests/tst_$name.qml"); done
 fi
 
 status=0
-QML_XHR_ALLOW_FILE_READ=1 QML_XHR_ALLOW_FILE_WRITE=1 QT_QPA_PLATFORM=offscreen \
-  "$qt_bin/qmltestrunner" -import "$tree" "${inputs[@]}" || status=$?
+for input in "${inputs[@]}"; do
+  QML_XHR_ALLOW_FILE_READ=1 QML_XHR_ALLOW_FILE_WRITE=1 QT_QPA_PLATFORM=offscreen \
+    "$qt_bin/qmltestrunner" -import "$tree" -input "$input" || status=$?
+done
 
 shopt -s nullglob
 for lua in "$root"/tests/.out/*.lua; do

@@ -3,6 +3,8 @@ import QtQuick
 import QtQuick.Layouts
 import qs.config
 
+// A button with a text label and an optional Material Symbols icon, with
+// hover and press colors.
 Rectangle {
   id: root
 

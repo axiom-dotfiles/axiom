@@ -66,6 +66,7 @@ qs -c axiom ipc call <target> <function>
 | `calendar` | `open`, `newEvent`, `sync`, `add <text>` (as `/event`) |
 | `audio` | `volumeUp`, `volumeDown`, `toggleMute`, `toggleMicMute` |
 | `media` | `playPause`, `next`, `previous`, `stop` |
+| `popouts` | `list` (debugging: every open popout's claim and footprint) |
 
 </details>
 

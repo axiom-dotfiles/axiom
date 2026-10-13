@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Every check CI runs (.github/workflows/checks.yml), in the same order.
+# Every check CI runs (.github/workflows/checks.yml), in the same order
+# (the generated docs are rebuilt here, only checked in CI).
 # Needs Qt 6's tools, shellcheck, luac and jq; the script smoke tests set up
 # the python venv on their first run.
 #
@@ -18,10 +19,14 @@ step() {
 }
 
 step "structure" python3 scripts/check_structure.py
+# Rebuilt rather than checked: locally they follow your edits (the pre-commit
+# hook commits them); CI runs `gen_docs.py --check` to catch a skipped hook
+step "generated docs" python3 scripts/gen_docs.py
+step "docs" python3 scripts/check_docs.py
 step "qmlformat" scripts/check_qmlformat.sh
 step "qmllint" python3 scripts/check_qmllint.py
 step "unit tests" scripts/run_tests.sh
-step "shellcheck" shellcheck -x -S warning install.sh scripts/*.sh scripts/lib/*.sh scripts/greeter/*.sh
+step "shellcheck" shellcheck -x -S warning install.sh scripts/*.sh scripts/lib/*.sh scripts/greeter/*.sh scripts/dev/*.sh .githooks/pre-commit
 step "script tests" python3 tests/scripts/test_scripts.py
 echo "── translations (warnings only)"
 python3 scripts/check_i18n.py || true

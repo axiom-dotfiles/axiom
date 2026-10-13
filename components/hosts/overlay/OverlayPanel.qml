@@ -10,6 +10,8 @@ import qs.components.reusable
 // Imported (though views load by URL) so qs scans the view types
 import qs.components.views // qmllint disable unused-imports
 
+// The overlay's window on one screen (shell/Overlay): opens and closes the
+// sliding box that holds OverlayPages, and closes on Escape or a click outside.
 ReservedAreaWindow {
   id: root
 

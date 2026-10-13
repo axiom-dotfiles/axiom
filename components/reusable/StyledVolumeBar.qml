@@ -3,6 +3,8 @@ import QtQuick
 import QtQuick.Layouts
 import qs.config
 
+// A volume bar (vertical or horizontal) with its icon, mute and optional
+// percentage: drag, click or scroll to set it. PipewireVolumeBar binds it to audio.
 Item {
   id: root
 

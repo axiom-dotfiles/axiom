@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# Regenerates docs/dev/config and docs/dev/generated from what's being
+# committed (the index, not the working tree) and stages the result, so a
+# commit never carries stale generated docs. Enabled per clone with
+#   git config core.hooksPath .githooks
+set -euo pipefail
+
+root="$(git rev-parse --show-toplevel)"
+cd "$root"
+
+# Only when something they're built from is staged
+git diff --cached --name-only --diff-filter=ACMRD |
+  grep -qE '\.qml$|^config/json/config\.schema\.json$|^scripts/(gen_docs|qml_modules)\.py$' || exit 0
+
+tmp="$(mktemp -d)"
+trap 'rm -rf "$tmp"' EXIT
+git checkout-index --all --prefix="$tmp/"
+if [[ ! -f "$tmp/scripts/gen_docs.py" ]]; then
+  echo "pre-commit: scripts/gen_docs.py isn't committed yet; skipping doc generation" >&2
+  exit 0
+fi
+python3 "$tmp/scripts/gen_docs.py" >/dev/null
+
+for dir in docs/dev/config docs/dev/generated; do
+  rm -rf "$dir"
+  mkdir -p "$(dirname "$dir")"
+  cp -r "$tmp/$dir" "$dir"
+  git add -A "$dir"
+done

@@ -75,7 +75,7 @@ QtObject {
   // Space between the menu's box and its modules: its own, else (-1) the
   // popouts'
   function paddingOf(menu) {
-    return menu.padding >= 0 ? menu.padding : PopoutConfig.padding;
+    return menu.padding >= 0 ? menu.padding : PopoutsConfig.padding;
   }
 
   // The menu's length along its edge, from config alone (for the hover

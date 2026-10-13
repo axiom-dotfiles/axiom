@@ -69,7 +69,7 @@ Pure, tested by `tst_GridPlacement`.
   - never below `minCardUnit`.
 - It reports its room to `OverlayManager.reportArea` (the layouts editor's "fits" line).
 - Views receive it as `grid` (`BaseView`) and size everything from `grid.unit` / `grid.span(n)` / `grid.sizes(bounds, stretch)`, passing plain numbers down to content.
-- `OverlayConfig.span` without a unit, and `OverlayConfig.gridUnit`, are the reference size.
+- `OverlayConfig.span` without a unit is the reference size.
 - A page that still doesn't fit is shrunk as a whole by `OverlayPages.fitScale` (Item.scale, last resort).
 - `cardSpacing` / `cardPadding` don't scale.
 

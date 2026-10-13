@@ -3,6 +3,8 @@ import QtQuick
 import Quickshell.Io
 import qs.config
 
+// Small JSON state files in Paths.statePath: createStateHandler(name)
+// gives a shared save/load handler per name.
 QtObject {
   id: root
 

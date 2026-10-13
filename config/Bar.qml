@@ -4,6 +4,8 @@ import QtQuick
 import qs.services
 import qs.components.methods
 
+// Reader for the Bars section and the bar look helpers: derived layout
+// values (enrichBarConfig), widget colors, look groups and autoColor fields.
 QtObject {
   enum Location {
     Top,
@@ -331,6 +333,7 @@ QtObject {
   // A bar's look groups (its override flag and the fields it covers, the
   // flag's `x-group` in the Bar definition): each is the BarStyle
   // section's unless the bar overrides it
+  // reads: Bars[].overrideWidgetStyle, Bars[].overrideAccents, Bars[].overrideShadow (by flag name)
   readonly property var lookGroups: ["overrideWidgetStyle", "overrideAccents", "overrideShadow"].map(flag => ({
         "flag": flag,
         "keys": Bar.fieldGroups.find(group => group.keys.includes(flag)).keys.filter(key => key !== flag)

@@ -6,6 +6,10 @@
 
 How to look at, exercise and debug the live shell without breaking the user's session, plus where every feature's own testing notes live. What you must never do while testing is in CLAUDE.md › "Never, while testing".
 
+### The loop
+- `scripts/dev/verify.sh` after every change: formats the changed QML in place (keeping the inode), runs `check_structure`, regenerates the docs, lints, runs the affected unit tests (a changed `methods/<Name>` runs `tst_<Name>`, a schema or migration change runs `Config` and `ConfigExamples`), shellchecks changed scripts, and prints the shell's log since the reload. `--all` runs `check_all.sh`.
+- `scripts/dev/shot.sh` takes a screenshot of a surface and closes it again, printing the PNG's path: `page <ViewType>`, `launcher [text]`, `ipc <target> <open> [close]`, `screen`; `-m MONITOR` (default the focused one), `-w SECONDS`.
+
 ### Reloads and logs
 - The shell runs detached and hot-reloads files it has loaded. Never start or stop it yourself; a relaunch from a shell once reset config.json to defaults. Ask the user to restart.
 - `scripts/log.sh` shows warnings and errors since the last reload. `--debug` adds `console.log`, `--all` covers earlier reloads, `-f` follows, `-g PATTERN` filters. A clean reload is just `Reloading configuration...` + `Configuration Loaded`.
@@ -14,16 +18,17 @@ How to look at, exercise and debug the live shell without breaking the user's se
   - Count `Reloading` lines in `scripts/log.sh --all` before and after to confirm.
   - Revert temporary edits in place, not with `git checkout`.
 - A failed reload leaves the old generation running. Force a clean reload before editing config.json.
+- **Renaming or deleting a singleton** can leave a reload failing with `Type <Old> unavailable … File not found`: one fired between the edits and kept the old file in its module listing. Force one more reload (above); it rescans and loads. Add the old name to `RETIRED` in `scripts/check_docs.py` so docs still citing it fail.
 
 ### Seeing a page or surface
-- Overlay pages: `qs -c axiom ipc call overlay page <ViewType>`, then `grim -o <monitor>` (or `grim -g "X,Y WxH"`), crop with `magick`, read the PNG, then `qs -c axiom ipc call overlay close`.
+- Overlay pages: `scripts/dev/shot.sh page <ViewType>` does all of this. By hand: `qs -c axiom ipc call overlay page <ViewType>`, then `grim -o <monitor>` (or `grim -g "X,Y WxH"`), crop with `magick`, read the PNG, then `qs -c axiom ipc call overlay close`.
 - The overlay only instantiates the current page and its neighbours, so a page's QML errors only reach `scripts/log.sh` once it's been opened like this.
 - **`show` is a qs IPC keyword:** `qs -c axiom ipc call <target> show` prints the target's functions instead of calling `show()`. Use `toggle` (or `hide`).
 - A temporary `IpcHandler` (for a settings category, a lockscreen preview, a screenshot hook) goes in `shell.qml`, never inside a singleton, where it never registers. It needs `import Quickshell.Io`. Revert it in place afterwards.
 - Never simulate cursor movement to verify UI. Reason from logs and bindings.
 - Per-feature recipes:
   - Launcher: [launcher.md › Testing](features/launcher.md) (`appLauncher search`, focus stealing).
-  - Lock screen: [lockscreen.md › Testing](features/lockscreen.md) (`LockManager.startPreview`, draft-only demo layouts).
+  - Lock screen: [lockscreen.md › Testing](features/lockscreen.md) (`LockManager.editor.startPreview()`, draft-only demo layouts).
   - Greeter: [greeter-runtime.md › Testing](features/greeter-runtime.md) (windowed greeter) and [greeter-install.md › Testing](features/greeter-install.md) (scratch root).
   - Onboarding: [onboarding.md › Testing](features/onboarding.md) (`ipc call onboarding goTo <n>`).
 

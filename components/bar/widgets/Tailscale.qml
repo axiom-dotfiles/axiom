@@ -5,6 +5,8 @@ import QtQuick
 import qs.services
 import qs.config
 
+// The Tailscale bar widget: connected or not, and the tailnet's name, from
+// TailscaleManager (acquired at the widget's interval); a click notifies it.
 BarIconWidget {
   id: root
 

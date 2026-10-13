@@ -2,6 +2,8 @@
 
 A file here is a bar widget type: `<Type>.qml` is loaded by `BarContainer` from `"widgets/" + type + ".qml"`. Docs: `docs/dev/bar/composition.md`, `widget-style.md`, `widget-shapes-runs.md`.
 
+**Recipe:** `docs/recipes/bar-widget.md` (and `docs/recipes/bar-popout.md` for its popout); verify with `scripts/dev/verify.sh`.
+
 - **A new widget = this file + a `<Type>Widget` definition in `config/json/config.schema.json` + its `$ref` in `definitions.BarWidget.oneOf`.** Copy `IdleInhibitor.qml` (service toggle), `Weather.qml` (polled data + popout) or `Updates.qml` (request, both buttons, `extraData`), and the `IdleInhibitorWidget` schema entry.
 - Icon + label widgets extend `BarIconWidget` (`icon`, `text`, `showText`, `accentColor`, `clickable`, `onClicked`); others extend `BarWidget`. Both get `barConfig`, `panel`, `screen`, `properties`.
 - The widget's settings are `properties.<key>` (schema `properties.properties`); bar-level values are `barConfig.<key>` (some are derived by `Bar.enrichBarConfig`, not schema keys).

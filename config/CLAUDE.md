@@ -1,6 +1,8 @@
 # Config (`config/`)
 
-Reader singletons (`<Section>.qml` / `<Section>Config.qml`), `json/config.schema.json` (the single source of truth), `json/theme-defaults.json`, `themes/`, `i18n/`, `user/` (live config, gitignored), `state/`. Docs: `docs/dev/core/config-readers.md`, `config-manager.md`, `schema-annotations.md`.
+Reader singletons (`<Section>.qml` / `<Section>Config.qml`), `json/config.schema.json` (the single source of truth), `json/theme-defaults.json`, `themes/`, `i18n/`, `user/` (live config, gitignored), `state/`. Docs: `docs/dev/core/config-readers.md`, `config-manager.md`, `schema-annotations.md`. Every setting, its reader member and its users: `docs/dev/config/<Section>.md` (generated).
+
+**Recipe:** `docs/recipes/setting.md` / `docs/recipes/config-section.md` / `docs/recipes/migration.md`; verify with `scripts/dev/verify.sh`.
 
 - **A reader**: `pragma Singleton`, `import QtQuick`, `import qs.services`, `QtObject { id: root; readonly property var _c: ConfigManager.config.<Section>; readonly property <type> x: _c.x … }`. Copy `PolkitConfig.qml` or `BatteryConfig.qml`.
 - Readers read only the data owners (`ConfigManager`, `ThemeManager`, `I18n`) and each other. **No `??` fallbacks**: every default is filled at load. A section edited live through a draft reads `ConfigManager.previews.X ?? ConfigManager.config.X` (that one `??` is the preview, not a default).
@@ -8,4 +10,5 @@ Reader singletons (`<Section>.qml` / `<Section>Config.qml`), `json/config.schema
 - **A new section** = a root `properties.<Section>` with `x-category` (from the root's `x-categories`), `title`, `description`, `additionalProperties: false`, `x-order`, + a new reader. Unknown sections are pruned at load.
 - **Renaming or reshaping a key**: edit the schema first, then the `ConfigMigration` step (`components/methods/CLAUDE.md`).
 - `x-scope`: a setting in a look section that names a monitor, path, account or command needs `machine`/`personal`.
+- After changing the schema or a reader, run `scripts/gen_docs.py`.
 - Edit `user/config.json` and `i18n/*.json` atomically (temp file + rename): they're watched.

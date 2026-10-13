@@ -9,6 +9,8 @@ import Quickshell
 import qs.services
 import qs.shell
 
+// The shell's entrypoint: one top-level piece per surface (shell/), plus
+// _services, which creates the services nothing else would reference.
 ShellRoot {
   id: shellRoot
 

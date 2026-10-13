@@ -5,6 +5,8 @@ import Quickshell
 import qs.config
 import qs.components.methods
 
+// A rectangular icon button with hover and press colors, a tooltip and an
+// optional count badge.
 Rectangle {
   id: root
 

@@ -10,6 +10,8 @@ This file holds only the rules. **The mechanics of every service and surface are
 
 ## Where to look
 
+**Adding something of a known kind?** Follow its recipe in `docs/recipes/` (also skills in `.claude/skills/`): `bar-widget`, `bar-popout`, `overlay-module`, `overlay-view`, `settings-card`, `launcher-command`, `setting`, `config-section`, `migration`, `service`, `theme-integration`, `methods-helper`. Each names the files to touch and an existing file to copy.
+
 | Task / area | Read |
 |---|---|
 | Any service, polling, `acquire`/`release` | `docs/dev/core/services-pattern.md` |
@@ -26,8 +28,17 @@ This file holds only the rules. **The mechanics of every service and surface are
 | Themes, integrations, wallpaper, blur | `docs/dev/theming/` |
 | A feature (launcher, lockscreen, greeter, dock, OSD, chat, notes, calendar, …) | `docs/dev/features/<feature>.md` |
 | Looking at or debugging the live shell | `docs/dev/testing.md` |
+| Known problems not fixed yet (check before working in an area) | `docs/dev/issues.md` |
+| **What a setting is, its default, who reads it** | `docs/dev/config/<Section>.md` (generated; `grep -rn 'Section.key' docs/dev/config/`) |
+| A bar widget / overlay module / view type's settings | `docs/dev/config/{BarWidgets,OverlayModules,OverlayViews}/<Type>.md` (generated) |
+| A service's or reader's public API | `docs/dev/generated/api/<Name>.md` (generated) |
+| Which file does X / every IPC target | `docs/dev/generated/files.md`, `docs/dev/generated/ipc.md` (generated) |
+
+**Found a problem outside the task?** Don't fix it unasked and don't only mention it: add an entry to `docs/dev/issues.md` (its format is at the top), and tell the user you did. Remove an entry in the change that fixes it.
 
 ## Running / reloading
+
+- **After any change run `scripts/dev/verify.sh`**: formats changed QML in place (keeping the inode, so the shell reloads), runs the structure check, regenerates the docs, lints, runs the affected tests and shows the shell's log since the reload. `--all` runs every CI check. **To look at something**: `scripts/dev/shot.sh page <ViewType>` / `launcher [text]` / `ipc <target> <open> [close]` prints a screenshot's path.
 
 - The shell runs detached; never start/stop it from this session. Saving a file it has loaded hot-reloads it. qs watches by inode: after `sed -i`, `qmlformat -i` or `git checkout`, see `docs/dev/testing.md` to force a reload.
 - **Logs**: `scripts/log.sh` (warnings/errors since the last reload; `--debug` adds `console.log`, `--all`, `-f`, `-g PATTERN`). A clean reload is just `Reloading configuration...` + `Configuration Loaded`. stdout/journalctl show nothing. `console.log` for tracing, `console.warn` only for real problems.
@@ -54,12 +65,15 @@ All run in CI (`.github/workflows/checks.yml`); `scripts/check_all.sh` runs ever
 - `scripts/check_qmllint.py`: fails on warnings not in `scripts/qmllint-baseline.json`. Fix new warnings; `--update-baseline` only for Quickshell type-info gaps, or when it reports baselined warnings gone.
 - `scripts/check_qmlformat.sh [--fix]`, `shellcheck -x -S warning`, `tests/scripts/test_scripts.py` (themes, `theme_*.sh`, `self_update.sh`, `greeter_install.sh`, `generate_theme.py`).
 - `scripts/check_i18n.py` after changing any user-visible text or schema title/description.
+- `scripts/check_docs.py`: links, backticked repo paths and `Singleton.member` names in the hand-written docs exist. A doc citing something renamed fails CI: fix the doc with the code.
+- `scripts/gen_docs.py` regenerates `docs/dev/config/` and `docs/dev/generated/` (`check_all.sh` and `verify.sh` rebuild them; CI runs `--check`, which fails when they're stale). **Run it before committing any change to QML files or the schema** (usages are indexed, so most QML edits change it); the pre-commit hook (`.githooks/`, enabled with `git config core.hooksPath .githooks`) does this from what's staged. Never edit those files by hand.
 
 ## Formatting
 
 - `/usr/lib/qt6/bin/qmlformat -i` on changed `.qml` files (`.qmlformat.ini`: 2 spaces, no column limit). The `qmlformat` on PATH is Qt5's and fails silently.
 - The QML JS engine has no `Array.prototype.flatMap` (use `[].concat(...arr.map(...))`), no `Object.fromEntries` (use `reduce`) and no `Intl`.
-- Each QML file has a short purpose comment above its root object.
+- Each QML file has a short purpose comment above its root object (`check_structure` enforces it; it feeds `docs/dev/generated/files.md`).
+- A config read grep can't see (by key name, a whole object handed to a helper) gets a `// reads: Section.path, …` comment (`*` matches any part) so the config reference finds it.
 
 ## Layout
 

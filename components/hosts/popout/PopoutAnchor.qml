@@ -37,7 +37,7 @@ Item {
   readonly property var popouts: root.panel?.popoutHost ?? null
 
   property var extraData: ({})
-  property int openDelay: PopoutConfig.openDelay
+  property int openDelay: PopoutsConfig.openDelay
   property bool active: true
   // Off, hovering doesn't open it: its owner calls open() (on a click)
   property bool openOnHover: true

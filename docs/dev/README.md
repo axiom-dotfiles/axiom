@@ -22,6 +22,18 @@ UI                    components/, shell/ (no polling, never ConfigManager.confi
 
 ## Index
 
+### Recipes
+- [../recipes/](../recipes/): step-by-step for each recurring change (files to touch, file to copy, gotchas, checks). Wrapped as skills in `.claude/skills/`.
+
+### Generated references (`scripts/gen_docs.py`; never edit by hand)
+- [config/](config/README.md): every setting per section: type, default, annotations, description, reader member, files that use it. Plus one page per bar widget, overlay module and view type.
+- [generated/api.md](generated/api.md): public members of every service and config reader, one page each.
+- [generated/files.md](generated/files.md): every QML file with its purpose comment.
+- [generated/ipc.md](generated/ipc.md): every IPC target and its functions.
+
+### Known issues
+- [issues.md](issues.md): problems found but not fixed yet. Add one when you find something out of scope; remove it with the fix.
+
 ### Testing
 - [testing.md](testing.md): how to look at, exercise and debug the running shell safely; the testing sections of every doc.
 

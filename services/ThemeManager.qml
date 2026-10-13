@@ -207,6 +207,7 @@ QtObject {
   // last full run (null before the first, while config and theme load):
   // one switched on since is themed right away, not at the next theme
   // change
+  // reads: ThemeIntegrations.* (as ThemeIntegrations[key])
   readonly property var _enabledIntegrations: root.integrations.filter(key => ThemeIntegrations[key] === true)
   property var _themed: null
   on_EnabledIntegrationsChanged: {

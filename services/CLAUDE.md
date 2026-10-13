@@ -1,6 +1,8 @@
 # Services (`services/`)
 
-One `pragma Singleton QtObject` per domain, named `*Manager`: state and every side effect (processes, dispatches, file writes, polling). Docs: `docs/dev/core/services-pattern.md`, plus the feature's doc in `docs/dev/features/`.
+One `pragma Singleton QtObject` per domain, named `*Manager`: state and every side effect (processes, dispatches, file writes, polling). Docs: `docs/dev/core/services-pattern.md`, plus the feature's doc in `docs/dev/features/`. Each service's public API: `docs/dev/generated/api/<Name>.md` (generated; rerun `scripts/gen_docs.py` after changing public members or an `IpcHandler`).
+
+**Recipe:** `docs/recipes/service.md` / `docs/recipes/launcher-command.md`; verify with `scripts/dev/verify.sh`.
 
 - Expose readonly properties, signals and functions; private members start with `_`. Don't shadow Quickshell singletons (`NetworkingManager`, not `Networking`). `check_structure.py` errors on a `FooManager.` reference with no file.
 - **Polled data**: `acquire(owner, request)` / `release(owner)` wrapping a private `ConsumerRegistry`; the interval is the shortest asked (with a floor), the Timer runs only while `_registry.active`. Copy `TailscaleManager.qml`. Requests come from config only.

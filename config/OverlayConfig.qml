@@ -171,8 +171,6 @@ QtObject {
     return view?.fineGrid ? GridPlacement.fineUnit(unit) : unit;
   }
 
-  // One grid unit (a quarter card) at the reference card size
-  readonly property real gridUnit: GridPlacement.unitOf(cardUnit)
   function span(n, unit) {
     return GridPlacement.span(n, unit);
   }

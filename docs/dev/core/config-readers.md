@@ -27,14 +27,14 @@ Typed, read-only views of config sections. (Rule: CLAUDE.md › Config, reader n
 - **`Bar`**: from `Bars`.
   - The first bar is primary.
   - `edgeName(location)` gives a `Bar.Location` as `"top"`…`"right"`.
-- **`PopoutConfig`**: open/dismiss delays and edge trigger size, shared by bar and edge popouts.
+- **`PopoutsConfig`**: open/dismiss delays and edge trigger size, shared by bar and edge popouts.
 - **`OSDConfig`**: the OSDs; see [OSD](../features/osd.md).
 - **`LauncherConfig`**: launcher placement, size and providers.
 - **`Apps`**: the terminal, file manager and browser that binds and the launcher open.
 - **`NotificationsConfig`**: the toasts' corner and gaps; see [Notifications](../features/notifications.md).
 - **`OverlayConfig`**: views and card-grid constants.
 - **`EdgeMenusConfig`**: edge menus.
-- **`IconConfig`**, **`ChatConfig`**, **`ThemeIntegrations`**.
+- **`IconsConfig`**, **`ChatConfig`**, **`ThemeIntegrations`**.
 - **`CalendarConfig`**:
   - accounts with their ids filled in
   - `calendars` flattened with resolved colors

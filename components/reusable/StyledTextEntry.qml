@@ -3,6 +3,8 @@ import QtQuick
 import QtQuick.Controls
 import qs.config
 
+// A single-line text field in a StyledContainer. It writes every keystroke
+// back to `text`: push values in and act on textEdited (see CLAUDE.md pitfalls).
 StyledContainer {
   id: root
 

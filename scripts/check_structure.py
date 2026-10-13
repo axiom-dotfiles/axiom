@@ -102,6 +102,63 @@ def main():
             if group not in library_groups:
                 errors.append(f"{definition} {name}: x-libraryGroup {group!r} isn't one of the schema's x-libraryGroups")
 
+    # Hand-built settings parts: x-card loads views/settings/<Name>Card.qml,
+    # x-intro views/settings/<Name>.qml (by URL, so a typo only shows in the log)
+    def annotated(node, found):
+        if isinstance(node, dict):
+            for key, value in node.items():
+                if key in ("x-card", "x-intro"):
+                    found.append((key, value))
+                annotated(value, found)
+        elif isinstance(node, list):
+            for value in node:
+                annotated(value, found)
+        return found
+    for key, name in annotated(schema, []):
+        target = f"components/views/settings/{name}{'Card' if key == 'x-card' else ''}.qml"
+        if not (ROOT / target).exists():
+            errors.append(f"schema {key} {name!r} has no {target}")
+
+    # Tool pages (x-tool) are always in config: the Overlay.views default
+    # carries every one (and a migration adds a new one to existing configs)
+    default_views = {v.get("type") for v in schema["properties"]["Overlay"]["properties"]["views"]["default"]}
+    for option in schema["definitions"]["OverlayView"]["oneOf"]:
+        target = schema["definitions"].get(option.get("$ref", "").split("/")[-1], option)
+        if target.get("x-tool"):
+            const = target["properties"]["type"]["const"]
+            if const not in default_views:
+                errors.append(f"tool page {const} isn't in the Overlay.views default")
+
+    # Every IPC target is in docs/usage.md's IPC table, and the table names
+    # no target that's gone
+    targets = {}
+    for path, text in sources.items():
+        for m in re.finditer(r"IpcHandler\s*\{", text):
+            found = re.search(r'target:\s*"(\w+)"', text[m.end():m.end() + 400])
+            if found:
+                targets.setdefault(found.group(1), path)
+    usage = (ROOT / "docs/usage.md").read_text()
+    table = usage[usage.find("<summary><b>IPC targets"):]
+    table = table[:table.find("</details>")]
+    listed = set(re.findall(r"^\| `(\w+)`", table, re.M))
+    for target, path in sorted(targets.items()):
+        if target not in listed:
+            errors.append(f"{path}: IPC target {target!r} is missing from the IPC table in docs/usage.md")
+    for target in sorted(listed - set(targets)):
+        errors.append(f"docs/usage.md: IPC target {target!r} has no IpcHandler")
+
+    # Every file says what it's for above its root object (docs/dev/generated/files.md)
+    for path, text in sources.items():
+        lines = text.split("\n")
+        start = next((i for i, line in enumerate(lines) if re.match(r"[A-Z][\w.]*\s*\{", line)), None)
+        if start is None:
+            continue
+        j = start - 1
+        while j >= 0 and not lines[j].strip():
+            j -= 1
+        if j < 0 or not (lines[j].startswith("//") or lines[j].rstrip().endswith("*/")):
+            errors.append(f"{path}: no purpose comment above its root object")
+
     # Popout names -> content files
     names = {}
     for path, text in sources.items():

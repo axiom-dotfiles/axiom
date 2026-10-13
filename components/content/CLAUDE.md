@@ -2,6 +2,8 @@
 
 Every loadable panel, by name: overlay modules (`<Type>.qml`, also used by edge menus, the desktop, the lock screen and the greeter) and bar popouts (`popoutName`). `base/` holds the roots, `parts/` shared parts. Docs: `docs/dev/overlay/content-roots.md`, `writing-modules.md`, `grow-expand.md`.
 
+**Recipe:** `docs/recipes/overlay-module.md` / `docs/recipes/bar-popout.md`; verify with `scripts/dev/verify.sh`.
+
 - **Root is `Card` (free-form) or `Panel` (a column; usable as a bar popout and a card, `embedded` is true in a card).** Both expose `properties`, `slotRect`, `cols`/`rows`, `shape`, `compact`, `pad`, `host`.
 - **A new module = this file + a `<Type>OverlayModule` definition in the schema + its `$ref` in `definitions.OverlayModule.oneOf`**, with `place: { $ref GridPlace }`, `x-icon`, `x-libraryGroup` and, if a card is the wrong size to start at, `x-defaultSize: [w, h]` (grid units, four to a card). Copy `Battery.qml` (+ `BatteryOverlayModule`) or `ColorSwatch.qml`.
 - **Modules take any size**: set `fullMinWidth`/`fullMinHeight` (px; text-dependent ones from `Appearance.fontSize`) and show `compactContent` (e.g. `CompactFigure`) below them; adapt the layout to `shape`/`compact`.

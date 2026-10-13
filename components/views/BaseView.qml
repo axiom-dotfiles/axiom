@@ -4,6 +4,8 @@ import QtQuick.Layouts
 import qs.config
 import qs.components.hosts.overlay
 
+// The base of every overlay page (views/<type>.qml): its grid and
+// viewConfig, and the page sizes hand-built pages lay out with.
 Item {
   id: root
   // This screen's card grid (OverlayGrid): size cards and panels from it

@@ -3,6 +3,8 @@ import QtQuick
 import QtQuick.Controls
 import qs.config
 
+// A multi-line text field in a StyledContainer, optionally growing with its
+// text. Pushed-in values follow the StyledTextEntry pattern (textEdited).
 StyledContainer {
   id: root
 

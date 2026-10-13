@@ -1,0 +1,56 @@
+# Recipe: a new setting in an existing section
+
+> **Use when:** adding one config key to a section that already exists (`Battery`, `Launcher`, `Appearance`, …). For a new section see [config-section](config-section.md); renaming or reshaping an existing key needs a [migration](migration.md).
+> **Copy from:** `config/json/config.schema.json` → `properties.Battery` (small section, `x-order`, `x-unit`, min/max) with `config/BatteryConfig.qml` (the reader)
+> **Docs:** [schema-annotations](../dev/core/schema-annotations.md), [config-readers](../dev/core/config-readers.md), generated reference `docs/dev/config/<Section>.md`
+
+## Files to touch
+1. `config/json/config.schema.json` → `properties.<Section>.properties.<key>`: the setting, with a `default`. Add the key to the section's `x-order` if it has one.
+2. `config/<Section>.qml` or `config/<Section>Config.qml` (find it in the table in `docs/dev/config/README.md`): one `readonly property <type> <name>: _c.<key>`.
+3. The consumer (service or UI) reads `<Reader>.<name>`, never `ConfigManager.config`.
+4. `config/i18n/*.json`: run `scripts/check_i18n.py --fill` (the title and description are translation keys).
+
+## Skeleton
+```json
+"lowThreshold": {
+  "type": "integer",
+  "title": "Low at",
+  "description": "One sentence on what it does, in the user's terms.",
+  "x-unit": "%",
+  "default": 20,
+  "minimum": 0,
+  "maximum": 100
+}
+```
+```qml
+  // Percentages at or below which the battery is low / critical
+  readonly property int lowThreshold: _c.lowThreshold
+```
+
+## Steps
+1. Find the section and its reader: `grep -n 'Section.someKey' docs/dev/config/<Section>.md` shows how its siblings are declared and read.
+2. Add the schema entry. Required: `type`, `default`, `title`. Usual: `description`, and `x-group` when the section's other keys have one (it picks the settings card).
+3. Add the key to the section's `x-order`, if it has one, in the position the user should see it.
+4. Pick annotations from [schema-annotations](../dev/core/schema-annotations.md), e.g. `x-showIf`, `x-unit`, `x-options`, `x-control`, `x-beside`, `x-applyOnSave`. Prefer an annotation to special-casing in QML.
+5. Add the reader property: plain `_c.<key>`, no `??` fallback (the default is always filled). A derived value is its own property next to it, e.g. `wallpaperPath: Paths.expandHome(_c.wallpaperFolder)`.
+6. Use it from the consumer.
+7. Run `scripts/check_i18n.py --fill`.
+
+## Gotchas
+- **`x-scope`:** a key inside a `look`-scoped section that names a monitor, path, account or command needs `"x-scope": "machine"` or `"personal"`. Otherwise examples, imports and exports carry it to other PCs.
+- **`x-takeover: true`** is for settings that take something over on this PC (locker, idle, polkit, Hyprland mode, greeter). Loading or importing a config never changes those.
+- **Ordering:** QML sees schema objects as maps with sorted keys. `x-order` puts its keys first, and unlisted keys follow alphabetically, so list a new key where it belongs.
+- **No migration needed:** a purely additive key fills its default on load.
+- **Wrong default type:** a default that doesn't validate (wrong type, outside min/max) makes the whole config fall back to defaults. `tst_Config` catches it.
+- **Drafts:** a section edited live through a draft (`Desktop`, `EdgeMenus`) is read through `ConfigManager.previews.X ?? ConfigManager.config.X` in its reader. Keep using that member.
+- **Live config:** the running shell validates against the schema it last loaded. Confirm the reload in `scripts/log.sh` before relying on the new key in `config/user/config.json`.
+
+## Verify
+- `scripts/dev/verify.sh`: formats changed QML in place, runs `check_structure`, regenerates docs, runs related tests, shows the shell's log since the reload.
+- `scripts/run_tests.sh Config`: the defaults are a valid config.
+- `scripts/check_i18n.py`
+- To see it on its settings card: `scripts/dev/shot.sh page Settings`.
+
+## Docs to update
+- The feature's doc in `docs/dev/` if the setting changes how the feature works. The generated `docs/dev/config/<Section>.md` updates itself.
+- `docs/features.md` / `docs/configuration.md` if it's a user-facing capability worth mentioning.
