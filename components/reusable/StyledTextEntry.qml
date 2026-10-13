@@ -4,7 +4,7 @@ import QtQuick.Controls
 import qs.config
 
 // A single-line text field in a StyledContainer. It writes every keystroke
-// back to `text`: push values in and act on textEdited (see CLAUDE.md pitfalls).
+// back to `text`: push values in and act on textEdited (see AGENTS.md pitfalls).
 StyledContainer {
   id: root
 

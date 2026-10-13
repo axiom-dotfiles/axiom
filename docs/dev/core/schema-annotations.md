@@ -4,7 +4,7 @@
 > **Config:** every section
 > **Related:** [Settings page](settings-page.md), [Saved configs and sharing](saved-configs-sharing.md), [Config manager](config-manager.md), [Config readers](config-readers.md), [Hyprland config modes](../hyprland/config-modes.md)
 
-The schema is the single source of truth for config: shape, `default`s (there is no separate defaults file) and the generated settings page (`views/Settings.qml`). This doc is the complete list of `x-*` annotations. (Rule: CLAUDE.md › Config.)
+The schema is the single source of truth for config: shape, `default`s (there is no separate defaults file) and the generated settings page (`views/Settings.qml`). This doc is the complete list of `x-*` annotations. (Rule: AGENTS.md › Config.)
 
 ### Basics
 - Adding a setting = a schema entry with a `default` + a reader property.

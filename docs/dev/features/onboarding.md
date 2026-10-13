@@ -65,4 +65,4 @@ The first-run onboarder: a paged window that sets up the look, Hyprland mode, mo
 
 ### Testing
 - Use `ipc call onboarding goTo <n>` plus grim screenshots.
-- Never delete the real config.json to test it. (Rule: CLAUDE.md › Never, while testing.)
+- Never delete the real config.json to test it. (Rule: AGENTS.md › Never, while testing.)

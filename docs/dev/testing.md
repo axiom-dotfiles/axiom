@@ -2,9 +2,9 @@
 
 > **Files:** `scripts/log.sh`, `scripts/check_all.sh`, `scripts/run_tests.sh`, `scripts/dev/popout_matrix.py`, `tests/`
 > **Config:** none
-> **Related:** [Developer docs](README.md), [CLAUDE.md](../../CLAUDE.md) (Running / reloading, Never while testing, Checks)
+> **Related:** [Developer docs](README.md), [AGENTS.md](../../AGENTS.md) (Running / reloading, Never while testing, Checks)
 
-How to look at, exercise and debug the live shell without breaking the user's session, plus where every feature's own testing notes live. What you must never do while testing is in CLAUDE.md › "Never, while testing".
+How to look at, exercise and debug the live shell without breaking the user's session, plus where every feature's own testing notes live. What you must never do while testing is in AGENTS.md › "Never, while testing".
 
 ### The loop
 - `scripts/dev/verify.sh` after every change: formats the changed QML in place (keeping the inode), runs `check_structure`, regenerates the docs, lints, runs the affected unit tests (a changed `methods/<Name>` runs `tst_<Name>`, a schema or migration change runs `Config` and `ConfigExamples`), shellchecks changed scripts, and prints the shell's log since the reload. `--all` runs `check_all.sh`.
@@ -49,7 +49,7 @@ How to look at, exercise and debug the live shell without breaking the user's se
 - Adding a module to the live config: [writing-modules.md › Testing](overlay/writing-modules.md). Confirm the schema reloaded (the latest `Loading config schema` line in the instance's `log.log` is newer than the schema file's mtime), back up config.json to a scratch dir and restore it afterwards, add one module at a time, and watch qs's RSS.
 
 ### JS and QML experiments
-- Engine gaps (`flatMap`, `Object.fromEntries`, `Intl`) are in CLAUDE.md › Formatting, the inline-component trap in › QML pitfalls. `toLocaleString(..., { timeZone })` is ignored too: see [clock-timezones](features/clock-timezones.md).
+- Engine gaps (`flatMap`, `Object.fromEntries`, `Intl`) are in AGENTS.md › Formatting, the inline-component trap in › QML pitfalls. `toLocaleString(..., { timeZone })` is ignored too: see [clock-timezones](features/clock-timezones.md).
 - For quick JS checks, run a scratch `tst_x.qml` with `QT_QPA_PLATFORM=offscreen /usr/lib/qt6/bin/qmltestrunner -input <dir>`. The plain `qml` tool prints nothing.
 
 ### CI locally

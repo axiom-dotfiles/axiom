@@ -6,7 +6,7 @@
 
 How bars and the screen border share an edge through layer-shell ordering. Covers solid bars, bars inside the border, which bar gets a shared corner, transparent bars, the border being off, and the border's inward shadow window. Bar ends and pills are in [Bar ends and pills](bar-ends-pills.md).
 
-(Rule: CLAUDE.md › UI conventions, Layer ordering. The rules live in `HyprlandManager.layerRulesLua`.)
+(Rule: AGENTS.md › UI conventions, Layer ordering. The rules live in `HyprlandManager.layerRulesLua`.)
 
 ### The border
 - `Appearance.screenBorder` turns the border off.

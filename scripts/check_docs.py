@@ -12,7 +12,7 @@ Docs drift silently; this catches the drift a reader would trip on:
   when renaming a singleton, so docs still citing it fail)
 
 Covers docs/**/*.md (not the generated docs/dev/config and docs/dev/generated),
-every CLAUDE.md, README.md and CONTRIBUTING.md, and .claude/skills. Fenced
+every AGENTS.md, README.md and CONTRIBUTING.md, and .claude/skills. Fenced
 code blocks are skipped.
 
   scripts/check_docs.py
@@ -38,7 +38,7 @@ NOT_MEMBERS = {"Quickshell", "Qt", "Math", "JSON", "Object", "Array", "String", 
 
 def docs():
     files = [p for p in (ROOT / "docs").rglob("*.md") if not str(p.relative_to(ROOT)).startswith(GENERATED)]
-    files += [p for p in ROOT.rglob("CLAUDE.md") if ".git" not in p.parts]
+    files += [p for p in ROOT.rglob("AGENTS.md") if ".git" not in p.parts]
     files += [ROOT / "README.md", ROOT / "CONTRIBUTING.md"]
     files += list((ROOT / ".claude/skills").rglob("*.md"))
     return sorted(p for p in files if p.exists())

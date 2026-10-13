@@ -2,7 +2,7 @@
 
 > **Use when:** adding a card type for overlay pages (also usable in edge menus, and on the desktop, lock screen or greeter when it opts in).
 > **Copy from:** `components/content/Battery.qml` (`Card`, `fullMinWidth`/`fullMinHeight`, `compactContent: CompactFigure`, `shape`), `components/content/ColorSwatch.qml` (driven by `properties`); schema `definitions.BatteryOverlayModule` (with `x-hosts`) or `definitions.CalculatorOverlayModule` (with `properties`).
-> **Docs:** [overlay/writing-modules](../dev/overlay/writing-modules.md), [overlay/content-roots](../dev/overlay/content-roots.md), [overlay/grow-expand](../dev/overlay/grow-expand.md), rules in `components/content/CLAUDE.md`; generated: [config/OverlayModules](../dev/config/OverlayModules.md).
+> **Docs:** [overlay/writing-modules](../dev/overlay/writing-modules.md), [overlay/content-roots](../dev/overlay/content-roots.md), [overlay/grow-expand](../dev/overlay/grow-expand.md), rules in `components/content/AGENTS.md`; generated: [config/OverlayModules](../dev/config/OverlayModules.md).
 
 ## Files to touch
 1. `components/content/<Type>.qml`: the module. The file name is the type const.

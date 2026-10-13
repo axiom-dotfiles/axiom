@@ -4,7 +4,7 @@
 > **Copy from:**
 > - `services/TailscaleManager.qml`: polled state through a `ConsumerRegistry`; its consumer is `components/bar/widgets/Tailscale.qml`.
 > - `services/IdleInhibitManager.qml`: an IPC handler, and state kept across reloads in `PersistentProperties`.
-> **Docs:** [services-pattern](../dev/core/services-pattern.md), `services/CLAUDE.md`, generated API `docs/dev/generated/api/<Name>.md`
+> **Docs:** [services-pattern](../dev/core/services-pattern.md), `services/AGENTS.md`, generated API `docs/dev/generated/api/<Name>.md`
 
 ## Files to touch
 1. `services/<Name>Manager.qml`: a `pragma Singleton` (`QtObject`, or Quickshell's `Singleton` when it holds child objects like `PersistentProperties`).

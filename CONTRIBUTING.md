@@ -21,13 +21,8 @@ scripts/      # scripts run by the shell (theming, wallpaper, updates) and devel
 tests/        # unit tests (qmltestrunner) and script tests, run by scripts/check_all.sh and CI
 ```
 
-## Conventions
-- Import project code through the `qs.` namespace (`import qs.services`), never relative paths.
-- Dependencies point one way: pure `methods/` → config readers → services (every process, file write and poll) → UI.
-- New settings go in `config/json/config.schema.json` with a default, plus a reader property; the settings UI is generated from the schema. Prefer a schema annotation (`x-group`, `x-order`, `x-icon`, …) over a list kept in QML.
-- Reuse the shared pieces ([docs/dev/core/shared-ui-pieces.md](docs/dev/core/shared-ui-pieces.md)) instead of drawing another card, row, chip or drag; a pattern that appears twice becomes one.
-- User-visible text is English, wrapped in `I18n.tr("...")` with placeholders for values; run `scripts/check_i18n.py` (and `--untranslated`) after changing text.
-- Every animation duration is `Appearance.animFast`/`animNormal`/`animSlow`; outer edges use `Appearance.borderRadius`, anything inside `Widget.radius`; icons are Material Symbols names in `StyledIcon`.
+## Rules
+The project's rules live in [AGENTS.md](AGENTS.md), plus an `AGENTS.md` in directories with local rules (`services/`, `config/`, `components/content/`, …). They're written for people and coding agents alike, and kept in one place so they don't drift between copies: read them before your first change. Step-by-step recipes for adding the common kinds of things (a bar widget, an overlay module, a setting, a service, …) are in [docs/recipes/](docs/recipes/).
 
 ## Example setups
 - Build the setup in the shell, then Settings → Maintenance → Share → Export (keybinds, apps and commands switched off unless the example needs a command). It writes `~/axiom-<name>-<date>-<time>.json` holding only the look (the schema's `x-scope`), minus defaults; move it to `examples/<name>.json` and fill in its `_example` header: `{ "title": "…", "description": "…" }`.

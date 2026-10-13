@@ -4,7 +4,7 @@
 > **Config:** none
 > **Related:** [Editors pattern](editors-pattern.md), [Content roots](../overlay/content-roots.md), [Writing modules](../overlay/writing-modules.md), [Popout surface context](../popouts/surface-context.md), [Translucency and blur](../theming/translucency-blur.md)
 
-An index of reusable pieces. Reach for one of these before drawing your own; when a pattern appears a second time, it becomes one of these. (Rule: CLAUDE.md › UI conventions, "Reuse before building".)
+An index of reusable pieces. Reach for one of these before drawing your own; when a pattern appears a second time, it becomes one of these. (Rule: AGENTS.md › UI conventions, "Reuse before building".)
 
 ### Text and structure (`reusable/`)
 - `StyledText` / `StyledIcon`.
@@ -27,7 +27,7 @@ An index of reusable pieces. Reach for one of these before drawing your own; whe
 - `SegmentButton`: a choice, accent when `active`; `Layout.fillWidth: false` in a row of pills.
 - `SegmentRow`: a single choice of SegmentButtons on one track, the accent sliding to the active one. Toggles and multi-select chips stay plain rows or Flows.
 - `StyledTabBar`: its current tab's highlight slides between tabs.
-- `StyledTextEntry`: see the CLAUDE.md pitfall (push the value in, act on `textEdited`).
+- `StyledTextEntry`: see the AGENTS.md pitfall (push the value in, act on `textEdited`).
 - `PasswordEntry`: a password field with a message, a busy bar and `shake()`.
   - It has no authenticator of its own: the lock screen's `PasswordField`, the greeter's `LoginField` and the polkit prompt wire it.
 - `StyledComboEntry`: a choice from a list dropping down under a field, optionally typed.
@@ -82,7 +82,7 @@ An index of reusable pieces. Reach for one of these before drawing your own; whe
   - A copy with `ready` false (an image loading) waits. Used by the cover and track text, weather and OSD icons.
 - Everything else animates with Behaviors on `Appearance.animFast` / `animNormal` / `animSlow` and `Appearance.easing`.
   - Gate it with a `_settled` / `_placed` flag (`Qt.callLater` from `Component.onCompleted`) where a first layout would otherwise fly in from 0.
-- (Rule: CLAUDE.md › Config, "Animation".)
+- (Rule: AGENTS.md › Config, "Animation".)
 
 ### Small helpers
 - **Last found** (`reusable/LastFound`): the last non-null `source`, for an entry looked up by id whose delegates must never be handed null as it's removed (`shell/Dock`, `shell/OSD`).

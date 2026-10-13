@@ -2,7 +2,7 @@
 
 > **Use when:** a bar widget should open a panel on hover (forecast, package list, device list), or an existing panel should open from a new widget.
 > **Copy from:** `components/content/WeatherForecast.qml` (a `Panel` fed by a service), `components/bar/widgets/Updates.qml` (anchor with `extraData`), `components/hosts/popout/PopoutAnchor.qml` (the anchor's API).
-> **Docs:** [overlay/content-roots](../dev/overlay/content-roots.md), [popouts/hosts-and-switching](../dev/popouts/hosts-and-switching.md), rules in `components/content/CLAUDE.md`.
+> **Docs:** [overlay/content-roots](../dev/overlay/content-roots.md), [popouts/hosts-and-switching](../dev/popouts/hosts-and-switching.md), rules in `components/content/AGENTS.md`.
 
 ## Files to touch
 1. `components/content/<Name>.qml`: the panel. `<Name>` is the `popoutName`.

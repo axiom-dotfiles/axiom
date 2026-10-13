@@ -28,7 +28,7 @@ One workspace layout serves everything that shows workspaces or moves between th
   - `stepWorkspace(direction, mode)`
   - `nthWorkspace(n, mode)`
   - `focusWindow`, for focusing a window on another workspace (used by the overview, dock, launcher and notifications).
-- Never dispatch `hl.dsp.focus({ workspace })` or `{ window }` directly. (Rule: CLAUDE.md › Services.)
+- Never dispatch `hl.dsp.focus({ workspace })` or `{ window }` directly. (Rule: AGENTS.md › Services.)
 - `mode` is `go`, `move` or `moveSilent`.
 - Surfaces on a monitor pass their `monitor`; the focused monitor is the default. In a grid, an id outside that monitor's block is refused.
 - **In a grid** a move only reaches the monitor's own ids.

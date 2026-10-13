@@ -2,7 +2,7 @@
 
 > **Use when:** adding a widget type users can put on a bar (it shows up in the bar editor's library).
 > **Copy from:** `components/bar/widgets/IdleInhibitor.qml` (service toggle, no popout), `components/bar/widgets/Weather.qml` (polled data + its own popout), `components/bar/widgets/Updates.qml` (an `acquire` request from settings, both buttons, `extraData`); schema `definitions.IdleInhibitorWidget`.
-> **Docs:** [bar/composition](../dev/bar/composition.md), [bar/widget-style](../dev/bar/widget-style.md), rules in `components/bar/widgets/CLAUDE.md`; generated: [config/BarWidgets](../dev/config/BarWidgets.md).
+> **Docs:** [bar/composition](../dev/bar/composition.md), [bar/widget-style](../dev/bar/widget-style.md), rules in `components/bar/widgets/AGENTS.md`; generated: [config/BarWidgets](../dev/config/BarWidgets.md).
 
 ## Files to touch
 1. `components/bar/widgets/<Type>.qml`: the widget. The file name is the type const.

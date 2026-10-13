@@ -66,6 +66,6 @@ Monitor layouts saved per set of connected monitors, edited on the Monitors page
 - Launcher: `/monitors`.
 
 ### Testing
-- Never Keep a layout while testing. (Rule: CLAUDE.md › Never, while testing.)
+- Never Keep a layout while testing. (Rule: AGENTS.md › Never, while testing.)
 - Test the profile picker through `tests/tst_HyprLua` (`monitors.run.lua`).
 - Use only harmless evals: re-applying the current settings, or moving a lone monitor's origin and back.

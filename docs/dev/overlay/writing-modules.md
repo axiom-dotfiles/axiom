@@ -58,10 +58,10 @@ How a module adapts to any size, the shared parts in `content/parts/`, where dat
 - Weather comes from `WeatherManager` (`acquire(owner)`, read `source`).
   - One `WeatherSource` for the Weather settings' location, units and refresh interval (`WeatherConfig`), shared by every bar widget, module and forecast popout.
   - It fetches only while acquired and keeps its last data when released.
-- Acquire in `Component.onCompleted`, release in `onDestruction`: modules only exist while their page is shown. (Rule: CLAUDE.md › Services, polled data.)
+- Acquire in `Component.onCompleted`, release in `onDestruction`: modules only exist while their page is shown. (Rule: AGENTS.md › Services, polled data.)
 
 ### Repeater models
-(Rule: CLAUDE.md › UI conventions.)
+(Rule: AGENTS.md › UI conventions.)
 - For a derived set, use `model: rows.length` with the delegate reading `rows[index] ?? fallback`.
 - An `int` / `string` only notifies when it actually changes, so delegates (and Canvases) survive each sample or keystroke.
 

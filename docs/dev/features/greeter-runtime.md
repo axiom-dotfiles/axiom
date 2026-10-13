@@ -49,7 +49,7 @@ This doc covers what runs at the login screen and the data it reads: the bundle 
   - It generates, links and runs nothing.
 - **State:** `Paths.statePath` / `userStatePath` point at the greeter's `state/`.
 - **Startup:** singletons are lazy, so nothing else from the session starts.
-- (Rule: in greeter mode nothing writes config, generates or runs integrations; CLAUDE.md › Greeter.)
+- (Rule: in greeter mode nothing writes config, generates or runs integrations; AGENTS.md › Greeter.)
 
 ### GreetdManager
 Built on `Quickshell.Services.Greetd`.

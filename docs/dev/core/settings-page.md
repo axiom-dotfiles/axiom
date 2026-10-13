@@ -39,4 +39,4 @@ How the schema becomes the settings page: layout, cards, folding, sidebar and se
 
 ### Opening it from elsewhere
 - Other services open the page on a section's category with `SettingsManager.openSection(key)`, so they don't depend on category names.
-- A category has no IPC; for testing use a temporary `IpcHandler` (CLAUDE.md › Running / reloading).
+- A category has no IPC; for testing use a temporary `IpcHandler` (AGENTS.md › Running / reloading).

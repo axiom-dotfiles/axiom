@@ -4,7 +4,7 @@
 > **Config:** `ThemeIntegrations.*`
 > **Related:** [Themes](themes.md), [Schema annotations](../core/schema-annotations.md), [Hyprland config modes](../hyprland/config-modes.md)
 
-How axiom themes other apps: one script per app writing its own `axiom.*` file, and the hookup that makes the app load it. (Rule: CLAUDE.md › Config, Theme.)
+How axiom themes other apps: one script per app writing its own `axiom.*` file, and the hookup that makes the app load it. (Rule: AGENTS.md › Config, Theme.)
 
 ### Running the integrations (ThemeManager)
 - `themeIntegrations()` runs one `scripts/theme_<key>.sh` per switched-on `ThemeIntegrations` switch.
@@ -102,4 +102,4 @@ How axiom themes other apps: one script per app writing its own `axiom.*` file, 
 
 ### Testing
 - `tests/scripts/test_scripts.py` renders every theme through every script and parses each output as its format, and runs every hookup on empty configs.
-- Never apply a hookup to the real configs: run `integration_hookup.py` with a scratch `HOME`/`XDG_CONFIG_HOME` (CLAUDE.md › Never, while testing).
+- Never apply a hookup to the real configs: run `integration_hookup.py` with a scratch `HOME`/`XDG_CONFIG_HOME` (AGENTS.md › Never, while testing).

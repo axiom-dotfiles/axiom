@@ -19,7 +19,7 @@ Wi-Fi, wired and Bluetooth state, built on Quickshell's D-Bus modules. Throughpu
   - `netInfo` is `{ kind, name, device, signal, ip }`, all bindings.
   - The one exception is the IPv4 address, which Quickshell.Networking lacks. It comes from one `ip -4 -j addr` run whenever the connection changes, or on `refreshIp()`.
 - **Scanning:** the scanner runs only while something holds `acquireScan(owner)`.
-- Not named `Networking`, which is Quickshell's singleton. (Rule: CLAUDE.md › Services.)
+- Not named `Networking`, which is Quickshell's singleton. (Rule: AGENTS.md › Services.)
 
 ### BluetoothManager
 - Over `Quickshell.Bluetooth`: adapter power, scanning, sorted device lists, and connect / pair / forget.

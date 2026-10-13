@@ -646,7 +646,7 @@ IPC_BLOCK = re.compile(r"IpcHandler\s*\{")
 def ipc_page():
     out = [NOTICE, "# IPC targets", "",
            "Every `IpcHandler`: call with `qs -c axiom ipc call <target> <function> [args]`. "
-           "`enabled` handlers answer only on their target instance (CLAUDE.md › UI conventions, Screen targeting). "
+           "`enabled` handlers answer only on their target instance (AGENTS.md › UI conventions, Screen targeting). "
            "`show` is a qs keyword, so a function named `show` can't be called.", ""]
     rows = []
     for path in qml_files():

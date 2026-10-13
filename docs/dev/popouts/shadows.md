@@ -4,7 +4,7 @@
 > **Config:** `BarStyle.shadow`, `BarStyle.shadowColor`, `BarStyle.shadowSize`
 > **Related:** [Surface context](surface-context.md), [Submenus](submenus.md), [Translucency and blur](../theming/translucency-blur.md), [Blur window and openings](../theming/blur-window-openings.md), [Bar layering and corners](../bar/layering-and-corners.md)
 
-Every surface with an exposed border casts the shell's shadow or glow. It uses the `BarStyle` section's `shadow`/`shadowColor`/`shadowSize`, as the bars and border do. Read this before touching how any popout, dock or submenu casts its shadow. (Rule: CLAUDE.md › QML pitfalls, `MultiEffect` and `OutsideShadow`.)
+Every surface with an exposed border casts the shell's shadow or glow. It uses the `BarStyle` section's `shadow`/`shadowColor`/`shadowSize`, as the bars and border do. Read this before touching how any popout, dock or submenu casts its shadow. (Rule: AGENTS.md › QML pitfalls, `MultiEffect` and `OutsideShadow`.)
 
 ### How it is drawn
 - **`hosts/popout/SurfaceShadow`:** a `MultiEffect`.

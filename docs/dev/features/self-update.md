@@ -47,4 +47,4 @@ What it will and won't do:
 
 ### Testing
 - Test the script on scratch clones.
-- Never `apply` on the live repo. (Rule: CLAUDE.md › Never, while testing.)
+- Never `apply` on the live repo. (Rule: AGENTS.md › Never, while testing.)

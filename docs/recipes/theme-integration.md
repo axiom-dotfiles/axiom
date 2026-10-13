@@ -2,7 +2,7 @@
 
 > **Use when:** making another app follow axiom's theme: a `scripts/theme_<key>.sh` writing that app's own `axiom.*` file, plus the hookup that makes the app load it.
 > **Copy from:** `scripts/theme_alacritty.sh` + `scripts/templates/alacritty_template.toml` (template render), `scripts/theme_zathura.sh` (live reload); schema → `properties.ThemeIntegrations.properties.alacritty` (switch + `x-hookup` + `x-hookupNote`)
-> **Docs:** [theme-integrations](../dev/theming/theme-integrations.md), `scripts/CLAUDE.md`
+> **Docs:** [theme-integrations](../dev/theming/theme-integrations.md), `scripts/AGENTS.md`
 
 ## Files to touch
 1. `scripts/theme_<key>.sh` (executable): renders the app's theme file.

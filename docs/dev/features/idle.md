@@ -8,7 +8,7 @@ Axiom can run hypridle with its own generated config, and it keeps a caffeine (i
 
 ### HypridleManager
 - Off by default; the onboarder's Integrations page recommends it.
-- `Idle.enabled` takes over the user's hypridle (an `x-takeover` setting). Ask before enabling it on the live config: it replaces the user's running hypridle. (Rule: CLAUDE.md › Never, while testing.)
+- `Idle.enabled` takes over the user's hypridle (an `x-takeover` setting). Ask before enabling it on the live config: it replaces the user's running hypridle. (Rule: AGENTS.md › Never, while testing.)
 - **While `Idle.enabled`:**
   - It renders `components/methods/HypridleConf` to `$XDG_STATE_HOME/axiom/hypridle.conf`, writing only on change.
   - `HypridleConf` is pure. It writes a general block, then the dim / lock / screen-off / suspend listeners in timeout order (a timeout of 0 means off), then the user's `listeners`.

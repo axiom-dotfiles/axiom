@@ -4,7 +4,7 @@
 > **Config:** none (secrets never go in config.json); a provider's `keyEnv`
 > **Related:** [Chat](../features/chat.md), [Calendar](../features/calendar.md), [Config manager](config-manager.md)
 
-Where API keys and passwords live. (Rule: CLAUDE.md › Services, "Secrets".)
+Where API keys and passwords live. (Rule: AGENTS.md › Services, "Secrets".)
 
 ### Scopes
 - `provider`: chat API keys.

@@ -89,6 +89,6 @@ How axiom sets up Hyprland (`HyprlandConfigManager`), and the three `mode`s it c
 - `HyprlandConfigManager` is created from `shell.qml`'s `_services`, since no other service references it.
 
 ### Testing
-- Never switch the user's real config to `managed` to test it. (Rule: CLAUDE.md › Never, while testing.)
+- Never switch the user's real config to `managed` to test it. (Rule: AGENTS.md › Never, while testing.)
 - Test `claim_hyprland.sh` on scratch dirs, as `tests/scripts/test_scripts.py` does.
 - Render the Lua with node and check it with `luac -p`.

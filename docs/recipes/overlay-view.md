@@ -2,7 +2,7 @@
 
 > **Use when:** adding a page type to the overlay. A *tool page* (`x-tool: true`: Settings, BarEditor, Themes, Keybinds, Monitors, CalendarPage) is a hand-built page that is always in config.
 > **Copy from:** `components/views/Settings.qml` (a small `BaseView` page), `components/views/Themes.qml`; schema `definitions.CalendarOverlayView`; migration `ConfigMigration._v45ToV46` with test `test_v46_adds_the_calendar_page_once` in `tests/tst_Config.qml`.
-> **Docs:** [overlay/pages-and-grid](../dev/overlay/pages-and-grid.md), [core/editors-pattern](../dev/core/editors-pattern.md) (for an editor page), rules in `components/views/CLAUDE.md`; generated: [config/OverlayViews](../dev/config/OverlayViews.md).
+> **Docs:** [overlay/pages-and-grid](../dev/overlay/pages-and-grid.md), [core/editors-pattern](../dev/core/editors-pattern.md) (for an editor page), rules in `components/views/AGENTS.md`; generated: [config/OverlayViews](../dev/config/OverlayViews.md).
 
 ## Files to touch
 1. `components/views/<Type>.qml`: the page; its pieces in `components/views/<type>/` (lower-case folder).

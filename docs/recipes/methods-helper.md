@@ -2,7 +2,7 @@
 
 > **Use when:** logic that can be a pure function: geometry, parsing, formatting, layout maths, schema walking. Anything with files, processes, timers or dispatches is a [service](service.md).
 > **Copy from:** `components/methods/ColorTemperature.qml` + `tests/tst_ColorTemperature.qml` (smallest), `components/methods/TimeZones.qml` + `tests/tst_TimeZones.qml`
-> **Docs:** `components/methods/CLAUDE.md`, [shared-ui-pieces](../dev/core/shared-ui-pieces.md) (check an existing helper doesn't already do it: `Utils`, `Search`, `GridPlacement`, `SurfaceContext`, …)
+> **Docs:** `components/methods/AGENTS.md`, [shared-ui-pieces](../dev/core/shared-ui-pieces.md) (check an existing helper doesn't already do it: `Utils`, `Search`, `GridPlacement`, `SurfaceContext`, …)
 
 ## Files to touch
 1. `components/methods/<Name>.qml`: `pragma Singleton` `QtObject` with functions (and readonly constants).

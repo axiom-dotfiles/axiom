@@ -214,7 +214,7 @@ And thanks to the Hyprland desktops that inspired it: [illogical-impulse](https:
 
 ## Use of AI
 
-axiom is developed with AI assistance. I design the architecture and every system, and AI-written code is reviewed before it lands, held to the conventions in [CONTRIBUTING.md](CONTRIBUTING.md), and checked in CI by the same lint, structure and unit tests as everything else.
+axiom is developed with AI assistance. I design the architecture and every system, and AI-written code is reviewed before it lands, held to the same rules as every other contribution, and checked in CI by the same lint, structure and unit tests as everything else. Those rules are kept in the open in [AGENTS.md](AGENTS.md).
 
 ## License
 

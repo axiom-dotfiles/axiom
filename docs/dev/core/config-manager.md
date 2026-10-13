@@ -22,7 +22,7 @@ The owner of the runtime config: how it is loaded, written, drafted and previewe
 Editors create new entries at their definition's defaults with `withDefaults(value, "Bar" | "BarWidget" | "EdgeMenu" | "OverlayView" | "OverlayModule")`.
 
 ### Writes
-(Rule: CLAUDE.md › Services, "Config writes".)
+(Rule: AGENTS.md › Services, "Config writes".)
 - All writes go through `setTheme()` / `setWallpaper()` / `saveConfig()` / `commit(object)`.
 - They validate before writing, then `forceReload()`.
 - `commit(object)` is for the draft services: it runs prune/defaults/validate and returns false, changing nothing, if rejected, so drafts stay dirty.

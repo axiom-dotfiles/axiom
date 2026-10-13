@@ -2,7 +2,7 @@
 
 > **Use when:** renaming, moving, reshaping or re-defaulting a key that existing configs already have. A purely additive key needs no migration ([setting](setting.md)).
 > **Copy from:** `components/methods/ConfigMigration.qml` → `_v52ToV53` (rename with `_eachWidget` + `_renameKey`), `_v45ToV46` (append a tool page once), `_v47ToV48` (change an old default); test `test_v53_time_calendar_switch_is_its_popout` in `tests/tst_Config.qml`
-> **Docs:** [config-manager](../dev/core/config-manager.md) (load pipeline), `components/methods/CLAUDE.md`
+> **Docs:** [config-manager](../dev/core/config-manager.md) (load pipeline), `components/methods/AGENTS.md`
 
 ## Files to touch, in this order
 1. `config/json/config.schema.json`:

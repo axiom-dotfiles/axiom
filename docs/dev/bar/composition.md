@@ -49,7 +49,7 @@ How a bar is built from config: the panel per bar, the widget hosts, the layout 
 - `StyledIcon` draws anything that isn't a name (a glyph, or text typed into an icon field) in the text font.
 - Services, schema defaults (`x-icon`, icon fields) and launcher `glyph`s hold names.
 - `DependencyManager` warns once when the font is missing.
-- (Rule: CLAUDE.md › UI conventions, Icons.)
+- (Rule: AGENTS.md › UI conventions, Icons.)
 
 ### Bar motion: drawn, not measured
 - **Measured, never animated:** the layout is measured from the modules' implicit sizes. That covers `naturalSize`/`preferredSize`, `WidgetGroup.allocation`, `BarContainer.slots`, and a section's `mainPos`/`usedLength`.
@@ -62,4 +62,4 @@ How a bar is built from config: the panel per bar, the widget hosts, the layout 
 - A widget that is going keeps its last place and colors while its host still draws, fading with its opacity.
 - `BarContainer.layoutMoved()` emits `layoutUpdated` at once and again after `animNormal`, so an open popout re-anchors on the settled widget.
 - Colors (`WidgetBackground`, `IconTextWidget`) fade with ColorAnimations. The tray's icons grow in (Grid `add`/`move`).
-- (Rule: CLAUDE.md › Config, Animation.)
+- (Rule: AGENTS.md › Config, Animation.)

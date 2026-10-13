@@ -4,7 +4,7 @@
 > **Config:** whichever path the editor drafts; layout prefs in `config/state/editors.json`
 > **Related:** [Config manager](config-manager.md), [Bar editor](../bar/bar-editor.md), [Layouts editor](../overlay/layouts-editor.md), [Grid canvas](../overlay/grid-canvas.md), [Monitors](../hyprland/monitors.md), [Keybinds](../hyprland/keybinds.md), [Shared UI pieces](shared-ui-pieces.md)
 
-The settings, bar, layouts, keybinds and monitors editors share one shape; a new editor follows it. (Rule: CLAUDE.md › Services, "Editors".)
+The settings, bar, layouts, keybinds and monitors editors share one shape; a new editor follows it. (Rule: AGENTS.md › Services, "Editors".)
 
 ### Draft
 - The manager owns a `ConfigDraft` of its config path.
@@ -36,7 +36,7 @@ The settings, bar, layouts, keybinds and monitors editors share one shape; a new
 - `EditsManager` also keeps how the editors lay themselves out, past their pages (`state/editors.json`): `libraryGrouped` (both libraries) and `barStacked`.
 
 ### Text fields
-- Fields bound to draft values follow the push pattern (CLAUDE.md › QML pitfalls).
+- Fields bound to draft values follow the push pattern (AGENTS.md › QML pitfalls).
   - Set the text on selection change, and on draft change unless focused.
   - Write on `textEdited` (`LayoutsPanel`, `Monitors`), or on focus loss only if `typed` (`BindEditorRow`, `StyledComboEntry`).
 

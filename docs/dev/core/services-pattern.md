@@ -8,11 +8,11 @@ How `services/` is built: one singleton per domain, owning state and side effect
 
 ### Shape
 - Every file is `pragma Singleton QtObject`: one global instance per name, imported as `qs.services`.
-- (Rule: CLAUDE.md › Services, for naming, `_services` and singleton shadowing.)
+- (Rule: AGENTS.md › Services, for naming, `_services` and singleton shadowing.)
 - A service with an IPC target that nothing else references is created from `shell.qml`'s `_services` (e.g. BatteryManager, HyprlandConfigManager).
 
 ### Polled data: acquire / release
-(Rule: CLAUDE.md › Services, "Anything polled".)
+(Rule: AGENTS.md › Services, "Anything polled".)
 - **SystemManager**: CPU/memory/temp/GPU/disk stats.
   - Reference-counted through a `ConsumerRegistry` (shared with UpdatesManager; identical re-registrations are no-ops).
   - Consumers call `acquire(owner, {interval, metrics, diskPaths})` / `release(owner)`.

@@ -26,7 +26,7 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 
 ### `Quickshell.screens` used outside `General`
 - **Where:** `services/SettingsManager.qml`, `services/WallpaperManager.qml`, `services/DesktopManager.qml`, `services/ThemeManager.qml`, `services/HyprlandManager.qml`, `services/BrightnessManager.qml`, `components/content/WallpaperPicker.qml`, `components/surfaces/onboarding/pages/MonitorsPage.qml`, `shell/Greeter.qml`, `shell/Lockscreen.qml`, `shell/GreeterPreview.qml`
-- **What:** CLAUDE.md › Screen targeting says build on `General.outputs` / `General.screensFor`, never `Quickshell.screens` (it holds stand-ins while no monitor is connected); 14 uses remain (`grep -rn 'Quickshell\.screens' --include='*.qml' . | grep -v config/General.qml`). The three in `shell/` pick a fallback screen for a window that must exist even with no monitor, and are probably deliberate (say so in a comment); the rest should move to `General.outputs`.
+- **What:** AGENTS.md › Screen targeting says build on `General.outputs` / `General.screensFor`, never `Quickshell.screens` (it holds stand-ins while no monitor is connected); 14 uses remain (`grep -rn 'Quickshell\.screens' --include='*.qml' . | grep -v config/General.qml`). The three in `shell/` pick a fallback screen for a window that must exist even with no monitor, and are probably deliberate (say so in a comment); the rest should move to `General.outputs`.
 - **Size:** small
 - **Found:** 2026-10-13, while fixing `BlurManager.paused`
 

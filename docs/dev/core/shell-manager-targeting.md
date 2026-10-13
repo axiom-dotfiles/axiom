@@ -4,7 +4,7 @@
 > **Config:** `General.monitors`, `General.primaryMonitor`; each surface's own `monitors` / `monitor` (OSD, overlay, launcher, docks)
 > **Related:** [Popout registry](../popouts/registry.md), [Lockscreen](../features/lockscreen.md), [Greeter runtime](../features/greeter-runtime.md), [Polkit](../features/polkit.md), [Screenshots and recording](../features/screenshots-recording.md)
 
-Cross-cutting UI signals (power menu, launcher, overlays) that modules connect to instead of calling each other directly, and which screen answers a shortcut. (Rule: CLAUDE.md › UI conventions, "Screen targeting".)
+Cross-cutting UI signals (power menu, launcher, overlays) that modules connect to instead of calling each other directly, and which screen answers a shortcut. (Rule: AGENTS.md › UI conventions, "Screen targeting".)
 
 ### Monitor modes
 - `General.monitors`: `"primary"` | `"focused"` | `"all"`.
