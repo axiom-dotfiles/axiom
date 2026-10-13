@@ -38,11 +38,10 @@ This file holds only the rules. **The mechanics of every service and surface are
 
 ## Running / reloading
 
-- **After any change run `scripts/dev/verify.sh`**: formats changed QML in place (keeping the inode, so the shell reloads), runs the structure check, regenerates the docs, lints, runs the affected tests and shows the shell's log since the reload. `--all` runs every CI check. **To look at something**: `scripts/dev/shot.sh page <ViewType>` / `launcher [text]` / `ipc <target> <open> [close]` prints a screenshot's path.
-
+- **After any change run `scripts/dev/verify.sh`** (formats, checks, regenerates docs, runs the affected tests, shows the shell's log; `--all` runs every CI check) until it prints `verify ok`. **To look at something**: `scripts/dev/shot.sh page <ViewType>` / `launcher [text]` / `ipc <target> <open> [close]` prints a screenshot's path.
 - The shell runs detached; never start/stop it from this session. Saving a file it has loaded hot-reloads it. qs watches by inode: after `sed -i`, `qmlformat -i` or `git checkout`, see `docs/dev/testing.md` to force a reload.
 - **Logs**: `scripts/log.sh` (warnings/errors since the last reload; `--debug` adds `console.log`, `--all`, `-f`, `-g PATTERN`). A clean reload is just `Reloading configuration...` + `Configuration Loaded`. stdout/journalctl show nothing. `console.log` for tracing, `console.warn` only for real problems.
-- **Seeing a page**: `qs -c axiom ipc call overlay page <ViewType>` then `grim -o <monitor>` (crop with `magick`), then `ipc call overlay close`. A settings category has no IPC: add a temporary `IpcHandler` calling `SettingsManager.openCategory(name)` to `shell.qml` (not inside a singleton, where it never registers), and revert it.
+- A settings category has no IPC: add a temporary `IpcHandler` calling `SettingsManager.openCategory(name)` to `shell.qml` (never inside a singleton), and revert it in place.
 - `config/user/config.json` is owned by the settings UI but may be edited directly to test. `ConfigManager` watches it; an invalid file never replaces the running config (the last good one stays and `savesBlocked` refuses saves until it's fixed).
 - New singletons are picked up by a hot reload (qs 0.3.1). A new *directory* imported only from URL-loaded files isn't scanned until qs restarts (`module "qs.…" is not installed`): ask the user to restart.
 - URL-loaded files (bar widgets, content, views) only see sibling types because some loaded file imports their directory by name (`BarWidgetHost` → `qs.components.bar.widgets`, `BarPopouts`/`OverlaySlot` → `qs.components.content`, `OverlayPanel` → `qs.components.views`).
@@ -59,18 +58,17 @@ This file holds only the rules. **The mechanics of every service and surface are
 
 ## Checks
 
-All run in CI (`.github/workflows/checks.yml`); `scripts/check_all.sh` runs every one. None of them run the shell, so still check `scripts/log.sh` after a save.
-- `scripts/check_structure.py`: **run after adding, renaming or moving QML files.** Schema types and `popoutName`s have files, URL-loaded dirs are imported, `qs.*` imports resolve, singleton names aren't typos, no file sees two same-named types, every file has its pragma. It does not check `x-card`/`x-intro` files: check those exist yourself.
-- `scripts/run_tests.sh [Name…]`: qmltestrunner tests `tests/tst_<Name>.qml` for `components/methods/`, the schema defaults and `ConfigMigration` (in `tst_Config`; fixtures `tests/fixtures/configs/`). Add a case when changing a methods helper or a migration step. Generated Lua is checked with `luac -p` (`*.run.lua` also run).
-- `scripts/check_qmllint.py`: fails on warnings not in `scripts/qmllint-baseline.json`. Fix new warnings; `--update-baseline` only for Quickshell type-info gaps, or when it reports baselined warnings gone.
-- `scripts/check_qmlformat.sh [--fix]`, `shellcheck -x -S warning`, `tests/scripts/test_scripts.py` (themes, `theme_*.sh`, `self_update.sh`, `greeter_install.sh`, `generate_theme.py`).
-- `scripts/check_i18n.py` after changing any user-visible text or schema title/description.
-- `scripts/check_docs.py`: links, backticked repo paths and `Singleton.member` names in the hand-written docs exist. A doc citing something renamed fails CI: fix the doc with the code.
-- `scripts/gen_docs.py` regenerates `docs/dev/config/` and `docs/dev/generated/` (`check_all.sh` and `verify.sh` rebuild them, about 2 s; pass `--no-docs` to either to skip that, since the pre-commit hook rebuilds them at commit anyway; CI runs `--check`, which fails when they're stale). **Run it before committing any change to QML files or the schema** (usages are indexed, so most QML edits change it); the pre-commit hook (`.githooks/`, enabled with `git config core.hooksPath .githooks`) does this from what's staged. Never edit those files by hand.
+All run in CI; `scripts/dev/verify.sh --all` (= `scripts/check_all.sh`) runs every one, and `scripts/dev/verify.sh` the ones a change touches. None of them run the shell, so still read the log. Rules they don't enforce for you:
+- `scripts/check_structure.py` doesn't check `x-card`/`x-intro` files: check those exist yourself. Run it after adding, renaming or moving QML files.
+- `scripts/run_tests.sh [Name…]` (`tests/tst_<Name>.qml`; schema defaults and `ConfigMigration` are `tst_Config`): add a case when changing a methods helper or a migration step.
+- `scripts/check_qmllint.py` fails on warnings not in `scripts/qmllint-baseline.json`. Fix new warnings; `--update-baseline` only for Quickshell type-info gaps, or when it reports baselined warnings gone.
+- `scripts/check_i18n.py --fill` after changing user-visible text or a schema title/description.
+- `scripts/check_docs.py` fails on a hand-written doc citing a path or `Singleton.member` that's gone: fix the doc with the code.
+- `docs/dev/config/` and `docs/dev/generated/` come from `scripts/gen_docs.py` (verify.sh and the pre-commit hook rebuild them; CI fails when stale). Never edit them by hand.
 
 ## Formatting
 
-- `/usr/lib/qt6/bin/qmlformat -i` on changed `.qml` files (`.qmlformat.ini`: 2 spaces, no column limit). The `qmlformat` on PATH is Qt5's and fails silently.
+- verify.sh formats changed QML (Qt 6's qmlformat, `.qmlformat.ini`), writing in place. Don't use `qmlformat -i` (it replaces the inode); the `qmlformat` on PATH is Qt5's and fails silently.
 - The QML JS engine has no `Array.prototype.flatMap` (use `[].concat(...arr.map(...))`), no `Object.fromEntries` (use `reduce`) and no `Intl`.
 - Each QML file has a short purpose comment above its root object (`check_structure` enforces it; it feeds `docs/dev/generated/files.md`).
 - A config read grep can't see (by key name, a whole object handed to a helper) gets a `// reads: Section.path, …` comment (`*` matches any part) so the config reference finds it.
@@ -130,7 +128,7 @@ Dependencies point one way:
   - `x-hosts` on overlay modules: the lock screen and the greeter are opt-in hosts (see UI conventions).
   - `oneOf`s are discriminated by `type` (bar widgets, overlay views and modules).
 - An empty monitor means the primary monitor everywhere (`General.screensNamed`), except in `General.primaryMonitor` itself.
-- **Theme**: `Theme.base00`–`base0F` plus semantic names; `Theme.resolveColor(name)` for names from config. `config/json/theme-defaults.json` fills what a theme omits. Theme integrations (`scripts/theme_<key>.sh`) write only their own `axiom.*` file and never edit a user's config; only the hookup's Apply (`scripts/integration_hookup.py`, on the user's click) does, after a backup (ncspot's exception: `docs/dev/theming/theme-integrations.md`).
+- **Theme**: `Theme.base00`–`base0F` plus semantic names; `Theme.resolveColor(name)` for names from config. `config/json/theme-defaults.json` fills what a theme omits. Theme integrations write only their own `axiom.*` file; only the hookup's Apply (on the user's click) edits a user's config (`scripts/CLAUDE.md`).
 - **Animation**: every `duration:` is `Appearance.animFast` / `animNormal` / `animSlow`, never a literal, eased with `Appearance.easing` (a property's Behavior is `Glide on x {}` / `ColorGlide`); looping animations gate `running` on `Appearance.animations`. Only behaviour timings (cursor blink, timeouts, polling) are literals. Bar geometry animates what's drawn, never what's measured (`docs/dev/bar/composition.md`); content changing in place cross-fades through `CrossFade`.
 
 ## Translation
@@ -152,12 +150,12 @@ Dependencies point one way:
 - **Rounded clipping** (images, captures, anything cut to rounded corners) is Quickshell.Widgets' `ClippingRectangle` (set its `color`: it defaults to white), not a MultiEffect mask.
 - **Icons** are Material Symbols names drawn by `reusable/StyledIcon`; an icon never shares a Text with a label.
 - **Layer ordering** (bars, border, popouts, dock, edge menus, backdrop, screenshot) is set by Hyprland layer rules in `HyprlandManager.layerRulesLua`; read `docs/dev/bar/layering-and-corners.md` and `docs/dev/popouts/` before changing how surfaces sit on an edge. Bars and the border must never draw over a fullscreen window (`docs/dev/testing.md`).
-- **Popout geometry**: anything growing out of an edge takes what its ends meet, where its box goes and how it's drawn from `methods/SurfaceContext` through `hosts/popout/EdgePlacement` and `EdgeSurface`, never from a rule of its own. A new host keeps only its window and content; a new case is a `SurfaceContext` rule and a `tst_SurfaceContext` row. See `docs/dev/popouts/surface-context.md`.
-- **Popout collisions**: every popout holds a `PopoutClaim` in `PopoutManager`; one opening closes only what it overlaps, by rank. A new popout takes a claim instead of checking the others itself; an open popout never moves (it opens where it belongs next time). See `docs/dev/popouts/registry.md`.
+- **Popout geometry** comes only from `methods/SurfaceContext` (via `EdgePlacement`/`EdgeSurface`): a new case is a `SurfaceContext` rule + a `tst_SurfaceContext` row, never a rule in a host. See `components/hosts/popout/CLAUDE.md`.
+- **Popout collisions**: every popout holds a `PopoutClaim` in `PopoutManager` and never checks the others itself; an open popout never moves. See `docs/dev/popouts/registry.md`.
 - **Screen targeting**: surfaces are built on `General.screensFor(mode, name)` (or `General.outputs`, never `Quickshell.screens`: it holds stand-ins while no monitor is connected); only `ShellManager.isTarget(screen, mode)` answers shortcuts, IPC and OSD events. IPC handlers are `enabled` on the target instance only.
 - **Launcher**: every provider returns the same row shape (`docs/dev/features/launcher.md`); a new command is an entry in `services/LauncherCommands.qml`. `/config` can never edit `Bars` or `Overlay.views`.
-- **Greeter**: greetd's login screen runs from a root-owned copy and reads only the bundle the user's axiom exports (data, never code). In greeter mode (`Paths.greeter`) nothing writes config, generates or runs integrations; a new side effect reachable from the greeter checks it. Greeter modules list `greeter` in `x-hosts` and are inert unless `host.kind === "greeter" && !host.preview && Paths.greeter`; only `GreetdManager` talks to greetd. See `docs/dev/features/greeter-runtime.md`.
-- **Lockscreen**: `LockManager.lock()` is the only way to lock. In `quickshell` mode only PAM success (`AuthManager`) unlocks: no IPC unlock, and nothing on the lock surface may run commands but Power's. Its modules are the ones whose `x-hosts` list `lockscreen`: add it only to a module that launches, dispatches and writes nothing and shows nothing private. The one exception is `Power` (suspend, restart, shut down: `ShellManager.sessionAction`, never logout). The surface keeps a fallback password field for a layout without one.
+- **Greeter** (`docs/dev/features/greeter-runtime.md`): reads only the exported bundle (data, never code). In greeter mode (`Paths.greeter`) nothing writes config, generates or runs integrations: a new side effect reachable from it checks `Paths.greeter`. Greeter modules are inert unless `host.kind === "greeter" && !host.preview && Paths.greeter`; only `GreetdManager` talks to greetd.
+- **Lockscreen**: `LockManager.lock()` is the only way to lock; in `quickshell` mode only PAM success (`AuthManager`) unlocks, never IPC. `lockscreen` goes in a module's `x-hosts` only if it launches, dispatches and writes nothing and shows nothing private; the one exception is `Power` (`ShellManager.sessionAction`, never logout). The surface keeps a fallback password field for a layout without one.
 
 ## QML pitfalls (each has bitten)
 

@@ -8,17 +8,7 @@ Read the doc for a feature before changing it, and update it when you change how
 
 ## Layering
 
-```
-components/methods/   pure helpers (unit-tested)
-        ↑
-ConfigManager · ThemeManager · I18n      data owners: load and watch files
-        ↑
-config/ readers       typed views of config sections (read only owners and each other)
-        ↑
-services/             state and every side effect (processes, dispatches, writes, polling)
-        ↑
-UI                    components/, shell/ (no polling, never ConfigManager.config directly)
-```
+Dependencies point one way, methods → data owners → readers → services → UI: [CLAUDE.md › Layering](../../CLAUDE.md).
 
 ## Index
 

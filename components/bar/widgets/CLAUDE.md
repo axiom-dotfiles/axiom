@@ -13,4 +13,4 @@ A file here is a bar widget type: `<Type>.qml` is loaded by `BarContainer` from 
 - A popout opens through `PopoutAnchor { hitArea: root.hitArea; popoutName: "<Name>"; active: EdgeMenusConfig.opensOwnPopout(root.properties) && … }`; the content is `components/content/<Name>.qml`.
 - Polled data: `readonly property var <x>Request: ({ … })` built from `properties` only; `acquire` in `Component.onCompleted` and on its change, `release` in `onDestruction`.
 - A widget must never see a same-named content type (e.g. widget `Battery` and content `Battery`): `check_structure.py` catches it.
-- After: `/usr/lib/qt6/bin/qmlformat -i`, `scripts/check_structure.py`, `scripts/run_tests.sh Config`, `scripts/check_i18n.py`, `scripts/log.sh`.
+- After: `scripts/check_i18n.py --fill`, then `scripts/dev/verify.sh` (it runs `tst_Config` when the schema changed).

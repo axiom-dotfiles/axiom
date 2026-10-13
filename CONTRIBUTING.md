@@ -35,7 +35,7 @@ tests/        # unit tests (qmltestrunner) and script tests, run by scripts/chec
 - `tests/tst_ConfigExamples.qml` loads every example the way the shell does, so `scripts/run_tests.sh ConfigExamples` tells you whether it's valid.
 
 ## Checks
-- Format changed QML with `/usr/lib/qt6/bin/qmlformat -i` (see `.qmlformat.ini`; the `qmlformat` on PATH is Qt5's).
+- Format changed QML with `scripts/dev/verify.sh` or `scripts/check_qmlformat.sh --fix` (Qt 6's qmlformat, `.qmlformat.ini`; the `qmlformat` on PATH is Qt5's). Both write in place: `qmlformat -i` replaces the file, and the running shell stops reloading it (`docs/dev/testing.md`).
 - Run `scripts/check_structure.py` after adding, renaming or moving files: types and popouts load by file name, so it catches a missing file or import before the shell does.
 - Once per clone, `git config core.hooksPath .githooks`: the pre-commit hook regenerates `docs/dev/config/` and `docs/dev/generated/` (`scripts/gen_docs.py`) from what you commit, so they never go stale. Don't edit those by hand.
 - While working, `scripts/dev/verify.sh` checks just what you changed and shows the shell's log.

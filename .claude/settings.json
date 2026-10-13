@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(scripts/dev/verify.sh)",
+      "Bash(scripts/dev/verify.sh *)",
+      "Bash(scripts/dev/shot.sh *)",
+      "Bash(scripts/log.sh)",
+      "Bash(scripts/log.sh *)",
+      "Bash(scripts/run_tests.sh)",
+      "Bash(scripts/run_tests.sh *)",
+      "Bash(scripts/check_all.sh)",
+      "Bash(scripts/check_all.sh *)",
+      "Bash(scripts/check_qmlformat.sh)",
+      "Bash(python3 scripts/check_*.py)",
+      "Bash(python3 scripts/check_*.py *)",
+      "Bash(python3 scripts/gen_docs.py)",
+      "Bash(python3 scripts/gen_docs.py *)",
+      "Bash(hyprctl monitors *)",
+      "Bash(hyprctl layers *)"
+    ]
+  }
+}
