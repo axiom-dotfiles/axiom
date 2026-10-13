@@ -16,6 +16,9 @@ QtObject {
   required property string namespace
   // The window's edge, telling apart same-sized windows on one screen
   property int edge: Bar.Top
+  // Where it most likely starts along its edge, when its owner knows
+  // better than centred (a bar, BarManager.barStartOn); NaN for centred
+  property real estimatedStart: NaN
 
   readonly property var origin: BlurManager.layerOrigin(root.namespace, root.window?.screen?.name ?? "", root.window?.width ?? 0, root.window?.height ?? 0, root.edge)
   // Where it is, else where it most likely is until Hyprland says: on its
@@ -27,7 +30,8 @@ QtObject {
     const sw = root.window?.screen?.width ?? 0, sh = root.window?.screen?.height ?? 0;
     const w = root.window?.width ?? 0, h = root.window?.height ?? 0;
     const vertical = root.edge === Bar.Left || root.edge === Bar.Right;
-    return Qt.point(vertical ? (root.edge === Bar.Right ? sw - w : 0) : (sw - w) / 2, vertical ? (sh - h) / 2 : (root.edge === Bar.Bottom ? sh - h : 0));
+    const along = isNaN(root.estimatedStart) ? ((vertical ? sh - h : sw - w) / 2) : root.estimatedStart;
+    return Qt.point(vertical ? (root.edge === Bar.Right ? sw - w : 0) : along, vertical ? along : (root.edge === Bar.Bottom ? sh - h : 0));
   }
 
   readonly property var _inputs: [root.window?.width, root.window?.height, root.window?.visible, root.window?.screen, root.namespace, EdgeMenuManager.zones, DockManager.zones, BarManager.bars, Appearance.screenMargin, Appearance.screenBorder]

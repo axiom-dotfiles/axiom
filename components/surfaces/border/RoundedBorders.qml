@@ -57,7 +57,7 @@ Item {
 
   // The blur window draws the frame's fill (BlurManager): the strips and
   // corners draw their strokes only
-  readonly property bool backed: BlurManager.backing
+  readonly property bool backed: BlurManager.backsOn(root.screen, false)
   // The frame, for it: from past the integrated edge menus on each edge
   // (arranged outside the border) to the stroke's inner side, round the
   // corner pieces' arcs, in screen coordinates
@@ -112,16 +112,19 @@ Item {
     id: shadowWindow
 
     readonly property var look: BarStyle.values
-    readonly property real left: root.innerInset("left")
-    readonly property real right: root.innerInset("right")
-    readonly property real top: root.innerInset("top")
-    readonly property real bottom: root.innerInset("bottom")
+    // (the frame line, past integrated menus' strips as the frame is)
+    readonly property real left: root.innerLeft
+    readonly property real right: root.innerRight
+    readonly property real top: root.innerTop
+    readonly property real bottom: root.innerBottom
     // The stroke's inner side, round the corner pieces' arcs
     readonly property real radius: Math.max(0, root.innerBorderRadius - root.strokeWidth)
 
     // Backed, the blur window casts it, with the surfaces joined to the
-    // frame (BlurShape.shadow)
-    visible: look.shadow !== "none" && !root.backed
+    // frame (BlurShape.shadow): the window stays mapped and draws nothing.
+    // Hyprland puts a layer mapped while a fullscreen window is shown over
+    // it (CLayerSurface::onMap), and a fullscreen window is what unbacks it.
+    visible: look.shadow !== "none"
     screen: root.screen
     anchors {
       left: true
@@ -137,21 +140,40 @@ Item {
 
     // Surfaces joined to the frame's stroke (ShellManager.borderOpenings)
     // as rects it casts nothing on, from the frame line in: their
-    // translucent fill would show (and blur) it
-    readonly property var holes: ShellManager.borderOpenings.filter(o => o.screen === (root.screen?.name ?? "")).map(o => {
+    // translucent fill would show (and blur) it. A joined end's fillet
+    // (`fillet`) is left out only as far as its curve, not the square it
+    // sits in: past the curve the shadow runs on round it (as a solid
+    // bar's, BarContainer._shadowHoles). Each an SVG subpath.
+    readonly property var holes: ShellManager.borderOpenings.filter(o => o.screen === (root.screen?.name ?? "")).map(o => shadowWindow._holePath(o))
+    function _holePath(o) {
       const reach = look.shadowSize * 2;
-      const along = o.end - o.start;
-      switch (o.edge) {
-      case "top":
-        return Qt.rect(o.start, top, along, reach);
-      case "bottom":
-        return Qt.rect(o.start, height - bottom - reach, along, reach);
-      case "left":
-        return Qt.rect(left, o.start, reach, along);
-      default:
-        return Qt.rect(width - right - reach, o.start, reach, along);
+      const vertical = o.edge === "left" || o.edge === "right";
+      // Across: the frame line, and which way is in from it
+      const line = o.edge === "top" ? top : o.edge === "bottom" ? height - bottom : o.edge === "left" ? left : width - right;
+      const inward = o.edge === "top" || o.edge === "left" ? 1 : -1;
+      const f = o.fillet ?? 0;
+      const from = f > 0 && !o.filletAtEnd ? o.start + f : o.start;
+      const to = f > 0 && o.filletAtEnd ? o.end - f : o.end;
+      // (along, across) to x, y
+      const pt = (u, v) => vertical ? `${v} ${u}` : `${u} ${v}`;
+      let d = "";
+      if (to > from)
+        d += ` M ${pt(from, line)} L ${pt(to, line)} L ${pt(to, line + inward * reach)} L ${pt(from, line + inward * reach)} Z`;
+      if (f > 0) {
+        // The corner where the surface's wall meets the stroke, filled out
+        // to the quarter circle round the opposite one
+        const corner = o.filletAtEnd ? o.end - f : o.start + f;
+        const toward = o.filletAtEnd ? 1 : -1;
+        const ax = corner + toward * f, bv = line + inward * f;
+        // Sweep from A (on the stroke) to B (on the wall) round the centre
+        // (each from the centre, in x, y)
+        const a = vertical ? [-inward * f, 0] : [0, -inward * f];
+        const b = vertical ? [0, -toward * f] : [-toward * f, 0];
+        const sweep = a[0] * b[1] - a[1] * b[0] > 0 ? 1 : 0;
+        d += ` M ${pt(corner, line)} L ${pt(ax, line)} A ${f} ${f} 0 0 ${sweep} ${pt(corner, bv)} Z`;
       }
-    })
+      return d;
+    }
 
     // The inside of the frame, but for the holes (each its own subpath,
     // left empty by the odd-even fill)
@@ -178,7 +200,7 @@ Item {
             readonly property real y1: shadowWindow.height - shadowWindow.bottom
             readonly property real r: Math.max(0, Math.min(shadowWindow.radius, (x1 - x0) / 2, (y1 - y0) / 2))
 
-            path: `M ${x0 + r} ${y0} L ${x1 - r} ${y0} A ${r} ${r} 0 0 1 ${x1} ${y0 + r} L ${x1} ${y1 - r} A ${r} ${r} 0 0 1 ${x1 - r} ${y1} L ${x0 + r} ${y1} A ${r} ${r} 0 0 1 ${x0} ${y1 - r} L ${x0} ${y0 + r} A ${r} ${r} 0 0 1 ${x0 + r} ${y0} Z` + shadowWindow.holes.map(h => ` M ${h.x} ${h.y} L ${h.x + h.width} ${h.y} L ${h.x + h.width} ${h.y + h.height} L ${h.x} ${h.y + h.height} Z`).join("")
+            path: `M ${x0 + r} ${y0} L ${x1 - r} ${y0} A ${r} ${r} 0 0 1 ${x1} ${y0 + r} L ${x1} ${y1 - r} A ${r} ${r} 0 0 1 ${x1 - r} ${y1} L ${x0 + r} ${y1} A ${r} ${r} 0 0 1 ${x0} ${y1 - r} L ${x0} ${y0 + r} A ${r} ${r} 0 0 1 ${x0 + r} ${y0} Z` + shadowWindow.holes.join("")
           }
         }
       }
@@ -186,6 +208,7 @@ Item {
 
     Item {
       anchors.fill: parent
+      visible: !root.backed
       layer.enabled: true
       layer.effect: MultiEffect {
         maskEnabled: true
@@ -274,7 +297,30 @@ Item {
       aboveWindows: true
       WlrLayershell.namespace: "axiom-border"
 
+      // Where it is on screen: a stroke out from the frame's inner side,
+      // past the integrated edge menus (cornerMargin is taken from what
+      // they reserve)
+      readonly property real _x: corner.isLeft ? root.innerLeft - root.strokeWidth : (root.screen?.width ?? 0) - root.innerRight + root.strokeWidth - root.cornerSize
+      readonly property real _y: corner.isTop ? root.innerTop - root.strokeWidth : (root.screen?.height ?? 0) - root.innerBottom + root.strokeWidth - root.cornerSize
+      // A surface joined to the stroke runs into the perpendicular edge over
+      // it (a pill joined to it, ShellManager.borderOpenings): the corner
+      // is left open there as the strips are, its fill no longer hiding it
+      readonly property bool covered: {
+        const name = root.screen?.name ?? "";
+        return ShellManager.borderOpenings.some(o => o.screen === name && (o.edge === (corner.isTop ? "top" : "bottom") && corner._spans(o, corner._x, corner.isLeft) || o.edge === (corner.isLeft ? "left" : "right") && corner._spans(o, corner._y, corner.isTop)));
+      }
+      // Whether opening `o` runs across the piece (at `at` along its edge)
+      // from its stroke on, the piece being at the edge's start or not
+      function _spans(o, at, atStart) {
+        return atStart ? o.start <= at + root.strokeWidth + 1 && o.end >= at + root.cornerSize : o.end >= at + root.cornerSize - root.strokeWidth - 1 && o.start <= at;
+      }
+      onCoveredChanged: cornerNudge.burst()
+      FrameNudge {
+        id: cornerNudge
+      }
+
       CornerPiece {
+        visible: !corner.covered
         borderRadius: root.innerBorderRadius
         fillColor: root.backed ? "transparent" : root.frameColor
         strokeColor: root.innerStrokeColor

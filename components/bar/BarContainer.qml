@@ -37,25 +37,63 @@ Rectangle {
   // A floating bar: islands held off the edge, read like pills by the
   // popouts (pillRects), but drawn on their own (as boxes, from pillShapes)
   readonly property bool islands: barConfig.island
+  // What each end meets (BarEnds): the frame, or a bar it makes way for
+  readonly property var ends: barConfig.ends
+  // How far in from an end islands may reach: their float gap from the
+  // stroke there (bar-window 0 past its reach onto it), or held clear of
+  // a bar it makes way for, as a surface held off an edge
+  function _islandInset(end) {
+    return end.held ? end.over + end.gap : end.reach + root.barConfig.floatGap;
+  }
   // Where islands may reach along the bar, from its start
-  readonly property real islandEnd: root.length - root.barConfig.islandStart
+  readonly property real islandFrom: root._islandInset(root.ends.start)
+  readonly property real islandEnd: root.length - root._islandInset(root.ends.end)
   // Fillet room each side of a pill, as for popouts (AttachedSurface)
-  readonly property int pillConnector: Appearance.borderRadius * 2
-  // Kept clear at both ends. A pill at an end instead sits flush on the
+  readonly property int pillConnector: Appearance.connectorGap
+  // Kept clear at each end. A pill at an end instead sits flush on the
   // perpendicular edge's stroke (bar-window 0 along a bar inside the
   // border) and joins it, so its widgets only need the pill inset (the
   // stroke and the padding, or the screen margin too on a bare edge). An
-  // island's widgets sit inside its stroke and padding.
-  readonly property real endMargin: pills ? barConfig.pillInset : islands ? barConfig.islandStart + barConfig.islandGap : Appearance.screenMargin
+  // island's widgets sit inside its stroke and padding. A transparent
+  // bar's keep the gap they keep across it, past the stroke there; a solid
+  // one's the screen margin, or on a bare edge at least that gap. At an
+  // end held clear of another bar, a pill's free end and its fillet stay
+  // past the held gap, and a plain bar's widgets at least its padding past
+  // that bar.
+  function _endMargin(end) {
+    if (root.pills) {
+      if (!end.held)
+        return root.barConfig.pillInset;
+      const fillet = Appearance.screenBorder ? EdgeAttach.filletMargin(Appearance.borderWidth, Appearance.borderRadius) : 0;
+      return end.over + end.gap + fillet + root.barConfig.pillGap;
+    }
+    if (root.islands)
+      return root._islandInset(end) + root.barConfig.islandGap;
+    if (end.held)
+      return end.over + Math.max(end.gap, root.barConfig.padding);
+    // The gap its widgets keep across the bar, from what covers its outer
+    // edge, kept past the stroke at the end too (or the bare screen edge)
+    const across = root.barConfig.crossStart - (root.barConfig.insideBorder ? Appearance.borderWidth : 0);
+    if (!root.barConfig.solid)
+      return end.reach + across;
+    return Appearance.screenBorder ? Appearance.screenMargin : Math.max(Appearance.screenMargin, across);
+  }
+  readonly property var endMargins: [root._endMargin(root.ends.start), root._endMargin(root.ends.end)]
 
   // One { start, length, joinStart, joinEnd } per pill along the bar: each
   // non-empty section, merged with its neighbour when they're at most
   // pillMerge apart, grown by the pill gap. Pills reaching an end are
   // stretched onto it and join it. On a floating bar, its islands
   // (BarLayout.islandRects): one along it, or one per group.
+  // Pills asked to reach an end run there, or a stub grows there for them
+  // (BarLayout.endReaches, setEndReach).
   readonly property var pillRects: {
     if (islands)
-      return BarLayout.islandRects(root._spans, root.barConfig.islandGap, root.barConfig.pillMerge, root.barConfig.islandStart, root.islandEnd, !root.barConfig.islandPills);
+      return BarLayout.islandRects(root._spans, root.barConfig.islandGap, root.barConfig.pillMerge, root.islandFrom, root.islandEnd, !root.barConfig.islandPills);
+    return root.pills ? root._endReach.rects : [];
+  }
+  readonly property var _endReach: BarLayout.endReaches(root.sectionPills, root._endReachList, root.length, root.barConfig.pillMerge, root.pillConnector)
+  readonly property var sectionPills: {
     if (!pills)
       return [];
     const spans = root._spans.slice();
@@ -69,12 +107,13 @@ Rectangle {
     });
     // A free end sits the pill gap out from its widgets. An end that would
     // reach the frame (the end sections, which sit endMargin in) joins it,
-    // the frame standing in for the gap.
+    // the frame standing in for the gap; not a bar it makes way for, which
+    // has no stroke to join (BarEnds).
     const gap = root.barConfig.pillGap;
     const reach = root.barConfig.overlap + 0.5;
     return merged.map(m => {
-      const joinStart = m.start - gap <= reach;
-      const joinEnd = m.end + gap >= root.length - reach;
+      const joinStart = root.ends.start.joinable && m.start - gap <= reach;
+      const joinEnd = root.ends.end.joinable && m.end + gap >= root.length - reach;
       const start = joinStart ? 0 : m.start - gap;
       const end = joinEnd ? root.length : m.end + gap;
       return {
@@ -107,7 +146,7 @@ Rectangle {
   // { index, start, end, squareStart, squareEnd } (EdgeAttach.place's
   // stretch). pillRects stays unstretched.
   property var stretches: ({})
-  readonly property var _stretchList: Object.keys(root.stretches).map(k => root.stretches[k])
+  readonly property var _stretchList: Object.keys(root.stretches).map(k => root.stretches[k]).concat(root.pills ? root._endReach.stretches : [])
   // Sets (or with null clears) `owner`'s stretch
   function setStretch(owner, stretch) {
     if (Utils.deepEqual(root.stretches[owner] ?? null, stretch ?? null))
@@ -120,11 +159,38 @@ Rectangle {
     root.stretches = next;
   }
 
+  // Pills asked to run from an end of the bar, by owner: { atStart, to,
+  // straight } (BarLayout.endReaches), from a surface joining this bar from
+  // the perpendicular edge: a pill bar merging into this one's corner
+  // (CornerMerge), a popout whose side joins it (PillBarJoin)
+  property var endReachRequests: ({})
+  readonly property var _endReachList: Object.keys(root.endReachRequests).map(k => root.endReachRequests[k])
+  // Sets (or with null clears) `owner`'s request
+  function setEndReach(owner, request) {
+    if (Utils.deepEqual(root.endReachRequests[owner] ?? null, request ?? null))
+      return;
+    const next = Object.assign({}, root.endReachRequests);
+    if (request)
+      next[owner] = request;
+    else
+      delete next[owner];
+    root.endReachRequests = next;
+  }
+  // Whether the pill asked to reach an end does so, as drawn
+  function carriesEnd(request) {
+    const stretch = (root._endReach?.stretches ?? []).find(s => request.atStart ? s.joinStart : s.joinEnd);
+    return !stretch || root.carries(stretch);
+  }
+
   // Where surfaces standing on a pill or island cover its inner stroke,
-  // by owner: { start, end } along the bar. While surfaces are translucent
+  // by owner: { start, end } along the bar (`keepFill`: while opaque, only
+  // the stroke and its outer edge, for a surface joining it end-on, which
+  // covers the stroke but nothing inside it). While surfaces are translucent
   // the stroke is left open there (their fill no longer hides it).
   property var openings: ({})
   readonly property var _openingList: Object.keys(root.openings).map(k => root.openings[k])
+  // A solid bar's own inner stroke (border off) around them
+  readonly property var _strokePieces: Utils.subtractSpans(0, root.length, root._openingList)
   // Sets (or with null clears) `owner`'s opening
   function setOpening(owner, opening) {
     if (Utils.deepEqual(root.openings[owner] ?? null, opening ?? null))
@@ -141,9 +207,85 @@ Rectangle {
   // editor) was drawn but not shown: the bar's next frame was rendered,
   // yet the compositor kept showing the one before until something else
   // made the bar commit again (a hover, the clock). So for a few frames
-  // after a stretch changes, the bar draws a frame of its own (an
-  // invisible pixel flipping), and the last one shown is the right one.
+  // after a stretch or an opening changes, the bar draws a frame of its
+  // own (an invisible pixel flipping), and the last one shown is the right
+  // one: an opening follows a surface sliding in another window.
   on_ShownStretchesChanged: repaint.burst()
+  onOpeningsChanged: repaint.burst()
+
+  // A stretch along the bar (from..to, in this item's coordinates) that a
+  // surface joined to the border's inner stroke covers there, as
+  // ShellManager.setBorderOpening takes it (screen px along the edge), so
+  // the border leaves its stroke open under a translucent fill: a pill, a
+  // popout merged into the bar or on a solid bar's inner edge. Null while
+  // surfaces are solid, with the border off, or until the bar's place on
+  // screen is known (the bar editor's preview has none).
+  function borderOpening(from, to) {
+    if (!Appearance.translucent || !Appearance.screenBorder || !root.blurOrigin || to <= from)
+      return null;
+    const at = root.isVertical ? root.blurOrigin.y : root.blurOrigin.x;
+    return {
+      "screen": root.blurScreen,
+      "edge": Bar.edgeName(root.barConfig.location),
+      "start": at + from,
+      "end": at + to
+    };
+  }
+  // The same for a surface's joined end (`surface`, an AttachedSurface in
+  // this item, joined at its start or end): it covers the perpendicular
+  // edge's stroke, from the bar's outer edge to its join's fillet
+  function joinOpening(surface, atStart) {
+    if (!Appearance.translucent || !Appearance.screenBorder || !root.blurOrigin)
+      return null;
+    const from = root.isVertical ? root.blurOrigin.x + surface.x : root.blurOrigin.y + surface.y;
+    const span = (root.isVertical ? root.panel?.screen?.width : root.panel?.screen?.height) ?? 0;
+    return Object.assign({
+      "screen": root.blurScreen
+    }, EdgeAttach.joinOpening(Bar.edgeName(root.barConfig.location), atStart, from, root.isVertical ? surface.width : surface.height, (atStart ? surface.joinShown : surface.joinShownEnd), span, atStart ? surface.joinFillet : surface.joinFilletEnd));
+  }
+
+  // The bar an end makes way for, as its container, when it's of `kind`
+  // (BarEnds' end kind) and showing: a solid bar with the border off
+  // ("solidBar"), whose inner stroke a pill joined there curves into, or a
+  // pill bar ("pillBar"), whose end pill this bar's end pill merges into
+  // (CornerMerge)
+  function barAt(atStart, kind) {
+    if ((atStart ? root.ends.start : root.ends.end).kind !== kind)
+      return null;
+    const panel = ShellManager.barOn(root.blurScreen, root.isVertical ? (atStart ? Bar.Top : Bar.Bottom) : (atStart ? Bar.Left : Bar.Right));
+    return panel?.visible ? panel.container : null;
+  }
+  readonly property var solidStart: root.barAt(true, "solidBar")
+  readonly property var solidEnd: root.barAt(false, "solidBar")
+  readonly property var pillBarStart: root.barAt(true, "pillBar")
+  readonly property var pillBarEnd: root.barAt(false, "pillBar")
+  // Where a surface in this item (`surface`, joined at its start or end)
+  // covers the stroke of the bar it joins there (`other`), along that bar
+  // (its coordinates), as EdgeAttach.joinOpening for the border's: on
+  // whole pixels (SurfaceContext.opening), as the fillet's tail and the
+  // stroke would each cover half of a part one, leaving a dark notch. Its
+  // fillet (AttachedSurface.joinFillet) lies at the end for a surface on
+  // this bar's near side, and that bar's shadow follows round it.
+  function _solidJoinOf(surface, atStart, other) {
+    const origin = other?.blurOrigin ?? null;
+    if (!origin || !root.blurOrigin)
+      return null;
+    const from = root.isVertical ? root.blurOrigin.x + surface.x : root.blurOrigin.y + surface.y;
+    const span = (root.isVertical ? root.panel?.screen?.width : root.panel?.screen?.height) ?? 0;
+    const opening = EdgeAttach.joinOpening(Bar.edgeName(root.barConfig.location), atStart, from, root.isVertical ? surface.width : surface.height, atStart ? surface.joinShown : surface.joinShownEnd, span);
+    const at = root.isVertical ? origin.x : origin.y;
+    return SurfaceContext.opening(opening.start - at, opening.end - at, atStart ? surface.joinFillet : surface.joinFilletEnd, !root.barConfig.right && !root.barConfig.bottom);
+  }
+
+  // Each end merging into a pill bar it makes way for (CornerMerge)
+  CornerMerge {
+    bar: root
+    atStart: true
+  }
+  CornerMerge {
+    bar: root
+    atStart: false
+  }
 
   // How far each pill reaches past its own ends for the stretches on it,
   // animated, so it grows out to carry a surface and draws back after it.
@@ -158,6 +300,8 @@ Rectangle {
       readonly property var target: BarLayout.stretchOf(root._stretchList, index)
       readonly property bool squareStart: target?.squareStart ?? false
       readonly property bool squareEnd: target?.squareEnd ?? false
+      readonly property bool joinStart: target?.joinStart ?? false
+      readonly property bool joinEnd: target?.joinEnd ?? false
       property real before: target && rect ? Math.max(0, rect.start - target.start) : 0
       property real after: target && rect ? Math.max(0, target.end - rect.start - rect.length) : 0
 
@@ -175,7 +319,8 @@ Rectangle {
     return reach.before >= rect.start - stretch.start - 0.5 && reach.after >= stretch.end - rect.start - rect.length - 0.5;
   }
   // The stretches as drawn (see stretchOf), one per pill reaching past
-  // its ends or squared
+  // its ends or squared. One stretched on to an end to join the edge
+  // there joins it once it's reached it.
   readonly property var _shownStretches: {
     const shown = [];
     for (let i = 0; i < reaches.count; i++) {
@@ -183,12 +328,15 @@ Rectangle {
       const rect = reach?.rect;
       if (!rect || (reach.before <= 0 && reach.after <= 0 && !reach.squareStart && !reach.squareEnd))
         continue;
+      const start = rect.start - reach.before, end = rect.start + rect.length + reach.after;
       shown.push({
         "index": i,
-        "start": rect.start - reach.before,
-        "end": rect.start + rect.length + reach.after,
+        "start": start,
+        "end": end,
         "squareStart": reach.squareStart,
-        "squareEnd": reach.squareEnd
+        "squareEnd": reach.squareEnd,
+        "joinStart": reach.joinStart && start <= 0.5,
+        "joinEnd": reach.joinEnd && end >= root.length - 0.5
       });
     }
     return shown;
@@ -199,8 +347,8 @@ Rectangle {
 
   readonly property var _groups: [leftGroup, leftCenterGroup, centerGroup, rightCenterGroup, rightGroup]
   // Per section, the model indices hidden so the minimum sizes fit
-  readonly property var hidden: BarLayout.overflowHidden(root._groups.map(g => g.measures), root.length, root.endMargin, root.barConfig.spacing, root.barConfig.groupSpacing, root.barConfig.lockCenter)
-  readonly property var slots: BarLayout.layoutSections(root._groups.map(g => g.preferredLength), root._groups.map(g => g.minimumLength), root.length, root.endMargin, root.barConfig.spacing, root.barConfig.lockCenter, centerGroup.layoutHang)
+  readonly property var hidden: BarLayout.overflowHidden(root._groups.map(g => g.measures), root.length, root.endMargins, root.barConfig.spacing, root.barConfig.groupSpacing, root.barConfig.lockCenter)
+  readonly property var slots: BarLayout.layoutSections(root._groups.map(g => g.preferredLength), root._groups.map(g => g.minimumLength), root.length, root.endMargins, root.barConfig.spacing, root.barConfig.lockCenter, centerGroup.layoutHang)
   // Bindings re-run on any module change; only signal real moves
   property string _slotsKey: ""
   onSlotsChanged: {
@@ -305,32 +453,82 @@ Rectangle {
   }
 
   // The shadow or glow the bar's surface casts, only outside it, so none
-  // shows through a translucent one. Pills join the border (or screen
-  // edge) they grow from: their shadow is cast evenly, as the border's, so
-  // it can't slide onto a stroke they join; otherwise it falls toward the
-  // windows. Cast from a black copy of the surface (its pieces each put
-  // one here), as its own fill may be the blur window's.
+  // shows through a translucent one. Pills on the border join its stroke:
+  // their shadow is cast evenly, as the border's, so it can't slide onto
+  // it; otherwise (on a bare screen edge too) it falls toward the windows.
+  // Cast from a black copy of the surface (its pieces each put one here),
+  // as its own fill may be the blur window's.
   // Backed, the blur window casts it instead, from the same shapes
   // (BlurShape.shadow), with everything joined to them
   readonly property int shadowEdge: root.barConfig.left ? Bar.Left : root.barConfig.right ? Bar.Right : root.barConfig.bottom ? Bar.Bottom : Bar.Top
+  readonly property bool shadowFalls: SurfaceContext.barShadowFalls(root.barConfig, Appearance.screenBorder)
   OutsideShadow {
     target: shadowShape
     hideTarget: true
     active: !root.backed
     look: root.barConfig
     edge: root.shadowEdge
-    falls: !root.barConfig.pills
+    falls: root.shadowFalls
     // Not under the surfaces open on its pills or islands (where they
     // cover the far stroke, whether or not the pill stretches for them),
-    // from the outer edge they stand on out
-    holes: root._openingList.map(o => {
-      const reach = root.barConfig.shadowSize * 2;
-      const extent = root.barConfig.extent;
-      const along = o.end - o.start;
-      if (root.isVertical)
-        return root.barConfig.left ? Qt.rect(extent, o.start, root.width - extent + reach, along) : Qt.rect(-reach, o.start, root.width - extent + reach, along);
-      return root.barConfig.top ? Qt.rect(o.start, extent, along, root.height - extent + reach) : Qt.rect(o.start, -reach, along, root.height - extent + reach);
-    })
+    // from the outer edge they stand on out, nor on the solid bars its
+    // ends make way for (whose stroke a pill's fillet curves into)
+    holes: [].concat(...root._openingHoles.map(h => h.rects)).concat(root._endBarHole(true, root.solidStart ?? root.pillBarStart), root._endBarHole(false, root.solidEnd ?? root.pillBarEnd)).filter(hole => hole !== null)
+    // ...and a joined surface's fillet (a pill's or popout's curving into
+    // a solid bar's stroke) only as far as its curve, not the square it
+    // sits in: past the curve the shadow runs on round it
+    fillets: root._openingHoles.map(h => h.fillet).filter(fillet => fillet !== null)
+  }
+  readonly property var _openingHoles: root._openingList.map(o => root._shadowHoles(o))
+  // Where an opening keeps the shadow off: `rects`, and its fillet's
+  // corner (OutsideShadow.fillets) or null
+  function _shadowHoles(o) {
+    const reach = root.barConfig.shadowSize * 2;
+    const extent = root.barConfig.extent;
+    const f = o.fillet ?? 0;
+    const start = f > 0 && !o.filletAtEnd ? o.start + f : o.start;
+    const end = f > 0 && o.filletAtEnd ? o.end - f : o.end;
+    const along = end - start;
+    const deep = (root.isVertical ? root.width : root.height) - extent + reach;
+    const near = root.barConfig.left || root.barConfig.top;
+    // The inner edge across the bar
+    const inner = near ? extent : (root.isVertical ? root.width : root.height) - extent;
+    const rect = root.isVertical ? Qt.rect(near ? extent : -reach, start, deep, along) : Qt.rect(start, near ? extent : -reach, along, deep);
+    const filletFrom = o.filletAtEnd ? o.end - f : o.start;
+    const fillet = f <= 0 ? null : root.isVertical ? {
+      "x": near ? inner : inner - f,
+      "y": filletFrom,
+      "radius": f,
+      "left": near,
+      "top": o.filletAtEnd
+    } : {
+      "x": filletFrom,
+      "y": near ? inner : inner - f,
+      "radius": f,
+      "left": o.filletAtEnd,
+      "top": near
+    };
+    return {
+      "rects": along > 0 ? [rect] : [],
+      "fillet": fillet
+    };
+  }
+  // The bar an end makes way for (`other`, its container: a solid bar, or
+  // a pill bar its end pill merges into), from its inner edge on: a shadow
+  // falling along this bar, or spread round a pill's fillet, would land on
+  // its stroke where this bar's window overlaps it
+  function _endBarHole(atStart, other) {
+    const origin = other?.blurOrigin ?? null;
+    if (!origin || !root.blurOrigin)
+      return null;
+    const reach = root.barConfig.shadowSize * 2;
+    const at = root.isVertical ? origin.y - root.blurOrigin.y : origin.x - root.blurOrigin.x;
+    const size = root.isVertical ? other.height : other.width;
+    const extent = other.barConfig.extent;
+    const from = atStart ? -reach : at + size - extent;
+    const to = atStart ? at + extent : root.length + reach;
+    const across = (root.isVertical ? root.width : root.height) + reach * 2;
+    return root.isVertical ? Qt.rect(-reach, from, across, to - from) : Qt.rect(from, -reach, to - from, across);
   }
 
   Item {
@@ -343,8 +541,8 @@ Rectangle {
   // its window is placed on screen: where its shapes are, the container's
   // top-left on screen (the bar editor's preview has none, and fills itself)
   readonly property var blurOrigin: root.panel?.screenOrigin ? Qt.point(root.panel.screenOrigin.x + (root.parent?.x ?? 0), root.panel.screenOrigin.y + (root.parent?.y ?? 0)) : null
-  readonly property bool backed: BlurManager.backing && root.blurOrigin !== null
   readonly property string blurScreen: root.panel?.screen?.name ?? ""
+  readonly property bool backed: BlurManager.backsOn(root.blurScreen, false) && root.blurOrigin !== null
 
   // What the bar paints under its widgets: its background, inner stroke
   // and pills, which the shadow or glow follows
@@ -356,7 +554,7 @@ Rectangle {
       id: solidFill
       anchors.fill: parent
       visible: root.barConfig.solid
-      color: root.backed ? "transparent" : Appearance.fill(Theme.background)
+      color: root.backed ? "transparent" : BlurManager.fillOn(Theme.background, root.blurScreen)
 
       Rectangle {
         parent: shadowShape
@@ -374,18 +572,29 @@ Rectangle {
         shown: root.backed && solidFill.visible
         shadow: root.barConfig
         shadowEdge: root.shadowEdge
-        shadowFalls: !root.barConfig.pills
+        shadowFalls: root.shadowFalls
       }
     }
 
-    // With the border off nothing else draws a solid bar's inner stroke
-    Rectangle {
-      visible: root.barConfig.innerStroke ?? false
-      color: Theme.foreground
-      width: root.isVertical ? Appearance.borderWidth : root.width
-      height: root.isVertical ? root.height : Appearance.borderWidth
-      x: root.barConfig.left ? root.width - width : 0
-      y: root.barConfig.top ? root.height - height : 0
+    // With the border off nothing else draws a solid bar's inner stroke,
+    // left open under the surfaces joined to it (a popout, a pill bar's
+    // end pill): opaque or not, as they're separate windows whose stacking
+    // isn't the bar's to choose, and the bar's fill shows there as theirs
+    Repeater {
+      model: root.barConfig.innerStroke ? root._strokePieces.length : 0
+
+      Rectangle {
+        required property int index
+        readonly property var piece: root._strokePieces[index] ?? {
+          "start": 0,
+          "end": 0
+        }
+        color: Theme.foreground
+        width: root.isVertical ? Appearance.borderWidth : piece.end - piece.start
+        height: root.isVertical ? piece.end - piece.start : Appearance.borderWidth
+        x: root.isVertical ? (root.barConfig.left ? root.width - width : 0) : piece.start
+        y: root.isVertical ? piece.start : (root.barConfig.top ? root.height - height : 0)
+      }
     }
 
     // Islands: rounded boxes in from the edge, an inner corner squared
@@ -413,12 +622,13 @@ Rectangle {
         y: root.isVertical ? rect.start : across
         width: root.isVertical ? depth : rect.length
         height: root.isVertical ? rect.length : depth
-        color: root.backed ? "transparent" : Appearance.fill(Theme.background)
+        color: root.backed ? "transparent" : BlurManager.fillOn(Theme.background, root.blurScreen)
         // The stroke drawn by the one below, left open where a popout joins
         border.width: 0
 
         HoledItem {
           anchors.fill: parent
+          keepLayer: Appearance.translucent
           // On the inner side, the stroke and its fringe under each opening
           holes: root._openingList.map(o => {
             const along = root.isVertical ? island.y : island.x;
@@ -466,7 +676,7 @@ Rectangle {
           shown: root.backed
           shadow: root.barConfig
           shadowEdge: root.shadowEdge
-          shadowFalls: !root.barConfig.pills
+          shadowFalls: root.shadowFalls
         }
         // Inner side: bottom on a top bar, right on a left one, and so on
         topLeftRadius: root.barConfig.bottom || root.barConfig.right ? startInner : corner
@@ -510,9 +720,12 @@ Rectangle {
         boxHeight: root.isVertical ? span.length : depthBox
         joinStart: span.joinStart
         joinEnd: span.joinEnd
-        // Without the border, pills grow straight out of the screen edges
+        // Without the border, pills grow straight out of the screen edges,
+        // and an end pill runs straight off a bare one, or curves into a
+        // solid bar's stroke there as into the border's (BarEnds)
         straight: !Appearance.screenBorder
-        straightJoins: !Appearance.screenBorder
+        straightJoinStart: root.ends.start.straight || (index === 0 && root._endReach.straightStart)
+        straightJoinEnd: root.ends.end.straight || (index === root.pillShapes.length - 1 && root._endReach.straightEnd)
         // Square where a popout runs flush into it
         startCornerRadius: span.squareStart ? 0 : cornerRadius
         endCornerRadius: span.squareEnd ? 0 : cornerRadius
@@ -525,21 +738,83 @@ Rectangle {
         x: root.isVertical ? (root.barConfig.right ? root.width - width : 0) : alongStart
         y: root.isVertical ? alongStart : (root.barConfig.bottom ? root.height - height : 0)
         backed: root.backed
+        opaque: BlurManager.opaqueOn(root.blurScreen)
+        // Grown out of the border's stroke, which it covers there...
+        readonly property real _along: root.isVertical ? pill.y : pill.x
+        BorderOpening {
+          opening: root.borderOpening(pill._along + pill.coverStart, pill._along + pill.coverStart + pill.coverLength)
+        }
+        // ...and, joined to a perpendicular edge, that edge's
+        // (not a pill bar's it merges into: its pill covers that, CornerMerge)
+        BorderOpening {
+          opening: pill.joinStart && root.ends.start.kind !== "pillBar" ? root.joinOpening(pill, true) : null
+        }
+        BorderOpening {
+          opening: pill.joinEnd && root.ends.end.kind !== "pillBar" ? root.joinOpening(pill, false) : null
+        }
+        // ...or, with the border off, a solid bar's own stroke there
+        PillStretch {
+          owner: "solidJoin:" + root.barConfig.id + ":" + pill.index + ":start"
+          container: pill.joinStart ? root.solidStart : null
+          opening: root._solidJoinOf(pill, true, container)
+        }
+        PillStretch {
+          owner: "solidJoin:" + root.barConfig.id + ":" + pill.index + ":end"
+          container: pill.joinEnd ? root.solidEnd : null
+          opening: root._solidJoinOf(pill, false, container)
+        }
         // The far stroke and its fringe under each opening (in the pill's
-        // coordinates)
-        strokeHoles: root._openingList.map(o => {
-          const start = Math.max(o.start, root.isVertical ? pill.y : pill.x);
-          const end = Math.min(o.end, (root.isVertical ? pill.y + pill.height : pill.x + pill.width));
+        // coordinates), and a joined end's fillet where one reaches it: a
+        // surface joined to the same edge runs on down it, over the fillet
+        strokeHoles: [].concat(...root._openingList.map(o => {
+          const along = root.isVertical ? pill.y : pill.x;
+          const start = Math.max(o.start, along);
+          const end = Math.min(o.end, along + pill.alongLength);
           if (end <= start)
-            return null;
-          // The stroke, with its anti-aliased fringe a pixel either side
+            return [];
+          const R = pill.filletRadius, h = pill.half, L = pill.alongLength;
+          const joins = [];
+          if (pill.joinStart && start <= along + 1)
+            joins.push(pill._rectFrom(0, pill.farV - h - 1, h + R + 1, R + h + 2));
+          if (pill.joinEnd && end >= along + L - 1)
+            joins.push(pill._rectFrom(L - h - R - 1, pill.farV - h - 1, h + R + 1, R + h + 2));
+          return [pill._farHole(start, end, o.keepFill && !Appearance.translucent ? "outer" : "both")].concat(joins);
+        }))
+        // The stroke, with its anti-aliased fringe a pixel either side
+        // (`fringe` "both"), outside it alone ("outer": the fill inside
+        // stays), or that fringe's row inside the pill alone ("inner")
+        function _farHole(start, end, fringe) {
           const row = Appearance.borderWidth + 2;
           const foot = root.barConfig.pillDepth;
           const far = root.isVertical ? root.width : root.height;
-          const across = root.barConfig.left || root.barConfig.top ? foot - row + 1 : far - foot - 1;
-          const r = root.isVertical ? Qt.rect(across, start, row, end - start) : Qt.rect(start, across, end - start, row);
+          const near = root.barConfig.left || root.barConfig.top;
+          const from = near ? foot - row + 1 : far - foot - 1;
+          const across = fringe === "inner" ? (near ? from : from + row - 1) : fringe === "outer" && near ? from + 1 : from;
+          const depth = fringe === "inner" ? 1 : fringe === "outer" ? row - 1 : row;
+          const r = root.isVertical ? Qt.rect(across, start, depth, end - start) : Qt.rect(start, across, end - start, depth);
           return Qt.rect(r.x - pill.x, r.y - pill.y, r.width, r.height);
-        }).filter(hole => hole !== null)
+        }
+        // Under a `keepFill` opening the stroke's soft edge inside the pill
+        // is painted over while surfaces are opaque (the surface joining
+        // end-on covers only the stroke); translucent, a second coat would
+        // show as a line
+        Repeater {
+          model: Appearance.translucent ? [] : root._openingList.filter(o => o.keepFill ?? false)
+          Rectangle {
+            required property var modelData
+            readonly property real _along: root.isVertical ? pill.y : pill.x
+            readonly property real _start: Math.max(modelData.start, _along)
+            readonly property real _end: Math.min(modelData.end, _along + pill.alongLength)
+            readonly property rect area: pill._farHole(_start, _end, "inner")
+            visible: _end > _start
+            // (in the content box, where a surface's children go)
+            x: area.x - pill.boxRect.x
+            y: area.y - pill.boxRect.y
+            width: area.width
+            height: area.height
+            color: BlurManager.fillOn(Theme.background, root.blurScreen)
+          }
+        }
 
         // Its shape, for the bar's shadow
         AttachedSurfaceCopy {
@@ -559,7 +834,7 @@ Rectangle {
           shown: root.backed
           shadow: root.barConfig
           shadowEdge: root.shadowEdge
-          shadowFalls: !root.barConfig.pills
+          shadowFalls: root.shadowFalls
         }
       }
     }
@@ -615,12 +890,12 @@ Rectangle {
   }
 
   // Along a plain bar: its whole length, or clear of the border's sides
-  // inside the border
+  // inside the border and of a bar it makes way for
   AccentLine {
     visible: root.barConfig.accentLine !== "none" && !root.pills && !root.islands
     bar: root
-    start: root.barConfig.insideBorder ? root.endMargin : 0
-    length: root.length - start * 2
+    start: root.barConfig.insideBorder || root.ends.start.held ? root.endMargins[0] : 0
+    length: root.length - start - (root.barConfig.insideBorder || root.ends.end.held ? root.endMargins[1] : 0)
     inset: root._accentInset
   }
 

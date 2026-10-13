@@ -167,9 +167,13 @@ Item {
     }
     readonly property QtObject mask: QtObject {
       function contains(point: point): bool {
+        // A containmentMask replaces the bounds check: without a shape (a
+        // hidden module), its own bounds, or a zero-sized hit area would
+        // claim the whole window and take the hover from the modules
+        // under it
         const shape = root.hitShape;
         if (!shape)
-          return true;
+          return point.x >= 0 && point.y >= 0 && point.x < hitArea.width && point.y < hitArea.height;
         const v = root.isVertical;
         return BarShapes.contains(v ? point.y : point.x, v ? point.x : point.y, v ? hitArea.height : hitArea.width, v ? hitArea.width : hitArea.height, shape.shownStart, shape.endCap);
       }

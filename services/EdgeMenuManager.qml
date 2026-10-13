@@ -58,6 +58,19 @@ Singleton {
     return BarManager.frameLine(screen, location) + root.zoneOn(screen?.name ?? "", Bar.edgeName(location));
   }
 
+  // Where the border frame's rounded inner corner lies from a screen edge,
+  // integrated menus included (BarManager.cornerLine)
+  function cornerLineOn(screen, location) {
+    return BarManager.cornerLine(screen, location) + root.zoneOn(screen?.name ?? "", Bar.edgeName(location));
+  }
+
+  // How far past where windows start on a screen edge (a Bar.Location;
+  // reservedOn) a surface held `gap` off its frame line (frameLineOn) is:
+  // where a held box goes, in from its window's edge there
+  function heldInset(screen, location, gap) {
+    return Math.max(0, root.frameLineOn(screen, location) + gap - root.reservedOn(screen, location));
+  }
+
   // Where each running menu's modules can sit on its screen, by id, as the
   // menu reports it (IntegratedEdgeMenu, FloatingEdgeMenu), for the
   // layouts editor. In px: { screen (its name), startPad, endPad (the

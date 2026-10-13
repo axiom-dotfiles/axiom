@@ -121,7 +121,7 @@ Scope {
       gap = root._oppositeGaps.across;
     else if (side === (vertical ? Bar.Top : Bar.Left))
       gap = root._edgeGaps.start;
-    return Math.max(0, EdgeMenuManager.frameLineOn(root.screen, side) + gap - EdgeMenuManager.reservedOn(root.screen, side));
+    return EdgeMenuManager.heldInset(root.screen, side, gap);
   }
 
   LazyLoader {

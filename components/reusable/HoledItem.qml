@@ -4,17 +4,21 @@ import QtQuick.Effects
 
 // Draws its children with `holes` (rects in its coordinates) cut out:
 // a stroke left open where something joined to it carries on over it.
-// No layer while there are none.
+// No layer while there are none, unless kept (`keepLayer`): a layer and
+// its mask made in the same pass as the first hole may show a frame with
+// nothing cut yet.
 Item {
   id: root
 
   property var holes: []
+  property bool keepLayer: false
+  readonly property bool _layered: root.keepLayer || root.holes.length > 0
   default property alias content: inner.data
 
   Item {
     id: inner
     anchors.fill: parent
-    layer.enabled: root.holes.length > 0
+    layer.enabled: root._layered
     layer.effect: MultiEffect {
       maskEnabled: true
       maskInverted: true
@@ -28,7 +32,7 @@ Item {
     id: mask
     anchors.fill: parent
     visible: false
-    layer.enabled: root.holes.length > 0
+    layer.enabled: root._layered
 
     Repeater {
       model: root.holes.length

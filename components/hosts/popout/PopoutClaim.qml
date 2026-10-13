@@ -54,7 +54,13 @@ QtObject {
   // Asked to show under a higher one: don't open
   signal refused
 
-  readonly property bool _ready: root.wanted && (root.footprint?.length ?? 0) > 0
+  // Whether it has a footprint at all, followed by hand: a granted popout
+  // can change its own footprint (a pill bar it joins stretching under
+  // it, PillBarJoin), which read in a binding here looped back into it
+  property bool _placed: false
+  onFootprintChanged: root._placed = (root.footprint?.length ?? 0) > 0
+  Component.onCompleted: root._placed = (root.footprint?.length ?? 0) > 0
+  readonly property bool _ready: root.wanted && root._placed
   on_ReadyChanged: root._sync()
   function _sync() {
     if (root._ready && root._state === "")

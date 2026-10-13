@@ -75,7 +75,7 @@ QtObject {
     const boxed = ["filled", "tinted", "outline"].includes(look.widgetStyle);
     const grouping = boxed ? look.widgetGrouping : "separate";
 
-    return {
+    const bar = {
       "id": barConfig.id,
       // The config entry's id: a bar on every monitor has one per screen
       "sourceId": barConfig.sourceId ?? barConfig.id,
@@ -98,6 +98,8 @@ QtObject {
       // its ends, and the gap from their widgets to their ends
       "islandStart": islandStart,
       "floatGap": island ? floatGap : 0,
+      // Its float gap is Automatic (Hyprland's gaps_out)
+      "floatGapAuto": barConfig.floatGap < 0,
       "islandGap": Appearance.borderWidth + padding,
       "insideBorder": insideBorder,
       // An inner stroke surfaces on its edge can join: a solid bar's
@@ -162,6 +164,30 @@ QtObject {
       "right": loc === Bar.Right,
       "top": loc === Bar.Top,
       "bottom": loc === Bar.Bottom
+    };
+    // How much less than its extent it reserves (reserveTrim). What its
+    // ends meet depends on the other bars on its screen: BarManager.bars
+    // adds them (BarEnds.withEnds).
+    bar.trim = Bar.reserveTrim(bar, gapsOut[edge] ?? 0);
+    return bar;
+  }
+
+  // A bar window's layer namespace, whose rule's `order` decides where
+  // Hyprland arranges it (HyprlandManager.layerRulesLua): by its kind
+  // (solid, outside the border; shaped: pills or floating; transparent)
+  // and, for side bars, a -side one arranged after the top and bottom
+  // bars of that kind (BarEnds)
+  function layerNamespace(barConfig) {
+    const kind = barConfig.solid ? "axiom-bar" : barConfig.background === "transparent" ? "axiom-bar-transparent" : "axiom-bar-floating";
+    return barConfig.vertical ? kind + "-side" : kind;
+  }
+
+  // BarEnds' options, from Appearance and Hyprland's gaps_out
+  function endsOptions(gapsOut) {
+    return {
+      "border": Appearance.screenBorder,
+      "borderWidth": Appearance.borderWidth,
+      "gapsOut": gapsOut
     };
   }
 
@@ -281,12 +307,13 @@ QtObject {
 
   // How much further than half a connector gap past a transparent bar's
   // inner edge a box detached from it (a bar popout, a floating edge menu)
-  // sits, so it starts no nearer than the windows: past an inner accent
-  // line, they start gaps_out out (reserveTrim)
+  // sits, so it starts in line with the windows: at the bar's inner edge,
+  // or past an inner accent line gaps_out out (reserveTrim). Negative when
+  // they start nearer than half a connector gap: its attach edge moves in.
   function detachedPush(barConfig, gapsOut, connectorGap) {
     if (barConfig.background !== "transparent")
       return 0;
-    return Math.max(0, gapsOut - Bar.reserveTrim(barConfig, gapsOut) - connectorGap / 2);
+    return gapsOut - Bar.reserveTrim(barConfig, gapsOut) - connectorGap / 2;
   }
 
   // The exclusive zone a bar sets (BarPanel), given Hyprland's gaps_out on
@@ -371,6 +398,10 @@ QtObject {
   // "bottom" | "left" | "right"
   function edgeName(location) {
     return ["top", "bottom", "left", "right"][location];
+  }
+  // The Bar.Location an edge name stands for (edgeName's inverse)
+  function locationOf(name) {
+    return ["top", "bottom", "left", "right"].indexOf(name);
   }
 
   // The edge across the screen from a Bar.Location

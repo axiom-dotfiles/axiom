@@ -39,7 +39,7 @@ Item {
 
     onSubmenuRequested: function (itemDelegate) {
       // Beside this popout's box, level with the item
-      root.submenu.safeOpenPopout(root.wrapper.popupWindow, {
+      root.submenu.safeOpenPopout(root.wrapper.window, {
         name: "parts/TraySubmenu",
         menuItem: itemDelegate.menuItem,
         anchorItem: itemDelegate

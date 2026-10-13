@@ -168,7 +168,7 @@ QtObject {
   // A submenu (SubPopout, a popup of its popout's window) is drawn
   // transparent over the blur window, so ignore_alpha leaves all but its
   // content out.
-  readonly property var blurChrome: ["bar", "bar-floating", "popout", "popout-under", "edge-popout", "edge-menu", "dock"]
+  readonly property var blurChrome: ["bar", "bar-side", "bar-floating", "bar-floating-side", "bar-transparent", "bar-transparent-side", "popout", "popout-under", "edge-popout", "edge-menu", "dock"]
   // Backdrops (and the polkit prompt, whose window holds its own dim) blur
   // only when asked: the whole screen, at every alpha.
   readonly property var blurBackdrops: ["backdrop", "polkit"]
@@ -176,7 +176,7 @@ QtObject {
   // animated by Hyprland while it does (they slide themselves), or their
   // stroke and content fade or pop in and out while what the blur window
   // draws for them doesn't
-  readonly property var blurBacked: ["bar", "bar-floating", "border", "popout", "popout-under", "edge-popout", "osd", "edge-menu", "dock"]
+  readonly property var blurBacked: ["bar", "bar-side", "bar-floating", "bar-floating-side", "bar-transparent", "bar-transparent-side", "border", "popout", "popout-under", "edge-popout", "osd", "edge-menu", "dock"]
 
   function _blurRule(name, namespaces, effects, enabled) {
     return `hl.layer_rule({ name = ${string(name)}, match = { namespace = ${string(`^axiom-(${namespaces.join("|")})$`)} }, ${effects}, enabled = ${enabled} })`;
@@ -186,13 +186,15 @@ QtObject {
    * Lua lines for the blur behind axiom's surfaces: named layer rules,
    * always written, `enabled` or not, since a rule is taken back by
    * redefining it (no reload). `opts`: { on, threshold, throughWindows
-   * (no xray), backdrops }. Nothing blurs while Hyprland's blur is off.
+   * (xray off), backdrops }. xray is always written: left out, a layer
+   * takes decoration.blur.xray, which the window look turns on. Nothing
+   * blurs while Hyprland's blur is off.
    * A rule read as a surface maps (no_anim) applies from the next one.
    */
   function blurLua(opts) {
     const on = opts.on === true;
     const threshold = value(opts.threshold);
-    const xray = opts.throughWindows ? "" : ", xray = true";
+    const xray = `, xray = ${opts.throughWindows !== true}`;
     return [_blurRule("axiom-blur", blurSurfaces, `blur = true, blur_popups = true, ignore_alpha = ${threshold}${xray}`, on), _blurRule("axiom-blur-popups", blurChrome, `blur_popups = true, ignore_alpha = ${threshold}`, on), _blurRule("axiom-blur-backdrops", blurBackdrops, `blur = true, ignore_alpha = 0.01${xray}`, on && opts.backdrops === true), _blurRule("axiom-blur-no-anim", blurBacked, "no_anim = true", on)];
   }
 

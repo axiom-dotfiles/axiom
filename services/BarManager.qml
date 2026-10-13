@@ -415,26 +415,52 @@ QtObject {
     loadConfig();
   }
 
-  // The running bars: while the bar editor has unsaved edits, those
-  readonly property var bars: Bar.expandBars(ConfigManager.previews.Bars ?? ConfigManager.config.Bars).map(bar => Bar.enrichBarConfig(bar, HyprlandManager.gapsOut))
+  // The running bars (while the bar editor has unsaved edits, those),
+  // each with what its ends meet among the bars on its screen (BarEnds:
+  // which bar a shared corner goes to)
+  readonly property var bars: BarEnds.withEnds(Bar.expandBars(ConfigManager.previews.Bars ?? ConfigManager.config.Bars).map(bar => Bar.enrichBarConfig(bar, HyprlandManager.gapsOut)), Bar.endsOptions(HyprlandManager.gapsOut))
 
   // The enabled bars on a screen by edge ({ top, bottom, left, right },
   // null where there is none)
   function edgesFor(screen) {
-    const edges = {
-      "top": null,
-      "bottom": null,
-      "left": null,
-      "right": null
-    };
-    root.bars.forEach(bar => {
-      if (!bar.enabled || bar.monitor !== screen?.name)
-        return;
-      const edge = bar.top ? "top" : bar.bottom ? "bottom" : bar.left ? "left" : "right";
-      if (!edges[edge])
-        edges[edge] = bar;
+    return BarEnds.edgesOn(root.bars, screen?.name);
+  }
+
+  // Where the window of the bar on a screen edge (a Bar.Location) starts
+  // along it at its start or end (`atStart`), in px from that end's
+  // screen edge, as Hyprland arranges it (BarEnds): past the bar there it
+  // makes way for, else from the frame's outer side (the screen edge for a
+  // solid bar, arranged before the border), each less the bar's reach onto
+  // the stroke there. Integrated menus on that edge, arranged before
+  // everything, included.
+  function barStartOn(screen, location, atStart) {
+    const edges = root.edgesFor(screen);
+    const bar = edges[Bar.edgeName(location)];
+    if (!bar)
+      return 0;
+    const side = BarEnds.endEdges(bar)[atStart ? 0 : 1];
+    const end = atStart ? bar.ends.start : bar.ends.end;
+    const menus = EdgeMenuManager.zoneOn(screen?.name ?? "", side);
+    const reserved = root.reservedOn(screen, Bar.locationOf(side));
+    // A solid bar is arranged before the border, which then reserves its
+    // margin inside both: past the other solid bar alone
+    if (BarEnds.yieldsTo(bar, edges[side]))
+      return menus + reserved - (bar.solid && Appearance.screenBorder ? Appearance.screenMargin : 0) - end.reach;
+    return menus + (bar.solid || !Appearance.screenBorder ? 0 : Appearance.screenMargin) - end.reach;
+  }
+
+  // What a surface's end reaching a screen edge (a Bar.Location) along a
+  // perpendicular one meets there (SurfaceContext.endKind): the one answer
+  // every popout, dock and pill takes its joins, walls and openings from
+  function surfaceEnd(screen, location) {
+    const name = Bar.edgeName(location);
+    const bar = root.edgesFor(screen)[name];
+    return SurfaceContext.endKind({
+      "border": Appearance.screenBorder,
+      "bar": bar,
+      "barShowing": !bar || (ShellManager.barOn(screen?.name ?? "", location)?.visible ?? false),
+      "menuZone": EdgeMenuManager.zoneOn(screen?.name ?? "", name)
     });
-    return edges;
   }
 
   // Whether a screen edge (a Bar.Location) is bare: no screen border and no
@@ -473,6 +499,18 @@ QtObject {
     if (bar.solid && Appearance.screenBorder)
       return bar.reserveSpace ? bar.extent + Appearance.borderWidth : margin;
     return bar.extent;
+  }
+
+  // Where the border frame's rounded inner corner lies from a screen edge
+  // (a Bar.Location), in px: past a solid bar its strip (frameLine), else
+  // the frame's own width, any other bar sitting inside it; 0 with the
+  // border off. What an end with nothing to join keeps its fillet clear of
+  // (SurfaceContext.wallAt).
+  function cornerLine(screen, location) {
+    if (!Appearance.screenBorder)
+      return 0;
+    const bar = root.edgesFor(screen)[Bar.edgeName(location)];
+    return bar?.solid ? root.frameLine(screen, location) : Appearance.screenMargin;
   }
 
   // The gaps a surface held off a screen edge (a Bar.Location) keeps from

@@ -71,13 +71,14 @@ PopoutWrapperBase {
   }
   dismissDelay: root.menu.closeDelay
   keepAlive: panelHover.hovered || trigger.containsMouse
+  window: panel
 
   EdgeMenuSync {
     id: sync
     host: root
     menu: root.menu
     screen: root.screen
-    window: panel
+    window: root.window
     triggerWindow: trigger
     frame: root.frame
     onWarpRequested: HyprlandManager.warpCursorToLayer("axiom-edge-menu", root.screen?.name ?? "", panel.width, panel.height, loader.x + loader.width / 2, loader.y + loader.height / 2)
@@ -138,7 +139,7 @@ PopoutWrapperBase {
       namespace: "axiom-edge-menu"
       edge: root.edge
     }
-    readonly property bool backed: BlurManager.backing && placeOnScreen.origin !== null
+    readonly property bool backed: BlurManager.backsOn(root.screen, false) && placeOnScreen.origin !== null
 
     SlideAnimation {
       id: slide
@@ -165,7 +166,7 @@ PopoutWrapperBase {
         Rectangle {
           id: strip
           anchors.fill: parent
-          color: panel.backed ? "transparent" : Appearance.fill(root.framed ? Theme.background : root.colors.fill)
+          color: panel.backed ? "transparent" : BlurManager.fillOn(root.framed ? Theme.background : root.colors.fill, root.screen)
 
           BlurShape {
             source: strip
@@ -188,7 +189,7 @@ PopoutWrapperBase {
           width: parent.width - root.frameInset * 2 - (root.vertical ? root.innerStroke : 0)
           height: parent.height - root.frameInset * 2 - (root.vertical ? 0 : root.innerStroke)
           radius: Appearance.borderRadius
-          color: Appearance.fill(root.colors.fill)
+          color: BlurManager.fillOn(root.colors.fill, root.screen)
           border.color: root.colors.stroke
           border.width: Appearance.borderWidth
         }

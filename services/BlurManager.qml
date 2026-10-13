@@ -25,12 +25,49 @@ QtObject {
 
   // Whether anything blurs now: Appearance.blur, paused while a fullscreen
   // window is open on any screen (Appearance.blurPauseFullscreen; the
-  // layer rules are Hyprland-wide). The chrome then fills itself.
+  // layer rules are Hyprland-wide). The chrome then fills itself, solid on
+  // the screens showing one (opaqueOn).
   readonly property bool paused: Appearance.blur && Appearance.blurPauseFullscreen && Quickshell.screens.some(screen => HyprlandManager.hasFullscreen(screen.name))
   readonly property bool active: Appearance.blur && !root.paused
   // The surfaces leave their fill to the blur window: blurring, and its
   // windows built (BlurBacking waits for the layer rules, as the chrome does)
   readonly property bool backing: root.active && HyprlandManager.layerRulesReady
+
+  function _name(screen) {
+    return typeof screen === "string" ? screen : screen?.name ?? "";
+  }
+
+  // Whether a chrome surface on `screen` (a ShellScreen or its name) leaves
+  // its fill to the blur window. `onOverlay`: its window is on the Overlay
+  // layer, over the overlay (which covers the blur window, so it fills
+  // itself while the overlay is open there) and over fullscreen windows
+  // (where the blur window rises too: overFullscreen). Otherwise it's on
+  // Top, faded out under a fullscreen window, and its copy goes with it.
+  function backsOn(screen, onOverlay) {
+    if (!root.backing)
+      return false;
+    const name = root._name(screen);
+    return onOverlay ? !ShellManager.surfaceOpenOn("overlay", name) : !HyprlandManager.hasFullscreen(name);
+  }
+
+  // Whether the blur window on `screen` stands on the Overlay layer: a
+  // fullscreen window shown there hides the Top layer, and the surfaces
+  // over it still blur
+  function overFullscreen(screen) {
+    return root.backing && HyprlandManager.hasFullscreen(root._name(screen));
+  }
+
+  // Whether surfaces on `screen` fill themselves solid: blur paused for a
+  // fullscreen window shown there (elsewhere they stay translucent)
+  function opaqueOn(screen) {
+    return root.paused && HyprlandManager.hasFullscreen(root._name(screen));
+  }
+
+  // A surface's own fill on `screen`: at the surface opacity, solid where
+  // opaqueOn
+  function fillOn(color, screen) {
+    return root.opaqueOn(screen) ? color : Appearance.fill(color);
+  }
 
   // The registered BlurShapes; changes only as one comes or goes. Each
   // gets a `uid`, which the blur window keys its copies by (shapeOf).
@@ -80,8 +117,13 @@ QtObject {
     const onSide = l => {
       if (!screen)
         return false;
-      const centre = vertical ? l.x + l.w / 2 : l.y + l.h / 2;
       const half = (vertical ? screen.w : screen.h) / 2;
+      // A window reaching past the middle (an edge popout deep enough for
+      // its content, filling the room between the edges' reservations)
+      // is where it is whichever edge it's anchored to
+      if ((vertical ? l.w : l.h) >= half)
+        return true;
+      const centre = vertical ? l.x + l.w / 2 : l.y + l.h / 2;
       return edge === Bar.Left || edge === Bar.Top ? centre <= half : centre >= half;
     };
     const matches = (screen?.layers ?? []).filter(l => l.namespace === namespace && Math.abs((vertical ? l.h : l.w) - along) <= 1 && onSide(l));

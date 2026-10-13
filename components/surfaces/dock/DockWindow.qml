@@ -48,44 +48,36 @@ Scope {
   // a bare screen edge; with another bar on its edge, meeting it as a bar
   // popout would.
   readonly property string _edgeName: Bar.edgeName(root.edge)
-  readonly property int connectorGap: Appearance.borderRadius * 2
+  readonly property int connectorGap: placement.connectorGap
   // Held off the edge, and its gaps from the frame lines across its edge
   // and at its ends (what places it, so a change of `held` never reads
   // them before they follow)
   readonly property bool held: root.dock.detached
-  readonly property var gaps: root.held ? BarManager.detachedGaps(root.screen, root.edge, root.dock.gap) : null
-  // How far past where the window starts on a screen edge (what's
-  // reserved there) a frame line plus `gap` lies
-  function _heldOffset(location, gap) {
-    return Math.max(0, EdgeMenuManager.frameLineOn(root.screen, location) + gap - EdgeMenuManager.reservedOn(root.screen, location));
-  }
+  readonly property var gaps: placement.gaps
   // Where the window starts across the edge (what's reserved there; not
   // docks, its own included)
   readonly property real reservedHere: EdgeMenuManager.reservedOn(root.screen, root.edge)
   readonly property bool attached: !placement.detached
   // Where its attach edge goes, from the screen edge: following a bar, as
-  // that meets it (EdgePlacement.barAttach); else the stroke of what
-  // reserves the edge (the screen edge when bare)
-  readonly property real attachAt: placement.followsBar ? placement.barAttach : root.reservedHere - (placement.bareEdge ? 0 : Appearance.borderWidth)
+  // that meets it; else the stroke of what reserves the edge (the screen
+  // edge when bare; EdgePlacement.attachAt)
+  readonly property real attachAt: placement.attachAt
   // On a pill's far stroke the surface covers that stroke's inner fringe
-  readonly property real backfill: root.attached && placement.onPill ? 1 : 0
+  readonly property real backfill: placement.backfill
   // An attached window's edge sits on its attach edge (reaching back onto
   // the stroke it joins, as EdgePopout's)
   // A preview reserves nothing, so the docks' zones on its edge push it in:
   // it reaches back past them to where a dock sits
   readonly property real edgeMargin: (root.attached ? root.attachAt - root.reservedHere - root.backfill : 0) - (root.preview ? DockManager.zoneOn(root.screen?.name ?? "", root._edgeName) : 0)
+  // Detached, where its box goes from the window's edge: held, its gap
+  // past the frame line; else a connector gap past where it attaches
+  readonly property real _detachedBox: root.gaps ? placement.heldInset(root.edge, root.gaps.across) : Math.max(0, root.attachAt + root.connectorGap / 2 - root.reservedHere)
   // From the window's edge to the box of icons
-  readonly property real boxOffset: {
-    if (root.attached)
-      return root.backfill + surface.boxStart + placement.attachClearance;
-    if (root.gaps)
-      return root._heldOffset(root.edge, root.gaps.across);
-    return Math.max(0, root.attachAt + root.connectorGap / 2 - root.reservedHere);
-  }
+  readonly property real boxOffset: root.backfill + surface.boxStart + (root.attached ? placement.attachClearance : 0)
   // The window: the gap to the edge, the box, and room for icons to grow
   // (and for an attached surface's far side, and the shadow or glow it
   // casts, SurfaceShadow)
-  readonly property real depth: root.boxOffset + root.thickness + Math.max(root.peak - root.base, (root.attached ? root.connectorGap / 2 : 0) + BarStyle.shadowReach) + 2
+  readonly property real depth: root.boxOffset + root.thickness + Math.max(root.peak - root.base, (root.attached ? root.connectorGap / 2 : 0) + surface.shadowReach) + 2
 
   // --- Items ---
   // Re-read on every window change; delegates are keyed by the joined
@@ -101,15 +93,18 @@ Scope {
 
   // --- Along the dock ---
   // In edge coordinates, as EdgePopout's: 0 at the perpendicular edges'
-  // inner side. Not held, the window reaches onto their strokes, so an end
-  // can join one.
-  readonly property real strokeInset: !root.held && Appearance.screenBorder ? Appearance.borderWidth : 0
-  readonly property real length: (root.vertical ? panelWindow.height : panelWindow.width) - root.strokeInset * 2
+  // inner side. The window reaches onto their strokes where an end may
+  // join one (EdgePlacement): where edge coordinates start in it, at each
+  // end.
+  readonly property real startStrokeInset: placement.strokeInsetStart
+  readonly property real endStrokeInset: placement.strokeInsetEnd
+  readonly property real length: placement.innerEnd - placement.innerStart
   readonly property real restLength: root.count * root.base + Math.max(0, root.count - 1) * root.spacing + root.separatorLength + root.pad * 2
   // The least room from the box to each end that isn't joined: held, its
-  // gaps from the frame lines there; else its fillet's
-  readonly property real startInset: root.gaps ? root._heldOffset(root.vertical ? Bar.Top : Bar.Left, root.gaps.start) : placement.filletMargin
-  readonly property real endInset: root.gaps ? root._heldOffset(root.vertical ? Bar.Bottom : Bar.Right, root.gaps.end) : placement.filletMargin
+  // gaps from the frame lines there; at a wall, up to where windows
+  // start; else its fillet's past the corner (EdgePlacement)
+  readonly property real startInset: placement.insetStart
+  readonly property real endInset: placement.insetEnd
   readonly property real _wanted: root.length * root.dock.position / 100
   // The box's centre at rest, kept within those
   readonly property real centre: {
@@ -118,28 +113,32 @@ Scope {
     return Math.max(root.restLength / 2 + root.startInset, Math.min(root._wanted, root.length - root.restLength / 2 - root.endInset));
   }
   readonly property real restStart: root.centre - root.restLength / 2
-  // From where it would rest, so magnifying never joins or parts an end
-  readonly property var joins: EdgeAttach.joins(root._wanted - root.restLength / 2, root.restLength, root.startInset, root.length - root.endInset, root.connectorGap, !root.held && placement.joinable(root.vertical ? "top" : "left"), !root.held && placement.joinable(root.vertical ? "bottom" : "right"))
   EdgePlacement {
     id: placement
     screen: root.screen
     edge: root.edge
     held: root.held
-    connectorGap: root.connectorGap
-    length: root.length
-    strokeInset: root.strokeInset
+    gap: root.dock.gap
     centre: root.centre
+    // Its joins from where it would rest, so magnifying never joins or
+    // parts an end
+    probeStart: root._wanted - root.restLength / 2
+    probeLength: root.restLength
     aligned: root.centre - root.currentLength / 2
     contentLength: root.currentLength
-    joinStart: root.joins.joinStart
-    joinEnd: root.joins.joinEnd
-    lo: root.startInset
-    hi: root.length - root.endInset
+    coverStart: surface.coverStart
+    coverLength: surface.coverLength
     owner: "dock:" + root.dock.id + ":" + (root.screen?.name ?? "") + (root.preview ? ":preview" : "")
     // Its pill stretches as it's wanted, and draws back once it's gone
     showing: (root.wantShown || root._out) && root.count > 0
     open: root.wantShown
+    // Not a preview's: drawn over the overlay, it fills itself
+    onOverlayLayer: root.preview
+    origin: root.preview ? null : root._origin
+    attachedSurface: surface
+    opens: root._origin !== null && !root.preview && panelWindow.visible && root.attached
   }
+  readonly property var _origin: placeOnScreen.origin
   readonly property var place: placement.place
 
   // Magnification: the pointer along the row as laid out at rest, and how
@@ -149,7 +148,7 @@ Scope {
   Glide on magnifyAmount {}
   readonly property real _step: root.base + root.spacing
   readonly property var sizes: {
-    let p = root.pointer - root.strokeInset - root.restStart - root.pad;
+    let p = root.pointer - root.startStrokeInset - root.restStart - root.pad;
     if (root.separator && p > root.pinnedCount * root._step)
       p = Math.max(root.pinnedCount * root._step, p - root.separatorLength);
     const full = DockLayout.magnifiedSizes(root.count, root.pointer < 0 ? null : p, root.base, root.peak, root.dock.magnifyRange, root.spacing);
@@ -158,9 +157,9 @@ Scope {
   readonly property real currentLength: root.sizes.reduce((sum, size) => sum + size, 0) + Math.max(0, root.count - 1) * root.spacing + root.separatorLength + root.pad * 2
   // Where the icons' box starts along the window: where it wants to be,
   // the surface reaching past it to whatever it meets (place)
-  readonly property real boxStart: root.strokeInset + root.place.contentStart
+  readonly property real boxStart: root.startStrokeInset + root.place.contentStart
   // The surface's box along the window
-  readonly property real surfaceBoxStart: root.strokeInset + root.place.start
+  readonly property real surfaceBoxStart: root.startStrokeInset + root.place.start
   readonly property real surfaceBoxLength: root.place.end - root.place.start
   // Where each icon starts along the window
   readonly property var starts: {
@@ -299,7 +298,7 @@ Scope {
     const r = root._restRect();
     if (!root.attached)
       return [r];
-    const m = Math.max(0, root.connectorGap - Appearance.borderWidth);
+    const m = EdgeAttach.filletMargin(Appearance.borderWidth, Appearance.borderRadius);
     return [root.vertical ? Qt.rect(r.x, r.y - m, r.width, r.height + m * 2) : Qt.rect(r.x - m, r.y, r.width + m * 2, r.height)];
   }
 
@@ -438,7 +437,6 @@ Scope {
       const old = panelWindow._zoneSet;
       if (old)
         DockManager.setZone(old[0], old[1], old[2], 0);
-      ShellManager.setBorderOpening(panelWindow, null);
     }
 
     anchors {
@@ -450,12 +448,12 @@ Scope {
     implicitWidth: root.vertical ? root.depth : 0
     implicitHeight: root.vertical ? 0 : root.depth
 
-    // Along the edge it reaches onto the perpendicular strokes (strokeInset)
+    // Along the edge it reaches onto the perpendicular strokes (startStrokeInset, endStrokeInset)
     margins {
-      top: root.edge === Bar.Top ? root.edgeMargin : root.vertical ? -root.strokeInset : 0
-      bottom: root.edge === Bar.Bottom ? root.edgeMargin : root.vertical ? -root.strokeInset : 0
-      left: root.edge === Bar.Left ? root.edgeMargin : root.vertical ? 0 : -root.strokeInset
-      right: root.edge === Bar.Right ? root.edgeMargin : root.vertical ? 0 : -root.strokeInset
+      top: root.edge === Bar.Top ? root.edgeMargin : root.vertical ? -root.startStrokeInset : 0
+      bottom: root.edge === Bar.Bottom ? root.edgeMargin : root.vertical ? -root.endStrokeInset : 0
+      left: root.edge === Bar.Left ? root.edgeMargin : root.vertical ? 0 : -root.startStrokeInset
+      right: root.edge === Bar.Right ? root.edgeMargin : root.vertical ? 0 : -root.endStrokeInset
     }
 
     // The box and the icons grown out of it, and the gap to the edge (so
@@ -487,29 +485,11 @@ Scope {
       namespace: root.preview ? "axiom-dock-preview" : "axiom-dock"
       edge: root.edge
     }
-    readonly property bool backed: !root.preview && BlurManager.backing && placeOnScreen.origin !== null
     // The window on screen: a hiding box goes past its edge
     readonly property rect screenRect: Qt.rect(placeOnScreen.origin?.x ?? 0, placeOnScreen.origin?.y ?? 0, panelWindow.width, panelWindow.height)
 
-    // Joined to the border's stroke, the stretch of it the box covers (in
-    // screen px along the edge), which the border leaves open under its
-    // translucent fill (ShellManager.borderOpenings), as for edge popouts
-    readonly property var borderOpening: {
-      const origin = placeOnScreen.origin;
-      if (!origin || root.preview || !panelWindow.visible || !root.attached || !Appearance.translucent || !Appearance.screenBorder || placement.bareEdge || placement.barPanel)
-        return null;
-      const start = (root.vertical ? origin.y + surface.y : origin.x + surface.x) + surface.coverStart;
-      return surface.coverLength <= 0 ? null : {
-        "screen": root.screen?.name ?? "",
-        "edge": root._edgeName,
-        "start": start,
-        "end": start + surface.coverLength
-      };
-    }
-    onBorderOpeningChanged: ShellManager.setBorderOpening(panelWindow, panelWindow.borderOpening)
-
     Item {
-      id: content
+      id: dockContent
       anchors.fill: parent
       visible: !root.previewed
 
@@ -517,89 +497,27 @@ Scope {
         id: hover
       }
 
-      // The box, joined to the edge
-      AttachedSurface {
+      // The box, joined to the edge or held off it (detached), as every
+      // edge popout's
+      EdgeSurface {
         id: surface
-        visible: root.attached
-        x: root.vertical ? root.crossAt(0, width) : root.strokeInset + root.place.surfaceStart
-        y: root.vertical ? root.strokeInset + root.place.surfaceStart : root.crossAt(0, height)
+        x: root.vertical ? root.crossAt(0, width) : root.startStrokeInset + root.place.surfaceStart
+        y: root.vertical ? root.startStrokeInset + root.place.surfaceStart : root.crossAt(0, height)
         width: implicitWidth
         height: implicitHeight
 
-        edge: root.edge
-        castShadow: true
+        geometry: placement
+        screenName: root.screen?.name ?? ""
+        windowShown: panelWindow.visible && dockContent.visible
+        blurClip: panelWindow.screenRect
         active: true
-        straight: placement.straight
-        straightJoins: !Appearance.screenBorder
-        connectorGap: root.connectorGap
-        boxWidth: root.vertical ? root.thickness + placement.attachClearance : root.surfaceBoxLength
-        boxHeight: root.vertical ? root.surfaceBoxLength : root.thickness + placement.attachClearance
-        joinStart: root.place.joinStart
-        joinEnd: root.place.joinEnd
-        flushStart: root.place.flushStart
-        flushEnd: root.place.flushEnd
-        backfill: root.backfill
+        detachedOffset: Math.max(0, root._detachedBox - root.connectorGap / 2)
+        boxWidth: root.vertical ? root.thickness + (root.attached ? placement.attachClearance : 0) : root.surfaceBoxLength
+        boxHeight: root.vertical ? root.surfaceBoxLength : root.thickness + (root.attached ? placement.attachClearance : 0)
         fillColor: Theme.resolveColor(root.dock.backgroundColor)
         strokeColor: Theme.resolveColor(root.dock.borderColor)
-        backed: panelWindow.backed
         // Hiding, it moves past its window's edge
         hiddenBehind: Math.max(0, root.slide)
-
-        BlurShape {
-          source: surface
-          screen: root.screen?.name ?? ""
-          x: (placeOnScreen.origin?.x ?? 0) + surface.x
-          y: (placeOnScreen.origin?.y ?? 0) + surface.y
-          shown: panelWindow.backed && panelWindow.visible && content.visible && surface.visible
-          clipRect: panelWindow.screenRect
-        }
-      }
-
-      // Or a box of its own, its shadow only outside it, cast from a black
-      // copy (its own fill may be the blur window's); backed, the blur
-      // window casts it (BlurShape.shadow)
-      OutsideShadow {
-        target: detachedShape
-        hideTarget: true
-        active: detachedShape.visible
-        edge: root.edge
-      }
-
-      Rectangle {
-        id: detachedShape
-        visible: detachedBox.visible && !panelWindow.backed
-        x: detachedBox.x
-        y: detachedBox.y
-        width: detachedBox.width
-        height: detachedBox.height
-        radius: detachedBox.radius
-        color: "black"
-      }
-
-      Rectangle {
-        id: detachedBox
-        visible: !root.attached
-        x: root.vertical ? root.crossAt(root.boxOffset, root.thickness) : root.surfaceBoxStart
-        y: root.vertical ? root.surfaceBoxStart : root.crossAt(root.boxOffset, root.thickness)
-        width: root.vertical ? root.thickness : root.surfaceBoxLength
-        height: root.vertical ? root.surfaceBoxLength : root.thickness
-        radius: Math.min(Appearance.borderRadius, root.thickness / 2)
-        color: panelWindow.backed ? "transparent" : Appearance.fill(Theme.resolveColor(root.dock.backgroundColor))
-        border.color: Theme.resolveColor(root.dock.borderColor)
-        border.width: Appearance.borderWidth
-
-        BlurShape {
-          source: detachedBox
-          kind: "rect"
-          color: Theme.resolveColor(root.dock.backgroundColor)
-          screen: root.screen?.name ?? ""
-          x: (placeOnScreen.origin?.x ?? 0) + detachedBox.x
-          y: (placeOnScreen.origin?.y ?? 0) + detachedBox.y
-          shown: panelWindow.backed && panelWindow.visible && content.visible && detachedBox.visible
-          clipRect: panelWindow.screenRect
-          shadow: BarStyle.values
-          shadowEdge: root.edge
-        }
       }
 
       // Between the pinned apps and the others

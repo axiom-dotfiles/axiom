@@ -36,13 +36,16 @@ Item {
 
   required property ShellScreen screen
   required property bool openToLeft
-  // The parent popout (BarPopouts, EdgePopout): its window
-  // (popupWindow), its box at rest there (attachBox), which ends of the
-  // side we open on we may run flush to (sideFreeTop/Bottom) or join at
-  // its bar side (sideJoinTop/Bottom, at sideJoinLine), where its window
-  // is on screen (popupScreenOrigin), its claim; it draws parentStretch
-  // and the hole we leave in its side (submenuHole)
+  // The parent popout (BarPopouts, EdgePopout): its claim, open state and
+  // dismissal
   required property var host
+  // Its SubmenuHost: what we meet on its side (`side`, a SubmenuSide: the
+  // ends we may run flush to or join at its bar side, and where that
+  // stroke lies), its box at rest (attachBox), where its window is on
+  // screen (popupScreenOrigin); it draws parentStretch and the holes we
+  // leave in its strokes and shadow (submenuHole, submenuBox,
+  // submenuJoinSpan)
+  required property var slot
 
   // What the parent draws for us while we show: how far its box reaches
   // past its top and bottom, whether it squares its corner there, and,
@@ -68,7 +71,7 @@ Item {
     id: root
     anchors.fill: parent
 
-    property int connectorGap: Appearance.borderRadius * 2
+    property int connectorGap: Appearance.connectorGap
 
     currentItem: loader.item ?? null
     // Loaded, with its entries in (they arrive over DBus, TrayMenuList)
@@ -97,7 +100,7 @@ Item {
       let offset = data.anchorOffset;
       if (offset === undefined && item) {
         try {
-          offset = outer.host?.anchorOffsetOf ? outer.host.anchorOffsetOf(item) : item.mapToItem(null, 0, 0).y - root.attachRect.y;
+          offset = outer.slot?.anchorOffsetOf ? outer.slot.anchorOffsetOf(item) : item.mapToItem(null, 0, 0).y - root.attachRect.y;
         } catch (e) {}
       }
       root._anchorOffset = offset ?? 0;
@@ -116,7 +119,7 @@ Item {
     // coordinates, read live (the parent's window may move as it grows).
     // Its free sides are the outer edge of the parent's stroke
     // (AttachedSurface.boxRect).
-    readonly property rect attachRect: outer.host?.attachBox ?? Qt.rect(0, 0, 0, 0)
+    readonly property rect attachRect: outer.slot?.attachBox ?? Qt.rect(0, 0, 0, 0)
     readonly property real attachEnd: root.attachRect.y + root.attachRect.height
 
     // Along the parent's side (y in its window), the box with its first
@@ -129,20 +132,20 @@ Item {
     // Any other end (a joined parent's) keeps the fillet clear of the
     // parent's own.
     readonly property real boxLength: submenuPopup.contentHeight + surface.contentInset * 2
-    readonly property real _need: EdgeAttach.filletMargin(root.connectorGap, Appearance.borderWidth, Appearance.borderRadius) + Appearance.borderRadius
-    readonly property real _joinLine: outer.host?.sideJoinLine ?? 0
-    readonly property bool _joinTop: outer.host?.sideJoinTop ?? false
-    readonly property bool _joinBottom: outer.host?.sideJoinBottom ?? false
-    readonly property real reachTop: root._joinTop ? root._joinLine : root.attachRect.y + (outer.host?.sideFreeTop ? 0 : root._need)
-    readonly property real reachBottom: root._joinBottom ? root._joinLine : root.attachEnd - (outer.host?.sideFreeBottom ? 0 : root._need)
+    readonly property real _need: EdgeAttach.filletMargin(Appearance.borderWidth, Appearance.borderRadius) + Appearance.borderRadius
+    readonly property real _joinLine: outer.slot?.side?.attachLine ?? 0
+    readonly property bool _joinTop: outer.slot?.side?.joinTop ?? false
+    readonly property bool _joinBottom: outer.slot?.side?.joinBottom ?? false
+    readonly property real reachTop: root._joinTop ? root._joinLine : root.attachRect.y + (outer.slot?.side?.freeTop ? 0 : root._need)
+    readonly property real reachBottom: root._joinBottom ? root._joinLine : root.attachEnd - (outer.slot?.side?.freeBottom ? 0 : root._need)
     // Longer than the side, it hangs past its far end (up, on a bottom
     // bar), stretching the parent
-    readonly property real reachFrom: outer.host?.sideGrowsUp ? Math.min(root.reachTop, root.reachBottom - root.boxLength) : root.reachTop
+    readonly property real reachFrom: outer.slot?.side?.growsUp ? Math.min(root.reachTop, root.reachBottom - root.boxLength) : root.reachTop
     // The screen's room up and down (y in the parent's window): inside
     // what's reserved at its top and bottom. A box longer than the side
     // stays within it, and content (MenuSubmenu) scrolls past
     // maxContentHeight
-    readonly property real _placedY: outer.host?.popupScreenPlaced?.y ?? 0
+    readonly property real _placedY: outer.slot?.popupScreenPlaced?.y ?? 0
     readonly property real screenFrom: EdgeMenuManager.reservedOn(outer.screen, Bar.Top) - root._placedY
     readonly property real screenTo: (outer.screen?.height ?? 0) - EdgeMenuManager.reservedOn(outer.screen, Bar.Bottom) - root._placedY
     readonly property real maxContentHeight: Math.max(Widget.height, root.screenTo - root.screenFrom - surface.contentInset * 2)
@@ -186,10 +189,10 @@ Item {
     // window: our attach edge lies a stroke inside the parent's side
     readonly property real outerWall: outer.openToLeft ? root.attachRect.x + Appearance.borderWidth - surface.boxStart - root.targetBoxWidth : root.attachRect.x + root.attachRect.width - Appearance.borderWidth + surface.boxStart + root.targetBoxWidth
     // Joined, whether what we join reaches past our outer fillet and the
-    // corner beyond it (sideJoinFrom/To); else our wall runs straight up
+    // corner beyond it (side.strokeFrom/To); else our wall runs straight up
     // into it, stretched to meet it
     readonly property real _joinRoom: Appearance.borderRadius * 2
-    readonly property bool joinFillets: outer.openToLeft ? root.outerWall - root._joinRoom >= (outer.host?.sideJoinFrom ?? 0) : root.outerWall + root._joinRoom <= (outer.host?.sideJoinTo ?? 0)
+    readonly property bool joinFillets: outer.openToLeft ? root.outerWall - root._joinRoom >= (outer.slot?.side?.strokeFrom ?? 0) : root.outerWall + root._joinRoom <= (outer.slot?.side?.strokeTo ?? 0)
     readonly property real targetBoxHeight: root.place.end - root.place.start
     property real shownBoxWidth: still.holding ? still.held.width : root.targetBoxWidth
     property real shownBoxHeight: still.holding ? still.held.height : root.targetBoxHeight
@@ -260,13 +263,13 @@ Item {
 
       // Room for the shadow or glow the surface casts (SurfaceShadow) on
       // its free sides: away from the parent, above and below
-      readonly property real shadowRoom: BarStyle.shadowReach
+      readonly property real shadowRoom: surface.shadowReach
       // None past the bar side we may join, so it doesn't fall over the
       // bar (as the parent's slide clips its own there)
       // (but the parent's backfill row, which a joined surface covers)
-      readonly property real joinBackfill: outer.host?.sideJoinBackfill ?? 0
-      readonly property real roomTop: outer.host?.sideJoinTop ? joinBackfill : shadowRoom
-      readonly property real roomBottom: outer.host?.sideJoinBottom ? joinBackfill : shadowRoom
+      readonly property real joinBackfill: outer.slot?.side?.backfill ?? 0
+      readonly property real roomTop: outer.slot?.side?.joinTop ? joinBackfill : shadowRoom
+      readonly property real roomBottom: outer.slot?.side?.joinBottom ? joinBackfill : shadowRoom
 
       // Resizing or moving a popup while it shows is a round trip to the
       // compositor, so the window doesn't follow the surface: it spans
@@ -313,11 +316,19 @@ Item {
         castShadow: true
         // The blur window draws its fill (BlurManager), from
         // where the parent's window is on screen
-        readonly property var parentOrigin: outer.host?.popupScreenOrigin ?? null
+        readonly property var parentOrigin: outer.slot?.popupScreenOrigin ?? null
         // Where it sits in the parent's window
         readonly property real inParentX: submenuPopup.attachX + surface.x
         readonly property real inParentY: root.attachRect.y + submenuPopup.windowFrom - submenuPopup.roomTop + surface.y
-        backed: BlurManager.backing && surface.parentOrigin !== null
+        // In its parent's window, on its layer
+        backed: BlurManager.backsOn(outer.screen, outer.host?.onOverlayLayer ?? true) && surface.parentOrigin !== null
+        opaque: BlurManager.opaqueOn(outer.screen)
+        // Cast as its parent casts its own (SurfaceContext.shadow): one
+        // shadow round the two, falling away from the parent's edge
+        readonly property var _parentSurface: outer.slot?.popupSurface ?? null
+        shadowLook: surface._parentSurface?.shadowLook ?? BarStyle.values
+        shadowEdge: surface._parentSurface?.shadowEdge ?? surface.edge
+        shadowFalls: surface._parentSurface?.shadowFalls ?? !Appearance.screenBorder
 
         BlurShape {
           source: surface
@@ -331,14 +342,42 @@ Item {
         // anti-aliased fringe a pixel either side
         readonly property var parentHole: Appearance.translucent && submenuPopup.visible ? Qt.rect(outer.openToLeft ? root.attachRect.x - 1 : root.attachRect.x + root.attachRect.width - Appearance.borderWidth - 1, surface.inParentY + surface.coverStart, Appearance.borderWidth + 2, surface.coverLength) : null
         onParentHoleChanged: {
-          if (outer.host)
-            outer.host.submenuHole = surface.parentHole;
+          if (outer.slot)
+            outer.slot.submenuHole = surface.parentHole;
+        }
+        // Joined to the parent's bar side, the stretch of the stroke it
+        // joins that its end covers there (x in the parent's window): its
+        // fill runs along it to the join's fillet (joinCover), from the
+        // parent's side stroke
+        readonly property var joinSpan: Appearance.translucent && submenuPopup.visible && (surface.joinStart || surface.joinEnd) ? (outer.openToLeft ? {
+            "start": surface.inParentX + surface.width - surface.joinCover,
+            "end": surface.inParentX + surface.width
+          } : {
+            "start": surface.inParentX,
+            "end": surface.inParentX + surface.joinCover
+          }) : null
+        onJoinSpanChanged: {
+          if (outer.slot)
+            outer.slot.submenuJoinSpan = surface.joinSpan;
+        }
+        // Its box in the parent's window, which the parent's own shadow
+        // leaves out (AttachedSurface.shadowHoles)
+        readonly property var parentBox: submenuPopup.visible ? Qt.rect(surface.inParentX + surface.boxRect.x, surface.inParentY + surface.boxRect.y, surface.boxRect.width, surface.boxRect.height) : null
+        onParentBoxChanged: {
+          if (outer.slot)
+            outer.slot.submenuBox = surface.parentBox;
         }
         // Its own hole, if still shown (rects compare by value, not ===)
         Component.onDestruction: {
-          const hole = outer.host?.submenuHole;
+          const box = outer.slot?.submenuBox;
+          if (box && surface.parentBox && box.x === surface.parentBox.x && box.y === surface.parentBox.y)
+            outer.slot.submenuBox = null;
+          const hole = outer.slot?.submenuHole;
           if (hole && surface.parentHole && hole.x === surface.parentHole.x && hole.y === surface.parentHole.y)
-            outer.host.submenuHole = null;
+            outer.slot.submenuHole = null;
+          const span = outer.slot?.submenuJoinSpan;
+          if (span && surface.joinSpan && span.start === surface.joinSpan.start)
+            outer.slot.submenuJoinSpan = null;
         }
         active: root.occupied && !root.isClosing && (root.contentReady || still.switching)
         connectorGap: root.connectorGap
@@ -351,7 +390,7 @@ Item {
         // At the parent's bar side, on the stroke it grows from
         joinStart: root.place.joinStart
         joinEnd: root.place.joinEnd
-        straightJoins: (outer.host?.sideStraightJoin ?? false) || !root.joinFillets
+        straightJoins: (outer.slot?.side?.straight ?? false) || !root.joinFillets
         // The parent's side stroke leaves an anti-aliased fringe on its
         // inner side: cover it (see AttachedSurface.backfill)
         backfill: 1
@@ -408,7 +447,7 @@ Item {
       occupied: root.occupied
       closing: root.isClosing
       wanted: root.isOpen && submenuPopup.visible
-      footprint: PopoutGeometry.offset(surface.footprint, Qt.point((outer.host?.popupScreenPlaced?.x ?? 0) + surface.inParentX, (outer.host?.popupScreenPlaced?.y ?? 0) + surface.inParentY))
+      footprint: PopoutGeometry.offset(surface.footprint, Qt.point((outer.slot?.popupScreenPlaced?.x ?? 0) + surface.inParentX, (outer.slot?.popupScreenPlaced?.y ?? 0) + surface.inParentY))
       onEvicted: root.closePopout()
       onRefused: root.closePopout()
     }

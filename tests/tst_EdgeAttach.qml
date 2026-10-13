@@ -5,8 +5,8 @@ import qs.components.methods
 TestCase {
   name: "EdgeAttach"
 
-  // Radius 28, stroke 2, connector gap 56: a fillet takes 54 along the
-  // edge, and on an island 82 (the island's corner too)
+  // Radius 28, stroke 2, connector gap 56: a fillet takes 27 along the
+  // edge (its arc's run), and on an island 55 (the island's corner too)
   function spec(extra) {
     return Object.assign({
       "pills": [],
@@ -41,9 +41,9 @@ TestCase {
   }
 
   function test_filletMargin() {
-    compare(EdgeAttach.filletMargin(56, 2, 28), 54);
+    compare(EdgeAttach.filletMargin(2, 28), 27);
     // Too tight a radius for a fillet
-    compare(EdgeAttach.filletMargin(0, 2, 0), 0);
+    compare(EdgeAttach.filletMargin(2, 0), 0);
   }
 
   function test_joins() {
@@ -84,7 +84,7 @@ TestCase {
     }));
     compare(p.mode, "plain");
     compare([p.start, p.end, p.grow, p.contentOffset], [300, 400, 0, 0]);
-    compare([p.startMargin, p.endMargin, p.surfaceStart, p.surfaceLength], [54, 54, 246, 208]);
+    compare([p.startMargin, p.endMargin, p.surfaceStart, p.surfaceLength], [27, 27, 273, 154]);
     compare(p.stretch, null);
     // Past its range it's pulled back in
     compare(EdgeAttach.place(spec({
@@ -98,13 +98,115 @@ TestCase {
     compare([bare.startMargin, bare.endMargin], [0, 0]);
   }
 
+  function test_plain_stops_at_a_wall() {
+    // Nothing to join at the end: the surface, its fillet included, goes
+    // up to where windows start, keeping their gap from what's past it
+    const p = EdgeAttach.place(spec({
+      "aligned": 900,
+      "wallTo": 800
+    }));
+    compare([p.start, p.end, p.endMargin, p.joinEnd], [673, 773, 27, false]);
+    compare(p.surfaceStart + p.surfaceLength, 800);
+    const q = EdgeAttach.place(spec({
+      "aligned": 0,
+      "wallFrom": 200
+    }));
+    compare([q.start, q.startMargin, q.joinStart, q.surfaceStart], [227, 27, false, 200]);
+  }
+
+  function test_pill_stops_at_a_wall() {
+    // The end pill joins the edge past the wall: the box doesn't follow it
+    const pills = [pill(300, 702, false, true)];
+    const p = EdgeAttach.place(spec({
+      "pills": pills,
+      "pillBar": true,
+      "centre": 900,
+      "aligned": 900,
+      "pillGrows": true,
+      "wallTo": 800
+    }));
+    compare([p.start, p.end, p.joinEnd, p.flushEnd, p.endMargin], [673, 773, false, false, 27]);
+    compare(p.stretch, null);
+    // Without one it joins the edge
+    compare(EdgeAttach.place(spec({
+      "pills": pills,
+      "pillBar": true,
+      "centre": 900,
+      "aligned": 900,
+      "pillGrows": true
+    })).joinEnd, true);
+    // A wall near what pills reach: the full fillet and the pill's full
+    // corner still fit inside both, the content moving in for them
+    for (const wall of [950, 990]) {
+      const q = EdgeAttach.place(spec({
+        "pills": pills,
+        "pillBar": true,
+        "centre": 900,
+        "aligned": 900,
+        "pillGrows": true,
+        "wallTo": wall
+      }));
+      compare(q.endMargin, 27, `wall ${wall}`);
+      verify(q.surfaceStart + q.surfaceLength <= wall, `wall ${wall}: surface past it`);
+      compare(q.stretch?.cornerEnd, undefined);
+    }
+  }
+
+  function test_island_wall_pushes_the_box() {
+    // A floating bar owning the corner: its island reaches past the wall
+    // over the bar it pushes aside. Short of room for a full fillet inside
+    // the wall and the island's corner, the box moves in; nothing rounds
+    // less
+    const at = wall => EdgeAttach.place(spec({
+        "island": true,
+        "pills": [pill(10, 980)],
+        "islandFrom": 10,
+        "centre": 50,
+        "aligned": 0,
+        "wallFrom": wall
+      }));
+    for (const wall of [30, 50, 70, 100]) {
+      const p = at(wall);
+      compare(p.startMargin, 27, `wall ${wall}`);
+      verify(p.surfaceStart >= wall, `wall ${wall}: fillet past it`);
+      verify(p.start - 10 >= 27 + 28, `wall ${wall}: no room for the island's corner`);
+      compare(p.stretch?.cornerStart, undefined);
+    }
+    compare(at(70).start, 97);
+    compare(at(30).start, 65);
+  }
+
+  function test_pill_grows_past_a_wall_for_the_fillet() {
+    const p = EdgeAttach.place(spec({
+      "pills": [pill(300, 520)],
+      "pillBar": true,
+      "centre": 600,
+      "aligned": 900,
+      "pillGrows": true,
+      "wallTo": 800
+    }));
+    compare([p.end, p.flushEnd, p.endMargin], [773, false, 27]);
+    compare([p.stretch.end, p.stretch.squareEnd], [828, false]);
+  }
+
+  function test_island_stops_at_a_wall() {
+    const p = EdgeAttach.place(spec({
+      "island": true,
+      "pills": [pill(100, 890)],
+      "centre": 900,
+      "aligned": 900,
+      "wallTo": 800
+    }));
+    compare([p.mode, p.end, p.flushEnd, p.endMargin], ["island", 773, false, 27]);
+  }
+
   function test_joined_box_reaches_the_stroke() {
     const p = EdgeAttach.place(spec({
       "aligned": 60,
       "joinStart": true
     }));
     compare([p.start, p.end, p.contentStart, p.contentOffset, p.grow], [-2, 160, 60, 62, 62]);
-    compare([p.startMargin, p.endMargin], [0, 54]);
+    compare([p.startMargin, p.endMargin], [0, 27]);
     // Both joined: stroke to stroke
     const both = EdgeAttach.place(spec({
       "aligned": 400,
@@ -166,6 +268,72 @@ TestCase {
     compare([p.end, p.flushEnd], [298, true]);
   }
 
+  function test_pill_joins_the_edge_it_comes_within_a_gap_of() {
+    // Its fillet fits before the pill's end, but the box is within a
+    // connector gap of the edge (joins): it joins, from its pill
+    const p = EdgeAttach.place(spec({
+      "pills": [pill(-2, 300, true, false)],
+      "pillBar": true,
+      "centre": 100,
+      "aligned": 80,
+      "length": 100,
+      "joinStart": true,
+      "pillJoins": true,
+      "pillFrom": -2,
+      "pillTo": 1002,
+      "pillGrows": true
+    }));
+    compare([p.mode, p.start, p.joinStart, p.startMargin, p.contentStart], ["pill", -2, true, 0, 80]);
+  }
+
+  function test_pill_joins_the_stroke_it_runs_on_past() {
+    // A pill joining the edge runs on past its stroke (under a bar making
+    // way for this one at that corner): a side whose fillet would pass the
+    // stroke joins it there
+    const p = EdgeAttach.place(spec({
+      "pills": [pill(700, 360, false, true)],
+      "pillBar": true,
+      "centre": 850,
+      "aligned": 900,
+      "length": 100,
+      "joinTo": 1002,
+      "pillGrows": true
+    }));
+    compare([p.mode, p.end, p.joinEnd, p.flushEnd, p.endMargin], ["pill", 1002, true, false, 0]);
+    compare(p.stretch, null, "the pill already reaches past it");
+  }
+
+  function test_pill_joins_the_edges_with_the_box() {
+    // A box filling the edge on a pill bar joins both ends from the pill
+    // under its centre, which stretches to the bar's ends and joins them
+    const p = EdgeAttach.place(spec({
+      "pills": [pill(20, 100), pill(450, 100), pill(880, 100)],
+      "pillBar": true,
+      "centre": 500,
+      "aligned": -2,
+      "length": 1004,
+      "joinStart": true,
+      "joinEnd": true,
+      "pillJoins": true,
+      "pillFrom": -3,
+      "pillTo": 1003,
+      "pillGrows": true
+    }));
+    compare([p.mode, p.start, p.end, p.joinStart, p.joinEnd, p.flushStart, p.flushEnd], ["pill", -2, 1002, true, true, false, false]);
+    compare([p.stretch.index, p.stretch.start, p.stretch.end, p.stretch.joinStart, p.stretch.joinEnd, p.stretch.squareStart, p.stretch.squareEnd], [1, -3, 1003, true, true, false, false]);
+    // Not joining the edges, it runs flush into its pill's stretch
+    const q = EdgeAttach.place(spec({
+      "pills": [pill(20, 100), pill(450, 100), pill(880, 100)],
+      "pillBar": true,
+      "centre": 500,
+      "aligned": -2,
+      "length": 1004,
+      "pillJoins": true,
+      "pillGrows": true
+    }));
+    compare([q.joinStart, q.flushStart, q.stretch.joinStart], [false, true, false]);
+  }
+
   function test_island_fits() {
     const p = EdgeAttach.place(spec({
       "island": true,
@@ -189,7 +357,7 @@ TestCase {
     }));
     // The content stays put; the box reaches back to the island's start
     compare([p.start, p.end, p.contentStart, p.contentOffset], [100, 320, 120, 20]);
-    compare([p.flushStart, p.flushEnd, p.startMargin, p.endMargin], [true, false, 0, 54]);
+    compare([p.flushStart, p.flushEnd, p.startMargin, p.endMargin], [true, false, 0, 27]);
     compare([p.stretch.start, p.stretch.end, p.stretch.squareStart, p.stretch.squareEnd], [100, 900, true, false]);
   }
 
@@ -217,7 +385,7 @@ TestCase {
       "length": 200
     }));
     compare([p.flushStart, p.flushEnd], [true, false]);
-    compare([p.stretch.index, p.stretch.start, p.stretch.end], [0, 100, 432]);
+    compare([p.stretch.index, p.stretch.start, p.stretch.end], [0, 100, 405]);
   }
 
   function test_island_nearest_when_centred_between() {
@@ -256,14 +424,14 @@ TestCase {
   }
 
   function test_nudge_back_for_the_fillet() {
-    // 50 in from the pill's start: 32 back gives it its fillet instead
+    // 50 in from the pill's start: 5 back gives it its fillet instead
     const p = EdgeAttach.place(spec({
       "pills": [pill(100, 400)],
       "centre": 200,
       "aligned": 150,
       "nudge": true
     }));
-    compare([p.start, p.end, p.contentStart, p.grow, p.flushStart, p.startMargin], [182, 282, 182, 0, false, 54]);
+    compare([p.start, p.end, p.contentStart, p.grow, p.flushStart, p.startMargin], [155, 255, 155, 0, false, 27]);
     compare(p.stretch, null);
   }
 
@@ -281,7 +449,7 @@ TestCase {
   }
 
   function test_pill_grows_for_a_fillet_short_of_its_start() {
-    // 50 in from the pill's start, 32 short of a fillet's room: the pill
+    // 50 in from the pill's start, 5 short of a fillet's room: the pill
     // grows back under it, the box keeping to its content
     const p = EdgeAttach.place(spec({
       "pills": [pill(100, 400)],
@@ -290,8 +458,8 @@ TestCase {
       "aligned": 150,
       "pillGrows": true
     }));
-    compare([p.start, p.end, p.contentStart, p.grow, p.flushStart, p.startMargin], [150, 250, 150, 0, false, 54]);
-    compare([p.stretch.start, p.stretch.end, p.stretch.squareStart], [68, 500, false]);
+    compare([p.start, p.end, p.contentStart, p.grow, p.flushStart, p.startMargin], [150, 250, 150, 0, false, 27]);
+    compare([p.stretch.start, p.stretch.end, p.stretch.squareStart], [95, 500, false]);
   }
 
   function test_pill_grows_for_a_fillet_short_of_its_end() {
@@ -302,8 +470,8 @@ TestCase {
       "aligned": 380,
       "pillGrows": true
     }));
-    compare([p.start, p.end, p.grow, p.flushEnd, p.endMargin], [380, 480, 0, false, 54]);
-    compare([p.stretch.start, p.stretch.end, p.stretch.squareEnd], [100, 562, false]);
+    compare([p.start, p.end, p.grow, p.flushEnd, p.endMargin], [380, 480, 0, false, 27]);
+    compare([p.stretch.start, p.stretch.end, p.stretch.squareEnd], [100, 535, false]);
   }
 
   function test_island_grows_towards_a_neighbour_within_merge() {
@@ -319,7 +487,7 @@ TestCase {
       "pillGrows": true
     }));
     compare([p.start, p.end, p.grow, p.flushStart, p.flushEnd], [150, 350, 0, false, false]);
-    compare([p.stretch.index, p.stretch.start, p.stretch.end], [0, 68, 432]);
+    compare([p.stretch.index, p.stretch.start, p.stretch.end], [0, 95, 405]);
   }
 
   function test_pill_grows_not_past_where_islands_reach() {
@@ -359,7 +527,9 @@ TestCase {
       "start": 300,
       "end": 600,
       "squareStart": true,
-      "squareEnd": false
+      "squareEnd": false,
+      "joinStart": false,
+      "joinEnd": false
     });
     // Within its own stretch: as it was, an end it squared kept square
     const own = {
@@ -367,7 +537,9 @@ TestCase {
       "start": 350,
       "end": 650,
       "squareStart": false,
-      "squareEnd": true
+      "squareEnd": true,
+      "joinStart": false,
+      "joinEnd": false
     };
     compare(EdgeAttach.reachStretch(own, p, 500), own);
     compare(EdgeAttach.reachStretch(own, p, 650).squareEnd, true);
@@ -375,6 +547,50 @@ TestCase {
       "end": 700,
       "squareEnd": true
     }));
+  }
+
+  function test_joinOpening() {
+    // A top bar's surface joined at its start covers the left edge's
+    // stroke from the screen's top down to its join
+    compare(EdgeAttach.joinOpening("top", true, 10, 100, 60, 1440), {
+      "edge": "left",
+      "start": 0,
+      "end": 70
+    });
+    // A left edge's joined at its end: the bottom edge's, from the left
+    compare(EdgeAttach.joinOpening("left", false, 12, 500, 40, 3440), {
+      "edge": "bottom",
+      "start": 0,
+      "end": 52
+    });
+    // From the far side: a right edge's, up to the screen's width
+    compare(EdgeAttach.joinOpening("right", true, 3000, 400, 50, 3440), {
+      "edge": "top",
+      "start": 3350,
+      "end": 3440
+    });
+    // With its fillet: at the far end of its cover, which is the
+    // stretch's end from the near side and its start from the far one
+    compare(EdgeAttach.joinOpening("top", true, 10, 100, 60, 1440, 24), {
+      "edge": "left",
+      "start": 0,
+      "end": 70,
+      "fillet": 24,
+      "filletAtEnd": true
+    });
+    compare(EdgeAttach.joinOpening("right", true, 3000, 400, 50, 3440, 24), {
+      "edge": "top",
+      "start": 3350,
+      "end": 3440,
+      "fillet": 24,
+      "filletAtEnd": false
+    });
+    // None, or a straight join's 0, adds nothing
+    compare(EdgeAttach.joinOpening("top", true, 10, 100, 60, 1440, 0), {
+      "edge": "left",
+      "start": 0,
+      "end": 70
+    });
   }
 
   function test_pill_grows_runs_flush_past_its_end() {

@@ -6,169 +6,372 @@ import qs.config
 import qs.services
 import qs.components.methods
 
-// Where a surface growing out of a screen edge (an EdgePopout, a dock)
-// goes along it, and what it meets there: the border's or a solid bar's
-// stroke, a bare screen edge, or, unless held off the edge, any other bar
-// on it, met as a bar popout meets it (EdgeAttach.place): out of a pill or
-// a floating bar's island (stretched to carry it while it shows, through
-// PillStretch), grown from a pill bar's outer edge when it shows no pills,
-// or a detached box past a transparent bar.
+// Where a surface growing out of a screen edge goes along it, and
+// everything that follows from what it meets there, for every host alike:
+// bar popouts, edge popouts (OSDs, floating edge menus, the attached
+// launcher) and docks. It gathers what's on the screen and hands it to
+// SurfaceContext (frame: its ends and room; layout: its box), which hold
+// every rule, so one intersection behaves the same whoever draws it; and
+// it owns the side effects that follow: the pill stretched to carry it
+// (PillStretch), pill bars it joins at an end (PillBarJoin) and the
+// strokes it covers (StrokeOpening).
 //
-// Along the edge everything is in the host's edge coordinates: 0 at the
-// perpendicular edges' inner side, `length` long (the bar's pills are
-// shifted into them). Across it, in px from the screen edge.
+// Along the edge, inputs and outputs are in the host's coordinates, whose
+// 0 lies `alongStart` px along the screen edge (an edge popout's past
+// what's reserved at its start, a bar popout's at its bar window's start).
+// Across it, in px from the screen edge.
 QtObject {
   id: root
 
   required property ShellScreen screen
   // A Bar.Location
   property int edge: Bar.Top
-  // Held off the edge (a `detached` OSD, edge menu or dock): it follows
-  // no bar
+  // Held off the edge (a `detached` OSD, edge menu or dock, or a surface
+  // over a fullscreen window): it follows no bar, joins nothing, and keeps
+  // `gaps` from the frame lines (BarManager.detachedGaps, `gap` -1 Auto)
   property bool held: false
-  property int connectorGap: Appearance.borderRadius * 2
-  // The edge's length, and how far the host's window reaches onto the
-  // perpendicular strokes past each end (where joined ends sit)
-  property real length: 0
-  property real strokeInset: 0
+  property int gap: -1
+  readonly property var gaps: root.held ? BarManager.detachedGaps(root.screen, root.edge, root.gap) : null
+  readonly property int connectorGap: Appearance.connectorGap
 
-  // The box: its centre (picks the pill), where its content would start
-  // and its length, its joined ends (EdgeAttach.joins), and the range an
-  // unjoined box keeps within (its fillets' room included)
+  // The bar it follows: a bar popout's own (`followPanel`, solid
+  // included); else the bar on its edge other than a solid one, while it
+  // shows (a bar inside the border hides under fullscreen windows)
+  property var followPanel: undefined
+  readonly property var barPanel: {
+    if (root.held)
+      return null;
+    if (root.followPanel !== undefined)
+      return root.followPanel;
+    const panel = ShellManager.barOn(root.screen?.name ?? "", root.edge);
+    return panel?.visible && !panel.barConfig.solid ? panel : null;
+  }
+  readonly property var barConfig: root.barPanel?.barConfig ?? null
+  readonly property bool followsBar: root.barConfig !== null
+  // The bar's BarContainer
+  readonly property var container: root.barPanel?.container ?? null
+  readonly property bool island: root.barConfig?.island ?? false
+  readonly property bool pillBar: root.followsBar && ((root.barConfig?.pills ?? false) || root.island)
+
+  // Where the host's coordinates start along the screen edge
+  property real alongStart: EdgeMenuManager.reservedOn(root.screen, root.startSide)
+
+  // The box, in the host's coordinates: its centre (picks the pill), where
+  // its content would start and its length, and where it would like to be
+  // at rest, which decides its joins (`probeStart`, `probeLength`: a box
+  // that changes size, magnified or capped, never joins or parts an end)
   property real centre: 0
   property real aligned: 0
   property real contentLength: 0
-  property bool joinStart: false
-  property bool joinEnd: false
-  property real lo: 0
-  property real hi: 0
-  // The part of the surface (from its start) over the pill's or island's
-  // stroke, left open there (AttachedSurface.coverStart/coverLength);
-  // a negative length is the whole surface
+  property real probeStart: 0
+  property real probeLength: 0
+  // The part of the surface (from its start) over the stroke it stands on,
+  // left open there (AttachedSurface.coverStart/coverLength); a negative
+  // length is the whole surface
   property real coverStart: 0
   property real coverLength: -1
-  // Where along the edge (edge coordinates) a joined submenu's outer wall
-  // runs straight up into the pill or island it stands on, which reaches
-  // on to it (EdgeAttach.reachStretch), else null
-  property var reach: null
+  // Where the surface is drawn, which a box gliding along its edge (a bar
+  // popout switching in place) lags its place by: its openings follow it
+  property real drawnSurfaceStart: root.place.surfaceStart
+  // The host's SubmenuHost, if it has one: where a joined submenu's outer
+  // wall runs straight up into the pill or island it stands on, which
+  // reaches on to it (EdgeAttach.reachStretch), and where it covers the
+  // stroke it stands on beside the box ({ start, end }, left open there
+  // too while the surface's openings show); else null
+  property var submenu: null
+  readonly property var reach: root.submenu?.joinReach ?? null
+  readonly property var submenuSpan: root.opens ? (root.submenu?.joinSpan ?? null) : null
 
   // Its pill stretch: a key unique per surface on a bar, and whether it
   // shows (not while the content loads or unloads, the box a placeholder)
   required property string owner
   property bool showing: false
   // Whether the surface is to show (open, not closing), and whether the
-  // pill has grown out to carry it: the surface slides out once it has
-  // (PillStretch.ready)
+  // pills have grown out to carry it, its own and any pill bar's it joins
+  // at an end: the surface slides out once they have (PillStretch.ready)
   property bool open: false
-  readonly property bool stretchReady: root._stretch.ready
+  readonly property bool stretchReady: root._stretch.ready && root._startPill.ready && root._endPill.ready
 
   readonly property bool vertical: root.edge === Bar.Left || root.edge === Bar.Right
   readonly property string edgeName: Bar.edgeName(root.edge)
+  readonly property int startSide: root.vertical ? Bar.Top : Bar.Left
+  readonly property int endSide: root.vertical ? Bar.Bottom : Bar.Right
+  readonly property real _span: (root.vertical ? root.screen?.height : root.screen?.width) ?? 0
+  readonly property real _spanAcross: (root.vertical ? root.screen?.width : root.screen?.height) ?? 0
   readonly property bool bareEdge: BarManager.screenEdgeOpen(root.screen, root.edge)
-  // Room for a side wall's fillet at an end that isn't joined (none on a
-  // bare edge, which it runs straight off)
-  readonly property real filletMargin: root.bareEdge ? 0 : EdgeAttach.filletMargin(root.connectorGap, Appearance.borderWidth, Appearance.borderRadius)
+  // The bar on the edge, whatever it is (an enriched bar entry), or null
+  readonly property var ownBar: BarManager.edgesFor(root.screen)[root.edgeName] ?? null
 
-  // A bar other than a solid one on the edge (BarPanel), while it shows:
-  // a bar inside the border hides under fullscreen windows
-  readonly property var barPanel: {
-    const panel = ShellManager.barOn(root.screen?.name ?? "", root.edge);
-    return panel?.visible && !panel.barConfig.solid ? panel : null;
+  // Where the followed bar's window lies along the screen edge
+  readonly property real barStart: root.barPanel ? (root.vertical ? root.barPanel.screenPlaced.y : root.barPanel.screenPlaced.x) : 0
+  readonly property real _barLength: root.container?.length ?? root._span
+  // Host coordinates to the bar window's and the screen's, and back
+  readonly property real _toBar: root.alongStart - root.barStart
+  function _toScreen(x) {
+    return x + root.alongStart;
   }
-  readonly property var barConfig: root.barPanel?.barConfig ?? null
-  readonly property bool followsBar: !root.held && root.barConfig !== null
-  // The bar's BarContainer
-  readonly property var container: root.barPanel?.container ?? null
-  readonly property bool island: root.followsBar && (root.barConfig?.island ?? false)
-  readonly property bool pillBar: root.followsBar && ((root.barConfig?.pills ?? false) || root.island)
-  // The bar's outer edge: on the border's stroke inside the border, its
-  // frame line less its extent
-  readonly property real barOuter: root.barConfig ? EdgeMenuManager.frameLineOn(root.screen, root.edge) - root.barConfig.extent : 0
-  // A pill's (or island's) far stroke, from the bar's outer edge
-  readonly property real pillFoot: root.pillBar ? (root.island ? root.barConfig.extent : root.barConfig.pillDepth) - Appearance.borderWidth : 0
-  // Along the edge, bar-window coordinates are the host's plus the shift.
-  // The bar window reaches onto the perpendicular strokes and the host's
-  // sits inside them, taken as the same at both ends (as BarPopouts does
-  // for the perpendicular borders).
-  readonly property real barShift: root.container ? (root.container.length - root.length) / 2 : 0
-  // Its pills (or islands), in edge coordinates
-  readonly property var pills: root.pillBar ? (root.container?.pillRects ?? []).map(p => Object.assign({}, p, {
-      "start": p.start - root.barShift
-    })) : []
+  function _fromScreen(x) {
+    return x - root.alongStart;
+  }
 
-  readonly property var place: EdgeAttach.place({
-    "pills": root.pills,
-    "pillBar": root.pillBar && !root.island,
-    "island": root.island,
-    "merge": root.barConfig?.pillMerge ?? 0,
-    "centre": root.centre,
-    "aligned": root.aligned,
+  // --- Its frame (SurfaceContext.frame): ends and room ---
+  function _side(location, held) {
+    const name = Bar.edgeName(location);
+    const frame = EdgeMenuManager.frameLineOn(root.screen, location);
+    const reserved = EdgeMenuManager.reservedOn(root.screen, location);
+    return {
+      "kind": BarManager.surfaceEnd(root.screen, location),
+      "frame": frame,
+      "reserved": reserved,
+      "corner": EdgeMenuManager.cornerLineOn(root.screen, location),
+      "gapsOut": HyprlandManager.gapsOut[name] ?? 0,
+      "barHeld": held
+    };
+  }
+  readonly property var _params: ({
+      "edge": root.edge,
+      "span": root._span,
+      "border": Appearance.screenBorder,
+      "bareEdge": root.bareEdge,
+      "gap": root.connectorGap,
+      "stroke": Appearance.borderWidth,
+      "radius": Appearance.borderRadius,
+      "held": root.held,
+      "gaps": root.gaps,
+      "bar": root.barConfig,
+      "barStart": root.barStart,
+      "barLength": root._barLength,
+      "islandFrom": root.barStart + (root.container?.islandFrom ?? 0),
+      "islandTo": root.barStart + (root.container?.islandEnd ?? root._barLength),
+      "start": root._side(root.startSide, root.barConfig?.ends?.start?.held ?? false),
+      "end": root._side(root.endSide, root.barConfig?.ends?.end?.held ?? false)
+    })
+  readonly property var frame: SurfaceContext.frame(root._params)
+  // What each end meets, and what that makes it (SurfaceContext.end)
+  readonly property var startEnd: root.frame.startEnd
+  readonly property var endEnd: root.frame.endEnd
+  // How far the window reaches onto the perpendicular strokes past each
+  // end, where a joined end sits (as a bar's inside the border does)
+  readonly property real strokeInsetStart: root.startEnd.strokeInset
+  readonly property real strokeInsetEnd: root.endEnd.strokeInset
+  // In the host's coordinates: where windows start past the perpendicular
+  // edges (what an edge popout's window spans), where an unjoined box may
+  // reach, where joined ends sit, and where a floating bar's islands may
+  // reach
+  readonly property real innerStart: root._fromScreen(root._params.start.reserved)
+  readonly property real innerEnd: root._fromScreen(root._span - root._params.end.reserved)
+  readonly property real lo: root._fromScreen(root.frame.lo)
+  readonly property real hi: root._fromScreen(root.frame.hi)
+  readonly property real joinFrom: root._fromScreen(root.frame.joinFrom)
+  readonly property real joinTo: root._fromScreen(root.frame.joinTo)
+  // The perpendicular strokes' outer edges (a floating bar's island
+  // reach): what a stroke the box grows from reaches to without it
+  readonly property real strokeFrom: root._fromScreen(root.frame.strokeFrom)
+  readonly property real strokeTo: root._fromScreen(root.frame.strokeTo)
+  readonly property real islandFrom: root._fromScreen(root.frame.islandFrom)
+  readonly property real islandTo: root._fromScreen(root.frame.islandTo)
+  // ...and as distances in from the inner sides
+  readonly property real insetStart: root.lo - root.innerStart
+  readonly property real insetEnd: root.innerEnd - root.hi
+  // Standing on an island, decided without the box's length, which may be
+  // capped by what it decides
+  readonly property bool atIsland: root.island && (root.container?.pillRects?.length ?? 0) > 0
+  // Which ends it joins, from where it would rest
+  readonly property var _joins: SurfaceContext.joinsOf(root.frame, root._toScreen(root.probeStart), root.probeLength, root.connectorGap)
+  readonly property bool joinStart: root._joins.joinStart
+  readonly property bool joinEnd: root._joins.joinEnd
+  // Where windows past a perpendicular edge start, or a frame line plus
+  // `gap`, in from where windows start there (a held box's room)
+  function heldInset(side, gap) {
+    return EdgeMenuManager.heldInset(root.screen, side, gap);
+  }
+
+  // --- Its box (SurfaceContext.layout) ---
+  readonly property var _layout: SurfaceContext.layout(root.frame, Object.assign({}, root._params, {
+    "pills": root.pillBar ? (root.container?.pillRects ?? []).map(p => Object.assign({}, p, {
+        "start": p.start + root.barStart
+      })) : [],
+    "centre": root._toScreen(root.centre),
+    "aligned": root._toScreen(root.aligned),
     "length": root.contentLength,
     "joinStart": root.joinStart,
     "joinEnd": root.joinEnd,
-    "joinFrom": -root.strokeInset,
-    "joinTo": root.length + root.strokeInset,
-    "lo": root.lo,
-    "hi": root.hi,
-    "islandFrom": (root.barConfig?.islandStart ?? 0) - root.barShift,
-    "islandTo": (root.container?.islandEnd ?? root.length) - root.barShift,
-    "straight": root.bareEdge,
-    "straightMerged": !Appearance.screenBorder,
-    "pillGrows": true,
-    "gap": root.connectorGap,
-    "stroke": Appearance.borderWidth,
-    "radius": Appearance.borderRadius
-  })
-  readonly property bool merged: root.place.mode === "merged"
-  // Its pill stretch, reaching on to a joined submenu's wall
-  readonly property var stretch: EdgeAttach.reachStretch(root.place.stretch, root.onPill ? root.place.pill : null, root.reach === null ? null : Math.max(-root.strokeInset, Math.min(root.reach, root.length + root.strokeInset)))
+    "frameLine": EdgeMenuManager.frameLineOn(root.screen, root.edge),
+    "reserved": EdgeMenuManager.reservedOn(root.screen, root.edge),
+    "detachedPush": root.barConfig ? Bar.detachedPush(root.barConfig, HyprlandManager.gapsOut[root.edgeName] ?? 0, root.connectorGap) : 0,
+    "ownBar": root.ownBar,
+    "across": root.gaps?.across ?? 0
+  }))
+  // EdgeAttach.place's answer in the host's coordinates
+  readonly property var place: {
+    const l = root._layout;
+    const shift = r => r ? Object.assign({}, r, {
+        "start": root._fromScreen(r.start)
+      }) : r;
+    return Object.assign({}, l, {
+      "start": root._fromScreen(l.start),
+      "end": root._fromScreen(l.end),
+      "contentStart": root._fromScreen(l.contentStart),
+      "surfaceStart": root._fromScreen(l.surfaceStart),
+      "pill": shift(l.pill),
+      "stretch": l.stretch ? Object.assign({}, l.stretch, {
+        "start": root._fromScreen(l.stretch.start),
+        "end": root._fromScreen(l.stretch.end)
+      }) : null
+    });
+  }
+  readonly property bool merged: root._layout.merged
   // Standing on a pill's or island's far stroke
-  readonly property bool onPill: root.place.mode === "pill" || root.place.mode === "island"
-  // A box of its own: held, or on a bar with nothing to grow out of (a
-  // transparent one, a floating one showing no islands)
-  readonly property bool detached: root.held || (root.followsBar && !root.pillBar) || (root.island && root.place.mode === "plain")
+  readonly property bool onPill: root._layout.onPill
+  // A box of its own (SurfaceContext.detached): held, or on a bar with
+  // nothing to grow out of (a transparent one, a floating one showing no
+  // islands)
+  readonly property bool detached: root._layout.detached
   // Runs straight off its attach edge: a bare screen edge, or without the
   // border, the outer edge a merged box grows from
-  readonly property bool straight: root.merged ? !Appearance.screenBorder : root.place.mode === "plain" && root.bareEdge
+  readonly property bool straight: root._layout.straight
   // Extra box depth at the attach edge that a merged box's content keeps
   // clear of where the pills would be by
-  readonly property real attachClearance: root.merged ? root.pillFoot : 0
-  // Following the bar, where the attach edge goes: the bar's outer edge
-  // when merged, a pill's or island's far stroke, or a transparent bar's
-  // inner edge (the box a connector gap past it, as a bar popout's is, and
-  // no nearer than the windows: see Bar.detachedPush)
-  readonly property real barAttach: {
-    if (!root.followsBar)
+  readonly property real attachClearance: root._layout.attachClearance
+  // Where its attach edge goes, across from the screen edge (held, a
+  // connector gap short of its box), and from the followed bar's outer
+  // edge
+  readonly property real attachAt: root._layout.attachAt
+  readonly property real attachFromBar: root._layout.attachFromBar
+  readonly property real barOuter: root._layout.barOuter
+  // On a pill's far stroke the surface covers that stroke's inner fringe
+  readonly property int backfill: root._layout.backfill
+  // Its pill stretch, reaching on to a joined submenu's wall (kept between
+  // the strokes at the edge's ends)
+  readonly property var stretch: EdgeAttach.reachStretch(root.place.stretch, root.onPill ? root.place.pill : null, root.reach === null ? null : Math.max(root._fromScreen(root._layout.stretchFrom), Math.min(root.reach, root._fromScreen(root._layout.stretchTo))))
+
+  // --- Its shadow (SurfaceContext.shadow) ---
+  // What it grows out of: its bar (pills, islands, a merged box's outer
+  // edge, a solid bar's own stroke with the border off), the border, or a
+  // bare edge. AttachedSurface's shadowLook/shadowEdge/shadowFalls.
+  readonly property var shadow: root._layout.shadow
+  // (BarStyle's while the bar is gone: bars changing, the decision may
+  // lag a moment)
+  readonly property var shadowLook: root.shadow.look === "bar" && root.ownBar ? root.ownBar : BarStyle.values
+
+  // --- Its fill (BlurManager) ---
+  // Whether its window is on the Overlay layer, and where it is on screen
+  // (null until known): the blur window draws its fill and casts its
+  // shadow where it backs that layer on its screen; else it fills itself,
+  // solid while blur is paused for a fullscreen window there
+  property bool onOverlayLayer: true
+  property var origin: null
+  readonly property bool backed: BlurManager.backsOn(root.screen, root.onOverlayLayer) && root.origin !== null
+  readonly property bool opaque: BlurManager.opaqueOn(root.screen)
+
+  // --- The strokes it covers ---
+  // The surface (its AttachedSurface, positioned in the window at
+  // `origin`) and whether its openings show: out, and granted
+  property var attachedSurface: null
+  property bool opens: false
+  // From the screen edge, how far in the surface's attach side is, and
+  // how far a joined end's far wall reaches (AttachedSurface.joinWall)
+  readonly property real _surfaceFromEdge: {
+    const s = root.attachedSurface;
+    if (!s || !root.origin)
       return 0;
-    if (root.merged)
-      return root.barOuter;
-    if (root.onPill)
-      return root.barOuter + root.pillFoot;
-    return root.barOuter + root.barConfig.extent + Bar.detachedPush(root.barConfig, HyprlandManager.gapsOut[root.edgeName] ?? 0, root.connectorGap);
+    const across = root.vertical ? root.origin.x + s.x : root.origin.y + s.y;
+    const depth = root.vertical ? s.width : s.height;
+    return root.edge === Bar.Right || root.edge === Bar.Bottom ? root._spanAcross - across - depth : across;
+  }
+  readonly property real joinReach: root._surfaceFromEdge + (root.attachedSurface?.joinWall ?? 0)
+  function _edgeSpan(start, end) {
+    return {
+      "screen": root.screen?.name ?? "",
+      "edge": root.edgeName,
+      "start": root._toScreen(start),
+      "end": root._toScreen(end)
+    };
+  }
+  readonly property real _coverStart: root.drawnSurfaceStart + root.coverStart
+  readonly property real _coverEnd: root._coverStart + (root.coverLength < 0 ? root.place.surfaceLength : root.coverLength)
+  readonly property var _coverSpan: root.opens && root.attachedSurface && root._coverEnd > root._coverStart ? root._edgeSpan(root._coverStart, root._coverEnd) : null
+  // At a joined end, the perpendicular edge's stroke its end covers, from
+  // where its window is on screen, its fillet included
+  function _joinSpan(atStart) {
+    const s = root.attachedSurface;
+    if (!root.opens || !s || !root.origin || root.detached)
+      return null;
+    const from = root.vertical ? root.origin.x + s.x : root.origin.y + s.y;
+    return Object.assign({
+      "screen": root.screen?.name ?? ""
+    }, EdgeAttach.joinOpening(root.edgeName, atStart, from, root.vertical ? s.width : s.height, atStart ? s.joinShown : s.joinShownEnd, root._spanAcross, atStart ? s.joinFillet : s.joinFilletEnd));
+  }
+  property StrokeOpening _ownOpening: StrokeOpening {
+    screen: root.screen
+    owner: root.owner + ":stroke"
+    sink: root._layout.ownSink
+    span: root._coverSpan
+  }
+  property StrokeOpening _submenuOpening: StrokeOpening {
+    screen: root.screen
+    owner: root.owner + ":submenuStroke"
+    sink: root._layout.ownSink
+    span: root.submenuSpan ? root._edgeSpan(root.submenuSpan.start, root.submenuSpan.end) : null
+  }
+  property StrokeOpening _startOpening: StrokeOpening {
+    screen: root.screen
+    owner: root.owner + ":joinStartStroke"
+    sink: root.startEnd.sink
+    span: root.attachedSurface?.joinStart ? root._joinSpan(true) : null
+  }
+  property StrokeOpening _endOpening: StrokeOpening {
+    screen: root.screen
+    owner: root.owner + ":joinEndStroke"
+    sink: root.endEnd.sink
+    span: root.attachedSurface?.joinEnd ? root._joinSpan(false) : null
   }
 
-  // Whether a perpendicular edge ("top", …) has a stroke to join: the
-  // border or a solid bar (`joinable`), not any other bar, nor an
-  // integrated menu's strip
-  function joinable(name) {
-    const bar = BarManager.edgesFor(root.screen)[name];
-    return (!bar || bar.joinable) && EdgeMenuManager.zoneOn(root.screen?.name ?? "", name) === 0;
+  // Joined ends run straight off a bare screen edge, or into a pill bar's
+  // stub where its pill doesn't already run on past the wall
+  // (PillBarJoin.filleted)
+  readonly property bool straightJoinStart: root.startEnd.straight || (root._startPill.joined && !root._startPill.filleted)
+  readonly property bool straightJoinEnd: root.endEnd.straight || (root._endPill.joined && !root._endPill.filleted)
+  property PillBarJoin _startPill: PillBarJoin {
+    screen: root.screen
+    edge: root.edge
+    side: root.startSide
+    owner: root.owner + ":joinStart"
+    open: root.open
+    joined: root.place.joinStart && root.startEnd.sink === "pillBar"
+    showing: root.showing
+    joinReach: root.joinReach
+  }
+  property PillBarJoin _endPill: PillBarJoin {
+    screen: root.screen
+    edge: root.edge
+    side: root.endSide
+    owner: root.owner + ":joinEnd"
+    open: root.open
+    joined: root.place.joinEnd && root.endEnd.sink === "pillBar"
+    showing: root.showing
+    joinReach: root.joinReach
   }
 
   // The pill (or island) stretched to carry the box's fillets while it
-  // shows, in bar coordinates
+  // shows, and its far stroke left open under a translucent box (or, on a
+  // solid bar's own stroke, StrokeOpening above), in the bar's coordinates
+  function _toBarSpan(start, end) {
+    return {
+      "start": start + root._toBar,
+      "end": end + root._toBar
+    };
+  }
   property PillStretch _stretch: PillStretch {
     container: root.container
     owner: root.owner
     open: root.open
-    stretch: root.showing && root.stretch ? Object.assign({}, root.stretch, {
-      "start": root.stretch.start + root.barShift,
-      "end": root.stretch.end + root.barShift
-    }) : null
-    // The pill's or island's far stroke left open under a translucent box
-    opening: root.showing && root.onPill && Appearance.translucent ? {
-      "start": root.place.surfaceStart + root.coverStart + root.barShift,
-      "end": root.place.surfaceStart + root.coverStart + (root.coverLength < 0 ? root.place.surfaceLength : root.coverLength) + root.barShift
-    } : null
+    stretch: root.showing && root.stretch ? Object.assign({}, root.stretch, root._toBarSpan(root.stretch.start, root.stretch.end)) : null
+    opening: root.showing && root.onPill && Appearance.translucent ? root._toBarSpan(root._coverStart, root._coverEnd) : null
+  }
+  property PillStretch _submenuStretch: PillStretch {
+    container: root.container
+    owner: root.owner + ":submenu"
+    opening: root.showing && root.onPill && Appearance.translucent && root.submenuSpan ? root._toBarSpan(root.submenuSpan.start, root.submenuSpan.end) : null
   }
 }

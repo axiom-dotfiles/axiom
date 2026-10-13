@@ -36,11 +36,11 @@ EdgePopout {
   // in screen px: this window's edge coordinates start past what's
   // reserved on the perpendicular edge at its start
   readonly property real screenLength: root.vertical ? root.screen.height : root.screen.width
-  readonly property real alongOrigin: root.reservedOn(root.startSide)
+  readonly property real alongOrigin: EdgeMenuManager.reservedOn(root.screen, root.startSide)
   // The least room from the modules to the screen's ends: what's reserved
   // there, the box's inset and its padding
   readonly property real startPad: root.alongOrigin + root.startInset + root.contentPadding
-  readonly property real endPad: root.reservedOn(root.endSide) + root.endInset + root.contentPadding
+  readonly property real endPad: EdgeMenuManager.reservedOn(root.screen, root.endSide) + root.endInset + root.contentPadding
   // From config, so the hover strip lines up before the body has loaded
   // Its card size (EdgeMenuManager.cardUnitOf)
   readonly property int unit: EdgeMenuManager.cardUnitOf(root.menu)
@@ -63,10 +63,9 @@ EdgePopout {
   // padding. From its natural length (the joins at the ends depend on
   // where it is); one filling its edge joins both and needs none.
   position: 0
-  positionOffset: root.modulesStart - root.alongOrigin - root.contentPadding + (isFinite(root._naturalBox) ? root._naturalBox / 2 : 0)
-  // Not held, its ends join the perpendicular edges once it reaches them.
-  // Fill cells grow to whatever room there is, so reach them always.
-  joinEnds: !root.held
+  positionOffset: root.modulesStart - root.alongOrigin - root.contentPadding + (isFinite(root.naturalBox) ? root.naturalBox / 2 : 0)
+  // Fill cells grow to whatever room there is, so its ends always reach
+  // (and, not held, join) the perpendicular edges
   reachLength: root._body ? (root._body.fillsEdge ? Infinity : root._body.naturalLength) : 0
   // Growing modules make a top or bottom menu deeper: room for the most
   maxContentDepth: !root.vertical && root._body ? root._body.maxGrownHeight : 0

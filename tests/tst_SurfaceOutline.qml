@@ -5,7 +5,8 @@ import qs.components.methods
 TestCase {
   name: "SurfaceOutline"
 
-  // Radius 28, stroke 2, connector gap 56: a fillet takes 54 along the edge
+  // Radius 28, stroke 2, connector gap 56: a fillet takes 27 along the
+  // edge, its arc's run
   function spec(extra) {
     return Object.assign({
       "edge": SurfaceOutline.top,
@@ -29,13 +30,13 @@ TestCase {
 
   function test_metrics_attached() {
     const m = SurfaceOutline.metrics(spec({}));
-    compare(m.startMargin, 54);
-    compare(m.endMargin, 54);
-    compare(m.alongLength, 308);
+    compare(m.startMargin, 27);
+    compare(m.endMargin, 27);
+    compare(m.alongLength, 254);
     // A deep box starts on the attach edge
     compare(m.boxStart, 0);
     compare(m.depth, 128);
-    compare(m.sideU, 55);
+    compare(m.sideU, 28);
     compare(m.farV, 99);
   }
 
@@ -59,6 +60,33 @@ TestCase {
     verify(sharp.sharp);
     compare(sharp.startMargin, 0);
     verify(sharp.straightJoins);
+  }
+
+  function test_straight_join_per_end() {
+    // A pill on a bare edge: straight off the screen edge at its start,
+    // a fillet into a solid bar's stroke at its end
+    const s = spec({
+      "joinStart": true,
+      "joinEnd": true,
+      "straight": true,
+      "straightJoins": true,
+      "straightJoinEnd": false
+    });
+    const m = SurfaceOutline.metrics(s);
+    verify(m.straightJoinStart);
+    verify(!m.straightJoinEnd);
+    verify(!m.straightJoins);
+    verify(m.joinFillet, "the end's fillet deepens the surface");
+    const fp = SurfaceOutline.footprint(s, m, m.depth, m.alongLength);
+    // The box and the end's fillet square only
+    compare(fp.length, 2);
+    // Both ends straight: no fillet anywhere
+    const both = SurfaceOutline.metrics(spec({
+      "joinStart": true,
+      "joinEnd": true,
+      "straightJoins": true
+    }));
+    verify(!both.joinFillet);
   }
 
   function test_withBoxStart() {
@@ -95,12 +123,12 @@ TestCase {
     const m = SurfaceOutline.metrics(s);
     const sz = SurfaceOutline.size(s, m);
     compare(sz, {
-      "width": 308,
+      "width": 254,
       "height": 128
     });
     compare(SurfaceOutline.footprint(s, m, sz.width, sz.height), [
       {
-        "x": 54,
+        "x": 27,
         "y": 0,
         "width": 200,
         "height": 100
@@ -108,13 +136,13 @@ TestCase {
       {
         "x": 0,
         "y": 0,
-        "width": 54,
+        "width": 27,
         "height": 29
       },
       {
-        "x": 254,
+        "x": 227,
         "y": 0,
-        "width": 54,
+        "width": 27,
         "height": 29
       }
     ]);
@@ -125,10 +153,10 @@ TestCase {
       "edge": SurfaceOutline.bottom
     });
     const m = SurfaceOutline.metrics(s);
-    const fp = SurfaceOutline.footprint(s, m, 308, 128);
+    const fp = SurfaceOutline.footprint(s, m, 254, 128);
     // The box reaches down to the attach edge at the bottom
     compare(fp[0], {
-      "x": 54,
+      "x": 27,
       "y": 28,
       "width": 200,
       "height": 100
@@ -142,9 +170,9 @@ TestCase {
       "detachedOffset": 10
     });
     const m = SurfaceOutline.metrics(s);
-    compare(SurfaceOutline.footprint(s, m, 308, 166), [
+    compare(SurfaceOutline.footprint(s, m, 254, 166), [
       {
-        "x": 54,
+        "x": 27,
         "y": 38,
         "width": 200,
         "height": 100
@@ -158,11 +186,11 @@ TestCase {
       "backfill": 1
     });
     const m = SurfaceOutline.metrics(s);
-    const fp = SurfaceOutline.footprint(s, m, 254, m.depth);
+    const fp = SurfaceOutline.footprint(s, m, m.alongLength, m.depth);
     // The box, the start fillet, the joined end's fillet, the backfill row
     compare(fp.length, 4);
     compare(fp[2], {
-      "x": 225,
+      "x": 198,
       "y": 100,
       "width": 29,
       "height": 29
@@ -170,7 +198,7 @@ TestCase {
     compare(fp[3], {
       "x": 0,
       "y": 0,
-      "width": 254,
+      "width": 227,
       "height": 1
     });
   }
@@ -179,14 +207,30 @@ TestCase {
     const s = spec({});
     const m = SurfaceOutline.metrics(s);
     compare(SurfaceOutline.fillPath(s, m, 0, 0), "");
-    const fill = SurfaceOutline.fillPath(s, m, 308, 128);
+    const fill = SurfaceOutline.fillPath(s, m, 254, 128);
     verify(fill.startsWith("M 0 0 L 0 1 "));
     verify(fill.endsWith("Z"));
     // Top edge: the fillet sweeps clockwise; on the bottom edge it flips
-    verify(SurfaceOutline.strokePath(s, m, 308, 128).indexOf("A 28 28 0 0 1 55 29") >= 0);
+    verify(SurfaceOutline.strokePath(s, m, 254, 128).indexOf("A 28 28 0 0 1 28 29") >= 0);
     const b = spec({
       "edge": SurfaceOutline.bottom
     });
-    verify(SurfaceOutline.strokePath(b, SurfaceOutline.metrics(b), 308, 128).indexOf("A 28 28 0 0 0 55 99") >= 0);
+    verify(SurfaceOutline.strokePath(b, SurfaceOutline.metrics(b), 254, 128).indexOf("A 28 28 0 0 0 28 99") >= 0);
+  }
+
+  function test_join_fill_stops_short_of_stroke_end() {
+    // A joined end's fill covers the stroke it meets a pixel short of the
+    // fillet's flat cap, so it can't show through the cap's soft edge
+    const s = spec({
+      "joinStart": true,
+      "joinEnd": true
+    });
+    const m = SurfaceOutline.metrics(s);
+    const w = m.alongLength, h = m.depth, v = m.farV + 28;
+    const fill = SurfaceOutline.fillPath(s, m, w, h);
+    verify(fill.startsWith("M 0 0 L 0 " + (v - 1) + " L 1 " + (v - 1) + " L 1 " + v + " "), fill);
+    verify(fill.indexOf((w - 1) + " " + v + " L " + (w - 1) + " " + (v - 1) + " L " + w + " " + (v - 1) + " ") >= 0, fill);
+    // The stroke still runs to the stroke it meets
+    verify(SurfaceOutline.strokePath(s, m, w, h).trim().endsWith((w - 1) + " " + v));
   }
 }

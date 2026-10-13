@@ -15,7 +15,11 @@ import QtQuick
 //   { edge, boxAlong, boxDepth, strokeWidth, filletRadius, cornerRadius,
 //     startCornerRadius, endCornerRadius, connectorGap, joinStart,
 //     joinEnd, flushStart, flushEnd, flushStartThrough, flushEndThrough,
-//     detached, detachedOffset, backfill, straight, straightJoins }
+//     detached, detachedOffset, backfill, straight, straightJoins,
+//     straightJoinStart, straightJoinEnd }
+// (straightJoinStart/End: one joined end's, where the edges it meets
+// differ, a bare screen edge at one and a solid bar's stroke at the
+// other; each defaults to straightJoins)
 QtObject {
   id: root
 
@@ -32,14 +36,17 @@ QtObject {
     const back = detached ? 0 : (s.backfill ?? 0);
     const lead = detached ? (s.detachedOffset ?? 0) : 0;
     // A radius under half the stroke is too tight for a fillet: the walls
-    // run straight into what they attach to (AttachedSurface._sharp)
+    // run straight into what they attach to
     const sharp = R < half;
     const filletStart = !sharp && !s.joinStart && !s.flushStart && !s.straight;
     const filletEnd = !sharp && !s.joinEnd && !s.flushEnd && !s.straight;
-    const straightJoins = !!s.straightJoins || sharp;
-    const joinFillet = (!!s.joinStart || !!s.joinEnd) && !straightJoins;
-    const startMargin = filletStart ? s.connectorGap - s.strokeWidth : 0;
-    const endMargin = filletEnd ? s.connectorGap - s.strokeWidth : 0;
+    const straightJoinStart = !!(s.straightJoinStart ?? s.straightJoins) || sharp;
+    const straightJoinEnd = !!(s.straightJoinEnd ?? s.straightJoins) || sharp;
+    const joinFillet = (!!s.joinStart && !straightJoinStart) || (!!s.joinEnd && !straightJoinEnd);
+    // A fillet's room along the edge: its arc's run (EdgeAttach.filletMargin)
+    const full = R - half;
+    const startMargin = filletStart ? full : 0;
+    const endMargin = filletEnd ? full : 0;
     const alongLength = startMargin + s.boxAlong + endMargin;
     const cs = s.startCornerRadius ?? s.cornerRadius;
     const ce = s.endCornerRadius ?? s.cornerRadius;
@@ -56,7 +63,9 @@ QtObject {
       "sharp": sharp,
       "filletStart": filletStart,
       "filletEnd": filletEnd,
-      "straightJoins": straightJoins,
+      "straightJoins": straightJoinStart && straightJoinEnd,
+      "straightJoinStart": straightJoinStart,
+      "straightJoinEnd": straightJoinEnd,
       "joinFillet": joinFillet,
       "throughStart": !!s.flushStart && (s.flushStartThrough ?? true),
       "throughEnd": !!s.flushEnd && (s.flushEndThrough ?? true),
@@ -160,7 +169,7 @@ QtObject {
     // end of the stroke it continues there, which the backfill leaves open
     const fv0 = m.throughStart ? -m.back : 0, fv1 = m.throughEnd ? -m.back : 0;
     let d = "";
-    if (s.joinStart && m.straightJoins) {
+    if (s.joinStart && m.straightJoinStart) {
       d += startWith(0, farV);
     } else if (s.joinStart) {
       d += startWith(h, farV + R);
@@ -176,7 +185,7 @@ QtObject {
       d += p.line(sideU, farV - cs);
       d += p.arc(cs, false, sideU + cs, farV);
     }
-    if (s.joinEnd && m.straightJoins) {
+    if (s.joinEnd && m.straightJoinEnd) {
       d += p.line(L, farV);
     } else if (s.joinEnd) {
       d += p.line(L - h - R, farV);
@@ -197,26 +206,29 @@ QtObject {
 
   // Fill: the outline, closed back along the attach edge (and behind it by
   // the backfill). Joined ends also cover the perpendicular stroke up to
-  // the fillet.
+  // the fillet: a pixel short of where it meets that stroke, which the
+  // fillet's stroke covers there, as the fill reaching its flat cap
+  // showed through the cap's anti-aliased edge as a dark notch.
   function fillPath(s, m, w, h) {
     if (w <= 0 || h <= 0)
       return "";
     const p = _pen(s, m, w, h);
     const R = s.filletRadius, b = -m.back, L = m.alongLength;
+    const joinV = m.farV + R - 1;
     // The backfill stops short of a flush end's wall, squarely, where the
     // stroke of what it attaches to carries on behind it
     const u0 = m.throughStart ? s.strokeWidth : 0, u1 = m.throughEnd ? L - s.strokeWidth : L;
     let d;
     if (s.joinStart)
-      d = p.move(0, b) + p.line(0, m.straightJoins ? m.farV : m.farV + R) + _outline(s, m, p, p.line);
+      d = p.move(0, b) + p.line(0, m.straightJoinStart ? m.farV : joinV) + (m.straightJoinStart ? "" : p.line(m.half, joinV)) + _outline(s, m, p, p.line);
     else if (s.flushStart)
       d = p.move(u0, b) + (m.throughStart ? "" : p.line(0, 0)) + _outline(s, m, p, p.line);
     else if (!m.filletStart)
       d = _outline(s, m, p, p.move);
     else
       d = _outline(s, m, p, (u, v) => p.move(0, 0) + p.line(u, v));
-    if (s.joinEnd && !m.straightJoins)
-      d += p.line(L, m.farV + R);
+    if (s.joinEnd && !m.straightJoinEnd)
+      d += p.line(L - m.half, joinV) + p.line(L, joinV);
     else if ((!s.joinEnd && m.filletEnd) || (s.flushEnd && !m.throughEnd))
       d += p.line(L, 0);
     return d + p.line(u1, b) + p.line(u0, b) + "Z";
@@ -249,9 +261,9 @@ QtObject {
       out.push(rect(0, 0, m.startMargin, filletDeep));
     if (m.filletEnd && m.endMargin > 0)
       out.push(rect(m.startMargin + s.boxAlong, 0, m.endMargin, filletDeep));
-    if (s.joinStart && m.joinFillet)
+    if (s.joinStart && !m.straightJoinStart)
       out.push(rect(0, m.farV, m.half + R, R + m.half));
-    if (s.joinEnd && m.joinFillet)
+    if (s.joinEnd && !m.straightJoinEnd)
       out.push(rect(m.alongLength - m.half - R, m.farV, m.half + R, R + m.half));
     if (back > 0)
       out.push(rect(0, -back, m.alongLength, back));

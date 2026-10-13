@@ -4,6 +4,7 @@ import Quickshell
 
 import qs.config
 import qs.components.hosts.popout
+import qs.components.reusable
 import qs.components.surfaces.osd
 
 // Every enabled OSD (OSD.osds), each on the screens its `monitors` puts it
@@ -19,9 +20,13 @@ Scope {
     delegate: Scope {
       id: entry
       required property string modelData
-      readonly property var osd: OSDConfig.osdById(modelData)
-      readonly property bool valid: osd !== null
-      readonly property var screens: valid ? General.screensFor(osd.monitors, osd.monitor) : []
+      readonly property var _found: OSDConfig.osdById(modelData)
+      // As last found, so its popouts are never handed null as it's removed
+      property LastFound _held: LastFound {
+        source: entry._found
+      }
+      readonly property var osd: entry._held.value
+      readonly property var screens: entry._found ? General.screensFor(entry._found.monitors, entry._found.monitor) : []
 
       Variants {
         model: entry.screens

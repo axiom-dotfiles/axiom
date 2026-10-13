@@ -178,6 +178,11 @@ BarWidget {
             text: segment.stat.value
             textColor: root.colors.text
             textSize: root.barConfig.fontSize * (root.isVertical ? 0.7 : 0.9)
+            // Same-width digits, so the widget (and the bar's layout) doesn't
+            // shift with every sample
+            font.features: {
+              "tnum": 1
+            }
           }
         }
       }

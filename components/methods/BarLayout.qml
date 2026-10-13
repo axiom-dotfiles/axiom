@@ -55,14 +55,21 @@ QtObject {
     return Math.max(lo, Math.min((length - c) / 2 + skew, hi));
   }
 
+  // A margin as [start, end]: one number for both ends, or a pair
+  function _margins(margin) {
+    return Array.isArray(margin) ? margin : [margin, margin];
+  }
+
   // Returns [{offset, extent}] for each section along the main axis, from
-  // their preferred and minimum lengths. `margin` is kept clear at both ends
-  // and `gap` between adjacent non-empty sections. With `lockCenter`, the
+  // their preferred and minimum lengths. `margin` is kept clear at the ends
+  // (one number for both, or [start, end]: a bar's ends may meet
+  // different things, BarEnds) and `gap` between adjacent non-empty sections. With `lockCenter`, the
   // center section always sits dead center at its full size and each side
   // fits itself into the room left on its own half; otherwise the center
   // slides towards the roomier side when crowded. `centerHang` (edgeHang)
   // is left out of what's centered.
   function layoutSections(pref, min, length, margin, gap, lockCenter, centerHang) {
+    const [m0, m1] = root._margins(margin);
     const sum = values => values.reduce((a, b) => a + b, 0);
     const gapsFor = sections => gap * sections.filter(i => pref[i] > 0).length;
     // Preferred sizes if they fit, else squeezed towards the minimums,
@@ -82,16 +89,16 @@ QtObject {
 
     let size, centerStart;
     if (lockCenter) {
-      const c = Math.min(pref[2], Math.max(0, length - 2 * margin));
-      centerStart = root._centerStart(c, length, margin, length - margin - c, centerHang);
-      const [l, lc] = fit([pref[0], pref[1]], [min[0], min[1]], centerStart - margin - gapsFor([0, 1]));
-      const [rc, r] = fit([pref[3], pref[4]], [min[3], min[4]], length - margin - centerStart - c - gapsFor([3, 4]));
+      const c = Math.min(pref[2], Math.max(0, length - m0 - m1));
+      centerStart = root._centerStart(c, length, m0, length - m1 - c, centerHang);
+      const [l, lc] = fit([pref[0], pref[1]], [min[0], min[1]], centerStart - m0 - gapsFor([0, 1]));
+      const [rc, r] = fit([pref[3], pref[4]], [min[3], min[4]], length - m1 - centerStart - c - gapsFor([3, 4]));
       size = [l, lc, c, rc, r];
     } else {
-      size = fit(pref, min, length - 2 * margin - gapsFor([0, 1, 3, 4]));
+      size = fit(pref, min, length - m0 - m1 - gapsFor([0, 1, 3, 4]));
       const [l, lc, c, rc, r] = size;
-      const lo = margin + (l > 0 ? l + gap : 0) + (lc > 0 ? lc + gap : 0);
-      const hi = length - margin - (r > 0 ? r + gap : 0) - (rc > 0 ? rc + gap : 0) - c;
+      const lo = m0 + (l > 0 ? l + gap : 0) + (lc > 0 ? lc + gap : 0);
+      const hi = length - m1 - (r > 0 ? r + gap : 0) - (rc > 0 ? rc + gap : 0) - c;
       centerStart = root._centerStart(c, length, lo, hi, centerHang);
     }
 
@@ -100,7 +107,7 @@ QtObject {
 
     return [
       {
-        "offset": margin,
+        "offset": m0,
         "extent": l
       },
       {
@@ -116,7 +123,7 @@ QtObject {
         "extent": rc
       },
       {
-        "offset": length - margin - r,
+        "offset": length - m1 - r,
         "extent": r
       }
     ];
@@ -133,6 +140,7 @@ QtObject {
   // fit the bar. The center's dividers (`divides`) are left out of what's
   // centered, as in layoutSections.
   function overflowHidden(measures, length, margin, gap, spacing, lockCenter) {
+    const [m0, m1] = root._margins(margin);
     const hidden = measures.map(() => []);
     const spanOf = (s, key) => root.span(measures[s].filter((m, i) => m.pref > 0 && !hidden[s].includes(i)).map(m => m[key]), spacing);
     const minSpan = s => spanOf(s, "min");
@@ -140,7 +148,7 @@ QtObject {
         const len = minSpan(s);
         return sum + (len > 0 ? len + gap : 0);
       }, 0);
-    const room = length - 2 * margin + 0.5;
+    const room = length - m0 - m1 + 0.5;
 
     // The sections to drop from (in tie order), or null when it all fits
     const overflowing = () => {
@@ -151,12 +159,12 @@ QtObject {
       }
       if (minSpan(2) > room)
         return [2];
-      const c = Math.min(spanOf(2, "pref"), length - 2 * margin);
+      const c = Math.min(spanOf(2, "pref"), length - m0 - m1);
       const hang = root.edgeHang(measures[2].map((m, i) => hidden[2].includes(i) ? 0 : m.pref), measures[2].map(m => m.divides), spacing);
-      const start = root._centerStart(c, length, margin, length - margin - c, hang);
-      if (sideNeed([0, 1]) > start - margin + 0.5)
+      const start = root._centerStart(c, length, m0, length - m1 - c, hang);
+      if (sideNeed([0, 1]) > start - m0 + 0.5)
         return [0, 1];
-      if (sideNeed([3, 4]) > length - margin - start - c + 0.5)
+      if (sideNeed([3, 4]) > length - m1 - start - c + 0.5)
         return [4, 3];
       return null;
     };
@@ -260,9 +268,9 @@ QtObject {
   }
 
   // The stretches on pill `index` (each { index, start, end, squareStart,
-  // squareEnd }: one per surface standing on it) as one, or null. An end
-  // is squared when a stretch reaching furthest that way squares it (any
-  // of them, on a tie).
+  // squareEnd, joinStart, joinEnd }: one per surface standing on it) as
+  // one, or null. An end is squared (or joins the perpendicular edge) when
+  // a stretch reaching furthest that way does (any of them, on a tie).
   function stretchOf(stretches, index) {
     const on = (stretches ?? []).filter(s => s?.index === index);
     if (on.length === 0)
@@ -274,7 +282,9 @@ QtObject {
       "start": start,
       "end": end,
       "squareStart": on.some(s => s.start === start && (s.squareStart ?? false)),
-      "squareEnd": on.some(s => s.end === end && (s.squareEnd ?? false))
+      "squareEnd": on.some(s => s.end === end && (s.squareEnd ?? false)),
+      "joinStart": on.some(s => s.start === start && (s.joinStart ?? false)),
+      "joinEnd": on.some(s => s.end === end && (s.joinEnd ?? false))
     };
   }
 
@@ -283,19 +293,21 @@ QtObject {
   // comes within `merge` of. { start, length, joinStart, joinEnd,
   // squareStart, squareEnd }: a squared end has its inner corner square,
   // where a popout runs flush into it; a joined one (a pill's) meets the
-  // perpendicular edge.
+  // perpendicular edge, as does a pill stretched on to it to join it
+  // (the stretch's joinStart/joinEnd). A stretch may reach past the pills
+  // before or after its own, so they're merged in order of where they start.
   function stretchIslands(rects, stretches, merge) {
     const spans = rects.map((r, i) => {
       const stretch = root.stretchOf(stretches, i);
       return {
         "start": stretch ? Math.min(r.start, stretch.start) : r.start,
         "end": stretch ? Math.max(r.start + r.length, stretch.end) : r.start + r.length,
-        "joinStart": r.joinStart ?? false,
-        "joinEnd": r.joinEnd ?? false,
+        "joinStart": (r.joinStart ?? false) || (stretch?.joinStart ?? false),
+        "joinEnd": (r.joinEnd ?? false) || (stretch?.joinEnd ?? false),
         "squareStart": stretch?.squareStart ?? false,
         "squareEnd": stretch?.squareEnd ?? false
       };
-    });
+    }).sort((a, b) => a.start - b.start);
     return root._mergeSpans(spans, merge).map(m => ({
           "start": m.start,
           "length": m.end - m.start,
@@ -304,6 +316,75 @@ QtObject {
           "squareStart": m.squareStart ?? false,
           "squareEnd": m.squareEnd ?? false
         }));
+  }
+
+  // Pills asked to reach an end of the bar, by surfaces joining them there
+  // from the perpendicular edge (a pill bar meeting this one at a corner, a
+  // popout whose side runs along this bar): `requests` [{ atStart, to,
+  // straight }] each want a pill running from that end to `to`, joined to
+  // the edge there (straight: flush off it, with no fillet into it, the
+  // surface joining it drawing the corner instead). The end pill is
+  // stretched there when it joins that end or comes within `merge` of
+  // `to`; otherwise a `stub` long pill is added at the end and stretched.
+  // `square`: the pill's corner at `to` is square, where a surface's wall
+  // runs straight into it (when that request reaches furthest).
+  // -> { rects (pills with any stubs, in order), stretches (as stretchOf
+  // takes them, indices into rects), straightStart, straightEnd }.
+  function endReaches(rects, requests, length, merge, stub) {
+    const out = rects.slice();
+    const stretches = [];
+    const at = atStart => (requests ?? []).filter(r => r && r.atStart === atStart);
+    const starts = at(true), ends = at(false);
+    if (starts.length > 0) {
+      const to = Math.max(...starts.map(r => r.to));
+      const first = out[0];
+      if (!first || !first.joinStart && first.start > to + merge)
+        out.unshift({
+          "start": 0,
+          "length": Math.min(stub, length),
+          "joinStart": true,
+          "joinEnd": false
+        });
+    }
+    if (ends.length > 0) {
+      const to = Math.min(...ends.map(r => r.to));
+      const last = out[out.length - 1];
+      if (!last || !last.joinEnd && last.start + last.length < to - merge)
+        out.push({
+          "start": Math.max(0, length - stub),
+          "length": Math.min(stub, length),
+          "joinStart": false,
+          "joinEnd": true
+        });
+    }
+    if (starts.length > 0) {
+      const first = out[0];
+      const end = Math.max(first.start + first.length, Math.max(...starts.map(r => r.to)));
+      stretches.push({
+        "index": 0,
+        "start": 0,
+        "end": end,
+        "joinStart": true,
+        "squareEnd": starts.some(r => (r.square ?? false) && r.to >= end - 0.5)
+      });
+    }
+    if (ends.length > 0) {
+      const last = out[out.length - 1];
+      const start = Math.min(last.start, Math.min(...ends.map(r => r.to)));
+      stretches.push({
+        "index": out.length - 1,
+        "start": start,
+        "end": length,
+        "joinEnd": true,
+        "squareStart": ends.some(r => (r.square ?? false) && r.to <= start + 0.5)
+      });
+    }
+    return {
+      "rects": out,
+      "stretches": stretches,
+      "straightStart": starts.some(r => r.straight ?? false),
+      "straightEnd": ends.some(r => r.straight ?? false)
+    };
   }
 
   // Sorted { start, end, ... } spans with those at most `merge` apart
