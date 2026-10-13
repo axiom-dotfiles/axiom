@@ -1,0 +1,44 @@
+# Utility modules
+
+> **Files:** `components/content/Calculator.qml`, `components/content/ClipboardHistory.qml`, `components/content/EmojiPicker.qml`, `components/content/WorldClocks.qml`, `components/content/NightLightControls.qml`, `components/content/CommandOutput.qml`, `components/content/ScreenRecord.qml`, `components/content/Cheatsheet.qml`, `components/content/Brightness.qml`
+> **Config:** each module's `properties` (e.g. `WorldClocks.clocks`, `CommandOutput.clickCommand`)
+> **Related:** [Writing modules](writing-modules.md), [Launcher providers](../features/launcher-providers.md), [Night light](../theming/night-light.md), [Screenshots and recording](../features/screenshots-recording.md), [Brightness](../features/brightness.md), [Keybinds](../hyprland/keybinds.md)
+
+Tool-like overlay modules. Each keeps its lasting state in its service, so closing the overlay loses nothing.
+
+### Calculator (`CalculatorManager`)
+- The field, the answer and a keypad. Keys type at the cursor; = takes the answer into the field.
+- Wide: keys beside the field, history under it.
+- Tall: the answer over the keys as a display.
+- Short: one row.
+- The service is described in [Launcher providers](../features/launcher-providers.md).
+
+### ClipboardHistory (`ClipboardManager`)
+- A search field, pins first.
+- `GridView` columns in a wide card, with two-line previews.
+
+### EmojiPicker (`EmojiManager`)
+- A search field, Unicode group tabs and a virtualised `GridView`.
+- The strip shows the most used.
+
+### WorldClocks
+- `clocks` (`[{ timezone, label }]`, edited as a list) plus the system's time.
+- Rows with a day band when there's room; tiles side by side in a wide, short card.
+- Offsets come from `TimeZoneManager`: see [Clock and time zones](../features/clock-timezones.md).
+
+### NightLightControls
+- Reads the `NightLight` reader. Described in [Night light](../theming/night-light.md).
+
+### CommandOutput (`CommandManager`)
+- One short line shows as a figure, a sentence or two larger and centred, anything longer as text.
+- Optional `clickCommand`.
+
+### ScreenRecord (`ScreenshotManager`)
+- Region or screen, the sound, and recent recordings. Described in [Screenshots and recording](../features/screenshots-recording.md).
+
+### Cheatsheet (`KeybindManager`, read-only)
+- Its own search.
+- `content/parts/KeybindSection` (shared with the Keybinds page) in masonry columns.
+
+### Brightness (`BrightnessManager`)
+- Described in [Brightness](../features/brightness.md). It can expand into every monitor's sliders: see [Growing and expanding](grow-expand.md).

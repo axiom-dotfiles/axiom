@@ -25,7 +25,7 @@ tests/        # unit tests (qmltestrunner) and script tests, run by scripts/chec
 - Import project code through the `qs.` namespace (`import qs.services`), never relative paths.
 - Dependencies point one way: pure `methods/` → config readers → services (every process, file write and poll) → UI.
 - New settings go in `config/json/config.schema.json` with a default, plus a reader property; the settings UI is generated from the schema. Prefer a schema annotation (`x-group`, `x-order`, `x-icon`, …) over a list kept in QML.
-- Reuse the shared pieces (docs/architecture.md, "Shared UI pieces") instead of drawing another card, row, chip or drag; a pattern that appears twice becomes one.
+- Reuse the shared pieces ([docs/dev/core/shared-ui-pieces.md](docs/dev/core/shared-ui-pieces.md)) instead of drawing another card, row, chip or drag; a pattern that appears twice becomes one.
 - User-visible text is English, wrapped in `I18n.tr("...")` with placeholders for values; run `scripts/check_i18n.py` (and `--untranslated`) after changing text.
 - Every animation duration is `Appearance.animFast`/`animNormal`/`animSlow`; outer edges use `Appearance.borderRadius`, anything inside `Widget.radius`; icons are Material Symbols names in `StyledIcon`.
 
@@ -40,4 +40,4 @@ tests/        # unit tests (qmltestrunner) and script tests, run by scripts/chec
 - Run `scripts/check_all.sh` before opening a pull request. It runs what CI runs: structure, qmlformat, qmllint (against `scripts/qmllint-baseline.json`), the unit tests in `tests/`, shellcheck, the script tests and the translation check. Changing a migration step or a `components/methods/` helper? Add a test for it.
 - The checks don't run the shell: after saving, read `scripts/log.sh` (a clean reload is `Reloading configuration...` + `Configuration Loaded`).
 
-[docs/architecture.md](docs/architecture.md) holds the mechanics of every service and surface, plus the index of shared UI pieces. Read the relevant section before changing a feature, and update it when you change how one works.
+[docs/dev/](docs/dev/README.md) holds the mechanics of every service and surface, one doc per topic, plus the index of shared UI pieces. Read the relevant doc before changing a feature, and update it when you change how one works.
