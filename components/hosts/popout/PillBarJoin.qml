@@ -65,7 +65,7 @@ PillStretch {
   // tip, or the wall
   readonly property var _reach: root._wall === null ? null : !root.filleted ? root._wall : root._atStart ? root._wall + root._radius : root._wall - root._radius
 
-  container: root.joined && root.available ? root._panel.container : null
+  container: root.joined && root.available ? (root._panel?.container ?? null) : null
   // Filleted, past the fillet by the pill's own corner; else out to the
   // wall's outer edge, squared there
   endReach: root._reach === null ? null : root.filleted ? {

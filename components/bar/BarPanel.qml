@@ -106,7 +106,6 @@ PanelWindow {
     barConfig: root.barConfig
     panel: root
     screen: root.screen
-    layoutSource: bar.barContainer
   }
 
   // The bar's own extent, at its outer edge. Placed by plain geometry, not

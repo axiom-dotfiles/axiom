@@ -330,4 +330,162 @@ TestCase {
     });
     compare(SurfaceContext.opening(5.5, 5.2).end, 6);
   }
+
+  // ---- frame() / layout(): one surface on an edge, any host ----
+
+  // A 1000 px edge, border on (2 px stroke, radius 12, gap 24), the
+  // perpendicular edges' inner sides 20 px in, windows starting there
+  function side(kind, extra) {
+    return Object.assign({
+      "kind": SurfaceContext.endKind({
+        "border": true,
+        "bar": kind === "none" ? null : bar(kind)
+      }),
+      "frame": 20,
+      "reserved": 20,
+      "gapsOut": 10,
+      "barHeld": false
+    }, extra ?? {});
+  }
+  function params(extra) {
+    return Object.assign({
+      "edge": 0,
+      "span": 1000,
+      "border": true,
+      "bareEdge": false,
+      "gap": 24,
+      "stroke": 2,
+      "radius": 12,
+      "held": false,
+      "gaps": null,
+      "bar": null,
+      "barStart": 0,
+      "barLength": 1000,
+      "islandFrom": 0,
+      "islandTo": 1000,
+      "start": side("none"),
+      "end": side("none")
+    }, extra ?? {});
+  }
+
+  function test_frame_border() {
+    const f = SurfaceContext.frame(params());
+    const room = SurfaceContext.endRoom(false, true, 24, 2, 12);
+    compare(f.lo, 20 + room);
+    compare(f.hi, 1000 - 20 - room);
+    // Joined ends sit on the strokes' outer edges
+    compare(f.joinFrom, 18);
+    compare(f.joinTo, 982);
+    verify(f.startEnd.joins && f.endEnd.joins);
+    compare(f.wallFrom, undefined);
+  }
+
+  function test_frame_bare_edges_join_flush() {
+    const bare = s => Object.assign(side("none"), {
+        "kind": SurfaceContext.endKind({
+          "border": false,
+          "bar": null
+        })
+      });
+    const f = SurfaceContext.frame(params({
+      "border": false,
+      "start": bare(),
+      "end": bare()
+    }));
+    compare(f.joinFrom, 20);
+    compare(f.joinTo, 980);
+    verify(f.startEnd.straight);
+  }
+
+  function test_frame_wall_where_windows_start() {
+    // A transparent bar on the start side: a wall at its reserved line
+    // plus gaps_out, never nearer than its frame line
+    const f = SurfaceContext.frame(params({
+      "start": side("transparent", {
+        "frame": 40,
+        "reserved": 34
+      })
+    }));
+    verify(!f.startEnd.joins);
+    compare(f.wallFrom, 44);
+    compare(f.lo, 44);
+  }
+
+  function test_frame_held_keeps_its_gaps() {
+    const f = SurfaceContext.frame(params({
+      "held": true,
+      "gaps": {
+        "start": 8,
+        "end": 0
+      },
+      "end": side("none", {
+        "reserved": 30
+      })
+    }));
+    verify(!f.startEnd.joins && !f.endEnd.joins);
+    compare(f.lo, 28);
+    // No nearer than where windows start
+    compare(f.hi, 970);
+  }
+
+  function test_frame_island_bar() {
+    const floating = Object.assign(bar("floating"), {
+      "extent": 40,
+      "pillDepth": 30
+    });
+    const f = SurfaceContext.frame(params({
+      "bar": floating,
+      "islandFrom": 30,
+      "islandTo": 970,
+      // Its end held clear of a bar there: its islands already keep to
+      // the windows, so no wall
+      "start": side("transparent", {
+        "barHeld": true
+      })
+    }));
+    verify(!f.startEnd.joins && !f.endEnd.joins);
+    compare(f.wallFrom, undefined);
+    const fm = SurfaceContext.filletMargin(false, 24, 2, 12);
+    compare(f.lo, 30 + fm);
+    compare(f.hi, 970 - fm);
+    compare(f.strokeFrom, 30);
+  }
+
+  function test_layout_attach_across() {
+    const solid = Object.assign(bar("solid"), {
+      "extent": 40,
+      "innerStroke": true
+    });
+    const base = params();
+    const f = SurfaceContext.frame(base);
+    const at = extra => SurfaceContext.layout(f, Object.assign({}, base, {
+        "centre": 500,
+        "aligned": 450,
+        "length": 100,
+        "joinStart": false,
+        "joinEnd": false,
+        "frameLine": 40,
+        "reserved": 40
+      }, extra));
+    // On the stroke of what reserves the edge
+    compare(at({}).attachAt, 38);
+    compare(at({}).ownSink, "border");
+    // Following a solid bar (border off): its own inner stroke
+    const onSolid = at({
+      "bar": solid,
+      "border": false
+    });
+    compare(onSolid.attachFromBar, 38);
+    compare(onSolid.attachAt, 38);
+    compare(onSolid.ownSink, "solidBar");
+    // Held: a connector gap short of its gap past the frame line
+    compare(at({
+      "held": true,
+      "across": 10
+    }).attachAt, 38);
+    verify(at({
+      "held": true,
+      "across": 10
+    }).detached);
+  }
 }

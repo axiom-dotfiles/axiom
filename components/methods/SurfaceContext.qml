@@ -172,4 +172,193 @@ QtObject {
     }
     return o;
   }
+
+  // ---- One surface on an edge, whoever hosts it ----
+  // Everything below is in screen px along the edge (0 at its start: the
+  // top or left screen edge), across it in px from the screen edge, so a
+  // bar popout, an edge popout and a dock at the same place get the same
+  // answer. EdgePlacement gathers the inputs and converts to its host's
+  // window.
+
+  /**
+   * What a surface's ends meet and the room it has along its edge, before
+   * its box is known. `p`:
+   *   span (the edge's length), border (the screen border is on), bareEdge
+   *     (its own edge is bare), gap (connector gap), stroke, radius
+   *   held, gaps ({ start, end } from the frame lines, held only)
+   *   bar (the enriched bar it follows, or null), barStart, barLength
+   *     (where that bar's window lies along the edge), islandFrom,
+   *     islandTo (where its islands may reach)
+   *   start, end: per perpendicular side { kind (endKind), frame (its
+   *     frame line: what an unjoined end measures its room from), reserved
+   *     (where windows start, before gaps_out), gapsOut,
+   *     barHeld (the followed bar's end there is held clear of a bar) },
+   *     each in px from that side's own screen edge
+   * Returns { startEnd, endEnd (end()), lo, hi (where an unjoined box may
+   *   reach, fillets in), joinFrom, joinTo (where a joined end sits),
+   *   strokeFrom, strokeTo (the perpendicular strokes' outer edges, or a
+   *   floating bar's island reach), wallFrom, wallTo (or undefined),
+   *   pillFrom, pillTo, islandFrom, islandTo }
+   */
+  function frame(p) {
+    const bar = p.bar ?? null;
+    const island = !!bar?.island;
+    const pillBar = !!bar && (!!bar.pills || island);
+    const fm = root.filletMargin(p.bareEdge, p.gap, p.stroke, p.radius);
+    const room = root.endRoom(p.bareEdge, p.border, p.gap, p.stroke, p.radius);
+    // Along the edge from its start: a side's distance from its own edge
+    const at = (side, d) => side === "start" ? d : p.span - d;
+    const sign = side => side === "start" ? 1 : -1;
+    const sides = {};
+    for (const side of ["start", "end"]) {
+      const q = p[side];
+      const e = root.end(q.kind, {
+        "held": p.held,
+        "detached": !!bar && !bar.solid && !pillBar,
+        "ownIsland": island,
+        "ownEndHeld": island && !!q.barHeld,
+        "stroke": p.stroke
+      });
+      // Unjoined: held, its gap past the frame line (no nearer than where
+      // windows start); at a wall, where windows start past it; on a
+      // floating bar, its islands' reach; else the frame's corner room
+      let limit;
+      if (p.held)
+        limit = at(side, Math.max(q.reserved, q.frame + (p.gaps?.[side] ?? 0)));
+      else if (e.wall)
+        limit = at(side, root.wallLine(q.frame, q.reserved, q.gapsOut));
+      else if (island)
+        limit = (side === "start" ? p.islandFrom : p.islandTo) + sign(side) * fm;
+      else
+        limit = at(side, q.frame) + sign(side) * room;
+      const stroke = island ? (side === "start" ? p.islandFrom : p.islandTo) : at(side, q.frame - (q.kind.kind === "bare" ? 0 : p.stroke));
+      const unjoined = bar ? (side === "start" ? p.barStart : p.barStart + p.barLength) : at(side, q.frame);
+      sides[side] = {
+        "end": e,
+        "limit": limit,
+        "stroke": stroke,
+        "join": e.joins ? stroke : unjoined,
+        "wall": e.wall ? limit : undefined
+      };
+    }
+    return {
+      "startEnd": sides.start.end,
+      "endEnd": sides.end.end,
+      "lo": sides.start.limit,
+      "hi": sides.end.limit,
+      "joinFrom": sides.start.join,
+      "joinTo": sides.end.join,
+      "strokeFrom": sides.start.stroke,
+      "strokeTo": sides.end.stroke,
+      "wallFrom": sides.start.wall,
+      "wallTo": sides.end.wall,
+      "pillFrom": bar ? p.barStart : sides.start.join,
+      "pillTo": bar ? p.barStart + p.barLength : sides.end.join,
+      "islandFrom": p.islandFrom,
+      "islandTo": p.islandTo
+    };
+  }
+
+  // Which ends a box wanting `start` to `start + length` joins, given its
+  // frame (EdgeAttach.joins)
+  function joinsOf(f, start, length, gap) {
+    return EdgeAttach.joins(start, length, f.lo, f.hi, gap, f.startEnd.joins, f.endEnd.joins);
+  }
+
+  /**
+   * The box placed in its frame (`f`, frame()) and all that follows from
+   * where it lands. `p`, as frame()'s, and:
+   *   pills (the followed bar's pills or islands, along the edge), centre,
+   *     aligned, length (the content's), joinStart, joinEnd (joinsOf)
+   *   frameLine (across: the inner side of what's on its own edge),
+   *     reserved (where windows start across it), detachedPush
+   *     (Bar.detachedPush for the followed bar), ownBar (whatever bar is on
+   *     its edge, for the shadow), across (held: the gap from the frame
+   *     line across the edge)
+   * Returns EdgeAttach.place's result and: merged, onPill, detached,
+   *   straight, backfill, attachClearance, attachAt (across, from the
+   *   screen edge), attachFromBar (the same from the followed bar's outer
+   *   edge), barOuter, pillFoot, ownSink, shadow, stretchClamp
+   */
+  function layout(f, p) {
+    const bar = p.bar ?? null;
+    const island = !!bar?.island;
+    const pillBar = !!bar && (!!bar.pills || island);
+    const place = EdgeAttach.place({
+      "pills": p.pills ?? [],
+      "pillBar": !!bar?.pills,
+      "island": island,
+      "merge": bar?.pillMerge ?? 0,
+      "centre": p.centre,
+      "aligned": p.aligned,
+      "length": p.length,
+      "joinStart": p.joinStart,
+      "joinEnd": p.joinEnd,
+      "joinFrom": f.joinFrom,
+      "joinTo": f.joinTo,
+      "lo": f.lo,
+      "hi": f.hi,
+      "wallFrom": f.wallFrom,
+      "wallTo": f.wallTo,
+      "islandFrom": f.islandFrom,
+      "islandTo": f.islandTo,
+      "straight": p.bareEdge,
+      "straightMerged": !p.border,
+      "pillGrows": true,
+      "pillJoins": true,
+      "pillFrom": f.pillFrom,
+      "pillTo": f.pillTo,
+      "gap": p.gap,
+      "stroke": p.stroke,
+      "radius": p.radius
+    });
+    const merged = place.mode === "merged";
+    const onPill = place.mode === "pill" || place.mode === "island";
+    const detached = root.detached(p.held, bar, place.mode);
+    const pillFoot = pillBar ? (island ? bar.extent : bar.pillDepth) - p.stroke : 0;
+    const barOuter = bar ? p.frameLine - bar.extent : 0;
+    // Where the attach edge goes, from the followed bar's outer edge: that
+    // edge when merged, a pill's or island's far stroke, a solid bar's own
+    // inner stroke, or a transparent bar's inner edge (pushed out to the
+    // windows, Bar.detachedPush)
+    const attachFromBar = !bar ? 0 : merged ? 0 : onPill ? pillFoot : bar.extent - (bar.innerStroke ? p.stroke : 0) + (p.detachedPush ?? 0);
+    // Held, a connector gap short of where the box goes; following a bar,
+    // as that meets it; else on the stroke of what reserves the edge
+    const attachAt = p.held ? p.frameLine + (p.across ?? 0) - p.gap / 2 : bar ? barOuter + attachFromBar : p.reserved - (p.bareEdge ? 0 : p.stroke);
+    // The stroke it stands on along its own edge: the border's, or with
+    // the border off a solid bar's own (not a pill's or island's: the bar
+    // opens that itself; nor a bare edge's)
+    let ownSink;
+    if (detached || onPill || (bar && !bar.solid && !merged) || p.bareEdge)
+      ownSink = null;
+    else if (merged)
+      ownSink = p.border ? "border" : null;
+    else
+      ownSink = p.border ? "border" : "solidBar";
+    const ownBar = p.ownBar ?? null;
+    return Object.assign({}, place, {
+      "merged": merged,
+      "onPill": onPill,
+      "detached": detached,
+      "straight": merged ? !p.border : place.mode === "plain" && p.bareEdge,
+      "backfill": !detached && onPill ? 1 : 0,
+      "attachClearance": merged ? pillFoot : 0,
+      "attachAt": attachAt,
+      "attachFromBar": attachFromBar,
+      "barOuter": barOuter,
+      "pillFoot": pillFoot,
+      "ownSink": ownSink,
+      "shadow": root.shadow({
+        "edge": p.edge,
+        "detached": detached,
+        "border": p.border,
+        "bar": ownBar,
+        "onBar": !p.held && (onPill || merged || (ownBar?.innerStroke ?? false))
+      }),
+      // A joined submenu's reach along the pill it stands on stays between
+      // the strokes at the edge's ends
+      "stretchFrom": f.strokeFrom,
+      "stretchTo": f.strokeTo
+    });
+  }
 }
