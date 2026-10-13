@@ -252,7 +252,7 @@ Item {
   readonly property bool _straightJoinStart: _m.straightJoinStart
   readonly property bool _straightJoinEnd: _m.straightJoinEnd
   readonly property bool _joinFillet: _m.joinFillet
-  // Room each end for a fillet square, minus the stroke overlap
+  // Room each end for its fillet: the arc's run (EdgeAttach.filletMargin)
   readonly property real startMargin: _natural.startMargin
   readonly property real endMargin: _natural.endMargin
   readonly property real alongLength: _natural.alongLength

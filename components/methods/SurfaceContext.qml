@@ -64,8 +64,8 @@ QtObject {
   }
 
   // The least room a box keeps from an end it doesn't join: its fillet's,
-  // past the frame's rounded inner corner while the border is on (a
-  // fillet's run along the stroke beside that arc draws a straight stub)
+  // past the frame's rounded inner corner while the border is on, so the
+  // fillet's arc starts where the corner's ends
   function endRoom(ownBare, border, gap, stroke, radius) {
     return root.filletMargin(ownBare, gap, stroke, radius) + (border && !ownBare ? radius : 0);
   }
@@ -75,6 +75,16 @@ QtObject {
   // than its frame line (a bar reserving nothing)
   function wallLine(frameLine, reserved, gapsOut) {
     return Math.max(frameLine, reserved + gapsOut);
+  }
+
+  // Where a surface meeting a wall stops, its fillet included, from the
+  // perpendicular screen edge: its box in line with the windows (`windows`,
+  // wallLine), its fillet past that beside the stroke it stands on, pushed
+  // in only as far as that fillet needs to clear the frame's rounded inner
+  // corner (`corner`, BarManager.cornerLine; `room`, endRoom: the fillet's
+  // `fm` and the corner's arc)
+  function wallAt(windows, corner, fm, room) {
+    return Math.max(windows - fm, corner + room - fm);
   }
 
   // One end of a surface, from what it meets (endKind) and the surface.
@@ -87,8 +97,9 @@ QtObject {
   //   strokeInset (how far its window reaches onto the stroke there, for a
   //   joined end to sit on its outer edge), straight (a joined end runs
   //   straight off it rather than curving in with a fillet; a pill bar's
-  //   end decides that itself, PillBarJoin.filleted), wall (its walls stop
-  //   where windows start there, its fillet inside them too), sink (where the
+  //   end decides that itself, PillBarJoin.filleted), wall (its box stops
+  //   in line with the windows there, its fillet past them, clear of the
+  //   frame's corner: wallAt), sink (where the
   //   stroke a joined end covers is left open: "border", "solidBar" or
   //   "pillBar"; null for none) }
   function end(e, s) {
@@ -191,13 +202,15 @@ QtObject {
    *     islandTo (where its islands may reach)
    *   start, end: per perpendicular side { kind (endKind), frame (its
    *     frame line: what an unjoined end measures its room from), reserved
-   *     (where windows start, before gaps_out), gapsOut,
+   *     (where windows start, before gaps_out), gapsOut, corner (where the
+   *     frame's rounded inner corner lies, BarManager.cornerLine),
    *     barHeld (the followed bar's end there is held clear of a bar) },
    *     each in px from that side's own screen edge
    * Returns { startEnd, endEnd (end()), lo, hi (where an unjoined box may
    *   reach, fillets in), joinFrom, joinTo (where a joined end sits),
    *   strokeFrom, strokeTo (the perpendicular strokes' outer edges, or a
-   *   floating bar's island reach), wallFrom, wallTo (or undefined),
+   *   floating bar's island reach), wallFrom, wallTo (where a surface
+   *   meeting a wall stops, its fillet included: wallAt; or undefined),
    *   pillFrom, pillTo, islandFrom, islandTo }
    */
   function frame(p) {
@@ -220,14 +233,16 @@ QtObject {
         "stroke": p.stroke
       });
       // Unjoined: held, its gap past the frame line (no nearer than where
-      // windows start); at a wall, where windows start past it; on a
-      // floating bar, its islands' reach; else the frame's corner room
-      let limit;
+      // windows start); at a wall, in line with the windows past it, its
+      // fillet clear of the frame's corner (wallAt); on a floating bar, its
+      // islands' reach; else the frame's corner room
+      let limit, wall;
       if (p.held)
         limit = at(side, Math.max(q.reserved, q.frame + (p.gaps?.[side] ?? 0)));
-      else if (e.wall)
-        limit = at(side, root.wallLine(q.frame, q.reserved, q.gapsOut));
-      else if (island)
+      else if (e.wall) {
+        wall = at(side, root.wallAt(root.wallLine(q.frame, q.reserved, q.gapsOut), q.corner ?? 0, fm, room));
+        limit = wall + sign(side) * fm;
+      } else if (island)
         limit = (side === "start" ? p.islandFrom : p.islandTo) + sign(side) * fm;
       else
         limit = at(side, q.frame) + sign(side) * room;
@@ -238,7 +253,7 @@ QtObject {
         "limit": limit,
         "stroke": stroke,
         "join": e.joins ? stroke : unjoined,
-        "wall": e.wall ? limit : undefined
+        "wall": wall
       };
     }
     return {
@@ -319,8 +334,8 @@ QtObject {
     const barOuter = bar ? p.frameLine - bar.extent : 0;
     // Where the attach edge goes, from the followed bar's outer edge: that
     // edge when merged, a pill's or island's far stroke, a solid bar's own
-    // inner stroke, or a transparent bar's inner edge (pushed out to the
-    // windows, Bar.detachedPush)
+    // inner stroke, or a transparent bar's inner edge (moved so its box is
+    // in line with the windows, Bar.detachedPush)
     const attachFromBar = !bar ? 0 : merged ? 0 : onPill ? pillFoot : bar.extent - (bar.innerStroke ? p.stroke : 0) + (p.detachedPush ?? 0);
     // Held, a connector gap short of where the box goes; following a bar,
     // as that meets it; else on the stroke of what reserves the edge

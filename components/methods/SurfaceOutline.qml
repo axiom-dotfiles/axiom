@@ -43,7 +43,8 @@ QtObject {
     const straightJoinStart = !!(s.straightJoinStart ?? s.straightJoins) || sharp;
     const straightJoinEnd = !!(s.straightJoinEnd ?? s.straightJoins) || sharp;
     const joinFillet = (!!s.joinStart && !straightJoinStart) || (!!s.joinEnd && !straightJoinEnd);
-    const full = s.connectorGap - s.strokeWidth;
+    // A fillet's room along the edge: its arc's run (EdgeAttach.filletMargin)
+    const full = R - half;
     const startMargin = filletStart ? full : 0;
     const endMargin = filletEnd ? full : 0;
     const alongLength = startMargin + s.boxAlong + endMargin;

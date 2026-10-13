@@ -35,17 +35,21 @@ import QtQuick
 //   outer edge (`merged`).
 // - At an end with nothing to join (another bar on the perpendicular
 //   edge, an integrated menu's strip) the caller may set a wall: where
-//   windows start. The whole surface, its fillet included, stays inside
-//   it, so it keeps the windows' gap from what's past it (a floating bar's
-//   island never has a fillet wrapped round it), and it never joins that
-//   edge. Short of room there, the box moves in: radii never shrink.
+//   the surface stops, its fillet included (SurfaceContext.wallAt puts
+//   it a fillet short of where windows start, so the box is in line with
+//   them, or clear of the frame's corner), and it never joins that edge.
+//   Short of room there, the box moves in: radii never shrink.
 QtObject {
   id: root
 
-  // Room a side wall's fillet takes along the edge (0 when the radius is
-  // too tight for one, see AttachedSurface._sharp)
+  // Room a side wall's fillet takes along the edge: its arc's run, from
+  // where it leaves the stroke it grows from to the wall's stroke centre
+  // (SurfaceOutline), so nothing straight of its own runs on along that
+  // stroke past it; 0 when the radius is too tight for one (see
+  // AttachedSurface._sharp). `gap` is kept for callers: the connector gap
+  // is twice the radius, not the fillet's room.
   function filletMargin(gap, stroke, radius) {
-    return radius < stroke / 2 ? 0 : Math.max(0, gap - stroke);
+    return radius < stroke / 2 ? 0 : radius - stroke / 2;
   }
 
   // Whether a box wanting `start` to `start + length` joins the

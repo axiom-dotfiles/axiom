@@ -139,11 +139,11 @@ TestCase {
 
   function test_margins() {
     // gap 48, stroke 2, radius 24
-    compare(SurfaceContext.filletMargin(false, 48, 2, 24), 46);
+    compare(SurfaceContext.filletMargin(false, 48, 2, 24), 23);
     compare(SurfaceContext.filletMargin(true, 48, 2, 24), 0);
     compare(SurfaceContext.filletMargin(false, 48, 4, 1), 0);
-    compare(SurfaceContext.endRoom(false, true, 48, 2, 24), 70);
-    compare(SurfaceContext.endRoom(false, false, 48, 2, 24), 46);
+    compare(SurfaceContext.endRoom(false, true, 48, 2, 24), 47);
+    compare(SurfaceContext.endRoom(false, false, 48, 2, 24), 23);
     compare(SurfaceContext.endRoom(true, false, 48, 2, 24), 0);
     compare(SurfaceContext.wallLine(30, 40, 10), 50);
     compare(SurfaceContext.wallLine(60, 40, 10), 60);
@@ -407,8 +407,31 @@ TestCase {
       })
     }));
     verify(!f.startEnd.joins);
-    compare(f.wallFrom, 44);
+    // The box in line with the windows, its fillet past them
+    const fm = SurfaceContext.filletMargin(false, 24, 2, 12);
     compare(f.lo, 44);
+    compare(f.wallFrom, 44 - fm);
+  }
+
+  function test_frame_wall_clears_the_frame_corner() {
+    // Windows start too near the frame's corner for the fillet to fit
+    // beside its arc: the box moves in just far enough, at either end
+    const room = SurfaceContext.endRoom(false, true, 24, 2, 12);
+    const near = {
+      "frame": 24,
+      "reserved": 20,
+      "corner": 14
+    };
+    const f = SurfaceContext.frame(params({
+      "start": side("transparent", near),
+      "end": side("floating", near)
+    }));
+    compare(f.lo, 14 + room);
+    compare(f.hi, 1000 - 14 - room);
+    compare(f.wallFrom, 14 + 12);
+    compare(f.wallTo, 1000 - 14 - 12);
+    compare(SurfaceContext.wallAt(30, 14, 22, 34), 26);
+    compare(SurfaceContext.wallAt(80, 14, 22, 34), 58);
   }
 
   function test_frame_held_keeps_its_gaps() {
@@ -487,5 +510,19 @@ TestCase {
       "held": true,
       "across": 10
     }).detached);
+    // Past a transparent bar: detached, its box (half a connector gap past
+    // its attach edge) in line with the windows, even where they start
+    // nearer than that half gap past the bar
+    const clear = Object.assign(bar("transparent"), {
+      "extent": 40,
+      "innerStroke": false
+    });
+    const past = at({
+      "bar": clear,
+      "detachedPush": 6 - 12
+    });
+    verify(past.detached);
+    compare(past.attachFromBar, 34);
+    compare(past.attachAt + 24 / 2, 46);
   }
 }

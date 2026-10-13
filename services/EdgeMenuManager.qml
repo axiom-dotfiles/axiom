@@ -58,6 +58,12 @@ Singleton {
     return BarManager.frameLine(screen, location) + root.zoneOn(screen?.name ?? "", Bar.edgeName(location));
   }
 
+  // Where the border frame's rounded inner corner lies from a screen edge,
+  // integrated menus included (BarManager.cornerLine)
+  function cornerLineOn(screen, location) {
+    return BarManager.cornerLine(screen, location) + root.zoneOn(screen?.name ?? "", Bar.edgeName(location));
+  }
+
   // How far past where windows start on a screen edge (a Bar.Location;
   // reservedOn) a surface held `gap` off its frame line (frameLineOn) is:
   // where a held box goes, in from its window's edge there

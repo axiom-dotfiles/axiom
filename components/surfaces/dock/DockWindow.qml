@@ -299,7 +299,7 @@ Scope {
     const r = root._restRect();
     if (!root.attached)
       return [r];
-    const m = Math.max(0, root.connectorGap - Appearance.borderWidth);
+    const m = EdgeAttach.filletMargin(root.connectorGap, Appearance.borderWidth, Appearance.borderRadius);
     return [root.vertical ? Qt.rect(r.x, r.y - m, r.width, r.height + m * 2) : Qt.rect(r.x - m, r.y, r.width + m * 2, r.height)];
   }
 

@@ -501,6 +501,18 @@ QtObject {
     return bar.extent;
   }
 
+  // Where the border frame's rounded inner corner lies from a screen edge
+  // (a Bar.Location), in px: past a solid bar its strip (frameLine), else
+  // the frame's own width, any other bar sitting inside it; 0 with the
+  // border off. What an end with nothing to join keeps its fillet clear of
+  // (SurfaceContext.wallAt).
+  function cornerLine(screen, location) {
+    if (!Appearance.screenBorder)
+      return 0;
+    const bar = root.edgesFor(screen)[Bar.edgeName(location)];
+    return bar?.solid ? root.frameLine(screen, location) : Appearance.screenMargin;
+  }
+
   // The gaps a surface held off a screen edge (a Bar.Location) keeps from
   // the frame lines (frameLine) across that edge and at its two ends (the
   // perpendicular edges at its start and end: top and bottom, or left and

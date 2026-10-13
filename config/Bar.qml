@@ -307,12 +307,13 @@ QtObject {
 
   // How much further than half a connector gap past a transparent bar's
   // inner edge a box detached from it (a bar popout, a floating edge menu)
-  // sits, so it starts no nearer than the windows: past an inner accent
-  // line, they start gaps_out out (reserveTrim)
+  // sits, so it starts in line with the windows: at the bar's inner edge,
+  // or past an inner accent line gaps_out out (reserveTrim). Negative when
+  // they start nearer than half a connector gap: its attach edge moves in.
   function detachedPush(barConfig, gapsOut, connectorGap) {
     if (barConfig.background !== "transparent")
       return 0;
-    return Math.max(0, gapsOut - Bar.reserveTrim(barConfig, gapsOut) - connectorGap / 2);
+    return gapsOut - Bar.reserveTrim(barConfig, gapsOut) - connectorGap / 2;
   }
 
   // The exclusive zone a bar sets (BarPanel), given Hyprland's gaps_out on

@@ -292,7 +292,7 @@ def run_scenario(base, scenario, layout, border, opacity, monitor, outdir):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("outdir")
-    ap.add_argument("--only", nargs="*", help="scenario names (layout[:variant])")
+    ap.add_argument("--only", nargs="*", help="scenario names (layout[__variant], by prefix)")
     ap.add_argument("--monitor", default="DP-1")
     ap.add_argument("--workspace", default="9", help="an empty workspace to shoot on, so windows behind don't muddle the strokes")
     args = ap.parse_args()

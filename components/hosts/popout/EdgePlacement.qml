@@ -129,6 +129,7 @@ QtObject {
       "kind": BarManager.surfaceEnd(root.screen, location),
       "frame": frame,
       "reserved": reserved,
+      "corner": EdgeMenuManager.cornerLineOn(root.screen, location),
       "gapsOut": HyprlandManager.gapsOut[name] ?? 0,
       "barHeld": held
     };
