@@ -206,7 +206,9 @@ QtObject {
    *     frame's rounded inner corner lies, BarManager.cornerLine),
    *     barHeld (the followed bar's end there is held clear of a bar) },
    *     each in px from that side's own screen edge
-   * Returns { startEnd, endEnd (end()), lo, hi (where an unjoined box may
+   * Returns { startEnd, endEnd (end(), their strokeInset widened to reach an
+   *   unjoined end's fillet where it starts short of `reserved`), lo, hi
+   *   (where an unjoined box may
    *   reach, fillets in), joinFrom, joinTo (where a joined end sits),
    *   strokeFrom, strokeTo (the perpendicular strokes' outer edges, or a
    *   floating bar's island reach), wallFrom, wallTo (where a surface
@@ -248,8 +250,16 @@ QtObject {
         limit = at(side, q.frame) + sign(side) * room;
       const stroke = island ? (side === "start" ? p.islandFrom : p.islandTo) : at(side, q.frame - (q.kind.kind === "bare" ? 0 : p.stroke));
       const unjoined = bar ? (side === "start" ? p.barStart : p.barStart + p.barLength) : at(side, q.frame);
+      // Its window reaches back past where windows start as far as its
+      // surface may: a joined end onto the stroke it sits on, an unjoined
+      // one to where its fillet starts (a wall's past the windows' line,
+      // over what's reserved there), or that part of it is clipped
+      const from = p.held ? limit : limit - sign(side) * fm;
+      const reach = Math.ceil(sign(side) * (at(side, q.reserved) - from));
       sides[side] = {
-        "end": e,
+        "end": Object.assign({}, e, {
+          "strokeInset": Math.max(e.strokeInset, reach)
+        }),
         "limit": limit,
         "stroke": stroke,
         "join": e.joins ? stroke : unjoined,

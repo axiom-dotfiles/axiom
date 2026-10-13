@@ -411,6 +411,26 @@ TestCase {
     const fm = SurfaceContext.filletMargin(false, 24, 2, 12);
     compare(f.lo, 44);
     compare(f.wallFrom, 44 - fm);
+    // Its window reaches back over the reserved space to hold that fillet
+    compare(f.startEnd.strokeInset, Math.ceil(34 - (44 - fm)));
+    compare(f.endEnd.strokeInset, 2);
+  }
+
+  function test_frame_wall_window_holds_the_fillet() {
+    // Windows start just past a transparent bar: the fillet starts over
+    // its reserved space, and the window reaches back to it
+    const fm = SurfaceContext.filletMargin(false, 24, 2, 12);
+    const f = SurfaceContext.frame(params({
+      "start": side("transparent", {
+        "frame": 60,
+        "reserved": 60,
+        "gapsOut": 6,
+        "corner": 14
+      })
+    }));
+    compare(f.lo, 66);
+    compare(f.wallFrom, 66 - fm);
+    compare(f.startEnd.strokeInset, 60 - (66 - fm));
   }
 
   function test_frame_wall_clears_the_frame_corner() {
@@ -430,6 +450,9 @@ TestCase {
     compare(f.hi, 1000 - 14 - room);
     compare(f.wallFrom, 14 + 12);
     compare(f.wallTo, 1000 - 14 - 12);
+    // Its fillet starts past where windows start: no reach back
+    compare(f.startEnd.strokeInset, 0);
+    compare(f.endEnd.strokeInset, 0);
     compare(SurfaceContext.wallAt(30, 14, 22, 34), 26);
     compare(SurfaceContext.wallAt(80, 14, 22, 34), 58);
   }
