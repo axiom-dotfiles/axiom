@@ -59,15 +59,15 @@ QtObject {
   // Room a side wall's fillet takes along the edge: none on a bare screen
   // edge, which the surface runs straight off, else EdgeAttach's (none
   // with a radius too tight for one)
-  function filletMargin(ownBare, gap, stroke, radius) {
-    return ownBare ? 0 : EdgeAttach.filletMargin(gap, stroke, radius);
+  function filletMargin(ownBare, stroke, radius) {
+    return ownBare ? 0 : EdgeAttach.filletMargin(stroke, radius);
   }
 
   // The least room a box keeps from an end it doesn't join: its fillet's,
   // past the frame's rounded inner corner while the border is on, so the
   // fillet's arc starts where the corner's ends
-  function endRoom(ownBare, border, gap, stroke, radius) {
-    return root.filletMargin(ownBare, gap, stroke, radius) + (border && !ownBare ? radius : 0);
+  function endRoom(ownBare, border, stroke, radius) {
+    return root.filletMargin(ownBare, stroke, radius) + (border && !ownBare ? radius : 0);
   }
 
   // Where a wall stands, from the perpendicular screen edge: where windows
@@ -219,8 +219,8 @@ QtObject {
     const bar = p.bar ?? null;
     const island = !!bar?.island;
     const pillBar = !!bar && (!!bar.pills || island);
-    const fm = root.filletMargin(p.bareEdge, p.gap, p.stroke, p.radius);
-    const room = root.endRoom(p.bareEdge, p.border, p.gap, p.stroke, p.radius);
+    const fm = root.filletMargin(p.bareEdge, p.stroke, p.radius);
+    const room = root.endRoom(p.bareEdge, p.border, p.stroke, p.radius);
     // Along the edge from its start: a side's distance from its own edge
     const at = (side, d) => side === "start" ? d : p.span - d;
     const sign = side => side === "start" ? 1 : -1;
@@ -303,7 +303,8 @@ QtObject {
    * Returns EdgeAttach.place's result and: merged, onPill, detached,
    *   straight, backfill, attachClearance, attachAt (across, from the
    *   screen edge), attachFromBar (the same from the followed bar's outer
-   *   edge), barOuter, pillFoot, ownSink, shadow, stretchClamp
+   *   edge), barOuter, ownSink, shadow, stretchFrom, stretchTo (where a
+   *   joined submenu's reach along its pill stays)
    */
   function layout(f, p) {
     const bar = p.bar ?? null;
@@ -371,7 +372,6 @@ QtObject {
       "attachAt": attachAt,
       "attachFromBar": attachFromBar,
       "barOuter": barOuter,
-      "pillFoot": pillFoot,
       "ownSink": ownSink,
       "shadow": root.shadow({
         "edge": p.edge,

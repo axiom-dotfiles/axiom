@@ -64,7 +64,6 @@ Item {
   // The surface starts at the attach edge, so the box slides in from
   // there: placed under a bar, from beneath it.
   property real detachedOffset: 0
-  readonly property real _lead: detached ? detachedOffset : 0
   // Fill drawn this far behind the attach edge (the surface grows by it,
   // and v = 0 stays on the attach edge). A popout on a pill's far stroke
   // takes a pixel, to cover the pill stroke's anti-aliased fringe on the
@@ -240,18 +239,8 @@ Item {
   })
   readonly property var _natural: SurfaceOutline.metrics(root._baseSpec)
   readonly property var _m: SurfaceOutline.withBoxStart(root._spec, SurfaceOutline.metrics(root._spec), root.boxStart)
-  // A radius under half the stroke (0 included) is too tight for a
-  // fillet: its stroke's inner edge would need a negative radius, and its
-  // margin (below) would go negative, pushing the walls out of the surface.
-  // The walls run straight into what they attach to instead.
-  readonly property bool _sharp: _natural.sharp
-  // Whether each side wall ends in a fillet: not where the end is joined
-  // or flush, nor where it runs straight off a bare screen edge
-  readonly property bool _filletStart: _natural.filletStart
-  readonly property bool _filletEnd: _natural.filletEnd
   readonly property bool _straightJoinStart: _m.straightJoinStart
   readonly property bool _straightJoinEnd: _m.straightJoinEnd
-  readonly property bool _joinFillet: _m.joinFillet
   // Room each end for its fillet: the arc's run (EdgeAttach.filletMargin)
   readonly property real startMargin: _natural.startMargin
   readonly property real endMargin: _natural.endMargin

@@ -41,9 +41,9 @@ TestCase {
   }
 
   function test_filletMargin() {
-    compare(EdgeAttach.filletMargin(56, 2, 28), 27);
+    compare(EdgeAttach.filletMargin(2, 28), 27);
     // Too tight a radius for a fillet
-    compare(EdgeAttach.filletMargin(0, 2, 0), 0);
+    compare(EdgeAttach.filletMargin(2, 0), 0);
   }
 
   function test_joins() {

@@ -36,7 +36,7 @@ QtObject {
     const back = detached ? 0 : (s.backfill ?? 0);
     const lead = detached ? (s.detachedOffset ?? 0) : 0;
     // A radius under half the stroke is too tight for a fillet: the walls
-    // run straight into what they attach to (AttachedSurface._sharp)
+    // run straight into what they attach to
     const sharp = R < half;
     const filletStart = !sharp && !s.joinStart && !s.flushStart && !s.straight;
     const filletEnd = !sharp && !s.joinEnd && !s.flushEnd && !s.straight;

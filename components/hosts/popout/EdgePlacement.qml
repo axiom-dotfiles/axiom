@@ -32,7 +32,7 @@ QtObject {
   property bool held: false
   property int gap: -1
   readonly property var gaps: root.held ? BarManager.detachedGaps(root.screen, root.edge, root.gap) : null
-  property int connectorGap: Appearance.connectorGap
+  readonly property int connectorGap: Appearance.connectorGap
 
   // The bar it follows: a bar popout's own (`followPanel`, solid
   // included); else the bar on its edge other than a solid one, while it
@@ -73,13 +73,14 @@ QtObject {
   // Where the surface is drawn, which a box gliding along its edge (a bar
   // popout switching in place) lags its place by: its openings follow it
   property real drawnSurfaceStart: root.place.surfaceStart
-  // Where a joined submenu's outer wall runs straight up into the pill or
-  // island it stands on, which reaches on to it (EdgeAttach.reachStretch),
-  // else null
-  property var reach: null
-  // Where a submenu joined to the box's side covers the stroke it stands
-  // on beside the box ({ start, end }), left open there too, else null
-  property var submenuSpan: null
+  // The host's SubmenuHost, if it has one: where a joined submenu's outer
+  // wall runs straight up into the pill or island it stands on, which
+  // reaches on to it (EdgeAttach.reachStretch), and where it covers the
+  // stroke it stands on beside the box ({ start, end }, left open there
+  // too while the surface's openings show); else null
+  property var submenu: null
+  readonly property var reach: root.submenu?.joinReach ?? null
+  readonly property var submenuSpan: root.opens ? (root.submenu?.joinSpan ?? null) : null
 
   // Its pill stretch: a key unique per surface on a bar, and whether it
   // shows (not while the content loads or unloads, the box a placeholder)
@@ -98,18 +99,11 @@ QtObject {
   readonly property real _span: (root.vertical ? root.screen?.height : root.screen?.width) ?? 0
   readonly property real _spanAcross: (root.vertical ? root.screen?.width : root.screen?.height) ?? 0
   readonly property bool bareEdge: BarManager.screenEdgeOpen(root.screen, root.edge)
-  // Room for a side wall's fillet at an end that isn't joined
-  readonly property real filletMargin: SurfaceContext.filletMargin(root.bareEdge, root.connectorGap, Appearance.borderWidth, Appearance.borderRadius)
   // The bar on the edge, whatever it is (an enriched bar entry), or null
   readonly property var ownBar: BarManager.edgesFor(root.screen)[root.edgeName] ?? null
 
   // Where the followed bar's window lies along the screen edge
-  readonly property real barStart: {
-    if (!root.barPanel)
-      return 0;
-    const placed = root.barPanel.screenPlaced;
-    return placed ? (root.vertical ? placed.y : placed.x) : BarManager.barStartOn(root.screen, root.edge, true);
-  }
+  readonly property real barStart: root.barPanel ? (root.vertical ? root.barPanel.screenPlaced.y : root.barPanel.screenPlaced.x) : 0
   readonly property real _barLength: root.container?.length ?? root._span
   // Host coordinates to the bar window's and the screen's, and back
   readonly property real _toBar: root.alongStart - root.barStart
@@ -156,8 +150,6 @@ QtObject {
   // What each end meets, and what that makes it (SurfaceContext.end)
   readonly property var startEnd: root.frame.startEnd
   readonly property var endEnd: root.frame.endEnd
-  readonly property bool joinableStart: root.startEnd.joins
-  readonly property bool joinableEnd: root.endEnd.joins
   // How far the window reaches onto the perpendicular strokes past each
   // end, where a joined end sits (as a bar's inside the border does)
   readonly property real strokeInsetStart: root.startEnd.strokeInset
@@ -247,8 +239,6 @@ QtObject {
   readonly property real attachAt: root._layout.attachAt
   readonly property real attachFromBar: root._layout.attachFromBar
   readonly property real barOuter: root._layout.barOuter
-  // A pill's (or island's) far stroke, from the bar's outer edge
-  readonly property real pillFoot: root._layout.pillFoot
   // On a pill's far stroke the surface covers that stroke's inner fringe
   readonly property int backfill: root._layout.backfill
   // Its pill stretch, reaching on to a joined submenu's wall (kept between
@@ -322,7 +312,7 @@ QtObject {
     screen: root.screen
     owner: root.owner + ":submenuStroke"
     sink: root._layout.ownSink
-    span: root.opens && root.submenuSpan ? root._edgeSpan(root.submenuSpan.start, root.submenuSpan.end) : null
+    span: root.submenuSpan ? root._edgeSpan(root.submenuSpan.start, root.submenuSpan.end) : null
   }
   property StrokeOpening _startOpening: StrokeOpening {
     screen: root.screen

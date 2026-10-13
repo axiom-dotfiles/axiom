@@ -46,9 +46,8 @@ QtObject {
   // where it leaves the stroke it grows from to the wall's stroke centre
   // (SurfaceOutline), so nothing straight of its own runs on along that
   // stroke past it; 0 when the radius is too tight for one (see
-  // AttachedSurface._sharp). `gap` is kept for callers: the connector gap
-  // is twice the radius, not the fillet's room.
-  function filletMargin(gap, stroke, radius) {
+  // SurfaceOutline.metrics' `sharp`)
+  function filletMargin(stroke, radius) {
     return radius < stroke / 2 ? 0 : radius - stroke / 2;
   }
 
@@ -123,7 +122,7 @@ QtObject {
     const pill = pills.length > 0 && (s.island || pillBar) ? root.pillAt(pills, s.centre, true) : null;
     if (pill !== null)
       return root._onPill(s, pills, pill, !s.island);
-    const fm = root.filletMargin(s.gap, s.stroke, s.radius);
+    const fm = root.filletMargin(s.stroke, s.radius);
     const length = s.length;
     // On whole pixels: a fillet ending mid-pixel leaves a pale pixel in
     // the stroke it joins
@@ -229,7 +228,7 @@ QtObject {
   function _onPill(s, pills, own, isPill) {
     // Within reach: a pill bar's frame, or where islands may go
     const reachFrom = isPill ? s.joinFrom : s.islandFrom, reachTo = isPill ? s.joinTo : s.islandTo;
-    const fm = root.filletMargin(s.gap, s.stroke, s.radius);
+    const fm = root.filletMargin(s.stroke, s.radius);
     const need = fm + s.radius;
     // At a wall, the fillet inside it, and a full fillet and the pill's
     // corner inside the reach (the pill can't grow past the wall), so the
@@ -261,7 +260,7 @@ QtObject {
 
   // The box out of pill (or island) `own` with its content at `content`
   function _onPillAt(s, pills, own, isPill, content) {
-    const fm = root.filletMargin(s.gap, s.stroke, s.radius);
+    const fm = root.filletMargin(s.stroke, s.radius);
     const length = s.length, r = s.radius;
     // Room past the box for a fillet: its margin, and the pill's rounded
     // corner beyond, which a fillet can't land on

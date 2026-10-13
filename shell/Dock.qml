@@ -4,6 +4,7 @@ import Quickshell
 
 import qs.config
 import qs.services
+import qs.components.reusable
 import qs.components.surfaces.dock
 
 // The docks (DockConfig), one per enabled entry, each on the screens its
@@ -20,10 +21,15 @@ Scope {
     delegate: Scope {
       id: entry
       required property string modelData
-      readonly property var dock: DockConfig.dockById(modelData)
+      readonly property var _found: DockConfig.dockById(modelData)
+      // As last found, so its windows are never handed null as it's removed
+      property LastFound _held: LastFound {
+        source: entry._found
+      }
+      readonly property var dock: entry._held.value
 
       Variants {
-        model: entry.dock ? DockConfig.screensOf(entry.dock).filter(screen => ShellManager.showsOn(screen, entry.dock.monitors, entry.dock.monitor)) : []
+        model: entry._found ? DockConfig.screensOf(entry._found).filter(screen => ShellManager.showsOn(screen, entry._found.monitors, entry._found.monitor)) : []
 
         delegate: DockWindow {
           required property ShellScreen modelData

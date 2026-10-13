@@ -132,7 +132,7 @@ Item {
     // Any other end (a joined parent's) keeps the fillet clear of the
     // parent's own.
     readonly property real boxLength: submenuPopup.contentHeight + surface.contentInset * 2
-    readonly property real _need: EdgeAttach.filletMargin(root.connectorGap, Appearance.borderWidth, Appearance.borderRadius) + Appearance.borderRadius
+    readonly property real _need: EdgeAttach.filletMargin(Appearance.borderWidth, Appearance.borderRadius) + Appearance.borderRadius
     readonly property real _joinLine: outer.slot?.side?.attachLine ?? 0
     readonly property bool _joinTop: outer.slot?.side?.joinTop ?? false
     readonly property bool _joinBottom: outer.slot?.side?.joinBottom ?? false

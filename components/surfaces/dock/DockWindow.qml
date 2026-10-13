@@ -48,7 +48,7 @@ Scope {
   // a bare screen edge; with another bar on its edge, meeting it as a bar
   // popout would.
   readonly property string _edgeName: Bar.edgeName(root.edge)
-  readonly property int connectorGap: Appearance.connectorGap
+  readonly property int connectorGap: placement.connectorGap
   // Held off the edge, and its gaps from the frame lines across its edge
   // and at its ends (what places it, so a change of `held` never reads
   // them before they follow)
@@ -119,7 +119,6 @@ Scope {
     edge: root.edge
     held: root.held
     gap: root.dock.gap
-    connectorGap: root.connectorGap
     centre: root.centre
     // Its joins from where it would rest, so magnifying never joins or
     // parts an end
@@ -299,7 +298,7 @@ Scope {
     const r = root._restRect();
     if (!root.attached)
       return [r];
-    const m = EdgeAttach.filletMargin(root.connectorGap, Appearance.borderWidth, Appearance.borderRadius);
+    const m = EdgeAttach.filletMargin(Appearance.borderWidth, Appearance.borderRadius);
     return [root.vertical ? Qt.rect(r.x, r.y - m, r.width, r.height + m * 2) : Qt.rect(r.x - m, r.y, r.width + m * 2, r.height)];
   }
 

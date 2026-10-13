@@ -71,7 +71,7 @@ PopoutWrapperBase {
   property bool grabEnabled: true
   // Other windows the grab lets input through to
   property var grabWindows: []
-  readonly property var window: surfaceWindow
+  window: surfaceWindow
 
   currentItem: root.contentItem
   keepAlive: boxHover.hovered || (focusGrab.active && root.wantsKeyboardFocus)

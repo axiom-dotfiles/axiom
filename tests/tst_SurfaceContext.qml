@@ -139,12 +139,12 @@ TestCase {
 
   function test_margins() {
     // gap 48, stroke 2, radius 24
-    compare(SurfaceContext.filletMargin(false, 48, 2, 24), 23);
-    compare(SurfaceContext.filletMargin(true, 48, 2, 24), 0);
-    compare(SurfaceContext.filletMargin(false, 48, 4, 1), 0);
-    compare(SurfaceContext.endRoom(false, true, 48, 2, 24), 47);
-    compare(SurfaceContext.endRoom(false, false, 48, 2, 24), 23);
-    compare(SurfaceContext.endRoom(true, false, 48, 2, 24), 0);
+    compare(SurfaceContext.filletMargin(false, 2, 24), 23);
+    compare(SurfaceContext.filletMargin(true, 2, 24), 0);
+    compare(SurfaceContext.filletMargin(false, 4, 1), 0);
+    compare(SurfaceContext.endRoom(false, true, 2, 24), 47);
+    compare(SurfaceContext.endRoom(false, false, 2, 24), 23);
+    compare(SurfaceContext.endRoom(true, false, 2, 24), 0);
     compare(SurfaceContext.wallLine(30, 40, 10), 50);
     compare(SurfaceContext.wallLine(60, 40, 10), 60);
   }
@@ -370,7 +370,7 @@ TestCase {
 
   function test_frame_border() {
     const f = SurfaceContext.frame(params());
-    const room = SurfaceContext.endRoom(false, true, 24, 2, 12);
+    const room = SurfaceContext.endRoom(false, true, 2, 12);
     compare(f.lo, 20 + room);
     compare(f.hi, 1000 - 20 - room);
     // Joined ends sit on the strokes' outer edges
@@ -408,7 +408,7 @@ TestCase {
     }));
     verify(!f.startEnd.joins);
     // The box in line with the windows, its fillet past them
-    const fm = SurfaceContext.filletMargin(false, 24, 2, 12);
+    const fm = SurfaceContext.filletMargin(false, 2, 12);
     compare(f.lo, 44);
     compare(f.wallFrom, 44 - fm);
     // Its window reaches back over the reserved space to hold that fillet
@@ -419,7 +419,7 @@ TestCase {
   function test_frame_wall_window_holds_the_fillet() {
     // Windows start just past a transparent bar: the fillet starts over
     // its reserved space, and the window reaches back to it
-    const fm = SurfaceContext.filletMargin(false, 24, 2, 12);
+    const fm = SurfaceContext.filletMargin(false, 2, 12);
     const f = SurfaceContext.frame(params({
       "start": side("transparent", {
         "frame": 60,
@@ -436,7 +436,7 @@ TestCase {
   function test_frame_wall_clears_the_frame_corner() {
     // Windows start too near the frame's corner for the fillet to fit
     // beside its arc: the box moves in just far enough, at either end
-    const room = SurfaceContext.endRoom(false, true, 24, 2, 12);
+    const room = SurfaceContext.endRoom(false, true, 2, 12);
     const near = {
       "frame": 24,
       "reserved": 20,
@@ -491,7 +491,7 @@ TestCase {
     }));
     verify(!f.startEnd.joins && !f.endEnd.joins);
     compare(f.wallFrom, undefined);
-    const fm = SurfaceContext.filletMargin(false, 24, 2, 12);
+    const fm = SurfaceContext.filletMargin(false, 2, 12);
     compare(f.lo, 30 + fm);
     compare(f.hi, 970 - fm);
     compare(f.strokeFrom, 30);

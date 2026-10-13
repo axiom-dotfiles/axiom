@@ -71,19 +71,19 @@ HOOK = """
     }
     function sub(which: string): string {
       const host = devPopoutsHelper.host;
-      if (!host?.popupWindow)
+      if (!host?.window)
         return "no host";
-      const list = devPopoutsHelper.anchors(host.popupWindow.contentItem, []);
+      const list = devPopoutsHelper.anchors(host.window.contentItem, []);
       if (list.length === 0) {
         // A tray menu's entries with a submenu
-        const entries = devPopoutsHelper.trayEntries(host.popupWindow.contentItem, []);
+        const entries = devPopoutsHelper.trayEntries(host.window.contentItem, []);
         if (entries.length === 0)
           return "no anchors";
         const entry = entries[which === "last" ? entries.length - 1 : 0];
         const inner = Array.from(host.submenu.data).find(o => o.autoDismiss !== undefined);
         if (inner)
           inner.autoDismiss = false;
-        host.submenu.safeOpenPopout(host.popupWindow, {
+        host.submenu.safeOpenPopout(host.window, {
           "name": "parts/TraySubmenu",
           "menuItem": entry.menuItem,
           "anchorItem": entry

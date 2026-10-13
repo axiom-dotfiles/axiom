@@ -11,11 +11,12 @@ import qs.components.reusable
 // box past its top or bottom (parentStretch, drawn animated), the box at
 // rest it attaches to, and what it leaves open in the box's strokes and
 // shadow (submenuHole, submenuBox, submenuJoinSpan), which the host's
-// EdgeSurface takes. The submenu reads it as its `slot`.
+// EdgeSurface and EdgePlacement take. The submenu reads it as its `slot`.
 Item {
   id: root
 
-  // The popout host (BarPopouts, EdgePopout: a PopoutWrapperBase)
+  // The popout host (BarPopouts, EdgePopout: a PopoutWrapperBase), whose
+  // window's size picks the side a submenu opens on
   required property var wrapper
   required property ShellScreen screen
   // The host's surface (an EdgeSurface: the submenu casts its shadow as
@@ -26,15 +27,8 @@ Item {
   property rect boxRect: Qt.rect(0, 0, 0, 0)
   property var popupScreenOrigin: null
   property point popupScreenPlaced: Qt.point(0, 0)
-  // The host's window, whose size picks the side a submenu opens on
-  property real windowWidth: 0
-  property real windowHeight: 0
   // Glide the stretch (once the host's box has settled)
   property bool animate: false
-  // A FrameNudge in the host's window: the hole a submenu leaves in the
-  // box's side follows it sliding, in its own window, shown there only
-  // once that one commits again
-  property var nudge: null
 
   // The host's EdgePlacement, and how far its coordinates are from its
   // window's along the edge: what the submenu meets on the box's side
@@ -64,8 +58,8 @@ Item {
     joinEnd: root._place?.joinEnd ?? false
     boxCentreX: root.boxRect.x + root.boxRect.width / 2
     boxCentreY: root.boxRect.y + root.boxRect.height / 2
-    windowWidth: root.windowWidth
-    windowHeight: root.windowHeight
+    windowWidth: root.wrapper.window?.width ?? 0
+    windowHeight: root.wrapper.window?.height ?? 0
     stretch: root.stretch
   }
   readonly property bool openToLeft: root.side.openToLeft
@@ -118,7 +112,23 @@ Item {
   property var submenuHole: null
   property var submenuBox: null
   property var submenuJoinSpan: null
-  onSubmenuHoleChanged: root.nudge?.burst()
+  // The hole a submenu leaves in the box's side follows it sliding, in
+  // its own window: shown in the host's only once that one commits again
+  onSubmenuHoleChanged: nudge.burst()
+  FrameNudge {
+    id: nudge
+    parent: root.wrapper.window?.contentItem ?? null
+  }
+
+  // ...and for the host's EdgePlacement, in its coordinates along the
+  // edge: where a joined submenu's outer wall runs straight up into the
+  // pill or island the box stands on (EdgeAttach.reachStretch), and the
+  // stretch of that stroke it covers beside the box
+  readonly property var joinReach: root.stretch?.joinReach != null ? root.stretch.joinReach - root.windowShift : null
+  readonly property var joinSpan: root.submenuJoinSpan ? {
+    "start": root.submenuJoinSpan.start - root.windowShift,
+    "end": root.submenuJoinSpan.end - root.windowShift
+  } : null
 
   // For the host's surface: its stroke holes (the submenu's opening in the
   // box's side, and joined at the bar side, the fillet there) and the

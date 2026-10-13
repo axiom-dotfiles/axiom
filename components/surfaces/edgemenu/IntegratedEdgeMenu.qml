@@ -71,13 +71,14 @@ PopoutWrapperBase {
   }
   dismissDelay: root.menu.closeDelay
   keepAlive: panelHover.hovered || trigger.containsMouse
+  window: panel
 
   EdgeMenuSync {
     id: sync
     host: root
     menu: root.menu
     screen: root.screen
-    window: panel
+    window: root.window
     triggerWindow: trigger
     frame: root.frame
     onWarpRequested: HyprlandManager.warpCursorToLayer("axiom-edge-menu", root.screen?.name ?? "", panel.width, panel.height, loader.x + loader.width / 2, loader.y + loader.height / 2)

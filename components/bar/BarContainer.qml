@@ -64,7 +64,7 @@ Rectangle {
     if (root.pills) {
       if (!end.held)
         return root.barConfig.pillInset;
-      const fillet = Appearance.screenBorder ? EdgeAttach.filletMargin(root.pillConnector, Appearance.borderWidth, Appearance.borderRadius) : 0;
+      const fillet = Appearance.screenBorder ? EdgeAttach.filletMargin(Appearance.borderWidth, Appearance.borderRadius) : 0;
       return end.over + end.gap + fillet + root.barConfig.pillGap;
     }
     if (root.islands)

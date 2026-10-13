@@ -73,8 +73,16 @@ Item {
   readonly property bool anchorHovered: currentData?.anchorItem?.hovered ?? false
   // Hovered itself (its content or anchor), or kept alive by its wrapper
   readonly property bool ownHovered: (currentItem?.hovered ?? false) || anchorHovered || keepAlive
-  // Its submenu open (SubPopout) keeps it up too
-  property bool childOpen: false
+  // The window showing it
+  property var window: null
+  // A wrapper with a submenu (BarPopouts, EdgePopout) sets its
+  // SubmenuHost: the submenu (SubPopout), which a PopoutAnchor in its
+  // content opens, and the side it opens to (the tray reads it)
+  property var submenuHost: null
+  readonly property var submenu: root.submenuHost?.submenu ?? null
+  readonly property bool openToLeft: root.submenuHost?.openToLeft ?? false
+  // Its submenu open keeps it up too
+  property bool childOpen: root.submenuHost?.open ?? false
   readonly property bool contentHovered: ownHovered || childOpen
   property int dismissDelay: currentItem?.dismissDelay ?? PopoutConfig.dismissDelay
   property bool autoDismiss: currentItem?.autoDismiss ?? true

@@ -45,8 +45,8 @@ PopoutWrapperBase {
   // Over the overlay and fullscreen windows (BlurManager.backsOn), the box
   // and a submenu in its window: on the Overlay layer unless under the bar
   readonly property bool onOverlayLayer: !root.underBar
-  readonly property var popupWindow: mainPopup
-  // Content box in popupWindow coordinates (see AttachedSurface.boxRect)
+  window: mainPopup
+  // Content box in its window's coordinates (see AttachedSurface.boxRect)
   readonly property rect boxRect: Qt.rect(surface.x + surface.boxRect.x, surface.y + surface.boxRect.y, surface.boxRect.width, surface.boxRect.height)
 
   // Its place among the popouts (PopoutManager), one per bar: it shows
@@ -76,11 +76,7 @@ PopoutWrapperBase {
   // is the stroke the box grows from on a horizontal bar: a solid bar's, a
   // pill's or island's far stroke as the box stretches it, else the
   // perpendicular strokes, or the border at a merged box's outer edge.
-  readonly property SubmenuHost submenuHost: slot
-  readonly property SubPopout submenu: slot.submenu
-  childOpen: slot.open
-  // Which side its submenus open to (the tray reads it)
-  readonly property bool openToLeft: slot.openToLeft
+  submenuHost: slot
   SubmenuHost {
     id: slot
     wrapper: root
@@ -91,10 +87,7 @@ PopoutWrapperBase {
     // blur: null until the bar's is known; or where it most likely is
     popupScreenOrigin: surface.barOrigin ? mainPopup.windowOrigin : null
     popupScreenPlaced: mainPopup.windowOrigin
-    windowWidth: mainPopup.width
-    windowHeight: mainPopup.height
     animate: still.settled
-    nudge: popupNudge
     geometry: placement
     windowShift: mainPopup.alongShift
   }
@@ -132,10 +125,10 @@ PopoutWrapperBase {
   // Content with a text field up asks for the keyboard (Panel's
   // wantsKeyboardFocus): a focus grab over the popout and its bar, which a
   // click outside clears (the content's focusLost())
-  readonly property bool wantsKeyboardFocus: root.popupWindow.visible && (root.currentItem?.wantsKeyboardFocus ?? false)
+  readonly property bool wantsKeyboardFocus: root.window.visible && (root.currentItem?.wantsKeyboardFocus ?? false)
 
   HyprlandFocusGrab {
-    windows: [root.popupWindow, root.panel].concat(ShellManager.modalWindows)
+    windows: [root.window, root.panel].concat(ShellManager.modalWindows)
     active: root.wantsKeyboardFocus
     onCleared: root.currentItem?.focusLost?.()
   }
@@ -153,9 +146,6 @@ PopoutWrapperBase {
     if (typeof item.forceLayout === "function")
       item.forceLayout();
   }
-
-  // Gap between bar and main content (connector thickness)
-  property int connectorGap: Appearance.connectorGap
 
   // Where the anchor widget was when it opened, in bar-window coordinates
   // (from currentData.anchorItem; the anchorX/anchorY snapshot in the
@@ -198,7 +188,7 @@ PopoutWrapperBase {
     const pos = item.mapToItem(null, 0, 0);
     const from = root.barConfig.vertical ? pos.y : pos.x;
     const to = from + (root.barConfig.vertical ? item.height : item.width);
-    return from <= mainPopup.boxEnd + root.connectorGap && to >= mainPopup.boxStart - root.connectorGap;
+    return from <= mainPopup.boxEnd + placement.connectorGap && to >= mainPopup.boxStart - placement.connectorGap;
   }
   // The old content held as a still where it is along the bar
   // (SwitchStill), then the new payload opened under it
@@ -215,14 +205,13 @@ PopoutWrapperBase {
   // the strokes it covers left open
   readonly property real anchorCentre: root.barConfig.vertical ? root.anchorRect.y + root.anchorRect.height / 2 : root.anchorRect.x + root.anchorRect.width / 2
   // Out and granted: what the openings and the joined pill bars follow
-  readonly property bool _out: root.occupied && root.claimed && root.popupWindow.visible
+  readonly property bool _out: root.occupied && root.claimed && root.window.visible
   EdgePlacement {
     id: placement
     screen: root.screen
     edge: root.barConfig.location
     followPanel: root.panel
     alongStart: root.barConfig.vertical ? mainPopup.barOrigin.y : mainPopup.barOrigin.x
-    connectorGap: root.connectorGap
     centre: root.anchorCentre
     aligned: mainPopup.alignedBoxStart
     contentLength: mainPopup.boxLength
@@ -231,13 +220,7 @@ PopoutWrapperBase {
     coverStart: surface.coverStart
     coverLength: surface.coverLength
     drawnSurfaceStart: mainPopup.shownAlongPos
-    // A joined submenu's outer wall, and the stroke it covers beside the
-    // box (x in the popup)
-    reach: slot.stretch?.joinReach != null ? slot.stretch.joinReach - mainPopup.alongShift : null
-    submenuSpan: root._out && slot.submenuJoinSpan ? {
-      "start": slot.submenuJoinSpan.start - mainPopup.alongShift,
-      "end": slot.submenuJoinSpan.end - mainPopup.alongShift
-    } : null
+    submenu: slot
     owner: "barPopout:" + root.barConfig.id
     showing: root.occupied && root.claimed
     open: still.showing && !root.isClosing && root.claimed
@@ -247,7 +230,6 @@ PopoutWrapperBase {
     opens: root._out
   }
   readonly property var place: placement.place
-  readonly property var anchorPill: root.place.pill
 
   // How far past the bar's outer edge a merged popout's content starts:
   // where a pill's far stroke would be, with the border on or off
@@ -357,13 +339,7 @@ PopoutWrapperBase {
     }
 
     // What PopoutAnchors in its content open in
-    readonly property var popoutHost: slot.submenu
-
-    // The hole a submenu leaves in the box's side follows it sliding, in
-    // its own window: shown here once this one commits again
-    FrameNudge {
-      id: popupNudge
-    }
+    readonly property var popoutHost: root.submenu
 
     // Where the bar window is on the screen, else where it most likely is
     readonly property point barOrigin: root._panel?.screenPlaced ?? Qt.point(0, 0)
@@ -470,7 +446,7 @@ PopoutWrapperBase {
     geometry: placement
     submenu: slot
     screenName: root.screen?.name ?? ""
-    windowShown: root.popupWindow.visible
+    windowShown: root.window.visible
     animateShape: still.settled
     // Once its pill has grown out to carry it
     active: still.showing && !root.isClosing && root.claimed && placement.stretchReady

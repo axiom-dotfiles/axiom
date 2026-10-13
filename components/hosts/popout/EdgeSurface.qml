@@ -7,11 +7,10 @@ import qs.components.reusable
 // An AttachedSurface growing out of a screen edge, wired from its
 // EdgePlacement (`geometry`) and, for a host with submenus, its
 // SubmenuHost: whether it's detached, runs straight off its edge, how its
-// ends join or run flush,
-// its backfill, who fills it (the blur window, or itself, solid while blur
-// is paused for a fullscreen window), how it casts its shadow, what's
-// left open in its strokes and shadow under a submenu, the corners a
-// submenu squares, and its BlurShape. The same for bar popouts, edge
+// ends join or run flush, its backfill, who fills it (the blur window, or
+// itself, solid while blur is paused for a fullscreen window), how it
+// casts its shadow, what's left open in its strokes and shadow under a
+// submenu, the corners a submenu squares, and its BlurShape. The same for bar popouts, edge
 // popouts and docks: hosts set where it is, its box, `active`, colours and
 // content.
 AttachedSurface {
