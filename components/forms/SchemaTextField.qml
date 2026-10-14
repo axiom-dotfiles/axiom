@@ -18,11 +18,17 @@ ColumnLayout {
   property var suggestions: []
   property bool commaList: false
 
-  // What was typed (or a suggestion picked), once it matches `pattern`.
-  // Only an edit in the field emits it: never a value pushed in (a
-  // selection switched, an editor reopened, a form torn down), which
-  // would be written back onto whatever the form edits by then.
+  // What was typed, once it matches `pattern`: on Enter (Ctrl+Enter in a
+  // multiline field), as the field loses focus or is torn down, never per
+  // keystroke (each commit re-applies the whole config live, and a font or
+  // a folder applied half-typed made typing crawl). A picked suggestion
+  // commits at once. Only an edit in the field emits it: never a value
+  // pushed in (a selection switched, an editor reopened), which would be
+  // written back onto whatever the form edits by then.
   signal valueEdited(string value)
+
+  // Typed since the last commit or value pushed in
+  property bool _typed: false
 
   readonly property string _text: root.multiline ? textArea.text : textEntry.text
   // The text as it reads back once committed: a list's typed "a, b," is
@@ -41,13 +47,25 @@ ColumnLayout {
       return;
     textEntry.text = root.currentConfigValue;
     textArea.text = root.currentConfigValue;
+    root._typed = false;
   }
   onCurrentConfigValueChanged: root._show()
 
   function _accept(text) {
-    if (root.pattern === null || new RegExp(root.pattern).test(text))
+    if (root.pattern === null || new RegExp(root.pattern).test(text)) {
+      root._typed = false;
       root.valueEdited(text);
+    }
   }
+
+  // Commits what was typed, if anything was
+  function _commitTyped() {
+    if (root._typed)
+      root._accept(root._text);
+  }
+
+  // Don't lose an edit when the page goes away with the field focused
+  Component.onDestruction: root._commitTyped()
 
   Layout.fillWidth: true
   spacing: 4
@@ -64,11 +82,15 @@ ColumnLayout {
     Layout.preferredHeight: Widget.height
     text: root.currentConfigValue
 
-    onTextEdited: root._accept(textEntry.text)
-    // Half-typed text that never matched shows the value again
+    onTextEdited: root._typed = true
+    onAccepted: root._commitTyped()
+    // Commits on leaving; half-typed text that never matched shows the
+    // value again
     input.onActiveFocusChanged: {
-      if (!textEntry.input.activeFocus)
-        root._show();
+      if (textEntry.input.activeFocus)
+        return;
+      root._commitTyped();
+      root._show();
     }
   }
 
@@ -81,13 +103,13 @@ ColumnLayout {
     newlineOnEnter: true
     text: root.currentConfigValue
 
-    onTextEdited: {
-      if (root.multiline)
-        root._accept(textArea.text);
-    }
+    onTextEdited: root._typed = true
+    onAccepted: root._commitTyped()
     input.onActiveFocusChanged: {
-      if (!textArea.input.activeFocus)
-        root._show();
+      if (textArea.input.activeFocus)
+        return;
+      root._commitTyped();
+      root._show();
     }
   }
 
