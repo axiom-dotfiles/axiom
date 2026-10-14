@@ -10,6 +10,7 @@ How the schema becomes the settings page: layout, cards, folding, sidebar and se
 - `methods/SchemaLayout` turns the schema into categories → groups → rows.
 - Only this page builds its own rows. Flat objects (array items, widget/module options, a bar's fields) render through `forms/SchemaPropertiesForm`.
 - An `array` of objects renders as an add/remove/reorder list (`SchemaObjectArray`, items `SchemaArrayItem`).
+- Text fields (`forms/SchemaTextField`) commit on Enter (Ctrl+Enter when multiline), on focus loss or teardown, and on a suggestion click, never per keystroke. Each commit re-applies the whole config live (~35 ms of JS before layout), and half-typed values had side effects: a font re-shaped every text, a notes folder ran `find` on `/`, `/home`, ….
 
 ### Cards
 - Generated cards are `settings/SettingsGroupCard`.

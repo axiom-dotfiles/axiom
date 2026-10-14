@@ -31,7 +31,7 @@ Overlay modules drawn on the desktop, under the windows. Read this doc for deskt
   - It is a Bottom-layer `PanelWindow` named `axiom-desktop`, with `no_anim` because it fades itself in.
   - It sits over the Background wallpaper and under every window, so fullscreen windows cover it.
 - **Input:**
-  - It takes no keyboard focus.
+  - It takes keyboard focus only while its layout shows a module with `x-keyboard` (`ScreenLayoutView.wantsKeyboard`), and then only on demand: a click on the desktop takes it, a click on a window gives it back. Otherwise clicking a desktop clock would take the keyboard from the focused window.
   - Its input mask is its modules' rects (`ScreenLayoutView.moduleRects`), so clicks on the rest of the desktop go through.
 - **Content:** a `ScreenLayoutView`.
   - `showBackdrop: false`: its backdrop only feeds the frosting (`hideSource`).
@@ -46,8 +46,10 @@ Overlay modules drawn on the desktop, under the windows. Read this doc for deskt
   - ClockCalendar's events are read-only on the desktop.
 
 ### Modules
-- Allowed: the modules whose `x-hosts` list `desktop`. These are display modules and ones that only take clicks: NowPlaying, VolumeDials, SystemGraphs, Disks, TopProcesses, Updates, QuickActions, Greeting, ClockCalendar, Clock, Weather, Battery, Network, Favourites, Palette, ColorSwatch.
-- Not allowed: anything that needs typing (Notes, Chat, Calendar's and Agenda's editors).
+- Allowed: the modules whose `x-hosts` list `desktop`: every module except the lock screen's and the greeter's own (Password, Login, Session, Power, KeyboardLayout) and Submenu (edge menus only).
+- The ones that take typing carry `x-keyboard` (see Input): Notes, Chat, Calculator, EmojiPicker, ClipboardHistory, Cheatsheet, WifiNetworks (its password), Calendar and Agenda (their event editors).
+- ClipboardHistory shows clip history on the wallpaper; it's there only if the user adds it.
+- ClockCalendar has no `x-keyboard`, so its events stay read-only on the desktop (adding it would hand every desktop with a clock the keyboard on a click); Calendar and Agenda edit there.
 - The Clock module (styles, time zones) is in [clock-timezones.md](clock-timezones.md).
 
 ### Editing

@@ -2,7 +2,7 @@
 # OverlayModules: Screenshot
 
 > **File:** `components/content/Screenshot.qml` · **Schema:** `definitions.ScreenshotOverlayModule` · **Label:** Screenshot
-> **Annotations:** x-icon="camera", x-libraryGroup="Tools", x-defaultSize=[4,2]
+> **Annotations:** x-hosts=["overlay","edgeMenu","desktop"], x-icon="camera", x-libraryGroup="Tools", x-defaultSize=[4,2]
 
 Settings are read as `properties.<key>`.
 

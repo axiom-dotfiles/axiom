@@ -2,7 +2,7 @@
 # OverlayModules: WorkspacesMap
 
 > **File:** `components/content/WorkspacesMap.qml` · **Schema:** `definitions.WorkspacesMapOverlayModule` · **Label:** Workspaces
-> **Annotations:** x-icon="grid_view", x-libraryGroup="Desktop", x-defaultSize=[4,2]
+> **Annotations:** x-hosts=["overlay","edgeMenu","desktop"], x-icon="grid_view", x-libraryGroup="Desktop", x-defaultSize=[4,2]
 
 Settings are read as `properties.<key>`.
 

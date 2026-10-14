@@ -2,7 +2,7 @@
 # OverlayModules: EmojiPicker
 
 > **File:** `components/content/EmojiPicker.qml` · **Schema:** `definitions.EmojiPickerOverlayModule` · **Label:** Emoji
-> **Annotations:** x-icon="add_reaction", x-libraryGroup="Tools", x-defaultSize=[4,6]
+> **Annotations:** x-hosts=["overlay","edgeMenu","desktop"], x-keyboard=true, x-icon="add_reaction", x-libraryGroup="Tools", x-defaultSize=[4,6]
 
 Settings are read as `properties.<key>`.
 

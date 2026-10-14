@@ -31,6 +31,9 @@ Item {
   // user's programs can write, and must never get a module that launches
   // or runs anything
   readonly property var shownModules: root.modules.filter(module => OverlayConfig.moduleInfo(module?.type)?.hosts.includes(root.host.kind) === true)
+  // Whether a shown module takes typing (`x-keyboard`), for a host that
+  // otherwise keeps the keyboard away
+  readonly property bool wantsKeyboard: root.shownModules.some(module => OverlayConfig.moduleInfo(module.type)?.keyboard === true)
   // Its wallpaper, when the background is "wallpaper"
   property string wallpaper: ""
   property bool blurWallpaper: true

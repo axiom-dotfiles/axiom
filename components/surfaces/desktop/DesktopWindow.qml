@@ -12,8 +12,9 @@ import qs.components.surfaces.screenlayout
 // fitted inside what's reserved on each edge and Hyprland's gaps_out
 // (DesktopManager.insetsFor), so it lines up with where tiled windows
 // start. Only the modules take clicks (the input mask): the rest of the
-// desktop is clicked through. Never the keyboard, so no module that needs
-// typing is offered here (x-hosts "desktop").
+// desktop is clicked through. The keyboard only on a click, and only
+// while a module takes typing (x-keyboard, e.g. Notes): otherwise clicking
+// a clock would take it from the focused window.
 PanelWindow {
   id: root
 
@@ -21,7 +22,7 @@ PanelWindow {
 
   WlrLayershell.layer: WlrLayer.Bottom
   WlrLayershell.namespace: "axiom-desktop"
-  WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
+  WlrLayershell.keyboardFocus: view.wantsKeyboard ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
   exclusionMode: ExclusionMode.Ignore
   color: "transparent"
   anchors {

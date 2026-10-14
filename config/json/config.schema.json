@@ -3361,6 +3361,7 @@
     },
     "ThemePickerOverlayModule": {
       "type": "object",
+      "x-hosts": ["overlay", "edgeMenu", "desktop"],
       "x-icon": "palette",
       "x-libraryGroup": "Look & layout",
       "x-defaultSize": [4, 8],
@@ -3386,6 +3387,7 @@
     },
     "AudioMixerOverlayModule": {
       "type": "object",
+      "x-hosts": ["overlay", "edgeMenu", "desktop"],
       "x-icon": "tune",
       "x-libraryGroup": "Media & audio",
       "required": ["type"],
@@ -3405,6 +3407,7 @@
     },
     "BrightnessOverlayModule": {
       "type": "object",
+      "x-hosts": ["overlay", "edgeMenu", "desktop"],
       "x-icon": "brightness_medium",
       "x-libraryGroup": "System",
       "x-defaultSize": [4, 1],
@@ -3567,6 +3570,7 @@
     },
     "WorkspacesMapOverlayModule": {
       "type": "object",
+      "x-hosts": ["overlay", "edgeMenu", "desktop"],
       "x-icon": "grid_view",
       "x-libraryGroup": "Desktop",
       "x-defaultSize": [4, 2],
@@ -3586,6 +3590,7 @@
     },
     "NotificationsOverlayModule": {
       "type": "object",
+      "x-hosts": ["overlay", "edgeMenu", "desktop"],
       "x-icon": "notifications",
       "x-libraryGroup": "Desktop",
       "required": ["type"],
@@ -3604,6 +3609,8 @@
     },
     "WifiNetworksOverlayModule": {
       "type": "object",
+      "x-hosts": ["overlay", "edgeMenu", "desktop"],
+      "x-keyboard": true,
       "x-icon": "wifi",
       "x-libraryGroup": "Network & devices",
       "required": ["type"],
@@ -3622,6 +3629,7 @@
     },
     "BluetoothDevicesOverlayModule": {
       "type": "object",
+      "x-hosts": ["overlay", "edgeMenu", "desktop"],
       "x-icon": "bluetooth",
       "x-libraryGroup": "Network & devices",
       "required": ["type"],
@@ -3640,6 +3648,7 @@
     },
     "ScreenshotOverlayModule": {
       "type": "object",
+      "x-hosts": ["overlay", "edgeMenu", "desktop"],
       "x-icon": "camera",
       "x-libraryGroup": "Tools",
       "x-defaultSize": [4, 2],
@@ -3774,6 +3783,8 @@
     },
     "CalculatorOverlayModule": {
       "type": "object",
+      "x-hosts": ["overlay", "edgeMenu", "desktop"],
+      "x-keyboard": true,
       "x-icon": "calculate",
       "x-libraryGroup": "Tools",
       "x-defaultSize": [4, 4],
@@ -3794,6 +3805,8 @@
     },
     "EmojiPickerOverlayModule": {
       "type": "object",
+      "x-hosts": ["overlay", "edgeMenu", "desktop"],
+      "x-keyboard": true,
       "x-icon": "add_reaction",
       "x-libraryGroup": "Tools",
       "x-defaultSize": [4, 6],
@@ -3813,6 +3826,8 @@
     },
     "ClipboardHistoryOverlayModule": {
       "type": "object",
+      "x-hosts": ["overlay", "edgeMenu", "desktop"],
+      "x-keyboard": true,
       "x-icon": "content_paste",
       "x-libraryGroup": "Tools",
       "x-defaultSize": [4, 6],
@@ -3874,6 +3889,7 @@
     },
     "NightLightControlsOverlayModule": {
       "type": "object",
+      "x-hosts": ["overlay", "edgeMenu", "desktop"],
       "x-icon": "bedtime",
       "x-libraryGroup": "System",
       "x-defaultSize": [4, 2],
@@ -3912,6 +3928,7 @@
     },
     "ScreenRecordOverlayModule": {
       "type": "object",
+      "x-hosts": ["overlay", "edgeMenu", "desktop"],
       "x-icon": "screen_record",
       "x-libraryGroup": "Tools",
       "x-defaultSize": [4, 4],
@@ -3932,6 +3949,8 @@
     },
     "CheatsheetOverlayModule": {
       "type": "object",
+      "x-hosts": ["overlay", "edgeMenu", "desktop"],
+      "x-keyboard": true,
       "x-icon": "keyboard",
       "x-libraryGroup": "Tools",
       "x-defaultSize": [8, 6],
@@ -4022,6 +4041,8 @@
     },
     "CalendarOverlayModule": {
       "type": "object",
+      "x-hosts": ["overlay", "edgeMenu", "desktop"],
+      "x-keyboard": true,
       "x-icon": "calendar_month",
       "x-libraryGroup": "Time & weather",
       "x-defaultSize": [4, 8],
@@ -4034,6 +4055,8 @@
     },
     "AgendaOverlayModule": {
       "type": "object",
+      "x-hosts": ["overlay", "edgeMenu", "desktop"],
+      "x-keyboard": true,
       "x-icon": "event_note",
       "x-libraryGroup": "Time & weather",
       "x-defaultSize": [4, 4],
@@ -4114,6 +4137,8 @@
     },
     "ChatOverlayModule": {
       "type": "object",
+      "x-hosts": ["overlay", "edgeMenu", "desktop"],
+      "x-keyboard": true,
       "x-icon": "smart_toy",
       "x-libraryGroup": "Tools",
       "x-defaultSize": [4, 8],
@@ -4128,6 +4153,8 @@
       "type": "object",
       "x-icon": "sticky_note_2",
       "x-libraryGroup": "Tools",
+      "x-hosts": ["overlay", "edgeMenu", "desktop"],
+      "x-keyboard": true,
       "x-defaultSize": [4, 8],
       "required": ["type"],
       "additionalProperties": false,
@@ -4149,6 +4176,7 @@
     },
     "WallpaperPickerOverlayModule": {
       "type": "object",
+      "x-hosts": ["overlay", "edgeMenu", "desktop"],
       "x-icon": "photo_library",
       "x-libraryGroup": "Look & layout",
       "x-defaultSize": [4, 8],

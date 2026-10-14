@@ -2,7 +2,7 @@
 # OverlayModules: WifiNetworks
 
 > **File:** `components/content/WifiNetworks.qml` · **Schema:** `definitions.WifiNetworksOverlayModule` · **Label:** Wi-Fi networks
-> **Annotations:** x-icon="wifi", x-libraryGroup="Network & devices"
+> **Annotations:** x-hosts=["overlay","edgeMenu","desktop"], x-keyboard=true, x-icon="wifi", x-libraryGroup="Network & devices"
 
 Settings are read as `properties.<key>`.
 

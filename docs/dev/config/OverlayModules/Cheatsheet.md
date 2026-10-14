@@ -2,7 +2,7 @@
 # OverlayModules: Cheatsheet
 
 > **File:** `components/content/Cheatsheet.qml` · **Schema:** `definitions.CheatsheetOverlayModule` · **Label:** Keybind cheat sheet
-> **Annotations:** x-icon="keyboard", x-libraryGroup="Tools", x-defaultSize=[8,6]
+> **Annotations:** x-hosts=["overlay","edgeMenu","desktop"], x-keyboard=true, x-icon="keyboard", x-libraryGroup="Tools", x-defaultSize=[8,6]
 
 Settings are read as `properties.<key>`.
 
