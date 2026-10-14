@@ -18,6 +18,12 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 
 ## Open
 
+### `CornerMerge.opening` reads a missing container
+- **Where:** `components/bar/CornerMerge.qml` (`_placed`, `opening`)
+- **What:** Reloads log `TypeError: Cannot read property 'length' of null` at the `opening` binding. `_placed` checks `container !== null`, but `container` (`bar.pillBarStart`/`pillBarEnd`) can be unset or not yet laid out, and `opening` then reads `root.container.length`. Guard `_placed` with `!!root.container` (and check the end reach doesn't flash while it's missing).
+- **Size:** trivial
+- **Found:** 2026-10-14, while fixing pill-bar joins for popouts reaching a corner
+
 ### `Bar` reader holds the edges enum and breaks reader naming
 - **Where:** `config/Bar.qml` (`enum Location`, the `Bars` reader)
 - **What:** The `Bars` section's reader is named `Bar` (other readers are named for their section, with a `Config` suffix where needed), and the same file declares the `Location` edge enum (`Bar.Top`, `Bar.Left`, …) that docks, OSDs, popouts and edge menus use. About 302 `Bar.` references in 57 files, 204 of them the enum. Plan: move the enum to a new `Edge` singleton in config/ (`Edge.Top`), then rename the reader (e.g. `BarsConfig`). `gen_docs.py` needs no change; add the old names to `RETIRED` in `scripts/check_docs.py`, and force a reload afterwards (testing.md › Reloads and logs).
@@ -31,8 +37,8 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Found:** 2026-10-13, while fixing `BlurManager.paused`
 
 ### `BlurManager.paused` warns on every reload
-- **Where:** `services/BlurManager.qml` (`paused`)
-- **What:** Every config reload logs `Unable to assign [undefined] to bool` at the `paused` declaration. The binding itself evaluates to a boolean (a temporary probe logged `boolean false`), and a constant `paused: false` still warned, so it isn't the expression: something in Quickshell's reload of this singleton assigns it. Harmless (the value is right afterwards), but it's noise in every `scripts/log.sh`. Next step: check whether Quickshell carries readonly properties across a reload, or whether making `paused` a plain function helps.
+- **Where:** `services/BlurManager.qml` (`paused`), `services/UpdatesManager.qml` (`checking`)
+- **What:** Every config reload logs `Unable to assign [undefined] to bool` at the `paused` declaration (and, seen 2026-10-14, at `UpdatesManager.checking`, also a readonly bool on a singleton: likely the same cause). The binding itself evaluates to a boolean (a temporary probe logged `boolean false`), and a constant `paused: false` still warned, so it isn't the expression: something in Quickshell's reload of this singleton assigns it. Harmless (the value is right afterwards), but it's noise in every `scripts/log.sh`. Next step: check whether Quickshell carries readonly properties across a reload, or whether making `paused` a plain function helps.
 - **Size:** small
 - **Found:** 2026-10-13, while checking reload logs during the docs makeover
 

@@ -303,6 +303,39 @@ TestCase {
     compare(p.stretch, null, "the pill already reaches past it");
   }
 
+  function test_pill_past_the_unjoined_reach_joins() {
+    // Its pill runs on past where an unjoined box may reach (past a
+    // perpendicular bar's far stroke, at a corner its bar owns): a side
+    // running flush to it joins that edge rather than running on behind
+    // what's there
+    const s = {
+      "pills": [pill(700, 290)],
+      "pillBar": true,
+      "centre": 850,
+      "aligned": 800,
+      "length": 150,
+      "joinTo": 960,
+      "pillJoins": true,
+      "pillTo": 1000,
+      "pillGrows": true
+    };
+    const p = EdgeAttach.place(spec(Object.assign({}, s, {
+      "joinableEnd": true
+    })));
+    compare([p.end, p.joinEnd, p.flushEnd, p.endMargin], [960, true, false, 0]);
+    compare([p.stretch.end, p.stretch.joinEnd], [1000, true]);
+    // An end that can't join still runs flush
+    const q = EdgeAttach.place(spec(s));
+    compare([q.end, q.joinEnd, q.flushEnd], [990, false, true]);
+    // A box keeping its fillet short of the limit is left alone
+    const r = EdgeAttach.place(spec(Object.assign({}, s, {
+      "joinableEnd": true,
+      "aligned": 720,
+      "length": 100
+    })));
+    compare([r.end, r.joinEnd, r.flushEnd, r.endMargin], [820, false, false, 27]);
+  }
+
   function test_pill_joins_the_edges_with_the_box() {
     // A box filling the edge on a pill bar joins both ends from the pill
     // under its centre, which stretches to the bar's ends and joins them
@@ -611,11 +644,20 @@ TestCase {
         "length": 230
       }
     ]));
-    // Past it by no more than a squared stub's end covers: straight
+    // At the wall's outer edge (half a stroke out), where a straight
+    // join squares it: straight
     verify(!at([
       {
         "start": 798,
         "length": 202
+      }
+    ]));
+    // Showing past that edge at all, however little: filleted, the pill
+    // stretched out to carry it rather than squared out of the wall's line
+    verify(at([
+      {
+        "start": 797,
+        "length": 203
       }
     ]));
     // All under the box: straight, into a stub

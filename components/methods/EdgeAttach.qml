@@ -96,7 +96,9 @@ QtObject {
   //   straightMerged (likewise for one grown from a pill bar's outer edge)
   //   pillJoins (on a pill bar, a box joining a perpendicular edge joins
   //     it from any pill, which stretches on to that edge, from `pillFrom`
-  //     or to `pillTo`, where the bar's ends are, and joins it too)
+  //     or to `pillTo`, where the bar's ends are, and joins it too; and
+  //     joinableStart/joinableEnd, whether that end can join at all: a
+  //     side whose pill runs on past `lo`/`hi` joins it there)
   //   pillGrows (a pill or island grows past its end to carry a fillet
   //     its side lands just short of, rather than the box growing empty to
   //     that end; see above)
@@ -216,15 +218,18 @@ QtObject {
    * `radius` the fillet's (and the pill's corner's), `merge` its
    * pillMerge, `stroke` its stroke width.
    *
-   * Filleted where a pill shows past the wall (by more than the stroke a
-   * square stub's end would cover) and starts within the fillet, its own
-   * corner and `merge` of it: the join stretches it out to carry both. A
-   * pill showing past the wall can't square at it (a stretch only grows),
-   * so a straight join there would meet its side in a bare T.
+   * Filleted where a pill shows past the wall at all (past its outer
+   * edge, half a stroke out, where a straight join would square it) and
+   * starts within the fillet, its own corner and `merge` of it: the join
+   * stretches it out to carry both. A pill showing past the wall can't
+   * square at it (a stretch only grows): squared where it is, it stood
+   * out of the wall's line, and a straight join there met its side in a
+   * bare T.
    */
   function pillJoinFilleted(pills, wall, atStart, radius, merge, stroke) {
     const need = radius * 2;
-    return (pills ?? []).some(p => atStart ? p.start + p.length > wall + stroke && p.start <= wall + need + merge : p.start < wall - stroke && p.start + p.length >= wall - need - merge);
+    const edge = stroke / 2 + 0.5;
+    return (pills ?? []).some(p => atStart ? p.start + p.length > wall + edge && p.start <= wall + need + merge : p.start < wall - edge && p.start + p.length >= wall - need - merge);
   }
 
   // How far the pill (or island) `own` reaches toward `target` (before it
@@ -294,8 +299,14 @@ QtObject {
     // (it joins the edge, or the fillet would pass where pills may reach)
     const lo = isPill ? s.joinFrom : s.islandFrom, hi = isPill ? s.joinTo : s.islandTo;
     // (never past a wall)
-    const edgeStart = isPill && !isFinite(s.wallFrom ?? NaN) && (pills.some(p => p.joinStart && p.start === from) || !!s.pillJoins && !!s.joinStart);
-    const edgeEnd = isPill && !isFinite(s.wallTo ?? NaN) && (pills.some(p => p.joinEnd && p.start + p.length === to) || !!s.pillJoins && !!s.joinEnd);
+    // A pill running past where an unjoined box may reach (`lo`/`hi`: on
+    // past a perpendicular bar's far stroke, at a corner its bar owns)
+    // joins an edge that can be joined (`joinableStart`/`joinableEnd`)
+    // rather than a flush side running on past there behind what's on it
+    const overStart = !!s.pillJoins && !!s.joinableStart && from < s.lo;
+    const overEnd = !!s.pillJoins && !!s.joinableEnd && to > s.hi;
+    const edgeStart = isPill && !isFinite(s.wallFrom ?? NaN) && (pills.some(p => p.joinStart && p.start === from) || !!s.pillJoins && !!s.joinStart || overStart);
+    const edgeEnd = isPill && !isFinite(s.wallTo ?? NaN) && (pills.some(p => p.joinEnd && p.start + p.length === to) || !!s.pillJoins && !!s.joinEnd || overEnd);
     const grows0 = !!s.pillGrows && content >= from && content - need >= lo && !edgeStart;
     const grows1 = !!s.pillGrows && content + length <= to && content + length + need <= hi && !edgeEnd;
     // A side that joins the edge (`joinStart`/`joinEnd`: within a connector

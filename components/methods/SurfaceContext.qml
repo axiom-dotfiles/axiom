@@ -333,6 +333,8 @@ QtObject {
       "straightMerged": !p.border,
       "pillGrows": true,
       "pillJoins": true,
+      "joinableStart": f.startEnd.joins,
+      "joinableEnd": f.endEnd.joins,
       "pillFrom": f.pillFrom,
       "pillTo": f.pillTo,
       "gap": p.gap,
