@@ -167,20 +167,21 @@ QtObject {
     };
   }
 
-  // A stretch of a stroke left open ({ start, end, fillet?, filletAtEnd? }),
-  // on whole pixels so neither the stroke nor the fillet's cap half-covers
-  // one; `fillet` (> 0) the radius it curves in with at one end, no more
-  // than the stretch
-  function opening(start, end, fillet, filletAtEnd) {
+  // A stretch of a stroke left open ({ start, end, startFillet?,
+  // endFillet? }), on whole pixels so neither the stroke nor a fillet's cap
+  // half-covers one; `startFillet`/`endFillet` (> 0) the radius a surface
+  // curves into the stroke with at that end, no more than the stretch
+  function opening(start, end, startFillet, endFillet) {
     const s = Math.ceil(start), e = Math.floor(end);
     const o = {
       "start": s,
       "end": Math.max(s, e)
     };
-    if ((fillet ?? 0) > 0) {
-      o.fillet = Math.max(0, Math.min(fillet, o.end - o.start));
-      o.filletAtEnd = !!filletAtEnd;
-    }
+    const room = o.end - o.start;
+    if ((startFillet ?? 0) > 0)
+      o.startFillet = Math.max(0, Math.min(startFillet, room));
+    if ((endFillet ?? 0) > 0)
+      o.endFillet = Math.max(0, Math.min(endFillet, room - (o.startFillet ?? 0)));
     return o;
   }
 
@@ -332,6 +333,8 @@ QtObject {
       "straightMerged": !p.border,
       "pillGrows": true,
       "pillJoins": true,
+      "joinableStart": f.startEnd.joins,
+      "joinableEnd": f.endEnd.joins,
       "pillFrom": f.pillFrom,
       "pillTo": f.pillTo,
       "gap": p.gap,

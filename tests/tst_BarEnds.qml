@@ -35,6 +35,8 @@ TestCase {
       "floatGapAuto": true,
       "trim": background === "transparent" ? 10 : 0,
       "vertical": vertical,
+      // A landscape screen: the side bars lie along its shorter edges
+      "shortEdge": vertical,
       "top": location === "top",
       "bottom": location === "bottom",
       "left": location === "left",
@@ -60,22 +62,53 @@ TestCase {
     compare(bare.end.reach, 0);
   }
 
-  function test_same_kind_horizontal_wins() {
+  function test_on_short_edge() {
+    verify(BarEnds.onShortEdge(true, 2560, 1440), "a side bar on landscape");
+    verify(!BarEnds.onShortEdge(false, 2560, 1440));
+    verify(BarEnds.onShortEdge(false, 1440, 2560), "a top bar on portrait");
+    verify(!BarEnds.onShortEdge(true, 1440, 2560));
+    verify(BarEnds.onShortEdge(true, 1000, 1000), "a side bar on a square screen");
+    verify(!BarEnds.onShortEdge(false, 1000, 1000));
+  }
+
+  function test_same_kind_short_edge_wins() {
     const [side, bottom] = ends([bar("right", "floatingPills"), bar("bottom", "floatingPills")], withBorder);
-    compare(side.end.kind, "bar", "the side bar yields at its end");
-    verify(side.end.held && !side.end.joinable);
-    compare(side.end.reach, 0);
-    compare(side.start.kind, "border", "its other end is untouched");
-    compare(bottom.end.kind, "border", "the bottom bar keeps the corner");
+    compare(bottom.end.kind, "bar", "the bottom bar, the longer, yields at its end");
+    verify(bottom.end.held && !bottom.end.joinable);
+    compare(bottom.end.reach, 0);
+    compare(bottom.start.kind, "border", "its other end is untouched");
+    compare(side.end.kind, "border", "the side bar keeps the corner");
+    // On a portrait screen the top and bottom bars are the shorter
+    const [pSide, pBottom] = ends([bar("right", "floatingPills", {
+        "shortEdge": false
+      }), bar("bottom", "floatingPills", {
+        "shortEdge": true
+      })], withBorder);
+    compare(pSide.end.kind, "bar", "the side bar yields on portrait");
+    compare(pBottom.end.kind, "border");
+  }
+
+  function test_kinds_in_order() {
+    // floating < transparent < pills < solid, whatever the edges
+    const kinds = ["floating", "transparent", "pills", "solid"];
+    for (let i = 0; i < kinds.length; i++) {
+      for (let j = 0; j < kinds.length; j++) {
+        if (i === j)
+          continue;
+        const lower = bar("right", kinds[i]), higher = bar("bottom", kinds[j]);
+        compare(BarEnds.yieldsTo(lower, higher), i < j, kinds[i] + " vs " + kinds[j]);
+      }
+    }
+    verify(BarEnds.yieldsTo(bar("right", "floatingPills"), bar("bottom", "transparent")), "floating pills are floating");
   }
 
   function test_pill_bars_merge_at_their_corner() {
     for (const opts of [withBorder, borderless]) {
       const [side, bottom] = ends([bar("right", "pills"), bar("bottom", "pills")], opts);
-      compare(side.end.kind, "pillBar", "the side bar joins the bottom bar's pills");
-      verify(side.end.joinable && !side.end.held && !side.end.straight);
-      compare(side.end.reach, 2, "onto their far stroke");
-      compare(bottom.end.kind, opts.border ? "border" : "bare", "the bottom bar keeps the corner");
+      compare(bottom.end.kind, "pillBar", "the bottom bar joins the side bar's pills");
+      verify(bottom.end.joinable && !bottom.end.held && !bottom.end.straight);
+      compare(bottom.end.reach, 2, "onto their far stroke");
+      compare(side.end.kind, opts.border ? "border" : "bare", "the side bar keeps the corner");
     }
     const [held] = ends([bar("right", "floatingPills"), bar("bottom", "pills")], withBorder);
     compare(held.end.kind, "bar", "a floating side bar stays held");
@@ -103,9 +136,9 @@ TestCase {
   function test_held_gap_past_a_transparent_bar() {
     // A transparent bar reserves gaps_out short of its edge: the window
     // runs on that far into it, and windows start right at its edge
-    const [side] = ends([bar("left", "transparent"), bar("bottom", "transparent")], withBorder);
-    compare(side.end.over, 10);
-    compare(side.end.gap, 0);
+    const [, bottom] = ends([bar("left", "transparent"), bar("bottom", "transparent")], withBorder);
+    compare(bottom.start.over, 10);
+    compare(bottom.start.gap, 0);
     // A floating bar's own float gap past a bar it yields to
     const [island] = ends([bar("left", "floating", {
         "floatGap": 6,
@@ -114,10 +147,11 @@ TestCase {
     compare(island.end.kind, "bar");
     compare(island.end.over, 0);
     compare(island.end.gap, 6);
-    // ...which keeps a transparent bar's corner
-    const [owner, under] = ends([bar("left", "floating"), bar("bottom", "transparent")], withBorder);
-    compare(owner.end.kind, "border");
-    compare(under.start.kind, "bar");
+    // ...and past a transparent one, which keeps the corner
+    const [under, owner] = ends([bar("left", "floating"), bar("bottom", "transparent")], withBorder);
+    compare(owner.start.kind, "border");
+    compare(under.end.kind, "bar");
+    compare(under.end.over, 10);
   }
 
   function test_solid_owns_its_corners() {

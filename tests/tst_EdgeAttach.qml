@@ -303,6 +303,39 @@ TestCase {
     compare(p.stretch, null, "the pill already reaches past it");
   }
 
+  function test_pill_past_the_unjoined_reach_joins() {
+    // Its pill runs on past where an unjoined box may reach (past a
+    // perpendicular bar's far stroke, at a corner its bar owns): a side
+    // running flush to it joins that edge rather than running on behind
+    // what's there
+    const s = {
+      "pills": [pill(700, 290)],
+      "pillBar": true,
+      "centre": 850,
+      "aligned": 800,
+      "length": 150,
+      "joinTo": 960,
+      "pillJoins": true,
+      "pillTo": 1000,
+      "pillGrows": true
+    };
+    const p = EdgeAttach.place(spec(Object.assign({}, s, {
+      "joinableEnd": true
+    })));
+    compare([p.end, p.joinEnd, p.flushEnd, p.endMargin], [960, true, false, 0]);
+    compare([p.stretch.end, p.stretch.joinEnd], [1000, true]);
+    // An end that can't join still runs flush
+    const q = EdgeAttach.place(spec(s));
+    compare([q.end, q.joinEnd, q.flushEnd], [990, false, true]);
+    // A box keeping its fillet short of the limit is left alone
+    const r = EdgeAttach.place(spec(Object.assign({}, s, {
+      "joinableEnd": true,
+      "aligned": 720,
+      "length": 100
+    })));
+    compare([r.end, r.joinEnd, r.flushEnd, r.endMargin], [820, false, false, 27]);
+  }
+
   function test_pill_joins_the_edges_with_the_box() {
     // A box filling the edge on a pill bar joins both ends from the pill
     // under its centre, which stretches to the bar's ends and joins them
@@ -575,15 +608,13 @@ TestCase {
       "edge": "left",
       "start": 0,
       "end": 70,
-      "fillet": 24,
-      "filletAtEnd": true
+      "endFillet": 24
     });
     compare(EdgeAttach.joinOpening("right", true, 3000, 400, 50, 3440, 24), {
       "edge": "top",
       "start": 3350,
       "end": 3440,
-      "fillet": 24,
-      "filletAtEnd": false
+      "startFillet": 24
     });
     // None, or a straight join's 0, adds nothing
     compare(EdgeAttach.joinOpening("top", true, 10, 100, 60, 1440, 0), {
@@ -591,6 +622,91 @@ TestCase {
       "start": 0,
       "end": 70
     });
+  }
+
+  function test_pillJoinFilleted() {
+    // A bar 1000 long, the surface at its end, its wall at 800; radius
+    // 24 (a fillet and a corner need 48), no merge, stroke 3
+    const at = (pills, merge) => EdgeAttach.pillJoinFilleted(pills, 800, false, 24, merge ?? 0, 3);
+    // A pill running on well past the wall: filleted
+    verify(at([
+      {
+        "start": 600,
+        "length": 400
+      }
+    ]));
+    // One showing past it by less than a fillet and a corner (the
+    // bottom-left OSD on two pill bars): filleted too, stretched to carry
+    // it, as it can't square at the wall
+    verify(at([
+      {
+        "start": 770,
+        "length": 230
+      }
+    ]));
+    // At the wall's outer edge (half a stroke out), where a straight
+    // join squares it: straight
+    verify(!at([
+      {
+        "start": 798,
+        "length": 202
+      }
+    ]));
+    // Showing past that edge at all, however little: filleted, the pill
+    // stretched out to carry it rather than squared out of the wall's line
+    verify(at([
+      {
+        "start": 797,
+        "length": 203
+      }
+    ]));
+    // All under the box: straight, into a stub
+    verify(!at([
+      {
+        "start": 850,
+        "length": 150
+      }
+    ]));
+    // Ending short of the fillet's corner: straight, unless within merge
+    verify(!at([
+      {
+        "start": 500,
+        "length": 240
+      }
+    ]));
+    verify(at([
+      {
+        "start": 500,
+        "length": 240
+      }
+    ], 20));
+    // The same from the start: the surface at the top, its wall at 200
+    const st = pills => EdgeAttach.pillJoinFilleted(pills, 200, true, 24, 0, 3);
+    verify(st([
+      {
+        "start": 0,
+        "length": 230
+      }
+    ]));
+    verify(!st([
+      {
+        "start": 0,
+        "length": 202
+      }
+    ]));
+    verify(st([
+      {
+        "start": 240,
+        "length": 100
+      }
+    ]));
+    verify(!st([
+      {
+        "start": 260,
+        "length": 100
+      }
+    ]));
+    verify(!EdgeAttach.pillJoinFilleted(null, 200, true, 24, 0, 3));
   }
 
   function test_pill_grows_runs_flush_past_its_end() {

@@ -77,6 +77,8 @@ QtObject {
     const boxed = ["filled", "tinted", "outline"].includes(look.widgetStyle);
     const grouping = boxed ? look.widgetGrouping : "separate";
 
+    const vertical = loc === Bar.Left || loc === Bar.Right;
+    const screen = General.screensNamed(barConfig.monitor)[0] ?? null;
     const bar = {
       "id": barConfig.id,
       // The config entry's id: a bar on every monitor has one per screen
@@ -161,7 +163,10 @@ QtObject {
       "reserveSpace": barConfig.reserveSpace,
       // Each Auto color picked for its place on this bar
       "widgets": Bar.withAutoColors(barConfig.widgets, look.widgetStyle, grouping, look.groupColor),
-      "vertical": loc === Bar.Left || loc === Bar.Right,
+      "vertical": vertical,
+      // Along its screen's shorter edge: of two bars of a kind meeting at a
+      // corner, it takes the corner (BarEnds)
+      "shortEdge": screen ? BarEnds.onShortEdge(vertical, screen.width, screen.height) : vertical,
       "left": loc === Bar.Left,
       "right": loc === Bar.Right,
       "top": loc === Bar.Top,
@@ -176,12 +181,13 @@ QtObject {
 
   // A bar window's layer namespace, whose rule's `order` decides where
   // Hyprland arranges it (HyprlandManager.layerRulesLua): by its kind
-  // (solid, outside the border; shaped: pills or floating; transparent)
-  // and, for side bars, a -side one arranged after the top and bottom
-  // bars of that kind (BarEnds)
+  // (solid, outside the border; pills; transparent; floating: bars and
+  // pills held off the edge) and, for a bar along its screen's longer
+  // edge, a -long one arranged after the shorter edge's bar of that kind
+  // (BarEnds)
   function layerNamespace(barConfig) {
-    const kind = barConfig.solid ? "axiom-bar" : barConfig.background === "transparent" ? "axiom-bar-transparent" : "axiom-bar-floating";
-    return barConfig.vertical ? kind + "-side" : kind;
+    const kind = barConfig.solid ? "axiom-bar" : barConfig.island ? "axiom-bar-floating" : barConfig.background === "transparent" ? "axiom-bar-transparent" : "axiom-bar-pill";
+    return barConfig.shortEdge ? kind : kind + "-long";
   }
 
   // BarEnds' options, from Appearance and Hyprland's gaps_out

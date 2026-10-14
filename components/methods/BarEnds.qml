@@ -5,13 +5,14 @@ import QtQuick
 // What each end of a bar meets, where bars on perpendicular edges share a
 // corner (pure). Hyprland hands a corner to the bar it arranges first,
 // which the bars' layer rules decide (HyprlandManager.layerRulesLua):
-// solid bars, then the border, then shaped bars (pills, floating), then
-// transparent ones; between two of a kind the horizontal bar (top or
-// bottom) first. The other bar's window then ends at the owner's reserved
-// line.
+// solid bars, then the border, then pill bars, then transparent ones, then
+// floating ones; between two of a kind the bar on the screen's shorter
+// edge first (`shortEdge`: the side bars on a landscape monitor), so the
+// longer bar gives up its length. The other bar's window then ends at the
+// owner's reserved line.
 //
 // A bar is an enriched bar entry (Bar.enrichBarConfig): `vertical`,
-// `solid`, `background`, `insideBorder`, `island`, `floatGap`,
+// `shortEdge`, `solid`, `background`, `insideBorder`, `island`, `floatGap`,
 // `floatGapAuto`, `trim` (how much less than its extent it reserves),
 // `enabled`, `reserveSpace`, `monitor`, `top`/`bottom`/`left`/`right`.
 // `opts`: { border (the screen border is on), borderWidth, gapsOut (per
@@ -35,11 +36,22 @@ import QtQuick
 QtObject {
   id: root
 
-  // Who wins a shared corner: solid, then shaped, then transparent
+  // Who wins a shared corner: solid, then pills, then transparent, then
+  // floating (bars and pills held off the edge)
   function rank(bar) {
     if (bar.solid)
-      return 2;
-    return bar.background === "transparent" ? 0 : 1;
+      return 3;
+    if (bar.island)
+      return 0;
+    return bar.background === "transparent" ? 1 : 2;
+  }
+
+  // Whether a bar lies along its screen's shorter edge (`width` × `height`
+  // the screen's): a side bar on a landscape or square screen, a top or
+  // bottom one on a portrait screen. Of two bars of a kind, it takes the
+  // corner.
+  function onShortEdge(vertical, width, height) {
+    return vertical ? width >= height : width < height;
   }
 
   // Whether `bar` makes way at a corner for `other`, the bar on the
@@ -49,7 +61,7 @@ QtObject {
     if (!other || other === bar || !other.enabled || !other.reserveSpace)
       return false;
     const a = root.rank(bar), b = root.rank(other);
-    return b > a || (b === a && bar.vertical && !other.vertical);
+    return b > a || (b === a && !bar.shortEdge && !!other.shortEdge);
   }
 
   // The edges a bar's start and end meet: top and bottom for a side bar,

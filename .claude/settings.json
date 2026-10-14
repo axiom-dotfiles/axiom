@@ -16,7 +16,47 @@
       "Bash(python3 scripts/gen_docs.py)",
       "Bash(python3 scripts/gen_docs.py *)",
       "Bash(hyprctl monitors *)",
-      "Bash(hyprctl layers *)"
+      "Bash(hyprctl layers *)",
+      "Bash(python3 scripts/check_doc_drift.py)",
+      "Bash(python3 scripts/check_doc_drift.py *)",
+      "Bash(python3 tests/scripts/test_guard.py)"
+    ],
+    "deny": [
+      "Bash(qs -c axiom ipc call lockscreen lock*)",
+      "Bash(qs ipc call lockscreen lock*)",
+      "Bash(loginctl lock-session*)",
+      "Bash(hyprlock*)",
+      "Bash(qs -c axiom ipc call monitors keep*)",
+      "Bash(qs ipc call monitors keep*)",
+      "Bash(qs -c axiom ipc call selfUpdate update*)",
+      "Bash(qs ipc call selfUpdate update*)",
+      "Bash(ydotool *)",
+      "Bash(dotool *)",
+      "Bash(wlrctl *)",
+      "Bash(hyprctl dispatch movecursor*)",
+      "Bash(systemctl restart greetd*)",
+      "Bash(systemctl stop greetd*)",
+      "Bash(sudo systemctl * greetd*)",
+      "Bash(rm config/user/config.json)",
+      "Bash(rm -f config/user/config.json)",
+      "Bash(git clean -fdx*)",
+      "Bash(git clean -x*)",
+      "Bash(git clean -X*)",
+      "Bash(qmlformat -i *)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard.py\"",
+            "timeout": 10
+          }
+        ]
+      }
     ]
   }
 }

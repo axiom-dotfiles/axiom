@@ -11,12 +11,18 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 ```
 ### <Short title>
 - **Where:** `path/File.qml` (symbol, or several paths)
-- **What:** what's wrong and the evidence (log line, grep count, failing case)
+- **What:** what's wrong and the evidence (log line, grep count, failing case); quote a log warning's message in backticks so verify.sh marks it known
 - **Size:** trivial | small | needs a plan
 - **Found:** YYYY-MM-DD, while <task>
 ```
 
 ## Open
+
+### `CornerMerge.opening` reads a missing container
+- **Where:** `components/bar/CornerMerge.qml` (`_placed`, `opening`)
+- **What:** Reloads log `TypeError: Cannot read property 'length' of null` at the `opening` binding. `_placed` checks `container !== null`, but `container` (`bar.pillBarStart`/`pillBarEnd`) can be unset or not yet laid out, and `opening` then reads `root.container.length`. Guard `_placed` with `!!root.container` (and check the end reach doesn't flash while it's missing).
+- **Size:** trivial
+- **Found:** 2026-10-14, while fixing pill-bar joins for popouts reaching a corner
 
 ### `Bar` reader holds the edges enum and breaks reader naming
 - **Where:** `config/Bar.qml` (`enum Location`, the `Bars` reader)
@@ -31,10 +37,16 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Found:** 2026-10-13, while fixing `BlurManager.paused`
 
 ### `BlurManager.paused` warns on every reload
-- **Where:** `services/BlurManager.qml` (`paused`)
-- **What:** Every config reload logs `Unable to assign [undefined] to bool` at the `paused` declaration. The binding itself evaluates to a boolean (a temporary probe logged `boolean false`), and a constant `paused: false` still warned, so it isn't the expression: something in Quickshell's reload of this singleton assigns it. Harmless (the value is right afterwards), but it's noise in every `scripts/log.sh`. Next step: check whether Quickshell carries readonly properties across a reload, or whether making `paused` a plain function helps.
+- **Where:** `services/BlurManager.qml` (`paused`), `services/UpdatesManager.qml` (`checking`)
+- **What:** Every config reload logs `Unable to assign [undefined] to bool` at the `paused` declaration (and, seen 2026-10-14, at `UpdatesManager.checking`, also a readonly bool on a singleton: likely the same cause). The binding itself evaluates to a boolean (a temporary probe logged `boolean false`), and a constant `paused: false` still warned, so it isn't the expression: something in Quickshell's reload of this singleton assigns it. Harmless (the value is right afterwards), but it's noise in every `scripts/log.sh`. Next step: check whether Quickshell carries readonly properties across a reload, or whether making `paused` a plain function helps.
 - **Size:** small
 - **Found:** 2026-10-13, while checking reload logs during the docs makeover
+
+### Binding loops in bar popout placement
+- **Where:** `components/hosts/popout/EdgePlacement.qml`, `components/hosts/popout/PillBarJoin.qml`, `components/hosts/popout/BarPopouts.qml`, `components/hosts/popout/AttachedSurface.qml`, `components/hosts/popout/SubPopout.qml`
+- **What:** Opening bar popouts on a floating-pills bar logs binding loops, dozens per session: `property "_wall"` (PillBarJoin, created at EdgePlacement.qml:345), `property "joinReach"` (EdgePlacement), `property "surfaceX"` / `property "surfaceY"` (BarPopouts' window), `property "_spec"` (AttachedSurface) and `property "place"` / `property "alignedBoxStart"` (SubPopout). They're in every qs instance's log back to 2026-10-13, before the corner-priority change. The values settle (no visible glitch reported), but a loop can leave a stale value for a frame and buries real warnings. Likely one cycle: the placement reads the pill's join reach, which reads the placement's wall. (`_surfaceFromEdge`'s loop is gone: it now comes from the layout's `attachAt`, not the drawn surface.)
+- **Size:** needs a plan
+- **Found:** 2026-10-14, while reviewing verify.sh output for the agent-setup changes
 
 ### Schema root `description` duplicates the annotation docs
 - **Where:** `config/json/config.schema.json` (root `description`)

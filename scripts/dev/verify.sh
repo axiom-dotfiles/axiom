@@ -5,8 +5,11 @@
 #   1. formats changed QML with Qt 6's qmlformat, writing in place so the
 #      file keeps its inode and the running shell still reloads it
 #   2. check_structure, gen_docs (rewrites docs/dev/config + generated),
-#      qmllint, the unit tests the change touches, shellcheck, i18n
-#   3. the shell's log since its last reload
+#      check_docs, qmllint, the unit tests the change touches, shellcheck, i18n
+#   3. the shell's log since its last reload, lines issues.md already
+#      covers marked (known: …)
+#   4. warnings: the docs describing the changed files (check_doc_drift.py),
+#      and a missing pre-commit hook
 #
 #   scripts/dev/verify.sh             what changed since HEAD
 #   scripts/dev/verify.sh --all       every check on everything (check_all.sh)
@@ -24,7 +27,7 @@ for arg in "$@"; do
   --all) all=1 ;;
   --no-docs) docs=0 ;;
   *)
-    sed -n '2,16p' "$0" >&2
+    sed -n '2,19p' "$0" >&2
     exit 2
     ;;
   esac
@@ -96,12 +99,18 @@ fi
 # 2. Checks
 step "structure" python3 scripts/check_structure.py
 [[ $docs -eq 1 ]] && step "generated docs" python3 scripts/gen_docs.py
+if printf '%s\n' "${changed[@]}" | grep -qE '\.(md|qml)$'; then
+  step "doc citations" python3 scripts/check_docs.py
+fi
 if [[ ${#qml[@]} -gt 0 ]]; then
   step "qmllint" python3 scripts/check_qmllint.py
 fi
 if [[ ${#tests[@]} -gt 0 ]]; then
   mapfile -t tests < <(printf '%s\n' "${tests[@]}" | sort -u)
   step "unit tests (${tests[*]})" bash -c 'scripts/run_tests.sh "$@" 2>&1 | grep -E "^(FAIL|Totals|XPASS)|error" ; exit "${PIPESTATUS[0]}"' _ "${tests[@]}"
+fi
+if printf '%s\n' "${changed[@]}" | grep -qE '^(\.claude/hooks/|tests/scripts/test_guard\.py)'; then
+  step "guard tests" python3 tests/scripts/test_guard.py
 fi
 if [[ ${#shells[@]} -gt 0 ]]; then
   step "shellcheck" shellcheck -x -S warning "${shells[@]}"
@@ -121,9 +130,17 @@ if [[ ${#qml[@]} -gt 0 || $schema -eq 1 ]] && command -v qs >/dev/null; then
     sleep 0.5
   done
   sleep 1
-  scripts/log.sh || true
+  scripts/log.sh | scripts/dev/known_issues.py || true
   echo "(no new reload since this script started is normal when the shell already reloaded on save;"
   echo " if the log looks stale, see docs/dev/testing.md › Reloads and logs)"
+fi
+
+# 4. Warnings, never failures
+echo "── docs"
+python3 scripts/check_doc_drift.py --changed "${changed[@]}"
+if [[ "$(git config core.hooksPath)" != ".githooks" ]]; then
+  echo "warning: the pre-commit hook isn't set up, so commits can carry stale generated docs:"
+  echo "  git config core.hooksPath .githooks"
 fi
 
 if [[ ${#failed[@]} -gt 0 ]]; then

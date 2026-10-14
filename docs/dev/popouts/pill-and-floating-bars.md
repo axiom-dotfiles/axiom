@@ -37,10 +37,12 @@ How surfaces meet the three non-solid bar backgrounds. Solid bars, the border, c
   - **The bar's end pill runs out along the box** (`BarContainer.setEndReach`).
     - The reach comes from `joinReach`, the far wall's reach (`AttachedSurface.joinWall`).
     - Either the end pill is stretched, or a stub is grown where the bar has no pill near its end (`BarLayout.endReaches`).
-- **Filleted join:** this applies where one of the bar's own pills (`sectionPills`, before any stretch) lies past the wall, starting a fillet and a corner beyond it, and ending within that distance and `pillMerge` of it (`PillBarJoin.filleted`).
+- **Filleted join:** this applies where one of the bar's own pills (`sectionPills`, before any stretch) shows past the wall's outer edge at all (half a stroke out from where it rests, where a straight join would square it) and reaches within a fillet, a corner and `pillMerge` of it (`EdgeAttach.pillJoinFilleted`, read as `PillBarJoin.filleted`).
+  - A pill showing past the wall by less than a fillet and a corner is stretched to carry them: a stretch only grows, so it couldn't square at the wall, and a straight join met its side in a bare T.
+  - The wall is where the surface's far wall rests (`EdgePlacement.joinReach`, from the layout's `attachAt`), never where it's drawn: the decision resizes the surface and its window a frame apart, and it slides in, so a measured wall moved and flipped the decision back.
   - The end curves into its far stroke with a fillet, as it would into a solid bar's.
   - The pill carries on past the fillet by its own corner's radius.
-  - Its far stroke is left open under the box and fillet. This is an opening with `fillet`, which the bar's shadow follows round.
+  - Its far stroke is left open under the box and fillet. This is an opening with a fillet at that end (`startFillet`/`endFillet`), which the bar's shadow follows round.
 - **Straight join:** otherwise the end runs straight (`straightJoinStart`/`End`).
   - It runs into a pill or stub that goes only as far as the far wall and squares there (`square`).
   - The wall runs on into its end.
@@ -48,7 +50,8 @@ How surfaces meet the three non-solid bar backgrounds. Solid bars, the border, c
 - **The pill still curves out** to the border as ever, and the surface waits for it as it waits for its own stretch ([The pill grows first](edge-attach.md#the-pill-grows-first)).
 - **A bar popout joining one** stretches its own pill to its bar's end (`pillJoins`).
   - On a pill, the box joins an end that `joins` asks for wherever its pill can reach that edge, or where its fillet would pass the stroke there.
-  - The pill of a bar that owns the corner runs on past it, under the side bar's column.
+  - The pill of a bar that owns the corner runs on past it, under the other bar's end.
+  - **A side running flush to such a pill joins the edge** wherever that pill runs past where an unjoined box may reach (`lo`/`hi`) and the edge can be joined (`joinableStart`/`joinableEnd`). It never runs on behind the other bar's pills.
 - **Floating or transparent bar on a perpendicular edge:** past one, an attached edge popout's or dock's free end is a wall, as a bar popout's is.
   - Its box stops where windows start there, lining up with a detached box.
   - Its fillet is inside the wall too, keeping the windows' gap from the bar.
@@ -65,7 +68,7 @@ How surfaces meet the three non-solid bar backgrounds. Solid bars, the border, c
   - They never join an end; they're clamped clear of it.
 - **Their window:**
   - It is on the bar's layer: the bar popout's window, `BarPopouts.underBar`.
-  - Its namespace is `axiom-popout-under`, whose layer rule (`order = 6`) stacks it under the bars and border.
+  - Its namespace is `axiom-popout-under`, whose layer rule ([layer stacking](../generated/layers.md)) stacks it under the bars and border.
   - It starts at the bar's outer edge, and the box (`AttachedSurface.detachedOffset`) slides out from beneath the bar.
 - **Over the overlay:** that same rule also stacks the window under the overlay.
   - So while the overlay is open on its screen (`ShellManager.surfaceOpenOn("overlay", screen)`), the window opens on the Overlay layer instead (`axiom-popout`), over the overlay, without the slide.

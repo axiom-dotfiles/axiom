@@ -32,13 +32,14 @@ This file holds only the rules. **The mechanics of every service and surface are
 | **What a setting is, its default, who reads it** | `docs/dev/config/<Section>.md` (generated; `grep -rn 'Section.key' docs/dev/config/`) |
 | A bar widget / overlay module / view type's settings | `docs/dev/config/{BarWidgets,OverlayModules,OverlayViews}/<Type>.md` (generated) |
 | A service's or reader's public API | `docs/dev/generated/api/<Name>.md` (generated) |
-| Which file does X / every IPC target | `docs/dev/generated/files.md`, `docs/dev/generated/ipc.md` (generated) |
+| Which file does X | `grep -n '<word>' docs/dev/generated/files.md` (generated, ~700 lines: grep it, never read it whole) |
+| Every IPC target / every layer's stacking order | `docs/dev/generated/ipc.md`, `docs/dev/generated/layers.md` (generated) |
 
-**Found a problem outside the task?** Don't fix it unasked and don't only mention it: add an entry to `docs/dev/issues.md` (its format is at the top), and tell the user you did. Remove an entry in the change that fixes it.
+**Found a problem outside the task?** Don't fix it unasked and don't only mention it: add an entry to `docs/dev/issues.md` (its format is at the top), and tell the user you did. Quote a log warning's message in backticks under **What** so `verify.sh` marks that line `(known: …)`. Remove an entry in the change that fixes it.
 
 ## Running / reloading
 
-- **After any change run `scripts/dev/verify.sh`** (formats, checks, regenerates docs, runs the affected tests, shows the shell's log; `--all` runs every CI check) until it prints `verify ok`. **To look at something**: `scripts/dev/shot.sh page <ViewType>` / `launcher [text]` / `ipc <target> <open> [close]` prints a screenshot's path.
+- **After any change run `scripts/dev/verify.sh`** (formats, checks, regenerates docs, runs the affected tests, shows the shell's log with known issues marked, lists the docs describing what you changed; `--all` runs every CI check) until it prints `verify ok`. Read the docs it lists if behaviour changed. **To look at something**: `scripts/dev/shot.sh page <ViewType>` / `launcher [text]` / `ipc <target> <open> [close]` prints a screenshot's path.
 - The shell runs detached; never start/stop it from this session. Saving a file it has loaded hot-reloads it. qs watches by inode: after `sed -i`, `qmlformat -i` or `git checkout`, see `docs/dev/testing.md` to force a reload.
 - **Logs**: `scripts/log.sh` (warnings/errors since the last reload; `--debug` adds `console.log`, `--all`, `-f`, `-g PATTERN`). A clean reload is just `Reloading configuration...` + `Configuration Loaded`. stdout/journalctl show nothing. `console.log` for tracing, `console.warn` only for real problems.
 - A settings category has no IPC: add a temporary `IpcHandler` calling `SettingsManager.openCategory(name)` to `shell.qml` (never inside a singleton), and revert it in place.
@@ -48,6 +49,8 @@ This file holds only the rules. **The mechanics of every service and surface are
 - File reads go through `FileManager.read`; `XMLHttpRequest` is only for HTTP. Rewrite watched JSON (`config/i18n/*.json`, config.json) atomically (temp file + rename): a half-written file gets read.
 
 ## Never, while testing
+
+Enforced by `.claude/hooks/guard.py` (a PreToolUse hook in `.claude/settings.json`, plus its `permissions.deny`; tests: `tests/scripts/test_guard.py`). A refusal names the rule it breaks: don't work around it, ask the user. Add a rule there when you add one here.
 
 - Lock the built-in locker (only the user can type the password). Test `LockSurface` in a hidden window.
 - Simulate cursor movement to verify UI. Check logs and reason through bindings instead.
@@ -64,7 +67,8 @@ All run in CI; `scripts/dev/verify.sh --all` (= `scripts/check_all.sh`) runs eve
 - `scripts/check_qmllint.py` fails on warnings not in `scripts/qmllint-baseline.json`. Fix new warnings; `--update-baseline` only for Quickshell type-info gaps, or when it reports baselined warnings gone.
 - `scripts/check_i18n.py --fill` after changing user-visible text or a schema title/description.
 - `scripts/check_docs.py` fails on a hand-written doc citing a path or `Singleton.member` that's gone: fix the doc with the code.
-- `docs/dev/config/` and `docs/dev/generated/` come from `scripts/gen_docs.py` (verify.sh and the pre-commit hook rebuild them; CI fails when stale). Never edit them by hand.
+- `docs/dev/config/` and `docs/dev/generated/` come from `scripts/gen_docs.py` (verify.sh and the pre-commit hook rebuild them; CI fails when stale; verify.sh warns when the hook isn't set up: `git config core.hooksPath .githooks`). Never edit them by hand.
+- `scripts/check_doc_drift.py` (warnings only) lists docs whose `Files:` changed in 5+ commits since the doc did: they may describe old code. Reread one against the code before relying on it, and touch it (fix or confirm) to reset the count.
 
 ## Formatting
 
@@ -104,6 +108,7 @@ Dependencies point one way:
 - **`config/` readers** read only the owners and each other.
 - **Services** use readers and methods, and own every side effect: processes, dispatches, file writes, polling.
 - **UI** uses everything below it, but runs no polling Process or repeating Timer of its own and never reads `ConfigManager.config` directly.
+- **A decision a methods helper makes** (`BarEnds`, `SurfaceContext`, `EdgeAttach`, `GridPlacement`, …) is read from its output, never worked out again in a host from `vertical`, a location or a kind: a new case is a rule in the helper plus a test row.
 
 ## Services
 
@@ -143,19 +148,19 @@ Dependencies point one way:
 - **Reuse before building.** Check `docs/dev/core/shared-ui-pieces.md` before drawing a card, heading, chip, list row, dot, divider, drag or inspector; a second copy of a pattern becomes a shared piece.
 - **Data-driven surfaces.** `Bars`, `Overlay.views`, `EdgeMenus`, `Dock.docks` and `OSD.osds` are arrays in config; surfaces are `Variants`/Repeaters over them, keyed by stable ids.
 - **Loaded by name.** A bar widget is `bar/widgets/<type>.qml`; a popout or overlay module is `content/<Name>.qml`; a view is `views/<type>.qml`. A new one = the file + its schema `oneOf` entry. Directory rules: the `AGENTS.md` in `components/bar/widgets/`, `components/content/`, `components/views/`.
-- **Overlay lifetime.** Only the current page and its neighbours exist, and only while the overlay is open. Acquire in `Component.onCompleted`, release in `onDestruction`, keep lasting state in a service.
 - **Repeater models and `acquire()` requests come from config and tool availability only, never live values.** For derived item sets, model by a count or a joined string key. A model re-evaluated on every sample once pushed qs past 25 GB.
-- **Adding a module to a live config**: confirm the schema reloaded first (a config validated against a stale schema falls back to defaults), add one at a time and watch qs's RSS.
 - **Radii**: `Appearance.borderRadius` only for outer edges (border, bars, pills, popout surfaces, the overlay box, windows); `Widget.radius` for anything inside.
 - **Rounded clipping** (images, captures, anything cut to rounded corners) is Quickshell.Widgets' `ClippingRectangle` (set its `color`: it defaults to white), not a MultiEffect mask.
 - **Icons** are Material Symbols names drawn by `reusable/StyledIcon`; an icon never shares a Text with a label.
-- **Layer ordering** (bars, border, popouts, dock, edge menus, backdrop, screenshot) is set by Hyprland layer rules in `HyprlandManager.layerRulesLua`; read `docs/dev/bar/layering-and-corners.md` and `docs/dev/popouts/` before changing how surfaces sit on an edge. Bars and the border must never draw over a fullscreen window (`docs/dev/testing.md`).
-- **Popout geometry** comes only from `methods/SurfaceContext` (via `EdgePlacement`/`EdgeSurface`): a new case is a `SurfaceContext` rule + a `tst_SurfaceContext` row, never a rule in a host. See `components/hosts/popout/AGENTS.md`.
-- **Popout collisions**: every popout holds a `PopoutClaim` in `PopoutManager` and never checks the others itself; an open popout never moves. See `docs/dev/popouts/registry.md`.
 - **Screen targeting**: surfaces are built on `General.screensFor(mode, name)` (or `General.outputs`, never `Quickshell.screens`: it holds stand-ins while no monitor is connected); only `ShellManager.isTarget(screen, mode)` answers shortcuts, IPC and OSD events. IPC handlers are `enabled` on the target instance only.
-- **Launcher**: every provider returns the same row shape (`docs/dev/features/launcher.md`); a new command is an entry in `services/LauncherCommands.qml`. `/config` can never edit `Bars` or `Overlay.views`.
-- **Greeter** (`docs/dev/features/greeter-runtime.md`): reads only the exported bundle (data, never code). In greeter mode (`Paths.greeter`) nothing writes config, generates or runs integrations: a new side effect reachable from it checks `Paths.greeter`. Greeter modules are inert unless `host.kind === "greeter" && !host.preview && Paths.greeter`; only `GreetdManager` talks to greetd.
-- **Lockscreen**: `LockManager.lock()` is the only way to lock; in `quickshell` mode only PAM success (`AuthManager`) unlocks, never IPC. `lockscreen` goes in a module's `x-hosts` only if it launches, dispatches and writes nothing and shows nothing private; the one exception is `Power` (`ShellManager.sessionAction`, never logout). The surface keeps a fallback password field for a layout without one.
+
+Subsystem rules live with their code; each line here is the invariant and where the rest is:
+- **Overlay modules**: exist only while their page is shown (acquire/release, lasting state in a service); add them to a live config one at a time: `components/content/AGENTS.md`.
+- **Bars, layer ordering, corners**: stacking is `HyprLua.layers` (`docs/dev/generated/layers.md`); which bar owns a corner is `BarEnds` alone; bars and the border never draw over fullscreen: `components/bar/AGENTS.md`.
+- **Popouts**: geometry only from `methods/SurfaceContext`, collisions only through a `PopoutClaim`, an open popout never moves: `components/hosts/popout/AGENTS.md`.
+- **Launcher**: one row shape for every provider; `/config` can never edit `Bars` or `Overlay.views`: `services/AGENTS.md`, `docs/dev/features/launcher.md`.
+- **Greeter**: data, never code; a side effect reachable from greeter mode checks `Paths.greeter`: `services/AGENTS.md`, `docs/dev/features/greeter-runtime.md`.
+- **Lockscreen**: `LockManager.lock()` only; only PAM unlocks, never IPC; `lockscreen` in `x-hosts` only for modules that do and show nothing risky: `services/AGENTS.md`, `components/content/AGENTS.md`, `docs/dev/features/lockscreen.md`.
 
 ## QML pitfalls (each has bitten)
 

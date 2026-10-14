@@ -113,7 +113,7 @@ QtObject {
   // `opening` is `{ screen, edge, start, end }`, or null to drop the owner's
   function setBorderOpening(owner, opening) {
     const mine = borderOpenings.find(o => o.owner === owner);
-    if (mine && opening && mine.screen === opening.screen && mine.edge === opening.edge && mine.start === opening.start && mine.end === opening.end && mine.fillet === opening.fillet)
+    if (mine && opening && mine.screen === opening.screen && mine.edge === opening.edge && mine.start === opening.start && mine.end === opening.end && mine.startFillet === opening.startFillet && mine.endFillet === opening.endFillet)
       return;
     const others = borderOpenings.filter(o => o.owner !== owner);
     if (opening)

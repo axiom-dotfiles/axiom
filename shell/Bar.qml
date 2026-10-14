@@ -13,12 +13,13 @@ Scope {
   Variants {
     // Keyed on the stable bar id so a config reload rebinds the existing
     // PanelWindow instead of rebuilding it, and on its layer namespace
-    // (Bar.layerNamespace, after a "|"): its kind (solid, shaped,
-    // transparent) and orientation pick it, and Hyprland reads its rule's
-    // `order` only as a surface maps, so a bar changing either is remade to
+    // (Bar.layerNamespace, after a "|"): its kind (solid, pills,
+    // transparent, floating) and whether it lies along its screen's longer
+    // edge pick it, and Hyprland reads its rule's `order` only as a surface
+    // maps, so a bar changing either (a monitor rotated too) is remade to
     // be arranged in its place: a solid bar outside the border, any other
-    // inside it, and a side bar after the top and bottom bars of its kind
-    // (BarEnds). A remade bar lands correctly once the rules are in
+    // inside it, and the longer edge's bar after the shorter edge's of its
+    // kind (BarEnds). A remade bar lands correctly once the rules are in
     // (layerRulesReady).
     model: HyprlandManager.layerRulesReady && General.outputs.length > 0 ? BarManager.bars.map(b => b.id + "|" + Bar.layerNamespace(b)) : []
     delegate: BarPanel {

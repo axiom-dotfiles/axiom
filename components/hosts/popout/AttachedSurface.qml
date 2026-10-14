@@ -177,6 +177,11 @@ Item {
   readonly property real coverStart: root._filletIn(root.startMargin, root._filletHidden)
   // (nothing once it's all behind the edge)
   readonly property real coverLength: root._hidden >= root.depth ? 0 : root.alongLength - root.coverStart - root._filletIn(root.endMargin, root._filletHidden)
+  // How much of that is the fillet curving up into each wall from the
+  // attach edge (0 at a joined, flush or straight end): what it covers
+  // shows round its curve, not across its square (a solid bar's shadow)
+  readonly property real coverStartFillet: root._natural.filletStart ? Math.max(0, root.startMargin - root.coverStart) : 0
+  readonly property real coverEndFillet: root._natural.filletEnd && root.coverLength > 0 ? Math.max(0, root.endMargin - (root.alongLength - root.coverStart - root.coverLength)) : 0
 
   readonly property bool vertical: edge === Bar.Left || edge === Bar.Right
   readonly property bool attachLeft: edge === Bar.Left
@@ -353,13 +358,17 @@ Item {
       look: root.shadowLook
       // Nothing past a joined end: what it joins (the border's frame, a
       // pill) runs on there, under this window, as the blur window's cut
-      // to every shape leaves it
+      // to every shape leaves it. Nor on the stroke it grows out of, beside
+      // it: this window is over that stroke's, so the shadow there dimmed
+      // it, darkest under this surface's soft edge, a seam where the two
+      // strokes meet (none on a bare edge, which has no stroke).
       holes: {
         if (root.detached)
           return [];
         const reach = ownShadow.reach;
         const v = -root._back - reach, deep = root._back + root.depth + reach * 2;
-        return (root.joinStart ? [root._rectFrom(-reach, v, reach, deep)] : []).concat(root.joinEnd ? [root._rectFrom(root.alongLength, v, reach, deep)] : [], root.shadowHoles);
+        const band = root.straight ? [] : [root._rectFrom(-reach, v, root.alongLength + reach * 2, reach + root._back + root.strokeWidth)];
+        return (root.joinStart ? [root._rectFrom(-reach, v, reach, deep)] : []).concat(root.joinEnd ? [root._rectFrom(root.alongLength, v, reach, deep)] : [], band, root.shadowHoles);
       }
     }
 

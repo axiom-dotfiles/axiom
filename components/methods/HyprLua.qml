@@ -151,6 +151,158 @@ QtObject {
   // breaks games bundling an older SDL.
   readonly property var recommendedEnv: [["GDK_BACKEND", "wayland,x11,*"], ["QT_QPA_PLATFORM", "wayland;xcb"], ["CLUTTER_BACKEND", "wayland"], ["ELECTRON_OZONE_PLATFORM_HINT", "auto"], ["QT_AUTO_SCREEN_SCALE_FACTOR", "1"], ["QT_WAYLAND_DISABLE_WINDOWDECORATION", "1"]]
 
+  // --- Layer stacking (HyprlandManager.layerRulesLua) ---
+
+  // Hyprland arranges and stacks each layer's surfaces in the order they
+  // were mapped, unless a layer rule's `order` says otherwise (higher is
+  // "closer to the edge of the monitor": arranged, and drawn, first). One
+  // entry per axiom namespace (without its "axiom-" prefix), highest order
+  // first; `bar` marks a bar's (Bar.layerNamespace), `why` says why it sits
+  // there. Kept as plain JSON: scripts/gen_docs.py reads it into
+  // docs/dev/generated/layers.md.
+  readonly property var layers: [
+    {
+      "namespace": "border-shadow",
+      "order": 11,
+      "why": "The border's inward shadow window: under every other axiom surface, the overlay backdrop included."
+    },
+    {
+      "namespace": "backdrop",
+      "order": 10,
+      "why": "Full-screen surfaces' backdrops (ScreenBackdrop): Top-layer surfaces that sit under the bars and border, which are mapped before them."
+    },
+    {
+      "namespace": "blur-backing",
+      "order": 9,
+      "why": "The blur window (BlurManager, shell/BlurBacking), drawing the chrome's fills under it."
+    },
+    {
+      "namespace": "edge-menu",
+      "order": 7,
+      "why": "An integrated edge menu: arranged before the bars and border, so it sits at the screen edge and pushes them and the windows inwards."
+    },
+    {
+      "namespace": "popout-under",
+      "order": 6,
+      "why": "Detached popouts and floating edge menus: drawn under the bars and border, so they slide out from beneath them."
+    },
+    {
+      "namespace": "bar",
+      "order": 5,
+      "bar": true,
+      "why": "Solid bars, on the screen's shorter edge: arranged before the border, whose strip then lands on the bar's inner part. Of two bars at a corner the one arranged first takes it (BarEnds)."
+    },
+    {
+      "namespace": "bar-long",
+      "order": 4,
+      "bar": true,
+      "why": "Solid bars on the screen's longer edge: after the shorter edge's, so they make way at a shared corner."
+    },
+    {
+      "namespace": "border",
+      "order": 0,
+      "why": "The screen border (Hyprland's default order, written for the record)."
+    },
+    {
+      "namespace": "bar-pill",
+      "order": -1,
+      "bar": true,
+      "why": "Pill bars: after the border (inside it, drawn over its stroke), before every other kind of bar."
+    },
+    {
+      "namespace": "bar-pill-long",
+      "order": -2,
+      "bar": true,
+      "why": "Pill bars on the longer edge."
+    },
+    {
+      "namespace": "bar-transparent",
+      "order": -3,
+      "bar": true,
+      "why": "Transparent bars: make way for solid and pill bars."
+    },
+    {
+      "namespace": "bar-transparent-long",
+      "order": -4,
+      "bar": true,
+      "why": "Transparent bars on the longer edge."
+    },
+    {
+      "namespace": "bar-floating",
+      "order": -5,
+      "bar": true,
+      "why": "Floating bars and floating pills: make way for every other bar."
+    },
+    {
+      "namespace": "bar-floating-long",
+      "order": -6,
+      "bar": true,
+      "why": "Floating bars on the longer edge: the last bar."
+    },
+    {
+      "namespace": "dock",
+      "order": -7,
+      "why": "Docks: after every bar and the border on their edge, so they sit inside them."
+    },
+    {
+      "namespace": "overlay",
+      "order": -8,
+      "why": "The overlay's panel: after docks, inside an always-shown dock's zone and over a hover or intellihide one."
+    },
+    {
+      "namespace": "osd",
+      "order": -9,
+      "why": "The OSD: after the overlay, so a volume or brightness change shows over it."
+    },
+    {
+      "namespace": "dock-preview",
+      "order": -9,
+      "why": "A dock's preview (the settings card's Show): after the overlay, so it shows over the settings page."
+    },
+    {
+      "namespace": "edge-popout",
+      "order": -10,
+      "why": "Edge popouts (floating edge menus): after the dock and the OSD, so a menu opened over the overlay draws over both."
+    },
+    {
+      "namespace": "popout",
+      "order": -10,
+      "why": "Bar popouts: over the bars they open from."
+    },
+    {
+      "namespace": "screenshot",
+      "order": -20,
+      "noAnim": true,
+      "why": "The screenshot picker's frozen frame: appears and goes at once, no fade, over everything (popups can't be ordered: see captureFrozen)."
+    },
+    {
+      "namespace": "monitor-prompt",
+      "order": -25,
+      "why": "The monitor layout prompt (Keep / Revert): after the picker, over the overlay the Monitors page opened it from."
+    },
+    {
+      "namespace": "polkit",
+      "order": -30,
+      "why": "The polkit prompt: after everything, so nothing of axiom's draws over a password prompt."
+    },
+    {
+      "namespace": "desktop",
+      "noAnim": true,
+      "why": "Desktop widgets: no fade in or out."
+    }
+  ]
+  // The bars' namespaces (without "axiom-")
+  readonly property var barLayers: root.layers.filter(l => l.bar).map(l => l.namespace)
+
+  // A named layer rule per entry (re-adding one replaces it)
+  function layerRulesLua() {
+    return root.layers.map(l => {
+      const name = string("axiom-" + l.namespace);
+      const effects = (l.noAnim ? ", no_anim = true" : "") + (l.order !== undefined ? `, order = ${l.order}` : "");
+      return `hl.layer_rule({ name = ${name}, match = { namespace = ${string("^axiom-" + l.namespace + "$")} }${effects} })`;
+    });
+  }
+
   // --- Blur behind axiom's surfaces (Appearance.blur) ---
 
   // Layer rules can't set the blur's strength (Hyprland's one blur does, for
@@ -168,7 +320,7 @@ QtObject {
   // A submenu (SubPopout, a popup of its popout's window) is drawn
   // transparent over the blur window, so ignore_alpha leaves all but its
   // content out.
-  readonly property var blurChrome: ["bar", "bar-side", "bar-floating", "bar-floating-side", "bar-transparent", "bar-transparent-side", "popout", "popout-under", "edge-popout", "edge-menu", "dock"]
+  readonly property var blurChrome: root.barLayers.concat(["popout", "popout-under", "edge-popout", "edge-menu", "dock"])
   // Backdrops (and the polkit prompt, whose window holds its own dim) blur
   // only when asked: the whole screen, at every alpha.
   readonly property var blurBackdrops: ["backdrop", "polkit"]
@@ -176,7 +328,7 @@ QtObject {
   // animated by Hyprland while it does (they slide themselves), or their
   // stroke and content fade or pop in and out while what the blur window
   // draws for them doesn't
-  readonly property var blurBacked: ["bar", "bar-side", "bar-floating", "bar-floating-side", "bar-transparent", "bar-transparent-side", "border", "popout", "popout-under", "edge-popout", "osd", "edge-menu", "dock"]
+  readonly property var blurBacked: root.barLayers.concat(["border", "popout", "popout-under", "edge-popout", "osd", "edge-menu", "dock"])
 
   function _blurRule(name, namespaces, effects, enabled) {
     return `hl.layer_rule({ name = ${string(name)}, match = { namespace = ${string(`^axiom-(${namespaces.join("|")})$`)} }, ${effects}, enabled = ${enabled} })`;

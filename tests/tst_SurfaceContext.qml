@@ -322,11 +322,23 @@ TestCase {
       "start": 11,
       "end": 50
     });
-    compare(SurfaceContext.opening(0, 10.5, 24, true), {
+    compare(SurfaceContext.opening(0, 10.5, 0, 24), {
       "start": 0,
       "end": 10,
-      "fillet": 10,
-      "filletAtEnd": true
+      "endFillet": 10
+    });
+    // One at each end (a surface standing on the stroke), sharing the room
+    compare(SurfaceContext.opening(0.5, 100, 22.5, 22.5), {
+      "start": 1,
+      "end": 100,
+      "startFillet": 22.5,
+      "endFillet": 22.5
+    });
+    compare(SurfaceContext.opening(0, 30, 24, 24), {
+      "start": 0,
+      "end": 30,
+      "startFillet": 24,
+      "endFillet": 6
     });
     compare(SurfaceContext.opening(5.5, 5.2).end, 6);
   }
