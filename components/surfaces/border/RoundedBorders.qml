@@ -140,8 +140,8 @@ Item {
 
     // Surfaces joined to the frame's stroke (ShellManager.borderOpenings)
     // as rects it casts nothing on, from the frame line in: their
-    // translucent fill would show (and blur) it. A joined end's fillet
-    // (`fillet`) is left out only as far as its curve, not the square it
+    // translucent fill would show (and blur) it. A fillet at either end
+    // (`startFillet`/`endFillet`) is left out only as far as its curve, not the square it
     // sits in: past the curve the shadow runs on round it (as a solid
     // bar's, BarContainer._shadowHoles). Each an SVG subpath.
     readonly property var holes: ShellManager.borderOpenings.filter(o => o.screen === (root.screen?.name ?? "")).map(o => shadowWindow._holePath(o))
@@ -151,27 +151,29 @@ Item {
       // Across: the frame line, and which way is in from it
       const line = o.edge === "top" ? top : o.edge === "bottom" ? height - bottom : o.edge === "left" ? left : width - right;
       const inward = o.edge === "top" || o.edge === "left" ? 1 : -1;
-      const f = o.fillet ?? 0;
-      const from = f > 0 && !o.filletAtEnd ? o.start + f : o.start;
-      const to = f > 0 && o.filletAtEnd ? o.end - f : o.end;
+      const fs = o.startFillet ?? 0, fe = o.endFillet ?? 0;
+      const from = o.start + fs, to = o.end - fe;
       // (along, across) to x, y
       const pt = (u, v) => vertical ? `${v} ${u}` : `${u} ${v}`;
       let d = "";
       if (to > from)
         d += ` M ${pt(from, line)} L ${pt(to, line)} L ${pt(to, line + inward * reach)} L ${pt(from, line + inward * reach)} Z`;
-      if (f > 0) {
-        // The corner where the surface's wall meets the stroke, filled out
-        // to the quarter circle round the opposite one
-        const corner = o.filletAtEnd ? o.end - f : o.start + f;
-        const toward = o.filletAtEnd ? 1 : -1;
-        const ax = corner + toward * f, bv = line + inward * f;
+      // The corner where a surface's wall meets the stroke, filled out to
+      // the quarter circle round the opposite one
+      const corner = (at, f, atEnd) => {
+        const toward = atEnd ? 1 : -1;
+        const ax = at + toward * f, bv = line + inward * f;
         // Sweep from A (on the stroke) to B (on the wall) round the centre
         // (each from the centre, in x, y)
         const a = vertical ? [-inward * f, 0] : [0, -inward * f];
         const b = vertical ? [0, -toward * f] : [-toward * f, 0];
         const sweep = a[0] * b[1] - a[1] * b[0] > 0 ? 1 : 0;
-        d += ` M ${pt(corner, line)} L ${pt(ax, line)} A ${f} ${f} 0 0 ${sweep} ${pt(corner, bv)} Z`;
-      }
+        return ` M ${pt(at, line)} L ${pt(ax, line)} A ${f} ${f} 0 0 ${sweep} ${pt(at, bv)} Z`;
+      };
+      if (fs > 0)
+        d += corner(o.start + fs, fs, false);
+      if (fe > 0)
+        d += corner(o.end - fe, fe, true);
       return d;
     }
 

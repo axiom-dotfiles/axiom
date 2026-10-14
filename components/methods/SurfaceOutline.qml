@@ -161,10 +161,20 @@ QtObject {
 
   // The outline from the start end to the end end: side walls (or joins)
   // and the far edge, shared by the fill and the stroke. `startWith(u, v)`
-  // begins it (a move, or a line continuing the fill).
-  function _outline(s, m, p, startWith) {
+  // begins it (a move, or a line continuing the fill). A joined end's
+  // fillet runs from `joinV` (default: where it meets the stroke it joins,
+  // farV + R) along its own arc.
+  function _outline(s, m, p, startWith, joinV, capInset) {
     const R = s.filletRadius, cs = m.startCornerRadius, ce = m.endCornerRadius, h = m.half;
     const sideU = m.sideU, farSideU = m.farSideU, farV = m.farV, L = m.alongLength;
+    const jv = joinV ?? farV + R;
+    // How far in from the end the fillet's arc is at jv
+    const ju = h + R - Math.sqrt(Math.max(0, R * R - (farV + R - jv) * (farV + R - jv)));
+    // An attach-side fillet's line along the edge starts `ci` in from the
+    // end, or its arc does where it reaches that far (`du` past the arc's
+    // end on the edge)
+    const ci = capInset ?? 0;
+    const arcV = du => h + R - Math.sqrt(Math.max(0, R * R - du * du));
     // A flush wall runs on through the backfill, its stroke covering the
     // end of the stroke it continues there, which the backfill leaves open
     const fv0 = m.throughStart ? -m.back : 0, fv1 = m.throughEnd ? -m.back : 0;
@@ -172,15 +182,19 @@ QtObject {
     if (s.joinStart && m.straightJoinStart) {
       d += startWith(0, farV);
     } else if (s.joinStart) {
-      d += startWith(h, farV + R);
+      d += startWith(ju, jv);
       d += p.arc(R, true, h + R, farV);
     } else if (!m.filletStart) {
       d += startWith(sideU, fv0);
       d += p.line(sideU, farV - cs);
       d += p.arc(cs, false, sideU + cs, farV);
     } else {
-      d += startWith(0, h);
-      d += p.line(sideU - R, h);
+      if (sideU - R >= ci) {
+        d += startWith(ci, h);
+        d += p.line(sideU - R, h);
+      } else {
+        d += startWith(ci, arcV(ci - (sideU - R)));
+      }
       d += p.arc(R, true, sideU, h + R);
       d += p.line(sideU, farV - cs);
       d += p.arc(cs, false, sideU + cs, farV);
@@ -189,7 +203,7 @@ QtObject {
       d += p.line(L, farV);
     } else if (s.joinEnd) {
       d += p.line(L - h - R, farV);
-      d += p.arc(R, true, L - h, farV + R);
+      d += p.arc(R, true, L - ju, jv);
     } else if (!m.filletEnd) {
       d += p.line(farSideU - ce, farV);
       d += p.arc(ce, false, farSideU, farV - ce);
@@ -198,8 +212,12 @@ QtObject {
       d += p.line(farSideU - ce, farV);
       d += p.arc(ce, false, farSideU, farV - ce);
       d += p.line(farSideU, h + R);
-      d += p.arc(R, true, farSideU + R, h);
-      d += p.line(L, h);
+      if (farSideU + R <= L - ci) {
+        d += p.arc(R, true, farSideU + R, h);
+        d += p.line(L - ci, h);
+      } else {
+        d += p.arc(R, true, L - ci, arcV(farSideU + R - (L - ci)));
+      }
     }
     return d;
   }
@@ -207,8 +225,12 @@ QtObject {
   // Fill: the outline, closed back along the attach edge (and behind it by
   // the backfill). Joined ends also cover the perpendicular stroke up to
   // the fillet: a pixel short of where it meets that stroke, which the
-  // fillet's stroke covers there, as the fill reaching its flat cap
-  // showed through the cap's anti-aliased edge as a dark notch.
+  // fillet's stroke covers there, the fillet's edge leaving its arc there
+  // too. A filleted end's fill along the attach edge stops a pixel short
+  // of its end likewise. Wherever a stroke ends with a flat cap on another
+  // surface's stroke, the fill reaching that cap (or a sliver of it running
+  // down beside the arc to it) showed through the cap's anti-aliased edge
+  // as a dark notch in the stroke it meets.
   function fillPath(s, m, w, h) {
     if (w <= 0 || h <= 0)
       return "";
@@ -220,16 +242,18 @@ QtObject {
     const u0 = m.throughStart ? s.strokeWidth : 0, u1 = m.throughEnd ? L - s.strokeWidth : L;
     let d;
     if (s.joinStart)
-      d = p.move(0, b) + p.line(0, m.straightJoinStart ? m.farV : joinV) + (m.straightJoinStart ? "" : p.line(m.half, joinV)) + _outline(s, m, p, p.line);
+      d = p.move(0, b) + p.line(0, m.straightJoinStart ? m.farV : joinV) + _outline(s, m, p, p.line, joinV, 1);
     else if (s.flushStart)
-      d = p.move(u0, b) + (m.throughStart ? "" : p.line(0, 0)) + _outline(s, m, p, p.line);
+      d = p.move(u0, b) + (m.throughStart ? "" : p.line(0, 0)) + _outline(s, m, p, p.line, joinV, 1);
     else if (!m.filletStart)
-      d = _outline(s, m, p, p.move);
+      d = _outline(s, m, p, p.move, joinV, 1);
     else
-      d = _outline(s, m, p, (u, v) => p.move(0, 0) + p.line(u, v));
+      d = _outline(s, m, p, (u, v) => p.move(u, 0) + p.line(u, v), joinV, 1);
     if (s.joinEnd && !m.straightJoinEnd)
-      d += p.line(L - m.half, joinV) + p.line(L, joinV);
-    else if ((!s.joinEnd && m.filletEnd) || (s.flushEnd && !m.throughEnd))
+      d += p.line(L, joinV);
+    else if (!s.joinEnd && m.filletEnd)
+      d += p.line(L - 1, 0);
+    else if (s.flushEnd && !m.throughEnd)
       d += p.line(L, 0);
     return d + p.line(u1, b) + p.line(u0, b) + "Z";
   }

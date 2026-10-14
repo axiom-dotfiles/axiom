@@ -37,10 +37,12 @@ How surfaces meet the three non-solid bar backgrounds. Solid bars, the border, c
   - **The bar's end pill runs out along the box** (`BarContainer.setEndReach`).
     - The reach comes from `joinReach`, the far wall's reach (`AttachedSurface.joinWall`).
     - Either the end pill is stretched, or a stub is grown where the bar has no pill near its end (`BarLayout.endReaches`).
-- **Filleted join:** this applies where one of the bar's own pills (`sectionPills`, before any stretch) lies past the wall, starting a fillet and a corner beyond it, and ending within that distance and `pillMerge` of it (`PillBarJoin.filleted`).
+- **Filleted join:** this applies where one of the bar's own pills (`sectionPills`, before any stretch) shows past the wall (by more than a stroke) and reaches within a fillet, a corner and `pillMerge` of it (`EdgeAttach.pillJoinFilleted`, read as `PillBarJoin.filleted`).
+  - A pill showing past the wall by less than a fillet and a corner is stretched to carry them: a stretch only grows, so it couldn't square at the wall, and a straight join met its side in a bare T.
+  - The wall is where the surface's far wall rests (`EdgePlacement.joinReach`, from the layout's `attachAt`), never where it's drawn: the decision resizes the surface and its window a frame apart, and it slides in, so a measured wall moved and flipped the decision back.
   - The end curves into its far stroke with a fillet, as it would into a solid bar's.
   - The pill carries on past the fillet by its own corner's radius.
-  - Its far stroke is left open under the box and fillet. This is an opening with `fillet`, which the bar's shadow follows round.
+  - Its far stroke is left open under the box and fillet. This is an opening with a fillet at that end (`startFillet`/`endFillet`), which the bar's shadow follows round.
 - **Straight join:** otherwise the end runs straight (`straightJoinStart`/`End`).
   - It runs into a pill or stub that goes only as far as the far wall and squares there (`square`).
   - The wall runs on into its end.

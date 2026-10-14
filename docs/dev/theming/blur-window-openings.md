@@ -39,7 +39,7 @@ How the chrome's translucent surfaces share one blurred backing window, how thei
   - the bar's: each pill, island and solid fill puts its copy in `shadowShape` (pills an `AttachedSurfaceCopy`).
 - The bar shadow's holes:
   - the bar's `openings`, where surfaces cover its far stroke, stretched or not;
-  - a surface's fillet joined to a solid bar's stroke, only up to its curve (`OutsideShadow.fillets`, from the opening's `fillet`/`filletAtEnd`: `SurfaceContext.opening`, in whole pixels so the fillet's cap and the stroke don't each half-cover one);
+  - the fillets curving into a solid bar's stroke at either end of an opening, only up to their curve (`OutsideShadow.fillets`, from the opening's `startFillet`/`endFillet`: `SurfaceContext.opening`, in whole pixels so the fillet's cap and the stroke don't each half-cover one). That covers a pill joined to the stroke at its end, and a popout standing on the stroke, whose attach-side fillets are at both ends of its cover (`AttachedSurface.coverStartFillet`/`coverEndFillet`). Without them the bar's shadow was cut across each fillet's whole square, a hard seam where the opening ended;
   - the solid bars its ends make way for, whose stroke its window overlaps.
 - More on shadow looks: [Shadows](../popouts/shadows.md).
 

@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 
 import qs.config
+import qs.components.methods
 import qs.components.hosts.popout
 
 // One end of a pill bar that makes way for a pill bar at its corner
@@ -33,6 +34,9 @@ PillStretch {
   readonly property real _at: !root._origin ? 0 : root._vertical ? root._origin.x : root._origin.y
   readonly property real _far: !root._origin ? 0 : root._right ? root._at + root._thickness - root.bar.barConfig.pillDepth : root._at + root.bar.barConfig.pillDepth
   readonly property real _radius: Appearance.borderRadius
+  // Where the join's fillet meets the other bar's far stroke: its stroke
+  // runs on the centre line, half a stroke in from the pills' far edge
+  readonly property real _filletTip: (root._right ? root._far - root._radius + Appearance.borderWidth / 2 : root._far + root._radius - Appearance.borderWidth / 2) - root._otherAt
 
   owner: "corner:" + root.bar.barConfig.id + (root.atStart ? ":start" : ":end")
   open: true
@@ -45,12 +49,9 @@ PillStretch {
   } : null
   // Its far stroke, from where the join's fillet meets it on to its end,
   // the other bar's shadow following round that fillet
-  // (BarContainer._shadowHoles)
-  opening: root._placed ? {
-    "start": root._right ? root._far - root._radius + 1 - root._otherAt : 0,
-    "end": root._right ? root.container.length : root._far + root._radius - 1 - root._otherAt,
-    "keepFill": true,
-    "fillet": root._radius - 1,
-    "filletAtEnd": !root._right
-  } : null
+  // (BarContainer._shadowHoles). Not past the fillet's flat cap: the
+  // stroke left open there showed through as a gap in the corner.
+  opening: root._placed ? Object.assign(SurfaceContext.opening(root._right ? root._filletTip : 0, root._right ? root.container.length : root._filletTip, root._right ? root._radius - 1 : 0, root._right ? 0 : root._radius - 1), {
+    "keepFill": true
+  }) : null
 }

@@ -49,18 +49,10 @@ PillStretch {
     const span = (root._vertical ? root.screen?.width : root.screen?.height) ?? 0;
     return (root._atStart ? root.joinReach : span - root.joinReach) - (root._vertical ? origin.x : origin.y);
   }
-  // Whether one of the bar's own pills (as laid out, before any surface
-  // stretches it) lies past the wall, starting far enough beyond it for
-  // the fillet and its own corner, and reaching near enough to it (within
-  // that and pillMerge) to be carried on past the fillet: the end then
-  // curves into it rather than squaring a stub at the wall
-  readonly property bool filleted: {
-    if (root._wall === null)
-      return false;
-    const merge = root._panel.barConfig.pillMerge ?? 0;
-    const need = root._radius * 2;
-    return (root._panel.container.sectionPills ?? []).some(p => root._atStart ? p.start + p.length >= root._wall + need && p.start <= root._wall + need + merge : p.start <= root._wall - need && p.start + p.length >= root._wall - need - merge);
-  }
+  // Whether one of the bar's own pills shows past the wall near enough to
+  // be carried on past a fillet: the end then curves into it rather than
+  // squaring a stub at the wall (EdgeAttach.pillJoinFilleted)
+  readonly property bool filleted: root._wall !== null && EdgeAttach.pillJoinFilleted(root._panel.container.sectionPills, root._wall, root._atStart, root._radius, root._panel.barConfig.pillMerge ?? 0, Appearance.borderWidth)
   // Where the joined end covers that bar's far stroke to: the fillet's
   // tip, or the wall
   readonly property var _reach: root._wall === null ? null : !root.filleted ? root._wall : root._atStart ? root._wall + root._radius : root._wall - root._radius
@@ -90,7 +82,7 @@ PillStretch {
         "end": root._atStart ? root._reach - Appearance.borderWidth / 2 : root._panel.container.length,
         "keepFill": true
       };
-    return Object.assign(SurfaceContext.opening(root._atStart ? 0 : root._reach, root._atStart ? root._reach : root._panel.container.length, root._radius, root._atStart), {
+    return Object.assign(SurfaceContext.opening(root._atStart ? 0 : root._reach, root._atStart ? root._reach : root._panel.container.length, root._atStart ? 0 : root._radius, root._atStart ? root._radius : 0), {
       "keepFill": true
     });
   }

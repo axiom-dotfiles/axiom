@@ -9,7 +9,7 @@ import qs.components.methods
 // A stretch of a stroke a surface covers, left open there, whatever draws
 // that stroke: every host publishes its openings through this, so one
 // joined the same way opens the same way. `span` is in screen px along its
-// `edge` ({ screen, edge, start, end, fillet?, filletAtEnd? }: what
+// `edge` ({ screen, edge, start, end, startFillet?, endFillet? }: what
 // EdgeAttach.joinOpening gives, or a stretch along the surface's own
 // edge), `sink` who draws it (SurfaceContext.end's `sink`, or for the
 // surface's own edge "border"/"solidBar"):
@@ -40,7 +40,7 @@ QtObject {
       if (!origin)
         return null;
       const along = root.span.edge === "left" || root.span.edge === "right" ? origin.y : origin.x;
-      const o = SurfaceContext.opening(root.span.start - along, root.span.end - along, root.span.fillet ?? 0, root.span.filletAtEnd);
+      const o = SurfaceContext.opening(root.span.start - along, root.span.end - along, root.span.startFillet ?? 0, root.span.endFillet ?? 0);
       return o.end > o.start ? o : null;
     }
   }

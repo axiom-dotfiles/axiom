@@ -269,16 +269,13 @@ QtObject {
   // `origin`) and whether its openings show: out, and granted
   property var attachedSurface: null
   property bool opens: false
-  // From the screen edge, how far in the surface's attach side is, and
-  // how far a joined end's far wall reaches (AttachedSurface.joinWall)
-  readonly property real _surfaceFromEdge: {
-    const s = root.attachedSurface;
-    if (!s || !root.origin)
-      return 0;
-    const across = root.vertical ? root.origin.x + s.x : root.origin.y + s.y;
-    const depth = root.vertical ? s.width : s.height;
-    return root.edge === Bar.Right || root.edge === Bar.Bottom ? root._spanAcross - across - depth : across;
-  }
+  // From the screen edge, how far in the surface's attach side is at
+  // rest, and how far a joined end's far wall reaches
+  // (AttachedSurface.joinWall). From the layout, not where the surface is
+  // drawn: that slides in, and the join this decides (PillBarJoin.filleted)
+  // resizes it and its window a frame apart, which moved the wall it was
+  // decided from and flipped it back.
+  readonly property real _surfaceFromEdge: root.attachAt - root.backfill
   readonly property real joinReach: root._surfaceFromEdge + (root.attachedSurface?.joinWall ?? 0)
   function _edgeSpan(start, end) {
     return {
@@ -290,7 +287,11 @@ QtObject {
   }
   readonly property real _coverStart: root.drawnSurfaceStart + root.coverStart
   readonly property real _coverEnd: root._coverStart + (root.coverLength < 0 ? root.place.surfaceLength : root.coverLength)
-  readonly property var _coverSpan: root.opens && root.attachedSurface && root._coverEnd > root._coverStart ? root._edgeSpan(root._coverStart, root._coverEnd) : null
+  // ...with the fillets curving into it at each end
+  readonly property var _coverSpan: root.opens && root.attachedSurface && root._coverEnd > root._coverStart ? Object.assign(root._edgeSpan(root._coverStart, root._coverEnd), {
+    "startFillet": root.attachedSurface.coverStartFillet,
+    "endFillet": root.attachedSurface.coverEndFillet
+  }) : null
   // At a joined end, the perpendicular edge's stroke its end covers, from
   // where its window is on screen, its fillet included
   function _joinSpan(atStart) {

@@ -208,7 +208,11 @@ TestCase {
     const m = SurfaceOutline.metrics(s);
     compare(SurfaceOutline.fillPath(s, m, 0, 0), "");
     const fill = SurfaceOutline.fillPath(s, m, 254, 128);
-    verify(fill.startsWith("M 0 0 L 0 1 "));
+    // A filleted end's fill stops a pixel short of the stroke's flat cap
+    // (here the fillet's arc reaches the end: it starts and ends on it)
+    const v1 = 1 + 28 - Math.sqrt(28 * 28 - 1);
+    verify(fill.startsWith("M 1 0 L 1 " + v1 + " A 28 28 0 0 1 28 29 "), fill);
+    verify(fill.indexOf("A 28 28 0 0 1 253 " + v1 + " L 253 0 ") >= 0, fill);
     verify(fill.endsWith("Z"));
     // Top edge: the fillet sweeps clockwise; on the bottom edge it flips
     verify(SurfaceOutline.strokePath(s, m, 254, 128).indexOf("A 28 28 0 0 1 28 29") >= 0);
@@ -220,16 +224,20 @@ TestCase {
 
   function test_join_fill_stops_short_of_stroke_end() {
     // A joined end's fill covers the stroke it meets a pixel short of the
-    // fillet's flat cap, so it can't show through the cap's soft edge
+    // fillet's flat cap, its edge leaving the fillet's arc there (never
+    // running down beside it to the cap), so it can't show through the
+    // cap's soft edge
     const s = spec({
       "joinStart": true,
       "joinEnd": true
     });
     const m = SurfaceOutline.metrics(s);
     const w = m.alongLength, h = m.depth, v = m.farV + 28;
+    const ju = 1 + 28 - Math.sqrt(28 * 28 - 1);
     const fill = SurfaceOutline.fillPath(s, m, w, h);
-    verify(fill.startsWith("M 0 0 L 0 " + (v - 1) + " L 1 " + (v - 1) + " L 1 " + v + " "), fill);
-    verify(fill.indexOf((w - 1) + " " + v + " L " + (w - 1) + " " + (v - 1) + " L " + w + " " + (v - 1) + " ") >= 0, fill);
+    verify(fill.startsWith("M 0 0 L 0 " + (v - 1) + " L " + ju + " " + (v - 1) + " A 28 28 0 0 1 29 " + m.farV + " "), fill);
+    verify(fill.indexOf("A 28 28 0 0 1 " + (w - ju) + " " + (v - 1) + " L " + w + " " + (v - 1) + " ") >= 0, fill);
+    verify(fill.indexOf(" " + v + " ") < 0, fill);
     // The stroke still runs to the stroke it meets
     verify(SurfaceOutline.strokePath(s, m, w, h).trim().endsWith((w - 1) + " " + v));
   }

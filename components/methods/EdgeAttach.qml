@@ -188,8 +188,8 @@ QtObject {
    * it is (on screen), `cover` how far in from its attach side the join
    * covers (AttachedSurface.joinCover), `span` the screen's size across.
    * With `fillet` (AttachedSurface.joinFillet, > 0), also the radius it
-   * curves into the stroke with at the far end of its cover (`fillet`,
-   * `filletAtEnd`: which end of the stretch that is), which the border's
+   * curves into the stroke with at the far end of its cover (`endFillet`
+   * from the near side, `startFillet` from the far one), which the border's
    * shadow follows round rather than leaving out the square it sits in.
    */
   function joinOpening(edge, atStart, from, depth, cover, span, fillet) {
@@ -201,11 +201,30 @@ QtObject {
       "start": far ? reach : 0,
       "end": far ? span : reach
     };
-    if ((fillet ?? 0) > 0) {
-      opening.fillet = Math.max(0, Math.min(fillet, opening.end - opening.start));
-      opening.filletAtEnd = !far;
-    }
+    if ((fillet ?? 0) > 0)
+      opening[far ? "startFillet" : "endFillet"] = Math.max(0, Math.min(fillet, opening.end - opening.start));
     return opening;
+  }
+
+  /**
+   * Whether a surface's end joined to a pill bar curves into its far
+   * stroke with a fillet (PillBarJoin.filleted) rather than running
+   * straight into a stub squared at its wall. `pills` are that bar's own
+   * pills as laid out ({ start, length }, before any surface stretches
+   * them), `wall` where the surface's far wall meets it (the bar's
+   * coordinates), `atStart` whether the surface is at the bar's start end,
+   * `radius` the fillet's (and the pill's corner's), `merge` its
+   * pillMerge, `stroke` its stroke width.
+   *
+   * Filleted where a pill shows past the wall (by more than the stroke a
+   * square stub's end would cover) and starts within the fillet, its own
+   * corner and `merge` of it: the join stretches it out to carry both. A
+   * pill showing past the wall can't square at it (a stretch only grows),
+   * so a straight join there would meet its side in a bare T.
+   */
+  function pillJoinFilleted(pills, wall, atStart, radius, merge, stroke) {
+    const need = radius * 2;
+    return (pills ?? []).some(p => atStart ? p.start + p.length > wall + stroke && p.start <= wall + need + merge : p.start < wall - stroke && p.start + p.length >= wall - need - merge);
   }
 
   // How far the pill (or island) `own` reaches toward `target` (before it

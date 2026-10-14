@@ -93,7 +93,7 @@ Every public member of `Appearance`, with the files that use it.
 - `Appearance.connectorGap` (int): The gap a surface growing out of an edge keeps between its box and that edge, which its fillets curve across (AttachedSurface, EdgeAttach)
   - in: `components/bar/BarContainer.qml`, `components/hosts/popout/AttachedSurface.qml`, `components/hosts/popout/EdgePlacement.qml`, `components/hosts/popout/SubPopout.qml`
 - `Appearance.borderWidth` (int)
-  - in: `components/bar/BarContainer.qml`, `components/bar/BarPanel.qml`, `components/bar/WidgetBackground.qml`, `components/content/AudioMixer.qml`, `components/content/ColorSwatch.qml`, `components/content/Greeting.qml`, `components/content/Login.qml`, `components/content/Network.qml`, `components/content/NightLightControls.qml`, `components/content/NowPlaying.qml` (+67 more)
+  - in: `components/bar/BarContainer.qml`, `components/bar/BarPanel.qml`, `components/bar/CornerMerge.qml`, `components/bar/WidgetBackground.qml`, `components/content/AudioMixer.qml`, `components/content/ColorSwatch.qml`, `components/content/Greeting.qml`, `components/content/Login.qml`, `components/content/Network.qml`, `components/content/NightLightControls.qml` (+68 more)
 - `Appearance.screenBorder` (bool)
   - in: `components/bar/BarContainer.qml`, `components/hosts/popout/AttachedSurface.qml`, `components/hosts/popout/EdgePlacement.qml`, `components/hosts/popout/LayerOrigin.qml`, `components/hosts/popout/SubPopout.qml`, `components/surfaces/edgemenu/IntegratedEdgeMenu.qml`, `config/Bar.qml`, `services/BarManager.qml`, `shell/ScreenBorder.qml`
 - `Appearance.screenMargin` (int): The frame can't be thinner than its own outline (a narrower one would draw the stroke over the screen edge); without a frame it's just a gap

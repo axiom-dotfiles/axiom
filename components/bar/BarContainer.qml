@@ -274,7 +274,11 @@ Rectangle {
     const span = (root.isVertical ? root.panel?.screen?.width : root.panel?.screen?.height) ?? 0;
     const opening = EdgeAttach.joinOpening(Bar.edgeName(root.barConfig.location), atStart, from, root.isVertical ? surface.width : surface.height, atStart ? surface.joinShown : surface.joinShownEnd, span);
     const at = root.isVertical ? origin.x : origin.y;
-    return SurfaceContext.opening(opening.start - at, opening.end - at, atStart ? surface.joinFillet : surface.joinFilletEnd, !root.barConfig.right && !root.barConfig.bottom);
+    // (its fillet at the far end of its cover: the stretch's end from the
+    // near side, its start from the far one)
+    const fillet = atStart ? surface.joinFillet : surface.joinFilletEnd;
+    const far = root.barConfig.right || root.barConfig.bottom;
+    return SurfaceContext.opening(opening.start - at, opening.end - at, far ? fillet : 0, far ? 0 : fillet);
   }
 
   // Each end merging into a pill bar it makes way for (CornerMerge)
@@ -477,40 +481,40 @@ Rectangle {
     // ...and a joined surface's fillet (a pill's or popout's curving into
     // a solid bar's stroke) only as far as its curve, not the square it
     // sits in: past the curve the shadow runs on round it
-    fillets: root._openingHoles.map(h => h.fillet).filter(fillet => fillet !== null)
+    fillets: [].concat(...root._openingHoles.map(h => h.fillets))
   }
   readonly property var _openingHoles: root._openingList.map(o => root._shadowHoles(o))
-  // Where an opening keeps the shadow off: `rects`, and its fillet's
-  // corner (OutsideShadow.fillets) or null
+  // Where an opening keeps the shadow off: `rects`, and the corners of the
+  // fillets curving into it at its ends (OutsideShadow.fillets): there
+  // only as far as their curve, the shadow running on round them
   function _shadowHoles(o) {
     const reach = root.barConfig.shadowSize * 2;
     const extent = root.barConfig.extent;
-    const f = o.fillet ?? 0;
-    const start = f > 0 && !o.filletAtEnd ? o.start + f : o.start;
-    const end = f > 0 && o.filletAtEnd ? o.end - f : o.end;
+    const fs = o.startFillet ?? 0, fe = o.endFillet ?? 0;
+    const start = o.start + fs, end = o.end - fe;
     const along = end - start;
     const deep = (root.isVertical ? root.width : root.height) - extent + reach;
     const near = root.barConfig.left || root.barConfig.top;
     // The inner edge across the bar
     const inner = near ? extent : (root.isVertical ? root.width : root.height) - extent;
     const rect = root.isVertical ? Qt.rect(near ? extent : -reach, start, deep, along) : Qt.rect(start, near ? extent : -reach, along, deep);
-    const filletFrom = o.filletAtEnd ? o.end - f : o.start;
-    const fillet = f <= 0 ? null : root.isVertical ? {
-      "x": near ? inner : inner - f,
-      "y": filletFrom,
-      "radius": f,
-      "left": near,
-      "top": o.filletAtEnd
-    } : {
-      "x": filletFrom,
-      "y": near ? inner : inner - f,
-      "radius": f,
-      "left": o.filletAtEnd,
-      "top": near
-    };
+    // `from` along the bar; `atEnd`: the surface's wall is before it
+    const fillet = (from, f, atEnd) => root.isVertical ? {
+        "x": near ? inner : inner - f,
+        "y": from,
+        "radius": f,
+        "left": near,
+        "top": atEnd
+      } : {
+        "x": from,
+        "y": near ? inner : inner - f,
+        "radius": f,
+        "left": atEnd,
+        "top": near
+      };
     return {
       "rects": along > 0 ? [rect] : [],
-      "fillet": fillet
+      "fillets": (fs > 0 ? [fillet(o.start, fs, false)] : []).concat(fe > 0 ? [fillet(o.end - fe, fe, true)] : [])
     };
   }
   // The bar an end makes way for (`other`, its container: a solid bar, or
