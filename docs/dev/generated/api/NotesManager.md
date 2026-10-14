@@ -19,7 +19,7 @@ Notes: Markdown files in NotesConfig.directory (config/state/notes/ by default, 
 
 - `moved(string from, string to)`: A note or folder moved (renamed) or went to the trash: modules showing it (or something in it) follow
 - `removed(string path)`
-- `openRequested(string path, int line, string place)`: A note (and 0-based line, or -1) to show in the Notes module at a place ("overlay" or "edgeMenu:<id>", a module's placeKey): one loaded there shows it at once (openRequested); one loaded in the next …
+- `openRequested(string path, int line, string place)`: A note (and 0-based line, or -1) to show in the Notes module at a place ("overlay", "edgeMenu:<id>" or "desktop:<screen>", a module's placeKey): one loaded there shows it at once (openRequested); one…
 
 ### Functions
 

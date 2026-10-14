@@ -74,6 +74,7 @@ The schema is the single source of truth for config: shape, `default`s (there is
   - `x-defaultSize` (`[w, h]` in grid units, four to a card): the size it's added at.
   - `x-minSize`: the least a drop into a gap shrinks it to; half the default when left out (`OverlayConfig.minSize`).
   - `x-hosts`: `overlay`, `edgeMenu`, `lockscreen`, `greeter`, `desktop`. The first two when left out, so the lock screen, the greeter and the desktop only take modules that list them.
+  - `x-keyboard: true`: the module takes typing. The desktop, which otherwise never takes the keyboard, takes it on a click while its layout shows one (`OverlayConfig.moduleInfo(type).keyboard`, `ScreenLayoutView.wantsKeyboard`). Needed for a typing module to list `desktop` in `x-hosts`.
   - `x-required`: part of every grid on its hosts; never removed, duplicated or in the library (the lock screen's `Password`).
   - `x-canvasDetail`: a module property the layouts editor shows on its tile (a list joined). `x-canvasFill`: a color property the tile is filled with (`OverlayConfig`).
 - `x-tool: true` on the hand-built view types: the navigator's tool group.

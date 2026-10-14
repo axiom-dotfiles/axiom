@@ -2,7 +2,7 @@
 # OverlayModules: ScreenRecord
 
 > **File:** `components/content/ScreenRecord.qml` · **Schema:** `definitions.ScreenRecordOverlayModule` · **Label:** Screen recording
-> **Annotations:** x-icon="screen_record", x-libraryGroup="Tools", x-defaultSize=[4,4]
+> **Annotations:** x-hosts=["overlay","edgeMenu","desktop"], x-icon="screen_record", x-libraryGroup="Tools", x-defaultSize=[4,4]
 
 Settings are read as `properties.<key>`.
 

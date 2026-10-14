@@ -2,7 +2,7 @@
 # OverlayModules: Brightness
 
 > **File:** `components/content/Brightness.qml` · **Schema:** `definitions.BrightnessOverlayModule` · **Label:** Brightness
-> **Annotations:** x-icon="brightness_medium", x-libraryGroup="System", x-defaultSize=[4,1]
+> **Annotations:** x-hosts=["overlay","edgeMenu","desktop"], x-icon="brightness_medium", x-libraryGroup="System", x-defaultSize=[4,1]
 
 Settings are read as `properties.<key>`.
 

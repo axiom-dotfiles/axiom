@@ -2,7 +2,7 @@
 # OverlayModules: Agenda
 
 > **File:** `components/content/Agenda.qml` · **Schema:** `definitions.AgendaOverlayModule` · **Label:** Agenda
-> **Annotations:** x-icon="event_note", x-libraryGroup="Time & weather", x-defaultSize=[4,4]
+> **Annotations:** x-hosts=["overlay","edgeMenu","desktop"], x-keyboard=true, x-icon="event_note", x-libraryGroup="Time & weather", x-defaultSize=[4,4]
 
 Settings are read as `properties.<key>`.
 

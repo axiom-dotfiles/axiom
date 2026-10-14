@@ -2,7 +2,7 @@
 # OverlayModules: BluetoothDevices
 
 > **File:** `components/content/BluetoothDevices.qml` · **Schema:** `definitions.BluetoothDevicesOverlayModule` · **Label:** Bluetooth devices
-> **Annotations:** x-icon="bluetooth", x-libraryGroup="Network & devices"
+> **Annotations:** x-hosts=["overlay","edgeMenu","desktop"], x-icon="bluetooth", x-libraryGroup="Network & devices"
 
 Settings are read as `properties.<key>`.
 

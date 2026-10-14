@@ -179,9 +179,9 @@ QtObject {
   // --- Opening a note elsewhere (the launcher) ---
 
   // A note (and 0-based line, or -1) to show in the Notes module at a
-  // place ("overlay" or "edgeMenu:<id>", a module's placeKey): one loaded
-  // there shows it at once (openRequested); one loaded in the next few
-  // seconds takes it with takeReveal(place)
+  // place ("overlay", "edgeMenu:<id>" or "desktop:<screen>", a module's
+  // placeKey): one loaded there shows it at once (openRequested); one
+  // loaded in the next few seconds takes it with takeReveal(place)
   signal openRequested(string path, int line, string place)
   property var _pendingReveal: null
 

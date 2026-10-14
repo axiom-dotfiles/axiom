@@ -53,11 +53,15 @@ QtObject {
         // Its group in the module library (`x-libraryGroup`)
         "group": def["x-libraryGroup"] ?? "",
         // Where a module may be placed (`x-hosts`): "overlay", "edgeMenu",
-        // "lockscreen" (only modules that list it)
+        // "lockscreen", "greeter", "desktop" (the last three only for
+        // modules that list them)
         "hosts": def["x-hosts"] ?? ["overlay", "edgeMenu"],
         // Part of every grid on its hosts (`x-required`): never removed,
         // duplicated or offered in the library
         "required": def["x-required"] === true,
+        // Takes typing (`x-keyboard`): a host that otherwise keeps the
+        // keyboard away (the desktop) takes it on a click while it shows one
+        "keyboard": def["x-keyboard"] === true,
         // The property shown on its layouts editor tile (`x-canvasDetail`),
         // and the color property filling it (`x-canvasFill`), else ""
         "canvasDetail": def["x-canvasDetail"] ?? "",

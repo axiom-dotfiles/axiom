@@ -2,7 +2,7 @@
 # OverlayModules: ClipboardHistory
 
 > **File:** `components/content/ClipboardHistory.qml` · **Schema:** `definitions.ClipboardHistoryOverlayModule` · **Label:** Clipboard history
-> **Annotations:** x-icon="content_paste", x-libraryGroup="Tools", x-defaultSize=[4,6]
+> **Annotations:** x-hosts=["overlay","edgeMenu","desktop"], x-keyboard=true, x-icon="content_paste", x-libraryGroup="Tools", x-defaultSize=[4,6]
 
 Settings are read as `properties.<key>`.
 

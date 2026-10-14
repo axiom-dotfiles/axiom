@@ -2,7 +2,7 @@
 # OverlayModules: NightLightControls
 
 > **File:** `components/content/NightLightControls.qml` · **Schema:** `definitions.NightLightControlsOverlayModule` · **Label:** Night light
-> **Annotations:** x-icon="bedtime", x-libraryGroup="System", x-defaultSize=[4,2]
+> **Annotations:** x-hosts=["overlay","edgeMenu","desktop"], x-icon="bedtime", x-libraryGroup="System", x-defaultSize=[4,2]
 
 Settings are read as `properties.<key>`.
 

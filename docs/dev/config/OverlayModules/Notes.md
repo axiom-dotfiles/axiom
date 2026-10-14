@@ -2,7 +2,7 @@
 # OverlayModules: Notes
 
 > **File:** `components/content/Notes.qml` · **Schema:** `definitions.NotesOverlayModule` · **Label:** Notes
-> **Annotations:** x-icon="sticky_note_2", x-libraryGroup="Tools", x-defaultSize=[4,8]
+> **Annotations:** x-icon="sticky_note_2", x-libraryGroup="Tools", x-hosts=["overlay","edgeMenu","desktop"], x-keyboard=true, x-defaultSize=[4,8]
 
 Settings are read as `properties.<key>`.
 

@@ -66,7 +66,7 @@ Notes are Markdown files edited in place by the Notes overlay / edge-menu module
 - The module whose `placeKey` matches shows it: `openRequested`, or `takeReveal` if the module loads within 5 s.
 
 ### Per-module state
-- The last note per place (`overlay`, `edgeMenu:<id>`) is kept in `config/state/notes-modules.json`.
+- The last note per place (`overlay`, `edgeMenu:<id>`, `desktop:<screen>`) is kept in `config/state/notes-modules.json`.
 - `lockNote` pins a module to its `note`.
 
 ### Lifecycle

@@ -2,7 +2,7 @@
 # OverlayModules: AudioMixer
 
 > **File:** `components/content/AudioMixer.qml` · **Schema:** `definitions.AudioMixerOverlayModule` · **Label:** Audio mixer
-> **Annotations:** x-icon="tune", x-libraryGroup="Media & audio"
+> **Annotations:** x-hosts=["overlay","edgeMenu","desktop"], x-icon="tune", x-libraryGroup="Media & audio"
 
 Settings are read as `properties.<key>`.
 

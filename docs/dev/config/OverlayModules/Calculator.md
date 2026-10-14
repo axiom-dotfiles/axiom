@@ -2,7 +2,7 @@
 # OverlayModules: Calculator
 
 > **File:** `components/content/Calculator.qml` · **Schema:** `definitions.CalculatorOverlayModule` · **Label:** Calculator
-> **Annotations:** x-icon="calculate", x-libraryGroup="Tools", x-defaultSize=[4,4]
+> **Annotations:** x-hosts=["overlay","edgeMenu","desktop"], x-keyboard=true, x-icon="calculate", x-libraryGroup="Tools", x-defaultSize=[4,4]
 
 Settings are read as `properties.<key>`.
 
