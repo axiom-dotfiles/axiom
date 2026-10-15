@@ -48,6 +48,10 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - Length: Whole edge stretches the menu along its edge, sharing the room evenly between its rows (or columns on a top or bottom edge).
   - x-group="Placement", x-showIf={"mode":{"not":"submenu"}}
   - read: `EdgeMenusConfig.menus` (whole) · in: `components/forms/SchemaField.qml`, `services/EdgeMenuManager.qml`, `services/KeybindManager.qml`, `services/OverlayManager.qml`
+- **`EdgeMenus[].popoutAtWidget`** · boolean = false
+  - Popout at its widget: Opened as a bar widget's popout, it opens at that widget, as bar popouts do, rather than where its layout places it. Only when that bar is on the menu's edge and monitor; opened any other way, it keeps its place.
+  - x-group="Placement", x-showIf={"mode":"floating","length":"content"}
+  - read: entry field, name match · in: `components/surfaces/edgemenu/FloatingEdgeMenu.qml`
 - **`EdgeMenus[].moduleScale`** · integer = 100 · 50–200 · %
   - Module size: Size of the menu's modules, relative to the overlay's cards on its monitor (which follow Overlay size).
   - x-group="Placement", x-control="stepper"

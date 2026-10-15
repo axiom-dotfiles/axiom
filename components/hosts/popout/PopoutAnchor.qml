@@ -97,6 +97,29 @@ Item {
     root.popouts.safeOpenPopout(root.panel, payload);
   }
 
+  // Where it is on its screen, in px, with its bar's edge (a Bar.Location)
+  // and screen: { x, y, width, height, edge, screen }, or null once gone
+  // (for an edge menu opened as its popout that places itself here)
+  function screenRect() {
+    try {
+      const origin = root.panel?.screenPlaced;
+      if (!origin)
+        return null;
+      const pos = root.mapToItem(null, 0, 0);
+      return {
+        "x": origin.x + pos.x,
+        "y": origin.y + pos.y,
+        "width": root.width,
+        "height": root.height,
+        "edge": root.panel.barConfig.location,
+        "screen": root.panel.screen
+      };
+    } catch (e) {
+      // Destroyed (the bar rebuilt on a config reload)
+      return null;
+    }
+  }
+
   HoverHandler {
     id: hoverHandler
     enabled: !root.hitArea

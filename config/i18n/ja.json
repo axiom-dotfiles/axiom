@@ -2931,6 +2931,8 @@
     "The edge menu shown on hover. It can differ from the one a click opens.": "ホバーで表示するエッジメニュー。クリックで開くメニューと別にできます。",
     "The edge menu a click opens and closes, as a full menu: hovering another widget's popout doesn't replace it.": "クリックで開閉するエッジメニュー。通常のメニューとして開くため、他のウィジェットのポップアウトにホバーしても置き換わりません。",
     "Popout menu": "ポップアウトのメニュー",
-    "Open an edge menu while the button is hovered, like other widgets' popouts: it closes when the pointer leaves, and a neighbouring popout replaces it. Separate from the click action.": "ボタンにホバーしている間、他のウィジェットのポップアウトと同じようにエッジメニューを開きます。ポインターが離れると閉じ、隣のポップアウトに置き換わります。クリック時の動作とは別です。"
+    "Open an edge menu while the button is hovered, like other widgets' popouts: it closes when the pointer leaves, and a neighbouring popout replaces it. Separate from the click action.": "ボタンにホバーしている間、他のウィジェットのポップアウトと同じようにエッジメニューを開きます。ポインターが離れると閉じ、隣のポップアウトに置き換わります。クリック時の動作とは別です。",
+    "Opened as a bar widget's popout, it opens at that widget, as bar popouts do, rather than where its layout places it. Only when that bar is on the menu's edge and monitor; opened any other way, it keeps its place.": "バーのウィジェットのポップアウトとして開くと、レイアウトで決めた位置ではなく、バーのポップアウトと同じようにそのウィジェットの位置に開きます。そのバーがメニューと同じ端・モニターにある場合のみです。他の方法で開いたときは元の位置のままです。",
+    "Popout at its widget": "ウィジェットの位置にポップアウト"
   }
 }

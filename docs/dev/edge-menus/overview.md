@@ -38,7 +38,7 @@ Menus that pop out of a screen edge, holding overlay modules. This doc lists an 
 - They work over the overlay:
   - their windows and hover strips are its grab partners (`EdgeMenuSync`'s `window` and `triggerWindow`);
   - a floating one draws over it and, while it's open on its screen, takes no focus grab of its own (`grabEnabled`), which would clear the overlay's and close it.
-- An open floating menu closes what it covers below it and gives way to what's above (PopoutManager; see [Popout registry](../popouts/registry.md)). Pinned, it ranks lowest; pinned or previewing, it comes back once uncovered. Opened on hover as a bar widget's popout (its `PopoutAnchor`, a `Button`'s `popoutMenu` included), it ranks as a bar popout, so a neighbouring widget's popout replaces it.
+- An open floating menu closes what it covers below it and gives way to what's above (PopoutManager; see [Popout registry](../popouts/registry.md)). Pinned, it ranks lowest; pinned or previewing, it comes back once uncovered. Opened on hover as a bar widget's popout (its `PopoutAnchor`, a `Button`'s `popoutMenu` included), it ranks as a bar popout, so a neighbouring widget's popout replaces it. With `popoutAtWidget` it then opens at that widget, as a bar popout does, rather than at its layout place.
 - A bar `Button` with `action: "edgeMenu"` and `menu: <id>` toggles one, passing itself as the anchor, so a floating menu stays open while the button is hovered.
 
 ### Pin

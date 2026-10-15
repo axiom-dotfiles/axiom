@@ -2466,7 +2466,7 @@
       "type": "object",
       "required": ["id"],
       "additionalProperties": false,
-      "x-order": ["name", "enabled", "monitor", "openOnHover", "openDelay", "triggerSize", "triggerLength", "mode", "edge", "offset", "gridOffset", "length", "moduleScale", "fineGrid", "detached", "gap", "frame", "padding", "moduleBorders", "pinButton", "backgroundColor", "borderColor", "closeOnLeave", "closeDelay", "closeOnOutsideClick", "id"],
+      "x-order": ["name", "enabled", "monitor", "openOnHover", "openDelay", "triggerSize", "triggerLength", "mode", "edge", "offset", "gridOffset", "length", "popoutAtWidget", "moduleScale", "fineGrid", "detached", "gap", "frame", "padding", "moduleBorders", "pinButton", "backgroundColor", "borderColor", "closeOnLeave", "closeDelay", "closeOnOutsideClick", "id"],
       "properties": {
         "id": { "x-group": "Advanced", "type": "string", "title": "Id", "x-control": "readonly", "description": "What bar buttons, keybinds and IPC calls open this menu by. Set when the menu is made." },
         "name": { "x-group": "General", "type": "string", "title": "Name", "default": "" },
@@ -2517,6 +2517,14 @@
           "x-enumLabels": { "content": "Fit its modules", "edge": "Whole edge" },
           "description": "Whole edge stretches the menu along its edge, sharing the room evenly between its rows (or columns on a top or bottom edge).",
           "x-showIf": { "mode": { "not": "submenu" } }
+        },
+        "popoutAtWidget": {
+          "x-group": "Placement",
+          "type": "boolean",
+          "title": "Popout at its widget",
+          "default": false,
+          "description": "Opened as a bar widget's popout, it opens at that widget, as bar popouts do, rather than where its layout places it. Only when that bar is on the menu's edge and monitor; opened any other way, it keeps its place.",
+          "x-showIf": { "mode": "floating", "length": "content" }
         },
         "moduleScale": {
           "x-group": "Placement",
