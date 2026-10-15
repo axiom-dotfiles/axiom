@@ -10,7 +10,7 @@ import qs.services
 PanelWindow {
   id: root
 
-  readonly property string source: ThemeManager.wallpaperFor(screen.name)
+  readonly property string source: ThemeManager.wallpaperFor(screen?.name ?? "")
   // The image shown on top; the other one loads the next wallpaper
   property Image current: first
 
@@ -55,7 +55,13 @@ PanelWindow {
     fillMode: Image.PreserveAspectCrop
     asynchronous: true
     cache: false
-    sourceSize: Qt.size(image.screenInfo.width, image.screenInfo.height)
+    // The screen's size, kept while Hyprland briefly has no output (the
+    // screen is null then), so the image isn't decoded again meanwhile
+    Binding on sourceSize {
+      when: image.screenInfo !== null
+      value: Qt.size(image.screenInfo?.width ?? 0, image.screenInfo?.height ?? 0)
+      restoreMode: Binding.RestoreNone
+    }
     z: image.shown ? 1 : 0
     onStatusChanged: {
       if (image.status !== Image.Ready || image.source.toString() !== image.wanted || image.shown)

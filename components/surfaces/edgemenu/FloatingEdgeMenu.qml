@@ -40,7 +40,7 @@ EdgePopout {
   // Along the edge, on the menu's lattice (GridPlacement.menuAlong),
   // in screen px: this window's edge coordinates start past what's
   // reserved on the perpendicular edge at its start
-  readonly property real screenLength: root.vertical ? root.screen.height : root.screen.width
+  readonly property real screenLength: root.vertical ? root.screen?.height ?? 0 : root.screen?.width ?? 0
   readonly property real alongOrigin: EdgeMenuManager.reservedOn(root.screen, root.startSide)
   // The least room from the modules to the screen's ends: what's reserved
   // there, the box's inset and its padding

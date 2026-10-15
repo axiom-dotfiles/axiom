@@ -418,7 +418,7 @@ PopoutWrapperBase {
       // From this window's edge (its attach edge, less its backfill and
       // the way it slides in from) to the far edge's reserved space
       const far = EdgeMenuManager.reservedOn(root.screen, root.edge === Bar.Top ? Bar.Bottom : Bar.Top);
-      return Math.max(own, root.screen.height - far - root.attachAt + surface.backfill + (root.slidesUnder ? root.slideDistance : 0));
+      return Math.max(own, (root.screen?.height ?? 0) - far - root.attachAt + surface.backfill + (root.slidesUnder ? root.slideDistance : 0));
     }
     implicitWidth: root.vertical ? surfaceWindow.depth : 0
     implicitHeight: root.vertical ? 0 : surfaceWindow.depth

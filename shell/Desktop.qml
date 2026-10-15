@@ -14,7 +14,7 @@ Scope {
       id: desktop
       required property ShellScreen modelData
       screen: desktop.modelData
-      layout: DesktopConfig.layoutFor(desktop.modelData.name)
+      layout: DesktopConfig.layoutFor(desktop.modelData?.name ?? "")
     }
   }
 }
