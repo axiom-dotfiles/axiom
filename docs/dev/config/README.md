@@ -14,6 +14,7 @@ Generated from `config/json/config.schema.json` and the readers in `config/`. On
 | [Launcher](Launcher.md) | `LauncherConfig` (`config/LauncherConfig.qml`) | Launcher |
 | [Apps](Apps.md) | `Apps` (`config/Apps.qml`) | General |
 | [PowerMenu](PowerMenu.md) | `PowerMenuConfig` (`config/PowerMenuConfig.qml`) | Screen & Power |
+| [Screenshots](Screenshots.md) | `Screenshots` (`config/Screenshots.qml`) | General |
 | [Battery](Battery.md) | `BatteryConfig` (`config/BatteryConfig.qml`) | General |
 | [Notifications](Notifications.md) | `NotificationsConfig` (`config/NotificationsConfig.qml`) | Notifications |
 | [Hyprland](Hyprland.md) | `HyprlandConfig` (`config/HyprlandConfig.qml`) | Hyprland |
@@ -27,7 +28,7 @@ Generated from `config/json/config.schema.json` and the readers in `config/`. On
 | [Weather](Weather.md) | `WeatherConfig` (`config/WeatherConfig.qml`) | Modules |
 | [OSD](OSD.md) | `OSDConfig` (`config/OSDConfig.qml`) | Dock & OSD |
 | [Dock](Dock.md) | `DockConfig` (`config/DockConfig.qml`) | Dock & OSD |
-| [ThemeIntegrations](ThemeIntegrations.md) | `ThemeIntegrations` (`config/ThemeIntegrations.qml`) | Look & Feel |
+| [ThemeIntegrations](ThemeIntegrations.md) | `ThemeIntegrations` (`config/ThemeIntegrations.qml`) | Theme integrations |
 | [Icons](Icons.md) | `IconsConfig` (`config/IconsConfig.qml`) | Look & Feel |
 | [Overlay](Overlay.md) | `OverlayConfig` (`config/OverlayConfig.qml`) | Overlay & Popouts |
 | [Workspaces](Workspaces.md) | `WorkspacesConfig` (`config/WorkspacesConfig.qml`) | Workspaces |

@@ -321,7 +321,8 @@ Item {
         readonly property real inParentX: submenuPopup.attachX + surface.x
         readonly property real inParentY: root.attachRect.y + submenuPopup.windowFrom - submenuPopup.roomTop + surface.y
         // In its parent's window, on its layer
-        backed: BlurManager.backsOn(outer.screen, outer.host?.onOverlayLayer ?? true) && surface.parentOrigin !== null
+        readonly property bool onOverlayLayer: outer.host?.onOverlayLayer ?? true
+        backed: BlurManager.backsOn(outer.screen, surface.onOverlayLayer) && surface.parentOrigin !== null
         opaque: BlurManager.opaqueOn(outer.screen)
         // Cast as its parent casts its own (SurfaceContext.shadow): one
         // shadow round the two, falling away from the parent's edge
@@ -336,6 +337,7 @@ Item {
           x: (surface.parentOrigin?.x ?? 0) + surface.inParentX
           y: (surface.parentOrigin?.y ?? 0) + surface.inParentY
           shown: surface.backed && submenuPopup.visible
+          overlayLayer: surface.onOverlayLayer
         }
 
         // The parent's side stroke it covers, left open, with its

@@ -11,7 +11,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 
 - **`Appearance.wallpaperRotation`** · object
   - Wallpaper rotation
-  - x-showIf={"wallpaperMode":"rotate"}
+  - x-snapshot=true, x-showIf={"wallpaperMode":"rotate"}
 - **`Appearance.wallpaperRotation.interval`** · integer = 30 · 1–1440 · min
   - Change every: How long each wallpaper stays up.
   - read: `Appearance.rotationInterval` · in: `services/WallpaperManager.qml`

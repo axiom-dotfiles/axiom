@@ -19,6 +19,14 @@ The right side of the layouts editor: `GridCanvas` draws the selected page, menu
   - They are not drop targets.
 - A header with undo/redo at its left, the module count, a menu's arrows moving it along its edge (see [Edge menu editing](../edge-menus/editing-submenus.md)) and how it fits (per monitor for a page, along the edge for a menu).
 
+### GridCanvas: alignment guides
+Always on; all their geometry is `GridPlacement`'s (tested in `tst_GridPlacement`).
+- The **frame** a module is aligned against (`GridEditor.guideFrame`, `GridPlacement.guideFrame`): the bounded grid (`GridEditor.area`, a screen layout), else the cover of the *other* modules (a page or a submenu: centred among the rest). An edge menu's is its screen along its edge (`GridEditor.screenBox`, `EdgeMenuManager.screenBoxOf`) and the other modules across it, so what's centred lines up with the screen's centre.
+- **Centre cross** (`centreLines`, `centreGuides`): faint dashed accent lines over the tiles (the guides' `Canvas`, so a full page doesn't hide them), through the centre of the frame of every module: the screen's (screen layouts), the page's modules' bounds (what the overlay centres the page on), an edge menu's screen along its edge and its modules across it.
+- **Smart guides** while carrying or resizing (`guides`, `alignments`): a line wherever the landing place's start, end or centre on an axis equals another module's (at its previewed place), running over both; stronger where it's centred in the frame. Drawn by the same `Canvas` as the centre cross. The drag layer's `landingMembers` says which previewed places are the ones moving.
+- **Margins** on the one selected module, while nothing's carried (`margins`, `canvasMargins`): a line and its length in cards (`GridPlacement.cards`) to each frame side with room, accent where both sides on that axis match. An edge menu's screen side can fall between units: that length is rounded and shown with `≈`.
+- The inspector's **Centre horizontally / vertically** buttons (`GridEditor.planCentre` / `centreSelection`, `GridPlacement.centredIn`) centre the module or group in its frame, pushing as a move does. Dimmed (still hoverable, to say why) when it's centred, when there's no room, or when it'd sit between units (an odd difference, where a fine grid helps, or an edge menu's screen centre off its lattice: its grid offset); hidden with no frame.
+
 ### GridCanvas: interaction
 - Drag a tile to move it: onto a module of the same size to swap, onto others to push them aside.
 - Drag any edge or corner to resize from that side (`GridPlacement.resizeFrom`), snapping to units, with a size readout.

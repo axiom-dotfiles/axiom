@@ -13,19 +13,17 @@ import qs.components.content.parts
 // (picked as for a screenshot) or the whole focused screen (the overlay
 // closes first), with the system's sound (with pactl), the microphone or
 // none; while recording, a stop button and the time so far. The newest
-// recordings in the folder are listed under it when there's room: click
-// to open, copy the path or move one to the trash. Also the ScreenRecord widget's popout.
+// recordings in the recording folder (the Screenshots section) are listed
+// under it when there's room: click to open, copy the path or move one to
+// the trash. Also the ScreenRecord widget's popout.
 // A short card is one row; compact, a figure that starts or stops it.
-// properties (card): { directory }
 Panel {
   id: root
 
-  // Empty: ScreenshotManager's <Pictures>/Screenshots
-  readonly property string directory: root.properties.directory ?? ""
   readonly property bool recording: ScreenshotManager.recording
   readonly property bool missing: DependencyManager.found["wf-recorder"] === false
   readonly property string elapsed: root.durationText(ScreenshotManager.recordingElapsed)
-  readonly property var recordings: ScreenshotManager.recordingsIn(root.directory)
+  readonly property var recordings: ScreenshotManager.recordings
   // The sound recorded with: the system's only with pactl
   readonly property bool systemAudio: ScreenshotManager.hasSystemAudio !== false
   readonly property string audio: ScreenshotManager.recordAudio === "system" && !root.systemAudio ? "none" : ScreenshotManager.recordAudio
@@ -55,7 +53,7 @@ Panel {
   function start(mode) {
     if (mode === "screen")
       ShellManager.closeOverlay();
-    ScreenshotManager.startRecording(root.directory, {
+    ScreenshotManager.startRecording({
       "mode": mode,
       "audio": root.audio
     });
@@ -70,9 +68,8 @@ Panel {
 
   Component.onCompleted: {
     DependencyManager.check(["wf-recorder", "pactl"]);
-    ScreenshotManager.refreshRecordings(root.directory);
+    ScreenshotManager.refreshRecordings();
   }
-  onDirectoryChanged: ScreenshotManager.refreshRecordings(root.directory)
 
   compactContent: Item {
     CompactFigure {
@@ -312,7 +309,7 @@ Panel {
           size: 22
           iconText: "folder_open"
           tooltipText: I18n.tr("Open the folder")
-          onClicked: Qt.openUrlExternally("file://" + ScreenshotManager.folderFor(root.directory))
+          onClicked: Qt.openUrlExternally("file://" + ScreenshotManager.recordingFolder)
         }
       }
 

@@ -1,7 +1,7 @@
 # Screenshots and screen recording
 
 > **Files:** `services/ScreenshotManager.qml`, `shell/Screenshot.qml`, `components/surfaces/screenshot/ScreenshotPickerWindow.qml`, `components/content/ScreenRecord.qml`, `components/bar/widgets/ScreenRecord.qml`
-> **Config:** none (choices persist in `config/state/screenshot.json`)
+> **Config:** `Screenshots` (`folder`, `recordingFolder`; reader `config/Screenshots.qml`); the picker's choices persist in `config/state/screenshot.json`
 > **Related:** [Keybinds](../hyprland/keybinds.md), [Chat](chat.md) (region attachments), [Utility modules](../overlay/utility-modules.md)
 
 Screenshots and wf-recorder recordings, both in `ScreenshotManager`, with one picker surface for both. Grim and slurp are not used.
@@ -27,7 +27,8 @@ Name clash: `KeybindManager.startRecording(index)` is the key recorder on the Ke
 - **Cropping:** a `ShaderEffectSource` + `grabToImage`, at the buffer's resolution.
 
 ### After a capture
-- **Saving:** to `<Pictures>/Screenshots`. With `copyOnly` it is only a runtime file.
+- **Saving:** to `folder`: `Screenshots.folder`, else `<Pictures>/Screenshots` (`xdg-user-dir PICTURES`). With `copyOnly` it is only a runtime file.
+- The folders are global settings (General → Screenshots & recordings), not the cards': every entry point saves to the same place. Recordings go to `recordingFolder`: `Screenshots.recordingFolder`, else `folder`.
 - **Copying:** to the clipboard with wl-copy.
 - Then one of:
   - **A notification** with an "Edit in Satty/Swappy" button. This is a waiting `notify-send -A`; only the latest one stays live.
@@ -39,14 +40,14 @@ Name clash: `KeybindManager.startRecording(index)` is the key recorder on the Ke
 ### Recording
 Recording lives in the service, not in the card, because the overlay destroys the card when it closes.
 
-**Pick-based (`toggleRecording(dir)`):**
+**Pick-based (`toggleRecording()`):**
 - Opens the same picker with kind `record`. That kind has no save or annotate controls.
 - R, or the picker's Screenshot / Record switch (`setRecordMode`), flips an open picker between screenshot and record.
 - The pick goes to `record(area, screenName)`:
   - a region is passed as global logical `-g`;
   - a whole screen as `-o <screen>`.
 
-**Direct (`startRecording(directory, { mode, audio })`):**
+**Direct (`startRecording({ mode, audio })`):**
 - `mode` is `"pick"` or `"screen"`.
 - `screen` records the focused monitor at once, after the overlay or launcher has gone.
 - `audio` is `"none"`, `"system"` or `"mic"`:
@@ -69,9 +70,7 @@ Recording lives in the service, not in the card, because the overlay destroys th
 - The `ScreenRecord` overlay module: region or screen, the sound, and recent recordings.
 
 ### Recent recordings
-- `refreshRecordings(directory)` lists the newest 12 `Recording_*.mp4` in a folder into `recordings`:
-  - shape: `{ folder: [{ path, name, time, size }] }`;
-  - one `find` at a time, from a queue, so cards on different folders each keep their own list;
-  - read with `recordingsIn(directory)`;
-  - listed again whenever a recording is saved in that folder.
-- `deleteRecording` moves a recording to the trash, then lists its folder again.
+- `refreshRecordings()` lists the newest 12 `Recording_*.mp4` in `recordingFolder` into `recordings` (`[{ path, name, time, size }]`, newest first).
+  - Once a card has asked, they're listed again whenever a recording is saved or `recordingFolder` changes.
+  - One `find` at a time: asked again meanwhile, it lists once more after; a list of a folder since changed is dropped.
+- `deleteRecording` moves a recording to the trash, then lists the folder again.

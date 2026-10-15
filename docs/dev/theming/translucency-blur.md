@@ -35,6 +35,7 @@ Written by `HyprLua.blurLua` (HyprlandConfigManager's `_blurLua`, `M.blur()` in 
 - `axiom-blur-popups`, on the chrome's own namespaces (`HyprLua.blurChrome`), for their popups alone (tooltips, the dock's menu):
   - Hyprland blurs a layer's popups whether or not the layer blurs, never with xray, and with its `ignore_alpha`.
   - So a bar popout, a popup drawn transparent over the blur window, blurs only under its content.
+- `axiom-blur-over-overlay`, on the blur window over the overlay (`HyprLua.blurOverOverlay`): `blur`, `ignore_alpha` at the threshold, and always `xray = false`, since it blurs the overlay under it.
 - `axiom-blur-backdrops`, on `axiom-backdrop` and polkit (whose window holds its dim), at any alpha.
 - `axiom-blur-no-anim`: `no_anim` on `HyprLua.blurBacked`, the windows the blur window draws for, while it does.
   - They slide themselves. Hyprland fading or popping one in (its `layers`/`fade` animations, read as it maps) would leave its stroke and content behind the fill, blur and shadow drawn for it, which it doesn't animate.
@@ -48,7 +49,7 @@ Written by `HyprLua.blurLua` (HyprlandConfigManager's `_blurLua`, `M.blur()` in 
 
 ### Per screen
 `BlurManager.backsOn(screen, onOverlay)`:
-- A surface on the Overlay layer (bar popouts and submenus, edge popouts, OSDs) fills itself, translucent, while the overlay is open on its screen, since the overlay covers the blur window.
+- A surface on the Overlay layer (bar popouts and submenus, edge popouts, OSDs) stays backed while the overlay is open on its screen: the blur window over the overlay draws it then (see [Blur window and openings › Over the overlay](blur-window-openings.md#over-the-overlay)).
   - It reads its host's `onOverlayLayer`, which its submenu follows (not while it slides under a bar).
 - A surface on Top (bars, the border, docks, integrated menus) leaves the blur window while a fullscreen window shows there, since that fades the Top layer out.
   - The blur window itself then rises to the Overlay layer on that screen (`overFullscreen`, order 9 keeping it under the surfaces there), so what shows over a fullscreen window still blurs.

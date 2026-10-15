@@ -94,7 +94,7 @@ This doc covers the three lock modes, how the built-in lock screen's layout of m
 
 #### Background
 - `background` is one of:
-  - `wallpaper`: `Appearance.wallpaperFor(screen)`, blurred by a `MultiEffect` when `Lockscreen.blurWallpaper` is on. hyprlock's config follows the same setting.
+  - `wallpaper`: `ThemeManager.wallpaperFor(screen)`, blurred by a `MultiEffect` when `Lockscreen.blurWallpaper` is on. hyprlock's config follows the same setting.
   - `color`: `backgroundColor`.
 - Either way it sits under a black layer at `dim`%.
 

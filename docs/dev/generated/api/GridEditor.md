@@ -10,6 +10,8 @@ Editing of one grid of modules (each with a `place` { x, y, w, h } in quarter ca
 - `modulesOf` (var): Returns the modules array being edited (mutated in place), or null
 - `host` (string): Where the modules are shown: "overlay", "edgeMenu" or "lockscreen" (x-hosts)
 - `area` (var): A bounded grid ({ cols, rows }): modules stay inside it where they are put, and the grid never shifts. null: it grows and shifts back to 0, 0 after every edit
+- `screenBox` (var): An edge menu's screen around its grid (GridPlacement.screenBox) and its edge: the screen along the edge is what its modules are centred on (guideFrame). null for a page or a submenu
+- `edge` (string)
 - `sizeScale` (int): How many of this grid's units make one of a card's quarters (2 on a doubled lock screen grid): new modules' default sizes scale by it
 - `hold` (var): Axes ({ x, y }, each optional) on which a gap before the modules stays rather than being shifted away after an edit (a whole-edge menu's, along its edge: the gap is part of where it sits)
 - `pushDir` (var): Which way modules a drop lands on are pushed ({ x, y }, one of them 1 or -1): down on a page, along an edge menu's edge
@@ -44,6 +46,9 @@ Editing of one grid of modules (each with a `place` { x, y, w, h } in quarter ca
 - `planMove(index, x, y)`: Module `index` moved with its top left to x, y: exactly onto a module of its size they swap, else it pushes what it lands on
 - `planResize(index, place)`: Module `index` resized to `place` (GridPlacement.resizeFrom: any side may move), pushing what it grows onto
 - `planMoveGroup(indices, dx, dy)`: The modules at `indices` moved together by `dx`, `dy` units (kept inside the `area`), pushing what they land on
+- `guideFrame(places, exclude)`: What the modules at `exclude` are aligned and centred against, among `places` (GridPlacement.guideFrame): the `area`, else the other modules, an edge menu's screen along its edge
+- `planCentre(axis)`: The selection centred across (`axis` "x") or down ("y") in its frame (guideFrame), as a plan (planMove / planMoveGroup; noop when it's centred already).
+- `centreSelection(axis)`
 - `canAdd(type, place)`: Whether a new module of `type` may be dropped at `place`
 - `canMove(index, x, y)`: Whether module `index` may move with its top left to x, y
 - `canResize(index, w, h)`: Whether module `index` may take the size w × h (top left kept)

@@ -48,6 +48,10 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - Length: Whole edge stretches the menu along its edge, sharing the room evenly between its rows (or columns on a top or bottom edge).
   - x-group="Placement", x-showIf={"mode":{"not":"submenu"}}
   - read: `EdgeMenusConfig.menus` (whole) · in: `components/forms/SchemaField.qml`, `services/EdgeMenuManager.qml`, `services/KeybindManager.qml`, `services/OverlayManager.qml`
+- **`EdgeMenus[].popoutAtWidget`** · boolean = false
+  - Popout at its widget: Opened as a bar widget's popout, it opens at that widget, as bar popouts do, rather than where its layout places it. Only when that bar is on the menu's edge and monitor; opened any other way, it keeps its place.
+  - x-group="Placement", x-showIf={"mode":"floating","length":"content"}
+  - read: entry field, name match · in: `components/surfaces/edgemenu/FloatingEdgeMenu.qml`
 - **`EdgeMenus[].moduleScale`** · integer = 100 · 50–200 · %
   - Module size: Size of the menu's modules, relative to the overlay's cards on its monitor (which follow Overlay size).
   - x-group="Placement", x-control="stepper"
@@ -138,7 +142,7 @@ Every public member of `EdgeMenusConfig`, with the files that use it.
   - in: `components/content/Submenu.qml`, `components/content/parts/MenuSubmenu.qml`, `components/surfaces/edgemenu/EdgeMenu.qml`, `services/EdgeMenuManager.qml`
 - `EdgeMenusConfig.popoutMenuOf(properties)`: The menu a bar widget opens as its popout (its `popoutMenu`, with `showPopout` on), else "": it opens its own popout, if any.
   - in: `components/bar/BarWidgetHost.qml`
-- `EdgeMenusConfig.menuOpenedBy(widget)`: The id of the menu a bar widget entry opens, as configured (a Button toggling one, or a menu popout; gone or disabled alike), else ""
+- `EdgeMenusConfig.menusOpenedBy(widget)`: The ids of the menus a bar widget entry opens, as configured (gone or disabled alike): its menu popout, then a Button's click menu
   - in: `services/EdgeMenuManager.qml`, `services/OverlayManager.qml`
 - `EdgeMenusConfig.opensOwnPopout(properties)`: A bar widget with a popout of its own opens it: on, and no menu opened in its place
   - in: `components/bar/widgets/AudioLevelWidget.qml`, `components/bar/widgets/Bluetooth.qml`, `components/bar/widgets/ClaudeUsage.qml`, `components/bar/widgets/Media.qml`, `components/bar/widgets/Network.qml`, `components/bar/widgets/NextEvent.qml`, `components/bar/widgets/Notifications.qml`, `components/bar/widgets/SystemStats.qml`, `components/bar/widgets/Time.qml`, `components/bar/widgets/Updates.qml` (+3 more)

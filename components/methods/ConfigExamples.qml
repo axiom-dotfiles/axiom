@@ -10,7 +10,8 @@ import QtQuick
 //   machine   what only means something here: monitors, wallpapers,
 //             accounts, paths, hardware and services
 // Example setups (examples/*.json) and exported configs hold the look (and,
-// when asked, the personal) parts. Applying one replaces those parts of the
+// when asked, the personal) parts; saved snapshots hold both, plus the
+// wallpaper setup (`x-snapshot`). Applying one replaces those parts of the
 // running config and leaves the rest as the user set it.
 QtObject {
   id: root
@@ -60,30 +61,84 @@ QtObject {
     return result;
   }
 
-  // Whether `a` and `b` are equal apart from the values at `paths` (as
-  // keepTakeovers takes them), without copying either: a running config
-  // against a snapshot, on every config change
-  function equalApartFrom(a, b, paths) {
-    if (paths.length === 0)
-      return Utils.deepEqual(a, b);
-    if (paths.some(path => path.length === 0))
-      return true;
-    if (!_isObject(a) || !_isObject(b))
-      return Utils.deepEqual(a, b);
-    const keys = Object.keys(a);
-    if (keys.length !== Object.keys(b).length)
-      return false;
-    return keys.every(key => Object.prototype.hasOwnProperty.call(b, key) && equalApartFrom(a[key], b[key], paths.filter(path => path[0] === key).map(path => path.slice(1))));
+  // What a saved snapshot holds: the look and personal parts, and the
+  // `x-snapshot` settings (the wallpaper setup). Those are machine values,
+  // but a snapshot restores on the PC it was saved on, where they still
+  // mean something (withSnapshot).
+  function snapshot(config, schema) {
+    const result = pick(config, schema, true);
+    for (const path of snapshotPaths(schema)) {
+      const value = _at(config, path);
+      if (value !== undefined)
+        _setAt(result, path, Utils.clone(value));
+    }
+    return result;
+  }
+
+  // The files (absolute paths, each once) the `x-snapshot` settings of
+  // `config` name as file:// URLs, to check which are still there before
+  // restoring them
+  function snapshotFiles(config, schema) {
+    const urls = [];
+    const collect = value => {
+      if (typeof value === "string" && value.startsWith("file://"))
+        urls.push(value);
+      else if (_isObject(value))
+        Object.values(value).forEach(collect);
+    };
+    for (const path of snapshotPaths(schema))
+      collect(_at(config, path));
+    return urls.map(_filePath).filter((path, i, all) => path.startsWith("/") && all.indexOf(path) === i);
+  }
+
+  // A copy of `config` with the `x-snapshot` settings of `saved`. A file
+  // URL comes back only when its file is in `existing` (snapshotFiles'
+  // paths that exist), and a wallpaper is never blanked: otherwise the one
+  // in `config` stays. Objects merge by key (a monitor not in the
+  // snapshot keeps its wallpaper).
+  function withSnapshot(config, saved, schema, existing) {
+    const result = Utils.clone(config);
+    const restore = (current, value) => {
+      if (typeof value === "string") {
+        if (value.startsWith("file://"))
+          return existing.includes(_filePath(value)) ? value : current;
+        return value === "" && typeof current === "string" && current.startsWith("file://") ? current : value;
+      }
+      if (!_isObject(value))
+        return Utils.clone(value);
+      const merged = _isObject(current) ? Utils.clone(current) : {};
+      for (const key in value) {
+        const restored = restore(merged[key], value[key]);
+        if (restored !== undefined)
+          merged[key] = restored;
+      }
+      return merged;
+    };
+    for (const path of snapshotPaths(schema)) {
+      const value = _at(saved, path);
+      if (value !== undefined)
+        _setAt(result, path, restore(_at(result, path), value));
+    }
+    return result;
   }
 
   // The paths ([key, …]) of the `x-takeover` settings, through objects only
   function takeoverPaths(schema) {
+    return _annotated(schema, "x-takeover");
+  }
+
+  // The paths of the `x-snapshot` settings, through objects only
+  function snapshotPaths(schema) {
+    return _annotated(schema, "x-snapshot");
+  }
+
+  function _annotated(schema, annotation) {
     const paths = [];
     const walk = (node, path, depth) => {
       node = SchemaValidation.resolveRef(node, schema);
       if (!node || depth > 20)
         return;
-      if (node["x-takeover"] === true && path.length > 0) {
+      if (node[annotation] === true && path.length > 0) {
         paths.push(path);
         return;
       }
@@ -92,6 +147,33 @@ QtObject {
     };
     walk(schema, [], 0);
     return paths;
+  }
+
+  function _at(value, path) {
+    for (const key of path) {
+      if (!_isObject(value))
+        return undefined;
+      value = value[key];
+    }
+    return value;
+  }
+
+  // Sets the value at `path`, making the objects on the way
+  function _setAt(target, path, value) {
+    for (const key of path.slice(0, -1)) {
+      if (!_isObject(target[key]))
+        target[key] = {};
+      target = target[key];
+    }
+    target[path[path.length - 1]] = value;
+  }
+
+  function _filePath(url) {
+    try {
+      return decodeURIComponent(url.replace(/^file:\/\//, ""));
+    } catch (e) {
+      return "";
+    }
   }
 
   function _kept(personal) {

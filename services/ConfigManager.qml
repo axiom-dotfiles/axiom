@@ -84,7 +84,8 @@ QtObject {
      * @param wallpaperUrl The full file URL of the wallpaper.
      * @param monitor The monitor it's set on.
      * @param primary Whether that's the primary monitor, whose wallpaper is
-     *        also Appearance.wallpaper.
+     *        also Appearance.wallpaper. Only picks by hand write these:
+     *        rotation and the light/dark wallpapers are ThemeManager's.
      */
   function setWallpaper(wallpaperUrl, monitor, primary) {
     const appearance = _config.Appearance;

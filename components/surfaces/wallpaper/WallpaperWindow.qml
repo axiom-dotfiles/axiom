@@ -4,12 +4,13 @@ import Quickshell
 import Quickshell.Wayland
 
 import qs.config
+import qs.services
 
 // A screen's wallpaper, crossfading to a new one once it has loaded
 PanelWindow {
   id: root
 
-  readonly property string source: Appearance.wallpaperFor(screen.name)
+  readonly property string source: ThemeManager.wallpaperFor(screen.name)
   // The image shown on top; the other one loads the next wallpaper
   property Image current: first
 

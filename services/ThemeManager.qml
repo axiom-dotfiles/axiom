@@ -7,12 +7,17 @@ import Quickshell.Io
 import Quickshell.Hyprland
 
 import qs.config
+import qs.components.methods
 
 /* ThemeManager owns the active theme's data (loaded from its file, watched,
  * with defaults for what it leaves out), the theme lists, theme generation
  * from a wallpaper, the wallpaper itself, and re-theming integrated tools.
- * The choice of theme is config (Appearance.theme), persisted through
- * ConfigManager.setTheme.
+ * The choice of theme and wallpapers is config (Appearance.theme,
+ * fixedWallpaper(s)), persisted through ConfigManager. What changes on its
+ * own (the light/dark schedule's variant, the rotation's wallpapers, the
+ * light/dark wallpapers) is shown without touching the config: activeTheme
+ * and wallpaperFor() are what's showing (ShownLook), and the runtime part
+ * is kept in state/look.json.
  *
  * In the greeter (Paths.greeter) it only reads: the active theme is the
  * theme.json beside the greeter's config (the bundle's, what the user's
@@ -42,6 +47,28 @@ QtObject {
   // The active theme's JSON ({ name, variant, paired, colors, semantic }),
   // read through config/Theme
   readonly property var currentTheme: _theme
+  // The theme showing: Appearance.theme, or the variant the light/dark
+  // schedule last switched it to. Read from the config itself: the
+  // Appearance reader's darkMode reads currentTheme, which loads from this.
+  // reads: Appearance.theme, Appearance.themeSchedule.enabled
+  readonly property string activeTheme: {
+    const appearance = ConfigManager.config.Appearance;
+    return Paths.greeter ? appearance.theme : ShownLook.theme(appearance.theme, appearance.themeSchedule.enabled, root._look.theme ?? null);
+  }
+  // The wallpapers showing ({ wallpaper, wallpapers }): the fixed ones, the
+  // rotation's or the light/dark ones, by Appearance.wallpaperMode
+  readonly property var shownWallpapers: ShownLook.wallpapers(Paths.greeter ? "fixed" : Appearance.wallpaperMode, {
+    "wallpaper": Appearance.fixedWallpaper,
+    "wallpapers": Appearance.fixedWallpapers
+  }, {
+    "dark": Appearance.darkWallpaper,
+    "light": Appearance.lightWallpaper
+  }, Appearance.darkMode, root._look.rotated ?? null)
+  // The primary monitor's (the lockscreen's and hyprlock's)
+  readonly property string wallpaper: root.wallpaperFor(General.primaryMonitor)
+  function wallpaperFor(monitor) {
+    return ShownLook.wallpaperFor(root.shownWallpapers, monitor);
+  }
   // config/json/theme-defaults.json: fallback palette and semantic maps,
   // shared with scripts/generate_theme.py
   readonly property var defaults: _defaults
@@ -53,9 +80,16 @@ QtObject {
   // Public Functions
   //=========================================================================
 
-  // `themeName` as Appearance.theme names it (generated ones "generated/…")
+  // `themeName` as Appearance.theme names it (generated ones "generated/…").
+  // A choice by hand outlasts the schedule's variant until its next edge.
   function applyTheme(themeName) {
-    if (!themeName || Appearance.theme === themeName)
+    if (!themeName)
+      return;
+    if (root._look.theme)
+      root._saveLook({
+        "theme": null
+      });
+    if (Appearance.theme === themeName)
       return;
     ConfigManager.setTheme(themeName);
   }
@@ -71,26 +105,28 @@ QtObject {
     generateThemesFromWallpaper(wallpaperUrl);
   }
 
-  // Sets `monitor`'s wallpaper (the focused monitor's without one). The
-  // primary monitor's is also Appearance.wallpaper, the lockscreen's.
+  // `monitor`, or the focused monitor without one
+  function monitorFor(monitor) {
+    return monitor || (Hyprland.focusedMonitor?.name ?? General.primaryMonitor);
+  }
+
+  // Sets `monitor`'s fixed wallpaper in the config (the focused monitor's
+  // without one). The primary monitor's is also Appearance.fixedWallpaper,
+  // the fallback for monitors without their own.
   function setWallpaper(wallpaperUrl, monitor) {
     if (!wallpaperUrl)
       return;
-    const target = monitor || (Hyprland.focusedMonitor?.name ?? General.primaryMonitor);
-    const primary = target === General.primaryMonitor;
-    _showWallpaper(wallpaperUrl, target, primary);
-    ConfigManager.setWallpaper(wallpaperUrl, target, primary);
+    const target = root.monitorFor(monitor);
+    ConfigManager.setWallpaper(wallpaperUrl, target, target === General.primaryMonitor);
   }
 
-  // Sets several monitors' wallpapers at once ({ monitor: url }), with one
-  // save; true if any changed
+  // Sets several monitors' fixed wallpapers at once ({ monitor: url }), with
+  // one save; true if any changed
   function setWallpapers(wallpapers) {
     const primary = General.primaryMonitor;
-    const changed = Object.keys(wallpapers).filter(monitor => wallpapers[monitor] && (Appearance.wallpapers[monitor] !== wallpapers[monitor] || (monitor === primary && Appearance.wallpaper !== wallpapers[monitor])));
+    const changed = Object.keys(wallpapers).filter(monitor => wallpapers[monitor] && (Appearance.fixedWallpapers[monitor] !== wallpapers[monitor] || (monitor === primary && Appearance.fixedWallpaper !== wallpapers[monitor])));
     if (changed.length === 0)
       return false;
-    for (const monitor of changed)
-      _showWallpaper(wallpapers[monitor], monitor, monitor === primary);
     ConfigManager.setWallpapers(changed.reduce((map, monitor) => {
       map[monitor] = wallpapers[monitor];
       return map;
@@ -98,21 +134,40 @@ QtObject {
     return true;
   }
 
-  // Shows the configured wallpaper on every screen without saving anything,
-  // for when the config changed under them (a restored snapshot), and
-  // brings a generated theme in line with it.
-  function applyWallpapers() {
-    for (const screen of Quickshell.screens) {
-      const url = Appearance.wallpaperFor(screen.name);
-      if (!url)
-        continue;
-      _showWallpaper(url, screen.name, screen.name === General.primaryMonitor);
+  // Shows wallpapers ({ monitor: url }) as the rotation's, until the next
+  // one, without touching the config; true if any changed
+  function showRotated(wallpapers) {
+    const primary = General.primaryMonitor;
+    const changed = Object.keys(wallpapers).filter(monitor => wallpapers[monitor] && root.wallpaperFor(monitor) !== wallpapers[monitor]);
+    if (changed.length === 0)
+      return false;
+    const rotated = root._look.rotated ?? {};
+    const next = {
+      "wallpaper": rotated.wallpaper ?? "",
+      "wallpapers": Object.assign({}, rotated.wallpapers ?? {})
+    };
+    for (const monitor of changed) {
+      next.wallpapers[monitor] = wallpapers[monitor];
+      if (monitor === primary)
+        next.wallpaper = wallpapers[monitor];
     }
-    syncGeneratedTheme();
+    root._saveLook({
+      "rotated": next
+    });
+    return true;
   }
 
-  // awww needs telling; the built-in backend (shell/Wallpaper) follows the
-  // config. Either way the primary's is linked to ~/.current_wallpaper.
+  // When the rotation last moved on (ms since the epoch; 0 for never)
+  readonly property real lastRotated: root._look.lastRotated ?? 0
+  function setLastRotated(time) {
+    root._saveLook({
+      "lastRotated": time
+    });
+  }
+
+  // awww needs telling; the built-in backend (shell/Wallpaper) follows
+  // wallpaperFor(). Either way the primary's is linked to
+  // ~/.current_wallpaper. Only _applyShown calls it.
   function _showWallpaper(url, monitor, primary) {
     if (Paths.greeter)
       return;
@@ -129,16 +184,16 @@ QtObject {
   // (a snapshot restored over a newer generation), generate it again: the
   // file watch then reloads the colors and runs the integrations.
   function syncGeneratedTheme() {
-    if (Paths.greeter || !Appearance.theme.startsWith("generated/") || !Appearance.wallpaper)
+    if (Paths.greeter || !root.activeTheme.startsWith("generated/") || !root.wallpaper)
       return;
     // Already on its way
-    if (isGenerating && (generationProcess.wallpaper === Appearance.wallpaper || root._pendingGeneration === Appearance.wallpaper))
+    if (isGenerating && (generationProcess.wallpaper === root.wallpaper || root._pendingGeneration === root.wallpaper))
       return;
-    const wanted = decodeURIComponent(Appearance.wallpaper.replace("file://", ""));
+    const wanted = decodeURIComponent(root.wallpaper.replace("file://", ""));
     if (root.currentTheme?.generated?.wallpaper === wanted)
       return;
     console.log("[ThemeManager] Generated theme is from", root.currentTheme?.generated?.wallpaper ?? "no wallpaper", "- regenerating for", wanted);
-    generateThemesFromWallpaper(Appearance.wallpaper);
+    generateThemesFromWallpaper(root.wallpaper);
   }
 
   // A request made while a run is going replaces any earlier one and runs
@@ -161,6 +216,22 @@ QtObject {
     generationProcess.start(wallpaperUrl);
   }
 
+  // Shows the current theme's light (or dark) variant for the light/dark
+  // schedule, leaving the chosen one in the config
+  function followSchedule(light) {
+    const target = light ? currentFamily?.light : currentFamily?.dark;
+    if (!target) {
+      console.log("[ThemeManager] No", light ? "light" : "dark", "variant of", Appearance.theme);
+      return;
+    }
+    root._saveLook({
+      "theme": target === Appearance.theme ? null : {
+        "for": Appearance.theme,
+        "name": target
+      }
+    });
+  }
+
   // Switches to the current theme's light (or dark) variant, if it has one
   function setLightMode(light) {
     const target = light ? currentFamily?.light : currentFamily?.dark;
@@ -178,7 +249,7 @@ QtObject {
   // Runs the enabled integrations (scripts/theme_<key>.sh, one per
   // ThemeIntegrations switch) for a theme; `keys` limits it to those (none:
   // all of them)
-  function themeIntegrations(themeName = Appearance.theme, keys = []) {
+  function themeIntegrations(themeName = root.activeTheme, keys = []) {
     if (Paths.greeter)
       return;
     const themePath = Paths.themePath + themeName + ".json";
@@ -216,7 +287,7 @@ QtObject {
     const added = root._enabledIntegrations.filter(key => !root._themed.includes(key));
     root._themed = root._enabledIntegrations;
     if (added.length > 0)
-      root.themeIntegrations(Appearance.theme, added);
+      root.themeIntegrations(root.activeTheme, added);
   }
 
   // The themed hyprlock config (Lockscreen.mode "hyprlock"): the theme's
@@ -231,7 +302,7 @@ QtObject {
       root._hyprlockAgain = true;
       return;
     }
-    root._hyprlockProcess.command = [Paths.scriptsPath + "theme_hyprlock.sh", Paths.themePath + Appearance.theme + ".json", LockManager.hyprlockConfigPath, Appearance.fontFamily, Appearance.wallpaper, LockscreenConfig.blurWallpaper ? "1" : "0", I18n.tr("Hey {0}", General.displayName), I18n.tr("Enter password...")];
+    root._hyprlockProcess.command = [Paths.scriptsPath + "theme_hyprlock.sh", Paths.themePath + root.activeTheme + ".json", LockManager.hyprlockConfigPath, Appearance.fontFamily, root.wallpaper, LockscreenConfig.blurWallpaper ? "1" : "0", I18n.tr("Hey {0}", General.displayName), I18n.tr("Enter password...")];
     root._hyprlockProcess.running = true;
   }
 
@@ -250,18 +321,68 @@ QtObject {
     if (Paths.greeter)
       return;
     _reloadAllThemes();
-    if (!root._themeContent)
-      syncGeneratedTheme();
+    // Anything shown changed while qs wasn't running (a light/dark
+    // wallpaper, a monitor), and a generated theme that isn't there yet
+    Qt.callLater(root._applyShown);
+  }
+
+  // --- What's showing ---
+  // state/look.json: { theme: { for, name } (the schedule's variant of the
+  // chosen theme, or null), rotated: { wallpaper, wallpapers },
+  // lastRotated, applied: { monitors, primary } (what the backend was last
+  // told) }. The greeter keeps none.
+  readonly property var _lookState: StateManager.createStateHandler("look")
+  property var _look: Paths.greeter ? ({}) : root._lookState.load({})
+
+  function _saveLook(changes) {
+    if (Paths.greeter)
+      return;
+    root._look = Object.assign({}, root._look, changes);
+    root._lookState.save(root._look);
+  }
+
+  // Tells the backend about each monitor whose wallpaper changed (or that
+  // just connected), and brings a generated theme in line with the
+  // primary's. Runs on any change of what's shown: a pick, a rotation, a
+  // light/dark switch, a mode switch, a restored config.
+  readonly property string _shownKey: Paths.greeter ? "" : JSON.stringify([root.shownWallpapers, General.primaryMonitor, General.outputs.map(screen => screen.name)])
+  on_ShownKeyChanged: Qt.callLater(root._applyShown)
+
+  function _applyShown() {
+    if (Paths.greeter)
+      return;
+    const before = root._look.applied ?? {};
+    const after = {
+      "monitors": {},
+      "primary": before.primary ?? ""
+    };
+    const primary = General.primaryMonitor;
+    for (const screen of General.outputs) {
+      const url = root.wallpaperFor(screen.name);
+      if (!url)
+        continue;
+      const isPrimary = screen.name === primary;
+      if (before.monitors?.[screen.name] !== url || (isPrimary && after.primary !== url))
+        root._showWallpaper(url, screen.name, isPrimary);
+      after.monitors[screen.name] = url;
+      if (isPrimary)
+        after.primary = url;
+    }
+    if (!Utils.deepEqual(after, before))
+      root._saveLook({
+        "applied": after
+      });
+    root.syncGeneratedTheme();
   }
 
   // --- Active theme ---
   // Loaded eagerly so config/Theme never sees an empty theme
   property var _defaults: _readDefaults()
-  property var _theme: _parseTheme(FileManager.read(_themeUrl(ConfigManager.config.Appearance.theme)), ConfigManager.config.Appearance.theme)
+  property var _theme: _parseTheme(FileManager.read(_themeUrl(root.activeTheme)), root.activeTheme)
   property string _themeContent: ""
   // The theme _theme and _themeContent are from
   property string _loadedName: ""
-  readonly property string _themeName: ConfigManager.config.Appearance.theme
+  readonly property string _themeName: root.activeTheme
   on_ThemeNameChanged: _reloadTheme()
 
   property FileView _themeWatch: FileView {
@@ -446,7 +567,7 @@ QtObject {
   }
 
   // Everything besides the theme that goes into the hyprlock config
-  readonly property string _hyprlockInputs: [Appearance.fontFamily, Appearance.wallpaper, LockscreenConfig.blurWallpaper, I18n.language, General.displayName].join("|")
+  readonly property string _hyprlockInputs: [Appearance.fontFamily, root.wallpaper, LockscreenConfig.blurWallpaper, I18n.language, General.displayName].join("|")
   on_HyprlockInputsChanged: if (LockscreenConfig.mode === "hyprlock")
     root.generateHyprlockConfig()
 
@@ -631,8 +752,8 @@ QtObject {
       root._rebuildFamilies();
       // Pairs from before styles (one per pywal backend): a run replaces
       // them with every style's, and removes them, so this happens once
-      if (Appearance.wallpaper && root._generatedThemes.some(theme => theme.name.startsWith("generated/pywal-")))
-        root.generateThemesFromWallpaper(Appearance.wallpaper);
+      if (root.wallpaper && root._generatedThemes.some(theme => theme.name.startsWith("generated/pywal-")))
+        root.generateThemesFromWallpaper(root.wallpaper);
     }
   }
 }

@@ -6,20 +6,22 @@ import qs.services
 import qs.components.reusable
 
 /**
- * Settings page, Maintenance (the category's `page`): save the whole config
- * under a name, and restore or delete saved ones. Only the active one (last
- * saved or restored) can be overwritten from its row; it's marked Current,
- * with an unsaved dot once the running config differs. Overwrite, restore,
- * delete and reverting to the defaults ask for a second click to confirm.
- * Below them, exporting the look to share and importing a shared file
- * (confirmed on its own row), then the example setups
- * (SavedConfigsManager.examples), applied the same way.
+ * Settings page, Maintenance (the category's `page`): save the config's
+ * look, layout, keybinds, apps and wallpapers under a name, and restore or
+ * delete saved ones. Only the active one (last saved or restored) can be
+ * overwritten from its row; it's marked Current, with an unsaved dot once
+ * the running config differs. Overwrite, restore, delete and reverting to
+ * the defaults ask for a second click to confirm. Restoring (a snapshot or
+ * the defaults) leaves machine settings as they are. Below them, exporting
+ * the look to share and importing a shared file (confirmed on its own row),
+ * then the example setups (SavedConfigsManager.examples), applied the same
+ * way.
  */
 FieldGroup {
   id: root
 
   title: I18n.tr("Saved configurations")
-  description: I18n.tr("Snapshots of the entire configuration, stored in {0}. Restoring replaces the current configuration.", SavedConfigsManager.savedDir)
+  description: I18n.tr("Snapshots of the look, layout, keybinds, apps and wallpapers, stored in {0}. Restoring one leaves monitors, accounts, theme integrations and other settings for this PC as they are.", SavedConfigsManager.savedDir)
 
   // Row awaiting a confirming click: { name, action }. The defaults row uses
   // an empty name, which no saved file can have.
@@ -181,7 +183,7 @@ FieldGroup {
         }
 
         StyledText {
-          text: I18n.tr("The configuration a first run starts with")
+          text: I18n.tr("The look, layout, keybinds and apps a first run starts with")
           opacity: 0.6
           textSize: Appearance.fontSize - 2
           elide: Text.ElideRight

@@ -21,6 +21,8 @@
   - calendar_sync.py reads a locally served .ics feed into occurrences, and
     edits events (new, one occurrence, excluded, the series moved) so they
     read back right (skipped when the venv can't be set up)
+  - pick_path.py falls back to zenity/kdialog without a portal, asking for
+    a folder or a filtered file, and exits 1 when cancelled, 2 with no picker
 
   python3 tests/scripts/test_scripts.py [-v] [TestCase[.test_name]]
 """
@@ -37,12 +39,15 @@ import tempfile
 import time
 import tomllib
 import unittest
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent.parent
 SCRIPTS = ROOT / "scripts"
 THEMES = ROOT / "config" / "themes"
 BASES = [f"base0{c}" for c in "0123456789ABCDEF"]
+SHIPPED_THEMES = sorted(p for p in THEMES.glob("*.json") if p.name != "theme.schema.json") + \
+    sorted((THEMES / "generated").glob("*.json"))
 HEX = re.compile(r"^#[0-9a-fA-F]{6}$")
 # envsubst leaves nothing behind, so a ${VAR} left over is a template typo
 UNFILLED = re.compile(r"\$\{[A-Z0-9_]+\}")
@@ -52,6 +57,12 @@ NCSPOT_MARKERS = "# axiom theme: begin (rewritten on every theme change)\n# axio
 # running session
 STUBS = ["alacritty", "bat", "btop", "foot", "fzf", "ghostty", "hx", "kitty", "lazygit",
          "nvim", "wezterm", "yazi", "qt5ct", "qt6ct", "pkill", "gsettings"]
+
+
+def parallel(fn, items):
+    """fn over items on a thread per CPU (they wait on subprocesses), in order"""
+    with ThreadPoolExecutor(max_workers=os.cpu_count() or 4) as pool:
+        return list(pool.map(fn, items))
 
 
 def scratch_env(tmp):
@@ -137,20 +148,22 @@ class TerminalPalette(unittest.TestCase):
     TEXT = ["RED", "GREEN", "YELLOW", "BLUE", "MAGENTA", "CYAN", "ORANGE",
             "ERROR", "WARNING", "SUCCESS", "INFO"]
 
-    def palette(self, theme):
+    @classmethod
+    def palette(cls, theme):
+        """(the palette's variables, bash's stderr when it failed)"""
         script = (f'set -euo pipefail; source "{SCRIPTS}/lib/theme_env.sh"; '
                   f'load_theme "{theme}" >/dev/null; export_theme_colors; readable_text_colors; '
                   'env | grep -E "^(ANSI_[0-9]+|BACKGROUND|THEME_VARIANT|'
-                  + "|".join(self.TEXT) + ')="')
+                  + "|".join(cls.TEXT) + ')="')
         result = subprocess.run(["bash", "-c", script], capture_output=True, text=True, timeout=60)
-        self.assertEqual(result.returncode, 0, result.stderr)
-        return dict(line.split("=", 1) for line in result.stdout.splitlines())
+        if result.returncode != 0:
+            return None, result.stderr
+        return dict(line.split("=", 1) for line in result.stdout.splitlines()), None
 
     def test_every_theme_is_readable(self):
-        files = sorted(THEMES.glob("*.json")) + sorted((THEMES / "generated").glob("*.json"))
-        for f in [f for f in files if f.name != "theme.schema.json"]:
+        for f, (c, error) in zip(SHIPPED_THEMES, parallel(self.palette, SHIPPED_THEMES)):
             with self.subTest(theme=f.name):
-                c = self.palette(f)
+                self.assertIsNone(error)
                 bg = c["BACKGROUND"]
                 for i in [*range(1, 7), *range(9, 15)]:
                     self.assertGreaterEqual(contrast(c[f"ANSI_{i}"], bg), 4.5, f"ANSI_{i} {c[f'ANSI_{i}']}")
@@ -171,42 +184,47 @@ FORMATS = {
 COLOR = re.compile(r"#([0-9a-fA-F]+)\b")
 
 
-class ThemeIntegrations(unittest.TestCase):
-    THEMES = sorted(p for p in THEMES.glob("*.json") if p.name != "theme.schema.json") + \
-        sorted((THEMES / "generated").glob("*.json"))
+def run_problems(script, args, env):
+    """(problems, result) of running an integration script: a failure, or
+    stderr lines starting with "Warning:" (ThemeManager logs them)"""
+    result = subprocess.run([str(script)] + [str(a) for a in args], env=env,
+                            capture_output=True, text=True, timeout=60)
+    if result.returncode != 0:
+        return [f"{script.name} failed:\n{result.stderr}"], result
+    warnings = [line for line in result.stderr.splitlines() if line.startswith("Warning:")]
+    return [f"{script.name} warned: {w}" for w in warnings], result
 
-    def setUp(self):
-        self.tmp = tempfile.mkdtemp()
-        self.env = scratch_env(self.tmp)
-        self.out = Path(self.tmp) / "out"
 
-    def tearDown(self):
-        shutil.rmtree(self.tmp)
+def output_files(root):
+    return [p for p in Path(root).rglob("*") if p.is_file()] if Path(root).is_dir() else [Path(root)]
 
-    def run_script(self, script, args):
-        result = subprocess.run([str(script)] + [str(a) for a in args], env=self.env,
-                                capture_output=True, text=True, timeout=60)
-        self.assertEqual(result.returncode, 0, f"{script.name} failed:\n{result.stderr}")
-        warnings = [line for line in result.stderr.splitlines() if line.startswith("Warning:")]
-        self.assertEqual(warnings, [], f"{script.name} warned")
-        return result
 
-    def assert_rendered(self, root):
-        files = [p for p in Path(root).rglob("*") if p.is_file()] if Path(root).is_dir() else [Path(root)]
-        self.assertTrue(files, f"nothing written to {root}")
-        for f in files:
-            text = f.read_text()
-            self.assertTrue(text.strip(), f"{f} is empty")
-            self.assertEqual(UNFILLED.findall(text), [], f"{f} has unfilled variables")
+def rendered_problems(root):
+    """Something was written, and no file is empty or has unfilled ${VAR}s"""
+    files = output_files(root)
+    if not files or not files[0].exists():
+        return [f"nothing written to {root}"]
+    problems = []
+    for f in files:
+        text = f.read_text()
+        if not text.strip():
+            problems.append(f"{f} is empty")
+        if UNFILLED.findall(text):
+            problems.append(f"{f} has unfilled variables: {UNFILLED.findall(text)}")
+    return problems
 
-    def assert_parses(self, key, root):
-        """Each output file of an integration parses as its format"""
-        fmt = FORMATS.get(key)
-        files = [p for p in Path(root).rglob("*") if p.is_file()] if Path(root).is_dir() else [Path(root)]
-        for f in files:
-            text = f.read_text()
-            odd = [m.group(0) for m in COLOR.finditer(text) if len(m.group(1)) not in (6, 8)]
-            self.assertEqual(odd, [], f"{f}: malformed colors")
+
+def parse_problems(key, root, gtk=False):
+    """Each output file of an integration parses as its format (GTK's own
+    CSS parser only when `gtk`: it costs an interpreter per file)"""
+    fmt = FORMATS.get(key)
+    problems = []
+    for f in output_files(root):
+        text = f.read_text()
+        odd = [m.group(0) for m in COLOR.finditer(text) if len(m.group(1)) not in (6, 8)]
+        if odd:
+            problems.append(f"{f}: malformed colors {odd}")
+        try:
             if fmt == "toml":
                 tomllib.loads(text)
             elif fmt == "json" and (f.suffix == ".json" or key == "nvim"):
@@ -219,58 +237,91 @@ class ThemeIntegrations(unittest.TestCase):
                 try:
                     import yaml
                 except ImportError:
-                    return
+                    continue
                 yaml.safe_load(text)
             elif fmt == "css" and f.suffix == ".css":
-                self.assertEqual(text.count("{"), text.count("}"), f"{f}: unbalanced braces")
-                if key == "gtk":
-                    self.assert_gtk_css(f)
+                if text.count("{") != text.count("}"):
+                    problems.append(f"{f}: unbalanced braces")
+                if key == "gtk" and gtk:
+                    problems += gtk_css_problems(f)
+        except Exception as e:  # noqa: BLE001 (any parser's error is a finding)
+            problems.append(f"{f}: doesn't parse as {fmt}: {e}")
+    return problems
 
-    def assert_gtk_css(self, path):
-        """GTK's own parser, when PyGObject and GTK are installed"""
-        version = "4.0" if path.parent.name == "gtk-4.0" else "3.0"
-        check = (
-            "import sys, gi\n"
-            "gi.require_version('Gtk', sys.argv[1])\n"
-            "from gi.repository import Gtk\n"
-            "errors = []\n"
-            "p = Gtk.CssProvider()\n"
-            "p.connect('parsing-error', lambda p, s, e: errors.append(e.message))\n"
-            "p.load_from_path(sys.argv[2])\n"
-            "print('\\n'.join(errors))\n"
-        )
-        result = subprocess.run([sys.executable, "-c", check, version, str(path)], capture_output=True, text=True)
-        if result.returncode != 0:
-            return  # no PyGObject or no GTK of that version
-        self.assertEqual(result.stdout.strip(), "", f"{path}: GTK CSS errors")
+
+def gtk_css_problems(path):
+    """GTK's own parser, when PyGObject and GTK are installed"""
+    version = "4.0" if path.parent.name == "gtk-4.0" else "3.0"
+    check = (
+        "import sys, gi\n"
+        "gi.require_version('Gtk', sys.argv[1])\n"
+        "from gi.repository import Gtk\n"
+        "errors = []\n"
+        "p = Gtk.CssProvider()\n"
+        "p.connect('parsing-error', lambda p, s, e: errors.append(e.message))\n"
+        "p.load_from_path(sys.argv[2])\n"
+        "print('\\n'.join(errors))\n"
+    )
+    result = subprocess.run([sys.executable, "-c", check, version, str(path)], capture_output=True, text=True)
+    if result.returncode != 0 or not result.stdout.strip():
+        return []  # fine, or no PyGObject / no GTK of that version
+    return [f"{path}: GTK CSS errors:\n{result.stdout.strip()}"]
+
+
+def integration_args(key, theme, target):
+    """(output path to check, the script's arguments) for rendering `theme`
+    into the directory `target`"""
+    if key == "hyprlock":
+        target = target / "hyprlock.conf"
+        return target, [theme, target, "Sans", "file:///tmp/wall.png", "1", "Hey you", "Password..."]
+    if key in ("gtk", "vscode"):
+        return target, [theme, target]
+    if key in ("vesktop", "firefox"):
+        target = target / "axiom.css"
+        return target, [theme, target]
+    if key == "ncspot":
+        target = target / "config.toml"
+        target.parent.mkdir(parents=True)
+        target.write_text("[theme]\n" + NCSPOT_MARKERS)
+        return target, [theme, target]
+    target = target / "axiom.out"
+    return target, [theme, target]
+
+
+class ThemeIntegrations(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.mkdtemp()
+        self.env = scratch_env(self.tmp)
+        self.out = Path(self.tmp) / "out"
+
+    def tearDown(self):
+        shutil.rmtree(self.tmp)
+
+    def run_script(self, script, args):
+        problems, result = run_problems(script, args, self.env)
+        self.assertEqual(problems, [])
+        return result
 
     def test_every_integration_renders(self):
         scripts = sorted(SCRIPTS.glob("theme_*.sh"))
         self.assertTrue(scripts)
-        for theme in self.THEMES:
-            for script in scripts:
-                key = script.stem.removeprefix("theme_")
-                with self.subTest(script=script.name, theme=theme.name):
-                    target = self.out / theme.stem / key
-                    if key == "hyprlock":
-                        target = target / "hyprlock.conf"
-                        args = [theme, target, "Sans", "file:///tmp/wall.png", "1", "Hey you", "Password..."]
-                    elif key in ("gtk", "vscode"):
-                        args = [theme, target]
-                    elif key in ("vesktop", "firefox"):
-                        target = target / "axiom.css"
-                        args = [theme, target]
-                    elif key == "ncspot":
-                        target = target / "config.toml"
-                        target.parent.mkdir(parents=True)
-                        target.write_text("[theme]\n" + NCSPOT_MARKERS)
-                        args = [theme, target]
-                    else:
-                        target = target / "axiom.out"
-                        args = [theme, target]
-                    self.run_script(script, args)
-                    self.assert_rendered(target)
-                    self.assert_parses(key, target)
+        # GTK's parser checks one theme of each variant
+        gtk_themes = {next(t for t in SHIPPED_THEMES if json.loads(t.read_text()).get("variant") == v)
+                      for v in ("dark", "light")}
+        jobs = [(theme, script) for theme in SHIPPED_THEMES for script in scripts]
+
+        def render(job):
+            theme, script = job
+            key = script.stem.removeprefix("theme_")
+            target, args = integration_args(key, theme, self.out / theme.stem / key)
+            problems, _ = run_problems(script, args, self.env)
+            if not problems:
+                problems = rendered_problems(target) + parse_problems(key, target, theme in gtk_themes)
+            return problems
+
+        for (theme, script), problems in zip(jobs, parallel(render, jobs)):
+            with self.subTest(script=script.name, theme=theme.name):
+                self.assertEqual(problems, [])
 
     def test_ncspot_leaves_your_keys(self):
         config = self.out / "config.toml"
@@ -1549,6 +1600,62 @@ class GreeterInstall(unittest.TestCase):
     def test_refuses_unknown_source_and_channel(self):
         self.assertIn("unknown source", self.run_script("install", ok=False, source="svn")["error"])
         self.assertIn("unknown channel", self.run_script("install", ok=False, channel="beta")["error"])
+
+
+class PickPath(unittest.TestCase):
+    """pick_path.py with no portal (a dead session bus), so it falls back
+    to a stubbed zenity or kdialog that logs its arguments."""
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.tmp)
+        self.stubs = self.tmp / "stubs"
+        self.stubs.mkdir()
+        self.start = self.tmp / "start"
+        self.start.mkdir()
+
+    def stub(self, name, code=0):
+        stub = self.stubs / name
+        stub.write_text(f'#!/bin/sh\nprintf "%s\\n" "$@" > "{self.tmp}/args"\necho /picked/path\nexit {code}\n')
+        stub.chmod(stub.stat().st_mode | stat.S_IEXEC)
+
+    def pick(self, *args):
+        env = dict(os.environ, PATH=str(self.stubs), HOME=str(self.tmp),
+                   DBUS_SESSION_BUS_ADDRESS=f"unix:path={self.tmp}/no-bus")
+        done = subprocess.run([sys.executable, str(SCRIPTS / "pick_path.py"), *args],
+                              env=env, capture_output=True, text=True, timeout=30)
+        logged = (self.tmp / "args").read_text().splitlines() if (self.tmp / "args").exists() else []
+        return done.returncode, done.stdout.strip(), logged
+
+    def test_zenity_folder(self):
+        self.stub("zenity")
+        code, out, logged = self.pick("--folder", "Pick", str(self.start))
+        self.assertEqual((code, out), (0, "/picked/path"))
+        self.assertIn("--directory", logged)
+        self.assertIn(f"{self.start}/", logged)
+
+    def test_zenity_file_filter(self):
+        self.stub("zenity")
+        _, _, logged = self.pick("--filter", "JSON:*.json", "Pick", str(self.start))
+        self.assertNotIn("--directory", logged)
+        self.assertIn("JSON | *.json", logged)
+
+    def test_kdialog_folder(self):
+        self.stub("kdialog")
+        code, out, logged = self.pick("--folder", "Pick", str(self.start))
+        self.assertEqual((code, out), (0, "/picked/path"))
+        self.assertEqual(logged[-2:], ["--getexistingdirectory", str(self.start)])
+
+    def test_missing_start_opens_home(self):
+        self.stub("kdialog")
+        _, _, logged = self.pick("--folder", "Pick", str(self.tmp / "gone"))
+        self.assertEqual(logged[-1], str(self.tmp))
+
+    def test_cancelled_and_no_picker(self):
+        self.stub("zenity", code=1)
+        self.assertEqual(self.pick("--folder", "Pick")[0], 1)
+        (self.stubs / "zenity").unlink()
+        self.assertEqual(self.pick("--folder", "Pick")[0], 2)
 
 
 if __name__ == "__main__":

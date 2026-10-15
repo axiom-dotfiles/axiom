@@ -28,7 +28,12 @@ EdgePopout {
   // Closes what it covers below it (PopoutManager); pinned, it ranks
   // lowest, and pinned or previewing it gives way and comes back
   claimKey: "menu:" + root.menuId
-  claimKind: "menu"
+  // As it was opened (EdgeMenuManager.claimKinds): a widget's menu popout
+  // (opened on hover, by its PopoutAnchor: a Button's popoutMenu too)
+  // ranks as that widget's bar popout, so a neighbour's popout replaces
+  // it as bar popouts replace each other; opened any other way (a keybind, its edge, a bar Button's
+  // click) it ranks as a menu
+  claimKind: root.currentData?.claimKind ?? "menu"
   pinned: EdgeMenuManager.pinnedMenus[root.menuId] === true
   resident: sync.held
 
@@ -61,9 +66,24 @@ EdgePopout {
   edge: EdgeMenusConfig.edgeOf(root.menu)
   // The box's centre, so it starts where the modules should, less its
   // padding. From its natural length (the joins at the ends depend on
-  // where it is); one filling its edge joins both and needs none.
+  // where it is); one filling its edge joins both and needs none. Opened
+  // as a widget's popout with `popoutAtWidget`, centred on that widget
+  // instead, as a bar popout is (its ends clamped and joined alike).
   position: 0
-  positionOffset: root.modulesStart - root.alongOrigin - root.contentPadding + (isFinite(root.naturalBox) ? root.naturalBox / 2 : 0)
+  positionOffset: isNaN(root._widgetCentre) ? root.modulesStart - root.alongOrigin - root.contentPadding + (isFinite(root.naturalBox) ? root.naturalBox / 2 : 0) : root._widgetCentre - root.alongOrigin
+
+  // The centre along the edge, in screen px, of the widget that opened it
+  // as its popout, when it places itself there (on this edge and screen
+  // only), else NaN. Taken as it opens, so an open popout never moves; a
+  // close (no data) keeps it until the box has gone.
+  property real _widgetCentre: NaN
+  onCurrentDataChanged: {
+    const data = root.currentData;
+    if (!data)
+      return;
+    const rect = root.menu.popoutAtWidget && root.menu.length === "content" && data.claimKind === "bar" ? data.anchorItem?.screenRect?.() ?? null : null;
+    root._widgetCentre = rect && rect.edge === root.edge && rect.screen?.name === root.screen?.name ? (root.vertical ? rect.y + rect.height / 2 : rect.x + rect.width / 2) : NaN;
+  }
   // Fill cells grow to whatever room there is, so its ends always reach
   // (and, not held, join) the perpendicular edges
   reachLength: root._body ? (root._body.fillsEdge ? Infinity : root._body.naturalLength) : 0

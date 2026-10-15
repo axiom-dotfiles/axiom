@@ -67,17 +67,27 @@ def lint():
     with tempfile.TemporaryDirectory() as tmp:
         tree = build_tree(Path(tmp) / "tree")
         files = sorted(str(p) for p in (tree / "qs").rglob("*.qml"))
-        report = Path(tmp) / "report.json"
         imports = qt_imports(Path(tmp) / "qml")
         # --bare: no default import path, which would find the stubbed Quickshell
-        args = [QMLLINT, "--bare", "--json", str(report), "-I", str(tree), "-I", str(imports)]
+        args = [QMLLINT, "--bare", "-I", str(tree), "-I", str(imports)]
         for category in DISABLED:
             args += [f"--{category}", "disable"]
-        subprocess.run(args + files, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        data = json.loads(report.read_text())
+        # One qmllint per CPU, each on a share of the files with its own report
+        count = os.cpu_count() or 1
+        shards = [s for s in (files[i::count] for i in range(count)) if s]
+        reports = [Path(tmp) / f"report{i}.json" for i in range(len(shards))]
+        procs = [subprocess.Popen(args + ["--json", str(report)] + shard,
+                                  stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                 for shard, report in zip(shards, reports)]
+        for proc in procs:
+            proc.wait()
+        missing = [str(r) for r in reports if not r.exists()]
+        if missing:
+            sys.exit(f"qmllint wrote no report (crashed?): {', '.join(missing)}")
+        entries = [e for report in reports for e in json.loads(report.read_text())["files"]]
         prefix = str(tree / "qs") + "/"
     found, lines = {}, collections.defaultdict(list)
-    for entry in data["files"]:
+    for entry in entries:
         name = entry["filename"].removeprefix(prefix)
         for w in entry["warnings"]:
             # Messages may name a file by its path in the temporary tree

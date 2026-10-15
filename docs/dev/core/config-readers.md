@@ -31,6 +31,7 @@ Typed, read-only views of config sections. (Rule: AGENTS.md › Config, reader n
 - **`OSDConfig`**: the OSDs; see [OSD](../features/osd.md).
 - **`LauncherConfig`**: launcher placement, size and providers.
 - **`Apps`**: the terminal, file manager and browser that binds and the launcher open.
+- **`Screenshots`**: the screenshot and recording folders, `~` expanded, empty for `ScreenshotManager`'s defaults ([Screenshots and screen recording](../features/screenshots-recording.md)).
 - **`NotificationsConfig`**: the toasts' corner and gaps; see [Notifications](../features/notifications.md).
 - **`OverlayConfig`**: views and card-grid constants.
 - **`EdgeMenusConfig`**: edge menus.

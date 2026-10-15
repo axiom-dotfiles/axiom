@@ -41,36 +41,36 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `ChatConfig.sendKey` · in: `components/content/parts/chat/ChatComposer.qml`
 - **`Chat.providers`** · array<object> = [{"id":"anthropic","name":"Anthropic","kind":"anthropic","baseUrl":"h…
   - Providers: Where chats are sent. The OpenAI kind also covers Ollama, LM Studio, llama.cpp, OpenRouter, Groq and anything else with an OpenAI-style API: set its address.
-  - read: `ChatConfig.savedProviders`, `ChatConfig.providers` (computed) · in: `components/content/parts/chat/ModelPicker.qml`, `components/views/settings/ChatProvidersCard.qml`, `services/SecretsManager.qml`, `services/SettingsManager.qml`
+  - read: `ChatConfig.savedProviders`, `ChatConfig.providers` (part) · in: `components/content/parts/chat/ModelPicker.qml`, `components/views/settings/ChatProvidersCard.qml`, `services/SecretsManager.qml`, `services/SettingsManager.qml`
 
 ### `Chat.providers[]`
 
 - **`Chat.providers[]`** · object
 - **`Chat.providers[].id`** · string = ""
   - ID: Names the provider's key in the keyring and presets' provider field. Lowercase letters, digits and dashes.
-  - read: `ChatConfig.providers` (whole), `ChatConfig.savedProviders` (whole) · in: `components/content/parts/chat/ModelPicker.qml`, `components/views/settings/ChatProvidersCard.qml`, `services/SecretsManager.qml`, `services/SettingsManager.qml`
+  - read: `ChatConfig.savedProviders` (whole) · in: `components/views/settings/ChatProvidersCard.qml`
 - **`Chat.providers[].name`** · string = ""
   - Name
-  - read: `ChatConfig.providers` (whole), `ChatConfig.savedProviders` (whole) · in: `components/content/parts/chat/ModelPicker.qml`, `components/views/settings/ChatProvidersCard.qml`, `services/SecretsManager.qml`, `services/SettingsManager.qml`
+  - read: `ChatConfig.savedProviders` (whole) · in: `components/views/settings/ChatProvidersCard.qml`
 - **`Chat.providers[].kind`** · string = "openai" · enum anthropic|openai|gemini
   - API
-  - read: `ChatConfig.providers` (whole), `ChatConfig.savedProviders` (whole) · in: `components/views/settings/ChatProvidersCard.qml`, `services/SettingsManager.qml`
+  - read: `ChatConfig.savedProviders` (whole) · in: `components/views/settings/ChatProvidersCard.qml`
 - **`Chat.providers[].baseUrl`** · string = ""
   - Address: The API's base URL, up to and including its version (e.g. http://localhost:11434/v1).
-  - read: `ChatConfig.providers` (whole), `ChatConfig.savedProviders` (whole) · in: `components/views/settings/ChatProvidersCard.qml`
+  - read: `ChatConfig.savedProviders` (whole) · in: `components/views/settings/ChatProvidersCard.qml`
 - **`Chat.providers[].auth`** · string = "key" · enum key|none
   - Key
-  - read: `ChatConfig.providers` (whole), `ChatConfig.savedProviders` (whole) · in: `components/views/settings/ChatProvidersCard.qml`, `services/SecretsManager.qml`
+  - read: `ChatConfig.savedProviders` (whole) · in: `components/views/settings/ChatProvidersCard.qml`
 - **`Chat.providers[].keyEnv`** · string = ""
   - Key variable: An environment variable that holds the key, if you keep it there. It wins over a stored key.
   - x-showIf={"auth":"key"}
-  - read: `ChatConfig.providers` (whole), `ChatConfig.savedProviders` (whole) · in: `components/views/settings/ChatProvidersCard.qml`, `services/SecretsManager.qml`
+  - read: `ChatConfig.savedProviders` (whole) · in: `components/views/settings/ChatProvidersCard.qml`
 - **`Chat.providers[].models`** · array<string> = []
   - Models: Model ids to choose from, comma-separated. Fetch models on the card above fills this in.
-  - read: `ChatConfig.providers` (whole), `ChatConfig.savedProviders` (whole) · in: `components/content/parts/chat/ModelPicker.qml`, `components/views/settings/ChatProvidersCard.qml`
+  - read: `ChatConfig.savedProviders` (whole) · in: `components/views/settings/ChatProvidersCard.qml`
 - **`Chat.providers[].defaultModel`** · string = ""
   - Default model: Empty uses the first of the models.
-  - read: `ChatConfig.providers` (whole), `ChatConfig.savedProviders` (whole) · in: `components/views/settings/ChatProvidersCard.qml`
+  - read: `ChatConfig.savedProviders` (whole) · in: `components/views/settings/ChatProvidersCard.qml`
 - **`Chat.providers[].fallbacks`** · boolean = true
   - Refusal fallback: When the model declines a request, the API retries it on another model within the same reply.
   - x-showIf={"kind":"anthropic"}
@@ -80,27 +80,27 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 
 - **`Chat.presets`** · array<object> = [{"name":"Default","icon":"chat","systemPrompt":"You are a helpful as…
   - Presets: Saved setups to start a conversation with: a system prompt, and optionally a provider, model and effort of their own.
-  - read: `ChatConfig.presets` (computed) · in: `components/content/parts/chat/ModelPicker.qml`, `services/SettingsManager.qml`
+  - read: `ChatConfig.presets` (part) · in: `components/content/parts/chat/ModelPicker.qml`, `services/SettingsManager.qml`
 
 ### `Chat.presets[]`
 
 - **`Chat.presets[]`** · object
 - **`Chat.presets[].name`** · string = ""
   - Name
-  - read: `ChatConfig.presets` (whole) · in: `components/content/parts/chat/ModelPicker.qml`, `services/SettingsManager.qml`
+  - read: entry field, name match · in: `components/content/parts/chat/ChatComposer.qml`, `components/content/parts/chat/ChatHeader.qml`, `components/content/parts/chat/ChatMessageList.qml`, `components/content/parts/chat/ModelPicker.qml`, `config/ChatConfig.qml`, `services/SettingsManager.qml`
 - **`Chat.presets[].icon`** · string = "chat"
   - Icon: A Material Symbols name (fonts.google.com/icons).
-  - read: `ChatConfig.presets` (whole) · in: `components/content/parts/chat/ModelPicker.qml`
+  - read: entry field, name match · in: `components/content/parts/chat/ChatHeader.qml`, `components/content/parts/chat/ChatMessageList.qml`, `components/content/parts/chat/ModelPicker.qml`
 - **`Chat.presets[].systemPrompt`** · string = ""
   - System prompt
   - x-multiline=true
   - read: entry field, name match repo-wide · in: `services/ChatManager.qml`
 - **`Chat.presets[].provider`** · string = ""
   - Provider: A provider ID. Empty uses the default provider.
-  - read: `ChatConfig.presets` (whole) · in: `components/content/parts/chat/ModelPicker.qml`
+  - read: entry field, name match · in: `components/content/parts/chat/ChatMessageList.qml`, `components/content/parts/chat/ModelPicker.qml`
 - **`Chat.presets[].model`** · string = ""
   - Model: Empty uses the provider's default model.
-  - read: `ChatConfig.presets` (whole) · in: `components/content/parts/chat/ModelPicker.qml`
+  - read: entry field, name match · in: `components/content/parts/chat/ChatHeader.qml`, `components/content/parts/chat/ChatMessage.qml`, `components/content/parts/chat/ChatMessageList.qml`, `components/content/parts/chat/ModelPicker.qml`
 - **`Chat.presets[].effort`** · string = "default" · enum default|low|medium|high|xhigh|max
   - Effort: How hard a reasoning model thinks. Models that don't reason ignore it.
   - read: entry field, name match repo-wide · in: `components/methods/ChatProtocol.qml`, `services/ChatManager.qml`

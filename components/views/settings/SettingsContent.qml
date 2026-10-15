@@ -8,9 +8,10 @@ import qs.components.reusable
 import qs.components.content.base
 
 // Settings page, right: the selected category's groups as cards in two
-// columns (then its hand-built `page`, if any), or every setting matching
-// the search, under its category's name. Acts as the `form` for its
-// SchemaField rows.
+// newspaper columns, split by their measured heights so both end together
+// (then its hand-built `page`, if any), or every setting matching the
+// search, under its category's name. Acts as the `form` for its SchemaField
+// rows.
 Item {
   id: root
 
@@ -95,30 +96,13 @@ Item {
   }
   readonly property bool allFolded: root.foldableKeys.length > 0 && root.foldableKeys.every(key => SettingsManager.isCollapsed(key))
 
-  // Every card moves, so lay the page out again at once
+  // Lays the columns out again once the cards have folded. Folding one
+  // card doesn't, so it never moves the cards across columns
+  signal relayout
+
   function setAllFolded(value) {
     SettingsManager.setCollapsed(root.foldableKeys, value);
-    SettingsManager.snapshotFolds();
-  }
-
-  // Refolding lays the page out again only on the next category, search
-  // or build, so folding a card doesn't reshuffle (and rebuild) the page
-  onCategoryChanged: SettingsManager.snapshotFolds()
-  onQueryChanged: SettingsManager.snapshotFolds()
-  Component.onDestruction: SettingsManager.snapshotFolds()
-
-  // Masonry: each group goes to the shorter column, by estimated height
-  function _columnsOf(groups) {
-    const result = [[], []];
-    const heights = [0, 0];
-    for (const group of groups) {
-      const folded = !root.searching && SettingsManager.layoutFolds[group.key] === true;
-      const weight = folded ? 1.5 : group.kind === "card" ? 6 : 2 + group.rows.reduce((sum, row) => sum + (row.kind === "array" ? 4 : row.schema?.description ? 1.6 : 1.2), 0);
-      const target = heights[0] <= heights[1] ? 0 : 1;
-      result[target].push(group);
-      heights[target] += weight;
-    }
-    return result;
+    root.relayout();
   }
 
   // The shown groups in two columns: one block per category while
@@ -138,11 +122,7 @@ Item {
         });
       blocks[blocks.length - 1].groups.push(group);
     });
-    return blocks.map(block => ({
-          "name": block.name,
-          "icon": block.icon,
-          "columns": root._columnsOf(block.groups)
-        }));
+    return blocks;
   }
 
   // The card each group key is drawn by, to scroll to
@@ -287,6 +267,48 @@ Item {
           Layout.fillWidth: true
           spacing: Widget.spacing
 
+          readonly property real gap: Widget.spacing * 2
+          // Each card's measured height, by index
+          property var heights: block.modelData.groups.map(() => 0)
+          property int split: 0
+          property bool settling: true
+          readonly property var tops: ColumnSplit.tops(block.heights, block.split, block.gap)
+
+          function setHeight(i, height) {
+            if (block.heights[i] === height)
+              return;
+            const next = block.heights.slice();
+            next[i] = height;
+            block.heights = next;
+            if (block.settling) {
+              block.split = ColumnSplit.split(next, block.gap);
+              settle.restart();
+            }
+          }
+
+          function relayout() {
+            block.settling = true;
+            block.split = ColumnSplit.split(block.heights, block.gap);
+            settle.restart();
+          }
+
+          // Fixes `split` once the heights stop changing (cards loading or
+          // folding): a quiet spell, restarted by every change, so not an
+          // animation duration (which is 0 with motion off)
+          Timer {
+            id: settle
+            interval: 150
+            running: true
+            onTriggered: block.settling = false
+          }
+
+          Connections {
+            target: root
+            function onRelayout() {
+              block.relayout();
+            }
+          }
+
           // A search result's category: its icon and name, then a rule.
           // Names come from the schema's x-categories
           RowLayout {
@@ -313,88 +335,85 @@ Item {
             }
           }
 
-          RowLayout {
+          // The block's cards, the first `split` on the left. Positions
+          // follow the cards' heights live; `split` follows them only while
+          // `settling` (after a build, a resize or fold all)
+          Item {
+            id: cards
             Layout.fillWidth: true
-            spacing: Widget.spacing * 2
+            implicitHeight: ColumnSplit.height(block.heights, block.split, block.gap)
+            onWidthChanged: block.relayout()
 
             Repeater {
-              model: 2
+              model: block.modelData.groups
 
-              delegate: ColumnLayout {
-                id: column
+              // A hand-built card (`x-card`: settings/<name>Card.qml) or rows
+              delegate: Loader {
+                id: card
+                required property var modelData
                 required property int index
-                Layout.fillWidth: true
-                Layout.preferredWidth: 1
-                Layout.alignment: Qt.AlignTop
-                spacing: Widget.spacing * 2
+                width: (cards.width - block.gap) / 2
+                x: card.index < block.split ? 0 : card.width + block.gap
+                y: block.tops[card.index] ?? 0
+                onImplicitHeightChanged: block.setHeight(card.index, card.implicitHeight)
+                Component.onCompleted: {
+                  if (!root.searching)
+                    root._cards[card.modelData.key] = card;
+                  if (card.modelData.kind === "card")
+                    card.setSource(Qt.resolvedUrl(card.modelData.card + "Card.qml"), card.modelData.folds ? {
+                      "foldKey": card.modelData.key
+                    } : {});
+                  else
+                    card.sourceComponent = rowsCard;
+                  block.setHeight(card.index, card.implicitHeight);
+                }
+                Component.onDestruction: {
+                  if (root._cards[card.modelData.key] === card)
+                    delete root._cards[card.modelData.key];
+                }
 
-                Repeater {
-                  model: block.modelData.columns[column.index]
+                // Outlines the card for a moment (jumped to from the
+                // sidebar)
+                function flash() {
+                  flashAnimation.restart();
+                }
 
-                  // A hand-built card (`x-card`: settings/<name>Card.qml) or rows
-                  delegate: Loader {
-                    id: card
-                    required property var modelData
-                    Layout.fillWidth: true
-                    Component.onCompleted: {
-                      if (!root.searching)
-                        root._cards[card.modelData.key] = card;
-                      if (card.modelData.kind === "card")
-                        card.setSource(Qt.resolvedUrl(card.modelData.card + "Card.qml"), card.modelData.folds ? {
-                          "foldKey": card.modelData.key
-                        } : {});
-                      else
-                        card.sourceComponent = rowsCard;
-                    }
-                    Component.onDestruction: {
-                      if (root._cards[card.modelData.key] === card)
-                        delete root._cards[card.modelData.key];
-                    }
+                Rectangle {
+                  id: outline
+                  anchors.fill: parent
+                  z: 1
+                  radius: Widget.radius
+                  color: "transparent"
+                  border.color: Theme.accent
+                  border.width: Appearance.borderWidth + 1
+                  opacity: 0
+                }
 
-                    // Outlines the card for a moment (jumped to from the
-                    // sidebar)
-                    function flash() {
-                      flashAnimation.restart();
-                    }
+                SequentialAnimation {
+                  id: flashAnimation
+                  NumberAnimation {
+                    target: outline
+                    property: "opacity"
+                    to: 1
+                    duration: Appearance.animFast
+                  }
+                  PauseAnimation {
+                    duration: Appearance.animSlow
+                  }
+                  NumberAnimation {
+                    target: outline
+                    property: "opacity"
+                    to: 0
+                    duration: Appearance.animSlow
+                  }
+                }
 
-                    Rectangle {
-                      id: outline
-                      anchors.fill: parent
-                      z: 1
-                      radius: Widget.radius
-                      color: "transparent"
-                      border.color: Theme.accent
-                      border.width: Appearance.borderWidth + 1
-                      opacity: 0
-                    }
-
-                    SequentialAnimation {
-                      id: flashAnimation
-                      NumberAnimation {
-                        target: outline
-                        property: "opacity"
-                        to: 1
-                        duration: Appearance.animFast
-                      }
-                      PauseAnimation {
-                        duration: Appearance.animSlow
-                      }
-                      NumberAnimation {
-                        target: outline
-                        property: "opacity"
-                        to: 0
-                        duration: Appearance.animSlow
-                      }
-                    }
-
-                    Component {
-                      id: rowsCard
-                      SettingsGroupCard {
-                        group: card.modelData
-                        form: root
-                        showSection: root.searching
-                      }
-                    }
+                Component {
+                  id: rowsCard
+                  SettingsGroupCard {
+                    group: card.modelData
+                    form: root
+                    showSection: root.searching
                   }
                 }
               }

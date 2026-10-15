@@ -3,7 +3,7 @@
 
 > **File:** `services/BlurManager.qml` · **Docs:** see [docs/dev](../../README.md)
 
-The blur behind the shell's chrome: the border's frame, bars and their popouts, edge popouts, integrated edge menus and docks. Each surface registers its shape (BlurShape); one click-through window per screen (shell/BlurBacking) draws them all, filled, and is the only one of them Hyprland blurs. Blurred in one pass, before any chrome is drawn, the blur behind joined surfaces matches exactly; the surfaces themselves draw their outer fill transparent (`backing`). Layer-shell windows don't know where they are on screen, so their origins are read from Hyprland (`hyprctl layers`), again whenever a layer maps or unmaps, or a window asks (it resized, reservations moved). The joins in the border's stroke and popouts' footprints (PopoutManager) use them too, so they're kept whatever the surfaces look like.
+The blur behind the shell's chrome: the border's frame, bars and their popouts, edge popouts, integrated edge menus and docks. Each surface registers its shape (BlurShape); one click-through window per screen (shell/BlurBacking) draws them all, filled, and is the only one of them Hyprland blurs. Blurred in one pass, before any chrome is drawn, the blur behind joined surfaces matches exactly; the surfaces themselves draw their outer fill transparent (`backing`). While the overlay is open on a screen, a second blur window there, over it, draws the shapes of the surfaces on the Overlay layer (aboveOverlay). Layer-shell windows don't know where they are on screen, so their origins are read from Hyprland (`hyprctl layers`), again whenever a layer maps or unmaps, or a window asks (it resized, reservations moved). The joins in the border's stroke and popouts' footprints (PopoutManager) use them too, so they're kept whatever the surfaces look like.
 
 ### Properties
 
@@ -16,6 +16,7 @@ The blur behind the shell's chrome: the border's frame, bars and their popouts, 
 ### Functions
 
 - `backsOn(screen, onOverlay)`: Whether a chrome surface on `screen` (a ShellScreen or its name) leaves its fill to the blur window.
+- `aboveOverlay(screen)`: Whether the overlay is open on `screen`, covering the blur window: the Overlay-layer surfaces' shapes (BlurShape.overlayLayer) are then drawn by a second blur window, over the overlay and under them
 - `overFullscreen(screen)`: Whether the blur window on `screen` stands on the Overlay layer: a fullscreen window shown there hides the Top layer, and the surfaces over it still blur
 - `opaqueOn(screen)`: Whether surfaces on `screen` fill themselves solid: blur paused for a fullscreen window shown there (elsewhere they stay translucent)
 - `fillOn(color, screen)`: A surface's own fill on `screen`: at the surface opacity, solid where opaqueOn

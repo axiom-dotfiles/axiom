@@ -31,6 +31,7 @@ The public members (no `_` prefix) of every file in `services/` and every config
 - [EditsManager](api/EditsManager.md): The editors' unsaved edits, by overlay page: which pages hold a dirty draft (the navigator's dots and the unsaved-changes strip), and saving or discarding them…
 - [EmojiManager](api/EmojiManager.md): The emoji the launcher searches (";" or /emoji), while Launcher.emoji is on.
 - [FileManager](api/FileManager.md): Synchronous whole-file reads, for the few places that need a file's contents during a binding or initializer (config, schema, theme, state).
+- [FilePickerManager](api/FilePickerManager.md): The desktop's file picker (scripts/pick_path.py: xdg-desktop-portal, else zenity or kdialog), for a file or a folder: config import, and the Browse button of f…
 - [GreetdManager](api/GreetdManager.md): The login itself, in the greeter (greeter.qml): who logs in, into which session, and the conversation with greetd (Quickshell's Greetd: PAM through greetd's IP…
 - [GreeterManager](api/GreeterManager.md): Axiom as greetd's login screen, from the user's side (the greeter itself is greeter.qml, with GreetdManager).
 - [GridEditor](api/GridEditor.md): Editing of one grid of modules (each with a `place` { x, y, w, h } in quarter cards), shared by the layouts editor's overlay pages and edge menus.
@@ -54,7 +55,7 @@ The public members (no `_` prefix) of every file in `services/` and every config
 - [OverlayManager](api/OverlayManager.md): OverlayManager holds the layouts editor's working copy of Overlay.views (the editor is the pinned last page).
 - [PolkitManager](api/PolkitManager.md): axiom as the session's polkit agent (the Polkit section): while PolkitConfig.enabled, a PolkitAgent answers apps' requests for administrator rights, and Polkit…
 - [PopoutManager](api/PopoutManager.md): Every popout showing, where it is, and which gives way to which.
-- [SavedConfigsManager](api/SavedConfigsManager.md): Named snapshots of the whole config, one JSON file each in config/user/saved/.
+- [SavedConfigsManager](api/SavedConfigsManager.md): Named snapshots of the config, one JSON file each in config/user/saved/.
 - [ScreenLayoutEditor](api/ScreenLayoutEditor.md): The layouts editor's draft of one screen layout (a ScreenLayout: the built-in lock screen's, LockManager.editor, or the greeter's, GreeterManager.editor): its …
 - [ScreenshotManager](api/ScreenshotManager.md): Screenshots (the `screenshot` keybind action, IPC `screenshot take <kind>`, launcher `/screenshot`, the Screenshot card), taken natively: while `picking`, shel…
 - [SecretsManager](api/SecretsManager.md): Secrets, which never go in config.json: chat API keys (scope `provider`) and calendar account passwords (scope `calendar`).
@@ -67,7 +68,7 @@ The public members (no `_` prefix) of every file in `services/` and every config
 - [ThemeManager](api/ThemeManager.md): ThemeManager owns the active theme's data (loaded from its file, watched, with defaults for what it leaves out), the theme lists, theme generation from a wallp…
 - [TimeZoneManager](api/TimeZoneManager.md): Other time zones' UTC offsets, for clocks set to one (a Clock module's or a bar Time widget's `timezone`): the JS engine can't convert times between zones (Tim…
 - [UpdatesManager](api/UpdatesManager.md): Pending package updates, shared by every Updates widget.
-- [WallpaperManager](api/WallpaperManager.md): What changes the look on its own (ThemeManager sets it): - Appearance.wallpaperMode "rotate": a new wallpaper from the folder every `rotationInterval` minutes …
+- [WallpaperManager](api/WallpaperManager.md): What changes the look on its own.
 - [WeatherManager](api/WeatherManager.md): Weather shared by every widget that shows it: one WeatherSource for the Weather settings' location and units, fetching while some widget wants it.
 - [WeatherSource](api/WeatherSource.md): Weather for one location from Open-Meteo (no API key).
 - [WindowSwitcherManager](api/WindowSwitcherManager.md): The window switcher (Alt+Tab).
@@ -101,6 +102,7 @@ The public members (no `_` prefix) of every file in `services/` and every config
 - [PolkitConfig](api/PolkitConfig.md): Reader for the Polkit section: whether axiom is the session's polkit agent (PolkitManager)
 - [PopoutsConfig](api/PopoutsConfig.md): Reader for the Popouts section: behaviour shared by bar popouts and screen-edge popouts.
 - [PowerMenuConfig](api/PowerMenuConfig.md): Reader for the PowerMenu section.
+- [Screenshots](api/Screenshots.md): Reader for the Screenshots section: where screenshots and recordings are saved (ScreenshotManager resolves the empty defaults)
 - [SelfUpdate](api/SelfUpdate.md): Reader for the SelfUpdate section (see SelfUpdateManager).
 - [Theme](api/Theme.md): The active theme's colors: base16 (base00-base0F) and semantic names, filled from theme-defaults.json; resolveColor(name) for names from config.
 - [ThemeIntegrations](api/ThemeIntegrations.md): Reader for the ThemeIntegrations section: one switch per scripts/theme_<key>.sh, run by ThemeManager.themeIntegrations().

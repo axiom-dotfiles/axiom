@@ -12,7 +12,9 @@ import qs.config
  * (shell/BlurBacking) draws them all, filled, and is the only one of them
  * Hyprland blurs. Blurred in one pass, before any chrome is drawn, the
  * blur behind joined surfaces matches exactly; the surfaces themselves
- * draw their outer fill transparent (`backing`).
+ * draw their outer fill transparent (`backing`). While the overlay is open
+ * on a screen, a second blur window there, over it, draws the shapes of
+ * the surfaces on the Overlay layer (aboveOverlay).
  * Layer-shell windows don't know where they are on screen, so their
  * origins are read from Hyprland (`hyprctl layers`), again whenever a
  * layer maps or unmaps, or a window asks (it resized, reservations moved).
@@ -38,15 +40,21 @@ QtObject {
 
   // Whether a chrome surface on `screen` (a ShellScreen or its name) leaves
   // its fill to the blur window. `onOverlay`: its window is on the Overlay
-  // layer, over the overlay (which covers the blur window, so it fills
-  // itself while the overlay is open there) and over fullscreen windows
-  // (where the blur window rises too: overFullscreen). Otherwise it's on
-  // Top, faded out under a fullscreen window, and its copy goes with it.
+  // layer, over fullscreen windows (where the blur window rises too:
+  // overFullscreen) and over the overlay (where the blur window over the
+  // overlay draws it: aboveOverlay). Otherwise it's on Top, faded out under
+  // a fullscreen window, and its copy goes with it.
   function backsOn(screen, onOverlay) {
     if (!root.backing)
       return false;
-    const name = root._name(screen);
-    return onOverlay ? !ShellManager.surfaceOpenOn("overlay", name) : !HyprlandManager.hasFullscreen(name);
+    return onOverlay || !HyprlandManager.hasFullscreen(root._name(screen));
+  }
+
+  // Whether the overlay is open on `screen`, covering the blur window: the
+  // Overlay-layer surfaces' shapes (BlurShape.overlayLayer) are then drawn
+  // by a second blur window, over the overlay and under them
+  function aboveOverlay(screen) {
+    return root.backing && ShellManager.surfaceOpenOn("overlay", root._name(screen));
   }
 
   // Whether the blur window on `screen` stands on the Overlay layer: a

@@ -64,6 +64,9 @@ Item {
   // powerline neighbour, and not in a slant's or arrow's cut-off corners.
   // Null (no background) leaves the module's own bounds.
   property var hitShape: null
+  // The hit area below, by a name its menu anchor (whose own `hitArea`
+  // would shadow the id) can read
+  readonly property Item _hitArea: hitArea
   // Rounded up: half a powerline join is fractional, and the allocation
   // floors sizes, which would leave the module under its natural size and
   // elide its label
@@ -189,14 +192,17 @@ Item {
     HoverHandler {
       id: hoverHandler
     }
+  }
 
-    // Its menu popout: the edge menu it opens when hovered, as its popout
-    // or in place of its own (whose anchor stands down meanwhile)
-    PopoutAnchor {
-      hitArea: parent
-      menu: EdgeMenusConfig.popoutMenuOf(root.properties)
-      active: menu !== ""
-    }
+  // Its menu popout: the edge menu it opens when hovered, as its popout
+  // or in place of its own (whose anchor stands down meanwhile). Hovered
+  // in the hit area, but over the module itself, not the hit area's reach
+  // back under the one before: a menu opened at its widget
+  // (PopoutAnchor.screenRect) centres on the module
+  PopoutAnchor {
+    hitArea: root._hitArea
+    menu: EdgeMenusConfig.popoutMenuOf(root.properties)
+    active: menu !== ""
   }
   onComponentPathChanged: _load()
 

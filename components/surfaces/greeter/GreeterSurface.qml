@@ -32,7 +32,7 @@ ScreenLayoutView {
   // preview
   layout: GreeterConfig.layout
   modules: root.isTarget ? root.allModules : root.layout?.otherScreens === "layout" ? root.allModules.filter(module => module?.type !== "Login") : []
-  wallpaper: Appearance.wallpaperFor(root.screen.name)
+  wallpaper: ThemeManager.wallpaperFor(root.screen.name)
   blurWallpaper: LockscreenConfig.blurWallpaper
   host: ({
       "kind": "greeter",

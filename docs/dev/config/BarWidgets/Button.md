@@ -23,7 +23,7 @@ Settings are read as `properties.<key>`.
   - x-options="overlayPages", x-showIf={"action":"overlayPage"}
   - in: `components/bar/widgets/Button.qml`
 - **`menu`** · string = ""
-  - Edge menu: The edge menu the button opens and closes.
+  - Edge menu: The edge menu a click opens and closes, as a full menu: hovering another widget's popout doesn't replace it.
   - x-options="edgeMenus", x-showIf={"action":"edgeMenu"}
   - in: `components/bar/widgets/Button.qml`
 - **`command`** · string = ""
@@ -39,9 +39,16 @@ Settings are read as `properties.<key>`.
   - x-scope="personal"
   - in: `components/bar/widgets/Button.qml`, `components/bar/widgets/AudioLevelWidget.qml`
 - **`hoverActivate`** · boolean = false
-  - Activate on hover: Run the click action after hovering for the popout open delay. Doesn't close a launcher, overlay, power menu or edge menu that is already open.
-  - x-showIf={"action":{"not":"none"}}
+  - Activate on hover: Run the click action after hovering for the popout open delay. Doesn't close a launcher, overlay or power menu that is already open. For an edge menu on hover, use Hover popout.
+  - x-showIf={"action":["powerMenu","appLauncher","overlay","overlayPage","workspa…
   - in: `components/bar/widgets/Button.qml`
+- **`showPopout`** · boolean = false
+  - Hover popout: Open an edge menu while the button is hovered, like other widgets' popouts: it closes when the pointer leaves, and a neighbouring popout replaces it. Separate from the click action.
+  - in (generic, name match): `components/methods/ConfigMigration.qml`, `config/EdgeMenusConfig.qml`, `services/EdgeMenuManager.qml`, `services/SystemManager.qml`
+- **`popoutMenu`** · string = ""
+  - Popout menu: The edge menu shown on hover. It can differ from the one a click opens.
+  - x-options="edgeMenus", x-showIf={"showPopout":true}
+  - in (generic, name match): `components/methods/ConfigMigration.qml`, `config/EdgeMenusConfig.qml`, `services/EdgeMenuManager.qml`
 - **`labelCommand`** · string = ""
   - Label command: Shell command whose first line of output is shown as the label, re-run on an interval.
   - x-scope="personal"

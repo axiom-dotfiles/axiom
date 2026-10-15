@@ -122,7 +122,7 @@ Singleton {
       // Its axiom file (or ncspot's block, filled between the markers just
       // added) is written for the current theme now, not at the next change
       if (!root._given[item.key] && data.results.some(result => result.changed))
-        ThemeManager.themeIntegrations(Appearance.theme, [item.key]);
+        ThemeManager.themeIntegrations(ThemeManager.activeTheme, [item.key]);
       // What it looks like now
       root._queue = [
         {

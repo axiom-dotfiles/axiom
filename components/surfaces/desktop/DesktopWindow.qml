@@ -3,7 +3,6 @@ import QtQuick
 import Quickshell
 import Quickshell.Wayland
 
-import qs.config
 import qs.services
 import qs.components.surfaces.screenlayout
 
@@ -57,7 +56,7 @@ PanelWindow {
     // boxes (when they draw them)
     showBackdrop: false
     frost: root.layout?.moduleBorders ?? false
-    wallpaper: root.screen ? Appearance.wallpaperFor(root.screen.name) : ""
+    wallpaper: root.screen ? ThemeManager.wallpaperFor(root.screen.name) : ""
     blurWallpaper: false
     hyprBlur: HyprlandManager.blur
     insets: DesktopManager.insetsFor(root.screen)

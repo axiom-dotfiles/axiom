@@ -7,12 +7,17 @@ import qs.config
 import qs.components.methods
 
 /**
- * Named snapshots of the whole config, one JSON file each in
- * config/user/saved/. A saved file is a plain config.json, so it can also
- * be copied into place by hand. Restoring runs it through ConfigManager's
- * load pipeline, so snapshots from older config versions are migrated.
- * The one last saved or restored is `active`, and `modified` says whether
- * the running config has changed since.
+ * Named snapshots of the config, one JSON file each in config/user/saved/.
+ * A snapshot holds what ConfigExamples.snapshot picks: the look and personal
+ * parts (by the schema's x-scope) and the wallpaper setup (x-snapshot:
+ * wallpapers, mode, rotation, light/dark ones, theme schedule), in the
+ * export format, so a saved file can be shared or imported as it is.
+ * Restoring applies it like an example, plus the wallpaper setup (other
+ * machine settings stay as they are; a wallpaper only if its file is still
+ * there), through ConfigManager's load pipeline, so
+ * snapshots from older config versions (and older whole-config snapshots)
+ * are migrated. The one last saved or restored is `active`, and `modified`
+ * says whether the running config's snapshot parts have changed since.
  *
  * Also shares configs (ConfigExamples, by the schema's x-scope): applies
  * the example setups shipped in examples/ and imported files (the running
@@ -49,12 +54,14 @@ QtObject {
   // "" for none (or once its file is gone): the one the settings UI offers
   // to overwrite. Kept in state/savedconfigs.json.
   readonly property string active: _model.count > 0 && exists(_active) ? _active : ""
-  // Whether the running config differs from the active saved one, leaving
-  // out the takeover settings, which restoring doesn't change
-  readonly property bool modified: active !== "" && _baseline !== null && !ConfigExamples.equalApartFrom(ConfigManager.config, _baseline, ConfigManager.takeoverPaths)
+  // Whether the running config's snapshot parts differ from the active
+  // saved one's (machine settings, which restoring doesn't change, are left
+  // out)
+  readonly property bool modified: active !== "" && _baseline !== null && !Utils.deepEqual(ConfigExamples.snapshot(ConfigManager.config, ConfigManager.configSchema), _baseline)
 
   property string _active: ""
-  // The active saved config as it loads (migrated, defaults filled)
+  // The snapshot parts of the active saved config as it loads (migrated,
+  // defaults filled)
   property var _baseline: null
   // The config being written by save(), the new baseline once it's saved
   // (dropped once it's written or fails)
@@ -64,11 +71,14 @@ QtObject {
   // hasPersonal: the file holds keybinds, apps or commands), or null
   property var importing: null
   // The file picker is open
-  readonly property bool picking: _picker.running
+  readonly property bool picking: FilePickerManager.running
 
   // What to apply once the running config is saved as its backup:
   // { name, config, personal }, or null
   property var _pendingApply: null
+  // The snapshot being restored once its wallpapers are checked:
+  // { name, path, config }, or null
+  property var _restoring: null
   readonly property var _state: StateManager.createStateHandler("savedconfigs")
 
   Component.onCompleted: {
@@ -89,8 +99,8 @@ QtObject {
     return false;
   }
 
-  // Saves the running config (including unsaved settings edits) under `name`,
-  // replacing any existing snapshot of that name.
+  // Saves the running config's snapshot parts (including unsaved settings
+  // edits) under `name`, replacing any existing snapshot of that name.
   function save(name) {
     const fileName = sanitize(name);
     if (fileName === "") {
@@ -106,7 +116,16 @@ QtObject {
     // on this backup forever
     _writer.path = "";
     _writer.path = savedDir + fileName + ".json";
-    _writer.setText(JSON.stringify(root._saving, null, 2) + "\n");
+    const schema = ConfigManager.configSchema;
+    const header = {
+      "_example": {
+        "title": fileName,
+        "description": ""
+      },
+      "version": ConfigMigration.currentVersion
+    };
+    const saved = Object.assign({}, header, ConfigExamples.sparse(ConfigExamples.snapshot(root._saving, schema), schema));
+    _writer.setText(JSON.stringify(saved, null, 2) + "\n");
   }
 
   function restore(name) {
@@ -126,32 +145,56 @@ QtObject {
       root.status = I18n.tr("\"{0}\" is not valid JSON", name);
       return;
     }
-    if (!ConfigManager.restoreConfig(parsed)) {
+    const config = typeof parsed === "object" && parsed !== null && !Array.isArray(parsed) ? ConfigManager.normalizeConfig(parsed) : null;
+    if (!config) {
       root.status = I18n.tr("\"{0}\" is not a valid config", name);
       return;
     }
-    root._setActive(name, ConfigManager.config);
-    SettingsManager.loadConfig();
-    ThemeManager.applyWallpapers();
-    root.status = I18n.tr("Restored \"{0}\"", name);
-    console.log("[SavedConfigsManager] Restored", path);
-  }
-
-  // Replaces the config with the schema defaults (what a first run writes).
-  // The current version skips migration, which would otherwise treat the
-  // empty object as a version 1 config.
-  function restoreDefaults() {
-    if (!ConfigManager.restoreConfig({
-      "version": ConfigMigration.currentVersion
-    })) {
-      root.status = I18n.tr("The default configuration is not valid");
+    if (_wallpaperCheck.running) {
+      root.status = I18n.tr("Busy, try again");
       return;
     }
-    root._setActive("", null);
+    // Its wallpapers only where their files are still there: find lists
+    // the ones that exist (and exits non-zero for the others)
+    const paths = ConfigExamples.snapshotFiles(config, ConfigManager.configSchema);
+    root._restoring = {
+      name: name,
+      path: path,
+      config: config
+    };
+    if (paths.length === 0) {
+      root._finishRestore([]);
+      return;
+    }
+    _wallpaperCheck.command = ["find"].concat(paths, ["-maxdepth", "0", "-print0"]);
+    _wallpaperCheck.running = true;
+  }
+
+  // `existing`: the files of the snapshot's wallpapers that are there
+  function _finishRestore(existing) {
+    const pending = root._restoring;
+    root._restoring = null;
+    if (!pending)
+      return;
+    const applied = ConfigExamples.apply(ConfigManager.config, pending.config, ConfigManager.configSchema, true);
+    if (!ConfigManager.restoreConfig(ConfigExamples.withSnapshot(applied, pending.config, ConfigManager.configSchema, existing))) {
+      root.status = I18n.tr("\"{0}\" is not a valid config", pending.name);
+      return;
+    }
+    root._setActive(pending.name, ConfigManager.config);
     SettingsManager.loadConfig();
-    ThemeManager.applyWallpapers();
-    root.status = I18n.tr("Restored the default configuration");
-    console.log("[SavedConfigsManager] Restored defaults");
+    root.status = I18n.tr("Restored \"{0}\"", pending.name);
+    console.log("[SavedConfigsManager] Restored", pending.path);
+  }
+
+  // Applies the schema defaults like an example (the look and personal
+  // parts; machine settings stay), after saving the running config as
+  // "before-defaults". The current version skips migration, which would
+  // otherwise treat the empty object as a version 1 config.
+  function restoreDefaults() {
+    _backupThenApply("defaults", ConfigManager.normalizeConfig({
+      "version": ConfigMigration.currentVersion
+    }), true);
   }
 
   // Saves the running config as "before-<name>", then applies the example
@@ -167,12 +210,9 @@ QtObject {
 
   // Opens the desktop's file picker; the chosen file goes to openImport
   function browseImport() {
-    if (_picker.running)
-      return;
-    _picker.command = ["python3", Paths.scriptsPath + "pick_file.py", I18n.tr("Import a configuration"), Paths.homeDirectory];
-    // The picker is an ordinary window, under the overlay's layer
-    ShellManager.beginStepAside("filePicker");
-    _picker.running = true;
+    FilePickerManager.pick(root, I18n.tr("Import a configuration"), {
+      "filter": "JSON:*.json"
+    }, path => root.openImport(path), () => root.status = I18n.tr("No file picker could be opened"));
   }
 
   // Loads a shared file (an export, an example, or a whole config.json of
@@ -322,7 +362,7 @@ QtObject {
     if (baseline === undefined)
       root._loadBaseline();
     else
-      root._baseline = baseline === null ? null : Utils.clone(baseline);
+      root._baseline = baseline === null ? null : ConfigExamples.snapshot(baseline, ConfigManager.configSchema);
   }
 
   function _loadBaseline() {
@@ -333,7 +373,8 @@ QtObject {
     if (!content)
       return;
     try {
-      root._baseline = ConfigManager.normalizeConfig(JSON.parse(content));
+      const config = ConfigManager.normalizeConfig(JSON.parse(content));
+      root._baseline = config ? ConfigExamples.snapshot(config, ConfigManager.configSchema) : null;
     } catch (e) {
       console.warn("[SavedConfigsManager] Could not parse the active saved config", root._active + ":", e);
     }
@@ -393,6 +434,13 @@ QtObject {
     }
   }
 
+  // Which of a restored snapshot's wallpaper files exist
+  property Process _wallpaperCheck: Process {
+    stdout: StdioCollector {
+      onStreamFinished: root._finishRestore(text.split("\0").filter(path => path !== ""))
+    }
+  }
+
   property FileView _exporter: FileView {
     blockWrites: true
     atomicWrites: true
@@ -404,30 +452,6 @@ QtObject {
     onSaveFailed: error => {
       root.status = I18n.tr("Failed to export to {0}", Paths.shortenHome(path));
       console.warn("[SavedConfigsManager] Could not write", path + ":", FileViewError.toString(error));
-    }
-  }
-
-  property Process _picker: Process {
-    stdout: StdioCollector {
-      id: pickedPath
-    }
-    stderr: StdioCollector {
-      onStreamFinished: {
-        if (text.trim() !== "")
-          console.warn("[SavedConfigsManager] File picker:", text.trim());
-      }
-    }
-    // Not in onExited: a picker that fails to start never exits, and the
-    // overlay would stay hidden
-    onRunningChanged: {
-      if (!running)
-        ShellManager.endStepAside("filePicker");
-    }
-    onExited: code => {
-      if (code === 0 && pickedPath.text.trim() !== "")
-        root.openImport(pickedPath.text.trim());
-      else if (code !== 1)
-        root.status = I18n.tr("No file picker could be opened");
     }
   }
 

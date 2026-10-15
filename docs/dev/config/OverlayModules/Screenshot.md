@@ -6,7 +6,4 @@
 
 Settings are read as `properties.<key>`.
 
-- **`directory`** · string = "~/Pictures/Screenshots"
-  - Save to
-  - x-scope="machine"
-  - in: `components/content/Screenshot.qml`
+No settings of its own.

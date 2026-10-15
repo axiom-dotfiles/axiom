@@ -24,7 +24,8 @@ The schema is the single source of truth for config: shape, `default`s (there is
 - `x-order` (on an object): the keys shown first, in order. This applies to its form, or to its settings cards, whose order is their first field's.
 - `x-group`: puts a field on a card of that name. One section or object can make several cards.
   - The bar and edge menu editors group a `Bar`'s / `EdgeMenu`'s own fields the same way (`SchemaLayout.objectGroups`, as `Bar.fieldGroups` / `EdgeMenusConfig.fieldGroups`).
-- `x-scope` (`look` | `personal` | `machine`, inherited, root `machine`): what an example, import or export carries. See [Saved configs and sharing](saved-configs-sharing.md).
+- `x-cardPerField: true` (on a section): each direct field becomes a card of its own, titled and described by the field, sorted by title, a switch's row labelled "Enabled" (`row.label`, `row.description` override the field's in `SchemaField`). The section's description gets a card first. Example: `ThemeIntegrations`, one card per app.
+- `x-scope` (`look` | `personal` | `machine`, inherited, root `machine`): what a snapshot, example, import or export carries. See [Saved configs and sharing](saved-configs-sharing.md).
   - A new setting inside a look section that names a monitor, path, account or command needs `machine` or `personal`.
 - `x-libraryGroups` (root) lists in order the groups the bar editor's and layouts editor's libraries sort their types into (by category).
   - Each bar widget and overlay module definition joins one with `x-libraryGroup` (`methods/LibraryOrder`, `reusable/TypeLibrary`).
@@ -44,6 +45,7 @@ The schema is the single source of truth for config: shape, `default`s (there is
 - `x-enumShowIf` (`{ optionValue: condition }`): hides enum options whose condition doesn't hold. The current value stays listed.
 - `x-beside: true`: puts a field beside the one before it on its settings card, each half wide (`SettingsGroupCard`'s two-column grid; Workspaces' rows beside columns). Give the pair the same `x-showIf`.
 - `x-applyOnSave`: keeps a setting in the draft until Save instead of applying it live (Hyprland's `mode`, which can take over files).
+- `x-snapshot: true`: a machine setting a saved snapshot carries too (the wallpaper setup: wallpapers, folder, mode, rotation, light/dark wallpapers, theme schedule), since a snapshot restores on the PC it was saved on. Exports and examples still leave it out. See [Saved configs and sharing](saved-configs-sharing.md).
 - `x-takeover: true`: a setting that takes something over on this PC (Hyprland mode, locker, idle, polkit, greeter). Loading or importing a config never changes it; only its own card does. See [Saved configs and sharing](saved-configs-sharing.md).
 
 ### Controls
@@ -61,6 +63,7 @@ The schema is the single source of truth for config: shape, `default`s (there is
 - `x-control`:
   - `"slider"` | `"stepper"`: overrides the integer control choice (below).
   - `"readonly"`: shows a string with a copy button instead of a field (an edge menu's `id`).
+  - `"folder"`: a string with a Browse button opening the desktop's folder picker ([File picker](file-picker.md); the wallpaper, notes, screenshot and recording folders, Claude usage's `configDir`, System stats' `diskPath`). It hands back `~/…`, so whatever reads the setting expands `~` (`Paths.expandHome`).
   - `"search"`: a long option list (e.g. `"timezones"`) is typed into to filter it (`SchemaField`; the Clock module's and World clocks' `timezone`).
 - Integers render through `forms/SchemaNumberField`:
   - a slider with a value box for 7–200 steps, else a stepper, with ±10 buttons past 20 steps

@@ -31,11 +31,11 @@ Settings are read as `properties.<key>`.
   - in: `components/bar/widgets/Time.qml`
 - **`showPopout`** · boolean = true
   - Popout: Open the calendar when hovered.
-  - in (generic, name match): `config/EdgeMenusConfig.qml`, `services/SystemManager.qml`
+  - in (generic, name match): `components/methods/ConfigMigration.qml`, `config/EdgeMenusConfig.qml`, `services/EdgeMenuManager.qml`, `services/SystemManager.qml`
 - **`popoutMenu`** · string = ""
   - Open instead: An edge menu to open in place of the popout.
   - x-options="edgeMenus", x-emptyLabel="Its own popout", x-showIf={"showPopout":true}
-  - in (generic, name match): `config/EdgeMenusConfig.qml`
+  - in (generic, name match): `components/methods/ConfigMigration.qml`, `config/EdgeMenusConfig.qml`, `services/EdgeMenuManager.qml`
 - **`backgroundColor`** · string = ""
   - Background
   - x-options="colors", x-emptyLabel="Auto", x-autoColor="accent"

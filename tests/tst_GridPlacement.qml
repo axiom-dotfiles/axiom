@@ -699,6 +699,105 @@ TestCase {
     });
   }
 
+  function test_guideFrame() {
+    compare(GridPlacement.guideFrame({
+      "cols": 12,
+      "rows": 8
+    }, [p(0, 0, 2, 2)], [0]), p(0, 0, 12, 8), "a bounded grid is the frame");
+    compare(GridPlacement.guideFrame(null, [p(0, 0, 6, 2), p(1, 2, 2, 2), p(0, 4, 4, 1)], [1]), p(0, 0, 6, 5), "else the other modules' cover");
+    compare(GridPlacement.guideFrame(null, [p(0, 0, 2, 2)], [0]), null, "nothing else, no frame");
+    // An edge menu: the screen along its edge, the others across it
+    const screen = p(-10.5, -1, 30, 17);
+    compare(GridPlacement.guideFrame(null, [p(0, 0, 6, 2), p(1, 2, 2, 4)], [1], screen, "Top"), p(-10.5, 0, 30, 2), "a top menu: the screen across, the others down");
+    compare(GridPlacement.guideFrame(null, [p(0, 0, 2, 6), p(2, 1, 4, 2)], [1], screen, "Left"), p(0, -1, 2, 17), "a side menu: the screen down, the others across");
+    compare(GridPlacement.guideFrame(null, [p(3, 0, 2, 2)], [0], screen, "Top"), p(-10.5, 0, 30, 2), "alone: its own depth across");
+    compare(GridPlacement.guideFrame({
+      "cols": 4,
+      "rows": 4
+    }, [], [], screen, "Top"), p(0, 0, 4, 4), "a bounded grid wins");
+  }
+
+  function test_alignments() {
+    const places = [p(0, 0, 6, 2), p(0, 3, 2, 2), null];
+    // Moved to 2, 2 (2 wide): centred under the 6-wide row
+    const centred = GridPlacement.alignments(p(2, 2, 2, 2), places, [2], p(0, 0, 6, 5));
+    compare(centred.length, 1, "only the centre lines up across");
+    compare(centred[0], {
+      "axis": "x",
+      "kind": "centre",
+      "at": 3,
+      "from": 0,
+      "to": 5,
+      "frame": true
+    }, "the row's centre and the frame's merge, spanning both");
+    // Below the 2 × 2 one, at the same size: every line across matches
+    const level = GridPlacement.alignments(p(0, 6, 2, 2), places, [], null);
+    compare(level.map(g => g.axis + g.kind + g.at).sort(), ["xcentre1", "xend2", "xstart0"], "a 2-wide one lines up with the other 2-wide one on every line");
+    compare(level.find(g => g.kind === "start").from, 0, "the start line runs from the top of the row");
+    compare(GridPlacement.alignments(null, places, [], null), []);
+  }
+
+  function test_centreGuides() {
+    const guides = GridPlacement.centreGuides(p(0, 0, 7, 4));
+    compare(guides.map(g => [g.axis, g.at, g.from, g.to]), [["x", 3.5, 0, 4], ["y", 2, 0, 7]]);
+    compare(GridPlacement.centreGuides(p(0, 0, 0, 0)), []);
+  }
+
+  function test_centredIn() {
+    const frame = p(0, 0, 8, 6);
+    compare(GridPlacement.centredIn(p(1, 1, 2, 2), frame, "x"), 3);
+    compare(GridPlacement.centredIn(p(1, 1, 2, 2), frame, "y"), 2);
+    compare(GridPlacement.centredIn(p(1, 1, 3, 2), frame, "x"), null, "an odd difference is half a unit off");
+    compare(GridPlacement.centredIn(p(1, 1, 3, 2), p(2, 0, 5, 1), "x"), 3, "in a frame not at 0");
+    compare(GridPlacement.centredIn(p(1, 1, 2, 2), null, "x"), null);
+    compare(GridPlacement.centredIn(p(0, 0, 3, 1), p(-10.5, 0, 30, 1), "x"), 3, "on a screen box between units, where it lands on one");
+    compare(GridPlacement.centredIn(p(0, 0, 2, 1), p(-10.5, 0, 30, 1), "x"), null, "else between units");
+  }
+
+  // A canvas with units of 10 px and gaps of 2, unit 0, 0 at 100, 50
+  readonly property var guideFit: ({
+      "step": 12,
+      "gap": 2,
+      "unitSize": 10,
+      "originX": 100,
+      "originY": 50
+    })
+
+  function test_canvasGuide() {
+    const line = (axis, kind, at) => GridPlacement.canvasGuide(guideFit, {
+        "axis": axis,
+        "kind": kind,
+        "at": at,
+        "from": 0,
+        "to": 2
+      });
+    compare(line("x", "start", 1), {
+      "x1": 112,
+      "y1": 50,
+      "x2": 112,
+      "y2": 72
+    }, "a start on the unit's leading side, over two units");
+    compare(line("x", "end", 2).x1, 122, "an end before the gap");
+    compare(line("x", "centre", 0.5).x1, 105, "the centre of unit 0");
+    compare(line("y", "centre", 1), {
+      "x1": 100,
+      "y1": 61,
+      "x2": 122,
+      "y2": 61
+    }, "a horizontal one, midway in the gap after unit 0");
+  }
+
+  function test_canvasMargins() {
+    const margins = GridPlacement.canvasMargins(guideFit, p(2, 0, 2, 1), p(0, 0, 6, 3));
+    compare(margins.map(m => [m.side, m.units, m.even]), [["left", 2, true], ["right", 2, true], ["bottom", 2, false]], "no room above isn't shown");
+    const left = margins[0];
+    compare([left.x1, left.y1, left.x2, left.y2], [100, 55, 124, 55], "from the frame's side to the place's, through its middle");
+    compare(margins[1].x2, 170, "to the frame's far side, before its gap");
+    compare(GridPlacement.canvasMargins(guideFit, p(0, 0, 1, 1), null), []);
+    const onScreen = GridPlacement.canvasMargins(guideFit, p(3, 0, 3, 1), p(-10.5, 0, 30, 1));
+    compare(onScreen.map(m => [m.side, m.units, m.exact, m.even]), [["left", 14, false, true], ["right", 14, false, true]], "a screen side between units: rounded, not exact, and even when centred");
+  }
+
   function test_moveTo() {
     const arr = ["a", "b", "c"];
     compare(GridPlacement.moveTo(arr, 0, 2), 1);

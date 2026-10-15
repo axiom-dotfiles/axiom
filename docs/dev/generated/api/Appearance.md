@@ -9,8 +9,8 @@ Reader for the Appearance section. Values are always present: schema defaults ar
 
 - `theme` (readonly string): --- Theme (UI-owned, set on the overlay's Themes page) ---
 - `darkMode` (readonly bool): From the active theme, not config: a theme is dark or light
-- `wallpaper` (readonly string): The primary monitor's wallpaper (the lockscreen's)
-- `wallpapers` (readonly var): Monitor name -> wallpaper URL, set per monitor on the Themes page
+- `fixedWallpaper` (readonly string): The wallpapers picked by hand (fixed mode): the primary monitor's, the fallback for monitors without their own, and monitor name -> URL, set per monitor on the Themes page.
+- `fixedWallpapers` (readonly var)
 - `wallpaperBackend` (readonly string): As configured (for display), and with ~ expanded, no trailing slash "quickshell" (shell/Wallpaper draws it) | "awww" (setWallpaper.sh)
 - `wallpaperFolder` (readonly string)
 - `wallpaperPath` (readonly string)
@@ -48,5 +48,4 @@ Reader for the Appearance section. Values are always present: schema defaults ar
 
 ### Functions
 
-- `wallpaperFor(monitor)`
 - `fill(color)`: A surface fill (a theme color, or a name or "#hex" as Theme.resolveColor gives one) at the surface opacity

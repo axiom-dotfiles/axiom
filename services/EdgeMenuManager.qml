@@ -28,6 +28,10 @@ Singleton {
   // What opened each menu (a bar button), which keeps a floating menu open
   // while hovered, as a bar popout's anchor does. Not kept across reloads.
   property var anchors: ({})
+  // How each open menu ranks in PopoutManager (its PopoutClaim's kind):
+  // "bar" when a widget's PopoutAnchor opened it as that widget's popout,
+  // else "menu". Set with its anchor, as it opens.
+  property var claimKinds: ({})
 
   // Space open integrated menus reserve, by "<screen>:<edge>" (edge
   // "top" | "bottom" | "left" | "right"), for surfaces that place
@@ -272,12 +276,16 @@ Singleton {
     return false;
   }
 
-  function open(id, anchor) {
+  // `kind`: how it ranks (claimKinds), "menu" when left out
+  function open(id, anchor, kind) {
     if (!root._exists(id))
       return;
     const anchors = Object.assign({}, root.anchors);
     anchors[id] = anchor ?? null;
     root.anchors = anchors;
+    const kinds = Object.assign({}, root.claimKinds);
+    kinds[id] = kind ?? "menu";
+    root.claimKinds = kinds;
     if (root.isOpen(id))
       root.engageRequested(id);
     _run.open = root._set(root.openMenus, id, true);
@@ -356,6 +364,10 @@ Singleton {
     host: "edgeMenu"
     sizeScale: root.localMenus?.[root.selectedMenuIndex]?.fineGrid ? 2 : 1
     modulesOf: () => root.selectedMenu()?.modules ?? null
+    // A submenu has no edge: just its grid
+    readonly property var _onEdge: EdgeMenusConfig.isSubmenu(root.selectedMenu()) ? null : root.selectedMenu()
+    edge: _onEdge?.edge ?? ""
+    screenBox: _onEdge ? root.screenBoxOf(_onEdge) : null
     shifted: (shift, boundsBefore) => root._keepPlace(root.selectedMenu(), shift, boundsBefore)
     // Along the menu's edge: down a side menu, right along a top or
     // bottom one, so a drop at its start makes room in its run
@@ -593,13 +605,13 @@ Singleton {
       return [];
     const out = [];
     (BarManager.localConfig ?? Bar.savedBars).forEach((bar, b) => Object.keys(bar?.widgets ?? {}).forEach(zone => (bar.widgets[zone] ?? []).forEach(widget => {
-          if (EdgeMenusConfig.menuOpenedBy(widget) !== id)
+          if (!EdgeMenusConfig.menusOpenedBy(widget).includes(id))
             return;
           const barLabel = bar.id || I18n.tr("Bar {0}", b + 1);
           const type = Bar.availableWidgetTypes.find(t => t?.type === widget.type);
           out.push({
             "kind": "bar",
-            "label": widget.type === "Button" ? I18n.tr("Button on {0}", barLabel) : I18n.tr("{0} popout on {1}", I18n.tr(type?.label ?? widget.type), barLabel)
+            "label": widget.type === "Button" && !(widget.properties?.showPopout && widget.properties.popoutMenu === id) ? I18n.tr("Button on {0}", barLabel) : I18n.tr("{0} popout on {1}", I18n.tr(type?.label ?? widget.type), barLabel)
           });
         })));
     (root.localMenus ?? EdgeMenusConfig.menus).forEach((menu, m) => {

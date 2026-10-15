@@ -13,7 +13,7 @@
 6. `tests/scripts/test_scripts.py`:
    - `FORMATS[<key>]` (toml/yaml/json/ini/css/plist) so the output is parse-checked;
    - the binary in `STUBS` if the script `require_cmds` it;
-   - a branch in `test_every_integration_renders` only if its arguments aren't `[theme, target/axiom.out]`.
+   - a branch in `integration_args` (`tests/scripts/test_scripts.py`) only if its arguments aren't `[theme, target/axiom.out]`.
 
 ## Skeleton
 ```bash
@@ -74,7 +74,7 @@ Template variables: `${BACKGROUND}`, `${FOREGROUND}`, `${ACCENT}`, `${ANSI_0}`â€
 
 ## Verify
 - `shellcheck -x -S warning scripts/theme_<key>.sh`
-- `python3 tests/scripts/test_scripts.py ThemeIntegrations HookupScript`: renders every shipped theme through every script, and applies every hookup to empty configs, in a scratch home (about 2 min).
+- `python3 tests/scripts/test_scripts.py ThemeIntegrations HookupScript`: renders every shipped theme through every script, and applies every hookup to empty configs, in a scratch home (about 10 s).
 - `scripts/dev/verify.sh` (schema, reader, generated docs)
 - `scripts/check_i18n.py`
 

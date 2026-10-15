@@ -235,14 +235,23 @@ QtObject {
   // --- The bundle ---
 
   readonly property bool _exporting: root._report?.installed === true && root._report.bundleWritable === true
-  readonly property var _wallpaperSources: GreeterBundle.wallpaperSources(ConfigManager.config)
+  // The config with the wallpapers showing as its fixed ones (the
+  // greeter keeps no rotation of its own), so it shows what the desktop does
+  readonly property var _shownConfig: Object.assign({}, ConfigManager.config, {
+    "Appearance": Object.assign({}, ConfigManager.config.Appearance, {
+      "wallpaperMode": "fixed",
+      "wallpaper": ThemeManager.shownWallpapers.wallpaper,
+      "wallpapers": ThemeManager.shownWallpapers.wallpapers
+    })
+  })
+  readonly property var _wallpaperSources: GreeterBundle.wallpaperSources(root._shownConfig)
   // Each wallpaper's copy in the bundle, named by its url
   readonly property var _wallpaperCopies: root._wallpaperSources.reduce((copies, url) => {
     const extension = (url.match(/\.[A-Za-z0-9]+$/) ?? [""])[0].toLowerCase();
     copies[url] = "wallpapers/" + Qt.md5(url) + extension;
     return copies;
   }, {})
-  readonly property string _bundleText: JSON.stringify(GreeterBundle.exportConfig(ConfigManager.config, ConfigManager.configSchema.properties.Hyprland.properties.managed, Object.keys(root._wallpaperCopies).reduce((urls, url) => {
+  readonly property string _bundleText: JSON.stringify(GreeterBundle.exportConfig(root._shownConfig, ConfigManager.configSchema.properties.Hyprland.properties.managed, Object.keys(root._wallpaperCopies).reduce((urls, url) => {
     urls[url] = "file://" + Paths.greeterBundlePath + root._wallpaperCopies[url];
     return urls;
   }, {})), null, 2)

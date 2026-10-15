@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Axiom Configuration Schema",
-  "description": "Source of truth for config/user/config.json. Every key's `default` is filled in at load time (SchemaValidation.applyDefaults), so config readers never need their own fallbacks. `title`/`description`/`minimum`/`maximum`/`enum` drive the generated settings UI; `x-settings: false` hides a key from it (edited elsewhere, or UI-owned state); `x-options` names a dynamic option list (\"screens\", \"chatProviders\" and \"chatPresets\", \"colors\" for the 16 base theme colors, \"languages\" from config/i18n, \"cursorThemes\" for installed cursor themes, \"timezones\" for the system's time zones, \"edgeMenus\" for the ids of EdgeMenus); `x-showIf` ({ sibling: value | [values] | { not: value } }) hides a field unless a sibling matches; a key starting with `/` is a dotted path from the config root instead (\"/Workspaces.layout\"). `x-enumLabels` ({ value: label }) shows labels instead of raw enum values in dropdowns. `x-multiline: true` edits a string in a growing text area. `x-categories` at the root lists the settings sidebar's categories in order, each `{ name, icon, page }` (`page`: a hand-built part after its cards, `views/settings/<page>.qml`); sections join one with `x-category`. `x-libraryGroups` at the root lists, in order, the groups the bar editor's and layouts editor's libraries sort their types into (by category); each bar widget and overlay module definition joins one with `x-libraryGroup`. `x-beside: true` on a field puts it beside the field before it on its settings card, each taking half the width. `x-order` on an object schema lists the keys its form shows first, in order (a schema reaches QML as a map, whose keys come out sorted). `x-defaultSize` ([w, h] in grid units, four to a card) on an overlay module definition is the size it's added at, and `x-minSize` the least a drop into a gap shrinks it to (half the default when left out); `x-icon` on a module or view definition is its Material Symbols icon name in the editor. `x-hosts` on a module definition lists where it may be placed (\"overlay\", \"edgeMenu\", \"lockscreen\", \"greeter\", \"desktop\"; the first two when left out, so the lock screen, the greeter and the desktop only take modules that list them). `x-greeter: true` on a Hyprland.managed option carries it to the greeter (its Hyprland takes the option in managed mode). A `$ref` may carry keys beside it (`default`, `title`, …), which override the definition's. `x-required: true` on one makes it part of every grid on its hosts: it can't be removed or duplicated, and the library doesn't offer it. `x-canvasDetail` names a module property the layouts editor shows on its tile (a list joined), and `x-canvasFill` a color property the tile is filled with. `x-takeover: true` marks a setting that takes something over on this PC (the Hyprland mode, the lock screen, idle, polkit, the greeter): loading a saved config, the defaults, an example or an import keeps its current value (ConfigExamples.keepTakeovers). Bar widgets are a oneOf discriminated by `type`, and get their `properties` defaults filled like everything else.",
+  "description": "Source of truth for config/user/config.json. Every key's `default` is filled in at load time (SchemaValidation.applyDefaults), so config readers never need their own fallbacks. `title`/`description`/`minimum`/`maximum`/`enum` drive the generated settings UI; `x-settings: false` hides a key from it (edited elsewhere, or UI-owned state); `x-options` names a dynamic option list (\"screens\", \"chatProviders\" and \"chatPresets\", \"colors\" for the 16 base theme colors, \"languages\" from config/i18n, \"cursorThemes\" for installed cursor themes, \"timezones\" for the system's time zones, \"edgeMenus\" for the ids of EdgeMenus); `x-showIf` ({ sibling: value | [values] | { not: value } }) hides a field unless a sibling matches; a key starting with `/` is a dotted path from the config root instead (\"/Workspaces.layout\"). `x-enumLabels` ({ value: label }) shows labels instead of raw enum values in dropdowns. `x-multiline: true` edits a string in a growing text area. `x-categories` at the root lists the settings sidebar's categories in order, each `{ name, icon, page }` (`page`: a hand-built part after its cards, `views/settings/<page>.qml`); sections join one with `x-category`. `x-libraryGroups` at the root lists, in order, the groups the bar editor's and layouts editor's libraries sort their types into (by category); each bar widget and overlay module definition joins one with `x-libraryGroup`. `x-cardPerField: true` on a section makes each of its direct fields a settings card of its own. `x-beside: true` on a field puts it beside the field before it on its settings card, each taking half the width. `x-order` on an object schema lists the keys its form shows first, in order (a schema reaches QML as a map, whose keys come out sorted). `x-defaultSize` ([w, h] in grid units, four to a card) on an overlay module definition is the size it's added at, and `x-minSize` the least a drop into a gap shrinks it to (half the default when left out); `x-icon` on a module or view definition is its Material Symbols icon name in the editor. `x-hosts` on a module definition lists where it may be placed (\"overlay\", \"edgeMenu\", \"lockscreen\", \"greeter\", \"desktop\"; the first two when left out, so the lock screen, the greeter and the desktop only take modules that list them). `x-greeter: true` on a Hyprland.managed option carries it to the greeter (its Hyprland takes the option in managed mode). A `$ref` may carry keys beside it (`default`, `title`, …), which override the definition's. `x-required: true` on one makes it part of every grid on its hosts: it can't be removed or duplicated, and the library doesn't offer it. `x-canvasDetail` names a module property the layouts editor shows on its tile (a list joined), and `x-canvasFill` a color property the tile is filled with. `x-snapshot: true` marks a machine setting a saved snapshot carries too, since it restores on the PC it was saved on (the wallpaper setup: ConfigExamples.snapshot); a `file://` URL in it comes back only while its file exists. `x-takeover: true` marks a setting that takes something over on this PC (the Hyprland mode, the lock screen, idle, polkit, the greeter): loading a saved config, the defaults, an example or an import keeps its current value (ConfigExamples.keepTakeovers). Bar widgets are a oneOf discriminated by `type`, and get their `properties` defaults filled like everything else.",
   "type": "object",
   "x-categories": [
     { "name": "General", "icon": "home" },
@@ -15,6 +15,7 @@
     { "name": "Screen & Power", "icon": "power_settings_new" },
     { "name": "Calendar", "icon": "calendar_month" },
     { "name": "Modules", "icon": "widgets" },
+    { "name": "Theme integrations", "icon": "format_paint" },
     { "name": "Maintenance", "icon": "build", "page": "SavedConfigsSection" }
   ],
   "x-libraryGroups": [
@@ -32,7 +33,7 @@
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 53,
+      "default": 55,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
@@ -349,6 +350,18 @@
       }
     },
 
+    "Screenshots": {
+      "type": "object",
+      "x-category": "General",
+      "title": "Screenshots & recordings",
+      "description": "Where screenshots and screen recordings are saved, whichever way they're taken: the screenshot and screenRecord binds, the launcher, the Screenshot and Screen recording cards.",
+      "additionalProperties": false,
+      "x-order": ["folder", "recordingFolder"],
+      "properties": {
+        "folder": { "type": "string", "title": "Screenshot folder", "x-control": "folder", "default": "", "description": "Where screenshots are saved (~ is your home). Empty uses Pictures/Screenshots." },
+        "recordingFolder": { "type": "string", "title": "Recording folder", "x-control": "folder", "default": "", "description": "Where recordings are saved, and listed from by the Screen recording card. Empty saves them with the screenshots." }
+      }
+    },
     "Battery": {
       "type": "object",
       "x-category": "General",
@@ -825,12 +838,14 @@
         },
         "wallpaper": {
           "type": "string",
+          "x-snapshot": true,
           "default": "",
           "description": "The primary monitor's wallpaper file URL, used by the lockscreen (set on the overlay's Themes page).",
           "x-settings": false
         },
         "wallpapers": {
           "type": "object",
+          "x-snapshot": true,
           "default": {},
           "description": "Monitor name → wallpaper file URL (set on the overlay's Themes page). A monitor with no entry shows `wallpaper`.",
           "additionalProperties": { "type": "string" },
@@ -846,13 +861,16 @@
         },
         "wallpaperFolder": {
           "type": "string",
+          "x-snapshot": true,
           "title": "Wallpaper folder",
+          "x-control": "folder",
           "default": "~/Pictures/wallpapers",
           "pattern": "\\S",
           "description": "Folder the wallpaper pickers list images from (jpg, png, bmp). A leading ~ is your home folder."
         },
         "wallpaperMode": {
           "type": "string",
+          "x-snapshot": true,
           "title": "Wallpaper mode",
           "enum": ["fixed", "rotate", "variant"],
           "x-enumLabels": { "fixed": "Fixed", "rotate": "Rotate on a timer", "variant": "One for light, one for dark" },
@@ -861,6 +879,7 @@
         },
         "wallpaperRotation": {
           "type": "object",
+          "x-snapshot": true,
           "title": "Wallpaper rotation",
           "additionalProperties": false,
           "x-showIf": { "wallpaperMode": "rotate" },
@@ -873,6 +892,7 @@
         },
         "variantWallpapers": {
           "type": "object",
+          "x-snapshot": true,
           "default": {},
           "description": "The wallpapers for the light and dark variants, as file URLs (set on the overlay's Themes page).",
           "additionalProperties": false,
@@ -884,6 +904,7 @@
         },
         "themeSchedule": {
           "type": "object",
+          "x-snapshot": true,
           "title": "Light and dark by time",
           "additionalProperties": false,
           "x-order": ["enabled", "lightAt", "darkAt"],
@@ -1558,7 +1579,7 @@
       "additionalProperties": false,
       "x-order": ["directory", "extensions", "showHidden", "confirmDelete"],
       "properties": {
-        "directory": { "type": "string", "title": "Notes folder", "default": "", "description": "An absolute path (~/ works), e.g. a synced folder or a Markdown vault. Empty keeps notes in axiom's config/state/notes, which is not backed up." },
+        "directory": { "type": "string", "title": "Notes folder", "x-control": "folder", "default": "", "description": "An absolute path (~/ works), e.g. a synced folder or a Markdown vault. Empty keeps notes in axiom's config/state/notes, which is not backed up." },
         "extensions": { "type": "array", "title": "File types", "default": ["md", "txt"], "items": { "type": "string" }, "description": "File extensions the note list shows, comma-separated. New notes are .md." },
         "showHidden": { "type": "boolean", "title": "Show hidden files", "default": false, "description": "List files and folders whose names start with a dot." },
         "confirmDelete": { "type": "boolean", "title": "Confirm before deleting", "default": true, "description": "Deleted notes and folders go to the trash. Without gio (glib2) deleting is permanent, and always asks first." }
@@ -1679,7 +1700,8 @@
 
     "ThemeIntegrations": {
       "type": "object",
-      "x-category": "Look & Feel",
+      "x-category": "Theme integrations",
+      "x-cardPerField": true,
       "x-links": ["Themes"],
       "title": "Theme integrations",
       "description": "Re-theme external apps whenever the shell theme changes. Each writes its own axiom file; turned on, it shows the line that loads that file from the app's config, to copy or to apply (which backs your config up first).",
@@ -2444,7 +2466,7 @@
       "type": "object",
       "required": ["id"],
       "additionalProperties": false,
-      "x-order": ["name", "enabled", "monitor", "openOnHover", "openDelay", "triggerSize", "triggerLength", "mode", "edge", "offset", "gridOffset", "length", "moduleScale", "fineGrid", "detached", "gap", "frame", "padding", "moduleBorders", "pinButton", "backgroundColor", "borderColor", "closeOnLeave", "closeDelay", "closeOnOutsideClick", "id"],
+      "x-order": ["name", "enabled", "monitor", "openOnHover", "openDelay", "triggerSize", "triggerLength", "mode", "edge", "offset", "gridOffset", "length", "popoutAtWidget", "moduleScale", "fineGrid", "detached", "gap", "frame", "padding", "moduleBorders", "pinButton", "backgroundColor", "borderColor", "closeOnLeave", "closeDelay", "closeOnOutsideClick", "id"],
       "properties": {
         "id": { "x-group": "Advanced", "type": "string", "title": "Id", "x-control": "readonly", "description": "What bar buttons, keybinds and IPC calls open this menu by. Set when the menu is made." },
         "name": { "x-group": "General", "type": "string", "title": "Name", "default": "" },
@@ -2495,6 +2517,14 @@
           "x-enumLabels": { "content": "Fit its modules", "edge": "Whole edge" },
           "description": "Whole edge stretches the menu along its edge, sharing the room evenly between its rows (or columns on a top or bottom edge).",
           "x-showIf": { "mode": { "not": "submenu" } }
+        },
+        "popoutAtWidget": {
+          "x-group": "Placement",
+          "type": "boolean",
+          "title": "Popout at its widget",
+          "default": false,
+          "description": "Opened as a bar widget's popout, it opens at that widget, as bar popouts do, rather than where its layout places it. Only when that bar is on the menu's edge and monitor; opened any other way, it keeps its place.",
+          "x-showIf": { "mode": "floating", "length": "content" }
         },
         "moduleScale": {
           "x-group": "Placement",
@@ -3656,14 +3686,7 @@
       "additionalProperties": false,
       "properties": {
         "place": { "$ref": "#/definitions/GridPlace" },
-        "type": { "const": "Screenshot", "description": "Screenshot" },
-        "properties": {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "directory": { "x-scope": "machine", "type": "string", "title": "Save to", "default": "~/Pictures/Screenshots"}
-          }
-        }
+        "type": { "const": "Screenshot", "description": "Screenshot" }
       }
     },
     "GreetingOverlayModule": {
@@ -3941,7 +3964,6 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "directory": { "x-scope": "machine", "type": "string", "title": "Folder", "default": "", "description": "Where recordings are saved and listed from (~ is your home). Empty uses Pictures/Screenshots, as screenshots do." },
             "grow": {"type": "integer", "title": "Grow by up to", "default": 0, "minimum": 0, "maximum": 16, "x-unit": "rows", "description": "Rows it may take while its list needs them: free rows towards the edge first (above it, or below it in a bottom menu), then away from it, pushing the modules there along (not on the lock or login screen). 0 keeps it at its size."}
           }
         }
@@ -4495,11 +4517,13 @@
             "tooltip": { "type": "string", "title": "Tooltip", "default": "", "description": "Shown when hovering the button." },
             "action": { "type": "string", "title": "Click action", "default": "powerMenu", "description": "What a left click does.", "enum": ["powerMenu", "appLauncher", "overlay", "overlayPage", "workspaceOverlay", "edgeMenu", "lock", "command", "none"] },
             "page": { "type": "string", "title": "Overlay page", "default": "", "description": "The page the button opens the overlay on.", "x-options": "overlayPages", "x-showIf": { "action": "overlayPage" } },
-            "menu": { "type": "string", "title": "Edge menu", "default": "", "description": "The edge menu the button opens and closes.", "x-options": "edgeMenus", "x-showIf": { "action": "edgeMenu" } },
+            "menu": { "type": "string", "title": "Edge menu", "default": "", "description": "The edge menu a click opens and closes, as a full menu: hovering another widget's popout doesn't replace it.", "x-options": "edgeMenus", "x-showIf": { "action": "edgeMenu" } },
             "command": { "x-scope": "personal", "type": "string", "title": "Command", "default": "", "description": "Shell command run on left click.", "x-showIf": { "action": "command" } },
             "rightCommand": { "x-scope": "personal", "type": "string", "title": "Right-click command", "default": "", "description": "Shell command run on right click. Empty does nothing." },
             "middleCommand": { "x-scope": "personal", "type": "string", "title": "Middle-click command", "default": "", "description": "Shell command run on middle click. Empty does nothing." },
-            "hoverActivate": { "type": "boolean", "title": "Activate on hover", "default": false, "description": "Run the click action after hovering for the popout open delay. Doesn't close a launcher, overlay, power menu or edge menu that is already open.", "x-showIf": { "action": { "not": "none" } } },
+            "hoverActivate": { "type": "boolean", "title": "Activate on hover", "default": false, "description": "Run the click action after hovering for the popout open delay. Doesn't close a launcher, overlay or power menu that is already open. For an edge menu on hover, use Hover popout.", "x-showIf": { "action": ["powerMenu", "appLauncher", "overlay", "overlayPage", "workspaceOverlay", "lock", "command"] } },
+            "showPopout": { "type": "boolean", "title": "Hover popout", "default": false, "description": "Open an edge menu while the button is hovered, like other widgets' popouts: it closes when the pointer leaves, and a neighbouring popout replaces it. Separate from the click action." },
+            "popoutMenu": { "type": "string", "title": "Popout menu", "default": "", "x-options": "edgeMenus", "description": "The edge menu shown on hover. It can differ from the one a click opens.", "x-showIf": { "showPopout": true } },
             "labelCommand": { "x-scope": "personal", "type": "string", "title": "Label command", "default": "", "description": "Shell command whose first line of output is shown as the label, re-run on an interval." },
             "labelInterval": { "type": "integer", "title": "Label interval", "x-unit": "ms", "default": 5000, "minimum": 500, "maximum": 3600000, "description": "How often the label command runs.", "x-showIf": { "labelCommand": { "not": "" } } },
             "backgroundColor": { "type": "string", "title": "Background", "x-options": "colors", "default": "", "x-emptyLabel": "Auto", "x-autoColor": "accent" },
@@ -4554,7 +4578,7 @@
             "showTemp": { "type": "boolean", "title": "CPU temperature", "default": true, "description": "Hidden on machines without a k10temp / coretemp / zenpower sensor." },
             "showGpu": { "type": "boolean", "title": "GPU usage", "default": false, "description": "AMD (sysfs) or NVIDIA (nvidia-smi). Hidden when no GPU is found." },
             "showDisk": { "type": "boolean", "title": "Disk usage", "default": false },
-            "diskPath": { "x-scope": "machine", "type": "string", "title": "Disk path", "default": "/", "description": "Any path on the filesystem to report.", "x-showIf": { "showDisk": true } },
+            "diskPath": { "x-scope": "machine", "type": "string", "title": "Disk path", "x-control": "folder", "default": "/", "description": "Any path on the filesystem to report.", "x-showIf": { "showDisk": true } },
             "interval": { "type": "integer", "title": "Poll interval", "x-unit": "ms", "default": 2000, "minimum": 1000, "maximum": 60000 },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Open live graphs of the shown metrics when hovered." },
             "popoutMenu": { "type": "string", "title": "Open instead", "default": "", "x-options": "edgeMenus", "x-emptyLabel": "Its own popout", "description": "An edge menu to open in place of the popout.", "x-showIf": { "showPopout": true } },
@@ -4720,7 +4744,7 @@
                 "x-order": ["label", "configDir"],
                 "properties": {
                   "label": { "type": "string", "title": "Label", "default": "", "description": "Shown in the popout; its first letter tells accounts apart on the bar." },
-                  "configDir": { "type": "string", "title": "Config directory", "default": "~/.claude" }
+                  "configDir": { "type": "string", "title": "Config directory", "x-control": "folder", "default": "~/.claude" }
                 }
               }
             },

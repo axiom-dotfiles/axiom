@@ -15,7 +15,6 @@ The settings page's working copy of the config. Edits are applied live (in memor
 - `category` (string): The settings page's selected category and search text
 - `query` (string)
 - `collapsed` (var): Settings cards the user folded, by SchemaLayout group key; saved in state/settings.json so they stay folded across restarts
-- `layoutFolds` (var): `collapsed` as the settings page last laid itself out by (snapshotFolds), so folding a card doesn't reshuffle the page
 - `settingPaths` (readonly var): Every value the settings page shows, as { path, key, schema }, with key the dotted path.
 
 ### Signals
@@ -28,7 +27,6 @@ The settings page's working copy of the config. Edits are applied live (in memor
 - `openSection(key)`: Opens it on the category holding a config section ("Chat")
 - `jumpTo(key)`
 - `isCollapsed(key)`
-- `snapshotFolds()`
 - `setCollapsed(keys, value)`: `keys`: one group key or a list of them
 - `isChanged(path)`
 - `hasChangesUnder(prefix)`: Whether anything under a path prefix (e.g. a section key) has changed

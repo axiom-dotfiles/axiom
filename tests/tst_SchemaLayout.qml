@@ -193,6 +193,55 @@ TestCase {
     compare(groups.map(group => group.intro), ["", "Status", ""]);
   }
 
+  // `x-cardPerField`: the section's description, then a card per direct
+  // field by title (with its description, a switch's row labelled
+  // "Enabled"), then nested objects
+  function test_card_per_field() {
+    const groups = SchemaLayout.groups({
+      "properties": {
+        "S": {
+          "type": "object",
+          "title": "Sec",
+          "description": "About",
+          "x-cardPerField": true,
+          "properties": {
+            "z": {
+              "type": "boolean",
+              "title": "Beta",
+              "description": "B"
+            },
+            "a": {
+              "type": "boolean",
+              "title": "Alpha",
+              "description": "A"
+            },
+            "g": {
+              "type": "string",
+              "title": "Gamma"
+            },
+            "n": {
+              "type": "object",
+              "title": "Nested",
+              "properties": {
+                "c": {
+                  "type": "boolean",
+                  "title": "C"
+                }
+              }
+            }
+          }
+        }
+      }
+    }, "S");
+    compare(groups.map(group => group.title), ["Sec", "Alpha", "Beta", "Gamma", "Nested"]);
+    compare(groups.map(group => group.description), ["About", "A", "B", "", ""]);
+    compare(groups.map(group => group.key), ["S", "S:Alpha", "S:Beta", "S:Gamma", "S.n"]);
+    compare(groups[1].rows[0].label, "Enabled");
+    compare(groups[1].rows[0].title, "Alpha", "still found by its name");
+    compare(groups[3].rows[0].label, undefined, "only a switch is relabelled");
+    compare(groups[4].rows[0].label, undefined);
+  }
+
   // A hand-built card goes first; with `x-cardFolds` it folds, and the
   // real cards that fold take their key as `foldKey` (EntryListCards do)
   function test_card_folds() {

@@ -3,7 +3,7 @@
 
 > **File:** `services/WallpaperManager.qml` · **Docs:** see [docs/dev](../../README.md)
 
-What changes the look on its own (ThemeManager sets it): - Appearance.wallpaperMode "rotate": a new wallpaper from the folder every `rotationInterval` minutes (random or in order, one for all monitors or one each). The time of the last change survives QML reloads. - "variant": the light or dark wallpaper, whichever the active theme's variant is, on every monitor. - Appearance.themeScheduled: the theme's light variant from `lightAt`, its dark one from `darkAt` (DailySchedule; a switch by hand lasts until the next of those). A generated theme follows a wallpaper changed this way (the primary monitor's); a pick by hand always generates, as the picker does. Created from shell.qml's `_services`. qs -c axiom ipc call wallpaper next
+What changes the look on its own. ThemeManager shows it (activeTheme, wallpaperFor) without writing the config, which keeps only what the user picked: - Appearance.wallpaperMode "rotate": a new wallpaper from the folder every `rotationInterval` minutes (random or in order, one for all monitors or one each). A pick by hand shows until the next one. The time of the last change survives restarts. - "variant": the light or dark wallpaper, whichever the active theme's variant is, on every monitor (ThemeManager derives it). - Appearance.themeScheduled: the theme's light variant from `lightAt`, its dark one from `darkAt` (DailySchedule; a switch by hand lasts until the next of those). A generated theme follows a wallpaper changed this way (the primary monitor's); a pick by hand always generates, as the picker does. Created from shell.qml's `_services`. qs -c axiom ipc call wallpaper next
 
 ### Properties
 
@@ -14,9 +14,9 @@ What changes the look on its own (ThemeManager sets it): - Appearance.wallpaperM
 
 ### Functions
 
-- `pick(url, monitor, variant)`: A pick by hand from a wallpaper picker: `monitor`'s wallpaper, or in "variant" mode the variant's
-- `setVariantWallpaper(variant, url)`: The light or dark wallpaper ("dark" | "light"); shown at once when it's the current variant's
-- `next()`: The next wallpaper of the rotation now, in whichever mode, and the timer starts over
+- `pick(url, monitor, variant)`: A pick by hand (a wallpaper picker, the launcher): `monitor`'s wallpaper (the focused one's without one), or in "variant" mode the variant's.
+- `setVariantWallpaper(variant, url)`: The light or dark wallpaper ("dark" | "light"); ThemeManager shows it when it's the current variant's, and the themes are generated from it
+- `next()`: The next wallpaper of the folder now, and the timer starts over: the rotation's in rotate mode, a new fixed one (asked for by hand) in fixed mode.
 - `checkFolder()`
 - `createFolder()`: Creates the folder, opens it in the file manager and checks it again
 - `openFolder()`

@@ -69,8 +69,6 @@ BarIconWidget {
     const surface = _surfaceFor[properties.action];
     if (surface && ShellManager.surfaceOpen(surface))
       return;
-    if (properties.action === "edgeMenu" && EdgeMenuManager.isOpen(properties.menu))
-      return;
     runAction();
   }
 
@@ -103,10 +101,11 @@ BarIconWidget {
   }
 
   // "Activate on hover": the click action once per hover, after the
-  // popout open delay
+  // popout open delay. Not an edge menu's (as the schema shows it): that's
+  // the hover popout (showPopout), which closes on leave and ranks as one
   Timer {
     interval: PopoutsConfig.openDelay
-    running: root.hovered && root.properties.hoverActivate && root.properties.action !== "none"
+    running: root.hovered && root.properties.hoverActivate && root.properties.action !== "none" && root.properties.action !== "edgeMenu"
     onTriggered: root.hoverAction()
   }
 

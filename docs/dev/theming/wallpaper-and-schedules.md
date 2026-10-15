@@ -1,22 +1,31 @@
 # Wallpaper and schedules
 
-> **Files:** `services/WallpaperManager.qml`, `services/ThemeManager.qml`, `services/DailySchedule.qml`, `components/methods/Schedules.qml`, `shell/Wallpaper.qml`, `components/surfaces/wallpaper/WallpaperWindow.qml`, `scripts/setWallpaper.sh`, `components/content/WallpaperPicker.qml`, `components/content/ThemePicker.qml`, `components/forms/SettingRows.qml`
+> **Files:** `services/WallpaperManager.qml`, `services/ThemeManager.qml`, `services/DailySchedule.qml`, `components/methods/Schedules.qml`, `components/methods/ShownLook.qml`, `shell/Wallpaper.qml`, `components/surfaces/wallpaper/WallpaperWindow.qml`, `scripts/setWallpaper.sh`, `components/content/WallpaperPicker.qml`, `components/content/ThemePicker.qml`, `components/forms/SettingRows.qml`
 > **Config:** `Appearance.wallpaper`, `Appearance.wallpapers`, `Appearance.wallpaperBackend`, `Appearance.wallpaperMode`, `Appearance.wallpaperRotation.*`, `Appearance.variantWallpapers.*`, `Appearance.themeSchedule.*`
 > **Related:** [Themes](themes.md), [Night light](night-light.md)
 
 How the wallpaper is drawn, and everything that changes the look on its own: wallpaper rotation, light/dark wallpapers, and the light/dark theme schedule.
 
-### Wallpaper backend (ThemeManager `setWallpaper`)
+### Chosen vs shown
+- The config holds only what the user picked: `Appearance.theme` and the fixed wallpapers (`Appearance.wallpaper`/`wallpapers`, read as `Appearance.fixedWallpaper`/`fixedWallpapers`).
+- The setup itself (mode, rotation, light/dark wallpapers, schedule, folder, fixed wallpapers) is config, and saved snapshots carry it (`x-snapshot`), so changing it marks the active snapshot modified and restoring one brings it back.
+- What changes on its own never writes the config, so a snapshot's unsaved dot and `config.json` move only on explicit changes. ThemeManager shows it at runtime through `methods/ShownLook` (tests: `tst_ShownLook`):
+  - `ThemeManager.activeTheme`: the theme showing (the schedule's variant, else `Appearance.theme`);
+  - `ThemeManager.shownWallpapers` / `wallpaperFor(monitor)` / `wallpaper` (the primary's): what every surface draws (wallpaper window, desktop, lock screen, overview, picker, hyprlock, the greeter bundle).
+- The runtime part is in `config/state/look.json`: the schedule's variant (`theme: { for, name }`, dropped when a theme is picked by hand), the rotation's wallpapers (`rotated`), `lastRotated`, and `applied` (what the backend was last told).
+
+### Wallpaper backend (ThemeManager `_applyShown`)
+- Any change of what's shown (a pick, a rotation, a light/dark switch, a mode switch, a restored config, a monitor connecting) runs `_applyShown`, which tells the backend about the monitors that changed and brings a generated theme in line (`syncGeneratedTheme`).
 - `Appearance.wallpaperBackend`:
-  - `quickshell` (the default): drawn by `shell/Wallpaper` straight from config, one Background-layer `surfaces/wallpaper/WallpaperWindow` per screen, crossfading.
+  - `quickshell` (the default): drawn by `shell/Wallpaper` from `wallpaperFor`, one Background-layer `surfaces/wallpaper/WallpaperWindow` per screen, crossfading.
   - `awww`: runs `setWallpaper.sh`. Hyprland's `wallpaperDaemon` starts it only then.
-- Batch writes go through `ThemeManager.setWallpapers(map)` → `ConfigManager.setWallpapers` (one save).
+- Fixed wallpapers are written through `ThemeManager.setWallpaper` / `setWallpapers(map)` → `ConfigManager.setWallpaper(s)` (one save); the rotation's through `ThemeManager.showRotated(map)` (state only).
 
 ### WallpaperManager: wallpaper modes
 - `Appearance.wallpaperMode`:
-  - `fixed`;
-  - `rotate`: `wallpaperRotation` with `interval` minutes, `random`/`sequential` order (via `methods/Schedules.nextWallpaper`) and `sameOnAll`. The last change time is a `PersistentProperties`, checked every 30 s. Triggers: IPC `wallpaper next`, bind `nextWallpaper`, launcher `/nextwallpaper`.
-  - `variant`: `variantWallpapers.dark`/`light` on every monitor, following `Appearance.darkMode`.
+  - `fixed`: picks write the config. `next()` here picks a new fixed one (asked for by hand).
+  - `rotate`: `wallpaperRotation` with `interval` minutes, `random`/`sequential` order (via `methods/Schedules.nextWallpaper`) and `sameOnAll`. `ThemeManager.lastRotated` (state file, so it survives restarts) is checked every 30 s. Triggers: IPC `wallpaper next`, bind `nextWallpaper`, launcher `/nextwallpaper`. A pick by hand shows until the next rotation; a monitor not rotated yet shows its fixed wallpaper.
+  - `variant`: `variantWallpapers.dark`/`light` on every monitor, following `Appearance.darkMode`, derived by `ShownLook` (falling back to the fixed ones when that variant has none). `next()` does nothing here.
 - Regenerating the theme:
   - automatic changes regenerate only while a generated theme is active;
   - picks by hand (`pick(url, monitor, variant)`, from `WallpaperPicker`) always do.
@@ -24,6 +33,7 @@ How the wallpaper is drawn, and everything that changes the look on its own: wal
 
 ### Theme schedule
 - `Appearance.themeSchedule`: light from `lightAt`, dark from `darkAt`.
+- An edge calls `ThemeManager.followSchedule(light)`: the variant is shown at runtime, and `Appearance.theme` keeps the theme picked. A pick or a light/dark switch by hand (`applyTheme`) writes the config and drops the schedule's variant until the next edge.
 - Runs through a `services/DailySchedule`:
   - it fires `due(inWindow)` only on edges: the window opens or closes, the schedule is turned on, or the times are moved across now;
   - so a switch by hand lasts until the next edge;

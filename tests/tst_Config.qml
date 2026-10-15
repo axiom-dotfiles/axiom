@@ -1149,6 +1149,87 @@ TestCase {
     compare(errors(migrated.config), []);
   }
 
+  function test_v54_screenshot_folders_are_one_setting() {
+    const module = (type, directory) => ({
+          "type": type,
+          "properties": {
+            "directory": directory
+          }
+        });
+    const migrated = load({
+      "version": 53,
+      "Overlay": {
+        "views": [
+          {
+            "type": "Custom",
+            "modules": [module("Screenshot", "~/Pictures/Screenshots"), module("ScreenRecord", "")]
+          }
+        ]
+      },
+      "EdgeMenus": [
+        {
+          "id": "m",
+          "modules": [module("Screenshot", "~/Shots"), module("ScreenRecord", "~/Videos"), module("Screenshot", "~/Other")]
+        }
+      ]
+    });
+    const config = migrated.config;
+    compare(config.Screenshots.folder, "~/Shots", "the first folder set, past the old default");
+    compare(config.Screenshots.recordingFolder, "~/Videos");
+    compare(config.Overlay.views[0].modules[0].properties, undefined, "the Screenshot card has no options left");
+    compare(config.EdgeMenus[0].modules[1].properties.directory, undefined);
+    compare(migrated.removed, []);
+    compare(errors(config), []);
+
+    const defaults = load({
+      "version": 53,
+      "EdgeMenus": [
+        {
+          "id": "m",
+          "modules": [module("Screenshot", "~/Pictures/Screenshots")]
+        }
+      ]
+    }).config;
+    compare(defaults.Screenshots.folder, "", "the old default is the new empty one");
+    compare(defaults.Screenshots.recordingFolder, "");
+  }
+
+  function test_v55_button_hover_menu_is_its_popout() {
+    const button = (action, hoverActivate) => ({
+          "type": "Button",
+          "properties": {
+            "action": action,
+            "menu": "notes",
+            "command": "true",
+            "hoverActivate": hoverActivate
+          }
+        });
+    const migrated = load({
+      "version": 54,
+      "Bars": [
+        {
+          "id": "main",
+          "widgets": {
+            "left": [button("edgeMenu", true), button("edgeMenu", false)],
+            "right": [button("command", true)]
+          }
+        }
+      ]
+    });
+    const widgets = migrated.config.Bars[0].widgets;
+    const hovered = widgets.left[0].properties;
+    compare(hovered.showPopout, true);
+    compare(hovered.popoutMenu, "notes");
+    compare(hovered.hoverActivate, false);
+    compare(hovered.action, "edgeMenu", "a click still opens the menu");
+    compare(hovered.menu, "notes");
+    compare(widgets.left[1].properties.showPopout, false, "clicked only: no popout");
+    compare(widgets.right[0].properties.hoverActivate, true, "other actions keep running on hover");
+    compare(widgets.right[0].properties.showPopout, false);
+    compare(migrated.removed, []);
+    compare(errors(migrated.config), []);
+  }
+
   function test_v52_desktop_modules_start_off() {
     const old = load({
       "version": 51

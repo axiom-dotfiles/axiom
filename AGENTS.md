@@ -65,7 +65,7 @@ All run in CI; `scripts/dev/verify.sh --all` (= `scripts/check_all.sh`) runs eve
 - `scripts/check_structure.py` doesn't check `x-card`/`x-intro` files: check those exist yourself. Run it after adding, renaming or moving QML files.
 - `scripts/run_tests.sh [Name…]` (`tests/tst_<Name>.qml`; schema defaults and `ConfigMigration` are `tst_Config`): add a case when changing a methods helper or a migration step.
 - `scripts/check_qmllint.py` fails on warnings not in `scripts/qmllint-baseline.json`. Fix new warnings; `--update-baseline` only for Quickshell type-info gaps, or when it reports baselined warnings gone.
-- `scripts/check_i18n.py --fill` after changing user-visible text or a schema title/description.
+- `scripts/check_i18n.py --fill` after changing user-visible text or a schema title/description, then translate the empty entries it added; `--prune` drops entries no longer used. It writes the files atomically in their one format (2-space JSON); edit them some other way and it reports `format` (`--format` fixes it).
 - `scripts/check_docs.py` fails on a hand-written doc citing a path or `Singleton.member` that's gone: fix the doc with the code.
 - `docs/dev/config/` and `docs/dev/generated/` come from `scripts/gen_docs.py` (verify.sh and the pre-commit hook rebuild them; CI fails when stale; verify.sh warns when the hook isn't set up: `git config core.hooksPath .githooks`). Never edit them by hand.
 - `scripts/check_doc_drift.py` (warnings only) lists docs whose `Files:` changed in 5+ commits since the doc did: they may describe old code. Reread one against the code before relying on it, and touch it (fix or confirm) to reset the count.
@@ -133,6 +133,7 @@ Dependencies point one way:
   - `x-hosts` on overlay modules: the lock screen and the greeter are opt-in hosts (see UI conventions).
   - `oneOf`s are discriminated by `type` (bar widgets, overlay views and modules).
 - An empty monitor means the primary monitor everywhere (`General.screensNamed`), except in `General.primaryMonitor` itself.
+- A path setting may hold `~` (typed, or handed back by a Browse button as `~/…`): it's expanded (`Paths.expandHome`) before it reaches a process or a file read, in its reader or, for widget/module options, the service that uses it. Processes run without a shell, so nothing else expands it.
 - **Theme**: `Theme.base00`–`base0F` plus semantic names; `Theme.resolveColor(name)` for names from config. `config/json/theme-defaults.json` fills what a theme omits. Theme integrations write only their own `axiom.*` file; only the hookup's Apply (on the user's click) edits a user's config (`scripts/AGENTS.md`).
 - **Animation**: every `duration:` is `Appearance.animFast` / `animNormal` / `animSlow`, never a literal, eased with `Appearance.easing` (a property's Behavior is `Glide on x {}` / `ColorGlide`); looping animations gate `running` on `Appearance.animations`. Only behaviour timings (cursor blink, timeouts, polling) are literals. Bar geometry animates what's drawn, never what's measured (`docs/dev/bar/composition.md`); content changing in place cross-fades through `CrossFade`.
 

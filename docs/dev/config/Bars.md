@@ -32,7 +32,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`Bars[].location`** · string = "Top" · enum Top|Bottom|Left|Right
   - Location
   - x-group="General"
-  - read: `Bar.savedBars` (whole), `barConfig.location` · in: `components/bar/BarContainer.qml`, `components/bar/BarPanel.qml`, `components/hosts/popout/BarPopouts.qml`, `components/surfaces/onboarding/pages/LookPage.qml`, `config/Bar.qml`, `services/ShellManager.qml`
+  - read: `Bar.savedBars` (whole), `barConfig.location` · in: `components/bar/BarContainer.qml`, `components/bar/BarPanel.qml`, `components/hosts/popout/BarPopouts.qml`, `components/hosts/popout/PopoutAnchor.qml`, `components/surfaces/onboarding/pages/LookPage.qml`, `config/Bar.qml`, `services/ShellManager.qml`
 - **`Bars[].widgetSize`** · integer = 26 · 10–150 · px
   - Widget size: How thick the widgets are across the bar. The bar grows to fit them, their padding, and any border it shares an edge with.
   - x-group="Size", x-control="stepper"

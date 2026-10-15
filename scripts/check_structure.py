@@ -16,6 +16,9 @@ running anything:
   - no file instantiates a type that two of its visible directories define
   - every `SomethingManager.` names a service that exists, and nothing
     references a near-miss of a project singleton (a typo)
+  - no reader falls back with `??` on its section (`_c.key ?? x`): every
+    default is filled at load, so the fallback is dead and hides a missing
+    schema default
 and warns about files in the loaded directories that nothing registers or
 uses.
 
@@ -216,6 +219,15 @@ def main():
             close = difflib.get_close_matches(name, singletons, n=1, cutoff=0.85)
             if close:
                 errors.append(f"{path}: {name} — did you mean {close[0]}?")
+
+    # Readers: the schema fills every default, so `_c.key ?? x` is dead
+    for path, text in sources.items():
+        if not path.startswith("config/"):
+            continue
+        for n, line in enumerate(re.sub(r"//[^\n]*", "", text).splitlines(), 1):
+            m = re.search(r"\b_c(?:\.\w+)+\s*\?\?", line)
+            if m:
+                errors.append(f"{path}:{n}: `{m.group(0)}`: readers use no ?? fallback (the schema default is filled at load)")
 
     # A type instantiated from two directories a file can see would depend
     # on import order (bar widgets and content share some names by design)

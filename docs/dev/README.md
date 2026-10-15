@@ -38,6 +38,7 @@ Dependencies point one way, methods → data owners → readers → services →
 - [editors-pattern](core/editors-pattern.md): the shape every editor follows (draft, selection, page, unsaved reminders, drag, inspector).
 - [shell-manager-targeting](core/shell-manager-targeting.md): cross-cutting UI signals, monitor modes, which screen answers a shortcut.
 - [secrets](core/secrets.md): API keys and passwords (`SecretsManager`).
+- [file-picker](core/file-picker.md): the desktop's file/folder picker (`FilePickerManager`, `pick_path.py`), folder settings' Browse button.
 - [i18n](core/i18n.md): translation mechanics, language files, `check_i18n.py`.
 - [shared-ui-pieces](core/shared-ui-pieces.md): index of reusable widgets and helpers. Check it before drawing anything.
 

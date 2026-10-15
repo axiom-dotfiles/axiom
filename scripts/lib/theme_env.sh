@@ -104,6 +104,19 @@ load_theme() {
     done <<< "$entries"
 }
 
+# snake_upper KEY: backgroundAlt -> BACKGROUND_ALT, in $REPLY (no subshell:
+# every integration converts each semantic key)
+snake_upper() {
+    local key="$1" i c
+    REPLY=""
+    for ((i = 0; i < ${#key}; i++)); do
+        c="${key:i:1}"
+        [[ "$c" == [[:upper:]] ]] && REPLY+="_"
+        REPLY+="$c"
+    done
+    REPLY="${REPLY^^}"
+}
+
 # theme_color KEY [FALLBACK]
 theme_color() {
     local value="${THEME_SEMANTIC[$1]:-}"
@@ -156,19 +169,22 @@ def readable($bg; $min):
             .[0][0] += $step | .[1] = (.[0] | fit | hexof | rgb)) | .[1] | hexof end end;
 '
 
-# floor_colors BG MIN VAR...: re-exports each variable holding a color with
-# at least MIN contrast against BG (one jq run for all of them)
+# floor_colors BG MIN VAR[:MIN]...: re-exports each variable holding a color
+# with at least MIN (or its own MIN) contrast against BG (one jq run for all
+# of them)
 floor_colors() {
-    local bg="$1" min="$2" name value out
+    local bg="$1" min="$2" item name value out
     shift 2
     [ $# -gt 0 ] || return 0
-    local pairs=()
-    for name in "$@"; do
-        pairs+=("$name=${!name:-}")
+    local entries=()
+    for item in "$@"; do
+        name="${item%%:*}"
+        [[ "$item" == *:* ]] && value="${item#*:}" || value="$min"
+        entries+=("$name" "$value" "${!name:-}")
     done
-    out=$(jq -rn --arg bg "$bg" --argjson min "$min" "$READABLE_JQ"'
-        $ARGS.positional[] | capture("^(?<k>[^=]*)=(?<v>.*)$")
-        | "\(.k)\t\(.v | readable($bg; $min))"' --args "${pairs[@]}")
+    out=$(jq -rn --arg bg "$bg" "$READABLE_JQ"'
+        $ARGS.positional | range(0; length; 3) as $i | .[$i:$i + 3]
+        | (.[1] | tonumber) as $m | "\(.[0])\t\(.[2] | readable($bg; $m))"' --args "${entries[@]}")
     while IFS=$'\t' read -r name value; do
         export "$name=$value"
     done <<< "$out"
@@ -180,10 +196,10 @@ floor_colors() {
 # terminal's "black" is dark whatever the background), and the palette's
 # colors are made readable against the background.
 export_theme_colors() {
-    local key name i base
+    local key i base
     for key in "${!THEME_SEMANTIC[@]}"; do
-        name=$(sed 's/\([A-Z]\)/_\1/g' <<< "$key" | tr '[:lower:]' '[:upper:]')
-        export "$name=${THEME_SEMANTIC[$key]}"
+        snake_upper "$key"
+        export "$REPLY=${THEME_SEMANTIC[$key]}"
     done
     local map=(00 08 0B 0A 0D 0E 0C 05 03 09 0B 0A 0D 0E 0C 07)
     if [[ "${THEME_VARIANT:-}" == "light" ]]; then
@@ -194,8 +210,7 @@ export_theme_colors() {
         export "ANSI_$i=${!base:-}"
     done
     local bg="${BACKGROUND:-${BASE00:-}}"
-    floor_colors "$bg" "$TERM_MIN_CONTRAST" ANSI_{1..6} ANSI_{9..14}
-    floor_colors "$bg" "$TERM_MIN_CONTRAST_DIM" ANSI_8
+    floor_colors "$bg" "$TERM_MIN_CONTRAST" ANSI_{1..6} ANSI_{9..14} "ANSI_8:$TERM_MIN_CONTRAST_DIM"
 }
 
 # The semantic colors terminal apps draw text in, made readable against the
@@ -207,12 +222,18 @@ readable_text_colors() {
 }
 
 # Re-exports each named variable through a formatter: map_vars hex FOO BAR
+# (one subshell for all of them, so the formatter prints exactly one line)
 map_vars() {
-    local fn="$1" var
+    local fn="$1" var name value out
     shift
-    for var in "$@"; do
-        export "$var=$("$fn" "${!var:-}")"
-    done
+    [ $# -gt 0 ] || return 0
+    out=$(for var in "$@"; do
+        printf '%s\t' "$var"
+        "$fn" "${!var:-}"
+    done)
+    while IFS=$'\t' read -r name value; do
+        export "$name=$value"
+    done <<< "$out"
 }
 
 # The variables export_theme_colors sets (plus BASE00..BASE0F), for map_vars
@@ -221,7 +242,8 @@ theme_color_vars() {
     compgen -v | grep -E '^(BASE0[0-9A-F]|ANSI_[0-9]+)$'
     local key
     for key in "${!THEME_SEMANTIC[@]}"; do
-        sed 's/\([A-Z]\)/_\1/g' <<< "$key" | tr '[:lower:]' '[:upper:]'
+        snake_upper "$key"
+        echo "$REPLY"
     done
 }
 

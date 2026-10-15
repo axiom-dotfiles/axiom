@@ -3,7 +3,7 @@
 
 > **File:** `services/ThemeManager.qml` · **Docs:** see [docs/dev](../../README.md)
 
-ThemeManager owns the active theme's data (loaded from its file, watched, with defaults for what it leaves out), the theme lists, theme generation from a wallpaper, the wallpaper itself, and re-theming integrated tools. The choice of theme is config (Appearance.theme), persisted through ConfigManager.setTheme. In the greeter (Paths.greeter) it only reads: the active theme is the theme.json beside the greeter's config (the bundle's, what the user's theme was when it was exported, or the install's snapshot when the config came from there), and nothing is generated, linked or run.
+ThemeManager owns the active theme's data (loaded from its file, watched, with defaults for what it leaves out), the theme lists, theme generation from a wallpaper, the wallpaper itself, and re-theming integrated tools. The choice of theme and wallpapers is config (Appearance.theme, fixedWallpaper(s)), persisted through ConfigManager. What changes on its own (the light/dark schedule's variant, the rotation's wallpapers, the light/dark wallpapers) is shown without touching the config: activeTheme and wallpaperFor() are what's showing (ShownLook), and the runtime part is kept in state/look.json. In the greeter (Paths.greeter) it only reads: the active theme is the theme.json beside the greeter's config (the bundle's, what the user's theme was when it was exported, or the install's snapshot when the config came from there), and nothing is generated, linked or run.
 
 ### Properties
 
@@ -12,7 +12,11 @@ ThemeManager owns the active theme's data (loaded from its file, watched, with d
 - `currentFamily` (readonly var): The family Appearance.theme belongs to, or null
 - `isGenerating` (readonly bool)
 - `currentTheme` (readonly var): The active theme's JSON ({ name, variant, paired, colors, semantic }), read through config/Theme
+- `activeTheme` (readonly string): The theme showing: Appearance.theme, or the variant the light/dark schedule last switched it to.
+- `shownWallpapers` (readonly var): The wallpapers showing ({ wallpaper, wallpapers }): the fixed ones, the rotation's or the light/dark ones, by Appearance.wallpaperMode
+- `wallpaper` (readonly string): The primary monitor's (the lockscreen's and hyprlock's)
 - `defaults` (readonly var): config/json/theme-defaults.json: fallback palette and semantic maps, shared with scripts/generate_theme.py
+- `lastRotated` (readonly real): When the rotation last moved on (ms since the epoch; 0 for never)
 - `integrations` (readonly var): The ThemeIntegrations switches, in schema order: one per scripts/theme_<key>.sh
 
 ### Signals
@@ -21,17 +25,21 @@ ThemeManager owns the active theme's data (loaded from its file, watched, with d
 
 ### Functions
 
-- `applyTheme(themeName)`: `themeName` as Appearance.theme names it (generated ones "generated/…")
+- `wallpaperFor(monitor)`
+- `applyTheme(themeName)`: `themeName` as Appearance.theme names it (generated ones "generated/…").
 - `applyFamily(family)`: A family's variant for the current light/dark mode, or the one it has
 - `setWallpaperAndGenerate(wallpaperUrl, monitor)`: Sets the wallpaper, then generates themes from it
-- `setWallpaper(wallpaperUrl, monitor)`: Sets `monitor`'s wallpaper (the focused monitor's without one).
-- `setWallpapers(wallpapers)`: Sets several monitors' wallpapers at once ({ monitor: url }), with one save; true if any changed
-- `applyWallpapers()`: Shows the configured wallpaper on every screen without saving anything, for when the config changed under them (a restored snapshot), and brings a generated theme in line with it.
+- `monitorFor(monitor)`: `monitor`, or the focused monitor without one
+- `setWallpaper(wallpaperUrl, monitor)`: Sets `monitor`'s fixed wallpaper in the config (the focused monitor's without one).
+- `setWallpapers(wallpapers)`: Sets several monitors' fixed wallpapers at once ({ monitor: url }), with one save; true if any changed
+- `showRotated(wallpapers)`: Shows wallpapers ({ monitor: url }) as the rotation's, until the next one, without touching the config; true if any changed
+- `setLastRotated(time)`
 - `syncGeneratedTheme()`: Generated themes are named by style, not wallpaper, so each run overwrites the last and a config only records the theme's name.
 - `generateThemesFromWallpaper(wallpaperUrl)`
+- `followSchedule(light)`: Shows the current theme's light (or dark) variant for the light/dark schedule, leaving the chosen one in the config
 - `setLightMode(light)`: Switches to the current theme's light (or dark) variant, if it has one
 - `toggleDarkMode()`
-- `themeIntegrations(themeName = Appearance.theme, keys = [])`: Runs the enabled integrations (scripts/theme_<key>.sh, one per ThemeIntegrations switch) for a theme; `keys` limits it to those (none: all of them)
+- `themeIntegrations(themeName = root.activeTheme, keys = [])`: Runs the enabled integrations (scripts/theme_<key>.sh, one per ThemeIntegrations switch) for a theme; `keys` limits it to those (none: all of them)
 - `generateHyprlockConfig(then)`: The themed hyprlock config (Lockscreen.mode "hyprlock"): the theme's colors plus the font, wallpaper and a translated greeting.
 - `integrationTitle(key)`: An integration's name (its schema title, untranslated)
 - `integrationCommands(key)`

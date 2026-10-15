@@ -16,7 +16,7 @@
   - `dock:<id>:<screen>`
   - `<parent>/submenu`
 - **Other fields:** `kind`, `screen`, `edge`, `pinned`, `resident`, `parentKey`.
-- **When it registers:** while the popout `wants` to show and has a footprint.
+- **When it registers:** while the popout `wants` to show and has a footprint. An edge popout waits until Hyprland has reported where its window is (`LayerOrigin.settled`): the estimate before that can be far off (a floating menu's was ~1700 px out), and a claim made from it missed what it covered.
 - **Footprint:** the rects it covers, in screen px, with fillets and backfill included (`methods/SurfaceOutline.footprint`). It is offset by where its window is:
   - `LayerOrigin.placed`: Hyprland's report, or until that arrives, an estimate on its edge.
   - A bar popout uses its bar's origin (`BarPanel.screenPlaced`).
@@ -31,7 +31,7 @@ The rules are pure: `methods/PopoutGeometry`, tested by `tests/tst_PopoutGeometr
 5. `menu`
 6. `launcher`
 
-A submenu ranks as its parent.
+A submenu ranks as its parent. A floating menu opened as a bar widget's popout (by its `PopoutAnchor`, on hover; a `Button`'s too, through its `popoutMenu`) ranks `bar`: a neighbour's popout replaces it, as bar popouts replace each other. Opened by a click (a `Button`'s click action), a keybind or its edge it ranks `menu`.
 
 **Engaged.** An `EdgePopout` is engaged in these cases:
 - **Opening:** from the moment it starts opening.
@@ -53,7 +53,7 @@ While engaged it ranks as its kind, so it opens over a dock. Once let go it drop
   - **Unpinned while away:** it closes.
 - **Showing only once granted:** a host shows only once granted (`PopoutClaim.held`: granted, or closing after it was). The pill it stands on therefore draws back only after its box has slid away.
 - **Same-frame handover:** the evicted popouts start closing in the same frame the new one starts opening.
-- **Footprint changes:** if a claim's footprint changes while it shows (a resize, a switch in place), it re-resolves and closes anything below it that it grew over.
+- **Footprint changes:** if a claim's footprint changes while it shows (a resize, a switch in place, its window's real place arriving), it re-resolves as a claim does: it closes anything below it that it now covers, and gives way itself (refused, or yielded if resident) to anything above it. A popout never stays open over a higher one.
 
 ### An open popout never moves
 - A bar popout keeps the anchor rect it opened at; a widget moving or growing meanwhile doesn't drag it.

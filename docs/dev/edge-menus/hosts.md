@@ -49,7 +49,9 @@ How an edge menu is put on screen: the shared body and sync, the lattice its mod
   - not docks, which it reaches past.
 - So its edge coordinates start at `alongOrigin` (what the perpendicular edge at its start reserves), and its ends keep `startPad` / `endPad` from the screen's.
 - It places its box with `position: 0` and a `positionOffset` from the modules' start, computed from the box's natural length (the end joins depend on its position).
+- With `popoutAtWidget` (and `length: content`; a whole-edge menu keeps its place), opened as a widget's popout (claim kind `bar`) from a bar on its edge and screen, it centres the box on that widget instead (`PopoutAnchor.screenRect`, taken as it opens), as a bar popout does. Its hover strip stays at its layout place.
 - Across its edge it sits past `reservedOn(edge)`.
+- Its `PopoutClaim` ranks as it was opened (`EdgeMenuManager.claimKinds`, passed to `open`): `menu`, except opened on hover as a bar widget's popout (`PopoutAnchor.menu`, a `Button`'s `popoutMenu` included), which ranks `bar`, so a neighbouring widget's popout replaces it ([Registry › Ranks](../popouts/registry.md#ranks)).
 
 ### `integrated`: `IntegratedEdgeMenu`
 - A `PopoutWrapperBase` with a Top-layer `axiom-edge-menu` window along the whole edge.

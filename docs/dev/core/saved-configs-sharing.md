@@ -1,10 +1,10 @@
 # Saved configs, examples, import and export
 
-> **Files:** `services/SavedConfigsManager.qml`, `components/methods/ConfigExamples.qml`, `components/views/settings/SavedConfigsSection.qml`, `services/ConfigManager.qml`, `scripts/pick_file.py`, `examples/*.json`
+> **Files:** `services/SavedConfigsManager.qml`, `components/methods/ConfigExamples.qml`, `components/views/settings/SavedConfigsSection.qml`, `services/ConfigManager.qml`, `services/FilePickerManager.qml`, `examples/*.json`
 > **Config:** whole config, filtered by `x-scope`; snapshots in `config/user/saved/`; `config/state/savedconfigs.json`
 > **Related:** [Schema annotations](schema-annotations.md), [Config manager](config-manager.md), [Launcher](../features/launcher.md) (`/config` save/restore), [Shell manager](shell-manager-targeting.md)
 
-Snapshots of the config, the shipped example setups, and sharing a config through export/import. All of them carry only what `x-scope` says, and never change `x-takeover` settings. Tests: `tst_ConfigExamples`.
+Snapshots of the config, the shipped example setups, and sharing a config through export/import. All of them carry only what `x-scope` says (snapshots also the `x-snapshot` wallpaper setup), so loading one never changes another machine setting, and never an `x-takeover` one. Tests: `tst_ConfigExamples`.
 
 ### Where it shows
 - The Maintenance category's page `SavedConfigsSection` (its `x-categories` `page`).
@@ -32,16 +32,25 @@ Walks a value along the schema.
   - `takeoverPaths(schema)` is kept as `ConfigManager.takeoverPaths`: `Hyprland.mode`, `Lockscreen.mode`, `Greeter.enabled`, `Idle.enabled`, `Polkit.enabled`.
   - `ConfigManager.restoreConfig` applies it to everything it loads: a snapshot, the defaults, an example, an import.
   - Those settings take something over (hyprland.lua, the session's locker, hypridle, the polkit agent, greetd), so only their own cards switch them, doing the takeover or giving it back.
-- `equalApartFrom`: compares configs while leaving the takeover settings out, without copying either.
+- `snapshot(config, schema)`: what a saved snapshot holds: `pick(…, true)` plus the `x-snapshot` settings (`snapshotPaths`): the wallpapers, wallpaper folder and mode, rotation, light/dark wallpapers and the theme schedule. These are machine settings, but a snapshot restores on the PC it was saved on.
+- `snapshotFiles(config, schema)` and `withSnapshot(config, saved, schema, existing)`: restore the `x-snapshot` settings; a `file://` URL comes back only while its file exists, and a wallpaper is never blanked (otherwise the current one stays).
 
 ### Loading an example or import
 - `applyExample(name)` and `confirmImport(personal)`:
   1. Load the file through `ConfigManager.normalizeConfig`, so any version migrates.
   2. Save the running config as `before-<name>`.
   3. Once that is written, restore `ConfigExamples.apply`.
-- `browseImport()` runs `scripts/pick_file.py`: xdg-desktop-portal's FileChooser through python-gobject, else zenity/kdialog.
-  - The overlay is stepped aside meanwhile (`ShellManager.beginStepAside`): the picker is a window, under the Overlay layer.
+- `browseImport()` opens the desktop's file picker for a JSON file ([File picker](file-picker.md)).
   - The chosen file becomes `importing`, with title and description from its `_example` header, for the page's confirm row. The row's switch for personal parts starts off.
+
+### Saving and restoring a snapshot
+- `save(name)` writes `config/user/saved/<name>.json` in the export format (`_example` header + `version` + `sparse(snapshot(config))`). A snapshot can be shared, or imported elsewhere, as it is.
+- `restore(name)`:
+  1. Loads the file through `normalizeConfig`. Older whole-config snapshots load too, and only their snapshot parts are taken.
+  2. Checks which of its `snapshotFiles` exist with `find … -maxdepth 0`.
+  3. Restores `withSnapshot(apply(current, saved, schema, true), saved, schema, existing)`.
+  - Monitors, accounts, theme integrations and other machine settings stay as they are. No backup is made.
+- `restoreDefaults()` applies the schema defaults like an example (with personal parts), after a `before-defaults` backup.
 
 ### Export
 - `exportConfig(personal)` writes `~/axiom-[<active>-]<date>-<time>.json`.
@@ -50,4 +59,4 @@ Walks a value along the schema.
 
 ### Snapshot rows
 - `active` is the one last saved or restored, kept in `state/savedconfigs.json`. Only its row offers Overwrite.
-- `modified` dots it: the running config differs from the snapshot. Both pass through `ConfigManager.normalizeConfig` and are compared by `ConfigExamples.equalApartFrom`.
+- `modified` dots it: the running config's `snapshot()` differs from the saved file's (loaded through `ConfigManager.normalizeConfig`). A machine-only change leaves it off, and so does anything that changes on its own (rotation, light/dark wallpapers and schedule), which never writes the config.

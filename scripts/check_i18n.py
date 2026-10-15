@@ -7,14 +7,23 @@ Keys come from:
     `x-categories` and `x-libraryGroups` names (the settings UI and the
     editors' libraries translate those themselves, so they need no code).
 
-  scripts/check_i18n.py                 missing / unused entries per language
+  scripts/check_i18n.py                 missing / unused entries per language,
+                                        and files not in the canonical format
   scripts/check_i18n.py --fill          also add missing keys (empty) to each file
+  scripts/check_i18n.py --prune         also remove unused keys
+  scripts/check_i18n.py --format        also rewrite each file in the format
+                                        (--fill and --prune write it too)
   scripts/check_i18n.py --untranslated  UI-looking string literals not wrapped in I18n.tr()
 
 An empty or missing entry falls back to English at runtime, so a partly
 translated file is always safe to ship.
+
+The canonical format is json.dumps(indent=2, ensure_ascii=False) plus a
+newline: anything else rewrites every line in a diff. Files are written
+atomically (temp file + rename), since the shell reads the active one live.
 """
 import json
+import os
 import re
 import sys
 from pathlib import Path
@@ -193,6 +202,16 @@ def untranslated():
                     yield f"{rel}:{line_no}: dynamic tr() without declared keys: {code.strip()[:90]}"
 
 
+def canonical(data):
+    return json.dumps(data, ensure_ascii=False, indent=2) + "\n"
+
+
+def write_atomic(path, text):
+    tmp = path.with_name(f".{path.name}.tmp")
+    tmp.write_text(text, encoding="utf-8")
+    os.replace(tmp, path)
+
+
 def main():
     if "--untranslated" in sys.argv:
         found = list(untranslated())
@@ -202,7 +221,8 @@ def main():
     keys = collect_keys()
     status = 0
     for path in sorted(I18N.glob("*.json")):
-        data = json.loads(path.read_text())
+        text = path.read_text(encoding="utf-8")
+        data = json.loads(text)
         strings = data.setdefault("strings", {})
         missing = [k for k in keys if not strings.get(k)]
         unused = [k for k in strings if k not in keys]
@@ -216,7 +236,15 @@ def main():
         if "--fill" in sys.argv:
             for k in missing:
                 strings.setdefault(k, "")
-            path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n")
+        if "--prune" in sys.argv:
+            for k in unused:
+                del strings[k]
+        if {"--fill", "--prune", "--format"} & set(sys.argv):
+            if canonical(data) != text:
+                write_atomic(path, canonical(data))
+        elif text != canonical(json.loads(text)):
+            print("  format   not in the canonical format (2-space indent): run with --format")
+            status |= 1
         status |= 1 if missing else 0
     return status
 

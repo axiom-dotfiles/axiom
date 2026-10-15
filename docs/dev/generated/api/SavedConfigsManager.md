@@ -3,7 +3,7 @@
 
 > **File:** `services/SavedConfigsManager.qml` · **Docs:** see [docs/dev](../../README.md)
 
-Named snapshots of the whole config, one JSON file each in config/user/saved/. A saved file is a plain config.json, so it can also be copied into place by hand. Restoring runs it through ConfigManager's load pipeline, so snapshots from older config versions are migrated. The one last saved or restored is `active`, and `modified` says whether the running config has changed since. Also shares configs (ConfigExamples, by the schema's x-scope): applies the example setups shipped in examples/ and imported files (the running config is first saved as "before-<name>", then the file's look and layout replace the running ones), and exports the running config's look to the home folder in the same format. Nothing loaded changes a takeover setting (the schema's x-takeover: the Hyprland mode, lock screen, idle, polkit, greeter; ConfigManager.restoreConfig keeps them).
+Named snapshots of the config, one JSON file each in config/user/saved/. A snapshot holds what ConfigExamples.snapshot picks: the look and personal parts (by the schema's x-scope) and the wallpaper setup (x-snapshot: wallpapers, mode, rotation, light/dark ones, theme schedule), in the export format, so a saved file can be shared or imported as it is. Restoring applies it like an example, plus the wallpaper setup (other machine settings stay as they are; a wallpaper only if its file is still there), through ConfigManager's load pipeline, so snapshots from older config versions (and older whole-config snapshots) are migrated. The one last saved or restored is `active`, and `modified` says whether the running config's snapshot parts have changed since. Also shares configs (ConfigExamples, by the schema's x-scope): applies the example setups shipped in examples/ and imported files (the running config is first saved as "before-<name>", then the file's look and layout replace the running ones), and exports the running config's look to the home folder in the same format. Nothing loaded changes a takeover setting (the schema's x-takeover: the Hyprland mode, lock screen, idle, polkit, greeter; ConfigManager.restoreConfig keeps them).
 
 ### Properties
 
@@ -13,7 +13,7 @@ Named snapshots of the whole config, one JSON file each in config/user/saved/. A
 - `model` (readonly FolderListModel): Newest first; roles: fileBaseName, filePath, fileModified
 - `status` (string): Last save/restore/delete outcome, for the settings UI
 - `active` (readonly string): The saved config the running one was last saved as or restored from, "" for none (or once its file is gone): the one the settings UI offers to overwrite.
-- `modified` (readonly bool): Whether the running config differs from the active saved one, leaving out the takeover settings, which restoring doesn't change
+- `modified` (readonly bool): Whether the running config's snapshot parts differ from the active saved one's (machine settings, which restoring doesn't change, are left out)
 - `importing` (var): An imported file awaiting confirmation: { name, title, description, path, config, hasPersonal } (config loaded: migrated, defaults filled; hasPersonal: the file holds keybinds, apps or commands), or …
 - `picking` (readonly bool): The file picker is open
 
@@ -21,9 +21,9 @@ Named snapshots of the whole config, one JSON file each in config/user/saved/. A
 
 - `sanitize(name)`
 - `exists(name)`
-- `save(name)`: Saves the running config (including unsaved settings edits) under `name`, replacing any existing snapshot of that name.
+- `save(name)`: Saves the running config's snapshot parts (including unsaved settings edits) under `name`, replacing any existing snapshot of that name.
 - `restore(name)`
-- `restoreDefaults()`: Replaces the config with the schema defaults (what a first run writes).
+- `restoreDefaults()`: Applies the schema defaults like an example (the look and personal parts; machine settings stay), after saving the running config as "before-defaults".
 - `applyExample(name)`: Saves the running config as "before-<name>", then applies the example (in _writer's onSaved, so a failed backup applies nothing)
 - `browseImport()`: Opens the desktop's file picker; the chosen file goes to openImport
 - `openImport(path)`: Loads a shared file (an export, an example, or a whole config.json of any version) as `importing`, for the settings page to confirm

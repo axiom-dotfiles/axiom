@@ -2,7 +2,7 @@
 # Config: ThemeIntegrations
 
 > **Reader:** `ThemeIntegrations` (`config/ThemeIntegrations.qml`)
-> **Schema:** `config/json/config.schema.json` → `properties.ThemeIntegrations` · category Look & Feel
+> **Schema:** `config/json/config.schema.json` → `properties.ThemeIntegrations` · category Theme integrations
 
 Theme integrations: Re-theme external apps whenever the shell theme changes. Each writes its own axiom file; turned on, it shows the line that loads that file from the app's config, to copy or to apply (which backs your config up first).
 

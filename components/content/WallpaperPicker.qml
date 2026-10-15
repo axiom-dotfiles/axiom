@@ -40,7 +40,7 @@ Card {
   property string chosenVariant: ""
   readonly property string variant: root.chosenVariant || (Appearance.darkMode ? "dark" : "light")
   // What a thumbnail is marked current against
-  readonly property string wallpaper: root.tall && root.variantMode ? (root.variant === "dark" ? Appearance.darkWallpaper : Appearance.lightWallpaper) : Appearance.wallpaperFor(root.targetMonitor)
+  readonly property string wallpaper: root.tall && root.variantMode ? (root.variant === "dark" ? Appearance.darkWallpaper : Appearance.lightWallpaper) : ThemeManager.wallpaperFor(root.targetMonitor)
 
   // A wallpaper cut to the rounded corners, its border drawn over it;
   // children go on top

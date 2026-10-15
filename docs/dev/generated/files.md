@@ -92,7 +92,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `Power.qml`: Power buttons for the lock screen and the greeter (x-hosts: those two only): suspend, restart and shut down, nothing else (never log out or unlock).
 - `QuickActions.qml`: A grid of action tiles: toggles, session actions and pin, in any mix.
 - `ScreenRecord.qml`: Screen recording (ScreenshotManager, with wf-recorder): record a region (picked as for a screenshot) or the whole focused screen (the overlay closes first), with the system's sound (with pactl), the microphone or none; …
-- `Screenshot.qml`: Screenshots through ScreenshotManager (region, active window or the focused screen), saved to `directory` and copied to the clipboard.
+- `Screenshot.qml`: Screenshots through ScreenshotManager (region, active window or the focused screen), saved to the Screenshots section's folder and copied to the clipboard.
 - `Session.qml`: The greeter's session picker (x-hosts: greeter only): which desktop the login starts (Wayland sessions; the user's last one to begin with).
 - `Submenu.qml`: A row that opens another edge menu (`menu`) beside the one it's in, in that menu's submenu (EdgePopout.submenu, content/parts/MenuSubmenu): on hover, or on a click with openOnHover off.
 - `SystemGraphs.qml`: Live graphs of system metrics: the current value over a minute of history per metric.
@@ -250,6 +250,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `ChatMarkdown.qml`: Splits a chat reply into what the chat draws separately: Markdown prose (a TextEdit in MarkdownText) and fenced code blocks (a box of their own, with a copy button).
 - `ChatProtocol.qml`: The chat providers' wire formats, as pure functions: ChatManager builds a request with request(), ChatRequest sends it with curl and feeds every streamed event to parse().
 - `ColorTemperature.qml`: The color of light at a temperature in Kelvin (Tanner Helland's fit to blackbody colors), for showing what a night light setting looks like.
+- `ColumnSplit.qml`: Splits an ordered list of cards into two newspaper columns (the first k on the left, the rest on the right) so both end as close together as they can, from the cards' heights.
 - `ConfigExamples.qml`: Sharing a config.
 - `ConfigMigration.qml`: Upgrades older config.json layouts to the current one (see config/json/config.schema.json).
 - `DockLayout.qml`: Pure helpers for the dock: which apps it shows (pinned ones, then running ones), which window a click goes to, how big each icon is under the pointer, and whether a window covers it.
@@ -273,6 +274,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `SchemaLayout.qml`: Turns the config schema into the settings page's layout: categories (`x-category` on each top-level section, ordered by the root's `x-categories`), each made of groups (the section's own fields, then one per nested obje…
 - `SchemaValidation.qml`: JSON-schema helpers for the config: validation, filling in defaults, and pruning unknown keys.
 - `Search.qml`: Pure helpers for searching lists by typed text: the launcher's fuzzy score, frecency from a { count, last } use record (Utils.recordUse) and whether text reads as math for the calculator.
+- `ShownLook.qml`: What the look shows at the moment, from what the user chose (config) and what changes on its own (runtime state ThemeManager keeps: the rotation's wallpapers, the theme schedule's variant).
 - `SurfaceContext.qml`: What a surface growing out of a screen edge touches, and every rule that follows from it, for each kind of surface alike: bar popouts, edge popouts (OSDs, floating edge menus, the attached launcher), docks and submenus.
 - `SurfaceOutline.qml`: The outline of a surface that grows out of an edge (AttachedSurface): a content box joined to the attach edge by two concave fillets, or a plain box held off it.
 - `TimeZones.qml`: Pure helpers for clocks in another time zone.
@@ -527,10 +529,10 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `OSDListCard.qml`: The OSD section's first card (its `x-card`): the OSDs as tabs, one shown at a time: where it sits (a screen picker with presets), a Show button, and its settings and bars (EntryListCard).
 - `OnboardingCard.qml`: The General section's first card (the section's `x-card`): the first-time setup (OnboardingManager), to run again
 - `PolkitStatusCard.qml`: The Polkit section's first card (its `x-card`): whether axiom is the session's polkit agent, and which other agents it stopped
-- `SavedConfigsSection.qml`: Settings page, Maintenance (the category's `page`): save the whole config under a name, and restore or delete saved ones.
+- `SavedConfigsSection.qml`: Settings page, Maintenance (the category's `page`): save the config's look, layout, keybinds, apps and wallpapers under a name, and restore or delete saved ones.
 - `ScreenSpotPicker.qml`: A small screen showing where something sits (`spot`, 0-1 from the top left), with `presets` to click: dots that each apply their values.
 - `SelfUpdateStatusCard.qml`: The Updates category's first card (the section's `x-card`): the installed and newest release, what's new, and Check / Update
-- `SettingsContent.qml`: Settings page, right: the selected category's groups as cards in two columns (then its hand-built `page`, if any), or every setting matching the search, under its category's name.
+- `SettingsContent.qml`: Settings page, right: the selected category's groups as cards in two newspaper columns, split by their measured heights so both end together (then its hand-built `page`, if any), or every setting matching the search, un…
 - `SettingsField.qml`: One settings row: the SchemaField, with a dot while it has an unsaved edit and a button that puts it back to the schema default, and under a field with `x-hookup` (theme integrations) the IntegrationHookup panel
 - `SettingsGroupCard.qml`: i18n: keys from the schema (titles, descriptions) One group of settings (a section's own fields, or one nested object) as a card: title, help text, then its rows.
 - `SettingsSidebar.qml`: i18n: keys from the schema (category names, card titles) Settings page, left: search and the category list; the selected category also lists its cards, and clicking one scrolls the page to it.
@@ -541,6 +543,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `AppLauncher.qml`: The app launcher, one per screen its monitors setting picks (surfaces/launcher/Launcher).
 - `Bar.qml`: The bars: one BarPanel per BarManager.bars entry.
 - `BlurBacking.qml`: The blur behind the chrome (BlurManager): per screen, one click-through window under every chrome surface drawing each registered shape (the border's frame, bars, popouts, edge menus, docks) filled.
+- `BlurBackingWindow.qml`: One blur window (BlurBacking): click-through, drawing each of `shapes` (BlurShapes) filled, at the surface opacity, with their shadows cast once per look and kept outside every shape, its own and the other window's (`cu…
 - `Desktop.qml`: The desktop's modules on every screen whose layout has any (DesktopConfig.layoutFor), once the layer rules are in
 - `Dock.qml`: The docks (DockConfig), one per enabled entry, each on the screens its `monitors` puts it on: on the focused monitor only, it's rebuilt on the one focus moves to.
 - `EdgeMenus.qml`: The edge menus (EdgeMenusConfig), one per enabled entry.
@@ -588,6 +591,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `EditsManager.qml`: The editors' unsaved edits, by overlay page: which pages hold a dirty draft (the navigator's dots and the unsaved-changes strip), and saving or discarding them all at once.
 - `EmojiManager.qml`: The emoji the launcher searches (";" or /emoji), while Launcher.emoji is on.
 - `FileManager.qml`: Synchronous whole-file reads, for the few places that need a file's contents during a binding or initializer (config, schema, theme, state).
+- `FilePickerManager.qml`: The desktop's file picker (scripts/pick_path.py: xdg-desktop-portal, else zenity or kdialog), for a file or a folder: config import, and the Browse button of folder settings (the schema's x-control: "folder").
 - `GreetdManager.qml`: The login itself, in the greeter (greeter.qml): who logs in, into which session, and the conversation with greetd (Quickshell's Greetd: PAM through greetd's IPC).
 - `GreeterManager.qml`: Axiom as greetd's login screen, from the user's side (the greeter itself is greeter.qml, with GreetdManager).
 - `GridEditor.qml`: Editing of one grid of modules (each with a `place` { x, y, w, h } in quarter cards), shared by the layouts editor's overlay pages and edge menus.
@@ -611,7 +615,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `OverlayManager.qml`: OverlayManager holds the layouts editor's working copy of Overlay.views (the editor is the pinned last page).
 - `PolkitManager.qml`: axiom as the session's polkit agent (the Polkit section): while PolkitConfig.enabled, a PolkitAgent answers apps' requests for administrator rights, and PolkitWindow (shell/PolkitPrompt) shows each one.
 - `PopoutManager.qml`: Every popout showing, where it is, and which gives way to which.
-- `SavedConfigsManager.qml`: Named snapshots of the whole config, one JSON file each in config/user/saved/.
+- `SavedConfigsManager.qml`: Named snapshots of the config, one JSON file each in config/user/saved/.
 - `ScreenLayoutEditor.qml`: The layouts editor's draft of one screen layout (a ScreenLayout: the built-in lock screen's, LockManager.editor, or the greeter's, GreeterManager.editor): its modules on a bounded grid, edited through `layout`, its own …
 - `ScreenshotManager.qml`: Screenshots (the `screenshot` keybind action, IPC `screenshot take <kind>`, launcher `/screenshot`, the Screenshot card), taken natively: while `picking`, shell/Screenshot shows a frozen frame (ScreencopyView) on each s…
 - `SecretsManager.qml`: Secrets, which never go in config.json: chat API keys (scope `provider`) and calendar account passwords (scope `calendar`).
@@ -624,7 +628,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `ThemeManager.qml`: ThemeManager owns the active theme's data (loaded from its file, watched, with defaults for what it leaves out), the theme lists, theme generation from a wallpaper, the wallpaper itself, and re-theming integrated tools.
 - `TimeZoneManager.qml`: Other time zones' UTC offsets, for clocks set to one (a Clock module's or a bar Time widget's `timezone`): the JS engine can't convert times between zones (TimeZones).
 - `UpdatesManager.qml`: Pending package updates, shared by every Updates widget.
-- `WallpaperManager.qml`: What changes the look on its own (ThemeManager sets it): - Appearance.wallpaperMode "rotate": a new wallpaper from the folder every `rotationInterval` minutes (random or in order, one for all monitors or one each).
+- `WallpaperManager.qml`: What changes the look on its own.
 - `WeatherManager.qml`: Weather shared by every widget that shows it: one WeatherSource for the Weather settings' location and units, fetching while some widget wants it.
 - `WeatherSource.qml`: Weather for one location from Open-Meteo (no API key).
 - `WindowSwitcherManager.qml`: The window switcher (Alt+Tab).
@@ -658,6 +662,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `PolkitConfig.qml`: Reader for the Polkit section: whether axiom is the session's polkit agent (PolkitManager)
 - `PopoutsConfig.qml`: Reader for the Popouts section: behaviour shared by bar popouts and screen-edge popouts.
 - `PowerMenuConfig.qml`: Reader for the PowerMenu section.
+- `Screenshots.qml`: Reader for the Screenshots section: where screenshots and recordings are saved (ScreenshotManager resolves the empty defaults)
 - `SelfUpdate.qml`: Reader for the SelfUpdate section (see SelfUpdateManager).
 - `Theme.qml`: The active theme's colors: base16 (base00-base0F) and semantic names, filled from theme-defaults.json; resolveColor(name) for names from config.
 - `ThemeIntegrations.qml`: Reader for the ThemeIntegrations section: one switch per scripts/theme_<key>.sh, run by ThemeManager.themeIntegrations().
