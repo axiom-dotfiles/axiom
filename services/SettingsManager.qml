@@ -57,17 +57,10 @@ QtObject {
   // Settings cards the user folded, by SchemaLayout group key; saved in
   // state/settings.json so they stay folded across restarts
   property var collapsed: ({})
-  // `collapsed` as the settings page last laid itself out by
-  // (snapshotFolds), so folding a card doesn't reshuffle the page
-  property var layoutFolds: ({})
   readonly property var _state: StateManager.createStateHandler("settings")
 
   function isCollapsed(key) {
     return root.collapsed[key] === true;
-  }
-
-  function snapshotFolds() {
-    root.layoutFolds = root.collapsed;
   }
 
   // `keys`: one group key or a list of them
@@ -91,7 +84,6 @@ QtObject {
       all[key] = true;
       return all;
     }, {});
-    root.layoutFolds = root.collapsed;
   }
 
   function _diff(local, saved, path) {

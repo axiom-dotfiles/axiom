@@ -1,6 +1,6 @@
 # Settings page
 
-> **Files:** `components/views/Settings.qml`, `components/methods/SchemaLayout.qml`, `components/views/settings/` (`SettingsGroupCard`, `EntryListCard`, `FoldingCard`, `SettingsSidebar`, `SettingsContent`), `components/forms/`, `services/SettingsManager.qml`
+> **Files:** `components/views/Settings.qml`, `components/methods/SchemaLayout.qml`, `components/methods/ColumnSplit.qml`, `components/views/settings/` (`SettingsGroupCard`, `EntryListCard`, `FoldingCard`, `SettingsSidebar`, `SettingsContent`), `components/forms/`, `services/SettingsManager.qml`
 > **Config:** every section with settings (`x-settings` not false); fold state in `config/state/settings.json`
 > **Related:** [Schema annotations](schema-annotations.md), [Editors pattern](editors-pattern.md), [Shared UI pieces](shared-ui-pieces.md)
 
@@ -26,7 +26,10 @@ How the schema becomes the settings page: layout, cards, folding, sidebar and se
 
 ### Folding
 - Clicking a card's header folds it (`SettingsManager.collapsed`, by group key, saved to `config/state/settings.json`). Search results never fold.
-- The masonry reads `layoutFolds`, a snapshot taken on category/search change and page unload, so a fold doesn't reshuffle the page.
+
+### Columns
+- Cards fill two newspaper columns in order: the first k on the left, the rest on the right. `methods/ColumnSplit` picks k from the cards' measured heights so both columns end as close together as they can.
+- Cards follow their heights live (a folding card moves the ones below it), but k only changes while a block is settling: after it's built (a new category or search), resized, or after Fold all. It is fixed once no height has changed for `animNormal`, so folding one card never moves cards across columns.
 
 ### Sidebar and jumping
 - The sidebar is `SettingsSidebar`: a `TitledCard` of `ListEntryRow`s, with search in its header.

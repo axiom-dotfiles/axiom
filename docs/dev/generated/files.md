@@ -250,6 +250,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `ChatMarkdown.qml`: Splits a chat reply into what the chat draws separately: Markdown prose (a TextEdit in MarkdownText) and fenced code blocks (a box of their own, with a copy button).
 - `ChatProtocol.qml`: The chat providers' wire formats, as pure functions: ChatManager builds a request with request(), ChatRequest sends it with curl and feeds every streamed event to parse().
 - `ColorTemperature.qml`: The color of light at a temperature in Kelvin (Tanner Helland's fit to blackbody colors), for showing what a night light setting looks like.
+- `ColumnSplit.qml`: Splits an ordered list of cards into two newspaper columns (the first k on the left, the rest on the right) so both end as close together as they can, from the cards' heights.
 - `ConfigExamples.qml`: Sharing a config.
 - `ConfigMigration.qml`: Upgrades older config.json layouts to the current one (see config/json/config.schema.json).
 - `DockLayout.qml`: Pure helpers for the dock: which apps it shows (pinned ones, then running ones), which window a click goes to, how big each icon is under the pointer, and whether a window covers it.
@@ -530,7 +531,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `SavedConfigsSection.qml`: Settings page, Maintenance (the category's `page`): save the whole config under a name, and restore or delete saved ones.
 - `ScreenSpotPicker.qml`: A small screen showing where something sits (`spot`, 0-1 from the top left), with `presets` to click: dots that each apply their values.
 - `SelfUpdateStatusCard.qml`: The Updates category's first card (the section's `x-card`): the installed and newest release, what's new, and Check / Update
-- `SettingsContent.qml`: Settings page, right: the selected category's groups as cards in two columns (then its hand-built `page`, if any), or every setting matching the search, under its category's name.
+- `SettingsContent.qml`: Settings page, right: the selected category's groups as cards in two newspaper columns, split by their measured heights so both end together (then its hand-built `page`, if any), or every setting matching the search, un…
 - `SettingsField.qml`: One settings row: the SchemaField, with a dot while it has an unsaved edit and a button that puts it back to the schema default, and under a field with `x-hookup` (theme integrations) the IntegrationHookup panel
 - `SettingsGroupCard.qml`: i18n: keys from the schema (titles, descriptions) One group of settings (a section's own fields, or one nested object) as a card: title, help text, then its rows.
 - `SettingsSidebar.qml`: i18n: keys from the schema (category names, card titles) Settings page, left: search and the category list; the selected category also lists its cards, and clicking one scrolls the page to it.
