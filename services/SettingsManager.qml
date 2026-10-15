@@ -28,6 +28,11 @@ QtObject {
   readonly property var changedPaths: _diff(draft.local, draft.saved, [])
   readonly property int changedCount: changedPaths.length
 
+  // Installed cursor themes (XCursor or hyprcursor), for the
+  // "cursorThemes" options; listed once, when this is first used
+  readonly property var cursorThemes: _cursorThemes
+  property var _cursorThemes: []
+
   // The settings page's selected category and search text
   property string category: ""
   property string query: ""
@@ -84,6 +89,10 @@ QtObject {
       all[key] = true;
       return all;
     }, {});
+    // The icon folders, as the XDG icon spec looks them up: ~/.icons, then
+    // each data dir's icons/
+    const iconDirs = [Paths.homeDirectory + ".icons"].concat(Paths.dataSearchDirs.map(dir => dir + "/icons"));
+    CommandManager.run(["sh", "-c", 'for d in "$@"; do for t in "$d"/*; do [ -d "$t/cursors" ] || [ -f "$t/manifest.hl" ] && basename "$t"; done; done | sort -u', "sh"].concat(iconDirs), (code, out) => root._cursorThemes = out.split("\n").filter(name => name !== ""));
   }
 
   function _diff(local, saved, path) {
@@ -182,7 +191,7 @@ QtObject {
     case "cursorThemes":
       {
         const current = HyprlandConfig.managed.cursorTheme;
-        const themes = HyprlandConfigManager.cursorThemes;
+        const themes = root.cursorThemes;
         return ["", ...themes, ...(current && !themes.includes(current) ? [current] : [])];
       }
     case "languages":

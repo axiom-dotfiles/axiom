@@ -77,7 +77,7 @@ An index of reusable pieces. Reach for one of these before drawing your own; whe
   - Lives in `WorkspaceCellRow`; cells it stands in for set `indicated`.
   - Dots-only bars keep the cells' own recolour.
 - **Strip windows** (`bar/widgets/workspaces/StripWindows`): a workspace's windows in strip order as bar `WorkspaceCell`s (app icons, the last focused active, click focuses). Used by `ActiveStrip` (both switchers) and the `WorkspaceStrips` popout.
-- **Window previews** (`surfaces/workspaces/WindowPreview`): a hyprctl client's capture, rounded.
+- **Window previews** (`surfaces/workspaces/WindowPreview`): a Hyprland client's capture, rounded.
   - Shows the app icon until it gives a frame.
   - One frame per open unless `live` (or `hovered` / `resizing`).
   - Used by the overview's windows and the switcher's tiles.

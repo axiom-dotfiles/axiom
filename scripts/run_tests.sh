@@ -12,7 +12,8 @@
 set -euo pipefail
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-qt_bin="${QT_BIN:-/usr/lib/qt6/bin}"
+# shellcheck source=lib/qt_paths.sh
+source "$root/scripts/lib/qt_paths.sh"
 tree="$(mktemp -d)"
 trap 'rm -rf "$tree"' EXIT
 

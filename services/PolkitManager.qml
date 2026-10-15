@@ -4,7 +4,6 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
 import Quickshell.Io
-import Quickshell.Hyprland
 import Quickshell.Services.Polkit
 
 import qs.config
@@ -85,7 +84,7 @@ Singleton {
   }
 
   function _requestStarted() {
-    root._screenName = Hyprland.focusedMonitor?.name ?? General.primaryMonitor;
+    root._screenName = HyprlandManager.focusedOutput || General.primaryMonitor;
     root._actionInfo = {};
     const flow = root.flow;
     if (!flow)

@@ -22,8 +22,25 @@ from pathlib import Path
 
 from qml_modules import ROOT, build_tree
 
-QMLLINT = "/usr/lib/qt6/bin/qmllint"
-QT_QML = "/usr/lib/qt6/qml"
+
+
+def qt_path(env, query, fallback):
+    """$env, else what qmake6 says for `query` (Fedora's Qt is in
+    /usr/lib64/qt6), else Arch's `fallback` (scripts/lib/qt_paths.sh)."""
+    if os.environ.get(env):
+        return os.environ[env]
+    try:
+        out = subprocess.run(["qmake6", "-query", query], capture_output=True, text=True, check=True).stdout.strip()
+        if out:
+            return out
+    except (OSError, subprocess.CalledProcessError):
+        pass
+    return fallback
+
+
+QMLLINT = qt_path("QT_BIN", "QT_INSTALL_BINS", "/usr/lib/qt6/bin") + "/qmllint"
+# Quickshell's QML modules are installed beside Qt's
+QT_QML = qt_path("QT_QML", "QT_INSTALL_QML", "/usr/lib/qt6/qml")
 BASELINE = ROOT / "scripts" / "qmllint-baseline.json"
 # Quickshell's type info can't express these, so every file would hit them:
 # PanelWindow reads as uncreatable, and Process.exited's QProcess enum is

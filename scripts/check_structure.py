@@ -201,6 +201,12 @@ def main():
             if not target.is_dir():
                 errors.append(f"{path}: import {m.group(1)} — no such directory")
 
+    # Only the Hyprland* services read Quickshell.Hyprland: the rest goes
+    # through HyprlandManager (docs/dev/hyprland/ipc.md)
+    for path, text in sources.items():
+        if re.search(r"^import Quickshell\.Hyprland\b", text, re.M) and not re.fullmatch(r"services/Hyprland\w*\.qml", path):
+            errors.append(f"{path}: imports Quickshell.Hyprland (only the Hyprland* services may; use HyprlandManager)")
+
     # Singleton references: FooManager. must be a service, and a near-miss
     # of any project singleton (AudioManger.) is a typo
     external = {"ToplevelManager"}  # Quickshell's own

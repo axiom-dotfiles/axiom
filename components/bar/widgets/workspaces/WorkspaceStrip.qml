@@ -1,6 +1,5 @@
 pragma ComponentBehavior: Bound
 import QtQuick
-import Quickshell.Hyprland
 
 import qs.services
 import qs.config
@@ -35,7 +34,7 @@ Item {
   readonly property color emptyColor: Theme.resolveColor(properties.emptyColor)
   readonly property color textColor: Theme.resolveColor(properties.textColor)
 
-  readonly property HyprlandMonitor monitor: Hyprland.monitorFor(root.screen)
+  readonly property var monitor: HyprlandManager.monitorFor(root.screen)
   readonly property int activeId: root.monitor?.activeWorkspace?.id ?? -1
   readonly property int base: HyprlandManager.workspaceBase(root.monitor)
   // "horizontal" | "vertical" on a strip monitor, else ""
@@ -61,7 +60,7 @@ Item {
   implicitHeight: layout.implicitHeight
 
   function wsById(id) {
-    const arr = Hyprland.workspaces.values;
+    const arr = HyprlandManager.workspaces;
     for (let i = 0; i < arr.length; i++) {
       if (arr[i].id === id)
         return arr[i];

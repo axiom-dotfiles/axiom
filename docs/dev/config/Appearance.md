@@ -34,7 +34,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `Appearance.fixedWallpapers` · in: `services/ThemeManager.qml`
 - **`Appearance.wallpaperBackend`** · string = "quickshell" · enum quickshell|awww
   - Wallpaper backend: What draws the wallpaper. Axiom needs nothing installed and crossfades; awww (AUR) adds wipe and wave transitions.
-  - read: `Appearance.wallpaperBackend` · in: `services/HyprlandConfigManager.qml`, `services/ThemeManager.qml`, `shell/Wallpaper.qml`
+  - read: `Appearance.wallpaperBackend` · in: `services/ThemeManager.qml`, `services/WallpaperManager.qml`, `shell/Wallpaper.qml`
 - **`Appearance.wallpaperFolder`** · string = "~/Pictures/wallpapers"
   - Wallpaper folder: Folder the wallpaper pickers list images from (jpg, png, bmp). A leading ~ is your home folder.
   - x-snapshot=true, x-control="folder", pattern="\\S"
@@ -57,7 +57,7 @@ Every public member of `Appearance`, with the files that use it.
 - `Appearance.fixedWallpapers` (var)
   - in: `services/ThemeManager.qml`
 - `Appearance.wallpaperBackend` (string): As configured (for display), and with ~ expanded, no trailing slash "quickshell" (shell/Wallpaper draws it) | "awww" (setWallpaper.sh)
-  - in: `services/HyprlandConfigManager.qml`, `services/ThemeManager.qml`, `shell/Wallpaper.qml`
+  - in: `services/ThemeManager.qml`, `services/WallpaperManager.qml`, `shell/Wallpaper.qml`
 - `Appearance.wallpaperFolder` (string)
   - in: `components/content/WallpaperPicker.qml`, `components/surfaces/onboarding/pages/LookPage.qml`
 - `Appearance.wallpaperPath` (string)

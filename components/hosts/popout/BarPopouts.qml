@@ -2,7 +2,6 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
-import Quickshell.Hyprland
 
 import qs.services
 import qs.config
@@ -127,7 +126,7 @@ PopoutWrapperBase {
   // click outside clears (the content's focusLost())
   readonly property bool wantsKeyboardFocus: root.window.visible && (root.currentItem?.wantsKeyboardFocus ?? false)
 
-  HyprlandFocusGrab {
+  HyprlandGrab {
     windows: [root.window, root.panel].concat(ShellManager.modalWindows)
     active: root.wantsKeyboardFocus
     onCleared: root.currentItem?.focusLost?.()

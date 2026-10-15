@@ -2,7 +2,7 @@ pragma Singleton
 import QtQuick
 
 // The sessions the greeter can start (GreetdManager): Wayland session
-// desktop entries (/usr/share/wayland-sessions/*.desktop), their Exec line
+// desktop entries (wayland-sessions/*.desktop in each data dir), their Exec line
 // split into the argv greetd launches, and the environment they start in.
 QtObject {
   id: root
@@ -74,6 +74,23 @@ QtObject {
     if (started)
       args.push(word);
     return args.filter(arg => !/^%[a-zA-Z]$/.test(arg)).map(arg => arg.replace(/%%/g, "%"));
+  }
+
+  // Of the desktop entry files found (paths, from the data dirs in lookup
+  // order), the one each id is read from: the first, as an entry in a more
+  // important dir replaces (or, Hidden, removes) one of the same name.
+  // [{ id, file }]
+  function files(paths) {
+    const seen = {};
+    return (paths ?? []).map(path => ({
+          "id": String(path).replace(/^.*\//, "").replace(/\.desktop$/, ""),
+          "file": String(path)
+        })).filter(entry => {
+      if (seen[entry.id])
+        return false;
+      seen[entry.id] = true;
+      return true;
+    });
   }
 
   // Sessions by name

@@ -1,6 +1,5 @@
 pragma ComponentBehavior: Bound
 import QtQuick
-import Quickshell.Hyprland
 
 import qs.services
 import qs.config
@@ -49,7 +48,7 @@ Item {
   }
 
   function _occupied(id) {
-    const arr = Hyprland.workspaces.values;
+    const arr = HyprlandManager.workspaces;
     for (let i = 0; i < arr.length; i++) {
       if (arr[i].id === id)
         return (arr[i].toplevels?.values?.length ?? 0) > 0;

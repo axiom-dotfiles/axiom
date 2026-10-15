@@ -22,7 +22,7 @@ Monitors on Hyprland's `scrolling` layout: how they're configured, how the Lua r
   - `general.layout` only offers dwindle and master; scrolling belongs to the strips.
 - **Detached:** it runs in the runtime eval, wrapped by `HyprLua.stripsRuntimeLua` to apply once per Hyprland load (workspace rules add up rather than replace).
   - `AXIOM_STRIPS` names the strips applied. It lives in Hyprland's Lua state, so a Hyprland reload resets it and a shell reload keeps it.
-  - Different strips can't be taken back, so a change runs `hyprctl reload`. Its `configreloaded` then applies the new strips over the user's config alone.
+  - Different strips can't be taken back, so a change reloads Hyprland's config. Its `configreloaded` then applies the new strips over the user's config alone.
 
 ### Window order
 - Hyprland reports no columns, so strip order comes from the windows' places (`WorkspaceGeometry.stripOrder`):

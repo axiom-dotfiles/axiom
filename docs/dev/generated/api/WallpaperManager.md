@@ -9,8 +9,8 @@ What changes the look on its own. ThemeManager shows it (activeTheme, wallpaperF
 
 - `mode` (readonly string)
 - `folderImages` (int): Images in Appearance.wallpaperPath: -1 until checked (or while checking), -2 when the folder doesn't exist
-- `hyprlandWallpapers` (readonly string): Hyprland's own wallpapers, offered as a folder to start from
-- `hasHyprlandWallpapers` (bool)
+- `hyprlandWallpapers` (readonly string): Hyprland's own wallpapers (the first data dir's hypr/ with wall*.png), offered as a folder to start from; "" until found
+- `hasHyprlandWallpapers` (readonly bool)
 
 ### Functions
 

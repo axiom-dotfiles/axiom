@@ -4,7 +4,6 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
 import Quickshell.Io
-import Quickshell.Hyprland
 
 import qs.config
 import qs.components.methods
@@ -64,7 +63,7 @@ QtObject {
   function itemsFor(dock, screen) {
     if (!dock)
       return [];
-    const monitor = screen ? Hyprland.monitorFor(screen) : null;
+    const monitor = HyprlandManager.monitorFor(screen);
     const monitorId = monitor?.id ?? -1;
     const workspaceId = monitor?.activeWorkspace?.id ?? -1;
     const windows = HyprlandManager.windowList.filter(w => DockLayout.inScope(w, dock.windowScope, monitorId, workspaceId));
@@ -158,7 +157,7 @@ QtObject {
   // It arrives as a QVariantList, which isn't a JS Array (Array.isArray is
   // false), so it's copied by index.
   function reservedOf(screen) {
-    const reserved = (screen ? Hyprland.monitorFor(screen) : null)?.lastIpcObject?.reserved;
+    const reserved = HyprlandManager.monitorFor(screen)?.lastIpcObject?.reserved;
     return reserved?.length === 4 ? [0, 1, 2, 3].map(i => Number(reserved[i]) || 0) : [0, 0, 0, 0];
   }
 
@@ -173,7 +172,7 @@ QtObject {
   property Timer _refresh: Timer {
     interval: 200
     onTriggered: {
-      Hyprland.refreshMonitors();
+      HyprlandManager.refreshMonitors();
       HyprlandManager.updateAll();
     }
   }
@@ -183,23 +182,25 @@ QtObject {
   readonly property bool _active: DockConfig.shownIds.length > 0
   on_ActiveChanged: {
     if (root._active)
-      Hyprland.refreshMonitors();
+      HyprlandManager.refreshMonitors();
   }
 
   property Connections _layers: Connections {
-    target: Hyprland
+    target: HyprlandManager
     enabled: root._active
 
-    function onRawEvent(event) {
-      if (event.name === "openlayer" || event.name === "closelayer" || event.name === "configreloaded")
-        root.refreshSoon();
+    function onLayersChanged() {
+      root.refreshSoon();
+    }
+    function onConfigReloaded() {
+      root.refreshSoon();
     }
   }
 
   // Whether a window on the screen's active workspace covers `rect`
   // (screen-local)
   function obscured(screen, rect) {
-    const monitor = screen ? Hyprland.monitorFor(screen) : null;
+    const monitor = HyprlandManager.monitorFor(screen);
     const workspaceId = monitor?.activeWorkspace?.id;
     if (workspaceId === undefined)
       return false;
@@ -308,7 +309,7 @@ QtObject {
 
   Component.onCompleted: {
     if (root._active)
-      Hyprland.refreshMonitors();
+      HyprlandManager.refreshMonitors();
   }
 
   property IpcHandler _ipc: IpcHandler {

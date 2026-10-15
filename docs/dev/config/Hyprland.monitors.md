@@ -13,13 +13,13 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - Monitors: Edited on the Monitors page.
   - x-settings=false
 - **`Hyprland.monitors.profiles`** · array<MonitorProfile> = []
-  - read: `HyprlandConfig.monitorProfiles` (computed) · in: `services/HyprlandConfigManager.qml`, `services/MonitorManager.qml`
+  - read: `HyprlandConfig.monitorProfiles` (computed) · in: `services/HyprlandConfigManager.qml`, `services/HyprlandRuntimeLayer.qml`, `services/MonitorManager.qml`
 
 ### `Hyprland.monitors.profiles[]`
 
 - **`Hyprland.monitors.profiles[]`** · object
 - **`Hyprland.monitors.profiles[].name`** · string = ""
-  - read: `HyprlandConfig.monitorProfiles` (whole) · in: `services/HyprlandConfigManager.qml`, `services/MonitorManager.qml`
+  - read: `HyprlandConfig.monitorProfiles` (whole) · in: `services/HyprlandConfigManager.qml`, `services/HyprlandRuntimeLayer.qml`, `services/MonitorManager.qml`
 - **`Hyprland.monitors.profiles[].outputs`** · array<MonitorRule> = []
   - read: `HyprlandConfig.monitorProfiles` (whole) · in: `services/MonitorManager.qml`
 
@@ -36,14 +36,14 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - WIDTHxHEIGHT@HZ, or preferred.
   - read: `HyprlandConfig.monitorProfiles` (whole) · in: `services/HyprlandConfigManager.qml`, `services/MonitorManager.qml`
 - **`Hyprland.monitors.profiles[].outputs[].x`** · integer = 0
-  - read: `HyprlandConfig.monitorProfiles` (whole) · in: `services/HyprlandConfigManager.qml`, `services/MonitorManager.qml`
+  - read: `HyprlandConfig.monitorProfiles` (whole) · in: `services/MonitorManager.qml`
 - **`Hyprland.monitors.profiles[].outputs[].y`** · integer = 0
   - read: `HyprlandConfig.monitorProfiles` (whole) · in: `services/MonitorManager.qml`
 - **`Hyprland.monitors.profiles[].outputs[].scale`** · number = 1 · –8
   - read: `HyprlandConfig.monitorProfiles` (whole) · in: `services/MonitorManager.qml`
 - **`Hyprland.monitors.profiles[].outputs[].transform`** · integer = 0 · 0–7
   - Rotation in quarter turns, plus 4 when flipped.
-  - read: entry field, name match repo-wide · in: `components/methods/HyprLua.qml`, `components/methods/MonitorLayout.qml`, `components/views/monitors/MonitorInspector.qml`, `services/BlurManager.qml`
+  - read: entry field, name match repo-wide · in: `components/methods/HyprLua.qml`, `components/methods/HyprState.qml`, `components/methods/MonitorLayout.qml`, `components/views/monitors/MonitorInspector.qml`
 - **`Hyprland.monitors.profiles[].outputs[].disabled`** · boolean = false
   - read: `HyprlandConfig.monitorProfiles` (whole) · in: `services/MonitorManager.qml`
 - **`Hyprland.monitors.profiles[].outputs[].mirror`** · string = ""

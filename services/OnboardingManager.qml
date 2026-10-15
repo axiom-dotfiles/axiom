@@ -146,20 +146,8 @@ Singleton {
     HyprlandConfigManager.checkManaged();
     IntegrationHookupManager.check("hyprlandInclude");
     IntegrationHookupManager.check("hyprlandAutostart");
-    if (!_detect.running)
-      _detect.running = true;
-  }
-
-  Process {
-    id: _detect
-    command: ["sh", "-c", 'hyprctl version -j 2>/dev/null | jq -r .version 2>/dev/null; [ -f "$1/hyprland.conf" ] && echo legacy; true', "sh", Paths.hyprlandPath]
-    stdout: StdioCollector {
-      onStreamFinished: {
-        const lines = text.split("\n").filter(line => line !== "");
-        root.hyprlandVersion = /^\d+\.\d+/.test(lines[0] ?? "") ? lines[0] : "";
-        root._hasLegacyConfig = lines.includes("legacy");
-      }
-    }
+    root._hasLegacyConfig = FileManager.read(Paths.hyprlandPath + "hyprland.conf") !== null;
+    HyprlandManager.withVersion(version => root.hyprlandVersion = /^\d+\.\d+/.test(version) ? version : "");
   }
 
   // --- Navigation ---

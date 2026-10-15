@@ -1,14 +1,11 @@
 pragma Singleton
 import QtQuick
 
-import Quickshell.Io
-import Quickshell.Hyprland
-
 import qs.config
 import qs.components.methods
 
 /*
- * KeybindManager reads the keybinds Hyprland has registered (`hyprctl binds -j`).
+ * KeybindManager reads the keybinds Hyprland has registered (HyprlandManager.withBinds).
  * With the Lua config every action is an opaque `__lua` dispatcher, so each bind's
  * `description` option is the label. A "Section: Label" prefix picks the overlay section.
  *
@@ -183,7 +180,7 @@ QtObject {
   readonly property var actionInfo: root.actions.map(action => ({
         "action": action,
         "label": root.actionLabels[action] ?? action,
-        "section": action === "exec" ? "Apps" : HyprlandConfigManager.sectionFor(action),
+        "section": action === "exec" ? "Apps" : BindActions.sectionFor(action),
         "icon": root._actionIcons[action] ?? "keyboard"
       }))
 
@@ -191,47 +188,21 @@ QtObject {
     return root._actionIcons[action] ?? "keyboard";
   }
 
-  // What an action's argument is; actions without one aren't listed
-  readonly property var _argumentKinds: ({
-      "launcherSearch": "text",
-      "exec": "text",
-      "lua": "lua",
-      "overlayPage": "view",
-      "edgeMenu": "edgeMenu",
-      "dock": "dock",
-      "workspaceStep": "direction",
-      "moveWindowStep": "direction",
-      "moveWindowStepSilent": "direction",
-      "workspaceNth": "workspace",
-      "moveWindowNth": "workspace",
-      "moveWindowNthSilent": "workspace",
-      "focusDir": "direction",
-      "moveWindowDir": "direction",
-      "stripSwapColumn": "direction",
-      "resizeWindow": "resize",
-      "toggleSpecial": "special",
-      "moveToSpecial": "special",
-      "screenshot": "screenshot"
-    })
-
   // The argument an action starts with when picked (else empty)
-  readonly property var _argumentDefaults: ({
-      "screenshot": "region",
-      "dock": "main"
-    })
+  readonly property var _argumentDefaults: BindActions.argumentDefaults
 
   // What an action's free-text argument is, for its placeholder
   function argumentKind(action) {
-    return _argumentKinds[action] ?? "";
+    return BindActions.argumentKind(action);
   }
 
   function needsArgument(action) {
-    return _argumentKinds[action] !== undefined;
+    return BindActions.needsArgument(action);
   }
 
   // The choices for an action's argument, or null for free text
   function argumentOptions(action) {
-    switch (_argumentKinds[action]) {
+    switch (BindActions.argumentKind(action)) {
     case "direction":
       return ["left", "right", "up", "down"];
     case "workspace":
@@ -252,7 +223,7 @@ QtObject {
 
   // The choices for an action's call, or null when it has none
   function callOptions(action) {
-    return HyprlandConfigManager.hasCalls(action) ? ["toggle", "open", "close"] : null;
+    return BindActions.hasCalls(action) ? ["toggle", "open", "close"] : null;
   }
 
   // A call's label for an action (a caffeine or night light bind turns it
@@ -274,7 +245,7 @@ QtObject {
   // An editor bind's section on the Keybinds page: its description's
   // "Section:" prefix, else its action's
   function _bindSection(bind) {
-    return HyprlandConfigManager.hasOwnSection(bind.description) ? String(bind.description).split(":")[0] : HyprlandConfigManager.sectionFor(bind.action);
+    return BindActions.hasOwnSection(bind.description) ? String(bind.description).split(":")[0] : BindActions.sectionFor(bind.action);
   }
 
   // An editor bind's modifiers, by the names hyprctl's binds decode to
@@ -324,7 +295,7 @@ QtObject {
         "label": label,
         "section": section,
         "mods": root._bindMods(bind),
-        "text": [key, label, section, bind.argument ?? "", bind.description ?? "", HyprlandConfigManager.defaultLabel(bind)].join("\n").toLowerCase()
+        "text": [key, label, section, bind.argument ?? "", bind.description ?? "", BindActions.defaultLabel(bind)].join("\n").toLowerCase()
       };
     }).filter(row => (query === "" || row.text.includes(query)) && (sections.length === 0 || sections.includes(row.section)) && mods.every(mod => row.mods.includes(mod)) && (!issuesOnly || (root.issues[row.index] ?? []).length > 0));
     const compare = (a, b) => a.toLowerCase().localeCompare(b.toLowerCase());
@@ -365,7 +336,7 @@ QtObject {
   // A bind with every field, its flags from its action unless given
   function _completeBind(bind) {
     const action = bind?.action ?? "launcher";
-    const flags = HyprlandConfigManager.actionFlags[action] ?? [];
+    const flags = BindActions.actionFlags[action] ?? [];
     const full = {
       "key": "",
       "action": action,
@@ -373,7 +344,7 @@ QtObject {
       "call": "toggle",
       "description": ""
     };
-    for (const flag of HyprlandConfigManager.flagNames)
+    for (const flag of BindActions.flagNames)
       full[flag] = flags.includes(flag);
     return Object.assign(full, bind ?? {});
   }
@@ -425,10 +396,10 @@ QtObject {
       const options = argumentOptions(value);
       if (!needsArgument(value) || (options && !options.includes(bind.argument)))
         bind.argument = _argumentDefaults[value] ?? "";
-      if (!HyprlandConfigManager.hasCalls(value))
+      if (!BindActions.hasCalls(value))
         bind.call = "toggle";
-      const flags = HyprlandConfigManager.actionFlags[value] ?? [];
-      for (const flag of HyprlandConfigManager.flagNames)
+      const flags = BindActions.actionFlags[value] ?? [];
+      for (const flag of BindActions.flagNames)
         bind[flag] = flags.includes(flag);
     }
     draft.changed();
@@ -479,7 +450,7 @@ QtObject {
           "text": I18n.tr("Needs an argument, so it isn't bound")
         });
       // The switcher picks when its modifier is released
-      if (HyprlandConfigManager.switcherSteps[bind.action] !== undefined && key !== "" && HyprLua.switcherHeld(KeyNames.split(key).mods).length === 0)
+      if (BindActions.switcherSteps[bind.action] !== undefined && key !== "" && HyprLua.switcherHeld(KeyNames.split(key).mods).length === 0)
         found.push({
           "level": "warning",
           "text": I18n.tr("Needs a modifier to hold, like ALT + Tab")
@@ -556,7 +527,7 @@ QtObject {
   // --- Presets ---
 
   // Presets leave descriptions empty: each bind gets its action's label
-  // and section (HyprlandConfigManager.descriptionFor)
+  // and section (BindActions.descriptionFor)
   function _workspaceBind(key, action, argument) {
     return {
       "key": key,
@@ -755,12 +726,31 @@ hl.dispatch(hl.dsp.submap("${_recordSubmap}"))`
       "down": "↓"
     })
 
-  // Every bind Hyprland reported, as hyprctl lists them
+  // Every bind Hyprland reported (HyprlandManager.withBinds)
   property var _entries: []
 
   function refresh() {
-    root._bindsProcess.running = true;
+    if (_reading) {
+      _readAgain = true;
+      return;
+    }
+    _reading = true;
+    HyprlandManager.withBinds(binds => {
+      root._reading = false;
+      if (binds) {
+        const entries = binds.filter(entry => entry.submap !== root._recordSubmap && entry.submap !== HyprLua.switcherSubmap);
+        root._entries = entries;
+        root.count = entries.length;
+      }
+      if (root._readAgain) {
+        root._readAgain = false;
+        root.refresh();
+      }
+    });
   }
+
+  property bool _reading: false
+  property bool _readAgain: false
 
   // After binds were applied at runtime, which Hyprland announces no event for
   function refreshSoon() {
@@ -926,30 +916,11 @@ hl.dispatch(hl.dsp.submap("${_recordSubmap}"))`
     return key.charAt(0).toUpperCase() + key.slice(1);
   }
 
-  property Process _bindsProcess: Process {
-    command: ["hyprctl", "binds", "-j"]
-
-    stdout: StdioCollector {
-      id: bindsCollector
-
-      onStreamFinished: {
-        try {
-          const entries = JSON.parse(bindsCollector.text).filter(entry => entry.submap !== root._recordSubmap && entry.submap !== HyprLua.switcherSubmap);
-          root._entries = entries;
-          root.count = entries.length;
-        } catch (e) {
-          console.warn("[KeybindManager] Could not parse hyprctl binds:", e);
-        }
-      }
-    }
-  }
-
   property Connections _hyprlandEvents: Connections {
-    target: Hyprland
+    target: HyprlandManager
 
-    function onRawEvent(event) {
-      if (event.name === "configreloaded")
-        root.refresh();
+    function onConfigReloaded() {
+      root.refresh();
     }
   }
 

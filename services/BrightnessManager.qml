@@ -2,7 +2,6 @@ pragma Singleton
 
 import QtQuick
 import Quickshell
-import Quickshell.Hyprland
 import Quickshell.Io
 
 // Screen brightness per monitor: a laptop panel through its sysfs backlight
@@ -113,7 +112,7 @@ QtObject {
   }
 
   function _focused() {
-    return Hyprland.focusedMonitor?.name ?? "";
+    return HyprlandManager.focusedOutput;
   }
 
   function _update(name, value, max) {

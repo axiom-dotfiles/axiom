@@ -1,13 +1,13 @@
 # Hyprland config modes
 
-> **Files:** `services/HyprlandConfigManager.qml`, `config/HyprlandConfig.qml`, `components/methods/HyprLua.qml`, `components/methods/HyprBinds.qml`, `components/views/settings/HyprlandStatusCard.qml`, `scripts/claim_hyprland.sh`
+> **Files:** `services/HyprlandConfigManager.qml`, `services/HyprlandRuntimeLayer.qml`, `config/HyprlandConfig.qml`, `components/methods/HyprConfigLua.qml`, `components/methods/HyprLua.qml`, `components/methods/HyprBinds.qml`, `components/views/settings/HyprlandStatusCard.qml`, `scripts/claim_hyprland.sh`
 > **Config:** `Hyprland.mode`, `Hyprland.binds`, `Hyprland.managed`, `Hyprland.look`, `Hyprland.monitors`, `Workspaces.strips`
 > **Related:** [Managed takeover](managed-takeover.md), [Window look](window-look.md), [Bind merge](bind-merge.md), [Keybinds](keybinds.md), [Monitors](monitors.md), [Workspace strips](workspace-strips.md)
 
-How axiom sets up Hyprland (`HyprlandConfigManager`), and the three `mode`s it can do it in: `detached`, `included` and `managed`. Read this before touching anything axiom writes into Hyprland.
+How axiom sets up Hyprland (`HyprlandConfigManager`, which owns `HyprlandRuntimeLayer`, `HyprlandTakeover` and `HyprlandBindMerge`), and the three `mode`s it can do it in: `detached`, `included` and `managed`. Read this before touching anything axiom writes into Hyprland.
 
 ### One Lua layer
-- It needs Hyprland's Lua config (0.55+). Axiom's own `hyprctl eval`/dispatch calls are all Lua (`hl.*`). The stubs are in `/usr/share/hypr/stubs/hl.meta.lua`.
+- It needs Hyprland's Lua config (0.55+). Axiom's own evals and dispatches are all Lua (`hl.*`), sent as [IPC](ipc.md) describes. The stubs are in `/usr/share/hypr/stubs/hl.meta.lua`.
 - One Lua layer covers:
   - binds (`binds[]`: an IPC `action` or `exec`, `description` "Axiom: …"; see [Keybinds](keybinds.md))
   - required settings: `allow_session_lock_restore`, a named rule suppressing `maximize` requests, and a `workspaces` animation
@@ -17,8 +17,8 @@ How axiom sets up Hyprland (`HyprlandConfigManager`), and the three `mode`s it c
 - `mode` picks how that layer gets to Hyprland.
 
 ### `detached`
-- `hyprctl eval` runs at startup and on every `configreloaded`.
-- It skips keys that `hyprctl binds -j` shows taken. `components/methods/HyprBinds` provides `keyId`, `runtimeBinds`, and `userKeyCounts` for KeybindManager.
+- It is evaluated at startup and on every `configreloaded` (`HyprlandRuntimeLayer`).
+- It skips keys Hyprland's binds show taken (`HyprlandManager.withBinds`, read after unbinding its own). `components/methods/HyprBinds` provides `keyId`, `runtimeBinds`, and `userKeyCounts` for KeybindManager.
 - The keys it bound live in Hyprland's Lua state (`AXIOM_RUNTIME_KEYS`):
   - a Hyprland reload resets them, along with the binds
   - they survive a qs reload
@@ -33,7 +33,7 @@ How axiom sets up Hyprland (`HyprlandConfigManager`), and the three `mode`s it c
 - Taking the user's existing config over (`claim_hyprland.sh`) is described in [Managed takeover](managed-takeover.md).
 
 ### Writing files
-- Both file modes write only on change, then run `hyprctl reload` (Hyprland doesn't watch `dofile`d files).
+- Both file modes write only on change, then reload Hyprland (Hyprland doesn't watch `dofile`d files).
 - `_writeFile` re-reads the file before each write (`blockLoading`). A FileView skips a `setText` of the text it last wrote, and the file may no longer hold that text after a release.
 
 ### Include and autostart lines
@@ -53,18 +53,18 @@ How axiom sets up Hyprland (`HyprlandConfigManager`), and the three `mode`s it c
   - `status`: `runtime` | `loaded` | `fallback` | `pending`
   - `problem`
 - A mode picked there waits for Save (`x-applyOnSave`). The card outlines what saving will do, including the leave steps below.
-- It predicts a managed takeover with `checkManaged()`, a dry run of `claimManaged`. `managedCheck` is `ours` | `adopt` | `new` | `blocked`.
+- It predicts a managed takeover with `checkManaged()`, a dry run of the takeover (`HyprlandTakeover.claim`). `managedCheck` is `ours` | `adopt` | `stock` | `released` | `new` | `blocked` (`managedBlockedBy` `link` or `git`).
 
 ### Leaving a mode
 - `_leave` gives back what a mode took, for a switch made while axiom runs.
   - `_appliedMode` is `""` until the first `apply()`, so a load never gives anything back.
   - Leaving managed runs `claim_hyprland.sh release` ([Managed takeover](managed-takeover.md#release)).
-- Leaving included, or leaving managed for detached, empties the module if it exists (`_emptyModuleLua`).
+- Leaving included, or leaving managed for detached, empties the module if it exists (`HyprConfigLua.emptyModuleLua`).
   - Every part becomes a no-op, so a hyprland.lua still loading the module gets nothing.
   - Otherwise the old layer would stay in Hyprland's config, and the runtime layer can't undo it because it only adds (a strip removed in detached mode stayed a strip).
 - `_reload()` reloads once more when asked while a reload runs, so a file written meanwhile isn't missed.
 - Detached waits for a release (`_releasing`) before applying its runtime layer.
-- The runtime layer starts over when Hyprland reloads while it reads the binds (`_reloads`). A plan from another config would record that config's keys in `AXIOM_RUNTIME_KEYS`, and `_clearRuntime` would then unbind them.
+- The runtime layer (`HyprlandRuntimeLayer`) starts over when Hyprland reloads while it reads the binds (`noteReload()` counts them). A plan from another config would record that config's keys in `AXIOM_RUNTIME_KEYS`, and `clear()` would then unbind them.
 
 ### Managed options (`HyprLua`)
 - The `managed` options become one `hl.config({...})` through `components/methods/HyprLua` (pure), driven by schema annotations:
@@ -91,4 +91,4 @@ How axiom sets up Hyprland (`HyprlandConfigManager`), and the three `mode`s it c
 ### Testing
 - Never switch the user's real config to `managed` to test it. (Rule: AGENTS.md › Never, while testing.)
 - Test `claim_hyprland.sh` on scratch dirs, as `tests/scripts/test_scripts.py` does.
-- Render the Lua with node and check it with `luac -p`.
+- The Lua comes from `HyprConfigLua` (pure): `tests/tst_HyprConfigLua.qml` renders the included, managed and given-back files to `tests/.out/`, where `scripts/run_tests.sh` checks them with `luac -p`. Add a case there when changing what a file holds.

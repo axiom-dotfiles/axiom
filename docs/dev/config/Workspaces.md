@@ -43,7 +43,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`Workspaces.strips[].monitor`** · string = ""
   - Monitor: Empty uses the primary monitor; All monitors makes every monitor a strip, unless another entry names it.
   - x-scope="machine", x-options="screens", x-allScreens=true
-  - read: entry field, name match · in: `components/bar/widgets/workspaces/WorkspaceCellRow.qml`, `components/bar/widgets/workspaces/WorkspaceGridStrip.qml`, `components/bar/widgets/workspaces/WorkspaceStrip.qml`, `components/surfaces/onboarding/pages/WorkspacesPage.qml`, `components/surfaces/workspaces/OverviewGrid.qml`, `config/WorkspacesConfig.qml`, `services/HyprlandConfigManager.qml`
+  - read: entry field, name match · in: `components/bar/widgets/workspaces/WorkspaceCellRow.qml`, `components/bar/widgets/workspaces/WorkspaceGridStrip.qml`, `components/bar/widgets/workspaces/WorkspaceStrip.qml`, `components/surfaces/onboarding/pages/WorkspacesPage.qml`, `components/surfaces/workspaces/OverviewGrid.qml`, `config/WorkspacesConfig.qml`
 - **`Workspaces.strips[].direction`** · string = "horizontal" · enum horizontal|vertical
   - Direction: Horizontal: columns side by side, scrolling sideways. Vertical: rows one under another, scrolling up and down.
   - read: entry field, name match · in: `components/surfaces/onboarding/pages/WorkspacesPage.qml`, `config/WorkspacesConfig.qml`

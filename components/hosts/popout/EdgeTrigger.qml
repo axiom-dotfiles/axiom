@@ -36,7 +36,7 @@ PanelWindow {
   // from `position`)
   property real centre: NaN
   // The trigger's centre along the edge, within the free length
-  readonly property real _centre: !isNaN(root.centre) ? root.centre : root.startInset + ((root._vertical ? root.screen.height : root.screen.width) - root.startInset - root.endInset) * root.position + root.positionOffset
+  readonly property real _centre: !isNaN(root.centre) ? root.centre : root.startInset + ((root._vertical ? root.screen?.height ?? 0 : root.screen?.width ?? 0) - root.startInset - root.endInset) * root.position + root.positionOffset
 
   color: "transparent"
   exclusionMode: ExclusionMode.Ignore
@@ -57,9 +57,9 @@ PanelWindow {
 
   margins {
     left: root.edge === Bar.Left ? root.edgeInset : root._vertical ? 0 : Math.max(0, root._centre - root.triggerLength / 2)
-    right: root.edge === Bar.Right ? root.edgeInset : root._vertical ? 0 : Math.max(0, root.screen.width - root._centre - root.triggerLength / 2)
+    right: root.edge === Bar.Right ? root.edgeInset : root._vertical ? 0 : Math.max(0, (root.screen?.width ?? 0) - root._centre - root.triggerLength / 2)
     top: root.edge === Bar.Top ? root.edgeInset : !root._vertical ? 0 : Math.max(0, root._centre - root.triggerLength / 2)
-    bottom: root.edge === Bar.Bottom ? root.edgeInset : !root._vertical ? 0 : Math.max(0, root.screen.height - root._centre - root.triggerLength / 2)
+    bottom: root.edge === Bar.Bottom ? root.edgeInset : !root._vertical ? 0 : Math.max(0, (root.screen?.height ?? 0) - root._centre - root.triggerLength / 2)
   }
 
   MouseArea {

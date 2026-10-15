@@ -20,7 +20,8 @@ set -uo pipefail
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$root" || exit 1
-qt_bin="${QT_BIN:-/usr/lib/qt6/bin}"
+# shellcheck source=../lib/qt_paths.sh
+source "$root/scripts/lib/qt_paths.sh"
 
 all=0 docs=1
 for arg in "$@"; do

@@ -75,6 +75,7 @@ Dependencies point one way, methods → data owners → readers → services →
 - [editing-submenus](edge-menus/editing-submenus.md): editing on the Layouts page, Submenu modules.
 
 ### hyprland/
+- [ipc](hyprland/ipc.md): `HyprlandIpcManager` (the request socket), Quickshell.Hyprland and what `HyprlandManager` exposes of it; who may talk to Hyprland.
 - [config-modes](hyprland/config-modes.md): `HyprlandConfigManager`, detached / included / managed, `x-hypr*` options, leaving a mode.
 - [managed-takeover](hyprland/managed-takeover.md): `claim_hyprland.sh` claim and release.
 - [window-look](hyprland/window-look.md): borders, shape, gaps, blur, opacity as one `hl.config`.

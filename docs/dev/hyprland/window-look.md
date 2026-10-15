@@ -26,9 +26,9 @@ The themed window look axiom gives Hyprland: borders, shape, gaps, blur and wind
 
 ### Where it's applied
 - Every part shows in every mode. A managed config writes them through `M.look()`, like the rest of the layer.
-- In the file modes it is also evaluated after every `configreloaded` (`_applyLook`), so it wins over the user's own lines while it's on.
+- In the file modes it is also evaluated after every `configreloaded` (`_applyLook`), so it wins over the user's own lines while it's on. Detached, the runtime layer evaluates it with the rest. Both take its lines from `_runtimeLookLua`, which records what it applied.
 - A runtime eval can't take a setting back.
-  - `_undoLook` reloads Hyprland's config when a part was turned off since it was evaluated.
+  - `_undoLook` reloads Hyprland's config when a part was turned off since it was evaluated (`_droppedLookParts`).
   - What was evaluated is recorded in `_lookState.applied`, a `PersistentProperties`.
   - The file modes reload anyway, by rewriting their file.
 - `HyprlandManager.refreshOptions()` waits for queued Lua, so `gapsOut` reads what the look set, and Automatic bars follow it.

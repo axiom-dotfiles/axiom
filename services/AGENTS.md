@@ -12,5 +12,5 @@ One `pragma Singleton QtObject` per domain, named `*Manager`: state and every si
 - **Lockscreen** (`docs/dev/features/lockscreen.md`): `LockManager.lock()` is the only way to lock; in `quickshell` mode only PAM success (`AuthManager`) unlocks, never IPC. The surface keeps a fallback password field for a layout without one.
 - State that must survive a QML reload: `PersistentProperties`; small persisted state: `StateManager` (`~/.local/state/axiom/ui/*.json`) or `Paths.userStatePath`, written atomically.
 - Secrets only through `SecretsManager` (stdin, never argv or config.json).
-- Hyprland calls are Lua (`hl.*`); workspace and window focus only through `HyprlandManager`.
+- Hyprland calls are Lua (`hl.*`), sent only by the `Hyprland*` services, the only files importing `Quickshell.Hyprland`: the rest asks `HyprlandManager` (`docs/dev/hyprland/ipc.md`), workspace and window focus, its state and its events (`configReloaded`, `layersChanged`, …) included.
 - **Launcher** (`docs/dev/features/launcher.md`): every provider returns the same row shape; `/config` can never edit `Bars` or `Overlay.views`. Commands are `LauncherCommands.qml` entries (`name`, `aliases`, `glyph`, `usage`, `description: () => I18n.tr(…)`, `available`, `status`, `options`, `run(arg, value)`); copy the `nightlight` entry.

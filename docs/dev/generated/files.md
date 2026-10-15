@@ -7,6 +7,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 ## ./
 
 - `shell.qml`: The shell's entrypoint: one top-level piece per surface (shell/), plus _services, which creates the services nothing else would reference.
+- `greeter.qml`: The greeter's entrypoint (greetd's login screen; shell.qml is the session's): `qs -p <installed copy>/greeter.qml`, run by scripts/greeter/greeter-session.sh as greetd's user with AXIOM_GREETER=1, which puts ConfigManag…
 
 ## components/bar/
 
@@ -246,6 +247,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `BarLayout.qml`: Pure main-axis layout for a bar (BarContainer) and its sections (WidgetGroup).
 - `BarShapes.qml`: The shapes bar widget backgrounds take (Bars[].widgetShape, a slanted or arrow widget's or run's ends by Bars[].widgetEnds), alone or in runs (Bars[].widgetGrouping): which cap each end of a widget gets, how much room i…
 - `BarWidgetStyle.qml`: What a bar widget draws in, by its bar's widget style: { fill, stroke, indicator, text, icon }.
+- `BindActions.qml`: What each keybind action (the schema's Hyprland.binds[].action) is, independent of the compositor: its IPC call into axiom, default label, section on the Keybinds page, calls, starting flags and whether it takes an argu…
 - `CalendarEvents.qml`: Pure helpers for calendar events (see CalendarManager): day keys, which days an event covers, a day's events in order, dots, what's next, reminders due, editing drafts and the launcher's quick add.
 - `ChatMarkdown.qml`: Splits a chat reply into what the chat draws separately: Markdown prose (a TextEdit in MarkdownText) and fenced code blocks (a box of their own, with a copy button).
 - `ChatProtocol.qml`: The chat providers' wire formats, as pure functions: ChatManager builds a request with request(), ChatRequest sends it with curl and feeds every streamed event to parse().
@@ -257,11 +259,14 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `DockLayout.qml`: Pure helpers for the dock: which apps it shows (pinned ones, then running ones), which window a click goes to, how big each icon is under the pointer, and whether a window covers it.
 - `EdgeAttach.qml`: Where a box that grows out of a screen edge goes along it: bar popouts, edge popouts (the launcher, OSDs, floating edge menus) and anything else drawn with AttachedSurface.
 - `GreeterBundle.qml`: The greeter's config, both ways (GreeterManager writes it, ConfigManager reads it in the greeter).
-- `GreeterSessions.qml`: The sessions the greeter can start (GreetdManager): Wayland session desktop entries (/usr/share/wayland-sessions/*.desktop), their Exec line split into the argv greetd launches, and the environment they start in.
+- `GreeterSessions.qml`: The sessions the greeter can start (GreetdManager): Wayland session desktop entries (wayland-sessions/*.desktop in each data dir), their Exec line split into the argv greetd launches, and the environment they start in.
 - `GreeterUsers.qml`: The people the greeter offers to log in (GreetdManager): accounts from /etc/passwd whose uid is in /etc/login.defs' UID_MIN..UID_MAX (regular users, not system accounts) and whose shell lets them log in.
 - `GridPlacement.qml`: Pure geometry of the module grid shared by overlay pages, edge menus and the layouts editor.
 - `HyprBinds.qml`: Binds against what Hyprland reports (`hyprctl binds -j` entries): a key's id as Hyprland lists it, which of axiom's binds the runtime layer applies and which it skips because the user's config already binds that key, an…
+- `HyprConfigLua.qml`: The Lua axiom's Hyprland layer is made of (HyprlandConfigManager): each bind's hl.bind(), the included module, the managed hyprland.lua and the one given back on leaving managed.
 - `HyprLua.qml`: Hyprland's Lua config from schema fields: each field with `x-hypr` (the option's dotted path, or a list of paths) becomes one value of a nested hl.config({...}) table. x-hyprScale a factor for integers shown scaled (0.0…
+- `HyprReply.qml`: Requests and replies on Hyprland's request socket (HyprlandIpcManager), which answers one request per connection, in hyprctl's wire format: "j/" asks for JSON, "[[BATCH]]a;b" runs several and joins their replies with bl…
+- `HyprState.qml`: Hyprland's JSON replies (HyprlandManager) as the shapes the rest of the shell reads, which don't depend on the compositor: what another compositor's service would hand back too.
 - `HypridleConf.qml`: The hypridle config axiom runs hypridle with (HypridleManager), from the Idle section: a general block, then one listener per step whose timeout isn't 0 (dim, lock, screen off, suspend) in timeout order, then the user's…
 - `IconResolver.qml`: Resolves icon names for window classes: desktop entries first, then known substitutions, then name variants that exist in the icon theme.
 - `KeyNames.qml`: Keys as Hyprland writes them ("SUPER + SHIFT + space"): turning a Qt key event into one (for recording a bind), and splitting one for display.
@@ -598,17 +603,22 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `GreeterManager.qml`: Axiom as greetd's login screen, from the user's side (the greeter itself is greeter.qml, with GreetdManager).
 - `GridEditor.qml`: Editing of one grid of modules (each with a `place` { x, y, w, h } in quarter cards), shared by the layouts editor's overlay pages and edge menus.
 - `HypridleManager.qml`: hypridle, run by axiom (the Idle section).
+- `HyprlandBindMerge.qml`: scripts/merge_hypr_binds.py: every hl.bind in user/*.lua that can move becomes one of axiom's binds (an action where one does the same, else the `lua` action), saved first, then its call is deleted from the file (a date…
 - `HyprlandConfigManager.qml`: Managed config, loading ~/.config/hypr/user/*.lua after it Whenever the file isn't loaded (included but the lines are missing, or a managed takeover refused), the runtime layer is applied instead, so axiom still works, …
-- `HyprlandManager.qml`: Provides access to some Hyprland data not available in Quickshell.Hyprland.
+- `HyprlandGrab.qml`: Hyprland's focus grab, for surfaces that close (or drop keyboard focus) on a click outside them: while `active`, keyboard focus stays in `windows` and a click anywhere else ends the grab (`cleared`).
+- `HyprlandIpcManager.qml`: Requests on Hyprland's request socket, as hyprctl makes them but without a process each: what Quickshell.Hyprland doesn't cover (options, Lua evals, binds, devices, layers, the cursor, reloads).
+- `HyprlandManager.qml`: Hyprland's state and actions for the rest of axiom: the only reader of Quickshell.Hyprland outside the Hyprland* services, so the rest of the shell names no compositor (docs/dev/hyprland/ipc.md).
+- `HyprlandRuntimeLayer.qml`: Axiom's Hyprland layer evaluated at runtime, for HyprlandConfigManager: the detached mode, and the fallback of the file modes while their file isn't loaded.
+- `HyprlandTakeover.qml`: Taking ~/.config/hypr/hyprland.lua over for the managed mode, and giving it back (scripts/claim_hyprland.sh), for HyprlandConfigManager, which acts on the results (claimed, blocked, released).
 - `IdleInhibitManager.qml`: Shared on/off state for keeping the session awake.
 - `IntegrationHookupManager.qml`: Hooks theme integrations into their apps' configs: each ThemeIntegrations switch's `x-hookup` targets (the line that loads its axiom file, where it goes), run by scripts/integration_hookup.py.
-- `KeybindManager.qml`: KeybindManager reads the keybinds Hyprland has registered (`hyprctl binds -j`).
+- `KeybindManager.qml`: KeybindManager reads the keybinds Hyprland has registered (HyprlandManager.withBinds).
 - `KeyboardLayoutManager.qml`: Active xkb layout of the main keyboard, shared by every KeyboardLayout widget.
 - `LauncherCommands.qml`: The launcher's slash commands, one per shell feature.
 - `LauncherManager.qml`: LauncherManager turns the launcher's search text into result rows and runs them.
 - `LockManager.qml`: The one way to lock the session, whatever locks it (Lockscreen.mode): "quickshell" the built-in locker (shell/Lockscreen.qml: Wayland session lock + PAM through AuthManager) "hyprlock" hyprlock, with a config ThemeManag…
 - `MediaManager.qml`: The active MPRIS player (Spotify first, else one playing, else one that can play; or the one picked with selectPlayer) for the media widgets, the lockscreen and the media keys: its track, position and controls, and its …
-- `MonitorManager.qml`: The Monitors page: the connected outputs (`hyprctl monitors all -j`, read at startup and when monitors come, go or the config reloads; never polled) and the editor for Hyprland.monitors, a draft of profiles (each a layo…
+- `MonitorManager.qml`: The Monitors page: the connected outputs (HyprlandManager.withOutputs, read at startup and when monitors come, go or the config reloads; never polled) and the editor for Hyprland.monitors, a draft of profiles (each a la…
 - `NetworkingManager.qml`: Wi-Fi state and actions over NetworkManager (Quickshell.Networking, D-Bus, so nothing polls).
 - `NightLightManager.qml`: The night light (the NightLight section): warmer colors through hyprsunset, or wlsunset without it, started and stopped by axiom.
 - `NotesManager.qml`: Notes: Markdown files in NotesConfig.directory ($XDG_DATA_HOME/axiom/notes/ by default, or a linked folder).

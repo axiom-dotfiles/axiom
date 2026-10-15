@@ -45,6 +45,24 @@ QtObject {
   }
   property bool _savesHeld: false
 
+  // Whether a save may go ahead now (never in the greeter); says why not
+  function _maySave() {
+    if (root.greeter)
+      return false;
+    if (_savesBlocked) {
+      console.warn("[ConfigManager] config.json is unusable; not saving until it is fixed (or a saved config is restored).");
+      return false;
+    }
+    return !_held();
+  }
+
+  // Whether saves are held (holdSaves), saying so
+  function _held() {
+    if (_savesHeld)
+      console.warn("[ConfigManager] Not saving while the config is being moved to", root.xdgDirs.config);
+    return _savesHeld;
+  }
+
   // True while config.json on disk is unusable (invalid, or present but
   // unreadable). The shell keeps running on the last good config (or schema
   // defaults at startup) and refuses to save, so the file can't be
@@ -149,16 +167,8 @@ QtObject {
      * @return true if it was written.
      */
   function saveConfig() {
-    if (root.greeter)
+    if (!_maySave())
       return false;
-    if (_savesBlocked) {
-      console.warn("[ConfigManager] config.json is unusable; not saving until it is fixed (or a saved config is restored).");
-      return false;
-    }
-    if (_savesHeld) {
-      console.warn("[ConfigManager] Not saving while the config is being moved to", root.xdgDirs.config);
-      return false;
-    }
     try {
       if (!_validateConfig(root._config)) {
         console.error("[ConfigManager] Failed to validate config against schema. Aborting save.");
@@ -180,16 +190,8 @@ QtObject {
    * @return true if it was valid and written; on false nothing changed.
    */
   function commit(object) {
-    if (root.greeter)
+    if (!_maySave())
       return false;
-    if (_savesBlocked) {
-      console.warn("[ConfigManager] config.json is unusable; not saving until it is fixed (or a saved config is restored).");
-      return false;
-    }
-    if (_savesHeld) {
-      console.warn("[ConfigManager] Not saving while the config is being moved to", root.xdgDirs.config);
-      return false;
-    }
     const prepared = _prepareConfig(object);
     if (!prepared) {
       console.error("[ConfigManager] Rejected config: it does not validate against the schema.");
@@ -217,7 +219,7 @@ QtObject {
    * @return true if the config was valid and saved.
    */
   function restoreConfig(object) {
-    if (root.greeter || root._savesHeld)
+    if (root.greeter || _held())
       return false;
     const prepared = _prepareConfig(object);
     if (!prepared) {
@@ -497,7 +499,7 @@ QtObject {
   // file caught mid-write / unreadable. Only a real "missing" writes. Makes
   // the folder first: FileView doesn't create it.
   property Process _existsCheck: Process {
-    command: ["sh", "-c", 'mkdir -p "$1" && test -e "$1/$2"', "sh", root.configDir, root.configFile]
+    command: ["sh", "-c", 'mkdir -p "$1" && test -e "$1$2"', "sh", root.configDir, root.configFile]
     onExited: exitCode => {
       if (exitCode !== 0) {
         console.log("[ConfigManager] No config.json found, writing defaults.");

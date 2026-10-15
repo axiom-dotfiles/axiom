@@ -22,7 +22,7 @@ How clocks show another time zone (the JS engine has no Intl), plus the Clock mo
   - Nothing is read when no clock asks.
 - **`offsetOf(zone)`** is null, meaning the system's time:
   - until the zone has been read;
-  - for a zone not in `zones`. `zones` is the system's list, from `tzdata.zi` or `timedatectl`; it is also the `timezones` option list. Without this check, `date` would quietly give UTC.
+  - for a zone not in `zones`. `zones` is the system's list, from `tzdata.zi` (in `$TZDIR`, else `/usr/share/zoneinfo`) or `timedatectl`; it is also the `timezones` option list. Without this check, `date` would quietly give UTC.
 - **Display:** a clock shows `methods/TimeZones.shift(date, offset)`, whose local fields read as that zone's wall clock.
 
 ### Clock module (`content/Clock`)

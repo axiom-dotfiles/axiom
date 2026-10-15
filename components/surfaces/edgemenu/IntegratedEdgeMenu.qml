@@ -43,7 +43,7 @@ PopoutWrapperBase {
   // With the screen border off, the strip's own inner stroke (with it on,
   // the border's strip inside this one draws it)
   readonly property int innerStroke: Appearance.screenBorder ? 0 : Appearance.borderWidth
-  readonly property real edgeLength: root.vertical ? root.screen.height : root.screen.width
+  readonly property real edgeLength: root.vertical ? root.screen?.height ?? 0 : root.screen?.width ?? 0
   readonly property real bodyDepth: root.vertical ? (loader.item?.implicitWidth ?? 0) : (loader.item?.implicitHeight ?? 0)
   readonly property int depth: Math.ceil(root.bodyDepth + root.pad * 2 + root.innerStroke)
   // Where the modules start along the edge, from config (the body loads

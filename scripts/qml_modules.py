@@ -24,8 +24,9 @@ SINGLETON = re.compile(r"^\s*pragma\s+Singleton\b", re.M)
 
 
 def qml_files():
-    """Every QML file the shell loads: shell.qml and the module directories."""
-    files = [ROOT / "shell.qml"]
+    """Every QML file the shell loads: the entrypoints (shell.qml, greeter.qml)
+    and the module directories."""
+    files = [ROOT / "shell.qml", ROOT / "greeter.qml"]
     for d in QML_DIRS:
         files.extend(sorted((ROOT / d).rglob("*.qml")))
     return files

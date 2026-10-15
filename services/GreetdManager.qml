@@ -81,7 +81,7 @@ QtObject {
     if (!root._selectedUser || root._busy)
       return;
     if (!root.selectedSession) {
-      root._message = I18n.tr("No session to start: nothing in /usr/share/wayland-sessions");
+      root._message = I18n.tr("No session to start: no wayland-sessions folder lists one");
       root._messageIsError = true;
       root.failed();
       return;
@@ -177,18 +177,13 @@ QtObject {
   property string _activeLayout: ""
 
   function nextLayout() {
-    CommandManager.run(["hyprctl", "switchxkblayout", "all", "next"], () => root._readLayouts());
+    HyprlandManager.cycleKeyboardLayout("next", () => root._readLayouts());
   }
 
   function _readLayouts() {
-    CommandManager.run(["hyprctl", "devices", "-j"], (exitCode, out) => {
-      try {
-        const keyboard = (JSON.parse(out).keyboards ?? []).find(k => k.main) ?? JSON.parse(out).keyboards?.[0];
-        root._layouts = String(keyboard?.layout ?? "").split(",").filter(layout => layout !== "");
-        root._activeLayout = keyboard?.active_keymap ?? "";
-      } catch (e) {
-        console.warn("[GreetdManager] hyprctl devices:", e);
-      }
+    HyprlandManager.withKeyboard(keyboard => {
+      root._layouts = keyboard?.layouts ?? [];
+      root._activeLayout = keyboard?.keymap ?? "";
     });
   }
 
@@ -210,13 +205,15 @@ QtObject {
 
   // --- Startup ---
 
+  // Each data dir's wayland-sessions/, in lookup order (find lists them
+  // in that order, and says nothing of one that isn't there on stdout)
   function _readSessions() {
-    const folder = "/usr/share/wayland-sessions";
-    CommandManager.run(["find", folder, "-maxdepth", "1", "-name", "*.desktop"], (exitCode, out) => {
-      const files = out.split("\n").filter(file => file !== "");
-      root._sessions = GreeterSessions.sorted(files.map(file => GreeterSessions.parse(FileManager.read("file://" + file), file.replace(/^.*\//, "").replace(/\.desktop$/, ""))));
+    const folders = Paths.dataSearchDirs.map(dir => dir + "/wayland-sessions");
+    CommandManager.run(["find"].concat(folders, ["-maxdepth", "1", "-name", "*.desktop"]), (exitCode, out) => {
+      const files = GreeterSessions.files(out.split("\n").filter(file => file !== ""));
+      root._sessions = GreeterSessions.sorted(files.map(entry => GreeterSessions.parse(FileManager.read("file://" + entry.file), entry.id)));
       if (root._sessions.length === 0)
-        console.warn("[GreetdManager] No sessions in", folder);
+        console.warn("[GreetdManager] No sessions in", folders.join(", "));
     });
   }
 
@@ -225,10 +222,10 @@ QtObject {
     const config = ConfigManager.config;
     const managedSchema = ConfigManager.configSchema.properties.Hyprland.properties.managed;
     const managed = config.Hyprland.mode === "managed" ? config.Hyprland.managed : undefined;
-    const lua = HyprLua.greeterLua(config.Hyprland.monitors.profiles, managedSchema, managed, name => Theme.resolveColor(name).toString().slice(1, 7));
+    const lua = HyprLua.greeterLua(config.Hyprland.monitors.profiles, managedSchema, managed, name => HyprConfigLua.hex(Theme.resolveColor(name)));
     HyprlandManager.runLua(lua.join("\n"));
     if (managed?.cursorTheme)
-      CommandManager.run(["hyprctl", "setcursor", managed.cursorTheme, String(managed.cursorSize)]);
+      HyprlandManager.setCursor(managed.cursorTheme, managed.cursorSize);
   }
 
   Component.onCompleted: {

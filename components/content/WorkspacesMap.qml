@@ -1,6 +1,5 @@
 pragma ComponentBehavior: Bound
 import QtQuick
-import Quickshell.Hyprland
 import qs.config
 import qs.services
 import qs.components.methods
@@ -18,7 +17,7 @@ Card {
   // A string, so the tiles are only rebuilt when the set of workspaces
   // shown changes, not on every window event
   readonly property string _idsKey: {
-    const ids = HyprlandManager.workspaceIds(Hyprland.focusedMonitor);
+    const ids = HyprlandManager.workspaceIds(HyprlandManager.focusedMonitor);
     if (root.properties.showEmpty === false)
       return ids.filter(id => HyprlandManager.windowList.some(w => w.workspace?.id === id) || id === root.activeId).join(",");
     return ids.join(",");

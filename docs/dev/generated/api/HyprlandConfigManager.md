@@ -10,7 +10,7 @@ Managed config, loading ~/.config/hypr/user/*.lua after it Whenever the file isn
 - `mode` (readonly string)
 - `problem` (readonly string): Why the chosen mode isn't in effect, or ""
 - `status` (readonly string): "runtime" (detached), "loaded" (the file is in effect), "fallback" (it isn't: see `problem`) or "pending" (still checking)
-- `skippedKeys` (readonly var): Configured keys the runtime layer skipped because Hyprland's config already binds them
+- `skippedKeys` (readonly alias): Configured keys the runtime layer skipped because Hyprland's config already binds them
 - `includePath` (readonly string)
 - `managedPath` (readonly string)
 - `userDir` (readonly string)
@@ -20,17 +20,13 @@ Managed config, loading ~/.config/hypr/user/*.lua after it Whenever the file isn
 - `autostartTarget` (readonly var)
 - `shellCommand` (readonly string): How Hyprland, binds and hypridle start or call axiom
 - `startCommand` (readonly string): Starting it: -n (--no-duplicate) exits at once if axiom already runs, so a second autostart line or a reloaded hyprland.lua can't start another copy
-- `actionFlags` (readonly var): Flags an action starts with when it's picked (the bind can change them)
-- `flagNames` (readonly var): reads: Hyprland.binds[].repeating, Hyprland.binds[].locked, Hyprland.binds[].release (by flag name)
-- `switcherSteps` (readonly var): The window switcher's actions, by the step each takes through the windows (also how a bind is known to be one)
-- `monitorConflicts` (readonly var): Managed mode: the user/*.lua files that set monitors themselves.
-- `managedCheck` (readonly string): What switching to managed would do, from checkManaged(): "ours" (the file is already axiom's), "adopt" (an existing hyprland.lua is moved to user/), "stock" (it's Hyprland's example config, maybe wit…
-- `managedBlockedBy` (readonly string): Why it's blocked: "link" or "git" (in the repository `managedBlockedRepo`)
-- `managedBlockedRepo` (readonly string)
-- `merging` (readonly bool): scripts/merge_hypr_binds.py: every hl.bind in user/*.lua that can move becomes one of axiom's binds (an action where one does the same, else the `lua` action), saved first, then its call is deleted f…
-- `lastMerge` (var): The last merge: { moved, removed, kept: [{ file, line, key, reason, detail }], failed: [{ file, line, reason, detail }], remapped: [{ from, to, action }], tracked: [file], errors: [text], saveFailed …
-- `mergeable` (int): How many binds a Merge of all of user/ would move (previewMerge()); -1 until looked
-- `cursorThemes` (readonly var): Installed cursor themes (XCursor or hyprcursor), for the settings page
+- `managedCheck` (readonly alias): What switching to managed would do (HyprlandTakeover.managedCheck)
+- `managedBlockedBy` (readonly alias)
+- `managedBlockedRepo` (readonly alias)
+- `monitorConflicts` (readonly alias): Managed mode: the user/*.lua files that set monitors themselves
+- `merging` (readonly alias)
+- `lastMerge` (readonly alias): The last merge (HyprlandBindMerge.lastMerge), or null
+- `mergeable` (readonly alias): How many binds a Merge of all of user/ would move; -1 until looked
 
 ### Signals
 
@@ -38,19 +34,13 @@ Managed config, loading ~/.config/hypr/user/*.lua after it Whenever the file isn
 
 ### Functions
 
-- `hasCalls(action)`: Whether an action takes a call (toggle, open or close)
-- `callOf(bind)`: A bind's call, "toggle" unless its action has the one it names
-- `sectionFor(action)`: The section a bind's action files it under on the Keybinds page
-- `defaultLabel(bind)`: The label a bind gets when its description is empty
-- `hasOwnSection(description)`: Whether a description names its own section ("Section: Label")
-- `descriptionFor(bind)`: The description Hyprland gets: "Section: Label", the section from the action unless the description names its own
 - `isComplete(bind)`: Whether a configured bind has everything it needs to be bound
 - `moduleLua()`: The included file: a module whose setup() applies what's enabled
 - `managedLua()`: The managed hyprland.lua
-- `releasedLua()`: The hyprland.lua leaving managed gives back when the takeover set nothing aside (claim_hyprland.sh release): the user's from then on, starting axiom (and loading its module in included mode) and load…
+- `releasedLua()`: The hyprland.lua leaving managed gives back when the takeover set nothing aside (claim_hyprland.sh release), starting axiom (and loading its module in included mode)
 - `checkManaged()`
+- `mergeUserBinds(only)`: `only`: one file name in user/ (the adopted one), else all of them
+- `previewMerge()`: Counts what a Merge would move, changing nothing (`mergeable`)
 - `copyIncludeLines()`
 - `openConfigDir()`
 - `apply()`
-- `mergeUserBinds(only)`: `only`: one file name in user/ (the adopted one), else all of them
-- `previewMerge()`: Counts what a Merge would move, changing nothing (`mergeable`)

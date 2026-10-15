@@ -1,6 +1,6 @@
 # Keybinds (actions and the Keybinds page)
 
-> **Files:** `services/KeybindManager.qml`, `services/HyprlandConfigManager.qml` (`_actions`, `_dispatchers`), `components/views/Keybinds.qml`, `components/views/keybinds/KeyRecorder.qml`, `components/views/keybinds/FilterChips.qml`, `components/methods/KeyNames.qml`, `components/methods/KeybindFilter.qml`, `components/methods/HyprBinds.qml`
+> **Files:** `services/KeybindManager.qml`, `components/methods/BindActions.qml` (what each action is, its argument kinds), `components/methods/HyprConfigLua.qml` (`bindLua`, `dispatcherLua`), `services/HyprlandConfigManager.qml`, `components/views/Keybinds.qml`, `components/views/keybinds/KeyRecorder.qml`, `components/views/keybinds/FilterChips.qml`, `components/methods/KeyNames.qml`, `components/methods/KeybindFilter.qml`, `components/methods/HyprBinds.qml`
 > **Config:** `Hyprland.binds`, `Apps.terminal`/`fileManager`/`browser`
 > **Related:** [Bind merge](bind-merge.md), [Config modes](config-modes.md), [Window switcher](window-switcher.md), [Screenshots and recording](../features/screenshots-recording.md), [Workspace strips](workspace-strips.md)
 
@@ -9,8 +9,8 @@ What a bind can do, and how the Keybinds page lists Hyprland's binds and edits a
 ### Bind actions
 - `binds` are edited on the Keybinds page, not in settings.
 - An action is one of:
-  - **An axiom IPC call** (`_actions`). This includes the `audio`/`media` targets on AudioManager/MediaManager, so the OSD shows.
-  - **A Hyprland dispatcher bound directly** (`_dispatchers`):
+  - **An axiom IPC call** (`BindActions.ipcActions`). This includes the `audio`/`media` targets on AudioManager/MediaManager, so the OSD shows.
+  - **A Hyprland dispatcher bound directly** (`BindActions.compositorActions`, its Lua in `HyprConfigLua.dispatcherLua`):
     - focus/move/resize, close, fullscreen, floating, pin, special workspaces
     - mouse drag/resize on a `mouse:272` key (Hyprland makes that a mouse bind by itself)
     - the window switcher's `windowSwitcher`/`windowSwitcherReverse`, Lua functions that enter its submap ([Window switcher](window-switcher.md))
@@ -20,10 +20,10 @@ What a bind can do, and how the Keybinds page lists Hyprland's binds and edits a
     - `terminal`/`fileManager`/`browser`: exec `Apps.terminalCommand` etc., so the binds follow the `Apps` section's `terminal`/`fileManager`/`browser` (empty is the system default)
     - `mediaStop` etc. on `media`.
   - **`screenshot`** (argument `region`/`window`/`screen`) and **`screenRecord`**, which go to ScreenshotManager ([Screenshots and recording](../features/screenshots-recording.md)).
-- Binds carry `repeating`/`locked`/`release` flags, preset from `actionFlags` when the action is picked.
+- Binds carry `repeating`/`locked`/`release` flags, preset from `BindActions.actionFlags` when the action is picked.
 
 ### What the page lists
-- Every bind Hyprland reports (`hyprctl binds -j`), grouped by "Section: Label" descriptions.
+- Every bind Hyprland reports (`HyprlandManager.withBinds`), grouped by "Section: Label" descriptions.
 - Axiom's own `Hyprland.binds` are edited in a `ConfigDraft` and saved with `save()`.
 - Per-bind `issues`:
   - no key, a bad modifier, a missing argument, a duplicate

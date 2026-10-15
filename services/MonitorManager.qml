@@ -1,28 +1,27 @@
 pragma Singleton
 
 import QtQuick
-import Quickshell.Hyprland
 import Quickshell.Io
 
 import qs.config
 import qs.components.methods
 
 /*
- * The Monitors page: the connected outputs (`hyprctl monitors all -j`, read
+ * The Monitors page: the connected outputs (HyprlandManager.withOutputs, read
  * at startup and when monitors come, go or the config reloads; never
  * polled) and the editor for Hyprland.monitors, a draft of profiles (each a
  * layout for one set of monitors). HyprlandConfigManager writes the saved
  * profiles into axiom's Lua layer in every mode, where the one matching
  * what's connected applies (again on every hotplug).
  *
- * Apply tries the selected profile at once (hl.monitor through hyprctl
- * eval) and asks to keep it: keep() saves the draft, and revert() (or the
+ * Apply tries the selected profile at once (hl.monitor through
+ * HyprlandManager.runLua) and asks to keep it: keep() saves the draft, and revert() (or the
  * countdown running out) puts back what was there before.
  */
 QtObject {
   id: root
 
-  // `hyprctl monitors all -j`, disabled ones included
+  // Hyprland's monitors (HyprlandManager.withOutputs), disabled ones included
   property var outputs: []
   readonly property var enabledOutputs: outputs.filter(monitor => !monitor.disabled)
 
@@ -343,22 +342,17 @@ QtObject {
   // --- Reading the monitors ---
 
   function refresh() {
-    if (!_read.running)
-      _read.running = true;
+    if (_reading)
+      return;
+    _reading = true;
+    HyprlandManager.withOutputs(outputs => {
+      root._reading = false;
+      if (outputs)
+        root.outputs = outputs;
+    });
   }
 
-  property Process _read: Process {
-    command: ["hyprctl", "monitors", "all", "-j"]
-    stdout: StdioCollector {
-      onStreamFinished: {
-        try {
-          root.outputs = JSON.parse(text);
-        } catch (e) {
-          console.warn("[MonitorManager] Could not parse hyprctl monitors:", e);
-        }
-      }
-    }
-  }
+  property bool _reading: false
 
   // Mode changes send no event: read again once they've settled
   property Timer _refreshSoon: Timer {
@@ -392,7 +386,7 @@ QtObject {
         }
       ]
     });
-    // After axiom's layer has applied it (debounced, then hyprctl eval)
+    // After axiom's layer has applied it (debounced, then evaluated)
     _refreshLater.restart();
   }
 
@@ -404,15 +398,16 @@ QtObject {
   }
 
   property Connections _events: Connections {
-    target: Hyprland
+    target: HyprlandManager
 
-    function onRawEvent(event) {
-      if (!["monitoradded", "monitoraddedv2", "monitorremoved", "monitorremovedv2", "configreloaded"].includes(event.name))
-        return;
-      if (root.pageShown && !root.pending && !draft.isDirty && event.name !== "configreloaded") {
+    function onOutputsChanged() {
+      if (root.pageShown && !root.pending && !draft.isDirty) {
         draft.load();
         root._detectPending = true;
       }
+      root._refreshSoon.restart();
+    }
+    function onConfigReloaded() {
       root._refreshSoon.restart();
     }
   }
