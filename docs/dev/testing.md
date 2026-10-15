@@ -20,7 +20,7 @@ How to look at, exercise and debug the live shell without breaking the user's se
 - A failed reload leaves the old generation running. Force a clean reload before editing config.json.
 - To wait for a reload: `timeout 8 bash -c 'until scripts/log.sh | grep -q "Configuration Loaded"; do :; done'`.
 - Raw logs: `qs log -c axiom -f` (or `-t 50`); each instance also writes `/run/user/$UID/quickshell/by-id/<instance>/log.log` (plain text; `pgrep -af "qs -c axiom"` finds the instance). stdout and journalctl show nothing.
-- If config.json was lost (it falls back to defaults), restore it from a snapshot in `config/user/saved/`.
+- If config.json was lost (it falls back to defaults), restore it from a snapshot in `~/.config/axiom/saved/`.
 - **Renaming or deleting a singleton** can leave a reload failing with `Type <Old> unavailable … File not found`: one fired between the edits and kept the old file in its module listing. Force one more reload (above); it rescans and loads. Add the old name to `RETIRED` in `scripts/check_docs.py` so docs still citing it fail.
 
 ### Seeing a page or surface

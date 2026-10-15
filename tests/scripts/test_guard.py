@@ -79,10 +79,12 @@ class Bash(unittest.TestCase):
         self.allows("scripts/self_update.sh check", "scripts/self_update.sh apply v1.2 /tmp/clone")
 
     def test_live_config_file(self):
-        self.blocks("rm config/user/config.json", "rm -rf config/user", "mv config/user/config.json /tmp/x",
+        self.blocks(f"rm {guard.LIVE_CONFIG}", f"rm -rf {guard.LIVE_CONFIG.parent}", f"mv {guard.LIVE_CONFIG} /tmp/x",
+                    "rm ~/.config/axiom/config.json" if not os.environ.get("XDG_CONFIG_HOME") else f"rm {guard.LIVE_CONFIG}",
+                    "rm config/user/config.json", "rm -rf config/user", "mv config/user/config.json /tmp/x",
                     f"rm {REPO}/config/user/config.json", "git clean -fdx", "git clean -X -f")
-        self.allows("rm /tmp/config.json", "cp config/user/config.json /tmp/backup.json", "git clean -fd",
-                    "mv /tmp/new.json /tmp/other.json")
+        self.allows("rm /tmp/config.json", f"cp {guard.LIVE_CONFIG} /tmp/backup.json", "cp config/user/config.json /tmp/backup.json",
+                    f"rm {guard.LIVE_CONFIG.parent}/saved/old.json", "git clean -fd", "mv /tmp/new.json /tmp/other.json")
 
     def test_qmlformat_inplace(self):
         self.blocks("qmlformat -i shell.qml", "/usr/lib/qt6/bin/qmlformat --inplace shell.qml")

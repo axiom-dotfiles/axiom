@@ -10,7 +10,7 @@ Screenshots (the `screenshot` keybind action, IPC `screenshot take <kind>`, laun
 - `picking` (bool): The picker is open (or an immediate capture is running)
 - `busy` (readonly bool): Picking, or waiting for the launcher to close first
 - `request` (var): { kind, screen: the screen an immediate `screen` capture takes }
-- `copyOnly` (bool): Keep nothing on disk, only copy (saved in config/state/screenshot.json)
+- `copyOnly` (bool): Keep nothing on disk, only copy (saved in Paths.statePath screenshot.json)
 - `recordAudio` (string): The sound the ScreenRecord card records with: "none" | "system" | "mic" (saved with copyOnly)
 - `annotate` (bool): Open the next capture in the annotator (set in the picker)
 - `annotator` (readonly string): "satty" | "swappy" | "": what annotating opens

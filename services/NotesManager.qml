@@ -4,7 +4,7 @@ import Quickshell
 import Quickshell.Io
 import qs.config
 
-// Notes: Markdown files in NotesConfig.directory (config/state/notes/ by
+// Notes: Markdown files in NotesConfig.directory ($XDG_DATA_HOME/axiom/notes/ by
 // default, or a linked folder). Paths are relative to that folder, with
 // "/" between folders, and can never leave it.
 //
@@ -355,7 +355,7 @@ QtObject {
     CommandManager.run(command, (code, out) => callback(code === 0, out, code));
   }
 
-  // Notes from before v17 were JSON state files (config/state/note-<name>.json):
+  // Notes from before v17 were JSON state files (Paths.statePath note-<name>.json):
   // each becomes <name>.md here, unless that exists, and is kept as
   // note-<name>.json.migrated
   function _migrateOldNotes() {

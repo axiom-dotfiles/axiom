@@ -3,7 +3,7 @@
 
 > **File:** `services/OnboardingManager.qml` · **Docs:** see [docs/dev](../../README.md)
 
-The first-run onboarder (shell/Onboarding): a series of pages that set the essentials up (Hyprland, monitors, apps and keys, workspaces, the look, integrations), each applying as the user goes, with the Hyprland mode applied on Finish. It opens by itself when there was no config.json (ConfigManager.firstRun), and again after a reload or restart until it's finished or skipped: config/state/onboarding.json keeps { completedVersion, step }. Existing setups (a config, no state file) are never prompted. IPC `onboarding` (open, close, reset) and the launcher's /welcome run it again. Created from shell.qml's `_services`.
+The first-run onboarder (shell/Onboarding): a series of pages that set the essentials up (Hyprland, monitors, apps and keys, workspaces, the look, integrations), each applying as the user goes, with the Hyprland mode applied on Finish. It opens by itself when there was no config.json (ConfigManager.firstRun), and again after a reload or restart until it's finished or skipped: ui/onboarding.json (Paths.statePath) keeps { completedVersion, step }. Existing setups (a config, no state file) are never prompted. IPC `onboarding` (open, close, reset) and the launcher's /welcome run it again. Created from shell.qml's `_services`.
 
 ### Properties
 

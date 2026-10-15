@@ -8,7 +8,7 @@ Notes are Markdown files edited in place by the Notes overlay / edge-menu module
 
 ### Storage
 - Notes are Markdown files in `NotesConfig.directory` (the `Notes.directory` setting).
-  - Empty means `config/state/notes/`, which is gitignored.
+  - Empty means `Paths.defaultNotesPath` (`~/.local/share/axiom/notes/`).
   - A linked folder is never created.
 - Paths are relative to that folder. `clean()` refuses any path that leaves it.
 - `allNotes` (from a `find`) feeds the `notes` `x-options`.
@@ -66,9 +66,9 @@ Notes are Markdown files edited in place by the Notes overlay / edge-menu module
 - The module whose `placeKey` matches shows it: `openRequested`, or `takeReveal` if the module loads within 5 s.
 
 ### Per-module state
-- The last note per place (`overlay`, `edgeMenu:<id>`, `desktop:<screen>`) is kept in `config/state/notes-modules.json`.
+- The last note per place (`overlay`, `edgeMenu:<id>`, `desktop:<screen>`) is kept in `~/.local/state/axiom/ui/notes-modules.json`.
 - `lockNote` pins a module to its `note`.
 
 ### Lifecycle
 - Created from `shell.qml`'s `_services`.
-- At startup it moves old `config/state/note-<name>.json` files to `<name>.md`, keeping `*.json.migrated`.
+- At startup it moves old `note-<name>.json` state files (`Paths.statePath`) to `<name>.md`, keeping `*.json.migrated`.

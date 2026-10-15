@@ -66,7 +66,7 @@
 ## Verify
 - `scripts/run_tests.sh Config ConfigExamples`
 - `scripts/dev/verify.sh`
-- Then check `scripts/log.sh`: the live config migrates once on reload and logs its `changes`. Confirm the user's values survived in `config/user/config.json`.
+- Then check `scripts/log.sh`: the live config migrates once on reload and logs its `changes`. Confirm the user's values survived in `~/.config/axiom/config.json`.
 
 ## Docs to update
 - The doc of the feature whose keys moved (`docs/dev/…`). Old names live only in git history and the migration's comment.

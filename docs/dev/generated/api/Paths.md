@@ -8,13 +8,17 @@ Derived, non-configurable filesystem paths (from the environment, not config).
 ### Properties
 
 - `homeDirectory` (readonly string): --- Paths (from the environment, not from any config value) ---
-- `axiomPath` (readonly string): Shell root (this repo), always with a trailing slash
+- `axiomPath` (readonly string): Shell root (this repo), always with a trailing slash.
 - `themePath` (readonly string)
 - `scriptsPath` (readonly string)
-- `configPath` (readonly string)
-- `statePath` (readonly string): Small persisted state (StateManager).
+- `resourcePath` (readonly string): What ships with axiom in config/: json/ (schema, theme defaults, emoji), themes/, i18n/
+- `userConfigPath` (readonly string): $XDG_CONFIG_HOME/axiom/: config.json and saved/
+- `statePath` (readonly string): Small persisted state (StateManager), $XDG_STATE_HOME/axiom/ui/.
+- `userStatePath` (readonly string): Per-user state ($XDG_STATE_HOME/axiom/): secrets, chats, notification history, the generated hyprlock/hypridle/Hyprland configs
+- `userDataPath` (readonly string): $XDG_DATA_HOME/axiom/: what the user made (the default notes folder)
+- `defaultNotesPath` (readonly string)
+- `generatedThemesPath` (readonly string): Themes generated from the wallpaper ("generated/<name>")
 - `hyprlandPath` (readonly string)
-- `userStatePath` (readonly string): Per-user state outside the repo ($XDG_STATE_HOME/axiom/): secrets, the generated hyprlock config
 - `runtimeDir` (readonly string): $XDG_RUNTIME_DIR, the user's own 0700 tmpfs (always there, unlike runtimePath, which is made by whatever writes into it)
 - `runtimePath` (readonly string): Scratch files that go with the session: unsaved chat attachments, clipboard thumbnails, copy-only screenshots, album art
 - `greeter` (readonly bool): This instance is the greeter: greetd's login screen, running as greetd's user from the installed copy (set by greeter-session.sh; ConfigManager reads the same variable, as it reads no reader)
@@ -24,5 +28,6 @@ Derived, non-configurable filesystem paths (from the environment, not config).
 
 ### Functions
 
+- `themeFile(name)`: A theme's JSON file, by its Appearance.theme name: "generated/<name>" from generatedThemesPath, the rest from the bundled themes
 - `expandHome(path)`: A path from config or the user: trimmed, a leading ~ as home, no trailing slash ("~/Pictures/" -> "/home/<user>/Pictures")
 - `shortenHome(path)`: A path to show: home as ~ ("/home/<user>/x" -> "~/x")

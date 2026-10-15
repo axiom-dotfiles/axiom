@@ -15,7 +15,7 @@ This file holds only the rules. **The mechanics of every service and surface are
 | Task / area | Read |
 |---|---|
 | Any service, polling, `acquire`/`release` | `docs/dev/core/services-pattern.md` |
-| Config loading, writes, drafts, previews | `docs/dev/core/config-manager.md`, `config-readers.md` |
+| Config loading, writes, drafts, previews, where files live (XDG) | `docs/dev/core/config-manager.md`, `config-readers.md` |
 | Schema `x-*` annotations (complete list) | `docs/dev/core/schema-annotations.md` |
 | Settings page, saved configs, import/export | `docs/dev/core/settings-page.md`, `saved-configs-sharing.md` |
 | A new editor (draft, selection, inspector) | `docs/dev/core/editors-pattern.md` |
@@ -43,7 +43,7 @@ This file holds only the rules. **The mechanics of every service and surface are
 - The shell runs detached; never start/stop it from this session. Saving a file it has loaded hot-reloads it. qs watches by inode: after `sed -i`, `qmlformat -i` or `git checkout`, see `docs/dev/testing.md` to force a reload.
 - **Logs**: `scripts/log.sh` (warnings/errors since the last reload; `--debug` adds `console.log`, `--all`, `-f`, `-g PATTERN`). A clean reload is just `Reloading configuration...` + `Configuration Loaded`. stdout/journalctl show nothing. `console.log` for tracing, `console.warn` only for real problems.
 - A settings category has no IPC: add a temporary `IpcHandler` calling `SettingsManager.openCategory(name)` to `shell.qml` (never inside a singleton), and revert it in place.
-- `config/user/config.json` is owned by the settings UI but may be edited directly to test. `ConfigManager` watches it; an invalid file never replaces the running config (the last good one stays and `savesBlocked` refuses saves until it's fixed).
+- `~/.config/axiom/config.json` is owned by the settings UI but may be edited directly to test. `ConfigManager` watches it; an invalid file never replaces the running config (the last good one stays and `savesBlocked` refuses saves until it's fixed).
 - New singletons are picked up by a hot reload (qs 0.3.1). A new *directory* imported only from URL-loaded files isn't scanned until qs restarts (`module "qs.…" is not installed`): ask the user to restart.
 - URL-loaded files (bar widgets, content, views) only see sibling types because some loaded file imports their directory by name (`BarWidgetHost` → `qs.components.bar.widgets`, `BarPopouts`/`OverlaySlot` → `qs.components.content`, `OverlayPanel` → `qs.components.views`).
 - File reads go through `FileManager.read`; `XMLHttpRequest` is only for HTTP. Rewrite watched JSON (`config/i18n/*.json`, config.json) atomically (temp file + rename): a half-written file gets read.
@@ -92,7 +92,7 @@ components/
   bar/          the bar; widgets/ = bar widget types
   surfaces/     standalone windows (launcher, lockscreen, toasts, dock, onboarding, screenshot, …)
 services/       pragma Singleton managers: state and side effects
-config/         config reader singletons; json/ (schema, theme defaults, emoji), themes/, i18n/, user/ (live config, gitignored), state/
+config/         config reader singletons; json/ (schema, theme defaults, emoji), themes/, i18n/ (user data and state live in the XDG folders: docs/dev/core/config-manager.md)
 scripts/        external scripts (theming, wallpaper, self-update, Hyprland claim) and the dev checks
 tests/          qmltestrunner tests, fixtures, tests/scripts/
 docs/dev/       developer docs, one per topic
@@ -118,9 +118,10 @@ Dependencies point one way:
 - **Anything polled goes through `acquire(owner, request)` / `release(owner)`** (a `ConsumerRegistry`): fetched once for all consumers, at the shortest interval asked (or a configured one), not at all with none. Acquire in `Component.onCompleted` (again when the config-derived request changes; identical requests are no-ops), release in `onDestruction`. Which services work this way: `docs/dev/core/services-pattern.md`.
 - **Config writes** go only through `ConfigManager.setTheme` / `setWallpaper(s)` / `saveConfig` / `commit(object)` (validates first; returns false and changes nothing if rejected), or `SettingsManager.setValue` / `commitValue(s)` from UI. Never mutate `ConfigManager.config` and expect it to persist.
 - **Editors** (settings, bar, overlay, edge menus, keybinds, monitors, screen layouts) edit a `ConfigDraft`; unsaved edits show live through `ConfigManager.setPreview(section, value)` and readers read `previews.X ?? config.X`. Selection lives in the manager and changes through its `select*()` (`selectBar`, `selectView`, `selectMenu`, `selectProfile`); views don't assign it. See `docs/dev/core/editors-pattern.md`.
-- Secrets (chat API keys, calendar passwords) never go in config.json or argv: `SecretsManager`, written through stdin. Clipboard history is never written to disk; only clips the user pins are (`config/state/clipboardPins.json`).
+- Secrets (chat API keys, calendar passwords) never go in config.json or argv: `SecretsManager`, written through stdin. Clipboard history is never written to disk; only clips the user pins are (`~/.local/state/axiom/ui/clipboardPins.json`).
 - Workspace switching and window focusing always go through `HyprlandManager.goToWorkspace` / `stepWorkspace` / `nthWorkspace` / `focusWindow`, never a direct `hl.dsp.focus`. Axiom's own `hyprctl eval`/dispatch calls are Lua (`hl.*`).
-- State that must survive a QML reload lives in a `PersistentProperties` (JSON for arrays); small persisted state goes in `config/state/*.json` or `$XDG_STATE_HOME/axiom/`.
+- State that must survive a QML reload lives in a `PersistentProperties` (JSON for arrays); small persisted state goes in `StateManager` (`~/.local/state/axiom/ui/*.json`) or `Paths.userStatePath`.
+- **Nothing is written under `Paths.axiomPath`** (a package installs it read-only): what axiom writes goes in the XDG folders through `Paths.userConfigPath` / `statePath` / `userStatePath` / `userDataPath` / `generatedThemesPath` (`docs/dev/core/config-manager.md` › Where files live).
 
 ## Config
 

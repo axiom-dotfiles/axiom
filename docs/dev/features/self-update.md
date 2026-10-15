@@ -35,7 +35,7 @@ What it will and won't do:
 ### When it checks
 - Once per qs launch. A `PersistentProperties` flag stops hot reloads from rechecking.
 - Then daily.
-- `config/state/selfupdate.json` keeps:
+- `~/.local/state/axiom/ui/selfupdate.json` keeps:
   - `lastChecked`;
   - `notifiedTag`, so each release is notified once;
   - the last result.

@@ -253,6 +253,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `ColumnSplit.qml`: Splits an ordered list of cards into two newspaper columns (the first k on the left, the rest on the right) so both end as close together as they can, from the cards' heights.
 - `ConfigExamples.qml`: Sharing a config.
 - `ConfigMigration.qml`: Upgrades older config.json layouts to the current one (see config/json/config.schema.json).
+- `DataDirs.qml`: Where axiom keeps what it writes (XDG base directories), and where it kept it inside the repo before (the legacy layout, until moved over).
 - `DockLayout.qml`: Pure helpers for the dock: which apps it shows (pinned ones, then running ones), which window a click goes to, how big each icon is under the pointer, and whether a window covers it.
 - `EdgeAttach.qml`: Where a box that grows out of a screen edge goes along it: bar popouts, edge popouts (the launcher, OSDs, floating edge menus) and anything else drawn with AttachedSurface.
 - `GreeterBundle.qml`: The greeter's config, both ways (GreeterManager writes it, ConfigManager reads it in the greeter).
@@ -584,6 +585,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `ConfigManager.qml`: ConfigManager handles loading, saving, and monitoring the configuration file
 - `ConsumerRegistry.qml`: Reference-counted consumers of a shared poller (SystemManager, UpdatesManager, ...): each owner registers one request, and the service polls for the union of them, stopping when there are none.
 - `DailySchedule.qml`: A daily window, `startAt` until `endAt` ("HH:MM"; past midnight when the end is earlier), that says when its state is due: `due(inWindow)` fires when the window opens or closes, when the schedule is turned on, and when …
+- `DataMigrationManager.qml`: Moves an install from before the XDG folders over to them, once.
 - `DependencyManager.qml`: Startup checks for what the whole shell needs to look right: the icon font (every icon is a Material Symbols name, StyledIcon, which shows as a word without it) and the text font (`Appearance.font.family`, a free-text s…
 - `DesktopManager.qml`: The desktop's modules: the layouts editor's draft of the Desktop section (`editor`, shown live on the desktop while it differs from the config), which of its layouts is edited (`selectedTarget`: "all", "primary" or a mo…
 - `DockManager.qml`: The docks' shared state and actions (the docks themselves are shell/Dock): which apps a dock shows on a screen (its pinned ones, then running ones, windows grouped by desktop entry), what a click does (launch, focus, cy…
@@ -609,13 +611,13 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `MonitorManager.qml`: The Monitors page: the connected outputs (`hyprctl monitors all -j`, read at startup and when monitors come, go or the config reloads; never polled) and the editor for Hyprland.monitors, a draft of profiles (each a layo…
 - `NetworkingManager.qml`: Wi-Fi state and actions over NetworkManager (Quickshell.Networking, D-Bus, so nothing polls).
 - `NightLightManager.qml`: The night light (the NightLight section): warmer colors through hyprsunset, or wlsunset without it, started and stopped by axiom.
-- `NotesManager.qml`: Notes: Markdown files in NotesConfig.directory (config/state/notes/ by default, or a linked folder).
+- `NotesManager.qml`: Notes: Markdown files in NotesConfig.directory ($XDG_DATA_HOME/axiom/notes/ by default, or a linked folder).
 - `NotificationManager.qml`: NotificationManager is the DBus notification server and the notification history.
 - `OnboardingManager.qml`: The first-run onboarder (shell/Onboarding): a series of pages that set the essentials up (Hyprland, monitors, apps and keys, workspaces, the look, integrations), each applying as the user goes, with the Hyprland mode ap…
 - `OverlayManager.qml`: OverlayManager holds the layouts editor's working copy of Overlay.views (the editor is the pinned last page).
 - `PolkitManager.qml`: axiom as the session's polkit agent (the Polkit section): while PolkitConfig.enabled, a PolkitAgent answers apps' requests for administrator rights, and PolkitWindow (shell/PolkitPrompt) shows each one.
 - `PopoutManager.qml`: Every popout showing, where it is, and which gives way to which.
-- `SavedConfigsManager.qml`: Named snapshots of the config, one JSON file each in config/user/saved/.
+- `SavedConfigsManager.qml`: Named snapshots of the config, one JSON file each in $XDG_CONFIG_HOME/axiom/saved/.
 - `ScreenLayoutEditor.qml`: The layouts editor's draft of one screen layout (a ScreenLayout: the built-in lock screen's, LockManager.editor, or the greeter's, GreeterManager.editor): its modules on a bounded grid, edited through `layout`, its own …
 - `ScreenshotManager.qml`: Screenshots (the `screenshot` keybind action, IPC `screenshot take <kind>`, launcher `/screenshot`, the Screenshot card), taken natively: while `picking`, shell/Screenshot shows a frozen frame (ScreencopyView) on each s…
 - `SecretsManager.qml`: Secrets, which never go in config.json: chat API keys (scope `provider`) and calendar account passwords (scope `calendar`).

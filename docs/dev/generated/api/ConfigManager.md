@@ -12,6 +12,10 @@ ConfigManager handles loading, saving, and monitoring the configuration file
 - `takeoverPaths` (readonly var): The `x-takeover` settings' paths ([key, …]), which loading a config never changes (ConfigExamples.keepTakeovers)
 - `configDir` (readonly string)
 - `configFile` (readonly string)
+- `dataDirs` (readonly var): Where axiom keeps what it writes (DataDirs: config, state, ui, data, notes, generatedThemes), read by Paths.
+- `legacyLayout` (readonly bool): The repo's config/user/ holds a config.json not yet copied over (no DataDirs.movedMarker beside it).
+- `xdgDirs` (readonly var): Both layouts, for DataMigrationManager's copy
+- `legacyDirs` (readonly var)
 - `savesBlocked` (readonly bool): True while config.json on disk is unusable (invalid, or present but unreadable).
 - `greeter` (readonly bool): The greeter (greetd's login screen, greeter.qml) runs read-only on the bundle the user's axiom exports for it (GreeterBundle), never on config.json, and writes nothing.
 - `greeterSource` (readonly string): Where the greeter's config came from: "bundle", "fallback" (the snapshot taken when the greeter was installed, which its own code wrote) or "defaults"; "" outside the greeter
@@ -20,6 +24,7 @@ ConfigManager handles loading, saving, and monitoring the configuration file
 
 ### Functions
 
+- `holdSaves(held)`: Saves wait while DataMigrationManager copies the legacy folders, so nothing lands in them mid-copy (holdSaves(false) lets them go again)
 - `setPreview(section, value)`
 - `withDefaults(value, definition)`: `value` with the defaults of a schema definition (e.g. "Bar", "OverlayModule") filled in: a new entry for an editor to add
 - `clearPreview(section)`

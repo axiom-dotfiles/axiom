@@ -9,7 +9,7 @@ The schema is the single source of truth for config: shape, `default`s (there is
 ### Basics
 - Adding a setting = a schema entry with a `default` + a reader property.
 - Changing the layout of existing config = bump `version` + a `ConfigMigration` step + a test.
-- The live file is `config/user/config.json` (gitignored, UI-owned).
+- The live file is `~/.config/axiom/config.json` (`$XDG_CONFIG_HOME`, UI-owned).
 - A schema reaches QML as a map, whose keys come out sorted, so order always comes from `x-order`.
 - The settings page, forms and editors read the annotations: add an annotation rather than a hand-kept list in QML.
 - A `$ref` may carry keys beside it (`default`, `title`, …) that override the definition's (`SchemaValidation._resolve`). `Lockscreen.layout` and `Greeter.layout` share `definitions/ScreenLayout`, each with its own default modules.

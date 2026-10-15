@@ -63,6 +63,13 @@ QtObject {
 
   property var _handlers: ({})
 
+  // FileView doesn't create folders, so this one is made first (0700: the
+  // clipboard pins are kept here)
+  property Process _makeDir: Process {
+    running: true
+    command: ["mkdir", "-p", "-m", "700", root.stateDir]
+  }
+
   property Component _fileViewComponent: Component {
     id: fileViewComponent
     FileView {

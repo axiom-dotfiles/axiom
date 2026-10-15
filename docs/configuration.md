@@ -6,7 +6,7 @@
 
 Everything is configured from inside the shell (see [Built in the shell](../README.md#built-in-the-shell)). Open the overlay, and use the **Settings**, **Bar editor**, **Layouts**, **Keybinds**, **Monitors** and **Themes** pages. Any single setting can also be set from the launcher: `/config Appearance.font.size 14`.
 
-- Settings are saved to `config/user/config.json`. You never need to open it, but the shell watches that file and reloads when it changes, so editing it by hand also works.
+- Settings are saved to `~/.config/axiom/config.json`. You never need to open it, but the shell watches that file and reloads when it changes, so editing it by hand also works.
 - Configs from older versions are migrated automatically.
 - `config/json/config.schema.json` defines every option and its default. It also generates the Settings page.
 - Chat API keys are entered in **Settings → Modules → Chat** and stored in your keyring (or `$XDG_STATE_HOME/axiom/secrets.json`, mode 600, without one). A provider's environment variable (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GEMINI_API_KEY`) wins over a stored key. Conversations are saved in `$XDG_STATE_HOME/axiom/chats/`.
@@ -20,7 +20,7 @@ Your whole setup (bars, overlay pages, edge menus, docks, the lock and login scr
 
 - **Settings → Maintenance → Saved configurations** saves the current config under a name, and restores or deletes saved ones. Restoring replaces the current config.
 - The launcher does the same: `/config save <name>` and `/config restore <name>`.
-- Saved configs are plain copies of `config.json` in `config/user/saved/`. Copy one to another machine, or share it, and restore it there.
+- Saved configs are plain copies of `config.json` in `~/.config/axiom/saved/`. Copy one to another machine, or share it, and restore it there.
 
 ### Example setups
 
@@ -39,7 +39,7 @@ axiom ships the setups from the README in `examples/`. Apply one from **Settings
 
 ### Themes
 
-- Hand-made themes live in `config/themes/`, and generated ones in `config/themes/generated/`.
+- Hand-made themes live in `config/themes/`, and generated ones in `~/.local/state/axiom/themes/`.
 - A theme is a base16 palette (`base00`–`base0F`) plus optional semantic overrides. See `config/themes/theme.schema.json`.
 - To add a theme, drop a JSON file in `config/themes/`. To make a dark/light pair, give each file a `paired` field naming the other.
 

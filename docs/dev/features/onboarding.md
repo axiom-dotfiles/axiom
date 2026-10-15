@@ -1,7 +1,7 @@
 # Onboarding
 
 > **Files:** `services/OnboardingManager.qml`, `shell/Onboarding.qml`, `components/surfaces/onboarding/OnboardingWindow.qml`, `components/surfaces/onboarding/pages/HyprlandPage.qml`, `services/DependencyManager.qml`, `components/views/settings/OnboardingCard.qml`
-> **Config:** none of its own (pages write other sections); state in `config/state/onboarding.json`
+> **Config:** none of its own (pages write other sections); state in `~/.local/state/axiom/ui/onboarding.json`
 > **Related:** [Hyprland config modes](../hyprland/config-modes.md), [Monitors](../hyprland/monitors.md), [Greeter install](greeter-install.md), [Pages and grid](../overlay/pages-and-grid.md)
 
 The first-run onboarder: a paged window that sets up the look, Hyprland mode, monitors, apps and integrations.
@@ -9,7 +9,7 @@ The first-run onboarder: a paged window that sets up the look, Hyprland mode, mo
 ### When it opens
 - When there was no config.json (`ConfigManager.firstRun`, set by `_existsCheck`).
 - After a restart, until the user finishes or skips it.
-- State lives in `config/state/onboarding.json`: `{ completedVersion, step }`.
+- State lives in `~/.local/state/axiom/ui/onboarding.json`: `{ completedVersion, step }`.
   - A config with no state file is never prompted.
   - Bump `version` when a page is worth showing to existing users.
 - The step and the chosen Hyprland mode live in a `PersistentProperties`.

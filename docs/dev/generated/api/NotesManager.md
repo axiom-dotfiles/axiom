@@ -3,7 +3,7 @@
 
 > **File:** `services/NotesManager.qml` · **Docs:** see [docs/dev](../../README.md)
 
-Notes: Markdown files in NotesConfig.directory (config/state/notes/ by default, or a linked folder). Paths are relative to that folder, with "/" between folders, and can never leave it. Open notes are shared documents: acquire(path) returns one per file, counted, so two Notes modules on one note stay in sync, and release(path) saves what's pending. Edits save 600 ms after the last change. A change on disk (another editor, a sync) reloads a document unless it has edits of its own waiting, which then win.
+Notes: Markdown files in NotesConfig.directory ($XDG_DATA_HOME/axiom/notes/ by default, or a linked folder). Paths are relative to that folder, with "/" between folders, and can never leave it. Open notes are shared documents: acquire(path) returns one per file, counted, so two Notes modules on one note stay in sync, and release(path) saves what's pending. Edits save 600 ms after the last change. A change on disk (another editor, a sync) reloads a document unless it has edits of its own waiting, which then win.
 
 ### Properties
 

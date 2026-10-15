@@ -12,7 +12,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 ### `Notes`
 
 - **`Notes.directory`** · string = ""
-  - Notes folder: An absolute path (~/ works), e.g. a synced folder or a Markdown vault. Empty keeps notes in axiom's config/state/notes, which is not backed up.
+  - Notes folder: An absolute path (~/ works), e.g. a synced folder or a Markdown vault. Empty keeps notes in ~/.local/share/axiom/notes.
   - x-control="folder"
   - read: `NotesConfig.directory` (part), `NotesConfig.linked` (part) · in: `services/NotesManager.qml`
 - **`Notes.extensions`** · array<string> = ["md","txt"]
@@ -29,7 +29,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 
 Every public member of `NotesConfig`, with the files that use it.
 
-- `NotesConfig.defaultDirectory` (string): Inside axiom, gitignored with the rest of config/state
+- `NotesConfig.defaultDirectory` (string): $XDG_DATA_HOME/axiom/notes/
   - in: only inside the reader
 - `NotesConfig.linked` (bool)
   - in: `services/NotesManager.qml`

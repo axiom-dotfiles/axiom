@@ -37,7 +37,7 @@ QtObject {
   readonly property bool busy: root.picking || root._delay.running
   // { kind, screen: the screen an immediate `screen` capture takes }
   property var request: null
-  // Keep nothing on disk, only copy (saved in config/state/screenshot.json)
+  // Keep nothing on disk, only copy (saved in Paths.statePath screenshot.json)
   property bool copyOnly: false
   // The sound the ScreenRecord card records with: "none" | "system" |
   // "mic" (saved with copyOnly)

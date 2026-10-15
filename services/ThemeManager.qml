@@ -252,7 +252,7 @@ QtObject {
   function themeIntegrations(themeName = root.activeTheme, keys = []) {
     if (Paths.greeter)
       return;
-    const themePath = Paths.themePath + themeName + ".json";
+    const themePath = Paths.themeFile(themeName);
     const all = keys.length === 0;
     if (all && LockscreenConfig.mode === "hyprlock")
       root.generateHyprlockConfig();
@@ -302,7 +302,7 @@ QtObject {
       root._hyprlockAgain = true;
       return;
     }
-    root._hyprlockProcess.command = [Paths.scriptsPath + "theme_hyprlock.sh", Paths.themePath + root.activeTheme + ".json", LockManager.hyprlockConfigPath, Appearance.fontFamily, root.wallpaper, LockscreenConfig.blurWallpaper ? "1" : "0", I18n.tr("Hey {0}", General.displayName), I18n.tr("Enter password...")];
+    root._hyprlockProcess.command = [Paths.scriptsPath + "theme_hyprlock.sh", Paths.themeFile(root.activeTheme), LockManager.hyprlockConfigPath, Appearance.fontFamily, root.wallpaper, LockscreenConfig.blurWallpaper ? "1" : "0", I18n.tr("Hey {0}", General.displayName), I18n.tr("Enter password...")];
     root._hyprlockProcess.running = true;
   }
 
@@ -400,12 +400,12 @@ QtObject {
     // else the install's snapshot (whose code is this copy's)
     if (Paths.greeter)
       return ConfigManager.greeterSource === "bundle" ? "file://" + Paths.greeterBundlePath + "theme.json" : Qt.resolvedUrl("../fallback/theme.json");
-    return "file://" + Paths.themePath + name + ".json";
+    return "file://" + Paths.themeFile(name);
   }
 
   function _readDefaults() {
     try {
-      return JSON.parse(FileManager.read("file://" + Paths.configPath + "json/theme-defaults.json"));
+      return JSON.parse(FileManager.read("file://" + Paths.resourcePath + "json/theme-defaults.json"));
     } catch (e) {
       console.error("[ThemeManager] Could not read theme-defaults.json:", e);
       return {
@@ -481,7 +481,7 @@ QtObject {
 
   // --- Paths and Models ---
   readonly property string _themesPath: "file://" + Paths.themePath
-  readonly property string _generatedThemesPath: "file://" + Paths.themePath + "generated"
+  readonly property string _generatedThemesPath: "file://" + Paths.generatedThemesPath
   readonly property string _pythonScriptPath: Paths.scriptsPath + "generate_theme.py"
 
   // Each folder's themes, [{ name, label, variant, paired }], combined
@@ -605,7 +605,7 @@ QtObject {
     function start(wallpaperUrl) {
       wallpaper = wallpaperUrl.toString();
       const wallpaperPath = wallpaperUrl.toString().replace("file://", "");
-      command = [Paths.scriptsPath + "venv_python.sh", root._pythonScriptPath, wallpaperPath, "--output_dir", Paths.themePath + "generated"];
+      command = [Paths.scriptsPath + "venv_python.sh", root._pythonScriptPath, wallpaperPath, "--output_dir", Paths.generatedThemesPath];
       console.log("[ThemeManager] Executing:", command.join(" "));
       running = true;
     }

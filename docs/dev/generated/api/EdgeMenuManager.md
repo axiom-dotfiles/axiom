@@ -3,7 +3,7 @@
 
 > **File:** `services/EdgeMenuManager.qml` · **Docs:** see [docs/dev](../../README.md)
 
-Which edge menus (EdgeMenusConfig) are open and which are pinned. The menus themselves (shell/EdgeMenus) follow this and report back when they close on their own. Kept across QML reloads, so a reload doesn't close an integrated menu and reflow the windows. Pins are also saved to config/state/edgemenus.json, and a pinned menu opens again when qs starts. Also the layouts editor's working copy of EdgeMenus (the pinned Layouts overlay page), as BarManager is the bar editor's: edits show live on the running menus (ConfigManager.previews) until saved or reset, and `previewing` holds one menu open to try them on. qs -c axiom ipc call edgeMenu toggle <id>
+Which edge menus (EdgeMenusConfig) are open and which are pinned. The menus themselves (shell/EdgeMenus) follow this and report back when they close on their own. Kept across QML reloads, so a reload doesn't close an integrated menu and reflow the windows. Pins are also saved to $XDG_STATE_HOME/axiom/ui/edgemenus.json, and a pinned menu opens again when qs starts. Also the layouts editor's working copy of EdgeMenus (the pinned Layouts overlay page), as BarManager is the bar editor's: edits show live on the running menus (ConfigManager.previews) until saved or reset, and `previewing` holds one menu open to try them on. qs -c axiom ipc call edgeMenu toggle <id>
 
 ### Properties
 

@@ -21,6 +21,8 @@
   - calendar_sync.py reads a locally served .ics feed into occurrences, and
     edits events (new, one occurrence, excluded, the series moved) so they
     read back right (skipped when the venv can't be set up)
+  - migrate_xdg.sh copies the repo's config and state into the XDG
+    folders once, never overwriting, and marks them moved
   - pick_path.py falls back to zenity/kdialog without a portal, asking for
     a folder or a filtered file, and exits 1 when cancelled, 2 with no picker
 
@@ -1075,6 +1077,61 @@ class MergeHyprBinds(unittest.TestCase):
         self.assertEqual(done["removed"], 1)
         self.assertEqual([(f["line"], f["reason"]) for f in done["failed"]], [(2, "changed")])
         self.assertEqual(path.stat().st_mode & 0o777, 0o640)
+
+
+class MigrateXdg(unittest.TestCase):
+    """migrate_xdg.sh: copies the repo's config/user, config/state (minus
+    its notes/) and notes into the XDG folders, never overwriting, then
+    writes the marker."""
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+        self.repo = self.tmp / "repo" / "config"
+        (self.repo / "user" / "saved").mkdir(parents=True)
+        (self.repo / "state" / "notes" / "sub").mkdir(parents=True)
+        (self.repo / "user" / "config.json").write_text('{"version": 1}')
+        (self.repo / "user" / "saved" / "mine.json").write_text("{}")
+        (self.repo / "state" / "launcher.json").write_text('{"old": 1}')
+        (self.repo / "state" / "notes" / "sub" / "a.md").write_text("# a")
+        self.cfg, self.ui, self.notes, self.themes = (self.tmp / d for d in ("cfg", "st/ui", "data/notes", "st/themes"))
+        self.marker = self.repo / "user" / "MOVED.md"
+
+    def tearDown(self):
+        shutil.rmtree(self.tmp)
+
+    def migrate(self):
+        args = [str(self.marker), f"{self.repo}/user/", str(self.cfg), f"{self.repo}/state", str(self.ui),
+                f"{self.repo}/state/notes", str(self.notes), f"{self.repo}/themes/generated", str(self.themes)]
+        return subprocess.run([str(SCRIPTS / "migrate_xdg.sh")] + args, capture_output=True, text=True, timeout=30)
+
+    def test_copies_everything_once(self):
+        self.assertEqual(self.migrate().returncode, 0)
+        self.assertEqual((self.cfg / "config.json").read_text(), '{"version": 1}')
+        self.assertTrue((self.cfg / "saved" / "mine.json").exists())
+        self.assertEqual((self.ui / "launcher.json").read_text(), '{"old": 1}')
+        self.assertFalse((self.ui / "notes").exists(), "notes go to their own pair")
+        self.assertEqual((self.notes / "sub" / "a.md").read_text(), "# a")
+        self.assertFalse(self.themes.exists(), "a missing FROM is skipped")
+        self.assertIn(str(self.cfg), self.marker.read_text())
+        self.assertFalse((self.cfg / "MOVED.md").exists())
+        self.assertEqual(sorted(p.name for p in self.cfg.iterdir()), ["config.json", "saved"], "no temp files left")
+        self.assertTrue((self.repo / "user" / "config.json").exists(), "the old folders are kept")
+        self.assertEqual(self.migrate().returncode, 0, "running it again is harmless")
+
+    def test_never_overwrites(self):
+        self.cfg.mkdir()
+        (self.cfg / "config.json").write_text('{"version": 2}')
+        self.ui.mkdir(parents=True)
+        (self.ui / "launcher.json").write_text('{"new": 1}')
+        self.assertEqual(self.migrate().returncode, 0)
+        self.assertEqual((self.cfg / "config.json").read_text(), '{"version": 2}')
+        self.assertEqual((self.ui / "launcher.json").read_text(), '{"new": 1}')
+
+    def test_failure_writes_no_marker(self):
+        self.tmp.joinpath("st").mkdir()
+        self.ui.write_text("a file where a folder goes")
+        self.assertNotEqual(self.migrate().returncode, 0)
+        self.assertFalse(self.marker.exists())
 
 
 class GenerateTheme(unittest.TestCase):
