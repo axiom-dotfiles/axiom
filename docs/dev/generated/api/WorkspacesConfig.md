@@ -3,7 +3,7 @@
 
 > **File:** `config/WorkspacesConfig.qml` · **Docs:** see [docs/dev](../../README.md)
 
-Reader for the Workspaces section: the workspace layout the bar widget, the overview, the WorkspacesMap module and HyprlandManager's navigation share. Named WorkspacesConfig because `Workspaces` is a bar widget type.
+Reader for the Workspaces section: the workspace layout the bar widget, the overview, the WorkspacesMap module and CompositorManager's navigation share. Named WorkspacesConfig because `Workspaces` is a bar widget type.
 
 ### Properties
 
@@ -25,4 +25,4 @@ Reader for the Workspaces section: the workspace layout the bar widget, the over
 ### Functions
 
 - `stripDirection(screenName)`: The strip direction of the monitor named `screenName`, "" when it tiles
-- `baseFor(monitorIndex)`: First id of the monitor at `monitorIndex` (a stable order, see HyprlandManager.workspaceBase)
+- `baseFor(monitorIndex)`: First id of the monitor at `monitorIndex` (a stable order, see CompositorManager.workspaceBase)

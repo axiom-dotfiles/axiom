@@ -21,7 +21,7 @@ Scope {
     // inside it, and the longer edge's bar after the shorter edge's of its
     // kind (BarEnds). A remade bar lands correctly once the rules are in
     // (layerRulesReady).
-    model: HyprlandManager.layerRulesReady && General.outputs.length > 0 ? BarManager.bars.map(b => b.id + "|" + Bar.layerNamespace(b)) : []
+    model: CompositorManager.surfacesReady && General.outputs.length > 0 ? BarManager.bars.map(b => b.id + "|" + Bar.layerNamespace(b)) : []
     delegate: BarPanel {
       required property string modelData
       readonly property string barId: modelData.replace(/\|[^|]*$/, "")

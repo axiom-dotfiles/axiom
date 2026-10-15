@@ -31,11 +31,12 @@ Item {
   readonly property color emptyColor: Theme.resolveColor(properties.emptyColor)
   readonly property color iconColor: Theme.resolveColor(properties.textColor)
 
-  readonly property var monitor: HyprlandManager.monitorFor(root.screen)
-  readonly property int base: HyprlandManager.workspaceBase(root.monitor)
+  readonly property var monitor: CompositorManager.outputFor(root.screen)
+  readonly property string output: root.monitor?.name ?? ""
+  readonly property int base: CompositorManager.workspaceBase(root.output)
   readonly property int columns: WorkspacesConfig.columns
   readonly property int rows: WorkspacesConfig.rows
-  readonly property int activeId: root.monitor?.activeWorkspace?.id ?? -1
+  readonly property int activeId: root.monitor?.activeWorkspaceId ?? -1
   // "horizontal" | "vertical" on a strip monitor, else ""
   readonly property string stripDirection: WorkspacesConfig.stripDirection(root.screen?.name ?? "")
   // The active workspace's place in the grid (the first cell when the
@@ -89,9 +90,9 @@ Item {
         return;
       const forward = _accumulated < 0;
       if (root.stripDirection !== "")
-        HyprlandManager.stepStrip(forward ? 1 : -1, root.monitor);
+        CompositorManager.stepStrip(forward ? 1 : -1, root.output);
       else
-        HyprlandManager.stepWorkspace(root.isVertical ? (forward ? "down" : "up") : (forward ? "right" : "left"), "go");
+        CompositorManager.stepWorkspace(root.isVertical ? (forward ? "down" : "up") : (forward ? "right" : "left"), "go");
       _accumulated = 0;
     }
   }
@@ -164,9 +165,9 @@ Item {
       glyphOf: (id, active) => active && root.properties.showActiveIcon ? root.positionGlyph(line.value, root.isVertical ? root.columns : root.rows) : ""
 
       Connections {
-        target: HyprlandManager
-        function onWorkspaceWrapped(monitor, alongRow, forward) {
-          if (monitor === (root.monitor?.name ?? "") && alongRow !== root.isVertical)
+        target: CompositorManager
+        function onWorkspaceWrapped(output, alongRow, forward) {
+          if (output === root.output && alongRow !== root.isVertical)
             line.expectWrap(forward);
         }
       }

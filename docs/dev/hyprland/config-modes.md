@@ -1,7 +1,7 @@
 # Hyprland config modes
 
 > **Files:** `services/HyprlandConfigManager.qml`, `services/HyprlandRuntimeLayer.qml`, `config/HyprlandConfig.qml`, `components/methods/HyprConfigLua.qml`, `components/methods/HyprLua.qml`, `components/methods/HyprBinds.qml`, `components/views/settings/HyprlandStatusCard.qml`, `scripts/claim_hyprland.sh`
-> **Config:** `Hyprland.mode`, `Hyprland.binds`, `Hyprland.managed`, `Hyprland.look`, `Hyprland.monitors`, `Workspaces.strips`
+> **Config:** `Hyprland.mode`, `Hyprland.binds`, `Hyprland.managed`, `WindowLook`, `Hyprland.monitors`, `Workspaces.strips`
 > **Related:** [Managed takeover](managed-takeover.md), [Window look](window-look.md), [Bind merge](bind-merge.md), [Keybinds](keybinds.md), [Monitors](monitors.md), [Workspace strips](workspace-strips.md)
 
 How axiom sets up Hyprland (`HyprlandConfigManager`, which owns `HyprlandRuntimeLayer`, `HyprlandTakeover` and `HyprlandBindMerge`), and the three `mode`s it can do it in: `detached`, `included` and `managed`. Read this before touching anything axiom writes into Hyprland.

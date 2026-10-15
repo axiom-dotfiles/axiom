@@ -22,10 +22,10 @@ Scope {
   function open() {
     if (root.overlayVisible)
       return;
-    HyprlandManager.withHoveredScreen(name => {
+    CompositorManager.withHoveredScreen(name => {
       root.openScreen = name;
       root.overlayVisible = true;
-      HyprlandManager.updateAll();
+      CompositorManager.refresh();
     });
   }
 
@@ -102,7 +102,7 @@ Scope {
       // window and switch back. The focus grab keeps the keyboard here.
       WlrLayershell.keyboardFocus: overlayWindow.shown ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
 
-      HyprlandGrab {
+      FocusGrab {
         id: grab
         // Off for a moment to take the grab back after a drop moved focus
         property bool rearming: false

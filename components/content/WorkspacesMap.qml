@@ -13,13 +13,13 @@ import qs.components.content.base
 Card {
   id: root
 
-  readonly property int activeId: HyprlandManager.activeWorkspace?.id ?? -1
+  readonly property int activeId: CompositorManager.focused?.activeWorkspaceId ?? -1
   // A string, so the tiles are only rebuilt when the set of workspaces
   // shown changes, not on every window event
   readonly property string _idsKey: {
-    const ids = HyprlandManager.workspaceIds(HyprlandManager.focusedMonitor);
+    const ids = CompositorManager.workspaceIds(CompositorManager.focusedOutput);
     if (root.properties.showEmpty === false)
-      return ids.filter(id => HyprlandManager.windowList.some(w => w.workspace?.id === id) || id === root.activeId).join(",");
+      return ids.filter(id => CompositorManager.windows.some(w => w.workspaceId === id) || id === root.activeId).join(",");
     return ids.join(",");
   }
   readonly property var ids: root._idsKey === "" ? [] : root._idsKey.split(",").map(Number)
@@ -40,7 +40,7 @@ Card {
         required property int modelData
         required property int index
         readonly property bool active: tile.modelData === root.activeId
-        readonly property var windows: HyprlandManager.windowList.filter(w => w.workspace?.id === tile.modelData)
+        readonly property var windows: CompositorManager.windows.filter(w => w.workspaceId === tile.modelData)
 
         x: grid.tileX(index)
         y: grid.tileY(index)
@@ -97,7 +97,7 @@ Card {
                   height: icons.iconSize
                   fillMode: Image.PreserveAspectFit
                   sourceSize: Qt.size(64, 64)
-                  source: window ? IconResolver.resolveWindowIcon(window.class, window.title) : ""
+                  source: window ? IconResolver.resolveWindowIcon(window.appId, window.title) : ""
                 }
               }
             }
@@ -109,7 +109,7 @@ Card {
           anchors.fill: parent
           hoverEnabled: true
           cursorShape: Qt.PointingHandCursor
-          onClicked: HyprlandManager.goToWorkspace(tile.modelData)
+          onClicked: CompositorManager.goToWorkspace(tile.modelData)
         }
       }
     }

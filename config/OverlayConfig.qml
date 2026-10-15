@@ -48,6 +48,9 @@ QtObject {
         "minSize": def["x-minSize"] ?? null,
         // A tool page (`x-tool`), shown apart from the user's own pages
         "tool": def["x-tool"] === true,
+        // The compositor capability a page needs to be shown (`x-needs`,
+        // a CompositorManager.supports key), "" for none
+        "needs": def["x-needs"] ?? "",
         // Material Symbols name (`x-icon`)
         "icon": def["x-icon"] ?? "extension",
         // Its group in the module library (`x-libraryGroup`)

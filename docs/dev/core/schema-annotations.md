@@ -42,6 +42,8 @@ The schema is the single source of truth for config: shape, `default`s (there is
   - Form: `{ sibling: value | [values] | { not: value } | { notEmpty: true } }`. Every key must hold.
   - `anyOf: [conditions]` holds when one of them does. Example: the OSD's `alongEdge`, shown only while its bars run along its edge.
   - A key starting with `/` is a dotted path from the config root (e.g. `"/Workspaces.layout"`), read through `SettingsManager.configValueAt`.
+  - **Compositor.** Two `/` keys read the running compositor instead: `"/$supports.<capability>": true` (`CompositorManager.supports`) and `"/$compositor": "<kind>"`. See [The compositor](../compositor/README.md) › Hiding what a compositor can't do.
+  - On a whole section, `x-showIf` (with `/` keys only) takes the section out of its settings category when it fails (`SchemaLayout.categories`). The `Hyprland` section needs `configModes`.
 - `x-enumShowIf` (`{ optionValue: condition }`): hides enum options whose condition doesn't hold. The current value stays listed.
 - `x-beside: true`: puts a field beside the one before it on its settings card, each half wide (`SettingsGroupCard`'s two-column grid; Workspaces' rows beside columns). Give the pair the same `x-showIf`.
 - `x-applyOnSave`: keeps a setting in the draft until Save instead of applying it live (Hyprland's `mode`, which can take over files).
@@ -81,6 +83,7 @@ The schema is the single source of truth for config: shape, `default`s (there is
   - `x-required`: part of every grid on its hosts; never removed, duplicated or in the library (the lock screen's `Password`).
   - `x-canvasDetail`: a module property the layouts editor shows on its tile (a list joined). `x-canvasFill`: a color property the tile is filled with (`OverlayConfig`).
 - `x-tool: true` on the hand-built view types: the navigator's tool group.
+- `x-needs: "<capability>"` on a view type: the page is left out (and its launcher command unlisted) unless `CompositorManager.supports` has it (Keybinds, Monitors).
 - `x-autoColor` (`accent`, `alt`, `warning`, `critical`, `off`, `neutral`): a bar widget color picked by its bar when left empty (`Bar.autoColorFields`, `methods/BarAutoColors`). See [Bar widget style](../bar/widget-style.md).
 
 ### Hyprland options (`x-hypr*`, `methods/HyprLua`)

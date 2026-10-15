@@ -652,7 +652,7 @@ hl.dispatch(hl.dsp.submap("${_recordSubmap}"))`
   function startRecording(index) {
     if (root.recordingIndex === index)
       return;
-    if (root.recordingIndex < 0)
+    if (root.recordingIndex < 0 && CompositorManager.supports.keybinds)
       HyprlandManager.runLua(_enterRecordLua);
     root.recordingIndex = index;
     _recordTimeout.restart();
@@ -669,7 +669,8 @@ hl.dispatch(hl.dsp.submap("${_recordSubmap}"))`
       return;
     root.recordingIndex = -1;
     _recordTimeout.stop();
-    HyprlandManager.runLua(_leaveRecordLua);
+    if (CompositorManager.supports.keybinds)
+      HyprlandManager.runLua(_leaveRecordLua);
   }
 
   property Timer _recordTimeout: Timer {
@@ -730,6 +731,9 @@ hl.dispatch(hl.dsp.submap("${_recordSubmap}"))`
   property var _entries: []
 
   function refresh() {
+    // The binds are Hyprland's (the Keybinds page is Hyprland only)
+    if (!CompositorManager.supports.keybinds)
+      return;
     if (_reading) {
       _readAgain = true;
       return;
@@ -917,7 +921,7 @@ hl.dispatch(hl.dsp.submap("${_recordSubmap}"))`
   }
 
   property Connections _hyprlandEvents: Connections {
-    target: HyprlandManager
+    target: CompositorManager
 
     function onConfigReloaded() {
       root.refresh();

@@ -7,13 +7,13 @@ import qs.components.reusable
 
 // The top of the Translucency card (its `x-intro`): a warning that it's
 // experimental, and while the surfaces blur, the blur they get: Hyprland's
-// one (HyprlandManager.blur, as in effect), set by the window look's blur
+// one (CompositorManager.blur, as in effect), set by the window look's blur
 // part or the user's own config. With Hyprland's blur off nothing blurs,
 // and it offers to set it.
 ColumnLayout {
   id: root
 
-  readonly property bool off: !HyprlandManager.blur.enabled
+  readonly property bool off: !CompositorManager.blur.enabled
 
   spacing: Widget.spacing
 
@@ -43,19 +43,19 @@ ColumnLayout {
       text: {
         if (root.off)
           return I18n.tr("Hyprland's blur is off, so nothing blurs behind the surfaces.");
-        const strength = I18n.tr("Hyprland's blur: size {0}, {1} passes.", HyprlandManager.blur.size, HyprlandManager.blur.passes);
-        return strength + " " + (HyprlandConfig.look.blur ? I18n.tr("Set in Hyprland → Window look.") : I18n.tr("From your Hyprland config."));
+        const strength = I18n.tr("Hyprland's blur: size {0}, {1} passes.", CompositorManager.blur.size, CompositorManager.blur.passes);
+        return strength + " " + (WindowLookConfig.look.blur ? I18n.tr("Set in Compositor → Window look.") : I18n.tr("From your Hyprland config."));
       }
     }
 
     StyledTextButton {
       implicitHeight: Widget.height - 4
-      text: root.off && !HyprlandConfig.look.blur ? I18n.tr("Set Hyprland's blur") : I18n.tr("Change")
+      text: root.off && !WindowLookConfig.look.blur ? I18n.tr("Set Hyprland's blur") : I18n.tr("Change")
       onClicked: {
-        if (root.off && !HyprlandConfig.look.blur)
-          SettingsManager.setValue(["Hyprland", "look", "blur"], true);
-        SettingsManager.openSection("Hyprland");
-        Qt.callLater(() => SettingsManager.jumpTo("Hyprland.look:Blur"));
+        if (root.off && !WindowLookConfig.look.blur)
+          SettingsManager.setValue(["WindowLook", "blur"], true);
+        SettingsManager.openSection("WindowLook");
+        Qt.callLater(() => SettingsManager.jumpTo("WindowLook:Blur"));
       }
     }
   }

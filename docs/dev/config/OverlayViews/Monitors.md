@@ -2,7 +2,7 @@
 # OverlayViews: Monitors
 
 > **File:** `components/views/Monitors.qml` · **Schema:** `definitions.MonitorsOverlayView` · **Label:** Monitors
-> **Annotations:** x-icon="monitor", x-tool=true
+> **Annotations:** x-icon="monitor", x-tool=true, x-needs="monitors"
 
 Settings are read as `viewConfig.<key>`.
 

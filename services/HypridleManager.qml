@@ -41,7 +41,7 @@ Singleton {
   // in "none" mode (except loginctl lock-session, which would loop)
   readonly property string lockCmd: {
     if (LockscreenConfig.mode !== "none")
-      return `${HyprlandConfigManager.shellCommand} ipc call lockscreen lock`;
+      return `${Paths.shellCommand} ipc call lockscreen lock`;
     const command = LockscreenConfig.lockCommand.trim();
     return command === "loginctl lock-session" ? "" : command;
   }
@@ -49,9 +49,9 @@ Singleton {
   // reads: Idle.* (the whole reader, handed to HypridleConf.render)
   readonly property string configText: HypridleConf.render(Idle, {
     "lockCmd": root.lockCmd,
-    "shellCommand": HyprlandConfigManager.shellCommand,
-    "dpmsOff": `hyprctl dispatch 'hl.dsp.dpms({ action = "off" })'`,
-    "dpmsOn": `hyprctl dispatch 'hl.dsp.dpms({ action = "on" })'`
+    "shellCommand": Paths.shellCommand,
+    "dpmsOff": CompositorManager.dpmsCommand(false),
+    "dpmsOn": CompositorManager.dpmsCommand(true)
   })
 
   // Writes the config if it changed and makes sure axiom's hypridle is

@@ -17,6 +17,7 @@ The settings page's working copy of the config. Edits are applied live (in memor
 - `query` (string)
 - `collapsed` (var): Settings cards the user folded, by SchemaLayout group key; saved in state/settings.json so they stay folded across restarts
 - `settingPaths` (readonly var): Every value the settings page shows, as { path, key, schema }, with key the dotted path.
+- `showIfValue` (readonly var): A `/`-rooted `x-showIf` key's value (configValueAt)
 
 ### Signals
 
@@ -41,7 +42,7 @@ The settings page's working copy of the config. Edits are applied live (in memor
 - `parseValue(schema, text)`: Parses typed text for a setting: { value } or { error }
 - `commitValue(key, value)`: Sets one setting and saves it straight away, leaving any unsaved edits on the page alone.
 - `commitValues(values)`: Sets config values by dotted path ({ "Apps.terminal": "foot" }) and saves them at once; false if the result doesn't validate.
-- `configValueAt(dottedPath)`: A value anywhere in the running config, by dotted path ("Workspaces.layout"): what an `x-showIf` key starting with `/` reads
+- `configValueAt(dottedPath)`: A value anywhere in the running config, by dotted path ("Workspaces.layout"): what an `x-showIf` key starting with `/` reads.
 - `valueOf(key)`
 - `saveChanges()`: Stays dirty if the save is rejected (invalid, or saves are blocked)
 - `resetChanges()`

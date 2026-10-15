@@ -675,7 +675,6 @@
     "Lock the screen": "画面をロック",
     "Suspend to RAM": "サスペンド",
     "Hibernate to disk": "ハイバネート",
-    "End the Hyprland session": "Hyprlandセッションを終了",
     "Restart the computer": "再起動",
     "Turn the computer off": "シャットダウン",
     "Open the settings": "設定を開く",
@@ -2705,7 +2704,6 @@
     "Failed to export to {0}": "{0} へのエクスポートに失敗しました",
     "No file picker could be opened": "ファイル選択ダイアログを開けませんでした",
     "Window look": "ウィンドウの見た目",
-    "Hyprland settings that make windows match axiom, in every mode. While on, they win over your own Hyprland config, and they come along when you share or import a config.": "ウィンドウを axiom に合わせる Hyprland の設定です（どのモードでも有効）。オンの間はご自身の Hyprland の設定より優先され、設定の共有やインポートにも含まれます。",
     "Match axiom's shape": "axiom の形に合わせる",
     "Set window gaps": "ウィンドウの間隔を設定",
     "Floating bars and detached surfaces set to Automatic keep these gaps too.": "「自動」に設定したフローティングバーや離れた表示もこの間隔に合わせます。",
@@ -2722,7 +2720,6 @@
     "Also blur the whole screen behind the overlay, launcher, power menu and workspace overview. Costs more while they open.": "オーバーレイ、ランチャー、電源メニュー、ワークスペース一覧の背後の画面全体もぼかします。開いている間は負荷が増えます。",
     "Hyprland's blur is off, so nothing blurs behind the surfaces.": "Hyprland のぼかしがオフのため、サーフェスの背後は何もぼかされません。",
     "Hyprland's blur: size {0}, {1} passes.": "Hyprland のぼかし: サイズ {0}、{1} パス。",
-    "Set in Hyprland → Window look.": "Hyprland → ウィンドウの見た目 で設定されています。",
     "From your Hyprland config.": "Hyprland の設定から。",
     "Set Hyprland's blur": "Hyprland のぼかしを設定",
     "Change": "変更",
@@ -2933,6 +2930,10 @@
     "Popout at its widget": "ウィジェットの位置にポップアウト",
     "An absolute path (~/ works), e.g. a synced folder or a Markdown vault. Empty keeps notes in ~/.local/share/axiom/notes.": "絶対パス（~/ も可）。同期フォルダや Markdown の保管庫など。空欄ならノートは ~/.local/share/axiom/notes に保存されます。",
     "Applies axiom's layer at runtime": "axiom が実行時に適用します",
-    "No session to start: no wayland-sessions folder lists one": "起動できるセッションがありません：wayland-sessions フォルダーにセッションがありません"
+    "No session to start: no wayland-sessions folder lists one": "起動できるセッションがありません：wayland-sessions フォルダーにセッションがありません",
+    "Set in Compositor → Window look.": "コンポジター → ウィンドウの見た目 で設定されています。",
+    "End the session": "セッションを終了",
+    "Settings that make windows match axiom. While on, they win over your compositor's own config, and they come along when you share or import a config.": "ウィンドウを axiom に合わせる設定です。オンの間はコンポジター自身の設定より優先され、設定の共有やインポートにも含まれます。",
+    "Compositor": "コンポジター"
   }
 }

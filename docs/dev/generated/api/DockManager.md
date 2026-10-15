@@ -36,8 +36,8 @@ The docks' shared state and actions (the docks themselves are shell/Dock): which
 - `unpin(dockId, key)`
 - `setZone(screenName, edge, dockId, size)`
 - `zoneOn(screenName, edge)`: The space docks reserve on a screen edge, together
-- `reservedOf(screen)`: The space reserved on each side of a screen, [left, top, right, bottom]: where its work area starts (Hyprland's monitor `reserved`).
-- `refreshSoon()`: Quickshell only re-reads monitors on monitor events, and Hyprland sends none when windows retile around a reserved zone that changed, so both are re-read when a layer surface (a bar, a dock) comes or…
+- `reservedOf(screen)`: The space reserved on each side of a screen, [left, top, right, bottom]: where its work area starts (the output's `reserved`)
+- `refreshSoon()`: Quickshell only re-reads Hyprland's monitors on monitor events, and Hyprland sends none when windows retile around a reserved zone that changed, so both are re-read when a layer surface (a bar, a doc…
 - `obscured(screen, rect)`: Whether a window on the screen's active workspace covers `rect` (screen-local)
 - `show(id)`: Empty ids act on every dock
 - `hide(id)`

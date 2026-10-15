@@ -81,7 +81,7 @@ PopoutWrapperBase {
     window: root.window
     triggerWindow: trigger
     frame: root.frame
-    onWarpRequested: HyprlandManager.warpCursorToLayer("axiom-edge-menu", root.screen?.name ?? "", panel.width, panel.height, loader.x + loader.width / 2, loader.y + loader.height / 2)
+    onWarpRequested: CompositorManager.warpCursorToLayer("axiom-edge-menu", root.screen?.name ?? "", panel.width, panel.height, loader.x + loader.width / 2, loader.y + loader.height / 2)
   }
   Component.onDestruction: EdgeMenuManager.setZone(root.screen?.name ?? "", root._edgeName, 0)
 

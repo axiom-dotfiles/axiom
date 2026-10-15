@@ -34,11 +34,11 @@ Panel {
   readonly property color activeColor: Theme.resolveColor(root.properties.activeColor)
   readonly property color occupiedColor: Theme.resolveColor(root.properties.occupiedColor)
   readonly property color textColor: Theme.resolveColor(root.properties.textColor)
-  readonly property int base: HyprlandManager.workspaceBase(root.monitor)
-  readonly property int activeId: root.monitor?.activeWorkspace?.id ?? -1
+  readonly property int base: CompositorManager.workspaceBase(root.monitor?.name ?? "")
+  readonly property int activeId: root.monitor?.activeWorkspaceId ?? -1
   // A string, so the lines are only rebuilt when the set of workspaces
-  // shown changes, not on every Hyprland event
-  readonly property string _idsKey: HyprlandManager.workspaceIds(root.monitor).filter(id => id === root.activeId || HyprlandManager.windowList.some(w => w.workspace?.id === id)).join(",")
+  // shown changes, not on every compositor event
+  readonly property string _idsKey: CompositorManager.workspaceIds(root.monitor?.name ?? "").filter(id => id === root.activeId || CompositorManager.windows.some(w => w.workspaceId === id)).join(",")
   readonly property var ids: root._idsKey === "" ? [] : root._idsKey.split(",").map(Number)
 
   implicitWidth: lines.implicitWidth + margins * 2
@@ -83,7 +83,7 @@ Panel {
           label: root.properties.relativeNumbers ? line.wsId - root.base + 1 : line.wsId
           clickable: root.properties.clickToSwitch ?? false
           animated: root._settled
-          onClicked: HyprlandManager.goToWorkspace(line.wsId, "go", root.monitor)
+          onClicked: CompositorManager.goToWorkspace(line.wsId, "go", root.monitor?.name ?? "")
         }
 
         StripWindows {

@@ -9,6 +9,7 @@ Derived, non-configurable filesystem paths (from the environment, not config).
 
 - `homeDirectory` (readonly string): --- Paths (from the environment, not from any config value) ---
 - `axiomPath` (readonly string): Shell root (this repo), always with a trailing slash.
+- `shellCommand` (readonly string): How compositors, binds and idle daemons start or call axiom
 - `themePath` (readonly string)
 - `scriptsPath` (readonly string)
 - `resourcePath` (readonly string): What ships with axiom in config/: json/ (schema, theme defaults, emoji), themes/, i18n/

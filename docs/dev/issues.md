@@ -18,14 +18,26 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 
 ## Open
 
-### Code outside the Hyprland* services still depends on Hyprland's shapes
-- **Where:** readers of `HyprlandManager.monitors`/`workspaces`/`monitorFor()` (the workspace widgets and content, `OverviewGrid`, `DockManager`, `ScreenshotPickerWindow`, `shell/BlurBacking.qml`); the Hyprland Lua helpers used by `MonitorManager`, `KeybindManager`, `WindowSwitcherManager` and `GreetdManager` (`HyprLua`, `HyprConfigLua`, `HyprBinds`); the `HyprlandGrab` users
-- **What:** Only the `Hyprland*` services import `Quickshell.Hyprland` now (`docs/dev/hyprland/ipc.md`), but the objects `HyprlandManager` hands out are Quickshell's `HyprlandMonitor`/`HyprlandWorkspace` (their `lastIpcObject`, `activeWorkspace`, `toplevels`), the window list is Hyprland's `clients` JSON, and those services build Hyprland Lua themselves. Supporting another compositor needs neutral shapes for monitors, workspaces and windows, the Lua builders behind the Hyprland* services, and a neutral name for the grab.
+### No sway or niri backend yet
+- **Where:** `services/CompositorManager.qml` (`backend`), `docs/dev/compositor/sway-backend.md`
+- **What:** Everything goes through `CompositorManager`, but only Hyprland has a backend. Under sway or niri, axiom runs with none: the bar, launcher and notifications work, but workspaces, windows, the dock's running apps, the keyboard layout and the window look are empty or do nothing. The plan for sway is in `sway-backend.md`; `scripts/dev/nested.sh` runs it nested.
 - **Size:** needs a plan
-- **Found:** 2026-10-15, while moving hyprctl calls onto the request socket
+- **Found:** 2026-10-16, while decoupling the shell from Hyprland
+
+### Hyprland-only services are still created under other compositors
+- **Where:** `services/OnboardingManager.qml` (`configState`), `services/KeybindManager.qml`, `services/MonitorManager.qml`, `services/IntegrationHookupManager.qml`
+- **What:** Their bindings name `HyprlandConfigManager`, which creates it, and its `import Quickshell.Hyprland` logs `$HYPRLAND_INSTANCE_SIGNATURE is unset. Cannot connect to hyprland.` once under another compositor (seen under nested niri). Every side effect is gated on `CompositorManager.supports`, so it's only noise. Guard the bindings (`CompositorManager.supports.configModes ? HyprlandConfigManager.x : default`) so it's never created.
+- **Size:** small
+- **Found:** 2026-10-16, while running axiom under nested niri
+
+### The greeter and the onboarding's Apps page assume Hyprland
+- **Where:** `scripts/greeter/greeter-session.sh`, `services/GreetdManager.qml` (`_applyHyprland`), `components/surfaces/onboarding/pages/AppsPage.qml`, `components/surfaces/onboarding/pages/BindsTable.qml`, `components/surfaces/onboarding/pages/WelcomePage.qml`
+- **What:** The greeter runs its own Hyprland session (`start-hyprland`, `hyprctl dispatch exit`). Under another compositor the onboarding still shows the Apps page's Hyprland binds table and the Welcome page's "desktop shell for Hyprland". The Hyprland and Monitors pages are already left out (`OnboardingManager.pages`). Decide per page what sway gets (hide the binds table; neutral copy), and whether the greeter keeps Hyprland or moves to cage/sway.
+- **Size:** small
+- **Found:** 2026-10-16, while decoupling the shell from Hyprland
 
 ### Some services and widgets list screens from `Quickshell.screens`
-- **Where:** `services/SettingsManager.qml` (`screens` options), `services/DesktopManager.qml`, `services/HyprlandManager.qml` (`_screenAt`), `services/BrightnessManager.qml`, `components/surfaces/onboarding/pages/MonitorsPage.qml`, `components/content/WallpaperPicker.qml`
+- **Where:** `services/SettingsManager.qml` (`screens` options), `services/DesktopManager.qml`, `services/BrightnessManager.qml`, `components/surfaces/onboarding/pages/MonitorsPage.qml`, `components/content/WallpaperPicker.qml`
 - **What:** AGENTS.md › UI conventions says to use `General.outputs`, never `Quickshell.screens`, which holds stand-ins while no monitor is connected. These still read it, so with Hyprland briefly outputless (a monitor config reload) they see a stand-in screen's name.
 - **Size:** small
 - **Found:** 2026-10-15, while auditing the Hyprland IPC changes
@@ -73,7 +85,7 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Found:** 2026-10-13, while assessing reader renames for the docs makeover
 
 ### `Quickshell.screens` used outside `General`
-- **Where:** `services/SettingsManager.qml`, `services/WallpaperManager.qml`, `services/DesktopManager.qml`, `services/ThemeManager.qml`, `services/HyprlandManager.qml`, `services/BrightnessManager.qml`, `components/content/WallpaperPicker.qml`, `components/surfaces/onboarding/pages/MonitorsPage.qml`, `shell/Greeter.qml`, `shell/Lockscreen.qml`, `shell/GreeterPreview.qml`
+- **Where:** `services/SettingsManager.qml`, `services/WallpaperManager.qml`, `services/DesktopManager.qml`, `services/ThemeManager.qml`, `services/BrightnessManager.qml`, `components/content/WallpaperPicker.qml`, `components/surfaces/onboarding/pages/MonitorsPage.qml`, `shell/Greeter.qml`, `shell/Lockscreen.qml`, `shell/GreeterPreview.qml`
 - **What:** AGENTS.md › Screen targeting says build on `General.outputs` / `General.screensFor`, never `Quickshell.screens` (it holds stand-ins while no monitor is connected); 14 uses remain (`grep -rn 'Quickshell\.screens' --include='*.qml' . | grep -v config/General.qml`). The three in `shell/` pick a fallback screen for a window that must exist even with no monitor, and are probably deliberate (say so in a comment); the rest should move to `General.outputs`.
 - **Size:** small
 - **Found:** 2026-10-13, while fixing `BlurManager.paused`
@@ -96,8 +108,8 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Size:** trivial
 - **Found:** 2026-10-13, while splitting architecture.md
 
-### `Hyprland.requiredSettings` and `wallpaperDaemon` have no developer doc
-- **Where:** `config/HyprlandConfig.qml` (`requiredSettings`, `wallpaperDaemon`), `docs/dev/hyprland/config-modes.md`
-- **What:** Both settings are in the schema and the generated reference (`docs/dev/config/Hyprland.md`) but no hand-written doc explains what they do; `wallpaperDaemon` only gets a passing mention in `docs/dev/theming/wallpaper-and-schedules.md`. Add a section to `config-modes.md`.
+### `Hyprland.requiredSettings` has no developer doc
+- **Where:** `config/HyprlandConfig.qml` (`requiredSettings`), `docs/dev/hyprland/config-modes.md`
+- **What:** It's in the schema and the generated reference (`docs/dev/config/Hyprland.md`), but no hand-written doc explains what it does. Add a section to `config-modes.md`. (`wallpaperDaemon` moved to `Appearance.wallpaperDaemon`, covered in `wallpaper-and-schedules.md`.)
 - **Size:** trivial
 - **Found:** 2026-10-13, while splitting architecture.md

@@ -18,7 +18,7 @@ How the wallpaper is drawn, and everything that changes the look on its own: wal
 - Any change of what's shown (a pick, a rotation, a light/dark switch, a mode switch, a restored config, a monitor connecting) runs `_applyShown`, which tells the backend about the monitors that changed and brings a generated theme in line (`syncGeneratedTheme`).
 - `Appearance.wallpaperBackend`:
   - `quickshell` (the default): drawn by `shell/Wallpaper` from `wallpaperFor`, one Background-layer `surfaces/wallpaper/WallpaperWindow` per screen, crossfading.
-  - `awww`: runs `setWallpaper.sh`. Hyprland's `wallpaperDaemon` starts its daemon (`awww-daemon`) only then, from `WallpaperManager` at start-up.
+  - `awww`: runs `setWallpaper.sh`. `Appearance.wallpaperDaemon` starts its daemon (`awww-daemon`) only then, from `WallpaperManager` at start-up.
 - Fixed wallpapers are written through `ThemeManager.setWallpaper` / `setWallpapers(map)` → `ConfigManager.setWallpaper(s)` (one save); the rotation's through `ThemeManager.showRotated(map)` (state only).
 
 ### WallpaperManager: wallpaper modes

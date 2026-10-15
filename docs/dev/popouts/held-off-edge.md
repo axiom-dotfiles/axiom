@@ -37,7 +37,7 @@ Floating edge menus, docks and OSDs with `detached` set are held off their edge 
 - **`slideDistance`:** only from under a transparent bar's outer edge, as a bar popout slides.
   - It is none while the overlay is open on its screen (`_overOverlay`), so the popout draws over the overlay.
   - See [Transparent bars](pill-and-floating-bars.md#transparent-bars-detached-popouts).
-- **Over a fullscreen window** (`HyprlandManager.hasFullscreen`), which covers the border and bars, any `EdgePopout` (OSD, floating edge menu, attached launcher) is held too (`holds`: `held` or `_overFullscreen`):
+- **Over a fullscreen window** (`CompositorManager.hasFullscreen`), which covers the border and bars, any `EdgePopout` (OSD, floating edge menu, attached launcher) is held too (`holds`: `held` or `_overFullscreen`):
   - It uses an Auto gap, unless it is already held.
   - It joins no ends and slides under nothing.
   - Like `_overOverlay`, `_overFullscreen` follows only while the popout is closed (`ClosedLatch`), so an open box never moves.

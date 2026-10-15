@@ -201,7 +201,7 @@ Scope {
   }
 
   // --- Showing and hiding ---
-  readonly property bool fullscreen: HyprlandManager.hasFullscreen(root.screen?.name ?? "")
+  readonly property bool fullscreen: CompositorManager.hasFullscreen(root.screen?.name ?? "")
   readonly property bool hiddenByHand: !!DockManager.hidden[root.dock.id]
   // Opened by the trigger (after openDelay), a reveal, or the pointer on
   // the shown dock, until the pointer has been gone for closeDelay. Only

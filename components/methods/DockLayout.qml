@@ -3,21 +3,21 @@ import QtQuick
 
 // Pure helpers for the dock: which apps it shows (pinned ones, then running
 // ones), which window a click goes to, how big each icon is under the
-// pointer, and whether a window covers it. Windows are hyprctl client
-// objects ({ address, class, title, workspace, monitor, focusHistoryID, at,
-// size, mapped, hidden }). No file access, processes or services.
+// pointer, and whether a window covers it. Windows are the compositor's
+// (docs/dev/compositor/contract.md: id, appId, workspaceId, output,
+// focusRank, x, y, w, h, hidden). No file access, processes or services.
 QtObject {
   id: root
 
-  // Whether a window counts on a dock: mapped, not hidden, and in its
-  // scope ("all" | "monitor" | "workspace")
-  function inScope(win, scope, monitorId, workspaceId) {
-    if (!win || !win.mapped || win.hidden)
+  // Whether a window counts on a dock: not hidden, and in its scope
+  // ("all" | "monitor" | "workspace"; `output` is the screen's name)
+  function inScope(win, scope, output, workspaceId) {
+    if (!win || win.hidden)
       return false;
     if (scope === "monitor")
-      return win.monitor === monitorId;
+      return win.output === output;
     if (scope === "workspace")
-      return win.workspace?.id === workspaceId;
+      return win.workspaceId === workspaceId;
     return true;
   }
 
@@ -39,7 +39,7 @@ QtObject {
       }
       byKey[key].push(win);
     }
-    const recent = list => list.slice().sort((a, b) => (a.focusHistoryID ?? 0) - (b.focusHistoryID ?? 0));
+    const recent = list => list.slice().sort((a, b) => (a.focusRank ?? 0) - (b.focusRank ?? 0));
     const items = pinned.filter((key, i) => key && pinned.indexOf(key) === i).map(key => ({
           "key": key,
           "pinned": true,
@@ -61,13 +61,13 @@ QtObject {
   // The window a click on an app focuses: its most recent one, or, when
   // one of its windows is already focused, the next in a stable order (so
   // repeated clicks cycle through them). Empty when it has none.
-  function clickTarget(windows, focusedAddress) {
+  function clickTarget(windows, focusedId) {
     if (windows.length === 0)
       return "";
-    const stable = windows.map(w => w.address).sort();
-    const at = stable.indexOf(focusedAddress);
+    const stable = windows.map(w => w.id).sort();
+    const at = stable.indexOf(focusedId);
     if (at < 0)
-      return windows[0].address;
+      return windows[0].id;
     return stable[(at + 1) % stable.length];
   }
 
@@ -96,14 +96,14 @@ QtObject {
     return a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;
   }
 
-  // Whether any of the windows (in the same coordinates as `rect`, from
-  // hyprctl's `at` and `size`) covers the rect
+  // Whether any of the windows (in the same global coordinates as `rect`)
+  // covers the rect
   function covered(rect, windows) {
-    return windows.some(w => w.at && w.size && root.overlaps(rect, {
-        "x": w.at[0],
-        "y": w.at[1],
-        "width": w.size[0],
-        "height": w.size[1]
+    return windows.some(w => w.w > 0 && w.h > 0 && root.overlaps(rect, {
+        "x": w.x,
+        "y": w.y,
+        "width": w.w,
+        "height": w.h
       }));
   }
 }

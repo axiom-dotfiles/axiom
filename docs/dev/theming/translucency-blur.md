@@ -70,6 +70,6 @@ Written by `HyprLua.blurLua` (HyprlandConfigManager's `_blurLua`, `M.blur()` in 
 ### Lock screen and greeter
 - No compositor blur reaches a session-lock surface, so `ScreenLayoutView` frosts its own background under the modules while the shell blurs (`frosted`):
   - the backdrop is blurred at about Hyprland's strength (`hyprBlur`);
-  - the lock surface reads it from `HyprlandManager.blur`; the greeter leaves it at Hyprland's defaults;
+  - the lock surface reads it from `CompositorManager.blur`; the greeter leaves it at Hyprland's defaults;
   - masked by the modules at the blur threshold.
 - Not when the wallpaper is blurred already.

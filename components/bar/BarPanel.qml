@@ -33,7 +33,7 @@ PanelWindow {
   WlrLayershell.exclusiveZone: root.reservedZone
   // On a transparent or pill bar, how far in from its outer edge it
   // reserves (floating edge menus place themselves against that)
-  readonly property int reservedZone: Bar.reservedZone(barConfig, HyprlandManager.gapsOut[Bar.edgeName(barConfig.location)] ?? 0)
+  readonly property int reservedZone: Bar.reservedZone(barConfig, CompositorManager.gapsOut[Bar.edgeName(barConfig.location)] ?? 0)
   WlrLayershell.namespace: root.layerNamespace
   readonly property string layerNamespace: Bar.layerNamespace(barConfig)
   // The bar container paints the background (or not, when transparent)

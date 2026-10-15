@@ -124,7 +124,7 @@ QtObject {
       "frame": frame,
       "reserved": reserved,
       "corner": EdgeMenuManager.cornerLineOn(root.screen, location),
-      "gapsOut": HyprlandManager.gapsOut[name] ?? 0,
+      "gapsOut": CompositorManager.gapsOut[name] ?? 0,
       "barHeld": held
     };
   }
@@ -198,7 +198,7 @@ QtObject {
     "joinEnd": root.joinEnd,
     "frameLine": EdgeMenuManager.frameLineOn(root.screen, root.edge),
     "reserved": EdgeMenuManager.reservedOn(root.screen, root.edge),
-    "detachedPush": root.barConfig ? Bar.detachedPush(root.barConfig, HyprlandManager.gapsOut[root.edgeName] ?? 0, root.connectorGap) : 0,
+    "detachedPush": root.barConfig ? Bar.detachedPush(root.barConfig, CompositorManager.gapsOut[root.edgeName] ?? 0, root.connectorGap) : 0,
     "ownBar": root.ownBar,
     "across": root.gaps?.across ?? 0
   }))

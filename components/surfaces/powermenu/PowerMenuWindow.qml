@@ -125,7 +125,7 @@ PanelWindow {
     onSyncRequested: shown => root.shown = shown
   }
 
-  HyprlandGrab {
+  FocusGrab {
     active: root.shown && group.ownsGrab
     windows: group.windows.concat(ShellManager.modalWindows)
     onCleared: root.shown = false

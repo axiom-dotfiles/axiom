@@ -205,7 +205,20 @@ def main():
     # through HyprlandManager (docs/dev/hyprland/ipc.md)
     for path, text in sources.items():
         if re.search(r"^import Quickshell\.Hyprland\b", text, re.M) and not re.fullmatch(r"services/Hyprland\w*\.qml", path):
-            errors.append(f"{path}: imports Quickshell.Hyprland (only the Hyprland* services may; use HyprlandManager)")
+            errors.append(f"{path}: imports Quickshell.Hyprland (only the Hyprland* services may; use CompositorManager)")
+
+    # The rest of the shell reaches the compositor through CompositorManager
+    # (docs/dev/compositor/README.md). HyprlandManager is its Hyprland
+    # backend; besides the Hyprland* services, only the Hyprland-only
+    # features use it directly, each gated on CompositorManager.supports.
+    hyprland_features = {
+        "services/CompositorManager.qml", "services/MonitorManager.qml", "services/KeybindManager.qml",
+        "services/GreetdManager.qml", "services/WindowSwitcherManager.qml", "services/OnboardingManager.qml",
+    }
+    for path, text in sources.items():
+        code = "\n".join(line.split("//", 1)[0] for line in text.splitlines())
+        if re.search(r"\bHyprlandManager\.", code) and not re.fullmatch(r"services/Hyprland\w*\.qml", path) and path not in hyprland_features:
+            errors.append(f"{path}: uses HyprlandManager (only the Hyprland* services and the Hyprland-only features may; use CompositorManager)")
 
     # Singleton references: FooManager. must be a service, and a near-miss
     # of any project singleton (AudioManger.) is a typo

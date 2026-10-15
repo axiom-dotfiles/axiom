@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 55
+  readonly property int currentVersion: 56
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -137,6 +137,8 @@ QtObject {
       result = _v53ToV54(result, changes);
     if (version < 55)
       result = _v54ToV55(result, changes);
+    if (version < 56)
+      result = _v55ToV56(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -1884,6 +1886,30 @@ QtObject {
       p.popoutMenu = p.menu;
       changes.push(`${where}.properties.hoverActivate -> popoutMenu = ${p.menu}`);
     });
+    return config;
+  }
+
+  // The window look leaves the Hyprland section, so another compositor
+  // can apply it too (Hyprland.look -> WindowLook), and starting awww goes
+  // with the wallpaper backend (Hyprland.wallpaperDaemon ->
+  // Appearance.wallpaperDaemon)
+  function _v55ToV56(config, changes) {
+    const hypr = config.Hyprland;
+    if (!hypr || typeof hypr !== "object")
+      return config;
+    if (hypr.look && typeof hypr.look === "object" && config.WindowLook === undefined) {
+      config.WindowLook = hypr.look;
+      changes.push("Hyprland.look -> WindowLook");
+    }
+    delete hypr.look;
+    if (hypr.wallpaperDaemon !== undefined) {
+      config.Appearance = config.Appearance ?? {};
+      if (config.Appearance.wallpaperDaemon === undefined) {
+        config.Appearance.wallpaperDaemon = hypr.wallpaperDaemon;
+        changes.push(`Hyprland.wallpaperDaemon -> Appearance.wallpaperDaemon = ${hypr.wallpaperDaemon}`);
+      }
+      delete hypr.wallpaperDaemon;
+    }
     return config;
   }
 }

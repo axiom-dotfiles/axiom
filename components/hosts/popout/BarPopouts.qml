@@ -126,7 +126,7 @@ PopoutWrapperBase {
   // click outside clears (the content's focusLost())
   readonly property bool wantsKeyboardFocus: root.window.visible && (root.currentItem?.wantsKeyboardFocus ?? false)
 
-  HyprlandGrab {
+  FocusGrab {
     windows: [root.window, root.panel].concat(ShellManager.modalWindows)
     active: root.wantsKeyboardFocus
     onCleared: root.currentItem?.focusLost?.()

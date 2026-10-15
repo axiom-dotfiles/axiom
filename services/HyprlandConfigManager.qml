@@ -23,7 +23,7 @@ import qs.components.methods
  * Whenever the file isn't loaded (included but the lines are missing, or a
  * managed takeover refused), the runtime layer is applied instead, so axiom
  * still works, and `problem` says why.
- * The window look (HyprlandConfig.look: themed borders, axiom's shape,
+ * The window look (WindowLookConfig.look: themed borders, axiom's shape,
  * gaps, Hyprland's blur, window opacity) and the blur behind axiom's
  * surfaces are also evaluated after every config reload in each mode, so
  * they win over the user's own config while they're on (_applyLook).
@@ -88,8 +88,8 @@ Singleton {
       "note": "Adds the line at the end: Hyprland starts axiom with every session."
     })
 
-  // How Hyprland, binds and hypridle start or call axiom
-  readonly property string shellCommand: `qs -p '${Paths.axiomPath.replace(/\/$/, "")}'`
+  // How Hyprland and its binds start or call axiom (Paths.shellCommand)
+  readonly property string shellCommand: Paths.shellCommand
   // Starting it: -n (--no-duplicate) exits at once if axiom already runs,
   // so a second autostart line or a reloaded hyprland.lua can't start
   // another copy
@@ -125,7 +125,7 @@ Singleton {
   }
 
   function _lookLua(forFile) {
-    return HyprLua.lookLua(HyprlandConfig.look, ConfigManager.configSchema?.properties?.Hyprland?.properties?.look, HyprConfigLua.hex(Theme.borderFocus), HyprConfigLua.hex(Theme.border), Appearance.borderWidth, Appearance.borderRadius, _surfacesBlur(forFile));
+    return HyprLua.lookLua(WindowLookConfig.look, ConfigManager.configSchema?.properties?.WindowLook, HyprConfigLua.hex(Theme.borderFocus), HyprConfigLua.hex(Theme.border), Appearance.borderWidth, Appearance.borderRadius, _surfacesBlur(forFile));
   }
 
   // The blur behind axiom's surfaces, its rules written on or off
@@ -174,7 +174,7 @@ Singleton {
       "userDir": userDir,
       "schema": ConfigManager.configSchema?.properties?.Hyprland?.properties?.managed,
       "resolveHex": name => HyprConfigLua.hex(Theme.resolveColor(name)),
-      "lookShape": HyprlandConfig.look.shape,
+      "lookShape": WindowLookConfig.look.shape,
       "motion": _motion,
       "start": {
         "command": startCommand,
@@ -387,7 +387,13 @@ Singleton {
 
   // --- Driving it ---
 
+  // Whether axiom runs under Hyprland, so its config is axiom's to write
+  readonly property bool live: CompositorManager.supports.configModes === true
+
   function apply() {
+    // Only under Hyprland: elsewhere nothing here may touch its config
+    if (!root.live)
+      return;
     // Detached, the reload's configreloaded applies the layer again. The
     // file modes go on: their configreloaded doesn't call apply(), so
     // returning would drop a mode switch or a rewrite made with it.
@@ -425,6 +431,8 @@ Singleton {
   // the user's own lines, so it's evaluated again to win over them. And in
   // every mode as the look or the blur changes (_liveDebounce).
   function _applyLook() {
+    if (!root.live)
+      return;
     HyprlandManager.runLua(_runtimeLookLua().join("\n"));
     HyprlandManager.refreshOptions();
   }
@@ -432,13 +440,13 @@ Singleton {
   // The look and the blur as evaluated at runtime now, noting which look
   // parts that applies (the runtime layer evaluates them too)
   function _runtimeLookLua() {
-    _lookState.applied = HyprLua.lookParts(HyprlandConfig.look).join(",");
+    _lookState.applied = HyprLua.lookParts(WindowLookConfig.look).join(",");
     return _lookLua(false).concat(_blurLua(false));
   }
 
   // The look's parts evaluated since the last reload that are off now
   function _droppedLookParts() {
-    const now = HyprLua.lookParts(HyprlandConfig.look);
+    const now = HyprLua.lookParts(WindowLookConfig.look);
     return _lookState.applied.split(",").filter(part => part !== "" && !now.includes(part));
   }
 
@@ -503,12 +511,14 @@ Singleton {
   // holds them as of its last write, and _applyLook evaluates the current
   // ones over it after every reload. Turning a look part off goes through
   // apply(), since an eval can't take a setting back.
-  readonly property string _liveInputs: [HyprlandConfig._lookJson, Appearance.blur, BlurManager.active, Appearance.blurBackdrops, Appearance.blurThroughWindows, Theme.borderFocus, Theme.border, Appearance.borderRadius, Appearance.borderWidth].join("|")
+  readonly property string _liveInputs: [WindowLookConfig._lookJson, Appearance.blur, BlurManager.active, Appearance.blurBackdrops, Appearance.blurThroughWindows, Theme.borderFocus, Theme.border, Appearance.borderRadius, Appearance.borderWidth].join("|")
   on_LiveInputsChanged: _liveDebounce.restart()
 
   property Timer _liveDebounce: Timer {
     interval: 300
     onTriggered: {
+      if (!root.live)
+        return;
       if (root._appliedMode !== root.mode || root._droppedLookParts().length > 0)
         root.apply();
       else

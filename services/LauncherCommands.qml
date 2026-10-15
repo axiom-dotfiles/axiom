@@ -25,7 +25,7 @@ QtObject {
 
   readonly property var list: [
     // --- Session ---
-    root._session("lock", ["lock-screen"], "Lock the screen"), root._session("suspend", ["sleep"], "Suspend to RAM"), root._session("hibernate", [], "Hibernate to disk"), root._session("logout", ["exit"], "End the Hyprland session"), root._session("reboot", ["restart"], "Restart the computer"), root._session("poweroff", ["shutdown"], "Turn the computer off"),
+    root._session("lock", ["lock-screen"], "Lock the screen"), root._session("suspend", ["sleep"], "Suspend to RAM"), root._session("hibernate", [], "Hibernate to disk"), root._session("logout", ["exit"], "End the session"), root._session("reboot", ["restart"], "Restart the computer"), root._session("poweroff", ["shutdown"], "Turn the computer off"),
     // --- Surfaces ---
     {
       name: "power",
@@ -312,7 +312,7 @@ QtObject {
       run: arg => {
         const id = parseInt(arg.trim());
         if (id > 0)
-          HyprlandManager.goToWorkspace(id);
+          CompositorManager.goToWorkspace(id);
         else
           return false;
       }
@@ -474,7 +474,7 @@ QtObject {
       glyph: ShellManager.sessionActionInfo(action).icon,
       confirm: ShellManager.destructiveActions.includes(action),
       // I18n.tr("Lock the screen") I18n.tr("Suspend to RAM") I18n.tr("Hibernate to disk")
-      // I18n.tr("End the Hyprland session") I18n.tr("Restart the computer") I18n.tr("Turn the computer off")
+      // I18n.tr("End the session") I18n.tr("Restart the computer") I18n.tr("Turn the computer off")
       description: () => I18n.tr(description),
       run: () => ShellManager.sessionAction(action)
     };
@@ -491,6 +491,11 @@ QtObject {
       // I18n.tr("Show the keybinds") I18n.tr("Edit the overlay pages and edge menus")
       // I18n.tr("Edit the edge menus") I18n.tr("Arrange and set up monitors")
       description: () => I18n.tr(description),
+      // Not where the compositor can't do what the page needs (`x-needs`)
+      available: () => {
+        const needs = OverlayConfig.viewInfo(type)?.needs ?? "";
+        return needs === "" || CompositorManager.supports[needs] === true;
+      },
       run: () => {
         if (before)
           before();

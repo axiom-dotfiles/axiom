@@ -13,6 +13,8 @@ QtObject {
   // Shell root (this repo), always with a trailing slash. Read-only: axiom
   // writes nothing under it (a package installs it where it can't)
   readonly property string axiomPath: decodeURIComponent(Quickshell.shellDir.toString().replace("file://", "")).replace(/\/?$/, "/")
+  // How compositors, binds and idle daemons start or call axiom
+  readonly property string shellCommand: `qs -p '${root.axiomPath.replace(/\/$/, "")}'`
   readonly property string themePath: root.axiomPath + "config/themes/"
   readonly property string scriptsPath: root.axiomPath + "scripts/"
   // What ships with axiom in config/: json/ (schema, theme defaults,

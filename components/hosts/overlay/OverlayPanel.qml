@@ -112,7 +112,7 @@ ReservedAreaWindow {
     onSyncRequested: shown => shown ? root.open() : root.close()
   }
 
-  HyprlandGrab {
+  FocusGrab {
     id: grab
     // Only while open: a grab held through the close animation would be
     // cleared by any click then, for nothing

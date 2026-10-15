@@ -2,7 +2,7 @@
 # OverlayViews: Keybinds
 
 > **File:** `components/views/Keybinds.qml` · **Schema:** `definitions.KeybindsOverlayView` · **Label:** Keybinds
-> **Annotations:** x-icon="keyboard", x-tool=true
+> **Annotations:** x-icon="keyboard", x-tool=true, x-needs="keybinds"
 
 Settings are read as `viewConfig.<key>`.
 

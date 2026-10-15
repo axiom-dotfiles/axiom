@@ -1,13 +1,14 @@
 # Hyprland window look
 
-> **Files:** `services/HyprlandConfigManager.qml`, `components/methods/HyprLua.qml`, `services/HyprlandManager.qml`, `components/views/settings/TranslucencyStatus.qml`
-> **Config:** `Hyprland.look.*` (borders, `shape`, gaps, `blur`, `opacity`, `windowBlur`)
-> **Related:** [Config modes](config-modes.md), [Translucency and blur](../theming/translucency-blur.md), [Lockscreen](../features/lockscreen.md)
+> **Files:** `config/WindowLookConfig.qml`, `services/HyprlandConfigManager.qml`, `components/methods/HyprLua.qml`, `services/HyprlandManager.qml`, `components/views/settings/TranslucencyStatus.qml`
+> **Config:** `WindowLook.*` (borders, `shape`, gaps, `blur`, `opacity`, `windowBlur`)
+> **Related:** [The compositor](../compositor/README.md), [Config modes](config-modes.md), [Translucency and blur](../theming/translucency-blur.md), [Lockscreen](../features/lockscreen.md)
 
-The themed window look axiom gives Hyprland: borders, shape, gaps, blur and window opacity. It is written as one `hl.config` in every mode.
+The themed window look axiom gives Hyprland: borders, shape, gaps, blur and window opacity. It is written as one `hl.config` in every mode. The settings are compositor-neutral (`WindowLook`, Settings › Compositor). Another compositor's backend applies the parts it supports through `applyLook` ([The compositor](../compositor/README.md) › The window look).
 
 ### What it covers
-- The section is `Hyprland.look`. It is `x-scope: look` inside a machine-scoped section, so exports, examples and imports carry it. It isn't `x-takeover`.
+- The section is `WindowLook` (`WindowLookConfig.look`; `Hyprland.look` before config version 56). It is `x-scope: look`, so exports, examples and imports carry it. It isn't `x-takeover`.
+- Each part's fields carry `x-showIf: { "/$supports.window<Part>": true }`, so a compositor without that part hides them.
 - It holds:
   - themed borders
   - axiom's shape: `decoration.rounding`/`general.border_size` from `Appearance`
@@ -20,7 +21,7 @@ The themed window look axiom gives Hyprland: borders, shape, gaps, blur and wind
 ### Blur and windows
 - With the blur part on, Hyprland's blur stays enabled while axiom's surfaces blur, even if `windowBlur` is off.
 - The `axiom-no-window-blur` rule (redefined on or off) then keeps windows and their popups unblurred.
-- `HyprlandManager.blur` reads the blur in effect (`refreshOptions`). It is used by:
+- `CompositorManager.blur` reads the blur in effect (`refreshOptions`). It is used by:
   - the Translucency card's status (`views/settings/TranslucencyStatus`, that card's `x-intro`)
   - the lock screen's frost.
 

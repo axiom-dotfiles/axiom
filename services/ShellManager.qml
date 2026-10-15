@@ -34,7 +34,7 @@ QtObject {
   function targetFor(mode, name) {
     const resolved = modeFor(mode);
     if (resolved === "focused" || resolved === "all")
-      return HyprlandManager.focusedOutput || General.primaryMonitor;
+      return CompositorManager.focusedOutput || General.primaryMonitor;
     return General.screensFor(resolved, name)[0]?.name ?? "";
   }
 
@@ -282,7 +282,7 @@ QtObject {
       Quickshell.execDetached(["systemctl", "hibernate"]);
       break;
     case "logout":
-      HyprlandManager.exitSession();
+      CompositorManager.exitSession();
       break;
     case "reboot":
       Quickshell.execDetached(["systemctl", "reboot"]);

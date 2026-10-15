@@ -429,12 +429,10 @@
       "gap": -1
     }
   ],
-  "Hyprland": {
-    "look": {
-      "gaps": true,
-      "gapsIn": 3,
-      "gapsOut": 6
-    }
+  "WindowLook": {
+    "gaps": true,
+    "gapsIn": 3,
+    "gapsOut": 6
   },
   "Icons": {
     "overrides": {}

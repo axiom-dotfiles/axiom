@@ -177,11 +177,11 @@ QtObject {
   property string _activeLayout: ""
 
   function nextLayout() {
-    HyprlandManager.cycleKeyboardLayout("next", () => root._readLayouts());
+    CompositorManager.cycleKeyboardLayout("next", () => root._readLayouts());
   }
 
   function _readLayouts() {
-    HyprlandManager.withKeyboard(keyboard => {
+    CompositorManager.withKeyboard(keyboard => {
       root._layouts = keyboard?.layouts ?? [];
       root._activeLayout = keyboard?.keymap ?? "";
     });
@@ -219,6 +219,8 @@ QtObject {
 
   // The monitors and, in managed mode, the bundle's Hyprland options
   function _applyHyprland() {
+    if (CompositorManager.kind !== "hyprland")
+      return;
     const config = ConfigManager.config;
     const managedSchema = ConfigManager.configSchema.properties.Hyprland.properties.managed;
     const managed = config.Hyprland.mode === "managed" ? config.Hyprland.managed : undefined;

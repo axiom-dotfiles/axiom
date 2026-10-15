@@ -35,7 +35,7 @@ Item {
     if (!bar?.insideBorder || !bar.reserveSpace)
       return -root.strokeWidth - docks;
     // As far as the bar reserves (see BarPanel)
-    const gap = Bar.reserveTrim(bar, HyprlandManager.gapsOut[edge] ?? 0);
+    const gap = Bar.reserveTrim(bar, CompositorManager.gapsOut[edge] ?? 0);
     return -(bar.extent - gap) - docks;
   }
   // How far in from a screen edge the frame's inner edge lies: past a solid

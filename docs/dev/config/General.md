@@ -19,7 +19,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`General.primaryMonitor`** · string = ""
   - Primary monitor: Monitor that hosts the lockscreen input, and the surfaces below when they're on one monitor. Empty uses the first screen.
   - x-options="screens", x-emptyLabel="First screen"
-  - read: `General.primaryMonitor` (computed) · in: `components/content/Brightness.qml`, `components/content/WallpaperPicker.qml`, `components/views/monitors/MonitorCanvas.qml`, `components/views/monitors/MonitorInspector.qml`, `config/DesktopConfig.qml`, `config/WorkspacesConfig.qml`, `services/HyprlandManager.qml`, `services/MonitorManager.qml`, `services/PolkitManager.qml`, `services/ShellManager.qml`, `services/ThemeManager.qml`, `services/WallpaperManager.qml`, `shell/IdleInhibit.qml`, `shell/Onboarding.qml`
+  - read: `General.primaryMonitor` (computed) · in: `components/content/Brightness.qml`, `components/content/WallpaperPicker.qml`, `components/views/monitors/MonitorCanvas.qml`, `components/views/monitors/MonitorInspector.qml`, `config/DesktopConfig.qml`, `config/WorkspacesConfig.qml`, `services/CompositorManager.qml`, `services/MonitorManager.qml`, `services/PolkitManager.qml`, `services/ShellManager.qml`, `services/ThemeManager.qml`, `services/WallpaperManager.qml`, `shell/IdleInhibit.qml`, `shell/Onboarding.qml`
 - **`General.monitors`** · string = "primary" · enum primary|focused|all
   - Monitors: Where the overlay, launcher, power menu and OSD appear (each can override this). Focused monitor opens them on the one with your active workspace (and mouse); every monitor opens them on all of them at once. The workspace overview always opens on the monitor under the mouse.
   - read: `General.monitors` · in: `components/methods/ConfigMigration.qml`, `services/ShellManager.qml`
@@ -33,11 +33,11 @@ Every public member of `General`, with the files that use it.
 - `General.language` (string): Monitor for the lockscreen input, launcher, power menu and overlay Language for the shell's text, dates and clock (see I18n): "en" | "ja"
   - in: `components/surfaces/onboarding/pages/WelcomePage.qml`, `config/I18n.qml`
 - `General.primaryMonitor` (string)
-  - in: `components/content/Brightness.qml`, `components/content/WallpaperPicker.qml`, `components/views/monitors/MonitorCanvas.qml`, `components/views/monitors/MonitorInspector.qml`, `config/DesktopConfig.qml`, `config/WorkspacesConfig.qml`, `services/HyprlandManager.qml`, `services/MonitorManager.qml`, `services/PolkitManager.qml`, `services/ShellManager.qml` (+4 more)
+  - in: `components/content/Brightness.qml`, `components/content/WallpaperPicker.qml`, `components/views/monitors/MonitorCanvas.qml`, `components/views/monitors/MonitorInspector.qml`, `config/DesktopConfig.qml`, `config/WorkspacesConfig.qml`, `services/CompositorManager.qml`, `services/MonitorManager.qml`, `services/PolkitManager.qml`, `services/ShellManager.qml` (+4 more)
 - `General.monitors` (string): "primary" | "focused" | "all": where the power menu (and the overlay, launcher and OSD, unless their own `monitors` says otherwise) appear: the primary monitor…
   - in: `components/methods/ConfigMigration.qml`, `services/ShellManager.qml`
 - `General.outputs` (var): The connected monitors: Quickshell.screens without the stand-ins shown while none is (Qt's nameless placeholder, Hyprland's headless FALLBACK).
-  - in: `components/bar/BarPanel.qml`, `config/Bar.qml`, `services/BarManager.qml`, `services/BlurManager.qml`, `services/ThemeManager.qml`, `services/WallpaperManager.qml`, `shell/Bar.qml`, `shell/BlurBacking.qml`, `shell/Desktop.qml`, `shell/Dock.qml` (+9 more)
+  - in: `components/bar/BarPanel.qml`, `config/Bar.qml`, `services/BarManager.qml`, `services/BlurManager.qml`, `services/CompositorManager.qml`, `services/ThemeManager.qml`, `services/WallpaperManager.qml`, `shell/Bar.qml`, `shell/BlurBacking.qml`, `shell/Desktop.qml` (+10 more)
 - `General.screens` (var): The screens they're built on
   - in: only inside the reader
 - `General.screensNamed(name)`: The screen named `name` (as a one-screen list), else the primary monitor, else the first screen

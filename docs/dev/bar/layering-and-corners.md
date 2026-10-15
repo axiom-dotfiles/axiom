@@ -16,7 +16,7 @@ How bars and the screen border share an edge through layer-shell ordering. Cover
 - It is on the Top layer, at the screen edge.
 - The border's strip on that edge is arranged after the bar and overlaps its inner part, so the strip's stroke is the bar's inner edge.
 - **Build order.** Hyprland reads a layer rule's `order` only as a surface maps.
-  - So the bars, border, docks and edge menus are built only once `HyprlandManager.layerRulesReady` is true. The rules are evaluated at startup and kept across QML reloads.
+  - So the bars, border, docks and edge menus are built only once `CompositorManager.surfacesReady` is true. The rules are evaluated at startup and kept across QML reloads.
   - Why: in detached mode, hyprland.lua doesn't hold the rules. A border mapped first would land outside the bar, with its corners on the bar's outer side.
 - **Window keying.** For the same reason, `shell/Bar` keys each bar's window on whether it sits inside the border, as well as on its id.
   - Switching to or from solid changes the bar's namespace, so the window is remade and maps under the new rule.
@@ -45,7 +45,7 @@ How bars and the screen border share an edge through layer-shell ordering. Cover
 Each bar end's `kind`, joining rules, pill bars merging at a corner, and pills themselves: see [Bar ends and pills](bar-ends-pills.md).
 
 ### Transparent bars
-- They reserve `Hyprland gaps_out` less (`HyprlandManager.gapsOut`). Windows therefore start at the bar's invisible inner edge, and the widgets' gap to the windows matches their gap to the screen edge.
+- They reserve `Hyprland gaps_out` less (`CompositorManager.gapsOut`). Windows therefore start at the bar's invisible inner edge, and the widgets' gap to the windows matches their gap to the screen edge.
 - Bar popouts use `adjustment: PopupAdjustment.None`. Their placement is computed, and Hyprland would otherwise nudge one sitting flush on the screen edge a few pixels inwards.
 
 ### Border off

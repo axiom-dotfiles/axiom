@@ -2,7 +2,7 @@
 # Config: Hyprland.managed
 
 > **Reader:** `HyprlandConfig` (`config/HyprlandConfig.qml`)
-> **Schema:** `config/json/config.schema.json` → `properties.Hyprland` · category Hyprland
+> **Schema:** `config/json/config.schema.json` → `properties.Hyprland` · category Compositor
 > **Part of:** [Hyprland](Hyprland.md)
 
 Each setting: `path` · type = default · enum/range/unit; then title: description; annotations; `read:` the reader member(s) (exact unless marked) and `in:` the files that use them.
@@ -54,11 +54,11 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `config/HyprlandConfig.qml`, `services/HyprlandConfigManager.qml`
 - **`Hyprland.managed.borderSize`** · integer = 2 · 0–20
   - Border width
-  - x-control="stepper", x-group="Decoration", x-showIf={"/Hyprland.look.shape":false}
+  - x-control="stepper", x-group="Decoration", x-showIf={"/WindowLook.shape":false}
   - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `config/HyprlandConfig.qml`, `services/HyprlandConfigManager.qml`
 - **`Hyprland.managed.rounding`** · integer = 8 · 0–50
   - Corner rounding
-  - x-control="stepper", x-group="Decoration", x-showIf={"/Hyprland.look.shape":false}
+  - x-control="stepper", x-group="Decoration", x-showIf={"/WindowLook.shape":false}
   - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `config/HyprlandConfig.qml`, `services/HyprlandConfigManager.qml`
 - **`Hyprland.managed.dimInactive`** · boolean = true
   - Dim unfocused windows

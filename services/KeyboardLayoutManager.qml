@@ -2,7 +2,7 @@ pragma Singleton
 import QtQuick
 
 // Active xkb layout of the main keyboard, shared by every KeyboardLayout
-// widget. Read once (HyprlandManager.withKeyboard), then again whenever
+// widget. Read once (CompositorManager.withKeyboard), then again whenever
 // Hyprland reports a layout switch or a config reload (no polling).
 QtObject {
   id: root
@@ -12,7 +12,7 @@ QtObject {
   property string keymapName: ""
 
   function refresh() {
-    HyprlandManager.withKeyboard(keyboard => {
+    CompositorManager.withKeyboard(keyboard => {
       if (!keyboard)
         return;
       root.layouts = keyboard.layouts;
@@ -23,11 +23,11 @@ QtObject {
 
   // "next" or "prev", on every keyboard
   function cycle(direction) {
-    HyprlandManager.cycleKeyboardLayout(direction);
+    CompositorManager.cycleKeyboardLayout(direction);
   }
 
   property Connections _events: Connections {
-    target: HyprlandManager
+    target: CompositorManager
     function onKeyboardLayoutChanged() {
       Qt.callLater(root.refresh);
     }

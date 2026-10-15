@@ -178,7 +178,7 @@ PopoutWrapperBase {
   // nothing to join: it's held as well, with an automatic gap unless held
   // already (and slides under nothing, whose layer that window hides).
   // Followed only while closed, so an open box never moves.
-  readonly property bool fullscreen: HyprlandManager.hasFullscreen(root.screen?.name ?? "")
+  readonly property bool fullscreen: CompositorManager.hasFullscreen(root.screen?.name ?? "")
   property ClosedLatch _fullscreenLatch: ClosedLatch {
     source: root.fullscreen
     closed: !root.occupied
@@ -436,7 +436,7 @@ PopoutWrapperBase {
       height: surface.boxRect.height
     }
 
-    HyprlandGrab {
+    FocusGrab {
       id: focusGrab
       windows: [surfaceWindow].concat(root.grabWindows, ShellManager.modalWindows)
       active: surfaceWindow.visible && root.grabEnabled && (root.wantsKeyboardFocus || root.closeOnClickOutside)

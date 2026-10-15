@@ -184,7 +184,7 @@ Every `IpcHandler`: call with `qs -c axiom ipc call <target> <function> [args]`.
 
 ## workspaces
 
-`services/HyprlandManager.qml`
+`services/CompositorManager.qml`
 - `go(id: string): void`
 - `move(id: string): void`
 - `moveSilent(id: string): void`

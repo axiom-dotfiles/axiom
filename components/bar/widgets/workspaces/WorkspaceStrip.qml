@@ -34,19 +34,20 @@ Item {
   readonly property color emptyColor: Theme.resolveColor(properties.emptyColor)
   readonly property color textColor: Theme.resolveColor(properties.textColor)
 
-  readonly property var monitor: HyprlandManager.monitorFor(root.screen)
-  readonly property int activeId: root.monitor?.activeWorkspace?.id ?? -1
-  readonly property int base: HyprlandManager.workspaceBase(root.monitor)
+  readonly property var monitor: CompositorManager.outputFor(root.screen)
+  readonly property string output: root.monitor?.name ?? ""
+  readonly property int activeId: root.monitor?.activeWorkspaceId ?? -1
+  readonly property int base: CompositorManager.workspaceBase(root.output)
   // "horizontal" | "vertical" on a strip monitor, else ""
   readonly property string stripDirection: WorkspacesConfig.stripDirection(root.screen?.name ?? "")
 
   // A string, so the cells are only rebuilt when the set of workspaces
-  // shown changes, not on every Hyprland event
+  // shown changes, not on every compositor event
   readonly property string _idsKey: {
     const ids = [];
-    for (const id of HyprlandManager.workspaceIds(root.monitor)) {
+    for (const id of CompositorManager.workspaceIds(root.output)) {
       const ws = root.wsById(id);
-      if (root.properties.monitorOnly && ws?.monitor && root.monitor && ws.monitor.id !== root.monitor.id)
+      if (root.properties.monitorOnly && ws?.output && root.output && ws.output !== root.output)
         continue;
       if (!root.properties.showEmpty && id !== root.activeId && !root.hasWindows(ws))
         continue;
@@ -60,7 +61,7 @@ Item {
   implicitHeight: layout.implicitHeight
 
   function wsById(id) {
-    const arr = HyprlandManager.workspaces;
+    const arr = CompositorManager.workspaces;
     for (let i = 0; i < arr.length; i++) {
       if (arr[i].id === id)
         return arr[i];
@@ -69,7 +70,7 @@ Item {
   }
 
   function hasWindows(ws) {
-    return (ws?.toplevels?.values?.length ?? 0) > 0;
+    return (ws?.windowCount ?? 0) > 0;
   }
 
   // Next/previous shown workspace, wrapping at the ends
@@ -80,13 +81,13 @@ Item {
     const next = current < 0 ? (direction > 0 ? 0 : root.ids.length - 1) : (current + direction + root.ids.length) % root.ids.length;
     if (current >= 0 && next !== current + direction)
       cellRow.expectWrap(direction > 0);
-    HyprlandManager.goToWorkspace(root.ids[next], "go", root.monitor);
+    CompositorManager.goToWorkspace(root.ids[next], "go", root.output);
   }
 
   Connections {
-    target: HyprlandManager
-    function onWorkspaceWrapped(monitor, alongRow, forward) {
-      if (monitor === (root.monitor?.name ?? ""))
+    target: CompositorManager
+    function onWorkspaceWrapped(output, alongRow, forward) {
+      if (output === root.output)
         cellRow.expectWrap(forward);
     }
   }
@@ -100,7 +101,7 @@ Item {
       if (Math.abs(_accumulated) < 120)
         return;
       if (root.stripDirection !== "")
-        HyprlandManager.stepStrip(_accumulated > 0 ? -1 : 1, root.monitor);
+        CompositorManager.stepStrip(_accumulated > 0 ? -1 : 1, root.output);
       else
         root.step(_accumulated > 0 ? -1 : 1);
       _accumulated = 0;

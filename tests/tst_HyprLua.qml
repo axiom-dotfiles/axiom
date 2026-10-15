@@ -454,7 +454,7 @@ assert(removed == 2, "earlier handlers removed")
 
   function test_look_writes_only_its_parts_that_are_on() {
     const schema = files.json("config/json/config.schema.json");
-    const lookSchema = schema.properties.Hyprland.properties.look;
+    const lookSchema = schema.properties.WindowLook;
     const off = SchemaValidation.applyDefaults({}, lookSchema, schema);
     compare(HyprLua.lookLua(off, lookSchema, "ffffff", "000000", 2, 8, true), []);
     compare(HyprLua.lookParts(off), []);

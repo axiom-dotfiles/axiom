@@ -3,43 +3,40 @@
 
 > **File:** `services/HyprlandManager.qml` · **Docs:** see [docs/dev](../../README.md)
 
-Hyprland's state and actions for the rest of axiom: the only reader of Quickshell.Hyprland outside the Hyprland* services, so the rest of the shell names no compositor (docs/dev/hyprland/ipc.md).
+CompositorManager's backend on Hyprland (docs/dev/compositor/contract.md): Hyprland's state as the compositor-neutral shapes (HyprState), and the primitives CompositorManager builds on. Also what only the Hyprland features use (runLua, options, binds, outputs as Hyprland has them). The only reader of Quickshell.Hyprland outside the Hyprland* services (docs/dev/hyprland/ipc.md).
 
 ### Properties
 
-- `windowList` (var): Hyprland's clients (j/clients), as Hyprland reports them
-- `activeWorkspace` (readonly var): The focused monitor's active workspace (Quickshell's HyprlandWorkspace)
-- `monitors` (readonly var): Hyprland's monitors and workspaces (HyprlandMonitor, HyprlandWorkspace)
-- `workspaces` (readonly var)
-- `focusedMonitor` (readonly var): The focused monitor (a HyprlandMonitor), or null while Hyprland has none
+- `windows` (var): The windows (HyprState.window), from j/clients
+- `outputs` (readonly var): The monitors (HyprState.output)
+- `workspaces` (readonly var): The workspaces (HyprState.workspace)
 - `focusedOutput` (readonly string): The focused monitor's name, or "" while Hyprland has none
-- `activeToplevel` (readonly var): The focused window (a HyprlandToplevel), or null
+- `activeWindowId` (readonly string): The focused window's id (its "0x…" address), or ""
+- `supports` (readonly var): What Hyprland does (CompositorManager.supports)
+- `travelingTo` (int): The workspace a slide still under way has reached, or -1
 - `gapsOut` (var): Hyprland's general:gaps_out per side, which it adds after every reserved zone (transparent bars subtract it, see BarPanel)
 - `splitWidthMultiplier` (real): dwindle:split_width_multiplier: a box wider than tall times this splits side by side (placeWindow, and the overview's drop preview)
 - `blur` (var): Hyprland's blur as in effect, { enabled, size, passes } (its defaults until read): the one axiom's translucent surfaces blur with
 - `animations` (var): Hyprland's animations (j/animations: [leaves, curves]), read with the options; [] until read
 - `layerRulesLua` (readonly var): The layer rules stacking axiom's surfaces (HyprLua.layers, which says why each sits where it does; docs/dev/generated/layers.md).
-- `layerRulesReady` (readonly bool): Whether the layer rules are in Hyprland.
+- `surfacesReady` (readonly bool): Whether the layer rules are in Hyprland.
 
 ### Signals
 
 - `layersChanged()`: A layer surface opened or closed (openlayer / closelayer)
-- `outputsChanged()`: A monitor was added or removed
+- `outputsHotplugged()`: A monitor was added or removed
 - `configReloaded()`: Hyprland reloaded its config (binds, options and runtime state reset)
 - `keyboardLayoutChanged()`: The keyboard layout switched (activelayout)
-- `windowFocused(string appClass)`: A window was focused; appClass is its class
+- `windowFocused(string appId)`: A window was focused; appId is its class
 - `switcherKey(string verb, string argument)`: A window switcher key (HyprLua.switcherEvent): verb `step` (argument the step), `commit` or `cancel`
-- `workspaceWrapped(string monitor, bool alongRow, bool forward)`: A step about to wrap round the grid's ends on `monitor` (its name): along a row (`alongRow`, the standard layout's only kind) or a column, `forward` past the last.
 
 ### Functions
 
-- `monitorFor(screen)`: The HyprlandMonitor showing a screen, or null
-- `refreshMonitors()`: Re-reads the monitors' lastIpcObject (Quickshell re-reads it only on monitor events)
-- `updateAll()`: Refetch soon.
-- `closeWindow(windowAddress)`
-- `focusWindow(windowAddress)`: Focusing a window on another workspace switches to it, so that goes through goToWorkspace to slide like any other switch
-- `placeWindow(address, workspaceId, targetAddress, side, restore, reinsert, floatAt)`: Moves a window onto a workspace, tiling it on `side` ("left" | "right" | "top" | "bottom") of `targetAddress`, or wherever when there's none.
-- `resizeWindow(address, dw, dh, dx, dy)`: Grows a window by (dw, dh) and moves it by (dx, dy).
+- `refresh()`: Re-reads the monitors and the windows soon (Quickshell re-reads the monitors' lastIpcObject only on monitor events)
+- `closeWindow(id)`
+- `activateWindow(id)`: Focuses a window where it is (CompositorManager.focusWindow switches workspace first, sliding)
+- `placeWindow(id, workspaceId, targetId, side, restore, reinsert, floatAt)`: Moves a window onto a workspace, tiling it on `side` ("left" | "right" | "top" | "bottom") of `targetId`, or wherever when there's none.
+- `resizeWindow(id, dw, dh, dx, dy)`: Grows a window by (dw, dh) and moves it by (dx, dy).
 - `warpCursorToLayer(namespace, monitor, width, height, x, y)`: Moves the cursor to (x, y) inside one of axiom's layer surfaces: the mapped one in `namespace` on `monitor` that is `width` × `height` (layer-shell windows don't know where they are on screen, Hyprla…
 - `runLua(lua, callback)`: Runs a Lua chunk in Hyprland (config functions like hl.bind or hl.config, which a dispatch can't call) after the chunks queued before it, then calls back with Hyprland's reply ("ok" or the error); fa…
 - `refreshOptions()`: Re-reads the options axiom follows (gaps, split ratio, the workspaces animation), after something changed them at runtime: once the queued Lua has run, which may be what changes them
@@ -47,23 +44,15 @@ Hyprland's state and actions for the rest of axiom: the only reader of Quickshel
 - `withKeyboard(callback)`: Calls back with the main keyboard's layouts ({ layouts, index, keymap }, HyprState.keyboard), or null
 - `cycleKeyboardLayout(direction, callback)`: Switches every keyboard to its "next" or "prev" layout, then calls back
 - `withLayerRects(callback)`: Calls back with each monitor's layer surfaces (HyprState.layerRects), or null when Hyprland didn't answer
-- `withOutputs(callback)`: Calls back with every output, disabled ones too (Hyprland's monitors as JSON: name, description, width, height, refreshRate, x, y, scale, transform, disabled, mirrorOf, vrr, …), or null
+- `withOutputs(callback)`: Calls back with every output, disabled ones too (Hyprland's monitors as JSON: name, description, width, height, refreshRate, x, y, scale, transform, disabled, mirrorOf, vrr, …), or null.
 - `withVersion(callback)`: Calls back with Hyprland's version ("0.56.2"), or "" when it didn't answer
 - `withBinds(callback)`: Calls back with every bind Hyprland has (its binds as JSON: modmask, key, keycode, submap, description, dispatcher, arg, …), or null
 - `setCursor(theme, size)`: The cursor theme and size, for this session
 - `exitSession()`: Ends the Hyprland session (the power menu's log out)
-- `goToWorkspace(id, mode, monitor, focusAddress)`: Goes to workspace `id`. mode: "go" (default), "move" (taking the focused window along) or "moveSilent" (sending it there, staying put).
-- `stepWorkspace(direction, mode)`: One step left/right/up/down from the current workspace: within the monitor's grid, or through 1..count in the standard layout (where up is previous and down next).
-- `nthWorkspace(n, mode)`: The n-th workspace (1-based) of the current row in a grid or perMonitor layout, or workspace n in the standard layout (number keybinds)
-- `withHoveredScreen(callback)`: Calls back with the name of the screen under the cursor (the focused monitor if Hyprland can't say).
+- `dpmsCommand(on)`: The shell command turning the screens off or on (hypridle's DPMS)
 - `withCursorPos(callback)`: Calls back with the cursor's global position ({ x, y }), or null if Hyprland can't say.
-- `activeWorkspaceId()`
-- `toplevelForAddress(address)`: The Wayland toplevel for a hyprctl window address ("0x…")
-- `workspaceBase(monitor)`: First workspace id a monitor shows: 1 in the standard layout, else its block's (grid/perMonitor, one block per monitor in a stable order — the primary monitor first, then the rest by a description-ba…
-- `workspaceIds(monitor)`: The workspace ids a monitor shows, in order
-- `hasFullscreen(monitorName)`: Whether the named monitor's active workspace, or the special workspace open on it, shows a fullscreen window.
-- `specialWorkspaceId(monitor)`: The id of the special workspace open on a monitor, or 0 with none
-- `biggestWindowForWorkspace(workspaceId)`: The largest window on a workspace (its icon stands for the workspace), or null
-- `stripWindows(workspaceId, vertical)`: A workspace's windows in strip order (WorkspaceGeometry.stripOrder)
-- `lastFocused(windows)`: Of `windows`, the one focused last (focused now, if any is), or null
-- `stepStrip(direction, monitor)`: Scrolls the strip of a monitor's active workspace a column on (1) or back (-1).
+- `toplevelFor(id)`: The Wayland toplevel for a window id (its "0x…" address), for live previews
+- `sendWindowToWorkspace(id)`: Sends the focused window to workspace `id`, staying put
+- `scrollStrip(direction)`: Scrolls the focused workspace's strip a column on (1) or back (-1)
+- `travel(output, legs, mode, focusId)`: A workspace switch (CompositorManager.goToWorkspace): `output` is focused first when set; each of `legs` ([{ id, axis: "x" | "y" | "" }]) is gone to in turn, sliding along its axis, the last one arri…
+- `applyRemap(plan, outputs)`: Carries out a remap (WorkspaceGeometry.remapWorkspaces' plan) for `outputs`, the monitors' names in block order.

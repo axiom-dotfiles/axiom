@@ -14,7 +14,7 @@ import qs.config
  * on a screen, a second blur window there, over it, draws the shapes of
  * the surfaces on the Overlay layer (aboveOverlay).
  * Layer-shell windows don't know where they are on screen, so their
- * origins are read from Hyprland (HyprlandManager.withLayerRects), again whenever a
+ * origins are read from Hyprland (CompositorManager.withLayerRects), again whenever a
  * layer maps or unmaps, or a window asks (it resized, reservations moved).
  * The joins in the border's stroke and popouts' footprints (PopoutManager)
  * use them too, so they're kept whatever the surfaces look like.
@@ -26,11 +26,11 @@ QtObject {
   // window is open on any screen (Appearance.blurPauseFullscreen; the
   // layer rules are Hyprland-wide). The chrome then fills itself, solid on
   // the screens showing one (opaqueOn).
-  readonly property bool paused: Appearance.blur && Appearance.blurPauseFullscreen && General.outputs.some(screen => HyprlandManager.hasFullscreen(screen.name))
+  readonly property bool paused: Appearance.blur && Appearance.blurPauseFullscreen && General.outputs.some(screen => CompositorManager.hasFullscreen(screen.name))
   readonly property bool active: Appearance.blur && !root.paused
   // The surfaces leave their fill to the blur window: blurring, and its
   // windows built (BlurBacking waits for the layer rules, as the chrome does)
-  readonly property bool backing: root.active && HyprlandManager.layerRulesReady
+  readonly property bool backing: root.active && CompositorManager.surfacesReady
 
   function _name(screen) {
     return typeof screen === "string" ? screen : screen?.name ?? "";
@@ -45,7 +45,7 @@ QtObject {
   function backsOn(screen, onOverlay) {
     if (!root.backing)
       return false;
-    return onOverlay || !HyprlandManager.hasFullscreen(root._name(screen));
+    return onOverlay || !CompositorManager.hasFullscreen(root._name(screen));
   }
 
   // Whether the overlay is open on `screen`, covering the blur window: the
@@ -59,13 +59,13 @@ QtObject {
   // fullscreen window shown there hides the Top layer, and the surfaces
   // over it still blur
   function overFullscreen(screen) {
-    return root.backing && HyprlandManager.hasFullscreen(root._name(screen));
+    return root.backing && CompositorManager.hasFullscreen(root._name(screen));
   }
 
   // Whether surfaces on `screen` fill themselves solid: blur paused for a
   // fullscreen window shown there (elsewhere they stay translucent)
   function opaqueOn(screen) {
-    return root.paused && HyprlandManager.hasFullscreen(root._name(screen));
+    return root.paused && CompositorManager.hasFullscreen(root._name(screen));
   }
 
   // A surface's own fill on `screen`: at the surface opacity, solid where
@@ -185,7 +185,7 @@ QtObject {
         return;
       }
       root._querying = true;
-      HyprlandManager.withLayerRects(rects => {
+      CompositorManager.withLayerRects(rects => {
         root._querying = false;
         if (rects)
           root.layers = rects;
@@ -200,12 +200,12 @@ QtObject {
   property bool _again: false
 
   property Connections _events: Connections {
-    target: HyprlandManager
+    target: CompositorManager
 
     function onLayersChanged() {
       root.refreshLayers();
     }
-    function onOutputsChanged() {
+    function onOutputsHotplugged() {
       root.refreshLayers();
     }
     function onConfigReloaded() {

@@ -30,7 +30,7 @@ QtObject {
 
   // An app's key: its desktop entry id, else its window class
   function appKey(win) {
-    const cls = win["class"] || win.initialClass || "";
+    const cls = win.appId || win.initialAppId || "";
     if (!cls)
       return "";
     const cached = root._classCache[cls];
@@ -51,11 +51,11 @@ QtObject {
     const entry = root.entryFor(key);
     if (entry?.icon)
       return Quickshell.iconPath(entry.icon, "application-x-executable");
-    return IconResolver.resolveWindowIcon(win?.["class"] ?? key, win?.title ?? "");
+    return IconResolver.resolveWindowIcon(win?.appId ?? key, win?.title ?? "");
   }
 
   function nameFor(key, win) {
-    return root.entryFor(key)?.name || win?.["class"] || key;
+    return root.entryFor(key)?.name || win?.appId || key;
   }
 
   // The dock's items on a screen ([{ key, pinned, windows }], see
@@ -63,25 +63,24 @@ QtObject {
   function itemsFor(dock, screen) {
     if (!dock)
       return [];
-    const monitor = HyprlandManager.monitorFor(screen);
-    const monitorId = monitor?.id ?? -1;
-    const workspaceId = monitor?.activeWorkspace?.id ?? -1;
-    const windows = HyprlandManager.windowList.filter(w => DockLayout.inScope(w, dock.windowScope, monitorId, workspaceId));
+    const output = CompositorManager.outputFor(screen);
+    const workspaceId = output?.activeWorkspaceId ?? -1;
+    const windows = CompositorManager.windows.filter(w => DockLayout.inScope(w, dock.windowScope, output?.name ?? "", workspaceId));
     return DockLayout.buildItems(dock.pinned, windows, w => root.appKey(w), dock.showRunning);
   }
 
-  readonly property string focusedAddress: HyprlandManager.windowList.find(w => w.focusHistoryID === 0)?.address ?? ""
+  readonly property string focusedAddress: CompositorManager.windows.find(w => w.focusRank === 0)?.id ?? ""
 
   // A click: start the app when it has no windows, else focus its most
   // recent one, or the next when one of them is focused
   function activate(item) {
     if (item.windows.length === 0)
       return root.launch(item.key);
-    HyprlandManager.focusWindow(DockLayout.clickTarget(item.windows, root.focusedAddress));
+    CompositorManager.focusWindow(DockLayout.clickTarget(item.windows, root.focusedAddress));
   }
 
   function focus(address) {
-    HyprlandManager.focusWindow(address);
+    CompositorManager.focusWindow(address);
   }
 
   // A new instance (middle click, the menu's New window)
@@ -95,7 +94,7 @@ QtObject {
   }
 
   function closeWindows(item) {
-    item.windows.forEach(w => HyprlandManager.closeWindow(w.address));
+    item.windows.forEach(w => CompositorManager.closeWindow(w.id));
   }
 
   // --- Pinning (saved at once) ---
@@ -153,16 +152,14 @@ QtObject {
   // --- Showing and hiding ---
 
   // The space reserved on each side of a screen, [left, top, right,
-  // bottom]: where its work area starts (Hyprland's monitor `reserved`).
-  // It arrives as a QVariantList, which isn't a JS Array (Array.isArray is
-  // false), so it's copied by index.
+  // bottom]: where its work area starts (the output's `reserved`)
   function reservedOf(screen) {
-    const reserved = HyprlandManager.monitorFor(screen)?.lastIpcObject?.reserved;
-    return reserved?.length === 4 ? [0, 1, 2, 3].map(i => Number(reserved[i]) || 0) : [0, 0, 0, 0];
+    const reserved = CompositorManager.outputFor(screen)?.reserved;
+    return reserved ? [reserved.left, reserved.top, reserved.right, reserved.bottom] : [0, 0, 0, 0];
   }
 
-  // Quickshell only re-reads monitors on monitor events, and Hyprland
-  // sends none when windows retile around a reserved zone that changed, so
+  // Quickshell only re-reads Hyprland's monitors on monitor events, and
+  // Hyprland sends none when windows retile around a reserved zone that changed, so
   // both are re-read when a layer surface (a bar, a dock) comes or goes, or
   // a dock's zone changes (refreshSoon)
   function refreshSoon() {
@@ -172,8 +169,7 @@ QtObject {
   property Timer _refresh: Timer {
     interval: 200
     onTriggered: {
-      HyprlandManager.refreshMonitors();
-      HyprlandManager.updateAll();
+      CompositorManager.refresh();
     }
   }
 
@@ -182,11 +178,11 @@ QtObject {
   readonly property bool _active: DockConfig.shownIds.length > 0
   on_ActiveChanged: {
     if (root._active)
-      HyprlandManager.refreshMonitors();
+      CompositorManager.refresh();
   }
 
   property Connections _layers: Connections {
-    target: HyprlandManager
+    target: CompositorManager
     enabled: root._active
 
     function onLayersChanged() {
@@ -200,13 +196,13 @@ QtObject {
   // Whether a window on the screen's active workspace covers `rect`
   // (screen-local)
   function obscured(screen, rect) {
-    const monitor = HyprlandManager.monitorFor(screen);
-    const workspaceId = monitor?.activeWorkspace?.id;
-    if (workspaceId === undefined)
+    const output = CompositorManager.outputFor(screen);
+    const workspaceId = output?.activeWorkspaceId ?? -1;
+    if (workspaceId === -1)
       return false;
     // An open special workspace sits over the regular one
-    const specialId = HyprlandManager.specialWorkspaceId(monitor);
-    const windows = HyprlandManager.windowList.filter(w => w.mapped && !w.hidden && (w.workspace?.id === workspaceId || (specialId !== 0 && w.workspace?.id === specialId)));
+    const specialId = output.specialWorkspaceId;
+    const windows = CompositorManager.windows.filter(w => !w.hidden && (w.workspaceId === workspaceId || (specialId !== 0 && w.workspaceId === specialId)));
     return DockLayout.covered({
       "x": rect.x + screen.x,
       "y": rect.y + screen.y,
@@ -309,7 +305,7 @@ QtObject {
 
   Component.onCompleted: {
     if (root._active)
-      HyprlandManager.refreshMonitors();
+      CompositorManager.refresh();
   }
 
   property IpcHandler _ipc: IpcHandler {

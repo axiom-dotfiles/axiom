@@ -70,11 +70,11 @@ TestCase {
       },
       "Hyprland": {
         "binds": [],
-        "blur": true,
-        "look": {
-          "gaps": true,
-          "gapsOut": 12
-        }
+        "mode": "managed"
+      },
+      "WindowLook": {
+        "gaps": true,
+        "gapsOut": 12
       }
     }, schema);
     compare(picked, {
@@ -89,11 +89,9 @@ TestCase {
           }
         }
       ],
-      "Hyprland": {
-        "look": {
-          "gaps": true,
-          "gapsOut": 12
-        }
+      "WindowLook": {
+        "gaps": true,
+        "gapsOut": 12
       }
     });
   }

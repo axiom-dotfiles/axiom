@@ -99,7 +99,7 @@ QtObject {
     return `{\n${keys.map(key => `${pad}  ${entry(key)},`).join("\n")}\n${pad}}`;
   }
 
-  // --- The window look (Hyprland.look) ---
+  // --- The window look (WindowLook) ---
 
   /**
    * Its parts that are on, as the lines of one hl.config(), or []: themed

@@ -113,7 +113,7 @@ Item {
     const data = currentData;
     if (!data?.anchorItem)
       return;
-    HyprlandManager.withCursorPos(pos => {
+    CompositorManager.withCursorPos(pos => {
       if (root.currentData === data && !root.contentHovered)
         root._lostCursor = pos;
     });
@@ -128,7 +128,7 @@ Item {
       return;
     }
     const data = currentData;
-    HyprlandManager.withCursorPos(pos => {
+    CompositorManager.withCursorPos(pos => {
       // Reopened, closed or hovered again meanwhile
       if (root.currentData !== data || !root.occupied || root.isClosing || root.contentHovered)
         return;

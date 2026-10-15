@@ -280,8 +280,10 @@ QtObject {
   // root's `x-categories` in order (`icon`, and `page`, a hand-built part
   // shown after the cards), then any other `x-category` in schema order.
   // A section without `x-category` is a category of its own. A declared
-  // category with no sections and no page is left out.
-  function categories(schema) {
+  // category with no sections and no page is left out, as is a section
+  // whose own `x-showIf` (`/`-rooted keys, read by `valueOf`; e.g. the
+  // compositor's, as SettingsManager.configValueAt reads them) fails.
+  function categories(schema, valueOf) {
     const make = (name, declared) => ({
           "name": name,
           "icon": declared?.icon ?? "settings",
@@ -293,6 +295,8 @@ QtObject {
     for (const key in schema?.properties ?? {}) {
       const section = schema.properties[key];
       if (section.type !== "object" || section["x-settings"] === false || groups(schema, key).length === 0)
+        continue;
+      if (valueOf && !showIfHolds(section["x-showIf"], valueOf))
         continue;
       const name = section["x-category"] ?? section.title ?? key;
       let category = result.find(c => c.name === name);

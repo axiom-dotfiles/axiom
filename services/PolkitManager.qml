@@ -84,7 +84,7 @@ Singleton {
   }
 
   function _requestStarted() {
-    root._screenName = HyprlandManager.focusedOutput || General.primaryMonitor;
+    root._screenName = CompositorManager.focusedOutput || General.primaryMonitor;
     root._actionInfo = {};
     const flow = root.flow;
     if (!flow)

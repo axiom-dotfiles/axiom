@@ -308,12 +308,12 @@ QtObject {
     property string kind: ""
     onTriggered: {
       if (kind === "recordScreen") {
-        root.record(null, HyprlandManager.focusedOutput);
+        root.record(null, CompositorManager.focusedOutput);
         return;
       }
       root.request = {
         "kind": kind,
-        "screen": HyprlandManager.focusedOutput
+        "screen": CompositorManager.focusedOutput
       };
       root.picking = true;
       root._watchdog.restart();

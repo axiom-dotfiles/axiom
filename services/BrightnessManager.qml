@@ -112,7 +112,7 @@ QtObject {
   }
 
   function _focused() {
-    return HyprlandManager.focusedOutput;
+    return CompositorManager.focusedOutput;
   }
 
   function _update(name, value, max) {

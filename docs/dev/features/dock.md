@@ -18,8 +18,8 @@ App docks on screen edges: pinned and running apps, magnification, hover and int
 - On "focused" the dock is rebuilt on whichever monitor focus moves to.
 
 ### Items (DockManager + methods/DockLayout)
-- `itemsFor(dock, screen)` groups `HyprlandManager.windowList` by app.
-  - The app key (`appKey`) is `DesktopEntries.heuristicLookup(class)`, else the window class.
+- `itemsFor(dock, screen)` groups `CompositorManager.windows` by app.
+  - The app key (`appKey`) is `DesktopEntries.heuristicLookup(appId)`, else the window's app id.
 - `methods/DockLayout` is pure:
   - **`buildItems`:** pinned items first, then running ones when `showRunning` is on.
   - **`inScope`:** `windowScope` is `all` | `monitor` | `workspace`.
@@ -66,8 +66,8 @@ Along the edge:
 - **`hover`:** an `EdgeTrigger`.
 - **`intellihide`:**
   - Hover, plus shown while no window covers it (`obscured`).
-  - What counts as covering: a window on the monitor's workspace, or on its open special workspace (`HyprlandManager.specialWorkspaceId`; monitors are refreshed on `activespecial`).
-  - Coverage is computed from the monitor's `reserved`, via `lastIpcObject`.
+  - What counts as covering: a window on the output's active workspace, or on its open special workspace (the output's `specialWorkspaceId`; Hyprland's monitors are refreshed on `activespecial`).
+  - Coverage is computed from the output's `reserved` ([contract](../compositor/contract.md#shapes)).
 
 ### Zones and what reaches past it
 - A dock reports what it reserves (`setZone` / `zoneOn`, per screen edge).

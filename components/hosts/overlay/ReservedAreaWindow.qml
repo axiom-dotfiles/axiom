@@ -41,8 +41,8 @@ PanelWindow {
       return 0;
     const bar = root._edges[side];
     if (bar?.background === "transparent")
-      return HyprlandManager.gapsOut[side] ?? 0;
-    return (bar ? Bar.reserveTrim(bar, HyprlandManager.gapsOut[side] ?? 0) : 0) - Appearance.borderWidth;
+      return CompositorManager.gapsOut[side] ?? 0;
+    return (bar ? Bar.reserveTrim(bar, CompositorManager.gapsOut[side] ?? 0) : 0) - Appearance.borderWidth;
   }
   margins {
     left: root._margin("left", Bar.Left)

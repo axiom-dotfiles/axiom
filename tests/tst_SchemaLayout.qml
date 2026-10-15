@@ -301,6 +301,41 @@ TestCase {
     }
   }
 
+  // A section whose own `x-showIf` fails (the compositor can't do what it
+  // sets) is left out, and its category with it; without `valueOf`, kept
+  function test_categories_section_showIf() {
+    const field = {
+      "type": "string",
+      "default": ""
+    };
+    const schema = {
+      "properties": {
+        "Hypr": {
+          "type": "object",
+          "x-category": "Compositor",
+          "x-showIf": {
+            "/$supports.configModes": true
+          },
+          "properties": {
+            "f": field
+          }
+        },
+        "Look": {
+          "type": "object",
+          "x-category": "Compositor",
+          "properties": {
+            "f": field
+          }
+        }
+      }
+    };
+    const on = SchemaLayout.categories(schema, key => key === "/$supports.configModes");
+    compare(on[0].sections, ["Hypr", "Look"]);
+    const off = SchemaLayout.categories(schema, key => false);
+    compare(off[0].sections, ["Look"]);
+    compare(SchemaLayout.categories(schema)[0].sections, ["Hypr", "Look"]);
+  }
+
   // `x-categories` orders them and names their icon and page; others
   // follow in schema order; an empty declared one is left out unless it
   // has a page
@@ -388,6 +423,9 @@ TestCase {
         const condition = prop["x-showIf"] ?? {};
         const targets = [].concat(Object.keys(condition).filter(target => target !== "anyOf"), ...(condition.anyOf ?? []).map(any => Object.keys(any)));
         for (const target of targets) {
+          // The running compositor's, not the config's (SettingsManager.configValueAt)
+          if (target.startsWith("/$"))
+            continue;
           if (target.startsWith("/")) {
             const path = target.slice(1).split(".");
             let s = schema;

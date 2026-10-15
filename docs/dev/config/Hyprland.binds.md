@@ -2,7 +2,7 @@
 # Config: Hyprland.binds
 
 > **Reader:** `HyprlandConfig` (`config/HyprlandConfig.qml`)
-> **Schema:** `config/json/config.schema.json` → `properties.Hyprland` · category Hyprland
+> **Schema:** `config/json/config.schema.json` → `properties.Hyprland` · category Compositor
 > **Part of:** [Hyprland](Hyprland.md)
 
 Each setting: `path` · type = default · enum/range/unit; then title: description; annotations; `read:` the reader member(s) (exact unless marked) and `in:` the files that use them.

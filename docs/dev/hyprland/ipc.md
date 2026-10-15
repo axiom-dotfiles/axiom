@@ -1,8 +1,8 @@
 # Talking to Hyprland (IPC)
 
-> **Files:** `services/HyprlandIpcManager.qml`, `components/methods/HyprReply.qml`, `services/HyprlandManager.qml`, `services/HyprlandGrab.qml`
+> **Files:** `services/HyprlandIpcManager.qml`, `components/methods/HyprReply.qml`, `services/HyprlandManager.qml`, `components/methods/HyprState.qml`, `services/HyprlandGrab.qml`
 > **Config:** none
-> **Related:** [Config modes](config-modes.md), [Workspaces](workspaces.md), [Monitors](monitors.md)
+> **Related:** [The compositor](../compositor/README.md), [Config modes](config-modes.md), [Workspaces](workspaces.md), [Monitors](monitors.md)
 
 How the shell reads from and acts on Hyprland, without running `hyprctl`.
 
@@ -13,16 +13,13 @@ How the shell reads from and acts on Hyprland, without running `hyprctl`.
 - **`HyprlandIpcManager`** sends what Quickshell doesn't cover to Hyprland's request socket, as hyprctl does, without a process each: `request(command, cb)`, `json("clients", cb)`, `jsonBatch(["getoption …", "animations"], cb)`, `evalLua(lua, cb)` (`"ok"` or the error).
 
 ### Rules
-- **Only the `Hyprland*` services send anything to Hyprland** (`HyprlandIpcManager`, `Hyprland.dispatch()`). Everything else asks `HyprlandManager` (window list, options, keyboard layouts, outputs, layers, binds, the cursor, logging out, Lua through `runLua`), whose callbacks hand back shapes that don't depend on Hyprland (`HyprState`), so supporting another compositor means another service with the same members, not edits across the shell.
-- **Only the `Hyprland*` services import `Quickshell.Hyprland`.** The rest reads Hyprland's state through `HyprlandManager`:
-  - `monitors`, `workspaces`, `focusedMonitor`, `focusedOutput` (the focused monitor's name, `""` with none), `activeToplevel`, `activeWorkspace`, `monitorFor(screen)`, `refreshMonitors()`.
-  - Events as signals, never `rawEvent` names: `layersChanged`, `outputsChanged`, `configReloaded`, `keyboardLayoutChanged`, `windowFocused(appClass)`, `switcherKey(verb, argument)` (`_announce` maps them).
-  - A surface that closes on an outside click uses `HyprlandGrab` (Hyprland's `HyprlandFocusGrab`: `windows`, `active`, `cleared`).
-  - The objects it hands out are still Quickshell's (`HyprlandMonitor`, `HyprlandWorkspace`, with `lastIpcObject`): [issues](../issues.md) › Code outside the Hyprland* services still depends on Hyprland's shapes.
-- Workspace switching and window focusing go through `HyprlandManager.goToWorkspace` / `stepWorkspace` / `nthWorkspace` / `focusWindow` (AGENTS.md › Services).
-- `runLua(lua, callback)` queues chunks and runs them one at a time, in order, calling back with Hyprland's reply (`"ok"` or the error). Something that must run after Lua already queued (the runtime layer's unbind) goes through it rather than `evalLua`. Once the queue drains it refetches the window list and, if asked meanwhile, the options (`refreshOptions`).
-- Options axiom follows (gaps, split multiplier, blur, the animations) are read in one batch, at startup, on `configreloaded` and after axiom changes them.
-- Commands Hyprland or hypridle run, and shell scripts, still call `hyprctl` (the exit bind, DPMS, `setWallpaper.sh`): they run outside the shell.
+- **`HyprlandManager` is `CompositorManager`'s backend on Hyprland** ([The compositor](../compositor/README.md)). The rest of the shell asks `CompositorManager`, which hands out [neutral shapes](../compositor/contract.md#shapes) (`HyprState` converts Hyprland's replies). Only the Hyprland-only features use `HyprlandManager` directly: `runLua`, `withOutputs`, `withBinds`, `withVersion`, `setCursor`, `refreshOptions`, `animations`, `layerRulesLua`, `switcherKey`.
+- **Only the `Hyprland*` services send anything to Hyprland** (`HyprlandIpcManager`, `Hyprland.dispatch()`) **or import `Quickshell.Hyprland`.** `check_structure` enforces both the import and who may name `HyprlandManager`.
+- Events become signals, never `rawEvent` names (`_announce` maps them): `layersChanged`, `outputsHotplugged`, `configReloaded`, `keyboardLayoutChanged`, `windowFocused(appId)`, `switcherKey(verb, argument)`.
+- Hyprland's focus grab is `HyprlandGrab`, which only `FocusGrab` creates.
+- `runLua(lua, callback)` queues chunks and runs them one at a time, in order, calling back with Hyprland's reply (`"ok"` or the error). Something that must run after Lua already queued (the runtime layer's unbind) goes through it rather than `evalLua`. Once the queue drains, it refetches the window list and, if asked meanwhile, the options (`refreshOptions`).
+- The options axiom follows (gaps, split multiplier, blur, the animations) are read in one batch: at startup, on `configreloaded`, and after axiom changes them.
+- Commands that Hyprland or hypridle run, and shell scripts, still call `hyprctl` (the exit bind, DPMS through `HyprlandManager.dpmsCommand`): they run outside the shell.
 
 ### The socket
 - Hyprland answers one request per connection, then closes it. Each request gets its own `Socket`, closed by us once `HyprReply.complete` says the reply is all there (JSON once it parses, anything else once there's text): Quickshell warns `PeerClosedError` when Hyprland closes first.

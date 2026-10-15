@@ -19,7 +19,7 @@ Name clash: `KeybindManager.startRecording(index)` is the key recorder on the Ke
 - While `picking`, `shell/Screenshot` shows `surfaces/screenshot/ScreenshotPickerWindow`:
   - one frozen `ScreencopyView` frame per screen;
   - layer rule `axiom-screenshot` with `no_anim`;
-  - the window under the cursor is highlighted from the start (`HyprlandManager.withCursorPos`).
+  - the window under the cursor is highlighted from the start (`CompositorManager.withCursorPos`).
 - Kinds:
   - **`region`:** drag a region, or click a window; clicking off any window takes the screen.
   - **`window`:** click a window.
