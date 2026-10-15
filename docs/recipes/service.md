@@ -100,7 +100,7 @@ Consumer (the request comes from config only, never from live values):
 4. **IPC:** a `property IpcHandler _ipc` with typed functions (`(): void`, `(): string`, `(text: string): void`). Per-screen handlers live on the surface instead, `enabled: ShellManager.isTarget(…)`.
 5. **Persistence:**
    - State that must survive a QML reload goes in `PersistentProperties` (needs a `Singleton` root, see `IdleInhibitManager`).
-   - Small state that must survive a restart goes in `config/state/*.json` or `$XDG_STATE_HOME/axiom/`, written atomically (temp file + rename).
+   - Small state that must survive a restart goes in `StateManager` (`~/.local/state/axiom/ui/*.json`) or `Paths.userStatePath`, written atomically (temp file + rename).
 6. **Config:** read it through readers. Write it only through `ConfigManager` / `SettingsManager`.
 7. Add it to `shell.qml`'s `_services` if nothing else references it, or it never gets created.
 

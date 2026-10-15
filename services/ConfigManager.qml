@@ -16,8 +16,34 @@ QtObject {
   // The `x-takeover` settings' paths ([key, …]), which loading a config
   // never changes (ConfigExamples.keepTakeovers)
   readonly property var takeoverPaths: ConfigExamples.takeoverPaths(_configSchema)
-  readonly property string configDir: "../config/user/"
+  readonly property string configDir: dataDirs.config
   readonly property string configFile: "config.json"
+
+  // Where axiom keeps what it writes (DataDirs: config, state, ui, data,
+  // notes, generatedThemes), read by Paths. The XDG folders, except while
+  // an install from before them still has its data in the repo
+  // (legacyLayout): that session runs on the old folders, and
+  // DataMigrationManager copies them over and reloads.
+  readonly property var dataDirs: legacyLayout ? legacyDirs : xdgDirs
+  // The repo's config/user/ holds a config.json not yet copied over (no
+  // DataDirs.movedMarker beside it). Never in the greeter.
+  readonly property bool legacyLayout: !greeter && FileManager.read(legacyDirs.config + "config.json") !== null && FileManager.read(legacyDirs.config + DataDirs.movedMarker) === null
+  // Both layouts, for DataMigrationManager's copy
+  readonly property var xdgDirs: DataDirs.xdg(_env)
+  readonly property var legacyDirs: DataDirs.legacy(_env, decodeURIComponent(Quickshell.shellDir.toString().replace("file://", "")))
+  readonly property var _env: ({
+      "HOME": Quickshell.env("HOME"),
+      "XDG_CONFIG_HOME": Quickshell.env("XDG_CONFIG_HOME"),
+      "XDG_STATE_HOME": Quickshell.env("XDG_STATE_HOME"),
+      "XDG_DATA_HOME": Quickshell.env("XDG_DATA_HOME")
+    })
+
+  // Saves wait while DataMigrationManager copies the legacy folders, so
+  // nothing lands in them mid-copy (holdSaves(false) lets them go again)
+  function holdSaves(held) {
+    root._savesHeld = held;
+  }
+  property bool _savesHeld: false
 
   // True while config.json on disk is unusable (invalid, or present but
   // unreadable). The shell keeps running on the last good config (or schema
@@ -129,6 +155,10 @@ QtObject {
       console.warn("[ConfigManager] config.json is unusable; not saving until it is fixed (or a saved config is restored).");
       return false;
     }
+    if (_savesHeld) {
+      console.warn("[ConfigManager] Not saving while the config is being moved to", root.xdgDirs.config);
+      return false;
+    }
     try {
       if (!_validateConfig(root._config)) {
         console.error("[ConfigManager] Failed to validate config against schema. Aborting save.");
@@ -154,6 +184,10 @@ QtObject {
       return false;
     if (_savesBlocked) {
       console.warn("[ConfigManager] config.json is unusable; not saving until it is fixed (or a saved config is restored).");
+      return false;
+    }
+    if (_savesHeld) {
+      console.warn("[ConfigManager] Not saving while the config is being moved to", root.xdgDirs.config);
       return false;
     }
     const prepared = _prepareConfig(object);
@@ -183,7 +217,7 @@ QtObject {
    * @return true if the config was valid and saved.
    */
   function restoreConfig(object) {
-    if (root.greeter)
+    if (root.greeter || root._savesHeld)
       return false;
     const prepared = _prepareConfig(object);
     if (!prepared) {
@@ -247,7 +281,7 @@ QtObject {
 
   // FileView only for writing the config
   property FileView _configFileView: FileView {
-    path: Qt.resolvedUrl(root.configDir + root.configFile)
+    path: root.configDir + root.configFile
     blockWrites: true
     atomicWrites: true
     onSaveFailed: error => {
@@ -258,7 +292,7 @@ QtObject {
   // Change notification for config.json. The slow poll is only a safety
   // net in case the watch is lost (e.g. to an editor's atomic rename).
   property FileView _configWatch: FileView {
-    path: root.greeter ? "" : Qt.resolvedUrl(root._configPath)
+    path: root.greeter ? "" : root._configPath
     watchChanges: true
     printErrors: false
     onFileChanged: {
@@ -398,7 +432,7 @@ QtObject {
 
   // Writes a config object to disk as-is (no reload); used after migration
   function _write(config) {
-    if (root.greeter)
+    if (root.greeter || root._savesHeld)
       return;
     _configFileView.setText(JSON.stringify(config, null, 2));
   }
@@ -460,9 +494,10 @@ QtObject {
   property bool _firstRun: false
 
   // An empty read is either a missing file (first run: write defaults) or a
-  // file caught mid-write / unreadable. Only a real "missing" writes.
+  // file caught mid-write / unreadable. Only a real "missing" writes. Makes
+  // the folder first: FileView doesn't create it.
   property Process _existsCheck: Process {
-    command: ["test", "-e", decodeURIComponent(Qt.resolvedUrl(root._configPath).toString().replace("file://", ""))]
+    command: ["sh", "-c", 'mkdir -p "$1" && test -e "$1/$2"', "sh", root.configDir, root.configFile]
     onExited: exitCode => {
       if (exitCode !== 0) {
         console.log("[ConfigManager] No config.json found, writing defaults.");

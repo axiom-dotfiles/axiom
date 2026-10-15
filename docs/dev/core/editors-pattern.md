@@ -1,7 +1,7 @@
 # Editors pattern
 
 > **Files:** `services/ConfigDraft.qml`, `services/EditsManager.qml`, `components/views/BaseView.qml`, `components/reusable/DragLayer.qml`; editor managers `services/{SettingsManager,BarManager,OverlayManager,EdgeMenuManager,KeybindManager,MonitorManager}.qml`, `services/ScreenLayoutEditor.qml`
-> **Config:** whichever path the editor drafts; layout prefs in `config/state/editors.json`
+> **Config:** whichever path the editor drafts; layout prefs in `~/.local/state/axiom/ui/editors.json`
 > **Related:** [Config manager](config-manager.md), [Bar editor](../bar/bar-editor.md), [Layouts editor](../overlay/layouts-editor.md), [Grid canvas](../overlay/grid-canvas.md), [Monitors](../hyprland/monitors.md), [Keybinds](../hyprland/keybinds.md), [Shared UI pieces](shared-ui-pieces.md)
 
 The settings, bar, layouts, keybinds and monitors editors share one shape; a new editor follows it. (Rule: AGENTS.md › Services, "Editors".)

@@ -21,7 +21,7 @@ How the active theme is loaded, how themes are grouped into dark/light families,
 - `setLightMode(bool)` switches the current theme's variant by hand (config). The schedule uses `followSchedule(bool)` (runtime only). `Appearance.darkMode` follows the shown theme.
 
 ### Theme files
-- `config/themes/*.json` are static; `config/themes/generated/*.json` come from a wallpaper.
+- `config/themes/*.json` are static; `Paths.generatedThemesPath` (`~/.local/state/axiom/themes/*.json`, named `generated/<name>`) come from a wallpaper.
 - Static themes keep the hue slots fixed, even where an upstream base16 port reorders them, because the semantic names and the terminal ANSI colors read them by slot:
   - `base08` red, `09` orange, `0A` yellow, `0B` green, `0C` cyan, `0D` blue, `0E` magenta.
 - A scheme without some hue fills that slot with its nearest color (Rosé Pine's pine as green, Dracula's purple as blue).

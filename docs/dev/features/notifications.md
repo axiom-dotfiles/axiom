@@ -35,7 +35,7 @@ The D-Bus notification server, its persistent history, the toasts, and do-not-di
 
 ### Do not disturb
 - `dnd` is readonly; change it with `setDnd` / `toggleDnd`.
-- Saved in `config/state/notifications.json`.
+- Saved in `~/.local/state/axiom/ui/notifications.json`.
 
 ### Click handlers
 - `NotificationManager.registerHandler(desktopEntry, handler)` routes a click on one of axiom's own notifications by its `desktopEntry`.

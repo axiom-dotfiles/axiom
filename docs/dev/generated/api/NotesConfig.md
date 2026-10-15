@@ -7,7 +7,7 @@ Reader for the Notes section (see NotesManager).
 
 ### Properties
 
-- `defaultDirectory` (readonly string): Inside axiom, gitignored with the rest of config/state
+- `defaultDirectory` (readonly string): $XDG_DATA_HOME/axiom/notes/
 - `linked` (readonly bool)
 - `directory` (readonly string): The notes folder, absolute with a trailing slash
 - `extensions` (readonly var): Without dots, lower case

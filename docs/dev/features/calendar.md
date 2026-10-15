@@ -86,7 +86,7 @@ CalDAV accounts and read-only .ics feeds: syncing through a Python helper, editi
 - One single-shot timer to the next alarm (`CalendarEvents.nextAlarm`), at most an hour ahead.
 - Missed alarms within 5 minutes are still shown.
 - A notification with `desktopEntry` `axiom-calendar`; clicking it opens the page.
-- Fired ids are kept for two days in `config/state/calendar.json`.
+- Fired ids are kept for two days in `~/.local/state/axiom/ui/calendar.json`.
 
 ### Opening the page
 - `request` (`{ kind: "new" | "day", key }`) is what `openPage(request)` asked for. It opens:

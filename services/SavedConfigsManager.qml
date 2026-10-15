@@ -7,7 +7,7 @@ import qs.config
 import qs.components.methods
 
 /**
- * Named snapshots of the config, one JSON file each in config/user/saved/.
+ * Named snapshots of the config, one JSON file each in $XDG_CONFIG_HOME/axiom/saved/.
  * A snapshot holds what ConfigExamples.snapshot picks: the look and personal
  * parts (by the schema's x-scope) and the wallpaper setup (x-snapshot:
  * wallpapers, mode, rotation, light/dark ones, theme schedule), in the
@@ -30,7 +30,7 @@ import qs.components.methods
 QtObject {
   id: root
 
-  readonly property string savedDir: Paths.configPath + "user/saved/"
+  readonly property string savedDir: Paths.userConfigPath + "saved/"
   readonly property string examplesDir: Paths.axiomPath + "examples/"
   // [{ name, title, description }] by name, from examples/*.json
   readonly property var examples: {

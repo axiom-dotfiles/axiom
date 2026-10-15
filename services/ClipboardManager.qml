@@ -27,7 +27,7 @@ import qs.config
  *
  * `pins` are text clips the user pinned ([{ id, text, preview, time,
  * pinned: true }], newest first): the one part written to disk
- * (config/state/clipboardPins.json), kept through clear() and restarts,
+ * ($XDG_STATE_HOME/axiom/ui/clipboardPins.json), kept through clear() and restarts,
  * whichever source is on. A cliphist clip is decoded first, as its listing
  * is only a preview (its lines run together, cut short); the pin keeps that
  * preview as `preview`, which is how its row in the listing is matched.

@@ -39,6 +39,8 @@
       "Bash(sudo systemctl * greetd*)",
       "Bash(rm config/user/config.json)",
       "Bash(rm -f config/user/config.json)",
+      "Bash(rm ~/.config/axiom/config.json)",
+      "Bash(rm -f ~/.config/axiom/config.json)",
       "Bash(git clean -fdx*)",
       "Bash(git clean -x*)",
       "Bash(git clean -X*)",

@@ -77,7 +77,7 @@ Axiom as greetd's login screen, laid out like the lock screen. This doc covers t
 
 - **`Greeter.enabled`** (`x-settings: false`) is set by Install and cleared by Remove. While set, the Layouts page shows its Login screen row.
 - **Update notification:** a new `outdated` hash is notified once.
-  - The last notified hash is kept in `config/state/greeterUpdates.json` (`notifiedHash`).
+  - The last notified hash is kept in `~/.local/state/axiom/ui/greeterUpdates.json` (`notifiedHash`).
   - The notification's `desktopEntry` is `axiom-greeter-update`; its handler opens Settings → Login screen.
 - **IPC** `greeter`: `open`, `preview`.
 

@@ -24,7 +24,7 @@ import qs.config
  *
  * The history keeps NotificationsConfig.maxEntries entries, none older
  * than maxAgeDays (when set), and with clearOnFocus an app's entries go
- * when one of its windows is focused. DND is saved in config/state.
+ * when one of its windows is focused. DND is saved in Paths.statePath.
  */
 Singleton {
   id: root

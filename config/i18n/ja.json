@@ -1380,7 +1380,6 @@
     "days": "日",
     "tokens": "トークン",
     "Always show this note, with no note list: a clean scratchpad for an edge menu.": "常にこのノートを表示し、ノート一覧を出しません。エッジメニュー用のすっきりしたメモ帳に。",
-    "An absolute path (~/ works), e.g. a synced folder or a Markdown vault. Empty keeps notes in axiom's config/state/notes, which is not backed up.": "絶対パス（~/ も可）。同期フォルダや Markdown の保管庫など。空欄ならノートは axiom の config/state/notes に保存され、バックアップされません。",
     "Bulleted list": "箇条書き",
     "Cancel": "キャンセル",
     "Checklist": "チェックリスト",
@@ -2933,6 +2932,7 @@
     "Popout menu": "ポップアウトのメニュー",
     "Open an edge menu while the button is hovered, like other widgets' popouts: it closes when the pointer leaves, and a neighbouring popout replaces it. Separate from the click action.": "ボタンにホバーしている間、他のウィジェットのポップアウトと同じようにエッジメニューを開きます。ポインターが離れると閉じ、隣のポップアウトに置き換わります。クリック時の動作とは別です。",
     "Opened as a bar widget's popout, it opens at that widget, as bar popouts do, rather than where its layout places it. Only when that bar is on the menu's edge and monitor; opened any other way, it keeps its place.": "バーのウィジェットのポップアウトとして開くと、レイアウトで決めた位置ではなく、バーのポップアウトと同じようにそのウィジェットの位置に開きます。そのバーがメニューと同じ端・モニターにある場合のみです。他の方法で開いたときは元の位置のままです。",
-    "Popout at its widget": "ウィジェットの位置にポップアウト"
+    "Popout at its widget": "ウィジェットの位置にポップアウト",
+    "An absolute path (~/ works), e.g. a synced folder or a Markdown vault. Empty keeps notes in ~/.local/share/axiom/notes.": "絶対パス（~/ も可）。同期フォルダや Markdown の保管庫など。空欄ならノートは ~/.local/share/axiom/notes に保存されます。"
   }
 }

@@ -1,7 +1,7 @@
 # Settings page
 
 > **Files:** `components/views/Settings.qml`, `components/methods/SchemaLayout.qml`, `components/methods/ColumnSplit.qml`, `components/views/settings/` (`SettingsGroupCard`, `EntryListCard`, `FoldingCard`, `SettingsSidebar`, `SettingsContent`), `components/forms/`, `services/SettingsManager.qml`
-> **Config:** every section with settings (`x-settings` not false); fold state in `config/state/settings.json`
+> **Config:** every section with settings (`x-settings` not false); fold state in `~/.local/state/axiom/ui/settings.json`
 > **Related:** [Schema annotations](schema-annotations.md), [Editors pattern](editors-pattern.md), [Shared UI pieces](shared-ui-pieces.md)
 
 How the schema becomes the settings page: layout, cards, folding, sidebar and search.
@@ -25,7 +25,7 @@ How the schema becomes the settings page: layout, cards, folding, sidebar and se
 - Status cards (Hyprland, Idle, self-update, chat providers, onboarding) are `FieldGroup`s with a `StatusChip` in `headerExtras`.
 
 ### Folding
-- Clicking a card's header folds it (`SettingsManager.collapsed`, by group key, saved to `config/state/settings.json`). Search results never fold.
+- Clicking a card's header folds it (`SettingsManager.collapsed`, by group key, saved to `~/.local/state/axiom/ui/settings.json`). Search results never fold.
 
 ### Columns
 - Cards fill two newspaper columns in order: the first k on the left, the rest on the right. `methods/ColumnSplit` picks k from the cards' measured heights so both columns end as close together as they can.

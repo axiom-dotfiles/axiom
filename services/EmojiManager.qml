@@ -28,7 +28,7 @@ QtObject {
   // Every emoji, loaded on first use; [] when the file can't be read
   function entries() {
     if (root._entries === null) {
-      const text = FileManager.read(Paths.configPath + "json/emoji.json");
+      const text = FileManager.read(Paths.resourcePath + "json/emoji.json");
       try {
         root._entries = text ? JSON.parse(text) : [];
       } catch (e) {

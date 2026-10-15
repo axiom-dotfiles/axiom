@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Visual matrix of popouts across bar, border and opacity combinations.
 
-Rewrites config/user/config.json (atomically) once per scenario, opens every
+Rewrites the live config.json ($XDG_CONFIG_HOME/axiom/, atomically) once per scenario, opens every
 kind of popout on the running shell (bar popouts at each end of each bar and a
 submenu, floating edge menus, docks, the OSD, the attached launcher), crops
 each from a screenshot by its PopoutManager footprint and puts them on one
@@ -112,7 +112,7 @@ HOOK = """
 """
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-CONFIG = os.path.join(ROOT, "config", "user", "config.json")
+CONFIG = os.path.join(os.environ.get("XDG_CONFIG_HOME") or os.path.expanduser("~/.config"), "axiom", "config.json")
 SHELL = os.path.join(ROOT, "shell.qml")
 
 

@@ -1,6 +1,7 @@
 pragma Singleton
 import QtQuick
 import Quickshell
+import qs.services
 
 // Derived, non-configurable filesystem paths (from the environment, not config).
 QtObject {
@@ -8,19 +9,33 @@ QtObject {
 
   // --- Paths (from the environment, not from any config value) ---
   readonly property string homeDirectory: Quickshell.env("HOME") + "/"
-  // Shell root (this repo), always with a trailing slash
+  // Shell root (this repo), always with a trailing slash. Read-only: axiom
+  // writes nothing under it (a package installs it where it can't)
   readonly property string axiomPath: Quickshell.shellDir.toString().replace("file://", "").replace(/\/?$/, "/")
   readonly property string themePath: root.axiomPath + "config/themes/"
   readonly property string scriptsPath: root.axiomPath + "scripts/"
-  readonly property string configPath: root.axiomPath + "config/"
-  // Small persisted state (StateManager). In the greeter, whose code is a
-  // root-owned copy, its own state folder instead
-  readonly property string statePath: root.greeter ? root.greeterStatePath : root.configPath + "state/"
+  // What ships with axiom in config/: json/ (schema, theme defaults,
+  // emoji), themes/, i18n/
+  readonly property string resourcePath: root.axiomPath + "config/"
+
+  // --- What axiom writes (ConfigManager.dataDirs: the XDG folders, or the
+  // repo's own until an old install's data is moved over) ---
+
+  // $XDG_CONFIG_HOME/axiom/: config.json and saved/
+  readonly property string userConfigPath: ConfigManager.configDir
+  // Small persisted state (StateManager), $XDG_STATE_HOME/axiom/ui/. In the
+  // greeter, whose code is a root-owned copy, its own state folder instead
+  readonly property string statePath: root.greeter ? root.greeterStatePath : ConfigManager.dataDirs.ui
+  // Per-user state ($XDG_STATE_HOME/axiom/): secrets, chats, notification
+  // history, the generated hyprlock/hypridle/Hyprland configs
+  readonly property string userStatePath: root.greeter ? root.greeterStatePath : ConfigManager.dataDirs.state
+  // $XDG_DATA_HOME/axiom/: what the user made (the default notes folder)
+  readonly property string userDataPath: ConfigManager.dataDirs.data
+  readonly property string defaultNotesPath: ConfigManager.dataDirs.notes
+  // Themes generated from the wallpaper ("generated/<name>")
+  readonly property string generatedThemesPath: ConfigManager.dataDirs.generatedThemes
 
   readonly property string hyprlandPath: root.homeDirectory + ".config/hypr/"
-  // Per-user state outside the repo ($XDG_STATE_HOME/axiom/): secrets,
-  // the generated hyprlock config
-  readonly property string userStatePath: root.greeter ? root.greeterStatePath : (Quickshell.env("XDG_STATE_HOME") || root.homeDirectory + ".local/state") + "/axiom/"
   // $XDG_RUNTIME_DIR, the user's own 0700 tmpfs (always there, unlike
   // runtimePath, which is made by whatever writes into it)
   readonly property string runtimeDir: Quickshell.env("XDG_RUNTIME_DIR") || "/tmp"
@@ -39,6 +54,13 @@ QtObject {
   readonly property string greeterDir: (Quickshell.env("AXIOM_GREETER_DIR") || "/var/lib/axiom-greeter") + "/"
   readonly property string greeterBundlePath: root.greeterDir + "config/"
   readonly property string greeterStatePath: root.greeterDir + "state/"
+
+  // A theme's JSON file, by its Appearance.theme name: "generated/<name>"
+  // from generatedThemesPath, the rest from the bundled themes
+  function themeFile(name) {
+    const generated = String(name).match(/^generated\/(.+)$/);
+    return generated ? root.generatedThemesPath + generated[1] + ".json" : root.themePath + name + ".json";
+  }
 
   // A path from config or the user: trimmed, a leading ~ as home, no
   // trailing slash ("~/Pictures/" -> "/home/<user>/Pictures")

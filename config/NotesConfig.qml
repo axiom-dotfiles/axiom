@@ -8,8 +8,8 @@ QtObject {
 
   readonly property var _c: ConfigManager.config.Notes
 
-  // Inside axiom, gitignored with the rest of config/state
-  readonly property string defaultDirectory: Paths.statePath + "notes/"
+  // $XDG_DATA_HOME/axiom/notes/
+  readonly property string defaultDirectory: Paths.defaultNotesPath
   readonly property bool linked: _c.directory.trim() !== ""
   // The notes folder, absolute with a trailing slash
   readonly property string directory: {

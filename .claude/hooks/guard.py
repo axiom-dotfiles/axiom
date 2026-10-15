@@ -22,7 +22,10 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent.parent
 HOME = Path(os.path.expanduser("~")).resolve()
-LIVE_CONFIG = REPO / "config/user/config.json"
+# The live config.json (DataDirs.xdg), and where an install from before the
+# XDG folders kept it (still read until it's moved over, and on a rollback)
+LIVE_CONFIG = Path(os.environ.get("XDG_CONFIG_HOME") or HOME / ".config").resolve() / "axiom/config.json"
+LEGACY_CONFIG = REPO / "config/user/config.json"
 SCHEMA = REPO / "config/json/config.schema.json"
 SEPARATORS = {";", "&&", "||", "|", "&", "\n", "|&"}
 WRAPPERS = {"sudo", "env", "nohup", "exec", "command", "time", "timeout", "setsid"}
@@ -167,10 +170,12 @@ def check_argv(env, argv, cwd):
             paths = paths[:-1]  # the sources
         for a in paths:
             target = resolve(a, cwd)
-            if target == LIVE_CONFIG or target in LIVE_CONFIG.parents and (target == REPO or REPO in target.parents):
-                deny("Never, while testing", "don't delete or move the real config/user/config.json; use `ipc call onboarding goTo <n>`.")
+            # The file, or a folder holding it up to its config folder (the repo for the old one)
+            for config, top in ((LIVE_CONFIG, LIVE_CONFIG.parent), (LEGACY_CONFIG, REPO)):
+                if target == config or target in config.parents and (target == top or top in target.parents):
+                    deny("Never, while testing", f"don't delete or move the real config.json ({config}); use `ipc call onboarding goTo <n>`.")
     if name == "git" and args[:1] == ["clean"] and any(re.fullmatch(r"-[a-zA-Z]*[xX][a-zA-Z]*", a) for a in args[1:]):
-        deny("Never, while testing", "git clean -x/-X deletes the gitignored config/user/config.json (and state).")
+        deny("Never, while testing", "git clean -x/-X deletes the gitignored config/user/ and config/state/ (an install's data before it moves to the XDG folders).")
 
     # qmlformat -i replaces the inode
     if name == "qmlformat" and any(a in {"-i", "--inplace"} for a in args):
@@ -243,10 +248,10 @@ def value_at(config, path):
 
 def check_config_edit(tool, tool_input):
     path = tool_input.get("file_path", "")
-    if not path or Path(path).resolve() != LIVE_CONFIG:
+    if not path or Path(path).resolve() not in {LIVE_CONFIG, LEGACY_CONFIG}:
         return
     try:
-        before_text = LIVE_CONFIG.read_text()
+        before_text = Path(path).resolve().read_text()
     except OSError:
         return
     if tool == "Write":

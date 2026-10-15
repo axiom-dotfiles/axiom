@@ -1,15 +1,30 @@
 # ConfigManager, drafts and previews
 
-> **Files:** `services/ConfigManager.qml`, `services/ConfigDraft.qml`, `components/methods/ConfigMigration.qml`, `components/methods/SchemaValidation.qml`, `services/SettingsManager.qml`
-> **Config:** all of `config/user/config.json`
+> **Files:** `services/ConfigManager.qml`, `services/ConfigDraft.qml`, `components/methods/DataDirs.qml`, `services/DataMigrationManager.qml`, `scripts/migrate_xdg.sh`, `components/methods/ConfigMigration.qml`, `components/methods/SchemaValidation.qml`, `services/SettingsManager.qml`
+> **Config:** all of `~/.config/axiom/config.json`
 > **Related:** [Config readers](config-readers.md), [Schema annotations](schema-annotations.md), [Editors pattern](editors-pattern.md), [Saved configs and sharing](saved-configs-sharing.md), [Secrets](secrets.md)
 
 The owner of the runtime config: how it is loaded, written, drafted and previewed. Read before writing config from anywhere.
 
 ### What it owns
-- `_config`: the parsed `config/user/config.json`.
+- `_config`: the parsed `~/.config/axiom/config.json`.
 - `_configSchema`: `config/json/config.schema.json`.
 - Both are loaded eagerly at creation. The active theme's data belongs to ThemeManager, not here.
+
+### Where files live
+The repo (`Paths.axiomPath`) is read-only to the shell: a package installs it where it can't write. Everything axiom writes is in the XDG folders, resolved once by `DataDirs.xdg` (each `$XDG_*_HOME` when absolute, else its default) and handed out by `ConfigManager.dataDirs` and `Paths`:
+
+| What | Where | `Paths` |
+|---|---|---|
+| config.json, `saved/` | `$XDG_CONFIG_HOME/axiom/` | `userConfigPath` |
+| `StateManager` files (launcher, look, editors, onboarding, settings, clipboard pins, …) | `$XDG_STATE_HOME/axiom/ui/` (0700) | `statePath` |
+| Secrets, chats, notification history, calendar cache, generated hyprlock/hypridle/Hyprland configs, integration outputs | `$XDG_STATE_HOME/axiom/` | `userStatePath` |
+| Themes generated from the wallpaper (`generated/<name>`) | `$XDG_STATE_HOME/axiom/themes/` | `generatedThemesPath`, `themeFile(name)` |
+| The default notes folder | `$XDG_DATA_HOME/axiom/notes/` | `defaultNotesPath` |
+
+- Files under `userStatePath` keep their names: users' own configs point at several (the Hyprland include, the fzf/nvim/ncspot outputs).
+- The greeter has its own folders (`Paths.greeterDir`) and reads none of these.
+- **Moving an old install over:** before this layout the config was in the repo's `config/user/`, the UI state and notes in `config/state/`, and generated themes in `config/themes/generated/` (`DataDirs.legacy`). While `config/user/config.json` exists with no `MOVED.md` (`DataDirs.movedMarker`) beside it, `legacyLayout` is true and that session runs on the old folders as before. `DataMigrationManager` then holds saves (`holdSaves`) and runs `scripts/migrate_xdg.sh`. The script copies each folder over without overwriting anything, writes config.json last (in one piece), then writes the marker, and the shell reloads onto the XDG folders. The old folders are kept for a rollback. A failed copy writes no marker, so the next start tries again.
 
 ### Load pipeline
 1. Parse.

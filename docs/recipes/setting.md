@@ -44,7 +44,7 @@
 - **No migration needed:** a purely additive key fills its default on load.
 - **Wrong default type:** a default that doesn't validate (wrong type, outside min/max) makes the whole config fall back to defaults. `tst_Config` catches it.
 - **Drafts:** a section edited live through a draft (`Desktop`, `EdgeMenus`) is read through `ConfigManager.previews.X ?? ConfigManager.config.X` in its reader. Keep using that member.
-- **Live config:** the running shell validates against the schema it last loaded. Confirm the reload in `scripts/log.sh` before relying on the new key in `config/user/config.json`.
+- **Live config:** the running shell validates against the schema it last loaded. Confirm the reload in `scripts/log.sh` before relying on the new key in `~/.config/axiom/config.json`.
 
 ## Verify
 - `scripts/dev/verify.sh`: formats changed QML in place, runs `check_structure`, regenerates docs, runs related tests, shows the shell's log since the reload.

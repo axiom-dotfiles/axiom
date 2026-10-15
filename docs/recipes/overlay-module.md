@@ -95,7 +95,7 @@ Schema entry:
 ## Verify
 - `scripts/dev/verify.sh`
 - `scripts/run_tests.sh Config`
-- **On the live shell:** confirm the schema reloaded (`scripts/log.sh`) before adding the module to `config/user/config.json` (a config checked against a stale schema falls back to defaults). Add one module at a time, watch qs's RSS, then `scripts/dev/shot.sh page <ViewType>`.
+- **On the live shell:** confirm the schema reloaded (`scripts/log.sh`) before adding the module to `~/.config/axiom/config.json` (a config checked against a stale schema falls back to defaults). Add one module at a time, watch qs's RSS, then `scripts/dev/shot.sh page <ViewType>`.
 
 ## Docs to update
 - [overlay/utility-modules](../dev/overlay/utility-modules.md) if it's a tool-like module; the feature's doc otherwise.

@@ -10,7 +10,7 @@ import qs.components.methods
 // menus themselves (shell/EdgeMenus) follow this and report back when they
 // close on their own. Kept across QML reloads, so a reload doesn't close an
 // integrated menu and reflow the windows. Pins are also saved to
-// config/state/edgemenus.json, and a pinned menu opens again when qs starts.
+// $XDG_STATE_HOME/axiom/ui/edgemenus.json, and a pinned menu opens again when qs starts.
 //
 // Also the layouts editor's working copy of EdgeMenus (the pinned Layouts
 // overlay page), as BarManager is the bar editor's: edits

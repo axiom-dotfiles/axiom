@@ -1,7 +1,7 @@
 # Screenshots and screen recording
 
 > **Files:** `services/ScreenshotManager.qml`, `shell/Screenshot.qml`, `components/surfaces/screenshot/ScreenshotPickerWindow.qml`, `components/content/ScreenRecord.qml`, `components/bar/widgets/ScreenRecord.qml`
-> **Config:** `Screenshots` (`folder`, `recordingFolder`; reader `config/Screenshots.qml`); the picker's choices persist in `config/state/screenshot.json`
+> **Config:** `Screenshots` (`folder`, `recordingFolder`; reader `config/Screenshots.qml`); the picker's choices persist in `~/.local/state/axiom/ui/screenshot.json`
 > **Related:** [Keybinds](../hyprland/keybinds.md), [Chat](chat.md) (region attachments), [Utility modules](../overlay/utility-modules.md)
 
 Screenshots and wf-recorder recordings, both in `ScreenshotManager`, with one picker surface for both. Grim and slurp are not used.
@@ -54,7 +54,7 @@ Recording lives in the service, not in the card, because the overlay destroys th
   - **`system`** is `--audio=$(pactl get-default-sink).monitor`. It runs through `sh -c 'exec wf-recorder …'` so SIGINT still reaches wf-recorder.
   - **`mic`** is the default source.
   - pactl is optional (`hasSystemAudio`, `DependencyManager.found.pactl`, checked by the ScreenRecord card). Without it the card dims System, and a `system` request records no sound.
-- `recordAudio` (the ScreenRecord card's choice) is saved with `copyOnly` in `config/state/screenshot.json`.
+- `recordAudio` (the ScreenRecord card's choice) is saved with `copyOnly` in `~/.local/state/axiom/ui/screenshot.json`.
 
 **Running and stopping:**
 - wf-recorder runs until `stopRecording()`, which sends SIGINT to its own process. `pkill` is used only for a recorder left over from before a reload.
