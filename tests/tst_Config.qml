@@ -1149,6 +1149,51 @@ TestCase {
     compare(errors(migrated.config), []);
   }
 
+  function test_v54_screenshot_folders_are_one_setting() {
+    const module = (type, directory) => ({
+          "type": type,
+          "properties": {
+            "directory": directory
+          }
+        });
+    const migrated = load({
+      "version": 53,
+      "Overlay": {
+        "views": [
+          {
+            "type": "Custom",
+            "modules": [module("Screenshot", "~/Pictures/Screenshots"), module("ScreenRecord", "")]
+          }
+        ]
+      },
+      "EdgeMenus": [
+        {
+          "id": "m",
+          "modules": [module("Screenshot", "~/Shots"), module("ScreenRecord", "~/Videos"), module("Screenshot", "~/Other")]
+        }
+      ]
+    });
+    const config = migrated.config;
+    compare(config.Screenshots.folder, "~/Shots", "the first folder set, past the old default");
+    compare(config.Screenshots.recordingFolder, "~/Videos");
+    compare(config.Overlay.views[0].modules[0].properties, undefined, "the Screenshot card has no options left");
+    compare(config.EdgeMenus[0].modules[1].properties.directory, undefined);
+    compare(migrated.removed, []);
+    compare(errors(config), []);
+
+    const defaults = load({
+      "version": 53,
+      "EdgeMenus": [
+        {
+          "id": "m",
+          "modules": [module("Screenshot", "~/Pictures/Screenshots")]
+        }
+      ]
+    }).config;
+    compare(defaults.Screenshots.folder, "", "the old default is the new empty one");
+    compare(defaults.Screenshots.recordingFolder, "");
+  }
+
   function test_v52_desktop_modules_start_off() {
     const old = load({
       "version": 51

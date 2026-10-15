@@ -32,7 +32,7 @@
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 53,
+      "default": 54,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
@@ -349,6 +349,18 @@
       }
     },
 
+    "Screenshots": {
+      "type": "object",
+      "x-category": "General",
+      "title": "Screenshots & recordings",
+      "description": "Where screenshots and screen recordings are saved, whichever way they're taken: the screenshot and screenRecord binds, the launcher, the Screenshot and Screen recording cards.",
+      "additionalProperties": false,
+      "x-order": ["folder", "recordingFolder"],
+      "properties": {
+        "folder": { "type": "string", "title": "Screenshot folder", "x-control": "folder", "default": "", "description": "Where screenshots are saved (~ is your home). Empty uses Pictures/Screenshots." },
+        "recordingFolder": { "type": "string", "title": "Recording folder", "x-control": "folder", "default": "", "description": "Where recordings are saved, and listed from by the Screen recording card. Empty saves them with the screenshots." }
+      }
+    },
     "Battery": {
       "type": "object",
       "x-category": "General",
@@ -3657,14 +3669,7 @@
       "additionalProperties": false,
       "properties": {
         "place": { "$ref": "#/definitions/GridPlace" },
-        "type": { "const": "Screenshot", "description": "Screenshot" },
-        "properties": {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "directory": { "x-scope": "machine", "type": "string", "title": "Save to", "x-control": "folder", "default": "~/Pictures/Screenshots"}
-          }
-        }
+        "type": { "const": "Screenshot", "description": "Screenshot" }
       }
     },
     "GreetingOverlayModule": {
@@ -3942,7 +3947,6 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "directory": { "x-scope": "machine", "type": "string", "title": "Folder", "x-control": "folder", "default": "", "description": "Where recordings are saved and listed from (~ is your home). Empty uses Pictures/Screenshots, as screenshots do." },
             "grow": {"type": "integer", "title": "Grow by up to", "default": 0, "minimum": 0, "maximum": 16, "x-unit": "rows", "description": "Rows it may take while its list needs them: free rows towards the edge first (above it, or below it in a bottom menu), then away from it, pushing the modules there along (not on the lock or login screen). 0 keeps it at its size."}
           }
         }

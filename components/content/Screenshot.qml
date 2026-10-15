@@ -7,15 +7,12 @@ import qs.components.reusable
 import qs.components.content.base
 
 // Screenshots through ScreenshotManager (region, active window or the
-// focused screen), saved to `directory` and copied to the clipboard.
-// Recording (ScreenshotManager, with wf-recorder) shows only when it's
-// installed.
-// properties: { directory }
+// focused screen), saved to the Screenshots section's folder and copied to
+// the clipboard. Recording (ScreenshotManager, with wf-recorder) shows only
+// when it's installed.
 Card {
   id: root
 
-  // Empty: ScreenshotManager's <Pictures>/Screenshots
-  readonly property string directory: root.properties.directory
   readonly property bool recording: ScreenshotManager.recording
 
   // [mode, icon, label]; the record tile's icon and label follow
@@ -24,9 +21,9 @@ Card {
 
   function capture(mode) {
     if (mode === "record")
-      ScreenshotManager.toggleRecording(root.directory);
+      ScreenshotManager.toggleRecording();
     else
-      ScreenshotManager.take(mode, root.directory);
+      ScreenshotManager.take(mode);
   }
 
   TileGrid {

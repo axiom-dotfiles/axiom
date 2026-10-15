@@ -14,6 +14,7 @@ Generated from `config/json/config.schema.json` and the readers in `config/`. On
 | [Launcher](Launcher.md) | `LauncherConfig` (`config/LauncherConfig.qml`) | Launcher |
 | [Apps](Apps.md) | `Apps` (`config/Apps.qml`) | General |
 | [PowerMenu](PowerMenu.md) | `PowerMenuConfig` (`config/PowerMenuConfig.qml`) | Screen & Power |
+| [Screenshots](Screenshots.md) | `Screenshots` (`config/Screenshots.qml`) | General |
 | [Battery](Battery.md) | `BatteryConfig` (`config/BatteryConfig.qml`) | General |
 | [Notifications](Notifications.md) | `NotificationsConfig` (`config/NotificationsConfig.qml`) | Notifications |
 | [Hyprland](Hyprland.md) | `HyprlandConfig` (`config/HyprlandConfig.qml`) | Hyprland |

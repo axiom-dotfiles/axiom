@@ -3,7 +3,7 @@
 
 > **File:** `services/ScreenshotManager.qml` · **Docs:** see [docs/dev](../../README.md)
 
-Screenshots (the `screenshot` keybind action, IPC `screenshot take <kind>`, launcher `/screenshot`, the Screenshot card), taken natively: while `picking`, shell/Screenshot shows a frozen frame (ScreencopyView) on each screen, where a region is dragged or a window clicked (`region`), or a window clicked (`window`), and crops it at the screen's own resolution. `screen` captures the focused monitor at once. The picture is saved in <Pictures>/Screenshots (or the card's folder), or only to a scratch file with `copyOnly`, copied to the clipboard (wl-copy: Quickshell's clipboard is text only) and either notified (click opens it) or opened in an annotator (satty or swappy; its notification also has an "Edit in …" button). Recording (IPC `screenRecord`, the `screenRecord` bind, launcher `/record`, or R / the Record switch in an open picker) picks its area in the same picker (kind `record`), or takes the focused screen at once (`mode: "screen"`, the ScreenRecord card), and runs wf-recorder on it until stopped, with the system's sound (through pactl: `hasSystemAudio`) or the microphone if asked (`audio`). `recordingsIn(directory)` lists the newest recordings in each folder asked for (refreshRecordings), for the ScreenRecord cards.
+Screenshots (the `screenshot` keybind action, IPC `screenshot take <kind>`, launcher `/screenshot`, the Screenshot card), taken natively: while `picking`, shell/Screenshot shows a frozen frame (ScreencopyView) on each screen, where a region is dragged or a window clicked (`region`), or a window clicked (`window`), and crops it at the screen's own resolution. `screen` captures the focused monitor at once. The picture is saved in `folder` (the Screenshots section), or only to a scratch file with `copyOnly`, copied to the clipboard (wl-copy: Quickshell's clipboard is text only) and either notified (click opens it) or opened in an annotator (satty or swappy; its notification also has an "Edit in …" button). Recording (IPC `screenRecord`, the `screenRecord` bind, launcher `/record`, or R / the Record switch in an open picker) picks its area in the same picker (kind `record`), or takes the focused screen at once (`mode: "screen"`, the ScreenRecord card), and runs wf-recorder on it until stopped, with the system's sound (through pactl: `hasSystemAudio`) or the microphone if asked (`audio`), into `recordingFolder`, whose newest recordings `recordings` lists for the ScreenRecord cards.
 
 ### Properties
 
@@ -20,14 +20,15 @@ Screenshots (the `screenshot` keybind action, IPC `screenshot take <kind>`, laun
 - `recording` (bool)
 - `recordingSince` (real): When the running recording started (ms), 0 when unknown (started before a reload)
 - `recordingElapsed` (int): Seconds recorded so far, ticking only while recording
-- `recordings` (readonly var): The newest recordings in each folder listed ({ folder: [{ path, name, time, size }] }, newest first), once refreshRecordings has listed it
+- `recordings` (readonly var): The newest recordings in recordingFolder ([{ path, name, time, size }], newest first), once refreshRecordings has listed it
+- `folder` (readonly string): Where screenshots are saved: the Screenshots setting, else <Pictures>/Screenshots
+- `recordingFolder` (readonly string): Where recordings are saved and listed from: the setting, else with the screenshots
 - `forCaller` (readonly bool)
 
 ### Functions
 
-- `take(kind, directory)`: kind: "region" | "window" | "screen"; directory: where to save it (a leading ~ is home), empty for <Pictures>/Screenshots
+- `take(kind)`: kind: "region" | "window" | "screen"
 - `pick(path, callback)`: A region for another feature (the chat): saved to `path` as a PNG, with no clipboard or notification, then callback(ok).
-- `folderFor(directory)`: Where recordings and screenshots go: `directory` (a leading ~ is home), else <Pictures>/Screenshots
 - `cancel()`
 - `setCopyOnly(value)`
 - `setRecordAudio(value)`
@@ -35,11 +36,10 @@ Screenshots (the `screenshot` keybind action, IPC `screenshot take <kind>`, laun
 - `edit(path)`: Opens a picture in the annotator, which saves over it
 - `setRecordMode(on)`: Switches an open picker between taking a screenshot and recording
 - `fail(reason)`
-- `startRecording(directory, options)`: Recording: an area picked in the picker (kind `record`), recorded by wf-recorder until stopRecording().
+- `startRecording(options)`: Recording: an area picked in the picker (kind `record`), recorded by wf-recorder until stopRecording().
 - `stopRecording()`: Ours gets SIGINT (wf-recorder finishes the file on it).
-- `toggleRecording(directory)`
+- `toggleRecording()`
 - `record(area, screenName)`: Called by the picker with the area to record: global logical pixels, or a whole screen by name
 - `frameArrived()`: Called by a picker when its frame is in.
-- `recordingsIn(directory)`: The newest recordings in a folder (`directory` as for startRecording), [] until refreshRecordings has listed it
-- `refreshRecordings(directory)`: Lists the newest recordings in a folder into `recordings`
-- `deleteRecording(path)`: Moves a recording to the trash, then lists its folder again
+- `refreshRecordings()`: Lists the newest recordings in recordingFolder into `recordings`
+- `deleteRecording(path)`: Moves a recording to the trash, then lists the folder again

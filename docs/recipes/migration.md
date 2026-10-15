@@ -56,7 +56,7 @@
 5. **Update the readers and consumers** of the changed keys.
 
 ## Gotchas
-- **There's no module walker**: walk the `modules` arrays directly, as `_v36ToV37`'s `rename` calls do: `config.Overlay?.views[].modules`, `config.EdgeMenus[].modules`, `config.Lockscreen?.layout?.modules`, and the `Desktop`/`Greeter` layouts if they're involved.
+- **Modules:** `_eachModule(config, fn(module, where))` covers every layout's modules (overlay pages, edge menus, the lock and login screens, the desktops), as `_v53ToV54` uses it.
 - **Other helpers:** `_eachWidget(config, fn(widget, where))` covers every bar's widget sections, and `_addBinds(config, changes, added)` adds Hyprland binds.
 - **The fixtures already cover this:** `tests/fixtures/configs/v1.json` and `v30.json` run through every step. A broken new step usually shows up there too. A new fixture is only worth it for a large reshape.
 - **Shipped examples:** `examples/*.json` are at an older version and migrate on load (`tst_ConfigExamples`). Check they still pass.

@@ -102,6 +102,7 @@ The public members (no `_` prefix) of every file in `services/` and every config
 - [PolkitConfig](api/PolkitConfig.md): Reader for the Polkit section: whether axiom is the session's polkit agent (PolkitManager)
 - [PopoutsConfig](api/PopoutsConfig.md): Reader for the Popouts section: behaviour shared by bar popouts and screen-edge popouts.
 - [PowerMenuConfig](api/PowerMenuConfig.md): Reader for the PowerMenu section.
+- [Screenshots](api/Screenshots.md): Reader for the Screenshots section: where screenshots and recordings are saved (ScreenshotManager resolves the empty defaults)
 - [SelfUpdate](api/SelfUpdate.md): Reader for the SelfUpdate section (see SelfUpdateManager).
 - [Theme](api/Theme.md): The active theme's colors: base16 (base00-base0F) and semantic names, filled from theme-defaults.json; resolveColor(name) for names from config.
 - [ThemeIntegrations](api/ThemeIntegrations.md): Reader for the ThemeIntegrations section: one switch per scripts/theme_<key>.sh, run by ThemeManager.themeIntegrations().

@@ -92,7 +92,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `Power.qml`: Power buttons for the lock screen and the greeter (x-hosts: those two only): suspend, restart and shut down, nothing else (never log out or unlock).
 - `QuickActions.qml`: A grid of action tiles: toggles, session actions and pin, in any mix.
 - `ScreenRecord.qml`: Screen recording (ScreenshotManager, with wf-recorder): record a region (picked as for a screenshot) or the whole focused screen (the overlay closes first), with the system's sound (with pactl), the microphone or none; …
-- `Screenshot.qml`: Screenshots through ScreenshotManager (region, active window or the focused screen), saved to `directory` and copied to the clipboard.
+- `Screenshot.qml`: Screenshots through ScreenshotManager (region, active window or the focused screen), saved to the Screenshots section's folder and copied to the clipboard.
 - `Session.qml`: The greeter's session picker (x-hosts: greeter only): which desktop the login starts (Wayland sessions; the user's last one to begin with).
 - `Submenu.qml`: A row that opens another edge menu (`menu`) beside the one it's in, in that menu's submenu (EdgePopout.submenu, content/parts/MenuSubmenu): on hover, or on a click with openOnHover off.
 - `SystemGraphs.qml`: Live graphs of system metrics: the current value over a minute of history per metric.
@@ -660,6 +660,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `PolkitConfig.qml`: Reader for the Polkit section: whether axiom is the session's polkit agent (PolkitManager)
 - `PopoutsConfig.qml`: Reader for the Popouts section: behaviour shared by bar popouts and screen-edge popouts.
 - `PowerMenuConfig.qml`: Reader for the PowerMenu section.
+- `Screenshots.qml`: Reader for the Screenshots section: where screenshots and recordings are saved (ScreenshotManager resolves the empty defaults)
 - `SelfUpdate.qml`: Reader for the SelfUpdate section (see SelfUpdateManager).
 - `Theme.qml`: The active theme's colors: base16 (base00-base0F) and semantic names, filled from theme-defaults.json; resolveColor(name) for names from config.
 - `ThemeIntegrations.qml`: Reader for the ThemeIntegrations section: one switch per scripts/theme_<key>.sh, run by ThemeManager.themeIntegrations().

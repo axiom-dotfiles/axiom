@@ -442,7 +442,7 @@ QtObject {
               value: kind
             })),
       run: (arg, value) => {
-        ScreenshotManager.take(value ?? (arg || "region"), "");
+        ScreenshotManager.take(value ?? (arg || "region"));
       }
     },
     {
@@ -452,7 +452,7 @@ QtObject {
       description: () => ScreenshotManager.recording ? I18n.tr("Stop recording the screen") : I18n.tr("Record the screen"),
       available: () => ScreenshotManager.hasRecorder || ScreenshotManager.recording,
       run: () => {
-        ScreenshotManager.toggleRecording("");
+        ScreenshotManager.toggleRecording();
       }
     },
     {

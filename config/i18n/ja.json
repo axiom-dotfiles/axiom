@@ -256,7 +256,6 @@
     "Right-click command": "右クリック時のコマンド",
     "Run on click. Empty uses `sudo pacman -Syu`, or the AUR helper with -Syu.": "クリック時に実行。空欄の場合は `sudo pacman -Syu`、または AUR ヘルパーの -Syu を使います。",
     "Save": "保存",
-    "Save to": "保存先",
     "Screen": "画面全体",
     "Screen border": "画面の枠",
     "Screen edge": "画面の端",
@@ -2880,7 +2879,6 @@
     "Binds without a description, listed by their dispatcher.": "説明のないバインド。ディスパッチャー名で表示します。",
     "Calculator keys under the field, when the card is tall enough.": "カードに十分な高さがあるとき、入力欄の下に電卓のキーを表示します。",
     "Show the time here": "現在地の時刻を表示",
-    "Folder": "フォルダー",
     "A band under each place showing its day and night, with a mark at now, when there's room.": "余裕があるとき、各場所の下にその日の昼と夜を示す帯と現在時刻の印を表示します。",
     "A command a click on the card runs (the command runs again after). Empty does nothing.": "カードのクリックで実行するコマンド（その後コマンドを再実行します）。空にすると何もしません。",
     "Section titles to show, comma-separated (as on the Keybinds page). Empty shows them all.": "表示するセクション名をカンマ区切りで（キーバインドページと同じ名前）。空にするとすべて表示します。",
@@ -2888,7 +2886,6 @@
     "Tabs for Unicode's groups (smileys, animals, food, …) over the grid, when there's room.": "余裕があるとき、グリッドの上に Unicode のグループ（スマイリー、動物、食べ物など）のタブを表示します。",
     "Show the day": "一日を表示",
     "Show undescribed binds": "説明のないバインドを表示",
-    "Where recordings are saved and listed from (~ is your home). Empty uses Pictures/Screenshots, as screenshots do.": "録画を保存し一覧表示するフォルダー（~ はホーム）。空にするとスクリーンショットと同じ Pictures/Screenshots を使います。",
     "Answers you copied or finished with =: below the field, or beside it in a wide card (beside the keypad there, else in its place), when there's room.": "コピーした答えや = で確定した答え。余裕があるとき入力欄の下に、横長のカードでは横に（キーパッドの横、なければその場所に）表示します。",
     "A–Z": "名前順",
     "By category": "カテゴリ別",
@@ -2926,6 +2923,12 @@
     "Centre vertically": "上下中央に揃える",
     "Can't be centred exactly: it would sit between grid units": "正確に中央に揃えられません：グリッドの単位の間にずれます",
     "No room to centre it": "中央に揃える余地がありません",
-    "Choose a folder": "フォルダを選択"
+    "Choose a folder": "フォルダを選択",
+    "Screenshots & recordings": "スクリーンショットと録画",
+    "Recording folder": "録画のフォルダ",
+    "Where screenshots and screen recordings are saved, whichever way they're taken: the screenshot and screenRecord binds, the launcher, the Screenshot and Screen recording cards.": "スクリーンショットと画面録画の保存先です。screenshot・screenRecord のキー割り当て、ランチャー、スクリーンショットと画面録画のカードのどれから撮っても同じ場所に保存されます。",
+    "Where screenshots are saved (~ is your home). Empty uses Pictures/Screenshots.": "スクリーンショットの保存先（~ はホームフォルダ）。空欄ではピクチャ/Screenshots を使います。",
+    "Screenshot folder": "スクリーンショットのフォルダ",
+    "Where recordings are saved, and listed from by the Screen recording card. Empty saves them with the screenshots.": "録画の保存先で、画面録画のカードはここから一覧を表示します。空欄ではスクリーンショットと同じ場所に保存します。"
   }
 }

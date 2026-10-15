@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 53
+  readonly property int currentVersion: 54
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -133,6 +133,8 @@ QtObject {
       result = _v51ToV52(result, changes);
     if (version < 53)
       result = _v52ToV53(result, changes);
+    if (version < 54)
+      result = _v53ToV54(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -1811,6 +1813,56 @@ QtObject {
       if (widget.type === "Time" && widget.properties && typeof widget.properties === "object")
         root._renameKey(widget.properties, "showCalendar", "showPopout", `${where}.properties`, changes);
     });
+    return config;
+  }
+
+  // Calls fn(module, where) for each module of every layout: overlay
+  // pages, edge menus, the lock and login screens and the desktops
+  function _eachModule(config, fn) {
+    const each = (list, where) => (Array.isArray(list) ? list : []).forEach((module, i) => {
+        if (module && typeof module === "object")
+          fn(module, `${where}[${i}]`);
+      });
+    (Array.isArray(config.Overlay?.views) ? config.Overlay.views : []).forEach((view, v) => each(view?.modules, `Overlay.views[${v}].modules`));
+    (Array.isArray(config.EdgeMenus) ? config.EdgeMenus : []).forEach((menu, m) => each(menu?.modules, `EdgeMenus[${m}].modules`));
+    each(config.Lockscreen?.layout?.modules, "Lockscreen.layout.modules");
+    each(config.Greeter?.layout?.modules, "Greeter.layout.modules");
+    each(config.Desktop?.all?.modules, "Desktop.all.modules");
+    each(config.Desktop?.primary?.modules, "Desktop.primary.modules");
+    (Array.isArray(config.Desktop?.monitors) ? config.Desktop.monitors : []).forEach((layout, d) => each(layout?.modules, `Desktop.monitors[${d}].modules`));
+  }
+
+  // v54 made the screenshot and recording folders one setting each
+  // (Screenshots), for the binds, the launcher and every card alike: the
+  // first folder a Screenshot or ScreenRecord card set becomes it. The
+  // Screenshot card's old default (~/Pictures/Screenshots) is the new
+  // empty one's.
+  function _v53ToV54(config, changes) {
+    const found = {
+      "folder": [],
+      "recordingFolder": []
+    };
+    root._eachModule(config, (module, where) => {
+      const key = module.type === "Screenshot" ? "folder" : module.type === "ScreenRecord" ? "recordingFolder" : "";
+      if (key === "" || !module.properties || typeof module.properties !== "object" || !("directory" in module.properties))
+        return;
+      const dir = typeof module.properties.directory === "string" ? module.properties.directory.trim() : "";
+      if (dir !== "" && !(key === "folder" && dir === "~/Pictures/Screenshots") && !found[key].includes(dir))
+        found[key].push(dir);
+      delete module.properties.directory;
+      // The Screenshot card has no options left
+      if (Object.keys(module.properties).length === 0)
+        delete module.properties;
+      changes.push(`${where}.properties.directory removed (Screenshots.${key})`);
+    });
+    if (!config.Screenshots || typeof config.Screenshots !== "object" || Array.isArray(config.Screenshots))
+      config.Screenshots = {};
+    for (const key of ["folder", "recordingFolder"]) {
+      if (found[key].length === 0 || config.Screenshots[key] !== undefined)
+        continue;
+      config.Screenshots[key] = found[key][0];
+      changes.push(`Screenshots.${key} = ${found[key][0]}` + (found[key].length > 1 ? ` (cards also used ${found[key].slice(1).join(", ")})` : ""));
+    }
     return config;
   }
 }

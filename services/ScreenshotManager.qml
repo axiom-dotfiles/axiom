@@ -6,7 +6,6 @@ import Quickshell.Hyprland
 import Quickshell.Io
 
 import qs.config
-import qs.components.methods
 
 // Screenshots (the `screenshot` keybind action, IPC `screenshot take <kind>`,
 // launcher `/screenshot`, the Screenshot card), taken natively: while
@@ -14,7 +13,7 @@ import qs.components.methods
 // screen, where a region is dragged or a window clicked (`region`), or a
 // window clicked (`window`), and crops it at the screen's own resolution.
 // `screen` captures the focused monitor at once. The picture is saved in
-// <Pictures>/Screenshots (or the card's folder), or only to a scratch file
+// `folder` (the Screenshots section), or only to a scratch file
 // with `copyOnly`, copied to the clipboard (wl-copy: Quickshell's clipboard
 // is text only) and either notified (click opens it) or opened in an
 // annotator (satty or swappy; its notification also has an "Edit in …"
@@ -23,9 +22,9 @@ import qs.components.methods
 // open picker) picks its area in the same picker (kind `record`), or takes
 // the focused screen at once (`mode: "screen"`, the ScreenRecord card), and
 // runs wf-recorder on it until stopped, with the system's sound (through
-// pactl: `hasSystemAudio`) or the microphone if asked (`audio`).
-// `recordingsIn(directory)` lists the newest recordings in each folder
-// asked for (refreshRecordings), for the ScreenRecord cards.
+// pactl: `hasSystemAudio`) or the microphone if asked (`audio`), into
+// `recordingFolder`, whose newest recordings `recordings` lists for the
+// ScreenRecord cards.
 QtObject {
   id: root
 
@@ -63,10 +62,16 @@ QtObject {
   // "none" | "system" (the default output's monitor) | "mic" (the default
   // input), for the recording being started
   property string _recordAudio: "none"
-  // The newest recordings in each folder listed ({ folder: [{ path, name,
-  // time, size }] }, newest first), once refreshRecordings has listed it
+  // The newest recordings in recordingFolder ([{ path, name, time, size }],
+  // newest first), once refreshRecordings has listed it
   readonly property var recordings: root._recordings
-  property var _recordings: ({})
+  property var _recordings: []
+  // Where screenshots are saved: the Screenshots setting, else
+  // <Pictures>/Screenshots
+  readonly property string folder: Screenshots.folder || root._picturesDir + "/Screenshots"
+  // Where recordings are saved and listed from: the setting, else with the
+  // screenshots
+  readonly property string recordingFolder: Screenshots.recordingFolder || root.folder
 
   property string _picturesDir: Quickshell.env("HOME") + "/Pictures"
   property string _directory: ""
@@ -74,13 +79,12 @@ QtObject {
 
   readonly property var _state: StateManager.createStateHandler("screenshot")
 
-  // kind: "region" | "window" | "screen"; directory: where to save it
-  // (a leading ~ is home), empty for <Pictures>/Screenshots
-  function take(kind, directory) {
+  // kind: "region" | "window" | "screen"
+  function take(kind) {
     if (root.busy)
       return;
     root._target = null;
-    root._start(kind, directory);
+    root._start(kind);
   }
 
   // A region for another feature (the chat): saved to `path` as a PNG,
@@ -94,7 +98,7 @@ QtObject {
       "callback": callback
     };
     Quickshell.execDetached(["mkdir", "-p", path.replace(/\/[^/]*$/, "")]);
-    root._start("region", "");
+    root._start("region");
     return true;
   }
 
@@ -102,18 +106,12 @@ QtObject {
   property var _target: null
   readonly property bool forCaller: root._target !== null
 
-  // Where recordings and screenshots go: `directory` (a leading ~ is home),
-  // else <Pictures>/Screenshots
-  function folderFor(directory) {
-    return Paths.expandHome(directory) || root._picturesDir + "/Screenshots";
-  }
-
-  function _start(kind, directory) {
+  function _start(kind) {
     if (!["region", "window", "screen", "record", "recordScreen"].includes(kind)) {
       console.warn(`[ScreenshotManager] Unknown screenshot kind "${kind}" (region, window, screen or record)`);
       return;
     }
-    root._directory = root.folderFor(directory);
+    root._directory = kind.startsWith("record") ? root.recordingFolder : root.folder;
     Quickshell.execDetached(["mkdir", "-p", root._directory, root._scratchDir]);
     root.annotate = false;
     // The screen is taken as it is (an open overlay included), but the
@@ -247,12 +245,12 @@ QtObject {
   // starts it is gone once the overlay closes.
   // options: { mode: "pick" (the picker, the default) | "screen" (the
   // focused screen, at once), audio: "none" | "system" | "mic" }
-  function startRecording(directory, options) {
+  function startRecording(options) {
     if (root.recording || root.busy || !root.hasRecorder)
       return;
     root._target = null;
     root._recordAudio = root._audioFor(options?.audio);
-    root._start(options?.mode === "screen" ? "recordScreen" : "record", directory);
+    root._start(options?.mode === "screen" ? "recordScreen" : "record");
   }
 
   // A sound choice that can be recorded: anything else, or the system's
@@ -275,13 +273,13 @@ QtObject {
     root.recording = false;
   }
 
-  function toggleRecording(directory) {
+  function toggleRecording() {
     if (root.recording)
       root.stopRecording();
     else if (root.busy && root.request?.kind === "record")
       root.cancel();
     else
-      root.startRecording(directory);
+      root.startRecording();
   }
 
   // Called by the picker with the area to record: global logical pixels,
@@ -372,62 +370,53 @@ QtObject {
         return;
       }
       root._lastPath = path;
-      // Its folder, if a card lists it
-      const folder = path.replace(/\/[^/]*$/, "");
-      if (root._recordings[folder] !== undefined)
-        root._queueListing(folder);
+      // If a card lists them
+      if (root._listed)
+        root.refreshRecordings();
       NotificationManager.sendNotification("axiom", I18n.tr("Recording saved"), I18n.tr("Saved in {0}. Click to open it.", path.replace(/\/[^/]*$/, "")), {
         "desktopEntry": root._desktopEntry
       });
     }
   }
 
-  // The newest recordings in a folder (`directory` as for
-  // startRecording), [] until refreshRecordings has listed it
-  function recordingsIn(directory) {
-    return root._recordings[root.folderFor(directory)] ?? [];
-  }
-
-  // Lists the newest recordings in a folder into `recordings`
-  function refreshRecordings(directory) {
-    root._queueListing(root.folderFor(directory));
-  }
-
-  // Moves a recording to the trash, then lists its folder again
-  function deleteRecording(path) {
-    const folder = Object.keys(root._recordings).find(f => root._recordings[f].some(r => r.path === path));
-    if (folder === undefined)
+  // Lists the newest recordings in recordingFolder into `recordings`
+  function refreshRecordings() {
+    root._listed = true;
+    if (root._lister.running) {
+      root._relist = true;
       return;
-    root._recordings = Utils.withEntry(root._recordings, folder, root._recordings[folder].filter(r => r.path !== path));
-    CommandManager.run(["gio", "trash", "--", path], () => root._queueListing(folder));
-  }
-
-  // Folders waiting to be listed, oldest first: one find at a time, of
-  // `_listingFolder`
-  property var _listQueue: []
-  property string _listingFolder: ""
-
-  function _queueListing(folder) {
-    if (!root._listQueue.includes(folder))
-      root._listQueue = root._listQueue.concat([folder]);
-    if (!root._lister.running)
-      root._listNext();
-  }
-
-  function _listNext() {
-    if (root._listQueue.length === 0)
-      return;
-    const folder = root._listQueue[0];
-    root._listQueue = root._listQueue.slice(1);
-    root._listingFolder = folder;
-    root._lister.command = ["sh", "-c", 'find "$1" -maxdepth 1 -type f -name "Recording_*.mp4" -printf "%T@\t%s\t%p\n" 2>/dev/null | sort -rn | head -n 12', "sh", folder];
+    }
+    root._lister.command = ["sh", "-c", 'find "$1" -maxdepth 1 -type f -name "Recording_*.mp4" -printf "%T@\t%s\t%p\n" 2>/dev/null | sort -rn | head -n 12', "sh", root.recordingFolder];
     root._lister.running = true;
   }
+  onRecordingFolderChanged: {
+    if (!root._listed)
+      return;
+    root._recordings = [];
+    root.refreshRecordings();
+  }
+
+  // Moves a recording to the trash, then lists the folder again
+  function deleteRecording(path) {
+    if (!root._recordings.some(r => r.path === path))
+      return;
+    root._recordings = root._recordings.filter(r => r.path !== path);
+    CommandManager.run(["gio", "trash", "--", path], () => root.refreshRecordings());
+  }
+
+  // A card has listed the recordings: they're listed again as one is saved
+  // or the folder changes
+  property bool _listed: false
+  // Asked again while listing
+  property bool _relist: false
 
   property Process _lister: Process {
     stdout: StdioCollector {
       onStreamFinished: {
-        root._recordings = Utils.withEntry(root._recordings, root._listingFolder, text.split("\n").filter(line => line !== "").map(line => {
+        // Of a folder since changed: the list that follows replaces it
+        if (root._lister.command[4] !== root.recordingFolder)
+          return;
+        root._recordings = text.split("\n").filter(line => line !== "").map(line => {
           const [time, size, path] = line.split("\t");
           return {
             "path": path,
@@ -435,10 +424,15 @@ QtObject {
             "time": Math.round(Number(time) * 1000),
             "size": Number(size)
           };
-        }));
+        });
       }
     }
-    onExited: Qt.callLater(root._listNext)
+    onExited: {
+      if (!root._relist)
+        return;
+      root._relist = false;
+      Qt.callLater(root.refreshRecordings);
+    }
   }
 
   // The picture the live "Edit in …" button opens
@@ -485,7 +479,7 @@ QtObject {
     target: "screenshot"
 
     function take(kind: string): void {
-      root.take(kind, "");
+      root.take(kind);
     }
 
     function cancel(): void {
@@ -497,12 +491,12 @@ QtObject {
     target: "screenRecord"
 
     function toggle(): void {
-      root.toggleRecording("");
+      root.toggleRecording();
     }
 
     function enable(): void {
       if (!root.recording)
-        root.startRecording("");
+        root.startRecording();
     }
 
     function disable(): void {
