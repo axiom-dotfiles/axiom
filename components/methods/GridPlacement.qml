@@ -799,6 +799,185 @@ QtObject {
     };
   }
 
+  // What a module's alignment is judged against: the bounded grid
+  // (`area`, { cols, rows }) when there is one, else the cover of the
+  // other modules' `places` (the indices in `exclude`, and nulls,
+  // skipped). { x, y, w, h } in units, else null
+  function guideFrame(area, places, exclude) {
+    if (area)
+      return {
+        "x": 0,
+        "y": 0,
+        "w": area.cols,
+        "h": area.rows
+      };
+    return root.cover((places ?? []).filter((p, i) => !(exclude ?? []).includes(i)));
+  }
+
+  // A place's lines on `axis` ("x" | "y"), in units: { start, end, centre }
+  function _lines(place, axis) {
+    const start = axis === "x" ? place.x : place.y;
+    const size = axis === "x" ? place.w : place.h;
+    return {
+      "start": start,
+      "end": start + size,
+      "centre": start + size / 2
+    };
+  }
+
+  // Where `place` lines up with the other `places` (the indices in
+  // `exclude`, and nulls, skipped) and with `frame` (guideFrame): its
+  // start, end or centre on an axis the same as one of theirs, or its
+  // centre on the frame's. One guide per line, running over everything
+  // aligned on it: [{ axis ("x": a vertical line at x = `at`; "y": a
+  // horizontal one), kind ("start" | "end" | "centre"), at, from, to (its
+  // extent along the other axis), frame (it's the frame's centre) }], all
+  // in units
+  function alignments(place, places, exclude, frame) {
+    if (!place)
+      return [];
+    const out = [];
+    const add = (axis, kind, at, other, isFrame) => {
+      const along = axis === "x" ? "y" : "x";
+      const mine = root._lines(place, along);
+      const theirs = root._lines(other, along);
+      const from = Math.min(mine.start, theirs.start);
+      const to = Math.max(mine.end, theirs.end);
+      const hit = out.find(g => g.axis === axis && g.kind === kind && g.at === at);
+      if (hit) {
+        hit.from = Math.min(hit.from, from);
+        hit.to = Math.max(hit.to, to);
+        hit.frame = hit.frame || isFrame;
+      } else {
+        out.push({
+          "axis": axis,
+          "kind": kind,
+          "at": at,
+          "from": from,
+          "to": to,
+          "frame": isFrame
+        });
+      }
+    };
+    (places ?? []).forEach((other, i) => {
+      if (!other || (exclude ?? []).includes(i))
+        return;
+      ["x", "y"].forEach(axis => {
+        const mine = root._lines(place, axis);
+        const theirs = root._lines(other, axis);
+        ["start", "end", "centre"].forEach(kind => {
+          if (mine[kind] === theirs[kind])
+            add(axis, kind, mine[kind], other, false);
+        });
+      });
+    });
+    if (frame) {
+      ["x", "y"].forEach(axis => {
+        const centre = root._lines(frame, axis).centre;
+        if (Math.abs(root._lines(place, axis).centre - centre) < 0.001)
+          add(axis, "centre", centre, frame, true);
+      });
+    }
+    return out;
+  }
+
+  // The two centre lines of `box` ({ x, y, w, h }), as guides
+  // (alignments), else []
+  function centreGuides(box) {
+    if (!box || box.w <= 0 || box.h <= 0)
+      return [];
+    return ["x", "y"].map(axis => {
+      const along = root._lines(box, axis === "x" ? "y" : "x");
+      return {
+        "axis": axis,
+        "kind": "centre",
+        "at": root._lines(box, axis).centre,
+        "from": along.start,
+        "to": along.end,
+        "frame": true
+      };
+    });
+  }
+
+  // The start on `axis` ("x" | "y") that centres `box` ({ x, y, w, h }) in
+  // `frame` (guideFrame), else null: no box or frame, or it'd be half a
+  // unit off (their sizes differ by an odd count)
+  function centredIn(box, frame, axis) {
+    if (!box || !frame)
+      return null;
+    const free = axis === "x" ? frame.w - box.w : frame.h - box.h;
+    if (Math.abs(free % 2) > 0.001)
+      return null;
+    return (axis === "x" ? frame.x : frame.y) + free / 2;
+  }
+
+  // A guide (alignments) on the canvas (`fit`, from canvasFit) in px:
+  // { x1, y1, x2, y2 }. A start lies on its units' leading side, an end on
+  // their trailing one (before the gap), a centre midway
+  function canvasGuide(fit, guide) {
+    const across = guide.axis === "x";
+    const pos = (origin, at) => origin + at * fit.step;
+    const origin = across ? fit.originX : fit.originY;
+    const at = pos(origin, guide.at) - (guide.kind === "start" ? 0 : guide.kind === "end" ? fit.gap : fit.gap / 2);
+    const along = across ? fit.originY : fit.originX;
+    const from = pos(along, guide.from);
+    const to = pos(along, guide.to) - fit.gap;
+    return across ? {
+      "x1": at,
+      "y1": from,
+      "x2": at,
+      "y2": to
+    } : {
+      "x1": from,
+      "y1": at,
+      "x2": to,
+      "y2": at
+    };
+  }
+
+  // The room between `place` and each side of `frame` (guideFrame) on the
+  // canvas (`fit`): [{ side ("left" | "right" | "top" | "bottom"), units,
+  // even (the opposite side has the same), x1, y1, x2, y2 (a line across
+  // it, through the place's middle, in px) }], only sides with room
+  function canvasMargins(fit, place, frame) {
+    if (!place || !frame)
+      return [];
+    const r = root.canvasRect(fit, place);
+    const midX = r.x + r.width / 2;
+    const midY = r.y + r.height / 2;
+    const frameLeft = fit.originX + frame.x * fit.step;
+    const frameTop = fit.originY + frame.y * fit.step;
+    const frameRight = fit.originX + (frame.x + frame.w) * fit.step - fit.gap;
+    const frameBottom = fit.originY + (frame.y + frame.h) * fit.step - fit.gap;
+    const units = {
+      "left": place.x - frame.x,
+      "right": frame.x + frame.w - place.x - place.w,
+      "top": place.y - frame.y,
+      "bottom": frame.y + frame.h - place.y - place.h
+    };
+    const opposite = {
+      "left": "right",
+      "right": "left",
+      "top": "bottom",
+      "bottom": "top"
+    };
+    const lines = {
+      "left": [frameLeft, midY, r.x, midY],
+      "right": [r.x + r.width, midY, frameRight, midY],
+      "top": [midX, frameTop, midX, r.y],
+      "bottom": [midX, r.y + r.height, midX, frameBottom]
+    };
+    return ["left", "right", "top", "bottom"].filter(side => units[side] > 0).map(side => ({
+          "side": side,
+          "units": units[side],
+          "even": units[side] === units[opposite[side]],
+          "x1": lines[side][0],
+          "y1": lines[side][1],
+          "x2": lines[side][2],
+          "y2": lines[side][3]
+        }));
+  }
+
   // The band `depth` px deep inside `rect` ({ x, y, width, height }) along
   // its `edge` side ("Left" | "Right" | "Top" | "Bottom")
   function edgeBand(rect, edge, depth) {

@@ -56,6 +56,16 @@ DragLayer {
   // Where the module carried or resized would land, else null
   readonly property var landingPlace: root.dragging !== null ? (root.hoverPlan?.place ?? null) : (root.resizePlan?.place ?? null)
   readonly property bool landingValid: (root.dragging !== null ? root.hoverPlan : root.resizePlan)?.valid ?? false
+  // Which of previewPlaces is the module landing (a group: each of
+  // them; a new one: the last), else []
+  readonly property var landingMembers: {
+    const plan = root.dragging !== null ? root.hoverPlan : root.resizePlan;
+    if (!plan?.valid)
+      return [];
+    if (plan.kind === "group")
+      return plan.members ?? [];
+    return [plan.kind === "add" ? plan.places.length - 1 : plan.index];
+  }
 
   // The last plan made: the pointer moves within a unit far more often
   // than it crosses into another. Mutated, not notified

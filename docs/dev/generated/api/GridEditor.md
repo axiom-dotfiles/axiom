@@ -44,6 +44,8 @@ Editing of one grid of modules (each with a `place` { x, y, w, h } in quarter ca
 - `planMove(index, x, y)`: Module `index` moved with its top left to x, y: exactly onto a module of its size they swap, else it pushes what it lands on
 - `planResize(index, place)`: Module `index` resized to `place` (GridPlacement.resizeFrom: any side may move), pushing what it grows onto
 - `planMoveGroup(indices, dx, dy)`: The modules at `indices` moved together by `dx`, `dy` units (kept inside the `area`), pushing what they land on
+- `planCentre(axis)`: The selection centred across (`axis` "x") or down ("y"): in the `area`, else among the other modules (GridPlacement.guideFrame), as a plan (planMove / planMoveGroup; noop when it's centred already).
+- `centreSelection(axis)`
 - `canAdd(type, place)`: Whether a new module of `type` may be dropped at `place`
 - `canMove(index, x, y)`: Whether module `index` may move with its top left to x, y
 - `canResize(index, w, h)`: Whether module `index` may take the size w × h (top left kept)

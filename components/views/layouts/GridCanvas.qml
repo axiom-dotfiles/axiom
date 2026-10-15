@@ -118,6 +118,25 @@ Card {
   // The band along the menu's edge, in the area
   readonly property var reservedRect: GridPlacement.edgeBand(root.screenRect, root.edge, root.reservedDepth * root.pxScale)
 
+  // Alignment guides. The centre drawn faintly: the screen's, else the
+  // page's modules' (what the overlay centres)
+  readonly property var centreLines: GridPlacement.centreGuides(root.hasScreen ? root.screenBox : root.list.length > 0 ? GridPlacement.cover(root.list.map(module => module?.place ?? null)) : null)
+  // While a module is carried or resized: wherever it lines up with the
+  // others (where they'd be) or is centred among them, or on a bounded
+  // grid (GridPlacement.alignments)
+  readonly property var guidePlaces: root.dragLayer.previewPlaces ?? root.list.map(module => module?.place ?? null)
+  readonly property var guides: root.dragLayer.landingPlace && root.dragLayer.landingValid ? GridPlacement.alignments(root.dragLayer.landingPlace, root.guidePlaces, root.dragLayer.landingMembers, GridPlacement.guideFrame(root.dragLayer.editor.area, root.guidePlaces, root.dragLayer.landingMembers)) : []
+  // The one selected module's room to each side of its frame, in units,
+  // while nothing's carried or resized (GridPlacement.canvasMargins)
+  readonly property var margins: {
+    const editor = root.dragLayer.editor;
+    const place = root.list[editor.selected]?.place ?? null;
+    if (!place || root.dragLayer.landingPlace)
+      return [];
+    const places = root.list.map(module => module?.place ?? null);
+    return GridPlacement.canvasMargins(root.fit, place, GridPlacement.guideFrame(editor.area, places, [editor.selected]));
+  }
+
   function rectFor(place) {
     const r = GridPlacement.canvasRect(root.fit, place);
     return Qt.rect(r.x, r.y, r.width, r.height);
@@ -640,6 +659,91 @@ Card {
           Glide on y {}
           Glide on width {}
           Glide on height {}
+        }
+      }
+
+      // The centre cross (faint, dashed, over the tiles so a full page
+      // doesn't hide it), and where the module carried or resized lines
+      // up: a line along each edge or centre it shares with another
+      // module, stronger where it's centred (GridPlacement.alignments).
+      // One Canvas: they change with every unit the pointer crosses
+      Canvas {
+        id: guideLines
+        anchors.fill: parent
+        visible: root.editable
+        z: 4
+        readonly property string paintKey: [JSON.stringify(root.guides), JSON.stringify(root.centreLines), root.step, root.gap, root.fit.originX, root.fit.originY, width, height, Theme.accent].join(",")
+        onPaintKeyChanged: guideLines.requestPaint()
+        onPaint: {
+          const ctx = guideLines.getContext("2d");
+          ctx.reset();
+          ctx.strokeStyle = Theme.accent;
+          // The centre, faintly dashed over everything
+          ctx.globalAlpha = 0.4;
+          ctx.lineWidth = 1;
+          ctx.setLineDash([4, 4]);
+          root.centreLines.forEach(guide => {
+            const l = GridPlacement.canvasGuide(root.fit, guide);
+            ctx.beginPath();
+            ctx.moveTo(Math.round(l.x1) + 0.5, Math.round(l.y1) + 0.5);
+            ctx.lineTo(Math.round(l.x2) + 0.5, Math.round(l.y2) + 0.5);
+            ctx.stroke();
+          });
+          ctx.setLineDash([]);
+          root.guides.forEach(guide => {
+            const l = GridPlacement.canvasGuide(root.fit, guide);
+            ctx.globalAlpha = guide.frame ? 1 : 0.7;
+            ctx.lineWidth = guide.frame ? 2 : 1;
+            ctx.beginPath();
+            ctx.moveTo(Math.round(l.x1) + 0.5, Math.round(l.y1) + 0.5);
+            ctx.lineTo(Math.round(l.x2) + 0.5, Math.round(l.y2) + 0.5);
+            ctx.stroke();
+          });
+        }
+      }
+
+      // The selected module's room to each side (of the screen, or of the
+      // other modules): a line and its units, accent where both sides
+      // match
+      Repeater {
+        model: 4
+
+        Item {
+          id: margin
+          required property int index
+          readonly property var info: root.margins.find(m => m.side === ["left", "right", "top", "bottom"][margin.index]) ?? null
+          readonly property color tint: margin.info?.even ? Theme.accent : Theme.foreground
+          visible: root.editable && margin.info !== null
+          z: 4
+          x: margin.info ? Math.min(margin.info.x1, margin.info.x2) : 0
+          y: margin.info ? Math.min(margin.info.y1, margin.info.y2) : 0
+          width: margin.info ? Math.max(1, Math.abs(margin.info.x2 - margin.info.x1)) : 0
+          height: margin.info ? Math.max(1, Math.abs(margin.info.y2 - margin.info.y1)) : 0
+
+          Rectangle {
+            anchors.fill: parent
+            color: margin.tint
+            opacity: margin.info?.even ? 0.8 : 0.4
+          }
+
+          Rectangle {
+            anchors.centerIn: parent
+            width: marginLabel.implicitWidth + Widget.spacing
+            height: marginLabel.implicitHeight
+            radius: height / 2
+            color: Theme.background
+            border.color: margin.tint
+            border.width: 1
+            opacity: 0.9
+
+            StyledText {
+              id: marginLabel
+              anchors.centerIn: parent
+              text: String(margin.info?.units ?? "")
+              textColor: margin.tint
+              textSize: Appearance.fontSize - 3
+            }
+          }
         }
       }
 

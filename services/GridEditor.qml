@@ -319,6 +319,33 @@ QtObject {
     return plan;
   }
 
+  // The selection centred across (`axis` "x") or down ("y"): in the
+  // `area`, else among the other modules (GridPlacement.guideFrame), as a
+  // plan (planMove / planMoveGroup; noop when it's centred already).
+  // Invalid with `offCentre` when it'd be half a unit off; null with
+  // nothing selected or nothing to centre it in
+  function planCentre(axis) {
+    const members = root.selection();
+    const places = root._placesOf(root._modules());
+    const box = GridPlacement.cover(members.map(i => places[i] ?? null));
+    const frame = GridPlacement.guideFrame(root.area, places, members);
+    if (!box || !frame)
+      return null;
+    const at = GridPlacement.centredIn(box, frame, axis);
+    if (at === null) {
+      const plan = root._plan("move", -1, "", null, null);
+      plan.offCentre = true;
+      return plan;
+    }
+    const dx = axis === "x" ? at - box.x : 0;
+    const dy = axis === "y" ? at - box.y : 0;
+    return members.length > 1 ? root.planMoveGroup(members, dx, dy) : root.planMove(members[0], box.x + dx, box.y + dy);
+  }
+
+  function centreSelection(axis) {
+    root.applyPlan(root.planCentre(axis));
+  }
+
   // Whether a new module of `type` may be dropped at `place`
   function canAdd(type, place) {
     return root.planAdd(type, place).valid;

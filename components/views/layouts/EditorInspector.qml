@@ -48,6 +48,50 @@ Item {
         title: root.groupCount > 0 ? I18n.tr("{0} modules", root.groupCount) : root.module ? root.dragLayer.moduleLabel(root.moduleType) : I18n.tr("Library")
         subtitle: root.groupCount > 0 ? I18n.tr("Drag one to move them all, or use the arrow keys") : root.place ? I18n.tr("{0} × {1} cards", GridPlacement.cards(root.place.w), GridPlacement.cards(root.place.h)) : root.editable ? I18n.tr("Click a module on the canvas to edit it, or drag a box to select several") : root.notEditableHint
 
+        // Centre the selection across or down: on the screen, or among the
+        // other modules (GridEditor.planCentre). Dimmed, but still saying
+        // why, when it's centred already or can't be exactly
+        Repeater {
+          // I18n.tr("Centre horizontally") I18n.tr("Centre vertically")
+          model: [
+            {
+              "axis": "x",
+              "icon": "align_horizontal_center",
+              "label": "Centre horizontally"
+            },
+            {
+              "axis": "y",
+              "icon": "align_vertical_center",
+              "label": "Centre vertically"
+            }
+          ]
+
+          SquareIconButton {
+            id: centreButton
+            required property var modelData
+            readonly property var plan: root.editor.planCentre(centreButton.modelData.axis)
+            readonly property bool can: centreButton.plan !== null && centreButton.plan.valid && !centreButton.plan.noop
+            visible: centreButton.plan !== null
+            opacity: centreButton.can ? 1 : 0.4
+            iconText: centreButton.modelData.icon
+            tooltipText: {
+              if (!centreButton.plan)
+                return "";
+              if (centreButton.plan.offCentre)
+                return I18n.tr("Can't be centred exactly: it would sit half a unit off");
+              if (centreButton.plan.noop)
+                return I18n.tr("Centred");
+              if (!centreButton.plan.valid)
+                return I18n.tr("No room to centre it");
+              return I18n.tr(centreButton.modelData.label);
+            }
+            onClicked: {
+              if (centreButton.can)
+                root.editor.centreSelection(centreButton.modelData.axis);
+            }
+          }
+        }
+
         SquareIconButton {
           visible: root.removable
           iconText: "content_copy"
