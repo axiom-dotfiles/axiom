@@ -28,7 +28,7 @@ Provides access to some Hyprland data not available in Quickshell.Hyprland.
 - `placeWindow(address, workspaceId, targetAddress, side, restore, reinsert, floatAt)`: Moves a window onto a workspace, tiling it on `side` ("left" | "right" | "top" | "bottom") of `targetAddress`, or wherever when there's none.
 - `resizeWindow(address, dw, dh, dx, dy)`: Grows a window by (dw, dh) and moves it by (dx, dy).
 - `warpCursorToLayer(namespace, monitor, width, height, x, y)`: Moves the cursor to (x, y) inside one of axiom's layer surfaces: the mapped one in `namespace` on `monitor` that is `width` × `height` (layer-shell windows don't know where they are on screen, Hyprla…
-- `runLua(lua)`: Runs a Lua chunk in Hyprland (config functions like hl.bind or hl.config, which a dispatch can't call); failures are logged
+- `runLua(lua, callback)`: Runs a Lua chunk in Hyprland (config functions like hl.bind or hl.config, which a dispatch can't call) after the chunks queued before it, then calls back with Hyprland's reply ("ok" or the error); fa…
 - `refreshOptions()`: Re-reads the options axiom follows (gaps, split ratio, the workspaces animation), after something changed them at runtime: once the queued Lua has run, which may be what changes them
 - `withAnimations(callback)`: Reads the options again (refreshOptions), then calls back with the animations as read
 - `withKeyboard(callback)`: Calls back with the main keyboard's layouts ({ layouts, index, keymap }, HyprState.keyboard), or null
@@ -38,11 +38,12 @@ Provides access to some Hyprland data not available in Quickshell.Hyprland.
 - `withVersion(callback)`: Calls back with Hyprland's version ("0.56.2"), or "" when it didn't answer
 - `withBinds(callback)`: Calls back with every bind Hyprland has (its binds as JSON: modmask, key, keycode, submap, description, dispatcher, arg, …), or null
 - `setCursor(theme, size)`: The cursor theme and size, for this session
+- `exitSession()`: Ends the Hyprland session (the power menu's log out)
 - `goToWorkspace(id, mode, monitor, focusAddress)`: Goes to workspace `id`. mode: "go" (default), "move" (taking the focused window along) or "moveSilent" (sending it there, staying put).
 - `stepWorkspace(direction, mode)`: One step left/right/up/down from the current workspace: within the monitor's grid, or through 1..count in the standard layout (where up is previous and down next).
 - `nthWorkspace(n, mode)`: The n-th workspace (1-based) of the current row in a grid or perMonitor layout, or workspace n in the standard layout (number keybinds)
-- `withHoveredScreen(callback)`: Calls back with the name of the screen under the cursor (the focused monitor if hyprctl can't say).
-- `withCursorPos(callback)`: Calls back with the cursor's global position ({ x, y }), or null if hyprctl can't say.
+- `withHoveredScreen(callback)`: Calls back with the name of the screen under the cursor (the focused monitor if Hyprland can't say).
+- `withCursorPos(callback)`: Calls back with the cursor's global position ({ x, y }), or null if Hyprland can't say.
 - `activeWorkspaceId()`
 - `toplevelForAddress(address)`: The Wayland toplevel for a hyprctl window address ("0x…")
 - `workspaceBase(monitor)`: First workspace id a monitor shows: 1 in the standard layout, else its block's (grid/perMonitor, one block per monitor in a stable order — the primary monitor first, then the rest by a description-ba…

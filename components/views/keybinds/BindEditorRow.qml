@@ -3,6 +3,7 @@ import QtQuick
 import QtQuick.Layouts
 import qs.config
 import qs.services
+import qs.components.methods
 import qs.components.forms
 import qs.components.reusable
 
@@ -139,8 +140,8 @@ StyledContainer {
         spacing: Widget.spacing / 2
 
         StyledText {
-          visible: !HyprlandConfigManager.hasOwnSection(label.input.text)
-          text: I18n.tr(HyprlandConfigManager.sectionFor(root.bind.action)) + "  ›"
+          visible: !BindActions.hasOwnSection(label.input.text)
+          text: I18n.tr(BindActions.sectionFor(root.bind.action)) + "  ›"
           opacity: 0.5
           textSize: Appearance.fontSize - 1
         }
@@ -149,7 +150,7 @@ StyledContainer {
           id: label
           Layout.fillWidth: true
           Layout.preferredHeight: Widget.height
-          placeholderText: HyprlandConfigManager.defaultLabel(root.bind) || I18n.tr("Label")
+          placeholderText: BindActions.defaultLabel(root.bind) || I18n.tr("Label")
           Component.onCompleted: input.text = root.bind.description ?? ""
           input.onEditingFinished: {
             if (label.typed)

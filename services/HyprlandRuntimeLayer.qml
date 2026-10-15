@@ -73,7 +73,9 @@ QtObject {
   function _start() {
     _busy = true;
     _startedAt = _reloads;
-    HyprlandIpcManager.evalLua(_unbindLua, () => {
+    // Queued: binds still waiting to be evaluated would otherwise land
+    // after the unbind and read as the user's
+    HyprlandManager.runLua(_unbindLua, () => {
       HyprlandManager.withBinds(binds => {
         HyprlandManager.withAnimations(animations => {
           root._busy = false;

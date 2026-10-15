@@ -53,7 +53,7 @@ How axiom sets up Hyprland (`HyprlandConfigManager`, which owns `HyprlandRuntime
   - `status`: `runtime` | `loaded` | `fallback` | `pending`
   - `problem`
 - A mode picked there waits for Save (`x-applyOnSave`). The card outlines what saving will do, including the leave steps below.
-- It predicts a managed takeover with `checkManaged()`, a dry run of the takeover (`HyprlandTakeover.claim`). `managedCheck` is `ours` | `adopt` | `new` | `blocked`.
+- It predicts a managed takeover with `checkManaged()`, a dry run of the takeover (`HyprlandTakeover.claim`). `managedCheck` is `ours` | `adopt` | `stock` | `released` | `new` | `blocked` (`managedBlockedBy` `link` or `git`).
 
 ### Leaving a mode
 - `_leave` gives back what a mode took, for a switch made while axiom runs.

@@ -24,6 +24,18 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Size:** needs a plan
 - **Found:** 2026-10-15, while moving hyprctl calls onto the request socket
 
+### FHS paths are hardcoded where other distros keep them elsewhere
+- **Where:** `services/GreetdManager.qml` (sessions), `services/WallpaperManager.qml` (`hyprlandWallpapers`), `services/TimeZoneManager.qml`, `scripts/claim_hyprland.sh` (the example config), `scripts/check_qmllint.py`, `scripts/run_tests.sh`, `scripts/dev/verify.sh`
+- **What:** `/usr/share/wayland-sessions`, `/usr/share/hypr`, `/usr/share/zoneinfo` and the Qt tools in `/usr/lib/qt6` are read at fixed paths. NixOS keeps data under `$XDG_DATA_DIRS` (`/run/current-system/sw/share`, the profile's `share/`), and Fedora's Qt tools are in `/usr/lib64/qt6`. Look data up through `$XDG_DATA_DIRS` as `SettingsManager`'s cursor themes do, and find the Qt tools with `qtpaths6 --query QT_INSTALL_BINS` (the scripts already take `QT_BIN`). Blocks packaging for those distros, not the XDG move.
+- **Size:** small
+- **Found:** 2026-10-15, while auditing the XDG and Hyprland IPC changes
+
+### Some services and widgets list screens from `Quickshell.screens`
+- **Where:** `services/SettingsManager.qml` (`screens` options), `services/DesktopManager.qml`, `services/HyprlandManager.qml` (`_screenAt`), `services/BrightnessManager.qml`, `components/surfaces/onboarding/pages/MonitorsPage.qml`, `components/content/WallpaperPicker.qml`
+- **What:** AGENTS.md › UI conventions says to use `General.outputs`, never `Quickshell.screens`, which holds stand-ins while no monitor is connected. These still read it, so with Hyprland briefly outputless (a monitor config reload) they see a stand-in screen's name.
+- **Size:** small
+- **Found:** 2026-10-15, while auditing the Hyprland IPC changes
+
 ### The python venv and bytecode are written into the repo
 - **Where:** `scripts/setup_venv.sh`, `scripts/venv_python.sh`
 - **What:** The venv for `generate_theme.py`/`calendar_sync.py` is made at `<repo>/.venv`, and python leaves `__pycache__/` in `scripts/`. A packaged (read-only) install can't do either. Put the venv in `$XDG_DATA_HOME/axiom/venv` (or use the system python when the requirements already import), and set `PYTHONDONTWRITEBYTECODE=1`. Blocks packaging, not the XDG move.
@@ -73,7 +85,7 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Found:** 2026-10-13, while fixing `BlurManager.paused`
 
 ### `BlurManager.paused` warns on every reload
-- **Where:** `services/BlurManager.qml` (`paused`), `services/UpdatesManager.qml` (`checking`)
+- **Where:** `services/BlurManager.qml` (`paused`), `services/UpdatesManager.qml` (`checking`), `services/SelfUpdateManager.qml`
 - **What:** Every config reload logs `Unable to assign [undefined] to bool` at the `paused` declaration (and, seen 2026-10-14, at `UpdatesManager.checking`, also a readonly bool on a singleton: likely the same cause). The binding itself evaluates to a boolean (a temporary probe logged `boolean false`), and a constant `paused: false` still warned, so it isn't the expression: something in Quickshell's reload of this singleton assigns it. Harmless (the value is right afterwards), but it's noise in every `scripts/log.sh`. Next step: check whether Quickshell carries readonly properties across a reload, or whether making `paused` a plain function helps.
 - **Size:** small
 - **Found:** 2026-10-13, while checking reload logs during the docs makeover

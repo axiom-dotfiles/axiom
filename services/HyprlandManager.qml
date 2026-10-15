@@ -140,14 +140,17 @@ end
   readonly property string _luaEpilogue: `
 if #errs > 0 then error(table.concat(errs, "; ")) end`
 
-  // Lua chunks run one at a time, in order (HyprlandIpcManager.evalLua)
+  // Lua chunks run one at a time, in order (HyprlandIpcManager.evalLua):
+  // [{ lua, callback }]
   property var _evalQueue: []
   property bool _evaluating: false
 
   // Runs a Lua chunk in Hyprland (config functions like hl.bind or
-  // hl.config, which a dispatch can't call); failures are logged
-  function runLua(lua) {
-    _eval(lua);
+  // hl.config, which a dispatch can't call) after the chunks queued before
+  // it, then calls back with Hyprland's reply ("ok" or the error); failures
+  // are logged
+  function runLua(lua, callback) {
+    _eval(lua, callback);
   }
 
   // Re-reads the options axiom follows (gaps, split ratio, the workspaces
@@ -204,8 +207,11 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
       root.animations = animations;
   }
 
-  function _eval(lua) {
-    _evalQueue.push(lua);
+  function _eval(lua, callback) {
+    _evalQueue.push({
+      "lua": lua,
+      "callback": callback
+    });
     if (!_evaluating)
       _nextEval();
   }
@@ -222,10 +228,12 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
       return;
     }
     _evaluating = true;
-    HyprlandIpcManager.evalLua(_evalQueue.shift(), reply => {
+    const chunk = _evalQueue.shift();
+    HyprlandIpcManager.evalLua(chunk.lua, reply => {
       if (reply !== "ok")
         console.warn("[HyprlandManager] Lua eval:", reply || "no reply from Hyprland");
       root._evaluating = false;
+      chunk.callback?.(reply);
       root._nextEval();
     });
   }
@@ -272,6 +280,11 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
   // The cursor theme and size, for this session
   function setCursor(theme, size) {
     HyprlandIpcManager.request(`setcursor ${theme} ${size}`);
+  }
+
+  // Ends the Hyprland session (the power menu's log out)
+  function exitSession() {
+    Hyprland.dispatch("hl.dsp.exit()");
   }
 
   // --- Workspaces (laid out by WorkspacesConfig) ---
@@ -452,13 +465,13 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
   // --- Queries ---
 
   // Calls back with the name of the screen under the cursor (the focused
-  // monitor if hyprctl can't say). Asynchronous: one hyprctl call.
+  // monitor if Hyprland can't say). Asynchronous: one request.
   function withHoveredScreen(callback) {
     withCursorPos(pos => callback((pos ? root._screenAt(pos.x, pos.y) : "") || (Hyprland.focusedMonitor?.name ?? General.primaryMonitor)));
   }
 
   // Calls back with the cursor's global position ({ x, y }), or null if
-  // hyprctl can't say. Calls made while one is running share its answer.
+  // Hyprland can't say. Calls made while one is running share its answer.
   function withCursorPos(callback) {
     _cursorCallbacks.push(callback);
     if (_cursorCallbacks.length > 1)

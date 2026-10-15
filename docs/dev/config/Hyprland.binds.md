@@ -33,13 +33,13 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `HyprlandConfig.binds` (whole) · in: `services/KeybindManager.qml`
 - **`Hyprland.binds[].repeating`** · boolean = false
   - Repeat while held
-  - read: entry field, name match, `// reads:` marker · in: `services/HyprlandConfigManager.qml`
+  - read: entry field, name match, `// reads:` marker · in: `components/methods/BindActions.qml`
 - **`Hyprland.binds[].locked`** · boolean = false
   - Works while locked
-  - read: entry field, name match repo-wide, `// reads:` marker · in: `components/content/Notes.qml`, `services/HyprlandConfigManager.qml`, `shell/Lockscreen.qml`
+  - read: entry field, name match repo-wide, `// reads:` marker · in: `components/content/Notes.qml`, `components/methods/BindActions.qml`, `shell/Lockscreen.qml`
 - **`Hyprland.binds[].release`** · boolean = false
   - On release
-  - read: `HyprlandConfig.binds` (whole), `// reads:` marker · in: `services/HyprlandConfigManager.qml`
+  - read: `HyprlandConfig.binds` (whole), `// reads:` marker · in: `components/methods/BindActions.qml`, `services/HyprlandConfigManager.qml`
 - **`Hyprland.binds[].description`** · string = ""
   - Description: Label on the Keybinds page; empty uses the action's name. The action picks the section unless you write "Section: Label".
   - read: `HyprlandConfig.binds` (whole) · in: `services/KeybindManager.qml`

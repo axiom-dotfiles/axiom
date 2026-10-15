@@ -137,6 +137,7 @@ QtObject {
       "mediaStop": ["locked"]
     })
   // The flags a bind can set (bind[flag] === true)
+  // reads: Hyprland.binds[].repeating, Hyprland.binds[].locked, Hyprland.binds[].release (by flag name)
   readonly property var flagNames: ["repeating", "locked", "release"]
 
   // The window switcher's actions, by the step each takes through the

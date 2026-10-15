@@ -105,10 +105,11 @@ QtObject {
 
       property Timer _timeout: Timer {
         interval: 5000
+        // Finished first: disconnecting finishes with what came, "" at most
         onTriggered: {
           console.warn("[HyprlandIpcManager] No reply from Hyprland to", socket.request.slice(0, 80));
-          socket.connected = false;
           socket._finish(null);
+          socket.connected = false;
         }
       }
     }

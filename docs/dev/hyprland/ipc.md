@@ -13,9 +13,10 @@ How the shell reads from and acts on Hyprland, without running `hyprctl`.
 - **`HyprlandIpcManager`** sends what Quickshell doesn't cover to Hyprland's request socket, as hyprctl does, without a process each: `request(command, cb)`, `json("clients", cb)`, `jsonBatch(["getoption …", "animations"], cb)`, `evalLua(lua, cb)` (`"ok"` or the error).
 
 ### Rules
-- **Only the `Hyprland*` services use either route.** Everything else asks `HyprlandManager` (window list, options, the cursor, Lua through `runLua`), so supporting another compositor means another service with the same members, not edits across the shell.
+- **Only the `Hyprland*` services send anything to Hyprland** (`HyprlandIpcManager`, `Hyprland.dispatch()`). Everything else asks `HyprlandManager` (window list, options, keyboard layouts, outputs, layers, binds, the cursor, logging out, Lua through `runLua`), whose callbacks hand back shapes that don't depend on Hyprland (`HyprState`), so supporting another compositor means another service with the same members, not edits across the shell.
+  - Reading `Quickshell.Hyprland` (`focusedMonitor`, `monitors`, `workspaces`, `rawEvent`, `HyprlandFocusGrab`) still happens outside them: [issues](../issues.md) › Hyprland is still reached directly outside the Hyprland* services.
 - Workspace switching and window focusing go through `HyprlandManager.goToWorkspace` / `stepWorkspace` / `nthWorkspace` / `focusWindow` (AGENTS.md › Services).
-- `runLua` queues chunks and runs them one at a time, in order; once the queue drains it refetches the window list and, if asked meanwhile, the options (`refreshOptions`).
+- `runLua(lua, callback)` queues chunks and runs them one at a time, in order, calling back with Hyprland's reply (`"ok"` or the error). Something that must run after Lua already queued (the runtime layer's unbind) goes through it rather than `evalLua`. Once the queue drains it refetches the window list and, if asked meanwhile, the options (`refreshOptions`).
 - Options axiom follows (gaps, split multiplier, blur, the animations) are read in one batch, at startup, on `configreloaded` and after axiom changes them.
 - Commands Hyprland or hypridle run, and shell scripts, still call `hyprctl` (the exit bind, DPMS, `setWallpaper.sh`): they run outside the shell.
 

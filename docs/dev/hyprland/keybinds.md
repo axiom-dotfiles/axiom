@@ -20,7 +20,7 @@ What a bind can do, and how the Keybinds page lists Hyprland's binds and edits a
     - `terminal`/`fileManager`/`browser`: exec `Apps.terminalCommand` etc., so the binds follow the `Apps` section's `terminal`/`fileManager`/`browser` (empty is the system default)
     - `mediaStop` etc. on `media`.
   - **`screenshot`** (argument `region`/`window`/`screen`) and **`screenRecord`**, which go to ScreenshotManager ([Screenshots and recording](../features/screenshots-recording.md)).
-- Binds carry `repeating`/`locked`/`release` flags, preset from `actionFlags` when the action is picked.
+- Binds carry `repeating`/`locked`/`release` flags, preset from `BindActions.actionFlags` when the action is picked.
 
 ### What the page lists
 - Every bind Hyprland reports (`HyprlandManager.withBinds`), grouped by "Section: Label" descriptions.
