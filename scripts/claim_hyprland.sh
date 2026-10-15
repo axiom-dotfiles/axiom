@@ -15,7 +15,8 @@
 #                         either way never taken over
 #                adopt    (check) an existing hyprland.lua would be moved
 #                stock    (check) hyprland.lua is Hyprland's example config
-#                         ($AXIOM_HYPR_EXAMPLE, /usr/share/hypr/hyprland.lua),
+#                         ($AXIOM_HYPR_EXAMPLE, else the first
+#                         hypr/hyprland.lua in $XDG_DATA_DIRS),
 #                         as is or as Hyprland autogenerates it, maybe with
 #                         the autostart line install.sh adds:
 #                         it would only be backed up, since its binds and
@@ -64,7 +65,19 @@ set -uo pipefail
 action=${1:-}
 dir=${2:-}
 header=${3:-}
-example=${AXIOM_HYPR_EXAMPLE:-/usr/share/hypr/hyprland.lua}
+# Hyprland's example config: the first data dir's hypr/hyprland.lua
+# (NixOS has nothing in /usr/share), or "" with none
+find_example() {
+  local data
+  local IFS=:
+  for data in ${XDG_DATA_DIRS:-/usr/local/share:/usr/share}; do
+    if [[ "$data" == /* && -f "$data/hypr/hyprland.lua" ]]; then
+      printf '%s\n' "$data/hypr/hyprland.lua"
+      return
+    fi
+  done
+}
+example=${AXIOM_HYPR_EXAMPLE:-$(find_example)}
 fallback=${4:-}
 if [[ "$action" != "check" && "$action" != "claim" && "$action" != "release" ]] || [[ -z "$dir" || -z "$header" ]] ||
   [[ "$action" == "release" && -z "$fallback" ]]; then

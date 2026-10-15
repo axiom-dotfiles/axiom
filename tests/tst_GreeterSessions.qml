@@ -61,6 +61,20 @@ TestCase {
     compare(GreeterSessions.parse("[Desktop Entry]\nExec=niri-session", "niri").name, "niri");
   }
 
+  function test_files() {
+    compare(GreeterSessions.files(["/data/wayland-sessions/hyprland.desktop", "/usr/share/wayland-sessions/niri.desktop", "/usr/share/wayland-sessions/hyprland.desktop"]), [
+      {
+        "id": "hyprland",
+        "file": "/data/wayland-sessions/hyprland.desktop"
+      },
+      {
+        "id": "niri",
+        "file": "/usr/share/wayland-sessions/niri.desktop"
+      }
+    ], "the first of each id wins");
+    compare(GreeterSessions.files([]), []);
+  }
+
   function test_sorted_and_environment() {
     const niri = GreeterSessions.parse("[Desktop Entry]\nName=Niri\nExec=niri-session\nDesktopNames=niri", "niri");
     const hypr = GreeterSessions.parse("[Desktop Entry]\nName=Hyprland\nExec=start-hyprland\nDesktopNames=Hyprland", "hyprland");

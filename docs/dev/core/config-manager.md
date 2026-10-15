@@ -24,6 +24,7 @@ The repo (`Paths.axiomPath`) is read-only to the shell: a package installs it wh
 
 - Files under `userStatePath` keep their names: users' own configs point at several (the Hyprland include, the fzf/nvim/ncspot outputs).
 - The greeter has its own folders (`Paths.greeterDir`) and reads none of these.
+- **Data others installed** (Wayland sessions, Hyprland's example config and wallpapers, cursor themes) is looked up in `Paths.dataSearchDirs` (`DataDirs.searchDirs`: `$XDG_DATA_HOME`, then `$XDG_DATA_DIRS`, else `/usr/local/share:/usr/share`), never at a fixed `/usr/share` path: NixOS keeps nothing there. `claim_hyprland.sh` does the same in shell.
 - **Moving an old install over:** before this layout the config was in the repo's `config/user/`, the UI state and notes in `config/state/`, and generated themes in `config/themes/generated/` (`DataDirs.legacy`). While `config/user/config.json` exists with no `MOVED.md` (`DataDirs.movedMarker`) beside it, `legacyLayout` is true and that session runs on the old folders as before. `DataMigrationManager` then holds saves (`holdSaves`) and runs `scripts/migrate_xdg.sh`. The script copies each folder over without overwriting anything, writes config.json last (in one piece), then writes the marker, and the shell reloads onto the XDG folders. The old folders are kept for a rollback. A failed copy writes no marker, so the next start tries again.
 
 ### Load pipeline

@@ -54,7 +54,7 @@ This doc covers what runs at the login screen and the data it reads: the bundle 
 ### GreetdManager
 Built on `Quickshell.Services.Greetd`.
 - **Users:** `users` comes from `methods/GreeterUsers`: `/etc/passwd` within `/etc/login.defs`' UID range, login shells only.
-- **Sessions:** `sessions` comes from `methods/GreeterSessions`: `/usr/share/wayland-sessions/*.desktop`, with Exec split per the desktop entry spec and field codes dropped.
+- **Sessions:** `sessions` comes from `methods/GreeterSessions`: `wayland-sessions/*.desktop` in each data dir (`Paths.dataSearchDirs`: `$XDG_DATA_HOME`, then `$XDG_DATA_DIRS`; the first file of a name wins, as `GreeterSessions.files` picks), with Exec split per the desktop entry spec and field codes dropped.
 - **Selecting a user:** `selectUser(name)`. A typed name not in the list is still tried. Selecting loads the user's last session.
 - **Logging in:**
   - `submit(response)` creates the session, with the password pending for greetd's first question.

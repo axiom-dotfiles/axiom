@@ -4,7 +4,7 @@ import QtQuick
 // Where axiom keeps what it writes (XDG base directories), and where it
 // kept it inside the repo before (the legacy layout, until moved over).
 // Every path ends in a slash. ConfigManager resolves these; Paths hands
-// them out.
+// them out. Also where to look for data others installed (searchDirs).
 QtObject {
   id: root
 
@@ -49,6 +49,17 @@ QtObject {
       "notes": repo + "config/state/notes/",
       "generatedThemes": repo + "config/themes/generated/"
     };
+  }
+
+  // Where to look for installed data (`env` { HOME, XDG_DATA_HOME,
+  // XDG_DATA_DIRS }), in the XDG lookup order, most important first:
+  // XDG_DATA_HOME, then XDG_DATA_DIRS' absolute entries, or the spec's
+  // /usr/local/share and /usr/share when it has none (NixOS keeps nothing
+  // in /usr/share). No trailing slashes, no repeats.
+  function searchDirs(env) {
+    const system = String(env.XDG_DATA_DIRS ?? "").split(":").map(dir => dir.trim()).filter(dir => dir.startsWith("/")).map(dir => dir.replace(/(.)\/+$/, "$1"));
+    const dirs = [root._base(env, "XDG_DATA_HOME", ".local/share")].concat(system.length > 0 ? system : ["/usr/local/share", "/usr/share"]);
+    return dirs.filter((dir, i) => dirs.indexOf(dir) === i);
   }
 
   // The file whose presence in the legacy config folder says its contents

@@ -89,9 +89,10 @@ QtObject {
       all[key] = true;
       return all;
     }, {});
-    // The icon folders, as the XDG icon spec looks them up (~/.icons, then
-    // each data dir's icons/: /usr/share isn't where every distro has them)
-    CommandManager.run(["sh", "-c", `dirs="$HOME/.icons:\${XDG_DATA_HOME:-$HOME/.local/share}/icons"; IFS=:; for d in \${XDG_DATA_DIRS:-/usr/local/share:/usr/share}; do dirs="$dirs:$d/icons"; done; for d in $dirs; do for t in "$d"/*; do [ -d "$t/cursors" ] || [ -f "$t/manifest.hl" ] && basename "$t"; done; done | sort -u`], (code, out) => root._cursorThemes = out.split("\n").filter(name => name !== ""));
+    // The icon folders, as the XDG icon spec looks them up: ~/.icons, then
+    // each data dir's icons/
+    const iconDirs = [Paths.homeDirectory + ".icons"].concat(Paths.dataSearchDirs.map(dir => dir + "/icons"));
+    CommandManager.run(["sh", "-c", 'for d in "$@"; do for t in "$d"/*; do [ -d "$t/cursors" ] || [ -f "$t/manifest.hl" ] && basename "$t"; done; done | sort -u', "sh"].concat(iconDirs), (code, out) => root._cursorThemes = out.split("\n").filter(name => name !== ""));
   }
 
   function _diff(local, saved, path) {

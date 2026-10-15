@@ -2514,7 +2514,6 @@
     "Remember the last user": "前回のユーザーを覚える",
     "The monitor the login box shows on. The others show the layout without it, or only the background.": "ログイン欄を表示するモニターです。ほかのモニターにはログイン欄を除いたレイアウト、または背景だけを表示します。",
     "the login screen": "ログイン画面",
-    "No session to start: nothing in /usr/share/wayland-sessions": "起動できるセッションがありません：/usr/share/wayland-sessions が空です",
     "The login screen's code came from elsewhere than Code from now says. Update takes it from there, asking for your password.": "ログイン画面のコードは、現在の「コードの取得元」とは別の場所から取得されています。更新するとそこから取得し直します（パスワードを求められます）。",
     "the newest release": "最新のリリース",
     "the main branch": "main ブランチ",
@@ -2933,6 +2932,7 @@
     "Opened as a bar widget's popout, it opens at that widget, as bar popouts do, rather than where its layout places it. Only when that bar is on the menu's edge and monitor; opened any other way, it keeps its place.": "バーのウィジェットのポップアウトとして開くと、レイアウトで決めた位置ではなく、バーのポップアウトと同じようにそのウィジェットの位置に開きます。そのバーがメニューと同じ端・モニターにある場合のみです。他の方法で開いたときは元の位置のままです。",
     "Popout at its widget": "ウィジェットの位置にポップアウト",
     "An absolute path (~/ works), e.g. a synced folder or a Markdown vault. Empty keeps notes in ~/.local/share/axiom/notes.": "絶対パス（~/ も可）。同期フォルダや Markdown の保管庫など。空欄ならノートは ~/.local/share/axiom/notes に保存されます。",
-    "Applies axiom's layer at runtime": "axiom が実行時に適用します"
+    "Applies axiom's layer at runtime": "axiom が実行時に適用します",
+    "No session to start: no wayland-sessions folder lists one": "起動できるセッションがありません：wayland-sessions フォルダーにセッションがありません"
   }
 }

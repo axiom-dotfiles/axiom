@@ -24,12 +24,6 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Size:** needs a plan
 - **Found:** 2026-10-15, while moving hyprctl calls onto the request socket
 
-### FHS paths are hardcoded where other distros keep them elsewhere
-- **Where:** `services/GreetdManager.qml` (sessions), `services/WallpaperManager.qml` (`hyprlandWallpapers`), `services/TimeZoneManager.qml`, `scripts/claim_hyprland.sh` (the example config), `scripts/check_qmllint.py`, `scripts/run_tests.sh`, `scripts/dev/verify.sh`
-- **What:** `/usr/share/wayland-sessions`, `/usr/share/hypr`, `/usr/share/zoneinfo` and the Qt tools in `/usr/lib/qt6` are read at fixed paths. NixOS keeps data under `$XDG_DATA_DIRS` (`/run/current-system/sw/share`, the profile's `share/`), and Fedora's Qt tools are in `/usr/lib64/qt6`. Look data up through `$XDG_DATA_DIRS` as `SettingsManager`'s cursor themes do, and find the Qt tools with `qtpaths6 --query QT_INSTALL_BINS` (the scripts already take `QT_BIN`). Blocks packaging for those distros, not the XDG move.
-- **Size:** small
-- **Found:** 2026-10-15, while auditing the XDG and Hyprland IPC changes
-
 ### Some services and widgets list screens from `Quickshell.screens`
 - **Where:** `services/SettingsManager.qml` (`screens` options), `services/DesktopManager.qml`, `services/HyprlandManager.qml` (`_screenAt`), `services/BrightnessManager.qml`, `components/surfaces/onboarding/pages/MonitorsPage.qml`, `components/content/WallpaperPicker.qml`
 - **What:** AGENTS.md › UI conventions says to use `General.outputs`, never `Quickshell.screens`, which holds stand-ins while no monitor is connected. These still read it, so with Hyprland briefly outputless (a monitor config reload) they see a stand-in screen's name.

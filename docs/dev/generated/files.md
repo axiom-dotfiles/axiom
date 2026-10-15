@@ -258,7 +258,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `DockLayout.qml`: Pure helpers for the dock: which apps it shows (pinned ones, then running ones), which window a click goes to, how big each icon is under the pointer, and whether a window covers it.
 - `EdgeAttach.qml`: Where a box that grows out of a screen edge goes along it: bar popouts, edge popouts (the launcher, OSDs, floating edge menus) and anything else drawn with AttachedSurface.
 - `GreeterBundle.qml`: The greeter's config, both ways (GreeterManager writes it, ConfigManager reads it in the greeter).
-- `GreeterSessions.qml`: The sessions the greeter can start (GreetdManager): Wayland session desktop entries (/usr/share/wayland-sessions/*.desktop), their Exec line split into the argv greetd launches, and the environment they start in.
+- `GreeterSessions.qml`: The sessions the greeter can start (GreetdManager): Wayland session desktop entries (wayland-sessions/*.desktop in each data dir), their Exec line split into the argv greetd launches, and the environment they start in.
 - `GreeterUsers.qml`: The people the greeter offers to log in (GreetdManager): accounts from /etc/passwd whose uid is in /etc/login.defs' UID_MIN..UID_MAX (regular users, not system accounts) and whose shell lets them log in.
 - `GridPlacement.qml`: Pure geometry of the module grid shared by overlay pages, edge menus and the layouts editor.
 - `HyprBinds.qml`: Binds against what Hyprland reports (`hyprctl binds -j` entries): a key's id as Hyprland lists it, which of axiom's binds the runtime layer applies and which it skips because the user's config already binds that key, an…

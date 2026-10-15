@@ -101,9 +101,11 @@ Singleton {
   // Images in Appearance.wallpaperPath: -1 until checked (or while
   // checking), -2 when the folder doesn't exist
   property int folderImages: -1
-  // Hyprland's own wallpapers, offered as a folder to start from
-  readonly property string hyprlandWallpapers: "/usr/share/hypr"
-  property bool hasHyprlandWallpapers: false
+  // Hyprland's own wallpapers (the first data dir's hypr/ with wall*.png),
+  // offered as a folder to start from; "" until found
+  readonly property string hyprlandWallpapers: _hyprlandWallpapers
+  readonly property bool hasHyprlandWallpapers: _hyprlandWallpapers !== ""
+  property string _hyprlandWallpapers: ""
 
   function checkFolder() {
     _folderCheck.running = false;
@@ -121,12 +123,14 @@ Singleton {
   }
 
   property Process _folderCheck: Process {
-    command: ["sh", "-c", '[ -d "$1" ] || { echo -2; exit; }; find "$1" -maxdepth 1 -type f \\( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.bmp" \\) | wc -l; ls "$2"/wall*.png >/dev/null 2>&1 && echo hypr', "sh", Appearance.wallpaperPath, root.hyprlandWallpapers]
+    // Prints the image count (-2 without the folder), then the first
+    // data dir's hypr/ holding Hyprland's wallpapers, if any
+    command: ["sh", "-c", 'if [ -d "$1" ]; then find "$1" -maxdepth 1 -type f \\( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.bmp" \\) | wc -l; else echo -2; fi; shift; for d in "$@"; do ls "$d"/hypr/wall*.png >/dev/null 2>&1 && { echo "$d/hypr"; break; }; done', "sh", Appearance.wallpaperPath].concat(Paths.dataSearchDirs)
     stdout: StdioCollector {
       onStreamFinished: {
         const lines = text.split("\n").filter(line => line !== "");
         root.folderImages = parseInt(lines[0] ?? "-1");
-        root.hasHyprlandWallpapers = lines.includes("hypr");
+        root._hyprlandWallpapers = lines[1] ?? "";
       }
     }
   }

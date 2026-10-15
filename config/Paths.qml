@@ -2,6 +2,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import qs.services
+import qs.components.methods
 
 // Derived, non-configurable filesystem paths (from the environment, not config).
 QtObject {
@@ -36,6 +37,14 @@ QtObject {
   readonly property string generatedThemesPath: ConfigManager.dataDirs.generatedThemes
 
   readonly property string hyprlandPath: root.homeDirectory + ".config/hypr/"
+  // Where to look for data the system (or the user) installed, most
+  // important first: $XDG_DATA_HOME, then $XDG_DATA_DIRS (DataDirs.searchDirs;
+  // /usr/share isn't where every distro has it). No trailing slashes.
+  readonly property var dataSearchDirs: DataDirs.searchDirs({
+    "HOME": Quickshell.env("HOME"),
+    "XDG_DATA_HOME": Quickshell.env("XDG_DATA_HOME"),
+    "XDG_DATA_DIRS": Quickshell.env("XDG_DATA_DIRS")
+  })
   // $XDG_RUNTIME_DIR, the user's own 0700 tmpfs (always there, unlike
   // runtimePath, which is made by whatever writes into it)
   readonly property string runtimeDir: Quickshell.env("XDG_RUNTIME_DIR") || "/tmp"

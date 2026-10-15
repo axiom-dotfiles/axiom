@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 # Every tracked .qml file is as qmlformat (Qt 6, .qmlformat.ini) writes it.
-# The qmlformat on PATH may be Qt 5's, which fails silently on
-# `pragma ComponentBehavior`, so this uses Qt 6's by path.
+# Qt 6's qmlformat, found by scripts/lib/qt_paths.sh.
 #
 #   scripts/check_qmlformat.sh         list unformatted files (exit 1)
 #   scripts/check_qmlformat.sh --fix   format them in place (keeping the
@@ -9,7 +8,9 @@
 set -uo pipefail
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-qmlformat="${QT_BIN:-/usr/lib/qt6/bin}/qmlformat"
+# shellcheck source=lib/qt_paths.sh
+source "$root/scripts/lib/qt_paths.sh"
+qmlformat="$qt_bin/qmlformat"
 cd "$root" || exit 1
 
 # One file: prints what's wrong in one write (the files run in parallel)

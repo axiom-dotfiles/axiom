@@ -102,9 +102,11 @@ QtObject {
     onTriggered: root._read()
   }
 
+  // tzdata's own list, in $TZDIR where it's set (NixOS has no
+  // /usr/share/zoneinfo), else from timedatectl
   property Process _lister: Process {
     running: true
-    command: ["sh", "-c", `{ awk '$1 == "Z" { print $2 } $1 == "L" { print $3 }' /usr/share/zoneinfo/tzdata.zi 2>/dev/null || timedatectl list-timezones; } | sort -u`]
+    command: ["sh", "-c", `{ awk '$1 == "Z" { print $2 } $1 == "L" { print $3 }' "\${TZDIR:-/usr/share/zoneinfo}/tzdata.zi" 2>/dev/null || timedatectl list-timezones; } | sort -u`]
     stdout: StdioCollector {
       onStreamFinished: root._zones = text.split("\n").filter(zone => zone !== "")
     }

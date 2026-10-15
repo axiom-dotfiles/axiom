@@ -42,6 +42,21 @@ TestCase {
     compare(dirs.data, "/home/u/.local/share/axiom/");
   }
 
+  function test_searchDirs() {
+    compare(DataDirs.searchDirs({
+      "HOME": "/home/u"
+    }), ["/home/u/.local/share", "/usr/local/share", "/usr/share"], "the spec's defaults");
+    compare(DataDirs.searchDirs({
+      "HOME": "/home/u",
+      "XDG_DATA_HOME": "/data",
+      "XDG_DATA_DIRS": "/run/current-system/sw/share/:relative::/nix/profile/share:/data"
+    }), ["/data", "/run/current-system/sw/share", "/nix/profile/share"], "in order, relative and empty entries and repeats dropped");
+    compare(DataDirs.searchDirs({
+      "HOME": "/home/u",
+      "XDG_DATA_DIRS": "relative"
+    }).slice(1), ["/usr/local/share", "/usr/share"], "nothing usable is the same as unset");
+  }
+
   function test_legacy() {
     const env = {
       "HOME": "/home/u",
