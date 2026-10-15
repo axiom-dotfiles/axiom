@@ -208,7 +208,7 @@ def canonical(data):
 
 def write_atomic(path, text):
     tmp = path.with_name(f".{path.name}.tmp")
-    tmp.write_text(text)
+    tmp.write_text(text, encoding="utf-8")
     os.replace(tmp, path)
 
 
@@ -221,7 +221,7 @@ def main():
     keys = collect_keys()
     status = 0
     for path in sorted(I18N.glob("*.json")):
-        text = path.read_text()
+        text = path.read_text(encoding="utf-8")
         data = json.loads(text)
         strings = data.setdefault("strings", {})
         missing = [k for k in keys if not strings.get(k)]
@@ -243,7 +243,7 @@ def main():
             if canonical(data) != text:
                 write_atomic(path, canonical(data))
         elif text != canonical(json.loads(text)):
-            print(f"  format   not in the canonical format (2-space indent): run with --format")
+            print("  format   not in the canonical format (2-space indent): run with --format")
             status |= 1
         status |= 1 if missing else 0
     return status

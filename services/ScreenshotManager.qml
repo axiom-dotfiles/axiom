@@ -386,7 +386,8 @@ QtObject {
       root._relist = true;
       return;
     }
-    root._lister.command = ["sh", "-c", 'find "$1" -maxdepth 1 -type f -name "Recording_*.mp4" -printf "%T@\t%s\t%p\n" 2>/dev/null | sort -rn | head -n 12', "sh", root.recordingFolder];
+    root._listingFolder = root.recordingFolder;
+    root._lister.command = ["sh", "-c", 'find "$1" -maxdepth 1 -type f -name "Recording_*.mp4" -printf "%T@\t%s\t%p\n" 2>/dev/null | sort -rn | head -n 12', "sh", root._listingFolder];
     root._lister.running = true;
   }
   onRecordingFolderChanged: {
@@ -409,12 +410,14 @@ QtObject {
   property bool _listed: false
   // Asked again while listing
   property bool _relist: false
+  // The folder the running listing is of
+  property string _listingFolder: ""
 
   property Process _lister: Process {
     stdout: StdioCollector {
       onStreamFinished: {
         // Of a folder since changed: the list that follows replaces it
-        if (root._lister.command[4] !== root.recordingFolder)
+        if (root._listingFolder !== root.recordingFolder)
           return;
         root._recordings = text.split("\n").filter(line => line !== "").map(line => {
           const [time, size, path] = line.split("\t");

@@ -293,10 +293,11 @@ Item {
           }
 
           // Fixes `split` once the heights stop changing (cards loading or
-          // folding)
+          // folding): a quiet spell, restarted by every change, so not an
+          // animation duration (which is 0 with motion off)
           Timer {
             id: settle
-            interval: Appearance.animNormal
+            interval: 150
             running: true
             onTriggered: block.settling = false
           }

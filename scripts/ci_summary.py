@@ -114,8 +114,8 @@ def findings_table(rows):
 
 
 def changed_files(ref):
-    done = subprocess.run(["git", "diff", "--name-only", f"{ref}", "HEAD"], cwd=ROOT, capture_output=True, text=True)
-    return done.stdout.split() if done.returncode == 0 else None
+    done = subprocess.run(["git", "diff", "--name-only", ref, "HEAD"], cwd=ROOT, capture_output=True, text=True)
+    return done.stdout.splitlines() if done.returncode == 0 else None
 
 
 def main(argv):

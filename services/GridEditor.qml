@@ -332,10 +332,9 @@ QtObject {
   }
 
   // The selection centred across (`axis` "x") or down ("y") in its frame
-  // (guideFrame), as a
-  // plan (planMove / planMoveGroup; noop when it's centred already).
-  // Invalid with `offCentre` when it'd sit between units; null with
-  // nothing selected or nothing to centre it in
+  // (guideFrame), as a plan (planMove / planMoveGroup; noop when it's
+  // centred already). Invalid with `offCentre` when it'd sit between
+  // units; null with nothing selected or nothing to centre it in
   function planCentre(axis) {
     const members = root.selection();
     const places = root._placesOf(root._modules());
