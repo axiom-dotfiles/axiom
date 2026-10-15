@@ -296,28 +296,30 @@ QtObject {
   // What a bar widget opens that this editor edits (the other way round
   // from addBarButton: a Button's page or menu, or a widget's menu popout):
   // { kind: "page" | "menu", index, label }, or null
+  // A Button's click action first, then a menu popout; one that's gone is
+  // passed over
   function openedBy(widget) {
     const props = widget?.type === "Button" ? widget.properties ?? {} : {};
-    const menuId = EdgeMenusConfig.menusOpenedBy(widget)[0] ?? "";
-    if (menuId !== "") {
-      const menus = EdgeMenuManager.localMenus ?? EdgeMenusConfig.menus;
-      const index = menus.findIndex(menu => menu.id === menuId);
+    const menus = EdgeMenuManager.localMenus ?? EdgeMenusConfig.menus;
+    const menuTarget = id => {
+      const index = id ? menus.findIndex(menu => menu.id === id) : -1;
       return index < 0 ? null : {
         "kind": "menu",
         "index": index,
         "label": EdgeMenuManager.menuLabel(menus[index], index)
       };
-    }
-    if (props.action === "overlayPage") {
+    };
+    const pageTarget = key => {
       const views = root.localViews ?? OverlayConfig.views;
-      const index = views.findIndex(view => OverlayConfig.pageKey(view) === props.page);
+      const index = key ? views.findIndex(view => OverlayConfig.pageKey(view) === key) : -1;
       return index < 0 ? null : {
         "kind": "page",
         "index": index,
         "label": OverlayConfig.viewLabel(views[index], index)
       };
-    }
-    return null;
+    };
+    const click = props.action === "edgeMenu" ? menuTarget(props.menu) : props.action === "overlayPage" ? pageTarget(props.page) : null;
+    return click ?? EdgeMenusConfig.menusOpenedBy(widget).map(menuTarget).find(target => target !== null) ?? null;
   }
 
   // Shows what a bar widget opens in this editor

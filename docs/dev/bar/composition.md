@@ -38,7 +38,7 @@ How a bar is built from config: the panel per bar, the widget hosts, the layout 
   - `popoutMenu` is an edge menu id (`x-options: edgeMenus`), shown under the switch.
   - A widget with a popout of its own opens that menu in its place. A widget without one gets a "Menu popout" switch.
 - `BarWidgetHost` holds the one anchor for the menu:
-  - It is a `PopoutAnchor` with `menu`, in the host's `hitArea`.
+  - It is a `PopoutAnchor` with `menu`, hovered through the host's `hitArea` but sized to the module (not the hit area's powerline reach back), so a menu opened at its widget (`popoutAtWidget`) centres on it.
   - It calls `EdgeMenuManager.open(id, anchor)` on hover.
   - The anchor keeps a floating menu open while it is hovered.
 - Meanwhile the widgets' own anchors stand down (`active: EdgeMenusConfig.opensOwnPopout(properties) && …`).

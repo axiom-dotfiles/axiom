@@ -81,7 +81,7 @@ EdgePopout {
     const data = root.currentData;
     if (!data)
       return;
-    const rect = root.menu.popoutAtWidget && data.claimKind === "bar" ? data.anchorItem?.screenRect?.() ?? null : null;
+    const rect = root.menu.popoutAtWidget && root.menu.length === "content" && data.claimKind === "bar" ? data.anchorItem?.screenRect?.() ?? null : null;
     root._widgetCentre = rect && rect.edge === root.edge && rect.screen?.name === root.screen?.name ? (root.vertical ? rect.y + rect.height / 2 : rect.x + rect.width / 2) : NaN;
   }
   // Fill cells grow to whatever room there is, so its ends always reach

@@ -222,7 +222,7 @@ readable_text_colors() {
 }
 
 # Re-exports each named variable through a formatter: map_vars hex FOO BAR
-# (one subshell for all of them)
+# (one subshell for all of them, so the formatter prints exactly one line)
 map_vars() {
     local fn="$1" var name value out
     shift

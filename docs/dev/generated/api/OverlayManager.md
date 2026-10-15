@@ -46,7 +46,7 @@ OverlayManager holds the layouts editor's working copy of Overlay.views (the edi
 - `isSaved(view)`: Whether `view` is saved under its page key: bar buttons and keybinds are saved by other editors, so they may only open a saved page
 - `addBarButton(barIndex, zone)`: Adds a Button that opens the selected page to bar `barIndex`'s `zone`, in the bar editor's draft (saved from there or with Save all), then opens the bar editor on that bar
 - `addKeybind()`: Adds a keybind that opens the selected page, then opens the keybinds page's editor recording its key
-- `openedBy(widget)`: What a bar widget opens that this editor edits (the other way round from addBarButton: a Button's page or menu, or a widget's menu popout): { kind: "page" | "menu", index, label }, or null
+- `openedBy(widget)`: What a bar widget opens that this editor edits (the other way round from addBarButton: a Button's page or menu, or a widget's menu popout): { kind: "page" | "menu", index, label }, or null A Button's…
 - `editOpenedBy(widget)`: Shows what a bar widget opens in this editor
 - `saveChanges()`: Merged onto the latest real config; stays dirty if rejected
 - `resetChanges()`

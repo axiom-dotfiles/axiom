@@ -81,6 +81,9 @@ def lint():
                  for shard, report in zip(shards, reports)]
         for proc in procs:
             proc.wait()
+        missing = [str(r) for r in reports if not r.exists()]
+        if missing:
+            sys.exit(f"qmllint wrote no report (crashed?): {', '.join(missing)}")
         entries = [e for report in reports for e in json.loads(report.read_text())["files"]]
         prefix = str(tree / "qs") + "/"
     found, lines = {}, collections.defaultdict(list)
