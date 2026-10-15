@@ -20,10 +20,16 @@ QtObject {
   // column is shortest, the larger one on a tie (the left column fuller)
   function split(heights, gap) {
     const n = heights.length;
+    const total = heights.reduce((sum, height) => sum + height, 0);
+    // Running sums, so each split costs O(1)
+    let left = total;
     let best = n;
     let bestHeight = Infinity;
     for (let k = n; k >= 0; k--) {
-      const tallest = Math.max(root._stack(heights, 0, k, gap), root._stack(heights, k, n, gap));
+      if (k < n)
+        left -= heights[k];
+      const right = total - left;
+      const tallest = Math.max(k > 0 ? left + gap * (k - 1) : 0, k < n ? right + gap * (n - k - 1) : 0);
       if (tallest < bestHeight) {
         best = k;
         bestHeight = tallest;

@@ -194,8 +194,8 @@ TestCase {
   }
 
   // `x-cardPerField`: the section's description, then a card per direct
-  // field by title (with its description, its row labelled "Enabled"),
-  // then nested objects
+  // field by title (with its description, a switch's row labelled
+  // "Enabled"), then nested objects
   function test_card_per_field() {
     const groups = SchemaLayout.groups({
       "properties": {
@@ -215,6 +215,10 @@ TestCase {
               "title": "Alpha",
               "description": "A"
             },
+            "g": {
+              "type": "string",
+              "title": "Gamma"
+            },
             "n": {
               "type": "object",
               "title": "Nested",
@@ -229,12 +233,13 @@ TestCase {
         }
       }
     }, "S");
-    compare(groups.map(group => group.title), ["Sec", "Alpha", "Beta", "Nested"]);
-    compare(groups.map(group => group.description), ["About", "A", "B", ""]);
-    compare(groups.map(group => group.key), ["S", "S:Alpha", "S:Beta", "S.n"]);
+    compare(groups.map(group => group.title), ["Sec", "Alpha", "Beta", "Gamma", "Nested"]);
+    compare(groups.map(group => group.description), ["About", "A", "B", "", ""]);
+    compare(groups.map(group => group.key), ["S", "S:Alpha", "S:Beta", "S:Gamma", "S.n"]);
     compare(groups[1].rows[0].label, "Enabled");
     compare(groups[1].rows[0].title, "Alpha", "still found by its name");
-    compare(groups[3].rows[0].label, undefined);
+    compare(groups[3].rows[0].label, undefined, "only a switch is relabelled");
+    compare(groups[4].rows[0].label, undefined);
   }
 
   // A hand-built card goes first; with `x-cardFolds` it folds, and the

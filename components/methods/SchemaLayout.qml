@@ -126,8 +126,9 @@ QtObject {
   // hand-built piece (settings/<name>.qml) at the top of the section's own
   // card, above its fields (`intro`), as a nested object's does on its own.
   // `x-cardPerField` makes each of the section's direct fields a card of
-  // its own, titled and described by the field and sorted by title, its
-  // row labelled "Enabled"; the section's description gets a card first.
+  // its own, titled and described by the field and sorted by title, a
+  // switch's row labelled "Enabled"; the section's description gets a card
+  // first.
   function groups(schema, sectionKey) {
     const section = schema.properties[sectionKey];
     const sectionTitle = section.title ?? sectionKey;
@@ -189,8 +190,11 @@ QtObject {
           const title = prop.title ?? key;
           const card = cardFor(title, base);
           card.description = prop.description ?? "";
-          card.rows.push(...fieldRows.map(row => Object.assign(row, {
+          // A switch's own title would repeat the card's: I18n.tr("Enabled")
+          card.rows.push(...fieldRows.map(row => Object.assign(row, prop.type === "boolean" ? {
               "label": "Enabled",
+              "description": ""
+            } : {
               "description": ""
             })));
         } else {

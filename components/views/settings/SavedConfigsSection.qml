@@ -7,14 +7,15 @@ import qs.components.reusable
 
 /**
  * Settings page, Maintenance (the category's `page`): save the config's
- * look, layout, keybinds, apps and wallpapers under a name, and restore or delete saved ones. Only the active one (last
- * saved or restored) can be overwritten from its row; it's marked Current,
- * with an unsaved dot once the running config differs. Overwrite, restore,
- * delete and reverting to the defaults ask for a second click to confirm.
- * Restoring (a snapshot or the defaults) leaves machine settings as they are.
- * Below them, exporting the look to share and importing a shared file
- * (confirmed on its own row), then the example setups
- * (SavedConfigsManager.examples), applied the same way.
+ * look, layout, keybinds, apps and wallpapers under a name, and restore or
+ * delete saved ones. Only the active one (last saved or restored) can be
+ * overwritten from its row; it's marked Current, with an unsaved dot once
+ * the running config differs. Overwrite, restore, delete and reverting to
+ * the defaults ask for a second click to confirm. Restoring (a snapshot or
+ * the defaults) leaves machine settings as they are. Below them, exporting
+ * the look to share and importing a shared file (confirmed on its own row),
+ * then the example setups (SavedConfigsManager.examples), applied the same
+ * way.
  */
 FieldGroup {
   id: root
