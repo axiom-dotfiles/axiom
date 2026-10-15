@@ -61,7 +61,7 @@ The schema is the single source of truth for config: shape, `default`s (there is
 - `x-control`:
   - `"slider"` | `"stepper"`: overrides the integer control choice (below).
   - `"readonly"`: shows a string with a copy button instead of a field (an edge menu's `id`).
-  - `"folder"`: a string with a Browse button opening the desktop's folder picker ([File picker](file-picker.md); the wallpaper and notes folders).
+  - `"folder"`: a string with a Browse button opening the desktop's folder picker ([File picker](file-picker.md); the wallpaper, notes, screenshot and recording folders, Claude usage's `configDir`, System stats' `diskPath`). It hands back `~/…`, so whatever reads the setting expands `~` (`Paths.expandHome`).
   - `"search"`: a long option list (e.g. `"timezones"`) is typed into to filter it (`SchemaField`; the Clock module's and World clocks' `timezone`).
 - Integers render through `forms/SchemaNumberField`:
   - a slider with a value box for 7–200 steps, else a stepper, with ±10 buttons past 20 steps

@@ -190,7 +190,10 @@ QtObject {
 
   function _pollDisks() {
     if (wants("disk") && _diskPaths.length > 0 && !_df.running) {
-      _df.command = ["df", "-B1", "--output=used,size", "--", ..._diskPaths];
+      // Keyed as asked; df gets ~ expanded (a folder picked with Browse
+      // comes back as ~/…)
+      _dfPaths = _diskPaths;
+      _df.command = ["df", "-B1", "--output=used,size", "--", ..._diskPaths.map(p => Paths.expandHome(p))];
       _df.running = true;
     }
   }
@@ -335,12 +338,14 @@ QtObject {
     }
   }
 
+  // The paths of the running df, as requested
+  property var _dfPaths: []
   property Process _df: Process {
     stdout: StdioCollector {
       onStreamFinished: {
         // Header line, then one "used size" line per requested path, in order
         const lines = text.trim().split("\n").slice(1);
-        const paths = root._df.command.slice(4);
+        const paths = root._dfPaths;
         const disks = {};
         lines.forEach((line, i) => {
           const [used, total] = line.trim().split(/\s+/).map(Number);

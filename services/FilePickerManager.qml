@@ -14,11 +14,12 @@ QtObject {
 
   readonly property bool running: _picker.running
 
-  // Opens the picker for owner (see forget). options: { folder (pick a folder, not a file),
-  // start (the folder it opens in; ~ works, default home), filter
-  // ("NAME:GLOB", files only) }. onPicked(path) gets the chosen path, with
-  // home as ~ when options.shortenHome. onFailed() runs when no picker
-  // could be shown (cancelling calls neither). False if one is already open.
+  // Opens the picker for owner (see forget). options: { folder (pick a
+  // folder, not a file), start (the folder it opens in; ~ works, default
+  // home), filter ("NAME:GLOB", files only), shortenHome (hand home back
+  // as ~) }. onPicked(path) gets the chosen path; onFailed() runs when no
+  // picker could be shown (cancelling calls neither). False if one is
+  // already open, or in greeter mode.
   function pick(owner, title, options, onPicked, onFailed) {
     if (_picker.running || Paths.greeter)
       return false;

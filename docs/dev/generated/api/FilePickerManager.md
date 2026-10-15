@@ -11,5 +11,5 @@ The desktop's file picker (scripts/pick_path.py: xdg-desktop-portal, else zenity
 
 ### Functions
 
-- `pick(owner, title, options, onPicked, onFailed)`: Opens the picker for owner (see forget). options: { folder (pick a folder, not a file), start (the folder it opens in; ~ works, default home), filter ("NAME:GLOB", files only) }. onPicked(path) gets …
+- `pick(owner, title, options, onPicked, onFailed)`: Opens the picker for owner (see forget). options: { folder (pick a folder, not a file), start (the folder it opens in; ~ works, default home), filter ("NAME:GLOB", files only), shortenHome (hand home…
 - `forget(owner)`: Drops owner's callbacks (it's going away): its picker stays open, and what's picked in it goes nowhere

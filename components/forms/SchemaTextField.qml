@@ -33,7 +33,7 @@ ColumnLayout {
 
   // Typed since the last commit or value pushed in
   property bool _typed: false
-  // The Browse button's picker couldn't be shown
+  // The Browse button's picker couldn't be shown (until a value commits)
   property bool _pickFailed: false
 
   readonly property string _text: root.multiline ? textArea.text : textEntry.text
@@ -60,6 +60,7 @@ ColumnLayout {
   function _accept(text) {
     if (root.pattern === null || new RegExp(root.pattern).test(text)) {
       root._typed = false;
+      root._pickFailed = false;
       root.valueEdited(text);
     }
   }

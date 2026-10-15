@@ -43,6 +43,22 @@ def portal(args):
     from gi.repository import Gio, GLib
 
     bus = Gio.bus_get_sync(Gio.BusType.SESSION)
+    if args.folder:
+        # A FileChooser before version 3 ignores "directory" and would hand
+        # back a file: let zenity/kdialog pick the folder
+        (version,) = bus.call_sync(
+            "org.freedesktop.portal.Desktop",
+            "/org/freedesktop/portal/desktop",
+            "org.freedesktop.DBus.Properties",
+            "Get",
+            GLib.Variant("(ss)", ("org.freedesktop.portal.FileChooser", "version")),
+            None,
+            Gio.DBusCallFlags.NONE,
+            -1,
+            None,
+        ).unpack()
+        if version < 3:
+            raise RuntimeError(f"FileChooser version {version} can't pick folders")
     token = f"axiom{os.getpid()}"
     sender = bus.get_unique_name()[1:].replace(".", "_")
     request = f"/org/freedesktop/portal/desktop/request/{sender}/{token}"
