@@ -91,6 +91,7 @@ How axiom themes other apps: one script per app writing its own `axiom.*` file, 
   - per target, the text with a copy button and an outline of what Apply will do (backup, link, where it goes, lines commented out);
   - then Apply.
 - `SettingsField` adds it under any field with `x-hookup`.
+- In settings they are their own category, one folding card per app (`x-cardPerField` on `ThemeIntegrations`).
 - The onboarder's Integrations page lists the switched-on ones under "Finish setting up".
 - Only Apply, on the user's click, edits a user's config.
 

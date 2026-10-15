@@ -14,6 +14,7 @@ How the schema becomes the settings page: layout, cards, folding, sidebar and se
 
 ### Cards
 - Generated cards are `settings/SettingsGroupCard`.
+- A section with `x-cardPerField` (Theme integrations) makes a card per field, after one with the section's description; its rows are relabelled "Enabled" (`row.label`), the card carrying the field's title and description.
 - The Dock and OSD list cards are `EntryListCard`s:
   - entries as tabs
   - a screen picker with presets: by default an edge's middle or the bottom edge's ends, with `spotOf` reading `edge`/`position`

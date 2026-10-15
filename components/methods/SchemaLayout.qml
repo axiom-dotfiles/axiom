@@ -125,9 +125,13 @@ QtObject {
   // the generated cards, given its `foldKey`); its `x-intro` names a
   // hand-built piece (settings/<name>.qml) at the top of the section's own
   // card, above its fields (`intro`), as a nested object's does on its own.
+  // `x-cardPerField` makes each of the section's direct fields a card of
+  // its own, titled and described by the field and sorted by title, its
+  // row labelled "Enabled"; the section's description gets a card first.
   function groups(schema, sectionKey) {
     const section = schema.properties[sectionKey];
     const sectionTitle = section.title ?? sectionKey;
+    const perField = section["x-cardPerField"] === true;
     const result = [];
     if (section["x-card"])
       result.push({
@@ -179,10 +183,31 @@ QtObject {
             [key]: prop
           }
         }, path);
-        if (fieldRows.length > 0)
+        if (fieldRows.length === 0)
+          continue;
+        if (perField && path.length === 1) {
+          const title = prop.title ?? key;
+          const card = cardFor(title, base);
+          card.description = prop.description ?? "";
+          card.rows.push(...fieldRows.map(row => Object.assign(row, {
+              "label": "Enabled",
+              "description": ""
+            })));
+        } else {
           cardFor(prop["x-group"] ?? base.defaultTitle, base).rows.push(...fieldRows);
+        }
       }
     }
+
+    if (perField && section.description)
+      cardFor(sectionTitle, {
+        "defaultTitle": sectionTitle,
+        "description": section.description,
+        "section": sectionTitle,
+        "path": [sectionKey],
+        "showIf": null,
+        "showIfParent": []
+      });
 
     // Direct values first, then each nested object
     const direct = {};
@@ -217,14 +242,23 @@ QtObject {
         "showIfParent": [sectionKey]
       }, prop["x-order"]);
     }
-    // A description belongs to the object's first card only
+    // A description belongs to the object's first card only (each of
+    // `x-cardPerField`'s cards has its field's)
     const seen = new Set();
     for (const card of cards) {
       const path = card.path.join(".");
-      if (seen.has(path))
+      if (seen.has(path) && !(perField && card.path.length === 1))
         card.description = "";
       seen.add(path);
       delete card.defaultTitle;
+    }
+    // The section's card, then its fields' by title, then nested objects'
+    if (perField) {
+      const isOwn = card => card.path.length === 1 && card.title !== sectionTitle;
+      const fields = cards.filter(isOwn).sort((a, b) => a.title.localeCompare(b.title));
+      const intro = cards.filter(card => card.path.length === 1 && card.title === sectionTitle);
+      const nestedCards = cards.filter(card => card.path.length > 1);
+      cards.splice(0, cards.length, ...intro, ...fields, ...nestedCards);
     }
     const own = cards.find(card => card.path.length === 1 && card.title === sectionTitle);
     if (own && section["x-intro"])

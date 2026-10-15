@@ -23,8 +23,10 @@ Loader {
 
   readonly property var fieldSchema: row.schema ?? ({})
   readonly property var current: form?.valueAt(row.path)
-  readonly property string label: row.title
-  readonly property string description: fieldSchema.description ?? ""
+  // A row may relabel its field (`x-cardPerField`'s, whose card carries
+  // the title and description)
+  readonly property string label: row.label ?? row.title
+  readonly property string description: row.description ?? fieldSchema.description ?? ""
   readonly property bool isColor: fieldSchema["x-options"] === "colors"
   // `x-enumShowIf` hides options whose condition doesn't hold (the current
   // value stays listed)
