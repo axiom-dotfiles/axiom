@@ -12,14 +12,14 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`Hyprland.managed.autostart`** · array<object> = [{"command":"dbus-update-activation-environment --systemd WAYLAND_DIS…
   - Autostart: Commands run once when Hyprland starts, after axiom.
   - x-group="Startup"
-  - read: `HyprlandConfig.managed` (whole) · in: `services/HyprlandConfigManager.qml`
+  - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `config/HyprlandConfig.qml`, `services/HyprlandConfigManager.qml`
 
 ### `Hyprland.managed.autostart[]`
 
 - **`Hyprland.managed.autostart[]`** · object
 - **`Hyprland.managed.autostart[].command`** · string = ""
   - Command
-  - read: `HyprlandConfig.managed` (whole) · in: `services/HyprlandConfigManager.qml`
+  - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `services/HyprlandConfigManager.qml`
 - **`Hyprland.managed.autostart[].enabled`** · boolean = true
   - On
-  - read: `HyprlandConfig.managed` (whole) · in: `services/HyprlandConfigManager.qml`
+  - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `services/HyprlandConfigManager.qml`

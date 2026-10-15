@@ -12,14 +12,14 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`Hyprland.managed.env`** · array<object> = []
   - Environment: Variables set before anything starts. Changes apply to apps started afterwards.
   - x-group="Startup"
-  - read: `HyprlandConfig.managed` (whole) · in: `services/HyprlandConfigManager.qml`
+  - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `config/HyprlandConfig.qml`, `services/HyprlandConfigManager.qml`
 
 ### `Hyprland.managed.env[]`
 
 - **`Hyprland.managed.env[]`** · object
 - **`Hyprland.managed.env[].name`** · string = ""
   - Name
-  - read: `HyprlandConfig.managed` (whole) · in: `services/HyprlandConfigManager.qml`, `services/SettingsManager.qml`
+  - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `services/HyprlandConfigManager.qml`, `services/SettingsManager.qml`
 - **`Hyprland.managed.env[].value`** · string = ""
   - Value
-  - read: `HyprlandConfig.managed` (whole) · in: `services/HyprlandConfigManager.qml`
+  - read: entry field, name match, `// reads:` marker · in: `services/HyprlandConfigManager.qml`

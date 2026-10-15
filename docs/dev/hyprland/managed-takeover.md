@@ -1,6 +1,6 @@
 # Managed takeover (claim and release)
 
-> **Files:** `scripts/claim_hyprland.sh`, `services/HyprlandConfigManager.qml`, `tests/scripts/test_scripts.py`
+> **Files:** `scripts/claim_hyprland.sh`, `services/HyprlandConfigManager.qml`, `components/methods/HyprConfigLua.qml`, `tests/scripts/test_scripts.py`
 > **Config:** `Hyprland.mode` (`managed`), `Hyprland.managed`
 > **Related:** [Config modes](config-modes.md), [Bind merge](bind-merge.md), [Onboarding](../features/onboarding.md)
 
@@ -42,7 +42,7 @@ How `managed` mode takes `~/.config/hypr/hyprland.lua` over (`claim`), and how l
   - the newest adopted `user/00-previous*.lua`, with its commented-out lines that start or load axiom enabled again
   - else the example config's backup.
 - It prints `restored:<from>:<n>`, with a warning when `<n>` files in `user/` are no longer loaded.
-- With nothing set aside it writes `releasedLua()`. That file starts axiom, loads the module in included mode, and loads `user/*.lua` as the managed file does (`_userFilesLua()`).
+- With nothing set aside it writes `releasedLua()`. That file starts axiom, loads the module in included mode, and loads `user/*.lua` as the managed file does (`HyprConfigLua.userFilesLua()`).
 - A symlinked or git-tracked file is refused, as `claim` refuses it.
 
 ### Testing

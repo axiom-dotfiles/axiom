@@ -36,7 +36,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - WIDTHxHEIGHT@HZ, or preferred.
   - read: `HyprlandConfig.monitorProfiles` (whole) · in: `services/HyprlandConfigManager.qml`, `services/MonitorManager.qml`
 - **`Hyprland.monitors.profiles[].outputs[].x`** · integer = 0
-  - read: `HyprlandConfig.monitorProfiles` (whole) · in: `services/HyprlandConfigManager.qml`, `services/MonitorManager.qml`
+  - read: `HyprlandConfig.monitorProfiles` (whole) · in: `services/MonitorManager.qml`
 - **`Hyprland.monitors.profiles[].outputs[].y`** · integer = 0
   - read: `HyprlandConfig.monitorProfiles` (whole) · in: `services/MonitorManager.qml`
 - **`Hyprland.monitors.profiles[].outputs[].scale`** · number = 1 · –8

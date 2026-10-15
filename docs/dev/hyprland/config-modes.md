@@ -1,6 +1,6 @@
 # Hyprland config modes
 
-> **Files:** `services/HyprlandConfigManager.qml`, `config/HyprlandConfig.qml`, `components/methods/HyprLua.qml`, `components/methods/HyprBinds.qml`, `components/views/settings/HyprlandStatusCard.qml`, `scripts/claim_hyprland.sh`
+> **Files:** `services/HyprlandConfigManager.qml`, `config/HyprlandConfig.qml`, `components/methods/HyprConfigLua.qml`, `components/methods/HyprLua.qml`, `components/methods/HyprBinds.qml`, `components/views/settings/HyprlandStatusCard.qml`, `scripts/claim_hyprland.sh`
 > **Config:** `Hyprland.mode`, `Hyprland.binds`, `Hyprland.managed`, `Hyprland.look`, `Hyprland.monitors`, `Workspaces.strips`
 > **Related:** [Managed takeover](managed-takeover.md), [Window look](window-look.md), [Bind merge](bind-merge.md), [Keybinds](keybinds.md), [Monitors](monitors.md), [Workspace strips](workspace-strips.md)
 
@@ -59,7 +59,7 @@ How axiom sets up Hyprland (`HyprlandConfigManager`), and the three `mode`s it c
 - `_leave` gives back what a mode took, for a switch made while axiom runs.
   - `_appliedMode` is `""` until the first `apply()`, so a load never gives anything back.
   - Leaving managed runs `claim_hyprland.sh release` ([Managed takeover](managed-takeover.md#release)).
-- Leaving included, or leaving managed for detached, empties the module if it exists (`_emptyModuleLua`).
+- Leaving included, or leaving managed for detached, empties the module if it exists (`HyprConfigLua.emptyModuleLua`).
   - Every part becomes a no-op, so a hyprland.lua still loading the module gets nothing.
   - Otherwise the old layer would stay in Hyprland's config, and the runtime layer can't undo it because it only adds (a strip removed in detached mode stayed a strip).
 - `_reload()` reloads once more when asked while a reload runs, so a file written meanwhile isn't missed.
@@ -91,4 +91,4 @@ How axiom sets up Hyprland (`HyprlandConfigManager`), and the three `mode`s it c
 ### Testing
 - Never switch the user's real config to `managed` to test it. (Rule: AGENTS.md › Never, while testing.)
 - Test `claim_hyprland.sh` on scratch dirs, as `tests/scripts/test_scripts.py` does.
-- Render the Lua with node and check it with `luac -p`.
+- The Lua comes from `HyprConfigLua` (pure): `tests/tst_HyprConfigLua.qml` renders the included, managed and given-back files to `tests/.out/`, where `scripts/run_tests.sh` checks them with `luac -p`. Add a case there when changing what a file holds.

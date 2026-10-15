@@ -22,15 +22,15 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `HyprlandConfig.binds` (whole) · in: `components/surfaces/onboarding/pages/AppsPage.qml`, `components/surfaces/onboarding/pages/BindsTable.qml`, `services/EdgeMenuManager.qml`, `services/HyprlandConfigManager.qml`, `services/KeybindManager.qml`
 - **`Hyprland.binds[].action`** · string = "launcher" · enum launcher|launcherSearch|overlay|overlayPage|edgeMenu|dock|workspaceOverview|powerMenu|lock|toggleDnd|clearNotifications|idleInhibit|nightLight|nextWallpaper|workspaceStep|moveWindowStep|moveWindowStepSilent|workspaceNth|moveWindowNth|moveWindowNthSilent|focusDir|moveWindowDir|resizeWindow|closeWindow|fullscreen|toggleFloat|pin|centerWindow|toggleGroup|windowSwitcher|windowSwitcherReverse|mouseDrag|mouseResize|toggleSpecial|moveToSpecial|restartShell|volumeUp|volumeDown|toggleMute|toggleMicMute|brightnessUp|brightnessDown|mediaPlayPause|mediaNext|mediaPrevious|mediaStop|terminal|fileManager|browser|screenshot|screenRecord|exitHyprland|exec|pseudo|toggleSplit|stripSwapColumn|stripWider|stripNarrower|stripFit|lua
   - Action
-  - read: `HyprlandConfig.binds` (whole) · in: `components/surfaces/onboarding/pages/AppsPage.qml`, `components/surfaces/onboarding/pages/BindsTable.qml`, `services/EdgeMenuManager.qml`, `services/HyprlandConfigManager.qml`, `services/KeybindManager.qml`
+  - read: `HyprlandConfig.binds` (whole) · in: `components/surfaces/onboarding/pages/AppsPage.qml`, `components/surfaces/onboarding/pages/BindsTable.qml`, `services/EdgeMenuManager.qml`, `services/KeybindManager.qml`
 - **`Hyprland.binds[].argument`** · string = ""
   - Argument: Search text, page, edge menu or dock id, direction, workspace number, special workspace name, resize step ("50 0"), screenshot kind (region, window or screen), command, or a Hyprland dispatcher as Lua (hl.dsp.layout("swapsplit")).
   - x-showIf={"action":["launcherSearch","overlayPage","edgeMenu","dock","workspac…
-  - read: `HyprlandConfig.binds` (whole) · in: `components/surfaces/onboarding/pages/BindsTable.qml`, `services/EdgeMenuManager.qml`, `services/HyprlandConfigManager.qml`, `services/KeybindManager.qml`
+  - read: `HyprlandConfig.binds` (whole) · in: `components/surfaces/onboarding/pages/BindsTable.qml`, `services/EdgeMenuManager.qml`, `services/KeybindManager.qml`
 - **`Hyprland.binds[].call`** · string = "toggle" · enum toggle|open|close
   - Call: For actions that open and close something: whether the bind toggles it, only opens it or only closes it.
   - x-showIf={"action":["launcher","overlay","edgeMenu","dock","workspaceOverview"…
-  - read: `HyprlandConfig.binds` (whole) · in: `services/HyprlandConfigManager.qml`, `services/KeybindManager.qml`
+  - read: `HyprlandConfig.binds` (whole) · in: `services/KeybindManager.qml`
 - **`Hyprland.binds[].repeating`** · boolean = false
   - Repeat while held
   - read: entry field, name match, `// reads:` marker · in: `services/HyprlandConfigManager.qml`
@@ -42,4 +42,4 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: entry field, name match, `// reads:` marker · in: `services/HyprlandConfigManager.qml`
 - **`Hyprland.binds[].description`** · string = ""
   - Description: Label on the Keybinds page; empty uses the action's name. The action picks the section unless you write "Section: Label".
-  - read: `HyprlandConfig.binds` (whole) · in: `services/HyprlandConfigManager.qml`, `services/KeybindManager.qml`
+  - read: `HyprlandConfig.binds` (whole) · in: `services/KeybindManager.qml`

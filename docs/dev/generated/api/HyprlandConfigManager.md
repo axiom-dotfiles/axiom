@@ -47,7 +47,7 @@ Managed config, loading ~/.config/hypr/user/*.lua after it Whenever the file isn
 - `isComplete(bind)`: Whether a configured bind has everything it needs to be bound
 - `moduleLua()`: The included file: a module whose setup() applies what's enabled
 - `managedLua()`: The managed hyprland.lua
-- `releasedLua()`: The hyprland.lua leaving managed gives back when the takeover set nothing aside (claim_hyprland.sh release): the user's from then on, starting axiom (and loading its module in included mode) and load…
+- `releasedLua()`: The hyprland.lua leaving managed gives back when the takeover set nothing aside (claim_hyprland.sh release), starting axiom (and loading its module in included mode)
 - `checkManaged()`
 - `copyIncludeLines()`
 - `openConfigDir()`
