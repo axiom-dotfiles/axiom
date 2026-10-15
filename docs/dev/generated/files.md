@@ -7,6 +7,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 ## ./
 
 - `shell.qml`: The shell's entrypoint: one top-level piece per surface (shell/), plus _services, which creates the services nothing else would reference.
+- `greeter.qml`: The greeter's entrypoint (greetd's login screen; shell.qml is the session's): `qs -p <installed copy>/greeter.qml`, run by scripts/greeter/greeter-session.sh as greetd's user with AXIOM_GREETER=1, which puts ConfigManag…
 
 ## components/bar/
 
