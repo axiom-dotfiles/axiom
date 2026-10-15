@@ -26,7 +26,7 @@ Cross-cutting UI signals (power menu, launcher, overlays) that modules connect t
 
 ### Other placement notes
 - The workspace overview is built on every screen and opens on the one under the cursor (`HyprlandManager.withHoveredScreen`, a `hyprctl cursorpos` lookup).
-- Wallpapers are per monitor (`Appearance.wallpapers[monitor]`, set from the overlay's Themes page); the primary monitor's is also `Appearance.wallpaper`, the lockscreen's. See [Wallpaper and schedules](../theming/wallpaper-and-schedules.md).
+- Wallpapers are per monitor (`ThemeManager.wallpaperFor(monitor)`; picked ones are `Appearance.wallpapers[monitor]`, set from the overlay's Themes page); the primary monitor's is also `Appearance.wallpaper`, the fallback for the others. See [Wallpaper and schedules](../theming/wallpaper-and-schedules.md).
 - Which popouts give way to which is PopoutManager's: see [Popout registry](../popouts/registry.md). An integrated edge menu holds no popout claim and takes no part (its exclusive zone pushes the others inwards instead).
 
 ### Modal windows

@@ -16,7 +16,7 @@ This doc covers what runs at the login screen and the data it reads: the bundle 
   - `Hyprland.mode` and `monitors.profiles`;
   - in managed mode, the `Hyprland.managed` options marked `x-greeter` (keyboard, mouse, touchpad, cursor);
   - `theme.json` (`ThemeManager.currentTheme`);
-  - each wallpaper, copied to `wallpapers/<md5 of its url>.<ext>` (cp + mv, stale ones removed). The bundle's `Appearance` names these copies.
+  - each wallpaper showing (`ThemeManager.shownWallpapers`, exported as fixed ones in `fixed` mode, so the greeter shows what the desktop does), copied to `wallpapers/<md5 of its url>.<ext>` (cp + mv, stale ones removed). The bundle's `Appearance` names these copies.
 - **How it's written:** one `sh` (`GreeterManager._writeBundle`).
   - Each JSON goes through a temp file and a rename.
   - Then `chmod -R go+rX`, so greetd's user can read it whatever the umask.

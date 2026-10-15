@@ -13,13 +13,12 @@ QtObject {
   readonly property string theme: _c.theme
   // From the active theme, not config: a theme is dark or light
   readonly property bool darkMode: ThemeManager.currentTheme.variant !== "light"
-  // The primary monitor's wallpaper (the lockscreen's)
-  readonly property string wallpaper: _c.wallpaper
-  // Monitor name -> wallpaper URL, set per monitor on the Themes page
-  readonly property var wallpapers: _c.wallpapers
-  function wallpaperFor(monitor) {
-    return root.wallpapers[monitor] || root.wallpaper;
-  }
+  // The wallpapers picked by hand (fixed mode): the primary monitor's, the
+  // fallback for monitors without their own, and monitor name -> URL, set
+  // per monitor on the Themes page. What's showing (rotated, light/dark)
+  // is ThemeManager.wallpaperFor(monitor).
+  readonly property string fixedWallpaper: _c.wallpaper
+  readonly property var fixedWallpapers: _c.wallpapers
   // As configured (for display), and with ~ expanded, no trailing slash
   // "quickshell" (shell/Wallpaper draws it) | "awww" (setWallpaper.sh)
   readonly property string wallpaperBackend: _c.wallpaperBackend

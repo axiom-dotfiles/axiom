@@ -9,10 +9,12 @@ import qs.components.methods
 /**
  * Named snapshots of the config, one JSON file each in config/user/saved/.
  * A snapshot holds what ConfigExamples.snapshot picks: the look and personal
- * parts (by the schema's x-scope) and the wallpapers, in the export format,
- * so a saved file can be shared or imported as it is. Restoring applies it
- * like an example (machine settings stay as they are; a wallpaper only if
- * its file is still there), through ConfigManager's load pipeline, so
+ * parts (by the schema's x-scope) and the wallpaper setup (x-snapshot:
+ * wallpapers, mode, rotation, light/dark ones, theme schedule), in the
+ * export format, so a saved file can be shared or imported as it is.
+ * Restoring applies it like an example, plus the wallpaper setup (other
+ * machine settings stay as they are; a wallpaper only if its file is still
+ * there), through ConfigManager's load pipeline, so
  * snapshots from older config versions (and older whole-config snapshots)
  * are migrated. The one last saved or restored is `active`, and `modified`
  * says whether the running config's snapshot parts have changed since.
@@ -154,7 +156,7 @@ QtObject {
     }
     // Its wallpapers only where their files are still there: find lists
     // the ones that exist (and exits non-zero for the others)
-    const paths = ConfigExamples.wallpaperPaths(config);
+    const paths = ConfigExamples.snapshotFiles(config, ConfigManager.configSchema);
     root._restoring = {
       name: name,
       path: path,
@@ -175,13 +177,12 @@ QtObject {
     if (!pending)
       return;
     const applied = ConfigExamples.apply(ConfigManager.config, pending.config, ConfigManager.configSchema, true);
-    if (!ConfigManager.restoreConfig(ConfigExamples.withWallpapers(applied, pending.config, existing))) {
+    if (!ConfigManager.restoreConfig(ConfigExamples.withSnapshot(applied, pending.config, ConfigManager.configSchema, existing))) {
       root.status = I18n.tr("\"{0}\" is not a valid config", pending.name);
       return;
     }
     root._setActive(pending.name, ConfigManager.config);
     SettingsManager.loadConfig();
-    ThemeManager.applyWallpapers();
     root.status = I18n.tr("Restored \"{0}\"", pending.name);
     console.log("[SavedConfigsManager] Restored", pending.path);
   }

@@ -11,8 +11,8 @@ import QtQuick
 //             accounts, paths, hardware and services
 // Example setups (examples/*.json) and exported configs hold the look (and,
 // when asked, the personal) parts; saved snapshots hold both, plus the
-// wallpapers. Applying one replaces those parts of the running config and
-// leaves the rest as the user set it.
+// wallpaper setup (`x-snapshot`). Applying one replaces those parts of the
+// running config and leaves the rest as the user set it.
 QtObject {
   id: root
 
@@ -62,72 +62,83 @@ QtObject {
   }
 
   // What a saved snapshot holds: the look and personal parts, and the
-  // wallpapers. Those are machine values, but a snapshot restores on the
-  // PC it was saved on, where they still mean something (withWallpapers).
+  // `x-snapshot` settings (the wallpaper setup). Those are machine values,
+  // but a snapshot restores on the PC it was saved on, where they still
+  // mean something (withSnapshot).
   function snapshot(config, schema) {
     const result = pick(config, schema, true);
-    const appearance = config?.Appearance;
-    if (!_isObject(appearance))
-      return result;
-    for (const key of ["wallpaper", "wallpapers"]) {
-      if (appearance[key] === undefined)
-        continue;
-      result.Appearance = result.Appearance ?? {};
-      result.Appearance[key] = Utils.clone(appearance[key]);
+    for (const path of snapshotPaths(schema)) {
+      const value = _at(config, path);
+      if (value !== undefined)
+        _setAt(result, path, Utils.clone(value));
     }
     return result;
   }
 
-  // The files of a config's wallpapers (absolute paths, each once), to
-  // check which are still there before restoring them
-  function wallpaperPaths(config) {
-    const appearance = config?.Appearance;
-    if (!_isObject(appearance))
-      return [];
-    const urls = [appearance.wallpaper].concat(_isObject(appearance.wallpapers) ? Object.values(appearance.wallpapers) : []);
-    return urls.map(_wallpaperPath).filter((path, i, all) => path.startsWith("/") && all.indexOf(path) === i);
+  // The files (absolute paths, each once) the `x-snapshot` settings of
+  // `config` name as file:// URLs, to check which are still there before
+  // restoring them
+  function snapshotFiles(config, schema) {
+    const urls = [];
+    const collect = value => {
+      if (typeof value === "string" && value.startsWith("file://"))
+        urls.push(value);
+      else if (_isObject(value))
+        Object.values(value).forEach(collect);
+    };
+    for (const path of snapshotPaths(schema))
+      collect(_at(config, path));
+    return urls.map(_filePath).filter((path, i, all) => path.startsWith("/") && all.indexOf(path) === i);
   }
 
-  // A copy of `config` with the wallpapers of `saved` whose files are in
-  // `existing` (wallpaperPaths' paths that exist); the others stay as they
-  // are in `config`
-  function withWallpapers(config, saved, existing) {
+  // A copy of `config` with the `x-snapshot` settings of `saved`. A file
+  // URL comes back only when its file is in `existing` (snapshotFiles'
+  // paths that exist), and a wallpaper is never blanked: otherwise the one
+  // in `config` stays. Objects merge by key (a monitor not in the
+  // snapshot keeps its wallpaper).
+  function withSnapshot(config, saved, schema, existing) {
     const result = Utils.clone(config);
-    const from = saved?.Appearance;
-    const to = result?.Appearance;
-    if (!_isObject(from) || !_isObject(to))
-      return result;
-    const usable = url => existing.includes(_wallpaperPath(url));
-    if (usable(from.wallpaper))
-      to.wallpaper = from.wallpaper;
-    if (_isObject(from.wallpapers)) {
-      to.wallpapers = _isObject(to.wallpapers) ? to.wallpapers : {};
-      for (const monitor in from.wallpapers) {
-        if (usable(from.wallpapers[monitor]))
-          to.wallpapers[monitor] = from.wallpapers[monitor];
+    const restore = (current, value) => {
+      if (typeof value === "string") {
+        if (value.startsWith("file://"))
+          return existing.includes(_filePath(value)) ? value : current;
+        return value === "" && typeof current === "string" && current.startsWith("file://") ? current : value;
       }
+      if (!_isObject(value))
+        return Utils.clone(value);
+      const merged = _isObject(current) ? Utils.clone(current) : {};
+      for (const key in value) {
+        const restored = restore(merged[key], value[key]);
+        if (restored !== undefined)
+          merged[key] = restored;
+      }
+      return merged;
+    };
+    for (const path of snapshotPaths(schema)) {
+      const value = _at(saved, path);
+      if (value !== undefined)
+        _setAt(result, path, restore(_at(result, path), value));
     }
     return result;
-  }
-
-  function _wallpaperPath(url) {
-    if (typeof url !== "string" || url === "")
-      return "";
-    try {
-      return decodeURIComponent(url.replace(/^file:\/\//, ""));
-    } catch (e) {
-      return "";
-    }
   }
 
   // The paths ([key, …]) of the `x-takeover` settings, through objects only
   function takeoverPaths(schema) {
+    return _annotated(schema, "x-takeover");
+  }
+
+  // The paths of the `x-snapshot` settings, through objects only
+  function snapshotPaths(schema) {
+    return _annotated(schema, "x-snapshot");
+  }
+
+  function _annotated(schema, annotation) {
     const paths = [];
     const walk = (node, path, depth) => {
       node = SchemaValidation.resolveRef(node, schema);
       if (!node || depth > 20)
         return;
-      if (node["x-takeover"] === true && path.length > 0) {
+      if (node[annotation] === true && path.length > 0) {
         paths.push(path);
         return;
       }
@@ -136,6 +147,33 @@ QtObject {
     };
     walk(schema, [], 0);
     return paths;
+  }
+
+  function _at(value, path) {
+    for (const key of path) {
+      if (!_isObject(value))
+        return undefined;
+      value = value[key];
+    }
+    return value;
+  }
+
+  // Sets the value at `path`, making the objects on the way
+  function _setAt(target, path, value) {
+    for (const key of path.slice(0, -1)) {
+      if (!_isObject(target[key]))
+        target[key] = {};
+      target = target[key];
+    }
+    target[path[path.length - 1]] = value;
+  }
+
+  function _filePath(url) {
+    try {
+      return decodeURIComponent(url.replace(/^file:\/\//, ""));
+    } catch (e) {
+      return "";
+    }
   }
 
   function _kept(personal) {

@@ -227,7 +227,7 @@ Rectangle {
         y: rect.y
         width: root.cellW
         height: root.cellH
-        wallpaper: WorkspaceOverlayConfig.wallpaper ? Appearance.wallpaperFor(root.screen?.name ?? "") : ""
+        wallpaper: WorkspaceOverlayConfig.wallpaper ? ThemeManager.wallpaperFor(root.screen?.name ?? "") : ""
         color: WorkspaceOverlayConfig.color
         dim: WorkspaceOverlayConfig.dimInactive
         radius: root.cellRadius

@@ -45,6 +45,7 @@ The schema is the single source of truth for config: shape, `default`s (there is
 - `x-enumShowIf` (`{ optionValue: condition }`): hides enum options whose condition doesn't hold. The current value stays listed.
 - `x-beside: true`: puts a field beside the one before it on its settings card, each half wide (`SettingsGroupCard`'s two-column grid; Workspaces' rows beside columns). Give the pair the same `x-showIf`.
 - `x-applyOnSave`: keeps a setting in the draft until Save instead of applying it live (Hyprland's `mode`, which can take over files).
+- `x-snapshot: true`: a machine setting a saved snapshot carries too (the wallpaper setup: wallpapers, folder, mode, rotation, light/dark wallpapers, theme schedule), since a snapshot restores on the PC it was saved on. Exports and examples still leave it out. See [Saved configs and sharing](saved-configs-sharing.md).
 - `x-takeover: true`: a setting that takes something over on this PC (Hyprland mode, locker, idle, polkit, greeter). Loading or importing a config never changes it; only its own card does. See [Saved configs and sharing](saved-configs-sharing.md).
 
 ### Controls

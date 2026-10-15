@@ -7,7 +7,8 @@
 How the active theme is loaded, how themes are grouped into dark/light families, how a theme is generated from a wallpaper, and the Themes page. Read this before touching theme files, `ThemeManager` or the theme picker.
 
 ### ThemeManager: the active theme
-- Owns `currentTheme`: loaded eagerly, watched, and reloaded when `Appearance.theme` or the file changes.
+- Owns `currentTheme`: loaded eagerly, watched, and reloaded when `activeTheme` or the file changes.
+- `activeTheme` is the theme showing: `Appearance.theme`, or the variant the light/dark schedule switched to, which never writes the config ([Wallpaper and schedules](wallpaper-and-schedules.md)). Integrations, hyprlock and generation follow `activeTheme`.
 - Owns `defaults` (`theme-defaults.json`, see below).
 - `Appearance.darkMode` is derived from the theme's `variant`.
 - The choice of theme is persisted through `ConfigManager.setTheme`.
@@ -17,7 +18,7 @@ How the active theme is loaded, how themes are grouped into dark/light families,
 - A dark/light pair (each file's `paired` naming the other) is one theme, labelled by the words their names share.
 - `currentFamily`: the family of the active theme.
 - `applyFamily(family)` picks the variant for the current mode.
-- `setLightMode(bool)` switches the current theme's variant. It is the only light/dark switch; `Appearance.darkMode` follows the applied theme.
+- `setLightMode(bool)` switches the current theme's variant by hand (config). The schedule uses `followSchedule(bool)` (runtime only). `Appearance.darkMode` follows the shown theme.
 
 ### Theme files
 - `config/themes/*.json` are static; `config/themes/generated/*.json` come from a wallpaper.

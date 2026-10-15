@@ -274,6 +274,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `SchemaLayout.qml`: Turns the config schema into the settings page's layout: categories (`x-category` on each top-level section, ordered by the root's `x-categories`), each made of groups (the section's own fields, then one per nested obje…
 - `SchemaValidation.qml`: JSON-schema helpers for the config: validation, filling in defaults, and pruning unknown keys.
 - `Search.qml`: Pure helpers for searching lists by typed text: the launcher's fuzzy score, frecency from a { count, last } use record (Utils.recordUse) and whether text reads as math for the calculator.
+- `ShownLook.qml`: What the look shows at the moment, from what the user chose (config) and what changes on its own (runtime state ThemeManager keeps: the rotation's wallpapers, the theme schedule's variant).
 - `SurfaceContext.qml`: What a surface growing out of a screen edge touches, and every rule that follows from it, for each kind of surface alike: bar popouts, edge popouts (OSDs, floating edge menus, the attached launcher), docks and submenus.
 - `SurfaceOutline.qml`: The outline of a surface that grows out of an edge (AttachedSurface): a content box joined to the attach edge by two concave fillets, or a plain box held off it.
 - `TimeZones.qml`: Pure helpers for clocks in another time zone.
@@ -627,7 +628,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `ThemeManager.qml`: ThemeManager owns the active theme's data (loaded from its file, watched, with defaults for what it leaves out), the theme lists, theme generation from a wallpaper, the wallpaper itself, and re-theming integrated tools.
 - `TimeZoneManager.qml`: Other time zones' UTC offsets, for clocks set to one (a Clock module's or a bar Time widget's `timezone`): the JS engine can't convert times between zones (TimeZones).
 - `UpdatesManager.qml`: Pending package updates, shared by every Updates widget.
-- `WallpaperManager.qml`: What changes the look on its own (ThemeManager sets it): - Appearance.wallpaperMode "rotate": a new wallpaper from the folder every `rotationInterval` minutes (random or in order, one for all monitors or one each).
+- `WallpaperManager.qml`: What changes the look on its own.
 - `WeatherManager.qml`: Weather shared by every widget that shows it: one WeatherSource for the Weather settings' location and units, fetching while some widget wants it.
 - `WeatherSource.qml`: Weather for one location from Open-Meteo (no API key).
 - `WindowSwitcherManager.qml`: The window switcher (Alt+Tab).

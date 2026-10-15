@@ -248,9 +248,9 @@ TestCase {
     compare(ConfigExamples.takeoverPaths(lookSchema), [["Section", "mode"]]);
   }
 
-  // A snapshot holds the look, the personal parts and the wallpapers;
+  // A snapshot holds the look, the personal parts and the wallpaper setup;
   // restoring one (SavedConfigsManager.restore: save → load → apply →
-  // withWallpapers) brings those back and leaves the machine settings
+  // withSnapshot) brings those back and leaves the other machine settings
   function test_snapshot_round_trips_and_keeps_machine_settings() {
     let saved = defaults();
     saved.Appearance.theme = "nord";
@@ -259,6 +259,7 @@ TestCase {
       "DP-1": "file:///walls/a%20b.png",
       "HDMI-A-1": "file:///walls/gone.png"
     };
+    saved.Appearance.variantWallpapers.dark = "file:///walls/night.png";
     saved.Bars = [bar("main", "DP-1")];
     saved.Hyprland.binds = [];
     // Filled, as a running config is
@@ -281,8 +282,8 @@ TestCase {
       "version": ConfigMigration.currentVersion
     }, ConfigExamples.sparse(snapshot, schema));
     const loaded = load(file);
-    compare(ConfigExamples.wallpaperPaths(loaded), ["/walls/a b.png", "/walls/gone.png"]);
-    const restored = ConfigExamples.withWallpapers(ConfigExamples.apply(current, loaded, schema, true), loaded, ["/walls/a b.png"]);
+    compare(ConfigExamples.snapshotFiles(loaded, schema).sort(), ["/walls/a b.png", "/walls/gone.png", "/walls/night.png"]);
+    const restored = ConfigExamples.withSnapshot(ConfigExamples.apply(current, loaded, schema, true), loaded, schema, ["/walls/a b.png", "/walls/night.png"]);
     compare(restored.Appearance.theme, "nord");
     compare(restored.Hyprland.binds, []);
     compare(restored.ThemeIntegrations.kitty, true);
@@ -293,6 +294,7 @@ TestCase {
       "DP-1": "file:///walls/a%20b.png",
       "HDMI-A-1": "file:///walls/mine.png"
     });
+    compare(restored.Appearance.variantWallpapers.dark, "file:///walls/night.png");
     // What the modified dot compares: the saved file as it loads against
     // the config it was saved from, then a machine-only and a look change
     verify(Utils.deepEqual(ConfigExamples.snapshot(loaded, schema), snapshot), "the saved file loads as saved");
@@ -311,23 +313,49 @@ TestCase {
     old.Appearance.theme = "nord";
     const current = defaults();
     current.ThemeIntegrations.kitty = true;
-    const restored = ConfigExamples.withWallpapers(ConfigExamples.apply(current, old, schema, true), old, []);
+    const restored = ConfigExamples.withSnapshot(ConfigExamples.apply(current, old, schema, true), old, schema, []);
     compare(restored.ThemeIntegrations.kitty, true);
     compare(restored.Appearance.theme, "nord");
   }
 
-  function test_wallpaper_paths() {
-    compare(ConfigExamples.wallpaperPaths({
+  // The wallpaper setup comes back whole: a snapshot saved in fixed mode
+  // turns rotation off again, and its schedule and rotation settings return
+  function test_snapshot_restores_the_wallpaper_setup() {
+    const saved = load(defaults());
+    saved.Appearance.wallpaper = "file:///walls/fixed.png";
+    const current = defaults();
+    current.Appearance.wallpaperMode = "rotate";
+    current.Appearance.wallpaperRotation.interval = 5;
+    current.Appearance.themeSchedule.enabled = true;
+    current.Appearance.variantWallpapers.light = "file:///walls/day.png";
+    verify(!Utils.deepEqual(ConfigExamples.snapshot(current, schema), ConfigExamples.snapshot(saved, schema)), "a mode switch is a change");
+    const restored = ConfigExamples.withSnapshot(ConfigExamples.apply(current, saved, schema, true), saved, schema, ["/walls/fixed.png"]);
+    compare(restored.Appearance.wallpaperMode, "fixed");
+    compare(restored.Appearance.wallpaperRotation.interval, saved.Appearance.wallpaperRotation.interval);
+    compare(restored.Appearance.themeSchedule.enabled, false);
+    compare(restored.Appearance.wallpaper, "file:///walls/fixed.png");
+    compare(restored.Appearance.variantWallpapers.light, "file:///walls/day.png", "a wallpaper is never blanked");
+    const missing = ConfigExamples.withSnapshot(current, saved, schema, []);
+    compare(missing.Appearance.wallpaper, current.Appearance.wallpaper, "a missing file keeps the current one");
+  }
+
+  function test_snapshot_paths() {
+    compare(ConfigExamples.snapshotPaths(schema).map(path => path.join(".")).sort(), ["Appearance.themeSchedule", "Appearance.variantWallpapers", "Appearance.wallpaper", "Appearance.wallpaperFolder", "Appearance.wallpaperMode", "Appearance.wallpaperRotation", "Appearance.wallpapers"]);
+  }
+
+  function test_snapshot_files() {
+    compare(ConfigExamples.snapshotFiles({
       "Appearance": {
         "wallpaper": "",
         "wallpapers": {
           "A": "file:///x.png",
           "B": "file:///x.png",
           "C": "relative.png"
-        }
+        },
+        "wallpaperFolder": "~/Pictures"
       }
-    }), ["/x.png"]);
-    compare(ConfigExamples.wallpaperPaths({}), []);
+    }, schema), ["/x.png"]);
+    compare(ConfigExamples.snapshotFiles({}, schema), []);
   }
 
   function test_apply_keeps_monitors_by_id_then_position() {

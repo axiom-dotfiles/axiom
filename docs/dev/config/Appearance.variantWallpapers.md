@@ -11,8 +11,8 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 
 - **`Appearance.variantWallpapers`** · object = {}
   - The wallpapers for the light and dark variants, as file URLs (set on the overlay's Themes page).
-  - x-settings=false
+  - x-snapshot=true, x-settings=false
 - **`Appearance.variantWallpapers.dark`** · string = ""
-  - read: `Appearance.darkWallpaper` · in: `components/content/WallpaperPicker.qml`, `services/WallpaperManager.qml`
+  - read: `Appearance.darkWallpaper` · in: `components/content/WallpaperPicker.qml`, `services/ThemeManager.qml`
 - **`Appearance.variantWallpapers.light`** · string = ""
-  - read: `Appearance.lightWallpaper` · in: `components/content/WallpaperPicker.qml`, `services/WallpaperManager.qml`
+  - read: `Appearance.lightWallpaper` · in: `components/content/WallpaperPicker.qml`, `services/ThemeManager.qml`

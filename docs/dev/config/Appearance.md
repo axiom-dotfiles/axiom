@@ -3,6 +3,7 @@
 
 > **Reader:** `Appearance` (`config/Appearance.qml`)
 > **Schema:** `config/json/config.schema.json` → `properties.Appearance` · category Look & Feel
+> **Read whole by:** `services/GreeterManager.qml`, `services/ThemeManager.qml`
 
 Each setting: `path` · type = default · enum/range/unit; then title: description; annotations; `read:` the reader member(s) (exact unless marked) and `in:` the files that use them.
 
@@ -22,40 +23,39 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`Appearance.theme`** · string = "gruvbox-dark"
   - Active theme (set on the overlay's Themes page).
   - x-scope="look", x-settings=false
-  - read: `Appearance.theme` · in: `components/methods/ConfigMigration.qml`, `config/Theme.qml`, `services/IntegrationHookupManager.qml`, `services/LauncherCommands.qml`, `services/ThemeManager.qml`, `services/WallpaperManager.qml`
+  - read: `Appearance.theme`, `// reads:` marker · in: `components/methods/ConfigMigration.qml`, `config/Theme.qml`, `services/ThemeManager.qml`
 - **`Appearance.wallpaper`** · string = ""
   - The primary monitor's wallpaper file URL, used by the lockscreen (set on the overlay's Themes page).
-  - x-settings=false
-  - read: `Appearance.wallpaper` · in: `services/ConfigManager.qml`, `services/LauncherCommands.qml`, `services/ThemeManager.qml`, `services/WallpaperManager.qml`
+  - x-snapshot=true, x-settings=false
+  - read: `Appearance.fixedWallpaper` · in: `services/ThemeManager.qml`
 - **`Appearance.wallpapers`** · object = {}
   - Monitor name → wallpaper file URL (set on the overlay's Themes page). A monitor with no entry shows `wallpaper`.
-  - x-settings=false
-  - read: `Appearance.wallpapers` · in: `services/LauncherCommands.qml`, `services/ThemeManager.qml`
+  - x-snapshot=true, x-settings=false
+  - read: `Appearance.fixedWallpapers` · in: `services/ThemeManager.qml`
 - **`Appearance.wallpaperBackend`** · string = "quickshell" · enum quickshell|awww
   - Wallpaper backend: What draws the wallpaper. Axiom needs nothing installed and crossfades; awww (AUR) adds wipe and wave transitions.
   - read: `Appearance.wallpaperBackend` · in: `services/HyprlandConfigManager.qml`, `services/ThemeManager.qml`, `shell/Wallpaper.qml`
 - **`Appearance.wallpaperFolder`** · string = "~/Pictures/wallpapers"
   - Wallpaper folder: Folder the wallpaper pickers list images from (jpg, png, bmp). A leading ~ is your home folder.
-  - x-control="folder", pattern="\\S"
+  - x-snapshot=true, x-control="folder", pattern="\\S"
   - read: `Appearance.wallpaperFolder`, `Appearance.wallpaperPath` (computed) · in: `components/content/WallpaperPicker.qml`, `components/surfaces/onboarding/pages/LookPage.qml`, `services/ThemeManager.qml`, `services/WallpaperManager.qml`
 - **`Appearance.wallpaperMode`** · string = "fixed" · enum fixed|rotate|variant
   - Wallpaper mode: Fixed keeps the wallpaper you pick. Rotate changes it on a timer, from the wallpaper folder. One for light, one for dark shows the wallpaper you picked for the theme's current variant on every monitor. A generated theme follows the wallpaper as it changes. Also set on the overlay's Themes page.
-  - read: `Appearance.wallpaperMode` · in: `components/content/WallpaperPicker.qml`, `services/WallpaperManager.qml`
+  - x-snapshot=true
+  - read: `Appearance.wallpaperMode` · in: `components/content/WallpaperPicker.qml`, `services/ThemeManager.qml`, `services/WallpaperManager.qml`
 
 ### Reader members
 
 Every public member of `Appearance`, with the files that use it.
 
 - `Appearance.theme` (string): --- Theme (UI-owned, set on the overlay's Themes page) ---
-  - in: `components/methods/ConfigMigration.qml`, `config/Theme.qml`, `services/IntegrationHookupManager.qml`, `services/LauncherCommands.qml`, `services/ThemeManager.qml`, `services/WallpaperManager.qml`
+  - in: `components/methods/ConfigMigration.qml`, `config/Theme.qml`, `services/ThemeManager.qml`
 - `Appearance.darkMode` (bool): From the active theme, not config: a theme is dark or light
   - in: `components/content/QuickActions.qml`, `components/content/ThemePicker.qml`, `components/content/WallpaperPicker.qml`, `components/reusable/ScreenBackdrop.qml`, `components/surfaces/polkit/PolkitWindow.qml`, `services/LauncherCommands.qml`, `services/ThemeManager.qml`, `services/WallpaperManager.qml`
-- `Appearance.wallpaper` (string): The primary monitor's wallpaper (the lockscreen's)
-  - in: `services/ConfigManager.qml`, `services/LauncherCommands.qml`, `services/ThemeManager.qml`, `services/WallpaperManager.qml`
-- `Appearance.wallpapers` (var): Monitor name -> wallpaper URL, set per monitor on the Themes page
-  - in: `services/LauncherCommands.qml`, `services/ThemeManager.qml`
-- `Appearance.wallpaperFor(monitor)`
-  - in: `components/content/WallpaperPicker.qml`, `components/surfaces/desktop/DesktopWindow.qml`, `components/surfaces/greeter/GreeterSurface.qml`, `components/surfaces/lockscreen/LockSurface.qml`, `components/surfaces/wallpaper/WallpaperWindow.qml`, `components/surfaces/workspaces/OverviewGrid.qml`, `services/ThemeManager.qml`, `services/WallpaperManager.qml`
+- `Appearance.fixedWallpaper` (string): The wallpapers picked by hand (fixed mode): the primary monitor's, the fallback for monitors without their own, and monitor name -> URL, set per monitor on the…
+  - in: `services/ThemeManager.qml`
+- `Appearance.fixedWallpapers` (var)
+  - in: `services/ThemeManager.qml`
 - `Appearance.wallpaperBackend` (string): As configured (for display), and with ~ expanded, no trailing slash "quickshell" (shell/Wallpaper draws it) | "awww" (setWallpaper.sh)
   - in: `services/HyprlandConfigManager.qml`, `services/ThemeManager.qml`, `shell/Wallpaper.qml`
 - `Appearance.wallpaperFolder` (string)
@@ -63,7 +63,7 @@ Every public member of `Appearance`, with the files that use it.
 - `Appearance.wallpaperPath` (string)
   - in: `services/ThemeManager.qml`, `services/WallpaperManager.qml`
 - `Appearance.wallpaperMode` (string): "fixed" | "rotate" (wallpaperRotation) | "variant" (variantWallpapers), driven by WallpaperManager
-  - in: `components/content/WallpaperPicker.qml`, `services/WallpaperManager.qml`
+  - in: `components/content/WallpaperPicker.qml`, `services/ThemeManager.qml`, `services/WallpaperManager.qml`
 - `Appearance.rotationInterval` (int)
   - in: `services/WallpaperManager.qml`
 - `Appearance.rotationOrder` (string): "random" | "sequential"
@@ -71,9 +71,9 @@ Every public member of `Appearance`, with the files that use it.
 - `Appearance.rotationSameOnAll` (bool)
   - in: `services/WallpaperManager.qml`
 - `Appearance.darkWallpaper` (string): { dark, light }: file URLs, "" for none
-  - in: `components/content/WallpaperPicker.qml`, `services/WallpaperManager.qml`
+  - in: `components/content/WallpaperPicker.qml`, `services/ThemeManager.qml`
 - `Appearance.lightWallpaper` (string)
-  - in: `components/content/WallpaperPicker.qml`, `services/WallpaperManager.qml`
+  - in: `components/content/WallpaperPicker.qml`, `services/ThemeManager.qml`
 - `Appearance.themeScheduled` (bool): --- Light/dark by time of day (WallpaperManager) ---
   - in: `components/content/ThemePicker.qml`, `services/WallpaperManager.qml`
 - `Appearance.lightAt` (string)

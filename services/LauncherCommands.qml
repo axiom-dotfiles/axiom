@@ -65,7 +65,7 @@ QtObject {
       usage: "<theme>",
       needsArg: true,
       description: () => I18n.tr("Switch the color theme"),
-      status: () => ThemeManager.currentFamily?.label ?? Appearance.theme,
+      status: () => ThemeManager.currentFamily?.label ?? ThemeManager.activeTheme,
       options: () => ThemeManager.themeFamilies.map(family => ({
               title: family.label,
               subtitle: family === ThemeManager.currentFamily ? I18n.tr("Current") : family.generated ? I18n.tr("Generated") : family.dark && family.light ? I18n.tr("Dark and light") : family.dark ? I18n.tr("Dark") : I18n.tr("Light"),
@@ -123,7 +123,7 @@ QtObject {
           url = walls.length > 0 ? walls[Math.floor(Math.random() * walls.length)].value : "";
         }
         if (url)
-          ThemeManager.setWallpaperAndGenerate(url, "");
+          WallpaperManager.pick(url, "", "");
         return false;
       }
     },
@@ -145,7 +145,7 @@ QtObject {
       status: () => ThemeManager.isGenerating ? I18n.tr("Generating…") : "",
       run: () => {
         const monitor = ShellManager.targetFor(LauncherConfig.monitors);
-        const wallpaper = Appearance.wallpapers[monitor] || Appearance.wallpaper;
+        const wallpaper = ThemeManager.wallpaperFor(monitor);
         if (wallpaper)
           ThemeManager.generateThemesFromWallpaper(wallpaper);
       }
