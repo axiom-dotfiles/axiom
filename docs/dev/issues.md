@@ -18,6 +18,11 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 
 ## Open
 
+### Surfaces read a null screen while Hyprland has no output
+- **Where:** `components/hosts/popout/EdgeTrigger.qml`, `components/hosts/popout/EdgePopout.qml`, `components/surfaces/edgemenu/FloatingEdgeMenu.qml`, `components/surfaces/edgemenu/IntegratedEdgeMenu.qml`, `components/surfaces/wallpaper/WallpaperWindow.qml`, `shell/Desktop.qml`
+- **What:** When a config reload re-applies the monitors (leaving managed mode did it), Qt briefly has no output (`There are no outputs - creating placeholder screen`), and these bindings read `screen.width`/`height`/`name` of null: `TypeError: Cannot read property 'width' of null`, plus hundreds of `attempted to use dangling screen object`. Everything recovers once the output is back. Guard the bindings with `screen?.` (or keep the last size).
+- **Size:** small
+- **Found:** 2026-10-15, while checking the detached mode after the Hyprland IPC change
 ### Hyprland is still reached directly outside the Hyprland* services
 - **Where:** `services/` (NotificationManager, KeyboardLayoutManager, ThemeManager, BlurManager, MonitorManager, PolkitManager, DockManager, BrightnessManager, ScreenshotManager, ShellManager, WindowSwitcherManager, KeybindManager) and 15 files in `components/` and `shell/` that import `Quickshell.Hyprland`
 - **What:** Their commands now go through `HyprlandManager` (`docs/dev/hyprland/ipc.md`), but they still read `Hyprland.focusedMonitor`, `Hyprland.monitors`/`workspaces`/`toplevels`, `monitorFor()`, `HyprlandFocusGrab` or handle `Hyprland.rawEvent` names themselves. Supporting another compositor needs these behind `HyprlandManager` too (neutral properties and signals: focused output, workspaces, a "layers changed"/"layout changed" signal).
