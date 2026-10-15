@@ -250,23 +250,29 @@ QtObject {
       "why": "The overlay's panel: after docks, inside an always-shown dock's zone and over a hover or intellihide one."
     },
     {
-      "namespace": "osd",
+      "namespace": "blur-backing-overlay",
       "order": -9,
+      "noAnim": true,
+      "why": "The blur window over the overlay (shell/BlurBacking, while the overlay is open on its screen), drawing the fills of the Overlay-layer surfaces above it: after the overlay, before them. Mapped at once, so the fills it draws under content already showing don't fade in."
+    },
+    {
+      "namespace": "osd",
+      "order": -10,
       "why": "The OSD: after the overlay, so a volume or brightness change shows over it."
     },
     {
       "namespace": "dock-preview",
-      "order": -9,
+      "order": -10,
       "why": "A dock's preview (the settings card's Show): after the overlay, so it shows over the settings page."
     },
     {
       "namespace": "edge-popout",
-      "order": -10,
+      "order": -11,
       "why": "Edge popouts (floating edge menus): after the dock and the OSD, so a menu opened over the overlay draws over both."
     },
     {
       "namespace": "popout",
-      "order": -10,
+      "order": -11,
       "why": "Bar popouts: over the bars they open from."
     },
     {
@@ -328,6 +334,9 @@ QtObject {
   // animated by Hyprland while it does (they slide themselves), or their
   // stroke and content fade or pop in and out while what the blur window
   // draws for them doesn't
+  // The blur window over the overlay: what it blurs is the overlay, so
+  // never with xray (which would blur the wallpaper in its place)
+  readonly property var blurOverOverlay: ["blur-backing-overlay"]
   readonly property var blurBacked: root.barLayers.concat(["border", "popout", "popout-under", "edge-popout", "osd", "edge-menu", "dock"])
 
   function _blurRule(name, namespaces, effects, enabled) {
@@ -347,7 +356,7 @@ QtObject {
     const on = opts.on === true;
     const threshold = value(opts.threshold);
     const xray = `, xray = ${opts.throughWindows !== true}`;
-    return [_blurRule("axiom-blur", blurSurfaces, `blur = true, blur_popups = true, ignore_alpha = ${threshold}${xray}`, on), _blurRule("axiom-blur-popups", blurChrome, `blur_popups = true, ignore_alpha = ${threshold}`, on), _blurRule("axiom-blur-backdrops", blurBackdrops, `blur = true, ignore_alpha = 0.01${xray}`, on && opts.backdrops === true), _blurRule("axiom-blur-no-anim", blurBacked, "no_anim = true", on)];
+    return [_blurRule("axiom-blur", blurSurfaces, `blur = true, blur_popups = true, ignore_alpha = ${threshold}${xray}`, on), _blurRule("axiom-blur-popups", blurChrome, `blur_popups = true, ignore_alpha = ${threshold}`, on), _blurRule("axiom-blur-backdrops", blurBackdrops, `blur = true, ignore_alpha = 0.01${xray}`, on && opts.backdrops === true), _blurRule("axiom-blur-no-anim", blurBacked, "no_anim = true", on), _blurRule("axiom-blur-over-overlay", blurOverOverlay, `blur = true, ignore_alpha = ${threshold}, xray = false`, on)];
   }
 
   // --- Strips (Workspaces.strips, WorkspacesConfig.strips) ---

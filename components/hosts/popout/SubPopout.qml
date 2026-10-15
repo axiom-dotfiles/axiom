@@ -336,6 +336,7 @@ Item {
           x: (surface.parentOrigin?.x ?? 0) + surface.inParentX
           y: (surface.parentOrigin?.y ?? 0) + surface.inParentY
           shown: surface.backed && submenuPopup.visible
+          overlayLayer: outer.host?.onOverlayLayer ?? true
         }
 
         // The parent's side stroke it covers, left open, with its

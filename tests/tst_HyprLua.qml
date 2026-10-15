@@ -95,6 +95,17 @@ TestCase {
     compare(HyprLua.barLayers.length, 8);
   }
 
+  // The blur window over the overlay sits strictly between the overlay and
+  // every Overlay-layer surface it draws fills for
+  function test_blur_over_overlay_order() {
+    const order = ns => HyprLua.layers.find(l => l.namespace === ns).order;
+    const backing = order("blur-backing-overlay");
+    verify(order("overlay") > backing);
+    for (const ns of ["osd", "dock-preview", "edge-popout", "popout"])
+      verify(backing > order(ns), "under " + ns);
+    verify(HyprLua.layers.find(l => l.namespace === "blur-backing-overlay").noAnim);
+  }
+
   function test_value() {
     compare(HyprLua.value(0.1 + 0.2), "0.3");
     compare(HyprLua.value(true), "true");
@@ -522,7 +533,7 @@ assert(rules["axiom-no-window-blur"].enabled == false, "the rule off")`)}
     const on = lines({
       "on": true
     });
-    compare(on.length, 4, "the layer rules alone: the strength is Hyprland's");
+    compare(on.length, 5, "the layer rules alone: the strength is Hyprland's");
     verify(on.every(line => line.startsWith("hl.layer_rule")));
     verify(on[0].includes('name = "axiom-blur"'));
     verify(on[0].includes('"^axiom-(blur-backing|dock-preview|overlay|'), "the blur window, and surfaces it doesn't draw");
@@ -534,6 +545,11 @@ assert(rules["axiom-no-window-blur"].enabled == false, "the rule off")`)}
     verify(on[2].includes("enabled = false"), "backdrops only when asked");
     verify(on[3].includes('name = "axiom-blur-no-anim"') && on[3].includes("(bar|") && on[3].includes("|edge-popout|") && on[3].includes("no_anim = true, enabled = true"), "the backed chrome isn't animated by Hyprland");
     verify(!/[(|](launcher|overlay|backdrop)[|)]/.test(on[3]), "surfaces blurring themselves keep their animations");
+    verify(on[4].includes('"^axiom-(blur-backing-overlay)$"') && on[4].includes("blur = true, ignore_alpha = 0.5, xray = false, enabled = true"), "the blur window over the overlay blurs the overlay, never the wallpaper");
+    verify(lines({
+      "on": true,
+      "throughWindows": false
+    })[4].includes("xray = false"));
     verify(lines({
       "on": true,
       "backdrops": true
@@ -550,7 +566,7 @@ assert(rules["axiom-no-window-blur"].enabled == false, "the rule off")`)}
       "on": false,
       "backdrops": true
     });
-    compare(off.length, 4);
+    compare(off.length, 5);
     verify(off.every(line => line.endsWith("enabled = false })")));
     const written = files.write("tests/.out/blur.lua", on.join("\n") + "\n");
     tryVerify(() => written.done, 2000);

@@ -99,7 +99,7 @@ Every public member of `Appearance`, with the files that use it.
 - `Appearance.screenMargin` (int): The frame can't be thinner than its own outline (a narrower one would draw the stroke over the screen edge); without a frame it's just a gap
   - in: `components/bar/BarContainer.qml`, `components/hosts/popout/FloatingPopout.qml`, `components/hosts/popout/LayerOrigin.qml`, `components/surfaces/border/RoundedBorders.qml`, `components/surfaces/edgemenu/IntegratedEdgeMenu.qml`, `config/Bar.qml`, `services/BarManager.qml`
 - `Appearance.surfaceAlpha` (real): --- Translucency --- How solid the shell's surfaces are (0.6–1).
-  - in: `shell/BlurBacking.qml`
+  - in: `shell/BlurBackingWindow.qml`
 - `Appearance.translucent` (bool)
   - in: `components/bar/BarContainer.qml`, `components/hosts/popout/AttachedSurface.qml`, `components/hosts/popout/EdgePlacement.qml`, `components/hosts/popout/StrokeOpening.qml`, `components/hosts/popout/SubPopout.qml`
 - `Appearance.blur` (bool): Hyprland blurs behind them (HyprlandConfigManager's blur rules, which leave out pixels under blurThreshold: shadows, dims, fades), with its own blur (the windo…

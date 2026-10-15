@@ -21,10 +21,11 @@ Every axiom layer namespace with a Hyprland layer rule, from `HyprLua.layers` (a
 | `axiom-bar-floating-long` | -6 | Floating bars on the longer edge: the last bar. |
 | `axiom-dock` | -7 | Docks: after every bar and the border on their edge, so they sit inside them. |
 | `axiom-overlay` | -8 | The overlay's panel: after docks, inside an always-shown dock's zone and over a hover or intellihide one. |
-| `axiom-osd` | -9 | The OSD: after the overlay, so a volume or brightness change shows over it. |
-| `axiom-dock-preview` | -9 | A dock's preview (the settings card's Show): after the overlay, so it shows over the settings page. |
-| `axiom-edge-popout` | -10 | Edge popouts (floating edge menus): after the dock and the OSD, so a menu opened over the overlay draws over both. |
-| `axiom-popout` | -10 | Bar popouts: over the bars they open from. |
+| `axiom-blur-backing-overlay` | -9 | The blur window over the overlay (shell/BlurBacking, while the overlay is open on its screen), drawing the fills of the Overlay-layer surfaces above it: after the overlay, before them. Mapped at once, so the fills it draws under content already showing don't fade in. (no animation) |
+| `axiom-osd` | -10 | The OSD: after the overlay, so a volume or brightness change shows over it. |
+| `axiom-dock-preview` | -10 | A dock's preview (the settings card's Show): after the overlay, so it shows over the settings page. |
+| `axiom-edge-popout` | -11 | Edge popouts (floating edge menus): after the dock and the OSD, so a menu opened over the overlay draws over both. |
+| `axiom-popout` | -11 | Bar popouts: over the bars they open from. |
 | `axiom-screenshot` | -20 | The screenshot picker's frozen frame: appears and goes at once, no fade, over everything (popups can't be ordered: see captureFrozen). (no animation) |
 | `axiom-monitor-prompt` | -25 | The monitor layout prompt (Keep / Revert): after the picker, over the overlay the Monitors page opened it from. |
 | `axiom-polkit` | -30 | The polkit prompt: after everything, so nothing of axiom's draws over a password prompt. |

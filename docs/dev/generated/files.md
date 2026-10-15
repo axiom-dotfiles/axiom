@@ -541,6 +541,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `AppLauncher.qml`: The app launcher, one per screen its monitors setting picks (surfaces/launcher/Launcher).
 - `Bar.qml`: The bars: one BarPanel per BarManager.bars entry.
 - `BlurBacking.qml`: The blur behind the chrome (BlurManager): per screen, one click-through window under every chrome surface drawing each registered shape (the border's frame, bars, popouts, edge menus, docks) filled.
+- `BlurBackingWindow.qml`: One blur window (BlurBacking): click-through, drawing each of `shapes` (BlurShapes) filled, at the surface opacity, with their shadows cast once per look and kept outside every shape, its own and the other window's (`cu…
 - `Desktop.qml`: The desktop's modules on every screen whose layout has any (DesktopConfig.layoutFor), once the layer rules are in
 - `Dock.qml`: The docks (DockConfig), one per enabled entry, each on the screens its `monitors` puts it on: on the focused monitor only, it's rebuilt on the one focus moves to.
 - `EdgeMenus.qml`: The edge menus (EdgeMenusConfig), one per enabled entry.
