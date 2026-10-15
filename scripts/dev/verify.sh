@@ -5,7 +5,8 @@
 #   1. formats changed QML with Qt 6's qmlformat, writing in place so the
 #      file keeps its inode and the running shell still reloads it
 #   2. check_structure, gen_docs (rewrites docs/dev/config + generated),
-#      check_docs, qmllint, the unit tests the change touches, shellcheck, i18n
+#      check_docs, qmllint, the unit tests the change touches (QML, and
+#      the test_scripts.py classes of a changed script), shellcheck, i18n
 #   3. the shell's log since its last reload, lines issues.md already
 #      covers marked (known: …)
 #   4. warnings: the docs describing the changed files (check_doc_drift.py),
@@ -54,7 +55,7 @@ step() {
   "$@" || failed+=("$name")
 }
 
-qml=() tests=() shells=() schema=0
+qml=() tests=() shells=() script_tests=() schema=0
 for f in "${changed[@]}"; do
   case "$f" in
   *.qml) qml+=("$f") ;;
@@ -72,6 +73,22 @@ for f in "${changed[@]}"; do
     name="$(basename "$f" .qml)"
     tests+=("${name#tst_}")
     ;;
+  esac
+  # tests/scripts/test_scripts.py's classes for each script (the whole
+  # file takes ~2 min); a new script with tests gets a line here
+  case "$f" in
+  scripts/theme_*.sh | scripts/lib/theme_env.sh | scripts/templates/* | config/themes/* | config/json/theme-defaults.json)
+    script_tests+=(Themes TerminalPalette ThemeIntegrations)
+    ;;
+  scripts/integration_hookup.py) script_tests+=(HookupScript) ;;
+  scripts/self_update.sh) script_tests+=(SelfUpdate) ;;
+  scripts/claim_hyprland.sh) script_tests+=(ClaimHyprland) ;;
+  scripts/merge_hypr_binds.py | scripts/hypr_binds.lua) script_tests+=(MergeHyprBinds ClaimHyprland) ;;
+  scripts/generate_theme.py) script_tests+=(GenerateTheme) ;;
+  scripts/calendar_sync.py | scripts/setup_venv.sh | scripts/requirements.txt) script_tests+=(CalendarSync GenerateTheme) ;;
+  scripts/greeter/*) script_tests+=(GreeterInstall) ;;
+  scripts/pick_path.py) script_tests+=(PickPath) ;;
+  tests/scripts/test_scripts.py) script_tests+=(all) ;;
   esac
 done
 [[ $schema -eq 1 ]] && tests+=(Config ConfigExamples)
@@ -108,6 +125,14 @@ fi
 if [[ ${#tests[@]} -gt 0 ]]; then
   mapfile -t tests < <(printf '%s\n' "${tests[@]}" | sort -u)
   step "unit tests (${tests[*]})" bash -c 'scripts/run_tests.sh "$@" 2>&1 | grep -E "^(FAIL|Totals|XPASS)|error" ; exit "${PIPESTATUS[0]}"' _ "${tests[@]}"
+fi
+if [[ ${#script_tests[@]} -gt 0 ]]; then
+  if printf '%s\n' "${script_tests[@]}" | grep -qx all; then
+    step "script tests (all)" python3 tests/scripts/test_scripts.py
+  else
+    mapfile -t script_tests < <(printf '%s\n' "${script_tests[@]}" | sort -u)
+    step "script tests (${script_tests[*]})" python3 tests/scripts/test_scripts.py "${script_tests[@]}"
+  fi
 fi
 if printf '%s\n' "${changed[@]}" | grep -qE '^(\.claude/hooks/|tests/scripts/test_guard\.py)'; then
   step "guard tests" python3 tests/scripts/test_guard.py

@@ -35,7 +35,7 @@ The project's rules live in [AGENTS.md](AGENTS.md), plus an `AGENTS.md` in direc
 - Once per clone, `git config core.hooksPath .githooks`: the pre-commit hook regenerates `docs/dev/config/` and `docs/dev/generated/` (`scripts/gen_docs.py`) from what you commit, so they never go stale. Don't edit those by hand.
 - While working, `scripts/dev/verify.sh` checks just what you changed and shows the shell's log.
 - Found a bug you're not fixing? Add it to `docs/dev/issues.md` (format at the top).
-- Run `scripts/check_all.sh` before opening a pull request. It runs what CI runs: structure, generated docs, docs (`scripts/check_docs.py`), qmlformat, qmllint (against `scripts/qmllint-baseline.json`), the unit tests in `tests/`, shellcheck, the script tests and the translation check. Changing a migration step or a `components/methods/` helper? Add a test for it.
+- Run `scripts/check_all.sh` before opening a pull request. It runs what CI runs: structure, generated docs, docs (`scripts/check_docs.py`), qmlformat, qmllint (against `scripts/qmllint-baseline.json`), the unit tests in `tests/`, shellcheck, the script tests and the translation check. On GitHub, the checks job's summary page shows what each check found, and which docs describe what your pull request changes. Changing a migration step or a `components/methods/` helper? Add a test for it.
 - The checks don't run the shell: after saving, read `scripts/log.sh` (a clean reload is `Reloading configuration...` + `Configuration Loaded`).
 
 [docs/dev/](docs/dev/README.md) holds the mechanics of every service and surface, one doc per topic, plus the index of shared UI pieces. Read the relevant doc before changing a feature, and update it when you change how one works.

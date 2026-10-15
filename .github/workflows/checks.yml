@@ -14,7 +14,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # The org only allows its own SHA-pinned actions, so check out with plain
-      # git; the runner image already has git and python3
+      # git; the runner image already has git and python3. Whole history
+      # (a few MB): the doc drift counts commits since each doc changed
       - name: Checkout
         env:
           TOKEN: ${{ github.token }}
@@ -22,7 +23,7 @@ jobs:
           git init -q .
           git remote add origin "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"
           auth=$(printf 'x-access-token:%s' "$TOKEN" | base64 -w0)
-          git -c http.extraheader="AUTHORIZATION: basic $auth" fetch -q --depth=1 origin "$GITHUB_SHA"
+          git -c http.extraheader="AUTHORIZATION: basic $auth" fetch -q origin "$GITHUB_SHA"
           git checkout -q FETCH_HEAD
           python3 --version
 
@@ -48,6 +49,21 @@ jobs:
       - name: Translations
         continue-on-error: true
         run: python3 scripts/check_i18n.py
+
+      # The job's summary page: each check's result and findings as tables,
+      # the docs describing what a pull request changes, and doc drift.
+      # Runs whatever failed above; reports only (the steps fail)
+      - name: Summary
+        if: ${{ !cancelled() }}
+        env:
+          EVENT: ${{ github.event_name }}
+        run: |
+          if [ "$EVENT" = pull_request ]; then
+            # A pull request's HEAD is its merge commit: HEAD^1 is the base
+            python3 scripts/ci_summary.py --changed-from HEAD^1 >> "$GITHUB_STEP_SUMMARY"
+          else
+            python3 scripts/ci_summary.py >> "$GITHUB_STEP_SUMMARY"
+          fi
 
   # Qt tooling, on Arch so qmllint and the tests see the same Qt and
   # Quickshell (with its type info) as the shell does. A container image is

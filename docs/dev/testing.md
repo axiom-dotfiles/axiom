@@ -1,13 +1,13 @@
 # Testing and debugging the running shell
 
-> **Files:** `scripts/log.sh`, `scripts/check_all.sh`, `scripts/run_tests.sh`, `scripts/dev/popout_matrix.py`, `tests/`
+> **Files:** `scripts/dev/verify.sh`, `scripts/dev/shot.sh`, `scripts/log.sh`, `scripts/check_all.sh`, `scripts/run_tests.sh`, `scripts/dev/popout_matrix.py`
 > **Config:** none
 > **Related:** [Developer docs](README.md), [AGENTS.md](../../AGENTS.md) (Running / reloading, Never while testing, Checks)
 
 How to look at, exercise and debug the live shell without breaking the user's session, plus where every feature's own testing notes live. What you must never do while testing is in AGENTS.md › "Never, while testing".
 
 ### The loop
-- `scripts/dev/verify.sh` after every change: formats the changed QML in place (keeping the inode), runs `check_structure`, regenerates the docs, lints, runs the affected unit tests (a changed `methods/<Name>` runs `tst_<Name>`, a schema or migration change runs `Config` and `ConfigExamples`), shellchecks changed scripts, and prints the shell's log since the reload. `--all` runs `check_all.sh`.
+- `scripts/dev/verify.sh` after every change: formats the changed QML in place (keeping the inode), runs `check_structure`, regenerates the docs, lints, runs the affected unit tests (a changed `methods/<Name>` runs `tst_<Name>`, a schema or migration change runs `Config` and `ConfigExamples`, a changed script its `tests/scripts/test_scripts.py` classes, mapped in verify.sh), shellchecks changed scripts, and prints the shell's log since the reload. `--all` runs `check_all.sh`.
 - `scripts/dev/shot.sh` takes a screenshot of a surface and closes it again, printing the PNG's path: `page <ViewType>`, `launcher [text]`, `ipc <target> <open> [close]`, `screen`; `-m MONITOR` (default the focused one), `-w SECONDS`.
 
 ### Reloads and logs
@@ -51,6 +51,11 @@ How to look at, exercise and debug the live shell without breaking the user's se
 ### JS and QML experiments
 - Engine gaps (`flatMap`, `Object.fromEntries`, `Intl`) are in AGENTS.md › Formatting, the inline-component trap in › QML pitfalls. `toLocaleString(..., { timeZone })` is ignored too: see [clock-timezones](features/clock-timezones.md).
 - For quick JS checks, run a scratch `tst_x.qml` with `QT_QPA_PLATFORM=offscreen /usr/lib/qt6/bin/qmltestrunner -input <dir>`. The plain `qml` tool prints nothing.
+
+### CI
+- The `checks` job's summary page (`scripts/ci_summary.py`) shows each quick check's result and its findings as tables, linked to the file and line: structure, generated docs, docs against the code, translations. On a pull request it adds the docs describing the files it changes (`check_doc_drift.py --changed`), then the doc drift table. It reports only; the steps fail.
+- To see it locally: `scripts/ci_summary.py --changed-from main`.
+- Doc drift only warns, on purpose: it counts commits, not changed behaviour, and failing on it would teach touching docs to reset the count.
 
 ### CI locally
 - To dry-run the CI `qt` job in a clean container:

@@ -10,14 +10,14 @@ QtObject {
 
   // Chat.providers, each with an `id` (from its name when left empty) and
   // a `defaultModel` (the first model when left empty)
-  readonly property var providers: (_c.providers ?? []).map((provider, index) => Object.assign({}, provider, {
+  readonly property var providers: _c.providers.map((provider, index) => Object.assign({}, provider, {
       "id": provider.id || provider.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "provider-" + (index + 1),
       "name": provider.name || provider.id || "Provider " + (index + 1),
       "defaultModel": provider.defaultModel || (provider.models ?? [])[0] || ""
     }))
   // Chat.providers as saved (no filled-in ids or names), for editing
   readonly property var savedProviders: _c.providers
-  readonly property var presets: (_c.presets ?? []).filter(preset => preset.name !== "")
+  readonly property var presets: _c.presets.filter(preset => preset.name !== "")
   readonly property string defaultProvider: _c.defaultProvider
   readonly property string defaultPreset: _c.defaultPreset
   readonly property int maxTokens: _c.maxTokens

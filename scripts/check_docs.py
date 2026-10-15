@@ -10,6 +10,12 @@ Docs drift silently; this catches the drift a reader would trip on:
   (Singleton = a file in services/, config/ or components/methods/)
 - no backticked name is one a rename retired (RETIRED: add the old name
   when renaming a singleton, so docs still citing it fail)
+- every shared piece (a file in components/reusable, forms or content/parts)
+  is named in the shared-ui-pieces index or the docs it defers to, so the
+  index agents check before building stays whole
+- every recipe in docs/recipes has a skill in .claude/skills of its name,
+  and each such skill only points at its recipe (a rule restated in a skill
+  drifts from the recipe, which is the one copy)
 
 Covers docs/**/*.md (not the generated docs/dev/config and docs/dev/generated),
 every AGENTS.md, README.md and CONTRIBUTING.md, and .claude/skills. Fenced
@@ -122,6 +128,46 @@ def check_issues():
     return errors
 
 
+# Folders of shared pieces -> the docs that must name each of their files
+PIECE_INDEX = {
+    "components/reusable": ["docs/dev/core/shared-ui-pieces.md"],
+    "components/forms": ["docs/dev/core/shared-ui-pieces.md"],
+    "components/content/parts": ["docs/dev/core/shared-ui-pieces.md", "docs/dev/overlay/content-roots.md",
+                                 "docs/dev/overlay/writing-modules.md"],
+}
+
+
+def check_piece_index():
+    errors = []
+    for folder, index in PIECE_INDEX.items():
+        text = "\n".join((ROOT / doc).read_text() for doc in index)
+        for path in sorted((ROOT / folder).glob("*.qml")):
+            if not re.search(rf"\b{re.escape(path.stem)}\b", text):
+                errors.append(f"{folder}/{path.name}: not in {index[0]} (add a line for it)")
+    return errors
+
+
+# A recipe skill's body: this many lines at most, naming its recipe
+SKILL_LINES = 2
+
+
+def check_skills():
+    errors = []
+    recipes = {p.stem for p in (ROOT / "docs/recipes").glob("*.md")}
+    skills = {p.parent.name: p for p in (ROOT / ".claude/skills").glob("*/SKILL.md")}
+    for name in sorted(recipes - skills.keys()):
+        errors.append(f"docs/recipes/{name}.md: no skill .claude/skills/{name}/SKILL.md")
+    for name in sorted(recipes & skills.keys()):
+        rel = skills[name].relative_to(ROOT)
+        body = [line for line in skills[name].read_text().split("---", 2)[-1].splitlines() if line.strip()]
+        if not any(f"docs/recipes/{name}.md" in line for line in body):
+            errors.append(f"{rel}: doesn't point at docs/recipes/{name}.md")
+        elif len(body) > SKILL_LINES:
+            errors.append(f"{rel}: {len(body)} lines; a recipe skill only points at its recipe "
+                          f"(move rules into docs/recipes/{name}.md)")
+    return errors
+
+
 def main():
     errors = []
     members = singletons()
@@ -154,6 +200,8 @@ def main():
                     if m.group(2) not in members[m.group(1)]:
                         errors.append(f"{where}: `{span}`: {m.group(1)} has no member {m.group(2)}")
     errors += check_issues()
+    errors += check_skills()
+    errors += check_piece_index()
     for e in errors:
         print(f"error    {e}")
     print("docs ok" if not errors else f"{len(errors)} doc errors")

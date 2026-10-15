@@ -1,15 +1,18 @@
 # Shared UI pieces
 
-> **Files:** `components/reusable/`, `components/forms/`, `components/methods/`, `components/hosts/popout/`, `components/views/settings/`, `components/content/parts/`
+> **Files:** `components/reusable/`, `components/forms/`, `components/content/parts/`, `components/methods/Utils.qml`, `components/methods/Search.qml`, `components/views/settings/FoldingCard.qml`, `components/views/settings/EntryListCard.qml`, `components/views/settings/ScreenSpotPicker.qml`
 > **Config:** none
 > **Related:** [Editors pattern](editors-pattern.md), [Content roots](../overlay/content-roots.md), [Writing modules](../overlay/writing-modules.md), [Popout surface context](../popouts/surface-context.md), [Translucency and blur](../theming/translucency-blur.md)
 
-An index of reusable pieces. Reach for one of these before drawing your own; when a pattern appears a second time, it becomes one of these. (Rule: AGENTS.md › UI conventions, "Reuse before building".)
+An index of reusable pieces. Reach for one of these before drawing your own; when a pattern appears a second time, it becomes one of these. (Rule: AGENTS.md › UI conventions, "Reuse before building".) Every file in `reusable/`, `forms/` and `content/parts/` is named here or in the docs it links to (`scripts/check_docs.py` checks): add a line when you add a piece.
 
 ### Text and structure (`reusable/`)
 - `StyledText` / `StyledIcon`.
 - `SectionHeading`: accent title + muted description.
 - `FieldGroup`: a titled card of fields; `headerExtras` beside the heading.
+- `StyledContainer`: a themed box (surface opacity or solid, optional border and radius).
+- `StyledScrollView`: a ScrollView with the shell's padding and a thin accent scroll bar.
+- `KeyHint`: a keycap and what it does (`[↵] open`), for a controls hint.
 - `StyledSeparator`: border-coloured divider (accent where a divider is accent by design).
 - `StatusChip` (filled status pill), `CountBadge` (a count on a button's or icon's corner; bumps when it changes), `UnsavedDot` (`onAccent` on a selected row).
   - All three are `PopInRectangle`s: set `shown` (not `visible`) and they pop in and out; `pulse()` for a bump.
@@ -23,11 +26,15 @@ An index of reusable pieces. Reach for one of these before drawing your own; whe
 - `KeyedLoader`: rebuilds a form when `key` changes, so rows never write old values onto a new selection.
 
 ### Controls (`reusable/`)
-- `StyledTextButton`, `StyledIconButton`, `SquareIconButton`, `FlatIconButton`.
+- `StyledTextButton`, `StyledIconButton`, `SquareIconButton`, `FlatIconButton`, `StyledRectButton` (icon, hover and press colors, optional `CountBadge`).
+- `StyledToolTip`: a hover tooltip in a popup window of its own, so the small layer windows buttons live in don't clip it. Buttons take `tooltipText`.
+- `StyledSlider`: trough, fill and handle; `moved` while dragged, `released` at the end; a value pushed in animates.
+- `StyledVolumeBar`: a volume bar with its icon, mute and optional percentage (drag, click or scroll); `PipewireVolumeBar` binds one to a Pipewire stream or the system volume (the OSD's).
+- `PercentageCircle`: a ring gauge with an icon in the middle.
 - `SegmentButton`: a choice, accent when `active`; `Layout.fillWidth: false` in a row of pills.
 - `SegmentRow`: a single choice of SegmentButtons on one track, the accent sliding to the active one. Toggles and multi-select chips stay plain rows or Flows.
-- `StyledTabBar`: its current tab's highlight slides between tabs.
-- `StyledTextEntry`: see the AGENTS.md pitfall (push the value in, act on `textEdited`).
+- `StyledTabBar` (of `StyledTabButton`s): its current tab's highlight slides between tabs.
+- `StyledTextEntry`: see the AGENTS.md pitfall (push the value in, act on `textEdited`). `StyledTextArea`: multi-line, optionally growing with its text.
 - `PasswordEntry`: a password field with a message, a busy bar and `shake()`.
   - It has no authenticator of its own: the lock screen's `PasswordField`, the greeter's `LoginField` and the polkit prompt wire it.
 - `StyledComboEntry`: a choice from a list dropping down under a field, optionally typed.
@@ -52,7 +59,7 @@ An index of reusable pieces. Reach for one of these before drawing your own; whe
 - `content/base/SaveResetActions`: an editor's Save/Reset pair. `compact` drops to icons, as `CardHeader` does when its row is too narrow. Items placed in a `CardHeader` sit just after its title.
 
 ### Forms (`forms/`)
-- `SchemaField`: one schema row, any type.
+- `SchemaField`: one schema row, any type. It picks `SchemaSwitch`, `SchemaNumberField` (slider or stepper), `SchemaComboBox`, `SchemaTextField` (commits on Enter, focus loss or a suggestion; a Browse button with `x-control: "folder"`) or `SchemaObjectArray` (a list of `SchemaArrayItem`s): use `SchemaField`, not those, unless you need one alone.
 - `SchemaPropertiesForm`: a flat object; `order`.
 - `SettingRows`: dotted config paths as rows, saved debounced.
 - `OptionsGroup`: an inspector's Options card (problem, form, empty text).
@@ -60,6 +67,7 @@ An index of reusable pieces. Reach for one of these before drawing your own; whe
 - `GreeterSetup`: setting up the login screen (what Install changes, Install/Update/Remove, the commands left to run). Used by Settings' `GreeterStatusCard` and the onboarder.
 
 ### Bar pieces (`bar/`)
+- `BaseWidget`: the rounded box a bar widget sits in; `IconTextWidget`: an icon and a label along the bar's axis (rotated on a vertical bar).
 - `WidgetBackground`: a widget's or merged run's background in the bar's widget style and shape, with the hover outline and editor highlight.
 - `SeparatorMark`: a line, dot, slash or chevron divider (the Separator widget's and the bar's `separatorStyle`).
 - `methods/BarShapes` (caps and SVG outlines), `methods/BarWidgetStyle` (colors per widget style), `methods/BarAutoColors` (Auto widget colors).
@@ -87,9 +95,12 @@ An index of reusable pieces. Reach for one of these before drawing your own; whe
 ### Small helpers
 - **Last found** (`reusable/LastFound`): the last non-null `source`, for an entry looked up by id whose delegates must never be handed null as it's removed (`shell/Dock`, `shell/OSD`).
 - **Frame nudge** (`reusable/FrameNudge`): `burst()` makes its window draw and commit a few more frames. For where Hyprland keeps showing a layer's frame from before a change (a bar's stretches, the blur window's shapes).
+- **Backdrop** (`reusable/ScreenBackdrop`): a full-screen surface's dim background (overlay, overview, launcher), under the bars and the border.
+- **Surface group** (`reusable/SurfaceGroup`): keeps a surface's instances on every monitor in step when its `monitors` mode is `all`.
 - **Folding** (`reusable/FoldingColumn`): a column whose height animates open and shut on `open` (not when built), clipped, its content fading with it, with paddings that fold too. `shown` stays true until fully shut, so content can be held until then.
 
 ### Blur and joins
+- `reusable/CornerPiece`: a concave "inverted corner" filled up to a quarter circle, with its two edges stroked.
 - `reusable/HoledItem`: its children with rects cut out (a stroke left open where something joined to it carries on).
 - `hosts/popout/BlurShape` + `LayerOrigin`: a chrome surface's shape for the blur window, and where its layer window is on screen.
 - See [Translucency and blur](../theming/translucency-blur.md).
@@ -116,7 +127,7 @@ An index of reusable pieces. Reach for one of these before drawing your own; whe
 - See [Settings page](settings-page.md).
 
 ### Content and calendar parts
-- **Content parts** (`content/parts/`): see [Content roots](../overlay/content-roots.md) and [Writing modules](../overlay/writing-modules.md).
+- **Content parts** (`content/parts/`): see [Content roots](../overlay/content-roots.md) and [Writing modules](../overlay/writing-modules.md). Also `AudioRow` (a mixer line: icon, title, volume slider, percentage, mute) and `TrayMenuList` / `TrayMenuItem` (a tray menu's entries, for the tray popout and its submenus).
 - **Calendar parts** (`content/parts/calendar/`): see [Calendar](../features/calendar.md).
 
 ### Pure helpers (`methods/`)
