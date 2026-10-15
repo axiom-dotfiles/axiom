@@ -2925,6 +2925,7 @@
     "Centre horizontally": "左右中央に揃える",
     "Centre vertically": "上下中央に揃える",
     "Can't be centred exactly: it would sit between grid units": "正確に中央に揃えられません：グリッドの単位の間にずれます",
-    "No room to centre it": "中央に揃える余地がありません"
+    "No room to centre it": "中央に揃える余地がありません",
+    "Choose a folder": "フォルダを選択"
   }
 }

@@ -1,6 +1,6 @@
 # Saved configs, examples, import and export
 
-> **Files:** `services/SavedConfigsManager.qml`, `components/methods/ConfigExamples.qml`, `components/views/settings/SavedConfigsSection.qml`, `services/ConfigManager.qml`, `scripts/pick_file.py`, `examples/*.json`
+> **Files:** `services/SavedConfigsManager.qml`, `components/methods/ConfigExamples.qml`, `components/views/settings/SavedConfigsSection.qml`, `services/ConfigManager.qml`, `services/FilePickerManager.qml`, `examples/*.json`
 > **Config:** whole config, filtered by `x-scope`; snapshots in `config/user/saved/`; `config/state/savedconfigs.json`
 > **Related:** [Schema annotations](schema-annotations.md), [Config manager](config-manager.md), [Launcher](../features/launcher.md) (`/config` save/restore), [Shell manager](shell-manager-targeting.md)
 
@@ -39,8 +39,7 @@ Walks a value along the schema.
   1. Load the file through `ConfigManager.normalizeConfig`, so any version migrates.
   2. Save the running config as `before-<name>`.
   3. Once that is written, restore `ConfigExamples.apply`.
-- `browseImport()` runs `scripts/pick_file.py`: xdg-desktop-portal's FileChooser through python-gobject, else zenity/kdialog.
-  - The overlay is stepped aside meanwhile (`ShellManager.beginStepAside`): the picker is a window, under the Overlay layer.
+- `browseImport()` opens the desktop's file picker for a JSON file ([File picker](file-picker.md)).
   - The chosen file becomes `importing`, with title and description from its `_example` header, for the page's confirm row. The row's switch for personal parts starts off.
 
 ### Export

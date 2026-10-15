@@ -64,7 +64,7 @@ QtObject {
   // hasPersonal: the file holds keybinds, apps or commands), or null
   property var importing: null
   // The file picker is open
-  readonly property bool picking: _picker.running
+  readonly property bool picking: FilePickerManager.running
 
   // What to apply once the running config is saved as its backup:
   // { name, config, personal }, or null
@@ -167,12 +167,9 @@ QtObject {
 
   // Opens the desktop's file picker; the chosen file goes to openImport
   function browseImport() {
-    if (_picker.running)
-      return;
-    _picker.command = ["python3", Paths.scriptsPath + "pick_file.py", I18n.tr("Import a configuration"), Paths.homeDirectory];
-    // The picker is an ordinary window, under the overlay's layer
-    ShellManager.beginStepAside("filePicker");
-    _picker.running = true;
+    FilePickerManager.pick(root, I18n.tr("Import a configuration"), {
+      "filter": "JSON:*.json"
+    }, path => root.openImport(path), () => root.status = I18n.tr("No file picker could be opened"));
   }
 
   // Loads a shared file (an export, an example, or a whole config.json of
@@ -404,30 +401,6 @@ QtObject {
     onSaveFailed: error => {
       root.status = I18n.tr("Failed to export to {0}", Paths.shortenHome(path));
       console.warn("[SavedConfigsManager] Could not write", path + ":", FileViewError.toString(error));
-    }
-  }
-
-  property Process _picker: Process {
-    stdout: StdioCollector {
-      id: pickedPath
-    }
-    stderr: StdioCollector {
-      onStreamFinished: {
-        if (text.trim() !== "")
-          console.warn("[SavedConfigsManager] File picker:", text.trim());
-      }
-    }
-    // Not in onExited: a picker that fails to start never exits, and the
-    // overlay would stay hidden
-    onRunningChanged: {
-      if (!running)
-        ShellManager.endStepAside("filePicker");
-    }
-    onExited: code => {
-      if (code === 0 && pickedPath.text.trim() !== "")
-        root.openImport(pickedPath.text.trim());
-      else if (code !== 1)
-        root.status = I18n.tr("No file picker could be opened");
     }
   }
 

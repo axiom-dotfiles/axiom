@@ -589,6 +589,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `EditsManager.qml`: The editors' unsaved edits, by overlay page: which pages hold a dirty draft (the navigator's dots and the unsaved-changes strip), and saving or discarding them all at once.
 - `EmojiManager.qml`: The emoji the launcher searches (";" or /emoji), while Launcher.emoji is on.
 - `FileManager.qml`: Synchronous whole-file reads, for the few places that need a file's contents during a binding or initializer (config, schema, theme, state).
+- `FilePickerManager.qml`: The desktop's file picker (scripts/pick_path.py: xdg-desktop-portal, else zenity or kdialog), for a file or a folder: config import, and the Browse button of folder settings (the schema's x-control: "folder").
 - `GreetdManager.qml`: The login itself, in the greeter (greeter.qml): who logs in, into which session, and the conversation with greetd (Quickshell's Greetd: PAM through greetd's IPC).
 - `GreeterManager.qml`: Axiom as greetd's login screen, from the user's side (the greeter itself is greeter.qml, with GreetdManager).
 - `GridEditor.qml`: Editing of one grid of modules (each with a `place` { x, y, w, h } in quarter cards), shared by the layouts editor's overlay pages and edge menus.

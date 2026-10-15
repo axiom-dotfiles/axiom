@@ -847,6 +847,7 @@
         "wallpaperFolder": {
           "type": "string",
           "title": "Wallpaper folder",
+          "x-control": "folder",
           "default": "~/Pictures/wallpapers",
           "pattern": "\\S",
           "description": "Folder the wallpaper pickers list images from (jpg, png, bmp). A leading ~ is your home folder."
@@ -1558,7 +1559,7 @@
       "additionalProperties": false,
       "x-order": ["directory", "extensions", "showHidden", "confirmDelete"],
       "properties": {
-        "directory": { "type": "string", "title": "Notes folder", "default": "", "description": "An absolute path (~/ works), e.g. a synced folder or a Markdown vault. Empty keeps notes in axiom's config/state/notes, which is not backed up." },
+        "directory": { "type": "string", "title": "Notes folder", "x-control": "folder", "default": "", "description": "An absolute path (~/ works), e.g. a synced folder or a Markdown vault. Empty keeps notes in axiom's config/state/notes, which is not backed up." },
         "extensions": { "type": "array", "title": "File types", "default": ["md", "txt"], "items": { "type": "string" }, "description": "File extensions the note list shows, comma-separated. New notes are .md." },
         "showHidden": { "type": "boolean", "title": "Show hidden files", "default": false, "description": "List files and folders whose names start with a dot." },
         "confirmDelete": { "type": "boolean", "title": "Confirm before deleting", "default": true, "description": "Deleted notes and folders go to the trash. Without gio (glib2) deleting is permanent, and always asks first." }
@@ -3661,7 +3662,7 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "directory": { "x-scope": "machine", "type": "string", "title": "Save to", "default": "~/Pictures/Screenshots"}
+            "directory": { "x-scope": "machine", "type": "string", "title": "Save to", "x-control": "folder", "default": "~/Pictures/Screenshots"}
           }
         }
       }
@@ -3941,7 +3942,7 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "directory": { "x-scope": "machine", "type": "string", "title": "Folder", "default": "", "description": "Where recordings are saved and listed from (~ is your home). Empty uses Pictures/Screenshots, as screenshots do." },
+            "directory": { "x-scope": "machine", "type": "string", "title": "Folder", "x-control": "folder", "default": "", "description": "Where recordings are saved and listed from (~ is your home). Empty uses Pictures/Screenshots, as screenshots do." },
             "grow": {"type": "integer", "title": "Grow by up to", "default": 0, "minimum": 0, "maximum": 16, "x-unit": "rows", "description": "Rows it may take while its list needs them: free rows towards the edge first (above it, or below it in a bottom menu), then away from it, pushing the modules there along (not on the lock or login screen). 0 keeps it at its size."}
           }
         }
@@ -4554,7 +4555,7 @@
             "showTemp": { "type": "boolean", "title": "CPU temperature", "default": true, "description": "Hidden on machines without a k10temp / coretemp / zenpower sensor." },
             "showGpu": { "type": "boolean", "title": "GPU usage", "default": false, "description": "AMD (sysfs) or NVIDIA (nvidia-smi). Hidden when no GPU is found." },
             "showDisk": { "type": "boolean", "title": "Disk usage", "default": false },
-            "diskPath": { "x-scope": "machine", "type": "string", "title": "Disk path", "default": "/", "description": "Any path on the filesystem to report.", "x-showIf": { "showDisk": true } },
+            "diskPath": { "x-scope": "machine", "type": "string", "title": "Disk path", "x-control": "folder", "default": "/", "description": "Any path on the filesystem to report.", "x-showIf": { "showDisk": true } },
             "interval": { "type": "integer", "title": "Poll interval", "x-unit": "ms", "default": 2000, "minimum": 1000, "maximum": 60000 },
             "showPopout": { "type": "boolean", "title": "Popout", "default": true, "description": "Open live graphs of the shown metrics when hovered." },
             "popoutMenu": { "type": "string", "title": "Open instead", "default": "", "x-options": "edgeMenus", "x-emptyLabel": "Its own popout", "description": "An edge menu to open in place of the popout.", "x-showIf": { "showPopout": true } },
@@ -4720,7 +4721,7 @@
                 "x-order": ["label", "configDir"],
                 "properties": {
                   "label": { "type": "string", "title": "Label", "default": "", "description": "Shown in the popout; its first letter tells accounts apart on the bar." },
-                  "configDir": { "type": "string", "title": "Config directory", "default": "~/.claude" }
+                  "configDir": { "type": "string", "title": "Config directory", "x-control": "folder", "default": "~/.claude" }
                 }
               }
             },

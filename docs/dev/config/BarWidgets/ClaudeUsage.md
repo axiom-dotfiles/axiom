@@ -16,6 +16,7 @@ Settings are read as `properties.<key>`.
   - in: `components/bar/widgets/ClaudeUsage.qml`
 - **`accounts[].configDir`** · string = "~/.claude"
   - Config directory
+  - x-control="folder"
   - in: `components/bar/widgets/ClaudeUsage.qml`
 - **`metric`** · string = "session" · enum session|weekly
   - Limit shown

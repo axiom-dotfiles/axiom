@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import qs.config
+import qs.services
 import qs.components.reusable
 
 // i18n: keys from callers and the schema (titles, descriptions, type labels)
@@ -17,6 +18,9 @@ ColumnLayout {
   // puts one in the field, or adds it to a comma-separated list
   property var suggestions: []
   property bool commaList: false
+  // "folder": a Browse button beside the field opens the desktop's folder
+  // picker (`x-control: "folder"`); the folder picked commits at once
+  property string browse: ""
 
   // What was typed, once it matches `pattern`: on Enter (Ctrl+Enter in a
   // multiline field), as the field loses focus or is torn down, never per
@@ -29,6 +33,8 @@ ColumnLayout {
 
   // Typed since the last commit or value pushed in
   property bool _typed: false
+  // The Browse button's picker couldn't be shown
+  property bool _pickFailed: false
 
   readonly property string _text: root.multiline ? textArea.text : textEntry.text
   // The text as it reads back once committed: a list's typed "a, b," is
@@ -65,7 +71,10 @@ ColumnLayout {
   }
 
   // Don't lose an edit when the page goes away with the field focused
-  Component.onDestruction: root._commitTyped()
+  Component.onDestruction: {
+    root._commitTyped();
+    FilePickerManager.forget(root);
+  }
 
   Layout.fillWidth: true
   spacing: 4
@@ -75,22 +84,46 @@ ColumnLayout {
     Layout.fillWidth: true
   }
 
-  StyledTextEntry {
-    id: textEntry
+  RowLayout {
     visible: !root.multiline
     Layout.fillWidth: true
-    Layout.preferredHeight: Widget.height
-    text: root.currentConfigValue
+    spacing: Widget.spacing / 2
 
-    onTextEdited: root._typed = true
-    onAccepted: root._commitTyped()
-    // Commits on leaving; half-typed text that never matched shows the
-    // value again
-    input.onActiveFocusChanged: {
-      if (textEntry.input.activeFocus)
-        return;
-      root._commitTyped();
-      root._show();
+    StyledTextEntry {
+      id: textEntry
+      Layout.fillWidth: true
+      Layout.preferredHeight: Widget.height
+      text: root.currentConfigValue
+
+      onTextEdited: root._typed = true
+      onAccepted: root._commitTyped()
+      // Commits on leaving; half-typed text that never matched shows the
+      // value again
+      input.onActiveFocusChanged: {
+        if (textEntry.input.activeFocus)
+          return;
+        root._commitTyped();
+        root._show();
+      }
+    }
+
+    FlatIconButton {
+      visible: root.browse === "folder"
+      size: Widget.height
+      iconText: "folder_open"
+      tooltipText: I18n.tr("Choose a folder")
+      enabled: !FilePickerManager.running
+      onClicked: {
+        root._pickFailed = false;
+        FilePickerManager.pick(root, I18n.tr(root.label), {
+          "folder": true,
+          "start": root.currentConfigValue,
+          "shortenHome": true
+        }, path => {
+          textEntry.text = path;
+          root._accept(path);
+        }, () => root._pickFailed = true);
+      }
     }
   }
 
@@ -139,6 +172,15 @@ ColumnLayout {
         }
       }
     }
+  }
+
+  StyledText {
+    visible: root._pickFailed
+    text: I18n.tr("No file picker could be opened")
+    color: Theme.warning
+    textSize: Appearance.fontSize - 2
+    wrapMode: Text.WordWrap
+    Layout.fillWidth: true
   }
 
   StyledText {

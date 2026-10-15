@@ -27,7 +27,7 @@ Settings are read as `properties.<key>`.
   - in: `components/bar/widgets/SystemStats.qml`
 - **`diskPath`** · string = "/"
   - Disk path: Any path on the filesystem to report.
-  - x-scope="machine", x-showIf={"showDisk":true}
+  - x-scope="machine", x-control="folder", x-showIf={"showDisk":true}
   - in: `components/bar/widgets/SystemStats.qml`
 - **`interval`** · integer = 2000 · 1000–60000 · ms
   - Poll interval

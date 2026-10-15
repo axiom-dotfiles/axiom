@@ -8,7 +8,7 @@ Settings are read as `properties.<key>`.
 
 - **`directory`** · string = ""
   - Folder: Where recordings are saved and listed from (~ is your home). Empty uses Pictures/Screenshots, as screenshots do.
-  - x-scope="machine"
+  - x-scope="machine", x-control="folder"
   - in: `components/content/ScreenRecord.qml`
 - **`grow`** · integer = 0 · 0–16 · rows
   - Grow by up to: Rows it may take while its list needs them: free rows towards the edge first (above it, or below it in a bottom menu), then away from it, pushing the modules there along (not on the lock or login screen). 0 keeps it at its size.

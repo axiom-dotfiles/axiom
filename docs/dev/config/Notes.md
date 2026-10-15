@@ -13,6 +13,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 
 - **`Notes.directory`** · string = ""
   - Notes folder: An absolute path (~/ works), e.g. a synced folder or a Markdown vault. Empty keeps notes in axiom's config/state/notes, which is not backed up.
+  - x-control="folder"
   - read: `NotesConfig.directory` (part), `NotesConfig.linked` (part) · in: `services/NotesManager.qml`
 - **`Notes.extensions`** · array<string> = ["md","txt"]
   - File types: File extensions the note list shows, comma-separated. New notes are .md.

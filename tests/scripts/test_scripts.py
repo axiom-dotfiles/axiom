@@ -21,6 +21,8 @@
   - calendar_sync.py reads a locally served .ics feed into occurrences, and
     edits events (new, one occurrence, excluded, the series moved) so they
     read back right (skipped when the venv can't be set up)
+  - pick_path.py falls back to zenity/kdialog without a portal, asking for
+    a folder or a filtered file, and exits 1 when cancelled, 2 with no picker
 
   python3 tests/scripts/test_scripts.py [-v] [TestCase[.test_name]]
 """
@@ -1549,6 +1551,62 @@ class GreeterInstall(unittest.TestCase):
     def test_refuses_unknown_source_and_channel(self):
         self.assertIn("unknown source", self.run_script("install", ok=False, source="svn")["error"])
         self.assertIn("unknown channel", self.run_script("install", ok=False, channel="beta")["error"])
+
+
+class PickPath(unittest.TestCase):
+    """pick_path.py with no portal (a dead session bus), so it falls back
+    to a stubbed zenity or kdialog that logs its arguments."""
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.tmp)
+        self.stubs = self.tmp / "stubs"
+        self.stubs.mkdir()
+        self.start = self.tmp / "start"
+        self.start.mkdir()
+
+    def stub(self, name, code=0):
+        stub = self.stubs / name
+        stub.write_text(f'#!/bin/sh\nprintf "%s\\n" "$@" > "{self.tmp}/args"\necho /picked/path\nexit {code}\n')
+        stub.chmod(stub.stat().st_mode | stat.S_IEXEC)
+
+    def pick(self, *args):
+        env = dict(os.environ, PATH=str(self.stubs), HOME=str(self.tmp),
+                   DBUS_SESSION_BUS_ADDRESS=f"unix:path={self.tmp}/no-bus")
+        done = subprocess.run([sys.executable, str(SCRIPTS / "pick_path.py"), *args],
+                              env=env, capture_output=True, text=True, timeout=30)
+        logged = (self.tmp / "args").read_text().splitlines() if (self.tmp / "args").exists() else []
+        return done.returncode, done.stdout.strip(), logged
+
+    def test_zenity_folder(self):
+        self.stub("zenity")
+        code, out, logged = self.pick("--folder", "Pick", str(self.start))
+        self.assertEqual((code, out), (0, "/picked/path"))
+        self.assertIn("--directory", logged)
+        self.assertIn(f"{self.start}/", logged)
+
+    def test_zenity_file_filter(self):
+        self.stub("zenity")
+        _, _, logged = self.pick("--filter", "JSON:*.json", "Pick", str(self.start))
+        self.assertNotIn("--directory", logged)
+        self.assertIn("JSON | *.json", logged)
+
+    def test_kdialog_folder(self):
+        self.stub("kdialog")
+        code, out, logged = self.pick("--folder", "Pick", str(self.start))
+        self.assertEqual((code, out), (0, "/picked/path"))
+        self.assertEqual(logged[-2:], ["--getexistingdirectory", str(self.start)])
+
+    def test_missing_start_opens_home(self):
+        self.stub("kdialog")
+        _, _, logged = self.pick("--folder", "Pick", str(self.tmp / "gone"))
+        self.assertEqual(logged[-1], str(self.tmp))
+
+    def test_cancelled_and_no_picker(self):
+        self.stub("zenity", code=1)
+        self.assertEqual(self.pick("--folder", "Pick")[0], 1)
+        (self.stubs / "zenity").unlink()
+        self.assertEqual(self.pick("--folder", "Pick")[0], 2)
 
 
 if __name__ == "__main__":

@@ -339,6 +339,7 @@ Loader {
       label: root.label
       description: root.description
       multiline: root.fieldSchema["x-multiline"] === true
+      browse: root.fieldSchema["x-control"] === "folder" ? "folder" : ""
       // Text that doesn't match yet (a half-typed time) isn't committed
       pattern: root.fieldSchema.pattern ?? null
       suggestions: SettingsManager.suggestionsFor(root.fieldSchema)

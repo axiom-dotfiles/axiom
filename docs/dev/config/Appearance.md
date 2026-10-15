@@ -36,7 +36,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `Appearance.wallpaperBackend` · in: `services/HyprlandConfigManager.qml`, `services/ThemeManager.qml`, `shell/Wallpaper.qml`
 - **`Appearance.wallpaperFolder`** · string = "~/Pictures/wallpapers"
   - Wallpaper folder: Folder the wallpaper pickers list images from (jpg, png, bmp). A leading ~ is your home folder.
-  - pattern="\\S"
+  - x-control="folder", pattern="\\S"
   - read: `Appearance.wallpaperFolder`, `Appearance.wallpaperPath` (computed) · in: `components/content/WallpaperPicker.qml`, `components/surfaces/onboarding/pages/LookPage.qml`, `services/ThemeManager.qml`, `services/WallpaperManager.qml`
 - **`Appearance.wallpaperMode`** · string = "fixed" · enum fixed|rotate|variant
   - Wallpaper mode: Fixed keeps the wallpaper you pick. Rotate changes it on a timer, from the wallpaper folder. One for light, one for dark shows the wallpaper you picked for the theme's current variant on every monitor. A generated theme follows the wallpaper as it changes. Also set on the overlay's Themes page.

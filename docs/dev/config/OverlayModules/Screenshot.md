@@ -8,5 +8,5 @@ Settings are read as `properties.<key>`.
 
 - **`directory`** · string = "~/Pictures/Screenshots"
   - Save to
-  - x-scope="machine"
+  - x-scope="machine", x-control="folder"
   - in: `components/content/Screenshot.qml`
