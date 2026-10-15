@@ -18,11 +18,11 @@ Settings are read as `properties.<key>`.
   - in: `components/bar/widgets/Bluetooth.qml`
 - **`showPopout`** · boolean = true
   - Popout: Open the Bluetooth menu when hovered.
-  - in (generic, name match): `config/EdgeMenusConfig.qml`, `services/SystemManager.qml`
+  - in (generic, name match): `components/methods/ConfigMigration.qml`, `config/EdgeMenusConfig.qml`, `services/EdgeMenuManager.qml`, `services/SystemManager.qml`
 - **`popoutMenu`** · string = ""
   - Open instead: An edge menu to open in place of the popout.
   - x-options="edgeMenus", x-emptyLabel="Its own popout", x-showIf={"showPopout":true}
-  - in (generic, name match): `config/EdgeMenusConfig.qml`
+  - in (generic, name match): `components/methods/ConfigMigration.qml`, `config/EdgeMenusConfig.qml`, `services/EdgeMenuManager.qml`
 - **`middleCommand`** · string = ""
   - Middle-click command: Shell command run on middle click (e.g. blueman-manager). Empty does nothing.
   - x-scope="personal"

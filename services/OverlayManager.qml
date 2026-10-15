@@ -298,7 +298,7 @@ QtObject {
   // { kind: "page" | "menu", index, label }, or null
   function openedBy(widget) {
     const props = widget?.type === "Button" ? widget.properties ?? {} : {};
-    const menuId = EdgeMenusConfig.menuOpenedBy(widget);
+    const menuId = EdgeMenusConfig.menusOpenedBy(widget)[0] ?? "";
     if (menuId !== "") {
       const menus = EdgeMenuManager.localMenus ?? EdgeMenusConfig.menus;
       const index = menus.findIndex(menu => menu.id === menuId);

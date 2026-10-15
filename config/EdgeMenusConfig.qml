@@ -28,19 +28,20 @@ QtObject {
   // The menu a bar widget opens as its popout (its `popoutMenu`, with
   // `showPopout` on), else "": it opens its own popout, if any. A menu
   // that's gone or disabled leaves it its own. Widgets without the fields
-  // (Button, Separator, the tray) have none.
+  // (Separator, the tray) have none; a Button has no popout of its own.
   function popoutMenuOf(properties) {
     const id = properties?.showPopout ? (properties.popoutMenu ?? "") : "";
     return id !== "" && root.enabledMenus.some(menu => menu.id === id && !root.isSubmenu(menu)) ? id : "";
   }
 
-  // The id of the menu a bar widget entry opens, as configured (a Button
-  // toggling one, or a menu popout; gone or disabled alike), else ""
-  function menuOpenedBy(widget) {
+  // The ids of the menus a bar widget entry opens, as configured (gone or
+  // disabled alike): its menu popout, then a Button's click menu
+  function menusOpenedBy(widget) {
     const props = widget?.properties;
-    if (widget?.type === "Button")
-      return props?.action === "edgeMenu" ? (props.menu ?? "") : "";
-    return props?.showPopout ? (props.popoutMenu ?? "") : "";
+    const ids = [props?.showPopout ? (props.popoutMenu ?? "") : ""];
+    if (widget?.type === "Button" && props?.action === "edgeMenu")
+      ids.push(props.menu ?? "");
+    return ids.filter((id, i) => id !== "" && ids.indexOf(id) === i);
   }
 
   // A bar widget with a popout of its own opens it: on, and no menu

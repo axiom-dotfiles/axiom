@@ -35,11 +35,11 @@ Settings are read as `properties.<key>`.
 - **`showPopout`** · boolean = true
   - Popout: In a grid, open the whole grid when hovered. Otherwise, on a strip monitor, open every workspace with its windows in strip order.
   - x-showIf={"anyOf":[{"/Workspaces.layout":"grid"},{"/Workspaces.strips":{"notEm…
-  - in (generic, name match): `config/EdgeMenusConfig.qml`, `services/SystemManager.qml`
+  - in (generic, name match): `components/methods/ConfigMigration.qml`, `config/EdgeMenusConfig.qml`, `services/EdgeMenuManager.qml`, `services/SystemManager.qml`
 - **`popoutMenu`** · string = ""
   - Open instead: An edge menu to open in place of the popout.
   - x-options="edgeMenus", x-emptyLabel="Its own popout", x-showIf={"showPopout":true,"anyOf":[{"/Workspaces.layout":"grid"},{"/Workspac…
-  - in (generic, name match): `config/EdgeMenusConfig.qml`
+  - in (generic, name match): `components/methods/ConfigMigration.qml`, `config/EdgeMenusConfig.qml`, `services/EdgeMenuManager.qml`
 - **`clickToSwitch`** · boolean = true
   - Click to switch: Click a workspace (on the bar or in the grid popout) to go to it.
   - in: `components/bar/widgets/workspaces/WorkspaceCellRow.qml`, `components/bar/widgets/workspaces/WorkspaceGridStrip.qml`, `components/bar/widgets/workspaces/WorkspaceStrip.qml`

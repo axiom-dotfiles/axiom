@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 54
+  readonly property int currentVersion: 55
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -135,6 +135,8 @@ QtObject {
       result = _v52ToV53(result, changes);
     if (version < 54)
       result = _v53ToV54(result, changes);
+    if (version < 55)
+      result = _v54ToV55(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -1863,6 +1865,25 @@ QtObject {
       config.Screenshots[key] = found[key][0];
       changes.push(`Screenshots.${key} = ${found[key][0]}` + (found[key].length > 1 ? ` (cards also used ${found[key].slice(1).join(", ")})` : ""));
     }
+    return config;
+  }
+
+  // v55 gave the Button widget a hover popout (showPopout, popoutMenu), as
+  // the other widgets have: a Button that opened an edge menu on hover
+  // (hoverActivate) gets it as its popout, ranked as a bar popout, and
+  // keeps the menu as its click action
+  function _v54ToV55(config, changes) {
+    root._eachWidget(config, (widget, where) => {
+      const p = widget.properties;
+      if (widget.type !== "Button" || !p || typeof p !== "object" || p.action !== "edgeMenu" || p.hoverActivate !== true)
+        return;
+      delete p.hoverActivate;
+      if (typeof p.menu !== "string" || p.menu === "" || p.showPopout === true)
+        return;
+      p.showPopout = true;
+      p.popoutMenu = p.menu;
+      changes.push(`${where}.properties.hoverActivate -> popoutMenu = ${p.menu}`);
+    });
     return config;
   }
 }

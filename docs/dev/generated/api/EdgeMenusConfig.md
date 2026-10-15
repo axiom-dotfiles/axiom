@@ -16,7 +16,7 @@ EdgeMenus: menus that pop out of a screen edge, holding overlay modules. While t
 - `isSubmenu(menu)`: A menu with no edge of its own: it opens only beside another, from a Submenu module there (content/parts/MenuSubmenu)
 - `menuById(id)`
 - `popoutMenuOf(properties)`: The menu a bar widget opens as its popout (its `popoutMenu`, with `showPopout` on), else "": it opens its own popout, if any.
-- `menuOpenedBy(widget)`: The id of the menu a bar widget entry opens, as configured (a Button toggling one, or a menu popout; gone or disabled alike), else ""
+- `menusOpenedBy(widget)`: The ids of the menus a bar widget entry opens, as configured (gone or disabled alike): its menu popout, then a Button's click menu
 - `opensOwnPopout(properties)`: A bar widget with a popout of its own opens it: on, and no menu opened in its place
 - `menuWithModule(type)`: The first enabled menu holding a module of `type`, else null
 - `screenFor(menu)`: The menu's named screen, else the primary monitor

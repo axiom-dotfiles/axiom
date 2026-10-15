@@ -38,11 +38,11 @@ Settings are read as `properties.<key>`.
   - in: `components/bar/widgets/ClaudeUsage.qml`
 - **`showPopout`** · boolean = true
   - Popout: List every limit per account when hovered.
-  - in (generic, name match): `config/EdgeMenusConfig.qml`, `services/SystemManager.qml`
+  - in (generic, name match): `components/methods/ConfigMigration.qml`, `config/EdgeMenusConfig.qml`, `services/EdgeMenuManager.qml`, `services/SystemManager.qml`
 - **`popoutMenu`** · string = ""
   - Open instead: An edge menu to open in place of the popout.
   - x-options="edgeMenus", x-emptyLabel="Its own popout", x-showIf={"showPopout":true}
-  - in (generic, name match): `config/EdgeMenusConfig.qml`
+  - in (generic, name match): `components/methods/ConfigMigration.qml`, `config/EdgeMenusConfig.qml`, `services/EdgeMenuManager.qml`
 - **`clickCommand`** · string = ""
   - Click command: Run on left click (e.g. `xdg-open https://claude.ai/settings/usage`). Right click checks again now.
   - x-scope="personal"

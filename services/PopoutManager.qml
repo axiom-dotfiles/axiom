@@ -100,12 +100,7 @@ QtObject {
       "resuming": !!resuming
     }));
     if (!r.allowed) {
-      if (c.resident) {
-        root._put(c, "yielded");
-      } else {
-        root._drop(c.key);
-        Qt.callLater(() => c.refused());
-      }
+      root._refuse(c);
       return false;
     }
     root._put(c, "open");
@@ -113,9 +108,20 @@ QtObject {
     return true;
   }
 
+  function _refuse(c) {
+    if (c.resident) {
+      root._put(c, "yielded");
+    } else {
+      root._drop(c.key);
+      Qt.callLater(() => c.refused());
+    }
+  }
+
   // A registered claim changed (its footprint, pin or residence): showing,
-  // it closes what it now covers below it (it grew into it), and tolerates
-  // what's above; yielded, it may come back
+  // it closes what it now covers below it (it grew into it), and gives way
+  // to what's above as a claim would (its first footprint may have been
+  // where its window was only estimated to be, LayerOrigin.placed, and
+  // a popout never shows over a higher one); yielded, it may come back
   function update(c) {
     if (!root._claims[c.key])
       return;
@@ -132,9 +138,13 @@ QtObject {
       return;
     }
     const r = PopoutGeometry.resolve(root.entries, root._entryOf(c, "open"));
+    if (!r.allowed) {
+      root._refuse(c);
+      root._resume();
+      return;
+    }
     root._put(c, "open");
-    if (r.allowed)
-      root._apply(r);
+    root._apply(r);
     // Ranked lower now (a pinned one let go), what it held off may be back
     root._resume();
   }

@@ -155,7 +155,10 @@ PopoutWrapperBase {
     resident: root.resident
     occupied: root.occupied
     closing: root.isClosing
-    wanted: root.claimKey !== "" && root.isOpen && root.contentItem !== null
+    // Once Hyprland has said where its window is (or a moment has passed,
+    // LayerOrigin.settled): the estimate before that can be far off, so a
+    // claim made from it can miss what it covers
+    wanted: root.claimKey !== "" && root.isOpen && root.contentItem !== null && placeOnScreen.settled
     // Where its window is, else where it most likely is (LayerOrigin.placed)
     footprint: PopoutGeometry.offset(surface.footprint, Qt.point(placeOnScreen.placed.x + surface.x, placeOnScreen.placed.y + surface.y))
     onEvicted: root.hide()

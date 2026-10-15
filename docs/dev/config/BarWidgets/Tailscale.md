@@ -17,11 +17,11 @@ Settings are read as `properties.<key>`.
   - in: `components/bar/widgets/Tailscale.qml`
 - **`showPopout`** · boolean = false
   - Menu popout: Open an edge menu when hovered.
-  - in (generic, name match): `config/EdgeMenusConfig.qml`, `services/SystemManager.qml`
+  - in (generic, name match): `components/methods/ConfigMigration.qml`, `config/EdgeMenusConfig.qml`, `services/EdgeMenuManager.qml`, `services/SystemManager.qml`
 - **`popoutMenu`** · string = ""
   - Menu: The edge menu to open.
   - x-options="edgeMenus", x-emptyLabel="None", x-showIf={"showPopout":true}
-  - in (generic, name match): `config/EdgeMenusConfig.qml`
+  - in (generic, name match): `components/methods/ConfigMigration.qml`, `config/EdgeMenusConfig.qml`, `services/EdgeMenuManager.qml`
 - **`connectedColor`** · string = ""
   - Connected background
   - x-options="colors", x-emptyLabel="Auto", x-autoColor="accent"

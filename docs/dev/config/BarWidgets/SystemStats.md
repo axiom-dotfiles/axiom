@@ -34,11 +34,11 @@ Settings are read as `properties.<key>`.
   - in: `components/bar/widgets/SystemStats.qml`
 - **`showPopout`** · boolean = true
   - Popout: Open live graphs of the shown metrics when hovered.
-  - in (generic, name match): `config/EdgeMenusConfig.qml`, `services/SystemManager.qml`
+  - in (generic, name match): `components/methods/ConfigMigration.qml`, `config/EdgeMenusConfig.qml`, `services/EdgeMenuManager.qml`, `services/SystemManager.qml`
 - **`popoutMenu`** · string = ""
   - Open instead: An edge menu to open in place of the popout.
   - x-options="edgeMenus", x-emptyLabel="Its own popout", x-showIf={"showPopout":true}
-  - in (generic, name match): `config/EdgeMenusConfig.qml`
+  - in (generic, name match): `components/methods/ConfigMigration.qml`, `config/EdgeMenusConfig.qml`, `services/EdgeMenuManager.qml`
 - **`warnThreshold`** · integer = 90 · 1–100
   - Warning at: Any usage (%) or temperature (°C) at or above this switches to the warning background.
   - in: `components/bar/widgets/SystemStats.qml`

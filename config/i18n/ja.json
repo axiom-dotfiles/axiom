@@ -1878,7 +1878,6 @@
     "Extra listeners": "追加のリスナー",
     "Names on hover": "ホバーで名前を表示",
     "Wallpaper mode": "壁紙モード",
-    "The edge menu the button opens and closes.": "ボタンで開閉するエッジメニュー。",
     "always": "常に表示",
     "rotate": "ローテーション",
     "restartShell": "シェルを再起動",
@@ -1977,7 +1976,6 @@
     "Day over month number": "日を月の上に",
     "The apps axiom opens: by the Terminal, File manager and Browser keybinds, and the launcher's terminal apps and Shift+Enter commands.": "axiom が開くアプリ：ターミナル、ファイルマネージャー、ブラウザのキーバインド、ランチャーのターミナルアプリと Shift+Enter のコマンドで使います。",
     "Emoji (;)": "絵文字（;）",
-    "Run the click action after hovering for the popout open delay. Doesn't close a launcher, overlay, power menu or edge menu that is already open.": "ポップアウトを開く遅延の間ホバーするとクリック時の動作を実行します。すでに開いているランチャー、オーバーレイ、電源メニュー、エッジメニューは閉じません。",
     "Visibility": "表示方法",
     "Show one wallpaper on all monitors. Off, each monitor gets its own.": "すべてのモニターに同じ壁紙を表示します。オフにすると、モニターごとに別の壁紙になります。",
     "How far in from the screen edge the hover strip reaches.": "ホバー領域が画面端から内側に伸びる幅。",
@@ -2927,6 +2925,12 @@
     "Screenshot folder": "スクリーンショットのフォルダ",
     "Where recordings are saved, and listed from by the Screen recording card. Empty saves them with the screenshots.": "録画の保存先で、画面録画のカードはここから一覧を表示します。空欄ではスクリーンショットと同じ場所に保存します。",
     "Snapshots of the look, layout, keybinds, apps and wallpapers, stored in {0}. Restoring one leaves monitors, accounts, theme integrations and other settings for this PC as they are.": "外観、レイアウト、キーバインド、アプリ、壁紙のスナップショット（{0} に保存）。復元しても、モニター、アカウント、テーマ連携など、この PC 固有の設定はそのまま残ります。",
-    "The look, layout, keybinds and apps a first run starts with": "初回起動時の外観、レイアウト、キーバインド、アプリ"
+    "The look, layout, keybinds and apps a first run starts with": "初回起動時の外観、レイアウト、キーバインド、アプリ",
+    "Run the click action after hovering for the popout open delay. Doesn't close a launcher, overlay or power menu that is already open. For an edge menu on hover, use Hover popout.": "ポップアウトを開く遅延の間ホバーするとクリック時の動作を実行します。すでに開いているランチャー、オーバーレイ、電源メニューは閉じません。ホバーでエッジメニューを開くには「ホバーでポップアウト」を使います。",
+    "Hover popout": "ホバーでポップアウト",
+    "The edge menu shown on hover. It can differ from the one a click opens.": "ホバーで表示するエッジメニュー。クリックで開くメニューと別にできます。",
+    "The edge menu a click opens and closes, as a full menu: hovering another widget's popout doesn't replace it.": "クリックで開閉するエッジメニュー。通常のメニューとして開くため、他のウィジェットのポップアウトにホバーしても置き換わりません。",
+    "Popout menu": "ポップアウトのメニュー",
+    "Open an edge menu while the button is hovered, like other widgets' popouts: it closes when the pointer leaves, and a neighbouring popout replaces it. Separate from the click action.": "ボタンにホバーしている間、他のウィジェットのポップアウトと同じようにエッジメニューを開きます。ポインターが離れると閉じ、隣のポップアウトに置き換わります。クリック時の動作とは別です。"
   }
 }

@@ -1194,6 +1194,42 @@ TestCase {
     compare(defaults.Screenshots.recordingFolder, "");
   }
 
+  function test_v55_button_hover_menu_is_its_popout() {
+    const button = (action, hoverActivate) => ({
+          "type": "Button",
+          "properties": {
+            "action": action,
+            "menu": "notes",
+            "command": "true",
+            "hoverActivate": hoverActivate
+          }
+        });
+    const migrated = load({
+      "version": 54,
+      "Bars": [
+        {
+          "id": "main",
+          "widgets": {
+            "left": [button("edgeMenu", true), button("edgeMenu", false)],
+            "right": [button("command", true)]
+          }
+        }
+      ]
+    });
+    const widgets = migrated.config.Bars[0].widgets;
+    const hovered = widgets.left[0].properties;
+    compare(hovered.showPopout, true);
+    compare(hovered.popoutMenu, "notes");
+    compare(hovered.hoverActivate, false);
+    compare(hovered.action, "edgeMenu", "a click still opens the menu");
+    compare(hovered.menu, "notes");
+    compare(widgets.left[1].properties.showPopout, false, "clicked only: no popout");
+    compare(widgets.right[0].properties.hoverActivate, true, "other actions keep running on hover");
+    compare(widgets.right[0].properties.showPopout, false);
+    compare(migrated.removed, []);
+    compare(errors(migrated.config), []);
+  }
+
   function test_v52_desktop_modules_start_off() {
     const old = load({
       "version": 51

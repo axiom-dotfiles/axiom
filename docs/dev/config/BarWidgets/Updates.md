@@ -22,11 +22,11 @@ Settings are read as `properties.<key>`.
   - in: `components/bar/widgets/Updates.qml`
 - **`showPopout`** · boolean = true
   - Popout: List pending packages when hovered.
-  - in (generic, name match): `config/EdgeMenusConfig.qml`, `services/SystemManager.qml`
+  - in (generic, name match): `components/methods/ConfigMigration.qml`, `config/EdgeMenusConfig.qml`, `services/EdgeMenuManager.qml`, `services/SystemManager.qml`
 - **`popoutMenu`** · string = ""
   - Open instead: An edge menu to open in place of the popout.
   - x-options="edgeMenus", x-emptyLabel="Its own popout", x-showIf={"showPopout":true}
-  - in (generic, name match): `config/EdgeMenusConfig.qml`
+  - in (generic, name match): `components/methods/ConfigMigration.qml`, `config/EdgeMenusConfig.qml`, `services/EdgeMenuManager.qml`
 - **`terminal`** · string = ""
   - Terminal: Terminal the upgrade runs in (launched as `<terminal> -e ...`). Empty uses Apps → Terminal.
   - x-scope="personal"

@@ -605,13 +605,13 @@ Singleton {
       return [];
     const out = [];
     (BarManager.localConfig ?? Bar.savedBars).forEach((bar, b) => Object.keys(bar?.widgets ?? {}).forEach(zone => (bar.widgets[zone] ?? []).forEach(widget => {
-          if (EdgeMenusConfig.menuOpenedBy(widget) !== id)
+          if (!EdgeMenusConfig.menusOpenedBy(widget).includes(id))
             return;
           const barLabel = bar.id || I18n.tr("Bar {0}", b + 1);
           const type = Bar.availableWidgetTypes.find(t => t?.type === widget.type);
           out.push({
             "kind": "bar",
-            "label": widget.type === "Button" ? I18n.tr("Button on {0}", barLabel) : I18n.tr("{0} popout on {1}", I18n.tr(type?.label ?? widget.type), barLabel)
+            "label": widget.type === "Button" && !(widget.properties?.showPopout && widget.properties.popoutMenu === id) ? I18n.tr("Button on {0}", barLabel) : I18n.tr("{0} popout on {1}", I18n.tr(type?.label ?? widget.type), barLabel)
           });
         })));
     (root.localMenus ?? EdgeMenusConfig.menus).forEach((menu, m) => {

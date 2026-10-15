@@ -138,7 +138,7 @@ Every public member of `EdgeMenusConfig`, with the files that use it.
   - in: `components/content/Submenu.qml`, `components/content/parts/MenuSubmenu.qml`, `components/surfaces/edgemenu/EdgeMenu.qml`, `services/EdgeMenuManager.qml`
 - `EdgeMenusConfig.popoutMenuOf(properties)`: The menu a bar widget opens as its popout (its `popoutMenu`, with `showPopout` on), else "": it opens its own popout, if any.
   - in: `components/bar/BarWidgetHost.qml`
-- `EdgeMenusConfig.menuOpenedBy(widget)`: The id of the menu a bar widget entry opens, as configured (a Button toggling one, or a menu popout; gone or disabled alike), else ""
+- `EdgeMenusConfig.menusOpenedBy(widget)`: The ids of the menus a bar widget entry opens, as configured (gone or disabled alike): its menu popout, then a Button's click menu
   - in: `services/EdgeMenuManager.qml`, `services/OverlayManager.qml`
 - `EdgeMenusConfig.opensOwnPopout(properties)`: A bar widget with a popout of its own opens it: on, and no menu opened in its place
   - in: `components/bar/widgets/AudioLevelWidget.qml`, `components/bar/widgets/Bluetooth.qml`, `components/bar/widgets/ClaudeUsage.qml`, `components/bar/widgets/Media.qml`, `components/bar/widgets/Network.qml`, `components/bar/widgets/NextEvent.qml`, `components/bar/widgets/Notifications.qml`, `components/bar/widgets/SystemStats.qml`, `components/bar/widgets/Time.qml`, `components/bar/widgets/Updates.qml` (+3 more)
