@@ -1,6 +1,6 @@
 # Managed takeover (claim and release)
 
-> **Files:** `scripts/claim_hyprland.sh`, `services/HyprlandConfigManager.qml`, `components/methods/HyprConfigLua.qml`, `tests/scripts/test_scripts.py`
+> **Files:** `scripts/claim_hyprland.sh`, `services/HyprlandTakeover.qml`, `services/HyprlandConfigManager.qml`, `components/methods/HyprConfigLua.qml`, `tests/scripts/test_scripts.py`
 > **Config:** `Hyprland.mode` (`managed`), `Hyprland.managed`
 > **Related:** [Config modes](config-modes.md), [Bind merge](bind-merge.md), [Onboarding](../features/onboarding.md)
 

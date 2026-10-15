@@ -13,13 +13,13 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - Monitors: Edited on the Monitors page.
   - x-settings=false
 - **`Hyprland.monitors.profiles`** · array<MonitorProfile> = []
-  - read: `HyprlandConfig.monitorProfiles` (computed) · in: `services/HyprlandConfigManager.qml`, `services/MonitorManager.qml`
+  - read: `HyprlandConfig.monitorProfiles` (computed) · in: `services/HyprlandConfigManager.qml`, `services/HyprlandRuntimeLayer.qml`, `services/MonitorManager.qml`
 
 ### `Hyprland.monitors.profiles[]`
 
 - **`Hyprland.monitors.profiles[]`** · object
 - **`Hyprland.monitors.profiles[].name`** · string = ""
-  - read: `HyprlandConfig.monitorProfiles` (whole) · in: `services/HyprlandConfigManager.qml`, `services/MonitorManager.qml`
+  - read: `HyprlandConfig.monitorProfiles` (whole) · in: `services/HyprlandConfigManager.qml`, `services/HyprlandRuntimeLayer.qml`, `services/MonitorManager.qml`
 - **`Hyprland.monitors.profiles[].outputs`** · array<MonitorRule> = []
   - read: `HyprlandConfig.monitorProfiles` (whole) · in: `services/MonitorManager.qml`
 

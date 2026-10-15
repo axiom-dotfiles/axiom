@@ -12,14 +12,14 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`Hyprland.binds`** · array<object> = [{"key":"SUPER + space","action":"launcher"},{"key":"SUPER + Tab","ac…
   - Keybinds: Edited on the Keybinds page.
   - x-scope="personal", x-settings=false
-  - read: `HyprlandConfig.binds` (computed) · in: `components/surfaces/onboarding/pages/AppsPage.qml`, `components/surfaces/onboarding/pages/BindsTable.qml`, `services/EdgeMenuManager.qml`, `services/HyprlandConfigManager.qml`, `services/KeybindManager.qml`
+  - read: `HyprlandConfig.binds` (computed) · in: `components/surfaces/onboarding/pages/AppsPage.qml`, `components/surfaces/onboarding/pages/BindsTable.qml`, `services/EdgeMenuManager.qml`, `services/HyprlandBindMerge.qml`, `services/HyprlandConfigManager.qml`, `services/HyprlandRuntimeLayer.qml`, `services/KeybindManager.qml`
 
 ### `Hyprland.binds[]`
 
 - **`Hyprland.binds[]`** · object
 - **`Hyprland.binds[].key`** · string = ""
   - Key: Modifiers and key, joined by +: "SUPER + SHIFT + space".
-  - read: `HyprlandConfig.binds` (whole) · in: `components/surfaces/onboarding/pages/AppsPage.qml`, `components/surfaces/onboarding/pages/BindsTable.qml`, `services/EdgeMenuManager.qml`, `services/HyprlandConfigManager.qml`, `services/KeybindManager.qml`
+  - read: `HyprlandConfig.binds` (whole) · in: `components/surfaces/onboarding/pages/AppsPage.qml`, `components/surfaces/onboarding/pages/BindsTable.qml`, `services/EdgeMenuManager.qml`, `services/HyprlandRuntimeLayer.qml`, `services/KeybindManager.qml`
 - **`Hyprland.binds[].action`** · string = "launcher" · enum launcher|launcherSearch|overlay|overlayPage|edgeMenu|dock|workspaceOverview|powerMenu|lock|toggleDnd|clearNotifications|idleInhibit|nightLight|nextWallpaper|workspaceStep|moveWindowStep|moveWindowStepSilent|workspaceNth|moveWindowNth|moveWindowNthSilent|focusDir|moveWindowDir|resizeWindow|closeWindow|fullscreen|toggleFloat|pin|centerWindow|toggleGroup|windowSwitcher|windowSwitcherReverse|mouseDrag|mouseResize|toggleSpecial|moveToSpecial|restartShell|volumeUp|volumeDown|toggleMute|toggleMicMute|brightnessUp|brightnessDown|mediaPlayPause|mediaNext|mediaPrevious|mediaStop|terminal|fileManager|browser|screenshot|screenRecord|exitHyprland|exec|pseudo|toggleSplit|stripSwapColumn|stripWider|stripNarrower|stripFit|lua
   - Action
   - read: `HyprlandConfig.binds` (whole) · in: `components/surfaces/onboarding/pages/AppsPage.qml`, `components/surfaces/onboarding/pages/BindsTable.qml`, `services/EdgeMenuManager.qml`, `services/KeybindManager.qml`
@@ -39,7 +39,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: entry field, name match repo-wide, `// reads:` marker · in: `components/content/Notes.qml`, `services/HyprlandConfigManager.qml`, `shell/Lockscreen.qml`
 - **`Hyprland.binds[].release`** · boolean = false
   - On release
-  - read: entry field, name match, `// reads:` marker · in: `services/HyprlandConfigManager.qml`
+  - read: `HyprlandConfig.binds` (whole), `// reads:` marker · in: `services/HyprlandConfigManager.qml`
 - **`Hyprland.binds[].description`** · string = ""
   - Description: Label on the Keybinds page; empty uses the action's name. The action picks the section unless you write "Section: Label".
   - read: `HyprlandConfig.binds` (whole) · in: `services/KeybindManager.qml`

@@ -201,5 +201,8 @@ Singleton {
   Component.onCompleted: {
     if (ThemeManager.lastRotated === 0)
       ThemeManager.setLastRotated(Date.now());
+    // awww's daemon, unless it runs already (Hyprland.wallpaperDaemon)
+    if (HyprlandConfig.wallpaperDaemon && Appearance.wallpaperBackend === "awww")
+      CommandManager.run(["sh", "-c", "command -v awww-daemon >/dev/null || exit 0; awww query >/dev/null 2>&1 || setsid -f awww-daemon >/dev/null 2>&1"]);
   }
 }

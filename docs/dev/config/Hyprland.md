@@ -29,11 +29,11 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`Hyprland.requiredSettings`** · boolean = true
   - Required settings: Lock restore after a shell restart, ignoring apps' requests to maximize themselves, and a workspace slide animation.
   - x-group="Setup"
-  - read: `HyprlandConfig.requiredSettings` · in: `services/HyprlandConfigManager.qml`
+  - read: `HyprlandConfig.requiredSettings` · in: `services/HyprlandConfigManager.qml`, `services/HyprlandRuntimeLayer.qml`
 - **`Hyprland.wallpaperDaemon`** · boolean = true
   - Start awww: Start awww-daemon for the wallpaper picker.
   - x-group="Setup", x-showIf={"/Appearance.wallpaperBackend":"awww"}
-  - read: `HyprlandConfig.wallpaperDaemon` · in: `services/HyprlandConfigManager.qml`
+  - read: `HyprlandConfig.wallpaperDaemon` · in: `services/WallpaperManager.qml`
 
 ### Reader members
 
@@ -42,13 +42,13 @@ Every public member of `HyprlandConfig`, with the files that use it.
 - `HyprlandConfig.mode` (string): "detached" | "included" | "managed"
   - in: `components/surfaces/onboarding/pages/FinishPage.qml`, `services/HyprlandConfigManager.qml`, `services/OnboardingManager.qml`
 - `HyprlandConfig.requiredSettings` (bool)
-  - in: `services/HyprlandConfigManager.qml`
+  - in: `services/HyprlandConfigManager.qml`, `services/HyprlandRuntimeLayer.qml`
 - `HyprlandConfig.wallpaperDaemon` (bool)
-  - in: `services/HyprlandConfigManager.qml`
+  - in: `services/WallpaperManager.qml`
 - `HyprlandConfig.binds` (var)
-  - in: `components/surfaces/onboarding/pages/AppsPage.qml`, `components/surfaces/onboarding/pages/BindsTable.qml`, `services/EdgeMenuManager.qml`, `services/HyprlandConfigManager.qml`, `services/KeybindManager.qml`
+  - in: `components/surfaces/onboarding/pages/AppsPage.qml`, `components/surfaces/onboarding/pages/BindsTable.qml`, `services/EdgeMenuManager.qml`, `services/HyprlandBindMerge.qml`, `services/HyprlandConfigManager.qml`, `services/HyprlandRuntimeLayer.qml`, `services/KeybindManager.qml`
 - `HyprlandConfig.monitorProfiles` (var)
-  - in: `services/HyprlandConfigManager.qml`, `services/MonitorManager.qml`
+  - in: `services/HyprlandConfigManager.qml`, `services/HyprlandRuntimeLayer.qml`, `services/MonitorManager.qml`
 - `HyprlandConfig.look` (var)
   - in: `components/views/settings/TranslucencyStatus.qml`, `services/HyprlandConfigManager.qml`
 - `HyprlandConfig.managed` (var)

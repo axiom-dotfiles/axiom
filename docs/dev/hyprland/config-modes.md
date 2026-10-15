@@ -1,10 +1,10 @@
 # Hyprland config modes
 
-> **Files:** `services/HyprlandConfigManager.qml`, `config/HyprlandConfig.qml`, `components/methods/HyprConfigLua.qml`, `components/methods/HyprLua.qml`, `components/methods/HyprBinds.qml`, `components/views/settings/HyprlandStatusCard.qml`, `scripts/claim_hyprland.sh`
+> **Files:** `services/HyprlandConfigManager.qml`, `services/HyprlandRuntimeLayer.qml`, `config/HyprlandConfig.qml`, `components/methods/HyprConfigLua.qml`, `components/methods/HyprLua.qml`, `components/methods/HyprBinds.qml`, `components/views/settings/HyprlandStatusCard.qml`, `scripts/claim_hyprland.sh`
 > **Config:** `Hyprland.mode`, `Hyprland.binds`, `Hyprland.managed`, `Hyprland.look`, `Hyprland.monitors`, `Workspaces.strips`
 > **Related:** [Managed takeover](managed-takeover.md), [Window look](window-look.md), [Bind merge](bind-merge.md), [Keybinds](keybinds.md), [Monitors](monitors.md), [Workspace strips](workspace-strips.md)
 
-How axiom sets up Hyprland (`HyprlandConfigManager`), and the three `mode`s it can do it in: `detached`, `included` and `managed`. Read this before touching anything axiom writes into Hyprland.
+How axiom sets up Hyprland (`HyprlandConfigManager`, which owns `HyprlandRuntimeLayer`, `HyprlandTakeover` and `HyprlandBindMerge`), and the three `mode`s it can do it in: `detached`, `included` and `managed`. Read this before touching anything axiom writes into Hyprland.
 
 ### One Lua layer
 - It needs Hyprland's Lua config (0.55+). Axiom's own `hyprctl eval`/dispatch calls are all Lua (`hl.*`). The stubs are in `/usr/share/hypr/stubs/hl.meta.lua`.
@@ -53,7 +53,7 @@ How axiom sets up Hyprland (`HyprlandConfigManager`), and the three `mode`s it c
   - `status`: `runtime` | `loaded` | `fallback` | `pending`
   - `problem`
 - A mode picked there waits for Save (`x-applyOnSave`). The card outlines what saving will do, including the leave steps below.
-- It predicts a managed takeover with `checkManaged()`, a dry run of `claimManaged`. `managedCheck` is `ours` | `adopt` | `new` | `blocked`.
+- It predicts a managed takeover with `checkManaged()`, a dry run of the takeover (`HyprlandTakeover.claim`). `managedCheck` is `ours` | `adopt` | `new` | `blocked`.
 
 ### Leaving a mode
 - `_leave` gives back what a mode took, for a switch made while axiom runs.
@@ -64,7 +64,7 @@ How axiom sets up Hyprland (`HyprlandConfigManager`), and the three `mode`s it c
   - Otherwise the old layer would stay in Hyprland's config, and the runtime layer can't undo it because it only adds (a strip removed in detached mode stayed a strip).
 - `_reload()` reloads once more when asked while a reload runs, so a file written meanwhile isn't missed.
 - Detached waits for a release (`_releasing`) before applying its runtime layer.
-- The runtime layer starts over when Hyprland reloads while it reads the binds (`_reloads`). A plan from another config would record that config's keys in `AXIOM_RUNTIME_KEYS`, and `_clearRuntime` would then unbind them.
+- The runtime layer (`HyprlandRuntimeLayer`) starts over when Hyprland reloads while it reads the binds (`noteReload()` counts them). A plan from another config would record that config's keys in `AXIOM_RUNTIME_KEYS`, and `clear()` would then unbind them.
 
 ### Managed options (`HyprLua`)
 - The `managed` options become one `hl.config({...})` through `components/methods/HyprLua` (pure), driven by schema annotations:

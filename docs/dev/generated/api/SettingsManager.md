@@ -12,6 +12,7 @@ The settings page's working copy of the config. Edits are applied live (in memor
 - `isDirty` (readonly alias)
 - `changedPaths` (readonly var): Key paths ("Appearance.font.size") that differ from the saved config; arrays count as one value
 - `changedCount` (readonly int)
+- `cursorThemes` (readonly var): Installed cursor themes (XCursor or hyprcursor), for the "cursorThemes" options; listed once, when this is first used
 - `category` (string): The settings page's selected category and search text
 - `query` (string)
 - `collapsed` (var): Settings cards the user folded, by SchemaLayout group key; saved in state/settings.json so they stay folded across restarts

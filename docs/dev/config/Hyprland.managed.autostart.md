@@ -19,7 +19,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`Hyprland.managed.autostart[]`** · object
 - **`Hyprland.managed.autostart[].command`** · string = ""
   - Command
-  - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `services/HyprlandConfigManager.qml`
+  - read: entry field, name match, `// reads:` marker · in: `services/HyprlandConfigManager.qml`
 - **`Hyprland.managed.autostart[].enabled`** · boolean = true
   - On
   - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `services/HyprlandConfigManager.qml`

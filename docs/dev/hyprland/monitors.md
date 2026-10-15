@@ -58,7 +58,7 @@ Monitor layouts saved per set of connected monitors, edited on the Monitors page
   - before any monitor is reported, the first profile.
 - It resets outputs that only other profiles mention to Hyprland's defaults, and resolves `mirror` to a connector.
 - It runs again on `monitor.added`/`removed`. The handlers are kept in `AXIOM_MONITOR_SUBS` and removed before re-subscribing.
-- **Detached:** it is part of the runtime eval, but only when the profiles changed or a reload dropped them (`_monitorsApplied`), since re-applying can flicker a modeset.
+- **Detached:** it is part of the runtime eval, but only when the profiles changed or a reload dropped them (`HyprlandRuntimeLayer._monitorsApplied`), since re-applying can flicker a modeset.
 - **Included / managed:** `M.monitors()` runs from `setup()`, so profiles follow hotplugs without qs.
 
 ### IPC and launcher
