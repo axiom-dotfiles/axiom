@@ -7,11 +7,12 @@ Provides access to some Hyprland data not available in Quickshell.Hyprland.
 
 ### Properties
 
-- `windowList` (var)
-- `activeWorkspace` (var)
+- `windowList` (var): Hyprland's clients (j/clients), as Hyprland reports them
+- `activeWorkspace` (readonly var): The focused monitor's active workspace (Quickshell's HyprlandWorkspace)
 - `gapsOut` (var): Hyprland's general:gaps_out per side, which it adds after every reserved zone (transparent bars subtract it, see BarPanel)
 - `splitWidthMultiplier` (real): dwindle:split_width_multiplier: a box wider than tall times this splits side by side (placeWindow, and the overview's drop preview)
 - `blur` (var): Hyprland's blur as in effect, { enabled, size, passes } (its defaults until read): the one axiom's translucent surfaces blur with
+- `animations` (var): Hyprland's animations (j/animations: [leaves, curves]), read with the options; [] until read
 - `layerRulesLua` (readonly var): The layer rules stacking axiom's surfaces (HyprLua.layers, which says why each sits where it does; docs/dev/generated/layers.md).
 - `layerRulesReady` (readonly bool): Whether the layer rules are in Hyprland.
 

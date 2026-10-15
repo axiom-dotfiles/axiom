@@ -13,8 +13,10 @@ import qs.components.methods
 /* Provides access to some Hyprland data not available in Quickshell.Hyprland. */
 Singleton {
   id: root
+  // Hyprland's clients (j/clients), as Hyprland reports them
   property var windowList: []
-  property var activeWorkspace: null
+  // The focused monitor's active workspace (Quickshell's HyprlandWorkspace)
+  readonly property var activeWorkspace: Hyprland.focusedMonitor?.activeWorkspace ?? null
 
   // Refetch soon. Events arrive in bursts (a window opening fires several),
   // so they are coalesced into one fetch.
@@ -138,8 +140,9 @@ end
   readonly property string _luaEpilogue: `
 if #errs > 0 then error(table.concat(errs, "; ")) end`
 
-  // Lua chunks run one at a time, in order, through `hyprctl eval`
+  // Lua chunks run one at a time, in order (HyprlandIpcManager.evalLua)
   property var _evalQueue: []
+  property bool _evaluating: false
 
   // Runs a Lua chunk in Hyprland (config functions like hl.bind or
   // hl.config, which a dispatch can't call); failures are logged
@@ -151,19 +154,47 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
   // animation), after something changed them at runtime: once the queued
   // Lua has run, which may be what changes them
   function refreshOptions() {
-    if (evalProcess.running || _evalQueue.length > 0) {
+    if (_evaluating || _evalQueue.length > 0) {
       _refreshAfterEval = true;
       return;
     }
-    getGaps.running = true;
-    getSplitMultiplier.running = true;
-    getBlur.running = true;
-    getAnimations.running = true;
+    if (_readingOptions) {
+      _optionsAgain = true;
+      return;
+    }
+    _readingOptions = true;
+    HyprlandIpcManager.jsonBatch(["getoption general:gaps_out", "getoption dwindle:split_width_multiplier", "getoption decoration:blur:enabled", "getoption decoration:blur:size", "getoption decoration:blur:passes", "animations"], replies => {
+      root._readingOptions = false;
+      root._readOptions(replies);
+      if (root._optionsAgain) {
+        root._optionsAgain = false;
+        root.refreshOptions();
+      }
+    });
+  }
+
+  property bool _readingOptions: false
+  property bool _optionsAgain: false
+
+  function _readOptions([gaps, split, blurEnabled, blurSize, blurPasses, animations]) {
+    root.gapsOut = _gapSides(gaps) ?? root.gapsOut;
+    const multiplier = Number(split?.float);
+    if (multiplier > 0)
+      root.splitWidthMultiplier = multiplier;
+    const blur = {
+      "enabled": blurEnabled?.int === 1 || blurEnabled?.bool === true,
+      "size": Number(blurSize?.int),
+      "passes": Number(blurPasses?.int)
+    };
+    if (blur.size > 0 && blur.passes > 0 && JSON.stringify(blur) !== JSON.stringify(root.blur))
+      root.blur = blur;
+    if (Array.isArray(animations))
+      root.animations = animations;
   }
 
   function _eval(lua) {
     _evalQueue.push(lua);
-    if (!evalProcess.running)
+    if (!_evaluating)
       _nextEval();
   }
 
@@ -178,8 +209,13 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
       root.updateAll();
       return;
     }
-    evalProcess.command = ["hyprctl", "eval", _evalQueue.shift()];
-    evalProcess.running = true;
+    _evaluating = true;
+    HyprlandIpcManager.evalLua(_evalQueue.shift(), reply => {
+      if (reply !== "ok")
+        console.warn("[HyprlandManager] Lua eval:", reply || "no reply from Hyprland");
+      root._evaluating = false;
+      root._nextEval();
+    });
   }
 
   // --- Workspaces (laid out by WorkspacesConfig) ---
@@ -329,10 +365,6 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
     return activeWorkspaceId();
   }
 
-  // Hyprland's own "workspaces" animation ({ speed, bezier, style }), put
-  // back after each slide (global's speed and curve when it isn't set);
-  // null when animations are off, so there's nothing to slide with
-  property var _workspaceAnim: null
   property var _slideSteps: []
   // Each leg's share of the configured speed on a two-leg slide
   readonly property real _legSpeed: 0.35
@@ -373,7 +405,13 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
   // hyprctl can't say. Calls made while one is running share its answer.
   function withCursorPos(callback) {
     _cursorCallbacks.push(callback);
-    getCursorPos.running = true;
+    if (_cursorCallbacks.length > 1)
+      return;
+    HyprlandIpcManager.json("cursorpos", pos => {
+      const callbacks = root._cursorCallbacks;
+      root._cursorCallbacks = [];
+      callbacks.forEach(callback => callback(pos ?? null));
+    });
   }
 
   property var _cursorCallbacks: []
@@ -564,6 +602,24 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
       "size": 8,
       "passes": 1
     })
+  // Hyprland's animations (j/animations: [leaves, curves]), read with the
+  // options; [] until read
+  property var animations: []
+  // Hyprland's own "workspaces" animation ({ speed, bezier, style }), put
+  // back after each slide (global's speed and curve when it isn't set,
+  // sliding by default); null when animations are off, so there's nothing
+  // to slide with
+  readonly property var _workspaceAnim: {
+    const leaves = Array.isArray(animations[0]) ? animations[0] : [];
+    const leaf = name => leaves.find(a => a.name === name);
+    const own = leaf("workspaces");
+    const anim = own?.overridden ? own : leaf("global");
+    return own?.enabled !== false && anim?.enabled && anim.bezier && anim.speed > 0 ? {
+      "speed": anim.speed,
+      "bezier": anim.bezier,
+      "style": (own?.overridden && own.style) || "slide"
+    } : null;
+  }
 
   // The layer rules stacking axiom's surfaces (HyprLua.layers, which says
   // why each sits where it does; docs/dev/generated/layers.md). Named, so
@@ -594,15 +650,13 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
     property bool ready: false
   }
 
-  Process {
-    id: addLayerRulesFirst
-    // One eval for all of them, each in its own pcall, so one Hyprland
-    // rejects doesn't drop the rest (as _addLayerRules' one eval per rule)
-    command: ["hyprctl", "eval", root.layerRulesLua.map(rule => `pcall(function() ${rule} end)`).join("\n")]
-    onExited: _layerRules.ready = true
+  // One eval for all of them, each in its own pcall, so one Hyprland
+  // rejects doesn't drop the rest (as _addLayerRules' one eval per rule)
+  function _addLayerRulesFirst() {
+    HyprlandIpcManager.evalLua(root.layerRulesLua.map(rule => `pcall(function() ${rule} end)`).join("\n"), () => _layerRules.ready = true);
   }
 
-  // Shows the shell anyway if hyprctl never answers
+  // Shows the shell anyway if Hyprland never answers
   property Timer _layerRulesTimeout: Timer {
     interval: 2000
     onTriggered: _layerRules.ready = true
@@ -615,7 +669,7 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
     if (_layerRules.ready) {
       _addLayerRules();
     } else {
-      addLayerRulesFirst.running = true;
+      _addLayerRulesFirst();
       _layerRulesTimeout.start();
     }
   }
@@ -640,135 +694,36 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
     }
   }
 
-  Process {
-    id: evalProcess
-    stdout: StdioCollector {
-      id: evalCollector
-      onStreamFinished: {
-        const out = evalCollector.text.trim();
-        if (out !== "" && out !== "ok")
-          console.warn("[HyprlandManager] hyprctl eval:", out);
-      }
-    }
-    stderr: StdioCollector {
-      id: evalErrors
-      onStreamFinished: {
-        if (evalErrors.text.trim() !== "")
-          console.warn("[HyprlandManager] hyprctl eval:", evalErrors.text.trim());
-      }
-    }
-    onExited: root._nextEval()
-  }
-
-  Process {
-    id: getSplitMultiplier
-    command: ["hyprctl", "getoption", "dwindle:split_width_multiplier", "-j"]
-    stdout: StdioCollector {
-      id: splitCollector
-      onStreamFinished: {
-        const value = Number(root._parse(splitCollector.text, "getoption")?.float);
-        if (value > 0)
-          root.splitWidthMultiplier = value;
-      }
-    }
-  }
-
-  Process {
-    id: getBlur
-    command: ["sh", "-c", "printf '[%s,%s,%s]' \"$(hyprctl getoption decoration:blur:enabled -j)\" \"$(hyprctl getoption decoration:blur:size -j)\" \"$(hyprctl getoption decoration:blur:passes -j)\""]
-    stdout: StdioCollector {
-      id: blurCollector
-      onStreamFinished: {
-        const options = root._parse(blurCollector.text, "getoption blur");
-        if (!Array.isArray(options) || options.length !== 3)
-          return;
-        const next = {
-          "enabled": options[0]?.int === 1 || options[0]?.bool === true,
-          "size": Number(options[1]?.int),
-          "passes": Number(options[2]?.int)
-        };
-        if (next.size > 0 && next.passes > 0 && JSON.stringify(next) !== JSON.stringify(root.blur))
-          root.blur = next;
-      }
-    }
-  }
-
   property Timer _debounce: Timer {
     interval: 50
     onTriggered: root._fetch()
   }
 
-  // Set when a fetch is asked for while one is still running: starting a
-  // running Process is a no-op, so it's re-run once the current one ends
+  // Set when a fetch is asked for while one is still running: it's run
+  // again once the current one ends
+  property bool _fetching: false
   property bool _pending: false
 
   function _fetch() {
-    if (getClients.running || getActiveWorkspace.running) {
+    if (_fetching) {
       _pending = true;
       return;
     }
-    getClients.running = true;
-    getActiveWorkspace.running = true;
-  }
-
-  function _fetchFinished() {
-    if (_pending && !getClients.running && !getActiveWorkspace.running) {
-      _pending = false;
-      _fetch();
-    }
-  }
-
-  function _parse(text, what) {
-    try {
-      return JSON.parse(text);
-    } catch (e) {
-      console.warn("[HyprlandManager] Could not parse hyprctl " + what + ":", e);
-      return undefined;
-    }
-  }
-
-  Process {
-    id: getCursorPos
-    command: ["hyprctl", "cursorpos", "-j"]
-    stdout: StdioCollector {
-      id: cursorCollector
-      onStreamFinished: {
-        const pos = root._parse(cursorCollector.text, "cursorpos");
-        const callbacks = root._cursorCallbacks;
-        root._cursorCallbacks = [];
-        callbacks.forEach(callback => callback(pos ?? null));
+    _fetching = true;
+    HyprlandIpcManager.json("clients", clients => {
+      root._fetching = false;
+      if (Array.isArray(clients))
+        root.windowList = clients;
+      if (root._pending) {
+        root._pending = false;
+        root._fetch();
       }
-    }
+    });
   }
 
-  Process {
-    id: getAnimations
-    command: ["hyprctl", "animations", "-j"]
-    stdout: StdioCollector {
-      id: animationsCollector
-      onStreamFinished: {
-        // [animations, beziers]
-        const all = root._parse(animationsCollector.text, "animations");
-        // A leaf that isn't set takes its speed and curve from its parent
-        // (workspaces from global), and slides by default
-        const leaves = Array.isArray(all?.[0]) ? all[0] : [];
-        const leaf = name => leaves.find(a => a.name === name);
-        const own = leaf("workspaces");
-        const anim = own?.overridden ? own : leaf("global");
-        root._workspaceAnim = own?.enabled !== false && anim?.enabled && anim.bezier && anim.speed > 0 ? {
-          "speed": anim.speed,
-          "bezier": anim.bezier,
-          "style": (own?.overridden && own.style) || "slide"
-        } : null;
-      }
-    }
-  }
-
-  // A gaps option's sides from `hyprctl getoption -j` ({ top, right,
-  // bottom, left }), or null: its css is "top right bottom left" (CSS
-  // shorthand)
-  function _gapSides(text) {
-    const option = root._parse(text, "getoption");
+  // A gaps option's sides from its getoption reply ({ top, right, bottom,
+  // left }), or null: its css is "top right bottom left" (CSS shorthand)
+  function _gapSides(option) {
     const css = String(option?.css ?? "").trim().split(/\s+/).map(Number);
     if (css.length === 0 || css.some(isNaN))
       return null;
@@ -779,43 +734,6 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
       "bottom": bottom,
       "left": left
     };
-  }
-
-  Process {
-    id: getGaps
-    command: ["hyprctl", "getoption", "general:gaps_out", "-j"]
-    stdout: StdioCollector {
-      id: gapsCollector
-      onStreamFinished: root.gapsOut = root._gapSides(gapsCollector.text) ?? root.gapsOut
-    }
-  }
-
-  Process {
-    id: getClients
-    command: ["hyprctl", "clients", "-j"]
-    stdout: StdioCollector {
-      id: clientsCollector
-      onStreamFinished: {
-        const clients = root._parse(clientsCollector.text, "clients");
-        if (Array.isArray(clients))
-          root.windowList = clients;
-      }
-    }
-    onExited: root._fetchFinished()
-  }
-
-  Process {
-    id: getActiveWorkspace
-    command: ["hyprctl", "activeworkspace", "-j"]
-    stdout: StdioCollector {
-      id: activeWorkspaceCollector
-      onStreamFinished: {
-        const workspace = root._parse(activeWorkspaceCollector.text, "activeworkspace");
-        if (workspace)
-          root.activeWorkspace = workspace;
-      }
-    }
-    onExited: root._fetchFinished()
   }
 
   // `qs -c axiom ipc call workspaces …`, for workspace keybinds. mode:
