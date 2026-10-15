@@ -87,7 +87,7 @@ FieldGroup {
       steps.push(I18n.tr("Writes {0}", module));
       steps.push(I18n.tr("Shows the lines to add to your hyprland.lua. Until you do, axiom applies its layer at runtime"));
     } else {
-      steps.push(I18n.tr("Applies axiom's layer with hyprctl"));
+      steps.push(I18n.tr("Applies axiom's layer at runtime"));
     }
     if (root.mode === "managed")
       steps.push(I18n.tr("Reloads Hyprland"));

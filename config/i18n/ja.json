@@ -889,7 +889,6 @@
     "Writes {0}": "{0} を書き出します",
     "Shows the lines to add to your hyprland.lua. Until you do, axiom applies its layer at runtime": "hyprland.lua に追加する行を表示します。追加するまでは axiom が実行時に適用します",
     "Replaces {0}, which axiom wrote when it last left managed mode": "{0} を置き換えます（axiom が前回 managed モードを離れたときに書き出したもの）",
-    "Applies axiom's layer with hyprctl": "axiom は hyprctl で適用します",
     "Gives {0} back: your previous one returns ({1}/00-previous.lua, or the example config's backup), else a new one that starts axiom and loads {1}/*.lua": "{0} を返却します。以前のもの（{1}/00-previous.lua、またはサンプル設定のバックアップ）を戻し、なければ axiom を起動して {1}/*.lua を読み込む新しいファイルを作ります",
     "Empties {0}, so a hyprland.lua that still loads it gets nothing": "{0} を空にします。まだ読み込んでいる hyprland.lua には何も適用されません",
     "Can't switch to Managed": "管理モードに切り替えられません",
@@ -2933,6 +2932,7 @@
     "Open an edge menu while the button is hovered, like other widgets' popouts: it closes when the pointer leaves, and a neighbouring popout replaces it. Separate from the click action.": "ボタンにホバーしている間、他のウィジェットのポップアウトと同じようにエッジメニューを開きます。ポインターが離れると閉じ、隣のポップアウトに置き換わります。クリック時の動作とは別です。",
     "Opened as a bar widget's popout, it opens at that widget, as bar popouts do, rather than where its layout places it. Only when that bar is on the menu's edge and monitor; opened any other way, it keeps its place.": "バーのウィジェットのポップアウトとして開くと、レイアウトで決めた位置ではなく、バーのポップアウトと同じようにそのウィジェットの位置に開きます。そのバーがメニューと同じ端・モニターにある場合のみです。他の方法で開いたときは元の位置のままです。",
     "Popout at its widget": "ウィジェットの位置にポップアウト",
-    "An absolute path (~/ works), e.g. a synced folder or a Markdown vault. Empty keeps notes in ~/.local/share/axiom/notes.": "絶対パス（~/ も可）。同期フォルダや Markdown の保管庫など。空欄ならノートは ~/.local/share/axiom/notes に保存されます。"
+    "An absolute path (~/ works), e.g. a synced folder or a Markdown vault. Empty keeps notes in ~/.local/share/axiom/notes.": "絶対パス（~/ も可）。同期フォルダや Markdown の保管庫など。空欄ならノートは ~/.local/share/axiom/notes に保存されます。",
+    "Applies axiom's layer at runtime": "axiom が実行時に適用します"
   }
 }
