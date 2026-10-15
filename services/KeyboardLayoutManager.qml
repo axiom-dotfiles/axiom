@@ -1,6 +1,5 @@
 pragma Singleton
 import QtQuick
-import Quickshell.Hyprland
 
 // Active xkb layout of the main keyboard, shared by every KeyboardLayout
 // widget. Read once (HyprlandManager.withKeyboard), then again whenever
@@ -28,10 +27,12 @@ QtObject {
   }
 
   property Connections _events: Connections {
-    target: Hyprland
-    function onRawEvent(event) {
-      if (event.name === "activelayout" || event.name === "configreloaded")
-        Qt.callLater(root.refresh);
+    target: HyprlandManager
+    function onKeyboardLayoutChanged() {
+      Qt.callLater(root.refresh);
+    }
+    function onConfigReloaded() {
+      Qt.callLater(root.refresh);
     }
   }
 

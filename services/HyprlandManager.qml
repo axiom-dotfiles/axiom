@@ -10,13 +10,54 @@ import Quickshell.Hyprland
 import qs.config
 import qs.components.methods
 
-/* Provides access to some Hyprland data not available in Quickshell.Hyprland. */
+/* Hyprland's state and actions for the rest of axiom: the only reader of
+ * Quickshell.Hyprland outside the Hyprland* services, so the rest of the
+ * shell names no compositor (docs/dev/hyprland/ipc.md). */
 Singleton {
   id: root
   // Hyprland's clients (j/clients), as Hyprland reports them
   property var windowList: []
   // The focused monitor's active workspace (Quickshell's HyprlandWorkspace)
   readonly property var activeWorkspace: Hyprland.focusedMonitor?.activeWorkspace ?? null
+
+  // --- State, as Quickshell tracks it ---
+
+  // Hyprland's monitors and workspaces (HyprlandMonitor, HyprlandWorkspace)
+  readonly property var monitors: Hyprland.monitors.values
+  readonly property var workspaces: Hyprland.workspaces.values
+  // The focused monitor (a HyprlandMonitor), or null while Hyprland has none
+  readonly property var focusedMonitor: Hyprland.focusedMonitor
+  // The focused monitor's name, or "" while Hyprland has none
+  readonly property string focusedOutput: Hyprland.focusedMonitor?.name ?? ""
+  // The focused window (a HyprlandToplevel), or null
+  readonly property var activeToplevel: Hyprland.activeToplevel
+
+  // The HyprlandMonitor showing a screen, or null
+  function monitorFor(screen) {
+    return screen ? Hyprland.monitorFor(screen) : null;
+  }
+
+  // Re-reads the monitors' lastIpcObject (Quickshell re-reads it only on
+  // monitor events)
+  function refreshMonitors() {
+    Hyprland.refreshMonitors();
+  }
+
+  // --- Events, from Hyprland's event socket ---
+
+  // A layer surface opened or closed (openlayer / closelayer)
+  signal layersChanged
+  // A monitor was added or removed
+  signal outputsChanged
+  // Hyprland reloaded its config (binds, options and runtime state reset)
+  signal configReloaded
+  // The keyboard layout switched (activelayout)
+  signal keyboardLayoutChanged
+  // A window was focused; appClass is its class
+  signal windowFocused(string appClass)
+  // A window switcher key (HyprLua.switcherEvent): verb `step` (argument
+  // the step), `commit` or `cancel`
+  signal switcherKey(string verb, string argument)
 
   // Refetch soon. Events arrive in bursts (a window opening fires several),
   // so they are coalesced into one fetch.
@@ -467,7 +508,7 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
   // Calls back with the name of the screen under the cursor (the focused
   // monitor if Hyprland can't say). Asynchronous: one request.
   function withHoveredScreen(callback) {
-    withCursorPos(pos => callback((pos ? root._screenAt(pos.x, pos.y) : "") || (Hyprland.focusedMonitor?.name ?? General.primaryMonitor)));
+    withCursorPos(pos => callback((pos ? root._screenAt(pos.x, pos.y) : "") || root.focusedOutput || General.primaryMonitor));
   }
 
   // Calls back with the cursor's global position ({ x, y }), or null if
@@ -747,6 +788,7 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
     target: Hyprland
 
     function onRawEvent(event) {
+      root._announce(event);
       // Layer surfaces (including our own popouts) don't affect clients,
       // and custom events are axiom's own (the window switcher's keys)
       if (event.name === "openlayer" || event.name === "closelayer" || event.name === "custom")
@@ -760,6 +802,36 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
       if (event.name === "activespecial" || event.name === "activespecialv2")
         Hyprland.refreshMonitors();
       root.updateAll();
+    }
+  }
+
+  // Emits the event's signal, if it has one (Events above). Hyprland sends
+  // monitoradded/monitorremoved alongside their v2s, so only those count.
+  function _announce(event) {
+    switch (event.name) {
+    case "openlayer":
+    case "closelayer":
+      root.layersChanged();
+      break;
+    case "monitoradded":
+    case "monitorremoved":
+      root.outputsChanged();
+      break;
+    case "configreloaded":
+      root.configReloaded();
+      break;
+    case "activelayout":
+      root.keyboardLayoutChanged();
+      break;
+    case "activewindow":
+      root.windowFocused(event.data.split(",")[0]);
+      break;
+    case "custom":
+      if (event.data.startsWith(HyprLua.switcherEvent)) {
+        const [verb, argument = ""] = event.data.slice(HyprLua.switcherEvent.length).split(" ");
+        root.switcherKey(verb, argument);
+      }
+      break;
     }
   }
 

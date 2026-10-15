@@ -2,7 +2,6 @@ pragma Singleton
 pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
-import Quickshell.Hyprland
 import Quickshell.Io
 import Quickshell.Services.Notifications
 
@@ -221,13 +220,10 @@ Singleton {
 
   // clearOnFocus: an app's entries go when one of its windows is focused
   property Connections _focusWatcher: Connections {
-    target: Hyprland
+    target: HyprlandManager
     enabled: NotificationsConfig.clearOnFocus
-    function onRawEvent(event) {
-      if (event.name !== "activewindow")
-        return;
-      const cls = event.data.split(",")[0];
-      root.entries.filter(e => root._matchesClass(e, cls)).forEach(e => root.dismiss(e.uid));
+    function onWindowFocused(appClass) {
+      root.entries.filter(e => root._matchesClass(e, appClass)).forEach(e => root.dismiss(e.uid));
     }
   }
 

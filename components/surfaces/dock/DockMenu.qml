@@ -2,7 +2,6 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
-import Quickshell.Hyprland
 
 import qs.config
 import qs.services
@@ -56,7 +55,7 @@ PopupWindow {
     onTriggered: root.close()
   }
 
-  HyprlandFocusGrab {
+  HyprlandGrab {
     windows: [root, root.grabWindow].concat(ShellManager.modalWindows)
     active: root.visible && root.full
     onCleared: root.close()

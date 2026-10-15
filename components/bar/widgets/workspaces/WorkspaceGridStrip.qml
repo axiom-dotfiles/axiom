@@ -1,6 +1,5 @@
 pragma ComponentBehavior: Bound
 import QtQuick
-import Quickshell.Hyprland
 
 import qs.services
 import qs.config
@@ -32,7 +31,7 @@ Item {
   readonly property color emptyColor: Theme.resolveColor(properties.emptyColor)
   readonly property color iconColor: Theme.resolveColor(properties.textColor)
 
-  readonly property HyprlandMonitor monitor: Hyprland.monitorFor(root.screen)
+  readonly property var monitor: HyprlandManager.monitorFor(root.screen)
   readonly property int base: HyprlandManager.workspaceBase(root.monitor)
   readonly property int columns: WorkspacesConfig.columns
   readonly property int rows: WorkspacesConfig.rows

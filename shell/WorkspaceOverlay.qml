@@ -3,7 +3,6 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
-import Quickshell.Hyprland
 import qs.services
 import qs.config
 import qs.components.reusable
@@ -103,7 +102,7 @@ Scope {
       // window and switch back. The focus grab keeps the keyboard here.
       WlrLayershell.keyboardFocus: overlayWindow.shown ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
 
-      HyprlandFocusGrab {
+      HyprlandGrab {
         id: grab
         // Off for a moment to take the grab back after a drop moved focus
         property bool rearming: false

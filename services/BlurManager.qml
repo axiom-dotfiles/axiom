@@ -1,6 +1,5 @@
 pragma Singleton
 import QtQuick
-import Quickshell.Hyprland
 
 import qs.config
 
@@ -201,11 +200,16 @@ QtObject {
   property bool _again: false
 
   property Connections _events: Connections {
-    target: Hyprland
+    target: HyprlandManager
 
-    function onRawEvent(event) {
-      if (event.name === "openlayer" || event.name === "closelayer" || event.name === "monitoradded" || event.name === "monitorremoved" || event.name === "configreloaded")
-        root.refreshLayers();
+    function onLayersChanged() {
+      root.refreshLayers();
+    }
+    function onOutputsChanged() {
+      root.refreshLayers();
+    }
+    function onConfigReloaded() {
+      root.refreshLayers();
     }
   }
 

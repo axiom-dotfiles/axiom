@@ -3,12 +3,17 @@
 
 > **File:** `services/HyprlandManager.qml` · **Docs:** see [docs/dev](../../README.md)
 
-Provides access to some Hyprland data not available in Quickshell.Hyprland.
+Hyprland's state and actions for the rest of axiom: the only reader of Quickshell.Hyprland outside the Hyprland* services, so the rest of the shell names no compositor (docs/dev/hyprland/ipc.md).
 
 ### Properties
 
 - `windowList` (var): Hyprland's clients (j/clients), as Hyprland reports them
 - `activeWorkspace` (readonly var): The focused monitor's active workspace (Quickshell's HyprlandWorkspace)
+- `monitors` (readonly var): Hyprland's monitors and workspaces (HyprlandMonitor, HyprlandWorkspace)
+- `workspaces` (readonly var)
+- `focusedMonitor` (readonly var): The focused monitor (a HyprlandMonitor), or null while Hyprland has none
+- `focusedOutput` (readonly string): The focused monitor's name, or "" while Hyprland has none
+- `activeToplevel` (readonly var): The focused window (a HyprlandToplevel), or null
 - `gapsOut` (var): Hyprland's general:gaps_out per side, which it adds after every reserved zone (transparent bars subtract it, see BarPanel)
 - `splitWidthMultiplier` (real): dwindle:split_width_multiplier: a box wider than tall times this splits side by side (placeWindow, and the overview's drop preview)
 - `blur` (var): Hyprland's blur as in effect, { enabled, size, passes } (its defaults until read): the one axiom's translucent surfaces blur with
@@ -18,10 +23,18 @@ Provides access to some Hyprland data not available in Quickshell.Hyprland.
 
 ### Signals
 
+- `layersChanged()`: A layer surface opened or closed (openlayer / closelayer)
+- `outputsChanged()`: A monitor was added or removed
+- `configReloaded()`: Hyprland reloaded its config (binds, options and runtime state reset)
+- `keyboardLayoutChanged()`: The keyboard layout switched (activelayout)
+- `windowFocused(string appClass)`: A window was focused; appClass is its class
+- `switcherKey(string verb, string argument)`: A window switcher key (HyprLua.switcherEvent): verb `step` (argument the step), `commit` or `cancel`
 - `workspaceWrapped(string monitor, bool alongRow, bool forward)`: A step about to wrap round the grid's ends on `monitor` (its name): along a row (`alongRow`, the standard layout's only kind) or a column, `forward` past the last.
 
 ### Functions
 
+- `monitorFor(screen)`: The HyprlandMonitor showing a screen, or null
+- `refreshMonitors()`: Re-reads the monitors' lastIpcObject (Quickshell re-reads it only on monitor events)
 - `updateAll()`: Refetch soon.
 - `closeWindow(windowAddress)`
 - `focusWindow(windowAddress)`: Focusing a window on another workspace switches to it, so that goes through goToWorkspace to slide like any other switch

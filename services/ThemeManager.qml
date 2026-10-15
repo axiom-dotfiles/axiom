@@ -4,7 +4,6 @@ import QtQuick
 import Qt.labs.folderlistmodel
 import Quickshell
 import Quickshell.Io
-import Quickshell.Hyprland
 
 import qs.config
 import qs.components.methods
@@ -107,7 +106,7 @@ QtObject {
 
   // `monitor`, or the focused monitor without one
   function monitorFor(monitor) {
-    return monitor || (Hyprland.focusedMonitor?.name ?? General.primaryMonitor);
+    return monitor || (HyprlandManager.focusedOutput || General.primaryMonitor);
   }
 
   // Sets `monitor`'s fixed wallpaper in the config (the focused monitor's

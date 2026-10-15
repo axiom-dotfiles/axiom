@@ -1,6 +1,5 @@
 pragma ComponentBehavior: Bound
 import QtQuick
-import Quickshell.Hyprland
 
 import qs.services
 import qs.config
@@ -20,7 +19,7 @@ Panel {
   // From the widget's payload (BarPopouts copies it onto these, and the
   // widget's options onto `properties`, once the popout has loaded: until
   // then `properties` is empty, hence the few `??` below)
-  property HyprlandMonitor monitor: null
+  property var monitor: null
   property bool vertical: false
   property real cellSize: Widget.height
   // Along the bar (narrower than cellSize for dots without a box)
@@ -56,7 +55,7 @@ Panel {
   Component.onCompleted: Qt.callLater(() => root._settled = true)
 
   function wsById(id) {
-    return Hyprland.workspaces.values.find(ws => ws.id === id) ?? null;
+    return HyprlandManager.workspaces.find(ws => ws.id === id) ?? null;
   }
 
   Grid {

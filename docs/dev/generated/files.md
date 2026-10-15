@@ -604,8 +604,9 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `HypridleManager.qml`: hypridle, run by axiom (the Idle section).
 - `HyprlandBindMerge.qml`: scripts/merge_hypr_binds.py: every hl.bind in user/*.lua that can move becomes one of axiom's binds (an action where one does the same, else the `lua` action), saved first, then its call is deleted from the file (a date…
 - `HyprlandConfigManager.qml`: Managed config, loading ~/.config/hypr/user/*.lua after it Whenever the file isn't loaded (included but the lines are missing, or a managed takeover refused), the runtime layer is applied instead, so axiom still works, …
+- `HyprlandGrab.qml`: Hyprland's focus grab, for surfaces that close (or drop keyboard focus) on a click outside them: while `active`, keyboard focus stays in `windows` and a click anywhere else ends the grab (`cleared`).
 - `HyprlandIpcManager.qml`: Requests on Hyprland's request socket, as hyprctl makes them but without a process each: what Quickshell.Hyprland doesn't cover (options, Lua evals, binds, devices, layers, the cursor, reloads).
-- `HyprlandManager.qml`: Provides access to some Hyprland data not available in Quickshell.Hyprland.
+- `HyprlandManager.qml`: Hyprland's state and actions for the rest of axiom: the only reader of Quickshell.Hyprland outside the Hyprland* services, so the rest of the shell names no compositor (docs/dev/hyprland/ipc.md).
 - `HyprlandRuntimeLayer.qml`: Axiom's Hyprland layer evaluated at runtime, for HyprlandConfigManager: the detached mode, and the fallback of the file modes while their file isn't loaded.
 - `HyprlandTakeover.qml`: Taking ~/.config/hypr/hyprland.lua over for the managed mode, and giving it back (scripts/claim_hyprland.sh), for HyprlandConfigManager, which acts on the results (claimed, blocked, released).
 - `IdleInhibitManager.qml`: Shared on/off state for keeping the session awake.

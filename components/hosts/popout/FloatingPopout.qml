@@ -2,7 +2,6 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
-import Quickshell.Hyprland
 
 import qs.config
 import qs.services
@@ -104,7 +103,7 @@ PopoutWrapperBase {
       item: root.closeOnClickOutside ? surfaceWindow.contentItem : box
     }
 
-    HyprlandFocusGrab {
+    HyprlandGrab {
       id: focusGrab
       windows: [surfaceWindow].concat(root.grabWindows, ShellManager.modalWindows)
       active: root.isOpen && root.grabEnabled && (root.wantsKeyboardFocus || root.closeOnClickOutside)

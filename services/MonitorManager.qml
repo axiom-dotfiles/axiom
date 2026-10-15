@@ -1,7 +1,6 @@
 pragma Singleton
 
 import QtQuick
-import Quickshell.Hyprland
 import Quickshell.Io
 
 import qs.config
@@ -399,15 +398,16 @@ QtObject {
   }
 
   property Connections _events: Connections {
-    target: Hyprland
+    target: HyprlandManager
 
-    function onRawEvent(event) {
-      if (!["monitoradded", "monitoraddedv2", "monitorremoved", "monitorremovedv2", "configreloaded"].includes(event.name))
-        return;
-      if (root.pageShown && !root.pending && !draft.isDirty && event.name !== "configreloaded") {
+    function onOutputsChanged() {
+      if (root.pageShown && !root.pending && !draft.isDirty) {
         draft.load();
         root._detectPending = true;
       }
+      root._refreshSoon.restart();
+    }
+    function onConfigReloaded() {
       root._refreshSoon.restart();
     }
   }

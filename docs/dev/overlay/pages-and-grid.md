@@ -78,7 +78,7 @@ Pure, tested by `tst_GridPlacement`.
 - Under it, `reusable/ScreenBackdrop` dims the whole monitor under the bars and border.
   - A Top-layer surface kept under them by a Hyprland `order` layer rule that `HyprlandManager` adds at startup and on config reload.
   - The workspace overview and launcher use it too.
-- Its `HyprlandFocusGrab` also whitelists `ShellManager.grabPartnersFor(screen)`. The bars, bar popouts and submenus register themselves there (`registerGrabPartner(window, screenName)`), so they keep working while it's open.
+- Its focus grab (`HyprlandGrab`) also whitelists `ShellManager.grabPartnersFor(screen)`. The bars, bar popouts and submenus register themselves there (`registerGrabPartner(window, screenName)`), so they keep working while it's open.
 - Only the current page and its neighbours (navigation wraps) are instantiated, and only while the overlay is open (`OverlayPages.isLoaded` → `OverlayPage.loaded`). (Rule: AGENTS.md › UI conventions, Overlay lifetime.)
 - Page order (`OverlayPages.buildViewsModel`; `viewsModel[i].index` is the view's place in config):
   1. the user's own (Custom) pages, in config order;

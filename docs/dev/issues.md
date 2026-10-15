@@ -18,9 +18,9 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 
 ## Open
 
-### Hyprland is still reached directly outside the Hyprland* services
-- **Where:** `services/` (NotificationManager, KeyboardLayoutManager, ThemeManager, BlurManager, MonitorManager, PolkitManager, DockManager, BrightnessManager, ScreenshotManager, ShellManager, WindowSwitcherManager, KeybindManager) and 15 files in `components/` and `shell/` that import `Quickshell.Hyprland`
-- **What:** Their commands now go through `HyprlandManager` (`docs/dev/hyprland/ipc.md`), but they still read `Hyprland.focusedMonitor`, `Hyprland.monitors`/`workspaces`/`toplevels`, `monitorFor()`, `HyprlandFocusGrab` or handle `Hyprland.rawEvent` names themselves. Supporting another compositor needs these behind `HyprlandManager` too (neutral properties and signals: focused output, workspaces, a "layers changed"/"layout changed" signal).
+### Code outside the Hyprland* services still depends on Hyprland's shapes
+- **Where:** readers of `HyprlandManager.monitors`/`workspaces`/`monitorFor()` (the workspace widgets and content, `OverviewGrid`, `DockManager`, `ScreenshotPickerWindow`, `shell/BlurBacking.qml`); the Hyprland Lua helpers used by `MonitorManager`, `KeybindManager`, `WindowSwitcherManager` and `GreetdManager` (`HyprLua`, `HyprConfigLua`, `HyprBinds`); the `HyprlandGrab` users
+- **What:** Only the `Hyprland*` services import `Quickshell.Hyprland` now (`docs/dev/hyprland/ipc.md`), but the objects `HyprlandManager` hands out are Quickshell's `HyprlandMonitor`/`HyprlandWorkspace` (their `lastIpcObject`, `activeWorkspace`, `toplevels`), the window list is Hyprland's `clients` JSON, and those services build Hyprland Lua themselves. Supporting another compositor needs neutral shapes for monitors, workspaces and windows, the Lua builders behind the Hyprland* services, and a neutral name for the grab.
 - **Size:** needs a plan
 - **Found:** 2026-10-15, while moving hyprctl calls onto the request socket
 

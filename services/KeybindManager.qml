@@ -1,8 +1,6 @@
 pragma Singleton
 import QtQuick
 
-import Quickshell.Hyprland
-
 import qs.config
 import qs.components.methods
 
@@ -919,11 +917,10 @@ hl.dispatch(hl.dsp.submap("${_recordSubmap}"))`
   }
 
   property Connections _hyprlandEvents: Connections {
-    target: Hyprland
+    target: HyprlandManager
 
-    function onRawEvent(event) {
-      if (event.name === "configreloaded")
-        root.refresh();
+    function onConfigReloaded() {
+      root.refresh();
     }
   }
 

@@ -2,7 +2,6 @@ pragma Singleton
 
 import QtQuick
 import Quickshell
-import Quickshell.Hyprland
 import Quickshell.Io
 
 import qs.config
@@ -309,12 +308,12 @@ QtObject {
     property string kind: ""
     onTriggered: {
       if (kind === "recordScreen") {
-        root.record(null, Hyprland.focusedMonitor?.name ?? "");
+        root.record(null, HyprlandManager.focusedOutput);
         return;
       }
       root.request = {
         "kind": kind,
-        "screen": Hyprland.focusedMonitor?.name ?? ""
+        "screen": HyprlandManager.focusedOutput
       };
       root.picking = true;
       root._watchdog.restart();

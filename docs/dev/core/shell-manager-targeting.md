@@ -21,7 +21,7 @@ Cross-cutting UI signals (power menu, launcher, overlays) that modules connect t
 ### "all": every monitor at once
 - `everywhere(mode)`, `showsOn(screen, mode, name)`.
 - A `reusable/SurfaceGroup` per instance opens and closes the others with it (`ShellManager.surfaceShown`).
-- Only one `HyprlandFocusGrab` can be active, so only the target's instance holds one, covering every instance's window (`surfaceWindows`).
+- Only one focus grab (`HyprlandGrab`) can be active, so only the target's instance holds one, covering every instance's window (`surfaceWindows`).
 - The launcher's instances share `LauncherManager.text`.
 
 ### Other placement notes

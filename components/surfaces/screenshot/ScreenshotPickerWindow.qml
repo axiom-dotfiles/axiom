@@ -2,7 +2,6 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
-import Quickshell.Hyprland
 import Quickshell.Wayland
 
 import qs.components.reusable
@@ -33,7 +32,7 @@ PanelWindow {
   readonly property bool canSwitch: !ScreenshotManager.forCaller && ScreenshotManager.hasRecorder
   // Only whole windows: no dragging, and a click off a window does nothing
   readonly property bool windowsOnly: request?.kind === "window"
-  readonly property bool focusedScreen: screen?.name === (Hyprland.focusedMonitor?.name ?? "")
+  readonly property bool focusedScreen: screen?.name === HyprlandManager.focusedOutput
   // Buffer pixels per logical pixel
   readonly property real pixelRatio: frame.sourceSize.width > 0 && root.width > 0 ? frame.sourceSize.width / root.width : (screen?.devicePixelRatio ?? 1)
   readonly property rect fullRect: Qt.rect(0, 0, root.width, root.height)
@@ -68,7 +67,7 @@ PanelWindow {
   // most recently focused), as local boxes clipped to the screen (by the
   // screen's size: the window has none yet when this runs)
   function _windows() {
-    const monitor = Hyprland.monitorFor(root.screen);
+    const monitor = HyprlandManager.monitorFor(root.screen);
     const shown = [monitor?.activeWorkspace?.id, monitor?.lastIpcObject?.specialWorkspace?.id].filter(id => id !== undefined && id !== 0);
     return HyprlandManager.windowList.filter(w => w.at && w.size && !w.hidden && w.mapped !== false && shown.includes(w.workspace?.id)).sort((a, b) => (b.fullscreen > 0) - (a.fullscreen > 0) || b.floating - a.floating || a.focusHistoryID - b.focusHistoryID).map(w => _clip(w.at[0] - root.screen.x, w.at[1] - root.screen.y, w.size[0], w.size[1])).filter(box => box.width > 0 && box.height > 0);
   }

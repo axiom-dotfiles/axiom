@@ -4,7 +4,6 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
 import Quickshell.Io
-import Quickshell.Hyprland
 
 import qs.config
 import qs.components.methods
@@ -68,8 +67,8 @@ Singleton {
   }
 
   function _open() {
-    const monitor = Hyprland.focusedMonitor;
-    const active = Hyprland.activeToplevel;
+    const monitor = HyprlandManager.focusedMonitor;
+    const active = HyprlandManager.activeToplevel;
     const scope = WindowSwitcherConfig.scope;
     root._focusedAddress = active ? "0x" + active.address : "";
     root._windows = WindowOrder.mru(HyprlandManager.windowList, win => DockLayout.inScope(win, scope, monitor?.id, monitor?.activeWorkspace?.id), root._focusedAddress);
@@ -92,12 +91,9 @@ Singleton {
   }
 
   Connections {
-    target: Hyprland
+    target: HyprlandManager
 
-    function onRawEvent(event) {
-      if (event.name !== "custom" || !event.data.startsWith(HyprLua.switcherEvent))
-        return;
-      const [verb, argument] = event.data.slice(HyprLua.switcherEvent.length).split(" ");
+    function onSwitcherKey(verb, argument) {
       if (verb === "step")
         root.step(parseInt(argument) || 1);
       else if (verb === "commit")

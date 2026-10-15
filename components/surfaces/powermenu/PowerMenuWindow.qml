@@ -2,7 +2,6 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
-import Quickshell.Hyprland
 import Quickshell.Io
 
 import qs.components.reusable
@@ -126,7 +125,7 @@ PanelWindow {
     onSyncRequested: shown => root.shown = shown
   }
 
-  HyprlandFocusGrab {
+  HyprlandGrab {
     active: root.shown && group.ownsGrab
     windows: group.windows.concat(ShellManager.modalWindows)
     onCleared: root.shown = false

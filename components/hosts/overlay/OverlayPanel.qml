@@ -2,7 +2,6 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell.Io
 import Quickshell.Wayland
-import Quickshell.Hyprland
 
 import qs.config
 import qs.services
@@ -113,7 +112,7 @@ ReservedAreaWindow {
     onSyncRequested: shown => shown ? root.open() : root.close()
   }
 
-  HyprlandFocusGrab {
+  HyprlandGrab {
     id: grab
     // Only while open: a grab held through the close animation would be
     // cleared by any click then, for nothing

@@ -1,7 +1,6 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
-import Quickshell.Hyprland
 
 import qs.services
 import qs.config
@@ -22,7 +21,7 @@ Rectangle {
 
   signal closeRequested
 
-  readonly property HyprlandMonitor monitor: Hyprland.monitorFor(root.screen)
+  readonly property var monitor: HyprlandManager.monitorFor(root.screen)
   // The workspaces shown, one per cell, and the board's shape
   readonly property var ids: HyprlandManager.workspaceIds(root.monitor)
   readonly property int columns: WorkspacesConfig.boardColumns
@@ -91,7 +90,7 @@ Rectangle {
 
   // A monitor's global layout origin, by hyprctl id (this one's if unknown)
   function originOf(monitorId) {
-    const m = Hyprland.monitors.values.find(m => m.id === monitorId);
+    const m = HyprlandManager.monitors.find(m => m.id === monitorId);
     return m ? {
       x: m.x,
       y: m.y
@@ -104,14 +103,14 @@ Rectangle {
   // The origin of the monitor a workspace is on (this one if it doesn't
   // exist yet: it opens here)
   function workspaceOrigin(workspaceId) {
-    const ws = Hyprland.workspaces.values.find(ws => ws.id === workspaceId);
+    const ws = HyprlandManager.workspaces.find(ws => ws.id === workspaceId);
     return root.originOf(ws?.monitor?.id ?? root.monitor?.id);
   }
 
   // The strip direction where a workspace is (this monitor if it doesn't
   // exist yet), "" where it tiles
   function stripOn(workspaceId) {
-    const ws = Hyprland.workspaces.values.find(ws => ws.id === workspaceId);
+    const ws = HyprlandManager.workspaces.find(ws => ws.id === workspaceId);
     return WorkspacesConfig.stripDirection(ws?.monitor?.name ?? root.screen?.name ?? "");
   }
 
