@@ -1,6 +1,6 @@
 # Config (`config/`)
 
-Reader singletons (`<Section>.qml` / `<Section>Config.qml`), `json/config.schema.json` (the single source of truth), `json/theme-defaults.json`, `themes/`, `i18n/`, `user/` (live config, gitignored), `state/`. Docs: `docs/dev/core/config-readers.md`, `config-manager.md`, `schema-annotations.md`. Every setting, its reader member and its users: `docs/dev/config/<Section>.md` (generated).
+Reader singletons (`<Section>.qml` / `<Section>Config.qml`), `json/config.schema.json` (the single source of truth), `json/theme-defaults.json`, `themes/`, `i18n/`. The live config and state are in the XDG folders, never here (`docs/dev/core/config-manager.md` › Where files live; `user/` and `state/` are only an old install's, until it moves). Docs: `docs/dev/core/config-readers.md`, `config-manager.md`, `schema-annotations.md`. Every setting, its reader member and its users: `docs/dev/config/<Section>.md` (generated).
 
 **Recipe:** `docs/recipes/setting.md` / `docs/recipes/config-section.md` / `docs/recipes/migration.md`; verify with `scripts/dev/verify.sh`.
 
@@ -11,4 +11,4 @@ Reader singletons (`<Section>.qml` / `<Section>Config.qml`), `json/config.schema
 - **Renaming or reshaping a key**: edit the schema first, then the `ConfigMigration` step (`components/methods/AGENTS.md`).
 - `x-scope`: a setting in a look section that names a monitor, path, account or command needs `machine`/`personal`.
 - After changing the schema or a reader, run `scripts/gen_docs.py`.
-- Edit `user/config.json` and `i18n/*.json` atomically (temp file + rename): they're watched.
+- Edit `~/.config/axiom/config.json` and `i18n/*.json` atomically (temp file + rename): they're watched.

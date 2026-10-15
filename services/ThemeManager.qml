@@ -734,7 +734,8 @@ QtObject {
   }
 
   // Ready is reported once before the rows arrive, then again with them.
-  // Directories are hidden (showDirs), so "generated" isn't listed.
+  // Directories are hidden (showDirs), so a generated/ folder an install
+  // from before the XDG folders left there isn't listed.
   property FolderListModel _defaultThemeLoader: FolderListModel {
     nameFilters: ["*.json"]
     showDirs: false
