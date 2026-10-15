@@ -177,18 +177,13 @@ QtObject {
   property string _activeLayout: ""
 
   function nextLayout() {
-    CommandManager.run(["hyprctl", "switchxkblayout", "all", "next"], () => root._readLayouts());
+    HyprlandManager.cycleKeyboardLayout("next", () => root._readLayouts());
   }
 
   function _readLayouts() {
-    CommandManager.run(["hyprctl", "devices", "-j"], (exitCode, out) => {
-      try {
-        const keyboard = (JSON.parse(out).keyboards ?? []).find(k => k.main) ?? JSON.parse(out).keyboards?.[0];
-        root._layouts = String(keyboard?.layout ?? "").split(",").filter(layout => layout !== "");
-        root._activeLayout = keyboard?.active_keymap ?? "";
-      } catch (e) {
-        console.warn("[GreetdManager] hyprctl devices:", e);
-      }
+    HyprlandManager.withKeyboard(keyboard => {
+      root._layouts = keyboard?.layouts ?? [];
+      root._activeLayout = keyboard?.keymap ?? "";
     });
   }
 
@@ -228,7 +223,7 @@ QtObject {
     const lua = HyprLua.greeterLua(config.Hyprland.monitors.profiles, managedSchema, managed, name => Theme.resolveColor(name).toString().slice(1, 7));
     HyprlandManager.runLua(lua.join("\n"));
     if (managed?.cursorTheme)
-      CommandManager.run(["hyprctl", "setcursor", managed.cursorTheme, String(managed.cursorSize)]);
+      HyprlandManager.setCursor(managed.cursorTheme, managed.cursorSize);
   }
 
   Component.onCompleted: {

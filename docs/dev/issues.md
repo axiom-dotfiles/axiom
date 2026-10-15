@@ -18,6 +18,12 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 
 ## Open
 
+### Hyprland is still reached directly outside the Hyprland* services
+- **Where:** `services/` (NotificationManager, KeyboardLayoutManager, ThemeManager, BlurManager, MonitorManager, PolkitManager, DockManager, BrightnessManager, ScreenshotManager, ShellManager, WindowSwitcherManager, KeybindManager) and 15 files in `components/` and `shell/` that import `Quickshell.Hyprland`
+- **What:** Their commands now go through `HyprlandManager` (`docs/dev/hyprland/ipc.md`), but they still read `Hyprland.focusedMonitor`, `Hyprland.monitors`/`workspaces`/`toplevels`, `monitorFor()`, `HyprlandFocusGrab` or handle `Hyprland.rawEvent` names themselves. Supporting another compositor needs these behind `HyprlandManager` too (neutral properties and signals: focused output, workspaces, a "layers changed"/"layout changed" signal).
+- **Size:** needs a plan
+- **Found:** 2026-10-15, while moving hyprctl calls onto the request socket
+
 ### The python venv and bytecode are written into the repo
 - **Where:** `scripts/setup_venv.sh`, `scripts/venv_python.sh`
 - **What:** The venv for `generate_theme.py`/`calendar_sync.py` is made at `<repo>/.venv`, and python leaves `__pycache__/` in `scripts/`. A packaged (read-only) install can't do either. Put the venv in `$XDG_DATA_HOME/axiom/venv` (or use the system python when the requirements already import), and set `PYTHONDONTWRITEBYTECODE=1`. Blocks packaging, not the XDG move.

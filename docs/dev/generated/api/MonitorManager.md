@@ -3,11 +3,11 @@
 
 > **File:** `services/MonitorManager.qml` · **Docs:** see [docs/dev](../../README.md)
 
-The Monitors page: the connected outputs (`hyprctl monitors all -j`, read at startup and when monitors come, go or the config reloads; never polled) and the editor for Hyprland.monitors, a draft of profiles (each a layout for one set of monitors). HyprlandConfigManager writes the saved profiles into axiom's Lua layer in every mode, where the one matching what's connected applies (again on every hotplug). Apply tries the selected profile at once (hl.monitor through hyprctl eval) and asks to keep it: keep() saves the draft, and revert() (or the countdown running out) puts back what was there before.
+The Monitors page: the connected outputs (HyprlandManager.withOutputs, read at startup and when monitors come, go or the config reloads; never polled) and the editor for Hyprland.monitors, a draft of profiles (each a layout for one set of monitors). HyprlandConfigManager writes the saved profiles into axiom's Lua layer in every mode, where the one matching what's connected applies (again on every hotplug). Apply tries the selected profile at once (hl.monitor through HyprlandManager.runLua) and asks to keep it: keep() saves the draft, and revert() (or the countdown running out) puts back what was there before.
 
 ### Properties
 
-- `outputs` (var): `hyprctl monitors all -j`, disabled ones included
+- `outputs` (var): Hyprland's monitors (HyprlandManager.withOutputs), disabled ones included
 - `enabledOutputs` (readonly var)
 - `profiles` (readonly var)
 - `isDirty` (readonly alias)

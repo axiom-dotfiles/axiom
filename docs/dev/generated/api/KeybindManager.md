@@ -3,7 +3,7 @@
 
 > **File:** `services/KeybindManager.qml` · **Docs:** see [docs/dev](../../README.md)
 
-KeybindManager reads the keybinds Hyprland has registered (`hyprctl binds -j`). With the Lua config every action is an opaque `__lua` dispatcher, so each bind's `description` option is the label. A "Section: Label" prefix picks the overlay section. Also the Keybinds page's editor for axiom's own binds (Hyprland.binds): a draft saved with save(), per-bind issues, presets, and recording a key combo (Hyprland is put in an empty submap meanwhile, so its binds don't swallow the keys being recorded).
+KeybindManager reads the keybinds Hyprland has registered (HyprlandManager.withBinds). With the Lua config every action is an opaque `__lua` dispatcher, so each bind's `description` option is the label. A "Section: Label" prefix picks the overlay section. Also the Keybinds page's editor for axiom's own binds (Hyprland.binds): a draft saved with save(), per-bind issues, presets, and recording a key combo (Hyprland is put in an empty submap meanwhile, so its binds don't swallow the keys being recorded).
 
 ### Properties
 

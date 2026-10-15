@@ -73,23 +73,11 @@ QtObject {
   function _start() {
     _busy = true;
     _startedAt = _reloads;
-    CommandManager.run(["hyprctl", "eval", _unbindLua], () => {
-      CommandManager.run(["hyprctl", "binds", "-j"], (code, out) => {
-        let bindList = [];
-        try {
-          bindList = JSON.parse(out);
-        } catch (e) {
-          console.warn("[HyprlandConfigManager] Could not parse hyprctl binds:", e);
-        }
-        CommandManager.run(["hyprctl", "animations", "-j"], (code, out) => {
-          let animations = null;
-          try {
-            animations = JSON.parse(out);
-          } catch (e) {
-            console.warn("[HyprlandConfigManager] Could not parse hyprctl animations:", e);
-          }
+    HyprlandIpcManager.evalLua(_unbindLua, () => {
+      HyprlandManager.withBinds(binds => {
+        HyprlandManager.withAnimations(animations => {
           root._busy = false;
-          root._finish(bindList, animations);
+          root._finish(binds ?? [], animations);
         });
       });
     });

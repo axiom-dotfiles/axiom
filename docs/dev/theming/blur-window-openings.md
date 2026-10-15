@@ -62,7 +62,7 @@ How the chrome's translucent surfaces share one blurred backing window, how thei
 
 ### Where a window is (LayerOrigin)
 - Layer windows don't know where they are, so `hosts/popout/LayerOrigin` asks `BlurManager.layerOrigin`.
-- Read from `hyprctl layers`, only while surfaces are translucent:
+- Read from Hyprland's layers (`HyprlandManager.withLayerRects`), only while surfaces are translucent:
   - on layer events;
   - whenever the window or what's reserved around it changes;
   - remembered for windows mapped only while open.

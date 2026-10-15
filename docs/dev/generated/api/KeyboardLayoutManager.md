@@ -3,7 +3,7 @@
 
 > **File:** `services/KeyboardLayoutManager.qml` · **Docs:** see [docs/dev](../../README.md)
 
-Active xkb layout of the main keyboard, shared by every KeyboardLayout widget. Read from `hyprctl devices` once, then again whenever Hyprland reports a layout switch or a config reload (no polling).
+Active xkb layout of the main keyboard, shared by every KeyboardLayout widget. Read once (HyprlandManager.withKeyboard), then again whenever Hyprland reports a layout switch or a config reload (no polling).
 
 ### Properties
 

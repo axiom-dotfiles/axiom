@@ -7,7 +7,7 @@
 Monitor layouts saved per set of connected monitors, edited on the Monitors page and applied by Hyprland itself on hotplug.
 
 ### Live outputs
-- `outputs` is `hyprctl monitors all -j`.
+- `outputs` is Hyprland's monitors, disabled ones included (`HyprlandManager.withOutputs`).
 - It is read at startup and on `monitoradded`/`monitorremoved`/`configreloaded`. It is never polled.
 
 ### Profiles

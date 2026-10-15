@@ -163,10 +163,45 @@ QtObject {
     return root.calls[bind.action]?.[root.callOf(bind)] ?? "toggle";
   }
 
-  // Whether `action` needs an argument (`exec`, or a {0} in its IPC call
-  // or, for a compositor action, its label)
+  // What an action's argument is (the Keybinds page picks its editor and
+  // choices by it); actions without one aren't listed. Every action with a
+  // {0} in its IPC call or label is (tst_BindActions checks).
+  readonly property var argumentKinds: ({
+      "launcherSearch": "text",
+      "exec": "text",
+      "lua": "lua",
+      "overlayPage": "view",
+      "edgeMenu": "edgeMenu",
+      "dock": "dock",
+      "workspaceStep": "direction",
+      "moveWindowStep": "direction",
+      "moveWindowStepSilent": "direction",
+      "workspaceNth": "workspace",
+      "moveWindowNth": "workspace",
+      "moveWindowNthSilent": "workspace",
+      "focusDir": "direction",
+      "moveWindowDir": "direction",
+      "stripSwapColumn": "direction",
+      "resizeWindow": "resize",
+      "toggleSpecial": "special",
+      "moveToSpecial": "special",
+      "screenshot": "screenshot"
+    })
+
+  // The argument an action starts with when picked (else empty)
+  readonly property var argumentDefaults: ({
+      "screenshot": "region",
+      "dock": "main"
+    })
+
+  // What `action`'s argument is (argumentKinds), or ""
+  function argumentKind(action) {
+    return root.argumentKinds[action] ?? "";
+  }
+
+  // Whether `action` needs an argument to be bound
   function needsArgument(action) {
-    return action === "exec" || (root.ipcActions[action]?.[0] ?? root.compositorActions[action]?.[0] ?? "").includes("{0}");
+    return root.argumentKinds[action] !== undefined;
   }
 
   // The section a bind's action files it under on the Keybinds page

@@ -43,7 +43,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `HyprlandConfig.monitorProfiles` (whole) · in: `services/MonitorManager.qml`
 - **`Hyprland.monitors.profiles[].outputs[].transform`** · integer = 0 · 0–7
   - Rotation in quarter turns, plus 4 when flipped.
-  - read: entry field, name match repo-wide · in: `components/methods/HyprLua.qml`, `components/methods/MonitorLayout.qml`, `components/views/monitors/MonitorInspector.qml`, `services/BlurManager.qml`
+  - read: entry field, name match repo-wide · in: `components/methods/HyprLua.qml`, `components/methods/HyprState.qml`, `components/methods/MonitorLayout.qml`, `components/views/monitors/MonitorInspector.qml`
 - **`Hyprland.monitors.profiles[].outputs[].disabled`** · boolean = false
   - read: `HyprlandConfig.monitorProfiles` (whole) · in: `services/MonitorManager.qml`
 - **`Hyprland.monitors.profiles[].outputs[].mirror`** · string = ""

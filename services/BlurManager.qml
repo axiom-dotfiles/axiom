@@ -1,6 +1,5 @@
 pragma Singleton
 import QtQuick
-import Quickshell.Io
 import Quickshell.Hyprland
 
 import qs.config
@@ -16,7 +15,7 @@ import qs.config
  * on a screen, a second blur window there, over it, draws the shapes of
  * the surfaces on the Overlay layer (aboveOverlay).
  * Layer-shell windows don't know where they are on screen, so their
- * origins are read from Hyprland (`hyprctl layers`), again whenever a
+ * origins are read from Hyprland (HyprlandManager.withLayerRects), again whenever a
  * layer maps or unmaps, or a window asks (it resized, reservations moved).
  * The joins in the border's stroke and popouts' footprints (PopoutManager)
  * use them too, so they're kept whatever the surfaces look like.
@@ -182,51 +181,24 @@ QtObject {
   property Timer _refresh: Timer {
     interval: 30
     onTriggered: {
-      if (root._query.running)
+      if (root._querying) {
         root._again = true;
-      else
-        root._query.running = true;
-    }
-  }
-  property bool _again: false
-
-  property Process _query: Process {
-    command: ["sh", "-c", "printf '[%s,%s]' \"$(hyprctl -j monitors)\" \"$(hyprctl -j layers)\""]
-    stdout: StdioCollector {
-      onStreamFinished: {
-        try {
-          const [monitors, layers] = JSON.parse(text);
-          const result = {};
-          for (const monitor of monitors) {
-            const levels = layers[monitor.name]?.levels ?? {};
-            // Layer geometry is in logical px, as the monitor's size isn't
-            const scale = monitor.scale || 1;
-            const turned = monitor.transform % 2 === 1;
-            result[monitor.name] = {
-              "w": (turned ? monitor.height : monitor.width) / scale,
-              "h": (turned ? monitor.width : monitor.height) / scale,
-              "layers": [].concat(...Object.keys(levels).map(level => levels[level])).map(l => ({
-                    "namespace": l.namespace,
-                    "x": l.x - monitor.x,
-                    "y": l.y - monitor.y,
-                    "w": l.w,
-                    "h": l.h
-                  }))
-            };
-          }
-          root.layers = result;
-        } catch (e) {
-          console.warn("[BlurManager] Couldn't read hyprctl layers:", e);
+        return;
+      }
+      root._querying = true;
+      HyprlandManager.withLayerRects(rects => {
+        root._querying = false;
+        if (rects)
+          root.layers = rects;
+        if (root._again) {
+          root._again = false;
+          root._refresh.restart();
         }
-      }
-    }
-    onExited: {
-      if (root._again) {
-        root._again = false;
-        root._refresh.restart();
-      }
+      });
     }
   }
+  property bool _querying: false
+  property bool _again: false
 
   property Connections _events: Connections {
     target: Hyprland

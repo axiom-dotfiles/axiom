@@ -163,9 +163,13 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
       return;
     }
     _readingOptions = true;
+    // Those waiting get this read's answer: it started after they asked
+    const waiting = _optionsWaiting;
+    _optionsWaiting = [];
     HyprlandIpcManager.jsonBatch(["getoption general:gaps_out", "getoption dwindle:split_width_multiplier", "getoption decoration:blur:enabled", "getoption decoration:blur:size", "getoption decoration:blur:passes", "animations"], replies => {
       root._readingOptions = false;
       root._readOptions(replies);
+      waiting.forEach(callback => callback());
       if (root._optionsAgain) {
         root._optionsAgain = false;
         root.refreshOptions();
@@ -175,6 +179,14 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
 
   property bool _readingOptions: false
   property bool _optionsAgain: false
+  property var _optionsWaiting: []
+
+  // Reads the options again (refreshOptions), then calls back with the
+  // animations as read
+  function withAnimations(callback) {
+    _optionsWaiting.push(() => callback(root.animations));
+    refreshOptions();
+  }
 
   function _readOptions([gaps, split, blurEnabled, blurSize, blurPasses, animations]) {
     root.gapsOut = _gapSides(gaps) ?? root.gapsOut;
@@ -216,6 +228,50 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
       root._evaluating = false;
       root._nextEval();
     });
+  }
+
+  // --- For the other services: what they need from the compositor, in
+  // shapes that don't depend on it (HyprState) ---
+
+  // Calls back with the main keyboard's layouts ({ layouts, index, keymap },
+  // HyprState.keyboard), or null
+  function withKeyboard(callback) {
+    HyprlandIpcManager.json("devices", devices => callback(HyprState.keyboard(devices)));
+  }
+
+  // Switches every keyboard to its "next" or "prev" layout, then calls back
+  function cycleKeyboardLayout(direction, callback) {
+    HyprlandIpcManager.request("switchxkblayout all " + direction, () => callback?.());
+  }
+
+  // Calls back with each monitor's layer surfaces (HyprState.layerRects),
+  // or null when Hyprland didn't answer
+  function withLayerRects(callback) {
+    HyprlandIpcManager.jsonBatch(["monitors", "layers"], ([monitors, layers]) => callback(Array.isArray(monitors) && layers ? HyprState.layerRects(monitors, layers) : null));
+  }
+
+  // Calls back with every output, disabled ones too (Hyprland's monitors
+  // as JSON: name, description, width, height, refreshRate, x, y, scale,
+  // transform, disabled, mirrorOf, vrr, …), or null
+  function withOutputs(callback) {
+    HyprlandIpcManager.json("monitors all", outputs => callback(Array.isArray(outputs) ? outputs : null));
+  }
+
+  // Calls back with Hyprland's version ("0.56.2"), or "" when it didn't
+  // answer
+  function withVersion(callback) {
+    HyprlandIpcManager.json("version", version => callback(String(version?.version ?? version?.tag ?? "").replace(/^v/, "")));
+  }
+
+  // Calls back with every bind Hyprland has (its binds as JSON: modmask,
+  // key, keycode, submap, description, dispatcher, arg, …), or null
+  function withBinds(callback) {
+    HyprlandIpcManager.json("binds", binds => callback(Array.isArray(binds) ? binds : null));
+  }
+
+  // The cursor theme and size, for this session
+  function setCursor(theme, size) {
+    HyprlandIpcManager.request(`setcursor ${theme} ${size}`);
   }
 
   // --- Workspaces (laid out by WorkspacesConfig) ---

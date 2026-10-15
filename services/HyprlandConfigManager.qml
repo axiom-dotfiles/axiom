@@ -14,7 +14,7 @@ import qs.components.methods
  * One Lua "layer" (binds, required settings, the window look, blur,
  * monitor profiles, strips) reaches
  * Hyprland in one of three ways:
- *   detached  evaluated at runtime (hyprctl eval), again after every config
+ *   detached  evaluated at runtime (HyprlandRuntimeLayer), again after every config
  *             reload, which drops it; binds on keys already taken are skipped
  *   included  written to $XDG_STATE_HOME/axiom/hyprland.lua, a module the
  *             user's hyprland.lua loads (includeLines)
@@ -268,11 +268,11 @@ Singleton {
     if (_checking)
       return;
     _checking = true;
-    CommandManager.run(["hyprctl", "eval", "if not AXIOM_INCLUDED then error('axiom: not loaded') end"], (code, out) => {
+    HyprlandIpcManager.evalLua("if not AXIOM_INCLUDED then error('axiom: not loaded') end", reply => {
       root._checking = false;
       if (root.mode === "detached")
         return;
-      if (out.trim() === "ok") {
+      if (reply === "ok") {
         root._problem = "";
         root._loaded = true;
         runtime.clear();
@@ -332,7 +332,7 @@ Singleton {
       return;
     }
     _reloading = true;
-    CommandManager.run(["hyprctl", "reload"], () => {
+    HyprlandIpcManager.request("reload", () => {
       root._reloading = false;
       if (root._reloadAgain) {
         root._reloadAgain = false;

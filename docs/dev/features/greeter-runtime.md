@@ -64,11 +64,11 @@ Built on `Quickshell.Services.Greetd`.
   - It remembers the user (with `rememberUser`) and their session.
 - **Other:**
   - `power(action)` through `systemctl`.
-  - Keyboard layouts through `hyprctl devices` and `switchxkblayout`.
+  - Keyboard layouts through `HyprlandManager.withKeyboard` and `cycleKeyboardLayout`.
   - `avatarOf(name)` from AccountsService's icons.
 - **At start** (but not when windowed):
   - it evals `HyprLua.greeterLua`: the profiles' `monitorsLua` in every mode, plus one `hl.config` of the `x-greeter` options in managed mode;
-  - it runs `hyprctl setcursor`.
+  - it sets the cursor (`HyprlandManager.setCursor`).
 
 ### Surfaces and modules
 - **`surfaces/greeter/GreeterSurface`** is a `ScreenLayoutView`, the same view the lock screen uses ([lockscreen.md](lockscreen.md#layout)).

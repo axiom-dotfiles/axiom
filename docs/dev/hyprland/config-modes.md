@@ -7,7 +7,7 @@
 How axiom sets up Hyprland (`HyprlandConfigManager`, which owns `HyprlandRuntimeLayer`, `HyprlandTakeover` and `HyprlandBindMerge`), and the three `mode`s it can do it in: `detached`, `included` and `managed`. Read this before touching anything axiom writes into Hyprland.
 
 ### One Lua layer
-- It needs Hyprland's Lua config (0.55+). Axiom's own `hyprctl eval`/dispatch calls are all Lua (`hl.*`). The stubs are in `/usr/share/hypr/stubs/hl.meta.lua`.
+- It needs Hyprland's Lua config (0.55+). Axiom's own evals and dispatches are all Lua (`hl.*`), sent as [IPC](ipc.md) describes. The stubs are in `/usr/share/hypr/stubs/hl.meta.lua`.
 - One Lua layer covers:
   - binds (`binds[]`: an IPC `action` or `exec`, `description` "Axiom: …"; see [Keybinds](keybinds.md))
   - required settings: `allow_session_lock_restore`, a named rule suppressing `maximize` requests, and a `workspaces` animation
@@ -17,8 +17,8 @@ How axiom sets up Hyprland (`HyprlandConfigManager`, which owns `HyprlandRuntime
 - `mode` picks how that layer gets to Hyprland.
 
 ### `detached`
-- `hyprctl eval` runs at startup and on every `configreloaded`.
-- It skips keys that `hyprctl binds -j` shows taken. `components/methods/HyprBinds` provides `keyId`, `runtimeBinds`, and `userKeyCounts` for KeybindManager.
+- It is evaluated at startup and on every `configreloaded` (`HyprlandRuntimeLayer`).
+- It skips keys Hyprland's binds show taken (`HyprlandManager.withBinds`, read after unbinding its own). `components/methods/HyprBinds` provides `keyId`, `runtimeBinds`, and `userKeyCounts` for KeybindManager.
 - The keys it bound live in Hyprland's Lua state (`AXIOM_RUNTIME_KEYS`):
   - a Hyprland reload resets them, along with the binds
   - they survive a qs reload
@@ -33,7 +33,7 @@ How axiom sets up Hyprland (`HyprlandConfigManager`, which owns `HyprlandRuntime
 - Taking the user's existing config over (`claim_hyprland.sh`) is described in [Managed takeover](managed-takeover.md).
 
 ### Writing files
-- Both file modes write only on change, then run `hyprctl reload` (Hyprland doesn't watch `dofile`d files).
+- Both file modes write only on change, then reload Hyprland (Hyprland doesn't watch `dofile`d files).
 - `_writeFile` re-reads the file before each write (`blockLoading`). A FileView skips a `setText` of the text it last wrote, and the file may no longer hold that text after a release.
 
 ### Include and autostart lines

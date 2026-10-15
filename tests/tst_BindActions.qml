@@ -54,6 +54,17 @@ TestCase {
     verify(!BindActions.needsArgument("closeWindow"));
   }
 
+  // An argument is needed exactly where the IPC call or the label has a
+  // place for it ({0}), and by exec
+  function test_argumentsMatchTheTemplates() {
+    for (const action of _schemaActions()) {
+      const template = BindActions.ipcActions[action]?.[0] ?? BindActions.compositorActions[action]?.[0] ?? "";
+      compare(BindActions.needsArgument(action), action === "exec" || template.includes("{0}"), action);
+    }
+    compare(BindActions.argumentKind("workspaceNth"), "workspace");
+    compare(BindActions.argumentKind("closeWindow"), "");
+  }
+
   function test_labels() {
     compare(BindActions.sectionFor("volumeUp"), "Media");
     compare(BindActions.sectionFor("toggleSpecial"), "Special");

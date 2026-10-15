@@ -30,6 +30,14 @@ Provides access to some Hyprland data not available in Quickshell.Hyprland.
 - `warpCursorToLayer(namespace, monitor, width, height, x, y)`: Moves the cursor to (x, y) inside one of axiom's layer surfaces: the mapped one in `namespace` on `monitor` that is `width` × `height` (layer-shell windows don't know where they are on screen, Hyprla…
 - `runLua(lua)`: Runs a Lua chunk in Hyprland (config functions like hl.bind or hl.config, which a dispatch can't call); failures are logged
 - `refreshOptions()`: Re-reads the options axiom follows (gaps, split ratio, the workspaces animation), after something changed them at runtime: once the queued Lua has run, which may be what changes them
+- `withAnimations(callback)`: Reads the options again (refreshOptions), then calls back with the animations as read
+- `withKeyboard(callback)`: Calls back with the main keyboard's layouts ({ layouts, index, keymap }, HyprState.keyboard), or null
+- `cycleKeyboardLayout(direction, callback)`: Switches every keyboard to its "next" or "prev" layout, then calls back
+- `withLayerRects(callback)`: Calls back with each monitor's layer surfaces (HyprState.layerRects), or null when Hyprland didn't answer
+- `withOutputs(callback)`: Calls back with every output, disabled ones too (Hyprland's monitors as JSON: name, description, width, height, refreshRate, x, y, scale, transform, disabled, mirrorOf, vrr, …), or null
+- `withVersion(callback)`: Calls back with Hyprland's version ("0.56.2"), or "" when it didn't answer
+- `withBinds(callback)`: Calls back with every bind Hyprland has (its binds as JSON: modmask, key, keycode, submap, description, dispatcher, arg, …), or null
+- `setCursor(theme, size)`: The cursor theme and size, for this session
 - `goToWorkspace(id, mode, monitor, focusAddress)`: Goes to workspace `id`. mode: "go" (default), "move" (taking the focused window along) or "moveSilent" (sending it there, staying put).
 - `stepWorkspace(direction, mode)`: One step left/right/up/down from the current workspace: within the monitor's grid, or through 1..count in the standard layout (where up is previous and down next).
 - `nthWorkspace(n, mode)`: The n-th workspace (1-based) of the current row in a grid or perMonitor layout, or workspace n in the standard layout (number keybinds)
