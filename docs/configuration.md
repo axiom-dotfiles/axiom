@@ -14,6 +14,23 @@ Everything is configured from inside the shell (see [Built in the shell](../READ
 > [!IMPORTANT]
 > An invalid `config.json` never replaces the running config. The shell keeps the last good one and refuses to save until the file is fixed.
 
+### Where axiom keeps your files
+
+axiom never writes inside its own folder (`~/.config/quickshell/axiom`). What it saves goes in the standard XDG folders (under `$XDG_CONFIG_HOME`, `$XDG_STATE_HOME` and `$XDG_DATA_HOME` if they're set):
+
+| What | Where |
+|---|---|
+| `config.json` and saved configs | `~/.config/axiom/` |
+| Small UI state (launcher history, pinned clips, editor and page choices, first-run progress) | `~/.local/state/axiom/ui/` |
+| Notes, when no notes folder is set | `~/.local/share/axiom/notes/` |
+| Themes generated from the wallpaper | `~/.local/state/axiom/themes/` |
+| Chats, notification history, secrets without a keyring, and the files axiom generates for Hyprland, hyprlock, hypridle and themed apps | `~/.local/state/axiom/` |
+
+To back up your setup or keep it in a dotfiles repo, `~/.config/axiom/` is the folder to keep (`~/.local/share/axiom/notes/` too, if your notes live there).
+
+> [!NOTE]
+> Versions up to v1.1.10 kept the config in `config/user/` and the UI state and notes in `config/state/`, inside axiom's folder. The first start of a newer version copies them over by itself, then leaves `config/user/MOVED.md` listing where each went. The old folders are kept so an older version still runs. Once you're happy, they can be deleted. If you backed up or linked `config/user/`, switch to `~/.config/axiom/`.
+
 ### Saved configurations
 
 Your whole setup (bars, overlay pages, edge menus, docks, the lock and login screens, every setting) is one file, so it can be kept and swapped as a whole:
