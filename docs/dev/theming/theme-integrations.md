@@ -24,6 +24,7 @@ How axiom themes other apps: one script per app writing its own `axiom.*` file, 
   - `load_theme`: one jq pass filling what a theme leaves out, as `Theme` does;
   - `export_theme_colors`: every semantic color as `UPPER_SNAKE`, plus `ANSI_0`–`ANSI_15`;
   - `render_template` / `write_atomic`.
+  - They fork as little as they can (`snake_upper` in pure bash, one `jq` run per `floor_colors`, one subshell per `map_vars`): every integration runs on each theme change, and the tests run each one on every theme.
 - Each script writes only its own `axiom.*` file, under `$XDG_CONFIG_HOME` (as the apps read it).
 - A missing main config may be created with the hookup (cava's config, GTK's `gtk.css`). One that exists is never touched by a script.
 - Zathura reloads through D-Bus (`SourceConfig` on each `org.pwmt.zathura.PID-*` name).

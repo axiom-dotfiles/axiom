@@ -75,7 +75,7 @@ for f in "${changed[@]}"; do
     ;;
   esac
   # tests/scripts/test_scripts.py's classes for each script (the whole
-  # file takes ~2 min); a new script with tests gets a line here
+  # file takes ~15 s); a new script with tests gets a line here
   case "$f" in
   scripts/theme_*.sh | scripts/lib/theme_env.sh | scripts/templates/* | config/themes/* | config/json/theme-defaults.json)
     script_tests+=(Themes TerminalPalette ThemeIntegrations)

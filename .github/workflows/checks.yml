@@ -74,7 +74,7 @@ jobs:
     steps:
       - name: Install tools
         run: |
-          pacman -Syu --noconfirm --needed git diffutils qt6-declarative quickshell shellcheck lua jq gettext python
+          pacman -Syu --noconfirm --needed git diffutils qt6-declarative quickshell lua python
           /usr/lib/qt6/bin/qmllint --version
 
       - name: Checkout
@@ -99,6 +99,28 @@ jobs:
 
       - name: Unit tests (components/methods, schema, migrations)
         run: scripts/run_tests.sh
+
+  # The script tests (the slowest checks) and the shell script lint, beside
+  # the qt job rather than after it
+  scripts:
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+    steps:
+      - name: Install tools
+        run: pacman -Syu --noconfirm --needed git diffutils shellcheck lua jq gettext python
+
+      - name: Checkout
+        env:
+          TOKEN: ${{ github.token }}
+        # The workspace is mounted from the runner, owned by another user
+        # than the container's root, which git refuses without this
+        run: |
+          git config --global --add safe.directory "$PWD"
+          git init -q .
+          git remote add origin "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"
+          auth=$(printf 'x-access-token:%s' "$TOKEN" | base64 -w0)
+          git -c http.extraheader="AUTHORIZATION: basic $auth" fetch -q --depth=1 origin "$GITHUB_SHA"
+          git checkout -q FETCH_HEAD
 
       - name: shellcheck
         run: shellcheck -x -S warning install.sh scripts/*.sh scripts/lib/*.sh scripts/greeter/*.sh scripts/dev/*.sh .githooks/pre-commit
