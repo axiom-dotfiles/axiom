@@ -78,7 +78,7 @@ Item {
               if (!centreButton.plan)
                 return "";
               if (centreButton.plan.offCentre)
-                return I18n.tr("Can't be centred exactly: it would sit half a unit off");
+                return I18n.tr("Can't be centred exactly: it would sit between grid units");
               if (centreButton.plan.noop)
                 return I18n.tr("Centred");
               if (!centreButton.plan.valid)

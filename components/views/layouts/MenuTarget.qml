@@ -33,7 +33,7 @@ EditTarget {
   title: root.menu ? EdgeMenuManager.menuLabel(root.menu, EdgeMenuManager.selectedMenuIndex) : I18n.tr("No edge menus")
   emptyText: I18n.tr("No edge menus yet: add one with New menu.")
   edge: root.menu && !root.submenu ? root.menu.edge : ""
-  screenBox: root.menu && !root.submenu ? EdgeMenuManager.screenBoxOf(root.menu) : null
+  screenBox: root.editor.screenBox
   screenSize: root.screen && !root.submenu ? ({
       "width": root.screen.width,
       "height": root.screen.height

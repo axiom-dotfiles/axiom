@@ -53,7 +53,8 @@ QtObject {
   function _sync() {
     if (root.wanted && !root.host.isOpen)
       root.host.show({
-        "anchorItem": EdgeMenuManager.anchors[root.menuId] ?? null
+        "anchorItem": EdgeMenuManager.anchors[root.menuId] ?? null,
+        "claimKind": EdgeMenuManager.claimKinds[root.menuId] ?? "menu"
       });
     else if (!root.wanted && root.host.isOpen)
       root.host.hide();

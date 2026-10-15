@@ -706,6 +706,15 @@ TestCase {
     }, [p(0, 0, 2, 2)], [0]), p(0, 0, 12, 8), "a bounded grid is the frame");
     compare(GridPlacement.guideFrame(null, [p(0, 0, 6, 2), p(1, 2, 2, 2), p(0, 4, 4, 1)], [1]), p(0, 0, 6, 5), "else the other modules' cover");
     compare(GridPlacement.guideFrame(null, [p(0, 0, 2, 2)], [0]), null, "nothing else, no frame");
+    // An edge menu: the screen along its edge, the others across it
+    const screen = p(-10.5, -1, 30, 17);
+    compare(GridPlacement.guideFrame(null, [p(0, 0, 6, 2), p(1, 2, 2, 4)], [1], screen, "Top"), p(-10.5, 0, 30, 2), "a top menu: the screen across, the others down");
+    compare(GridPlacement.guideFrame(null, [p(0, 0, 2, 6), p(2, 1, 4, 2)], [1], screen, "Left"), p(0, -1, 2, 17), "a side menu: the screen down, the others across");
+    compare(GridPlacement.guideFrame(null, [p(3, 0, 2, 2)], [0], screen, "Top"), p(-10.5, 0, 30, 2), "alone: its own depth across");
+    compare(GridPlacement.guideFrame({
+      "cols": 4,
+      "rows": 4
+    }, [], [], screen, "Top"), p(0, 0, 4, 4), "a bounded grid wins");
   }
 
   function test_alignments() {
@@ -741,6 +750,8 @@ TestCase {
     compare(GridPlacement.centredIn(p(1, 1, 3, 2), frame, "x"), null, "an odd difference is half a unit off");
     compare(GridPlacement.centredIn(p(1, 1, 3, 2), p(2, 0, 5, 1), "x"), 3, "in a frame not at 0");
     compare(GridPlacement.centredIn(p(1, 1, 2, 2), null, "x"), null);
+    compare(GridPlacement.centredIn(p(0, 0, 3, 1), p(-10.5, 0, 30, 1), "x"), 3, "on a screen box between units, where it lands on one");
+    compare(GridPlacement.centredIn(p(0, 0, 2, 1), p(-10.5, 0, 30, 1), "x"), null, "else between units");
   }
 
   // A canvas with units of 10 px and gaps of 2, unit 0, 0 at 100, 50
@@ -783,6 +794,8 @@ TestCase {
     compare([left.x1, left.y1, left.x2, left.y2], [100, 55, 124, 55], "from the frame's side to the place's, through its middle");
     compare(margins[1].x2, 170, "to the frame's far side, before its gap");
     compare(GridPlacement.canvasMargins(guideFit, p(0, 0, 1, 1), null), []);
+    const onScreen = GridPlacement.canvasMargins(guideFit, p(3, 0, 3, 1), p(-10.5, 0, 30, 1));
+    compare(onScreen.map(m => [m.side, m.units, m.exact, m.even]), [["left", 14, false, true], ["right", 14, false, true]], "a screen side between units: rounded, not exact, and even when centred");
   }
 
   function test_moveTo() {

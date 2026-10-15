@@ -802,8 +802,11 @@ QtObject {
   // What a module's alignment is judged against: the bounded grid
   // (`area`, { cols, rows }) when there is one, else the cover of the
   // other modules' `places` (the indices in `exclude`, and nulls,
-  // skipped). { x, y, w, h } in units, else null
-  function guideFrame(area, places, exclude) {
+  // skipped). An edge menu's (`screen`, its screenBox, with its `edge`):
+  // the screen along the edge, and the others' cover across it (with no
+  // others, the excluded ones': nothing to centre across). { x, y, w, h }
+  // in units (fractional along an edge menu's screen), else null
+  function guideFrame(area, places, exclude, screen, edge) {
     if (area)
       return {
         "x": 0,
@@ -811,7 +814,19 @@ QtObject {
         "w": area.cols,
         "h": area.rows
       };
-    return root.cover((places ?? []).filter((p, i) => !(exclude ?? []).includes(i)));
+    const others = root.cover((places ?? []).filter((p, i) => !(exclude ?? []).includes(i)));
+    if (!screen)
+      return others;
+    const across = others ?? root.cover(places);
+    if (!across)
+      return null;
+    const vertical = edge === "Left" || edge === "Right";
+    return {
+      "x": vertical ? across.x : screen.x,
+      "y": vertical ? screen.y : across.y,
+      "w": vertical ? across.w : screen.w,
+      "h": vertical ? screen.h : across.h
+    };
   }
 
   // A place's lines on `axis` ("x" | "y"), in units: { start, end, centre }
@@ -900,15 +915,14 @@ QtObject {
   }
 
   // The start on `axis` ("x" | "y") that centres `box` ({ x, y, w, h }) in
-  // `frame` (guideFrame), else null: no box or frame, or it'd be half a
-  // unit off (their sizes differ by an odd count)
+  // `frame` (guideFrame), else null: no box or frame, or it'd sit between
+  // units (their sizes differ by an odd count, or an edge menu's screen
+  // centre is off its lattice)
   function centredIn(box, frame, axis) {
     if (!box || !frame)
       return null;
-    const free = axis === "x" ? frame.w - box.w : frame.h - box.h;
-    if (Math.abs(free % 2) > 0.001)
-      return null;
-    return (axis === "x" ? frame.x : frame.y) + free / 2;
+    const at = axis === "x" ? frame.x + (frame.w - box.w) / 2 : frame.y + (frame.h - box.h) / 2;
+    return Math.abs(at - Math.round(at)) > 0.001 ? null : Math.round(at);
   }
 
   // A guide (alignments) on the canvas (`fit`, from canvasFit) in px:
@@ -936,9 +950,11 @@ QtObject {
   }
 
   // The room between `place` and each side of `frame` (guideFrame) on the
-  // canvas (`fit`): [{ side ("left" | "right" | "top" | "bottom"), units,
-  // even (the opposite side has the same), x1, y1, x2, y2 (a line across
-  // it, through the place's middle, in px) }], only sides with room
+  // canvas (`fit`): [{ side ("left" | "right" | "top" | "bottom"), units
+  // (whole: rounded), exact (not rounded: an edge menu's screen side can
+  // be between units), even (the opposite side has the same), x1, y1, x2,
+  // y2 (a line across it, through the place's middle, in px) }], only
+  // sides with room
   function canvasMargins(fit, place, frame) {
     if (!place || !frame)
       return [];
@@ -967,10 +983,11 @@ QtObject {
       "top": [midX, frameTop, midX, r.y],
       "bottom": [midX, r.y + r.height, midX, frameBottom]
     };
-    return ["left", "right", "top", "bottom"].filter(side => units[side] > 0).map(side => ({
+    return ["left", "right", "top", "bottom"].filter(side => units[side] > 0.001).map(side => ({
           "side": side,
-          "units": units[side],
-          "even": units[side] === units[opposite[side]],
+          "units": Math.round(units[side]),
+          "exact": Math.abs(units[side] - Math.round(units[side])) < 0.001,
+          "even": Math.abs(units[side] - units[opposite[side]]) < 0.001,
           "x1": lines[side][0],
           "y1": lines[side][1],
           "x2": lines[side][2],

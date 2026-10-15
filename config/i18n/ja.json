@@ -2924,7 +2924,7 @@
     "Empty shows none.": "空にすると表示しません。",
     "Centre horizontally": "左右中央に揃える",
     "Centre vertically": "上下中央に揃える",
-    "Can't be centred exactly: it would sit half a unit off": "正確に中央に揃えられません：半ユニットずれます",
+    "Can't be centred exactly: it would sit between grid units": "正確に中央に揃えられません：グリッドの単位の間にずれます",
     "No room to centre it": "中央に揃える余地がありません"
   }
 }

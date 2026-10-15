@@ -132,7 +132,7 @@ Scope {
     // Its pill stretches as it's wanted, and draws back once it's gone
     showing: (root.wantShown || root._out) && root.count > 0
     open: root.wantShown
-    // Not a preview's: drawn over the overlay, it fills itself
+    // A preview is on the Overlay layer, but fills itself (no origin)
     onOverlayLayer: root.preview
     origin: root.preview ? null : root._origin
     attachedSurface: surface

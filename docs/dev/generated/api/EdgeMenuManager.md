@@ -10,6 +10,7 @@ Which edge menus (EdgeMenusConfig) are open and which are pinned. The menus them
 - `openMenus` (readonly var): { id: true } for each open / pinned menu
 - `pinnedMenus` (readonly var)
 - `anchors` (var): What opened each menu (a bar button), which keeps a floating menu open while hovered, as a bar popout's anchor does.
+- `claimKinds` (var): How each open menu ranks in PopoutManager (its PopoutClaim's kind): "bar" when a widget's PopoutAnchor opened it as that widget's popout, else "menu".
 - `zones` (var): Space open integrated menus reserve, by "<screen>:<edge>" (edge "top" | "bottom" | "left" | "right"), for surfaces that place themselves against the perpendicular edges (BarPopouts)
 - `frames` (readonly var): Where each running menu's modules can sit on its screen, by id, as the menu reports it (IntegratedEdgeMenu, FloatingEdgeMenu), for the layouts editor.
 - `showingOthers` (readonly bool): The editor draws the other menus on the selected one's screen
@@ -51,7 +52,7 @@ Which edge menus (EdgeMenusConfig) are open and which are pinned. The menus them
 - `isOpen(id)`
 - `isPinned(id)`
 - `canPin(host)`: A module's host (Card/Panel.host) is an edge menu it can pin
-- `open(id, anchor)`
+- `open(id, anchor, kind)`: `kind`: how it ranks (claimKinds), "menu" when left out
 - `covered(id)`: Open, but given way to a popout over it (pinned or previewing)
 - `reveal(id)`: Opens a menu and moves the cursor into it, so one that closes when the pointer leaves stays open
 - `revealDone(id)`: The menu was hovered, or closed

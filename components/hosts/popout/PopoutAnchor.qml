@@ -73,7 +73,7 @@ Item {
     if (!root.active || root.popoutOpen)
       return;
     if (root.menu !== "") {
-      EdgeMenuManager.open(root.menu, root);
+      EdgeMenuManager.open(root.menu, root, "bar");
       return;
     }
     if (!root.popouts || !root.panel)

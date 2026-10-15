@@ -118,23 +118,30 @@ Card {
   // The band along the menu's edge, in the area
   readonly property var reservedRect: GridPlacement.edgeBand(root.screenRect, root.edge, root.reservedDepth * root.pxScale)
 
-  // Alignment guides. The centre drawn faintly: the screen's, else the
-  // page's modules' (what the overlay centres)
-  readonly property var centreLines: GridPlacement.centreGuides(root.hasScreen ? root.screenBox : root.list.length > 0 ? GridPlacement.cover(root.list.map(module => module?.place ?? null)) : null)
+  // Alignment guides. Every module's place (null without one)
+  readonly property var places: root.list.map(module => module?.place ?? null)
+  // The centre of their frame drawn faintly (GridEditor.guideFrame): a
+  // screen layout's screen, the page's modules (what the overlay
+  // centres), an edge menu's screen along its edge
+  readonly property var centreLines: GridPlacement.centreGuides(root.dragLayer.editor.guideFrame(root.places, []))
   // While a module is carried or resized: wherever it lines up with the
   // others (where they'd be) or is centred among them, or on a bounded
   // grid (GridPlacement.alignments)
-  readonly property var guidePlaces: root.dragLayer.previewPlaces ?? root.list.map(module => module?.place ?? null)
-  readonly property var guides: root.dragLayer.landingPlace && root.dragLayer.landingValid ? GridPlacement.alignments(root.dragLayer.landingPlace, root.guidePlaces, root.dragLayer.landingMembers, GridPlacement.guideFrame(root.dragLayer.editor.area, root.guidePlaces, root.dragLayer.landingMembers)) : []
+  readonly property var guidePlaces: root.dragLayer.previewPlaces ?? root.places
+  readonly property var guides: {
+    const layer = root.dragLayer;
+    if (!layer.landingPlace || !layer.landingValid)
+      return [];
+    return GridPlacement.alignments(layer.landingPlace, root.guidePlaces, layer.landingMembers, layer.editor.guideFrame(root.guidePlaces, layer.landingMembers));
+  }
   // The one selected module's room to each side of its frame, in units,
   // while nothing's carried or resized (GridPlacement.canvasMargins)
   readonly property var margins: {
     const editor = root.dragLayer.editor;
-    const place = root.list[editor.selected]?.place ?? null;
+    const place = root.places[editor.selected] ?? null;
     if (!place || root.dragLayer.landingPlace)
       return [];
-    const places = root.list.map(module => module?.place ?? null);
-    return GridPlacement.canvasMargins(root.fit, place, GridPlacement.guideFrame(editor.area, places, [editor.selected]));
+    return GridPlacement.canvasMargins(root.fit, place, editor.guideFrame(root.places, [editor.selected]));
   }
 
   function rectFor(place) {
@@ -672,39 +679,37 @@ Card {
         anchors.fill: parent
         visible: root.editable
         z: 4
-        readonly property string paintKey: [JSON.stringify(root.guides), JSON.stringify(root.centreLines), root.step, root.gap, root.fit.originX, root.fit.originY, width, height, Theme.accent].join(",")
+        readonly property string paintKey: [JSON.stringify([root.guides, root.centreLines, root.fit]), width, height, Theme.accent].join(",")
         onPaintKeyChanged: guideLines.requestPaint()
         onPaint: {
           const ctx = guideLines.getContext("2d");
           ctx.reset();
           ctx.strokeStyle = Theme.accent;
+          // Pixel-aligned, so a 1 px line stays sharp
+          const stroke = guide => {
+            const l = GridPlacement.canvasGuide(root.fit, guide);
+            ctx.beginPath();
+            ctx.moveTo(Math.round(l.x1) + 0.5, Math.round(l.y1) + 0.5);
+            ctx.lineTo(Math.round(l.x2) + 0.5, Math.round(l.y2) + 0.5);
+            ctx.stroke();
+          };
           // The centre, faintly dashed over everything
           ctx.globalAlpha = 0.4;
           ctx.lineWidth = 1;
           ctx.setLineDash([4, 4]);
-          root.centreLines.forEach(guide => {
-            const l = GridPlacement.canvasGuide(root.fit, guide);
-            ctx.beginPath();
-            ctx.moveTo(Math.round(l.x1) + 0.5, Math.round(l.y1) + 0.5);
-            ctx.lineTo(Math.round(l.x2) + 0.5, Math.round(l.y2) + 0.5);
-            ctx.stroke();
-          });
+          root.centreLines.forEach(stroke);
           ctx.setLineDash([]);
           root.guides.forEach(guide => {
-            const l = GridPlacement.canvasGuide(root.fit, guide);
             ctx.globalAlpha = guide.frame ? 1 : 0.7;
             ctx.lineWidth = guide.frame ? 2 : 1;
-            ctx.beginPath();
-            ctx.moveTo(Math.round(l.x1) + 0.5, Math.round(l.y1) + 0.5);
-            ctx.lineTo(Math.round(l.x2) + 0.5, Math.round(l.y2) + 0.5);
-            ctx.stroke();
+            stroke(guide);
           });
         }
       }
 
       // The selected module's room to each side (of the screen, or of the
-      // other modules): a line and its units, accent where both sides
-      // match
+      // other modules): a line and its length in cards, accent where
+      // both sides match
       Repeater {
         model: 4
 
@@ -739,7 +744,7 @@ Card {
             StyledText {
               id: marginLabel
               anchors.centerIn: parent
-              text: String(margin.info?.units ?? "")
+              text: margin.info ? (margin.info.exact ? "" : "≈") + GridPlacement.cards(margin.info.units) : ""
               textColor: margin.tint
               textSize: Appearance.fontSize - 3
             }

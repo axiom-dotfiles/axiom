@@ -34,6 +34,11 @@ QtObject {
   // are put, and the grid never shifts. null: it grows and shifts back
   // to 0, 0 after every edit
   property var area: null
+  // An edge menu's screen around its grid (GridPlacement.screenBox) and
+  // its edge: the screen along the edge is what its modules are centred
+  // on (guideFrame). null for a page or a submenu
+  property var screenBox: null
+  property string edge: ""
   // How many of this grid's units make one of a card's quarters (2 on a
   // doubled lock screen grid): new modules' default sizes scale by it
   property int sizeScale: 1
@@ -319,21 +324,28 @@ QtObject {
     return plan;
   }
 
-  // The selection centred across (`axis` "x") or down ("y"): in the
-  // `area`, else among the other modules (GridPlacement.guideFrame), as a
+  // What the modules at `exclude` are aligned and centred against, among
+  // `places` (GridPlacement.guideFrame): the `area`, else the other
+  // modules, an edge menu's screen along its edge
+  function guideFrame(places, exclude) {
+    return GridPlacement.guideFrame(root.area, places, exclude, root.screenBox, root.edge);
+  }
+
+  // The selection centred across (`axis` "x") or down ("y") in its frame
+  // (guideFrame), as a
   // plan (planMove / planMoveGroup; noop when it's centred already).
-  // Invalid with `offCentre` when it'd be half a unit off; null with
+  // Invalid with `offCentre` when it'd sit between units; null with
   // nothing selected or nothing to centre it in
   function planCentre(axis) {
     const members = root.selection();
     const places = root._placesOf(root._modules());
     const box = GridPlacement.cover(members.map(i => places[i] ?? null));
-    const frame = GridPlacement.guideFrame(root.area, places, members);
+    const frame = root.guideFrame(places, members);
     if (!box || !frame)
       return null;
     const at = GridPlacement.centredIn(box, frame, axis);
     if (at === null) {
-      const plan = root._plan("move", -1, "", null, null);
+      const plan = root._plan(members.length > 1 ? "group" : "move", -1, "", null, null);
       plan.offCentre = true;
       return plan;
     }

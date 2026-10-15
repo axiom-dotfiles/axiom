@@ -334,10 +334,10 @@ QtObject {
   // animated by Hyprland while it does (they slide themselves), or their
   // stroke and content fade or pop in and out while what the blur window
   // draws for them doesn't
+  readonly property var blurBacked: root.barLayers.concat(["border", "popout", "popout-under", "edge-popout", "osd", "edge-menu", "dock"])
   // The blur window over the overlay: what it blurs is the overlay, so
   // never with xray (which would blur the wallpaper in its place)
   readonly property var blurOverOverlay: ["blur-backing-overlay"]
-  readonly property var blurBacked: root.barLayers.concat(["border", "popout", "popout-under", "edge-popout", "osd", "edge-menu", "dock"])
 
   function _blurRule(name, namespaces, effects, enabled) {
     return `hl.layer_rule({ name = ${string(name)}, match = { namespace = ${string(`^axiom-(${namespaces.join("|")})$`)} }, ${effects}, enabled = ${enabled} })`;
