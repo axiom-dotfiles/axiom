@@ -31,7 +31,7 @@ The rules are pure: `methods/PopoutGeometry`, tested by `tests/tst_PopoutGeometr
 5. `menu`
 6. `launcher`
 
-A submenu ranks as its parent.
+A submenu ranks as its parent. A floating menu opened as a bar widget's popout (by its `PopoutAnchor`) ranks `bar`: a neighbour's popout replaces it, as bar popouts replace each other.
 
 **Engaged.** An `EdgePopout` is engaged in these cases:
 - **Opening:** from the moment it starts opening.

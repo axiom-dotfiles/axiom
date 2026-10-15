@@ -28,7 +28,11 @@ EdgePopout {
   // Closes what it covers below it (PopoutManager); pinned, it ranks
   // lowest, and pinned or previewing it gives way and comes back
   claimKey: "menu:" + root.menuId
-  claimKind: "menu"
+  // A widget's menu popout (opened by its PopoutAnchor, on hover) is that
+  // widget's bar popout: it ranks as one, so a neighbour's popout replaces
+  // it as bar popouts replace each other. Opened any other way (a keybind,
+  // its edge, a bar Button's click) it ranks as a menu.
+  claimKind: root.currentData?.anchorItem instanceof PopoutAnchor ? "bar" : "menu"
   pinned: EdgeMenuManager.pinnedMenus[root.menuId] === true
   resident: sync.held
 
