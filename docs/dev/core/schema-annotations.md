@@ -25,7 +25,7 @@ The schema is the single source of truth for config: shape, `default`s (there is
 - `x-group`: puts a field on a card of that name. One section or object can make several cards.
   - The bar and edge menu editors group a `Bar`'s / `EdgeMenu`'s own fields the same way (`SchemaLayout.objectGroups`, as `Bar.fieldGroups` / `EdgeMenusConfig.fieldGroups`).
 - `x-cardPerField: true` (on a section): each direct field becomes a card of its own, titled and described by the field, sorted by title, its row labelled "Enabled" (`row.label`, `row.description` override the field's in `SchemaField`). The section's description gets a card first. Example: `ThemeIntegrations`, one card per app.
-- `x-scope` (`look` | `personal` | `machine`, inherited, root `machine`): what an example, import or export carries. See [Saved configs and sharing](saved-configs-sharing.md).
+- `x-scope` (`look` | `personal` | `machine`, inherited, root `machine`): what a snapshot, example, import or export carries. See [Saved configs and sharing](saved-configs-sharing.md).
   - A new setting inside a look section that names a monitor, path, account or command needs `machine` or `personal`.
 - `x-libraryGroups` (root) lists in order the groups the bar editor's and layouts editor's libraries sort their types into (by category).
   - Each bar widget and overlay module definition joins one with `x-libraryGroup` (`methods/LibraryOrder`, `reusable/TypeLibrary`).

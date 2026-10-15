@@ -528,7 +528,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `OSDListCard.qml`: The OSD section's first card (its `x-card`): the OSDs as tabs, one shown at a time: where it sits (a screen picker with presets), a Show button, and its settings and bars (EntryListCard).
 - `OnboardingCard.qml`: The General section's first card (the section's `x-card`): the first-time setup (OnboardingManager), to run again
 - `PolkitStatusCard.qml`: The Polkit section's first card (its `x-card`): whether axiom is the session's polkit agent, and which other agents it stopped
-- `SavedConfigsSection.qml`: Settings page, Maintenance (the category's `page`): save the whole config under a name, and restore or delete saved ones.
+- `SavedConfigsSection.qml`: Settings page, Maintenance (the category's `page`): save the config's look, layout, keybinds, apps and wallpapers under a name, and restore or delete saved ones.
 - `ScreenSpotPicker.qml`: A small screen showing where something sits (`spot`, 0-1 from the top left), with `presets` to click: dots that each apply their values.
 - `SelfUpdateStatusCard.qml`: The Updates category's first card (the section's `x-card`): the installed and newest release, what's new, and Check / Update
 - `SettingsContent.qml`: Settings page, right: the selected category's groups as cards in two newspaper columns, split by their measured heights so both end together (then its hand-built `page`, if any), or every setting matching the search, un…
@@ -614,7 +614,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `OverlayManager.qml`: OverlayManager holds the layouts editor's working copy of Overlay.views (the editor is the pinned last page).
 - `PolkitManager.qml`: axiom as the session's polkit agent (the Polkit section): while PolkitConfig.enabled, a PolkitAgent answers apps' requests for administrator rights, and PolkitWindow (shell/PolkitPrompt) shows each one.
 - `PopoutManager.qml`: Every popout showing, where it is, and which gives way to which.
-- `SavedConfigsManager.qml`: Named snapshots of the whole config, one JSON file each in config/user/saved/.
+- `SavedConfigsManager.qml`: Named snapshots of the config, one JSON file each in config/user/saved/.
 - `ScreenLayoutEditor.qml`: The layouts editor's draft of one screen layout (a ScreenLayout: the built-in lock screen's, LockManager.editor, or the greeter's, GreeterManager.editor): its modules on a bounded grid, edited through `layout`, its own …
 - `ScreenshotManager.qml`: Screenshots (the `screenshot` keybind action, IPC `screenshot take <kind>`, launcher `/screenshot`, the Screenshot card), taken natively: while `picking`, shell/Screenshot shows a frozen frame (ScreencopyView) on each s…
 - `SecretsManager.qml`: Secrets, which never go in config.json: chat API keys (scope `provider`) and calendar account passwords (scope `calendar`).

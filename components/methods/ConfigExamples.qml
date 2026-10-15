@@ -10,8 +10,9 @@ import QtQuick
 //   machine   what only means something here: monitors, wallpapers,
 //             accounts, paths, hardware and services
 // Example setups (examples/*.json) and exported configs hold the look (and,
-// when asked, the personal) parts. Applying one replaces those parts of the
-// running config and leaves the rest as the user set it.
+// when asked, the personal) parts; saved snapshots hold both, plus the
+// wallpapers. Applying one replaces those parts of the running config and
+// leaves the rest as the user set it.
 QtObject {
   id: root
 
@@ -60,20 +61,63 @@ QtObject {
     return result;
   }
 
-  // Whether `a` and `b` are equal apart from the values at `paths` (as
-  // keepTakeovers takes them), without copying either: a running config
-  // against a snapshot, on every config change
-  function equalApartFrom(a, b, paths) {
-    if (paths.length === 0)
-      return Utils.deepEqual(a, b);
-    if (paths.some(path => path.length === 0))
-      return true;
-    if (!_isObject(a) || !_isObject(b))
-      return Utils.deepEqual(a, b);
-    const keys = Object.keys(a);
-    if (keys.length !== Object.keys(b).length)
-      return false;
-    return keys.every(key => Object.prototype.hasOwnProperty.call(b, key) && equalApartFrom(a[key], b[key], paths.filter(path => path[0] === key).map(path => path.slice(1))));
+  // What a saved snapshot holds: the look and personal parts, and the
+  // wallpapers. Those are machine values, but a snapshot restores on the
+  // PC it was saved on, where they still mean something (withWallpapers).
+  function snapshot(config, schema) {
+    const result = pick(config, schema, true);
+    const appearance = config?.Appearance;
+    if (!_isObject(appearance))
+      return result;
+    for (const key of ["wallpaper", "wallpapers"]) {
+      if (appearance[key] === undefined)
+        continue;
+      result.Appearance = result.Appearance ?? {};
+      result.Appearance[key] = Utils.clone(appearance[key]);
+    }
+    return result;
+  }
+
+  // The files of a config's wallpapers (absolute paths, each once), to
+  // check which are still there before restoring them
+  function wallpaperPaths(config) {
+    const appearance = config?.Appearance;
+    if (!_isObject(appearance))
+      return [];
+    const urls = [appearance.wallpaper].concat(_isObject(appearance.wallpapers) ? Object.values(appearance.wallpapers) : []);
+    return urls.map(_wallpaperPath).filter((path, i, all) => path.startsWith("/") && all.indexOf(path) === i);
+  }
+
+  // A copy of `config` with the wallpapers of `saved` whose files are in
+  // `existing` (wallpaperPaths' paths that exist); the others stay as they
+  // are in `config`
+  function withWallpapers(config, saved, existing) {
+    const result = Utils.clone(config);
+    const from = saved?.Appearance;
+    const to = result?.Appearance;
+    if (!_isObject(from) || !_isObject(to))
+      return result;
+    const usable = url => existing.includes(_wallpaperPath(url));
+    if (usable(from.wallpaper))
+      to.wallpaper = from.wallpaper;
+    if (_isObject(from.wallpapers)) {
+      to.wallpapers = _isObject(to.wallpapers) ? to.wallpapers : {};
+      for (const monitor in from.wallpapers) {
+        if (usable(from.wallpapers[monitor]))
+          to.wallpapers[monitor] = from.wallpapers[monitor];
+      }
+    }
+    return result;
+  }
+
+  function _wallpaperPath(url) {
+    if (typeof url !== "string" || url === "")
+      return "";
+    try {
+      return decodeURIComponent(url.replace(/^file:\/\//, ""));
+    } catch (e) {
+      return "";
+    }
   }
 
   // The paths ([key, …]) of the `x-takeover` settings, through objects only

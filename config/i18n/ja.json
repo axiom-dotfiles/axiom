@@ -423,7 +423,6 @@
     "notifications": "件の通知",
     "off": "オフ",
     "Input": "入力",
-    "Snapshots of the entire configuration, stored in {0}. Restoring replaces the current configuration.": "設定全体のスナップショット（保存先: {0}）。復元すると現在の設定が置き換えられます。",
     "Overwrite": "上書き",
     "Confirm": "確認",
     "Restore": "復元",
@@ -526,9 +525,6 @@
     "Close on outside click": "外側のクリックで閉じる",
     "Close the overlay when you click outside it: on a bar, the screen border or another monitor.": "オーバーレイの外側（バー、画面の枠、別のモニター）をクリックしたときに閉じます。",
     "Defaults": "デフォルト",
-    "The configuration a first run starts with": "初回起動時の設定",
-    "The default configuration is not valid": "デフォルト設定が無効です",
-    "Restored the default configuration": "デフォルト設定を復元しました",
     "As in General": "一般設定に従う",
     "Focused monitor": "フォーカス中のモニター",
     "general": "一般",
@@ -2929,6 +2925,8 @@
     "Where screenshots and screen recordings are saved, whichever way they're taken: the screenshot and screenRecord binds, the launcher, the Screenshot and Screen recording cards.": "スクリーンショットと画面録画の保存先です。screenshot・screenRecord のキー割り当て、ランチャー、スクリーンショットと画面録画のカードのどれから撮っても同じ場所に保存されます。",
     "Where screenshots are saved (~ is your home). Empty uses Pictures/Screenshots.": "スクリーンショットの保存先（~ はホームフォルダ）。空欄ではピクチャ/Screenshots を使います。",
     "Screenshot folder": "スクリーンショットのフォルダ",
-    "Where recordings are saved, and listed from by the Screen recording card. Empty saves them with the screenshots.": "録画の保存先で、画面録画のカードはここから一覧を表示します。空欄ではスクリーンショットと同じ場所に保存します。"
+    "Where recordings are saved, and listed from by the Screen recording card. Empty saves them with the screenshots.": "録画の保存先で、画面録画のカードはここから一覧を表示します。空欄ではスクリーンショットと同じ場所に保存します。",
+    "Snapshots of the look, layout, keybinds, apps and wallpapers, stored in {0}. Restoring one leaves monitors, accounts, theme integrations and other settings for this PC as they are.": "外観、レイアウト、キーバインド、アプリ、壁紙のスナップショット（{0} に保存）。復元しても、モニター、アカウント、テーマ連携など、この PC 固有の設定はそのまま残ります。",
+    "The look, layout, keybinds and apps a first run starts with": "初回起動時の外観、レイアウト、キーバインド、アプリ"
   }
 }
