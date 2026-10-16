@@ -1,6 +1,7 @@
 pragma Singleton
 pragma ComponentBehavior: Bound
 import QtQuick
+import Quickshell.I3
 
 /*
  * Requests to sway that want a reply, through swaymsg: what Quickshell.I3
@@ -10,6 +11,7 @@ import QtQuick
  *
  *   SwayIpcManager.json("get_tree", tree => …)       // or null
  *   SwayIpcManager.command("[con_id=4] focus", ok => …)
+ *   SwayIpcManager.dispatch("workspace number 2")      // no reply wanted
  *
  * Commands run one at a time, in the order sent, so a chain split over
  * several calls can't overtake itself. Reads run at once.
@@ -45,6 +47,16 @@ QtObject {
     });
     if (!_running)
       _next();
+  }
+
+  // Runs sway commands with no reply wanted: at once (I3.dispatch, no
+  // process) when nothing sent before is still running, else after it, so
+  // they keep their order with command()'s
+  function dispatch(text) {
+    if (_running)
+      command(text);
+    else
+      I3.dispatch(text);
   }
 
   property var _queue: []

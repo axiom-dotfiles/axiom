@@ -95,11 +95,11 @@ Singleton {
   }
 
   function activateWindow(id) {
-    I3.dispatch(`${_con(id)} focus`);
+    SwayIpcManager.dispatch(`${_con(id)} focus`);
   }
 
   function closeWindow(id) {
-    I3.dispatch(`${_con(id)} kill`);
+    SwayIpcManager.dispatch(`${_con(id)} kill`);
   }
 
   // The overview's drop (CompositorManager.placeWindow): onto workspace
@@ -164,7 +164,7 @@ Singleton {
 
   // Sends the focused window to workspace `id`, staying put
   function sendWindowToWorkspace(id) {
-    I3.dispatch(`move container to workspace number ${id}`);
+    SwayIpcManager.dispatch(`move container to workspace number ${id}`);
   }
 
   // Sway has no strips
@@ -182,7 +182,7 @@ Singleton {
       lines.push(`move container to workspace number ${last.id}`, `workspace number ${last.id}`);
     else
       lines.push(`workspace number ${last.id}`);
-    I3.dispatch(lines.join("; "));
+    SwayIpcManager.dispatch(lines.join("; "));
   }
 
   // Carries out a remap (WorkspaceGeometry.remapWorkspaces' plan) for
@@ -230,7 +230,7 @@ Singleton {
 
   // Leaves the switcher's mode (a tile was clicked while its keys were held)
   function leaveSwitcher() {
-    I3.dispatch("mode default");
+    SwayIpcManager.dispatch("mode default");
   }
 
   // --- Sending axiom's layer (SwayConfigWriter) ---
@@ -259,15 +259,17 @@ Singleton {
 
   // While on, every key reaches axiom instead of a bind (the Keybinds
   // page's recorder): an empty mode, left by an unreachable key. A sleeping
-  // swaymsg leaves it after 30 s even if the shell dies meanwhile.
+  // swaymsg leaves it after 30 s even if the shell dies meanwhile. Each
+  // capture names its mode anew, so an earlier capture's sleeper can't end
+  // a later one.
   function captureKeys(on) {
-    if (on)
-      runCommands([`mode "${_captureMode}" bindsym --no-warn Mod4+Ctrl+Mod1+Shift+F24 mode default`, `mode "${_captureMode}"`, `exec sleep 30 && swaymsg -t get_binding_state | grep -q ${_captureMode} && swaymsg mode default`]);
-    else
-      I3.dispatch("mode default");
+    if (on) {
+      const mode = `axiom_record_${Date.now() % 1000000000}`;
+      runCommands([`mode "${mode}" bindsym --no-warn Mod4+Ctrl+Mod1+Shift+F24 mode default`, `mode "${mode}"`, `exec sleep 30 && swaymsg -t get_binding_state | grep -qw ${mode} && swaymsg mode default`]);
+    } else {
+      SwayIpcManager.dispatch("mode default");
+    }
   }
-
-  readonly property string _captureMode: "axiom_record"
 
   // --- Session and input ---
 
@@ -295,7 +297,7 @@ Singleton {
 
   // Ends the sway session (the power menu's log out)
   function exitSession() {
-    I3.dispatch("exit");
+    SwayIpcManager.dispatch("exit");
   }
 
   // The shell command turning the screens off or on (the idle daemon's)
