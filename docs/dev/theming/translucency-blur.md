@@ -11,7 +11,8 @@ The translucency setting, how fills apply it, the Hyprland layer rules axiom wri
   - `opacity`: 60–100%. 100 is solid and blurs nothing.
   - `blur`, `throughWindows`, `blurBackdrops`;
   - `pauseFullscreen` (`x-scope: machine`).
-- The strength isn't axiom's. Hyprland has one blur, for windows and layers alike, set by the window look's blur part (Hyprland → Window look, see [Window look](../hyprland/window-look.md)) or the user's own config.
+  - The blur settings show only where the compositor blurs axiom's surfaces (`"/$supports.blur": true`). Elsewhere `BlurManager.active` stays false whatever `blur` says, and the surfaces fill themselves: the blur window needs the layers' positions (`withLayerRects`) to draw their shapes.
+- The strength isn't axiom's. Hyprland has one blur, for windows and layers alike, set by the window look's blur part (Compositor → Window look, see [Window look](../hyprland/window-look.md)) or the user's own config.
 - The card's intro (`TranslucencyStatus`):
   - warns that transparency and blur are experimental;
   - while blurring, shows the blur in effect;

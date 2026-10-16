@@ -28,7 +28,9 @@ ColumnLayout {
 
   RowLayout {
     Layout.fillWidth: true
-    visible: Appearance.blur
+    // Where the compositor blurs axiom's surfaces (the settings below are
+    // hidden elsewhere)
+    visible: Appearance.blur && CompositorManager.supports.blur === true
     spacing: Widget.spacing
 
     StatusChip {

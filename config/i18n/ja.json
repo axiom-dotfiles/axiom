@@ -2727,7 +2727,6 @@
     "Hyprland has one blur, for windows and axiom's translucent surfaces alike. Off, your own Hyprland config's applies.": "Hyprland のぼかしは一つで、ウィンドウと axiom の半透明なサーフェスの両方に使われます。オフの場合は Hyprland の設定のものが使われます。",
     "The variables Hyprland's wiki recommends: GTK, Qt, Clutter and Electron apps run on Wayland (falling back to X11 where they can), Qt scales by pixel density and leaves window decorations to Hyprland. Your own below win over them.": "Hyprland の wiki が推奨する変数です: GTK、Qt、Clutter、Electron のアプリを Wayland で動かし (可能なら X11 にフォールバック)、Qt はピクセル密度で拡大縮小し、ウィンドウの装飾は Hyprland に任せます。下の自分の変数がこれより優先されます。",
     "Off, only axiom's surfaces blur (Look & Feel → Translucency).": "オフの場合、axiom のサーフェスだけがぼかされます (外観と操作感 → 半透明)。",
-    "Hyprland blurs what shows through a translucent surface, with its own blur (Hyprland → Window look → Blur). It costs GPU time whenever what's behind or on a surface changes, more with a stronger blur and with windows blurred behind.": "半透明のサーフェス越しに見えるものを Hyprland が自身のぼかしでぼかします (Hyprland → ウィンドウの見た目 → ぼかし)。サーフェスの背後や上の内容が変わるたびに GPU を使い、ぼかしが強いほど、また背後のウィンドウもぼかすほど負荷が増えます。",
     "Set window opacity": "ウィンドウの不透明度を設定",
     "lightning": "lightning",
     "Off, your own Hyprland config's applies.": "オフの場合は Hyprland の設定のものが使われます。",
@@ -2934,6 +2933,7 @@
     "Set in Compositor → Window look.": "コンポジター → ウィンドウの見た目 で設定されています。",
     "End the session": "セッションを終了",
     "Settings that make windows match axiom. While on, they win over your compositor's own config, and they come along when you share or import a config.": "ウィンドウを axiom に合わせる設定です。オンの間はコンポジター自身の設定より優先され、設定の共有やインポートにも含まれます。",
-    "Compositor": "コンポジター"
+    "Compositor": "コンポジター",
+    "Hyprland blurs what shows through a translucent surface, with its own blur (Compositor → Window look → Blur). It costs GPU time whenever what's behind or on a surface changes, more with a stronger blur and with windows blurred behind.": "半透明のサーフェス越しに見えるものを Hyprland が自身のぼかしでぼかします (コンポジター → ウィンドウの見た目 → ぼかし)。サーフェスの背後や上の内容が変わるたびに GPU を使い、ぼかしが強いほど、また背後のウィンドウもぼかすほど負荷が増えます。"
   }
 }

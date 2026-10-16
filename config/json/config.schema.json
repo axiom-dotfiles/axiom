@@ -1006,22 +1006,22 @@
               "type": "boolean",
               "title": "Blur behind surfaces",
               "default": true,
-              "description": "Hyprland blurs what shows through a translucent surface, with its own blur (Hyprland → Window look → Blur). It costs GPU time whenever what's behind or on a surface changes, more with a stronger blur and with windows blurred behind.",
-              "x-showIf": { "opacity": { "not": 100 } }
+              "description": "Hyprland blurs what shows through a translucent surface, with its own blur (Compositor → Window look → Blur). It costs GPU time whenever what's behind or on a surface changes, more with a stronger blur and with windows blurred behind.",
+              "x-showIf": { "/$supports.blur": true, "opacity": { "not": 100 } }
             },
             "throughWindows": {
               "type": "boolean",
               "title": "Blur windows behind surfaces",
               "default": true,
               "description": "Off, bars, the border and popouts blur the wallpaper alone, which is cheaper. Tooltips and menus always blur what's behind them.",
-              "x-showIf": { "opacity": { "not": 100 }, "blur": true }
+              "x-showIf": { "/$supports.blur": true, "opacity": { "not": 100 }, "blur": true }
             },
             "blurBackdrops": {
               "type": "boolean",
               "title": "Blur backdrops",
               "default": false,
               "description": "Also blur the whole screen behind the overlay, launcher, power menu and workspace overview. Costs more while they open.",
-              "x-showIf": { "opacity": { "not": 100 }, "blur": true }
+              "x-showIf": { "/$supports.blur": true, "opacity": { "not": 100 }, "blur": true }
             },
             "pauseFullscreen": {
               "x-scope": "machine",
@@ -1029,7 +1029,7 @@
               "title": "Pause blur over fullscreen apps",
               "default": true,
               "description": "While a fullscreen window (a game, a video) is open, nothing blurs, so a volume popup or notification over it costs nothing extra. Surfaces on that monitor turn opaque; elsewhere they stay translucent, unblurred.",
-              "x-showIf": { "opacity": { "not": 100 }, "blur": true }
+              "x-showIf": { "/$supports.blur": true, "opacity": { "not": 100 }, "blur": true }
             }
           }
         },

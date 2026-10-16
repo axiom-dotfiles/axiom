@@ -22,12 +22,15 @@ import qs.config
 QtObject {
   id: root
 
-  // Whether anything blurs now: Appearance.blur, paused while a fullscreen
-  // window is open on any screen (Appearance.blurPauseFullscreen; the
-  // layer rules are Hyprland-wide). The chrome then fills itself, solid on
-  // the screens showing one (opaqueOn).
-  readonly property bool paused: Appearance.blur && Appearance.blurPauseFullscreen && General.outputs.some(screen => CompositorManager.hasFullscreen(screen.name))
-  readonly property bool active: Appearance.blur && !root.paused
+  // Whether anything blurs now: Appearance.blur where the compositor blurs
+  // axiom's surfaces (elsewhere they fill themselves: the blur window
+  // couldn't place their shapes without its layer positions), paused while
+  // a fullscreen window is open on any screen (Appearance.
+  // blurPauseFullscreen; the layer rules are Hyprland-wide). The chrome
+  // then fills itself, solid on the screens showing one (opaqueOn).
+  readonly property bool _wanted: Appearance.blur && CompositorManager.supports.blur === true
+  readonly property bool paused: root._wanted && Appearance.blurPauseFullscreen && General.outputs.some(screen => CompositorManager.hasFullscreen(screen.name))
+  readonly property bool active: root._wanted && !root.paused
   // The surfaces leave their fill to the blur window: blurring, and its
   // windows built (BlurBacking waits for the layer rules, as the chrome does)
   readonly property bool backing: root.active && CompositorManager.surfacesReady

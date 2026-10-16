@@ -7,7 +7,7 @@ The night light (the NightLight section): warmer colors through hyprsunset, or w
 
 ### Properties
 
-- `tool` (readonly var): "hyprsunset" | "wlsunset" | "" (neither); undefined until looked up
+- `tool` (readonly var): "hyprsunset" | "wlsunset" | "" (neither); undefined until looked up. hyprsunset only under Hyprland: it drives Hyprland's own color transform, so elsewhere it starts and does nothing
 - `available` (readonly bool)
 - `active` (readonly bool)
 

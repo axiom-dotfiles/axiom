@@ -7,7 +7,7 @@ The blur behind the shell's chrome: the border's frame, bars and their popouts, 
 
 ### Properties
 
-- `paused` (readonly bool): Whether anything blurs now: Appearance.blur, paused while a fullscreen window is open on any screen (Appearance.blurPauseFullscreen; the layer rules are Hyprland-wide).
+- `paused` (readonly bool)
 - `active` (readonly bool)
 - `backing` (readonly bool): The surfaces leave their fill to the blur window: blurring, and its windows built (BlurBacking waits for the layer rules, as the chrome does)
 - `shapes` (var): The registered BlurShapes; changes only as one comes or goes.
