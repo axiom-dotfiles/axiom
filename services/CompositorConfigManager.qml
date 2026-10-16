@@ -445,9 +445,14 @@ Singleton {
   onWriterChanged: _hookWriter()
 
   // The look's parts and the input's (as "input:<part>"; not the cursor,
-  // which a reload doesn't take back) that are on in `spec`
+  // which a reload doesn't take back) that are on in `spec`, of those the
+  // compositor applies (supports.window<Part>, inputConfig): one it can't
+  // (blur on sway) was never evaluated, so turning it off reloads nothing
   function _appliedParts(spec) {
-    return spec.look.parts.concat(spec.input.parts.filter(part => part !== "cursor").map(part => "input:" + part));
+    const supports = CompositorManager.supports;
+    const look = spec.look.parts.filter(part => supports["window" + part.charAt(0).toUpperCase() + part.slice(1)] === true);
+    const input = supports.inputConfig === true ? spec.input.parts.filter(part => part !== "cursor").map(part => "input:" + part) : [];
+    return look.concat(input);
   }
 
   // The parts evaluated since the last reload that are off now
