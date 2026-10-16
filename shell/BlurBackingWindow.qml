@@ -47,9 +47,9 @@ PanelWindow {
   property bool wanted: true
   property bool held: true
 
-  visible: slot.shown
+  visible: layerSlot.shown
   LayerSlot {
-    id: slot
+    id: layerSlot
     window: backing
     namespace: backing.layerNamespace
     layer: backing.stackLayer
@@ -66,9 +66,9 @@ PanelWindow {
 
   anchors {
     top: true
-    bottom: !slot.idle
+    bottom: !layerSlot.idle
     left: true
-    right: !slot.idle
+    right: !layerSlot.idle
   }
   implicitWidth: 1
   implicitHeight: 1
