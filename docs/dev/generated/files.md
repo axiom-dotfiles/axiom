@@ -271,6 +271,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `IconResolver.qml`: Resolves icon names for window classes: desktop entries first, then known substitutions, then name variants that exist in the icon theme.
 - `KeyNames.qml`: Keys as Hyprland writes them ("SUPER + SHIFT + space"): turning a Qt key event into one (for recording a bind), and splitting one for display.
 - `KeybindFilter.qml`: The Keybinds page's filter over KeybindManager.keybindings: a search plus toggle chips in three groups (sections, modifiers, source).
+- `LayerStack.qml`: The order axiom's layer surfaces stack and reserve their space in, on every compositor (pure).
 - `LibraryOrder.qml`: How the editors' libraries (bar widgets, overlay modules) order their types: by label, or by group (the schema's `x-libraryGroups`, in order) and by label within each.
 - `MonitorLayout.qml`: Pure helpers for the Monitors page (MonitorManager): modes, scales, rotation, the layout's rects and snapping, and picking the profile for the connected outputs.
 - `NoteMarkdown.qml`: A note's Markdown as blocks for the notes editor (content/parts/notes/ NoteEditor): paragraphs of plain lines (split at blank lines, which stay with the paragraph above; a code fence is never split, and holds no tasks),…

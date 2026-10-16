@@ -160,7 +160,7 @@ Dependencies point one way:
 
 Subsystem rules live with their code; each line here is the invariant and where the rest is:
 - **Overlay modules**: exist only while their page is shown (acquire/release, lasting state in a service); add them to a live config one at a time: `components/content/AGENTS.md`.
-- **Bars, layer ordering, corners**: stacking is `HyprLua.layers` (`docs/dev/generated/layers.md`); which bar owns a corner is `BarEnds` alone; bars and the border never draw over fullscreen: `components/bar/AGENTS.md`.
+- **Bars, layer ordering, corners**: stacking is `LayerStack.layers` (`docs/dev/generated/layers.md`; axiom places its layers itself: `docs/dev/compositor/layer-arrangement.md`); which bar owns a corner is `BarEnds` alone; bars and the border never draw over fullscreen: `components/bar/AGENTS.md`.
 - **Popouts**: geometry only from `methods/SurfaceContext`, collisions only through a `PopoutClaim`, an open popout never moves: `components/hosts/popout/AGENTS.md`.
 - **Launcher**: one row shape for every provider; `/config` can never edit `Bars` or `Overlay.views`: `services/AGENTS.md`, `docs/dev/features/launcher.md`.
 - **Greeter**: data, never code; a side effect reachable from greeter mode checks `Paths.greeter`: `services/AGENTS.md`, `docs/dev/features/greeter-runtime.md`.

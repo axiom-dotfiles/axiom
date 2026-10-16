@@ -20,7 +20,7 @@ Dependencies point one way, methods → data owners → readers → services →
 - [generated/api.md](generated/api.md): public members of every service and config reader, one page each.
 - [generated/files.md](generated/files.md): every QML file with its purpose comment. Long: grep it.
 - [generated/ipc.md](generated/ipc.md): every IPC target and its functions.
-- [generated/layers.md](generated/layers.md): every layer namespace's Hyprland `order` and why, from `HyprLua.layers`.
+- [generated/layers.md](generated/layers.md): every layer namespace's `order` and why, from `LayerStack.layers`.
 
 ### Known issues
 - [issues.md](issues.md): problems found but not fixed yet. Add one when you find something out of scope; remove it with the fix.
@@ -78,6 +78,7 @@ Dependencies point one way, methods → data owners → readers → services →
 - [README](compositor/README.md): `CompositorManager`, detection, capabilities, gating what a compositor can't do, `FocusGrab`.
 - [contract](compositor/contract.md): the neutral shapes and the members a backend provides.
 - [sway-backend](compositor/sway-backend.md): the plan for sway, and running a nested compositor (`scripts/dev/nested.sh`).
+- [layer-arrangement](compositor/layer-arrangement.md): how compositors arrange and stack layer windows (measured on sway and niri), and how axiom reproduces it.
 
 ### hyprland/
 - [ipc](hyprland/ipc.md): `HyprlandIpcManager` (the request socket), Quickshell.Hyprland and `HyprlandManager`, the Hyprland backend; who may talk to Hyprland.

@@ -76,34 +76,11 @@ TestCase {
   }
 
   function test_layer_rules() {
-    const names = HyprLua.layers.map(l => l.namespace);
-    compare(names.length, new Set(names).size, "one entry per namespace");
     const lines = HyprLua.layerRulesLua();
-    compare(lines.length, names.length);
+    compare(lines.length, LayerStack.layers.length);
     verify(lines.includes('hl.layer_rule({ name = "axiom-bar-pill", match = { namespace = "^axiom-bar-pill$" }, order = -1 })'));
     verify(lines.includes('hl.layer_rule({ name = "axiom-desktop", match = { namespace = "^axiom-desktop$" }, no_anim = true })'), "no order, no animation");
     verify(HyprLua.blurChrome.includes("bar-floating-long") && HyprLua.blurBacked.includes("bar-pill"), "blur lists take every bar");
-  }
-
-  // The order BarEnds.rank assumes: solid, the border, pills, transparent,
-  // floating, then docks; of a kind, the shorter edge's bar first
-  function test_bar_layers_in_corner_order() {
-    const order = ns => HyprLua.layers.find(l => l.namespace === ns).order;
-    const chain = ["bar", "bar-long", "border", "bar-pill", "bar-pill-long", "bar-transparent", "bar-transparent-long", "bar-floating", "bar-floating-long", "dock"];
-    for (let i = 1; i < chain.length; i++)
-      verify(order(chain[i - 1]) > order(chain[i]), chain[i - 1] + " before " + chain[i]);
-    compare(HyprLua.barLayers.length, 8);
-  }
-
-  // The blur window over the overlay sits strictly between the overlay and
-  // every Overlay-layer surface it draws fills for
-  function test_blur_over_overlay_order() {
-    const order = ns => HyprLua.layers.find(l => l.namespace === ns).order;
-    const backing = order("blur-backing-overlay");
-    verify(order("overlay") > backing);
-    for (const ns of ["osd", "dock-preview", "edge-popout", "popout"])
-      verify(backing > order(ns), "under " + ns);
-    verify(HyprLua.layers.find(l => l.namespace === "blur-backing-overlay").noAnim);
   }
 
   function test_value() {

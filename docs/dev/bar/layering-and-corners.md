@@ -6,7 +6,7 @@
 
 How bars and the screen border share an edge through layer-shell ordering. Covers solid bars, bars inside the border, which bar gets a shared corner, transparent bars, the border being off, and the border's inward shadow window. Bar ends and pills are in [Bar ends and pills](bar-ends-pills.md).
 
-(Rule: AGENTS.md › UI conventions, Layer ordering. The rules live in `HyprLua.layers`, listed in [layer stacking](../generated/layers.md).)
+(Rule: AGENTS.md › UI conventions, Layer ordering. The order lives in `LayerStack.layers`, listed in [layer stacking](../generated/layers.md).)
 
 ### The border
 - `Appearance.screenBorder` turns the border off.
@@ -32,7 +32,7 @@ How bars and the screen border share an edge through layer-shell ordering. Cover
 
 ### Bars sharing a corner (`methods/BarEnds`, `tests/tst_BarEnds.qml`)
 - Hyprland gives a corner to the bar it arranges first. The other bar's window ends at its reserved line.
-- Which bar that is depends on the layer rule, never on which mapped first. First to last: solid bars, the border, pill bars, transparent bars, floating bars and floating pills (orders: [layer stacking](../generated/layers.md), from `HyprLua.layers`; `tst_HyprLua` holds them to this order).
+- Which bar that is depends on the layer rule, never on which mapped first. First to last: solid bars, the border, pill bars, transparent bars, floating bars and floating pills (orders: [layer stacking](../generated/layers.md), from `LayerStack.layers`; `tst_LayerStack` holds them to this order).
 
   - A floating bar always makes way.
   - Between bars of one kind, the bar on the screen's longer edge makes way (the `-long` namespace), so the shorter bar gets the corner: side bars on a landscape monitor, top and bottom ones on a portrait one (`shortEdge`, `BarEnds.onShortEdge`).

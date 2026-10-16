@@ -497,7 +497,7 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
     } : null;
   }
 
-  // The layer rules stacking axiom's surfaces (HyprLua.layers, which says
+  // The layer rules stacking axiom's surfaces (LayerStack.layers, which says
   // why each sits where it does; docs/dev/generated/layers.md). Named, so
   // re-adding one replaces it instead of piling up copies. Rules added at
   // runtime are lost when Hyprland reloads its config.

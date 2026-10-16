@@ -2,7 +2,7 @@
 
 > **Files:** `services/CompositorManager.qml`, `services/HyprlandManager.qml`, `services/FocusGrab.qml`, `components/methods/HyprState.qml`, `components/methods/SchemaLayout.qml`, `services/SettingsManager.qml`
 > **Config:** `WindowLook.*`, `Workspaces.*`
-> **Related:** [Backend contract](contract.md), [Sway backend](sway-backend.md), [Hyprland IPC](../hyprland/ipc.md), [Workspaces](../hyprland/workspaces.md), [Schema annotations](../core/schema-annotations.md)
+> **Related:** [Backend contract](contract.md), [Sway backend](sway-backend.md), [Layer arrangement](layer-arrangement.md), [Hyprland IPC](../hyprland/ipc.md), [Workspaces](../hyprland/workspaces.md), [Schema annotations](../core/schema-annotations.md)
 
 How axiom reaches the compositor it runs under. Read this before anything that reads windows, outputs or workspaces, switches workspace, focuses a window, or does something only one compositor can.
 
