@@ -55,35 +55,35 @@ FieldGroup {
   // What saving the pending mode does, step by step
   readonly property var saveSteps: {
     const steps = [];
-    const hypr = Paths.shortenHome(CompositorConfigManager.managedPath);
+    const managed = Paths.shortenHome(CompositorConfigManager.managedPath);
     const user = Paths.shortenHome(CompositorConfigManager.userDir);
     const files = Paths.shortenHome(CompositorConfigManager.userFiles);
     const module = Paths.shortenHome(CompositorConfigManager.includePath);
     const compositor = CompositorManager.displayName;
     // Leaving a mode gives back what it took (CompositorConfigManager._leave)
     if (root.mode === "managed")
-      steps.push(I18n.tr("Gives {0} back: your previous one returns (in {1}, or the example config's backup), else a new one that starts axiom and loads {2}", hypr, user, files));
+      steps.push(I18n.tr("Gives {0} back: your previous one returns (in {1}, or the example config's backup), else a new one that starts axiom and loads {2}", managed, user, files));
     if (root.mode === "included")
       steps.push(I18n.tr("Empties {0}, so a config that still loads it gets nothing", module));
     if (root.pendingMode === "managed") {
       switch (CompositorConfigManager.managedCheck) {
       case "adopt":
-        steps.push(I18n.tr("Moves your {0} into {1}, where it keeps working, with a dated backup beside it", hypr, user));
+        steps.push(I18n.tr("Moves your {0} into {1}, where it keeps working, with a dated backup beside it", managed, user));
         break;
       case "stock":
-        steps.push(I18n.tr("Replaces the example config {0}, keeping a dated backup beside it: its binds and monitor rule would fight axiom's", hypr));
+        steps.push(I18n.tr("Replaces the example config {0}, keeping a dated backup beside it: its binds and monitor rule would fight axiom's", managed));
         break;
       case "released":
-        steps.push(I18n.tr("Replaces {0}, which axiom wrote when it last left managed mode", hypr));
+        steps.push(I18n.tr("Replaces {0}, which axiom wrote when it last left managed mode", managed));
         break;
       case "ours":
-        steps.push(I18n.tr("Takes back {0}, which axiom already wrote", hypr));
+        steps.push(I18n.tr("Takes back {0}, which axiom already wrote", managed));
         break;
       case "":
         steps.push(I18n.tr("Checking {0}…", Paths.shortenHome(CompositorConfigManager.configDir)));
         break;
       }
-      steps.push(I18n.tr("Writes {0} from the cards below, loading {1} after it", hypr, files));
+      steps.push(I18n.tr("Writes {0} from the cards below, loading {1} after it", managed, files));
       steps.push(I18n.tr("Reloads {0}", compositor));
     } else if (root.pendingMode === "included") {
       steps.push(I18n.tr("Writes {0}", module));
