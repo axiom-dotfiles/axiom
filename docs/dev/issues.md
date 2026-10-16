@@ -24,11 +24,11 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Size:** needs a plan
 - **Found:** 2026-10-16, while decoupling the shell from Hyprland
 
-### Hyprland-only services are still created under other compositors
-- **Where:** `services/OnboardingManager.qml` (`configState`), `services/KeybindManager.qml`, `services/MonitorManager.qml`, `services/IntegrationHookupManager.qml`
-- **What:** Their bindings name `HyprlandConfigManager`, which creates it, and its `import Quickshell.Hyprland` logs `$HYPRLAND_INSTANCE_SIGNATURE is unset. Cannot connect to hyprland.` once under another compositor (seen under nested niri). Every side effect is gated on `CompositorManager.supports`, so it's only noise. Guard the bindings (`CompositorManager.supports.configModes ? HyprlandConfigManager.x : default`) so it's never created.
+### Surfaces wait for Hyprland's grab to get keyboard focus
+- **Where:** `components/hosts/popout/EdgePopout.qml` (`WlrLayershell.keyboardFocus`), `components/hosts/overlay/OverlayPanel.qml`, `shell/WorkspaceOverlay.qml`, `components/surfaces/powermenu/PowerMenuWindow.qml`, `services/FocusGrab.qml`
+- **What:** The launcher, overlay, workspace overview, power menu and popouts with text fields ask for `OnDemand` keyboard focus and get the keyboard from Hyprland's focus grab. Without one (nested sway), an on-demand layer surface gets focus only once it's clicked: the launcher opened by a key can't be typed into, and `FocusGrab`'s fallback, which ends the grab when focus leaves, never sees focus to lose. Without `supports.focusGrab` these need `Exclusive` focus while their grab is active (and a click-catcher for the outside click: `sway-backend.md` › Open questions).
 - **Size:** small
-- **Found:** 2026-10-16, while running axiom under nested niri
+- **Found:** 2026-10-16, while reviewing the compositor split under nested sway
 
 ### The greeter and the onboarding's Apps page assume Hyprland
 - **Where:** `scripts/greeter/greeter-session.sh`, `services/GreetdManager.qml` (`_applyHyprland`), `components/surfaces/onboarding/pages/AppsPage.qml`, `components/surfaces/onboarding/pages/BindsTable.qml`, `components/surfaces/onboarding/pages/WelcomePage.qml`

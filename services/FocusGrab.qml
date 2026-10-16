@@ -30,9 +30,46 @@ Scope {
 
   // --- Without a native grab: watch keyboard focus ---
 
+  // Each window's keyboard focus: its content's `Window.active` (attached,
+  // which follows the item into whichever backing window it's in). Not
+  // Quickshell's `_backingWindow`: it doesn't notify, and a PanelWindow
+  // (an interface around the real window) has none
+  Instantiator {
+    id: _watchers
+    model: root._native ? [] : root.windows
+
+    delegate: QtObject {
+      id: watcher
+
+      required property var modelData
+      // Read once: the attached object is the content item's for good
+      property var attached: null
+      readonly property bool focused: watcher.attached?.active === true
+      onFocusedChanged: root._recheck()
+
+      Component.onCompleted: watcher.attached = watcher.modelData?.contentItem?.Window ?? null
+    }
+
+    onObjectAdded: root._recheck()
+    onObjectRemoved: root._recheck()
+  }
+
+  // Whether one of the windows has keyboard focus while the grab is on
+  property bool _focused: false
   // Whether one of the windows has had keyboard focus since the grab began
   property bool _held: false
-  readonly property bool _focused: !root._native && root.active && root.windows.some(w => w?._backingWindow?.active === true)
+
+  function _recheck() {
+    let focused = false;
+    for (let i = 0; i < _watchers.count; i++)
+      focused = focused || root._focusedOf(_watchers.objectAt(i));
+    root._focused = !root._native && root.active && focused;
+  }
+
+  // A watcher's `focused` (untyped: objectAt hands back a QObject)
+  function _focusedOf(watcher) {
+    return watcher?.focused === true;
+  }
 
   on_FocusedChanged: {
     if (root._focused)
@@ -45,6 +82,7 @@ Scope {
       root._held = false;
       _lost.stop();
     }
+    root._recheck();
   }
 
   // Focus moving between two of the windows passes through none

@@ -18,7 +18,7 @@ How axiom reaches the compositor it runs under. Read this before anything that r
   - the workspace layout: `goToWorkspace`, `stepWorkspace`, `nthWorkspace`, `workspaceBase`, `workspaceIds`, `stepStrip`
   - the remap on a layout change (`WorkspaceGeometry.remapWorkspaces`)
   - the `workspaces` IPC target
-  - `focusWindow` (switching workspace first), `hasFullscreen`, `stripWindows`, `withHoveredScreen`.
+  - `focusWindow` (switching workspace first), `hasFullscreen`, `stripWindows`, `stripDirection` ("" without `supports.strips`, whatever the config lists), `withHoveredScreen`.
 - With no backend everything is empty and does nothing, so an unknown compositor still gets the bar, launcher and notifications. The facade's defaults are what "unsupported" looks like.
 
 ### Capabilities
@@ -46,7 +46,7 @@ How axiom reaches the compositor it runs under. Read this before anything that r
 ### Focus grab
 - Surfaces that close on an outside click use `FocusGrab` (`windows`, `active`, `cleared`), never `HyprlandGrab`.
   - With `supports.focusGrab` it loads Hyprland's grab.
-  - Otherwise it clears once keyboard focus has left every one of its windows for 100 ms. This only works for windows that take keyboard focus. A popout that closes on an outside click without taking focus needs a click-catcher: [sway-backend](sway-backend.md) › Open questions.
+  - Otherwise it clears once keyboard focus (each window's content `Window.active`) has left every one of its windows for 100 ms. This only works for windows that have keyboard focus: an `OnDemand` layer surface gets it from Hyprland's grab, elsewhere only on a click (`issues.md` › Surfaces wait for Hyprland's grab to get keyboard focus). A popout that closes on an outside click without taking focus needs a click-catcher: [sway-backend](sway-backend.md) › Open questions.
 
 ### The window look
 - `WindowLook` is compositor-neutral config, edited under Settings › Compositor.
