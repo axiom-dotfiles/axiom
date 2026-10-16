@@ -383,7 +383,7 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
     root._slideSteps = [];
     _slideTimer.stop();
     const last = legs[legs.length - 1];
-    const lead = output ? [`hl.dsp.focus({ monitor = "${output}" })`] : [];
+    const lead = output ? [`hl.dsp.focus({ monitor = ${JSON.stringify(output)} })`] : [];
     const arrive = focusId ? _focusWindowDispatcher(focusId) : _goDispatcher(last.id, mode);
     const anim = root._workspaceAnim;
     if (!anim || legs.some(leg => !leg.axis)) {
