@@ -24,6 +24,42 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Size:** needs a plan
 - **Found:** 2026-10-16, while decoupling the shell from Hyprland
 
+### Changing a setting under sway can flash the screen
+- **Where:** `services/LayerManager.qml` (`_sequence`), `components/hosts/popout/LayerSlot.qml`, `services/MonitorManager.qml`
+- **What:** Reported on sway: changing a setting flashes the whole settings page. Two causes fixed: the border's shadow window wasn't held, so turning the shadow on remapped every surface ordered under it (`LayerManager: mapping … again, in its place` for the backdrop, bars, border and dock, the backdrop dimming the overlay flashing with them), and a sway reload (any save rewriting axiom's file) reset the outputs to the config's, dropping the monitor profile. Not reproduced with an ordinary setting since (a save then logs no remap and no overlay resize). Without `layerOrder`, a bar remade by a change of kind still remaps everything after it, by design. If it still happens, note which setting and look for those log lines.
+- **Size:** small
+- **Found:** 2026-10-16, while auditing the sway branch
+
+### Sway's special workspaces are floating scratchpad windows
+- **Where:** `services/SwayManager.qml` (`toggleSpecial`, `moveToSpecial`), `components/methods/SwayState.qml` (`specialToggle`)
+- **What:** Hyprland's special workspace is a tiled workspace drawn over the current one; sway has none, so a special group is marked scratchpad windows, and sway's scratchpad makes every window floating, centred and stacked on the others (a group of three shows as three overlapping windows). Options: keep the scratchpad and lay the group's windows out in a grid on show (`move position` / `resize set` per window, over the workspace like Hyprland's), or a hidden named workspace per group (tiles, but replaces the view instead of overlaying it). A group name holding `,` or `;` also breaks its `nop axiom special` bind (sway splits the command there).
+- **Size:** needs a plan
+- **Found:** 2026-10-16, while auditing the sway branch
+
+### Smart gaps make sway's gaps and reserved space wrong
+- **Where:** `components/methods/SwayState.qml` (`output`, `configInfo`), `services/SwayManager.qml` (`gapsOut`)
+- **What:** With `Sway.smartGaps` on (`smart_gaps on`), a workspace with one window has no gaps, but `gapsOut` still reports the configured ones, and `output().reserved` (the workspace rect less those gaps) comes out short by them. Bars and edge menus placed from `gapsOut` and the dock's `reserved` are then off by the gap on such a workspace. Needs per-workspace gaps (whether the active workspace has one tiled window).
+- **Size:** small
+- **Found:** 2026-10-16, while auditing the sway branch
+
+### Overview drops on sway nest split containers
+- **Where:** `services/SwayManager.qml` (`placeWindow`)
+- **What:** A drop next to a window runs `split h|v` on the target every time, which wraps it in a new container even when its parent already splits that way, so repeated drops nest containers sway then draws as such (tabbed/stacked parents behave oddly). Split only when the parent's layout differs (the tree has it).
+- **Size:** small
+- **Found:** 2026-10-16, while auditing the sway branch
+
+### Detached sway keeps the floating modifier after the mouse binds go
+- **Where:** `services/SwayRuntimeLayer.qml`, `components/methods/SwayConf.qml` (`unbindLines`, `floatingModifier`)
+- **What:** The runtime layer sends `floating_modifier` for the drag/resize binds but its unbind commands don't take it back, so removing them in detached mode leaves sway's floating modifier set until sway reloads. It also overrides a `floating_modifier` of the user's own config, which `BindKeys.runtimeBinds` doesn't see as a taken key.
+- **Size:** small
+- **Found:** 2026-10-16, while auditing the sway branch
+
+### `noWarps` off maps to sway's `mouse_warping output`
+- **Where:** `config/json/config.schema.json` (`WindowBehaviour.noWarps`, `x-swayMap`)
+- **What:** Hyprland with `cursor.no_warps` off moves the cursor to a window focused by keybind; sway's `mouse_warping output` only moves it when focus changes output (`container` would match Hyprland). Decide which sway value matches what the setting promises.
+- **Size:** trivial
+- **Found:** 2026-10-16, while auditing the sway branch
+
 ### Quickshell's I3 socket warns on every reload
 - **Where:** `services/SwayManager.qml` (Quickshell.I3)
 - **What:** Under sway every reload of the shell logs `I3 event socket disconnected` twice (category `quickshell.I3.ipc`), from the old generation's sockets closing. Events still arrive afterwards (checked in nested sway). Quickshell's, not axiom's; nothing to fix here unless it starts dropping events.
