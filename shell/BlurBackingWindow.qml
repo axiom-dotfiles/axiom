@@ -37,6 +37,28 @@ PanelWindow {
     return [look.shadow, look.shadowColor, look.shadowSize, even ? "even" : shape.shadowEdge].join("|");
   }
 
+  // Its namespace and layer, set here so its LayerSlot can read them
+  required property string layerNamespace
+  property int stackLayer: WlrLayer.Top
+  // Whether it draws (BlurManager.backing). Where the compositor stacks
+  // by map order alone (SwayFX) it stays mapped while not (held), a pixel
+  // drawing nothing, so it keeps its place under the chrome: mapped later
+  // it would land over the bars and cover their content
+  property bool wanted: true
+  property bool held: true
+
+  visible: slot.shown
+  LayerSlot {
+    id: slot
+    window: backing
+    namespace: backing.layerNamespace
+    layer: backing.stackLayer
+    wanted: backing.wanted
+    held: backing.held
+  }
+
+  WlrLayershell.namespace: backing.layerNamespace
+  WlrLayershell.layer: backing.stackLayer
   WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
   exclusionMode: ExclusionMode.Ignore
   color: "transparent"
@@ -44,10 +66,12 @@ PanelWindow {
 
   anchors {
     top: true
-    bottom: true
+    bottom: !slot.idle
     left: true
-    right: true
+    right: !slot.idle
   }
+  implicitWidth: 1
+  implicitHeight: 1
 
   // Shown as drawn, whatever Hyprland held on to (see FrameNudge)
   FrameNudge {
