@@ -81,7 +81,7 @@ How axiom themes other apps: one script per app writing its own `axiom.*` file, 
   - writes atomically;
   - never deletes a line;
   - does nothing for a target already done.
-- `--targets JSON` passes the targets instead of a schema key, with `title` (naming a target above its path) and `note` (replacing the line about where it goes). Used for the Hyprland lines (HyprlandConfigManager; see [Hyprland config modes](../hyprland/config-modes.md)).
+- `--targets JSON` passes the targets instead of a schema key, with `title` (naming a target above its path) and `note` (replacing the line about where it goes). Used for the compositor's include and autostart lines (CompositorConfigManager; see [Config modes](../compositor/config-modes.md)).
 
 ### IntegrationHookupManager and the UI
 - `IntegrationHookupManager` runs the script; nothing is polled:

@@ -17,7 +17,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `CompositorConfig.mode` · in: `components/surfaces/onboarding/pages/FinishPage.qml`, `components/views/Monitors.qml`, `services/CompositorConfigManager.qml`, `services/HyprlandConfigWriter.qml`, `services/OnboardingManager.qml`, `services/SwayConfigWriter.qml`
 - **`Compositor.requiredSettings`** · boolean = true
   - Required settings: Lock restore after a shell restart, ignoring apps' requests to maximize themselves, and a workspace slide animation.
-  - x-group="Setup"
+  - x-group="Setup", x-enabledIf={"/$compositor":"hyprland"}
   - read: `CompositorConfig.requiredSettings` · in: `services/CompositorConfigManager.qml`, `services/HyprlandConfigWriter.qml`, `services/HyprlandRuntimeLayer.qml`
 
 ### Reader members

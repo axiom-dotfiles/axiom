@@ -30,7 +30,7 @@ QtObject {
     {
       "namespace": "blur-backing",
       "order": 9,
-      "why": "The blur window (BlurManager, shell/BlurBacking), drawing the chrome's fills under it."
+      "why": "The blur window (BlurManager, shell/BlurBacking), drawing the chrome's fills under it. Held (a pixel while nothing blurs) where layers stack by map order."
     },
     {
       "namespace": "edge-menu",

@@ -305,7 +305,7 @@ def check_config_edit(tool, tool_input):
         return  # an invalid file never replaces the running config: nothing to guard
     for path in takeover_paths(schema):
         if value_at(before, path) != value_at(after, path):
-            deny("Never, while testing", f"`{'.'.join(path)}` takes something over on this PC (x-takeover: Hyprland mode, locker, idle, polkit, greeter). Ask the user before changing it in the live config.")
+            deny("Never, while testing", f"`{'.'.join(path)}` takes something over on this PC (x-takeover: compositor mode, locker, idle, polkit, greeter). Ask the user before changing it in the live config.")
 
 
 # ------------------------------------------------------------------ main

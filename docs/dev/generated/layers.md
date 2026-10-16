@@ -7,7 +7,7 @@ Every axiom layer namespace, from `LayerStack.layers`: Hyprland's layer rules (`
 |---|---|---|
 | `axiom-border-shadow` | 11 | The border's inward shadow window: under every other axiom surface, the overlay backdrop included. |
 | `axiom-backdrop` | 10 | Each screen's backdrop window (ScreenBackdrop: full-screen surfaces' dim background): on Top, under the bars and border. Without layer rules it stays mapped (held), so it keeps its place before them. |
-| `axiom-blur-backing` | 9 | The blur window (BlurManager, shell/BlurBacking), drawing the chrome's fills under it. |
+| `axiom-blur-backing` | 9 | The blur window (BlurManager, shell/BlurBacking), drawing the chrome's fills under it. Held (a pixel while nothing blurs) where layers stack by map order. |
 | `axiom-edge-menu` | 7 | An integrated edge menu: arranged before the bars and border, so it sits at the screen edge and pushes them and the windows inwards. |
 | `axiom-popout-under` | 6 | Detached popouts and floating edge menus: drawn under the bars and border, so they slide out from beneath them. Only with layer rules (supports.layerOrder): elsewhere they open over the bar, as over the overlay. |
 | `axiom-bar` | 5 | Solid bars, on the screen's shorter edge: arranged before the border, whose strip then lands on the bar's inner part. Of two bars at a corner the one arranged first takes it (BarEnds). |

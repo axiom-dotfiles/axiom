@@ -17,7 +17,7 @@ import qs.config
  *
  * Two keys aren't theme integrations: "compositorInclude" (the lines that load
  * axiom's module, and the autostart line) and "compositorAutostart" (only the
- * latter), in the user's hyprland.lua, for the onboarding's Hyprland page.
+ * latter), in the user's compositor config, for the onboarding's Compositor page.
  * Their targets come from CompositorConfigManager (its writer), passed to the script.
  */
 Singleton {

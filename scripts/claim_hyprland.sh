@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # Description: Makes <dir>/hyprland.lua axiom's for the "managed" Hyprland
-#              mode (HyprlandConfigManager), says what that would do, or
+#              mode (CompositorConfigManager), says what that would do, or
 #              gives it back when axiom leaves that mode.
 # Usage:       claim_hyprland.sh check <dir> <header> [<fallback>]
 #              claim_hyprland.sh claim <dir> <header> [<fallback>]
