@@ -87,7 +87,7 @@ PopoutWrapperBase {
 
   // Report the space taken, for surfaces laid out against this edge
   readonly property string _edgeName: Bar.edgeName(root.edge)
-  readonly property int reserved: panel.visible ? root.depth : 0
+  readonly property int reserved: panel.visible && !menuSlot.idle ? root.depth : 0
   onReservedChanged: EdgeMenuManager.setZone(root.screen?.name ?? "", root._edgeName, root.reserved)
 
   EdgeTrigger {
@@ -119,6 +119,10 @@ PopoutWrapperBase {
       window: panel
       namespace: "axiom-edge-menu"
       wanted: root.occupied && loader.status === Loader.Ready
+      // Where map order alone stacks: mapped from the start, a pixel deep,
+      // reserving nothing while closed, so opening never maps it after
+      // the bars and border it pushes inwards
+      held: true
     }
     color: "transparent"
 
@@ -126,7 +130,10 @@ PopoutWrapperBase {
     WlrLayershell.namespace: "axiom-edge-menu"
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
     exclusionMode: ExclusionMode.Normal
-    exclusiveZone: root.depth
+    exclusiveZone: menuSlot.idle ? 0 : root.depth
+    // No input while idle (LayerSlot.held)
+    mask: menuSlot.idle ? idleMask : null
+    property Region idleMask: Region {}
 
     anchors {
       top: root.edge === Bar.Top || root.vertical
@@ -135,8 +142,8 @@ PopoutWrapperBase {
       right: root.edge === Bar.Right || !root.vertical
     }
 
-    implicitWidth: root.vertical ? root.depth : 0
-    implicitHeight: root.vertical ? 0 : root.depth
+    implicitWidth: root.vertical ? (menuSlot.idle ? 1 : root.depth) : 0
+    implicitHeight: root.vertical ? 0 : (menuSlot.idle ? 1 : root.depth)
 
     // Where the window is on screen: the blur window draws the strip's
     // fill (BlurManager) from there, as it slides
@@ -151,6 +158,7 @@ PopoutWrapperBase {
     SlideAnimation {
       id: slide
       anchors.fill: parent
+      visible: !menuSlot.idle
       active: root.isOpen
       slideFromLeft: root.edge === Bar.Left
       slideFromRight: root.edge === Bar.Right

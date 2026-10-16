@@ -40,7 +40,7 @@ QtObject {
     {
       "namespace": "popout-under",
       "order": 6,
-      "why": "Detached popouts and floating edge menus: drawn under the bars and border, so they slide out from beneath them."
+      "why": "Detached popouts and floating edge menus: drawn under the bars and border, so they slide out from beneath them. Only with layer rules (supports.layerOrder): elsewhere they open over the bar, as over the overlay."
     },
     {
       "namespace": "bar",

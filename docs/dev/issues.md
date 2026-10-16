@@ -24,12 +24,6 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Size:** needs a plan
 - **Found:** 2026-10-16, while decoupling the shell from Hyprland
 
-### Layer order without Hyprland
-- **Where:** `components/methods/LayerStack.qml` (`layers`), `services/CompositorManager.qml` (`surfacesReady`), `services/LayerManager.qml`
-- **What:** A layer rule's `order` decides which of axiom's surfaces in a layer is drawn on top and which reserves its space first (the border's strip outside the bar). Sway and niri do both in map order ([layer arrangement](compositor/layer-arrangement.md)), so the border can land on the wrong side of a bar. `supports.layerOrder` is meant to switch a fallback that maps the ordered surfaces one by one in `LayerStack.layers` order; nothing reads it yet. (Positions are axiom's own on every compositor: `LayerManager`.)
-- **Size:** needs a plan
-- **Found:** 2026-10-16, while reviewing the compositor capabilities
-
 ### Surfaces wait for Hyprland's grab to get keyboard focus
 - **Where:** `components/hosts/popout/EdgePopout.qml` (`WlrLayershell.keyboardFocus`), `components/hosts/overlay/OverlayPanel.qml`, `shell/WorkspaceOverlay.qml`, `components/surfaces/powermenu/PowerMenuWindow.qml`, `services/FocusGrab.qml`
 - **What:** The launcher, overlay, workspace overview, power menu and popouts with text fields ask for `OnDemand` keyboard focus and get the keyboard from Hyprland's focus grab. Without one (nested sway), an on-demand layer surface gets focus only once it's clicked: the launcher opened by a key can't be typed into, and `FocusGrab`'s fallback, which ends the grab when focus leaves, never sees focus to lose. Without `supports.focusGrab` these need `Exclusive` focus while their grab is active (and a click-catcher for the outside click: `sway-backend.md` › Open questions).

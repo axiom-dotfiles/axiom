@@ -32,10 +32,11 @@ PopoutWrapperBase {
   // detached box slides out from beneath the bar rather than out of thin
   // air at its invisible inner edge; else on the Overlay layer, over the
   // bar. That under-bar layer is also under the overlay: while that's open
-  // here, the box shows over it instead, without sliding (see
-  // HyprlandManager's layer rules). Followed only while closed, since it
-  // changes the window's layer.
-  readonly property bool _wantsUnder: root.barConfig.background === "transparent" && !ShellManager.surfaceOpenOn("overlay", root.screen)
+  // here, the box shows over it instead, without sliding (LayerStack), as
+  // it does where the compositor stacks by map order alone (no
+  // supports.layerOrder: a window mapped as it opens lands over the bar).
+  // Followed only while closed, since it changes the window's layer.
+  readonly property bool _wantsUnder: root.barConfig.background === "transparent" && CompositorManager.supports.layerOrder === true && !ShellManager.surfaceOpenOn("overlay", root.screen)
   property ClosedLatch _under: ClosedLatch {
     source: root._wantsUnder
     closed: !root.occupied
