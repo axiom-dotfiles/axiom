@@ -26,6 +26,8 @@ TICKED = re.compile(r"`([^`]+)`")
 def entries():
     """[(title, cited paths, quotes)] for each open entry"""
     text = ISSUES.read_text() if ISSUES.exists() else ""
+    # The format's example at the top is no entry
+    text = re.sub(r"^```.*?^```", "", text, flags=re.S | re.M)
     out = []
     for block in re.split(r"^### ", text, flags=re.M)[1:]:
         title = block.splitlines()[0].strip().replace("`", "")

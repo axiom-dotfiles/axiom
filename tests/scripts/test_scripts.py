@@ -828,6 +828,12 @@ class KnownIssues(unittest.TestCase):
         issues = tmp / "issues.md"
         issues.write_text("""# Known issues
 
+```
+### <Short title>
+- **Where:** `path/File.qml`
+- **What:** quote its category too, `quickshell.I3.ipc`
+```
+
 ### A file's warning
 - **Where:** `services/Thing.qml`
 - **What:** logs `Cannot read property` at its binding
