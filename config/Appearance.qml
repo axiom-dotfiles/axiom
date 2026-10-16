@@ -67,7 +67,7 @@ QtObject {
   // on a 60% panel reads about 84%.
   readonly property real surfaceAlpha: _c.surface.opacity / 100
   readonly property bool translucent: surfaceAlpha < 1
-  // Hyprland blurs behind them (HyprlandConfigManager's blur rules, which
+  // Hyprland blurs behind them (HyprlandConfigWriter's blur rules, which
   // leave out pixels under blurThreshold: shadows, dims, fades), with its
   // own blur (the window look's blur part, or the user's config)
   readonly property bool blur: translucent && _c.surface.blur

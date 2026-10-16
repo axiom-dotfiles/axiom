@@ -35,7 +35,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`Workspaces.strips`** · array<object> = []
   - Strips: Monitors whose windows sit side by side on a strip that scrolls (Hyprland's scrolling layout) instead of tiling. New windows open as a new column after the focused one.
   - x-group="Strips", x-showIf={"/$supports.strips":true}
-  - read: `WorkspacesConfig.strips` (part) · in: `components/surfaces/onboarding/pages/WorkspacesPage.qml`, `services/HyprlandConfigManager.qml`
+  - read: `WorkspacesConfig.strips` (part) · in: `components/surfaces/onboarding/pages/WorkspacesPage.qml`, `services/HyprlandConfigWriter.qml`
 
 ### `Workspaces.strips[]`
 
@@ -53,11 +53,11 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`Workspaces.stripColumnWidth`** · integer = 50 · 10–100 · %
   - Column width: A new column's share of the monitor.
   - x-group="Strips", x-showIf={"strips":{"notEmpty":true},"/$supports.strips":true}, x-hypr="scrolling.column_width", x-hyprScale=0.01
-  - read: `WorkspacesConfig.stripOptions` (computed) · in: `services/HyprlandConfigManager.qml`
+  - read: `WorkspacesConfig.stripOptions` (computed) · in: `services/HyprlandConfigWriter.qml`
 - **`Workspaces.stripFollowFocus`** · boolean = true
   - Scroll to the focused window
   - x-group="Strips", x-showIf={"strips":{"notEmpty":true},"/$supports.strips":true}, x-hypr="scrolling.follow_focus"
-  - read: `WorkspacesConfig.stripOptions` (computed) · in: `services/HyprlandConfigManager.qml`
+  - read: `WorkspacesConfig.stripOptions` (computed) · in: `services/HyprlandConfigWriter.qml`
 
 ### Reader members
 
@@ -86,11 +86,11 @@ Every public member of `WorkspacesConfig`, with the files that use it.
 - `WorkspacesConfig.boardRows` (int)
   - in: `components/surfaces/workspaces/OverviewGrid.qml`
 - `WorkspacesConfig.strips` (var): Strips (Hyprland's scrolling layout), per monitor: [{ monitor, direction }] with an empty monitor resolved to the primary one, "*" for every monitor a named en…
-  - in: `components/surfaces/onboarding/pages/WorkspacesPage.qml`, `services/HyprlandConfigManager.qml`
+  - in: `components/surfaces/onboarding/pages/WorkspacesPage.qml`, `services/HyprlandConfigWriter.qml`
 - `WorkspacesConfig.hasStrips` (bool)
   - in: `components/surfaces/onboarding/pages/WorkspacesPage.qml`, `services/KeybindManager.qml`
 - `WorkspacesConfig.stripOptions` (var): The strip settings Hyprland takes (HyprLua.stripsLua)
-  - in: `services/HyprlandConfigManager.qml`
+  - in: `services/HyprlandConfigWriter.qml`
 - `WorkspacesConfig.stripDirection(screenName)`: The strip direction of the monitor named `screenName`, "" when it tiles
   - in: `services/CompositorManager.qml`
 - `WorkspacesConfig.baseFor(monitorIndex)`: First id of the monitor at `monitorIndex` (a stable order, see CompositorManager.workspaceBase)

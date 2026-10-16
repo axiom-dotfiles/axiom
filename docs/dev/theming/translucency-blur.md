@@ -1,6 +1,6 @@
 # Translucency and blur
 
-> **Files:** `config/Appearance.qml`, `services/BlurManager.qml`, `components/methods/HyprLua.qml`, `services/HyprlandConfigManager.qml`, `components/views/settings/TranslucencyStatus.qml`, `components/surfaces/screenlayout/ScreenLayoutView.qml`
+> **Files:** `config/Appearance.qml`, `services/BlurManager.qml`, `components/methods/HyprLua.qml`, `services/CompositorConfigManager.qml`, `services/HyprlandConfigWriter.qml`, `components/views/settings/TranslucencyStatus.qml`, `components/surfaces/screenlayout/ScreenLayoutView.qml`
 > **Config:** `Appearance.surface.*` (`opacity`, `blur`, `throughWindows`, `blurBackdrops`, `pauseFullscreen`)
 > **Related:** [Blur window and openings](blur-window-openings.md), [Window look](../compositor/window-look.md), [Popout registry](../popouts/registry.md)
 
@@ -29,7 +29,7 @@ The translucency setting, how fills apply it, the Hyprland layer rules axiom wri
 - Accent colors and hover tints are left alone.
 
 ### Hyprland layer rules
-Written by `HyprLua.blurLua` (HyprlandConfigManager's `_blurLua`, `M.blur()` in the module). The named layer rules are always written, `enabled` or not, since a rule is taken back by redefining it (no reload).
+Written by `HyprLua.blurLua` (HyprlandConfigWriter's `_blurLua`, `M.blur()` in the module). The named layer rules are always written, `enabled` or not, since a rule is taken back by redefining it (no reload).
 - `axiom-blur`, on the namespaces that blur themselves (`HyprLua.blurSurfaces`: the blur window, the overlay, the floating launcher and switcher, notifications, …):
   - `blur_popups`, and `ignore_alpha` at the threshold. The big transparent windows need it; shadows are capped under the threshold while blurring (`Bar.shadowColor`).
   - `xray` is always written, off with `throughWindows`. Left out, a layer takes `decoration.blur.xray`, which the window look turns on.
@@ -44,8 +44,8 @@ Written by `HyprLua.blurLua` (HyprlandConfigManager's `_blurLua`, `M.blur()` in 
 - The module file holds the setting as saved (`_surfacesBlur(true)`). At runtime it's `BlurManager.active`, evaluated over the file after every reload.
 
 ### No reload per step
-- The window look and the blur are HyprlandConfigManager's `_liveInputs`.
-- In every mode a change is only evaluated at runtime (`_applyLook`, which also runs after every reload); the file catches up on its next write.
+- The window look and the blur are CompositorConfigManager's `_liveInputs`.
+- In every mode a change is only evaluated at runtime (`_applyLive`, which also runs after every reload); the file catches up on its next write.
 - Turning a look part off rewrites the file (an eval can't take a setting back).
 
 ### Per screen

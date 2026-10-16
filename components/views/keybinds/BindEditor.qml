@@ -150,7 +150,7 @@ ColumnLayout {
 
     // What the last merge did, and what it left behind
     IssueList {
-      readonly property var merge: HyprlandConfigManager.lastMerge
+      readonly property var merge: CompositorConfigManager.lastMerge
       visible: merge !== null
       Layout.fillWidth: true
       issues: {
@@ -227,7 +227,7 @@ ColumnLayout {
       // Managed mode: the user's binds move in instead
       StyledTextButton {
         visible: KeybindManager.canMerge && KeybindManager.mergeableCount > 0
-        enabled: !HyprlandConfigManager.merging
+        enabled: !CompositorConfigManager.merging
         implicitHeight: Widget.height
         iconText: "merge"
         text: I18n.tr("Merge {0} binds from your Hyprland config", KeybindManager.mergeableCount)

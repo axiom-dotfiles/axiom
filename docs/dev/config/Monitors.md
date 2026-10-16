@@ -13,13 +13,13 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 
 - **`Monitors.profiles`** · array<MonitorProfile> = []
   - Monitor layouts, one per set of connected monitors.
-  - read: `MonitorsConfig.profiles` (computed) · in: `services/HyprlandConfigManager.qml`, `services/HyprlandRuntimeLayer.qml`, `services/MonitorManager.qml`
+  - read: `MonitorsConfig.profiles` (computed) · in: `services/HyprlandConfigWriter.qml`, `services/HyprlandRuntimeLayer.qml`, `services/MonitorManager.qml`
 
 ### `Monitors.profiles[]`
 
 - **`Monitors.profiles[]`** · object
 - **`Monitors.profiles[].name`** · string = ""
-  - read: `MonitorsConfig.profiles` (whole) · in: `services/HyprlandConfigManager.qml`, `services/HyprlandRuntimeLayer.qml`, `services/MonitorManager.qml`
+  - read: `MonitorsConfig.profiles` (whole) · in: `services/HyprlandRuntimeLayer.qml`, `services/MonitorManager.qml`
 - **`Monitors.profiles[].outputs`** · array<MonitorRule> = []
   - read: `MonitorsConfig.profiles` (whole) · in: `services/MonitorManager.qml`
 
@@ -34,7 +34,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `MonitorsConfig.profiles` (whole) · in: `services/MonitorManager.qml`
 - **`Monitors.profiles[].outputs[].mode`** · string = "preferred"
   - WIDTHxHEIGHT@HZ, or preferred.
-  - read: `MonitorsConfig.profiles` (whole) · in: `services/HyprlandConfigManager.qml`, `services/MonitorManager.qml`
+  - read: `MonitorsConfig.profiles` (whole) · in: `services/HyprlandConfigWriter.qml`, `services/MonitorManager.qml`
 - **`Monitors.profiles[].outputs[].x`** · integer = 0
   - read: `MonitorsConfig.profiles` (whole) · in: `services/MonitorManager.qml`
 - **`Monitors.profiles[].outputs[].y`** · integer = 0
@@ -66,4 +66,4 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 Every public member of `MonitorsConfig`, with the files that use it.
 
 - `MonitorsConfig.profiles` (var)
-  - in: `services/HyprlandConfigManager.qml`, `services/HyprlandRuntimeLayer.qml`, `services/MonitorManager.qml`
+  - in: `services/HyprlandConfigWriter.qml`, `services/HyprlandRuntimeLayer.qml`, `services/MonitorManager.qml`

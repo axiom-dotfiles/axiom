@@ -5,11 +5,11 @@ import qs.config
 import qs.components.methods
 
 /*
- * Axiom's Hyprland layer evaluated at runtime, for HyprlandConfigManager:
+ * Axiom's Hyprland layer evaluated at runtime, for HyprlandConfigWriter:
  * the detached mode, and the fallback of the file modes while their file
  * isn't loaded. Hyprland's binds are read first, so a bind on a key the
  * user's config already takes is skipped (skippedKeys). Not a singleton:
- * HyprlandConfigManager owns one.
+ * HyprlandConfigWriter owns one.
  *
  * Keys this layer bound live in Hyprland's Lua state (AXIOM_RUNTIME_KEYS),
  * which a config reload resets along with the binds, and which outlives a
@@ -22,7 +22,7 @@ QtObject {
   // What the bind Lua needs from outside the bind (HyprConfigLua.bindLua)
   property var bindCtx: ({})
   // Functions returning Lua lines: the window look and the blur
-  // (HyprlandConfigManager marks the look applied), and the strips
+  // (HyprlandConfigWriter marks the look applied), and the strips
   property var lookLines: () => []
   property var stripsLines: () => []
 
@@ -95,11 +95,11 @@ QtObject {
     const binds = KeybindsConfig.binds.filter(bind => HyprConfigLua.bindLua(bind, bindCtx) !== "");
     const plan = BindKeys.runtimeBinds(binds, bindList);
     for (const key of plan.unreadable)
-      console.warn(`[HyprlandConfigManager] Can't read the key "${key}"; bind it as MODS + KEY`);
+      console.warn(`[HyprlandConfigWriter] Can't read the key "${key}"; bind it as MODS + KEY`);
     for (const key of plan.skipped) {
       const id = BindKeys.keyId(key);
       if (!_reportedTaken[id])
-        console.log(`[HyprlandConfigManager] ${key} is bound by your Hyprland config; skipping axiom's bind`);
+        console.log(`[HyprlandConfigWriter] ${key} is bound by your Hyprland config; skipping axiom's bind`);
       _reportedTaken[id] = true;
     }
     const lines = HyprConfigLua.bindLines(plan.apply, bindCtx);

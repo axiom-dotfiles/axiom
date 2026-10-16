@@ -5,14 +5,14 @@ import qs.config
 
 /*
  * Taking ~/.config/hypr/hyprland.lua over for the managed mode, and giving
- * it back (scripts/claim_hyprland.sh), for HyprlandConfigManager, which
+ * it back (scripts/claim_hyprland.sh), for HyprlandConfigWriter, which
  * acts on the results (claimed, blocked, released). Not a singleton:
- * HyprlandConfigManager owns one.
+ * HyprlandConfigWriter owns one.
  */
 QtObject {
   id: root
 
-  // HyprlandConfigManager.mode, to tell what the results are for
+  // HyprlandConfigWriter.mode, to tell what the results are for
   property string mode: ""
   // ~/.config/hypr/, the managed hyprland.lua in it and its user/ folder
   property string hyprlandPath: ""
@@ -95,7 +95,7 @@ QtObject {
     CommandManager.run(_script("claim"), (code, out, err) => {
       root._claiming = false;
       if (err.trim() !== "")
-        console.warn("[HyprlandConfigManager] Taking over hyprland.lua:", err.trim());
+        console.warn("[HyprlandConfigWriter] Taking over hyprland.lua:", err.trim());
       const words = out.trim().split(":");
       const result = words[0];
       if (result === "blocked") {
@@ -103,9 +103,9 @@ QtObject {
         return;
       }
       if (result === "adopted")
-        console.log(`[HyprlandConfigManager] Took over ${root.managedPath}; your previous one is ${root.userDir}/${words[1]}`);
+        console.log(`[HyprlandConfigWriter] Took over ${root.managedPath}; your previous one is ${root.userDir}/${words[1]}`);
       else if (result === "replaced")
-        console.log(`[HyprlandConfigManager] Replaced ${root.managedPath} (Hyprland's example config is kept as a dated backup beside it; the one axiom gave back isn't kept)`);
+        console.log(`[HyprlandConfigWriter] Replaced ${root.managedPath} (Hyprland's example config is kept as a dated backup beside it; the one axiom gave back isn't kept)`);
       if (["ours", "adopted", "created", "replaced"].includes(result))
         root.claimed(result, result === "adopted" ? words[1] ?? "" : "");
     });
@@ -121,17 +121,17 @@ QtObject {
   function release() {
     CommandManager.run(_script("release"), (code, out, err) => {
       if (err.trim() !== "")
-        console.warn("[HyprlandConfigManager] Giving back hyprland.lua:", err.trim());
+        console.warn("[HyprlandConfigWriter] Giving back hyprland.lua:", err.trim());
       const words = out.trim().split(":");
       const result = words[0];
       if (result === "restored") {
-        console.log(`[HyprlandConfigManager] Gave back ${root.managedPath}: it's ${words[1]} again`);
+        console.log(`[HyprlandConfigWriter] Gave back ${root.managedPath}: it's ${words[1]} again`);
         if (Number(words[2]) > 0)
-          console.warn(`[HyprlandConfigManager] ${root.managedPath} is your previous config again, which doesn't load ${root.userDir}/*.lua (${words[2]} files): load them from it if you still want them`);
+          console.warn(`[HyprlandConfigWriter] ${root.managedPath} is your previous config again, which doesn't load ${root.userDir}/*.lua (${words[2]} files): load them from it if you still want them`);
       } else if (result === "written") {
-        console.log(`[HyprlandConfigManager] Gave back ${root.managedPath}: it now starts axiom and loads ${root.userDir}/*.lua, and is yours to edit`);
+        console.log(`[HyprlandConfigWriter] Gave back ${root.managedPath}: it now starts axiom and loads ${root.userDir}/*.lua, and is yours to edit`);
       } else if (result === "blocked") {
-        console.warn(`[HyprlandConfigManager] ${root.managedPath} is a symlink or in a git repository, so axiom didn't give it back: it still loads axiom's managed layer`);
+        console.warn(`[HyprlandConfigWriter] ${root.managedPath} is a symlink or in a git repository, so axiom didn't give it back: it still loads axiom's managed layer`);
       }
       root.released(result);
     });

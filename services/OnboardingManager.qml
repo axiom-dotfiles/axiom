@@ -99,7 +99,7 @@ Singleton {
   // file), "blocked" (a symlink or git repository: never taken over) or
   // "legacy" (only a hyprland.conf); "" until checked
   readonly property string configState: {
-    switch (HyprlandConfigManager.managedCheck) {
+    switch (CompositorConfigManager.managedCheck) {
     case "new":
       return _hasLegacyConfig ? "legacy" : "none";
     case "adopt":
@@ -110,7 +110,7 @@ Singleton {
     case "stock":
     case "ours":
     case "blocked":
-      return HyprlandConfigManager.managedCheck;
+      return CompositorConfigManager.managedCheck;
     }
     return "";
   }
@@ -119,17 +119,17 @@ Singleton {
   // Why managed can't be picked ("" when it can), for its option card
   readonly property string blockedReason: {
     const hypr = Paths.shortenHome(Paths.hyprlandPath).replace(/\/$/, "");
-    if (HyprlandConfigManager.managedBlockedBy === "link")
+    if (CompositorConfigManager.managedBlockedBy === "link")
       return I18n.tr("{0} or its hyprland.lua is a symlink (dotfiles?), so axiom won't replace it.", hypr);
-    if (HyprlandConfigManager.managedBlockedBy === "git")
-      return I18n.tr("{0} is inside the git repository at {1}, so axiom won't take it over. Move or remove that repository's .git to allow it.", hypr, Paths.shortenHome(HyprlandConfigManager.managedBlockedRepo));
+    if (CompositorConfigManager.managedBlockedBy === "git")
+      return I18n.tr("{0} is inside the git repository at {1}, so axiom won't take it over. Move or remove that repository's .git to allow it.", hypr, Paths.shortenHome(CompositorConfigManager.managedBlockedRepo));
     return configState === "blocked" ? I18n.tr("Your Hyprland config is a symlink or in a git repository, so axiom won't take it over.") : "";
   }
   // Whether hyprland.lua already starts axiom (install.sh's line, or the
   // Hyprland page's Apply); false until checked
-  readonly property bool autostartDone: IntegrationHookupManager.isDone("hyprlandAutostart")
+  readonly property bool autostartDone: IntegrationHookupManager.isDone("compositorAutostart")
   // Whether hyprland.lua loads axiom's module (included mode)
-  readonly property bool includeDone: (IntegrationHookupManager.status.hyprlandInclude?.targets ?? [])[0]?.done === true
+  readonly property bool includeDone: (IntegrationHookupManager.status.compositorInclude?.targets ?? [])[0]?.done === true
 
   // The mode the Hyprland page starts on: managed only when there's nothing
   // of the user's to take over (Hyprland's generated example config, none,
@@ -148,9 +148,9 @@ Singleton {
   function detectHyprland() {
     if (CompositorManager.kind !== "hyprland")
       return;
-    HyprlandConfigManager.checkManaged();
-    IntegrationHookupManager.check("hyprlandInclude");
-    IntegrationHookupManager.check("hyprlandAutostart");
+    CompositorConfigManager.checkManaged();
+    IntegrationHookupManager.check("compositorInclude");
+    IntegrationHookupManager.check("compositorAutostart");
     root._hasLegacyConfig = FileManager.read(Paths.hyprlandPath + "hyprland.conf") !== null;
     HyprlandManager.withVersion(version => root.hyprlandVersion = /^\d+\.\d+/.test(version) ? version : "");
   }

@@ -108,16 +108,16 @@ Every public member of `Appearance`, with the files that use it.
   - in: `shell/BlurBackingWindow.qml`
 - `Appearance.translucent` (bool)
   - in: `components/bar/BarContainer.qml`, `components/hosts/popout/AttachedSurface.qml`, `components/hosts/popout/EdgePlacement.qml`, `components/hosts/popout/StrokeOpening.qml`, `components/hosts/popout/SubPopout.qml`
-- `Appearance.blur` (bool): Hyprland blurs behind them (HyprlandConfigManager's blur rules, which leave out pixels under blurThreshold: shadows, dims, fades), with its own blur (the windo…
-  - in: `components/surfaces/screenlayout/ScreenLayoutView.qml`, `components/views/settings/TranslucencyStatus.qml`, `services/BlurManager.qml`, `services/HyprlandConfigManager.qml`
+- `Appearance.blur` (bool): Hyprland blurs behind them (HyprlandConfigWriter's blur rules, which leave out pixels under blurThreshold: shadows, dims, fades), with its own blur (the window…
+  - in: `components/surfaces/screenlayout/ScreenLayoutView.qml`, `components/views/settings/TranslucencyStatus.qml`, `services/BlurManager.qml`, `services/CompositorConfigManager.qml`
 - `Appearance.blurBackdrops` (bool)
-  - in: `services/HyprlandConfigManager.qml`
+  - in: `services/CompositorConfigManager.qml`, `services/HyprlandConfigWriter.qml`
 - `Appearance.blurThroughWindows` (bool): Blurring what's under each surface, windows included, rather than the wallpaper alone (xray), which every surface shares
-  - in: `services/HyprlandConfigManager.qml`
+  - in: `services/CompositorConfigManager.qml`, `services/HyprlandConfigWriter.qml`
 - `Appearance.blurPauseFullscreen` (bool): Nothing blurs while a fullscreen window is open (BlurManager.active)
   - in: `services/BlurManager.qml`
 - `Appearance.blurThreshold` (real)
-  - in: `components/surfaces/screenlayout/ScreenLayoutView.qml`, `services/HyprlandConfigManager.qml`
+  - in: `components/surfaces/screenlayout/ScreenLayoutView.qml`, `services/HyprlandConfigWriter.qml`
 - `Appearance.shadowAlphaMax` (real): A shadow's darkest alpha while blurring: under the threshold, so its halo isn't blurred (the blur window casts the chrome's, and Hyprland blurs the chrome's po…
   - in: `config/Bar.qml`
 - `Appearance.fill(color)`: A surface fill (a theme color, or a name or "#hex" as Theme.resolveColor gives one) at the surface opacity

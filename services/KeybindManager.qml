@@ -323,7 +323,7 @@ QtObject {
     if (!draft.isDirty)
       draft.load();
     refresh();
-    HyprlandConfigManager.previewMerge();
+    CompositorConfigManager.previewMerge();
   }
 
   function save() {
@@ -417,8 +417,8 @@ QtObject {
 
   // The saved axiom binds the runtime layer applied (the rest it skipped)
   readonly property var _appliedBinds: {
-    const skipped = HyprlandConfigManager.skippedKeys.map(key => BindKeys.keyId(key));
-    return KeybindsConfig.binds.filter(bind => HyprlandConfigManager.isComplete(bind) && !skipped.includes(BindKeys.keyId(bind.key)));
+    const skipped = CompositorConfigManager.skippedKeys.map(key => BindKeys.keyId(key));
+    return KeybindsConfig.binds.filter(bind => CompositorConfigManager.isComplete(bind) && !skipped.includes(BindKeys.keyId(bind.key)));
   }
 
   // Their keys, by BindKeys.keyId: { "64:return": true }
@@ -436,7 +436,7 @@ QtObject {
     for (const id of ids)
       if (id !== "")
         counts[id] = (counts[id] ?? 0) + 1;
-    const runtime = HyprlandConfigManager.status !== "loaded";
+    const runtime = CompositorConfigManager.status !== "loaded";
     return root.binds.map((bind, i) => {
       const found = [];
       const key = String(bind.key ?? "").trim();
@@ -456,7 +456,7 @@ QtObject {
           "text": I18n.tr("Needs an argument, so it isn't bound")
         });
       // The switcher picks when its modifier is released
-      if (BindActions.switcherSteps[bind.action] !== undefined && key !== "" && HyprLua.switcherHeld(KeyNames.split(key).mods).length === 0)
+      if (BindActions.switcherSteps[bind.action] !== undefined && key !== "" && BindActions.switcherHeld(KeyNames.split(key).mods).length === 0)
         found.push({
           "level": "warning",
           "text": I18n.tr("Needs a modifier to hold, like ALT + Tab")
@@ -502,22 +502,22 @@ QtObject {
   }
 
   // Managed mode moves the user's binds into axiom instead of dropping
-  // axiom's (HyprlandConfigManager.mergeUserBinds)
-  readonly property bool canMerge: HyprlandConfigManager.mode === "managed"
+  // axiom's (CompositorConfigManager.mergeUserBinds)
+  readonly property bool canMerge: CompositorConfigManager.mode === "managed"
   // How many binds in user/*.lua a Merge would move (0 until looked at,
   // when the page opens): not every bind there can (a Lua function, a
   // shared module's, one in a submap), so it's not the conflict count
-  readonly property int mergeableCount: Math.max(0, HyprlandConfigManager.mergeable)
+  readonly property int mergeableCount: Math.max(0, CompositorConfigManager.mergeable)
 
   function mergeUserBinds() {
     stopRecording();
-    HyprlandConfigManager.mergeUserBinds();
+    CompositorConfigManager.mergeUserBinds();
   }
 
   // Moved binds are saved at once: a draft with unsaved edits takes them
   // too (so its Save keeps them), else it starts over from the config
   property Connections _mergeWatch: Connections {
-    target: HyprlandConfigManager
+    target: CompositorConfigManager
 
     function onBindsMerged(binds) {
       if (!draft.isDirty) {

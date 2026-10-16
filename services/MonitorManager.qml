@@ -244,7 +244,7 @@ QtObject {
           "text": I18n.tr("{0}'s scale is rounded to one that fits its resolution", root.labelFor(rule))
         });
     }
-    for (const file of HyprlandConfigManager.monitorConflicts)
+    for (const file of CompositorConfigManager.monitorConflicts)
       result.push({
         "level": "warning",
         "text": I18n.tr("{0} sets monitors too, and loads after axiom, so its rules win", file)

@@ -203,34 +203,6 @@ Singleton {
     return windows.reduce((last, w) => last === null || (w.focusRank ?? Infinity) < (last.focusRank ?? Infinity) ? w : last, null);
   }
 
-  // --- The window look ---
-
-  // The window look (WindowLookConfig) for a backend that applies it at
-  // runtime: one without config modes (on Hyprland, HyprlandConfigManager
-  // puts it in its Lua layer). Applied at startup, whenever it or the theme
-  // colors and shape it follows change, and after the compositor reloads
-  // its config (which drops it). The backend takes the parts it supports.
-  function _applyLook() {
-    if (!root.backend?.applyLook || root.supports.configModes)
-      return;
-    root.backend.applyLook(CompositorLayer.look(WindowLookConfig.look, {
-      "activeHex": CompositorLayer.hex(WindowLookConfig.activeBorder),
-      "inactiveHex": CompositorLayer.hex(WindowLookConfig.inactiveBorder),
-      "borderWidth": WindowLookConfig.borderWidth,
-      "radius": WindowLookConfig.radius,
-      "surfacesBlur": false
-    }));
-  }
-
-  readonly property string _lookInputs: [WindowLookConfig._lookJson, WindowLookConfig.activeBorder, WindowLookConfig.inactiveBorder, WindowLookConfig.borderWidth, WindowLookConfig.radius, root.kind].join("|")
-  on_LookInputsChanged: _lookDebounce.restart()
-  onConfigReloaded: _lookDebounce.restart()
-
-  property Timer _lookDebounce: Timer {
-    interval: 300
-    onTriggered: root._applyLook()
-  }
-
   // --- Session, input, cursor ---
 
   // Calls back with the main keyboard's layouts ({ layouts, index,

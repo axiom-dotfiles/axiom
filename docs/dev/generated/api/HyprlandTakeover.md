@@ -3,11 +3,11 @@
 
 > **File:** `services/HyprlandTakeover.qml` · **Docs:** see [docs/dev](../../README.md)
 
-Taking ~/.config/hypr/hyprland.lua over for the managed mode, and giving it back (scripts/claim_hyprland.sh), for HyprlandConfigManager, which acts on the results (claimed, blocked, released). Not a singleton: HyprlandConfigManager owns one.
+Taking ~/.config/hypr/hyprland.lua over for the managed mode, and giving it back (scripts/claim_hyprland.sh), for HyprlandConfigWriter, which acts on the results (claimed, blocked, released). Not a singleton: HyprlandConfigWriter owns one.
 
 ### Properties
 
-- `mode` (string): HyprlandConfigManager.mode, to tell what the results are for
+- `mode` (string): HyprlandConfigWriter.mode, to tell what the results are for
 - `hyprlandPath` (string): ~/.config/hypr/, the managed hyprland.lua in it and its user/ folder
 - `managedPath` (string)
 - `userDir` (string)

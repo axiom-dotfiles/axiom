@@ -18,11 +18,11 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`WindowLook.activeColor`** · string = ""
   - Focused border: Empty follows the theme's focused border color.
   - x-options="colors", x-emptyLabel="Theme", x-showIf={"/$supports.windowBorders":true,"borders":true}
-  - read: `WindowLookConfig.activeBorder` (computed) · in: `services/CompositorManager.qml`, `services/HyprlandConfigManager.qml`
+  - read: `WindowLookConfig.activeBorder` (computed) · in: `services/CompositorConfigManager.qml`
 - **`WindowLook.inactiveColor`** · string = ""
   - Unfocused border: Empty follows the theme's border color.
   - x-options="colors", x-emptyLabel="Theme", x-showIf={"/$supports.windowBorders":true,"borders":true}
-  - read: `WindowLookConfig.inactiveBorder` (computed) · in: `services/CompositorManager.qml`, `services/HyprlandConfigManager.qml`
+  - read: `WindowLookConfig.inactiveBorder` (computed) · in: `services/CompositorConfigManager.qml`
 - **`WindowLook.shape`** · boolean = false
   - Set border width and corners: The width of window borders and the rounding of their corners.
   - x-showIf={"/$supports.windowShape":true}
@@ -30,15 +30,15 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`WindowLook.matchShell`** · boolean = true
   - Match axiom's shape: Follow Look & Feel → Shape.
   - x-showIf={"/$supports.windowShape":true,"shape":true}
-  - read: `WindowLookConfig.borderWidth` (computed), `WindowLookConfig.radius` (computed) · in: `services/CompositorManager.qml`, `services/HyprlandConfigManager.qml`
+  - read: `WindowLookConfig.borderWidth` (computed), `WindowLookConfig.radius` (computed) · in: `services/CompositorConfigManager.qml`
 - **`WindowLook.borderSize`** · integer = 2 · 0–20 · px
   - Border width
   - x-control="stepper", x-showIf={"/$supports.windowShape":true,"shape":true,"matchShell":false}
-  - read: `WindowLookConfig.borderWidth` (computed) · in: `services/CompositorManager.qml`, `services/HyprlandConfigManager.qml`
+  - read: `WindowLookConfig.borderWidth` (computed) · in: `services/CompositorConfigManager.qml`
 - **`WindowLook.rounding`** · integer = 8 · 0–50 · px
   - Corner rounding
   - x-control="stepper", x-showIf={"/$supports.windowShape":true,"shape":true,"matchShell":false}
-  - read: `WindowLookConfig.radius` (computed) · in: `services/CompositorManager.qml`, `services/HyprlandConfigManager.qml`
+  - read: `WindowLookConfig.radius` (computed) · in: `services/CompositorConfigManager.qml`
 - **`WindowLook.gaps`** · boolean = false
   - Set window gaps: Floating bars and detached surfaces set to Automatic keep these gaps too.
   - x-showIf={"/$supports.windowGaps":true}
@@ -50,11 +50,11 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`WindowLook.gapsOut`** · integer = 6 · 0–100 · px
   - Gaps to the edges
   - x-control="stepper", x-showIf={"/$supports.windowGaps":true,"gaps":true}
-  - read: `WindowLookConfig.look` (whole) · in: `services/CompositorManager.qml`
+  - read: `WindowLookConfig.look` (whole) · in: `config/WindowLookConfig.qml`
 - **`WindowLook.blur`** · boolean = false
   - Set the compositor's blur: The compositor has one blur, for windows and axiom's translucent surfaces alike. Off, your own config's applies.
   - x-group="Blur", x-showIf={"/$supports.windowBlur":true}
-  - read: `WindowLookConfig.look` (whole) · in: `components/views/settings/TranslucencyStatus.qml`, `services/CompositorManager.qml`, `services/HyprlandConfigManager.qml`
+  - read: `WindowLookConfig.look` (whole) · in: `components/views/settings/TranslucencyStatus.qml`, `services/CompositorConfigManager.qml`
 - **`WindowLook.windowBlur`** · boolean = true
   - Blur transparent windows: Off, only axiom's surfaces blur (Look & Feel → Translucency).
   - x-group="Blur", x-showIf={"/$supports.windowBlur":true,"blur":true}, x-hypr="decoration.blur.enabled", x-hyprIf="blur"
@@ -121,12 +121,12 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 Every public member of `WindowLookConfig`, with the files that use it.
 
 - `WindowLookConfig.look` (var)
-  - in: `components/views/settings/TranslucencyStatus.qml`, `services/CompositorManager.qml`, `services/HyprlandConfigManager.qml`
+  - in: `components/views/settings/TranslucencyStatus.qml`, `services/CompositorConfigManager.qml`
 - `WindowLookConfig.activeBorder` (color): The border colors: the ones picked, else the theme's
-  - in: `services/CompositorManager.qml`, `services/HyprlandConfigManager.qml`
+  - in: `services/CompositorConfigManager.qml`
 - `WindowLookConfig.inactiveBorder` (color)
-  - in: `services/CompositorManager.qml`, `services/HyprlandConfigManager.qml`
+  - in: `services/CompositorConfigManager.qml`
 - `WindowLookConfig.borderWidth` (int): The shape: axiom's (Look & Feel → Shape) while it matches it, else its own
-  - in: `services/CompositorManager.qml`, `services/HyprlandConfigManager.qml`
+  - in: `services/CompositorConfigManager.qml`
 - `WindowLookConfig.radius` (int)
-  - in: `services/CompositorManager.qml`, `services/HyprlandConfigManager.qml`
+  - in: `services/CompositorConfigManager.qml`

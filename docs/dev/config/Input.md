@@ -78,7 +78,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`Input.cursor`** · boolean = false
   - Set the cursor: An installed cursor theme and its size. Off, the cursor is left alone.
   - x-greeter=true, x-group="Cursor"
-  - read: `InputConfig.input` (whole) · in: `services/HyprlandConfigManager.qml`
+  - read: `InputConfig.input` (whole) · in: `services/CompositorConfigManager.qml`
 - **`Input.cursorTheme`** · string = ""
   - Cursor theme: An installed cursor theme.
   - x-greeter=true, x-group="Cursor", x-options="cursorThemes", x-showIf={"cursor":true}
@@ -93,6 +93,6 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 Every public member of `InputConfig`, with the files that use it.
 
 - `InputConfig.input` (var)
-  - in: `services/HyprlandConfigManager.qml`
+  - in: `services/CompositorConfigManager.qml`
 - `InputConfig.cursorTheme` (string): The cursor theme picked, set or not ("" for none)
   - in: `services/SettingsManager.qml`

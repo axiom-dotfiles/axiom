@@ -28,7 +28,6 @@ How axiom reaches the compositor it runs under. Read this before anything that r
 
 ### Hyprland-only features
 - These talk to `HyprlandManager` directly (`runLua`, `withBinds`, `setCursor`), each gated on its capability. The Keybinds and Monitors pages don't: they go through `CompositorManager` (`withBinds`, `captureKeys`, `withOutputDetails`, `applyOutputs`).
-  - `HyprlandConfigManager` (config modes, the look layer; `live`)
   - `WindowSwitcherManager` (`switcher`)
   - `GreetdManager`, `OnboardingManager`
 - Nothing here may write Hyprland's config unless `supports.configModes` is set: under another compositor, managed mode would otherwise rewrite `~/.config/hypr/hyprland.lua`.
@@ -50,8 +49,8 @@ How axiom reaches the compositor it runs under. Read this before anything that r
 
 ### The window look
 - `WindowLook` is compositor-neutral config, edited under Settings › Compositor.
-- On Hyprland, `HyprlandConfigManager` evaluates it into its Lua layer ([window-look](window-look.md)).
-- A backend without config modes gets it through its `applyLook(look)`, the parts that are on as `CompositorLayer.look()` decides them ([contract](contract.md)). `CompositorManager` calls that at startup, on a change, and after `configReloaded`.
+- It is part of the layer `CompositorConfigManager` hands the backend's config writer ([config modes](config-modes.md), [window-look](window-look.md)).
+- A backend without config modes gets no window look.
 
 ### Adding a backend
 - [Recipe: compositor backend](../../recipes/compositor-backend.md). The first one planned is sway ([sway-backend](sway-backend.md)).

@@ -3,7 +3,7 @@
 
 > **File:** `config/CompositorConfig.qml` · **Docs:** see [docs/dev](../../README.md)
 
-Reader for the Compositor section: how axiom sets the compositor up (HyprlandConfigManager on Hyprland)
+Reader for the Compositor section: how axiom sets the compositor up (CompositorConfigManager)
 
 ### Properties
 

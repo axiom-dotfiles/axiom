@@ -86,7 +86,7 @@ OnboardingPage {
   // or Apply them (a backup first), as a theme integration's hookup
   IntegrationHookup {
     Layout.fillWidth: true
-    integration: "hyprlandInclude"
+    integration: "compositorInclude"
     active: OnboardingManager.chosenMode === "included"
     doneText: I18n.tr("Your hyprland.lua loads axiom and starts it. After Finish, axiom writes the file it loads.")
     todoText: I18n.tr("Your hyprland.lua needs to load axiom's file and start axiom: copy the lines, or Apply to add them for you.")
@@ -100,16 +100,16 @@ OnboardingPage {
 
   IntegrationHookup {
     Layout.fillWidth: true
-    integration: "hyprlandAutostart"
+    integration: "compositorAutostart"
     active: OnboardingManager.chosenMode === "detached"
     doneText: I18n.tr("Your hyprland.lua starts axiom with every session.")
     todoText: I18n.tr("Start axiom with every session: copy the line, or Apply to add it for you.")
   }
 
   Notice {
-    visible: HyprlandConfigManager.skippedKeys.length > 0 && OnboardingManager.chosenMode !== "managed"
+    visible: CompositorConfigManager.skippedKeys.length > 0 && OnboardingManager.chosenMode !== "managed"
     tone: "warning"
-    text: I18n.tr("Your config already binds {0}, so axiom's binds on those keys are skipped. Free them in your config, or pick other keys on the Keybinds page.", HyprlandConfigManager.skippedKeys.join(", "))
+    text: I18n.tr("Your config already binds {0}, so axiom's binds on those keys are skipped. Free them in your config, or pick other keys on the Keybinds page.", CompositorConfigManager.skippedKeys.join(", "))
   }
 
   // Input settings, applied in any mode once their part is on

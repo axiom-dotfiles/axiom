@@ -56,15 +56,20 @@ Quickshell's `I3` module speaks sway's IPC (`$SWAYSOCK`). It gives `monitors`, `
 - `withLayerRects`: null (sway has no layer listing; `LayerManager` places axiom's layers without it). `withCursorPos`: null.
 - `configReloaded`: from the `shutdown`/`reload` events (`I3IpcListener` "shutdown" isn't it: use the `config` subscription when Quickshell passes it, else `binding`/`tick`).
 
-### The window look (`applyLook`)
-- `look` is `CompositorLayer.look()`'s spec ([contract](contract.md)): a part is `null` while off.
-- gaps: `gaps inner all set <gaps.inner>`, `gaps outer all set <gaps.outer>`, and set `gapsOut` to match
-- borders: `client.focused <c> <c> <text> <c> <c>`, `client.unfocused …` from `borders.active`/`borders.inactive` ("rrggbb"), plus `default_border pixel <shape.width>`
-- shape: SwayFX's `corner_radius <shape.radius>`. Vanilla sway has none: leave `windowShape` out of `supports` unless `swaymsg -t get_version` says SwayFX.
-- Each part turned off: put sway's defaults back (`gaps inner all set 0`, …). A config reload drops them anyway, and `CompositorManager` applies the look again after `configReloaded`.
+### The config writer (`SwayConfigWriter`)
+Sway gets all three modes ([config modes](config-modes.md)), the text from a pure `SwayConf` helper (`tst_SwayConf`), as Hyprland's comes from `HyprConfigLua`:
+- **detached**: `swaymsg` commands at runtime (`runtimeApply`), again after every `configReloaded`, which drops them. `bindsym` on a key the user's config binds would replace that bind: read the user's binds first (`swaymsg -t get_config`, `bindsym` lines) and skip those keys (`skippedKeys`), as Hyprland's runtime layer does.
+- **included**: an `include` line (`includeLines`) pointing at a generated file under `$XDG_STATE_HOME/axiom/`. `checkLoaded`: a marker the file sets (e.g. a `set $axiom_included 1`, read back through `get_config`).
+- **managed**: axiom writes `~/.config/sway/config`, ending in `include ~/.config/sway/user/*` (`userFiles`); the takeover needs its own `claim_sway.sh` (and guard rules, AGENTS.md › Never).
+- **What the layer is in sway's terms:**
+  - binds: `bindsym` (`KeyNames` → `Mod4+Shift+1`; mouse buttons with `--whole-window BTN_LEFT`), each action's command from a `SwayBinds` helper sharing `tst_BindActions`' table; IPC actions as `exec qs … ipc call …`
+  - the look (`CompositorLayer.look()`): gaps `gaps inner all set <gaps.inner>` / `gaps outer all set <gaps.outer>` (and `gapsOut` to match); borders `client.focused <c> <c> <text> <c> <c>`, `client.unfocused …` from `borders.active`/`.inactive`, plus `default_border pixel <shape.width>`; SwayFX's `corner_radius <shape.radius>` (vanilla sway has none: no `windowShape` unless `swaymsg -t get_version` says SwayFX); SwayFX `blur` for the blur part
+  - the input (`CompositorLayer.input()`): `input type:keyboard xkb_layout …`, `repeat_rate`, `repeat_delay`; `input type:pointer accel_profile …`, `pointer_accel`, `left_handed`; `input type:touchpad natural_scroll`, `tap`, `dwt`, `scroll_factor`; `seat seat0 xcursor_theme <theme> <size>`
+  - monitors: `output <name or "make model serial"> mode … pos … scale … transform …` (`transform` 0-7 → `normal`/`90`/`180`/`270`/`flipped-*`; `vrr` → `adaptive_sync on`; `bitdepth` → `render_bit_depth`). No `outputProfiles`: `MonitorManager` applies the matching profile on hotplug; in the file modes the profile for what's connected is also written.
+- **Turning a live part off**: a runtime command can't be taken back cleanly either; reload (`swaymsg reload`), as Hyprland does.
 
 ### `supports` for sway
-`windowGeometry`, `windowBorders`, `windowGaps` (plus `windowShape` on SwayFX). Everything else is false: `configModes`, `keybinds`, `monitors`, `switcher`, `strips`, `focusGrab`, `layerOrder`, `blur`, `cursorPos`, `cursorWarp`, `workspaceSlide`, `windowBlur`, `windowOpacity`.
+`configModes`, `keybinds`, `monitors`, `inputConfig`, `scratchpad`, `windowGeometry`, `windowBorders`, `windowGaps` (plus `windowShape` and `windowBlur` on SwayFX). To check: `keyCapture` (a runtime `mode "axiom_record"` with `bindsym --mode`), `bindMerge` (binds from `get_config`), `mouseBinds` (sway uses `floating_modifier`). False: `outputProfiles`, `namedSpecial`, `pseudoTile`, `windowGroups`, `monitorColor`, `monitorMirror`, `switcher`, `strips`, `focusGrab`, `layerOrder`, `blur`, `cursorPos`, `cursorWarp`, `workspaceSlide`, `windowOpacity`.
 
 ### Open questions (check in the nested session)
 - **Click outside.** Without `focusGrab`, a grabbing surface takes the keyboard exclusively and each screen's backdrop window catches the click outside it ([README](README.md) › Focus grab). Typing into the launcher opened by IPC works in nested sway; check by hand that bar popouts with text fields, the launcher, the overlay and the power menu close on an outside click.

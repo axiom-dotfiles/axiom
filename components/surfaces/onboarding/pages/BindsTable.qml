@@ -30,7 +30,7 @@ GridLayout {
       id: entryRow
       required property var modelData
       readonly property var bind: root.bindFor(modelData)
-      readonly property bool skipped: !!bind && HyprlandConfigManager.skippedKeys.includes(bind.key)
+      readonly property bool skipped: !!bind && CompositorConfigManager.skippedKeys.includes(bind.key)
       Layout.fillWidth: true
       spacing: Widget.spacing
 

@@ -450,13 +450,6 @@ end`);
       "SHIFT": ["Shift_L", "Shift_R"]
     })
 
-  // The modifiers a switcher combo is held by (KeyNames.split's `mods`):
-  // all but SHIFT, which only turns it around, unless SHIFT is all there is
-  function switcherHeld(mods) {
-    const held = (mods ?? []).filter(mod => mod !== "SHIFT" && _modifierKeys[mod]);
-    return held.length > 0 || !(mods ?? []).includes("SHIFT") ? held : ["SHIFT"];
-  }
-
   function _switcherDispatch(verb) {
     return `hl.dispatch(hl.dsp.event(${string(switcherEvent + verb)}))`;
   }
@@ -488,7 +481,7 @@ end`);
     const held = [];
     for (const entry of entries ?? []) {
       bind(entry.mods.concat([entry.key]).join(" + "), _switcherDispatch("step " + entry.step), "repeating = true");
-      for (const mod of switcherHeld(entry.mods))
+      for (const mod of BindActions.switcherHeld(entry.mods))
         for (const key of _modifierKeys[mod])
           if (!held.includes(key))
             held.push(key);

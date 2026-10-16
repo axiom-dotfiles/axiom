@@ -6,7 +6,7 @@ import qs.components.methods
 
 /*
  * Moves the user's binds into axiom (managed mode), for
- * HyprlandConfigManager. Not a singleton: HyprlandConfigManager owns one.
+ * HyprlandConfigWriter. Not a singleton: HyprlandConfigWriter owns one.
  *
  * scripts/merge_hypr_binds.py: every hl.bind in user/*.lua that can move
  * becomes one of axiom's binds (an action where one does the same, else
@@ -83,7 +83,7 @@ QtObject {
         mergeable = 0;
         return;
       }
-      console.warn("[HyprlandConfigManager] Reading your Hyprland binds failed:", errors.trim() || e);
+      console.warn("[HyprlandConfigWriter] Reading your Hyprland binds failed:", errors.trim() || e);
       lastMerge = {
         "moved": 0,
         "removed": 0,
@@ -155,16 +155,16 @@ QtObject {
     if (done.failed.length > 0 && !SettingsManager.commitValues({
       "Keybinds.binds": BindKeys.mergeBinds(_before, moved)
     }))
-      console.warn("[HyprlandConfigManager] Couldn't take the binds left in your Hyprland config back out of axiom's");
+      console.warn("[HyprlandConfigWriter] Couldn't take the binds left in your Hyprland config back out of axiom's");
     _merged.moved = moved.length;
     _merged.removed = done.removed;
     _merged.failed = done.failed;
     for (const failure of done.failed)
-      console.warn("[HyprlandConfigManager] Left the binds in", failure.file, failure.line > 0 ? `(line ${failure.line})` : "", "where they were:", failure.reason, failure.detail);
+      console.warn("[HyprlandConfigWriter] Left the binds in", failure.file, failure.line > 0 ? `(line ${failure.line})` : "", "where they were:", failure.reason, failure.detail);
     if (moved.length > 0)
       bindsMerged(moved);
     lastMerge = _merged;
     mergeable = -1;
-    console.log(`[HyprlandConfigManager] Moved ${moved.length} binds from ${userDir} into axiom; ${_merged.kept.length} stay there`);
+    console.log(`[HyprlandConfigWriter] Moved ${moved.length} binds from ${userDir} into axiom; ${_merged.kept.length} stay there`);
   }
 }

@@ -14,7 +14,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`Keybinds.binds`** · array<object> = [{"key":"SUPER + space","action":"launcher"},{"key":"SUPER + Tab","ac…
   - Keybinds: Edited on the Keybinds page.
   - x-scope="personal"
-  - read: `KeybindsConfig.binds` (computed) · in: `components/surfaces/onboarding/pages/AppsPage.qml`, `components/surfaces/onboarding/pages/BindsTable.qml`, `services/EdgeMenuManager.qml`, `services/HyprlandBindMerge.qml`, `services/HyprlandConfigManager.qml`, `services/HyprlandRuntimeLayer.qml`, `services/KeybindManager.qml`
+  - read: `KeybindsConfig.binds` (computed) · in: `components/surfaces/onboarding/pages/AppsPage.qml`, `components/surfaces/onboarding/pages/BindsTable.qml`, `services/EdgeMenuManager.qml`, `services/HyprlandBindMerge.qml`, `services/HyprlandConfigWriter.qml`, `services/HyprlandRuntimeLayer.qml`, `services/KeybindManager.qml`
 
 ### `Keybinds.binds[]`
 
@@ -45,7 +45,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: entry field, name match repo-wide, `// reads:` marker · in: `components/content/Notes.qml`, `components/methods/BindActions.qml`, `shell/Lockscreen.qml`
 - **`Keybinds.binds[].release`** · boolean = false
   - On release
-  - read: `KeybindsConfig.binds` (whole), `// reads:` marker · in: `components/methods/BindActions.qml`, `services/HyprlandConfigManager.qml`
+  - read: `KeybindsConfig.binds` (whole), `// reads:` marker · in: `components/methods/BindActions.qml`, `services/HyprlandConfigWriter.qml`
 - **`Keybinds.binds[].description`** · string = ""
   - Description: Label on the Keybinds page; empty uses the action's name. The action picks the section unless you write "Section: Label".
   - read: `KeybindsConfig.binds` (whole) · in: `services/KeybindManager.qml`
@@ -55,4 +55,4 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 Every public member of `KeybindsConfig`, with the files that use it.
 
 - `KeybindsConfig.binds` (var)
-  - in: `components/surfaces/onboarding/pages/AppsPage.qml`, `components/surfaces/onboarding/pages/BindsTable.qml`, `services/EdgeMenuManager.qml`, `services/HyprlandBindMerge.qml`, `services/HyprlandConfigManager.qml`, `services/HyprlandRuntimeLayer.qml`, `services/KeybindManager.qml`
+  - in: `components/surfaces/onboarding/pages/AppsPage.qml`, `components/surfaces/onboarding/pages/BindsTable.qml`, `services/EdgeMenuManager.qml`, `services/HyprlandBindMerge.qml`, `services/HyprlandConfigWriter.qml`, `services/HyprlandRuntimeLayer.qml`, `services/KeybindManager.qml`

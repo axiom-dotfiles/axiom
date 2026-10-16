@@ -20,4 +20,4 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 Every public member of `HyprlandConfig`, with the files that use it.
 
 - `HyprlandConfig.managed` (var)
-  - in: `services/HyprlandConfigManager.qml`
+  - in: `services/HyprlandConfigWriter.qml`

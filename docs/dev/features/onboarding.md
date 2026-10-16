@@ -37,7 +37,7 @@ The first-run onboarder: a paged window that sets up the look, Hyprland mode, mo
   - `managed` for Hyprland's generated example config (`stock`), for no config (`none`), or for axiom's own (`ours`);
   - `detached` for any config of the user's (`custom`, `legacy`, `blocked`), which it then leaves alone.
 - A blocked managed card says why (`blockedReason`).
-- **Hookups:** for included and detached it shows `forms/IntegrationHookup` for `hyprlandInclude` / `hyprlandAutostart` (copy, or Apply after a backup).
+- **Hookups:** for included and detached it shows `forms/IntegrationHookup` for `compositorInclude` / `compositorAutostart` (copy, or Apply after a backup).
   - `includeDone` / `autostartDone` drop the "won't start axiom" warnings, both there and on Finish.
 - See [Hyprland config modes](../hyprland/config-modes.md).
 

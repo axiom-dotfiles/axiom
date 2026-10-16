@@ -5,7 +5,7 @@ import qs.services
 // Reader for the WindowLook section: settings that make windows match
 // axiom ({ borders, activeColor, shape, matchShell, gaps, blur…,
 // opacity… }), applied by the compositor's backend (on Hyprland,
-// HyprlandConfigManager's look layer) through CompositorLayer.look. Named
+// HyprlandConfigWriter's look layer) through CompositorLayer.look. Named
 // WindowLookConfig as the section is a whole object.
 QtObject {
   id: root

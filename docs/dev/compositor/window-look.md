@@ -1,10 +1,10 @@
 # Window look
 
-> **Files:** `config/WindowLookConfig.qml`, `services/CompositorManager.qml`, `services/HyprlandConfigManager.qml`, `components/methods/CompositorLayer.qml`, `components/methods/HyprLua.qml`, `services/HyprlandManager.qml`, `components/views/settings/TranslucencyStatus.qml`
+> **Files:** `config/WindowLookConfig.qml`, `services/CompositorConfigManager.qml`, `services/HyprlandConfigWriter.qml`, `components/methods/CompositorLayer.qml`, `components/methods/HyprLua.qml`, `services/HyprlandManager.qml`, `components/views/settings/TranslucencyStatus.qml`
 > **Config:** `WindowLook.*` (borders and their colors, `shape`, `matchShell`, `borderSize`, `rounding`, gaps, `blur`, `opacity`, `windowBlur`)
-> **Related:** [The compositor](README.md), [Contract](contract.md), [Config modes](../hyprland/config-modes.md), [Translucency and blur](../theming/translucency-blur.md), [Lockscreen](../features/lockscreen.md)
+> **Related:** [The compositor](README.md), [Contract](contract.md), [Config modes](config-modes.md), [Translucency and blur](../theming/translucency-blur.md), [Lockscreen](../features/lockscreen.md)
 
-The themed window look axiom gives the compositor: borders, shape, gaps, blur and window opacity. The settings are compositor-neutral (`WindowLook`, Settings › Compositor). `CompositorLayer.look()` decides the parts once; on Hyprland it is written as one `hl.config` in every mode, and another compositor's backend applies the parts it supports through `applyLook` ([The compositor](README.md) › The window look).
+The themed window look axiom gives the compositor: borders, shape, gaps, blur and window opacity. The settings are compositor-neutral (`WindowLook`, Settings › Compositor). `CompositorLayer.look()` decides the parts once; each backend's config writer turns it into its own text, in every mode ([config modes](config-modes.md)); on Hyprland that is one `hl.config`.
 
 ### What it covers
 - The section is `WindowLook` (`WindowLookConfig.look`; `Hyprland.look` before config version 56). It is `x-scope: look`, so exports, examples and imports carry it. It isn't `x-takeover`.
@@ -29,10 +29,5 @@ The themed window look axiom gives the compositor: borders, shape, gaps, blur an
 
 ### Where it's applied
 - Every part shows in every mode. A managed config writes them through `M.look()`, like the rest of the layer.
-- In the file modes it is also evaluated after every `configreloaded` (`_applyLook`), so it wins over the user's own lines while it's on. Detached, the runtime layer evaluates it with the rest. Both take its lines from `_runtimeLookLua`, which records what it applied.
-- A runtime eval can't take a setting back.
-  - `_undoLook` reloads Hyprland's config when a part was turned off since it was evaluated (`_droppedLookParts`).
-  - What was evaluated is recorded in `_lookState.applied`, a `PersistentProperties`.
-  - The file modes reload anyway, by rewriting their file.
+- It is a live part ([config modes](config-modes.md) › Live parts): evaluated at runtime as it changes and after every reload in the file modes, so it wins over the user's own lines while it's on, and a part turned off reloads the compositor's config (`CompositorConfigManager._undoLive`).
 - `HyprlandManager.refreshOptions()` waits for queued Lua, so `gapsOut` reads what the look set, and Automatic bars follow it.
-- In managed mode, the `managed` options' `rounding`/`borderSize` are written only while `shape` is off.

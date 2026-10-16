@@ -176,6 +176,13 @@ QtObject {
       "windowSwitcherReverse": -1
     })
 
+  // The modifiers a switcher combo is held by (KeyNames.split's `mods`):
+  // all but SHIFT, which only turns it around, unless SHIFT is all there is
+  function switcherHeld(mods) {
+    const held = (mods ?? []).filter(mod => mod !== "SHIFT" && ["SUPER", "CTRL", "ALT"].includes(mod));
+    return held.length > 0 || !(mods ?? []).includes("SHIFT") ? held : ["SHIFT"];
+  }
+
   // Whether an action takes a call (toggle, open or close)
   function hasCalls(action) {
     return root.calls[action] !== undefined;

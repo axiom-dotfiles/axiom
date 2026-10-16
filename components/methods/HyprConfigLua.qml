@@ -1,7 +1,7 @@
 pragma Singleton
 import QtQuick
 
-// The Lua axiom's Hyprland layer is made of (HyprlandConfigManager): each
+// The Lua axiom's Hyprland layer is made of (HyprlandConfigWriter): each
 // bind's hl.bind(), the included module, the managed hyprland.lua and the
 // one given back on leaving managed. Everything it reads from config comes
 // in as arguments; BindActions says what the actions are, this says how

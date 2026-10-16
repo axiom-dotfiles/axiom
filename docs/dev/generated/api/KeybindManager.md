@@ -38,7 +38,7 @@ KeybindManager reads the keybinds the compositor has registered (CompositorManag
 - `issues` (readonly var): Per bind: [{ level: "error" | "warning", text }]
 - `issueCount` (readonly int)
 - `userConflicts` (readonly var): The binds on keys the user's Hyprland config binds too
-- `canMerge` (readonly bool): Managed mode moves the user's binds into axiom instead of dropping axiom's (HyprlandConfigManager.mergeUserBinds)
+- `canMerge` (readonly bool): Managed mode moves the user's binds into axiom instead of dropping axiom's (CompositorConfigManager.mergeUserBinds)
 - `mergeableCount` (readonly int): How many binds in user/*.lua a Merge would move (0 until looked at, when the page opens): not every bind there can (a Lua function, a shared module's, one in a submap), so it's not the conflict count
 - `presets` (readonly var): [{ id, title, description, binds }], for the current workspace layout.
 - `recordingIndex` (int): The bind whose key is being recorded, or -1

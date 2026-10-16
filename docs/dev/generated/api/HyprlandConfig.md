@@ -3,7 +3,7 @@
 
 > **File:** `config/HyprlandConfig.qml` · **Docs:** see [docs/dev](../../README.md)
 
-Reader for the Hyprland section: what axiom writes into Hyprland (HyprlandConfigManager). Named HyprlandConfig because `Hyprland` is Quickshell's singleton.
+Reader for the Hyprland section: what axiom writes into Hyprland (HyprlandConfigWriter). Named HyprlandConfig because `Hyprland` is Quickshell's singleton.
 
 ### Properties
 

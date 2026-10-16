@@ -29,6 +29,8 @@ Singleton {
   readonly property string focusedOutput: Hyprland.focusedMonitor?.name ?? ""
   // The focused window's id (its "0x…" address), or ""
   readonly property string activeWindowId: Hyprland.activeToplevel ? "0x" + Hyprland.activeToplevel.address : ""
+  // Writes axiom's layer into Hyprland's config (CompositorConfigManager)
+  readonly property var configWriter: HyprlandConfigWriter
   // What Hyprland does (CompositorManager.supports)
   readonly property var supports: ({
       "configModes": true,
@@ -537,7 +539,7 @@ hl.dispatch(hl.dsp.submap("${_captureSubmap}"))`
   // why each sits where it does; docs/dev/generated/layers.md). Named, so
   // re-adding one replaces it instead of piling up copies. Rules added at
   // runtime are lost when Hyprland reloads its config.
-  // HyprlandConfigManager also writes them into its Lua files, since a
+  // HyprlandConfigWriter also writes them into its Lua files, since a
   // reload Hyprland does by itself (a watched file changing) doesn't always
   // send the configreloaded event that re-adds them here.
   readonly property var _layerRulesLua: HyprLua.layerRulesLua()

@@ -3,7 +3,7 @@ import QtQuick
 import qs.services
 
 // Reader for the Compositor section: how axiom sets the compositor up
-// (HyprlandConfigManager on Hyprland)
+// (CompositorConfigManager)
 QtObject {
   readonly property var _c: ConfigManager.config.Compositor
 

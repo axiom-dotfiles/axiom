@@ -3,12 +3,12 @@
 
 > **File:** `services/HyprlandRuntimeLayer.qml` · **Docs:** see [docs/dev](../../README.md)
 
-Axiom's Hyprland layer evaluated at runtime, for HyprlandConfigManager: the detached mode, and the fallback of the file modes while their file isn't loaded. Hyprland's binds are read first, so a bind on a key the user's config already takes is skipped (skippedKeys). Not a singleton: HyprlandConfigManager owns one. Keys this layer bound live in Hyprland's Lua state (AXIOM_RUNTIME_KEYS), which a config reload resets along with the binds, and which outlives a reload of the shell. They're unbound before the binds are read, so they don't look like the user's.
+Axiom's Hyprland layer evaluated at runtime, for HyprlandConfigWriter: the detached mode, and the fallback of the file modes while their file isn't loaded. Hyprland's binds are read first, so a bind on a key the user's config already takes is skipped (skippedKeys). Not a singleton: HyprlandConfigWriter owns one. Keys this layer bound live in Hyprland's Lua state (AXIOM_RUNTIME_KEYS), which a config reload resets along with the binds, and which outlives a reload of the shell. They're unbound before the binds are read, so they don't look like the user's.
 
 ### Properties
 
 - `bindCtx` (var): What the bind Lua needs from outside the bind (HyprConfigLua.bindLua)
-- `lookLines` (var): Functions returning Lua lines: the window look and the blur (HyprlandConfigManager marks the look applied), and the strips
+- `lookLines` (var): Functions returning Lua lines: the window look and the blur (HyprlandConfigWriter marks the look applied), and the strips
 - `stripsLines` (var)
 - `skippedKeys` (readonly var): Configured keys skipped because Hyprland's config already binds them
 

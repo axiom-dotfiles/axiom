@@ -21,6 +21,7 @@ The public members (no `_` prefix) of every file in `services/` and every config
 - [ClaudeUsageManager](api/ClaudeUsageManager.md): Claude plan usage (the numbers Claude Code's /usage shows) for one or more Claude Code accounts, each a CLAUDE_CONFIG_DIR.
 - [ClipboardManager](api/ClipboardManager.md): The clipboard history the launcher searches (":" or /clipboard), while Launcher.clipboard is on.
 - [CommandManager](api/CommandManager.md): Shell commands polled for their output (e.g. a bar Button's label), shared by every widget asking for the same command: each distinct command runs once per int…
+- [CompositorConfigManager](api/CompositorConfigManager.md): Sets the compositor up for axiom (the Compositor section's mode, CompositorConfig.mode), through its backend's config writer (CompositorManager.backend.configW…
 - [CompositorManager](api/CompositorManager.md): The running compositor, for the rest of axiom: its windows, outputs and workspaces in shapes that don't depend on it, what it supports, and every workspace swi…
 - [ConfigDraft](api/ConfigDraft.md): A working copy of one config section for an editor (settings, bar, overlay, edge menu, keybind and monitor editors).
 - [ConfigManager](api/ConfigManager.md): ConfigManager handles loading, saving, and monitoring the configuration file
@@ -41,11 +42,11 @@ The public members (no `_` prefix) of every file in `services/` and every config
 - [GridEditor](api/GridEditor.md): Editing of one grid of modules (each with a `place` { x, y, w, h } in quarter cards), shared by the layouts editor's overlay pages and edge menus.
 - [HypridleManager](api/HypridleManager.md): hypridle, run by axiom (the Idle section).
 - [HyprlandBindMerge](api/HyprlandBindMerge.md): scripts/merge_hypr_binds.py: every hl.bind in user/*.lua that can move becomes one of axiom's binds (an action where one does the same, else the `lua` action),…
-- [HyprlandConfigManager](api/HyprlandConfigManager.md): Managed config, loading ~/.config/hypr/user/*.lua after it Whenever the file isn't loaded (included but the lines are missing, or a managed takeover refused), …
+- [HyprlandConfigWriter](api/HyprlandConfigWriter.md): section's options, loading ~/.config/hypr/user/*.lua after it Also what only Hyprland has: the managed takeover (HyprlandTakeover) and moving the user's binds …
 - [HyprlandIpcManager](api/HyprlandIpcManager.md): Requests on Hyprland's request socket, as hyprctl makes them but without a process each: what Quickshell.Hyprland doesn't cover (options, Lua evals, binds, dev…
 - [HyprlandManager](api/HyprlandManager.md): CompositorManager's backend on Hyprland (docs/dev/compositor/contract.md): Hyprland's state as the compositor-neutral shapes (HyprState), and the primitives Co…
-- [HyprlandRuntimeLayer](api/HyprlandRuntimeLayer.md): Axiom's Hyprland layer evaluated at runtime, for HyprlandConfigManager: the detached mode, and the fallback of the file modes while their file isn't loaded.
-- [HyprlandTakeover](api/HyprlandTakeover.md): Taking ~/.config/hypr/hyprland.lua over for the managed mode, and giving it back (scripts/claim_hyprland.sh), for HyprlandConfigManager, which acts on the resu…
+- [HyprlandRuntimeLayer](api/HyprlandRuntimeLayer.md): Axiom's Hyprland layer evaluated at runtime, for HyprlandConfigWriter: the detached mode, and the fallback of the file modes while their file isn't loaded.
+- [HyprlandTakeover](api/HyprlandTakeover.md): Taking ~/.config/hypr/hyprland.lua over for the managed mode, and giving it back (scripts/claim_hyprland.sh), for HyprlandConfigWriter, which acts on the resul…
 - [IdleInhibitManager](api/IdleInhibitManager.md): Shared on/off state for keeping the session awake.
 - [IntegrationHookupManager](api/IntegrationHookupManager.md): Hooks theme integrations into their apps' configs: each ThemeIntegrations switch's `x-hookup` targets (the line that loads its axiom file, where it goes), run …
 - [KeybindManager](api/KeybindManager.md): KeybindManager reads the keybinds the compositor has registered (CompositorManager.withBinds).
@@ -91,13 +92,13 @@ The public members (no `_` prefix) of every file in `services/` and every config
 - [BatteryConfig](api/BatteryConfig.md): Reader for the Battery section.
 - [CalendarConfig](api/CalendarConfig.md): Reader for the Calendar section (see CalendarManager).
 - [ChatConfig](api/ChatConfig.md): Reader for the Chat section.
-- [CompositorConfig](api/CompositorConfig.md): Reader for the Compositor section: how axiom sets the compositor up (HyprlandConfigManager on Hyprland)
+- [CompositorConfig](api/CompositorConfig.md): Reader for the Compositor section: how axiom sets the compositor up (CompositorConfigManager)
 - [DesktopConfig](api/DesktopConfig.md): Reader for the Desktop section: overlay modules on the desktop, under the windows.
 - [DockConfig](api/DockConfig.md): Reader for the Dock section: any number of docks, each with its own place, pinned apps and behaviour (DockEntry in the schema).
 - [EdgeMenusConfig](api/EdgeMenusConfig.md): EdgeMenus: menus that pop out of a screen edge, holding overlay modules.
 - [General](api/General.md): Reader for the General section.
 - [GreeterConfig](api/GreeterConfig.md): Reader for the Greeter section: axiom as the greetd login screen (GreeterManager sets it up; in the greeter itself, this is the bundle it was handed).
-- [HyprlandConfig](api/HyprlandConfig.md): Reader for the Hyprland section: what axiom writes into Hyprland (HyprlandConfigManager).
+- [HyprlandConfig](api/HyprlandConfig.md): Reader for the Hyprland section: what axiom writes into Hyprland (HyprlandConfigWriter).
 - [I18n](api/I18n.md): Translation and locale for the shell's text (General.language).
 - [IconsConfig](api/IconsConfig.md): Reader for the Icons section.
 - [Idle](api/Idle.md): Reader for the Idle section: hypridle, run by HypridleManager.

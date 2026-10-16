@@ -40,7 +40,7 @@ Monitor layouts saved per set of connected monitors, edited on the Monitors page
 - Warnings:
   - islands (monitors not touching the rest)
   - scales Hyprland will round
-  - in managed mode, `user/*.lua` files that call `hl.monitor` (`HyprlandConfigManager.monitorConflicts`). Those rules load later and win.
+  - in managed mode, `user/*.lua` files that call `hl.monitor` (`CompositorConfigManager.monitorConflicts`). Those rules load later and win.
 
 ### Apply, Keep, Revert
 1. **Apply** evals the selected profile's `hl.monitor` calls (`HyprLua.monitorCalls`), after taking a snapshot of the old state.

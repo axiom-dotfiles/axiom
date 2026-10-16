@@ -582,10 +582,10 @@ assert(rules["axiom-no-window-blur"].enabled == false, "the rule off")`)}
   }
 
   function test_switcherHeld() {
-    compare(HyprLua.switcherHeld(["ALT"]), ["ALT"]);
-    compare(HyprLua.switcherHeld(["ALT", "SHIFT"]), ["ALT"], "SHIFT only turns it around");
-    compare(HyprLua.switcherHeld(["SHIFT"]), ["SHIFT"], "unless it's all there is");
-    compare(HyprLua.switcherHeld([]), [], "nothing to hold");
+    compare(BindActions.switcherHeld(["ALT"]), ["ALT"]);
+    compare(BindActions.switcherHeld(["ALT", "SHIFT"]), ["ALT"], "SHIFT only turns it around");
+    compare(BindActions.switcherHeld(["SHIFT"]), ["SHIFT"], "unless it's all there is");
+    compare(BindActions.switcherHeld([]), [], "nothing to hold");
   }
 
   function test_switcherLua_without_binds_only_unbinds() {

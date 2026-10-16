@@ -11,15 +11,15 @@ import qs.components.reusable
 FieldGroup {
   id: root
 
-  readonly property string mode: HyprlandConfigManager.mode
-  readonly property string status: HyprlandConfigManager.status
+  readonly property string mode: CompositorConfigManager.mode
+  readonly property string status: CompositorConfigManager.status
   // The mode picked in the settings draft
   readonly property string pendingMode: SettingsManager.localConfig?.Compositor?.mode ?? root.mode
   readonly property bool pending: root.pendingMode !== root.mode
 
   function _checkPending() {
     if (root.pendingMode === "managed")
-      HyprlandConfigManager.checkManaged();
+      CompositorConfigManager.checkManaged();
   }
   onPendingModeChanged: root._checkPending()
   Component.onCompleted: root._checkPending()
@@ -55,16 +55,16 @@ FieldGroup {
   // What saving the pending mode does, step by step
   readonly property var saveSteps: {
     const steps = [];
-    const hypr = Paths.shortenHome(HyprlandConfigManager.managedPath);
-    const user = Paths.shortenHome(HyprlandConfigManager.userDir);
-    const module = Paths.shortenHome(HyprlandConfigManager.includePath);
-    // Leaving a mode gives back what it took (HyprlandConfigManager._leave)
+    const hypr = Paths.shortenHome(CompositorConfigManager.managedPath);
+    const user = Paths.shortenHome(CompositorConfigManager.userDir);
+    const module = Paths.shortenHome(CompositorConfigManager.includePath);
+    // Leaving a mode gives back what it took (CompositorConfigManager._leave)
     if (root.mode === "managed")
       steps.push(I18n.tr("Gives {0} back: your previous one returns ({1}/00-previous.lua, or the example config's backup), else a new one that starts axiom and loads {1}/*.lua", hypr, user));
     if (root.mode === "included")
       steps.push(I18n.tr("Empties {0}, so a hyprland.lua that still loads it gets nothing", module));
     if (root.pendingMode === "managed") {
-      switch (HyprlandConfigManager.managedCheck) {
+      switch (CompositorConfigManager.managedCheck) {
       case "adopt":
         steps.push(I18n.tr("Moves your {0} to {1}/00-previous.lua, with a dated backup beside it", hypr, user));
         break;
@@ -94,7 +94,7 @@ FieldGroup {
     return steps;
   }
 
-  readonly property bool blocked: root.pendingMode === "managed" && HyprlandConfigManager.managedCheck === "blocked"
+  readonly property bool blocked: root.pendingMode === "managed" && CompositorConfigManager.managedCheck === "blocked"
 
   title: I18n.tr("Status")
   headerExtras: [
@@ -134,7 +134,7 @@ FieldGroup {
 
       StyledText {
         visible: root.blocked
-        text: HyprlandConfigManager.managedBlockedBy === "git" ? I18n.tr("{0} is inside the git repository at {1}, so axiom won't take it over. Use Included instead.", Paths.shortenHome(Paths.hyprlandPath), Paths.shortenHome(HyprlandConfigManager.managedBlockedRepo)) : I18n.tr("{0} is a symlink or in a git repository, so axiom won't take it over. Use Included instead.", Paths.shortenHome(Paths.hyprlandPath))
+        text: CompositorConfigManager.managedBlockedBy === "git" ? I18n.tr("{0} is inside the git repository at {1}, so axiom won't take it over. Use Included instead.", Paths.shortenHome(Paths.hyprlandPath), Paths.shortenHome(CompositorConfigManager.managedBlockedRepo)) : I18n.tr("{0} is a symlink or in a git repository, so axiom won't take it over. Use Included instead.", Paths.shortenHome(Paths.hyprlandPath))
         textSize: Appearance.fontSize - 1
         wrapMode: Text.WordWrap
         Layout.fillWidth: true
@@ -158,7 +158,7 @@ FieldGroup {
 
   StyledText {
     visible: root.status === "fallback"
-    text: HyprlandConfigManager.problem + "\n" + I18n.tr("Until then, axiom applies its layer at runtime.")
+    text: CompositorConfigManager.problem + "\n" + I18n.tr("Until then, axiom applies its layer at runtime.")
     textColor: Theme.warning
     textSize: Appearance.fontSize - 1
     wrapMode: Text.WordWrap
@@ -196,7 +196,7 @@ FieldGroup {
         id: lines
         anchors.fill: parent
         anchors.margins: Widget.padding
-        text: HyprlandConfigManager.includeLines
+        text: CompositorConfigManager.includeLines
         textFamily: "monospace"
         textSize: Appearance.fontSize - 2
         wrapMode: Text.WrapAnywhere
@@ -206,7 +206,7 @@ FieldGroup {
     StyledTextButton {
       implicitHeight: Widget.height - 4
       text: I18n.tr("Copy")
-      onClicked: HyprlandConfigManager.copyIncludeLines()
+      onClicked: CompositorConfigManager.copyIncludeLines()
     }
   }
 
@@ -216,7 +216,7 @@ FieldGroup {
     spacing: Widget.spacing
 
     StyledText {
-      text: I18n.tr("Your own settings go in {0}/*.lua.", Paths.shortenHome(HyprlandConfigManager.userDir))
+      text: I18n.tr("Your own settings go in {0}/*.lua.", Paths.shortenHome(CompositorConfigManager.userDir))
       opacity: 0.7
       textSize: Appearance.fontSize - 2
       wrapMode: Text.WordWrap
@@ -226,7 +226,7 @@ FieldGroup {
     StyledTextButton {
       implicitHeight: Widget.height - 4
       text: I18n.tr("Open folder")
-      onClicked: HyprlandConfigManager.openConfigDir()
+      onClicked: CompositorConfigManager.openConfigDir()
     }
   }
 

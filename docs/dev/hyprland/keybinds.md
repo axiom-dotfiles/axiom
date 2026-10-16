@@ -1,6 +1,6 @@
 # Keybinds (actions and the Keybinds page)
 
-> **Files:** `services/KeybindManager.qml`, `config/KeybindsConfig.qml`, `components/methods/BindActions.qml` (what each action is, its argument kinds), `components/methods/HyprConfigLua.qml` (`bindLua`, `dispatcherLua`), `services/HyprlandConfigManager.qml`, `components/views/Keybinds.qml`, `components/views/keybinds/KeyRecorder.qml`, `components/views/keybinds/FilterChips.qml`, `components/methods/KeyNames.qml`, `components/methods/KeybindFilter.qml`, `components/methods/BindKeys.qml`
+> **Files:** `services/KeybindManager.qml`, `config/KeybindsConfig.qml`, `components/methods/BindActions.qml` (what each action is, its argument kinds), `components/methods/HyprConfigLua.qml` (`bindLua`, `dispatcherLua`), `services/CompositorConfigManager.qml`, `services/HyprlandConfigWriter.qml`, `components/views/Keybinds.qml`, `components/views/keybinds/KeyRecorder.qml`, `components/views/keybinds/FilterChips.qml`, `components/methods/KeyNames.qml`, `components/methods/KeybindFilter.qml`, `components/methods/BindKeys.qml`
 > **Config:** `Keybinds.binds`, `Apps.terminal`/`fileManager`/`browser`
 > **Related:** [Bind merge](bind-merge.md), [Config modes](config-modes.md), [Window switcher](window-switcher.md), [Screenshots and recording](../features/screenshots-recording.md), [Workspace strips](workspace-strips.md)
 
