@@ -8,8 +8,8 @@ SwayConfigWriter needs all of it to know which keys the user's config binds.
 The main file is --config, else the one the running sway was started with
 (-c in the command line of the sway that $SWAYSOCK names), else the first
 of the places sway looks. `include` lines are replaced by the files they
-name (globs, ~ and $variables set before them; relative to the including
-file's folder), each once; --skip leaves files out (axiom's own module),
+name (one or several; globs, ~, environment variables and $variables set
+before them; relative to the including file's folder), each once; --skip leaves files out (axiom's own module),
 --skip-header the own lines of a file starting with TEXT (axiom's managed
 config: only what it includes is the user's).
 Exits 1 when no config is found.
@@ -18,6 +18,7 @@ import argparse
 import glob
 import os
 import re
+import shlex
 import sys
 
 
@@ -79,12 +80,20 @@ def inline(path, skip, seen, variables, header=None):
             if not ours:
                 out.append(line)
             continue
-        pattern = os.path.expanduser(expand(include.group(1).strip().strip("\"'"), variables))
-        if not os.path.isabs(pattern):
-            pattern = os.path.join(os.path.dirname(path), pattern)
-        for name in sorted(glob.glob(pattern)):
-            if os.path.isfile(name):
-                out.append(inline(name, skip, seen, variables, header))
+        # As sway's wordexp reads it: one path or several, quoted or not,
+        # environment variables and ~ expanded, each a glob
+        text = expand(include.group(1).strip(), variables)
+        try:
+            words = shlex.split(text)
+        except ValueError:
+            words = [text.strip("\"'")]
+        for word in words:
+            pattern = os.path.expanduser(os.path.expandvars(word))
+            if not os.path.isabs(pattern):
+                pattern = os.path.join(os.path.dirname(path), pattern)
+            for name in sorted(glob.glob(pattern)):
+                if os.path.isfile(name):
+                    out.append(inline(name, skip, seen, variables, header))
     return "\n".join(out)
 
 

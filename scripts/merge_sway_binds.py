@@ -46,7 +46,9 @@ MOUSE = {"button1": "mouse:272", "button2": "mouse:274", "button3": "mouse:273",
          "btn_right": "mouse:273", "btn_middle": "mouse:274", "btn_side": "mouse:275", "btn_extra": "mouse:276"}
 # Options a moved bind can keep; anything else keeps the bind in its file
 FLAGS = {"--release": "release", "--locked": "locked"}
-HARMLESS = {"--no-warn", "--whole-window", "--no-repeat", "--to-code"}
+# (not --to-code: axiom binds by keysym, which would change the bind on
+# another layout)
+HARMLESS = {"--no-warn", "--whole-window", "--no-repeat"}
 DIRECTIONS = {"left", "right", "up", "down"}
 MARK = "# (moved into axiom) "
 ROOT = Path(__file__).resolve().parent.parent
@@ -195,8 +197,11 @@ def stored_command(text):
 
 
 def exec_text(arguments):
-    """What an `exec` of `arguments` (as sway keeps them) runs."""
+    """What an `exec` of `arguments` (as sway keeps them) runs (sway drops
+    a leading --no-startup-id)."""
     words = split_args(arguments)
+    if words and words[0] == "--no-startup-id":
+        words = words[1:]
     if len(words) == 1 and words[0][0] in "\"'":
         return strip_quotes(words[0])
     return " ".join(words)
@@ -243,7 +248,8 @@ def user_files(sway, only):
     user = sway / "user"
     if only:
         return [user / only] if (user / only).is_file() else []
-    return sorted(p for p in user.iterdir() if p.is_file() and ".axiom-backup-" not in p.name) if user.is_dir() else []
+    # As sway's `include user/*` reads them: no hidden files (a staged write, an editor's swap file)
+    return sorted(p for p in user.iterdir() if p.is_file() and not p.name.startswith(".") and ".axiom-backup-" not in p.name) if user.is_dir() else []
 
 
 def extract(sway, only):
@@ -317,7 +323,7 @@ def remove(sway, sites):
         changed = False
         for site in file_sites:
             i = site["line"] - 1
-            if i >= len(lines) or lines[i].rstrip("\n") != site.get("text", lines[i].rstrip("\n")):
+            if i >= len(lines) or lines[i].rstrip("\r\n") != site.get("text", lines[i].rstrip("\r\n")):
                 done["failed"].append({"file": name, "line": site["line"], "reason": "changed", "detail": ""})
                 continue
             lines[i] = MARK + lines[i]

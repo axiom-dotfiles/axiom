@@ -716,6 +716,19 @@ class ClaimSway(unittest.TestCase):
         self.assertIn("\nexec qs -c axiom\n", restored)
         self.assertFalse((self.sway / "user" / "00-previous.conf").exists())
 
+    def test_binds_calling_axiom_stay_for_the_merge(self):
+        mine = "set $ipc qs -p '/opt/axiom' ipc call\nbindsym $mod+d exec qs -p '/opt/axiom' ipc call launcher toggle\n" \
+            "bindsym $mod+space exec $ipc launcher toggle\nexec_always --no-startup-id qs -n -c axiom -d\n"
+        (self.sway / "config").write_text(mine)
+        self.assertEqual(self.claim("claim"), "adopted:00-previous.conf")
+        adopted = (self.sway / "user" / "00-previous.conf").read_text().splitlines()
+        self.assertEqual(adopted[:3], mine.splitlines()[:3])
+        self.assertTrue(adopted[3].startswith("# (axiom starts and loads itself now) exec_always"))
+        merged = subprocess.run([str(SCRIPTS / "merge_sway_binds.py"), "extract", str(self.sway), "--only", "00-previous.conf"],
+                                env=self.env, capture_output=True, text=True, timeout=30)
+        self.assertEqual(merged.returncode, 0, merged.stderr)
+        self.assertNotIn("$ipc", merged.stdout)
+
     def test_release_with_nothing_set_aside(self):
         (self.sway / "config").write_text(self.HEADER + "\n")
         self.assertEqual(self.claim("release"), "written")
@@ -811,6 +824,15 @@ mode "resize" {
         self.assertEqual(len(list((self.tmp / "user" / ".backups").iterdir())), 1)
         # Moved again: nothing left to move
         self.assertEqual(len(self.run_script("extract", str(self.tmp))["binds"]), 0)
+
+    def test_what_sway_reads_differently(self):
+        (self.tmp / "user" / ".swap.conf").write_text("bindsym Mod4+z kill\n")
+        self.file.write_bytes(b"bindsym Mod4+a exec --no-startup-id foot\r\nbindsym --to-code Mod4+b kill\r\n")
+        found = self.run_script("extract", str(self.tmp))
+        self.assertEqual(found["binds"], [{"key": "SUPER + A", "action": "exec", "argument": "foot"}], "no hidden file")
+        self.assertEqual([k["reason"] for k in found["kept"]], ["options"])
+        done = self.run_script("remove", str(self.tmp), json.dumps(found["sites"]))
+        self.assertEqual((done["failed"], done["removed"]), ([], 1), "CRLF lines are found")
 
     def test_changed_line_stays(self):
         found = self.run_script("extract", str(self.tmp))
@@ -978,12 +1000,13 @@ class ClaimHyprland(unittest.TestCase):
             'local ok, axiom = pcall(dofile, "/home/me/.local/state/axiom/hyprland.lua")',
             "if ok then axiom.setup() end",
             'hl.env("A", "b")',
+            'hl.bind("SUPER + D", hl.dsp.exec_cmd("qs -c axiom ipc call launcher toggle"))',
         ]
         (self.hypr / "hyprland.lua").write_text("\n".join(lines) + "\n")
         self.claim("claim")
         text = (self.hypr / "user" / "00-previous.lua").read_text().splitlines()
         self.assertTrue(all(line.startswith("-- ") for line in text[:3]), text)
-        self.assertEqual(text[3], 'hl.env("A", "b")')
+        self.assertEqual(text[3:], lines[3:], "a bind calling axiom stays, for the bind merge")
 
     def test_ours_is_left_alone(self):
         (self.hypr / "hyprland.lua").write_text(self.HEADER + " (Hyprland mode: managed)\n")
@@ -1886,6 +1909,17 @@ class SwayConfigText(unittest.TestCase):
         binds = [line for line in out.splitlines() if line.startswith("bindsym")]
         # Each file once (the include back to config is a loop); axiom's left out
         self.assertEqual(binds, ["bindsym $mod+a exec a", "bindsym $mod+b exec b", "bindsym $mod+c exec c"])
+
+    def test_includes_as_wordexp_reads_them(self):
+        (self.tmp / "a.conf").write_text("bindsym $mod+a exec a\n")
+        (self.tmp / "b.conf").write_text("bindsym $mod+b exec b\n")
+        (self.tmp / "c d.conf").write_text("bindsym $mod+c exec c\n")
+        (self.tmp / "config").write_text("include b.conf a.conf\ninclude $AXIOM_TEST_DIR/a.conf\ninclude 'c d.conf'\n")
+        code, out = self.run_script("--config", str(self.tmp / "config"),
+                                    env={**os.environ, "SWAYSOCK": "", "AXIOM_TEST_DIR": str(self.tmp)})
+        self.assertEqual(code, 0)
+        self.assertEqual([line for line in out.splitlines() if line.startswith("bindsym")],
+                         ["bindsym $mod+b exec b", "bindsym $mod+a exec a", "bindsym $mod+c exec c"])
 
     def test_skip_header(self):
         (self.tmp / "user").mkdir()

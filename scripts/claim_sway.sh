@@ -86,9 +86,10 @@ if repo=$(git -C "$dir" rev-parse --show-toplevel 2>/dev/null); then
   exit 0
 fi
 
-# The lines that start axiom (any `qs … -c axiom` / `-p …axiom`) or
-# include its module
-axiom_line='(qs|quickshell) .*(-c +['"'"'"]?axiom|-p +['"'"'"]?[^[:space:]]*axiom)|include .*axiom/sway\.conf'
+# The lines that start axiom (an `exec`/`exec_always` of any `qs … -c axiom`
+# / `-p …axiom`, not an IPC call) or include its module. Not a bind or a
+# `set $ipc qs …` calling axiom: the bind merge reads those
+axiom_line='^[[:space:]]*(exec(_always)?[[:space:]]+([^#]*[[:space:]])?(qs|quickshell) ([^#]*[[:space:]])?(-c +['"'"'"]?axiom['"'"'"]?|-p +['"'"'"]?[^[:space:]]*axiom['"'"'"]?)([[:space:]]+-[^[:space:]i]+)*[[:space:]]*$|include .*axiom/sway\.conf)'
 
 # The example config, give or take comments, blank lines and whitespace,
 # and a line starting axiom

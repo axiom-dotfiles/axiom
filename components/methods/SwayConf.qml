@@ -191,16 +191,23 @@ QtObject {
     const k = key(bind.key);
     if (cmd === "" || !k)
       return "";
-    const flags = ["--no-warn"];
+    const flags = ["--no-warn"].concat(_conflictFlags(bind, k));
+    if (!bind.repeating)
+      flags.push("--no-repeat");
+    return `${k.command} ${flags.join(" ")} ${k.spec} ${bindCommand(cmd, runtime === true)}`;
+  }
+
+  // The flags that are part of a bind's identity to sway: unbinding takes
+  // them too, or it misses the bind
+  function _conflictFlags(bind, k) {
+    const flags = [];
     if (k.mouse)
       flags.push("--whole-window");
     if (bind.locked)
       flags.push("--locked");
     if (bind.release)
       flags.push("--release");
-    if (!bind.repeating)
-      flags.push("--no-repeat");
-    return `${k.command} ${flags.join(" ")} ${k.spec} ${bindCommand(cmd, runtime === true)}`;
+    return flags;
   }
 
   // Whether sway can bind it (and so whether the writer counts it complete):
@@ -264,7 +271,7 @@ QtObject {
   function unbindLines(binds, ctx) {
     return (binds ?? []).map(bind => {
       const k = key(bind.key);
-      return k && bindLine(bind, ctx) !== "" ? `un${k.command} ${k.spec}` : "";
+      return k && bindLine(bind, ctx) !== "" ? [`un${k.command}`].concat(_conflictFlags(bind, k), [k.spec]).join(" ") : "";
     }).filter(line => line !== "");
   }
 
@@ -460,13 +467,16 @@ ${section("Binds", parts.binds)}${section("Window borders and gaps", parts.look)
   function managedText(module, opts) {
     const body = module.split("\n").filter(line => !line.startsWith("#")).join("\n").trim();
     const env = (opts.env ?? []).filter(entry => /^[A-Za-z_][A-Za-z0-9_]*$/.test(entry.name.trim())).map(entry => `${entry.name.trim()}=${shellWord(entry.value)}`);
+    // Sway unescapes a config line's arguments, exec's too: escaped as a
+    // bind's command is, a shell word's '\'' and a backslash arrive whole
+    const exec = text => _exec(bindCommand(text, false));
     const start = [];
     if (env.length > 0)
-      start.push(_exec(`dbus-update-activation-environment --systemd ${env.join(" ")}`));
-    start.push(_exec((env.length > 0 ? `env ${env.join(" ")} ` : "") + opts.start.command));
+      start.push(exec(`dbus-update-activation-environment --systemd ${env.join(" ")}`));
+    start.push(exec((env.length > 0 ? `env ${env.join(" ")} ` : "") + opts.start.command));
     for (const entry of opts.autostart ?? [])
       if (entry.enabled && entry.command.trim() !== "" && !(opts.start.idle && entry.command.trim() === "hypridle") && !(opts.start.polkit && opts.isAgent?.(entry.command)))
-        start.push(_exec(entry.command.trim()));
+        start.push(exec(entry.command.trim()));
     return `${opts.header} (sway mode: managed) from its settings, and
 # rewritten whenever they (or the theme) change: edit those, not this file.
 # Your own config goes in ${opts.userDir}/, included after this in name
@@ -532,8 +542,8 @@ include ${quote(userDir + "/*")}
     parts.push(`scale ${rule.scale ?? 1}`);
     parts.push("transform " + (transforms[rule.transform ?? 0] ?? "normal"));
     parts.push("adaptive_sync " + ((rule.vrr ?? 0) > 0 ? "on" : "off"));
-    if (rule.bitdepth === 10)
-      parts.push("render_bit_depth 10");
+    // Always: sent at runtime, leaving it out would keep 10 after 10 is off
+    parts.push("render_bit_depth " + (rule.bitdepth === 10 ? 10 : 8));
     return parts.join(" ");
   }
 

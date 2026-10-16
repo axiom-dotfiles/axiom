@@ -131,6 +131,10 @@ Singleton {
   function _writeIfChanged(path, text) {
     if (FileManager.read(path) === text) {
       _checkLoaded();
+      // No reload to evaluate the live parts after (the shell started
+      // over a file already as wanted): what's only set at runtime
+      // (SwayFX's look, sway's window opacity) is sent now
+      _applyLive();
       return;
     }
     CommandManager.run(["mkdir", "-p", path.replace(/\/[^/]*$/, "")], code => {

@@ -130,13 +130,15 @@ is_released() {
 }
 
 # Comments out the lines that start axiom (install.sh's, the Hyprland
-# page's, any `qs … -c axiom`) or load its included module, unless that
-# leaves the file unparsable (then it stays as it is)
+# page's, any `qs … -c axiom`; not a bind calling its IPC, which the bind
+# merge reads) or load its included module, unless that leaves the file
+# unparsable (then it stays as it is)
 disable_axiom_lines() {
   local target=$1 edited
   edited=$(mktemp) || return 0
   sed -E \
     -e '/^[[:space:]]*--/b' \
+    -e '/(qs|quickshell) [^"'"'"']*[[:space:]]ipc[[:space:]]/b' \
     -e '/(qs|quickshell) .*(-c +['"'"'"]?axiom|-p +['"'"'"]?[^[:space:]]*axiom)|dofile.*axiom\/hyprland\.lua|axiom\.setup\(/s/^/-- (axiom starts and loads itself now) /' \
     "$target" >"$edited"
   if luac -p "$edited" >/dev/null 2>&1; then
