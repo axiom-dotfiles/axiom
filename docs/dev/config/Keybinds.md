@@ -14,17 +14,17 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`Keybinds.binds`** · array<object> = [{"key":"SUPER + space","action":"launcher"},{"key":"SUPER + Tab","ac…
   - Keybinds: Edited on the Keybinds page.
   - x-scope="personal"
-  - read: `KeybindsConfig.binds` (computed) · in: `components/surfaces/onboarding/pages/AppsPage.qml`, `components/surfaces/onboarding/pages/BindsTable.qml`, `services/EdgeMenuManager.qml`, `services/HyprlandBindMerge.qml`, `services/HyprlandConfigWriter.qml`, `services/HyprlandRuntimeLayer.qml`, `services/KeybindManager.qml`, `services/SwayBindMerge.qml`, `services/SwayConfigWriter.qml`, `services/SwayRuntimeLayer.qml`, `shell.qml`
+  - read: `KeybindsConfig.binds` (computed) · in: `components/surfaces/onboarding/pages/AppsPage.qml`, `components/surfaces/onboarding/pages/BindsTable.qml`, `services/EdgeMenuManager.qml`, `services/HyprlandBindMerge.qml`, `services/HyprlandConfigWriter.qml`, `services/HyprlandRuntimeLayer.qml`, `services/KeybindManager.qml`, `services/SwayBindMerge.qml`, `services/SwayConfigWriter.qml`, `services/SwayRuntimeLayer.qml`
 
 ### `Keybinds.binds[]`
 
 - **`Keybinds.binds[]`** · object
 - **`Keybinds.binds[].key`** · string = ""
   - Key: Modifiers and key, joined by +: "SUPER + SHIFT + space".
-  - read: `KeybindsConfig.binds` (whole) · in: `components/surfaces/onboarding/pages/AppsPage.qml`, `components/surfaces/onboarding/pages/BindsTable.qml`, `services/EdgeMenuManager.qml`, `services/HyprlandRuntimeLayer.qml`, `services/KeybindManager.qml`, `shell.qml`
+  - read: `KeybindsConfig.binds` (whole) · in: `components/surfaces/onboarding/pages/AppsPage.qml`, `components/surfaces/onboarding/pages/BindsTable.qml`, `services/EdgeMenuManager.qml`, `services/HyprlandRuntimeLayer.qml`, `services/KeybindManager.qml`
 - **`Keybinds.binds[].action`** · string = "launcher" · enum launcher|launcherSearch|overlay|overlayPage|edgeMenu|dock|workspaceOverview|powerMenu|lock|toggleDnd|clearNotifications|idleInhibit|nightLight|nextWallpaper|workspaceStep|moveWindowStep|moveWindowStepSilent|workspaceNth|moveWindowNth|moveWindowNthSilent|focusDir|moveWindowDir|resizeWindow|closeWindow|fullscreen|toggleFloat|pin|centerWindow|toggleGroup|windowSwitcher|windowSwitcherReverse|mouseDrag|mouseResize|toggleSpecial|moveToSpecial|restartShell|volumeUp|volumeDown|toggleMute|toggleMicMute|brightnessUp|brightnessDown|mediaPlayPause|mediaNext|mediaPrevious|mediaStop|terminal|fileManager|browser|screenshot|screenRecord|exitSession|exec|pseudo|toggleSplit|stripSwapColumn|stripWider|stripNarrower|stripFit|raw
   - Action
-  - read: `KeybindsConfig.binds` (whole) · in: `components/surfaces/onboarding/pages/AppsPage.qml`, `components/surfaces/onboarding/pages/BindsTable.qml`, `services/EdgeMenuManager.qml`, `services/KeybindManager.qml`, `shell.qml`
+  - read: `KeybindsConfig.binds` (whole) · in: `components/surfaces/onboarding/pages/AppsPage.qml`, `components/surfaces/onboarding/pages/BindsTable.qml`, `services/EdgeMenuManager.qml`, `services/KeybindManager.qml`
 - **`Keybinds.binds[].argument`** · string = ""
   - Argument: Search text, page, edge menu or dock id, direction, workspace number, special workspace name, resize step ("50 0"), screenshot kind (region, window or screen), command, or a compositor command in its own language (Hyprland: a dispatcher as Lua, hl.dsp.layout("swapsplit"); sway: a command, layout tabbed).
   - x-showIf={"action":["launcherSearch","overlayPage","edgeMenu","dock","workspac…
@@ -39,7 +39,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `KeybindsConfig.binds` (whole) · in: `services/KeybindManager.qml`
 - **`Keybinds.binds[].repeating`** · boolean = false
   - Repeat while held
-  - read: `KeybindsConfig.binds` (whole), `// reads:` marker · in: `components/methods/BindActions.qml`, `shell.qml`
+  - read: entry field, name match repo-wide, `// reads:` marker · in: `components/methods/BindActions.qml`, `components/methods/SwayConf.qml`
 - **`Keybinds.binds[].locked`** · boolean = false
   - Works while locked
   - read: entry field, name match repo-wide, `// reads:` marker · in: `components/content/Notes.qml`, `components/methods/BindActions.qml`, `components/methods/SwayConf.qml`, `shell/Lockscreen.qml`
@@ -55,4 +55,4 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 Every public member of `KeybindsConfig`, with the files that use it.
 
 - `KeybindsConfig.binds` (var)
-  - in: `components/surfaces/onboarding/pages/AppsPage.qml`, `components/surfaces/onboarding/pages/BindsTable.qml`, `services/EdgeMenuManager.qml`, `services/HyprlandBindMerge.qml`, `services/HyprlandConfigWriter.qml`, `services/HyprlandRuntimeLayer.qml`, `services/KeybindManager.qml`, `services/SwayBindMerge.qml`, `services/SwayConfigWriter.qml`, `services/SwayRuntimeLayer.qml` (+1 more)
+  - in: `components/surfaces/onboarding/pages/AppsPage.qml`, `components/surfaces/onboarding/pages/BindsTable.qml`, `services/EdgeMenuManager.qml`, `services/HyprlandBindMerge.qml`, `services/HyprlandConfigWriter.qml`, `services/HyprlandRuntimeLayer.qml`, `services/KeybindManager.qml`, `services/SwayBindMerge.qml`, `services/SwayConfigWriter.qml`, `services/SwayRuntimeLayer.qml`
