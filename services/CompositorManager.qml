@@ -213,13 +213,13 @@ Singleton {
   function _applyLook() {
     if (!root.backend?.applyLook || root.supports.configModes)
       return;
-    root.backend.applyLook({
-      "look": WindowLookConfig.look,
-      "activeColor": String(Theme.borderFocus),
-      "inactiveColor": String(Theme.border),
+    root.backend.applyLook(CompositorLayer.look(WindowLookConfig.look, {
+      "activeHex": CompositorLayer.hex(Theme.borderFocus),
+      "inactiveHex": CompositorLayer.hex(Theme.border),
       "borderWidth": Appearance.borderWidth,
-      "radius": Appearance.borderRadius
-    });
+      "radius": Appearance.borderRadius,
+      "surfacesBlur": false
+    }));
   }
 
   readonly property string _lookInputs: [WindowLookConfig._lookJson, Theme.borderFocus, Theme.border, Appearance.borderWidth, Appearance.borderRadius, root.kind].join("|")

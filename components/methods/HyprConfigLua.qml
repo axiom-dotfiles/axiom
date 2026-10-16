@@ -21,7 +21,7 @@ QtObject {
 
   // A color ({ r, g, b } in 0-1) as "rrggbb"
   function hex(color) {
-    return [color.r, color.g, color.b].map(v => Math.round(v * 255).toString(16).padStart(2, "0")).join("");
+    return CompositorLayer.hex(color);
   }
 
   // `lines` joined, each but the empty ones after `prefix`

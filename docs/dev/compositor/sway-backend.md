@@ -57,9 +57,10 @@ Quickshell's `I3` module speaks sway's IPC (`$SWAYSOCK`). It gives `monitors`, `
 - `configReloaded`: from the `shutdown`/`reload` events (`I3IpcListener` "shutdown" isn't it: use the `config` subscription when Quickshell passes it, else `binding`/`tick`).
 
 ### The window look (`applyLook`)
-- gaps: `gaps inner all set <gapsIn>`, `gaps outer all set <gapsOut>`, and set `gapsOut` to match
-- borders: `client.focused <c> <c> <text> <c> <c>`, `client.unfocused …` from `activeColor`/`inactiveColor`, plus `default_border pixel <borderWidth>`
-- shape: SwayFX's `corner_radius <radius>`. Vanilla sway has none: leave `windowShape` out of `supports` unless `swaymsg -t get_version` says SwayFX.
+- `look` is `CompositorLayer.look()`'s spec ([contract](contract.md)): a part is `null` while off.
+- gaps: `gaps inner all set <gaps.inner>`, `gaps outer all set <gaps.outer>`, and set `gapsOut` to match
+- borders: `client.focused <c> <c> <text> <c> <c>`, `client.unfocused …` from `borders.active`/`borders.inactive` ("rrggbb"), plus `default_border pixel <shape.width>`
+- shape: SwayFX's `corner_radius <shape.radius>`. Vanilla sway has none: leave `windowShape` out of `supports` unless `swaymsg -t get_version` says SwayFX.
 - Each part turned off: put sway's defaults back (`gaps inner all set 0`, …). A config reload drops them anyway, and `CompositorManager` applies the look again after `configReloaded`.
 
 ### `supports` for sway

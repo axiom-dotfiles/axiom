@@ -102,45 +102,40 @@ QtObject {
   // --- The window look (WindowLook) ---
 
   /**
-   * Its parts that are on, as the lines of one hl.config(), or []: themed
-   * borders (hex colors without #), axiom's shape (border width, corner
-   * radius), gaps, and the blur and window opacity (`lookSchema`'s fields
-   * with `x-hyprIf` on those parts). Hyprland's blur stays on while
-   * `surfacesBlur` (axiom's translucent surfaces blur, which they can't
-   * with it off); with windowBlur off a rule then keeps windows unblurred.
+   * The look's parts that are on (`look`: CompositorLayer.look()), as the
+   * lines of one hl.config(), or []: the borders, the shape, gaps, and the
+   * blur and window opacity (`lookSchema`'s fields with `x-hyprIf` on those
+   * parts). Hyprland's blur stays on while axiom's surfaces blur (which
+   * they can't with it off); with windows not blurring a rule then keeps
+   * them unblurred.
    */
-  function lookLua(look, lookSchema, activeHex, inactiveHex, borderWidth, radius, surfacesBlur) {
+  function lookLua(look, lookSchema) {
     const overrides = {};
     if (look.blur) {
-      overrides["decoration.blur.enabled"] = look.windowBlur || surfacesBlur === true;
-      if (!look.windowBlur)
+      overrides["decoration.blur.enabled"] = look.blur.windows || look.blur.surfaces;
+      if (!look.blur.windows)
         overrides["decoration.blur.popups"] = false;
     }
-    const table = configTable(lookSchema, look, null, overrides);
+    const table = configTable(lookSchema, look.values, null, overrides);
     if (look.borders)
       _set(table, "general.col", {
-        "active_border": `rgb(${activeHex})`,
-        "inactive_border": `rgb(${inactiveHex})`
+        "active_border": `rgb(${look.borders.active})`,
+        "inactive_border": `rgb(${look.borders.inactive})`
       });
     if (look.shape) {
-      _set(table, "general.border_size", borderWidth);
-      _set(table, "decoration.rounding", radius);
+      _set(table, "general.border_size", look.shape.width);
+      _set(table, "decoration.rounding", look.shape.radius);
     }
     if (look.gaps) {
-      _set(table, "general.gaps_in", look.gapsIn);
-      _set(table, "general.gaps_out", look.gapsOut);
+      _set(table, "general.gaps_in", look.gaps.inner);
+      _set(table, "general.gaps_out", look.gaps.outer);
     }
     const lines = Object.keys(table).length > 0 ? `hl.config(${serialize(table)})`.split("\n") : [];
     // Redefined (on or off) while the blur part is on; turning the part off
     // reloads Hyprland, which drops it
     if (look.blur)
-      lines.push(`hl.window_rule({ name = "axiom-no-window-blur", match = { class = ".*" }, no_blur = true, enabled = ${!look.windowBlur && surfacesBlur === true} })`);
+      lines.push(`hl.window_rule({ name = "axiom-no-window-blur", match = { class = ".*" }, no_blur = true, enabled = ${!look.blur.windows && look.blur.surfaces} })`);
     return lines;
-  }
-
-  // Which of its parts are on, e.g. ["borders", "gaps"]
-  function lookParts(look) {
-    return ["borders", "shape", "gaps", "blur", "opacity"].filter(part => look[part]);
   }
 
   // --- The environment (Hyprland.managed recommendedEnv) ---

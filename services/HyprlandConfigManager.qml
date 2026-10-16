@@ -124,8 +124,19 @@ Singleton {
     return forFile === true ? Appearance.blur : BlurManager.active;
   }
 
+  // The window look's parts that are on (CompositorLayer.look)
+  function _look(forFile) {
+    return CompositorLayer.look(WindowLookConfig.look, {
+      "activeHex": HyprConfigLua.hex(Theme.borderFocus),
+      "inactiveHex": HyprConfigLua.hex(Theme.border),
+      "borderWidth": Appearance.borderWidth,
+      "radius": Appearance.borderRadius,
+      "surfacesBlur": _surfacesBlur(forFile)
+    });
+  }
+
   function _lookLua(forFile) {
-    return HyprLua.lookLua(WindowLookConfig.look, ConfigManager.configSchema?.properties?.WindowLook, HyprConfigLua.hex(Theme.borderFocus), HyprConfigLua.hex(Theme.border), Appearance.borderWidth, Appearance.borderRadius, _surfacesBlur(forFile));
+    return HyprLua.lookLua(_look(forFile), ConfigManager.configSchema?.properties?.WindowLook);
   }
 
   // The blur behind axiom's surfaces, its rules written on or off
@@ -440,13 +451,14 @@ Singleton {
   // The look and the blur as evaluated at runtime now, noting which look
   // parts that applies (the runtime layer evaluates them too)
   function _runtimeLookLua() {
-    _lookState.applied = HyprLua.lookParts(WindowLookConfig.look).join(",");
-    return _lookLua(false).concat(_blurLua(false));
+    const look = _look(false);
+    _lookState.applied = look.parts.join(",");
+    return HyprLua.lookLua(look, ConfigManager.configSchema?.properties?.WindowLook).concat(_blurLua(false));
   }
 
   // The look's parts evaluated since the last reload that are off now
   function _droppedLookParts() {
-    const now = HyprLua.lookParts(WindowLookConfig.look);
+    const now = CompositorLayer.look(WindowLookConfig.look, {}).parts;
     return _lookState.applied.split(",").filter(part => part !== "" && !now.includes(part));
   }
 

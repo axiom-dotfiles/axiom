@@ -1,6 +1,6 @@
 # Backend contract
 
-> **Files:** `services/CompositorManager.qml`, `services/HyprlandManager.qml`, `components/methods/HyprState.qml`, `tests/tst_HyprState.qml`
+> **Files:** `services/CompositorManager.qml`, `services/HyprlandManager.qml`, `components/methods/HyprState.qml`, `components/methods/CompositorLayer.qml`, `tests/tst_HyprState.qml`, `tests/tst_CompositorLayer.qml`
 > **Config:** none
 > **Related:** [The compositor](README.md), [Sway backend](sway-backend.md)
 
@@ -39,7 +39,7 @@ Plain JS objects, rebuilt as the compositor reports changes. Converters sit in a
   - `applyRemap(plan, outputNames)`
   - `refresh()`
 - **Session and input**: `withKeyboard(cb)`, `cycleKeyboardLayout(direction, cb)`, `withCursorPos(cb)`, `warpCursorToLayer(…)`, `withLayerRects(cb)`, `exitSession()`, `dpmsCommand(on)` (a shell command, for the idle daemon).
-- **Look**: `applyLook({ look, activeColor, inactiveColor, borderWidth, radius })`. Only for backends without `configModes`.
+- **Look**: `applyLook(look)`, `look` being `CompositorLayer.look()`'s spec: `{ parts, values, borders: { active, inactive } ("rrggbb"), shape: { width, radius }, gaps: { inner, outer }, blur: { windows, surfaces }, opacity: { active, inactive, fullscreen } }`, a part `null` while off. Only for backends without `configModes`.
 
 ### Capabilities
 `supports` keys (absent means false):
@@ -58,3 +58,13 @@ Plain JS objects, rebuilt as the compositor reports changes. Converters sit in a
 | `windowGeometry` | window positions and sizes are real: without it the screenshot's window mode is left out (`ScreenshotManager.kinds`; a `window` request takes a region) and no window obscures a dock (`DockManager.obscured`). The overview still draws windows where they say they are |
 | `workspaceSlide` | `travel` legs slide |
 | `windowBorders`, `windowShape`, `windowGaps`, `windowBlur`, `windowOpacity` | the `WindowLook` parts shown and applied |
+| `inputConfig` | axiom sets the keyboard, mouse and touchpad |
+| `keyCapture` | the Keybinds page's recorder can take keys from the compositor's binds |
+| `bindMerge` | the user's own binds can be read (the Keybinds page's List, conflicts, Merge) |
+| `monitorColor` | a monitor rule's bit depth, color management and SDR fields |
+| `monitorMirror` | a monitor rule can mirror another output |
+| `namedSpecial` | named special workspaces (the `toggleSpecial` / `moveToSpecial` binds) |
+| `scratchpad` | a scratchpad (sway's), standing in for the special workspace in those binds |
+| `mouseBinds` | binds on mouse buttons (`mouseDrag`, `mouseResize`) |
+| `pseudoTile` | the `pseudo` bind |
+| `windowGroups` | the `toggleGroup` bind |

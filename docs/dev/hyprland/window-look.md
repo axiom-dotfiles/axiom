@@ -1,6 +1,6 @@
 # Hyprland window look
 
-> **Files:** `config/WindowLookConfig.qml`, `services/HyprlandConfigManager.qml`, `components/methods/HyprLua.qml`, `services/HyprlandManager.qml`, `components/views/settings/TranslucencyStatus.qml`
+> **Files:** `config/WindowLookConfig.qml`, `services/HyprlandConfigManager.qml`, `components/methods/CompositorLayer.qml`, `components/methods/HyprLua.qml`, `services/HyprlandManager.qml`, `components/views/settings/TranslucencyStatus.qml`
 > **Config:** `WindowLook.*` (borders, `shape`, gaps, `blur`, `opacity`, `windowBlur`)
 > **Related:** [The compositor](../compositor/README.md), [Config modes](config-modes.md), [Translucency and blur](../theming/translucency-blur.md), [Lockscreen](../features/lockscreen.md)
 
@@ -15,7 +15,8 @@ The themed window look axiom gives Hyprland: borders, shape, gaps, blur and wind
   - `gaps_in`/`gaps_out`
   - Hyprland's blur (`blur`: `decoration.blur.*`). Its size and passes are the one strength that windows and axiom's surfaces share.
   - window opacity (`opacity`).
-- All of it becomes one `hl.config` (`HyprLua.lookLua`).
+- `CompositorLayer.look()` decides which parts are on and their values (colors, shape, gaps), the same spec every backend gets ([contract](../compositor/contract.md)).
+- All of it becomes one `hl.config` (`HyprLua.lookLua`, from that spec).
   - The blur and opacity fields are `x-hypr` fields, each gated by `x-hyprIf` on its part, so `configTable` writes them.
 
 ### Blur and windows

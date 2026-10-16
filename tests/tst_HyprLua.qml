@@ -429,19 +429,30 @@ assert(removed == 2, "earlier handlers removed")
     tryVerify(() => written.done, 2000);
   }
 
+  // The look's spec (CompositorLayer.look) from WindowLook's values
+  function look(values, activeHex, inactiveHex, borderWidth, radius, surfacesBlur) {
+    return CompositorLayer.look(values, {
+      "activeHex": activeHex,
+      "inactiveHex": inactiveHex,
+      "borderWidth": borderWidth,
+      "radius": radius,
+      "surfacesBlur": surfacesBlur
+    });
+  }
+
   function test_look_writes_only_its_parts_that_are_on() {
     const schema = files.json("config/json/config.schema.json");
     const lookSchema = schema.properties.WindowLook;
     const off = SchemaValidation.applyDefaults({}, lookSchema, schema);
-    compare(HyprLua.lookLua(off, lookSchema, "ffffff", "000000", 2, 8, true), []);
-    compare(HyprLua.lookParts(off), []);
+    compare(HyprLua.lookLua(look(off, "ffffff", "000000", 2, 8, true), lookSchema), []);
+    compare(look(off).parts, []);
 
     const gaps = Object.assign({}, off, {
       "gaps": true,
       "gapsIn": 4,
       "gapsOut": 12
     });
-    const gapsLua = HyprLua.lookLua(gaps, lookSchema, "ffffff", "000000", 2, 8, true).join("\n");
+    const gapsLua = HyprLua.lookLua(look(gaps, "ffffff", "000000", 2, 8, true), lookSchema).join("\n");
     verify(gapsLua.includes("gaps_in = 4"));
     verify(gapsLua.includes("gaps_out = 12"));
     verify(!gapsLua.includes("rounding"));
@@ -458,7 +469,7 @@ assert(removed == 2, "earlier handlers removed")
       "opacity": true,
       "inactiveOpacity": 90
     });
-    const lines = HyprLua.lookLua(all, lookSchema, "aabbcc", "112233", 2, 8, false);
+    const lines = HyprLua.lookLua(look(all, "aabbcc", "112233", 2, 8, false), lookSchema);
     const lua = lines.join("\n");
     verify(lua.startsWith("hl.config("));
     verify(lua.includes('active_border = "rgb(aabbcc)"'));
@@ -468,7 +479,7 @@ assert(removed == 2, "earlier handlers removed")
     verify(lua.includes("size = 6") && lua.includes("passes = 2"), "the blur's strength");
     verify(lua.includes("noise = 0.012"), "every blur field, scaled, default or not");
     verify(lua.includes("inactive_opacity = 0.9") && lua.includes("active_opacity = 1"));
-    compare(HyprLua.lookParts(all), ["borders", "shape", "gaps", "blur", "opacity"]);
+    compare(look(all).parts, ["borders", "shape", "gaps", "blur", "opacity"]);
     verify(lua.includes('name = "axiom-no-window-blur"') && lua.includes("enabled = false })"), "windows blur: the rule redefined off");
     const written = files.write("tests/.out/look.lua", lua + "\n");
     tryVerify(() => written.done, 2000);
@@ -479,7 +490,7 @@ assert(removed == 2, "earlier handlers removed")
       "windowBlur": false,
       "blurPopups": true
     });
-    const run = (surfacesBlur, check) => `${HyprLua.lookLua(surfacesOnly, lookSchema, "aabbcc", "112233", 2, 8, surfacesBlur).join("\n")}\n${check}\n`;
+    const run = (surfacesBlur, check) => `${HyprLua.lookLua(look(surfacesOnly, "aabbcc", "112233", 2, 8, surfacesBlur), lookSchema).join("\n")}\n${check}\n`;
     const runLua = `local options, rules = {}, {}
 hl = {
   config = function(t) options = t end,

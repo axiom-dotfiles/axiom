@@ -47,7 +47,16 @@ Singleton {
       "windowShape": true,
       "windowGaps": true,
       "windowBlur": true,
-      "windowOpacity": true
+      "windowOpacity": true,
+      "inputConfig": true,
+      "keyCapture": true,
+      "bindMerge": true,
+      "monitorColor": true,
+      "monitorMirror": true,
+      "namedSpecial": true,
+      "mouseBinds": true,
+      "pseudoTile": true,
+      "windowGroups": true
     })
 
   // Re-reads the monitors and the windows soon (Quickshell re-reads the
