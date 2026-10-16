@@ -535,11 +535,43 @@ Singleton {
     onTriggered: {
       if (!root.live)
         return;
-      if (root._appliedMode !== root.mode || root._droppedParts().length > 0)
+      if (root._appliedMode !== root.mode || root._droppedParts().length > 0) {
         root.apply();
-      else
+      } else {
         root._applyLive();
+        root._fileSync.restart();
+      }
     }
+  }
+
+  // The file modes' file follows the live parts too, once they've settled,
+  // written without a reload (the runtime eval has applied them): else it
+  // keeps what they were at its last write, and the next session starts
+  // from that (a cursor theme, and the XCURSOR_THEME apps get). Hyprland
+  // reloads a hyprland.lua that changed by itself; that's once, after the
+  // settings settle.
+  property Timer _fileSync: Timer {
+    interval: 2000
+    onTriggered: root._syncFile()
+  }
+
+  function _syncFile() {
+    if (!root.live || root._appliedMode !== root.mode || root.status !== "loaded" || root._reloading)
+      return;
+    const path = root.mode === "managed" ? root.managedPath : root.mode === "included" ? root.includePath : "";
+    if (path === "")
+      return;
+    const text = root.mode === "managed" ? root.writer.managedText(root.spec(true)) : root.writer.moduleText(root.spec(true));
+    if (FileManager.read(path) !== text)
+      root._writeFile(syncWriter, path, text);
+  }
+
+  property FileView _syncWriter: FileView {
+    id: syncWriter
+    atomicWrites: true
+    blockLoading: true
+    printErrors: false
+    onSaveFailed: error => console.warn("[CompositorConfigManager] Could not write", syncWriter.path, error)
   }
 
   property Timer _debounce: Timer {

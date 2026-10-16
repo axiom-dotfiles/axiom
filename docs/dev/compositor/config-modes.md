@@ -24,6 +24,7 @@ How axiom sets the compositor up, the same on every compositor with `supports.co
 - They are evaluated at runtime as they change (`_liveInputs`, debounced), in every mode: a reload on every step of a setting stalls the desktop, and detached, re-applying the whole layer redoes every bind. The file holds them as of its last write.
 - After every `configReloaded` in the file modes they are evaluated again (`_applyLive`), so they win over the user's own lines while they're on. Detached, the runtime layer evaluates them with the rest, through the writer's `liveLinesHook`.
 - A runtime eval can't take a setting back: a part turned off since it was evaluated reloads the compositor's config (`_undoLive`, `_droppedParts`). What was evaluated is `_liveState.applied` (a `PersistentProperties`): the look's parts the compositor applies (`supports.window<Part>`) and `input:<part>` (with `inputConfig`), so a part it can't apply (blur on sway) never causes a reload.
+- Once they've settled (2 s), the file modes' file is written with them too, without a reload (`_syncFile`, its own `FileView`), so the next session starts from them: before, a cursor theme changed live stayed the old one in the file, and in the `XCURSOR_THEME` apps got. (Hyprland reloads a `hyprland.lua` that changed by itself, once.)
 - The cursor theme is set as it changes (`writer.setCursor`, `_liveState.cursor`); a reload keeps it, so turning the part off leaves it until the session ends.
 
 ### Include and autostart lines
