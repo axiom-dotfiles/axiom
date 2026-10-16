@@ -136,7 +136,7 @@ FieldGroup {
 
       StyledText {
         visible: root.blocked
-        text: CompositorConfigManager.managedBlockedBy === "git" ? I18n.tr("{0} is inside the git repository at {1}, so axiom won't take it over. Use Included instead.", Paths.shortenHome(CompositorConfigManager.configDir), Paths.shortenHome(CompositorConfigManager.managedBlockedRepo)) : I18n.tr("{0} is a symlink or in a git repository, so axiom won't take it over. Use Included instead.", Paths.shortenHome(Paths.hyprlandPath))
+        text: CompositorConfigManager.managedBlockedBy === "git" ? I18n.tr("{0} is inside the git repository at {1}, so axiom won't take it over. Use Included instead.", Paths.shortenHome(CompositorConfigManager.configDir), Paths.shortenHome(CompositorConfigManager.managedBlockedRepo)) : I18n.tr("{0} is a symlink or in a git repository, so axiom won't take it over. Use Included instead.", Paths.shortenHome(CompositorConfigManager.configDir))
         textSize: Appearance.fontSize - 1
         wrapMode: Text.WordWrap
         Layout.fillWidth: true
@@ -158,8 +158,46 @@ FieldGroup {
 
   // --- The mode in effect ---
 
+  // Managed waits for the user's go-ahead on this compositor
+  StyledContainer {
+    visible: CompositorConfigManager.takeoverPending && !root.pending
+    Layout.fillWidth: true
+    implicitHeight: approvalColumn.implicitHeight + Widget.padding * 2
+    backgroundColor: Theme.background
+    borderColor: Theme.warning
+
+    ColumnLayout {
+      id: approvalColumn
+      anchors.top: parent.top
+      anchors.left: parent.left
+      anchors.right: parent.right
+      anchors.margins: Widget.padding
+      spacing: Widget.spacing / 2
+
+      StyledText {
+        text: I18n.tr("Managed mode needs your approval")
+        textColor: Theme.warning
+        font.bold: true
+        Layout.fillWidth: true
+      }
+
+      StyledText {
+        text: I18n.tr("Taking over {0} moves your config into {1}, where it keeps working, with a dated backup beside it. Until then, axiom applies its layer at runtime. Included mode leaves your config alone.", Paths.shortenHome(CompositorConfigManager.managedPath), Paths.shortenHome(CompositorConfigManager.userDir))
+        textSize: Appearance.fontSize - 1
+        wrapMode: Text.WordWrap
+        Layout.fillWidth: true
+      }
+
+      StyledTextButton {
+        implicitHeight: Widget.height - 4
+        text: I18n.tr("Allow takeover")
+        onClicked: CompositorConfigManager.allowTakeover()
+      }
+    }
+  }
+
   StyledText {
-    visible: root.status === "fallback"
+    visible: root.status === "fallback" && !CompositorConfigManager.takeoverPending
     text: CompositorConfigManager.problem + "\n" + I18n.tr("Until then, axiom applies its layer at runtime.")
     textColor: Theme.warning
     textSize: Appearance.fontSize - 1

@@ -57,15 +57,25 @@ QtObject {
     return [Paths.scriptsPath + "claim_hyprland.sh", verb, hyprlandPath, header, releasedLua];
   }
 
-  function checkManaged() {
+  // Looks again what a takeover would do (`managedCheck`), then calls back
+  // with it
+  function checkManaged(callback) {
+    if (callback)
+      _checkWaiting.push(callback);
     if (_checking)
       return;
     _checking = true;
     CommandManager.run(_script("check"), (code, out) => {
       root._checking = false;
       root._managedCheck = out.trim();
+      const waiting = root._checkWaiting;
+      root._checkWaiting = [];
+      waiting.forEach(callback => callback(root.managedCheck));
     });
   }
+
+  // Callers waiting for a check's answer
+  property var _checkWaiting: []
 
   // Looks for user/*.lua files that set monitors (managed mode only)
   function findMonitorConflicts() {

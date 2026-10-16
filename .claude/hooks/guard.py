@@ -151,6 +151,17 @@ def check_argv(env, argv, cwd):
         if str(target).startswith(str(HOME / ".config") + "/") or target == HOME / ".config" or target == HOME:
             deny("Never, while testing", f"{name} claim/release only on a scratch dir, never the live compositor config.")
 
+    # Moving binds out of the live compositor config's files (managed mode's
+    # bind merge): Hyprland's, sway's. Run directly or through python
+    merge = argv if re.fullmatch(r"merge_\w+_binds\.py", name) else None
+    if merge is None and name.startswith("python"):
+        at = next((i for i, a in enumerate(args) if re.fullmatch(r"merge_\w+_binds\.py", Path(a).name)), None)
+        merge = args[at:] if at is not None else None
+    if merge and len(merge) >= 3 and merge[1] == "remove":
+        target = resolve(merge[2], cwd)
+        if str(target).startswith(str(HOME / ".config") + "/") or target == HOME / ".config" or target == HOME:
+            deny("Never, while testing", f"{Path(merge[0]).name} remove only on a scratch dir, never the live compositor config.")
+
     # A theme integration's hookup on the real configs
     if name == "integration_hookup.py" or (name.startswith("python") and any(Path(a).name == "integration_hookup.py" for a in args)):
         rest = args[[Path(a).name for a in args].index("integration_hookup.py") + 1:] if name.startswith("python") else args

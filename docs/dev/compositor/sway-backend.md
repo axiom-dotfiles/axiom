@@ -1,10 +1,10 @@
 # Sway backend
 
-> **Files:** `services/SwayManager.qml`, `services/SwayIpcManager.qml`, `services/SwayConfigWriter.qml`, `services/SwayRuntimeLayer.qml`, `scripts/sway_config_text.py`, `components/surfaces/switcher/SwitcherKeys.qml`, `components/methods/SwayState.qml`, `components/methods/SwayConf.qml`, `tests/tst_SwayState.qml`, `tests/tst_SwayConf.qml`, `services/CompositorManager.qml`, `scripts/dev/nested.sh`
-> **Config:** `WindowLook.*`, `Input.*`, `Keybinds.binds`, `Monitors.profiles`, `Compositor.mode`
+> **Files:** `services/SwayManager.qml`, `services/SwayIpcManager.qml`, `services/SwayConfigWriter.qml`, `services/SwayRuntimeLayer.qml`, `services/SwayTakeover.qml`, `services/SwayBindMerge.qml`, `scripts/sway_config_text.py`, `scripts/claim_sway.sh`, `scripts/merge_sway_binds.py`, `components/surfaces/switcher/SwitcherKeys.qml`, `components/methods/SwayState.qml`, `components/methods/SwayConf.qml`, `tests/tst_SwayState.qml`, `tests/tst_SwayConf.qml`, `services/CompositorManager.qml`, `scripts/dev/nested.sh`
+> **Config:** `WindowLook.*`, `Input.*`, `Keybinds.binds`, `Monitors.profiles`, `Compositor.mode`, `WindowBehaviour.*`, `Sway.*`, `Session.*`
 > **Related:** [The compositor](README.md), [Backend contract](contract.md), [Recipe: compositor backend](../../recipes/compositor-backend.md)
 
-`SwayManager` is `CompositorManager.backend` under sway: the state, workspaces, windows, outputs, keyboard and special groups, and `SwayConfigWriter` for the detached and included modes (binds, the window look, input). Managed isn't written yet: it falls back to the runtime layer.
+`SwayManager` is `CompositorManager.backend` under sway: the state, workspaces, windows, outputs, keyboard and special groups, and `SwayConfigWriter` for all three config modes (binds, the window look, input; managed also the shared `WindowBehaviour` options, the `Sway` section and the session).
 
 ### Running it
 - `scripts/dev/nested.sh sway` (needs `sway`; `foot` for a terminal inside) opens sway in a window, with a second axiom in it:
@@ -56,8 +56,14 @@ The [config modes](config-modes.md) on sway; the text comes from the pure `SwayC
 - **detached** (`SwayRuntimeLayer`): the binds and the live lines sent through `swaymsg` (`SwayManager.runCommands`), again after every `configReloaded`, which drops them.
   - Sway can't list its binds, so the user's are read from their config files: `scripts/sway_config_text.py` prints the config sway runs (the `-c` of the sway `$SWAYSOCK` names, else where sway looks) with its `include`s put in and axiom's own file left out, and `SwayConf.configBinds` reads its `bindsym`/`bindcode` lines (with `$variables` and `mode` blocks) as BindKeys' entries. A key the user binds is skipped (`skippedKeys`).
   - What it bound is kept as the commands unbinding it (`unbindsym …`, a `PersistentProperties`), sent first on the next apply.
-- **included**: `$XDG_STATE_HOME/axiom/sway.conf`, which the user's config includes (`includeLines`: `include <path>`). `checkLoaded`: the file defines a mode (`axiom_included`, `get_binding_modes`) nothing else defines. Monitor profiles aren't written: `MonitorManager` applies the one for what's connected at start and on every hotplug (no `outputProfiles`).
-- **managed**: not yet. `claim()` blocks, so the runtime layer stands in (`blockedProblem`).
+- **included**: `$XDG_STATE_HOME/axiom/sway.conf`, which the user's config includes (`includeLines`: `include <path>`). `checkLoaded`: axiom's file (this or the managed config) defines a mode nothing else does (`SwayConf.loadedMode`, `axiom_layer`; `get_binding_modes`). Monitor profiles aren't written: `MonitorManager` applies the one for what's connected at start and on every hotplug (no `outputProfiles`).
+- **managed** (`SwayTakeover`, `scripts/claim_sway.sh`, as Hyprland's): axiom writes `~/.config/sway/config` (`$XDG_CONFIG_HOME/sway/`, `Paths.swayPath`) with the module's lines, the `WindowBehaviour` and `Sway` options (`SwayConf.optionLines`, by `x-sway`) and the session, then `include ~/.config/sway/user/*`.
+  - The takeover adopts the previous config as `user/00-previous.conf` (a dated backup beside the original), its lines starting axiom or including the module commented out and its relative `include`s made absolute; sway's example config (`/etc/sway/config`) is only backed up. Release puts it back.
+  - The adopted file's binds move into axiom (`SwayBindMerge`, `scripts/merge_sway_binds.py`, the same JSON as Hyprland's merge): an action where one does the same (axiom's own IPC calls read back through `BindActions.ipcActions`), `exec`, else `raw` for sway; the moved lines are commented out (`# (moved into axiom)`, backups in `user/.backups/`, which `user/*` doesn't include).
+  - Sway has no `env`: the session's environment (`CompositorLayer.sessionEnv`) goes to axiom's start line (`exec env … qs …`) and `dbus-update-activation-environment`. Apps sway's own binds start don't get it.
+  - `exec` lines run once, at sway's start, not on a reload.
+  - Like every managed takeover, it waits for the user's approval when the config is theirs ([config modes](config-modes.md) › Approving a takeover).
+- **Reading the user's binds** in managed mode: `sway_config_text.py --skip-header` leaves out the managed config's own lines, so only `user/` counts.
 - **Binds** (`SwayConf.bindLine`): `bindsym --no-warn [--whole-window] [--locked] [--release] [--no-repeat] Mod4+Shift+q <command>`. A letter is lower case; `code:N` is a `bindcode`; the wheel is `button4`-`7` and mouse buttons `BTN_*`, over the whole window. Sway repeats a held bind unless told, Hyprland doesn't: every bind without `repeating` gets `--no-repeat`.
   - Actions: `focus`/`move <dir>`, `resize grow|shrink width|height N px`, `kill`, `fullscreen toggle`, `floating toggle`, `sticky toggle` (pin), `move position center`, `layout toggle split`, `exit`; IPC actions and apps as `exec`, quoted when sway would split or unquote them. Raw binds written for sway pass through.
   - `mouseDrag`/`mouseResize` are sway's `floating_modifier <mod> normal|inverse`.

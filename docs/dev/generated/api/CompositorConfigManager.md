@@ -29,6 +29,8 @@ Sets the compositor up for axiom (the Compositor section's mode, CompositorConfi
 - `merging` (readonly bool)
 - `lastMerge` (readonly var): The last merge, or null
 - `mergeable` (readonly int): How many binds a Merge of all the user's files would move; -1 until looked
+- `takeoverPending` (readonly bool): Managed mode waits for the user before taking over a config of theirs on this compositor: one that came with the mode from elsewhere (another compositor's, an import) never took it over here.
+- `approvalProblem` (readonly string): Why it waits (`problem` meanwhile)
 
 ### Signals
 
@@ -44,3 +46,4 @@ Sets the compositor up for axiom (the Compositor section's mode, CompositorConfi
 - `copyIncludeLines()`
 - `openConfigDir()`
 - `apply()`
+- `allowTakeover()`: The status card's (and the notification's) Allow

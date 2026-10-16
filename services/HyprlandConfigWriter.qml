@@ -155,13 +155,17 @@ Singleton {
 
   // The managed hyprland.lua, from `spec` as for moduleText
   function managedText(spec) {
-    // reads: Hyprland.managed.*, Session.*
-    return HyprConfigLua.managedLua(moduleText(spec), HyprlandConfig.managed, {
+    // reads: Hyprland.managed.*, WindowBehaviour.*, Session.*
+    const schema = ConfigManager.configSchema?.properties;
+    return HyprConfigLua.managedLua(moduleText(spec), Object.assign({}, HyprlandConfig.managed, WindowBehaviourConfig.behaviour), {
       "header": _header,
       "userDir": userDir,
       "session": SessionConfig.session,
       "cursor": spec.input.cursor,
-      "schema": ConfigManager.configSchema?.properties?.Hyprland?.properties?.managed,
+      // Hyprland's own options and the shared ones, as one
+      "schema": {
+        "properties": Object.assign({}, schema?.Hyprland?.properties?.managed?.properties, schema?.WindowBehaviour?.properties)
+      },
       "resolveHex": name => HyprConfigLua.hex(Theme.resolveColor(name)),
       "motion": _motion,
       "start": {
@@ -184,7 +188,7 @@ Singleton {
 
   // Everything else the layer is made of (CompositorConfigManager re-applies
   // the layer when it changes)
-  readonly property string inputsKey: [HyprlandConfig._managedJson, Theme.baseColorNames.map(name => Theme.resolveColor(name)).join(","), Appearance.animFast, Appearance.animations, Apps.terminalCommand, Apps.fileManagerCommand, Apps.browserCommand, Idle.enabled, PolkitConfig.enabled].join("|")
+  readonly property string inputsKey: [HyprlandConfig._managedJson, WindowBehaviourConfig._behaviourJson, Theme.baseColorNames.map(name => Theme.resolveColor(name)).join(","), Appearance.animFast, Appearance.animations, Apps.terminalCommand, Apps.fileManagerCommand, Apps.browserCommand, Idle.enabled, PolkitConfig.enabled].join("|")
 
   // --- At runtime ---
 
@@ -272,8 +276,9 @@ Singleton {
   // Managed mode: the user/*.lua files that set monitors themselves
   readonly property alias monitorConflicts: takeover.monitorConflicts
 
-  function checkManaged() {
-    takeover.checkManaged();
+  // `callback` (optional) gets managedCheck once known
+  function checkManaged(callback) {
+    takeover.checkManaged(callback);
   }
 
   function claim() {

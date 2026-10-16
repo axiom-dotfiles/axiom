@@ -652,10 +652,12 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `SettingsManager.qml`: The settings page's working copy of the config.
 - `ShellManager.qml`: Shell manager manages global options and signals
 - `StateManager.qml`: Small JSON state files in Paths.statePath: createStateHandler(name) gives a shared save/load handler per name.
-- `SwayConfigWriter.qml`: Sway's config writer (docs/dev/compositor/config-modes.md), reached as SwayManager.configWriter by CompositorConfigManager, which drives the modes.
+- `SwayBindMerge.qml`: Every bindsym/bindcode line in user/* that can move becomes one of axiom's binds (an action where one does the same, `exec`, else the `raw` action for sway), saved first, then its line is commented out (a dated backup i…
+- `SwayConfigWriter.qml`: ~/.config/sway/user/* after it (SwayTakeover) Monitor profiles aren't written: MonitorManager applies the one for what's connected at start and on every hotplug.
 - `SwayIpcManager.qml`: Requests to sway that want a reply, through swaymsg: what Quickshell.I3 doesn't cover (its I3.dispatch runs a command with no reply, and it has no window tree, inputs or outputs in full).
 - `SwayManager.qml`: CompositorManager's backend on sway (docs/dev/compositor/contract.md, docs/dev/compositor/sway-backend.md): sway's state as the compositor-neutral shapes (SwayState), and the primitives CompositorManager builds on.
 - `SwayRuntimeLayer.qml`: Axiom's sway layer sent at runtime, for SwayConfigWriter: the detached mode, and the fallback of the file modes while their file isn't loaded.
+- `SwayTakeover.qml`: Taking ~/.config/sway/config over for the managed mode, and giving it back (scripts/claim_sway.sh), for SwayConfigWriter, which acts on the results (claimed, blocked, released).
 - `SystemManager.qml`: CPU / memory / temperature / GPU / disk usage, polled only while something is showing it.
 - `TailscaleManager.qml`: Tailscale's state for every widget that shows it: one `tailscale status --json` at the shortest interval asked for, only while something has acquire()d it.
 - `ThemeManager.qml`: ThemeManager owns the active theme's data (loaded from its file, watched, with defaults for what it leaves out), the theme lists, theme generation from a wallpaper, the wallpaper itself, and re-theming integrated tools.
@@ -702,10 +704,12 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `Screenshots.qml`: Reader for the Screenshots section: where screenshots and recordings are saved (ScreenshotManager resolves the empty defaults)
 - `SelfUpdate.qml`: Reader for the SelfUpdate section (see SelfUpdateManager).
 - `SessionConfig.qml`: Reader for the Session section: what starts with the compositor while axiom manages its config ({ recommendedEnv, env, autostart }).
+- `SwayConfig.qml`: Reader for the Sway section: sway's own options in the managed config (SwayConfigWriter; each field by its x-sway annotation).
 - `Theme.qml`: The active theme's colors: base16 (base00-base0F) and semantic names, filled from theme-defaults.json; resolveColor(name) for names from config.
 - `ThemeIntegrations.qml`: Reader for the ThemeIntegrations section: one switch per scripts/theme_<key>.sh, run by ThemeManager.themeIntegrations().
 - `WeatherConfig.qml`: Reader for the Weather section: the one location and units every weather widget and module shows (see WeatherManager).
 - `Widget.qml`: Reader for the Widget section: sizing for panels, cards, popouts and controls.
+- `WindowBehaviourConfig.qml`: Reader for the WindowBehaviour section: focus and the cursor, which every compositor's managed config writes (each field by its x-hypr / x-sway annotation).
 - `WindowLookConfig.qml`: Reader for the WindowLook section: settings that make windows match axiom ({ borders, activeColor, shape, matchShell, gaps, blur…, opacity… }), applied by the compositor's backend (on Hyprland, HyprlandConfigWriter's lo…
 - `WindowSwitcherConfig.qml`: Reader for the WindowSwitcher section (Alt+Tab).
 - `WorkspaceOverlayConfig.qml`: Reader for the WorkspaceOverlay section (the full-screen workspace overview).

@@ -9,11 +9,193 @@ Hyprland: Hyprland's own options, written while axiom manages its config. Needs 
 Each setting: `path` · type = default · enum/range/unit; then title: description; annotations; `read:` the reader member(s) (exact unless marked) and `in:` the files that use them.
 
 
-### Parts
+### `Hyprland.managed`
 
-- [`Hyprland.managed.curves`](Hyprland.managed.curves.md)
-- [`Hyprland.managed.customAnimations`](Hyprland.managed.customAnimations.md)
-- [`Hyprland.managed`](Hyprland.managed.md)
+- **`Hyprland.managed`** · object
+  - Managed config: Written into hyprland.lua. Anything else goes in ~/.config/hypr/user/*.lua.
+- **`Hyprland.managed.layout`** · string = "dwindle" · enum dwindle|master
+  - Layout: How windows tile. For strips (Hyprland's scrolling columns), see Workspaces.
+  - x-group="Layout", x-hypr="general.layout", x-hyprAlways=true
+  - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `config/HyprlandConfig.qml`, `services/HyprlandConfigWriter.qml`
+- **`Hyprland.managed.preserveSplit`** · boolean = true
+  - Keep split direction: Dwindle keeps a split's direction when the window is resized or moved.
+  - x-group="Layout", x-showIf={"layout":"dwindle"}, x-hypr="dwindle.preserve_split", x-hyprAlways=true
+  - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `config/HyprlandConfig.qml`, `services/HyprlandConfigWriter.qml`
+- **`Hyprland.managed.smartSplit`** · boolean = false
+  - Split by cursor position: Dwindle splits towards the side of the window the cursor is on.
+  - x-group="Layout", x-showIf={"layout":"dwindle"}, x-hypr="dwindle.smart_split"
+  - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `config/HyprlandConfig.qml`, `services/HyprlandConfigWriter.qml`
+- **`Hyprland.managed.smartResizing`** · boolean = true
+  - Resize by cursor position: Resizing moves the edge nearest the cursor.
+  - x-group="Layout", x-showIf={"layout":"dwindle"}, x-hypr="dwindle.smart_resizing"
+  - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `config/HyprlandConfig.qml`, `services/HyprlandConfigWriter.qml`
+- **`Hyprland.managed.forceSplit`** · string = "0" · enum 0|1|2
+  - New windows go
+  - x-group="Layout", x-showIf={"layout":"dwindle"}, x-hypr="dwindle.force_split", x-hyprValue="number"
+  - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `config/HyprlandConfig.qml`, `services/HyprlandConfigWriter.qml`
+- **`Hyprland.managed.splitRatio`** · integer = 100 · 10–190 · %
+  - Split ratio: The first window's share of a new split; 100 splits evenly.
+  - x-group="Layout", x-showIf={"layout":"dwindle"}, x-hypr="dwindle.default_split_ratio", x-hyprScale=0.01
+  - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `config/HyprlandConfig.qml`, `services/HyprlandConfigWriter.qml`
+- **`Hyprland.managed.masterSize`** · integer = 55 · 5–95 · %
+  - Master size
+  - x-group="Layout", x-showIf={"layout":"master"}, x-hypr="master.mfact", x-hyprScale=0.01
+  - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `config/HyprlandConfig.qml`, `services/HyprlandConfigWriter.qml`
+- **`Hyprland.managed.masterOrientation`** · string = "left" · enum left|right|top|bottom|center
+  - Master side
+  - x-group="Layout", x-showIf={"layout":"master"}, x-hypr="master.orientation"
+  - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `config/HyprlandConfig.qml`, `services/HyprlandConfigWriter.qml`
+- **`Hyprland.managed.masterNewStatus`** · string = "slave" · enum slave|master|inherit
+  - New windows become
+  - x-group="Layout", x-showIf={"layout":"master"}, x-hypr="master.new_status"
+  - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `config/HyprlandConfig.qml`, `services/HyprlandConfigWriter.qml`
+- **`Hyprland.managed.snap`** · boolean = false
+  - Snap floating windows: Floating windows snap to each other and the screen edges.
+  - x-group="Layout", x-hypr="general.snap.enabled"
+  - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `config/HyprlandConfig.qml`, `services/HyprlandConfigWriter.qml`
+- **`Hyprland.managed.dimInactive`** · boolean = true
+  - Dim unfocused windows
+  - x-group="Decoration", x-hypr="decoration.dim_inactive", x-hyprAlways=true
+  - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `config/HyprlandConfig.qml`, `services/HyprlandConfigWriter.qml`
+- **`Hyprland.managed.dimStrength`** · integer = 8 · 0–100 · %
+  - Dim strength
+  - x-group="Decoration", x-showIf={"dimInactive":true}, x-hypr="decoration.dim_strength", x-hyprScale=0.01, x-hyprAlways=true
+  - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `config/HyprlandConfig.qml`, `services/HyprlandConfigWriter.qml`
+- **`Hyprland.managed.dimSpecial`** · integer = 20 · 0–100 · %
+  - Dim behind special workspaces
+  - x-group="Decoration", x-hypr="decoration.dim_special", x-hyprScale=0.01
+  - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `config/HyprlandConfig.qml`, `services/HyprlandConfigWriter.qml`
+- **`Hyprland.managed.shadow`** · boolean = true
+  - Window shadows
+  - x-group="Shadows", x-hypr="decoration.shadow.enabled"
+  - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `config/HyprlandConfig.qml`, `services/HyprlandConfigWriter.qml`
+- **`Hyprland.managed.shadowRange`** · integer = 4 · 0–100
+  - Shadow size
+  - x-control="stepper", x-group="Shadows", x-showIf={"shadow":true}, x-hypr="decoration.shadow.range"
+  - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `config/HyprlandConfig.qml`, `services/HyprlandConfigWriter.qml`
+- **`Hyprland.managed.shadowPower`** · integer = 3 · 1–4
+  - Shadow falloff: 1 fades slowly, 4 ends sharply.
+  - x-group="Shadows", x-showIf={"shadow":true}, x-hypr="decoration.shadow.render_power"
+  - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `config/HyprlandConfig.qml`, `services/HyprlandConfigWriter.qml`
+- **`Hyprland.managed.shadowThemed`** · boolean = false
+  - Shadow in a theme color
+  - x-group="Shadows", x-showIf={"shadow":true}
+  - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `config/HyprlandConfig.qml`, `services/HyprlandConfigWriter.qml`
+- **`Hyprland.managed.shadowColor`** · string = "base00"
+  - Shadow color
+  - x-group="Shadows", x-options="colors", x-showIf={"shadowThemed":true}, x-hypr="decoration.shadow.color", x-hyprValue="color", x-hyprAlpha="ee", x-hyprIf="shadowThemed"
+  - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `config/HyprlandConfig.qml`, `services/HyprlandConfigWriter.qml`
+- **`Hyprland.managed.animations`** · boolean = true
+  - Animations
+  - x-group="Animations", x-hypr="animations.enabled", x-hyprAlways=true
+  - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `services/HyprlandConfigWriter.qml`
+- **`Hyprland.managed.animationPreset`** · string = "axiom" · enum hyprland|axiom|snappy|bouncy|lightning|custom
+  - Style: Follow axiom's motion uses Look & Feel → Motion's speed, and turns Hyprland's animations off with axiom's.
+  - x-group="Animations", x-showIf={"animations":true}
+  - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `config/HyprlandConfig.qml`, `services/HyprlandConfigWriter.qml`
+- **`Hyprland.managed.workspaceWraparound`** · boolean = false
+  - Wrap workspace animations: Going from the last workspace to the first slides forward, not back.
+  - x-group="Animations", x-showIf={"animations":true}, x-hypr="animations.workspace_wraparound"
+  - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `config/HyprlandConfig.qml`, `services/HyprlandConfigWriter.qml`
+- **`Hyprland.managed.curves`** · array<object> = []
+  - Curves: Named bezier curves for the custom animations.
+  - x-group="Animations", x-showIf={"animationPreset":"custom"}
+  - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `config/HyprlandConfig.qml`, `services/HyprlandConfigWriter.qml`
+
+### `Hyprland.managed.curves[]`
+
+- **`Hyprland.managed.curves[]`** · object
+- **`Hyprland.managed.curves[].name`** · string = ""
+  - Name
+  - read: entry field, name match, `// reads:` marker · in: `services/HyprlandConfigWriter.qml`
+- **`Hyprland.managed.curves[].points`** · string = "0.25, 0.1, 0.25, 1"
+  - Points: x1, y1, x2, y2, as in CSS cubic-bezier().
+  - read: entry field, name match repo-wide, `// reads:` marker · in: `components/methods/HyprConfigLua.qml`, `services/HyprlandConfigWriter.qml`
+
+### `Hyprland.managed`
+
+- **`Hyprland.managed.customAnimations`** · array<object> = []
+  - Animations: One entry per animation to change; a parent (windows) covers its children (windowsIn, windowsOut, windowsMove).
+  - x-group="Animations", x-showIf={"animationPreset":"custom"}
+  - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `config/HyprlandConfig.qml`, `services/HyprlandConfigWriter.qml`
+
+### `Hyprland.managed.customAnimations[]`
+
+- **`Hyprland.managed.customAnimations[]`** · object
+- **`Hyprland.managed.customAnimations[].leaf`** · string = "windows" · enum global|windows|windowsIn|windowsOut|windowsMove|layers|layersIn|layersOut|fade|fadeIn|fadeOut|fadeSwitch|fadeShadow|fadeDim|border|borderangle|workspaces|workspacesIn|workspacesOut|specialWorkspace|specialWorkspaceIn|specialWorkspaceOut|zoomFactor|monitorAdded
+  - Animation
+  - read: entry field, name match repo-wide, `// reads:` marker · in: `components/methods/HyprConfigLua.qml`, `services/HyprlandConfigWriter.qml`
+- **`Hyprland.managed.customAnimations[].enabled`** · boolean = true
+  - On
+  - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `services/HyprlandConfigWriter.qml`
+- **`Hyprland.managed.customAnimations[].durationMs`** · integer = 300 · 10–5000 · ms
+  - Duration
+  - read: entry field, name match repo-wide, `// reads:` marker · in: `components/content/parts/chat/ChatThinking.qml`, `components/methods/HyprConfigLua.qml`, `services/HyprlandConfigWriter.qml`
+- **`Hyprland.managed.customAnimations[].curve`** · string = "default"
+  - Curve: A curve's name from above, or default.
+  - read: entry field, name match repo-wide, `// reads:` marker · in: `components/methods/HyprConfigLua.qml`, `services/HyprlandConfigWriter.qml`
+- **`Hyprland.managed.customAnimations[].style`** · string = ""
+  - Style: Optional: popin 80%, slide, slidevert, slidefade 20%, fade, gnomed, loop, once.
+  - read: entry field, name match, `// reads:` marker · in: `services/HyprlandConfigWriter.qml`
+
+### `Hyprland.managed`
+
+- **`Hyprland.managed.floatSwitchOverrideFocus`** · string = "1" · enum 0|1|2
+  - Crossing tiled/floating: What moving the cursor between tiled and floating windows does.
+  - x-group="Mouse & cursor", x-showIf={"/WindowBehaviour.followMouse":true}, x-hypr="input.float_switch_override_focus", x-hyprValue="number"
+  - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `config/HyprlandConfig.qml`, `services/HyprlandConfigWriter.qml`
+- **`Hyprland.managed.resizeOnBorder`** · boolean = true
+  - Resize by dragging borders
+  - x-group="Mouse & cursor", x-hypr="general.resize_on_border", x-hyprAlways=true
+  - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `config/HyprlandConfig.qml`, `services/HyprlandConfigWriter.qml`
+- **`Hyprland.managed.hideLogo`** · boolean = true
+  - Hide Hyprland's logo and splash
+  - x-group="Behaviour", x-hypr=["misc.disable_hyprland_logo","misc.disable_splash_rendering"], x-hyprAlways=true
+  - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `config/HyprlandConfig.qml`, `services/HyprlandConfigWriter.qml`
+- **`Hyprland.managed.backgroundThemed`** · boolean = false
+  - Background in a theme color: What shows where there's no wallpaper.
+  - x-group="Behaviour"
+  - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `config/HyprlandConfig.qml`, `services/HyprlandConfigWriter.qml`
+- **`Hyprland.managed.backgroundColor`** · string = "base00"
+  - Background color
+  - x-group="Behaviour", x-options="colors", x-showIf={"backgroundThemed":true}, x-hypr="misc.background_color", x-hyprValue="color", x-hyprIf="backgroundThemed"
+  - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `config/HyprlandConfig.qml`, `services/HyprlandConfigWriter.qml`
+- **`Hyprland.managed.swallow`** · boolean = true
+  - Terminals swallow what they open: A GUI app started from a terminal takes the terminal's place until it closes.
+  - x-group="Behaviour", x-hypr="misc.enable_swallow", x-hyprAlways=true
+  - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `config/HyprlandConfig.qml`, `services/HyprlandConfigWriter.qml`
+- **`Hyprland.managed.swallowRegex`** · string = "^(kitty|foot|Alacritty|com\\.mitchellh\\.ghostty|org\\.wezfurlong\\.…
+  - Swallowing terminals: A regex of terminal window classes.
+  - x-group="Behaviour", x-showIf={"swallow":true}, x-hypr="misc.swallow_regex", x-hyprIf="swallow"
+  - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `config/HyprlandConfig.qml`, `services/HyprlandConfigWriter.qml`
+- **`Hyprland.managed.closeSpecialOnEmpty`** · boolean = true
+  - Close empty special workspaces
+  - x-group="Behaviour", x-hypr="misc.close_special_on_empty"
+  - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `config/HyprlandConfig.qml`, `services/HyprlandConfigWriter.qml`
+- **`Hyprland.managed.hideSpecialOnWorkspaceChange`** · boolean = false
+  - Hide special workspaces on switching
+  - x-group="Behaviour", x-hypr="binds.hide_special_on_workspace_change"
+  - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `config/HyprlandConfig.qml`, `services/HyprlandConfigWriter.qml`
+- **`Hyprland.managed.mouseWakesScreen`** · boolean = true
+  - Mouse wakes the screen
+  - x-group="Behaviour", x-hypr="misc.mouse_move_enables_dpms", x-hyprAlways=true
+  - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `config/HyprlandConfig.qml`, `services/HyprlandConfigWriter.qml`
+- **`Hyprland.managed.keyWakesScreen`** · boolean = false
+  - Keys wake the screen
+  - x-group="Behaviour", x-hypr="misc.key_press_enables_dpms"
+  - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `config/HyprlandConfig.qml`, `services/HyprlandConfigWriter.qml`
+- **`Hyprland.managed.vrr`** · string = "0" · enum 0|1|2
+  - Variable refresh rate
+  - x-group="Behaviour", x-hypr="misc.vrr", x-hyprValue="number"
+  - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `config/HyprlandConfig.qml`, `services/HyprlandConfigWriter.qml`
+- **`Hyprland.managed.scrollEventDelay`** · integer = 300 · 0–2000 · ms
+  - Scroll bind delay: How long a bound scroll ignores further scrolling.
+  - x-group="Behaviour", x-hypr="binds.scroll_event_delay"
+  - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `config/HyprlandConfig.qml`, `services/HyprlandConfigWriter.qml`
+- **`Hyprland.managed.xwaylandZeroScaling`** · boolean = true
+  - Unscaled X11 apps: X11 apps draw at native resolution on scaled monitors, instead of blurry.
+  - x-group="Behaviour", x-hypr="xwayland.force_zero_scaling", x-hyprAlways=true
+  - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `config/HyprlandConfig.qml`, `services/HyprlandConfigWriter.qml`
 
 ### Reader members
 

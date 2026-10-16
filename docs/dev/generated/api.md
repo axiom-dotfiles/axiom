@@ -73,10 +73,12 @@ The public members (no `_` prefix) of every file in `services/` and every config
 - [SettingsManager](api/SettingsManager.md): The settings page's working copy of the config.
 - [ShellManager](api/ShellManager.md): Shell manager manages global options and signals
 - [StateManager](api/StateManager.md): Small JSON state files in Paths.statePath: createStateHandler(name) gives a shared save/load handler per name.
-- [SwayConfigWriter](api/SwayConfigWriter.md): Sway's config writer (docs/dev/compositor/config-modes.md), reached as SwayManager.configWriter by CompositorConfigManager, which drives the modes.
+- [SwayBindMerge](api/SwayBindMerge.md): Every bindsym/bindcode line in user/* that can move becomes one of axiom's binds (an action where one does the same, `exec`, else the `raw` action for sway), s…
+- [SwayConfigWriter](api/SwayConfigWriter.md): ~/.config/sway/user/* after it (SwayTakeover) Monitor profiles aren't written: MonitorManager applies the one for what's connected at start and on every hotplu…
 - [SwayIpcManager](api/SwayIpcManager.md): Requests to sway that want a reply, through swaymsg: what Quickshell.I3 doesn't cover (its I3.dispatch runs a command with no reply, and it has no window tree,…
 - [SwayManager](api/SwayManager.md): CompositorManager's backend on sway (docs/dev/compositor/contract.md, docs/dev/compositor/sway-backend.md): sway's state as the compositor-neutral shapes (Sway…
 - [SwayRuntimeLayer](api/SwayRuntimeLayer.md): Axiom's sway layer sent at runtime, for SwayConfigWriter: the detached mode, and the fallback of the file modes while their file isn't loaded.
+- [SwayTakeover](api/SwayTakeover.md): Taking ~/.config/sway/config over for the managed mode, and giving it back (scripts/claim_sway.sh), for SwayConfigWriter, which acts on the results (claimed, b…
 - [SystemManager](api/SystemManager.md): CPU / memory / temperature / GPU / disk usage, polled only while something is showing it.
 - [TailscaleManager](api/TailscaleManager.md): Tailscale's state for every widget that shows it: one `tailscale status --json` at the shortest interval asked for, only while something has acquire()d it.
 - [ThemeManager](api/ThemeManager.md): ThemeManager owns the active theme's data (loaded from its file, watched, with defaults for what it leaves out), the theme lists, theme generation from a wallp…
@@ -123,10 +125,12 @@ The public members (no `_` prefix) of every file in `services/` and every config
 - [Screenshots](api/Screenshots.md): Reader for the Screenshots section: where screenshots and recordings are saved (ScreenshotManager resolves the empty defaults)
 - [SelfUpdate](api/SelfUpdate.md): Reader for the SelfUpdate section (see SelfUpdateManager).
 - [SessionConfig](api/SessionConfig.md): Reader for the Session section: what starts with the compositor while axiom manages its config ({ recommendedEnv, env, autostart }).
+- [SwayConfig](api/SwayConfig.md): Reader for the Sway section: sway's own options in the managed config (SwayConfigWriter; each field by its x-sway annotation).
 - [Theme](api/Theme.md): The active theme's colors: base16 (base00-base0F) and semantic names, filled from theme-defaults.json; resolveColor(name) for names from config.
 - [ThemeIntegrations](api/ThemeIntegrations.md): Reader for the ThemeIntegrations section: one switch per scripts/theme_<key>.sh, run by ThemeManager.themeIntegrations().
 - [WeatherConfig](api/WeatherConfig.md): Reader for the Weather section: the one location and units every weather widget and module shows (see WeatherManager).
 - [Widget](api/Widget.md): Reader for the Widget section: sizing for panels, cards, popouts and controls.
+- [WindowBehaviourConfig](api/WindowBehaviourConfig.md): Reader for the WindowBehaviour section: focus and the cursor, which every compositor's managed config writes (each field by its x-hypr / x-sway annotation).
 - [WindowLookConfig](api/WindowLookConfig.md): Reader for the WindowLook section: settings that make windows match axiom ({ borders, activeColor, shape, matchShell, gaps, blur…, opacity… }), applied by the …
 - [WindowSwitcherConfig](api/WindowSwitcherConfig.md): Reader for the WindowSwitcher section (Alt+Tab).
 - [WorkspaceOverlayConfig](api/WorkspaceOverlayConfig.md): Reader for the WorkspaceOverlay section (the full-screen workspace overview).

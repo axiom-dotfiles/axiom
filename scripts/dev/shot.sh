@@ -28,7 +28,14 @@ mode="${1:-}"
 shift
 
 ipc() { qs -c axiom ipc call "$@" >/dev/null; }
-[[ -n "$monitor" ]] || monitor="$(hyprctl monitors -j | jq -r '.[] | select(.focused) | .name')"
+# The focused monitor, from whichever compositor runs
+if [[ -z "$monitor" ]]; then
+  if [[ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]]; then
+    monitor="$(hyprctl monitors -j | jq -r '.[] | select(.focused) | .name')"
+  elif [[ -n "${SWAYSOCK:-}" ]]; then
+    monitor="$(swaymsg -t get_outputs -r | jq -r '.[] | select(.focused) | .name')"
+  fi
+fi
 [[ -n "$out" ]] || out="$(mktemp --suffix=.png "${TMPDIR:-/tmp}/axiom-shot-XXXXXX")"
 
 close=()

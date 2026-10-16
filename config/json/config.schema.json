@@ -33,7 +33,7 @@
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 61,
+      "default": 62,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
@@ -668,7 +668,7 @@
           "title": "Managed config",
           "description": "Written into hyprland.lua. Anything else goes in ~/.config/hypr/user/*.lua.",
           "additionalProperties": false,
-          "x-order": ["layout", "preserveSplit", "smartSplit", "smartResizing", "forceSplit", "splitRatio", "masterSize", "masterOrientation", "masterNewStatus", "snap", "dimInactive", "dimStrength", "dimSpecial", "shadow", "shadowRange", "shadowPower", "shadowThemed", "shadowColor", "animations", "animationPreset", "workspaceWraparound", "curves", "customAnimations", "followMouse", "floatSwitchOverrideFocus", "resizeOnBorder", "cursorHideTimeout", "hideCursorOnKeyPress", "noWarps", "hideLogo", "backgroundThemed", "backgroundColor", "focusOnActivate", "swallow", "swallowRegex", "closeSpecialOnEmpty", "hideSpecialOnWorkspaceChange", "workspaceBackAndForth", "mouseWakesScreen", "keyWakesScreen", "vrr", "scrollEventDelay", "xwaylandZeroScaling"],
+          "x-order": ["layout", "preserveSplit", "smartSplit", "smartResizing", "forceSplit", "splitRatio", "masterSize", "masterOrientation", "masterNewStatus", "snap", "dimInactive", "dimStrength", "dimSpecial", "shadow", "shadowRange", "shadowPower", "shadowThemed", "shadowColor", "animations", "animationPreset", "workspaceWraparound", "curves", "customAnimations", "floatSwitchOverrideFocus", "resizeOnBorder", "hideLogo", "backgroundThemed", "backgroundColor", "swallow", "swallowRegex", "closeSpecialOnEmpty", "hideSpecialOnWorkspaceChange", "mouseWakesScreen", "keyWakesScreen", "vrr", "scrollEventDelay", "xwaylandZeroScaling"],
           "properties": {
             "layout": { "type": "string", "title": "Layout", "x-group": "Layout", "enum": ["dwindle", "master"], "x-enumLabels": { "dwindle": "Dwindle (binary splits)", "master": "Master and stack" }, "default": "dwindle", "description": "How windows tile. For strips (Hyprland's scrolling columns), see Workspaces.", "x-hypr": "general.layout", "x-hyprAlways": true },
             "preserveSplit": { "type": "boolean", "title": "Keep split direction", "x-group": "Layout", "default": true, "description": "Dwindle keeps a split's direction when the window is resized or moved.", "x-showIf": { "layout": "dwindle" }, "x-hypr": "dwindle.preserve_split", "x-hyprAlways": true },
@@ -728,21 +728,15 @@
                 }
               }
             },
-            "followMouse": { "type": "boolean", "title": "Focus follows mouse", "x-group": "Mouse & cursor", "default": true, "x-hypr": "input.follow_mouse", "x-hyprValue": "int", "x-hyprAlways": true },
-            "floatSwitchOverrideFocus": { "type": "string", "title": "Crossing tiled/floating", "x-group": "Mouse & cursor", "enum": ["0", "1", "2"], "x-enumLabels": { "0": "Leaves focus alone", "1": "Moves focus", "2": "Moves focus, also floating to floating" }, "default": "1", "description": "What moving the cursor between tiled and floating windows does.", "x-showIf": { "followMouse": true }, "x-hypr": "input.float_switch_override_focus", "x-hyprValue": "number" },
+            "floatSwitchOverrideFocus": { "type": "string", "title": "Crossing tiled/floating", "x-group": "Mouse & cursor", "enum": ["0", "1", "2"], "x-enumLabels": { "0": "Leaves focus alone", "1": "Moves focus", "2": "Moves focus, also floating to floating" }, "default": "1", "description": "What moving the cursor between tiled and floating windows does.", "x-showIf": { "/WindowBehaviour.followMouse": true }, "x-hypr": "input.float_switch_override_focus", "x-hyprValue": "number" },
             "resizeOnBorder": { "type": "boolean", "title": "Resize by dragging borders", "x-group": "Mouse & cursor", "default": true, "x-hypr": "general.resize_on_border", "x-hyprAlways": true },
-            "cursorHideTimeout": { "type": "integer", "title": "Hide the cursor after", "x-unit": "s", "x-group": "Mouse & cursor", "default": 0, "minimum": 0, "maximum": 600, "description": "0 never hides it.", "x-hypr": "cursor.inactive_timeout" },
-            "hideCursorOnKeyPress": { "type": "boolean", "title": "Hide the cursor while typing", "x-group": "Mouse & cursor", "default": false, "x-hypr": "cursor.hide_on_key_press" },
-            "noWarps": { "type": "boolean", "title": "Never move the cursor", "x-group": "Mouse & cursor", "default": false, "description": "Hyprland won't move the cursor to a window it focuses.", "x-hypr": "cursor.no_warps" },
             "hideLogo": { "type": "boolean", "title": "Hide Hyprland's logo and splash", "x-group": "Behaviour", "default": true, "x-hypr": ["misc.disable_hyprland_logo", "misc.disable_splash_rendering"], "x-hyprAlways": true },
             "backgroundThemed": { "type": "boolean", "title": "Background in a theme color", "x-group": "Behaviour", "default": false, "description": "What shows where there's no wallpaper." },
             "backgroundColor": { "type": "string", "title": "Background color", "x-group": "Behaviour", "x-options": "colors", "default": "base00", "x-showIf": { "backgroundThemed": true }, "x-hypr": "misc.background_color", "x-hyprValue": "color", "x-hyprIf": "backgroundThemed" },
-            "focusOnActivate": { "type": "boolean", "title": "Focus windows that ask for it", "x-group": "Behaviour", "default": true, "description": "e.g. a browser window opened from a link.", "x-hypr": "misc.focus_on_activate", "x-hyprAlways": true },
             "swallow": { "type": "boolean", "title": "Terminals swallow what they open", "x-group": "Behaviour", "default": true, "description": "A GUI app started from a terminal takes the terminal's place until it closes.", "x-hypr": "misc.enable_swallow", "x-hyprAlways": true },
             "swallowRegex": { "type": "string", "title": "Swallowing terminals", "x-group": "Behaviour", "default": "^(kitty|foot|Alacritty|com\\.mitchellh\\.ghostty|org\\.wezfurlong\\.wezterm)$", "description": "A regex of terminal window classes.", "x-showIf": { "swallow": true }, "x-hypr": "misc.swallow_regex", "x-hyprIf": "swallow" },
             "closeSpecialOnEmpty": { "type": "boolean", "title": "Close empty special workspaces", "x-group": "Behaviour", "default": true, "x-hypr": "misc.close_special_on_empty" },
             "hideSpecialOnWorkspaceChange": { "type": "boolean", "title": "Hide special workspaces on switching", "x-group": "Behaviour", "default": false, "x-hypr": "binds.hide_special_on_workspace_change" },
-            "workspaceBackAndForth": { "type": "boolean", "title": "Workspace back and forth", "x-group": "Behaviour", "default": false, "description": "Going to the current workspace goes back to the previous one.", "x-hypr": "binds.workspace_back_and_forth" },
             "mouseWakesScreen": { "type": "boolean", "title": "Mouse wakes the screen", "x-group": "Behaviour", "default": true, "x-hypr": "misc.mouse_move_enables_dpms", "x-hyprAlways": true },
             "keyWakesScreen": { "type": "boolean", "title": "Keys wake the screen", "x-group": "Behaviour", "default": false, "x-hypr": "misc.key_press_enables_dpms" },
             "vrr": { "type": "string", "title": "Variable refresh rate", "x-group": "Behaviour", "enum": ["0", "1", "2"], "x-enumLabels": { "0": "Off", "1": "On", "2": "Fullscreen only" }, "default": "0", "x-hypr": "misc.vrr", "x-hyprValue": "number" },
@@ -750,6 +744,43 @@
             "xwaylandZeroScaling": { "type": "boolean", "title": "Unscaled X11 apps", "x-group": "Behaviour", "default": true, "description": "X11 apps draw at native resolution on scaled monitors, instead of blurry.", "x-hypr": "xwayland.force_zero_scaling", "x-hyprAlways": true }
           }
         }
+      }
+    },
+
+    "WindowBehaviour": {
+      "type": "object",
+      "x-category": "Compositor",
+      "x-showIf": { "/$supports.configModes": true, "/Compositor.mode": "managed" },
+      "title": "Windows and focus",
+      "description": "How focus and the cursor behave, written into your compositor's config while axiom manages it.",
+      "additionalProperties": false,
+      "x-order": ["followMouse", "focusOnActivate", "workspaceBackAndForth", "cursorHideTimeout", "hideCursorOnKeyPress", "noWarps"],
+      "properties": {
+        "followMouse": { "type": "boolean", "title": "Focus follows mouse", "x-group": "Mouse & cursor", "default": true, "x-hypr": "input.follow_mouse", "x-hyprValue": "int", "x-hyprAlways": true, "x-sway": "focus_follows_mouse {}", "x-swayValue": "yesNo" },
+        "focusOnActivate": { "type": "boolean", "title": "Focus windows that ask for it", "x-group": "Behaviour", "default": true, "description": "e.g. a browser window opened from a link.", "x-hypr": "misc.focus_on_activate", "x-hyprAlways": true, "x-sway": "focus_on_window_activation {}", "x-swayMap": { "true": "focus", "false": "urgent" } },
+        "workspaceBackAndForth": { "type": "boolean", "title": "Workspace back and forth", "x-group": "Behaviour", "default": false, "description": "Going to the current workspace goes back to the previous one.", "x-hypr": "binds.workspace_back_and_forth", "x-sway": "workspace_auto_back_and_forth {}", "x-swayValue": "yesNo" },
+        "cursorHideTimeout": { "type": "integer", "title": "Hide the cursor after", "x-unit": "s", "x-group": "Mouse & cursor", "default": 0, "minimum": 0, "maximum": 600, "description": "0 never hides it.", "x-hypr": "cursor.inactive_timeout", "x-sway": "seat * hide_cursor {}", "x-swayScale": 1000 },
+        "hideCursorOnKeyPress": { "type": "boolean", "title": "Hide the cursor while typing", "x-group": "Mouse & cursor", "default": false, "x-hypr": "cursor.hide_on_key_press", "x-sway": "seat * hide_cursor when-typing {}", "x-swayValue": "enableDisable" },
+        "noWarps": { "type": "boolean", "title": "Never move the cursor", "x-group": "Mouse & cursor", "default": false, "description": "The compositor won't move the cursor to a window it focuses.", "x-hypr": "cursor.no_warps", "x-sway": "mouse_warping {}", "x-swayMap": { "true": "none", "false": "output" } }
+      }
+    },
+
+    "Sway": {
+      "type": "object",
+      "x-category": "Compositor",
+      "x-showIf": { "/$compositor": "sway", "/Compositor.mode": "managed" },
+      "title": "Sway",
+      "description": "Sway's own options, written while axiom manages its config. Anything else goes in ~/.config/sway/user/.",
+      "additionalProperties": false,
+      "x-order": ["workspaceLayout", "hideEdgeBorders", "smartGaps", "focusWrapping", "popupDuringFullscreen", "xwayland", "font"],
+      "properties": {
+        "workspaceLayout": { "type": "string", "title": "New workspaces", "enum": ["default", "stacking", "tabbed"], "x-enumLabels": { "default": "Tiled", "stacking": "Stacked", "tabbed": "Tabbed" }, "default": "default", "x-sway": "workspace_layout {}" },
+        "hideEdgeBorders": { "type": "string", "title": "Hide borders at the screen edges", "enum": ["none", "vertical", "horizontal", "both", "smart", "smart_no_gaps"], "x-enumLabels": { "none": "Never", "vertical": "Left and right", "horizontal": "Top and bottom", "both": "All", "smart": "With one window", "smart_no_gaps": "With one window and no gaps" }, "default": "none", "x-sway": "hide_edge_borders {}" },
+        "smartGaps": { "type": "string", "title": "Smart gaps", "enum": ["off", "on", "inverse_outer"], "x-enumLabels": { "off": "Off", "on": "No gaps around a lone window", "inverse_outer": "Outer gaps only around a lone window" }, "default": "off", "x-sway": "smart_gaps {}" },
+        "focusWrapping": { "type": "string", "title": "Focus wraps around", "enum": ["yes", "no", "force", "workspace"], "x-enumLabels": { "yes": "Within a container", "no": "Never", "force": "Always", "workspace": "Within the workspace" }, "default": "yes", "x-sway": "focus_wrapping {}" },
+        "popupDuringFullscreen": { "type": "string", "title": "Popups over a fullscreen window", "enum": ["smart", "ignore", "leave_fullscreen"], "x-enumLabels": { "smart": "Show its own", "ignore": "Never show", "leave_fullscreen": "Leave fullscreen" }, "default": "smart", "x-sway": "popup_during_fullscreen {}" },
+        "xwayland": { "type": "string", "title": "X11 apps (Xwayland)", "enum": ["enable", "disable", "force"], "x-enumLabels": { "enable": "When one starts", "disable": "Off", "force": "Always running" }, "default": "enable", "x-sway": "xwayland {}" },
+        "font": { "type": "string", "title": "Title bar font", "default": "", "description": "A Pango font, e.g. pango:Inter 10. Empty keeps sway's.", "x-sway": "font {}", "x-swayValue": "raw", "x-swaySkip": "" }
       }
     },
 

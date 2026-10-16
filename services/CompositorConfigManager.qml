@@ -50,7 +50,12 @@ Singleton {
   onModeChanged: {
     _problem = "";
     _loaded = false;
+    _takeoverPending = false;
     writer?.clearConflicts();
+    // Managed picked while axiom runs (its card's Save) is the approval to
+    // take this compositor's config over; a mode loaded with a config isn't
+    if (mode === "managed" && _appliedMode !== "")
+      _approveTakeover();
   }
 
   // --- The writer's files and lines (for the settings page, the
@@ -293,7 +298,7 @@ Singleton {
     if (mode === "included") {
       _writeIfChanged(includePath, root.writer.moduleText(root.spec(true)));
     } else if (mode === "managed") {
-      root.writer.claim();
+      _claimIfApproved();
     } else {
       _problem = "";
       // Not over the managed layer a release is about to take out: its
@@ -301,6 +306,99 @@ Singleton {
       if (!_releasing)
         root.writer.runtimeApply();
     }
+  }
+
+  // --- Approving a takeover ---
+
+  // Managed mode waits for the user before taking over a config of theirs
+  // on this compositor: one that came with the mode from elsewhere (another
+  // compositor's, an import) never took it over here. Allowed once (the
+  // Compositor card's Allow, or picking managed there), it's remembered
+  // for this compositor. A config that holds nothing of the user's (none
+  // yet, the example, axiom's own, the one leaving managed wrote) is taken
+  // over without asking.
+  readonly property bool takeoverPending: _takeoverPending
+  property bool _takeoverPending: false
+  // Why it waits (`problem` meanwhile)
+  readonly property string approvalProblem: `Compositor mode is "managed", but taking over ${managedPath} needs your approval (Settings › Compositor). Applying axiom's layer at runtime meanwhile.`
+
+  // The compositors whose config the user let axiom take over
+  // ($XDG_STATE_HOME/axiom/ui/takeover.json: { approved: [kind] })
+  readonly property var _approvalState: StateManager.createStateHandler("takeover")
+  property var _approved: []
+  property bool _approvalsRead: false
+
+  function _isApproved() {
+    if (!_approvalsRead) {
+      _approved = _approvalState.load({
+        "approved": []
+      }).approved ?? [];
+      _approvalsRead = true;
+    }
+    return _approved.includes(CompositorManager.kind);
+  }
+
+  function _approveTakeover() {
+    if (_isApproved())
+      return;
+    _approved = _approved.concat([CompositorManager.kind]);
+    _approvalState.save({
+      "approved": _approved
+    });
+  }
+
+  // The status card's (and the notification's) Allow
+  function allowTakeover() {
+    _approveTakeover();
+    _takeoverPending = false;
+    _problem = "";
+    if (mode === "managed")
+      apply();
+  }
+
+  function _claimIfApproved() {
+    if (_isApproved()) {
+      _takeoverPending = false;
+      root.writer.claim();
+      return;
+    }
+    root.writer.checkManaged(check => {
+      if (root.mode !== "managed")
+        return;
+      // Nothing of the user's to take over, or blocked anyway (claim says)
+      if (["ours", "new", "stock", "released", "blocked"].includes(check)) {
+        if (check !== "blocked")
+          root._approveTakeover();
+        root._takeoverPending = false;
+        root.writer.claim();
+        return;
+      }
+      root._takeoverPending = true;
+      root._warnOnce(root.approvalProblem);
+      root._notifyApproval();
+      root.writer.runtimeApply();
+    });
+  }
+
+  // Once per session (it outlives a reload of the shell), with Allow on it
+  function _notifyApproval() {
+    if (_session.approvalAsked)
+      return;
+    _session.approvalAsked = true;
+    // I18n.tr("Allow takeover") I18n.tr("Open settings")
+    CommandManager.run(["notify-send", "-a", "axiom", "-u", "critical", "-A", "allow=" + I18n.tr("Allow takeover"), "-A", "settings=" + I18n.tr("Open settings"), "--", I18n.tr("{0} config needs your approval", CompositorManager.displayName), I18n.tr("axiom's Managed mode would take over {0}, moving your config to {1}. Until you allow it, axiom applies its settings at runtime.", Paths.shortenHome(root.managedPath), Paths.shortenHome(root.userDir))], (code, out) => {
+      const action = out.trim();
+      if (action === "allow")
+        root.allowTakeover();
+      else if (action === "settings")
+        SettingsManager.openSection("Compositor");
+    });
+  }
+
+  PersistentProperties {
+    id: _session
+    reloadableId: "axiomCompositorSession"
+    property bool approvalAsked: false
   }
 
   // --- The window look and the input, over the user's config in every mode ---

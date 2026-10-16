@@ -1944,4 +1944,31 @@ TestCase {
       "version": 60
     }).config.Monitors.profiles, []);
   }
+
+  function test_v62_behaviour_leaves_hyprland() {
+    const migrated = load({
+      "version": 61,
+      "Hyprland": {
+        "managed": {
+          "layout": "master",
+          "followMouse": false,
+          "noWarps": true
+        }
+      }
+    });
+    compare(migrated.config.WindowBehaviour.followMouse, false);
+    compare(migrated.config.WindowBehaviour.noWarps, true);
+    compare(migrated.config.WindowBehaviour.focusOnActivate, true);
+    compare(migrated.config.Hyprland.managed.layout, "master");
+    compare(migrated.config.Hyprland.managed.followMouse, undefined);
+    compare(migrated.removed, []);
+    compare(errors(migrated.config), []);
+    const again = ConfigMigration.migrate(JSON.parse(JSON.stringify(Object.assign({}, migrated.config, {
+      "version": 61
+    })))).config;
+    compare(again.WindowBehaviour.followMouse, false);
+    compare(load({
+      "version": 61
+    }).config.Sway.workspaceLayout, "default");
+  }
 }

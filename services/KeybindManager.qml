@@ -474,7 +474,7 @@ QtObject {
       if (ids[i] !== "" && root._userKeyCounts[ids[i]] > 0)
         found.push({
           "level": "warning",
-          "text": runtime ? I18n.tr("Your Hyprland config uses this key, so it's skipped") : I18n.tr("Your Hyprland config binds this key too")
+          "text": runtime ? I18n.tr("Your compositor config uses this key, so it's skipped") : I18n.tr("Your compositor config binds this key too")
         });
       return found;
     });

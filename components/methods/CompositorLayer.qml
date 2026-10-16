@@ -77,4 +77,22 @@ QtObject {
       } : null
     };
   }
+
+  // The variables Hyprland's wiki recommends, good on any Wayland
+  // compositor ([name, value]; Session.recommendedEnv): toolkits on
+  // Wayland first (falling back to X11 where they can), Qt scaled by pixel
+  // density and without decorations of its own. Not SDL_VIDEODRIVER, which
+  // breaks games bundling an older SDL.
+  readonly property var recommendedEnv: [["GDK_BACKEND", "wayland,x11,*"], ["QT_QPA_PLATFORM", "wayland;xcb"], ["CLUTTER_BACKEND", "wayland"], ["ELECTRON_OZONE_PLATFORM_HINT", "auto"], ["QT_AUTO_SCREEN_SCALE_FACTOR", "1"], ["QT_WAYLAND_DISABLE_WINDOWDECORATION", "1"]]
+
+  // The session's environment ([{ name, value }]): the recommended one
+  // when `session.recommendedEnv`, the cursor's (`cursor`: { theme, size }
+  // or null), then the session's own, which win over both
+  function sessionEnv(session, cursor) {
+    const pairs = (session?.recommendedEnv ? root.recommendedEnv : []).concat(cursor ? [["XCURSOR_THEME", cursor.theme], ["XCURSOR_SIZE", String(cursor.size)]] : []);
+    return pairs.map(([name, value]) => ({
+          "name": name,
+          "value": value
+        })).concat(session?.env ?? []);
+  }
 }

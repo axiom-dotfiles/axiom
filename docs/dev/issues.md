@@ -18,11 +18,17 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 
 ## Open
 
-### No niri backend; no managed mode on sway yet
-- **Where:** `services/CompositorManager.qml` (`backend`), `services/SwayConfigWriter.qml` (`claim`), `docs/dev/compositor/sway-backend.md`
-- **What:** Under sway the managed mode isn't written yet: `SwayConfigWriter.claim()` blocks (`Compositor mode is "managed", but axiom doesn't manage sway's config yet`), so the runtime layer stands in. Under niri axiom runs with no backend: the bar, launcher and notifications work, but workspaces, windows, the dock's running apps and the keyboard layout are empty.
+### No niri backend
+- **Where:** `services/CompositorManager.qml` (`backend`), `docs/dev/compositor/README.md`
+- **What:** Under niri axiom runs with no backend: the bar, launcher and notifications work, but workspaces, windows, the dock's running apps and the keyboard layout are empty. Sway's backend (`docs/dev/compositor/sway-backend.md`) is the one to copy.
 - **Size:** needs a plan
 - **Found:** 2026-10-16, while decoupling the shell from Hyprland
+
+### Sway's takeover and bind merge copy Hyprland's
+- **Where:** `services/SwayTakeover.qml`, `services/HyprlandTakeover.qml`, `services/SwayBindMerge.qml`, `services/HyprlandBindMerge.qml`
+- **What:** The two takeovers and the two bind merges are the same QML around a different script (`claim_*.sh`, `merge_*_binds.py`), copied rather than shared while the Hyprland path couldn't be tested live (the session was sway). Make each one component taking its script and labels.
+- **Size:** small
+- **Found:** 2026-10-16, while writing sway's managed mode
 
 ### Quickshell's I3 socket warns on every reload
 - **Where:** `services/SwayManager.qml` (Quickshell.I3)

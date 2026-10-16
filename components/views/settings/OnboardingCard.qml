@@ -10,7 +10,7 @@ FieldGroup {
   id: root
 
   title: I18n.tr("First-time setup")
-  description: I18n.tr("Walks through Hyprland, monitors, apps and keys, workspaces, the look and integrations again.")
+  description: I18n.tr("Walks through the compositor setup, monitors, apps and keys, workspaces, the look and integrations again.")
   headerExtras: StyledTextButton {
     text: I18n.tr("Run setup")
     iconText: "waving_hand"

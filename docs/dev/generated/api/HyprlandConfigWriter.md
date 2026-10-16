@@ -54,7 +54,7 @@ section's options, loading ~/.config/hypr/user/*.lua after it Also what only Hyp
 - `noteReload()`: Hyprland reloaded its config, dropping the runtime layer
 - `checkLoaded(callback)`: Calls back with whether the file is in effect: Hyprland answers "ok" when the file's marker is set in its Lua state
 - `reload(callback)`: Reloads Hyprland's config (it doesn't watch files a config loads)
-- `checkManaged()`
+- `checkManaged(callback)`: `callback` (optional) gets managedCheck once known
 - `claim()`
 - `release()`
 - `findMonitorConflicts()`

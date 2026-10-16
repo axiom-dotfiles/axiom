@@ -61,7 +61,9 @@ QtObject {
       let ok = false;
       try {
         const results = JSON.parse(out);
-        const failed = (Array.isArray(results) ? results : [results]).filter(r => r?.success !== true);
+        // Criteria matching no window (`[all] border …` with none open) are
+        // nothing to warn about
+        const failed = (Array.isArray(results) ? results : [results]).filter(r => r?.success !== true && r?.error !== "No matching node.");
         failed.forEach(r => console.warn(`[SwayIpcManager] "${item.text.slice(0, 160)}": ${r?.error ?? "failed"}`));
         ok = failed.length === 0;
       } catch (e) {

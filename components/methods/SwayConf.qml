@@ -14,7 +14,7 @@ QtObject {
   // anything but plain word characters
   function quote(text) {
     const value = String(text ?? "");
-    return /^[A-Za-z0-9_.:+\-\/@~=]+$/.test(value) ? value : `"${value.replace(/\\/g, "\\\\").replace(/"/g, "\\\"")}"`;
+    return /^[A-Za-z0-9_.:+\-\/@~=*]+$/.test(value) ? value : `"${value.replace(/\\/g, "\\\\").replace(/"/g, "\\\"")}"`;
   }
 
   // --- Keys ---
@@ -280,8 +280,18 @@ QtObject {
   function _swayValue(fieldSchema, value) {
     if (fieldSchema["x-swaySkip"] !== undefined && value === fieldSchema["x-swaySkip"])
       return null;
-    if (fieldSchema["x-swayValue"] === "enabled")
+    if (fieldSchema["x-swayMap"] !== undefined)
+      return fieldSchema["x-swayMap"][String(value)] ?? null;
+    switch (fieldSchema["x-swayValue"]) {
+    case "enabled":
       return value ? "enabled" : "disabled";
+    case "yesNo":
+      return value ? "yes" : "no";
+    case "enableDisable":
+      return value ? "enable" : "disable";
+    case "raw":
+      return String(value);
+    }
     if (fieldSchema["x-swayScale"] !== undefined)
       return String(Math.round(value * fieldSchema["x-swayScale"] * 1000) / 1000);
     return quote(value);
@@ -315,15 +325,31 @@ QtObject {
     return lines;
   }
 
+  // A section's options (WindowBehaviour, Sway) as sway commands, every
+  // field with an `x-sway` command: a managed config says all of them
+  function optionLines(sectionSchema, values) {
+    const lines = [];
+    const props = sectionSchema?.properties ?? {};
+    for (const name in props) {
+      const template = props[name]["x-sway"];
+      if (!template || values?.[name] === undefined)
+        continue;
+      const value = _swayValue(props[name], values[name]);
+      if (value !== null)
+        lines.push(template.replace("{}", value));
+    }
+    return lines;
+  }
+
   function cursorLine(theme, size) {
     return `seat * xcursor_theme ${quote(theme)} ${Math.round(size)}`;
   }
 
   // --- The included file ---
 
-  // The mode whose presence (get_binding_modes) says the file is loaded:
-  // only the file defines it
-  readonly property string includedMode: "axiom_included"
+  // The mode whose presence (get_binding_modes) says axiom's file (the
+  // included one, or the managed config) is loaded: only the file defines it
+  readonly property string loadedMode: "axiom_layer"
 
   // The included file. `parts`: { header, includeLines, binds, look, input }
   // (lines each)
@@ -337,8 +363,60 @@ QtObject {
 # Your own bindsym on one of axiom's keys, after it, wins (sway warns).
 
 # Tells axiom this file is loaded
-mode "${includedMode}" bindsym --no-warn F35 mode default
+mode "${loadedMode}" bindsym --no-warn F35 mode default
 ${section("Binds", parts.binds)}${section("Window borders and gaps", parts.look)}${section("Input", parts.input)}`;
+  }
+
+  /**
+   * The managed sway config: the module's lines (moduleText's, without its
+   * comment header), the shared and sway's own options, the session (the
+   * environment for what axiom starts, the start of axiom and the autostart
+   * commands) and the user's own files after it all. `opts`: { header,
+   * userDir, options (lines), env ([{ name, value }]), cursor, start: {
+   * command, idle, polkit }, autostart ([{ command, enabled }]), isAgent
+   * (command → whether it's a polkit agent) }.
+   * Sway has no env command: the environment reaches axiom (and what it
+   * starts) through its start line, and D-Bus/systemd activated apps
+   * through dbus-update-activation-environment.
+   */
+  function managedText(module, opts) {
+    const body = module.split("\n").filter(line => !line.startsWith("#")).join("\n").trim();
+    const env = (opts.env ?? []).filter(entry => /^[A-Za-z_][A-Za-z0-9_]*$/.test(entry.name.trim())).map(entry => `${entry.name.trim()}=${shellWord(entry.value)}`);
+    const start = [];
+    if (env.length > 0)
+      start.push(_exec(`dbus-update-activation-environment --systemd ${env.join(" ")}`));
+    start.push(_exec((env.length > 0 ? `env ${env.join(" ")} ` : "") + opts.start.command));
+    for (const entry of opts.autostart ?? [])
+      if (entry.enabled && entry.command.trim() !== "" && !(opts.start.idle && entry.command.trim() === "hypridle") && !(opts.start.polkit && opts.isAgent?.(entry.command)))
+        start.push(_exec(entry.command.trim()));
+    return `${opts.header} (sway mode: managed) from its settings, and
+# rewritten whenever they (or the theme) change: edit those, not this file.
+# Your own config goes in ${opts.userDir}/, included after this in name
+# order, so it overrides it.
+
+${body}
+
+# Windows, focus and sway's own options
+${(opts.options ?? []).join("\n")}
+
+# The session
+${start.join("\n")}
+
+include ${quote(opts.userDir + "/*")}
+`;
+  }
+
+  // What a sway config left behind on leaving managed holds when the
+  // takeover set nothing aside: it starts axiom (`startLines`) and
+  // includes the user's files, as the managed one did
+  function releasedText(userDir, startLines) {
+    return `# Given back by axiom when it stopped managing sway: this file is yours now,
+# and axiom won't write it again. It starts axiom and includes
+# ${userDir}/, as axiom's managed one did.
+${startLines}
+
+include ${quote(userDir + "/*")}
+`;
   }
 
   // The included file once axiom isn't in that mode: nothing in it

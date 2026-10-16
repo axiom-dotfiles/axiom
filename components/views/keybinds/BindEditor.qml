@@ -18,7 +18,8 @@ ColumnLayout {
 
   spacing: Widget.spacing * 2
 
-  // A merge's reason code (merge_hypr_binds.py) as text, with its detail
+  // A merge's reason code (merge_hypr_binds.py, merge_sway_binds.py) as
+  // text, with its detail
   function reasonText(entry) {
     switch (entry.reason) {
     case "key":
@@ -42,9 +43,11 @@ ColumnLayout {
     case "changed":
       return I18n.tr("the file changed");
     case "notUser":
-      return I18n.tr("it isn't one of user/*.lua");
+      return I18n.tr("it isn't one of your files in user/");
     case "syntax":
       return I18n.tr("the file wouldn't parse without it ({0})", entry.detail);
+    case "continued":
+      return I18n.tr("it goes on over several lines");
     case "crashed":
       return I18n.tr("the merge script failed ({0})", entry.detail);
     }
@@ -220,7 +223,7 @@ ColumnLayout {
         visible: !(KeybindManager.canMerge && KeybindManager.mergeableCount > 0) && KeybindManager.userConflicts.length > 0
         implicitHeight: Widget.height
         iconText: "delete_sweep"
-        text: I18n.tr("Remove {0} binds your Hyprland config also has", KeybindManager.userConflicts.length)
+        text: I18n.tr("Remove {0} binds your compositor config also has", KeybindManager.userConflicts.length)
         onClicked: KeybindManager.removeUserConflicts()
       }
 
@@ -230,7 +233,7 @@ ColumnLayout {
         enabled: !CompositorConfigManager.merging
         implicitHeight: Widget.height
         iconText: "merge"
-        text: I18n.tr("Merge {0} binds from your Hyprland config", KeybindManager.mergeableCount)
+        text: I18n.tr("Merge {0} binds from your compositor config", KeybindManager.mergeableCount)
         onClicked: KeybindManager.mergeUserBinds()
       }
 

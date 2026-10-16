@@ -1,13 +1,13 @@
 # Config modes (detached / included / managed)
 
-> **Files:** `services/CompositorConfigManager.qml`, `config/CompositorConfig.qml`, `components/methods/CompositorLayer.qml`, `components/views/settings/CompositorStatusCard.qml`, `services/IntegrationHookupManager.qml`, `services/HyprlandConfigWriter.qml`, `services/SwayConfigWriter.qml`
-> **Config:** `Compositor.mode`, `Compositor.requiredSettings`, `Keybinds.binds`, `Monitors.profiles`, `WindowLook`, `Input`, `Session`, `Workspaces.strips`
+> **Files:** `services/CompositorConfigManager.qml`, `config/CompositorConfig.qml`, `components/methods/CompositorLayer.qml`, `components/views/settings/CompositorStatusCard.qml`, `services/IntegrationHookupManager.qml`, `services/HyprlandConfigWriter.qml`, `services/SwayConfigWriter.qml`, `config/WindowBehaviourConfig.qml`
+> **Config:** `Compositor.mode`, `Compositor.requiredSettings`, `WindowBehaviour.*`, `Keybinds.binds`, `Monitors.profiles`, `WindowLook`, `Input`, `Session`, `Workspaces.strips`
 > **Related:** [Contract](contract.md), [Window look](window-look.md), [Hyprland's writer](../hyprland/config-modes.md), [Managed takeover](../hyprland/managed-takeover.md), [Sway backend](sway-backend.md)
 
 How axiom sets the compositor up, the same on every compositor with `supports.configModes`. `CompositorConfigManager` drives the three modes; the backend's config writer (`CompositorManager.backend.configWriter`; on Hyprland `HyprlandConfigWriter`, on sway `SwayConfigWriter`: [sway backend](sway-backend.md)) turns axiom's layer into the compositor's own text. Read this before touching anything axiom writes into a compositor's config.
 
 ### The layer
-- One layer covers: the binds (`Keybinds.binds`), the required settings (`Compositor.requiredSettings`), the [window look](window-look.md), the input (`Input`), the blur behind axiom's surfaces, the monitor profiles (`Monitors.profiles`) and the strips. In managed mode the writer adds `Session` and the compositor's own options (Hyprland's section).
+- One layer covers: the binds (`Keybinds.binds`), the required settings (`Compositor.requiredSettings`), the [window look](window-look.md), the input (`Input`), the blur behind axiom's surfaces, the monitor profiles (`Monitors.profiles`) and the strips. In managed mode the writer adds `Session`, the shared options (`WindowBehaviour`: focus and the cursor, each field by its `x-hypr`/`x-sway`) and the compositor's own (the `Hyprland` or `Sway` section).
 - What the look and the input ask for is decided once, by `CompositorLayer.look` / `.input` (`spec(forFile)`: `{ look, input, surfacesBlur }`), and the writer turns that into text.
 - `mode` picks how the layer gets to the compositor:
   - **detached**: evaluated at runtime (`writer.runtimeApply()`), again after every config reload, which drops it
@@ -35,6 +35,12 @@ How axiom sets the compositor up, the same on every compositor with `supports.co
   - `problem`
 - A mode picked there waits for Save (`x-applyOnSave`). The card outlines what saving will do, including the leave steps below.
 - It predicts a takeover with `checkManaged()` (the writer's dry run). `managedCheck` is `ours` | `adopt` | `stock` | `released` | `new` | `blocked` (`managedBlockedBy` `link` or `git`).
+
+### Approving a takeover
+- Managed mode takes over a config of the user's only once they've allowed it on that compositor. The approvals are state, not config (`$XDG_STATE_HOME/axiom/ui/takeover.json`, `{ approved: [kind] }`), so a config imported, or carried over from another compositor, with `mode: "managed"` never counts as one.
+- Allowed by: picking managed on the Compositor card while axiom runs (a mode change after the first `apply()`), or `allowTakeover()` (the card's Allow takeover, the notification's button).
+- Before claiming, `_claimIfApproved` runs the writer's dry run (`checkManaged(callback)`). With nothing of the user's to take over (`ours`, `new`, `stock`, `released`) it approves and claims; `blocked` claims, which reports it. `adopt` waits: `takeoverPending`, `problem` is `approvalProblem`, the runtime layer stands in, and a notification (once per session) offers Allow.
+- Never press Allow for the user while testing (AGENTS.md › Never).
 
 ### Leaving a mode
 - `_leave` gives back what a mode took, for a switch made while axiom runs.

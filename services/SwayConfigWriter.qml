@@ -16,7 +16,9 @@ import qs.components.methods
  *             config already binds are skipped
  *   included  the file at $XDG_STATE_HOME/axiom/sway.conf, which the user's
  *             sway config includes (includeLines)
- *   managed   not yet: falls back to the runtime layer (blockedProblem)
+ *   managed   ~/.config/sway/config itself, with the WindowBehaviour and
+ *             Sway sections' options and the session, including
+ *             ~/.config/sway/user/* after it (SwayTakeover)
  * Monitor profiles aren't written: MonitorManager applies the one for
  * what's connected at start and on every hotplug.
  */
@@ -75,7 +77,7 @@ Singleton {
   // Why a file mode isn't in effect (CompositorConfigManager.problem)
   readonly property string notIncludedProblem: `Compositor mode is "included", but your sway config doesn't include ${includePath}; add:\n${includeLines}`
   readonly property string notManagedProblem: `Compositor mode is "managed", but ${managedPath} isn't loaded`
-  readonly property string blockedProblem: `Compositor mode is "managed", but axiom doesn't manage sway's config yet; use "included" instead. Applying axiom's layer at runtime meanwhile.`
+  readonly property string blockedProblem: `Compositor mode is "managed", but ${Paths.swayPath} is a symlink or in a git repository, so axiom won't take it over; use "included" instead. Applying axiom's layer at runtime meanwhile.`
 
   // --- The layer as sway commands (SwayConf) ---
 
@@ -107,9 +109,29 @@ Singleton {
     });
   }
 
-  // Managed mode isn't written yet (claim() blocks)
+  // The managed sway config, from `spec` as for moduleText
   function managedText(spec) {
-    return "";
+    // reads: WindowBehaviour.*, Sway.*, Session.*
+    const schema = ConfigManager.configSchema?.properties;
+    return SwayConf.managedText(moduleText(spec), {
+      "header": _header,
+      "userDir": userDir,
+      "options": SwayConf.optionLines(schema?.WindowBehaviour, WindowBehaviourConfig.behaviour).concat(SwayConf.optionLines(schema?.Sway, SwayConfig.options)),
+      "env": CompositorLayer.sessionEnv(SessionConfig.session, spec.input.cursor),
+      "start": {
+        "command": startCommand,
+        "idle": Idle.enabled,
+        "polkit": PolkitConfig.enabled
+      },
+      "autostart": SessionConfig.session.autostart,
+      "isAgent": command => PolkitAgents.isAgentCommand(command)
+    });
+  }
+
+  // The config leaving managed gives back when the takeover set nothing
+  // aside: it starts axiom (and includes its module in included mode)
+  function releasedText(mode) {
+    return SwayConf.releasedText(userDir, (mode === "included" ? includeLines + "\n" : "") + autostartLines);
   }
 
   // The included file once axiom isn't in that mode
@@ -117,7 +139,7 @@ Singleton {
 
   // Everything else the layer is made of (CompositorConfigManager re-applies
   // the layer when it changes)
-  readonly property string inputsKey: [Apps.terminalCommand, Apps.fileManagerCommand, Apps.browserCommand].join("|")
+  readonly property string inputsKey: [WindowBehaviourConfig._behaviourJson, SwayConfig._optionsJson, Apps.terminalCommand, Apps.fileManagerCommand, Apps.browserCommand, Idle.enabled, PolkitConfig.enabled].join("|")
 
   // --- At runtime ---
 
@@ -141,9 +163,10 @@ Singleton {
   }
 
   // Calls back with the binds the user's own sway config holds
-  // (SwayConf.configBinds; its includes in, axiom's file left out), or null
+  // (SwayConf.configBinds; its includes in, axiom's files left out: the
+  // included module, and the managed config's own lines), or null
   function readUserBinds(callback) {
-    CommandManager.run([Paths.scriptsPath + "sway_config_text.py", "--skip", root.includePath], (code, out, err) => {
+    CommandManager.run([Paths.scriptsPath + "sway_config_text.py", "--skip", root.includePath, "--skip-header", root._header], (code, out, err) => {
       if (code !== 0) {
         console.warn("[SwayConfigWriter] Can't read your sway config:", String(err).trim());
         callback(null);
@@ -180,9 +203,9 @@ Singleton {
   }
 
   // Calls back with whether the file is in effect: only it defines the
-  // marker mode (SwayConf.includedMode)
+  // marker mode (SwayConf.loadedMode)
   function checkLoaded(callback) {
-    SwayIpcManager.json("get_binding_modes", modes => callback(Array.isArray(modes) && modes.includes(SwayConf.includedMode)));
+    SwayIpcManager.json("get_binding_modes", modes => callback(Array.isArray(modes) && modes.includes(SwayConf.loadedMode)));
   }
 
   // Reloads sway's config (it doesn't watch the files it includes)
@@ -206,44 +229,83 @@ Singleton {
     });
   }
 
-  // --- Managed takeover: not yet on sway ---
+  // --- Managed takeover: SwayTakeover ---
 
+  // The takeover of the config is done (`adopted`: the file name the
+  // previous one went to in user/, or "")
   signal claimed(string adopted)
+  // It won't take over (blockedProblem)
   signal blocked
+  // Leaving managed is done: "restored" | "written" | …
   signal released(string result)
 
-  readonly property string managedCheck: "blocked"
-  readonly property string managedBlockedBy: ""
-  readonly property string managedBlockedRepo: ""
-  readonly property var monitorConflicts: []
+  SwayTakeover {
+    id: takeover
+    mode: CompositorConfig.mode
+    swayPath: Paths.swayPath
+    managedPath: root.managedPath
+    userDir: root.userDir
+    header: root._header
+    releasedText: root.releasedText(CompositorConfig.mode)
+    onClaimed: (result, adopted) => root.claimed(adopted)
+    onBlocked: root.blocked()
+    onReleased: result => root.released(result)
+  }
 
-  function checkManaged() {
+  // What switching to managed would do (SwayTakeover.managedCheck)
+  readonly property alias managedCheck: takeover.managedCheck
+  readonly property alias managedBlockedBy: takeover.managedBlockedBy
+  readonly property alias managedBlockedRepo: takeover.managedBlockedRepo
+  // Managed mode: the files in user/ that set outputs themselves
+  readonly property alias monitorConflicts: takeover.monitorConflicts
+
+  // `callback` (optional) gets managedCheck once known
+  function checkManaged(callback) {
+    takeover.checkManaged(callback);
   }
 
   function claim() {
-    root.blocked();
+    takeover.claim();
+    takeover.findMonitorConflicts();
   }
 
   function release() {
-    root.released("none");
+    takeover.release();
   }
 
   function findMonitorConflicts() {
+    takeover.findMonitorConflicts();
   }
 
   function clearConflicts() {
+    takeover.clearConflicts();
   }
 
-  // --- Moving the user's binds into axiom: not yet on sway ---
+  // --- Moving the user's binds into axiom: SwayBindMerge ---
 
-  readonly property bool merging: false
-  readonly property var lastMerge: null
-  readonly property int mergeable: 0
+  SwayBindMerge {
+    id: bindMerge
+    enabled: CompositorConfig.mode === "managed"
+    swayPath: Paths.swayPath
+    userDir: root.userDir
+    onBindsMerged: binds => root.bindsMerged(binds)
+  }
+
+  readonly property alias merging: bindMerge.merging
+  // The last merge (SwayBindMerge.lastMerge), or null
+  readonly property alias lastMerge: bindMerge.lastMerge
+  // How many binds a Merge of all of user/ would move; -1 until looked
+  readonly property alias mergeable: bindMerge.mergeable
+  // The binds a merge moved in for good
   signal bindsMerged(var binds)
 
+  // `only`: one file name in user/ (the adopted one), else all of them
   function mergeUserBinds(only) {
+    bindMerge.mergeUserBinds(only);
   }
 
+  // Counts what a Merge would move, changing nothing (`mergeable`)
   function previewMerge() {
+    bindMerge.previewMerge();
   }
 }

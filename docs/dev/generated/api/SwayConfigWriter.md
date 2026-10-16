@@ -3,7 +3,7 @@
 
 > **File:** `services/SwayConfigWriter.qml` · **Docs:** see [docs/dev](../../README.md)
 
-Sway's config writer (docs/dev/compositor/config-modes.md), reached as SwayManager.configWriter by CompositorConfigManager, which drives the modes. Turns axiom's layer (binds, the window look, input) into sway's commands (SwayConf): detached sent at runtime (SwayRuntimeLayer); binds on keys the user's config already binds are skipped included the file at $XDG_STATE_HOME/axiom/sway.conf, which the user's sway config includes (includeLines) managed not yet: falls back to the runtime layer (blockedProblem) Monitor profiles aren't written: MonitorManager applies the one for what's connected at start and on every hotplug.
+~/.config/sway/user/* after it (SwayTakeover) Monitor profiles aren't written: MonitorManager applies the one for what's connected at start and on every hotplug.
 
 ### Properties
 
@@ -25,40 +25,41 @@ Sway's config writer (docs/dev/compositor/config-modes.md), reached as SwayManag
 - `emptyModuleText` (readonly string): The included file once axiom isn't in that mode
 - `inputsKey` (readonly string): Everything else the layer is made of (CompositorConfigManager re-applies the layer when it changes)
 - `liveLinesHook` (var): CompositorConfigManager's: the live lines, noting which parts they apply.
-- `managedCheck` (readonly string)
-- `managedBlockedBy` (readonly string)
-- `managedBlockedRepo` (readonly string)
-- `monitorConflicts` (readonly var)
-- `merging` (readonly bool)
-- `lastMerge` (readonly var)
-- `mergeable` (readonly int)
+- `managedCheck` (readonly alias): What switching to managed would do (SwayTakeover.managedCheck)
+- `managedBlockedBy` (readonly alias)
+- `managedBlockedRepo` (readonly alias)
+- `monitorConflicts` (readonly alias): Managed mode: the files in user/ that set outputs themselves
+- `merging` (readonly alias)
+- `lastMerge` (readonly alias): The last merge (SwayBindMerge.lastMerge), or null
+- `mergeable` (readonly alias): How many binds a Merge of all of user/ would move; -1 until looked
 
 ### Signals
 
-- `claimed(string adopted)`
-- `blocked()`
-- `released(string result)`
-- `bindsMerged(var binds)`
+- `claimed(string adopted)`: The takeover of the config is done (`adopted`: the file name the previous one went to in user/, or "")
+- `blocked()`: It won't take over (blockedProblem)
+- `released(string result)`: Leaving managed is done: "restored" | "written" | …
+- `bindsMerged(var binds)`: The binds a merge moved in for good
 
 ### Functions
 
 - `isComplete(bind)`: Whether a configured bind has everything it needs to be bound
 - `moduleText(spec)`: The included file, from `spec` (CompositorConfigManager.spec(true))
-- `managedText(spec)`: Managed mode isn't written yet (claim() blocks)
+- `managedText(spec)`: The managed sway config, from `spec` as for moduleText
+- `releasedText(mode)`: The config leaving managed gives back when the takeover set nothing aside: it starts axiom (and includes its module in included mode)
 - `liveLines(spec)`: The look and the input as commands sent now, from `spec` (CompositorConfigManager.spec(false))
 - `runLive(lines)`
 - `setCursor(theme, size)`
-- `readUserBinds(callback)`: Calls back with the binds the user's own sway config holds (SwayConf.configBinds; its includes in, axiom's file left out), or null
+- `readUserBinds(callback)`: Calls back with the binds the user's own sway config holds (SwayConf.configBinds; its includes in, axiom's files left out: the included module, and the managed config's own lines), or null
 - `runtimeApply()`: The runtime layer (detached, and the fallback of the file modes)
 - `runtimeClear()`: Takes the runtime layer's binds out (the file is loaded now)
 - `noteReload()`: Sway reloaded its config, dropping the runtime layer
-- `checkLoaded(callback)`: Calls back with whether the file is in effect: only it defines the marker mode (SwayConf.includedMode)
+- `checkLoaded(callback)`: Calls back with whether the file is in effect: only it defines the marker mode (SwayConf.loadedMode)
 - `reload(callback)`: Reloads sway's config (it doesn't watch the files it includes)
 - `withEntries(callback)`: Calls back with the user's binds and axiom's in effect (BindKeys' entries), or null: axiom's are those the runtime layer bound, or all of them while the file is loaded
-- `checkManaged()`
+- `checkManaged(callback)`: `callback` (optional) gets managedCheck once known
 - `claim()`
 - `release()`
 - `findMonitorConflicts()`
 - `clearConflicts()`
-- `mergeUserBinds(only)`
-- `previewMerge()`
+- `mergeUserBinds(only)`: `only`: one file name in user/ (the adopted one), else all of them
+- `previewMerge()`: Counts what a Merge would move, changing nothing (`mergeable`)

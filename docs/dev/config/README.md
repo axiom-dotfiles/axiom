@@ -21,6 +21,8 @@ Generated from `config/json/config.schema.json` and the readers in `config/`. On
 | [Keybinds](Keybinds.md) | `KeybindsConfig` (`config/KeybindsConfig.qml`) | Compositor |
 | [Monitors](Monitors.md) | `MonitorsConfig` (`config/MonitorsConfig.qml`) | Compositor |
 | [Hyprland](Hyprland.md) | `HyprlandConfig` (`config/HyprlandConfig.qml`) | Compositor |
+| [WindowBehaviour](WindowBehaviour.md) | `WindowBehaviourConfig` (`config/WindowBehaviourConfig.qml`) | Compositor |
+| [Sway](Sway.md) | `SwayConfig` (`config/SwayConfig.qml`) | Compositor |
 | [Input](Input.md) | `InputConfig` (`config/InputConfig.qml`) | Compositor |
 | [Session](Session.md) | `SessionConfig` (`config/SessionConfig.qml`) | Compositor |
 | [WindowLook](WindowLook.md) | `WindowLookConfig` (`config/WindowLookConfig.qml`) | Compositor |

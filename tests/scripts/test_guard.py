@@ -62,6 +62,14 @@ class Bash(unittest.TestCase):
                     "AXIOM_GREETER_ROOT=/tmp/x scripts/greeter/greeter_install.sh install . me",
                     'export AXIOM_GREETER_ROOT="$tmp"; scripts/greeter/greeter_install.sh uninstall . me')
 
+    def test_claim_sway(self):
+        self.blocks(f"scripts/claim_sway.sh claim {HOME}/.config/sway axiom", "scripts/claim_sway.sh release ~/.config/sway h f")
+        self.allows("scripts/claim_sway.sh claim /tmp/scratch/sway axiom", "scripts/claim_sway.sh check ~/.config/sway axiom")
+
+    def test_merge_binds(self):
+        self.blocks("scripts/merge_sway_binds.py remove ~/.config/sway '[]'", f"python3 scripts/merge_hypr_binds.py remove {HOME}/.config/hypr '[]'")
+        self.allows("scripts/merge_sway_binds.py extract ~/.config/sway", "scripts/merge_sway_binds.py remove /tmp/scratch/sway '[]'")
+
     def test_claim_hyprland(self):
         self.blocks(f"scripts/claim_hyprland.sh claim {HOME}/.config/hypr axiom", "scripts/claim_hyprland.sh release ~/.config/hypr h f")
         self.allows("scripts/claim_hyprland.sh claim /tmp/scratch/hypr axiom", "scripts/claim_hyprland.sh check ~/.config/hypr axiom")

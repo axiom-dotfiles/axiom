@@ -140,11 +140,8 @@ QtObject {
 
   // --- The environment (Session.recommendedEnv) ---
 
-  // The variables Hyprland's wiki recommends, [name, value]: toolkits on
-  // Wayland first (falling back to X11 where they can), Qt scaled by pixel
-  // density and without decorations of its own. Not SDL_VIDEODRIVER, which
-  // breaks games bundling an older SDL.
-  readonly property var recommendedEnv: [["GDK_BACKEND", "wayland,x11,*"], ["QT_QPA_PLATFORM", "wayland;xcb"], ["CLUTTER_BACKEND", "wayland"], ["ELECTRON_OZONE_PLATFORM_HINT", "auto"], ["QT_AUTO_SCREEN_SCALE_FACTOR", "1"], ["QT_WAYLAND_DISABLE_WINDOWDECORATION", "1"]]
+  // The variables recommended on Wayland (CompositorLayer.recommendedEnv)
+  readonly property var recommendedEnv: CompositorLayer.recommendedEnv
 
   // --- Layer stacking (LayerStack.layers) ---
 

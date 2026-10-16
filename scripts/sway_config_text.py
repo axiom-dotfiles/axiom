@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Prints the sway config in effect as one text, its includes put in.
 
-Usage: sway_config_text.py [--config PATH] [--skip PATH]...
+Usage: sway_config_text.py [--config PATH] [--skip PATH]... [--skip-header TEXT]
 
 sway's get_config reply holds only the main file, without what it includes;
 SwayConfigWriter needs all of it to know which keys the user's config binds.
@@ -9,7 +9,9 @@ The main file is --config, else the one the running sway was started with
 (-c in the command line of the sway that $SWAYSOCK names), else the first
 of the places sway looks. `include` lines are replaced by the files they
 name (globs, ~ and $variables set before them; relative to the including
-file's folder), each once; --skip leaves files out (axiom's own module).
+file's folder), each once; --skip leaves files out (axiom's own module),
+--skip-header the own lines of a file starting with TEXT (axiom's managed
+config: only what it includes is the user's).
 Exits 1 when no config is found.
 """
 import argparse
@@ -55,7 +57,7 @@ def expand(text, variables):
     return text
 
 
-def inline(path, skip, seen, variables):
+def inline(path, skip, seen, variables, header=None):
     real = os.path.realpath(path)
     if real in seen or real in skip:
         return ""
@@ -66,6 +68,7 @@ def inline(path, skip, seen, variables):
     except OSError:
         return ""
     out = [f"# axiom: from {path}"]
+    ours = bool(header) and bool(lines) and lines[0].startswith(header)
     for line in lines:
         stripped = line.strip()
         var = re.match(r"set\s+(\$\S+)\s+(.*)$", stripped)
@@ -73,14 +76,15 @@ def inline(path, skip, seen, variables):
             variables[var.group(1)] = expand(var.group(2), variables).strip()
         include = re.match(r"include\s+(.+)$", stripped)
         if not include:
-            out.append(line)
+            if not ours:
+                out.append(line)
             continue
         pattern = os.path.expanduser(expand(include.group(1).strip().strip("\"'"), variables))
         if not os.path.isabs(pattern):
             pattern = os.path.join(os.path.dirname(path), pattern)
         for name in sorted(glob.glob(pattern)):
             if os.path.isfile(name):
-                out.append(inline(name, skip, seen, variables))
+                out.append(inline(name, skip, seen, variables, header))
     return "\n".join(out)
 
 
@@ -88,13 +92,14 @@ def main(argv):
     parser = argparse.ArgumentParser(description="Prints the sway config with its includes put in")
     parser.add_argument("--config", help="the main config (default: the running sway's)")
     parser.add_argument("--skip", action="append", default=[], help="a file to leave out")
+    parser.add_argument("--skip-header", help="leave out the own lines of files starting with this")
     args = parser.parse_args(argv)
     path = args.config or main_config()
     if not path or not os.path.isfile(path):
         print("sway_config_text.py: no sway config found", file=sys.stderr)
         return 1
     skip = {os.path.realpath(os.path.expanduser(p)) for p in args.skip}
-    print(inline(path, skip, set(), {}))
+    print(inline(path, skip, set(), {}, args.skip_header))
     return 0
 
 

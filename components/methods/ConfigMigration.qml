@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 61
+  readonly property int currentVersion: 62
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -149,6 +149,8 @@ QtObject {
       result = _v59ToV60(result, changes);
     if (version < 61)
       result = _v60ToV61(result, changes);
+    if (version < 62)
+      result = _v61ToV62(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -2060,6 +2062,26 @@ QtObject {
       }
     }
     delete config.Hyprland.monitors;
+    return config;
+  }
+
+  // v61 -> v62: the managed options sway shares with Hyprland (focus and
+  // the cursor) move from Hyprland.managed to their own section,
+  // WindowBehaviour, which each compositor's managed config reads
+  function _v61ToV62(config, changes) {
+    const managed = config.Hyprland?.managed;
+    if (!managed || typeof managed !== "object")
+      return config;
+    for (const key of ["followMouse", "focusOnActivate", "workspaceBackAndForth", "cursorHideTimeout", "hideCursorOnKeyPress", "noWarps"]) {
+      if (managed[key] === undefined)
+        continue;
+      config.WindowBehaviour = config.WindowBehaviour ?? {};
+      if (config.WindowBehaviour[key] === undefined) {
+        config.WindowBehaviour[key] = managed[key];
+        changes.push(`Hyprland.managed.${key} -> WindowBehaviour.${key}`);
+      }
+      delete managed[key];
+    }
     return config;
   }
 }

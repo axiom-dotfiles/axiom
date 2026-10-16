@@ -26,7 +26,7 @@ Taking ~/.config/hypr/hyprland.lua over for the managed mode, and giving it back
 
 ### Functions
 
-- `checkManaged()`
+- `checkManaged(callback)`: Looks again what a takeover would do (`managedCheck`), then calls back with it
 - `findMonitorConflicts()`: Looks for user/*.lua files that set monitors (managed mode only)
 - `clearConflicts()`
 - `claim()`: Makes ~/.config/hypr/hyprland.lua axiom's: "ours" (already), "adopted:<name>" (the old one moved to user/<name>, its lines starting or loading axiom commented out, a dated backup beside it), "created…
