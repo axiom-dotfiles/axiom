@@ -124,20 +124,28 @@ Item {
     // frame (BlurShape.shadow): the window stays mapped and draws nothing.
     // Hyprland puts a layer mapped while a fullscreen window is shown over
     // it (CLayerSurface::onMap), and a fullscreen window is what unbacks it.
+    // Held where the compositor stacks by map order alone: turning the
+    // shadow on would otherwise map it after everything ordered under it
+    // (the backdrop, the bars, the border, docks), which all map again
+    // then (docs/dev/compositor/layer-arrangement.md). Idle, it's a pixel
+    // drawing nothing.
     visible: shadowSlot.shown
     LayerSlot {
       id: shadowSlot
       window: shadowWindow
       namespace: "axiom-border-shadow"
       wanted: shadowWindow.look.shadow !== "none"
+      held: true
     }
     screen: root.screen
     anchors {
       left: true
-      right: true
+      right: !shadowSlot.idle
       top: true
-      bottom: true
+      bottom: !shadowSlot.idle
     }
+    implicitWidth: 1
+    implicitHeight: 1
     exclusionMode: ExclusionMode.Ignore
     color: "transparent"
     mask: Region {}
@@ -189,7 +197,7 @@ Item {
       id: interior
       anchors.fill: parent
       visible: false
-      layer.enabled: true
+      layer.enabled: !shadowSlot.idle
 
       Shape {
         anchors.fill: parent
@@ -216,8 +224,8 @@ Item {
 
     Item {
       anchors.fill: parent
-      visible: !root.backed
-      layer.enabled: true
+      visible: !root.backed && !shadowSlot.idle
+      layer.enabled: visible
       layer.effect: MultiEffect {
         maskEnabled: true
         maskSource: interior
