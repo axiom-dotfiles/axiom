@@ -12,7 +12,7 @@ OnboardingPage {
   id: root
 
   title: I18n.tr("Welcome to axiom")
-  intro: I18n.tr("axiom is your desktop shell for Hyprland: the bar, notifications, launcher, lock screen, power menu and an overlay full of cards. A few steps set up the essentials. Everything applies as you go, and you can change all of it later in Settings.")
+  intro: I18n.tr("axiom is your desktop shell: the bar, notifications, launcher, lock screen, power menu and an overlay full of cards. A few steps set up the essentials. Everything applies as you go, and you can change all of it later in Settings.")
 
   SettingRows {
     Layout.fillWidth: true

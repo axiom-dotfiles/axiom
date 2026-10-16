@@ -1584,7 +1584,6 @@
     "Edge": "画面端",
     "Widgets are arranged in the overlay's Bar editor.": "ウィジェットはオーバーレイのバーエディターで配置します。",
     "Welcome to axiom": "axiom へようこそ",
-    "axiom is your desktop shell for Hyprland: the bar, notifications, launcher, lock screen, power menu and an overlay full of cards. A few steps set up the essentials. Everything applies as you go, and you can change all of it later in Settings.": "axiom は Hyprland 用のデスクトップシェルです。バー、通知、ランチャー、ロック画面、電源メニュー、そしてカードでいっぱいのオーバーレイを備えています。いくつかのステップで基本を設定します。変更はその場で適用され、後からすべて設定で変更できます。",
     "How big should the overlay's cards be? This window uses the same size, so it changes as you drag.": "オーバーレイのカードの大きさはどのくらいにしますか？このウィンドウも同じサイズを使うため、ドラッグに合わせて変わります。",
     "Next to the step names at the bottom are the arrows, and you can click any step to jump to it. Skip setup keeps what you chose so far.": "下部のステップ名の横に矢印があり、どのステップもクリックして移動できます。「セットアップをスキップ」を押しても、ここまでの選択は保持されます。",
     "Apps & keys": "アプリとキー",
@@ -2934,6 +2933,8 @@
     "End the session": "セッションを終了",
     "Settings that make windows match axiom. While on, they win over your compositor's own config, and they come along when you share or import a config.": "ウィンドウを axiom に合わせる設定です。オンの間はコンポジター自身の設定より優先され、設定の共有やインポートにも含まれます。",
     "Compositor": "コンポジター",
-    "Hyprland blurs what shows through a translucent surface, with its own blur (Compositor → Window look → Blur). It costs GPU time whenever what's behind or on a surface changes, more with a stronger blur and with windows blurred behind.": "半透明のサーフェス越しに見えるものを Hyprland が自身のぼかしでぼかします (コンポジター → ウィンドウの見た目 → ぼかし)。サーフェスの背後や上の内容が変わるたびに GPU を使い、ぼかしが強いほど、また背後のウィンドウもぼかすほど負荷が増えます。"
+    "Hyprland blurs what shows through a translucent surface, with its own blur (Compositor → Window look → Blur). It costs GPU time whenever what's behind or on a surface changes, more with a stronger blur and with windows blurred behind.": "半透明のサーフェス越しに見えるものを Hyprland が自身のぼかしでぼかします (コンポジター → ウィンドウの見た目 → ぼかし)。サーフェスの背後や上の内容が変わるたびに GPU を使い、ぼかしが強いほど、また背後のウィンドウもぼかすほど負荷が増えます。",
+    "axiom is your desktop shell: the bar, notifications, launcher, lock screen, power menu and an overlay full of cards. A few steps set up the essentials. Everything applies as you go, and you can change all of it later in Settings.": "axiom はあなたのデスクトップシェルです。バー、通知、ランチャー、ロック画面、電源メニュー、そしてカードでいっぱいのオーバーレイを備えています。いくつかのステップで基本を設定します。変更はその場で適用され、後からすべて設定で変更できます。",
+    "Which apps should axiom open? Pick one that's installed, or type the command. Empty file manager and browser use your system's default.": "axiom で開くアプリはどれにしますか？インストール済みのものを選ぶか、コマンドを入力してください。ファイルマネージャーとブラウザは空欄ならシステムの既定を使います。"
   }
 }

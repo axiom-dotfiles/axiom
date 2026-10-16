@@ -24,9 +24,9 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Size:** needs a plan
 - **Found:** 2026-10-16, while decoupling the shell from Hyprland
 
-### The greeter and the onboarding's Apps page assume Hyprland
-- **Where:** `scripts/greeter/greeter-session.sh`, `services/GreetdManager.qml` (`_applyHyprland`), `components/surfaces/onboarding/pages/AppsPage.qml`, `components/surfaces/onboarding/pages/BindsTable.qml`, `components/surfaces/onboarding/pages/WelcomePage.qml`
-- **What:** The greeter runs its own Hyprland session (`start-hyprland`, `hyprctl dispatch exit`). Under another compositor the onboarding still shows the Apps page's Hyprland binds table and the Welcome page's "desktop shell for Hyprland". The Hyprland and Monitors pages are already left out (`OnboardingManager.pages`). Decide per page what sway gets (hide the binds table; neutral copy), and whether the greeter keeps Hyprland or moves to cage/sway.
+### The greeter runs its own Hyprland session
+- **Where:** `scripts/greeter/greeter-session.sh`, `services/GreetdManager.qml` (`_applyHyprland`)
+- **What:** The greeter runs its own Hyprland session (`start-hyprland`, `hyprctl dispatch exit`), whatever compositor the user's session uses. Decide whether it keeps Hyprland or moves to cage/sway. (The onboarding's binds table and Welcome copy no longer assume Hyprland.)
 - **Size:** small
 - **Found:** 2026-10-16, while decoupling the shell from Hyprland
 

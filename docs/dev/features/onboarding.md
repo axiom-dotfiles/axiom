@@ -52,6 +52,7 @@ The first-run onboarder: a paged window that sets up the look, Hyprland mode, mo
 - It reuses the Monitors view, `WallpaperPicker` and `ThemePicker` as they are.
 - The Look page's folder check, create and open are `WallpaperManager.checkFolder()` / `folderImages` / `createFolder()` / `openFolder()`.
 - `DependencyManager.check(commands)` / `found` / `tools` say what's installed.
+- The Apps page shows the main modifier and the keys to know only where axiom binds keys (`CompositorManager.supports.keybinds`); elsewhere it's just the apps.
 - The Integrations page ends with the login screen (`forms/GreeterSetup`, see [Greeter install](greeter-install.md)), set up only from its Install button.
   - The same page recommends [Idle](idle.md) and [Polkit](polkit.md).
 

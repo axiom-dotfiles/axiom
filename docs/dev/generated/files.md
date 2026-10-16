@@ -411,7 +411,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 
 ## components/surfaces/onboarding/pages/
 
-- `AppsPage.qml`: The apps the keybinds open (terminal, file manager, browser), with the installed ones offered to pick from, the main modifier, and the keys that matter most on day one
+- `AppsPage.qml`: The apps the keybinds open (terminal, file manager, browser), with the installed ones offered to pick from, the main modifier, and the keys that matter most on day one.
 - `BindsTable.qml`: The keys axiom binds for some actions (from Hyprland.binds): one row per action, with its first key, its label, and a warning when the running layer skipped that key because the user's own config holds it
 - `ChecksPage.qml`: What's missing: the icon font, and the programs features use (DependencyManager.tools), with one command that installs them
 - `FinishPage.qml`: The last page: what Finish does to Hyprland, whether axiom starts with the session, and where to go from here
