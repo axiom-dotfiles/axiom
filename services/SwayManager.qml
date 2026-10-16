@@ -244,9 +244,10 @@ Singleton {
 
   // --- The window switcher ---
 
-  // Leaves the switcher's mode (a tile was clicked while its keys were held)
+  // Nothing to let go: sway's switcher binds enter no mode (SwitcherKeys
+  // reads the keys while it's open), and `mode default` would leave one of
+  // the user's own
   function leaveSwitcher() {
-    SwayIpcManager.dispatch("mode default");
   }
 
   // --- Sending axiom's layer (SwayConfigWriter) ---
@@ -403,6 +404,8 @@ Singleton {
   // Every window's marks ({ [id]: [marks] }), for the special groups
   property var _marks: ({})
   property string _focusedId: ""
+  // Focus events so far, to tell a tree read before the last one (_fetch)
+  property int _focusEvents: 0
   property var _gaps: ({
       "top": 0,
       "right": 0,
@@ -433,8 +436,19 @@ Singleton {
     SwayIpcManager.json("get_version", reply => {
       if (reply)
         _recent.variant = reply.sway_original_version !== undefined ? "swayfx" : "sway";
+      else
+        _versionRetry.start();
     });
   }
+
+  // Until it's known, `ready` holds back axiom's layer
+  property Timer _versionRetry: Timer {
+    interval: 2000
+    onTriggered: root._readVersion()
+  }
+
+  // SwayFX's blur and dim in the config are read only once it's known
+  onFxChanged: _readConfig()
 
   I3IpcListener {
     subscriptions: ["window", "workspace", "output", "input", "binding"]
@@ -453,6 +467,7 @@ Singleton {
       if (data.change === "focus" && data.container) {
         const id = String(data.container.id);
         root._focusedId = id;
+        root._focusEvents++;
         _recent.idsJson = JSON.stringify(SwayState.touch(JSON.parse(_recent.idsJson), id));
         root.windowFocused(data.container.app_id ?? data.container.window_properties?.["class"] ?? "");
       }
@@ -465,6 +480,13 @@ Singleton {
         // stay)
         root._liveGaps = null;
         root._liveBlur = null;
+        // Until the look is sent again: re-sending the old one when the
+        // tree is read next would turn back on what the reload turned off
+        if (root._windowEffects)
+          root._windowEffects = Object.assign({}, root._windowEffects, {
+            "blur": null,
+            "shadows": null
+          });
         root._forgetReloaded();
         root._readConfig();
         root.configReloaded();
@@ -547,12 +569,15 @@ Singleton {
       return;
     }
     _fetching = true;
+    const focusEvents = root._focusEvents;
     SwayIpcManager.json("get_tree", tree => {
       root._fetching = false;
       if (tree) {
         root._info = SwayState.tree(tree);
         root._marks = SwayState.marks(tree);
-        root._focusedId = root._info.focusedId;
+        // A focus event that came while it was read is newer
+        if (focusEvents === root._focusEvents)
+          root._focusedId = root._info.focusedId;
       }
       if (root._pending) {
         root._pending = false;

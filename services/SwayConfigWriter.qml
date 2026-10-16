@@ -183,8 +183,9 @@ Singleton {
   // apply. The runtime layer sends them with the rest.
   property var liveLinesHook: () => []
 
+  // (sway sends no event for a gap change: the windows are read again)
   function runLive(lines) {
-    SwayManager.runCommands(lines);
+    SwayManager.runCommands(lines, () => SwayManager.refresh());
   }
 
   function setCursor(theme, size) {

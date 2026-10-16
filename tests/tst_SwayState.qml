@@ -56,6 +56,41 @@ TestCase {
     compare(windows.find(w => w.title === "tab2").workspaceName, "3:web");
   }
 
+  function test_aFocusedFloatingWindowHidesNoTab() {
+    const leaf = (id, title) => ({
+          "id": id,
+          "pid": id,
+          "name": title,
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 10,
+            "height": 10
+          },
+          "nodes": []
+        });
+    const windows = SwayState.tree({
+      "nodes": [
+        {
+          "type": "output",
+          "name": "WL-1",
+          "nodes": [
+            {
+              "type": "workspace",
+              "name": "1",
+              "num": 1,
+              "layout": "tabbed",
+              "focus": [30, 20, 10],
+              "nodes": [leaf(10, "back"), leaf(20, "front")],
+              "floating_nodes": [leaf(30, "floating")]
+            }
+          ]
+        }
+      ]
+    }).windows;
+    compare(windows.map(w => [w.title, w.hidden]), [["back", true], ["front", false], ["floating", false]]);
+  }
+
   function test_xwaylandWindowsUseTheirClass() {
     const win = SwayState.window({
       "id": 7,

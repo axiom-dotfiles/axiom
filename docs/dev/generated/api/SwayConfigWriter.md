@@ -47,7 +47,7 @@
 - `managedText(spec)`: The managed sway config, from `spec` as for moduleText
 - `releasedText(mode)`: The config leaving managed gives back when the takeover set nothing aside: it starts axiom (and includes its module in included mode)
 - `liveLines(spec)`: The look and the input as commands sent now, from `spec` (CompositorConfigManager.spec(false)).
-- `runLive(lines)`
+- `runLive(lines)`: (sway sends no event for a gap change: the windows are read again)
 - `setCursor(theme, size)`
 - `readUserBinds(callback)`: Calls back with the binds the user's own sway config holds (SwayConf.configBinds; its includes in, axiom's files left out: the included module, and the managed config's own lines), or null
 - `runtimeApply()`: The runtime layer (detached, and the fallback of the file modes)

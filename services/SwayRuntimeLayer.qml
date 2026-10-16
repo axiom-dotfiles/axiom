@@ -102,11 +102,18 @@ QtObject {
         console.log(`[SwayConfigWriter] ${key} is bound by your sway config; skipping axiom's bind`);
       _reportedTaken[id] = true;
     }
-    const lines = JSON.parse(persisted.unbindJson).concat(SwayConf.bindLines(plan.apply, bindCtx, true), lookLines());
+    const unbind = JSON.parse(persisted.unbindJson);
     persisted.unbindJson = JSON.stringify(SwayConf.unbindLines(plan.apply, bindCtx));
     _skippedKeys = plan.skipped;
     _applied = plan.apply;
-    SwayManager.runCommands(lines);
+    // Sent apart, in order: sway stops a command list at an invalid
+    // command, so a bind it refuses would take the look with it
+    for (const lines of [unbind, SwayConf.bindLines(plan.apply, bindCtx, true)]) {
+      if (lines.length > 0)
+        SwayManager.runCommands(lines);
+    }
+    // Sway sends no event for a gap change: the windows are read again
+    SwayManager.runCommands(lookLines(), () => SwayManager.refresh());
     KeybindManager.refreshSoon();
   }
 }

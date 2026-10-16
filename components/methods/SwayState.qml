@@ -47,7 +47,9 @@ QtObject {
   // A view's leaves are its windows (they have a pid; an empty split doesn't)
   function _walk(node, at, info) {
     const tabbed = node.layout === "tabbed" || node.layout === "stacked";
-    const front = node.focus?.[0];
+    // The front tab: the most recent of its tiled children (a workspace's
+    // focus stack lists its floating windows too)
+    const front = (node.focus ?? []).find(id => (node.nodes ?? []).some(child => child.id === id));
     const visit = (child, floating) => {
       const hidden = at.hidden || (tabbed && !floating && child.id !== front);
       if (child.pid !== undefined && child.pid !== null && (child.nodes ?? []).length === 0) {
