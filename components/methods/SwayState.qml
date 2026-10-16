@@ -221,8 +221,8 @@ QtObject {
   // the gap at each screen edge ({ top, right, bottom, left }: the outer
   // gap plus the inner one, which sway adds at the edges too), layouts (the
   // first xkb_layout, "us,de", or ""), blur (SwayFX's: { enabled, size,
-  // passes }) }. Only the defaults count, not a `workspace N gaps`
-  // override.
+  // passes }), dim (SwayFX's default_dim_inactive, 0–1) }. Only the
+  // defaults count, not a `workspace N gaps` override.
   function configInfo(text) {
     const outer = {
       "top": 0,
@@ -238,6 +238,7 @@ QtObject {
       "size": 5,
       "passes": 2
     };
+    let dim = 0;
     for (const raw of String(text ?? "").split("\n")) {
       const line = raw.replace(/#.*/, "").trim();
       const gap = /^gaps\s+(inner|outer|horizontal|vertical|top|right|bottom|left)\s+(-?\d+)/.exec(line);
@@ -258,6 +259,9 @@ QtObject {
         blur.enabled = /^(enable|yes|on|true)$/.test(blurLine[2]);
       else if (blurLine)
         blur[blurLine[1] === "_radius" ? "size" : "passes"] = Number(blurLine[2]) || 0;
+      const dimLine = /^default_dim_inactive\s+([\d.]+)/.exec(line);
+      if (dimLine)
+        dim = Math.max(0, Math.min(1, Number(dimLine[1]) || 0));
       const layout = /(?:^|\s)xkb_layout\s+("?)([^"\s]+)\1/.exec(line);
       if (layout && layouts === "")
         layouts = layout[2];
@@ -270,7 +274,8 @@ QtObject {
         "left": Math.max(0, outer.left + inner)
       },
       "layouts": layouts,
-      "blur": blur
+      "blur": blur,
+      "dim": dim
     };
   }
 
@@ -337,31 +342,57 @@ QtObject {
   }
 
   /**
-   * Window opacity as sway sets it, a window at a time (sway has no
-   * focused/unfocused opacity of its own): what each of `windows` (the
-   * contract's) should be with `opacity` ({ active, inactive, fullscreen }
-   * in percent, CompositorLayer.look's, or null for none) and `focusedId`
-   * focused, against `applied` ({ id: value } as last set). Returns {
-   * lines, applied }: the commands for the windows that change (all of
-   * them back to 1 when opacity goes), and what's set then.
+   * The window look sway can only set a window at a time: opacity (sway
+   * has no focused/unfocused opacity of its own) and SwayFX's blur,
+   * shadows and dimming (their commands without criteria reach only the
+   * focused window, and the dim's default only windows opened later).
+   * What each of `windows` (the contract's) should have with `focusedId`
+   * focused and `effects`, CompositorLayer.look's parts as {
+   *   opacity  { active, inactive, fullscreen } in percent, or null
+   *   blur     true/false (look.blur.windows), or null to leave alone
+   *   shadows  true/false, or null to leave alone
+   *   dim      0–1, or null
+   * }, against `applied` ({ id: { opacity, blur, shadows, dim } } as last
+   * set). Returns { lines, applied }: one command list per window that
+   * changes, and what's set then. Opacity going off puts every window back
+   * to 1 and the dim to `revertDim` (the config's default_dim_inactive);
+   * the blur and shadows go back with the reload that turns a part off.
    */
-  function opacityCommands(windows, focusedId, opacity, applied) {
+  function windowCommands(windows, focusedId, effects, applied, revertDim) {
     const now = {};
     const lines = [];
-    if (!opacity) {
-      if (Object.keys(applied ?? {}).length > 0)
-        lines.push("[all] opacity 1");
-      return {
-        "lines": lines,
-        "applied": now
-      };
-    }
+    const had = key => Object.values(applied ?? {}).some(set => set?.[key] !== undefined);
+    if (!effects?.opacity && had("opacity"))
+      lines.push("[all] opacity 1");
+    if ((effects?.dim ?? null) === null && had("dim"))
+      lines.push(`[all] dim_inactive ${Number(revertDim) || 0}`);
+    const toggle = on => on ? "enable" : "disable";
     for (const win of windows ?? []) {
-      const percent = win.fullscreen ? opacity.fullscreen : win.id === focusedId ? opacity.active : opacity.inactive;
-      const value = Math.round(percent) / 100;
-      now[win.id] = value;
-      if (applied?.[win.id] !== value)
-        lines.push(`[con_id=${Number(win.id)}] opacity ${value}`);
+      const want = {};
+      if (effects?.opacity) {
+        const o = effects.opacity;
+        want.opacity = Math.round(win.fullscreen ? o.fullscreen : win.id === focusedId ? o.active : o.inactive) / 100;
+      }
+      if ((effects?.blur ?? null) !== null)
+        want.blur = effects.blur === true;
+      if ((effects?.shadows ?? null) !== null)
+        want.shadows = effects.shadows === true;
+      if ((effects?.dim ?? null) !== null)
+        want.dim = Math.round(Number(effects.dim) * 100) / 100;
+      const was = applied?.[win.id] ?? {};
+      const changes = [];
+      if (want.opacity !== undefined && was.opacity !== want.opacity)
+        changes.push(`opacity ${want.opacity}`);
+      if (want.blur !== undefined && was.blur !== want.blur)
+        changes.push(`blur ${toggle(want.blur)}`);
+      if (want.shadows !== undefined && was.shadows !== want.shadows)
+        changes.push(`shadows ${toggle(want.shadows)}`);
+      if (want.dim !== undefined && was.dim !== want.dim)
+        changes.push(`dim_inactive ${want.dim}`);
+      if (Object.keys(want).length > 0)
+        now[win.id] = want;
+      if (changes.length > 0)
+        lines.push(`[con_id=${Number(win.id)}] ${changes.join(", ")}`);
     }
     return {
       "lines": lines,

@@ -18,6 +18,12 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 
 ## Open
 
+### SwayFX's corner radius reaches only windows opened later
+- **Where:** `components/methods/SwayConf.qml` (`fxLines`)
+- **What:** `corner_radius` sent at runtime sets SwayFX 0.6's global only (its per-window reset runs only while the config loads), and it has no per-window command, so a changed rounding shows on new windows while open ones keep theirs until sway reloads its config. A fix would need a reload, which takes back the rest of the runtime look.
+- **Size:** small
+- **Found:** 2026-10-16, while fixing SwayFX's blur on unfocused windows
+
 ### No niri backend
 - **Where:** `services/CompositorManager.qml` (`backend`), `docs/dev/compositor/README.md`
 - **What:** Under niri axiom runs with no backend: the bar, launcher and notifications work, but workspaces, windows, the dock's running apps and the keyboard layout are empty. Sway's backend (`docs/dev/compositor/sway-backend.md`) is the one to copy.

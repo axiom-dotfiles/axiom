@@ -48,7 +48,7 @@ CompositorManager's backend on sway (docs/dev/compositor/contract.md, docs/dev/c
 - `moveToSpecial(name)`: Puts the focused window in special group `name` (hidden until shown), out of any other: a window is on one special workspace at a time
 - `leaveSwitcher()`: Leaves the switcher's mode (a tile was clicked while its keys were held)
 - `runCommands(lines, callback)`: Runs sway commands (`lines`), in order, after those sent before
-- `setLiveLook(look)`: The window look as set now (CompositorLayer.look; SwayConfigWriter. liveLines): gapsOut and blur follow its gaps and blur until sway reloads its config, and its opacity is kept up as focus moves
+- `setLiveLook(look)`: The window look as set now (CompositorLayer.look; SwayConfigWriter. liveLines): gapsOut and blur follow its gaps and blur until sway reloads its config, and what sway sets a window at a time (opacity…
 - `withMainBinds(callback)`: Calls back with the binds in effect outside axiom's own modes (the user's, read from their config, and axiom's), or null
 - `captureKeys(on)`: While on, every key reaches axiom instead of a bind (the Keybinds page's recorder): an empty mode, left by an unreachable key.
 - `withKeyboard(callback)`: Calls back with the main keyboard's layouts ({ layouts, index, keymap }, SwayState.keyboard), or null

@@ -59,7 +59,7 @@ Singleton {
   readonly property var blur: _liveBlur ?? _configBlur
   // What sway does (CompositorManager.supports): SwayFX adds the blur,
   // rounded corners, shadows and dimming. Window opacity is set a window
-  // at a time as focus moves (SwayState.opacityCommands)
+  // at a time as focus moves (SwayState.windowCommands)
   readonly property var supports: Object.assign({
     "configModes": true,
     "keybinds": true,
@@ -258,7 +258,8 @@ Singleton {
 
   // The window look as set now (CompositorLayer.look; SwayConfigWriter.
   // liveLines): gapsOut and blur follow its gaps and blur until sway
-  // reloads its config, and its opacity is kept up as focus moves
+  // reloads its config, and what sway sets a window at a time (opacity;
+  // SwayFX's blur, shadows, dim) is kept up as windows open and focus moves
   function setLiveLook(look) {
     const gaps = look?.gaps;
     root._liveGaps = gaps ? {
@@ -270,9 +271,14 @@ Singleton {
       "size": Math.min(10, look.blur.size),
       "passes": look.blur.passes
     } : null;
-    root._opacity = look?.opacity ?? null;
+    root._windowEffects = {
+      "opacity": look?.opacity ?? null,
+      "blur": root.fx && look?.blur ? look.blur.windows === true : null,
+      "shadows": root.fx && look?.shadow ? true : null,
+      "dim": root.fx && look?.dim ? look.dim.strength / 100 : null
+    };
     root._lookSeen = true;
-    root._applyOpacity();
+    root._applyWindowLook();
   }
 
   property var _liveGaps: null
@@ -282,22 +288,37 @@ Singleton {
       "size": 5,
       "passes": 2
     })
-  property var _opacity: null
+  // SwayFX's default_dim_inactive in its config, what dim goes back to
+  property real _configDim: 0
+  // The look's parts set a window at a time (SwayState.windowCommands)
+  property var _windowEffects: null
   // Until the look is first set (after a reload of the shell), the
-  // windows keep the opacity they have
+  // windows keep what they have
   property bool _lookSeen: false
 
-  // Each window's opacity as the look's says, for those that changed
-  function _applyOpacity() {
+  // Each window's look as the look's parts say, for those that changed
+  function _applyWindowLook() {
     if (!root._lookSeen)
       return;
-    const plan = SwayState.opacityCommands(root.windows, root.activeWindowId, root._opacity, JSON.parse(_recent.opacityJson));
-    _recent.opacityJson = JSON.stringify(plan.applied);
+    const plan = SwayState.windowCommands(root.windows, root.activeWindowId, root._windowEffects, JSON.parse(_recent.windowLookJson), root._configDim);
+    _recent.windowLookJson = JSON.stringify(plan.applied);
     if (plan.lines.length > 0)
       root.runCommands(plan.lines);
   }
-  onWindowsChanged: _applyOpacity()
-  onActiveWindowIdChanged: _applyOpacity()
+  onWindowsChanged: _applyWindowLook()
+  onActiveWindowIdChanged: _applyWindowLook()
+
+  // After a config reload: each window's blur and shadows are the
+  // config's again, so the look sent after every reload (setLiveLook)
+  // sets them anew. Not at once: the reload may be what turns them off
+  function _forgetReloaded() {
+    const applied = JSON.parse(_recent.windowLookJson);
+    for (const id in applied) {
+      delete applied[id].blur;
+      delete applied[id].shadows;
+    }
+    _recent.windowLookJson = JSON.stringify(applied);
+  }
 
   // Calls back with the binds in effect outside axiom's own modes (the
   // user's, read from their config, and axiom's), or null
@@ -403,8 +424,9 @@ Singleton {
     property string idsJson: "[]"
     // "sway" or "swayfx" once read (_readVersion), else ""
     property string variant: ""
-    // Each window's opacity as last set ({ id: value }, JSON)
-    property string opacityJson: "{}"
+    // Each window's look as last set ({ id: { opacity, blur, shadows, dim
+    // } }, JSON)
+    property string windowLookJson: "{}"
   }
 
   function _readVersion() {
@@ -438,10 +460,12 @@ Singleton {
       break;
     case "workspace":
       if (data.change === "reload") {
-        // A reload takes back what axiom's look set at runtime (not a
-        // window's opacity, which stays)
+        // A reload takes back what axiom's look set at runtime, each
+        // window's blur and shadows too (not its opacity or dim, which
+        // stay)
         root._liveGaps = null;
         root._liveBlur = null;
+        root._forgetReloaded();
         root._readConfig();
         root.configReloaded();
       }
@@ -498,6 +522,7 @@ Singleton {
       const info = SwayState.configInfo(out);
       root._gaps = info.gaps;
       root._configLayouts = info.layouts;
+      root._configDim = root.fx ? info.dim : 0;
       root._configBlur = root.fx ? info.blur : {
         "enabled": false,
         "size": 5,

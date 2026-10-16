@@ -315,12 +315,16 @@ QtObject {
    * SwayFX's part of the look (CompositorLayer.look) and the blur behind
    * axiom's surfaces (`surfaces`: { blur, throughWindows, backdrops }), as
    * commands to send now: never written into a file, which plain sway would
-   * refuse. Each sets the compositor's global (and every window's), so a
-   * part off sends nothing, and a reload takes it back.
-   *   shape    corner_radius
-   *   blur     blur (windows), blur_radius (≤ 10), blur_passes, blur_xray,
-   *            blur_noise, blur_contrast
-   *   shadow   shadows, shadow_blur_radius, shadow_color (and inactive)
+   * refuse. Each sets a compositor global, so a part off sends nothing,
+   * and a reload takes it back. Whether a window blurs, casts a shadow and
+   * its dim are each window's own: SwayManager sets those a window at a
+   * time (SwayState.windowCommands), as `blur`/`shadows` sent here would
+   * reach only the focused one.
+   *   shape    corner_radius (windows opened from now on: SwayFX has no
+   *            way to change an open window's at runtime)
+   *   blur     blur_radius (≤ 10), blur_passes, blur_xray, blur_noise,
+   *            blur_contrast
+   *   shadow   shadow_blur_radius, shadow_color (and inactive)
    *   dim      default_dim_inactive
    * and per axiom layer (LayerStack.blurSurfaces, blurBackdrops,
    * blurOverOverlay) its layer_effects, on or off, its transparent pixels
@@ -334,10 +338,10 @@ QtObject {
       lines.push(`corner_radius ${clamp(look.shape.radius, 0, 99)}`);
     if (look?.blur) {
       const b = look.blur;
-      lines.push(`blur ${toggle(b.windows)}`, `blur_radius ${clamp(b.size, 0, 10)}`, `blur_passes ${clamp(b.passes, 0, 10)}`, `blur_xray ${toggle(b.xray)}`, `blur_noise ${Math.round(b.noise) / 1000}`, `blur_contrast ${Math.round(b.contrast) / 100}`);
+      lines.push(`blur_radius ${clamp(b.size, 0, 10)}`, `blur_passes ${clamp(b.passes, 0, 10)}`, `blur_xray ${toggle(b.xray)}`, `blur_noise ${Math.round(b.noise) / 1000}`, `blur_contrast ${Math.round(b.contrast) / 100}`);
     }
     if (look?.shadow) {
-      lines.push("shadows enable", `shadow_blur_radius ${clamp(look.shadow.size, 0, 100)}`);
+      lines.push(`shadow_blur_radius ${clamp(look.shadow.size, 0, 100)}`);
       if (look.shadow.color !== "")
         lines.push(`shadow_color #${look.shadow.color}ee`, `shadow_inactive_color #${look.shadow.color}ee`);
     }

@@ -245,8 +245,10 @@ TestCase {
         "enabled": false,
         "size": 5,
         "passes": 2
-      }
+      },
+      "dim": 0
     });
+    compare(SwayState.configInfo("default_dim_inactive 0.25\n").dim, 0.25, "SwayFX's dim, what turning axiom's off goes back to");
     // SwayFX's blur
     compare(SwayState.configInfo("blur enable\nblur_radius 7\nblur_passes 3\nblur_xray disable\n").blur, {
       "enabled": true,
@@ -308,7 +310,7 @@ TestCase {
     compare(SwayState.specialToggle([], marks, "a-b", "WL-1").ids, ["2"]);
   }
 
-  function test_opacityCommands() {
+  function test_windowCommands() {
     const windows = [
       {
         "id": "4",
@@ -328,13 +330,43 @@ TestCase {
       "inactive": 85,
       "fullscreen": 100
     };
-    const first = SwayState.opacityCommands(windows, "4", opacity, {});
+    const first = SwayState.windowCommands(windows, "4", {
+      "opacity": opacity
+    }, {}, 0);
     compare(first.lines, ["[con_id=4] opacity 1", "[con_id=7] opacity 0.85", "[con_id=9] opacity 1"]);
     // Focus moves: only the two windows that change
-    const moved = SwayState.opacityCommands(windows, "7", opacity, first.applied);
+    const moved = SwayState.windowCommands(windows, "7", {
+      "opacity": opacity
+    }, first.applied, 0);
     compare(moved.lines, ["[con_id=4] opacity 0.85", "[con_id=7] opacity 1"]);
     // Turned off: every window back
-    compare(SwayState.opacityCommands(windows, "7", null, moved.applied).lines, ["[all] opacity 1"]);
-    compare(SwayState.opacityCommands(windows, "7", null, {}).lines, [], "nothing set, nothing to take back");
+    compare(SwayState.windowCommands(windows, "7", null, moved.applied, 0).lines, ["[all] opacity 1"]);
+    compare(SwayState.windowCommands(windows, "7", {}, {}, 0).lines, [], "nothing set, nothing to take back");
+    // SwayFX: blur, shadows and dim on every window, not just the focused one
+    const fx = {
+      "opacity": opacity,
+      "blur": true,
+      "shadows": true,
+      "dim": 0.15
+    };
+    const all = SwayState.windowCommands(windows, "7", fx, moved.applied, 0);
+    compare(all.lines, ["[con_id=4] blur enable, shadows enable, dim_inactive 0.15", "[con_id=7] blur enable, shadows enable, dim_inactive 0.15", "[con_id=9] blur enable, shadows enable, dim_inactive 0.15"]);
+    // A window opened later gets them too; the others are already set
+    const opened = SwayState.windowCommands(windows.concat([
+      {
+        "id": "12",
+        "fullscreen": false
+      }
+    ]), "7", fx, all.applied, 0);
+    compare(opened.lines, ["[con_id=12] opacity 0.85, blur enable, shadows enable, dim_inactive 0.15"]);
+    // Window blur off while the part stays on: off on each
+    compare(SwayState.windowCommands([windows[0]], "7", Object.assign({}, fx, {
+      "blur": false
+    }), all.applied, 0).lines, ["[con_id=4] blur disable"]);
+    // Dim off: back to the config's default; blur and shadows left alone
+    // (null: the reload turning their part off takes them back)
+    compare(SwayState.windowCommands(windows, "7", {
+      "opacity": opacity
+    }, all.applied, 0.1).lines, ["[all] dim_inactive 0.1"]);
   }
 }

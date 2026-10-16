@@ -597,10 +597,11 @@ bindsym $mod+space exec $ipc appLauncher toggle`;
       "backdrops": false
     });
     verify(lines.includes("corner_radius 14"));
-    verify(lines.includes("blur enable") && lines.includes("blur_radius 10"), "the radius capped at SwayFX's 10");
+    verify(lines.includes("blur_radius 10"), "the radius capped at SwayFX's 10");
+    verify(!lines.includes("blur enable") && !lines.includes("shadows enable"), "a window's blur and shadow are SwayManager's, a window at a time");
     verify(lines.includes("blur_passes 3") && lines.includes("blur_xray disable"));
     verify(lines.includes("blur_noise 0.012") && lines.includes("blur_contrast 0.89"));
-    verify(lines.includes("shadows enable") && lines.includes("shadow_blur_radius 8"));
+    verify(lines.includes("shadow_blur_radius 8"));
     verify(lines.includes("shadow_color #101010ee") && lines.includes("shadow_inactive_color #101010ee"));
     verify(lines.includes("default_dim_inactive 0.15"));
     verify(lines.includes("layer_effects axiom-overlay \"blur enable; blur_xray disable; blur_ignore_transparent enable\""), "through windows: no xray");
