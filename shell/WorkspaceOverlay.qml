@@ -70,7 +70,7 @@ Scope {
       required property var modelData
 
       // The dim background, under the bars and border
-      ScreenBackdrop {
+      BackdropRequest {
         screen: overlayWindow.modelData
         shown: overlayWindow.shown
         fillColor: Theme.base00

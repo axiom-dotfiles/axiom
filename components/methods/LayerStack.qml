@@ -25,7 +25,7 @@ QtObject {
     {
       "namespace": "backdrop",
       "order": 10,
-      "why": "Full-screen surfaces' backdrops (ScreenBackdrop): Top-layer surfaces that sit under the bars and border, which are mapped before them."
+      "why": "Each screen's backdrop window (ScreenBackdrop: full-screen surfaces' dim background): on Top, under the bars and border. Without layer rules it stays mapped (held), so it keeps its place before them."
     },
     {
       "namespace": "blur-backing",

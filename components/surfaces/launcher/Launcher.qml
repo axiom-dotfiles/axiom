@@ -99,7 +99,7 @@ Scope {
   }
 
   // The dim background, under the bars and border, for either host
-  ScreenBackdrop {
+  BackdropRequest {
     screen: root.screen
     shown: root.shown && LauncherConfig.showBackdrop
     fillColor: Theme.background

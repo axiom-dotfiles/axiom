@@ -15,7 +15,7 @@ Scope {
       id: overlay
       required property ShellScreen modelData
 
-      ScreenBackdrop {
+      BackdropRequest {
         screen: overlay.modelData
         shown: panel.isOpen && !panel.steppedAside
         slide: true

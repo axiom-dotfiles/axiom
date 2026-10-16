@@ -132,7 +132,7 @@ PanelWindow {
   }
 
   // The dim background, under the bars and border
-  ScreenBackdrop {
+  BackdropRequest {
     screen: root.screen
     shown: root.shown && PowerMenuConfig.showBackdrop
     fillColor: Theme.background

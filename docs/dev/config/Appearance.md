@@ -55,7 +55,7 @@ Every public member of `Appearance`, with the files that use it.
 - `Appearance.theme` (string): --- Theme (UI-owned, set on the overlay's Themes page) ---
   - in: `components/methods/ConfigMigration.qml`, `config/Theme.qml`, `services/ThemeManager.qml`
 - `Appearance.darkMode` (bool): From the active theme, not config: a theme is dark or light
-  - in: `components/content/QuickActions.qml`, `components/content/ThemePicker.qml`, `components/content/WallpaperPicker.qml`, `components/reusable/ScreenBackdrop.qml`, `components/surfaces/polkit/PolkitWindow.qml`, `services/LauncherCommands.qml`, `services/ThemeManager.qml`, `services/WallpaperManager.qml`
+  - in: `components/content/QuickActions.qml`, `components/content/ThemePicker.qml`, `components/content/WallpaperPicker.qml`, `components/reusable/BackdropRequest.qml`, `components/surfaces/polkit/PolkitWindow.qml`, `services/LauncherCommands.qml`, `services/ThemeManager.qml`, `services/WallpaperManager.qml`
 - `Appearance.fixedWallpaper` (string): The wallpapers picked by hand (fixed mode): the primary monitor's, the fallback for monitors without their own, and monitor name -> URL, set per monitor on the…
   - in: `services/ThemeManager.qml`
 - `Appearance.fixedWallpapers` (var)

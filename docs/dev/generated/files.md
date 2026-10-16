@@ -296,6 +296,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `ActionPill.qml`: A wide action or toggle tile, as in Android's quick settings: an icon well beside a name and a status line.
 - `ActionTile.qml`: An action or toggle tile: an icon well over a label.
 - `AddEntryButton.qml`: An outlined full-width button under a list that adds to it ("New bar", "New page")
+- `BackdropRequest.qml`: A full-screen surface's dim background on its screen, shown while `shown`: drawn by that screen's backdrop window (ScreenBackdrop, through BackdropManager), under the bars and the border.
 - `BaseWidget.qml`: Rounded background box for bar modules.
 - `CodeLine.qml`: Text to paste somewhere (a config line, a command), in a monospace box with a Copy button
 - `ColorGlide.qml`: The shell's eased change to a color: `ColorGlide on color {}` is `Behavior on color { ColorAnimation { duration: Appearance.animFast; easing.type: Appearance.easing } }`.
@@ -324,7 +325,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `PipewireVolumeBar.qml`: A StyledVolumeBar bound to a Pipewire stream (by app name) or the system volume: shows and sets its level and mute; the OSD's audio bars.
 - `PopInRectangle.qml`: A small mark that pops in and out (CountBadge, StatusChip, UnsavedDot): set `shown` rather than `visible`, and it grows in from its centre and shrinks away, staying visible (and laid out) until it has.
 - `RowAction.qml`: A small flat button on a ListEntryRow, faint until the row is hovered or selected.
-- `ScreenBackdrop.qml`: A full-screen surface's dim background (the overlay, workspace overview and launcher): the whole monitor, under the bars and the border, which stay drawn over it.
+- `ScreenBackdrop.qml`: A screen's dim background for full-screen surfaces (the overlay, workspace overview, launcher, power menu, onboarding; BackdropRequest): the whole monitor, under the bars and the border, which stay drawn over it.
 - `SectionHeading.qml`: A section's title in the accent, with an optional muted description under it (FieldGroup, the theme list)
 - `SegmentButton.qml`: One button of a segmented choice (Dark/Light, a wallpaper mode): the chosen one is filled with the accent; one that can't be chosen is dimmed.
 - `SegmentRow.qml`: A single choice as one control: SegmentButtons on a shared track, with the chosen one's accent sliding from button to button.
@@ -550,6 +551,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 ## shell/
 
 - `AppLauncher.qml`: The app launcher, one per screen its monitors setting picks (surfaces/launcher/Launcher).
+- `Backdrops.qml`: The backdrop window on every screen (BackdropManager): the dim background full-screen surfaces ask for (BackdropRequest)
 - `Bar.qml`: The bars: one BarPanel per BarManager.bars entry.
 - `BlurBacking.qml`: The blur behind the chrome (BlurManager): per screen, one click-through window under every chrome surface drawing each registered shape (the border's frame, bars, popouts, edge menus, docks) filled.
 - `BlurBackingWindow.qml`: One blur window (BlurBacking): click-through, drawing each of `shapes` (BlurShapes) filled, at the surface opacity, with their shadows cast once per look and kept outside every shape, its own and the other window's (`cu…
@@ -577,6 +579,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 
 - `AudioManager.qml`: Pipewire audio state: the default output (sink) and input (source), every device and app stream, and helpers to control them.
 - `AuthManager.qml`: PAM authentication (Quickshell's PamContext, "login" stack) for the built-in lockscreen. authenticationSucceeded is the only thing that may unlock it (see shell/Lockscreen.qml).
+- `BackdropManager.qml`: The dim backgrounds full-screen surfaces ask for (the overlay, launcher, power menu, workspace overview, onboarding: reusable/BackdropRequest).
 - `BarManager.qml`: BarManager holds the bar editor's working copy of the Bars config.
 - `BatteryManager.qml`: The laptop battery (UPower's display device, when it is one) and the power-saver profile, for the Battery widget and module, and the low battery notifications (at BatteryConfig's levels).
 - `BluetoothManager.qml`: Bluetooth state and actions over the default adapter (BlueZ via Quickshell.Bluetooth).

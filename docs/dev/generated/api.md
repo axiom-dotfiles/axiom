@@ -8,6 +8,7 @@ The public members (no `_` prefix) of every file in `services/` and every config
 
 - [AudioManager](api/AudioManager.md): Pipewire audio state: the default output (sink) and input (source), every device and app stream, and helpers to control them.
 - [AuthManager](api/AuthManager.md): PAM authentication (Quickshell's PamContext, "login" stack) for the built-in lockscreen. authenticationSucceeded is the only thing that may unlock it (see shel…
+- [BackdropManager](api/BackdropManager.md): The dim backgrounds full-screen surfaces ask for (the overlay, launcher, power menu, workspace overview, onboarding: reusable/BackdropRequest).
 - [BarManager](api/BarManager.md): BarManager holds the bar editor's working copy of the Bars config.
 - [BatteryManager](api/BatteryManager.md): The laptop battery (UPower's display device, when it is one) and the power-saver profile, for the Battery widget and module, and the low battery notifications …
 - [BluetoothManager](api/BluetoothManager.md): Bluetooth state and actions over the default adapter (BlueZ via Quickshell.Bluetooth).

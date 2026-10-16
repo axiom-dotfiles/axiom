@@ -59,6 +59,10 @@ ShellRoot {
     id: screenBorder
   }
 
+  Backdrops {
+    id: backdrops
+  }
+
   BlurBacking {
     id: blurBacking
   }
