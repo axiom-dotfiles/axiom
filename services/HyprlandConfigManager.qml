@@ -533,8 +533,11 @@ Singleton {
 
   Component.onCompleted: _debounce.restart()
 
+  // Only under Hyprland: other services read this one's paths and state
+  // (IntegrationHookupManager, KeybindManager), so it exists under any
+  // compositor, and touching `Hyprland` there would try to connect to it
   Connections {
-    target: Hyprland
+    target: root.live ? Hyprland : null
 
     function onRawEvent(event) {
       if (event.name !== "configreloaded")

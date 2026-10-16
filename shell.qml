@@ -15,7 +15,8 @@ ShellRoot {
   id: shellRoot
 
   // Services with no UI of their own, which nothing else would create
-  // (HyprlandConfigManager only under Hyprland: it reads Quickshell.Hyprland)
+  // (HyprlandConfigManager only under Hyprland, where it has work at start;
+  // elsewhere other services may still create it, and it stays inert: live)
   readonly property var _services: [DataMigrationManager, DependencyManager, CompositorManager, CompositorManager.kind === "hyprland" ? HyprlandConfigManager : null, HypridleManager, SelfUpdateManager, ChatManager, AudioManager, MediaManager, EdgeMenuManager, BrightnessManager, NotesManager, MonitorManager, OnboardingManager, ClipboardManager, NightLightManager, WallpaperManager, DockManager, SystemManager, BatteryManager, PolkitManager, GreeterManager, CalendarManager]
 
   Lockscreen {
