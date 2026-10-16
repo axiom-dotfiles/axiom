@@ -18,6 +18,96 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 
 ## Open
 
+### A greeter installed before v63 drops the monitor and keyboard layout
+- **Where:** `components/methods/GreeterBundle.qml` (`exportConfig`), `services/GreeterManager.qml`
+- **What:** An installed greeter on older code reads a v63 bundle without migrating it and prunes `Compositor`, `Monitors` and `Input` as unknown, so until the greeter is updated the login screen loses the monitor layout and, in managed mode, `kbLayout`/`kbOptions` (a password typed on the wrong layout). The outdated notice says to update, but not that it's required. Exporting the legacy `Hyprland.monitors`/`managed` keys for a while, or a firmer notice, would cover it.
+- **Size:** small
+- **Found:** 2026-10-16, while auditing the sway branch for merge
+
+### Migrations read a missing key as off where the old managed config wrote a default
+- **Where:** `components/methods/ConfigMigration.qml` (`_v57ToV58`, `_v58ToV59`, `_v62ToV63`)
+- **What:** Each step moves what's present. A hand-trimmed config (the UI saves every default) loses what the managed file always wrote: no `Hyprland.managed` means no border 2/rounding 8; a missing `dimInactive` (old default on) leaves dim off; missing keyboard keys turn repeat 50/300 back to the compositor's; `shadowThemed` without `shadowColor` becomes the compositor's color, not `base00`. In managed mode a missing key could be read as its old default.
+- **Size:** small
+- **Found:** 2026-10-16, while auditing the sway branch for merge
+
+### Corner rounding is greyed out on plain sway with no note
+- **Where:** `components/forms/SchemaField.qml` (`disabledNote`)
+- **What:** `WindowLook.rounding` needs `/$supports.windowRounding` (SwayFX only), but the note is suppressed for a row shown by a sibling switch, and `shape` itself isn't greyed, so nothing says why. Suppress the note only when the sibling is blocked by the same key.
+- **Size:** trivial
+- **Found:** 2026-10-16, while auditing the sway branch for merge
+
+### SwayFX remaps the chrome on a fresh qs start
+- **Where:** `services/SwayManager.qml` (`surfacesReady`), `shell/BlurBacking.qml`
+- **What:** `surfacesReady` is always true, so bars, border and docks map at once, while the held blur window (order 9) waits for `supports.blur`, known only from the `get_version` reply. Mapped after them, it makes LayerManager map each lower-ordered window again. Hot reloads keep the variant, so only a fresh start does it. Waiting for `ready` would fix it, but hides the chrome until sway answers.
+- **Size:** small
+- **Found:** 2026-10-16, while auditing the sway branch for merge
+
+### The blur window's Top/Overlay switch may land over the bars on SwayFX
+- **Where:** `shell/BlurBacking.qml`, `shell/BlurBackingWindow.qml`
+- **What:** The blur window changes `stackLayer` while a fullscreen window shows; LayerManager keeps its place in the order. If SwayFX puts a window that changed layer on top of its new layer, then after fullscreen ends it draws over the bars. Needs a look in `scripts/dev/nested.sh sway` with SwayFX.
+- **Size:** small
+- **Found:** 2026-10-16, while auditing the sway branch for merge
+
+### Hyprland's key capture watchdog can end a later capture
+- **Where:** `services/HyprlandManager.qml` (`captureKeys`)
+- **What:** Each capture enters the one `axiom_record` submap with a 30 s `hl.timer` leaving it; a second capture within those 30 s is cut short by the first's timer. Sway's got a mode name per capture (796b16e); Hyprland's needs the same or a timer handle it removes.
+- **Size:** trivial
+- **Found:** 2026-10-16, while auditing the sway branch for merge
+
+### Monitor VRR offers Hyprland's modes on sway
+- **Where:** `components/views/monitors/MonitorInspector.qml`, `components/methods/SwayConf.qml` (`outputCommand`)
+- **What:** VRR offers Off/On/Fullscreen only/Fullscreen games and video; sway has on or off, so the fullscreen ones turn adaptive sync on everywhere. A capability (`monitorVrrModes`) would offer only Off/On without it.
+- **Size:** trivial
+- **Found:** 2026-10-16, while auditing the sway branch for merge
+
+### A fullscreen window re-sends the whole live layer
+- **Where:** `services/CompositorConfigManager.qml` (`_liveInputs`)
+- **What:** `BlurManager.active` flips as a fullscreen window opens or closes and is in `_liveInputs`, so each flip re-sends the whole look and input (Hyprland's `hl.config({ input = … })`, sway's `[all] border pixel`, `gaps … all set`), not just the blur rules: a user's runtime tweak (`border toggle`, `gaps current plus`) is undone whenever anything goes fullscreen. A blur-only change should send only the blur lines.
+- **Size:** small
+- **Found:** 2026-10-16, while auditing the sway branch for merge
+
+### Any change of the mode to managed approves the takeover
+- **Where:** `services/CompositorConfigManager.qml` (`onModeChanged`)
+- **What:** Picking managed while axiom runs counts as approval, which includes editing config.json by hand or a sync tool writing it, not only the card's Save that `docs/dev/compositor/config-modes.md` describes. Imports keep `x-takeover`, so only direct edits reach it. Approving from SettingsManager's save only, or saying so in the doc.
+- **Size:** small
+- **Found:** 2026-10-16, while auditing the sway branch for merge
+
+### Sway's bind reading misses blocks and quoted outputs
+- **Where:** `components/methods/SwayConf.qml` (`configBinds`), `services/SwayConfigWriter.qml` (`monitorPattern`)
+- **What:** `bindsym { … }` blocks (the head applies to each inner line) aren't read, so axiom's runtime `bindsym --no-warn` overrides those keys; binds inside `bar { … }` count as main-mode binds. The monitor-rule check misses `output "Make Model Serial" …` and `output X { … }`.
+- **Size:** small
+- **Found:** 2026-10-16, while auditing the sway branch for merge
+
+### Unreadable sway config means axiom binds over the user's keys
+- **Where:** `services/SwayRuntimeLayer.qml` (`_start`)
+- **What:** When `sway_config_text.py` fails (it logs `Can't read your sway config`) the layer treats the user as binding nothing, and binds with `--no-warn` over their keys after every reload. Hyprland's layer does the same. Binding nothing (look and input only) with a problem shown would be safer, at the cost of axiom's binds.
+- **Size:** small
+- **Found:** 2026-10-16, while auditing the sway branch for merge
+
+### claim_sway.sh doesn't check its own edits
+- **Where:** `scripts/claim_sway.sh` (`adopt_lines`)
+- **What:** `adopted:` is printed even when commenting out failed (its result isn't checked); `$dir` goes unescaped into a sed replacement with `|` as the delimiter, so a path holding `|`, `&` or `\` breaks it; quoted relative includes, and all but the first path of a multi-path `include`, aren't made absolute.
+- **Size:** small
+- **Found:** 2026-10-16, while auditing the sway branch for merge
+
+### Turning sway's window opacity off reloads sway
+- **Where:** `services/CompositorConfigManager.qml` (`_appliedParts`)
+- **What:** Opacity counts as an applied part, so turning it off reloads the config (see "Changing a setting under sway can flash the screen"), though SwayManager already sets every window back to 1 itself. A part the backend takes back itself shouldn't count.
+- **Size:** trivial
+- **Found:** 2026-10-16, while auditing the sway branch for merge
+
+### The config writers repeat their runtime machinery
+- **Where:** `services/SwayRuntimeLayer.qml`, `services/HyprlandRuntimeLayer.qml`, `components/methods/HyprConfigLua.qml` (`envLua`), `components/methods/CompositorLayer.qml` (`sessionEnv`)
+- **What:** The two runtime layers repeat wanted/busy, the reload counter and the "bound by your config" logging; `envLua` and `sessionEnv` build the same environment but disagree on precedence (Hyprland's cursor beats the user's environment, sway's the other way round).
+- **Size:** small
+- **Found:** 2026-10-16, while auditing the sway branch for merge
+
+### The onboarding's Compositor page names Hyprland
+- **Where:** `components/surfaces/onboarding/pages/CompositorPage.qml`, `services/OnboardingManager.qml` (`detectCompositor`)
+- **What:** It gates on `CompositorManager.kind !== "hyprland"` and reads `HyprlandManager.withVersion` (and the page shows Hyprland's legacy notice) rather than a capability, and calls `CompositorManager.backend?.unsupportedHint` from UI. A writer hook (`legacyConfig`, `configProblem`) and a CompositorManager passthrough would keep it neutral.
+- **Size:** small
+- **Found:** 2026-10-16, while auditing the sway branch for merge
+
 ### SwayFX's corner radius reaches only windows opened later
 - **Where:** `components/methods/SwayConf.qml` (`fxLines`)
 - **What:** `corner_radius` sent at runtime sets SwayFX 0.6's global only (its per-window reset runs only while the config loads), and it has no per-window command, so a changed rounding shows on new windows while open ones keep theirs until sway reloads its config. A fix would need a reload, which takes back the rest of the runtime look.
