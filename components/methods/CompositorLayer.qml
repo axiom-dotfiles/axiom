@@ -30,13 +30,11 @@ QtObject {
    *   shadow   { size, power, color ("rrggbbaa", or "" for the
    *            compositor's own), rgb ("rrggbb" or ""), alpha (0–1),
    *            offset (px downward), soft (standing in for axiom's own
-   *            blurred shadow; alpha is then the one axiom draws it
-   *            with) }, or null
+   *            blurred shadow) }, or null
    *   dim      { strength } in percent, or null
    *   opacity  { active, inactive, fullscreen } in percent, or null
    * `opts`: { activeHex, inactiveHex, borderWidth, radius, surfacesBlur,
-   * shadow ({ size, color ("rrggbb" or ""), alpha (0–1), offset, soft,
-   * drawnAlpha (axiom's own alpha, while soft) }, or
+   * shadow ({ size, color ("rrggbb" or ""), alpha (0–1), offset, soft }, or
    * null for none: axiom's own casting none) }
    */
   // The relative luminance (0–1) of "rrggbb"
@@ -61,7 +59,7 @@ QtObject {
       "power": values.shadowPower,
       "color": cast.color !== "" ? cast.color + alphaHex(alpha) : "",
       "rgb": cast.color,
-      "alpha": cast.soft === true && cast.drawnAlpha !== undefined ? Math.max(0, Math.min(1, cast.drawnAlpha)) : alpha,
+      "alpha": alpha,
       "offset": cast.offset,
       "soft": cast.soft === true
     } : null;

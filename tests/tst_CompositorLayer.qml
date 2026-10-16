@@ -75,24 +75,10 @@ TestCase {
     compare(CompositorLayer.look(values, cast("c4a7e7", 1, 0)).shadow.color, "c4a7e7ff");
   }
 
-  function test_luminance_and_drawn_alpha() {
+  function test_luminance() {
     compare(CompositorLayer.luminance("000000"), 0);
     compare(CompositorLayer.luminance("ffffff"), 1);
     fuzzyCompare(CompositorLayer.luminance("c4a7e7"), 0.45, 0.01);
-    const values = Object.assign(defaults(), {
-      "shadow": true
-    });
-    const soft = CompositorLayer.look(values, Object.assign({}, opts, {
-      "shadow": {
-        "size": 20,
-        "color": "c4a7e7",
-        "alpha": 1,
-        "offset": 0,
-        "soft": true,
-        "drawnAlpha": 0.45
-      }
-    })).shadow;
-    compare([soft.color, soft.alpha], ["c4a7e7ff", 0.45], "the color as given (SwayFX's), the alpha axiom draws with");
   }
 
   // Matching axiom's shadow while it casts none: no shadow, the part off

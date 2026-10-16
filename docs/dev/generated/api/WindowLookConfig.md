@@ -10,8 +10,7 @@ Reader for the WindowLook section: settings that make windows match axiom ({ bor
 - `look` (readonly var)
 - `activeBorder` (readonly color): The border colors: the ones picked, else the theme's
 - `inactiveBorder` (readonly color)
-- `shadowSoft` (readonly bool): Whether it stands in for axiom's own, a soft (blurred) shadow
-- `shadowDrawnAlpha` (readonly real): The alpha axiom draws its own with (Bar.shadowColor: capped while surfaces blur), for a compositor drawing its shadow to look like it
+- `shadowSoft` (readonly bool): Whether it stands in for axiom's own, a soft (blurred) shadow: as axiom draws it where nothing caps it (Appearance.shadowAlphaMax keeps the chrome's under the blur threshold; no blur reaches a window…
 - `shadowOn` (readonly bool)
 - `shadowSize` (readonly int)
 - `shadowThemed` (readonly bool): Its color: axiom's, the one picked, or none for the compositor's own

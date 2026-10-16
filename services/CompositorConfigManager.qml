@@ -111,8 +111,7 @@ Singleton {
           "color": WindowLookConfig.shadowThemed ? CompositorLayer.hex(WindowLookConfig.shadowColor) : "",
           "alpha": WindowLookConfig.shadowAlpha,
           "offset": WindowLookConfig.shadowOffset,
-          "soft": WindowLookConfig.shadowSoft,
-          "drawnAlpha": WindowLookConfig.shadowDrawnAlpha
+          "soft": WindowLookConfig.shadowSoft
         } : null
       }),
       // How axiom's surfaces blur (a backend blurring layers by name)
@@ -546,7 +545,7 @@ Singleton {
   // them as of its last write, and _applyLive evaluates the current ones
   // over it after every reload. Turning a part off goes through apply(),
   // since an eval can't take a setting back.
-  readonly property string _liveInputs: [WindowLookConfig._lookJson, InputConfig._inputJson, Appearance.blur, BlurManager.active, Appearance.blurBackdrops, Appearance.blurThroughWindows, WindowLookConfig.activeBorder, WindowLookConfig.inactiveBorder, WindowLookConfig.radius, WindowLookConfig.borderWidth, WindowLookConfig.shadowOn, WindowLookConfig.shadowSize, WindowLookConfig.shadowColor, WindowLookConfig.shadowAlpha, WindowLookConfig.shadowDrawnAlpha, WindowLookConfig.shadowOffset].join("|")
+  readonly property string _liveInputs: [WindowLookConfig._lookJson, InputConfig._inputJson, Appearance.blur, BlurManager.active, Appearance.blurBackdrops, Appearance.blurThroughWindows, WindowLookConfig.activeBorder, WindowLookConfig.inactiveBorder, WindowLookConfig.radius, WindowLookConfig.borderWidth, WindowLookConfig.shadowOn, WindowLookConfig.shadowSize, WindowLookConfig.shadowColor, WindowLookConfig.shadowAlpha, WindowLookConfig.shadowOffset].join("|")
   on_LiveInputsChanged: _liveDebounce.restart()
 
   property Timer _liveDebounce: Timer {

@@ -1465,7 +1465,7 @@
           "title": "Shadow size",
           "default": 12,
           "minimum": 2,
-          "maximum": 40,
+          "maximum": 64,
           "x-unit": "px",
           "x-beside": true,
           "x-showIf": {
@@ -3217,7 +3217,7 @@
           "title": "Shadow size",
           "default": 12,
           "minimum": 2,
-          "maximum": 40,
+          "maximum": 64,
           "x-unit": "px",
           "x-beside": true,
           "x-showIf": {

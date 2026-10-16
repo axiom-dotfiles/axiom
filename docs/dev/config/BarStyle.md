@@ -87,7 +87,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - Shadow color: Auto: black for a shadow, the accent for a glow.
   - x-group="Bar shadow", x-options="colors", x-emptyLabel="Auto", x-showIf={"shadow":{"not":"none"}}
   - read: `BarStyle.values` (whole), `barConfig.shadowColor` · in: `components/hosts/popout/SurfaceShadow.qml`, `components/surfaces/border/RoundedBorders.qml`, `config/Bar.qml`, `config/WindowLookConfig.qml`, `shell/BlurBackingWindow.qml`
-- **`BarStyle.shadowSize`** · integer = 12 · 2–40 · px
+- **`BarStyle.shadowSize`** · integer = 12 · 2–64 · px
   - Shadow size
   - x-group="Bar shadow", x-control="stepper", x-beside=true, x-showIf={"shadow":{"not":"none"}}
   - read: `BarStyle.values` (whole), `barConfig.shadowSize` · in: `components/bar/BarContainer.qml`, `components/hosts/popout/AttachedSurface.qml`, `components/hosts/popout/SurfaceShadow.qml`, `components/surfaces/border/RoundedBorders.qml`, `config/Bar.qml`, `config/WindowLookConfig.qml`, `shell/BlurBackingWindow.qml`

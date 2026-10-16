@@ -23,11 +23,10 @@ QtObject {
   // The windows' shadow: axiom's (Bar style's shadow or glow, its color
   // and size) while it matches it, where none casts none; else its own
   readonly property bool _shadowMatched: _c.shadowMatchShell
-  // Whether it stands in for axiom's own, a soft (blurred) shadow
+  // Whether it stands in for axiom's own, a soft (blurred) shadow: as
+  // axiom draws it where nothing caps it (Appearance.shadowAlphaMax keeps
+  // the chrome's under the blur threshold; no blur reaches a window's)
   readonly property bool shadowSoft: _shadowMatched
-  // The alpha axiom draws its own with (Bar.shadowColor: capped while
-  // surfaces blur), for a compositor drawing its shadow to look like it
-  readonly property real shadowDrawnAlpha: _shadowMatched ? Math.min(shadowColor.a, Appearance.shadowAlphaMax) : shadowAlpha
   readonly property var _barLook: BarStyle.values
   readonly property bool shadowOn: _c.shadow && !(_shadowMatched && _barLook.shadow === "none")
   readonly property int shadowSize: _shadowMatched ? _barLook.shadowSize : _c.shadowSize

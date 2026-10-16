@@ -181,7 +181,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - Shadow color: Auto: black for a shadow, the accent for a glow.
   - x-group="Shadow", x-options="colors", x-emptyLabel="Auto", x-showIf={"overrideShadow":true,"shadow":{"not":"none"}}
   - read: `barConfig.shadowColor`, entry field, name match · in: `config/Bar.qml`
-- **`Bars[].shadowSize`** · integer = 12 · 2–40 · px
+- **`Bars[].shadowSize`** · integer = 12 · 2–64 · px
   - Shadow size
   - x-group="Shadow", x-control="stepper", x-beside=true, x-showIf={"overrideShadow":true,"shadow":{"not":"none"}}
   - read: `Bar.savedBars` (whole), `barConfig.shadowSize` · in: `components/bar/BarContainer.qml`, `config/Bar.qml`

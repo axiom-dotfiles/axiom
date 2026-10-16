@@ -121,7 +121,7 @@ Every public member of `Appearance`, with the files that use it.
 - `Appearance.blurThreshold` (real)
   - in: `components/surfaces/screenlayout/ScreenLayoutView.qml`, `services/HyprlandConfigWriter.qml`
 - `Appearance.shadowAlphaMax` (real): A shadow's darkest alpha while blurring: under the threshold, so its halo isn't blurred (the blur window casts the chrome's, and Hyprland blurs the chrome's po…
-  - in: `config/Bar.qml`, `config/WindowLookConfig.qml`
+  - in: `config/Bar.qml`
 - `Appearance.compositorBlurThreshold` (bool): Whether the compositor leaves pixels under blurThreshold unblurred (CompositorManager.supports.blurThreshold), handed over as compositorBlurs is
   - in: only inside the reader
 - `Appearance.fill(color)`: A surface fill (a theme color, or a name or "#hex" as Theme.resolveColor gives one) at the surface opacity
