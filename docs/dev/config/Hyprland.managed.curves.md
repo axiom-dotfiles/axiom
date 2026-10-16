@@ -19,7 +19,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`Hyprland.managed.curves[]`** · object
 - **`Hyprland.managed.curves[].name`** · string = ""
   - Name
-  - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `services/HyprlandConfigManager.qml`, `services/SettingsManager.qml`
+  - read: `HyprlandConfig.managed` (whole), `// reads:` marker · in: `services/HyprlandConfigManager.qml`
 - **`Hyprland.managed.curves[].points`** · string = "0.25, 0.1, 0.25, 1"
   - Points: x1, y1, x2, y2, as in CSS cubic-bezier().
   - read: entry field, name match repo-wide, `// reads:` marker · in: `components/methods/HyprConfigLua.qml`, `services/HyprlandConfigManager.qml`

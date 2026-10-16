@@ -189,7 +189,7 @@ QtObject {
       return (fieldSchema["x-emptyLabel"] ? [""] : []).concat(Theme.baseColorNames);
     case "cursorThemes":
       {
-        const current = HyprlandConfig.managed.cursorTheme;
+        const current = InputConfig.cursorTheme;
         const themes = root.cursorThemes;
         return ["", ...themes, ...(current && !themes.includes(current) ? [current] : [])];
       }

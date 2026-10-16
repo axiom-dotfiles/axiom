@@ -10,8 +10,8 @@ import qs.components.methods
 // session, and the conversation with greetd (Quickshell's Greetd: PAM
 // through greetd's IPC). Only the greeter references it, so the user's
 // own shell never connects to greetd; its preview leaves every action
-// inert. Also the greeter's Hyprland: the monitor layouts and, in managed
-// mode, the options the bundle carries (HyprLua.greeterLua), and the
+// inert. Also the greeter's Hyprland: the monitor layouts and the input
+// options the bundle carries (HyprLua.greeterLua), and the
 // keyboard layout switch.
 QtObject {
   id: root
@@ -217,17 +217,16 @@ QtObject {
     });
   }
 
-  // The monitors and, in managed mode, the bundle's Hyprland options
+  // The monitors and the bundle's input
   function _applyHyprland() {
     if (CompositorManager.kind !== "hyprland")
       return;
     const config = ConfigManager.config;
-    const managedSchema = ConfigManager.configSchema.properties.Hyprland.properties.managed;
-    const managed = config.Compositor.mode === "managed" ? config.Hyprland.managed : undefined;
-    const lua = HyprLua.greeterLua(config.Hyprland.monitors.profiles, managedSchema, managed, name => HyprConfigLua.hex(Theme.resolveColor(name)));
+    const lua = HyprLua.greeterLua(config.Hyprland.monitors.profiles, ConfigManager.configSchema.properties.Input, config.Input, name => HyprConfigLua.hex(Theme.resolveColor(name)));
     HyprlandManager.runLua(lua.join("\n"));
-    if (managed?.cursorTheme)
-      HyprlandManager.setCursor(managed.cursorTheme, managed.cursorSize);
+    const cursor = CompositorLayer.input(config.Input).cursor;
+    if (cursor)
+      HyprlandManager.setCursor(cursor.theme, cursor.size);
   }
 
   Component.onCompleted: {

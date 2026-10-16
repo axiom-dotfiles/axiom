@@ -19,6 +19,8 @@ Generated from `config/json/config.schema.json` and the readers in `config/`. On
 | [Notifications](Notifications.md) | `NotificationsConfig` (`config/NotificationsConfig.qml`) | Notifications |
 | [Compositor](Compositor.md) | `CompositorConfig` (`config/CompositorConfig.qml`) | Compositor |
 | [Hyprland](Hyprland.md) | `HyprlandConfig` (`config/HyprlandConfig.qml`) | Compositor |
+| [Input](Input.md) | `InputConfig` (`config/InputConfig.qml`) | Compositor |
+| [Session](Session.md) | `SessionConfig` (`config/SessionConfig.qml`) | Compositor |
 | [WindowLook](WindowLook.md) | `WindowLookConfig` (`config/WindowLookConfig.qml`) | Compositor |
 | [Appearance](Appearance.md) | `Appearance` (`config/Appearance.qml`) | Look & Feel |
 | [Widget](Widget.md) | `Widget` (`config/Widget.qml`) | Look & Feel |

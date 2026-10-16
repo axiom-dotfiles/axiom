@@ -56,4 +56,25 @@ QtObject {
       } : null
     };
   }
+
+  readonly property var inputPartNames: ["keyboard", "mouse", "touchpad", "cursor"]
+
+  /**
+   * The input (Input's values) as the parts that are on:
+   *   parts    the names of the parts on, in inputPartNames' order
+   *   values   Input's values, for a backend mapping fields by their schema
+   *            annotations (x-hypr, gated by x-hyprIf on their part)
+   *   cursor   { theme, size } while the cursor part is on with a theme, or
+   *            null
+   */
+  function input(values) {
+    return {
+      "parts": inputPartNames.filter(part => values[part]),
+      "values": values,
+      "cursor": values.cursor && values.cursorTheme ? {
+        "theme": values.cursorTheme,
+        "size": values.cursorSize
+      } : null
+    };
+  }
 }

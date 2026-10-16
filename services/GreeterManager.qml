@@ -16,7 +16,7 @@ import qs.components.methods
 //     version (clicking it opens Settings → Login screen)
 //   - the bundle: what the greeter shows (GreeterBundle.exportConfig: the
 //     Greeter section, the look, the monitor layouts and, in managed mode,
-//     the Hyprland options marked x-greeter, plus the theme and copies of
+//     the Input options marked x-greeter, plus the theme and copies of
 //     the wallpapers), exported to a folder of the user's whenever it
 //     changes, so changing the login screen needs no root
 //   - the layouts editor's draft of its layout (`editor`) and its preview
@@ -251,7 +251,7 @@ QtObject {
     copies[url] = "wallpapers/" + Qt.md5(url) + extension;
     return copies;
   }, {})
-  readonly property string _bundleText: JSON.stringify(GreeterBundle.exportConfig(root._shownConfig, ConfigManager.configSchema.properties.Hyprland.properties.managed, Object.keys(root._wallpaperCopies).reduce((urls, url) => {
+  readonly property string _bundleText: JSON.stringify(GreeterBundle.exportConfig(root._shownConfig, ConfigManager.configSchema.properties.Input, Object.keys(root._wallpaperCopies).reduce((urls, url) => {
     urls[url] = "file://" + Paths.greeterBundlePath + root._wallpaperCopies[url];
     return urls;
   }, {})), null, 2)

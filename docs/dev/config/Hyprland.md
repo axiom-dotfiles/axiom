@@ -15,8 +15,6 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - [`Hyprland.monitors`](Hyprland.monitors.md)
 - [`Hyprland.managed.curves`](Hyprland.managed.curves.md)
 - [`Hyprland.managed.customAnimations`](Hyprland.managed.customAnimations.md)
-- [`Hyprland.managed.env`](Hyprland.managed.env.md)
-- [`Hyprland.managed.autostart`](Hyprland.managed.autostart.md)
 - [`Hyprland.managed`](Hyprland.managed.md)
 
 ### Reader members
@@ -28,4 +26,4 @@ Every public member of `HyprlandConfig`, with the files that use it.
 - `HyprlandConfig.monitorProfiles` (var)
   - in: `services/HyprlandConfigManager.qml`, `services/HyprlandRuntimeLayer.qml`, `services/MonitorManager.qml`
 - `HyprlandConfig.managed` (var)
-  - in: `services/HyprlandConfigManager.qml`, `services/SettingsManager.qml`
+  - in: `services/HyprlandConfigManager.qml`

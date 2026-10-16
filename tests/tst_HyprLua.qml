@@ -397,11 +397,11 @@ assert(removed == 2, "earlier handlers removed")
     tryVerify(() => written.done, 2000);
   }
 
-  // The greeter's Hyprland: the monitors always, and only the x-greeter
-  // options of managed mode
+  // The greeter's Hyprland: the monitors always, and the x-greeter input
+  // options of the parts that are on
   function test_greeterLua() {
     const schema = files.json("config/json/config.schema.json");
-    const managedSchema = schema.properties.Hyprland.properties.managed;
+    const inputSchema = schema.properties.Input;
     const profiles = [
       {
         "name": "desk",
@@ -410,23 +410,40 @@ assert(removed == 2, "earlier handlers removed")
           })]
       }
     ];
-    const detached = HyprLua.greeterLua(profiles, managedSchema, undefined, hex);
-    verify(detached.some(line => line.startsWith("AXIOM_MONITOR_PROFILES")));
-    verify(!detached.some(line => line.startsWith("hl.config")));
+    const none = HyprLua.greeterLua(profiles, inputSchema, undefined, hex);
+    verify(none.some(line => line.startsWith("AXIOM_MONITOR_PROFILES")));
+    verify(!none.some(line => line.startsWith("hl.config")));
 
-    const managed = SchemaValidation.applyDefaults({}, managedSchema, schema);
-    managed.kbLayout = "us,de";
-    managed.sensitivity = -50;
-    managed.shadowRange = 33;
-    const lines = HyprLua.greeterLua(profiles, managedSchema, managed, hex);
+    const input = SchemaValidation.applyDefaults({}, inputSchema, schema);
+    input.kbLayout = "us,de";
+    input.sensitivity = -50;
+    compare(HyprLua.greeterLua(profiles, inputSchema, input, hex).length, none.length, "every part off: nothing set");
+    input.keyboard = true;
+    input.mouse = true;
+    const lines = HyprLua.greeterLua(profiles, inputSchema, input, hex);
     const config = lines[lines.length - 1];
     verify(config.startsWith("hl.config("));
     verify(config.includes('kb_layout = "us,de"'));
     verify(config.includes("sensitivity = -0.5"));
-    verify(!config.includes("range"));
+    verify(!config.includes("touchpad"), "its part is off");
     const lua = "hl = { config = function(t) end, monitor = function(t) end, get_monitors = function() return {} end, on = function() return { remove = function() end } end }\n" + lines.join("\n") + "\n";
     const written = files.write("tests/.out/greeter.run.lua", lua);
     tryVerify(() => written.done, 2000);
+  }
+
+  function test_inputLua() {
+    const schema = files.json("config/json/config.schema.json");
+    const inputSchema = schema.properties.Input;
+    const input = SchemaValidation.applyDefaults({}, inputSchema, schema);
+    compare(HyprLua.inputLua(CompositorLayer.input(input), inputSchema), [], "every part off");
+    input.touchpad = true;
+    const lines = HyprLua.inputLua(CompositorLayer.input(input), inputSchema);
+    verify(lines[0].startsWith("hl.config("));
+    verify(lines.every(line => !line.includes("\n")), "one line each, for indenting");
+    const lua = lines.join("\n");
+    verify(lua.includes("natural_scroll = false") && lua.includes("tap_to_click = true"), "the part's fields, defaults too");
+    verify(lua.includes("scroll_factor = 1"));
+    verify(!lua.includes("kb_layout"), "not the keyboard's");
   }
 
   // The look's spec (CompositorLayer.look) from WindowLook's values

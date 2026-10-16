@@ -1286,8 +1286,8 @@ TestCase {
     compare(managed.WindowLook.inactiveOpacity, 90);
     compare(managed.WindowLook.windowBlur, true, "defaults fill the rest");
     compare(managed.Hyprland.managed.blurSize, undefined);
-    compare(managed.Hyprland.managed.recommendedEnv, true);
-    compare(managed.Hyprland.managed.env, [
+    compare(managed.Session.recommendedEnv, true);
+    compare(managed.Session.env, [
       {
         "name": "QT_QPA_PLATFORMTHEME",
         "value": "qt6ct"
@@ -1726,7 +1726,7 @@ TestCase {
     compare(config.Compositor.requiredSettings, false);
     compare(config.Hyprland.mode, undefined);
     compare(config.Hyprland.requiredSettings, undefined);
-    compare(config.Hyprland.managed.kbLayout, "de");
+    compare(config.Input.kbLayout, "de");
     verify(migrated.changes.includes("Hyprland.mode -> Compositor.mode"));
     compare(migrated.removed, []);
     compare(errors(config), []);
@@ -1802,5 +1802,67 @@ TestCase {
     }).config;
     compare(detached.WindowLook.shape, false);
     compare(detached.Hyprland.managed.rounding, undefined);
+  }
+
+  function test_v59_input_and_session_leave_managed() {
+    const managed = load({
+      "version": 58,
+      "Compositor": {
+        "mode": "managed"
+      },
+      "Hyprland": {
+        "managed": {
+          "kbLayout": "de",
+          "touchpadScrollFactor": 150,
+          "cursorSize": 32,
+          "dimInactive": false,
+          "autostart": [
+            {
+              "command": "waybar",
+              "enabled": true
+            }
+          ],
+          "recommendedEnv": false
+        }
+      }
+    });
+    const config = managed.config;
+    compare(config.Input.keyboard, true);
+    compare(config.Input.kbLayout, "de");
+    compare(config.Input.touchpad, true);
+    compare(config.Input.scrollFactor, 150);
+    compare(config.Input.mouse, false, "nothing of it was in the config");
+    compare(config.Input.cursor, false, "no theme: the cursor was left alone");
+    compare(config.Input.cursorSize, 32);
+    compare(config.Session.autostart[0].command, "waybar");
+    compare(config.Session.recommendedEnv, false);
+    compare(config.Hyprland.managed.dimInactive, false, "Hyprland's own options stay");
+    compare(config.Hyprland.managed.kbLayout, undefined);
+    compare(config.Hyprland.managed.autostart, undefined);
+    compare(managed.removed, []);
+    compare(errors(config), []);
+    // Idempotent
+    const again = ConfigMigration.migrate(JSON.parse(JSON.stringify(Object.assign({}, config, {
+      "version": 58
+    })))).config;
+    compare(again.Input.kbLayout, "de");
+    compare(again.Input.keyboard, true);
+
+    // Detached: the values come along, their parts stay off
+    const detached = load({
+      "version": 58,
+      "Hyprland": {
+        "managed": {
+          "kbLayout": "fr",
+          "cursorTheme": "Bibata"
+        }
+      }
+    }).config;
+    compare(detached.Input.kbLayout, "fr");
+    compare(detached.Input.keyboard, false);
+    compare(detached.Input.cursor, false);
+    compare(load({
+      "version": 58
+    }).config.Session.autostart.length, 3, "defaults fill a config without them");
   }
 }

@@ -23,10 +23,11 @@ import qs.components.methods
  * Whenever the file isn't loaded (included but the lines are missing, or a
  * managed takeover refused), the runtime layer is applied instead, so axiom
  * still works, and `problem` says why.
- * The window look (WindowLookConfig.look: themed borders, axiom's shape,
- * gaps, Hyprland's blur, window opacity) and the blur behind axiom's
- * surfaces are also evaluated after every config reload in each mode, so
- * they win over the user's own config while they're on (_applyLook).
+ * The window look (WindowLookConfig.look: themed borders, the shape, gaps,
+ * Hyprland's blur, window opacity), the input (InputConfig.input) and the
+ * blur behind axiom's surfaces are also evaluated after every config
+ * reload in each mode, so they win over the user's own config while
+ * they're on (_applyLook).
  */
 Singleton {
   id: root
@@ -139,6 +140,15 @@ Singleton {
     return HyprLua.lookLua(_look(forFile), ConfigManager.configSchema?.properties?.WindowLook);
   }
 
+  // The input's parts that are on (CompositorLayer.input)
+  function _input() {
+    return CompositorLayer.input(InputConfig.input);
+  }
+
+  function _inputLua() {
+    return HyprLua.inputLua(_input(), ConfigManager.configSchema?.properties?.Input);
+  }
+
   // The blur behind axiom's surfaces, its rules written on or off
   // (HyprLua.blurLua)
   function _blurLua(forFile) {
@@ -162,6 +172,7 @@ Singleton {
       "requiredSettings": CompositorConfig.requiredSettings,
       "binds": HyprConfigLua.bindLines(HyprlandConfig.binds, _bindCtx),
       "look": _lookLua(true),
+      "input": _inputLua(),
       "blur": _blurLua(true),
       "layers": HyprLua.layerRulesLua(),
       "monitors": HyprLua.monitorsLua(HyprlandConfig.monitorProfiles),
@@ -179,10 +190,12 @@ Singleton {
 
   // The managed hyprland.lua
   function managedLua() {
-    // reads: Hyprland.managed.*
+    // reads: Hyprland.managed.*, Session.*
     return HyprConfigLua.managedLua(moduleLua(), HyprlandConfig.managed, {
       "header": _header,
       "userDir": userDir,
+      "session": SessionConfig.session,
+      "cursor": _input().cursor,
       "schema": ConfigManager.configSchema?.properties?.Hyprland?.properties?.managed,
       "resolveHex": name => HyprConfigLua.hex(Theme.resolveColor(name)),
       "motion": _motion,
@@ -435,6 +448,8 @@ Singleton {
     id: _lookState
     reloadableId: "axiomHyprlandLook"
     property string applied: ""
+    // The cursor theme and size last set ("theme|size"), or ""
+    property string cursor: ""
   }
 
   // After a config reload in the file modes: the module set the look before
@@ -447,17 +462,31 @@ Singleton {
     HyprlandManager.refreshOptions();
   }
 
-  // The look and the blur as evaluated at runtime now, noting which look
-  // parts that applies (the runtime layer evaluates them too)
+  // The look, the input and the blur as evaluated at runtime now, noting
+  // which look and input parts that applies (the runtime layer evaluates
+  // them too). The cursor theme is set as it changes (setcursor, which a
+  // reload keeps).
   function _runtimeLookLua() {
     const look = _look(false);
-    _lookState.applied = look.parts.join(",");
-    return HyprLua.lookLua(look, ConfigManager.configSchema?.properties?.WindowLook).concat(_blurLua(false));
+    const input = _input();
+    _lookState.applied = _appliedParts(look, input).join(",");
+    const cursor = input.cursor ? `${input.cursor.theme}|${input.cursor.size}` : "";
+    if (cursor !== "" && cursor !== _lookState.cursor)
+      HyprlandManager.setCursor(input.cursor.theme, input.cursor.size);
+    _lookState.cursor = cursor;
+    return HyprLua.lookLua(look, ConfigManager.configSchema?.properties?.WindowLook).concat(HyprLua.inputLua(input, ConfigManager.configSchema?.properties?.Input), _blurLua(false));
   }
 
-  // The look's parts evaluated since the last reload that are off now
+  // The look's parts and the input's (as "input:<part>"; not the cursor,
+  // which a reload doesn't take back) that are on
+  function _appliedParts(look, input) {
+    return look.parts.concat(input.parts.filter(part => part !== "cursor").map(part => "input:" + part));
+  }
+
+  // The look's and input's parts evaluated since the last reload that are
+  // off now
   function _droppedLookParts() {
-    const now = CompositorLayer.look(WindowLookConfig.look, {}).parts;
+    const now = _appliedParts(CompositorLayer.look(WindowLookConfig.look, {}), _input());
     return _lookState.applied.split(",").filter(part => part !== "" && !now.includes(part));
   }
 
@@ -473,7 +502,7 @@ Singleton {
     // never held the part (only evaluated at runtime since its last write)
     if (mode !== "detached" && _appliedMode === mode && status === "loaded" && FileManager.read(mode === "managed" ? managedPath : includePath) !== (mode === "managed" ? managedLua() : moduleLua()))
       return false;
-    console.log(`[HyprlandConfigManager] Window look turned off (${dropped.join(", ")}); reloading Hyprland's config to take it back`);
+    console.log(`[HyprlandConfigManager] Window look or input turned off (${dropped.join(", ")}); reloading Hyprland's config to take it back`);
     _reload();
     return true;
   }
@@ -512,7 +541,7 @@ Singleton {
   // Everything the layer is made of but the look and the blur; a change
   // re-applies it (in the file modes, rewriting the file, which reloads
   // Hyprland)
-  readonly property string _inputs: [mode, HyprlandConfig._bindsJson, HyprlandConfig._monitorsJson, HyprlandConfig._managedJson, WorkspacesConfig._stripsJson, CompositorConfig.requiredSettings, Theme.baseColorNames.map(name => Theme.resolveColor(name)).join(","), Appearance.animFast, Appearance.animations, Apps.terminalCommand, Apps.fileManagerCommand, Apps.browserCommand, Idle.enabled, PolkitConfig.enabled].join("|")
+  readonly property string _inputs: [mode, HyprlandConfig._bindsJson, HyprlandConfig._monitorsJson, HyprlandConfig._managedJson, SessionConfig._sessionJson, WorkspacesConfig._stripsJson, CompositorConfig.requiredSettings, Theme.baseColorNames.map(name => Theme.resolveColor(name)).join(","), Appearance.animFast, Appearance.animations, Apps.terminalCommand, Apps.fileManagerCommand, Apps.browserCommand, Idle.enabled, PolkitConfig.enabled].join("|")
   on_InputsChanged: _debounce.restart()
 
   // The window look and the blur behind axiom (paused over a fullscreen
@@ -522,7 +551,7 @@ Singleton {
   // holds them as of its last write, and _applyLook evaluates the current
   // ones over it after every reload. Turning a look part off goes through
   // apply(), since an eval can't take a setting back.
-  readonly property string _liveInputs: [WindowLookConfig._lookJson, Appearance.blur, BlurManager.active, Appearance.blurBackdrops, Appearance.blurThroughWindows, WindowLookConfig.activeBorder, WindowLookConfig.inactiveBorder, WindowLookConfig.radius, WindowLookConfig.borderWidth].join("|")
+  readonly property string _liveInputs: [WindowLookConfig._lookJson, InputConfig._inputJson, Appearance.blur, BlurManager.active, Appearance.blurBackdrops, Appearance.blurThroughWindows, WindowLookConfig.activeBorder, WindowLookConfig.inactiveBorder, WindowLookConfig.radius, WindowLookConfig.borderWidth].join("|")
   on_LiveInputsChanged: _liveDebounce.restart()
 
   property Timer _liveDebounce: Timer {

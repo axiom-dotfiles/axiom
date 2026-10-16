@@ -10,7 +10,7 @@ TestCase {
   }
 
   readonly property var schema: files.json("config/json/config.schema.json")
-  readonly property var managedSchema: schema.properties.Hyprland.properties.managed
+  readonly property var inputSchema: schema.properties.Input
 
   function config(mode) {
     const config = SchemaValidation.applyDefaults({}, schema);
@@ -21,7 +21,8 @@ TestCase {
       "DP-2": "file:///home/u/Pictures/gone.png"
     };
     config.Compositor.mode = mode;
-    config.Hyprland.managed.kbLayout = "us,de";
+    config.Input.keyboard = mode === "managed";
+    config.Input.kbLayout = "us,de";
     config.Hyprland.managed.dimStrength = 9;
     config.Hyprland.monitors.profiles = [
       {
@@ -43,15 +44,15 @@ TestCase {
     })
 
   function test_export_takes_only_its_sections() {
-    const bundle = GreeterBundle.exportConfig(config("detached"), managedSchema, copies);
-    compare(Object.keys(bundle).sort(), ["Appearance", "Compositor", "General", "Greeter", "Hyprland", "Lockscreen", "Weather", "version"]);
+    const bundle = GreeterBundle.exportConfig(config("detached"), inputSchema, copies);
+    compare(Object.keys(bundle).sort(), ["Appearance", "Compositor", "General", "Greeter", "Hyprland", "Input", "Lockscreen", "Weather", "version"]);
     compare(bundle.Hyprland.monitors.profiles[0].name, "desk");
     compare(bundle.Hyprland.managed, undefined);
     compare(bundle.Compositor.mode, "detached");
   }
 
   function test_export_renames_wallpapers_to_copies() {
-    const bundle = GreeterBundle.exportConfig(config("detached"), managedSchema, copies);
+    const bundle = GreeterBundle.exportConfig(config("detached"), inputSchema, copies);
     compare(bundle.Appearance.wallpaper, "file:///var/lib/axiom-greeter/config/wallpapers/0.png");
     compare(bundle.Appearance.wallpapers, {
       "DP-1": "file:///var/lib/axiom-greeter/config/wallpapers/0.png",
@@ -60,17 +61,17 @@ TestCase {
     compare(GreeterBundle.wallpaperSources(config("detached")), ["file:///home/u/Pictures/a.png", "file:///home/u/Pictures/b.png", "file:///home/u/Pictures/gone.png"]);
   }
 
-  function test_export_managed_takes_only_greeter_options() {
-    const bundle = GreeterBundle.exportConfig(config("managed"), managedSchema, copies);
-    compare(bundle.Hyprland.managed.kbLayout, "us,de");
-    compare(bundle.Hyprland.managed.dimStrength, undefined);
-    compare(bundle.Hyprland.managed.binds, undefined);
-    verify(bundle.Hyprland.managed.sensitivity !== undefined);
+  function test_export_takes_only_greeter_options() {
+    const bundle = GreeterBundle.exportConfig(config("managed"), inputSchema, copies);
+    compare(bundle.Input.keyboard, true);
+    compare(bundle.Input.kbLayout, "us,de");
+    verify(bundle.Input.sensitivity !== undefined);
+    compare(bundle.Hyprland.managed, undefined, "Hyprland's own options stay home");
   }
 
   // The exported bundle is a valid config once filled with defaults
   function test_export_round_trips() {
-    const bundle = GreeterBundle.exportConfig(config("managed"), managedSchema, copies);
+    const bundle = GreeterBundle.exportConfig(config("managed"), inputSchema, copies);
     const filled = SchemaValidation.applyDefaults(bundle, schema);
     compare(SchemaValidation.validationErrors(filled, schema), []);
     compare(filled.Chat.keepConversations, schema.properties.Chat.properties.keepConversations.default);

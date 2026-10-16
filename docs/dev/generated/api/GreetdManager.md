@@ -3,7 +3,7 @@
 
 > **File:** `services/GreetdManager.qml` · **Docs:** see [docs/dev](../../README.md)
 
-The login itself, in the greeter (greeter.qml): who logs in, into which session, and the conversation with greetd (Quickshell's Greetd: PAM through greetd's IPC). Only the greeter references it, so the user's own shell never connects to greetd; its preview leaves every action inert. Also the greeter's Hyprland: the monitor layouts and, in managed mode, the options the bundle carries (HyprLua.greeterLua), and the keyboard layout switch.
+The login itself, in the greeter (greeter.qml): who logs in, into which session, and the conversation with greetd (Quickshell's Greetd: PAM through greetd's IPC). Only the greeter references it, so the user's own shell never connects to greetd; its preview leaves every action inert. Also the greeter's Hyprland: the monitor layouts and the input options the bundle carries (HyprLua.greeterLua), and the keyboard layout switch.
 
 ### Properties
 

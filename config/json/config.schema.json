@@ -33,7 +33,7 @@
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 58,
+      "default": 59,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
@@ -655,7 +655,7 @@
           "title": "Managed config",
           "description": "Written into hyprland.lua. Anything else goes in ~/.config/hypr/user/*.lua.",
           "additionalProperties": false,
-          "x-order": ["layout", "preserveSplit", "smartSplit", "smartResizing", "forceSplit", "splitRatio", "masterSize", "masterOrientation", "masterNewStatus", "snap", "dimInactive", "dimStrength", "dimSpecial", "shadow", "shadowRange", "shadowPower", "shadowThemed", "shadowColor", "animations", "animationPreset", "workspaceWraparound", "curves", "customAnimations", "kbLayout", "kbVariant", "kbOptions", "repeatRate", "repeatDelay", "numlockByDefault", "followMouse", "floatSwitchOverrideFocus", "accelProfile", "sensitivity", "leftHanded", "resizeOnBorder", "cursorTheme", "cursorSize", "cursorHideTimeout", "hideCursorOnKeyPress", "noWarps", "naturalScroll", "tapToClick", "disableWhileTyping", "touchpadScrollFactor", "hideLogo", "backgroundThemed", "backgroundColor", "focusOnActivate", "swallow", "swallowRegex", "closeSpecialOnEmpty", "hideSpecialOnWorkspaceChange", "workspaceBackAndForth", "mouseWakesScreen", "keyWakesScreen", "vrr", "scrollEventDelay", "xwaylandZeroScaling", "recommendedEnv", "env", "autostart"],
+          "x-order": ["layout", "preserveSplit", "smartSplit", "smartResizing", "forceSplit", "splitRatio", "masterSize", "masterOrientation", "masterNewStatus", "snap", "dimInactive", "dimStrength", "dimSpecial", "shadow", "shadowRange", "shadowPower", "shadowThemed", "shadowColor", "animations", "animationPreset", "workspaceWraparound", "curves", "customAnimations", "followMouse", "floatSwitchOverrideFocus", "resizeOnBorder", "cursorHideTimeout", "hideCursorOnKeyPress", "noWarps", "hideLogo", "backgroundThemed", "backgroundColor", "focusOnActivate", "swallow", "swallowRegex", "closeSpecialOnEmpty", "hideSpecialOnWorkspaceChange", "workspaceBackAndForth", "mouseWakesScreen", "keyWakesScreen", "vrr", "scrollEventDelay", "xwaylandZeroScaling"],
           "properties": {
             "layout": { "type": "string", "title": "Layout", "x-group": "Layout", "enum": ["dwindle", "master"], "x-enumLabels": { "dwindle": "Dwindle (binary splits)", "master": "Master and stack" }, "default": "dwindle", "description": "How windows tile. For strips (Hyprland's scrolling columns), see Workspaces.", "x-hypr": "general.layout", "x-hyprAlways": true },
             "preserveSplit": { "type": "boolean", "title": "Keep split direction", "x-group": "Layout", "default": true, "description": "Dwindle keeps a split's direction when the window is resized or moved.", "x-showIf": { "layout": "dwindle" }, "x-hypr": "dwindle.preserve_split", "x-hyprAlways": true },
@@ -715,27 +715,12 @@
                 }
               }
             },
-            "kbLayout": { "x-greeter": true, "type": "string", "title": "Keyboard layout", "x-group": "Keyboard", "default": "us", "description": "XKB layouts, comma-separated (e.g. us,de).", "x-hypr": "input.kb_layout", "x-hyprAlways": true },
-            "kbVariant": { "x-greeter": true, "type": "string", "title": "Layout variant", "x-group": "Keyboard", "default": "", "description": "XKB variants, one per layout (e.g. colemak).", "x-hypr": "input.kb_variant" },
-            "kbOptions": { "x-greeter": true, "type": "string", "title": "XKB options", "x-group": "Keyboard", "default": "", "description": "e.g. caps:escape,grp:alt_shift_toggle.", "x-hypr": "input.kb_options" },
-            "repeatRate": { "x-greeter": true, "type": "integer", "x-control": "stepper", "title": "Key repeat rate", "x-group": "Keyboard", "default": 50, "minimum": 1, "maximum": 100, "x-hypr": "input.repeat_rate", "x-hyprAlways": true },
-            "repeatDelay": { "x-greeter": true, "type": "integer", "title": "Key repeat delay", "x-group": "Keyboard", "default": 300, "minimum": 100, "maximum": 2000, "x-hypr": "input.repeat_delay", "x-hyprAlways": true },
-            "numlockByDefault": { "x-greeter": true, "type": "boolean", "title": "Num Lock on at start", "x-group": "Keyboard", "default": true, "x-hypr": "input.numlock_by_default", "x-hyprAlways": true },
             "followMouse": { "type": "boolean", "title": "Focus follows mouse", "x-group": "Mouse & cursor", "default": true, "x-hypr": "input.follow_mouse", "x-hyprValue": "int", "x-hyprAlways": true },
             "floatSwitchOverrideFocus": { "type": "string", "title": "Crossing tiled/floating", "x-group": "Mouse & cursor", "enum": ["0", "1", "2"], "x-enumLabels": { "0": "Leaves focus alone", "1": "Moves focus", "2": "Moves focus, also floating to floating" }, "default": "1", "description": "What moving the cursor between tiled and floating windows does.", "x-showIf": { "followMouse": true }, "x-hypr": "input.float_switch_override_focus", "x-hyprValue": "number" },
-            "accelProfile": { "x-greeter": true, "type": "string", "title": "Pointer acceleration", "x-group": "Mouse & cursor", "enum": ["default", "flat", "adaptive"], "x-enumLabels": { "default": "Device default", "flat": "Flat (none)", "adaptive": "Adaptive" }, "default": "default", "x-hypr": "input.accel_profile", "x-hyprValue": "emptyIsDefault", "x-hyprAlways": true },
-            "sensitivity": { "x-greeter": true, "type": "integer", "title": "Pointer speed", "x-group": "Mouse & cursor", "default": 0, "minimum": -100, "maximum": 100, "description": "-100 to 100; 0 leaves it as the device reports.", "x-hypr": "input.sensitivity", "x-hyprScale": 0.01 },
-            "leftHanded": { "x-greeter": true, "type": "boolean", "title": "Left-handed buttons", "x-group": "Mouse & cursor", "default": false, "x-hypr": "input.left_handed" },
             "resizeOnBorder": { "type": "boolean", "title": "Resize by dragging borders", "x-group": "Mouse & cursor", "default": true, "x-hypr": "general.resize_on_border", "x-hyprAlways": true },
-            "cursorTheme": { "x-greeter": true, "type": "string", "title": "Cursor theme", "x-group": "Mouse & cursor", "x-options": "cursorThemes", "x-enumLabels": { "": "None" }, "default": "", "description": "An installed cursor theme. None leaves the cursor alone." },
-            "cursorSize": { "x-greeter": true, "type": "integer", "x-control": "stepper", "title": "Cursor size", "x-group": "Mouse & cursor", "default": 24, "minimum": 8, "maximum": 128 },
             "cursorHideTimeout": { "type": "integer", "title": "Hide the cursor after", "x-unit": "s", "x-group": "Mouse & cursor", "default": 0, "minimum": 0, "maximum": 600, "description": "0 never hides it.", "x-hypr": "cursor.inactive_timeout" },
             "hideCursorOnKeyPress": { "type": "boolean", "title": "Hide the cursor while typing", "x-group": "Mouse & cursor", "default": false, "x-hypr": "cursor.hide_on_key_press" },
             "noWarps": { "type": "boolean", "title": "Never move the cursor", "x-group": "Mouse & cursor", "default": false, "description": "Hyprland won't move the cursor to a window it focuses.", "x-hypr": "cursor.no_warps" },
-            "naturalScroll": { "x-greeter": true, "type": "boolean", "title": "Natural scrolling", "x-group": "Touchpad", "default": false, "x-hypr": "input.touchpad.natural_scroll", "x-hyprAlways": true },
-            "tapToClick": { "x-greeter": true, "type": "boolean", "title": "Tap to click", "x-group": "Touchpad", "default": true, "x-hypr": "input.touchpad.tap_to_click" },
-            "disableWhileTyping": { "x-greeter": true, "type": "boolean", "title": "Off while typing", "x-group": "Touchpad", "default": true, "x-hypr": "input.touchpad.disable_while_typing" },
-            "touchpadScrollFactor": { "x-greeter": true, "type": "integer", "title": "Scroll speed", "x-unit": "%", "x-group": "Touchpad", "default": 100, "minimum": 10, "maximum": 500, "x-hypr": "input.touchpad.scroll_factor", "x-hyprScale": 0.01 },
             "hideLogo": { "type": "boolean", "title": "Hide Hyprland's logo and splash", "x-group": "Behaviour", "default": true, "x-hypr": ["misc.disable_hyprland_logo", "misc.disable_splash_rendering"], "x-hyprAlways": true },
             "backgroundThemed": { "type": "boolean", "title": "Background in a theme color", "x-group": "Behaviour", "default": false, "description": "What shows where there's no wallpaper." },
             "backgroundColor": { "type": "string", "title": "Background color", "x-group": "Behaviour", "x-options": "colors", "default": "base00", "x-showIf": { "backgroundThemed": true }, "x-hypr": "misc.background_color", "x-hyprValue": "color", "x-hyprIf": "backgroundThemed" },
@@ -749,43 +734,84 @@
             "keyWakesScreen": { "type": "boolean", "title": "Keys wake the screen", "x-group": "Behaviour", "default": false, "x-hypr": "misc.key_press_enables_dpms" },
             "vrr": { "type": "string", "title": "Variable refresh rate", "x-group": "Behaviour", "enum": ["0", "1", "2"], "x-enumLabels": { "0": "Off", "1": "On", "2": "Fullscreen only" }, "default": "0", "x-hypr": "misc.vrr", "x-hyprValue": "number" },
             "scrollEventDelay": { "type": "integer", "title": "Scroll bind delay", "x-unit": "ms", "x-group": "Behaviour", "default": 300, "minimum": 0, "maximum": 2000, "description": "How long a bound scroll ignores further scrolling.", "x-hypr": "binds.scroll_event_delay" },
-            "xwaylandZeroScaling": { "type": "boolean", "title": "Unscaled X11 apps", "x-group": "Behaviour", "default": true, "description": "X11 apps draw at native resolution on scaled monitors, instead of blurry.", "x-hypr": "xwayland.force_zero_scaling", "x-hyprAlways": true },
-            "recommendedEnv": { "type": "boolean", "title": "Recommended environment", "x-group": "Startup", "default": true, "description": "The variables Hyprland's wiki recommends: GTK, Qt, Clutter and Electron apps run on Wayland (falling back to X11 where they can), Qt scales by pixel density and leaves window decorations to Hyprland. Your own below win over them." },
-            "env": {
-              "type": "array",
-              "title": "Environment",
-              "x-group": "Startup",
-              "default": [],
-              "description": "Variables set before anything starts. Changes apply to apps started afterwards.",
-              "items": {
-                "type": "object",
-                "additionalProperties": false,
-                "x-order": ["name", "value"],
-                "properties": {
-                  "name": { "type": "string", "title": "Name", "default": "" },
-                  "value": { "type": "string", "title": "Value", "default": "" }
-                }
-              }
-            },
-            "autostart": {
-              "type": "array",
-              "title": "Autostart",
-              "x-group": "Startup",
-              "default": [
-                { "command": "dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP", "enabled": true },
-                { "command": "systemctl --user start hyprpolkitagent", "enabled": true },
-                { "command": "hypridle", "enabled": true }
-              ],
-              "description": "Commands run once when Hyprland starts, after axiom.",
-              "items": {
-                "type": "object",
-                "additionalProperties": false,
-                "x-order": ["command", "enabled"],
-                "properties": {
-                  "command": { "type": "string", "title": "Command", "default": "" },
-                  "enabled": { "type": "boolean", "title": "On", "default": true }
-                }
-              }
+            "xwaylandZeroScaling": { "type": "boolean", "title": "Unscaled X11 apps", "x-group": "Behaviour", "default": true, "description": "X11 apps draw at native resolution on scaled monitors, instead of blurry.", "x-hypr": "xwayland.force_zero_scaling", "x-hyprAlways": true }
+          }
+        }
+      }
+    },
+
+    "Input": {
+      "type": "object",
+      "x-category": "Compositor",
+      "x-showIf": { "/$supports.inputConfig": true },
+      "title": "Input",
+      "description": "Keyboard, mouse, touchpad and cursor. A part that's on wins over your compositor's own config; the login screen follows it too.",
+      "additionalProperties": false,
+      "x-order": ["keyboard", "kbLayout", "kbVariant", "kbOptions", "repeatRate", "repeatDelay", "numlockByDefault", "mouse", "accelProfile", "sensitivity", "leftHanded", "touchpad", "naturalScroll", "tapToClick", "disableWhileTyping", "scrollFactor", "cursor", "cursorTheme", "cursorSize"],
+      "properties": {
+        "keyboard": { "x-greeter": true, "type": "boolean", "title": "Set the keyboard", "x-group": "Keyboard", "default": false, "description": "Layout and key repeat. Off, your compositor's own config applies." },
+        "kbLayout": { "x-greeter": true, "type": "string", "title": "Keyboard layout", "x-group": "Keyboard", "default": "us", "description": "XKB layouts, comma-separated (e.g. us,de).", "x-hypr": "input.kb_layout", "x-showIf": { "keyboard": true }, "x-hyprIf": "keyboard" },
+        "kbVariant": { "x-greeter": true, "type": "string", "title": "Layout variant", "x-group": "Keyboard", "default": "", "description": "XKB variants, one per layout (e.g. colemak).", "x-hypr": "input.kb_variant", "x-showIf": { "keyboard": true }, "x-hyprIf": "keyboard" },
+        "kbOptions": { "x-greeter": true, "type": "string", "title": "XKB options", "x-group": "Keyboard", "default": "", "description": "e.g. caps:escape,grp:alt_shift_toggle.", "x-hypr": "input.kb_options", "x-showIf": { "keyboard": true }, "x-hyprIf": "keyboard" },
+        "repeatRate": { "x-greeter": true, "type": "integer", "x-control": "stepper", "title": "Key repeat rate", "x-group": "Keyboard", "default": 50, "minimum": 1, "maximum": 100, "x-hypr": "input.repeat_rate", "x-showIf": { "keyboard": true }, "x-hyprIf": "keyboard" },
+        "repeatDelay": { "x-greeter": true, "type": "integer", "title": "Key repeat delay", "x-group": "Keyboard", "default": 300, "minimum": 100, "maximum": 2000, "x-hypr": "input.repeat_delay", "x-showIf": { "keyboard": true }, "x-hyprIf": "keyboard" },
+        "numlockByDefault": { "x-greeter": true, "type": "boolean", "title": "Num Lock on at start", "x-group": "Keyboard", "default": true, "x-hypr": "input.numlock_by_default", "x-showIf": { "keyboard": true }, "x-hyprIf": "keyboard" },
+        "mouse": { "x-greeter": true, "type": "boolean", "title": "Set the mouse", "x-group": "Mouse", "default": false, "description": "Acceleration, speed and buttons. Off, your compositor's own config applies." },
+        "accelProfile": { "x-greeter": true, "type": "string", "title": "Pointer acceleration", "x-group": "Mouse", "enum": ["default", "flat", "adaptive"], "x-enumLabels": { "default": "Device default", "flat": "Flat (none)", "adaptive": "Adaptive" }, "default": "default", "x-hypr": "input.accel_profile", "x-hyprValue": "emptyIsDefault", "x-showIf": { "mouse": true }, "x-hyprIf": "mouse" },
+        "sensitivity": { "x-greeter": true, "type": "integer", "title": "Pointer speed", "x-group": "Mouse", "default": 0, "minimum": -100, "maximum": 100, "description": "-100 to 100; 0 leaves it as the device reports.", "x-hypr": "input.sensitivity", "x-hyprScale": 0.01, "x-showIf": { "mouse": true }, "x-hyprIf": "mouse" },
+        "leftHanded": { "x-greeter": true, "type": "boolean", "title": "Left-handed buttons", "x-group": "Mouse", "default": false, "x-hypr": "input.left_handed", "x-showIf": { "mouse": true }, "x-hyprIf": "mouse" },
+        "touchpad": { "x-greeter": true, "type": "boolean", "title": "Set the touchpad", "x-group": "Touchpad", "default": false, "description": "Off, your compositor's own config applies." },
+        "naturalScroll": { "x-greeter": true, "type": "boolean", "title": "Natural scrolling", "x-group": "Touchpad", "default": false, "x-hypr": "input.touchpad.natural_scroll", "x-showIf": { "touchpad": true }, "x-hyprIf": "touchpad" },
+        "tapToClick": { "x-greeter": true, "type": "boolean", "title": "Tap to click", "x-group": "Touchpad", "default": true, "x-hypr": "input.touchpad.tap_to_click", "x-showIf": { "touchpad": true }, "x-hyprIf": "touchpad" },
+        "disableWhileTyping": { "x-greeter": true, "type": "boolean", "title": "Off while typing", "x-group": "Touchpad", "default": true, "x-hypr": "input.touchpad.disable_while_typing", "x-showIf": { "touchpad": true }, "x-hyprIf": "touchpad" },
+        "scrollFactor": { "x-greeter": true, "type": "integer", "title": "Scroll speed", "x-unit": "%", "x-group": "Touchpad", "default": 100, "minimum": 10, "maximum": 500, "x-hypr": "input.touchpad.scroll_factor", "x-hyprScale": 0.01, "x-showIf": { "touchpad": true }, "x-hyprIf": "touchpad" },
+        "cursor": { "x-greeter": true, "type": "boolean", "title": "Set the cursor", "x-group": "Cursor", "default": false, "description": "An installed cursor theme and its size. Off, the cursor is left alone." },
+        "cursorTheme": { "x-greeter": true, "type": "string", "title": "Cursor theme", "x-group": "Cursor", "x-options": "cursorThemes", "x-enumLabels": { "": "None" }, "default": "", "description": "An installed cursor theme.", "x-showIf": { "cursor": true } },
+        "cursorSize": { "x-greeter": true, "type": "integer", "x-control": "stepper", "title": "Cursor size", "x-group": "Cursor", "default": 24, "minimum": 8, "maximum": 128, "x-showIf": { "cursor": true } }
+      }
+    },
+
+    "Session": {
+      "type": "object",
+      "x-category": "Compositor",
+      "x-showIf": { "/$supports.configModes": true, "/Compositor.mode": "managed" },
+      "title": "Session",
+      "description": "What starts with your compositor while axiom manages its config.",
+      "additionalProperties": false,
+      "x-order": ["recommendedEnv", "env", "autostart"],
+      "properties": {
+        "recommendedEnv": { "type": "boolean", "title": "Recommended environment", "default": true, "description": "Variables recommended on Wayland: GTK, Qt, Clutter and Electron apps run on Wayland (falling back to X11 where they can), Qt scales by pixel density and leaves window decorations to the compositor. Your own below win over them." },
+        "env": {
+          "type": "array",
+          "title": "Environment",
+          "default": [],
+          "description": "Variables set before anything starts. Changes apply to apps started afterwards.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "x-order": ["name", "value"],
+            "properties": {
+              "name": { "type": "string", "title": "Name", "default": "" },
+              "value": { "type": "string", "title": "Value", "default": "" }
+            }
+          }
+        },
+        "autostart": {
+          "type": "array",
+          "title": "Autostart",
+          "default": [
+            { "command": "dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP", "enabled": true },
+            { "command": "systemctl --user start hyprpolkitagent", "enabled": true },
+            { "command": "hypridle", "enabled": true }
+          ],
+          "description": "Commands run once when the compositor starts, after axiom.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "x-order": ["command", "enabled"],
+            "properties": {
+              "command": { "type": "string", "title": "Command", "default": "" },
+              "enabled": { "type": "boolean", "title": "On", "default": true }
             }
           }
         }

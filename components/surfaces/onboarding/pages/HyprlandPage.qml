@@ -112,10 +112,10 @@ OnboardingPage {
     text: I18n.tr("Your config already binds {0}, so axiom's binds on those keys are skipped. Free them in your config, or pick other keys on the Keybinds page.", HyprlandConfigManager.skippedKeys.join(", "))
   }
 
-  // Input settings live in the managed config
+  // Input settings, applied in any mode once their part is on
   ColumnLayout {
     Layout.fillWidth: true
-    visible: OnboardingManager.chosenMode === "managed"
+    visible: CompositorManager.supports.inputConfig === true
     spacing: Widget.spacing
 
     StyledText {
@@ -126,7 +126,7 @@ OnboardingPage {
 
     SettingRows {
       Layout.fillWidth: true
-      paths: ["Hyprland.managed.kbLayout", "Hyprland.managed.kbVariant"]
+      paths: ["Input.keyboard", "Input.kbLayout", "Input.kbVariant"]
     }
 
     StyledText {
@@ -139,7 +139,7 @@ OnboardingPage {
     SettingRows {
       Layout.fillWidth: true
       visible: BatteryManager.isAvailable
-      paths: ["Hyprland.managed.naturalScroll", "Hyprland.managed.tapToClick"]
+      paths: ["Input.touchpad", "Input.naturalScroll", "Input.tapToClick"]
     }
   }
 

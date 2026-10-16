@@ -101,6 +101,7 @@ The public members (no `_` prefix) of every file in `services/` and every config
 - [I18n](api/I18n.md): Translation and locale for the shell's text (General.language).
 - [IconsConfig](api/IconsConfig.md): Reader for the Icons section.
 - [Idle](api/Idle.md): Reader for the Idle section: hypridle, run by HypridleManager.
+- [InputConfig](api/InputConfig.md): Reader for the Input section: the keyboard, mouse, touchpad and cursor axiom sets on the compositor, a part at a time ({ keyboard, kbLayout, …, mouse, …, touch…
 - [LauncherConfig](api/LauncherConfig.md): Reader for the Launcher section (the search launcher).
 - [LockscreenConfig](api/LockscreenConfig.md): Reader for the Lockscreen section: which locker locks the session, and what the built-in one shows (`layout`, as saved: the lock never shows the layouts editor…
 - [NightLight](api/NightLight.md): Reader for the NightLight section: warmer colors through hyprsunset or wlsunset, run by NightLightManager.
@@ -114,6 +115,7 @@ The public members (no `_` prefix) of every file in `services/` and every config
 - [PowerMenuConfig](api/PowerMenuConfig.md): Reader for the PowerMenu section.
 - [Screenshots](api/Screenshots.md): Reader for the Screenshots section: where screenshots and recordings are saved (ScreenshotManager resolves the empty defaults)
 - [SelfUpdate](api/SelfUpdate.md): Reader for the SelfUpdate section (see SelfUpdateManager).
+- [SessionConfig](api/SessionConfig.md): Reader for the Session section: what starts with the compositor while axiom manages its config ({ recommendedEnv, env, autostart }).
 - [Theme](api/Theme.md): The active theme's colors: base16 (base00-base0F) and semantic names, filled from theme-defaults.json; resolveColor(name) for names from config.
 - [ThemeIntegrations](api/ThemeIntegrations.md): Reader for the ThemeIntegrations section: one switch per scripts/theme_<key>.sh, run by ThemeManager.themeIntegrations().
 - [WeatherConfig](api/WeatherConfig.md): Reader for the Weather section: the one location and units every weather widget and module shows (see WeatherManager).

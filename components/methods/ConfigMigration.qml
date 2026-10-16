@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 58
+  readonly property int currentVersion: 59
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -143,6 +143,8 @@ QtObject {
       result = _v56ToV57(result, changes);
     if (version < 58)
       result = _v57ToV58(result, changes);
+    if (version < 59)
+      result = _v58ToV59(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -1958,6 +1960,56 @@ QtObject {
     }
     delete managed.borderSize;
     delete managed.rounding;
+    return config;
+  }
+
+  // Input and what starts with the session leave Hyprland's managed
+  // options, so every compositor has them (Hyprland.managed -> Input,
+  // Session). Input now applies in every mode, a part at a time: a part is
+  // on where the managed config wrote it (the cursor only with a theme), so
+  // nothing changes.
+  function _v58ToV59(config, changes) {
+    const managed = config.Hyprland?.managed;
+    if (!managed || typeof managed !== "object")
+      return config;
+    const parts = {
+      "keyboard": ["kbLayout", "kbVariant", "kbOptions", "repeatRate", "repeatDelay", "numlockByDefault"],
+      "mouse": ["accelProfile", "sensitivity", "leftHanded"],
+      "touchpad": ["naturalScroll", "tapToClick", "disableWhileTyping", "touchpadScrollFactor"],
+      "cursor": ["cursorTheme", "cursorSize"]
+    };
+    const wasManaged = config.Compositor?.mode === "managed";
+    const input = config.Input ?? {};
+    for (const part in parts) {
+      let moved = false;
+      for (const key of parts[part]) {
+        if (managed[key] === undefined)
+          continue;
+        const to = key === "touchpadScrollFactor" ? "scrollFactor" : key;
+        if (input[to] === undefined)
+          input[to] = managed[key];
+        delete managed[key];
+        moved = true;
+      }
+      if (moved && input[part] === undefined) {
+        input[part] = wasManaged && (part !== "cursor" || !!input.cursorTheme);
+        changes.push(`Hyprland.managed (${part}) -> Input, ${part} ${input[part] ? "on" : "off"}`);
+      }
+    }
+    if (Object.keys(input).length > 0)
+      config.Input = input;
+    const session = config.Session ?? {};
+    for (const key of ["recommendedEnv", "env", "autostart"]) {
+      if (managed[key] === undefined)
+        continue;
+      if (session[key] === undefined) {
+        session[key] = managed[key];
+        changes.push(`Hyprland.managed.${key} -> Session.${key}`);
+      }
+      delete managed[key];
+    }
+    if (Object.keys(session).length > 0)
+      config.Session = session;
     return config;
   }
 }

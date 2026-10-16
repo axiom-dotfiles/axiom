@@ -138,7 +138,7 @@ QtObject {
     return lines;
   }
 
-  // --- The environment (Hyprland.managed recommendedEnv) ---
+  // --- The environment (Session.recommendedEnv) ---
 
   // The variables Hyprland's wiki recommends, [name, value]: toolkits on
   // Wayland first (falling back to X11 where they can), Qt scaled by pixel
@@ -392,23 +392,30 @@ end`);
     return lines;
   }
 
+  // The input's parts that are on (`input`: CompositorLayer.input()) as
+  // one hl.config(), or []: `inputSchema`'s fields, each gated by x-hyprIf
+  // on its part. The cursor theme isn't an option (HyprlandManager.setCursor)
+  function inputLua(input, inputSchema) {
+    const table = configTable(inputSchema, input.values, null, {});
+    return Object.keys(table).length > 0 ? `hl.config(${serialize(table)})`.split("\n") : [];
+  }
+
   // The greeter's Hyprland, from its bundle (GreeterBundle): the monitor
-  // layouts (monitorsLua, in every mode), and in managed mode one
-  // hl.config of the options marked x-greeter (`managedSchema`:
-  // Hyprland.managed's schema; any other option in `managed` is left out).
-  // resolveHex as for configTable.
-  function greeterLua(profiles, managedSchema, managed, resolveHex) {
+  // layouts (monitorsLua), and the Input options marked x-greeter whose
+  // parts are on (`inputSchema`: Input's schema; any other option in
+  // `input` is left out). resolveHex as for configTable.
+  function greeterLua(profiles, inputSchema, input, resolveHex) {
     const lines = monitorsLua(profiles);
-    if (!managed)
+    if (!input)
       return lines;
-    const props = managedSchema?.properties ?? {};
+    const props = inputSchema?.properties ?? {};
     const greeterSchema = {
       "properties": {}
     };
     for (const key in props)
       if (props[key]["x-greeter"] === true)
         greeterSchema.properties[key] = props[key];
-    const table = configTable(greeterSchema, managed, resolveHex, {});
+    const table = configTable(greeterSchema, input, resolveHex, {});
     if (Object.keys(table).length > 0)
       lines.push(`hl.config(${serialize(table)})`);
     return lines;

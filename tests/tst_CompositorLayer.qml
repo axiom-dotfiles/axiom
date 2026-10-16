@@ -74,4 +74,19 @@ TestCase {
     compare(look.opacity.active, 100);
     compare(look.values, values, "the values, for annotation-driven fields");
   }
+
+  function test_input_parts() {
+    const schema = files.json("config/json/config.schema.json");
+    const values = SchemaValidation.applyDefaults({}, schema.properties.Input, schema);
+    compare(CompositorLayer.input(values).parts, []);
+    values.keyboard = true;
+    values.cursor = true;
+    compare(CompositorLayer.input(values).parts, ["keyboard", "cursor"]);
+    compare(CompositorLayer.input(values).cursor, null, "no theme: the cursor is left alone");
+    values.cursorTheme = "Bibata";
+    compare(CompositorLayer.input(values).cursor, {
+      "theme": "Bibata",
+      "size": 24
+    });
+  }
 }

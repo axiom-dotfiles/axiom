@@ -677,6 +677,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `I18n.qml`: Translation and locale for the shell's text (General.language).
 - `IconsConfig.qml`: Reader for the Icons section.
 - `Idle.qml`: Reader for the Idle section: hypridle, run by HypridleManager.
+- `InputConfig.qml`: Reader for the Input section: the keyboard, mouse, touchpad and cursor axiom sets on the compositor, a part at a time ({ keyboard, kbLayout, …, mouse, …, touchpad, …, cursor, cursorTheme, cursorSize }), through Composit…
 - `LauncherConfig.qml`: Reader for the Launcher section (the search launcher).
 - `LockscreenConfig.qml`: Reader for the Lockscreen section: which locker locks the session, and what the built-in one shows (`layout`, as saved: the lock never shows the layouts editor's unsaved draft, LockManager.editor.localLayout).
 - `NightLight.qml`: Reader for the NightLight section: warmer colors through hyprsunset or wlsunset, run by NightLightManager.
@@ -690,6 +691,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `PowerMenuConfig.qml`: Reader for the PowerMenu section.
 - `Screenshots.qml`: Reader for the Screenshots section: where screenshots and recordings are saved (ScreenshotManager resolves the empty defaults)
 - `SelfUpdate.qml`: Reader for the SelfUpdate section (see SelfUpdateManager).
+- `SessionConfig.qml`: Reader for the Session section: what starts with the compositor while axiom manages its config ({ recommendedEnv, env, autostart }).
 - `Theme.qml`: The active theme's colors: base16 (base00-base0F) and semantic names, filled from theme-defaults.json; resolveColor(name) for names from config.
 - `ThemeIntegrations.qml`: Reader for the ThemeIntegrations section: one switch per scripts/theme_<key>.sh, run by ThemeManager.themeIntegrations().
 - `WeatherConfig.qml`: Reader for the Weather section: the one location and units every weather widget and module shows (see WeatherManager).

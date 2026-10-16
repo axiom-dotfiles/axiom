@@ -3,7 +3,7 @@
 
 > **File:** `services/HyprlandConfigManager.qml` · **Docs:** see [docs/dev](../../README.md)
 
-Managed config, loading ~/.config/hypr/user/*.lua after it Whenever the file isn't loaded (included but the lines are missing, or a managed takeover refused), the runtime layer is applied instead, so axiom still works, and `problem` says why. The window look (WindowLookConfig.look: themed borders, axiom's shape, gaps, Hyprland's blur, window opacity) and the blur behind axiom's surfaces are also evaluated after every config reload in each mode, so they win over the user's own config while they're on (_applyLook).
+Managed config, loading ~/.config/hypr/user/*.lua after it Whenever the file isn't loaded (included but the lines are missing, or a managed takeover refused), the runtime layer is applied instead, so axiom still works, and `problem` says why. The window look (WindowLookConfig.look: themed borders, the shape, gaps, Hyprland's blur, window opacity), the input (InputConfig.input) and the blur behind axiom's surfaces are also evaluated after every config reload in each mode, so they win over the user's own config while they're on (_applyLook).
 
 ### Properties
 

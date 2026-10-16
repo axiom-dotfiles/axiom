@@ -1,7 +1,7 @@
 # Hyprland config modes
 
-> **Files:** `services/HyprlandConfigManager.qml`, `services/HyprlandRuntimeLayer.qml`, `config/HyprlandConfig.qml`, `components/methods/HyprConfigLua.qml`, `components/methods/HyprLua.qml`, `components/methods/HyprBinds.qml`, `config/CompositorConfig.qml`, `components/views/settings/CompositorStatusCard.qml`, `scripts/claim_hyprland.sh`
-> **Config:** `Compositor.mode`, `Compositor.requiredSettings`, `Hyprland.binds`, `Hyprland.managed`, `WindowLook`, `Hyprland.monitors`, `Workspaces.strips`
+> **Files:** `services/HyprlandConfigManager.qml`, `services/HyprlandRuntimeLayer.qml`, `config/HyprlandConfig.qml`, `components/methods/HyprConfigLua.qml`, `components/methods/HyprLua.qml`, `components/methods/HyprBinds.qml`, `config/CompositorConfig.qml`, `config/InputConfig.qml`, `config/SessionConfig.qml`, `components/views/settings/CompositorStatusCard.qml`, `scripts/claim_hyprland.sh`
+> **Config:** `Compositor.mode`, `Compositor.requiredSettings`, `Input.*`, `Session.*`, `Hyprland.binds`, `Hyprland.managed`, `WindowLook`, `Hyprland.monitors`, `Workspaces.strips`
 > **Related:** [Managed takeover](managed-takeover.md), [Window look](../compositor/window-look.md), [Bind merge](bind-merge.md), [Keybinds](keybinds.md), [Monitors](monitors.md), [Workspace strips](workspace-strips.md)
 
 How axiom sets up Hyprland (`HyprlandConfigManager`, which owns `HyprlandRuntimeLayer`, `HyprlandTakeover` and `HyprlandBindMerge`), and the three `mode`s it can do it in: `detached`, `included` and `managed`. Read this before touching anything axiom writes into Hyprland.
@@ -81,9 +81,15 @@ How axiom sets up Hyprland (`HyprlandConfigManager`, which owns `HyprlandRuntime
     - `axiom` follows `Appearance.animFast/Normal/Slow` and turns animations off with motion
     - `snappy` / `bouncy` / `lightning`
     - `custom` comes from `curves`/`customAnimations`
-  - `env`: written after `HyprLua.recommendedEnv` while `recommendedEnv` is on, so the user's values win
-  - `autostart`: written after axiom's in the start hook
-  - the cursor.
+  - `Session.env`: written after `HyprLua.recommendedEnv` while `Session.recommendedEnv` is on, so the user's values win
+  - `Session.autostart`: written after axiom's in the start hook
+  - the cursor (`Input.cursor`): `XCURSOR_*` and `hyprctl setcursor` at start.
+
+### Input
+- `Input` (reader `InputConfig`) is in the layer in every mode, as `M.input()` after `M.look()`: one `hl.config` of the parts that are on (`CompositorLayer.input`, `HyprLua.inputLua`). Its fields carry `x-hypr` paths gated by `x-hyprIf` on their part, so a part on writes all its fields, defaults too.
+- Like the look, it is evaluated at runtime as it changes and after every reload (`_runtimeLookLua`), and a part turned off reloads Hyprland's config (`_droppedLookParts`, parts recorded as `input:<part>`).
+- The cursor theme is set with `setcursor` as it changes (`_lookState.cursor`); a reload keeps it, so turning the part off leaves it until the session ends.
+- Before config version 59 these were `managed` options (the part switches were turned on there).
 
 ### Service creation
 - `HyprlandConfigManager` is created from `shell.qml`'s `_services`, since no other service references it.
