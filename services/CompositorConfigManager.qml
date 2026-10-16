@@ -94,7 +94,8 @@ Singleton {
   }
 
   // The window look and the input that are on, for a file (`forFile`) or
-  // for now: { look (CompositorLayer.look), input (CompositorLayer.input),
+  // for now: { look (CompositorLayer.look), surfaces ({ blur,
+  // throughWindows, backdrops }), input (CompositorLayer.input),
   // surfacesBlur }
   function spec(forFile) {
     const surfacesBlur = _surfacesBlur(forFile);
@@ -104,8 +105,15 @@ Singleton {
         "inactiveHex": CompositorLayer.hex(WindowLookConfig.inactiveBorder),
         "borderWidth": WindowLookConfig.borderWidth,
         "radius": WindowLookConfig.radius,
-        "surfacesBlur": surfacesBlur
+        "surfacesBlur": surfacesBlur,
+        "shadowHex": WindowLookConfig.shadowThemed ? CompositorLayer.hex(WindowLookConfig.shadowColor) : ""
       }),
+      // How axiom's surfaces blur (a backend blurring layers by name)
+      "surfaces": {
+        "blur": surfacesBlur,
+        "throughWindows": Appearance.blurThroughWindows,
+        "backdrops": Appearance.blurBackdrops
+      },
       "input": CompositorLayer.input(InputConfig.input),
       "surfacesBlur": surfacesBlur
     };
@@ -527,7 +535,7 @@ Singleton {
   // them as of its last write, and _applyLive evaluates the current ones
   // over it after every reload. Turning a part off goes through apply(),
   // since an eval can't take a setting back.
-  readonly property string _liveInputs: [WindowLookConfig._lookJson, InputConfig._inputJson, Appearance.blur, BlurManager.active, Appearance.blurBackdrops, Appearance.blurThroughWindows, WindowLookConfig.activeBorder, WindowLookConfig.inactiveBorder, WindowLookConfig.radius, WindowLookConfig.borderWidth].join("|")
+  readonly property string _liveInputs: [WindowLookConfig._lookJson, InputConfig._inputJson, Appearance.blur, BlurManager.active, Appearance.blurBackdrops, Appearance.blurThroughWindows, WindowLookConfig.activeBorder, WindowLookConfig.inactiveBorder, WindowLookConfig.radius, WindowLookConfig.borderWidth, WindowLookConfig.shadowColor].join("|")
   on_LiveInputsChanged: _liveDebounce.restart()
 
   property Timer _liveDebounce: Timer {

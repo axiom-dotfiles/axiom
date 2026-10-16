@@ -75,6 +75,14 @@ Singleton {
     }, {});
   }
 
+  // Appearance's surfaces are translucent only where the compositor blurs
+  // behind them (Appearance.compositorBlurs: readers don't read services)
+  property Binding _appearanceBlur: Binding {
+    target: Appearance
+    property: "compositorBlurs"
+    value: root.supports.blur === true
+  }
+
   // --- State (contract.md › Shapes) ---
 
   // Every mapped window: [{ id, appId, initialAppId, title, workspaceId,

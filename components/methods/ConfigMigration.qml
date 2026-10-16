@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 62
+  readonly property int currentVersion: 63
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -151,6 +151,8 @@ QtObject {
       result = _v60ToV61(result, changes);
     if (version < 62)
       result = _v61ToV62(result, changes);
+    if (version < 63)
+      result = _v62ToV63(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -2081,6 +2083,65 @@ QtObject {
         changes.push(`Hyprland.managed.${key} -> WindowBehaviour.${key}`);
       }
       delete managed[key];
+    }
+    return config;
+  }
+
+  // The blur behind axiom's surfaces is the compositor's, so its options
+  // move to the window look (Appearance.surface.blur, .throughWindows,
+  // .blurBackdrops, .pauseFullscreen -> WindowLook.surfaceBlur*), where
+  // every compositor's blur is set; the surface opacity stays. Window
+  // shadows and dimming are the window look's too, on every compositor
+  // (Hyprland.managed's shadow and dim options -> WindowLook): a part is
+  // on where the managed config wrote it, so nothing changes.
+  function _v62ToV63(config, changes) {
+    const surface = config.Appearance?.surface;
+    if (surface && typeof surface === "object") {
+      const moves = {
+        "blur": "surfaceBlur",
+        "throughWindows": "surfaceBlurThroughWindows",
+        "blurBackdrops": "surfaceBlurBackdrops",
+        "pauseFullscreen": "surfaceBlurPauseFullscreen"
+      };
+      for (const key in moves) {
+        if (surface[key] === undefined)
+          continue;
+        config.WindowLook = config.WindowLook ?? {};
+        if (config.WindowLook[moves[key]] === undefined) {
+          config.WindowLook[moves[key]] = surface[key];
+          changes.push(`Appearance.surface.${key} -> WindowLook.${moves[key]}`);
+        }
+        delete surface[key];
+      }
+    }
+    const managed = config.Hyprland?.managed;
+    if (!managed || typeof managed !== "object")
+      return config;
+    const wasManaged = config.Compositor?.mode === "managed";
+    const look = config.WindowLook = config.WindowLook ?? {};
+    const moved = (part, keys) => keys.some(key => managed[key] !== undefined);
+    if (moved("shadow", ["shadow", "shadowRange", "shadowPower", "shadowThemed", "shadowColor"])) {
+      if (look.shadow === undefined) {
+        look.shadow = wasManaged && managed.shadow !== false;
+        if (managed.shadowRange !== undefined)
+          look.shadowSize = managed.shadowRange;
+        if (managed.shadowPower !== undefined)
+          look.shadowPower = managed.shadowPower;
+        look.shadowColor = managed.shadowThemed === true ? (managed.shadowColor ?? "") : "";
+        changes.push(`Hyprland.managed shadow -> WindowLook, shadow ${look.shadow ? "on" : "off"}`);
+      }
+      for (const key of ["shadow", "shadowRange", "shadowPower", "shadowThemed", "shadowColor"])
+        delete managed[key];
+    }
+    if (moved("dim", ["dimInactive", "dimStrength"])) {
+      if (look.dim === undefined) {
+        look.dim = wasManaged && managed.dimInactive !== false;
+        if (managed.dimStrength !== undefined)
+          look.dimStrength = managed.dimStrength;
+        changes.push(`Hyprland.managed dim -> WindowLook, dim ${look.dim ? "on" : "off"}`);
+      }
+      delete managed.dimInactive;
+      delete managed.dimStrength;
     }
     return config;
   }

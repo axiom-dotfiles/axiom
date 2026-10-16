@@ -457,6 +457,32 @@ assert(removed == 2, "earlier handlers removed")
     });
   }
 
+  function test_look_shadow_and_dim() {
+    const schema = files.json("config/json/config.schema.json");
+    const lookSchema = schema.properties.WindowLook;
+    const values = Object.assign(SchemaValidation.applyDefaults({}, lookSchema, schema), {
+      "shadow": true,
+      "shadowSize": 12,
+      "shadowPower": 2,
+      "dim": true,
+      "dimStrength": 20
+    });
+    const spec = opts => CompositorLayer.look(values, Object.assign({
+        "activeHex": "ffffff",
+        "inactiveHex": "000000",
+        "borderWidth": 2,
+        "radius": 8,
+        "surfacesBlur": false
+      }, opts));
+    const lua = HyprLua.lookLua(spec({}), lookSchema).join("\n");
+    verify(lua.includes("range = 12") && lua.includes("render_power = 2") && lua.includes("enabled = true"));
+    verify(!lua.includes("shadow = {") || !lua.includes("color ="), "no color: Hyprland's own");
+    verify(lua.includes("dim_inactive = true") && lua.includes("dim_strength = 0.2"));
+    verify(HyprLua.lookLua(spec({
+      "shadowHex": "101010"
+    }), lookSchema).join("\n").includes('color = "rgba(101010ee)"'));
+  }
+
   function test_look_writes_only_its_parts_that_are_on() {
     const schema = files.json("config/json/config.schema.json");
     const lookSchema = schema.properties.WindowLook;

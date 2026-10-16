@@ -129,7 +129,7 @@ The public members (no `_` prefix) of every file in `services/` and every config
 - [WeatherConfig](api/WeatherConfig.md): Reader for the Weather section: the one location and units every weather widget and module shows (see WeatherManager).
 - [Widget](api/Widget.md): Reader for the Widget section: sizing for panels, cards, popouts and controls.
 - [WindowBehaviourConfig](api/WindowBehaviourConfig.md): Reader for the WindowBehaviour section: focus and the cursor, which every compositor's managed config writes (each field by its x-hypr / x-sway annotation).
-- [WindowLookConfig](api/WindowLookConfig.md): Reader for the WindowLook section: settings that make windows match axiom ({ borders, activeColor, shape, matchShell, gaps, blur…, opacity… }), applied by the …
+- [WindowLookConfig](api/WindowLookConfig.md): Reader for the WindowLook section: settings that make windows match axiom ({ borders, activeColor, shape, matchShell, gaps, surfaceBlur…, blur…, shadow…, dim…,…
 - [WindowSwitcherConfig](api/WindowSwitcherConfig.md): Reader for the WindowSwitcher section (Alt+Tab).
 - [WorkspaceOverlayConfig](api/WorkspaceOverlayConfig.md): Reader for the WorkspaceOverlay section (the full-screen workspace overview).
 - [WorkspacesConfig](api/WorkspacesConfig.md): Reader for the Workspaces section: the workspace layout the bar widget, the overview, the WorkspacesMap module and CompositorManager's navigation share.

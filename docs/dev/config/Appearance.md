@@ -106,9 +106,11 @@ Every public member of `Appearance`, with the files that use it.
   - in: `components/bar/BarContainer.qml`, `components/hosts/popout/FloatingPopout.qml`, `components/surfaces/border/RoundedBorders.qml`, `components/surfaces/edgemenu/IntegratedEdgeMenu.qml`, `config/Bar.qml`, `services/BarManager.qml`
 - `Appearance.surfaceAlpha` (real): --- Translucency --- How solid the shell's surfaces are (0.6–1).
   - in: `shell/BlurBackingWindow.qml`
+- `Appearance.compositorBlurs` (bool): Whether the compositor blurs behind axiom's surfaces (CompositorManager.supports.blur), handed over by CompositorManager: a reader reads no service, and buildi…
+  - in: only inside the reader
 - `Appearance.translucent` (bool)
   - in: `components/bar/BarContainer.qml`, `components/hosts/popout/AttachedSurface.qml`, `components/hosts/popout/EdgePlacement.qml`, `components/hosts/popout/StrokeOpening.qml`, `components/hosts/popout/SubPopout.qml`
-- `Appearance.blur` (bool): Hyprland blurs behind them (HyprlandConfigWriter's blur rules, which leave out pixels under blurThreshold: shadows, dims, fades), with its own blur (the window…
+- `Appearance.blur` (bool)
   - in: `components/surfaces/screenlayout/ScreenLayoutView.qml`, `components/views/settings/TranslucencyStatus.qml`, `services/BlurManager.qml`, `services/CompositorConfigManager.qml`
 - `Appearance.blurBackdrops` (bool)
   - in: `services/CompositorConfigManager.qml`, `services/HyprlandConfigWriter.qml`

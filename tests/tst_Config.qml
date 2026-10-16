@@ -1317,7 +1317,7 @@ TestCase {
       }
     }).config;
     compare(loaded.Hyprland.blur, undefined);
-    compare(loaded.Appearance.surface.blur, true);
+    compare(loaded.WindowLook.surfaceBlur, true, "(the window look's since v63)");
     compare(loaded.Appearance.surface.opacity, 100);
     compare(errors(loaded), []);
     compare(load({
@@ -1325,7 +1325,7 @@ TestCase {
       "Hyprland": {
         "blur": false
       }
-    }).config.Appearance.surface.blur, false);
+    }).config.WindowLook.surfaceBlur, false);
   }
 
   function test_v49_window_look_moves_to_hyprland_look() {
@@ -1836,7 +1836,8 @@ TestCase {
     compare(config.Input.cursorSize, 32);
     compare(config.Session.autostart[0].command, "waybar");
     compare(config.Session.recommendedEnv, false);
-    compare(config.Hyprland.managed.dimInactive, false, "Hyprland's own options stay");
+    compare(config.Hyprland.managed.layout !== undefined, true, "Hyprland's own options stay");
+    compare(config.WindowLook.dim, false, "(dimming is the window look's since v63)");
     compare(config.Hyprland.managed.kbLayout, undefined);
     compare(config.Hyprland.managed.autostart, undefined);
     compare(managed.removed, []);
@@ -1970,5 +1971,72 @@ TestCase {
     compare(load({
       "version": 61
     }).config.Sway.workspaceLayout, "default");
+  }
+
+  function test_v63_blur_and_shadows_join_the_window_look() {
+    const migrated = load({
+      "version": 62,
+      "Compositor": {
+        "mode": "managed"
+      },
+      "Appearance": {
+        "surface": {
+          "opacity": 85,
+          "blur": false,
+          "throughWindows": false,
+          "pauseFullscreen": false
+        }
+      },
+      "Hyprland": {
+        "managed": {
+          "layout": "master",
+          "shadow": true,
+          "shadowRange": 7,
+          "shadowThemed": true,
+          "shadowColor": "base01",
+          "dimInactive": true,
+          "dimStrength": 12,
+          "dimSpecial": 30
+        }
+      }
+    });
+    const look = migrated.config.WindowLook;
+    compare(migrated.config.Appearance.surface.opacity, 85);
+    compare(migrated.config.Appearance.surface.blur, undefined);
+    compare(look.surfaceBlur, false);
+    compare(look.surfaceBlurThroughWindows, false);
+    compare(look.surfaceBlurPauseFullscreen, false);
+    compare(look.surfaceBlurBackdrops, false, "the default");
+    compare([look.shadow, look.shadowSize, look.shadowColor], [true, 7, "base01"]);
+    compare([look.dim, look.dimStrength], [true, 12]);
+    compare(migrated.config.Hyprland.managed.shadow, undefined);
+    compare(migrated.config.Hyprland.managed.dimInactive, undefined);
+    compare(migrated.config.Hyprland.managed.dimSpecial, 30, "Hyprland's own stays");
+    compare(migrated.config.Hyprland.managed.layout, "master");
+    compare(migrated.removed, []);
+    compare(errors(migrated.config), []);
+    // Not managed: the managed options were never written, so the parts
+    // stay off; an unthemed shadow is the compositor's color
+    const detached = load({
+      "version": 62,
+      "Compositor": {
+        "mode": "detached"
+      },
+      "Hyprland": {
+        "managed": {
+          "shadow": true,
+          "shadowThemed": false,
+          "shadowColor": "base00",
+          "dimInactive": true
+        }
+      }
+    }).config.WindowLook;
+    compare([detached.shadow, detached.shadowColor, detached.dim], [false, "", false]);
+    // Twice is once
+    const again = ConfigMigration.migrate(JSON.parse(JSON.stringify(Object.assign({}, migrated.config, {
+      "version": 62
+    })))).config;
+    compare(again.WindowLook.surfaceBlur, false);
+    compare(again.WindowLook.shadowSize, 7);
   }
 }

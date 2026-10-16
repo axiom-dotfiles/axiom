@@ -37,7 +37,31 @@ TestCase {
     compare(look.shape, null);
     compare(look.gaps, null);
     compare(look.blur, null);
+    compare(look.shadow, null);
+    compare(look.dim, null);
     compare(look.opacity, null);
+  }
+
+  function test_look_shadow_and_dim() {
+    const values = Object.assign(defaults(), {
+      "shadow": true,
+      "shadowSize": 12,
+      "dim": true,
+      "dimStrength": 15
+    });
+    const look = CompositorLayer.look(values, Object.assign({}, opts, {
+      "shadowHex": "101010"
+    }));
+    compare(look.parts, ["shadow", "dim"]);
+    compare(look.shadow, {
+      "size": 12,
+      "power": values.shadowPower,
+      "color": "101010"
+    });
+    compare(look.dim, {
+      "strength": 15
+    });
+    compare(CompositorLayer.look(values, opts).shadow.color, "", "no color: the compositor's own");
   }
 
   function test_look_parts() {
@@ -68,7 +92,12 @@ TestCase {
     });
     compare(look.blur, {
       "windows": false,
-      "surfaces": true
+      "surfaces": true,
+      "size": values.blurSize,
+      "passes": values.blurPasses,
+      "xray": values.blurXray,
+      "noise": values.blurNoise,
+      "contrast": values.blurContrast
     });
     compare(look.opacity.inactive, 90);
     compare(look.opacity.active, 100);

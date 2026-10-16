@@ -6,10 +6,12 @@ import qs.services
 import qs.components.reusable
 
 // The top of the Translucency card (its `x-intro`): a warning that it's
-// experimental, and while the surfaces blur, the blur they get: Hyprland's
-// one (CompositorManager.blur, as in effect), set by the window look's blur
-// part or the user's own config. With Hyprland's blur off nothing blurs,
-// and it offers to set it.
+// experimental, and while the surfaces blur, the blur they get: the
+// compositor's one (CompositorManager.blur, as in effect), set by the
+// window look's blur part or the user's own config. With its blur off
+// nothing blurs, and it offers to set it. Where the compositor can't blur
+// behind them, the opacity is greyed out and the surfaces are solid
+// (Appearance.surfaceAlpha).
 ColumnLayout {
   id: root
 
@@ -44,15 +46,15 @@ ColumnLayout {
       textColor: root.off ? Theme.error : Theme.foreground
       text: {
         if (root.off)
-          return I18n.tr("Hyprland's blur is off, so nothing blurs behind the surfaces.");
-        const strength = I18n.tr("Hyprland's blur: size {0}, {1} passes.", CompositorManager.blur.size, CompositorManager.blur.passes);
-        return strength + " " + (WindowLookConfig.look.blur ? I18n.tr("Set in Compositor → Window look.") : I18n.tr("From your Hyprland config."));
+          return I18n.tr("{0}'s blur is off, so nothing blurs behind the surfaces.", CompositorManager.displayName);
+        const strength = I18n.tr("{0}'s blur: size {1}, {2} passes.", CompositorManager.displayName, CompositorManager.blur.size, CompositorManager.blur.passes);
+        return strength + " " + (WindowLookConfig.look.blur ? I18n.tr("Set in Compositor → Window look.") : I18n.tr("From your compositor's config."));
       }
     }
 
     StyledTextButton {
       implicitHeight: Widget.height - 4
-      text: root.off && !WindowLookConfig.look.blur ? I18n.tr("Set Hyprland's blur") : I18n.tr("Change")
+      text: root.off && !WindowLookConfig.look.blur ? I18n.tr("Set the compositor's blur") : I18n.tr("Change")
       onClicked: {
         if (root.off && !WindowLookConfig.look.blur)
           SettingsManager.setValue(["WindowLook", "blur"], true);

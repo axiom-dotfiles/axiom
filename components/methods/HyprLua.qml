@@ -103,8 +103,8 @@ QtObject {
 
   /**
    * The look's parts that are on (`look`: CompositorLayer.look()), as the
-   * lines of one hl.config(), or []: the borders, the shape, gaps, and the
-   * blur and window opacity (`lookSchema`'s fields with `x-hyprIf` on those
+   * lines of one hl.config(), or []: the borders, the shape, gaps, shadows,
+   * dimming, and the blur and window opacity (`lookSchema`'s fields with `x-hyprIf` on those
    * parts). Hyprland's blur stays on while axiom's surfaces blur (which
    * they can't with it off); with windows not blurring a rule then keeps
    * them unblurred.
@@ -129,6 +129,17 @@ QtObject {
     if (look.gaps) {
       _set(table, "general.gaps_in", look.gaps.inner);
       _set(table, "general.gaps_out", look.gaps.outer);
+    }
+    if (look.shadow) {
+      _set(table, "decoration.shadow.enabled", true);
+      _set(table, "decoration.shadow.range", look.shadow.size);
+      _set(table, "decoration.shadow.render_power", look.shadow.power);
+      if (look.shadow.color !== "")
+        _set(table, "decoration.shadow.color", `rgba(${look.shadow.color}ee)`);
+    }
+    if (look.dim) {
+      _set(table, "decoration.dim_inactive", true);
+      _set(table, "decoration.dim_strength", look.dim.strength / 100);
     }
     const lines = Object.keys(table).length > 0 ? `hl.config(${serialize(table)})`.split("\n") : [];
     // Redefined (on or off) while the blur part is on; turning the part off

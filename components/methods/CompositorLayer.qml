@@ -13,7 +13,7 @@ QtObject {
     return [color.r, color.g, color.b].map(v => Math.round(v * 255).toString(16).padStart(2, "0")).join("");
   }
 
-  readonly property var lookPartNames: ["borders", "shape", "gaps", "blur", "opacity"]
+  readonly property var lookPartNames: ["borders", "shape", "gaps", "blur", "shadow", "dim", "opacity"]
 
   /**
    * The window look (WindowLook's values) as the parts that are on:
@@ -23,11 +23,16 @@ QtObject {
    *   borders  { active, inactive } ("rrggbb"), or null
    *   shape    { width, radius }, or null
    *   gaps     { inner, outer }, or null
-   *   blur     { windows, surfaces }: whether windows blur, and whether
-   *            axiom's translucent surfaces do (the compositor's blur stays
-   *            on for them), or null
+   *   blur     { windows, surfaces, size, passes, xray, noise, contrast }:
+   *            whether windows blur, and whether axiom's translucent
+   *            surfaces do (the compositor's blur stays on for them), and
+   *            its strength (noise in ‰, contrast in %), or null
+   *   shadow   { size, power, color ("rrggbb", or "" for the compositor's
+   *            own) }, or null
+   *   dim      { strength } in percent, or null
    *   opacity  { active, inactive, fullscreen } in percent, or null
-   * `opts`: { activeHex, inactiveHex, borderWidth, radius, surfacesBlur }
+   * `opts`: { activeHex, inactiveHex, borderWidth, radius, surfacesBlur,
+   * shadowHex }
    */
   function look(values, opts) {
     return {
@@ -47,7 +52,20 @@ QtObject {
       } : null,
       "blur": values.blur ? {
         "windows": values.windowBlur === true,
-        "surfaces": opts.surfacesBlur === true
+        "surfaces": opts.surfacesBlur === true,
+        "size": values.blurSize,
+        "passes": values.blurPasses,
+        "xray": values.blurXray === true,
+        "noise": values.blurNoise,
+        "contrast": values.blurContrast
+      } : null,
+      "shadow": values.shadow ? {
+        "size": values.shadowSize,
+        "power": values.shadowPower,
+        "color": opts.shadowHex ?? ""
+      } : null,
+      "dim": values.dim ? {
+        "strength": values.dimStrength
       } : null,
       "opacity": values.opacity ? {
         "active": values.activeOpacity,

@@ -110,7 +110,9 @@ Loader {
   readonly property bool _followsSibling: Object.keys(fieldSchema["x-showIf"] ?? {}).some(key => !key.startsWith("/"))
   // I18n.tr("{0} only.")
   readonly property string disabledNote: {
-    if (root.allowed || root._followsSibling)
+    // (A field one compositor alone has says so even under its part's
+    // switch: the switch itself isn't greyed out for it)
+    if (root.allowed || (root._followsSibling && _blockedBy !== "/$compositor"))
       return "";
     const own = fieldSchema["x-disabledNote"] ?? "";
     if (own !== "")

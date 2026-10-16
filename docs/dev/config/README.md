@@ -25,7 +25,7 @@ Generated from `config/json/config.schema.json` and the readers in `config/`. On
 | [Sway](Sway.md) | `SwayConfig` (`config/SwayConfig.qml`) | Compositor |
 | [Input](Input.md) | `InputConfig` (`config/InputConfig.qml`) | Compositor |
 | [Session](Session.md) | `SessionConfig` (`config/SessionConfig.qml`) | Compositor |
-| [WindowLook](WindowLook.md) | `WindowLookConfig` (`config/WindowLookConfig.qml`) | Compositor |
+| [WindowLook](WindowLook.md) | `Appearance` (`config/Appearance.qml`) | Compositor |
 | [Appearance](Appearance.md) | `Appearance` (`config/Appearance.qml`) | Look & Feel |
 | [Widget](Widget.md) | `Widget` (`config/Widget.qml`) | Look & Feel |
 | [BarStyle](BarStyle.md) | `BarStyle` (`config/BarStyle.qml`) | Look & Feel |
