@@ -20,7 +20,7 @@ The first-run onboarder (shell/Onboarding): a series of pages that set the essen
 - `blockedReason` (readonly string): Why managed can't be picked ("" when it can), for its option card
 - `autostartDone` (readonly bool): Whether the compositor's config already starts axiom (install.sh's line, or the Compositor page's Apply); false until checked
 - `includeDone` (readonly bool): Whether the compositor's config loads axiom's module (included mode)
-- `recommendedMode` (readonly string): The mode the Compositor page starts on: managed only when there's nothing of the user's to take over (the compositor's example config, none, or axiom's already); a config of their own (custom, legacy…
+- `recommendedMode` (readonly string): The mode the Compositor page starts on: the one set up already (run again, Finish shouldn't quietly leave it, giving back its module or takeover); else managed only when there's nothing of the user's…
 - `chosenMode` (readonly string): The mode picked on the Compositor page, applied on Finish ("" follows the recommendation)
 - `modeAllowed` (readonly bool)
 

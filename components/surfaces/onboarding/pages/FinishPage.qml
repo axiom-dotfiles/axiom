@@ -12,7 +12,9 @@ OnboardingPage {
   id: root
 
   readonly property string mode: OnboardingManager.chosenMode
-  readonly property bool changesMode: OnboardingManager.pages.some(page => page.id === "compositor") && OnboardingManager.compositorSupported && OnboardingManager.modeAllowed && root.mode !== CompositorConfig.mode
+  // No Compositor step where axiom can't set the compositor up
+  readonly property bool hasCompositorPage: OnboardingManager.pages.some(page => page.id === "compositor")
+  readonly property bool changesMode: root.hasCompositorPage && OnboardingManager.compositorSupported && OnboardingManager.modeAllowed && root.mode !== CompositorConfig.mode
   readonly property string compositor: CompositorManager.displayName
   readonly property string config: Paths.shortenHome(CompositorConfigManager.managedPath)
 
@@ -26,13 +28,19 @@ OnboardingPage {
   }
 
   Notice {
+    visible: root.changesMode && CompositorConfig.mode !== "detached"
+    tone: "warning"
+    text: I18n.tr("Finish changes how axiom sets up {0}: what the mode it's in now set up is given back.", root.compositor)
+  }
+
+  Notice {
     visible: root.mode === "included"
     tone: OnboardingManager.includeDone && OnboardingManager.autostartDone ? "info" : "warning"
     text: !OnboardingManager.includeDone ? I18n.tr("Finish writes axiom's module, but your {0} doesn't load it yet: Apply the lines on the Compositor step. Until then, axiom adds its keybinds while it runs.", root.config) : !OnboardingManager.autostartDone ? I18n.tr("Finish writes axiom's module, which your {0} loads. It doesn't start axiom yet: Apply the autostart line on the Compositor step.", root.config) : I18n.tr("Finish writes axiom's module, which your {0} loads.", root.config)
   }
 
   Notice {
-    visible: root.mode === "detached" && !OnboardingManager.autostartDone
+    visible: root.hasCompositorPage && root.mode === "detached" && !OnboardingManager.autostartDone
     tone: "warning"
     text: I18n.tr("{0} won't start axiom by itself: Apply the autostart line on the Compositor step, or add it to your {1} yourself.", root.compositor, root.config)
   }

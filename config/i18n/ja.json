@@ -3015,6 +3015,7 @@
     "{0} or its config is a symlink (dotfiles?), so axiom won't replace it.": "{0} またはその設定がシンボリックリンク（dotfiles？）のため、axiom は置き換えません。",
     "Your {0} config is a symlink or in a git repository, so axiom won't take it over.": "あなたの {0} 設定はシンボリックリンクか git リポジトリの中にあるため、axiom は引き継ぎません。",
     "Follow Look & Feel → Bar style: its shadow or glow, color and size. With none there, windows cast none.": "外観と操作感 → バースタイルに従います：影またはグロー、その色とサイズ。そこで「なし」なら、ウィンドウにも影は付きません。",
-    "Match axiom's shadow": "axiom の影に合わせる"
+    "Match axiom's shadow": "axiom の影に合わせる",
+    "Finish changes how axiom sets up {0}: what the mode it's in now set up is given back.": "「完了」で axiom による {0} の設定方法が変わります。現在のモードが設定したものは元に戻されます。"
   }
 }

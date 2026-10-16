@@ -135,11 +135,13 @@ Singleton {
   // Whether the compositor's config loads axiom's module (included mode)
   readonly property bool includeDone: (IntegrationHookupManager.status.compositorInclude?.targets ?? [])[0]?.done === true
 
-  // The mode the Compositor page starts on: managed only when there's
-  // nothing of the user's to take over (the compositor's example config,
-  // none, or axiom's already); a config of their own (custom, legacy,
-  // blocked) starts detached, which changes none of it
-  readonly property string recommendedMode: ["stock", "none", "ours"].includes(configState) ? "managed" : "detached"
+  // The mode the Compositor page starts on: the one set up already (run
+  // again, Finish shouldn't quietly leave it, giving back its module or
+  // takeover); else managed only when there's nothing of the user's to take
+  // over (the compositor's example config, none, or axiom's already); a
+  // config of their own (custom, legacy, blocked) starts detached, which
+  // changes none of it
+  readonly property string recommendedMode: CompositorConfig.mode !== "detached" ? CompositorConfig.mode : ["stock", "none", "ours"].includes(configState) ? "managed" : "detached"
   // The mode picked on the Compositor page, applied on Finish ("" follows
   // the recommendation)
   readonly property string chosenMode: _run.chosenMode !== "" ? _run.chosenMode : recommendedMode
