@@ -929,5 +929,10 @@ QtObject {
     }
   }
 
+  // Read as soon as the compositor is known to list its binds: created
+  // early in the shell's start, this can come before
+  // CompositorManager.supports is filled in, and a refresh then does nothing
+  readonly property bool _canRead: CompositorManager.supports.bindMerge === true
+  on_CanReadChanged: refresh()
   Component.onCompleted: refresh()
 }
