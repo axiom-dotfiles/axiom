@@ -289,12 +289,18 @@ QtObject {
     });
   }
 
+  // The special group a window's mark puts it in (axiom-special-<name>-<id>:
+  // the name is everything up to the last "-"), or "" for another mark
+  function specialGroup(mark) {
+    const found = /^axiom-special-(.+)-[^-]+$/.exec(String(mark ?? ""));
+    return found ? found[1] : "";
+  }
+
   // Of `windows` (the contract's), the ids in special group `name` (marked
   // axiom-special-<name>-…, `marks`: { [id]: [marks] }), and whether to show
   // them on `output`: hide when any is shown there, else show
   function specialToggle(windows, marks, name, output) {
-    const prefix = `axiom-special-${name}-`;
-    const ids = Object.keys(marks ?? {}).filter(id => (marks[id] ?? []).some(mark => mark.startsWith(prefix)));
+    const ids = Object.keys(marks ?? {}).filter(id => (marks[id] ?? []).some(mark => root.specialGroup(mark) === name));
     const shown = windows.some(win => ids.includes(win.id) && win.output === output);
     return {
       "ids": ids,

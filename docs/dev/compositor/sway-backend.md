@@ -44,7 +44,7 @@ Outputs and workspaces come live from Quickshell's `I3` module (as Hyprland's do
 - `placeWindow` (the overview's drop): next to a target, it marks the target (`axiom-drop`), splits it on the side's axis and moves the window to the mark, which puts it after the target; left and top then swap the two. With no target, onto the workspace; a floating window then moves to `floatAt` (`move absolute position`). Sway can't put the cursor back (`restore` unused).
 - `resizeWindow`: `resize grow|shrink width|height N px`; a floating window also moves by (dx, dy).
 - Special workspaces are groups of scratchpad windows (`namedSpecial`, once binds can reach them):
-  - `moveToSpecial(name)`: marks the focused window `axiom-special-<name>-<id>` and moves it to the scratchpad.
+  - `moveToSpecial(name)`: marks the focused window `axiom-special-<name>-<id>` (unmarking any other group's, as a window is on one special workspace at a time) and moves it to the scratchpad. A mark's group is everything up to its last `-` (`SwayState.specialGroup`), so `a` and `a-b` are separate groups.
   - `toggleSpecial(name)`: shows the group's windows on the focused output (`scratchpad show`, floating), or hides them all (`move scratchpad`) when any is shown there (`SwayState.specialToggle`).
 - `withOutputDetails`: `get_outputs` (`SwayState.outputDetails`; modes as `WxH@R.RRHz`). `applyOutputs`: one `output … enable mode … pos … scale … transform … adaptive_sync …` command per rule (`SwayConf.outputCommands`), disabled ones last. No mirroring and no color settings.
 - `cycleKeyboardLayout`: `input type:keyboard xkb_switch_layout next|prev`. `exitSession`: `exit`. `dpmsCommand`: `swaymsg 'output * power on|off'`. `leaveSwitcher`: `mode default`.

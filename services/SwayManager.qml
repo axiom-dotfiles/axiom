@@ -216,12 +216,14 @@ Singleton {
       SwayIpcManager.command(lines.join("; "), () => root._debounce.restart());
   }
 
-  // Puts the focused window in special group `name` (hidden until shown)
+  // Puts the focused window in special group `name` (hidden until shown),
+  // out of any other: a window is on one special workspace at a time
   function moveToSpecial(name) {
     const id = root.activeWindowId;
     if (!id)
       return;
-    SwayIpcManager.command(`${_con(id)} mark --add ${SwayConf.quote(`axiom-special-${name}-${id}`)}; ${_con(id)} move scratchpad`, () => root._debounce.restart());
+    const leave = (root._marks[id] ?? []).filter(mark => SwayState.specialGroup(mark) !== "").map(mark => `${_con(id)} unmark ${SwayConf.quote(mark)}`);
+    SwayIpcManager.command(leave.concat([`${_con(id)} mark --add ${SwayConf.quote(`axiom-special-${name}-${id}`)}`, `${_con(id)} move scratchpad`]).join("; "), () => root._debounce.restart());
   }
 
   // --- The window switcher ---

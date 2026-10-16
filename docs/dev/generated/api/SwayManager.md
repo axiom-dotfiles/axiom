@@ -41,7 +41,7 @@ CompositorManager's backend on sway (docs/dev/compositor/contract.md, docs/dev/c
 - `travel(output, legs, mode, focusId)`: A workspace switch (CompositorManager.goToWorkspace).
 - `applyRemap(plan, outputs)`: Carries out a remap (WorkspaceGeometry.remapWorkspaces' plan) for `outputs`, the outputs' names in block order.
 - `toggleSpecial(name)`: Shows the windows of special group `name` on the focused output, or hides them when any is shown there (SwayState.specialToggle)
-- `moveToSpecial(name)`: Puts the focused window in special group `name` (hidden until shown)
+- `moveToSpecial(name)`: Puts the focused window in special group `name` (hidden until shown), out of any other: a window is on one special workspace at a time
 - `leaveSwitcher()`: Leaves the switcher's mode (a tile was clicked while its keys were held)
 - `runCommands(lines, callback)`: Runs sway commands (`lines`), in order, after those sent before
 - `setLiveGaps(gaps)`: The gaps axiom's window look set now ({ inner, outer }), or null when it sets none: gapsOut follows them until sway reloads its config

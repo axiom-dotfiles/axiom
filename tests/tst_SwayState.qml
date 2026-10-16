@@ -281,4 +281,19 @@ TestCase {
     compare(SwayState.specialToggle(shown, marks, "gaming", "WL-1").show, false);
     compare(SwayState.specialToggle(info.windows, marks, "music", "WL-1").ids, []);
   }
+
+  // A group's name may hold "-": another group whose name it starts with
+  // isn't it
+  function test_specialGroup() {
+    compare(SwayState.specialGroup("axiom-special-a-12"), "a");
+    compare(SwayState.specialGroup("axiom-special-a-b-12"), "a-b");
+    compare(SwayState.specialGroup("axiom-drop"), "");
+    compare(SwayState.specialGroup("mine"), "");
+    const marks = {
+      "1": ["axiom-special-a-1"],
+      "2": ["axiom-special-a-b-2"]
+    };
+    compare(SwayState.specialToggle([], marks, "a", "WL-1").ids, ["1"]);
+    compare(SwayState.specialToggle([], marks, "a-b", "WL-1").ids, ["2"]);
+  }
 }
