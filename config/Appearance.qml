@@ -90,8 +90,14 @@ QtObject {
   readonly property real blurThreshold: 0.5
   // A shadow's darkest alpha while blurring: under the threshold, so its
   // halo isn't blurred (the blur window casts the chrome's, and Hyprland
-  // blurs the chrome's popups)
-  readonly property real shadowAlphaMax: blur ? 0.45 : 1
+  // blurs the chrome's popups). A compositor that blurs every pixel that
+  // isn't fully clear (SwayFX's blur_ignore_transparent) would blur any
+  // halo, so the shadows go while it blurs.
+  readonly property real shadowAlphaMax: blur ? (compositorBlurThreshold ? 0.45 : 0) : 1
+  // Whether the compositor leaves pixels under blurThreshold unblurred
+  // (CompositorManager.supports.blurThreshold), handed over as
+  // compositorBlurs is
+  property bool compositorBlurThreshold: false
 
   // A surface fill (a theme color, or a name or "#hex" as
   // Theme.resolveColor gives one) at the surface opacity

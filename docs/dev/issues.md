@@ -84,12 +84,11 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Size:** small
 - **Found:** 2026-10-16, while testing layer order in nested sway
 
-### Blur and transparency on other compositors
-- **Where:** `services/BlurManager.qml` (`_wanted`), `config/json/config.schema.json` (`Appearance` blur settings, `"/$supports.blur"`), `services/CompositorManager.qml` (`supports`)
-- **What:** Axiom's surfaces blur only where the compositor blurs its layers (`supports.blur`: Hyprland's layer rules). Elsewhere the blur settings are hidden and translucent surfaces fill themselves, so a surface over another (the launcher over a dock) shows it through its fill. SwayFX (`layer_effects`) and niri (layer rules) may blur layers by namespace too: the blur window (`axiom-blur-backing`) is all they'd need to blur. Its strength would then be axiom's to set outside Hyprland (likely one blur-strength option there).
+### Blur behind axiom on niri
+- **Where:** `services/CompositorManager.qml` (`supports`), `components/methods/LayerStack.qml` (`blurSurfaces`)
+- **What:** Axiom's surfaces blur where the compositor blurs its layers (`supports.blur`: Hyprland's layer rules, SwayFX's `layer_effects`); elsewhere they're solid (`Appearance.compositorBlurs`) and the translucency setting is greyed out. niri can blur layers by namespace too (layer rules); a niri backend would need the same per-namespace rules from `LayerStack`'s lists. Unchecked on SwayFX: whether its `blur_ignore_transparent` really blurs halos (axiom then drops the chrome's shadows, no `blurThreshold`), and how unblurred layer popups (tooltips) look.
 - **Size:** needs a plan
 - **Found:** 2026-10-16, while placing layers without Hyprland
-
 ### The greeter runs its own Hyprland session
 - **Where:** `scripts/greeter/greeter-session.sh`, `services/GreetdManager.qml` (`_applyHyprland`)
 - **What:** The greeter runs its own Hyprland session (`start-hyprland`, `hyprctl dispatch exit`), whatever compositor the user's session uses. Decide whether it keeps Hyprland or moves to cage/sway. (The onboarding's binds table and Welcome copy no longer assume Hyprland.)

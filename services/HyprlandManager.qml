@@ -40,6 +40,7 @@ Singleton {
       "switcherRelease": true,
       "strips": true,
       "focusGrab": true,
+      "blurThreshold": true,
       "layerOrder": true,
       "blur": true,
       "cursorPos": true,
