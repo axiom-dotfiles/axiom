@@ -37,8 +37,9 @@ def entries():
             continue
         paths = {p for p in TICKED.findall(where.group(1)) if p.endswith(".qml")}
         ticked = TICKED.findall(what.group(1))
-        quotes = [q for q in ticked if len(q) >= 12]
         categories = {q for q in ticked if CATEGORY.match(f"  WARN {q}: ")}
+        # A category is no quote: it would match every line from it
+        quotes = [q for q in ticked if len(q) >= 12 and q not in categories]
         if (paths or categories) and quotes:
             out.append((title, paths, categories, quotes))
     return out

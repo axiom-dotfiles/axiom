@@ -851,6 +851,7 @@ class KnownIssues(unittest.TestCase):
             "  WARN qml: @services/Other.qml[3:5]: TypeError: Cannot read property 'x' of null",
             "  WARN quickshell.I3.ipc: I3 event socket disconnected.",
             "  WARN quickshell.other: I3 event socket disconnected.",
+            "  WARN quickshell.I3.ipc: a new failure",
         ]) + "\n"
         done = subprocess.run([sys.executable, str(SCRIPTS / "dev" / "known_issues.py")], input=log, capture_output=True,
                               text=True, timeout=30, env={**os.environ, "AXIOM_ISSUES": str(issues)})
@@ -859,6 +860,7 @@ class KnownIssues(unittest.TestCase):
         self.assertNotIn("known", lines[1])
         self.assertTrue(lines[2].endswith("(known: issues.md › Qt's own warning)"))
         self.assertNotIn("known", lines[3])
+        self.assertNotIn("known", lines[4], "the category alone isn't the warning")
 
 
 class ClaimHyprland(unittest.TestCase):

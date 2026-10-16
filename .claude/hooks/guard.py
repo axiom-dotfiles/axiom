@@ -94,15 +94,45 @@ def simple(tokens, exported):
             argv = argv[1:]
     if not argv:
         return []
-    if Path(argv[0]).name in SHELLS and "-c" in argv[1:-1]:
-        inner = argv[argv.index("-c") + 1]
+    command_flag = next((i for i, a in enumerate(argv[1:-1], 1) if re.fullmatch(r"-[a-z]*c[a-z]*", a)), None)
+    if Path(argv[0]).name in SHELLS and command_flag is not None:
+        inner = argv[command_flag + 1]
         return [(dict(env, **e), a) for e, a in split_commands(inner)]
+    # A script run through a shell (`bash scripts/claim_sway.sh …`): judge the script
+    if Path(argv[0]).name in SHELLS:
+        rest = argv[1:]
+        while rest and rest[0].startswith("-"):
+            rest = rest[1:]
+        if rest:
+            return [(env, rest)]
     return [(env, argv)]
 
 
-def resolve(path, cwd):
-    path = os.path.expanduser(path)
+def resolve(path, cwd, env=None):
+    path = os.path.expanduser(expand_vars(path, env or {}))
     return (Path(cwd) / path).resolve() if not os.path.isabs(path) else Path(path).resolve()
+
+
+def expand_vars(value, env):
+    """$VAR / ${VAR} from the command's environment, then this process's."""
+    return re.sub(r"\$(?:\{(\w+)\}|(\w+))", lambda m: env.get(m[1] or m[2], os.environ.get(m[1] or m[2], m[0])), value)
+
+
+# The live config folders: ~/.config and XDG_CONFIG_HOME
+CONFIG_HOMES = {HOME / ".config", LIVE_CONFIG.parent.parent}
+
+
+def live_config_path(path, cwd, env):
+    """Whether `path` is a live config folder or inside one (or HOME itself),
+    as written and with its links followed; a scratch dir inside the repo isn't."""
+    expanded = os.path.expanduser(expand_vars(path, env))
+    written = Path(os.path.normpath(expanded if os.path.isabs(expanded) else os.path.join(cwd, expanded)))
+    for target in {written, resolve(path, cwd, env)}:
+        if target == REPO or REPO in target.parents:
+            continue
+        if target == HOME or any(target == home or home in target.parents for home in CONFIG_HOMES):
+            return True
+    return False
 
 
 def scratch(value):
@@ -147,8 +177,7 @@ def check_argv(env, argv, cwd):
 
     # A compositor claim (managed mode) on the live config: Hyprland's, sway's
     if re.fullmatch(r"claim_\w+\.sh", name) and len(args) >= 2 and args[0] in {"claim", "release"}:
-        target = resolve(args[1], cwd)
-        if str(target).startswith(str(HOME / ".config") + "/") or target == HOME / ".config" or target == HOME:
+        if live_config_path(args[1], cwd, env):
             deny("Never, while testing", f"{name} claim/release only on a scratch dir, never the live compositor config.")
 
     # Moving binds out of the live compositor config's files (managed mode's
@@ -158,8 +187,7 @@ def check_argv(env, argv, cwd):
         at = next((i for i, a in enumerate(args) if re.fullmatch(r"merge_\w+_binds\.py", Path(a).name)), None)
         merge = args[at:] if at is not None else None
     if merge and len(merge) >= 3 and merge[1] == "remove":
-        target = resolve(merge[2], cwd)
-        if str(target).startswith(str(HOME / ".config") + "/") or target == HOME / ".config" or target == HOME:
+        if live_config_path(merge[2], cwd, env):
             deny("Never, while testing", f"{Path(merge[0]).name} remove only on a scratch dir, never the live compositor config.")
 
     # A theme integration's hookup on the real configs

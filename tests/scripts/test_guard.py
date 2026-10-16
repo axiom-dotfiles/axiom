@@ -74,9 +74,18 @@ class Bash(unittest.TestCase):
         self.blocks(f"scripts/claim_hyprland.sh claim {HOME}/.config/hypr axiom", "scripts/claim_hyprland.sh release ~/.config/hypr h f")
         self.allows("scripts/claim_hyprland.sh claim /tmp/scratch/hypr axiom", "scripts/claim_hyprland.sh check ~/.config/hypr axiom")
 
-    def test_claim_sway(self):
-        self.blocks(f"scripts/claim_sway.sh claim {HOME}/.config/sway axiom", "scripts/claim_sway.sh release ~/.config/sway h f")
-        self.allows("scripts/claim_sway.sh claim /tmp/scratch/sway axiom")
+    def test_scripts_run_through_a_shell_and_variables(self):
+        self.blocks("bash scripts/claim_sway.sh claim ~/.config/sway axiom", "sh scripts/claim_hyprland.sh claim ~/.config/hypr axiom",
+                    "bash scripts/greeter/greeter_install.sh install . me")
+        self.assertTrue(denied("scripts/claim_sway.sh claim $HOME/.config/sway axiom", cwd="/tmp"))
+        self.assertTrue(denied("scripts/claim_sway.sh claim ${HOME}/.config/sway axiom", cwd="/tmp"))
+        self.assertTrue(denied("export D=~/.config/hypr; scripts/merge_hypr_binds.py remove $D '[]'", cwd="/tmp"))
+        self.blocks("bash -lc 'qs -c axiom kill'")
+        self.allows("scripts/claim_sway.sh claim scratch/sway axiom", "bash scripts/claim_sway.sh claim /tmp/s axiom")
+
+    def test_a_custom_xdg_config_home_is_live(self):
+        with mock.patch.object(guard, "CONFIG_HOMES", guard.CONFIG_HOMES | {Path("/srv/conf")}):
+            self.assertTrue(denied("scripts/claim_sway.sh claim /srv/conf/sway axiom"))
 
     def test_integration_hookup(self):
         self.blocks("python3 scripts/integration_hookup.py apply kitty", "scripts/integration_hookup.py apply kitty",
