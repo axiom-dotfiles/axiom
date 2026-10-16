@@ -22,7 +22,7 @@ QtObject {
   // `title` is "" for binds with no section (shown as "Other"); `undescribed`
   // marks the section of binds without a description (label ""). A row's
   // `axiom` / `user` say whether any of its binds are axiom's own (applied
-  // from Keybinds.binds) / from the user's Hyprland config.
+  // from Keybinds.binds) / from the user's compositor config.
   readonly property var keybindings: root._buildKeybindings(root._entries, root._axiomIds)
   // How many binds the compositor reported
   property int count: 0
@@ -251,7 +251,7 @@ QtObject {
     return BindActions.hasOwnSection(bind.description) ? String(bind.description).split(":")[0] : BindActions.sectionFor(bind.action);
   }
 
-  // An editor bind's modifiers, by the names hyprctl's binds decode to
+  // An editor bind's modifiers, by the names the compositor's binds decode to
   function _bindMods(bind) {
     const id = BindKeys.keyId(bind.key);
     return id === "" ? [] : root._decodeMods(parseInt(id));
@@ -411,8 +411,8 @@ QtObject {
     draft.changed();
   }
 
-  // Keys Hyprland binds outside axiom, by BindKeys.keyId: every bind
-  // Hyprland reports, less the saved axiom binds it applied
+  // Keys the compositor binds outside axiom, by BindKeys.keyId: every bind
+  // it reports, less the saved axiom binds the layer applied
   readonly property var _userKeyCounts: BindKeys.userKeyCounts(root._entries, root._appliedBinds)
 
   // The saved axiom binds the runtime layer applied (the rest it skipped)
@@ -482,13 +482,13 @@ QtObject {
 
   readonly property int issueCount: issues.filter(found => found.length > 0).length
 
-  // The binds on keys the user's Hyprland config binds too
+  // The binds on keys the user's compositor config binds too
   readonly property var userConflicts: root.binds.map((bind, index) => {
     const id = BindKeys.keyId(bind.key);
     return id !== "" && root._userKeyCounts[id] > 0 ? index : -1;
   }).filter(index => index >= 0)
 
-  // Removes every bind on a key the user's Hyprland config binds too (until
+  // Removes every bind on a key the user's compositor config binds too (until
   // Save, like any edit). Returns how many.
   function removeUserConflicts() {
     const indices = root.userConflicts;
@@ -504,7 +504,7 @@ QtObject {
   // Managed mode moves the user's binds into axiom instead of dropping
   // axiom's (CompositorConfigManager.mergeUserBinds)
   readonly property bool canMerge: CompositorConfigManager.mode === "managed"
-  // How many binds in user/*.lua a Merge would move (0 until looked at,
+  // How many binds in user/ a Merge would move (0 until looked at,
   // when the page opens): not every bind there can (a Lua function, a
   // shared module's, one in a submap), so it's not the conflict count
   readonly property int mergeableCount: Math.max(0, CompositorConfigManager.mergeable)
@@ -757,7 +757,7 @@ QtObject {
   property bool _reading: false
   property bool _readAgain: false
 
-  // After binds were applied at runtime, which Hyprland announces no event for
+  // After binds were applied at runtime, which no compositor announces
   function refreshSoon() {
     _refreshDelay.restart();
   }
@@ -921,7 +921,7 @@ QtObject {
     return key.charAt(0).toUpperCase() + key.slice(1);
   }
 
-  property Connections _hyprlandEvents: Connections {
+  property Connections _compositorEvents: Connections {
     target: CompositorManager
 
     function onConfigReloaded() {

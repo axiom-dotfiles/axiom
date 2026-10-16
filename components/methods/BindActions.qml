@@ -4,9 +4,10 @@ import QtQuick
 // What each keybind action (the schema's Keybinds.binds[].action) is,
 // independent of the compositor: its IPC call into axiom, default label,
 // section on the Keybinds page, calls, starting flags and whether it takes
-// an argument. How an action is bound (Hyprland's Lua) is
-// HyprConfigLua.dispatcherLua. Labels aren't translated: they go to the
-// compositor, like the user's own bind descriptions.
+// an argument. How each compositor binds an action is its own:
+// HyprConfigLua.dispatcherLua (Hyprland's Lua), SwayConf.actionCommand.
+// Labels aren't translated: they go to the compositor, like the user's own
+// bind descriptions.
 QtObject {
   id: root
 
@@ -47,8 +48,8 @@ QtObject {
       "screenRecord": ["screenRecord {call}", "Screen recording", "Apps"]
     })
 
-  // Actions the compositor carries out itself (HyprConfigLua.dispatcherLua
-  // has each one's Lua): [default label, section]
+  // Actions the compositor carries out itself (HyprConfigLua.dispatcherLua,
+  // SwayConf.actionCommand): [default label, section]
   readonly property var compositorActions: ({
       "focusDir": ["Focus {0}", "Window"],
       "moveWindowDir": ["Move {0}", "Window"],

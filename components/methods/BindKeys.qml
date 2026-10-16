@@ -3,10 +3,10 @@ import QtQuick
 
 // Binds against what the compositor reports (CompositorManager.withBinds
 // entries: { modmask, key, keycode, description, submap }, the modifiers as
-// X11 mask bits, as Hyprland's `hyprctl binds -j` lists them): a key's id,
-// which of axiom's binds a runtime layer applies and which it skips because
-// the user's config already binds that key, and how many binds on each key
-// are the user's own.
+// X11 mask bits, as Hyprland's `hyprctl binds -j` lists them and SwayConf
+// reads a sway config's): a key's id, which of axiom's binds a runtime
+// layer applies and which it skips because the user's config already binds
+// that key, and how many binds on each key are the user's own.
 QtObject {
   id: root
 
@@ -43,7 +43,7 @@ QtObject {
     return mask + ":" + parts[parts.length - 1].toLowerCase();
   }
 
-  // A hyprctl binds entry's id, in keyId's form (a keycode bind as code:N)
+  // A binds entry's id, in keyId's form (a keycode bind as code:N)
   function entryId(entry) {
     const key = entry.key || (entry.keycode ? "code:" + entry.keycode : "");
     return entry.modmask + ":" + String(key).toLowerCase();
@@ -51,10 +51,10 @@ QtObject {
 
   /**
    * What the runtime layer does with `binds` (axiom's, each with a `key`)
-   * given Hyprland's `entries`: { apply: [bind], skipped: [key],
+   * given the compositor's `entries`: { apply: [bind], skipped: [key],
    * unreadable: [key] }. A key an entry outside a submap already holds is
    * skipped, so the user's own config wins; so is one keyId can't read.
-   * Call it with Hyprland's binds as they are without axiom's.
+   * Call it with the compositor's binds as they are without axiom's.
    */
   function runtimeBinds(binds, entries) {
     const taken = {};

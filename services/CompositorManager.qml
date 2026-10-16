@@ -170,12 +170,12 @@ Singleton {
     root.backend?.closeWindow(id);
   }
 
-  // The overview's drag and drop (HyprlandManager.placeWindow)
+  // The overview's drag and drop (the backend's placeWindow)
   function placeWindow(id, workspaceId, targetId, side, restore, reinsert, floatAt) {
     root.backend?.placeWindow(id, workspaceId, targetId, side, restore, reinsert, floatAt);
   }
 
-  // The overview's resize (HyprlandManager.resizeWindow)
+  // The overview's resize (the backend's resizeWindow)
   function resizeWindow(id, dw, dh, dx, dy) {
     root.backend?.resizeWindow(id, dw, dh, dx, dy);
   }

@@ -39,8 +39,8 @@ The running compositor, for the rest of axiom: its windows, outputs and workspac
 - `refresh()`: Re-reads the outputs and windows soon
 - `focusWindow(id)`: Focuses a window.
 - `closeWindow(id)`
-- `placeWindow(id, workspaceId, targetId, side, restore, reinsert, floatAt)`: The overview's drag and drop (HyprlandManager.placeWindow)
-- `resizeWindow(id, dw, dh, dx, dy)`: The overview's resize (HyprlandManager.resizeWindow)
+- `placeWindow(id, workspaceId, targetId, side, restore, reinsert, floatAt)`: The overview's drag and drop (the backend's placeWindow)
+- `resizeWindow(id, dw, dh, dx, dy)`: The overview's resize (the backend's resizeWindow)
 - `toplevelFor(id)`: The live Wayland toplevel of a window (for previews), or null
 - `hasFullscreen(name)`: Whether the named output's active workspace, or the special workspace open on it, shows a fullscreen window (maximized ones don't count: they leave reserved space alone)
 - `biggestWindowForWorkspace(workspaceId)`: The largest window on a workspace (its icon stands for the workspace), or null

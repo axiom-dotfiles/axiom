@@ -37,9 +37,9 @@ KeybindManager reads the keybinds the compositor has registered (CompositorManag
 - `visibleIndices` (readonly var)
 - `issues` (readonly var): Per bind: [{ level: "error" | "warning", text }]
 - `issueCount` (readonly int)
-- `userConflicts` (readonly var): The binds on keys the user's Hyprland config binds too
+- `userConflicts` (readonly var): The binds on keys the user's compositor config binds too
 - `canMerge` (readonly bool): Managed mode moves the user's binds into axiom instead of dropping axiom's (CompositorConfigManager.mergeUserBinds)
-- `mergeableCount` (readonly int): How many binds in user/*.lua a Merge would move (0 until looked at, when the page opens): not every bind there can (a Lua function, a shared module's, one in a submap), so it's not the conflict count
+- `mergeableCount` (readonly int): How many binds in user/ a Merge would move (0 until looked at, when the page opens): not every bind there can (a Lua function, a shared module's, one in a submap), so it's not the conflict count
 - `presets` (readonly var): [{ id, title, description, binds }], for the current workspace layout.
 - `recordingIndex` (int): The bind whose key is being recorded, or -1
 
@@ -62,12 +62,12 @@ KeybindManager reads the keybinds the compositor has registered (CompositorManag
 - `removeBind(index)`
 - `moveBind(from, to)`
 - `setField(index, field, value)`
-- `removeUserConflicts()`: Removes every bind on a key the user's Hyprland config binds too (until Save, like any edit).
+- `removeUserConflicts()`: Removes every bind on a key the user's compositor config binds too (until Save, like any edit).
 - `mergeUserBinds()`
 - `applyPreset(id)`: Adds a preset's binds, skipping keys the list already has.
 - `startRecording(index)`: Meanwhile every key reaches the recorder instead of a bind (CompositorManager.captureKeys)
 - `finishRecording(combo)`
 - `stopRecording()`
 - `refresh()`
-- `refreshSoon()`: After binds were applied at runtime, which Hyprland announces no event for
+- `refreshSoon()`: After binds were applied at runtime, which no compositor announces
 - `displayKey(key)`: A key name as shown on a keycap ("space" -> "Space", "left" -> "←")
