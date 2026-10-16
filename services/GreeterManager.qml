@@ -15,8 +15,8 @@ import qs.components.methods
 //     update(), so a copy behind the repo is `outdated`, notified once per
 //     version (clicking it opens Settings → Login screen)
 //   - the bundle: what the greeter shows (GreeterBundle.exportConfig: the
-//     Greeter section, the look, the monitor layouts and, in managed mode,
-//     the Input options marked x-greeter, plus the theme and copies of
+//     Greeter section, the look, the monitor layouts and the Input
+//     options marked x-greeter, plus the theme and copies of
 //     the wallpapers), exported to a folder of the user's whenever it
 //     changes, so changing the login screen needs no root
 //   - the layouts editor's draft of its layout (`editor`) and its preview
