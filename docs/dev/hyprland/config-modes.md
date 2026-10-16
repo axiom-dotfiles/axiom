@@ -75,4 +75,4 @@ Hyprland's config writer (`HyprlandConfigWriter`, `HyprlandManager.configWriter`
 ### Testing
 - Never switch the user's real config to `managed` to test it. (Rule: AGENTS.md › Never, while testing.)
 - Test `claim_hyprland.sh` on scratch dirs, as `tests/scripts/test_scripts.py` does.
-- The Lua comes from `HyprConfigLua` (pure): `tests/tst_HyprConfigLua.qml` renders the included, managed and given-back files to `tests/.out/`, where `scripts/run_tests.sh` checks them with `luac -p`. Add a case there when changing what a file holds.
+- The Lua comes from `HyprConfigLua` (pure): `tests/tst_HyprConfigLua.qml` renders the included, managed and given-back files to `tests/.out/`, where `scripts/run_tests.sh` checks them with `luac -p`. `everything.hypr.lua` (the managed file with every look and input part on, every default bind and a monitor profile) is also read by Hyprland itself (`Hyprland --verify-config`, where it's installed: not in CI), which catches an option Hyprland refuses. Add a case there when changing what a file holds.

@@ -4,8 +4,10 @@
 # The tests cover components/methods/ (pure by the layering rule), imported
 # from a module tree of the shell's Quickshell-free files
 # (scripts/qml_modules.py --pure). Lua the tests write to tests/.out/ is
-# checked with `luac -p` afterwards, and *.run.lua files are also run with
-# `lua` (they stub what they call and error on a failed check).
+# checked with `luac -p` afterwards, *.run.lua files are also run with
+# `lua` (they stub what they call and error on a failed check), and
+# *.hypr.lua files (whole Hyprland configs) are read by Hyprland itself
+# (`Hyprland --verify-config`) where it's installed.
 #
 #   scripts/run_tests.sh             every test
 #   scripts/run_tests.sh NAME...     only tests/tst_NAME.qml
@@ -44,6 +46,13 @@ for lua in "$root"/tests/.out/*.lua; do
   elif [[ "$lua" == *.run.lua ]] && ! lua "$lua"; then
     echo "error: ${lua#"$root"/} failed"
     status=1
+  elif [[ "$lua" == *.hypr.lua ]] && command -v Hyprland >/dev/null; then
+    if ! verified=$(cd "$tree" && timeout 30 Hyprland --verify-config -c "$lua" 2>&1) ||
+      ! grep -q '^config ok' <<<"$verified"; then
+      grep -v DEBUG <<<"$verified" | tail -n 20
+      echo "error: Hyprland refuses ${lua#"$root"/}"
+      status=1
+    fi
   fi
 done
 exit "$status"
