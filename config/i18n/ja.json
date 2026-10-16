@@ -3008,6 +3008,8 @@
     "A Pango font, e.g. pango:Inter 10. Empty keeps sway's.": "Pango フォント（例: pango:Inter 10）。空なら sway の既定のまま。",
     "enable": "enable",
     "Follow Look & Feel → Shape: its border width and corner radius (only the width on sway, which can't round corners).": "外観と操作感 → 形に従います：枠の幅と角の丸み（sway は角を丸められないため、幅のみ）。",
-    "The width of window borders and the rounding of their corners. Sway draws square corners, so there only the width applies.": "ウィンドウの枠の幅と角の丸み。sway は角を四角く描くため、幅のみが適用されます。"
+    "The width of window borders and the rounding of their corners. Sway draws square corners, so there only the width applies.": "ウィンドウの枠の幅と角の丸み。sway は角を四角く描くため、幅のみが適用されます。",
+    "{0} only.": "{0} のみ。",
+    "{0} can't do this.": "{0} ではできません。"
   }
 }

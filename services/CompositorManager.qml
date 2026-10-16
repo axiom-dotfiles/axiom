@@ -16,13 +16,27 @@ import qs.components.methods
 Singleton {
   id: root
 
-  // The compositor's name as people know it ("Hyprland"), or "the
-  // compositor" for an unknown one. I18n.tr("the compositor")
-  readonly property string displayName: ({
-      "hyprland": "Hyprland",
-      "sway": "Sway",
-      "niri": "niri"
-    })[kind] ?? I18n.tr("the compositor")
+  // The compositor's name as people know it ("Hyprland"; the backend's own
+  // when it tells a variant apart, "SwayFX"), or "the compositor" for an
+  // unknown one. I18n.tr("the compositor")
+  readonly property string displayName: root.backend?.displayName || (kind !== "" ? nameOf(kind) : I18n.tr("the compositor"))
+
+  // A compositor kind's name as people know it ("Hyprland")
+  function nameOf(kind) {
+    return ({
+        "hyprland": "Hyprland",
+        "sway": "Sway",
+        "niri": "niri"
+      })[kind] ?? kind;
+  }
+
+  // Why a setting needing `capability` (a supports key) is greyed out:
+  // that the compositor can't do it, and what can, where the backend knows
+  // (its unsupportedHint). I18n.tr("{0} can't do this.")
+  function unsupportedNote(capability) {
+    const hint = root.backend?.unsupportedHint?.(capability) ?? "";
+    return [I18n.tr("{0} can't do this.", root.displayName), hint].filter(text => text !== "").join(" ");
+  }
 
   // Which compositor axiom runs under: "hyprland", "sway", "niri" or ""
   // (unknown, or none). AXIOM_COMPOSITOR overrides it, for testing

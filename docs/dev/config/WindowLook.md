@@ -13,107 +13,107 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 
 - **`WindowLook.borders`** · boolean = false
   - Themed borders: Window borders in theme colors.
-  - x-showIf={"/$supports.windowBorders":true}
+  - x-enabledIf={"/$supports.windowBorders":true}
   - read: `WindowLookConfig.look` (whole) · in: `config/WindowLookConfig.qml`
 - **`WindowLook.activeColor`** · string = ""
   - Focused border: Empty follows the theme's focused border color.
-  - x-options="colors", x-emptyLabel="Theme", x-showIf={"/$supports.windowBorders":true,"borders":true}
+  - x-options="colors", x-emptyLabel="Theme", x-showIf={"borders":true}, x-enabledIf={"/$supports.windowBorders":true}
   - read: `WindowLookConfig.activeBorder` (computed) · in: `services/CompositorConfigManager.qml`
 - **`WindowLook.inactiveColor`** · string = ""
   - Unfocused border: Empty follows the theme's border color.
-  - x-options="colors", x-emptyLabel="Theme", x-showIf={"/$supports.windowBorders":true,"borders":true}
+  - x-options="colors", x-emptyLabel="Theme", x-showIf={"borders":true}, x-enabledIf={"/$supports.windowBorders":true}
   - read: `WindowLookConfig.inactiveBorder` (computed) · in: `services/CompositorConfigManager.qml`
 - **`WindowLook.shape`** · boolean = false
   - Set border width and corners: The width of window borders and the rounding of their corners. Sway draws square corners, so there only the width applies.
-  - x-showIf={"/$supports.windowShape":true}
+  - x-enabledIf={"/$supports.windowShape":true}
   - read: `WindowLookConfig.look` (whole) · in: `config/WindowLookConfig.qml`
 - **`WindowLook.matchShell`** · boolean = true
   - Match axiom's shape: Follow Look & Feel → Shape: its border width and corner radius (only the width on sway, which can't round corners).
-  - x-showIf={"/$supports.windowShape":true,"shape":true}
+  - x-showIf={"shape":true}, x-enabledIf={"/$supports.windowShape":true}
   - read: `WindowLookConfig.borderWidth` (computed), `WindowLookConfig.radius` (computed) · in: `services/CompositorConfigManager.qml`
 - **`WindowLook.borderSize`** · integer = 2 · 0–20 · px
   - Border width
-  - x-control="stepper", x-showIf={"/$supports.windowShape":true,"shape":true,"matchShell":false}
+  - x-control="stepper", x-showIf={"shape":true,"matchShell":false}, x-enabledIf={"/$supports.windowShape":true}
   - read: `WindowLookConfig.borderWidth` (computed) · in: `services/CompositorConfigManager.qml`
 - **`WindowLook.rounding`** · integer = 8 · 0–50 · px
   - Corner rounding
-  - x-control="stepper", x-showIf={"/$supports.windowShape":true,"/$supports.windowRounding":true,"shap…
+  - x-control="stepper", x-showIf={"shape":true,"matchShell":false}, x-enabledIf={"/$supports.windowShape":true,"/$supports.windowRounding":true}
   - read: `WindowLookConfig.radius` (computed) · in: `services/CompositorConfigManager.qml`
 - **`WindowLook.gaps`** · boolean = false
   - Set window gaps: Floating bars and detached surfaces set to Automatic keep these gaps too.
-  - x-showIf={"/$supports.windowGaps":true}
+  - x-enabledIf={"/$supports.windowGaps":true}
   - read: `WindowLookConfig.look` (whole) · in: `config/WindowLookConfig.qml`
 - **`WindowLook.gapsIn`** · integer = 3 · 0–50 · px
   - Gaps between windows
-  - x-control="stepper", x-showIf={"/$supports.windowGaps":true,"gaps":true}
+  - x-control="stepper", x-showIf={"gaps":true}, x-enabledIf={"/$supports.windowGaps":true}
   - read: `WindowLookConfig.look` (whole) · in: `config/WindowLookConfig.qml`
 - **`WindowLook.gapsOut`** · integer = 6 · 0–100 · px
   - Gaps to the edges
-  - x-control="stepper", x-showIf={"/$supports.windowGaps":true,"gaps":true}
+  - x-control="stepper", x-showIf={"gaps":true}, x-enabledIf={"/$supports.windowGaps":true}
   - read: `WindowLookConfig.look` (whole) · in: `config/WindowLookConfig.qml`
 - **`WindowLook.blur`** · boolean = false
   - Set the compositor's blur: The compositor has one blur, for windows and axiom's translucent surfaces alike. Off, your own config's applies.
-  - x-group="Blur", x-showIf={"/$supports.windowBlur":true}
+  - x-group="Blur", x-enabledIf={"/$supports.windowBlur":true}
   - read: `WindowLookConfig.look` (whole) · in: `components/views/settings/TranslucencyStatus.qml`, `services/CompositorConfigManager.qml`
 - **`WindowLook.windowBlur`** · boolean = true
   - Blur transparent windows: Off, only axiom's surfaces blur (Look & Feel → Translucency).
-  - x-group="Blur", x-showIf={"/$supports.windowBlur":true,"blur":true}, x-hypr="decoration.blur.enabled", x-hyprIf="blur"
+  - x-group="Blur", x-showIf={"blur":true}, x-enabledIf={"/$supports.windowBlur":true}, x-hypr="decoration.blur.enabled", x-hyprIf="blur"
   - read: `WindowLookConfig.look` (whole) · in: `config/WindowLookConfig.qml`
 - **`WindowLook.blurSize`** · integer = 4 · 1–20
   - Blur size
-  - x-control="stepper", x-group="Blur", x-showIf={"/$supports.windowBlur":true,"blur":true}, x-hypr="decoration.blur.size", x-hyprIf="blur"
+  - x-control="stepper", x-group="Blur", x-showIf={"blur":true}, x-enabledIf={"/$supports.windowBlur":true}, x-hypr="decoration.blur.size", x-hyprIf="blur"
   - read: `WindowLookConfig.look` (whole) · in: `config/WindowLookConfig.qml`
 - **`WindowLook.blurPasses`** · integer = 3 · 1–6
   - Blur passes
-  - x-group="Blur", x-showIf={"/$supports.windowBlur":true,"blur":true}, x-hypr="decoration.blur.passes", x-hyprIf="blur"
+  - x-group="Blur", x-showIf={"blur":true}, x-enabledIf={"/$supports.windowBlur":true}, x-hypr="decoration.blur.passes", x-hyprIf="blur"
   - read: `WindowLookConfig.look` (whole) · in: `config/WindowLookConfig.qml`
 - **`WindowLook.blurXray`** · boolean = true
   - See-through blur: Floating windows blur only the wallpaper, not the windows under them. Cheaper.
-  - x-group="Blur", x-showIf={"/$supports.windowBlur":true,"blur":true,"windowBlur":true}, x-hypr="decoration.blur.xray", x-hyprIf="blur"
+  - x-group="Blur", x-showIf={"blur":true,"windowBlur":true}, x-enabledIf={"/$supports.windowBlur":true}, x-hypr="decoration.blur.xray", x-hyprIf="blur"
   - read: `WindowLookConfig.look` (whole) · in: `config/WindowLookConfig.qml`
 - **`WindowLook.blurIgnoreOpacity`** · boolean = true
   - Full blur behind any transparency
-  - x-group="Blur", x-showIf={"/$supports.windowBlur":true,"blur":true,"windowBlur":true}, x-hypr="decoration.blur.ignore_opacity", x-hyprIf="blur"
+  - x-group="Blur", x-showIf={"blur":true,"windowBlur":true}, x-enabledIf={"/$supports.windowBlur":true}, x-hypr="decoration.blur.ignore_opacity", x-hyprIf="blur"
   - read: `WindowLookConfig.look` (whole) · in: `config/WindowLookConfig.qml`
 - **`WindowLook.blurNewOptimizations`** · boolean = true
   - Blur optimizations
-  - x-group="Blur", x-showIf={"/$supports.windowBlur":true,"blur":true}, x-hypr="decoration.blur.new_optimizations", x-hyprIf="blur"
+  - x-group="Blur", x-showIf={"blur":true}, x-enabledIf={"/$supports.windowBlur":true}, x-hypr="decoration.blur.new_optimizations", x-hyprIf="blur"
   - read: `WindowLookConfig.look` (whole) · in: `config/WindowLookConfig.qml`
 - **`WindowLook.blurNoise`** · integer = 12 · 0–1000 · ‰
   - Noise
-  - x-group="Blur", x-showIf={"/$supports.windowBlur":true,"blur":true}, x-hypr="decoration.blur.noise", x-hyprScale=0.001, x-hyprIf="blur"
+  - x-group="Blur", x-showIf={"blur":true}, x-enabledIf={"/$supports.windowBlur":true}, x-hypr="decoration.blur.noise", x-hyprScale=0.001, x-hyprIf="blur"
   - read: `WindowLookConfig.look` (whole) · in: `config/WindowLookConfig.qml`
 - **`WindowLook.blurContrast`** · integer = 89 · 0–200 · %
   - Contrast
-  - x-group="Blur", x-showIf={"/$supports.windowBlur":true,"blur":true}, x-hypr="decoration.blur.contrast", x-hyprScale=0.01, x-hyprIf="blur"
+  - x-group="Blur", x-showIf={"blur":true}, x-enabledIf={"/$supports.windowBlur":true}, x-hypr="decoration.blur.contrast", x-hyprScale=0.01, x-hyprIf="blur"
   - read: `WindowLookConfig.look` (whole) · in: `config/WindowLookConfig.qml`
 - **`WindowLook.blurVibrancy`** · integer = 17 · 0–100 · %
   - Vibrancy
-  - x-group="Blur", x-showIf={"/$supports.windowBlur":true,"blur":true}, x-hypr="decoration.blur.vibrancy", x-hyprScale=0.01, x-hyprIf="blur"
+  - x-group="Blur", x-showIf={"blur":true}, x-enabledIf={"/$supports.windowBlur":true}, x-hypr="decoration.blur.vibrancy", x-hyprScale=0.01, x-hyprIf="blur"
   - read: `WindowLookConfig.look` (whole) · in: `config/WindowLookConfig.qml`
 - **`WindowLook.blurPopups`** · boolean = false
   - Blur menus and popups
-  - x-group="Blur", x-showIf={"/$supports.windowBlur":true,"blur":true,"windowBlur":true}, x-hypr="decoration.blur.popups", x-hyprIf="blur"
+  - x-group="Blur", x-showIf={"blur":true,"windowBlur":true}, x-enabledIf={"/$supports.windowBlur":true}, x-hypr="decoration.blur.popups", x-hyprIf="blur"
   - read: `WindowLookConfig.look` (whole) · in: `config/WindowLookConfig.qml`
 - **`WindowLook.blurSpecial`** · boolean = false
   - Blur behind special workspaces: Expensive: redraws the blur on every frame.
-  - x-group="Blur", x-showIf={"/$supports.windowBlur":true,"blur":true}, x-hypr="decoration.blur.special", x-hyprIf="blur"
+  - x-group="Blur", x-showIf={"blur":true}, x-enabledIf={"/$supports.windowBlur":true}, x-hypr="decoration.blur.special", x-hyprIf="blur"
   - read: `WindowLookConfig.look` (whole) · in: `config/WindowLookConfig.qml`
 - **`WindowLook.opacity`** · boolean = false
   - Set window opacity: Off, your own config's applies.
-  - x-group="Window opacity", x-showIf={"/$supports.windowOpacity":true}
+  - x-group="Window opacity", x-enabledIf={"/$supports.windowOpacity":true}
   - read: `WindowLookConfig.look` (whole) · in: `config/WindowLookConfig.qml`
 - **`WindowLook.activeOpacity`** · integer = 100 · 10–100 · %
   - Focused window opacity
-  - x-group="Window opacity", x-showIf={"/$supports.windowOpacity":true,"opacity":true}, x-hypr="decoration.active_opacity", x-hyprScale=0.01, x-hyprIf="opacity"
+  - x-group="Window opacity", x-showIf={"opacity":true}, x-enabledIf={"/$supports.windowOpacity":true}, x-hypr="decoration.active_opacity", x-hyprScale=0.01, x-hyprIf="opacity"
   - read: `WindowLookConfig.look` (whole) · in: `config/WindowLookConfig.qml`
 - **`WindowLook.inactiveOpacity`** · integer = 100 · 10–100 · %
   - Unfocused window opacity
-  - x-group="Window opacity", x-showIf={"/$supports.windowOpacity":true,"opacity":true}, x-hypr="decoration.inactive_opacity", x-hyprScale=0.01, x-hyprIf="opacity"
+  - x-group="Window opacity", x-showIf={"opacity":true}, x-enabledIf={"/$supports.windowOpacity":true}, x-hypr="decoration.inactive_opacity", x-hyprScale=0.01, x-hyprIf="opacity"
   - read: `WindowLookConfig.look` (whole) · in: `config/WindowLookConfig.qml`
 - **`WindowLook.fullscreenOpacity`** · integer = 100 · 10–100 · %
   - Fullscreen opacity
-  - x-group="Window opacity", x-showIf={"/$supports.windowOpacity":true,"opacity":true}, x-hypr="decoration.fullscreen_opacity", x-hyprScale=0.01, x-hyprIf="opacity"
+  - x-group="Window opacity", x-showIf={"opacity":true}, x-enabledIf={"/$supports.windowOpacity":true}, x-hypr="decoration.fullscreen_opacity", x-hyprScale=0.01, x-hyprIf="opacity"
   - read: `WindowLookConfig.look` (whole) · in: `config/WindowLookConfig.qml`
 
 ### Reader members

@@ -59,6 +59,27 @@ TestCase {
     compare(rows.map(r => r.kind + ":" + r.path.join(".")), ["field:S.a", "group:S.group", "field:S.group.b", "array:S.list", "field:S.tags"]);
   }
 
+  function test_failingKey() {
+    const values = {
+      "/$supports.blur": false,
+      "/$compositor": "sway",
+      "on": true
+    };
+    const valueOf = key => values[key];
+    compare(SchemaLayout.failingKey(null, valueOf), "");
+    compare(SchemaLayout.failingKey({
+      "on": true,
+      "/$supports.blur": true
+    }, valueOf), "/$supports.blur");
+    compare(SchemaLayout.failingKey({
+      "/$compositor": "hyprland"
+    }, valueOf), "/$compositor");
+    compare(SchemaLayout.failingKey({
+      "on": true,
+      "/$compositor": "sway"
+    }, valueOf), "");
+  }
+
   function test_showIfHolds() {
     const values = {
       "mode": "grid",
@@ -386,6 +407,23 @@ TestCase {
     verify(!SchemaLayout.compositorAllows(schema, ["Look", "inner", "blur"], none));
     verify(SchemaLayout.compositorAllows(schema, ["Look", "inner", "blur"], key => key === "/$supports.blur"));
     verify(SchemaLayout.compositorAllows(schema, ["Look", "plain"], none));
+    // Greyed out (x-enabledIf) counts as not settable
+    const greyed = {
+      "properties": {
+        "Look": {
+          "properties": {
+            "round": {
+              "type": "integer",
+              "x-enabledIf": {
+                "/$supports.windowRounding": true
+              }
+            }
+          }
+        }
+      }
+    };
+    verify(!SchemaLayout.compositorAllows(greyed, ["Look", "round"], none));
+    verify(SchemaLayout.compositorAllows(greyed, ["Look", "round"], all));
     verify(!SchemaLayout.compositorAllows(schema, ["Look", "missing"], all));
   }
 
