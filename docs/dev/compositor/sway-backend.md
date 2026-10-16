@@ -1,10 +1,10 @@
-# Sway backend (plan)
+# Sway backend
 
-> **Files:** `services/CompositorManager.qml`, `services/HyprlandManager.qml`, `scripts/dev/nested.sh`
-> **Config:** `WindowLook.*`
+> **Files:** `services/SwayManager.qml`, `services/SwayIpcManager.qml`, `components/methods/SwayState.qml`, `components/methods/SwayConf.qml`, `tests/tst_SwayState.qml`, `tests/tst_SwayConf.qml`, `services/CompositorManager.qml`, `scripts/dev/nested.sh`
+> **Config:** `WindowLook.*`, `Monitors.profiles`
 > **Related:** [The compositor](README.md), [Backend contract](contract.md), [Recipe: compositor backend](../../recipes/compositor-backend.md)
 
-Not written yet: what a sway backend needs, mapped onto the [contract](contract.md), and how to run it while writing it. The rest of the shell already goes through `CompositorManager`, so the backend is one new service plus a line in `CompositorManager.backend`. Remove this doc's "plan" status (and its `issues.md` entry) once it lands.
+`SwayManager` is `CompositorManager.backend` under sway: the state, workspaces, windows, outputs, keyboard and special groups work. Its config writer (binds, the window look, input, the three modes) isn't written yet: the plan for it is under [The config writer](#the-config-writer-swayconfigwriter-planned), and until it lands `supports.configModes` and `keybinds` stay off.
 
 ### Running it
 - `scripts/dev/nested.sh sway` (needs `sway`; `foot` for a terminal inside) opens sway in a window, with a second axiom in it:
@@ -17,46 +17,41 @@ Not written yet: what a sway backend needs, mapped onto the [contract](contract.
 - IPC: `qs ipc --pid <pid> call …`.
 - Closing the window, or killing that `sway`, ends both.
 
-### State: `Quickshell.I3`
-Quickshell's `I3` module speaks sway's IPC (`$SWAYSOCK`). It gives `monitors`, `workspaces`, `focusedMonitor`, `focusedWorkspace`, `dispatch(command)` (a `run_command`; no reply), `rawEvent` and `I3IpcListener` (subscribe to chosen events).
-- **outputs**: from `I3.monitors` (`name`, `x`, `y`, `width`, `height`, `scale`, `focused`, `activeWorkspace`, `lastIpcObject` for `make model serial` as the `description`).
-  - `reserved`: the output's rect minus its active workspace's rect (`get_workspaces`).
-  - `specialWorkspaceId` is always 0 (the scratchpad isn't a workspace).
-- **workspaces**: `I3.workspaces`, `id` = `num`. `windowCount` comes from the tree.
-- **windows**: the I3 module has no window list. Run `swaymsg -t get_tree -r` (a `Process`), again on a debounced `I3IpcListener { subscriptions: "window workspace" }` event, and walk the tree's `nodes` and `floating_nodes` for leaves with a `pid`:
-  - `id` = `String(con_id)`
-  - `appId` = `app_id` ?? `window_properties.class`
-  - `title` = `name`
-  - `workspaceId`/`output` from the enclosing nodes
-  - `floating`: under `floating_nodes`
-  - `fullscreen`: `fullscreen_mode > 0`
-  - `hidden`: not `visible`, when on the active workspace
-  - geometry = `rect` (global, logical)
-  - `focusRank`: sway keeps no history; track an MRU list from `window` focus events (0 = `focused`).
-- **activeWindowId**: the focused leaf's `con_id`.
-- **gapsOut**: sway's `gaps outer` (from `WindowLook` when axiom sets it, else 0). `get_tree` has no per-side gaps.
-- Put the tree walking in a pure helper (`SwayState`, with `tst_SwayState` on a `get_tree` fixture), as `HyprState` is for Hyprland.
+### State
+Outputs and workspaces come live from Quickshell's `I3` module (as Hyprland's do from `Quickshell.Hyprland`); everything else from sway's replies, read through `swaymsg` (`SwayIpcManager`: `I3.dispatch` runs a command with no reply, and `I3` has no window tree, inputs or outputs in full). The replies become the [shapes](contract.md#shapes) in `SwayState` (`tst_SwayState`, on replies captured in nested sway under `tests/fixtures/sway/`).
+- **Events**: an `I3IpcListener` on `window`, `workspace`, `output`, `input` and `binding`; any of them re-reads the tree (`get_tree`, debounced 50 ms).
+  - `configReloaded`: a `workspace` event with change `reload`.
+  - `outputsHotplugged`: an `output` event that changed the set of output names (sway sends `output` for any output change).
+  - `keyboardLayoutChanged`: `input` with `xkb_layout` / `xkb_keymap`.
+  - `windowFocused`: `window` with `focus`. `layersChanged`: never (sway reports no layer surfaces).
+  - `binding`: axiom's own binds run `nop axiom <what> <verb> [argument]` (`switcher step|commit|cancel` → `switcherKey`; `special toggle|move <name>`), so a key costs no process.
+- **windows** (`SwayState.tree`): the tree's leaves with a pid, under `nodes` and `floating_nodes`; the scratchpad's aren't listed until shown.
+  - `id` = `String(con_id)`; `appId` = `app_id`, else the X11 `class`; `initialAppId` the same.
+  - `workspaceId` = the workspace's `num` (-1 on a named one); `fullscreen`: `fullscreen_mode` > 0; `maximized`: never.
+  - `hidden`: behind the front tab of a tabbed or stacked container.
+  - geometry = `rect` (global, logical, with the title bar). Sway reports no change to the space layer surfaces reserve, so the tree is read again 1.5 s after start, and the overview and dock `refresh()` on opening.
+  - `focusRank`: the windows focused since axiom started (a JSON list in `PersistentProperties`), then the order sway's per-container focus stacks give (`SwayState.ranked`).
+- **outputs** (`SwayState.output`): `I3.monitors`; `description` = `make model serial` (the parts that aren't `Unknown`), sway's own identifier for an output; `reserved` = the output's rect minus its active workspace's (from the tree); `specialWorkspaceId` always 0.
+- **workspaces** (`SwayState.workspace`): `I3.workspaces` with a number; `windowCount` from the tree.
+- **gapsOut**: sway's IPC has no gaps. Read from its config (`get_config`, `SwayState.configInfo`): outer plus inner per edge, as sway leaves both at the screen edge; read again on every reload.
+- **Keyboard**: `get_inputs`, the first keyboard named like one. Sway names layouts in full ("English (US)"): their short names come from `Input.kbLayout` when axiom sets the keyboard, else the config's `xkb_layout`, else from the name (`SwayState.keyboard`).
 
 ### Primitives
-- `activateWindow(id)`: `[con_id=<id>] focus`
-- `closeWindow(id)`: `[con_id=<id>] kill`
-- `travel(output, legs, mode, focusId)`: no slide (`workspaceSlide` false), so only the last leg.
-  - `focus output <name>` when `output` is set.
-  - `go`: `workspace number <id>`.
-  - `move`: `move container to workspace number <id>; workspace number <id>`.
-  - `focusId`: activate the window.
-  - Keep `travelingTo` at -1.
-- `sendWindowToWorkspace(id)`: `move container to workspace number <id>`
-- `applyRemap(plan, outputs)`: `[con_id=…] move container to workspace number …`, then `focus output …; workspace number …`. Sway also creates a workspace on the output it's first used from, so keep the named-workspace detour `HyprlandManager.applyRemap` uses.
-- `placeWindow`/`resizeWindow`: `move container to workspace number <id>` only (no dwindle aim). `resize grow|shrink width|height <px>` for resizes.
-- `withKeyboard`: `swaymsg -t get_inputs -r`, the first `type: keyboard` with `xkb_layout_names` and `xkb_active_layout_index`. Refresh on `input` events (`keyboardLayoutChanged`).
-- `cycleKeyboardLayout`: `input type:keyboard xkb_switch_layout next|prev`
-- `exitSession`: `exit`. `dpmsCommand(on)`: `swaymsg 'output * power on|off'`.
-- `toplevelFor(id)`: match `ToplevelManager.toplevels` by appId and title (the protocol has no id).
-- `withLayerRects`: null (sway has no layer listing; `LayerManager` places axiom's layers without it). `withCursorPos`: null.
-- `configReloaded`: from the `shutdown`/`reload` events (`I3IpcListener` "shutdown" isn't it: use the `config` subscription when Quickshell passes it, else `binding`/`tick`).
+- `activateWindow` / `closeWindow`: `[con_id=N] focus` / `kill`.
+- `travel`: no slide (`workspaceSlide` off), so only the last leg: `focus output <name>` when given, then `workspace number N`, `move container to workspace number N; workspace number N`, or `[con_id=focusId] focus`. `travelingTo` stays -1.
+- `sendWindowToWorkspace`: `move container to workspace number N`.
+- `applyRemap`: Hyprland's detour through named workspaces (`axiom-remap-…`). Sway creates a workspace on the focused output, so each output is focused before its windows move.
+- `placeWindow` (the overview's drop): next to a target, it marks the target (`axiom-drop`), splits it on the side's axis and moves the window to the mark, which puts it after the target; left and top then swap the two. With no target, onto the workspace; a floating window then moves to `floatAt` (`move absolute position`). Sway can't put the cursor back (`restore` unused).
+- `resizeWindow`: `resize grow|shrink width|height N px`; a floating window also moves by (dx, dy).
+- Special workspaces are groups of scratchpad windows (`namedSpecial`, once binds can reach them):
+  - `moveToSpecial(name)`: marks the focused window `axiom-special-<name>-<id>` and moves it to the scratchpad.
+  - `toggleSpecial(name)`: shows the group's windows on the focused output (`scratchpad show`, floating), or hides them all (`move scratchpad`) when any is shown there (`SwayState.specialToggle`).
+- `withOutputDetails`: `get_outputs` (`SwayState.outputDetails`; modes as `WxH@R.RRHz`). `applyOutputs`: one `output … enable mode … pos … scale … transform … adaptive_sync …` command per rule (`SwayConf.outputCommands`), disabled ones last. No mirroring and no color settings.
+- `cycleKeyboardLayout`: `input type:keyboard xkb_switch_layout next|prev`. `exitSession`: `exit`. `dpmsCommand`: `swaymsg 'output * power on|off'`. `leaveSwitcher`: `mode default`.
+- `toplevelFor`: null. Quickshell can't capture a toplevel on sway (`ScreencopyView` calls it not captureable), so the overview shows icons.
+- `withLayerRects`, `withCursorPos`: null; `warpCursorToLayer`, `scrollStrip`: nothing. `surfacesReady` is true at once.
 
-### The config writer (`SwayConfigWriter`)
+### The config writer (`SwayConfigWriter`, planned)
 Sway gets all three modes ([config modes](config-modes.md)), the text from a pure `SwayConf` helper (`tst_SwayConf`), as Hyprland's comes from `HyprConfigLua`:
 - **detached**: `swaymsg` commands at runtime (`runtimeApply`), again after every `configReloaded`, which drops them. `bindsym` on a key the user's config binds would replace that bind: read the user's binds first (`swaymsg -t get_config`, `bindsym` lines) and skip those keys (`skippedKeys`), as Hyprland's runtime layer does.
 - **included**: an `include` line (`includeLines`) pointing at a generated file under `$XDG_STATE_HOME/axiom/`. `checkLoaded`: a marker the file sets (e.g. a `set $axiom_included 1`, read back through `get_config`).
@@ -69,11 +64,12 @@ Sway gets all three modes ([config modes](config-modes.md)), the text from a pur
 - **Turning a live part off**: a runtime command can't be taken back cleanly either; reload (`swaymsg reload`), as Hyprland does.
 
 ### `supports` for sway
-`configModes`, `keybinds`, `monitors`, `inputConfig`, `scratchpad`, `windowGeometry`, `windowBorders`, `windowGaps` (plus `windowShape` and `windowBlur` on SwayFX). To check: `keyCapture` (a runtime `mode "axiom_record"` with `bindsym --mode`), `bindMerge` (binds from `get_config`), `mouseBinds` (sway uses `floating_modifier`). False: `outputProfiles`, `namedSpecial`, `pseudoTile`, `windowGroups`, `monitorColor`, `monitorMirror`, `switcher`, `strips`, `focusGrab`, `layerOrder`, `blur`, `cursorPos`, `cursorWarp`, `workspaceSlide`, `windowOpacity`.
+Now: `monitors`, `windowGeometry`. With the writer: `configModes`, `keybinds`, `inputConfig`, `windowBorders`, `windowGaps`, `scratchpad`, `namedSpecial`, `switcher`, `mouseBinds`; to check, `keyCapture` (a `ShortcutInhibitor` on the recorder) and `bindMerge` (binds parsed from the config). False: `outputProfiles`, `pseudoTile`, `windowGroups`, `monitorColor`, `monitorMirror`, `strips`, `focusGrab`, `layerOrder`, `blur`, `cursorPos`, `cursorWarp`, `workspaceSlide`, `windowShape`, `windowBlur`, `windowOpacity`.
 
 ### Open questions (check in the nested session)
 - **Click outside.** Without `focusGrab`, a grabbing surface takes the keyboard exclusively and each screen's backdrop window catches the click outside it ([README](README.md) › Focus grab). Typing into the launcher opened by IPC works in nested sway; check by hand that bar popouts with text fields, the launcher, the overlay and the power menu close on an outside click.
 - **Layer stacking.** With no `layerOrder`, `LayerManager` maps the stacked surfaces in `LayerStack` order ([layer arrangement](layer-arrangement.md)); checked in nested sway for a solid and a floating-pills bar against the border, and an integrated edge menu.
-- **`surfacesReady`.** Return true at once.
-- **Workspace numbers.** `workspace number N` creates N on the focused output. Check the perMonitor and grid layouts' blocks. Ids are `num` (a named workspace with no number has `num` -1; skip those).
+- **Workspace blocks.** `workspace number N` creates N on the focused output, and the facade focuses the output first. Checked on two nested outputs (`swaymsg create_output`); the perMonitor and grid blocks and a live remap still need a look.
+- **Runtime modes.** Sway likely defines `mode` blocks only while reading its config: the switcher's mode would then exist in the file modes only, and detached would step with plain `nop` binds.
+- **Focus follows the mouse.** In nested sway the pointer over the nested window refocuses the output under it after a command; read state with that in mind.
 - **The greeter** stays a Hyprland session (`issues.md`).

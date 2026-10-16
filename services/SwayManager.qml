@@ -1,0 +1,411 @@
+pragma Singleton
+pragma ComponentBehavior: Bound
+
+import QtQuick
+import Quickshell
+import Quickshell.I3
+
+import qs.config
+import qs.components.methods
+
+/* CompositorManager's backend on sway (docs/dev/compositor/contract.md,
+ * docs/dev/compositor/sway-backend.md): sway's state as the
+ * compositor-neutral shapes (SwayState), and the primitives CompositorManager
+ * builds on. Outputs and workspaces come live from Quickshell.I3; the windows
+ * from sway's tree (get_tree), read again on its events. The only reader of
+ * Quickshell.I3 outside the Sway* services. */
+Singleton {
+  id: root
+
+  // --- Backend state (docs/dev/compositor/contract.md) ---
+
+  // The windows (SwayState.window), most recently used ranked first
+  readonly property var windows: SwayState.ranked(_info.windows, JSON.parse(_recent.idsJson), _info.order, activeWindowId)
+  // The outputs (SwayState.output)
+  readonly property var outputs: I3.monitors.values.map(m => SwayState.output(m, root._info))
+  // The numbered workspaces (SwayState.workspace)
+  readonly property var workspaces: I3.workspaces.values.map(ws => SwayState.workspace(ws, root._info.counts)).filter(ws => ws !== null)
+  // The focused output's name, or ""
+  readonly property string focusedOutput: I3.focusedMonitor?.name ?? ""
+  // The focused window's id (its con_id), or "": from focus events as they
+  // come, the tree otherwise
+  readonly property string activeWindowId: _focusedId
+  // Sway's gap at the screen edges, after reserved zones: its outer gap
+  // plus the inner one every window keeps (SwayState.configGaps)
+  readonly property var gapsOut: _gaps
+  // Sway doesn't stack layers by axiom's order: LayerManager maps them in
+  // order itself, from the start
+  readonly property bool surfacesReady: true
+  // Sway has no slides
+  readonly property int travelingTo: -1
+  // What sway does (CompositorManager.supports)
+  readonly property var supports: ({
+      "monitors": true,
+      "windowGeometry": true
+    })
+
+  // --- Events ---
+
+  // Never: sway reports no layer surfaces
+  signal layersChanged
+  // An output was connected or disconnected
+  signal outputsHotplugged
+  // Sway reloaded its config (binds and runtime settings reset)
+  signal configReloaded
+  // The keyboard layout switched
+  signal keyboardLayoutChanged
+  // A window was focused; appId is its app_id (or X11 class)
+  signal windowFocused(string appId)
+  // A window switcher key (a `nop axiom switcher <verb> [argument]` bind):
+  // verb `step` (argument the step), `commit` or `cancel`
+  signal switcherKey(string verb, string argument)
+
+  // Re-reads the outputs, workspaces and windows soon
+  function refresh() {
+    I3.refreshMonitors();
+    I3.refreshWorkspaces();
+    _debounce.restart();
+  }
+
+  // --- Windows ---
+
+  function _con(id) {
+    return `[con_id=${Number(id)}]`;
+  }
+
+  function activateWindow(id) {
+    I3.dispatch(`${_con(id)} focus`);
+  }
+
+  function closeWindow(id) {
+    I3.dispatch(`${_con(id)} kill`);
+  }
+
+  // The overview's drop (CompositorManager.placeWindow): onto workspace
+  // `workspaceId`, next to `targetId` on its `side` ("left" | "right" |
+  // "top" | "bottom") when given, or floating at `floatAt` (global). Sway
+  // puts a window moved to a mark after the marked one, in a split of the
+  // side's axis; before it is a swap after that. Sway can't move the cursor
+  // back, so `restore` goes unused.
+  function placeWindow(id, workspaceId, targetId, side, restore, reinsert, floatAt) {
+    const win = _con(id);
+    const lines = [];
+    if (floatAt) {
+      if (!reinsert)
+        lines.push(`${win} move container to workspace number ${workspaceId}`);
+      if (root.windows.find(w => w.id === String(id))?.floating)
+        lines.push(`${win} move absolute position ${Math.round(floatAt.x)} ${Math.round(floatAt.y)}`);
+    } else if (targetId) {
+      const target = _con(targetId);
+      const vertical = side === "top" || side === "bottom";
+      lines.push(`${target} mark --add ${_dropMark}`, `${target} split ${vertical ? "v" : "h"}`, `${win} move container to mark ${_dropMark}`, `${target} unmark ${_dropMark}`);
+      if (side === "left" || side === "top")
+        lines.push(`${win} swap container with con_id ${Number(targetId)}`);
+    } else {
+      lines.push(`${win} move container to workspace number ${workspaceId}`);
+    }
+    SwayIpcManager.command(lines.join("; "), () => root._debounce.restart());
+  }
+
+  readonly property string _dropMark: "axiom-drop"
+
+  // Grows a window by (dw, dh) and, when floating, moves it by (dx, dy). On
+  // a tiled one sway moves the split the window shares.
+  function resizeWindow(id, dw, dh, dx, dy) {
+    const win = _con(id);
+    const floating = root.windows.find(w => w.id === String(id))?.floating === true;
+    const lines = [];
+    const px = value => `${Math.abs(Math.round(value))} px`;
+    if (Math.round(dw) !== 0)
+      lines.push(`${win} resize ${dw > 0 ? "grow" : "shrink"} width ${px(dw)}`);
+    if (Math.round(dh) !== 0)
+      lines.push(`${win} resize ${dh > 0 ? "grow" : "shrink"} height ${px(dh)}`);
+    if (floating && Math.round(dx) !== 0)
+      lines.push(`${win} move ${dx > 0 ? "right" : "left"} ${px(dx)}`);
+    if (floating && Math.round(dy) !== 0)
+      lines.push(`${win} move ${dy > 0 ? "down" : "up"} ${px(dy)}`);
+    if (lines.length > 0)
+      SwayIpcManager.command(lines.join("; "));
+  }
+
+  // Sway can't move the cursor (supports.cursorWarp is off)
+  function warpCursorToLayer(namespace, monitor, width, height, x, y) {
+  }
+
+  // The Wayland toplevel for a window id, for live previews: none on sway.
+  // Quickshell can't capture a toplevel there (ScreencopyView calls it not
+  // captureable), so the overview draws the window's icon instead.
+  function toplevelFor(id) {
+    return null;
+  }
+
+  // --- Workspaces (the layout is CompositorManager's) ---
+
+  // Sends the focused window to workspace `id`, staying put
+  function sendWindowToWorkspace(id) {
+    I3.dispatch(`move container to workspace number ${id}`);
+  }
+
+  // Sway has no strips
+  function scrollStrip(direction) {
+  }
+
+  // A workspace switch (CompositorManager.goToWorkspace). Sway doesn't
+  // slide, so only the last leg counts.
+  function travel(output, legs, mode, focusId) {
+    const last = legs[legs.length - 1];
+    const lines = output ? [`focus output ${SwayConf.quote(output)}`] : [];
+    if (focusId)
+      lines.push(`${_con(focusId)} focus`);
+    else if (mode === "move")
+      lines.push(`move container to workspace number ${last.id}`, `workspace number ${last.id}`);
+    else
+      lines.push(`workspace number ${last.id}`);
+    I3.dispatch(lines.join("; "));
+  }
+
+  // Carries out a remap (WorkspaceGeometry.remapWorkspaces' plan) for
+  // `outputs`, the outputs' names in block order. Sway creates a workspace
+  // on the focused output, so each output is focused before its windows
+  // move: first to a named workspace each (so a chain like 10 → 11, 11 → 12
+  // can't merge), then every output leaves its old workspace for a named one
+  // (so an empty old one is gone before its number is used again), then the
+  // windows go to their numbers and the outputs to theirs. The named
+  // workspaces end up empty and go.
+  function applyRemap(plan, outputs) {
+    const outputOf = id => root.windows.find(w => w.id === id)?.output ?? "";
+    const focus = name => `focus output ${SwayConf.quote(name)}`;
+    const moveAll = target => [].concat(...outputs.map(name => {
+        const moves = plan.moves.filter(m => outputOf(m.id) === name);
+        return moves.length > 0 ? [focus(name)].concat(moves.map(m => `${_con(m.id)} move container to workspace ${target(m)}`)) : [];
+      }));
+    const lines = [].concat(moveAll(m => SwayConf.quote("axiom-remap-" + m.to)), [].concat(...outputs.map((name, i) => [focus(name), `workspace axiom-remap-mon-${i}`])), moveAll(m => "number " + m.to), [].concat(...plan.focus.map(f => [focus(f.monitor), `workspace number ${f.id}`])));
+    SwayIpcManager.command(lines.join("; "), () => root.refresh());
+  }
+
+  // --- Special workspaces: groups of scratchpad windows ---
+
+  // Shows the windows of special group `name` on the focused output, or
+  // hides them when any is shown there (SwayState.specialToggle)
+  function toggleSpecial(name) {
+    const plan = SwayState.specialToggle(root.windows, root._marks, name, root.focusedOutput);
+    const shown = plan.ids.filter(id => root.windows.some(w => w.id === id));
+    const lines = plan.show ? plan.ids.filter(id => !root.windows.some(w => w.id === id && w.output === root.focusedOutput)).map(id => `${_con(id)} scratchpad show`) : shown.map(id => `${_con(id)} move scratchpad`);
+    if (lines.length > 0)
+      SwayIpcManager.command(lines.join("; "), () => root._debounce.restart());
+  }
+
+  // Puts the focused window in special group `name` (hidden until shown)
+  function moveToSpecial(name) {
+    const id = root.activeWindowId;
+    if (!id)
+      return;
+    SwayIpcManager.command(`${_con(id)} mark --add ${SwayConf.quote(`axiom-special-${name}-${id}`)}; ${_con(id)} move scratchpad`, () => root._debounce.restart());
+  }
+
+  // --- The window switcher ---
+
+  // Leaves the switcher's mode (a tile was clicked while its keys were held)
+  function leaveSwitcher() {
+    I3.dispatch("mode default");
+  }
+
+  // --- Session and input ---
+
+  // Calls back with the main keyboard's layouts ({ layouts, index, keymap },
+  // SwayState.keyboard), or null
+  function withKeyboard(callback) {
+    const input = InputConfig.input;
+    const codes = input.keyboard ? input.kbLayout : root._configLayouts;
+    SwayIpcManager.json("get_inputs", inputs => callback(Array.isArray(inputs) ? SwayState.keyboard(inputs, codes) : null));
+  }
+
+  // Switches every keyboard to its "next" or "prev" layout, then calls back
+  function cycleKeyboardLayout(direction, callback) {
+    SwayIpcManager.command(`input type:keyboard xkb_switch_layout ${direction === "prev" ? "prev" : "next"}`, () => callback?.());
+  }
+
+  // Sway can't say where the cursor is, nor list layer surfaces
+  function withCursorPos(callback) {
+    callback(null);
+  }
+
+  function withLayerRects(callback) {
+    callback(null);
+  }
+
+  // Ends the sway session (the power menu's log out)
+  function exitSession() {
+    I3.dispatch("exit");
+  }
+
+  // The shell command turning the screens off or on (the idle daemon's)
+  function dpmsCommand(on) {
+    return `swaymsg 'output * power ${on ? "on" : "off"}'`;
+  }
+
+  // --- Outputs (the Monitors page) ---
+
+  // Calls back with every output in detail, disabled ones too
+  // (SwayState.outputDetails), or null
+  function withOutputDetails(callback) {
+    SwayIpcManager.json("get_outputs", outputs => callback(Array.isArray(outputs) ? SwayState.outputDetails(outputs) : null));
+  }
+
+  // Sets the outputs as `rules` (MonitorRule) say, now. Sway has no
+  // mirroring, so `details` aren't needed.
+  function applyOutputs(rules, details) {
+    SwayIpcManager.command(SwayConf.outputCommands(rules), () => root.refresh());
+  }
+
+  // --- State behind the members above ---
+
+  // The last tree read (SwayState.tree)
+  property var _info: SwayState.tree(null)
+  // Every window's marks ({ [id]: [marks] }), for the special groups
+  property var _marks: ({})
+  property string _focusedId: ""
+  property var _gaps: ({
+      "top": 0,
+      "right": 0,
+      "bottom": 0,
+      "left": 0
+    })
+  // The layouts sway's own config sets ("us,de"), for their short names
+  property string _configLayouts: ""
+  // The outputs' names when last read, to tell a hotplug from another
+  // output change
+  property string _outputNames: ""
+
+  // Windows focused since axiom started, most recent first, as JSON
+  // (survives a reload of the shell, as sway's own focus stacks don't say
+  // it all)
+  PersistentProperties {
+    id: _recent
+    reloadableId: "axiomSwayRecent"
+    property string idsJson: "[]"
+  }
+
+  I3IpcListener {
+    subscriptions: ["window", "workspace", "output", "input", "binding"]
+    onIpcEvent: event => root._onEvent(event)
+  }
+
+  function _onEvent(event) {
+    let data = {};
+    try {
+      data = JSON.parse(event.data);
+    } catch (e) {
+      return;
+    }
+    switch (event.type) {
+    case "window":
+      if (data.change === "focus" && data.container) {
+        const id = String(data.container.id);
+        root._focusedId = id;
+        _recent.idsJson = JSON.stringify(SwayState.touch(JSON.parse(_recent.idsJson), id));
+        root.windowFocused(data.container.app_id ?? data.container.window_properties?.["class"] ?? "");
+      }
+      _debounce.restart();
+      break;
+    case "workspace":
+      if (data.change === "reload") {
+        root._readConfig();
+        root.configReloaded();
+      }
+      _debounce.restart();
+      break;
+    case "output":
+      root._checkOutputs();
+      _debounce.restart();
+      break;
+    case "input":
+      if (data.change === "xkb_layout" || data.change === "xkb_keymap")
+        root.keyboardLayoutChanged();
+      break;
+    case "binding":
+      root._onBinding(String(data.binding?.command ?? ""));
+      break;
+    }
+  }
+
+  // axiom's own binds: `nop axiom <what> <verb> [argument]`
+  function _onBinding(command) {
+    const words = command.trim().split(/\s+/);
+    if (words[0] !== "nop" || words[1] !== "axiom")
+      return;
+    const [what, verb = "", argument = ""] = words.slice(2);
+    if (what === "switcher")
+      root.switcherKey(verb, argument);
+    else if (what === "special" && verb === "toggle")
+      root.toggleSpecial(argument);
+    else if (what === "special" && verb === "move")
+      root.moveToSpecial(argument);
+  }
+
+  function _checkOutputs() {
+    SwayIpcManager.json("get_outputs", outputs => {
+      if (!Array.isArray(outputs))
+        return;
+      const names = outputs.map(o => o.name).sort().join(",");
+      const changed = root._outputNames !== "" && names !== root._outputNames;
+      root._outputNames = names;
+      if (changed)
+        root.outputsHotplugged();
+    });
+  }
+
+  // The gaps and layouts sway's config sets (SwayState.configInfo)
+  function _readConfig() {
+    SwayIpcManager.json("get_config", reply => {
+      const info = SwayState.configInfo(String(reply?.config ?? ""));
+      root._gaps = info.gaps;
+      root._configLayouts = info.layouts;
+    });
+  }
+
+  // Events arrive in bursts (a window opening sends several), so they are
+  // coalesced into one read
+  property Timer _debounce: Timer {
+    interval: 50
+    onTriggered: root._fetch()
+  }
+
+  property bool _fetching: false
+  property bool _pending: false
+
+  function _fetch() {
+    if (_fetching) {
+      _pending = true;
+      return;
+    }
+    _fetching = true;
+    SwayIpcManager.json("get_tree", tree => {
+      root._fetching = false;
+      if (tree) {
+        root._info = SwayState.tree(tree);
+        root._marks = SwayState.marks(tree);
+        root._focusedId = root._info.focusedId;
+      }
+      if (root._pending) {
+        root._pending = false;
+        root._fetch();
+      }
+    });
+  }
+
+  // Sway reports no change to the space layer surfaces reserve, so the
+  // windows' geometry is read once more after axiom's own bars have mapped
+  // (the overview and the dock refresh() when they open)
+  property Timer _settle: Timer {
+    interval: 1500
+    onTriggered: root._fetch()
+  }
+
+  Component.onCompleted: {
+    _fetch();
+    _settle.start();
+    _readConfig();
+    _checkOutputs();
+  }
+}

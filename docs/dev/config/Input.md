@@ -14,11 +14,11 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`Input.keyboard`** · boolean = false
   - Set the keyboard: Layout and key repeat. Off, your compositor's own config applies.
   - x-greeter=true, x-group="Keyboard"
-  - read: `InputConfig.input` (whole) · in: `config/InputConfig.qml`
+  - read: `InputConfig.input` (whole) · in: `services/SwayManager.qml`
 - **`Input.kbLayout`** · string = "us"
   - Keyboard layout: XKB layouts, comma-separated (e.g. us,de).
   - x-greeter=true, x-group="Keyboard", x-hypr="input.kb_layout", x-showIf={"keyboard":true}, x-hyprIf="keyboard"
-  - read: `InputConfig.input` (whole) · in: `config/InputConfig.qml`
+  - read: `InputConfig.input` (whole) · in: `services/SwayManager.qml`
 - **`Input.kbVariant`** · string = ""
   - Layout variant: XKB variants, one per layout (e.g. colemak).
   - x-greeter=true, x-group="Keyboard", x-hypr="input.kb_variant", x-showIf={"keyboard":true}, x-hyprIf="keyboard"
@@ -93,6 +93,6 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 Every public member of `InputConfig`, with the files that use it.
 
 - `InputConfig.input` (var)
-  - in: `services/CompositorConfigManager.qml`
+  - in: `services/CompositorConfigManager.qml`, `services/SwayManager.qml`
 - `InputConfig.cursorTheme` (string): The cursor theme picked, set or not ("" for none)
   - in: `services/SettingsManager.qml`

@@ -9,10 +9,10 @@ import qs.config
 import qs.components.methods
 
 /**
- * The window switcher (Alt+Tab). Hyprland holds the keys: a switcher bind
- * enters the submap HyprLua.switcherLua defines, which reports each step,
- * pick and cancel as a `custom>>axiom-switcher:<verb>` event, so nothing
- * here can miss a quick release. The first step opens it on the focused
+ * The window switcher (Alt+Tab). The compositor holds the keys: a switcher
+ * bind enters a submap (Hyprland's HyprLua.switcherLua, sway's mode) that
+ * reports each step, pick and cancel to the backend's switcherKey, so
+ * nothing here can miss a quick release. The first step opens it on the focused
  * monitor with the windows most recently used first, fixed until it
  * closes; it only shows once held for WindowSwitcherConfig.showDelay, so a
  * tap swaps windows without drawing anything.
@@ -64,7 +64,7 @@ Singleton {
     root._index = index;
     root.commit();
     if (CompositorManager.supports.switcher)
-      HyprlandManager.runLua(HyprLua.switcherLeaveLua);
+      CompositorManager.backend.leaveSwitcher();
   }
 
   function _open() {
@@ -90,9 +90,10 @@ Singleton {
     onTriggered: root._shown = root._active
   }
 
-  // Hyprland holds the switcher's keys (HyprLua.switcherLua)
+  // The compositor holds the switcher's keys (Hyprland: HyprLua.switcherLua;
+  // sway: SwayConf's switcher mode)
   Connections {
-    target: CompositorManager.supports.switcher ? HyprlandManager : null
+    target: CompositorManager.supports.switcher ? CompositorManager.backend : null
 
     function onSwitcherKey(verb, argument) {
       if (verb === "step")

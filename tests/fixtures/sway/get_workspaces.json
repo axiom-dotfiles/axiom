@@ -1,0 +1,218 @@
+[
+  {
+    "id": 4,
+    "type": "workspace",
+    "orientation": "horizontal",
+    "percent": null,
+    "urgent": false,
+    "marks": [],
+    "layout": "splith",
+    "border": "none",
+    "current_border_width": 0,
+    "rect": {
+      "x": 48,
+      "y": 58,
+      "width": 766,
+      "height": 1270
+    },
+    "deco_rect": {
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0
+    },
+    "window_rect": {
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0
+    },
+    "geometry": {
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0
+    },
+    "name": "1",
+    "window": null,
+    "nodes": [],
+    "floating_nodes": [],
+    "focus": [
+      5,
+      6
+    ],
+    "fullscreen_mode": 1,
+    "sticky": false,
+    "floating": null,
+    "scratchpad_state": null,
+    "num": 1,
+    "output": "WL-1",
+    "representation": "H[foot foot]",
+    "focused": false,
+    "visible": false
+  },
+  {
+    "id": 10,
+    "type": "workspace",
+    "orientation": "horizontal",
+    "percent": null,
+    "urgent": false,
+    "marks": [],
+    "layout": "splith",
+    "border": "none",
+    "current_border_width": 0,
+    "rect": {
+      "x": 48,
+      "y": 58,
+      "width": 766,
+      "height": 1270
+    },
+    "deco_rect": {
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0
+    },
+    "window_rect": {
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0
+    },
+    "geometry": {
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0
+    },
+    "name": "2",
+    "window": null,
+    "nodes": [],
+    "floating_nodes": [
+      {
+        "id": 9,
+        "type": "floating_con",
+        "orientation": "none",
+        "percent": 1.0,
+        "urgent": false,
+        "marks": [],
+        "focused": false,
+        "layout": "none",
+        "border": "normal",
+        "current_border_width": 2,
+        "rect": {
+          "x": 81,
+          "y": 445,
+          "width": 766,
+          "height": 1243
+        },
+        "deco_rect": {
+          "x": 33,
+          "y": 360,
+          "width": 766,
+          "height": 27
+        },
+        "window_rect": {
+          "x": 2,
+          "y": 0,
+          "width": 762,
+          "height": 1241
+        },
+        "geometry": {
+          "x": 0,
+          "y": 0,
+          "width": 696,
+          "height": 496
+        },
+        "name": "floater",
+        "window": null,
+        "nodes": [],
+        "floating_nodes": [],
+        "focus": [],
+        "fullscreen_mode": 0,
+        "sticky": false,
+        "floating": "user_on",
+        "scratchpad_state": "none",
+        "pid": 456681,
+        "app_id": "foot",
+        "foreign_toplevel_identifier": "e7201a5316637052ed56359e55c67167",
+        "visible": false,
+        "max_render_time": 0,
+        "allow_tearing": false,
+        "shell": "xdg_shell",
+        "inhibit_idle": false,
+        "sandbox_engine": null,
+        "sandbox_app_id": null,
+        "sandbox_instance_id": null,
+        "tag": null,
+        "idle_inhibitors": {
+          "user": "none",
+          "application": "none"
+        }
+      }
+    ],
+    "focus": [
+      9
+    ],
+    "fullscreen_mode": 1,
+    "sticky": false,
+    "floating": null,
+    "scratchpad_state": null,
+    "num": 2,
+    "output": "WL-1",
+    "representation": "H[]",
+    "focused": false,
+    "visible": false
+  },
+  {
+    "id": 8,
+    "type": "workspace",
+    "orientation": "horizontal",
+    "percent": null,
+    "urgent": false,
+    "marks": [],
+    "layout": "splith",
+    "border": "none",
+    "current_border_width": 0,
+    "rect": {
+      "x": 48,
+      "y": 58,
+      "width": 766,
+      "height": 1270
+    },
+    "deco_rect": {
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0
+    },
+    "window_rect": {
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0
+    },
+    "geometry": {
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0
+    },
+    "name": "3:web",
+    "window": null,
+    "nodes": [],
+    "floating_nodes": [],
+    "focus": [
+      13
+    ],
+    "fullscreen_mode": 1,
+    "sticky": false,
+    "floating": null,
+    "scratchpad_state": null,
+    "num": 3,
+    "output": "WL-1",
+    "representation": "H[T[foot foot]]",
+    "focused": true,
+    "visible": true
+  }
+]

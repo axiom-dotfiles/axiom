@@ -18,11 +18,17 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 
 ## Open
 
-### No sway or niri backend yet
-- **Where:** `services/CompositorManager.qml` (`backend`), `docs/dev/compositor/sway-backend.md`
-- **What:** Everything goes through `CompositorManager`, but only Hyprland has a backend. Under sway or niri, axiom runs with none: the bar, launcher and notifications work, but workspaces, windows, the dock's running apps, the keyboard layout and the window look are empty or do nothing. The settings are already compositor-neutral (Compositor, Keybinds, Monitors, WindowLook, Input, Session; `CompositorConfigManager` drives the modes through a backend's config writer); the plan for sway's backend and writer is in `sway-backend.md`; `scripts/dev/nested.sh` runs it nested.
+### No niri backend; sway's config writer not written yet
+- **Where:** `services/CompositorManager.qml` (`backend`), `services/SwayManager.qml` (`supports`), `docs/dev/compositor/sway-backend.md`
+- **What:** Under sway, `SwayManager` gives the state, workspaces, windows, outputs and keyboard, but there's no `SwayConfigWriter` yet: no `configModes`, so axiom sets no binds, window look or input there (the plan is in `sway-backend.md` › The config writer). Under niri axiom runs with no backend: the bar, launcher and notifications work, but workspaces, windows, the dock's running apps and the keyboard layout are empty.
 - **Size:** needs a plan
 - **Found:** 2026-10-16, while decoupling the shell from Hyprland
+
+### Quickshell's I3 socket warns on every reload
+- **Where:** `services/SwayManager.qml` (Quickshell.I3)
+- **What:** Under sway every reload of the shell logs `I3 event socket disconnected` twice (category `quickshell.I3.ipc`), from the old generation's sockets closing. Events still arrive afterwards (checked in nested sway). Quickshell's, not axiom's; nothing to fix here unless it starts dropping events.
+- **Size:** trivial
+- **Found:** 2026-10-16, while writing the sway backend
 
 ### The onboarding's setup page is Hyprland's
 - **Where:** `components/surfaces/onboarding/pages/HyprlandPage.qml`, `services/OnboardingManager.qml` (`pages`, `configState`, `hyprlandSupported`, `detectHyprland`)
@@ -38,7 +44,7 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 
 ### Floating bars sit flush on the border without a backend
 - **Where:** `config/Bar.qml` (`enrichBarConfig`: `floatGap`), `services/CompositorManager.qml` (`gapsOut`)
-- **What:** A floating bar's automatic gap (`floatGap` -1) is the compositor's outer gaps (`CompositorManager.gapsOut`). With no backend (sway or niri today) `gapsOut` is all 0, so a floating bar sits flush against the border, as seen in nested sway. The sway backend's `gapsOut` (from `gaps outer`, `sway-backend.md` › The config writer) should fix it there; decide what the gap is with no backend at all (a fixed default, or `Appearance.screenMargin`).
+- **What:** A floating bar's automatic gap (`floatGap` -1) is the compositor's outer gaps (`CompositorManager.gapsOut`). With no backend (niri today) `gapsOut` is all 0, so a floating bar sits flush against the border. Sway's backend reads its gaps from the config (`SwayState.configInfo`); decide what the gap is with no backend at all (a fixed default, or `Appearance.screenMargin`).
 - **Size:** small
 - **Found:** 2026-10-16, while testing layer order in nested sway
 

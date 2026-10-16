@@ -207,12 +207,23 @@ def main():
         if re.search(r"^import Quickshell\.Hyprland\b", text, re.M) and not re.fullmatch(r"services/Hyprland\w*\.qml", path):
             errors.append(f"{path}: imports Quickshell.Hyprland (only the Hyprland* services may; use CompositorManager)")
 
+    # Likewise only the Sway* services read Quickshell.I3, run swaymsg or use
+    # SwayManager directly (docs/dev/compositor/sway-backend.md)
+    for path, text in sources.items():
+        if re.fullmatch(r"services/Sway\w*\.qml", path) or path == "services/CompositorManager.qml":
+            continue
+        code = "\n".join(line.split("//", 1)[0] for line in text.splitlines())
+        if re.search(r"^import Quickshell\.I3\b", text, re.M):
+            errors.append(f"{path}: imports Quickshell.I3 (only the Sway* services may; use CompositorManager)")
+        if re.search(r"\bSwayManager\.|\bSwayIpcManager\.|\"swaymsg\"", code):
+            errors.append(f"{path}: talks to sway directly (only the Sway* services may; use CompositorManager)")
+
     # The rest of the shell reaches the compositor through CompositorManager
     # (docs/dev/compositor/README.md). HyprlandManager is its Hyprland
     # backend; besides the Hyprland* services, only the Hyprland-only
     # features use it directly, each gated on CompositorManager.supports.
     hyprland_features = {
-        "services/CompositorManager.qml", "services/GreetdManager.qml", "services/WindowSwitcherManager.qml", "services/OnboardingManager.qml",
+        "services/CompositorManager.qml", "services/GreetdManager.qml", "services/OnboardingManager.qml",
     }
     for path, text in sources.items():
         code = "\n".join(line.split("//", 1)[0] for line in text.splitlines())

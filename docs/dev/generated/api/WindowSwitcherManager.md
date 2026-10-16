@@ -3,7 +3,7 @@
 
 > **File:** `services/WindowSwitcherManager.qml` · **Docs:** see [docs/dev](../../README.md)
 
-The window switcher (Alt+Tab). Hyprland holds the keys: a switcher bind enters the submap HyprLua.switcherLua defines, which reports each step, pick and cancel as a `custom>>axiom-switcher:<verb>` event, so nothing here can miss a quick release. The first step opens it on the focused monitor with the windows most recently used first, fixed until it closes; it only shows once held for WindowSwitcherConfig.showDelay, so a tap swaps windows without drawing anything.
+The window switcher (Alt+Tab). The compositor holds the keys: a switcher bind enters a submap (Hyprland's HyprLua.switcherLua, sway's mode) that reports each step, pick and cancel to the backend's switcherKey, so nothing here can miss a quick release. The first step opens it on the focused monitor with the windows most recently used first, fixed until it closes; it only shows once held for WindowSwitcherConfig.showDelay, so a tap swaps windows without drawing anything.
 
 ### Properties
 

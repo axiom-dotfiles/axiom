@@ -33,6 +33,7 @@ CompositorManager's backend on Hyprland (docs/dev/compositor/contract.md): Hyprl
 ### Functions
 
 - `refresh()`: Re-reads the monitors and the windows soon (Quickshell re-reads the monitors' lastIpcObject only on monitor events)
+- `leaveSwitcher()`: Leaves the window switcher's submap and its release listener (a tile was clicked while its keys were held)
 - `closeWindow(id)`
 - `activateWindow(id)`: Focuses a window where it is (CompositorManager.focusWindow switches workspace first, sliding)
 - `placeWindow(id, workspaceId, targetId, side, restore, reinsert, floatAt)`: Moves a window onto a workspace, tiling it on `side` ("left" | "right" | "top" | "bottom") of `targetId`, or wherever when there's none.

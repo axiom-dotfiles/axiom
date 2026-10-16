@@ -1,10 +1,10 @@
 # Backend contract
 
-> **Files:** `services/CompositorManager.qml`, `services/HyprlandManager.qml`, `components/methods/HyprState.qml`, `components/methods/CompositorLayer.qml`, `tests/tst_HyprState.qml`, `tests/tst_CompositorLayer.qml`
+> **Files:** `services/CompositorManager.qml`, `services/HyprlandManager.qml`, `services/SwayManager.qml`, `components/methods/HyprState.qml`, `components/methods/SwayState.qml`, `components/methods/CompositorLayer.qml`, `tests/tst_HyprState.qml`, `tests/tst_CompositorLayer.qml`
 > **Config:** none
 > **Related:** [The compositor](README.md), [Sway backend](sway-backend.md)
 
-What a compositor backend (`HyprlandManager`, and the ones to come) gives `CompositorManager`. `CompositorManager`'s own defaults (empty lists, `""`, no-ops, `null` callbacks) are what a member the backend can't fill looks like.
+What a compositor backend (`HyprlandManager`, `SwayManager`) gives `CompositorManager`. `CompositorManager`'s own defaults (empty lists, `""`, no-ops, `null` callbacks) are what a member the backend can't fill looks like.
 
 ### Shapes
 Plain JS objects, rebuilt as the compositor reports changes. Converters sit in a pure helper with a test (`HyprState.window`, `output`, `workspace`; `tst_HyprState`).
@@ -29,6 +29,7 @@ Plain JS objects, rebuilt as the compositor reports changes. Converters sit in a
 ### Backend members
 - **State**: `windows`, `outputs`, `workspaces`, `focusedOutput`, `activeWindowId`, `gapsOut` (`{ top, right, bottom, left }`), `blur` (`{ enabled, size, passes }`), `splitWidthMultiplier`, `surfacesReady`, `supports`, `travelingTo` (the workspace a multi-leg switch has reached, -1 when none is under way).
 - **Signals**: `layersChanged`, `outputsHotplugged`, `configReloaded`, `keyboardLayoutChanged`, `windowFocused(appId)`. The facade re-emits them.
+- **Window switcher** (with `switcher`): signal `switcherKey(verb, argument)` (`step` with the step, `commit`, `cancel`), sent while the compositor holds the switcher's keys; `leaveSwitcher()` lets them go (a tile was clicked). `WindowSwitcherManager` listens to the backend directly.
 - **Windows**: `activateWindow(id)` (focus where it is), `closeWindow(id)`, `placeWindow(…)` and `resizeWindow(…)` (the overview), `toplevelFor(id)` (a `Quickshell.Wayland` toplevel, for previews).
 - **Workspaces**:
   - `travel(output, legs, mode, focusId)`: focus `output` first when it's set, go through each `{ id, axis }` leg in turn, and arrive with `mode` (`go` | `move`) or by focusing window `focusId`.

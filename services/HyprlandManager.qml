@@ -85,6 +85,12 @@ Singleton {
   // the step), `commit` or `cancel`
   signal switcherKey(string verb, string argument)
 
+  // Leaves the window switcher's submap and its release listener (a tile
+  // was clicked while its keys were held)
+  function leaveSwitcher() {
+    root.runLua(HyprLua.switcherLeaveLua);
+  }
+
   // --- Actions ---
 
   // The Lua window selector for a window id (its "0x…" address).
