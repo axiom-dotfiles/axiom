@@ -27,12 +27,19 @@ Scope {
 
   // A click caught outside every surface (BackdropManager.catching)
   property int _uid: 0
-  onExclusiveChanged: BackdropManager.catchClicks(root._uid, root.exclusive)
+  // Not before it has its id: a catcher reported under 0 would never clear
+  onExclusiveChanged: {
+    if (root._uid > 0)
+      BackdropManager.catchClicks(root._uid, root.exclusive);
+  }
   Component.onCompleted: {
     root._uid = BackdropManager.register();
     BackdropManager.catchClicks(root._uid, root.exclusive);
   }
-  Component.onDestruction: BackdropManager.catchClicks(root._uid, false)
+  Component.onDestruction: {
+    if (root._uid > 0)
+      BackdropManager.catchClicks(root._uid, false);
+  }
   property Connections _outside: Connections {
     target: BackdropManager
     enabled: root.exclusive
