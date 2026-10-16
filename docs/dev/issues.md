@@ -30,6 +30,12 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Size:** small
 - **Found:** 2026-10-16, while consolidating compositor settings
 
+### Qt text-input warnings under sway
+- **Where:** `components/reusable/StyledTextEntry.qml` (the text fields; Qt's own wayland text-input)
+- **What:** Under sway the log fills with `Trying to disable` / `Trying to enable` warnings from `qt.qpa.wayland.textinput` (`QWaylandTextInputv3::disableSurface`) as keyboard focus moves between axiom's surfaces. Seen live on sway, never under Hyprland; typing still works. Likely Qt's text-input-v3 handling with several layer surfaces taking focus.
+- **Size:** small
+- **Found:** 2026-10-16, while consolidating compositor settings
+
 ### Floating bars sit flush on the border without a backend
 - **Where:** `config/Bar.qml` (`enrichBarConfig`: `floatGap`), `services/CompositorManager.qml` (`gapsOut`)
 - **What:** A floating bar's automatic gap (`floatGap` -1) is the compositor's outer gaps (`CompositorManager.gapsOut`). With no backend (sway or niri today) `gapsOut` is all 0, so a floating bar sits flush against the border, as seen in nested sway. The sway backend's `gapsOut` (from `gaps outer`, `sway-backend.md` › The config writer) should fix it there; decide what the gap is with no backend at all (a fixed default, or `Appearance.screenMargin`).
