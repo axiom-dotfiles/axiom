@@ -92,12 +92,12 @@ QtObject {
       _start();
       return;
     }
-    const binds = HyprlandConfig.binds.filter(bind => HyprConfigLua.bindLua(bind, bindCtx) !== "");
-    const plan = HyprBinds.runtimeBinds(binds, bindList);
+    const binds = KeybindsConfig.binds.filter(bind => HyprConfigLua.bindLua(bind, bindCtx) !== "");
+    const plan = BindKeys.runtimeBinds(binds, bindList);
     for (const key of plan.unreadable)
       console.warn(`[HyprlandConfigManager] Can't read the key "${key}"; bind it as MODS + KEY`);
     for (const key of plan.skipped) {
-      const id = HyprBinds.keyId(key);
+      const id = BindKeys.keyId(key);
       if (!_reportedTaken[id])
         console.log(`[HyprlandConfigManager] ${key} is bound by your Hyprland config; skipping axiom's bind`);
       _reportedTaken[id] = true;

@@ -12,7 +12,7 @@ TestCase {
   }
 
   function _schemaActions() {
-    return files.json("config/json/config.schema.json").properties.Hyprland.properties.binds.items.properties.action.enum;
+    return files.json("config/json/config.schema.json").properties.Keybinds.properties.binds.items.properties.action.enum;
   }
 
   function test_everySchemaActionIsKnown() {
@@ -49,7 +49,7 @@ TestCase {
     verify(BindActions.needsArgument("exec"));
     verify(BindActions.needsArgument("workspaceNth"), "{0} in the IPC call");
     verify(BindActions.needsArgument("focusDir"), "{0} in a compositor action's label");
-    verify(BindActions.needsArgument("lua"));
+    verify(BindActions.needsArgument("raw"));
     verify(!BindActions.needsArgument("launcher"));
     verify(!BindActions.needsArgument("closeWindow"));
   }
@@ -96,5 +96,34 @@ TestCase {
       "description": "Mine: Kill it"
     }), "Mine: Kill it", "a description naming its own section keeps it");
     verify(!BindActions.hasOwnSection("Mine:no space"));
+  }
+
+  function test_supported() {
+    const hyprland = {
+      "strips": true,
+      "namedSpecial": true,
+      "switcher": true
+    };
+    verify(BindActions.supported("closeWindow", {}), "needs nothing");
+    verify(BindActions.supported("stripWider", hyprland));
+    verify(!BindActions.supported("stripWider", {}));
+    verify(BindActions.supported("toggleSpecial", {
+      "scratchpad": true
+    }), "any one of its capabilities");
+    for (const action in BindActions.needs)
+      verify(_schemaActions().includes(action), action + " is an action");
+  }
+
+  function test_appliesUnder() {
+    const raw = {
+      "action": "raw",
+      "compositor": "hyprland",
+      "argument": "hl.dsp.layout(\"swapsplit\")"
+    };
+    verify(BindActions.appliesUnder(raw, "hyprland", {}));
+    verify(!BindActions.appliesUnder(raw, "sway", {}), "written for another compositor");
+    verify(!BindActions.appliesUnder({
+      "action": "pseudo"
+    }, "sway", {}));
   }
 }

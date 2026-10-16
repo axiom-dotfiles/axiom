@@ -1,7 +1,7 @@
 pragma Singleton
 import QtQuick
 
-// What each keybind action (the schema's Hyprland.binds[].action) is,
+// What each keybind action (the schema's Keybinds.binds[].action) is,
 // independent of the compositor: its IPC call into axiom, default label,
 // section on the Keybinds page, calls, starting flags and whether it takes
 // an argument. How an action is bound (Hyprland's Lua) is
@@ -65,7 +65,7 @@ QtObject {
       "stripWider": ["Widen column", "Window"],
       "stripNarrower": ["Narrow column", "Window"],
       "stripFit": ["Fit visible columns", "Window"],
-      "lua": ["{0}", "Custom"],
+      "raw": ["{0}", "Custom"],
       "windowSwitcher": ["Switch windows", "Window"],
       "windowSwitcherReverse": ["Switch windows backwards", "Window"],
       "mouseDrag": ["Drag", "Window"],
@@ -73,7 +73,7 @@ QtObject {
       "toggleSpecial": ["Toggle {0}", "Special"],
       "moveToSpecial": ["Move window to {0}", "Special"],
       "restartShell": ["Restart shell", "Axiom"],
-      "exitHyprland": ["Exit Hyprland", "Axiom"],
+      "exitSession": ["Log out", "Axiom"],
       "terminal": ["Terminal", "Apps"],
       "fileManager": ["File manager", "Apps"],
       "browser": ["Browser", "Apps"]
@@ -120,11 +120,40 @@ QtObject {
       }
     })
 
+  // The compositor capabilities (CompositorManager.supports) an action
+  // needs, any one of them; actions not listed work everywhere
+  readonly property var needs: ({
+      "pseudo": ["pseudoTile"],
+      "toggleGroup": ["windowGroups"],
+      "stripSwapColumn": ["strips"],
+      "stripWider": ["strips"],
+      "stripNarrower": ["strips"],
+      "stripFit": ["strips"],
+      "windowSwitcher": ["switcher"],
+      "windowSwitcherReverse": ["switcher"],
+      "mouseDrag": ["mouseBinds"],
+      "mouseResize": ["mouseBinds"],
+      "toggleSpecial": ["namedSpecial", "scratchpad"],
+      "moveToSpecial": ["namedSpecial", "scratchpad"]
+    })
+
+  // Whether the compositor (its `supports`) can run `action`
+  function supported(action, supports) {
+    const caps = root.needs[action];
+    return !caps || caps.some(cap => supports?.[cap] === true);
+  }
+
+  // Whether `bind` does anything under compositor `kind` with `supports`:
+  // its action is supported, and a raw command is written for `kind`
+  function appliesUnder(bind, kind, supports) {
+    return root.supported(bind.action, supports) && (bind.action !== "raw" || (bind.compositor ?? "hyprland") === kind);
+  }
+
   // Flags an action starts with when it's picked (the bind can change them)
   readonly property var actionFlags: ({
       "resizeWindow": ["repeating"],
       "restartShell": ["release"],
-      "exitHyprland": ["release"],
+      "exitSession": ["release"],
       "volumeUp": ["locked", "repeating"],
       "volumeDown": ["locked", "repeating"],
       "toggleMute": ["locked"],
@@ -137,7 +166,7 @@ QtObject {
       "mediaStop": ["locked"]
     })
   // The flags a bind can set (bind[flag] === true)
-  // reads: Hyprland.binds[].repeating, Hyprland.binds[].locked, Hyprland.binds[].release (by flag name)
+  // reads: Keybinds.binds[].repeating, Keybinds.binds[].locked, Keybinds.binds[].release (by flag name)
   readonly property var flagNames: ["repeating", "locked", "release"]
 
   // The window switcher's actions, by the step each takes through the
@@ -170,7 +199,7 @@ QtObject {
   readonly property var argumentKinds: ({
       "launcherSearch": "text",
       "exec": "text",
-      "lua": "lua",
+      "raw": "raw",
       "overlayPage": "view",
       "edgeMenu": "edgeMenu",
       "dock": "dock",

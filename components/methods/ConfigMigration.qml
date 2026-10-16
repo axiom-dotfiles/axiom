@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 59
+  readonly property int currentVersion: 60
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -145,6 +145,8 @@ QtObject {
       result = _v57ToV58(result, changes);
     if (version < 59)
       result = _v58ToV59(result, changes);
+    if (version < 60)
+      result = _v59ToV60(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -661,9 +663,9 @@ QtObject {
     const binds = config.Hyprland?.binds;
     if (!Array.isArray(binds))
       return config;
-    const used = new Set(binds.map(bind => HyprBinds.keyId(bind?.key)));
+    const used = new Set(binds.map(bind => BindKeys.keyId(bind?.key)));
     for (const bind of added) {
-      const id = HyprBinds.keyId(bind.key);
+      const id = BindKeys.keyId(bind.key);
       if (used.has(id))
         continue;
       binds.push(JSON.parse(JSON.stringify(bind)));
@@ -2010,6 +2012,35 @@ QtObject {
     }
     if (Object.keys(session).length > 0)
       config.Session = session;
+    return config;
+  }
+
+  // Keybinds leave the Hyprland section, so every compositor has the same
+  // binds (Hyprland.binds -> Keybinds.binds). Exiting is the session's
+  // (exitHyprland -> exitSession), and a Lua dispatcher becomes a raw
+  // command for the compositor it's written for (lua -> raw, hyprland).
+  function _v59ToV60(config, changes) {
+    const hypr = config.Hyprland;
+    if (!hypr || typeof hypr !== "object" || hypr.binds === undefined)
+      return config;
+    config.Keybinds = config.Keybinds ?? {};
+    if (config.Keybinds.binds === undefined) {
+      config.Keybinds.binds = hypr.binds;
+      changes.push("Hyprland.binds -> Keybinds.binds");
+    }
+    delete hypr.binds;
+    if (!Array.isArray(config.Keybinds.binds))
+      return config;
+    for (const bind of config.Keybinds.binds) {
+      if (bind?.action === "exitHyprland") {
+        bind.action = "exitSession";
+        changes.push(`Keybinds.binds: ${bind.key} exitHyprland -> exitSession`);
+      } else if (bind?.action === "lua") {
+        bind.action = "raw";
+        bind.compositor = "hyprland";
+        changes.push(`Keybinds.binds: ${bind.key} lua -> raw (hyprland)`);
+      }
+    }
     return config;
   }
 }

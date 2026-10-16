@@ -72,8 +72,9 @@ QtObject {
       return `hl.dsp.layout("fit visible")`;
     // Any dispatcher, as Lua (`hl.dsp.layout("swapsplit")`), compiled when
     // the bind is made so a mistake only leaves that bind doing nothing
-    // instead of breaking the whole file
-    case "lua":
+    // instead of breaking the whole file (bindLua leaves out a raw command
+    // written for another compositor)
+    case "raw":
       return `(function() local ok, d = pcall(load(${_lua("return " + argument)}) or error) if ok and d then return d end return hl.dsp.no_op() end)()`;
     // Lua functions entering the switcher's submap (HyprLua.switcherLua)
     case "windowSwitcher":
@@ -92,7 +93,7 @@ QtObject {
     // Run by Hyprland, not over IPC, so it works when the shell is stuck
     case "restartShell":
       return `hl.dsp.exec_cmd(${_lua(`qs kill ${ctx.shellCommand.slice(3)}; ${ctx.shellCommand} -d`)})`;
-    case "exitHyprland":
+    case "exitSession":
       return `hl.dsp.exec_cmd(${_lua("command -v hyprshutdown >/dev/null 2>&1 && hyprshutdown || hyprctl dispatch 'hl.dsp.exit()'")})`;
     // The apps from the Apps settings, so a bind follows them
     case "terminal":
@@ -110,7 +111,7 @@ QtObject {
   // `ctx` as for dispatcherLua
   function bindLua(bind, ctx) {
     const argument = String(bind.argument ?? "").trim();
-    if (!String(bind.key ?? "").trim() || (BindActions.needsArgument(bind.action) && !argument))
+    if (!String(bind.key ?? "").trim() || (BindActions.needsArgument(bind.action) && !argument) || (bind.action === "raw" && (bind.compositor ?? "hyprland") !== "hyprland"))
       return "";
     let dispatcher;
     if (BindActions.compositorActions[bind.action]) {

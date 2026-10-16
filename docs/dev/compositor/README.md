@@ -30,7 +30,6 @@ How axiom reaches the compositor it runs under. Read this before anything that r
 - These talk to `HyprlandManager` directly (`runLua`, `withOutputs`, `withBinds`, `setCursor`), each gated on its capability:
   - `HyprlandConfigManager` (config modes, the look layer; `live`)
   - `MonitorManager` (`monitors`)
-  - `KeybindManager` (`keybinds`)
   - `WindowSwitcherManager` (`switcher`)
   - `GreetdManager`, `OnboardingManager`
 - Nothing here may write Hyprland's config unless `supports.configModes` is set: under another compositor, managed mode would otherwise rewrite `~/.config/hypr/hyprland.lua`.

@@ -109,6 +109,18 @@ TestCase {
       "key": "SUPER + R",
       "action": "unknown"
     }, ctx), "");
+    compare(HyprConfigLua.bindLua({
+      "key": "SUPER + R",
+      "action": "raw",
+      "compositor": "sway",
+      "argument": "splitv"
+    }, ctx), "", "a raw command for another compositor");
+    verify(HyprConfigLua.bindLua({
+      "key": "SUPER + R",
+      "action": "raw",
+      "compositor": "hyprland",
+      "argument": "hl.dsp.layout(\"swapsplit\")"
+    }, ctx).startsWith("hl.bind("));
   }
 
   function test_compositorActions() {

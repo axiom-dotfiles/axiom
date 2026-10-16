@@ -8,10 +8,6 @@ import qs.services
 QtObject {
   readonly property var _c: ConfigManager.config.Hyprland
 
-  // [{ key, action, argument, description }]. Goes through a string so a
-  // reload that leaves the list unchanged doesn't re-apply the binds.
-  readonly property string _bindsJson: JSON.stringify(_c.binds)
-  readonly property var binds: JSON.parse(_bindsJson)
   // Monitor profiles ({ name, outputs: [MonitorRule] }), edited on the
   // Monitors page (MonitorManager)
   readonly property string _monitorsJson: JSON.stringify(_c.monitors.profiles)

@@ -295,6 +295,24 @@ Singleton {
     root.backend?.exitSession();
   }
 
+  // --- Binds (the Keybinds page) ---
+
+  // Calls back with the compositor's binds in effect ({ modmask, key,
+  // keycode, description, submap }, BindKeys), or null. Needs bindMerge
+  function withBinds(callback) {
+    if (root.supports.bindMerge)
+      root.backend.withMainBinds(callback);
+    else
+      callback(null);
+  }
+
+  // While on, every key reaches axiom instead of the compositor's binds
+  // (the key recorder). Needs keyCapture
+  function captureKeys(on) {
+    if (root.supports.keyCapture)
+      root.backend.captureKeys(on);
+  }
+
   // The shell command turning the screens off or on (the idle daemon's),
   // or "" where axiom doesn't know one
   function dpmsCommand(on) {

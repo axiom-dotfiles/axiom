@@ -212,7 +212,7 @@ def main():
     # backend; besides the Hyprland* services, only the Hyprland-only
     # features use it directly, each gated on CompositorManager.supports.
     hyprland_features = {
-        "services/CompositorManager.qml", "services/MonitorManager.qml", "services/KeybindManager.qml",
+        "services/CompositorManager.qml", "services/MonitorManager.qml",
         "services/GreetdManager.qml", "services/WindowSwitcherManager.qml", "services/OnboardingManager.qml",
     }
     for path, text in sources.items():

@@ -3,9 +3,9 @@ import QtTest
 import qs.components.methods
 
 TestCase {
-  name: "HyprBinds"
+  name: "BindKeys"
 
-  // hyprctl binds -j entries, trimmed to what HyprBinds reads
+  // hyprctl binds -j entries, trimmed to what BindKeys reads
   function entry(modmask, key, extra) {
     return Object.assign({
       "modmask": modmask,
@@ -16,20 +16,20 @@ TestCase {
   }
 
   function test_keyId() {
-    compare(HyprBinds.keyId("SUPER + SHIFT + Space"), "65:space");
-    compare(HyprBinds.keyId("mod4+control+Q"), "68:q");
-    compare(HyprBinds.keyId("F12"), "0:f12");
-    compare(HyprBinds.keyId(" SUPER + code:10 "), "64:code:10");
-    compare(HyprBinds.keyId("HYPER + A"), "", "unknown modifier");
-    compare(HyprBinds.keyId(""), "");
-    compare(HyprBinds.keyId(undefined), "");
+    compare(BindKeys.keyId("SUPER + SHIFT + Space"), "65:space");
+    compare(BindKeys.keyId("mod4+control+Q"), "68:q");
+    compare(BindKeys.keyId("F12"), "0:f12");
+    compare(BindKeys.keyId(" SUPER + code:10 "), "64:code:10");
+    compare(BindKeys.keyId("HYPER + A"), "", "unknown modifier");
+    compare(BindKeys.keyId(""), "");
+    compare(BindKeys.keyId(undefined), "");
   }
 
   function test_entryId_matches_keyId() {
-    compare(HyprBinds.entryId(entry(65, "Space")), HyprBinds.keyId("SUPER + SHIFT + space"));
-    compare(HyprBinds.entryId(entry(64, "", {
+    compare(BindKeys.entryId(entry(65, "Space")), BindKeys.keyId("SUPER + SHIFT + space"));
+    compare(BindKeys.entryId(entry(64, "", {
       "keycode": 10
-    })), HyprBinds.keyId("SUPER + code:10"));
+    })), BindKeys.keyId("SUPER + code:10"));
   }
 
   function test_runtime_skips_keys_the_user_binds() {
@@ -55,7 +55,7 @@ TestCase {
       }), entry(64, "d", {
         "submap": "resize"
       })];
-    const plan = HyprBinds.runtimeBinds(binds, entries);
+    const plan = BindKeys.runtimeBinds(binds, entries);
     compare(plan.skipped, ["SUPER + Return", "SUPER + SHIFT + Q", "SUPER + code:10"]);
     // A submap's bind doesn't take the key outside it
     compare(plan.apply.map(bind => bind.key), ["SUPER + D"]);
@@ -63,21 +63,21 @@ TestCase {
   }
 
   function test_runtime_with_nothing_bound() {
-    const plan = HyprBinds.runtimeBinds([
+    const plan = BindKeys.runtimeBinds([
       {
         "key": "SUPER + A"
       }
     ], []);
     compare(plan.apply.length, 1);
     compare(plan.skipped, []);
-    compare(HyprBinds.runtimeBinds(undefined, undefined).apply, []);
+    compare(BindKeys.runtimeBinds(undefined, undefined).apply, []);
   }
 
   function test_userKeyCounts_less_axioms_own() {
     const entries = [entry(64, "a"), entry(64, "a"), entry(64, "b"), entry(64, "c", {
         "submap": "resize"
       })];
-    const counts = HyprBinds.userKeyCounts(entries, [
+    const counts = BindKeys.userKeyCounts(entries, [
       {
         "key": "SUPER + A"
       },
@@ -130,12 +130,12 @@ TestCase {
         "action": "pin"
       }
     ];
-    const merged = HyprBinds.mergeBinds(axiom, user);
+    const merged = BindKeys.mergeBinds(axiom, user);
     compare(merged.map(bind => bind.action), ["exec", "lock", "fileManager", "exec", "pin"]);
     compare(merged[0].argument, "kitty");
     compare(merged[3].argument, "b");
     // The inputs are left as they were
     compare(axiom[0].action, "overlay");
-    compare(HyprBinds.mergeBinds(axiom, []), axiom);
+    compare(BindKeys.mergeBinds(axiom, []), axiom);
   }
 }

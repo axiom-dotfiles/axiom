@@ -1,10 +1,10 @@
 # Merging user binds (managed mode)
 
-> **Files:** `services/HyprlandBindMerge.qml`, `services/HyprlandConfigManager.qml` (`mergeUserBinds`, `previewMerge`), `scripts/merge_hypr_binds.py`, `scripts/hypr_binds.lua`, `components/methods/HyprBinds.qml`
-> **Config:** `Hyprland.binds`
+> **Files:** `services/HyprlandBindMerge.qml`, `services/HyprlandConfigManager.qml` (`mergeUserBinds`, `previewMerge`), `scripts/merge_hypr_binds.py`, `scripts/hypr_binds.lua`, `components/methods/BindKeys.qml`
+> **Config:** `Keybinds.binds`
 > **Related:** [Managed takeover](managed-takeover.md), [Keybinds](keybinds.md), [Config modes](config-modes.md)
 
-`mergeUserBinds(only)` moves the binds in `user/*.lua` into `Hyprland.binds`, so axiom owns them and nothing is bound twice. It works in managed mode only.
+`mergeUserBinds(only)` moves the binds in `user/*.lua` into `Keybinds.binds`, so axiom owns them and nothing is bound twice. It works in managed mode only.
 
 ### Entry points
 - The Keybinds page's Merge button.
@@ -24,10 +24,10 @@
     - submap and `hl.on` handlers aren't seen.
 - Each dispatcher is mapped onto an action:
   - `exec_cmd` of wpctl/pactl/brightnessctl/playerctl → the media actions
-  - the example config's exit command → `exitHyprland`
+  - the example config's exit command → `exitSession`
   - any other exec → `exec`
   - focus/move/float/pseudo/togglesplit/special/drag → their own actions
-  - anything else → the `lua` action, with the dispatcher as written.
+  - anything else → the `raw` action (`compositor: hyprland`), with the dispatcher as written.
 - Hyprland's example config maps completely.
 - **Remapped keys.** Binds from an adopted `00-previous*.lua` on keys axiom's defaults use are moved (`EXAMPLE_KEYS`) and reported in `remapped`. A key in the user's other files was their own choice, so it isn't moved.
   - togglesplit: `SUPER + J` (focus down) → `SUPER + X`
@@ -51,6 +51,6 @@
    - Only the binds that went are sent to `bindsMerged`.
 
 ### Duplicates and results
-- A key axiom already binds stays one bind. `HyprBinds.mergeBinds` puts the moved bind in place of axiom's, because the user's config loads after axiom's layer and so was the one in effect. It does the same in a draft with unsaved edits.
+- A key axiom already binds stays one bind. `BindKeys.mergeBinds` puts the moved bind in place of axiom's, because the user's config loads after axiom's layer and so was the one in effect. It does the same in a draft with unsaved edits.
 - Reasons are codes (listed in the script's docstring), translated by `BindEditor.reasonText`. `tracked` names files that are in a git repository.
 - `lastMerge` shows above the bind list. Its fields are `moved`, `removed`, `kept` (with reasons), `failed`, `remapped`, `tracked`, `errors` and `saveFailed`.

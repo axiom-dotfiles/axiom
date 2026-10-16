@@ -11,7 +11,6 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 
 ### Parts
 
-- [`Hyprland.binds`](Hyprland.binds.md)
 - [`Hyprland.monitors`](Hyprland.monitors.md)
 - [`Hyprland.managed.curves`](Hyprland.managed.curves.md)
 - [`Hyprland.managed.customAnimations`](Hyprland.managed.customAnimations.md)
@@ -21,8 +20,6 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 
 Every public member of `HyprlandConfig`, with the files that use it.
 
-- `HyprlandConfig.binds` (var)
-  - in: `components/surfaces/onboarding/pages/AppsPage.qml`, `components/surfaces/onboarding/pages/BindsTable.qml`, `services/EdgeMenuManager.qml`, `services/HyprlandBindMerge.qml`, `services/HyprlandConfigManager.qml`, `services/HyprlandRuntimeLayer.qml`, `services/KeybindManager.qml`
 - `HyprlandConfig.monitorProfiles` (var)
   - in: `services/HyprlandConfigManager.qml`, `services/HyprlandRuntimeLayer.qml`, `services/MonitorManager.qml`
 - `HyprlandConfig.managed` (var)

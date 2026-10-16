@@ -48,7 +48,7 @@ The public members (no `_` prefix) of every file in `services/` and every config
 - [HyprlandTakeover](api/HyprlandTakeover.md): Taking ~/.config/hypr/hyprland.lua over for the managed mode, and giving it back (scripts/claim_hyprland.sh), for HyprlandConfigManager, which acts on the resu…
 - [IdleInhibitManager](api/IdleInhibitManager.md): Shared on/off state for keeping the session awake.
 - [IntegrationHookupManager](api/IntegrationHookupManager.md): Hooks theme integrations into their apps' configs: each ThemeIntegrations switch's `x-hookup` targets (the line that loads its axiom file, where it goes), run …
-- [KeybindManager](api/KeybindManager.md): KeybindManager reads the keybinds Hyprland has registered (HyprlandManager.withBinds).
+- [KeybindManager](api/KeybindManager.md): KeybindManager reads the keybinds the compositor has registered (CompositorManager.withBinds).
 - [KeyboardLayoutManager](api/KeyboardLayoutManager.md): Active xkb layout of the main keyboard, shared by every KeyboardLayout widget.
 - [LauncherCommands](api/LauncherCommands.md): The launcher's slash commands, one per shell feature.
 - [LauncherManager](api/LauncherManager.md): LauncherManager turns the launcher's search text into result rows and runs them.
@@ -102,6 +102,7 @@ The public members (no `_` prefix) of every file in `services/` and every config
 - [IconsConfig](api/IconsConfig.md): Reader for the Icons section.
 - [Idle](api/Idle.md): Reader for the Idle section: hypridle, run by HypridleManager.
 - [InputConfig](api/InputConfig.md): Reader for the Input section: the keyboard, mouse, touchpad and cursor axiom sets on the compositor, a part at a time ({ keyboard, kbLayout, …, mouse, …, touch…
+- [KeybindsConfig](api/KeybindsConfig.md): Reader for the Keybinds section: axiom's own binds, edited on the Keybinds page (KeybindManager) and applied by the compositor's config writer (on Hyprland, Hy…
 - [LauncherConfig](api/LauncherConfig.md): Reader for the Launcher section (the search launcher).
 - [LockscreenConfig](api/LockscreenConfig.md): Reader for the Lockscreen section: which locker locks the session, and what the built-in one shows (`layout`, as saved: the lock never shows the layouts editor…
 - [NightLight](api/NightLight.md): Reader for the NightLight section: warmer colors through hyprsunset or wlsunset, run by NightLightManager.

@@ -199,14 +199,14 @@ TestCase {
         ]
       }
     });
-    const binds = result.config.Hyprland.binds;
+    const binds = result.config.Keybinds.binds;
     // The user's own SUPER + Return stays; the rest are added once
     compare(binds.filter(bind => bind.action === "terminal").length, 0);
     compare(binds[0].argument, "foot");
     // (v22 adds SUPER + CTRL + S)
     compare(binds.filter(bind => bind.action === "screenshot").length, 4);
-    compare(binds.filter(bind => bind.action === "exitHyprland").length, 1);
-    compare(ConfigMigration.migrate(result.config).config.Hyprland.binds.length, binds.length);
+    compare(binds.filter(bind => bind.action === "exitSession").length, 1, "renamed in v60");
+    compare(ConfigMigration.migrate(result.config).config.Keybinds.binds.length, binds.length);
   }
 
   function test_v28_adds_wasd_binds_on_free_keys() {
@@ -222,14 +222,14 @@ TestCase {
         ]
       }
     });
-    const binds = result.config.Hyprland.binds;
+    const binds = result.config.Keybinds.binds;
     // The user's own SUPER + A stays; the other seven are added once (and
     // v38's three)
     compare(binds.length, 11);
     compare(binds[0].argument, "pavucontrol");
     compare(binds.filter(bind => bind.action === "workspaceStep").map(bind => bind.argument).sort(), ["down", "right", "up"]);
     compare(binds.filter(bind => bind.action === "moveWindowStep").length, 4);
-    compare(ConfigMigration.migrate(result.config).config.Hyprland.binds.length, binds.length);
+    compare(ConfigMigration.migrate(result.config).config.Keybinds.binds.length, binds.length);
   }
 
   function test_v26_moves_pywal_themes_to_tonal() {
@@ -704,7 +704,7 @@ TestCase {
           }
         ]
       }
-    }).config.Hyprland.binds;
+    }).config.Keybinds.binds;
     compare(free.length, 4);
     compare(free[1].key, "SUPER + X");
     compare(free[1].action, "toggleSplit");
@@ -721,7 +721,7 @@ TestCase {
           }
         ]
       }
-    }).config.Hyprland.binds;
+    }).config.Keybinds.binds;
     compare(taken.length, 3);
     compare(taken[0].action, "exec");
     compare(taken.filter(bind => bind.action === "toggleSplit").length, 0);
@@ -1864,5 +1864,49 @@ TestCase {
     compare(load({
       "version": 58
     }).config.Session.autostart.length, 3, "defaults fill a config without them");
+  }
+
+  function test_v60_keybinds_leave_hyprland() {
+    const migrated = load({
+      "version": 59,
+      "Hyprland": {
+        "binds": [
+          {
+            "key": "SUPER + SHIFT + Escape",
+            "action": "exitHyprland",
+            "release": true
+          },
+          {
+            "key": "SUPER + S",
+            "action": "lua",
+            "argument": "hl.dsp.layout(\"swapsplit\")"
+          },
+          {
+            "key": "SUPER + Return",
+            "action": "terminal"
+          }
+        ]
+      }
+    });
+    const binds = migrated.config.Keybinds.binds;
+    compare(binds.length, 3);
+    compare(binds[0].action, "exitSession");
+    compare(binds[0].release, true);
+    compare(binds[1].action, "raw");
+    compare(binds[1].compositor, "hyprland");
+    compare(binds[1].argument, "hl.dsp.layout(\"swapsplit\")");
+    compare(binds[2].action, "terminal");
+    compare(migrated.config.Hyprland.binds, undefined);
+    compare(migrated.removed, []);
+    compare(errors(migrated.config), []);
+    // Idempotent
+    const again = ConfigMigration.migrate(JSON.parse(JSON.stringify(Object.assign({}, migrated.config, {
+      "version": 59
+    })))).config;
+    compare(again.Keybinds.binds[1].action, "raw");
+    compare(again.Keybinds.binds.length, 3);
+    verify(load({
+      "version": 59
+    }).config.Keybinds.binds.some(bind => bind.action === "exitSession"), "the defaults");
   }
 }

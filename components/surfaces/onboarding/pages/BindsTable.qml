@@ -6,7 +6,7 @@ import qs.config
 import qs.services
 import qs.components.reusable
 
-// The keys axiom binds for some actions (from Hyprland.binds): one row per
+// The keys axiom binds for some actions (from Keybinds.binds): one row per
 // action, with its first key, its label, and a warning when the running
 // layer skipped that key because the user's own config holds it
 GridLayout {
@@ -20,7 +20,7 @@ GridLayout {
   rowSpacing: Widget.spacing
 
   function bindFor(entry) {
-    return HyprlandConfig.binds.find(bind => bind.action === entry.action && (entry.argument === undefined || String(bind.argument ?? "") === entry.argument)) ?? null;
+    return KeybindsConfig.binds.find(bind => bind.action === entry.action && (entry.argument === undefined || String(bind.argument ?? "") === entry.argument)) ?? null;
   }
 
   Repeater {

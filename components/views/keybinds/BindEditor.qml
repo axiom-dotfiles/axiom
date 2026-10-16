@@ -7,7 +7,7 @@ import qs.components.forms
 import qs.components.methods
 import qs.components.reusable
 
-// The Keybinds page's editor for axiom's own binds (Hyprland.binds):
+// The Keybinds page's editor for axiom's own binds (Keybinds.binds):
 // presets, then one row per bind, with a search and a sort that only
 // change what's shown. Edits wait in KeybindManager's draft until Save.
 ColumnLayout {

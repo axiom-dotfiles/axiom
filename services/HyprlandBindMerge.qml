@@ -14,7 +14,7 @@ import qs.components.methods
  * (a dated backup beside it). A call that couldn't be deleted has its
  * binds taken back out of axiom's, so no key is ever bound twice. A key
  * axiom binds too stays one bind, the user's replacing axiom's
- * (HyprBinds.mergeBinds). Runs by itself on the adopted file when a
+ * (BindKeys.mergeBinds). Runs by itself on the adopted file when a
  * takeover adopts the previous hyprland.lua, so managed mode starts with
  * no conflicts; the Keybinds page's Merge runs it on all of user/.
  */
@@ -114,10 +114,10 @@ QtObject {
       return;
     }
     // Saved before the calls go, so no bind is ever missing
-    _before = HyprlandConfig.binds;
+    _before = KeybindsConfig.binds;
     _sites = found.sites;
     if (!SettingsManager.commitValues({
-      "Hyprland.binds": HyprBinds.mergeBinds(_before, found.binds)
+      "Keybinds.binds": BindKeys.mergeBinds(_before, found.binds)
     })) {
       _merged.moved = 0;
       _merged.saveFailed = true;
@@ -153,7 +153,7 @@ QtObject {
     const left = site => done.failed.some(f => f.file === site.file && (f.line === 0 || f.line === site.line));
     const moved = [].concat(..._sites.filter(site => !left(site)).map(site => site.binds));
     if (done.failed.length > 0 && !SettingsManager.commitValues({
-      "Hyprland.binds": HyprBinds.mergeBinds(_before, moved)
+      "Keybinds.binds": BindKeys.mergeBinds(_before, moved)
     }))
       console.warn("[HyprlandConfigManager] Couldn't take the binds left in your Hyprland config back out of axiom's");
     _merged.moved = moved.length;

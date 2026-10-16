@@ -248,7 +248,8 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `BarLayout.qml`: Pure main-axis layout for a bar (BarContainer) and its sections (WidgetGroup).
 - `BarShapes.qml`: The shapes bar widget backgrounds take (Bars[].widgetShape, a slanted or arrow widget's or run's ends by Bars[].widgetEnds), alone or in runs (Bars[].widgetGrouping): which cap each end of a widget gets, how much room i…
 - `BarWidgetStyle.qml`: What a bar widget draws in, by its bar's widget style: { fill, stroke, indicator, text, icon }.
-- `BindActions.qml`: What each keybind action (the schema's Hyprland.binds[].action) is, independent of the compositor: its IPC call into axiom, default label, section on the Keybinds page, calls, starting flags and whether it takes an argu…
+- `BindActions.qml`: What each keybind action (the schema's Keybinds.binds[].action) is, independent of the compositor: its IPC call into axiom, default label, section on the Keybinds page, calls, starting flags and whether it takes an argu…
+- `BindKeys.qml`: Binds against what the compositor reports (CompositorManager.withBinds entries: { modmask, key, keycode, description, submap }, the modifiers as X11 mask bits, as Hyprland's `hyprctl binds -j` lists them): a key's id, w…
 - `CalendarEvents.qml`: Pure helpers for calendar events (see CalendarManager): day keys, which days an event covers, a day's events in order, dots, what's next, reminders due, editing drafts and the launcher's quick add.
 - `ChatMarkdown.qml`: Splits a chat reply into what the chat draws separately: Markdown prose (a TextEdit in MarkdownText) and fenced code blocks (a box of their own, with a copy button).
 - `ChatProtocol.qml`: The chat providers' wire formats, as pure functions: ChatManager builds a request with request(), ChatRequest sends it with curl and feeds every streamed event to parse().
@@ -264,7 +265,6 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `GreeterSessions.qml`: The sessions the greeter can start (GreetdManager): Wayland session desktop entries (wayland-sessions/*.desktop in each data dir), their Exec line split into the argv greetd launches, and the environment they start in.
 - `GreeterUsers.qml`: The people the greeter offers to log in (GreetdManager): accounts from /etc/passwd whose uid is in /etc/login.defs' UID_MIN..UID_MAX (regular users, not system accounts) and whose shell lets them log in.
 - `GridPlacement.qml`: Pure geometry of the module grid shared by overlay pages, edge menus and the layouts editor.
-- `HyprBinds.qml`: Binds against what Hyprland reports (`hyprctl binds -j` entries): a key's id as Hyprland lists it, which of axiom's binds the runtime layer applies and which it skips because the user's config already binds that key, an…
 - `HyprConfigLua.qml`: The Lua axiom's Hyprland layer is made of (HyprlandConfigManager): each bind's hl.bind(), the included module, the managed hyprland.lua and the one given back on leaving managed.
 - `HyprLua.qml`: Hyprland's Lua config from schema fields: each field with `x-hypr` (the option's dotted path, or a list of paths) becomes one value of a nested hl.config({...}) table. x-hyprScale a factor for integers shown scaled (0.0…
 - `HyprReply.qml`: Requests and replies on Hyprland's request socket (HyprlandIpcManager), which answers one request per connection, in hyprctl's wire format: "j/" asks for JSON, "[[BATCH]]a;b" runs several and joins their replies with bl…
@@ -416,7 +416,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 ## components/surfaces/onboarding/pages/
 
 - `AppsPage.qml`: The apps the keybinds open (terminal, file manager, browser), with the installed ones offered to pick from, the main modifier, and the keys that matter most on day one.
-- `BindsTable.qml`: The keys axiom binds for some actions (from Hyprland.binds): one row per action, with its first key, its label, and a warning when the running layer skipped that key because the user's own config holds it
+- `BindsTable.qml`: The keys axiom binds for some actions (from Keybinds.binds): one row per action, with its first key, its label, and a warning when the running layer skipped that key because the user's own config holds it
 - `ChecksPage.qml`: What's missing: the icon font, and the programs features use (DependencyManager.tools), with one command that installs them
 - `FinishPage.qml`: The last page: what Finish does to Hyprland, whether axiom starts with the session, and where to go from here
 - `HyprlandPage.qml`: How axiom and Hyprland's config fit together: what's in ~/.config/hypr (OnboardingManager.configState), the three modes (always all three: managed recommended, included for complex setups, detached for testing) (an unav…
@@ -494,7 +494,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 ## components/views/keybinds/
 
 - `ActionPicker.qml`: A bind's action: a button showing it, opening a popup with a search and one scrolling list of actions under collapsible category headers (KeybindManager.actionInfo).
-- `BindEditor.qml`: The Keybinds page's editor for axiom's own binds (Hyprland.binds): presets, then one row per bind, with a search and a sort that only change what's shown.
+- `BindEditor.qml`: The Keybinds page's editor for axiom's own binds (Keybinds.binds): presets, then one row per bind, with a search and a sort that only change what's shown.
 - `BindEditorRow.qml`: One of axiom's binds in the editor: key, action, argument and label on one line, its issues under it.
 - `FilterChips.qml`: The Keybinds page's toggle chips, in groups set apart by a short line, then Clear while any is on.
 - `KeyRecorder.qml`: A bind's key combo as keycaps; click to record a new one.
@@ -624,7 +624,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `HyprlandTakeover.qml`: Taking ~/.config/hypr/hyprland.lua over for the managed mode, and giving it back (scripts/claim_hyprland.sh), for HyprlandConfigManager, which acts on the results (claimed, blocked, released).
 - `IdleInhibitManager.qml`: Shared on/off state for keeping the session awake.
 - `IntegrationHookupManager.qml`: Hooks theme integrations into their apps' configs: each ThemeIntegrations switch's `x-hookup` targets (the line that loads its axiom file, where it goes), run by scripts/integration_hookup.py.
-- `KeybindManager.qml`: KeybindManager reads the keybinds Hyprland has registered (HyprlandManager.withBinds).
+- `KeybindManager.qml`: KeybindManager reads the keybinds the compositor has registered (CompositorManager.withBinds).
 - `KeyboardLayoutManager.qml`: Active xkb layout of the main keyboard, shared by every KeyboardLayout widget.
 - `LauncherCommands.qml`: The launcher's slash commands, one per shell feature.
 - `LauncherManager.qml`: LauncherManager turns the launcher's search text into result rows and runs them.
@@ -678,6 +678,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `IconsConfig.qml`: Reader for the Icons section.
 - `Idle.qml`: Reader for the Idle section: hypridle, run by HypridleManager.
 - `InputConfig.qml`: Reader for the Input section: the keyboard, mouse, touchpad and cursor axiom sets on the compositor, a part at a time ({ keyboard, kbLayout, …, mouse, …, touchpad, …, cursor, cursorTheme, cursorSize }), through Composit…
+- `KeybindsConfig.qml`: Reader for the Keybinds section: axiom's own binds, edited on the Keybinds page (KeybindManager) and applied by the compositor's config writer (on Hyprland, HyprlandConfigManager)
 - `LauncherConfig.qml`: Reader for the Launcher section (the search launcher).
 - `LockscreenConfig.qml`: Reader for the Lockscreen section: which locker locks the session, and what the built-in one shows (`layout`, as saved: the lock never shows the layouts editor's unsaved draft, LockManager.editor.localLayout).
 - `NightLight.qml`: Reader for the NightLight section: warmer colors through hyprsunset or wlsunset, run by NightLightManager.

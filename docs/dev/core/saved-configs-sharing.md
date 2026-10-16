@@ -16,7 +16,7 @@ Snapshots of the config, the shipped example setups, and sharing a config throug
 Inherited down the schema; the root is `machine`.
 - `look`: the layout and style sections, plus the theme, font, shape and motion.
 - `personal`: carried only when asked for.
-  - `Apps`, `Hyprland.binds`, a dock's `pinned`, Favourites' apps, widget commands, OSD audio apps.
+  - `Apps`, `Keybinds.binds`, a dock's `pinned`, Favourites' apps, widget commands, OSD audio apps.
 - `machine`: never carried.
   - Monitor names, wallpapers, accounts, paths, AUR settings, and every other section.
 

@@ -69,8 +69,8 @@ OnboardingPage {
         "label": I18n.tr("Restart axiom if it gets stuck")
       },
       {
-        "action": "exitHyprland",
-        "label": I18n.tr("Leave Hyprland")
+        "action": "exitSession",
+        "label": I18n.tr("Log out")
       }
     ]
   }

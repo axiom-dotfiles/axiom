@@ -46,6 +46,8 @@ CompositorManager's backend on Hyprland (docs/dev/compositor/contract.md): Hyprl
 - `withOutputs(callback)`: Calls back with every output, disabled ones too (Hyprland's monitors as JSON: name, description, width, height, refreshRate, x, y, scale, transform, disabled, mirrorOf, vrr, …), or null.
 - `withVersion(callback)`: Calls back with Hyprland's version ("0.56.2"), or "" when it didn't answer
 - `withBinds(callback)`: Calls back with every bind Hyprland has (its binds as JSON: modmask, key, keycode, submap, description, dispatcher, arg, …), or null
+- `withMainBinds(callback)`: Calls back with the binds in effect outside axiom's own submaps (the key recorder's, the window switcher's), or null (CompositorManager)
+- `captureKeys(on)`: While on, every key reaches axiom instead of a bind (the Keybinds page's recorder): an empty submap (Hyprland only registers one with a bind, hence the unreachable one).
 - `setCursor(theme, size)`: The cursor theme and size, for this session
 - `exitSession()`: Ends the Hyprland session (the power menu's log out)
 - `dpmsCommand(on)`: The shell command turning the screens off or on (hypridle's DPMS)

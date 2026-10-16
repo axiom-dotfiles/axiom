@@ -52,6 +52,8 @@ The running compositor, for the rest of axiom: its windows, outputs and workspac
 - `withHoveredScreen(callback)`: Calls back with the name of the screen under the cursor (the focused one if the compositor can't say)
 - `warpCursorToLayer(namespace, output, width, height, x, y)`: Moves the cursor to (x, y) inside one of axiom's layer surfaces (the one in `namespace` on `output`, `width` × `height`), where the compositor can
 - `exitSession()`: Ends the session (the power menu's log out)
+- `withBinds(callback)`: Calls back with the compositor's binds in effect ({ modmask, key, keycode, description, submap }, BindKeys), or null.
+- `captureKeys(on)`: While on, every key reaches axiom instead of the compositor's binds (the key recorder).
 - `dpmsCommand(on)`: The shell command turning the screens off or on (the idle daemon's), or "" where axiom doesn't know one
 - `goToWorkspace(id, mode, output, focusId)`: Goes to workspace `id`. mode: "go" (default), "move" (taking the focused window along) or "moveSilent" (sending it there, staying put).
 - `stepWorkspace(direction, mode)`: One step left/right/up/down from the current workspace: within the output's grid, or through 1..count in the standard layout (where up is previous and down next).

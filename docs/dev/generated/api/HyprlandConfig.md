@@ -7,6 +7,5 @@ Reader for the Hyprland section: what axiom writes into Hyprland (HyprlandConfig
 
 ### Properties
 
-- `binds` (readonly var)
 - `monitorProfiles` (readonly var)
 - `managed` (readonly var)

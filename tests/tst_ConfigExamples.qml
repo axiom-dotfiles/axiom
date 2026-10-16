@@ -68,7 +68,7 @@ TestCase {
       "Calendar": {
         "accounts": []
       },
-      "Hyprland": {
+      "Keybinds": {
         "binds": [],
         "mode": "managed"
       },
@@ -101,7 +101,7 @@ TestCase {
       "Apps": {
         "terminal": "foot"
       },
-      "Hyprland": {
+      "Keybinds": {
         "binds": [
           {
             "key": "SUPER + T",
@@ -133,8 +133,8 @@ TestCase {
       "Apps": {
         "terminal": "foot"
       },
-      "Hyprland": {
-        "binds": config.Hyprland.binds
+      "Keybinds": {
+        "binds": config.Keybinds.binds
       },
       "Dock": {
         "docks": [
@@ -259,13 +259,13 @@ TestCase {
     };
     saved.Appearance.variantWallpapers.dark = "file:///walls/night.png";
     saved.Bars = [bar("main", "DP-1")];
-    saved.Hyprland.binds = [];
+    saved.Keybinds.binds = [];
     // Filled, as a running config is
     saved = load(saved);
     const snapshot = ConfigExamples.snapshot(saved, schema);
     compare(snapshot.Appearance.theme, "nord");
     compare(snapshot.Appearance.wallpaper, "file:///walls/a%20b.png");
-    compare(snapshot.Hyprland.binds, []);
+    compare(snapshot.Keybinds.binds, []);
     verify(snapshot.ThemeIntegrations === undefined, "machine sections are left out");
     verify(snapshot.Compositor?.mode === undefined, "takeovers are left out");
 
@@ -283,7 +283,7 @@ TestCase {
     compare(ConfigExamples.snapshotFiles(loaded, schema).sort(), ["/walls/a b.png", "/walls/gone.png", "/walls/night.png"]);
     const restored = ConfigExamples.withSnapshot(ConfigExamples.apply(current, loaded, schema, true), loaded, schema, ["/walls/a b.png", "/walls/night.png"]);
     compare(restored.Appearance.theme, "nord");
-    compare(restored.Hyprland.binds, []);
+    compare(restored.Keybinds.binds, []);
     compare(restored.ThemeIntegrations.kitty, true);
     compare(restored.Compositor.mode, "managed");
     compare(restored.Bars[0].monitor, "HDMI-A-1");
@@ -385,7 +385,7 @@ TestCase {
           }
         ]
       },
-      "Hyprland": {
+      "Keybinds": {
         "binds": [
           {
             "key": "SUPER + T",
@@ -408,7 +408,7 @@ TestCase {
           }
         ]
       },
-      "Hyprland": {
+      "Keybinds": {
         "binds": []
       }
     };
@@ -418,13 +418,13 @@ TestCase {
     compare(kept.Bars[0].widgets.left[0].properties.command, "");
     compare(kept.Bars[0].monitor, "DP-1");
     compare(kept.Dock.docks.map(d => d.pinned), [["kitty"], []]);
-    compare(kept.Hyprland.binds, current.Hyprland.binds);
+    compare(kept.Keybinds.binds, current.Keybinds.binds);
 
     const taken = ConfigExamples.apply(current, example, schema, true);
     compare(taken.Bars[0].widgets.left[0].properties.command, "theirs");
     compare(taken.Bars[0].monitor, "DP-1");
     compare(taken.Dock.docks.map(d => d.pinned), [["firefox"], ["gimp"]]);
-    compare(taken.Hyprland.binds, []);
+    compare(taken.Keybinds.binds, []);
   }
 
   function test_apply_drops_values_of_another_type() {

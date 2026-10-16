@@ -170,7 +170,7 @@ Singleton {
       "header": _header,
       "includeLines": includeLines,
       "requiredSettings": CompositorConfig.requiredSettings,
-      "binds": HyprConfigLua.bindLines(HyprlandConfig.binds, _bindCtx),
+      "binds": HyprConfigLua.bindLines(KeybindsConfig.binds, _bindCtx),
       "look": _lookLua(true),
       "input": _inputLua(),
       "blur": _blurLua(true),
@@ -541,7 +541,7 @@ Singleton {
   // Everything the layer is made of but the look and the blur; a change
   // re-applies it (in the file modes, rewriting the file, which reloads
   // Hyprland)
-  readonly property string _inputs: [mode, HyprlandConfig._bindsJson, HyprlandConfig._monitorsJson, HyprlandConfig._managedJson, SessionConfig._sessionJson, WorkspacesConfig._stripsJson, CompositorConfig.requiredSettings, Theme.baseColorNames.map(name => Theme.resolveColor(name)).join(","), Appearance.animFast, Appearance.animations, Apps.terminalCommand, Apps.fileManagerCommand, Apps.browserCommand, Idle.enabled, PolkitConfig.enabled].join("|")
+  readonly property string _inputs: [mode, KeybindsConfig._bindsJson, HyprlandConfig._monitorsJson, HyprlandConfig._managedJson, SessionConfig._sessionJson, WorkspacesConfig._stripsJson, CompositorConfig.requiredSettings, Theme.baseColorNames.map(name => Theme.resolveColor(name)).join(","), Appearance.animFast, Appearance.animations, Apps.terminalCommand, Apps.fileManagerCommand, Apps.browserCommand, Idle.enabled, PolkitConfig.enabled].join("|")
   on_InputsChanged: _debounce.restart()
 
   // The window look and the blur behind axiom (paused over a fullscreen

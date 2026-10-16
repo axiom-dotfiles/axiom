@@ -38,6 +38,7 @@ Plain JS objects, rebuilt as the compositor reports changes. Converters sit in a
   - `scrollStrip(direction)`
   - `applyRemap(plan, outputNames)`
   - `refresh()`
+- **Binds** (the Keybinds page): `withMainBinds(cb)`: the binds in effect outside the backend's own modes, as `{ modmask, key, keycode, description, submap }` (`modmask` in X11 bits: SHIFT 1, CAPS 2, CTRL 4, ALT 8, MOD2 16, MOD3 32, SUPER 64, MOD5 128; `BindKeys`), or null (`bindMerge`); `captureKeys(on)`: while on, every key reaches axiom instead of a bind (`keyCapture`). The facade's `withBinds` / `captureKeys` check the capability.
 - **Session and input**: `withKeyboard(cb)`, `cycleKeyboardLayout(direction, cb)`, `withCursorPos(cb)`, `warpCursorToLayer(…)`, `withLayerRects(cb)`, `exitSession()`, `dpmsCommand(on)` (a shell command, for the idle daemon).
 - **Look**: `applyLook(look)`, `look` being `CompositorLayer.look()`'s spec: `{ parts, values, borders: { active, inactive } ("rrggbb"), shape: { width, radius }, gaps: { inner, outer }, blur: { windows, surfaces }, opacity: { active, inactive, fullscreen } }`, a part `null` while off. Only for backends without `configModes`.
 

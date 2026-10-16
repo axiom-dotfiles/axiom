@@ -331,6 +331,26 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
     HyprlandIpcManager.json("binds", binds => callback(Array.isArray(binds) ? binds : null));
   }
 
+  // Calls back with the binds in effect outside axiom's own submaps (the
+  // key recorder's, the window switcher's), or null (CompositorManager)
+  function withMainBinds(callback) {
+    root.withBinds(binds => callback(binds ? binds.filter(entry => entry.submap !== root._captureSubmap && entry.submap !== HyprLua.switcherSubmap) : null));
+  }
+
+  // While on, every key reaches axiom instead of a bind (the Keybinds
+  // page's recorder): an empty submap (Hyprland only registers one with a
+  // bind, hence the unreachable one). A Hyprland timer leaves it even if
+  // the shell dies meanwhile.
+  function captureKeys(on) {
+    root.runLua(on ? root._enterCaptureLua : root._leaveCaptureLua);
+  }
+
+  readonly property string _captureSubmap: "axiom_record"
+  readonly property string _leaveCaptureLua: HyprLua.leaveSubmap(_captureSubmap)
+  readonly property string _enterCaptureLua: `hl.define_submap("${_captureSubmap}", function() hl.bind("SUPER + CTRL + ALT + SHIFT + F24", hl.dsp.submap("reset")) end)
+hl.timer(function() ${_leaveCaptureLua} end, { timeout = 30000, type = "oneshot" })
+hl.dispatch(hl.dsp.submap("${_captureSubmap}"))`
+
   // The cursor theme and size, for this session
   function setCursor(theme, size) {
     HyprlandIpcManager.request(`setcursor ${theme} ${size}`);

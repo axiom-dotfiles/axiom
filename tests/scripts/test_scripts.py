@@ -920,7 +920,7 @@ class ClaimHyprland(unittest.TestCase):
         self.assertEqual(real.read_text(), self.HEADER + "\n")
 
 
-class MergeHyprBinds(unittest.TestCase):
+class MergeBindKeys(unittest.TestCase):
     EXAMPLE = Path("/usr/share/hypr/hyprland.lua")
 
     def setUp(self):
@@ -955,7 +955,7 @@ class MergeHyprBinds(unittest.TestCase):
         shutil.copy(self.EXAMPLE, self.hypr / "user" / "00-previous.lua")
         found = self.extract()
         self.assertEqual(found["kept"], [])
-        self.assertNotIn("lua", {b["action"] for b in found["binds"]})
+        self.assertNotIn("raw", {b["action"] for b in found["binds"]})
         by_key = {b["key"]: b for b in found["binds"]}
         self.assertEqual(by_key["SUPER + 0"]["action"], "workspaceNth")
         self.assertEqual(by_key["SUPER + 0"]["argument"], "10")
@@ -990,7 +990,8 @@ class MergeHyprBinds(unittest.TestCase):
         binds = {b["key"]: b for b in self.extract()["binds"]}
         self.assertEqual((binds["SUPER + T"]["action"], binds["SUPER + T"]["argument"]), ("exec", "foot"))
         self.assertEqual(binds["SUPER + T"]["description"], "Apps: Foot")
-        self.assertEqual((binds["SUPER + K"]["action"], binds["SUPER + K"]["argument"]), ("lua", 'hl.dsp.layout("swapsplit")'))
+        self.assertEqual((binds["SUPER + K"]["action"], binds["SUPER + K"]["argument"]), ("raw", 'hl.dsp.layout("swapsplit")'))
+        self.assertEqual(binds["SUPER + K"]["compositor"], "hyprland")
         self.assertEqual((binds["SUPER + L"]["action"], binds["SUPER + L"]["argument"]), ("moveWindowStep", "right"))
         self.assertEqual(binds["SUPER + mouse:272"]["action"], "mouseDrag")
 
