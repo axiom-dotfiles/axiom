@@ -782,6 +782,24 @@ mode "resize" {
         self.assertNotIn("H", by_key)
         self.assertEqual([(k["key"], k["reason"]) for k in found["kept"]], [("$mod+button2".replace("$mod", "Mod4"), "options")])
 
+    def test_exec_read_as_sway_runs_it(self):
+        """An exec's text is what sway hands the shell (checked against sway
+        1.12): one quoted word loses its quotes, an escaped quote is a bare
+        one by then, several words keep theirs."""
+        self.file.write_text("\n".join([
+            """bindsym Mod4+a exec "qs -p '/opt/axiom' ipc call workspaces step 'up' go\"""",
+            """bindsym Mod4+b exec 'echo "q"; echo  z'""",
+            """bindsym Mod4+c exec "grim -g \\"$(slurp)\\" out.png\"""",
+            """bindsym Mod4+d exec notify-send "a  b" c""",
+            """bindsym Mod4+e resize grow width 10 px,  resize grow height 10 px""",
+        ]) + "\n")
+        by_key = {b["key"]: b for b in self.run_script("extract", str(self.tmp))["binds"]}
+        self.assertEqual((by_key["SUPER + A"]["action"], by_key["SUPER + A"]["argument"]), ("workspaceStep", "up"))
+        self.assertEqual(by_key["SUPER + B"]["argument"], 'echo "q"; echo  z')
+        self.assertEqual(by_key["SUPER + C"]["argument"], "grim -g $(slurp) out.png")
+        self.assertEqual(by_key["SUPER + D"]["argument"], 'notify-send "a  b" c')
+        self.assertEqual(by_key["SUPER + E"]["argument"], "resize grow width 10 px, resize grow height 10 px")
+
     def test_remove(self):
         found = self.run_script("extract", str(self.tmp))
         done = self.run_script("remove", str(self.tmp), json.dumps(found["sites"]))

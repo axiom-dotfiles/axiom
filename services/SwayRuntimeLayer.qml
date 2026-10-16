@@ -102,7 +102,7 @@ QtObject {
         console.log(`[SwayConfigWriter] ${key} is bound by your sway config; skipping axiom's bind`);
       _reportedTaken[id] = true;
     }
-    const lines = JSON.parse(persisted.unbindJson).concat(SwayConf.bindLines(plan.apply, bindCtx), lookLines());
+    const lines = JSON.parse(persisted.unbindJson).concat(SwayConf.bindLines(plan.apply, bindCtx, true), lookLines());
     persisted.unbindJson = JSON.stringify(SwayConf.unbindLines(plan.apply, bindCtx));
     _skippedKeys = plan.skipped;
     _applied = plan.apply;

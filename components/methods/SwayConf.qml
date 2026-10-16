@@ -10,11 +10,27 @@ import QtQuick
 QtObject {
   id: root
 
-  // A string as one argument of a sway command: quoted when it holds
-  // anything but plain word characters
+  // A string as one argument of a sway command, arriving as it is from a
+  // config file and at runtime alike: bare when it's plain word
+  // characters, else each run without a `"` in double quotes and each `"`
+  // in single ones. Sway takes unescaped quotes out but keeps a backslash
+  // before one, so escaping a quote can't work.
   function quote(text) {
     const value = String(text ?? "");
-    return /^[A-Za-z0-9_.:+\-\/@~=*]+$/.test(value) ? value : `"${value.replace(/\\/g, "\\\\").replace(/"/g, "\\\"")}"`;
+    if (/^[A-Za-z0-9_.:+\-\/@~=*]+$/.test(value))
+      return value;
+    return value.split("\"").map(part => part === "" ? "" : `"${part}"`).join("'\"'") || "\"\"";
+  }
+
+  // A command as a bind's command: in a config file sway keeps it as
+  // written but unescapes it (so backslashes are doubled, and a line break
+  // or tab written as one); at runtime it splits a command list at `;` and
+  // `,` and takes quotes out before the bind sees it, so a command holding
+  // any is quoted whole
+  function bindCommand(command, runtime) {
+    if (!runtime)
+      return command.replace(/\\/g, "\\\\").replace(/\n/g, "\\n").replace(/\t/g, "\\t").replace(/\r/g, "\\r");
+    return /[;,"']/.test(command) ? quote(command) : command;
   }
 
   // --- Keys ---
@@ -76,7 +92,7 @@ QtObject {
   // several commands or take its own quotes out of it (sway's parser drops
   // quotes, then the shell sees a path with spaces as several words)
   function _exec(text) {
-    return "exec " + (/[;,"']/.test(text) ? quote(text) : text);
+    return "exec " + (/[;,"'\\]/.test(text) ? quote(text) : text);
   }
 
   // A single-quoted shell word
@@ -166,10 +182,11 @@ QtObject {
     return "";
   }
 
-  // The `bindsym` (or `bindcode`) line for a configured bind, or "". Sway
-  // repeats a held bind unless told not to; Hyprland doesn't, so a bind
-  // repeats only with its `repeating` flag.
-  function bindLine(bind, ctx) {
+  // The `bindsym` (or `bindcode`) line for a configured bind, or "", for a
+  // config file or, with `runtime`, to send now (bindCommand). Sway repeats
+  // a held bind unless told not to; Hyprland doesn't, so a bind repeats
+  // only with its `repeating` flag.
+  function bindLine(bind, ctx, runtime) {
     const cmd = command(bind, ctx);
     const k = key(bind.key);
     if (cmd === "" || !k)
@@ -183,7 +200,7 @@ QtObject {
       flags.push("--release");
     if (!bind.repeating)
       flags.push("--no-repeat");
-    return `${k.command} ${flags.join(" ")} ${k.spec} ${cmd}`;
+    return `${k.command} ${flags.join(" ")} ${k.spec} ${bindCommand(cmd, runtime === true)}`;
   }
 
   // Whether sway can bind it (and so whether the writer counts it complete):
@@ -209,9 +226,10 @@ QtObject {
     return mod ? `floating_modifier ${mod} ${parts.key === "mouse:273" ? "inverse" : "normal"}` : "";
   }
 
-  // Every complete bind's line, then the floating modifier
-  function bindLines(binds, ctx) {
-    const lines = (binds ?? []).map(bind => bindLine(bind, ctx)).filter(line => line !== "");
+  // Every complete bind's line (for a file, or with `runtime` to send now),
+  // then the floating modifier
+  function bindLines(binds, ctx, runtime) {
+    const lines = (binds ?? []).map(bind => bindLine(bind, ctx, runtime)).filter(line => line !== "");
     const floating = floatingModifier(binds);
     return floating !== "" ? lines.concat([floating]) : lines;
   }

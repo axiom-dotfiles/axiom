@@ -10,7 +10,7 @@ handles it as HyprlandBindMerge does.
                  bindcode line outside a mode that can move: an axiom
                  action where one does the same, `exec` for a command,
                  else the `raw` action (compositor sway) with the command
-                 as written
+                 as sway keeps it (unescaped)
         sites    [{ file, line, binds }]: the lines those come from
         kept     [{ file, line, key, reason, detail }]: binds that stay
         remapped []  (sway has no example binds axiom's defaults move off)
@@ -132,6 +132,76 @@ def unquote(text):
     return text
 
 
+# How sway reads a bind's command (checked against sway 1.12): a config
+# file's line is split into words (split_args), each unescaped
+# (unescape_string) and joined again; an `exec` of a single quoted word
+# then has its quotes taken out (strip_quotes), of several runs as joined
+ESCAPES = {"\\": "\\", '"': '"', "'": "'", "n": "\n", "t": "\t", "r": "\r", "a": "\a", "b": "\b", "f": "\f",
+           "v": "\v"}
+
+
+def split_args(text):
+    """Words split at whitespace outside quotes; a backslash escapes."""
+    words, word, quote, escaped = [], "", None, False
+    for ch in text:
+        if escaped:
+            word, escaped = word + ch, False
+        elif ch == "\\":
+            word, escaped = word + ch, True
+        elif quote:
+            word += ch
+            if ch == quote:
+                quote = None
+        elif ch in "\"'":
+            word, quote = word + ch, ch
+        elif ch.isspace():
+            if word:
+                words.append(word)
+            word = ""
+        else:
+            word += ch
+    return words + [word] if word else words
+
+
+def unescape(text):
+    out, i = "", 0
+    while i < len(text):
+        if text[i] == "\\" and i + 1 < len(text) and text[i + 1] in ESCAPES:
+            out += ESCAPES[text[i + 1]]
+            i += 2
+        else:
+            out += text[i]
+            i += 1
+    return out
+
+
+def strip_quotes(text):
+    """Unescaped quotes out; a ' inside "…" and a " inside '…' stay."""
+    out, in_str, in_chr, escaped = "", False, False, False
+    for ch in text:
+        if ch == "'" and not in_str and not escaped:
+            in_chr = not in_chr
+        elif ch == '"' and not in_chr and not escaped:
+            in_str = not in_str
+        else:
+            escaped = ch == "\\" and not escaped
+            out += ch
+    return out
+
+
+def stored_command(text):
+    """A bind's command (after its key) as sway keeps it from a config file."""
+    return " ".join(unescape(word) for word in split_args(text))
+
+
+def exec_text(arguments):
+    """What an `exec` of `arguments` (as sway keeps them) runs."""
+    words = split_args(arguments)
+    if len(words) == 1 and words[0][0] in "\"'":
+        return strip_quotes(words[0])
+    return " ".join(words)
+
+
 def action_for(command):
     words = command.split()
     if command == "kill":
@@ -153,7 +223,7 @@ def action_for(command):
     if len(words) == 2 and words[0] == "move" and words[1] in DIRECTIONS:
         return {"action": "moveWindowDir", "argument": words[1]}
     if words and words[0] == "exec":
-        argument = unquote(command[4:])
+        argument = exec_text(command[4:])
         return ipc_action(argument) or {"action": "exec", "argument": argument}
     return {"action": "raw", "argument": command, "compositor": "sway"}
 
@@ -201,12 +271,10 @@ def extract(sway, only):
             bind = re.match(r"(bindsym|bindcode)\s+(.*)$", line)
             if not bind or depth > 0:
                 continue
-            words = expand(bind.group(2), variables).split()
-            flags = []
-            while words and words[0].startswith("--"):
-                flags.append(words.pop(0))
-            combo = words.pop(0) if words else ""
-            command = " ".join(words)
+            parts = re.match(r"((?:--\S+\s+)*)(\S*)\s*(.*)$", expand(bind.group(2), variables))
+            flags = parts.group(1).split()
+            combo = parts.group(2)
+            command = stored_command(parts.group(3))
             site = {"file": str(path), "line": number}
             if raw.rstrip().endswith("\\"):
                 result["kept"].append({**site, "key": combo, "reason": "continued", "detail": ""})

@@ -20,7 +20,45 @@ TestCase {
   function test_quote() {
     compare(SwayConf.quote("DP-1"), "DP-1");
     compare(SwayConf.quote("AOC CU34G4Z XJ9"), "\"AOC CU34G4Z XJ9\"");
-    compare(SwayConf.quote("say \"hi\""), "\"say \\\"hi\\\"\"");
+    // Sway keeps a backslash before a quote, so a `"` is single-quoted
+    compare(SwayConf.quote("say \"hi\""), "\"say \"'\"'\"hi\"'\"'");
+    compare(SwayConf.quote("\""), "'\"'");
+    compare(SwayConf.quote(""), "\"\"");
+    compare(SwayConf.quote("it's"), "\"it's\"");
+  }
+
+  // A bind's command: doubled backslashes in a file; quoted whole at
+  // runtime when sway would split it or take its quotes out (checked
+  // against sway 1.12: an unquoted `a, b` runs b at once, and an exec's
+  // quotes are gone by the time the key is pressed)
+  function test_bindCommand() {
+    compare(SwayConf.bindCommand("kill", true), "kill");
+    compare(SwayConf.bindCommand("kill", false), "kill");
+    compare(SwayConf.bindCommand("resize grow width 5 px, resize grow height 5 px", true), "\"resize grow width 5 px, resize grow height 5 px\"");
+    compare(SwayConf.bindCommand("exec \"a; b\"", true), "\"exec \"'\"'\"a; b\"'\"'");
+    compare(SwayConf.bindCommand("exec \"a\\tb\"", false), "exec \"a\\\\tb\"");
+    compare(SwayConf.bindCommand("exec \"a\nb\"", false), "exec \"a\\nb\"");
+  }
+
+  function test_runtimeBindLine() {
+    compare(SwayConf.bindLine({
+      "key": "SUPER + SHIFT + R",
+      "action": "restartShell",
+      "release": true
+    }, ctx, true), "bindsym --no-warn --release --no-repeat Mod4+Shift+r \"exec \"'\"'\"qs kill -p '/opt/axiom'; qs -p '/opt/axiom' -d\"'\"'");
+    compare(SwayConf.bindLine({
+      "key": "SUPER + Q",
+      "action": "closeWindow"
+    }, ctx, true), "bindsym --no-warn --no-repeat Mod4+q kill");
+  }
+
+  // An exec holding double quotes reaches the shell with them
+  function test_execWithQuotes() {
+    compare(SwayConf.command({
+      "key": "SUPER + S",
+      "action": "exec",
+      "argument": "grim -g \"$(slurp)\" /tmp/a.png"
+    }, ctx), "exec \"grim -g \"'\"'\"$(slurp)\"'\"'\" /tmp/a.png\"");
   }
 
   function test_key() {
