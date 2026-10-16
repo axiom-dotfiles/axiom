@@ -586,7 +586,8 @@ bindsym $mod+space exec $ipc appLauncher toggle`;
       "shadow": {
         "size": 8,
         "power": 3,
-        "color": "101010"
+        "color": "101010ee",
+        "offset": 2
       },
       "dim": {
         "strength": 15
@@ -601,7 +602,7 @@ bindsym $mod+space exec $ipc appLauncher toggle`;
     verify(!lines.includes("blur enable") && !lines.includes("shadows enable"), "a window's blur and shadow are SwayManager's, a window at a time");
     verify(lines.includes("blur_passes 3") && lines.includes("blur_xray disable"));
     verify(lines.includes("blur_noise 0.012") && lines.includes("blur_contrast 0.89"));
-    verify(lines.includes("shadow_blur_radius 8"));
+    verify(lines.includes("shadow_blur_radius 8") && lines.includes("shadow_offset 0 2"));
     verify(lines.includes("shadow_color #101010ee") && lines.includes("shadow_inactive_color #101010ee"));
     verify(lines.includes("default_dim_inactive 0.15"));
     verify(lines.includes("layer_effects axiom-overlay \"blur enable; blur_xray disable; blur_ignore_transparent enable\""), "through windows: no xray");
@@ -616,7 +617,8 @@ bindsym $mod+space exec $ipc appLauncher toggle`;
       "shadow": {
         "size": 8,
         "power": 3,
-        "color": ""
+        "color": "",
+        "offset": 0
       }
     }, null).some(line => line.startsWith("shadow_color")));
   }

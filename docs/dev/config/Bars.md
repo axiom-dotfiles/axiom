@@ -208,7 +208,9 @@ Every public member of `Bar`, with the files that use it.
   - in: only inside the reader
 - `Bar.autoColorFields` (var): Each widget type's Auto color fields: { type: { key: role } }
   - in: only inside the reader
-- `Bar.shadowColor(look)`: What a shadow is drawn in: `shadow`/`shadowColor` as a bar's look or the BarStyle section has them.
+- `Bar.shadowBaseColor(look)`: The color of a shadow: `shadow`/`shadowColor` as a bar's look or the BarStyle section has them.
+  - in: `config/WindowLookConfig.qml`
+- `Bar.shadowColor(look)`: What a shadow is drawn in (shadowBaseColor).
   - in: `components/hosts/popout/SurfaceShadow.qml`, `components/surfaces/border/RoundedBorders.qml`
 - `Bar.reserveTrim(barConfig, gapsOut)`: How much less than its extent a bar reserves, given Hyprland's gaps_out on its edge.
   - in: `components/hosts/overlay/ReservedAreaWindow.qml`, `components/surfaces/border/RoundedBorders.qml`

@@ -134,8 +134,12 @@ QtObject {
       _set(table, "decoration.shadow.enabled", true);
       _set(table, "decoration.shadow.range", look.shadow.size);
       _set(table, "decoration.shadow.render_power", look.shadow.power);
+      _set(table, "decoration.shadow.offset", {
+        "x": 0,
+        "y": look.shadow.offset
+      });
       if (look.shadow.color !== "")
-        _set(table, "decoration.shadow.color", `rgba(${look.shadow.color}ee)`);
+        _set(table, "decoration.shadow.color", `rgba(${look.shadow.color})`);
     }
     if (look.dim) {
       _set(table, "decoration.dim_inactive", true);

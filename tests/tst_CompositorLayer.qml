@@ -49,19 +49,39 @@ TestCase {
       "dim": true,
       "dimStrength": 15
     });
-    const look = CompositorLayer.look(values, Object.assign({}, opts, {
-      "shadowHex": "101010"
-    }));
+    const cast = (color, alpha, offset) => Object.assign({}, opts, {
+        "shadow": {
+          "size": 12,
+          "color": color,
+          "alpha": alpha,
+          "offset": offset
+        }
+      });
+    const look = CompositorLayer.look(values, cast("101010", 0.6, 3));
     compare(look.parts, ["shadow", "dim"]);
     compare(look.shadow, {
       "size": 12,
       "power": values.shadowPower,
-      "color": "101010"
+      "color": "10101099",
+      "offset": 3
     });
     compare(look.dim, {
       "strength": 15
     });
-    compare(CompositorLayer.look(values, opts).shadow.color, "", "no color: the compositor's own");
+    compare(CompositorLayer.look(values, cast("", 1, 0)).shadow.color, "", "no color: the compositor's own");
+    compare(CompositorLayer.look(values, cast("c4a7e7", 1, 0)).shadow.color, "c4a7e7ff");
+  }
+
+  // Matching axiom's shadow while it casts none: no shadow, the part off
+  function test_look_shadow_none() {
+    const values = Object.assign(defaults(), {
+      "shadow": true
+    });
+    const look = CompositorLayer.look(values, Object.assign({}, opts, {
+      "shadow": null
+    }));
+    compare(look.shadow, null);
+    compare(look.parts, []);
   }
 
   function test_look_parts() {

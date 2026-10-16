@@ -474,13 +474,21 @@ assert(removed == 2, "earlier handlers removed")
         "radius": 8,
         "surfacesBlur": false
       }, opts));
-    const lua = HyprLua.lookLua(spec({}), lookSchema).join("\n");
+    const cast = (color, offset) => ({
+          "shadow": {
+            "size": 12,
+            "color": color,
+            "alpha": 0.6,
+            "offset": offset
+          }
+        });
+    const lua = HyprLua.lookLua(spec(cast("", 0)), lookSchema).join("\n");
     verify(lua.includes("range = 12") && lua.includes("render_power = 2") && lua.includes("enabled = true"));
     verify(!lua.includes("shadow = {") || !lua.includes("color ="), "no color: Hyprland's own");
     verify(lua.includes("dim_inactive = true") && lua.includes("dim_strength = 0.2"));
-    verify(HyprLua.lookLua(spec({
-      "shadowHex": "101010"
-    }), lookSchema).join("\n").includes('color = "rgba(101010ee)"'));
+    const themed = HyprLua.lookLua(spec(cast("101010", 3)), lookSchema).join("\n");
+    verify(themed.includes('color = "rgba(10101099)"'), themed);
+    verify(themed.includes("offset = { x = 0, y = 3 }"), themed);
   }
 
   function test_look_writes_only_its_parts_that_are_on() {

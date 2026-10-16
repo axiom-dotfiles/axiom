@@ -10,7 +10,11 @@ Reader for the WindowLook section: settings that make windows match axiom ({ bor
 - `look` (readonly var)
 - `activeBorder` (readonly color): The border colors: the ones picked, else the theme's
 - `inactiveBorder` (readonly color)
-- `shadowThemed` (readonly bool): The shadow's color: the one picked, or none for the compositor's own
+- `shadowOn` (readonly bool)
+- `shadowSize` (readonly int)
+- `shadowThemed` (readonly bool): Its color: axiom's, the one picked, or none for the compositor's own
 - `shadowColor` (readonly color)
+- `shadowAlpha` (readonly real): (a picked color nearly opaque, as the compositors' own are)
+- `shadowOffset` (readonly int): How far it falls downward: as axiom's shadow does (SurfaceShadow); a glow spreads evenly
 - `borderWidth` (readonly int): The shape: axiom's (Look & Feel → Shape) while it matches it, else its own
 - `radius` (readonly int)

@@ -27,16 +27,24 @@ QtObject {
    *            whether windows blur, and whether axiom's translucent
    *            surfaces do (the compositor's blur stays on for them), and
    *            its strength (noise in ‰, contrast in %), or null
-   *   shadow   { size, power, color ("rrggbb", or "" for the compositor's
-   *            own) }, or null
+   *   shadow   { size, power, color ("rrggbbaa", or "" for the
+   *            compositor's own), offset (px downward) }, or null
    *   dim      { strength } in percent, or null
    *   opacity  { active, inactive, fullscreen } in percent, or null
    * `opts`: { activeHex, inactiveHex, borderWidth, radius, surfacesBlur,
-   * shadowHex }
+   * shadow ({ size, color ("rrggbb" or ""), alpha (0–1), offset }, or
+   * null for none: axiom's own casting none) }
    */
   function look(values, opts) {
+    const cast = values.shadow ? opts.shadow : null;
+    const shadow = cast ? {
+      "size": cast.size,
+      "power": values.shadowPower,
+      "color": cast.color !== "" ? cast.color + Math.round(Math.max(0, Math.min(1, cast.alpha)) * 255).toString(16).padStart(2, "0") : "",
+      "offset": cast.offset
+    } : null;
     return {
-      "parts": lookPartNames.filter(part => values[part]),
+      "parts": lookPartNames.filter(part => part === "shadow" ? shadow !== null : values[part]),
       "values": values,
       "borders": values.borders ? {
         "active": opts.activeHex,
@@ -59,11 +67,7 @@ QtObject {
         "noise": values.blurNoise,
         "contrast": values.blurContrast
       } : null,
-      "shadow": values.shadow ? {
-        "size": values.shadowSize,
-        "power": values.shadowPower,
-        "color": opts.shadowHex ?? ""
-      } : null,
+      "shadow": shadow,
       "dim": values.dim ? {
         "strength": values.dimStrength
       } : null,

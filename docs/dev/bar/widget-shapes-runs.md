@@ -67,7 +67,7 @@ How widget backgrounds are drawn: their shapes, merged and powerline runs, hit t
   - a `MultiEffect` shadow falling toward the windows, cast evenly by pills on the border (which join its stroke); on a bare screen edge they fall too (`BarContainer.shadowFalls`); or
   - a glow.
 - `shadowReach` widens the bar window on its inner side. The input mask stays the bar.
-- `Bar.shadowColor` resolves a shadow's color, both for the bar and for the border's inward shadow (see [Layering and corners](layering-and-corners.md#border-shadow-window)).
+- `Bar.shadowColor` resolves a shadow's color, both for the bar and for the border's inward shadow (see [Layering and corners](layering-and-corners.md#border-shadow-window)): `Bar.shadowBaseColor`, capped at `Appearance.shadowAlphaMax` and premultiplied, as `MultiEffect` blends `shadowColor` (a color cleared by its alpha alone still adds its light). Windows matching axiom's shadow take `shadowBaseColor` ([window look](../compositor/window-look.md)).
 
 ### Accent line
 - Above the shadow, an `AccentLine` (an inline component in `BarContainer`) runs along the bar's inner or outer edge (`accentLine`), fading into `accentLineFade`.

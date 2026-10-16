@@ -121,18 +121,22 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`WindowLook.shadow`** · boolean = false
   - Window shadows
   - x-group="Shadows", x-enabledIf={"/$supports.windowShadow":true}
-  - read: `WindowLookConfig.look` (whole) · in: `config/WindowLookConfig.qml`
+  - read: `WindowLookConfig.shadowOn` (computed) · in: `services/CompositorConfigManager.qml`
+- **`WindowLook.shadowMatchShell`** · boolean = true
+  - Match axiom's shadow: Follow Look & Feel → Bar style: its shadow or glow, color and size. With none there, windows cast none.
+  - x-group="Shadows", x-showIf={"shadow":true}, x-enabledIf={"/$supports.windowShadow":true}
+  - read: `WindowLookConfig.shadowAlpha` (computed), `WindowLookConfig.shadowColor` (computed), `WindowLookConfig.shadowOffset` (computed), `WindowLookConfig.shadowOn` (computed), `WindowLookConfig.shadowSize` (computed), `WindowLookConfig.shadowThemed` (computed) · in: `services/CompositorConfigManager.qml`
 - **`WindowLook.shadowSize`** · integer = 10 · 0–100 · px
   - Shadow size
-  - x-control="stepper", x-group="Shadows", x-showIf={"shadow":true}, x-enabledIf={"/$supports.windowShadow":true}
-  - read: `WindowLookConfig.look` (whole) · in: `config/WindowLookConfig.qml`
+  - x-control="stepper", x-group="Shadows", x-showIf={"shadow":true,"shadowMatchShell":false}, x-enabledIf={"/$supports.windowShadow":true}
+  - read: `WindowLookConfig.shadowSize` (computed) · in: `services/CompositorConfigManager.qml`
 - **`WindowLook.shadowPower`** · integer = 3 · 1–4
   - Shadow falloff: 1 fades slowly, 4 ends sharply.
   - x-group="Shadows", x-showIf={"shadow":true}, x-enabledIf={"/$supports.windowShadow":true,"/$compositor":"hyprland"}
   - read: `WindowLookConfig.look` (whole) · in: `config/WindowLookConfig.qml`
 - **`WindowLook.shadowColor`** · string = ""
   - Shadow color: Unfocused windows cast it too.
-  - x-group="Shadows", x-options="colors", x-emptyLabel="Compositor's", x-showIf={"shadow":true}, x-enabledIf={"/$supports.windowShadow":true}
+  - x-group="Shadows", x-options="colors", x-emptyLabel="Compositor's", x-showIf={"shadow":true,"shadowMatchShell":false}, x-enabledIf={"/$supports.windowShadow":true}
   - read: `WindowLookConfig.shadowColor` (computed), `WindowLookConfig.shadowThemed` (computed) · in: `services/CompositorConfigManager.qml`
 - **`WindowLook.dim`** · boolean = false
   - Dim unfocused windows

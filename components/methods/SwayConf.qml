@@ -324,7 +324,8 @@ QtObject {
    *            way to change an open window's at runtime)
    *   blur     blur_radius (≤ 10), blur_passes, blur_xray, blur_noise,
    *            blur_contrast
-   *   shadow   shadow_blur_radius, shadow_color (and inactive)
+   *   shadow   shadow_blur_radius, shadow_offset, shadow_color (and
+   *            inactive)
    *   dim      default_dim_inactive
    * and per axiom layer (LayerStack.blurSurfaces, blurBackdrops,
    * blurOverOverlay) its layer_effects, on or off, its transparent pixels
@@ -341,9 +342,9 @@ QtObject {
       lines.push(`blur_radius ${clamp(b.size, 0, 10)}`, `blur_passes ${clamp(b.passes, 0, 10)}`, `blur_xray ${toggle(b.xray)}`, `blur_noise ${Math.round(b.noise) / 1000}`, `blur_contrast ${Math.round(b.contrast) / 100}`);
     }
     if (look?.shadow) {
-      lines.push(`shadow_blur_radius ${clamp(look.shadow.size, 0, 100)}`);
+      lines.push(`shadow_blur_radius ${clamp(look.shadow.size, 0, 100)}`, `shadow_offset 0 ${clamp(look.shadow.offset, -99, 99)}`);
       if (look.shadow.color !== "")
-        lines.push(`shadow_color #${look.shadow.color}ee`, `shadow_inactive_color #${look.shadow.color}ee`);
+        lines.push(`shadow_color #${look.shadow.color}`, `shadow_inactive_color #${look.shadow.color}`);
     }
     if (look?.dim)
       lines.push(`default_dim_inactive ${clamp(look.dim.strength, 0, 100) / 100}`);

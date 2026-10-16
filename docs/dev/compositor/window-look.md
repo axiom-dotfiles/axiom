@@ -1,6 +1,6 @@
 # Window look
 
-> **Files:** `config/WindowLookConfig.qml`, `services/CompositorConfigManager.qml`, `services/HyprlandConfigWriter.qml`, `components/methods/CompositorLayer.qml`, `components/methods/HyprLua.qml`, `services/HyprlandManager.qml`, `components/views/settings/TranslucencyStatus.qml`
+> **Files:** `config/WindowLookConfig.qml`, `config/Bar.qml`, `services/CompositorConfigManager.qml`, `services/HyprlandConfigWriter.qml`, `components/methods/CompositorLayer.qml`, `components/methods/HyprLua.qml`, `services/HyprlandManager.qml`, `components/views/settings/TranslucencyStatus.qml`
 > **Config:** `WindowLook.*` (borders and their colors, `shape`, `matchShell`, `borderSize`, `rounding`, gaps, `blur`, `opacity`, `windowBlur`)
 > **Related:** [The compositor](README.md), [Contract](contract.md), [Config modes](config-modes.md), [Translucency and blur](../theming/translucency-blur.md), [Lockscreen](../features/lockscreen.md)
 
@@ -17,10 +17,11 @@ The themed window look axiom gives the compositor: borders, shape, gaps, blur an
   - Hyprland's blur (`blur`: `decoration.blur.*`). Its size and passes are the one strength that windows and axiom's surfaces share.
   - the blur behind axiom's surfaces (`surfaceBlur*`, [translucency](../theming/translucency-blur.md))
   - window shadows (`shadow`, `shadowSize`, `shadowPower` on Hyprland, `shadowColor`: empty is the compositor's own) and dimming of unfocused windows (`dim`, `dimStrength`). Hyprland's managed options held these before config version 63; they now apply in every mode.
+  - while `shadowMatchShell` (the default), the shadow is axiom's: Bar style's (`BarStyle.shadow`, its color as `Bar.shadowBaseColor` gives it, alpha included, and `shadowSize`), falling `shadowSize / 4` downward for a shadow and evenly for a glow, as `SurfaceShadow` casts it. Bar style's none casts none: the part is then off (`WindowLookConfig.shadowOn`). `WindowLookConfig` resolves it (`shadowOn`, `shadowSize`, `shadowColor`, `shadowAlpha`, `shadowOffset`) and `CompositorConfigManager.spec` hands it to `look()` as `opts.shadow`; the spec's color is `rrggbbaa`.
   - window opacity (`opacity`).
 - `CompositorLayer.look()` decides which parts are on and their values (colors, shape, gaps), the same spec every backend gets ([contract](contract.md)).
 - All of it becomes one `hl.config` (`HyprLua.lookLua`, from that spec).
-  - The blur and opacity fields are `x-hypr` fields, each gated by `x-hyprIf` on its part, so `configTable` writes them. The shadow and dim come from the spec (`decoration.shadow.*`, `dim_inactive`/`dim_strength`), as the borders do, the color resolved first (`WindowLookConfig.shadowColor`).
+  - The blur and opacity fields are `x-hypr` fields, each gated by `x-hyprIf` on its part, so `configTable` writes them. The shadow and dim come from the spec (`decoration.shadow.*`, the offset as `{ x, y }`, `dim_inactive`/`dim_strength`), as the borders do, the color resolved first (`WindowLookConfig.shadowColor`).
 
 ### Blur and windows
 - With the blur part on, Hyprland's blur stays enabled while axiom's surfaces blur, even if `windowBlur` is off.
