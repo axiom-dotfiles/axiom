@@ -83,8 +83,8 @@ PanelWindow {
     ShellManager.unregisterBar(root);
   }
 
-  // Where the window is on its screen, as Hyprland reports it (null until
-  // it has): the blur window draws the bar's shapes and popouts from it
+  // Where the window is on its screen (LayerOrigin; null until it's
+  // mapped): the blur window draws the bar's shapes and popouts from it
   readonly property var screenOrigin: placeOnScreen.origin
   // ...else where it most likely is, for its popouts' footprints
   // (PopoutManager)

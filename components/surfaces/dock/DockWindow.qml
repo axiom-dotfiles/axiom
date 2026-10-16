@@ -484,6 +484,7 @@ Scope {
       window: panelWindow
       namespace: root.preview ? "axiom-dock-preview" : "axiom-dock"
       edge: root.edge
+      layer: root.preview ? WlrLayer.Overlay : WlrLayer.Top
     }
     // The window on screen: a hiding box goes past its edge
     readonly property rect screenRect: Qt.rect(placeOnScreen.origin?.x ?? 0, placeOnScreen.origin?.y ?? 0, panelWindow.width, panelWindow.height)

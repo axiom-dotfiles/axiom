@@ -13,11 +13,9 @@ import qs.config
  * draw their outer fill transparent (`backing`). While the overlay is open
  * on a screen, a second blur window there, over it, draws the shapes of
  * the surfaces on the Overlay layer (aboveOverlay).
- * Layer-shell windows don't know where they are on screen, so their
- * origins are read from Hyprland (CompositorManager.withLayerRects), again whenever a
- * layer maps or unmaps, or a window asks (it resized, reservations moved).
- * The joins in the border's stroke and popouts' footprints (PopoutManager)
- * use them too, so they're kept whatever the surfaces look like.
+ * Layer-shell windows don't know where they are on screen: each shape is
+ * placed from its window's origin as LayerManager works it out
+ * (hosts/popout/LayerOrigin).
  */
 QtObject {
   id: root
@@ -102,119 +100,4 @@ QtObject {
   function shapeOf(uid) {
     return root._byUid[uid] ?? null;
   }
-
-  // { monitorName: { w, h, layers: [{ namespace, x, y, w, h }] } },
-  // monitor-relative
-  property var layers: ({})
-
-  /**
-   * Where a layer window is on its monitor, null until Hyprland has
-   * reported it. Every window asking spans its `edge` (a Bar.Location),
-   * anchored there: the mapped one in `namespace` that runs as far along
-   * it, on that side of the screen, nearest the edge where several do.
-   * Grown or shrunk across it (an edge popout's content), it's placed from
-   * the side it's anchored to until Hyprland reports it again, rather than
-   * lost for those frames. A window mapped only while open gets where it
-   * was last seen, so it's backed from its first frame.
-   */
-  function layerOrigin(namespace, monitor, width, height, edge) {
-    const vertical = edge === Bar.Left || edge === Bar.Right;
-    const along = vertical ? height : width;
-    const cacheKey = [namespace, monitor, Math.round(along), edge].join("|");
-    const screen = root.layers[monitor];
-    const onSide = l => {
-      if (!screen)
-        return false;
-      const half = (vertical ? screen.w : screen.h) / 2;
-      // A window reaching past the middle (an edge popout deep enough for
-      // its content, filling the room between the edges' reservations)
-      // is where it is whichever edge it's anchored to
-      if ((vertical ? l.w : l.h) >= half)
-        return true;
-      const centre = vertical ? l.x + l.w / 2 : l.y + l.h / 2;
-      return edge === Bar.Left || edge === Bar.Top ? centre <= half : centre >= half;
-    };
-    const matches = (screen?.layers ?? []).filter(l => l.namespace === namespace && Math.abs((vertical ? l.h : l.w) - along) <= 1 && onSide(l));
-    let best = root._seen[cacheKey] ?? null;
-    if (matches.length > 0) {
-      // Its own size first, then nearest the edge
-      const depth = vertical ? width : height;
-      const miss = l => Math.abs((vertical ? l.w : l.h) - depth) > 1 ? 1 : 0;
-      const key = l => edge === Bar.Left ? l.x : edge === Bar.Right ? -(l.x + l.w) : edge === Bar.Top ? l.y : -(l.y + l.h);
-      best = matches.reduce((a, b) => miss(b) < miss(a) || (miss(b) === miss(a) && key(b) < key(a)) ? b : a);
-      // Kept without notifying: read only when nothing current matches
-      root._seen[cacheKey] = best;
-    }
-    if (!best)
-      return null;
-    // From the side it's anchored to
-    return Qt.point(edge === Bar.Right ? best.x + best.w - width : best.x, edge === Bar.Bottom ? best.y + best.h - height : best.y);
-  }
-  // Last seen per window size: grows by one small entry per length a
-  // window has had, and starts over on a reload
-  property var _seen: ({})
-
-  function refreshLayers() {
-    root._refresh.restart();
-  }
-
-  // Windows mapped whose origin is still unknown (LayerOrigin): a window
-  // resized in place sends no layer event, and the ask may have come
-  // before Hyprland had its new size, so the layers are read again a few
-  // times while any waits, then not until one starts waiting anew
-  property var _awaiting: []
-  property int _awaitTries: 0
-  function awaitOrigin(owner, waiting) {
-    const others = root._awaiting.filter(o => o !== owner);
-    root._awaiting = waiting ? others.concat([owner]) : others;
-    if (waiting)
-      root._awaitTries = 0;
-  }
-  property Timer _awaitRetry: Timer {
-    interval: 250
-    repeat: true
-    running: root._awaiting.length > 0 && root._awaitTries < 8
-    onTriggered: {
-      root._awaitTries += 1;
-      root.refreshLayers();
-    }
-  }
-
-  property Timer _refresh: Timer {
-    interval: 30
-    onTriggered: {
-      if (root._querying) {
-        root._again = true;
-        return;
-      }
-      root._querying = true;
-      CompositorManager.withLayerRects(rects => {
-        root._querying = false;
-        if (rects)
-          root.layers = rects;
-        if (root._again) {
-          root._again = false;
-          root._refresh.restart();
-        }
-      });
-    }
-  }
-  property bool _querying: false
-  property bool _again: false
-
-  property Connections _events: Connections {
-    target: CompositorManager
-
-    function onLayersChanged() {
-      root.refreshLayers();
-    }
-    function onOutputsHotplugged() {
-      root.refreshLayers();
-    }
-    function onConfigReloaded() {
-      root.refreshLayers();
-    }
-  }
-
-  Component.onCompleted: root.refreshLayers()
 }

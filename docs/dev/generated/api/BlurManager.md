@@ -3,7 +3,7 @@
 
 > **File:** `services/BlurManager.qml` · **Docs:** see [docs/dev](../../README.md)
 
-The blur behind the shell's chrome: the border's frame, bars and their popouts, edge popouts, integrated edge menus and docks. Each surface registers its shape (BlurShape); one click-through window per screen (shell/BlurBacking) draws them all, filled, and is the only one of them Hyprland blurs. Blurred in one pass, before any chrome is drawn, the blur behind joined surfaces matches exactly; the surfaces themselves draw their outer fill transparent (`backing`). While the overlay is open on a screen, a second blur window there, over it, draws the shapes of the surfaces on the Overlay layer (aboveOverlay). Layer-shell windows don't know where they are on screen, so their origins are read from Hyprland (CompositorManager.withLayerRects), again whenever a layer maps or unmaps, or a window asks (it resized, reservations moved). The joins in the border's stroke and popouts' footprints (PopoutManager) use them too, so they're kept whatever the surfaces look like.
+The blur behind the shell's chrome: the border's frame, bars and their popouts, edge popouts, integrated edge menus and docks. Each surface registers its shape (BlurShape); one click-through window per screen (shell/BlurBacking) draws them all, filled, and is the only one of them Hyprland blurs. Blurred in one pass, before any chrome is drawn, the blur behind joined surfaces matches exactly; the surfaces themselves draw their outer fill transparent (`backing`). While the overlay is open on a screen, a second blur window there, over it, draws the shapes of the surfaces on the Overlay layer (aboveOverlay). Layer-shell windows don't know where they are on screen: each shape is placed from its window's origin as LayerManager works it out (hosts/popout/LayerOrigin).
 
 ### Properties
 
@@ -11,7 +11,6 @@ The blur behind the shell's chrome: the border's frame, bars and their popouts, 
 - `active` (readonly bool)
 - `backing` (readonly bool): The surfaces leave their fill to the blur window: blurring, and its windows built (BlurBacking waits for the layer rules, as the chrome does)
 - `shapes` (var): The registered BlurShapes; changes only as one comes or goes.
-- `layers` (var): { monitorName: { w, h, layers: [{ namespace, x, y, w, h }] } }, monitor-relative
 
 ### Functions
 
@@ -23,6 +22,3 @@ The blur behind the shell's chrome: the border's frame, bars and their popouts, 
 - `register(shape)`
 - `unregister(shape)`
 - `shapeOf(uid)`: The registered shape with that uid, or null once it's gone
-- `layerOrigin(namespace, monitor, width, height, edge)`
-- `refreshLayers()`
-- `awaitOrigin(owner, waiting)`

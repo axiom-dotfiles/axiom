@@ -53,7 +53,7 @@ Quickshell's `I3` module speaks sway's IPC (`$SWAYSOCK`). It gives `monitors`, `
 - `cycleKeyboardLayout`: `input type:keyboard xkb_switch_layout next|prev`
 - `exitSession`: `exit`. `dpmsCommand(on)`: `swaymsg 'output * power on|off'`.
 - `toplevelFor(id)`: match `ToplevelManager.toplevels` by appId and title (the protocol has no id).
-- `withLayerRects`: null (sway has no layer listing). `withCursorPos`: null.
+- `withLayerRects`: null (sway has no layer listing; `LayerManager` places axiom's layers without it). `withCursorPos`: null.
 - `configReloaded`: from the `shutdown`/`reload` events (`I3IpcListener` "shutdown" isn't it: use the `config` subscription when Quickshell passes it, else `binding`/`tick`).
 
 ### The window look (`applyLook`)

@@ -24,9 +24,9 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Size:** needs a plan
 - **Found:** 2026-10-16, while decoupling the shell from Hyprland
 
-### Layer order and positions without Hyprland
-- **Where:** `components/methods/LayerStack.qml` (`layers`), `services/CompositorManager.qml` (`surfacesReady`, `withLayerRects`), `services/BlurManager.qml` (`layerOrigin`), `components/hosts/popout/LayerOrigin.qml`
-- **What:** Two things only Hyprland gives axiom. Stacking: a layer rule's `order` decides which of axiom's surfaces in a layer is drawn on top and which reserves its space first (the border's strip outside the bar); sway and niri do both in map order, so the border can land on the wrong side of a bar. `supports.layerOrder` is meant to switch a fallback that maps the ordered surfaces one by one in `LayerStack.layers` order (a staged `surfacesReady`); nothing reads it yet. Positions: popouts, joins in the border's stroke and footprints place themselves from `withLayerRects`, null elsewhere, so popouts and joins misalign. Without it, axiom could work the origins out itself from what it reserves (`BarManager.reservedOn`, `EdgeMenuManager.reservedOn`, the docks'), as the compositor arranges them.
+### Layer order without Hyprland
+- **Where:** `components/methods/LayerStack.qml` (`layers`), `services/CompositorManager.qml` (`surfacesReady`), `services/LayerManager.qml`
+- **What:** A layer rule's `order` decides which of axiom's surfaces in a layer is drawn on top and which reserves its space first (the border's strip outside the bar). Sway and niri do both in map order ([layer arrangement](compositor/layer-arrangement.md)), so the border can land on the wrong side of a bar. `supports.layerOrder` is meant to switch a fallback that maps the ordered surfaces one by one in `LayerStack.layers` order; nothing reads it yet. (Positions are axiom's own on every compositor: `LayerManager`.)
 - **Size:** needs a plan
 - **Found:** 2026-10-16, while reviewing the compositor capabilities
 

@@ -24,7 +24,7 @@ Plain JS objects, rebuilt as the compositor reports changes. Converters sit in a
 - **Workspace**: `{ id, name, output, windowCount, active, focused }`.
   - `id` is the number axiom's layout uses (`WorkspacesConfig`).
 - **Keyboard** (`withKeyboard`): `{ layouts: ["us", "de"], index, keymap }`, or null.
-- **Layer rects** (`withLayerRects`): `{ [output]: { w, h, layers: [{ namespace, x, y, w, h }] } }`, or null.
+- **Layer rects** (`withLayerRects`): `{ [output]: { w, h, layers: [{ namespace, x, y, w, h }] } }`, or null. Only a check: axiom places its layers itself (`LayerManager`), and logs where this differs.
 
 ### Backend members
 - **State**: `windows`, `outputs`, `workspaces`, `focusedOutput`, `activeWindowId`, `gapsOut` (`{ top, right, bottom, left }`), `blur` (`{ enabled, size, passes }`), `splitWidthMultiplier`, `surfacesReady`, `supports`, `travelingTo` (the workspace a multi-leg switch has reached, -1 when none is under way).

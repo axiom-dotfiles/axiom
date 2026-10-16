@@ -102,7 +102,7 @@ An index of reusable pieces. Reach for one of these before drawing your own; whe
 ### Blur and joins
 - `reusable/CornerPiece`: a concave "inverted corner" filled up to a quarter circle, with its two edges stroked.
 - `reusable/HoledItem`: its children with rects cut out (a stroke left open where something joined to it carries on).
-- `hosts/popout/BlurShape` + `LayerOrigin`: a chrome surface's shape for the blur window, and where its layer window is on screen.
+- `hosts/popout/BlurShape` + `LayerOrigin`: a chrome surface's shape for the blur window, and where its layer window is on screen (worked out by `LayerManager`, on every compositor).
 - See [Translucency and blur](../theming/translucency-blur.md).
 
 ### Popouts

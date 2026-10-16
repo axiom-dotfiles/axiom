@@ -225,7 +225,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `EdgeSurface.qml`: An AttachedSurface growing out of a screen edge, wired from its EdgePlacement (`geometry`) and, for a host with submenus, its SubmenuHost: whether it's detached, runs straight off its edge, how its ends join or run flus…
 - `EdgeTrigger.qml`: A thin hover strip on a screen edge that fires `triggered` once the pointer has rested on it for `hoverDelay`
 - `FloatingPopout.qml`: A popout that floats on the screen instead of growing out of an edge (EdgePopout): a plain rounded box in an Overlay-layer window covering the area the bars and border leave free, fading and scaling in.
-- `LayerOrigin.qml`: Where a layer-shell `window` is on its screen (BlurManager.layerOrigin), for surfaces whose fill the blur window draws and for popouts' footprints (PopoutClaim): null until Hyprland has reported it.
+- `LayerOrigin.qml`: Where a layer-shell `window` is on its screen, as LayerManager works it out from how every window there asks to be laid out (and reports this one's): for surfaces whose fill the blur window draws, the joins in the borde…
 - `OutsideShadow.qml`: The shadow or glow (SurfaceShadow) a sibling `target` casts, kept only outside its shape, so none shows through a translucent fill.
 - `PillBarJoin.qml`: A surface's end joining a pill bar on a perpendicular screen edge: its end sits on that bar's far stroke, and the bar's pill at this edge's end runs out along the surface (BarContainer.setEndReach: the end pill stretche…
 - `PillStretch.qml`: Puts a surface's pill (or island) stretch (EdgeAttach.place's `stretch`) on the bar it stands on (`container`, a BarContainer) under its own owner key, and takes it off again when it clears, the bar changes or this goes.
@@ -271,6 +271,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `IconResolver.qml`: Resolves icon names for window classes: desktop entries first, then known substitutions, then name variants that exist in the icon theme.
 - `KeyNames.qml`: Keys as Hyprland writes them ("SUPER + SHIFT + space"): turning a Qt key event into one (for recording a bind), and splitting one for display.
 - `KeybindFilter.qml`: The Keybinds page's filter over KeybindManager.keybindings: a search plus toggle chips in three groups (sections, modifiers, source).
+- `LayerArrange.qml`: Where a compositor puts layer-shell surfaces on an output (pure): the wlr-layer-shell arrangement that sway, niri and Hyprland share (docs/dev/compositor/layer-arrangement.md).
 - `LayerStack.qml`: The order axiom's layer surfaces stack and reserve their space in, on every compositor (pure).
 - `LibraryOrder.qml`: How the editors' libraries (bar widgets, overlay modules) order their types: by label, or by group (the schema's `x-libraryGroups`, in order) and by label within each.
 - `MonitorLayout.qml`: Pure helpers for the Monitors page (MonitorManager): modes, scales, rotation, the layout's rects and snapping, and picking the profile for the connected outputs.
@@ -619,6 +620,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `KeyboardLayoutManager.qml`: Active xkb layout of the main keyboard, shared by every KeyboardLayout widget.
 - `LauncherCommands.qml`: The launcher's slash commands, one per shell feature.
 - `LauncherManager.qml`: LauncherManager turns the launcher's search text into result rows and runs them.
+- `LayerManager.qml`: Where axiom's layer-shell windows are on their outputs, worked out by axiom itself on every compositor (methods/LayerArrange; docs/dev/ compositor/layer-arrangement.md).
 - `LockManager.qml`: The one way to lock the session, whatever locks it (Lockscreen.mode): "quickshell" the built-in locker (shell/Lockscreen.qml: Wayland session lock + PAM through AuthManager) "hyprlock" hyprlock, with a config ThemeManag…
 - `MediaManager.qml`: The active MPRIS player (Spotify first, else one playing, else one that can play; or the one picked with selectPlayer) for the media widgets, the lockscreen and the media keys: its track, position and controls, and its …
 - `MonitorManager.qml`: The Monitors page: the connected outputs (HyprlandManager.withOutputs, read at startup and when monitors come, go or the config reloads; never polled) and the editor for Hyprland.monitors, a draft of profiles (each a la…

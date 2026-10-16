@@ -61,13 +61,11 @@ How the chrome's translucent surfaces share one blurred backing window, how thei
 - A submenu's popup takes no compositor adjustment: its window reaches past the parent's, and a nudge left its blur and the parent's opening behind.
 
 ### Where a window is (LayerOrigin)
-- Layer windows don't know where they are, so `hosts/popout/LayerOrigin` asks `BlurManager.layerOrigin`.
-- Read from Hyprland's layers (`CompositorManager.withLayerRects`), only while surfaces are translucent:
-  - on layer events;
-  - whenever the window or what's reserved around it changes;
-  - remembered for windows mapped only while open.
-- Every window asking spans its edge. It's matched by namespace, its length along the edge, and the side of the screen it's on. Any side is allowed for one reaching past the middle (an edge popout filling the room between the edges' reservations).
-- A window grown or shrunk across its edge (an edge popout's content) is placed from the side it's anchored to, until Hyprland reports it again.
+- Layer windows don't know where they are, so axiom works it out on every compositor ([layer arrangement](../compositor/layer-arrangement.md)):
+  - each `hosts/popout/LayerOrigin` reports its window's anchors, margins, size, zone and when it mapped to `LayerManager`;
+  - `LayerManager` places them all with `methods/LayerArrange`, and each `LayerOrigin` reads its own window's rect back (`LayerManager.rectOf`).
+- A window that reserves nothing has its origin before it maps, where it will go, so it's backed from its first frame. A reserving window has one only while mapped.
+- On Hyprland the result is checked against its layer list (`CompositorManager.withLayerRects`); a difference is logged as `LayerManager: differs from the compositor` (`scripts/log.sh --debug -g LayerManager`).
 - Until its origin is known, a surface fills itself.
 - A bar popout's and submenu's place follows from their bar's.
 

@@ -459,6 +459,7 @@ PopoutWrapperBase {
       window: surfaceWindow
       namespace: root.layerNamespace
       edge: root.edge
+      layer: root.windowLayer
     }
 
     EdgeSurface {
