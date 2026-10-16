@@ -34,7 +34,7 @@ QtObject {
       return null;
     return {
       "output": output,
-      "layer": root.layer === WlrLayer.Overlay ? "overlay" : root.layer === WlrLayer.Bottom ? "bottom" : root.layer === WlrLayer.Background ? "background" : "top",
+      "layer": LayerManager.layerName(root.layer),
       "namespace": root.namespace,
       "rank": root.rank,
       "wanted": root.wanted,

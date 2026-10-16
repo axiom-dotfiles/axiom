@@ -1,5 +1,6 @@
 pragma Singleton
 import QtQuick
+import Quickshell.Wayland
 
 import qs.components.methods
 import qs.config
@@ -27,6 +28,22 @@ QtObject {
   property int _lastUid: 0
   property int _lastSeq: 0
   property var _seqs: ({})
+
+  // Whether the compositor stacks and arranges by LayerStack order itself
+  readonly property bool _ordered: CompositorManager.supports.layerOrder === true
+
+  // A WlrLayershell.layer as LayerArrange.layerNames names it
+  function layerName(layer) {
+    switch (layer) {
+    case WlrLayer.Overlay:
+      return "overlay";
+    case WlrLayer.Bottom:
+      return "bottom";
+    case WlrLayer.Background:
+      return "background";
+    }
+    return "top";
+  }
 
   // Every reported window's rect by output, as LayerArrange.arrange
   // gives it ({ [output]: { w, h, layers: [{ id, namespace, x, y, w, h }] } });
@@ -93,7 +110,7 @@ QtObject {
         };
         return acc;
       }, {});
-      const next = LayerArrange.arrange(outputs, root._surfaces(), CompositorManager.supports.layerOrder === true);
+      const next = LayerArrange.arrange(outputs, root._surfaces(), root._ordered);
       if (JSON.stringify(next) !== JSON.stringify(root.rects)) {
         root.rects = next;
         root._check.restart();
@@ -153,9 +170,6 @@ QtObject {
   // Slots that may show now ({ uid: true })
   property var shownSlots: ({})
 
-  // Whether the compositor stacks by LayerStack order itself
-  readonly property bool _ordered: CompositorManager.supports.layerOrder === true
-
   // A slot's state, again whenever it changes; null once it's gone
   function reportSlot(uid, slot) {
     const slots = Object.assign({}, root._slots);
@@ -173,11 +187,6 @@ QtObject {
       delete root._remapping[uid];
     }
     root._sequence.restart();
-  }
-
-  // Whether slot `uid` may show now
-  function slotShown(uid) {
-    return root.shownSlots[uid] === true;
   }
 
   // A window just made visible is created at once but drawn (and mapped)

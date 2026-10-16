@@ -12,8 +12,8 @@ Where axiom's layer-shell windows are on their outputs, worked out by axiom itse
 
 ### Functions
 
+- `layerName(layer)`: A WlrLayershell.layer as LayerArrange.layerNames names it
 - `register()`: A reporting window's id: owners keep it for their lifetime
 - `report(uid, spec)`: A window's layout, again whenever it changes; null once it's gone
 - `rectOf(uid, output)`: Where window `uid` is on its output ({ x, y, w, h }), or null when it isn't laid out (no output, or reserving space and not mapped)
 - `reportSlot(uid, slot)`: A slot's state, again whenever it changes; null once it's gone
-- `slotShown(uid)`: Whether slot `uid` may show now

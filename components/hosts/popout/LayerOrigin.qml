@@ -47,7 +47,7 @@ QtObject {
     return {
       "output": root._output,
       "namespace": root.namespace,
-      "layer": root.layer === WlrLayer.Overlay ? "overlay" : root.layer === WlrLayer.Bottom ? "bottom" : root.layer === WlrLayer.Background ? "background" : "top",
+      "layer": LayerManager.layerName(root.layer),
       "anchors": anchors,
       "margins": {
         "left": m.left,
