@@ -24,6 +24,12 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Size:** needs a plan
 - **Found:** 2026-10-16, while decoupling the shell from Hyprland
 
+### Floating bars sit flush on the border without a backend
+- **Where:** `config/Bar.qml` (`enrichBarConfig`: `floatGap`), `services/CompositorManager.qml` (`gapsOut`)
+- **What:** A floating bar's automatic gap (`floatGap` -1) is the compositor's outer gaps (`CompositorManager.gapsOut`). With no backend (sway or niri today) `gapsOut` is all 0, so a floating bar sits flush against the border, as seen in nested sway. The sway backend's `gapsOut` (from `gaps outer`, `sway-backend.md`) should fix it there; decide what the gap is with no backend at all (a fixed default, or `Appearance.screenMargin`).
+- **Size:** small
+- **Found:** 2026-10-16, while testing layer order in nested sway
+
 ### Blur and transparency on other compositors
 - **Where:** `services/BlurManager.qml` (`_wanted`), `config/json/config.schema.json` (`Appearance` blur settings, `"/$supports.blur"`), `services/CompositorManager.qml` (`supports`)
 - **What:** Axiom's surfaces blur only where the compositor blurs its layers (`supports.blur`: Hyprland's layer rules). Elsewhere the blur settings are hidden and translucent surfaces fill themselves, so a surface over another (the launcher over a dock) shows it through its fill. SwayFX (`layer_effects`) and niri (layer rules) may blur layers by namespace too: the blur window (`axiom-blur-backing`) is all they'd need to blur. Its strength would then be axiom's to set outside Hyprland (likely one blur-strength option there).

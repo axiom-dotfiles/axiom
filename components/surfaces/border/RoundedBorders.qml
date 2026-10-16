@@ -309,6 +309,8 @@ Item {
         id: cornerSlot
         window: corner
         namespace: "axiom-border"
+        // After the strips, over their ends
+        rank: 1
       }
 
       // Where it is on screen: a stroke out from the frame's inner side,

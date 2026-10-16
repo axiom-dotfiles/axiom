@@ -127,4 +127,19 @@ TestCase {
     const result = LayerStack.sequence([backdrop, bar, border], true);
     compare(result.show.sort(), ["backdrop", "bar"], "the bar stays; the border, not shown yet, still waits");
   }
+
+  // Of one order, a higher rank waits for the lower ones, and maps again
+  // if it mapped before one
+  function test_sequence_rank() {
+    const strip = entry("strip", 0);
+    const corner = entry("corner", 0, {
+      "rank": 1
+    });
+    compare(LayerStack.sequence([strip, corner], true).show, ["strip"]);
+    strip.mapped = true;
+    strip.seq = 2;
+    corner.mapped = true;
+    corner.seq = 1;
+    compare(LayerStack.sequence([strip, corner], false).remap, ["corner"]);
+  }
 }

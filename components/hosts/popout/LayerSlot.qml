@@ -17,6 +17,10 @@ QtObject {
   required property string namespace
   // Its WlrLayershell.layer (an attached property, unreadable from here)
   property int layer: WlrLayer.Top
+  // Among windows of its order on its screen and layer, lower maps first
+  // (the border's corner pieces after its strips, so they're drawn over
+  // the strips' ends: Hyprland breaks ties by map order too)
+  property int rank: 0
   // Whether its owner wants it shown
   property bool wanted: true
   // Kept mapped while not wanted, where the compositor stacks by map order
@@ -32,6 +36,7 @@ QtObject {
       "output": output,
       "layer": root.layer === WlrLayer.Overlay ? "overlay" : root.layer === WlrLayer.Bottom ? "bottom" : root.layer === WlrLayer.Background ? "background" : "top",
       "namespace": root.namespace,
+      "rank": root.rank,
       "wanted": root.wanted,
       "held": root.held,
       "mapped": root.window?.visible ?? false

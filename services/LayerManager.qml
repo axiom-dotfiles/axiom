@@ -201,6 +201,7 @@ QtObject {
           "output": slot.output,
           "layer": slot.layer,
           "order": LayerStack.orderOf(slot.namespace),
+          "rank": slot.rank,
           "wanted": slot.wanted,
           "held": slot.held,
           "showing": root._slotSeqs[uid] !== undefined,

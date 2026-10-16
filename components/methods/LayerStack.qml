@@ -166,7 +166,8 @@ QtObject {
 
   /**
    * Which of the windows axiom maps in order may show now, and which
-   * have to map again. `entries`: { id, output, layer, order, wanted (its
+   * have to map again. `entries`: { id, output, layer, order, rank (among
+   * windows of one order, lower first: optional, 0), wanted (its
    * owner wants it shown), held (kept mapped even when not wanted, where
    * the compositor stacks by map order alone), showing (visible now),
    * mapped (shown long enough for the compositor to have mapped it), seq
@@ -182,8 +183,11 @@ QtObject {
   function sequence(entries, ordered) {
     const wants = e => e.wanted || (!ordered && e.held);
     const peers = e => entries.filter(o => o !== e && o.output === e.output && o.layer === e.layer);
-    const remap = ordered ? [] : entries.filter(e => e.mapped && peers(e).some(o => o.mapped && o.order > e.order && o.seq > e.seq)).map(e => e.id);
-    const show = entries.filter(e => wants(e) && !remap.includes(e.id) && (e.showing || peers(e).every(o => !wants(o) || o.order <= e.order || o.mapped))).map(e => e.id);
+    // `o` belongs before `e`: a higher order, or a lower rank of the same
+    // (the border's corners after its strips, drawn over their ends)
+    const before = (o, e) => o.order > e.order || (o.order === e.order && (o.rank ?? 0) < (e.rank ?? 0));
+    const remap = ordered ? [] : entries.filter(e => e.mapped && peers(e).some(o => o.mapped && before(o, e) && o.seq > e.seq)).map(e => e.id);
+    const show = entries.filter(e => wants(e) && !remap.includes(e.id) && (e.showing || peers(e).every(o => !wants(o) || !before(o, e) || o.mapped))).map(e => e.id);
     return {
       "show": show,
       "remap": remap
