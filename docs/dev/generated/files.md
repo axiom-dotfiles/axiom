@@ -603,6 +603,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `CompositorManager.qml`: The running compositor, for the rest of axiom: its windows, outputs and workspaces in shapes that don't depend on it, what it supports, and every workspace switch and window focus (docs/dev/compositor/README.md).
 - `ConfigDraft.qml`: A working copy of one config section for an editor (settings, bar, overlay, edge menu, keybind and monitor editors).
 - `ConfigManager.qml`: ConfigManager handles loading, saving, and monitoring the configuration file
+- `ConfigTakeover.qml`: Taking a compositor's config over for the managed mode, and giving it back, through its claim script (scripts/claim_<compositor>.sh, every one with the same verbs and results), for that compositor's config writer, which…
 - `ConsumerRegistry.qml`: Reference-counted consumers of a shared poller (SystemManager, UpdatesManager, ...): each owner registers one request, and the service polls for the union of them, stopping when there are none.
 - `DailySchedule.qml`: A daily window, `startAt` until `endAt` ("HH:MM"; past midnight when the end is earlier), that says when its state is due: `due(inWindow)` fires when the window opens or closes, when the schedule is turned on, and when …
 - `DataMigrationManager.qml`: Moves an install from before the XDG folders over to them, once.
@@ -619,13 +620,11 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `GreeterManager.qml`: Axiom as greetd's login screen, from the user's side (the greeter itself is greeter.qml, with GreetdManager).
 - `GridEditor.qml`: Editing of one grid of modules (each with a `place` { x, y, w, h } in quarter cards), shared by the layouts editor's overlay pages and edge menus.
 - `HypridleManager.qml`: hypridle, run by axiom (the Idle section).
-- `HyprlandBindMerge.qml`: scripts/merge_hypr_binds.py: every hl.bind in user/*.lua that can move becomes one of axiom's binds (an action where one does the same, else the `lua` action), saved first, then its call is deleted from the file (a date…
-- `HyprlandConfigWriter.qml`: section's options, loading ~/.config/hypr/user/*.lua after it Also what only Hyprland has: the managed takeover (HyprlandTakeover) and moving the user's binds into axiom (HyprlandBindMerge).
+- `HyprlandConfigWriter.qml`: section's options, loading ~/.config/hypr/user/*.lua after it Also the managed takeover (ConfigTakeover, on claim_hyprland.sh) and moving the user's binds into axiom (UserBindMerge, on merge_hypr_binds.py).
 - `HyprlandGrab.qml`: Hyprland's focus grab, for surfaces that close (or drop keyboard focus) on a click outside them: while `active`, keyboard focus stays in `windows` and a click anywhere else ends the grab (`cleared`).
 - `HyprlandIpcManager.qml`: Requests on Hyprland's request socket, as hyprctl makes them but without a process each: what Quickshell.Hyprland doesn't cover (options, Lua evals, binds, devices, layers, the cursor, reloads).
 - `HyprlandManager.qml`: CompositorManager's backend on Hyprland (docs/dev/compositor/contract.md): Hyprland's state as the compositor-neutral shapes (HyprState), and the primitives CompositorManager builds on.
 - `HyprlandRuntimeLayer.qml`: Axiom's Hyprland layer evaluated at runtime, for HyprlandConfigWriter: the detached mode, and the fallback of the file modes while their file isn't loaded.
-- `HyprlandTakeover.qml`: Taking ~/.config/hypr/hyprland.lua over for the managed mode, and giving it back (scripts/claim_hyprland.sh), for HyprlandConfigWriter, which acts on the results (claimed, blocked, released).
 - `IdleInhibitManager.qml`: Shared on/off state for keeping the session awake.
 - `IntegrationHookupManager.qml`: Hooks theme integrations into their apps' configs: each ThemeIntegrations switch's `x-hookup` targets (the line that loads its axiom file, where it goes), run by scripts/integration_hookup.py.
 - `KeybindManager.qml`: KeybindManager reads the keybinds the compositor has registered (CompositorManager.withBinds).
@@ -652,17 +651,16 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `SettingsManager.qml`: The settings page's working copy of the config.
 - `ShellManager.qml`: Shell manager manages global options and signals
 - `StateManager.qml`: Small JSON state files in Paths.statePath: createStateHandler(name) gives a shared save/load handler per name.
-- `SwayBindMerge.qml`: Every bindsym/bindcode line in user/* that can move becomes one of axiom's binds (an action where one does the same, `exec`, else the `raw` action for sway), saved first, then its line is commented out (a dated backup i…
-- `SwayConfigWriter.qml`: ~/.config/sway/user/* after it (SwayTakeover) Monitor profiles aren't written: MonitorManager applies the one for what's connected at start and on every hotplug.
+- `SwayConfigWriter.qml`: ~/.config/sway/user/* after it (ConfigTakeover) Monitor profiles aren't written: MonitorManager applies the one for what's connected at start and on every hotplug.
 - `SwayIpcManager.qml`: Requests to sway that want a reply, through swaymsg: what Quickshell.I3 doesn't cover (its I3.dispatch runs a command with no reply, and it has no window tree, inputs or outputs in full).
 - `SwayManager.qml`: CompositorManager's backend on sway (docs/dev/compositor/contract.md, docs/dev/compositor/sway-backend.md): sway's state as the compositor-neutral shapes (SwayState), and the primitives CompositorManager builds on.
 - `SwayRuntimeLayer.qml`: Axiom's sway layer sent at runtime, for SwayConfigWriter: the detached mode, and the fallback of the file modes while their file isn't loaded.
-- `SwayTakeover.qml`: Taking ~/.config/sway/config over for the managed mode, and giving it back (scripts/claim_sway.sh), for SwayConfigWriter, which acts on the results (claimed, blocked, released).
 - `SystemManager.qml`: CPU / memory / temperature / GPU / disk usage, polled only while something is showing it.
 - `TailscaleManager.qml`: Tailscale's state for every widget that shows it: one `tailscale status --json` at the shortest interval asked for, only while something has acquire()d it.
 - `ThemeManager.qml`: ThemeManager owns the active theme's data (loaded from its file, watched, with defaults for what it leaves out), the theme lists, theme generation from a wallpaper, the wallpaper itself, and re-theming integrated tools.
 - `TimeZoneManager.qml`: Other time zones' UTC offsets, for clocks set to one (a Clock module's or a bar Time widget's `timezone`): the JS engine can't convert times between zones (TimeZones).
 - `UpdatesManager.qml`: Pending package updates, shared by every Updates widget.
+- `UserBindMerge.qml`: Moves the user's binds into axiom (managed mode), through the compositor's merge script (scripts/merge_<compositor>_binds.py, every one with the same verbs and JSON), for that compositor's config writer.
 - `WallpaperManager.qml`: What changes the look on its own.
 - `WeatherManager.qml`: Weather shared by every widget that shows it: one WeatherSource for the Weather settings' location and units, fetching while some widget wants it.
 - `WeatherSource.qml`: Weather for one location from Open-Meteo (no API key).

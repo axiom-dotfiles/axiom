@@ -4,7 +4,7 @@
 > **Config:** `Compositor.mode`, `Compositor.requiredSettings`, `Input.*`, `Session.*`, `Keybinds.binds`, `Hyprland.managed`, `WindowLook`, `Monitors.profiles`, `Workspaces.strips`
 > **Related:** [Config modes](../compositor/config-modes.md), [Managed takeover](managed-takeover.md), [Window look](../compositor/window-look.md), [Bind merge](bind-merge.md), [Keybinds](keybinds.md), [Monitors](monitors.md), [Workspace strips](workspace-strips.md)
 
-Hyprland's config writer (`HyprlandConfigWriter`, `HyprlandManager.configWriter`, which owns `HyprlandRuntimeLayer`, `HyprlandTakeover` and `HyprlandBindMerge`): what axiom's layer is in Hyprland's Lua, for each mode. The modes themselves, leaving one and the live parts are neutral: [Config modes](../compositor/config-modes.md). Read both before touching anything axiom writes into Hyprland.
+Hyprland's config writer (`HyprlandConfigWriter`, `HyprlandManager.configWriter`, which owns `HyprlandRuntimeLayer`, and a `ConfigTakeover` and `UserBindMerge` on its scripts): what axiom's layer is in Hyprland's Lua, for each mode. The modes themselves, leaving one and the live parts are neutral: [Config modes](../compositor/config-modes.md). Read both before touching anything axiom writes into Hyprland.
 
 ### One Lua layer
 - It needs Hyprland's Lua config (0.55+). Axiom's own evals and dispatches are all Lua (`hl.*`), sent as [IPC](ipc.md) describes. The stubs are in `/usr/share/hypr/stubs/hl.meta.lua`.

@@ -1,6 +1,6 @@
 # Merging user binds (managed mode)
 
-> **Files:** `services/HyprlandBindMerge.qml`, `services/HyprlandConfigWriter.qml`, `services/CompositorConfigManager.qml` (`mergeUserBinds`, `previewMerge`), `scripts/merge_hypr_binds.py`, `scripts/hypr_binds.lua`, `components/methods/BindKeys.qml`
+> **Files:** `services/UserBindMerge.qml`, `services/HyprlandConfigWriter.qml`, `services/CompositorConfigManager.qml` (`mergeUserBinds`, `previewMerge`), `scripts/merge_hypr_binds.py`, `scripts/hypr_binds.lua`, `components/methods/BindKeys.qml`
 > **Config:** `Keybinds.binds`
 > **Related:** [Managed takeover](managed-takeover.md), [Keybinds](keybinds.md), [Config modes](config-modes.md)
 

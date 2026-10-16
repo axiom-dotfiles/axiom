@@ -14,7 +14,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`Keybinds.binds`** · array<object> = [{"key":"SUPER + space","action":"launcher"},{"key":"SUPER + Tab","ac…
   - Keybinds: Edited on the Keybinds page.
   - x-scope="personal"
-  - read: `KeybindsConfig.binds` (computed) · in: `components/surfaces/onboarding/pages/AppsPage.qml`, `components/surfaces/onboarding/pages/BindsTable.qml`, `services/EdgeMenuManager.qml`, `services/HyprlandBindMerge.qml`, `services/HyprlandConfigWriter.qml`, `services/HyprlandRuntimeLayer.qml`, `services/KeybindManager.qml`, `services/SwayBindMerge.qml`, `services/SwayConfigWriter.qml`, `services/SwayRuntimeLayer.qml`
+  - read: `KeybindsConfig.binds` (computed) · in: `components/surfaces/onboarding/pages/AppsPage.qml`, `components/surfaces/onboarding/pages/BindsTable.qml`, `services/EdgeMenuManager.qml`, `services/HyprlandConfigWriter.qml`, `services/HyprlandRuntimeLayer.qml`, `services/KeybindManager.qml`, `services/SwayConfigWriter.qml`, `services/SwayRuntimeLayer.qml`, `services/UserBindMerge.qml`
 
 ### `Keybinds.binds[]`
 
@@ -55,4 +55,4 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 Every public member of `KeybindsConfig`, with the files that use it.
 
 - `KeybindsConfig.binds` (var)
-  - in: `components/surfaces/onboarding/pages/AppsPage.qml`, `components/surfaces/onboarding/pages/BindsTable.qml`, `services/EdgeMenuManager.qml`, `services/HyprlandBindMerge.qml`, `services/HyprlandConfigWriter.qml`, `services/HyprlandRuntimeLayer.qml`, `services/KeybindManager.qml`, `services/SwayBindMerge.qml`, `services/SwayConfigWriter.qml`, `services/SwayRuntimeLayer.qml`
+  - in: `components/surfaces/onboarding/pages/AppsPage.qml`, `components/surfaces/onboarding/pages/BindsTable.qml`, `services/EdgeMenuManager.qml`, `services/HyprlandConfigWriter.qml`, `services/HyprlandRuntimeLayer.qml`, `services/KeybindManager.qml`, `services/SwayConfigWriter.qml`, `services/SwayRuntimeLayer.qml`, `services/UserBindMerge.qml`

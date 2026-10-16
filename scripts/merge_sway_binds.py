@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Moves the binds in a managed sway config's user/* files into axiom.
 
-merge_hypr_binds.py's counterpart, with the same JSON, so SwayBindMerge
-handles it as HyprlandBindMerge does.
+merge_hypr_binds.py's counterpart, with the same verbs and JSON, so the
+same UserBindMerge runs either.
 
   merge_sway_binds.py extract <sway dir> [--only <file name>]
       Prints JSON: { binds, sites, kept, remapped, tracked, errors }

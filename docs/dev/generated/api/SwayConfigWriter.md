@@ -3,7 +3,7 @@
 
 > **File:** `services/SwayConfigWriter.qml` · **Docs:** see [docs/dev](../../README.md)
 
-~/.config/sway/user/* after it (SwayTakeover) Monitor profiles aren't written: MonitorManager applies the one for what's connected at start and on every hotplug.
+~/.config/sway/user/* after it (ConfigTakeover) Monitor profiles aren't written: MonitorManager applies the one for what's connected at start and on every hotplug.
 
 ### Properties
 
@@ -25,12 +25,12 @@
 - `emptyModuleText` (readonly string): The included file once axiom isn't in that mode
 - `inputsKey` (readonly string): Everything else the layer is made of (CompositorConfigManager re-applies the layer when it changes)
 - `liveLinesHook` (var): CompositorConfigManager's: the live lines, noting which parts they apply.
-- `managedCheck` (readonly alias): What switching to managed would do (SwayTakeover.managedCheck)
+- `managedCheck` (readonly alias): What switching to managed would do (ConfigTakeover.managedCheck)
 - `managedBlockedBy` (readonly alias)
 - `managedBlockedRepo` (readonly alias)
 - `monitorConflicts` (readonly alias): Managed mode: the files in user/ that set outputs themselves
 - `merging` (readonly alias)
-- `lastMerge` (readonly alias): The last merge (SwayBindMerge.lastMerge), or null
+- `lastMerge` (readonly alias): The last merge (UserBindMerge.lastMerge), or null
 - `mergeable` (readonly alias): How many binds a Merge of all of user/ would move; -1 until looked
 
 ### Signals

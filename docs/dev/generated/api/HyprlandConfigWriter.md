@@ -3,7 +3,7 @@
 
 > **File:** `services/HyprlandConfigWriter.qml` · **Docs:** see [docs/dev](../../README.md)
 
-section's options, loading ~/.config/hypr/user/*.lua after it Also what only Hyprland has: the managed takeover (HyprlandTakeover) and moving the user's binds into axiom (HyprlandBindMerge).
+section's options, loading ~/.config/hypr/user/*.lua after it Also the managed takeover (ConfigTakeover, on claim_hyprland.sh) and moving the user's binds into axiom (UserBindMerge, on merge_hypr_binds.py).
 
 ### Properties
 
@@ -25,12 +25,12 @@ section's options, loading ~/.config/hypr/user/*.lua after it Also what only Hyp
 - `emptyModuleText` (readonly string): The included module once axiom isn't in that mode (every part a no-op)
 - `inputsKey` (readonly string): Everything else the layer is made of (CompositorConfigManager re-applies the layer when it changes)
 - `liveLinesHook` (var): CompositorConfigManager's: the live lines, noting which parts they apply.
-- `managedCheck` (readonly alias): What switching to managed would do (HyprlandTakeover.managedCheck)
+- `managedCheck` (readonly alias): What switching to managed would do (ConfigTakeover.managedCheck)
 - `managedBlockedBy` (readonly alias)
 - `managedBlockedRepo` (readonly alias)
 - `monitorConflicts` (readonly alias): Managed mode: the user/*.lua files that set monitors themselves
 - `merging` (readonly alias)
-- `lastMerge` (readonly alias): The last merge (HyprlandBindMerge.lastMerge), or null
+- `lastMerge` (readonly alias): The last merge (UserBindMerge.lastMerge), or null
 - `mergeable` (readonly alias): How many binds a Merge of all of user/ would move; -1 until looked
 
 ### Signals

@@ -24,12 +24,6 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Size:** needs a plan
 - **Found:** 2026-10-16, while decoupling the shell from Hyprland
 
-### Sway's takeover and bind merge copy Hyprland's
-- **Where:** `services/SwayTakeover.qml`, `services/HyprlandTakeover.qml`, `services/SwayBindMerge.qml`, `services/HyprlandBindMerge.qml`
-- **What:** The two takeovers and the two bind merges are the same QML around a different script (`claim_*.sh`, `merge_*_binds.py`), copied rather than shared while the Hyprland path couldn't be tested live (the session was sway). Make each one component taking its script and labels.
-- **Size:** small
-- **Found:** 2026-10-16, while writing sway's managed mode
-
 ### Quickshell's I3 socket warns on every reload
 - **Where:** `services/SwayManager.qml` (Quickshell.I3)
 - **What:** Under sway every reload of the shell logs `I3 event socket disconnected` twice (category `quickshell.I3.ipc`), from the old generation's sockets closing. Events still arrive afterwards (checked in nested sway). Quickshell's, not axiom's; nothing to fix here unless it starts dropping events.

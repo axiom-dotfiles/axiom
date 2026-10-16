@@ -18,8 +18,8 @@ import qs.components.methods
  *             user's hyprland.lua loads (includeLines)
  *   managed   ~/.config/hypr/hyprland.lua itself, with the Hyprland
  *             section's options, loading ~/.config/hypr/user/*.lua after it
- * Also what only Hyprland has: the managed takeover (HyprlandTakeover) and
- * moving the user's binds into axiom (HyprlandBindMerge).
+ * Also the managed takeover (ConfigTakeover, on claim_hyprland.sh) and
+ * moving the user's binds into axiom (UserBindMerge, on merge_hypr_binds.py).
  */
 Singleton {
   id: root
@@ -246,7 +246,7 @@ Singleton {
     HyprlandIpcManager.request("reload", callback);
   }
 
-  // --- Managed takeover: HyprlandTakeover ---
+  // --- Managed takeover: ConfigTakeover, on claim_hyprland.sh ---
 
   // The takeover of hyprland.lua is done (`adopted`: the file name the
   // previous one went to in user/, or "")
@@ -256,20 +256,25 @@ Singleton {
   // Leaving managed is done: "restored" | "written" | …
   signal released(string result)
 
-  HyprlandTakeover {
+  ConfigTakeover {
     id: takeover
     mode: CompositorConfig.mode
-    hyprlandPath: Paths.hyprlandPath
+    script: Paths.scriptsPath + "claim_hyprland.sh"
+    configDir: Paths.hyprlandPath
     managedPath: root.managedPath
     userDir: root.userDir
+    userFiles: root.userFiles
     header: root._header
-    releasedLua: root.releasedText(CompositorConfig.mode)
+    releasedText: root.releasedText(CompositorConfig.mode)
+    monitorPattern: "^[[:space:]]*hl\\.monitor[[:space:]]*\\("
+    monitorGlob: "*.lua"
+    logTag: "HyprlandConfigWriter"
     onClaimed: (result, adopted) => root.claimed(adopted)
     onBlocked: root.blocked()
     onReleased: result => root.released(result)
   }
 
-  // What switching to managed would do (HyprlandTakeover.managedCheck)
+  // What switching to managed would do (ConfigTakeover.managedCheck)
   readonly property alias managedCheck: takeover.managedCheck
   readonly property alias managedBlockedBy: takeover.managedBlockedBy
   readonly property alias managedBlockedRepo: takeover.managedBlockedRepo
@@ -298,18 +303,20 @@ Singleton {
     takeover.clearConflicts();
   }
 
-  // --- Moving the user's binds into axiom: HyprlandBindMerge ---
+  // --- Moving the user's binds into axiom: UserBindMerge, on merge_hypr_binds.py ---
 
-  HyprlandBindMerge {
+  UserBindMerge {
     id: bindMerge
     enabled: CompositorConfig.mode === "managed"
-    hyprlandPath: Paths.hyprlandPath
+    script: Paths.scriptsPath + "merge_hypr_binds.py"
+    configDir: Paths.hyprlandPath
     userDir: root.userDir
+    logTag: "HyprlandConfigWriter"
     onBindsMerged: binds => root.bindsMerged(binds)
   }
 
   readonly property alias merging: bindMerge.merging
-  // The last merge (HyprlandBindMerge.lastMerge), or null
+  // The last merge (UserBindMerge.lastMerge), or null
   readonly property alias lastMerge: bindMerge.lastMerge
   // How many binds a Merge of all of user/ would move; -1 until looked
   readonly property alias mergeable: bindMerge.mergeable

@@ -5,33 +5,39 @@ import qs.config
 import qs.components.methods
 
 /*
- * Moves the user's binds into axiom (managed mode), for
- * HyprlandConfigWriter. Not a singleton: HyprlandConfigWriter owns one.
+ * Moves the user's binds into axiom (managed mode), through the
+ * compositor's merge script (scripts/merge_<compositor>_binds.py, every one
+ * with the same verbs and JSON), for that compositor's config writer. Not
+ * a singleton: each config writer owns one (docs/dev/hyprland/bind-merge.md).
  *
- * scripts/merge_hypr_binds.py: every hl.bind in user/*.lua that can move
- * becomes one of axiom's binds (an action where one does the same, else
- * the `lua` action), saved first, then its call is deleted from the file
- * (a dated backup beside it). A call that couldn't be deleted has its
- * binds taken back out of axiom's, so no key is ever bound twice. A key
- * axiom binds too stays one bind, the user's replacing axiom's
- * (BindKeys.mergeBinds). Runs by itself on the adopted file when a
- * takeover adopts the previous hyprland.lua, so managed mode starts with
- * no conflicts; the Keybinds page's Merge runs it on all of user/.
+ * Every bind in user/ that can move becomes one of axiom's binds (an
+ * action where one does the same, else the compositor's raw command),
+ * saved first, then it's taken out of its file (a dated backup kept). A
+ * bind that couldn't be has its binds taken back out of axiom's, so no
+ * key is ever bound twice. A key axiom binds too stays one bind, the
+ * user's replacing axiom's (BindKeys.mergeBinds). Runs by itself on the
+ * adopted file when a takeover adopts the previous config, so managed mode
+ * starts with no conflicts; the Keybinds page's Merge runs it on all of
+ * user/.
  */
 QtObject {
   id: root
 
   // Merging only happens in managed mode
   property bool enabled: false
-  // ~/.config/hypr/ and its user/ folder
-  property string hyprlandPath: ""
+  // The merge script, the compositor's config folder it's run on, and its
+  // user/ folder
+  property string script: ""
+  property string configDir: ""
   property string userDir: ""
+  // The config writer's name, to start log lines with
+  property string logTag: ""
 
   readonly property bool merging: _extracting || _removing
   // The last merge: { moved, removed, kept: [{ file, line, key, reason,
   // detail }], failed: [{ file, line, reason, detail }], remapped: [{ from,
   // to, action }], tracked: [file], errors: [text], saveFailed }, or null.
-  // Reasons are codes (merge_hypr_binds.py, and "crashed"), which the
+  // Reasons are codes (the script's, and "crashed"), which the
   // Keybinds page translates
   property var lastMerge: null
   // How many binds a Merge of all of user/ would move (previewMerge());
@@ -68,7 +74,7 @@ QtObject {
 
   function _extract(only) {
     _extracting = true;
-    CommandManager.run([Paths.scriptsPath + "merge_hypr_binds.py", "extract", hyprlandPath].concat(only ? ["--only", only] : []), (code, out, err) => {
+    CommandManager.run([root.script, "extract", root.configDir].concat(only ? ["--only", only] : []), (code, out, err) => {
       root._extracting = false;
       root._extracted(out, err);
     });
@@ -83,7 +89,7 @@ QtObject {
         mergeable = 0;
         return;
       }
-      console.warn("[HyprlandConfigWriter] Reading your Hyprland binds failed:", errors.trim() || e);
+      console.warn(`[${root.logTag}] Reading your binds failed:`, errors.trim() || e);
       lastMerge = {
         "moved": 0,
         "removed": 0,
@@ -125,7 +131,7 @@ QtObject {
       return;
     }
     _removing = true;
-    CommandManager.run([Paths.scriptsPath + "merge_hypr_binds.py", "remove", hyprlandPath, JSON.stringify(found.sites)], (code, out, err) => {
+    CommandManager.run([root.script, "remove", root.configDir, JSON.stringify(found.sites)], (code, out, err) => {
       root._removing = false;
       let done;
       try {
@@ -155,16 +161,16 @@ QtObject {
     if (done.failed.length > 0 && !SettingsManager.commitValues({
       "Keybinds.binds": BindKeys.mergeBinds(_before, moved)
     }))
-      console.warn("[HyprlandConfigWriter] Couldn't take the binds left in your Hyprland config back out of axiom's");
+      console.warn(`[${root.logTag}] Couldn't take the binds left in your config back out of axiom's`);
     _merged.moved = moved.length;
     _merged.removed = done.removed;
     _merged.failed = done.failed;
     for (const failure of done.failed)
-      console.warn("[HyprlandConfigWriter] Left the binds in", failure.file, failure.line > 0 ? `(line ${failure.line})` : "", "where they were:", failure.reason, failure.detail);
+      console.warn(`[${root.logTag}] Left the binds in`, failure.file, failure.line > 0 ? `(line ${failure.line})` : "", "where they were:", failure.reason, failure.detail);
     if (moved.length > 0)
       bindsMerged(moved);
     lastMerge = _merged;
     mergeable = -1;
-    console.log(`[HyprlandConfigWriter] Moved ${moved.length} binds from ${userDir} into axiom; ${_merged.kept.length} stay there`);
+    console.log(`[${root.logTag}] Moved ${moved.length} binds from ${userDir} into axiom; ${_merged.kept.length} stay there`);
   }
 }

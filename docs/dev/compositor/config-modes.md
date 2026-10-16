@@ -1,6 +1,6 @@
 # Config modes (detached / included / managed)
 
-> **Files:** `services/CompositorConfigManager.qml`, `config/CompositorConfig.qml`, `components/methods/CompositorLayer.qml`, `components/views/settings/CompositorStatusCard.qml`, `services/IntegrationHookupManager.qml`, `services/HyprlandConfigWriter.qml`, `services/SwayConfigWriter.qml`, `config/WindowBehaviourConfig.qml`
+> **Files:** `services/CompositorConfigManager.qml`, `services/ConfigTakeover.qml`, `services/UserBindMerge.qml`, `config/CompositorConfig.qml`, `components/methods/CompositorLayer.qml`, `components/views/settings/CompositorStatusCard.qml`, `services/IntegrationHookupManager.qml`, `services/HyprlandConfigWriter.qml`, `services/SwayConfigWriter.qml`, `config/WindowBehaviourConfig.qml`
 > **Config:** `Compositor.mode`, `Compositor.requiredSettings`, `WindowBehaviour.*`, `Keybinds.binds`, `Monitors.profiles`, `WindowLook`, `Input`, `Session`, `Workspaces.strips`
 > **Related:** [Contract](contract.md), [Window look](window-look.md), [Hyprland's writer](../hyprland/config-modes.md), [Managed takeover](../hyprland/managed-takeover.md), [Sway backend](sway-backend.md)
 
@@ -55,7 +55,7 @@ A backend with `configModes` gives `configWriter`, a singleton with:
 - **Files and lines**: `configDir`, `includePath`, `managedPath`, `userDir`, `userFiles`, `includeLines`, `autostartLines`, `includeTarget`, `autostartTarget`, the three `*Problem` texts.
 - **Text**: `moduleText(spec)`, `managedText(spec)`, `emptyModuleText`, `liveLines(spec)`, `inputsKey` (the rest of what its text depends on, so a change re-applies it), `isComplete(bind)`.
 - **Runtime**: `runtimeApply()`, `runtimeClear()`, `noteReload()`, `skippedKeys`, `liveLinesHook` (set by the manager), `runLive(lines)`, `setCursor(theme, size)`, `checkLoaded(cb)`, `reload(cb)`.
-- **Takeover**: `claim()`, `release()`, `checkManaged()`, `findMonitorConflicts()`, `clearConflicts()`, `managedCheck`, `managedBlockedBy`, `managedBlockedRepo`, `monitorConflicts`; signals `claimed(adopted)`, `blocked()`, `released(result)`.
+- **Takeover**: `claim()`, `release()`, `checkManaged()`, `findMonitorConflicts()`, `clearConflicts()`, `managedCheck`, `managedBlockedBy`, `managedBlockedRepo`, `monitorConflicts`; signals `claimed(adopted)`, `blocked()`, `released(result)`. Each writer forwards these to a `ConfigTakeover` on its `scripts/claim_<compositor>.sh` (same verbs and results: `check`/`claim`/`release`), and the bind merge to a `UserBindMerge` on its `scripts/merge_<compositor>_binds.py` (same JSON): a new compositor writes the two scripts, not the QML.
 - **Bind merge** (with `bindMerge`): `mergeUserBinds(only)`, `previewMerge()`, `merging`, `lastMerge`, `mergeable`, signal `bindsMerged(binds)`.
 
 ### Service creation

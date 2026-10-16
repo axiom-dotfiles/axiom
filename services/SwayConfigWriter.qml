@@ -18,7 +18,7 @@ import qs.components.methods
  *             sway config includes (includeLines)
  *   managed   ~/.config/sway/config itself, with the WindowBehaviour and
  *             Sway sections' options and the session, including
- *             ~/.config/sway/user/* after it (SwayTakeover)
+ *             ~/.config/sway/user/* after it (ConfigTakeover)
  * Monitor profiles aren't written: MonitorManager applies the one for
  * what's connected at start and on every hotplug.
  */
@@ -229,7 +229,7 @@ Singleton {
     });
   }
 
-  // --- Managed takeover: SwayTakeover ---
+  // --- Managed takeover: ConfigTakeover, on claim_sway.sh ---
 
   // The takeover of the config is done (`adopted`: the file name the
   // previous one went to in user/, or "")
@@ -239,20 +239,24 @@ Singleton {
   // Leaving managed is done: "restored" | "written" | …
   signal released(string result)
 
-  SwayTakeover {
+  ConfigTakeover {
     id: takeover
     mode: CompositorConfig.mode
-    swayPath: Paths.swayPath
+    script: Paths.scriptsPath + "claim_sway.sh"
+    configDir: Paths.swayPath
     managedPath: root.managedPath
     userDir: root.userDir
+    userFiles: root.userFiles
     header: root._header
     releasedText: root.releasedText(CompositorConfig.mode)
+    monitorPattern: "^[[:space:]]*output[[:space:]]+[^[:space:]]+[[:space:]]+(mode|res|resolution|pos|position|scale|transform|enable|disable|power)"
+    logTag: "SwayConfigWriter"
     onClaimed: (result, adopted) => root.claimed(adopted)
     onBlocked: root.blocked()
     onReleased: result => root.released(result)
   }
 
-  // What switching to managed would do (SwayTakeover.managedCheck)
+  // What switching to managed would do (ConfigTakeover.managedCheck)
   readonly property alias managedCheck: takeover.managedCheck
   readonly property alias managedBlockedBy: takeover.managedBlockedBy
   readonly property alias managedBlockedRepo: takeover.managedBlockedRepo
@@ -281,18 +285,20 @@ Singleton {
     takeover.clearConflicts();
   }
 
-  // --- Moving the user's binds into axiom: SwayBindMerge ---
+  // --- Moving the user's binds into axiom: UserBindMerge, on merge_sway_binds.py ---
 
-  SwayBindMerge {
+  UserBindMerge {
     id: bindMerge
     enabled: CompositorConfig.mode === "managed"
-    swayPath: Paths.swayPath
+    script: Paths.scriptsPath + "merge_sway_binds.py"
+    configDir: Paths.swayPath
     userDir: root.userDir
+    logTag: "SwayConfigWriter"
     onBindsMerged: binds => root.bindsMerged(binds)
   }
 
   readonly property alias merging: bindMerge.merging
-  // The last merge (SwayBindMerge.lastMerge), or null
+  // The last merge (UserBindMerge.lastMerge), or null
   readonly property alias lastMerge: bindMerge.lastMerge
   // How many binds a Merge of all of user/ would move; -1 until looked
   readonly property alias mergeable: bindMerge.mergeable
