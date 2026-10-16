@@ -22,10 +22,10 @@ Scope {
   function open() {
     if (root.overlayVisible)
       return;
-    HyprlandManager.withHoveredScreen(name => {
+    CompositorManager.withHoveredScreen(name => {
       root.openScreen = name;
       root.overlayVisible = true;
-      HyprlandManager.updateAll();
+      CompositorManager.refresh();
     });
   }
 
@@ -70,7 +70,7 @@ Scope {
       required property var modelData
 
       // The dim background, under the bars and border
-      ScreenBackdrop {
+      BackdropRequest {
         screen: overlayWindow.modelData
         shown: overlayWindow.shown
         fillColor: Theme.base00
@@ -100,9 +100,9 @@ Scope {
       // focus to every window, so focusing one (a click, a drop's target)
       // would only switch the workspace, and closing would refocus the old
       // window and switch back. The focus grab keeps the keyboard here.
-      WlrLayershell.keyboardFocus: overlayWindow.shown ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
+      WlrLayershell.keyboardFocus: overlayWindow.shown ? (grab.exclusive ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.OnDemand) : WlrKeyboardFocus.None
 
-      HyprlandGrab {
+      FocusGrab {
         id: grab
         // Off for a moment to take the grab back after a drop moved focus
         property bool rearming: false

@@ -12,6 +12,7 @@ Reader for the Appearance section. Values are always present: schema defaults ar
 - `fixedWallpaper` (readonly string): The wallpapers picked by hand (fixed mode): the primary monitor's, the fallback for monitors without their own, and monitor name -> URL, set per monitor on the Themes page.
 - `fixedWallpapers` (readonly var)
 - `wallpaperBackend` (readonly string): As configured (for display), and with ~ expanded, no trailing slash "quickshell" (shell/Wallpaper draws it) | "awww" (setWallpaper.sh)
+- `wallpaperDaemon` (readonly bool): Start awww's daemon for the awww backend (WallpaperManager)
 - `wallpaperFolder` (readonly string)
 - `wallpaperPath` (readonly string)
 - `wallpaperMode` (readonly string): "fixed" | "rotate" (wallpaperRotation) | "variant" (variantWallpapers), driven by WallpaperManager

@@ -4,7 +4,7 @@ import QtQuick
 
 // Pure geometry for the workspace overview: a cols×rows board of monitor
 // miniatures. Grid coordinates have (0, 0) at the first cell's corner; rects
-// are { x, y, w, h } (actions live in HyprlandManager).
+// are { x, y, w, h } (actions live in CompositorManager).
 QtObject {
   id: root
 
@@ -39,7 +39,7 @@ QtObject {
     return row * cols + col;
   }
 
-  // A hyprctl client's rect inside its cell. `at` is global layout
+  // A window's rect inside its cell. Windows are in global layout
   // coordinates, so the monitor's origin comes off first.
   function windowRect(win, monitorX, monitorY, scale, cellW, cellH) {
     return _inCell(_scaledRect(win, monitorX, monitorY, scale), cellW, cellH);
@@ -47,10 +47,10 @@ QtObject {
 
   function _scaledRect(win, monitorX, monitorY, scale) {
     return {
-      x: ((win?.at?.[0] ?? 0) - monitorX) * scale,
-      y: ((win?.at?.[1] ?? 0) - monitorY) * scale,
-      w: (win?.size?.[0] ?? 0) * scale,
-      h: (win?.size?.[1] ?? 0) * scale
+      x: ((win?.x ?? 0) - monitorX) * scale,
+      y: ((win?.y ?? 0) - monitorY) * scale,
+      w: (win?.w ?? 0) * scale,
+      h: (win?.h ?? 0) * scale
     };
   }
 
@@ -66,7 +66,7 @@ QtObject {
     };
   }
 
-  // A strip workspace's tiled windows (hyprctl clients) inside its cell, as
+  // A strip workspace's tiled windows inside its cell, as
   // windowRect but with the whole strip squeezed along its direction to
   // fit, so columns scrolled off the monitor show too, in order. Rects in
   // the order of `wins`.
@@ -86,13 +86,13 @@ QtObject {
     });
   }
 
-  // A workspace's windows (hyprctl clients) in strip order: tiled ones by
+  // A workspace's windows in strip order: tiled ones by
   // their place along the strip (a column's windows across it), floating
   // ones after them
   function stripOrder(wins, vertical) {
-    const along = vertical ? 1 : 0;
-    const across = 1 - along;
-    const place = (win, axis) => win.at?.[axis] ?? 0;
+    const along = vertical ? "y" : "x";
+    const across = vertical ? "x" : "y";
+    const place = (win, axis) => win[axis] ?? 0;
     const tiled = wins.filter(win => !win.floating).sort((a, b) => place(a, along) - place(b, along) || place(a, across) - place(b, across));
     return tiled.concat(wins.filter(win => win.floating));
   }
@@ -108,7 +108,7 @@ QtObject {
   }
 
   // The topmost window under a point: floating windows sit above tiled ones.
-  // items: [{ address, floating, rect }] in grid coordinates.
+  // items: [{ id, floating, rect }] in grid coordinates.
   function windowAt(items, x, y) {
     let tiled = "";
     for (let i = items.length - 1; i >= 0; i--) {
@@ -116,18 +116,18 @@ QtObject {
       if (!contains(item.rect, x, y))
         continue;
       if (item.floating)
-        return item.address;
+        return item.id;
       if (tiled === "")
-        tiled = item.address;
+        tiled = item.id;
     }
     return tiled;
   }
 
-  // Where dwindle tiles a window dropped at a point, as HyprlandManager's
+  // Where dwindle tiles a window dropped at a point, as Hyprland's
   // placeWindow reproduces it: on the tiled window under the point (else the
   // nearest), side by side when that is wider than tall × multiplier, in the
   // half the point is in. items: that cell's other tiled windows. Returns
-  // { address, side, rect: the half } or null for an empty workspace.
+  // { id, side, rect: the half } or null for an empty workspace.
   function dropTarget(items, x, y, multiplier) {
     let best = null;
     let bestDistance = -1;
@@ -144,7 +144,7 @@ QtObject {
     if (r.w > r.h * multiplier) {
       const first = x < r.x + r.w / 2;
       return {
-        address: best.address,
+        id: best.id,
         side: first ? "left" : "right",
         rect: {
           x: first ? r.x : r.x + r.w / 2,
@@ -156,7 +156,7 @@ QtObject {
     }
     const first = y < r.y + r.h / 2;
     return {
-      address: best.address,
+      id: best.id,
       side: first ? "top" : "bottom",
       rect: {
         x: r.x,
@@ -170,14 +170,14 @@ QtObject {
   // Where a tiled window dropped at a point lands on a strip: a new column
   // after the tiled window nearest the point (the scrolling layout opens a
   // window after the focused one, which placeWindow focuses). Returns
-  // { address, side, rect: the target's after half } or null.
+  // { id, side, rect: the target's after half } or null.
   function stripDropTarget(items, x, y, vertical) {
     const best = items.reduce((nearest, item) => nearest === null || _distance(item.rect, x, y) < _distance(nearest.rect, x, y) ? item : nearest, null);
     if (best === null)
       return null;
     const r = best.rect;
     return {
-      address: best.address,
+      id: best.id,
       side: vertical ? "bottom" : "right",
       rect: vertical ? {
         x: r.x,
@@ -218,12 +218,12 @@ QtObject {
   // Stable order for assigning workspace-id blocks to monitors (grid and
   // perMonitor layouts): the primary monitor first (matched by `name`, as
   // General.primaryMonitor is stored/matched elsewhere), then the rest by
-  // `key` — a caller-supplied stable identity (HyprlandManager fills it with
+  // `key` — a caller-supplied stable identity (CompositorManager fills it with
   // MonitorLayout.outputId, the same "follows the monitor across ports"
-  // identity monitor profiles use). Hyprland.monitors.values' own order can
+  // identity monitor profiles use). The compositor's own order can
   // change on a hotplug/reconnect/restart; `key`/`name` don't, so this can't
   // reshuffle who owns which ids the way raw discovery order did.
-  // monitors: [{ id, name, key, x, y }, ...], any order.
+  // monitors: [{ name, key, x, y }, ...], any order.
   function orderMonitors(monitors, primaryName) {
     const list = (monitors ?? []).slice();
     const isPrimary = m => !!primaryName && m.name === primaryName;
@@ -233,7 +233,7 @@ QtObject {
     return primary.concat(rest);
   }
 
-  // Where windows go when the workspace layout changes (HyprlandManager's
+  // Where windows go when the workspace layout changes (CompositorManager's
   // remap): every workspace with windows moves into its own monitor's ids
   // under `to`, at the same place in the block where it can, so its windows
   // stay open and on their monitor. Ids a monitor didn't own under `from`
@@ -242,9 +242,10 @@ QtObject {
   // standard layout, or a smaller block), the first in monitor order keeps
   // it and the rest take free ids; windows only merge when none is free.
   // from/to: { blocks, size } (blocks: each monitor owns `size` ids, else
-  // all share 1..size). monitors: [{ id, name, active, focused }] in block
-  // order (orderMonitors); windows: [{ address, workspace, monitor }]
-  // (ids). Returns { moves: [{ address, to }], focus: [{ monitor, id }]
+  // all share 1..size). monitors: [{ name, active, focused }] in block
+  // order (orderMonitors); windows: [{ id, workspace, output }] (workspace
+  // an id, output a monitor's name). Returns { moves: [{ id, to }], focus:
+  // [{ monitor, id }]
   // (every monitor's mapped active workspace, the focused one last),
   // changed }.
   function remapWorkspaces(monitors, windows, from, to) {
@@ -271,7 +272,7 @@ QtObject {
     monitors.forEach((m, i) => {
       const ids = [];
       windows.forEach(w => {
-        if (w.monitor === m.id && w.workspace > 0 && !ids.includes(w.workspace))
+        if (w.output === m.name && w.workspace > 0 && !ids.includes(w.workspace))
           ids.push(w.workspace);
       });
       ids.sort((a, b) => a - b).forEach(id => occupied.push({
@@ -296,14 +297,14 @@ QtObject {
       target[o.index + ":" + o.id] = chosen;
     });
     const moves = windows.filter(w => w.workspace > 0).map(w => {
-      const i = monitors.findIndex(m => m.id === w.monitor);
+      const i = monitors.findIndex(m => m.name === w.output);
       return {
-        "address": w.address,
+        "id": w.id,
         "from": w.workspace,
         "to": target[i + ":" + w.workspace] ?? w.workspace
       };
     }).filter(move => move.to !== move.from).map(move => ({
-          "address": move.address,
+          "id": move.id,
           "to": move.to
         }));
     const focus = monitors.map((m, i) => {

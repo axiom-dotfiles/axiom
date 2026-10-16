@@ -17,7 +17,8 @@ Generated from `config/json/config.schema.json` and the readers in `config/`. On
 | [Screenshots](Screenshots.md) | `Screenshots` (`config/Screenshots.qml`) | General |
 | [Battery](Battery.md) | `BatteryConfig` (`config/BatteryConfig.qml`) | General |
 | [Notifications](Notifications.md) | `NotificationsConfig` (`config/NotificationsConfig.qml`) | Notifications |
-| [Hyprland](Hyprland.md) | `HyprlandConfig` (`config/HyprlandConfig.qml`) | Hyprland |
+| [Hyprland](Hyprland.md) | `HyprlandConfig` (`config/HyprlandConfig.qml`) | Compositor |
+| [WindowLook](WindowLook.md) | `WindowLookConfig` (`config/WindowLookConfig.qml`) | Compositor |
 | [Appearance](Appearance.md) | `Appearance` (`config/Appearance.qml`) | Look & Feel |
 | [Widget](Widget.md) | `Widget` (`config/Widget.qml`) | Look & Feel |
 | [BarStyle](BarStyle.md) | `BarStyle` (`config/BarStyle.qml`) | Look & Feel |

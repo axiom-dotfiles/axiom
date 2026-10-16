@@ -68,6 +68,8 @@ Scope {
     active: LockManager.editor.previewing && !lockState.locked
 
     LockPreviewWindow {
+      // Quickshell's list, not General.outputs: there's always a screen to
+      // put it on, a stand-in one while no monitor is connected
       screen: Quickshell.screens.find(screen => screen.name === LockManager.editor.previewScreen) ?? Quickshell.screens[0]
     }
   }

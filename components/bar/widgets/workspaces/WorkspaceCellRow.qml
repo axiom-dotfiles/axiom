@@ -48,10 +48,10 @@ Item {
   }
 
   function _occupied(id) {
-    const arr = HyprlandManager.workspaces;
+    const arr = CompositorManager.workspaces;
     for (let i = 0; i < arr.length; i++) {
       if (arr[i].id === id)
-        return (arr[i].toplevels?.values?.length ?? 0) > 0;
+        return arr[i].windowCount > 0;
     }
     return false;
   }
@@ -117,7 +117,7 @@ Item {
         required property int index
         readonly property int wsId: root.ids[index] ?? 0
         readonly property string _glyph: root.glyphOf(wsId, isActive)
-        readonly property var biggestWindow: root.properties.showAppIcons && _glyph === "" && root._occupied(wsId) ? HyprlandManager.biggestWindowForWorkspace(wsId) : null
+        readonly property var biggestWindow: root.properties.showAppIcons && _glyph === "" && root._occupied(wsId) ? CompositorManager.biggestWindowForWorkspace(wsId) : null
 
         part: "content"
         barConfig: root.barConfig
@@ -132,9 +132,9 @@ Item {
         // in the grid)
         label: root.properties.relativeNumbers ? wsId - root.base + 1 : wsId
         glyph: _glyph
-        iconPath: biggestWindow ? IconResolver.resolveWindowIcon(biggestWindow.class, biggestWindow.title) : ""
+        iconPath: biggestWindow ? IconResolver.resolveWindowIcon(biggestWindow.appId, biggestWindow.title) : ""
         clickable: root.properties.clickToSwitch
-        onClicked: HyprlandManager.goToWorkspace(wsId, "go", root.monitor)
+        onClicked: CompositorManager.goToWorkspace(wsId, "go", root.monitor?.name ?? "")
         onHoveredChanged: {
           if (hovered)
             root.hoveredId = wsId;

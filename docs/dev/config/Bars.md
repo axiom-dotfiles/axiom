@@ -192,7 +192,7 @@ Every public member of `Bar`, with the files that use it.
 
 - `Bar.enrichBarConfig(barConfig, gapsOut)`: Adds derived orientation flags to a bar entry from the Bars section (whose keys are always filled in from the schema defaults).
   - in: `components/views/barEditor/BarsPanel.qml`, `services/BarManager.qml`
-- `Bar.layerNamespace(barConfig)`: A bar window's layer namespace, whose rule's `order` decides where Hyprland arranges it (HyprlandManager.layerRulesLua): by its kind (solid, outside the border…
+- `Bar.layerNamespace(barConfig)`: A bar window's layer namespace, whose rule's `order` decides where Hyprland arranges it (HyprLua.layerRulesLua): by its kind (solid, outside the border; pills;…
   - in: `components/bar/BarPanel.qml`, `shell/Bar.qml`
 - `Bar.endsOptions(gapsOut)`: BarEnds' options, from Appearance and Hyprland's gaps_out
   - in: `services/BarManager.qml`

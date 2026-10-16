@@ -19,8 +19,11 @@ ReservedAreaWindow {
 
   visible: false
   // Its layer rule arranges it after docks and draws it over them
-  // (see HyprlandManager.layerRulesLua)
+  // (see HyprLua.layerRulesLua)
   WlrLayershell.namespace: "axiom-overlay"
+  // The keyboard exclusively while its grab is one the compositor doesn't
+  // have (FocusGrab.exclusive)
+  WlrLayershell.keyboardFocus: root.steppedAside ? WlrKeyboardFocus.None : grab.exclusive ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.OnDemand
 
   function open() {
     visible = true;
@@ -112,7 +115,7 @@ ReservedAreaWindow {
     onSyncRequested: shown => shown ? root.open() : root.close()
   }
 
-  HyprlandGrab {
+  FocusGrab {
     id: grab
     // Only while open: a grab held through the close animation would be
     // cleared by any click then, for nothing

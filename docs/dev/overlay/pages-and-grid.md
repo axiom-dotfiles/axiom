@@ -75,7 +75,7 @@ Pure, tested by `tst_GridPlacement`.
 
 ### Loading
 - One overlay per screen in `General.screens` (`shell/Overlay.qml`): a transparent `OverlayPanel` inside the reserved area, placed by its base `ReservedAreaWindow` (shared with the onboarder).
-- Under it, `reusable/ScreenBackdrop` dims the whole monitor under the bars and border.
+- Under it, its `reusable/BackdropRequest` dims the whole monitor under the bars and border (the screen's `ScreenBackdrop` window).
   - A Top-layer surface kept under them by a Hyprland `order` layer rule that `HyprlandManager` adds at startup and on config reload.
   - The workspace overview and launcher use it too.
 - Its focus grab (`HyprlandGrab`) also whitelists `ShellManager.grabPartnersFor(screen)`. The bars, bar popouts and submenus register themselves there (`registerGrabPartner(window, screenName)`), so they keep working while it's open.

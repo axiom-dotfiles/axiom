@@ -1279,12 +1279,12 @@ TestCase {
         }
       }
     }).config;
-    compare(managed.Hyprland.look.blur, true, "a managed config keeps writing its blur");
-    compare(managed.Hyprland.look.opacity, true);
-    compare(managed.Hyprland.look.blurSize, 6);
-    compare(managed.Hyprland.look.blurPasses, 2);
-    compare(managed.Hyprland.look.inactiveOpacity, 90);
-    compare(managed.Hyprland.look.windowBlur, true, "defaults fill the rest");
+    compare(managed.WindowLook.blur, true, "a managed config keeps writing its blur");
+    compare(managed.WindowLook.opacity, true);
+    compare(managed.WindowLook.blurSize, 6);
+    compare(managed.WindowLook.blurPasses, 2);
+    compare(managed.WindowLook.inactiveOpacity, 90);
+    compare(managed.WindowLook.windowBlur, true, "defaults fill the rest");
     compare(managed.Hyprland.managed.blurSize, undefined);
     compare(managed.Hyprland.managed.recommendedEnv, true);
     compare(managed.Hyprland.managed.env, [
@@ -1304,8 +1304,8 @@ TestCase {
         "mode": "detached"
       }
     }).config;
-    compare(detached.Hyprland.look.blur, false, "Hyprland's own blur unless asked");
-    compare(detached.Hyprland.look.opacity, false);
+    compare(detached.WindowLook.blur, false, "Hyprland's own blur unless asked");
+    compare(detached.WindowLook.opacity, false);
     compare(errors(detached), []);
   }
 
@@ -1329,7 +1329,7 @@ TestCase {
   }
 
   function test_v49_window_look_moves_to_hyprland_look() {
-    const managed = load({
+    const migrated = load({
       "version": 48,
       "Hyprland": {
         "mode": "managed",
@@ -1341,10 +1341,11 @@ TestCase {
           "rounding": 3
         }
       }
-    }).config.Hyprland;
+    }).config;
+    const managed = migrated.Hyprland;
     const v49 = ["borders", "shape", "gaps", "gapsIn", "gapsOut"];
     compare(v49.reduce((picked, key) => Object.assign(picked, {
-        [key]: managed.look[key]
+        [key]: migrated.WindowLook[key]
       }), {}), {
       "borders": true,
       "shape": false,
@@ -1363,7 +1364,7 @@ TestCase {
       "Hyprland": {
         "mode": "managed"
       }
-    }).config.Hyprland.look.shape, true);
+    }).config.WindowLook.shape, true);
 
     // Detached and included configs never wrote gaps or the shape: they
     // stay off, themed borders come along
@@ -1377,7 +1378,7 @@ TestCase {
         }
       }
     });
-    const detached = loaded.config.Hyprland.look;
+    const detached = loaded.config.WindowLook;
     compare(detached.borders, true);
     compare(detached.shape, false);
     compare(detached.gaps, false);
@@ -1675,5 +1676,34 @@ TestCase {
     verify(bounds.cols <= layout.columns && bounds.rows <= layout.rows);
     compare(layout.modules.filter(module => module.type === "Password").length, 1);
     layout.modules.forEach((module, i) => verify(GridPlacement.canPlace(layout.modules.slice(0, i), module.place, -1)));
+  }
+
+  function test_v56_window_look_leaves_hyprland() {
+    const migrated = load({
+      "version": 55,
+      "Hyprland": {
+        "mode": "detached",
+        "wallpaperDaemon": false,
+        "look": {
+          "borders": true,
+          "gapsIn": 7
+        }
+      }
+    });
+    const config = migrated.config;
+    compare(config.WindowLook.borders, true);
+    compare(config.WindowLook.gapsIn, 7);
+    compare(config.WindowLook.gaps, false, "defaults fill the rest");
+    compare(config.Hyprland.look, undefined);
+    compare(config.Hyprland.wallpaperDaemon, undefined);
+    compare(config.Appearance.wallpaperDaemon, false);
+    compare(config.Hyprland.mode, "detached");
+    compare(migrated.removed, []);
+    compare(errors(config), []);
+    // Idempotent: a config already moved keeps its WindowLook
+    const again = ConfigMigration.migrate(JSON.parse(JSON.stringify(Object.assign({}, config, {
+      "version": 55
+    })))).config;
+    compare(again.WindowLook.gapsIn, 7);
   }
 }

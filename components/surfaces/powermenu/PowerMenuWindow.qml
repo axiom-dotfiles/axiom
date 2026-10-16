@@ -125,14 +125,15 @@ PanelWindow {
     onSyncRequested: shown => root.shown = shown
   }
 
-  HyprlandGrab {
+  FocusGrab {
+    id: grab
     active: root.shown && group.ownsGrab
     windows: group.windows.concat(ShellManager.modalWindows)
     onCleared: root.shown = false
   }
 
   // The dim background, under the bars and border
-  ScreenBackdrop {
+  BackdropRequest {
     screen: root.screen
     shown: root.shown && PowerMenuConfig.showBackdrop
     fillColor: Theme.background
@@ -151,7 +152,7 @@ PanelWindow {
   // Stays mapped while the card fades out
   visible: shown || card.opacity > 0
 
-  WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
+  WlrLayershell.keyboardFocus: grab.exclusive ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.OnDemand
   WlrLayershell.layer: WlrLayer.Overlay
   WlrLayershell.namespace: "axiom-powermenu"
 

@@ -35,6 +35,10 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`Appearance.wallpaperBackend`** · string = "quickshell" · enum quickshell|awww
   - Wallpaper backend: What draws the wallpaper. Axiom needs nothing installed and crossfades; awww (AUR) adds wipe and wave transitions.
   - read: `Appearance.wallpaperBackend` · in: `services/ThemeManager.qml`, `services/WallpaperManager.qml`, `shell/Wallpaper.qml`
+- **`Appearance.wallpaperDaemon`** · boolean = true
+  - Start awww: Start awww-daemon for the wallpaper picker.
+  - x-scope="machine", x-showIf={"wallpaperBackend":"awww"}
+  - read: `Appearance.wallpaperDaemon` · in: `components/methods/ConfigMigration.qml`, `services/WallpaperManager.qml`
 - **`Appearance.wallpaperFolder`** · string = "~/Pictures/wallpapers"
   - Wallpaper folder: Folder the wallpaper pickers list images from (jpg, png, bmp). A leading ~ is your home folder.
   - x-snapshot=true, x-control="folder", pattern="\\S"
@@ -51,13 +55,15 @@ Every public member of `Appearance`, with the files that use it.
 - `Appearance.theme` (string): --- Theme (UI-owned, set on the overlay's Themes page) ---
   - in: `components/methods/ConfigMigration.qml`, `config/Theme.qml`, `services/ThemeManager.qml`
 - `Appearance.darkMode` (bool): From the active theme, not config: a theme is dark or light
-  - in: `components/content/QuickActions.qml`, `components/content/ThemePicker.qml`, `components/content/WallpaperPicker.qml`, `components/reusable/ScreenBackdrop.qml`, `components/surfaces/polkit/PolkitWindow.qml`, `services/LauncherCommands.qml`, `services/ThemeManager.qml`, `services/WallpaperManager.qml`
+  - in: `components/content/QuickActions.qml`, `components/content/ThemePicker.qml`, `components/content/WallpaperPicker.qml`, `components/reusable/BackdropRequest.qml`, `components/surfaces/polkit/PolkitWindow.qml`, `services/LauncherCommands.qml`, `services/ThemeManager.qml`, `services/WallpaperManager.qml`
 - `Appearance.fixedWallpaper` (string): The wallpapers picked by hand (fixed mode): the primary monitor's, the fallback for monitors without their own, and monitor name -> URL, set per monitor on the…
   - in: `services/ThemeManager.qml`
 - `Appearance.fixedWallpapers` (var)
   - in: `services/ThemeManager.qml`
 - `Appearance.wallpaperBackend` (string): As configured (for display), and with ~ expanded, no trailing slash "quickshell" (shell/Wallpaper draws it) | "awww" (setWallpaper.sh)
   - in: `services/ThemeManager.qml`, `services/WallpaperManager.qml`, `shell/Wallpaper.qml`
+- `Appearance.wallpaperDaemon` (bool): Start awww's daemon for the awww backend (WallpaperManager)
+  - in: `components/methods/ConfigMigration.qml`, `services/WallpaperManager.qml`
 - `Appearance.wallpaperFolder` (string)
   - in: `components/content/WallpaperPicker.qml`, `components/surfaces/onboarding/pages/LookPage.qml`
 - `Appearance.wallpaperPath` (string)
@@ -89,15 +95,15 @@ Every public member of `Appearance`, with the files that use it.
 - `Appearance.iconFamily` (string): Icons are Material Symbols names drawn in this font (StyledIcon), so they don't depend on the text font
   - in: `components/content/TopProcesses.qml`, `components/reusable/StyledIcon.qml`, `components/surfaces/onboarding/pages/ChecksPage.qml`, `services/DependencyManager.qml`
 - `Appearance.borderRadius` (int): --- Shape ---
-  - in: `components/bar/BarContainer.qml`, `components/bar/BarPanel.qml`, `components/bar/CornerMerge.qml`, `components/content/base/Panel.qml`, `components/hosts/overlay/OverlayPageNavigator.qml`, `components/hosts/overlay/OverlayPages.qml`, `components/hosts/popout/AttachedSurface.qml`, `components/hosts/popout/EdgePlacement.qml`, `components/hosts/popout/EdgeSurface.qml`, `components/hosts/popout/FloatingPopout.qml` (+14 more)
+  - in: `components/bar/BarContainer.qml`, `components/bar/BarPanel.qml`, `components/bar/CornerMerge.qml`, `components/content/base/Panel.qml`, `components/hosts/overlay/OverlayPageNavigator.qml`, `components/hosts/overlay/OverlayPages.qml`, `components/hosts/popout/AttachedSurface.qml`, `components/hosts/popout/EdgePlacement.qml`, `components/hosts/popout/EdgeSurface.qml`, `components/hosts/popout/FloatingPopout.qml` (+15 more)
 - `Appearance.connectorGap` (int): The gap a surface growing out of an edge keeps between its box and that edge, which its fillets curve across (AttachedSurface, EdgeAttach)
   - in: `components/bar/BarContainer.qml`, `components/hosts/popout/AttachedSurface.qml`, `components/hosts/popout/EdgePlacement.qml`, `components/hosts/popout/SubPopout.qml`
 - `Appearance.borderWidth` (int)
-  - in: `components/bar/BarContainer.qml`, `components/bar/BarPanel.qml`, `components/bar/CornerMerge.qml`, `components/bar/WidgetBackground.qml`, `components/content/AudioMixer.qml`, `components/content/ColorSwatch.qml`, `components/content/Greeting.qml`, `components/content/Login.qml`, `components/content/Network.qml`, `components/content/NightLightControls.qml` (+68 more)
+  - in: `components/bar/BarContainer.qml`, `components/bar/BarPanel.qml`, `components/bar/CornerMerge.qml`, `components/bar/WidgetBackground.qml`, `components/content/AudioMixer.qml`, `components/content/ColorSwatch.qml`, `components/content/Greeting.qml`, `components/content/Login.qml`, `components/content/Network.qml`, `components/content/NightLightControls.qml` (+69 more)
 - `Appearance.screenBorder` (bool)
-  - in: `components/bar/BarContainer.qml`, `components/hosts/popout/AttachedSurface.qml`, `components/hosts/popout/EdgePlacement.qml`, `components/hosts/popout/LayerOrigin.qml`, `components/hosts/popout/SubPopout.qml`, `components/surfaces/edgemenu/IntegratedEdgeMenu.qml`, `config/Bar.qml`, `services/BarManager.qml`, `shell/ScreenBorder.qml`
+  - in: `components/bar/BarContainer.qml`, `components/hosts/popout/AttachedSurface.qml`, `components/hosts/popout/EdgePlacement.qml`, `components/hosts/popout/SubPopout.qml`, `components/surfaces/edgemenu/IntegratedEdgeMenu.qml`, `config/Bar.qml`, `services/BarManager.qml`, `shell/ScreenBorder.qml`
 - `Appearance.screenMargin` (int): The frame can't be thinner than its own outline (a narrower one would draw the stroke over the screen edge); without a frame it's just a gap
-  - in: `components/bar/BarContainer.qml`, `components/hosts/popout/FloatingPopout.qml`, `components/hosts/popout/LayerOrigin.qml`, `components/surfaces/border/RoundedBorders.qml`, `components/surfaces/edgemenu/IntegratedEdgeMenu.qml`, `config/Bar.qml`, `services/BarManager.qml`
+  - in: `components/bar/BarContainer.qml`, `components/hosts/popout/FloatingPopout.qml`, `components/surfaces/border/RoundedBorders.qml`, `components/surfaces/edgemenu/IntegratedEdgeMenu.qml`, `config/Bar.qml`, `services/BarManager.qml`
 - `Appearance.surfaceAlpha` (real): --- Translucency --- How solid the shell's surfaces are (0.6–1).
   - in: `shell/BlurBackingWindow.qml`
 - `Appearance.translucent` (bool)
@@ -123,6 +129,6 @@ Every public member of `Appearance`, with the files that use it.
 - `Appearance.animNormal` (int)
   - in: `components/bar/BarContainer.qml`, `components/bar/WidgetBackground.qml`, `components/bar/widgets/SystemTray.qml`, `components/bar/widgets/workspaces/ActiveCellIndicator.qml`, `components/bar/widgets/workspaces/WorkspaceCell.qml`, `components/content/AudioMixer.qml`, `components/content/Notifications.qml`, `components/content/WorkspaceGrid.qml`, `components/content/base/TitledCard.qml`, `components/content/parts/DeviceList.qml` (+47 more)
 - `Appearance.animSlow` (int)
-  - in: `components/bar/widgets/Battery.qml`, `components/content/ScreenRecord.qml`, `components/content/parts/RadioHeader.qml`, `components/content/parts/chat/ChatThinking.qml`, `components/hosts/overlay/OverlayPanel.qml`, `components/reusable/PasswordEntry.qml`, `components/reusable/PercentageCircle.qml`, `components/reusable/ScreenBackdrop.qml`, `components/surfaces/screenlayout/ScreenLayoutView.qml`, `components/surfaces/wallpaper/WallpaperWindow.qml` (+3 more)
+  - in: `components/bar/widgets/Battery.qml`, `components/content/ScreenRecord.qml`, `components/content/parts/RadioHeader.qml`, `components/content/parts/chat/ChatThinking.qml`, `components/hosts/overlay/OverlayPanel.qml`, `components/reusable/PasswordEntry.qml`, `components/reusable/PercentageCircle.qml`, `components/surfaces/backdrop/ScreenBackdrop.qml`, `components/surfaces/screenlayout/ScreenLayoutView.qml`, `components/surfaces/wallpaper/WallpaperWindow.qml` (+3 more)
 - `Appearance.easing` (int)
   - in: `components/bar/widgets/SystemTray.qml`, `components/bar/widgets/workspaces/ActiveCellIndicator.qml`, `components/content/Clock.qml`, `components/content/ScreenRecord.qml`, `components/content/parts/calendar/EventRow.qml`, `components/content/parts/calendar/MonthGrid.qml`, `components/hosts/overlay/OverlayPage.qml`, `components/hosts/popout/SlideAnimation.qml`, `components/hosts/popout/SwitchStill.qml`, `components/reusable/ColorGlide.qml` (+10 more)

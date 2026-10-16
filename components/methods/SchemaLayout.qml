@@ -79,6 +79,27 @@ QtObject {
     });
   }
 
+  // Whether the setting at `path` (from the schema's root) can show at all
+  // under the running compositor: the `/$` keys (SettingsManager.
+  // configValueAt) of the `x-showIf` of its section, the objects it's in
+  // and its own hold. Other keys depend on the config, and are left out.
+  function compositorAllows(schema, path, valueOf) {
+    let node = schema;
+    for (const key of path) {
+      node = node?.properties?.[key];
+      if (!node)
+        return false;
+      const condition = node["x-showIf"] ?? {};
+      const own = Object.keys(condition).filter(name => name.startsWith("/$")).reduce((result, name) => {
+        result[name] = condition[name];
+        return result;
+      }, {});
+      if (!root.showIfHolds(own, valueOf))
+        return false;
+    }
+    return true;
+  }
+
   // An object definition's fields as titled groups, for an editor that
   // lays one object out itself (the bar and edge menu panels): by
   // `x-group` in `x-order` order, fields without a group last under
@@ -280,8 +301,10 @@ QtObject {
   // root's `x-categories` in order (`icon`, and `page`, a hand-built part
   // shown after the cards), then any other `x-category` in schema order.
   // A section without `x-category` is a category of its own. A declared
-  // category with no sections and no page is left out.
-  function categories(schema) {
+  // category with no sections and no page is left out, as is a section
+  // whose own `x-showIf` (`/`-rooted keys, read by `valueOf`; e.g. the
+  // compositor's, as SettingsManager.configValueAt reads them) fails.
+  function categories(schema, valueOf) {
     const make = (name, declared) => ({
           "name": name,
           "icon": declared?.icon ?? "settings",
@@ -293,6 +316,8 @@ QtObject {
     for (const key in schema?.properties ?? {}) {
       const section = schema.properties[key];
       if (section.type !== "object" || section["x-settings"] === false || groups(schema, key).length === 0)
+        continue;
+      if (valueOf && !showIfHolds(section["x-showIf"], valueOf))
         continue;
       const name = section["x-category"] ?? section.title ?? key;
       let category = result.find(c => c.name === name);

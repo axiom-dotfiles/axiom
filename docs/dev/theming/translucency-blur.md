@@ -11,7 +11,8 @@ The translucency setting, how fills apply it, the Hyprland layer rules axiom wri
   - `opacity`: 60–100%. 100 is solid and blurs nothing.
   - `blur`, `throughWindows`, `blurBackdrops`;
   - `pauseFullscreen` (`x-scope: machine`).
-- The strength isn't axiom's. Hyprland has one blur, for windows and layers alike, set by the window look's blur part (Hyprland → Window look, see [Window look](../hyprland/window-look.md)) or the user's own config.
+  - The blur settings show only where the compositor blurs axiom's surfaces (`"/$supports.blur": true`). Elsewhere `BlurManager.active` stays false whatever `blur` says, and the surfaces fill themselves: nothing blurs the blur window (`issues.md` › Blur and transparency on other compositors).
+- The strength isn't axiom's. Hyprland has one blur, for windows and layers alike, set by the window look's blur part (Compositor → Window look, see [Window look](../hyprland/window-look.md)) or the user's own config.
 - The card's intro (`TranslucencyStatus`):
   - warns that transparency and blur are experimental;
   - while blurring, shows the blur in effect;
@@ -65,11 +66,11 @@ Written by `HyprLua.blurLua` (HyprlandConfigManager's `_blurLua`, `M.blur()` in 
 - The chrome's fills all live in the one blur window (Top, order 9), under every chrome window.
 - A chrome surface that stood over another one in a higher layer (the attached launcher, an Overlay-layer edge popout, over a dock) no longer hides it with its fill: what's in between shows through.
 - So popouts never overlap: what one covers gives way (see [Popout registry](../popouts/registry.md)).
-- While the blur window backs surfaces, an edge popout slides out only once its window's origin is known (`LayerOrigin.settled`, or a moment's timeout), so its first frames never fill and shadow themselves beside backed ones.
+- While the blur window backs surfaces, an edge popout slides out only once its window's origin is known (`LayerOrigin.settled`), so its first frames never fill and shadow themselves beside backed ones.
 
 ### Lock screen and greeter
 - No compositor blur reaches a session-lock surface, so `ScreenLayoutView` frosts its own background under the modules while the shell blurs (`frosted`):
   - the backdrop is blurred at about Hyprland's strength (`hyprBlur`);
-  - the lock surface reads it from `HyprlandManager.blur`; the greeter leaves it at Hyprland's defaults;
+  - the lock surface reads it from `CompositorManager.blur`; the greeter leaves it at Hyprland's defaults;
   - masked by the modules at the blur threshold.
 - Not when the wallpaper is blurred already.

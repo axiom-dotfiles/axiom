@@ -15,7 +15,7 @@ import qs.services
  *   PopoutAnchor {
  *     id: anchor
  *     popoutName: "WorkspaceGrid"
- *     extraData: ({ monitor: root.monitor, workspaceBase: root.workspaceBase })
+ *     extraData: ({ output: root.output, vertical: root.isVertical })
  *   }
  *
  * The content-type name travels as a `name` field inside the payload

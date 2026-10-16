@@ -33,7 +33,7 @@ PanelWindow {
   WlrLayershell.exclusiveZone: root.reservedZone
   // On a transparent or pill bar, how far in from its outer edge it
   // reserves (floating edge menus place themselves against that)
-  readonly property int reservedZone: Bar.reservedZone(barConfig, HyprlandManager.gapsOut[Bar.edgeName(barConfig.location)] ?? 0)
+  readonly property int reservedZone: Bar.reservedZone(barConfig, CompositorManager.gapsOut[Bar.edgeName(barConfig.location)] ?? 0)
   WlrLayershell.namespace: root.layerNamespace
   readonly property string layerNamespace: Bar.layerNamespace(barConfig)
   // The bar container paints the background (or not, when transparent)
@@ -58,7 +58,14 @@ PanelWindow {
     right: -(root.barConfig.vertical ? root._outerReach : root.barConfig.ends.end.reach)
   }
 
-  visible: barConfig.enabled
+  // Once the windows before it in the stack have mapped (LayerSlot)
+  visible: slot.shown
+  LayerSlot {
+    id: slot
+    window: root
+    namespace: root.layerNamespace
+    wanted: root.barConfig.enabled
+  }
 
   // With pills, room past the bar for the fillet where an end pill meets
   // the perpendicular edge, and for a shadow; click-through (see mask),
@@ -83,8 +90,8 @@ PanelWindow {
     ShellManager.unregisterBar(root);
   }
 
-  // Where the window is on its screen, as Hyprland reports it (null until
-  // it has): the blur window draws the bar's shapes and popouts from it
+  // Where the window is on its screen (LayerOrigin; null until it's
+  // mapped): the blur window draws the bar's shapes and popouts from it
   readonly property var screenOrigin: placeOnScreen.origin
   // ...else where it most likely is, for its popouts' footprints
   // (PopoutManager)

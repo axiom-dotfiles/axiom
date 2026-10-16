@@ -9,8 +9,6 @@ Reader for the Hyprland section: how axiom sets Hyprland up (HyprlandConfigManag
 
 - `mode` (readonly string): "detached" | "included" | "managed"
 - `requiredSettings` (readonly bool)
-- `wallpaperDaemon` (readonly bool)
 - `binds` (readonly var)
 - `monitorProfiles` (readonly var)
-- `look` (readonly var)
 - `managed` (readonly var)

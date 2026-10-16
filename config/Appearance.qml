@@ -22,6 +22,8 @@ QtObject {
   // As configured (for display), and with ~ expanded, no trailing slash
   // "quickshell" (shell/Wallpaper draws it) | "awww" (setWallpaper.sh)
   readonly property string wallpaperBackend: _c.wallpaperBackend
+  // Start awww's daemon for the awww backend (WallpaperManager)
+  readonly property bool wallpaperDaemon: _c.wallpaperDaemon
   readonly property string wallpaperFolder: _c.wallpaperFolder
   readonly property string wallpaperPath: Paths.expandHome(_c.wallpaperFolder)
   // "fixed" | "rotate" (wallpaperRotation) | "variant" (variantWallpapers),

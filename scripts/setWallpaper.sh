@@ -4,7 +4,7 @@
 # Date:        2025-09-30
 # Description: Sets a wallpaper with a random transition on a monitor.
 # Usage:       setWallpaper.sh <path_to_image> [monitor] [primary]
-#              monitor defaults to the active one; primary=1 also links it
+#              without a monitor, every one; primary=1 also links it
 #              to ~/.current_wallpaper
 
 set -euo pipefail
@@ -23,8 +23,11 @@ transitions=("wipe" "any" "outer" "wave")
 TRANSITION_TYPE=${transitions[$RANDOM % ${#transitions[@]}]}
 awww_PARAMS="--transition-fps 144 --transition-type $TRANSITION_TYPE --transition-duration 1"
 
-monitor=${2:-$(hyprctl -j activeworkspace | jq -r .monitor)}
-awww img -o "$monitor" "$WALLPAPER_PATH" $awww_PARAMS
+outputs=()
+if [[ -n "${2:-}" ]]; then
+  outputs=(-o "$2")
+fi
+awww img "${outputs[@]}" "$WALLPAPER_PATH" $awww_PARAMS
 
 if [[ "${3:-}" == "1" ]]; then
   ln -sf "$WALLPAPER_PATH" "$HOME/.current_wallpaper"

@@ -44,6 +44,6 @@ They follow the same pattern:
 - **BatteryManager**: also the power profile, and `level` against the `Battery` section's thresholds (`BatteryConfig`; the Battery widget and module colour from it).
   - Sends the low battery notifications, once per drop into low and then critical, whatever bars exist.
   - Created from `shell.qml`'s `_services` so it runs without a widget.
-- **KeyboardLayoutManager**, **MediaManager** (MPRIS), **HyprlandManager**, **StateManager**, **BarManager**, **LauncherManager**, **SettingsManager**, **SavedConfigsManager**, **AuthManager**, **LockManager**.
+- **KeyboardLayoutManager**, **MediaManager** (MPRIS), **CompositorManager** (the compositor, through its backend `HyprlandManager`: [compositor/](../compositor/README.md)), **StateManager**, **BarManager**, **LauncherManager**, **SettingsManager**, **SavedConfigsManager**, **AuthManager**, **LockManager**.
 
 Feature services each have their own doc under `docs/dev/features/`, `docs/dev/hyprland/` and `docs/dev/theming/` (see the index).

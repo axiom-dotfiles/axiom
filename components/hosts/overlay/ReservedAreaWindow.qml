@@ -12,7 +12,8 @@ import qs.services
 // centers in the free space and the bars stay reachable; the -borderWidth
 // margin lines it up with their inner stroke (as EdgePopout). A bare screen
 // edge (no border, no bar) has no stroke to land on: it meets the edge. The
-// window is transparent: a ScreenBackdrop dims the monitor under it.
+// window is transparent: the screen's backdrop (BackdropRequest) dims the
+// monitor under it.
 //
 // While ShellManager.steppedAside (another polkit agent's prompt, which
 // opens under the Overlay layer) it stays mapped, so nothing in it is
@@ -41,8 +42,8 @@ PanelWindow {
       return 0;
     const bar = root._edges[side];
     if (bar?.background === "transparent")
-      return HyprlandManager.gapsOut[side] ?? 0;
-    return (bar ? Bar.reserveTrim(bar, HyprlandManager.gapsOut[side] ?? 0) : 0) - Appearance.borderWidth;
+      return CompositorManager.gapsOut[side] ?? 0;
+    return (bar ? Bar.reserveTrim(bar, CompositorManager.gapsOut[side] ?? 0) : 0) - Appearance.borderWidth;
   }
   margins {
     left: root._margin("left", Bar.Left)

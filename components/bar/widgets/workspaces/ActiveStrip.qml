@@ -25,7 +25,7 @@ Grid {
   property bool clickable: true
 
   readonly property bool isVertical: barConfig.vertical
-  readonly property bool hasWindows: HyprlandManager.stripWindows(root.workspaceId, root.stripVertical).length > 0
+  readonly property bool hasWindows: CompositorManager.stripWindows(root.workspaceId, root.stripVertical).length > 0
 
   rows: isVertical ? 2 : 1
   columns: isVertical ? 1 : 2

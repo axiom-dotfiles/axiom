@@ -9,7 +9,7 @@ import qs.components.reusable
 
 // One monitor's workspace board (laid out by WorkspacesConfig): wallpaper
 // cells with their windows as live previews. Input is all OverviewInput's; this lays out, and turns its
-// drops and resizes into HyprlandManager actions.
+// drops and resizes into CompositorManager actions.
 Rectangle {
   id: root
 
@@ -21,13 +21,13 @@ Rectangle {
 
   signal closeRequested
 
-  readonly property var monitor: HyprlandManager.monitorFor(root.screen)
+  readonly property var monitor: CompositorManager.outputFor(root.screen)
   // The workspaces shown, one per cell, and the board's shape
-  readonly property var ids: HyprlandManager.workspaceIds(root.monitor)
+  readonly property var ids: CompositorManager.workspaceIds(root.monitor?.name ?? "")
   readonly property int columns: WorkspacesConfig.boardColumns
   readonly property int rows: WorkspacesConfig.boardRows
-  readonly property int activeId: root.monitor?.activeWorkspace?.id ?? -1
-  // Global layout origin (hyprctl coordinates) and logical size
+  readonly property int activeId: root.monitor?.activeWorkspaceId ?? -1
+  // Global layout origin and logical size
   readonly property real monitorX: root.monitor?.x ?? 0
   readonly property real monitorY: root.monitor?.y ?? 0
   readonly property real monitorW: root.screen?.width ?? 1920
@@ -45,33 +45,33 @@ Rectangle {
   // The windows on the board's workspaces: this monitor's in a grid or
   // perMonitor layout; in the standard layout workspaces are shared, so
   // any monitor's
-  readonly property var windows: HyprlandManager.windowList.filter(w => (!WorkspacesConfig.perMonitorBlocks || w.monitor === root.monitor?.id) && root.ids.includes(w.workspace?.id) && w.mapped !== false && !w.hidden)
+  readonly property var windows: CompositorManager.windows.filter(w => (!WorkspacesConfig.perMonitorBlocks || w.output === root.monitor?.name) && root.ids.includes(w.workspaceId) && !w.hidden)
   readonly property var byAddress: root.windows.reduce((map, w) => {
-    map[w.address] = w;
+    map[w.id] = w;
     return map;
   }, {})
-  // Hit-testing and layout: [{ address, floating, cell, rect (board coords) }]
+  // Hit-testing and layout: [{ id, floating, cell, rect (board coords) }]
   readonly property var items: {
     const rects = {};
     for (const w of root.windows) {
-      const at = root.originOf(w.monitor);
-      rects[w.address] = WorkspaceGeometry.windowRect(w, at.x, at.y, root.miniScale, root.cellW, root.cellH);
+      const at = root.originOf(w.output);
+      rects[w.id] = WorkspaceGeometry.windowRect(w, at.x, at.y, root.miniScale, root.cellW, root.cellH);
     }
     // A strip's tiled windows squeezed to fit, columns off the monitor too
     for (const id of root.ids) {
       const direction = root.stripOn(id);
-      const tiled = direction === "" ? [] : root.windows.filter(w => w.workspace.id === id && !w.floating);
+      const tiled = direction === "" ? [] : root.windows.filter(w => w.workspaceId === id && !w.floating);
       if (tiled.length === 0)
         continue;
-      const at = root.originOf(tiled[0].monitor);
-      WorkspaceGeometry.stripRects(tiled, at.x, at.y, root.miniScale, root.cellW, root.cellH, direction === "vertical").forEach((r, i) => rects[tiled[i].address] = r);
+      const at = root.originOf(tiled[0].output);
+      WorkspaceGeometry.stripRects(tiled, at.x, at.y, root.miniScale, root.cellW, root.cellH, direction === "vertical").forEach((r, i) => rects[tiled[i].id] = r);
     }
     return root.windows.map(w => {
-      const cell = root.ids.indexOf(w.workspace.id);
+      const cell = root.ids.indexOf(w.workspaceId);
       const origin = WorkspaceGeometry.cellRect(cell, root.cellW, root.cellH, root.gap, root.columns);
-      const r = rects[w.address];
+      const r = rects[w.id];
       return {
-        address: w.address,
+        id: w.id,
         floating: w.floating,
         cell: cell,
         rect: {
@@ -86,11 +86,11 @@ Rectangle {
   // The previews are modelled by this (through a ScriptModel, which diffs
   // it), so a window event rebuilds nothing, and a window coming or going
   // adds or removes only its own preview (and capture)
-  readonly property string _addressKey: root.windows.map(w => w.address).join(",")
+  readonly property string _addressKey: root.windows.map(w => w.id).join(",")
 
-  // A monitor's global layout origin, by hyprctl id (this one's if unknown)
-  function originOf(monitorId) {
-    const m = HyprlandManager.monitors.find(m => m.id === monitorId);
+  // An output's global layout origin, by name (this one's if unknown)
+  function originOf(output) {
+    const m = CompositorManager.output(output);
     return m ? {
       x: m.x,
       y: m.y
@@ -103,19 +103,19 @@ Rectangle {
   // The origin of the monitor a workspace is on (this one if it doesn't
   // exist yet: it opens here)
   function workspaceOrigin(workspaceId) {
-    const ws = HyprlandManager.workspaces.find(ws => ws.id === workspaceId);
-    return root.originOf(ws?.monitor?.id ?? root.monitor?.id);
+    const ws = CompositorManager.workspaces.find(ws => ws.id === workspaceId);
+    return root.originOf(ws?.output || root.monitor?.name);
   }
 
   // The strip direction where a workspace is (this monitor if it doesn't
   // exist yet), "" where it tiles
   function stripOn(workspaceId) {
-    const ws = HyprlandManager.workspaces.find(ws => ws.id === workspaceId);
-    return WorkspacesConfig.stripDirection(ws?.monitor?.name ?? root.screen?.name ?? "");
+    const ws = CompositorManager.workspaces.find(ws => ws.id === workspaceId);
+    return CompositorManager.stripDirection(ws?.output || root.screen?.name || "");
   }
 
   function itemFor(address) {
-    return root.items.find(item => item.address === address) ?? null;
+    return root.items.find(item => item.id === address) ?? null;
   }
 
   // Set on each action: a drop can move keyboard focus, which clears the
@@ -131,18 +131,18 @@ Rectangle {
   }
 
   function goTo(cell) {
-    HyprlandManager.goToWorkspace(root.ids[cell], "go", root.monitor);
+    CompositorManager.goToWorkspace(root.ids[cell], "go", root.monitor?.name ?? "");
     root.closeRequested();
   }
 
   function focusWindow(address) {
-    HyprlandManager.focusWindow(address);
+    CompositorManager.focusWindow(address);
     root.closeRequested();
   }
 
   function closeWindow(address) {
     root._lastAction = Date.now();
-    HyprlandManager.closeWindow(address);
+    CompositorManager.closeWindow(address);
   }
 
   // A window dropped at a board point, its preview's corner at `corner`;
@@ -152,7 +152,7 @@ Rectangle {
     if (!win || cell < 0)
       return;
     const workspaceId = root.ids[cell];
-    const same = win.workspace.id === workspaceId;
+    const same = win.workspaceId === workspaceId;
     root._lastAction = Date.now();
     if (win.floating) {
       const origin = WorkspaceGeometry.cellRect(cell, root.cellW, root.cellH, root.gap, root.columns);
@@ -163,7 +163,7 @@ Rectangle {
       };
       const x = Math.min(Math.max(corner.x - origin.x, 0), root.cellW - size.w);
       const y = Math.min(Math.max(corner.y - origin.y, 0), root.cellH - size.h);
-      HyprlandManager.placeWindow(address, workspaceId, "", "", null, same, {
+      CompositorManager.placeWindow(address, workspaceId, "", "", null, same, {
         x: at.x + x / root.miniScale,
         y: at.y + y / root.miniScale
       });
@@ -173,7 +173,7 @@ Rectangle {
     // Alone on its workspace: nowhere else to go
     if (same && !target)
       return;
-    HyprlandManager.placeWindow(address, workspaceId, target?.address ?? "", target?.side ?? "", {
+    CompositorManager.placeWindow(address, workspaceId, target?.id ?? "", target?.side ?? "", {
       x: root.monitorX + cursor.x,
       y: root.monitorY + cursor.y
     }, same, null);
@@ -181,18 +181,18 @@ Rectangle {
 
   // Where a tiled window dropped at a point lands (see WorkspaceGeometry)
   function dropTargetAt(cell, point, address) {
-    const others = root.items.filter(item => item.cell === cell && !item.floating && item.address !== address);
+    const others = root.items.filter(item => item.cell === cell && !item.floating && item.id !== address);
     const direction = root.stripOn(root.ids[cell]);
     if (direction !== "")
       return WorkspaceGeometry.stripDropTarget(others, point.x, point.y, direction === "vertical");
-    return WorkspaceGeometry.dropTarget(others, point.x, point.y, HyprlandManager.splitWidthMultiplier);
+    return WorkspaceGeometry.dropTarget(others, point.x, point.y, CompositorManager.splitWidthMultiplier);
   }
 
   // A resize step, in board pixels
   function resizeWindow(address, dw, dh, dx, dy) {
     root._lastAction = Date.now();
     const s = root.miniScale;
-    HyprlandManager.resizeWindow(address, dw / s, dh / s, dx / s, dy / s);
+    CompositorManager.resizeWindow(address, dw / s, dh / s, dx / s, dy / s);
   }
 
   implicitWidth: board.width + root.pad * 2

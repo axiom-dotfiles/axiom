@@ -87,7 +87,7 @@ PopoutWrapperBase {
     // the bars and border leave free
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.namespace: root.layerNamespace
-    WlrLayershell.keyboardFocus: root.wantsKeyboardFocus ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
+    WlrLayershell.keyboardFocus: root.wantsKeyboardFocus ? (focusGrab.exclusive ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.OnDemand) : WlrKeyboardFocus.None
     exclusionMode: ExclusionMode.Normal
     exclusiveZone: 0
 
@@ -103,7 +103,7 @@ PopoutWrapperBase {
       item: root.closeOnClickOutside ? surfaceWindow.contentItem : box
     }
 
-    HyprlandGrab {
+    FocusGrab {
       id: focusGrab
       windows: [surfaceWindow].concat(root.grabWindows, ShellManager.modalWindows)
       active: root.isOpen && root.grabEnabled && (root.wantsKeyboardFocus || root.closeOnClickOutside)

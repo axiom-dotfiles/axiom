@@ -54,7 +54,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `ActiveCellIndicator.qml`: The active workspace's box (or underline) in a bar switcher's row of cells, drawn once over their boxes and under their labels (the row draws its WorkspaceCells in two layers around it), sliding from cell to cell as the…
 - `ActiveStrip.qml`: What a switcher shows after its workspaces on a strip monitor: a divider in the bar's separator style (a line when that's none), then the active workspace's windows in strip order (StripWindows), cross-fading to the nex…
 - `CellUnderline.qml`: A bar switcher cell's line in the underline widget style, along the side the bar's widget lines take, filling its parent's length: WorkspaceCell's, and the one ActiveCellIndicator slides
-- `StripWindows.qml`: A strip workspace's windows as bar cells (WorkspaceCell), in strip order (HyprlandManager.stripWindows), each showing its app icon: the one focused last in the active look, the rest as occupied.
+- `StripWindows.qml`: A strip workspace's windows as bar cells (WorkspaceCell), in strip order (CompositorManager.stripWindows), each showing its app icon: the one focused last in the active look, the rest as occupied.
 - `WorkspaceCell.qml`: One workspace on the bar, in the bar's widget style (Bar.cellColors): a filled, tinted or outlined box inside the widget's own; on a bar whose widgets have no boxes, its number (or a dot) straight on the bar, under a li…
 - `WorkspaceCellRow.qml`: A bar switcher's row (a column on a vertical bar) of WorkspaceCells for workspaces `ids`: the cells' boxes at rest, the active one's sliding over them (ActiveCellIndicator), then their labels and icons over both.
 - `WorkspaceGridStrip.qml`: The grid layout's switcher: this monitor's columns × rows workspaces, of which the bar shows the active row (horizontal bar) or column (vertical bar), and the popout the whole grid.
@@ -225,7 +225,8 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `EdgeSurface.qml`: An AttachedSurface growing out of a screen edge, wired from its EdgePlacement (`geometry`) and, for a host with submenus, its SubmenuHost: whether it's detached, runs straight off its edge, how its ends join or run flus…
 - `EdgeTrigger.qml`: A thin hover strip on a screen edge that fires `triggered` once the pointer has rested on it for `hoverDelay`
 - `FloatingPopout.qml`: A popout that floats on the screen instead of growing out of an edge (EdgePopout): a plain rounded box in an Overlay-layer window covering the area the bars and border leave free, fading and scaling in.
-- `LayerOrigin.qml`: Where a layer-shell `window` is on its screen (BlurManager.layerOrigin), for surfaces whose fill the blur window draws and for popouts' footprints (PopoutClaim): null until Hyprland has reported it.
+- `LayerOrigin.qml`: Where a layer-shell `window` is on its screen, as LayerManager works it out from how every window there asks to be laid out (and reports this one's): for surfaces whose fill the blur window draws, the joins in the borde…
+- `LayerSlot.qml`: A layer-shell `window` with a fixed place in the stack (a bar, the border, a dock, an integrated edge menu): bind its `visible` to `shown`, and what used to decide it to `wanted`.
 - `OutsideShadow.qml`: The shadow or glow (SurfaceShadow) a sibling `target` casts, kept only outside its shape, so none shows through a translucent fill.
 - `PillBarJoin.qml`: A surface's end joining a pill bar on a perpendicular screen edge: its end sits on that bar's far stroke, and the bar's pill at this edge's end runs out along the surface (BarContainer.setEndReach: the end pill stretche…
 - `PillStretch.qml`: Puts a surface's pill (or island) stretch (EdgeAttach.place's `stretch`) on the bar it stands on (`container`, a BarContainer) under its own owner key, and takes it off again when it clears, the bar changes or this goes.
@@ -271,6 +272,8 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `IconResolver.qml`: Resolves icon names for window classes: desktop entries first, then known substitutions, then name variants that exist in the icon theme.
 - `KeyNames.qml`: Keys as Hyprland writes them ("SUPER + SHIFT + space"): turning a Qt key event into one (for recording a bind), and splitting one for display.
 - `KeybindFilter.qml`: The Keybinds page's filter over KeybindManager.keybindings: a search plus toggle chips in three groups (sections, modifiers, source).
+- `LayerArrange.qml`: Where a compositor puts layer-shell surfaces on an output (pure): the wlr-layer-shell arrangement that sway, niri and Hyprland share (docs/dev/compositor/layer-arrangement.md).
+- `LayerStack.qml`: The order axiom's layer surfaces stack and reserve their space in, on every compositor (pure).
 - `LibraryOrder.qml`: How the editors' libraries (bar widgets, overlay modules) order their types: by label, or by group (the schema's `x-libraryGroups`, in order) and by label within each.
 - `MonitorLayout.qml`: Pure helpers for the Monitors page (MonitorManager): modes, scales, rotation, the layout's rects and snapping, and picking the profile for the connected outputs.
 - `NoteMarkdown.qml`: A note's Markdown as blocks for the notes editor (content/parts/notes/ NoteEditor): paragraphs of plain lines (split at blank lines, which stay with the paragraph above; a code fence is never split, and holds no tasks),…
@@ -285,7 +288,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `SurfaceOutline.qml`: The outline of a surface that grows out of an edge (AttachedSurface): a content box joined to the attach edge by two concave fillets, or a plain box held off it.
 - `TimeZones.qml`: Pure helpers for clocks in another time zone.
 - `Utils.qml`: Pure helpers: deep copies and comparison, free ids, usage counts, curl config values, text width and truncation, colors, calendar grids, byte sizes and rates.
-- `WindowOrder.qml`: Windows in the order they were used (the window switcher): hyprctl clients by focusHistoryID, and stepping through them.
+- `WindowOrder.qml`: Windows in the order they were used (the window switcher): the compositor's windows by focusRank, and stepping through them.
 - `WorkspaceGeometry.qml`: Pure geometry for the workspace overview: a cols×rows board of monitor miniatures.
 
 ## components/reusable/
@@ -293,6 +296,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `ActionPill.qml`: A wide action or toggle tile, as in Android's quick settings: an icon well beside a name and a status line.
 - `ActionTile.qml`: An action or toggle tile: an icon well over a label.
 - `AddEntryButton.qml`: An outlined full-width button under a list that adds to it ("New bar", "New page")
+- `BackdropRequest.qml`: A full-screen surface's dim background on its screen, shown while `shown`: drawn by that screen's backdrop window (ScreenBackdrop, through BackdropManager), under the bars and the border.
 - `BaseWidget.qml`: Rounded background box for bar modules.
 - `CodeLine.qml`: Text to paste somewhere (a config line, a command), in a monospace box with a Copy button
 - `ColorGlide.qml`: The shell's eased change to a color: `ColorGlide on color {}` is `Behavior on color { ColorAnimation { duration: Appearance.animFast; easing.type: Appearance.easing } }`.
@@ -321,7 +325,6 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `PipewireVolumeBar.qml`: A StyledVolumeBar bound to a Pipewire stream (by app name) or the system volume: shows and sets its level and mute; the OSD's audio bars.
 - `PopInRectangle.qml`: A small mark that pops in and out (CountBadge, StatusChip, UnsavedDot): set `shown` rather than `visible`, and it grows in from its centre and shrinks away, staying visible (and laid out) until it has.
 - `RowAction.qml`: A small flat button on a ListEntryRow, faint until the row is hovered or selected.
-- `ScreenBackdrop.qml`: A full-screen surface's dim background (the overlay, workspace overview and launcher): the whole monitor, under the bars and the border, which stay drawn over it.
 - `SectionHeading.qml`: A section's title in the accent, with an optional muted description under it (FieldGroup, the theme list)
 - `SegmentButton.qml`: One button of a segmented choice (Dark/Light, a wallpaper mode): the chosen one is filled with the accent; one that can't be chosen is dimmed.
 - `SegmentRow.qml`: A single choice as one control: SegmentButtons on a shared track, with the chosen one's accent sliding from button to button.
@@ -350,6 +353,10 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `TypeLibrary.qml`: A library of types to add (the bar editor's widgets, the layouts editor's modules): an A–Z / By category switch over equal tiles, one `delegate` per type (given `modelData`; tiles take `tileWidth`), by label or under a …
 - `TypePickerPopup.qml`: i18n: keys from callers and the schema (titles, descriptions, type labels) Shared "pick a type to add" popup (bar widgets, overlay views, ...), with a search field: typing filters by label or type, Up/Down move, Enter p…
 - `UnsavedDot.qml`: The dot beside something with unsaved edits (a settings category, card or field; a bar, page or edge menu in its editor).
+
+## components/surfaces/backdrop/
+
+- `ScreenBackdrop.qml`: A screen's dim background for full-screen surfaces (the overlay, workspace overview, launcher, power menu, onboarding; BackdropRequest): the whole monitor, under the bars and the border, which stay drawn over it.
 
 ## components/surfaces/border/
 
@@ -407,7 +414,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 
 ## components/surfaces/onboarding/pages/
 
-- `AppsPage.qml`: The apps the keybinds open (terminal, file manager, browser), with the installed ones offered to pick from, the main modifier, and the keys that matter most on day one
+- `AppsPage.qml`: The apps the keybinds open (terminal, file manager, browser), with the installed ones offered to pick from, the main modifier, and the keys that matter most on day one.
 - `BindsTable.qml`: The keys axiom binds for some actions (from Hyprland.binds): one row per action, with its first key, its label, and a warning when the running layer skipped that key because the user's own config holds it
 - `ChecksPage.qml`: What's missing: the icon font, and the programs features use (DependencyManager.tools), with one command that installs them
 - `FinishPage.qml`: The last page: what Finish does to Hyprland, whether axiom starts with the session, and where to go from here
@@ -542,11 +549,12 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `SettingsField.qml`: One settings row: the SchemaField, with a dot while it has an unsaved edit and a button that puts it back to the schema default, and under a field with `x-hookup` (theme integrations) the IntegrationHookup panel
 - `SettingsGroupCard.qml`: i18n: keys from the schema (titles, descriptions) One group of settings (a section's own fields, or one nested object) as a card: title, help text, then its rows.
 - `SettingsSidebar.qml`: i18n: keys from the schema (category names, card titles) Settings page, left: search and the category list; the selected category also lists its cards, and clicking one scrolls the page to it.
-- `TranslucencyStatus.qml`: The top of the Translucency card (its `x-intro`): a warning that it's experimental, and while the surfaces blur, the blur they get: Hyprland's one (HyprlandManager.blur, as in effect), set by the window look's blur part…
+- `TranslucencyStatus.qml`: The top of the Translucency card (its `x-intro`): a warning that it's experimental, and while the surfaces blur, the blur they get: Hyprland's one (CompositorManager.blur, as in effect), set by the window look's blur pa…
 
 ## shell/
 
 - `AppLauncher.qml`: The app launcher, one per screen its monitors setting picks (surfaces/launcher/Launcher).
+- `Backdrops.qml`: The backdrop window on every screen (BackdropManager): the dim background full-screen surfaces ask for (BackdropRequest)
 - `Bar.qml`: The bars: one BarPanel per BarManager.bars entry.
 - `BlurBacking.qml`: The blur behind the chrome (BlurManager): per screen, one click-through window under every chrome surface drawing each registered shape (the border's frame, bars, popouts, edge menus, docks) filled.
 - `BlurBackingWindow.qml`: One blur window (BlurBacking): click-through, drawing each of `shapes` (BlurShapes) filled, at the surface opacity, with their shadows cast once per look and kept outside every shape, its own and the other window's (`cu…
@@ -574,6 +582,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 
 - `AudioManager.qml`: Pipewire audio state: the default output (sink) and input (source), every device and app stream, and helpers to control them.
 - `AuthManager.qml`: PAM authentication (Quickshell's PamContext, "login" stack) for the built-in lockscreen. authenticationSucceeded is the only thing that may unlock it (see shell/Lockscreen.qml).
+- `BackdropManager.qml`: The dim backgrounds full-screen surfaces ask for (the overlay, launcher, power menu, workspace overview, onboarding: reusable/BackdropRequest).
 - `BarManager.qml`: BarManager holds the bar editor's working copy of the Bars config.
 - `BatteryManager.qml`: The laptop battery (UPower's display device, when it is one) and the power-saver profile, for the Battery widget and module, and the low battery notifications (at BatteryConfig's levels).
 - `BluetoothManager.qml`: Bluetooth state and actions over the default adapter (BlueZ via Quickshell.Bluetooth).
@@ -586,6 +595,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `ClaudeUsageManager.qml`: Claude plan usage (the numbers Claude Code's /usage shows) for one or more Claude Code accounts, each a CLAUDE_CONFIG_DIR.
 - `ClipboardManager.qml`: The clipboard history the launcher searches (":" or /clipboard), while Launcher.clipboard is on.
 - `CommandManager.qml`: Shell commands polled for their output (e.g. a bar Button's label), shared by every widget asking for the same command: each distinct command runs once per interval (the shortest asked for), only while something has acq…
+- `CompositorManager.qml`: The running compositor, for the rest of axiom: its windows, outputs and workspaces in shapes that don't depend on it, what it supports, and every workspace switch and window focus (docs/dev/compositor/README.md).
 - `ConfigDraft.qml`: A working copy of one config section for an editor (settings, bar, overlay, edge menu, keybind and monitor editors).
 - `ConfigManager.qml`: ConfigManager handles loading, saving, and monitoring the configuration file
 - `ConsumerRegistry.qml`: Reference-counted consumers of a shared poller (SystemManager, UpdatesManager, ...): each owner registers one request, and the service polls for the union of them, stopping when there are none.
@@ -599,6 +609,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `EmojiManager.qml`: The emoji the launcher searches (";" or /emoji), while Launcher.emoji is on.
 - `FileManager.qml`: Synchronous whole-file reads, for the few places that need a file's contents during a binding or initializer (config, schema, theme, state).
 - `FilePickerManager.qml`: The desktop's file picker (scripts/pick_path.py: xdg-desktop-portal, else zenity or kdialog), for a file or a folder: config import, and the Browse button of folder settings (the schema's x-control: "folder").
+- `FocusGrab.qml`: A focus grab, for surfaces that close (or drop keyboard focus) on a click outside them: while `active`, keyboard focus stays in `windows` and a click anywhere else ends the grab (`cleared`).
 - `GreetdManager.qml`: The login itself, in the greeter (greeter.qml): who logs in, into which session, and the conversation with greetd (Quickshell's Greetd: PAM through greetd's IPC).
 - `GreeterManager.qml`: Axiom as greetd's login screen, from the user's side (the greeter itself is greeter.qml, with GreetdManager).
 - `GridEditor.qml`: Editing of one grid of modules (each with a `place` { x, y, w, h } in quarter cards), shared by the layouts editor's overlay pages and edge menus.
@@ -607,7 +618,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `HyprlandConfigManager.qml`: Managed config, loading ~/.config/hypr/user/*.lua after it Whenever the file isn't loaded (included but the lines are missing, or a managed takeover refused), the runtime layer is applied instead, so axiom still works, …
 - `HyprlandGrab.qml`: Hyprland's focus grab, for surfaces that close (or drop keyboard focus) on a click outside them: while `active`, keyboard focus stays in `windows` and a click anywhere else ends the grab (`cleared`).
 - `HyprlandIpcManager.qml`: Requests on Hyprland's request socket, as hyprctl makes them but without a process each: what Quickshell.Hyprland doesn't cover (options, Lua evals, binds, devices, layers, the cursor, reloads).
-- `HyprlandManager.qml`: Hyprland's state and actions for the rest of axiom: the only reader of Quickshell.Hyprland outside the Hyprland* services, so the rest of the shell names no compositor (docs/dev/hyprland/ipc.md).
+- `HyprlandManager.qml`: CompositorManager's backend on Hyprland (docs/dev/compositor/contract.md): Hyprland's state as the compositor-neutral shapes (HyprState), and the primitives CompositorManager builds on.
 - `HyprlandRuntimeLayer.qml`: Axiom's Hyprland layer evaluated at runtime, for HyprlandConfigManager: the detached mode, and the fallback of the file modes while their file isn't loaded.
 - `HyprlandTakeover.qml`: Taking ~/.config/hypr/hyprland.lua over for the managed mode, and giving it back (scripts/claim_hyprland.sh), for HyprlandConfigManager, which acts on the results (claimed, blocked, released).
 - `IdleInhibitManager.qml`: Shared on/off state for keeping the session awake.
@@ -616,6 +627,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `KeyboardLayoutManager.qml`: Active xkb layout of the main keyboard, shared by every KeyboardLayout widget.
 - `LauncherCommands.qml`: The launcher's slash commands, one per shell feature.
 - `LauncherManager.qml`: LauncherManager turns the launcher's search text into result rows and runs them.
+- `LayerManager.qml`: Where axiom's layer-shell windows are on their outputs, worked out by axiom itself on every compositor (methods/LayerArrange; docs/dev/ compositor/layer-arrangement.md).
 - `LockManager.qml`: The one way to lock the session, whatever locks it (Lockscreen.mode): "quickshell" the built-in locker (shell/Lockscreen.qml: Wayland session lock + PAM through AuthManager) "hyprlock" hyprlock, with a config ThemeManag…
 - `MediaManager.qml`: The active MPRIS player (Spotify first, else one playing, else one that can play; or the one picked with selectPlayer) for the media widgets, the lockscreen and the media keys: its track, position and controls, and its …
 - `MonitorManager.qml`: The Monitors page: the connected outputs (HyprlandManager.withOutputs, read at startup and when monitors come, go or the config reloads; never polled) and the editor for Hyprland.monitors, a draft of profiles (each a la…
@@ -680,6 +692,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `ThemeIntegrations.qml`: Reader for the ThemeIntegrations section: one switch per scripts/theme_<key>.sh, run by ThemeManager.themeIntegrations().
 - `WeatherConfig.qml`: Reader for the Weather section: the one location and units every weather widget and module shows (see WeatherManager).
 - `Widget.qml`: Reader for the Widget section: sizing for panels, cards, popouts and controls.
+- `WindowLookConfig.qml`: Reader for the WindowLook section: settings that make windows match axiom ({ borders, shape, gaps, gapsIn, gapsOut, blur…, opacity… }), applied by the compositor's backend (on Hyprland, HyprlandConfigManager's look laye…
 - `WindowSwitcherConfig.qml`: Reader for the WindowSwitcher section (Alt+Tab).
 - `WorkspaceOverlayConfig.qml`: Reader for the WorkspaceOverlay section (the full-screen workspace overview).
-- `WorkspacesConfig.qml`: Reader for the Workspaces section: the workspace layout the bar widget, the overview, the WorkspacesMap module and HyprlandManager's navigation share.
+- `WorkspacesConfig.qml`: Reader for the Workspaces section: the workspace layout the bar widget, the overview, the WorkspacesMap module and CompositorManager's navigation share.

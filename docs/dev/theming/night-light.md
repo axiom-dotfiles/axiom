@@ -8,7 +8,7 @@ The night light: a screen color temperature run through hyprsunset or wlsunset, 
 
 ### NightLightManager
 - `NightLight` section, `NightLight` reader; `views/settings/NightLightStatus` is the section's `x-intro`.
-- Runs `hyprsunset -t <K> [-g <gamma>]`, or wlsunset pinned to one temperature. Started detached, stopped with `pkill`.
+- Runs `hyprsunset -t <K> [-g <gamma>]` (only under Hyprland, whose color transform it drives), or wlsunset pinned to one temperature. Started detached, stopped with `pkill`.
 - `active` is a `PersistentProperties`:
   - probed with `pgrep` once per launch (`_probeOnce`), however the tool becomes known;
   - the schedule waits for the probe.

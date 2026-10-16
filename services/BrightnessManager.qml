@@ -4,6 +4,8 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
+import qs.config
+
 // Screen brightness per monitor: a laptop panel through its sysfs backlight
 // (written with brightnessctl, which goes through logind), an external
 // monitor over DDC/CI (ddcutil, VCP 0x10). Monitors are found once at
@@ -112,7 +114,7 @@ QtObject {
   }
 
   function _focused() {
-    return HyprlandManager.focusedOutput;
+    return CompositorManager.focusedOutput;
   }
 
   function _update(name, value, max) {
@@ -170,7 +172,7 @@ QtObject {
       "raw": 2
     };
     const backlights = text.split("\n").filter(line => line.startsWith("backlight ")).map(line => line.split(" ")).sort((a, b) => (priority[a[2]] ?? 3) - (priority[b[2]] ?? 3));
-    const panel = Quickshell.screens.map(screen => screen.name).find(name => /^(eDP|LVDS|DSI)-/.test(name));
+    const panel = General.outputs.map(screen => screen.name).find(name => /^(eDP|LVDS|DSI)-/.test(name));
     if (panel && backlights.length > 0) {
       const [, device, , raw, max] = backlights[0];
       found[panel] = {

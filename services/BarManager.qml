@@ -418,7 +418,7 @@ QtObject {
   // The running bars (while the bar editor has unsaved edits, those),
   // each with what its ends meet among the bars on its screen (BarEnds:
   // which bar a shared corner goes to)
-  readonly property var bars: BarEnds.withEnds(Bar.expandBars(ConfigManager.previews.Bars ?? ConfigManager.config.Bars).map(bar => Bar.enrichBarConfig(bar, HyprlandManager.gapsOut)), Bar.endsOptions(HyprlandManager.gapsOut))
+  readonly property var bars: BarEnds.withEnds(Bar.expandBars(ConfigManager.previews.Bars ?? ConfigManager.config.Bars).map(bar => Bar.enrichBarConfig(bar, CompositorManager.gapsOut)), Bar.endsOptions(CompositorManager.gapsOut))
 
   // The enabled bars on a screen by edge ({ top, bottom, left, right },
   // null where there is none)
@@ -477,7 +477,7 @@ QtObject {
   // adds those)
   function reservedOn(screen, location) {
     const bar = root.edgesFor(screen)[Bar.edgeName(location)];
-    const zone = bar ? Bar.reservedZone(bar, HyprlandManager.gapsOut[Bar.edgeName(location)]) : 0;
+    const zone = bar ? Bar.reservedZone(bar, CompositorManager.gapsOut[Bar.edgeName(location)]) : 0;
     return (Appearance.screenBorder ? Appearance.screenMargin : 0) + zone - (zone > 0 && bar.insideBorder ? Appearance.borderWidth : 0);
   }
 
@@ -527,7 +527,7 @@ QtObject {
         "end": gap
       };
     const bar = root.edgesFor(screen)[Bar.edgeName(location)];
-    const windowGap = side => bar?.island ? bar.floatGap : Math.max(0, root.reservedOn(screen, side) + HyprlandManager.gapsOut[Bar.edgeName(side)] - root.frameLine(screen, side));
+    const windowGap = side => bar?.island ? bar.floatGap : Math.max(0, root.reservedOn(screen, side) + CompositorManager.gapsOut[Bar.edgeName(side)] - root.frameLine(screen, side));
     const vertical = location === Bar.Left || location === Bar.Right;
     return {
       "across": windowGap(location),

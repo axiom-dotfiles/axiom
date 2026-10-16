@@ -27,8 +27,10 @@ TestCase {
 
   function test_windowRect_clamps_into_the_cell() {
     const r = WorkspaceGeometry.windowRect({
-      "at": [1900, 1000],
-      "size": [400, 300]
+      "x": 1900,
+      "y": 1000,
+      "w": 400,
+      "h": 300
     }, 1000, 0, 0.1, 100, 60);
     compare(r.w, 40);
     compare(r.h, 30);
@@ -42,8 +44,10 @@ TestCase {
     // Three 1000 px columns on a 2000 px monitor, the first scrolled half
     // off it: 3000 px of strip from -500 squeezed into a 100 px cell
     const wins = [-500, 500, 1500].map(x => ({
-          "at": [x, 0],
-          "size": [1000, 1000]
+          "x": x,
+          "y": 0,
+          "w": 1000,
+          "h": 1000
         }));
     const rects = WorkspaceGeometry.stripRects(wins, 0, 0, 0.05, 100, 50, false);
     compare(rects.map(r => Math.round(r.x)), [0, 33, 67]);
@@ -54,8 +58,10 @@ TestCase {
     compare(fits[0], WorkspaceGeometry.windowRect(wins[1], 0, 0, 0.05, 100, 50));
     // Vertical: squeezed down the cell instead
     const rows = WorkspaceGeometry.stripRects([0, 1000].map(y => ({
-          "at": [0, y],
-          "size": [2000, 1000]
+          "x": 0,
+          "y": y,
+          "w": 2000,
+          "h": 1000
         })), 0, 0, 0.05, 100, 50, true);
     compare(rows.map(r => r.y), [0, 25]);
     compare(rows[0].h, 25);
@@ -64,31 +70,35 @@ TestCase {
   function test_stripOrder() {
     const wins = [
       {
-        "address": "float",
+        "id": "float",
         "floating": true,
-        "at": [0, 0]
+        "x": 0,
+        "y": 0
       },
       {
-        "address": "right",
-        "at": [900, 0]
+        "id": "right",
+        "x": 900,
+        "y": 0
       },
       {
-        "address": "lower",
-        "at": [-400, 500]
+        "id": "lower",
+        "x": -400,
+        "y": 500
       },
       {
-        "address": "upper",
-        "at": [-400, 0]
+        "id": "upper",
+        "x": -400,
+        "y": 0
       }
     ];
-    compare(WorkspaceGeometry.stripOrder(wins, false).map(w => w.address), ["upper", "lower", "right", "float"]);
-    compare(WorkspaceGeometry.stripOrder(wins, true).map(w => w.address), ["upper", "right", "lower", "float"]);
+    compare(WorkspaceGeometry.stripOrder(wins, false).map(w => w.id), ["upper", "lower", "right", "float"]);
+    compare(WorkspaceGeometry.stripOrder(wins, true).map(w => w.id), ["upper", "right", "lower", "float"]);
   }
 
   function test_stripDropTarget_goes_after_the_nearest() {
     const items = [
       {
-        "address": "a",
+        "id": "a",
         "rect": {
           "x": 0,
           "y": 0,
@@ -97,7 +107,7 @@ TestCase {
         }
       },
       {
-        "address": "b",
+        "id": "b",
         "rect": {
           "x": 50,
           "y": 0,
@@ -107,7 +117,7 @@ TestCase {
       }
     ];
     const target = WorkspaceGeometry.stripDropTarget(items, 55, 10, false);
-    compare(target.address, "b");
+    compare(target.id, "b");
     compare(target.side, "right");
     compare(target.rect.x, 70);
     compare(WorkspaceGeometry.stripDropTarget(items, 5, 10, true).side, "bottom");
@@ -117,7 +127,7 @@ TestCase {
   function test_windowAt_prefers_floating() {
     const items = [
       {
-        "address": "tiled",
+        "id": "tiled",
         "floating": false,
         "rect": {
           "x": 0,
@@ -127,7 +137,7 @@ TestCase {
         }
       },
       {
-        "address": "float",
+        "id": "float",
         "floating": true,
         "rect": {
           "x": 10,
@@ -137,7 +147,7 @@ TestCase {
         }
       },
       {
-        "address": "top",
+        "id": "top",
         "floating": false,
         "rect": {
           "x": 0,
@@ -155,7 +165,7 @@ TestCase {
   function test_dropTarget_splits_the_long_side() {
     const wide = [
       {
-        "address": "w",
+        "id": "w",
         "rect": {
           "x": 0,
           "y": 0,
@@ -305,15 +315,15 @@ TestCase {
   }
 
   function _windows(list) {
-    return list.map(([address, workspace, monitor]) => ({
-          "address": address,
+    return list.map(([id, workspace, monitor]) => ({
+          "id": id,
           "workspace": workspace,
-          "monitor": monitor
+          "output": ["A", "B"][monitor]
         }));
   }
 
   function _moves(plan) {
-    return plan.moves.map(m => m.address + ">" + m.to).sort().join(" ");
+    return plan.moves.map(m => m.id + ">" + m.to).sort().join(" ");
   }
 
   function _focus(plan) {

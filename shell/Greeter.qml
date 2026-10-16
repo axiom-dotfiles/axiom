@@ -38,6 +38,8 @@ Scope {
       title: "axiom greeter"
 
       GreeterSurface {
+        // Quickshell's list, not General.outputs: the window must exist
+        // even with no monitor connected (a stand-in screen then)
         screen: Quickshell.screens[0]
       }
     }

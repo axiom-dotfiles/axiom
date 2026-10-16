@@ -5,41 +5,33 @@ import qs.components.methods
 TestCase {
   name: "DockLayout"
 
-  function win(address, cls, extra) {
+  function win(id, appId, extra) {
     return Object.assign({
-      "address": address,
-      "class": cls,
-      "title": cls,
-      "mapped": true,
+      "id": id,
+      "appId": appId,
+      "title": appId,
       "hidden": false,
-      "monitor": 0,
-      "workspace": {
-        "id": 1
-      },
-      "focusHistoryID": 5
+      "output": "A",
+      "workspaceId": 1,
+      "focusRank": 5
     }, extra ?? {});
   }
 
-  readonly property var byClass: w => w["class"]
+  readonly property var byClass: w => w.appId
 
   function test_scope() {
     const w = win("0x1", "kitty", {
-      "monitor": 1,
-      "workspace": {
-        "id": 3
-      }
+      "output": "B",
+      "workspaceId": 3
     });
-    verify(DockLayout.inScope(w, "all", 0, 1));
-    verify(DockLayout.inScope(w, "monitor", 1, 1));
-    verify(!DockLayout.inScope(w, "monitor", 0, 3));
-    verify(DockLayout.inScope(w, "workspace", 0, 3));
-    verify(!DockLayout.inScope(w, "workspace", 1, 1));
-    verify(!DockLayout.inScope(win("0x2", "a", {
-      "mapped": false
-    }), "all", 0, 1), "unmapped");
+    verify(DockLayout.inScope(w, "all", "A", 1));
+    verify(DockLayout.inScope(w, "monitor", "B", 1));
+    verify(!DockLayout.inScope(w, "monitor", "A", 3));
+    verify(DockLayout.inScope(w, "workspace", "A", 3));
+    verify(!DockLayout.inScope(w, "workspace", "B", 1));
     verify(!DockLayout.inScope(win("0x2", "a", {
       "hidden": true
-    }), "all", 0, 1), "hidden");
+    }), "all", "A", 1), "hidden");
   }
 
   function test_pinnedFirstInOrder() {
@@ -62,19 +54,19 @@ TestCase {
 
   function test_windowsGroupedRecentFirst() {
     const windows = [win("0x1", "kitty", {
-        "focusHistoryID": 4
+        "focusRank": 4
       }), win("0x2", "kitty", {
-        "focusHistoryID": 0
+        "focusRank": 0
       }), win("0x3", "kitty", {
-        "focusHistoryID": 2
+        "focusRank": 2
       })];
     const items = DockLayout.buildItems([], windows, byClass, true);
     compare(items.length, 1);
-    compare(items[0].windows.map(w => w.address), ["0x2", "0x3", "0x1"]);
+    compare(items[0].windows.map(w => w.id), ["0x2", "0x3", "0x1"]);
   }
 
   function test_unresolvedSkipped() {
-    const items = DockLayout.buildItems([], [win("0x1", "")], w => w["class"], true);
+    const items = DockLayout.buildItems([], [win("0x1", "")], w => w.appId, true);
     compare(items.length, 0);
   }
 
@@ -134,14 +126,18 @@ TestCase {
     }), "touching edges don't overlap");
     verify(DockLayout.covered(dock, [
       {
-        "at": [0, 0],
-        "size": [1920, 1001]
+        "x": 0,
+        "y": 0,
+        "w": 1920,
+        "h": 1001
       }
     ]));
     verify(!DockLayout.covered(dock, [
       {
-        "at": [600, 900],
-        "size": [100, 200]
+        "x": 600,
+        "y": 900,
+        "w": 100,
+        "h": 200
       }
     ]));
   }

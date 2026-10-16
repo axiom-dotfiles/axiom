@@ -8,7 +8,7 @@ The window switcher (Alt+Tab). Hyprland holds the keys: a switcher bind enters t
 ### Properties
 
 - `shown` (readonly bool): Past the show delay: the strip is drawn
-- `windows` (readonly var): hyprctl clients, most recently focused first
+- `windows` (readonly var): The compositor's windows, most recently focused first
 - `index` (readonly int)
 - `screenName` (readonly string)
 

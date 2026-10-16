@@ -6,7 +6,7 @@
 
 How bars and the screen border share an edge through layer-shell ordering. Covers solid bars, bars inside the border, which bar gets a shared corner, transparent bars, the border being off, and the border's inward shadow window. Bar ends and pills are in [Bar ends and pills](bar-ends-pills.md).
 
-(Rule: AGENTS.md › UI conventions, Layer ordering. The rules live in `HyprLua.layers`, listed in [layer stacking](../generated/layers.md).)
+(Rule: AGENTS.md › UI conventions, Layer ordering. The order lives in `LayerStack.layers`, listed in [layer stacking](../generated/layers.md).)
 
 ### The border
 - `Appearance.screenBorder` turns the border off.
@@ -16,8 +16,9 @@ How bars and the screen border share an edge through layer-shell ordering. Cover
 - It is on the Top layer, at the screen edge.
 - The border's strip on that edge is arranged after the bar and overlaps its inner part, so the strip's stroke is the bar's inner edge.
 - **Build order.** Hyprland reads a layer rule's `order` only as a surface maps.
-  - So the bars, border, docks and edge menus are built only once `HyprlandManager.layerRulesReady` is true. The rules are evaluated at startup and kept across QML reloads.
+  - So the bars, border, docks and edge menus are built only once `CompositorManager.surfacesReady` is true. The rules are evaluated at startup and kept across QML reloads.
   - Why: in detached mode, hyprland.lua doesn't hold the rules. A border mapped first would land outside the bar, with its corners on the bar's outer side.
+  - Each of these windows also maps in `LayerStack.layers` order, a stage at a time, through its `hosts/popout/LayerSlot`. Where the compositor has no layer rules (sway, niri: no `supports.layerOrder`), map order is all that decides, so a window landing out of place (a bar remade after the border) makes the ones it should have come before map again ([layer arrangement](../compositor/layer-arrangement.md)).
 - **Window keying.** For the same reason, `shell/Bar` keys each bar's window on whether it sits inside the border, as well as on its id.
   - Switching to or from solid changes the bar's namespace, so the window is remade and maps under the new rule.
 
@@ -32,7 +33,7 @@ How bars and the screen border share an edge through layer-shell ordering. Cover
 
 ### Bars sharing a corner (`methods/BarEnds`, `tests/tst_BarEnds.qml`)
 - Hyprland gives a corner to the bar it arranges first. The other bar's window ends at its reserved line.
-- Which bar that is depends on the layer rule, never on which mapped first. First to last: solid bars, the border, pill bars, transparent bars, floating bars and floating pills (orders: [layer stacking](../generated/layers.md), from `HyprLua.layers`; `tst_HyprLua` holds them to this order).
+- Which bar that is depends on the layer rule, never on which mapped first. First to last: solid bars, the border, pill bars, transparent bars, floating bars and floating pills (orders: [layer stacking](../generated/layers.md), from `LayerStack.layers`; `tst_LayerStack` holds them to this order).
 
   - A floating bar always makes way.
   - Between bars of one kind, the bar on the screen's longer edge makes way (the `-long` namespace), so the shorter bar gets the corner: side bars on a landscape monitor, top and bottom ones on a portrait one (`shortEdge`, `BarEnds.onShortEdge`).
@@ -45,7 +46,7 @@ How bars and the screen border share an edge through layer-shell ordering. Cover
 Each bar end's `kind`, joining rules, pill bars merging at a corner, and pills themselves: see [Bar ends and pills](bar-ends-pills.md).
 
 ### Transparent bars
-- They reserve `Hyprland gaps_out` less (`HyprlandManager.gapsOut`). Windows therefore start at the bar's invisible inner edge, and the widgets' gap to the windows matches their gap to the screen edge.
+- They reserve `Hyprland gaps_out` less (`CompositorManager.gapsOut`). Windows therefore start at the bar's invisible inner edge, and the widgets' gap to the windows matches their gap to the screen edge.
 - Bar popouts use `adjustment: PopupAdjustment.None`. Their placement is computed, and Hyprland would otherwise nudge one sitting flush on the screen edge a few pixels inwards.
 
 ### Border off

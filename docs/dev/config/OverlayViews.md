@@ -8,9 +8,9 @@ Every `OverlayView` type, one page each: its file, annotations, and its own sett
 | Type | Label | Annotations |
 |---|---|---|
 | [Custom](OverlayViews/Custom.md) | Custom | x-icon="dashboard" |
-| [Keybinds](OverlayViews/Keybinds.md) | Keybinds | x-icon="keyboard", x-tool=true |
+| [Keybinds](OverlayViews/Keybinds.md) | Keybinds | x-icon="keyboard", x-tool=true, x-needs="keybinds" |
 | [BarEditor](OverlayViews/BarEditor.md) | Bar Editor | x-icon="toolbar", x-tool=true |
 | [Settings](OverlayViews/Settings.md) | Settings | x-icon="settings", x-tool=true |
 | [Themes](OverlayViews/Themes.md) | Themes | x-icon="palette", x-tool=true |
-| [Monitors](OverlayViews/Monitors.md) | Monitors | x-icon="monitor", x-tool=true |
+| [Monitors](OverlayViews/Monitors.md) | Monitors | x-icon="monitor", x-tool=true, x-needs="monitors" |
 | [CalendarPage](OverlayViews/CalendarPage.md) | Calendar | x-icon="calendar_month", x-tool=true |

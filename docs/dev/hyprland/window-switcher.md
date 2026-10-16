@@ -29,10 +29,10 @@ Alt+Tab is the bind actions `windowSwitcher` and `windowSwitcherReverse`.
 ### Events and the manager
 - Events arrive on socket2 as `custom>>axiom-switcher:<verb>` (HyprlandManager's `switcherKey(verb, argument)`): no process per key, and in order. HyprlandManager fetches nothing for `custom` events.
 - `WindowSwitcherManager.step(n)` opens the switcher on the first event.
-  - It snapshots `HyprlandManager.windowList`, most recently used first (`methods/WindowOrder.mru`, by `focusHistoryID`).
-  - The event-driven `HyprlandManager.activeToplevel` goes first, since the fetched window list lags behind a quick second switch.
+  - It snapshots `CompositorManager.windows`, most recently used first (`methods/WindowOrder.mru`, by `focusHistoryID`).
+  - The event-driven `CompositorManager.activeWindowId` goes first, since the fetched window list lags behind a quick second switch.
   - The list is filtered by `DockLayout.inScope` for `scope`, limited to the focused monitor, and fixed until the switcher closes.
-- `commit()` focuses the selection through `HyprlandManager.focusWindow`. It does nothing when the selection is the window focused at open.
+- `commit()` focuses the selection through `CompositorManager.focusWindow`. It does nothing when the selection is the window focused at open.
 - A tile click `pick`s, and leaves through `HyprLua.switcherLeaveLua` (`axiom_switcher_leave()`). The listener stops and `HyprLua.leaveSubmap` resets, the same way the key recorder's submap is left ([Keybinds](keybinds.md#recording-a-key)).
 - A commit while closed does nothing, so a late Return or release can't refocus the last pick.
 

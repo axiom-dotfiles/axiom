@@ -125,4 +125,15 @@ TestCase {
     }), ctx);
     verify(text.includes("on-timeout = echo '##1'"));
   }
+
+  function test_noDpmsCommand() {
+    const text = HypridleConf.render(idle({
+      "screenOffTimeout": 600
+    }), Object.assign({}, ctx, {
+      "dpmsOff": "",
+      "dpmsOn": ""
+    }));
+    verify(!text.includes("after_sleep_cmd"), "no screen-on command to run");
+    verify(!text.includes("timeout = 600"), "no screen-off step");
+  }
 }

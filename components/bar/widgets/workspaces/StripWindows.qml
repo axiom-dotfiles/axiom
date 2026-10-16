@@ -6,7 +6,7 @@ import qs.config
 import qs.components.methods
 
 // A strip workspace's windows as bar cells (WorkspaceCell), in strip order
-// (HyprlandManager.stripWindows), each showing its app icon: the one
+// (CompositorManager.stripWindows), each showing its app icon: the one
 // focused last in the active look, the rest as occupied. Click one to focus
 // it. Laid out along the bar; the strip switchers put it after the active
 // workspace's cell, the strip popout after every workspace's.
@@ -28,12 +28,12 @@ Grid {
   property bool clickable: true
   property bool animated: true
 
-  readonly property var windows: HyprlandManager.stripWindows(root.workspaceId, root.stripVertical)
+  readonly property var windows: CompositorManager.stripWindows(root.workspaceId, root.stripVertical)
   // A string, so the cells are only rebuilt when the windows or their
-  // order change, not on every Hyprland event
-  readonly property string _key: root.windows.map(w => w.address).join(",")
+  // order change, not on every compositor event
+  readonly property string _key: root.windows.map(w => w.id).join(",")
   readonly property var addresses: root._key === "" ? [] : root._key.split(",")
-  readonly property string focused: HyprlandManager.lastFocused(root.windows)?.address ?? ""
+  readonly property string focused: CompositorManager.lastFocused(root.windows)?.id ?? ""
 
   // Nothing (not even a gap beside it) on an empty workspace
   visible: root.addresses.length > 0
@@ -48,7 +48,7 @@ Grid {
     WorkspaceCell {
       required property int index
       readonly property string address: root.addresses[index] ?? ""
-      readonly property var window: root.windows.find(w => w.address === address) ?? null
+      readonly property var window: root.windows.find(w => w.id === address) ?? null
 
       barConfig: root.barConfig
       isActive: address === root.focused
@@ -56,10 +56,10 @@ Grid {
       thickness: root.thickness
       length: root.cellLength
       radius: root.radius
-      iconPath: window ? IconResolver.resolveWindowIcon(window.class, window.title) : ""
+      iconPath: window ? IconResolver.resolveWindowIcon(window.appId, window.title) : ""
       clickable: root.clickable
       animated: root.animated
-      onClicked: HyprlandManager.focusWindow(address)
+      onClicked: CompositorManager.focusWindow(address)
     }
   }
 }

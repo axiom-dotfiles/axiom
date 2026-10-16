@@ -20,7 +20,7 @@ Dependencies point one way, methods → data owners → readers → services →
 - [generated/api.md](generated/api.md): public members of every service and config reader, one page each.
 - [generated/files.md](generated/files.md): every QML file with its purpose comment. Long: grep it.
 - [generated/ipc.md](generated/ipc.md): every IPC target and its functions.
-- [generated/layers.md](generated/layers.md): every layer namespace's Hyprland `order` and why, from `HyprLua.layers`.
+- [generated/layers.md](generated/layers.md): every layer namespace's `order` and why, from `LayerStack.layers`.
 
 ### Known issues
 - [issues.md](issues.md): problems found but not fixed yet. Add one when you find something out of scope; remove it with the fix.
@@ -74,11 +74,17 @@ Dependencies point one way, methods → data owners → readers → services →
 - [hosts](edge-menus/hosts.md): floating and integrated hosts, the lattice, sync.
 - [editing-submenus](edge-menus/editing-submenus.md): editing on the Layouts page, Submenu modules.
 
+### compositor/
+- [README](compositor/README.md): `CompositorManager`, detection, capabilities, gating what a compositor can't do, `FocusGrab`.
+- [contract](compositor/contract.md): the neutral shapes and the members a backend provides.
+- [sway-backend](compositor/sway-backend.md): the plan for sway, and running a nested compositor (`scripts/dev/nested.sh`).
+- [layer-arrangement](compositor/layer-arrangement.md): how compositors arrange and stack layer windows (measured on sway and niri), and how axiom reproduces it.
+
 ### hyprland/
-- [ipc](hyprland/ipc.md): `HyprlandIpcManager` (the request socket), Quickshell.Hyprland and what `HyprlandManager` exposes of it; who may talk to Hyprland.
+- [ipc](hyprland/ipc.md): `HyprlandIpcManager` (the request socket), Quickshell.Hyprland and `HyprlandManager`, the Hyprland backend; who may talk to Hyprland.
 - [config-modes](hyprland/config-modes.md): `HyprlandConfigManager`, detached / included / managed, `x-hypr*` options, leaving a mode.
 - [managed-takeover](hyprland/managed-takeover.md): `claim_hyprland.sh` claim and release.
-- [window-look](hyprland/window-look.md): borders, shape, gaps, blur, opacity as one `hl.config`.
+- [window-look](hyprland/window-look.md): `WindowLook` (borders, shape, gaps, blur, opacity) as one `hl.config`.
 - [bind-merge](hyprland/bind-merge.md): `mergeUserBinds` (managed mode).
 - [keybinds](hyprland/keybinds.md): bind actions and dispatchers, the Keybinds page, the key recorder.
 - [monitors](hyprland/monitors.md): monitor profiles, the Monitors page, Apply/Keep/Revert.

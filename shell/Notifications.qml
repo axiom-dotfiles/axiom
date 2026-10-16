@@ -45,7 +45,7 @@ Scope {
         const bar = stack._edges[side];
         if (bar?.background !== "transparent")
           return gap;
-        return gap + (HyprlandManager.gapsOut[side] ?? 0) - (bar.inset ?? 0);
+        return gap + (CompositorManager.gapsOut[side] ?? 0) - (bar.inset ?? 0);
       }
 
       PanelWindow {
@@ -136,7 +136,7 @@ Scope {
         if (!ShellManager.showsOn(stack.modelData, NotificationsConfig.monitors))
           return;
         const critical = notification.urgency === NotificationUrgency.Critical;
-        const fullscreen = HyprlandManager.hasFullscreen(stack.modelData?.name ?? "");
+        const fullscreen = CompositorManager.hasFullscreen(stack.modelData?.name ?? "");
         if (NotificationsConfig.quietFullscreen && fullscreen && !critical)
           return;
 

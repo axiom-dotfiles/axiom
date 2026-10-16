@@ -1,6 +1,6 @@
 # Workspaces (layout, navigation, the bar widget)
 
-> **Files:** `config/WorkspacesConfig.qml`, `services/HyprlandManager.qml`, `components/methods/WorkspaceGeometry.qml`, `components/bar/widgets/Workspaces.qml`, `components/bar/widgets/workspaces/`, `components/surfaces/workspaces/`
+> **Files:** `config/WorkspacesConfig.qml`, `services/CompositorManager.qml`, `services/HyprlandManager.qml`, `components/methods/WorkspaceGeometry.qml`, `components/bar/widgets/Workspaces.qml`, `components/bar/widgets/workspaces/`, `components/surfaces/workspaces/`
 > **Config:** `Workspaces.*` (`layout`, `count`, `columns`, `rows`, …)
 > **Related:** [Workspace strips](workspace-strips.md), [Keybinds](keybinds.md), [Bar composition](../bar/composition.md), [Shared UI pieces](../core/shared-ui-pieces.md)
 
@@ -19,31 +19,32 @@ One workspace layout serves everything that shows workspaces or moves between th
 - Nothing else holds a workspace count or grid size.
 
 ### Ids
-- `HyprlandManager.workspaceBase(monitor)` / `workspaceIds(monitor)` give a monitor's ids.
+- `CompositorManager.workspaceBase(output)` / `workspaceIds(output)` give an output's ids (by its name).
 - The overview lays them out `boardColumns × boardRows`. In the standard layout it shows windows from every monitor, each placed against its own monitor's origin.
 
 ### Navigation
-- Everything goes through `HyprlandManager`, so every switch slides the same way:
-  - `goToWorkspace(id, mode, monitor)`
+- Everything goes through `CompositorManager`, so every switch slides the same way, on every compositor:
+  - `goToWorkspace(id, mode, output)`
   - `stepWorkspace(direction, mode)`
   - `nthWorkspace(n, mode)`
   - `focusWindow`, for focusing a window on another workspace (used by the overview, dock, launcher and notifications).
 - Never dispatch `hl.dsp.focus({ workspace })` or `{ window }` directly. (Rule: AGENTS.md › Services.)
+- `CompositorManager` works out the legs (`{ id, axis }`) and hands them to the backend's `travel`; a backend without `workspaceSlide` just goes to the last one ([contract](../compositor/contract.md)).
 - `mode` is `go`, `move` or `moveSilent`.
-- Surfaces on a monitor pass their `monitor`; the focused monitor is the default. In a grid, an id outside that monitor's block is refused.
+- Surfaces on a monitor pass their output's name; the focused one is the default. In a grid, an id outside that monitor's block is refused.
 - **In a grid** a move only reaches the monitor's own ids.
   - It goes sideways first, then vertically, sliding along each axis in turn (`animate`).
   - Each leg of a two-leg trip takes `_legSpeed` of the configured time.
-- **The slide** briefly overrides Hyprland's `workspaces` animation, then puts it back. The animation is read with the options (`HyprlandManager.animations`) at startup and on config reload.
+- **The slide** (`HyprlandManager.travel`) briefly overrides Hyprland's `workspaces` animation, then puts it back. The animation is read with the options (`HyprlandManager.animations`) at startup and on config reload.
 - Keybinds call `qs -c axiom ipc call workspaces …` rather than scripts of their own.
 
 ### Layout changes (remap)
-- Hyprland's workspaces stay where they are when the layout or size changes, so `HyprlandManager` remaps them.
+- The compositor's workspaces stay where they are when the layout or size changes, so `CompositorManager` remaps them.
   - `_remapWorkspaces` runs 200 ms after `perMonitorBlocks`/`size` change, starting from the layout it last applied.
 - `WorkspaceGeometry.remapWorkspaces` (pure, tested) sends each workspace's windows to the same place in its own monitor's new ids.
   - The first monitor in monitor order keeps a contested id; the rest take free ones, merging only when none is free.
   - It picks each monitor's new active workspace.
-- One Lua chunk does the move, with the `workspaces` animation off:
+- The backend carries the plan out (`applyRemap`). On Hyprland one Lua chunk does it, with the `workspaces` animation off:
   1. windows go to `name:axiom-remap-<id>`, created on their own monitor, so a chain like 10 → 11, 11 → 12 can't merge
   2. every monitor goes to `name:axiom-remap-mon-<i>`, so its old (maybe empty) workspace is gone before its id is reused
   3. windows go to their ids
@@ -60,7 +61,7 @@ One workspace layout serves everything that shows workspaces or moves between th
   - `glyphOf` gives the grid's position arrow.
 - **Active cell.** The active cell's box is one `workspaces/ActiveCellIndicator` sliding along the row.
   - It is drawn between the cells' two parts (`WorkspaceCell`'s `part`): the boxes at rest are under it, the labels and icons over it.
-  - A step past an end (`HyprlandManager.workspaceWrapped`, or the strip's own wheel wrap) sends it out of that end and in at the other.
+  - A step past an end (`CompositorManager.workspaceWrapped`, or the strip's own wheel wrap) sends it out of that end and in at the other.
 - **Cross-fades.**
   - The grid strip cross-fades (`CrossFade`) to another row or column; the old one keeps its active cell while it fades.
   - `ActiveStrip` cross-fades to the windows of the next workspace.

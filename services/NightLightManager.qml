@@ -21,14 +21,17 @@ import qs.config
 Singleton {
   id: root
 
-  // "hyprsunset" | "wlsunset" | "" (neither); undefined until looked up
+  // "hyprsunset" | "wlsunset" | "" (neither); undefined until looked up.
+  // hyprsunset only under Hyprland: it drives Hyprland's own color
+  // transform, so elsewhere it starts and does nothing
   readonly property var tool: {
     const found = DependencyManager.found;
-    if (found.hyprsunset === true)
+    const hyprland = CompositorManager.kind === "hyprland";
+    if (hyprland && found.hyprsunset === true)
       return "hyprsunset";
     if (found.wlsunset === true)
       return "wlsunset";
-    return found.hyprsunset === false && found.wlsunset === false ? "" : undefined;
+    return (!hyprland || found.hyprsunset === false) && found.wlsunset === false ? "" : undefined;
   }
   readonly property bool available: !!root.tool
   readonly property bool active: _run.active

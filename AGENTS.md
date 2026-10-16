@@ -10,7 +10,7 @@ This file holds only the rules. **The mechanics of every service and surface are
 
 ## Where to look
 
-**Adding something of a known kind?** Follow its recipe in `docs/recipes/` (also skills in `.claude/skills/`): `bar-widget`, `bar-popout`, `overlay-module`, `overlay-view`, `settings-card`, `launcher-command`, `setting`, `config-section`, `migration`, `service`, `theme-integration`, `methods-helper`. Each names the files to touch and an existing file to copy.
+**Adding something of a known kind?** Follow its recipe in `docs/recipes/` (also skills in `.claude/skills/`): `bar-widget`, `bar-popout`, `overlay-module`, `overlay-view`, `settings-card`, `launcher-command`, `setting`, `config-section`, `migration`, `service`, `theme-integration`, `methods-helper`, `compositor-backend`. Each names the files to touch and an existing file to copy.
 
 | Task / area | Read |
 |---|---|
@@ -24,6 +24,7 @@ This file holds only the rules. **The mechanics of every service and surface are
 | Popouts, edge surfaces, joins, collisions | `docs/dev/popouts/` (start at `surface-context.md`) |
 | Overlay pages, modules, Layouts editor | `docs/dev/overlay/` |
 | Edge menus | `docs/dev/edge-menus/` |
+| Windows, outputs, workspaces, focus; what a compositor supports; sway/niri | `docs/dev/compositor/` |
 | Hyprland modes, binds, monitors, workspaces | `docs/dev/hyprland/` |
 | Themes, integrations, wallpaper, blur | `docs/dev/theming/` |
 | A feature (launcher, lockscreen, greeter, dock, OSD, chat, notes, calendar, …) | `docs/dev/features/<feature>.md` |
@@ -40,7 +41,7 @@ This file holds only the rules. **The mechanics of every service and surface are
 ## Running / reloading
 
 - **After any change run `scripts/dev/verify.sh`** (formats, checks, regenerates docs, runs the affected tests, shows the shell's log with known issues marked, lists the docs describing what you changed; `--all` runs every CI check) until it prints `verify ok`. Read the docs it lists if behaviour changed. **To look at something**: `scripts/dev/shot.sh page <ViewType>` / `launcher [text]` / `ipc <target> <open> [close]` prints a screenshot's path.
-- The shell runs detached; never start/stop it from this session. Saving a file it has loaded hot-reloads it. qs watches by inode: after `sed -i`, `qmlformat -i` or `git checkout`, see `docs/dev/testing.md` to force a reload.
+- The shell runs detached; never start/stop it from this session. Saving a file it has loaded hot-reloads it. qs watches by inode: after `sed -i`, `qmlformat -i` or `git checkout`, see `docs/dev/testing.md` to force a reload. A second axiom runs only nested, under another compositor, through `scripts/dev/nested.sh <sway|niri>` (scratch folders, its own D-Bus; `docs/dev/compositor/sway-backend.md`).
 - **Logs**: `scripts/log.sh` (warnings/errors since the last reload; `--debug` adds `console.log`, `--all`, `-f`, `-g PATTERN`). A clean reload is just `Reloading configuration...` + `Configuration Loaded`. stdout/journalctl show nothing. `console.log` for tracing, `console.warn` only for real problems.
 - A settings category has no IPC: add a temporary `IpcHandler` calling `SettingsManager.openCategory(name)` to `shell.qml` (never inside a singleton), and revert it in place.
 - `~/.config/axiom/config.json` is owned by the settings UI but may be edited directly to test. `ConfigManager` watches it; an invalid file never replaces the running config (the last good one stays and `savesBlocked` refuses saves until it's fixed).
@@ -119,7 +120,8 @@ Dependencies point one way:
 - **Config writes** go only through `ConfigManager.setTheme` / `setWallpaper(s)` / `saveConfig` / `commit(object)` (validates first; returns false and changes nothing if rejected), or `SettingsManager.setValue` / `commitValue(s)` from UI. Never mutate `ConfigManager.config` and expect it to persist.
 - **Editors** (settings, bar, overlay, edge menus, keybinds, monitors, screen layouts) edit a `ConfigDraft`; unsaved edits show live through `ConfigManager.setPreview(section, value)` and readers read `previews.X ?? config.X`. Selection lives in the manager and changes through its `select*()` (`selectBar`, `selectView`, `selectMenu`, `selectProfile`); views don't assign it. See `docs/dev/core/editors-pattern.md`.
 - Secrets (chat API keys, calendar passwords) never go in config.json or argv: `SecretsManager`, written through stdin. Clipboard history is never written to disk; only clips the user pins are (`~/.local/state/axiom/ui/clipboardPins.json`).
-- Workspace switching and window focusing always go through `HyprlandManager.goToWorkspace` / `stepWorkspace` / `nthWorkspace` / `focusWindow`, never a direct `hl.dsp.focus`. Axiom's own evals and dispatches are Lua (`hl.*`), and only the `Hyprland*` services send them or import `Quickshell.Hyprland`: the rest asks `HyprlandManager`, reads its state and connects to its signals (`docs/dev/hyprland/ipc.md`; `check_structure` enforces the import).
+- **The compositor is reached only through `CompositorManager`** (`docs/dev/compositor/README.md`): its windows, outputs and workspaces (neutral shapes, never a compositor's own objects), its signals, and every workspace switch and window focus (`goToWorkspace` / `stepWorkspace` / `nthWorkspace` / `focusWindow`, never a direct dispatch). Its backend (`HyprlandManager`) is the only one talking to the compositor; only the `Hyprland*` services import `Quickshell.Hyprland` or send Lua (`hl.*`), and only the Hyprland-only features (config modes, Keybinds, Monitors, the switcher) use `HyprlandManager` directly (`check_structure` enforces both).
+- **Gate on a capability, not a compositor**: `CompositorManager.supports.<key>` in code, `"/$supports.<key>": true` in a schema `x-showIf`, `x-needs` on a page type. Nothing writes Hyprland's config unless `supports.configModes`. Surfaces closing on an outside click use `FocusGrab`.
 - State that must survive a QML reload lives in a `PersistentProperties` (JSON for arrays); small persisted state goes in `StateManager` (`~/.local/state/axiom/ui/*.json`) or `Paths.userStatePath`.
 - **Nothing is written under `Paths.axiomPath`** (a package installs it read-only): what axiom writes goes in the XDG folders through `Paths.userConfigPath` / `statePath` / `userStatePath` / `userDataPath` / `generatedThemesPath` (`docs/dev/core/config-manager.md` › Where files live).
 
@@ -158,7 +160,7 @@ Dependencies point one way:
 
 Subsystem rules live with their code; each line here is the invariant and where the rest is:
 - **Overlay modules**: exist only while their page is shown (acquire/release, lasting state in a service); add them to a live config one at a time: `components/content/AGENTS.md`.
-- **Bars, layer ordering, corners**: stacking is `HyprLua.layers` (`docs/dev/generated/layers.md`); which bar owns a corner is `BarEnds` alone; bars and the border never draw over fullscreen: `components/bar/AGENTS.md`.
+- **Bars, layer ordering, corners**: stacking is `LayerStack.layers` (`docs/dev/generated/layers.md`; axiom places its layers itself: `docs/dev/compositor/layer-arrangement.md`); which bar owns a corner is `BarEnds` alone; bars and the border never draw over fullscreen: `components/bar/AGENTS.md`.
 - **Popouts**: geometry only from `methods/SurfaceContext`, collisions only through a `PopoutClaim`, an open popout never moves: `components/hosts/popout/AGENTS.md`.
 - **Launcher**: one row shape for every provider; `/config` can never edit `Bars` or `Overlay.views`: `services/AGENTS.md`, `docs/dev/features/launcher.md`.
 - **Greeter**: data, never code; a side effect reachable from greeter mode checks `Paths.greeter`: `services/AGENTS.md`, `docs/dev/features/greeter-runtime.md`.

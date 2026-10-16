@@ -7,7 +7,7 @@
                          plus BarWidgets / OverlayModules / OverlayViews
   docs/dev/generated/    files.md (every QML file's purpose comment),
                          ipc.md (every IpcHandler), layers.md (layer-rule
-                         stacking, from HyprLua.layers), api/<Name>.md (the
+                         stacking, from LayerStack.layers), api/<Name>.md (the
                          public members of each service and config reader)
 
   scripts/gen_docs.py            write them (stale files removed)
@@ -672,7 +672,7 @@ def ipc_page():
     return "\n".join(out).rstrip() + "\n"
 
 
-LAYERS_PATH = ROOT / "components/methods/HyprLua.qml"
+LAYERS_PATH = ROOT / "components/methods/LayerStack.qml"
 
 
 def json_property(path, name):
@@ -692,9 +692,10 @@ def json_property(path, name):
 
 def layers_page():
     out = [NOTICE, "# Layer stacking", "",
-           "Every axiom layer namespace with a Hyprland layer rule, from `HyprLua.layers` "
-           "(applied by `HyprlandManager.layerRulesLua`). Higher `order` is arranged (and drawn) first: "
-           "closer to the screen edge, and it takes a shared corner. Hyprland reads `order` only as a surface maps. "
+           "Every axiom layer namespace, from `LayerStack.layers`: Hyprland's layer rules (`HyprLua.layerRulesLua`), "
+           "and the order axiom maps its surfaces in elsewhere ([layer arrangement](../compositor/layer-arrangement.md)). "
+           "Higher `order` is arranged (and drawn) first: closer to the screen edge, and it takes a shared corner. "
+           "Hyprland reads `order` only as a surface maps. "
            "Cite this page rather than repeating the numbers in a doc.", "",
            "| Namespace | Order | Why |", "|---|---|---|"]
     for layer in json_property(LAYERS_PATH, "layers"):

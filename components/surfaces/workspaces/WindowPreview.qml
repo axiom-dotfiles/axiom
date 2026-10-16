@@ -25,9 +25,9 @@ Item {
   // The title strip while hovered
   property bool showTitle: true
 
-  readonly property var toplevel: HyprlandManager.toplevelForAddress(root.windowData?.address)
-  readonly property string iconPath: IconResolver.resolveWindowIcon(root.windowData?.class, root.windowData?.title)
-  readonly property bool focused: (root.windowData?.focusHistoryID ?? -1) === 0
+  readonly property var toplevel: CompositorManager.toplevelFor(root.windowData?.id ?? "")
+  readonly property string iconPath: IconResolver.resolveWindowIcon(root.windowData?.appId, root.windowData?.title)
+  readonly property bool focused: (root.windowData?.focusRank ?? -1) === 0
   // The icon stands in only for a window that never gives a frame: not for
   // the first frame's short wait on open, and not once the window closes
   // (its toplevel goes before the client list catches up)
@@ -92,7 +92,7 @@ Item {
         anchors.verticalCenter: parent.verticalCenter
         anchors.leftMargin: 6
         anchors.rightMargin: 6
-        text: root.windowData?.title || root.windowData?.class || ""
+        text: root.windowData?.title || root.windowData?.appId || ""
         textSize: Appearance.fontSize - 3
         elide: Text.ElideRight
         horizontalAlignment: Text.AlignHCenter
@@ -135,7 +135,7 @@ Item {
     StyledText {
       id: sizeLabel
       anchors.centerIn: parent
-      text: `${root.windowData?.size?.[0] ?? 0} × ${root.windowData?.size?.[1] ?? 0}`
+      text: `${root.windowData?.w ?? 0} × ${root.windowData?.h ?? 0}`
       textSize: Appearance.fontSize - 2
       textColor: Theme.background
     }

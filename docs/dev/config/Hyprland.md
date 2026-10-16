@@ -2,7 +2,7 @@
 # Config: Hyprland
 
 > **Reader:** `HyprlandConfig` (`config/HyprlandConfig.qml`)
-> **Schema:** `config/json/config.schema.json` → `properties.Hyprland` · category Hyprland
+> **Schema:** `config/json/config.schema.json` → `properties.Hyprland` · category Compositor
 
 Hyprland: How axiom sets Hyprland up. Needs Hyprland 0.55+ with a Lua config.
 
@@ -13,7 +13,6 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 
 - [`Hyprland.binds`](Hyprland.binds.md)
 - [`Hyprland.monitors`](Hyprland.monitors.md)
-- [`Hyprland.look`](Hyprland.look.md)
 - [`Hyprland.managed.curves`](Hyprland.managed.curves.md)
 - [`Hyprland.managed.customAnimations`](Hyprland.managed.customAnimations.md)
 - [`Hyprland.managed.env`](Hyprland.managed.env.md)
@@ -30,10 +29,6 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - Required settings: Lock restore after a shell restart, ignoring apps' requests to maximize themselves, and a workspace slide animation.
   - x-group="Setup"
   - read: `HyprlandConfig.requiredSettings` · in: `services/HyprlandConfigManager.qml`, `services/HyprlandRuntimeLayer.qml`
-- **`Hyprland.wallpaperDaemon`** · boolean = true
-  - Start awww: Start awww-daemon for the wallpaper picker.
-  - x-group="Setup", x-showIf={"/Appearance.wallpaperBackend":"awww"}
-  - read: `HyprlandConfig.wallpaperDaemon` · in: `services/WallpaperManager.qml`
 
 ### Reader members
 
@@ -43,13 +38,9 @@ Every public member of `HyprlandConfig`, with the files that use it.
   - in: `components/surfaces/onboarding/pages/FinishPage.qml`, `services/HyprlandConfigManager.qml`, `services/OnboardingManager.qml`
 - `HyprlandConfig.requiredSettings` (bool)
   - in: `services/HyprlandConfigManager.qml`, `services/HyprlandRuntimeLayer.qml`
-- `HyprlandConfig.wallpaperDaemon` (bool)
-  - in: `services/WallpaperManager.qml`
 - `HyprlandConfig.binds` (var)
   - in: `components/surfaces/onboarding/pages/AppsPage.qml`, `components/surfaces/onboarding/pages/BindsTable.qml`, `services/EdgeMenuManager.qml`, `services/HyprlandBindMerge.qml`, `services/HyprlandConfigManager.qml`, `services/HyprlandRuntimeLayer.qml`, `services/KeybindManager.qml`
 - `HyprlandConfig.monitorProfiles` (var)
   - in: `services/HyprlandConfigManager.qml`, `services/HyprlandRuntimeLayer.qml`, `services/MonitorManager.qml`
-- `HyprlandConfig.look` (var)
-  - in: `components/views/settings/TranslucencyStatus.qml`, `services/HyprlandConfigManager.qml`
 - `HyprlandConfig.managed` (var)
   - in: `services/HyprlandConfigManager.qml`, `services/SettingsManager.qml`

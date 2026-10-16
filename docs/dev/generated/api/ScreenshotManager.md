@@ -23,11 +23,12 @@ Screenshots (the `screenshot` keybind action, IPC `screenshot take <kind>`, laun
 - `recordings` (readonly var): The newest recordings in recordingFolder ([{ path, name, time, size }], newest first), once refreshRecordings has listed it
 - `folder` (readonly string): Where screenshots are saved: the Screenshots setting, else <Pictures>/Screenshots
 - `recordingFolder` (readonly string): Where recordings are saved and listed from: the setting, else with the screenshots
+- `kinds` (readonly var): The kinds take() offers: "window" only where the compositor knows where windows are (CompositorManager.supports.windowGeometry)
 - `forCaller` (readonly bool)
 
 ### Functions
 
-- `take(kind)`: kind: "region" | "window" | "screen"
+- `take(kind)`: kind: "region" | "window" | "screen" ("window" is "region" where it isn't in `kinds`)
 - `pick(path, callback)`: A region for another feature (the chat): saved to `path` as a PNG, with no clipboard or notification, then callback(ok).
 - `cancel()`
 - `setCopyOnly(value)`

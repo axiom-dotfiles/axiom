@@ -3,7 +3,7 @@ import QtQuick
 import qs.services
 
 // Reader for the Workspaces section: the workspace layout the bar widget,
-// the overview, the WorkspacesMap module and HyprlandManager's navigation
+// the overview, the WorkspacesMap module and CompositorManager's navigation
 // share. Named WorkspacesConfig because `Workspaces` is a bar widget type.
 QtObject {
   id: root
@@ -69,7 +69,7 @@ QtObject {
   }
 
   // First id of the monitor at `monitorIndex` (a stable order, see
-  // HyprlandManager.workspaceBase)
+  // CompositorManager.workspaceBase)
   function baseFor(monitorIndex) {
     return perMonitorBlocks ? Math.max(0, monitorIndex) * size + 1 : 1;
   }

@@ -9,12 +9,15 @@ import qs.components.forms
 
 // The apps the keybinds open (terminal, file manager, browser), with the
 // installed ones offered to pick from, the main modifier, and the keys
-// that matter most on day one
+// that matter most on day one. The keys only where axiom binds them
+// (CompositorManager.supports.keybinds)
 OnboardingPage {
   id: root
 
-  title: I18n.tr("Apps & keys")
-  intro: I18n.tr("Which apps should the keybinds open? Pick one that's installed, or type the command. Empty file manager and browser use your system's default.")
+  readonly property bool binds: CompositorManager.supports.keybinds === true
+
+  title: root.binds ? I18n.tr("Apps & keys") : I18n.tr("Apps")
+  intro: root.binds ? I18n.tr("Which apps should the keybinds open? Pick one that's installed, or type the command. Empty file manager and browser use your system's default.") : I18n.tr("Which apps should axiom open? Pick one that's installed, or type the command. Empty file manager and browser use your system's default.")
 
   // Candidates offered as chips when they're installed
   readonly property var candidates: ({
@@ -103,12 +106,14 @@ OnboardingPage {
 
   StyledText {
     Layout.topMargin: Widget.spacing
+    visible: root.binds
     text: I18n.tr("Main modifier key")
     font.bold: true
   }
 
   RowLayout {
     Layout.fillWidth: true
+    visible: root.binds
     spacing: Widget.spacing
 
     OptionCard {
@@ -131,12 +136,14 @@ OnboardingPage {
 
   StyledText {
     Layout.topMargin: Widget.spacing
+    visible: root.binds
     text: I18n.tr("Keys to know")
     font.bold: true
   }
 
   BindsTable {
     Layout.fillWidth: true
+    visible: root.binds
     entries: [
       {
         "action": "launcher",
@@ -184,6 +191,7 @@ OnboardingPage {
 
   StyledText {
     Layout.fillWidth: true
+    visible: root.binds
     text: I18n.tr("Every key can be changed on the overlay's Keybinds page.")
     wrapMode: Text.WordWrap
     textColor: Theme.foregroundAlt

@@ -15,8 +15,8 @@ import qs.components.surfaces.dock
 // would show on.
 Scope {
   Variants {
-    // Once the layer rules are in (HyprlandManager.layerRulesReady)
-    model: HyprlandManager.layerRulesReady ? DockConfig.shownIds : []
+    // Once the layer rules are in (CompositorManager.surfacesReady)
+    model: CompositorManager.surfacesReady ? DockConfig.shownIds : []
 
     delegate: Scope {
       id: entry
@@ -43,7 +43,7 @@ Scope {
   LazyLoader {
     id: previewLoader
     readonly property var screen: General.outputs.find(screen => screen.name === DockManager.previewScreen) ?? null
-    active: HyprlandManager.layerRulesReady && DockManager.previewActive && previewLoader.screen !== null
+    active: CompositorManager.surfacesReady && DockManager.previewActive && previewLoader.screen !== null
 
     DockWindow {
       screen: previewLoader.screen

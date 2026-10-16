@@ -32,10 +32,11 @@ PopoutWrapperBase {
   // detached box slides out from beneath the bar rather than out of thin
   // air at its invisible inner edge; else on the Overlay layer, over the
   // bar. That under-bar layer is also under the overlay: while that's open
-  // here, the box shows over it instead, without sliding (see
-  // HyprlandManager's layer rules). Followed only while closed, since it
-  // changes the window's layer.
-  readonly property bool _wantsUnder: root.barConfig.background === "transparent" && !ShellManager.surfaceOpenOn("overlay", root.screen)
+  // here, the box shows over it instead, without sliding (LayerStack), as
+  // it does where the compositor stacks by map order alone (no
+  // supports.layerOrder: a window mapped as it opens lands over the bar).
+  // Followed only while closed, since it changes the window's layer.
+  readonly property bool _wantsUnder: root.barConfig.background === "transparent" && CompositorManager.supports.layerOrder === true && !ShellManager.surfaceOpenOn("overlay", root.screen)
   property ClosedLatch _under: ClosedLatch {
     source: root._wantsUnder
     closed: !root.occupied
@@ -126,7 +127,8 @@ PopoutWrapperBase {
   // click outside clears (the content's focusLost())
   readonly property bool wantsKeyboardFocus: root.window.visible && (root.currentItem?.wantsKeyboardFocus ?? false)
 
-  HyprlandGrab {
+  FocusGrab {
+    id: focusGrab
     windows: [root.window, root.panel].concat(ShellManager.modalWindows)
     active: root.wantsKeyboardFocus
     onCleared: root.currentItem?.focusLost?.()
@@ -326,7 +328,7 @@ PopoutWrapperBase {
 
     WlrLayershell.layer: root.onOverlayLayer ? WlrLayer.Overlay : WlrLayer.Top
     WlrLayershell.namespace: root.underBar ? "axiom-popout-under" : "axiom-popout"
-    WlrLayershell.keyboardFocus: root.wantsKeyboardFocus ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
+    WlrLayershell.keyboardFocus: root.wantsKeyboardFocus ? (focusGrab.exclusive ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.OnDemand) : WlrKeyboardFocus.None
     exclusionMode: ExclusionMode.Ignore
     exclusiveZone: 0
 

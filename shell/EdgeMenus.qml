@@ -11,8 +11,8 @@ import qs.components.surfaces.edgemenu
 // (an open integrated menu would otherwise drop its zone and come back).
 Scope {
   Variants {
-    // Once the layer rules are in (HyprlandManager.layerRulesReady)
-    model: HyprlandManager.layerRulesReady ? EdgeMenusConfig.enabledMenus.map(menu => menu.id) : []
+    // Once the layer rules are in (CompositorManager.surfacesReady)
+    model: CompositorManager.surfacesReady ? EdgeMenusConfig.enabledMenus.map(menu => menu.id) : []
 
     delegate: EdgeMenu {
       required property string modelData

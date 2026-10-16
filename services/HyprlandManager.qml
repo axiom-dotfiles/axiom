@@ -4,43 +4,57 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import Quickshell
-import Quickshell.Io
 import Quickshell.Hyprland
 
-import qs.config
 import qs.components.methods
 
-/* Hyprland's state and actions for the rest of axiom: the only reader of
- * Quickshell.Hyprland outside the Hyprland* services, so the rest of the
- * shell names no compositor (docs/dev/hyprland/ipc.md). */
+/* CompositorManager's backend on Hyprland (docs/dev/compositor/contract.md):
+ * Hyprland's state as the compositor-neutral shapes (HyprState), and the
+ * primitives CompositorManager builds on. Also what only the Hyprland
+ * features use (runLua, options, binds, outputs as Hyprland has them). The
+ * only reader of Quickshell.Hyprland outside the Hyprland* services
+ * (docs/dev/hyprland/ipc.md). */
 Singleton {
   id: root
-  // Hyprland's clients (j/clients), as Hyprland reports them
-  property var windowList: []
-  // The focused monitor's active workspace (Quickshell's HyprlandWorkspace)
-  readonly property var activeWorkspace: Hyprland.focusedMonitor?.activeWorkspace ?? null
 
-  // --- State, as Quickshell tracks it ---
+  // --- Backend state (docs/dev/compositor/contract.md) ---
 
-  // Hyprland's monitors and workspaces (HyprlandMonitor, HyprlandWorkspace)
-  readonly property var monitors: Hyprland.monitors.values
-  readonly property var workspaces: Hyprland.workspaces.values
-  // The focused monitor (a HyprlandMonitor), or null while Hyprland has none
-  readonly property var focusedMonitor: Hyprland.focusedMonitor
+  // The windows (HyprState.window), from j/clients
+  property var windows: []
+  // The monitors (HyprState.output)
+  readonly property var outputs: Hyprland.monitors.values.map(m => HyprState.output(m, m === Hyprland.focusedMonitor))
+  // The workspaces (HyprState.workspace)
+  readonly property var workspaces: Hyprland.workspaces.values.map(ws => HyprState.workspace(ws))
   // The focused monitor's name, or "" while Hyprland has none
   readonly property string focusedOutput: Hyprland.focusedMonitor?.name ?? ""
-  // The focused window (a HyprlandToplevel), or null
-  readonly property var activeToplevel: Hyprland.activeToplevel
+  // The focused window's id (its "0x…" address), or ""
+  readonly property string activeWindowId: Hyprland.activeToplevel ? "0x" + Hyprland.activeToplevel.address : ""
+  // What Hyprland does (CompositorManager.supports)
+  readonly property var supports: ({
+      "configModes": true,
+      "keybinds": true,
+      "monitors": true,
+      "switcher": true,
+      "strips": true,
+      "focusGrab": true,
+      "layerOrder": true,
+      "blur": true,
+      "cursorPos": true,
+      "cursorWarp": true,
+      "windowGeometry": true,
+      "workspaceSlide": true,
+      "windowBorders": true,
+      "windowShape": true,
+      "windowGaps": true,
+      "windowBlur": true,
+      "windowOpacity": true
+    })
 
-  // The HyprlandMonitor showing a screen, or null
-  function monitorFor(screen) {
-    return screen ? Hyprland.monitorFor(screen) : null;
-  }
-
-  // Re-reads the monitors' lastIpcObject (Quickshell re-reads it only on
-  // monitor events)
-  function refreshMonitors() {
+  // Re-reads the monitors and the windows soon (Quickshell re-reads the
+  // monitors' lastIpcObject only on monitor events)
+  function refresh() {
     Hyprland.refreshMonitors();
+    root._debounce.restart();
   }
 
   // --- Events, from Hyprland's event socket ---
@@ -48,53 +62,42 @@ Singleton {
   // A layer surface opened or closed (openlayer / closelayer)
   signal layersChanged
   // A monitor was added or removed
-  signal outputsChanged
+  signal outputsHotplugged
   // Hyprland reloaded its config (binds, options and runtime state reset)
   signal configReloaded
   // The keyboard layout switched (activelayout)
   signal keyboardLayoutChanged
-  // A window was focused; appClass is its class
-  signal windowFocused(string appClass)
+  // A window was focused; appId is its class
+  signal windowFocused(string appId)
   // A window switcher key (HyprLua.switcherEvent): verb `step` (argument
   // the step), `commit` or `cancel`
   signal switcherKey(string verb, string argument)
 
-  // Refetch soon. Events arrive in bursts (a window opening fires several),
-  // so they are coalesced into one fetch.
-  function updateAll() {
-    _debounce.restart();
-  }
-
   // --- Actions ---
 
-  // The Lua window selector for a hyprctl address ("0x…"). Dispatchers take
-  // it as `window`; without one they act on the focused window.
-  function _window(address) {
-    return `"address:${address}"`;
+  // The Lua window selector for a window id (its "0x…" address).
+  // Dispatchers take it as `window`; without one they act on the focused
+  // window.
+  function _window(id) {
+    return `"address:${id}"`;
   }
 
-  function closeWindow(windowAddress) {
-    Hyprland.dispatch(`hl.dsp.window.close({ window = ${_window(windowAddress)} })`);
+  function closeWindow(id) {
+    Hyprland.dispatch(`hl.dsp.window.close({ window = ${_window(id)} })`);
   }
 
-  // Focusing a window on another workspace switches to it, so that goes
-  // through goToWorkspace to slide like any other switch
-  function focusWindow(windowAddress) {
-    const win = root.windowList.find(w => w.address === windowAddress);
-    const monitor = Hyprland.monitors.values.find(m => m.id === win?.monitor);
-    const id = win?.workspace?.id ?? -1;
-    if (!monitor || id <= 0 || id === monitor.activeWorkspace?.id)
-      Hyprland.dispatch(_focusWindowDispatcher(windowAddress));
-    else
-      goToWorkspace(id, "go", monitor, windowAddress);
+  // Focuses a window where it is (CompositorManager.focusWindow switches
+  // workspace first, sliding)
+  function activateWindow(id) {
+    Hyprland.dispatch(_focusWindowDispatcher(id));
   }
 
-  function _focusWindowDispatcher(windowAddress) {
-    return `hl.dsp.focus({ window = ${_window(windowAddress)} })`;
+  function _focusWindowDispatcher(id) {
+    return `hl.dsp.focus({ window = ${_window(id)} })`;
   }
 
   // Moves a window onto a workspace, tiling it on `side` ("left" | "right" |
-  // "top" | "bottom") of `targetAddress`, or wherever when there's none.
+  // "top" | "bottom") of `targetId`, or wherever when there's none.
   // Dwindle opens a moved window on the node nearest the cursor, and on the
   // focused window's when that's on the (active) workspace, then picks the
   // half by the cursor. So the chunk focuses the target if needed, warps the
@@ -104,8 +107,8 @@ Singleton {
   // that reflows the layout. A floating window goes to `floatAt` instead.
   // On a strip the window opens as a new column after the focused target,
   // whatever the side.
-  function placeWindow(address, workspaceId, targetAddress, side, restore, reinsert, floatAt) {
-    const win = _window(address);
+  function placeWindow(id, workspaceId, targetId, side, restore, reinsert, floatAt) {
+    const win = _window(id);
     const lines = [];
     if (floatAt) {
       if (!reinsert)
@@ -114,8 +117,8 @@ Singleton {
     } else {
       if (reinsert)
         lines.push(`run(function() return hl.dsp.window.move({ workspace = "name:axiom-drop", follow = false, window = ${win} }) end)`);
-      if (targetAddress)
-        lines.push(`aim(${_window(targetAddress)}, "${side}")`);
+      if (targetId)
+        lines.push(`aim(${_window(targetId)}, "${side}")`);
       lines.push(`run(function() return hl.dsp.window.move({ workspace = ${workspaceId}, follow = false, window = ${win} }) end)`);
       lines.push(`run(function() return hl.dsp.cursor.move({ x = ${Math.round(restore.x)}, y = ${Math.round(restore.y)} }) end)`);
     }
@@ -125,8 +128,8 @@ Singleton {
   // Grows a window by (dw, dh) and moves it by (dx, dy). On a tiled window a
   // delta moves its nearest split by that much (dwindle smart resizing), so
   // the split follows the mouse; dx/dy only apply to floating windows.
-  function resizeWindow(address, dw, dh, dx, dy) {
-    const win = _window(address);
+  function resizeWindow(id, dw, dh, dx, dy) {
+    const win = _window(id);
     const lines = [];
     if (dw !== 0 || dh !== 0)
       lines.push(`run(function() return hl.dsp.window.resize({ x = ${Math.round(dw)}, y = ${Math.round(dh)}, relative = true, window = ${win} }) end)`);
@@ -189,7 +192,7 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
   // Runs a Lua chunk in Hyprland (config functions like hl.bind or
   // hl.config, which a dispatch can't call) after the chunks queued before
   // it, then calls back with Hyprland's reply ("ok" or the error); failures
-  // are logged
+  // are logged. For the Hyprland features only.
   function runLua(lua, callback) {
     _eval(lua, callback);
   }
@@ -265,7 +268,7 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
         _refreshAfterEval = false;
         refreshOptions();
       }
-      root.updateAll();
+      root._debounce.restart();
       return;
     }
     _evaluating = true;
@@ -301,7 +304,8 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
 
   // Calls back with every output, disabled ones too (Hyprland's monitors
   // as JSON: name, description, width, height, refreshRate, x, y, scale,
-  // transform, disabled, mirrorOf, vrr, …), or null
+  // transform, disabled, mirrorOf, vrr, …), or null. For the Monitors
+  // editor (Hyprland only).
   function withOutputs(callback) {
     HyprlandIpcManager.json("monitors all", outputs => callback(Array.isArray(outputs) ? outputs : null));
   }
@@ -328,187 +332,9 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
     Hyprland.dispatch("hl.dsp.exit()");
   }
 
-  // --- Workspaces (laid out by WorkspacesConfig) ---
-
-  // Goes to workspace `id`. mode: "go" (default), "move" (taking the
-  // focused window along) or "moveSilent" (sending it there, staying put).
-  // In a grid or perMonitor layout only the monitor's own workspaces are
-  // reachable (`monitor`, the focused one by default), and it goes by
-  // column, then row, sliding along each in turn (WorkspacesConfig.animate).
-  // The standard and perMonitor layouts are one row (columns = count), so
-  // they only ever slide sideways. Callers on a monitor's surface pass its
-  // monitor, which is focused first. `focusAddress` (focusWindow) arrives
-  // by focusing that window instead of the bare workspace.
-  function goToWorkspace(id, mode, monitor, focusAddress) {
-    if (!Number.isInteger(id) || id < 1) {
-      console.warn(`[HyprlandManager] Not a workspace id: ${id}`);
-      return;
-    }
-    mode = mode || "go";
-    monitor = monitor ?? Hyprland.focusedMonitor;
-    const base = workspaceBase(monitor);
-    const size = WorkspacesConfig.size;
-    if (WorkspacesConfig.perMonitorBlocks && (id < base || id >= base + size)) {
-      if (focusAddress)
-        Hyprland.dispatch(_focusWindowDispatcher(focusAddress));
-      else
-        console.warn(`[HyprlandManager] workspace ${id} is outside ${monitor?.name ?? "the focused monitor"}'s workspaces (${base}-${base + size - 1})`);
-      return;
-    }
-    const focused = monitor === Hyprland.focusedMonitor;
-    const current = focused ? _currentWorkspaceId() : (monitor?.activeWorkspace?.id ?? -1);
-    if (id === current) {
-      if (focusAddress)
-        Hyprland.dispatch(_focusWindowDispatcher(focusAddress));
-      return;
-    }
-    if (mode === "moveSilent") {
-      Hyprland.dispatch(`hl.dsp.window.move({ workspace = ${id}, follow = false })`);
-      return;
-    }
-    // A new switch replaces the rest of one still sliding, and slides on
-    // from wherever that one has got to
-    const sliding = root._slideSteps.length > 0;
-    root._slideSteps = [];
-    _slideTimer.stop();
-    const at = sliding ? root._slideAt : current;
-    root._lastGo = {
-      "id": id,
-      "time": Date.now()
-    };
-    const cols = WorkspacesConfig.columns;
-    const from = at - base;
-    const to = id - base;
-    // Without the monitor focused, a new workspace would open on the
-    // focused one
-    const lead = focused || !monitor ? [] : [`hl.dsp.focus({ monitor = "${monitor.name}" })`];
-    const arrive = focusAddress ? _focusWindowDispatcher(focusAddress) : _goDispatcher(id, mode);
-    const steps = [];
-    if (WorkspacesConfig.animate && root._workspaceAnim && from >= 0 && from < size) {
-      if (from % cols !== to % cols)
-        steps.push({
-          "id": base + Math.floor(from / cols) * cols + to % cols,
-          "style": "slide"
-        });
-      if (Math.floor(from / cols) !== Math.floor(to / cols))
-        steps.push({
-          "id": id,
-          "style": "slidevert"
-        });
-    }
-    if (steps.length === 0) {
-      lead.concat([arrive]).forEach(dispatcher => Hyprland.dispatch(dispatcher));
-      return;
-    }
-    // Two legs each take a fraction of the configured time, so going
-    // diagonally across the grid is quicker than one plain switch
-    const speed = steps.length > 1 ? Math.max(0.5, root._workspaceAnim.speed * root._legSpeed) : root._workspaceAnim.speed;
-    root._slideSteps = steps.map((step, i) => Object.assign(step, {
-        "dispatchers": (i === 0 ? lead : []).concat([step.id === id ? arrive : _goDispatcher(step.id, mode)]),
-        "speed": speed
-      }));
-    _nextSlide();
-  }
-
-  // A step about to wrap round the grid's ends on `monitor` (its name):
-  // along a row (`alongRow`, the standard layout's only kind) or a column,
-  // `forward` past the last. The bar switchers' active box leaves one end
-  // and comes in at the other instead of sliding back across.
-  signal workspaceWrapped(string monitor, bool alongRow, bool forward)
-
-  // One step left/right/up/down from the current workspace: within the
-  // monitor's grid, or through 1..count in the standard layout (where up is
-  // previous and down next). Stops at the edges unless WorkspacesConfig.wrap.
-  function stepWorkspace(direction, mode) {
-    const base = workspaceBase(Hyprland.focusedMonitor);
-    const size = WorkspacesConfig.size;
-    const index = _currentWorkspaceId() - base;
-    if (index < 0 || index >= size) {
-      goToWorkspace(base, mode);
-      return;
-    }
-    const cols = WorkspacesConfig.grid ? WorkspacesConfig.columns : size;
-    const rows = WorkspacesConfig.grid ? WorkspacesConfig.rows : 1;
-    if (!WorkspacesConfig.grid && (direction === "up" || direction === "down"))
-      direction = direction === "up" ? "left" : "right";
-    let col = index % cols + (direction === "left" ? -1 : direction === "right" ? 1 : 0);
-    let row = Math.floor(index / cols) + (direction === "up" ? -1 : direction === "down" ? 1 : 0);
-    if (col < 0 || col >= cols || row < 0 || row >= rows) {
-      if (!WorkspacesConfig.wrap)
-        return;
-      root.workspaceWrapped(Hyprland.focusedMonitor?.name ?? "", col < 0 || col >= cols, direction === "right" || direction === "down");
-      col = (col + cols) % cols;
-      row = (row + rows) % rows;
-    }
-    goToWorkspace(base + row * cols + col, mode);
-  }
-
-  // The n-th workspace (1-based) of the current row in a grid or perMonitor
-  // layout, or workspace n in the standard layout (number keybinds)
-  function nthWorkspace(n, mode) {
-    if (!WorkspacesConfig.perMonitorBlocks) {
-      goToWorkspace(n, mode);
-      return;
-    }
-    const cols = WorkspacesConfig.columns;
-    if (n < 1 || n > cols)
-      return;
-    const base = workspaceBase(Hyprland.focusedMonitor);
-    const index = Math.min(Math.max(_currentWorkspaceId() - base, 0), WorkspacesConfig.size - 1);
-    goToWorkspace(base + Math.floor(index / cols) * cols + n - 1, mode);
-  }
-
-  function _goDispatcher(id, mode) {
-    return mode === "move" ? `hl.dsp.window.move({ workspace = ${id} })` : `hl.dsp.focus({ workspace = ${id} })`;
-  }
-
-  // The last workspace gone to, for a moment: key presses can come faster
-  // than Hyprland reports the switch
-  property var _lastGo: ({
-      "id": -1,
-      "time": 0
-    })
-
-  function _currentWorkspaceId() {
-    if (root._slideSteps.length > 0 || Date.now() - root._lastGo.time < 300)
-      return root._lastGo.id;
-    return activeWorkspaceId();
-  }
-
-  property var _slideSteps: []
-  // Each leg's share of the configured speed on a two-leg slide
-  readonly property real _legSpeed: 0.35
-  // The workspace the last slide went to, while more are waiting
-  property int _slideAt: -1
-
-  function _nextSlide() {
-    const step = root._slideSteps.shift();
-    if (!step)
-      return;
-    const anim = root._workspaceAnim;
-    const set = (style, speed) => `hl.animation({ leaf = "workspaces", enabled = true, speed = ${speed}, bezier = "${anim.bezier}", style = "${style}" })`;
-    _eval([set(step.style, step.speed)].concat(step.dispatchers.map(dispatcher => `hl.dispatch(${dispatcher})`), [set(anim.style, anim.speed)]).join("\n"));
-    root._slideAt = step.id;
-    if (root._slideSteps.length > 0) {
-      // Hyprland's speed is in tenths of a second
-      _slideTimer.interval = Math.max(50, Math.round(step.speed * 100));
-      _slideTimer.restart();
-    }
-  }
-
-  // Lets the first slide finish before the second starts: switching again
-  // mid-slide cuts it short, so the workspace would jump rather than slide
-  property Timer _slideTimer: Timer {
-    interval: 80
-    onTriggered: root._nextSlide()
-  }
-
-  // --- Queries ---
-
-  // Calls back with the name of the screen under the cursor (the focused
-  // monitor if Hyprland can't say). Asynchronous: one request.
-  function withHoveredScreen(callback) {
-    withCursorPos(pos => callback((pos ? root._screenAt(pos.x, pos.y) : "") || root.focusedOutput || General.primaryMonitor));
+  // The shell command turning the screens off or on (hypridle's DPMS)
+  function dpmsCommand(on) {
+    return `hyprctl dispatch 'hl.dsp.dpms({ action = "${on ? "on" : "off"}" })'`;
   }
 
   // Calls back with the cursor's global position ({ x, y }), or null if
@@ -526,172 +352,112 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
 
   property var _cursorCallbacks: []
 
-  function _screenAt(x, y) {
-    for (const screen of Quickshell.screens) {
-      if (x >= screen.x && x < screen.x + screen.width && y >= screen.y && y < screen.y + screen.height)
-        return screen.name;
-    }
-    return "";
-  }
-
-  function activeWorkspaceId() {
-    return Hyprland.focusedMonitor?.activeWorkspace?.id ?? 1;
-  }
-
-  // The Wayland toplevel for a hyprctl window address ("0x…")
-  function toplevelForAddress(address) {
+  // The Wayland toplevel for a window id (its "0x…" address), for live
+  // previews
+  function toplevelFor(id) {
     for (const toplevel of Hyprland.toplevels.values) {
-      if ("0x" + toplevel.address === address)
+      if ("0x" + toplevel.address === id)
         return toplevel.wayland;
     }
     return null;
   }
 
-  // First workspace id a monitor shows: 1 in the standard layout, else its
-  // block's (grid/perMonitor, one block per monitor in a stable order —
-  // the primary monitor first, then the rest by a description-based
-  // identity that survives a port change — not raw Hyprland discovery
-  // order, which can reshuffle on a hotplug/reconnect/restart)
-  function workspaceBase(monitor) {
-    if (!WorkspacesConfig.perMonitorBlocks)
-      return WorkspacesConfig.baseFor(0);
-    const index = _orderedMonitors().findIndex(m => m.id === monitor?.id);
-    return WorkspacesConfig.baseFor(index >= 0 ? index : 0);
+  // --- Workspaces (the layout is CompositorManager's) ---
+
+  // Sends the focused window to workspace `id`, staying put
+  function sendWindowToWorkspace(id) {
+    Hyprland.dispatch(`hl.dsp.window.move({ workspace = ${id}, follow = false })`);
   }
 
-  // Hyprland's monitors in block order (WorkspaceGeometry.orderMonitors)
-  function _orderedMonitors() {
-    const monitors = Hyprland.monitors.values;
-    const plain = monitors.map(m => ({
-          "id": m.id,
-          "name": m.name,
-          "key": MonitorLayout.outputId(m, monitors),
-          "x": m.x,
-          "y": m.y,
-          "active": m.activeWorkspace?.id ?? -1,
-          "focused": m === Hyprland.focusedMonitor
-        }));
-    return WorkspaceGeometry.orderMonitors(plain, General.primaryMonitor);
+  // Scrolls the focused workspace's strip a column on (1) or back (-1)
+  function scrollStrip(direction) {
+    Hyprland.dispatch(`hl.dsp.layout("move ${direction > 0 ? "+col" : "-col"}")`);
   }
 
-  // --- Layout changes ---
-
-  // The layout the workspaces were last laid out for ({ blocks, size })
-  property var _appliedLayout: null
-
-  function _currentLayout() {
-    return {
-      "blocks": WorkspacesConfig.perMonitorBlocks,
-      "size": WorkspacesConfig.size
-    };
-  }
-
-  // A layout or count change saved together is one remap
-  property Timer _remapTimer: Timer {
-    interval: 200
-    onTriggered: {
-      const layout = root._currentLayout();
-      if (root._appliedLayout)
-        root._remapWorkspaces(root._appliedLayout, layout);
-      root._appliedLayout = layout;
-    }
-  }
-
-  property Connections _layoutWatch: Connections {
-    target: WorkspacesConfig
-
-    function onPerMonitorBlocksChanged() {
-      root._remapTimer.restart();
-    }
-
-    function onSizeChanged() {
-      root._remapTimer.restart();
-    }
-  }
-
-  // Moves every window from its workspace under the `from` layout to the
-  // matching one in its monitor's ids under `to` (WorkspaceGeometry.
-  // remapWorkspaces), and switches each monitor to the workspace matching
-  // the one it showed. Hyprland creates a workspace on the monitor it's
-  // first used from, so windows first go to a named workspace each (on their
-  // own monitor, so a chain like 10 → 11, 11 → 12 can't merge), every
-  // monitor leaves its old workspace for a named one (so an empty old one
-  // is gone before its id is used again), then the windows go to their ids
-  // and the monitors to theirs. The named workspaces end up empty and go.
-  function _remapWorkspaces(from, to) {
-    const windows = root.windowList.map(w => ({
-          "address": w.address,
-          "workspace": w.workspace?.id ?? -1,
-          "monitor": w.monitor
-        }));
-    const monitors = _orderedMonitors();
-    const plan = WorkspaceGeometry.remapWorkspaces(monitors, windows, from, to);
-    if (!plan.changed)
-      return;
+  // A workspace switch (CompositorManager.goToWorkspace): `output` is
+  // focused first when set; each of `legs` ([{ id, axis: "x" | "y" | "" }])
+  // is gone to in turn, sliding along its axis, the last one arriving with
+  // `mode` ("go" | "move") or by focusing window `focusId`. A new travel
+  // replaces the rest of one still sliding.
+  function travel(output, legs, mode, focusId) {
     root._slideSteps = [];
     _slideTimer.stop();
+    const last = legs[legs.length - 1];
+    const lead = output ? [`hl.dsp.focus({ monitor = ${JSON.stringify(output)} })`] : [];
+    const arrive = focusId ? _focusWindowDispatcher(focusId) : _goDispatcher(last.id, mode);
+    const anim = root._workspaceAnim;
+    if (!anim || legs.some(leg => !leg.axis)) {
+      lead.concat([arrive]).forEach(dispatcher => Hyprland.dispatch(dispatcher));
+      root.travelingTo = -1;
+      return;
+    }
+    // Two legs each take a fraction of the configured time, so going
+    // diagonally across the grid is quicker than one plain switch
+    const speed = legs.length > 1 ? Math.max(0.5, anim.speed * root._legSpeed) : anim.speed;
+    root._slideSteps = legs.map((leg, i) => ({
+          "id": leg.id,
+          "style": leg.axis === "y" ? "slidevert" : "slide",
+          "speed": speed,
+          "dispatchers": (i === 0 ? lead : []).concat([i === legs.length - 1 ? arrive : _goDispatcher(leg.id, mode)])
+        }));
+    _nextSlide();
+  }
+
+  // The workspace a slide still under way has reached, or -1
+  property int travelingTo: -1
+
+  function _goDispatcher(id, mode) {
+    return mode === "move" ? `hl.dsp.window.move({ workspace = ${id} })` : `hl.dsp.focus({ workspace = ${id} })`;
+  }
+
+  property var _slideSteps: []
+  // Each leg's share of the configured speed on a two-leg slide
+  readonly property real _legSpeed: 0.35
+
+  function _nextSlide() {
+    const step = root._slideSteps.shift();
+    if (!step) {
+      root.travelingTo = -1;
+      return;
+    }
+    const anim = root._workspaceAnim;
+    const set = (style, speed) => `hl.animation({ leaf = "workspaces", enabled = true, speed = ${speed}, bezier = "${anim.bezier}", style = "${style}" })`;
+    _eval([set(step.style, step.speed)].concat(step.dispatchers.map(dispatcher => `hl.dispatch(${dispatcher})`), [set(anim.style, anim.speed)]).join("\n"));
+    if (root._slideSteps.length > 0) {
+      root.travelingTo = step.id;
+      // Hyprland's speed is in tenths of a second
+      _slideTimer.interval = Math.max(50, Math.round(step.speed * 100));
+      _slideTimer.restart();
+    } else {
+      root.travelingTo = -1;
+    }
+  }
+
+  // Lets the first slide finish before the second starts: switching again
+  // mid-slide cuts it short, so the workspace would jump rather than slide
+  property Timer _slideTimer: Timer {
+    interval: 80
+    onTriggered: root._nextSlide()
+  }
+
+  // Carries out a remap (WorkspaceGeometry.remapWorkspaces' plan) for
+  // `outputs`, the monitors' names in block order. Hyprland creates a
+  // workspace on the monitor it's first used from, so windows first go to a
+  // named workspace each (on their own monitor, so a chain like 10 → 11,
+  // 11 → 12 can't merge), every monitor leaves its old workspace for a
+  // named one (so an empty old one is gone before its id is used again),
+  // then the windows go to their ids and the monitors to theirs. The named
+  // workspaces end up empty and go.
+  function applyRemap(plan, outputs) {
+    root._slideSteps = [];
+    _slideTimer.stop();
+    root.travelingTo = -1;
     const anim = root._workspaceAnim;
     const set = enabled => `hl.animation({ leaf = "workspaces", enabled = ${enabled}, speed = ${anim.speed}, bezier = "${anim.bezier}", style = "${anim.style}" })`;
-    const move = (address, workspace) => `run(function() return hl.dsp.window.move({ workspace = ${workspace}, follow = false, window = ${_window(address)} }) end)`;
+    const move = (id, workspace) => `run(function() return hl.dsp.window.move({ workspace = ${workspace}, follow = false, window = ${_window(id)} }) end)`;
     const focus = (monitor, workspace) => [`run(function() return hl.dsp.focus({ monitor = ${JSON.stringify(monitor)} }) end)`, `run(function() return hl.dsp.focus({ workspace = ${workspace} }) end)`];
-    const lines = [].concat(anim ? [set(false)] : [], plan.moves.map(m => move(m.address, `"name:axiom-remap-${m.to}"`)), [].concat(...monitors.map((m, i) => focus(m.name, `"name:axiom-remap-mon-${i}"`))), plan.moves.map(m => move(m.address, m.to)), [].concat(...plan.focus.map(f => focus(f.monitor, f.id))), anim ? [set(true)] : []);
-    const focused = plan.focus[plan.focus.length - 1];
-    root._lastGo = {
-      "id": focused?.id ?? -1,
-      "time": Date.now()
-    };
-    console.log(`[HyprlandManager] remapping workspaces: ${plan.moves.length} windows, monitors to ${plan.focus.map(f => f.monitor + ":" + f.id).join(", ")}`);
+    const lines = [].concat(anim ? [set(false)] : [], plan.moves.map(m => move(m.id, `"name:axiom-remap-${m.to}"`)), [].concat(...outputs.map((name, i) => focus(name, `"name:axiom-remap-mon-${i}"`))), plan.moves.map(m => move(m.id, m.to)), [].concat(...plan.focus.map(f => focus(f.monitor, f.id))), anim ? [set(true)] : []);
     _eval(_luaPrelude + lines.join("\n") + _luaEpilogue);
-  }
-
-  // The workspace ids a monitor shows, in order
-  function workspaceIds(monitor) {
-    const base = workspaceBase(monitor);
-    const ids = [];
-    for (let i = 0; i < WorkspacesConfig.size; i++)
-      ids.push(base + i);
-    return ids;
-  }
-
-  // Whether the named monitor's active workspace, or the special workspace
-  // open on it, shows a fullscreen window. Not Hyprland's (or Quickshell's)
-  // hasFullscreen: that also counts maximized windows (fullscreen mode 1),
-  // which leave reserved space alone. Mode is a bitmask, 2 being fullscreen.
-  function hasFullscreen(monitorName) {
-    const monitor = Hyprland.monitors.values.find(m => m.name === monitorName);
-    const workspaces = [monitor?.activeWorkspace?.id, specialWorkspaceId(monitor)].filter(id => id !== undefined && id !== 0);
-    return workspaces.length > 0 && root.windowList.some(w => workspaces.includes(w.workspace?.id) && (w.fullscreen & 2));
-  }
-
-  // The id of the special workspace open on a monitor, or 0 with none
-  function specialWorkspaceId(monitor) {
-    return monitor?.lastIpcObject?.specialWorkspace?.id ?? 0;
-  }
-
-  // The largest window on a workspace (its icon stands for the
-  // workspace), or null
-  function biggestWindowForWorkspace(workspaceId) {
-    const area = w => (w?.size?.[0] ?? 0) * (w?.size?.[1] ?? 0);
-    return root.windowList.filter(w => w.workspace?.id === workspaceId).reduce((biggest, w) => area(w) > area(biggest) ? w : biggest, null);
-  }
-
-  // A workspace's windows in strip order (WorkspaceGeometry.stripOrder)
-  function stripWindows(workspaceId, vertical) {
-    return WorkspaceGeometry.stripOrder(root.windowList.filter(w => w.workspace?.id === workspaceId && w.mapped !== false && !w.hidden), vertical);
-  }
-
-  // Of `windows`, the one focused last (focused now, if any is), or null
-  function lastFocused(windows) {
-    return windows.reduce((last, w) => last === null || w.focusHistoryID < last.focusHistoryID ? w : last, null);
-  }
-
-  // Scrolls the strip of a monitor's active workspace a column on (1) or
-  // back (-1). Layout messages act on the focused workspace, so only on the
-  // focused monitor, and only with windows to scroll (Hyprland refuses it
-  // on an empty one).
-  function stepStrip(direction, monitor) {
-    if (monitor && monitor === Hyprland.focusedMonitor && (monitor.activeWorkspace?.toplevels.values.length ?? 0) > 0)
-      Hyprland.dispatch(`hl.dsp.layout("move ${direction > 0 ? "+col" : "-col"}")`);
   }
 
   // Hyprland's general:gaps_out per side, which it adds after every
@@ -731,17 +497,17 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
     } : null;
   }
 
-  // The layer rules stacking axiom's surfaces (HyprLua.layers, which says
+  // The layer rules stacking axiom's surfaces (LayerStack.layers, which says
   // why each sits where it does; docs/dev/generated/layers.md). Named, so
   // re-adding one replaces it instead of piling up copies. Rules added at
   // runtime are lost when Hyprland reloads its config.
   // HyprlandConfigManager also writes them into its Lua files, since a
   // reload Hyprland does by itself (a watched file changing) doesn't always
   // send the configreloaded event that re-adds them here.
-  readonly property var layerRulesLua: HyprLua.layerRulesLua()
+  readonly property var _layerRulesLua: HyprLua.layerRulesLua()
 
   function _addLayerRules() {
-    for (const rule of layerRulesLua)
+    for (const rule of _layerRulesLua)
       _eval(rule);
   }
 
@@ -752,7 +518,7 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
   // bar, with its corners on the bar's outer side. The surfaces with an
   // `order` that start with the shell (bars, border, docks, edge menus)
   // wait for this. It stays set across QML reloads, as the rules do.
-  readonly property bool layerRulesReady: _layerRules.ready
+  readonly property bool surfacesReady: _layerRules.ready
 
   PersistentProperties {
     id: _layerRules
@@ -763,7 +529,7 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
   // One eval for all of them, each in its own pcall, so one Hyprland
   // rejects doesn't drop the rest (as _addLayerRules' one eval per rule)
   function _addLayerRulesFirst() {
-    HyprlandIpcManager.evalLua(root.layerRulesLua.map(rule => `pcall(function() ${rule} end)`).join("\n"), () => _layerRules.ready = true);
+    HyprlandIpcManager.evalLua(root._layerRulesLua.map(rule => `pcall(function() ${rule} end)`).join("\n"), () => _layerRules.ready = true);
   }
 
   // Shows the shell anyway if Hyprland never answers
@@ -773,7 +539,6 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
   }
 
   Component.onCompleted: {
-    _appliedLayout = _currentLayout();
     _fetch();
     refreshOptions();
     if (_layerRules.ready) {
@@ -801,7 +566,7 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
       // lastIpcObject, which carries them (specialWorkspaceId)
       if (event.name === "activespecial" || event.name === "activespecialv2")
         Hyprland.refreshMonitors();
-      root.updateAll();
+      root._debounce.restart();
     }
   }
 
@@ -815,7 +580,7 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
       break;
     case "monitoradded":
     case "monitorremoved":
-      root.outputsChanged();
+      root.outputsHotplugged();
       break;
     case "configreloaded":
       root.configReloaded();
@@ -835,6 +600,8 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
     }
   }
 
+  // Events arrive in bursts (a window opening fires several), so they are
+  // coalesced into one fetch
   property Timer _debounce: Timer {
     interval: 50
     onTriggered: root._fetch()
@@ -853,8 +620,13 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
     _fetching = true;
     HyprlandIpcManager.json("clients", clients => {
       root._fetching = false;
-      if (Array.isArray(clients))
-        root.windowList = clients;
+      if (Array.isArray(clients)) {
+        const names = Hyprland.monitors.values.reduce((map, m) => {
+          map[m.id] = m.name;
+          return map;
+        }, {});
+        root.windows = clients.map(client => HyprState.window(client, names)).filter(win => win !== null);
+      }
       if (root._pending) {
         root._pending = false;
         root._fetch();
@@ -875,55 +647,5 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
       "bottom": bottom,
       "left": left
     };
-  }
-
-  // `qs -c axiom ipc call workspaces …`, for workspace keybinds. mode:
-  // "go", "move" (take the focused window along) or "moveSilent"
-  property IpcHandler _ipc: IpcHandler {
-    target: "workspaces"
-
-    function go(id: string): void {
-      root.goToWorkspace(parseInt(id), "go");
-    }
-
-    function move(id: string): void {
-      root.goToWorkspace(parseInt(id), "move");
-    }
-
-    function moveSilent(id: string): void {
-      root.goToWorkspace(parseInt(id), "moveSilent");
-    }
-
-    // The n-th of the current row (grid), or workspace n (standard)
-    function nth(n: string, mode: string): void {
-      root.nthWorkspace(parseInt(n), mode);
-    }
-
-    // Moves workspaces left outside their monitor's ids (by a change
-    // made while axiom wasn't running) back into them
-    function reconcile(): void {
-      root._remapWorkspaces(root._currentLayout(), root._currentLayout());
-    }
-
-    // direction: left, right, up or down
-    function step(direction: string, mode: string): void {
-      root.stepWorkspace(direction, mode);
-    }
-
-    function left(): void {
-      root.stepWorkspace("left", "go");
-    }
-
-    function right(): void {
-      root.stepWorkspace("right", "go");
-    }
-
-    function up(): void {
-      root.stepWorkspace("up", "go");
-    }
-
-    function down(): void {
-      root.stepWorkspace("down", "go");
-    }
   }
 }

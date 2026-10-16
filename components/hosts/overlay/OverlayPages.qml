@@ -124,13 +124,19 @@ Item {
 
   // The shown views, the user's own pages first, then the tool pages, each
   // in config order. `index` is the view's place in config.
+  // Whether the compositor does what a page type needs (`x-needs`)
+  function _supported(type) {
+    const needs = OverlayConfig.viewInfo(type)?.needs ?? "";
+    return needs === "" || CompositorManager.supports[needs] === true;
+  }
+
   function buildViewsModel(viewConfigArray) {
     const shown = (viewConfigArray || []).map((viewConf, index) => ({
           // views/<type>.qml; unknown types are rejected by schema validation
           "component": Qt.resolvedUrl("../../views/" + viewConf.type + ".qml"),
           "viewConfig": viewConf,
           "index": index
-        })).filter(view => view.viewConfig.visible !== false);
+        })).filter(view => view.viewConfig.visible !== false && root._supported(view.viewConfig.type));
     return shown.filter(view => !OverlayConfig.isTool(view.viewConfig.type)).concat(shown.filter(view => OverlayConfig.isTool(view.viewConfig.type)));
   }
 

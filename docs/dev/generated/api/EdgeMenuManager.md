@@ -14,7 +14,7 @@ Which edge menus (EdgeMenusConfig) are open and which are pinned. The menus them
 - `zones` (var): Space open integrated menus reserve, by "<screen>:<edge>" (edge "top" | "bottom" | "left" | "right"), for surfaces that place themselves against the perpendicular edges (BarPopouts)
 - `frames` (readonly var): Where each running menu's modules can sit on its screen, by id, as the menu reports it (IntegratedEdgeMenu, FloatingEdgeMenu), for the layouts editor.
 - `showingOthers` (readonly bool): The editor draws the other menus on the selected one's screen
-- `revealing` (var): Menus opened for something outside them (the launcher, IPC) that take the cursor: the menu warps it into its box once shown (HyprlandManager.warpCursorToLayer), and doesn't close on leave until it ha…
+- `revealing` (var): Menus opened for something outside them (the launcher, IPC) that take the cursor: the menu warps it into its box once shown (CompositorManager.warpCursorToLayer), and doesn't close on leave until it …
 - `localMenus` (readonly alias)
 - `savedMenus` (readonly alias)
 - `isDirty` (readonly alias)

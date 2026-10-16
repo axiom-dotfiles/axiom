@@ -1,6 +1,5 @@
 pragma Singleton
 import QtQuick
-import Quickshell
 
 import qs.config
 import qs.components.methods
@@ -46,7 +45,7 @@ QtObject {
 
   // Opens it on the category holding a config section ("Chat")
   function openSection(key) {
-    root.openCategory(SchemaLayout.categories(ConfigManager.configSchema).find(c => c.sections.includes(key))?.name ?? "");
+    root.openCategory(SchemaLayout.categories(ConfigManager.configSchema, root.showIfValue).find(c => c.sections.includes(key))?.name ?? "");
   }
 
   // The page scrolls to a card (by SchemaLayout group key), unfolding it
@@ -180,7 +179,7 @@ QtObject {
     switch (fieldSchema?.["x-options"]) {
     case "screens":
       // `x-allScreens`: "*" puts the thing on every screen (bars)
-      return ["", ...(fieldSchema["x-allScreens"] ? ["*"] : []), ...Quickshell.screens.map(screen => screen.name)];
+      return ["", ...(fieldSchema["x-allScreens"] ? ["*"] : []), ...General.outputs.map(screen => screen.name)];
     case "chatProviders":
       return ChatConfig.providers.map(provider => provider.id);
     case "chatPresets":
@@ -232,11 +231,15 @@ QtObject {
   // Every value the settings page shows, as { path, key, schema }, with
   // key the dotted path. `x-applyOnSave` settings are left out: they wait
   // for the page's Save for a reason (Hyprland's mode can take over files).
+  // So are those the running compositor can't do (their `/$` showIf
+  // conditions, SchemaLayout.compositorAllows: the Hyprland section
+  // elsewhere); conditions on the config aren't, as /config sets them
+  // whatever the rest says.
   readonly property var settingPaths: {
     const schema = ConfigManager.configSchema;
     if (!schema?.properties)
       return [];
-    return SchemaLayout.rows(schema, []).filter(row => row.kind === "field" && !row.schema["x-applyOnSave"]).map(row => ({
+    return SchemaLayout.rows(schema, []).filter(row => row.kind === "field" && !row.schema["x-applyOnSave"] && SchemaLayout.compositorAllows(schema, row.path, root.showIfValue)).map(row => ({
           path: row.path,
           key: row.path.join("."),
           schema: row.schema
@@ -342,10 +345,20 @@ QtObject {
   }
 
   // A value anywhere in the running config, by dotted path
-  // ("Workspaces.layout"): what an `x-showIf` key starting with `/` reads
+  // ("Workspaces.layout"): what an `x-showIf` key starting with `/` reads.
+  // Two paths read the running compositor instead (schema-annotations.md ›
+  // Compositor): `$compositor` (CompositorManager.kind) and
+  // `$supports.<capability>` (true or false).
   function configValueAt(dottedPath) {
+    if (dottedPath === "$compositor")
+      return CompositorManager.kind;
+    if (dottedPath.startsWith("$supports."))
+      return CompositorManager.supports[dottedPath.slice(10)] === true;
     return _valueAt(ConfigManager.config, dottedPath.split("."));
   }
+
+  // A `/`-rooted `x-showIf` key's value (configValueAt)
+  readonly property var showIfValue: key => root.configValueAt(key.slice(1))
 
   function valueOf(key) {
     const entry = settingFor(key);

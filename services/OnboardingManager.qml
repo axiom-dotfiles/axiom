@@ -29,7 +29,10 @@ Singleton {
   // The pages, in order: { id, title, icon }
   // I18n.tr("Welcome") I18n.tr("Hyprland") I18n.tr("Monitors") I18n.tr("Apps & keys")
   // I18n.tr("Workspaces") I18n.tr("Look") I18n.tr("Integrations") I18n.tr("Checks") I18n.tr("Finish")
-  readonly property var pages: [
+  // Under another compositor the Hyprland and Monitors pages, which set
+  // Hyprland up, are left out
+  readonly property var pages: _pages.filter(page => CompositorManager.supports.configModes || (page.id !== "hyprland" && page.id !== "monitors"))
+  readonly property var _pages: [
     {
       "id": "welcome",
       "title": "Welcome",
@@ -143,6 +146,8 @@ Singleton {
   }
 
   function detectHyprland() {
+    if (CompositorManager.kind !== "hyprland")
+      return;
     HyprlandConfigManager.checkManaged();
     IntegrationHookupManager.check("hyprlandInclude");
     IntegrationHookupManager.check("hyprlandAutostart");

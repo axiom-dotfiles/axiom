@@ -29,8 +29,8 @@ PanelWindow {
 
   readonly property bool horizontal: edge === "top" || edge === "bottom"
   readonly property real length: horizontal ? width : height
-  // Where the strip starts along its edge on screen, as Hyprland reports
-  // it; until then, as if what reserves the edges across it (the strips
+  // Where the strip starts along its edge on screen (LayerOrigin); until
+  // it's mapped, as if what reserves the edges across it (the strips
   // there, when they mapped first) reserved as much at either end
   readonly property real screenOffset: placeOnScreen.origin ? (horizontal ? placeOnScreen.origin.x : placeOnScreen.origin.y) : ((horizontal ? screen?.width : screen?.height) ?? length) / 2 - length / 2
   LayerOrigin {
@@ -69,6 +69,13 @@ PanelWindow {
   exclusiveZone: root.frameWidth
   aboveWindows: true
   WlrLayershell.namespace: "axiom-border"
+  // Once the windows before it in the stack have mapped
+  visible: slot.shown
+  LayerSlot {
+    id: slot
+    window: root
+    namespace: "axiom-border"
+  }
   color: "transparent"
   mask: Region {}
 

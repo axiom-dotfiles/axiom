@@ -302,7 +302,7 @@ Singleton {
 
   // Menus opened for something outside them (the launcher, IPC) that take
   // the cursor: the menu warps it into its box once shown
-  // (HyprlandManager.warpCursorToLayer), and doesn't close on leave until
+  // (CompositorManager.warpCursorToLayer), and doesn't close on leave until
   // it has been hovered. Not kept across reloads.
   property var revealing: ({})
 

@@ -63,7 +63,7 @@ Every public member of `OverlayConfig`, with the files that use it.
 - `OverlayConfig.moduleInfo(type)`
   - in: `components/hosts/overlay/ModuleGrid.qml`, `components/surfaces/screenlayout/ScreenLayoutView.qml`, `components/views/layouts/CanvasModule.qml`, `components/views/layouts/EditorInspector.qml`, `components/views/layouts/GridDragLayer.qml`
 - `OverlayConfig.viewInfo(type)`
-  - in: `services/LauncherCommands.qml`
+  - in: `components/hosts/overlay/OverlayPages.qml`, `services/LauncherCommands.qml`
 - `OverlayConfig.viewLabel(view, index)`: How a page is named and drawn in the page navigator and the overlay editor: a Custom page by its name (or its place), others by type (i18n: keys from the schem…
   - in: `components/forms/SchemaField.qml`, `components/hosts/overlay/OverlayPages.qml`, `components/views/layouts/PageTarget.qml`, `components/views/layouts/PagesSection.qml`, `components/views/settings/SettingsContent.qml`, `services/OverlayManager.qml`
 - `OverlayConfig.pageKey(view)`: What opens a page by name (`openOverlayPage`, a bar Button or bind's `overlayPage` action): a Custom page's name, other pages' type; "" for a Custom page with …

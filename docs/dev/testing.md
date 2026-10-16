@@ -34,13 +34,14 @@ How to look at, exercise and debug the live shell without breaking the user's se
   - Lock screen: [lockscreen.md › Testing](features/lockscreen.md) (`LockManager.editor.startPreview()`, draft-only demo layouts).
   - Greeter: [greeter-runtime.md › Testing](features/greeter-runtime.md) (windowed greeter) and [greeter-install.md › Testing](features/greeter-install.md) (scratch root).
   - Onboarding: [onboarding.md › Testing](features/onboarding.md) (`ipc call onboarding goTo <n>`).
+  - Another compositor: [sway-backend.md › Running it](compositor/sway-backend.md) (`scripts/dev/nested.sh <sway|niri>`: a nested compositor with a second axiom on scratch folders and its own D-Bus; kill only the nested compositor you started).
 
 ### Popout and layering checks
 - `scripts/dev/popout_matrix.py OUT_DIR [--only layout__variant ...]` shoots every bar layout × border × opacity scenario: [surface-context.md › Testing](popouts/surface-context.md).
   - It rewrites config.json per scenario and installs a temporary IPC hook in shell.qml. Stop it only with SIGINT (`pkill -INT -f popout_matrix.py`); SIGTERM leaves both modified.
   - About 1 min per scenario. Don't edit loaded QML while it runs. Use `log.sh --all` afterwards, since its cleanup reloads.
   - Edge menus opened over IPC close at once unless pinned, so it pins and unpins them.
-- **Fullscreen must cover bars and the border.** This is a recurring regression. After changing layer rules (`HyprlandManager.layerRulesLua`), `WlrLayershell.layer` or `aboveWindows`, test a fullscreen window on a normal and on a special workspace.
+- **Fullscreen must cover bars and the border.** This is a recurring regression. After changing layer rules (`HyprLua.layerRulesLua`), `WlrLayershell.layer` or `aboveWindows`, test a fullscreen window on a normal and on a special workspace.
   - Hyprland hides Top layers over fullscreen by fading them (`m_aboveFullscreen`), not by draw order. A Top layer that *maps* while a fullscreen window is up draws over it, so never map a Top window in response to fullscreen. Keep it mapped and hide its contents.
   - Known Hyprland 0.56.2 bug: on scrolling-layout (strip) monitors, a fullscreen window on a special workspace goes under the bars.
 

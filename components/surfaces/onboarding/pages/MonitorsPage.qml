@@ -1,6 +1,5 @@
 pragma ComponentBehavior: Bound
 import QtQuick
-import Quickshell
 
 import qs.config
 import qs.components.views
@@ -14,14 +13,14 @@ OnboardingPage {
 
   cardWidth: root.grid ? root.grid.unit : 0
   title: I18n.tr("Monitors")
-  intro: Quickshell.screens.length > 1 ? I18n.tr("Drag the monitors into place as they stand on your desk, then pick each one's resolution, refresh rate and scale. Apply tries it, and asks you to keep it: if the picture goes wrong, it goes back by itself after 15 seconds.") : I18n.tr("Pick your monitor's resolution, refresh rate and scale. Apply tries it, and asks you to keep it: if the picture goes wrong, it goes back by itself after 15 seconds.")
+  intro: General.outputs.length > 1 ? I18n.tr("Drag the monitors into place as they stand on your desk, then pick each one's resolution, refresh rate and scale. Apply tries it, and asks you to keep it: if the picture goes wrong, it goes back by itself after 15 seconds.") : I18n.tr("Pick your monitor's resolution, refresh rate and scale. Apply tries it, and asks you to keep it: if the picture goes wrong, it goes back by itself after 15 seconds.")
 
   Notice {
     text: I18n.tr("The primary monitor holds the main bar, and it's where the lock screen and this setup appear. Set it in the monitor's settings.")
   }
 
   Notice {
-    visible: Quickshell.screens.length > 1
+    visible: General.outputs.length > 1
     text: I18n.tr("axiom remembers a layout per set of monitors, so plugging a laptop into a dock switches to its own layout.")
   }
 

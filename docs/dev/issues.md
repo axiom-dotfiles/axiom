@@ -18,17 +18,41 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 
 ## Open
 
-### Code outside the Hyprland* services still depends on Hyprland's shapes
-- **Where:** readers of `HyprlandManager.monitors`/`workspaces`/`monitorFor()` (the workspace widgets and content, `OverviewGrid`, `DockManager`, `ScreenshotPickerWindow`, `shell/BlurBacking.qml`); the Hyprland Lua helpers used by `MonitorManager`, `KeybindManager`, `WindowSwitcherManager` and `GreetdManager` (`HyprLua`, `HyprConfigLua`, `HyprBinds`); the `HyprlandGrab` users
-- **What:** Only the `Hyprland*` services import `Quickshell.Hyprland` now (`docs/dev/hyprland/ipc.md`), but the objects `HyprlandManager` hands out are Quickshell's `HyprlandMonitor`/`HyprlandWorkspace` (their `lastIpcObject`, `activeWorkspace`, `toplevels`), the window list is Hyprland's `clients` JSON, and those services build Hyprland Lua themselves. Supporting another compositor needs neutral shapes for monitors, workspaces and windows, the Lua builders behind the Hyprland* services, and a neutral name for the grab.
+### No sway or niri backend yet
+- **Where:** `services/CompositorManager.qml` (`backend`), `docs/dev/compositor/sway-backend.md`
+- **What:** Everything goes through `CompositorManager`, but only Hyprland has a backend. Under sway or niri, axiom runs with none: the bar, launcher and notifications work, but workspaces, windows, the dock's running apps, the keyboard layout and the window look are empty or do nothing. The plan for sway is in `sway-backend.md`; `scripts/dev/nested.sh` runs it nested.
 - **Size:** needs a plan
-- **Found:** 2026-10-15, while moving hyprctl calls onto the request socket
+- **Found:** 2026-10-16, while decoupling the shell from Hyprland
 
-### Some services and widgets list screens from `Quickshell.screens`
-- **Where:** `services/SettingsManager.qml` (`screens` options), `services/DesktopManager.qml`, `services/HyprlandManager.qml` (`_screenAt`), `services/BrightnessManager.qml`, `components/surfaces/onboarding/pages/MonitorsPage.qml`, `components/content/WallpaperPicker.qml`
-- **What:** AGENTS.md › UI conventions says to use `General.outputs`, never `Quickshell.screens`, which holds stand-ins while no monitor is connected. These still read it, so with Hyprland briefly outputless (a monitor config reload) they see a stand-in screen's name.
+### Floating bars sit flush on the border without a backend
+- **Where:** `config/Bar.qml` (`enrichBarConfig`: `floatGap`), `services/CompositorManager.qml` (`gapsOut`)
+- **What:** A floating bar's automatic gap (`floatGap` -1) is the compositor's outer gaps (`CompositorManager.gapsOut`). With no backend (sway or niri today) `gapsOut` is all 0, so a floating bar sits flush against the border, as seen in nested sway. The sway backend's `gapsOut` (from `gaps outer`, `sway-backend.md`) should fix it there; decide what the gap is with no backend at all (a fixed default, or `Appearance.screenMargin`).
 - **Size:** small
-- **Found:** 2026-10-15, while auditing the Hyprland IPC changes
+- **Found:** 2026-10-16, while testing layer order in nested sway
+
+### Blur and transparency on other compositors
+- **Where:** `services/BlurManager.qml` (`_wanted`), `config/json/config.schema.json` (`Appearance` blur settings, `"/$supports.blur"`), `services/CompositorManager.qml` (`supports`)
+- **What:** Axiom's surfaces blur only where the compositor blurs its layers (`supports.blur`: Hyprland's layer rules). Elsewhere the blur settings are hidden and translucent surfaces fill themselves, so a surface over another (the launcher over a dock) shows it through its fill. SwayFX (`layer_effects`) and niri (layer rules) may blur layers by namespace too: the blur window (`axiom-blur-backing`) is all they'd need to blur. Its strength would then be axiom's to set outside Hyprland (likely one blur-strength option there).
+- **Size:** needs a plan
+- **Found:** 2026-10-16, while placing layers without Hyprland
+
+### The greeter runs its own Hyprland session
+- **Where:** `scripts/greeter/greeter-session.sh`, `services/GreetdManager.qml` (`_applyHyprland`)
+- **What:** The greeter runs its own Hyprland session (`start-hyprland`, `hyprctl dispatch exit`), whatever compositor the user's session uses. Decide whether it keeps Hyprland or moves to cage/sway. (The onboarding's binds table and Welcome copy no longer assume Hyprland.)
+- **Size:** small
+- **Found:** 2026-10-16, while decoupling the shell from Hyprland
+
+### Two exclusive-focus surfaces at once without a native grab
+- **Where:** `services/FocusGrab.qml` (`exclusive`), `components/hosts/overlay/OverlayPanel.qml`, `components/hosts/popout/BarPopouts.qml`, `components/hosts/popout/EdgePopout.qml`
+- **What:** Without `supports.focusGrab`, every active grab's surface asks for `WlrKeyboardFocus.Exclusive`. With the overlay open (exclusive the whole time) and a popout with a text field opened over it, two surfaces on the Overlay layer ask for exclusive focus. Which one gets the keyboard is up to the compositor and wasn't checked in nested sway or niri: typing into a popout over the overlay may go to the overlay. Not seen yet; check it in `scripts/dev/nested.sh sway`.
+- **Size:** small
+- **Found:** 2026-10-16, while auditing the layer-placement branch
+
+### Missing app icons warn in the log
+- **Where:** `services/LauncherManager.qml` (`Quickshell.iconPath`), `services/DockManager.qml`
+- **What:** An app whose `.desktop` icon isn't in the icon theme (here `xdg-desktop-portal-gtk`'s `applications-system-symbolic`) logs `Could not load icon` at each size it's drawn, though the fallback icon shows. Noise in `scripts/log.sh`; either skip hidden/`NoDisplay` entries or resolve the name before handing it to an Image.
+- **Size:** trivial
+- **Found:** 2026-10-16, while auditing the layer-placement branch
 
 ### The python venv and bytecode are written into the repo
 - **Where:** `scripts/setup_venv.sh`, `scripts/venv_python.sh`
@@ -72,21 +96,15 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Size:** needs a plan
 - **Found:** 2026-10-13, while assessing reader renames for the docs makeover
 
-### `Quickshell.screens` used outside `General`
-- **Where:** `services/SettingsManager.qml`, `services/WallpaperManager.qml`, `services/DesktopManager.qml`, `services/ThemeManager.qml`, `services/HyprlandManager.qml`, `services/BrightnessManager.qml`, `components/content/WallpaperPicker.qml`, `components/surfaces/onboarding/pages/MonitorsPage.qml`, `shell/Greeter.qml`, `shell/Lockscreen.qml`, `shell/GreeterPreview.qml`
-- **What:** AGENTS.md › Screen targeting says build on `General.outputs` / `General.screensFor`, never `Quickshell.screens` (it holds stand-ins while no monitor is connected); 14 uses remain (`grep -rn 'Quickshell\.screens' --include='*.qml' . | grep -v config/General.qml`). The three in `shell/` pick a fallback screen for a window that must exist even with no monitor, and are probably deliberate (say so in a comment); the rest should move to `General.outputs`.
-- **Size:** small
-- **Found:** 2026-10-13, while fixing `BlurManager.paused`
-
 ### `BlurManager.paused` warns on every reload
-- **Where:** `services/BlurManager.qml` (`paused`), `services/UpdatesManager.qml` (`checking`), `services/SelfUpdateManager.qml`
-- **What:** Every config reload logs `Unable to assign [undefined] to bool` at the `paused` declaration (and, seen 2026-10-14, at `UpdatesManager.checking`, also a readonly bool on a singleton: likely the same cause). The binding itself evaluates to a boolean (a temporary probe logged `boolean false`), and a constant `paused: false` still warned, so it isn't the expression: something in Quickshell's reload of this singleton assigns it. Harmless (the value is right afterwards), but it's noise in every `scripts/log.sh`. Next step: check whether Quickshell carries readonly properties across a reload, or whether making `paused` a plain function helps.
+- **Where:** `services/BlurManager.qml` (`paused`), `services/UpdatesManager.qml` (`checking`), `services/SelfUpdateManager.qml`, `services/HyprlandManager.qml` (`activeWindowId`)
+- **What:** Every config reload logs `Unable to assign [undefined] to bool` at the `paused` declaration (and, seen 2026-10-14, at `UpdatesManager.checking`, also a readonly bool on a singleton: likely the same cause; seen 2026-10-16 as `Unable to assign [undefined] to QString` at `HyprlandManager.activeWindowId`, a readonly string). The binding itself evaluates to a boolean (a temporary probe logged `boolean false`), and a constant `paused: false` still warned, so it isn't the expression: something in Quickshell's reload of this singleton assigns it. Harmless (the value is right afterwards), but it's noise in every `scripts/log.sh`. Next step: check whether Quickshell carries readonly properties across a reload, or whether making `paused` a plain function helps.
 - **Size:** small
 - **Found:** 2026-10-13, while checking reload logs during the docs makeover
 
 ### Binding loops in bar popout placement
 - **Where:** `components/hosts/popout/EdgePlacement.qml`, `components/hosts/popout/PillBarJoin.qml`, `components/hosts/popout/BarPopouts.qml`, `components/hosts/popout/AttachedSurface.qml`, `components/hosts/popout/SubPopout.qml`
-- **What:** Opening bar popouts on a floating-pills bar logs binding loops, dozens per session: `property "_wall"` (PillBarJoin, created at EdgePlacement.qml:345), `property "joinReach"` (EdgePlacement), `property "surfaceX"` / `property "surfaceY"` (BarPopouts' window), `property "_spec"` (AttachedSurface) and `property "place"` / `property "alignedBoxStart"` (SubPopout). They're in every qs instance's log back to 2026-10-13, before the corner-priority change. The values settle (no visible glitch reported), but a loop can leave a stale value for a frame and buries real warnings. Likely one cycle: the placement reads the pill's join reach, which reads the placement's wall. (`_surfaceFromEdge`'s loop is gone: it now comes from the layout's `attachAt`, not the drawn surface.)
+- **What:** Opening bar popouts on a floating-pills bar logs binding loops, dozens per session: `property "_wall"` (PillBarJoin, created at EdgePlacement.qml:345), `property "joinReach"` (EdgePlacement), `property "surfaceX"` / `property "surfaceY"` (BarPopouts' window), `property "_spec"` (AttachedSurface) and `property "place"` / `property "alignedBoxStart"` (SubPopout). They're in every qs instance's log back to 2026-10-13, before the corner-priority change. The values settle (no visible glitch reported), but a loop can leave a stale value for a frame and buries real warnings. Likely one cycle: the placement reads the pill's join reach, which reads the placement's wall. (`_surfaceFromEdge`'s loop is gone: it now comes from the layout's `attachAt`, not the drawn surface.) Not reproduced on 2026-10-16 (popouts from a floating-pills bar, and one joining a perpendicular pill bar, on Hyprland and in nested sway): it may have gone with later placement changes. Delete this entry if it doesn't come back.
 - **Size:** needs a plan
 - **Found:** 2026-10-14, while reviewing verify.sh output for the agent-setup changes
 
@@ -96,8 +114,8 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Size:** trivial
 - **Found:** 2026-10-13, while splitting architecture.md
 
-### `Hyprland.requiredSettings` and `wallpaperDaemon` have no developer doc
-- **Where:** `config/HyprlandConfig.qml` (`requiredSettings`, `wallpaperDaemon`), `docs/dev/hyprland/config-modes.md`
-- **What:** Both settings are in the schema and the generated reference (`docs/dev/config/Hyprland.md`) but no hand-written doc explains what they do; `wallpaperDaemon` only gets a passing mention in `docs/dev/theming/wallpaper-and-schedules.md`. Add a section to `config-modes.md`.
+### `Hyprland.requiredSettings` has no developer doc
+- **Where:** `config/HyprlandConfig.qml` (`requiredSettings`), `docs/dev/hyprland/config-modes.md`
+- **What:** It's in the schema and the generated reference (`docs/dev/config/Hyprland.md`), but no hand-written doc explains what it does. Add a section to `config-modes.md`. (`wallpaperDaemon` moved to `Appearance.wallpaperDaemon`, covered in `wallpaper-and-schedules.md`.)
 - **Size:** trivial
 - **Found:** 2026-10-13, while splitting architecture.md

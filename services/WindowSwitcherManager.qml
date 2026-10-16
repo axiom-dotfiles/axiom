@@ -22,7 +22,7 @@ Singleton {
 
   // Past the show delay: the strip is drawn
   readonly property bool shown: root._shown
-  // hyprctl clients, most recently focused first
+  // The compositor's windows, most recently focused first
   readonly property var windows: root._windows
   readonly property int index: root._index
   readonly property string screenName: root._screenName
@@ -33,7 +33,7 @@ Singleton {
   property int _index: 0
   property string _screenName: ""
   // The window focused when it opened, which picking leaves alone
-  property string _focusedAddress: ""
+  property string _focusedId: ""
 
   // Moves the selection `n` windows on, opening first when closed (the
   // first step from the current window is the last one used)
@@ -50,8 +50,8 @@ Singleton {
       return;
     const win = root._windows[root._index];
     root._close();
-    if (win && win.address !== root._focusedAddress)
-      HyprlandManager.focusWindow(win.address);
+    if (win && win.id !== root._focusedId)
+      CompositorManager.focusWindow(win.id);
   }
 
   function cancel() {
@@ -63,15 +63,15 @@ Singleton {
   function pick(index) {
     root._index = index;
     root.commit();
-    HyprlandManager.runLua(HyprLua.switcherLeaveLua);
+    if (CompositorManager.supports.switcher)
+      HyprlandManager.runLua(HyprLua.switcherLeaveLua);
   }
 
   function _open() {
-    const monitor = HyprlandManager.focusedMonitor;
-    const active = HyprlandManager.activeToplevel;
+    const output = CompositorManager.focused;
     const scope = WindowSwitcherConfig.scope;
-    root._focusedAddress = active ? "0x" + active.address : "";
-    root._windows = WindowOrder.mru(HyprlandManager.windowList, win => DockLayout.inScope(win, scope, monitor?.id, monitor?.activeWorkspace?.id), root._focusedAddress);
+    root._focusedId = CompositorManager.activeWindowId;
+    root._windows = WindowOrder.mru(CompositorManager.windows, win => DockLayout.inScope(win, scope, output?.name ?? "", output?.activeWorkspaceId ?? -1), root._focusedId);
     root._index = 0;
     root._screenName = ShellManager.targetFor("focused");
     root._active = true;
@@ -90,8 +90,9 @@ Singleton {
     onTriggered: root._shown = root._active
   }
 
+  // Hyprland holds the switcher's keys (HyprLua.switcherLua)
   Connections {
-    target: HyprlandManager
+    target: CompositorManager.supports.switcher ? HyprlandManager : null
 
     function onSwitcherKey(verb, argument) {
       if (verb === "step")

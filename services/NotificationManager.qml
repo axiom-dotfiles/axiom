@@ -105,9 +105,9 @@ Singleton {
       root._handlers[id](entry);
       return true;
     }
-    const window = HyprlandManager.windowList.find(w => root._matchesClass(entry, w.class) || root._matchesClass(entry, w.initialClass));
+    const window = CompositorManager.windows.find(w => root._matchesClass(entry, w.appId) || root._matchesClass(entry, w.initialAppId));
     if (window) {
-      HyprlandManager.focusWindow(window.address);
+      CompositorManager.focusWindow(window.id);
       return true;
     }
     const app = DesktopEntries.byId(id) ?? DesktopEntries.heuristicLookup(id);
@@ -220,10 +220,10 @@ Singleton {
 
   // clearOnFocus: an app's entries go when one of its windows is focused
   property Connections _focusWatcher: Connections {
-    target: HyprlandManager
+    target: CompositorManager
     enabled: NotificationsConfig.clearOnFocus
-    function onWindowFocused(appClass) {
-      root.entries.filter(e => root._matchesClass(e, appClass)).forEach(e => root.dismiss(e.uid));
+    function onWindowFocused(appId) {
+      root.entries.filter(e => root._matchesClass(e, appId)).forEach(e => root.dismiss(e.uid));
     }
   }
 

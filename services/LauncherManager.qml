@@ -182,12 +182,12 @@ QtObject {
   function _windowRow(win) {
     return {
       kind: "window",
-      image: IconResolver.resolveWindowIcon(win.class, win.title),
-      title: win.title || win.class,
-      subtitle: I18n.tr("{0} · workspace {1}", win.class, win.workspace?.name ?? ""),
+      image: IconResolver.resolveWindowIcon(win.appId, win.title),
+      title: win.title || win.appId,
+      subtitle: I18n.tr("{0} · workspace {1}", win.appId, win.workspaceName),
       hint: I18n.tr("Window"),
       run: () => {
-        HyprlandManager.focusWindow(win.address);
+        CompositorManager.focusWindow(win.id);
         return true;
       }
     };
@@ -206,11 +206,11 @@ QtObject {
         });
     }
     if (LauncherConfig.windows) {
-      for (const win of HyprlandManager.windowList) {
-        if (!win.mapped || win.hidden)
+      for (const win of CompositorManager.windows) {
+        if (win.hidden)
           continue;
         // No fuzzy matches: titles are long enough to match most anything
-        const s = Math.max(0.9 * Search.score(win.title, q), 0.8 * Search.score(win.class, q));
+        const s = Math.max(0.9 * Search.score(win.title, q), 0.8 * Search.score(win.appId, q));
         if (s >= 40)
           scored.push({
             s: s - 5,

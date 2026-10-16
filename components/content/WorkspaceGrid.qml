@@ -19,7 +19,10 @@ Panel {
   // From the widget's payload (BarPopouts copies it onto these, and the
   // widget's options onto `properties`, once the popout has loaded: until
   // then `properties` is empty, hence the few `??` below)
-  property var monitor: null
+  // The output's name: the payload is a snapshot taken at opening, so its
+  // state (the active workspace) is looked up live
+  property string output: ""
+  readonly property var monitor: CompositorManager.output(root.output)
   property bool vertical: false
   property real cellSize: Widget.height
   // Along the bar (narrower than cellSize for dots without a box)
@@ -36,11 +39,11 @@ Panel {
   readonly property color occupiedColor: Theme.resolveColor(root.properties.occupiedColor)
   readonly property color emptyColor: Theme.resolveColor(root.properties.emptyColor)
   readonly property color textColor: Theme.resolveColor(root.properties.textColor)
-  readonly property int base: HyprlandManager.workspaceBase(root.monitor)
+  readonly property int base: CompositorManager.workspaceBase(root.output)
   // Not `cols`/`rows`: those are Panel's slot size
   readonly property int gridColumns: WorkspacesConfig.columns
   readonly property int gridRows: WorkspacesConfig.rows
-  readonly property int activeId: root.monitor?.activeWorkspace?.id ?? -1
+  readonly property int activeId: root.monitor?.activeWorkspaceId ?? -1
   readonly property int activeIndex: {
     const index = root.activeId - root.base;
     return index >= 0 && index < root.gridColumns * root.gridRows ? index : 0;
@@ -55,7 +58,7 @@ Panel {
   Component.onCompleted: Qt.callLater(() => root._settled = true)
 
   function wsById(id) {
-    return HyprlandManager.workspaces.find(ws => ws.id === id) ?? null;
+    return CompositorManager.workspaces.find(ws => ws.id === id) ?? null;
   }
 
   Grid {
@@ -73,10 +76,10 @@ Panel {
 
         readonly property int wsId: root.base + index
         readonly property var workspace: root.wsById(wsId)
-        readonly property bool hasWindows: (workspace?.toplevels?.values?.length ?? 0) > 0
+        readonly property bool hasWindows: (workspace?.windowCount ?? 0) > 0
         // In the row (or column) the bar shows
         readonly property bool inBar: root.vertical ? index % root.gridColumns === root.activeIndex % root.gridColumns : Math.floor(index / root.gridColumns) === Math.floor(root.activeIndex / root.gridColumns)
-        readonly property var windowData: root.properties.showAppIcons && hasWindows ? HyprlandManager.biggestWindowForWorkspace(wsId) : null
+        readonly property var windowData: root.properties.showAppIcons && hasWindows ? CompositorManager.biggestWindowForWorkspace(wsId) : null
 
         barConfig: root.barConfig
         isActive: wsId === root.activeId
@@ -87,11 +90,11 @@ Panel {
         labels: root.properties.labels
         // The workspace id, or its place in the grid counted from 1, as on the bar
         label: root.properties.relativeNumbers ? index + 1 : wsId
-        iconPath: windowData ? IconResolver.resolveWindowIcon(windowData.class, windowData.title) : ""
+        iconPath: windowData ? IconResolver.resolveWindowIcon(windowData.appId, windowData.title) : ""
         clickable: root.properties.clickToSwitch ?? false
         animated: root._settled
         opacity: inBar ? 1.0 : 0.85
-        onClicked: HyprlandManager.goToWorkspace(wsId, "go", root.monitor)
+        onClicked: CompositorManager.goToWorkspace(wsId, "go", root.output)
 
         Glide on opacity {
           enabled: root._settled

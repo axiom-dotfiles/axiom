@@ -23,7 +23,7 @@ Scope {
       id: onboarding
       required property ShellScreen modelData
 
-      ScreenBackdrop {
+      BackdropRequest {
         screen: onboarding.modelData
         // Away while another polkit agent's prompt needs the screen
         shown: !ShellManager.steppedAside

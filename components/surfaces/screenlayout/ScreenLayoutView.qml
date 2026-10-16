@@ -120,7 +120,7 @@ Item {
   // ignore_alpha). Not over a wallpaper blurred already.
   readonly property bool frosted: root.frost && Appearance.blur && !(root.background === "wallpaper" && root.blurWallpaper)
   // Hyprland's blur, { size, passes }: the lock surface hands in the one in
-  // effect (HyprlandManager.blur); the greeter's Hyprland keeps its defaults
+  // effect (CompositorManager.blur); the greeter's Hyprland keeps its defaults
   property var hyprBlur: ({
       "size": 8,
       "passes": 1

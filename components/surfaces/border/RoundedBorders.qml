@@ -35,7 +35,7 @@ Item {
     if (!bar?.insideBorder || !bar.reserveSpace)
       return -root.strokeWidth - docks;
     // As far as the bar reserves (see BarPanel)
-    const gap = Bar.reserveTrim(bar, HyprlandManager.gapsOut[edge] ?? 0);
+    const gap = Bar.reserveTrim(bar, CompositorManager.gapsOut[edge] ?? 0);
     return -(bar.extent - gap) - docks;
   }
   // How far in from a screen edge the frame's inner edge lies: past a solid
@@ -124,7 +124,13 @@ Item {
     // frame (BlurShape.shadow): the window stays mapped and draws nothing.
     // Hyprland puts a layer mapped while a fullscreen window is shown over
     // it (CLayerSurface::onMap), and a fullscreen window is what unbacks it.
-    visible: look.shadow !== "none"
+    visible: shadowSlot.shown
+    LayerSlot {
+      id: shadowSlot
+      window: shadowWindow
+      namespace: "axiom-border-shadow"
+      wanted: shadowWindow.look.shadow !== "none"
+    }
     screen: root.screen
     anchors {
       left: true
@@ -298,6 +304,14 @@ Item {
       mask: Region {}
       aboveWindows: true
       WlrLayershell.namespace: "axiom-border"
+      visible: cornerSlot.shown
+      LayerSlot {
+        id: cornerSlot
+        window: corner
+        namespace: "axiom-border"
+        // After the strips, over their ends
+        rank: 1
+      }
 
       // Where it is on screen: a stroke out from the frame's inner side,
       // past the integrated edge menus (cornerMargin is taken from what

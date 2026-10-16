@@ -11,7 +11,7 @@ import qs.components.views.settings
 BaseView {
   id: root
 
-  readonly property var categories: SchemaLayout.categories(ConfigManager.configSchema)
+  readonly property var categories: SchemaLayout.categories(ConfigManager.configSchema, SettingsManager.showIfValue)
   readonly property var category: categories.find(c => c.name === SettingsManager.category) ?? categories[0]
 
   Component.onCompleted: SettingsManager.ensureLoaded()

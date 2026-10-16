@@ -268,7 +268,7 @@ QtObject {
   // Tries the selected profile now; keep() saves it. A profile for other
   // monitors can only be saved.
   function apply() {
-    if (!canApply || pending)
+    if (!canApply || pending || !CompositorManager.supports.monitors)
       return;
     if (!selectedIsLive) {
       save();
@@ -342,7 +342,8 @@ QtObject {
   // --- Reading the monitors ---
 
   function refresh() {
-    if (_reading)
+    // The Monitors page edits Hyprland's monitors only
+    if (_reading || !CompositorManager.supports.monitors)
       return;
     _reading = true;
     HyprlandManager.withOutputs(outputs => {
@@ -398,9 +399,9 @@ QtObject {
   }
 
   property Connections _events: Connections {
-    target: HyprlandManager
+    target: CompositorManager
 
-    function onOutputsChanged() {
+    function onOutputsHotplugged() {
       if (root.pageShown && !root.pending && !draft.isDirty) {
         draft.load();
         root._detectPending = true;

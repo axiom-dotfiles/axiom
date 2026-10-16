@@ -5,11 +5,11 @@ import qs.components.methods
 TestCase {
   name: "WindowOrder"
 
-  function win(address, history, extra) {
+  function win(id, rank, extra) {
     return Object.assign({
-      "address": address,
-      "focusHistoryID": history,
-      "monitor": 0
+      "id": id,
+      "focusRank": rank,
+      "output": "A"
     }, extra ?? {});
   }
 
@@ -17,32 +17,32 @@ TestCase {
 
   function test_byFocusHistory() {
     const order = WindowOrder.mru([win("0x3", 2), win("0x1", 0), win("0x2", 1)], all, "");
-    compare(order.map(w => w.address), ["0x1", "0x2", "0x3"]);
+    compare(order.map(w => w.id), ["0x1", "0x2", "0x3"]);
   }
 
   function test_activeFirst() {
-    // hyprctl hasn't caught up with a switch to 0x2 yet
+    // the window list hasn't caught up with a switch to 0x2 yet
     const order = WindowOrder.mru([win("0x1", 0), win("0x2", 1), win("0x3", 2)], all, "0x2");
-    compare(order.map(w => w.address), ["0x2", "0x1", "0x3"]);
+    compare(order.map(w => w.id), ["0x2", "0x1", "0x3"]);
   }
 
   function test_filtered() {
     const windows = [win("0x1", 0), win("0x2", 1, {
-        "monitor": 1
+        "output": "B"
       }), win("0x3", 2)];
-    const order = WindowOrder.mru(windows, w => w.monitor === 0, "0x2");
-    compare(order.map(w => w.address), ["0x1", "0x3"], "an active window filtered out stays out");
+    const order = WindowOrder.mru(windows, w => w.output === "A", "0x2");
+    compare(order.map(w => w.id), ["0x1", "0x3"], "an active window filtered out stays out");
   }
 
   function test_missingHistoryLast() {
     const order = WindowOrder.mru([win("0x1", undefined), win("0x2", 0)], all, "");
-    compare(order.map(w => w.address), ["0x2", "0x1"]);
+    compare(order.map(w => w.id), ["0x2", "0x1"]);
   }
 
   function test_doesNotTouchInput() {
     const windows = [win("0x2", 1), win("0x1", 0)];
     WindowOrder.mru(windows, all, "");
-    compare(windows[0].address, "0x2");
+    compare(windows[0].id, "0x2");
   }
 
   function test_stepIndex() {

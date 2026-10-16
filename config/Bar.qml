@@ -15,7 +15,8 @@ QtObject {
   }
   // Adds derived orientation flags to a bar entry from the Bars section
   // (whose keys are always filled in from the schema defaults). Laid out
-  // with Hyprland's gaps_out (`gapsOut`: per edge name, HyprlandManager's),
+  // with the compositor's outer gaps (`gapsOut`: per edge name,
+  // CompositorManager's),
   // which a floating bar's islands keep from the screen edges as windows
   // do (BarManager.bars).
   function enrichBarConfig(barConfig, gapsOut) {
@@ -180,7 +181,7 @@ QtObject {
   }
 
   // A bar window's layer namespace, whose rule's `order` decides where
-  // Hyprland arranges it (HyprlandManager.layerRulesLua): by its kind
+  // Hyprland arranges it (HyprLua.layerRulesLua): by its kind
   // (solid, outside the border; pills; transparent; floating: bars and
   // pills held off the edge) and, for a bar along its screen's longer
   // edge, a -long one arranged after the shorter edge's bar of that kind

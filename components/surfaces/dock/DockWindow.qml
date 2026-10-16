@@ -201,7 +201,7 @@ Scope {
   }
 
   // --- Showing and hiding ---
-  readonly property bool fullscreen: HyprlandManager.hasFullscreen(root.screen?.name ?? "")
+  readonly property bool fullscreen: CompositorManager.hasFullscreen(root.screen?.name ?? "")
   readonly property bool hiddenByHand: !!DockManager.hidden[root.dock.id]
   // Opened by the trigger (after openDelay), a reveal, or the pointer on
   // the shown dock, until the pointer has been gone for closeDelay. Only
@@ -394,14 +394,24 @@ Scope {
 
     screen: root.screen
     color: "transparent"
-    visible: root.count > 0
+    // Once the windows before it in the stack have mapped
+    visible: dockSlot.shown
+    LayerSlot {
+      id: dockSlot
+      window: panelWindow
+      namespace: panelWindow.layerNamespace
+      layer: panelWindow.windowLayer
+      wanted: root.count > 0
+    }
 
     // Top, with its layer rule ordering it after the border and bars: it
     // sits inside them without shortening the bars on the other edges. A
     // fullscreen window covers it. A preview is on Overlay, its rule
     // ordering it after the overlay's panel.
-    WlrLayershell.layer: root.preview ? WlrLayer.Overlay : WlrLayer.Top
-    WlrLayershell.namespace: root.preview ? "axiom-dock-preview" : "axiom-dock"
+    readonly property int windowLayer: root.preview ? WlrLayer.Overlay : WlrLayer.Top
+    readonly property string layerNamespace: root.preview ? "axiom-dock-preview" : "axiom-dock"
+    WlrLayershell.layer: panelWindow.windowLayer
+    WlrLayershell.namespace: panelWindow.layerNamespace
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
     exclusionMode: ExclusionMode.Normal
     // Hyprland counts the edge margin into it and adds gaps_out past it, so
@@ -482,8 +492,9 @@ Scope {
     LayerOrigin {
       id: placeOnScreen
       window: panelWindow
-      namespace: root.preview ? "axiom-dock-preview" : "axiom-dock"
+      namespace: panelWindow.layerNamespace
       edge: root.edge
+      layer: panelWindow.windowLayer
     }
     // The window on screen: a hiding box goes past its edge
     readonly property rect screenRect: Qt.rect(placeOnScreen.origin?.x ?? 0, placeOnScreen.origin?.y ?? 0, panelWindow.width, panelWindow.height)

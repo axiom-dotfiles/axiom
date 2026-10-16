@@ -58,7 +58,7 @@ PanelWindow {
     frost: root.layout?.moduleBorders ?? false
     wallpaper: root.screen ? ThemeManager.wallpaperFor(root.screen.name) : ""
     blurWallpaper: false
-    hyprBlur: HyprlandManager.blur
+    hyprBlur: CompositorManager.blur
     insets: DesktopManager.insetsFor(root.screen)
     host: ({
         "kind": "desktop",

@@ -3,7 +3,7 @@
 
 > **File:** `services/HyprlandConfigManager.qml` · **Docs:** see [docs/dev](../../README.md)
 
-Managed config, loading ~/.config/hypr/user/*.lua after it Whenever the file isn't loaded (included but the lines are missing, or a managed takeover refused), the runtime layer is applied instead, so axiom still works, and `problem` says why. The window look (HyprlandConfig.look: themed borders, axiom's shape, gaps, Hyprland's blur, window opacity) and the blur behind axiom's surfaces are also evaluated after every config reload in each mode, so they win over the user's own config while they're on (_applyLook).
+Managed config, loading ~/.config/hypr/user/*.lua after it Whenever the file isn't loaded (included but the lines are missing, or a managed takeover refused), the runtime layer is applied instead, so axiom still works, and `problem` says why. The window look (WindowLookConfig.look: themed borders, axiom's shape, gaps, Hyprland's blur, window opacity) and the blur behind axiom's surfaces are also evaluated after every config reload in each mode, so they win over the user's own config while they're on (_applyLook).
 
 ### Properties
 
@@ -18,7 +18,7 @@ Managed config, loading ~/.config/hypr/user/*.lua after it Whenever the file isn
 - `autostartLines` (readonly string): What a hyprland.lua needs to start axiom with Hyprland, for the detached and included modes (managed starts it itself).
 - `includeTarget` (readonly var): The lines above as integration_hookup.py targets in the user's hyprland.lua (IntegrationHookupManager's "hyprlandInclude" and "hyprlandAutostart"): the include goes first, so what follows overrides i…
 - `autostartTarget` (readonly var)
-- `shellCommand` (readonly string): How Hyprland, binds and hypridle start or call axiom
+- `shellCommand` (readonly string): How Hyprland and its binds start or call axiom (Paths.shellCommand)
 - `startCommand` (readonly string): Starting it: -n (--no-duplicate) exits at once if axiom already runs, so a second autostart line or a reloaded hyprland.lua can't start another copy
 - `managedCheck` (readonly alias): What switching to managed would do (HyprlandTakeover.managedCheck)
 - `managedBlockedBy` (readonly alias)
@@ -27,6 +27,7 @@ Managed config, loading ~/.config/hypr/user/*.lua after it Whenever the file isn
 - `merging` (readonly alias)
 - `lastMerge` (readonly alias): The last merge (HyprlandBindMerge.lastMerge), or null
 - `mergeable` (readonly alias): How many binds a Merge of all of user/ would move; -1 until looked
+- `live` (readonly bool): Whether axiom runs under Hyprland, so its config is axiom's to write
 
 ### Signals
 

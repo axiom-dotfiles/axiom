@@ -87,9 +87,11 @@ PopoutWrapperBase {
   // edge, past the border stroke it lies on inside the border), its window
   // starting there on the bar's layer, ordered under it (HyprlandManager's
   // layer rules). Not while the overlay is open on its screen
-  // (_overOverlay), nor over a fullscreen window. Anything else it opens
-  // over, sliding out within its own window.
-  readonly property real slideDistance: root.detached && root.barConfig?.background === "transparent" && !root._overOverlay && !root._overFullscreen ? Math.max(0, root.attachAt - root.barOuter - (root.barConfig.insideBorder ? Appearance.borderWidth : 0)) : 0
+  // (_overOverlay), nor over a fullscreen window, nor where the compositor
+  // stacks by map order alone (no supports.layerOrder: a window mapped as
+  // it opens lands over the bar). Anything else it opens over, sliding out
+  // within its own window.
+  readonly property real slideDistance: root.detached && root.barConfig?.background === "transparent" && CompositorManager.supports.layerOrder === true && !root._overOverlay && !root._overFullscreen ? Math.max(0, root.attachAt - root.barOuter - (root.barConfig.insideBorder ? Appearance.borderWidth : 0)) : 0
   readonly property bool slidesUnder: root.slideDistance > 0
   // Its window's layer: Overlay unless it slides under a bar
   readonly property int windowLayer: root.slidesUnder ? WlrLayer.Top : WlrLayer.Overlay
@@ -178,7 +180,7 @@ PopoutWrapperBase {
   // nothing to join: it's held as well, with an automatic gap unless held
   // already (and slides under nothing, whose layer that window hides).
   // Followed only while closed, so an open box never moves.
-  readonly property bool fullscreen: HyprlandManager.hasFullscreen(root.screen?.name ?? "")
+  readonly property bool fullscreen: CompositorManager.hasFullscreen(root.screen?.name ?? "")
   property ClosedLatch _fullscreenLatch: ClosedLatch {
     source: root.fullscreen
     closed: !root.occupied
@@ -206,7 +208,7 @@ PopoutWrapperBase {
   readonly property real attachAt: placement.attachAt
 
   // While the overlay is open on its screen a box that would slide under
-  // a bar draws over the overlay instead (HyprlandManager.layerRulesLua),
+  // a bar draws over the overlay instead (HyprLua.layerRulesLua),
   // since the layer it slides out from under is one the overlay covers
   // (as BarPopouts.underBar). Followed only while closed: the namespace
   // changes with it.
@@ -377,7 +379,7 @@ PopoutWrapperBase {
     // HyprlandManager's layer rules)
     WlrLayershell.layer: root.windowLayer
     WlrLayershell.namespace: root.layerNamespace
-    WlrLayershell.keyboardFocus: root.wantsKeyboardFocus || root.keyboardOnDemand ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
+    WlrLayershell.keyboardFocus: root.wantsKeyboardFocus || root.keyboardOnDemand ? (focusGrab.exclusive ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.OnDemand) : WlrKeyboardFocus.None
     exclusionMode: ExclusionMode.Normal
     exclusiveZone: 0
 
@@ -436,7 +438,7 @@ PopoutWrapperBase {
       height: surface.boxRect.height
     }
 
-    HyprlandGrab {
+    FocusGrab {
       id: focusGrab
       windows: [surfaceWindow].concat(root.grabWindows, ShellManager.modalWindows)
       active: surfaceWindow.visible && root.grabEnabled && (root.wantsKeyboardFocus || root.closeOnClickOutside)
@@ -459,6 +461,7 @@ PopoutWrapperBase {
       window: surfaceWindow
       namespace: root.layerNamespace
       edge: root.edge
+      layer: root.windowLayer
     }
 
     EdgeSurface {
