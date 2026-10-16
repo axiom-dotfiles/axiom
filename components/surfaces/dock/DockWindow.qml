@@ -396,11 +396,11 @@ Scope {
     color: "transparent"
     // Once the windows before it in the stack have mapped
     visible: dockSlot.shown
-    readonly property LayerSlot _slot: LayerSlot {
+    LayerSlot {
       id: dockSlot
       window: panelWindow
-      namespace: root.preview ? "axiom-dock-preview" : "axiom-dock"
-      layer: root.preview ? WlrLayer.Overlay : WlrLayer.Top
+      namespace: panelWindow.layerNamespace
+      layer: panelWindow.windowLayer
       wanted: root.count > 0
     }
 
@@ -408,8 +408,10 @@ Scope {
     // sits inside them without shortening the bars on the other edges. A
     // fullscreen window covers it. A preview is on Overlay, its rule
     // ordering it after the overlay's panel.
-    WlrLayershell.layer: root.preview ? WlrLayer.Overlay : WlrLayer.Top
-    WlrLayershell.namespace: root.preview ? "axiom-dock-preview" : "axiom-dock"
+    readonly property int windowLayer: root.preview ? WlrLayer.Overlay : WlrLayer.Top
+    readonly property string layerNamespace: root.preview ? "axiom-dock-preview" : "axiom-dock"
+    WlrLayershell.layer: panelWindow.windowLayer
+    WlrLayershell.namespace: panelWindow.layerNamespace
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
     exclusionMode: ExclusionMode.Normal
     // Hyprland counts the edge margin into it and adds gaps_out past it, so
@@ -490,9 +492,9 @@ Scope {
     LayerOrigin {
       id: placeOnScreen
       window: panelWindow
-      namespace: root.preview ? "axiom-dock-preview" : "axiom-dock"
+      namespace: panelWindow.layerNamespace
       edge: root.edge
-      layer: root.preview ? WlrLayer.Overlay : WlrLayer.Top
+      layer: panelWindow.windowLayer
     }
     // The window on screen: a hiding box goes past its edge
     readonly property rect screenRect: Qt.rect(placeOnScreen.origin?.x ?? 0, placeOnScreen.origin?.y ?? 0, panelWindow.width, panelWindow.height)

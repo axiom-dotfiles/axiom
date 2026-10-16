@@ -56,7 +56,8 @@ How an edge menu is put on screen: the shared body and sync, the lattice its mod
 ### `integrated`: `IntegratedEdgeMenu`
 - A `PopoutWrapperBase` with a Top-layer `axiom-edge-menu` window along the whole edge.
 - Its layer rule (above every bar's, [layer stacking](../generated/layers.md)) arranges it first, so it sits outermost, and the border, bars and every Normal-exclusion surface move inwards (see [Layering and corners](../bar/layering-and-corners.md)).
-- The zone is set once while it's mapped (windows retile in one step), and the strip slides in.
+- Its window shows through a `LayerSlot`. With layer rules it maps only while open. Without them it's `held`: mapped from the start, a pixel deep, reserving nothing and taking no input while closed (`LayerSlot.idle`), so opening never maps it after the bars it pushes inwards ([layer arrangement](../compositor/layer-arrangement.md)).
+- The zone is set once while it's open (windows retile in one step), and the strip slides in.
 - With `frame`, a rounded stroked box runs the strip's whole length.
   - Its stroke's inner edge is `screenMargin` in from the strip's edges (as the border's is, so the two line up).
   - It holds the modules `padding` in from its stroke.

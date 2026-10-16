@@ -125,7 +125,7 @@ Item {
     // Hyprland puts a layer mapped while a fullscreen window is shown over
     // it (CLayerSurface::onMap), and a fullscreen window is what unbacks it.
     visible: shadowSlot.shown
-    readonly property LayerSlot _slot: LayerSlot {
+    LayerSlot {
       id: shadowSlot
       window: shadowWindow
       namespace: "axiom-border-shadow"
@@ -305,7 +305,7 @@ Item {
       aboveWindows: true
       WlrLayershell.namespace: "axiom-border"
       visible: cornerSlot.shown
-      readonly property LayerSlot _slot: LayerSlot {
+      LayerSlot {
         id: cornerSlot
         window: corner
         namespace: "axiom-border"

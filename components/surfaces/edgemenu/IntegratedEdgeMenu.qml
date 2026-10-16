@@ -114,7 +114,7 @@ PopoutWrapperBase {
     // Mapped only while open: the zone (and the windows moving) goes with
     // it; once the windows before it in the stack have mapped
     visible: menuSlot.shown
-    readonly property LayerSlot _slot: LayerSlot {
+    LayerSlot {
       id: menuSlot
       window: panel
       namespace: "axiom-edge-menu"
@@ -132,8 +132,8 @@ PopoutWrapperBase {
     exclusionMode: ExclusionMode.Normal
     exclusiveZone: menuSlot.idle ? 0 : root.depth
     // No input while idle (LayerSlot.held)
-    mask: menuSlot.idle ? idleMask : null
-    property Region idleMask: Region {}
+    mask: menuSlot.idle ? panel._noInput : null
+    property Region _noInput: Region {}
 
     anchors {
       top: root.edge === Bar.Top || root.vertical
