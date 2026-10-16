@@ -14,6 +14,9 @@ CompositorManager's backend on sway (docs/dev/compositor/contract.md, docs/dev/c
 - `activeWindowId` (readonly string): The focused window's id (its con_id), or "": from focus events as they come, the tree otherwise
 - `gapsOut` (readonly var): Sway's gap at the screen edges, after reserved zones: its outer gap plus the inner one every window keeps.
 - `configWriter` (readonly var): Writes axiom's layer into sway's config (CompositorConfigManager)
+- `fx` (readonly bool): Whether sway is SwayFX (blur, rounded corners, shadows, dimming), once known: its get_version reply adds sway_original_version.
+- `ready` (readonly bool): Whether `supports` is final (the variant is known)
+- `displayName` (readonly string)
 - `surfacesReady` (readonly bool): Sway doesn't stack layers by axiom's order: LayerManager maps them in order itself, from the start
 - `travelingTo` (readonly int): Sway has no slides
 - `supports` (readonly var): What sway does (CompositorManager.supports)
@@ -51,6 +54,7 @@ CompositorManager's backend on sway (docs/dev/compositor/contract.md, docs/dev/c
 - `cycleKeyboardLayout(direction, callback)`: Switches every keyboard to its "next" or "prev" layout, then calls back
 - `withCursorPos(callback)`: Sway can't say where the cursor is, nor list layer surfaces
 - `withLayerRects(callback)`
+- `unsupportedHint(capability)`: What can do what plain sway can't (CompositorManager.unsupportedNote).
 - `exitSession()`: Ends the sway session (the power menu's log out)
 - `dpmsCommand(on)`: The shell command turning the screens off or on (the idle daemon's)
 - `withOutputDetails(callback)`: Calls back with every output in detail, disabled ones too (SwayState.outputDetails), or null

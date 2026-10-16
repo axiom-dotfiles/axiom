@@ -58,6 +58,10 @@ Singleton {
   // the one picked is ever created.
   readonly property var backend: kind === "hyprland" ? HyprlandManager : kind === "sway" ? SwayManager : null
 
+  // Whether `supports` is final: a backend that finds out what it can do
+  // by asking (sway: SwayFX or not) isn't until it knows
+  readonly property bool ready: root.backend?.ready ?? true
+
   // What the compositor can do, by capability (contract.md › Capabilities):
   // false for anything the backend doesn't say, and for what
   // AXIOM_COMPOSITOR_OFF ("focusGrab,blur") turns off, so the

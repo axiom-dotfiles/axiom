@@ -8,7 +8,7 @@ Sets the compositor up for axiom (the Compositor section's mode, CompositorConfi
 ### Properties
 
 - `writer` (readonly var): The running compositor's config writer, or null: only with configModes may anything here touch a compositor's config
-- `live` (readonly bool)
+- `live` (readonly bool): Only once the compositor's capabilities are final: the parts applied depend on them (_appliedParts), and one seen missing for a moment would count as turned off and reload the compositor
 - `mode` (readonly string)
 - `problem` (readonly string): Why the chosen mode isn't in effect, or ""
 - `status` (readonly string): "runtime" (detached), "loaded" (the file is in effect), "fallback" (it isn't: see `problem`) or "pending" (still checking)

@@ -42,6 +42,13 @@ Singleton {
   } : _gaps
   // Writes axiom's layer into sway's config (CompositorConfigManager)
   readonly property var configWriter: SwayConfigWriter
+  // Whether sway is SwayFX (blur, rounded corners, shadows, dimming), once
+  // known: its get_version reply adds sway_original_version. Kept across a
+  // reload of the shell, so it's known at once then.
+  readonly property bool fx: _recent.variant === "swayfx"
+  // Whether `supports` is final (the variant is known)
+  readonly property bool ready: _recent.variant !== ""
+  readonly property string displayName: fx ? "SwayFX" : "Sway"
   // Sway doesn't stack layers by axiom's order: LayerManager maps them in
   // order itself, from the start
   readonly property bool surfacesReady: true
@@ -295,6 +302,14 @@ Singleton {
     callback(null);
   }
 
+  // What can do what plain sway can't (CompositorManager.unsupportedNote).
+  // I18n.tr("SwayFX can.")
+  function unsupportedHint(capability) {
+    return !root.fx && root._fxCapabilities.includes(capability) ? I18n.tr("SwayFX can.") : "";
+  }
+
+  readonly property var _fxCapabilities: ["windowRounding", "windowBlur", "blur", "windowShadow", "windowDim"]
+
   // Ends the sway session (the power menu's log out)
   function exitSession() {
     SwayIpcManager.dispatch("exit");
@@ -345,6 +360,15 @@ Singleton {
     id: _recent
     reloadableId: "axiomSwayRecent"
     property string idsJson: "[]"
+    // "sway" or "swayfx" once read (_readVersion), else ""
+    property string variant: ""
+  }
+
+  function _readVersion() {
+    SwayIpcManager.json("get_version", reply => {
+      if (reply)
+        _recent.variant = reply.sway_original_version !== undefined ? "swayfx" : "sway";
+    });
   }
 
   I3IpcListener {
@@ -471,6 +495,7 @@ Singleton {
   }
 
   Component.onCompleted: {
+    _readVersion();
     _fetch();
     _settle.start();
     _readConfig();

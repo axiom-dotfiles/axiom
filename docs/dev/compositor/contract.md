@@ -28,6 +28,7 @@ Plain JS objects, rebuilt as the compositor reports changes. Converters sit in a
 
 ### Backend members
 - **State**: `windows`, `outputs`, `workspaces`, `focusedOutput`, `activeWindowId`, `gapsOut` (`{ top, right, bottom, left }`), `blur` (`{ enabled, size, passes }`), `splitWidthMultiplier`, `surfacesReady`, `supports`, `travelingTo` (the workspace a multi-leg switch has reached, -1 when none is under way).
+- **Optional**: `ready` (false while `supports` isn't final: sway asks whether it's SwayFX; `CompositorConfigManager` waits for it), `displayName` (a variant's name, "SwayFX"), `unsupportedHint(capability)` (what can do what this can't, for a greyed-out setting's note: `CompositorManager.unsupportedNote`). Left out: ready, named by `kind`, no hint.
 - **Signals**: `layersChanged`, `outputsHotplugged`, `configReloaded`, `keyboardLayoutChanged`, `windowFocused(appId)`. The facade re-emits them.
 - **Window switcher** (with `switcher`): signal `switcherKey(verb, argument)` (`step` with the step, `commit`, `cancel`), sent while the compositor holds the switcher's keys; `leaveSwitcher()` lets them go (a tile was clicked). `WindowSwitcherManager` listens to the backend directly.
 - **Windows**: `activateWindow(id)` (focus where it is), `closeWindow(id)`, `placeWindow(…)` and `resizeWindow(…)` (the overview), `toplevelFor(id)` (a `Quickshell.Wayland` toplevel, for previews).

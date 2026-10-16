@@ -33,7 +33,14 @@ Singleton {
   // The running compositor's config writer, or null: only with configModes
   // may anything here touch a compositor's config
   readonly property var writer: CompositorManager.supports.configModes ? CompositorManager.backend.configWriter : null
-  readonly property bool live: writer !== null
+  // Only once the compositor's capabilities are final: the parts applied
+  // depend on them (_appliedParts), and one seen missing for a moment would
+  // count as turned off and reload the compositor
+  readonly property bool live: writer !== null && CompositorManager.ready
+  onLiveChanged: {
+    if (live)
+      _debounce.restart();
+  }
 
   readonly property string mode: CompositorConfig.mode
   // Why the chosen mode isn't in effect, or ""
