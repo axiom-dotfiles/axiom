@@ -2901,10 +2901,8 @@
     "Focused border": "フォーカス中の枠",
     "Off, your own config's applies.": "オフでは自分の設定が適用されます。",
     "Unfocused border": "非フォーカスの枠",
-    "The width of window borders and the rounding of their corners.": "ウィンドウの枠の幅と角の丸み。",
     "The compositor has one blur, for windows and axiom's translucent surfaces alike. Off, your own config's applies.": "コンポジターのぼかしは、ウィンドウと axiom の半透明サーフェスで共通です。オフでは自分の設定が適用されます。",
     "Empty follows the theme's border color.": "空欄ではテーマの枠の色に従います。",
-    "Follow Look & Feel → Shape.": "外観と操作感 → 形に従います。",
     "Set border width and corners": "枠の幅と角を設定",
     "Set the cursor": "カーソルを設定",
     "An installed cursor theme.": "インストール済みのカーソルテーマ。",
@@ -3008,6 +3006,8 @@
     "No gaps around a lone window": "ウィンドウが 1 つのときは隙間なし",
     "leave_fullscreen": "leave_fullscreen",
     "A Pango font, e.g. pango:Inter 10. Empty keeps sway's.": "Pango フォント（例: pango:Inter 10）。空なら sway の既定のまま。",
-    "enable": "enable"
+    "enable": "enable",
+    "Follow Look & Feel → Shape: its border width and corner radius (only the width on sway, which can't round corners).": "外観と操作感 → 形に従います：枠の幅と角の丸み（sway は角を丸められないため、幅のみ）。",
+    "The width of window borders and the rounding of their corners. Sway draws square corners, so there only the width applies.": "ウィンドウの枠の幅と角の丸み。sway は角を四角く描くため、幅のみが適用されます。"
   }
 }

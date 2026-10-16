@@ -99,7 +99,8 @@ The schema is the single source of truth for config: shape, `default`s (there is
 
 ### Sway commands (`x-sway*`, `methods/SwayConf`)
 - `x-sway`: the sway command with `{}` for the value (`"input type:keyboard repeat_rate {}"`). Written under the same rules as `x-hypr`: when its `x-hyprIf` sibling is on, else once changed from the default.
-- `x-swayValue: "enabled"`: a boolean as `enabled`/`disabled`.
+- `x-swayValue`: how the value is written: `"enabled"` (a boolean as `enabled`/`disabled`), `"yesNo"` (`yes`/`no`), `"enableDisable"` (`enable`/`disable`), `"raw"` (as it is, unquoted). Without one, the value is quoted as one argument (`SwayConf.quote`).
+- `x-swayMap`: `{ value: sway's word }` for an enum whose names differ from sway's; a value missing from it is left out.
 - `x-swayScale`: a factor, as `x-hyprScale`.
 - `x-swaySkip`: a value written as nothing (sway's own default stays), e.g. `"default"`.
 - `x-swayConfigOnly: true`: sway takes the command only from a config file (`xkb_numlock`): left out of what's sent at runtime.

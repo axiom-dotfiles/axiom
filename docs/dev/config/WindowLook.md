@@ -24,11 +24,11 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - x-options="colors", x-emptyLabel="Theme", x-showIf={"/$supports.windowBorders":true,"borders":true}
   - read: `WindowLookConfig.inactiveBorder` (computed) · in: `services/CompositorConfigManager.qml`
 - **`WindowLook.shape`** · boolean = false
-  - Set border width and corners: The width of window borders and the rounding of their corners.
+  - Set border width and corners: The width of window borders and the rounding of their corners. Sway draws square corners, so there only the width applies.
   - x-showIf={"/$supports.windowShape":true}
   - read: `WindowLookConfig.look` (whole) · in: `config/WindowLookConfig.qml`
 - **`WindowLook.matchShell`** · boolean = true
-  - Match axiom's shape: Follow Look & Feel → Shape.
+  - Match axiom's shape: Follow Look & Feel → Shape: its border width and corner radius (only the width on sway, which can't round corners).
   - x-showIf={"/$supports.windowShape":true,"shape":true}
   - read: `WindowLookConfig.borderWidth` (computed), `WindowLookConfig.radius` (computed) · in: `services/CompositorConfigManager.qml`
 - **`WindowLook.borderSize`** · integer = 2 · 0–20 · px
