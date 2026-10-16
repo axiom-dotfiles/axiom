@@ -42,6 +42,24 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Size:** small
 - **Found:** 2026-10-16, while decoupling the shell from Hyprland
 
+### Layer origins ignore what axiom doesn't place, even on Hyprland
+- **Where:** `components/hosts/popout/LayerOrigin.qml` (`origin`, `settled`), `services/LayerManager.qml` (`rects`)
+- **What:** Origins now come only from `LayerArrange`, on Hyprland too. Another app's exclusive layer (a second panel) or a monitor's `addreserved` moves axiom's windows without moving their computed origins, so blur shapes, border joins and popout footprints land off by that much. `LayerManager` only logs the difference (`LayerManager: differs from the compositor`). `LayerOrigin.settled` also lost its 400 ms timeout: a window whose screen isn't in `General.outputs` never gets an origin, so its edge popout never claims or shows. Decide whether a window prefers the compositor's rect where `withLayerRects` gives one, and give `settled` a fallback again.
+- **Size:** small
+- **Found:** 2026-10-16, while auditing the layer-placement branch
+
+### Two exclusive-focus surfaces at once without a native grab
+- **Where:** `services/FocusGrab.qml` (`exclusive`), `components/hosts/overlay/OverlayPanel.qml`, `components/hosts/popout/BarPopouts.qml`, `components/hosts/popout/EdgePopout.qml`
+- **What:** Without `supports.focusGrab`, every active grab's surface asks for `WlrKeyboardFocus.Exclusive`. With the overlay open (exclusive the whole time) and a popout with a text field opened over it, two surfaces on the Overlay layer ask for exclusive focus. Which one gets the keyboard is up to the compositor and wasn't checked in nested sway or niri: typing into a popout over the overlay may go to the overlay. Not seen yet; check it in `scripts/dev/nested.sh sway`.
+- **Size:** small
+- **Found:** 2026-10-16, while auditing the layer-placement branch
+
+### Missing app icons warn in the log
+- **Where:** `services/LauncherManager.qml` (`Quickshell.iconPath`), `services/DockManager.qml`
+- **What:** An app whose `.desktop` icon isn't in the icon theme (here `xdg-desktop-portal-gtk`'s `applications-system-symbolic`) logs `Could not load icon` at each size it's drawn, though the fallback icon shows. Noise in `scripts/log.sh`; either skip hidden/`NoDisplay` entries or resolve the name before handing it to an Image.
+- **Size:** trivial
+- **Found:** 2026-10-16, while auditing the layer-placement branch
+
 ### The python venv and bytecode are written into the repo
 - **Where:** `scripts/setup_venv.sh`, `scripts/venv_python.sh`
 - **What:** The venv for `generate_theme.py`/`calendar_sync.py` is made at `<repo>/.venv`, and python leaves `__pycache__/` in `scripts/`. A packaged (read-only) install can't do either. Put the venv in `$XDG_DATA_HOME/axiom/venv` (or use the system python when the requirements already import), and set `PYTHONDONTWRITEBYTECODE=1`. Blocks packaging, not the XDG move.
@@ -85,8 +103,8 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Found:** 2026-10-13, while assessing reader renames for the docs makeover
 
 ### `BlurManager.paused` warns on every reload
-- **Where:** `services/BlurManager.qml` (`paused`), `services/UpdatesManager.qml` (`checking`), `services/SelfUpdateManager.qml`
-- **What:** Every config reload logs `Unable to assign [undefined] to bool` at the `paused` declaration (and, seen 2026-10-14, at `UpdatesManager.checking`, also a readonly bool on a singleton: likely the same cause). The binding itself evaluates to a boolean (a temporary probe logged `boolean false`), and a constant `paused: false` still warned, so it isn't the expression: something in Quickshell's reload of this singleton assigns it. Harmless (the value is right afterwards), but it's noise in every `scripts/log.sh`. Next step: check whether Quickshell carries readonly properties across a reload, or whether making `paused` a plain function helps.
+- **Where:** `services/BlurManager.qml` (`paused`), `services/UpdatesManager.qml` (`checking`), `services/SelfUpdateManager.qml`, `services/HyprlandManager.qml` (`activeWindowId`)
+- **What:** Every config reload logs `Unable to assign [undefined] to bool` at the `paused` declaration (and, seen 2026-10-14, at `UpdatesManager.checking`, also a readonly bool on a singleton: likely the same cause; seen 2026-10-16 as `Unable to assign [undefined] to QString` at `HyprlandManager.activeWindowId`, a readonly string). The binding itself evaluates to a boolean (a temporary probe logged `boolean false`), and a constant `paused: false` still warned, so it isn't the expression: something in Quickshell's reload of this singleton assigns it. Harmless (the value is right afterwards), but it's noise in every `scripts/log.sh`. Next step: check whether Quickshell carries readonly properties across a reload, or whether making `paused` a plain function helps.
 - **Size:** small
 - **Found:** 2026-10-13, while checking reload logs during the docs makeover
 
