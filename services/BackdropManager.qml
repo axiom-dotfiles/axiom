@@ -8,7 +8,9 @@ import QtQuick
  * shell/Backdrops), showing the request that showed last there. One
  * window rather than one per surface keeps it in its place in the stack
  * where the compositor stacks by map order alone: it stays mapped there
- * (docs/dev/compositor/layer-arrangement.md).
+ * (docs/dev/compositor/layer-arrangement.md). Without a native focus
+ * grab, the same windows catch the click outside a grabbing surface
+ * (FocusGrab, `catching`).
  */
 QtObject {
   id: root
@@ -46,5 +48,25 @@ QtObject {
         best = r;
     }
     return best;
+  }
+
+  // --- Catching clicks for a focus grab the compositor doesn't have ---
+
+  // FocusGrabs without a native grab, active now ({ uid: true }): every
+  // screen's backdrop window then covers its screen, transparent, under
+  // the grabbing surface, and a click on it ends their grabs
+  property var _catchers: ({})
+  readonly property bool catching: Object.keys(root._catchers).length > 0
+  signal clickedOutside
+
+  function catchClicks(uid, on) {
+    if ((root._catchers[uid] === true) === on)
+      return;
+    const catchers = Object.assign({}, root._catchers);
+    if (on)
+      catchers[uid] = true;
+    else
+      delete catchers[uid];
+    root._catchers = catchers;
   }
 }

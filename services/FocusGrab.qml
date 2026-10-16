@@ -7,9 +7,12 @@ import Quickshell
 // click anywhere else ends the grab (`cleared`). Hyprland's focus grab
 // (HyprlandGrab) where the compositor has one (CompositorManager.supports.
 // focusGrab); elsewhere the grab ends once keyboard focus has left every
-// one of `windows` (a click on another window or surface takes it), which
-// only works for windows that take keyboard focus. Not a singleton: each
-// surface makes its own.
+// one of `windows` (a click on another window or surface takes it), or a
+// click lands on a screen's backdrop window, which covers every screen
+// under the surfaces while such a grab is active (BackdropManager.
+// catching). Its surface asks for Exclusive keyboard focus meanwhile
+// (`exclusive`): a layer surface asking on demand gets the keyboard only
+// once clicked. Not a singleton: each surface makes its own.
 Scope {
   id: root
 
@@ -18,6 +21,25 @@ Scope {
   signal cleared
 
   readonly property bool _native: CompositorManager.supports.focusGrab === true
+  // Active without a native grab: the surface's own window should take the
+  // keyboard exclusively (WlrKeyboardFocus.Exclusive) while this is on
+  readonly property bool exclusive: !root._native && root.active
+
+  // A click caught outside every surface (BackdropManager.catching)
+  property int _uid: 0
+  onExclusiveChanged: BackdropManager.catchClicks(root._uid, root.exclusive)
+  Component.onCompleted: {
+    root._uid = BackdropManager.register();
+    BackdropManager.catchClicks(root._uid, root.exclusive);
+  }
+  Component.onDestruction: BackdropManager.catchClicks(root._uid, false)
+  property Connections _outside: Connections {
+    target: BackdropManager
+    enabled: root.exclusive
+    function onClickedOutside() {
+      root.cleared();
+    }
+  }
 
   LazyLoader {
     active: root._native

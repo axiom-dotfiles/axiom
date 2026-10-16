@@ -128,6 +128,7 @@ PopoutWrapperBase {
   readonly property bool wantsKeyboardFocus: root.window.visible && (root.currentItem?.wantsKeyboardFocus ?? false)
 
   FocusGrab {
+    id: focusGrab
     windows: [root.window, root.panel].concat(ShellManager.modalWindows)
     active: root.wantsKeyboardFocus
     onCleared: root.currentItem?.focusLost?.()
@@ -327,7 +328,7 @@ PopoutWrapperBase {
 
     WlrLayershell.layer: root.onOverlayLayer ? WlrLayer.Overlay : WlrLayer.Top
     WlrLayershell.namespace: root.underBar ? "axiom-popout-under" : "axiom-popout"
-    WlrLayershell.keyboardFocus: root.wantsKeyboardFocus ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
+    WlrLayershell.keyboardFocus: root.wantsKeyboardFocus ? (focusGrab.exclusive ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.OnDemand) : WlrKeyboardFocus.None
     exclusionMode: ExclusionMode.Ignore
     exclusiveZone: 0
 

@@ -16,7 +16,9 @@ import qs.components.hosts.popout
 // nothing asks for it (LayerSlot.held). It takes no input: clicks go to
 // the surface above it, or to the bars and border (which clears the
 // surface's focus grab, unless the surface lets its screen's bars
-// through: see ShellManager.grabPartners).
+// through: see ShellManager.grabPartners). Without a native focus grab it
+// catches the click outside a grabbing surface instead, covering its
+// screen while one is active (BackdropManager.catching).
 PanelWindow {
   id: root
 
@@ -44,7 +46,7 @@ PanelWindow {
     id: slot
     window: root
     namespace: "axiom-backdrop"
-    wanted: root._wanted
+    wanted: root._wanted || BackdropManager.catching
     held: true
   }
 
@@ -61,7 +63,14 @@ PanelWindow {
   WlrLayershell.namespace: "axiom-backdrop"
   WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
   color: "transparent"
-  mask: Region {}
+  mask: BackdropManager.catching ? null : root._noInput
+  property Region _noInput: Region {}
+
+  MouseArea {
+    anchors.fill: parent
+    enabled: BackdropManager.catching
+    onPressed: BackdropManager.clickedOutside()
+  }
 
   Rectangle {
     id: fill

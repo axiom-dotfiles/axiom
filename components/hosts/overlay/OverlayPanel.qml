@@ -21,6 +21,9 @@ ReservedAreaWindow {
   // Its layer rule arranges it after docks and draws it over them
   // (see HyprLua.layerRulesLua)
   WlrLayershell.namespace: "axiom-overlay"
+  // The keyboard exclusively while its grab is one the compositor doesn't
+  // have (FocusGrab.exclusive)
+  WlrLayershell.keyboardFocus: root.steppedAside ? WlrKeyboardFocus.None : grab.exclusive ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.OnDemand
 
   function open() {
     visible = true;

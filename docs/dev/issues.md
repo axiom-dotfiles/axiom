@@ -24,12 +24,6 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Size:** needs a plan
 - **Found:** 2026-10-16, while decoupling the shell from Hyprland
 
-### Surfaces wait for Hyprland's grab to get keyboard focus
-- **Where:** `components/hosts/popout/EdgePopout.qml` (`WlrLayershell.keyboardFocus`), `components/hosts/overlay/OverlayPanel.qml`, `shell/WorkspaceOverlay.qml`, `components/surfaces/powermenu/PowerMenuWindow.qml`, `services/FocusGrab.qml`
-- **What:** The launcher, overlay, workspace overview, power menu and popouts with text fields ask for `OnDemand` keyboard focus and get the keyboard from Hyprland's focus grab. Without one (nested sway), an on-demand layer surface gets focus only once it's clicked: the launcher opened by a key can't be typed into, and `FocusGrab`'s fallback, which ends the grab when focus leaves, never sees focus to lose. Without `supports.focusGrab` these need `Exclusive` focus while their grab is active (and a click-catcher for the outside click: `sway-backend.md` › Open questions).
-- **Size:** small
-- **Found:** 2026-10-16, while reviewing the compositor split under nested sway
-
 ### The greeter and the onboarding's Apps page assume Hyprland
 - **Where:** `scripts/greeter/greeter-session.sh`, `services/GreetdManager.qml` (`_applyHyprland`), `components/surfaces/onboarding/pages/AppsPage.qml`, `components/surfaces/onboarding/pages/BindsTable.qml`, `components/surfaces/onboarding/pages/WelcomePage.qml`
 - **What:** The greeter runs its own Hyprland session (`start-hyprland`, `hyprctl dispatch exit`). Under another compositor the onboarding still shows the Apps page's Hyprland binds table and the Welcome page's "desktop shell for Hyprland". The Hyprland and Monitors pages are already left out (`OnboardingManager.pages`). Decide per page what sway gets (hide the binds table; neutral copy), and whether the greeter keeps Hyprland or moves to cage/sway.

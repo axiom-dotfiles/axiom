@@ -100,7 +100,7 @@ Scope {
       // focus to every window, so focusing one (a click, a drop's target)
       // would only switch the workspace, and closing would refocus the old
       // window and switch back. The focus grab keeps the keyboard here.
-      WlrLayershell.keyboardFocus: overlayWindow.shown ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
+      WlrLayershell.keyboardFocus: overlayWindow.shown ? (grab.exclusive ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.OnDemand) : WlrKeyboardFocus.None
 
       FocusGrab {
         id: grab

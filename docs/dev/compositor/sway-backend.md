@@ -66,8 +66,8 @@ Quickshell's `I3` module speaks sway's IPC (`$SWAYSOCK`). It gives `monitors`, `
 `windowGeometry`, `windowBorders`, `windowGaps` (plus `windowShape` on SwayFX). Everything else is false: `configModes`, `keybinds`, `monitors`, `switcher`, `strips`, `focusGrab`, `layerOrder`, `blur`, `cursorPos`, `cursorWarp`, `workspaceSlide`, `windowBlur`, `windowOpacity`.
 
 ### Open questions (check in the nested session)
-- **Click outside.** `FocusGrab`'s fallback only sees keyboard focus leaving. Check that bar popouts with text fields, the launcher, the overlay and the power menu close on an outside click. For surfaces that don't take focus, a full-screen click-catcher layer (Top, below the surface, mapped before it) may be needed.
-- **Layer stacking.** With no `layerOrder`, layers stack in map order within each layer. Check the bar against the border, popouts over bars, and the dock.
+- **Click outside.** Without `focusGrab`, a grabbing surface takes the keyboard exclusively and each screen's backdrop window catches the click outside it ([README](README.md) › Focus grab). Typing into the launcher opened by IPC works in nested sway; check by hand that bar popouts with text fields, the launcher, the overlay and the power menu close on an outside click.
+- **Layer stacking.** With no `layerOrder`, `LayerManager` maps the stacked surfaces in `LayerStack` order ([layer arrangement](layer-arrangement.md)); checked in nested sway for a solid and a floating-pills bar against the border, and an integrated edge menu.
 - **`surfacesReady`.** Return true at once.
 - **Workspace numbers.** `workspace number N` creates N on the focused output. Check the perMonitor and grid layouts' blocks. Ids are `num` (a named workspace with no number has `num` -1; skip those).
 - **The greeter** stays a Hyprland session (`issues.md`).
