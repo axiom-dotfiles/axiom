@@ -8,7 +8,7 @@ The docks' shared state and actions (the docks themselves are shell/Dock): which
 ### Properties
 
 - `hidden` (var): Always-shown docks hidden by hand ({ id: true }), shared by every screen's copy
-- `focusedAddress` (readonly string)
+- `focusedId` (readonly string)
 - `zones` (var): What each shown dock reserves, by "<screen>:<edge>:<dock id>" (edge "top" | "bottom" | "left" | "right"): EdgePopouts (the OSD, edge menus) reach past it to the border, so a dock doesn't push them in
 - `previewDock` (var): A dock as its card edits it (a DockEntry, saved or not), which shell/Dock slides in over the overlay for a moment on `previewScreen` (where the dock would show), in a window of its own: the dock itse…
 - `previewActive` (bool)
@@ -29,7 +29,7 @@ The docks' shared state and actions (the docks themselves are shell/Dock): which
 - `nameFor(key, win)`
 - `itemsFor(dock, screen)`: The dock's items on a screen ([{ key, pinned, windows }], see DockLayout.buildItems), windows counted by its windowScope
 - `activate(item)`: A click: start the app when it has no windows, else focus its most recent one, or the next when one of them is focused
-- `focus(address)`
+- `focus(id)`
 - `launch(key)`: A new instance (middle click, the menu's New window)
 - `closeWindows(item)`
 - `pin(dockId, key, index)`: Pins an app at `index` (the end when -1), moving it there when it's already pinned

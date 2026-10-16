@@ -135,7 +135,7 @@ Item {
     StyledText {
       id: sizeLabel
       anchors.centerIn: parent
-      text: `${root.windowData?.size?.[0] ?? 0} × ${root.windowData?.size?.[1] ?? 0}`
+      text: `${root.windowData?.w ?? 0} × ${root.windowData?.h ?? 0}`
       textSize: Appearance.fontSize - 2
       textColor: Theme.background
     }

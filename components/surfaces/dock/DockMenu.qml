@@ -97,10 +97,10 @@ PopupWindow {
           required property int index
           readonly property var win: root.windows[index]
           Layout.fillWidth: true
-          icon: win?.address === DockManager.focusedAddress ? "radio_button_checked" : "select_window"
-          text: win?.title || win?.["class"] || ""
+          icon: win?.id === DockManager.focusedId ? "radio_button_checked" : "select_window"
+          text: win?.title || win?.appId || ""
           onClicked: {
-            DockManager.focus(win.address);
+            DockManager.focus(win.id);
             root.close();
           }
         }

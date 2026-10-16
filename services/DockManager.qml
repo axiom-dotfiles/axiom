@@ -69,18 +69,18 @@ QtObject {
     return DockLayout.buildItems(dock.pinned, windows, w => root.appKey(w), dock.showRunning);
   }
 
-  readonly property string focusedAddress: CompositorManager.windows.find(w => w.focusRank === 0)?.id ?? ""
+  readonly property string focusedId: CompositorManager.windows.find(w => w.focusRank === 0)?.id ?? ""
 
   // A click: start the app when it has no windows, else focus its most
   // recent one, or the next when one of them is focused
   function activate(item) {
     if (item.windows.length === 0)
       return root.launch(item.key);
-    CompositorManager.focusWindow(DockLayout.clickTarget(item.windows, root.focusedAddress));
+    CompositorManager.focusWindow(DockLayout.clickTarget(item.windows, root.focusedId));
   }
 
-  function focus(address) {
-    CompositorManager.focusWindow(address);
+  function focus(id) {
+    CompositorManager.focusWindow(id);
   }
 
   // A new instance (middle click, the menu's New window)
@@ -159,9 +159,9 @@ QtObject {
   }
 
   // Quickshell only re-reads Hyprland's monitors on monitor events, and
-  // Hyprland sends none when windows retile around a reserved zone that changed, so
-  // both are re-read when a layer surface (a bar, a dock) comes or goes, or
-  // a dock's zone changes (refreshSoon)
+  // Hyprland sends none when windows retile around a reserved zone that
+  // changed, so both are re-read when a layer surface (a bar, a dock)
+  // comes or goes, or a dock's zone changes (refreshSoon)
   function refreshSoon() {
     root._refresh.restart();
   }

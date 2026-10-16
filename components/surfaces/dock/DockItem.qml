@@ -21,7 +21,7 @@ Item {
   readonly property var item: root.dockWindow.items[root.index] ?? null
   readonly property string key: root.item?.key ?? ""
   readonly property var windows: root.item?.windows ?? []
-  readonly property bool focused: root.windows.some(w => w.address === DockManager.focusedAddress)
+  readonly property bool focused: root.windows.some(w => w.id === DockManager.focusedId)
   readonly property real size: root.dockWindow.sizes[root.index] ?? root.dockWindow.base
   readonly property real along: root.dockWindow.starts[root.index] ?? 0
   readonly property bool vertical: root.dockWindow.vertical

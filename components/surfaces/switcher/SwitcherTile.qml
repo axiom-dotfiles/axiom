@@ -21,8 +21,8 @@ Item {
   // The capture's box: the window's shape fitted into 16:10
   readonly property real boxWidth: root.tileWidth - root.pad * 2
   readonly property real boxHeight: root.boxWidth * 10 / 16
-  readonly property real windowWidth: root.windowData?.size?.[0] || 16
-  readonly property real windowHeight: root.windowData?.size?.[1] || 10
+  readonly property real windowWidth: root.windowData?.w || 16
+  readonly property real windowHeight: root.windowData?.h || 10
   readonly property real fit: Math.min(root.boxWidth / root.windowWidth, root.boxHeight / root.windowHeight)
 
   width: root.tileWidth
@@ -63,7 +63,7 @@ Item {
       width: Math.min(box.width, box.height) * 0.6
       height: width
       sourceSize: Qt.size(128, 128)
-      source: IconResolver.resolveWindowIcon(root.windowData?.class, root.windowData?.title)
+      source: IconResolver.resolveWindowIcon(root.windowData?.appId, root.windowData?.title)
       fillMode: Image.PreserveAspectFit
     }
   }
@@ -74,7 +74,7 @@ Item {
     anchors.topMargin: Widget.spacing
     anchors.left: box.left
     anchors.right: box.right
-    text: root.windowData?.title || root.windowData?.class || ""
+    text: root.windowData?.title || root.windowData?.appId || ""
     textColor: root.selected ? Theme.accent : Theme.foregroundAlt
     textSize: Appearance.fontSize - 1
     elide: Text.ElideRight
