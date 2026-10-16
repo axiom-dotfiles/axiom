@@ -420,8 +420,8 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `AppsPage.qml`: The apps the keybinds open (terminal, file manager, browser), with the installed ones offered to pick from, the main modifier, and the keys that matter most on day one.
 - `BindsTable.qml`: The keys axiom binds for some actions (from Keybinds.binds): one row per action, with its first key, its label, and a warning when the running layer skipped that key because the user's own config holds it
 - `ChecksPage.qml`: What's missing: the icon font, and the programs features use (DependencyManager.tools), with one command that installs them
-- `FinishPage.qml`: The last page: what Finish does to Hyprland, whether axiom starts with the session, and where to go from here
-- `HyprlandPage.qml`: How axiom and Hyprland's config fit together: what's in ~/.config/hypr (OnboardingManager.configState), the three modes (always all three: managed recommended, included for complex setups, detached for testing) (an unav…
+- `CompositorPage.qml`: How axiom and the compositor's config fit together, on any compositor axiom can set up (configModes): what its config folder holds (OnboardingManager.configState), the three modes (always all three: managed recommended,…
+- `FinishPage.qml`: The last page: what Finish does to the compositor's config, whether axiom starts with the session, and where to go from here
 - `IntegrationsPage.qml`: Theme integrations (other apps in axiom's colors), marked by whether the app is installed, and the switched-on ones' hookups (IntegrationHookup), then the lock screen, self-updates, the launcher's clipboard history, whe…
 - `LookPage.qml`: The look: the wallpaper folder, bar style and screen border here, with the Themes page's wallpaper picker and theme list beside it
 - `MonitorsPage.qml`: The monitor layout: the overlay's Monitors page as it is, beside a card saying what to do with it
@@ -639,7 +639,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `NightLightManager.qml`: The night light (the NightLight section): warmer colors through hyprsunset, or wlsunset without it, started and stopped by axiom.
 - `NotesManager.qml`: Notes: Markdown files in NotesConfig.directory ($XDG_DATA_HOME/axiom/notes/ by default, or a linked folder).
 - `NotificationManager.qml`: NotificationManager is the DBus notification server and the notification history.
-- `OnboardingManager.qml`: The first-run onboarder (shell/Onboarding): a series of pages that set the essentials up (Hyprland, monitors, apps and keys, workspaces, the look, integrations), each applying as the user goes, with the Hyprland mode ap…
+- `OnboardingManager.qml`: The first-run onboarder (shell/Onboarding): a series of pages that set the essentials up (the compositor, monitors, apps and keys, workspaces, the look, integrations), each applying as the user goes, with the compositor…
 - `OverlayManager.qml`: OverlayManager holds the layouts editor's working copy of Overlay.views (the editor is the pinned last page).
 - `PolkitManager.qml`: axiom as the session's polkit agent (the Polkit section): while PolkitConfig.enabled, a PolkitAgent answers apps' requests for administrator rights, and PolkitWindow (shell/PolkitPrompt) shows each one.
 - `PopoutManager.qml`: Every popout showing, where it is, and which gives way to which.

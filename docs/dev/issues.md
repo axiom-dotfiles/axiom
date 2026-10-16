@@ -66,12 +66,6 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Size:** trivial
 - **Found:** 2026-10-16, while writing the sway backend
 
-### The onboarding's setup page is Hyprland's
-- **Where:** `components/surfaces/onboarding/pages/HyprlandPage.qml`, `services/OnboardingManager.qml` (`pages`, `configState`, `hyprlandSupported`, `detectHyprland`)
-- **What:** The config modes are neutral now, but the onboarding page that picks one is written for Hyprland (its intro about `~/.config/hypr` and the example config, the 0.55+ version check, the hyprland.conf note), so `OnboardingManager.pages` shows it only under Hyprland. Under sway the mode is set in Settings › Compositor only. The page needs the writer to supply its texts (config folder, example-config detection, version check) to show for every compositor with `configModes`.
-- **Size:** small
-- **Found:** 2026-10-16, while consolidating compositor settings
-
 ### Qt text-input warnings under sway
 - **Where:** `components/reusable/StyledTextEntry.qml` (the text fields; Qt's own wayland text-input)
 - **What:** Under sway the log fills with `Trying to disable` / `Trying to enable` warnings from `qt.qpa.wayland.textinput` (`QWaylandTextInputv3::disableSurface`) as keyboard focus moves between axiom's surfaces. Seen live on sway, never under Hyprland; typing still works. Likely Qt's text-input-v3 handling with several layer surfaces taking focus.

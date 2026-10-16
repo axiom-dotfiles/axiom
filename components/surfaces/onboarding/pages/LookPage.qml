@@ -35,7 +35,7 @@ OnboardingPage {
   Notice {
     visible: root.imageCount === -2 || root.imageCount === 0
     tone: "warning"
-    text: root.imageCount === -2 ? I18n.tr("That folder doesn't exist yet. Create it and put some images in it, or use Hyprland's wallpapers for now.") : I18n.tr("That folder has no images (jpg, png or bmp) yet.")
+    text: root.imageCount === -2 ? (WallpaperManager.hasHyprlandWallpapers ? I18n.tr("That folder doesn't exist yet. Create it and put some images in it, or use Hyprland's wallpapers for now.") : I18n.tr("That folder doesn't exist yet. Create it and put some images in it.")) : I18n.tr("That folder has no images (jpg, png or bmp) yet.")
   }
 
   RowLayout {
