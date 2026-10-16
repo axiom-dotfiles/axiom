@@ -359,13 +359,10 @@ return setmetatable({}, { __index = function() return function() end end })
 
   // The managed settings `m` as one hl.config() table. `opts`: { schema
   // (Hyprland.managed's), resolveHex (a theme color name → "rrggbb"),
-  // lookShape (the window look sets rounding and borders), motion }
+  // motion }. The border width and rounding are the window look's
+  // (M.look()).
   function configLua(m, opts) {
-    // The window look sets them when it matches axiom's shape (M.look())
-    const overrides = opts.lookShape ? {} : {
-      "decoration.rounding": m.rounding,
-      "general.border_size": m.borderSize
-    };
+    const overrides = {};
     // Following axiom's motion includes turning animations off with it
     if (m.animationPreset === "axiom" && !opts.motion.enabled)
       overrides["animations.enabled"] = false;

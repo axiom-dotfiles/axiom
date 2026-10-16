@@ -214,15 +214,15 @@ Singleton {
     if (!root.backend?.applyLook || root.supports.configModes)
       return;
     root.backend.applyLook(CompositorLayer.look(WindowLookConfig.look, {
-      "activeHex": CompositorLayer.hex(Theme.borderFocus),
-      "inactiveHex": CompositorLayer.hex(Theme.border),
-      "borderWidth": Appearance.borderWidth,
-      "radius": Appearance.borderRadius,
+      "activeHex": CompositorLayer.hex(WindowLookConfig.activeBorder),
+      "inactiveHex": CompositorLayer.hex(WindowLookConfig.inactiveBorder),
+      "borderWidth": WindowLookConfig.borderWidth,
+      "radius": WindowLookConfig.radius,
       "surfacesBlur": false
     }));
   }
 
-  readonly property string _lookInputs: [WindowLookConfig._lookJson, Theme.borderFocus, Theme.border, Appearance.borderWidth, Appearance.borderRadius, root.kind].join("|")
+  readonly property string _lookInputs: [WindowLookConfig._lookJson, WindowLookConfig.activeBorder, WindowLookConfig.inactiveBorder, WindowLookConfig.borderWidth, WindowLookConfig.radius, root.kind].join("|")
   on_LookInputsChanged: _lookDebounce.restart()
   onConfigReloaded: _lookDebounce.restart()
 

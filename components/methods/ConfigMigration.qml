@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 57
+  readonly property int currentVersion: 58
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -141,6 +141,8 @@ QtObject {
       result = _v55ToV56(result, changes);
     if (version < 57)
       result = _v56ToV57(result, changes);
+    if (version < 58)
+      result = _v57ToV58(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -1932,6 +1934,30 @@ QtObject {
       }
       delete hypr[key];
     }
+    return config;
+  }
+
+  // The window look owns the border width and rounding on every
+  // compositor (Hyprland.managed.borderSize, .rounding -> WindowLook). A
+  // managed Hyprland wrote them while the look didn't set the shape, so
+  // there the look takes them over with its shape on and not matching
+  // axiom's; elsewhere they did nothing.
+  function _v57ToV58(config, changes) {
+    const managed = config.Hyprland?.managed;
+    if (!managed || typeof managed !== "object")
+      return config;
+    if (config.Compositor?.mode === "managed" && config.WindowLook?.shape !== true) {
+      config.WindowLook = config.WindowLook ?? {};
+      Object.assign(config.WindowLook, {
+        "shape": true,
+        "matchShell": false,
+        "borderSize": managed.borderSize ?? 2,
+        "rounding": managed.rounding ?? 8
+      });
+      changes.push(`Hyprland.managed.borderSize, .rounding -> WindowLook (shape on, ${config.WindowLook.borderSize}px, rounding ${config.WindowLook.rounding})`);
+    }
+    delete managed.borderSize;
+    delete managed.rounding;
     return config;
   }
 }

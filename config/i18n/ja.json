@@ -813,7 +813,6 @@
     "workspaceStep": "ワークスペースを左右上下へ",
     "Key": "キー",
     "Corner rounding": "角の丸み",
-    "Window corners and border width follow Look & Feel → Shape.": "ウィンドウの角と枠線の太さを「外観と操作感 → 形」に合わせます。",
     "included": "hyprland.lua からインクルード",
     "Managed config": "管理設定",
     "Key repeat delay": "キーリピートの遅延",
@@ -2721,12 +2720,10 @@
     "Set Hyprland's blur": "Hyprland のぼかしを設定",
     "Change": "変更",
     "Window opacity": "ウィンドウの不透明度",
-    "Hyprland has one blur, for windows and axiom's translucent surfaces alike. Off, your own Hyprland config's applies.": "Hyprland のぼかしは一つで、ウィンドウと axiom の半透明なサーフェスの両方に使われます。オフの場合は Hyprland の設定のものが使われます。",
     "The variables Hyprland's wiki recommends: GTK, Qt, Clutter and Electron apps run on Wayland (falling back to X11 where they can), Qt scales by pixel density and leaves window decorations to Hyprland. Your own below win over them.": "Hyprland の wiki が推奨する変数です: GTK、Qt、Clutter、Electron のアプリを Wayland で動かし (可能なら X11 にフォールバック)、Qt はピクセル密度で拡大縮小し、ウィンドウの装飾は Hyprland に任せます。下の自分の変数がこれより優先されます。",
     "Off, only axiom's surfaces blur (Look & Feel → Translucency).": "オフの場合、axiom のサーフェスだけがぼかされます (外観と操作感 → 半透明)。",
     "Set window opacity": "ウィンドウの不透明度を設定",
     "lightning": "lightning",
-    "Off, your own Hyprland config's applies.": "オフの場合は Hyprland の設定のものが使われます。",
     "Recommended environment": "推奨される環境変数",
     "Lightning": "稲妻",
     "{0} connected": "{0} 台接続中",
@@ -2936,6 +2933,16 @@
     "Which apps should axiom open? Pick one that's installed, or type the command. Empty file manager and browser use your system's default.": "axiom で開くアプリはどれにしますか？インストール済みのものを選ぶか、コマンドを入力してください。ファイルマネージャーとブラウザは空欄ならシステムの既定を使います。",
     "How axiom sets your compositor up: its keybinds, monitors, window look and input.": "axiom がコンポジターをどう設定するか：キーバインド、モニター、ウィンドウの見た目、入力。",
     "Hyprland's own options, written while axiom manages its config. Needs Hyprland 0.55+ with a Lua config.": "axiom が設定を管理している間に書き込まれる Hyprland 独自のオプション。Lua 設定の Hyprland 0.55 以降が必要です。",
-    "Included from your config": "自分の設定から読み込む"
+    "Included from your config": "自分の設定から読み込む",
+    "Set the compositor's blur": "コンポジターのぼかしを設定",
+    "Empty follows the theme's focused border color.": "空欄ではテーマのフォーカス枠の色に従います。",
+    "Focused border": "フォーカス中の枠",
+    "Off, your own config's applies.": "オフでは自分の設定が適用されます。",
+    "Unfocused border": "非フォーカスの枠",
+    "The width of window borders and the rounding of their corners.": "ウィンドウの枠の幅と角の丸み。",
+    "The compositor has one blur, for windows and axiom's translucent surfaces alike. Off, your own config's applies.": "コンポジターのぼかしは、ウィンドウと axiom の半透明サーフェスで共通です。オフでは自分の設定が適用されます。",
+    "Empty follows the theme's border color.": "空欄ではテーマの枠の色に従います。",
+    "Follow Look & Feel → Shape.": "外観と操作感 → 形に従います。",
+    "Set border width and corners": "枠の幅と角を設定"
   }
 }

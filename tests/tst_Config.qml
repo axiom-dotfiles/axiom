@@ -1348,7 +1348,7 @@ TestCase {
         [key]: migrated.WindowLook[key]
       }), {}), {
       "borders": true,
-      "shape": false,
+      "shape": true,
       "gaps": true,
       "gapsIn": 5,
       "gapsOut": 10
@@ -1356,7 +1356,10 @@ TestCase {
     compare(managed.theme, undefined);
     compare(managed.managed.gapsIn, undefined);
     compare(managed.managed.matchAxiom, undefined);
-    compare(managed.managed.rounding, 3);
+    // v58: the managed rounding moves into the look, its shape not axiom's
+    compare(managed.managed.rounding, undefined);
+    compare(migrated.WindowLook.matchShell, false);
+    compare(migrated.WindowLook.rounding, 3);
 
     // A managed config left at the defaults keeps matching axiom's shape
     compare(load({
@@ -1735,5 +1738,69 @@ TestCase {
     compare(load({
       "version": 56
     }).config.Compositor.mode, "detached", "a config without the section gets the default");
+  }
+
+  function test_v58_window_shape_leaves_managed() {
+    // Managed without the look's shape: the look takes the managed values
+    const managed = load({
+      "version": 57,
+      "Compositor": {
+        "mode": "managed"
+      },
+      "Hyprland": {
+        "managed": {
+          "borderSize": 3,
+          "rounding": 4
+        }
+      },
+      "WindowLook": {
+        "borders": true
+      }
+    });
+    const look = managed.config.WindowLook;
+    compare(look.shape, true);
+    compare(look.matchShell, false);
+    compare(look.borderSize, 3);
+    compare(look.rounding, 4);
+    compare(look.borders, true);
+    compare(managed.config.Hyprland.managed.borderSize, undefined);
+    compare(managed.removed, []);
+    compare(errors(managed.config), []);
+    // Idempotent
+    const again = ConfigMigration.migrate(JSON.parse(JSON.stringify(Object.assign({}, managed.config, {
+      "version": 57
+    })))).config;
+    compare(again.WindowLook.rounding, 4);
+    compare(again.WindowLook.matchShell, false);
+
+    // Matching axiom's shape already: the managed values did nothing
+    const matching = load({
+      "version": 57,
+      "Compositor": {
+        "mode": "managed"
+      },
+      "Hyprland": {
+        "managed": {
+          "rounding": 4
+        }
+      },
+      "WindowLook": {
+        "shape": true
+      }
+    }).config.WindowLook;
+    compare(matching.matchShell, true);
+    compare(matching.rounding, 8, "the default");
+
+    // Detached: never written, the look stays off
+    const detached = load({
+      "version": 57,
+      "Hyprland": {
+        "managed": {
+          "rounding": 4
+        }
+      }
+    }).config;
+    compare(detached.WindowLook.shape, false);
+    compare(detached.Hyprland.managed.rounding, undefined);
   }
 }

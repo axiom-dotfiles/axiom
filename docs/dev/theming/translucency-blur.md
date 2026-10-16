@@ -2,7 +2,7 @@
 
 > **Files:** `config/Appearance.qml`, `services/BlurManager.qml`, `components/methods/HyprLua.qml`, `services/HyprlandConfigManager.qml`, `components/views/settings/TranslucencyStatus.qml`, `components/surfaces/screenlayout/ScreenLayoutView.qml`
 > **Config:** `Appearance.surface.*` (`opacity`, `blur`, `throughWindows`, `blurBackdrops`, `pauseFullscreen`)
-> **Related:** [Blur window and openings](blur-window-openings.md), [Window look](../hyprland/window-look.md), [Popout registry](../popouts/registry.md)
+> **Related:** [Blur window and openings](blur-window-openings.md), [Window look](../compositor/window-look.md), [Popout registry](../popouts/registry.md)
 
 The translucency setting, how fills apply it, the Hyprland layer rules axiom writes for blur, and per-screen and fullscreen behaviour. How chrome surfaces share one blurred backing window is in [Blur window and openings](blur-window-openings.md).
 
@@ -12,7 +12,7 @@ The translucency setting, how fills apply it, the Hyprland layer rules axiom wri
   - `blur`, `throughWindows`, `blurBackdrops`;
   - `pauseFullscreen` (`x-scope: machine`).
   - The blur settings show only where the compositor blurs axiom's surfaces (`"/$supports.blur": true`). Elsewhere `BlurManager.active` stays false whatever `blur` says, and the surfaces fill themselves: nothing blurs the blur window (`issues.md` › Blur and transparency on other compositors).
-- The strength isn't axiom's. Hyprland has one blur, for windows and layers alike, set by the window look's blur part (Compositor → Window look, see [Window look](../hyprland/window-look.md)) or the user's own config.
+- The strength isn't axiom's. Hyprland has one blur, for windows and layers alike, set by the window look's blur part (Compositor → Window look, see [Window look](../compositor/window-look.md)) or the user's own config.
 - The card's intro (`TranslucencyStatus`):
   - warns that transparency and blur are experimental;
   - while blurring, shows the blur in effect;

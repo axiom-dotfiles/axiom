@@ -191,7 +191,6 @@ TestCase {
       "userDir": "/home/u/.config/hypr/user",
       "schema": schema.managed,
       "resolveHex": () => "112233",
-      "lookShape": false,
       "motion": motion,
       "start": {
         "command": "qs -p '/opt/axiom' -n",

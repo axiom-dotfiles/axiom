@@ -694,7 +694,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `ThemeIntegrations.qml`: Reader for the ThemeIntegrations section: one switch per scripts/theme_<key>.sh, run by ThemeManager.themeIntegrations().
 - `WeatherConfig.qml`: Reader for the Weather section: the one location and units every weather widget and module shows (see WeatherManager).
 - `Widget.qml`: Reader for the Widget section: sizing for panels, cards, popouts and controls.
-- `WindowLookConfig.qml`: Reader for the WindowLook section: settings that make windows match axiom ({ borders, shape, gaps, gapsIn, gapsOut, blur…, opacity… }), applied by the compositor's backend (on Hyprland, HyprlandConfigManager's look laye…
+- `WindowLookConfig.qml`: Reader for the WindowLook section: settings that make windows match axiom ({ borders, activeColor, shape, matchShell, gaps, blur…, opacity… }), applied by the compositor's backend (on Hyprland, HyprlandConfigManager's l…
 - `WindowSwitcherConfig.qml`: Reader for the WindowSwitcher section (Alt+Tab).
 - `WorkspaceOverlayConfig.qml`: Reader for the WorkspaceOverlay section (the full-screen workspace overview).
 - `WorkspacesConfig.qml`: Reader for the Workspaces section: the workspace layout the bar widget, the overview, the WorkspacesMap module and CompositorManager's navigation share.

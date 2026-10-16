@@ -8,7 +8,7 @@ How `managed` mode takes `~/.config/hypr/hyprland.lua` over (`claim`), and how l
 
 ### The managed file
 - `managedLua()` becomes `~/.config/hypr/hyprland.lua` itself, plus the `managed` options.
-  - The options' `rounding`/`borderSize` are written only while the window look's `shape` is off ([Window look](window-look.md)).
+  - The border width and rounding aren't among them: they are the window look's (`WindowLook.shape`, [Window look](../compositor/window-look.md)).
 - It loads `user/*.lua` after itself, via `require("user.<name>")`.
   - Hyprland watches required files, so user edits reload it.
   - `user/lib/` is for shared modules.

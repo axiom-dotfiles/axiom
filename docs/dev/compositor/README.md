@@ -52,7 +52,7 @@ How axiom reaches the compositor it runs under. Read this before anything that r
 
 ### The window look
 - `WindowLook` is compositor-neutral config, edited under Settings › Compositor.
-- On Hyprland, `HyprlandConfigManager` evaluates it into its Lua layer ([window-look](../hyprland/window-look.md)).
+- On Hyprland, `HyprlandConfigManager` evaluates it into its Lua layer ([window-look](window-look.md)).
 - A backend without config modes gets it through its `applyLook(look)`, the parts that are on as `CompositorLayer.look()` decides them ([contract](contract.md)). `CompositorManager` calls that at startup, on a change, and after `configReloaded`.
 
 ### Adding a backend

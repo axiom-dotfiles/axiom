@@ -97,7 +97,7 @@ The schema is the single source of truth for config: shape, `default`s (there is
 - `x-hyprAlways`: written even when it's the schema default. Other fields are only written once changed, so Hyprland's own default (and the user's files) stay in charge otherwise.
 - `x-hyprIf`: a boolean sibling; the field is written (default or not) only when that sibling is on.
 - `x-greeter: true` on a `Hyprland.managed` option: the greeter's Hyprland takes it (`methods/GreeterBundle`). See [Greeter install](../features/greeter-install.md).
-- Details: [Hyprland config modes](../hyprland/config-modes.md), [Window look](../hyprland/window-look.md).
+- Details: [Hyprland config modes](../hyprland/config-modes.md), [Window look](../compositor/window-look.md).
 
 ### Theme integrations
 - `x-hookup` (on a `ThemeIntegrations` boolean): how the integration hooks into its app (targets, place, text).

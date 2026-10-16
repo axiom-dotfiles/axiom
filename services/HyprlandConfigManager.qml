@@ -127,10 +127,10 @@ Singleton {
   // The window look's parts that are on (CompositorLayer.look)
   function _look(forFile) {
     return CompositorLayer.look(WindowLookConfig.look, {
-      "activeHex": HyprConfigLua.hex(Theme.borderFocus),
-      "inactiveHex": HyprConfigLua.hex(Theme.border),
-      "borderWidth": Appearance.borderWidth,
-      "radius": Appearance.borderRadius,
+      "activeHex": CompositorLayer.hex(WindowLookConfig.activeBorder),
+      "inactiveHex": CompositorLayer.hex(WindowLookConfig.inactiveBorder),
+      "borderWidth": WindowLookConfig.borderWidth,
+      "radius": WindowLookConfig.radius,
       "surfacesBlur": _surfacesBlur(forFile)
     });
   }
@@ -185,7 +185,6 @@ Singleton {
       "userDir": userDir,
       "schema": ConfigManager.configSchema?.properties?.Hyprland?.properties?.managed,
       "resolveHex": name => HyprConfigLua.hex(Theme.resolveColor(name)),
-      "lookShape": WindowLookConfig.look.shape,
       "motion": _motion,
       "start": {
         "command": startCommand,
@@ -523,7 +522,7 @@ Singleton {
   // holds them as of its last write, and _applyLook evaluates the current
   // ones over it after every reload. Turning a look part off goes through
   // apply(), since an eval can't take a setting back.
-  readonly property string _liveInputs: [WindowLookConfig._lookJson, Appearance.blur, BlurManager.active, Appearance.blurBackdrops, Appearance.blurThroughWindows, Theme.borderFocus, Theme.border, Appearance.borderRadius, Appearance.borderWidth].join("|")
+  readonly property string _liveInputs: [WindowLookConfig._lookJson, Appearance.blur, BlurManager.active, Appearance.blurBackdrops, Appearance.blurThroughWindows, WindowLookConfig.activeBorder, WindowLookConfig.inactiveBorder, WindowLookConfig.radius, WindowLookConfig.borderWidth].join("|")
   on_LiveInputsChanged: _liveDebounce.restart()
 
   property Timer _liveDebounce: Timer {
