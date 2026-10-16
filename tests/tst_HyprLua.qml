@@ -488,7 +488,11 @@ assert(removed == 2, "earlier handlers removed")
     verify(lua.includes("dim_inactive = true") && lua.includes("dim_strength = 0.2"));
     const themed = HyprLua.lookLua(spec(cast("101010", 3)), lookSchema).join("\n");
     verify(themed.includes('color = "rgba(10101099)"'), themed);
-    verify(themed.includes("offset = { x = 0, y = 3 }"), themed);
+    verify(themed.includes("offset = { 0, 3 }"), themed);
+    // Standing in for axiom's soft shadow: as strong as that looks
+    const soft = cast("101010", 0);
+    soft.shadow.soft = true;
+    verify(HyprLua.lookLua(spec(soft), lookSchema).join("\n").includes('color = "rgba(1010103d)"'), "0.6 × 0.4");
   }
 
   function test_look_writes_only_its_parts_that_are_on() {

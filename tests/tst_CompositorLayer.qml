@@ -63,7 +63,10 @@ TestCase {
       "size": 12,
       "power": values.shadowPower,
       "color": "10101099",
-      "offset": 3
+      "rgb": "101010",
+      "alpha": 0.6,
+      "offset": 3,
+      "soft": false
     });
     compare(look.dim, {
       "strength": 15

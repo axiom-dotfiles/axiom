@@ -23,6 +23,8 @@ QtObject {
   // The windows' shadow: axiom's (Bar style's shadow or glow, its color
   // and size) while it matches it, where none casts none; else its own
   readonly property bool _shadowMatched: _c.shadowMatchShell
+  // Whether it stands in for axiom's own, a soft (gaussian) shadow
+  readonly property bool shadowSoft: _shadowMatched
   readonly property var _barLook: BarStyle.values
   readonly property bool shadowOn: _c.shadow && !(_shadowMatched && _barLook.shadow === "none")
   readonly property int shadowSize: _shadowMatched ? _barLook.shadowSize : _c.shadowSize

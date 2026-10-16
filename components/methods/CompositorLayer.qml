@@ -28,20 +28,31 @@ QtObject {
    *            surfaces do (the compositor's blur stays on for them), and
    *            its strength (noise in ‰, contrast in %), or null
    *   shadow   { size, power, color ("rrggbbaa", or "" for the
-   *            compositor's own), offset (px downward) }, or null
+   *            compositor's own), rgb ("rrggbb" or ""), alpha (0–1),
+   *            offset (px downward), soft (standing in for axiom's own
+   *            gaussian shadow) }, or null
    *   dim      { strength } in percent, or null
    *   opacity  { active, inactive, fullscreen } in percent, or null
    * `opts`: { activeHex, inactiveHex, borderWidth, radius, surfacesBlur,
-   * shadow ({ size, color ("rrggbb" or ""), alpha (0–1), offset }, or
+   * shadow ({ size, color ("rrggbb" or ""), alpha (0–1), offset, soft }, or
    * null for none: axiom's own casting none) }
    */
+  // 0–1 as two hex digits ("99")
+  function alphaHex(alpha) {
+    return Math.round(Math.max(0, Math.min(1, alpha)) * 255).toString(16).padStart(2, "0");
+  }
+
   function look(values, opts) {
     const cast = values.shadow ? opts.shadow : null;
+    const alpha = cast ? Math.max(0, Math.min(1, cast.alpha)) : 0;
     const shadow = cast ? {
       "size": cast.size,
       "power": values.shadowPower,
-      "color": cast.color !== "" ? cast.color + Math.round(Math.max(0, Math.min(1, cast.alpha)) * 255).toString(16).padStart(2, "0") : "",
-      "offset": cast.offset
+      "color": cast.color !== "" ? cast.color + alphaHex(alpha) : "",
+      "rgb": cast.color,
+      "alpha": alpha,
+      "offset": cast.offset,
+      "soft": cast.soft === true
     } : null;
     return {
       "parts": lookPartNames.filter(part => part === "shadow" ? shadow !== null : values[part]),

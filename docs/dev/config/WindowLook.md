@@ -125,7 +125,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`WindowLook.shadowMatchShell`** · boolean = true
   - Match axiom's shadow: Follow Look & Feel → Bar style: its shadow or glow, color and size. With none there, windows cast none.
   - x-group="Shadows", x-showIf={"shadow":true}, x-enabledIf={"/$supports.windowShadow":true}
-  - read: `WindowLookConfig.shadowAlpha` (computed), `WindowLookConfig.shadowColor` (computed), `WindowLookConfig.shadowOffset` (computed), `WindowLookConfig.shadowOn` (computed), `WindowLookConfig.shadowSize` (computed), `WindowLookConfig.shadowThemed` (computed) · in: `services/CompositorConfigManager.qml`
+  - read: `WindowLookConfig.shadowAlpha` (computed), `WindowLookConfig.shadowColor` (computed), `WindowLookConfig.shadowOffset` (computed), `WindowLookConfig.shadowOn` (computed), `WindowLookConfig.shadowSize` (computed), `WindowLookConfig.shadowSoft` (computed), `WindowLookConfig.shadowThemed` (computed) · in: `services/CompositorConfigManager.qml`
 - **`WindowLook.shadowSize`** · integer = 10 · 0–100 · px
   - Shadow size
   - x-control="stepper", x-group="Shadows", x-showIf={"shadow":true,"shadowMatchShell":false}, x-enabledIf={"/$supports.windowShadow":true}

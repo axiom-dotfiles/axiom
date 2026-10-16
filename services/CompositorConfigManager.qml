@@ -110,7 +110,8 @@ Singleton {
           "size": WindowLookConfig.shadowSize,
           "color": WindowLookConfig.shadowThemed ? CompositorLayer.hex(WindowLookConfig.shadowColor) : "",
           "alpha": WindowLookConfig.shadowAlpha,
-          "offset": WindowLookConfig.shadowOffset
+          "offset": WindowLookConfig.shadowOffset,
+          "soft": WindowLookConfig.shadowSoft
         } : null
       }),
       // How axiom's surfaces blur (a backend blurring layers by name)

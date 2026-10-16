@@ -87,8 +87,12 @@ QtObject {
   function serialize(table, indent) {
     const pad = indent ?? "";
     const keys = Object.keys(table).sort();
+    // An array is a Lua sequence (a vec2's { x, y }: Hyprland counts its
+    // elements, so { x = …, y = … } has none)
     const entry = key => {
       const v = table[key];
+      if (Array.isArray(v))
+        return `${key} = { ${v.map(value).join(", ")} }`;
       return `${key} = ${typeof v === "object" ? serialize(v, pad + "  ") : value(v)}`;
     };
     const flat = `{ ${keys.map(entry).join(", ")} }`;
@@ -109,6 +113,13 @@ QtObject {
    * they can't with it off); with windows not blurring a rule then keeps
    * them unblurred.
    */
+  // Hyprland's shadow is the full color at a window's edge, held there by
+  // its falloff (render_power); a gaussian one (axiom's, SwayFX's) is
+  // half of it there and fades at once. Standing in for axiom's, it's
+  // drawn this much as strong to look as strong (measured against a
+  // glow on Hyprland 0.56: at full alpha it read several times axiom's).
+  readonly property real softShadowAlpha: 0.4
+
   function lookLua(look, lookSchema) {
     const overrides = {};
     if (look.blur) {
@@ -134,12 +145,9 @@ QtObject {
       _set(table, "decoration.shadow.enabled", true);
       _set(table, "decoration.shadow.range", look.shadow.size);
       _set(table, "decoration.shadow.render_power", look.shadow.power);
-      _set(table, "decoration.shadow.offset", {
-        "x": 0,
-        "y": look.shadow.offset
-      });
-      if (look.shadow.color !== "")
-        _set(table, "decoration.shadow.color", `rgba(${look.shadow.color})`);
+      _set(table, "decoration.shadow.offset", [0, look.shadow.offset]);
+      if (look.shadow.rgb !== "")
+        _set(table, "decoration.shadow.color", `rgba(${look.shadow.rgb}${CompositorLayer.alphaHex(look.shadow.soft ? look.shadow.alpha * softShadowAlpha : look.shadow.alpha)})`);
     }
     if (look.dim) {
       _set(table, "decoration.dim_inactive", true);

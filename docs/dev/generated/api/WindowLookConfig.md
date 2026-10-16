@@ -10,6 +10,7 @@ Reader for the WindowLook section: settings that make windows match axiom ({ bor
 - `look` (readonly var)
 - `activeBorder` (readonly color): The border colors: the ones picked, else the theme's
 - `inactiveBorder` (readonly color)
+- `shadowSoft` (readonly bool): Whether it stands in for axiom's own, a soft (gaussian) shadow
 - `shadowOn` (readonly bool)
 - `shadowSize` (readonly int)
 - `shadowThemed` (readonly bool): Its color: axiom's, the one picked, or none for the compositor's own
