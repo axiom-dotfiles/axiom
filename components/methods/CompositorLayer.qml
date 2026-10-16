@@ -30,13 +30,24 @@ QtObject {
    *   shadow   { size, power, color ("rrggbbaa", or "" for the
    *            compositor's own), rgb ("rrggbb" or ""), alpha (0–1),
    *            offset (px downward), soft (standing in for axiom's own
-   *            gaussian shadow) }, or null
+   *            blurred shadow; alpha is then the one axiom draws it
+   *            with) }, or null
    *   dim      { strength } in percent, or null
    *   opacity  { active, inactive, fullscreen } in percent, or null
    * `opts`: { activeHex, inactiveHex, borderWidth, radius, surfacesBlur,
-   * shadow ({ size, color ("rrggbb" or ""), alpha (0–1), offset, soft }, or
+   * shadow ({ size, color ("rrggbb" or ""), alpha (0–1), offset, soft,
+   * drawnAlpha (axiom's own alpha, while soft) }, or
    * null for none: axiom's own casting none) }
    */
+  // The relative luminance (0–1) of "rrggbb"
+  function luminance(hex) {
+    const linear = i => {
+      const c = parseInt(String(hex).substr(i, 2), 16) / 255;
+      return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+    };
+    return /^[0-9a-fA-F]{6}/.test(hex) ? 0.2126 * linear(0) + 0.7152 * linear(2) + 0.0722 * linear(4) : 0;
+  }
+
   // 0–1 as two hex digits ("99")
   function alphaHex(alpha) {
     return Math.round(Math.max(0, Math.min(1, alpha)) * 255).toString(16).padStart(2, "0");
@@ -50,7 +61,7 @@ QtObject {
       "power": values.shadowPower,
       "color": cast.color !== "" ? cast.color + alphaHex(alpha) : "",
       "rgb": cast.color,
-      "alpha": alpha,
+      "alpha": cast.soft === true && cast.drawnAlpha !== undefined ? Math.max(0, Math.min(1, cast.drawnAlpha)) : alpha,
       "offset": cast.offset,
       "soft": cast.soft === true
     } : null;

@@ -489,10 +489,32 @@ assert(removed == 2, "earlier handlers removed")
     const themed = HyprLua.lookLua(spec(cast("101010", 3)), lookSchema).join("\n");
     verify(themed.includes('color = "rgba(10101099)"'), themed);
     verify(themed.includes("offset = { 0, 3 }"), themed);
-    // Standing in for axiom's soft shadow: as strong as that looks
+    // Standing in for axiom's soft shadow: as long and as strong as that
+    // looks (fitted on screen: HyprLua.softShadow)
     const soft = cast("101010", 0);
     soft.shadow.soft = true;
-    verify(HyprLua.lookLua(spec(soft), lookSchema).join("\n").includes('color = "rgba(1010103d)"'), "0.6 × 0.4");
+    const softLua = HyprLua.lookLua(spec(soft), lookSchema).join("\n");
+    verify(softLua.includes("range = 14") && softLua.includes("render_power = 4"), softLua);
+    verify(softLua.includes('color = "rgba(1010102c)"'), "a dark color: about 0.3 of axiom's alpha");
+  }
+
+  function test_softShadow() {
+    const glow = HyprLua.softShadow({
+      "size": 20,
+      "rgb": "c4a7e7",
+      "alpha": 0.45
+    });
+    compare([glow.range, glow.power, CompositorLayer.alphaHex(glow.alpha)], [24, 4, "02"], "the fit for a light glow");
+    compare(CompositorLayer.alphaHex(HyprLua.softShadow({
+      "size": 20,
+      "rgb": "c4a7e7",
+      "alpha": 1
+    }).alpha), "05");
+    compare(CompositorLayer.alphaHex(HyprLua.softShadow({
+      "size": 20,
+      "rgb": "000000",
+      "alpha": 0.45
+    }).alpha), "22", "black: 0.3 of it");
   }
 
   function test_look_writes_only_its_parts_that_are_on() {

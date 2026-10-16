@@ -113,12 +113,27 @@ QtObject {
    * they can't with it off); with windows not blurring a rule then keeps
    * them unblurred.
    */
-  // Hyprland's shadow is the full color at a window's edge, held there by
-  // its falloff (render_power); a gaussian one (axiom's, SwayFX's) is
-  // half of it there and fades at once. Standing in for axiom's, it's
-  // drawn this much as strong to look as strong (measured against a
-  // glow on Hyprland 0.56: at full alpha it read several times axiom's).
-  readonly property real softShadowAlpha: 0.4
+  /**
+   * Hyprland's shadow standing in for axiom's own (a soft one: MultiEffect's
+   * blur, `shadow.alpha` the alpha axiom draws it with) as { range, power,
+   * alpha }. Hyprland's falls off differently, and its alpha isn't the
+   * strength it shows: a dark color darkens about in proportion, but a
+   * light one over a dark background shows several times stronger than its
+   * alpha says. Fitted on screen against axiom's glow and shadow (size 20,
+   * alpha 0.45 and 1, a dark theme, Hyprland 0.56; within ~0.01 of
+   * axiom's from 3px out): the reach 1.2 × axiom's size, power 4, and the
+   * alpha axiom's × 0.3 for black down to × 0.018 for a light color
+   * (relative luminance 0.45, c4a7e7), geometric in between.
+   */
+  function softShadow(shadow) {
+    const luminance = CompositorLayer.luminance(shadow.rgb);
+    const factor = Math.max(0.01, 0.3 * Math.pow(0.018 / 0.3, luminance / 0.45));
+    return {
+      "range": Math.round(shadow.size * 1.2),
+      "power": 4,
+      "alpha": shadow.alpha * factor
+    };
+  }
 
   function lookLua(look, lookSchema) {
     const overrides = {};
@@ -142,12 +157,13 @@ QtObject {
       _set(table, "general.gaps_out", look.gaps.outer);
     }
     if (look.shadow) {
+      const soft = look.shadow.soft && look.shadow.rgb !== "" ? softShadow(look.shadow) : null;
       _set(table, "decoration.shadow.enabled", true);
-      _set(table, "decoration.shadow.range", look.shadow.size);
-      _set(table, "decoration.shadow.render_power", look.shadow.power);
+      _set(table, "decoration.shadow.range", soft ? soft.range : look.shadow.size);
+      _set(table, "decoration.shadow.render_power", soft ? soft.power : look.shadow.power);
       _set(table, "decoration.shadow.offset", [0, look.shadow.offset]);
       if (look.shadow.rgb !== "")
-        _set(table, "decoration.shadow.color", `rgba(${look.shadow.rgb}${CompositorLayer.alphaHex(look.shadow.soft ? look.shadow.alpha * softShadowAlpha : look.shadow.alpha)})`);
+        _set(table, "decoration.shadow.color", `rgba(${look.shadow.rgb}${CompositorLayer.alphaHex(soft ? soft.alpha : look.shadow.alpha)})`);
     }
     if (look.dim) {
       _set(table, "decoration.dim_inactive", true);
