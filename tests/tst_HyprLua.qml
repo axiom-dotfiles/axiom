@@ -502,19 +502,25 @@ assert(removed == 2, "earlier handlers removed")
     const glow = HyprLua.softShadow({
       "size": 20,
       "rgb": "c4a7e7",
-      "alpha": 0.45
+      "baseAlpha": 0.45
     });
     compare([glow.range, glow.power, CompositorLayer.alphaHex(glow.alpha)], [24, 4, "02"], "the fit for a light glow");
     compare(CompositorLayer.alphaHex(HyprLua.softShadow({
       "size": 20,
       "rgb": "c4a7e7",
-      "alpha": 1
+      "baseAlpha": 1
     }).alpha), "05");
     compare(CompositorLayer.alphaHex(HyprLua.softShadow({
       "size": 20,
       "rgb": "000000",
-      "alpha": 0.45
+      "baseAlpha": 0.45
     }).alpha), "22", "black: 0.3 of it");
+    compare(CompositorLayer.alphaHex(HyprLua.softShadow({
+      "size": 20,
+      "rgb": "c4a7e7",
+      "baseAlpha": 1,
+      "strength": 2
+    }).alpha), "09", "the strength scales the fitted alpha");
   }
 
   function test_look_writes_only_its_parts_that_are_on() {

@@ -115,8 +115,8 @@ QtObject {
    */
   /**
    * Hyprland's shadow standing in for axiom's own (a soft one: MultiEffect's
-   * blur, `shadow.alpha` the alpha axiom draws it with) as { range, power,
-   * alpha }. Hyprland's falls off differently, and its alpha isn't the
+   * blur; CompositorLayer.look's shadow, its baseAlpha axiom's and its
+   * strength the user's) as { range, power, alpha }. Hyprland's falls off differently, and its alpha isn't the
    * strength it shows: a dark color darkens about in proportion, but a
    * light one over a dark background shows several times stronger than its
    * alpha says. Fitted on screen against axiom's glow and shadow (size 20,
@@ -131,7 +131,8 @@ QtObject {
     return {
       "range": Math.round(shadow.size * 1.2),
       "power": 4,
-      "alpha": shadow.alpha * factor
+      // Strength scales what's fitted, which then has room to grow
+      "alpha": Math.min(1, shadow.baseAlpha * factor * (shadow.strength ?? 1))
     };
   }
 

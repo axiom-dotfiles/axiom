@@ -28,13 +28,15 @@ QtObject {
    *            surfaces do (the compositor's blur stays on for them), and
    *            its strength (noise in ‰, contrast in %), or null
    *   shadow   { size, power, color ("rrggbbaa", or "" for the
-   *            compositor's own), rgb ("rrggbb" or ""), alpha (0–1),
+   *            compositor's own), rgb ("rrggbb" or ""), alpha (0–1:
+   *            baseAlpha × strength, capped), baseAlpha, strength,
    *            offset (px downward), soft (standing in for axiom's own
    *            blurred shadow) }, or null
    *   dim      { strength } in percent, or null
    *   opacity  { active, inactive, fullscreen } in percent, or null
    * `opts`: { activeHex, inactiveHex, borderWidth, radius, surfacesBlur,
-   * shadow ({ size, color ("rrggbb" or ""), alpha (0–1), offset, soft }, or
+   * shadow ({ size, color ("rrggbb" or ""), alpha (0–1), offset, soft,
+   * strength (× the alpha; 1 when left out) }, or
    * null for none: axiom's own casting none) }
    */
   // The relative luminance (0–1) of "rrggbb"
@@ -53,13 +55,17 @@ QtObject {
 
   function look(values, opts) {
     const cast = values.shadow ? opts.shadow : null;
-    const alpha = cast ? Math.max(0, Math.min(1, cast.alpha)) : 0;
+    const clamp = a => Math.max(0, Math.min(1, a));
+    const strength = cast ? Math.max(0, cast.strength ?? 1) : 1;
+    const alpha = cast ? clamp(cast.alpha * strength) : 0;
     const shadow = cast ? {
       "size": cast.size,
       "power": values.shadowPower,
       "color": cast.color !== "" ? cast.color + alphaHex(alpha) : "",
       "rgb": cast.color,
       "alpha": alpha,
+      "baseAlpha": cast ? clamp(cast.alpha) : 0,
+      "strength": strength,
       "offset": cast.offset,
       "soft": cast.soft === true
     } : null;

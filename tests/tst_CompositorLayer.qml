@@ -65,6 +65,8 @@ TestCase {
       "color": "10101099",
       "rgb": "101010",
       "alpha": 0.6,
+      "baseAlpha": 0.6,
+      "strength": 1,
       "offset": 3,
       "soft": false
     });
@@ -73,6 +75,11 @@ TestCase {
     });
     compare(CompositorLayer.look(values, cast("", 1, 0)).shadow.color, "", "no color: the compositor's own");
     compare(CompositorLayer.look(values, cast("c4a7e7", 1, 0)).shadow.color, "c4a7e7ff");
+    const strong = cast("101010", 0.4, 0);
+    strong.shadow.strength = 2;
+    compare(CompositorLayer.look(values, strong).shadow.color, "101010cc", "the strength scales the alpha");
+    strong.shadow.strength = 4;
+    compare(CompositorLayer.look(values, strong).shadow.color, "101010ff", "up to opaque");
   }
 
   function test_luminance() {

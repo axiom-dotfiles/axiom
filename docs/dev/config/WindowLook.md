@@ -138,6 +138,10 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - Shadow color: Unfocused windows cast it too.
   - x-group="Shadows", x-options="colors", x-emptyLabel="Compositor's", x-showIf={"shadow":true,"shadowMatchShell":false}, x-enabledIf={"/$supports.windowShadow":true}
   - read: `WindowLookConfig.shadowColor` (computed), `WindowLookConfig.shadowThemed` (computed) · in: `services/CompositorConfigManager.qml`
+- **`WindowLook.shadowStrength`** · integer = 100 · 10–400 · %
+  - Shadow strength: How strong windows cast it, matching axiom's or not. The compositor's own color keeps its strength.
+  - x-control="stepper", x-group="Shadows", x-showIf={"shadow":true}, x-enabledIf={"/$supports.windowShadow":true}
+  - read: `WindowLookConfig.shadowStrength` (computed) · in: `services/CompositorConfigManager.qml`
 - **`WindowLook.dim`** · boolean = false
   - Dim unfocused windows
   - x-group="Dim", x-enabledIf={"/$supports.windowDim":true}

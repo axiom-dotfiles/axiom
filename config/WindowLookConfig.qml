@@ -35,6 +35,8 @@ QtObject {
   readonly property color shadowColor: _shadowMatched ? Bar.shadowBaseColor(_barLook) : shadowThemed ? Theme.resolveColor(_c.shadowColor) : "black"
   // (a picked color nearly opaque, as the compositors' own are)
   readonly property real shadowAlpha: _shadowMatched ? shadowColor.a : 0.93
+  // How strong windows cast it (1 = as above), on top of its alpha
+  readonly property real shadowStrength: _c.shadowStrength / 100
   // How far it falls downward: as axiom's shadow does (SurfaceShadow); a
   // glow spreads evenly
   readonly property int shadowOffset: _shadowMatched && _barLook.shadow === "shadow" ? Math.round(_barLook.shadowSize / 4) : 0
