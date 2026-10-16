@@ -135,9 +135,11 @@ QtObject {
   }
 
   // A monitor (Quickshell's I3Monitor, or its fields) as an output. Its
-  // reserved space is what its active workspace's rect leaves of its own
-  // (bars' exclusive zones), from the tree (info: tree()).
-  function output(monitor, info) {
+  // reserved space (bars' exclusive zones) is what its active workspace's
+  // rect leaves of its own, from the tree (info: tree()), less the gaps at
+  // the edges (`gaps`: { top, right, bottom, left }), which sway takes off
+  // the workspace too.
+  function output(monitor, info, gaps) {
     const ipc = monitor?.lastIpcObject ?? {};
     const name = monitor?.name ?? "";
     const own = info?.outputRects?.[name] ?? {
@@ -161,10 +163,10 @@ QtObject {
       "activeWorkspaceId": (monitor?.activeWorkspace?.num ?? -1) > 0 ? monitor.activeWorkspace.num : -1,
       "specialWorkspaceId": 0,
       "reserved": ws ? {
-        "left": Math.max(0, ws.x - own.x),
-        "top": Math.max(0, ws.y - own.y),
-        "right": Math.max(0, own.x + own.width - ws.x - ws.width),
-        "bottom": Math.max(0, own.y + own.height - ws.y - ws.height)
+        "left": Math.max(0, ws.x - own.x - (gaps?.left ?? 0)),
+        "top": Math.max(0, ws.y - own.y - (gaps?.top ?? 0)),
+        "right": Math.max(0, own.x + own.width - ws.x - ws.width - (gaps?.right ?? 0)),
+        "bottom": Math.max(0, own.y + own.height - ws.y - ws.height - (gaps?.bottom ?? 0))
       } : {
         "left": 0,
         "top": 0,

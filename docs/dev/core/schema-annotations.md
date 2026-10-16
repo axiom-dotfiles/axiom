@@ -96,6 +96,15 @@ The schema is the single source of truth for config: shape, `default`s (there is
   - `"color"`: a theme color name as `rgba(hex + x-hyprAlpha)`, with `"ff"` unless given.
 - `x-hyprAlways`: written even when it's the schema default. Other fields are only written once changed, so Hyprland's own default (and the user's files) stay in charge otherwise.
 - `x-hyprIf`: a boolean sibling; the field is written (default or not) only when that sibling is on.
+
+### Sway commands (`x-sway*`, `methods/SwayConf`)
+- `x-sway`: the sway command with `{}` for the value (`"input type:keyboard repeat_rate {}"`). Written under the same rules as `x-hypr`: when its `x-hyprIf` sibling is on, else once changed from the default.
+- `x-swayValue: "enabled"`: a boolean as `enabled`/`disabled`.
+- `x-swayScale`: a factor, as `x-hyprScale`.
+- `x-swaySkip`: a value written as nothing (sway's own default stays), e.g. `"default"`.
+- `x-swayConfigOnly: true`: sway takes the command only from a config file (`xkb_numlock`): left out of what's sent at runtime.
+- Details: [Sway backend](../compositor/sway-backend.md).
+
 - `x-greeter: true` on an `Input` option: the greeter's Hyprland takes it (`methods/GreeterBundle`). See [Greeter install](../features/greeter-install.md).
 - Details: [Hyprland config modes](../hyprland/config-modes.md), [Window look](../compositor/window-look.md).
 

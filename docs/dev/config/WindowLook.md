@@ -37,7 +37,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - read: `WindowLookConfig.borderWidth` (computed) · in: `services/CompositorConfigManager.qml`
 - **`WindowLook.rounding`** · integer = 8 · 0–50 · px
   - Corner rounding
-  - x-control="stepper", x-showIf={"/$supports.windowShape":true,"shape":true,"matchShell":false}
+  - x-control="stepper", x-showIf={"/$supports.windowShape":true,"/$supports.windowRounding":true,"shap…
   - read: `WindowLookConfig.radius` (computed) · in: `services/CompositorConfigManager.qml`
 - **`WindowLook.gaps`** · boolean = false
   - Set window gaps: Floating bars and detached surfaces set to Automatic keep these gaps too.

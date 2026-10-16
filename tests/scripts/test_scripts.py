@@ -1660,6 +1660,40 @@ class GreeterInstall(unittest.TestCase):
         self.assertIn("unknown channel", self.run_script("install", ok=False, channel="beta")["error"])
 
 
+class SwayConfigText(unittest.TestCase):
+    """sway_config_text.py: the main config with its includes put in, on a
+    scratch config (--config), skipping axiom's own module."""
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.tmp)
+
+    def run_script(self, *args, env=None):
+        done = subprocess.run([sys.executable, str(SCRIPTS / "sway_config_text.py"), *args],
+                              env=env or {**os.environ, "SWAYSOCK": ""}, capture_output=True, text=True, timeout=30)
+        return done.returncode, done.stdout
+
+    def test_includes(self):
+        (self.tmp / "conf.d").mkdir()
+        (self.tmp / "conf.d" / "10-a.conf").write_text("bindsym $mod+a exec a\n")
+        (self.tmp / "conf.d" / "20-b.conf").write_text("bindsym $mod+b exec b\ninclude ../config\n")
+        (self.tmp / "axiom.conf").write_text("bindsym $mod+x exec axiom\n")
+        (self.tmp / "config").write_text(
+            "set $dir conf.d\nset $mod Mod4\ninclude $dir/*.conf\ninclude axiom.conf\ninclude missing.conf\nbindsym $mod+c exec c\n")
+        code, out = self.run_script("--config", str(self.tmp / "config"), "--skip", str(self.tmp / "axiom.conf"))
+        self.assertEqual(code, 0)
+        binds = [line for line in out.splitlines() if line.startswith("bindsym")]
+        # Each file once (the include back to config is a loop); axiom's left out
+        self.assertEqual(binds, ["bindsym $mod+a exec a", "bindsym $mod+b exec b", "bindsym $mod+c exec c"])
+
+    def test_no_config(self):
+        env = {**os.environ, "SWAYSOCK": "", "HOME": str(self.tmp), "XDG_CONFIG_HOME": str(self.tmp / "none")}
+        if os.path.exists("/etc/sway/config"):
+            self.skipTest("the system has a sway config")
+        code, _ = self.run_script(env=env)
+        self.assertEqual(code, 1)
+
+
 class PickPath(unittest.TestCase):
     """pick_path.py with no portal (a dead session bus), so it falls back
     to a stubbed zenity or kdialog that logs its arguments."""

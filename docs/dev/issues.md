@@ -18,9 +18,9 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 
 ## Open
 
-### No niri backend; sway's config writer not written yet
-- **Where:** `services/CompositorManager.qml` (`backend`), `services/SwayManager.qml` (`supports`), `docs/dev/compositor/sway-backend.md`
-- **What:** Under sway, `SwayManager` gives the state, workspaces, windows, outputs and keyboard, but there's no `SwayConfigWriter` yet: no `configModes`, so axiom sets no binds, window look or input there (the plan is in `sway-backend.md` › The config writer). Under niri axiom runs with no backend: the bar, launcher and notifications work, but workspaces, windows, the dock's running apps and the keyboard layout are empty.
+### No niri backend; no managed mode on sway yet
+- **Where:** `services/CompositorManager.qml` (`backend`), `services/SwayConfigWriter.qml` (`claim`), `docs/dev/compositor/sway-backend.md`
+- **What:** Under sway the managed mode isn't written yet: `SwayConfigWriter.claim()` blocks (`Compositor mode is "managed", but axiom doesn't manage sway's config yet`), so the runtime layer stands in. Under niri axiom runs with no backend: the bar, launcher and notifications work, but workspaces, windows, the dock's running apps and the keyboard layout are empty.
 - **Size:** needs a plan
 - **Found:** 2026-10-16, while decoupling the shell from Hyprland
 

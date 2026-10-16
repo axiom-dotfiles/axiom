@@ -7,6 +7,7 @@ The window switcher (Alt+Tab). The compositor holds the keys: a switcher bind en
 
 ### Properties
 
+- `active` (readonly bool): Open (stepped into, not yet picked or cancelled), drawn or not
 - `shown` (readonly bool): Past the show delay: the strip is drawn
 - `windows` (readonly var): The compositor's windows, most recently focused first
 - `index` (readonly int)

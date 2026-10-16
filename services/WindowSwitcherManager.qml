@@ -20,6 +20,8 @@ import qs.components.methods
 Singleton {
   id: root
 
+  // Open (stepped into, not yet picked or cancelled), drawn or not
+  readonly property bool active: root._active
   // Past the show delay: the strip is drawn
   readonly property bool shown: root._shown
   // The compositor's windows, most recently focused first

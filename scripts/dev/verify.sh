@@ -89,6 +89,7 @@ for f in "${changed[@]}"; do
   scripts/calendar_sync.py | scripts/setup_venv.sh | scripts/requirements.txt) script_tests+=(CalendarSync GenerateTheme) ;;
   scripts/greeter/*) script_tests+=(GreeterInstall) ;;
   scripts/pick_path.py) script_tests+=(PickPath) ;;
+  scripts/sway_config_text.py) script_tests+=(SwayConfigText) ;;
   scripts/migrate_xdg.sh) script_tests+=(MigrateXdg) ;;
   tests/scripts/test_scripts.py) script_tests+=(all) ;;
   esac

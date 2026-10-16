@@ -128,6 +128,28 @@ TestCase {
       "right": 8,
       "bottom": 8
     });
+    // Sway takes the edge gaps off the workspace too
+    compare(SwayState.output({
+      "name": "WL-1",
+      "x": 0,
+      "y": 0,
+      "width": 822,
+      "height": 1336,
+      "activeWorkspace": {
+        "num": 3,
+        "name": "3:web"
+      }
+    }, info, {
+      "top": 8,
+      "right": 8,
+      "bottom": 8,
+      "left": 8
+    }).reserved, {
+      "left": 40,
+      "top": 50,
+      "right": 0,
+      "bottom": 0
+    });
   }
 
   function test_outputOnANamedWorkspace() {

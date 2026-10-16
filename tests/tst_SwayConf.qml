@@ -6,10 +6,351 @@ import qs.components.methods
 TestCase {
   name: "SwayConf"
 
+  RepoFiles {
+    id: files
+  }
+
+  readonly property var ctx: ({
+      "shellCommand": "qs -p '/opt/axiom'",
+      "terminal": "foot",
+      "fileManager": "nautilus --new-window",
+      "browser": "firefox"
+    })
+
   function test_quote() {
     compare(SwayConf.quote("DP-1"), "DP-1");
     compare(SwayConf.quote("AOC CU34G4Z XJ9"), "\"AOC CU34G4Z XJ9\"");
     compare(SwayConf.quote("say \"hi\""), "\"say \\\"hi\\\"\"");
+  }
+
+  function test_key() {
+    compare(SwayConf.key("SUPER + SHIFT + Q"), {
+      "command": "bindsym",
+      "spec": "Mod4+Shift+q",
+      "mouse": false
+    });
+    compare(SwayConf.key("CTRL + ALT + Delete").spec, "Ctrl+Mod1+Delete");
+    compare(SwayConf.key("SUPER + code:49"), {
+      "command": "bindcode",
+      "spec": "Mod4+49",
+      "mouse": false
+    });
+    compare(SwayConf.key("SUPER + mouse_down"), {
+      "command": "bindsym",
+      "spec": "Mod4+button5",
+      "mouse": true
+    });
+    compare(SwayConf.key("SUPER + mouse:272").spec, "Mod4+BTN_LEFT");
+    compare(SwayConf.key("HYPER + Q"), null);
+    compare(SwayConf.key("SUPER + mouse:999"), null);
+    compare(SwayConf.key(""), null);
+  }
+
+  function test_bindLine() {
+    compare(SwayConf.bindLine({
+      "key": "SUPER + Q",
+      "action": "closeWindow"
+    }, ctx), "bindsym --no-warn --no-repeat Mod4+q kill");
+    compare(SwayConf.bindLine({
+      "key": "XF86AudioRaiseVolume",
+      "action": "volumeUp",
+      "locked": true,
+      "repeating": true
+    }, ctx), "bindsym --no-warn --locked XF86AudioRaiseVolume exec \"qs -p '/opt/axiom' ipc call audio volumeUp\"");
+    compare(SwayConf.bindLine({
+      "key": "SUPER + mouse_down",
+      "action": "workspaceStep",
+      "argument": "right"
+    }, ctx), "bindsym --no-warn --whole-window --no-repeat Mod4+button5 exec \"qs -p '/opt/axiom' ipc call workspaces step 'right' go\"");
+    compare(SwayConf.bindLine({
+      "key": "SUPER + ALT + L",
+      "action": "resizeWindow",
+      "argument": "50 -20",
+      "repeating": true
+    }, ctx), "bindsym --no-warn Mod4+Mod1+l resize grow width 50 px, resize shrink height 20 px");
+    compare(SwayConf.bindLine({
+      "key": "SUPER + SHIFT + R",
+      "action": "restartShell",
+      "release": true
+    }, ctx), "bindsym --no-warn --release --no-repeat Mod4+Shift+r exec \"qs kill -p '/opt/axiom'; qs -p '/opt/axiom' -d\"");
+  }
+
+  function test_switcherAndSpecialAreAxiomsOwn() {
+    compare(SwayConf.command({
+      "key": "ALT + Tab",
+      "action": "windowSwitcher"
+    }, ctx), "nop axiom switcher step 1");
+    compare(SwayConf.command({
+      "key": "ALT + SHIFT + Tab",
+      "action": "windowSwitcherReverse"
+    }, ctx), "nop axiom switcher step -1");
+    compare(SwayConf.command({
+      "key": "SUPER + V",
+      "action": "toggleSpecial",
+      "argument": "magic"
+    }, ctx), "nop axiom special toggle magic");
+    compare(SwayConf.command({
+      "key": "SUPER + SHIFT + V",
+      "action": "moveToSpecial",
+      "argument": "magic"
+    }, ctx), "nop axiom special move magic");
+  }
+
+  function test_whatSwayCantDo() {
+    for (const action of ["pseudo", "toggleGroup", "stripWider", "stripFit"])
+      compare(SwayConf.command({
+        "key": "SUPER + P",
+        "action": action
+      }, ctx), "", action);
+    compare(SwayConf.command({
+      "key": "SUPER + P",
+      "action": "raw",
+      "argument": "hl.dsp.layout(\"swapsplit\")"
+    }, ctx), "");
+    compare(SwayConf.command({
+      "key": "SUPER + P",
+      "action": "raw",
+      "argument": "layout tabbed",
+      "compositor": "sway"
+    }, ctx), "layout tabbed");
+    compare(SwayConf.command({
+      "key": "SUPER + H",
+      "action": "focusDir",
+      "argument": "l"
+    }, ctx), "");
+  }
+
+  function test_execQuotesWhatSwayWouldSplit() {
+    compare(SwayConf.command({
+      "key": "SUPER + E",
+      "action": "exec",
+      "argument": "notify-send a, b"
+    }, ctx), "exec \"notify-send a, b\"");
+    compare(SwayConf.command({
+      "key": "SUPER + E",
+      "action": "exec",
+      "argument": "foot -e htop"
+    }, ctx), "exec foot -e htop");
+  }
+
+  function test_floatingModifier() {
+    compare(SwayConf.floatingModifier([
+      {
+        "key": "SUPER + mouse:272",
+        "action": "mouseDrag"
+      }
+    ]), "floating_modifier Mod4 normal");
+    compare(SwayConf.floatingModifier([
+      {
+        "key": "ALT + mouse:273",
+        "action": "mouseDrag"
+      }
+    ]), "floating_modifier Mod1 inverse");
+    compare(SwayConf.floatingModifier([]), "");
+    verify(SwayConf.isComplete({
+      "key": "SUPER + mouse:273",
+      "action": "mouseResize"
+    }, ctx));
+  }
+
+  // Every default bind binds on sway, but what sway has no way to do
+  function test_defaultBinds() {
+    const schema = files.json("config/json/config.schema.json");
+    const binds = schema.properties.Keybinds.properties.binds["default"];
+    const unbound = binds.filter(bind => !SwayConf.isComplete(bind, ctx)).map(bind => bind.action);
+    compare(unbound, []);
+    const lines = SwayConf.bindLines(binds, ctx);
+    verify(lines.includes("floating_modifier Mod4 normal"));
+    compare(SwayConf.unbindLines(binds, ctx).length, lines.length - 1);
+  }
+
+  function test_lookLines() {
+    const look = CompositorLayer.look({
+      "borders": true,
+      "shape": true,
+      "gaps": true,
+      "gapsIn": 3,
+      "gapsOut": 6
+    }, {
+      "activeHex": "9ccfd8",
+      "inactiveHex": "403d52",
+      "borderWidth": 2,
+      "radius": 8
+    });
+    compare(SwayConf.lookLines(look, false), ["client.focused #9ccfd8 #9ccfd8 #000000 #9ccfd8 #9ccfd8", "client.focused_inactive #403d52 #403d52 #ffffff #403d52 #403d52", "client.unfocused #403d52 #403d52 #ffffff #403d52 #403d52", "default_border pixel 2", "default_floating_border pixel 2", "gaps inner 3", "gaps outer 6"]);
+    const live = SwayConf.lookLines(look, true);
+    verify(live.includes("[all] border pixel 2"));
+    verify(live.includes("gaps outer all set 6"));
+    compare(SwayConf.lookLines(CompositorLayer.look({}, {}), true), []);
+  }
+
+  function test_inputLines() {
+    const schema = files.json("config/json/config.schema.json").properties.Input;
+    const input = CompositorLayer.input({
+      "keyboard": true,
+      "kbLayout": "us,de",
+      "kbVariant": "",
+      "kbOptions": "caps:escape",
+      "repeatRate": 50,
+      "repeatDelay": 300,
+      "numlockByDefault": true,
+      "mouse": true,
+      "accelProfile": "default",
+      "sensitivity": -25,
+      "leftHanded": false,
+      "touchpad": false,
+      "naturalScroll": true,
+      "cursor": true,
+      "cursorTheme": "Bibata Modern",
+      "cursorSize": 24
+    });
+    verify(!SwayConf.inputLines(input, schema, true).includes("input type:keyboard xkb_numlock enabled"));
+    compare(SwayConf.inputLines(input, schema, false), ["input type:keyboard xkb_layout \"us,de\"", "input type:keyboard xkb_variant \"\"", "input type:keyboard xkb_options caps:escape", "input type:keyboard repeat_rate 50", "input type:keyboard repeat_delay 300", "input type:keyboard xkb_numlock enabled", "input type:pointer pointer_accel -0.25", "input type:pointer left_handed disabled", "seat * xcursor_theme \"Bibata Modern\" 24"]);
+  }
+
+  function test_moduleText() {
+    const text = SwayConf.moduleText({
+      "header": "# Generated by axiom",
+      "includeLines": "include /state/axiom/sway.conf",
+      "binds": ["bindsym --no-warn --no-repeat Mod4+q kill"],
+      "look": [],
+      "input": ["input type:keyboard repeat_rate 50"]
+    });
+    verify(text.startsWith("# Generated by axiom from its settings"));
+    verify(text.includes(`mode "${SwayConf.includedMode}" bindsym --no-warn F35 mode default`));
+    verify(text.includes("# Binds\nbindsym --no-warn --no-repeat Mod4+q kill\n"));
+    verify(!text.includes("# Window borders"));
+    verify(text.includes("# Input\ninput type:keyboard repeat_rate 50\n"));
+  }
+
+  function test_configBinds() {
+    const text = `set $mod Mod4
+set $ipc qs ipc call
+# bindsym $mod+x nothing
+bindsym $mod+Return exec foot
+bindsym --release $mod+Shift+e exit
+bindsym $mod+Q kill
+bindcode $mod+49 exec \\
+  something
+bindsym --whole-window $mod+button4 focus left
+bindsym Hyper+x nop
+input type:keyboard {
+    xkb_layout us
+}
+mode "resize" {
+    bindsym h resize shrink width 10px
+    bindsym Escape mode default
+}
+mode "launch" bindsym f exec firefox
+bindsym $mod+space exec $ipc appLauncher toggle`;
+
+    compare(SwayConf.configBinds(text), [
+      {
+        "modmask": 64,
+        "key": "Return",
+        "keycode": 0,
+        "submap": "",
+        "description": "exec foot"
+      },
+      {
+        "modmask": 65,
+        "key": "e",
+        "keycode": 0,
+        "submap": "",
+        "description": "exit"
+      },
+      {
+        "modmask": 64,
+        "key": "Q",
+        "keycode": 0,
+        "submap": "",
+        "description": "kill"
+      },
+      {
+        "modmask": 64,
+        "key": "",
+        "keycode": 49,
+        "submap": "",
+        "description": "exec something"
+      },
+      {
+        "modmask": 64,
+        "key": "mouse_up",
+        "keycode": 0,
+        "submap": "",
+        "description": "focus left"
+      },
+      {
+        "modmask": 0,
+        "key": "h",
+        "keycode": 0,
+        "submap": "resize",
+        "description": "resize shrink width 10px"
+      },
+      {
+        "modmask": 0,
+        "key": "Escape",
+        "keycode": 0,
+        "submap": "resize",
+        "description": "mode default"
+      },
+      {
+        "modmask": 0,
+        "key": "f",
+        "keycode": 0,
+        "submap": "launch",
+        "description": "exec firefox"
+      },
+      {
+        "modmask": 64,
+        "key": "space",
+        "keycode": 0,
+        "submap": "",
+        "description": "exec qs ipc call appLauncher toggle"
+      }
+    ]);
+  }
+
+  // The user's binds are what the runtime layer skips (BindKeys)
+  function test_configBindsAgainstAxioms() {
+    const entries = SwayConf.configBinds("set $mod Mod4\nbindsym $mod+q kill\nbindsym $mod+button4 focus left\nbindcode Mod4+49 nop");
+    const plan = BindKeys.runtimeBinds([
+      {
+        "key": "SUPER + Q"
+      },
+      {
+        "key": "SUPER + mouse_up"
+      },
+      {
+        "key": "SUPER + code:49"
+      },
+      {
+        "key": "SUPER + W"
+      }
+    ], entries);
+    compare(plan.skipped, ["SUPER + Q", "SUPER + mouse_up", "SUPER + code:49"]);
+    compare(plan.apply.map(bind => bind.key), ["SUPER + W"]);
+  }
+
+  function test_bindEntries() {
+    compare(SwayConf.bindEntries([
+      {
+        "key": "SUPER + Q",
+        "action": "closeWindow"
+      },
+      {
+        "key": "SUPER + mouse:272",
+        "action": "mouseDrag"
+      },
+      {
+        "key": "",
+        "action": "launcher"
+      }
+    ], ctx).map(entry => [BindKeys.entryId(entry), entry.description]), [["64:q", BindActions.descriptionFor({
+          "action": "closeWindow"
+        })], ["64:mouse:272", BindActions.descriptionFor({
+          "action": "mouseDrag"
+        })]]);
   }
 
   function test_outputCommand() {

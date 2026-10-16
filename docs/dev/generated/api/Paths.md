@@ -20,6 +20,7 @@ Derived, non-configurable filesystem paths (from the environment, not config).
 - `defaultNotesPath` (readonly string)
 - `generatedThemesPath` (readonly string): Themes generated from the wallpaper ("generated/<name>")
 - `hyprlandPath` (readonly string)
+- `swayPath` (readonly string): Sway's config folder ($XDG_CONFIG_HOME/sway/, as sway looks there first)
 - `dataSearchDirs` (readonly var): Where to look for data the system (or the user) installed, most important first: $XDG_DATA_HOME, then $XDG_DATA_DIRS (DataDirs.searchDirs; /usr/share isn't where every distro has it).
 - `runtimeDir` (readonly string): $XDG_RUNTIME_DIR, the user's own 0700 tmpfs (always there, unlike runtimePath, which is made by whatever writes into it)
 - `runtimePath` (readonly string): Scratch files that go with the session: unsaved chat attachments, clipboard thumbnails, copy-only screenshots, album art

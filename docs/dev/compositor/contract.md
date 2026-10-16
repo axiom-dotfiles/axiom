@@ -53,6 +53,7 @@ Plain JS objects, rebuilt as the compositor reports changes. Converters sit in a
 | `keybinds` | the Keybinds page (`x-needs`), `KeybindManager` |
 | `monitors` | the Monitors page, `MonitorManager` |
 | `switcher` | Alt+Tab driven by compositor keys (`WindowSwitcherManager`) |
+| `switcherRelease` | the compositor reports letting go of the switcher's modifier itself (Hyprland's submap). Without it `SwitcherKeys` takes the keyboard while the switcher is open, to see the release |
 | `strips` | the strip settings, scrolling a strip |
 | `focusGrab` | the native grab in `FocusGrab` |
 | `layerOrder` | the compositor stacks and arranges axiom's layers by `LayerStack.layers` itself (layer rules). Without it `LayerManager` maps them in that order and maps again any that land out of place ([layer arrangement](layer-arrangement.md)) |
@@ -61,6 +62,7 @@ Plain JS objects, rebuilt as the compositor reports changes. Converters sit in a
 | `windowGeometry` | window positions and sizes are real: without it the screenshot's window mode is left out (`ScreenshotManager.kinds`; a `window` request takes a region) and no window obscures a dock (`DockManager.obscured`). The overview still draws windows where they say they are |
 | `workspaceSlide` | `travel` legs slide |
 | `windowBorders`, `windowShape`, `windowGaps`, `windowBlur`, `windowOpacity` | the `WindowLook` parts shown and applied |
+| `windowRounding` | the shape part's rounding (sway's shape is the border width alone) |
 | `inputConfig` | axiom sets the keyboard, mouse and touchpad |
 | `keyCapture` | the Keybinds page's recorder can take keys from the compositor's binds |
 | `bindMerge` | the user's own binds can be read (the Keybinds page's List, conflicts, Merge) |

@@ -1,10 +1,10 @@
 # Sway backend
 
-> **Files:** `services/SwayManager.qml`, `services/SwayIpcManager.qml`, `components/methods/SwayState.qml`, `components/methods/SwayConf.qml`, `tests/tst_SwayState.qml`, `tests/tst_SwayConf.qml`, `services/CompositorManager.qml`, `scripts/dev/nested.sh`
-> **Config:** `WindowLook.*`, `Monitors.profiles`
+> **Files:** `services/SwayManager.qml`, `services/SwayIpcManager.qml`, `services/SwayConfigWriter.qml`, `services/SwayRuntimeLayer.qml`, `scripts/sway_config_text.py`, `components/surfaces/switcher/SwitcherKeys.qml`, `components/methods/SwayState.qml`, `components/methods/SwayConf.qml`, `tests/tst_SwayState.qml`, `tests/tst_SwayConf.qml`, `services/CompositorManager.qml`, `scripts/dev/nested.sh`
+> **Config:** `WindowLook.*`, `Input.*`, `Keybinds.binds`, `Monitors.profiles`, `Compositor.mode`
 > **Related:** [The compositor](README.md), [Backend contract](contract.md), [Recipe: compositor backend](../../recipes/compositor-backend.md)
 
-`SwayManager` is `CompositorManager.backend` under sway: the state, workspaces, windows, outputs, keyboard and special groups work. Its config writer (binds, the window look, input, the three modes) isn't written yet: the plan for it is under [The config writer](#the-config-writer-swayconfigwriter-planned), and until it lands `supports.configModes` and `keybinds` stay off.
+`SwayManager` is `CompositorManager.backend` under sway: the state, workspaces, windows, outputs, keyboard and special groups, and `SwayConfigWriter` for the detached and included modes (binds, the window look, input). Managed isn't written yet: it falls back to the runtime layer.
 
 ### Running it
 - `scripts/dev/nested.sh sway` (needs `sway`; `foot` for a terminal inside) opens sway in a window, with a second axiom in it:
@@ -51,25 +51,29 @@ Outputs and workspaces come live from Quickshell's `I3` module (as Hyprland's do
 - `toplevelFor`: null. Quickshell can't capture a toplevel on sway (`ScreencopyView` calls it not captureable), so the overview shows icons.
 - `withLayerRects`, `withCursorPos`: null; `warpCursorToLayer`, `scrollStrip`: nothing. `surfacesReady` is true at once.
 
-### The config writer (`SwayConfigWriter`, planned)
-Sway gets all three modes ([config modes](config-modes.md)), the text from a pure `SwayConf` helper (`tst_SwayConf`), as Hyprland's comes from `HyprConfigLua`:
-- **detached**: `swaymsg` commands at runtime (`runtimeApply`), again after every `configReloaded`, which drops them. `bindsym` on a key the user's config binds would replace that bind: read the user's binds first (`swaymsg -t get_config`, `bindsym` lines) and skip those keys (`skippedKeys`), as Hyprland's runtime layer does.
-- **included**: an `include` line (`includeLines`) pointing at a generated file under `$XDG_STATE_HOME/axiom/`. `checkLoaded`: a marker the file sets (e.g. a `set $axiom_included 1`, read back through `get_config`).
-- **managed**: axiom writes `~/.config/sway/config`, ending in `include ~/.config/sway/user/*` (`userFiles`); the takeover needs its own `claim_sway.sh` (and guard rules, AGENTS.md › Never).
-- **What the layer is in sway's terms:**
-  - binds: `bindsym` (`KeyNames` → `Mod4+Shift+1`; mouse buttons with `--whole-window BTN_LEFT`), each action's command from a `SwayBinds` helper sharing `tst_BindActions`' table; IPC actions as `exec qs … ipc call …`
-  - the look (`CompositorLayer.look()`): gaps `gaps inner all set <gaps.inner>` / `gaps outer all set <gaps.outer>` (and `gapsOut` to match); borders `client.focused <c> <c> <text> <c> <c>`, `client.unfocused …` from `borders.active`/`.inactive`, plus `default_border pixel <shape.width>`; SwayFX's `corner_radius <shape.radius>` (vanilla sway has none: no `windowShape` unless `swaymsg -t get_version` says SwayFX); SwayFX `blur` for the blur part
-  - the input (`CompositorLayer.input()`): `input type:keyboard xkb_layout …`, `repeat_rate`, `repeat_delay`; `input type:pointer accel_profile …`, `pointer_accel`, `left_handed`; `input type:touchpad natural_scroll`, `tap`, `dwt`, `scroll_factor`; `seat seat0 xcursor_theme <theme> <size>`
-  - monitors: `output <name or "make model serial"> mode … pos … scale … transform …` (`transform` 0-7 → `normal`/`90`/`180`/`270`/`flipped-*`; `vrr` → `adaptive_sync on`; `bitdepth` → `render_bit_depth`). No `outputProfiles`: `MonitorManager` applies the matching profile on hotplug; in the file modes the profile for what's connected is also written.
-- **Turning a live part off**: a runtime command can't be taken back cleanly either; reload (`swaymsg reload`), as Hyprland does.
+### The config writer (`SwayConfigWriter`)
+The [config modes](config-modes.md) on sway; the text comes from the pure `SwayConf` (`tst_SwayConf`), as Hyprland's from `HyprConfigLua`.
+- **detached** (`SwayRuntimeLayer`): the binds and the live lines sent through `swaymsg` (`SwayManager.runCommands`), again after every `configReloaded`, which drops them.
+  - Sway can't list its binds, so the user's are read from their config files: `scripts/sway_config_text.py` prints the config sway runs (the `-c` of the sway `$SWAYSOCK` names, else where sway looks) with its `include`s put in and axiom's own file left out, and `SwayConf.configBinds` reads its `bindsym`/`bindcode` lines (with `$variables` and `mode` blocks) as BindKeys' entries. A key the user binds is skipped (`skippedKeys`).
+  - What it bound is kept as the commands unbinding it (`unbindsym …`, a `PersistentProperties`), sent first on the next apply.
+- **included**: `$XDG_STATE_HOME/axiom/sway.conf`, which the user's config includes (`includeLines`: `include <path>`). `checkLoaded`: the file defines a mode (`axiom_included`, `get_binding_modes`) nothing else defines. Monitor profiles aren't written: `MonitorManager` applies the one for what's connected at start and on every hotplug (no `outputProfiles`).
+- **managed**: not yet. `claim()` blocks, so the runtime layer stands in (`blockedProblem`).
+- **Binds** (`SwayConf.bindLine`): `bindsym --no-warn [--whole-window] [--locked] [--release] [--no-repeat] Mod4+Shift+q <command>`. A letter is lower case; `code:N` is a `bindcode`; the wheel is `button4`-`7` and mouse buttons `BTN_*`, over the whole window. Sway repeats a held bind unless told, Hyprland doesn't: every bind without `repeating` gets `--no-repeat`.
+  - Actions: `focus`/`move <dir>`, `resize grow|shrink width|height N px`, `kill`, `fullscreen toggle`, `floating toggle`, `sticky toggle` (pin), `move position center`, `layout toggle split`, `exit`; IPC actions and apps as `exec`, quoted when sway would split or unquote them. Raw binds written for sway pass through.
+  - `mouseDrag`/`mouseResize` are sway's `floating_modifier <mod> normal|inverse`.
+  - Strips, pseudotiling and groups aren't sway's: those binds are left out.
+  - axiom's own: the switcher (`nop axiom switcher step ±1`) and special groups (`nop axiom special toggle|move <name>`), which `SwayManager` reads from `binding` events.
+- **The look** (`SwayConf.lookLines`): `client.focused|focused_inactive|unfocused` from the border colors (title text black or white, whichever reads), `default_border pixel <width>` (sway has no rounding: no `windowRounding`), `gaps inner|outer`. Sent live, they also apply to what's open (`[all] border pixel`, `gaps … all set`), and `gapsOut` follows the gaps until the next reload (`SwayManager.setLiveGaps`).
+- **The input** (`SwayConf.inputLines`): Input's fields by their `x-sway` command ([schema annotations](../core/schema-annotations.md)); `xkb_numlock` only in the file (`x-swayConfigOnly`). The cursor: `seat * xcursor_theme <theme> <size>`.
+- **Key capture** (`keyCapture`): `mode "axiom_record"` with one unreachable bind, defined at runtime, and a sleeping `swaymsg` that leaves it after 30 s should the shell die.
+- **The switcher**: sway fires a `--release` bind only when no other key came between, so it can't tell the modifier's release after Tab. Without `switcherRelease`, `SwitcherKeys` (an invisible pixel taking the keyboard while the switcher is open) picks on the release, cancels on Escape. A very quick tap may release before it has the keyboard (fine at 20 ms in nested sway).
 
 ### `supports` for sway
-Now: `monitors`, `windowGeometry`. With the writer: `configModes`, `keybinds`, `inputConfig`, `windowBorders`, `windowGaps`, `scratchpad`, `namedSpecial`, `switcher`, `mouseBinds`; to check, `keyCapture` (a `ShortcutInhibitor` on the recorder) and `bindMerge` (binds parsed from the config). False: `outputProfiles`, `pseudoTile`, `windowGroups`, `monitorColor`, `monitorMirror`, `strips`, `focusGrab`, `layerOrder`, `blur`, `cursorPos`, `cursorWarp`, `workspaceSlide`, `windowShape`, `windowBlur`, `windowOpacity`.
+`configModes`, `keybinds`, `monitors`, `switcher`, `windowGeometry`, `windowBorders`, `windowShape` (the border width), `windowGaps`, `inputConfig`, `keyCapture`, `bindMerge` (the list and conflicts; merging the user's binds in comes with managed), `scratchpad`, `namedSpecial`, `mouseBinds`. Not: `switcherRelease`, `windowRounding`, `outputProfiles`, `pseudoTile`, `windowGroups`, `monitorColor`, `monitorMirror`, `strips`, `focusGrab`, `layerOrder`, `blur`, `cursorPos`, `cursorWarp`, `workspaceSlide`, `windowBlur`, `windowOpacity`.
 
 ### Open questions (check in the nested session)
 - **Click outside.** Without `focusGrab`, a grabbing surface takes the keyboard exclusively and each screen's backdrop window catches the click outside it ([README](README.md) › Focus grab). Typing into the launcher opened by IPC works in nested sway; check by hand that bar popouts with text fields, the launcher, the overlay and the power menu close on an outside click.
 - **Layer stacking.** With no `layerOrder`, `LayerManager` maps the stacked surfaces in `LayerStack` order ([layer arrangement](layer-arrangement.md)); checked in nested sway for a solid and a floating-pills bar against the border, and an integrated edge menu.
 - **Workspace blocks.** `workspace number N` creates N on the focused output, and the facade focuses the output first. Checked on two nested outputs (`swaymsg create_output`); the perMonitor and grid blocks and a live remap still need a look.
-- **Runtime modes.** Sway likely defines `mode` blocks only while reading its config: the switcher's mode would then exist in the file modes only, and detached would step with plain `nop` binds.
 - **Focus follows the mouse.** In nested sway the pointer over the nested window refocuses the output under it after a command; read state with that in mind.
 - **The greeter** stays a Hyprland session (`issues.md`).

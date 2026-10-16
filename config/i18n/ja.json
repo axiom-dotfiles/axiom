@@ -2936,7 +2936,6 @@
     "The compositor the command is written for: the bind does nothing under another.": "コマンドの対象となるコンポジター。ほかのコンポジターではバインドは何もしません。",
     "Sway": "Sway",
     "raw": "raw",
-    "Search text, page, edge menu or dock id, direction, workspace number, special workspace name, resize step (\"50 0\"), screenshot kind (region, window or screen), command, or a compositor command in its own language (Hyprland: a dispatcher as Lua, hl.dsp.layout(\"swapsplit\")).": "検索テキスト、ページ、エッジメニューまたはドックの ID、方向、ワークスペース番号、特殊ワークスペース名、リサイズ量（\"50 0\"）、スクリーンショットの種類（region、window、screen）、コマンド、またはコンポジター独自の言語のコマンド（Hyprland：Lua のディスパッチャー、hl.dsp.layout(\"swapsplit\")）。",
     "exitSession": "ログアウト",
     "sway": "sway",
     "Compositor command": "コンポジターのコマンド",
@@ -2960,6 +2959,8 @@
     "Slide between workspaces whatever the compositor's own workspace animation style is: sideways in the standard layout; in a grid, sideways between columns and vertically between rows, going by row first, then column.": "コンポジター自体のワークスペースアニメーションの種類に関係なく、ワークスペース間をスライドします。標準レイアウトでは横に、グリッドでは列の間は横に、行の間は縦にスライドし、行を先に、次に列を移動します。",
     "Space between the dock and the border or bar on its edge, and at the ends. Auto lines it up with a floating bar on its edge, else with your windows. Reserving its space, it keeps the compositor's gap between windows from them.": "ドックと、その辺の枠やバーとの間隔（両端も同じ）。自動では、その辺のフローティングバー、なければウィンドウに揃えます。領域を確保している場合、ウィンドウとの間は コンポジターのウィンドウ間の間隔になります。",
     "How far a floating bar keeps from the screen border (or the screen edge), across the bar and at its ends. Auto keeps the compositor's gap to the screen edges, as your windows do. Windows always keep the compositor's gap between windows from the bar.": "フローティングバーが画面の枠 (または画面の端) から離れる距離。バーの横方向と両端に適用されます。自動では、ウィンドウと同じく コンポジターの画面端との間隔を使います。ウィンドウとバーの間は常に コンポジターのウィンドウ間の間隔になります。",
-    "The mode is applied when you press Finish; only Apply above changes hyprland.lua right away. You can switch modes later in Settings → Compositor.": "モードは「完了」を押したときに適用されます。すぐに hyprland.lua を変更するのは上の「適用」だけです。モードは後で 設定 → コンポジター で切り替えられます。"
+    "The mode is applied when you press Finish; only Apply above changes hyprland.lua right away. You can switch modes later in Settings → Compositor.": "モードは「完了」を押したときに適用されます。すぐに hyprland.lua を変更するのは上の「適用」だけです。モードは後で 設定 → コンポジター で切り替えられます。",
+    "Adds the line at the end: sway starts axiom with every session.": "行を末尾に追加します：sway が毎回のセッションで axiom を起動します。",
+    "Search text, page, edge menu or dock id, direction, workspace number, special workspace name, resize step (\"50 0\"), screenshot kind (region, window or screen), command, or a compositor command in its own language (Hyprland: a dispatcher as Lua, hl.dsp.layout(\"swapsplit\"); sway: a command, layout tabbed).": "検索テキスト、ページ、エッジメニューまたはドックの ID、方向、ワークスペース番号、特殊ワークスペース名、リサイズ量（\"50 0\"）、スクリーンショットの種類（region、window、screen）、コマンド、またはコンポジター独自の言語のコマンド（Hyprland：Lua のディスパッチャー、hl.dsp.layout(\"swapsplit\")、sway：コマンド、layout tabbed）。"
   }
 }

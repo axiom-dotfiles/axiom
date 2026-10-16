@@ -39,6 +39,8 @@ QtObject {
   readonly property string generatedThemesPath: ConfigManager.dataDirs.generatedThemes
 
   readonly property string hyprlandPath: root.homeDirectory + ".config/hypr/"
+  // Sway's config folder ($XDG_CONFIG_HOME/sway/, as sway looks there first)
+  readonly property string swayPath: (Quickshell.env("XDG_CONFIG_HOME") || root.homeDirectory + ".config").replace(/\/$/, "") + "/sway/"
   // Where to look for data the system (or the user) installed, most
   // important first: $XDG_DATA_HOME, then $XDG_DATA_DIRS (DataDirs.searchDirs;
   // /usr/share isn't where every distro has it). No trailing slashes.

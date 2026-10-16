@@ -12,7 +12,8 @@ CompositorManager's backend on sway (docs/dev/compositor/contract.md, docs/dev/c
 - `workspaces` (readonly var): The numbered workspaces (SwayState.workspace)
 - `focusedOutput` (readonly string): The focused output's name, or ""
 - `activeWindowId` (readonly string): The focused window's id (its con_id), or "": from focus events as they come, the tree otherwise
-- `gapsOut` (readonly var): Sway's gap at the screen edges, after reserved zones: its outer gap plus the inner one every window keeps (SwayState.configGaps)
+- `gapsOut` (readonly var): Sway's gap at the screen edges, after reserved zones: its outer gap plus the inner one every window keeps.
+- `configWriter` (readonly var): Writes axiom's layer into sway's config (CompositorConfigManager)
 - `surfacesReady` (readonly bool): Sway doesn't stack layers by axiom's order: LayerManager maps them in order itself, from the start
 - `travelingTo` (readonly int): Sway has no slides
 - `supports` (readonly var): What sway does (CompositorManager.supports)
@@ -42,6 +43,10 @@ CompositorManager's backend on sway (docs/dev/compositor/contract.md, docs/dev/c
 - `toggleSpecial(name)`: Shows the windows of special group `name` on the focused output, or hides them when any is shown there (SwayState.specialToggle)
 - `moveToSpecial(name)`: Puts the focused window in special group `name` (hidden until shown)
 - `leaveSwitcher()`: Leaves the switcher's mode (a tile was clicked while its keys were held)
+- `runCommands(lines, callback)`: Runs sway commands (`lines`), in order, after those sent before
+- `setLiveGaps(gaps)`: The gaps axiom's window look set now ({ inner, outer }), or null when it sets none: gapsOut follows them until sway reloads its config
+- `withMainBinds(callback)`: Calls back with the binds in effect outside axiom's own modes (the user's, read from their config, and axiom's), or null
+- `captureKeys(on)`: While on, every key reaches axiom instead of a bind (the Keybinds page's recorder): an empty mode, left by an unreachable key.
 - `withKeyboard(callback)`: Calls back with the main keyboard's layouts ({ layouts, index, keymap }, SwayState.keyboard), or null
 - `cycleKeyboardLayout(direction, callback)`: Switches every keyboard to its "next" or "prev" layout, then calls back
 - `withCursorPos(callback)`: Sway can't say where the cursor is, nor list layer surfaces

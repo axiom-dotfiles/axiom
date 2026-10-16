@@ -22,7 +22,7 @@ Singleton {
   // The windows (SwayState.window), most recently used ranked first
   readonly property var windows: SwayState.ranked(_info.windows, JSON.parse(_recent.idsJson), _info.order, activeWindowId)
   // The outputs (SwayState.output)
-  readonly property var outputs: I3.monitors.values.map(m => SwayState.output(m, root._info))
+  readonly property var outputs: I3.monitors.values.map(m => SwayState.output(m, root._info, root.gapsOut))
   // The numbered workspaces (SwayState.workspace)
   readonly property var workspaces: I3.workspaces.values.map(ws => SwayState.workspace(ws, root._info.counts)).filter(ws => ws !== null)
   // The focused output's name, or ""
@@ -31,8 +31,17 @@ Singleton {
   // come, the tree otherwise
   readonly property string activeWindowId: _focusedId
   // Sway's gap at the screen edges, after reserved zones: its outer gap
-  // plus the inner one every window keeps (SwayState.configGaps)
-  readonly property var gapsOut: _gaps
+  // plus the inner one every window keeps. Sway's IPC doesn't say: it's
+  // what axiom's window look set (setLiveGaps), else what sway's config
+  // sets (SwayState.configInfo)
+  readonly property var gapsOut: _liveGaps ? {
+    "top": _liveGaps.outer + _liveGaps.inner,
+    "right": _liveGaps.outer + _liveGaps.inner,
+    "bottom": _liveGaps.outer + _liveGaps.inner,
+    "left": _liveGaps.outer + _liveGaps.inner
+  } : _gaps
+  // Writes axiom's layer into sway's config (CompositorConfigManager)
+  readonly property var configWriter: SwayConfigWriter
   // Sway doesn't stack layers by axiom's order: LayerManager maps them in
   // order itself, from the start
   readonly property bool surfacesReady: true
@@ -40,8 +49,20 @@ Singleton {
   readonly property int travelingTo: -1
   // What sway does (CompositorManager.supports)
   readonly property var supports: ({
+      "configModes": true,
+      "keybinds": true,
       "monitors": true,
-      "windowGeometry": true
+      "switcher": true,
+      "windowGeometry": true,
+      "windowBorders": true,
+      "windowShape": true,
+      "windowGaps": true,
+      "inputConfig": true,
+      "keyCapture": true,
+      "bindMerge": true,
+      "scratchpad": true,
+      "namedSpecial": true,
+      "mouseBinds": true
     })
 
   // --- Events ---
@@ -210,6 +231,42 @@ Singleton {
     I3.dispatch("mode default");
   }
 
+  // --- Sending axiom's layer (SwayConfigWriter) ---
+
+  // Runs sway commands (`lines`), in order, after those sent before
+  function runCommands(lines, callback) {
+    SwayIpcManager.command(lines.filter(line => line !== "").join("; "), ok => callback?.(ok));
+  }
+
+  // The gaps axiom's window look set now ({ inner, outer }), or null when
+  // it sets none: gapsOut follows them until sway reloads its config
+  function setLiveGaps(gaps) {
+    root._liveGaps = gaps ? {
+      "inner": Number(gaps.inner) || 0,
+      "outer": Number(gaps.outer) || 0
+    } : null;
+  }
+
+  property var _liveGaps: null
+
+  // Calls back with the binds in effect outside axiom's own modes (the
+  // user's, read from their config, and axiom's), or null
+  function withMainBinds(callback) {
+    SwayConfigWriter.withEntries(callback);
+  }
+
+  // While on, every key reaches axiom instead of a bind (the Keybinds
+  // page's recorder): an empty mode, left by an unreachable key. A sleeping
+  // swaymsg leaves it after 30 s even if the shell dies meanwhile.
+  function captureKeys(on) {
+    if (on)
+      runCommands([`mode "${_captureMode}" bindsym --no-warn Mod4+Ctrl+Mod1+Shift+F24 mode default`, `mode "${_captureMode}"`, `exec sleep 30 && swaymsg -t get_binding_state | grep -q ${_captureMode} && swaymsg mode default`]);
+    else
+      I3.dispatch("mode default");
+  }
+
+  readonly property string _captureMode: "axiom_record"
+
   // --- Session and input ---
 
   // Calls back with the main keyboard's layouts ({ layouts, index, keymap },
@@ -310,6 +367,8 @@ Singleton {
       break;
     case "workspace":
       if (data.change === "reload") {
+        // A reload takes back what axiom's look set at runtime
+        root._liveGaps = null;
         root._readConfig();
         root.configReloaded();
       }
@@ -331,7 +390,8 @@ Singleton {
 
   // axiom's own binds: `nop axiom <what> <verb> [argument]`
   function _onBinding(command) {
-    const words = command.trim().split(/\s+/);
+    const segment = command.split(/[;,]/).map(part => part.trim()).find(part => part.startsWith("nop axiom ")) ?? "";
+    const words = segment.split(/\s+/);
     if (words[0] !== "nop" || words[1] !== "axiom")
       return;
     const [what, verb = "", argument = ""] = words.slice(2);
