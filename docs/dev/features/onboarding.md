@@ -35,7 +35,7 @@ The first-run onboarder: a paged window that sets up the look, the compositor's 
   - `managed`: Recommended
   - `included`: For complex setups
   - `detached`: For testing
-- **Starting mode:** the page starts on `recommendedMode` (`chosenMode` falls back to it):
+- **Starting mode:** the page starts on `recommendedMode` (`chosenMode` falls back to it): the current `Compositor.mode` when it isn't `detached` (run again, Finish keeps it; FinishPage warns when a pick changes it), else
   - `managed` for the compositor's example config (`stock`), for no config (`none`), or for axiom's own (`ours`);
   - `detached` for any config of the user's (`custom`, `legacy`, `blocked`), which it then leaves alone.
 - A blocked managed card says why (`blockedReason`).
