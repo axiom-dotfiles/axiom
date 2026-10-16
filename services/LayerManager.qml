@@ -203,6 +203,7 @@ QtObject {
           "order": LayerStack.orderOf(slot.namespace),
           "wanted": slot.wanted,
           "held": slot.held,
+          "showing": root._slotSeqs[uid] !== undefined,
           "mapped": root._slotSettled[uid] === true,
           "seq": root._slotSeqs[uid] ?? 0
         };

@@ -168,11 +168,13 @@ QtObject {
    * Which of the windows axiom maps in order may show now, and which
    * have to map again. `entries`: { id, output, layer, order, wanted (its
    * owner wants it shown), held (kept mapped even when not wanted, where
-   * the compositor stacks by map order alone), mapped (shown long enough
-   * for the compositor to have mapped it), seq (when it mapped) }.
+   * the compositor stacks by map order alone), showing (visible now),
+   * mapped (shown long enough for the compositor to have mapped it), seq
+   * (when it mapped) }.
    * On each output and layer a window shows once every window ordered
    * before it there that shows is mapped, so they map highest order
-   * first. Unless the compositor sorts by order itself (`ordered`), a
+   * first. One already showing stays (a window ordered before it starting
+   * to show, a backdrop, doesn't take it down). Unless the compositor sorts by order itself (`ordered`), a
    * mapped window that one ordered before it mapped after is out of
    * place: it maps again (`remap`), and so lands after it.
    * Returns { show: [ids], remap: [ids] }.
@@ -181,7 +183,7 @@ QtObject {
     const wants = e => e.wanted || (!ordered && e.held);
     const peers = e => entries.filter(o => o !== e && o.output === e.output && o.layer === e.layer);
     const remap = ordered ? [] : entries.filter(e => e.mapped && peers(e).some(o => o.mapped && o.order > e.order && o.seq > e.seq)).map(e => e.id);
-    const show = entries.filter(e => wants(e) && !remap.includes(e.id) && peers(e).every(o => !wants(o) || o.order <= e.order || o.mapped)).map(e => e.id);
+    const show = entries.filter(e => wants(e) && !remap.includes(e.id) && (e.showing || peers(e).every(o => !wants(o) || o.order <= e.order || o.mapped))).map(e => e.id);
     return {
       "show": show,
       "remap": remap

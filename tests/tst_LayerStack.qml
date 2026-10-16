@@ -113,4 +113,18 @@ TestCase {
     compare(LayerStack.sequence([menu, bar], false).show, ["menu"]);
     compare(LayerStack.sequence([menu, bar], true).show, ["bar"]);
   }
+
+  // A window ordered before others starting to show (a backdrop, opening
+  // with the overlay) doesn't take down those already showing
+  function test_sequence_showing_stays() {
+    const backdrop = entry("backdrop", 10);
+    const bar = entry("bar", 5, {
+      "showing": true,
+      "mapped": true,
+      "seq": 1
+    });
+    const border = entry("border", 0);
+    const result = LayerStack.sequence([backdrop, bar, border], true);
+    compare(result.show.sort(), ["backdrop", "bar"], "the bar stays; the border, not shown yet, still waits");
+  }
 }
