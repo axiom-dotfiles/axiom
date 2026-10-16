@@ -31,7 +31,7 @@ Card {
 
   // The picked monitor while it's connected, else this overlay's
   property string chosenMonitor: ""
-  readonly property var screenNames: Quickshell.screens.map(screen => screen.name)
+  readonly property var screenNames: General.outputs.map(screen => screen.name)
   readonly property string targetMonitor: root.tall && root.screenNames.includes(root.chosenMonitor) ? root.chosenMonitor : root.monitor
   readonly property string mode: Appearance.wallpaperMode
   readonly property bool variantMode: root.mode === "variant"

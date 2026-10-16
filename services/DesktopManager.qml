@@ -1,6 +1,5 @@
 pragma Singleton
 import QtQuick
-import Quickshell
 
 import qs.config
 import qs.components.methods
@@ -78,7 +77,7 @@ QtObject {
     const desktop = root._desktop;
     if (!desktop)
       return [];
-    const screens = Array.from(Quickshell.screens);
+    const screens = General.outputs.slice();
     const names = screens.map(screen => screen.name);
     desktop.monitors.forEach(layout => {
       if (!names.includes(layout.monitor))
@@ -150,7 +149,7 @@ QtObject {
       desktop.monitors = desktop.monitors.filter(layout => layout.monitor !== name);
     });
     root.editor.layout.clearHistory();
-    if (!Array.from(Quickshell.screens).some(screen => screen.name === name))
+    if (!General.outputs.slice().some(screen => screen.name === name))
       root.selectTarget("primary");
   }
 
@@ -165,7 +164,7 @@ QtObject {
   // The screen a target is laid out on: its monitor, else the primary
   // monitor (for all monitors, and a monitor that isn't plugged in)
   function screenFor(key) {
-    const screens = Array.from(Quickshell.screens);
+    const screens = General.outputs.slice();
     return screens.find(screen => screen.name === key) ?? screens.find(screen => screen.name === DesktopConfig.primaryName) ?? screens[0] ?? null;
   }
 

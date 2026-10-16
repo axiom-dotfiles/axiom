@@ -1,6 +1,5 @@
 pragma Singleton
 import QtQuick
-import Quickshell
 
 import qs.config
 import qs.components.methods
@@ -180,7 +179,7 @@ QtObject {
     switch (fieldSchema?.["x-options"]) {
     case "screens":
       // `x-allScreens`: "*" puts the thing on every screen (bars)
-      return ["", ...(fieldSchema["x-allScreens"] ? ["*"] : []), ...Quickshell.screens.map(screen => screen.name)];
+      return ["", ...(fieldSchema["x-allScreens"] ? ["*"] : []), ...General.outputs.map(screen => screen.name)];
     case "chatProviders":
       return ChatConfig.providers.map(provider => provider.id);
     case "chatPresets":
