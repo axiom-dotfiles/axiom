@@ -311,6 +311,44 @@ QtObject {
     return lines;
   }
 
+  /**
+   * SwayFX's part of the look (CompositorLayer.look) and the blur behind
+   * axiom's surfaces (`surfaces`: { blur, throughWindows, backdrops }), as
+   * commands to send now: never written into a file, which plain sway would
+   * refuse. Each sets the compositor's global (and every window's), so a
+   * part off sends nothing, and a reload takes it back.
+   *   shape    corner_radius
+   *   blur     blur (windows), blur_radius (≤ 10), blur_passes, blur_xray,
+   *            blur_noise, blur_contrast
+   *   shadow   shadows, shadow_blur_radius, shadow_color (and inactive)
+   *   dim      default_dim_inactive
+   * and per axiom layer (LayerStack.blurSurfaces, blurBackdrops,
+   * blurOverOverlay) its layer_effects, on or off, its transparent pixels
+   * left out.
+   */
+  function fxLines(look, surfaces) {
+    const lines = [];
+    const clamp = (value, low, high) => Math.max(low, Math.min(high, Math.round(Number(value) || 0)));
+    const toggle = on => on ? "enable" : "disable";
+    if (look?.shape)
+      lines.push(`corner_radius ${clamp(look.shape.radius, 0, 99)}`);
+    if (look?.blur) {
+      const b = look.blur;
+      lines.push(`blur ${toggle(b.windows)}`, `blur_radius ${clamp(b.size, 0, 10)}`, `blur_passes ${clamp(b.passes, 0, 10)}`, `blur_xray ${toggle(b.xray)}`, `blur_noise ${Math.round(b.noise) / 1000}`, `blur_contrast ${Math.round(b.contrast) / 100}`);
+    }
+    if (look?.shadow) {
+      lines.push("shadows enable", `shadow_blur_radius ${clamp(look.shadow.size, 0, 100)}`);
+      if (look.shadow.color !== "")
+        lines.push(`shadow_color #${look.shadow.color}ee`, `shadow_inactive_color #${look.shadow.color}ee`);
+    }
+    if (look?.dim)
+      lines.push(`default_dim_inactive ${clamp(look.dim.strength, 0, 100) / 100}`);
+    const layer = (names, on, xray) => names.map(name => `layer_effects ${quote("axiom-" + name)} ${quote(`blur ${toggle(on)}; blur_xray ${toggle(xray)}; blur_ignore_transparent enable`)}`);
+    const blur = surfaces?.blur === true;
+    const xray = surfaces?.throughWindows !== true;
+    return lines.concat(layer(LayerStack.blurSurfaces, blur, xray), layer(LayerStack.blurBackdrops, blur && surfaces?.backdrops === true, xray), layer(LayerStack.blurOverOverlay, blur, false));
+  }
+
   // A field's value as its x-sway command takes it, or null to leave it
   function _swayValue(fieldSchema, value) {
     if (fieldSchema["x-swaySkip"] !== undefined && value === fieldSchema["x-swaySkip"])

@@ -169,10 +169,14 @@ Singleton {
   // --- At runtime ---
 
   // The look and the input as commands sent now, from `spec`
-  // (CompositorConfigManager.spec(false))
+  // (CompositorConfigManager.spec(false)).
+  // SwayFX's part (rounded corners, its blur, shadows, dimming and the
+  // blur behind axiom's surfaces) only ever goes this way, never into a
+  // file, so the config still loads in plain sway
   function liveLines(spec) {
-    SwayManager.setLiveGaps(spec.look.gaps);
-    return SwayConf.lookLines(spec.look, true).concat(_inputLines(spec, true));
+    SwayManager.setLiveLook(spec.look);
+    const fx = SwayManager.fx ? SwayConf.fxLines(spec.look, spec.surfaces) : [];
+    return SwayConf.lookLines(spec.look, true).concat(fx, _inputLines(spec, true));
   }
 
   // CompositorConfigManager's: the live lines, noting which parts they

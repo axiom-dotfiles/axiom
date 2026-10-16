@@ -220,8 +220,9 @@ QtObject {
   // What a sway config's text (get_config) sets that axiom follows: { gaps:
   // the gap at each screen edge ({ top, right, bottom, left }: the outer
   // gap plus the inner one, which sway adds at the edges too), layouts (the
-  // first xkb_layout, "us,de", or "") }. Only the defaults count, not a
-  // `workspace N gaps` override.
+  // first xkb_layout, "us,de", or ""), blur (SwayFX's: { enabled, size,
+  // passes }) }. Only the defaults count, not a `workspace N gaps`
+  // override.
   function configInfo(text) {
     const outer = {
       "top": 0,
@@ -231,6 +232,12 @@ QtObject {
     };
     let inner = 0;
     let layouts = "";
+    // SwayFX's defaults
+    const blur = {
+      "enabled": false,
+      "size": 5,
+      "passes": 2
+    };
     for (const raw of String(text ?? "").split("\n")) {
       const line = raw.replace(/#.*/, "").trim();
       const gap = /^gaps\s+(inner|outer|horizontal|vertical|top|right|bottom|left)\s+(-?\d+)/.exec(line);
@@ -246,6 +253,11 @@ QtObject {
         else
           sides.forEach(side => outer[side] = value);
       }
+      const blurLine = /^blur(_radius|_passes)?\s+(\S+)/.exec(line);
+      if (blurLine && !blurLine[1])
+        blur.enabled = /^(enable|yes|on|true)$/.test(blurLine[2]);
+      else if (blurLine)
+        blur[blurLine[1] === "_radius" ? "size" : "passes"] = Number(blurLine[2]) || 0;
       const layout = /(?:^|\s)xkb_layout\s+("?)([^"\s]+)\1/.exec(line);
       if (layout && layouts === "")
         layouts = layout[2];
@@ -257,7 +269,8 @@ QtObject {
         "bottom": Math.max(0, outer.bottom + inner),
         "left": Math.max(0, outer.left + inner)
       },
-      "layouts": layouts
+      "layouts": layouts,
+      "blur": blur
     };
   }
 
@@ -321,5 +334,38 @@ QtObject {
     if (reply)
       walk(reply);
     return result;
+  }
+
+  /**
+   * Window opacity as sway sets it, a window at a time (sway has no
+   * focused/unfocused opacity of its own): what each of `windows` (the
+   * contract's) should be with `opacity` ({ active, inactive, fullscreen }
+   * in percent, CompositorLayer.look's, or null for none) and `focusedId`
+   * focused, against `applied` ({ id: value } as last set). Returns {
+   * lines, applied }: the commands for the windows that change (all of
+   * them back to 1 when opacity goes), and what's set then.
+   */
+  function opacityCommands(windows, focusedId, opacity, applied) {
+    const now = {};
+    const lines = [];
+    if (!opacity) {
+      if (Object.keys(applied ?? {}).length > 0)
+        lines.push("[all] opacity 1");
+      return {
+        "lines": lines,
+        "applied": now
+      };
+    }
+    for (const win of windows ?? []) {
+      const percent = win.fullscreen ? opacity.fullscreen : win.id === focusedId ? opacity.active : opacity.inactive;
+      const value = Math.round(percent) / 100;
+      now[win.id] = value;
+      if (applied?.[win.id] !== value)
+        lines.push(`[con_id=${Number(win.id)}] opacity ${value}`);
+    }
+    return {
+      "lines": lines,
+      "applied": now
+    };
   }
 }

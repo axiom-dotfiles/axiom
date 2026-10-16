@@ -178,7 +178,7 @@ QtObject {
   // menus, docks) doesn't blur itself: the blur window (BlurManager,
   // shell/BlurBacking) draws its fills and is blurred in their place. The
   // rest blur themselves, their popups too.
-  readonly property var blurSurfaces: ["blur-backing", "dock-preview", "overlay", "launcher", "switcher", "floating-popout", "notifications", "powermenu", "workspaces", "monitor-prompt"]
+  readonly property var blurSurfaces: LayerStack.blurSurfaces
   // The chrome's own windows, for their popups alone (tooltips, the dock's
   // menu): Hyprland blurs a layer's popups whether or not the layer blurs.
   // A submenu (SubPopout, a popup of its popout's window) is drawn
@@ -187,7 +187,7 @@ QtObject {
   readonly property var blurChrome: LayerStack.barLayers.concat(["popout", "popout-under", "edge-popout", "edge-menu", "dock"])
   // Backdrops (and the polkit prompt, whose window holds its own dim) blur
   // only when asked: the whole screen, at every alpha.
-  readonly property var blurBackdrops: ["backdrop", "polkit"]
+  readonly property var blurBackdrops: LayerStack.blurBackdrops
   // The windows whose fill, blur and shadow the blur window draws: not
   // animated by Hyprland while it does (they slide themselves), or their
   // stroke and content fade or pop in and out while what the blur window
@@ -195,7 +195,7 @@ QtObject {
   readonly property var blurBacked: LayerStack.barLayers.concat(["border", "popout", "popout-under", "edge-popout", "osd", "edge-menu", "dock"])
   // The blur window over the overlay: what it blurs is the overlay, so
   // never with xray (which would blur the wallpaper in its place)
-  readonly property var blurOverOverlay: ["blur-backing-overlay"]
+  readonly property var blurOverOverlay: LayerStack.blurOverOverlay
 
   function _blurRule(name, namespaces, effects, enabled) {
     return `hl.layer_rule({ name = ${string(name)}, match = { namespace = ${string(`^axiom-(${namespaces.join("|")})$`)} }, ${effects}, enabled = ${enabled} })`;

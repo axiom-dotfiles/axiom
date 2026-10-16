@@ -565,4 +565,58 @@ bindsym $mod+space exec $ipc appLauncher toggle`;
       }
     ]), "output DP-1 enable mode 1920x1080 pos 0 0 scale 1 transform normal adaptive_sync off; output DP-2 disable");
   }
+
+  // SwayFX's part of the look, sent at runtime only
+  function test_fxLines() {
+    compare(SwayConf.fxLines(null, null).filter(line => !line.startsWith("layer_effects")), []);
+    const lines = SwayConf.fxLines({
+      "shape": {
+        "width": 2,
+        "radius": 14
+      },
+      "blur": {
+        "windows": true,
+        "surfaces": true,
+        "size": 16,
+        "passes": 3,
+        "xray": false,
+        "noise": 12,
+        "contrast": 89
+      },
+      "shadow": {
+        "size": 8,
+        "power": 3,
+        "color": "101010"
+      },
+      "dim": {
+        "strength": 15
+      }
+    }, {
+      "blur": true,
+      "throughWindows": true,
+      "backdrops": false
+    });
+    verify(lines.includes("corner_radius 14"));
+    verify(lines.includes("blur enable") && lines.includes("blur_radius 10"), "the radius capped at SwayFX's 10");
+    verify(lines.includes("blur_passes 3") && lines.includes("blur_xray disable"));
+    verify(lines.includes("blur_noise 0.012") && lines.includes("blur_contrast 0.89"));
+    verify(lines.includes("shadows enable") && lines.includes("shadow_blur_radius 8"));
+    verify(lines.includes("shadow_color #101010ee") && lines.includes("shadow_inactive_color #101010ee"));
+    verify(lines.includes("default_dim_inactive 0.15"));
+    verify(lines.includes("layer_effects axiom-overlay \"blur enable; blur_xray disable; blur_ignore_transparent enable\""), "through windows: no xray");
+    verify(lines.includes("layer_effects axiom-backdrop \"blur disable; blur_xray disable; blur_ignore_transparent enable\""), "backdrops only when asked");
+    verify(lines.includes("layer_effects axiom-blur-backing-overlay \"blur enable; blur_xray disable; blur_ignore_transparent enable\""));
+    // Surfaces not blurring: every layer's blur off
+    verify(SwayConf.fxLines(null, {
+      "blur": false
+    }).every(line => line.includes("\"blur disable;")));
+    // No shadow color: SwayFX's own
+    verify(!SwayConf.fxLines({
+      "shadow": {
+        "size": 8,
+        "power": 3,
+        "color": ""
+      }
+    }, null).some(line => line.startsWith("shadow_color")));
+  }
 }

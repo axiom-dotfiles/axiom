@@ -46,7 +46,7 @@
 - `moduleText(spec)`: The included file, from `spec` (CompositorConfigManager.spec(true))
 - `managedText(spec)`: The managed sway config, from `spec` as for moduleText
 - `releasedText(mode)`: The config leaving managed gives back when the takeover set nothing aside: it starts axiom (and includes its module in included mode)
-- `liveLines(spec)`: The look and the input as commands sent now, from `spec` (CompositorConfigManager.spec(false))
+- `liveLines(spec)`: The look and the input as commands sent now, from `spec` (CompositorConfigManager.spec(false)).
 - `runLive(lines)`
 - `setCursor(theme, size)`
 - `readUserBinds(callback)`: Calls back with the binds the user's own sway config holds (SwayConf.configBinds; its includes in, axiom's files left out: the included module, and the managed config's own lines), or null

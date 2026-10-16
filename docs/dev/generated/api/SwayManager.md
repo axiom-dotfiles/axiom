@@ -19,7 +19,8 @@ CompositorManager's backend on sway (docs/dev/compositor/contract.md, docs/dev/c
 - `displayName` (readonly string)
 - `surfacesReady` (readonly bool): Sway doesn't stack layers by axiom's order: LayerManager maps them in order itself, from the start
 - `travelingTo` (readonly int): Sway has no slides
-- `supports` (readonly var): What sway does (CompositorManager.supports)
+- `blur` (readonly var): SwayFX's blur ({ enabled, size, passes }), as the window look set it (setLiveLook), else its config's; plain sway has none
+- `supports` (readonly var): What sway does (CompositorManager.supports): SwayFX adds the blur, rounded corners, shadows and dimming.
 
 ### Signals
 
@@ -47,7 +48,7 @@ CompositorManager's backend on sway (docs/dev/compositor/contract.md, docs/dev/c
 - `moveToSpecial(name)`: Puts the focused window in special group `name` (hidden until shown), out of any other: a window is on one special workspace at a time
 - `leaveSwitcher()`: Leaves the switcher's mode (a tile was clicked while its keys were held)
 - `runCommands(lines, callback)`: Runs sway commands (`lines`), in order, after those sent before
-- `setLiveGaps(gaps)`: The gaps axiom's window look set now ({ inner, outer }), or null when it sets none: gapsOut follows them until sway reloads its config
+- `setLiveLook(look)`: The window look as set now (CompositorLayer.look; SwayConfigWriter. liveLines): gapsOut and blur follow its gaps and blur until sway reloads its config, and its opacity is kept up as focus moves
 - `withMainBinds(callback)`: Calls back with the binds in effect outside axiom's own modes (the user's, read from their config, and axiom's), or null
 - `captureKeys(on)`: While on, every key reaches axiom instead of a bind (the Keybinds page's recorder): an empty mode, left by an unreachable key.
 - `withKeyboard(callback)`: Calls back with the main keyboard's layouts ({ layouts, index, keymap }, SwayState.keyboard), or null

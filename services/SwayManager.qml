@@ -32,7 +32,7 @@ Singleton {
   readonly property string activeWindowId: _focusedId
   // Sway's gap at the screen edges, after reserved zones: its outer gap
   // plus the inner one every window keeps. Sway's IPC doesn't say: it's
-  // what axiom's window look set (setLiveGaps), else what sway's config
+  // what axiom's window look set (setLiveLook), else what sway's config
   // sets (SwayState.configInfo)
   readonly property var gapsOut: _liveGaps ? {
     "top": _liveGaps.outer + _liveGaps.inner,
@@ -54,23 +54,32 @@ Singleton {
   readonly property bool surfacesReady: true
   // Sway has no slides
   readonly property int travelingTo: -1
-  // What sway does (CompositorManager.supports)
-  readonly property var supports: ({
-      "configModes": true,
-      "keybinds": true,
-      "monitors": true,
-      "switcher": true,
-      "windowGeometry": true,
-      "windowBorders": true,
-      "windowShape": true,
-      "windowGaps": true,
-      "inputConfig": true,
-      "keyCapture": true,
-      "bindMerge": true,
-      "scratchpad": true,
-      "namedSpecial": true,
-      "mouseBinds": true
-    })
+  // SwayFX's blur ({ enabled, size, passes }), as the window look set it
+  // (setLiveLook), else its config's; plain sway has none
+  readonly property var blur: _liveBlur ?? _configBlur
+  // What sway does (CompositorManager.supports): SwayFX adds the blur,
+  // rounded corners, shadows and dimming. Window opacity is set a window
+  // at a time as focus moves (SwayState.opacityCommands)
+  readonly property var supports: Object.assign({
+    "configModes": true,
+    "keybinds": true,
+    "monitors": true,
+    "switcher": true,
+    "windowGeometry": true,
+    "windowBorders": true,
+    "windowShape": true,
+    "windowGaps": true,
+    "inputConfig": true,
+    "keyCapture": true,
+    "bindMerge": true,
+    "scratchpad": true,
+    "namedSpecial": true,
+    "mouseBinds": true,
+    "windowOpacity": true
+  }, fx ? _fxCapabilities.reduce((caps, cap) => {
+    caps[cap] = true;
+    return caps;
+  }, {}) : {})
 
   // --- Events ---
 
@@ -247,16 +256,48 @@ Singleton {
     SwayIpcManager.command(lines.filter(line => line !== "").join("; "), ok => callback?.(ok));
   }
 
-  // The gaps axiom's window look set now ({ inner, outer }), or null when
-  // it sets none: gapsOut follows them until sway reloads its config
-  function setLiveGaps(gaps) {
+  // The window look as set now (CompositorLayer.look; SwayConfigWriter.
+  // liveLines): gapsOut and blur follow its gaps and blur until sway
+  // reloads its config, and its opacity is kept up as focus moves
+  function setLiveLook(look) {
+    const gaps = look?.gaps;
     root._liveGaps = gaps ? {
       "inner": Number(gaps.inner) || 0,
       "outer": Number(gaps.outer) || 0
     } : null;
+    root._liveBlur = root.fx && look?.blur ? {
+      "enabled": look.blur.windows || look.blur.surfaces,
+      "size": Math.min(10, look.blur.size),
+      "passes": look.blur.passes
+    } : null;
+    root._opacity = look?.opacity ?? null;
+    root._lookSeen = true;
+    root._applyOpacity();
   }
 
   property var _liveGaps: null
+  property var _liveBlur: null
+  property var _configBlur: ({
+      "enabled": false,
+      "size": 5,
+      "passes": 2
+    })
+  property var _opacity: null
+  // Until the look is first set (after a reload of the shell), the
+  // windows keep the opacity they have
+  property bool _lookSeen: false
+
+  // Each window's opacity as the look's says, for those that changed
+  function _applyOpacity() {
+    if (!root._lookSeen)
+      return;
+    const plan = SwayState.opacityCommands(root.windows, root.activeWindowId, root._opacity, JSON.parse(_recent.opacityJson));
+    _recent.opacityJson = JSON.stringify(plan.applied);
+    if (plan.lines.length > 0)
+      root.runCommands(plan.lines);
+  }
+  onWindowsChanged: _applyOpacity()
+  onActiveWindowIdChanged: _applyOpacity()
 
   // Calls back with the binds in effect outside axiom's own modes (the
   // user's, read from their config, and axiom's), or null
@@ -362,6 +403,8 @@ Singleton {
     property string idsJson: "[]"
     // "sway" or "swayfx" once read (_readVersion), else ""
     property string variant: ""
+    // Each window's opacity as last set ({ id: value }, JSON)
+    property string opacityJson: "{}"
   }
 
   function _readVersion() {
@@ -395,8 +438,10 @@ Singleton {
       break;
     case "workspace":
       if (data.change === "reload") {
-        // A reload takes back what axiom's look set at runtime
+        // A reload takes back what axiom's look set at runtime (not a
+        // window's opacity, which stays)
         root._liveGaps = null;
+        root._liveBlur = null;
         root._readConfig();
         root.configReloaded();
       }
@@ -453,6 +498,11 @@ Singleton {
       const info = SwayState.configInfo(out);
       root._gaps = info.gaps;
       root._configLayouts = info.layouts;
+      root._configBlur = root.fx ? info.blur : {
+        "enabled": false,
+        "size": 5,
+        "passes": 2
+      };
     });
   }
 

@@ -240,7 +240,18 @@ TestCase {
         "bottom": 0,
         "left": 0
       },
-      "layouts": ""
+      "layouts": "",
+      "blur": {
+        "enabled": false,
+        "size": 5,
+        "passes": 2
+      }
+    });
+    // SwayFX's blur
+    compare(SwayState.configInfo("blur enable\nblur_radius 7\nblur_passes 3\nblur_xray disable\n").blur, {
+      "enabled": true,
+      "size": 7,
+      "passes": 3
     });
   }
 
@@ -295,5 +306,35 @@ TestCase {
     };
     compare(SwayState.specialToggle([], marks, "a", "WL-1").ids, ["1"]);
     compare(SwayState.specialToggle([], marks, "a-b", "WL-1").ids, ["2"]);
+  }
+
+  function test_opacityCommands() {
+    const windows = [
+      {
+        "id": "4",
+        "fullscreen": false
+      },
+      {
+        "id": "7",
+        "fullscreen": false
+      },
+      {
+        "id": "9",
+        "fullscreen": true
+      }
+    ];
+    const opacity = {
+      "active": 100,
+      "inactive": 85,
+      "fullscreen": 100
+    };
+    const first = SwayState.opacityCommands(windows, "4", opacity, {});
+    compare(first.lines, ["[con_id=4] opacity 1", "[con_id=7] opacity 0.85", "[con_id=9] opacity 1"]);
+    // Focus moves: only the two windows that change
+    const moved = SwayState.opacityCommands(windows, "7", opacity, first.applied);
+    compare(moved.lines, ["[con_id=4] opacity 0.85", "[con_id=7] opacity 1"]);
+    // Turned off: every window back
+    compare(SwayState.opacityCommands(windows, "7", null, moved.applied).lines, ["[all] opacity 1"]);
+    compare(SwayState.opacityCommands(windows, "7", null, {}).lines, [], "nothing set, nothing to take back");
   }
 }

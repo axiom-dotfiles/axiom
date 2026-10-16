@@ -63,7 +63,8 @@ Plain JS objects, rebuilt as the compositor reports changes. Converters sit in a
 | `windowGeometry` | window positions and sizes are real: without it the screenshot's window mode is left out (`ScreenshotManager.kinds`; a `window` request takes a region) and no window obscures a dock (`DockManager.obscured`). The overview still draws windows where they say they are |
 | `workspaceSlide` | `travel` legs slide |
 | `windowBorders`, `windowShape`, `windowGaps`, `windowBlur`, `windowOpacity` | the `WindowLook` parts shown and applied |
-| `windowRounding` | the shape part's rounding (sway's shape is the border width alone) |
+| `windowRounding` | the shape part's rounding (plain sway's shape is the border width alone) |
+| `windowShadow`, `windowDim` | the window look's shadow and dim parts |
 | `inputConfig` | axiom sets the keyboard, mouse and touchpad |
 | `keyCapture` | the Keybinds page's recorder can take keys from the compositor's binds |
 | `bindMerge` | the user's own binds can be read (the Keybinds page's List, conflicts, Merge) |
