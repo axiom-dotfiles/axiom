@@ -181,7 +181,7 @@ QtObject {
   }
 
   // A bar window's layer namespace, whose rule's `order` decides where
-  // Hyprland arranges it (HyprlandManager.layerRulesLua): by its kind
+  // Hyprland arranges it (HyprLua.layerRulesLua): by its kind
   // (solid, outside the border; pills; transparent; floating: bars and
   // pills held off the edge) and, for a bar along its screen's longer
   // edge, a -long one arranged after the shorter edge's bar of that kind

@@ -336,6 +336,59 @@ TestCase {
     compare(SchemaLayout.categories(schema)[0].sections, ["Hypr", "Look"]);
   }
 
+  // Only the compositor's (`/$`) conditions count, on the section, the
+  // objects on the way and the field; the config's are ignored
+  function test_compositorAllows() {
+    const schema = {
+      "properties": {
+        "Hypr": {
+          "type": "object",
+          "x-showIf": {
+            "/$supports.configModes": true
+          },
+          "properties": {
+            "f": {
+              "type": "string"
+            }
+          }
+        },
+        "Look": {
+          "type": "object",
+          "properties": {
+            "inner": {
+              "type": "object",
+              "properties": {
+                "blur": {
+                  "type": "boolean",
+                  "x-showIf": {
+                    "/$supports.blur": true,
+                    "opacity": {
+                      "not": 100
+                    }
+                  }
+                }
+              }
+            },
+            "plain": {
+              "type": "boolean",
+              "x-showIf": {
+                "gaps": true
+              }
+            }
+          }
+        }
+      }
+    };
+    const none = key => false;
+    const all = key => true;
+    verify(!SchemaLayout.compositorAllows(schema, ["Hypr", "f"], none));
+    verify(SchemaLayout.compositorAllows(schema, ["Hypr", "f"], all));
+    verify(!SchemaLayout.compositorAllows(schema, ["Look", "inner", "blur"], none));
+    verify(SchemaLayout.compositorAllows(schema, ["Look", "inner", "blur"], key => key === "/$supports.blur"));
+    verify(SchemaLayout.compositorAllows(schema, ["Look", "plain"], none));
+    verify(!SchemaLayout.compositorAllows(schema, ["Look", "missing"], all));
+  }
+
   // `x-categories` orders them and names their icon and page; others
   // follow in schema order; an empty declared one is left out unless it
   // has a page

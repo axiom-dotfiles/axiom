@@ -151,7 +151,7 @@ QtObject {
   // breaks games bundling an older SDL.
   readonly property var recommendedEnv: [["GDK_BACKEND", "wayland,x11,*"], ["QT_QPA_PLATFORM", "wayland;xcb"], ["CLUTTER_BACKEND", "wayland"], ["ELECTRON_OZONE_PLATFORM_HINT", "auto"], ["QT_AUTO_SCREEN_SCALE_FACTOR", "1"], ["QT_WAYLAND_DISABLE_WINDOWDECORATION", "1"]]
 
-  // --- Layer stacking (HyprlandManager.layerRulesLua) ---
+  // --- Layer stacking (HyprLua.layerRulesLua) ---
 
   // Hyprland arranges and stacks each layer's surfaces in the order they
   // were mapped, unless a layer rule's `order` says otherwise (higher is

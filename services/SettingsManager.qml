@@ -232,11 +232,15 @@ QtObject {
   // Every value the settings page shows, as { path, key, schema }, with
   // key the dotted path. `x-applyOnSave` settings are left out: they wait
   // for the page's Save for a reason (Hyprland's mode can take over files).
+  // So are those the running compositor can't do (their `/$` showIf
+  // conditions, SchemaLayout.compositorAllows: the Hyprland section
+  // elsewhere); conditions on the config aren't, as /config sets them
+  // whatever the rest says.
   readonly property var settingPaths: {
     const schema = ConfigManager.configSchema;
     if (!schema?.properties)
       return [];
-    return SchemaLayout.rows(schema, []).filter(row => row.kind === "field" && !row.schema["x-applyOnSave"]).map(row => ({
+    return SchemaLayout.rows(schema, []).filter(row => row.kind === "field" && !row.schema["x-applyOnSave"] && SchemaLayout.compositorAllows(schema, row.path, root.showIfValue)).map(row => ({
           path: row.path,
           key: row.path.join("."),
           schema: row.schema

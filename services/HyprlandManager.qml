@@ -504,10 +504,10 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
   // HyprlandConfigManager also writes them into its Lua files, since a
   // reload Hyprland does by itself (a watched file changing) doesn't always
   // send the configreloaded event that re-adds them here.
-  readonly property var layerRulesLua: HyprLua.layerRulesLua()
+  readonly property var _layerRulesLua: HyprLua.layerRulesLua()
 
   function _addLayerRules() {
-    for (const rule of layerRulesLua)
+    for (const rule of _layerRulesLua)
       _eval(rule);
   }
 
@@ -529,7 +529,7 @@ if #errs > 0 then error(table.concat(errs, "; ")) end`
   // One eval for all of them, each in its own pcall, so one Hyprland
   // rejects doesn't drop the rest (as _addLayerRules' one eval per rule)
   function _addLayerRulesFirst() {
-    HyprlandIpcManager.evalLua(root.layerRulesLua.map(rule => `pcall(function() ${rule} end)`).join("\n"), () => _layerRules.ready = true);
+    HyprlandIpcManager.evalLua(root._layerRulesLua.map(rule => `pcall(function() ${rule} end)`).join("\n"), () => _layerRules.ready = true);
   }
 
   // Shows the shell anyway if Hyprland never answers

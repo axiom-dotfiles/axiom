@@ -152,7 +152,7 @@ Singleton {
       "binds": HyprConfigLua.bindLines(HyprlandConfig.binds, _bindCtx),
       "look": _lookLua(true),
       "blur": _blurLua(true),
-      "layers": HyprlandManager.layerRulesLua,
+      "layers": HyprLua.layerRulesLua(),
       "monitors": HyprLua.monitorsLua(HyprlandConfig.monitorProfiles),
       "strips": _stripsLua()
     });

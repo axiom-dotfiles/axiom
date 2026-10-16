@@ -19,7 +19,7 @@ ReservedAreaWindow {
 
   visible: false
   // Its layer rule arranges it after docks and draws it over them
-  // (see HyprlandManager.layerRulesLua)
+  // (see HyprLua.layerRulesLua)
   WlrLayershell.namespace: "axiom-overlay"
 
   function open() {

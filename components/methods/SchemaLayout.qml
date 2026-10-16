@@ -79,6 +79,27 @@ QtObject {
     });
   }
 
+  // Whether the setting at `path` (from the schema's root) can show at all
+  // under the running compositor: the `/$` keys (SettingsManager.
+  // configValueAt) of the `x-showIf` of its section, the objects it's in
+  // and its own hold. Other keys depend on the config, and are left out.
+  function compositorAllows(schema, path, valueOf) {
+    let node = schema;
+    for (const key of path) {
+      node = node?.properties?.[key];
+      if (!node)
+        return false;
+      const condition = node["x-showIf"] ?? {};
+      const own = Object.keys(condition).filter(name => name.startsWith("/$")).reduce((result, name) => {
+        result[name] = condition[name];
+        return result;
+      }, {});
+      if (!root.showIfHolds(own, valueOf))
+        return false;
+    }
+    return true;
+  }
+
   // An object definition's fields as titled groups, for an editor that
   // lays one object out itself (the bar and edge menu panels): by
   // `x-group` in `x-order` order, fields without a group last under
