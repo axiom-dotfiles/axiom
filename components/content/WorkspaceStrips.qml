@@ -18,7 +18,10 @@ Panel {
   // From the widget's payload (BarPopouts copies it onto these, and the
   // widget's options onto `properties`, once the popout has loaded: until
   // then `properties` is empty, hence the few `??` below)
-  property var monitor: null
+  // The output's name: the payload is a snapshot taken at opening, so its
+  // state (the active workspace) is looked up live
+  property string output: ""
+  readonly property var monitor: CompositorManager.output(root.output)
   property bool vertical: false
   property bool stripVertical: false
   property real cellSize: Widget.height
@@ -34,11 +37,11 @@ Panel {
   readonly property color activeColor: Theme.resolveColor(root.properties.activeColor)
   readonly property color occupiedColor: Theme.resolveColor(root.properties.occupiedColor)
   readonly property color textColor: Theme.resolveColor(root.properties.textColor)
-  readonly property int base: CompositorManager.workspaceBase(root.monitor?.name ?? "")
+  readonly property int base: CompositorManager.workspaceBase(root.output)
   readonly property int activeId: root.monitor?.activeWorkspaceId ?? -1
   // A string, so the lines are only rebuilt when the set of workspaces
   // shown changes, not on every compositor event
-  readonly property string _idsKey: CompositorManager.workspaceIds(root.monitor?.name ?? "").filter(id => id === root.activeId || CompositorManager.windows.some(w => w.workspaceId === id)).join(",")
+  readonly property string _idsKey: CompositorManager.workspaceIds(root.output).filter(id => id === root.activeId || CompositorManager.windows.some(w => w.workspaceId === id)).join(",")
   readonly property var ids: root._idsKey === "" ? [] : root._idsKey.split(",").map(Number)
 
   implicitWidth: lines.implicitWidth + margins * 2
@@ -83,7 +86,7 @@ Panel {
           label: root.properties.relativeNumbers ? line.wsId - root.base + 1 : line.wsId
           clickable: root.properties.clickToSwitch ?? false
           animated: root._settled
-          onClicked: CompositorManager.goToWorkspace(line.wsId, "go", root.monitor?.name ?? "")
+          onClicked: CompositorManager.goToWorkspace(line.wsId, "go", root.output)
         }
 
         StripWindows {

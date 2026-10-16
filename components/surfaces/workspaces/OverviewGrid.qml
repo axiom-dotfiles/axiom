@@ -111,7 +111,7 @@ Rectangle {
   // exist yet), "" where it tiles
   function stripOn(workspaceId) {
     const ws = CompositorManager.workspaces.find(ws => ws.id === workspaceId);
-    return WorkspacesConfig.stripDirection(ws?.output || root.screen?.name || "");
+    return CompositorManager.stripDirection(ws?.output || root.screen?.name || "");
   }
 
   function itemFor(address) {

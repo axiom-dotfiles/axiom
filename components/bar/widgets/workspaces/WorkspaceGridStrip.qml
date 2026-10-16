@@ -38,7 +38,7 @@ Item {
   readonly property int rows: WorkspacesConfig.rows
   readonly property int activeId: root.monitor?.activeWorkspaceId ?? -1
   // "horizontal" | "vertical" on a strip monitor, else ""
-  readonly property string stripDirection: WorkspacesConfig.stripDirection(root.screen?.name ?? "")
+  readonly property string stripDirection: CompositorManager.stripDirection(root.screen?.name ?? "")
   // The active workspace's place in the grid (the first cell when the
   // monitor is on a workspace outside it)
   readonly property int activeIndex: {
@@ -179,7 +179,7 @@ Item {
     popoutName: "WorkspaceGrid"
     active: EdgeMenusConfig.opensOwnPopout(root.properties)
     extraData: ({
-        monitor: root.monitor,
+        output: root.output,
         vertical: root.isVertical,
         // The cells' own size and corners, as on the bar
         cellSize: root.cell,

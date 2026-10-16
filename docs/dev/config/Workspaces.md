@@ -92,6 +92,6 @@ Every public member of `WorkspacesConfig`, with the files that use it.
 - `WorkspacesConfig.stripOptions` (var): The strip settings Hyprland takes (HyprLua.stripsLua)
   - in: `services/HyprlandConfigManager.qml`
 - `WorkspacesConfig.stripDirection(screenName)`: The strip direction of the monitor named `screenName`, "" when it tiles
-  - in: `components/bar/widgets/workspaces/WorkspaceGridStrip.qml`, `components/bar/widgets/workspaces/WorkspaceStrip.qml`, `components/surfaces/workspaces/OverviewGrid.qml`
+  - in: `services/CompositorManager.qml`
 - `WorkspacesConfig.baseFor(monitorIndex)`: First id of the monitor at `monitorIndex` (a stable order, see CompositorManager.workspaceBase)
   - in: `services/CompositorManager.qml`

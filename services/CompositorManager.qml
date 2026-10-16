@@ -72,11 +72,13 @@ Singleton {
       "bottom": 0,
       "left": 0
     })
-  // The compositor's blur as in effect ({ enabled, size, passes })
+  // The compositor's blur as in effect ({ enabled, size, passes }). With
+  // none, the strength is Hyprland's default, which the lock screen's and
+  // the desktop's own frosting imitate (ScreenLayoutView.hyprBlur)
   readonly property var blur: root.backend?.blur ?? ({
       "enabled": false,
-      "size": 0,
-      "passes": 0
+      "size": 8,
+      "passes": 1
     })
   // A tiled box wider than tall times this splits side by side
   readonly property real splitWidthMultiplier: root.backend?.splitWidthMultiplier ?? 1
@@ -419,6 +421,13 @@ Singleton {
     const base = workspaceBase(root.focusedOutput);
     const index = Math.min(Math.max(_currentWorkspaceId() - base, 0), WorkspacesConfig.size - 1);
     goToWorkspace(base + Math.floor(index / cols) * cols + n - 1, mode);
+  }
+
+  // "horizontal" | "vertical" on a strip monitor (its name), else "",
+  // always "" where the compositor has no strips (a config from Hyprland
+  // may still list them)
+  function stripDirection(screenName) {
+    return root.supports.strips ? WorkspacesConfig.stripDirection(screenName) : "";
   }
 
   // Scrolls the strip of an output's active workspace a column on (1) or

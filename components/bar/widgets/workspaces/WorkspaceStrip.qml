@@ -39,7 +39,7 @@ Item {
   readonly property int activeId: root.monitor?.activeWorkspaceId ?? -1
   readonly property int base: CompositorManager.workspaceBase(root.output)
   // "horizontal" | "vertical" on a strip monitor, else ""
-  readonly property string stripDirection: WorkspacesConfig.stripDirection(root.screen?.name ?? "")
+  readonly property string stripDirection: CompositorManager.stripDirection(root.screen?.name ?? "")
 
   // A string, so the cells are only rebuilt when the set of workspaces
   // shown changes, not on every compositor event
@@ -155,7 +155,7 @@ Item {
     popoutName: "WorkspaceStrips"
     active: root.stripDirection !== "" && EdgeMenusConfig.opensOwnPopout(root.properties)
     extraData: ({
-        monitor: root.monitor,
+        output: root.output,
         vertical: root.isVertical,
         stripVertical: root.stripDirection === "vertical",
         // The cells' own size and corners, as on the bar
