@@ -2,7 +2,7 @@ pragma ComponentBehavior: Bound
 import Quickshell
 import qs.config
 import qs.services
-import qs.components.reusable
+import qs.components.surfaces.backdrop
 
 // The backdrop window on every screen (BackdropManager): the dim
 // background full-screen surfaces ask for (BackdropRequest)

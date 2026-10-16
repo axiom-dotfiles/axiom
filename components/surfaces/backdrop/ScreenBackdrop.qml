@@ -5,6 +5,7 @@ import Quickshell.Wayland
 
 import qs.config
 import qs.services
+import qs.components.reusable
 import qs.components.hosts.popout
 
 // A screen's dim background for full-screen surfaces (the overlay,

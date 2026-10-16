@@ -325,7 +325,6 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `PipewireVolumeBar.qml`: A StyledVolumeBar bound to a Pipewire stream (by app name) or the system volume: shows and sets its level and mute; the OSD's audio bars.
 - `PopInRectangle.qml`: A small mark that pops in and out (CountBadge, StatusChip, UnsavedDot): set `shown` rather than `visible`, and it grows in from its centre and shrinks away, staying visible (and laid out) until it has.
 - `RowAction.qml`: A small flat button on a ListEntryRow, faint until the row is hovered or selected.
-- `ScreenBackdrop.qml`: A screen's dim background for full-screen surfaces (the overlay, workspace overview, launcher, power menu, onboarding; BackdropRequest): the whole monitor, under the bars and the border, which stay drawn over it.
 - `SectionHeading.qml`: A section's title in the accent, with an optional muted description under it (FieldGroup, the theme list)
 - `SegmentButton.qml`: One button of a segmented choice (Dark/Light, a wallpaper mode): the chosen one is filled with the accent; one that can't be chosen is dimmed.
 - `SegmentRow.qml`: A single choice as one control: SegmentButtons on a shared track, with the chosen one's accent sliding from button to button.
@@ -354,6 +353,10 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `TypeLibrary.qml`: A library of types to add (the bar editor's widgets, the layouts editor's modules): an A–Z / By category switch over equal tiles, one `delegate` per type (given `modelData`; tiles take `tileWidth`), by label or under a …
 - `TypePickerPopup.qml`: i18n: keys from callers and the schema (titles, descriptions, type labels) Shared "pick a type to add" popup (bar widgets, overlay views, ...), with a search field: typing filters by label or type, Up/Down move, Enter p…
 - `UnsavedDot.qml`: The dot beside something with unsaved edits (a settings category, card or field; a bar, page or edge menu in its editor).
+
+## components/surfaces/backdrop/
+
+- `ScreenBackdrop.qml`: A screen's dim background for full-screen surfaces (the overlay, workspace overview, launcher, power menu, onboarding; BackdropRequest): the whole monitor, under the bars and the border, which stay drawn over it.
 
 ## components/surfaces/border/
 

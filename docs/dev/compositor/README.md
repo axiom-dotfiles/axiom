@@ -48,7 +48,7 @@ How axiom reaches the compositor it runs under. Read this before anything that r
   - With `supports.focusGrab` it loads Hyprland's grab.
   - Otherwise it clears once keyboard focus (each window's content `Window.active`) has left every one of its windows for 100 ms, or a click lands outside them. While such a grab is active:
     - `FocusGrab.exclusive` is true, and its surface asks for `WlrKeyboardFocus.Exclusive` instead of `OnDemand` (an on-demand layer surface gets the keyboard only once clicked, where no grab hands it over);
-    - every screen's backdrop window (`reusable/ScreenBackdrop`) covers its screen, transparent, under the grabbing surface, and a press on it clears the grab (`BackdropManager.catching`, `clickedOutside`). Bars and other surfaces above it take their own clicks.
+    - every screen's backdrop window (`surfaces/backdrop/ScreenBackdrop`) covers its screen, transparent, under the grabbing surface, and a press on it clears the grab (`BackdropManager.catching`, `clickedOutside`). Bars and other surfaces above it take their own clicks.
 
 ### The window look
 - `WindowLook` is compositor-neutral config, edited under Settings › Compositor.

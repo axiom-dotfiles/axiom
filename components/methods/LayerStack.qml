@@ -175,9 +175,10 @@ QtObject {
    * On each output and layer a window shows once every window ordered
    * before it there that shows is mapped, so they map highest order
    * first. One already showing stays (a window ordered before it starting
-   * to show, a backdrop, doesn't take it down). Unless the compositor sorts by order itself (`ordered`), a
-   * mapped window that one ordered before it mapped after is out of
-   * place: it maps again (`remap`), and so lands after it.
+   * to show, a backdrop, doesn't take it down). Unless the compositor
+   * sorts by order itself (`ordered`), a mapped window that one ordered
+   * before it mapped after is out of place: it maps again (`remap`), and
+   * so lands after it.
    * Returns { show: [ids], remap: [ids] }.
    */
   function sequence(entries, ordered) {
