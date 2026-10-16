@@ -105,6 +105,45 @@ QtObject {
   }
 
   /**
+   * Which of the compositor's own rects (`reported`, HyprState.layerRects'
+   * shape) is each of `computed`'s (arrange's result, with `keep(id)`
+   * choosing the surfaces to match): within an output and namespace, the
+   * pairs nearest in place and size first, each rect taken once.
+   * Returns { [id]: { x, y, w, h } } for the surfaces matched.
+   */
+  function match(computed, reported, keep) {
+    const result = {};
+    for (const output in computed) {
+      const theirs = reported?.[output]?.layers ?? [];
+      const pairs = [];
+      for (const l of computed[output].layers.filter(l => keep(l.id)))
+        theirs.forEach((r, i) => {
+          if (r.namespace === l.namespace)
+            pairs.push({
+              "id": l.id,
+              "i": i,
+              "cost": Math.abs(r.x - l.x) + Math.abs(r.y - l.y) + Math.abs(r.w - l.w) + Math.abs(r.h - l.h)
+            });
+        });
+      pairs.sort((a, b) => a.cost - b.cost);
+      const taken = new Set();
+      for (const pair of pairs) {
+        if (result[pair.id] !== undefined || taken.has(pair.i))
+          continue;
+        taken.add(pair.i);
+        const r = theirs[pair.i];
+        result[pair.id] = {
+          "x": r.x,
+          "y": r.y,
+          "w": r.w,
+          "h": r.h
+        };
+      }
+    }
+    return result;
+  }
+
+  /**
    * Every surface's rect, by output: { [output]: { w, h, layers:
    * [{ id, namespace, x, y, w, h }] } }, output-relative (the shape
    * HyprState.layerRects gives). `outputs` maps names to { w, h };

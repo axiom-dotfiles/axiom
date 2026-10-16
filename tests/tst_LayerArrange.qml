@@ -208,6 +208,97 @@ TestCase {
     compare(result.P.w, 50);
   }
 
+  // Each computed rect pairs with the nearest reported one of its
+  // namespace, each taken once; others, and those not kept, go unmatched
+  function test_match() {
+    const computed = {
+      "O": {
+        "w": 1000,
+        "h": 800,
+        "layers": [
+          {
+            "id": 1,
+            "namespace": "axiom-border",
+            "x": 0,
+            "y": 0,
+            "w": 1000,
+            "h": 8
+          },
+          {
+            "id": 2,
+            "namespace": "axiom-border",
+            "x": 0,
+            "y": 8,
+            "w": 8,
+            "h": 792
+          },
+          {
+            "id": 3,
+            "namespace": "axiom-dock",
+            "x": 0,
+            "y": 700,
+            "w": 100,
+            "h": 50
+          },
+          {
+            "id": 4,
+            "namespace": "axiom-osd",
+            "x": 0,
+            "y": 0,
+            "w": 10,
+            "h": 10
+          }
+        ]
+      }
+    };
+    // Another app's 40 px panel on the left moves the border's strips in
+    const reported = {
+      "O": {
+        "w": 1000,
+        "h": 800,
+        "layers": [
+          {
+            "namespace": "axiom-border",
+            "x": 40,
+            "y": 8,
+            "w": 8,
+            "h": 792
+          },
+          {
+            "namespace": "axiom-border",
+            "x": 40,
+            "y": 0,
+            "w": 960,
+            "h": 8
+          },
+          {
+            "namespace": "axiom-osd",
+            "x": 5,
+            "y": 5,
+            "w": 10,
+            "h": 10
+          }
+        ]
+      }
+    };
+    const m = LayerArrange.match(computed, reported, id => id !== 4);
+    compare(m[1], {
+      "x": 40,
+      "y": 0,
+      "w": 960,
+      "h": 8
+    }, "the top strip, not the left one");
+    compare(m[2], {
+      "x": 40,
+      "y": 8,
+      "w": 8,
+      "h": 792
+    });
+    compare(m[3], undefined, "nothing reported in its namespace");
+    compare(m[4], undefined, "not kept");
+    compare(LayerArrange.match(computed, null, id => true), {});
+  }
+
   // Captured from a live Hyprland: every surface lands where Hyprland put it
   function test_hyprland_fixture() {
     const fixture = files.json("tests/fixtures/layers/hyprland-two-bars.json");

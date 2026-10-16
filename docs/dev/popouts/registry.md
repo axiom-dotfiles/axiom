@@ -16,7 +16,7 @@
   - `dock:<id>:<screen>`
   - `<parent>/submenu`
 - **Other fields:** `kind`, `screen`, `edge`, `pinned`, `resident`, `parentKey`.
-- **When it registers:** while the popout `wants` to show and has a footprint. An edge popout waits until its window has an origin (`LayerOrigin.settled`, from `LayerManager`): the estimate before that can be far off (a floating menu's was ~1700 px out), and a claim made from it missed what it covered.
+- **When it registers:** while the popout `wants` to show and has a footprint. An edge popout waits until its window has an origin (`LayerOrigin.settled`, from `LayerManager`, or given up on after 400 ms): the estimate before that can be far off (a floating menu's was ~1700 px out), and a claim made from it missed what it covered.
 - **Footprint:** the rects it covers, in screen px, with fillets and backfill included (`methods/SurfaceOutline.footprint`). It is offset by where its window is:
   - `LayerOrigin.placed`: its origin, or until it has one, an estimate on its edge.
   - A bar popout uses its bar's origin (`BarPanel.screenPlaced`).

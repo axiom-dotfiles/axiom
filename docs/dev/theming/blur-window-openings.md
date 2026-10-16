@@ -65,7 +65,7 @@ How the chrome's translucent surfaces share one blurred backing window, how thei
   - each `hosts/popout/LayerOrigin` reports its window's anchors, margins, size, zone and when it mapped to `LayerManager`;
   - `LayerManager` places them all with `methods/LayerArrange`, and each `LayerOrigin` reads its own window's rect back (`LayerManager.rectOf`).
 - A window that reserves nothing has its origin before it maps, where it will go, so it's backed from its first frame. A reserving window has one only while mapped.
-- On Hyprland the result is checked against its layer list (`CompositorManager.withLayerRects`); a difference is logged as `LayerManager: differs from the compositor` (`scripts/log.sh --debug -g LayerManager`).
+- On Hyprland the result is corrected from its layer list (`CompositorManager.withLayerRects`), so other apps' layers and reserved space count too; a difference is logged as `LayerManager: corrected from the compositor` (`scripts/log.sh --debug -g LayerManager`).
 - Until its origin is known, a surface fills itself.
 - A bar popout's and submenu's place follows from their bar's.
 

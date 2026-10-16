@@ -42,12 +42,6 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 - **Size:** small
 - **Found:** 2026-10-16, while decoupling the shell from Hyprland
 
-### Layer origins ignore what axiom doesn't place, even on Hyprland
-- **Where:** `components/hosts/popout/LayerOrigin.qml` (`origin`, `settled`), `services/LayerManager.qml` (`rects`)
-- **What:** Origins now come only from `LayerArrange`, on Hyprland too. Another app's exclusive layer (a second panel) or a monitor's `addreserved` moves axiom's windows without moving their computed origins, so blur shapes, border joins and popout footprints land off by that much. `LayerManager` only logs the difference (`LayerManager: differs from the compositor`). `LayerOrigin.settled` also lost its 400 ms timeout: a window whose screen isn't in `General.outputs` never gets an origin, so its edge popout never claims or shows. Decide whether a window prefers the compositor's rect where `withLayerRects` gives one, and give `settled` a fallback again.
-- **Size:** small
-- **Found:** 2026-10-16, while auditing the layer-placement branch
-
 ### Two exclusive-focus surfaces at once without a native grab
 - **Where:** `services/FocusGrab.qml` (`exclusive`), `components/hosts/overlay/OverlayPanel.qml`, `components/hosts/popout/BarPopouts.qml`, `components/hosts/popout/EdgePopout.qml`
 - **What:** Without `supports.focusGrab`, every active grab's surface asks for `WlrKeyboardFocus.Exclusive`. With the overlay open (exclusive the whole time) and a popout with a text field opened over it, two surfaces on the Overlay layer ask for exclusive focus. Which one gets the keyboard is up to the compositor and wasn't checked in nested sway or niri: typing into a popout over the overlay may go to the overlay. Not seen yet; check it in `scripts/dev/nested.sh sway`.

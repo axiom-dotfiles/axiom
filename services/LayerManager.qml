@@ -12,8 +12,11 @@ import qs.config
  * that reserves space others are placed against, reports how it asks to
  * be laid out (hosts/popout/LayerOrigin): anchors, margins, size, zone,
  * and when it mapped. Where the compositor can list its layers (Hyprland:
- * CompositorManager.withLayerRects), the result is checked against that
- * and each difference logged (console.log, "LayerManager:").
+ * CompositorManager.withLayerRects), each window's rect is corrected by
+ * how far the compositor's own differs, sampled once they've settled:
+ * what axiom doesn't arrange (another app's layers, a monitor's reserved
+ * space) moves its windows too. Each difference is logged (console.log,
+ * "LayerManager:").
  * It also maps the windows with a fixed place in the stack (bars, the
  * border, docks, integrated edge menus: hosts/popout/LayerSlot) in
  * LayerStack order, one stage at a time, and maps again any that land out
@@ -74,9 +77,19 @@ QtObject {
   }
 
   // Where window `uid` is on its output ({ x, y, w, h }), or null when
-  // it isn't laid out (no output, or reserving space and not mapped)
+  // it isn't laid out (no output, or reserving space and not mapped):
+  // as computed, plus its correction from the compositor's list
   function rectOf(uid, output) {
-    return (root.rects[output]?.layers ?? []).find(l => l.id === uid) ?? null;
+    const rect = (root.rects[output]?.layers ?? []).find(l => l.id === uid);
+    if (!rect)
+      return null;
+    const c = root._corrections[uid];
+    return c ? {
+      "x": rect.x + c.dx,
+      "y": rect.y + c.dy,
+      "w": rect.w + c.dw,
+      "h": rect.h + c.dh
+    } : rect;
   }
 
   // The windows LayerArrange places: every mapped one, and those not yet
@@ -124,30 +137,54 @@ QtObject {
     }
   }
 
-  // --- The check against the compositor's own list ---
+  // --- Corrections from the compositor's own list ---
 
-  // Each computed rect of a mapped window with no reported one in its
-  // namespace at the same place and size. Reported only once it settles
-  // (a window resized gets there a moment later), and once per new set.
+  // { uid: { dx, dy, dw, dh } }: how far the compositor's rect of each
+  // mapped window differs from the computed one (LayerArrange.match),
+  // sampled only once they've settled (a window resizing gets there a
+  // moment later), so a window animating keeps its last one. Kept while a
+  // window is unmapped (it most likely maps back where it was), dropped
+  // when mapped with no rect of its own reported.
+  property var _corrections: ({})
   property string _lastMismatch: ""
   property Timer _check: Timer {
     interval: 600
     onTriggered: CompositorManager.withLayerRects(reported => {
       if (!reported)
         return;
+      const mapped = id => root._seqs[id] !== undefined;
+      const theirs = LayerArrange.match(root.rects, reported, mapped);
+      const corrections = Object.assign({}, root._corrections);
       const misses = [];
       for (const output in root.rects)
         for (const l of root.rects[output].layers) {
-          if (root._seqs[l.id] === undefined)
+          if (!mapped(l.id))
             continue;
-          const theirs = (reported[output]?.layers ?? []).filter(r => r.namespace === l.namespace);
-          if (theirs.some(r => r.x === l.x && r.y === l.y && r.w === l.w && r.h === l.h))
+          const r = theirs[l.id];
+          if (r && r.x === l.x && r.y === l.y && r.w === l.w && r.h === l.h) {
+            delete corrections[l.id];
             continue;
-          misses.push(`${l.namespace} on ${output} computed ${l.x},${l.y} ${l.w}x${l.h}; reported ${theirs.map(r => `${r.x},${r.y} ${r.w}x${r.h}`).join(" | ") || "none"}`);
+          }
+          if (r)
+            corrections[l.id] = {
+              "dx": r.x - l.x,
+              "dy": r.y - l.y,
+              "dw": r.w - l.w,
+              "dh": r.h - l.h
+            };
+          else
+            delete corrections[l.id];
+          misses.push(`${l.namespace} on ${output} computed ${l.x},${l.y} ${l.w}x${l.h}; reported ${r ? `${r.x},${r.y} ${r.w}x${r.h}` : "none"}`);
         }
+      // Of windows gone, none
+      for (const uid in corrections)
+        if (root._specs[uid] === undefined)
+          delete corrections[uid];
+      if (JSON.stringify(corrections) !== JSON.stringify(root._corrections))
+        root._corrections = corrections;
       const text = misses.sort().join("\n");
       if (text !== root._lastMismatch && text !== "")
-        console.log("LayerManager: differs from the compositor:\n" + text);
+        console.log("LayerManager: corrected from the compositor:\n" + text);
       root._lastMismatch = text;
     })
   }

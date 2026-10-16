@@ -87,7 +87,21 @@ QtObject {
     return Qt.point(vertical ? (root.edge === Bar.Right ? sw - w : 0) : along, vertical ? along : (root.edge === Bar.Bottom ? sh - h : 0));
   }
 
-  // Known: a surface the blur window backs waits for this before it shows
-  // (else its first frames fill and shadow themselves beside backed ones)
-  readonly property bool settled: root.origin !== null
+  // Known, or given up on: a surface the blur window backs waits for this
+  // before it shows (else its first frames fill and shadow themselves
+  // beside backed ones), but never longer than a moment (a window on a
+  // screen LayerManager doesn't lay out has no origin). Timed from when
+  // the origin went missing, not from mapping: an edge popout waits for
+  // this before its window maps.
+  readonly property bool settled: root.origin !== null || root._timedOut
+  property bool _timedOut: false
+  property Timer _timeout: Timer {
+    interval: 400
+    running: root.origin === null && root.window !== null
+    onTriggered: root._timedOut = true
+  }
+  onOriginChanged: {
+    if (root.origin !== null)
+      root._timedOut = false;
+  }
 }
