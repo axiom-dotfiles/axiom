@@ -31,6 +31,6 @@ The first-run onboarder (shell/Onboarding): a series of pages that set the essen
 - `goTo(index)`
 - `next()`
 - `back()`
-- `finish()`: Applies the Hyprland mode (which may take over hyprland.lua) and closes
+- `finish()`: Applies the compositor mode (which may take over hyprland.lua) and closes
 - `close()`: Closes for good (until /welcome): finishing and skipping alike
 - `reset()`: Forgets that it ran, so the next qs start opens it (IPC reset)

@@ -1058,7 +1058,7 @@
               "type": "boolean",
               "title": "Blur behind surfaces",
               "default": true,
-              "description": "Hyprland blurs what shows through a translucent surface, with its own blur (Compositor → Window look → Blur). It costs GPU time whenever what's behind or on a surface changes, more with a stronger blur and with windows blurred behind.",
+              "description": "The compositor blurs what shows through a translucent surface, with its own blur (Compositor → Window look → Blur). It costs GPU time whenever what's behind or on a surface changes, more with a stronger blur and with windows blurred behind.",
               "x-showIf": { "/$supports.blur": true, "opacity": { "not": 100 } }
             },
             "throughWindows": {
@@ -1923,7 +1923,7 @@
           "type": "boolean",
           "title": "Directional slides",
           "default": true,
-          "description": "Slide between workspaces whatever Hyprland's own workspace animation style is: sideways in the standard layout; in a grid, sideways between columns and vertically between rows, going by row first, then column."
+          "description": "Slide between workspaces whatever the compositor's own workspace animation style is: sideways in the standard layout; in a grid, sideways between columns and vertically between rows, going by row first, then column."
         },
         "strips": {
           "type": "array",
@@ -2285,7 +2285,7 @@
           "minimum": -1,
           "maximum": 200,
           "x-unit": "px",
-          "description": "Space between the dock and the border or bar on its edge, and at the ends. Auto lines it up with a floating bar on its edge, else with your windows. Reserving its space, it keeps Hyprland's gap between windows from them.",
+          "description": "Space between the dock and the border or bar on its edge, and at the ends. Auto lines it up with a floating bar on its edge, else with your windows. Reserving its space, it keeps the compositor's gap between windows from them.",
           "x-showIf": { "detached": true }
         },
         "visibility": {
@@ -2769,7 +2769,7 @@
           "maximum": 60,
           "x-unit": "px",
           "x-showIf": { "background": ["floating", "floatingPills"] },
-          "description": "How far a floating bar keeps from the screen border (or the screen edge), across the bar and at its ends. Auto keeps Hyprland's gap to the screen edges, as your windows do. Windows always keep Hyprland's gap between windows from the bar."
+          "description": "How far a floating bar keeps from the screen border (or the screen edge), across the bar and at its ends. Auto keeps the compositor's gap to the screen edges, as your windows do. Windows always keep the compositor's gap between windows from the bar."
         },
         "pillPadding": {
           "x-group": "Style",

@@ -145,7 +145,7 @@ OnboardingPage {
 
   StyledText {
     Layout.fillWidth: true
-    text: I18n.tr("The mode is applied when you press Finish; only Apply above changes hyprland.lua right away. You can switch modes later in Settings → Hyprland.")
+    text: I18n.tr("The mode is applied when you press Finish; only Apply above changes hyprland.lua right away. You can switch modes later in Settings → Compositor.")
     wrapMode: Text.WordWrap
     textColor: Theme.foregroundAlt
   }

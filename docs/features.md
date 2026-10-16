@@ -314,7 +314,7 @@ Every prefix and command is listed in [Keybinds, IPC and launcher](usage.md#laun
 - **First-run setup:** a guided tour, applied as you go, through:
   - the look, monitors and workspaces
   - default apps and keys
-  - Hyprland's mode, and the optional integrations (login screen, polkit, idle)
+  - the compositor mode, and the optional integrations (login screen, polkit, idle)
 
   `/welcome` runs it again.
 - **Screenshots:** a region, a window or a whole screen, picked on a frozen frame. Saved and copied, or opened in satty or swappy to annotate. Also screen recording with `wf-recorder`, with the microphone or (with `pactl`) the system's sound.

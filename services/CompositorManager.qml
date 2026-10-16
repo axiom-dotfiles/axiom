@@ -16,6 +16,14 @@ import qs.components.methods
 Singleton {
   id: root
 
+  // The compositor's name as people know it ("Hyprland"), or "the
+  // compositor" for an unknown one. I18n.tr("the compositor")
+  readonly property string displayName: ({
+      "hyprland": "Hyprland",
+      "sway": "Sway",
+      "niri": "niri"
+    })[kind] ?? I18n.tr("the compositor")
+
   // Which compositor axiom runs under: "hyprland", "sway", "niri" or ""
   // (unknown, or none). AXIOM_COMPOSITOR overrides it, for testing
   // ("none" for no backend at all).

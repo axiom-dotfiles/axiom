@@ -30,7 +30,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - Wrap around: Stepping past the last workspace (of a row or column in a grid) goes back to the first.
   - read: `WorkspacesConfig.wrap` · in: `services/CompositorManager.qml`
 - **`Workspaces.animate`** · boolean = true
-  - Directional slides: Slide between workspaces whatever Hyprland's own workspace animation style is: sideways in the standard layout; in a grid, sideways between columns and vertically between rows, going by row first, then column.
+  - Directional slides: Slide between workspaces whatever the compositor's own workspace animation style is: sideways in the standard layout; in a grid, sideways between columns and vertically between rows, going by row first, then column.
   - read: `WorkspacesConfig.animate` · in: `services/CompositorManager.qml`
 - **`Workspaces.strips`** · array<object> = []
   - Strips: Monitors whose windows sit side by side on a strip that scrolls (Hyprland's scrolling layout) instead of tiling. New windows open as a new column after the focused one.

@@ -67,13 +67,13 @@ hl.on("hyprland.start", function() hl.exec_cmd("qs -n -c axiom") end)
 
 </details>
 
-That's all Hyprland needs. How axiom sets up the rest is **Settings → Hyprland → Mode**:
+That's all Hyprland needs. How axiom sets up the rest is **Settings → Compositor → Mode**:
 
 | Mode | What it does |
 | --- | --- |
 | **Detached** (default) | Applies axiom's keybinds and required settings at runtime, and again after every Hyprland reload. It writes no files, and skips any keybind whose key your config already uses. |
 | **Included** | Writes `~/.local/state/axiom/hyprland.lua` (under `$XDG_STATE_HOME` if it's set). Load it near the top of your `hyprland.lua`, and anything after it overrides axiom (see below). |
-| **Managed** | axiom writes `~/.config/hypr/hyprland.lua` itself, from the **Managed config** settings: layout (dwindle or master; scrolling strips are a Workspaces setting, in every mode), gaps, borders, opacity, blur, shadows, animation styles, keyboard, mouse, cursor and touchpad, behavior (swallowing, VRR, focus), environment variables and autostart commands. It then loads your own `~/.config/hypr/user/*.lua` after it, in name order, as `require("user.<name>")`, so Hyprland reloads when one changes. Shared modules go in `user/lib/`, which isn't loaded on its own. `user/` itself may be a symlink, for example into a dotfiles repo. The first time, your old `hyprland.lua` is backed up and moved to `user/00-previous.lua` (or `00-previous-<date>.lua` if that exists; switching to another mode later moves it back), unless it's Hyprland's unchanged example config, which is only backed up (its binds and monitor rule would fight axiom's). Lines in it that start axiom or load its included module are commented out, since axiom's own `hyprland.lua` does both. Its binds then move onto the **Keybinds** page: each `hl.bind` that can move is deleted from `00-previous.lua` (a dated `.axiom-backup-<date>` copy stays beside it), and any that can't (a Lua function, a bind inside a function) stay there and win over axiom's. Your other files in `user/` are only changed when you press **Merge** on the Keybinds page. |
+| **Managed** | axiom writes `~/.config/hypr/hyprland.lua` itself, from the **Hyprland** settings (layout: dwindle or master, shadows, dimming, animation styles, behavior such as swallowing, VRR and focus) and **Session** (environment variables, autostart commands); scrolling strips are a Workspaces setting, and the window look and input (keyboard, mouse, touchpad, cursor) apply in every mode once switched on. It then loads your own `~/.config/hypr/user/*.lua` after it, in name order, as `require("user.<name>")`, so Hyprland reloads when one changes. Shared modules go in `user/lib/`, which isn't loaded on its own. `user/` itself may be a symlink, for example into a dotfiles repo. The first time, your old `hyprland.lua` is backed up and moved to `user/00-previous.lua` (or `00-previous-<date>.lua` if that exists; switching to another mode later moves it back), unless it's Hyprland's unchanged example config, which is only backed up (its binds and monitor rule would fight axiom's). Lines in it that start axiom or load its included module are commented out, since axiom's own `hyprland.lua` does both. Its binds then move onto the **Keybinds** page: each `hl.bind` that can move is deleted from `00-previous.lua` (a dated `.axiom-backup-<date>` copy stays beside it), and any that can't (a Lua function, a bind inside a function) stay there and win over axiom's. Your other files in `user/` are only changed when you press **Merge** on the Keybinds page. |
 
 > [!IMPORTANT]
 > Managed mode never takes over a `~/.config/hypr` that is a symlink or in a git repository.
@@ -86,7 +86,7 @@ if ok then axiom.setup() end
 ```
 
 > [!TIP]
-> `setup()` applies everything switched on in the settings. To pick parts yourself, call `axiom.required()`, `axiom.binds()`, `axiom.look()` (the settings' Window look: themed borders, axiom's shape, gaps), `axiom.blur()`, `axiom.layers()` (the stacking order of axiom's surfaces) and `axiom.monitors()` (the Monitors page's profiles) instead. `hl.unbind("KEY")` after it frees one of axiom's keys.
+> `setup()` applies everything switched on in the settings. To pick parts yourself, call `axiom.required()`, `axiom.binds()`, `axiom.look()` (the settings' Window look: themed borders, the shape, gaps), `axiom.input()` (the settings' Input), `axiom.blur()`, `axiom.layers()` (the stacking order of axiom's surfaces) and `axiom.monitors()` (the Monitors page's profiles) instead. `hl.unbind("KEY")` after it frees one of axiom's keys.
 
 Whichever mode is set, axiom falls back to the runtime layer when its file isn't loaded, and logs why.
 

@@ -29,9 +29,9 @@ Singleton {
   // The pages, in order: { id, title, icon }
   // I18n.tr("Welcome") I18n.tr("Hyprland") I18n.tr("Monitors") I18n.tr("Apps & keys")
   // I18n.tr("Workspaces") I18n.tr("Look") I18n.tr("Integrations") I18n.tr("Checks") I18n.tr("Finish")
-  // Under another compositor the Hyprland and Monitors pages, which set
-  // Hyprland up, are left out
-  readonly property var pages: _pages.filter(page => CompositorManager.supports.configModes || (page.id !== "hyprland" && page.id !== "monitors"))
+  // The Hyprland page sets Hyprland up (its config, its version), so it's
+  // left out elsewhere; the Monitors page needs the compositor's monitors
+  readonly property var pages: _pages.filter(page => (page.id !== "hyprland" || CompositorManager.supports.configModes && CompositorManager.kind === "hyprland") && (page.id !== "monitors" || CompositorManager.supports.monitors))
   readonly property var _pages: [
     {
       "id": "welcome",
@@ -179,9 +179,9 @@ Singleton {
     goTo(step - 1);
   }
 
-  // Applies the Hyprland mode (which may take over hyprland.lua) and closes
+  // Applies the compositor mode (which may take over hyprland.lua) and closes
   function finish() {
-    if (hyprlandSupported && modeAllowed && chosenMode !== CompositorConfig.mode)
+    if (pages.some(page => page.id === "hyprland") && hyprlandSupported && modeAllowed && chosenMode !== CompositorConfig.mode)
       SettingsManager.commitValues({
         "Compositor.mode": chosenMode
       });

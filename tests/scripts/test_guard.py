@@ -66,6 +66,10 @@ class Bash(unittest.TestCase):
         self.blocks(f"scripts/claim_hyprland.sh claim {HOME}/.config/hypr axiom", "scripts/claim_hyprland.sh release ~/.config/hypr h f")
         self.allows("scripts/claim_hyprland.sh claim /tmp/scratch/hypr axiom", "scripts/claim_hyprland.sh check ~/.config/hypr axiom")
 
+    def test_claim_sway(self):
+        self.blocks(f"scripts/claim_sway.sh claim {HOME}/.config/sway axiom", "scripts/claim_sway.sh release ~/.config/sway h f")
+        self.allows("scripts/claim_sway.sh claim /tmp/scratch/sway axiom")
+
     def test_integration_hookup(self):
         self.blocks("python3 scripts/integration_hookup.py apply kitty", "scripts/integration_hookup.py apply kitty",
                     f"HOME={HOME} python3 scripts/integration_hookup.py apply kitty")

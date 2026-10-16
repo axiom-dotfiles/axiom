@@ -16,7 +16,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - Surface opacity: How solid the shell's surfaces are: bars, the screen border, popouts, menus and panels. 100 is fully solid.
   - read: `Appearance.surfaceAlpha` (computed) · in: `shell/BlurBackingWindow.qml`
 - **`Appearance.surface.blur`** · boolean = true
-  - Blur behind surfaces: Hyprland blurs what shows through a translucent surface, with its own blur (Compositor → Window look → Blur). It costs GPU time whenever what's behind or on a surface changes, more with a stronger blur and with windows blurred behind.
+  - Blur behind surfaces: The compositor blurs what shows through a translucent surface, with its own blur (Compositor → Window look → Blur). It costs GPU time whenever what's behind or on a surface changes, more with a stronger blur and with windows blurred behind.
   - x-showIf={"/$supports.blur":true,"opacity":{"not":100}}
   - read: `Appearance.blur` (computed) · in: `components/surfaces/screenlayout/ScreenLayoutView.qml`, `components/views/settings/TranslucencyStatus.qml`, `services/BlurManager.qml`, `services/CompositorConfigManager.qml`
 - **`Appearance.surface.throughWindows`** · boolean = true

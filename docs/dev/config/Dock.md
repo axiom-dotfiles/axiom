@@ -47,7 +47,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - Detach from edge: A separate box held off the edge. Off, the dock grows out of the screen border or a solid bar, as popouts do, and runs straight off a bare screen edge.
   - read: entry field, name match · in: `components/surfaces/dock/DockWindow.qml`
 - **`Dock.docks[].gap`** · integer = -1 · -1–200 · px
-  - Gap: Space between the dock and the border or bar on its edge, and at the ends. Auto lines it up with a floating bar on its edge, else with your windows. Reserving its space, it keeps Hyprland's gap between windows from them.
+  - Gap: Space between the dock and the border or bar on its edge, and at the ends. Auto lines it up with a floating bar on its edge, else with your windows. Reserving its space, it keeps the compositor's gap between windows from them.
   - x-control="stepper", x-auto={"value":-1,"start":8}, x-beside=true, x-showIf={"detached":true}
   - read: entry field, name match · in: `components/surfaces/dock/DockWindow.qml`
 - **`Dock.docks[].visibility`** · string = "always" · enum always|hover|intellihide

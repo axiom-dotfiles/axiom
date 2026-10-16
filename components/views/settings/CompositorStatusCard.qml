@@ -57,19 +57,21 @@ FieldGroup {
     const steps = [];
     const hypr = Paths.shortenHome(CompositorConfigManager.managedPath);
     const user = Paths.shortenHome(CompositorConfigManager.userDir);
+    const files = Paths.shortenHome(CompositorConfigManager.userFiles);
     const module = Paths.shortenHome(CompositorConfigManager.includePath);
+    const compositor = CompositorManager.displayName;
     // Leaving a mode gives back what it took (CompositorConfigManager._leave)
     if (root.mode === "managed")
-      steps.push(I18n.tr("Gives {0} back: your previous one returns ({1}/00-previous.lua, or the example config's backup), else a new one that starts axiom and loads {1}/*.lua", hypr, user));
+      steps.push(I18n.tr("Gives {0} back: your previous one returns (in {1}, or the example config's backup), else a new one that starts axiom and loads {2}", hypr, user, files));
     if (root.mode === "included")
-      steps.push(I18n.tr("Empties {0}, so a hyprland.lua that still loads it gets nothing", module));
+      steps.push(I18n.tr("Empties {0}, so a config that still loads it gets nothing", module));
     if (root.pendingMode === "managed") {
       switch (CompositorConfigManager.managedCheck) {
       case "adopt":
-        steps.push(I18n.tr("Moves your {0} to {1}/00-previous.lua, with a dated backup beside it", hypr, user));
+        steps.push(I18n.tr("Moves your {0} into {1}, where it keeps working, with a dated backup beside it", hypr, user));
         break;
       case "stock":
-        steps.push(I18n.tr("Replaces Hyprland's example {0}, keeping a dated backup beside it: its binds and monitor rule would fight axiom's", hypr));
+        steps.push(I18n.tr("Replaces the example config {0}, keeping a dated backup beside it: its binds and monitor rule would fight axiom's", hypr));
         break;
       case "released":
         steps.push(I18n.tr("Replaces {0}, which axiom wrote when it last left managed mode", hypr));
@@ -78,19 +80,19 @@ FieldGroup {
         steps.push(I18n.tr("Takes back {0}, which axiom already wrote", hypr));
         break;
       case "":
-        steps.push(I18n.tr("Checking {0}…", Paths.shortenHome(Paths.hyprlandPath)));
+        steps.push(I18n.tr("Checking {0}…", Paths.shortenHome(CompositorConfigManager.configDir)));
         break;
       }
-      steps.push(I18n.tr("Writes {0} from the cards below, loading {1}/*.lua after it", hypr, user));
-      steps.push(I18n.tr("Reloads Hyprland"));
+      steps.push(I18n.tr("Writes {0} from the cards below, loading {1} after it", hypr, files));
+      steps.push(I18n.tr("Reloads {0}", compositor));
     } else if (root.pendingMode === "included") {
       steps.push(I18n.tr("Writes {0}", module));
-      steps.push(I18n.tr("Shows the lines to add to your hyprland.lua. Until you do, axiom applies its layer at runtime"));
+      steps.push(I18n.tr("Shows the lines to add to your config. Until you do, axiom applies its layer at runtime"));
     } else {
       steps.push(I18n.tr("Applies axiom's layer at runtime"));
     }
     if (root.mode === "managed")
-      steps.push(I18n.tr("Reloads Hyprland"));
+      steps.push(I18n.tr("Reloads {0}", compositor));
     return steps;
   }
 
@@ -134,7 +136,7 @@ FieldGroup {
 
       StyledText {
         visible: root.blocked
-        text: CompositorConfigManager.managedBlockedBy === "git" ? I18n.tr("{0} is inside the git repository at {1}, so axiom won't take it over. Use Included instead.", Paths.shortenHome(Paths.hyprlandPath), Paths.shortenHome(CompositorConfigManager.managedBlockedRepo)) : I18n.tr("{0} is a symlink or in a git repository, so axiom won't take it over. Use Included instead.", Paths.shortenHome(Paths.hyprlandPath))
+        text: CompositorConfigManager.managedBlockedBy === "git" ? I18n.tr("{0} is inside the git repository at {1}, so axiom won't take it over. Use Included instead.", Paths.shortenHome(CompositorConfigManager.configDir), Paths.shortenHome(CompositorConfigManager.managedBlockedRepo)) : I18n.tr("{0} is a symlink or in a git repository, so axiom won't take it over. Use Included instead.", Paths.shortenHome(Paths.hyprlandPath))
         textSize: Appearance.fontSize - 1
         wrapMode: Text.WordWrap
         Layout.fillWidth: true
@@ -180,7 +182,7 @@ FieldGroup {
     spacing: Widget.spacing
 
     StyledText {
-      text: I18n.tr("Add near the top of your hyprland.lua (anything after overrides axiom):")
+      text: I18n.tr("Add near the top of {0} (anything after overrides axiom):", Paths.shortenHome(CompositorConfigManager.managedPath))
       opacity: 0.7
       textSize: Appearance.fontSize - 2
       wrapMode: Text.WordWrap
@@ -216,7 +218,7 @@ FieldGroup {
     spacing: Widget.spacing
 
     StyledText {
-      text: I18n.tr("Your own settings go in {0}/*.lua.", Paths.shortenHome(CompositorConfigManager.userDir))
+      text: I18n.tr("Your own settings go in {0}.", Paths.shortenHome(CompositorConfigManager.userFiles))
       opacity: 0.7
       textSize: Appearance.fontSize - 2
       wrapMode: Text.WordWrap
@@ -232,7 +234,7 @@ FieldGroup {
 
   StyledText {
     visible: root.pendingMode !== "managed"
-    text: I18n.tr("Managed mode adds layout, decoration, keyboard and mouse settings.")
+    text: I18n.tr("Managed mode adds the compositor's own settings and what starts with the session.")
     opacity: 0.6
     textSize: Appearance.fontSize - 2
     wrapMode: Text.WordWrap

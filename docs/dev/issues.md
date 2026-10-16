@@ -20,13 +20,19 @@ Each entry is a `###` heading plus these four bullets, in this order (`scripts/c
 
 ### No sway or niri backend yet
 - **Where:** `services/CompositorManager.qml` (`backend`), `docs/dev/compositor/sway-backend.md`
-- **What:** Everything goes through `CompositorManager`, but only Hyprland has a backend. Under sway or niri, axiom runs with none: the bar, launcher and notifications work, but workspaces, windows, the dock's running apps, the keyboard layout and the window look are empty or do nothing. The plan for sway is in `sway-backend.md`; `scripts/dev/nested.sh` runs it nested.
+- **What:** Everything goes through `CompositorManager`, but only Hyprland has a backend. Under sway or niri, axiom runs with none: the bar, launcher and notifications work, but workspaces, windows, the dock's running apps, the keyboard layout and the window look are empty or do nothing. The settings are already compositor-neutral (Compositor, Keybinds, Monitors, WindowLook, Input, Session; `CompositorConfigManager` drives the modes through a backend's config writer); the plan for sway's backend and writer is in `sway-backend.md`; `scripts/dev/nested.sh` runs it nested.
 - **Size:** needs a plan
 - **Found:** 2026-10-16, while decoupling the shell from Hyprland
 
+### The onboarding's setup page is Hyprland's
+- **Where:** `components/surfaces/onboarding/pages/HyprlandPage.qml`, `services/OnboardingManager.qml` (`pages`, `configState`, `hyprlandSupported`, `detectHyprland`)
+- **What:** The config modes are neutral now, but the onboarding page that picks one is written for Hyprland (its intro about `~/.config/hypr` and the example config, the 0.55+ version check, the hyprland.conf note), so `OnboardingManager.pages` shows it only under Hyprland. Under sway the mode is set in Settings › Compositor only. The page needs the writer to supply its texts (config folder, example-config detection, version check) to show for every compositor with `configModes`.
+- **Size:** small
+- **Found:** 2026-10-16, while consolidating compositor settings
+
 ### Floating bars sit flush on the border without a backend
 - **Where:** `config/Bar.qml` (`enrichBarConfig`: `floatGap`), `services/CompositorManager.qml` (`gapsOut`)
-- **What:** A floating bar's automatic gap (`floatGap` -1) is the compositor's outer gaps (`CompositorManager.gapsOut`). With no backend (sway or niri today) `gapsOut` is all 0, so a floating bar sits flush against the border, as seen in nested sway. The sway backend's `gapsOut` (from `gaps outer`, `sway-backend.md`) should fix it there; decide what the gap is with no backend at all (a fixed default, or `Appearance.screenMargin`).
+- **What:** A floating bar's automatic gap (`floatGap` -1) is the compositor's outer gaps (`CompositorManager.gapsOut`). With no backend (sway or niri today) `gapsOut` is all 0, so a floating bar sits flush against the border, as seen in nested sway. The sway backend's `gapsOut` (from `gaps outer`, `sway-backend.md` › The config writer) should fix it there; decide what the gap is with no backend at all (a fixed default, or `Appearance.screenMargin`).
 - **Size:** small
 - **Found:** 2026-10-16, while testing layer order in nested sway
 

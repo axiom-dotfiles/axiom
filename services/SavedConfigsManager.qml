@@ -24,7 +24,7 @@ import qs.components.methods
  * config is first saved as "before-<name>", then the file's look and layout
  * replace the running ones), and exports the running config's look to the
  * home folder in the same format. Nothing loaded changes a takeover setting
- * (the schema's x-takeover: the Hyprland mode, lock screen, idle, polkit,
+ * (the schema's x-takeover: the compositor mode, lock screen, idle, polkit,
  * greeter; ConfigManager.restoreConfig keeps them).
  */
 QtObject {

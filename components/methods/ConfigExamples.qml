@@ -40,7 +40,7 @@ QtObject {
   }
 
   // A copy of `config` with every `x-takeover` setting (one that takes
-  // something over on this PC: the Hyprland mode, the lock screen, idle,
+  // something over on this PC: the compositor mode, the lock screen, idle,
   // polkit, the greeter) as it is in `current`. Loading a saved config or
   // the defaults never changes them: each is switched by its own card,
   // which does the takeover or gives it back. `paths`: takeoverPaths(schema)

@@ -145,11 +145,11 @@ def check_argv(env, argv, cwd):
         if not scratch(env.get("AXIOM_GREETER_ROOT", "")):
             deny("Never, while testing", "greeter_install.sh install/update/uninstall only with a scratch AXIOM_GREETER_ROOT=<dir>.")
 
-    # Hyprland claim on the live config
-    if name == "claim_hyprland.sh" and len(args) >= 2 and args[0] in {"claim", "release"}:
+    # A compositor claim (managed mode) on the live config: Hyprland's, sway's
+    if re.fullmatch(r"claim_\w+\.sh", name) and len(args) >= 2 and args[0] in {"claim", "release"}:
         target = resolve(args[1], cwd)
-        if target == HOME / ".config/hypr" or str(target).startswith(str(HOME / ".config") + "/") or target == HOME:
-            deny("Never, while testing", "claim_hyprland.sh claim/release only on a scratch dir, never the live Hyprland config.")
+        if str(target).startswith(str(HOME / ".config") + "/") or target == HOME / ".config" or target == HOME:
+            deny("Never, while testing", f"{name} claim/release only on a scratch dir, never the live compositor config.")
 
     # A theme integration's hookup on the real configs
     if name == "integration_hookup.py" or (name.startswith("python") and any(Path(a).name == "integration_hookup.py" for a in args)):
