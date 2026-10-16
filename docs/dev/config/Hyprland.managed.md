@@ -11,7 +11,6 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 
 - **`Hyprland.managed`** · object
   - Managed config: Written into hyprland.lua. Anything else goes in ~/.config/hypr/user/*.lua.
-  - x-showIf={"mode":"managed"}
 - **`Hyprland.managed.layout`** · string = "dwindle" · enum dwindle|master
   - Layout: How windows tile. For strips (Hyprland's scrolling columns), see Workspaces.
   - x-group="Layout", x-hypr="general.layout", x-hyprAlways=true

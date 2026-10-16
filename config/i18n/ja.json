@@ -817,7 +817,6 @@
     "included": "hyprland.lua からインクルード",
     "Managed config": "管理設定",
     "Key repeat delay": "キーリピートの遅延",
-    "Included from your hyprland.lua": "hyprland.lua からインクルード",
     "Launcher with text": "テキスト入りランチャー",
     "workspaceOverview": "ワークスペース一覧",
     "Gaps between windows": "ウィンドウ間の間隔",
@@ -922,7 +921,6 @@
     "Modifiers and key, joined by +: \"SUPER + SHIFT + space\".": "修飾キーとキーを + でつなぎます: \"SUPER + SHIFT + space\"。",
     "Move window to number": "ウィンドウを番号へ移動",
     "Edited on the Keybinds page.": "キーバインドページで編集します。",
-    "How axiom sets Hyprland up. Needs Hyprland 0.55+ with a Lua config.": "axiom による Hyprland の設定方法。Lua 設定の Hyprland 0.55 以降が必要です。",
     "Move window in a direction": "ウィンドウを方向へ移動",
     "Written into hyprland.lua. Anything else goes in ~/.config/hypr/user/*.lua.": "hyprland.lua に書き出されます。その他は ~/.config/hypr/user/*.lua に置きます。",
     "Send window to number": "ウィンドウを番号へ送る",
@@ -2935,6 +2933,9 @@
     "Compositor": "コンポジター",
     "Hyprland blurs what shows through a translucent surface, with its own blur (Compositor → Window look → Blur). It costs GPU time whenever what's behind or on a surface changes, more with a stronger blur and with windows blurred behind.": "半透明のサーフェス越しに見えるものを Hyprland が自身のぼかしでぼかします (コンポジター → ウィンドウの見た目 → ぼかし)。サーフェスの背後や上の内容が変わるたびに GPU を使い、ぼかしが強いほど、また背後のウィンドウもぼかすほど負荷が増えます。",
     "axiom is your desktop shell: the bar, notifications, launcher, lock screen, power menu and an overlay full of cards. A few steps set up the essentials. Everything applies as you go, and you can change all of it later in Settings.": "axiom はあなたのデスクトップシェルです。バー、通知、ランチャー、ロック画面、電源メニュー、そしてカードでいっぱいのオーバーレイを備えています。いくつかのステップで基本を設定します。変更はその場で適用され、後からすべて設定で変更できます。",
-    "Which apps should axiom open? Pick one that's installed, or type the command. Empty file manager and browser use your system's default.": "axiom で開くアプリはどれにしますか？インストール済みのものを選ぶか、コマンドを入力してください。ファイルマネージャーとブラウザは空欄ならシステムの既定を使います。"
+    "Which apps should axiom open? Pick one that's installed, or type the command. Empty file manager and browser use your system's default.": "axiom で開くアプリはどれにしますか？インストール済みのものを選ぶか、コマンドを入力してください。ファイルマネージャーとブラウザは空欄ならシステムの既定を使います。",
+    "How axiom sets your compositor up: its keybinds, monitors, window look and input.": "axiom がコンポジターをどう設定するか：キーバインド、モニター、ウィンドウの見た目、入力。",
+    "Hyprland's own options, written while axiom manages its config. Needs Hyprland 0.55+ with a Lua config.": "axiom が設定を管理している間に書き込まれる Hyprland 独自のオプション。Lua 設定の Hyprland 0.55 以降が必要です。",
+    "Included from your config": "自分の設定から読み込む"
   }
 }

@@ -4,7 +4,7 @@
 > **Reader:** `HyprlandConfig` (`config/HyprlandConfig.qml`)
 > **Schema:** `config/json/config.schema.json` → `properties.Hyprland` · category Compositor
 
-Hyprland: How axiom sets Hyprland up. Needs Hyprland 0.55+ with a Lua config.
+Hyprland: Hyprland's own options, written while axiom manages its config. Needs Hyprland 0.55+ with a Lua config.
 
 Each setting: `path` · type = default · enum/range/unit; then title: description; annotations; `read:` the reader member(s) (exact unless marked) and `in:` the files that use them.
 
@@ -19,25 +19,10 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - [`Hyprland.managed.autostart`](Hyprland.managed.autostart.md)
 - [`Hyprland.managed`](Hyprland.managed.md)
 
-### `Hyprland`
-
-- **`Hyprland.mode`** · string = "detached" · enum detached|included|managed
-  - Mode: Applies on Save. The status card says what the change will do.
-  - x-takeover=true, x-group="Setup", x-applyOnSave=true
-  - read: `HyprlandConfig.mode` · in: `components/surfaces/onboarding/pages/FinishPage.qml`, `services/HyprlandConfigManager.qml`, `services/OnboardingManager.qml`
-- **`Hyprland.requiredSettings`** · boolean = true
-  - Required settings: Lock restore after a shell restart, ignoring apps' requests to maximize themselves, and a workspace slide animation.
-  - x-group="Setup"
-  - read: `HyprlandConfig.requiredSettings` · in: `services/HyprlandConfigManager.qml`, `services/HyprlandRuntimeLayer.qml`
-
 ### Reader members
 
 Every public member of `HyprlandConfig`, with the files that use it.
 
-- `HyprlandConfig.mode` (string): "detached" | "included" | "managed"
-  - in: `components/surfaces/onboarding/pages/FinishPage.qml`, `services/HyprlandConfigManager.qml`, `services/OnboardingManager.qml`
-- `HyprlandConfig.requiredSettings` (bool)
-  - in: `services/HyprlandConfigManager.qml`, `services/HyprlandRuntimeLayer.qml`
 - `HyprlandConfig.binds` (var)
   - in: `components/surfaces/onboarding/pages/AppsPage.qml`, `components/surfaces/onboarding/pages/BindsTable.qml`, `services/EdgeMenuManager.qml`, `services/HyprlandBindMerge.qml`, `services/HyprlandConfigManager.qml`, `services/HyprlandRuntimeLayer.qml`, `services/KeybindManager.qml`
 - `HyprlandConfig.monitorProfiles` (var)

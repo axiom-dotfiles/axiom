@@ -104,7 +104,7 @@ QtObject {
     }
     const lines = HyprConfigLua.bindLines(plan.apply, bindCtx);
     const keys = plan.apply.map(bind => bind.key.trim());
-    if (HyprlandConfig.requiredSettings) {
+    if (CompositorConfig.requiredSettings) {
       const anim = (Array.isArray(animations?.[0]) ? animations[0] : []).find(a => a.name === "workspaces");
       lines.push(...HyprConfigLua.requiredLua(!anim?.overridden));
     }

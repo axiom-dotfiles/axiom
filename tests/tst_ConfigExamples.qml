@@ -192,26 +192,26 @@ TestCase {
 
   function test_takeover_paths() {
     const paths = ConfigExamples.takeoverPaths(schema).map(path => path.join("."));
-    for (const path of ["Hyprland.mode", "Lockscreen.mode", "Greeter.enabled", "Idle.enabled", "Polkit.enabled"])
+    for (const path of ["Compositor.mode", "Lockscreen.mode", "Greeter.enabled", "Idle.enabled", "Polkit.enabled"])
       verify(paths.includes(path), path);
   }
 
   function test_keep_takeovers() {
     const current = defaults();
-    current.Hyprland.mode = "managed";
+    current.Compositor.mode = "managed";
     current.Idle.enabled = true;
     current.Lockscreen.mode = "hyprlock";
     const loaded = defaults();
     loaded.Polkit.enabled = true;
     loaded.Workspaces.count = 4;
     const result = ConfigExamples.keepTakeovers(loaded, current, ConfigExamples.takeoverPaths(schema));
-    compare(result.Hyprland.mode, "managed");
+    compare(result.Compositor.mode, "managed");
     compare(result.Idle.enabled, true);
     compare(result.Lockscreen.mode, "hyprlock");
     compare(result.Polkit.enabled, false);
     // Everything else is the loaded config's, and the input is left as it was
     compare(result.Workspaces.count, 4);
-    compare(loaded.Hyprland.mode, "detached");
+    compare(loaded.Compositor.mode, "detached");
   }
 
   function test_pick_leaves_out_takeovers() {
@@ -267,11 +267,11 @@ TestCase {
     compare(snapshot.Appearance.wallpaper, "file:///walls/a%20b.png");
     compare(snapshot.Hyprland.binds, []);
     verify(snapshot.ThemeIntegrations === undefined, "machine sections are left out");
-    verify(snapshot.Hyprland.mode === undefined, "takeovers are left out");
+    verify(snapshot.Compositor?.mode === undefined, "takeovers are left out");
 
     const current = defaults();
     current.ThemeIntegrations.kitty = true;
-    current.Hyprland.mode = "managed";
+    current.Compositor.mode = "managed";
     current.Bars = [bar("main", "HDMI-A-1")];
     current.Appearance.wallpapers = {
       "HDMI-A-1": "file:///walls/mine.png"
@@ -285,7 +285,7 @@ TestCase {
     compare(restored.Appearance.theme, "nord");
     compare(restored.Hyprland.binds, []);
     compare(restored.ThemeIntegrations.kitty, true);
-    compare(restored.Hyprland.mode, "managed");
+    compare(restored.Compositor.mode, "managed");
     compare(restored.Bars[0].monitor, "HDMI-A-1");
     compare(restored.Appearance.wallpaper, "file:///walls/a%20b.png");
     compare(restored.Appearance.wallpapers, {

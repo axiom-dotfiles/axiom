@@ -1697,7 +1697,7 @@ TestCase {
     compare(config.Hyprland.look, undefined);
     compare(config.Hyprland.wallpaperDaemon, undefined);
     compare(config.Appearance.wallpaperDaemon, false);
-    compare(config.Hyprland.mode, "detached");
+    compare(config.Compositor.mode, "detached");
     compare(migrated.removed, []);
     compare(errors(config), []);
     // Idempotent: a config already moved keeps its WindowLook
@@ -1705,5 +1705,35 @@ TestCase {
       "version": 55
     })))).config;
     compare(again.WindowLook.gapsIn, 7);
+  }
+
+  function test_v57_compositor_setup_leaves_hyprland() {
+    const migrated = load({
+      "version": 56,
+      "Hyprland": {
+        "mode": "managed",
+        "requiredSettings": false,
+        "managed": {
+          "kbLayout": "de"
+        }
+      }
+    });
+    const config = migrated.config;
+    compare(config.Compositor.mode, "managed");
+    compare(config.Compositor.requiredSettings, false);
+    compare(config.Hyprland.mode, undefined);
+    compare(config.Hyprland.requiredSettings, undefined);
+    compare(config.Hyprland.managed.kbLayout, "de");
+    verify(migrated.changes.includes("Hyprland.mode -> Compositor.mode"));
+    compare(migrated.removed, []);
+    compare(errors(config), []);
+    // Idempotent: an already moved config keeps its Compositor values
+    const again = ConfigMigration.migrate(JSON.parse(JSON.stringify(Object.assign({}, config, {
+      "version": 56
+    })))).config;
+    compare(again.Compositor.mode, "managed");
+    compare(load({
+      "version": 56
+    }).config.Compositor.mode, "detached", "a config without the section gets the default");
   }
 }

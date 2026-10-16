@@ -15,7 +15,7 @@ import QtQuick
 QtObject {
   id: root
 
-  readonly property int currentVersion: 56
+  readonly property int currentVersion: 57
 
   /**
    * @param config  Parsed config.json (not modified)
@@ -139,6 +139,8 @@ QtObject {
       result = _v54ToV55(result, changes);
     if (version < 56)
       result = _v55ToV56(result, changes);
+    if (version < 57)
+      result = _v56ToV57(result, changes);
     result.version = Math.max(version, root.currentVersion);
 
     return {
@@ -1909,6 +1911,26 @@ QtObject {
         changes.push(`Hyprland.wallpaperDaemon -> Appearance.wallpaperDaemon = ${hypr.wallpaperDaemon}`);
       }
       delete hypr.wallpaperDaemon;
+    }
+    return config;
+  }
+
+  // How axiom sets the compositor up leaves the Hyprland section, so every
+  // compositor has the same setting (Hyprland.mode, .requiredSettings ->
+  // Compositor)
+  function _v56ToV57(config, changes) {
+    const hypr = config.Hyprland;
+    if (!hypr || typeof hypr !== "object")
+      return config;
+    for (const key of ["mode", "requiredSettings"]) {
+      if (hypr[key] === undefined)
+        continue;
+      config.Compositor = config.Compositor ?? {};
+      if (config.Compositor[key] === undefined) {
+        config.Compositor[key] = hypr[key];
+        changes.push(`Hyprland.${key} -> Compositor.${key}`);
+      }
+      delete hypr[key];
     }
     return config;
   }

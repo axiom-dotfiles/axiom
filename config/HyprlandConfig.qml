@@ -2,15 +2,12 @@ pragma Singleton
 import QtQuick
 import qs.services
 
-// Reader for the Hyprland section: how axiom sets Hyprland up
+// Reader for the Hyprland section: what axiom writes into Hyprland
 // (HyprlandConfigManager). Named HyprlandConfig because `Hyprland` is
 // Quickshell's singleton.
 QtObject {
   readonly property var _c: ConfigManager.config.Hyprland
 
-  // "detached" | "included" | "managed"
-  readonly property string mode: _c.mode
-  readonly property bool requiredSettings: _c.requiredSettings
   // [{ key, action, argument, description }]. Goes through a string so a
   // reload that leaves the list unchanged doesn't re-apply the binds.
   readonly property string _bindsJson: JSON.stringify(_c.binds)

@@ -33,7 +33,7 @@
     "$schema": { "type": "string", "x-settings": false },
     "version": {
       "type": "integer",
-      "default": 56,
+      "default": 57,
       "description": "Config format version, used for automatic migration.",
       "x-settings": false
     },
@@ -421,14 +421,14 @@
       }
     },
 
-    "Hyprland": {
+    "Compositor": {
       "type": "object",
       "x-category": "Compositor",
       "x-showIf": { "/$supports.configModes": true },
       "x-links": ["Keybinds", "Monitors"],
-      "x-card": "HyprlandStatus",
-      "title": "Hyprland",
-      "description": "How axiom sets Hyprland up. Needs Hyprland 0.55+ with a Lua config.",
+      "x-card": "CompositorStatus",
+      "title": "Compositor",
+      "description": "How axiom sets your compositor up: its keybinds, monitors, window look and input.",
       "additionalProperties": false,
       "properties": {
         "mode": {
@@ -437,7 +437,7 @@
           "title": "Mode",
           "x-group": "Setup",
           "enum": ["detached", "included", "managed"],
-          "x-enumLabels": { "detached": "Detached (nothing to set up)", "included": "Included from your hyprland.lua", "managed": "Managed by axiom" },
+          "x-enumLabels": { "detached": "Detached (nothing to set up)", "included": "Included from your config", "managed": "Managed by axiom" },
           "default": "detached",
           "x-applyOnSave": true,
           "description": "Applies on Save. The status card says what the change will do."
@@ -448,7 +448,18 @@
           "x-group": "Setup",
           "default": true,
           "description": "Lock restore after a shell restart, ignoring apps' requests to maximize themselves, and a workspace slide animation."
-        },
+        }
+      }
+    },
+
+    "Hyprland": {
+      "type": "object",
+      "x-category": "Compositor",
+      "x-showIf": { "/$compositor": "hyprland", "/Compositor.mode": "managed" },
+      "title": "Hyprland",
+      "description": "Hyprland's own options, written while axiom manages its config. Needs Hyprland 0.55+ with a Lua config.",
+      "additionalProperties": false,
+      "properties": {
         "binds": {
           "x-scope": "personal",
           "type": "array",
@@ -643,7 +654,6 @@
           "type": "object",
           "title": "Managed config",
           "description": "Written into hyprland.lua. Anything else goes in ~/.config/hypr/user/*.lua.",
-          "x-showIf": { "mode": "managed" },
           "additionalProperties": false,
           "x-order": ["layout", "preserveSplit", "smartSplit", "smartResizing", "forceSplit", "splitRatio", "masterSize", "masterOrientation", "masterNewStatus", "snap", "borderSize", "rounding", "dimInactive", "dimStrength", "dimSpecial", "shadow", "shadowRange", "shadowPower", "shadowThemed", "shadowColor", "animations", "animationPreset", "workspaceWraparound", "curves", "customAnimations", "kbLayout", "kbVariant", "kbOptions", "repeatRate", "repeatDelay", "numlockByDefault", "followMouse", "floatSwitchOverrideFocus", "accelProfile", "sensitivity", "leftHanded", "resizeOnBorder", "cursorTheme", "cursorSize", "cursorHideTimeout", "hideCursorOnKeyPress", "noWarps", "naturalScroll", "tapToClick", "disableWhileTyping", "touchpadScrollFactor", "hideLogo", "backgroundThemed", "backgroundColor", "focusOnActivate", "swallow", "swallowRegex", "closeSpecialOnEmpty", "hideSpecialOnWorkspaceChange", "workspaceBackAndForth", "mouseWakesScreen", "keyWakesScreen", "vrr", "scrollEventDelay", "xwaylandZeroScaling", "recommendedEnv", "env", "autostart"],
           "properties": {

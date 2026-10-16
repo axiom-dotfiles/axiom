@@ -223,7 +223,7 @@ QtObject {
       return;
     const config = ConfigManager.config;
     const managedSchema = ConfigManager.configSchema.properties.Hyprland.properties.managed;
-    const managed = config.Hyprland.mode === "managed" ? config.Hyprland.managed : undefined;
+    const managed = config.Compositor.mode === "managed" ? config.Hyprland.managed : undefined;
     const lua = HyprLua.greeterLua(config.Hyprland.monitors.profiles, managedSchema, managed, name => HyprConfigLua.hex(Theme.resolveColor(name)));
     HyprlandManager.runLua(lua.join("\n"));
     if (managed?.cursorTheme)

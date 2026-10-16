@@ -181,9 +181,9 @@ Singleton {
 
   // Applies the Hyprland mode (which may take over hyprland.lua) and closes
   function finish() {
-    if (hyprlandSupported && modeAllowed && chosenMode !== HyprlandConfig.mode)
+    if (hyprlandSupported && modeAllowed && chosenMode !== CompositorConfig.mode)
       SettingsManager.commitValues({
-        "Hyprland.mode": chosenMode
+        "Compositor.mode": chosenMode
       });
     close();
   }

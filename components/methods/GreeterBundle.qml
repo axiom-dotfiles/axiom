@@ -39,13 +39,16 @@ QtObject {
       appearance.wallpapers = wallpapers;
     }
     const hyprland = config.Hyprland ?? {};
+    const mode = config.Compositor?.mode;
+    out.Compositor = {
+      "mode": mode
+    };
     out.Hyprland = {
-      "mode": hyprland.mode,
       "monitors": {
         "profiles": JSON.parse(JSON.stringify(hyprland.monitors?.profiles ?? []))
       }
     };
-    if (hyprland.mode === "managed")
+    if (mode === "managed")
       out.Hyprland.managed = root.greeterOptions(managedSchema, hyprland.managed);
     return out;
   }

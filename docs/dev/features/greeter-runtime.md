@@ -13,7 +13,7 @@ This doc covers what runs at the login screen and the data it reads: the bundle 
 ### The bundle
 - `GreeterBundle.exportConfig` (pure) builds the bundle from:
   - the `Greeter`, `Appearance`, `General`, `Weather` and `Lockscreen` sections;
-  - `Hyprland.mode` and `monitors.profiles`;
+  - `Compositor.mode` and `Hyprland.monitors.profiles`;
   - in managed mode, the `Hyprland.managed` options marked `x-greeter` (keyboard, mouse, touchpad, cursor);
   - `theme.json` (`ThemeManager.currentTheme`);
   - each wallpaper showing (`ThemeManager.shownWallpapers`, exported as fixed ones in `fixed` mode, so the greeter shows what the desktop does), copied to `wallpapers/<md5 of its url>.<ext>` (cp + mv, stale ones removed). The bundle's `Appearance` names these copies.

@@ -5,7 +5,7 @@ import qs.config
 import qs.services
 import qs.components.reusable
 
-// The Hyprland category's first card (the section's `x-card`): whether
+// The Compositor section's first card (its `x-card`): whether
 // the mode is in effect and what it needs, and, while a new mode waits for
 // Save (`x-applyOnSave`), what saving will do
 FieldGroup {
@@ -14,7 +14,7 @@ FieldGroup {
   readonly property string mode: HyprlandConfigManager.mode
   readonly property string status: HyprlandConfigManager.status
   // The mode picked in the settings draft
-  readonly property string pendingMode: SettingsManager.localConfig?.Hyprland?.mode ?? root.mode
+  readonly property string pendingMode: SettingsManager.localConfig?.Compositor?.mode ?? root.mode
   readonly property bool pending: root.pendingMode !== root.mode
 
   function _checkPending() {

@@ -91,12 +91,13 @@ The public members (no `_` prefix) of every file in `services/` and every config
 - [BatteryConfig](api/BatteryConfig.md): Reader for the Battery section.
 - [CalendarConfig](api/CalendarConfig.md): Reader for the Calendar section (see CalendarManager).
 - [ChatConfig](api/ChatConfig.md): Reader for the Chat section.
+- [CompositorConfig](api/CompositorConfig.md): Reader for the Compositor section: how axiom sets the compositor up (HyprlandConfigManager on Hyprland)
 - [DesktopConfig](api/DesktopConfig.md): Reader for the Desktop section: overlay modules on the desktop, under the windows.
 - [DockConfig](api/DockConfig.md): Reader for the Dock section: any number of docks, each with its own place, pinned apps and behaviour (DockEntry in the schema).
 - [EdgeMenusConfig](api/EdgeMenusConfig.md): EdgeMenus: menus that pop out of a screen edge, holding overlay modules.
 - [General](api/General.md): Reader for the General section.
 - [GreeterConfig](api/GreeterConfig.md): Reader for the Greeter section: axiom as the greetd login screen (GreeterManager sets it up; in the greeter itself, this is the bundle it was handed).
-- [HyprlandConfig](api/HyprlandConfig.md): Reader for the Hyprland section: how axiom sets Hyprland up (HyprlandConfigManager).
+- [HyprlandConfig](api/HyprlandConfig.md): Reader for the Hyprland section: what axiom writes into Hyprland (HyprlandConfigManager).
 - [I18n](api/I18n.md): Translation and locale for the shell's text (General.language).
 - [IconsConfig](api/IconsConfig.md): Reader for the Icons section.
 - [Idle](api/Idle.md): Reader for the Idle section: hypridle, run by HypridleManager.

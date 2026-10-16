@@ -29,7 +29,7 @@ Walks a value along the schema.
   - Position matching is machine-only because a personal value such as a command must not land on another button.
 - `sparse(config, schema)`: drops what loading fills back in.
 - `keepTakeovers(config, current, paths)`: puts back the current value of every `x-takeover` setting.
-  - `takeoverPaths(schema)` is kept as `ConfigManager.takeoverPaths`: `Hyprland.mode`, `Lockscreen.mode`, `Greeter.enabled`, `Idle.enabled`, `Polkit.enabled`.
+  - `takeoverPaths(schema)` is kept as `ConfigManager.takeoverPaths`: `Compositor.mode`, `Lockscreen.mode`, `Greeter.enabled`, `Idle.enabled`, `Polkit.enabled`.
   - `ConfigManager.restoreConfig` applies it to everything it loads: a snapshot, the defaults, an example, an import.
   - Those settings take something over (hyprland.lua, the session's locker, hypridle, the polkit agent, greetd), so only their own cards switch them, doing the takeover or giving it back.
 - `snapshot(config, schema)`: what a saved snapshot holds: `pick(…, true)` plus the `x-snapshot` settings (`snapshotPaths`): the wallpapers, wallpaper folder and mode, rotation, light/dark wallpapers and the theme schedule. These are machine settings, but a snapshot restores on the PC it was saved on.

@@ -532,11 +532,11 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 
 - `CalendarAccountsCard.qml`: The Calendar section's first card (its `x-card`): the accounts as tabs, one shown at a time: its address and username, its password (to the keyring, or the secrets file without one: never the settings draft or config.js…
 - `ChatProvidersCard.qml`: The Chat category's first card (the section's `x-card`): each provider's API key (where it comes from, and a field to store one: in the keyring, or the secrets file without one), a connection test, and fetching its mode…
+- `CompositorStatusCard.qml`: The Compositor section's first card (its `x-card`): whether the mode is in effect and what it needs, and, while a new mode waits for Save (`x-applyOnSave`), what saving will do
 - `DockListCard.qml`: The Dock section's first card (its `x-card`): the docks as tabs, one shown at a time: where it sits (a screen picker with presets), Show, its pinned apps (with a search to add more) and its settings (EntryListCard).
 - `EntryListCard.qml`: A section's list of entries as one card (the Dock and OSD `x-card`s): the entries as tabs, one shown at a time: where it sits (a screen picker with `presets`), Show, Duplicate and Delete, then `entryContent` and its set…
 - `FoldingCard.qml`: A settings card that folds: clicking its header (title, help text, chevron) emits `toggled`, and the body below animates shut while `collapsed`.
 - `GreeterStatusCard.qml`: The Greeter section's first card (its `x-card`): whether axiom is the login screen, and setting it up, updating or removing it (GreeterSetup)
-- `HyprlandStatusCard.qml`: The Hyprland category's first card (the section's `x-card`): whether the mode is in effect and what it needs, and, while a new mode waits for Save (`x-applyOnSave`), what saving will do
 - `IdleStatusCard.qml`: The Idle section's first card (its `x-card`): whether axiom's hypridle is running, where its config is, and Restart
 - `LauncherPlace.qml`: The top of the Launcher card (the section's `x-intro`): where it opens, on a screen picker with presets, as a dock's or OSD's (EntryListCard), above the place fields it sets.
 - `NightLightStatus.qml`: The top of the Night light card (the section's `x-intro`): whether it's on, which tool runs it, and a switch to try the settings
@@ -667,12 +667,13 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `BatteryConfig.qml`: Reader for the Battery section.
 - `CalendarConfig.qml`: Reader for the Calendar section (see CalendarManager).
 - `ChatConfig.qml`: Reader for the Chat section.
+- `CompositorConfig.qml`: Reader for the Compositor section: how axiom sets the compositor up (HyprlandConfigManager on Hyprland)
 - `DesktopConfig.qml`: Reader for the Desktop section: overlay modules on the desktop, under the windows.
 - `DockConfig.qml`: Reader for the Dock section: any number of docks, each with its own place, pinned apps and behaviour (DockEntry in the schema).
 - `EdgeMenusConfig.qml`: EdgeMenus: menus that pop out of a screen edge, holding overlay modules.
 - `General.qml`: Reader for the General section.
 - `GreeterConfig.qml`: Reader for the Greeter section: axiom as the greetd login screen (GreeterManager sets it up; in the greeter itself, this is the bundle it was handed).
-- `HyprlandConfig.qml`: Reader for the Hyprland section: how axiom sets Hyprland up (HyprlandConfigManager).
+- `HyprlandConfig.qml`: Reader for the Hyprland section: what axiom writes into Hyprland (HyprlandConfigManager).
 - `I18n.qml`: Translation and locale for the shell's text (General.language).
 - `IconsConfig.qml`: Reader for the Icons section.
 - `Idle.qml`: Reader for the Idle section: hypridle, run by HypridleManager.

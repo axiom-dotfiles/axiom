@@ -20,7 +20,7 @@ TestCase {
       "HDMI-A-1": "file:///home/u/Pictures/b.png",
       "DP-2": "file:///home/u/Pictures/gone.png"
     };
-    config.Hyprland.mode = mode;
+    config.Compositor.mode = mode;
     config.Hyprland.managed.kbLayout = "us,de";
     config.Hyprland.managed.dimStrength = 9;
     config.Hyprland.monitors.profiles = [
@@ -44,10 +44,10 @@ TestCase {
 
   function test_export_takes_only_its_sections() {
     const bundle = GreeterBundle.exportConfig(config("detached"), managedSchema, copies);
-    compare(Object.keys(bundle).sort(), ["Appearance", "General", "Greeter", "Hyprland", "Lockscreen", "Weather", "version"]);
+    compare(Object.keys(bundle).sort(), ["Appearance", "Compositor", "General", "Greeter", "Hyprland", "Lockscreen", "Weather", "version"]);
     compare(bundle.Hyprland.monitors.profiles[0].name, "desk");
     compare(bundle.Hyprland.managed, undefined);
-    compare(bundle.Hyprland.mode, "detached");
+    compare(bundle.Compositor.mode, "detached");
   }
 
   function test_export_renames_wallpapers_to_copies() {

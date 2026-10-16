@@ -12,7 +12,7 @@ OnboardingPage {
   id: root
 
   readonly property string mode: OnboardingManager.chosenMode
-  readonly property bool changesMode: OnboardingManager.hyprlandSupported && OnboardingManager.modeAllowed && root.mode !== HyprlandConfig.mode
+  readonly property bool changesMode: OnboardingManager.hyprlandSupported && OnboardingManager.modeAllowed && root.mode !== CompositorConfig.mode
 
   title: I18n.tr("All set")
   intro: I18n.tr("That's the essentials. Press Finish to apply the Hyprland setup and start using axiom.")

@@ -3,12 +3,10 @@
 
 > **File:** `config/HyprlandConfig.qml` · **Docs:** see [docs/dev](../../README.md)
 
-Reader for the Hyprland section: how axiom sets Hyprland up (HyprlandConfigManager). Named HyprlandConfig because `Hyprland` is Quickshell's singleton.
+Reader for the Hyprland section: what axiom writes into Hyprland (HyprlandConfigManager). Named HyprlandConfig because `Hyprland` is Quickshell's singleton.
 
 ### Properties
 
-- `mode` (readonly string): "detached" | "included" | "managed"
-- `requiredSettings` (readonly bool)
 - `binds` (readonly var)
 - `monitorProfiles` (readonly var)
 - `managed` (readonly var)

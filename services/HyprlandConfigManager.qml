@@ -10,7 +10,7 @@ import qs.config
 import qs.components.methods
 
 /*
- * Sets Hyprland up for axiom (the Hyprland section, HyprlandConfig.mode).
+ * Sets Hyprland up for axiom (the Compositor section's mode, CompositorConfig.mode).
  * One Lua "layer" (binds, required settings, the window look, blur,
  * monitor profiles, strips) reaches
  * Hyprland in one of three ways:
@@ -31,7 +31,7 @@ import qs.components.methods
 Singleton {
   id: root
 
-  readonly property string mode: HyprlandConfig.mode
+  readonly property string mode: CompositorConfig.mode
   // Why the chosen mode isn't in effect, or ""
   readonly property string problem: _problem
   property string _problem: ""
@@ -159,7 +159,7 @@ Singleton {
     return HyprConfigLua.moduleLua({
       "header": _header,
       "includeLines": includeLines,
-      "requiredSettings": HyprlandConfig.requiredSettings,
+      "requiredSettings": CompositorConfig.requiredSettings,
       "binds": HyprConfigLua.bindLines(HyprlandConfig.binds, _bindCtx),
       "look": _lookLua(true),
       "blur": _blurLua(true),
@@ -513,7 +513,7 @@ Singleton {
   // Everything the layer is made of but the look and the blur; a change
   // re-applies it (in the file modes, rewriting the file, which reloads
   // Hyprland)
-  readonly property string _inputs: [mode, HyprlandConfig._bindsJson, HyprlandConfig._monitorsJson, HyprlandConfig._managedJson, WorkspacesConfig._stripsJson, HyprlandConfig.requiredSettings, Theme.baseColorNames.map(name => Theme.resolveColor(name)).join(","), Appearance.animFast, Appearance.animations, Apps.terminalCommand, Apps.fileManagerCommand, Apps.browserCommand, Idle.enabled, PolkitConfig.enabled].join("|")
+  readonly property string _inputs: [mode, HyprlandConfig._bindsJson, HyprlandConfig._monitorsJson, HyprlandConfig._managedJson, WorkspacesConfig._stripsJson, CompositorConfig.requiredSettings, Theme.baseColorNames.map(name => Theme.resolveColor(name)).join(","), Appearance.animFast, Appearance.animations, Apps.terminalCommand, Apps.fileManagerCommand, Apps.browserCommand, Idle.enabled, PolkitConfig.enabled].join("|")
   on_InputsChanged: _debounce.restart()
 
   // The window look and the blur behind axiom (paused over a fullscreen
