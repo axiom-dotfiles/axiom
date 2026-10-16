@@ -204,26 +204,43 @@ QtObject {
   }
 
   // Whether sway can bind it (and so whether the writer counts it complete):
-  // a line, or the floating modifier for a mouse drag or resize
+  // a line, or for a mouse drag or resize what sway's floating modifier can
+  // be (_floating)
   function isComplete(bind, ctx) {
     if (bind.action === "mouseDrag" || bind.action === "mouseResize")
-      return key(bind.key) !== null;
+      return _floating(bind) !== null;
     return bindLine(bind, ctx) !== "";
   }
 
+  // A mouse drag or resize bind as sway's floating modifier: { mod,
+  // inverse }, or null when sway can't do it. Sway has one modifier, held
+  // with the left or right button: `normal` drags with the left and
+  // resizes with the right, `inverse` the other way round.
+  function _floating(bind) {
+    const parts = KeyNames.split(bind?.key ?? "");
+    const mod = parts.mods.length === 1 ? root._modNames[parts.mods[0]] : undefined;
+    if (!mod || (parts.key !== "mouse:272" && parts.key !== "mouse:273"))
+      return null;
+    const right = parts.key === "mouse:273";
+    return {
+      "mod": mod,
+      "inverse": bind.action === "mouseDrag" ? right : !right
+    };
+  }
+
   /**
-   * Sway's floating_modifier for the mouse drag and resize binds: the
-   * modifier of the drag bind, `normal` when it drags with the left button
-   * (and resizes with the right), `inverse` the other way round. "" with no
-   * drag bind; sway has one modifier for both.
+   * Sway's floating_modifier for the mouse drag and resize binds: the drag
+   * bind's (else the resize bind's) modifier and buttons. "" with neither.
+   * A resize bind on another modifier, or on the same button as the drag,
+   * can't be had too: sway has one modifier for both.
    */
   function floatingModifier(binds) {
-    const drag = (binds ?? []).find(bind => bind.action === "mouseDrag" && key(bind.key) !== null);
-    if (!drag)
+    const mouse = (binds ?? []).filter(bind => (bind.action === "mouseDrag" || bind.action === "mouseResize") && _floating(bind) !== null);
+    const first = mouse.find(bind => bind.action === "mouseDrag") ?? mouse[0];
+    if (!first)
       return "";
-    const parts = KeyNames.split(drag.key);
-    const mod = root._modNames[parts.mods[0]];
-    return mod ? `floating_modifier ${mod} ${parts.key === "mouse:273" ? "inverse" : "normal"}` : "";
+    const f = _floating(first);
+    return `floating_modifier ${f.mod} ${f.inverse ? "inverse" : "normal"}`;
   }
 
   // Every complete bind's line (for a file, or with `runtime` to send now),

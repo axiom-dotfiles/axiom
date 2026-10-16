@@ -185,6 +185,35 @@ TestCase {
       }
     ]), "floating_modifier Mod1 inverse");
     compare(SwayConf.floatingModifier([]), "");
+    // A resize bind alone sets it too; resizing with the left button is
+    // sway's inverse
+    compare(SwayConf.floatingModifier([
+      {
+        "key": "SUPER + mouse:273",
+        "action": "mouseResize"
+      }
+    ]), "floating_modifier Mod4 normal");
+    compare(SwayConf.floatingModifier([
+      {
+        "key": "SUPER + mouse:272",
+        "action": "mouseResize"
+      }
+    ]), "floating_modifier Mod4 inverse");
+    // One modifier, the left or right button: else sway can't
+    verify(!SwayConf.isComplete({
+      "key": "SUPER + SHIFT + mouse:272",
+      "action": "mouseDrag"
+    }, ctx));
+    verify(!SwayConf.isComplete({
+      "key": "SUPER + mouse:274",
+      "action": "mouseDrag"
+    }, ctx));
+    compare(SwayConf.floatingModifier([
+      {
+        "key": "SUPER + mouse:274",
+        "action": "mouseDrag"
+      }
+    ]), "");
     verify(SwayConf.isComplete({
       "key": "SUPER + mouse:273",
       "action": "mouseResize"
