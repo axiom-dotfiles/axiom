@@ -33,7 +33,7 @@ Outputs and workspaces come live from Quickshell's `I3` module (as Hyprland's do
   - `focusRank`: the windows focused since axiom started (a JSON list in `PersistentProperties`), then the order sway's per-container focus stacks give (`SwayState.ranked`).
 - **outputs** (`SwayState.output`): `I3.monitors`; `description` = `make model serial` (the parts that aren't `Unknown`), sway's own identifier for an output; `reserved` = the output's rect minus its active workspace's (from the tree); `specialWorkspaceId` always 0.
 - **workspaces** (`SwayState.workspace`): `I3.workspaces` with a number; `windowCount` from the tree.
-- **gapsOut**: sway's IPC has no gaps. Read from its config (`get_config`, `SwayState.configInfo`): outer plus inner per edge, as sway leaves both at the screen edge; read again on every reload.
+- **gapsOut**: sway's IPC has no gaps. Read from its config with its includes (`scripts/sway_config_text.py`, `SwayState.configInfo`: `get_config` holds only the main file): outer plus inner per edge, as sway leaves both at the screen edge; read again on every reload.
 - **Keyboard**: `get_inputs`, the first keyboard named like one. Sway names layouts in full ("English (US)"): their short names come from `Input.kbLayout` when axiom sets the keyboard, else the config's `xkb_layout`, else from the name (`SwayState.keyboard`).
 
 ### Primitives

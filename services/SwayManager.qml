@@ -419,10 +419,14 @@ Singleton {
     });
   }
 
-  // The gaps and layouts sway's config sets (SwayState.configInfo)
+  // The gaps and layouts sway's config sets (SwayState.configInfo), its
+  // includes put in (get_config holds only the main file, so gaps set in
+  // an included one, as managed mode's user/ files are, went unseen)
   function _readConfig() {
-    SwayIpcManager.json("get_config", reply => {
-      const info = SwayState.configInfo(String(reply?.config ?? ""));
+    CommandManager.run([Paths.scriptsPath + "sway_config_text.py"], (code, out) => {
+      if (code !== 0)
+        return;
+      const info = SwayState.configInfo(out);
       root._gaps = info.gaps;
       root._configLayouts = info.layouts;
     });
