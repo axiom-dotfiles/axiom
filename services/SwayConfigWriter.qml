@@ -19,8 +19,10 @@ import qs.components.methods
  *   managed   ~/.config/sway/config itself, with the WindowBehaviour and
  *             Sway sections' options and the session, including
  *             ~/.config/sway/user/* after it (ConfigTakeover)
- * Monitor profiles aren't written: MonitorManager applies the one for
- * what's connected at start and on every hotplug.
+ * The file modes write the monitor profile for what's connected (a sway
+ * reload resets the outputs to what the config says); MonitorManager
+ * applies it at runtime too, at start, on every hotplug, and after a
+ * reload while no file of axiom's is loaded.
  */
 Singleton {
   id: root
@@ -98,22 +100,45 @@ Singleton {
     return SwayConf.inputLines(spec.input, ConfigManager.configSchema?.properties?.Input, live);
   }
 
-  // The included file, from `spec` (CompositorConfigManager.spec(true))
-  function moduleText(spec) {
+  // The saved monitor profile for what's connected (MonitorLayout.
+  // matchProfile, as MonitorManager applies it), as `output` lines: a sway
+  // reload sets the outputs as its config says, dropping what was set at
+  // runtime. null until MonitorManager has read the outputs, when the file
+  // keeps what it says (so a start doesn't write them out and back).
+  readonly property var _outputLines: {
+    if (!MonitorManager.outputsRead)
+      return null;
+    const outputs = MonitorManager.outputs;
+    const profiles = MonitorsConfig.profiles;
+    const index = MonitorLayout.matchProfile(profiles, outputs.filter(output => !output.disabled));
+    return index < 0 ? [] : SwayConf.outputLines(profiles[index].outputs.filter(rule => MonitorLayout.find(rule.output, outputs) !== null));
+  }
+
+  function _outputLinesIn(path) {
+    return _outputLines ?? SwayConf.fileOutputLines(FileManager.read(path));
+  }
+
+  function _moduleText(spec, path) {
     return SwayConf.moduleText({
       "header": _header,
       "includeLines": includeLines,
       "binds": SwayConf.bindLines(KeybindsConfig.binds, _bindCtx),
       "look": SwayConf.lookLines(spec.look, false),
-      "input": _inputLines(spec, false)
+      "input": _inputLines(spec, false),
+      "outputs": _outputLinesIn(path)
     });
+  }
+
+  // The included file, from `spec` (CompositorConfigManager.spec(true))
+  function moduleText(spec) {
+    return _moduleText(spec, includePath);
   }
 
   // The managed sway config, from `spec` as for moduleText
   function managedText(spec) {
     // reads: WindowBehaviour.*, Sway.*, Session.*
     const schema = ConfigManager.configSchema?.properties;
-    return SwayConf.managedText(moduleText(spec), {
+    return SwayConf.managedText(_moduleText(spec, managedPath), {
       "header": _header,
       "userDir": userDir,
       "options": SwayConf.optionLines(schema?.WindowBehaviour, WindowBehaviourConfig.behaviour).concat(SwayConf.optionLines(schema?.Sway, SwayConfig.options)),
@@ -139,7 +164,7 @@ Singleton {
 
   // Everything else the layer is made of (CompositorConfigManager re-applies
   // the layer when it changes)
-  readonly property string inputsKey: [WindowBehaviourConfig._behaviourJson, SwayConfig._optionsJson, Apps.terminalCommand, Apps.fileManagerCommand, Apps.browserCommand, Idle.enabled, PolkitConfig.enabled].join("|")
+  readonly property string inputsKey: [WindowBehaviourConfig._behaviourJson, SwayConfig._optionsJson, Apps.terminalCommand, Apps.fileManagerCommand, Apps.browserCommand, Idle.enabled, PolkitConfig.enabled, JSON.stringify(_outputLines)].join("|")
 
   // --- At runtime ---
 

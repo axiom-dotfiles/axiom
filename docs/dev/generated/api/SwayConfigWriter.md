@@ -3,7 +3,7 @@
 
 > **File:** `services/SwayConfigWriter.qml` · **Docs:** see [docs/dev](../../README.md)
 
-~/.config/sway/user/* after it (ConfigTakeover) Monitor profiles aren't written: MonitorManager applies the one for what's connected at start and on every hotplug.
+~/.config/sway/user/* after it (ConfigTakeover) The file modes write the monitor profile for what's connected (a sway reload resets the outputs to what the config says); MonitorManager applies it at runtime too, at start, on every hotplug, and after a reload while no file of axiom's is loaded.
 
 ### Properties
 

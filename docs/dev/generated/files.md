@@ -651,7 +651,7 @@ Every QML file with the first sentence of its purpose comment (the `//` block ab
 - `SettingsManager.qml`: The settings page's working copy of the config.
 - `ShellManager.qml`: Shell manager manages global options and signals
 - `StateManager.qml`: Small JSON state files in Paths.statePath: createStateHandler(name) gives a shared save/load handler per name.
-- `SwayConfigWriter.qml`: ~/.config/sway/user/* after it (ConfigTakeover) Monitor profiles aren't written: MonitorManager applies the one for what's connected at start and on every hotplug.
+- `SwayConfigWriter.qml`: ~/.config/sway/user/* after it (ConfigTakeover) The file modes write the monitor profile for what's connected (a sway reload resets the outputs to what the config says); MonitorManager applies it at runtime too, at star…
 - `SwayIpcManager.qml`: Requests to sway that want a reply, through swaymsg: what Quickshell.I3 doesn't cover (its I3.dispatch runs a command with no reply, and it has no window tree, inputs or outputs in full).
 - `SwayManager.qml`: CompositorManager's backend on sway (docs/dev/compositor/contract.md, docs/dev/compositor/sway-backend.md): sway's state as the compositor-neutral shapes (SwayState), and the primitives CompositorManager builds on.
 - `SwayRuntimeLayer.qml`: Axiom's sway layer sent at runtime, for SwayConfigWriter: the detached mode, and the fallback of the file modes while their file isn't loaded.

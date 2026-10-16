@@ -386,8 +386,8 @@ QtObject {
   // included one, or the managed config) is loaded: only the file defines it
   readonly property string loadedMode: "axiom_layer"
 
-  // The included file. `parts`: { header, includeLines, binds, look, input }
-  // (lines each)
+  // The included file. `parts`: { header, includeLines, binds, look, input,
+  // outputs } (lines each)
   function moduleText(parts) {
     const section = (title, lines) => lines.length > 0 ? `\n# ${title}\n${lines.join("\n")}\n` : "";
     return `${parts.header} from its settings, and rewritten whenever they (or
@@ -399,7 +399,7 @@ QtObject {
 
 # Tells axiom this file is loaded
 mode "${loadedMode}" bindsym --no-warn F35 mode default
-${section("Binds", parts.binds)}${section("Window borders and gaps", parts.look)}${section("Input", parts.input)}`;
+${section("Binds", parts.binds)}${section("Window borders and gaps", parts.look)}${section("Input", parts.input)}${section("Monitors", parts.outputs ?? [])}`;
   }
 
   /**
@@ -494,11 +494,22 @@ include ${quote(userDir + "/*")}
     return parts.join(" ");
   }
 
-  // Every rule's command, as one command line sway runs in order (disabled
+  // Every rule's command, in the order sway should run them (disabled
   // outputs last, so an output isn't turned off before another takes over)
-  function outputCommands(rules) {
+  function outputLines(rules) {
     const sorted = (rules ?? []).filter(rule => !rule.disabled).concat((rules ?? []).filter(rule => rule.disabled));
-    return sorted.map(rule => outputCommand(rule)).join("; ");
+    return sorted.map(rule => outputCommand(rule));
+  }
+
+  // outputLines as one command line, to run now
+  function outputCommands(rules) {
+    return outputLines(rules).join("; ");
+  }
+
+  // The `output` lines of a file axiom wrote (the included module or the
+  // managed config, which hold no output lines of the user's)
+  function fileOutputLines(text) {
+    return String(text ?? "").split("\n").filter(line => line.startsWith("output "));
   }
 
   // --- A user's sway config ---

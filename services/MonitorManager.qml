@@ -25,6 +25,10 @@ QtObject {
   // The outputs in detail (CompositorManager.withOutputDetails), disabled
   // ones included
   property var outputs: []
+  // Whether `outputs` has been read yet (a config writer keeps what its
+  // file says about the monitors until then)
+  readonly property bool outputsRead: _outputsRead
+  property bool _outputsRead: false
   readonly property var enabledOutputs: outputs.filter(monitor => !monitor.disabled)
 
   // --- The draft ---
@@ -351,8 +355,10 @@ QtObject {
     _reading = true;
     CompositorManager.withOutputDetails(outputs => {
       root._reading = false;
-      if (outputs)
+      if (outputs) {
         root.outputs = outputs;
+        root._outputsRead = true;
+      }
       if (root._applyProfilePending) {
         root._applyProfilePending = false;
         root._applySavedProfile();
@@ -420,6 +426,11 @@ QtObject {
       root._refreshSoon.restart();
     }
     function onConfigReloaded() {
+      // A reload sets the outputs as the compositor's config says. Without
+      // outputProfiles, only a file of axiom's that's loaded holds the
+      // profile (sway's writer writes it); otherwise it's applied again
+      if (!CompositorManager.supports.outputProfiles && CompositorConfigManager.status !== "loaded")
+        root._applyProfilePending = true;
       root._refreshSoon.restart();
     }
   }
@@ -439,6 +450,11 @@ QtObject {
       CompositorManager.applyOutputs(saved[index].outputs.filter(rule => root.monitorFor(rule) !== null), root.outputs);
   }
 
+  // Read as soon as the compositor is known to have monitors: created early
+  // in the shell's start, this can come before CompositorManager.supports
+  // is filled in, and a refresh then does nothing
+  readonly property bool _canRead: CompositorManager.supports.monitors === true
+  on_CanReadChanged: refresh()
   Component.onCompleted: refresh()
 
   // Recovers from a layout that can't be seen: `qs -c axiom ipc call

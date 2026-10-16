@@ -8,6 +8,7 @@ The Monitors page: the connected outputs (CompositorManager. withOutputDetails, 
 ### Properties
 
 - `outputs` (var): The outputs in detail (CompositorManager.withOutputDetails), disabled ones included
+- `outputsRead` (readonly bool): Whether `outputs` has been read yet (a config writer keeps what its file says about the monitors until then)
 - `enabledOutputs` (readonly var)
 - `profiles` (readonly var)
 - `isDirty` (readonly alias)

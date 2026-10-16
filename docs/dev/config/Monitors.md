@@ -13,7 +13,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 
 - **`Monitors.profiles`** · array<MonitorProfile> = []
   - Monitor layouts, one per set of connected monitors.
-  - read: `MonitorsConfig.profiles` (computed) · in: `services/HyprlandConfigWriter.qml`, `services/HyprlandRuntimeLayer.qml`, `services/MonitorManager.qml`
+  - read: `MonitorsConfig.profiles` (computed) · in: `services/HyprlandConfigWriter.qml`, `services/HyprlandRuntimeLayer.qml`, `services/MonitorManager.qml`, `services/SwayConfigWriter.qml`
 
 ### `Monitors.profiles[]`
 
@@ -21,20 +21,20 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 - **`Monitors.profiles[].name`** · string = ""
   - read: `MonitorsConfig.profiles` (whole) · in: `services/HyprlandRuntimeLayer.qml`, `services/MonitorManager.qml`
 - **`Monitors.profiles[].outputs`** · array<MonitorRule> = []
-  - read: `MonitorsConfig.profiles` (whole) · in: `services/MonitorManager.qml`
+  - read: `MonitorsConfig.profiles` (whole) · in: `services/MonitorManager.qml`, `services/SwayConfigWriter.qml`
 
 ### `Monitors.profiles[].outputs[]`
 
 - **`Monitors.profiles[].outputs[]`** · object
 - **`Monitors.profiles[].outputs[].output`** · string = ""
   - desc:<description>, or a connector name (DP-1).
-  - read: `MonitorsConfig.profiles` (whole) · in: `services/MonitorManager.qml`
+  - read: `MonitorsConfig.profiles` (whole) · in: `services/MonitorManager.qml`, `services/SwayConfigWriter.qml`
 - **`Monitors.profiles[].outputs[].label`** · string = ""
   - The connector it was last seen on, for display.
   - read: `MonitorsConfig.profiles` (whole) · in: `services/MonitorManager.qml`
 - **`Monitors.profiles[].outputs[].mode`** · string = "preferred"
   - WIDTHxHEIGHT@HZ, or preferred.
-  - read: `MonitorsConfig.profiles` (whole) · in: `services/HyprlandConfigWriter.qml`, `services/MonitorManager.qml`
+  - read: `MonitorsConfig.profiles` (whole) · in: `services/HyprlandConfigWriter.qml`, `services/MonitorManager.qml`, `services/SwayConfigWriter.qml`
 - **`Monitors.profiles[].outputs[].x`** · integer = 0
   - read: `MonitorsConfig.profiles` (whole) · in: `services/MonitorManager.qml`
 - **`Monitors.profiles[].outputs[].y`** · integer = 0
@@ -45,7 +45,7 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
   - Rotation in quarter turns, plus 4 when flipped.
   - read: entry field, name match · in: `components/views/monitors/MonitorInspector.qml`
 - **`Monitors.profiles[].outputs[].disabled`** · boolean = false
-  - read: `MonitorsConfig.profiles` (whole) · in: `services/MonitorManager.qml`
+  - read: `MonitorsConfig.profiles` (whole) · in: `services/MonitorManager.qml`, `services/SwayConfigWriter.qml`
 - **`Monitors.profiles[].outputs[].mirror`** · string = ""
   - The output (as in `output`) this one mirrors, or empty.
   - read: `MonitorsConfig.profiles` (whole) · in: `services/MonitorManager.qml`
@@ -66,4 +66,4 @@ Each setting: `path` · type = default · enum/range/unit; then title: descripti
 Every public member of `MonitorsConfig`, with the files that use it.
 
 - `MonitorsConfig.profiles` (var)
-  - in: `services/HyprlandConfigWriter.qml`, `services/HyprlandRuntimeLayer.qml`, `services/MonitorManager.qml`
+  - in: `services/HyprlandConfigWriter.qml`, `services/HyprlandRuntimeLayer.qml`, `services/MonitorManager.qml`, `services/SwayConfigWriter.qml`
